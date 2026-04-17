@@ -343,6 +343,8 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
     @ReplacesEagerProperty
     public abstract Property<String> getDocTitle();
 
+    public abstract void setDocTitle(String value);
+
     public StandardJavadocDocletOptions docTitle(String docTitle) {
         getDocTitle().set(docTitle);
         return this;
@@ -359,6 +361,8 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
     @Optional
     @ReplacesEagerProperty
     public abstract Property<String> getFooter();
+
+    public abstract void setFooter(String value);
 
     public StandardJavadocDocletOptions footer(String footer) {
         getFooter().set(footer);
@@ -377,6 +381,8 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
     @Optional
     @ReplacesEagerProperty
     public abstract Property<String> getBottom();
+
+    public abstract void setBottom(String value);
 
     public StandardJavadocDocletOptions bottom(String bottom) {
         getBottom().set(bottom);
@@ -406,6 +412,8 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
     @Optional
     @ReplacesEagerProperty
     public abstract ListProperty<String> getLinks();
+
+    public abstract void setLinks(List<String> value);
 
     public StandardJavadocDocletOptions links(String... links) {
         getLinks().addAll(Arrays.asList(links));
@@ -445,6 +453,8 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
     @Optional
     @ReplacesEagerProperty
     public abstract ListProperty<JavadocOfflineLink> getLinksOffline();
+
+    public abstract void setLinksOffline(List<JavadocOfflineLink> value);
 
     public StandardJavadocDocletOptions linksOffline(String extDocUrl, String packageListLoc) {
         getLinksOffline().add(new JavadocOfflineLink(extDocUrl, packageListLoc));
@@ -538,6 +548,8 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
     @Optional
     @ReplacesEagerProperty
     public abstract MapProperty<String, List<String>> getGroups();
+
+    public abstract void setGroups(Map<String, List<String>> value);
 
     public StandardJavadocDocletOptions group(Map<String, List<String>> groups) {
         getGroups().putAll(groups);
@@ -776,6 +788,8 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
     @ReplacesEagerProperty
     public abstract RegularFileProperty getHelpFile();
 
+    public abstract void setHelpFile(File value);
+
     public StandardJavadocDocletOptions helpFile(File helpFile) {
         getHelpFile().set(helpFile);
         return this;
@@ -793,6 +807,8 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
     @Optional
     @ReplacesEagerProperty
     public abstract RegularFileProperty getStylesheetFile();
+
+    public abstract void setStylesheetFile(File value);
 
     public StandardJavadocDocletOptions stylesheetFile(File stylesheetFile) {
         getStylesheetFile().set(stylesheetFile);
@@ -849,6 +865,8 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
     @ReplacesEagerProperty
     public abstract Property<String> getCharSet();
 
+    public abstract void setCharSet(String value);
+
     public StandardJavadocDocletOptions charSet(String charSet) {
         getCharSet().set(charSet);
         return this;
@@ -867,6 +885,8 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
     @Optional
     @ReplacesEagerProperty
     public abstract Property<String> getDocEncoding();
+
+    public abstract void setDocEncoding(String value);
 
     public StandardJavadocDocletOptions docEncoding(String docEncoding) {
         getDocEncoding().set(docEncoding);
@@ -907,6 +927,8 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
     @ReplacesEagerProperty
     public abstract ListProperty<String> getTags();
 
+    public abstract void setTags(List<String> value);
+
     public StandardJavadocDocletOptions tags(List<String> tags) {
         getTags().addAll(tags);
         return this;
@@ -927,6 +949,8 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
     @Optional
     @ReplacesEagerProperty
     public abstract ListProperty<String> getTaglets();
+
+    public abstract void setTaglets(List<String> value);
 
     public StandardJavadocDocletOptions taglets(List<String> taglets) {
         getTaglets().addAll(taglets);
@@ -988,6 +1012,8 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
     @ReplacesEagerProperty
     public abstract ListProperty<String> getExcludeDocFilesSubDir();
 
+    public abstract void setExcludeDocFilesSubDir(List<String> value);
+
     public StandardJavadocDocletOptions excludeDocFilesSubDir(List<String> excludeDocFilesSubDir) {
         getExcludeDocFilesSubDir().addAll(excludeDocFilesSubDir);
         return this;
@@ -1004,6 +1030,8 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
     @Optional
     @ReplacesEagerProperty
     public abstract ListProperty<String> getNoQualifiers();
+
+    public abstract void setNoQualifiers(List<String> value);
 
     public StandardJavadocDocletOptions noQualifier(List<String> noQualifiers) {
         getNoQualifiers().addAll(noQualifiers);

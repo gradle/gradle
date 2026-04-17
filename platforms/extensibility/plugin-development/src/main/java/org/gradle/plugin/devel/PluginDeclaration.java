@@ -45,8 +45,12 @@ public abstract class PluginDeclaration implements Named {
     @ReplacesEagerProperty
     public abstract Property<String> getId();
 
+    public abstract void setId(String value);
+
     @ReplacesEagerProperty
     public abstract Property<String> getImplementationClass();
+
+    public abstract void setImplementationClass(String value);
 
     /**
      * Returns the display name for this plugin declaration.
@@ -59,6 +63,8 @@ public abstract class PluginDeclaration implements Named {
     @ReplacesEagerProperty
     public abstract Property<String> getDisplayName();
 
+    public abstract void setDisplayName(String value);
+
     /**
      * Returns the description for this plugin declaration.
      *
@@ -69,6 +75,8 @@ public abstract class PluginDeclaration implements Named {
      */
     @ReplacesEagerProperty
     public abstract Property<String> getDescription();
+
+    public abstract void setDescription(String value);
 
     /**
      * Returns the tags property for this plugin declaration.

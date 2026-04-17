@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 package org.gradle.api.plugins.quality;
-
+import java.util.Map;
 import org.gradle.api.Incubating;
 import org.gradle.api.Project;
 import org.gradle.api.file.DirectoryProperty;
@@ -87,6 +87,8 @@ public abstract class CheckstyleExtension extends CodeQualityExtension {
      */
     @ReplacesEagerProperty
     public abstract MapProperty<String, Object> getConfigProperties();
+
+    public abstract void setConfigProperties(Map<String, Object> value);
 
     /**
      * Path to other Checkstyle configuration files. By default, this path is {@code $rootProject.projectDir/config/checkstyle}

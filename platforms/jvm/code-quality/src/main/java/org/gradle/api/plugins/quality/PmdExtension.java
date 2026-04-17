@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 package org.gradle.api.plugins.quality;
-
+import java.util.List;
 import org.gradle.api.Project;
 import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.provider.ProviderApiDeprecationLogger;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
@@ -57,6 +58,8 @@ public abstract class PmdExtension extends CodeQualityExtension {
      */
     @ReplacesEagerProperty
     public abstract ListProperty<String> getRuleSets();
+
+    public abstract void setRuleSets(List<String> value);
 
     /**
      * Convenience method for adding rule sets.
@@ -142,6 +145,8 @@ public abstract class PmdExtension extends CodeQualityExtension {
      */
     @ReplacesEagerProperty
     public abstract ConfigurableFileCollection getRuleSetFiles();
+
+    public abstract void setRuleSetFiles(FileCollection value);
 
     /**
      * Convenience method for adding rule set files.

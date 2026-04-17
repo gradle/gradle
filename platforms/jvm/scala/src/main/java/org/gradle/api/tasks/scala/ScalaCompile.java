@@ -18,6 +18,7 @@ package org.gradle.api.tasks.scala;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.tasks.compile.daemon.ProcessIsolatedCompilerWorkerExecutor;
 import org.gradle.api.internal.tasks.scala.ScalaCompilerFactory;
@@ -57,6 +58,8 @@ public abstract class ScalaCompile extends AbstractScalaCompile {
     @ReplacesEagerProperty
     public abstract ConfigurableFileCollection getScalaClasspath();
 
+    public abstract void setScalaClasspath(FileCollection value);
+
     /**
      * Returns the Scala compiler plugins to use.
      *
@@ -65,6 +68,8 @@ public abstract class ScalaCompile extends AbstractScalaCompile {
     @Classpath
     @ReplacesEagerProperty
     public abstract ConfigurableFileCollection getScalaCompilerPlugins();
+
+    public abstract void setScalaCompilerPlugins(FileCollection value);
 
     @Override
     protected ScalaJavaJointCompileSpec createSpec() {
@@ -87,6 +92,8 @@ public abstract class ScalaCompile extends AbstractScalaCompile {
     @Classpath
     @ReplacesEagerProperty
     public abstract ConfigurableFileCollection getZincClasspath();
+
+    public abstract void setZincClasspath(FileCollection value);
 
     /**
      * For testing only.

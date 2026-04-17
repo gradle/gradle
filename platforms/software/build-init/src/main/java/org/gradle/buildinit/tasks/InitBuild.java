@@ -140,6 +140,8 @@ public abstract class InitBuild extends DefaultTask {
     @Option(option = "type", description = "Set the type of project to generate.")
     public abstract Property<String> getType();
 
+    public abstract void setType(String value);
+
     /**
      * Should the build be split into multiple subprojects?
      *
@@ -163,6 +165,8 @@ public abstract class InitBuild extends DefaultTask {
     @ReplacesEagerProperty
     @Option(option = "dsl", description = "Set the build script DSL to be used in generated scripts.")
     public abstract Property<String> getDsl();
+
+    public abstract void setDsl(String value);
 
     /**
      * Can the generated build use new and unstable features?
@@ -217,6 +221,8 @@ public abstract class InitBuild extends DefaultTask {
     @ReplacesEagerProperty
     public abstract Property<String> getProjectName();
 
+    public abstract void setProjectName(String value);
+
     /**
      * The name of the package to use for generated source.
      *
@@ -228,6 +234,8 @@ public abstract class InitBuild extends DefaultTask {
     @Option(option = "package", description = "Set the package for source files.")
     public abstract Property<String> getPackageName();
 
+    public abstract void setPackageName(String value);
+
     /**
      * The test framework to be used in the generated project.
      */
@@ -236,6 +244,8 @@ public abstract class InitBuild extends DefaultTask {
     @ReplacesEagerProperty
     @Option(option = "test-framework", description = "Set the test framework to be used.")
     public abstract Property<String> getTestFramework();
+
+    public abstract void setTestFramework(String value);
 
     /**
      * How to handle insecure (http) URLs used for Maven Repositories.

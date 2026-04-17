@@ -98,4 +98,6 @@ public abstract class CodeNarcExtension extends CodeQualityExtension {
      */
     @ReplacesEagerProperty
     public abstract Property<String> getReportFormat();
+
+    public abstract void setReportFormat(String value);
 }

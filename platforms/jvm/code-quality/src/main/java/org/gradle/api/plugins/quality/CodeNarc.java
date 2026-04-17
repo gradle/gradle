@@ -18,6 +18,7 @@ package org.gradle.api.plugins.quality;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.plugins.quality.internal.CodeNarcAction;
 import org.gradle.api.plugins.quality.internal.CodeNarcActionParameters;
@@ -135,6 +136,8 @@ public abstract class CodeNarc extends AbstractCodeQualityTask implements Report
     @ReplacesEagerProperty
     public abstract ConfigurableFileCollection getCodenarcClasspath();
 
+    public abstract void setCodenarcClasspath(FileCollection value);
+
     /**
      * The class path to be used by CodeNarc when compiling classes during analysis.
      *
@@ -143,6 +146,8 @@ public abstract class CodeNarc extends AbstractCodeQualityTask implements Report
     @Classpath
     @ReplacesEagerProperty
     public abstract ConfigurableFileCollection getCompilationClasspath();
+
+    public abstract void setCompilationClasspath(FileCollection value);
 
     /**
      * The CodeNarc configuration to use. Replaces the {@code configFile} property.

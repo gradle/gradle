@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 package org.gradle.api.tasks.compile;
-
+import java.util.List;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Input;
@@ -39,6 +39,8 @@ public abstract class BaseForkOptions implements Serializable {
     @ReplacesEagerProperty
     public abstract Property<String> getMemoryInitialSize();
 
+    public abstract void setMemoryInitialSize(String value);
+
     /**
      * Returns the maximum heap size for the compiler process.
      * Defaults to {@code null}, in which case the JVM's default will be used.
@@ -46,6 +48,8 @@ public abstract class BaseForkOptions implements Serializable {
     @Internal
     @ReplacesEagerProperty
     public abstract Property<String> getMemoryMaximumSize();
+
+    public abstract void setMemoryMaximumSize(String value);
 
     /**
      * Returns any additional JVM arguments for the compiler process.
@@ -55,4 +59,6 @@ public abstract class BaseForkOptions implements Serializable {
     @Input
     @ReplacesEagerProperty
     public abstract ListProperty<String> getJvmArgs();
+
+    public abstract void setJvmArgs(List<String> value);
 }

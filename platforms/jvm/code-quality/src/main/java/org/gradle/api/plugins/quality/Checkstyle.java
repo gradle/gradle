@@ -17,10 +17,12 @@ package org.gradle.api.plugins.quality;
 
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
+import java.util.Map;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.provider.ProviderApiDeprecationLogger;
 import org.gradle.api.plugins.quality.internal.CheckstyleAction;
@@ -194,12 +196,16 @@ public abstract class Checkstyle extends AbstractCodeQualityTask implements Repo
     @ReplacesEagerProperty
     public abstract ConfigurableFileCollection getCheckstyleClasspath();
 
+    public abstract void setCheckstyleClasspath(FileCollection value);
+
     /**
      * The class path containing the compiled classes for the source files to be analyzed.
      */
     @Classpath
     @ReplacesEagerProperty
     public abstract ConfigurableFileCollection getClasspath();
+
+    public abstract void setClasspath(FileCollection value);
 
     /**
      * The Checkstyle configuration to use. Replaces the {@code configFile} property.
@@ -227,6 +233,8 @@ public abstract class Checkstyle extends AbstractCodeQualityTask implements Repo
     @Input
     @ReplacesEagerProperty
     public abstract MapProperty<String, Object> getConfigProperties();
+
+    public abstract void setConfigProperties(Map<String, Object> value);
 
     /**
      * Path to other Checkstyle configuration files.

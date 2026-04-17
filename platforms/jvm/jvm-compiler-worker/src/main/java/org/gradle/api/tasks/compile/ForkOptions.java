@@ -46,6 +46,8 @@ public abstract class ForkOptions extends ProviderAwareCompilerDaemonForkOptions
     @ReplacesEagerProperty
     public abstract Property<String> getExecutable();
 
+    public abstract void setExecutable(String value);
+
     /**
      * Returns the Java home which contains the compiler to use.
      * <p>
@@ -79,4 +81,6 @@ public abstract class ForkOptions extends ProviderAwareCompilerDaemonForkOptions
     @Internal
     @ReplacesEagerProperty
     public abstract Property<String> getTempDir();
+
+    public abstract void setTempDir(String value);
 }

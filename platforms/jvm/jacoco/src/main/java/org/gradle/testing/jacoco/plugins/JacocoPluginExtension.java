@@ -81,6 +81,8 @@ public abstract class JacocoPluginExtension {
     @ReplacesEagerProperty
     public abstract Property<String> getToolVersion();
 
+    public abstract void setToolVersion(String value);
+
     /**
      * The directory where reports will be generated.
      *

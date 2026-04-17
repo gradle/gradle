@@ -131,6 +131,8 @@ public abstract class WriteProperties extends DefaultTask {
     @ReplacesEagerProperty
     public abstract Property<String> getLineSeparator();
 
+    public abstract void setLineSeparator(String value);
+
     /**
      * The optional comment to add at the beginning of the properties file.
      */
@@ -139,6 +141,8 @@ public abstract class WriteProperties extends DefaultTask {
     @ReplacesEagerProperty
     public abstract Property<String> getComment();
 
+    public abstract void setComment(String value);
+
     /**
      * The encoding used to write the properties file. Defaults to {@literal ISO_8859_1}.
      * If set to anything different, unicode escaping is turned off.
@@ -146,6 +150,8 @@ public abstract class WriteProperties extends DefaultTask {
     @Input
     @ReplacesEagerProperty
     public abstract Property<String> getEncoding();
+
+    public abstract void setEncoding(String value);
 
     /**
      * The output properties file.

@@ -62,6 +62,7 @@ import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
@@ -144,6 +145,8 @@ public abstract class AntlrTask extends SourceTask {
     @ReplacesEagerProperty
     public abstract Property<String> getMaxHeapSize();
 
+    public abstract void setMaxHeapSize(String value);
+
     /**
      * List of command-line arguments passed to the antlr process
      *
@@ -152,6 +155,8 @@ public abstract class AntlrTask extends SourceTask {
     @Input
     @ReplacesEagerProperty
     public abstract ListProperty<String> getArguments();
+
+    public abstract void setArguments(List<String> value);
 
     /**
      * Returns the directory to generate the parser source files into.
@@ -162,6 +167,8 @@ public abstract class AntlrTask extends SourceTask {
     @ReplacesEagerProperty
     public abstract DirectoryProperty getOutputDirectory();
 
+    public abstract void setOutputDirectory(File value);
+
     /**
      * Returns the classpath containing the Ant ANTLR task implementation.
      *
@@ -170,6 +177,8 @@ public abstract class AntlrTask extends SourceTask {
     @Classpath
     @ReplacesEagerProperty
     public abstract ConfigurableFileCollection getAntlrClasspath();
+
+    public abstract void setAntlrClasspath(FileCollection value);
 
     @Inject
     protected abstract WorkerProcessFactory getWorkerProcessBuilderFactory();

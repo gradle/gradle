@@ -144,6 +144,8 @@ public abstract class War extends Jar {
     @ReplacesEagerProperty
     public abstract RegularFileProperty getWebXml();
 
+    public abstract void setWebXml(File value);
+
     /**
      * Returns the app directory of the task. Added to the output web archive by default.
      * <p>

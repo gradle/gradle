@@ -17,6 +17,7 @@ package org.gradle.testing.jacoco.tasks;
 
 import org.gradle.api.DefaultTask;
 import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 import org.gradle.work.DisableCachingByDefault;
@@ -33,4 +34,6 @@ public abstract class JacocoBase extends DefaultTask {
     @Classpath
     @ReplacesEagerProperty
     public abstract ConfigurableFileCollection getJacocoClasspath();
+
+    public abstract void setJacocoClasspath(FileCollection value);
 }

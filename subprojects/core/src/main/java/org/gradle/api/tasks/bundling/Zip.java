@@ -83,6 +83,8 @@ public abstract class Zip extends AbstractArchiveTask {
     @ReplacesEagerProperty
     public abstract Property<ZipEntryCompression> getEntryCompression();
 
+    public abstract void setEntryCompression(ZipEntryCompression value);
+
     /**
      * Whether the zip can contain more than 65535 files and/or support files greater than 4GB in size.
      * <p>
@@ -118,4 +120,6 @@ public abstract class Zip extends AbstractArchiveTask {
     @Input
     @ReplacesEagerProperty
     public abstract Property<String> getMetadataCharset();
+
+    public abstract void setMetadataCharset(String value);
 }

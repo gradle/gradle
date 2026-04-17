@@ -36,6 +36,7 @@ import org.gradle.internal.serialization.Transient;
 import org.gradle.work.DisableCachingByDefault;
 
 import javax.inject.Inject;
+import java.io.File;
 import java.util.Objects;
 
 import static java.util.Collections.singleton;
@@ -81,6 +82,8 @@ public abstract class ConventionReportTask extends ConventionTask {
     @OutputFile
     @ReplacesEagerProperty
     public abstract RegularFileProperty getOutputFile();
+
+    public abstract void setOutputFile(File value);
 
     /**
      * Returns the set of project to generate this report for. By default, the report is generated for the task's

@@ -16,6 +16,7 @@
 
 package org.gradle.api.tasks.testing.junitplatform;
 
+import java.util.Set;
 import org.gradle.api.provider.SetProperty;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.testing.TestFrameworkOptions;
@@ -84,15 +85,23 @@ public abstract class JUnitPlatformOptions extends TestFrameworkOptions {
     @ReplacesEagerProperty
     public abstract SetProperty<String> getIncludeEngines();
 
+    public abstract void setIncludeEngines(Set<String> value);
+
     @Input
     @ReplacesEagerProperty
     public abstract SetProperty<String> getIncludeTags();
+
+    public abstract void setIncludeTags(Set<String> value);
 
     @Input
     @ReplacesEagerProperty
     public abstract SetProperty<String> getExcludeEngines();
 
+    public abstract void setExcludeEngines(Set<String> value);
+
     @Input
     @ReplacesEagerProperty
     public abstract SetProperty<String> getExcludeTags();
+
+    public abstract void setExcludeTags(Set<String> value);
 }

@@ -21,7 +21,7 @@ import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
-
+import java.io.File;
 import java.util.Collection;
 
 /**
@@ -38,6 +38,8 @@ public abstract class CodeQualityExtension {
      */
     @ReplacesEagerProperty
     public abstract Property<String> getToolVersion();
+
+    public abstract void setToolVersion(String value);
 
     /**
      * The source sets to be analyzed as part of the <code>check</code> and <code>build</code> tasks.
@@ -64,4 +66,6 @@ public abstract class CodeQualityExtension {
      */
     @ReplacesEagerProperty
     public abstract DirectoryProperty getReportsDir();
+
+    public abstract void setReportsDir(File value);
 }

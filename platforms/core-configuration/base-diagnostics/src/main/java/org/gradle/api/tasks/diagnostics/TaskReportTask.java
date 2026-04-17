@@ -112,6 +112,8 @@ public abstract class TaskReportTask extends ConventionReportTask {
     @ReplacesEagerProperty
     public abstract Property<String> getDisplayGroup();
 
+    public abstract void setDisplayGroup(String value);
+
     /**
      * Returns the task groups to be displayed.
      *

@@ -30,7 +30,7 @@ import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.scala.IncrementalCompileOptions;
 import org.gradle.api.tasks.scala.ScalaForkOptions;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
-
+import java.util.List;
 import javax.inject.Inject;
 import java.io.Serializable;
 
@@ -109,6 +109,8 @@ public abstract class BaseScalaCompileOptions implements Serializable {
     @ReplacesEagerProperty
     public abstract Property<String> getDebugLevel();
 
+    public abstract void setDebugLevel(String value);
+
     /**
      * Run optimizations.
      */
@@ -130,6 +132,8 @@ public abstract class BaseScalaCompileOptions implements Serializable {
     @Input
     @ReplacesEagerProperty
     public abstract Property<String> getEncoding();
+
+    public abstract void setEncoding(String value);
 
     /**
      * Whether to force the compilation of all files.
@@ -159,6 +163,8 @@ public abstract class BaseScalaCompileOptions implements Serializable {
     @ReplacesEagerProperty
     public abstract ListProperty<String> getAdditionalParameters();
 
+    public abstract void setAdditionalParameters(List<String> value);
+
     /**
      * List files to be compiled.
      */
@@ -181,6 +187,8 @@ public abstract class BaseScalaCompileOptions implements Serializable {
     @ReplacesEagerProperty
     public abstract Property<String> getLoggingLevel();
 
+    public abstract void setLoggingLevel(String value);
+
     /**
      * Phases of the compiler to log.
      * Legal values: namer, typer, pickler, uncurry, tailcalls, transmatch, explicitouter, erasure,
@@ -189,6 +197,8 @@ public abstract class BaseScalaCompileOptions implements Serializable {
     @Console
     @ReplacesEagerProperty
     public abstract ListProperty<String> getLoggingPhases();
+
+    public abstract void setLoggingPhases(List<String> value);
 
     /**
      * Options for running the Scala compiler in a separate process.

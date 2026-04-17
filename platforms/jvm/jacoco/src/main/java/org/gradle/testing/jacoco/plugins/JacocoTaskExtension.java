@@ -42,6 +42,7 @@ import org.jspecify.annotations.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 import java.util.Collection;
+import java.util.List;
 import java.util.Locale;
 
 /**
@@ -139,6 +140,8 @@ public abstract class JacocoTaskExtension {
     @ReplacesEagerProperty
     public abstract ListProperty<String> getIncludes();
 
+    public abstract void setIncludes(List<String> value);
+
     /**
      * List of class names that should be excluded from analysis. Names can use wildcard (* and ?). Defaults to an empty list.
      */
@@ -147,6 +150,8 @@ public abstract class JacocoTaskExtension {
     @ReplacesEagerProperty
     public abstract ListProperty<String> getExcludes();
 
+    public abstract void setExcludes(List<String> value);
+
     /**
      * List of classloader names that should be excluded from analysis. Names can use wildcards (* and ?). Defaults to an empty list.
      */
@@ -154,6 +159,8 @@ public abstract class JacocoTaskExtension {
     @Input
     @ReplacesEagerProperty
     public abstract ListProperty<String> getExcludeClassLoaders();
+
+    public abstract void setExcludeClassLoaders(List<String> value);
 
     /**
      * Whether or not classes without source location should be instrumented. Defaults to {@code false}.
@@ -180,6 +187,8 @@ public abstract class JacocoTaskExtension {
     @ReplacesEagerProperty
     public abstract Property<String> getSessionId();
 
+    public abstract void setSessionId(String value);
+
     /**
      * Whether or not to dump the coverage data at VM shutdown. Defaults to {@code true}.
      */
@@ -202,6 +211,8 @@ public abstract class JacocoTaskExtension {
     @ReplacesEagerProperty
     public abstract Property<Output> getOutput();
 
+    public abstract void setOutput(Output value);
+
     /**
      * IP address or hostname to use with {@link Output#TCP_SERVER} or {@link Output#TCP_CLIENT}. Defaults to localhost.
      */
@@ -209,6 +220,8 @@ public abstract class JacocoTaskExtension {
     @Input
     @ReplacesEagerProperty
     public abstract Property<String> getAddress();
+
+    public abstract void setAddress(String value);
 
     /**
      * Port to bind to for {@link Output#TCP_SERVER} or {@link Output#TCP_CLIENT}. Defaults to 6300.
@@ -226,6 +239,8 @@ public abstract class JacocoTaskExtension {
     @LocalState
     @ReplacesEagerProperty
     public abstract DirectoryProperty getClassDumpDir();
+
+    public abstract void setClassDumpDir(File value);
 
     /**
      * Whether or not to expose functionality via JMX under {@code org.jacoco:type=Runtime}. Defaults to {@code false}.

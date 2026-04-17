@@ -63,4 +63,6 @@ public abstract class Tar extends AbstractArchiveTask {
     @Input
     @ReplacesEagerProperty
     public abstract Property<Compression> getCompression();
+
+    public abstract void setCompression(Compression value);
 }

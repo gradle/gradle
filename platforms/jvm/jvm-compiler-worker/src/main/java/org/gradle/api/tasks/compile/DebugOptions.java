@@ -49,4 +49,6 @@ public abstract class DebugOptions implements Serializable {
     @Input
     @ReplacesEagerProperty
     public abstract Property<String> getDebugLevel();
+
+    public abstract void setDebugLevel(String value);
 }

@@ -16,6 +16,7 @@
 package org.gradle.api.tasks.compile;
 
 import com.google.common.collect.ImmutableList;
+import java.io.File;
 import org.gradle.api.Action;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.RegularFileProperty;
@@ -34,7 +35,8 @@ import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
-
+import java.util.List;
+import java.util.Map;
 import javax.inject.Inject;
 import java.io.Serializable;
 import java.nio.charset.StandardCharsets;
@@ -109,6 +111,8 @@ public abstract class GroovyCompileOptions implements Serializable {
     @ReplacesEagerProperty
     public abstract Property<String> getEncoding();
 
+    public abstract void setEncoding(String value);
+
     /**
      * Tells whether to run the Groovy compiler in a separate process. Defaults to {@code true}.
      */
@@ -166,6 +170,8 @@ public abstract class GroovyCompileOptions implements Serializable {
     @InputFile
     @ReplacesEagerProperty
     public abstract RegularFileProperty getConfigurationScript();
+
+    public abstract void setConfigurationScript(File value);
 
     /**
      * Whether the Groovy code should be subject to Java annotation processing.
@@ -242,6 +248,8 @@ public abstract class GroovyCompileOptions implements Serializable {
     @ReplacesEagerProperty
     public abstract MapProperty<String, Boolean> getOptimizationOptions();
 
+    public abstract void setOptimizationOptions(Map<String, Boolean> value);
+
     /**
      * Returns the set of global AST transformations which should not be loaded into the Groovy compiler.
      *
@@ -260,6 +268,8 @@ public abstract class GroovyCompileOptions implements Serializable {
     // TOOD:LPTR Should be just a relative path
     public abstract DirectoryProperty getStubDir();
 
+    public abstract void setStubDir(File value);
+
     /**
      * Returns the list of acceptable source file extensions. Only takes effect when compiling against
      * Groovy 1.7 or higher. Defaults to {@code ImmutableList.of("java", "groovy")}.
@@ -267,6 +277,8 @@ public abstract class GroovyCompileOptions implements Serializable {
     @Input
     @ReplacesEagerProperty
     public abstract ListProperty<String> getFileExtensions();
+
+    public abstract void setFileExtensions(List<String> value);
 
     /**
      * Tells whether Java stubs for Groovy classes generated during Java/Groovy joint compilation

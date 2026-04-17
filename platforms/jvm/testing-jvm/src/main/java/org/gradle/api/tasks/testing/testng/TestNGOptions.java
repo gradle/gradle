@@ -45,7 +45,7 @@ import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor.Acce
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty.BinaryCompatibility;
 import org.gradle.internal.serialization.Cached;
-
+import java.util.Set;
 import javax.inject.Inject;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -214,12 +214,16 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
     @ReplacesEagerProperty
     public abstract DirectoryProperty getOutputDirectory();
 
+    public abstract void setOutputDirectory(File value);
+
     /**
      * The set of groups to run.
      */
     @Input
     @ReplacesEagerProperty
     public abstract SetProperty<String> getIncludeGroups();
+
+    public abstract void setIncludeGroups(Set<String> value);
 
     /**
      * The set of groups to exclude.
@@ -228,12 +232,16 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
     @ReplacesEagerProperty
     public abstract SetProperty<String> getExcludeGroups();
 
+    public abstract void setExcludeGroups(Set<String> value);
+
     /**
      * Option for what to do for other tests that use a configuration step when that step fails. Can be "skip" or "continue", defaults to "skip".
      */
     @Internal
     @ReplacesEagerProperty
     public abstract Property<String> getConfigFailurePolicy();
+
+    public abstract void setConfigFailurePolicy(String value);
 
     /**
      * Fully qualified classes that are TestNG listeners (instances of org.testng.ITestListener or org.testng.IReporter). By default, the listeners set is empty.
@@ -257,6 +265,8 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
     @ReplacesEagerProperty
     public abstract SetProperty<String> getListeners();
 
+    public abstract void setListeners(Set<String> value);
+
     /**
      * The parallel mode to use for running the tests - one of the following modes: methods, tests, classes or instances.
      *
@@ -267,6 +277,8 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
     @Internal
     @ReplacesEagerProperty
     public abstract Property<String> getParallel();
+
+    public abstract void setParallel(String value);
 
     /**
      * The number of threads to use for this run. Ignored unless the parallel mode is also specified
@@ -344,12 +356,16 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
     @ReplacesEagerProperty
     public abstract Property<String> getSuiteName();
 
+    public abstract void setSuiteName(String value);
+
     /**
      * Sets the default name of the test, if one is not specified in a suite XML file or in the source code.
      */
     @Internal
     @ReplacesEagerProperty
     public abstract Property<String> getTestName();
+
+    public abstract void setTestName(String value);
 
     /**
      * The suiteXmlFiles to use for running TestNG.

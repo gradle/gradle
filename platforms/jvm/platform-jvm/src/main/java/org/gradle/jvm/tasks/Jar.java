@@ -135,6 +135,8 @@ public abstract class Jar extends Zip {
     @ReplacesEagerProperty
     public abstract Property<String> getManifestContentCharset();
 
+    public abstract void setManifestContentCharset(String value);
+
     /**
      * Returns the manifest for this JAR archive.
      *

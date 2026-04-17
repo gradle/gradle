@@ -323,6 +323,8 @@ public abstract class GroovyCompile extends AbstractCompile implements HasCompil
     @ReplacesEagerProperty
     public abstract ConfigurableFileCollection getGroovyClasspath();
 
+    public abstract void setGroovyClasspath(FileCollection value);
+
     /**
      * The toolchain {@link JavaLauncher} to use for executing the Groovy compiler.
      *

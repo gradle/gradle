@@ -240,6 +240,8 @@ public abstract class Ear extends Jar {
     @ReplacesEagerProperty
     public abstract Property<String> getLibDirName();
 
+    public abstract void setLibDirName(String value);
+
     /**
      * Should deploymentDescriptor be generated?
      *

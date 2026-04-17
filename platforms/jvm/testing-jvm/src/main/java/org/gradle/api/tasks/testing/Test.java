@@ -778,6 +778,8 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     @ReplacesEagerProperty
     public abstract ConfigurableFileCollection getTestClassesDirs();
 
+    public abstract void setTestClassesDirs(FileCollection value);
+
     /**
      * Returns directories to scan for non-class-based test definition files.
      *
@@ -1033,6 +1035,8 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     @Internal("captured by stableClasspath")
     @ReplacesEagerProperty
     public abstract ConfigurableFileCollection getClasspath();
+
+    public abstract void setClasspath(FileCollection value);
 
     /**
      * Specifies whether test classes should be detected. When {@code true} the classes which match the include and exclude patterns are scanned for test classes, and any found are executed. When

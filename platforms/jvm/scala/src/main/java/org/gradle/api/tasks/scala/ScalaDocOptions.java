@@ -22,7 +22,7 @@ import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
-
+import java.util.List;
 import javax.inject.Inject;
 import java.io.Serializable;
 
@@ -73,6 +73,8 @@ public abstract class ScalaDocOptions implements Serializable {
     @ReplacesEagerProperty
     public abstract Property<String> getWindowTitle();
 
+    public abstract void setWindowTitle(String value);
+
     /**
      * Returns the HTML text to appear in the main frame title.
      */
@@ -80,6 +82,8 @@ public abstract class ScalaDocOptions implements Serializable {
     @Input
     @ReplacesEagerProperty
     public abstract Property<String> getDocTitle();
+
+    public abstract void setDocTitle(String value);
 
     /**
      * Returns the HTML text to appear in the header for each page.
@@ -89,6 +93,8 @@ public abstract class ScalaDocOptions implements Serializable {
     @ReplacesEagerProperty
     public abstract Property<String> getHeader();
 
+    public abstract void setHeader(String value);
+
     /**
      * Returns the HTML text to appear in the footer for each page.
      */
@@ -96,6 +102,8 @@ public abstract class ScalaDocOptions implements Serializable {
     @Input
     @ReplacesEagerProperty
     public abstract Property<String> getFooter();
+
+    public abstract void setFooter(String value);
 
     /**
      * Returns the HTML text to appear in the top text for each page.
@@ -105,6 +113,8 @@ public abstract class ScalaDocOptions implements Serializable {
     @ReplacesEagerProperty
     public abstract Property<String> getTop();
 
+    public abstract void setTop(String value);
+
     /**
      * Returns the HTML text to appear in the bottom text for each page.
      */
@@ -112,6 +122,8 @@ public abstract class ScalaDocOptions implements Serializable {
     @Input
     @ReplacesEagerProperty
     public abstract Property<String> getBottom();
+
+    public abstract void setBottom(String value);
 
     /**
      * Returns the additional parameters passed to the compiler.
@@ -121,4 +133,6 @@ public abstract class ScalaDocOptions implements Serializable {
     @Input
     @ReplacesEagerProperty
     public abstract ListProperty<String> getAdditionalParameters();
+
+    public abstract void setAdditionalParameters(List<String> value);
 }

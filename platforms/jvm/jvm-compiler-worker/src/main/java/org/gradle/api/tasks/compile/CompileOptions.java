@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.api.Action;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.model.ReplacedBy;
 import org.gradle.api.provider.ListProperty;
@@ -159,6 +160,8 @@ public abstract class CompileOptions implements Serializable {
     @ReplacesEagerProperty
     public abstract Property<String> getEncoding();
 
+    public abstract void setEncoding(String value);
+
     /**
      * Tells whether to include debugging information in the generated class files. Defaults
      * to {@code true}. See {@link DebugOptions#getDebugLevel()} for which debugging information will be generated.
@@ -239,6 +242,8 @@ public abstract class CompileOptions implements Serializable {
     @ReplacesEagerProperty
     public abstract ConfigurableFileCollection getBootstrapClasspath();
 
+    public abstract void setBootstrapClasspath(FileCollection value);
+
     /**
      * Returns the extension dirs to be used for the compiler process. Defaults to {@code null}.
      */
@@ -246,6 +251,8 @@ public abstract class CompileOptions implements Serializable {
     @Input
     @ReplacesEagerProperty
     public abstract Property<String> getExtensionDirs();
+
+    public abstract void setExtensionDirs(String value);
 
     /**
      * Returns any additional arguments to be passed to the compiler.
@@ -262,6 +269,8 @@ public abstract class CompileOptions implements Serializable {
     @Input
     @ReplacesEagerProperty
     public abstract ListProperty<String> getCompilerArgs();
+
+    public abstract void setCompilerArgs(List<String> value);
 
     /**
      * Returns all compiler arguments, added to the {@link #getCompilerArgs()} or the {@link #getCompilerArgumentProviders()} property.
@@ -343,6 +352,8 @@ public abstract class CompileOptions implements Serializable {
     @ReplacesEagerProperty
     public abstract ConfigurableFileCollection getSourcepath();
 
+    public abstract void setSourcepath(FileCollection value);
+
     /**
      * Returns the classpath to use to load annotation processors. This path is also used for annotation processor discovery.
      *
@@ -353,6 +364,8 @@ public abstract class CompileOptions implements Serializable {
     @Classpath
     @ReplacesEagerProperty
     public abstract ConfigurableFileCollection getAnnotationProcessorPath();
+
+    public abstract void setAnnotationProcessorPath(FileCollection value);
 
     /**
      * Configures the Java language version for this compile task ({@code --release} compiler flag).

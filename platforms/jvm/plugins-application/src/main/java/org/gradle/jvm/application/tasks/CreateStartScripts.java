@@ -306,6 +306,8 @@ public abstract class CreateStartScripts extends ConventionTask {
     @ReplacesEagerProperty
     public abstract ConfigurableFileCollection getClasspath();
 
+    public abstract void setClasspath(FileCollection value);
+
     /**
      * Returns the module path handling for executing the main class.
      *

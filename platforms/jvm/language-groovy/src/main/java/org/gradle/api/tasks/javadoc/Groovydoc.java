@@ -19,6 +19,7 @@ package org.gradle.api.tasks.javadoc;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileSystemOperations;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.provider.ProviderApiDeprecationLogger;
@@ -54,6 +55,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -153,6 +155,8 @@ public abstract class Groovydoc extends SourceTask {
     @ReplacesEagerProperty
     public abstract DirectoryProperty getDestinationDir();
 
+    public abstract void setDestinationDir(File value);
+
     /**
      * Returns the classpath containing the Groovy library to be used.
      *
@@ -162,12 +166,16 @@ public abstract class Groovydoc extends SourceTask {
     @ReplacesEagerProperty
     public abstract ConfigurableFileCollection getGroovyClasspath();
 
+    public abstract void setGroovyClasspath(FileCollection value);
+
     /**
      * The classpath used to locate classes referenced by the documented sources.
      */
     @Classpath
     @ReplacesEagerProperty
     public abstract ConfigurableFileCollection getClasspath();
+
+    public abstract void setClasspath(FileCollection value);
 
     /**
      * Returns whether to create class and package usage pages.
@@ -219,6 +227,8 @@ public abstract class Groovydoc extends SourceTask {
     @ReplacesEagerProperty
     public abstract Property<String> getWindowTitle();
 
+    public abstract void setWindowTitle(String value);
+
     /**
      * Returns the title for the package index(first) page. Set to {@code null} when there is no document title.
      */
@@ -226,6 +236,8 @@ public abstract class Groovydoc extends SourceTask {
     @Input
     @ReplacesEagerProperty
     public abstract Property<String> getDocTitle();
+
+    public abstract void setDocTitle(String value);
 
     /**
      * Returns the HTML header for each page. Set to {@code null} when there is no header.
@@ -235,6 +247,8 @@ public abstract class Groovydoc extends SourceTask {
     @ReplacesEagerProperty
     public abstract Property<String> getHeader();
 
+    public abstract void setHeader(String value);
+
     /**
      * Returns the HTML footer for each page. Set to {@code null} when there is no footer.
      */
@@ -242,6 +256,8 @@ public abstract class Groovydoc extends SourceTask {
     @Input
     @ReplacesEagerProperty
     public abstract Property<String> getFooter();
+
+    public abstract void setFooter(String value);
 
     /**
      * Returns a HTML text to be used for overview documentation. Set to {@code null} when there is no overview text.
@@ -305,6 +321,8 @@ public abstract class Groovydoc extends SourceTask {
     @Input
     @ReplacesEagerProperty
     public abstract SetProperty<Link> getLinks();
+
+    public abstract void setLinks(Set<Link> value);
 
     /**
      * Add links to groovydoc/javadoc output at the given URL.

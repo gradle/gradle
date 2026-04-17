@@ -22,6 +22,7 @@ import org.gradle.api.Action;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.file.RegularFile;
@@ -250,6 +251,8 @@ public abstract class Javadoc extends SourceTask {
     @ReplacesEagerProperty
     public abstract DirectoryProperty getDestinationDir();
 
+    public abstract void setDestinationDir(File value);
+
     @OutputDirectory
     @ReplacesEagerProperty(adapter = OutputDirectoryAdapter.class)
     protected Provider<Directory> getOutputDirectory() {
@@ -263,6 +266,8 @@ public abstract class Javadoc extends SourceTask {
     @ReplacesEagerProperty
     public abstract Property<String> getMaxMemory();
 
+    public abstract void setMaxMemory(String value);
+
     /**
      * <p>Returns the title for the generated documentation.</p>
      *
@@ -273,6 +278,8 @@ public abstract class Javadoc extends SourceTask {
     @ReplacesEagerProperty
     public abstract Property<String> getTitle();
 
+    public abstract void setTitle(String value);
+
     /**
      * Returns the classpath to use to resolve type references in the source code.
      *
@@ -281,6 +288,8 @@ public abstract class Javadoc extends SourceTask {
     @Classpath
     @ReplacesEagerProperty
     public abstract ConfigurableFileCollection getClasspath();
+
+    public abstract void setClasspath(FileCollection value);
 
     /**
      * Returns the module path handling of this javadoc task.
@@ -353,6 +362,8 @@ public abstract class Javadoc extends SourceTask {
     @Input
     @ReplacesEagerProperty
     public abstract Property<String> getExecutable();
+
+    public abstract void setExecutable(String value);
 
     @Inject
     protected abstract Deleter getDeleter();
