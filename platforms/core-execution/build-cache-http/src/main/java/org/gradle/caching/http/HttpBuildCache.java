@@ -115,6 +115,8 @@ public abstract class HttpBuildCache extends AbstractBuildCache {
     @ReplacesEagerProperty(originalType = boolean.class)
     public abstract Property<Boolean> getAllowUntrustedServer();
 
+    public abstract void setAllowUntrustedServer(boolean value);
+
     /**
      * This method exists only for Kotlin source backward compatibility.
      *
@@ -147,6 +149,8 @@ public abstract class HttpBuildCache extends AbstractBuildCache {
     @ReplacesEagerProperty(originalType = boolean.class)
     public abstract Property<Boolean> getAllowInsecureProtocol();
 
+    public abstract void setAllowInsecureProtocol(boolean value);
+
     /**
      * This method exists only for Kotlin source backward compatibility.
      * @deprecated This method is deprecated and will be removed in the next major version of Gradle.
@@ -175,6 +179,8 @@ public abstract class HttpBuildCache extends AbstractBuildCache {
      */
     @ReplacesEagerProperty(originalType = boolean.class)
     public abstract Property<Boolean> getUseExpectContinue();
+
+    public abstract void setUseExpectContinue(boolean value);
 
     /**
      * This method exists only for Kotlin source backward compatibility.

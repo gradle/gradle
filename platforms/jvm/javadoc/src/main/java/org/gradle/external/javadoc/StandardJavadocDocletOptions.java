@@ -189,6 +189,8 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
     @ReplacesEagerProperty(originalType = boolean.class)
     public abstract Property<Boolean> getUse();
 
+    public abstract void setUse(boolean value);
+
     /**
      * This method exists only for Kotlin source backward compatibility.
      */
@@ -218,6 +220,8 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
     @ReplacesEagerProperty(originalType = boolean.class)
     public abstract Property<Boolean> getVersion();
 
+    public abstract void setVersion(boolean value);
+
     /**
      * This method exists only for Kotlin source backward compatibility.
      */
@@ -245,6 +249,8 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
     @Input
     @ReplacesEagerProperty(originalType = boolean.class)
     public abstract Property<Boolean> getAuthor();
+
+    public abstract void setAuthor(boolean value);
 
     /**
      * This method exists only for Kotlin source backward compatibility.
@@ -274,6 +280,8 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
     @Input
     @ReplacesEagerProperty(originalType = boolean.class)
     public abstract Property<Boolean> getSplitIndex();
+
+    public abstract void setSplitIndex(boolean value);
 
     /**
      * This method exists only for Kotlin source backward compatibility.
@@ -483,6 +491,8 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
     @ReplacesEagerProperty(originalType = boolean.class)
     public abstract Property<Boolean> getLinkSource();
 
+    public abstract void setLinkSource(boolean value);
+
     /**
      * This method exists only for Kotlin source backward compatibility.
      */
@@ -580,6 +590,8 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
     @ReplacesEagerProperty(originalType = boolean.class)
     public abstract Property<Boolean> getNoDeprecated();
 
+    public abstract void setNoDeprecated(boolean value);
+
     /**
      * This method exists only for Kotlin source backward compatibility.
      */
@@ -611,6 +623,8 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
     @ReplacesEagerProperty(originalType = boolean.class)
     public abstract Property<Boolean> getNoDeprecatedList();
 
+    public abstract void setNoDeprecatedList(boolean value);
+
     /**
      * This method exists only for Kotlin source backward compatibility.
      */
@@ -638,6 +652,8 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
     @Input
     @ReplacesEagerProperty(originalType = boolean.class)
     public abstract Property<Boolean> getNoSince();
+
+    public abstract void setNoSince(boolean value);
 
     /**
      * This method exists only for Kotlin source backward compatibility.
@@ -669,6 +685,8 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
     @ReplacesEagerProperty(originalType = boolean.class)
     public abstract Property<Boolean> getNoTree();
 
+    public abstract void setNoTree(boolean value);
+
     /**
      * This method exists only for Kotlin source backward compatibility.
      */
@@ -697,6 +715,8 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
     @ReplacesEagerProperty(originalType = boolean.class)
     public abstract Property<Boolean> getNoIndex();
 
+    public abstract void setNoIndex(boolean value);
+
     /**
      * This method exists only for Kotlin source backward compatibility.
      */
@@ -724,6 +744,8 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
     @Input
     @ReplacesEagerProperty(originalType = boolean.class)
     public abstract Property<Boolean> getNoHelp();
+
+    public abstract void setNoHelp(boolean value);
 
     /**
      * This method exists only for Kotlin source backward compatibility.
@@ -755,6 +777,8 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
     @Input
     @ReplacesEagerProperty(originalType = boolean.class)
     public abstract Property<Boolean> getNoNavBar();
+
+    public abstract void setNoNavBar(boolean value);
 
     /**
      * This method exists only for Kotlin source backward compatibility.
@@ -826,6 +850,8 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
     @Input
     @ReplacesEagerProperty(originalType = boolean.class)
     public abstract Property<Boolean> getSerialWarn();
+
+    public abstract void setSerialWarn(boolean value);
 
     /**
      * This method exists only for Kotlin source backward compatibility.
@@ -899,6 +925,8 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
     @Input
     @ReplacesEagerProperty(originalType = boolean.class)
     public abstract Property<Boolean> getKeyWords();
+
+    public abstract void setKeyWords(boolean value);
 
     /**
      * This method exists only for Kotlin source backward compatibility.
@@ -985,6 +1013,8 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
     @ReplacesEagerProperty(originalType = boolean.class)
     public abstract Property<Boolean> getDocFilesSubDirs();
 
+    public abstract void setDocFilesSubDirs(boolean value);
+
     /**
      * This method exists only for Kotlin source backward compatibility.
      */
@@ -1046,6 +1076,8 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
     @ReplacesEagerProperty(originalType = boolean.class)
     public abstract Property<Boolean> getNoTimestamp();
 
+    public abstract void setNoTimestamp(boolean value);
+
     /**
      * This method exists only for Kotlin source backward compatibility.
      */
@@ -1071,6 +1103,8 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
     @Input
     @ReplacesEagerProperty(originalType = boolean.class)
     public abstract Property<Boolean> getNoComment();
+
+    public abstract void setNoComment(boolean value);
 
     /**
      * This method exists only for Kotlin source backward compatibility.

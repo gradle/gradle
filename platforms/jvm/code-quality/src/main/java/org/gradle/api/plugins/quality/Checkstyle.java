@@ -269,6 +269,8 @@ public abstract class Checkstyle extends AbstractCodeQualityTask implements Repo
     @ReplacesEagerProperty(originalType = int.class)
     public abstract Property<Integer> getMaxErrors();
 
+    public abstract void setMaxErrors(int value);
+
     /**
      * The maximum number of warnings that are tolerated before breaking the build
      * or setting the failure property.
@@ -280,6 +282,8 @@ public abstract class Checkstyle extends AbstractCodeQualityTask implements Repo
     @ReplacesEagerProperty(originalType = int.class)
     public abstract Property<Integer> getMaxWarnings();
 
+    public abstract void setMaxWarnings(int value);
+
     /**
      * Whether rule violations are to be displayed on the console.
      *
@@ -288,6 +292,8 @@ public abstract class Checkstyle extends AbstractCodeQualityTask implements Repo
     @Console
     @ReplacesEagerProperty(originalType = boolean.class)
     public abstract Property<Boolean> getShowViolations();
+
+    public abstract void setShowViolations(boolean value);
 
     @Internal
     @Deprecated

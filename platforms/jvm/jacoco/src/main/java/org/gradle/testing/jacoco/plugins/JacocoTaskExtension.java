@@ -95,6 +95,8 @@ public abstract class JacocoTaskExtension {
     @ReplacesEagerProperty(originalType = boolean.class)
     public abstract Property<Boolean> getEnabled();
 
+    public abstract void setEnabled(boolean value);
+
     @Internal
     @Deprecated
     @SuppressWarnings("InlineMeSuggester")
@@ -171,6 +173,8 @@ public abstract class JacocoTaskExtension {
     @ReplacesEagerProperty(originalType = boolean.class)
     public abstract Property<Boolean> getIncludeNoLocationClasses();
 
+    public abstract void setIncludeNoLocationClasses(boolean value);
+
     @Internal
     @Deprecated
     @SuppressWarnings("InlineMeSuggester")
@@ -195,6 +199,8 @@ public abstract class JacocoTaskExtension {
     @Input
     @ReplacesEagerProperty(originalType = boolean.class)
     public abstract Property<Boolean> getDumpOnExit();
+
+    public abstract void setDumpOnExit(boolean value);
 
     @Internal
     @Deprecated
@@ -230,6 +236,8 @@ public abstract class JacocoTaskExtension {
     @ReplacesEagerProperty(originalType = int.class)
     public abstract Property<Integer> getPort();
 
+    public abstract void setPort(int value);
+
     /**
      * Path to dump all class files the agent sees are dumped to. Defaults to no dumps.
      *
@@ -250,6 +258,8 @@ public abstract class JacocoTaskExtension {
     @Input
     @ReplacesEagerProperty(originalType = boolean.class)
     public abstract Property<Boolean> getJmx();
+
+    public abstract void setJmx(boolean value);
 
     @Internal
     @Deprecated

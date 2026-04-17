@@ -69,6 +69,8 @@ public abstract class GroovyCompileOptions implements Serializable {
     @ReplacesEagerProperty(originalType = boolean.class)
     public abstract Property<Boolean> getFailOnError();
 
+    public abstract void setFailOnError(boolean value);
+
     @Internal
     @Deprecated
     public Property<Boolean> getIsFailOnError() {
@@ -83,6 +85,8 @@ public abstract class GroovyCompileOptions implements Serializable {
     @ReplacesEagerProperty(originalType = boolean.class)
     public abstract Property<Boolean> getVerbose();
 
+    public abstract void setVerbose(boolean value);
+
     @Internal
     @Deprecated
     public Property<Boolean> getIsVerbose() {
@@ -96,6 +100,8 @@ public abstract class GroovyCompileOptions implements Serializable {
     @Console
     @ReplacesEagerProperty(originalType = boolean.class)
     public abstract Property<Boolean> getListFiles();
+
+    public abstract void setListFiles(boolean value);
 
     @Internal
     @Deprecated
@@ -119,6 +125,8 @@ public abstract class GroovyCompileOptions implements Serializable {
     @Input
     @ReplacesEagerProperty(originalType = boolean.class)
     public abstract Property<Boolean> getFork();
+
+    public abstract void setFork(boolean value);
 
     @Internal
     @Deprecated
@@ -189,6 +197,8 @@ public abstract class GroovyCompileOptions implements Serializable {
     @ReplacesEagerProperty(originalType = boolean.class)
     public abstract Property<Boolean> getJavaAnnotationProcessing();
 
+    public abstract void setJavaAnnotationProcessing(boolean value);
+
     @Internal
     @Deprecated
     public Property<Boolean> getIsJavaAnnotationProcessing() {
@@ -204,6 +214,8 @@ public abstract class GroovyCompileOptions implements Serializable {
     @Input
     @ReplacesEagerProperty(originalType = boolean.class)
     public abstract Property<Boolean> getParameters();
+
+    public abstract void setParameters(boolean value);
 
     @Internal
     @Deprecated
@@ -288,6 +300,8 @@ public abstract class GroovyCompileOptions implements Serializable {
     @Input
     @ReplacesEagerProperty(originalType = boolean.class)
     public abstract Property<Boolean> getKeepStubs();
+
+    public abstract void setKeepStubs(boolean value);
 
     @Internal
     @Deprecated

@@ -297,6 +297,8 @@ public abstract class Pmd extends AbstractCodeQualityTask implements Reporting<P
     @ReplacesEagerProperty(originalType = boolean.class)
     public abstract Property<Boolean> getConsoleOutput();
 
+    public abstract void setConsoleOutput(boolean value);
+
     @Internal
     @Deprecated
     public Property<Boolean> getIsConsoleOutput() {

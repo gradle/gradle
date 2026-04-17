@@ -113,6 +113,8 @@ public abstract class CheckstyleExtension extends CodeQualityExtension {
     @ReplacesEagerProperty(originalType = int.class)
     public abstract Property<Integer> getMaxErrors();
 
+    public abstract void setMaxErrors(int value);
+
     /**
      * The maximum number of warnings that are tolerated before breaking the build
      * or setting the failure property. Defaults to <code>Integer.MAX_VALUE</code>.
@@ -125,6 +127,8 @@ public abstract class CheckstyleExtension extends CodeQualityExtension {
     @ReplacesEagerProperty(originalType = int.class)
     public abstract Property<Integer> getMaxWarnings();
 
+    public abstract void setMaxWarnings(int value);
+
     /**
      * Whether rule violations are to be displayed on the console. Defaults to <code>true</code>.
      *
@@ -132,6 +136,8 @@ public abstract class CheckstyleExtension extends CodeQualityExtension {
      */
     @ReplacesEagerProperty(originalType = boolean.class)
     public abstract Property<Boolean> getShowViolations();
+
+    public abstract void setShowViolations(boolean value);
 
     @Deprecated
     public Property<Boolean> getIsShowViolations() {

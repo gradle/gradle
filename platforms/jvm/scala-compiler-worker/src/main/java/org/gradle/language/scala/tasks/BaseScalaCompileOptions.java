@@ -65,6 +65,8 @@ public abstract class BaseScalaCompileOptions implements Serializable {
     @ReplacesEagerProperty(originalType = boolean.class)
     public abstract Property<Boolean> getFailOnError();
 
+    public abstract void setFailOnError(boolean value);
+
     @Internal
     @Deprecated
     public Property<Boolean> getIsFailOnError() {
@@ -79,6 +81,8 @@ public abstract class BaseScalaCompileOptions implements Serializable {
     @ReplacesEagerProperty(originalType = boolean.class)
     public abstract Property<Boolean> getDeprecation();
 
+    public abstract void setDeprecation(boolean value);
+
     @Internal
     @Deprecated
     public Property<Boolean> getIsDeprecation() {
@@ -92,6 +96,8 @@ public abstract class BaseScalaCompileOptions implements Serializable {
     @Console
     @ReplacesEagerProperty(originalType = boolean.class)
     public abstract Property<Boolean> getUnchecked();
+
+    public abstract void setUnchecked(boolean value);
 
     @Internal
     @Deprecated
@@ -117,6 +123,8 @@ public abstract class BaseScalaCompileOptions implements Serializable {
     @Input
     @ReplacesEagerProperty(originalType = boolean.class)
     public abstract Property<Boolean> getOptimize();
+
+    public abstract void setOptimize(boolean value);
 
     @Internal
     @Deprecated
@@ -145,6 +153,8 @@ public abstract class BaseScalaCompileOptions implements Serializable {
     @ReplacesEagerProperty(originalType = boolean.class)
     public abstract Property<Boolean> getForce();
 
+    public abstract void setForce(boolean value);
+
     @Internal
     @Deprecated
     public Property<Boolean> getIsForce() {
@@ -171,6 +181,8 @@ public abstract class BaseScalaCompileOptions implements Serializable {
     @Console
     @ReplacesEagerProperty(originalType = boolean.class)
     public abstract Property<Boolean> getListFiles();
+
+    public abstract void setListFiles(boolean value);
 
     @Internal
     @Deprecated

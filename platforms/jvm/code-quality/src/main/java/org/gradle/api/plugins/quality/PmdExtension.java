@@ -167,6 +167,8 @@ public abstract class PmdExtension extends CodeQualityExtension {
     @ReplacesEagerProperty(originalType = boolean.class)
     public abstract Property<Boolean> getConsoleOutput();
 
+    public abstract void setConsoleOutput(boolean value);
+
     @Deprecated
     public Property<Boolean> getIsConsoleOutput() {
         ProviderApiDeprecationLogger.logDeprecation(getClass(), "getIsConsoleOutput()", "getConsoleOutput()");

@@ -81,17 +81,23 @@ public abstract class CodeNarcExtension extends CodeQualityExtension {
     @ReplacesEagerProperty(originalType = int.class)
     public abstract Property<Integer> getMaxPriority1Violations();
 
+    public abstract void setMaxPriority1Violations(int value);
+
     /**
      * The maximum number of priority 2 violations allowed before failing the build.
      */
     @ReplacesEagerProperty(originalType = int.class)
     public abstract Property<Integer> getMaxPriority2Violations();
 
+    public abstract void setMaxPriority2Violations(int value);
+
     /**
      * The maximum number of priority 3 violations allowed before failing the build.
      */
     @ReplacesEagerProperty(originalType = int.class)
     public abstract Property<Integer> getMaxPriority3Violations();
+
+    public abstract void setMaxPriority3Violations(int value);
 
     /**
      * The format type of the CodeNarc report. One of <code>html</code>, <code>xml</code>, <code>text</code>, <code>console</code>.

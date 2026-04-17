@@ -184,6 +184,8 @@ public abstract class Groovydoc extends SourceTask {
     @ReplacesEagerProperty(originalType = boolean.class)
     public abstract Property<Boolean> getUse();
 
+    public abstract void setUse(boolean value);
+
     @Internal
     @Deprecated
     public Property<Boolean> getIsUse() {
@@ -198,6 +200,8 @@ public abstract class Groovydoc extends SourceTask {
     @ReplacesEagerProperty(originalType = boolean.class)
     public abstract Property<Boolean> getNoTimestamp();
 
+    public abstract void setNoTimestamp(boolean value);
+
     @Internal
     @Deprecated
     public Property<Boolean> getIsNoTimestamp() {
@@ -211,6 +215,8 @@ public abstract class Groovydoc extends SourceTask {
     @Input
     @ReplacesEagerProperty(originalType = boolean.class)
     public abstract Property<Boolean> getNoVersionStamp();
+
+    public abstract void setNoVersionStamp(boolean value);
 
     @Internal
     @Deprecated

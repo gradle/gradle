@@ -44,6 +44,8 @@ public abstract class ScalaDocOptions implements Serializable {
     @ReplacesEagerProperty(originalType = boolean.class)
     public abstract Property<Boolean> getDeprecation();
 
+    public abstract void setDeprecation(boolean value);
+
     @Internal
     @Deprecated
     public Property<Boolean> getIsDeprecation() {
@@ -57,6 +59,8 @@ public abstract class ScalaDocOptions implements Serializable {
     @Input
     @ReplacesEagerProperty(originalType = boolean.class)
     public abstract Property<Boolean> getUnchecked();
+
+    public abstract void setUnchecked(boolean value);
 
     @Internal
     @Deprecated

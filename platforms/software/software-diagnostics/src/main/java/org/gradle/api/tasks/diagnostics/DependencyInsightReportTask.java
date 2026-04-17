@@ -268,6 +268,8 @@ public abstract class DependencyInsightReportTask extends DefaultTask {
     @Option(option = "single-path", description = "Show at most one path to each dependency")
     public abstract Property<Boolean> getShowSinglePathToDependency();
 
+    public abstract void setShowSinglePathToDependency(boolean value);
+
     // kotlin source compatibility
     @Internal
     @Deprecated

@@ -100,6 +100,8 @@ public abstract class Zip extends AbstractArchiveTask {
     @ReplacesEagerProperty(originalType = boolean.class)
     public abstract Property<Boolean> getZip64();
 
+    public abstract void setZip64(boolean value);
+
     /**
      * Added for Kotlin source compatibility. Use {@link #getZip64()} instead.
      */

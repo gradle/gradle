@@ -78,6 +78,8 @@ public abstract class CompileOptions implements Serializable {
     @ReplacesEagerProperty(originalType = boolean.class)
     public abstract Property<Boolean> getFailOnError();
 
+    public abstract void setFailOnError(boolean value);
+
     /**
      * TODO: Add deprecation warning
      */
@@ -92,6 +94,8 @@ public abstract class CompileOptions implements Serializable {
     @Console
     @ReplacesEagerProperty(originalType = boolean.class)
     public abstract Property<Boolean> getVerbose();
+
+    public abstract void setVerbose(boolean value);
 
     /**
      * TODO: Add deprecation warning
@@ -108,6 +112,8 @@ public abstract class CompileOptions implements Serializable {
     @ReplacesEagerProperty(originalType = boolean.class)
     public abstract Property<Boolean> getListFiles();
 
+    public abstract void setListFiles(boolean value);
+
     /**
      * TODO: Add deprecation warning
      */
@@ -122,6 +128,8 @@ public abstract class CompileOptions implements Serializable {
     @Console
     @ReplacesEagerProperty(originalType = boolean.class)
     public abstract Property<Boolean> getDeprecation();
+
+    public abstract void setDeprecation(boolean value);
 
     /**
      * Sets whether to log details of usage of deprecated members or classes. Defaults to {@code false}.
@@ -140,6 +148,8 @@ public abstract class CompileOptions implements Serializable {
     @Console
     @ReplacesEagerProperty(originalType = boolean.class)
     public abstract Property<Boolean> getWarnings();
+
+    public abstract void setWarnings(boolean value);
 
     /**
      * Sets whether to log warning messages. The default is {@code true}.
@@ -169,6 +179,8 @@ public abstract class CompileOptions implements Serializable {
     @Input
     @ReplacesEagerProperty(originalType = boolean.class)
     public abstract Property<Boolean> getDebug();
+
+    public abstract void setDebug(boolean value);
 
     /**
      * Sets whether to include debugging information in the generated class files. Defaults
@@ -204,6 +216,8 @@ public abstract class CompileOptions implements Serializable {
     @Input
     @ReplacesEagerProperty(originalType = boolean.class)
     public abstract Property<Boolean> getFork();
+
+    public abstract void setFork(boolean value);
 
     /**
      * Sets whether to run the compiler in its own process. Note that this does

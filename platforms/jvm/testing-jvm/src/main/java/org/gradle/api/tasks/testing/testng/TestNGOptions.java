@@ -287,6 +287,8 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
     @ReplacesEagerProperty(originalType = int.class)
     public abstract Property<Integer> getThreadCount();
 
+    public abstract void setThreadCount(int value);
+
     /**
      * The number of XML suites will run parallel
      * @since 8.9

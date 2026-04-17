@@ -89,6 +89,8 @@ public abstract class AntlrTask extends SourceTask {
     @ReplacesEagerProperty(originalType = boolean.class)
     public abstract Property<Boolean> getTrace();
 
+    public abstract void setTrace(boolean value);
+
     @Internal
     @Deprecated
     public Property<Boolean> getIsTrace() {
@@ -102,6 +104,8 @@ public abstract class AntlrTask extends SourceTask {
     @Input
     @ReplacesEagerProperty(originalType = boolean.class)
     public abstract Property<Boolean> getTraceLexer();
+
+    public abstract void setTraceLexer(boolean value);
 
     @Internal
     @Deprecated
@@ -117,6 +121,8 @@ public abstract class AntlrTask extends SourceTask {
     @ReplacesEagerProperty(originalType = boolean.class)
     public abstract Property<Boolean> getTraceParser();
 
+    public abstract void setTraceParser(boolean value);
+
     @Internal
     @Deprecated
     public Property<Boolean> getIsTraceParser() {
@@ -130,6 +136,8 @@ public abstract class AntlrTask extends SourceTask {
     @Input
     @ReplacesEagerProperty(originalType = boolean.class)
     public abstract Property<Boolean> getTraceTreeWalker();
+
+    public abstract void setTraceTreeWalker(boolean value);
 
     @Internal
     @Deprecated

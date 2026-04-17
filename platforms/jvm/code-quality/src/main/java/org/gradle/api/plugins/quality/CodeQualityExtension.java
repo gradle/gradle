@@ -55,6 +55,8 @@ public abstract class CodeQualityExtension {
     @ReplacesEagerProperty(originalType = boolean.class)
     public abstract Property<Boolean> getIgnoreFailures();
 
+    public abstract void setIgnoreFailures(boolean value);
+
     @Deprecated
     public Property<Boolean> getIsIgnoreFailures() {
         ProviderApiDeprecationLogger.logDeprecation(getClass(), "getIsIgnoreFailures()", "getIgnoreFailures()");

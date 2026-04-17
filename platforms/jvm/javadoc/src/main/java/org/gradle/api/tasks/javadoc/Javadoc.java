@@ -338,6 +338,8 @@ public abstract class Javadoc extends SourceTask {
     @ReplacesEagerProperty(originalType = boolean.class)
     public abstract Property<Boolean> getFailOnError();
 
+    public abstract void setFailOnError(boolean value);
+
     @Deprecated
     @ReplacedBy("getFailOnError()")
     public Property<Boolean> getIsFailOnError() {

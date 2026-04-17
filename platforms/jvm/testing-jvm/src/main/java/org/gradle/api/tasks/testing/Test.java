@@ -1046,6 +1046,8 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     @ReplacesEagerProperty(originalType = boolean.class)
     public abstract Property<Boolean> getScanForTestClasses();
 
+    public abstract void setScanForTestClasses(boolean value);
+
     /**
      * Added for Kotlin source compatibility. Use {@link #getScanForTestClasses()} instead.
      */

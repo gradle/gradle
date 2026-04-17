@@ -251,6 +251,8 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
     @ReplacesEagerProperty(originalType = boolean.class)
     public abstract Property<Boolean> getPreserveFileTimestamps();
 
+    public abstract void setPreserveFileTimestamps(boolean value);
+
     /**
      * Used for Kotlin backward source compatibility after migration to Provider API.
      */
@@ -275,6 +277,8 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
     @Input
     @ReplacesEagerProperty(originalType = boolean.class)
     public abstract Property<Boolean> getReproducibleFileOrder();
+
+    public abstract void setReproducibleFileOrder(boolean value);
 
     /**
      * Used for Kotlin backward source compatibility after migration to Provider API.
