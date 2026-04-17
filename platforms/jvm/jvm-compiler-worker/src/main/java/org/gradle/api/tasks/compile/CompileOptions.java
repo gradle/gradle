@@ -438,6 +438,7 @@ public abstract class CompileOptions implements Serializable {
 
     @BackedByProperty("getGeneratedSourceOutputDirectory")
     @Deprecated
+    @Internal
     public abstract DirectoryProperty getAnnotationProcessorGeneratedSourcesDirectory();
 
     /**

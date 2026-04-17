@@ -98,6 +98,7 @@ public abstract class TestReport extends DefaultTask {
 
     @BackedByProperty("getDestinationDirectory")
     @Deprecated
+    @Internal
     public abstract DirectoryProperty getDestinationDir();
 
     /**

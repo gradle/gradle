@@ -22,6 +22,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.provider.support.BackedByProperty;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.SourceTask;
 import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor;
@@ -82,6 +83,7 @@ public abstract class AbstractCompile extends SourceTask {
 
     @BackedByProperty("getDestinationDirectory")
     @Deprecated
+    @Internal
     public abstract DirectoryProperty getDestinationDir();
 
     /**
