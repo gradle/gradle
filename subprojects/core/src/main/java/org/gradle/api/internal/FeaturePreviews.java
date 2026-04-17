@@ -39,6 +39,14 @@ public class FeaturePreviews {
          */
         INTERNAL_BUILD_SERVICE_USAGE(true, null),
         /**
+         * When enabled, child projects do not implicitly inherit properties and methods from their parent projects.
+         * <p>
+         * This is the behavior that will become the default in Gradle 10. Enabling this flag opts into that behavior early,
+         * silencing the related deprecation warnings in Vintage mode and avoiding the corresponding Isolated Projects violations.
+         * </p>
+         */
+        NO_IMPLICIT_PARENT_PROPERTY_LOOKUP(true, null),
+        /**
          * This exists to test inactive feature previews
          */
         ALWAYS_INACTIVE(false, null);

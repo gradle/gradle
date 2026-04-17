@@ -47,6 +47,7 @@ import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.file.SyncSpec;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.DynamicObjectAware;
+import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.ProcessOperations;
 import org.gradle.api.internal.artifacts.DependencyManagementServices;
@@ -87,6 +88,7 @@ import org.gradle.features.internal.binding.ProjectFeatureDeclarations;
 import org.gradle.features.internal.binding.ProjectFeatureSupportInternal;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.Actions;
+import org.gradle.internal.buildoption.FeatureFlags;
 import org.gradle.internal.buildtree.BuildModelParameters;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factories;
@@ -242,11 +244,15 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
         @Nullable HierarchicalDynamicObject parentInherited = services.get(CrossProjectModelAccess.class).parentProjectDynamicInheritedScope(this);
         if (parentInherited != null) {
-            extensibleDynamicObject.setParent(parentInherited);
-            // In Isolated Projects mode, cross-project access is reported as an IP violation
-            // by CrossProjectModelAccessTrackingParentDynamicObject. Don't also emit a deprecation warning.
-            boolean isIsolatedProjects = gradle.getServices().get(BuildModelParameters.class).isIsolatedProjects();
-            extensibleDynamicObject.setDeprecateParentAccess(!isIsolatedProjects);
+            // When NO_IMPLICIT_PARENT_PROPERTY_LOOKUP is enabled, don't wire the parent at all — this is the Gradle 10 behavior.
+            boolean noImplicitParentLookup = services.get(FeatureFlags.class).isEnabled(FeaturePreviews.Feature.NO_IMPLICIT_PARENT_PROPERTY_LOOKUP);
+            if (!noImplicitParentLookup) {
+                extensibleDynamicObject.setParent(parentInherited);
+                // In Isolated Projects mode, cross-project access is reported as an IP violation
+                // by CrossProjectModelAccessTrackingParentDynamicObject. Don't also emit a deprecation warning.
+                boolean isIsolatedProjects = gradle.getServices().get(BuildModelParameters.class).isIsolatedProjects();
+                extensibleDynamicObject.setDeprecateParentAccess(!isIsolatedProjects);
+            }
         }
         extensibleDynamicObject.addObject(taskContainer.getTasksAsDynamicObject(), ExtensibleDynamicObject.Location.AfterConvention);
 

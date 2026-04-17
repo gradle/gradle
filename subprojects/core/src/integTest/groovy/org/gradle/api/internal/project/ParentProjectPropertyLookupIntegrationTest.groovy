@@ -235,6 +235,52 @@ class ParentProjectPropertyLookupIntegrationTest extends AbstractIntegrationSpec
         outputContains("created: myNewConfiguration")
     }
 
+    // NO_IMPLICIT_PARENT_PROPERTY_LOOKUP feature preview — opt-in to Gradle 10 behavior
+
+    def "NO_IMPLICIT_PARENT_PROPERTY_LOOKUP feature preview disables parent property walking"() {
+        settingsFile.text = """
+            enableFeaturePreview("NO_IMPLICIT_PARENT_PROPERTY_LOOKUP")
+        """ + settingsFile.text
+        parent << """
+            ext.value = "parentValue"
+        """
+        child << """
+            println("found: " + findProperty("value"))
+            println("hasIt: " + hasProperty("value"))
+        """
+
+        when:
+        // No deprecation should fire — parent is not walked
+        succeeds("help")
+
+        then:
+        outputContains("found: null")
+        outputContains("hasIt: false")
+    }
+
+    def "NO_IMPLICIT_PARENT_PROPERTY_LOOKUP feature preview disables parent method walking"() {
+        settingsFile.text = """
+            enableFeaturePreview("NO_IMPLICIT_PARENT_PROPERTY_LOOKUP")
+        """ + settingsFile.text
+        parent << """
+            def foo() { println('parent foo') }
+        """
+        child << """
+            try {
+                foo()
+                println("NO EXCEPTION")
+            } catch (groovy.lang.MissingMethodException e) {
+                println("got MissingMethodException")
+            }
+        """
+
+        when:
+        succeeds("help")
+
+        then:
+        outputContains("got MissingMethodException")
+    }
+
     // Kotlin DSL tests — property() and hasProperty() go through DefaultProject directly
 
     def "getting property through static property() from parent is deprecated (Kotlin DSL)"() {
