@@ -1328,6 +1328,25 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             addSetterForProperty(property, setter);
         }
 
+        @Override
+        public void applyLazyForwarderSetter(PropertyMetadata property, Method setter) {
+            // GENERATE public void set<Name>(<T> value) {
+            //     ((LazyGroovySupport) get<Name>()).setFromAnyValue(value);
+            // }
+            // Using LazyGroovySupport gives a single emit path for every lazy-property type
+            // (Property, DirectoryProperty, ListProperty, SetProperty, MapProperty, ConfigurableFileCollection, ...).
+            MethodMetadata getter = property.getMainGetter();
+            Type getterReturn = getType(getter.getReturnType());
+            String getterDescriptor = getMethodDescriptor(getterReturn);
+            addSetter(setter.getName(), getMethodDescriptor(setter), signature(setter), methodVisitor -> new MethodVisitorScope(methodVisitor) {{
+                _ALOAD(0);
+                _INVOKEVIRTUAL(generatedType, getter.getName(), getterDescriptor);
+                _CHECKCAST(LAZY_GROOVY_SUPPORT_TYPE);
+                _ALOAD(1);
+                _INVOKEINTERFACE(LAZY_GROOVY_SUPPORT_TYPE, "setFromAnyValue", RETURN_VOID_FROM_OBJECT);
+            }});
+        }
+
         private void addSetterForProperty(PropertyMetadata property, Method setter) {
             // GENERATE public void <setter>(<type> value) { <field> == value }
             Type fieldType = getType(property.getType());
@@ -2024,6 +2043,10 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
 
         @Override
         public void applyManagedStateToSetter(PropertyMetadata property, Method setter) {
+        }
+
+        @Override
+        public void applyLazyForwarderSetter(PropertyMetadata property, Method setter) {
         }
 
         @Override

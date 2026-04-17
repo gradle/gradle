@@ -1182,6 +1182,11 @@ abstract class AbstractClassGenerator implements ClassGenerator {
                 for (MethodMetadata getter : property.getters) {
                     visitor.applyReadOnlyManagedStateToGetter(property, getter.method, applyRole);
                 }
+                for (Method setter : property.setters) {
+                    if (Modifier.isAbstract(setter.getModifiers())) {
+                        visitor.applyLazyForwarderSetter(property, setter);
+                    }
+                }
             }
             if (!hasFields) {
                 visitor.addManagedMethods(mutableProperties, readOnlyProperties);
@@ -1545,6 +1550,13 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         void applyManagedStateToGetter(PropertyMetadata property, Method getter);
 
         void applyManagedStateToSetter(PropertyMetadata property, Method setter);
+
+        /**
+         * Emit the body for an abstract setter that forwards to the sibling lazy-property getter,
+         * e.g. {@code setX(T v)} → {@code getX().set(v)}. Used to keep deprecated pre-lazy setters
+         * compiling without a hand-written body that could drift.
+         */
+        void applyLazyForwarderSetter(PropertyMetadata property, Method setter);
 
         void applyReadOnlyManagedStateToGetter(PropertyMetadata property, Method getter, boolean applyRole);
 
