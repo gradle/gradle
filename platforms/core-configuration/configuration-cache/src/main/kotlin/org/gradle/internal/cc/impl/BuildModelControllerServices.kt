@@ -46,6 +46,7 @@ import org.gradle.internal.cc.impl.serialize.DefaultConfigurationCacheCodecs
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.execution.WorkExecutionTracker
 import org.gradle.internal.operations.BuildOperationRunner
+import org.gradle.internal.cc.impl.services.add
 import org.gradle.internal.service.CachingServiceLocator
 import org.gradle.internal.service.Provides
 import org.gradle.internal.service.ServiceRegistration
@@ -92,9 +93,9 @@ internal object BuildModelControllerServices : ServiceRegistrationProvider {
         } else error("no other modes are supported")
 
         if (buildModelParameters.isCachingModelBuilding) {
-            addProvider(ConfigurationCacheModelProvider())
+            add(ProjectEvaluator::class.java, BuildModelControllerServices::createConfigurationCacheProjectEvaluator)
         } else {
-            addProvider(VintageModelProvider())
+            add(ProjectEvaluator::class.java, BuildModelControllerServices::createVintageProjectEvaluator)
         }
     }
 
@@ -109,37 +110,31 @@ internal object BuildModelControllerServices : ServiceRegistrationProvider {
 
     // endregion
 
-    private
-    class ConfigurationCacheModelProvider : ServiceRegistrationProvider {
-        @Provides
-        fun createProjectEvaluator(
-            buildOperationRunner: BuildOperationRunner,
-            cachingServiceLocator: CachingServiceLocator,
-            scriptPluginFactory: ScriptPluginFactory,
-            fingerprintController: ConfigurationCacheFingerprintController,
-            cancellationToken: BuildCancellationToken
-        ): ProjectEvaluator {
-            val evaluator = VintageModelProvider().createProjectEvaluator(buildOperationRunner, cachingServiceLocator, scriptPluginFactory, cancellationToken)
-            return ConfigurationCacheAwareProjectEvaluator(evaluator, fingerprintController)
-        }
+    @JvmStatic
+    private fun createConfigurationCacheProjectEvaluator(
+        buildOperationRunner: BuildOperationRunner,
+        cachingServiceLocator: CachingServiceLocator,
+        scriptPluginFactory: ScriptPluginFactory,
+        fingerprintController: ConfigurationCacheFingerprintController,
+        cancellationToken: BuildCancellationToken
+    ): ProjectEvaluator {
+        val evaluator = createVintageProjectEvaluator(buildOperationRunner, cachingServiceLocator, scriptPluginFactory, cancellationToken)
+        return ConfigurationCacheAwareProjectEvaluator(evaluator, fingerprintController)
     }
 
-    private
-    class VintageModelProvider : ServiceRegistrationProvider {
-        @Provides
-        fun createProjectEvaluator(
-            buildOperationRunner: BuildOperationRunner,
-            cachingServiceLocator: CachingServiceLocator,
-            scriptPluginFactory: ScriptPluginFactory,
-            cancellationToken: BuildCancellationToken
-        ): ProjectEvaluator {
-            val withActionsEvaluator = ConfigureActionsProjectEvaluator(
-                PluginsProjectConfigureActions.from(cachingServiceLocator),
-                BuildScriptProcessor(scriptPluginFactory),
-                DelayedConfigurationActions()
-            )
-            return LifecycleProjectEvaluator(buildOperationRunner, withActionsEvaluator, cancellationToken)
-        }
+    @JvmStatic
+    private fun createVintageProjectEvaluator(
+        buildOperationRunner: BuildOperationRunner,
+        cachingServiceLocator: CachingServiceLocator,
+        scriptPluginFactory: ScriptPluginFactory,
+        cancellationToken: BuildCancellationToken
+    ): ProjectEvaluator {
+        val withActionsEvaluator = ConfigureActionsProjectEvaluator(
+            PluginsProjectConfigureActions.from(cachingServiceLocator),
+            BuildScriptProcessor(scriptPluginFactory),
+            DelayedConfigurationActions()
+        )
+        return LifecycleProjectEvaluator(buildOperationRunner, withActionsEvaluator, cancellationToken)
     }
 
     // TODO:configuration-cache simplify after https://github.com/gradle/gradle/issues/37567 is addressed

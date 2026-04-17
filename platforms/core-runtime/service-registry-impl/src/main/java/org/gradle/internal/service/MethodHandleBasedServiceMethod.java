@@ -21,19 +21,25 @@ import org.jspecify.annotations.Nullable;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 
 class MethodHandleBasedServiceMethod extends AbstractServiceMethod {
     private final static MethodHandles.Lookup LOOKUP = MethodHandles.publicLookup();
     private final MethodHandle method;
+    private final boolean isStatic;
 
     MethodHandleBasedServiceMethod(Method target) throws IllegalAccessException {
         super(target);
         this.method = LOOKUP.unreflect(target);
+        this.isStatic = Modifier.isStatic(target.getModifiers());
     }
 
     @Override
     public Object invoke(Object target, @Nullable Object... args) {
         try {
+            if (isStatic) {
+                return method.invokeWithArguments(args);
+            }
             return method.bindTo(target).invokeWithArguments(args);
         } catch (Throwable e) {
             throw UncheckedException.throwAsUncheckedException(e);

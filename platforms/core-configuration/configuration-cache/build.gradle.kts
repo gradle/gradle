@@ -82,6 +82,7 @@ dependencies {
     implementation(libs.fastutil)
     implementation(libs.kryo)
     implementation(libs.slf4jApi)
+    implementation(libs.kotlinReflect)
 
     compileOnly(libs.jspecify)
 
@@ -91,7 +92,6 @@ dependencies {
     // TODO - move the isolatable serializer to model-core to live with the isolatable infrastructure
     runtimeOnly(projects.workers)
 
-    runtimeOnly(libs.kotlinReflect)
 
     testImplementation(projects.beanSerializationServices)
     testImplementation(testFixtures(projects.beanSerializationServices))

@@ -16,6 +16,8 @@
 
 package org.gradle.internal.service;
 
+import java.lang.reflect.Method;
+
 /**
  * Allows services to be added to a registry.
  */
@@ -42,6 +44,15 @@ public interface ServiceRegistration {
      * @param implementationType The implementation type of the service.
      */
     <T> void add(Class<? super T> serviceType, Class<T> implementationType);
+
+    /**
+     * Adds a service to this registry using a static factory method.
+     * The method's parameters are injected from the registry.
+     *
+     * @param serviceType The service type to make visible.
+     * @param implementationMethod A static method that creates the service instance.
+     */
+    <T> void add(Class<? super T> serviceType, Method implementationMethod);
 
     /**
      * Adds two services to this registry that share the implementation.

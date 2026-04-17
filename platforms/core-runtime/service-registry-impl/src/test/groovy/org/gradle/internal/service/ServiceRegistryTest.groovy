@@ -519,6 +519,94 @@ class ServiceRegistryTest extends Specification implements ServiceRegistryFixtur
         e.message == "Cannot register implementation 'TestServiceImpl' for service 'Runnable', because it does not implement it"
     }
 
+    def "creates service using static factory method registered via add(Class, Method)"() {
+        def registry = new DefaultServiceRegistry()
+        registry.register({ ServiceRegistration registration ->
+            registration.add(CharSequence, StaticFactory.getDeclaredMethod("createString"))
+        })
+
+        expect:
+        registry.get(CharSequence) == "hello"
+    }
+
+    def "injects dependencies into static factory method registered via add(Class, Method)"() {
+        def registry = new DefaultServiceRegistry()
+        registry.register({ ServiceRegistration registration ->
+            registration.add(Integer, 42)
+            registration.add(String, StaticFactory.getDeclaredMethod("createStringFromInt", Integer))
+        })
+
+        expect:
+        registry.get(String) == "42"
+    }
+
+    def "fails when registering non-static method on a regular class via add(Class, Method)"() {
+        def registry = new DefaultServiceRegistry()
+
+        when:
+        registry.register({ ServiceRegistration registration ->
+            registration.add(String, NonStaticFactory.getDeclaredMethod("createString"))
+        })
+
+        then:
+        ServiceValidationException e = thrown()
+        e.message.contains("is not static")
+    }
+
+    def "fails when return type of static factory method does not match service type"() {
+        def registry = new DefaultServiceRegistry()
+
+        when:
+        registry.register({ ServiceRegistration registration ->
+            registration.add(Number, StaticFactory.getDeclaredMethod("createString"))
+        })
+
+        then:
+        ServiceValidationException e = thrown()
+        e.message.contains("does not implement it")
+    }
+
+    def "fails when static factory method returns null"() {
+        def registry = new DefaultServiceRegistry()
+        registry.register({ ServiceRegistration registration ->
+            registration.add(String, StaticFactory.getDeclaredMethod("createNull"))
+        })
+
+        when:
+        registry.get(String)
+
+        then:
+        ServiceCreationException e = thrown()
+        e.message.contains("returned null")
+    }
+
+    def "fails when static factory method throws exception"() {
+        def registry = new DefaultServiceRegistry()
+        registry.register({ ServiceRegistration registration ->
+            registration.add(String, StaticFactory.getDeclaredMethod("createBroken"))
+        })
+
+        when:
+        registry.get(String)
+
+        then:
+        ServiceCreationException e = thrown()
+        e.message.contains("Could not create service")
+    }
+
+    def "fails when registering void method via add(Class, Method)"() {
+        def registry = new DefaultServiceRegistry()
+
+        when:
+        registry.register({ ServiceRegistration registration ->
+            registration.add(String, StaticFactory.getDeclaredMethod("voidMethod"))
+        })
+
+        then:
+        ServiceValidationException e = thrown()
+        e.message.contains("returns void")
+    }
+
     private AbstractServiceRegistry parentRegistry(ServiceProvider provider) {
         def parent = Mock(AbstractServiceRegistry)
         parent.asServiceProvider() >> provider
@@ -670,6 +758,32 @@ class ServiceRegistryTest extends Specification implements ServiceRegistryFixtur
 
     static class RequiresService {
         RequiresService(Number value) {
+        }
+    }
+
+    static class StaticFactory {
+        static String createString() {
+            return "hello"
+        }
+
+        static String createStringFromInt(Integer value) {
+            return value.toString()
+        }
+
+        static void voidMethod() {}
+
+        static String createNull() {
+            return null
+        }
+
+        static String createBroken() {
+            throw new RuntimeException("broken")
+        }
+    }
+
+    static class NonStaticFactory {
+        String createString() {
+            return "hello"
         }
     }
 }
