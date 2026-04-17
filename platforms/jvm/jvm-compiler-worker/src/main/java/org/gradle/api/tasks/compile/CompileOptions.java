@@ -22,7 +22,7 @@ import org.gradle.api.Action;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.provider.support.RedirectsTo;
+import org.gradle.api.internal.provider.support.BackedByProperty;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.model.ReplacedBy;
 import org.gradle.api.provider.ListProperty;
@@ -432,11 +432,11 @@ public abstract class CompileOptions implements Serializable {
     )
     public abstract DirectoryProperty getGeneratedSourceOutputDirectory();
 
-    @RedirectsTo("generatedSourceOutputDirectory")
+    @BackedByProperty("getGeneratedSourceOutputDirectory")
     @Deprecated
     public abstract void setAnnotationProcessorGeneratedSourcesDirectory(File value);
 
-    @RedirectsTo("generatedSourceOutputDirectory")
+    @BackedByProperty("getGeneratedSourceOutputDirectory")
     @Deprecated
     public abstract DirectoryProperty getAnnotationProcessorGeneratedSourcesDirectory();
 

@@ -22,25 +22,26 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Marks a legacy-named accessor as a redirect to the canonical lazy-property accessor
- * on the same class. The class generator synthesizes a body that delegates:
+ * Marks a legacy-named accessor as backed by a canonical lazy-property getter on the
+ * same class. The class generator synthesizes a body that delegates:
  * <ul>
- *   <li>Setter shape ({@code void set<LegacyName>(T)} or {@code DeclaringType set<LegacyName>(T)}):
- *       {@code ((LazyGroovySupport) get<value>()).setFromAnyValue(arg)}, autoboxing primitives.</li>
- *   <li>Getter shape ({@code L get<LegacyName>()} or {@code L is<LegacyName>()} where {@code L} is
- *       a lazy-property type): {@code return get<value>()}.</li>
+ *   <li>Getter shape ({@code L getLegacy()} where {@code L} is a lazy-property type):
+ *       {@code return <value>()}.</li>
+ *   <li>Setter shape ({@code void setLegacy(T)} / {@code DeclaringType setLegacy(T)}):
+ *       {@code ((LazyGroovySupport) <value>()).setFromAnyValue(arg)}, autoboxing primitives.</li>
  * </ul>
  *
- * <p>{@code value} is the canonical lazy property's name (e.g. {@code "destinationDirectory"}
- * when the canonical getter is {@code DirectoryProperty getDestinationDirectory()}).
+ * <p>{@code value} is the canonical getter's method name (e.g. {@code "getDestinationDirectory"}),
+ * so rename tooling catches it. The method must be declared on the same class and return a
+ * lazy-property type.
  *
  * <p>Only needed when the accessor's name does not match the canonical getter's property
- * (e.g. {@code setDestinationDir} redirecting to {@code destinationDirectory}). Accessors
- * whose name already matches the canonical getter are handled by the existing
- * {@code PropertyMetadata} pairing and do not need this annotation.
+ * (e.g. {@code setDestinationDir} backed by {@code getDestinationDirectory}). Accessors
+ * whose name already matches the canonical getter are paired automatically by the class
+ * generator's property discovery and do not need this annotation.
  */
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
-public @interface RedirectsTo {
+public @interface BackedByProperty {
     String value();
 }

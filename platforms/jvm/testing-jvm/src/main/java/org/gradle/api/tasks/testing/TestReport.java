@@ -19,7 +19,7 @@ package org.gradle.api.tasks.testing;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
-import org.gradle.api.internal.provider.support.RedirectsTo;
+import org.gradle.api.internal.provider.support.BackedByProperty;
 import org.gradle.api.internal.tasks.testing.report.generic.GenericHtmlTestReportGenerator;
 import org.gradle.api.internal.tasks.testing.report.generic.MetadataRendererRegistry;
 import org.gradle.api.model.ObjectFactory;
@@ -92,11 +92,11 @@ public abstract class TestReport extends DefaultTask {
     )
     public abstract DirectoryProperty getDestinationDirectory();
 
-    @RedirectsTo("destinationDirectory")
+    @BackedByProperty("getDestinationDirectory")
     @Deprecated
     public abstract void setDestinationDir(File value);
 
-    @RedirectsTo("destinationDirectory")
+    @BackedByProperty("getDestinationDirectory")
     @Deprecated
     public abstract DirectoryProperty getDestinationDir();
 

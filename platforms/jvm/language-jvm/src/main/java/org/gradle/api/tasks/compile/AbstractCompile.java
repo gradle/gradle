@@ -19,7 +19,7 @@ import java.io.File;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.provider.support.RedirectsTo;
+import org.gradle.api.internal.provider.support.BackedByProperty;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.OutputDirectory;
@@ -76,11 +76,11 @@ public abstract class AbstractCompile extends SourceTask {
         return destinationDirectory;
     }
 
-    @RedirectsTo("destinationDirectory")
+    @BackedByProperty("getDestinationDirectory")
     @Deprecated
     public abstract void setDestinationDir(File value);
 
-    @RedirectsTo("destinationDirectory")
+    @BackedByProperty("getDestinationDirectory")
     @Deprecated
     public abstract DirectoryProperty getDestinationDir();
 

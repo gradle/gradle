@@ -37,7 +37,7 @@ import org.gradle.api.NonExtensible;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.internal.DynamicObjectAware;
 import org.gradle.api.internal.IConventionAware;
-import org.gradle.api.internal.provider.support.RedirectsTo;
+import org.gradle.api.internal.provider.support.BackedByProperty;
 import org.gradle.api.model.ManagedType;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.provider.HasMultipleValues;
@@ -1178,19 +1178,19 @@ abstract class AbstractClassGenerator implements ClassGenerator {
                 }
             }
             for (PropertyMetadata property : readOnlyProperties) {
-                // A pure-redirect property (e.g. `getDestinationDir()` marked @RedirectsTo on every getter)
-                // doesn't need its own managed-state field — the redirect body reads from the canonical
-                // property's field instead.
-                boolean allGettersRedirect = !property.getters.isEmpty()
-                        && property.getters.stream().allMatch(g -> g.method.isAnnotationPresent(RedirectsTo.class));
-                if (!allGettersRedirect) {
+                // A pure-forwarder property (e.g. `getDestinationDir()` annotated @BackedByProperty on every
+                // getter) doesn't need its own managed-state field — the synthesized body reads from the
+                // canonical property's field via the named canonical getter.
+                boolean allGettersBackedByProperty = !property.getters.isEmpty()
+                        && property.getters.stream().allMatch(g -> g.method.isAnnotationPresent(BackedByProperty.class));
+                if (!allGettersBackedByProperty) {
                     visitor.applyManagedStateToProperty(property);
                 }
                 boolean applyRole = isRoleType(property);
                 for (MethodMetadata getter : property.getters) {
-                    RedirectsTo redirect = getter.method.getAnnotation(RedirectsTo.class);
-                    if (redirect != null) {
-                        visitor.applyRedirectGetter(property, getter.method, redirect.value());
+                    BackedByProperty backing = getter.method.getAnnotation(BackedByProperty.class);
+                    if (backing != null) {
+                        visitor.applyBackedByPropertyGetter(property, getter.method, backing.value());
                     } else {
                         visitor.applyReadOnlyManagedStateToGetter(property, getter.method, applyRole);
                     }
@@ -1572,10 +1572,10 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         void applyLazyForwarderSetter(PropertyMetadata property, Method setter);
 
         /**
-         * Emit the body for an abstract getter annotated {@code @RedirectsTo("canonical")}:
-         * {@code return getCanonical()}. The redirect target is on the same generated class.
+         * Emit the body for an abstract getter annotated {@code @BackedByProperty("getCanonical")}:
+         * {@code return getCanonical()}. The named canonical getter is on the same generated class.
          */
-        void applyRedirectGetter(PropertyMetadata property, Method method, String redirectTarget);
+        void applyBackedByPropertyGetter(PropertyMetadata property, Method method, String canonicalGetterName);
 
         void applyReadOnlyManagedStateToGetter(PropertyMetadata property, Method getter, boolean applyRole);
 
