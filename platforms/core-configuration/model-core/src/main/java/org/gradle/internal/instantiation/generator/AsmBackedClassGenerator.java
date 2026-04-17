@@ -1350,6 +1350,20 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             }});
         }
 
+        @Override
+        public void applyRedirectGetter(PropertyMetadata property, Method method, String redirectTarget) {
+            // GENERATE public <T> <method>() { return get<Capitalized(redirectTarget)>(); }
+            Type returnType = getType(method.getReturnType());
+            String methodDescriptor = getMethodDescriptor(returnType);
+            String canonicalGetterName = "get"
+                    + Character.toUpperCase(redirectTarget.charAt(0))
+                    + redirectTarget.substring(1);
+            addGetter(method.getName(), returnType, methodDescriptor, signature(method), methodVisitor -> new MethodVisitorScope(methodVisitor) {{
+                _ALOAD(0);
+                _INVOKEVIRTUAL(generatedType, canonicalGetterName, methodDescriptor);
+            }});
+        }
+
         private void addSetterForProperty(PropertyMetadata property, Method setter) {
             // GENERATE public void <setter>(<type> value) { <field> == value }
             Type fieldType = getType(property.getType());
@@ -2050,6 +2064,10 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
 
         @Override
         public void applyLazyForwarderSetter(PropertyMetadata property, Method setter) {
+        }
+
+        @Override
+        public void applyRedirectGetter(PropertyMetadata property, Method method, String redirectTarget) {
         }
 
         @Override
