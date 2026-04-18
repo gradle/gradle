@@ -20,7 +20,6 @@ tasks.isolatedProjectsIntegTest {
 dependencies {
     api(projects.baseServices)
     api(projects.buildOperations)
-    api(projects.buildOption)
     api(projects.concurrent)
     api(projects.configurationCacheBase)
     api(projects.configurationProblemsBase)
@@ -44,6 +43,8 @@ dependencies {
     api(libs.groovy)
     api(libs.inject)
     api(libs.kotlinStdlib)
+
+    implementation(projects.buildOption)
 
     // TODO - it might be good to allow projects to contribute state to save and restore, rather than have this project know about everything
     implementation(projects.buildCacheCore)
@@ -86,6 +87,7 @@ dependencies {
     compileOnly(libs.jspecify)
 
     runtimeOnly(projects.beanSerializationServices)
+    runtimeOnly(projects.buildTreeControl)
     runtimeOnly(projects.compositeBuilds)
     runtimeOnly(projects.resourcesHttp)
     // TODO - move the isolatable serializer to model-core to live with the isolatable infrastructure
@@ -93,6 +95,7 @@ dependencies {
 
     runtimeOnly(libs.kotlinReflect)
 
+    testImplementation(projects.buildTreeControl)
     testImplementation(projects.beanSerializationServices)
     testImplementation(testFixtures(projects.beanSerializationServices))
     testImplementation(projects.io)
