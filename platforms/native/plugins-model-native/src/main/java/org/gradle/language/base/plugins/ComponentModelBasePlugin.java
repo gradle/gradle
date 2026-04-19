@@ -23,17 +23,17 @@ import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
-import org.gradle.api.publish.internal.plugins.PublishingPluginRules;
-import org.gradle.ide.visualstudio.internal.plugins.VisualStudioPluginRules.VisualStudioExtensionRules;
-import org.gradle.ide.visualstudio.internal.plugins.VisualStudioPluginRules.VisualStudioPluginProjectRules;
-import org.gradle.ide.visualstudio.internal.plugins.VisualStudioPluginRules.VisualStudioPluginRootRules;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectIdentifier;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.internal.tasks.TaskDependencyUtil;
 import org.gradle.api.plugins.ExtensionContainer;
+import org.gradle.api.publish.internal.plugins.PublishingPluginRules;
 import org.gradle.api.tasks.TaskContainer;
+import org.gradle.ide.visualstudio.internal.plugins.VisualStudioPluginRules.VisualStudioExtensionRules;
+import org.gradle.ide.visualstudio.internal.plugins.VisualStudioPluginRules.VisualStudioPluginProjectRules;
+import org.gradle.ide.visualstudio.internal.plugins.VisualStudioPluginRules.VisualStudioPluginRootRules;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
@@ -86,6 +86,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import static com.google.common.base.Strings.emptyToNull;
 
 /**
@@ -218,7 +219,7 @@ public abstract class ComponentModelBasePlugin implements Plugin<Project> {
 
             @Override
             public void execute(Task task) {
-                Set<? extends Task> taskDependencies = TaskDependencyUtil.getDependenciesForInternalUse(task.getTaskDependencies(), task);
+                Set<? extends Task> taskDependencies = TaskDependencyUtil.newTaskResolver().getDependencies(task, (TaskDependencyContainer) task.getTaskDependencies());
 
                 if (taskDependencies.isEmpty()) {
                     TreeFormatter formatter = new TreeFormatter();

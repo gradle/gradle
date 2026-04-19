@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.gradle.api.internal.artifacts.transform;
 
 import org.gradle.api.Describable;
@@ -24,7 +23,6 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Resol
 import org.gradle.api.internal.project.ProjectIdentity;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.NodeExecutionContext;
-import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.execution.plan.CreationOrderedNode;
 import org.gradle.execution.plan.Node;
@@ -52,7 +50,6 @@ import org.gradle.operations.dependencies.variants.Capability;
 import org.gradle.operations.dependencies.variants.ComponentIdentifier;
 import org.jspecify.annotations.Nullable;
 
-import javax.annotation.OverridingMethodsMustInvokeSuper;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -60,6 +57,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
+import javax.annotation.OverridingMethodsMustInvokeSuper;
 
 @SuppressWarnings("this-escape")
 public abstract class TransformStepNode extends CreationOrderedNode implements TaskDeclarationAware {
@@ -299,7 +297,7 @@ public abstract class TransformStepNode extends CreationOrderedNode implements T
 
     @Override
     public void resolveDependencies(TaskDependencyResolver dependencyResolver) {
-        processDependencies(dependencyResolver.resolveDependenciesFor(null, (TaskDependencyContainer) context -> getTransformedArtifacts().visitDependencies(context)));
+        processDependencies(dependencyResolver.resolveDependenciesFor(null, getTransformedArtifacts()::visitDependencies));
     }
 
     protected void processDependencies(Set<Node> dependencies) {

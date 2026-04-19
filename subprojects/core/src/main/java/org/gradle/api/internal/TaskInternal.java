@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.gradle.api.internal;
 
 import org.gradle.api.Action;
@@ -25,7 +24,6 @@ import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.internal.tasks.properties.ServiceReferenceSpec;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.Internal;
-import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.Factory;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.StandardOutputCapture;
@@ -38,6 +36,7 @@ import java.io.File;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import org.gradle.api.internal.tasks.TaskDependencyInternal;
 
 public interface TaskInternal extends Task, Configurable<Task> {
 
@@ -170,5 +169,18 @@ public interface TaskInternal extends Task, Configurable<Task> {
      * @return the dependencies of this task declared via an explicit {@link Task#dependsOn(Object...)}
      */
     @Internal
-    TaskDependency getLifecycleDependencies();
+    TaskDependencyInternal getLifecycleDependencies();
+
+    @Override
+    TaskDependencyInternal getTaskDependencies();
+
+    @Override
+    TaskDependencyInternal getFinalizedBy();
+
+    @Override
+    TaskDependencyInternal getMustRunAfter();
+
+    @Override
+    TaskDependencyInternal getShouldRunAfter();
+
 }
