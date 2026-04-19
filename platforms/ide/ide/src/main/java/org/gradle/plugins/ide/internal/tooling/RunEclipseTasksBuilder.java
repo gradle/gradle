@@ -19,6 +19,8 @@ package org.gradle.plugins.ide.internal.tooling;
 import org.gradle.StartParameter;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
+import org.gradle.api.internal.tasks.CachingTaskDependencyResolveContext;
+import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.internal.tasks.TaskDependencyUtil;
 import org.gradle.plugins.ide.eclipse.model.EclipseModel;
 import org.gradle.tooling.provider.model.ToolingModelBuilder;
@@ -42,16 +44,17 @@ public class RunEclipseTasksBuilder implements ToolingModelBuilder {
         boolean isSyncModel = isSyncModel(modelName);
         boolean isAutoBuildModel = isAutoBuildModel(modelName);
 
+        CachingTaskDependencyResolveContext<Task> taskResolver = TaskDependencyUtil.newTaskResolver();
         for (Project p : project.getAllprojects()) {
             EclipseModel model = p.getExtensions().findByType(EclipseModel.class);
             if (model != null) {
                 if (isSyncModel) {
-                    for (Task t : TaskDependencyUtil.getDependenciesForInternalUse(model.getSynchronizationTasks(), null)) {
+                    for (Task t : taskResolver.getDependencies(null, (TaskDependencyContainer) model.getSynchronizationTasks())) {
                         taskPaths.add(t.getPath());
                     }
                 }
                 if (isAutoBuildModel) {
-                    for (Task t : TaskDependencyUtil.getDependenciesForInternalUse(model.getAutoBuildTasks(), null)) {
+                    for (Task t : taskResolver.getDependencies(null, (TaskDependencyContainer) model.getAutoBuildTasks())) {
                         taskPaths.add(t.getPath());
                     }
                 }
