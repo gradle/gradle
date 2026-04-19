@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.gradle.execution.plan;
 
 import com.google.common.collect.ImmutableList;
@@ -41,6 +40,7 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.function.Consumer;
 
+import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import static com.google.common.collect.Sets.newIdentityHashSet;
 
 /**
@@ -129,6 +129,12 @@ public class DefaultExecutionPlan implements ExecutionPlan, QueryableExecutionPl
             nodes.add(taskNodeFactory.getOrCreateNode(task));
         }
         doAddEntryNodes(nodes, ordinal);
+    }
+
+    @Override
+    public void addEntryDependencies(TaskDependencyContainer dependencies) {
+        Set<Node> nodes = dependencyResolver.resolveDependenciesFor(null, dependencies);
+        addEntryNodes(nodes);
     }
 
     public void addEntryNodes(Collection<? extends Node> nodes) {
