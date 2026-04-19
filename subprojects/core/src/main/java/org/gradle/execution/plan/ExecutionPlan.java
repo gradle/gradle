@@ -18,6 +18,7 @@ package org.gradle.execution.plan;
 
 import org.gradle.api.Describable;
 import org.gradle.api.Task;
+import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.specs.Spec;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -48,6 +49,11 @@ public interface ExecutionPlan extends Describable, Closeable {
      * Adds entry tasks to the execution plan. No ordering can be assumed between the elements of the target collection. If called multiple times then execution plan follows the method invocation order.
      */
     void addEntryTasks(Collection<? extends Task> tasks);
+
+    /**
+     * Adds the nodes specified by the given task dependency container as entry nodes to this execution plan.
+     */
+    void addEntryDependencies(TaskDependencyContainer dependencies);
 
     /**
      * Returns a snapshot of the current contents of this plan. Note that this plan is mutable, so the contents may later change.

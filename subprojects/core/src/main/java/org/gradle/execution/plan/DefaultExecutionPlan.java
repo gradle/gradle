@@ -19,6 +19,7 @@ package org.gradle.execution.plan;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Task;
+import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
@@ -127,6 +128,12 @@ public class DefaultExecutionPlan implements ExecutionPlan, QueryableExecutionPl
             nodes.add(taskNodeFactory.getOrCreateNode(task));
         }
         doAddEntryNodes(nodes, ordinal);
+    }
+
+    @Override
+    public void addEntryDependencies(TaskDependencyContainer dependencies) {
+        Set<Node> nodes = dependencyResolver.resolveDependenciesFor(null, dependencies);
+        addEntryNodes(nodes);
     }
 
     public void addEntryNodes(Collection<? extends Node> nodes) {
