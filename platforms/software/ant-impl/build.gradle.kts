@@ -20,6 +20,7 @@ dependencies {
     api(projects.buildProcessServices)
     api(projects.classloaders)             // CachingClassLoader, FilteringClassLoader, etc.
     api(projects.concurrent)
+    api(projects.modelCore)
     api(projects.serviceProvider)
     api(libs.ant)
     api(libs.groovy)
@@ -27,7 +28,6 @@ dependencies {
     api(libs.jspecify)
 
     implementation(projects.loggingApi)
-    implementation(projects.modelCore)
     implementation(projects.stdlibJavaExtensions)
     implementation(projects.groovyLoader)  // GroovySystemLoader, GroovySystemLoaderFactory
     implementation(libs.guava)
