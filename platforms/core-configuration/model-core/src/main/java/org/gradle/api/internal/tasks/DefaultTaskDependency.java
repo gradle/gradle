@@ -55,7 +55,9 @@ import static org.gradle.internal.UncheckedException.uncheckedCall;
  * constructor than to use the {@link #add(Object...)} method, as the former will
  * require less memory to store them.
  */
-public class DefaultTaskDependency extends AbstractTaskDependency {
+public class DefaultTaskDependency implements TaskDependencyInternal {
+
+    private final @Nullable TaskDependencyUsageTracker dependencyUsageTracker;
     private final ImmutableSet<Object> immutableValues;
     private Set<Object> mutableValues;
     private final TaskResolver resolver;
@@ -76,9 +78,18 @@ public class DefaultTaskDependency extends AbstractTaskDependency {
         ImmutableSet<Object> immutableValues,
         @Nullable TaskDependencyUsageTracker taskDependencyUsageTracker
     ) {
-        super(taskDependencyUsageTracker);
+        this.dependencyUsageTracker = taskDependencyUsageTracker;
         this.resolver = resolver;
         this.immutableValues = immutableValues;
+    }
+
+    @Override
+    public Set<? extends Task> getDependencies(@Nullable Task task) {
+        Set<? extends Task> result = TaskDependencyUtil.newTaskResolver().getDependencies(task, this);
+        if (dependencyUsageTracker != null) {
+            dependencyUsageTracker.onTaskDependencyUsage(result);
+        }
+        return result;
     }
 
     @Override
@@ -291,4 +302,5 @@ public class DefaultTaskDependency extends AbstractTaskDependency {
             return delegate.hashCode();
         }
     }
+
 }

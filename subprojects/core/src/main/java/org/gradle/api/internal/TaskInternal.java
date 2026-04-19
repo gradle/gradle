@@ -20,12 +20,12 @@ import org.gradle.api.Action;
 import org.gradle.api.Task;
 import org.gradle.api.internal.project.taskfactory.TaskIdentity;
 import org.gradle.api.internal.tasks.InputChangesAwareTaskAction;
+import org.gradle.api.internal.tasks.TaskDependencyInternal;
 import org.gradle.api.internal.tasks.TaskRequiredServices;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.internal.tasks.properties.ServiceReferenceSpec;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.Internal;
-import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.Factory;
 import org.gradle.internal.logging.StandardOutputCapture;
 import org.gradle.internal.resources.ResourceLock;
@@ -155,5 +155,18 @@ public interface TaskInternal extends Task, Configurable<Task> {
      * @return the dependencies of this task declared via an explicit {@link Task#dependsOn(Object...)}
      */
     @Internal
-    TaskDependency getLifecycleDependencies();
+    TaskDependencyInternal getLifecycleDependencies();
+
+    @Override
+    TaskDependencyInternal getTaskDependencies();
+
+    @Override
+    TaskDependencyInternal getFinalizedBy();
+
+    @Override
+    TaskDependencyInternal getMustRunAfter();
+
+    @Override
+    TaskDependencyInternal getShouldRunAfter();
+
 }

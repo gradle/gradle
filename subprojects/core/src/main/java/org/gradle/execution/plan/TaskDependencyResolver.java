@@ -18,6 +18,7 @@ package org.gradle.execution.plan;
 
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.CachingTaskDependencyResolveContext;
+import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.jspecify.annotations.NullMarked;
@@ -29,6 +30,7 @@ import java.util.Set;
 @NullMarked
 @ServiceScope(Scope.Build.class)
 public class TaskDependencyResolver {
+
     private final List<DependencyResolver> dependencyResolvers;
     private CachingTaskDependencyResolveContext<Node> context;
 
@@ -45,7 +47,8 @@ public class TaskDependencyResolver {
         return new CachingTaskDependencyResolveContext<Node>(workResolvers);
     }
 
-    public Set<Node> resolveDependenciesFor(@Nullable TaskInternal task, Object dependencies) {
+    public Set<Node> resolveDependenciesFor(@Nullable TaskInternal task, TaskDependencyContainer dependencies) {
         return context.getDependencies(task, dependencies);
     }
+
 }

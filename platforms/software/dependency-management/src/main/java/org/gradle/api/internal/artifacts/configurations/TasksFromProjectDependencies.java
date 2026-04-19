@@ -21,8 +21,8 @@ import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.internal.artifacts.dependencies.ProjectDependencyInternal;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.internal.project.ProjectStateRegistry;
-import org.gradle.api.internal.tasks.TaskDependencyContainerInternal;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
+import org.gradle.api.internal.tasks.TaskDependencyInternal;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.util.Path;
 import org.jspecify.annotations.Nullable;
@@ -31,8 +31,9 @@ import java.util.Set;
 import java.util.function.Supplier;
 
 @Deprecated
-public class TasksFromProjectDependencies implements TaskDependencyContainerInternal {
-    private final TaskDependencyContainerInternal taskDependencyDelegate;
+public class TasksFromProjectDependencies implements TaskDependencyInternal {
+
+    private final TaskDependencyInternal taskDependencyDelegate;
 
     public TasksFromProjectDependencies(
         String taskName,
@@ -73,8 +74,4 @@ public class TasksFromProjectDependencies implements TaskDependencyContainerInte
         return taskDependencyDelegate.getDependencies(task);
     }
 
-    @Override
-    public Set<? extends Task> getDependenciesForInternalUse(@Nullable Task task) {
-        return taskDependencyDelegate.getDependenciesForInternalUse(task);
-    }
 }

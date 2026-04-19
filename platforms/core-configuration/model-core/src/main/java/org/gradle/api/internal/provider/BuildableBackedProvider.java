@@ -26,7 +26,6 @@ import org.gradle.api.internal.tasks.TaskDependencyUtil;
 import org.gradle.internal.Factory;
 import org.jspecify.annotations.Nullable;
 
-import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class BuildableBackedProvider<B extends Buildable & TaskDependencyContainer, T> extends AbstractProviderWithValue<T> {
@@ -59,7 +58,7 @@ public class BuildableBackedProvider<B extends Buildable & TaskDependencyContain
 
             @Override
             public void visitProducerTasks(Action<? super Task> visitor) {
-                for (Task dependency : buildableDependencies()) {
+                for (Task dependency : TaskDependencyUtil.newTaskResolver().getDependencies(null, buildable)) {
                     visitor.execute(dependency);
                 }
             }
@@ -83,10 +82,6 @@ public class BuildableBackedProvider<B extends Buildable & TaskDependencyContain
             }
         });
         return hasDependency.get();
-    }
-
-    private Set<? extends Task> buildableDependencies() {
-        return TaskDependencyUtil.getDependenciesForInternalUse(buildable);
     }
 
     @Override

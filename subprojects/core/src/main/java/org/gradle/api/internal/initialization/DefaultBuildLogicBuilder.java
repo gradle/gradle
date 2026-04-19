@@ -22,6 +22,8 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.tasks.TaskDependencyContainer;
+import org.gradle.api.internal.tasks.TaskDependencyUtil;
 import org.gradle.composite.internal.TaskIdentifier;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.classpath.ClassPath;
@@ -32,10 +34,10 @@ import org.gradle.internal.operations.CallableBuildOperation;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import static org.gradle.api.internal.tasks.TaskDependencyUtil.getDependenciesForInternalUse;
+import java.util.Set;
 
 public class DefaultBuildLogicBuilder implements BuildLogicBuilder {
+
     private final BuildState currentBuild;
     private final ScriptClassPathResolver scriptClassPathResolver;
     private final BuildLogicBuildQueue buildQueue;
@@ -83,8 +85,11 @@ public class DefaultBuildLogicBuilder implements BuildLogicBuilder {
     }
 
     private List<TaskIdentifier.TaskBasedTaskIdentifier> taskIdentifiersForBuildDependenciesOf(Configuration classpath) {
+        TaskDependencyContainer taskDependencies = (TaskDependencyContainer) classpath;
+        Set<? extends Task> tasks = TaskDependencyUtil.newTaskResolver().getDependencies(null, taskDependencies);
+
         List<TaskIdentifier.TaskBasedTaskIdentifier> tasksToBuild = new ArrayList<>();
-        for (Task task : getDependenciesForInternalUse(classpath)) {
+        for (Task task : tasks) {
             BuildState targetBuild = owningBuildOf(task);
             if (targetBuild == currentBuild) {
                 throw new InvalidUserDataException("Script classpath dependencies must reside in a separate build from the script itself.");
@@ -97,4 +102,5 @@ public class DefaultBuildLogicBuilder implements BuildLogicBuilder {
     private static BuildState owningBuildOf(Task task) {
         return ((ProjectInternal) task.getProject()).getOwner().getOwner();
     }
+
 }

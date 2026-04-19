@@ -27,12 +27,12 @@ dependencies {
     api(projects.coreApi)
     api(projects.fileCollections)
     api(projects.ide)
+    api(projects.modelCore)
     api(projects.stdlibJavaExtensions)
     api(projects.languageNative)
     api(projects.platformNative)
     api(projects.serviceProvider)
 
-    implementation(projects.modelCore)
     implementation(projects.testingNative)
     implementation(projects.loggingApi)
     implementation(projects.serviceLookup)
