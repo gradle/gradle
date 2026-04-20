@@ -26,6 +26,7 @@ import org.gradle.api.tasks.diagnostics.BuildEnvironmentReportTask;
 import org.gradle.api.tasks.diagnostics.DependencyInsightReportTask;
 import org.gradle.api.tasks.diagnostics.DependencyReportTask;
 import org.gradle.api.tasks.diagnostics.OutgoingVariantsReportTask;
+import org.gradle.api.tasks.diagnostics.RepositoriesReportTask;
 import org.gradle.api.tasks.diagnostics.ResolvableConfigurationsReportTask;
 import org.gradle.api.tasks.diagnostics.TaskReportTask;
 import org.jspecify.annotations.NullMarked;
@@ -67,6 +68,15 @@ public abstract class SoftwareReportingTasksPlugin implements Plugin<Project> {
             task.setDescription("Displays the Artifact Transforms that can be executed in " + projectName + ".");
             task.setGroup(HelpTasksPlugin.HELP_GROUP);
             task.setImpliesSubProjects(true);
+        });
+        boolean offline = project.getGradle().getStartParameter().isOffline();
+        tasks.register(HelpTasksPlugin.REPOSITORIES_TASK, RepositoriesReportTask.class, task -> {
+            task.setDescription("Displays the repositories available for dependency resolution.");
+            task.setGroup(HelpTasksPlugin.HELP_GROUP);
+            task.setImpliesSubProjects(true);
+            // Capture the offline flag at config time so the task action doesn't need to access
+            // Gradle.startParameter at execution time (which is CC-incompatible).
+            task.getOfflineMode().convention(offline);
         });
         tasks.withType(TaskReportTask.class).configureEach(task -> {
             task.getShowTypes().convention(false);
