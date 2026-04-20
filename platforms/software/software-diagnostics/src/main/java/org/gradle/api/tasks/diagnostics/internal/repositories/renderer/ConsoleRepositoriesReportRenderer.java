@@ -140,6 +140,8 @@ public final class ConsoleRepositoriesReportRenderer {
         Map<Path, List<ReportRepository>> projectRefs = new LinkedHashMap<>();
         for (Map.Entry<Path, RepositoryReportProjectModel> e : model.getProjectsByPath().entrySet()) {
             List<ReportRepository> refs = new ArrayList<>();
+            // Settings-inherited buckets are listed in Gradle's actual repo-search order
+            // (pluginManagement precedes DRM — settings.buildscript is not inherited per-project).
             refs.addAll(model.getSettings().getPluginManagementRepositories());
             refs.addAll(model.getSettings().getDependencyResolutionManagementRepositories());
             refs.addAll(e.getValue().getBuildscriptRepositories());

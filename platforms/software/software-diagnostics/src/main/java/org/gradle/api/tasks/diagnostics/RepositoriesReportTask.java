@@ -148,8 +148,8 @@ public abstract class RepositoriesReportTask extends ConventionReportTask {
 
     private static List<ReportRepository> collectAllRepos(RepositoryReportFullModel model) {
         List<ReportRepository> all = new ArrayList<>();
-        all.addAll(model.getSettings().getPluginManagementRepositories());
         all.addAll(model.getSettings().getSettingsBuildscriptRepositories());
+        all.addAll(model.getSettings().getPluginManagementRepositories());
         all.addAll(model.getSettings().getDependencyResolutionManagementRepositories());
         for (RepositoryReportProjectModel p : model.getProjectsByPath().values()) {
             all.addAll(p.getBuildscriptRepositories());
@@ -163,13 +163,15 @@ public abstract class RepositoriesReportTask extends ConventionReportTask {
         SettingsInternal settings = root.getGradle().getSettings();
         RepositoryReportModelFactory factory = new RepositoryReportModelFactory();
 
+        // Walk order matches Gradle's actual repo-search sequence during a build: the
+        // settings-script classpath is resolved first, then plugin resolution, then DRM/project deps.
         RepositoryReportSettingsModel settingsModel = new RepositoryReportSettingsModel(
-            convertSettingsRepos(settings.getPluginManagement().getRepositories(), factory,
-                new RepositoryDeclarationSite(SETTINGS, null, "pluginManagement.repositories"),
-                Set.of(RepositoryRole.PLUGINS)),
             convertSettingsRepos(settings.getBuildscript().getRepositories(), factory,
                 new RepositoryDeclarationSite(SETTINGS, null, "buildscript.repositories"),
                 Set.of(RepositoryRole.SETTINGS_BUILDSCRIPT_DEPENDENCIES)),
+            convertSettingsRepos(settings.getPluginManagement().getRepositories(), factory,
+                new RepositoryDeclarationSite(SETTINGS, null, "pluginManagement.repositories"),
+                Set.of(RepositoryRole.PLUGINS)),
             convertSettingsRepos(settings.getDependencyResolutionManagement().getRepositories(), factory,
                 new RepositoryDeclarationSite(SETTINGS, null, "dependencyResolutionManagement.repositories"),
                 Set.of(RepositoryRole.PROJECT_DEPENDENCIES))

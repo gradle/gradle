@@ -17,6 +17,11 @@ Flat, globally numbered list of every repository in the build, emitted in this o
 4. Each project (alphabetical by path) — its `buildscript.repositories` followed by
    its `repositories` block.
 
+This sequence matches the order Gradle actually resolves repositories during a build
+(settings-script classpath → plugin resolution → per-project dependencies), and the
+task walks the settings containers and project containers in the same order it
+displays them — gather order and display order are unified.
+
 Each entry renders:
 
 ```

@@ -23,30 +23,31 @@ import java.util.List;
 
 /**
  * Settings-level slice of the repositories report: holds the three settings-scoped
- * repository buckets (pluginManagement, settings.buildscript, dependencyResolutionManagement).
+ * repository buckets in the same order that Gradle actually resolves them during a build
+ * (settings.buildscript, pluginManagement, dependencyResolutionManagement).
  */
 @NullMarked
 public final class RepositoryReportSettingsModel {
-    private final List<ReportRepository> pluginManagementRepositories;
     private final List<ReportRepository> settingsBuildscriptRepositories;
+    private final List<ReportRepository> pluginManagementRepositories;
     private final List<ReportRepository> dependencyResolutionManagementRepositories;
 
     public RepositoryReportSettingsModel(
-        List<ReportRepository> pluginManagementRepositories,
         List<ReportRepository> settingsBuildscriptRepositories,
+        List<ReportRepository> pluginManagementRepositories,
         List<ReportRepository> dependencyResolutionManagementRepositories
     ) {
-        this.pluginManagementRepositories = ImmutableList.copyOf(pluginManagementRepositories);
         this.settingsBuildscriptRepositories = ImmutableList.copyOf(settingsBuildscriptRepositories);
+        this.pluginManagementRepositories = ImmutableList.copyOf(pluginManagementRepositories);
         this.dependencyResolutionManagementRepositories = ImmutableList.copyOf(dependencyResolutionManagementRepositories);
-    }
-
-    public List<ReportRepository> getPluginManagementRepositories() {
-        return pluginManagementRepositories;
     }
 
     public List<ReportRepository> getSettingsBuildscriptRepositories() {
         return settingsBuildscriptRepositories;
+    }
+
+    public List<ReportRepository> getPluginManagementRepositories() {
+        return pluginManagementRepositories;
     }
 
     public List<ReportRepository> getDependencyResolutionManagementRepositories() {

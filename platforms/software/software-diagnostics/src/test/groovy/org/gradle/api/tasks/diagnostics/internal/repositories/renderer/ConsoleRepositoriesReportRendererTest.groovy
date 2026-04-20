@@ -84,7 +84,7 @@ class ConsoleRepositoriesReportRendererTest extends Specification {
             "MavenRepo", RepositoryType.MAVEN, "https://repo.maven.apache.org/maven2/",
             true, [], false, ReportContentFilter.EMPTY, [RepositoryRole.PLUGINS] as Set, site
         )
-        def settings = new RepositoryReportSettingsModel([repo], [], [])
+        def settings = new RepositoryReportSettingsModel([], [repo], [])
         def projects = new TreeMap<>(RepositoryReportFullModel.pathComparator())
         projects.put(Path.path(":app"),
             new RepositoryReportProjectModel(Path.path(":app"), "app", [], []))
@@ -181,7 +181,7 @@ class ConsoleRepositoriesReportRendererTest extends Specification {
             true, [], false, ReportContentFilter.EMPTY,
             [RepositoryRole.SETTINGS_BUILDSCRIPT_DEPENDENCIES] as Set, site
         )
-        def settings = new RepositoryReportSettingsModel([], [repo], [])
+        def settings = new RepositoryReportSettingsModel([repo], [], [])
         def projects = new TreeMap<>(RepositoryReportFullModel.pathComparator())
         def model = new RepositoryReportFullModel(settings, projects)
         def renderer = new ConsoleRepositoriesReportRenderer(new RepositoriesReportSpec(null))
@@ -220,7 +220,7 @@ class ConsoleRepositoriesReportRendererTest extends Specification {
             true, [], false, ReportContentFilter.EMPTY,
             [RepositoryRole.PROJECT_DEPENDENCIES] as Set, projSite
         )
-        def settings = new RepositoryReportSettingsModel([pluginRepo], [], [drmRepo])
+        def settings = new RepositoryReportSettingsModel([], [pluginRepo], [drmRepo])
         def projects = new TreeMap<>(RepositoryReportFullModel.pathComparator())
         projects.put(Path.path(":app"),
             new RepositoryReportProjectModel(Path.path(":app"), "app", [], [appRepo]))
@@ -281,7 +281,7 @@ class ConsoleRepositoriesReportRendererTest extends Specification {
             true, [], false, ReportContentFilter.EMPTY,
             [RepositoryRole.SETTINGS_BUILDSCRIPT_DEPENDENCIES] as Set, settingsSite
         )
-        def settings = new RepositoryReportSettingsModel([], [settingsBuildscriptRepo], [])
+        def settings = new RepositoryReportSettingsModel([settingsBuildscriptRepo], [], [])
         def projects = new TreeMap<>(RepositoryReportFullModel.pathComparator())
         projects.put(Path.path(":app"),
             new RepositoryReportProjectModel(Path.path(":app"), "app", [], []))
@@ -558,7 +558,7 @@ class ConsoleRepositoriesReportRendererTest extends Specification {
             true, [], false, ReportContentFilter.EMPTY,
             [RepositoryRole.PROJECT_DEPENDENCIES] as Set, appSite
         )
-        def settings = new RepositoryReportSettingsModel([plRepo], [bsRepo], [drmRepo])
+        def settings = new RepositoryReportSettingsModel([bsRepo], [plRepo], [drmRepo])
         def projects = new TreeMap<>(RepositoryReportFullModel.pathComparator())
         projects.put(Path.path(":app"),
             new RepositoryReportProjectModel(Path.path(":app"), "app", [], [appRepo]))
