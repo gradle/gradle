@@ -45,7 +45,6 @@ import java.util.stream.Collectors;
 
 @NullMarked
 public final class RepositoryReportModelFactory {
-
     public ReportRepository toReportRepository(
         AbstractArtifactRepository repo,
         Set<RepositoryRole> roles,

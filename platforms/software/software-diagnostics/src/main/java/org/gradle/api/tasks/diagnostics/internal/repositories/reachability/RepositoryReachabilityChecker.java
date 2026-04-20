@@ -41,7 +41,6 @@ import java.util.Set;
  */
 @NullMarked
 public final class RepositoryReachabilityChecker {
-
     private static final Duration DEFAULT_TIMEOUT = Duration.ofSeconds(5);
 
     private final Duration timeout;

@@ -36,6 +36,7 @@ import org.jspecify.annotations.Nullable;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -187,7 +188,9 @@ class DefaultRepositoryContentDescriptor implements RepositoryContentDescriptorI
     private void addInclude(String group, @Nullable String moduleName, @Nullable String version, MatcherKind matcherKind) {
         assertMutable();
         if (includeSpecs == null) {
-            includeSpecs = new HashSet<>();
+            // LinkedHashSet preserves declaration order so describeIncludeRules() reports
+            // rules in the order the user declared them.
+            includeSpecs = new LinkedHashSet<>();
         }
         includeSpecs.add(new ContentSpec(matcherKind, group, moduleName, version, versionSelectorScheme, versionSelectors, true));
     }
@@ -243,7 +246,9 @@ class DefaultRepositoryContentDescriptor implements RepositoryContentDescriptorI
     private void addExclude(String group, @Nullable String moduleName, @Nullable String version, MatcherKind matcherKind) {
         assertMutable();
         if (excludeSpecs == null) {
-            excludeSpecs = new HashSet<>();
+            // LinkedHashSet preserves declaration order so describeExcludeRules() reports
+            // rules in the order the user declared them.
+            excludeSpecs = new LinkedHashSet<>();
         }
         excludeSpecs.add(new ContentSpec(matcherKind, group, moduleName, version, versionSelectorScheme, versionSelectors, false));
     }

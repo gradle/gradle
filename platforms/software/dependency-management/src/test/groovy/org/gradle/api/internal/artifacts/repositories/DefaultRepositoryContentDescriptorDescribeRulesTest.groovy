@@ -54,16 +54,44 @@ class DefaultRepositoryContentDescriptorDescribeRulesTest extends Specification 
         descriptor.describeIncludeRules() == ['includeModuleByRegex("com\\\\.example.*", "lib.*")']
     }
 
-    def "describes excludeModuleByRegex distinctly from excludeModule"() {
+    def "describes excludeModuleByRegex distinctly from excludeModule, preserving declaration order"() {
         when:
         descriptor.excludeModule("a", "b")
         descriptor.excludeModuleByRegex("x\\\\..*", "y.*")
 
         then:
-        descriptor.describeExcludeRules() as Set == [
+        descriptor.describeExcludeRules() == [
             'excludeModule("a", "b")',
             'excludeModuleByRegex("x\\\\..*", "y.*")'
-        ] as Set
+        ]
+    }
+
+    def "preserves declaration order for include rules"() {
+        when:
+        descriptor.includeGroup("z.last")
+        descriptor.includeGroup("a.first")
+        descriptor.includeGroup("m.middle")
+
+        then:
+        descriptor.describeIncludeRules() == [
+            'includeGroup("z.last")',
+            'includeGroup("a.first")',
+            'includeGroup("m.middle")'
+        ]
+    }
+
+    def "preserves declaration order for exclude rules"() {
+        when:
+        descriptor.excludeGroup("z.last")
+        descriptor.excludeGroup("a.first")
+        descriptor.excludeGroup("m.middle")
+
+        then:
+        descriptor.describeExcludeRules() == [
+            'excludeGroup("z.last")',
+            'excludeGroup("a.first")',
+            'excludeGroup("m.middle")'
+        ]
     }
 
     def "includeModule renders identically to includeModuleByRegex because of internal storage"() {
@@ -91,7 +119,7 @@ class DefaultRepositoryContentDescriptorDescribeRulesTest extends Specification 
         descriptor.describeIncludeRules() == ['includeVersionByRegex("com\\\\.example.*", "lib.*", "1\\\\..*")']
     }
 
-    def "describes excludeGroup, excludeModule, excludeVersion"() {
+    def "describes excludeGroup, excludeModule, excludeVersion in declaration order"() {
         when:
         descriptor.excludeGroup("a")
         descriptor.excludeModule("b", "m")
@@ -99,11 +127,11 @@ class DefaultRepositoryContentDescriptorDescribeRulesTest extends Specification 
 
         then:
         descriptor.describeIncludeRules() == []
-        descriptor.describeExcludeRules() as Set == [
+        descriptor.describeExcludeRules() == [
             'excludeGroup("a")',
             'excludeModule("b", "m")',
             'excludeVersion("c", "m", "1.0")'
-        ] as Set
+        ]
     }
 
     def "returns empty lists when no rules declared"() {
