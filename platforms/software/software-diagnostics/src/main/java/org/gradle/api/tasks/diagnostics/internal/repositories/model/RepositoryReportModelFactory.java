@@ -43,8 +43,25 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 
+/**
+ * Builds the {@link ReportRepository} model for a single {@link AbstractArtifactRepository}.
+ *
+ * <p>All inspection is read-only: the factory never mutates the source repository, and it
+ * explicitly avoids reading credential values (only their presence is recorded).
+ */
 @NullMarked
 public final class RepositoryReportModelFactory {
+    /** Sentinel emitted by {@link #resolveLocation} when a URL-based repository has no URL set. */
+    private static final String NO_URL_SENTINEL = "<NO_URL>";
+
+    /**
+     * Builds a {@link ReportRepository} by inspecting the given Gradle repository.
+     *
+     * @param repo the Gradle repository being reported on
+     * @param roles the role(s) this repository plays in the build
+     * @param site where this repository was declared
+     * @return the immutable report model for this repository
+     */
     public ReportRepository toReportRepository(
         AbstractArtifactRepository repo,
         Set<RepositoryRole> roles,
@@ -52,7 +69,15 @@ public final class RepositoryReportModelFactory {
     ) {
         RepositoryType type = resolveType(repo);
         String location = resolveLocation(repo, type);
-        boolean secure = resolveSecure(repo, type);
+        boolean secure;
+        if (type == RepositoryType.FLAT_DIR || type == RepositoryType.CUSTOM) {
+            // FLAT_DIR has no URL and no insecure-protocol concept; CUSTOM repos have unknown
+            // semantics — treat both as secure inline so resolveSecure() can enforce its
+            // URL-based-only contract.
+            secure = true;
+        } else {
+            secure = resolveSecure(repo, type);
+        }
         List<String> authSchemes = resolveAuthSchemes(repo);
         boolean hasCredentials = resolveHasCredentials(repo);
         ReportContentFilter contentFilter = resolveContentFilter(repo);
@@ -86,41 +111,63 @@ public final class RepositoryReportModelFactory {
     private RepositoryType resolveType(ArtifactRepository repo) {
         if (repo instanceof DefaultMavenLocalArtifactRepository) {
             return RepositoryType.MAVEN_LOCAL;
-        }
-        if (repo instanceof MavenArtifactRepository) {
+        } else if (repo instanceof MavenArtifactRepository) {
             return RepositoryType.MAVEN;
-        }
-        if (repo instanceof IvyArtifactRepository) {
+        } else if (repo instanceof IvyArtifactRepository) {
             return RepositoryType.IVY;
-        }
-        if (repo instanceof FlatDirectoryArtifactRepository) {
+        } else if (repo instanceof FlatDirectoryArtifactRepository) {
             return RepositoryType.FLAT_DIR;
+        } else {
+            return RepositoryType.CUSTOM;
         }
-        throw new IllegalArgumentException("Unsupported repository type: " + repo.getClass().getName());
     }
 
     private String resolveLocation(ArtifactRepository repo, RepositoryType type) {
-        switch (type) {
-            case MAVEN:
-            case MAVEN_LOCAL:
-                return String.valueOf(((MavenArtifactRepository) repo).getUrl());
-            case IVY:
-                return String.valueOf(((IvyArtifactRepository) repo).getUrl());
-            case FLAT_DIR:
-                Set<File> dirs = ((FlatDirectoryArtifactRepository) repo).getDirs();
-                String joined = dirs.stream()
-                    .map(File::getAbsolutePath)
-                    .sorted()
-                    .collect(Collectors.joining(", "));
-                return "dirs:[" + joined + "]";
-            default:
-                throw new IllegalStateException("Unexpected type: " + type);
+        if (type == RepositoryType.MAVEN || type == RepositoryType.MAVEN_LOCAL) {
+            return mavenUrl((MavenArtifactRepository) repo);
+        } else if (type == RepositoryType.IVY) {
+            return ivyUrl((IvyArtifactRepository) repo);
+        } else if (type == RepositoryType.FLAT_DIR) {
+            Set<File> dirs = ((FlatDirectoryArtifactRepository) repo).getDirs();
+            String joined = dirs.stream()
+                .map(File::getAbsolutePath)
+                .sorted()
+                .collect(Collectors.joining(", "));
+            return "dirs:[" + joined + "]";
+        } else {
+            // CUSTOM — no URL-based accessor; surface the concrete subclass name so users
+            // can identify which third-party repository produced the entry.
+            return repo.getClass().getName();
         }
     }
 
+    private static String mavenUrl(MavenArtifactRepository repo) {
+        Object url = repo.getUrl();
+        return url == null ? NO_URL_SENTINEL : url.toString();
+    }
+
+    private static String ivyUrl(IvyArtifactRepository repo) {
+        Object url = repo.getUrl();
+        return url == null ? NO_URL_SENTINEL : url.toString();
+    }
+
+    /**
+     * Resolves the {@code secure} attribute for URL-based repositories.
+     *
+     * <p>This method must only be called with URL-based types ({@link RepositoryType#MAVEN},
+     * {@link RepositoryType#MAVEN_LOCAL}, or {@link RepositoryType#IVY}). Callers are
+     * responsible for setting {@code secure} inline for {@link RepositoryType#FLAT_DIR} and
+     * {@link RepositoryType#CUSTOM}, which have no URL to inspect.
+     *
+     * @param repo the repository being inspected
+     * @param type the previously resolved type
+     * @return {@code true} if the repository does not allow insecure protocols (or is not a
+     *     {@code UrlArtifactRepository}), {@code false} otherwise
+     * @throws IllegalArgumentException if called with a non-URL-based type
+     */
     private boolean resolveSecure(ArtifactRepository repo, RepositoryType type) {
-        if (type == RepositoryType.FLAT_DIR) {
-            return true;
+        if (type != RepositoryType.MAVEN && type != RepositoryType.MAVEN_LOCAL && type != RepositoryType.IVY) {
+            throw new IllegalArgumentException("resolveSecure must only be called for URL-based repository types; got: " + type);
         }
         if (repo instanceof UrlArtifactRepository) {
             return !((UrlArtifactRepository) repo).isAllowInsecureProtocol();

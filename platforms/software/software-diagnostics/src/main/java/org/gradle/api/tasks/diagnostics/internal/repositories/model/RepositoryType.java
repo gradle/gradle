@@ -18,10 +18,24 @@ package org.gradle.api.tasks.diagnostics.internal.repositories.model;
 
 import org.jspecify.annotations.NullMarked;
 
+/**
+ * Categorization of a reported repository by its underlying Gradle implementation class.
+ *
+ * <p>The four standard types — {@link #MAVEN}, {@link #MAVEN_LOCAL}, {@link #IVY},
+ * {@link #FLAT_DIR} — cover every repository produced by Gradle's built-in repository
+ * factories. Third-party subclasses of {@code AbstractArtifactRepository} that do not
+ * implement any of those interfaces are classified as {@link #CUSTOM}.
+ */
 @NullMarked
 public enum RepositoryType {
+    /** Any {@code MavenArtifactRepository} that is not a local Maven repository. */
     MAVEN,
+    /** The {@code mavenLocal()} repository. */
     MAVEN_LOCAL,
+    /** Any {@code IvyArtifactRepository}. */
     IVY,
-    FLAT_DIR
+    /** Any {@code FlatDirectoryArtifactRepository}. */
+    FLAT_DIR,
+    /** A third-party {@code AbstractArtifactRepository} subclass that matches none of the above. */
+    CUSTOM
 }

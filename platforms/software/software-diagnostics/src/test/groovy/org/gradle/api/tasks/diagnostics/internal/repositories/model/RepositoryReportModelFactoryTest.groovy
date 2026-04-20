@@ -231,10 +231,85 @@ class RepositoryReportModelFactoryTest extends Specification {
         !result.hasCredentials()
     }
 
+    def "classifies unknown AbstractArtifactRepository subclass as CUSTOM and surfaces its class name as the location"() {
+        given:
+        def repo = Stub(TestCustomRepo) {
+            getName() >> "mystery"
+            getRepositoryDescriptorCopy() >> Stub(RepositoryContentDescriptorInternal) {
+                describeIncludeRules() >> []
+                describeExcludeRules() >> []
+                getIncludedConfigurations() >> null
+                getExcludedConfigurations() >> null
+                getRequiredAttributes() >> null
+            }
+        }
+
+        when:
+        def result = factory.toReportRepository(repo, [RepositoryRole.PROJECT_DEPENDENCIES] as Set,
+            new RepositoryDeclarationSite(SETTINGS, null, "repositories"))
+
+        then:
+        result.type == RepositoryType.CUSTOM
+        result.location.contains("TestCustomRepo")
+        result.secure // CUSTOM is reported as secure by default — no URL to inspect
+    }
+
+    def "uses <NO_URL> sentinel when MavenArtifactRepository.getUrl() returns null"() {
+        given:
+        def repo = Stub(TestMavenRepo) {
+            getName() >> "noUrl"
+            getUrl() >> null
+            isAllowInsecureProtocol() >> false
+            getAuthentication() >> Stub(AuthenticationContainer)
+            getRepositoryDescriptorCopy() >> Stub(RepositoryContentDescriptorInternal) {
+                describeIncludeRules() >> []
+                describeExcludeRules() >> []
+                getIncludedConfigurations() >> null
+                getExcludedConfigurations() >> null
+                getRequiredAttributes() >> null
+            }
+        }
+
+        when:
+        def result = factory.toReportRepository(repo, [RepositoryRole.PLUGINS] as Set,
+            new RepositoryDeclarationSite(SETTINGS, null, "pluginManagement.repositories"))
+
+        then:
+        result.location == "<NO_URL>"
+    }
+
+    def "uses <NO_URL> sentinel when IvyArtifactRepository.getUrl() returns null"() {
+        given:
+        def repo = Stub(TestIvyRepo) {
+            getName() >> "noUrl"
+            getUrl() >> null
+            isAllowInsecureProtocol() >> false
+            getAuthentication() >> Stub(AuthenticationContainer)
+            getRepositoryDescriptorCopy() >> Stub(RepositoryContentDescriptorInternal) {
+                describeIncludeRules() >> []
+                describeExcludeRules() >> []
+                getIncludedConfigurations() >> null
+                getExcludedConfigurations() >> null
+                getRequiredAttributes() >> null
+            }
+        }
+
+        when:
+        def result = factory.toReportRepository(repo, [RepositoryRole.PROJECT_DEPENDENCIES] as Set,
+            new RepositoryDeclarationSite(SETTINGS, null, "repositories"))
+
+        then:
+        result.type == RepositoryType.IVY
+        result.location == "<NO_URL>"
+    }
+
     // These abstract classes merge AbstractArtifactRepository with the per-type API so Spock can stub both.
     // (AbstractArtifactRepository is an abstract class, not an interface, so we use 'extends' + 'implements'.)
     static abstract class TestMavenRepo extends AbstractArtifactRepository implements MavenArtifactRepository {
         TestMavenRepo() { super(null, null) }
+    }
+    static abstract class TestIvyRepo extends AbstractArtifactRepository implements org.gradle.api.artifacts.repositories.IvyArtifactRepository {
+        TestIvyRepo() { super(null, null) }
     }
     static abstract class TestFlatDirRepo extends AbstractArtifactRepository implements FlatDirectoryArtifactRepository {
         TestFlatDirRepo() { super(null, null) }
@@ -243,6 +318,11 @@ class RepositoryReportModelFactoryTest extends Specification {
     // detection via getConfiguredCredentials() applies to this stub.
     static abstract class TestAuthMavenRepo extends AbstractArtifactRepository implements MavenArtifactRepository, AuthenticationSupportedInternal {
         TestAuthMavenRepo() { super(null, null) }
+    }
+    // A minimal AbstractArtifactRepository subclass that does NOT implement any of the
+    // Maven/Ivy/FlatDir/MavenLocal marker interfaces — must fall through to CUSTOM classification.
+    static abstract class TestCustomRepo extends AbstractArtifactRepository {
+        TestCustomRepo() { super(null, null) }
     }
 
     // Concrete classes named identically to the SPI interfaces so the factory's
