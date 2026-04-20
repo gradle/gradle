@@ -17,6 +17,7 @@
 plugins {
     id("java-library")
     id("groovy-gradle-plugin")
+    id("gradlebuild.build-platform")
     id("gradlebuild.code-quality")
     id("gradlebuild.ci-reporting")
     id("gradlebuild.test-retry")
@@ -26,7 +27,6 @@ plugins {
 val testLibs = project.versionCatalogs.named("testLibs")
 
 dependencies {
-    api(platform("gradlebuild:build-platform"))
     implementation("gradlebuild:gradle-plugin")
 
     implementation(localGroovy())

@@ -18,6 +18,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 plugins {
     id("java-library")
     id("org.gradle.kotlin.kotlin-dsl") // this is 'kotlin-dsl' without version
+    id("gradlebuild.build-platform")
     id("gradlebuild.code-quality")
     id("gradlebuild.detekt")
     id("gradlebuild.ci-reporting")
@@ -28,7 +29,6 @@ plugins {
 val testLibs = project.versionCatalogs.named("testLibs")
 
 dependencies {
-    api(platform("gradlebuild:build-platform"))
     implementation("gradlebuild:gradle-plugin")
 
     testImplementation(testLibs.findLibrary("junit5Vintage").get())

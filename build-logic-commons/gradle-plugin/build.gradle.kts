@@ -13,6 +13,7 @@ dependencies {
 
     api(platform(projects.buildPlatform))
 
+    implementation("gradlebuild:build-platform-plugin")
     implementation(projects.basics)
     implementation(projects.moduleIdentity)
 
