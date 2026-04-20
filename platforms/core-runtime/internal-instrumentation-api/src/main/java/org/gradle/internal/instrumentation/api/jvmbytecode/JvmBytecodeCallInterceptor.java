@@ -41,6 +41,19 @@ public interface JvmBytecodeCallInterceptor extends FilterableBytecodeIntercepto
     @Nullable
     BridgeMethodBuilder findBridgeMethodBuilder(String className, int tag, String owner, String name, String descriptor);
 
+    /**
+     * Returns {@code true} if the method identified by {@code (owner, name, descriptor)} is a replaced accessor
+     * of an upgraded property. This is used during class transformation to detect and drop super-delegating
+     * method overrides that conflict with the upgraded abstract method.
+     *
+     * @param owner the internal name of the class that declares the method
+     * @param name the method name
+     * @param descriptor the method descriptor
+     */
+    default boolean isReplacedAccessor(String owner, String name, String descriptor) {
+        return false;
+    }
+
     interface Factory extends FilterableBytecodeInterceptorFactory {
         JvmBytecodeCallInterceptor create(InstrumentationMetadata metadata, BytecodeInterceptorFilter interceptorFilter);
     }

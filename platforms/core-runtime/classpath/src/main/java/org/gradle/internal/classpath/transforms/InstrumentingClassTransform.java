@@ -44,7 +44,15 @@ import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
+import org.objectweb.asm.tree.AbstractInsnNode;
+import org.objectweb.asm.tree.FrameNode;
+import org.objectweb.asm.tree.InsnNode;
+import org.objectweb.asm.tree.LabelNode;
+import org.objectweb.asm.tree.LineNumberNode;
+import org.objectweb.asm.tree.MethodInsnNode;
 import org.objectweb.asm.tree.MethodNode;
+import org.objectweb.asm.tree.TypeInsnNode;
+import org.objectweb.asm.tree.VarInsnNode;
 
 import java.lang.invoke.CallSite;
 import java.lang.invoke.LambdaMetafactory;
@@ -77,7 +85,7 @@ public class InstrumentingClassTransform implements ClassTransform {
     /**
      * Decoration format. Increment this when making changes.
      */
-    private static final int DECORATION_FORMAT = 38;
+    private static final int DECORATION_FORMAT = 39;
 
     private static final Type INSTRUMENTED_TYPE = getType(Instrumented.class);
     private static final Type BYTECODE_INTERCEPTOR_FILTER_TYPE = Type.getType(BytecodeInterceptorFilter.class);
@@ -172,7 +180,9 @@ public class InstrumentingClassTransform implements ClassTransform {
         private int nextBridgeMethodIndex;
 
         private boolean isInterface;
+        private boolean isAbstractClass;
         private String className;
+        private String superName;
         private String sourceFileName;
         private boolean hasGroovyCallSites;
 
@@ -194,7 +204,9 @@ public class InstrumentingClassTransform implements ClassTransform {
         public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
             super.visit(version, access, name, signature, superName, interfaces);
             this.isInterface = (access & Opcodes.ACC_INTERFACE) != 0;
+            this.isAbstractClass = (access & Opcodes.ACC_ABSTRACT) != 0;
             this.className = name;
+            this.superName = superName;
         }
 
         @Override
@@ -208,6 +220,17 @@ public class InstrumentingClassTransform implements ClassTransform {
             if (name.equals(CREATE_CALL_SITE_ARRAY_METHOD) && descriptor.equals(RETURN_CALL_SITE_ARRAY)) {
                 hasGroovyCallSites = true;
             }
+
+            // Replace super-delegating overrides of upgraded property accessors with abstract methods.
+            // When a subclass overrides a getter that was upgraded to return a more specialized type,
+            // and the override just calls super, we make it abstract (preserving annotations) so the
+            // class generator can provide a managed implementation. See https://github.com/gradle/gradle/issues/25421
+            if (isSuperDelegatingOverrideOfReplacedAccessor(access, name, descriptor)) {
+                // Emit an abstract method with the same signature and annotations, but no body.
+                MethodVisitor abstractMethod = super.visitMethod(access | Opcodes.ACC_ABSTRACT, name, descriptor, signature, exceptions);
+                return new AbstractMethodAnnotationForwarder(abstractMethod);
+            }
+
             MethodVisitor methodVisitor = super.visitMethod(access, name, descriptor, signature, exceptions);
             Lazy<MethodNode> asMethodNode = Lazy.unsafe().of(() -> {
                 Optional<MethodNode> methodNode = classData.readClassAsNode().methods.stream().filter(method ->
@@ -216,6 +239,117 @@ public class InstrumentingClassTransform implements ClassTransform {
                 return methodNode.orElseThrow(() -> new IllegalStateException("could not find method " + name + " with descriptor " + descriptor));
             });
             return new InstrumentingMethodVisitor(this, methodVisitor, asMethodNode);
+        }
+
+        private boolean isSuperDelegatingOverrideOfReplacedAccessor(int access, String name, String descriptor) {
+            // Can only convert to abstract in an abstract class
+            if (!isAbstractClass) {
+                return false;
+            }
+            // Only consider concrete, non-static, non-bridge, non-synthetic instance methods
+            if ((access & (Opcodes.ACC_ABSTRACT | Opcodes.ACC_STATIC | Opcodes.ACC_BRIDGE | Opcodes.ACC_SYNTHETIC)) != 0) {
+                return false;
+            }
+
+            // Find the MethodNode for this method
+            MethodNode methodNode = classData.readClassAsNode().methods.stream()
+                .filter(m -> Objects.equals(m.name, name) && Objects.equals(m.desc, descriptor))
+                .findFirst()
+                .orElse(null);
+            if (methodNode == null) {
+                return false;
+            }
+
+            // Check if the method is a super-delegation and extract the INVOKESPECIAL target
+            MethodInsnNode superCall = extractSuperDelegationTarget(methodNode);
+            if (superCall == null) {
+                return false;
+            }
+
+            // Check if any interceptor recognizes this as a replaced accessor of an upgraded property
+            for (JvmBytecodeCallInterceptor interceptor : interceptors) {
+                if (interceptor.isReplacedAccessor(superCall.owner, superCall.name, superCall.desc)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        /**
+         * Analyzes the method's instructions to determine if it only delegates to super.
+         * Returns the INVOKESPECIAL instruction node if the method is a super-delegation, null otherwise.
+         *
+         * Expected pattern (filtering out labels, line numbers, frames):
+         *   ALOAD 0 -> [param loads] -> INVOKESPECIAL -> [optional CHECKCAST] -> xRETURN
+         */
+        @Nullable
+        private MethodInsnNode extractSuperDelegationTarget(MethodNode methodNode) {
+            // Collect meaningful instructions (skip labels, line numbers, frames)
+            AbstractInsnNode[] realInsns = java.util.Arrays.stream(methodNode.instructions.toArray())
+                .filter(insn -> !(insn instanceof LabelNode) && !(insn instanceof LineNumberNode) && !(insn instanceof FrameNode))
+                .toArray(AbstractInsnNode[]::new);
+
+            // Calculate expected parameter loads count from descriptor
+            Type[] argTypes = Type.getArgumentTypes(methodNode.desc);
+            int expectedParamLoads = argTypes.length;
+            int minInsns = 3 + expectedParamLoads; // ALOAD 0 + params + INVOKESPECIAL + RETURN
+            int maxInsns = minInsns + 1;            // optional CHECKCAST
+
+            if (realInsns.length < minInsns || realInsns.length > maxInsns) {
+                return null;
+            }
+
+            int idx = 0;
+
+            // First: ALOAD 0 (this)
+            if (!(realInsns[idx] instanceof VarInsnNode) || ((VarInsnNode) realInsns[idx]).var != 0 || realInsns[idx].getOpcode() != Opcodes.ALOAD) {
+                return null;
+            }
+            idx++;
+
+            // Parameter loads
+            int slot = 1;
+            for (int i = 0; i < expectedParamLoads; i++) {
+                if (!(realInsns[idx] instanceof VarInsnNode)) {
+                    return null;
+                }
+                VarInsnNode loadInsn = (VarInsnNode) realInsns[idx];
+                int expectedOpcode = argTypes[i].getOpcode(Opcodes.ILOAD);
+                if (loadInsn.getOpcode() != expectedOpcode || loadInsn.var != slot) {
+                    return null;
+                }
+                slot += argTypes[i].getSize();
+                idx++;
+            }
+
+            // INVOKESPECIAL to superclass
+            if (!(realInsns[idx] instanceof MethodInsnNode) || realInsns[idx].getOpcode() != Opcodes.INVOKESPECIAL) {
+                return null;
+            }
+            MethodInsnNode invokeSpecial = (MethodInsnNode) realInsns[idx];
+            if (!invokeSpecial.name.equals(methodNode.name) || !invokeSpecial.owner.equals(superName)) {
+                return null;
+            }
+            idx++;
+
+            // Optional CHECKCAST
+            if (idx < realInsns.length - 1) {
+                if (!(realInsns[idx] instanceof TypeInsnNode) || realInsns[idx].getOpcode() != Opcodes.CHECKCAST) {
+                    return null;
+                }
+                idx++;
+            }
+
+            // xRETURN
+            if (!(realInsns[idx] instanceof InsnNode)) {
+                return null;
+            }
+            int returnOpcode = realInsns[idx].getOpcode();
+            if (returnOpcode < Opcodes.IRETURN || returnOpcode > Opcodes.RETURN) {
+                return null;
+            }
+
+            return invokeSpecial;
         }
 
         @Override
@@ -457,6 +591,37 @@ public class InstrumentingClassTransform implements ClassTransform {
                 return bridgeMethod.bridgeMethodHandle;
             }
             return handle; // No instrumentation requested.
+        }
+    }
+
+    /**
+     * A MethodVisitor that forwards annotation visits to the delegate but drops the method body.
+     * Used to convert a concrete method into an abstract one while preserving its annotations.
+     */
+    private static class AbstractMethodAnnotationForwarder extends MethodVisitor {
+        private final MethodVisitor delegate;
+
+        AbstractMethodAnnotationForwarder(MethodVisitor delegate) {
+            // Pass delegate so annotation visits (visitAnnotation, visitParameterAnnotation, etc.) are forwarded automatically
+            super(ASM_LEVEL, delegate);
+            this.delegate = delegate;
+        }
+
+        @Override
+        public void visitCode() {
+            // Abstract methods have no code. Stop forwarding all subsequent visits by clearing the delegate.
+            mv = null;
+        }
+
+        @Override
+        public void visitMaxs(int maxStack, int maxLocals) {
+            // No code means no maxs
+        }
+
+        @Override
+        public void visitEnd() {
+            // Must forward to finalize the method definition
+            delegate.visitEnd();
         }
     }
 }
