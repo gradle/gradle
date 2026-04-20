@@ -209,6 +209,27 @@ public interface JavaForkOptions extends ProcessForkOptions {
     Provider<List<String>> getAllJvmArgs();
 
     /**
+     * Sets the full set of arguments to launch the JVM for the process. Parses heap size,
+     * system-property, bootstrap-classpath, and assertion arguments into their corresponding
+     * properties. Any previously configured JVM options are cleared first.
+     *
+     * @param arguments The arguments.
+     */
+    default void setAllJvmArgs(List<String> arguments) {
+        JavaForkOptionsAdapters.AllJvmArgsAdapter.setAllJvmArgs(this, arguments);
+    }
+
+    /**
+     * Sets the full set of arguments to launch the JVM for the process. See
+     * {@link #setAllJvmArgs(List)}.
+     *
+     * @param arguments The arguments.
+     */
+    default void setAllJvmArgs(Iterable<?> arguments) {
+        JavaForkOptionsAdapters.AllJvmArgsAdapter.setAllJvmArgs(this, arguments);
+    }
+
+    /**
      * Copies these options to the given options.
      *
      * @param options The target options.

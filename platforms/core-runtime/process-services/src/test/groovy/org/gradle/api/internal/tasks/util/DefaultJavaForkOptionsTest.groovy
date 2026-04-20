@@ -67,6 +67,18 @@ class DefaultJavaForkOptionsTest extends Specification {
         options.allJvmArgs.get() == [fileEncodingProperty(), *localeProperties()]
     }
 
+    def "setAllJvmArgs default method parses args and routes to properties"() {
+        when:
+        ((JavaForkOptions) options).setAllJvmArgs(['-Xms128m', '-Xmx512m', '-ea', '-Dfoo=bar', 'arg1'])
+
+        then:
+        options.minHeapSize.get() == '128m'
+        options.maxHeapSize.get() == '512m'
+        options.enableAssertions.get() == true
+        options.systemProperties.get()['foo'] == 'bar'
+        options.jvmArgs.get() == ['arg1']
+    }
+
     def "converts jvmArgs from GString to String on get"() {
         when:
         options.jvmArgs = ["12", "${1 + 2}"]
