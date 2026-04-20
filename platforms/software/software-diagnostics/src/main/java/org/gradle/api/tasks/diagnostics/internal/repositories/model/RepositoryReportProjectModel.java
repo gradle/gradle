@@ -23,6 +23,10 @@ import org.jspecify.annotations.NullMarked;
 import java.util.List;
 import java.util.Objects;
 
+/**
+ * Per-project slice of the repositories report: separate lists for buildscript repositories
+ * and project-level repositories, keyed by the project's {@link Path}.
+ */
 @NullMarked
 public final class RepositoryReportProjectModel {
     private final Path projectPath;

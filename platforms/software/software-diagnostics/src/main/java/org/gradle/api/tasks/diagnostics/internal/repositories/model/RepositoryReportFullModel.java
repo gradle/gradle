@@ -24,9 +24,13 @@ import java.util.Comparator;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
+/**
+ * Aggregates the settings-level model and the per-project models into a single
+ * configuration-cache-serializable payload consumed by
+ * {@link org.gradle.api.tasks.diagnostics.internal.repositories.renderer.ConsoleRepositoriesReportRenderer}.
+ */
 @NullMarked
 public final class RepositoryReportFullModel {
-
     private static final PathComparator PATH_COMPARATOR = new PathComparator();
 
     private final RepositoryReportSettingsModel settings;

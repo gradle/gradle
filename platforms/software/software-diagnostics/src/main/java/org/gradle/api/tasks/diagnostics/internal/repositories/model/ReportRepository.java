@@ -24,6 +24,13 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
+/**
+ * Immutable value object representing a single repository as it appears on the report.
+ *
+ * <p>Captures identity-forming attributes (name, type, location, auth/content) plus the
+ * role(s) the repository plays and where it was declared. See {@link #identityKey()} for
+ * the structural key used by the renderer to detect duplicate declarations.
+ */
 @NullMarked
 public final class ReportRepository {
     private final String name;

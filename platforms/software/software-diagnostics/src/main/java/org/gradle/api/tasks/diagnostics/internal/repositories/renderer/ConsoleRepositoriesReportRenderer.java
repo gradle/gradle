@@ -43,9 +43,13 @@ import static org.gradle.internal.logging.text.StyledTextOutput.Style.Header;
 import static org.gradle.internal.logging.text.StyledTextOutput.Style.Identifier;
 import static org.gradle.internal.logging.text.StyledTextOutput.Style.Info;
 
+/**
+ * Text renderer for the repositories report. Produces the "All Repositories" and
+ * "Repositories by Location" sections plus an optional Legend, honoring the filter
+ * and offline state carried in the supplied {@link RepositoriesReportSpec}.
+ */
 @NullMarked
 public final class ConsoleRepositoriesReportRenderer {
-
     private static final String DIVIDER = "--------------------------------------------------------";
     private static final String LEGEND_URL = "https://docs.gradle.org/current/userguide/centralizing_repositories.html";
 

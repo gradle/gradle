@@ -26,6 +26,11 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
+/**
+ * Snapshot of a repository's content-filtering rules (include/exclude rules, configuration
+ * targeting, and attribute targeting) as resolved from
+ * {@code RepositoryContentDescriptorInternal} at model build time.
+ */
 @NullMarked
 public final class ReportContentFilter {
     public static final ReportContentFilter EMPTY = new ReportContentFilter(

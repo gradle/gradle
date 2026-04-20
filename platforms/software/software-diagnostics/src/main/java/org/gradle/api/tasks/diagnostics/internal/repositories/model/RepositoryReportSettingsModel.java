@@ -21,6 +21,10 @@ import org.jspecify.annotations.NullMarked;
 
 import java.util.List;
 
+/**
+ * Settings-level slice of the repositories report: holds the three settings-scoped
+ * repository buckets (pluginManagement, settings.buildscript, dependencyResolutionManagement).
+ */
 @NullMarked
 public final class RepositoryReportSettingsModel {
     private final List<ReportRepository> pluginManagementRepositories;

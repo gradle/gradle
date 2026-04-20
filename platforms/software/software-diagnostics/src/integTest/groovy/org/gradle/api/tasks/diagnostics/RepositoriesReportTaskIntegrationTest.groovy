@@ -25,7 +25,6 @@ import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
 class RepositoriesReportTaskIntegrationTest extends AbstractIntegrationSpec {
-
     @Rule
     public final HttpServer server = new HttpServer()
 

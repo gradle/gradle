@@ -22,8 +22,14 @@ import org.jspecify.annotations.Nullable;
 
 import java.util.Objects;
 
+/**
+ * Identifies where a repository was declared: either in a settings script block or in a
+ * specific project's buildscript/repositories block. The {@link #render()} method produces
+ * the human-readable "Defined in:" line shown on the report.
+ */
 @NullMarked
 public final class RepositoryDeclarationSite {
+    /** Scope of a declaration site. */
     public enum Scope { SETTINGS, PROJECT }
 
     private final Scope scope;
