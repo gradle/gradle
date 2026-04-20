@@ -65,7 +65,7 @@ public abstract class HelpTasksPlugin implements Plugin<Project> {
     /**
      * The name of the repositories report task.
      *
-     * @since 9.5
+     * @since 9.6.0
      */
     @Incubating
     public static final String REPOSITORIES_TASK = DiagnosticsTaskNames.REPOSITORIES_TASK;

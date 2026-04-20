@@ -6,6 +6,12 @@
  * You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package org.gradle.api.tasks.diagnostics
 
@@ -39,10 +45,10 @@ class RepositoriesReportTaskIntegrationTest extends AbstractIntegrationSpec {
         expect:
         succeeds ':repositories'
         outputContains('There are no repositories present.')
-        !result.output.contains('All Repositories')
-        !result.output.contains('Repositories by Location')
-        !result.output.contains('(none)')
-        !result.output.contains('Legend')
+        outputDoesNotContain('All Repositories')
+        outputDoesNotContain('Repositories by Location')
+        outputDoesNotContain('(none)')
+        outputDoesNotContain('Legend')
     }
 
     def "task reports a single mavenCentral repository in All Repositories"() {
@@ -146,8 +152,8 @@ class RepositoriesReportTaskIntegrationTest extends AbstractIntegrationSpec {
         outputContains('Google')
         outputContains('Repositories by Location')
         outputContains("project ':app' uses")
-        !result.output.contains('settings uses')
-        !result.output.contains("project ':other'")
+        outputDoesNotContain('settings uses')
+        outputDoesNotContain("project ':other'")
     }
 
     def "--project with unknown project path fails with clear error"() {
@@ -210,7 +216,7 @@ class RepositoriesReportTaskIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         succeeds ':repositories'
-        !result.output.contains('Legend')
+        outputDoesNotContain('Legend')
     }
 
     def "reports authentication scheme class name"() {
@@ -253,8 +259,8 @@ class RepositoriesReportTaskIntegrationTest extends AbstractIntegrationSpec {
         succeeds ':repositories'
         outputContains('Credentials: PRESENT')
         // ensure the actual credential values never leak
-        !result.output.contains('cred-username-xyzzy')
-        !result.output.contains('cred-password-xyzzy')
+        outputDoesNotContain('cred-username-xyzzy')
+        outputDoesNotContain('cred-password-xyzzy')
     }
 
     def "omits Credentials line when no credentials declared"() {
@@ -269,7 +275,7 @@ class RepositoriesReportTaskIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         succeeds ':repositories'
-        !result.output.contains('Credentials:')
+        outputDoesNotContain('Credentials:')
     }
 
     def "reports Secure: false when allowInsecureProtocol = true"() {
@@ -435,8 +441,8 @@ class RepositoriesReportTaskIntegrationTest extends AbstractIntegrationSpec {
         expect:
         succeeds ':repositories'
         outputContains('MavenRepo')
-        !result.output.contains('included.example.com')
-        !result.output.contains("project ':included' uses")
+        outputDoesNotContain('included.example.com')
+        outputDoesNotContain("project ':included' uses")
     }
 
     def "complex example reports properly"() {
@@ -556,13 +562,13 @@ class RepositoriesReportTaskIntegrationTest extends AbstractIntegrationSpec {
         outputContains("project ':lib' uses")
         outputContains("project ':' uses")
         // Included build must NOT be descended
-        !result.output.contains('included.example.com')
-        !result.output.contains("project ':included'")
+        outputDoesNotContain('included.example.com')
+        outputDoesNotContain("project ':included'")
         // Ivy repo carried credentials — Credentials line should render
         outputContains('Credentials: PRESENT')
         // Credential values must never leak into the output
-        !result.output.contains('ivyUser')
-        !result.output.contains('ivyPass')
+        outputDoesNotContain('ivyUser')
+        outputDoesNotContain('ivyPass')
         // Legend present (mavenCentral declared in both DRM and :lib triggers duplicate marker)
         outputContains('Legend')
         outputContains('centralizing_repositories.html')
@@ -694,7 +700,7 @@ class RepositoriesReportTaskIntegrationTest extends AbstractIntegrationSpec {
         outputContains("Defined in: project ':' > repositories")
         outputContains("Defined in: project ':app' > repositories")
         outputContains("Defined in: project ':lib' > repositories")
-        !result.output.contains("Defined in: settings >")
+        outputDoesNotContain("Defined in: settings >")
         // Each project's "uses" list should reference the repo.
         outputContains("project ':' uses")
         outputContains("project ':app' uses")
@@ -745,7 +751,7 @@ class RepositoriesReportTaskIntegrationTest extends AbstractIntegrationSpec {
         outputContains('(ua)')
         outputContains('Legend')
         outputContains('(ua) Unauthorized')
-        !result.output.contains('(ur)')
+        outputDoesNotContain('(ur)')
     }
 
     def "reports (o) marker on All Repositories heading in offline mode"() {
@@ -764,8 +770,8 @@ class RepositoriesReportTaskIntegrationTest extends AbstractIntegrationSpec {
         outputContains('Legend')
         outputContains('(o)  Running in offline mode')
         // Offline suppresses per-repo reachability markers.
-        !result.output.contains('(ur)')
-        !result.output.contains('(ua)')
+        outputDoesNotContain('(ur)')
+        outputDoesNotContain('(ua)')
     }
 
     def "no reachability markers when URL is reachable"() {
@@ -790,10 +796,10 @@ class RepositoriesReportTaskIntegrationTest extends AbstractIntegrationSpec {
         expect:
         succeeds ':repositories'
         outputContains('All Repositories')
-        !result.output.contains('(ur)')
-        !result.output.contains('(ua)')
-        !result.output.contains('(o)')
-        !result.output.contains('Legend')
+        outputDoesNotContain('(ur)')
+        outputDoesNotContain('(ua)')
+        outputDoesNotContain('(o)')
+        outputDoesNotContain('Legend')
     }
 
     def "repos declared via allprojects and subprojects are shown under each project"() {

@@ -37,6 +37,7 @@ dependencies {
     api(libs.jspecify)
     api(libs.inject)
 
+    implementation(projects.credentialsApi)
     implementation(projects.functional)
     implementation(projects.loggingApi)
     implementation(projects.startParameter)

@@ -6,7 +6,14 @@
  * You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
+
 package org.gradle.api.tasks.diagnostics.internal.repositories.model;
 
 import com.google.common.collect.ImmutableList;
@@ -51,15 +58,41 @@ public final class ReportRepository {
         this.declarationSite = Objects.requireNonNull(declarationSite);
     }
 
-    public String getName() { return name; }
-    public RepositoryType getType() { return type; }
-    public String getLocation() { return location; }
-    public boolean isSecure() { return secure; }
-    public List<String> getAuthSchemes() { return authSchemes; }
-    public boolean hasCredentials() { return hasCredentials; }
-    public ReportContentFilter getContentFilter() { return contentFilter; }
-    public Set<RepositoryRole> getRoles() { return roles; }
-    public RepositoryDeclarationSite getDeclarationSite() { return declarationSite; }
+    public String getName() {
+        return name;
+    }
+
+    public RepositoryType getType() {
+        return type;
+    }
+
+    public String getLocation() {
+        return location;
+    }
+
+    public boolean isSecure() {
+        return secure;
+    }
+
+    public List<String> getAuthSchemes() {
+        return authSchemes;
+    }
+
+    public boolean hasCredentials() {
+        return hasCredentials;
+    }
+
+    public ReportContentFilter getContentFilter() {
+        return contentFilter;
+    }
+
+    public Set<RepositoryRole> getRoles() {
+        return roles;
+    }
+
+    public RepositoryDeclarationSite getDeclarationSite() {
+        return declarationSite;
+    }
 
     /**
      * Structural key for identifying "identical" repositories. Excludes roles
@@ -91,8 +124,12 @@ public final class ReportRepository {
 
         @Override
         public boolean equals(Object o) {
-            if (this == o) return true;
-            if (!(o instanceof IdentityKey)) return false;
+            if (this == o) {
+                return true;
+            }
+            if (!(o instanceof IdentityKey)) {
+                return false;
+            }
             IdentityKey that = (IdentityKey) o;
             return secure == that.secure
                 && hasCredentials == that.hasCredentials

@@ -63,12 +63,11 @@ import static org.gradle.api.tasks.diagnostics.internal.repositories.model.Repos
  * Displays a unified view of every repository used by the build, across settings-level
  * and project-level declaration sites, annotated with the kinds of dependencies each is allowed to serve.
  *
- * @since 9.5
+ * @since 9.6.0
  */
 @Incubating
 @DisableCachingByDefault(because = "Produces only non-cacheable console output")
 public abstract class RepositoriesReportTask extends ConventionReportTask {
-
     private final Cached<RepositoryReportFullModel> fullModel = Cached.of(this::buildFullModel);
 
     @Inject
@@ -86,7 +85,7 @@ public abstract class RepositoriesReportTask extends ConventionReportTask {
      * Limits the report to a single project path.
      *
      * @return property holding the project path to filter to
-     * @since 9.5
+     * @since 9.6.0
      */
     @Input
     @Optional
@@ -119,7 +118,7 @@ public abstract class RepositoriesReportTask extends ConventionReportTask {
      * or the {@link org.gradle.api.invocation.Gradle Gradle} object at task-execution time
      * (which is CC-incompatible).
      *
-     * @since 9.5
+     * @since 9.6.0
      */
     @Internal
     public abstract Property<Boolean> getOfflineMode();
@@ -212,10 +211,5 @@ public abstract class RepositoriesReportTask extends ConventionReportTask {
             out.add(factory.toReportRepository((AbstractArtifactRepository) repo, roles, site));
         }
         return ImmutableList.copyOf(out);
-    }
-
-    @Internal
-    protected org.gradle.initialization.BuildClientMetaData getClientMetaDataInternal() {
-        return getClientMetaData();
     }
 }
