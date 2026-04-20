@@ -17,7 +17,6 @@
 package org.gradle.api.file
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.TestExecutionPreconditions
 import spock.lang.Issue
@@ -95,8 +94,6 @@ class RelativePathFilesIntegrationTest extends AbstractIntegrationSpec {
         "ConfigurableFileTree"       | "fileTree()"       | ["abc/subDir2/file2.txt"]
     }
 
-    // TODO: write a similar test for the RegularFileProperty
-    @ToBeFixedForConfigurationCache(because = "https://github.com/gradle/gradle/issues/32591")
     def "ConfigurableFileCollection files derived from directory property via #method respect execution time directory change"() {
         settingsFile """
             include("sub")
@@ -134,6 +131,32 @@ class RelativePathFilesIntegrationTest extends AbstractIntegrationSpec {
         "file(Provider<String>)"    | "dir.file(provider{'file.txt'})"  | ["sub/subDir2/file.txt"]
         "files(<string>)"           | "dir.files('file.txt')"           | ["sub/subDir2/file.txt"]
         "files(provider{<string>})" | "dir.files(provider{'file.txt'})" | ["sub/subDir2/file.txt"]
+    }
+
+    def "ConfigurableFileCollection files derived from regular file property respect execution time file change"() {
+        settingsFile """
+            include("sub")
+        """
+
+        buildFile "sub/build.gradle", """
+            def regularFile = project.objects.fileProperty()
+            regularFile.set(file("file1.txt"))
+
+            def files = project.objects.fileCollection()
+            files.from(regularFile)
+
+            tasks.register("foo") {
+                def otherFile = file("file2.txt")
+                doLast {
+                    regularFile.set(otherFile) // change the file to point elsewhere
+                    println("files: \${files.files.toSorted()}")
+                }
+            }
+        """
+
+        expect:
+        succeeds(":sub:foo")
+        outputContains("files: ${["sub/file2.txt"].collect { testDirectory.file(it) }.toSorted()}")
     }
 
     @Issue("https://github.com/gradle/gradle/issues/32992")

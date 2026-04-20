@@ -415,17 +415,24 @@ class DirectoryPropertyCodec(
 ) : AbstractPropertyCodec<DefaultDirectoryVar>(providerCodec) {
 
     override suspend fun WriteContext.encodeThis(value: DefaultDirectoryVar) {
-        write(value.fileResolver)
-        write(value.fileCollectionResolver)
-        providerCodec.run { encodeProvider(value.provider) }
+        encodePreservingIdentityOf(value) {
+            write(value.fileResolver)
+            write(value.fileCollectionResolver)
+            providerCodec.run { encodeProvider(value.provider) }
+        }
     }
 
     override suspend fun ReadContext.decodeThis(): DefaultDirectoryVar {
-        val fileResolver = readNonNull<FileResolver>()
-        val fileCollectionResolver = readNonNull<PathToFileResolver>()
-        val provider: Provider<Directory> = providerCodec.run { decodeProvider() }.uncheckedCast()
-        val newPropFactory = filePropertyFactory.withResolvers(fileResolver, fileCollectionResolver)
-        return newPropFactory.newDirectoryProperty().value(provider) as DefaultDirectoryVar
+        return decodePreservingIdentity { id ->
+            val fileResolver = readNonNull<FileResolver>()
+            val fileCollectionResolver = readNonNull<PathToFileResolver>()
+            val newPropFactory = filePropertyFactory.withResolvers(fileResolver, fileCollectionResolver)
+            val property = newPropFactory.newDirectoryProperty() as DefaultDirectoryVar
+            isolate.identities.putInstance(id, property)
+            val provider: Provider<Directory> = providerCodec.run { decodeProvider() }.uncheckedCast()
+            property.value(provider)
+            property
+        }
     }
 }
 
@@ -436,15 +443,22 @@ class RegularFilePropertyCodec(
 ) : AbstractPropertyCodec<DefaultRegularFileVar>(providerCodec) {
 
     override suspend fun WriteContext.encodeThis(value: DefaultRegularFileVar) {
-        write(value.fileResolver)
-        providerCodec.run { encodeProvider(value.provider) }
+        encodePreservingIdentityOf(value) {
+            write(value.fileResolver)
+            providerCodec.run { encodeProvider(value.provider) }
+        }
     }
 
     override suspend fun ReadContext.decodeThis(): DefaultRegularFileVar {
-        val fileResolver = readNonNull<FileResolver>()
-        val provider: Provider<RegularFile> = providerCodec.run { decodeProvider() }.uncheckedCast()
-        val newPropFactory = filePropertyFactory.withResolver(fileResolver)
-        return newPropFactory.newFileProperty().value(provider) as DefaultRegularFileVar
+        return decodePreservingIdentity { id ->
+            val fileResolver = readNonNull<FileResolver>()
+            val newPropFactory = filePropertyFactory.withResolver(fileResolver)
+            val property = newPropFactory.newFileProperty() as DefaultRegularFileVar
+            isolate.identities.putInstance(id, property)
+            val provider: Provider<RegularFile> = providerCodec.run { decodeProvider() }.uncheckedCast()
+            property.value(provider)
+            property
+        }
     }
 }
 
