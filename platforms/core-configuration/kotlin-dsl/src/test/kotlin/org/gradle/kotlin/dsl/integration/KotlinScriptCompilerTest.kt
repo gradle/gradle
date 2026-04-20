@@ -16,6 +16,7 @@
 
 package org.gradle.kotlin.dsl.integration
 
+import org.gradle.kotlin.dsl.fixtures.TestModuleRegistry
 import org.gradle.kotlin.dsl.fixtures.TestWithTempFiles
 import org.gradle.kotlin.dsl.fixtures.testRuntimeClassPath
 import org.gradle.kotlin.dsl.fixtures.withClassLoaderFor
@@ -104,6 +105,7 @@ class KotlinScriptCompilerTest : TestWithTempFiles() {
             listOf(),
             template,
             testRuntimeClassPath.asFiles,
+            TestModuleRegistry(),
             mock(),
             mock()
         )

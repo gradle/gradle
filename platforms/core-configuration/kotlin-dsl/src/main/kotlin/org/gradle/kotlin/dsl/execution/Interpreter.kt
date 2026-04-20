@@ -21,6 +21,7 @@ import org.gradle.api.GradleScriptException
 import org.gradle.api.Project
 import org.gradle.api.initialization.Settings
 import org.gradle.api.initialization.dsl.ScriptHandler
+import org.gradle.api.internal.classpath.ModuleRegistry
 import org.gradle.api.internal.file.temp.TemporaryFileProvider
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.project.ProjectInternal
@@ -73,7 +74,7 @@ import java.nio.file.Path
  * @see ResidualProgramCompiler
  */
 internal
-class Interpreter(val host: Host, val buildOperationRunner: BuildOperationRunner) {
+class Interpreter(val host: Host, val buildOperationRunner: BuildOperationRunner, val moduleRegistry: ModuleRegistry) {
 
     interface Host {
 
@@ -346,6 +347,7 @@ class Interpreter(val host: Host, val buildOperationRunner: BuildOperationRunner
                     compileBuildOperationRunner = host::runCompileBuildOperation,
                     stage1BlocksAccessorsClassPath = stage1BlocksAccessorsClassPath,
                     packageName = residualProgram.packageName,
+                    moduleRegistry = moduleRegistry
                 ).compile(residualProgram.document)
             }
         }
@@ -502,6 +504,7 @@ class Interpreter(val host: Host, val buildOperationRunner: BuildOperationRunner
                                     host.implicitImports,
                                     interpreterLogger,
                                     scriptHost.temporaryFileProvider,
+                                    moduleRegistry,
                                     scriptHost.metadataCompatibilityChecker,
                                     host::runCompileBuildOperation
                                 ).emitStage2ProgramFor(
