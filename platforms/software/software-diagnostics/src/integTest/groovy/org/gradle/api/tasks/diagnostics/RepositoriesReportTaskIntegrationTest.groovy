@@ -802,6 +802,76 @@ class RepositoriesReportTaskIntegrationTest extends AbstractIntegrationSpec {
         outputDoesNotContain('Legend')
     }
 
+    def "no reachability markers when server returns 405 on HEAD but 200 on GET (fallback classifies as REACHABLE)"() {
+        given:
+        server.addHandler(new AbstractHandler() {
+            @Override
+            void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) {
+                if ("HEAD".equalsIgnoreCase(request.method)) {
+                    response.setStatus(HttpServletResponse.SC_METHOD_NOT_ALLOWED)
+                } else {
+                    response.setStatus(HttpServletResponse.SC_OK)
+                }
+                baseRequest.handled = true
+            }
+        })
+        server.start()
+        buildFile << """
+            repositories {
+                maven {
+                    url = uri("${server.uri}/")
+                    allowInsecureProtocol = true
+                }
+            }
+        """
+
+        expect:
+        succeeds ':repositories'
+        outputContains('All Repositories')
+        outputDoesNotContain('(ur)')
+        outputDoesNotContain('(ua)')
+        outputDoesNotContain('(m)')
+    }
+
+    def "renders notForConfigurations content filter branch"() {
+        given:
+        buildFile << """
+            configurations.create("skipMe")
+            repositories {
+                maven {
+                    url = uri("https://example.com/")
+                    content {
+                        notForConfigurations("skipMe")
+                    }
+                }
+            }
+        """
+
+        expect:
+        succeeds ':repositories'
+        outputContains('notForConfigurations')
+    }
+
+    def "renders onlyForAttribute content filter branch"() {
+        given:
+        buildFile << """
+            import org.gradle.api.attributes.Attribute
+            def attr = Attribute.of("example-attr", String)
+            repositories {
+                maven {
+                    url = uri("https://example.com/")
+                    content {
+                        onlyForAttribute(attr, "one", "two")
+                    }
+                }
+            }
+        """
+
+        expect:
+        succeeds ':repositories'
+        outputContains('onlyForAttribute')
+    }
+
     def "repos declared via allprojects and subprojects are shown under each project"() {
         given:
         settingsFile.text = """

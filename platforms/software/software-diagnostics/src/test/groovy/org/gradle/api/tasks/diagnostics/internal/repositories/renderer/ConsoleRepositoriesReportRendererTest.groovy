@@ -515,6 +515,23 @@ class ConsoleRepositoriesReportRendererTest extends Specification {
         text.count("Credentials: PRESENT") == 1
     }
 
+    def "identityKey differs when hasCredentials differs"() {
+        given:
+        def site = new RepositoryDeclarationSite(PROJECT, Path.path(":app"), "repositories")
+        def withCreds = new ReportRepository(
+            "Repo", RepositoryType.MAVEN, "https://example.com/",
+            true, [], true, ReportContentFilter.EMPTY,
+            [RepositoryRole.PROJECT_DEPENDENCIES] as Set, site)
+        def withoutCreds = new ReportRepository(
+            "Repo", RepositoryType.MAVEN, "https://example.com/",
+            true, [], false, ReportContentFilter.EMPTY,
+            [RepositoryRole.PROJECT_DEPENDENCIES] as Set, site)
+
+        expect:
+        withCreds.identityKey() != withoutCreds.identityKey()
+        withCreds.identityKey().hashCode() != withoutCreds.identityKey().hashCode()
+    }
+
     def "All Repositories numbers settings buckets before per-project entries"() {
         given:
         def bsSite = new RepositoryDeclarationSite(SETTINGS, null, "buildscript.repositories")
