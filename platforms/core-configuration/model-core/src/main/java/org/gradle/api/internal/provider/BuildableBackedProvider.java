@@ -17,26 +17,25 @@
 package org.gradle.api.internal.provider;
 
 import org.gradle.api.Action;
-import org.gradle.api.Buildable;
 import org.gradle.api.Task;
+import org.gradle.api.internal.tasks.AbstractTaskDependency;
 import org.gradle.api.internal.tasks.AbstractTaskDependencyResolveContext;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
-import org.gradle.api.internal.tasks.TaskDependencyUtil;
 import org.gradle.internal.Factory;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class BuildableBackedProvider<B extends Buildable & TaskDependencyContainer, T> extends AbstractProviderWithValue<T> {
+public class BuildableBackedProvider<T> extends AbstractProviderWithValue<T> {
 
-    private final B buildable;
+    private final TaskDependencyContainer dependencies;
     private final Class<T> valueType;
     private final Factory<T> valueFactory;
 
-    public BuildableBackedProvider(B buildable, Class<T> valueType, Factory<T> valueFactory) {
-        this.buildable = buildable;
+    public BuildableBackedProvider(TaskDependencyContainer dependencies, Class<T> valueType, Factory<T> valueFactory) {
+        this.dependencies = dependencies;
         this.valueType = valueType;
         this.valueFactory = valueFactory;
     }
@@ -54,7 +53,7 @@ public class BuildableBackedProvider<B extends Buildable & TaskDependencyContain
         return new ValueProducer() {
             @Override
             public void visitDependencies(TaskDependencyResolveContext context) {
-                buildable.visitDependencies(context);
+                dependencies.visitDependencies(context);
             }
 
             @Override
@@ -76,7 +75,7 @@ public class BuildableBackedProvider<B extends Buildable & TaskDependencyContain
 
     private boolean hasDependencies() {
         AtomicBoolean hasDependency = new AtomicBoolean(false);
-        buildable.visitDependencies(new AbstractTaskDependencyResolveContext() {
+        dependencies.visitDependencies(new AbstractTaskDependencyResolveContext() {
             @Override
             public void add(Object dependency) {
                 hasDependency.set(true);
@@ -86,7 +85,7 @@ public class BuildableBackedProvider<B extends Buildable & TaskDependencyContain
     }
 
     private Set<? extends Task> buildableDependencies() {
-        return TaskDependencyUtil.getDependenciesForInternalUse(buildable);
+        return AbstractTaskDependency.getTaskDependencies(dependencies, null);
     }
 
     @Override
@@ -98,4 +97,5 @@ public class BuildableBackedProvider<B extends Buildable & TaskDependencyContain
         }
         return Value.of(value);
     }
+
 }

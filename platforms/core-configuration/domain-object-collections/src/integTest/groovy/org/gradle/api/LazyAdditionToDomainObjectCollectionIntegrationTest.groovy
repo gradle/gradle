@@ -18,15 +18,16 @@ package org.gradle.api
 
 import groovy.test.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.executer.TaskOrderSpecs
 
 class LazyAdditionToDomainObjectCollectionIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
         buildFile << """
             abstract class Base {}
             abstract class Sub extends Base {}
-            
-            def container = objects.domainObjectSet(Base) 
-            
+
+            def container = objects.domainObjectSet(Base)
+
             def create(type) {
                 def ret = objects.newInstance(type)
                 println "created " + ret
@@ -248,4 +249,58 @@ class LazyAdditionToDomainObjectCollectionIntegrationTest extends AbstractIntegr
         succeeds("help")
         outputContains("withType(Base) called on")
     }
+
+    def "elements carries task dependencies"() {
+        buildFile.text = """
+            class NamedThing implements Named {
+                public String name
+                public NamedThing(String name) {
+                    this.name = name
+                }
+                public String getName() {
+                    return name
+                }
+                public String toString() {
+                    return name
+                }
+            }
+
+            def task1 = tasks.register("task1") {
+                outputs.file("a.txt")
+                outputs.file("b.txt")
+            }
+            def task2 = tasks.register("task2") {
+                outputs.file("c.txt")
+            }
+
+            def container = objects.$containerType(NamedThing)
+            container.addAllLater(task1.flatMap { it.outputs.files.elements }.map { it.collect { new NamedThing(it.asFile.name) } })
+            container.addAllLater(task2.flatMap { it.outputs.files.elements }.map { it.collect { new NamedThing(it.asFile.name) } })
+            def elements = container.elements
+
+            def task3 = tasks.register("task3") {
+                inputs.property("elements", elements)
+                doLast {
+                    println(elements.get())
+                }
+            }
+        """
+
+        when:
+        succeeds(":task3")
+
+        then:
+        outputContains("[a.txt, b.txt, c.txt]")
+        result.assertTaskOrder(TaskOrderSpecs.any(":task1", ":task2"), ":task3")
+
+        where:
+        containerType << [
+            "domainObjectContainer",
+            "polymorphicDomainObjectContainer",
+            "domainObjectSet",
+            "namedDomainObjectSet",
+            "namedDomainObjectList"
+        ]
+    }
+
 }

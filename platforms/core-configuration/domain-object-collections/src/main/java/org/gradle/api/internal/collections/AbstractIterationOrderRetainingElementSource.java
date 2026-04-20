@@ -34,6 +34,8 @@ import org.gradle.api.internal.provider.Collectors.ElementsFromCollectionProvide
 import org.gradle.api.internal.provider.Collectors.SingleElement;
 import org.gradle.api.internal.provider.Collectors.TypedCollector;
 import org.gradle.api.internal.provider.ProviderInternal;
+import org.gradle.api.internal.tasks.TaskDependencyContainer;
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.Cast;
 import org.jspecify.annotations.Nullable;
@@ -47,7 +49,8 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Set;
 
-abstract public class AbstractIterationOrderRetainingElementSource<T> implements ElementSource<T> {
+abstract public class AbstractIterationOrderRetainingElementSource<T> implements ElementSource<T>, TaskDependencyContainer {
+
     // This set represents the order in which elements are inserted to the store, either actual
     // or provided.  We construct a correct iteration order from this set.
     private final List<Element<T>> inserted = new ArrayList<>();
@@ -226,6 +229,13 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
             element.clearCache();
         }
         return added;
+    }
+
+    @Override
+    public void visitDependencies(TaskDependencyResolveContext context) {
+        for (Element<T> element : inserted) {
+            context.add(element.getProducer());
+        }
     }
 
     @Override
@@ -447,4 +457,5 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
             return index;
         }
     }
+
 }

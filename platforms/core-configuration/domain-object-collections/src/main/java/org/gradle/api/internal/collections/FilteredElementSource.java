@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.collections;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.Action;
 import org.gradle.api.internal.MutationGuard;
 import org.gradle.api.internal.provider.CollectionProviderInternal;
@@ -27,6 +28,7 @@ import java.util.Iterator;
 import java.util.NoSuchElementException;
 
 public class FilteredElementSource<T, S extends T> implements ElementSource<S> {
+
     protected final ElementSource<T> collection;
     protected final CollectionFilter<S> filter;
 
@@ -205,6 +207,20 @@ public class FilteredElementSource<T, S extends T> implements ElementSource<S> {
     }
 
     @Override
+    public ProviderInternal<? extends Collection<S>> getElements() {
+        return collection.getElements().map(elements -> {
+            ImmutableList.Builder<S> filtered = ImmutableList.builderWithExpectedSize(elements.size());
+            for (T element : elements) {
+                S filteredElement = filter.filter(element);
+                if (filteredElement != null) {
+                    filtered.add(filteredElement);
+                }
+            }
+            return filtered.build();
+        });
+    }
+
+    @Override
     public void onPendingAdded(Action<S> action) { }
 
     @Override
@@ -216,4 +232,5 @@ public class FilteredElementSource<T, S extends T> implements ElementSource<S> {
     public void realizeExternal(ProviderInternal<? extends S> provider) {
         collection.realizeExternal(provider);
     }
+
 }

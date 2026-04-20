@@ -21,6 +21,7 @@ import com.google.common.collect.Lists;
 import org.gradle.api.Action;
 import org.gradle.api.internal.DefaultMutationGuard;
 import org.gradle.api.internal.MutationGuard;
+import org.gradle.api.internal.provider.BuildableBackedProvider;
 import org.gradle.api.internal.provider.ChangingValue;
 import org.gradle.api.internal.provider.CollectionProviderInternal;
 import org.gradle.api.internal.provider.Collectors;
@@ -35,6 +36,7 @@ import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.SortedSet;
 import java.util.TreeSet;
 
 public class SortedSetElementSource<T> implements ElementSource<T> {
@@ -243,6 +245,25 @@ public class SortedSetElementSource<T> implements ElementSource<T> {
     @Override
     public boolean removePendingCollection(CollectionProviderInternal<T, ? extends Iterable<T>> provider) {
         return removeByProvider(provider);
+    }
+
+    @Override
+    public ProviderInternal<SortedSet<T>> getElements() {
+        return new BuildableBackedProvider<>(
+            context -> {
+                // TODO: As this is implemented, the returned provider will "lose" build
+                // dependencies if elements are realized early. To fix this, we would need
+                // to retain the pending elements for the lifetime of this element source.
+                for (Collectors.TypedCollector<T> collector : pending) {
+                    context.add(collector.getProducer());
+                }
+            },
+            Cast.uncheckedCast(SortedSet.class),
+            () -> {
+                realizePending();
+                return values;
+            }
+        );
     }
 
     @Override
