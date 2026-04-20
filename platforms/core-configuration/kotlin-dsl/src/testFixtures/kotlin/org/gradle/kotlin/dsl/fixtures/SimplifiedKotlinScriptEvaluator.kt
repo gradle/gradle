@@ -16,6 +16,7 @@
 
 package org.gradle.kotlin.dsl.fixtures
 
+import org.gradle.api.internal.classpath.ModuleRegistry
 import org.gradle.api.internal.classpath.RuntimeApiInfo
 import org.gradle.api.internal.file.temp.GradleUserHomeTemporaryFileProvider
 import org.gradle.api.internal.initialization.ClassLoaderScope
@@ -109,7 +110,7 @@ class SimplifiedKotlinScriptEvaluator(
 ) : AutoCloseable {
 
     fun eval(script: String, target: Any, topLevelScript: Boolean = false) {
-        Interpreter(InterpreterHost(), TestBuildOperationRunner()).eval(
+        Interpreter(InterpreterHost(), TestBuildOperationRunner(), TestModuleRegistry()).eval(
             target,
             scriptSourceFor(script),
             Hashing.md5().hashString(script),
