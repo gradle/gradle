@@ -16,6 +16,7 @@
 
 package org.gradle.api.tasks.diagnostics.internal.repositories.spec;
 
+import com.google.common.collect.ImmutableMap;
 import org.gradle.api.tasks.diagnostics.internal.repositories.reachability.ReachabilityStatus;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
@@ -23,6 +24,11 @@ import org.jspecify.annotations.Nullable;
 import java.util.Collections;
 import java.util.Map;
 
+/**
+ * Read-only parameter object passed to {@code ConsoleRepositoriesReportRenderer} describing
+ * how the report should be rendered: the optional project filter, whether the build is in
+ * offline mode, and the per-location reachability results (empty when offline).
+ */
 @NullMarked
 public final class RepositoriesReportSpec {
     private final @Nullable String projectFilter;
@@ -40,7 +46,9 @@ public final class RepositoriesReportSpec {
     ) {
         this.projectFilter = projectFilter;
         this.offline = offline;
-        this.reachabilityByLocation = reachabilityByLocation;
+        // Defensive copy — the spec is shared with the renderer and must not observe
+        // mutations from the caller after construction.
+        this.reachabilityByLocation = ImmutableMap.copyOf(reachabilityByLocation);
     }
 
     public @Nullable String getProjectFilter() {
