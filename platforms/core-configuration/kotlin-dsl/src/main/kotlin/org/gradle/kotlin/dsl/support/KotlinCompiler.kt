@@ -315,6 +315,7 @@ fun compilerConfigurationFor(messageCollector: MessageCollector, compilerOptions
     CompilerConfiguration.create().apply {
         put(CommonConfigurationKeys.MESSAGE_COLLECTOR_KEY, messageCollector)
         put(CommonConfigurationKeys.USE_FIR, true) // Enables K2
+        put(CommonConfigurationKeys.USE_LIGHT_TREE, false) // Disables using Ligth Tree, falls back to Psi instead
         put(JVM_TARGET, compilerOptions.jvmTarget.toKotlinJvmTarget())
         put(JDK_HOME, File(System.getProperty("java.home")))
         put(SAM_CONVERSIONS, JvmClosureGenerationScheme.CLASS)
