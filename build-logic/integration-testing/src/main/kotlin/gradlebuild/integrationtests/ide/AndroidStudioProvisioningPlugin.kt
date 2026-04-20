@@ -80,8 +80,10 @@ class AndroidStudioProvisioningPlugin : Plugin<Project> {
                 androidStudioRuntime("android-studio:android-studio:$androidStudioVersion@$androidStudioFileName")
             }
 
-            tasks.register(UNPACK_TASK_NAME, ExtractAndroidStudioTask::class) {
-                this.androidStudioRuntime.setFrom(androidStudioRuntime)
+            tasks.register(UNPACK_TASK_NAME, ExtractIdeTask::class) {
+                dmgAppName.set("Android Studio.app")
+                stripTopLevelDirectory.set(true)
+                ideDistribution.setFrom(androidStudioRuntime)
                 outputDir.set(layout.buildDirectory.dir(ANDROID_STUDIO_INSTALL_PATH))
             }
         }
@@ -90,7 +92,5 @@ class AndroidStudioProvisioningPlugin : Plugin<Project> {
 
 
 abstract class AndroidStudioProvisioningExtension {
-
     abstract val androidStudioVersion: Property<String>
-
 }

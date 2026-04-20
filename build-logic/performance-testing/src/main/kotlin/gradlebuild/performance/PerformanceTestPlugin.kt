@@ -39,7 +39,8 @@ import gradlebuild.basics.repoRoot
 import gradlebuild.basics.toolchainInstallationPaths
 import gradlebuild.integrationtests.addDependenciesAndConfigurations
 import gradlebuild.integrationtests.configureTestSourceSetInIde
-import gradlebuild.integrationtests.ide.AndroidStudioProvisioningPlugin
+import gradlebuild.integrationtests.ide.IntellijIdeaProvisioningPlugin
+import gradlebuild.integrationtests.ide.StudioProvisioningPlugin
 import gradlebuild.integrationtests.ide.composeAndroidStudioSystemProperties
 import gradlebuild.jvm.JvmCompileExtension
 import gradlebuild.performance.Config.performanceTestAndroidStudioJvmArgs
@@ -96,7 +97,7 @@ class PerformanceTestPlugin : Plugin<Project> {
         configureTestSourceSetInIde(performanceTestSourceSet)
         addPerformanceTestConfigurationAndDependencies()
         configureGeneratorTasks()
-        configureAndroidStudioProvisioning()
+        configureIdeProvisioning()
         val cleanTestProjectsTask = createCleanTestProjectsTask()
         val performanceTestExtension = createExtension(performanceTestSourceSet, cleanTestProjectsTask)
 
@@ -109,8 +110,11 @@ class PerformanceTestPlugin : Plugin<Project> {
     }
 
     private
-    fun Project.configureAndroidStudioProvisioning() {
-        pluginManager.apply(AndroidStudioProvisioningPlugin::class)
+    fun Project.configureIdeProvisioning() {
+        pluginManager.apply {
+            apply(StudioProvisioningPlugin::class)
+            apply(IntellijIdeaProvisioningPlugin::class)
+        }
     }
 
     private

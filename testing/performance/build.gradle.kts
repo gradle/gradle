@@ -35,6 +35,12 @@ dependencies {
     }
 }
 
+androidStudioProvisioning {
+    version = "2025.3.2.6"
+    codename = "panda2"
+    unpackTo = layout.buildDirectory.dir("android-studio")
+}
+
 dependencyAnalysis {
     issues {
         onUnusedDependencies {

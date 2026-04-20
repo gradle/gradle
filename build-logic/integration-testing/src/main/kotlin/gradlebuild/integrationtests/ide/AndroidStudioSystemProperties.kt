@@ -100,7 +100,7 @@ private class AndroidStudioSystemProperties(
  * @param androidStudioJvmArgs additional JVM arguments forwarded to the Studio process, such as `-Xmx8g`.
  */
 fun Project.composeAndroidStudioSystemProperties(androidStudioJvmArgs: List<String>): CommandLineArgumentProvider {
-    val unpackAndroidStudio = project.tasks.named(AndroidStudioProvisioningPlugin.UNPACK_TASK_NAME, ExtractAndroidStudioTask::class.java)
+    val unpackAndroidStudio = project.tasks.named(AndroidStudioProvisioningPlugin.UNPACK_TASK_NAME, ExtractIdeTask::class.java)
     val androidStudioInstallation = project.objects.newInstance<AndroidStudioInstallation>().apply {
         studioInstallLocation.fileProvider(unpackAndroidStudio.map { it.outputDir.asFile.get() })
     }
