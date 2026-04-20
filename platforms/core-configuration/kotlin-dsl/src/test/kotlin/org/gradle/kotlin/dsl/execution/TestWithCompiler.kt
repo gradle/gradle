@@ -18,13 +18,17 @@ package org.gradle.kotlin.dsl.execution
 
 import org.gradle.api.Action
 import org.gradle.api.initialization.Settings
+import org.gradle.api.internal.classpath.Module
+import org.gradle.api.internal.classpath.ModuleRegistry
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.initialization.ScriptHandlerInternal
 import org.gradle.api.model.ObjectFactory
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.internal.classpath.ClassPath
+import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.TestHashCodes
+import org.gradle.kotlin.dsl.fixtures.TestModuleRegistry
 import org.gradle.kotlin.dsl.fixtures.TestWithTempFiles
 import org.gradle.kotlin.dsl.fixtures.testRuntimeClassPath
 import org.gradle.kotlin.dsl.fixtures.withClassLoaderFor
@@ -83,7 +87,8 @@ abstract class TestWithCompiler : TestWithTempFiles() {
             temporaryFileProvider = TestFiles.tmpDirTemporaryFileProvider(tmpDir.testDirectory),
             metadataCompatibilityChecker = object : KotlinMetadataCompatibilityChecker {
                 override fun incompatibleClasspathElements(classPath: ClassPath): List<File> = listOf()
-            }
+            },
+            moduleRegistry = TestModuleRegistry()
         ).compile(program)
     }
 

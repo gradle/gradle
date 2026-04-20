@@ -18,6 +18,7 @@ package org.gradle.kotlin.dsl.provider
 
 import org.gradle.api.Project
 import org.gradle.api.initialization.dsl.ScriptHandler
+import org.gradle.api.internal.classpath.ModuleRegistry
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.initialization.ScriptHandlerInternal
@@ -106,6 +107,7 @@ class StandardKotlinScriptEvaluator(
     private val implicitImports: ImplicitImports,
     private val progressLoggerFactory: ProgressLoggerFactory,
     private val buildOperationRunner: BuildOperationRunner,
+    private val moduleRegistry: ModuleRegistry,
     private val cachedClasspathTransformer: CachedClasspathTransformer,
     private val scriptExecutionListener: ScriptExecutionListener,
     private val executionEngine: ExecutionEngine,
@@ -162,8 +164,8 @@ class StandardKotlinScriptEvaluator(
     private
     val interpreter by lazy {
         when (propertyUpgradeReportConfig.isEnabled) {
-            true -> Interpreter(InterpreterHostWithoutInMemoryCache(gradleProperties, buildTreeRootDir), buildOperationRunner)
-            false -> Interpreter(InterpreterHost(gradleProperties, buildTreeRootDir), buildOperationRunner)
+            true -> Interpreter(InterpreterHostWithoutInMemoryCache(gradleProperties, buildTreeRootDir), buildOperationRunner, moduleRegistry)
+            false -> Interpreter(InterpreterHost(gradleProperties, buildTreeRootDir), buildOperationRunner, moduleRegistry)
         }
     }
 

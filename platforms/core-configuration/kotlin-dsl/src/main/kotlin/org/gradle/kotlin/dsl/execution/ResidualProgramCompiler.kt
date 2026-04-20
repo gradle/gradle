@@ -18,6 +18,7 @@ package org.gradle.kotlin.dsl.execution
 
 import checkAllMetadataInClasspath
 import org.gradle.api.Project
+import org.gradle.api.internal.classpath.ModuleRegistry
 import org.gradle.api.internal.file.temp.TemporaryFileProvider
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.hash.HashCode
@@ -95,6 +96,7 @@ class ResidualProgramCompiler(
     @Suppress("unused") private val implicitImports: List<String> = emptyList(), // TODO: would be good to use in the templates
     private val logger: Logger = interpreterLogger,
     private val temporaryFileProvider: TemporaryFileProvider,
+    private val moduleRegistry: ModuleRegistry,
     private val metadataCompatibilityChecker: KotlinMetadataCompatibilityChecker,
     private val compileBuildOperationRunner: CompileBuildOperationRunner = { _, _, action -> action() },
     private val stage1BlocksAccessorsClassPath: ClassPath = ClassPath.EMPTY,
@@ -724,6 +726,7 @@ class ResidualProgramCompiler(
                     implicitImports,
                     scriptTemplate,
                     compileClassPath.asFiles,
+                    moduleRegistry,
                     logger
                 ) { path ->
                     if (path == scriptFile.path) originalPath
