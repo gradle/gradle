@@ -17,6 +17,7 @@ class SmokeTests(model: CIBuildModel, stage: Stage, testJava: JvmCategory, task:
         if (splitNumber > 1) {
             parallelTests {
                 numberOfBatches = splitNumber
+                groupArtifactsByBuild = true
             }
         }
     }
