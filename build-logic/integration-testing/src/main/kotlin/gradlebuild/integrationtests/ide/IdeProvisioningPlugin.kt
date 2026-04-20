@@ -45,6 +45,13 @@ class IdeProvisioningPlugin : Plugin<Project> {
             androidStudioArchive.from(project.configurations.named("intellijPlatformDependencyArchive_$ANDROID_STUDIO_ENTRY"))
             intellijUltimateArchive.from(project.configurations.named("intellijPlatformDependencyArchive_$INTELLIJ_ULTIMATE_ENTRY"))
         }
+
+        private fun loadProperties(file: File): Properties {
+            require(file.exists()) { "IDE versions file not found: $file" }
+            return Properties().apply {
+                file.inputStream().use { load(it) }
+            }
+        }
     }
 
     override fun apply(target: Project) {
@@ -99,13 +106,6 @@ class IdeProvisioningPlugin : Plugin<Project> {
             configurations.named("intellijPluginVerifierIdes") {
                 withDependencies { clear() }
             }
-        }
-    }
-
-    private fun loadProperties(file: File): Properties {
-        require(file.exists()) { "IDE versions file not found: $file" }
-        return Properties().apply {
-            file.inputStream().use { load(it) }
         }
     }
 }
