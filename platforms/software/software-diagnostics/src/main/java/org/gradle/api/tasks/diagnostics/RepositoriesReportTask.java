@@ -100,7 +100,15 @@ public abstract class RepositoriesReportTask extends ConventionReportTask {
         if (offline) {
             reachability = Collections.emptyMap();
         } else {
-            reachability = new RepositoryReachabilityChecker().check(collectAllRepos(model), false);
+            List<ReportRepository> all = collectAllRepos(model);
+            int probeCount = countProbeableLocations(all);
+            if (probeCount > 0) {
+                getLogger().lifecycle("Probing {} repository URL{}...", probeCount, probeCount == 1 ? "" : "s");
+            }
+            reachability = RepositoryReachabilityChecker.withDefaultTimeout().check(all, false);
+            if (probeCount > 0) {
+                getLogger().lifecycle("done.");
+            }
         }
         RepositoriesReportSpec spec = new RepositoriesReportSpec(
             getProjectFilter().getOrNull(),
@@ -110,6 +118,21 @@ public abstract class RepositoriesReportTask extends ConventionReportTask {
         ConsoleRepositoriesReportRenderer renderer = new ConsoleRepositoriesReportRenderer(spec);
         StyledTextOutput out = getTextOutputFactory().create(getClass());
         renderer.render(model, out);
+    }
+
+    private static int countProbeableLocations(List<ReportRepository> all) {
+        java.util.Set<String> uniqueProbeable = new java.util.LinkedHashSet<>();
+        for (ReportRepository r : all) {
+            if (r.getType() == org.gradle.api.tasks.diagnostics.internal.repositories.model.RepositoryType.MAVEN_LOCAL
+                || r.getType() == org.gradle.api.tasks.diagnostics.internal.repositories.model.RepositoryType.FLAT_DIR) {
+                continue;
+            }
+            String loc = r.getLocation();
+            if (loc.startsWith("http://") || loc.startsWith("https://")) {
+                uniqueProbeable.add(loc);
+            }
+        }
+        return uniqueProbeable.size();
     }
 
     /**

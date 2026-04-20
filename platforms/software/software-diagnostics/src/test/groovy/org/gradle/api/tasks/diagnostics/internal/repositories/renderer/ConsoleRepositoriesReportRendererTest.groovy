@@ -395,6 +395,35 @@ class ConsoleRepositoriesReportRendererTest extends Specification {
         !text.contains("(ur) Unreachable")
     }
 
+    def "renders (m) marker and legend entry when a repo has a MALFORMED_URL"() {
+        given:
+        def site = new RepositoryDeclarationSite(PROJECT, Path.path(":app"), "repositories")
+        def repo = new ReportRepository(
+            "BadRepo", RepositoryType.MAVEN, "http://[not-a-url/",
+            true, [], false, ReportContentFilter.EMPTY,
+            [RepositoryRole.PROJECT_DEPENDENCIES] as Set, site)
+        def projects = new TreeMap<>(RepositoryReportFullModel.pathComparator())
+        projects.put(Path.path(":app"),
+            new RepositoryReportProjectModel(Path.path(":app"), "app", [], [repo]))
+        def model = new RepositoryReportFullModel(new RepositoryReportSettingsModel([], [], []), projects)
+        def spec = new RepositoriesReportSpec(null, false,
+            ["http://[not-a-url/": ReachabilityStatus.MALFORMED_URL])
+        def renderer = new ConsoleRepositoriesReportRenderer(spec)
+
+        when:
+        renderer.render(model, output)
+
+        then:
+        def text = output.getRawValue()
+        text.contains("BadRepo (1)")
+        text.contains("Location:   http://[not-a-url/ (m)")
+        !text.contains("BadRepo (1) (m)")
+        text.contains("Legend")
+        text.contains("(m)  Malformed URL")
+        !text.contains("(ur) Unreachable")
+        !text.contains("(ua) Unauthorized")
+    }
+
     def "renders (o) marker on All Repositories heading and legend when offline"() {
         given:
         def site = new RepositoryDeclarationSite(PROJECT, Path.path(":app"), "repositories")

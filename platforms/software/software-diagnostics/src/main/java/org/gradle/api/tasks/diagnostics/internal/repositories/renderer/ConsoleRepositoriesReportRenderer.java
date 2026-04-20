@@ -302,6 +302,9 @@ public final class ConsoleRepositoriesReportRenderer {
             } else if (status == ReachabilityStatus.UNAUTHORIZED) {
                 locationMarker = " (ua)";
                 markers.unauthorizedUsed = true;
+            } else if (status == ReachabilityStatus.MALFORMED_URL) {
+                locationMarker = " (m)";
+                markers.malformedUsed = true;
             }
         }
         out.withStyle(Identifier).text(header.toString());
@@ -364,6 +367,9 @@ public final class ConsoleRepositoriesReportRenderer {
         if (markers.unauthorizedUsed) {
             out.withStyle(Info).println("(ua) Unauthorized — the URL returned 401/403; credentials were not sent.");
         }
+        if (markers.malformedUsed) {
+            out.withStyle(Info).println("(m)  Malformed URL — the URL could not be parsed.");
+        }
         if (markers.offlineUsed) {
             out.withStyle(Info).println("(o)  Running in offline mode — no reachability checks were performed.");
         }
@@ -377,10 +383,11 @@ public final class ConsoleRepositoriesReportRenderer {
         boolean starUsed;
         boolean unreachableUsed;
         boolean unauthorizedUsed;
+        boolean malformedUsed;
         boolean offlineUsed;
 
         boolean any() {
-            return starUsed || unreachableUsed || unauthorizedUsed || offlineUsed;
+            return starUsed || unreachableUsed || unauthorizedUsed || malformedUsed || offlineUsed;
         }
     }
 }

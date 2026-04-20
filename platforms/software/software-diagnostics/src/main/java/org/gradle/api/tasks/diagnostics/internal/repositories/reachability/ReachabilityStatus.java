@@ -32,6 +32,8 @@ public enum ReachabilityStatus {
     UNREACHABLE,
     /** URL returned 401 or 403. */
     UNAUTHORIZED,
+    /** URL could not be parsed as a URI. */
+    MALFORMED_URL,
     /** Build was run with {@code --offline} — no probes were performed. */
     OFFLINE_SKIPPED
 }
