@@ -161,11 +161,7 @@ public final class ConsoleRepositoriesReportRenderer {
         String filter = spec.getProjectFilter();
         Path filterPath = Path.path(filter);
         RepositoryReportProjectModel target = model.getProjectsByPath().get(filterPath);
-        if (target == null) {
-            throw new IllegalArgumentException(
-                "Project '" + filter + "' not found. Available projects: "
-                    + model.getProjectsByPath().keySet());
-        }
+        assert target != null : "validateFilter() should have rejected unknown project '" + filter + "'";
 
         List<ReportRepository> filtered = new ArrayList<>();
         filtered.addAll(model.getSettings().getPluginManagementRepositories());
