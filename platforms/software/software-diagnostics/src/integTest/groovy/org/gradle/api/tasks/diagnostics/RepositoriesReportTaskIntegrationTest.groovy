@@ -107,7 +107,7 @@ All Repositories (o)
 --------------------------------------------------------
 
 Gradle Central Plugin Repository (1)
-    Location:   https://plugins.gradle.org/m2
+    Location:   ${pluginPortalUrl}
     Type:       MAVEN
     Roles:      PLUGINS
     Defined in: settings > pluginManagement.repositories
@@ -186,7 +186,7 @@ All Repositories (o)
 --------------------------------------------------------
 
 Gradle Central Plugin Repository (1)
-    Location:   https://plugins.gradle.org/m2
+    Location:   ${pluginPortalUrl}
     Type:       MAVEN
     Roles:      PLUGINS
     Defined in: settings > pluginManagement.repositories
@@ -249,7 +249,7 @@ All Repositories
 --------------------------------------------------------
 
 Gradle Central Plugin Repository (1)
-    Location:   https://plugins.gradle.org/m2
+    Location:   ${pluginPortalUrl}
     Type:       MAVEN
     Roles:      PLUGINS
     Defined in: settings > pluginManagement.repositories
@@ -929,7 +929,7 @@ project ':' uses
 
         then:
         result.groupedOutput.task(":repositories").assertOutputContains("""Gradle Central Plugin Repository (2)
-    Location:   https://plugins.gradle.org/m2
+    Location:   ${pluginPortalUrl}
     Type:       MAVEN
     Roles:      PLUGINS
     Defined in: settings > pluginManagement.repositories""")
@@ -1613,4 +1613,21 @@ Legend
     See https://docs.gradle.org/current/userguide/centralizing_repositories.html
 (ur) Unreachable \u2014 the URL could not be contacted.""")
     }
+
+    /**
+     * Returns the URL that the repositories report will print for the given canonical
+     * repository factory. On CI the URL is rewritten by {@code mirroring-init-script.gradle}
+     * based on the {@code REPO_MIRROR_URLS} env var; locally the original URL is used.
+     *
+     * @param mirrorKey one of "gradle-prod-plugins", "mavencentral", "google", "jcenter"
+     * @param originalUrl the canonical URL used when no mirror is configured
+     */
+    private static String resolveReportedUrl(String mirrorKey, String originalUrl) {
+        def env = System.getenv("REPO_MIRROR_URLS")
+        if (!env) return originalUrl
+        def entries = env.split(',').collectEntries { it.split(':', 2) as List }
+        entries[mirrorKey] ?: originalUrl
+    }
+
+    private pluginPortalUrl = resolveReportedUrl("gradle-prod-plugins", "https://plugins.gradle.org/m2")
 }
