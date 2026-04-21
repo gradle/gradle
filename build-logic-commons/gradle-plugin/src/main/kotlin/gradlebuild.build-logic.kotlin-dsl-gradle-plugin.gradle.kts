@@ -30,10 +30,31 @@ val buildLibs = project.versionCatalogs.named("buildLibs")
 
 dependencies {
     implementation("gradlebuild:gradle-plugin")
+}
 
-    testImplementation(buildLibs.findLibrary("junit5Vintage").get())
+@Suppress("UnstableApiUsage")
+testing {
+    suites {
+        named<JvmTestSuite>("test") {
+            useJUnitJupiter(buildLibs.findVersion("junit").get().requiredVersion)
+        }
+    }
+}
 
-    testRuntimeOnly(buildLibs.findLibrary("junitPlatform").get())
+// When groovy-dsl is also applied, switch to Spock (which runs Jupiter tests too).
+// Also add Jupiter API so mixed Kotlin/Jupiter + Groovy/Spock projects compile.
+pluginManager.withPlugin("groovy-gradle-plugin") {
+    @Suppress("UnstableApiUsage")
+    testing {
+        suites {
+            named<JvmTestSuite>("test") {
+                useSpock(buildLibs.findVersion("spock").get().requiredVersion)
+                dependencies {
+                    implementation(buildLibs.findLibrary("junitJupiter").get())
+                }
+            }
+        }
+    }
 }
 
 tasks.withType<KotlinCompile>().configureEach {
@@ -54,8 +75,4 @@ tasks.named("codeQuality") {
 tasks.validatePlugins {
     failOnWarning = true
     enableStricterValidation = true
-}
-
-tasks.withType<Test>().configureEach {
-    useJUnitPlatform()
 }

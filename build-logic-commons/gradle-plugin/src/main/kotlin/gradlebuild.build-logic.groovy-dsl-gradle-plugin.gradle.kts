@@ -25,17 +25,23 @@ plugins {
 }
 
 val buildLibs = project.versionCatalogs.named("buildLibs")
-val testLibs = project.versionCatalogs.named("testLibs")
 
 dependencies {
     implementation("gradlebuild:gradle-plugin")
 
     implementation(localGroovy())
-    testImplementation(testLibs.findLibrary("spock").get())
-    testImplementation(testLibs.findLibrary("bytebuddy").get())
-    testImplementation(testLibs.findLibrary("objenesis").get())
+}
 
-    testRuntimeOnly(buildLibs.findLibrary("junitPlatform").get())
+@Suppress("UnstableApiUsage")
+testing {
+    suites {
+        named<JvmTestSuite>("test") {
+            dependencies {
+                implementation(buildLibs.findLibrary("bytebuddy").get())
+                implementation(buildLibs.findLibrary("objenesis").get())
+            }
+        }
+    }
 }
 
 tasks.withType<GroovyCompile>().configureEach {
@@ -68,7 +74,4 @@ tasks.withType<Test>().configureEach {
             emptyList()
         }
     })
-    useJUnitPlatform()
 }
-
-

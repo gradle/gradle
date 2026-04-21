@@ -27,11 +27,13 @@ dependencies {
         because("For manually defined KotlinSourceSet accessor - sourceSets.main.get().kotlin")
     }
 
-    testImplementation(buildLibs.junit5JupiterEngine)
-
-    testRuntimeOnly(buildLibs.junitPlatform)
 }
 
-tasks.test {
-    useJUnitPlatform()
+@Suppress("UnstableApiUsage")
+testing {
+    suites {
+        named<JvmTestSuite>("test") {
+            useJUnitJupiter(buildLibs.versions.junit)
+        }
+    }
 }

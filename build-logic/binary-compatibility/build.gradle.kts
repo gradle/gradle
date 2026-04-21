@@ -22,7 +22,7 @@ dependencies {
     compileOnly(buildLibs.kotlinCompilerEmbeddable)
 
     testImplementation(buildLibs.jsoup)
-    testImplementation(buildLibs.junitJupiter)
+    testImplementation(buildLibs.hamcrest)
 }
 
 tasks.compileGroovy.configure {
