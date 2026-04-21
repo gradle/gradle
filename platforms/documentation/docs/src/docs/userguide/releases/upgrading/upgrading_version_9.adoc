@@ -455,7 +455,7 @@ implementation libs.kotlin.stdlib
 ext.supportedLanguages = ["java", "groovy"]
 
 // child build.gradle
-if (supportedLanguages.contains("java")) { ... }
+if (supportedLanguages.contains("java")) { ... } // reads parent property
 ----
 | Use `gradle.lifecycle.beforeProject` in settings to set properties on each project individually:
 [source,groovy]
@@ -466,7 +466,7 @@ gradle.lifecycle.beforeProject {
 }
 
 // child build.gradle
-if (supportedLanguages.contains("java")) { ... }
+if (supportedLanguages.contains("java")) { ... } // reads own property, not parent's
 ----
 Or use a <<sharing_build_logic_between_subprojects.adoc#sec:sharing_logic_via_convention_plugins,convention plugin>> for more complex cases.
 
@@ -487,7 +487,7 @@ def sharedMethod() { ... }
 
 // child build.gradle
 plugins { id 'my-conventions' }
-sharedMethod()
+sharedMethod() // resolves from plugin
 ----
 |===
 
