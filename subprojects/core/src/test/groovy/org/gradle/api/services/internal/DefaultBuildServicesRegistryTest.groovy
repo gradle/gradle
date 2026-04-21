@@ -31,6 +31,9 @@ import org.gradle.api.services.BuildServiceSpec
 import org.gradle.api.services.ServiceReference
 import org.gradle.internal.Actions
 import org.gradle.internal.Try
+import org.gradle.internal.buildtree.BuildModelParameters
+import org.gradle.internal.configuration.problems.ProblemFactory
+import org.gradle.internal.configuration.problems.ProblemsListener
 import org.gradle.internal.event.DefaultListenerManager
 import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.internal.resources.SharedResourceLeaseRegistry
@@ -48,6 +51,9 @@ class DefaultBuildServicesRegistryTest extends Specification {
     def isolatableFactory = new DefaultIsolatableFactory(null, TestUtil.managedFactoryRegistry())
     def leaseRegistry = Stub(SharedResourceLeaseRegistry)
     def buildIdentifier = Mock(BuildIdentifier)
+    def problemsListener = Stub(ProblemsListener)
+    def problemFactory = Stub(ProblemFactory)
+    def buildModelParameters = Stub(BuildModelParameters)
     def services = TestUtil.createTestServices { registrations ->
         registrations.addProvider(new ServiceRegistrationProvider() {
             @Provides
@@ -60,7 +66,10 @@ class DefaultBuildServicesRegistryTest extends Specification {
                     listenerManager,
                     isolatableFactory,
                     leaseRegistry,
-                    BuildServiceProvider.Listener.EMPTY
+                    BuildServiceProvider.Listener.EMPTY,
+                    problemsListener,
+                    problemFactory,
+                    buildModelParameters
                 )
             }
         })

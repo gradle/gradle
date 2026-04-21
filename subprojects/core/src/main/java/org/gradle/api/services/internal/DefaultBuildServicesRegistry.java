@@ -18,6 +18,7 @@ package org.gradle.api.services.internal;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import kotlin.Unit;
 import org.apache.commons.lang3.StringUtils;
 import org.gradle.BuildAdapter;
 import org.gradle.BuildResult;
@@ -34,6 +35,10 @@ import org.gradle.api.services.BuildServiceRegistration;
 import org.gradle.api.services.BuildServiceSpec;
 import org.gradle.internal.Cast;
 import org.gradle.internal.build.ExecutionResult;
+import org.gradle.internal.buildtree.BuildModelParameters;
+import org.gradle.internal.configuration.problems.ProblemFactory;
+import org.gradle.internal.configuration.problems.ProblemsListener;
+import org.gradle.internal.configuration.problems.PropertyProblem;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.isolated.IsolationScheme;
@@ -68,6 +73,9 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
     private final ServiceRegistry services;
     private final IsolatableFactory isolatableFactory;
     private final SharedResourceLeaseRegistry leaseRegistry;
+    private final ProblemsListener problems;
+    private final ProblemFactory problemFactory;
+    private final BuildModelParameters buildModelParameters;
     private final IsolationScheme<BuildService<?>, BuildServiceParameters> isolationScheme = new IsolationScheme<>(
         Cast.uncheckedCast(BuildService.class), BuildServiceParameters.class, BuildServiceParameters.None.class, BuildServiceParameters.None.INSTANCE);
     private final Instantiator paramsInstantiator;
@@ -82,7 +90,10 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
         ListenerManager listenerManager,
         IsolatableFactory isolatableFactory,
         SharedResourceLeaseRegistry leaseRegistry,
-        BuildServiceProvider.Listener listener
+        BuildServiceProvider.Listener listener,
+        ProblemsListener problems,
+        ProblemFactory problemFactory,
+        BuildModelParameters buildModelParameters
     ) {
         this.buildIdentifier = buildIdentifier;
         this.registrations = uncheckedCast(collectionFactory.newNamedDomainObjectSet(BuildServiceRegistration.class));
@@ -91,6 +102,9 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
         this.services = services;
         this.isolatableFactory = isolatableFactory;
         this.leaseRegistry = leaseRegistry;
+        this.problems = problems;
+        this.problemFactory = problemFactory;
+        this.buildModelParameters = buildModelParameters;
         this.paramsInstantiator = instantiatorFactory.decorateScheme().withServices(services).instantiator();
         this.specInstantiator = instantiatorFactory.decorateLenient(services);
         this.listener = listener;
@@ -108,6 +122,13 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
 
     @Override
     public NamedDomainObjectSet<BuildServiceRegistration<?, ?>> getRegistrations() {
+        if (buildModelParameters.isIsolatedProjects()) {
+            PropertyProblem problem = problemFactory.problem(null, messageBuilder -> {
+                messageBuilder.text("Cannot call BuildServicesRegistry.getRegistrations() when Isolated Projects is enabled. Use BuildServicesRegistry.registerIfAbsent(String, Class) instead.");
+                return Unit.INSTANCE;
+            }).exception().build();
+            problems.onProblem(problem);
+        }
         return registrations;
     }
 

@@ -211,6 +211,8 @@ import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.composite.BuildIncludeListener;
 import org.gradle.internal.composite.DefaultBuildIncluder;
 import org.gradle.internal.concurrent.ExecutorFactory;
+import org.gradle.internal.configuration.problems.ProblemFactory;
+import org.gradle.internal.configuration.problems.ProblemsListener;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.event.ScopedListenerManager;
 import org.gradle.internal.execution.BuildOutputCleanupRegistry;
@@ -799,7 +801,10 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
         ListenerManager listenerManager,
         IsolatableFactory isolatableFactory,
         SharedResourceLeaseRegistry sharedResourceLeaseRegistry,
-        FeatureFlags featureFlags
+        FeatureFlags featureFlags,
+        ProblemsListener problems,
+        ProblemFactory problemFactory,
+        BuildModelParameters buildModelParameters
     ) {
         // TODO:configuration-cache remove this hack
         // HACK: force the instantiation of FlowScope so its listeners are registered before DefaultBuildServicesRegistry's
@@ -817,7 +822,10 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
             sharedResourceLeaseRegistry,
             featureFlags.isEnabled(FeaturePreviews.Feature.INTERNAL_BUILD_SERVICE_USAGE)
                 ? new BuildServiceProviderNagger(services.get(WorkExecutionTracker.class))
-                : BuildServiceProvider.Listener.EMPTY
+                : BuildServiceProvider.Listener.EMPTY,
+            problems,
+            problemFactory,
+            buildModelParameters
         );
     }
 

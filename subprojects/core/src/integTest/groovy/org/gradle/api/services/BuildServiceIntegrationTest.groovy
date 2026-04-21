@@ -44,6 +44,7 @@ import org.gradle.build.event.BuildEventsListenerRegistry
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
+import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheFixture
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.process.ExecOperations
@@ -1144,6 +1145,7 @@ Hello, subproject1
         outputContains("service: closed with value 13")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "Cannot modify registration parameters with IP enabled")
     def "plugin can apply conventions to shared services of a given type"() {
         serviceImplementation()
         buildFile << """
@@ -2072,4 +2074,22 @@ Hello, subproject1
             }
         """
     }
+
+    @Requires(value = TestExecutionPreconditions.IsolatedProjects, reason = "Validating IP violation is emitted")
+    def "cannot access build service registrations when IP is enabled"() {
+        def configurationCache = new ConfigurationCacheFixture(this)
+
+        buildFile("""
+            gradle.sharedServices.registrations
+        """)
+
+        when:
+        fails("help")
+
+        then:
+        configurationCache.problems.assertFailureHasProblems(failure) {
+            withProblem("Build file 'build.gradle': line 2: Cannot call BuildServicesRegistry.getRegistrations() when Isolated Projects is enabled. Use BuildServicesRegistry.registerIfAbsent(String, Class) instead.")
+        }
+    }
+
 }

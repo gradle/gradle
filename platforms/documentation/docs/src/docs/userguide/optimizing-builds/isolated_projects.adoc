@@ -53,8 +53,12 @@ While the feature is experimental, notable changes are documented here rather th
 ** Tooling model caching is now disabled, as it currently has known correctness problems.
 
 * Gradle 9.2.0
-** Additional APIs on `TaskContainer` are treated as incompatible: `findByPath(String)` and `getByPath(String)`
-methods now emit violations when a task from another project is requested.
+** Additional APIs on `TaskContainer` are treated as incompatible:
+`findByPath(String)` and `getByPath(String)` now emit violations when a task from another project is requested.
+
+* Gradle 9.6.0
+** Additional APIs on `BuildServiceRegistry` are treated as incompatible:
+`getRegistrations` now emits violations unconditionally. Use `registerIfAbsent` instead.
 
 [[sec:performance]]
 == Performance benefits and limitations
