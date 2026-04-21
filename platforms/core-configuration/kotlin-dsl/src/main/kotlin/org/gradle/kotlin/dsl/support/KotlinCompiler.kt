@@ -68,9 +68,14 @@ import java.io.OutputStream
 import java.io.PrintStream
 import java.nio.file.Path
 import java.nio.file.Paths
+import kotlin.collections.firstOrNull
 import kotlin.io.path.Path
 import kotlin.reflect.KClass
 import kotlin.reflect.jvm.jvmName
+import kotlin.script.experimental.annotations.KotlinScript
+import kotlin.script.experimental.api.ScriptCompilationConfiguration
+import kotlin.script.experimental.api.implicitReceivers
+import kotlin.script.experimental.util.PropertiesCollection
 
 
 internal
@@ -101,6 +106,19 @@ class KotlinCompiler(val moduleRegistry: ModuleRegistry) {
         )
 
         return NameUtils.getScriptNameForFile(scriptFile.name).asString()
+    }
+
+    private val receiverCache: MutableMap<KClass<*>, KClass<*>> by lazy { mutableMapOf() }
+
+    internal
+    fun implicitReceiverOf(template: KClass<*>): KClass<*>? {
+        return receiverCache.getOrPut(template) {
+            val compilationConfigurationClass : KClass<out ScriptCompilationConfiguration>? = template.annotations.firstNotNullOfOrNull { (it as? KotlinScript)?.compilationConfiguration }
+            return compilationConfigurationClass?.let {
+                val compileConfiguration = scriptConfigInstance(compilationConfigurationClass)
+                compileConfiguration?.get(ScriptCompilationConfiguration.implicitReceivers)?.firstOrNull()?.fromClass
+            }
+        }
     }
 
 
@@ -481,6 +499,19 @@ private class BTACompiler(val moduleRegistry: ModuleRegistry) {
         this[JvmCompilerArguments.MODULE_NAME] = MODULE_NAME
     }
 }
+
+private
+inline fun <reified T : PropertiesCollection> scriptConfigInstance(kclass: KClass<out T>): T? =
+    kclass.objectInstance ?: run {
+        val noArgsConstructor = kclass.java.constructors.singleOrNull { it.parameters.isEmpty() }
+        noArgsConstructor?.let {
+            try {
+                it.isAccessible = true
+            } catch (_: RuntimeException) {
+            }
+            it.newInstance() as T
+        }
+    }
 
 
 @VisibleForTesting

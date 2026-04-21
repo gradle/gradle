@@ -70,10 +70,6 @@ import org.jetbrains.org.objectweb.asm.Type
 import org.slf4j.Logger
 import java.io.File
 import kotlin.reflect.KClass
-import kotlin.script.experimental.annotations.KotlinScript
-import kotlin.script.experimental.api.ScriptCompilationConfiguration
-import kotlin.script.experimental.api.implicitReceivers
-import kotlin.script.experimental.util.PropertiesCollection
 
 
 internal
@@ -260,7 +256,7 @@ class ResidualProgramCompiler(
                 stage1BlocksClassPath
             )
 
-        val implicitReceiverType = implicitReceiverOf(scriptTemplate)!!
+        val implicitReceiverType = kotlinCompiler.implicitReceiverOf(scriptTemplate)!!
         compiledScriptClassInstantiation(compiledBuildscriptWithPluginsBlock) {
 
             emitPluginRequestCollectorInstantiation()
@@ -586,7 +582,7 @@ class ResidualProgramCompiler(
         scriptTemplate: KClass<out Any>
     ) {
 
-        val implicitReceiverType = implicitReceiverOf(scriptTemplate)
+        val implicitReceiverType = kotlinCompiler.implicitReceiverOf(scriptTemplate)
         compiledScriptClassInstantiation(compiledScriptClass) {
 
             // ${compiledScriptClass}(scriptHost)
@@ -781,25 +777,4 @@ class ResidualProgramCompiler(
             else -> TODO("Unsupported program target: `$programTarget`")
         }
 
-    private
-    fun implicitReceiverOf(template: KClass<*>): KClass<*>? {
-        val compilationConfigurationClass : KClass<out ScriptCompilationConfiguration>? = template.annotations.firstNotNullOfOrNull { (it as? KotlinScript)?.compilationConfiguration }
-        return compilationConfigurationClass?.let {
-            val compileConfiguration = scriptConfigInstance(compilationConfigurationClass)
-            compileConfiguration?.get(ScriptCompilationConfiguration.implicitReceivers)?.firstOrNull()?.fromClass
-        }
-    }
-
-    private
-    inline fun <reified T : PropertiesCollection> scriptConfigInstance(kclass: KClass<out T>): T? =
-        kclass.objectInstance ?: run {
-            val noArgsConstructor = kclass.java.constructors.singleOrNull { it.parameters.isEmpty() }
-            noArgsConstructor?.let {
-                try {
-                    it.isAccessible = true
-                } catch (_: RuntimeException) {
-                }
-                it.newInstance() as T
-            }
-        }
 }
