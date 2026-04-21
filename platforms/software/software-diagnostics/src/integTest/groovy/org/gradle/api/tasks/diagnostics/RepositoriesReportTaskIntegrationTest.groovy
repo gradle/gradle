@@ -42,7 +42,7 @@ class RepositoriesReportTaskIntegrationTest extends AbstractIntegrationSpec {
         succeeds ':tasks', '--all'
 
         then:
-        result.assertOutputContains("repositories")
+        outputContains("repositories")
     }
 
     def "task reports empty when no repositories declared"() {
@@ -1624,7 +1624,9 @@ Legend
      */
     private static String resolveReportedUrl(String mirrorKey, String originalUrl) {
         def env = System.getenv("REPO_MIRROR_URLS")
-        if (!env) return originalUrl
+        if (!env) {
+            return originalUrl
+        }
         def entries = env.split(',').collectEntries { it.split(':', 2) as List }
         entries[mirrorKey] ?: originalUrl
     }
