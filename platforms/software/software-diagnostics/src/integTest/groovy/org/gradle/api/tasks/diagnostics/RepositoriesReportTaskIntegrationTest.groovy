@@ -24,7 +24,9 @@ import org.junit.Rule
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
-/** Tests for {@link org.gradle.api.tasks.diagnostics.RepositoriesReportTask}. */
+/**
+ * Tests for {@link org.gradle.api.tasks.diagnostics.RepositoriesReportTask}.
+ */
 class RepositoriesReportTaskIntegrationTest extends AbstractIntegrationSpec {
     @Rule
     public final HttpServer server = new HttpServer()
@@ -36,9 +38,11 @@ class RepositoriesReportTaskIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "task is registered under help group"() {
-        expect:
+        when:
         succeeds ':tasks', '--all'
-        outputContains('repositories -')
+
+        then:
+        result.assertOutputContains("repositories")
     }
 
     def "task reports empty when no repositories declared"() {
@@ -95,11 +99,11 @@ project ':' uses
         """
 
         when:
-        succeeds ':repositories'
+        succeeds ':repositories', '--offline'
 
         then:
         result.groupedOutput.task(":repositories").assertOutputContains("""--------------------------------------------------------
-All Repositories
+All Repositories (o)
 --------------------------------------------------------
 
 Gradle Central Plugin Repository (1)
@@ -116,7 +120,13 @@ settings uses
     - Gradle Central Plugin Repository (1)
 
 project ':' uses
-    - Gradle Central Plugin Repository (1)""")
+    - Gradle Central Plugin Repository (1)
+
+--------------------------------------------------------
+Legend
+--------------------------------------------------------
+
+(o)  Running in offline mode \u2014 no reachability checks were performed.""")
     }
 
     def "task reports settings.buildscript repo in All Repositories and under settings uses"() {
@@ -168,11 +178,11 @@ settings uses
         createDirs("app", "lib")
 
         when:
-        succeeds ':repositories'
+        succeeds ':repositories', '--offline'
 
         then:
         result.groupedOutput.task(":repositories").assertOutputContains("""--------------------------------------------------------
-All Repositories
+All Repositories (o)
 --------------------------------------------------------
 
 Gradle Central Plugin Repository (1)
@@ -205,7 +215,13 @@ project ':app' uses
 
 project ':lib' uses
     - Gradle Central Plugin Repository (1)
-    - MavenRepo (2)""")
+    - MavenRepo (2)
+
+--------------------------------------------------------
+Legend
+--------------------------------------------------------
+
+(o)  Running in offline mode \u2014 no reachability checks were performed.""")
     }
 
     def "--project filter limits Repositories by Location to the single project"() {
@@ -228,10 +244,29 @@ project ':lib' uses
         succeeds ':repositories', '--project', ':app'
 
         then:
-        outputContains('All Repositories')
-        outputContains('Google')
-        outputContains('Repositories by Location')
-        outputContains("project ':app' uses")
+        result.groupedOutput.task(":repositories").assertOutputContains("""--------------------------------------------------------
+All Repositories
+--------------------------------------------------------
+
+Gradle Central Plugin Repository (1)
+    Location:   https://plugins.gradle.org/m2
+    Type:       MAVEN
+    Roles:      PLUGINS
+    Defined in: settings > pluginManagement.repositories
+
+MavenRepo (2)
+    Location:   https://repo.maven.apache.org/maven2/
+    Type:       MAVEN
+    Roles:      PROJECT_DEPENDENCIES
+    Defined in: settings > dependencyResolutionManagement.repositories""")
+        result.groupedOutput.task(":repositories").assertOutputContains("""--------------------------------------------------------
+Repositories by Location
+--------------------------------------------------------
+
+project ':app' uses
+    - Gradle Central Plugin Repository (1)
+    - MavenRepo (2)
+    - Google (3)""")
         outputDoesNotContain('settings uses')
         outputDoesNotContain("project ':other'")
     }
@@ -326,8 +361,36 @@ Legend
             }
         '''
 
-        expect:
+        when:
         succeeds ':repositories'
+
+        then:
+        result.groupedOutput.task(":repositories").assertOutputContains("""--------------------------------------------------------
+All Repositories
+--------------------------------------------------------
+
+maven (1)
+    Location:   https://example.com/
+    Type:       MAVEN
+    Roles:      PROJECT_DEPENDENCIES
+    Content:    includeGroup("com.example")
+    Defined in: project ':app' > repositories
+
+maven (2)
+    Location:   https://example.com/
+    Type:       MAVEN
+    Roles:      PROJECT_DEPENDENCIES
+    Defined in: project ':lib' > repositories
+
+--------------------------------------------------------
+Repositories by Location
+--------------------------------------------------------
+
+project ':app' uses
+    - maven (1)
+
+project ':lib' uses
+    - maven (2)""")
         outputDoesNotContain('Legend')
     }
 
@@ -345,10 +408,33 @@ Legend
             }
         """
 
-        expect:
+        when:
         succeeds ':repositories'
-        outputContains('Auth:')
-        outputContains('BasicAuthentication')
+
+        then:
+        result.groupedOutput.task(":repositories").assertOutputContains("""--------------------------------------------------------
+All Repositories
+--------------------------------------------------------
+
+maven (1)
+    Location:   https://corp.example.com/ (ur)
+    Type:       MAVEN
+    Roles:      PROJECT_DEPENDENCIES
+    Auth:       DefaultBasicAuthentication_Decorated
+    Defined in: project ':' > repositories
+
+--------------------------------------------------------
+Repositories by Location
+--------------------------------------------------------
+
+project ':' uses
+    - maven (1)
+
+--------------------------------------------------------
+Legend
+--------------------------------------------------------
+
+(ur) Unreachable \u2014 the URL could not be contacted.""")
     }
 
     def "reports Credentials: PRESENT for repo with declared credentials"() {
@@ -367,9 +453,33 @@ Legend
             }
         """
 
-        expect:
+        when:
         succeeds ':repositories'
-        outputContains('Credentials: PRESENT')
+
+        then:
+        result.groupedOutput.task(":repositories").assertOutputContains("""--------------------------------------------------------
+All Repositories
+--------------------------------------------------------
+
+maven (1)
+    Location:   https://corp.example.com/ (ur)
+    Type:       MAVEN
+    Roles:      PROJECT_DEPENDENCIES
+    Credentials: PRESENT
+    Defined in: project ':' > repositories
+
+--------------------------------------------------------
+Repositories by Location
+--------------------------------------------------------
+
+project ':' uses
+    - maven (1)
+
+--------------------------------------------------------
+Legend
+--------------------------------------------------------
+
+(ur) Unreachable \u2014 the URL could not be contacted.""")
         // ensure the actual credential values never leak
         outputDoesNotContain('cred-username-xyzzy')
         outputDoesNotContain('cred-password-xyzzy')
@@ -385,8 +495,32 @@ Legend
             }
         """
 
-        expect:
+        when:
         succeeds ':repositories'
+
+        then:
+        result.groupedOutput.task(":repositories").assertOutputContains("""--------------------------------------------------------
+All Repositories
+--------------------------------------------------------
+
+maven (1)
+    Location:   https://open.example.com/ (ur)
+    Type:       MAVEN
+    Roles:      PROJECT_DEPENDENCIES
+    Defined in: project ':' > repositories
+
+--------------------------------------------------------
+Repositories by Location
+--------------------------------------------------------
+
+project ':' uses
+    - maven (1)
+
+--------------------------------------------------------
+Legend
+--------------------------------------------------------
+
+(ur) Unreachable \u2014 the URL could not be contacted.""")
         outputDoesNotContain('Credentials:')
     }
 
@@ -401,9 +535,33 @@ Legend
             }
         """
 
-        expect:
+        when:
         succeeds ':repositories'
-        outputContains('Secure:     false')
+
+        then:
+        result.groupedOutput.task(":repositories").assertOutputContains("""--------------------------------------------------------
+All Repositories
+--------------------------------------------------------
+
+maven (1)
+    Location:   http://legacy.example.com/ (ur)
+    Type:       MAVEN
+    Roles:      PROJECT_DEPENDENCIES
+    Secure:     false
+    Defined in: project ':' > repositories
+
+--------------------------------------------------------
+Repositories by Location
+--------------------------------------------------------
+
+project ':' uses
+    - maven (1)
+
+--------------------------------------------------------
+Legend
+--------------------------------------------------------
+
+(ur) Unreachable \u2014 the URL could not be contacted.""")
     }
 
     def "renders content filter with include and onlyForConfigurations"() {
@@ -422,10 +580,27 @@ Legend
             }
         """
 
-        expect:
+        when:
         succeeds ':repositories'
-        outputContains('Content:    includeGroup("com.example"), excludeModule("com.other", "bad")')
-        outputContains('onlyForConfigurations')
+
+        then:
+        result.groupedOutput.task(":repositories").assertOutputContains("""--------------------------------------------------------
+All Repositories
+--------------------------------------------------------
+
+maven (1)
+    Location:   https://example.com/
+    Type:       MAVEN
+    Roles:      PROJECT_DEPENDENCIES
+    Content:    includeGroup("com.example"), excludeModule("com.other", "bad"), onlyForConfigurations([compile])
+    Defined in: project ':' > repositories
+
+--------------------------------------------------------
+Repositories by Location
+--------------------------------------------------------
+
+project ':' uses
+    - maven (1)""")
     }
 
     def "task is configuration-cache compatible"() {
@@ -440,6 +615,22 @@ Legend
         succeeds ':repositories', '--configuration-cache'
 
         then:
+        result.groupedOutput.task(":repositories").assertOutputContains("""--------------------------------------------------------
+All Repositories
+--------------------------------------------------------
+
+MavenRepo (1)
+    Location:   https://repo.maven.apache.org/maven2/
+    Type:       MAVEN
+    Roles:      PROJECT_DEPENDENCIES
+    Defined in: project ':' > repositories
+
+--------------------------------------------------------
+Repositories by Location
+--------------------------------------------------------
+
+project ':' uses
+    - MavenRepo (1)""")
         postBuildOutputContains('Configuration cache entry stored')
 
         when:
@@ -460,11 +651,20 @@ Legend
             }
         """
 
-        expect:
+        when:
         succeeds ':repositories'
-        outputContains('FLAT_DIR')
-        outputContains('dirs:[')
-        outputContains('libs')
+
+        then:
+        result.groupedOutput.task(":repositories").assertOutputContains("""    Type:       FLAT_DIR
+    Roles:      PROJECT_DEPENDENCIES
+    Defined in: project ':' > repositories
+
+--------------------------------------------------------
+Repositories by Location
+--------------------------------------------------------
+
+project ':' uses
+    - flatDir (1)""")
     }
 
     def "reports Ivy repository"() {
@@ -477,10 +677,32 @@ Legend
             }
         """
 
-        expect:
+        when:
         succeeds ':repositories'
-        outputContains('Location:   https://example.com/ivy/')
-        outputContains('Type:       IVY')
+
+        then:
+        result.groupedOutput.task(":repositories").assertOutputContains("""--------------------------------------------------------
+All Repositories
+--------------------------------------------------------
+
+ivy (1)
+    Location:   https://example.com/ivy/ (ur)
+    Type:       IVY
+    Roles:      PROJECT_DEPENDENCIES
+    Defined in: project ':' > repositories
+
+--------------------------------------------------------
+Repositories by Location
+--------------------------------------------------------
+
+project ':' uses
+    - ivy (1)
+
+--------------------------------------------------------
+Legend
+--------------------------------------------------------
+
+(ur) Unreachable \u2014 the URL could not be contacted.""")
     }
 
     def "reports Ivy repository with content filter includeGroup"() {
@@ -496,12 +718,33 @@ Legend
             }
         """
 
-        expect:
+        when:
         succeeds ':repositories'
-        outputContains('Type:       IVY')
-        outputContains('Location:   https://example.com/ivy/')
-        outputContains('Content:    includeGroup("com.example")')
-        outputContains("project ':' uses")
+
+        then:
+        result.groupedOutput.task(":repositories").assertOutputContains("""--------------------------------------------------------
+All Repositories
+--------------------------------------------------------
+
+ivy (1)
+    Location:   https://example.com/ivy/ (ur)
+    Type:       IVY
+    Roles:      PROJECT_DEPENDENCIES
+    Content:    includeGroup("com.example")
+    Defined in: project ':' > repositories
+
+--------------------------------------------------------
+Repositories by Location
+--------------------------------------------------------
+
+project ':' uses
+    - ivy (1)
+
+--------------------------------------------------------
+Legend
+--------------------------------------------------------
+
+(ur) Unreachable \u2014 the URL could not be contacted.""")
     }
 
     def "reports mavenLocal repository with MAVEN_LOCAL type"() {
@@ -512,9 +755,20 @@ Legend
             }
         """
 
-        expect:
+        when:
         succeeds ':repositories'
-        outputContains('MAVEN_LOCAL')
+
+        then:
+        result.groupedOutput.task(":repositories").assertOutputContains("""    Type:       MAVEN_LOCAL
+    Roles:      PROJECT_DEPENDENCIES
+    Defined in: project ':' > repositories
+
+--------------------------------------------------------
+Repositories by Location
+--------------------------------------------------------
+
+project ':' uses
+    - MavenLocal (1)""")
     }
 
     def "project buildscript repo gets PROJECT_BUILDSCRIPT_DEPENDENCIES role"() {
@@ -670,54 +924,68 @@ project ':' uses
             }
         '''
 
-        expect:
-        succeeds ':repositories'
-        // Section headers
-        outputContains('All Repositories')
-        // Settings DRM repositories
-        outputContains('https://repo.maven.apache.org/maven2/')
-        outputContains('https://dl.google.com/dl/android/maven2/')
-        // Settings pluginManagement repository
-        outputContains('https://plugins.gradle.org/m2')
-        // Settings buildscript repository
-        outputContains('https://settings-buildscript.example.com/')
-        // Project buildscript repository (app)
-        outputContains('https://app-buildscript.example.com/')
-        // subprojects { } repository
-        outputContains('https://subprojects.example.com/')
-        // app's Ivy repository
-        outputContains('https://app-ivy.example.com/')
-        outputContains('Type:       IVY')
-        // lib's flatDir repository
-        outputContains('Type:       FLAT_DIR')
-        outputContains('dirs:[')
-        // Settings-plugin-added repo: PROJECT_DEPENDENCIES, attributed to settings DRM
-        outputContains('https://settings-plugin-drm.example.com/')
-        outputContains('Defined in: settings > dependencyResolutionManagement.repositories')
-        // Project-plugin-added repo: PROJECT_DEPENDENCIES, attributed to :app
-        outputContains('https://project-plugin-repo.example.com/')
-        outputContains("Defined in: project ':app' > repositories")
-        // All 4 RepositoryRole values appear
-        outputContains('PLUGINS')
-        outputContains('SETTINGS_BUILDSCRIPT_DEPENDENCIES')
-        outputContains('PROJECT_BUILDSCRIPT_DEPENDENCIES')
-        outputContains('PROJECT_DEPENDENCIES')
-        // Per-project reference blocks
-        outputContains("project ':app' uses")
-        outputContains("project ':lib' uses")
-        outputContains("project ':' uses")
+        when:
+        succeeds ':repositories', '--offline'
+
+        then:
+        result.groupedOutput.task(":repositories").assertOutputContains("""Gradle Central Plugin Repository (2)
+    Location:   https://plugins.gradle.org/m2
+    Type:       MAVEN
+    Roles:      PLUGINS
+    Defined in: settings > pluginManagement.repositories""")
+        result.groupedOutput.task(":repositories").assertOutputContains("""MavenRepo (4) *
+    Location:   https://repo.maven.apache.org/maven2/
+    Type:       MAVEN
+    Roles:      PROJECT_DEPENDENCIES
+    Defined in: settings > dependencyResolutionManagement.repositories""")
+        result.groupedOutput.task(":repositories").assertOutputContains("""ivy (9)
+    Location:   https://app-ivy.example.com/
+    Type:       IVY
+    Roles:      PROJECT_DEPENDENCIES
+    Credentials: PRESENT
+    Defined in: project ':app' > repositories""")
+        result.groupedOutput.task(":repositories").assertOutputContains("""settings uses
+    - maven (1)
+    - Gradle Central Plugin Repository (2)
+    - maven (3)
+    - MavenRepo (4)
+    - Google (5)
+
+project ':' uses
+    - Gradle Central Plugin Repository (2)
+    - maven (3)
+    - MavenRepo (4)
+    - Google (5)
+
+project ':app' uses
+    - Gradle Central Plugin Repository (2)
+    - maven (3)
+    - MavenRepo (4)
+    - Google (5)
+    - maven (6)
+    - maven (7)
+    - maven2 (8)
+    - ivy (9)
+
+project ':lib' uses
+    - Gradle Central Plugin Repository (2)
+    - maven (3)
+    - MavenRepo (4)
+    - Google (5)
+    - maven (10)
+    - MavenRepo (11)
+    - flatDir (12)""")
+        result.groupedOutput.task(":repositories").assertOutputContains("""(*) Identical repository declaration found in multiple locations.
+    Consider consolidating to settings.dependencyResolutionManagement.repositories
+    or settings.pluginManagement.repositories.
+    See https://docs.gradle.org/current/userguide/centralizing_repositories.html
+(o)  Running in offline mode \u2014 no reachability checks were performed.""")
         // Included build must NOT be descended
         outputDoesNotContain('included.example.com')
         outputDoesNotContain("project ':included'")
-        // Ivy repo carried credentials — Credentials line should render
-        outputContains('Credentials: PRESENT')
         // Credential values must never leak into the output
         outputDoesNotContain('ivyUser')
         outputDoesNotContain('ivyPass')
-        // Legend present (mavenCentral declared in both DRM and :lib triggers duplicate marker)
-        outputContains('Legend')
-        outputContains('centralizing_repositories.html')
-        outputContains('*')
     }
 
     def "project plugin adds repositories to its host project"() {
@@ -738,13 +1006,32 @@ project ':' uses
             apply from: 'project-repo-plugin.gradle'
         '''
 
-        expect:
+        when:
         succeeds ':repositories'
-        outputContains('All Repositories')
-        outputContains('https://project-plugin-repo.example.com/')
-        outputContains('Roles:      PROJECT_DEPENDENCIES')
-        outputContains("Defined in: project ':app' > repositories")
-        outputContains("project ':app' uses")
+
+        then:
+        result.groupedOutput.task(":repositories").assertOutputContains("""--------------------------------------------------------
+All Repositories
+--------------------------------------------------------
+
+maven (1)
+    Location:   https://project-plugin-repo.example.com/ (ur)
+    Type:       MAVEN
+    Roles:      PROJECT_DEPENDENCIES
+    Defined in: project ':app' > repositories
+
+--------------------------------------------------------
+Repositories by Location
+--------------------------------------------------------
+
+project ':app' uses
+    - maven (1)
+
+--------------------------------------------------------
+Legend
+--------------------------------------------------------
+
+(ur) Unreachable \u2014 the URL could not be contacted.""")
     }
 
     def "settings plugin adds repositories via dependencyResolutionManagement"() {
@@ -766,16 +1053,41 @@ project ':' uses
         """
         createDirs("app", "lib")
 
-        expect:
+        when:
         succeeds ':repositories'
-        outputContains('All Repositories')
-        outputContains('https://settings-plugin-drm.example.com/')
-        outputContains('Roles:      PROJECT_DEPENDENCIES')
-        outputContains('Defined in: settings > dependencyResolutionManagement.repositories')
-        // The DRM repo should appear under every project's "uses" block.
-        outputContains("project ':' uses")
-        outputContains("project ':app' uses")
-        outputContains("project ':lib' uses")
+
+        then:
+        result.groupedOutput.task(":repositories").assertOutputContains("""--------------------------------------------------------
+All Repositories
+--------------------------------------------------------
+
+maven (1)
+    Location:   https://settings-plugin-drm.example.com/ (ur)
+    Type:       MAVEN
+    Roles:      PROJECT_DEPENDENCIES
+    Defined in: settings > dependencyResolutionManagement.repositories
+
+--------------------------------------------------------
+Repositories by Location
+--------------------------------------------------------
+
+settings uses
+    - maven (1)
+
+project ':' uses
+    - maven (1)
+
+project ':app' uses
+    - maven (1)
+
+project ':lib' uses
+    - maven (1)
+
+--------------------------------------------------------
+Legend
+--------------------------------------------------------
+
+(ur) Unreachable \u2014 the URL could not be contacted.""")
     }
 
     def "both project plugin and settings plugin add repositories"() {
@@ -802,19 +1114,45 @@ project ':' uses
             apply from: 'project-repo-plugin.gradle'
         '''
 
-        expect:
+        when:
         succeeds ':repositories'
-        outputContains('All Repositories')
-        // Settings-plugin-added repo: PROJECT_DEPENDENCIES, declared in settings DRM
-        outputContains('https://settings-plugin-drm.example.com/')
-        outputContains('Defined in: settings > dependencyResolutionManagement.repositories')
-        // Project-plugin-added repo: PROJECT_DEPENDENCIES, declared in project ':app'
-        outputContains('https://project-plugin-repo.example.com/')
-        outputContains("Defined in: project ':app' > repositories")
-        // Both repos carry the PROJECT_DEPENDENCIES role
-        outputContains('Roles:      PROJECT_DEPENDENCIES')
-        // :app should reference both repos in its "uses" block
-        outputContains("project ':app' uses")
+
+        then:
+        result.groupedOutput.task(":repositories").assertOutputContains("""--------------------------------------------------------
+All Repositories
+--------------------------------------------------------
+
+maven (1)
+    Location:   https://settings-plugin-drm.example.com/ (ur)
+    Type:       MAVEN
+    Roles:      PROJECT_DEPENDENCIES
+    Defined in: settings > dependencyResolutionManagement.repositories
+
+maven (2)
+    Location:   https://project-plugin-repo.example.com/ (ur)
+    Type:       MAVEN
+    Roles:      PROJECT_DEPENDENCIES
+    Defined in: project ':app' > repositories
+
+--------------------------------------------------------
+Repositories by Location
+--------------------------------------------------------
+
+settings uses
+    - maven (1)
+
+project ':' uses
+    - maven (1)
+
+project ':app' uses
+    - maven (1)
+    - maven (2)
+
+--------------------------------------------------------
+Legend
+--------------------------------------------------------
+
+(ur) Unreachable \u2014 the URL could not be contacted.""")
     }
 
     def "settings plugin adds repositories directly to each project"() {
@@ -836,20 +1174,55 @@ project ':' uses
         """
         createDirs("app", "lib")
 
-        expect:
+        when:
         succeeds ':repositories'
-        outputContains('All Repositories')
-        outputContains('https://settings-plugin-per-project.example.com/')
-        outputContains('Roles:      PROJECT_DEPENDENCIES')
-        // Repo is attributed to each project, not to settings.
-        outputContains("Defined in: project ':' > repositories")
-        outputContains("Defined in: project ':app' > repositories")
-        outputContains("Defined in: project ':lib' > repositories")
+
+        then:
+        result.groupedOutput.task(":repositories").assertOutputContains("""--------------------------------------------------------
+All Repositories
+--------------------------------------------------------
+
+maven (1) *
+    Location:   https://settings-plugin-per-project.example.com/ (ur)
+    Type:       MAVEN
+    Roles:      PROJECT_DEPENDENCIES
+    Defined in: project ':' > repositories
+
+maven (2) *
+    Location:   https://settings-plugin-per-project.example.com/ (ur)
+    Type:       MAVEN
+    Roles:      PROJECT_DEPENDENCIES
+    Defined in: project ':app' > repositories
+
+maven (3) *
+    Location:   https://settings-plugin-per-project.example.com/ (ur)
+    Type:       MAVEN
+    Roles:      PROJECT_DEPENDENCIES
+    Defined in: project ':lib' > repositories
+
+--------------------------------------------------------
+Repositories by Location
+--------------------------------------------------------
+
+project ':' uses
+    - maven (1)
+
+project ':app' uses
+    - maven (2)
+
+project ':lib' uses
+    - maven (3)
+
+--------------------------------------------------------
+Legend
+--------------------------------------------------------
+
+(*) Identical repository declaration found in multiple locations.
+    Consider consolidating to settings.dependencyResolutionManagement.repositories
+    or settings.pluginManagement.repositories.
+    See https://docs.gradle.org/current/userguide/centralizing_repositories.html
+(ur) Unreachable \u2014 the URL could not be contacted.""")
         outputDoesNotContain("Defined in: settings >")
-        // Each project's "uses" list should reference the repo.
-        outputContains("project ':' uses")
-        outputContains("project ':app' uses")
-        outputContains("project ':lib' uses")
     }
 
     def "reports (ur) marker for unreachable URL"() {
@@ -865,11 +1238,33 @@ project ':' uses
             }
         """
 
-        expect:
+        when:
         succeeds ':repositories'
-        outputContains('(ur)')
-        outputContains('Legend')
-        outputContains('(ur) Unreachable')
+
+        then:
+        result.groupedOutput.task(":repositories").assertOutputContains("""--------------------------------------------------------
+All Repositories
+--------------------------------------------------------
+
+maven (1)
+    Location:   http://127.0.0.1:1/ (ur)
+    Type:       MAVEN
+    Roles:      PROJECT_DEPENDENCIES
+    Secure:     false
+    Defined in: project ':' > repositories
+
+--------------------------------------------------------
+Repositories by Location
+--------------------------------------------------------
+
+project ':' uses
+    - maven (1)
+
+--------------------------------------------------------
+Legend
+--------------------------------------------------------
+
+(ur) Unreachable \u2014 the URL could not be contacted.""")
     }
 
     def "reports (ua) marker for URL requiring authentication"() {
@@ -891,11 +1286,33 @@ project ':' uses
             }
         """
 
-        expect:
+        when:
         succeeds ':repositories'
-        outputContains('(ua)')
-        outputContains('Legend')
-        outputContains('(ua) Unauthorized')
+
+        then:
+        result.groupedOutput.task(":repositories").assertOutputContains("""--------------------------------------------------------
+All Repositories
+--------------------------------------------------------
+
+maven (1)
+    Location:   ${server.uri}/ (ua)
+    Type:       MAVEN
+    Roles:      PROJECT_DEPENDENCIES
+    Secure:     false
+    Defined in: project ':' > repositories
+
+--------------------------------------------------------
+Repositories by Location
+--------------------------------------------------------
+
+project ':' uses
+    - maven (1)
+
+--------------------------------------------------------
+Legend
+--------------------------------------------------------
+
+(ua) Unauthorized \u2014 the URL returned 401/403; credentials were not sent.""")
         outputDoesNotContain('(ur)')
     }
 
@@ -959,9 +1376,27 @@ Legend
             }
         """
 
-        expect:
+        when:
         succeeds ':repositories'
-        outputContains('All Repositories')
+
+        then:
+        result.groupedOutput.task(":repositories").assertOutputContains("""--------------------------------------------------------
+All Repositories
+--------------------------------------------------------
+
+maven (1)
+    Location:   ${server.uri}/
+    Type:       MAVEN
+    Roles:      PROJECT_DEPENDENCIES
+    Secure:     false
+    Defined in: project ':' > repositories
+
+--------------------------------------------------------
+Repositories by Location
+--------------------------------------------------------
+
+project ':' uses
+    - maven (1)""")
         outputDoesNotContain('(ur)')
         outputDoesNotContain('(ua)')
         outputDoesNotContain('(o)')
@@ -991,9 +1426,27 @@ Legend
             }
         """
 
-        expect:
+        when:
         succeeds ':repositories'
-        outputContains('All Repositories')
+
+        then:
+        result.groupedOutput.task(":repositories").assertOutputContains("""--------------------------------------------------------
+All Repositories
+--------------------------------------------------------
+
+maven (1)
+    Location:   ${server.uri}/
+    Type:       MAVEN
+    Roles:      PROJECT_DEPENDENCIES
+    Secure:     false
+    Defined in: project ':' > repositories
+
+--------------------------------------------------------
+Repositories by Location
+--------------------------------------------------------
+
+project ':' uses
+    - maven (1)""")
         outputDoesNotContain('(ur)')
         outputDoesNotContain('(ua)')
         outputDoesNotContain('(m)')
@@ -1013,9 +1466,27 @@ Legend
             }
         """
 
-        expect:
+        when:
         succeeds ':repositories'
-        outputContains('notForConfigurations')
+
+        then:
+        result.groupedOutput.task(":repositories").assertOutputContains("""--------------------------------------------------------
+All Repositories
+--------------------------------------------------------
+
+maven (1)
+    Location:   https://example.com/
+    Type:       MAVEN
+    Roles:      PROJECT_DEPENDENCIES
+    Content:    notForConfigurations([skipMe])
+    Defined in: project ':' > repositories
+
+--------------------------------------------------------
+Repositories by Location
+--------------------------------------------------------
+
+project ':' uses
+    - maven (1)""")
     }
 
     def "renders onlyForAttribute content filter branch"() {
@@ -1033,9 +1504,27 @@ Legend
             }
         """
 
-        expect:
+        when:
         succeeds ':repositories'
-        outputContains('onlyForAttribute')
+
+        then:
+        result.groupedOutput.task(":repositories").assertOutputContains("""--------------------------------------------------------
+All Repositories
+--------------------------------------------------------
+
+maven (1)
+    Location:   https://example.com/
+    Type:       MAVEN
+    Roles:      PROJECT_DEPENDENCIES
+    Content:    onlyForAttribute(example-attr, [one, two])
+    Defined in: project ':' > repositories
+
+--------------------------------------------------------
+Repositories by Location
+--------------------------------------------------------
+
+project ':' uses
+    - maven (1)""")
     }
 
     def "repos declared via allprojects and subprojects are shown under each project"() {
@@ -1061,19 +1550,67 @@ Legend
             }
         '''
 
-        expect:
+        when:
         succeeds ':repositories'
-        outputContains("All Repositories")
-        outputContains("Repositories by Location")
-        outputContains("project ':' uses")
-        outputContains("project ':app' uses")
-        outputContains("project ':lib' uses")
-        // mavenCentral applied by allprojects — visible to root and both subprojects
-        outputContains("https://repo.maven.apache.org/maven2/")
-        // sub.example.com applied only to subprojects
-        outputContains("https://sub.example.com/")
-        // Root has mavenCentral only; each subproject has both — so there should be
-        // at least 3 "- MavenRepo" reference lines across the per-project blocks.
-        result.output.count('- MavenRepo') >= 3
+
+        then:
+        result.groupedOutput.task(":repositories").assertOutputContains("""--------------------------------------------------------
+All Repositories
+--------------------------------------------------------
+
+MavenRepo (1) *
+    Location:   https://repo.maven.apache.org/maven2/
+    Type:       MAVEN
+    Roles:      PROJECT_DEPENDENCIES
+    Defined in: project ':' > repositories
+
+MavenRepo (2) *
+    Location:   https://repo.maven.apache.org/maven2/
+    Type:       MAVEN
+    Roles:      PROJECT_DEPENDENCIES
+    Defined in: project ':app' > repositories
+
+maven (3) *
+    Location:   https://sub.example.com/ (ur)
+    Type:       MAVEN
+    Roles:      PROJECT_DEPENDENCIES
+    Defined in: project ':app' > repositories
+
+MavenRepo (4) *
+    Location:   https://repo.maven.apache.org/maven2/
+    Type:       MAVEN
+    Roles:      PROJECT_DEPENDENCIES
+    Defined in: project ':lib' > repositories
+
+maven (5) *
+    Location:   https://sub.example.com/ (ur)
+    Type:       MAVEN
+    Roles:      PROJECT_DEPENDENCIES
+    Defined in: project ':lib' > repositories
+
+--------------------------------------------------------
+Repositories by Location
+--------------------------------------------------------
+
+project ':' uses
+    - MavenRepo (1)
+
+project ':app' uses
+    - MavenRepo (2)
+    - maven (3)
+
+project ':lib' uses
+    - MavenRepo (4)
+    - maven (5)
+
+--------------------------------------------------------
+Legend
+--------------------------------------------------------
+
+(*) Identical repository declaration found in multiple locations.
+    Consider consolidating to settings.dependencyResolutionManagement.repositories
+    or settings.pluginManagement.repositories.
+    See https://docs.gradle.org/current/userguide/centralizing_repositories.html
+(ur) Unreachable \u2014 the URL could not be contacted.""")
     }
 }
