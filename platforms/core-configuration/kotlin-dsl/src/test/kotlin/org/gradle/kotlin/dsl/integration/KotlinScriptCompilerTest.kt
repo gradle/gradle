@@ -21,8 +21,8 @@ import org.gradle.kotlin.dsl.fixtures.TestWithTempFiles
 import org.gradle.kotlin.dsl.fixtures.testRuntimeClassPath
 import org.gradle.kotlin.dsl.fixtures.withClassLoaderFor
 import org.gradle.kotlin.dsl.integration.KotlinScriptCompilerTest.TheImplicitReceiver
+import org.gradle.kotlin.dsl.support.KotlinCompiler
 import org.gradle.kotlin.dsl.support.KotlinCompilerOptions
-import org.gradle.kotlin.dsl.support.compileKotlinScriptToDirectory
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
 import org.jetbrains.kotlin.buildtools.api.arguments.ExperimentalCompilerArgument
@@ -50,6 +50,8 @@ open class TheKotlinScriptTemplate(
 
 
 class KotlinScriptCompilerTest : TestWithTempFiles() {
+
+    private val compiler = KotlinCompiler(TestModuleRegistry())
 
     @Test
     fun canInjectImplicitReceiver() {
@@ -96,7 +98,7 @@ class KotlinScriptCompilerTest : TestWithTempFiles() {
         script: String,
         template: KClass<out Any>,
     ) {
-        compileKotlinScriptToDirectory(
+        compiler.compileKotlinScriptToDirectory(
             outputDir,
             KotlinCompilerOptions(),
             file("script.kts").apply {
@@ -105,7 +107,6 @@ class KotlinScriptCompilerTest : TestWithTempFiles() {
             listOf(),
             template,
             testRuntimeClassPath.asFiles,
-            TestModuleRegistry(),
             mock(),
             mock()
         )
