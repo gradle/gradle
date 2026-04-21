@@ -72,7 +72,7 @@ enum class Os(
     fun javaInstallationLocations(arch: Arch = Arch.AMD64): List<String> {
         val paths =
             when {
-                this == LINUX ->
+                this == LINUX -> {
                     listOf(
                         DefaultJvm(JvmVersion.JAVA_8, JvmVendor.ORACLE),
                         DefaultJvm(JvmVersion.JAVA_11, JvmVendor.OPENJDK),
@@ -81,8 +81,9 @@ enum class Os(
                         DefaultJvm(JvmVersion.JAVA_25, JvmVendor.OPENJDK),
                         DefaultJvm(JvmVersion.JAVA_26, JvmVendor.OPENJDK),
                     )
+                }
 
-                arch == Arch.AARCH64 && this == MACOS ->
+                arch == Arch.AARCH64 && this == MACOS -> {
                     listOf(
                         DefaultJvm(JvmVersion.JAVA_8, JvmVendor.ZULU),
                         DefaultJvm(JvmVersion.JAVA_11, JvmVendor.OPENJDK),
@@ -91,8 +92,9 @@ enum class Os(
                         DefaultJvm(JvmVersion.JAVA_25, JvmVendor.OPENJDK),
                         DefaultJvm(JvmVersion.JAVA_26, JvmVendor.OPENJDK),
                     )
+                }
 
-                else ->
+                else -> {
                     listOf(
                         DefaultJvm(JvmVersion.JAVA_8, JvmVendor.OPENJDK),
                         DefaultJvm(JvmVersion.JAVA_11, JvmVendor.OPENJDK),
@@ -101,6 +103,7 @@ enum class Os(
                         DefaultJvm(JvmVersion.JAVA_25, JvmVendor.OPENJDK),
                         DefaultJvm(JvmVersion.JAVA_26, JvmVendor.OPENJDK),
                     )
+                }
             }.joinToString(",") { javaHome(it, this, arch) }
         return listOf(
             """"-Dorg.gradle.java.installations.paths=$paths"""",

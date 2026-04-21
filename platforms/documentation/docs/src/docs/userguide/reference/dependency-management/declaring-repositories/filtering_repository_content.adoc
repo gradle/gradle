@@ -28,8 +28,8 @@ It's even more important when considering that the declared order of repositorie
 == Declaring a repository filter
 
 ====
-include::sample[dir="snippets//dependencyManagement/declaringRepositories-filtering/kotlin",files="build.gradle.kts[tags=repository-filter]"]
-include::sample[dir="snippets/dependencyManagement/declaringRepositories-filtering/groovy",files="build.gradle[tags=repository-filter]"]
+include::sample[dir="snippets/reference/dependency-management/declaring-repositories/declaringRepositories-filtering/kotlin",files="build.gradle.kts[tags=repository-filter]"]
+include::sample[dir="snippets/reference/dependency-management/declaring-repositories/declaringRepositories-filtering/groovy",files="build.gradle[tags=repository-filter]"]
 ====
 
 By default, repositories include everything and exclude nothing:
@@ -58,8 +58,8 @@ If you do so:
 NOTE: Using exclusive repository content filters is a <<best_practices_dependencies.adoc#use_content_filtering,Gradle Best Practice>>.
 
 ====
-include::sample[dir="snippets/dependencyManagement/declaringRepositories-filtering/kotlin",files="build.gradle.kts[tags=exclusive-repository-filter]"]
-include::sample[dir="snippets/dependencyManagement/declaringRepositories-filtering/groovy",files="build.gradle[tags=exclusive-repository-filter]"]
+include::sample[dir="snippets/reference/dependency-management/declaring-repositories/declaringRepositories-filtering/kotlin",files="build.gradle.kts[tags=exclusive-repository-filter]"]
+include::sample[dir="snippets/reference/dependency-management/declaring-repositories/declaringRepositories-filtering/groovy",files="build.gradle[tags=exclusive-repository-filter]"]
 ====
 
 It is possible to filter either by explicit _group_, _module_ or _version_, either strictly or using regular expressions.
@@ -81,8 +81,8 @@ For <<supported_repository_types.adoc#sec:maven-repo,Maven repositories>>, it's 
 Gradle lets you declare what kind of artifacts are found in a repository using this DSL:
 
 ====
-include::sample[dir="snippets/dependencyManagement/declaringRepositories-filtering/kotlin",files="build.gradle.kts[tags=repository-snapshots]"]
-include::sample[dir="snippets/dependencyManagement/declaringRepositories-filtering/groovy",files="build.gradle[tags=repository-snapshots]"]
+include::sample[dir="snippets/reference/dependency-management/declaring-repositories/declaringRepositories-filtering/kotlin",files="build.gradle.kts[tags=repository-snapshots]"]
+include::sample[dir="snippets/reference/dependency-management/declaring-repositories/declaringRepositories-filtering/groovy",files="build.gradle[tags=repository-snapshots]"]
 ====
 
 [[sec:ivy_dynamic_resolve_mode]]
@@ -99,8 +99,8 @@ This provides more flexibility in dependency resolution, particularly when worki
 You need to explicitly enable dynamic resolve mode when declaring an Ivy repository:
 
 ====
-include::sample[dir="snippets/dependencyManagement/customizingResolution-ivyDynamicMode/kotlin",files="build.gradle.kts[tags=ivy-repo-dynamic-mode]"]
-include::sample[dir="snippets/dependencyManagement/customizingResolution-ivyDynamicMode/groovy",files="build.gradle[tags=ivy-repo-dynamic-mode]"]
+include::sample[dir="snippets/reference/dependency-management/declaring-repositories/customizingResolution-ivyDynamicMode/kotlin",files="build.gradle.kts[tags=ivy-repo-dynamic-mode]"]
+include::sample[dir="snippets/reference/dependency-management/declaring-repositories/customizingResolution-ivyDynamicMode/groovy",files="build.gradle[tags=ivy-repo-dynamic-mode]"]
 ====
 
 NOTE: Dynamic resolve mode is only available for Gradle's Ivy repositories. It is not available for Maven repositories, or custom Ivy `DependencyResolver` implementations.

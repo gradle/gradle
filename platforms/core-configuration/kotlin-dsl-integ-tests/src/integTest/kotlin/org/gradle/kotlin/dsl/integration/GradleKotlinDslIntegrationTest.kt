@@ -33,8 +33,9 @@ import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
+import org.gradle.test.preconditions.JdkVersionTestPreconditions
+
 import org.gradle.util.internal.VersionNumber
 import org.hamcrest.CoreMatchers.allOf
 import org.hamcrest.CoreMatchers.containsString
@@ -208,7 +209,7 @@ class GradleKotlinDslIntegrationTest : AbstractKotlinIntegrationTest() {
 
     @Test
     @Requires(
-        IntegTestPreconditions.NotEmbeddedExecutor::class,
+        TestExecutionPreconditions.NotEmbeddedExecutor::class,
         reason = "Class path isolation, tested here, is not correct in embedded mode"
     )
     fun `can compile against a different (but compatible) version of the Kotlin compiler`() {
@@ -469,7 +470,7 @@ class GradleKotlinDslIntegrationTest : AbstractKotlinIntegrationTest() {
     }
 
     @Test
-    @Requires(UnitTestPreconditions.Jdk8OrEarlier::class)
+    @Requires(JdkVersionTestPreconditions.Jdk8OrEarlier::class)
     fun `build script can use jdk8 extensions`() {
 
         withBuildScript(
@@ -700,7 +701,7 @@ class GradleKotlinDslIntegrationTest : AbstractKotlinIntegrationTest() {
             "gradle/answer.gradle.kts",
             """
 
-            val answer by extra { "42" }
+            extra["answer"] = "42"
 
             """
         )
@@ -715,7 +716,7 @@ class GradleKotlinDslIntegrationTest : AbstractKotlinIntegrationTest() {
             withBuildScript(
                 """
                 apply(from = "$remoteScriptUrl")
-                val answer: String by extra
+                val answer = extra["answer"] as String
                 println("*" + answer + "*")
                 """
             )
@@ -752,7 +753,7 @@ class GradleKotlinDslIntegrationTest : AbstractKotlinIntegrationTest() {
             "gradle/answer.gradle.kts",
             """
 
-            val answer by extra { "42" }
+            extra["answer"] = "42"
 
             """
         )
@@ -765,7 +766,7 @@ class GradleKotlinDslIntegrationTest : AbstractKotlinIntegrationTest() {
 
             apply(from = project.buildscript.classLoader.getResource("common.gradle.kts").toURI())
 
-            val answer: String by extra
+            val answer = extra["answer"] as String
             println("*" + answer + "*")
             """
         )

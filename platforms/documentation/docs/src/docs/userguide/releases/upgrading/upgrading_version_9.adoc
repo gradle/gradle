@@ -93,6 +93,278 @@ Problem severity can no longer be set explicitly when creating a new instance.
 Instead, it is determined by the reporting method: `ProblemReporter.report()` produces warnings and `ProblemReporter.throwing()` produces errors.
 Calling `.severity()` on `ProblemSpec` is now a no-op and will be removed in Gradle 10.0.
 
+[[deprecated_get_properties]]
+==== Deprecation of `getProperties()`
+
+The following usages of `getProperties()` have been deprecated and will be removed in Gradle 10.0.0:
+
+- link:{javadocPath}/org/gradle/api/Project.html#getProperties()[`Project.getProperties()`] — calling `getProperties()` or accessing the `properties` property on a `Project` instance.
+- Calling `getProperties()` (or accessing the `properties` property) on a build script, settings script, or init script. This is a separate API on the script base class, but has the same problems.
+
+This method, which historically existed for convenience, makes build logic harder to understand and navigate due to the untyped nature of the properties and the fact that they are sourced from many different locations and containers.
+Using this method also hurts performance of builds by eagerly resolving properties from the environment, reducing the potential for more frequent Configuration Cache hits.
+The hierarchical look-up of properties through the parent projects chain creates implicit coupling of the mutable state between projects.
+This impedes the potential of scalability in the future model, where projects are <<sharing_build_logic_between_subprojects.adoc#sec:convention_plugins_vs_cross_configuration,isolated from each other>>.
+
+To access <<build_environment.adoc#sec:project_properties,project properties>>, prefer `providers.gradleProperty("name")` which returns a type-safe `Provider` and is compatible with lazy configuration.
+Note that `providers.gradleProperty()` resolves properties at the build level — it does not include properties from `gradle.properties` files in subproject directories, nor extra properties or other properties set dynamically on individual projects.
+If you need to access <<writing_build_scripts_intermediate.adoc#sec:extra_properties,extra properties>>, use `ext` properties directly.
+
+The following table shows common migration scenarios for project properties:
+
+[cols="1a,1a", options="header"]
+|===
+| Before (deprecated) | After (recommended)
+
+| Accessing a single project property:
+[source,kotlin]
+----
+val value = project.properties["myProp"]
+----
+[source,groovy]
+----
+def value = project.properties.myProp
+----
+| Wire the provider as a task property for better Configuration Cache support:
+[source,kotlin]
+----
+val myProp: Provider<String> =
+    providers.gradleProperty("myProp")
+----
+If you need the value immediately:
+[source,groovy]
+----
+def value = providers.gradleProperty("myProp")
+    .orNull
+----
+
+| Accessing a property with a default value (Kotlin, Java, or Groovy):
+[source,kotlin]
+----
+val value = project.properties
+    .getOrDefault("myProp", "default")
+----
+Accessing a property with a default value (Groovy, idiomatic):
+[source,groovy]
+----
+def value = project.properties["myProp"] ?: "default"
+----
+| Use `providers.gradleProperty()` with `getOrElse()`:
+[source,kotlin]
+----
+val value = providers
+    .gradleProperty("myProp")
+    .getOrElse("default")
+----
+[source,groovy]
+----
+def value = providers.gradleProperty("myProp")
+    .getOrElse("default")
+----
+
+| Kotlin property delegation:
+[source,kotlin]
+----
+val myProp: String by project.properties
+----
+| Get the project property directly:
+[source,kotlin]
+----
+val myProp = project.property("myProp") as String
+----
+
+| Forwarding properties as system properties:
+[source,kotlin]
+----
+test {
+    systemProperties(
+        project.properties.filter {
+            it.key.startsWith("test.")
+        }
+    )
+}
+----
+| Use `providers.gradlePropertiesPrefixedBy()`:
+[source,kotlin]
+----
+test {
+    systemProperties(
+        providers
+            .gradlePropertiesPrefixedBy("test.")
+            .get()
+    )
+}
+----
+
+| Token replacement in resource files (common in Minecraft mods, Spring Boot, etc.):
+[source,groovy]
+----
+processResources {
+    filesMatching("plugin.yml") {
+        expand project.properties
+    }
+}
+----
+| Build an explicit map of only the properties you need:
+[source,groovy]
+----
+processResources {
+    filesMatching("plugin.yml") {
+        expand(
+            "version": project.version,
+            "name": project.name
+        )
+    }
+}
+|===
+
+[[kotlin_dsl_delegated_properties]]
+==== Deprecation of Kotlin DSL delegated properties
+
+All Kotlin DSL property delegate extensions have been deprecated and will
+be removed in Gradle 10. This includes container delegates (`by
+registering`, `by creating`, `by existing`, `by getting`), property
+delegates (`by project`, `by settings`, `by extra`), and value delegates
+(`Property<T>` and `ConfigurableFileCollection` getValue/setValue
+operators).
+
+Use the explicit API instead.
+
+The container delegates (`registering`, `creating`, `existing`, `getting`)
+are defined on `NamedDomainObjectContainer` and
+`NamedDomainObjectCollection`. They apply to any container, not just
+`tasks` or `configurations`.
+
+The examples below use a generic
+`container` placeholder; replace it with `tasks`, `configurations`,
+`sourceSets`, or whichever container you use.
+
+**Container delegates:**
+
+[cols="1,1"]
+|===
+|Deprecated delegate |Replacement
+
+|`val x by container.registering`
+|`val x = container.register("x")`
+
+|`val x by container.registering { }`
+|`val x = container.register("x") { }`
+
+|`val x by container.registering(Type::class)`
+|`val x = container.register<Type>("x")`
+
+|`val x by container.registering(Type::class) { }`
+|`val x = container.register<Type>("x") { }`
+
+|`val x by container.creating`
+|`val x = container.create("x")`
+
+|`val x by container.creating { }`
+|`val x = container.create("x") { }`
+
+|`val x by container.creating(Type::class)`
+|`val x = container.create<Type>("x")`
+
+|`val x by container.creating(Type::class) { }`
+|`val x = container.create<Type>("x") { }`
+
+|`val x by container.existing`
+|`val x = container.named("x")`
+
+|`val x by container.existing { }`
+|`val x = container.named("x") { }`
+
+|`val x by container.existing(Type::class)`
+|`val x = container.named<Type>("x")`
+
+|`val x by container.existing(Type::class) { }`
+|`val x = container.named<Type>("x") { }`
+
+|`val x by container.getting`
+|`val x = container.getByName("x")`
+
+|`val x by container.getting { }`
+|`val x = container.getByName("x") { }`
+
+|`val x by container.getting(Type::class)`
+|`val x = container.getByName<Type>("x")`
+
+|`val x by container.getting(Type::class) { }`
+|`val x = container.getByName<Type>("x") { }`
+
+|`val x: Type by container` (lookup)
+|`val x = container.getByName("x")`
+
+|`val x: Type by provider` (`NamedDomainObjectProvider<T>` unwrap)
+|`val x = provider.get()`
+|===
+
+**Property, extra, and value delegates:**
+
+[cols="1,1"]
+|===
+|Deprecated delegate |Replacement
+
+|`val p: String by project`
+|`val p = project.property("p")`
+
+|`val p: String? by project`
+|`val p = project.findProperty("p")`
+
+|`val p: String by settings` (Gradle property)
+|`val p = providers.gradleProperty("p").get()`
+
+|`val p: String? by settings` (Gradle property, nullable)
+|`val p = providers.gradleProperty("p").orNull`
+
+|`val p: String by settings` (extra property)
+|`val p = extra["p"] as String`
+
+|`val p: String? by settings` (extra property, nullable)
+|`val p = extra["p"] as String?`
+
+|`val v by extra("value")` or `val v by extra { value }`
+|`extra.set("v", value)`
+
+|`val v: String by extra`
+|`val v = extra["v"] as String`
+
+|`val v: String? by extra`
+|`val v = extra["v"] as String?`
+
+|`val x: String by myProperty` (`Property<T>` read)
+|`val x = myProperty.get()`
+
+|`x = "new"` via `var x: String by myProperty` (`Property<T>` write)
+|`myProperty.set("new")`
+
+|`val files by myFileCollection` (`ConfigurableFileCollection` read)
+|`val files = myFileCollection.getFiles()`
+
+|`files = ...` via `var files by myFileCollection` (`ConfigurableFileCollection` write)
+|`myFileCollection.setFrom(...)`
+
+|`val ext: Type by extensions`
+|`val ext = extensions.getByType<Type>()`
+|===
+
+Delegated properties are being removed because they create silent
+correctness bugs (e.g. no-op delegates, wrong extra property scope),
+couple entity names to variable names, diverge between build scripts and
+class-based plugins, and duplicate functionality already provided by
+explicit APIs or other DSL sugar.
+
+=== Potential breaking changes
+
+[[agp_8x_incompatible]]
+==== Android Gradle Plugin 8.x is no longer compatible with Gradle 9.6
+
+Several internal classes used by Android Gradle Plugin (AGP) 8.x have been changed.
+Since AGP 8.x relied on these internal classes directly, it is no longer compatible with Gradle 9.6 and later.
+
+To resolve this, upgrade to AGP 9.x, which only uses the public Gradle API and fully supports Gradle 9.6.
+
 [[changes_9.5.0]]
 == Upgrading from 9.4.0 and earlier
 
@@ -185,6 +457,7 @@ This is a result of the link:https://github.com/gradle/gradle/pull/36510[Windows
 
 If you are using a custom start script template that references the exit environment variable, update your template to remove this dependency.
 There is no replacement API, the exit environment variable concept has been removed entirely.
+
 
 [[changes_9.4.0]]
 == Upgrading from 9.3.1 and earlier

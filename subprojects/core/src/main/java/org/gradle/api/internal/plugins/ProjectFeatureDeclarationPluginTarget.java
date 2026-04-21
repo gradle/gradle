@@ -23,7 +23,7 @@ import org.gradle.api.Project;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.internal.tasks.properties.InspectionScheme;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
-import org.gradle.api.problems.internal.InternalProblems;
+import org.gradle.api.problems.internal.ProblemsInternal;
 import org.gradle.configuration.ConfigurationTargetIdentifier;
 import org.gradle.features.annotations.BindsProjectFeature;
 import org.gradle.features.annotations.BindsProjectType;
@@ -50,9 +50,9 @@ public class ProjectFeatureDeclarationPluginTarget implements PluginTarget {
     private final PluginTarget delegate;
     private final ProjectFeatureDeclarations projectFeatureDeclarations;
     private final InspectionScheme inspectionScheme;
-    private final InternalProblems problems;
+    private final ProblemsInternal problems;
 
-    public ProjectFeatureDeclarationPluginTarget(PluginTarget delegate, ProjectFeatureDeclarations projectFeatureDeclarations, InspectionScheme inspectionScheme, InternalProblems problems) {
+    public ProjectFeatureDeclarationPluginTarget(PluginTarget delegate, ProjectFeatureDeclarations projectFeatureDeclarations, InspectionScheme inspectionScheme, ProblemsInternal problems) {
         this.delegate = delegate;
         this.projectFeatureDeclarations = projectFeatureDeclarations;
         this.inspectionScheme = inspectionScheme;

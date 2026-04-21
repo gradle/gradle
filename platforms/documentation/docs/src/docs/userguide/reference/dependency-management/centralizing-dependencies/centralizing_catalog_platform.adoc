@@ -62,21 +62,21 @@ To ensure consistent version alignment, a good approach is to use a version cata
 Version Catalog:
 
 ====
-include::sample[dir="snippets/dependencyManagement/catalogs-platforms/common",files="gradle/libs.versions.toml[]"]
+include::sample[dir="snippets/reference/dependency-management/centralizing-dependencies/catalogs-platforms/common",files="gradle/libs.versions.toml[]"]
 ====
 
 Platform:
 
 ====
-include::sample[dir="snippets/dependencyManagement/catalogs-platforms/kotlin",files="platform/build.gradle.kts[]"]
-include::sample[dir="snippets/dependencyManagement/catalogs-platforms/groovy",files="platform/build.gradle[]"]
+include::sample[dir="snippets/reference/dependency-management/centralizing-dependencies/catalogs-platforms/kotlin",files="platform/build.gradle.kts[]"]
+include::sample[dir="snippets/reference/dependency-management/centralizing-dependencies/catalogs-platforms/groovy",files="platform/build.gradle[]"]
 ====
 
 Consumer:
 
 ====
-include::sample[dir="snippets/dependencyManagement/catalogs-platforms/kotlin",files="consumer/build.gradle.kts[tags=usage]"]
-include::sample[dir="snippets/dependencyManagement/catalogs-platforms/groovy",files="consumer/build.gradle[tags=usage]"]
+include::sample[dir="snippets/reference/dependency-management/centralizing-dependencies/catalogs-platforms/kotlin",files="consumer/build.gradle.kts[tags=usage]"]
+include::sample[dir="snippets/reference/dependency-management/centralizing-dependencies/catalogs-platforms/groovy",files="consumer/build.gradle[tags=usage]"]
 ====
 
 Best Practices for using both a catalog and a platform:

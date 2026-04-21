@@ -24,20 +24,25 @@ import org.gradle.internal.configuration.problems.ProblemsListener
 import org.gradle.internal.configuration.problems.PropertyKind
 import org.gradle.internal.configuration.problems.PropertyTrace
 import org.gradle.internal.metaobject.DynamicInvokeResult
-import org.gradle.internal.metaobject.DynamicObject
+import org.gradle.internal.metaobject.HierarchicalDynamicObject
 import java.util.Locale
 
 
 internal
 class CrossProjectModelAccessTrackingParentDynamicObject(
     private val ownerProject: ProjectInternal,
-    private val delegate: DynamicObject,
+    private val delegate: HierarchicalDynamicObject,
     private val referrerProject: ProjectInternal,
     private val problems: ProblemsListener,
     private val coupledProjectsListener: CoupledProjectsListener,
     private val problemFactory: ProblemFactory,
     private val dynamicCallProblemReporting: DynamicCallProblemReporting
-) : DynamicObject {
+) : HierarchicalDynamicObject {
+
+    override fun getParent(): HierarchicalDynamicObject? {
+        return delegate.getParent()
+    }
+
     override fun hasMethod(name: String, vararg arguments: Any?): Boolean {
         onAccess(MemberKind.METHOD, name)
         return delegate.hasMethod(name, *arguments)
@@ -101,6 +106,10 @@ class CrossProjectModelAccessTrackingParentDynamicObject(
     override fun invokeMethod(name: String, vararg arguments: Any?): Any? {
         onAccess(MemberKind.METHOD, name)
         return delegate.invokeMethod(name, *arguments)
+    }
+
+    override fun getDisplayName(): String {
+        return delegate.displayName
     }
 
     private

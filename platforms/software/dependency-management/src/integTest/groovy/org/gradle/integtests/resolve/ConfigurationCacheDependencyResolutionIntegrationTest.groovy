@@ -21,11 +21,11 @@ import org.gradle.integtests.resolve.transform.ArtifactTransformTestFixture
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import org.junit.Rule
 import spock.lang.Issue
 
-@Requires(value = IntegTestPreconditions.NotConfigCached, reason = "handles CC explicitly")
+@Requires(value = TestExecutionPreconditions.NotConfigCached, reason = "handles CC explicitly")
 class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractIntegrationSpec implements ArtifactTransformTestFixture {
     @Rule
     HttpServer httpServer = new HttpServer()
@@ -1272,12 +1272,12 @@ dependencies {
     }
 }
 
-val sourceFiles by configurations.creating {
+val sourceFiles = configurations.create("sourceFiles") {
     isCanBeConsumed = false
     isCanBeResolved = false
 }
 
-val summarizedFiles by configurations.creating {
+val summarizedFiles = configurations.create("summarizedFiles") {
     extendsFrom(sourceFiles)
     isCanBeConsumed = false
     isCanBeResolved = true

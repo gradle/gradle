@@ -21,16 +21,17 @@ import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.Flaky
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
+import org.gradle.test.preconditions.TestEnvironmentPreconditions
+
 import org.junit.Rule
 
-@Requires(UnitTestPreconditions.CanInstallExecutable)
+@Requires(TestEnvironmentPreconditions.CanInstallExecutable)
 class NativeIdeSamplesIntegrationTest extends AbstractVisualStudioIntegrationSpec {
     @Rule public final Sample visualStudio = sample(temporaryFolder, 'visual-studio')
 
     private static Sample sample(TestDirectoryProvider testDirectoryProvider, String name) {
-        return new Sample(testDirectoryProvider, "native-binaries/${name}/groovy", name)
+        return new Sample(testDirectoryProvider, "integration-tests/native-binaries/${name}/groovy", name)
     }
 
     @ToBeFixedForConfigurationCache(because = "https://github.com/gradle/gradle/issues/36854")
@@ -54,7 +55,7 @@ class NativeIdeSamplesIntegrationTest extends AbstractVisualStudioIntegrationSpe
         libProjectFile.projectXml.PropertyGroup.find({it.'@Label' == 'Custom'}).ProjectDetails[0].text() == "Project is named helloLib"
     }
 
-    @Requires(IntegTestPreconditions.HasMsBuild)
+    @Requires(TestExecutionPreconditions.HasMsBuild)
     @ToBeFixedForConfigurationCache(because = "https://github.com/gradle/gradle/issues/36854")
     @Flaky(because = "https://github.com/gradle/gradle-private/issues/4488")
     def "build generated visual studio solution"() {

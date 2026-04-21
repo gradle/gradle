@@ -112,8 +112,8 @@ It assumes that the directory contains a collection of text files and copies the
 
 [[taskDefinition]]
 ====
-include::sample[dir="snippets/tasks/incrementalTask/kotlin",files="build.gradle.kts[tags=incremental-task]"]
-include::sample[dir="snippets/tasks/incrementalTask/groovy",files="build.gradle[tags=incremental-task]"]
+include::sample[dir="snippets/reference/task-development/incrementalTask/kotlin",files="build.gradle.kts[tags=incremental-task]"]
+include::sample[dir="snippets/reference/task-development/incrementalTask/groovy",files="build.gradle[tags=incremental-task]"]
 ====
 
 NOTE: The type of the `inputDir` property, its annotations, and the `execute()` action use `getFileChanges()` to process the subset of files that have changed since the last build.
@@ -156,8 +156,8 @@ In this case, all inputs will be considered `ADDED`, as shown here:
 
 [[ex:incremental_task_definition]]
 ====
-include::sample[dir="snippets/tasks/incrementalTask/kotlin",files="build.gradle.kts[tags=reverse]"]
-include::sample[dir="snippets/tasks/incrementalTask/groovy",files="build.gradle[tags=reverse]"]
+include::sample[dir="snippets/reference/task-development/incrementalTask/kotlin",files="build.gradle.kts[tags=reverse]"]
+include::sample[dir="snippets/reference/task-development/incrementalTask/groovy",files="build.gradle[tags=reverse]"]
 ====
 
 The build layout:
@@ -178,7 +178,7 @@ $ ./gradlew -q incrementalReverse
 ----
 [source,text]
 ----
-include::{snippetsPath}/tasks/incrementalTask/tests/incrementalTaskFirstRun.out[]
+include::{snippetsPath}/reference/task-development/incrementalTask/tests/incrementalTaskFirstRun.out[]
 ----
 
 Naturally, when the task is executed again with no changes, then the entire task is `UP-TO-DATE`, and the task action is not executed:
@@ -189,7 +189,7 @@ $ ./gradlew incrementalReverse
 ----
 [source,text]
 ----
-include::{snippetsPath}/tasks/incrementalTask/tests/incrementalTaskNoChange.out[]
+include::{snippetsPath}/reference/task-development/incrementalTask/tests/incrementalTaskNoChange.out[]
 ----
 
 When an input file is modified in some way or a new input file is added, then re-executing the task results in those files being returned by link:{groovyDslPath}/org.gradle.work.InputChanges.html#org.gradle.work.InputChanges:getFileChanges(org.gradle.api.file.FileCollection)[`InputChanges.getFileChanges()`].
@@ -197,8 +197,8 @@ When an input file is modified in some way or a new input file is added, then re
 The following example modifies the content of one file and adds another before running the incremental task:
 
 ====
-include::sample[dir="snippets/tasks/incrementalTask/kotlin",files="build.gradle.kts[tags=updated-inputs]"]
-include::sample[dir="snippets/tasks/incrementalTask/groovy",files="build.gradle[tags=updated-inputs]"]
+include::sample[dir="snippets/reference/task-development/incrementalTask/kotlin",files="build.gradle.kts[tags=updated-inputs]"]
+include::sample[dir="snippets/reference/task-development/incrementalTask/groovy",files="build.gradle[tags=updated-inputs]"]
 ====
 
 [source,bash]
@@ -207,7 +207,7 @@ $ ./gradlew -q updateInputs incrementalReverse
 ----
 [source,text]
 ----
-include::{snippetsPath}/tasks/incrementalTask/tests/incrementalTaskUpdatedInputs.out[]
+include::{snippetsPath}/reference/task-development/incrementalTask/tests/incrementalTaskUpdatedInputs.out[]
 ----
 
 NOTE: The various mutation tasks (`updateInputs`, `removeInput`, etc) are only present to demonstrate the behavior of incremental tasks.
@@ -218,8 +218,8 @@ When an existing input file is removed, then re-executing the task results in th
 The following example removes one of the existing files before executing the incremental task:
 
 ====
-include::sample[dir="snippets/tasks/incrementalTask/kotlin",files="build.gradle.kts[tags=removed-input]"]
-include::sample[dir="snippets/tasks/incrementalTask/groovy",files="build.gradle[tags=removed-input]"]
+include::sample[dir="snippets/reference/task-development/incrementalTask/kotlin",files="build.gradle.kts[tags=removed-input]"]
+include::sample[dir="snippets/reference/task-development/incrementalTask/groovy",files="build.gradle[tags=removed-input]"]
 ====
 
 [source,bash]
@@ -228,7 +228,7 @@ $ ./gradlew -q removeInput incrementalReverse
 ----
 [source,text]
 ----
-include::{snippetsPath}/tasks/incrementalTask/tests/incrementalTaskRemovedInput.out[]
+include::{snippetsPath}/reference/task-development/incrementalTask/tests/incrementalTaskRemovedInput.out[]
 ----
 
 Gradle cannot determine which input files are out-of-date when an _output_ file is deleted (or modified).
@@ -238,8 +238,8 @@ The following example removes one of the output files from the build directory.
 However, all the input files are considered to be `ADDED`:
 
 ====
-include::sample[dir="snippets/tasks/incrementalTask/kotlin",files="build.gradle.kts[tags=removed-output]"]
-include::sample[dir="snippets/tasks/incrementalTask/groovy",files="build.gradle[tags=removed-output]"]
+include::sample[dir="snippets/reference/task-development/incrementalTask/kotlin",files="build.gradle.kts[tags=removed-output]"]
+include::sample[dir="snippets/reference/task-development/incrementalTask/groovy",files="build.gradle[tags=removed-output]"]
 ====
 
 [source,bash]
@@ -248,7 +248,7 @@ $ ./gradlew -q removeOutput incrementalReverse
 ----
 [source,text]
 ----
-include::{snippetsPath}/tasks/incrementalTask/tests/incrementalTaskRemovedOutput.out[]
+include::{snippetsPath}/reference/task-development/incrementalTask/tests/incrementalTaskRemovedOutput.out[]
 ----
 
 The last scenario we want to cover concerns what happens when a non-file-based input property is modified.
@@ -266,7 +266,7 @@ $ ./gradlew -q -PtaskInputProperty=changed incrementalReverse
 ----
 [source,text]
 ----
-include::{snippetsPath}/tasks/incrementalTask/tests/incrementalTaskChangedProperty.out[]
+include::{snippetsPath}/reference/task-development/incrementalTask/tests/incrementalTaskChangedProperty.out[]
 ----
 
 [[sec:declaring_and_using_command_line_options]]
@@ -319,8 +319,8 @@ A single dash does not qualify as valid syntax for a task option.
 Building upon the earlier example, the build script creates a task instance of type `UrlVerify` and provides a value from the command line through the exposed option:
 
 ====
-include::sample[dir="snippets/tasks/commandLineOption-stringOption/kotlin",files="build.gradle.kts[tags=task]"]
-include::sample[dir="snippets/tasks/commandLineOption-stringOption/groovy",files="build.gradle[tags=task]"]
+include::sample[dir="snippets/reference/task-development/commandLineOption-stringOption/kotlin",files="build.gradle.kts[tags=task]"]
+include::sample[dir="snippets/reference/task-development/commandLineOption-stringOption/groovy",files="build.gradle[tags=task]"]
 ====
 
 [source,bash]
@@ -458,8 +458,8 @@ Verification failures are used in exactly this manner by the <<test_report_aggre
 Verification failures are also useful for tasks that need to report a failure even after producing useful output consumable by other tasks.
 
 ====
-include::sample[dir="snippets/failures/verificationFailure/kotlin",files="build.gradle.kts[tags=verification-failure]"]
-include::sample[dir="snippets/failures/verificationFailure/groovy",files="build.gradle[tags=verification-failure]"]
+include::sample[dir="snippets/reference/task-development/verificationFailure/kotlin",files="build.gradle.kts[tags=verification-failure]"]
+include::sample[dir="snippets/reference/task-development/verificationFailure/groovy",files="build.gradle[tags=verification-failure]"]
 ====
 
 [source,bash]
@@ -468,7 +468,7 @@ $ ./gradlew postProcess --continue
 ----
 [source,text]
 ----
-include::{snippetsPath}/failures/verificationFailure/tests/verificationFailure.out[]
+include::{snippetsPath}/reference/task-development/verificationFailure/tests/verificationFailure.out[]
 ----
 <1> *Register Output*: The `process` task writes its output to a log file.
 <2> *Modify Output*: The task writes to its output file as it executes.

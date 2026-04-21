@@ -16,10 +16,9 @@
 
 package org.gradle.features.internal.builders.definitions
 
-import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition
+
 import org.gradle.features.binding.BuildModel
 import org.gradle.features.binding.Definition
-
 /**
  * Generates a project type definition where a {@code NamedDomainObjectContainer<Source>} (with
  * {@code Source extends Definition<Source.SourceModel>}) is nested inside a plain {@code Group} type
@@ -40,18 +39,12 @@ class ProjectTypeDefinitionWithDeeplyNestedNdocClassBuilder extends ProjectTypeD
             import org.gradle.api.tasks.Nested;
             import ${Definition.class.name};
             import ${BuildModel.class.name};
-            import ${HiddenInDefinition.class.name};
 
             public interface ${publicTypeClassName} extends ${Definition.class.simpleName}<${publicTypeClassName}.ModelType> {
                 Property<String> getId();
 
                 @Nested
                 Group getGroup();
-
-                @${HiddenInDefinition.class.simpleName}
-                default void group(Action<? super Group> action) {
-                    action.execute(getGroup());
-                }
 
                 interface Group {
                     NamedDomainObjectContainer<Source> getSources();

@@ -18,7 +18,8 @@ package org.gradle.internal.file
 
 
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.OsTestPreconditions
+
 import spock.lang.Specification
 
 import static org.gradle.internal.file.PathTraversalChecker.isUnsafePathName
@@ -48,7 +49,7 @@ class PathTraversalCheckerTest extends Specification {
     }
 
     @Requires(
-        value = UnitTestPreconditions.Windows,
+        value = OsTestPreconditions.Windows,
         reason = "These path patterns are only unsafe on Windows systems"
     )
     def "identifies potentially unsafe zip entry names (windows only)"() {
@@ -80,7 +81,7 @@ class PathTraversalCheckerTest extends Specification {
     }
 
     @Requires(
-        value = UnitTestPreconditions.NotWindows,
+        value = OsTestPreconditions.NotWindows,
         reason = "These path patterns are unsafe on Windows systems"
     )
     def "identifies potentially unsafe zip entry names (not windows)"() {

@@ -30,11 +30,9 @@ import org.gradle.api.internal.tasks.TaskLocalStateInternal
 import org.gradle.api.specs.Spec
 import org.gradle.execution.plan.LocalTaskNode
 import org.gradle.execution.plan.TaskNodeFactory
-import org.gradle.internal.Describables
 import org.gradle.internal.cc.base.serialize.IsolateOwners
 import org.gradle.internal.cc.base.serialize.readProjectRef
 import org.gradle.internal.cc.base.serialize.writeProjectRef
-import org.gradle.internal.code.DefaultUserCodeSource
 import org.gradle.internal.code.UserCodeSource
 import org.gradle.internal.configuration.problems.PropertyKind
 import org.gradle.internal.configuration.problems.PropertyTrace
@@ -128,21 +126,12 @@ class TaskNodeCodec(
     }
 
     private
-    fun WriteContext.writeUserCodeSource(source: UserCodeSource) {
-        when (source) {
-            UserCodeSource.UNKNOWN -> {
-                writeByte(0)
-            }
-
-            UserCodeSource.BY_RULE -> {
-                writeByte(1)
-            }
-
-            else -> {
-                writeByte(2)
-                writeString(source.displayName.displayName)
-                writeNullableString(source.pluginId)
-            }
+    suspend fun WriteContext.writeUserCodeSource(source: UserCodeSource?) {
+        if (source == null) {
+            writeBoolean(false)
+        } else {
+            writeBoolean(true)
+            UserCodeSourceCodec.run { encode(source) }
         }
     }
 
@@ -176,14 +165,9 @@ class TaskNodeCodec(
     }
 
     private
-    fun ReadContext.readUserCodeSource(): UserCodeSource = when (readByte()) {
-        0.toByte() -> UserCodeSource.UNKNOWN
-        1.toByte() -> UserCodeSource.BY_RULE
-        else -> {
-            val displayName = readString()
-            val pluginId = readNullableString()
-            DefaultUserCodeSource(Describables.of(displayName), pluginId)
-        }
+    suspend fun ReadContext.readUserCodeSource(): UserCodeSource? = when (readBoolean()) {
+        false -> null
+        true -> UserCodeSourceCodec.run { decode() }
     }
 
     private
@@ -584,7 +568,7 @@ suspend fun ReadContext.readOutputPropertiesOf(task: Task) =
 
 
 private
-fun createTask(project: ProjectInternal, taskName: String, taskClass: Class<out Task>, uniqueId: Long, incompatibleReason: String?, userCodeSource: UserCodeSource): TaskInternal {
+fun createTask(project: ProjectInternal, taskName: String, taskClass: Class<out Task>, uniqueId: Long, incompatibleReason: String?, userCodeSource: UserCodeSource?): TaskInternal {
     val task = project.tasks.createWithoutConstructor(taskName, taskClass, uniqueId, userCodeSource) as TaskInternal
     if (incompatibleReason != null) {
         task.notCompatibleWithConfigurationCache(incompatibleReason)

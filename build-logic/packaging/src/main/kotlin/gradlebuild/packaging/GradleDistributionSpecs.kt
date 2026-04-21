@@ -31,18 +31,18 @@ object GradleDistributionSpecs {
      * The binary distribution containing everything needed to run Gradle (and nothing else).
      */
     fun Project.binDistributionSpec() = copySpec {
-        val gradleScriptPath by configurations.getting
-        val coreRuntimeClasspath by configurations.getting
-        val generateCoreRuntimeModuleProperties by tasks.getting(GenerateClasspathModuleProperties::class)
-        val runtimeClasspath by configurations.getting
-        val generateRuntimeModuleProperties by tasks.getting(GenerateClasspathModuleProperties::class)
-        val runtimeApiInfoJar by tasks.getting
-        val runtimeApiInfoJarModuleProperties by tasks.getting(GenerateEmptyModuleProperties::class)
-        val gradleApiKotlinExtensionsJar by tasks.getting
-        val gradleApiKotlinExtensionsJarModuleProperties by tasks.getting(GenerateEmptyModuleProperties::class)
-        val agentsRuntimeClasspath by configurations.getting
-        val generateAgentsRuntimeModuleProperties by tasks.getting(GenerateClasspathModuleProperties::class)
-        val generateLicenseFile by tasks.getting(GenerateLicenseFile::class)
+        val gradleScriptPath = configurations.getByName("gradleScriptPath")
+        val coreRuntimeClasspath = configurations.getByName("coreRuntimeClasspath")
+        val generateCoreRuntimeModuleProperties = tasks.named("generateCoreRuntimeModuleProperties", GenerateClasspathModuleProperties::class.java).get()
+        val runtimeClasspath = configurations.getByName("runtimeClasspath")
+        val generateRuntimeModuleProperties = tasks.named("generateRuntimeModuleProperties", GenerateClasspathModuleProperties::class.java).get()
+        val runtimeApiInfoJar = tasks.getByName("runtimeApiInfoJar")
+        val runtimeApiInfoJarModuleProperties = tasks.named("runtimeApiInfoJarModuleProperties", GenerateEmptyModuleProperties::class.java).get()
+        val gradleApiKotlinExtensionsJar = tasks.getByName("gradleApiKotlinExtensionsJar")
+        val gradleApiKotlinExtensionsJarModuleProperties = tasks.named("gradleApiKotlinExtensionsJarModuleProperties", GenerateEmptyModuleProperties::class.java).get()
+        val agentsRuntimeClasspath = configurations.getByName("agentsRuntimeClasspath")
+        val generateAgentsRuntimeModuleProperties = tasks.named("generateAgentsRuntimeModuleProperties", GenerateClasspathModuleProperties::class.java).get()
+        val generateLicenseFile = tasks.named("generateLicenseFile", GenerateLicenseFile::class.java).get()
 
         from(generateLicenseFile.outputLicenseFile)
         from("src/toplevel")
@@ -84,8 +84,8 @@ object GradleDistributionSpecs {
      * The binary distribution enriched with source files (including resources) and an offline version of Gradle's documentation (without samples).
      */
     fun Project.allDistributionSpec() = copySpec {
-        val sourcesPath by configurations.getting
-        val docsPath by configurations.getting
+        val sourcesPath = configurations.getByName("sourcesPath")
+        val docsPath = configurations.getByName("docsPath")
 
         with(binDistributionSpec())
         from(sourcesPath.incoming.artifactView { lenient(true) }.files) {
@@ -109,8 +109,8 @@ object GradleDistributionSpecs {
      * Offline version of the complete documentation of Gradle.
      */
     fun Project.docsDistributionSpec() = copySpec {
-        val docsPath by configurations.getting
-        val generateLicenseFile by tasks.getting(GenerateLicenseFile::class)
+        val docsPath = configurations.getByName("docsPath")
+        val generateLicenseFile = tasks.named("generateLicenseFile", GenerateLicenseFile::class.java).get()
 
         from(generateLicenseFile.outputLicenseFile)
         from("src/toplevel")

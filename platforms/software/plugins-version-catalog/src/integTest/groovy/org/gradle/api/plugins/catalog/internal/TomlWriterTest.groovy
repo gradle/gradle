@@ -22,7 +22,7 @@ import org.gradle.api.InvalidUserDataException
 import org.gradle.api.internal.catalog.DefaultVersionCatalog
 import org.gradle.api.internal.catalog.DefaultVersionCatalogBuilder
 import org.gradle.api.internal.catalog.parser.TomlCatalogFileParser
-import org.gradle.api.problems.internal.InternalProblems
+import org.gradle.api.problems.internal.ProblemsInternal
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 import spock.lang.TempDir
@@ -111,7 +111,7 @@ format.version = "1.1"
             TestUtil.objectFactory(),
             supplier) {
             @Override
-            protected InternalProblems getProblemsService() {
+            protected ProblemsInternal getProblemsService() {
                 problems
             }
         }

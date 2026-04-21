@@ -20,7 +20,8 @@ import org.apache.commons.io.FileSystem
 import org.gradle.api.Action
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.OsTestPreconditions
+
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -70,7 +71,7 @@ class IoActionsTest extends Specification {
     // Windows supports much longer file paths than Linux or macOS, but it's tricky to set this up accurately
     // in a test because Java canonicalizes file paths internally in a way that count towards the overall length
     // and Filesystem.WINDOWS.maxPathLength is conservative in its maximum path length.
-    @Requires(UnitTestPreconditions.NotWindows)
+    @Requires(OsTestPreconditions.NotWindows)
     def "fails to with useful error when file path is too long"() {
         given:
         def maxLength = FileSystem.current.maxPathLength

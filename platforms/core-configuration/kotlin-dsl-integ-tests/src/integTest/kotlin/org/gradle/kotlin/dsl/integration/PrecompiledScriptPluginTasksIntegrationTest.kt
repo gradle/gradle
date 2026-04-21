@@ -23,7 +23,8 @@ import org.gradle.kotlin.dsl.fixtures.normalisedPath
 import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.JdkVersionTestPreconditions
+
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Assert.assertFalse
@@ -36,7 +37,7 @@ class PrecompiledScriptPluginTasksIntegrationTest : AbstractKotlinIntegrationTes
 
     @Test
     @Requires(
-        value = [UnitTestPreconditions.Jdk21OrEarlier::class],
+        value = [JdkVersionTestPreconditions.Jdk21OrEarlier::class],
         reason = "detekt does not support 22+. See https://github.com/detekt/detekt?tab=readme-ov-file#requirements"
     )
     // TODO: Convert this into a smoke test

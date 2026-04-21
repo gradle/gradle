@@ -27,7 +27,7 @@ class ModelRuleSamplesIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule Sample sample = new Sample(testDirectoryProvider)
 
-    @UsesSample("modelRules/modelDsl")
+    @UsesSample("integration-tests/modelRules/modelDsl")
     def "dsl creation example works"() {
         when:
         inDirectory(sample.dir.file('groovy'))

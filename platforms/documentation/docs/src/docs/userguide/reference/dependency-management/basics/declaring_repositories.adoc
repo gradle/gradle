@@ -159,8 +159,8 @@ Gradle can consume dependencies available in a link:https://maven.apache.org/gui
 To declare the local Maven cache as a repository, add this to your build script:
 
 ====
-include::sample[dir="snippets/artifacts/defineRepository/kotlin",files="build.gradle.kts[tags=maven-local]"]
-include::sample[dir="snippets/artifacts/defineRepository/groovy",files="build.gradle[tags=maven-local]"]
+include::sample[dir="snippets/reference/dependency-management/basics/defineRepository/kotlin",files="build.gradle.kts[tags=maven-local]"]
+include::sample[dir="snippets/reference/dependency-management/basics/defineRepository/groovy",files="build.gradle[tags=maven-local]"]
 ====
 
 [[sub:understanding-repository-types]]

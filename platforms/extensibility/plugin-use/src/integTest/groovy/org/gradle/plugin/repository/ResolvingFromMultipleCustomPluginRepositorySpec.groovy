@@ -24,7 +24,8 @@ import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.test.fixtures.maven.MavenModule
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.TestEnvironmentPreconditions
+
 import spock.lang.Issue
 import spock.lang.Shared
 
@@ -203,7 +204,7 @@ class ResolvingFromMultipleCustomPluginRepositorySpec extends AbstractDependency
         repoType << [IVY, MAVEN]
     }
 
-    @Requires(UnitTestPreconditions.Online)
+    @Requires(TestEnvironmentPreconditions.Online)
     def "Can opt-in to plugin portal"() {
         given:
         publishPlugins(MAVEN)
@@ -229,7 +230,7 @@ class ResolvingFromMultipleCustomPluginRepositorySpec extends AbstractDependency
     }
 
     @Issue("GRADLE-3502")
-    @Requires(UnitTestPreconditions.Online)
+    @Requires(TestEnvironmentPreconditions.Online)
     def "Plugin Portal provides transitive dependencies for other plugins"() {
         given:
         publishPlugins(MAVEN)

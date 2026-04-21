@@ -54,8 +54,8 @@ Create a new file called `SlackTask.groovy` in `src/main/groovy/org/example/` an
 ====
 
 ====
-include::sample[dir="snippets/plugins/plugin-tutorial/kotlin",files="plugin/src/main/kotlin/org/example/SlackTask.kt[]"]
-include::sample[dir="snippets/plugins/plugin-tutorial/groovy",files="plugin/src/main/groovy/org/example/SlackTask.groovy[]"]
+include::sample[dir="snippets/tutorials/developing-plugins/plugin-tutorial/kotlin",files="plugin/src/main/kotlin/org/example/SlackTask.kt[]"]
+include::sample[dir="snippets/tutorials/developing-plugins/plugin-tutorial/groovy",files="plugin/src/main/groovy/org/example/SlackTask.groovy[]"]
 ====
 
 This custom task type does a few important things:
@@ -70,8 +70,8 @@ This custom task type does a few important things:
 Since our custom task uses the Slack API client, we need to add it as a dependency in our plugin's `build.gradle(.kts)` file.
 
 ====
-include::sample[dir="snippets/plugins/plugin-tutorial/kotlin",files="plugin/build.gradle.kts[tags=slack-api]"]
-include::sample[dir="snippets/plugins/plugin-tutorial/groovy",files="plugin/build.gradle[tags=slack-api]"]
+include::sample[dir="snippets/tutorials/developing-plugins/plugin-tutorial/kotlin",files="plugin/build.gradle.kts[tags=slack-api]"]
+include::sample[dir="snippets/tutorials/developing-plugins/plugin-tutorial/groovy",files="plugin/build.gradle[tags=slack-api]"]
 ====
 
 == Step 4: Register it in the Plugin
@@ -91,8 +91,8 @@ Open your plugin implementation file, `SlackPlugin.groovy` (in `src/main/groovy/
 ====
 
 ====
-include::sample[dir="snippets/plugins/plugin-tutorial/kotlin",files="plugin/src/main/kotlin/org/example/SlackPlugin.kt[tags=slack-task]"]
-include::sample[dir="snippets/plugins/plugin-tutorial/groovy",files="plugin/src/main/groovy/org/example/SlackPlugin.groovy[tags=slack-task]"]
+include::sample[dir="snippets/tutorials/developing-plugins/plugin-tutorial/kotlin",files="plugin/src/main/kotlin/org/example/SlackPlugin.kt[tags=slack-task]"]
+include::sample[dir="snippets/tutorials/developing-plugins/plugin-tutorial/groovy",files="plugin/src/main/groovy/org/example/SlackPlugin.groovy[tags=slack-task]"]
 ====
 
 This code:

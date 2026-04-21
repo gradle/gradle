@@ -20,9 +20,10 @@ import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationS
 import org.gradle.nativeplatform.fixtures.NativePlatformsTestFixture
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.TestEnvironmentPreconditions
 
-@Requires(UnitTestPreconditions.CanInstallExecutable)
+
+@Requires(TestEnvironmentPreconditions.CanInstallExecutable)
 class PrebuiltLibrariesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     final app = new CppHelloWorldApp()
 
@@ -259,7 +260,7 @@ model {
         fails "mainExecutable"
 
         then:
-        failure.assertHasDescription("Execution failed for task ':linkMainExecutable' (registered by Rule).")
+        failure.assertHasDescription("Execution failed for task ':linkMainExecutable'.")
         failure.assertHasCause("Static library file not set for prebuilt static library 'hello:${NativePlatformsTestFixture.defaultPlatformName}DebugDefaultStatic'.")
     }
 
@@ -294,7 +295,7 @@ model {
         fails "mainExecutable"
 
         then:
-        failure.assertHasDescription("Execution failed for task ':linkMainExecutable' (registered by Rule).")
+        failure.assertHasDescription("Execution failed for task ':linkMainExecutable'.")
         failure.assertHasCause("Static library file ${file("does_not_exist").absolutePath} does not exist for prebuilt static library 'hello:${NativePlatformsTestFixture.defaultPlatformName}DebugDefaultStatic'.")
     }
 

@@ -28,8 +28,8 @@ Please refer to <<test_kit.adoc#sub:test-kit-automatic-classpath-injection,Autom
 To use the Java Gradle Plugin Development plugin, include the following in your build script:
 
 ====
-include::sample[dir="snippets/java/javaGradlePlugin/kotlin",files="build.gradle.kts[tags=use-java-gradle-plugin-plugin]"]
-include::sample[dir="snippets/java/javaGradlePlugin/groovy",files="build.gradle[tags=use-java-gradle-plugin-plugin]"]
+include::sample[dir="snippets/reference/core-plugins/javaGradlePlugin/kotlin",files="build.gradle.kts[tags=use-java-gradle-plugin-plugin]"]
+include::sample[dir="snippets/reference/core-plugins/javaGradlePlugin/groovy",files="build.gradle[tags=use-java-gradle-plugin-plugin]"]
 ====
 
 Applying the plugin automatically applies the <<java_library_plugin.adoc#java_library_plugin,Java Library(`java-library`)>> plugin and adds the `gradleApi()` dependency to the `api` configuration.
@@ -48,8 +48,8 @@ Any failed validations will result in a warning message.
 For each plugin you are developing, register it into the `gradlePlugin {}` script block:
 
 ====
-include::sample[dir="snippets/java/javaGradlePlugin/kotlin",files="build.gradle.kts[tags=gradle-plugin-block]"]
-include::sample[dir="snippets/java/javaGradlePlugin/groovy",files="build.gradle[tags=gradle-plugin-block]"]
+include::sample[dir="snippets/reference/core-plugins/javaGradlePlugin/kotlin",files="build.gradle.kts[tags=gradle-plugin-block]"]
+include::sample[dir="snippets/reference/core-plugins/javaGradlePlugin/groovy",files="build.gradle[tags=gradle-plugin-block]"]
 ====
 
 The `gradlePlugin {}` block defines the plugins being built by the project.

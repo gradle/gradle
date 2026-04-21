@@ -21,7 +21,7 @@ import org.gradle.integtests.fixtures.archives.TestFileSystemSensitiveArchives
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 
 import static org.hamcrest.CoreMatchers.startsWith
 
@@ -384,7 +384,7 @@ class Main {
         distBase.file("dir/r2.txt").text == "r2"
     }
 
-    @Requires(IntegTestPreconditions.NotParallelExecutor)
+    @Requires(TestExecutionPreconditions.NotParallelExecutor)
     def "distribution file producing tasks are run automatically"() {
         when:
         buildFile << """

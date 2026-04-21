@@ -58,7 +58,7 @@ $ gradle wrapper
 ----
 [source,text]
 ----
-include::{snippetsPath}/wrapper/simple/tests/wrapperCommandLine.out[]
+include::{snippetsPath}/reference/runtime-configuration/simple/tests/wrapperCommandLine.out[]
 ----
 
 [TIP]
@@ -153,7 +153,7 @@ $ gradle wrapper --gradle-version {gradleVersion} --distribution-type all
 ----
 [source,text]
 ----
-include::{snippetsPath}/wrapper/simple/tests/wrapperCommandLine.out[]
+include::{snippetsPath}/reference/runtime-configuration/simple/tests/wrapperCommandLine.out[]
 ----
 
 As a result, you can find the desired information (the generated distribution URL) in the Wrapper properties file:
@@ -232,7 +232,7 @@ $ gradlew.bat build
 ----
 [source,text]
 ----
-include::{snippetsPath}/wrapper/simple/tests/wrapperBatchFileExecution.out[]
+include::{snippetsPath}/reference/runtime-configuration/simple/tests/wrapperBatchFileExecution.out[]
 ----
 
 If the Gradle distribution was not provisioned to `GRADLE_USER_HOME` before, the Wrapper will download it and store it in `GRADLE_USER_HOME`.
@@ -269,7 +269,7 @@ $ gradlew.bat wrapper --gradle-version latest // Windows
 
 [source,text]
 ----
-include::{snippetsPath}/wrapper/simple/tests/wrapperGradleVersionUpgrade.out[]
+include::{snippetsPath}/reference/runtime-configuration/simple/tests/wrapperGradleVersionUpgrade.out[]
 ----
 
 The following command upgrades the Wrapper to a specific version:
@@ -285,7 +285,7 @@ $ gradlew.bat wrapper --gradle-version {gradleVersion} // Windows
 
 [source,text]
 ----
-include::{snippetsPath}/wrapper/simple/tests/wrapperGradleVersionUpgrade.out[]
+include::{snippetsPath}/reference/runtime-configuration/simple/tests/wrapperGradleVersionUpgrade.out[]
 ----
 
 Once you have upgraded the wrapper, you can check that it's the version you expected by executing `./gradlew --version`.
@@ -311,8 +311,8 @@ Let's assume you grew tired of defining the `-all` distribution type on the comm
 You can save yourself some keyboard strokes by re-configuring the `wrapper` task.
 
 ====
-include::sample[dir="snippets/wrapper/customized-task/kotlin",files="build.gradle.kts[tags=customized-wrapper-task]"]
-include::sample[dir="snippets/wrapper/customized-task/groovy",files="build.gradle[tags=customized-wrapper-task]"]
+include::sample[dir="snippets/reference/runtime-configuration/customized-task/kotlin",files="build.gradle.kts[tags=customized-wrapper-task]"]
+include::sample[dir="snippets/reference/runtime-configuration/customized-task/groovy",files="build.gradle[tags=customized-wrapper-task]"]
 ====
 
 With the configuration in place, running `./gradlew wrapper --gradle-version {gradleVersion}` is enough to produce a `distributionUrl` value in the Wrapper properties file that will request the `-all` distribution:

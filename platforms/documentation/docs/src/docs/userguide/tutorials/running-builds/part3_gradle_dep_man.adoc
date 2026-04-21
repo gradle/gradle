@@ -67,23 +67,15 @@ It helps keep your dependencies consistent across subprojects and avoids repeati
 The version catalog is located at `gradle/libs.versions.toml`:
 
 ====
-include::sample[dir="snippets/init/generated/groovy",files="gradle/libs.versions.toml[]"]
+include::sample[dir="snippets/tutorials/running-builds/generated/groovy",files="gradle/libs.versions.toml[]"]
 ====
 
 Once defined, you can reference these libraries in your `build.gradle(.kts)` files using the `libs` accessor.
 This is why our build script actually looks like this:
 
-++++
-<div style="text-align: right;">
-  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/init/generated">
-    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
-  </a>
-</div>
-++++
-
 ====
-include::sample[dir="snippets/init/generated/kotlin",files="app/build.gradle.kts[tags=init-dep]"]
-include::sample[dir="snippets/init/generated/groovy",files="app/build.gradle[tags=init-dep]"]
+include::sample[dir="snippets/tutorials/running-builds/generated/kotlin",files="app/build.gradle.kts[tags=init-dep]"]
+include::sample[dir="snippets/tutorials/running-builds/generated/groovy",files="app/build.gradle[tags=init-dep]"]
 ====
 
 TIP: The `libs.junit.jupiter` syntax is used because the key contains a hyphen which is a special character.
@@ -100,8 +92,8 @@ Gradle provides excellent support for dependency management and automation.
 Let's take another look at our build script, specifically the following section:
 
 ====
-include::sample[dir="snippets/init/generated/kotlin",files="app/build.gradle.kts[tags=init-declarations]"]
-include::sample[dir="snippets/init/generated/groovy",files="app/build.gradle[tags=init-declarations]"]
+include::sample[dir="snippets/tutorials/running-builds/generated/kotlin",files="app/build.gradle.kts[tags=init-declarations]"]
+include::sample[dir="snippets/tutorials/running-builds/generated/groovy",files="app/build.gradle[tags=init-declarations]"]
 ====
 
 Some key concepts in Gradle dependency management include:

@@ -42,17 +42,9 @@ Specifically, build scripts contain two main types of dependencies:
 
 Let's take a look at an example and break it down:
 
-++++
-<div style="text-align: right;">
-  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/init/generated">
-    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
-  </a>
-</div>
-++++
-
 ====
-include::sample[dir="snippets/init/generated/kotlin",files="app/build.gradle.kts[tags=init]"]
-include::sample[dir="snippets/init/generated/groovy",files="app/build.gradle[tags=init]"]
+include::sample[dir="snippets/fundamentals/running-builds/generated/kotlin",files="app/build.gradle.kts[tags=init]"]
+include::sample[dir="snippets/fundamentals/running-builds/generated/groovy",files="app/build.gradle[tags=init]"]
 ====
 <1> Add plugins.
 <2> Add dependencies.
@@ -65,8 +57,8 @@ Plugins extend Gradle's functionality and can contribute tasks to a project.
 Adding a plugin to a build is called _applying_ a plugin and makes additional functionality available.
 
 ====
-include::sample[dir="snippets/init/generated/kotlin",files="app/build.gradle.kts[tags=init-plugins]"]
-include::sample[dir="snippets/init/generated/groovy",files="app/build.gradle[tags=init-plugins]"]
+include::sample[dir="snippets/fundamentals/running-builds/generated/kotlin",files="app/build.gradle.kts[tags=init-plugins]"]
+include::sample[dir="snippets/fundamentals/running-builds/generated/groovy",files="app/build.gradle[tags=init-plugins]"]
 ====
 
 The `application` plugin facilitates creating an executable JVM application.
@@ -81,8 +73,8 @@ Your project needs external libraries to compile, run, and test.
 In this example, the project uses `JUnit Jupiter` for testing and Google’s `Guava` library in the main application code:
 
 ====
-include::sample[dir="snippets/init/generated/kotlin",files="app/build.gradle.kts[tags=init-dep]"]
-include::sample[dir="snippets/init/generated/groovy",files="app/build.gradle[tags=init-dep]"]
+include::sample[dir="snippets/fundamentals/running-builds/generated/kotlin",files="app/build.gradle.kts[tags=init-dep]"]
+include::sample[dir="snippets/fundamentals/running-builds/generated/groovy",files="app/build.gradle[tags=init-dep]"]
 ====
 
 == 3. Use convention properties
@@ -95,8 +87,8 @@ The `application` plugin defines tasks that package and distribute an applicatio
 The Application plugin provides a way to declare the main class of a Java application, which is required to execute the code.
 
 ====
-include::sample[dir="snippets/init/generated/kotlin",files="app/build.gradle.kts[tags=init-app]"]
-include::sample[dir="snippets/init/generated/groovy",files="app/build.gradle[tags=init-app]"]
+include::sample[dir="snippets/fundamentals/running-builds/generated/kotlin",files="app/build.gradle.kts[tags=init-app]"]
+include::sample[dir="snippets/fundamentals/running-builds/generated/groovy",files="app/build.gradle[tags=init-app]"]
 ====
 
 In this example, the main class (i.e., the point where the program's execution begins) is `org.example.App`.

@@ -270,17 +270,9 @@ Gradle reads the `settings.gradle(.kts)` file to figure out which subprojects co
 
 Take a look at the file in your project:
 
-++++
-<div style="text-align: right;">
-  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/init/generated">
-    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
-  </a>
-</div>
-++++
-
 ====
-include::sample[dir="snippets/init/generated/kotlin",files="settings.gradle.kts[]"]
-include::sample[dir="snippets/init/generated/groovy",files="settings.gradle[]"]
+include::sample[dir="snippets/tutorials/running-builds/generated/kotlin",files="settings.gradle.kts[]"]
+include::sample[dir="snippets/tutorials/running-builds/generated/groovy",files="settings.gradle[]"]
 ====
 
 The `tutorial` root project includes the `app` subproject.
@@ -297,8 +289,8 @@ The `build.gradle(.kts)` file is read and executed by Gradle.
 Take a closer look at the build file in your `app` subproject (under the `app` directory):
 
 ====
-include::sample[dir="snippets/init/generated/kotlin",files="app/build.gradle.kts[tags=init-og]"]
-include::sample[dir="snippets/init/generated/groovy",files="app/build.gradle[tags=init-og]"]
+include::sample[dir="snippets/tutorials/running-builds/generated/kotlin",files="app/build.gradle.kts[tags=init-og]"]
+include::sample[dir="snippets/tutorials/running-builds/generated/groovy",files="app/build.gradle[tags=init-og]"]
 ====
 
 This build script lets Gradle know which dependencies and plugins the `app` subproject is using and where to find them.

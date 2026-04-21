@@ -22,13 +22,15 @@ import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
 import org.gradle.internal.buildconfiguration.fixture.DaemonJvmPropertiesFixture
 import org.gradle.internal.jvm.SupportedJavaVersionsExpectations
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
+import org.gradle.test.preconditions.InstalledJdkTestPreconditions
+import org.gradle.test.preconditions.JdkVersionTestPreconditions
+
 
 /**
  * Tests that the Gradle daemon can or cannot be started with JVMs of certain versions.
  */
-@Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "explicitly requests a daemon")
+@Requires(value = TestExecutionPreconditions.NotEmbeddedExecutor, reason = "explicitly requests a daemon")
 class SupportedBuildJvmVersionIntegrationTest extends AbstractIntegrationSpec implements DaemonJvmPropertiesFixture, JavaToolchainFixture {
 
     def setup() {
@@ -38,7 +40,7 @@ class SupportedBuildJvmVersionIntegrationTest extends AbstractIntegrationSpec im
     }
 
     @Requires(
-        value = [IntegTestPreconditions.UnsupportedDaemonJavaHomeAvailable, IntegTestPreconditions.NotEmbeddedExecutor],
+        value = [InstalledJdkTestPreconditions.UnsupportedDaemonJavaHomeAvailable, TestExecutionPreconditions.NotEmbeddedExecutor],
         reason = "This test requires to start Gradle from scratch with the wrong Java version"
     )
     def "provides reasonable failure message when attempting to run under java #jdk.javaVersion"() {
@@ -56,7 +58,7 @@ class SupportedBuildJvmVersionIntegrationTest extends AbstractIntegrationSpec im
     // region JAVA_HOME
 
     @Requires(
-        value = [IntegTestPreconditions.UnsupportedDaemonJavaHomeAvailable, IntegTestPreconditions.NotEmbeddedExecutor],
+        value = [InstalledJdkTestPreconditions.UnsupportedDaemonJavaHomeAvailable, TestExecutionPreconditions.NotEmbeddedExecutor],
         reason = "This test requires to start Gradle from scratch with the wrong Java version"
     )
     def "running a build with an unsupported JVM emits a failure"() {
@@ -72,7 +74,7 @@ class SupportedBuildJvmVersionIntegrationTest extends AbstractIntegrationSpec im
         noDaemon << [false, true]
     }
 
-    @Requires(UnitTestPreconditions.DeprecatedDaemonJdkVersion)
+    @Requires(JdkVersionTestPreconditions.DeprecatedDaemonJdkVersion)
     def "running a build with a deprecated JVM is deprecated"() {
         expect:
         executer.expectDocumentedDeprecationWarning(SupportedJavaVersionsExpectations.expectedDaemonDeprecationWarning)
@@ -82,7 +84,7 @@ class SupportedBuildJvmVersionIntegrationTest extends AbstractIntegrationSpec im
         noDaemon << [false, true]
     }
 
-    @Requires(UnitTestPreconditions.NonDeprecatedDaemonJdkVersion)
+    @Requires(JdkVersionTestPreconditions.NonDeprecatedDaemonJdkVersion)
     def "can run on supported JVM succeeds without warning"() {
         expect:
         succeeds(["help"] + (noDaemon ? ["--no-daemon"] : []))
@@ -93,7 +95,7 @@ class SupportedBuildJvmVersionIntegrationTest extends AbstractIntegrationSpec im
 
     // region org.gradle.java.home
 
-    @Requires(IntegTestPreconditions.UnsupportedDaemonJavaHomeAvailable)
+    @Requires(InstalledJdkTestPreconditions.UnsupportedDaemonJavaHomeAvailable)
     def "specifying unsupported java home via system property fails"() {
         given:
         def unsupportedJdk = AvailableJavaHomes.unsupportedDaemonJdk
@@ -110,7 +112,7 @@ class SupportedBuildJvmVersionIntegrationTest extends AbstractIntegrationSpec im
         noDaemon << [false, true]
     }
 
-    @Requires(IntegTestPreconditions.DeprecatedDaemonJavaHomeAvailable)
+    @Requires(InstalledJdkTestPreconditions.DeprecatedDaemonJavaHomeAvailable)
     def "specifying a deprecated jvm via system property is deprecated"() {
         given:
         def deprecatedJvm = AvailableJavaHomes.deprecatedDaemonJdk
@@ -128,7 +130,7 @@ class SupportedBuildJvmVersionIntegrationTest extends AbstractIntegrationSpec im
         noDaemon << [false, true]
     }
 
-    @Requires(IntegTestPreconditions.NonDeprecatedDaemonJavaHomeAvailable)
+    @Requires(InstalledJdkTestPreconditions.NonDeprecatedDaemonJavaHomeAvailable)
     def "specifying a supported jvm via system property emits no jvm deprecation warning"() {
         given:
         def nonDeprecatedJvm = AvailableJavaHomes.nonDeprecatedDaemonJdk
@@ -147,7 +149,7 @@ class SupportedBuildJvmVersionIntegrationTest extends AbstractIntegrationSpec im
 
     // region daemon toolchain
 
-    @Requires(IntegTestPreconditions.UnsupportedDaemonJavaHomeAvailable)
+    @Requires(InstalledJdkTestPreconditions.UnsupportedDaemonJavaHomeAvailable)
     def "throws an exception when specifying a daemon toolchain with an unsupported daemon JDK version"() {
         given:
         def jdk = AvailableJavaHomes.unsupportedDaemonJdk
@@ -164,7 +166,7 @@ class SupportedBuildJvmVersionIntegrationTest extends AbstractIntegrationSpec im
         noDaemon << [false, true]
     }
 
-    @Requires(IntegTestPreconditions.DeprecatedDaemonJavaHomeAvailable)
+    @Requires(InstalledJdkTestPreconditions.DeprecatedDaemonJavaHomeAvailable)
     def "specifying a daemon toolchain with a deprecated jvm is deprecated"() {
         given:
         def deprecatedJvm = AvailableJavaHomes.deprecatedDaemonJdk
@@ -183,7 +185,7 @@ class SupportedBuildJvmVersionIntegrationTest extends AbstractIntegrationSpec im
         noDaemon << [false, true]
     }
 
-    @Requires(IntegTestPreconditions.NonDeprecatedDaemonJavaHomeAvailable)
+    @Requires(InstalledJdkTestPreconditions.NonDeprecatedDaemonJavaHomeAvailable)
     def "specifying a daemon toolchain with a supported jvm emits no jvm deprecation warning"() {
         given:
         def nonDeprecatedJvm = AvailableJavaHomes.nonDeprecatedDaemonJdk

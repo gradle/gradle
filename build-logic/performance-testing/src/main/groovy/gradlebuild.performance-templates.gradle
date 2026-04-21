@@ -407,16 +407,25 @@ performanceTest.registerTestProject("bigSwiftApp", BuildBuilderGenerator) {
 }
 
 // === Android ===
-performanceTest.registerAndroidTestProject("largeAndroidBuild", RemoteProject) {
+performanceTest.registerAndroidTestProject("largeAndroidBuild", ["-Xms8g", "-Xmx8g"], RemoteProject) {
     setRemoteUriAndRefFromGradleProperty("largeAndroidBuildProjectRef")
 }
 
-performanceTest.registerAndroidTestProject("largeAndroidBuild2", RemoteProject) {
+performanceTest.registerAndroidTestProject("largeAndroidBuild2", ["-Xms8g", "-Xmx8g"], RemoteProject) {
     setRemoteUriAndRefFromGradleProperty("largeAndroidBuild2ProjectRef")
 }
 
-performanceTest.registerAndroidTestProject("nowInAndroidBuild", RemoteProject) {
+performanceTest.registerAndroidTestProject("nowInAndroidBuild", ["-Xms4g", "-Xmx4g"], RemoteProject) {
     setRemoteUriAndRefFromGradleProperty("nowInAndroidBuildProjectRef")
+    doLast {
+        setMaxWorkers(outputDirectory, 8)
+    }
+}
+
+// When manually opening the project in Android Studio 2025.3, it recommends this max memory based on the project size
+performanceTest.registerAndroidTestProject("android500Kts", ["-Xms8g", "-Xmx8g"], RemoteProject) {
+    setRemoteUriAndRefFromGradleProperty("isolatedProjectsTestbedRef")
+    subdirectory = 'android-500-kts'
     doLast {
         setMaxWorkers(outputDirectory, 8)
     }

@@ -35,8 +35,8 @@ If your build produces only one distribution, you only need to configure the dis
 To use the Distribution Plugin, include the following in your build script:
 
 ====
-include::sample[dir="snippets/base/distribution/kotlin",files="build.gradle.kts[tags=use-plugin]"]
-include::sample[dir="snippets/base/distribution/groovy",files="build.gradle[tags=use-plugin]"]
+include::sample[dir="snippets/reference/core-plugins/distribution/kotlin",files="build.gradle.kts[tags=use-plugin]"]
+include::sample[dir="snippets/reference/core-plugins/distribution/groovy",files="build.gradle[tags=use-plugin]"]
 ====
 
 You can run `gradle distZip` to package the main distribution as a ZIP, or `gradle distTar` to create a TAR file. To build both types of archives just run `gradle assembleDist`.
@@ -82,8 +82,8 @@ Assembles the distribution content and installs it on the current machine.
 The following sample creates a `custom` distribution that will cause four additional tasks to be added to the project: `customDistZip`, `customDistTar`, `assembleCustomDist`, and `installCustomDist`:
 
 ====
-include::sample[dir="snippets/base/distribution/kotlin",files="build.gradle.kts[tags=custom-distribution]"]
-include::sample[dir="snippets/base/distribution/groovy",files="build.gradle[tags=custom-distribution]"]
+include::sample[dir="snippets/reference/core-plugins/distribution/kotlin",files="build.gradle.kts[tags=custom-distribution]"]
+include::sample[dir="snippets/reference/core-plugins/distribution/groovy",files="build.gradle[tags=custom-distribution]"]
 ====
 
 Given that the project name is `myproject` and version `1.2`, running `gradle customDistZip` will produce a ZIP file named `myproject-custom-1.2.zip`.
@@ -96,8 +96,8 @@ Running `gradle installCustomDist` will install the distribution contents into `
 All of the files in the `src/__$distribution.name__/dist` directory will automatically be included in the distribution. You can add additional files by configuring the link:{javadocPath}/org/gradle/api/distribution/Distribution.html[Distribution] object that is part of the container.
 
 ====
-include::sample[dir="snippets/base/distribution/kotlin",files="build.gradle.kts[tags=configure-distribution]"]
-include::sample[dir="snippets/base/distribution/groovy",files="build.gradle[tags=configure-distribution]"]
+include::sample[dir="snippets/reference/core-plugins/distribution/kotlin",files="build.gradle.kts[tags=configure-distribution]"]
+include::sample[dir="snippets/reference/core-plugins/distribution/groovy",files="build.gradle[tags=configure-distribution]"]
 ====
 
 In the example above, the content of the `src/readme` directory will be included in the distribution (along with the files in the `src/main/dist` directory which are added by default).
@@ -105,8 +105,8 @@ In the example above, the content of the `src/readme` directory will be included
 The `distributionBaseName` and `distributionClassifier` properties have also been changed. This will cause the distribution archives to be created with a different name.
 
 ====
-include::sample[dir="snippets/base/distributionPlugin/kotlin",files="build.gradle.kts[tags=configure-distribution]"]
-include::sample[dir="snippets/base/distributionPlugin/groovy",files="build.gradle[tags=configure-distribution]"]
+include::sample[dir="snippets/reference/core-plugins/distributionPlugin/kotlin",files="build.gradle.kts[tags=configure-distribution]"]
+include::sample[dir="snippets/reference/core-plugins/distributionPlugin/groovy",files="build.gradle[tags=configure-distribution]"]
 ====
 
 In the example above, <<working_with_files.adoc#sec:copying_files, CopySpec>> defines the contents, ensuring the `bin/config` directory is automatically created if it doesn't already exist, and the contents of the `config` directory are copied into it. The same process applies to the `lib/samples` directory.
@@ -126,13 +126,13 @@ A distribution can be published using the <<publishing_ivy.adoc#publishing_ivy, 
 To publish a distribution to an Ivy repository with the <<publishing_ivy.adoc#publishing_ivy, Ivy Publish Plugin>>, add one or both of its archive tasks to an link:{groovyDslPath}/org.gradle.api.publish.ivy.IvyPublication.html[IvyPublication]. The following sample demonstrates how to add the ZIP archive of the `main` distribution and the TAR archive of the `custom` distribution to the `myDistribution` publication:
 
 ====
-include::sample[dir="snippets/ivy-publish/distribution/kotlin",files="build.gradle.kts[tags=publishing]"]
-include::sample[dir="snippets/ivy-publish/distribution/groovy",files="build.gradle[tags=publishing]"]
+include::sample[dir="snippets/reference/core-plugins/distribution/kotlin",files="build.gradle.kts[tags=publishing]"]
+include::sample[dir="snippets/reference/core-plugins/distribution/groovy",files="build.gradle[tags=publishing]"]
 ====
 
 Similarly, to publish a distribution to a Maven repository using the <<publishing_maven.adoc#publishing_maven, Maven Publish Plugin>>, add one or both of its archive tasks to a link:{groovyDslPath}/org.gradle.api.publish.maven.MavenPublication.html[MavenPublication] as follows:
 
 ====
-include::sample[dir="snippets/maven-publish/distribution/kotlin",files="build.gradle.kts[tags=publishing]"]
-include::sample[dir="snippets/maven-publish/distribution/groovy",files="build.gradle[tags=publishing]"]
+include::sample[dir="snippets/reference/core-plugins/distribution/kotlin",files="build.gradle.kts[tags=publishing]"]
+include::sample[dir="snippets/reference/core-plugins/distribution/groovy",files="build.gradle[tags=publishing]"]
 ====

@@ -27,9 +27,9 @@ import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.ProblemReporter;
 import org.gradle.api.problems.Problems;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
-import org.gradle.api.problems.internal.InternalProblem;
-import org.gradle.api.problems.internal.InternalProblemReporter;
-import org.gradle.api.problems.internal.InternalProblems;
+import org.gradle.api.problems.internal.ProblemInternal;
+import org.gradle.api.problems.internal.ProblemReporterInternal;
+import org.gradle.api.problems.internal.ProblemsInternal;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
@@ -148,7 +148,8 @@ public abstract class ValidatePlugins extends DefaultTask {
                         })
                     );
                 }
-                spec.getClasspath().setFrom(getClasses(), getClasspath());
+                // The classpath includes both the plugin classes and the dependencies:
+                spec.getClasspath().setFrom(getClasspath());
             })
             .submit(ValidateAction.class, params -> {
                 params.getClasses().setFrom(getClasses());
@@ -158,8 +159,8 @@ public abstract class ValidatePlugins extends DefaultTask {
         getWorkerExecutor().await();
 
         ValidationProblemSerialization.SerializationResult parsedProblems = ValidationProblemSerialization.deserialize(new String(readAllBytes(getOutputFile().get().getAsFile().toPath()), UTF_8));
-        List<? extends InternalProblem> warnings = parsedProblems.getWarnings();
-        List<? extends InternalProblem> errors = parsedProblems.getErrors();
+        List<? extends ProblemInternal> warnings = parsedProblems.getWarnings();
+        List<? extends ProblemInternal> errors = parsedProblems.getErrors();
 
         Stream<String> messages = Stream.concat(
             ValidationProblemSerialization.toPlainWarning(warnings).sorted(),
@@ -176,7 +177,7 @@ public abstract class ValidatePlugins extends DefaultTask {
                         messages.collect(joining()));
                 } else {
 
-                    InternalProblemReporter reporter = getServices().get(InternalProblems.class)
+                    ProblemReporterInternal reporter = getServices().get(ProblemsInternal.class)
                         .getInternalReporter();
                     reporter.report(warnings);
                     reporter.reportError(errors);
@@ -206,6 +207,8 @@ public abstract class ValidatePlugins extends DefaultTask {
 
     /**
      * The classpath used to load the classes under validation.
+     * <p>
+     * Includes the classes under validation and both the runtime-scoped dependencies and the compile-scoped ones.
      */
     @Classpath
     public abstract ConfigurableFileCollection getClasspath();

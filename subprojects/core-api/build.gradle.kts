@@ -13,6 +13,7 @@ dependencies {
     api(projects.credentialsApi)
     api(projects.declarativeDslApi)
     api(projects.files)
+    api(projects.internalInstrumentationApi)
     api(projects.loggingApi)
     api(projects.persistentCache)
     api(projects.processServicesApi)
@@ -26,8 +27,8 @@ dependencies {
     api(libs.guava)
     api(libs.inject)
 
-    implementation(projects.io)
     implementation(projects.baseServicesGroovy)
+    implementation(projects.io)
     implementation(projects.logging)
 
     implementation(libs.ant)

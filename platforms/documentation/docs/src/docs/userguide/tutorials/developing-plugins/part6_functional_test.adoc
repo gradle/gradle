@@ -81,8 +81,8 @@ Rename the file `PluginTutorialPluginFunctionalTest.groovy` to `SlackPluginFunct
 Now, update the test file to look like this:
 
 ====
-include::sample[dir="snippets/plugins/plugin-tutorial/kotlin",files="plugin/src/functionalTest/kotlin/org/example/SlackPluginFunctionalTest.kt[]"]
-include::sample[dir="snippets/plugins/plugin-tutorial/groovy",files="plugin/src/functionalTest/groovy/org/example/SlackPluginFunctionalTest.groovy[]"]
+include::sample[dir="snippets/tutorials/developing-plugins/plugin-tutorial/kotlin",files="plugin/src/functionalTest/kotlin/org/example/SlackPluginFunctionalTest.kt[]"]
+include::sample[dir="snippets/tutorials/developing-plugins/plugin-tutorial/groovy",files="plugin/src/functionalTest/groovy/org/example/SlackPluginFunctionalTest.groovy[]"]
 ====
 
 This functional test does the following:
@@ -99,8 +99,8 @@ Before you run the test, it's good to understand how `gradle init` configured ou
 Look at the `build.gradle(.kts)` file and notice the section related to functional tests:
 
 ====
-include::sample[dir="snippets/plugins/plugin-tutorial/kotlin",files="plugin/build.gradle.kts[tags=test-config]"]
-include::sample[dir="snippets/plugins/plugin-tutorial/groovy",files="plugin/build.gradle[tags=test-config]"]
+include::sample[dir="snippets/tutorials/developing-plugins/plugin-tutorial/kotlin",files="plugin/build.gradle.kts[tags=test-config]"]
+include::sample[dir="snippets/tutorials/developing-plugins/plugin-tutorial/groovy",files="plugin/build.gradle[tags=test-config]"]
 ====
 
 This configuration sets up a dedicated `functionalTest` source set and task, which keeps our functional tests separate from our unit tests.

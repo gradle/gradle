@@ -68,8 +68,8 @@ Gradle can execute tasks that don't depend on each other, in the same project, i
 The following example shows which parts of settings and build files correspond to various build phases:
 
 ====
-include::sample[dir="snippets/buildlifecycle/basic/kotlin",files="settings.gradle.kts[];build.gradle.kts[]"]
-include::sample[dir="snippets/buildlifecycle/basic/groovy",files="settings.gradle[];build.gradle[]"]
+include::sample[dir="snippets/reference/runtime-configuration/basic/kotlin",files="settings.gradle.kts[];build.gradle.kts[]"]
+include::sample[dir="snippets/reference/runtime-configuration/basic/groovy",files="settings.gradle[];build.gradle[]"]
 ====
 
 The following command executes the `test` and `testBoth` tasks specified above:
@@ -83,7 +83,7 @@ $ ./gradlew test testBoth
 ----
 [source,text]
 ----
-include::{snippetsPath}/buildlifecycle/basic/tests/buildlifecycle.out[]
+include::{snippetsPath}/reference/runtime-configuration/basic/tests/buildlifecycle.out[]
 ----
 =====
 [.multi-language-text.lang-groovy]
@@ -94,7 +94,7 @@ $ ./gradlew test testBoth
 ----
 [source,text]
 ----
-include::{snippetsPath}/buildlifecycle/basic/tests/buildlifecycle.out[]
+include::{snippetsPath}/reference/runtime-configuration/basic/tests/buildlifecycle.out[]
 ----
 =====
 ====
@@ -321,8 +321,8 @@ Here is a quick overview:
 *When*: By the time `settings.gradle(.kts)` is executing, `beforeSettings` has already fired.
 
 ====
-include::sample[dir="snippets/initScripts/callbacks/kotlin",files="callbacks.init.gradle.kts[tags=beforesettings]"]
-include::sample[dir="snippets/initScripts/callbacks/groovy",files="callbacks.init.gradle[tags=beforesettings]"]
+include::sample[dir="snippets/reference/runtime-configuration/callbacks/kotlin",files="callbacks.init.gradle.kts[tags=beforesettings]"]
+include::sample[dir="snippets/reference/runtime-configuration/callbacks/groovy",files="callbacks.init.gradle[tags=beforesettings]"]
 ====
 
 [[settings_evaluated]]
@@ -332,8 +332,8 @@ include::sample[dir="snippets/initScripts/callbacks/groovy",files="callbacks.ini
 *When*: After the settings file finishes evaluating.
 
 ====
-include::sample[dir="snippets/initScripts/callbacks/kotlin",files="callbacks.init.gradle.kts[tags=settingsevaluated]"]
-include::sample[dir="snippets/initScripts/callbacks/groovy",files="callbacks.init.gradle[tags=settingsevaluated]"]
+include::sample[dir="snippets/reference/runtime-configuration/callbacks/kotlin",files="callbacks.init.gradle.kts[tags=settingsevaluated]"]
+include::sample[dir="snippets/reference/runtime-configuration/callbacks/groovy",files="callbacks.init.gradle[tags=settingsevaluated]"]
 ====
 
 [[projects_loaded]]
@@ -343,8 +343,8 @@ include::sample[dir="snippets/initScripts/callbacks/groovy",files="callbacks.ini
 *When*: All projects have been discovered but not yet configured.
 
 ====
-include::sample[dir="snippets/initScripts/callbacks/kotlin",files="callbacks.init.gradle.kts[tags=projectsloaded]"]
-include::sample[dir="snippets/initScripts/callbacks/groovy",files="callbacks.init.gradle[tags=projectsloaded]"]
+include::sample[dir="snippets/reference/runtime-configuration/callbacks/kotlin",files="callbacks.init.gradle.kts[tags=projectsloaded]"]
+include::sample[dir="snippets/reference/runtime-configuration/callbacks/groovy",files="callbacks.init.gradle[tags=projectsloaded]"]
 ====
 
 [[before_project]]
@@ -354,8 +354,8 @@ include::sample[dir="snippets/initScripts/callbacks/groovy",files="callbacks.ini
 *When*: For each project as its build script is evaluated.
 
 ====
-include::sample[dir="snippets/initScripts/callbacks/kotlin",files="callbacks.init.gradle.kts[tags=beforeproject]"]
-include::sample[dir="snippets/initScripts/callbacks/groovy",files="callbacks.init.gradle[tags=beforeproject]"]
+include::sample[dir="snippets/reference/runtime-configuration/callbacks/kotlin",files="callbacks.init.gradle.kts[tags=beforeproject]"]
+include::sample[dir="snippets/reference/runtime-configuration/callbacks/groovy",files="callbacks.init.gradle[tags=beforeproject]"]
 ====
 
 [[after_project]]
@@ -365,8 +365,8 @@ include::sample[dir="snippets/initScripts/callbacks/groovy",files="callbacks.ini
 *When*: For each project as its build script is evaluated.
 
 ====
-include::sample[dir="snippets/initScripts/callbacks/kotlin",files="callbacks.init.gradle.kts[tags=afterproject]"]
-include::sample[dir="snippets/initScripts/callbacks/groovy",files="callbacks.init.gradle[tags=afterproject]"]
+include::sample[dir="snippets/reference/runtime-configuration/callbacks/kotlin",files="callbacks.init.gradle.kts[tags=afterproject]"]
+include::sample[dir="snippets/reference/runtime-configuration/callbacks/groovy",files="callbacks.init.gradle[tags=afterproject]"]
 ====
 
 [[projects_evaluated]]
@@ -376,8 +376,8 @@ include::sample[dir="snippets/initScripts/callbacks/groovy",files="callbacks.ini
 *When*: After all projects have been evaluated (i.e., all `build.gradle(.kts)` files are read and configuration is complete), but before task graph is finalized and before execution starts.
 
 ====
-include::sample[dir="snippets/initScripts/callbacks/kotlin",files="callbacks.init.gradle.kts[tags=projectsevaluated]"]
-include::sample[dir="snippets/initScripts/callbacks/groovy",files="callbacks.init.gradle[tags=projectsevaluated]"]
+include::sample[dir="snippets/reference/runtime-configuration/callbacks/kotlin",files="callbacks.init.gradle.kts[tags=projectsevaluated]"]
+include::sample[dir="snippets/reference/runtime-configuration/callbacks/groovy",files="callbacks.init.gradle[tags=projectsevaluated]"]
 ====
 
 === Build Listeners
@@ -434,15 +434,15 @@ The `TaskExecutionGraphListener` fires once after the task graph has been calcul
 This example uses `graph.allTasks` to inspect what Gradle plans to run, and `graph.hasTask()` to conditionally adjust behaviour:
 
 ====
-include::sample[dir="snippets/buildlifecycle/buildListener/kotlin",files="build.gradle.kts[tags=task-execution-graph-listener]"]
-include::sample[dir="snippets/buildlifecycle/buildListener/groovy",files="build.gradle[tags=task-execution-graph-listener]"]
+include::sample[dir="snippets/reference/runtime-configuration/buildListener/kotlin",files="build.gradle.kts[tags=task-execution-graph-listener]"]
+include::sample[dir="snippets/reference/runtime-configuration/buildListener/groovy",files="build.gradle[tags=task-execution-graph-listener]"]
 ====
 
 Note that tasks skipped via `onlyIf` still appear in the graph; skipping is evaluated later, per task, during execution:
 
 [source,text]
 ----
-include::{snippetsPath}/buildlifecycle/buildListener/tests/buildlistener.out[]
+include::{snippetsPath}/reference/runtime-configuration/buildListener/tests/buildlistener.out[]
 ----
 
 === Build Services
@@ -452,15 +452,15 @@ include::{snippetsPath}/buildlifecycle/buildListener/tests/buildlistener.out[]
 This example implements link:{javadocPath}/org/gradle/tooling/events/OperationCompletionListener.html[`OperationCompletionListener`] directly on the service to count tasks as they complete, and uses `close()` as an end-of-build hook to print the final summary, whether the build succeeded or failed:
 
 ====
-include::sample[dir="snippets/buildlifecycle/buildService/kotlin",files="build.gradle.kts[tags=listener]"]
-include::sample[dir="snippets/buildlifecycle/buildService/groovy",files="build.gradle[tags=listener]"]
+include::sample[dir="snippets/reference/runtime-configuration/buildService/kotlin",files="build.gradle.kts[tags=listener]"]
+include::sample[dir="snippets/reference/runtime-configuration/buildService/groovy",files="build.gradle[tags=listener]"]
 ====
 
 The hooks are used to calculate the duration of the build:
 
 [source,text]
 ----
-include::{snippetsPath}/buildlifecycle/buildService/tests/buildservice.out[]
+include::{snippetsPath}/reference/runtime-configuration/buildService/tests/buildservice.out[]
   Build duration : 510ms
 ─────────────────────────────────────
 
@@ -477,13 +477,13 @@ To use a Flow Action, you define a class implementing link:{javadocPath}/org/gra
 You then register it inside a `Plugin` using link:{javadocPath}/org/gradle/api/flow/FlowScope.html[`FlowScope`], which is injected by Gradle alongside link:{javadocPath}/org/gradle/api/flow/FlowProviders.html[`FlowProviders`]:
 
 ====
-include::sample[dir="snippets/buildlifecycle/flowAction/kotlin",files="build.gradle.kts[tags=flow-action]"]
-include::sample[dir="snippets/buildlifecycle/flowAction/groovy",files="build.gradle[tags=flow-action]"]
+include::sample[dir="snippets/reference/runtime-configuration/flowAction/kotlin",files="build.gradle.kts[tags=flow-action]"]
+include::sample[dir="snippets/reference/runtime-configuration/flowAction/groovy",files="build.gradle[tags=flow-action]"]
 ====
 
 As expected, we see the build finish success message:
 
 [source,text]
 ----
-include::{snippetsPath}/buildlifecycle/flowAction/tests/flowaction.out[]
+include::{snippetsPath}/reference/runtime-configuration/flowAction/tests/flowaction.out[]
 ----

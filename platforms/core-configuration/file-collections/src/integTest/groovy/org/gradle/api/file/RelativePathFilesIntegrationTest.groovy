@@ -19,7 +19,7 @@ package org.gradle.api.file
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import spock.lang.Issue
 
 class RelativePathFilesIntegrationTest extends AbstractIntegrationSpec {
@@ -55,7 +55,7 @@ class RelativePathFilesIntegrationTest extends AbstractIntegrationSpec {
     }
 
     // Test implementation is not compatible with IP, but the use case will still exist, though might be more involved to set up
-    @Requires(IntegTestPreconditions.NotIsolatedProjects)
+    @Requires(TestExecutionPreconditions.NotIsolatedProjects)
     @Issue("https://github.com/gradle/gradle/issues/30052")
     def "#container supports using relative paths at execution time"() {
         given:

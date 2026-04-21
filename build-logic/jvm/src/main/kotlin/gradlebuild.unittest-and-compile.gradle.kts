@@ -117,8 +117,7 @@ fun configureSourcesVariant() {
     }
 
     // TODO: This should not be necessary anymore now that we have variant reselection.
-    @Suppress("UnusedPrivateProperty")
-    val transitiveSourcesElements by configurations.creating {
+    configurations.create("transitiveSourcesElements") {
         isCanBeResolved = false
         isCanBeConsumed = true
         extendsFrom(configurations.implementation.get())
@@ -176,7 +175,7 @@ fun addDependencies() {
         testRuntimeOnly(testLibs.findLibrary("junitPlatform").get())
 
         // use a separate configuration for the platform dependency that does not get published as part of 'apiElements' or 'runtimeElements'
-        val platformImplementation by configurations.creating
+        val platformImplementation = configurations.create("platformImplementation")
         configurations["compileClasspath"].extendsFrom(platformImplementation)
         configurations["runtimeClasspath"].extendsFrom(platformImplementation)
         configurations["testCompileClasspath"].extendsFrom(platformImplementation)
@@ -274,7 +273,10 @@ fun Test.isUnitTest() = listOf("test", "writePerformanceScenarioDefinitions", "w
  * If enabled, test JVM will inherit the DEVELOCITY_ACCESS_TOKEN
  * environment variable. This allows build scans to be published for integration tests.
  */
-fun Test.inheritDevelocityAccessTokenEnv() = setOf("smoke-test").contains(project.name)
+fun Test.inheritedEnvVars(): List<String> = when {
+    project.name == "smoke-test" -> listOf("DEVELOCITY_ACCESS_KEY", "CI")
+    else -> emptyList()
+}
 
 fun Test.usesEmbeddedExecuter() = systemProperties["org.gradle.integtest.executer"]?.equals("embedded") ?: false
 
@@ -305,7 +307,7 @@ fun configureTests() {
     tasks.withType<Test>().configureEach {
 
         configureAndroidUserHome()
-        filterEnvironmentVariables(inheritDevelocityAccessTokenEnv())
+        filterEnvironmentVariables(inheritedEnvVars())
 
         maxParallelForks = project.maxParallelForks
 

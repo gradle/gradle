@@ -76,8 +76,8 @@ Next, we'll configure a **Composite Build** by updating the root `settings.gradl
 This tells Gradle to treat the `plugin` project as an included build.
 
 ====
-include::sample[dir="snippets/plugins/plugin-tutorial/kotlin",files="settings.gradle.kts[]"]
-include::sample[dir="snippets/plugins/plugin-tutorial/groovy",files="settings.gradle[]"]
+include::sample[dir="snippets/tutorials/developing-plugins/plugin-tutorial/kotlin",files="settings.gradle.kts[]"]
+include::sample[dir="snippets/tutorials/developing-plugins/plugin-tutorial/groovy",files="settings.gradle[]"]
 ====
 
 The key line here is `includeBuild("plugin")` inside the `pluginManagement {}` block.
@@ -87,8 +87,8 @@ Finally, we need to update the `plugin`'s build file to account for the composit
 We'll change the `id` from a local file to a standard `String`.
 
 ====
-include::sample[dir="snippets/plugins/plugin-tutorial/kotlin",files="plugin/build.gradle.kts[tags=plugins]"]
-include::sample[dir="snippets/plugins/plugin-tutorial/groovy",files="plugin/build.gradle[tags=dependencies]"]
+include::sample[dir="snippets/tutorials/developing-plugins/plugin-tutorial/kotlin",files="plugin/build.gradle.kts[tags=plugins]"]
+include::sample[dir="snippets/tutorials/developing-plugins/plugin-tutorial/groovy",files="plugin/build.gradle[tags=dependencies]"]
 ====
 
 NOTE: In a Composite Build, the `plugin` project no longer has access to the root `libs.versions.toml` file. For this tutorial, we are using direct dependency declarations.
@@ -100,8 +100,8 @@ Now we'll configure the `consumer` project's settings file to apply our plugin.
 Add this code to `consumer/settings.gradle(.kts)`:
 
 ====
-include::sample[dir="snippets/plugins/plugin-tutorial/kotlin",files="consumer/settings.gradle.kts[tags=entire]"]
-include::sample[dir="snippets/plugins/plugin-tutorial/groovy",files="consumer/settings.gradle[tags=entire]"]
+include::sample[dir="snippets/tutorials/developing-plugins/plugin-tutorial/kotlin",files="consumer/settings.gradle.kts[tags=entire]"]
+include::sample[dir="snippets/tutorials/developing-plugins/plugin-tutorial/groovy",files="consumer/settings.gradle[tags=entire]"]
 ====
 
 This tells Gradle that when it encounters a `plugins` block that references your `org.example.slack` plugin, it should look for the plugin in the `plugin` project of the composite build.
@@ -111,8 +111,8 @@ This tells Gradle that when it encounters a `plugins` block that references your
 Now, let's configure the `consumer` project's `build.gradle(.kts)` file to actually apply and configure our plugin.
 
 ====
-include::sample[dir="snippets/plugins/plugin-tutorial/kotlin",files="consumer/build.gradle.kts[tags=build]"]
-include::sample[dir="snippets/plugins/plugin-tutorial/groovy",files="consumer/build.gradle[tags=build]"]
+include::sample[dir="snippets/tutorials/developing-plugins/plugin-tutorial/kotlin",files="consumer/build.gradle.kts[tags=build]"]
+include::sample[dir="snippets/tutorials/developing-plugins/plugin-tutorial/groovy",files="consumer/build.gradle[tags=build]"]
 ====
 
 Notice that we don't need a `version` for the plugin! Gradle automatically resolves it from the included build.

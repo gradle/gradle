@@ -1,5 +1,0 @@
-tasks.register("generate", Generate) {
-    fileCount = 2
-    content = 'Hello World!'
-    generatedFileDir = layout.buildDirectory.file("generated-output")
-}

@@ -29,7 +29,7 @@ import org.gradle.test.fixtures.Flaky
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import org.gradle.util.GradleVersion
 import org.junit.Rule
 import spock.lang.Issue
@@ -81,7 +81,7 @@ class CrossBuildScriptCachingIntegrationSpec extends AbstractIntegrationSpec {
         getCompileBuildFileOperationsCount() == 4 // classpath + body for settings and for the 2 identical scripts
     }
 
-    @Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "explicitly requests a daemon")
+    @Requires(value = TestExecutionPreconditions.NotEmbeddedExecutor, reason = "explicitly requests a daemon")
     def "identical build files are compiled once for distinct invocations"() {
         given:
         root {
@@ -608,7 +608,7 @@ class CrossBuildScriptCachingIntegrationSpec extends AbstractIntegrationSpec {
         allCompileOperations == 2 * (1 + iterations) // common + 1 build script per iteration
     }
 
-    @Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "explicitly requests a daemon")
+    @Requires(value = TestExecutionPreconditions.NotEmbeddedExecutor, reason = "explicitly requests a daemon")
     def "script doesn't get recompiled if daemon disappears"() {
         root {
             buildSrc {

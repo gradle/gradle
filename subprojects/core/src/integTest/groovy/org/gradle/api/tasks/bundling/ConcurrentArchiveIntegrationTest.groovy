@@ -22,7 +22,7 @@ import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import org.junit.Rule
 import spock.lang.Issue
 
@@ -203,7 +203,7 @@ class ConcurrentArchiveIntegrationTest extends AbstractIntegrationSpec {
         result.assertTasksExecuted(':lib:update', ':utils:lib:update', ':lib:verify', ':utils:lib:verify')
     }
 
-    @Requires(IntegTestPreconditions.NotEmbeddedExecutor)
+    @Requires(TestExecutionPreconditions.NotEmbeddedExecutor)
     @Issue("https://github.com/gradle/gradle/issues/22685")
     def "can visit and edit zip archive differently from settings script when gradle is run in two simultaneous processes"() {
         given: "a started server which can be used to cause the edits to begin at approximately the same time"
@@ -288,7 +288,7 @@ class ConcurrentArchiveIntegrationTest extends AbstractIntegrationSpec {
         server.stop()
     }
 
-    @Requires(IntegTestPreconditions.NotEmbeddedExecutor)
+    @Requires(TestExecutionPreconditions.NotEmbeddedExecutor)
     @Issue("https://github.com/gradle/gradle/issues/22685")
     def "can visit and edit tar archive differently from settings script when gradle is run in two simultaneous processes"() {
         given: "a started server which can be used to cause the edits to begin at approximately the same time"

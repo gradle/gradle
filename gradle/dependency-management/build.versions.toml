@@ -2,7 +2,7 @@
 [versions]
 asciidoctor = "2.5.13"
 checkstyle = "10.25.0"
-develocity = "4.4.0"
+develocity = "4.4.1"
 groovy = "4.0.29"
 javaparser = "3.18.0"
 javaPoet = "1.13.0"
@@ -21,9 +21,9 @@ detektPlugin = { module = "io.gitlab.arturbosch.detekt:detekt-gradle-plugin", ve
 develocityConventions = { module = "io.github.gradle.develocity-conventions-plugin:io.github.gradle.develocity-conventions-plugin.gradle.plugin", version = "0.14.1" }
 develocityPlugin = { module = "com.gradle.develocity:com.gradle.develocity.gradle.plugin", version.ref = "develocity" }
 docbook = { module = "net.sf.docbook:docbook-xsl", version = "1.75.2" }
-dokkaPlugin = { module = "org.jetbrains.dokka:dokka-gradle-plugin", version = "2.0.0" }
+dokkaPlugin = { module = "org.jetbrains.dokka:dokka-gradle-plugin", version = "2.2.0" }
 errorProne = { module = "com.google.errorprone:error_prone_core", version.ref = "errorProne" }
-errorPronePlugin = { module = "net.ltgt.gradle:gradle-errorprone-plugin", version = "4.1.0" }
+errorPronePlugin = { module = "net.ltgt.gradle:gradle-errorprone-plugin", version = "5.1.0" }
 flexmark = { module = "com.vladsch.flexmark:flexmark-all", version = "0.34.60" } # Higher versions tested are either incompatible (0.62.2) or bring additional unwanted dependencies (0.36.8)
 foojayConventions = { module = "org.gradle.toolchains.foojay-resolver-convention:org.gradle.toolchains.foojay-resolver-convention.gradle.plugin", version = "1.0.0" }
 gradleGuidesPlugin = { group = "org.gradle.guides", name = "gradle-guides-plugin", version = "0.24.0" }
@@ -40,7 +40,7 @@ javaParserSymbolSolver = { module = "com.github.javaparser:javaparser-symbol-sol
 javaPoet = { module = "com.squareup:javapoet", version.ref = "javaPoet" }
 jaxb = { module = "com.sun.xml.bind:jaxb-impl", version = "4.0.5" }
 jhighlight = { module = "com.uwyn:jhighlight", version = "1.0" }
-jmhPlugin = { module = "me.champeau.jmh:jmh-gradle-plugin", version = "0.7.2" }
+jmhPlugin = { module = "me.champeau.jmh:jmh-gradle-plugin", version = "0.7.3" }
 jsoup = { module = "org.jsoup:jsoup", version = "1.15.3" }
 jspecify = { module = "org.jspecify:jspecify", version = "1.0.0" }
 kgp = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin"}

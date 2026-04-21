@@ -68,8 +68,8 @@ This works similarly to configuring projects in a multi-project build.
 The following sample shows how to perform extra configuration from an init script _before_ the projects are evaluated:
 
 ====
-include::sample[dir="snippets/initScripts/configurationInjection/groovy",files="build.gradle[];init.gradle[]"]
-include::sample[dir="snippets/initScripts/configurationInjection/kotlin",files="build.gradle.kts[];init.gradle.kts[]"]
+include::sample[dir="snippets/reference/other-topics/configurationInjection/groovy",files="build.gradle[];init.gradle[]"]
+include::sample[dir="snippets/reference/other-topics/configurationInjection/kotlin",files="build.gradle.kts[];init.gradle.kts[]"]
 ====
 
 This sample uses this feature to configure an additional repository to be used only for specific environments.
@@ -83,7 +83,7 @@ $ ./gradlew --init-script init.gradle.kts -q showRepos
 ----
 [source,text]
 ----
-include::{snippetsPath}/initScripts/configurationInjection/tests-common/initScriptConfiguration.out[]
+include::{snippetsPath}/reference/other-topics/configurationInjection/tests-common/initScriptConfiguration.out[]
 ----
 =====
 [.multi-language-text.lang-groovy]
@@ -94,7 +94,7 @@ $ ./gradlew --init-script init.gradle -q showRepos
 ----
 [source,text]
 ----
-include::{snippetsPath}/initScripts/configurationInjection/tests-common/initScriptConfiguration.out[]
+include::{snippetsPath}/reference/other-topics/configurationInjection/tests-common/initScriptConfiguration.out[]
 ----
 =====
 ====
@@ -105,8 +105,8 @@ include::{snippetsPath}/initScripts/configurationInjection/tests-common/initScri
 Use `initscript { }` to declare the init script’s classpath (repositories + dependencies):
 
 ====
-include::sample[dir="snippets/initScripts/externalDependency/kotlin",files="init.gradle.kts[tags=declare-classpath]"]
-include::sample[dir="snippets/initScripts/externalDependency/groovy",files="init.gradle[tags=declare-classpath]"]
+include::sample[dir="snippets/reference/other-topics/externalDependency/kotlin",files="init.gradle.kts[tags=declare-classpath]"]
+include::sample[dir="snippets/reference/other-topics/externalDependency/groovy",files="init.gradle[tags=declare-classpath]"]
 ====
 
 The closure passed to `initscript` configures a link:{javadocPath}/org/gradle/api/initialization/dsl/ScriptHandler.html[`ScriptHandler`] instance.
@@ -119,8 +119,8 @@ Having declared the init script classpath, you can use the classes in your init 
 The following example adds to the previous example and uses classes from the init script classpath:
 
 ====
-include::sample[dir="snippets/initScripts/externalDependency/kotlin",files="init.gradle.kts[tags=all];build.gradle.kts[]"]
-include::sample[dir="snippets/initScripts/externalDependency/groovy",files="init.gradle[tags=all];build.gradle[]"]
+include::sample[dir="snippets/reference/other-topics/externalDependency/kotlin",files="init.gradle.kts[tags=all];build.gradle.kts[]"]
+include::sample[dir="snippets/reference/other-topics/externalDependency/groovy",files="init.gradle[tags=all];build.gradle[]"]
 ====
 
 ====
@@ -132,7 +132,7 @@ $ ./gradlew --init-script init.gradle.kts -q doNothing
 ----
 [source,text]
 ----
-include::{snippetsPath}/initScripts/externalDependency/tests-common/externalInitDependency.out[]
+include::{snippetsPath}/reference/other-topics/externalDependency/tests-common/externalInitDependency.out[]
 ----
 =====
 [.multi-language-text.lang-groovy]
@@ -143,7 +143,7 @@ $ ./gradlew --init-script init.gradle -q doNothing
 ----
 [source,text]
 ----
-include::{snippetsPath}/initScripts/externalDependency/tests-common/externalInitDependency.out[]
+include::{snippetsPath}/reference/other-topics/externalDependency/tests-common/externalInitDependency.out[]
 ----
 =====
 ====
@@ -161,8 +161,8 @@ Unlike project (`Plugin<Project>`) or settings (`Plugin<Settings>`) plugins, an 
 The init plugin in the init script ensures that only a specified repository is used when running the build:
 
 ====
-include::sample[dir="snippets/initScripts/plugins/kotlin",files="init.gradle.kts[tags=init-script-plugin];build.gradle.kts[tag=show-repos-task]"]
-include::sample[dir="snippets/initScripts/plugins/groovy",files="init.gradle[tags=init-script-plugin];build.gradle[tag=show-repos-task]"]
+include::sample[dir="snippets/reference/other-topics/plugins/kotlin",files="init.gradle.kts[tags=init-script-plugin];build.gradle.kts[tag=show-repos-task]"]
+include::sample[dir="snippets/reference/other-topics/plugins/groovy",files="init.gradle[tags=init-script-plugin];build.gradle[tag=show-repos-task]"]
 ====
 
 ====
@@ -174,7 +174,7 @@ $ ./gradlew --init-script init.gradle.kts -q showRepositories
 ----
 [source,text]
 ----
-include::{snippetsPath}/initScripts/plugins/tests-common/usePluginsInInitScripts.out[]
+include::{snippetsPath}/reference/other-topics/plugins/tests-common/usePluginsInInitScripts.out[]
 ----
 =====
 [.multi-language-text.lang-groovy]
@@ -185,7 +185,7 @@ $ ./gradlew --init-script init.gradle -q showRepositories
 ----
 [source,text]
 ----
-include::{snippetsPath}/initScripts/plugins/tests-common/usePluginsInInitScripts.out[]
+include::{snippetsPath}/reference/other-topics/plugins/tests-common/usePluginsInInitScripts.out[]
 ----
 =====
 ====
@@ -203,8 +203,8 @@ Of course, the applied plugin can be resolved as an external dependency as descr
 In this example, the init script is its own project called `baseline-init-plugin`:
 
 ====
-include::sample[dir="snippets/plugins/init-kotlin/kotlin",files="baseline-init-plugin/src/main/kotlin/com/example/BaselineInitPlugin.kt[]"]
-include::sample[dir="snippets/plugins/init-groovy/groovy",files="baseline-init-plugin/src/main/groovy/com/example/BaselineInitPlugin.groovy[]"]
+include::sample[dir="snippets/reference/other-topics/init-kotlin/kotlin",files="baseline-init-plugin/src/main/kotlin/com/example/BaselineInitPlugin.kt[]"]
+include::sample[dir="snippets/reference/other-topics/init-groovy/groovy",files="baseline-init-plugin/src/main/groovy/com/example/BaselineInitPlugin.groovy[]"]
 ====
 
 You can publish it to a local Maven repository by running:
@@ -217,8 +217,8 @@ $ ./gradlew :baseline-init-plugin:publishPluginMavenPublicationToMavenRepoInLoca
 Here it is applied in an init script of the `app` project:
 
 ====
-include::sample[dir="snippets/plugins/init-kotlin/kotlin",files="init.gradle.kts[]"]
-include::sample[dir="snippets/plugins/init-groovy/groovy",files="init.gradle[]"]
+include::sample[dir="snippets/reference/other-topics/init-kotlin/kotlin",files="init.gradle.kts[]"]
+include::sample[dir="snippets/reference/other-topics/init-groovy/groovy",files="init.gradle[]"]
 ====
 
 Then you can run the app with:

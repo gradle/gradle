@@ -21,9 +21,9 @@ import org.gradle.integtests.fixtures.GroovyBuildScriptLanguage
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 
-@Requires(IntegTestPreconditions.IsEmbeddedExecutor)
+@Requires(TestExecutionPreconditions.IsEmbeddedExecutor)
 // this test only works in embedded mode because of the use of validation test fixtures
 class TaskFromPluginValidationIntegrationTest extends AbstractIntegrationSpec implements ValidationMessageChecker {
 

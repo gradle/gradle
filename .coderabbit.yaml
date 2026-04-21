@@ -1,0 +1,5 @@
+reviews:
+  auto_review:
+    enabled: false
+    drafts: false
+  review_status: false

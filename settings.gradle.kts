@@ -51,6 +51,7 @@ val core = platform("core") {
         subproject("build-process-services")
         subproject("build-profile")
         subproject("build-state")
+        subproject("classpath")
         subproject("classloaders")
         subproject("cli")
         subproject("client-services")
@@ -150,6 +151,7 @@ val core = platform("core") {
     module("core-execution") {
         subproject("build-cache")
         subproject("build-cache-base")
+        subproject("build-cache-core")
         subproject("build-cache-example-client")
         subproject("build-cache-http")
         subproject("build-cache-local")

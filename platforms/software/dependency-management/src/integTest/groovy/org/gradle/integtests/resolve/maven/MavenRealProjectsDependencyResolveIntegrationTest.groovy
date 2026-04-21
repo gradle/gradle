@@ -19,7 +19,8 @@ package org.gradle.integtests.resolve.maven
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.TestEnvironmentPreconditions
+
 
 class MavenRealProjectsDependencyResolveIntegrationTest extends AbstractDependencyResolutionTest {
     def resolve = new ResolveTestFixture(testDirectory)
@@ -30,7 +31,7 @@ class MavenRealProjectsDependencyResolveIntegrationTest extends AbstractDependen
         """
     }
 
-    @Requires(UnitTestPreconditions.Online)
+    @Requires(TestEnvironmentPreconditions.Online)
     def "resolves dependencies on real projects"() {
         // Real but ancient projects
         // Hibernate core brings in conflicts, exclusions and root poms

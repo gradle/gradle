@@ -55,27 +55,30 @@ import java.util.Objects
 import java.util.function.Supplier
 
 
-class CrossProjectConfigurationReportingGradle private constructor(
+class CrossProjectConfigurationReportingGradle(
     gradle: GradleInternal,
     private val referrerProject: ProjectInternal,
-    private val crossProjectModelAccess: CrossProjectModelAccess,
-    private val projectConfigurator: CrossProjectConfigurator
 ) : GradleInternal {
 
     private
     val delegate: GradleInternal = when (gradle) {
         // 'unwrapping' ensures that there are no chains of delegation
         is CrossProjectConfigurationReportingGradle -> gradle.delegate
+        is CrossBuildConfigurationReportingGradle -> gradle.delegate
         else -> gradle
     }
 
+    private val crossProjectModelAccess: CrossProjectModelAccess = delegate.serviceOf()
+
+    private val projectConfigurator: CrossProjectConfigurator = delegate.serviceOf()
+
     override fun getParent(): GradleInternal? =
-        delegate.parent?.let { delegateParent -> from(delegateParent, referrerProject) }
+        delegate.parent?.let { delegateParent -> CrossProjectConfigurationReportingGradle(delegateParent, referrerProject) }
 
     override fun getRoot(): GradleInternal =
         when (val root = delegate.root) {
             delegate -> this
-            else -> from(root, referrerProject)
+            else -> CrossProjectConfigurationReportingGradle(root, referrerProject)
         }
 
     override fun getRootProject(): ProjectInternal =
@@ -156,15 +159,6 @@ class CrossProjectConfigurationReportingGradle private constructor(
     override fun resetState() {
         // Should not be called
         throw UnsupportedOperationException()
-    }
-
-    internal
-    companion object {
-        fun from(gradle: GradleInternal, referrerProject: ProjectInternal): CrossProjectConfigurationReportingGradle {
-            val parentCrossProjectModelAccess = gradle.serviceOf<CrossProjectModelAccess>()
-            val parentCrossProjectConfigurator = gradle.serviceOf<CrossProjectConfigurator>()
-            return CrossProjectConfigurationReportingGradle(gradle, referrerProject, parentCrossProjectModelAccess, parentCrossProjectConfigurator)
-        }
     }
 
     private

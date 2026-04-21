@@ -102,17 +102,9 @@ Gradle includes some tasks by default, and many others are added automatically w
 
 If you remember back in <<part1_gradle_init.adoc#part1_begin,part 1>>, the build script of our Java application applies the `application` plugin:
 
-++++
-<div style="text-align: right;">
-  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/init/generated">
-    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
-  </a>
-</div>
-++++
-
 ====
-include::sample[dir="snippets/init/generated/kotlin",files="app/build.gradle.kts[tags=init-plugins]"]
-include::sample[dir="snippets/init/generated/groovy",files="app/build.gradle[tags=init-plugins]"]
+include::sample[dir="snippets/tutorials/running-builds/generated/kotlin",files="app/build.gradle.kts[tags=init-plugins]"]
+include::sample[dir="snippets/tutorials/running-builds/generated/groovy",files="app/build.gradle[tags=init-plugins]"]
 ====
 
 Applying the `application` plugin adds tasks like `run`, `build`, `compileJava`, `test`, and `jar`.
@@ -126,8 +118,8 @@ For example, the `Copy` task type is used to copy files from one location to ano
 Here's how you could register a custom task that copies all `.war` files from a source directory to a target directory:
 
 ====
-include::sample[dir="snippets/init/generated/kotlin",files="app/build.gradle.kts[tags=init-task]"]
-include::sample[dir="snippets/init/generated/groovy",files="app/build.gradle[tags=init-task]"]
+include::sample[dir="snippets/tutorials/running-builds/generated/kotlin",files="app/build.gradle.kts[tags=init-task]"]
+include::sample[dir="snippets/tutorials/running-builds/generated/groovy",files="app/build.gradle[tags=init-task]"]
 ====
 
 If this task is defined in the `build.gradle(.kts)` file for the app subproject, you can run it with:
@@ -164,8 +156,8 @@ There are two kinds of task dependencies:
 Here is an example of explicit task dependency:
 
 ====
-include::sample[dir="snippets/init/generated/kotlin",files="app/build.gradle.kts[tags=init-hello]"]
-include::sample[dir="snippets/init/generated/groovy",files="app/build.gradle[tags=init-hello]"]
+include::sample[dir="snippets/tutorials/running-builds/generated/kotlin",files="app/build.gradle.kts[tags=init-hello]"]
+include::sample[dir="snippets/tutorials/running-builds/generated/groovy",files="app/build.gradle[tags=init-hello]"]
 ====
 
 In this case, `hello` prints before `greet`.
@@ -273,7 +265,7 @@ The `run` task executes the code in `tutorial/app/src/main/java/com.gradle.tutor
 You can take a minute and take a look at the Java code in `App.java` which simply prints "Hello World" to the screen:
 
 ====
-include::sample[dir="snippets/init/generated/groovy",files="app/src/main/java/org/example/App.java[]"]
+include::sample[dir="snippets/tutorials/running-builds/generated/groovy",files="app/src/main/java/org/example/App.java[]"]
 ====
 
 [.text-right]

@@ -883,8 +883,8 @@ You define actions for Gradle to take by registering tasks in build scripts or p
 Tasks are defined using strings for task names:
 
 ====
-include::sample[dir="snippets/tasks/defineUsingStringTaskNames/kotlin",files="build.gradle.kts[tags=simple_register]"]
-include::sample[dir="snippets/tasks/defineUsingStringTaskNames/groovy",files="build.gradle[tags=simple_register]"]
+include::sample[dir="snippets/reference/task-development/defineUsingStringTaskNames/kotlin",files="build.gradle.kts[tags=simple_register]"]
+include::sample[dir="snippets/reference/task-development/defineUsingStringTaskNames/groovy",files="build.gradle[tags=simple_register]"]
 ====
 
 In the example above, the task is added to the link:{javadocPath}/org/gradle/api/tasks/TaskCollection.html[`TasksCollection`] using the link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html#register-java.lang.String-java.lang.Class-[`register()`] method in link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html[`TaskContainer`].
@@ -900,8 +900,8 @@ Let’s look at the `Copy` task provided by Gradle as an example.
 We first register a task called `myCopy` of type `Copy` in the build script:
 
 ====
-include::sample[dir="snippets/tasks/configureUsingBlock/kotlin",files="build.gradle.kts[tags=declare-task]"]
-include::sample[dir="snippets/tasks/configureUsingBlock/groovy",files="build.gradle[tags=declare-task]"]
+include::sample[dir="snippets/reference/task-development/configureUsingBlock/kotlin",files="build.gradle.kts[tags=declare-task]"]
+include::sample[dir="snippets/reference/task-development/configureUsingBlock/groovy",files="build.gradle[tags=declare-task]"]
 ====
 
 This registers a copy task with no default behavior.
@@ -914,8 +914,8 @@ The following examples show several ways to achieve the same configuration:
 Use `named()` to configure an existing task registered elsewhere:
 
 ====
-include::sample[dir="snippets/tasks/configureUsingVar/kotlin",files="build.gradle.kts[tags=configure]"]
-include::sample[dir="snippets/tasks/configureUsingVar/groovy",files="build.gradle[tags=configure]"]
+include::sample[dir="snippets/reference/task-development/configureUsingVar/kotlin",files="build.gradle.kts[tags=configure]"]
+include::sample[dir="snippets/reference/task-development/configureUsingVar/groovy",files="build.gradle[tags=configure]"]
 ====
 
 ==== 2. Using a configuration block:
@@ -923,8 +923,8 @@ include::sample[dir="snippets/tasks/configureUsingVar/groovy",files="build.gradl
 Use a block to configure the task immediately upon registering it:
 
 ====
-include::sample[dir="snippets/tasks/defineAndConfigure/kotlin",files="build.gradle.kts[tags=no-description]"]
-include::sample[dir="snippets/tasks/defineAndConfigure/groovy",files="build.gradle[tags=no-description]"]
+include::sample[dir="snippets/reference/task-development/defineAndConfigure/kotlin",files="build.gradle.kts[tags=no-description]"]
+include::sample[dir="snippets/reference/task-development/defineAndConfigure/groovy",files="build.gradle[tags=no-description]"]
 ====
 
 ==== 3. Name method as call:

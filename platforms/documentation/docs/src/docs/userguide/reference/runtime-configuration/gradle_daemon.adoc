@@ -316,17 +316,9 @@ $ ./gradlew updateDaemonJvm --jvm-version=17
 
 Or configure the task in the build script of the root project:
 
-++++
-<div style="text-align: right;">
-  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/daemon-jvm/customized-task">
-    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
-  </a>
-</div>
-++++
-
 ====
-include::sample[dir="snippets/daemon-jvm/customized-task/kotlin",files="build.gradle.kts[tags=customized-daemon-jvm-task]"]
-include::sample[dir="snippets/daemon-jvm/customized-task/groovy",files="build.gradle[tags=customized-daemon-jvm-task]"]
+include::sample[dir="snippets/reference/runtime-configuration/customized-task/kotlin",files="build.gradle.kts[tags=customized-daemon-jvm-task]"]
+include::sample[dir="snippets/reference/runtime-configuration/customized-task/groovy",files="build.gradle[tags=customized-daemon-jvm-task]"]
 ====
 
 And then run the task:
@@ -492,17 +484,9 @@ Gradle sets, by convention, build platforms based on architectures `X86_64` and 
 
 These platforms can be configured through the `toolchainPlatforms` property of the `UpdateDaemonJvm` task.
 
-++++
-<div style="text-align: right;">
-  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/daemon-jvm/customized-task">
-    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
-  </a>
-</div>
-++++
-
 ====
-include::sample[dir="snippets/daemon-jvm/customized-task/kotlin",files="build.gradle.kts[tags=customized-plat-daemon-jvm-task]"]
-include::sample[dir="snippets/daemon-jvm/customized-task/groovy",files="build.gradle[tags=customized-plat-daemon-jvm-task]"]
+include::sample[dir="snippets/reference/runtime-configuration/customized-task/kotlin",files="build.gradle.kts[tags=customized-plat-daemon-jvm-task]"]
+include::sample[dir="snippets/reference/runtime-configuration/customized-task/groovy",files="build.gradle[tags=customized-plat-daemon-jvm-task]"]
 ====
 
 Gradle resolves JDK download URLs for these platforms by using the <<toolchains.adoc#sub:download_repositories,configured toolchain download repositories>>.
@@ -512,8 +496,8 @@ Alternatively, users can directly configure the JDK URLs for specific platforms 
 This property is a `Map<BuildPlatform, URI>` and can be configured as shown in the following example:
 
 ====
-include::sample[dir="snippets/daemon-jvm/customized-task/kotlin",files="build.gradle.kts[tags=customized-uri-daemon-jvm-task]"]
-include::sample[dir="snippets/daemon-jvm/customized-task/groovy",files="build.gradle[tags=customized-uri-daemon-jvm-task]"]
+include::sample[dir="snippets/reference/runtime-configuration/customized-task/kotlin",files="build.gradle.kts[tags=customized-uri-daemon-jvm-task]"]
+include::sample[dir="snippets/reference/runtime-configuration/customized-task/groovy",files="build.gradle[tags=customized-uri-daemon-jvm-task]"]
 ====
 
 TIP: A full package name is required for link:{javadocPath}/org/gradle/platform/Architecture.html[`org.gradle.platform.Architecture`] and link:{javadocPath}/org/gradle/platform/OperatingSystem.html[`org.gradle.platform.OperatingSystem`] due to a naming conflict with other types in different packages, which are resolved first alphabetically.
@@ -522,14 +506,14 @@ Running `./gradlew updateDaemonJvm` produces the following:
 
 [source,text]
 ----
-include::{snippetsPath}/daemon-jvm/customized-task/tests/daemon.out[]
+include::{snippetsPath}/reference/runtime-configuration/customized-task/tests/daemon.out[]
 ----
 
 If you want to disable the generation of URLs by the `updateDaemonJvm` task:
 
 ====
-include::sample[dir="snippets/daemon-jvm/customized-task/kotlin",files="build.gradle.kts[tags=customized-noplat-daemon-jvm-task]"]
-include::sample[dir="snippets/daemon-jvm/customized-task/groovy",files="build.gradle[tags=customized-noplat-daemon-jvm-task]"]
+include::sample[dir="snippets/reference/runtime-configuration/customized-task/kotlin",files="build.gradle.kts[tags=customized-noplat-daemon-jvm-task]"]
+include::sample[dir="snippets/reference/runtime-configuration/customized-task/groovy",files="build.gradle[tags=customized-noplat-daemon-jvm-task]"]
 ====
 
 Removing all platforms means that there is no longer a need for the <<toolchains.adoc#sub:download_repositories,toolchain download repositories>> to be configured.

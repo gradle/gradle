@@ -1,0 +1,36 @@
+plugins {
+    id 'cpp'
+}
+
+// tag::flavors[]
+model {
+    flavors {
+        english
+        french
+    }
+    components {
+        hello(NativeLibrarySpec) {
+            binaries.all {
+                if (flavor == flavors.french) {
+                    cppCompiler.define "FRENCH"
+                }
+            }
+        }
+    }
+}
+// end::flavors[]
+
+model {
+    binaries {
+        withType(SharedLibraryBinarySpec) {
+            cppCompiler.define "DLL_EXPORT"
+        }
+    }
+    components {
+        main(NativeExecutableSpec) {
+            binaries.all {
+                lib library: 'hello'
+            }
+        }
+    }
+}

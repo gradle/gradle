@@ -16,16 +16,18 @@
 
 package org.gradle.features
 
+import org.gradle.features.internal.ProjectFeatureFixture
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.integtests.fixtures.polyglot.PolyglotDslTest
 import org.gradle.integtests.fixtures.polyglot.PolyglotTestFixture
+import org.gradle.integtests.fixtures.polyglot.SkipDsl
 import org.gradle.internal.declarativedsl.DeclarativeTestUtils
-import org.gradle.features.internal.ProjectFeatureFixture
 import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.fixtures.plugin.PluginBuilder
 
 @PolyglotDslTest
+@SkipDsl(dsl = GradleDsl.GROOVY, because = "Groovy DSL is not supported for declarative configuration")
 class ProjectFeatureSafetyIntegrationTest extends AbstractIntegrationSpec implements ProjectFeatureFixture, PolyglotTestFixture {
     def setup() {
         file("gradle.properties") << "org.gradle.kotlin.dsl.dcl=true"
@@ -62,15 +64,10 @@ class ProjectFeatureSafetyIntegrationTest extends AbstractIntegrationSpec implem
         fails(":printFeatureDefinitionConfiguration")
 
         then:
-        assertUnsafeDefinitionHasDescriptionOrCause(failure,
-            "Project feature 'feature' has a definition type which was declared safe but has the following issues:\n" +
-            "  - Project feature 'feature' has a definition with type 'FeatureDefinition' which was declared safe but is not an interface.\n" +
-            "    \n" +
-            "    Reason: Safe definition types must be an interface.\n" +
-            "    \n" +
-            "    Possible solutions:\n" +
-            "      1. Mark the definition as unsafe.\n" +
-            "      2. Refactor the type as an interface."
+        failure.assertHasErrorOutput(
+            "    Unsafe declaration in safe definition: non-interface type\n" +
+            "      in schema type 'org.gradle.test.FeatureDefinition'\n" +
+            "      in safe feature definition of 'feature' (plugin 'com.example.test-software-ecosystem')"
         )
     }
 
@@ -88,15 +85,12 @@ class ProjectFeatureSafetyIntegrationTest extends AbstractIntegrationSpec implem
         fails(":printFeatureDefinitionConfiguration")
 
         then:
-        assertUnsafeDefinitionHasDescriptionOrCause(failure,
-            "Project feature 'feature' has a definition type which was declared safe but has the following issues:\n" +
-            "  - The definition type has @Inject annotated property 'objects' in type 'FeatureDefinition'.\n" +
-            "    \n" +
-            "    Reason: Safe definition types cannot inject services.\n" +
-            "    \n" +
-            "    Possible solutions:\n" +
-            "      1. Mark the definition as unsafe.\n" +
-            "      2. Remove the @Inject annotation from the 'objects' property."
+        // TODO: this is not the only failure reported, there is much more of them than should be; once the failures are filtered, this should become the only one
+        failure.assertHasErrorOutput(
+            "    Unsafe declaration in safe definition: injected service property\n" +
+                "      in schema property 'objects: ObjectFactory'\n" +
+                "      in schema type 'org.gradle.test.FeatureDefinition'\n" +
+                "      in safe feature definition of 'feature' (plugin 'com.example.test-software-ecosystem')"
         )
     }
 
@@ -114,15 +108,11 @@ class ProjectFeatureSafetyIntegrationTest extends AbstractIntegrationSpec implem
         fails(":printFeatureDefinitionConfiguration")
 
         then:
-        assertUnsafeDefinitionHasDescriptionOrCause(failure,
-            "Project feature 'feature' has a definition type which was declared safe but has the following issues:\n" +
-            "  - The definition type has @Inject annotated property 'objects' in type 'Fizz'.\n" +
-            "    \n" +
-            "    Reason: Safe definition types cannot inject services.\n" +
-            "    \n" +
-            "    Possible solutions:\n" +
-            "      1. Mark the definition as unsafe.\n" +
-            "      2. Remove the @Inject annotation from the 'objects' property."
+        failure.assertHasErrorOutput(
+            "    Unsafe declaration in safe definition: injected service property\n" +
+                "      in schema property 'objects: ObjectFactory'\n" +
+                "      in schema type 'org.gradle.test.FeatureDefinition.Fizz'\n" +
+                "      in safe feature definition of 'feature' (plugin 'com.example.test-software-ecosystem')"
         )
     }
 
@@ -140,22 +130,15 @@ class ProjectFeatureSafetyIntegrationTest extends AbstractIntegrationSpec implem
         fails(":printFeatureDefinitionConfiguration")
 
         then:
-        assertUnsafeDefinitionHasDescriptionOrCause(failure,
-            "Project feature 'feature' has a definition type which was declared safe but has the following issues:\n" +
-            "  - The definition type has @Inject annotated property 'objects' in type 'Fizz'.\n" +
-            "    \n" +
-            "    Reason: Safe definition types cannot inject services.\n" +
-            "    \n" +
-            "    Possible solutions:\n" +
-            "      1. Mark the definition as unsafe.\n" +
-            "      2. Remove the @Inject annotation from the 'objects' property.\n" +
-            "  - The definition type has @Inject annotated property 'objects' in type 'FeatureDefinition'.\n" +
-            "    \n" +
-            "    Reason: Safe definition types cannot inject services.\n" +
-            "    \n" +
-            "    Possible solutions:\n" +
-            "      1. Mark the definition as unsafe.\n" +
-            "      2. Remove the @Inject annotation from the 'objects' property."
+        failure.assertHasErrorOutput(
+            "    Unsafe declaration in safe definition: injected service property\n" +
+                "      in schema property 'objects: ObjectFactory'\n" +
+                "      in schema type 'org.gradle.test.FeatureDefinition'\n" +
+                "      in safe feature definition of 'feature' (plugin 'com.example.test-software-ecosystem')\n" +
+                "    Unsafe declaration in safe definition: injected service property\n" +
+                "      in schema property 'objects: ObjectFactory'\n" +
+                "      in schema type 'org.gradle.test.FeatureDefinition.Fizz'\n" +
+                "      in safe feature definition of 'feature' (plugin 'com.example.test-software-ecosystem')\n"
         )
     }
 
@@ -173,15 +156,11 @@ class ProjectFeatureSafetyIntegrationTest extends AbstractIntegrationSpec implem
         fails(":printFeatureDefinitionConfiguration")
 
         then:
-        assertUnsafeDefinitionHasDescriptionOrCause(failure,
-            "Project feature 'feature' has a definition type which was declared safe but has the following issues:\n" +
-            "  - The definition type has @Inject annotated property 'objects' in type 'FeatureDefinition'.\n" +
-            "    \n" +
-            "    Reason: Safe definition types cannot inject services.\n" +
-            "    \n" +
-            "    Possible solutions:\n" +
-            "      1. Mark the definition as unsafe.\n" +
-            "      2. Remove the @Inject annotation from the 'objects' property."
+        failure.assertHasErrorOutput(
+            "    Unsafe declaration in safe definition: injected service property\n" +
+                "      in schema property 'objects: ObjectFactory'\n" +
+                "      in schema type 'org.gradle.test.FeatureDefinition'\n" +
+                "      in safe feature definition of 'feature' (plugin 'com.example.test-software-ecosystem')"
         )
     }
 
@@ -199,22 +178,13 @@ class ProjectFeatureSafetyIntegrationTest extends AbstractIntegrationSpec implem
         fails(":printFeatureDefinitionConfiguration")
 
         then:
-        assertUnsafeDefinitionHasDescriptionOrCause(failure,
-            "Project feature 'feature' has a definition type which was declared safe but has the following issues:\n" +
-            "  - Project feature 'feature' has a definition with type 'FeatureDefinition' which was declared safe but is not an interface.\n" +
-            "    \n" +
-            "    Reason: Safe definition types must be an interface.\n" +
-            "    \n" +
-            "    Possible solutions:\n" +
-            "      1. Mark the definition as unsafe.\n" +
-            "      2. Refactor the type as an interface.\n" +
-            "  - The definition type has @Inject annotated property 'objects' in type 'FeatureDefinition'.\n" +
-            "    \n" +
-            "    Reason: Safe definition types cannot inject services.\n" +
-            "    \n" +
-            "    Possible solutions:\n" +
-            "      1. Mark the definition as unsafe.\n" +
-            "      2. Remove the @Inject annotation from the 'objects' property."
+        failure.assertHasErrorOutput(
+            "    Unsafe declaration in safe definition: non-interface type\n" +
+                "      in schema type 'org.gradle.test.FeatureDefinition'\n" +
+                "      in safe feature definition of 'feature' (plugin 'com.example.test-software-ecosystem')\n" +
+                "    Unsafe declaration in safe definition: non-public member 'getObjects'\n" +
+                "      in schema type 'org.gradle.test.FeatureDefinition'\n" +
+                "      in safe feature definition of 'feature' (plugin 'com.example.test-software-ecosystem')\n"
         )
     }
 

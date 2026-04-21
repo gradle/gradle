@@ -137,14 +137,14 @@ fun addInstallShadedJarTask(shadedJarTask: TaskProvider<ShadedJar>) {
 }
 
 fun addShadedJarVariant(shadedJarTask: TaskProvider<ShadedJar>) {
-    val implementation by configurations
-    val shadedImplementation by configurations.creating {
+    val implementation = configurations.getByName("implementation")
+    val shadedImplementation = configurations.create("shadedImplementation") {
         isCanBeResolved = false
         isCanBeConsumed = false
     }
     implementation.extendsFrom(shadedImplementation)
 
-    val shadedRuntimeElements by configurations.creating {
+    val shadedRuntimeElements = configurations.create("shadedRuntimeElements") {
         isCanBeResolved = false
         isCanBeConsumed = true
         attributes {
@@ -173,8 +173,8 @@ fun addShadedJarVariant(shadedJarTask: TaskProvider<ShadedJar>) {
 }
 
 fun configureShadedSourcesJarVariant() {
-    val implementation by configurations
-    val sourcesPath by configurations.creating {
+    val implementation = configurations.getByName("implementation")
+    val sourcesPath = configurations.create("sourcesPath") {
         isCanBeResolved = true
         isCanBeConsumed = false
         extendsFrom(implementation)
@@ -187,7 +187,7 @@ fun configureShadedSourcesJarVariant() {
     tasks.named<Jar>("sourcesJar") {
         from(sourcesPath.incoming.artifactView { lenient(true) }.files)
     }
-    val sourcesElements by configurations
+    val sourcesElements = configurations.getByName("sourcesElements")
     sourcesElements.attributes {
         attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named(Bundling.SHADOWED))
     }

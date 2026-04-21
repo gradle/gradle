@@ -40,6 +40,7 @@ import org.gradle.initialization.BuildRequestMetaData;
 import org.gradle.initialization.DefaultBuildCancellationToken;
 import org.gradle.initialization.DefaultBuildRequestMetaData;
 import org.gradle.initialization.DefaultProjectDescriptor;
+import org.gradle.initialization.DefaultProjectDescriptorRegistry;
 import org.gradle.initialization.LegacyTypesSupport;
 import org.gradle.initialization.NoOpBuildEventConsumer;
 import org.gradle.initialization.ProjectDescriptorInternal;
@@ -57,6 +58,7 @@ import org.gradle.internal.buildprocess.BuildProcessScopeServices;
 import org.gradle.internal.buildtree.BuildModelParameters;
 import org.gradle.internal.buildtree.BuildModelParametersFactory;
 import org.gradle.internal.buildtree.BuildTreeLifecycleController;
+import org.gradle.internal.buildtree.BuildTreeServices;
 import org.gradle.internal.buildtree.BuildTreeState;
 import org.gradle.internal.buildtree.RunTasksRequirements;
 import org.gradle.internal.classpath.ClassPath;
@@ -74,7 +76,6 @@ import org.gradle.internal.resources.DefaultResourceLockCoordinationService;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
 import org.gradle.internal.service.CloseableServiceRegistry;
-import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry;
@@ -90,6 +91,7 @@ import org.jspecify.annotations.Nullable;
 
 import java.io.File;
 import java.util.Collections;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 
@@ -102,7 +104,8 @@ public class ProjectBuilderImpl {
 
     public Project createChildProject(String name, Project parent, @Nullable File projectDir) {
         ProjectInternal parentProject = (ProjectInternal) parent;
-        ProjectDescriptorRegistry descriptorRegistry = parentProject.getServices().get(ProjectDescriptorRegistry.class);
+        RootProjectContext rootProjectContext = RootProjectContext.obtain(parentProject.getRootProject());
+        ProjectDescriptorRegistry descriptorRegistry = rootProjectContext.projectDescriptorRegistry;
         ProjectDescriptorInternal parentDescriptor = descriptorRegistry.getProject(parentProject.getPath());
 
         projectDir = (projectDir != null) ? projectDir.getAbsoluteFile() : new File(parentProject.getProjectDir(), name);
@@ -177,7 +180,8 @@ public class ProjectBuilderImpl {
         BuildModelParameters buildModelParameters = buildSessionServices.get(BuildModelParametersFactory.class).parametersForRootBuildTree(buildActionRequirements, internalOptions);
         BuildInvocationScopeId buildInvocationScopeId = new BuildInvocationScopeId(UniqueId.generate());
         BuildTreeState buildTreeState = new BuildTreeState(buildSessionServices, buildActionRequirements, buildModelParameters, buildInvocationScopeId);
-        TestRootBuild build = new TestRootBuild(projectDir, startParameter, buildTreeState);
+        BuildTreeServices buildTreeServices = buildTreeState.getServices().get(BuildTreeServices.class);
+        TestRootBuild build = new TestRootBuild(projectDir, startParameter, buildTreeServices);
 
         CloseableServiceRegistry buildServices = build.getBuildServices();
         buildServices.get(BuildStateRegistry.class).attachRootBuild(build);
@@ -198,9 +202,11 @@ public class ProjectBuilderImpl {
         GradlePropertiesController gradlePropertiesController = buildServices.get(GradlePropertiesController.class);
         gradlePropertiesController.loadGradleProperties(build.getBuildIdentifier(), build.getBuildRootDir(), false);
 
-        ProjectDescriptorRegistry projectDescriptorRegistry = buildServices.get(ProjectDescriptorRegistry.class);
         FileResolver fileResolver = buildServices.get(FileResolver.class);
         Problems problems = buildServices.get(Problems.class);
+
+        // Create manually, because ProjectBuilder doesn't have the settings phase
+        ProjectDescriptorRegistry projectDescriptorRegistry = new DefaultProjectDescriptorRegistry();
 
         // Registers project as a side effect
         ProjectDescriptorInternal projectDescriptor = new DefaultProjectDescriptor(null,
@@ -225,23 +231,22 @@ public class ProjectBuilderImpl {
         // Lock root project; this won't ever be released as ProjectBuilder has no lifecycle
         coordinationService.withStateLock(DefaultResourceLockCoordinationService.lock(project.getOwner().getAccessLock()));
 
-        project.getExtensions().getExtraProperties().set(
-            "ProjectBuilder.stoppable",
-            stoppable(
-                (Stoppable) workerLeaseService::runAsIsolatedTask,
-                (Stoppable) workerLease::leaseFinish,
-                buildServices,
-                buildTreeState,
-                buildSessionState,
-                crossBuildSessionState
-            )
+        Stoppable tearDown = stoppable(
+            (Stoppable) workerLeaseService::runAsIsolatedTask,
+            (Stoppable) workerLease::leaseFinish,
+            buildServices,
+            buildTreeState,
+            buildSessionState,
+            crossBuildSessionState
         );
+
+        RootProjectContext.attach(project, new RootProjectContext(projectDescriptorRegistry, tearDown));
 
         return project;
     }
 
     public static void stop(Project rootProject) {
-        ((Stoppable) rootProject.getExtensions().getExtraProperties().get("ProjectBuilder.stoppable")).stop();
+        RootProjectContext.obtain(rootProject).tearDown.stop();
     }
 
     private GradleUserHomeScopeServiceRegistry userHomeServicesOf(ServiceRegistry globalServices) {
@@ -294,18 +299,9 @@ public class ProjectBuilderImpl {
     }
 
     private static class TestRootBuild extends AbstractBuildState implements RootBuildState {
-        private final GradleInternal gradle;
-        final CloseableServiceRegistry buildServices;
 
-        public TestRootBuild(File rootProjectDir, StartParameterInternal startParameter, BuildTreeState buildTreeState) {
-            super(buildTreeState, BuildDefinition.fromStartParameter(startParameter, rootProjectDir, null), null);
-            this.buildServices = getBuildServices();
-            this.gradle = buildServices.get(GradleInternal.class);
-        }
-
-        @Override
-        protected ServiceRegistrationProvider prepareServicesProvider(BuildDefinition buildDefinition) {
-            return new TestBuildScopeServices(buildDefinition, this);
+        public TestRootBuild(File rootProjectDir, StartParameterInternal startParameter, BuildTreeServices buildTreeServices) {
+            super(buildTreeServices, BuildDefinition.fromStartParameter(startParameter, rootProjectDir, null), null);
         }
 
         @Override
@@ -350,15 +346,31 @@ public class ProjectBuilderImpl {
         public Set<Pair<ModuleVersionIdentifier, ProjectComponentIdentifier>> getAvailableModules() {
             throw new UnsupportedOperationException();
         }
+    }
 
-        @Override
-        public File getBuildRootDir() {
-            return getBuildServices().get(BuildDefinition.class).getBuildRootDir();
+    /**
+     * ProjectBuilder has its own simplified lifecycle that compresses all operational service scopes
+     * into a single operation. It also skips the Settings phase entirely, so settings-specific
+     * services (e.g. {@link ProjectDescriptorRegistry}) must be created and managed manually.
+     */
+    private record RootProjectContext(
+        ProjectDescriptorRegistry projectDescriptorRegistry,
+        Stoppable tearDown
+    ) {
+
+        // The context is stored in the ProjectBuilder-created root project's extra properties.
+        // We have to store it in the root project state because the API gives out the full instances of the `Project` to the user.
+        // That becomes the only state used for further interactions, such as creating new subprojects and the teardown at the end.
+        private static final String EXT = "ProjectBuilder.context";
+
+        static void attach(Project rootProject, RootProjectContext context) {
+            assert rootProject.getParent() == null;
+            rootProject.getExtensions().getExtraProperties().set(EXT, context);
         }
 
-        @Override
-        public GradleInternal getMutableModel() {
-            return gradle;
+        static RootProjectContext obtain(Project rootProject) {
+            assert rootProject.getParent() == null;
+            return (RootProjectContext) Objects.requireNonNull(rootProject.getExtensions().getExtraProperties().get(EXT));
         }
     }
 }

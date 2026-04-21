@@ -18,8 +18,8 @@ package org.gradle.internal.execution.impl;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedSet;
-import org.gradle.api.problems.internal.InternalProblem;
-import org.gradle.api.problems.internal.InternalProblems;
+import org.gradle.api.problems.internal.ProblemInternal;
+import org.gradle.api.problems.internal.ProblemsInternal;
 import org.gradle.internal.execution.WorkValidationContext;
 import org.gradle.internal.reflect.DefaultTypeValidationContext;
 import org.gradle.internal.reflect.ProblemRecordingTypeValidationContext;
@@ -35,18 +35,18 @@ import java.util.function.Supplier;
 
 public class DefaultWorkValidationContext implements WorkValidationContext {
     private final Set<Class<?>> types = new HashSet<>();
-    private final ImmutableList.Builder<InternalProblem> errors = ImmutableList.builder();
-    private final ImmutableList.Builder<InternalProblem> warnings = ImmutableList.builder();
+    private final ImmutableList.Builder<ProblemInternal> errors = ImmutableList.builder();
+    private final ImmutableList.Builder<ProblemInternal> warnings = ImmutableList.builder();
     private final TypeOriginInspector typeOriginInspector;
-    private final InternalProblems problemsService;
+    private final ProblemsInternal problemsService;
 
-    public DefaultWorkValidationContext(TypeOriginInspector typeOriginInspector, InternalProblems problemsService) {
+    public DefaultWorkValidationContext(TypeOriginInspector typeOriginInspector, ProblemsInternal problemsService) {
         this.typeOriginInspector = typeOriginInspector;
         this.problemsService = problemsService;
     }
 
     @Override
-    public InternalProblems getProblemsService() {
+    public ProblemsInternal getProblemsService() {
         return problemsService;
     }
 
@@ -56,7 +56,7 @@ public class DefaultWorkValidationContext implements WorkValidationContext {
         Supplier<Optional<PluginId>> pluginId = () -> typeOriginInspector.findPluginDefining(type);
         return new ProblemRecordingTypeValidationContext(type, pluginId, getProblemsService()) {
             @Override
-            protected void recordError(InternalProblem problem) {
+            protected void recordError(ProblemInternal problem) {
                 if (DefaultTypeValidationContext.onlyAffectsCacheableWork(problem.getDefinition().getId()) && !cacheable) {
                     return;
                 }
@@ -64,19 +64,19 @@ public class DefaultWorkValidationContext implements WorkValidationContext {
             }
 
             @Override
-            protected void recordWarning(InternalProblem problem) {
+            protected void recordWarning(ProblemInternal problem) {
                 warnings.add(problem);
             }
         };
     }
 
     @Override
-    public List<InternalProblem> getErrors() {
+    public List<ProblemInternal> getErrors() {
         return errors.build();
     }
 
     @Override
-    public List<InternalProblem> getWarnings() {
+    public List<ProblemInternal> getWarnings() {
         return warnings.build();
     }
 

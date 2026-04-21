@@ -33,17 +33,9 @@ To add a dependency to your project, specify a dependency in the `dependencies {
 
 The following `build.gradle(.kts)` file adds two dependencies to the project:
 
-++++
-<div style="text-align: right;">
-  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/dependencyManagement/introductionDependencies">
-    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
-  </a>
-</div>
-++++
-
 ====
-include::sample[dir="snippets/dependencyManagement/introductionDependencies/kotlin",files="build.gradle.kts[tags=dependency-intro-dep]"]
-include::sample[dir="snippets/dependencyManagement/introductionDependencies/groovy",files="build.gradle[tags=dependency-intro-dep]"]
+include::sample[dir="snippets/fundamentals/running-builds/introductionDependencies/kotlin",files="build.gradle.kts[tags=dependency-intro-dep]"]
+include::sample[dir="snippets/fundamentals/running-builds/introductionDependencies/groovy",files="build.gradle[tags=dependency-intro-dep]"]
 ====
 <1> Applies the Java Library plugin.
 <2> Adds a dependency on Google's Guava library used in production code.
@@ -126,7 +118,7 @@ The version catalog typically contains four sections:
 Here's an example:
 
 ====
-include::sample[dir="snippets/dependencyManagement/introductionDependencies/common",files="gradle/libs.versions.toml[]"]
+include::sample[dir="snippets/fundamentals/running-builds/introductionDependencies/common",files="gradle/libs.versions.toml[]"]
 ====
 
 Place this file in the `gradle/` directory of your project as `libs.versions.toml`.
@@ -135,17 +127,9 @@ IDEs like IntelliJ and Android Studio will also pick up this metadata for code c
 
 Once defined, you can reference these aliases directly in your build file:
 
-++++
-<div style="text-align: right;">
-  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/dependencyManagement/introductionDependencies">
-    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
-  </a>
-</div>
-++++
-
 ====
-include::sample[dir="snippets/dependencyManagement/introductionDependencies/kotlin",files="build.gradle.kts[tags=dependency-intro-catalog]"]
-include::sample[dir="snippets/dependencyManagement/introductionDependencies/groovy",files="build.gradle[tags=dependency-intro-catalog]"]
+include::sample[dir="snippets/fundamentals/running-builds/introductionDependencies/kotlin",files="build.gradle.kts[tags=dependency-intro-catalog]"]
+include::sample[dir="snippets/fundamentals/running-builds/introductionDependencies/groovy",files="build.gradle[tags=dependency-intro-catalog]"]
 ====
 
 [.text-right]

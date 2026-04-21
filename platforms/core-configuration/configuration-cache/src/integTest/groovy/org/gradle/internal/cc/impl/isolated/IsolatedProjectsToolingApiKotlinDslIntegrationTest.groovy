@@ -51,9 +51,206 @@ class IsolatedProjectsToolingApiKotlinDslIntegrationTest extends AbstractIsolate
             modelsCreated(":", KotlinDslScriptsModel)
             modelsCreated(":a", [isolatedScriptsModel])
         }
-
         checkKotlinDslScriptsModel(model, originalModel)
 
+        when:
+        withIsolatedProjects()
+        fetchModel(KotlinDslScriptsModel)
+
+        then:
+        fixture.assertModelLoaded()
+    }
+
+    def "can fetch KotlinDslScripts model for build with convention plugin from #buildLogicLocation"() {
+        withBuildScriptIn(buildLogicLocation, """
+            plugins {
+                `kotlin-dsl`
+            }
+
+            $repositoriesBlock
+        """)
+        withFile("$buildLogicLocation/src/main/kotlin/my-convention.gradle.kts", """
+            plugins {
+                `java-library`
+            }
+        """)
+
+        withSettings("""
+            $pluginManagementBlock
+            rootProject.name = "root"
+            include("a")
+        """)
+        withBuildScript()
+        withBuildScriptIn("a", """
+            plugins {
+                id("my-convention")
+            }
+        """)
+
+        when:
+        def originalModel = fetchModel(KotlinDslScriptsModel)
+
+        then:
+        fixture.assertNoConfigurationCache()
+
+        when:
+        withIsolatedProjects()
+        def model = fetchModel(KotlinDslScriptsModel)
+
+        then:
+        fixture.assertModelStored {
+            projectConfigured(":$buildLogicLocation")
+            modelsCreated(":", KotlinDslScriptsModel)
+            modelsCreated(":a", [isolatedScriptsModel])
+        }
+        checkKotlinDslScriptsModel(model, originalModel)
+
+        when:
+        withIsolatedProjects()
+        fetchModel(KotlinDslScriptsModel)
+
+        then:
+        fixture.assertModelLoaded()
+
+        where:
+        buildLogicLocation | pluginManagementBlock
+        "buildSrc"         | ""
+        "build-logic"      | """pluginManagement { includeBuild("build-logic") }"""
+    }
+
+    def "can fetch KotlinDslScripts model for build with Kotlin extension from #buildLogicLocation"() {
+        withBuildScriptIn(buildLogicLocation, """
+            plugins {
+                `kotlin-dsl`
+            }
+            group = "org.test"
+
+            $repositoriesBlock
+        """)
+        withFile("$buildLogicLocation/src/main/kotlin/extensions.kt", """
+            import org.gradle.api.Project
+            fun Project.foo() {}
+        """)
+
+        withSettings("""
+            $settingsBlock
+            rootProject.name = "root"
+            include("a")
+        """)
+        withBuildScript()
+        withBuildScriptIn("a", """
+            $buildscriptBlock
+            foo()
+        """)
+
+        when:
+        def originalModel = fetchModel(KotlinDslScriptsModel)
+
+        then:
+        fixture.assertNoConfigurationCache()
+
+        when:
+        withIsolatedProjects()
+        def model = fetchModel(KotlinDslScriptsModel)
+
+        then:
+        fixture.assertModelStored {
+            projectConfigured(":$buildLogicLocation")
+            modelsCreated(":", KotlinDslScriptsModel)
+            modelsCreated(":a", [isolatedScriptsModel])
+        }
+        checkKotlinDslScriptsModel(model, originalModel)
+
+        when:
+        withIsolatedProjects()
+        fetchModel(KotlinDslScriptsModel)
+
+        then:
+        fixture.assertModelLoaded()
+
+        where:
+        buildLogicLocation | settingsBlock                     | buildscriptBlock
+        "buildSrc"         | ""                                | ""
+        "build-logic"      | """includeBuild("build-logic")""" | """buildscript { dependencies { classpath("org.test:build-logic") } }"""
+    }
+
+    def "can fetch KotlinDslScripts model for build with build-logic using Kotlin extension from included build"() {
+        withBuildScriptIn("included", """
+            plugins {
+                `kotlin-dsl`
+            }
+            group = "org.test"
+
+            $repositoriesBlock
+        """)
+        withFile("included/src/main/kotlin/extensions.kt", """
+            import org.gradle.api.Project
+            fun Project.foo() {}
+        """)
+        withSettingsIn("build-logic", """
+            includeBuild("../included")
+        """)
+        withBuildScriptIn("build-logic", """
+            plugins {
+                `kotlin-dsl`
+            }
+            $repositoriesBlock
+
+            gradlePlugin {
+                plugins {
+                    register("my-convention") {
+                        implementationClass = "MyConventionPlugin"
+                    }
+                }
+            }
+
+            dependencies {
+                implementation("org.test:included")
+            }
+        """)
+        withFile("build-logic/src/main/kotlin/MyConventionPlugin.kt", """
+            import org.gradle.api.Plugin
+            import org.gradle.api.Project
+            import foo
+
+            class MyConventionPlugin: Plugin<Project> {
+                override fun apply(target: Project) {
+                    target.foo()
+                }
+            }
+        """)
+
+        withSettings("""
+            pluginManagement {
+                includeBuild("build-logic")
+            }
+            rootProject.name = "root"
+            include("a")
+        """)
+        withBuildScript()
+        withBuildScriptIn("a", """
+            plugins {
+                id("my-convention")
+            }
+        """)
+
+        when:
+        def originalModel = fetchModel(KotlinDslScriptsModel)
+
+        then:
+        fixture.assertNoConfigurationCache()
+
+        when:
+        withIsolatedProjects()
+        def model = fetchModel(KotlinDslScriptsModel)
+
+        then:
+        fixture.assertModelStored {
+            projectsConfigured(":build-logic", ":included")
+            modelsCreated(":", KotlinDslScriptsModel)
+            modelsCreated(":a", [isolatedScriptsModel])
+        }
+        checkKotlinDslScriptsModel(model, originalModel)
 
         when:
         withIsolatedProjects()

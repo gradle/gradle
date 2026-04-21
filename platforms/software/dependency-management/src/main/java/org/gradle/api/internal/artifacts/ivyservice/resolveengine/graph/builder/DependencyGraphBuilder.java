@@ -16,6 +16,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
@@ -177,24 +178,9 @@ public class DependencyGraphBuilder {
             if (resolveState.peek() != null) {
                 final NodeState node = resolveState.pop();
 
-                if (!node.isSelected()) {
-                    // This node has no incoming edges.
-                    // Remove any outgoing edges from this node, if any, so it no longer contributes to the graph.
+                if (node.contributesToGraph()) {
                     node.removeOutgoingEdges();
                     continue;
-                }
-
-                if (!node.getComponent().isSelected()) {
-                    if (moduleConflictHandler.hasConflictFor(node.getComponent().getModule()) || capabilitiesConflictHandler.hasConflictFor(node)) {
-                        // The node is in conflict. Delay processing its outgoing edges for now.
-                        // If this node wins the conflict, it will be added to the queue again later.
-                        assert node.isDisconnected();
-                        continue;
-                    } else {
-                        assert node.getComponent().getNodes().stream().anyMatch(capabilitiesConflictHandler::hasConflictFor);
-                        // TODO: Some other node in this node's component is in conflict, but this node is not in conflict.
-                        // It is strange that we de-select the entire component in this case. We should probably not do this.
-                    }
                 }
 
                 // This node is part of the graph. Check if it conflicts with any other node in the graph.
@@ -282,7 +268,7 @@ public class DependencyGraphBuilder {
         List<ComponentState> requiringDownload = null;
         for (EdgeState edge : edges) {
             ComponentState targetComponent = edge.getTargetComponent();
-            if (targetComponent != null && targetComponent.isSelected() && !targetComponent.alreadyResolved()) {
+            if (targetComponent != null && targetComponent.isNotEvicted() && !targetComponent.alreadyResolved()) {
                 if (!componentMetaDataResolver.isFetchingMetadataCheap(targetComponent.getComponentId())) {
                     // Avoid initializing the list if there are no components requiring download (a common case)
                     if (requiringDownload == null) {
@@ -327,11 +313,17 @@ public class DependencyGraphBuilder {
                 ResolutionFailureHandler resolutionFailureHandler = resolveState.getVariantSelector().getFailureHandler();
                 if (selected.isRejected()) {
                     List<String> conflictResolutions = buildConflictResolutions(selected, failureResolutions).getRight();
-                    GradleException error = resolutionFailureHandler.moduleRejected(module, conflictResolutions);
+                    GradleException error = resolutionFailureHandler.componentRejected(selected, conflictResolutions);
                     // We need to attach failures on unattached dependencies too, in case a node wasn't selected
                     // at all, but we still want to see an error message for it.
                     module.visitAllIncomingEdges(edge -> edge.failWith(error));
-                } else {
+                } else if (Iterables.any(selected.getNodes(), node -> node.getReplacement() == null)) {
+                    for (NodeState node : selected.getNodes()) {
+                        if (node.isRejectedForCapabilityConflict()) {
+                            GradleException error = resolutionFailureHandler.nodeRejected(node);
+                            node.getIncomingEdges().forEach(edge -> edge.failWith(error));
+                        }
+                    }
                     if (module.isVirtualPlatform()) {
                         attachMultipleForceOnPlatformFailureToEdges(module);
                     } else if (selected.hasMoreThanOneSelectedNodeUsingVariantAwareResolution()) {
@@ -533,7 +525,7 @@ public class DependencyGraphBuilder {
         AttributeSchemaServices attributeSchemaServices
     ) {
         Set<NodeState> selectedNodes = selected.getNodes().stream()
-            .filter(n -> n.isSelected() && !n.isAttachedToVirtualPlatform() && !n.hasShadowedCapability())
+            .filter(n -> n.isSelected() && !n.isAttachedToVirtualPlatform() && !n.hasShadowedCapability() && !n.isRejectedForCapabilityConflict())
             .collect(Collectors.toSet());
 
         if (selectedNodes.size() < 2) {
@@ -572,7 +564,7 @@ public class DependencyGraphBuilder {
         for (ModuleResolveState participatingModule : participatingModules) {
             ComponentState selected = participatingModule.getSelected();
             if (selected != null) {
-                for (NodeState nodeState : participatingModule.getSelected().getNodes()) {
+                for (NodeState nodeState : selected.getNodes()) {
                     for (EdgeState incomingEdge : nodeState.getIncomingEdges()) {
                         SelectorState selector = incomingEdge.getSelector();
                         if (isPlatformForcedEdge(selector)) {

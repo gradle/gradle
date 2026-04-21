@@ -31,8 +31,8 @@ In this example, `configuration` is a `Property<String>` that is set to the `con
 The `configurationProvider` lazily provides the value `"Hello, Gradle!"`:
 
 ====
-include::sample[dir="snippets/providers/property/kotlin",files="build.gradle.kts[tags=introduction]"]
-include::sample[dir="snippets/providers/property/groovy",files="build.gradle[tags=introduction]"]
+include::sample[dir="snippets/reference/gradle-types/property/kotlin",files="build.gradle.kts[tags=introduction]"]
+include::sample[dir="snippets/reference/gradle-types/property/groovy",files="build.gradle[tags=introduction]"]
 ====
 
 [[understanding_properties]]
@@ -44,8 +44,8 @@ They can be defined and accessed within the build script to store information li
 Properties can be set and retrieved using the `project` object:
 
 ====
-include::sample[dir="snippets/providers/property/kotlin",files="build.gradle.kts[tags=set-prop]"]
-include::sample[dir="snippets/providers/property/groovy",files="build.gradle[tags=set-prop]"]
+include::sample[dir="snippets/reference/gradle-types/property/kotlin",files="build.gradle.kts[tags=set-prop]"]
+include::sample[dir="snippets/reference/gradle-types/property/groovy",files="build.gradle[tags=set-prop]"]
 ====
 
 Properties:
@@ -64,8 +64,8 @@ Providers are objects that represent a value that may not be immediately availab
 Providers are useful for lazy evaluation and can be used to model values that may change over time or depend on other tasks or inputs:
 
 ====
-include::sample[dir="snippets/providers/property/kotlin",files="build.gradle.kts[tags=set-prov]"]
-include::sample[dir="snippets/providers/property/groovy",files="build.gradle[tags=set-prov]"]
+include::sample[dir="snippets/reference/gradle-types/property/kotlin",files="build.gradle.kts[tags=set-prov]"]
+include::sample[dir="snippets/reference/gradle-types/property/groovy",files="build.gradle[tags=set-prov]"]
 ====
 
 Providers:
@@ -101,13 +101,13 @@ These methods allow you to transform, combine, or provide fallback values withou
 Using `map()` is a common example:
 
 ====
-include::sample[dir="snippets/kotlinDsl/basics/kotlin/my-sub-project",files="build.gradle.kts[tags=transform]"]
+include::sample[dir="snippets/reference/gradle-types/basics/kotlin/my-sub-project",files="build.gradle.kts[tags=transform]"]
 ====
 
 You can see the following example for a detailed breakdown at `Provider` chaining using `map()`:
 
 ====
-include::sample[dir="snippets/gradle-types/example/groovy/app",files="build.gradle[tags=type]"]
+include::sample[dir="snippets/reference/gradle-types/example/groovy/app",files="build.gradle[tags=type]"]
 ====
 
 [[managed_properties]]
@@ -120,15 +120,15 @@ Gradle then automatically provides the implementation for these properties, mana
 A property may be _mutable_, meaning that it is of type `Property`, which has both a `get()` and a `set()` method:
 
 ====
-include::sample[dir="snippets/providers/property/kotlin",files="build.gradle.kts[tags=prop-managed]"]
-include::sample[dir="snippets/providers/property/groovy",files="build.gradle[tags=prop-managed]"]
+include::sample[dir="snippets/reference/gradle-types/property/kotlin",files="build.gradle.kts[tags=prop-managed]"]
+include::sample[dir="snippets/reference/gradle-types/property/groovy",files="build.gradle[tags=prop-managed]"]
 ====
 
 Or _read-only_, meaning that it is of type `Provider`, which only has a `get()` method:
 
 ====
-include::sample[dir="snippets/providers/property/kotlin",files="build.gradle.kts[tags=prov-managed]"]
-include::sample[dir="snippets/providers/property/groovy",files="build.gradle[tags=prov-managed]"]
+include::sample[dir="snippets/reference/gradle-types/property/kotlin",files="build.gradle.kts[tags=prov-managed]"]
+include::sample[dir="snippets/reference/gradle-types/property/groovy",files="build.gradle[tags=prov-managed]"]
 ====
 
 [[mutable_managed_properties]]
@@ -259,8 +259,8 @@ A _named managed type_ is a managed type that additionally has an abstract prope
 Named managed types are especially useful as the element type of link:{javadocPath}/org/gradle/api/NamedDomainObjectContainer.html[NamedDomainObjectContainer]:
 
 ====
-include::sample[dir="snippets/providers/property/kotlin",files="build.gradle.kts[tags=named]"]
-include::sample[dir="snippets/providers/property/groovy",files="build.gradle[tags=named]"]
+include::sample[dir="snippets/reference/gradle-types/property/kotlin",files="build.gradle.kts[tags=named]"]
+include::sample[dir="snippets/reference/gradle-types/property/groovy",files="build.gradle[tags=named]"]
 ====
 
 == Using Java Bean Properties

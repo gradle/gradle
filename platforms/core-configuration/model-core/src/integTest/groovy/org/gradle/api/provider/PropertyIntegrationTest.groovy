@@ -20,7 +20,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import spock.lang.Issue
 
 class PropertyIntegrationTest extends AbstractIntegrationSpec {
@@ -531,7 +531,7 @@ assert custom.prop.get() == "value 4"
     }
 
     @Requires(
-        value = IntegTestPreconditions.NotParallelExecutor,
+        value = TestExecutionPreconditions.NotParallelExecutor,
         reason = "--parallel is specified explicitly, no need to run with multiple executor types"
     )
     @Issue("https://github.com/gradle/gradle/issues/12811")
@@ -590,7 +590,7 @@ assert custom.prop.get() == "value 4"
     }
 
     @Requires(
-        value = IntegTestPreconditions.NotParallelExecutor,
+        value = TestExecutionPreconditions.NotParallelExecutor,
         reason = "--parallel is specified explicitly, no need to run with multiple executor types"
     )
     @Issue("https://github.com/gradle/gradle/issues/12969")

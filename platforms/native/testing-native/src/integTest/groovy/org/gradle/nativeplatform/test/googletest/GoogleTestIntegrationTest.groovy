@@ -23,17 +23,18 @@ import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.TestEnvironmentPreconditions
+
 import org.gradle.util.internal.TextUtil
 import spock.lang.Issue
 
 import static org.gradle.util.internal.TextUtil.normaliseLineSeparators
 
-@Requires(UnitTestPreconditions.CanInstallExecutable)
+@Requires(TestEnvironmentPreconditions.CanInstallExecutable)
 @RequiresInstalledToolChain(ToolChainRequirement.SUPPORTS_32)
 class GoogleTestIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
 
-    def prebuiltDir = buildContext.getSamplesDir().file("native-binaries/google-test/groovy/libs")
+    def prebuiltDir = buildContext.getSamplesDir().file("integration-tests/native-binaries/google-test/groovy/libs")
     def prebuiltPath = TextUtil.normaliseFileSeparators(prebuiltDir.path)
     def app = new CppHelloWorldApp()
 
@@ -357,7 +358,7 @@ model {
         fails "runHelloTestGoogleTestExe"
 
         then:
-        failure.assertHasDescription("Execution failed for task ':runHelloTestGoogleTestExe' (registered by Rule).")
+        failure.assertHasDescription("Execution failed for task ':runHelloTestGoogleTestExe'.")
         failure.assertHasCause("There were failing tests. See the results at: ")
 
         and:

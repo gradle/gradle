@@ -19,6 +19,7 @@ package org.gradle.plugin.devel.tasks
 import org.gradle.api.artifacts.transform.InputArtifact
 import org.gradle.api.artifacts.transform.InputArtifactDependencies
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import spock.lang.Issue
 
 class ValidatePluginsPart1IntegrationTest extends AbstractIntegrationSpec implements ValidatePluginsTrait {
 
@@ -298,6 +299,83 @@ class ValidatePluginsPart1IntegrationTest extends AbstractIntegrationSpec implem
 
         expect:
         assertValidationSucceeds()
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/37091")
+    def "can validate task classes extending a superclass that uses #dependencyScope dependencies"() {
+        settingsFile << """include("internal-types")"""
+
+        file("internal-types/build.gradle") << """
+            plugins {
+                id("java")
+            }
+        """
+
+        file("internal-types/src/main/java/com/example/internal/InternalType.java") << """
+            package com.example.internal;
+
+            public class InternalType {
+                private final String value;
+                public InternalType(String value) { this.value = value; }
+                public String getValue() { return value; }
+            }
+        """
+
+        file("build.gradle") << """
+            dependencies {
+                compileOnly(gradleApi())
+                $dependencyScope(project(":internal-types"))
+            }
+        """
+
+        // The base task uses the dependency type in a private field only.
+        // To verify that the fix makes validation work correctly (not just skipping the class),
+        // MyTask includes a deliberate validation error (unannotated property) that must be reported.
+        source("src/main/java/MyBaseTask.java") << """
+            import org.gradle.api.*;
+            import org.gradle.api.tasks.*;
+            import org.gradle.work.*;
+            import com.example.internal.InternalType;
+
+            @DisableCachingByDefault(because = "test task")
+            public abstract class MyBaseTask extends DefaultTask {
+                private final InternalType internal = new InternalType("hello");
+
+                @TaskAction
+                public void execute() {
+                    System.out.println(internal.getValue());
+                }
+            }
+        """
+
+        javaTaskSource << """
+            import org.gradle.api.tasks.*;
+            import org.gradle.work.*;
+
+            @DisableCachingByDefault(because = "test task")
+            public class MyTask extends MyBaseTask {
+                public String getUnannotatedProperty() {
+                    return "value";
+                }
+            }
+        """
+
+        expect:
+        assertValidationFailsWith([error(missingAnnotationConfig { type('MyTask').property('unannotatedProperty').missingInputOrOutput() }, 'validation_problems', 'missing_annotation')])
+
+        and:
+        verifyAll(receivedProblem) {
+            fqid == 'validation:property-validation:missing-annotation'
+            contextualLabel == 'Type \'MyTask\' property \'unannotatedProperty\' is missing an input or output annotation'
+        }
+
+        where:
+        dependencyScope << [
+            // Privately used dependencies should not trigger validation failures:
+            'implementation',
+            // It is also common to depend on another Gradle plugin with a compileOnly dependency:
+            'compileOnly'
+        ]
     }
 
     protected createMyTransformAction() {

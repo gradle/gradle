@@ -25,7 +25,7 @@ description = """Problem SPI implementations.
 """.trimMargin()
 
 
-val problemReportReportPath by configurations.creating {
+val problemReportReportPath = configurations.create("problemReportReportPath") {
     isCanBeConsumed = false
     attributes { attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named("configuration-cache-report")) }
 }

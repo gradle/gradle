@@ -341,6 +341,17 @@ class DefaultManifestTest extends Specification {
         javaManifest.entries.get('AnotherSection').getValue('bazar') == 'cathedral'
     }
 
+    def "can get content char set using deprecated String method"() {
+        expect:
+        gradleManifest.getContentCharset() == DEFAULT_MANIFEST_CHARSET.get()
+
+        and:
+        new DefaultManifest(fileResolver, 'UTF-16').getContentCharset() == 'UTF-16'
+
+        and:
+        new DefaultManifest(fileResolver, TestUtil.providerFactory().provider {'UTF-16'}).getContentCharset() == 'UTF-16'
+    }
+
     /**
      * Remove blank lines to exercise Ant's Manifest interoperability.
      * Need to work at bytes level to prevent breaking split multi-bytes characters here.

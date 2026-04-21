@@ -48,12 +48,16 @@ abstract class AdHocPerformanceScenario(
             param("checks", "all")
             text("runs", "40", display = ParameterDisplay.PROMPT, allowEmpty = false)
             text("warmups", "10", display = ParameterDisplay.PROMPT, allowEmpty = false)
-            text(
+            select(
                 "generateDiffs",
-                "true",
+                "",
                 display = ParameterDisplay.PROMPT,
-                allowEmpty = false,
-                description = "Whether to generate differential flame graphs after profiling",
+                description = "Skips differential flame graph generation to avoid OOM in large adhoc tests.",
+                options =
+                    listOf(
+                        "Generate diffs" to "",
+                        "Skip diffs generation" to "--no-generate-diffs",
+                    ),
             )
             text(
                 "scenario",
@@ -108,7 +112,7 @@ abstract class AdHocPerformanceScenario(
                         performanceTestCommandLine(
                             "clean performance:%testProject%PerformanceAdHocTest --tests \"%scenario%\"",
                             "%performance.baselines%",
-                            """--warmups %warmups% --runs %runs% --checks %checks% --profiler %profiler% --generate-diffs %generateDiffs% %additional.gradle.parameters%""",
+                            """--warmups %warmups% --runs %runs% --checks %checks% --profiler %profiler% %generateDiffs% %additional.gradle.parameters%""",
                             os,
                             arch,
                             "%testJavaVersion%",

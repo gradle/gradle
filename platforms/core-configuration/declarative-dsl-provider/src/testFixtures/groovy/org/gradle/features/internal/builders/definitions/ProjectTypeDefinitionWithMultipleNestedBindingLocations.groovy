@@ -16,7 +16,6 @@
 
 package org.gradle.features.internal.builders.definitions
 
-import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition
 import org.gradle.features.binding.BuildModel
 import org.gradle.features.binding.Definition
 
@@ -25,8 +24,6 @@ class ProjectTypeDefinitionWithMultipleNestedBindingLocations extends ProjectTyp
     String getPublicTypeClassContent() {
         return """
             package org.gradle.test;
-
-            import ${HiddenInDefinition.class.name};
 
             import org.gradle.api.Action;
             import org.gradle.api.model.ObjectFactory;
@@ -47,16 +44,6 @@ class ProjectTypeDefinitionWithMultipleNestedBindingLocations extends ProjectTyp
                 @Nested
                 Bar getBar();
 
-                @${HiddenInDefinition.class.simpleName}
-                default void foo(Action<? super Foo> action) {
-                    action.execute(getFoo());
-                }
-
-                @${HiddenInDefinition.class.simpleName}
-                default void bar(Action<? super Bar> action) {
-                    action.execute(getBar());
-                }
-
                 ${maybeInjectedServiceDeclaration}
 
                 interface Foo extends ${Definition.class.simpleName}<BuildModel.None> {
@@ -76,13 +63,5 @@ class ProjectTypeDefinitionWithMultipleNestedBindingLocations extends ProjectTyp
                 }
             }
         """
-    }
-
-    @Override
-    String getBuildModelMapping() {
-        return """
-                context.registerBuildModel(definition.getFoo());
-                context.registerBuildModel(definition.getBar());
-            """
     }
 }

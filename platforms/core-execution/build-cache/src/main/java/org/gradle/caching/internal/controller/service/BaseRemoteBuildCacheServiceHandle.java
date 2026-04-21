@@ -19,6 +19,7 @@ package org.gradle.caching.internal.controller.service;
 import org.gradle.caching.BuildCacheEntryReader;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.caching.BuildCacheService;
+import org.gradle.internal.concurrent.BlockingNotifier;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -62,6 +63,8 @@ public class BaseRemoteBuildCacheServiceHandle implements RemoteBuildCacheServic
     private final boolean logStackTraces;
     private final boolean disableOnError;
 
+    private final BlockingNotifier blockingNotifier;
+
     private boolean disabled;
 
     public BaseRemoteBuildCacheServiceHandle(
@@ -69,13 +72,15 @@ public class BaseRemoteBuildCacheServiceHandle implements RemoteBuildCacheServic
         boolean push,
         BuildCacheServiceRole role,
         boolean logStackTraces,
-        boolean disableOnError
+        boolean disableOnError,
+        BlockingNotifier blockingNotifier
     ) {
         this.role = role;
         this.service = service;
         this.pushEnabled = push;
         this.logStackTraces = logStackTraces;
         this.disableOnError = disableOnError;
+        this.blockingNotifier = blockingNotifier;
     }
 
     @Nullable
@@ -106,11 +111,11 @@ public class BaseRemoteBuildCacheServiceHandle implements RemoteBuildCacheServic
     }
 
     protected void loadInner(String description, BuildCacheKey key, LoadTarget loadTarget) {
-        service.load(key, loadTarget);
+        doLoad(key, loadTarget);
     }
 
-    protected void loadInner(BuildCacheKey key, BuildCacheEntryReader entryReader) {
-        service.load(key, entryReader);
+    protected void doLoad(BuildCacheKey key, BuildCacheEntryReader entryReader) {
+        blockingNotifier.blocking(() -> service.load(key, entryReader));
     }
 
     private static Optional<BuildCacheLoadResult> maybeUnpack(LoadTarget loadTarget, Function<File, BuildCacheLoadResult> unpackFunction) {

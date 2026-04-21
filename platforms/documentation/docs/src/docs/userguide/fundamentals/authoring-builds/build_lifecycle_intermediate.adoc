@@ -60,8 +60,8 @@ image::build-lifecycle-example.png[]
 The following example shows which parts of settings and build files correspond to various build phases:
 
 ====
-include::sample[dir="snippets/buildlifecycle/basic/kotlin",files="settings.gradle.kts[];build.gradle.kts[]"]
-include::sample[dir="snippets/buildlifecycle/basic/groovy",files="settings.gradle[];build.gradle[]"]
+include::sample[dir="snippets/fundamentals/authoring-builds/basic/kotlin",files="settings.gradle.kts[];build.gradle.kts[]"]
+include::sample[dir="snippets/fundamentals/authoring-builds/basic/groovy",files="settings.gradle[];build.gradle[]"]
 ====
 
 The following command executes the `test` task and `testBoth` task specified above.
@@ -76,7 +76,7 @@ $ ./gradlew test testBoth
 ----
 [source,text]
 ----
-include::{snippetsPath}/buildlifecycle/basic/tests/buildlifecycle.out[]
+include::{snippetsPath}/fundamentals/authoring-builds/basic/tests/buildlifecycle.out[]
 ----
 =====
 [.multi-language-text.lang-groovy]
@@ -87,7 +87,7 @@ $ ./gradlew test testBoth
 ----
 [source,text]
 ----
-include::{snippetsPath}/buildlifecycle/basic/tests/buildlifecycle.out[]
+include::{snippetsPath}/fundamentals/authoring-builds/basic/tests/buildlifecycle.out[]
 ----
 =====
 ====

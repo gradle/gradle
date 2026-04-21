@@ -25,16 +25,16 @@ import groovy.transform.Canonical
 import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.CompileClasspath
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import org.hamcrest.CoreMatchers
 import spock.lang.Issue
 
 import javax.annotation.Nonnull
 import java.util.regex.Pattern
 
-@Requires(IntegTestPreconditions.NotParallelExecutor)
+@Requires(TestExecutionPreconditions.NotParallelExecutor)
 class ArtifactTransformWithDependenciesIntegrationTest extends AbstractHttpDependencyResolutionTest implements ArtifactTransformTestFixture {
 
     def setup() {
@@ -1313,7 +1313,6 @@ abstract class ClasspathTransform implements TransformAction<TransformParameters
         output.contains("result = [lib2-5.6.jar.txt, lib1-1.3.jar.txt]")
     }
 
-    @ToBeFixedForConfigurationCache(because = "treating file collection visit failures as a configuration cache problem adds an additional failure to the build summary")
     def "transform does not execute when dependencies cannot be found"() {
         given:
         mavenHttpRepo.module("unknown", "not-found", "4.3").allowAll().assertNotPublished()
@@ -1331,13 +1330,16 @@ abstract class ClasspathTransform implements TransformAction<TransformParameters
 
         then:
         assertTransformationsExecuted()
-        failure.assertHasDescription("Execution failed for task ':app:resolveGreen' (registered in build file 'build.gradle').") // failure is reported for task that takes the files as input
-        failure.assertResolutionFailure(":app:implementation")
+        if (GradleContextualExecuter.notConfigCache) {
+            failure.assertHasDescription("Execution failed for task ':app:resolveGreen' (registered in build file 'build.gradle').") // failure is reported for task that takes the files as input
+            failure.assertResolutionFailure(":app:implementation")
+        } else {
+            failure.assertHasDescription("Could not resolve all files for configuration ':app:implementation'.")
+        }
         failure.assertHasFailures(1)
         failure.assertThatCause(CoreMatchers.containsString("Could not find unknown:not-found:4.3"))
     }
 
-    @ToBeFixedForConfigurationCache(because = "treating file collection visit failures as a configuration cache problem adds an additional failure to the build summary")
     def "transform does not execute when dependencies cannot be downloaded"() {
         given:
         def cantBeDownloaded = withColorVariants(mavenHttpRepo.module("test", "cant-be-downloaded", "4.3")).publish()
@@ -1357,21 +1359,31 @@ abstract class ClasspathTransform implements TransformAction<TransformParameters
         fails ":app:resolveGreen"
 
         then:
-        failure.assertHasDescription("Execution failed for task ':app:resolveGreen' (registered in build file 'build.gradle').") // failure is reported for task that takes the files as input
-        failure.assertResolutionFailure(":app:implementation")
+        if (GradleContextualExecuter.notConfigCache) {
+            failure.assertHasDescription("Execution failed for task ':app:resolveGreen' (registered in build file 'build.gradle').") // failure is reported for task that takes the files as input
+            failure.assertResolutionFailure(":app:implementation")
+        } else {
+            failure.assertHasDescription("Could not resolve all files for configuration ':app:implementation'.")
+        }
         failure.assertHasFailures(1)
         failure.assertThatCause(CoreMatchers.containsString("Could not download cant-be-downloaded-4.3.jar (test:cant-be-downloaded:4.3)"))
 
-        assertTransformationsExecuted(
-            transformStep1('common.jar'),
-            transformStep1('slf4j-api-1.7.25.jar'),
-            transformStep1('hamcrest-core-1.3.jar'),
-            transformStep1('junit-4.11.jar': ['hamcrest-core-1.3.jar']),
-            transformStep2('common.jar'),
-            transformStep2('slf4j-api-1.7.25.jar'),
-            transformStep2('hamcrest-core-1.3.jar'),
-            transformStep2('junit-4.11.jar': ['hamcrest-core-1.3.jar'])
-        )
+        if (GradleContextualExecuter.notConfigCache) {
+            assertTransformationsExecuted(
+                transformStep1('common.jar'),
+                transformStep1('slf4j-api-1.7.25.jar'),
+                transformStep1('hamcrest-core-1.3.jar'),
+                transformStep1('junit-4.11.jar': ['hamcrest-core-1.3.jar']),
+                transformStep2('common.jar'),
+                transformStep2('slf4j-api-1.7.25.jar'),
+                transformStep2('hamcrest-core-1.3.jar'),
+                transformStep2('junit-4.11.jar': ['hamcrest-core-1.3.jar'])
+                // no transforms for lib.jar
+            )
+        } else {
+            // no transformations at all
+            assertTransformationsExecuted()
+        }
     }
 
     def "transform does not execute when dependencies cannot be transformed"() {

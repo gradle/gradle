@@ -134,17 +134,9 @@ You can provide configuration for your plugin by adding an extension object to t
 
 Let's update our `greetings` example:
 
-++++
-<div style="text-align: right;">
-  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/plugins/greeting">
-    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
-  </a>
-</div>
-++++
-
 ====
-include::sample[dir="snippets/plugins/greeting/kotlin", files="buildSrc/src/main/kotlin/greetings.gradle.kts[tags=create-extension]"]
-include::sample[dir="snippets/plugins/greeting/groovy", files="buildSrc/src/main/groovy/greetings.gradle[tags=create-extension]"]
+include::sample[dir="snippets/reference/plugin-development/greeting/kotlin", files="buildSrc/src/main/kotlin/greetings.gradle.kts[tags=create-extension]"]
+include::sample[dir="snippets/reference/plugin-development/greeting/groovy", files="buildSrc/src/main/groovy/greetings.gradle[tags=create-extension]"]
 ====
 
 You can set the value of the `message` property directly with `extension.message.set("Hi from Gradle,")`.
@@ -153,15 +145,15 @@ However, the `GreetingPluginExtension` object becomes available as a project pro
 You can now access `message` like so:
 
 ====
-include::sample[dir="snippets/plugins/greeting/kotlin", files="buildSrc/src/main/kotlin/greetings.gradle.kts[tags=update]"]
-include::sample[dir="snippets/plugins/greeting/groovy", files="buildSrc/src/main/groovy/greetings.gradle[tags=update]"]
+include::sample[dir="snippets/reference/plugin-development/greeting/kotlin", files="buildSrc/src/main/kotlin/greetings.gradle.kts[tags=update]"]
+include::sample[dir="snippets/reference/plugin-development/greeting/groovy", files="buildSrc/src/main/groovy/greetings.gradle[tags=update]"]
 ====
 
 If you apply the `greetings` plugin, you can set the convention in your build script:
 
 ====
-include::sample[dir="snippets/plugins/greeting/kotlin", files="app/build.gradle.kts[]"]
-include::sample[dir="snippets/plugins/greeting/groovy", files="app/build.gradle[]"]
+include::sample[dir="snippets/reference/plugin-development/greeting/kotlin", files="app/build.gradle.kts[]"]
+include::sample[dir="snippets/reference/plugin-development/greeting/groovy", files="app/build.gradle[]"]
 ====
 
 [[sec:plugin_conventions]]
@@ -171,17 +163,9 @@ In plugins, you can define default values, also known as *conventions*, using th
 
 Convention properties are properties that are initialized with default values but can be overridden:
 
-++++
-<div style="text-align: right;">
-  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/plugins/greeting">
-    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
-  </a>
-</div>
-++++
-
 ====
-include::sample[dir="snippets/plugins/greeting/kotlin", files="buildSrc/src/main/kotlin/greetings.gradle.kts[tags=convention]"]
-include::sample[dir="snippets/plugins/greeting/groovy", files="buildSrc/src/main/groovy/greetings.gradle[tags=convention]"]
+include::sample[dir="snippets/reference/plugin-development/greeting/kotlin", files="buildSrc/src/main/kotlin/greetings.gradle.kts[tags=convention]"]
+include::sample[dir="snippets/reference/plugin-development/greeting/groovy", files="buildSrc/src/main/groovy/greetings.gradle[tags=convention]"]
 ====
 
 `extension.message.convention(...)` sets a convention for the `message` property of the extension.
@@ -196,17 +180,9 @@ Using an extension and mapping it to a custom task's input/output properties is 
 
 In this example, the message property of the `GreetingPluginExtension` is mapped to the message property of the `GreetingTask` as an input:
 
-++++
-<div style="text-align: right;">
-  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/plugins/greeting">
-    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
-  </a>
-</div>
-++++
-
 ====
-include::sample[dir="snippets/plugins/greeting/kotlin", files="buildSrc/src/main/kotlin/greetings.gradle.kts[tags=task]"]
-include::sample[dir="snippets/plugins/greeting/groovy", files="buildSrc/src/main/groovy/greetings.gradle[tags=task]"]
+include::sample[dir="snippets/reference/plugin-development/greeting/kotlin", files="buildSrc/src/main/kotlin/greetings.gradle.kts[tags=task]"]
+include::sample[dir="snippets/reference/plugin-development/greeting/groovy", files="buildSrc/src/main/groovy/greetings.gradle[tags=task]"]
 ====
 
 [source,bash]
@@ -227,24 +203,16 @@ You can find out more about types that you can use in task implementations and e
 
 In order to apply an external plugin in a precompiled script plugin, it has to be added to the plugin project's implementation classpath in the plugin's build file:
 
-++++
-<div style="text-align: right;">
-  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/plugins/precompiledScriptPlugins-externalPlugins">
-    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
-  </a>
-</div>
-++++
-
 ====
-include::sample[dir="snippets/plugins/precompiledScriptPlugins-externalPlugins/kotlin",files="buildSrc/build.gradle.kts[]"]
-include::sample[dir="snippets/plugins/precompiledScriptPlugins-externalPlugins/groovy",files="buildSrc/build.gradle[]"]
+include::sample[dir="snippets/reference/plugin-development/precompiledScriptPlugins-externalPlugins/kotlin",files="buildSrc/build.gradle.kts[]"]
+include::sample[dir="snippets/reference/plugin-development/precompiledScriptPlugins-externalPlugins/groovy",files="buildSrc/build.gradle[]"]
 ====
 
 It can then be applied in the precompiled script plugin:
 
 ====
-include::sample[dir="snippets/plugins/precompiledScriptPlugins-externalPlugins/kotlin",files="buildSrc/src/main/kotlin/my-plugin.gradle.kts[]"]
-include::sample[dir="snippets/plugins/precompiledScriptPlugins-externalPlugins/groovy",files="buildSrc/src/main/groovy/my-plugin.gradle[]"]
+include::sample[dir="snippets/reference/plugin-development/precompiledScriptPlugins-externalPlugins/kotlin",files="buildSrc/src/main/kotlin/my-plugin.gradle.kts[]"]
+include::sample[dir="snippets/reference/plugin-development/precompiledScriptPlugins-externalPlugins/groovy",files="buildSrc/src/main/groovy/my-plugin.gradle[]"]
 ====
 
 The plugin version in this case is defined in the dependency declaration.
@@ -266,25 +234,17 @@ The following example defines a simple plugin in a separate build called `settin
 
 Configure plugin management for the plugin build:
 
-++++
-<div style="text-align: right;">
-  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/plugins/precompiledScriptPlugins-settings">
-    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
-  </a>
-</div>
-++++
-
 ====
-include::sample[dir="snippets/plugins/precompiledScriptPlugins-settings/kotlin",files="settings-plugin/settings.gradle.kts[]"]
-include::sample[dir="snippets/plugins/precompiledScriptPlugins-settings/groovy",files="settings-plugin/settings.gradle[]"]
+include::sample[dir="snippets/reference/plugin-development/precompiledScriptPlugins-settings/kotlin",files="settings-plugin/settings.gradle.kts[]"]
+include::sample[dir="snippets/reference/plugin-development/precompiledScriptPlugins-settings/groovy",files="settings-plugin/settings.gradle[]"]
 
 ====
 
 Set up the build to support precompiled script plugins:
 
 ====
-include::sample[dir="snippets/plugins/precompiledScriptPlugins-settings/kotlin",files="settings-plugin/build.gradle.kts[]"]
-include::sample[dir="snippets/plugins/precompiledScriptPlugins-settings/groovy",files="settings-plugin/build.gradle[]"]
+include::sample[dir="snippets/reference/plugin-development/precompiledScriptPlugins-settings/kotlin",files="settings-plugin/build.gradle.kts[]"]
+include::sample[dir="snippets/reference/plugin-development/precompiledScriptPlugins-settings/groovy",files="settings-plugin/build.gradle[]"]
 ====
 
 TIP: Notice that we used the practice described in <<sec:applying_external_plugins>>.
@@ -292,8 +252,8 @@ TIP: Notice that we used the practice described in <<sec:applying_external_plugi
 Write the precompiled script plugin itself:
 
 ====
-include::sample[dir="snippets/plugins/precompiledScriptPlugins-settings/kotlin",files="settings-plugin/src/main/kotlin/my-plugin.settings.gradle.kts[]"]
-include::sample[dir="snippets/plugins/precompiledScriptPlugins-settings/groovy",files="settings-plugin/src/main/groovy/my-plugin.settings.gradle[]"]
+include::sample[dir="snippets/reference/plugin-development/precompiledScriptPlugins-settings/kotlin",files="settings-plugin/src/main/kotlin/my-plugin.settings.gradle.kts[]"]
+include::sample[dir="snippets/reference/plugin-development/precompiledScriptPlugins-settings/groovy",files="settings-plugin/src/main/groovy/my-plugin.settings.gradle[]"]
 ====
 
 Because the file name ends with `.settings.gradle.kts`, Gradle compiles it into a plugin with a `Settings` scope.
@@ -301,8 +261,8 @@ The plugin ID is `my-plugin`.
 You can use it as follows in a consumer project (root settings file of the consuming project):
 
 ====
-include::sample[dir="snippets/plugins/precompiledScriptPlugins-settings/kotlin",files="settings.gradle.kts[tags=main]"]
-include::sample[dir="snippets/plugins/precompiledScriptPlugins-settings/groovy",files="settings.gradle[tags=main]"]
+include::sample[dir="snippets/reference/plugin-development/precompiledScriptPlugins-settings/kotlin",files="settings.gradle.kts[tags=main]"]
+include::sample[dir="snippets/reference/plugin-development/precompiledScriptPlugins-settings/groovy",files="settings.gradle[tags=main]"]
 ====
 
 WARNING: Because the plugin was precompiled as a link:{groovyDslPath}/org.gradle.api.initialization.Settings.html[`Settings`] plugin (the `.settings.gradle(.kts)` suffix), you apply it in the settings file’s `plugins {}` block, not in a project `build.gradle(.kts)` file.

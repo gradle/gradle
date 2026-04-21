@@ -22,18 +22,18 @@ import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import org.gradle.util.internal.TextUtil
 import org.junit.Rule
 
 @LeaksFileHandles
-@Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "These test run independent applications that connect to a Gradle distribution through the Tooling API")
+@Requires(value = TestExecutionPreconditions.NotEmbeddedExecutor, reason = "These test run independent applications that connect to a Gradle distribution through the Tooling API")
 class SamplesToolingApiIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule
     public final Sample sample = new Sample(temporaryFolder)
 
-    @UsesSample('toolingApi/eclipse/groovy')
+    @UsesSample('integration-tests/toolingApi/eclipse/groovy')
     def "can use tooling API to build Eclipse model"() {
         tweakProject()
 
@@ -45,7 +45,7 @@ class SamplesToolingApiIntegrationTest extends AbstractIntegrationSpec {
         outputContains("src/main/java")
     }
 
-    @UsesSample('toolingApi/runBuild/groovy')
+    @UsesSample('integration-tests/toolingApi/runBuild/groovy')
     def "can use tooling API to run tasks"() {
         tweakProject()
 
@@ -56,7 +56,7 @@ class SamplesToolingApiIntegrationTest extends AbstractIntegrationSpec {
         outputContains("Welcome to Gradle")
     }
 
-    @UsesSample('toolingApi/idea/groovy')
+    @UsesSample('integration-tests/toolingApi/idea/groovy')
     def "can use tooling API to build IDEA model"() {
         tweakProject()
 
@@ -67,7 +67,7 @@ class SamplesToolingApiIntegrationTest extends AbstractIntegrationSpec {
         noExceptionThrown()
     }
 
-    @UsesSample('toolingApi/model/groovy')
+    @UsesSample('integration-tests/toolingApi/model/groovy')
     def "can use tooling API to build general model"() {
         tweakProject()
 
@@ -79,7 +79,7 @@ class SamplesToolingApiIntegrationTest extends AbstractIntegrationSpec {
         outputContains("    build")
     }
 
-    @UsesSample('toolingApi/customModel/groovy')
+    @UsesSample('integration-tests/toolingApi/customModel/groovy')
     def "can use tooling API to register custom model"() {
         tweakPluginProject(sample.dir.file('plugin'))
         tweakProject(sample.dir.file('tooling'))

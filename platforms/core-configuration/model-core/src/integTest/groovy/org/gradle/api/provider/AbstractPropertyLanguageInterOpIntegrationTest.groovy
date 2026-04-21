@@ -20,7 +20,7 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.internal.provider.AbstractLanguageInterOpIntegrationTest
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 
 abstract class AbstractPropertyLanguageInterOpIntegrationTest extends AbstractLanguageInterOpIntegrationTest {
 
@@ -258,7 +258,7 @@ abstract class AbstractPropertyLanguageInterOpIntegrationTest extends AbstractLa
         outputContains("map = {1=true, 2=false}")
     }
 
-    @Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "Kotlin compiler runs in-process and keeps jars open")
+    @Requires(value = TestExecutionPreconditions.NotEmbeddedExecutor, reason = "Kotlin compiler runs in-process and keeps jars open")
     def "can define property in language plugin and set value from Kotlin plugin"() {
         pluginDefinesTask()
 

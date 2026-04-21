@@ -21,8 +21,10 @@ import org.gradle.internal.jvm.Jvm
 import org.gradle.launcher.daemon.registry.DaemonDir
 import org.gradle.launcher.daemon.server.api.HandleStop
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.InstalledJdkTestPreconditions
+import org.gradle.test.preconditions.OsTestPreconditions
+import org.gradle.test.preconditions.JdkVersionTestPreconditions
+
 
 /**
  * Outlines the lifecycle of the daemon given different sequences of events.
@@ -56,7 +58,7 @@ class DaemonLifecycleSpec extends AbstractDaemonLifecycleSpec {
     }
 
     //Java 9 and above needs --add-opens to make environment variable mutation work
-    @Requires(UnitTestPreconditions.Jdk8OrEarlier)
+    @Requires(JdkVersionTestPreconditions.Jdk8OrEarlier)
     def "existing foreground idle daemons are used"() {
         when:
         startForegroundDaemon()
@@ -227,7 +229,7 @@ class DaemonLifecycleSpec extends AbstractDaemonLifecycleSpec {
         completeBuild()
     }
 
-    @Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
+    @Requires(InstalledJdkTestPreconditions.JavaHomeWithDifferentVersionAvailable)
     def "if a daemon exists but is using a different java home, a new compatible daemon will be created and used"() {
         when:
         startForegroundDaemonWithAlternateJavaHome()
@@ -294,7 +296,7 @@ class DaemonLifecycleSpec extends AbstractDaemonLifecycleSpec {
     }
 
     // GradleHandle.abort() does not work reliably on windows and creates flakiness
-    @Requires(UnitTestPreconditions.NotWindows)
+    @Requires(OsTestPreconditions.NotWindows)
     def "daemon stops immediately if stop is requested and then client disconnects"() {
         when:
         startBuild()

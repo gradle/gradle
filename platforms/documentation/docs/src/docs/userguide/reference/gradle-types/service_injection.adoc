@@ -68,8 +68,8 @@ You can obtain an instance of `ObjectFactory` using the `project.objects` proper
 Here's a simple example demonstrating how to use `ObjectFactory` to create a property and set its value:
 
 ====
-include::sample[dir="snippets/providers/services/kotlin",files="build.gradle.kts[tags=object-factory]"]
-include::sample[dir="snippets/providers/services/groovy",files="build.gradle[tags=object-factory]"]
+include::sample[dir="snippets/reference/gradle-types/services/kotlin",files="build.gradle.kts[tags=object-factory]"]
+include::sample[dir="snippets/reference/gradle-types/services/groovy",files="build.gradle[tags=object-factory]"]
 ====
 
 TIP: It is preferable to let Gradle create objects automatically by using <<properties_providers.adoc#managed_properties,managed properties>>.
@@ -90,8 +90,8 @@ include::{snippetsPath}/plugins/nestedObjects/groovy/buildSrc/src/main/java/Reso
 Here is another example using `javax.inject.Inject`:
 
 ====
-include::sample[dir="snippets/providers/services/kotlin",files="build.gradle.kts[tags=object-factory-inject]"]
-include::sample[dir="snippets/providers/services/groovy",files="build.gradle[tags=object-factory-inject]"]
+include::sample[dir="snippets/reference/gradle-types/services/kotlin",files="build.gradle.kts[tags=object-factory-inject]"]
+include::sample[dir="snippets/reference/gradle-types/services/groovy",files="build.gradle[tags=object-factory-inject]"]
 ====
 
 The `MyObjectFactoryTask` task uses an `ObjectFactory` instance, which is injected into the task's constructor using the `@Inject` annotation.
@@ -106,15 +106,15 @@ You can obtain a `ProjectLayout` instance from a `Project` object using the `pro
 Here's a simple example:
 
 ====
-include::sample[dir="snippets/providers/services/kotlin",files="build.gradle.kts[tags=project-layout]"]
-include::sample[dir="snippets/providers/services/groovy",files="build.gradle[tags=project-layout]"]
+include::sample[dir="snippets/reference/gradle-types/services/kotlin",files="build.gradle.kts[tags=project-layout]"]
+include::sample[dir="snippets/reference/gradle-types/services/groovy",files="build.gradle[tags=project-layout]"]
 ====
 
 Here is an example using `javax.inject.Inject`:
 
 ====
-include::sample[dir="snippets/providers/services/kotlin",files="build.gradle.kts[tags=project-layout-inject]"]
-include::sample[dir="snippets/providers/services/groovy",files="build.gradle[tags=project-layout-inject]"]
+include::sample[dir="snippets/reference/gradle-types/services/kotlin",files="build.gradle.kts[tags=project-layout-inject]"]
+include::sample[dir="snippets/reference/gradle-types/services/groovy",files="build.gradle[tags=project-layout-inject]"]
 ====
 
 The `MyProjectLayoutTask` task uses a `ProjectLayout` instance, which is injected into the task's constructor using the `@Inject` annotation.
@@ -133,15 +133,15 @@ You can obtain a `BuildLayout` instance from a `Settings` object using the `sett
 Here's a simple example:
 
 ====
-include::sample[dir="snippets/providers/services/kotlin",files="settings.gradle.kts[tags=build-layout]"]
-include::sample[dir="snippets/providers/services/groovy",files="settings.gradle[tags=build-layout]"]
+include::sample[dir="snippets/reference/gradle-types/services/kotlin",files="settings.gradle.kts[tags=build-layout]"]
+include::sample[dir="snippets/reference/gradle-types/services/groovy",files="settings.gradle[tags=build-layout]"]
 ====
 
 Here is an example using `javax.inject.Inject`:
 
 ====
-include::sample[dir="snippets/providers/services/kotlin",files="settings.gradle.kts[tags=build-layout-inject]"]
-include::sample[dir="snippets/providers/services/groovy",files="settings.gradle[tags=build-layout-inject]"]
+include::sample[dir="snippets/reference/gradle-types/services/kotlin",files="settings.gradle.kts[tags=build-layout-inject]"]
+include::sample[dir="snippets/reference/gradle-types/services/groovy",files="settings.gradle[tags=build-layout-inject]"]
 ====
 
 This code defines a `MyBuildLayoutPlugin` plugin that implements the `Plugin` interface for the `Settings` type.
@@ -163,8 +163,8 @@ The `ProviderFactory` interface provides methods for creating various types of p
 Here's a simple example demonstrating the use of `ProviderFactory` using `project.providers`:
 
 ====
-include::sample[dir="snippets/providers/services/kotlin",files="build.gradle.kts[tags=provider-factory]"]
-include::sample[dir="snippets/providers/services/groovy",files="build.gradle[tags=provider-factory]"]
+include::sample[dir="snippets/reference/gradle-types/services/kotlin",files="build.gradle.kts[tags=provider-factory]"]
+include::sample[dir="snippets/reference/gradle-types/services/groovy",files="build.gradle[tags=provider-factory]"]
 ====
 
 The task named `printMessage` uses the `ProviderFactory` to create a `provider` that supplies the message string.
@@ -172,8 +172,8 @@ The task named `printMessage` uses the `ProviderFactory` to create a `provider` 
 Here is an example using `javax.inject.Inject`:
 
 ====
-include::sample[dir="snippets/providers/services/kotlin",files="build.gradle.kts[tags=provider-factory-inject]"]
-include::sample[dir="snippets/providers/services/groovy",files="build.gradle[tags=provider-factory-inject]"]
+include::sample[dir="snippets/reference/gradle-types/services/kotlin",files="build.gradle.kts[tags=provider-factory-inject]"]
+include::sample[dir="snippets/reference/gradle-types/services/groovy",files="build.gradle[tags=provider-factory-inject]"]
 ====
 
 The `ProviderFactory` service is injected into the `MyProviderFactoryTask` task's constructor using the `@Inject` annotation.
@@ -190,8 +190,8 @@ This helps isolate the work from the main Gradle process, providing better relia
 Here's a basic example of how you might use `WorkerExecutor` in a build script:
 
 ====
-include::sample[dir="snippets/providers/services/kotlin",files="build.gradle.kts[tags=worker-executor]"]
-include::sample[dir="snippets/providers/services/groovy",files="build.gradle[tags=worker-executor]"]
+include::sample[dir="snippets/reference/gradle-types/services/kotlin",files="build.gradle.kts[tags=worker-executor]"]
+include::sample[dir="snippets/reference/gradle-types/services/groovy",files="build.gradle[tags=worker-executor]"]
 ====
 
 See <<worker_api.adoc#worker_api,the worker API>> for more details.
@@ -205,8 +205,8 @@ It is part of the `org.gradle.api.file` package and is typically used in custom 
 Here is an example using `javax.inject.Inject`:
 
 ====
-include::sample[dir="snippets/providers/services/kotlin",files="build.gradle.kts[tags=file-system-inject]"]
-include::sample[dir="snippets/providers/services/groovy",files="build.gradle[tags=file-system-inject]"]
+include::sample[dir="snippets/reference/gradle-types/services/kotlin",files="build.gradle.kts[tags=file-system-inject]"]
+include::sample[dir="snippets/reference/gradle-types/services/groovy",files="build.gradle[tags=file-system-inject]"]
 ====
 
 The `FileSystemOperations` service is injected into the `MyFileSystemOperationsTask` task's constructor using the `@Inject` annotation.
@@ -214,8 +214,8 @@ The `FileSystemOperations` service is injected into the `MyFileSystemOperationsT
 With some ceremony, it is possible to use `FileSystemOperations` in an ad-hoc task defined in a build script:
 
 ====
-include::sample[dir="snippets/providers/services/kotlin",files="build.gradle.kts[tags=file-system-adhoc]"]
-include::sample[dir="snippets/providers/services/groovy",files="build.gradle[tags=file-system-adhoc]"]
+include::sample[dir="snippets/reference/gradle-types/services/kotlin",files="build.gradle.kts[tags=file-system-adhoc]"]
+include::sample[dir="snippets/reference/gradle-types/services/groovy",files="build.gradle[tags=file-system-adhoc]"]
 ====
 
 First, you need to declare an interface with a property of type `FileSystemOperations`, here named `InjectedFsOps`, to serve as an injection point.
@@ -232,8 +232,8 @@ It is part of the `org.gradle.api.file` package and is typically used in custom 
 Here is an example using `javax.inject.Inject`:
 
 ====
-include::sample[dir="snippets/providers/services/kotlin",files="build.gradle.kts[tags=archive-op-inject]"]
-include::sample[dir="snippets/providers/services/groovy",files="build.gradle[tags=archive-op-inject]"]
+include::sample[dir="snippets/reference/gradle-types/services/kotlin",files="build.gradle.kts[tags=archive-op-inject]"]
+include::sample[dir="snippets/reference/gradle-types/services/groovy",files="build.gradle[tags=archive-op-inject]"]
 ====
 
 The `ArchiveOperations` service is injected into the `MyArchiveOperationsTask` task's constructor using the `@Inject` annotation.
@@ -241,8 +241,8 @@ The `ArchiveOperations` service is injected into the `MyArchiveOperationsTask` t
 With some ceremony, it is possible to use `ArchiveOperations` in an ad-hoc task defined in a build script:
 
 ====
-include::sample[dir="snippets/providers/services/kotlin",files="build.gradle.kts[tags=archive-op-adhoc]"]
-include::sample[dir="snippets/providers/services/groovy",files="build.gradle[tags=archive-op-adhoc]"]
+include::sample[dir="snippets/reference/gradle-types/services/kotlin",files="build.gradle.kts[tags=archive-op-adhoc]"]
+include::sample[dir="snippets/reference/gradle-types/services/groovy",files="build.gradle[tags=archive-op-adhoc]"]
 ====
 
 First, you need to declare an interface with a property of type `ArchiveOperations`, here named `InjectedArcOps`, to serve as an injection point.
@@ -259,8 +259,8 @@ It is part of the `org.gradle.process` package and is typically used in custom t
 Here is an example using `javax.inject.Inject`:
 
 ====
-include::sample[dir="snippets/providers/services/kotlin",files="build.gradle.kts[tags=exec-op-inject]"]
-include::sample[dir="snippets/providers/services/groovy",files="build.gradle[tags=exec-op-inject]"]
+include::sample[dir="snippets/reference/gradle-types/services/kotlin",files="build.gradle.kts[tags=exec-op-inject]"]
+include::sample[dir="snippets/reference/gradle-types/services/groovy",files="build.gradle[tags=exec-op-inject]"]
 ====
 
 The `ExecOperations` is injected into the `MyExecOperationsTask` task's constructor using the `@Inject` annotation.
@@ -268,8 +268,8 @@ The `ExecOperations` is injected into the `MyExecOperationsTask` task's construc
 With some ceremony, it is possible to use `ExecOperations` in an ad-hoc task defined in a build script:
 
 ====
-include::sample[dir="snippets/providers/services/kotlin",files="build.gradle.kts[tags=exec-op-adhoc]"]
-include::sample[dir="snippets/providers/services/groovy",files="build.gradle[tags=exec-op-adhoc]"]
+include::sample[dir="snippets/reference/gradle-types/services/kotlin",files="build.gradle.kts[tags=exec-op-adhoc]"]
+include::sample[dir="snippets/reference/gradle-types/services/groovy",files="build.gradle[tags=exec-op-adhoc]"]
 ====
 
 First, you need to declare an interface with a property of type `ExecOperations`, here named `InjectedExecOps`, to serve as an injection point.
@@ -288,8 +288,8 @@ The `ToolingModelBuilderRegistry` interface is part of the `org.gradle.tooling.p
 Here's a simplified example:
 
 ====
-include::sample[dir="snippets/providers/services/kotlin",files="build.gradle.kts[tags=tooling-model]"]
-include::sample[dir="snippets/providers/services/groovy",files="build.gradle[tags=tooling-model]"]
+include::sample[dir="snippets/reference/gradle-types/services/kotlin",files="build.gradle.kts[tags=tooling-model]"]
+include::sample[dir="snippets/reference/gradle-types/services/groovy",files="build.gradle[tags=tooling-model]"]
 ====
 
 You can learn more at <<tooling_api.adoc#tooling_api,Tooling API>>.

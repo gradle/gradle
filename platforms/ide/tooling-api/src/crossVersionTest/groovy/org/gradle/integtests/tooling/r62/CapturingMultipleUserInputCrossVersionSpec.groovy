@@ -23,9 +23,11 @@ import org.gradle.tooling.ProjectConnection
 import spock.lang.Timeout
 
 import static org.gradle.test.fixtures.ConcurrentTestUtil.poll
+import org.gradle.test.fixtures.Flaky
 
 @TargetGradleVersion(">=8.7")
 @Timeout(120)
+@Flaky(because = "https://github.com/gradle/gradle-private/issues/5166")
 class CapturingMultipleUserInputCrossVersionSpec extends ToolingApiSpecification {
     private static final String DUMMY_TASK_NAME = 'doSomething'
 

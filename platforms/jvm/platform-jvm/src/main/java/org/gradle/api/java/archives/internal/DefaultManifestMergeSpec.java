@@ -77,7 +77,7 @@ public class DefaultManifestMergeSpec implements ManifestMergeSpec {
     }
 
     public DefaultManifest merge(Manifest baseManifest, PathToFileResolver fileResolver) {
-        Provider<String> baseContentCharset = baseManifest instanceof ManifestInternal ? ((ManifestInternal)baseManifest).getContentCharset() : null;
+        Provider<String> baseContentCharset = baseManifest instanceof ManifestInternal ? ((ManifestInternal)baseManifest).getContentCharsetProvider() : null;
         DefaultManifest mergedManifest = new DefaultManifest(fileResolver, baseContentCharset);
         mergedManifest.getAttributes().putAll(baseManifest.getAttributes());
         mergedManifest.getSections().putAll(baseManifest.getSections());

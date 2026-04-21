@@ -46,8 +46,8 @@ A plugin project must at least declare:
 - A **group** and **version** (so the plugin can be published and resolved)
 
 ====
-include::sample[dir="snippets/developingPlugins/pluginWithVariants/kotlin",files="build.gradle.kts[tags=publish-1]"]
-include::sample[dir="snippets/developingPlugins/pluginWithVariants/groovy",files="build.gradle[tags=publish-1]"]
+include::sample[dir="snippets/reference/plugin-development/pluginWithVariants/kotlin",files="build.gradle.kts[tags=publish-1]"]
+include::sample[dir="snippets/reference/plugin-development/pluginWithVariants/groovy",files="build.gradle[tags=publish-1]"]
 ====
 
 This lets Gradle generate the **plugin marker module** (`org.example.greeting.gradle.plugin`) and other metadata required by repositories and consumers.
@@ -57,8 +57,8 @@ This lets Gradle generate the **plugin marker module** (`org.example.greeting.gr
 Before publishing remotely, publish to a local Maven directory:
 
 ====
-include::sample[dir="snippets/developingPlugins/pluginWithVariants/kotlin",files="build.gradle.kts[tags=publish-2]"]
-include::sample[dir="snippets/developingPlugins/pluginWithVariants/groovy",files="build.gradle[tags=publish-2]"]
+include::sample[dir="snippets/reference/plugin-development/pluginWithVariants/kotlin",files="build.gradle.kts[tags=publish-2]"]
+include::sample[dir="snippets/reference/plugin-development/pluginWithVariants/groovy",files="build.gradle[tags=publish-2]"]
 ====
 
 Run:
@@ -112,8 +112,8 @@ You’ll see:
 To consume locally, point the consumer project’s `pluginManagement` to the local repo:
 
 ====
-include::sample[dir="snippets/developingPlugins/pluginWithVariants/kotlin",files="settings.gradle.kts[tags=publish-3]"]
-include::sample[dir="snippets/developingPlugins/pluginWithVariants/groovy",files="settings.gradle[tags=publish-3]"]
+include::sample[dir="snippets/reference/plugin-development/pluginWithVariants/kotlin",files="settings.gradle.kts[tags=publish-3]"]
+include::sample[dir="snippets/reference/plugin-development/pluginWithVariants/groovy",files="settings.gradle[tags=publish-3]"]
 ====
 
 Consumers can then apply your plugin by **ID** without publishing to a public repository.

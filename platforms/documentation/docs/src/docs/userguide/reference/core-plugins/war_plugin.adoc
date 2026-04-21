@@ -24,8 +24,8 @@ It disables the default JAR archive generation of the Java plugin and adds a def
 To use the War plugin, include the following in your build script:
 
 ====
-include::sample[dir="snippets/webApplication/quickstart/kotlin",files="build.gradle.kts[tags=use-war-plugin]"]
-include::sample[dir="snippets/webApplication/quickstart/groovy",files="build.gradle[tags=use-war-plugin]"]
+include::sample[dir="snippets/reference/core-plugins/quickstart/kotlin",files="build.gradle.kts[tags=use-war-plugin]"]
+include::sample[dir="snippets/reference/core-plugins/quickstart/groovy",files="build.gradle[tags=use-war-plugin]"]
 ====
 
 [[sec:war_project_layout]]
@@ -97,8 +97,8 @@ The link:{groovyDslPath}/org.gradle.api.tasks.bundling.War.html[War] class in th
 Here is an example with the most important customization options:
 
 ====
-include::sample[dir="snippets/webApplication/customized/kotlin",files="build.gradle.kts[tags=customization]"]
-include::sample[dir="snippets/webApplication/customized/groovy",files="build.gradle[tags=customization]"]
+include::sample[dir="snippets/reference/core-plugins/customized/kotlin",files="build.gradle.kts[tags=customization]"]
+include::sample[dir="snippets/reference/core-plugins/customized/groovy",files="build.gradle[tags=customization]"]
 ====
 
 Of course one can configure the different file-sets with a closure to define excludes and includes.

@@ -62,8 +62,8 @@ Create a new file named `SlackBuildFlowAction.groovy` in `plugin/src/main/groovy
 ====
 
 ====
-include::sample[dir="snippets/plugins/plugin-tutorial/kotlin",files="plugin/src/main/kotlin/org/example/SlackBuildFlowAction.kt[]"]
-include::sample[dir="snippets/plugins/plugin-tutorial/groovy",files="plugin/src/main/groovy/org/example/SlackBuildFlowAction.groovy[]"]
+include::sample[dir="snippets/tutorials/developing-plugins/plugin-tutorial/kotlin",files="plugin/src/main/kotlin/org/example/SlackBuildFlowAction.kt[]"]
+include::sample[dir="snippets/tutorials/developing-plugins/plugin-tutorial/groovy",files="plugin/src/main/groovy/org/example/SlackBuildFlowAction.groovy[]"]
 ====
 
 This code completes two of the three main components of our flow action:
@@ -78,8 +78,8 @@ Now, we'll register the flow action in our plugin's `apply()` method to connect 
 Update your `SlackPlugin` class to look like this:
 
 ====
-include::sample[dir="snippets/plugins/plugin-tutorial/kotlin",files="plugin/src/main/kotlin/org/example/SlackPlugin.kt[tags=final]"]
-include::sample[dir="snippets/plugins/plugin-tutorial/groovy",files="plugin/src/main/groovy/org/example/SlackPlugin.groovy[tags=final]"]
+include::sample[dir="snippets/tutorials/developing-plugins/plugin-tutorial/kotlin",files="plugin/src/main/kotlin/org/example/SlackPlugin.kt[tags=final]"]
+include::sample[dir="snippets/tutorials/developing-plugins/plugin-tutorial/groovy",files="plugin/src/main/groovy/org/example/SlackPlugin.groovy[tags=final]"]
 ====
 
 In this code, we ask Gradle to inject two services that are essential for the Dataflow API:

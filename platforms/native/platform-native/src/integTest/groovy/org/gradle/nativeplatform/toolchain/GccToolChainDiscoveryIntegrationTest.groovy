@@ -22,7 +22,7 @@ import org.gradle.nativeplatform.fixtures.NativePlatformsTestFixture
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.app.CHelloWorldApp
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import org.hamcrest.CoreMatchers
 
 import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.GCC_COMPATIBLE
@@ -117,7 +117,7 @@ toolChains {
       - Could not find C compiler 'does-not-exist'""")
     }
 
-    @Requires(IntegTestPreconditions.NotParallelExecutor)
+    @Requires(TestExecutionPreconditions.NotParallelExecutor)
     @ToBeFixedForConfigurationCache(because = "different failure reporting for vintage mode and storing to cache")
     def "fails when required language tool is not available but other language tools are available"() {
         when:
@@ -151,7 +151,7 @@ toolChains {
         fails "mainExecutable"
 
         then:
-        failure.assertHasDescription("Execution failed for task ':linkMainExecutable' (registered by Rule).")
+        failure.assertHasDescription("Execution failed for task ':linkMainExecutable'.")
         failure.assertThatCause(CoreMatchers.startsWith("Could not find Linker 'does-not-exist'"))
     }
 }

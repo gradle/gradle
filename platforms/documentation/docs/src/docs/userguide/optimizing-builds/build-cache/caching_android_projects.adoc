@@ -69,8 +69,8 @@ However, if you are using annotation processors (such as Dagger2 or Butterknife)
 https://blog.jetbrains.com/kotlin/2018/01/kotlin-1-2-20-is-out/[You can opt into it] (which is recommended) by adding the following to build scripts:
 
 ====
-include::sample[dir="snippets/buildCache/caching-android-projects/kotlin",files="build.gradle.kts[tags=cacheKapt]"]
-include::sample[dir="snippets/buildCache/caching-android-projects/groovy",files="build.gradle[tags=cacheKapt]"]
+include::sample[dir="snippets/optimizing-builds/build-cache/caching-android-projects/kotlin",files="build.gradle.kts[tags=cacheKapt]"]
+include::sample[dir="snippets/optimizing-builds/build-cache/caching-android-projects/groovy",files="build.gradle[tags=cacheKapt]"]
 ====
 
 == Unit test execution
@@ -112,7 +112,7 @@ Create a file, `fabric.gradle`, in the module where you apply the `io.fabric` pl
 .fabric.gradle
 [source,groovy]
 ----
-include::{snippetsPath}/buildCache/caching-android-projects/groovy/build.gradle[tags=fabricGroovy]
+include::{snippetsPath}/optimizing-builds/build-cache/caching-android-projects/groovy/build.gradle[tags=fabricGroovy]
 ----
 
 And then, in the module’s `build.gradle.kts` file, apply this script plugin:
@@ -120,5 +120,5 @@ And then, in the module’s `build.gradle.kts` file, apply this script plugin:
 .build.gradle.kts
 [source,kotlin]
 ----
-include::{snippetsPath}/buildCache/caching-android-projects/kotlin/build.gradle.kts[tags=fabricKotlin]
+include::{snippetsPath}/optimizing-builds/build-cache/caching-android-projects/kotlin/build.gradle.kts[tags=fabricKotlin]
 ----

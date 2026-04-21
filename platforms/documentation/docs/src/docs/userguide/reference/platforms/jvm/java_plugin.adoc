@@ -32,8 +32,8 @@ Instead of applying it directly to your project, you should look into the `java-
 To use the Java plugin, include the following in your build script:
 
 ====
-include::sample[dir="snippets/java/quickstart/kotlin", files="build.gradle.kts[tags=use-plugin]"]
-include::sample[dir="snippets/java/quickstart/groovy", files="build.gradle[tags=use-plugin]"]
+include::sample[dir="snippets/reference/platforms/jvm/quickstart/kotlin", files="build.gradle.kts[tags=use-plugin]"]
+include::sample[dir="snippets/reference/platforms/jvm/quickstart/groovy", files="build.gradle[tags=use-plugin]"]
 ====
 
 [[sec:java_tasks]]
@@ -163,8 +163,8 @@ include::javaProjectGenericLayout.adoc[]
 You configure the project layout by configuring the appropriate source set. This is discussed in more detail in the following sections. Here is a brief example which changes the main Java and resource source directories.
 
 ====
-include::sample[dir="snippets/java/customizedLayout/kotlin", files="build.gradle.kts[tags=define-main]"]
-include::sample[dir="snippets/java/customizedLayout/groovy", files="build.gradle[tags=define-main]"]
+include::sample[dir="snippets/reference/platforms/jvm/customizedLayout/kotlin", files="build.gradle.kts[tags=define-main]"]
+include::sample[dir="snippets/reference/platforms/jvm/customizedLayout/groovy", files="build.gradle[tags=define-main]"]
 ====
 
 [[source_sets]]
@@ -256,22 +256,22 @@ See the <<java_testing.adoc#sec:configuring_java_integration_tests,integration t
 Adding a JAR containing the classes of a source set:
 
 ====
-include::sample[dir="snippets/java/sourceSets/kotlin", files="build.gradle.kts[tags=jar]"]
-include::sample[dir="snippets/java/sourceSets/groovy", files="build.gradle[tags=jar]"]
+include::sample[dir="snippets/reference/platforms/jvm/sourceSets/kotlin", files="build.gradle.kts[tags=jar]"]
+include::sample[dir="snippets/reference/platforms/jvm/sourceSets/groovy", files="build.gradle[tags=jar]"]
 ====
 
 Generating Javadoc for a source set:
 
 ====
-include::sample[dir="snippets/java/sourceSets/kotlin", files="build.gradle.kts[tags=javadoc]"]
-include::sample[dir="snippets/java/sourceSets/groovy", files="build.gradle[tags=javadoc]"]
+include::sample[dir="snippets/reference/platforms/jvm/sourceSets/kotlin", files="build.gradle.kts[tags=javadoc]"]
+include::sample[dir="snippets/reference/platforms/jvm/sourceSets/groovy", files="build.gradle[tags=javadoc]"]
 ====
 
 Adding a test suite to run the tests in a source set:
 
 ====
-include::sample[dir="snippets/java/sourceSets/kotlin", files="build.gradle.kts[tags=test]"]
-include::sample[dir="snippets/java/sourceSets/groovy", files="build.gradle[tags=test]"]
+include::sample[dir="snippets/reference/platforms/jvm/sourceSets/kotlin", files="build.gradle.kts[tags=test]"]
+include::sample[dir="snippets/reference/platforms/jvm/sourceSets/groovy", files="build.gradle[tags=test]"]
 ====
 
 [[sec:java_plugin_and_dependency_management]]
@@ -396,8 +396,8 @@ This allows to configure a number of Java related properties inside a dedicated 
 
 .Using the `java` extension to configure a toolchain
 ====
-include::sample[dir="snippets/java/basic/kotlin",files="build.gradle.kts[tags=java-extension]"]
-include::sample[dir="snippets/java/basic/groovy",files="build.gradle[tags=java-extension]"]
+include::sample[dir="snippets/reference/platforms/jvm/basic/kotlin",files="build.gradle.kts[tags=java-extension]"]
+include::sample[dir="snippets/reference/platforms/jvm/basic/groovy",files="build.gradle[tags=java-extension]"]
 ====
 
 Below is the list of properties and DSL functions with short explanations available inside the `java` extension.
@@ -548,7 +548,7 @@ The format is one line per processor, with the fully qualified name of the proce
 [source,java]
 .processor/src/main/resources/META-INF/gradle/incremental.annotation.processors
 ----
-include::{snippetsPath}/java/incrementalAnnotationProcessing/groovy/processor/src/main/resources/META-INF/gradle/incremental.annotation.processors[tag=registering-incremental-annotation-processors]
+include::{snippetsPath}/reference/platforms/jvm/incrementalAnnotationProcessing/groovy/processor/src/main/resources/META-INF/gradle/incremental.annotation.processors[tag=registering-incremental-annotation-processors]
 ----
 
 
@@ -560,7 +560,7 @@ and return its true type at runtime using the link:{javaApi}/javax/annotation/pr
 [source,java,indent=0]
 .processor/src/main/java/org/gradle/ServiceRegistryProcessor.java
 ----
-include::{snippetsPath}/java/incrementalAnnotationProcessing/groovy/processor/src/main/java/org/gradle/ServiceRegistryProcessor.java[tag=options-of-dynamic-processor]
+include::{snippetsPath}/reference/platforms/jvm/incrementalAnnotationProcessing/groovy/processor/src/main/java/org/gradle/ServiceRegistryProcessor.java[tag=options-of-dynamic-processor]
 ----
 
 Both categories have the following limitations:
@@ -587,7 +587,7 @@ For instance an `EntityProcessor` could create a `<TypeName>Repository` for each
 [source,java,indent=0]
 .processor/src/main/java/org/gradle/EntityProcessor.java
 ----
-include::{snippetsPath}/java/incrementalAnnotationProcessing/groovy/processor/src/main/java/org/gradle/EntityProcessor.java[tag=isolating-annotation-processor]
+include::{snippetsPath}/reference/platforms/jvm/incrementalAnnotationProcessing/groovy/processor/src/main/java/org/gradle/EntityProcessor.java[tag=isolating-annotation-processor]
 ----
 
 "Isolating" processors have the following additional limitations:
@@ -613,7 +613,7 @@ For instance, a `ServiceRegistryProcessor` could create a single `ServiceRegistr
 [source,java,indent=0]
 .processor/src/main/java/org/gradle/ServiceRegistryProcessor.java
 ----
-include::{snippetsPath}/java/incrementalAnnotationProcessing/groovy/processor/src/main/java/org/gradle/ServiceRegistryProcessor.java[tag=aggregating-annotation-processor]
+include::{snippetsPath}/reference/platforms/jvm/incrementalAnnotationProcessing/groovy/processor/src/main/java/org/gradle/ServiceRegistryProcessor.java[tag=aggregating-annotation-processor]
 ----
 
 Gradle will always reprocess (but not recompile) all annotated files that the processor was registered for.
@@ -775,8 +775,8 @@ Since implementation details matter for annotation processors, they must be decl
 Gradle ignores annotation processors on the compile classpath.
 
 ====
-include::sample[dir="snippets/java/apt/kotlin", files="build.gradle.kts[tags=annotation-processing]"]
-include::sample[dir="snippets/java/apt/groovy", files="build.gradle[tags=annotation-processing]"]
+include::sample[dir="snippets/reference/platforms/jvm/apt/kotlin", files="build.gradle.kts[tags=annotation-processing]"]
+include::sample[dir="snippets/reference/platforms/jvm/apt/groovy", files="build.gradle[tags=annotation-processing]"]
 ====
 
 == Variant aware selection

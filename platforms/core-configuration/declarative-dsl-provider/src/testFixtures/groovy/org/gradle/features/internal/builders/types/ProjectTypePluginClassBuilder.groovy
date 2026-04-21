@@ -17,6 +17,7 @@
 package org.gradle.features.internal.builders.types
 
 import org.gradle.features.annotations.BindsProjectType
+import org.gradle.features.binding.BuildModelRegistrar
 import org.gradle.features.binding.ProjectTypeBinding
 import org.gradle.features.binding.ProjectTypeBindingBuilder
 import org.gradle.features.internal.builders.definitions.ProjectTypeDefinitionClassBuilder
@@ -127,6 +128,9 @@ class ProjectTypePluginClassBuilder {
             interface Services {
                 @javax.inject.Inject
                 ${TaskRegistrar.class.name} getTaskRegistrar();
+
+                @javax.inject.Inject
+                ${BuildModelRegistrar.class.name} getBuildModelRegistrar();
             }
         """
     }

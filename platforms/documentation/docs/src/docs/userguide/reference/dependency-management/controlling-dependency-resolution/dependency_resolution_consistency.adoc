@@ -18,8 +18,8 @@
 In a typical Gradle project, multiple configurations exist, such as `compileClasspath` and `runtimeClasspath`.
 
 ====
-include::sample[dir="snippets/dependencyManagement/customizingResolution-consistentResolution/kotlin",files="build.gradle.kts[tags=dependencies]"]
-include::sample[dir="snippets/dependencyManagement/customizingResolution-consistentResolution/groovy",files="build.gradle[tags=dependencies]"]
+include::sample[dir="snippets/reference/dependency-management/controlling-dependency-resolution/customizingResolution-consistentResolution/kotlin",files="build.gradle.kts[tags=dependencies]"]
+include::sample[dir="snippets/reference/dependency-management/controlling-dependency-resolution/customizingResolution-consistentResolution/groovy",files="build.gradle[tags=dependencies]"]
 ====
 
 These configurations are resolved independently, which can lead to situations where the same dependency appears in different versions across configurations.
@@ -37,8 +37,8 @@ NOTE: Dependency resolution consistency is an incubating feature.
 For example, to ensure that the `runtimeClasspath` is consistent with the `compileClasspath`, you can configure your `build.gradle(.kts)` as follows:
 
 ====
-include::sample[dir="snippets/dependencyManagement/customizingResolution-consistentResolution/kotlin",files="build.gradle.kts[tags=explicit-configuration]"]
-include::sample[dir="snippets/dependencyManagement/customizingResolution-consistentResolution/groovy",files="build.gradle[tags=explicit-configuration]"]
+include::sample[dir="snippets/reference/dependency-management/controlling-dependency-resolution/customizingResolution-consistentResolution/kotlin",files="build.gradle.kts[tags=explicit-configuration]"]
+include::sample[dir="snippets/reference/dependency-management/controlling-dependency-resolution/customizingResolution-consistentResolution/groovy",files="build.gradle[tags=explicit-configuration]"]
 ====
 
 This setup directs Gradle to align the versions of dependencies in the `runtimeClasspath` with those resolved in the `compileClasspath`.
@@ -50,8 +50,8 @@ If a version conflict arises that cannot be reconciled, Gradle will fail the bui
 For Java projects, Gradle provides a convenient method to enforce this consistency across all source sets:
 
 ====
-include::sample[dir="snippets/dependencyManagement/customizingResolution-consistentResolution/kotlin",files="build.gradle.kts[tags=java-convention]"]
-include::sample[dir="snippets/dependencyManagement/customizingResolution-consistentResolution/groovy",files="build.gradle[tags=java-convention]"]
+include::sample[dir="snippets/reference/dependency-management/controlling-dependency-resolution/customizingResolution-consistentResolution/kotlin",files="build.gradle.kts[tags=java-convention]"]
+include::sample[dir="snippets/reference/dependency-management/controlling-dependency-resolution/customizingResolution-consistentResolution/groovy",files="build.gradle[tags=java-convention]"]
 ====
 
 This configuration ensures that all runtime classpaths are consistent with their corresponding compile classpaths, promoting reliable and predictable builds.

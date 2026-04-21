@@ -282,14 +282,17 @@ class DefaultProjectTest extends Specification {
         def child1ClassLoaderScope = rootProjectClassLoaderScope.createChild("project-child1", null)
         child1State = Mock(ProjectState)
         child1State.owner >> buildState
+        child1State.displayName >> Describables.of("project ':child1'")
         child1 = defaultProject("child1", child1State, project, new File("child1"), child1ClassLoaderScope)
         child1State.mutableModel >> child1
         child1State.name >> "child1"
         chilchildState = Mock(ProjectState)
         chilchildState.owner >> buildState
+        chilchildState.displayName >> Describables.of("project ':child1:childchild'")
         childchild = defaultProject("childchild", chilchildState, child1, new File("childchild"), child1ClassLoaderScope.createChild("project-childchild", null))
         child2State = Mock(ProjectState)
         child2State.owner >> buildState
+        child2State.displayName >> Describables.of("project ':child2'")
         child2 = defaultProject("child2", child2State, project, new File("child2"), rootProjectClassLoaderScope.createChild("project-child2", null))
         child2State.mutableModel >> child2
         child2State.name >> "child2"

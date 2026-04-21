@@ -30,7 +30,7 @@ import org.gradle.api.internal.catalog.PluginModel
 import org.gradle.api.internal.catalog.problems.VersionCatalogErrorMessages
 import org.gradle.api.internal.catalog.problems.VersionCatalogProblemId
 import org.gradle.api.internal.catalog.problems.VersionCatalogProblemTestFor
-import org.gradle.api.problems.internal.InternalProblems
+import org.gradle.api.problems.internal.ProblemsInternal
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
@@ -49,7 +49,7 @@ class TomlCatalogFileParserTest extends Specification implements VersionCatalogE
             TestUtil.objectFactory(),
             supplier) {
             @Override
-            protected InternalProblems getProblemsService() {
+            protected ProblemsInternal getProblemsService() {
                 return problems
             }
         }

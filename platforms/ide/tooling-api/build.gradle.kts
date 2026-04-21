@@ -56,6 +56,7 @@ dependencies {
     integTestImplementation(testFixtures(projects.launcher))
 
     crossVersionTestImplementation(projects.jvmServices)
+    crossVersionTestImplementation(projects.internalIntegTesting)
     crossVersionTestImplementation(projects.internalTesting)
     crossVersionTestImplementation(testFixtures(projects.buildProcessServices))
     crossVersionTestImplementation(testFixtures(projects.problemsApi))

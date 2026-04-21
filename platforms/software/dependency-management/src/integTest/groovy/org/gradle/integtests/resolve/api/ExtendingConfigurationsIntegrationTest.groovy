@@ -453,4 +453,37 @@ Extended Configurations
         outputContains("Realizing one")
         outputDoesNotContain("Realizing zzz")
     }
+
+    def "variant computation does not eagerly realize lazy artifact providers on consumable configurations"() {
+        given:
+        buildFile """
+            plugins {
+                id 'java-library'
+            }
+
+            configurations.dependencyScope("parent")
+            configurations.consumable("lazyOutgoing") {
+                extendsFrom(configurations.parent)
+                outgoing.artifacts(provider {
+                    throw new RuntimeException("Lazy artifact provider should not be realized during variant computation")
+                })
+            }
+
+            configurations.dependencyScope("selfDep")
+            dependencies {
+                selfDep project(":")
+            }
+            configurations.resolvable("trigger") {
+                extendsFrom(configurations.selfDep)
+            }
+
+            tasks.register("resolve") {
+                inputs.files(configurations.trigger)
+                doLast { println "resolved" }
+            }
+        """
+
+        expect:
+        succeeds "resolve"
+    }
 }

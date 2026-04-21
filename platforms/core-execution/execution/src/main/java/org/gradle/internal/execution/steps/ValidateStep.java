@@ -19,7 +19,7 @@ package org.gradle.internal.execution.steps;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.internal.GeneratedSubclasses;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
-import org.gradle.api.problems.internal.InternalProblem;
+import org.gradle.api.problems.internal.ProblemInternal;
 import org.gradle.internal.MutableReference;
 import org.gradle.internal.execution.ExecutionProblemHandler;
 import org.gradle.internal.execution.Identity;
@@ -57,7 +57,7 @@ public abstract class ValidateStep<
         }
 
         @Override
-        protected R executeDelegate(UnitOfWork work, ImmutableBeforeExecutionContext context, List<InternalProblem> problems) {
+        protected R executeDelegate(UnitOfWork work, ImmutableBeforeExecutionContext context, List<ProblemInternal> problems) {
             return delegate.execute(work, new ImmutableValidationFinishedContext(context, problems));
         }
     }
@@ -75,7 +75,7 @@ public abstract class ValidateStep<
         }
 
         @Override
-        protected R executeDelegate(UnitOfWork work, MutableBeforeExecutionContext context, List<InternalProblem> problems) {
+        protected R executeDelegate(UnitOfWork work, MutableBeforeExecutionContext context, List<ProblemInternal> problems) {
             return delegate.execute(work, new MutableValidationFinishedContext(context, problems));
         }
     }
@@ -96,7 +96,7 @@ public abstract class ValidateStep<
 
         problemHandler.handleReportedProblems(context.getIdentity(), work, validationContext);
 
-        List<InternalProblem> problems = ImmutableList.<InternalProblem>builder()
+        List<ProblemInternal> problems = ImmutableList.<ProblemInternal>builder()
             .addAll(validationContext.getWarnings())
             .addAll(validationContext.getErrors())
             .build();
@@ -105,7 +105,7 @@ public abstract class ValidateStep<
         return executeDelegate(work, context, problems);
     }
 
-    protected abstract R executeDelegate(UnitOfWork work, C context, List<InternalProblem> problems);
+    protected abstract R executeDelegate(UnitOfWork work, C context, List<ProblemInternal> problems);
 
     private static void validateImplementations(UnitOfWork work, BeforeExecutionState beforeExecutionState, WorkValidationContext validationContext) {
         MutableReference<Class<?>> workClass = MutableReference.empty();
@@ -165,6 +165,6 @@ public abstract class ValidateStep<
 
     @ServiceScope(Scope.Global.class)
     public interface ValidationWarningRecorder {
-        void recordValidationWarnings(Identity identity, UnitOfWork work, Collection<? extends InternalProblem> warnings);
+        void recordValidationWarnings(Identity identity, UnitOfWork work, Collection<? extends ProblemInternal> warnings);
     }
 }

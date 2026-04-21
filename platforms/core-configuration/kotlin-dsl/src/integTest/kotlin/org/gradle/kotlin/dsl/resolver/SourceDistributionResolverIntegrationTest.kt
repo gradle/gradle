@@ -8,7 +8,7 @@ import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import org.gradle.util.GradleVersion
 import org.junit.Assume.assumeTrue
 import org.junit.Test
@@ -62,7 +62,7 @@ class SourceDistributionResolverIntegrationTest : AbstractKotlinIntegrationTest(
     }
 
     @Test
-    @Requires(IntegTestPreconditions.NotEmbeddedExecutor::class, reason = "srcDistribution is only available in forked mode")
+    @Requires(TestExecutionPreconditions.NotEmbeddedExecutor::class, reason = "srcDistribution is only available in forked mode")
     fun `can download source distribution`() {
         val gradleVersion = distribution.version
         val srcDistribution = srcDistributionOrSkip()
@@ -110,7 +110,7 @@ class SourceDistributionResolverIntegrationTest : AbstractKotlinIntegrationTest(
     }
 
     @Test
-    @Requires(IntegTestPreconditions.NotEmbeddedExecutor::class, reason = "srcDistribution is only available in forked mode")
+    @Requires(TestExecutionPreconditions.NotEmbeddedExecutor::class, reason = "srcDistribution is only available in forked mode")
     fun `can download source distribution when repositories are declared in settings`() {
         val gradleVersion = distribution.version
         val srcDistribution = srcDistributionOrSkip()
@@ -182,7 +182,7 @@ class SourceDistributionResolverIntegrationTest : AbstractKotlinIntegrationTest(
 
     @Test
     @LeaksFileHandles
-    @Requires(IntegTestPreconditions.NotEmbeddedExecutor::class, reason = "srcDistribution is only available in forked mode")
+    @Requires(TestExecutionPreconditions.NotEmbeddedExecutor::class, reason = "srcDistribution is only available in forked mode")
     fun `source distribution resolved from wrapper without touching the fallback server`() {
         val srcDistribution = srcDistributionOrSkip()
         val gradleVersion = distribution.version
@@ -223,7 +223,7 @@ class SourceDistributionResolverIntegrationTest : AbstractKotlinIntegrationTest(
 
     @Test
     @LeaksFileHandles
-    @Requires(IntegTestPreconditions.NotEmbeddedExecutor::class, reason = "srcDistribution is only available in forked mode")
+    @Requires(TestExecutionPreconditions.NotEmbeddedExecutor::class, reason = "srcDistribution is only available in forked mode")
     fun `source distribution resolved from fallback when custom repo does not have it`() {
         val srcDistribution = srcDistributionOrSkip()
         val gradleVersion = distribution.version
@@ -267,7 +267,7 @@ class SourceDistributionResolverIntegrationTest : AbstractKotlinIntegrationTest(
 
     @Test
     @LeaksFileHandles
-    @Requires(IntegTestPreconditions.NotEmbeddedExecutor::class, reason = "srcDistribution is only available in forked mode")
+    @Requires(TestExecutionPreconditions.NotEmbeddedExecutor::class, reason = "srcDistribution is only available in forked mode")
     fun `source distribution resolved from local file when src zip is next to bin zip`() {
         val srcDistribution = srcDistributionOrSkip()
         val binDistribution = binDistributionOrSkip()
@@ -293,7 +293,7 @@ class SourceDistributionResolverIntegrationTest : AbstractKotlinIntegrationTest(
 
     @Test
     @LeaksFileHandles
-    @Requires(IntegTestPreconditions.NotEmbeddedExecutor::class, reason = "srcDistribution is only available in forked mode")
+    @Requires(TestExecutionPreconditions.NotEmbeddedExecutor::class, reason = "srcDistribution is only available in forked mode")
     fun `source distribution resolved from fallback when wrapper uses a local file distribution without src zip`() {
         val srcDistribution = srcDistributionOrSkip()
         val binDistribution = binDistributionOrSkip()
@@ -330,7 +330,7 @@ class SourceDistributionResolverIntegrationTest : AbstractKotlinIntegrationTest(
 
     @Test
     @LeaksFileHandles
-    @Requires(IntegTestPreconditions.NotEmbeddedExecutor::class, reason = "srcDistribution is only available in forked mode")
+    @Requires(TestExecutionPreconditions.NotEmbeddedExecutor::class, reason = "srcDistribution is only available in forked mode")
     fun `reasonable log messages when failing to resolve from both repositories`() {
         val gradleVersion = distribution.version
         val repositoryName = gradleVersion.repositoryName

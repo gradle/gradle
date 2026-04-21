@@ -24,7 +24,8 @@ import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.IncrementalHelloWorldApp
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.TestEnvironmentPreconditions
+
 import org.gradle.util.internal.TextUtil
 import org.junit.Assume
 import spock.lang.Issue
@@ -102,7 +103,7 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
         allSkipped()
     }
 
-    @Requires(UnitTestPreconditions.CanInstallExecutable)
+    @Requires(TestEnvironmentPreconditions.CanInstallExecutable)
     def "rebuilds executable with source file change"() {
         given:
         run "installMainExecutable"
@@ -154,7 +155,7 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
         }
     }
 
-    @Requires(UnitTestPreconditions.CanInstallExecutable)
+    @Requires(TestEnvironmentPreconditions.CanInstallExecutable)
     def "recompiles library and relinks executable after library source file change"() {
         given:
         run "installMainExecutable"
@@ -284,7 +285,7 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
         }
     }
 
-    @Requires(UnitTestPreconditions.CanInstallExecutable)
+    @Requires(TestEnvironmentPreconditions.CanInstallExecutable)
     def "rebuilds binary with compiler option change"() {
         given:
         run "installMainExecutable"
@@ -318,7 +319,7 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
         install.exec().out == app.frenchOutput
     }
 
-    @Requires(UnitTestPreconditions.CanInstallExecutable)
+    @Requires(TestEnvironmentPreconditions.CanInstallExecutable)
     @RequiresInstalledToolChain(SUPPORTS_32_AND_64)
     def "rebuilds binary with target platform change"() {
         Assume.assumeTrue(languageBuildsOnMultiplePlatforms())

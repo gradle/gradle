@@ -67,8 +67,8 @@ Rename the file `PluginTutorialPluginTest.groovy` to `SlackPluginTest.groovy`.
 Next, update the code to reflect our plugin's ID (`org.example.slack`) and task name (`sendTestSlackMessage`).
 
 ====
-include::sample[dir="snippets/plugins/plugin-tutorial/kotlin",files="plugin/src/test/kotlin/org/example/SlackPluginTest.kt[]"]
-include::sample[dir="snippets/plugins/plugin-tutorial/groovy",files="plugin/src/test/groovy/org/example/SlackPluginTest.groovy[]"]
+include::sample[dir="snippets/tutorials/developing-plugins/plugin-tutorial/kotlin",files="plugin/src/test/kotlin/org/example/SlackPluginTest.kt[]"]
+include::sample[dir="snippets/tutorials/developing-plugins/plugin-tutorial/groovy",files="plugin/src/test/groovy/org/example/SlackPluginTest.groovy[]"]
 ====
 
 This test:

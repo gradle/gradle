@@ -34,7 +34,8 @@ import org.gradle.features.registration.TaskRegistrar
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.versions.KotlinGradlePluginVersions
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.JdkVersionTestPreconditions
+
 import org.jetbrains.kotlin.config.JvmTarget
 
 final class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractIntegrationSpec {
@@ -283,7 +284,7 @@ final class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractInteg
         failure.assertHasCause("Failed to interpret the declarative DSL file '${testDirectory.file("build.gradle.dcl").path}'")
     }
 
-    @Requires(value = UnitTestPreconditions.KotlinSupportedJdk.class)
+    @Requires(value = JdkVersionTestPreconditions.KotlinSupportedJdk.class)
     def 'can configure an extension using DependencyCollector in declarative DSL that uses Kotlin properties for the getters'() {
         given: "a plugin that creates a custom extension using a DependencyCollector"
         file("build-logic/src/main/kotlin/com/example/restricted/DependenciesExtension.kt") << """
@@ -431,7 +432,7 @@ final class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractInteg
         outputContains("commons-lang3-3.8.1.jar")
     }
 
-    @Requires(value = UnitTestPreconditions.KotlinSupportedJdk.class)
+    @Requires(value = JdkVersionTestPreconditions.KotlinSupportedJdk.class)
     def "can configure a platform using DependencyCollector in declarative DSL from a platform project with a custom DependencyModifier in Kotlin"() {
         given: "a plugin that creates a custom extension using a DependencyCollector and PlatformDependencyModifiers"
         file("build-logic/src/main/kotlin/com/example/restricted/DependenciesExtension.kt") << defineDependenciesExtensionWithCustomPlatformModifierKotlin()
@@ -472,7 +473,7 @@ final class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractInteg
         outputContains("commons-lang3-3.8.1.jar")
     }
 
-    @Requires(value = UnitTestPreconditions.KotlinSupportedJdk.class)
+    @Requires(value = JdkVersionTestPreconditions.KotlinSupportedJdk.class)
     def "can add a testFixture dependency in declarative DSL in Kotlin"() {
         given: "a plugin that creates a custom extension using a DependencyCollector and PlatformDependencyModifiers"
         file("build-logic/src/main/kotlin/com/example/restricted/DependenciesExtension.kt") << defineDependenciesExtensionWithTestFixturesModifierKotlin()

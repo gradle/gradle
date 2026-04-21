@@ -28,7 +28,8 @@ import org.gradle.internal.jvm.Jvm
 import org.gradle.platform.Architecture
 import org.gradle.platform.OperatingSystem
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
+import org.gradle.test.preconditions.InstalledJdkTestPreconditions
 
 import java.util.stream.Stream
 
@@ -37,7 +38,7 @@ import static org.gradle.jvm.toolchain.JavaToolchainDownloadUtil.applyToolchainR
 import static org.gradle.jvm.toolchain.JavaToolchainDownloadUtil.constantUrlResolverCode
 import static org.gradle.jvm.toolchain.JavaToolchainDownloadUtil.noUrlResolverCode
 
-@Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "explicitly requests a daemon")
+@Requires(value = TestExecutionPreconditions.NotEmbeddedExecutor, reason = "explicitly requests a daemon")
 class UpdateDaemonJvmIntegrationTest extends AbstractIntegrationSpec implements DaemonJvmPropertiesFixture, JavaToolchainFixture {
 
     def setup() {
@@ -258,7 +259,7 @@ tasks.named("updateDaemonJvm") {
         assertJvmCriteria(otherJvm.javaVersion)
     }
 
-    @Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
+    @Requires(InstalledJdkTestPreconditions.JavaHomeWithDifferentVersionAvailable)
     def "Given defined valid criteria matching with local toolchain When execute updateDaemonJvm with different criteria Then criteria get modified using the expected local toolchain"() {
         given:
         def otherJvm = AvailableJavaHomes.differentVersion
@@ -336,7 +337,7 @@ tasks.named("updateDaemonJvm") {
         failure.assertHasResolution('For more information, see https://docs.gradle.org/current/userguide/gradle_daemon.html#sec:daemon_jvm_provisioning')
     }
 
-    @Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
+    @Requires(InstalledJdkTestPreconditions.JavaHomeWithDifferentVersionAvailable)
     def "configuring the languageVersion will use that value for the generate properties file"() {
         given:
         buildFile("""

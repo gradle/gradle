@@ -24,8 +24,8 @@ image::gradle-basic-13.png[]
 The `dependencies{}` block is where you declare the external libraries, internal modules, or files your project needs to compile, run, or test:
 
 ====
-include::sample[dir="snippets/dependencyManagement/declaringDependencies-basic/kotlin/app",files="build.gradle.kts[tags=java-dependency-mgmt]"]
-include::sample[dir="snippets/dependencyManagement/declaringDependencies-basic/groovy/app",files="build.gradle[tags=java-dependency-mgmt]"]
+include::sample[dir="snippets/fundamentals/authoring-builds/declaringDependencies-basic/kotlin/app",files="build.gradle.kts[tags=java-dependency-mgmt]"]
+include::sample[dir="snippets/fundamentals/authoring-builds/declaringDependencies-basic/groovy/app",files="build.gradle[tags=java-dependency-mgmt]"]
 ====
 
 Each dependency is added to a **bucket configuration**.
@@ -51,14 +51,14 @@ dependencies {
 Gradle recommends using version catalogs to declare dependency versions in a single, reusable location:
 
 ====
-include::sample[dir="snippets/init/generated/groovy",files="gradle/libs.versions.toml[]"]
+include::sample[dir="snippets/fundamentals/authoring-builds/generated/groovy",files="gradle/libs.versions.toml[]"]
 ====
 
 You can then use these aliases in your build scripts:
 
 ====
-include::sample[dir="snippets/init/generated/kotlin",files="app/build.gradle.kts[tags=init-dep]"]
-include::sample[dir="snippets/init/generated/groovy",files="app/build.gradle[tags=init-dep]"]
+include::sample[dir="snippets/fundamentals/authoring-builds/generated/kotlin",files="app/build.gradle.kts[tags=init-dep]"]
+include::sample[dir="snippets/fundamentals/authoring-builds/generated/groovy",files="app/build.gradle[tags=init-dep]"]
 ====
 
 == Enforce and Constrain Versions
@@ -66,15 +66,15 @@ include::sample[dir="snippets/init/generated/groovy",files="app/build.gradle[tag
 Gradle allows you to constrain dependency versions to avoid unwanted upgrades or enforce known good versions:
 
 ====
-include::sample[dir="snippets/how-to/downgrade-transitives/kotlin",files="build.gradle.kts[tags=dependency-full]"]
-include::sample[dir="snippets/how-to/downgrade-transitives/groovy",files="build.gradle[tags=dependency-full]"]
+include::sample[dir="snippets/fundamentals/authoring-builds/downgrade-transitives/kotlin",files="build.gradle.kts[tags=dependency-full]"]
+include::sample[dir="snippets/fundamentals/authoring-builds/downgrade-transitives/groovy",files="build.gradle[tags=dependency-full]"]
 ====
 
 You can also constrain a module globally:
 
 ====
-include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-versionsWithConstraints/kotlin",files="build.gradle.kts[tags=dependency-constraints]"]
-include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-versionsWithConstraints/groovy",files="build.gradle[tags=dependency-constraints]"]
+include::sample[dir="snippets/fundamentals/authoring-builds/managingTransitiveDependencies-versionsWithConstraints/kotlin",files="build.gradle.kts[tags=dependency-constraints]"]
+include::sample[dir="snippets/fundamentals/authoring-builds/managingTransitiveDependencies-versionsWithConstraints/groovy",files="build.gradle[tags=dependency-constraints]"]
 ====
 
 == Resolve Conflicts with Capabilities

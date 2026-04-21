@@ -80,8 +80,8 @@ The method has a link:{javadocPath}/org/gradle/api/artifacts/transform/Transform
 Here, `MyTransform` is the custom transform action that converts a `jar` artifact to a `transformed-jar` artifact:
 
 ====
-include::sample[dir="snippets/dependencyManagement/artifactTransforms-simple/kotlin",files="build.gradle.kts[tags=artifact-transform-imp]"]
-include::sample[dir="snippets/dependencyManagement/artifactTransforms-simple/groovy",files="build.gradle[tags=artifact-transform-imp]"]
+include::sample[dir="snippets/reference/dependency-management/controlling-dependency-resolution/artifactTransforms-simple/kotlin",files="build.gradle.kts[tags=artifact-transform-imp]"]
+include::sample[dir="snippets/reference/dependency-management/controlling-dependency-resolution/artifactTransforms-simple/groovy",files="build.gradle[tags=artifact-transform-imp]"]
 ====
 
 === 2. Declare request Attributes
@@ -91,8 +91,8 @@ Attributes specify the required properties of a dependency.
 Here we specify that we need the `transformed-jar` format for the `runtimeClasspath` configuration:
 
 ====
-include::sample[dir="snippets/dependencyManagement/artifactTransforms-simple/kotlin",files="build.gradle.kts[tags=artifact-transform-use]"]
-include::sample[dir="snippets/dependencyManagement/artifactTransforms-simple/groovy",files="build.gradle[tags=artifact-transform-use]"]
+include::sample[dir="snippets/reference/dependency-management/controlling-dependency-resolution/artifactTransforms-simple/kotlin",files="build.gradle.kts[tags=artifact-transform-use]"]
+include::sample[dir="snippets/reference/dependency-management/controlling-dependency-resolution/artifactTransforms-simple/groovy",files="build.gradle[tags=artifact-transform-use]"]
 ====
 
 === 3. Register a Transform
@@ -102,8 +102,8 @@ A transform must be registered using the link:{javadocPath}/org/gradle/api/artif
 Here, our transform is registered with the link:{javadocPath}/org/gradle/api/Project.html#dependencies(groovy.lang.Closure)[`dependencies`] block:
 
 ====
-include::sample[dir="snippets/dependencyManagement/artifactTransforms-simple/kotlin",files="build.gradle.kts[tags=artifact-transform-registration]"]
-include::sample[dir="snippets/dependencyManagement/artifactTransforms-simple/groovy",files="build.gradle[tags=artifact-transform-registration]"]
+include::sample[dir="snippets/reference/dependency-management/controlling-dependency-resolution/artifactTransforms-simple/kotlin",files="build.gradle.kts[tags=artifact-transform-registration]"]
+include::sample[dir="snippets/reference/dependency-management/controlling-dependency-resolution/artifactTransforms-simple/groovy",files="build.gradle[tags=artifact-transform-registration]"]
 ====
 
 "To" attributes are used to describe the format or type of the artifacts that this transform can use as an input, and "from" attributes to describe the format or type of the artifacts that it produces as an output.
@@ -193,8 +193,8 @@ Gradle will run these transformations on the original artifacts found in a varia
 In the example below, the `TestTransform` class defines a transformation that is registered to process artifacts of type "jar" into artifacts of type "stub":
 
 ====
-include::sample[dir="snippets/dependencyManagement/artifactTransforms-view/kotlin",files="build.gradle.kts[tags=artifact-views-with-custom-attribute]"]
-include::sample[dir="snippets/dependencyManagement/artifactTransforms-view/groovy",files="build.gradle[tags=artifact-views-with-custom-attribute]"]
+include::sample[dir="snippets/reference/dependency-management/controlling-dependency-resolution/artifactTransforms-view/kotlin",files="build.gradle.kts[tags=artifact-views-with-custom-attribute]"]
+include::sample[dir="snippets/reference/dependency-management/controlling-dependency-resolution/artifactTransforms-view/groovy",files="build.gradle[tags=artifact-views-with-custom-attribute]"]
 ====
 
 The `testArtifact` task resolves artifacts of type "stub" using the `runtimeClasspath` configuration.
@@ -267,8 +267,8 @@ To set up the `minified` attribute so that the above works you must add the attr
 You should also register the attribute in the attributes schema.
 
 ====
-include::sample[dir="snippets/dependencyManagement/artifactTransforms-minify/kotlin",files="build.gradle.kts[tags=artifact-transform-attribute-setup]"]
-include::sample[dir="snippets/dependencyManagement/artifactTransforms-minify/groovy",files="build.gradle[tags=artifact-transform-attribute-setup]"]
+include::sample[dir="snippets/reference/dependency-management/controlling-dependency-resolution/artifactTransforms-minify/kotlin",files="build.gradle.kts[tags=artifact-transform-attribute-setup]"]
+include::sample[dir="snippets/reference/dependency-management/controlling-dependency-resolution/artifactTransforms-minify/groovy",files="build.gradle[tags=artifact-transform-attribute-setup]"]
 ====
 <1> Add the attribute to the schema
 <2> All JAR files are not minified
@@ -286,7 +286,7 @@ $ ./gradlew resolveRuntimeClasspath
 ----
 [source,text]
 ----
-include::{snippetsPath}/dependencyManagement/artifactTransforms-minify/tests/artifactTransformMinify.out[]
+include::{snippetsPath}/reference/dependency-management/controlling-dependency-resolution/artifactTransforms-minify/tests/artifactTransformMinify.out[]
 ----
 
 [[sec:implementing-artifact-transforms]]
@@ -324,8 +324,8 @@ Here is the implementation of an `Unzip` transform, which unzips a JAR file into
 The `Unzip` transform does not require any parameters:
 
 ====
-include::sample[dir="snippets/dependencyManagement/artifactTransforms-unzip/kotlin",files="build.gradle.kts[tags=artifact-transform-unzip]"]
-include::sample[dir="snippets/dependencyManagement/artifactTransforms-unzip/groovy",files="build.gradle[tags=artifact-transform-unzip]"]
+include::sample[dir="snippets/reference/dependency-management/controlling-dependency-resolution/artifactTransforms-unzip/kotlin",files="build.gradle.kts[tags=artifact-transform-unzip]"]
+include::sample[dir="snippets/reference/dependency-management/controlling-dependency-resolution/artifactTransforms-unzip/groovy",files="build.gradle[tags=artifact-transform-unzip]"]
 ====
 <1> Use `TransformParameters.None` if the transform does not use parameters
 <2> Inject the input artifact
@@ -349,8 +349,8 @@ Here is the implementation of a `Minify` transform that makes JARs smaller by on
 The `Minify` transform requires knowledge of the classes to keep within each JAR, which is provided as an `Map` property within its parameters:
 
 ====
-include::sample[dir="snippets/dependencyManagement/artifactTransforms-minify/kotlin",files="build.gradle.kts[tags=artifact-transform-minify]"]
-include::sample[dir="snippets/dependencyManagement/artifactTransforms-minify/groovy",files="build.gradle[tags=artifact-transform-minify]"]
+include::sample[dir="snippets/reference/dependency-management/controlling-dependency-resolution/artifactTransforms-minify/kotlin",files="build.gradle.kts[tags=artifact-transform-minify]"]
+include::sample[dir="snippets/reference/dependency-management/controlling-dependency-resolution/artifactTransforms-minify/groovy",files="build.gradle[tags=artifact-transform-minify]"]
 ====
 <1> Declare the parameter type
 <2> Interface for the transform parameters
@@ -380,8 +380,8 @@ The following example demonstrates a more complex transform that relocates speci
 This process involves rewriting the bytecode of both the relocated classes and any classes that reference them (class relocation):
 
 ====
-include::sample[dir="snippets/dependencyManagement/artifactTransforms-relocate/kotlin",files="build.gradle.kts[tags=artifact-transform-relocate]"]
-include::sample[dir="snippets/dependencyManagement/artifactTransforms-relocate/groovy",files="build.gradle[tags=artifact-transform-relocate]"]
+include::sample[dir="snippets/reference/dependency-management/controlling-dependency-resolution/artifactTransforms-relocate/kotlin",files="build.gradle.kts[tags=artifact-transform-relocate]"]
+include::sample[dir="snippets/reference/dependency-management/controlling-dependency-resolution/artifactTransforms-relocate/groovy",files="build.gradle[tags=artifact-transform-relocate]"]
 ====
 <1> Declare the transform cacheable
 <2> Interface for the transform parameters
@@ -406,8 +406,8 @@ For more information on how to use link:{groovyDslPath}/org.gradle.work.InputCha
 Here is an example of an incremental transform that counts the lines of code in Java source files:
 
 ====
-include::sample[dir="snippets/dependencyManagement/artifactTransforms-incremental/kotlin",files="build.gradle.kts[tags=artifact-transform-countloc]"]
-include::sample[dir="snippets/dependencyManagement/artifactTransforms-incremental/groovy",files="build.gradle[tags=artifact-transform-countloc]"]
+include::sample[dir="snippets/reference/dependency-management/controlling-dependency-resolution/artifactTransforms-incremental/kotlin",files="build.gradle.kts[tags=artifact-transform-countloc]"]
+include::sample[dir="snippets/reference/dependency-management/controlling-dependency-resolution/artifactTransforms-incremental/groovy",files="build.gradle[tags=artifact-transform-countloc]"]
 ====
 <1> Inject `InputChanges`
 <2> Query for changes in the input artifact
@@ -434,16 +434,16 @@ For example, imagine you want to unpack some dependencies and put the unpacked d
 You can do so by registering an artifact transform action of type `Unzip`, as shown here:
 
 ====
-include::sample[dir="snippets/dependencyManagement/artifactTransforms-unzip/kotlin",files="build.gradle.kts[tags=artifact-transform-registration]"]
-include::sample[dir="snippets/dependencyManagement/artifactTransforms-unzip/groovy",files="build.gradle[tags=artifact-transform-registration]"]
+include::sample[dir="snippets/reference/dependency-management/controlling-dependency-resolution/artifactTransforms-unzip/kotlin",files="build.gradle.kts[tags=artifact-transform-registration]"]
+include::sample[dir="snippets/reference/dependency-management/controlling-dependency-resolution/artifactTransforms-unzip/groovy",files="build.gradle[tags=artifact-transform-registration]"]
 ====
 
 Another example is that you want to minify JARs by only keeping some `class` files from them.
 Note the use of the `parameters {}` block to provide the classes to keep in the minified JARs to the `Minify` transform:
 
 ====
-include::sample[dir="snippets/dependencyManagement/artifactTransforms-minify/kotlin",files="build.gradle.kts[tags=artifact-transform-registration]"]
-include::sample[dir="snippets/dependencyManagement/artifactTransforms-minify/groovy",files="build.gradle[tags=artifact-transform-registration]"]
+include::sample[dir="snippets/reference/dependency-management/controlling-dependency-resolution/artifactTransforms-minify/kotlin",files="build.gradle.kts[tags=artifact-transform-registration]"]
+include::sample[dir="snippets/reference/dependency-management/controlling-dependency-resolution/artifactTransforms-minify/groovy",files="build.gradle[tags=artifact-transform-registration]"]
 ====
 
 [[sec:executing-artifact-transforms]]

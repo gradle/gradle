@@ -25,7 +25,7 @@ import org.gradle.integtests.fixtures.executer.ProjectLifecycleFixture
 import org.gradle.integtests.fixtures.extensions.FluidDependenciesResolveTest
 import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import org.junit.Rule
 import spock.lang.Issue
 
@@ -40,7 +40,7 @@ class ConfigurationOnDemandIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Requires(
-        value = [IntegTestPreconditions.NotParallelExecutor, IntegTestPreconditions.NotIsolatedProjects],
+        value = [TestExecutionPreconditions.NotParallelExecutor, TestExecutionPreconditions.NotIsolatedProjects],
         reason = "these features hide incubating message"
     )
     def "presents incubating message"() {
@@ -56,7 +56,7 @@ class ConfigurationOnDemandIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Requires(
-        value = [IntegTestPreconditions.NotParallelExecutor, IntegTestPreconditions.NotIsolatedProjects],
+        value = [TestExecutionPreconditions.NotParallelExecutor, TestExecutionPreconditions.NotIsolatedProjects],
         reason = "these features hide incubating message"
     )
     def "presents incubating message with parallel mode"() {

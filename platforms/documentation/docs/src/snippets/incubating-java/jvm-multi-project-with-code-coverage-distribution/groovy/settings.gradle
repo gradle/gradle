@@ -1,4 +1,0 @@
-rootProject.name = 'jvm-multi-project-with-code-coverage-distribution'
-
-// production code projects
-include 'application', 'list', 'utilities'

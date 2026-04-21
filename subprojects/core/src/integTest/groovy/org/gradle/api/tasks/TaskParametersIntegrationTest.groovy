@@ -28,7 +28,7 @@ import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.Actions
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import org.gradle.util.internal.ToBeImplemented
 import spock.lang.Issue
 
@@ -383,7 +383,7 @@ task someTask {
         "123"                | "123 as short"
     }
 
-    @Requires(IntegTestPreconditions.IsEmbeddedExecutor)
+    @Requires(TestExecutionPreconditions.IsEmbeddedExecutor)
     // this test only works in embedded mode because of the use of validation test fixtures
     def "invalid task causes VFS to drop"() {
         buildFile << """
@@ -409,7 +409,7 @@ task someTask {
         outputContains("Invalidating VFS because task ':invalid' failed validation")
     }
 
-    @Requires(IntegTestPreconditions.IsEmbeddedExecutor)
+    @Requires(TestExecutionPreconditions.IsEmbeddedExecutor)
     // this test only works in embedded mode because of the use of validation test fixtures
     def "validation warnings are displayed once"() {
         buildFile << """
@@ -435,7 +435,7 @@ task someTask {
         output.count("- Type 'InvalidTask' property 'inputFile' test problem. Reason: This is a test.") == 1
     }
 
-    @Requires(IntegTestPreconditions.IsEmbeddedExecutor)
+    @Requires(TestExecutionPreconditions.IsEmbeddedExecutor)
     // this test only works in embedded mode because of the use of validation test fixtures
     def "validation warnings are reported even when task is skipped"() {
         buildFile << """

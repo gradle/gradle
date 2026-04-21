@@ -20,10 +20,10 @@ import org.gradle.integtests.fixtures.RequiredFeature
 import org.gradle.integtests.fixtures.publish.RemoteRepositorySpec
 import org.gradle.test.fixtures.server.http.MavenHttpModule
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import spock.lang.Issue
 
-@Requires(value = IntegTestPreconditions.IsEmbeddedExecutor, reason = """
+@Requires(value = TestExecutionPreconditions.IsEmbeddedExecutor, reason = """
 This test is very expensive due to the permutation testing.
 Because it tests the internal state of the resolution engine, the Gradle execution model does not matter.
 Se we run the tests only in embedded mode

@@ -20,8 +20,8 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
-import org.gradle.api.problems.internal.InternalProblem;
-import org.gradle.api.problems.internal.InternalProblems;
+import org.gradle.api.problems.internal.ProblemInternal;
+import org.gradle.api.problems.internal.ProblemsInternal;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.reflect.validation.TypeValidationProblemRenderer;
 import org.gradle.model.internal.type.ModelType;
@@ -34,18 +34,18 @@ import static java.util.stream.Collectors.toList;
 public class DefaultTypeValidationContext extends ProblemRecordingTypeValidationContext {
     public static final String MISSING_NORMALIZATION_ANNOTATION = "MISSING_NORMALIZATION_ANNOTATION";
     private final boolean reportCacheabilityProblems;
-    private final ImmutableList.Builder<InternalProblem> errors = ImmutableList.builder();
-    private final ImmutableList.Builder<InternalProblem> warnings = ImmutableList.builder();
+    private final ImmutableList.Builder<ProblemInternal> errors = ImmutableList.builder();
+    private final ImmutableList.Builder<ProblemInternal> warnings = ImmutableList.builder();
 
-    public static DefaultTypeValidationContext withRootType(Class<?> rootType, boolean cacheable, InternalProblems problems) {
+    public static DefaultTypeValidationContext withRootType(Class<?> rootType, boolean cacheable, ProblemsInternal problems) {
         return new DefaultTypeValidationContext(rootType, cacheable, problems);
     }
 
-    public static DefaultTypeValidationContext withoutRootType(boolean reportCacheabilityProblems, InternalProblems problems) {
+    public static DefaultTypeValidationContext withoutRootType(boolean reportCacheabilityProblems, ProblemsInternal problems) {
         return new DefaultTypeValidationContext(null, reportCacheabilityProblems, problems);
     }
 
-    private DefaultTypeValidationContext(@Nullable Class<?> rootType, boolean reportCacheabilityProblems, InternalProblems problems) {
+    private DefaultTypeValidationContext(@Nullable Class<?> rootType, boolean reportCacheabilityProblems, ProblemsInternal problems) {
         super(rootType, Optional::empty, problems);
         this.reportCacheabilityProblems = reportCacheabilityProblems;
     }
@@ -58,7 +58,7 @@ public class DefaultTypeValidationContext extends ProblemRecordingTypeValidation
 
 
     @Override
-    protected void recordError(InternalProblem problem) {
+    protected void recordError(ProblemInternal problem) {
         if (onlyAffectsCacheableWork(problem.getDefinition().getId()) && !reportCacheabilityProblems) {
             return;
         }
@@ -66,19 +66,19 @@ public class DefaultTypeValidationContext extends ProblemRecordingTypeValidation
     }
 
     @Override
-    protected void recordWarning(InternalProblem problem) {
+    protected void recordWarning(ProblemInternal problem) {
         warnings.add(problem);
     }
 
-    public ImmutableList<InternalProblem> getErrors() {
+    public ImmutableList<ProblemInternal> getErrors() {
         return errors.build();
     }
 
-    public ImmutableList<InternalProblem> getWarnings() {
+    public ImmutableList<ProblemInternal> getWarnings() {
         return warnings.build();
     }
 
-    public static void throwOnProblemsOf(Class<?> implementation, ImmutableList<InternalProblem> validationMessages) {
+    public static void throwOnProblemsOf(Class<?> implementation, ImmutableList<ProblemInternal> validationMessages) {
         if (!validationMessages.isEmpty()) {
             String formatString = validationMessages.size() == 1
                 ? "A problem was found with the configuration of %s."

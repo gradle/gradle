@@ -15,7 +15,7 @@
  */
 package org.gradle.internal.build.event.types;
 
-import org.gradle.api.problems.internal.InternalProblem;
+import org.gradle.api.problems.internal.ProblemInternal;
 import org.gradle.internal.exceptions.MultiCauseException;
 import org.gradle.internal.problems.failure.DefaultFailureFactory;
 import org.gradle.internal.problems.failure.Failure;
@@ -73,12 +73,12 @@ public class DefaultFailure implements Serializable, InternalFailure {
         return fromThrowable(throwable, p -> null);
     }
 
-    public static InternalFailure fromThrowable(Throwable t, Function<InternalProblem, InternalBasicProblemDetailsVersion3> mapper) {
+    public static InternalFailure fromThrowable(Throwable t, Function<ProblemInternal, InternalBasicProblemDetailsVersion3> mapper) {
         Failure failure = DefaultFailureFactory.withDefaultClassifier().create(t);
         return fromFailure(failure, mapper);
     }
 
-    public static InternalFailure fromFailure(Failure buildFailure, Function<InternalProblem, InternalBasicProblemDetailsVersion3> mapper) {
+    public static InternalFailure fromFailure(Failure buildFailure, Function<ProblemInternal, InternalBasicProblemDetailsVersion3> mapper) {
         // Iterate through the cause hierarchy and convert them to a corresponding Failure with the same cause structure. If the current failure has a
         // corresponding problem (ie the exception was thrown via ProblemReporter.throwing()), then the problem will be also available in the new failure object.
         String failureString = FailurePrinter.printToString(buildFailure);
@@ -92,7 +92,7 @@ public class DefaultFailure implements Serializable, InternalFailure {
 
     private static List<InternalFailure> convertCausesToFailures(
         List<Failure> causes,
-        Function<InternalProblem, InternalBasicProblemDetailsVersion3> mapper
+        Function<ProblemInternal, InternalBasicProblemDetailsVersion3> mapper
     ) {
         return causes.stream()
             // Skip multi cause exceptions - no idea why

@@ -23,8 +23,8 @@ The CodeNarc plugin performs quality checks on your project's Groovy source file
 To use the CodeNarc plugin, include the following in your build script:
 
 ====
-include::sample[dir="snippets/codeQuality/codeQuality/kotlin",files="build.gradle.kts[tags=use-codenarc-plugin]"]
-include::sample[dir="snippets/codeQuality/codeQuality/groovy",files="build.gradle[tags=use-codenarc-plugin]"]
+include::sample[dir="snippets/reference/core-plugins/codeQuality/kotlin",files="build.gradle.kts[tags=use-codenarc-plugin]"]
+include::sample[dir="snippets/reference/core-plugins/codeQuality/groovy",files="build.gradle[tags=use-codenarc-plugin]"]
 ====
 
 The plugin adds a number of tasks to the project that perform the quality checks when used with the <<groovy_plugin.adoc#groovy_plugin, Groovy Plugin>>. You can execute the checks by running `gradle check`.
@@ -89,8 +89,8 @@ If CodeNarc requires a different Groovy version than that used to compile Groovy
 ====
 
 ====
-include::sample[dir="snippets/codeQuality/codeQuality/kotlin",files="build.gradle.kts[tags=specify-groovy-version]"]
-include::sample[dir="snippets/codeQuality/codeQuality/groovy",files="build.gradle[tags=specify-groovy-version]"]
+include::sample[dir="snippets/reference/core-plugins/codeQuality/kotlin",files="build.gradle.kts[tags=specify-groovy-version]"]
+include::sample[dir="snippets/reference/core-plugins/codeQuality/groovy",files="build.gradle[tags=specify-groovy-version]"]
 ====
 
 [[sec:codenarc_configuration]]

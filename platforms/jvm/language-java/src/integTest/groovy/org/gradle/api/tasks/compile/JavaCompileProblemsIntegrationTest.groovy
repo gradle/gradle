@@ -30,7 +30,7 @@ import org.gradle.integtests.fixtures.problems.ReceivedProblem
 import org.gradle.internal.jvm.Jvm
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.InstalledJdkTestPreconditions
 import spock.lang.Issue
 
 /**
@@ -352,7 +352,7 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec impleme
     }
 
     @Issue("https://github.com/gradle/gradle/pull/29141")
-    @Requires(IntegTestPreconditions.Java8HomeAvailable)
+    @Requires(InstalledJdkTestPreconditions.Java8HomeAvailable)
     def "compiler warnings causes failure in problem mapping under JDK8"() {
         given:
         setupAnnotationProcessors(JavaVersion.VERSION_1_8)

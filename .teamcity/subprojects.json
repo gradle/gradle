@@ -112,6 +112,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "build-cache-core",
+    "path": "platforms/core-execution/build-cache-core",
+    "unitTests": true,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
     "name": "build-cache-example-client",
     "path": "platforms/core-execution/build-cache-example-client",
     "unitTests": true,
@@ -242,6 +249,13 @@
     "path": "platforms/core-runtime/classloaders",
     "unitTests": true,
     "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "name": "classpath",
+    "path": "platforms/core-runtime/classpath",
+    "unitTests": true,
+    "functionalTests": true,
     "crossVersionTests": false
   },
   {

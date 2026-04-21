@@ -30,6 +30,7 @@ import kotlin.reflect.KProperty
 /**
  * Provides efficient access to a property.
  */
+@Deprecated("Use 'project.property(name)', 'project.findProperty(name)', or 'extra[name]' instead. See the Gradle 9.6 upgrading guide.")
 interface PropertyDelegate {
     operator fun <T> getValue(receiver: Any?, property: KProperty<*>): T
 }
@@ -38,11 +39,14 @@ interface PropertyDelegate {
 /**
  * Provides efficient access to a mutable dynamic property.
  */
+@Suppress("DEPRECATION")
+@Deprecated("Use 'extra[name]' or 'extra.set(name, value)' instead. See the Gradle 9.6 upgrading guide.")
 interface MutablePropertyDelegate : PropertyDelegate {
     operator fun <T> setValue(receiver: Any?, property: KProperty<*>, value: T)
 }
 
 
+@Suppress("DEPRECATION")
 internal
 fun propertyDelegateFor(dynamicLookupRoutine: DynamicLookupRoutine, target: Any, property: KProperty<*>): PropertyDelegate =
     dynamicObjectFor(target).let { owner ->
@@ -56,6 +60,7 @@ fun dynamicObjectFor(target: Any): DynamicObject =
     (target as? DynamicObjectAware ?: DslObject(target)).asDynamicObject
 
 
+@Suppress("DEPRECATION")
 private
 class NullableDynamicPropertyDelegate(
     private val dynamicLookupRoutine: DynamicLookupRoutine,
@@ -68,6 +73,7 @@ class NullableDynamicPropertyDelegate(
 }
 
 
+@Suppress("DEPRECATION")
 private
 class NonNullDynamicPropertyDelegate(
     private val dynamicLookupRoutine: DynamicLookupRoutine,

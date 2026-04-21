@@ -19,7 +19,7 @@ package org.gradle.internal.enterprise
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 
 import static org.gradle.internal.enterprise.impl.DefaultGradleEnterprisePluginCheckInService.UNSUPPORTED_TOGGLE
 import static org.gradle.internal.enterprise.impl.DefaultGradleEnterprisePluginCheckInService.UNSUPPORTED_TOGGLE_MESSAGE
@@ -91,7 +91,7 @@ class DevelocityPluginCheckInIntegrationTest extends AbstractIntegrationSpec {
         plugin.serviceCreatedOnce(output)
     }
 
-    @Requires(value = IntegTestPreconditions.NotConfigCached, reason = "Isolated projects implies config cache")
+    @Requires(value = TestExecutionPreconditions.NotConfigCached, reason = "Isolated projects implies config cache")
     def "shows warning message when Develocity plugin version is used with isolated projects enabled"() {
         given:
         plugin.runtimeVersion = pluginVersion

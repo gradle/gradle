@@ -41,8 +41,8 @@ Learn how to verify your plugin can be published by pushing it to a local Maven 
 In your `plugin/build.gradle(.kts)` file, apply the `maven-publish` plugin and make sure you have the `group` and `version` defined:
 
 ====
-include::sample[dir="snippets/plugins/plugin-tutorial/kotlin",files="plugin/build.gradle.kts[tags=publish]"]
-include::sample[dir="snippets/plugins/plugin-tutorial/groovy",files="plugin/build.gradle[tags=publish]"]
+include::sample[dir="snippets/tutorials/developing-plugins/plugin-tutorial/kotlin",files="plugin/build.gradle.kts[tags=publish]"]
+include::sample[dir="snippets/tutorials/developing-plugins/plugin-tutorial/groovy",files="plugin/build.gradle[tags=publish]"]
 ====
 
 TIP: The `group` and `version` **must** be set or the `publish` task will fail.
@@ -52,8 +52,8 @@ TIP: The `group` and `version` **must** be set or the `publish` task will fail.
 Use the `publishing {}` block from the `maven-publish` plugin to add a Maven repository that points to `build/local-repo` in your plugin's build file:
 
 ====
-include::sample[dir="snippets/plugins/plugin-tutorial/kotlin",files="plugin/build.gradle.kts[tags=repo]"]
-include::sample[dir="snippets/plugins/plugin-tutorial/groovy",files="plugin/build.gradle[tags=repo]"]
+include::sample[dir="snippets/tutorials/developing-plugins/plugin-tutorial/kotlin",files="plugin/build.gradle.kts[tags=repo]"]
+include::sample[dir="snippets/tutorials/developing-plugins/plugin-tutorial/groovy",files="plugin/build.gradle[tags=repo]"]
 ====
 
 Publish the plugin:
@@ -90,15 +90,15 @@ Take a moment to look at these files.
 Point your **consumer** build to that repo and apply the plugin **with a version**:
 
 ====
-include::sample[dir="snippets/plugins/plugin-tutorial/kotlin",files="consumer/settings.gradle.kts[tags=repo]"]
-include::sample[dir="snippets/plugins/plugin-tutorial/groovy",files="consumer/settings.gradle[tags=repo]"]
+include::sample[dir="snippets/tutorials/developing-plugins/plugin-tutorial/kotlin",files="consumer/settings.gradle.kts[tags=repo]"]
+include::sample[dir="snippets/tutorials/developing-plugins/plugin-tutorial/groovy",files="consumer/settings.gradle[tags=repo]"]
 ====
 
 == Step 4: Apply the Plugin in the `consumer` Project
 
 ====
-include::sample[dir="snippets/plugins/plugin-tutorial/kotlin",files="consumer/build.gradle.kts[tags=repo]"]
-include::sample[dir="snippets/plugins/plugin-tutorial/groovy",files="consumer/build.gradle[tags=repo]"]
+include::sample[dir="snippets/tutorials/developing-plugins/plugin-tutorial/kotlin",files="consumer/build.gradle.kts[tags=repo]"]
+include::sample[dir="snippets/tutorials/developing-plugins/plugin-tutorial/groovy",files="consumer/build.gradle[tags=repo]"]
 ====
 
 Now run something in the consumer (e.g., your `test` task or `build`):

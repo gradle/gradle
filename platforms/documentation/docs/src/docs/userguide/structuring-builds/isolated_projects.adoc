@@ -1,0 +1,646 @@
+// Copyright (C) 2024 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+:gradle-issues: https://github.com/gradle/gradle/issues/
+
+[[isolated_projects]]
+= Isolated Projects
+:keywords: ip
+
+Isolated Projects is an experimental feature aimed at improving Gradle scalability and performance, especially for large builds and IDE sync (Android Studio / IntelliJ IDEA).
+
+When the Isolated Projects feature is enabled, the projects in a <<multi_project_builds.adoc#multi_project_builds,multi-project build>> are "isolated" from each other.
+This means that build logic, such as build scripts or plugins, applied to a project cannot directly access the mutable state of other projects.
+This constraint unlocks two things: parallel project configuration and finer-grained caching of configuration results.
+
+You can enable the feature by setting the `org.gradle.unsafe.isolated-projects` to `true` in `gradle.properties`,
+or passing a flag on the command line:
+
+[source,bash]
+----
+$ ./gradlew build -Dorg.gradle.unsafe.isolated-projects=true
+----
+
+Follow the <<sec:ip_migration_path,recommended migration steps>> to make your build logic compatible with <<sec:ip_constraints,Isolated Projects constraints>>.
+
+[WARNING]
+====
+Isolated Projects is an experimental feature that has not yet reached <<feature_lifecycle.adoc#sec:incubating_state,incubating>> state.
+APIs and behavior may change at any time without notice.
+The feature will enter incubation once Gradle's core has stronger support for this mode and more common use cases are covered.
+====
+
+[[sec:ip_changelog]]
+== Recent changes
+
+While the feature is experimental, notable changes are documented here rather than in release notes:
+
+* Gradle 9.4.0
+** Isolated Projects violations are now deduplicated, making the Configuration Cache HTML reports significantly smaller.
+
+* Gradle 9.3.0
+** Tooling model caching is now disabled, as it currently has known correctness problems.
+
+* Gradle 9.2.0
+** Additional APIs on `TaskContainer` are treated as incompatible: `findByPath(String)` and `getByPath(String)`
+methods now emit violations when a task from another project is requested.
+
+[[sec:ip_performance]]
+== Performance benefits and limitations
+
+The main goal of Isolated Projects is to *speed up or entirely avoid running the <<build_lifecycle.adoc#configuration,configuration phase>>*.
+This is <<sec:ip_vs_cc,similar to the Configuration Cache>> feature, which allows skipping configuration when you rerun a task without changing the build configuration inputs.
+In fact, Isolated Projects uses Configuration Cache infrastructure as the foundation.
+
+Builds that will get the most benefit are those that have a long configuration phase, such as large multi-project builds.
+Even for builds with short configuration times, keeping that phase under a few seconds helps developers stay in flow and avoid losing momentum.
+
+Here is how Isolated Projects affects the <<build_lifecycle.adoc#build_phases,lifecycle of the build>>:
+
+1. Initialization phase
++
+Running init scripts and evaluating settings remains sequential with Isolated Projects.
+Compared to other phases, this phase is relatively quick, especially for large builds.
+
+2. Configuration phase
++
+Isolated Projects directly improves the performance of this phase by *running project configuration in parallel*.
+
+3. Execution phase
++
+Isolated Projects has no effect on this phase, as the tasks are already isolated from each other and run in parallel with Configuration Cache.
+
+[NOTE]
+====
+In case of a Configuration Cache hit, the initialization and configuration are <<configuration_cache.adoc#subsequent_runs,skipped entirely>>.
+This applies with Isolated Projects as well.
+====
+
+An important takeaway is that enabling Isolated Projects on a machine with N cores will not make your build N times faster.
+If the configuration phase is only 40% of the build time,
+then that's the ceiling for improvement with Isolated Projects.
+That said, for large builds, even a few-percent improvement can translate into minutes or more of actual time,
+which can have a substantial impact on developer productivity.
+
+Overall, the performance benefits of Isolated Projects depend on a variety of factors,
+such as the size and shape of your build, hardware resources, as well as your workflow.
+It also depends on the way Gradle is invoked.
+
+[[sec:gradle_invocation_modes]]
+=== Gradle invocation modes
+
+Most users interact with Gradle in different ways:
+
+1. Running tasks (either via command-line or via IDE)
+2. Building <<tooling_api.adoc#tooling_api,tooling models>> (this happens behind the scenes when you do an IDE sync)
+
+The configuration phase runs in both cases, but it is significantly different when model building is involved.
+Because of this, the performance benefits of Isolated Projects also depend on the way of interacting.
+
+[NOTE]
+====
+Performance improvements for Isolated Projects are released gradually across Gradle versions.
+Some improvements might bring benefits only for running tasks, while others for model building (and IDE sync by extension).
+As the Isolated Projects feature matures, the improvements will serve more scenarios.
+====
+
+[[sec:ip_perf_tasks]]
+==== Performance when running tasks
+
+When running tasks, the configuration phase consists of multiple steps.
+
+1. Configure projects
++
+Isolated Projects makes this step run in **parallel**, which can significantly improve performance for builds with many projects.
+In the current implementation, all projects are always configured; there is no project configuration avoidance yet, whether by skipping unneeded projects or by using cached results.
+
+2. Discover the work graph
++
+The work graph is constructed by starting with the requested tasks and following the dependencies until all required work is discovered.
+This is not a directly parallelizable process.
+In the current implementation, even with Isolated Projects, this step is **sequential**.
+For invocations that result in having large work graphs, this step can become a performance bottleneck.
+An example is running checks or tests on <<command_line_interface.adoc#executing_tasks_in_multi_project_builds,all projects via an unqualified task>>, such as `./gradlew check`, which is typical on CI.
+
+3. Store the work graph (Configuration Cache)
++
+Isolated Projects makes this step run in **parallel**.
+This is the <<sec:ip_vs_parallel_cc,same as with Parallel Configuration Cache>>,
+but with the additional safety provided by the <<sec:ip_constraints,Isolated Projects constraints>>.
+
+4. Load the work graph (Configuration Cache)
++
+This step is **already parallel** with Configuration Cache; Isolated Projects has no additional effect here.
+
+[[sec:ip_perf_models]]
+==== Performance when building models (IDE Sync)
+
+For scenarios such as IDE sync, Gradle provides a special mechanism of building <<tooling_api.adoc#tooling_api,tooling models>>.
+The models describe the structure of the build, tell IDEs where to find production sources, and more.
+
+From Gradle's point of view, an IDE sync or a tooling invocation in general consists of the following parts (_simplified_):
+
+1. Configure projects
++
+Isolated Projects makes this step run in **parallel**, which can significantly improve performance for builds with many projects.
+In the current implementation, all projects are always configured; there is no project configuration avoidance yet, whether by skipping unneeded projects or by using cached results.
+
+2. Run model builders
++
+The invoking tool (e.g., the IDE) controls how individual models are built.
+Because of this, enabling Isolated Projects alone might not be enough to build models in parallel.
+However, in some cases it's possible to achieve parallel model building even without Isolated Projects,
+as explained below.
+
+3. Return the full model
++
+Similarly to how the task-running invocation finishes after all tasks have executed,
+the model-building invocation finishes after returning the final model.
+The model content is fully defined by the tool, e.g. the IDE.
+
+[NOTE]
+====
+There is a lot more nuance to this, but it's out of scope of this page.
+Individual models can be streamed back to the consumer before the final return.
+A tooling invocation can also request running tasks and build models before and after.
+All this and more affect the performance of a model building invocation and how Isolated Projects can improve it.
+====
+
+Without Isolated Projects, it is not possible to get a "Configuration Cache hit" for IDE sync
+because Configuration Cache does not currently support model building invocations.
+When Isolated Projects is enabled, the *full model can be cached and returned immediately* on later invocations
+if the build configuration hasn't changed.
+
+[[sec:parallel_model_building]]
+===== Parallel model building for IDE sync
+
+Parallel model building can significantly speed up IDE sync.
+However, both Gradle and the IDE need to be configured to allow it.
+
+On the Gradle side, parallel model building must be allowed in the build definition.
+It is *automatically allowed with Isolated Projects*.
+It can also be <<performance.adoc#sec:configure_tooling_api_actions_parallelism,allowed without Isolated Projects>>
+via `org.gradle.tooling.parallel` or `org.gradle.parallel` Gradle properties.
+
+[WARNING]
+====
+Enabling parallel model fetching without Isolated Projects can be unsafe.
+Parts of the configuration logic will run in parallel without supporting validations, potentially leading to flakiness or unreliable results.
+Isolated Projects makes this safe by enforcing <<sec:ip_constraints,constraints>> that prevent projects from sharing mutable state.
+====
+
+On the IDE side, the setup depends on the IDE:
+
+* Android Studio
++
+Parallel model building has been enabled automatically since Android Studio Electric Eel (2022.1.1).
+
+* IntelliJ IDEA
++
+Parallel model building is never enabled automatically in IntelliJ IDEA as of the latest 2026.1 release.
+It has to be manually enabled in the UI at `Setting › 'Build, Execution, Deployment' › Build Tools › Gradle`
+via the `Enable parallel Gradle model fetching` checkbox.
+The setting is only applied to the current project opened in the IDE.
+
+If you have already been using parallel model building for IDE sync, then Isolated Projects will not provide a performance benefit in that part of the configuration phase.
+However, Isolated Projects will catch violations as you change your build logic, preventing correctness issues from creeping in silently.
+
+[[sec:ip_parallelism_controls]]
+=== Parallelism controls
+
+Much of the performance benefit of Isolated Projects comes from running project configuration in parallel.
+The degree of parallelism is controlled by the <<build_environment.adoc#sec:property:workers_max,`org.gradle.workers.max` Gradle property>>,
+which sets the maximum number of parallel units of work across all <<build_lifecycle.adoc#build_lifecycle,build phases>>,
+including configuration.
+
+The default value is the number of CPU cores on your machine, which is usually a good choice.
+If you've explicitly set it lower for any reason, keep in mind that it will also limit how much parallelism Isolated Projects can use.
+
+[[sec:ip_current_limitations]]
+=== Current limitations
+
+The current implementation of Isolated Projects has a number of limitations that might be addressed in the future.
+
+* All projects always get configured, and <<sec:ip_vs_cod,Configuration on Demand has no effect>>.
+* A subproject can't start configuring until all its parent projects are done, which limits the parallelism.
+* The configuration phase might require more memory to process more work in parallel.
+* Changes to included builds invalidate all cached results, even unrelated ones.
+* Tooling model caching is local only: no sharing across checkouts or remote caching.
+
+[[sec:ip_constraints]]
+== Isolated Projects constraints
+
+During configuration, Gradle runs lots of smaller units of work (evaluating settings, configuring individual projects, etc.),
+and each one mutates live state on objects like `Project`, `Settings`, `Gradle`.
+
+Isolated Projects doesn't change how individual projects or <<composite_builds.adoc#composite_builds,included builds>> are configured;
+<<plugins.adoc#project_vs_settings_vs_init_plugins,plugins>> still mutate the state of the target they're applied to.
+What it adds is strict boundaries that prevent projects and builds from observing or mutating each other's state.
+
+With Isolated Projects, it is **not allowed to observe or change**:
+
+* In project-scope, mutable state of other projects (<<sec:ip_cross_project_access,cross-project access>>)
+* In project-scope, mutable state of the owner build (<<sec:ip_project_to_build_access,project-to-build access>>)
+* In build-scope, mutable state of other builds (<<sec:ip_cross_build_access,cross-build access>>)
+* In build-scope, mutable state of the build that is passed into project-scope via callbacks (<<sec:ip_build_to_project_access,build-to-project access>>)
+
+Among the build logic patterns described by these constraints, <<sec:ip_cross_project_access,cross-project access>> is by far the most common.
+
+The constraints are designed to allow safely running the individual configuration units in parallel and also caching the results of their execution.
+
+[[sec:ip_constraint_violations]]
+=== Constraint violations
+
+The violations of Isolated Projects constraints are detected at runtime during an invocation.
+When at least one violation is detected, the build results cannot be considered reliable and the build will fail.
+
+Here is an example of the build logic that contains a violation:
+
+[source,kotlin]
+.app/build.gradle.kts
+----
+// ⚠️ `Project.version` is mutable state of the root project and cannot be accessed from a subproject
+val commonVersion = rootProject.version
+----
+
+[source,bash]
+----
+$ ./gradlew -Dorg.gradle.unsafe.isolated-projects=true
+...
+- Build file 'app/build.gradle.kts': Project ':app' cannot access 'Project.version' functionality on another project ':'
+...
+BUILD FAILED in 0s
+----
+
+[[sec:ip_cross_project_access]]
+=== Cross-project access constraints
+
+The cross-project access constraints apply during project configuration when a `Project` instance representing another project is involved.
+Each instance of `Project` has both mutable and immutable state.
+Accessing mutable state will result in a violation, but accessing immutable state is allowed.
+
+[[sec:ip_mutable_cross_project]]
+==== Restricted access to mutable data of other projects
+
+Most parts of the `Project` state are directly or indirectly mutable via the methods on the interface.
+Accessing that state on _another_ project is not allowed with Isolated Projects.
+
+Examples of mutable state (not exhaustive)::
+* Basic state: `description`, `group`, `version`, `status`, `buildDir`
+* Containers: `tasks`, `dependencies`, `configurations`, `artifacts`, `repositories`, `components`, `plugins`, `extensions`, `ext`
+* Services: `layout`, `providers`, `objects`, `dependencyFactory`
+
+The `Project` interface also provides many convenience methods that allow configuring it, or registering callbacks.
+Most of those methods indirectly access the mutable state and are also not allowed to be called on another project.
+
+In general, it is easier to assume calling any method on another `Project` is forbidden,
+unless it is one of the handful getters that provide _immutable data_.
+
+[[sec:ip_immutable_cross_project]]
+==== Unrestricted access to immutable data of other projects
+
+Immutable project state includes data that was configured during settings evaluation and finalized before any project configuration has begun.
+This includes basic information about the project, but also the structure of the project hierarchy, since it can no longer be changed during project configuration.
+
+Immutable project data::
+* Basics: `name`, `displayName`, `path`, `buildTreePath`, `depth`
+** Caution: `group` and `version` are **mutable**!
+* Directories/files: `projectDir`, `buildFile`, `rootDir`
+** Caution: `buildDir` and `layout` are **mutable**!
+
+Project hierarchy navigation::
+* `isolated: IsolatedProject`
+* `rootProject: Project`
+* `parent: Project?`
+* `project(): Project` overloads
+* `childProjects: Map<String, Project>`
+* `subprojects()` and `allprojects()` overloads
+
+It is allowed to traverse the project structure and access immutable data of other projects.
+However, it is best to reduce such interactions to a minimum and instead express them through dependencies between projects.
+
+[[sec:ip_project_to_build_access]]
+=== Project-to-build access constraints
+
+[WARNING]
+====
+Project-to-build access constraints are not fully enforced yet.
+====
+
+Project configuration logic has access to the build-scoped state shared across projects via the `Gradle` interface.
+
+A large part of the `Gradle` interface is dedicated to callback registration.
+Many of the callbacks are either no-ops or throw an exception if you try registering them after settings have been evaluated.
+Callbacks that do get successfully registered may execute in a different order per invocation due to parallel project configuration.
+
+[[sec:ip_shared_build_services]]
+==== Shared Build Services
+
+<<build_services.adoc#build_services,Shared Build Services>> are also part of the build-scoped state.
+As the name suggests, they are shared between projects in the build.
+However, the API for registering and observing their registrations was not designed with parallel project configuration in mind.
+
+Generally speaking, registering a build service via `gradle.sharedServices.registerIfAbsent(...)` is safe with Isolated Projects.
+Only the first registration succeeds, and any later registrations return the previously registered instance.
+However, the parameters of the build service can become shared mutable state.
+Any mutation of the build service parameters outside of `registerIfAbsent(...) { parameters { ... } }` should be avoided.
+
+Accessing the set of build service registrations at `gradle.sharedServices.registrations` is unsafe.
+
+[[sec:ip_cross_build_access]]
+=== Cross-build access constraints
+
+[WARNING]
+====
+Cross-build access constraints are not fully enforced yet.
+====
+
+Build configuration logic (init scripts and settings) has access to the state of other builds via `gradle.parent`.
+
+Since (included) builds can be configured in parallel, access to the shared mutable state is also problematic.
+
+With Isolated Projects, using `gradle.parent` should be avoided.
+
+[[sec:ip_build_to_project_access]]
+=== Build-to-project access constraints
+
+[WARNING]
+====
+Build-to-project access constraints are not fully enforced yet.
+====
+
+Build configuration logic (init script and settings) can affect project configuration by registering callbacks that will run later in the build lifecycle.
+
+Some of the callbacks are executed around project evaluation time: immediately before or after the project configuration.
+With Isolated Projects, when project configuration runs in parallel, these callbacks might execute in parallel as well.
+If the callbacks capture any mutable state from the build-scope, that state becomes shared mutable state, leading to concurrency problems.
+
+See the section on <<sec:isolating_lifecycle_callbacks,state-isolating callbacks>> for a better alternative.
+
+[[sec:ip_migration]]
+== Migration
+
+This section covers how to migrate your build to be compatible with Isolated Projects.
+
+[WARNING]
+====
+Isolated Projects is an experimental feature, and it is actively changing.
+Make sure to use the latest available version of Gradle and that you are reading the documentation for that version.
+====
+
+[[sec:ip_before_migration]]
+=== Before the migration
+
+* Upgrade the build to the latest version of Gradle
++
+If available, consider a pre-release version such as a milestone or a nightly to get the best experience while Isolated Projects is experimental.
+
+* Migrate third-party plugins to their latest versions
++
+Ecosystem plugins and community plugins gradually improve support for Isolated Projects.
+By using the latest versions you reduce the risks of dealing with problems that have already been fixed.
+
+* Use the latest tooling, such as the latest versions of Android Studio and IntelliJ IDEA
++
+The IDE support for Isolated Projects is already in a good state for 2025.3 and later releases.
+However, newer IDE versions can bring better performance as well as a better user experience, when going through the migration.
+
+* Make your build <<configuration_cache_enabling.adoc#config_cache:adoption,compatible with Configuration Cache>>
++
+The Isolated Projects feature builds on top of the Configuration Cache feature.
+
+[[sec:ip_enable]]
+=== Enabling Isolated Projects
+
+Isolated Projects can be enabled by setting the `org.gradle.unsafe.isolated-projects` Gradle option to `true`.
+
+You can pass it as an argument when running tasks from the command line:
+
+[source,bash]
+----
+$ ./gradlew help -Dorg.gradle.unsafe.isolated-projects=true
+----
+
+To make use of the feature in IDE sync scenarios, it has to be enabled in the `gradle.properties` file:
+
+[source,properties]
+.gradle.properties
+----
+org.gradle.unsafe.isolated-projects=true
+----
+
+If you have never enabled the feature in the build before, it's likely that the build is not compatible and contains Isolated Projects <<sec:ip_constraint_violations,constraint violations>>.
+In that case the build will fail, and one or more violations will be shown in the error message.
+
+[[sec:ip_ignore_violations]]
+=== Temporarily ignoring violations
+
+To guarantee reliable build results, Gradle will fail the build when any violations of <<sec:ip_constraints,Isolated Project constraints>> are detected.
+However, in the initial stages of the Isolated Projects adoption journey,
+it can be useful to gauge an estimate of the speed-up provided by the feature in your particular setup and workflow.
+
+This can be achieved by temporarily ignoring the violations and not failing the build on the basis of their presence.
+It is especially relevant for the IDE sync scenarios, where the violations are preventing a sync from completion.
+
+Since Isolated Projects violations are reported via the same mechanism as <<configuration_cache_enabling.adoc#config_cache:usage:ignore_problems,Configuration Cache problems>>,
+enabling Configuration Cache _warning mode_ achieves the desired result.
+
+[source,properties]
+.gradle.properties
+----
+# ⚠️ Temporary measure of ignoring Isolated Projects violations. Do not enable permanently!
+org.gradle.configuration-cache.problems=warn
+----
+
+[NOTE]
+====
+This does not guarantee that the build will succeed.
+Concurrency issues may still cause exceptions which fail the build.
+====
+
+Alternatively, a flag can be used on the command line:
+
+[source,bash]
+----
+$ ./gradlew --configuration-cache-problems=warn
+----
+
+[WARNING]
+====
+Warning mode is a migration and troubleshooting aid and not intended as a persistent way of ignoring incompatibilities.
+It will also not prevent new incompatibilities being accidentally added to your build later.
+====
+
+[[sec:ip_migration_path]]
+=== Recommended migration path
+
+This section describes how to start making your build compatible with Isolated Projects.
+
+1. Run `./gradlew help -Dorg.gradle.unsafe.isolated-projects=true` to get the lay of the land
++
+Running the help task makes Gradle configure all projects.
+This way Gradle can detect Isolated Projects violations that are present in any workflow and should be addressed first.
+There can be more violations hidden by laziness, such as in the task configuration logic, but those can be addressed later.
++
+You can find the Isolated Projects violations in the Configuration Cache HTML report.
+Use the report to pinpoint the incompatible pieces of build logic and plugins.
+
+2. Report the violations coming from the community plugins to their maintainers.
++
+An incompatible plugin can prevent you from getting the performance benefits of Isolated Projects.
+It is best to report the incompatibilities as soon as possible so the plugin maintainers can address them, while you make your own build logic compatible.
+
+3. Follow the <<sec:ip_adoption_strategies,build-logic refactoring strategies>> to refactor your build logic and make it compatible.
++
+Remember that Isolated Projects violations only detect concrete instances of the problem, e.g. one specific project touching some mutable state of another.
+It might not be enough to replace one API call with another to address the problem.
+
+[[sec:ip_adoption_strategies]]
+=== Build-logic refactoring strategies
+
+[[sec:ip_convention_plugins]]
+==== Use convention plugins
+
+The most common cause of Isolated Projects violations is projects trying to configure other projects.
+This is often done to have a single place where some configuration logic is defined
+and then reused by applying it to many projects via callbacks like `allprojects {}`.
+
+<<sharing_build_logic_between_subprojects.adoc#sec:sharing_logic_via_convention_plugins,Convention plugins>> address the same need from a different perspective.
+The configuration logic is defined once in a <<plugins.adoc#sec:convention_plugins,convention plugin>> and then explicitly applied in projects that need it.
+Because each project applies the plugins to itself, no Isolated Projects constraints are violated.
+
+Additionally, convention plugins can be composed.
+This allows for more elaborate reuse of build logic without compromising Isolated Projects compatibility.
+
+[[sec:isolating_lifecycle_callbacks]]
+==== Use state-isolating lifecycle callbacks
+
+Sometimes it is still desirable to apply configuration to many projects at once.
+This is usually done with a callback such as `allprojects {}` called from a project or registered in the build scope via `gradle`.
+
+One problem with these callbacks is that the owner of the callback ends up touching state of another scope.
+However, there is another subtle yet important issue: callbacks can inadvertently share mutable state of the owner with all targets of the callback.
+When the target projects are configured in parallel, it's not possible to safely run the corresponding callbacks.
+
+The solution Gradle offers is _state-isolating_ callbacks.
+This works on the same principles as the isolation of task state performed by Configuration Cache to allow running tasks in parallel.
+
+The link:{javadocPath}/org/gradle/api/invocation/GradleLifecycle.html[`GradleLifecycle`] API,
+accessible via `gradle.lifecycle`, offers `beforeProject` and `afterProject` callbacks.
+Actions registered as `GradleLifecycle` callbacks are *link:{javadocPath}/org/gradle/api/IsolatedAction.html[isolated]* and will run in an isolated context that is private to each project.
+
+The example below shows how this API could be used in a settings script or <<plugins.adoc#project_vs_settings_vs_init_plugins, settings plugins>> to apply configuration to all projects,
+while avoiding <<sharing_build_logic_between_subprojects.adoc#sec:convention_plugins_vs_cross_configuration, cross-project configuration>>:
+
+[source,kotlin]
+.settings.gradle.kts
+----
+include("sub1")
+include("sub2")
+
+val sharedGroup = "org.example.app"
+val sharedVersion: String =
+    layout.settingsDirectory.file("version.txt").asFile.readText()
+
+gradle.lifecycle.beforeProject {
+    apply(plugin = "base")
+
+    repositories {
+        mavenCentral()
+    }
+
+    group = sharedGroup
+    version = sharedVersion
+}
+----
+
+[[sec:ip_isolated_project_api]]
+==== Use `IsolatedProject` instead of `Project`
+
+You can get a simplified view of a project by calling link:{javadocPath}/org/gradle/api/Project.html#getIsolated--[`project.isolated`],
+which returns link:{javadocPath}/org/gradle/api/project/IsolatedProject.html[`IsolatedProject`] type.
+This works in all contexts and is especially useful when accessing an instance of another project,
+such as `project(":foo").isolated` or `rootProject.isolated`.
+
+The data provided by `IsolatedProject` is limited and exposes only properties that are safe to access across project boundaries.
+The use of the isolated view makes it obvious to build logic readers that no cross-project state access is possible.
+
+The example below shows how the API could be used from a `Project` configuration callback to query the root project directory:
+
+[source,kotlin]
+.settings.gradle.kts
+----
+gradle.lifecycle.beforeProject {
+    val rootDir = project.isolated.rootProject.projectDirectory
+    println("The root project directory is $rootDir")
+}
+----
+
+[[sec:ip_vs_other_features]]
+== Isolated Projects and other Gradle features
+
+[[sec:ip_vs_cc]]
+=== Configuration Cache
+
+<<configuration_cache.adoc#config_cache,Configuration Cache>> allows skipping the entire configuration phase when no build configuration inputs have changed.
+However, when any input has changed, the configuration has to be reexecuted in full.
+When executed, the configuration phase runs sequentially, configuring one project after another.
+
+Isolated Projects relies on the Configuration Cache infrastructure, and it also extends the set of constraints imposed by Configuration Cache.
+
+Configuration Cache is enabled automatically when Isolated Projects is enabled.
+You should make your build <<configuration_cache_enabling.adoc#config_cache:adoption,compatible with Configuration Cache>> first, before migrating to Isolated Projects.
+
+[IMPORTANT]
+====
+It is an error to enable Isolated Projects and explicitly disable Configuration Cache.
+====
+
+[[sec:ip_vs_parallel_cc]]
+=== Parallel Configuration Cache
+
+Configuration Cache allows enabling some parallelism in the configuration phase with <<configuration_cache_enabling.adoc#config_cache:usage:parallel,Parallel Configuration Cache>>.
+This requires an opt-in because not all builds are compatible with this behavior, and there is no explicit validation of violations.
+
+With Isolated Projects, Parallel Configuration Cache is enabled automatically,
+since Isolated Projects constraints guarantee safe and correct results for all builds.
+
+[[sec:ip_vs_parallel]]
+=== Parallel Execution (`--parallel`)
+
+<<performance.adoc#sec:enable_parallel_execution,Parallel Execution>> has to do with parallel execution of tasks.
+This requires an opt-in because not all builds are compatible with this behavior, and there is no explicit validation of violations.
+
+Generally speaking, Parallel Execution is superseded by Configuration Cache because it enables running tasks in parallel even within a single project.
+
+However, Parallel Execution has an additional effect of allowing parallel tooling model building in scenarios like IDE sync.
+That is why many teams enable it alongside Configuration Cache.
+
+Isolated Projects extends the Configuration Cache, which enables intra-project task parallelism.
+Additionally, Isolated Projects constraints guarantee safe parallel tooling model building, which allows parallel model building to be enabled by default.
+Therefore, there is no benefit to enabling Parallel Execution alongside Isolated Projects.
+
+The Parallel Execution flag is _ignored_ when Isolated Projects is enabled.
+
+[[sec:ip_vs_cod]]
+=== Configuration on Demand
+
+<<configuration_on_demand.adoc#sec:configuration_on_demand,Configuration on Demand>> lets Gradle skip configuring projects that aren't needed for the requested tasks.
+
+Isolated Projects constraints are strong enough to allow a similar optimization.
+However, the current implementation doesn't leverage that yet.
+Instead, all projects are configured in parallel unless the entire configuration phase is skipped on a Configuration Cache hit.
+
+The Configure on Demand flag is _ignored_ when Isolated Projects is enabled.
+

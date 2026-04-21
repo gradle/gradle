@@ -37,7 +37,7 @@ class ConfigurationsBuilder extends MultiSectionHandler<ConfigurationsBuilder> i
     Object propertyMissing(String name) {
         sections << new ConfigurationCreation(new GenericSection({ name }, {
             if (alreadyCreated.add(name)) {
-                "val $name by configurations.creating"
+                "val $name = configurations.create(\"$name\")"
             } else {
                 "$name"
             }

@@ -4,7 +4,7 @@
     <name>Gradle_Check Config DSL Script</name>
     <properties>
         <mockk.version>1.14.9</mockk.version>
-        <bytebuddy.version>1.18.7</bytebuddy.version>
+        <bytebuddy.version>1.18.8</bytebuddy.version>
         <jackson.version>2.21.2</jackson.version>
         <junit.version>6.0.3</junit.version>
         <dslContextParameter.branch>master</dslContextParameter.branch>
@@ -98,7 +98,7 @@
             <plugin>
                 <groupId>com.github.gantsign.maven</groupId>
                 <artifactId>ktlint-maven-plugin</artifactId>
-                <version>3.5.0</version>
+                <version>3.7.1</version>
                 <executions>
                     <execution>
                         <id>check</id>

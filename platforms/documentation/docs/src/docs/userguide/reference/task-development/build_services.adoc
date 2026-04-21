@@ -63,7 +63,7 @@ Here is an example of a service that takes parameters and is closeable:
 [source,java]
 .WebServer.java
 ----
-include::{snippetsPath}/plugins/buildService/groovy/buildSrc/src/main/java/WebServer.java[]
+include::{snippetsPath}/reference/task-development/buildService/common/buildSrc/src/main/java/WebServer.java[]
 ----
 
 Note that you should *not* implement the link:{javadocPath}/org/gradle/api/services/BuildService.html#getParameters--[BuildService.getParameters()] method, as Gradle will provide an implementation of this.
@@ -114,7 +114,7 @@ Read on to compare that to when the task property consuming the service is inste
 [source,java]
 .DownloadPlugin.java
 ----
-include::{snippetsPath}/plugins/buildService/groovy/buildSrc/src/main/java/DownloadPlugin.java[]
+include::{snippetsPath}/reference/task-development/buildService/common/buildSrc/src/main/java/DownloadPlugin.java[]
 ----
 
 In this case, the plugin registers the service and receives a `Provider<WebService>` back.
@@ -127,7 +127,7 @@ Here is an example of a task that consumes the previous service via a property a
 [source,java]
 .Download.java
 ----
-include::{snippetsPath}/plugins/buildService/groovy/buildSrc/src/main/java/Download.java[]
+include::{snippetsPath}/reference/task-development/buildService/common/buildSrc/src/main/java/Download.java[]
 ----
 
 Note that using a service with any annotation other than `@ServiceReference` or `@Internal` is currently not supported.
@@ -148,7 +148,7 @@ For example, to pass a `MyServiceType` service to Worker API action, you might a
 [source,java]
 .Download.java
 ----
-include::{snippetsPath}/plugins/buildServiceFromWorkAction/groovy/buildSrc/src/main/java/Download.java[]
+include::{snippetsPath}/reference/task-development/buildServiceFromWorkAction/common/buildSrc/src/main/java/Download.java[]
 ----
 
 Currently, it is impossible to use a build service with a worker API action that uses ClassLoader or process isolation modes.

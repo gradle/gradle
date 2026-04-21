@@ -19,13 +19,14 @@ package org.gradle.buildinit.plugins
 
 import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.OsTestPreconditions
+
 
 import static org.gradle.buildinit.plugins.SwiftApplicationInitIntegrationTest.LINUX_MAIN_DOT_SWIFT
 import static org.gradle.buildinit.plugins.SwiftApplicationInitIntegrationTest.SAMPLE_APPLICATION_CLASS
 import static org.gradle.buildinit.plugins.SwiftApplicationInitIntegrationTest.SAMPLE_APPLICATION_TEST_CLASS
 
-@Requires(UnitTestPreconditions.Windows)
+@Requires(OsTestPreconditions.Windows)
 class WindowsSwiftApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
 
     @Override

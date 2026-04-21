@@ -67,7 +67,7 @@ Here is an example of a dataflow action that takes a shared build service and a 
 [source,java]
 .SoundPlay.java
 ----
-include::{snippetsPath}/dataflowActions/playSound/groovy/plugin/src/main/java/org/gradle/sample/sound/SoundPlay.java[]
+include::{snippetsPath}/reference/other-topics/playSound/groovy/plugin/src/main/java/org/gradle/sample/sound/SoundPlay.java[]
 ----
 <1> Parameters in the parameter type must be annotated. If a parameter is annotated with link:{javadocPath}/org/gradle/api/services/ServiceReference.html[`@ServiceReference`], then a suitable shared build service implementation is automatically assigned to the parameter when the action is created, according to the <<build_services.adoc#sec:service_references,usual rules>>.
 <2> All other parameters must be annotated with link:{javadocPath}/org/gradle/api/tasks/Input.html[`@Input`].
@@ -101,7 +101,7 @@ In doing so, you can configure the parameters for the task:
 [source,java]
 .SoundFeedbackPlugin.java
 ----
-include::{snippetsPath}/dataflowActions/playSound/groovy/plugin/src/main/java/org/gradle/sample/sound/SoundFeedbackPlugin.java[tag=flow-action]
+include::{snippetsPath}/reference/other-topics/playSound/groovy/plugin/src/main/java/org/gradle/sample/sound/SoundFeedbackPlugin.java[tag=flow-action]
 ----
 <1> Use service injection to obtain `FlowScope` and `FlowProviders` instances. They are available for project and settings plugins.
 <2> Use an appropriate scope to run your actions. As the name suggests, actions in the `always` scope are executed every time the build runs.

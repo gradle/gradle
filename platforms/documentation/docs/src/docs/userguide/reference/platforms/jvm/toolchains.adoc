@@ -52,8 +52,8 @@ These settings are **not mutually exclusive**, and advanced users may need to co
 To configure a toolchain for your project, declare the desired Java language version in the `java` extension block:
 
 ====
-include::sample[dir="snippets/java/toolchain-basic/kotlin",files="build.gradle.kts[tags=toolchain]"]
-include::sample[dir="snippets/java/toolchain-basic/groovy",files="build.gradle[tags=toolchain]"]
+include::sample[dir="snippets/reference/platforms/jvm/toolchain-basic/kotlin",files="build.gradle.kts[tags=toolchain]"]
+include::sample[dir="snippets/reference/platforms/jvm/toolchain-basic/groovy",files="build.gradle[tags=toolchain]"]
 ====
 
 The `java` block is flexible and supports additional configuration options.
@@ -261,15 +261,15 @@ In the example below, we configure all java compilation tasks to use Java 8.
 Additionally, we introduce a new `Test` task that will run our unit tests using a JDK 17.
 
 ====
-include::sample[dir="snippets/java/jvm-multi-project-with-toolchains/kotlin",files="list/build.gradle.kts[tags=customToolchain]"]
-include::sample[dir="snippets/java/jvm-multi-project-with-toolchains/groovy/",files="list/build.gradle[tags=customToolchain]"]
+include::sample[dir="snippets/reference/platforms/jvm/jvm-multi-project-with-toolchains/kotlin",files="list/build.gradle.kts[tags=customToolchain]"]
+include::sample[dir="snippets/reference/platforms/jvm/jvm-multi-project-with-toolchains/groovy/",files="list/build.gradle[tags=customToolchain]"]
 ====
 
 In addition, in the `application` subproject, we add another Java execution task to run our application with JDK 17.
 
 ====
-include::sample[dir="snippets/java/jvm-multi-project-with-toolchains/kotlin",files="application/build.gradle.kts[tags=customExec]"]
-include::sample[dir="snippets/java/jvm-multi-project-with-toolchains/groovy/",files="application/build.gradle[tags=customExec]"]
+include::sample[dir="snippets/reference/platforms/jvm/jvm-multi-project-with-toolchains/kotlin",files="application/build.gradle.kts[tags=customExec]"]
+include::sample[dir="snippets/reference/platforms/jvm/jvm-multi-project-with-toolchains/groovy/",files="application/build.gradle[tags=customExec]"]
 ====
 
 Depending on the task, a JRE might be enough while for other tasks (e.g. compilation), a JDK is required.
@@ -292,22 +292,22 @@ While you will not be able to wire a toolchain tool directly, they all have the 
 For example, you can configure the `java` executable for a task as follows:
 
 ====
-include::sample[dir="snippets/java/toolchain-config-task/kotlin/",files="build.gradle.kts[tags=java-executable]"]
-include::sample[dir="snippets/java/toolchain-config-task/groovy/",files="build.gradle[tags=java-executable]"]
+include::sample[dir="snippets/reference/platforms/jvm/toolchain-config-task/kotlin/",files="build.gradle.kts[tags=java-executable]"]
+include::sample[dir="snippets/reference/platforms/jvm/toolchain-config-task/groovy/",files="build.gradle[tags=java-executable]"]
 ====
 
 As another example, you can configure the _Java Home_ for a task as follows:
 
 ====
-include::sample[dir="snippets/java/toolchain-config-task/kotlin/",files="build.gradle.kts[tags=java-home]"]
-include::sample[dir="snippets/java/toolchain-config-task/groovy/",files="build.gradle[tags=java-home]"]
+include::sample[dir="snippets/reference/platforms/jvm/toolchain-config-task/kotlin/",files="build.gradle.kts[tags=java-home]"]
+include::sample[dir="snippets/reference/platforms/jvm/toolchain-config-task/groovy/",files="build.gradle[tags=java-home]"]
 ====
 
 If you require a path to a specific tool such as Java compiler, you can obtain it as follows:
 
 ====
-include::sample[dir="snippets/java/toolchain-config-task/kotlin/",files="build.gradle.kts[tags=java-compiler]"]
-include::sample[dir="snippets/java/toolchain-config-task/groovy/",files="build.gradle[tags=java-compiler]"]
+include::sample[dir="snippets/reference/platforms/jvm/toolchain-config-task/kotlin/",files="build.gradle.kts[tags=java-compiler]"]
+include::sample[dir="snippets/reference/platforms/jvm/toolchain-config-task/groovy/",files="build.gradle[tags=java-compiler]"]
 ====
 
 WARNING: The examples above use tasks with `RegularFileProperty` and `DirectoryProperty` properties which allow lazy configuration.
@@ -321,8 +321,8 @@ Using Java toolchains allows Gradle to automatically download and manage the req
 You can define what toolchain to use for a project by stating the Java language version in the `java` extension block:
 
 ====
-include::sample[dir="snippets/java/toolchain-basic/kotlin",files="build.gradle.kts[tags=toolchain]"]
-include::sample[dir="snippets/java/toolchain-basic/groovy",files="build.gradle[tags=toolchain]"]
+include::sample[dir="snippets/reference/platforms/jvm/toolchain-basic/kotlin",files="build.gradle.kts[tags=toolchain]"]
+include::sample[dir="snippets/reference/platforms/jvm/toolchain-basic/groovy",files="build.gradle[tags=toolchain]"]
 ====
 
 Executing the build (e.g. using `gradle check`) will now handle several things for you and others running your build:
@@ -348,8 +348,8 @@ link:{javadocPath}/org/gradle/jvm/toolchain/JvmVendorSpec.html[`JvmVendorSpec`] 
 The advantage is that Gradle can handle any inconsistencies across JDK versions in how exactly the JVM encodes the vendor information.
 
 ====
-include::sample[dir="snippets/java/toolchain-filters/kotlin/",files="build.gradle.kts[tags=toolchain-known-vendor]"]
-include::sample[dir="snippets/java/toolchain-filters/groovy/",files="build.gradle[tags=toolchain-known-vendor]"]
+include::sample[dir="snippets/reference/platforms/jvm/toolchain-filters/kotlin/",files="build.gradle.kts[tags=toolchain-known-vendor]"]
+include::sample[dir="snippets/reference/platforms/jvm/toolchain-filters/groovy/",files="build.gradle[tags=toolchain-known-vendor]"]
 ====
 
 If the vendor you want to target is not a known vendor, you can still restrict the toolchain to those matching the `java.vendor` system property of the available toolchains.
@@ -359,8 +359,8 @@ This example only includes toolchains whose `java.vendor` property contains the 
 The matching is done in a case-insensitive manner.
 
 ====
-include::sample[dir="snippets/java/toolchain-filters/kotlin/",files="build.gradle.kts[tags=toolchain-matching-vendor]"]
-include::sample[dir="snippets/java/toolchain-filters/groovy/",files="build.gradle[tags=toolchain-matching-vendor]"]
+include::sample[dir="snippets/reference/platforms/jvm/toolchain-filters/kotlin/",files="build.gradle.kts[tags=toolchain-matching-vendor]"]
+include::sample[dir="snippets/reference/platforms/jvm/toolchain-filters/groovy/",files="build.gradle[tags=toolchain-matching-vendor]"]
 ====
 
 [[sec:native_graalvm_image]]
@@ -369,8 +369,8 @@ include::sample[dir="snippets/java/toolchain-filters/groovy/",files="build.gradl
 If your project needs a toolchain with https://www.graalvm.org/latest/reference-manual/native-image/[GraalVM Native Image capability], you can configure the spec to request it:
 
 ====
-include::sample[dir="snippets/java/toolchain-filters/kotlin/",files="build.gradle.kts[tags=toolchain-native-image]"]
-include::sample[dir="snippets/java/toolchain-filters/groovy/",files="build.gradle[tags=toolchain-native-image]"]
+include::sample[dir="snippets/reference/platforms/jvm/toolchain-filters/kotlin/",files="build.gradle.kts[tags=toolchain-native-image]"]
+include::sample[dir="snippets/reference/platforms/jvm/toolchain-filters/groovy/",files="build.gradle[tags=toolchain-native-image]"]
 ====
 
 Leaving that value unconfigured or set to `false` will not restrict the toolchain selection based on the Native Image capability.
@@ -390,8 +390,8 @@ For example, to use an https://www.eclipse.org/openj9/[IBM] JVM, distributed via
 you can specify the filter as shown in the example below.
 
 ====
-include::sample[dir="snippets/java/toolchain-filters/kotlin/",files="build.gradle.kts[tags=toolchain-matching-implementation]"]
-include::sample[dir="snippets/java/toolchain-filters/groovy/",files="build.gradle[tags=toolchain-matching-implementation]"]
+include::sample[dir="snippets/reference/platforms/jvm/toolchain-filters/kotlin/",files="build.gradle.kts[tags=toolchain-matching-implementation]"]
+include::sample[dir="snippets/reference/platforms/jvm/toolchain-filters/groovy/",files="build.gradle[tags=toolchain-matching-implementation]"]
 ====
 
 NOTE: The Java major version, the vendor (if specified) and implementation (if specified) will be tracked as an input for compilation and test execution.
@@ -463,8 +463,8 @@ One example of a toolchain resolver plugin is the https://github.com/gradle/fooj
 It even has a convention variant, which automatically takes care of all the needed configuration, just by being applied:
 
 ====
-include::sample[dir="snippets/java/toolchain-foojay/kotlin/",files="settings.gradle.kts[tags=plugin-application]"]
-include::sample[dir="snippets/java/toolchain-foojay/groovy/",files="settings.gradle[tags=plugin-application]"]
+include::sample[dir="snippets/reference/platforms/jvm/toolchain-foojay/kotlin/",files="settings.gradle.kts[tags=plugin-application]"]
+include::sample[dir="snippets/reference/platforms/jvm/toolchain-foojay/groovy/",files="settings.gradle[tags=plugin-application]"]
 ====
 
 For advanced or highly specific configurations, a custom toolchain resolver plugin should be used.
@@ -479,8 +479,8 @@ Consider two toolchain resolver plugins applied by the build:
 The following example uses these toolchain resolvers in a build via the `toolchainManagement` block in the settings file:
 
 ====
-include::sample[dir="snippets/java/toolchain-management/kotlin/",files="settings.gradle.kts[tags=toolchain-management]"]
-include::sample[dir="snippets/java/toolchain-management/groovy/",files="settings.gradle[tags=toolchain-management]"]
+include::sample[dir="snippets/reference/platforms/jvm/toolchain-management/kotlin/",files="settings.gradle.kts[tags=toolchain-management]"]
+include::sample[dir="snippets/reference/platforms/jvm/toolchain-management/groovy/",files="settings.gradle[tags=toolchain-management]"]
 ====
 <1> In the `toolchainManagement` block, the `jvm` block contains configuration for Java toolchains.
 <2> The `javaRepositories` block defines named Java toolchain repository configurations.
@@ -669,8 +669,8 @@ This way, the users will need to configure the toolchain only once on the projec
 The example below showcases how to use the default toolchain as convention while allowing users to individually configure the toolchain per task.
 
 ====
-include::sample[dir="snippets/java/toolchain-task/kotlin/",files="build.gradle.kts[tags=custom-toolchain-task-with-java]"]
-include::sample[dir="snippets/java/toolchain-task/groovy/",files="build.gradle[tags=custom-toolchain-task-with-java]"]
+include::sample[dir="snippets/reference/platforms/jvm/toolchain-task/kotlin/",files="build.gradle.kts[tags=custom-toolchain-task-with-java]"]
+include::sample[dir="snippets/reference/platforms/jvm/toolchain-task/groovy/",files="build.gradle[tags=custom-toolchain-task-with-java]"]
 ====
 <1> We declare a `JavaLauncher` property on the task.
 The property must be marked as a <<incremental_build.adoc#sec:task_input_nested_inputs,`@Nested` input>> to make sure the task is responsive to toolchain changes.
@@ -681,8 +681,8 @@ The property must be marked as a <<incremental_build.adoc#sec:task_input_nested_
 In a project where the `java` plugin was applied, we can use the task as follows:
 
 ====
-include::sample[dir="snippets/java/toolchain-task/kotlin/",files="build.gradle.kts[tags=custom-toolchain-task-with-java-usage]"]
-include::sample[dir="snippets/java/toolchain-task/groovy/",files="build.gradle[tags=custom-toolchain-task-with-java-usage]"]
+include::sample[dir="snippets/reference/platforms/jvm/toolchain-task/kotlin/",files="build.gradle.kts[tags=custom-toolchain-task-with-java-usage]"]
+include::sample[dir="snippets/reference/platforms/jvm/toolchain-task/groovy/",files="build.gradle[tags=custom-toolchain-task-with-java-usage]"]
 ====
 <1> The toolchain defined on the `java` extension is used by default to resolve the launcher.
 <2> The custom task without additional configuration will use the default Java 8 toolchain.

@@ -19,10 +19,11 @@ package org.gradle.language
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.nativeplatform.fixtures.app.HelloWorldApp
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
+import org.gradle.test.preconditions.OsTestPreconditions
 
-@Requires(value = [IntegTestPreconditions.NotParallelExecutor, UnitTestPreconditions.NotMacOs],
+
+@Requires(value = [TestExecutionPreconditions.NotParallelExecutor, OsTestPreconditions.NotMacOs],
     reason = "always runs in parallel, our mac currently lacks proper toolchain installations")
 abstract class AbstractNativeSoftwareModelParallelIntegrationTest extends AbstractNativeParallelIntegrationTest {
     abstract HelloWorldApp getApp()

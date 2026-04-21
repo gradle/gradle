@@ -59,32 +59,32 @@ Below are examples of how to declare repositories using various protocols:
 
 .Declaring HTTP-based Maven and Ivy Repositories
 ====
-include::sample[dir="snippets/artifacts/defineRepository/kotlin",files="build.gradle.kts[tags=maven-ivy-repository-no-auth]"]
-include::sample[dir="snippets/artifacts/defineRepository/groovy",files="build.gradle[tags=maven-ivy-repository-no-auth]"]
+include::sample[dir="snippets/reference/dependency-management/declaring-repositories/defineRepository/kotlin",files="build.gradle.kts[tags=maven-ivy-repository-no-auth]"]
+include::sample[dir="snippets/reference/dependency-management/declaring-repositories/defineRepository/groovy",files="build.gradle[tags=maven-ivy-repository-no-auth]"]
 ====
 
 .Declaring an SFTP Protocol for a Repository
 ====
-include::sample[dir="snippets/artifacts/defineRepository/kotlin",files="build.gradle.kts[tags=maven-ivy-repository-auth]"]
-include::sample[dir="snippets/artifacts/defineRepository/groovy",files="build.gradle[tags=maven-ivy-repository-auth]"]
+include::sample[dir="snippets/reference/dependency-management/declaring-repositories/defineRepository/kotlin",files="build.gradle.kts[tags=maven-ivy-repository-auth]"]
+include::sample[dir="snippets/reference/dependency-management/declaring-repositories/defineRepository/groovy",files="build.gradle[tags=maven-ivy-repository-auth]"]
 ====
 
 .Declaring an S3-Backed Maven and Ivy Repository
 ====
-include::sample[dir="snippets/artifacts/defineRepository/kotlin",files="build.gradle.kts[tags=maven-ivy-s3-repository]"]
-include::sample[dir="snippets/artifacts/defineRepository/groovy",files="build.gradle[tags=maven-ivy-s3-repository]"]
+include::sample[dir="snippets/reference/dependency-management/declaring-repositories/defineRepository/kotlin",files="build.gradle.kts[tags=maven-ivy-s3-repository]"]
+include::sample[dir="snippets/reference/dependency-management/declaring-repositories/defineRepository/groovy",files="build.gradle[tags=maven-ivy-s3-repository]"]
 ====
 
 .Declaring an S3-Backed Maven and Ivy Repository Using IAM
 ====
-include::sample[dir="snippets/artifacts/defineRepository/kotlin",files="build.gradle.kts[tags=maven-ivy-s3-repository-with-iam]"]
-include::sample[dir="snippets/artifacts/defineRepository/groovy",files="build.gradle[tags=maven-ivy-s3-repository-with-iam]"]
+include::sample[dir="snippets/reference/dependency-management/declaring-repositories/defineRepository/kotlin",files="build.gradle.kts[tags=maven-ivy-s3-repository-with-iam]"]
+include::sample[dir="snippets/reference/dependency-management/declaring-repositories/defineRepository/groovy",files="build.gradle[tags=maven-ivy-s3-repository-with-iam]"]
 ====
 
 .Declaring a GCS-Backed Maven and Ivy Repository
 ====
-include::sample[dir="snippets/artifacts/defineRepository/kotlin",files="build.gradle.kts[tags=maven-ivy-gcs-repository]"]
-include::sample[dir="snippets/artifacts/defineRepository/groovy",files="build.gradle[tags=maven-ivy-gcs-repository]"]
+include::sample[dir="snippets/reference/dependency-management/declaring-repositories/defineRepository/kotlin",files="build.gradle.kts[tags=maven-ivy-gcs-repository]"]
+include::sample[dir="snippets/reference/dependency-management/declaring-repositories/defineRepository/groovy",files="build.gradle[tags=maven-ivy-gcs-repository]"]
 ====
 
 [[sec:configure-auth-schemes]]
@@ -103,8 +103,8 @@ When explicitly declared, only those specified schemes will be used.
 You can specify credentials for Maven repositories secured by basic authentication using link:{javadocPath}/org/gradle/api/credentials/PasswordCredentials.html[PasswordCredentials]:
 
 ====
-include::sample[dir="snippets/artifacts/defineRepository/kotlin",files="build.gradle.kts[tags=authenticated-maven-repo]"]
-include::sample[dir="snippets/artifacts/defineRepository/groovy",files="build.gradle[tags=authenticated-maven-repo]"]
+include::sample[dir="snippets/reference/dependency-management/declaring-repositories/defineRepository/kotlin",files="build.gradle.kts[tags=authenticated-maven-repo]"]
+include::sample[dir="snippets/reference/dependency-management/declaring-repositories/defineRepository/groovy",files="build.gradle[tags=authenticated-maven-repo]"]
 ====
 
 ==== Digest Authentication
@@ -112,8 +112,8 @@ include::sample[dir="snippets/artifacts/defineRepository/groovy",files="build.gr
 To configure a repository to use only link:{javadocPath}/org/gradle/authentication/http/DigestAuthentication.html[DigestAuthentication]:
 
 ====
-include::sample[dir="snippets/artifacts/defineRepository/kotlin",files="build.gradle.kts[tags=digest-authentication]"]
-include::sample[dir="snippets/artifacts/defineRepository/groovy",files="build.gradle[tags=digest-authentication]"]
+include::sample[dir="snippets/reference/dependency-management/declaring-repositories/defineRepository/kotlin",files="build.gradle.kts[tags=digest-authentication]"]
+include::sample[dir="snippets/reference/dependency-management/declaring-repositories/defineRepository/groovy",files="build.gradle[tags=digest-authentication]"]
 ====
 
 ==== Supported Authentication Schemes
@@ -135,8 +135,8 @@ However, some servers might respond with a different code (e.g., GitHub returns 
 In such cases, you can configure Gradle to send credentials preemptively by explicitly using the link:{javadocPath}/org/gradle/authentication/http/BasicAuthentication.html[BasicAuthentication] scheme:
 
 ====
-include::sample[dir="snippets/artifacts/defineRepository/kotlin",files="build.gradle.kts[tags=preemptive-authentication]"]
-include::sample[dir="snippets/artifacts/defineRepository/groovy",files="build.gradle[tags=preemptive-authentication]"]
+include::sample[dir="snippets/reference/dependency-management/declaring-repositories/defineRepository/kotlin",files="build.gradle.kts[tags=preemptive-authentication]"]
+include::sample[dir="snippets/reference/dependency-management/declaring-repositories/defineRepository/groovy",files="build.gradle[tags=preemptive-authentication]"]
 ====
 
 [[sec:http-header-auth]]
@@ -145,8 +145,8 @@ include::sample[dir="snippets/artifacts/defineRepository/groovy",files="build.gr
 For Maven repositories that require token-based, OAuth2, or other HTTP header-based authentication, you can use link:{javadocPath}/org/gradle/api/credentials/HttpHeaderCredentials.html[HttpHeaderCredentials] and link:{javadocPath}/org/gradle/authentication/http/HttpHeaderAuthentication.html[HttpHeaderAuthentication]:
 
 ====
-include::sample[dir="snippets/artifacts/defineRepository/kotlin",files="build.gradle.kts[tags=header-authenticated-maven-repo]"]
-include::sample[dir="snippets/artifacts/defineRepository/groovy",files="build.gradle[tags=header-authenticated-maven-repo]"]
+include::sample[dir="snippets/reference/dependency-management/declaring-repositories/defineRepository/kotlin",files="build.gradle.kts[tags=header-authenticated-maven-repo]"]
+include::sample[dir="snippets/reference/dependency-management/declaring-repositories/defineRepository/groovy",files="build.gradle[tags=header-authenticated-maven-repo]"]
 ====
 
 [[sec:s3-repositories]]
@@ -274,8 +274,8 @@ Gradle provides an link:{javadocPath}/org/gradle/api/artifacts/repositories/Auth
 For example, consider the following repository configuration:
 
 ====
-include::sample[dir="snippets/credentials-handling/publishing-credentials/kotlin",files="build.gradle.kts[tags=repositories]"]
-include::sample[dir="snippets/credentials-handling/publishing-credentials/groovy",files="build.gradle[tags=repositories]"]
+include::sample[dir="snippets/reference/dependency-management/declaring-repositories/publishing-credentials/kotlin",files="build.gradle.kts[tags=repositories]"]
+include::sample[dir="snippets/reference/dependency-management/declaring-repositories/publishing-credentials/groovy",files="build.gradle[tags=repositories]"]
 ====
 
 In this example, the username and password are automatically looked up from properties named `mySecureRepositoryUsername` and `mySecureRepositoryPassword`.

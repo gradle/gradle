@@ -15,9 +15,13 @@
  */
 package org.gradle.initialization.exception
 
+import org.gradle.api.DefaultTask
 import org.gradle.api.GradleScriptException
 import org.gradle.api.ProjectConfigurationException
 import org.gradle.api.internal.TaskInternal
+import org.gradle.api.internal.project.ProjectIdentity
+import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.internal.project.taskfactory.TestTaskIdentities
 import org.gradle.api.tasks.TaskExecutionException
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.internal.Describables
@@ -31,6 +35,7 @@ import org.gradle.internal.problems.failure.FailureFactory
 import org.gradle.problems.Location
 import org.gradle.problems.ProblemDiagnostics
 import org.gradle.problems.buildtree.ProblemDiagnosticsFactory
+import org.gradle.util.Path
 import spock.lang.Specification
 
 class DefaultExceptionAnalyserTest extends Specification {
@@ -216,7 +221,13 @@ class DefaultExceptionAnalyserTest extends Specification {
     def 'prefers script exception over contextual exception'() {
         given:
         def cause = new GradleScriptException("broken", new ContextualException())
-        def failure = new TaskExecutionException(Mock(TaskInternal), cause)
+        def project = Mock(ProjectInternal) {
+            getProjectIdentity() >> ProjectIdentity.forRootProject(Path.ROOT, "name")
+        }
+        def task = Mock(TaskInternal) {
+            getTaskIdentity() >> TestTaskIdentities.create("name", DefaultTask.class, project)
+        }
+        def failure = new TaskExecutionException(task, cause)
         def result = []
 
         when:
@@ -232,7 +243,14 @@ class DefaultExceptionAnalyserTest extends Specification {
     def 'prefers location aware exception over script exception'() {
         given:
         def cause = locationAwareException(new GradleScriptException("broken", new RuntimeException()))
-        def failure = new TaskExecutionException(Mock(TaskInternal), cause)
+
+        def project = Mock(ProjectInternal) {
+            getProjectIdentity() >> ProjectIdentity.forRootProject(Path.ROOT, "name")
+        }
+        def task = Mock(TaskInternal) {
+            getTaskIdentity() >> TestTaskIdentities.create("name", DefaultTask.class, project)
+        }
+        def failure = new TaskExecutionException(task, cause)
         def result = []
 
         expect:

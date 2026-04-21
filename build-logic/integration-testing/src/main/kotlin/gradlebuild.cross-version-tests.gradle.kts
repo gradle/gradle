@@ -17,9 +17,11 @@
 import gradlebuild.basics.capitalize
 import gradlebuild.basics.testing.TestType
 import gradlebuild.identity.extension.ReleasedVersionsDetails
+import gradlebuild.integrationtests.CROSSVERSION_TEST_MODELS
 import gradlebuild.integrationtests.addDependenciesAndConfigurations
-import gradlebuild.integrationtests.configureIde
+import gradlebuild.integrationtests.configureTestSourceSetInIde
 import gradlebuild.integrationtests.createTestTask
+import gradlebuild.integrationtests.crossVersionTestModels
 import gradlebuild.integrationtests.setSystemPropertiesOfTestJVM
 import gradlebuild.integrationtests.tasks.IntegrationTest
 
@@ -30,7 +32,7 @@ plugins {
     id("gradlebuild.jvm-compile")
 }
 
-val crossVersionTestModelsSourceSet = sourceSets.create("${TestType.CROSSVERSION.prefix}TestModels")
+val crossVersionTestModelsSourceSet = sourceSets.create(CROSSVERSION_TEST_MODELS)
 val crossVersionTestSourceSet = sourceSets.create("${TestType.CROSSVERSION.prefix}Test")
 val releasedVersions = gradleModule.identity.releasedVersions.orNull
 
@@ -47,8 +49,8 @@ jvmCompile {
 addDependenciesAndConfigurations(TestType.CROSSVERSION.prefix)
 createQuickFeedbackTasks(crossVersionTestSourceSet, releasedVersions)
 createAggregateTasks(crossVersionTestSourceSet, releasedVersions)
-configureIde(crossVersionTestModelsSourceSet)
-configureIde(crossVersionTestSourceSet)
+configureTestSourceSetInIde(crossVersionTestModelsSourceSet)
+configureTestSourceSetInIde(crossVersionTestSourceSet)
 configureCrossVersionTestModelsVariant(crossVersionTestModelsSourceSet)
 configureDependenciesForCrossVersionTests(crossVersionTestSourceSet, crossVersionTestModelsSourceSet)
 
@@ -91,17 +93,6 @@ fun configureDependenciesForCrossVersionTests(sourceSet: SourceSet, modelsSource
         project.configurations[sourceSet.implementationConfigurationName](crossVersionTestModels(project(path)))
         project.configurations[sourceSet.implementationConfigurationName](testFixtures(project(":tooling-api")))
     }
-}
-
-fun DependencyHandler.crossVersionTestModels(notation: kotlin.Any, configureAction: Action<Dependency> = Action {}): Dependency {
-    val dependency = create(notation)
-    if (dependency is ModuleDependency) {
-        dependency.capabilities {
-            requireCapability("${project.group}:${project.name}-${crossVersionTestModelsSourceSet.name}")
-        }
-    }
-    configureAction.execute(dependency)
-    return dependency
 }
 
 fun createQuickFeedbackTasks(sourceSet: SourceSet, releasedVersions: ReleasedVersionsDetails?) {

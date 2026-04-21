@@ -95,17 +95,9 @@ plugin/     // <1>
 The core of the plugin is the `GreetingPlugin` class.
 It implements the `Plugin<Project>` interface and overrides the `apply` method, which is the entry point for your plugin's logic:
 
-++++
-<div style="text-align: right;">
-  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/plugins/plugin-binary">
-    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
-  </a>
-</div>
-++++
-
 ====
-include::sample[dir="snippets/plugins/plugin-binary/kotlin",files="plugin/src/main/kotlin/org/example/GreetingPlugin.kt[]"]
-include::sample[dir="snippets/plugins/plugin-binary/groovy",files="plugin/src/main/groovy/org/example/GreetingPlugin.groovy[]"]
+include::sample[dir="snippets/reference/plugin-development/plugin-binary/kotlin",files="plugin/src/main/kotlin/org/example/GreetingPlugin.kt[]"]
+include::sample[dir="snippets/reference/plugin-development/plugin-binary/groovy",files="plugin/src/main/groovy/org/example/GreetingPlugin.groovy[]"]
 ====
 <1> `project.extensions.create()`: This creates an extension named greeting. This is how users of your plugin can configure its behavior in their build.gradle file. The apply block sets convention values, which are default values that the user can override.
 <2> `project.tasks.register()`: This registers a task of type GreetTask named greet. This is the action that your plugin provides.
@@ -120,17 +112,9 @@ This is crucial for performance and correctness in Gradle builds.
 The extension defines the properties that a user can configure.
 It uses `Property` and `RegularFileProperty` types, which are designed for lazy evaluation:
 
-++++
-<div style="text-align: right;">
-  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/plugins/plugin-binary">
-    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
-  </a>
-</div>
-++++
-
 ====
-include::sample[dir="snippets/plugins/plugin-binary/kotlin",files="plugin/src/main/kotlin/org/example/GreetingExtension.kt[]"]
-include::sample[dir="snippets/plugins/plugin-binary/groovy",files="plugin/src/main/groovy/org/example/GreetingExtension.groovy[]"]
+include::sample[dir="snippets/reference/plugin-development/plugin-binary/kotlin",files="plugin/src/main/kotlin/org/example/GreetingExtension.kt[]"]
+include::sample[dir="snippets/reference/plugin-development/plugin-binary/groovy",files="plugin/src/main/groovy/org/example/GreetingExtension.groovy[]"]
 ====
 <1> `Property<T>`: This is a container for a value of type T. The actual value is not read until it's needed, which enables lazy configuration.
 <2> `RegularFileProperty`: A specific type of property for file paths. Gradle uses this to track file inputs and outputs for up-to-date checks and the build cache.
@@ -140,17 +124,9 @@ include::sample[dir="snippets/plugins/plugin-binary/groovy",files="plugin/src/ma
 This is the class for the custom task.
 It defines the inputs and outputs, and the action to perform:
 
-++++
-<div style="text-align: right;">
-  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/plugins/plugin-binary">
-    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
-  </a>
-</div>
-++++
-
 ====
-include::sample[dir="snippets/plugins/plugin-binary/kotlin",files="plugin/src/main/kotlin/org/example/GreetTask.kt[]"]
-include::sample[dir="snippets/plugins/plugin-binary/groovy",files="plugin/src/main/groovy/org/example/GreetTask.groovy[]"]
+include::sample[dir="snippets/reference/plugin-development/plugin-binary/kotlin",files="plugin/src/main/kotlin/org/example/GreetTask.kt[]"]
+include::sample[dir="snippets/reference/plugin-development/plugin-binary/groovy",files="plugin/src/main/groovy/org/example/GreetTask.groovy[]"]
 ====
 <1> `@Input`: This annotation marks a property as a task input. When a task has an input, Gradle will automatically track its value. If the value changes between builds, Gradle knows the task is out-of-date and needs to be re-run.
 <2> `@OutputFile`: This annotation marks a property as a task output. Gradle tracks the location of this file. If the file is missing or its contents are older than the inputs, Gradle considers the task out-of-date.
@@ -212,17 +188,9 @@ This plugin will automatically apply the <<java_plugin.adoc#java_plugin,Java Plu
 
 To apply and configure the plugin, add the following code to your build file:
 
-++++
-<div style="text-align: right;">
-  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/plugins/customPlugin">
-    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
-  </a>
-</div>
-++++
-
 ====
-include::sample[dir="snippets/plugins/customPlugin/kotlin/java-gradle-plugin",files="build.gradle.kts[tags=use-and-configure-plugin]"]
-include::sample[dir="snippets/plugins/customPlugin/groovy/java-gradle-plugin",files="build.gradle[tags=use-and-configure-plugin]"]
+include::sample[dir="snippets/reference/plugin-development/customPlugin/kotlin/java-gradle-plugin",files="build.gradle.kts[tags=use-and-configure-plugin]"]
+include::sample[dir="snippets/reference/plugin-development/customPlugin/groovy/java-gradle-plugin",files="build.gradle[tags=use-and-configure-plugin]"]
 ====
 
 Writing and using <<more_about_tasks.adoc#sec:task_groups,custom task types>> is recommended when developing plugins as it automatically benefits from <<incremental_build.adoc#incremental_build,incremental builds>>.
@@ -259,17 +227,9 @@ There is no limit to the number of plugins that can be defined and registered (b
 The identifiers for plugins written as a class should be defined in the project's build script containing the plugin classes.
 For this, the `java-gradle-plugin` needs to be applied:
 
-++++
-<div style="text-align: right;">
-  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/developingPlugins/pluginIdentifier">
-    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
-  </a>
-</div>
-++++
-
 ====
-include::sample[dir="snippets/developingPlugins/pluginIdentifier/kotlin",files="buildSrc/build.gradle.kts[]"]
-include::sample[dir="snippets/developingPlugins/pluginIdentifier/groovy",files="buildSrc/build.gradle[]"]
+include::sample[dir="snippets/reference/plugin-development/pluginIdentifier/kotlin",files="buildSrc/build.gradle.kts[]"]
+include::sample[dir="snippets/reference/plugin-development/pluginIdentifier/groovy",files="buildSrc/build.gradle[]"]
 ====
 
 [[sec:working_with_files_in_custom_tasks_and_plugins]]
@@ -284,17 +244,9 @@ This Gradle build file defines a task `GreetingToFileTask` that writes a greetin
 It also registers two tasks: `greet`, which creates the file with the greeting, and `sayGreeting`, which prints the file's contents.
 The `greetingFile` property is used to specify the file path for the greeting:
 
-++++
-<div style="text-align: right;">
-  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/tasks/customTaskWithFileProperty">
-    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
-  </a>
-</div>
-++++
-
 ====
-include::sample[dir="snippets/tasks/customTaskWithFileProperty/kotlin",files="build.gradle.kts[tags=all]"]
-include::sample[dir="snippets/tasks/customTaskWithFileProperty/groovy",files="build.gradle[tags=all]"]
+include::sample[dir="snippets/reference/plugin-development/customTaskWithFileProperty/kotlin",files="build.gradle.kts[tags=all]"]
+include::sample[dir="snippets/reference/plugin-development/customTaskWithFileProperty/groovy",files="build.gradle[tags=all]"]
 ====
 
 [source,bash]
@@ -326,17 +278,9 @@ An extension object is simply an object with Java Bean properties representing t
 
 Let's add a `greeting` extension object to the project, which allows you to configure the greeting:
 
-++++
-<div style="text-align: right;">
-  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/customPlugins/customPluginNoConvention">
-    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
-  </a>
-</div>
-++++
-
 ====
-include::sample[dir="snippets/customPlugins/customPluginNoConvention/kotlin",files="build.gradle.kts[]"]
-include::sample[dir="snippets/customPlugins/customPluginNoConvention/groovy",files="build.gradle[]"]
+include::sample[dir="snippets/reference/plugin-development/customPluginNoConvention/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="snippets/reference/plugin-development/customPluginNoConvention/groovy",files="build.gradle[]"]
 ====
 
 [source,bash]
@@ -345,7 +289,7 @@ $ ./gradlew -q hello
 ----
 [source,text]
 ----
-include::{snippetsPath}/customPlugins/customPluginNoConvention/tests/customPluginNoConvention.out[]
+include::{snippetsPath}/reference/plugin-development/customPluginNoConvention/tests/customPluginNoConvention.out[]
 ----
 
 In this example, `GreetingPluginExtension` is an object with a property called `message`.
@@ -356,17 +300,9 @@ This object becomes available as a project property with the same name as the ex
 Often, you have several related properties you need to specify on a single plugin.
 Gradle adds a configuration block for each extension object, so you can group settings:
 
-++++
-<div style="text-align: right;">
-  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/customPlugins/customPluginWithAdvancedConvention">
-    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
-  </a>
-</div>
-++++
-
 ====
-include::sample[dir="snippets/customPlugins/customPluginWithAdvancedConvention/kotlin",files="build.gradle.kts[]"]
-include::sample[dir="snippets/customPlugins/customPluginWithAdvancedConvention/groovy",files="build.gradle[]"]
+include::sample[dir="snippets/reference/plugin-development/customPluginWithAdvancedConvention/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="snippets/reference/plugin-development/customPluginWithAdvancedConvention/groovy",files="build.gradle[]"]
 ====
 
 [source,bash]
@@ -375,7 +311,7 @@ $ ./gradlew -q hello
 ----
 [source,text]
 ----
-include::{snippetsPath}/customPlugins/customPluginWithAdvancedConvention/tests/customPluginWithAdvancedConvention.out[]
+include::{snippetsPath}/reference/plugin-development/customPluginWithAdvancedConvention/tests/customPluginWithAdvancedConvention.out[]
 ----
 
 [.multi-language-text.lang-kotlin]
@@ -396,17 +332,9 @@ Because an extension object is a regular object, you can provide your own DSL ne
 
 Let's consider the following build script for illustration purposes.
 
-++++
-<div style="text-align: right;">
-  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/developingPlugins/namedDomainObjectContainer">
-    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
-  </a>
-</div>
-++++
-
 ====
-include::sample[dir="snippets/developingPlugins/namedDomainObjectContainer/kotlin",files="build.gradle.kts[]"]
-include::sample[dir="snippets/developingPlugins/namedDomainObjectContainer/groovy",files="build.gradle[]"]
+include::sample[dir="snippets/reference/plugin-development/namedDomainObjectContainer/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="snippets/reference/plugin-development/namedDomainObjectContainer/groovy",files="build.gradle[]"]
 ====
 
 The DSL exposed by the plugin exposes a container for defining a set of environments.
@@ -422,7 +350,7 @@ The following `ServerEnvironment` object fulfills those requirements:
 .ServerEnvironment.java
 [source,java]
 ----
-include::{snippetsPath}/developingPlugins/namedDomainObjectContainer/common/buildSrc/src/main/java/org/myorg/ServerEnvironment.java[tags=snippet]
+include::{snippetsPath}/reference/plugin-development/namedDomainObjectContainer/common/buildSrc/src/main/java/org/myorg/ServerEnvironment.java[tags=snippet]
 ----
 
 Gradle exposes the factory method
@@ -436,7 +364,7 @@ It's common for a plugin to post-process the captured values within the plugin i
 .ServerEnvironmentPlugin.java
 [source,java]
 ----
-include::{snippetsPath}/developingPlugins/namedDomainObjectContainer/common/buildSrc/src/main/java/org/myorg/ServerEnvironmentPlugin.java[tags=snippet]
+include::{snippetsPath}/reference/plugin-development/namedDomainObjectContainer/common/buildSrc/src/main/java/org/myorg/ServerEnvironmentPlugin.java[tags=snippet]
 ----
 
 In the example above, a deployment task is created dynamically for every user-configured environment.
@@ -451,17 +379,9 @@ DSLs exposed by plugins should be readable and easy to understand.
 For example, let's consider the following extension provided by a plugin.
 In its current form, it offers a "flat" list of properties for configuring the creation of a website:
 
-++++
-<div style="text-align: right;">
-  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/developingPlugins/pluginExtension">
-    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
-  </a>
-</div>
-++++
-
 ====
-include::sample[dir="snippets/developingPlugins/pluginExtension/kotlin",files="build-flat.gradle.kts[]"]
-include::sample[dir="snippets/developingPlugins/pluginExtension/groovy",files="build-flat.gradle[]"]
+include::sample[dir="snippets/reference/plugin-development/pluginExtension/kotlin",files="build-flat.gradle.kts[]"]
+include::sample[dir="snippets/reference/plugin-development/pluginExtension/groovy",files="build-flat.gradle[]"]
 ====
 
 As the number of exposed properties grows, you should introduce a nested, more expressive structure.
@@ -469,34 +389,18 @@ As the number of exposed properties grows, you should introduce a nested, more e
 The following code snippet adds a new configuration block named `siteInfo` as part of the extension.
 This provides a stronger indication of what those properties mean:
 
-++++
-<div style="text-align: right;">
-  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/developingPlugins/pluginExtension">
-    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
-  </a>
-</div>
-++++
-
 ====
-include::sample[dir="snippets/developingPlugins/pluginExtension/kotlin",files="build.gradle.kts[]"]
-include::sample[dir="snippets/developingPlugins/pluginExtension/groovy",files="build.gradle[]"]
+include::sample[dir="snippets/reference/plugin-development/pluginExtension/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="snippets/reference/plugin-development/pluginExtension/groovy",files="build.gradle[]"]
 ====
 
 Implementing the backing objects for such an extension is simple.
 First, introduce a new data object for managing the properties `websiteUrl` and `vcsUrl`:
 
-++++
-<div style="text-align: right;">
-  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/developingPlugins/pluginExtension">
-    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
-  </a>
-</div>
-++++
-
 .SiteInfo.java
 [source,java]
 ----
-include::{snippetsPath}/developingPlugins/pluginExtension/common/buildSrc/src/main/java/org/myorg/SiteInfo.java[tags=snippet]
+include::{snippetsPath}/reference/plugin-development/pluginExtension/common/buildSrc/src/main/java/org/myorg/SiteInfo.java[tags=snippet]
 ----
 
 In the extension, create an instance of the `siteInfo` class and a method to delegate the captured values to the data instance.
@@ -508,7 +412,7 @@ The following example demonstrates the use of `Action` in an extension definitio
 .SiteExtension.java
 [source,java]
 ----
-include::{snippetsPath}/developingPlugins/pluginExtension/common/buildSrc/src/main/java/org/myorg/SiteExtension.java[tags=snippet]
+include::{snippetsPath}/reference/plugin-development/pluginExtension/common/buildSrc/src/main/java/org/myorg/SiteExtension.java[tags=snippet]
 ----
 
 [[sec:mapping_extension_properties_to_task_properties_in_binary_plugins]]
@@ -517,17 +421,9 @@ include::{snippetsPath}/developingPlugins/pluginExtension/common/buildSrc/src/ma
 Plugins commonly use an extension to capture user input from the build script and map it to a custom task's input/output properties.
 The build script author interacts with the extension's DSL, while the plugin implementation handles the underlying logic:
 
-++++
-<div style="text-align: right;">
-  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/plugins/mappingExtension">
-    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
-  </a>
-</div>
-++++
-
 ====
-include::sample[dir="snippets/plugins/mappingExtensions/kotlin",files="app/build.gradle.kts[tags=snippet]"]
-include::sample[dir="snippets/plugins/mappingExtensions/groovy",files="app/build.gradle[tags=snippet]"]
+include::sample[dir="snippets/reference/plugin-development/mappingExtensions/kotlin",files="app/build.gradle.kts[tags=snippet]"]
+include::sample[dir="snippets/reference/plugin-development/mappingExtensions/groovy",files="app/build.gradle[tags=snippet]"]
 ====
 
 In this example, the `MyExtension` class defines an `inputParameter` property that can be set in the build script.
@@ -546,17 +442,9 @@ These are known as *conventions*.
 Conventions are properties that are initialized with default values and can be overridden by the user in their build script.
 For example:
 
-++++
-<div style="text-align: right;">
-  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/customPlugins/customPluginWithConvention">
-    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
-  </a>
-</div>
-++++
-
 ====
-include::sample[dir="snippets/customPlugins/customPluginWithConvention/kotlin",files="build.gradle.kts[]"]
-include::sample[dir="snippets/customPlugins/customPluginWithConvention/groovy",files="build.gradle[]"]
+include::sample[dir="snippets/reference/plugin-development/customPluginWithConvention/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="snippets/reference/plugin-development/customPluginWithConvention/groovy",files="build.gradle[]"]
 ====
 
 [source,bash]
@@ -565,7 +453,7 @@ $ ./gradlew -q hello
 ----
 [source,text]
 ----
-include::{snippetsPath}/customPlugins/customPluginWithConvention/tests/customPluginWithConvention.out[]
+include::{snippetsPath}/reference/plugin-development/customPluginWithConvention/tests/customPluginWithConvention.out[]
 ----
 
 In this example, `GreetingPluginExtension` is a class that represents the convention.
@@ -618,24 +506,16 @@ In the example below, `MyPlugin` contains conventions, and `MyBasePlugin` define
 Then, `MyPlugin` applies `MyBasePlugin`, this is called _plugin composition_.
 To apply a plugin from another one:
 
-++++
-<div style="text-align: right;">
-  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/developingPlugins/capabilitiesVsConventions">
-    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
-  </a>
-</div>
-++++
-
 .MyBasePlugin.java
 [source,java]
 ----
-include::{snippetsPath}/developingPlugins/capabilitiesVsConventions/groovy/buildSrc/src/main/java/MyBasePlugin.java[]
+include::{snippetsPath}/reference/plugin-development/capabilitiesVsConventions/groovy/buildSrc/src/main/java/MyBasePlugin.java[]
 ----
 
 .MyPlugin.java
 [source,java]
 ----
-include::{snippetsPath}/developingPlugins/capabilitiesVsConventions/groovy/buildSrc/src/main/java/MyPlugin.java[]
+include::{snippetsPath}/reference/plugin-development/capabilitiesVsConventions/groovy/buildSrc/src/main/java/MyPlugin.java[]
 ----
 
 == Reacting to plugins
@@ -644,19 +524,11 @@ A common pattern in Gradle plugin implementations is configuring the runtime beh
 
 For example, a plugin could assume that it is applied to a Java-based project and automatically reconfigure the standard source directory:
 
-++++
-<div style="text-align: right;">
-  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/developingPlugins/reactingToPlugins">
-    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
-  </a>
-</div>
-++++
-
 [[convention-api-usage-example]]
 .InhouseStrongOpinionConventionJavaPlugin.java
 [source,java]
 ----
-include::{snippetsPath}/developingPlugins/reactingToPlugins/groovy/buildSrc/src/main/java/InhouseStrongOpinionConventionJavaPlugin.java[tags=snippet]
+include::{snippetsPath}/reference/plugin-development/reactingToPlugins/groovy/buildSrc/src/main/java/InhouseStrongOpinionConventionJavaPlugin.java[tags=snippet]
 ----
 
 The drawback to this approach is that it automatically forces the project to apply the Java plugin, imposing a strong opinion on it (i.e., reducing flexibility and generality).
@@ -665,36 +537,20 @@ In practice, the project applying the plugin might not even deal with Java code.
 Instead of automatically applying the Java plugin, the plugin could react to the fact that the consuming project applies the Java plugin.
 Only if that is the case, then a certain configuration is applied:
 
-++++
-<div style="text-align: right;">
-  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/developingPlugins/reactingToPlugins">
-    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
-  </a>
-</div>
-++++
-
 .InhouseConventionJavaPlugin.java
 [source,java]
 ----
-include::{snippetsPath}/developingPlugins/reactingToPlugins/groovy/buildSrc/src/main/java/InhouseConventionJavaPlugin.java[tags=snippet]
+include::{snippetsPath}/reference/plugin-development/reactingToPlugins/groovy/buildSrc/src/main/java/InhouseConventionJavaPlugin.java[tags=snippet]
 ----
 
 Reacting to plugins is preferred over applying plugins if there is no good reason to assume that the consuming project has the expected setup.
 
 The same concept applies to task types:
 
-++++
-<div style="text-align: right;">
-  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/developingPlugins/reactingToPlugins">
-    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
-  </a>
-</div>
-++++
-
 .InhouseConventionWarPlugin.java
 [source,java]
 ----
-include::{snippetsPath}/developingPlugins/reactingToPlugins/groovy/buildSrc/src/main/java/InhouseConventionWarPlugin.java[tags=snippet]
+include::{snippetsPath}/reference/plugin-development/reactingToPlugins/groovy/buildSrc/src/main/java/InhouseConventionWarPlugin.java[tags=snippet]
 ----
 
 == Reacting to build features
@@ -710,18 +566,10 @@ There are two main use cases:
 
 Below is an example of a plugin that utilizes both of the cases.
 
-++++
-<div style="text-align: right;">
-  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/developingPlugins/reactingToBuildFeatures">
-    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
-  </a>
-</div>
-++++
-
 .Reacting to build features
 [source,java]
 ----
-include::{snippetsPath}/developingPlugins/reactingToBuildFeatures/groovy/buildSrc/src/main/java/MyPlugin.java[tags=my-plugin]
+include::{snippetsPath}/reference/plugin-development/reactingToBuildFeatures/groovy/buildSrc/src/main/java/MyPlugin.java[tags=my-plugin]
 ----
 <1> The `BuildFeatures` service can be injected into plugins, tasks, and other managed types.
 <2> Accessing the `requested` status of a feature for reporting.
@@ -771,14 +619,6 @@ See link:{groovyDslPath}/org.gradle.api.plugins.jvm.JvmComponentDependencies.htm
 
 NOTE: You can also extend link:{groovyDslPath}/org.gradle.api.artifacts.dsl.GradleDependencies.html[GradleDependencies] to get access to Gradle-provided dependencies like `gradleApi()`.
 
-++++
-<div style="text-align: right;">
-  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/plugins/dependenciesBlock">
-    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
-  </a>
-</div>
-++++
-
 ====
 [source.multi-language-sample,java]
 .ExampleDependencies.java
@@ -790,14 +630,6 @@ include::{snippetsPath}/plugins/dependenciesBlock/common/buildSrc/src/main/java/
 ==== 2. Add accessors for dependency scopes
 
 For each dependency scope your plugin wants to support, add a getter method that returns a `DependencyCollector`.
-
-++++
-<div style="text-align: right;">
-  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/plugins/dependenciesBlock">
-    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
-  </a>
-</div>
-++++
 
 ====
 [source.multi-language-sample,java]
@@ -814,14 +646,6 @@ To make the custom `dependencies` block configurable, the plugin needs to add a 
 By convention, the accessors for your custom `dependencies` block should be called `getDependencies()`/`dependencies(Action)`.
 This method could be named something else, but users would need to know that a different block can behave like a `dependencies` block.
 
-++++
-<div style="text-align: right;">
-  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/plugins/dependenciesBlock">
-    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
-  </a>
-</div>
-++++
-
 ====
 [source.multi-language-sample,java]
 .ExampleExtension.java
@@ -835,14 +659,6 @@ include::{snippetsPath}/plugins/dependenciesBlock/common/buildSrc/src/main/java/
 Finally, the plugin needs to wire the custom `dependencies` block to some underlying `Configuration` objects. If this is not done, none of the dependencies declared in the custom block will
 be available to dependency resolution.
 
-++++
-<div style="text-align: right;">
-  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/plugins/dependenciesBlock">
-    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
-  </a>
-</div>
-++++
-
 ====
 [source.multi-language-sample,java]
 .ExamplePlugin.java
@@ -852,14 +668,6 @@ include::{snippetsPath}/plugins/dependenciesBlock/common/buildSrc/src/main/java/
 ====
 
 NOTE: In this example, the name users will use to add dependencies is "implementation", but the underlying `Configuration` is named `exampleImplementation`.
-
-++++
-<div style="text-align: right;">
-  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/plugins/dependenciesBlock">
-    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
-  </a>
-</div>
-++++
 
 ====
 [source.multi-language-sample,kotlin]
@@ -915,13 +723,13 @@ The plugin implementation declares a custom configuration that allows for <<decl
 .DataProcessingPlugin.java
 [source,java]
 ----
-include::{snippetsPath}/developingPlugins/defaultDependency/common/buildSrc/src/main/java/org/myorg/DataProcessingPlugin.java[tags=snippet]
+include::{snippetsPath}/reference/plugin-development/defaultDependency/common/buildSrc/src/main/java/org/myorg/DataProcessingPlugin.java[tags=snippet]
 ----
 
 .DataProcessing.java
 [source,java]
 ----
-include::{snippetsPath}/developingPlugins/defaultDependency/common/buildSrc/src/main/java/org/myorg/DataProcessing.java[tags=snippet]
+include::{snippetsPath}/reference/plugin-development/defaultDependency/common/buildSrc/src/main/java/org/myorg/DataProcessing.java[tags=snippet]
 ----
 
 This approach is convenient for the end user as there is no need to actively declare a dependency.
@@ -933,17 +741,9 @@ No problem.
 The plugin also exposes the custom configuration that can be used to assign a different dependency.
 Effectively, the default dependency is overwritten:
 
-++++
-<div style="text-align: right;">
-  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/developingPlugins/defaultDependency">
-    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
-  </a>
-</div>
-++++
-
 ====
-include::sample[dir="snippets/developingPlugins/defaultDependency/kotlin",files="build.gradle.kts[]"]
-include::sample[dir="snippets/developingPlugins/defaultDependency/groovy",files="build.gradle[]"]
+include::sample[dir="snippets/reference/plugin-development/defaultDependency/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="snippets/reference/plugin-development/defaultDependency/groovy",files="build.gradle[]"]
 ====
 
 You will find that this pattern works well for tasks that require an external dependency when the task's action is executed.
@@ -958,17 +758,9 @@ Keep in mind that plugins share the same classloader, so conflicts may arise wit
 
 To demonstrate let’s assume the following build script:
 
-++++
-<div style="text-align: right;">
-  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/developingPlugins/externalLibraries">
-    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
-  </a>
-</div>
-++++
-
 ====
-include::sample[dir="snippets/developingPlugins/externalLibraries/kotlin",files="build.gradle.kts[]"]
-include::sample[dir="snippets/developingPlugins/externalLibraries/groovy",files="build.gradle[]"]
+include::sample[dir="snippets/reference/plugin-development/externalLibraries/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="snippets/reference/plugin-development/externalLibraries/groovy",files="build.gradle[]"]
 ====
 
 The output of the task clearly indicates the classpath of the `classpath` configuration:
@@ -979,7 +771,7 @@ $ ./gradlew buildEnvironment
 ----
 [source,text]
 ----
-include::{snippetsPath}/developingPlugins/externalLibraries/tests/buildEnvironment.out[]
+include::{snippetsPath}/reference/plugin-development/externalLibraries/tests/buildEnvironment.out[]
 ----
 
 A Gradle plugin does not run in its own, isolated classloader, so you must consider whether you truly need a library or if a simpler solution suffices.
@@ -1007,17 +799,9 @@ A separate source set is compiled and packaged in a separate jar for each varian
 
 The following sample demonstrates how to add a variant that is compatible with Gradle 7.0+ while the "main" variant is compatible with older versions:
 
-++++
-<div style="text-align: right;">
-  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/developingPlugins/pluginWithVariants">
-    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
-  </a>
-</div>
-++++
-
 ====
-include::sample[dir="snippets/developingPlugins/pluginWithVariants/kotlin",files="build.gradle.kts[tags=add-plugin-variant]"]
-include::sample[dir="snippets/developingPlugins/pluginWithVariants/groovy",files="build.gradle[tags=add-plugin-variant]"]
+include::sample[dir="snippets/reference/plugin-development/pluginWithVariants/kotlin",files="build.gradle.kts[tags=add-plugin-variant]"]
+include::sample[dir="snippets/reference/plugin-development/pluginWithVariants/groovy",files="build.gradle[tags=add-plugin-variant]"]
 ====
 
 NOTE: Only Gradle versions 7 or higher can be explicitly targeted by a variant, as support for this was only added in Gradle 7.
@@ -1055,15 +839,7 @@ This allows a multi-variant plugin that depends on other plugins to access their
 
 This snippet makes the <<#plugin-with-variants,plugin variant `gradle7` defined above>> consume the matching variants of its dependencies on other multi-variant plugins:
 
-++++
-<div style="text-align: right;">
-  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/developingPlugins/pluginWithVariants">
-    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
-  </a>
-</div>
-++++
-
 ====
-include::sample[dir="snippets/developingPlugins/pluginWithVariants/kotlin",files="build.gradle.kts[tags=consume-plugin-variant]"]
-include::sample[dir="snippets/developingPlugins/pluginWithVariants/groovy",files="build.gradle[tags=consume-plugin-variant]"]
+include::sample[dir="snippets/reference/plugin-development/pluginWithVariants/kotlin",files="build.gradle.kts[tags=consume-plugin-variant]"]
+include::sample[dir="snippets/reference/plugin-development/pluginWithVariants/groovy",files="build.gradle[tags=consume-plugin-variant]"]
 ====

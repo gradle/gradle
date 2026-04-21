@@ -25,7 +25,7 @@ class SamplesIvyPublishIntegrationTest extends AbstractSampleIntegrationTest {
     @Rule
     public final Sample sampleProject = new Sample(temporaryFolder)
 
-    @UsesSample("ivy-publish/quickstart")
+    @UsesSample("integration-tests/ivy-publish/quickstart")
     def "quickstart sample with #dsl dsl"() {
         given:
         def sampleDir = sampleProject.dir.file(dsl)
@@ -45,7 +45,7 @@ class SamplesIvyPublishIntegrationTest extends AbstractSampleIntegrationTest {
         dsl << ['groovy', 'kotlin']
     }
 
-    @UsesSample("ivy-publish/java-multi-project")
+    @UsesSample("integration-tests/ivy-publish/java-multi-project")
     def "java-multi-project sample with #dsl dsl"() {
         given:
         def sampleDir = sampleProject.dir.file(dsl)
@@ -82,7 +82,7 @@ class SamplesIvyPublishIntegrationTest extends AbstractSampleIntegrationTest {
         dsl << ['groovy', 'kotlin']
     }
 
-    @UsesSample("ivy-publish/descriptor-customization")
+    @UsesSample("integration-tests/ivy-publish/descriptor-customization")
     def "descriptor-customization sample with #dsl dsl"() {
         given:
         def sampleDir = sampleProject.dir.file(dsl)
@@ -111,7 +111,7 @@ class SamplesIvyPublishIntegrationTest extends AbstractSampleIntegrationTest {
         dsl << ['groovy', 'kotlin']
     }
 
-    @UsesSample("ivy-publish/conditional-publishing/groovy")
+    @UsesSample("integration-tests/ivy-publish/conditional-publishing/groovy")
     def conditionalPublishing() {
         given:
         sample sampleProject
@@ -137,7 +137,7 @@ class SamplesIvyPublishIntegrationTest extends AbstractSampleIntegrationTest {
         binaryAndSources.assertArtifactsPublished "${artifactId}-${version}.jar", "${artifactId}-${version}-sources.jar", "ivy-${version}.xml", "${artifactId}-${version}.module"
     }
 
-    @UsesSample("ivy-publish/conditional-publishing")
+    @UsesSample("integration-tests/ivy-publish/conditional-publishing")
     def shorthandPublishToExternalRepository() {
         given:
         inDirectory(sampleProject.dir.file('groovy'))
@@ -151,7 +151,7 @@ class SamplesIvyPublishIntegrationTest extends AbstractSampleIntegrationTest {
         notExecuted ":publishBinaryPublicationToInternalRepository", ":publishBinaryAndSourcesPublicationToInternalRepository"
     }
 
-    @UsesSample("ivy-publish/conditional-publishing")
+    @UsesSample("integration-tests/ivy-publish/conditional-publishing")
     def shorthandPublishToInternalRepository() {
         given:
         inDirectory(sampleProject.dir.file('groovy'))
@@ -165,7 +165,7 @@ class SamplesIvyPublishIntegrationTest extends AbstractSampleIntegrationTest {
         notExecuted ":publishBinaryPublicationToExternalRepository", ":publishBinaryAndSourcesPublicationToExternalRepository"
     }
 
-    @UsesSample("ivy-publish/publish-artifact/groovy")
+    @UsesSample("integration-tests/ivy-publish/publish-artifact/groovy")
     def publishesRpmArtifact() {
         given:
         sample sampleProject
@@ -185,7 +185,7 @@ class SamplesIvyPublishIntegrationTest extends AbstractSampleIntegrationTest {
         module.assertArtifactsPublished "${artifactId}-${version}.rpm", "ivy-${version}.xml"
     }
 
-    @UsesSample("ivy-publish/distribution")
+    @UsesSample("integration-tests/ivy-publish/distribution")
     def "publishes distribution archives with #dsl dsl"() {
         given:
         def sampleDir = sampleProject.dir.file(dsl)

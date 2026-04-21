@@ -362,8 +362,8 @@ Most built-in Gradle tasks support incremental builds.
 To make a custom task compatible, you must specify its inputs and outputs:
 
 ====
-include::sample[dir="snippets/tasks/incrementalBuild-customTaskClass/kotlin",files="build.gradle.kts[tags=ad-hoc-task]"]
-include::sample[dir="snippets/tasks/incrementalBuild-customTaskClass/groovy",files="build.gradle[tags=ad-hoc-task]"]
+include::sample[dir="snippets/optimizing-builds/incrementalBuild-customTaskClass/kotlin",files="build.gradle.kts[tags=ad-hoc-task]"]
+include::sample[dir="snippets/optimizing-builds/incrementalBuild-customTaskClass/groovy",files="build.gradle[tags=ad-hoc-task]"]
 ====
 
 For more details, see the <<incremental_build.adoc#incremental_build,incremental build documentation>> and the <<writing_tasks_intermediate.adoc#task_inputs_and_outputs,writing tasks tutorial>>.
@@ -402,7 +402,7 @@ Each group of users requires a subset of tasks—convert that subset into a Grad
 Gradle provides several features to create efficient workflows:
 
 - **Assign tasks to appropriate** link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:group[groups].
-- **Create aggregate tasks**—tasks with no action that depend on other tasks (e.g., `assemble`).
+- **Create <<more_about_tasks.adoc#sec:task_categories,lifecycle tasks>>**—tasks with no action that depend on other tasks (e.g., `assemble`).
 - **Defer configuration** using `gradle.taskGraph.whenReady()` to execute verification only when necessary.
 
 [[increase_heap_size]]
@@ -665,8 +665,8 @@ Consider a debugging scenario where you want to print all files in a configurati
 A common mistake is to print them directly in the build script:
 
 ====
-include::sample[dir="snippets/performance/resolveAtConfigurationTime/kotlin",files="build.gradle.kts[tags=copy]"]
-include::sample[dir="snippets/performance/resolveAtConfigurationTime/groovy",files="build.gradle[tags=copy]"]
+include::sample[dir="snippets/optimizing-builds/resolveAtConfigurationTime/kotlin",files="build.gradle.kts[tags=copy]"]
+include::sample[dir="snippets/optimizing-builds/resolveAtConfigurationTime/groovy",files="build.gradle[tags=copy]"]
 ====
 
 The `files` property triggers dependency resolution immediately, even if `printDeps` is never executed.
@@ -675,8 +675,8 @@ Since the configuration phase runs on every build, this slows down *all* builds.
 By using `doFirst()`, Gradle defers dependency resolution until the task actually runs, preventing unnecessary work in the configuration phase:
 
 ====
-include::sample[dir="snippets/performance/resolveAtBuildTime/kotlin",files="build.gradle.kts[tags=copy]"]
-include::sample[dir="snippets/performance/resolveAtBuildTime/groovy",files="build.gradle[tags=copy]"]
+include::sample[dir="snippets/optimizing-builds/resolveAtBuildTime/kotlin",files="build.gradle.kts[tags=copy]"]
+include::sample[dir="snippets/optimizing-builds/resolveAtBuildTime/groovy",files="build.gradle[tags=copy]"]
 ====
 
 The `from()` method in Gradle’s `Copy` task does *not* trigger immediate <<dependency_configurations.adoc#sub:what-are-dependency-configurations,dependency resolution>> because it references the dependency *configuration*, not the resolved files.
@@ -794,8 +794,8 @@ To enable parallel execution, set the `maxParallelForks` property on your `Test`
 A good default is the number of available CPU cores or slightly fewer:
 
 ====
-include::sample[dir="snippets/performance/parallelTestExecution/kotlin",files="build.gradle.kts[tags=parallel-calculated]"]
-include::sample[dir="snippets/performance/parallelTestExecution/groovy",files="build.gradle[tags=parallel-calculated]"]
+include::sample[dir="snippets/optimizing-builds/parallelTestExecution/kotlin",files="build.gradle.kts[tags=parallel-calculated]"]
+include::sample[dir="snippets/optimizing-builds/parallelTestExecution/groovy",files="build.gradle[tags=parallel-calculated]"]
 ====
 
 Parallel test execution assumes that tests are isolated.
@@ -810,8 +810,8 @@ This is efficient for small test suites, but large or memory-intensive test suit
 You can reduce memory pressure and isolate problematic tests by forking a new JVM after a specified number of tests using the `forkEvery` setting:
 
 ====
-include::sample[dir="snippets/performance/parallelTestExecution/kotlin",files="build.gradle.kts[tags=fork-every]"]
-include::sample[dir="snippets/performance/parallelTestExecution/groovy",files="build.gradle[tags=fork-every]"]
+include::sample[dir="snippets/optimizing-builds/parallelTestExecution/kotlin",files="build.gradle.kts[tags=fork-every]"]
+include::sample[dir="snippets/optimizing-builds/parallelTestExecution/groovy",files="build.gradle[tags=fork-every]"]
 ====
 
 WARNING: Forking a JVM is an expensive operation. Setting `forkEvery` too low can increase test time due to excessive process startup overhead.
@@ -829,8 +829,8 @@ You can disable report generation entirely if:
 To disable reports, set `reports.html.required` and `reports.junitXml.required` to `false`:
 
 ====
-include::sample[dir="snippets/performance/parallelTestExecution/kotlin",files="build.gradle.kts[tags=disable-reports]"]
-include::sample[dir="snippets/performance/parallelTestExecution/groovy",files="build.gradle[tags=disable-reports]"]
+include::sample[dir="snippets/optimizing-builds/parallelTestExecution/kotlin",files="build.gradle.kts[tags=disable-reports]"]
+include::sample[dir="snippets/optimizing-builds/parallelTestExecution/groovy",files="build.gradle[tags=disable-reports]"]
 ====
 
 ===== Conditionally enable reports
@@ -917,8 +917,8 @@ You can offload Java compilation to a separate process using the `fork` option:
 To apply this setting to all `JavaCompile` tasks, use `configureEach`:
 
 ====
-include::sample[dir="snippets/performance/parallelTestExecution/kotlin",files="build.gradle.kts[tags=fork-java]"]
-include::sample[dir="snippets/performance/parallelTestExecution/groovy",files="build.gradle[tags=fork-java]"]
+include::sample[dir="snippets/optimizing-builds/parallelTestExecution/kotlin",files="build.gradle.kts[tags=fork-java]"]
+include::sample[dir="snippets/optimizing-builds/parallelTestExecution/groovy",files="build.gradle[tags=fork-java]"]
 ====
 
 Gradle reuses the forked process for the duration of the build, so the startup cost is low.

@@ -20,7 +20,7 @@ import org.gradle.api.tasks.TasksWithInputsAndOutputs
 import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import org.gradle.util.internal.TextUtil
 import org.junit.Rule
 
@@ -460,7 +460,7 @@ class UserInputHandlingIntegrationTest extends AbstractUserInputHandlerIntegrati
     @Rule
     BlockingHttpServer server = new BlockingHttpServer()
 
-    @Requires([IntegTestPreconditions.NotEmbeddedExecutor])
+    @Requires([TestExecutionPreconditions.NotEmbeddedExecutor])
     def "does not run out of memory when buffering output during user input with parallel execution"() {
         given:
         def subprojectCount = 4

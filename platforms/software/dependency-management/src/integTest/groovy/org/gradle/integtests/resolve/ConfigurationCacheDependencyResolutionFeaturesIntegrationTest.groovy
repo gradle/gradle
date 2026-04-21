@@ -22,14 +22,14 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import org.junit.Rule
 
 import java.util.concurrent.TimeUnit
 
 import static org.gradle.api.internal.artifacts.verification.DependencyVerificationFixture.getChecksum
 
-@Requires(value = IntegTestPreconditions.NotConfigCached, reason = "handles CC explicitly")
+@Requires(value = TestExecutionPreconditions.NotConfigCached, reason = "handles CC explicitly")
 class ConfigurationCacheDependencyResolutionFeaturesIntegrationTest extends AbstractIntegrationSpec implements TasksWithInputsAndOutputs {
     @Rule
     HttpServer server = new HttpServer()

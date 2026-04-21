@@ -1,0 +1,6 @@
+[versions]
+junit = "5.10.2"
+
+[libraries]
+junit-api = { group = "org.junit.jupiter", name = "junit-jupiter-api", version.ref = "junit" }
+mockito = { group = "org.mockito", name = "mockito-core", version = "5.11.0" }

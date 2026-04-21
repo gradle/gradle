@@ -24,8 +24,9 @@ import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.InstalledJdkTestPreconditions
+import org.gradle.test.preconditions.JdkVersionTestPreconditions
+
 import org.gradle.util.internal.TextUtil
 import spock.lang.Issue
 
@@ -250,7 +251,7 @@ class JavaCompileToolchainIntegrationTest extends AbstractIntegrationSpec implem
     }
 
     @Issue("https://github.com/gradle/gradle/issues/22398")
-    @Requires(IntegTestPreconditions.DifferentJdkAvailable)
+    @Requires(InstalledJdkTestPreconditions.DifferentJdkAvailable)
     def "ignore #forkOption if not forking"() {
         def curJvm = Jvm.current()
         def otherJvm = AvailableJavaHomes.getDifferentJdk()
@@ -310,7 +311,7 @@ class JavaCompileToolchainIntegrationTest extends AbstractIntegrationSpec implem
                 GET_HELP)
     }
 
-    @Requires(IntegTestPreconditions.Java7HomeAvailable)
+    @Requires(InstalledJdkTestPreconditions.Java7HomeAvailable)
     def "can use toolchains to compile java 1.7 code"() {
         def jdk = AvailableJavaHomes.getJdk(JavaVersion.VERSION_1_7)
         buildFile << """
@@ -408,7 +409,7 @@ class JavaCompileToolchainIntegrationTest extends AbstractIntegrationSpec implem
                 GET_HELP)
     }
 
-    @Requires(IntegTestPreconditions.Java8HomeAvailable)
+    @Requires(InstalledJdkTestPreconditions.Java8HomeAvailable)
     def "can use compile daemon with tools jar"() {
         def jdk = AvailableJavaHomes.getJdk(JavaVersion.VERSION_1_8)
         assumeTrue(JavaVersion.current() != JavaVersion.VERSION_1_8)
@@ -462,7 +463,7 @@ class JavaCompileToolchainIntegrationTest extends AbstractIntegrationSpec implem
      * This test covers the case where in Java8 the class name becomes fully qualified in the deprecation message which is
      * somehow caused by invoking javacTask.getElements() in the IncrementalCompileTask of the incremental compiler plugin.
      */
-    @Requires(UnitTestPreconditions.Jdk9OrLater)
+    @Requires(JdkVersionTestPreconditions.Jdk9OrLater)
     def "Java deprecation messages with different JDKs"() {
         def jdk = AvailableJavaHomes.getJdk(javaVersion)
 

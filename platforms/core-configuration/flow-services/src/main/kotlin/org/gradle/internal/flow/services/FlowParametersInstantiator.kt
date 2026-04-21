@@ -21,9 +21,9 @@ import org.gradle.api.flow.FlowParameters
 import org.gradle.api.internal.tasks.AbstractTaskDependencyResolveContext
 import org.gradle.api.internal.tasks.properties.InspectionSchemeFactory
 import org.gradle.api.problems.internal.GradleCoreProblemGroup
-import org.gradle.api.problems.internal.InternalProblem
-import org.gradle.api.problems.internal.InternalProblemReporter
-import org.gradle.api.problems.internal.InternalProblems
+import org.gradle.api.problems.internal.ProblemInternal
+import org.gradle.api.problems.internal.ProblemReporterInternal
+import org.gradle.api.problems.internal.ProblemsInternal
 import org.gradle.api.services.BuildService
 import org.gradle.api.services.ServiceReference
 import org.gradle.api.tasks.Input
@@ -55,15 +55,15 @@ class FlowParametersInstantiator(
 
     private
     fun <P : FlowParameters> validate(type: Class<P>, parameters: P) {
-        val errors = ImmutableList.builder<InternalProblem>()
+        val errors = ImmutableList.builder<ProblemInternal>()
         inspection.propertyWalker.visitProperties(
             parameters,
             object : ProblemRecordingTypeValidationContext(type, { Optional.empty() }, problemsService) {
-                override fun recordError(problem: InternalProblem) {
+                override fun recordError(problem: ProblemInternal) {
                     errors.add(problem)
                 }
 
-                override fun recordWarning(problem: InternalProblem) = Unit
+                override fun recordWarning(problem: ProblemInternal) = Unit
             },
             object : PropertyVisitor {
                 override fun visitServiceReference(propertyName: String, optional: Boolean, value: PropertyValue, serviceName: String?, buildServiceType: Class<out BuildService<*>>) {
@@ -75,7 +75,7 @@ class FlowParametersInstantiator(
                         object : AbstractTaskDependencyResolveContext() {
                             override fun add(dependency: Any) {
                                 errors.add(
-                                    internalProblemReporter.internalCreate {
+                                    problemReporterInternal.internalCreate {
                                         id("invalid-dependency", "Property cannot carry dependency", GradleCoreProblemGroup.validation().property())
                                         contextualLabel("Property '$propertyName' cannot carry a dependency on $dependency as these are not yet supported.")
                                     }
@@ -90,7 +90,7 @@ class FlowParametersInstantiator(
     }
 
     private
-    val internalProblemReporter: InternalProblemReporter
+    val problemReporterInternal: ProblemReporterInternal
         get() = problemsService.internalReporter
 
     private
@@ -99,7 +99,7 @@ class FlowParametersInstantiator(
     }
 
     private
-    val problemsService = services.get(InternalProblems::class.java)
+    val problemsService = services.get(ProblemsInternal::class.java)
 
     private
     val inspection by lazy {

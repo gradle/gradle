@@ -9,6 +9,7 @@ dependencies {
     api(projects.buildOperations)
     api(projects.buildProcessServices)
     api(projects.classloaders)
+    api(projects.classpath)
     api(projects.concurrent)
     api(projects.core)
     api(projects.coreApi)

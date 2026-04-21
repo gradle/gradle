@@ -19,7 +19,7 @@ package org.gradle.nativeplatform
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 
 class NativeDependentComponentsReportIntegrationTest extends AbstractIntegrationSpec {
 
@@ -232,7 +232,7 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
         }.join('\n')
     }
 
-    @Requires(IntegTestPreconditions.NotParallelExecutor)
+    @Requires(TestExecutionPreconditions.NotParallelExecutor)
     def "can show dependent components in parallel"() {
         given: 'a multiproject build'
         settingsFile.text = multiProjectSettings()

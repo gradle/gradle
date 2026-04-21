@@ -144,7 +144,14 @@ class EdgeState implements DependencyGraphEdge {
         if (selector == null || !selector.isResolved() || selector.getFailure() != null) {
             return null;
         }
-        return getSelectedComponent();
+        ModuleResolveState targetModule = selector.getTargetModule();
+        if (targetModule.isInModuleConflict()) {
+            // Do not download metadata for modules in conflict, as the module might
+            // lose the conflict, and we want to avoid wasted IO.
+            return null;
+        }
+
+        return targetModule.getSelected();
     }
 
     SelectorState getSelector() {
@@ -419,7 +426,7 @@ class EdgeState implements DependencyGraphEdge {
         if (selectorFailure != null) {
             return selectorFailure;
         }
-        ComponentState selectedComponent = getSelectedComponent();
+        ComponentState selectedComponent = selector.getTargetModule().getSelected();
         if (selectedComponent == null) {
             ModuleSelectors<SelectorState> selectors = selector.getTargetModule().getSelectors();
             for (SelectorState state : selectors) {
@@ -518,11 +525,6 @@ class EdgeState implements DependencyGraphEdge {
     @Override
     public boolean isConstraint() {
         return isConstraint;
-    }
-
-    @Nullable
-    private ComponentState getSelectedComponent() {
-        return selector.getTargetModule().getSelected();
     }
 
     DependencyState getDependencyState() {

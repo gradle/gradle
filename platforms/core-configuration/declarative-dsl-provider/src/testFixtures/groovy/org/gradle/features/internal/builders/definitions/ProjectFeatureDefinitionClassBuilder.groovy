@@ -16,11 +16,10 @@
 
 package org.gradle.features.internal.builders.definitions
 
-import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition
+
 import org.gradle.features.binding.BuildModel
 import org.gradle.features.binding.Definition
 import org.gradle.test.fixtures.plugin.PluginBuilder
-
 /**
  * A builder for a project feature definition class, used in tests of the declarative DSL provider. The generated definition class
  * contains multiple properties and nested types, to allow testing of a variety of scenarios with a single definition.
@@ -92,7 +91,6 @@ class ProjectFeatureDefinitionClassBuilder {
             import ${BuildModel.class.name};
             import org.gradle.api.provider.Property;
             import org.gradle.api.file.DirectoryProperty;
-            import ${HiddenInDefinition.class.name};
             import org.gradle.api.Action;
             import org.gradle.api.tasks.Nested;
             import javax.inject.Inject;
@@ -105,11 +103,6 @@ class ProjectFeatureDefinitionClassBuilder {
 
                 @Nested
                 Fizz getFizz();
-
-                @${HiddenInDefinition.class.simpleName}
-                default void fizz(Action<? super Fizz> action) {
-                    action.execute(getFizz());
-                }
 
                 interface ${buildModelPublicTypeClassName} extends BuildModel {
                     Property<String> getText();

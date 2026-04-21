@@ -21,7 +21,7 @@ import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager
 import org.gradle.plugin.management.internal.autoapply.AutoAppliedDevelocityPlugin
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.TaskOutcome
 import org.gradle.util.GradleVersion
@@ -163,7 +163,8 @@ class DevelocityPluginSmokeTest extends AbstractSmokeTest {
         "4.3",
         "4.3.1",
         "4.3.2",
-        "4.4.0"
+        "4.4.0",
+        "4.4.1"
     ]
 
     // Current injection scripts support Develocity plugin 3.6.4 and above
@@ -263,7 +264,7 @@ public class MyFlakyTest {
         version << SUPPORTED.grep { String version -> VersionNumber.parse(version) >= FIRST_VERSION_UNDER_DEVELOCITY_BRAND }
     }
 
-    @Requires(value = IntegTestPreconditions.NotConfigCached, reason = "Isolated projects implies config cache")
+    @Requires(value = TestExecutionPreconditions.NotConfigCached, reason = "Isolated projects implies config cache")
     def "can use plugin #version with isolated projects"() {
         when:
         usePluginVersion version
@@ -277,7 +278,7 @@ public class MyFlakyTest {
             .findAll { FIRST_VERSION_SUPPORTING_ISOLATED_PROJECTS <= VersionNumber.parse(it) }
     }
 
-    @Requires(value = IntegTestPreconditions.NotConfigCached, reason = "Isolated projects implies config cache")
+    @Requires(value = TestExecutionPreconditions.NotConfigCached, reason = "Isolated projects implies config cache")
     def "can use plugin #version with isolated projects and test acceleration features"() {
         when:
         usePluginVersion version
@@ -341,7 +342,7 @@ public class MyFlakyTest {
             .findAll { VersionNumber.parse(it) >= FIRST_VERSION_SUPPORTING_ISOLATED_PROJECTS_FOR_TEST_ACCELERATION }
     }
 
-    @Requires(value = IntegTestPreconditions.NotConfigCached, reason = "Isolated projects implies config cache")
+    @Requires(value = TestExecutionPreconditions.NotConfigCached, reason = "Isolated projects implies config cache")
     def "cannot use plugin #version with isolated projects"() {
         when:
         usePluginVersion version
@@ -399,7 +400,7 @@ public class MyFlakyTest {
         version << UNSUPPORTED
     }
 
-    @Requires(IntegTestPreconditions.NotConfigCached)
+    @Requires(TestExecutionPreconditions.NotConfigCached)
     def "can inject plugin #pluginVersion in #ci using '#ciScriptVersion' script version"() {
         def versionNumber = VersionNumber.parse(pluginVersion)
         def initScript = "init-script.gradle"

@@ -19,7 +19,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import spock.lang.Issue
 
 class DynamicObjectIntegrationTest extends AbstractIntegrationSpec {
@@ -74,6 +74,7 @@ class DynamicObjectIntegrationTest extends AbstractIntegrationSpec {
             """
             expectTaskProjectDeprecation()
         }
+        expectScriptGetPropertiesDeprecation(3)
 
         expect:
         succeeds("testTask")
@@ -164,6 +165,9 @@ global=overridden value
         file("child/build.gradle") << '''
 assert 'overridden value' == global
 '''
+
+        expectScriptGetPropertiesDeprecation()
+        expectProjectGetPropertiesDeprecation()
 
         expect:
         succeeds()
@@ -388,7 +392,7 @@ assert 'overridden value' == global
     }
 
     @Requires(
-        value = IntegTestPreconditions.NotIsolatedProjects,
+        value = TestExecutionPreconditions.NotIsolatedProjects,
         reason = "Exercises IP incompatible behavior: Groovy method inheritance"
     )
     def canAddMethodsUsingAPropertyWhoseValueIsAClosure() {
@@ -495,6 +499,8 @@ assert 'overridden value' == global
                 }
             }
         """
+
+        expectScriptGetPropertiesDeprecation()
 
         expect:
         succeeds("run")
@@ -993,5 +999,21 @@ task print(type: MyTask) {
                 "This API is incompatible with the configuration cache, which will become the only mode supported by Gradle in a future release. " +
                 "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#task_project")
         }
+    }
+
+    private void expectScriptGetPropertiesDeprecation(int repeated = 1) {
+        repeated.times {
+            executer.expectDocumentedDeprecationWarning("Dynamically calling getProperties() on a script has been deprecated. " +
+                "This will fail with an error in Gradle 10. " +
+                "Consult the upgrading guide for further information: " +
+                "https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_get_properties")
+        }
+    }
+
+    private void expectProjectGetPropertiesDeprecation() {
+        executer.expectDocumentedDeprecationWarning("The Project.getProperties method has been deprecated. " +
+            "This will fail with an error in Gradle 10. " +
+            "Consult the upgrading guide for further information: " +
+            "https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_get_properties")
     }
 }

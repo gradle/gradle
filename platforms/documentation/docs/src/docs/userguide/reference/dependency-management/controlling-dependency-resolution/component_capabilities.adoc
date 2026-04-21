@@ -82,8 +82,8 @@ Including both versions on the classpath is illegal because they provide the sam
 Since each component has an implicit capability based on its GAV coordinates, we can address this conflict by using a rule that declares the `asm:asm` module as providing the `org.ow2.asm:asm` capability:
 
 ====
-include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-declaringCapabilities/kotlin",files="build.gradle.kts[tags=fix_asm]"]
-include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-declaringCapabilities/groovy",files="build.gradle[tags=fix_asm]"]
+include::sample[dir="snippets/reference/dependency-management/controlling-dependency-resolution/managingTransitiveDependencies-declaringCapabilities/kotlin",files="build.gradle.kts[tags=fix_asm]"]
+include::sample[dir="snippets/reference/dependency-management/controlling-dependency-resolution/managingTransitiveDependencies-declaringCapabilities/groovy",files="build.gradle[tags=fix_asm]"]
 ====
 
 With this rule in place, the build will fail if both `asm:asm` ( < = `3.3.1`) and `org.ow2.asm:asm` (`4.0+`) are present in the dependency graph.
@@ -98,8 +98,8 @@ Gradle allows you to declare capabilities not only for components you build but 
 For example, consider the following dependencies in your build file:
 
 ====
-include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-declaringCapabilities/kotlin",files="build.gradle.kts[tags=dependencies]"]
-include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-declaringCapabilities/groovy",files="build.gradle[tags=dependencies]"]
+include::sample[dir="snippets/reference/dependency-management/controlling-dependency-resolution/managingTransitiveDependencies-declaringCapabilities/kotlin",files="build.gradle.kts[tags=dependencies]"]
+include::sample[dir="snippets/reference/dependency-management/controlling-dependency-resolution/managingTransitiveDependencies-declaringCapabilities/groovy",files="build.gradle[tags=dependencies]"]
 ====
 
 As it stands, it's not obvious that this setup results in two logging frameworks on the classpath.
@@ -108,14 +108,14 @@ Specifically, `zookeeper` brings in `log4j`, but we want to use `log4j-over-slf4
 To proactively detect this conflict, we can define a rule stating that both frameworks provide the same capability:
 
 ====
-include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-declaringCapabilities/kotlin",files="build.gradle.kts[tags=declare_capability]"]
-include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-declaringCapabilities/groovy",files="build.gradle[tags=declare_capability]"]
+include::sample[dir="snippets/reference/dependency-management/controlling-dependency-resolution/managingTransitiveDependencies-declaringCapabilities/kotlin",files="build.gradle.kts[tags=declare_capability]"]
+include::sample[dir="snippets/reference/dependency-management/controlling-dependency-resolution/managingTransitiveDependencies-declaringCapabilities/groovy",files="build.gradle[tags=declare_capability]"]
 ====
 
 This ensures that Gradle detects the conflict and fails with a clear error message:
 
 ====
-include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-declaringCapabilities/tests",files="dependencyReport.out"]
+include::sample[dir="snippets/reference/dependency-management/controlling-dependency-resolution/managingTransitiveDependencies-declaringCapabilities/tests",files="dependencyReport.out"]
 ====
 
 [[sec:declaring-additional-capabilities-for-a-local-component]]
@@ -125,8 +125,8 @@ Every component has an _implicit capability_ matching its GAV coordinates.
 However, you can also declare additional explicit capabilities, which is useful when a library published under different GAV coordinates serves as an _alternate implementation_ of the same API:
 
 ====
-include::sample[dir="snippets/dependencyManagement/modelingFeatures-outgoingCapabilities/kotlin",files="build.gradle.kts[tags=declare-outgoing-capabilities]"]
-include::sample[dir="snippets/dependencyManagement/modelingFeatures-outgoingCapabilities/groovy",files="build.gradle[tags=declare-outgoing-capabilities]"]
+include::sample[dir="snippets/reference/dependency-management/controlling-dependency-resolution/modelingFeatures-outgoingCapabilities/kotlin",files="build.gradle.kts[tags=declare-outgoing-capabilities]"]
+include::sample[dir="snippets/reference/dependency-management/controlling-dependency-resolution/modelingFeatures-outgoingCapabilities/groovy",files="build.gradle[tags=declare-outgoing-capabilities]"]
 ====
 
 Capabilities must be attached to _outgoing configurations_, which are <<declaring_configurations.adoc#sec:resolvable-consumable-configs,consumable configurations>> of a component.
@@ -166,8 +166,8 @@ In the relocation example above, Gradle was able to tell you that you have two v
 We can solve the conflict by automatically choosing the component which has the highest capability version:
 
 ====
-include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-declaringCapabilities/kotlin",files="build.gradle.kts[tags=use_highest_asm]"]
-include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-declaringCapabilities/groovy",files="build.gradle[tags=use_highest_asm]"]
+include::sample[dir="snippets/reference/dependency-management/controlling-dependency-resolution/managingTransitiveDependencies-declaringCapabilities/kotlin",files="build.gradle.kts[tags=use_highest_asm]"]
+include::sample[dir="snippets/reference/dependency-management/controlling-dependency-resolution/managingTransitiveDependencies-declaringCapabilities/groovy",files="build.gradle[tags=use_highest_asm]"]
 ====
 
 However, choosing the highest capability version conflict resolution is not always suitable.
@@ -176,8 +176,8 @@ For a logging framework, for example, it doesn't matter what version of the logg
 In this case, we explicitly select `slf4j` as the preferred option:
 
 ====
-include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-declaringCapabilities/kotlin",files="build.gradle.kts[tags=use_slf4j]"]
-include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-declaringCapabilities/groovy",files="build.gradle[tags=use_slf4j]"]
+include::sample[dir="snippets/reference/dependency-management/controlling-dependency-resolution/managingTransitiveDependencies-declaringCapabilities/kotlin",files="build.gradle.kts[tags=use_slf4j]"]
+include::sample[dir="snippets/reference/dependency-management/controlling-dependency-resolution/managingTransitiveDependencies-declaringCapabilities/groovy",files="build.gradle[tags=use_slf4j]"]
 ====
 
 This approach works also well if you have multiple `slf4j` bindings on the classpath; bindings are basically different logger implementations, and you need only one.

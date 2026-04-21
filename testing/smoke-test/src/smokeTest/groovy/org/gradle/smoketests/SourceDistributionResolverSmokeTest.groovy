@@ -20,12 +20,12 @@ import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 
 class SourceDistributionResolverSmokeTest extends AbstractSmokeTest {
 
     @LeaksFileHandles
-    @Requires(IntegTestPreconditions.NotEmbeddedExecutor)
+    @Requires(TestExecutionPreconditions.NotEmbeddedExecutor)
     def "source distribution resolved from fallback when custom repo does not have it"() {
         given:
         def buildContext = IntegrationTestBuildContext.INSTANCE
@@ -64,7 +64,7 @@ class SourceDistributionResolverSmokeTest extends AbstractSmokeTest {
     }
 
     @LeaksFileHandles
-    @Requires(IntegTestPreconditions.NotEmbeddedExecutor)
+    @Requires(TestExecutionPreconditions.NotEmbeddedExecutor)
     def "source distribution resolved from local file when src zip is next to bin zip"() {
         given:
         def buildContext = IntegrationTestBuildContext.INSTANCE
@@ -86,7 +86,7 @@ class SourceDistributionResolverSmokeTest extends AbstractSmokeTest {
     }
 
     @LeaksFileHandles
-    @Requires(IntegTestPreconditions.NotEmbeddedExecutor)
+    @Requires(TestExecutionPreconditions.NotEmbeddedExecutor)
     def "source distribution resolved from fallback when wrapper uses a local file distribution without src zip"() {
         given:
         def buildContext = IntegrationTestBuildContext.INSTANCE

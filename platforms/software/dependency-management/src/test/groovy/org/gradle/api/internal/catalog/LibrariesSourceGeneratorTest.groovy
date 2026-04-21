@@ -31,7 +31,7 @@ import org.gradle.api.internal.provider.DefaultProviderFactory
 import org.gradle.api.internal.provider.DefaultValueSourceProviderFactory
 import org.gradle.api.internal.provider.ValueSourceProviderFactory
 import org.gradle.api.model.ObjectFactory
-import org.gradle.api.problems.internal.InternalProblems
+import org.gradle.api.problems.internal.ProblemsInternal
 import org.gradle.api.provider.ProviderFactory
 import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.internal.isolation.TestIsolatableFactory
@@ -385,7 +385,7 @@ ${nameClash { noIntro().kind('dependency bundles').inConflict('one.cool', 'oneCo
             TestUtil.objectFactory(),
             Stub(Supplier)) {
                 @Override
-                protected InternalProblems getProblemsService() {
+                protected ProblemsInternal getProblemsService() {
                     problems
                 }
         }

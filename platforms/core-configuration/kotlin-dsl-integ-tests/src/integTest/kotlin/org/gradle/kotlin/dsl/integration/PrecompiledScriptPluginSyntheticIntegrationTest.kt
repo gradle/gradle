@@ -197,8 +197,8 @@ class PrecompiledScriptPluginSyntheticIntegrationTest : AbstractKotlinIntegratio
                 }
 
                 tasks {
-                    val concurrentTask by registering(ConcurrentTask::class)
-                    val generatePrecompiledScriptPluginAccessors by existing {
+                    val concurrentTask = register<ConcurrentTask>("concurrentTask")
+                    named("generatePrecompiledScriptPluginAccessors") {
                         shouldRunAfter(concurrentTask)
                         doFirst {
                             URL("${server.uri("unblockStart")}").readText()

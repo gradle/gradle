@@ -137,7 +137,7 @@ A custom configuration allows you to define a distinct group of dependencies tha
 [source, kotlin]
 .build.gradle.kts
 ----
-val customConfig by configurations.creating
+val customConfig = configurations.create("customConfig")
 
 dependencies {
     customConfig("org.example:example-lib:1.0")

@@ -47,14 +47,14 @@ configurations.consumable("apiStubElements") {
 }
 
 pluginManager.withPlugin("gradlebuild.java-library") {
-    val extractorClasspathConfig by configurations.creating
+    val extractorClasspathConfig = configurations.create("extractorClasspathConfig")
 
     dependencies {
         extractorClasspathConfig(project(":java-api-extractor"))
         extractorClasspathConfig(platform(project(":distributions-dependencies")))
     }
 
-    val extractJavaAbi by tasks.registering(ExtractJavaAbi::class) {
+    val extractJavaAbi = tasks.register<ExtractJavaAbi>("extractJavaAbi") {
         classesDirectories = sourceSets.main.get().output.classesDirs
         outputDirectory = layout.buildDirectory.dir("generated/java-abi")
         extractorClasspath = extractorClasspathConfig

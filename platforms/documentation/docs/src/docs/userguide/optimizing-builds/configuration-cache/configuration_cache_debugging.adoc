@@ -26,8 +26,8 @@ The console output includes a clickable link to this report, allowing you to inv
 Consider the following build script, which contains two issues:
 
 ====
-include::sample[dir="snippets/configurationCache/problemsKotlin/kotlin",files="build.gradle.kts[]"]
-include::sample[dir="snippets/configurationCache/problemsGroovy/groovy",files="build.gradle[]"]
+include::sample[dir="snippets/optimizing-builds/configuration-cache/problemsKotlin/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="snippets/optimizing-builds/configuration-cache/problemsGroovy/groovy",files="build.gradle[]"]
 ====
 <1> <<configuration_cache_requirements.adoc#config_cache:requirements:reading_sys_props_and_env_vars, A system property read at configuration time>>
 <2> <<configuration_cache_requirements.adoc#config_cache:requirements:use_project_during_execution, Using the `Project` object at execution time>>
@@ -41,7 +41,7 @@ $ ./gradlew --configuration-cache someTask -DsomeDestination=dest
 [source,text]
 ----
 ...
-include::{snippetsPath}/configurationCache/problemsGroovy/tests/fail.out[]
+include::{snippetsPath}/optimizing-builds/configuration-cache/problemsGroovy/tests/fail.out[]
 Configuration Cache entry discarded with 1 problem.
 ----
 
@@ -79,7 +79,7 @@ $ ./gradlew --configuration-cache --configuration-cache-problems=warn someTask -
 ----
 [source,text]
 ----
-include::{snippetsPath}/configurationCache/problemsGroovy/tests/store.out[]
+include::{snippetsPath}/optimizing-builds/configuration-cache/problemsGroovy/tests/store.out[]
 Configuration Cache entry stored with 1 problem.
 ----
 
@@ -89,7 +89,7 @@ $ ./gradlew --configuration-cache --configuration-cache-problems=warn someTask -
 ----
 [source,text]
 ----
-include::{snippetsPath}/configurationCache/problemsGroovy/tests/load.out[]
+include::{snippetsPath}/optimizing-builds/configuration-cache/problemsGroovy/tests/load.out[]
 Configuration Cache entry reused with 1 problem.
 ----
 
@@ -100,8 +100,8 @@ The report and console logs provide links to guidance on resolving detected issu
 Here’s a corrected version of the example build script:
 
 ====
-include::sample[dir="snippets/configurationCache/problemsFixed/kotlin",files="build.gradle.kts[tags=fixed]"]
-include::sample[dir="snippets/configurationCache/problemsFixed/groovy",files="build.gradle[tags=fixed]"]
+include::sample[dir="snippets/optimizing-builds/configuration-cache/problemsFixed/kotlin",files="build.gradle.kts[tags=fixed]"]
+include::sample[dir="snippets/optimizing-builds/configuration-cache/problemsFixed/groovy",files="build.gradle[tags=fixed]"]
 ====
 <1> We turned our ad-hoc task into a proper task class,
 <2> with inputs and outputs declaration,
@@ -115,7 +115,7 @@ $ ./gradlew --configuration-cache someTask -DsomeDestination=dest
 ----
 [source,text]
 ----
-include::{snippetsPath}/configurationCache/problemsFixed/tests/store.out[]
+include::{snippetsPath}/optimizing-builds/configuration-cache/problemsFixed/tests/store.out[]
 Configuration Cache entry stored.
 ----
 
@@ -125,7 +125,7 @@ $ ./gradlew --configuration-cache someTask -DsomeDestination=dest
 ----
 [source,text]
 ----
-include::{snippetsPath}/configurationCache/problemsFixed/tests/load.out[]
+include::{snippetsPath}/optimizing-builds/configuration-cache/problemsFixed/tests/load.out[]
 Configuration Cache entry reused.
 ----
 
@@ -137,7 +137,7 @@ $ ./gradlew --configuration-cache someTask -DsomeDestination=another
 ----
 [source,text]
 ----
-include::{snippetsPath}/configurationCache/problemsFixed/tests/store-another.out[]
+include::{snippetsPath}/optimizing-builds/configuration-cache/problemsFixed/tests/store-another.out[]
 Configuration Cache entry stored.
 ----
 
@@ -146,8 +146,8 @@ The cache entry was invalidated because the system property was read at configur
 A better approach is to use a provider to defer reading the system property until execution time:
 
 ====
-include::sample[dir="snippets/configurationCache/problemsFixedReuse/kotlin",files="build.gradle.kts[tags=fixed-reuse]"]
-include::sample[dir="snippets/configurationCache/problemsFixedReuse/groovy",files="build.gradle[tags=fixed-reuse]"]
+include::sample[dir="snippets/optimizing-builds/configuration-cache/problemsFixedReuse/kotlin",files="build.gradle.kts[tags=fixed-reuse]"]
+include::sample[dir="snippets/optimizing-builds/configuration-cache/problemsFixedReuse/groovy",files="build.gradle[tags=fixed-reuse]"]
 ====
 <1> We wired the system property provider directly, without reading it at configuration time.
 
@@ -159,7 +159,7 @@ $ ./gradlew --configuration-cache someTask -DsomeDestination=dest
 ----
 [source,text]
 ----
-include::{snippetsPath}/configurationCache/problemsFixedReuse/tests/store.out[]
+include::{snippetsPath}/optimizing-builds/configuration-cache/problemsFixedReuse/tests/store.out[]
 Configuration Cache entry stored.
 ----
 
@@ -169,7 +169,7 @@ $ ./gradlew --configuration-cache someTask -DsomeDestination=another
 ----
 [source,text]
 ----
-include::{snippetsPath}/configurationCache/problemsFixedReuse/tests/load-another.out[]
+include::{snippetsPath}/optimizing-builds/configuration-cache/problemsFixedReuse/tests/load-another.out[]
 Configuration Cache entry reused.
 ----
 
@@ -213,8 +213,8 @@ $ ./gradlew -Dorg.gradle.configuration-cache.max-problems=5
 You can explicitly mark a task as incompatible with the Configuration Cache using the link:{javadocPath}/org/gradle/api/Task.html#notCompatibleWithConfigurationCache-java.lang.String-[`Task.notCompatibleWithConfigurationCache()`] method:
 
 ====
-include::sample[dir="snippets/dependencyManagement/dependencyLocking-lockingAllConfigurations/kotlin",files="build.gradle.kts[tags=resolve-all]"]
-include::sample[dir="snippets/dependencyManagement/dependencyLocking-lockingAllConfigurations/groovy",files="build.gradle[tags=resolve-all]"]
+include::sample[dir="snippets/optimizing-builds/configuration-cache/dependencyLocking-lockingAllConfigurations/kotlin",files="build.gradle.kts[tags=resolve-all]"]
+include::sample[dir="snippets/optimizing-builds/configuration-cache/dependencyLocking-lockingAllConfigurations/groovy",files="build.gradle[tags=resolve-all]"]
 ====
 
 When a task is marked as incompatible:
@@ -247,7 +247,7 @@ For example, let's look at a type that implements a custom serialization protoco
 
 [source,java]
 ----
-include::{snippetsPath}/configurationCache/integrityChecks/common/buildSrc/src/main/java/User.java[tags=broken-type]
+include::{snippetsPath}/optimizing-builds/configuration-cache/integrityChecks/common/buildSrc/src/main/java/User.java[tags=broken-type]
 ----
 <1> `writeObject` serializes both fields.
 <2> `readObject` reads only the first field, leaving the remaining data in the stream.
@@ -256,7 +256,7 @@ Such a type will cause problems when used as part of a task state, because the c
 
 [source,java]
 ----
-include::{snippetsPath}/configurationCache/integrityChecks/common/buildSrc/src/main/java/GreetTask.java[tags=task-with-broken-type]
+include::{snippetsPath}/optimizing-builds/configuration-cache/integrityChecks/common/buildSrc/src/main/java/GreetTask.java[tags=task-with-broken-type]
 ----
 
 When running without the integrity check, you may encounter cryptic failure messages, possibly accompanied by induced configuration cache problems:
@@ -284,7 +284,7 @@ $ ./gradlew --configuration-cache -Dorg.gradle.configuration-cache.integrity-che
 [source,text]
 ----
 ...
-include::{snippetsPath}/configurationCache/integrityChecks/tests/fail.out[]
+include::{snippetsPath}/optimizing-builds/configuration-cache/integrityChecks/tests/fail.out[]
 ----
 
 You can immediately see the name of the offending task and the field that contains the broken data.
@@ -323,8 +323,8 @@ To test your build logic with the Configuration Cache enabled, pass the `--confi
 To properly test Configuration Cache behavior, tasks must be executed twice:
 
 ====
-include::sample[dir="snippets/configurationCache/testKit/kotlin",files="src/test/kotlin/org/example/BuildLogicFunctionalTest.kt[tags=functional-test-configuration-cache]"]
-include::sample[dir="snippets/configurationCache/testKit/groovy",files="src/test/groovy/org/example/BuildLogicFunctionalTest.groovy[tags=functional-test-configuration-cache]"]
+include::sample[dir="snippets/optimizing-builds/configuration-cache/testKit/kotlin",files="src/test/kotlin/org/example/BuildLogicFunctionalTest.kt[tags=functional-test-configuration-cache]"]
+include::sample[dir="snippets/optimizing-builds/configuration-cache/testKit/groovy",files="src/test/groovy/org/example/BuildLogicFunctionalTest.groovy[tags=functional-test-configuration-cache]"]
 ====
 <1> First run primes the Configuration Cache.
 <2> Second run reuses the Configuration Cache.

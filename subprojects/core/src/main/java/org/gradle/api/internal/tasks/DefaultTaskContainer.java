@@ -113,7 +113,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         this.taskIdentityFactory = taskIdentityFactory;
         this.taskFactory = taskFactory;
         this.userCodeApplicationContext = userCodeApplicationContext;
-        taskInstantiator = new TaskInstantiator(taskIdentityFactory, taskFactory, project);
+        this.taskInstantiator = new TaskInstantiator(taskIdentityFactory, taskFactory, project, userCodeApplicationContext);
         this.statistics = statistics;
         this.eagerlyCreateLazyTasks = Boolean.getBoolean(EAGERLY_CREATE_LAZY_TASKS_PROPERTY);
         this.buildOperationRunner = buildOperationRunner;
@@ -193,9 +193,9 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         });
     }
 
-    private UserCodeSource getUserCodeSource() {
-        final UserCodeSource source = userCodeApplicationContext.current() != null ? userCodeApplicationContext.current().getSource() : UserCodeSource.UNKNOWN;
-        return source;
+    private @Nullable UserCodeSource getUserCodeSource() {
+        UserCodeApplicationContext.Application current = userCodeApplicationContext.current();
+        return current != null ? current.getSource() : null;
     }
 
     private static Object[] getConstructorArgs(Map<String, ?> args) {

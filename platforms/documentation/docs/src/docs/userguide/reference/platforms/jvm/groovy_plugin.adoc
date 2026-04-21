@@ -29,8 +29,8 @@ Note that if you want to benefit from the <<java_library_plugin.adoc#sec:java_li
 To use the Groovy plugin, include the following in your build script:
 
 ====
-include::sample[dir="snippets/groovy/quickstart/kotlin",files="build.gradle.kts[tags=use-plugin]"]
-include::sample[dir="snippets/groovy/quickstart/groovy",files="build.gradle[tags=use-plugin]"]
+include::sample[dir="snippets/reference/platforms/jvm/quickstart/kotlin",files="build.gradle.kts[tags=use-plugin]"]
+include::sample[dir="snippets/reference/platforms/jvm/quickstart/groovy",files="build.gradle[tags=use-plugin]"]
 ====
 
 [[sec:groovy_tasks]]
@@ -100,8 +100,8 @@ Groovy source files for the given source set. May also contain Java source files
 Just like the Java plugin, the Groovy plugin allows you to configure custom locations for Groovy production and test source files.
 
 ====
-include::sample[dir="snippets/groovy/customizedLayout/kotlin",files="build.gradle.kts[tags=custom-source-locations]"]
-include::sample[dir="snippets/groovy/customizedLayout/groovy",files="build.gradle[tags=custom-source-locations]"]
+include::sample[dir="snippets/reference/platforms/jvm/customizedLayout/kotlin",files="build.gradle.kts[tags=custom-source-locations]"]
+include::sample[dir="snippets/reference/platforms/jvm/customizedLayout/groovy",files="build.gradle[tags=custom-source-locations]"]
 ====
 
 [[sec:groovy_dependency_management]]
@@ -112,22 +112,22 @@ Because Gradle's build language is based on Groovy, Gradle already ships with a 
 If Groovy is used for production code, the Groovy dependency should be added to the `implementation` configuration:
 
 ====
-include::sample[dir="snippets/groovy/quickstart/kotlin",files="build.gradle.kts[tags=groovy-dependency]"]
-include::sample[dir="snippets/groovy/quickstart/groovy",files="build.gradle[tags=groovy-dependency]"]
+include::sample[dir="snippets/reference/platforms/jvm/quickstart/kotlin",files="build.gradle.kts[tags=groovy-dependency]"]
+include::sample[dir="snippets/reference/platforms/jvm/quickstart/groovy",files="build.gradle[tags=groovy-dependency]"]
 ====
 
 If Groovy is only used for test code, the Groovy dependency should be added to the `testImplementation` configuration:
 
 ====
-include::sample[dir="snippets/groovy/groovyDependency/kotlin",files="build.gradle.kts[tags=groovy-test-dependency]"]
-include::sample[dir="snippets/groovy/groovyDependency/groovy",files="build.gradle[tags=groovy-test-dependency]"]
+include::sample[dir="snippets/reference/platforms/jvm/groovyDependency/kotlin",files="build.gradle.kts[tags=groovy-test-dependency]"]
+include::sample[dir="snippets/reference/platforms/jvm/groovyDependency/groovy",files="build.gradle[tags=groovy-test-dependency]"]
 ====
 
 To use the Groovy library that ships with Gradle, declare a `localGroovy()` dependency. Note that different Gradle versions ship with different Groovy versions; as such, using `localGroovy()` is less safe then declaring a regular Groovy dependency.
 
 ====
-include::sample[dir="snippets/groovy/groovyDependency/kotlin",files="build.gradle.kts[tags=bundled-groovy-dependency]"]
-include::sample[dir="snippets/groovy/groovyDependency/groovy",files="build.gradle[tags=bundled-groovy-dependency]"]
+include::sample[dir="snippets/reference/platforms/jvm/groovyDependency/kotlin",files="build.gradle.kts[tags=bundled-groovy-dependency]"]
+include::sample[dir="snippets/reference/platforms/jvm/groovyDependency/groovy",files="build.gradle[tags=bundled-groovy-dependency]"]
 ====
 
 [[sec:automatic_configuration_of_groovyclasspath]]
@@ -247,8 +247,8 @@ Some well-known examples are https://groovy-lang.org/metaprogramming.html#_code_
 In these cases, these dependencies must be declared separately in a classpath called `astTransformationClasspath`:
 
 ====
-include::sample[dir="snippets/groovy/compilationAvoidance/kotlin/ast-transformation-consumer", files="build.gradle.kts[tags=groovy-compilation-avoidance]"]
-include::sample[dir="snippets/groovy/compilationAvoidance/groovy/ast-transformation-consumer", files="build.gradle[tags=groovy-compilation-avoidance]"]
+include::sample[dir="snippets/reference/platforms/jvm/compilationAvoidance/kotlin/ast-transformation-consumer", files="build.gradle.kts[tags=groovy-compilation-avoidance]"]
+include::sample[dir="snippets/reference/platforms/jvm/compilationAvoidance/groovy/ast-transformation-consumer", files="build.gradle[tags=groovy-compilation-avoidance]"]
 ====
 
 [[sec:incremental_groovy_compilation]]
@@ -260,8 +260,8 @@ Since 5.6, Gradle introduces an experimental incremental Groovy compiler. To ena
 * Explicitly enable incremental Groovy compilation in the build script:
 
 ====
-include::sample[dir="snippets/groovy/incrementalCompilation/kotlin",files="buildSrc/src/main/kotlin/myproject.groovy-conventions.gradle.kts[tags=enable-groovy-incremental]"]
-include::sample[dir="snippets/groovy/incrementalCompilation/groovy",files="buildSrc/src/main/groovy/myproject.groovy-conventions.gradle[tags=enable-groovy-incremental]"]
+include::sample[dir="snippets/reference/platforms/jvm/incrementalCompilation/kotlin",files="buildSrc/src/main/kotlin/myproject.groovy-conventions.gradle.kts[tags=enable-groovy-incremental]"]
+include::sample[dir="snippets/reference/platforms/jvm/incrementalCompilation/groovy",files="buildSrc/src/main/groovy/myproject.groovy-conventions.gradle[tags=enable-groovy-incremental]"]
 ====
 
 This gives you the following benefits:
@@ -293,7 +293,7 @@ If you also have Java source files, this will also configure `JavaCompile` to us
 === Example: Configure Java 7 build for Groovy
 
 ====
-include::sample[dir="snippets/groovy/crossCompilation/kotlin",files="build.gradle.kts[tags=groovy-cross-compilation]"]
-include::sample[dir="snippets/groovy/crossCompilation/groovy",files="build.gradle[tags=groovy-cross-compilation]"]
+include::sample[dir="snippets/reference/platforms/jvm/crossCompilation/kotlin",files="build.gradle.kts[tags=groovy-cross-compilation]"]
+include::sample[dir="snippets/reference/platforms/jvm/crossCompilation/groovy",files="build.gradle[tags=groovy-cross-compilation]"]
 ====
 

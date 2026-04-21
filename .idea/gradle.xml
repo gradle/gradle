@@ -139,6 +139,7 @@
             <option value="$PROJECT_DIR$/platforms/core-configuration/stdlib-serialization-codecs" />
             <option value="$PROJECT_DIR$/platforms/core-execution/build-cache" />
             <option value="$PROJECT_DIR$/platforms/core-execution/build-cache-base" />
+            <option value="$PROJECT_DIR$/platforms/core-execution/build-cache-core" />
             <option value="$PROJECT_DIR$/platforms/core-execution/build-cache-example-client" />
             <option value="$PROJECT_DIR$/platforms/core-execution/build-cache-http" />
             <option value="$PROJECT_DIR$/platforms/core-execution/build-cache-local" />
@@ -149,6 +150,7 @@
             <option value="$PROJECT_DIR$/platforms/core-execution/execution-e2e-tests" />
             <option value="$PROJECT_DIR$/platforms/core-execution/file-watching" />
             <option value="$PROJECT_DIR$/platforms/core-execution/hashing" />
+            <option value="$PROJECT_DIR$/platforms/core-execution/hashing-services" />
             <option value="$PROJECT_DIR$/platforms/core-execution/persistent-cache" />
             <option value="$PROJECT_DIR$/platforms/core-execution/request-handler-worker" />
             <option value="$PROJECT_DIR$/platforms/core-execution/scoped-persistent-cache" />
@@ -168,6 +170,7 @@
             <option value="$PROJECT_DIR$/platforms/core-runtime/build-process-services" />
             <option value="$PROJECT_DIR$/platforms/core-runtime/build-profile" />
             <option value="$PROJECT_DIR$/platforms/core-runtime/build-state" />
+            <option value="$PROJECT_DIR$/platforms/core-runtime/classpath" />
             <option value="$PROJECT_DIR$/platforms/core-runtime/classloaders" />
             <option value="$PROJECT_DIR$/platforms/core-runtime/cli" />
             <option value="$PROJECT_DIR$/platforms/core-runtime/client-services" />

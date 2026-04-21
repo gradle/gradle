@@ -29,7 +29,7 @@ import org.gradle.api.logging.Logging;
 import org.gradle.api.problems.Problem;
 import org.gradle.api.problems.ProblemSpec;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
-import org.gradle.api.problems.internal.InternalProblems;
+import org.gradle.api.problems.internal.ProblemsInternal;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.UntrackedTask;
@@ -68,7 +68,7 @@ public abstract class ValidateAction implements WorkAction<ValidateAction.Params
     }
 
     @Inject
-    public abstract InternalProblems getProblems();
+    public abstract ProblemsInternal getProblems();
 
     @Override
     public void execute() {
@@ -115,9 +115,9 @@ public abstract class ValidateAction implements WorkAction<ValidateAction.Params
         private final List<Problem> taskValidationWarnings;
         private final List<Problem> taskValidationErrors;
         private final Params params;
-        private final InternalProblems problems;
+        private final ProblemsInternal problems;
 
-        public ValidationProblemCollector(List<Problem> taskValidationWarnings, List<Problem> taskValidationErrors, Params params, InternalProblems problems) {
+        public ValidationProblemCollector(List<Problem> taskValidationWarnings, List<Problem> taskValidationErrors, Params params, ProblemsInternal problems) {
             this.classLoader = Thread.currentThread().getContextClassLoader();
             this.taskValidationErrors = taskValidationErrors;
             this.taskValidationWarnings = taskValidationWarnings;
@@ -143,7 +143,7 @@ public abstract class ValidateAction implements WorkAction<ValidateAction.Params
             }
         }
 
-        private static void collectValidationProblems(Class<?> topLevelBean, List<Problem> taskValidationWarnings, List<Problem> taskValidationErrors, boolean enableStricterValidation, InternalProblems problems) {
+        private static void collectValidationProblems(Class<?> topLevelBean, List<Problem> taskValidationWarnings, List<Problem> taskValidationErrors, boolean enableStricterValidation, ProblemsInternal problems) {
             DefaultTypeValidationContext validationContext = createTypeValidationContext(topLevelBean, enableStricterValidation, problems);
             PropertyValidationAccess.collectValidationProblems(topLevelBean, validationContext);
 
@@ -151,7 +151,7 @@ public abstract class ValidateAction implements WorkAction<ValidateAction.Params
             taskValidationErrors.addAll(validationContext.getErrors());
         }
 
-        private static DefaultTypeValidationContext createTypeValidationContext(Class<?> topLevelBean, boolean enableStricterValidation, InternalProblems problems) {
+        private static DefaultTypeValidationContext createTypeValidationContext(Class<?> topLevelBean, boolean enableStricterValidation, ProblemsInternal problems) {
             if (Task.class.isAssignableFrom(topLevelBean)) {
                 return createValidationContextAndValidateCacheableAnnotations(topLevelBean, CacheableTask.class, enableStricterValidation, problems);
             }
@@ -161,7 +161,7 @@ public abstract class ValidateAction implements WorkAction<ValidateAction.Params
             return createValidationContext(topLevelBean, enableStricterValidation, problems);
         }
 
-        private static DefaultTypeValidationContext createValidationContextAndValidateCacheableAnnotations(Class<?> topLevelBean, Class<? extends Annotation> cacheableAnnotationClass, boolean enableStricterValidation, InternalProblems problems) {
+        private static DefaultTypeValidationContext createValidationContextAndValidateCacheableAnnotations(Class<?> topLevelBean, Class<? extends Annotation> cacheableAnnotationClass, boolean enableStricterValidation, ProblemsInternal problems) {
             boolean cacheable = topLevelBean.isAnnotationPresent(cacheableAnnotationClass);
             DefaultTypeValidationContext validationContext = createValidationContext(topLevelBean, cacheable || enableStricterValidation, problems);
             if (enableStricterValidation) {
@@ -170,7 +170,7 @@ public abstract class ValidateAction implements WorkAction<ValidateAction.Params
             return validationContext;
         }
 
-        private static DefaultTypeValidationContext createValidationContext(Class<?> topLevelBean, boolean reportCacheabilityProblems, InternalProblems problems) {
+        private static DefaultTypeValidationContext createValidationContext(Class<?> topLevelBean, boolean reportCacheabilityProblems, ProblemsInternal problems) {
             return DefaultTypeValidationContext.withRootType(topLevelBean, reportCacheabilityProblems, problems);
         }
 

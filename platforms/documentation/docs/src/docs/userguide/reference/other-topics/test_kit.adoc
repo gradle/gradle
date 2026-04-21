@@ -25,8 +25,8 @@ Over time, TestKit has focused on functional/black-box testing, and that remains
 Add TestKit to your test dependencies:
 
 ====
-include::sample[dir="snippets/testKit/junitQuickstart/kotlin",files="build.gradle.kts[tags=declare-gradle-testkit-dependency]"]
-include::sample[dir="snippets/testKit/junitQuickstart/groovy",files="build.gradle[tags=declare-gradle-testkit-dependency]"]
+include::sample[dir="snippets/reference/other-topics/junitQuickstart/kotlin",files="build.gradle.kts[tags=declare-gradle-testkit-dependency]"]
+include::sample[dir="snippets/reference/other-topics/junitQuickstart/groovy",files="build.gradle[tags=declare-gradle-testkit-dependency]"]
 ====
 
 The `gradleTestKit()` encompasses the classes of the TestKit, as well as the <<tooling_api.adoc#embedding,Gradle Tooling API client>>.
@@ -36,8 +36,8 @@ Such a dependency must be explicitly declared.
 For JUnit 5:
 
 ====
-include::sample[dir="snippets/testKit/junitQuickstart/kotlin",files="build.gradle.kts[tags=declare-junit-dependency]"]
-include::sample[dir="snippets/testKit/junitQuickstart/groovy",files="build.gradle[tags=declare-junit-dependency]"]
+include::sample[dir="snippets/reference/other-topics/junitQuickstart/kotlin",files="build.gradle.kts[tags=declare-junit-dependency]"]
+include::sample[dir="snippets/reference/other-topics/junitQuickstart/groovy",files="build.gradle[tags=declare-junit-dependency]"]
 ====
 
 [[sec:functional_testing_with_the_gradle_runner]]
@@ -62,7 +62,7 @@ The following demonstrates the usage of the Gradle runner in a Java JUnit test:
 [source, java]
 .BuildLogicFunctionalTest.java
 ----
-include::{snippetsPath}/testKit/junitQuickstart/common/src/test/java/org/gradle/sample/BuildLogicFunctionalTest.java[tag=functional-test-junit]
+include::{snippetsPath}/reference/other-topics/junitQuickstart/common/src/test/java/org/gradle/sample/BuildLogicFunctionalTest.java[tag=functional-test-junit]
 ----
 
 Any test framework can be used.
@@ -76,7 +76,7 @@ The following demonstrates the usage of the Gradle runner in a Groovy Spock test
 [source, groovy]
 .BuildLogicFunctionalTest.groovy
 ----
-include::{snippetsPath}/testKit/spockQuickstart/groovy/src/test/groovy/org/gradle/sample/BuildLogicFunctionalTest.groovy[tag=functional-test-spock]
+include::{snippetsPath}/reference/other-topics/spockQuickstart/groovy/src/test/groovy/org/gradle/sample/BuildLogicFunctionalTest.groovy[tag=functional-test-spock]
 ----
 
 When implementing more complex build logic (such as custom plugins or task types), you can package that logic into external classes and test them in isolation using "normal" unit tests.
@@ -125,8 +125,8 @@ These conventions can be customized using the link:{javadocPath}/org/gradle/plug
 The following sample shows the default setup for automatic plugin classpath injection:
 
 ====
-include::sample[dir="snippets/testKit/automaticClasspathInjectionQuickstart/kotlin",files="build.gradle.kts[tags=automatic-classpath]"]
-include::sample[dir="snippets/testKit/automaticClasspathInjectionQuickstart/groovy",files="build.gradle[tags=automatic-classpath]"]
+include::sample[dir="snippets/reference/other-topics/automaticClasspathInjectionQuickstart/kotlin",files="build.gradle.kts[tags=automatic-classpath]"]
+include::sample[dir="snippets/reference/other-topics/automaticClasspathInjectionQuickstart/groovy",files="build.gradle[tags=automatic-classpath]"]
 ====
 
 The following example automatically injects the code under test classes into test builds:
@@ -134,7 +134,7 @@ The following example automatically injects the code under test classes into tes
 [source, groovy]
 .src/test/groovy/org/gradle/sample/BuildLogicFunctionalTest.groovy
 ----
-include::{snippetsPath}/testKit/automaticClasspathInjectionQuickstart/common/src/test/groovy/org/gradle/sample/BuildLogicFunctionalTest.groovy[tag=functional-test-classpath-setup-automatic]
+include::{snippetsPath}/reference/other-topics/automaticClasspathInjectionQuickstart/common/src/test/groovy/org/gradle/sample/BuildLogicFunctionalTest.groovy[tag=functional-test-classpath-setup-automatic]
 ----
 
 If your project uses a custom test source set (for example, a dedicated functional test suite), you can reconfigure the plugin development extension to generate the plugin classpath metadata from that source set instead.
@@ -142,8 +142,8 @@ If your project uses a custom test source set (for example, a dedicated function
 NOTE: A dedicated DSL for modeling such test suites is provided by the incubating <<jvm_test_suite_plugin.adoc#jvm_test_suite_plugin,JVM Test Suite plugin>>.
 
 ====
-include::sample[dir="snippets/testKit/automaticClasspathInjectionCustomTestSourceSet/kotlin",files="build.gradle.kts[tags=custom-test-source-set]"]
-include::sample[dir="snippets/testKit/automaticClasspathInjectionCustomTestSourceSet/groovy",files="build.gradle[tags=custom-test-source-set]"]
+include::sample[dir="snippets/reference/other-topics/automaticClasspathInjectionCustomTestSourceSet/kotlin",files="build.gradle.kts[tags=custom-test-source-set]"]
+include::sample[dir="snippets/reference/other-topics/automaticClasspathInjectionCustomTestSourceSet/groovy",files="build.gradle[tags=custom-test-source-set]"]
 ====
 
 [[sec:controlling_the_build_environment]]
@@ -193,7 +193,7 @@ The following demonstrates a cross-version compatibility test written as a Groov
 [source, groovy]
 .BuildLogicFunctionalTest.groovy
 ----
-include::{snippetsPath}/testKit/gradleVersion/groovy/src/test/groovy/org/gradle/sample/BuildLogicFunctionalTest.groovy[tag=functional-test-spock-gradle-version]
+include::{snippetsPath}/reference/other-topics/gradleVersion/groovy/src/test/groovy/org/gradle/sample/BuildLogicFunctionalTest.groovy[tag=functional-test-spock-gradle-version]
 ----
 
 [[sub:test-kit-debug]]
@@ -221,7 +221,7 @@ You can then check for the task outcome link:{javadocPath}/org/gradle/testkit/ru
 [source, groovy]
 .BuildLogicFunctionalTest.groovy
 ----
-include::{snippetsPath}/testKit/testKitFunctionalTestSpockBuildCache/groovy/src/test/groovy/org/gradle/sample/BuildLogicFunctionalTest.groovy[tag=functional-test-build-cache]
+include::{snippetsPath}/reference/other-topics/testKitFunctionalTestSpockBuildCache/groovy/src/test/groovy/org/gradle/sample/BuildLogicFunctionalTest.groovy[tag=functional-test-build-cache]
 ----
 
 Note that TestKit re-uses a Gradle User Home between tests (see link:{javadocPath}/org/gradle/testkit/runner/GradleRunner.html#withTestKitDir-java.io.File-[`GradleRunner.withTestKitDir(java.io.File)`]), which contains the default location for the local Build Cache.
@@ -231,5 +231,5 @@ The easiest way to accomplish this is to configure the local Build Cache to use 
 [source,groovy]
 .BuildLogicFunctionalTest.groovy
 ----
-include::{snippetsPath}/testKit/testKitFunctionalTestSpockBuildCache/groovy/src/test/groovy/org/gradle/sample/BuildLogicFunctionalTest.groovy[tag=clean-build-cache]
+include::{snippetsPath}/reference/other-topics/testKitFunctionalTestSpockBuildCache/groovy/src/test/groovy/org/gradle/sample/BuildLogicFunctionalTest.groovy[tag=clean-build-cache]
 ----

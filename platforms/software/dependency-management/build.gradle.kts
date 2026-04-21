@@ -15,6 +15,7 @@ dependencies {
     api(projects.buildOperations)
     api(projects.buildOption)
     api(projects.buildProcessServices)
+    api(projects.classpath)
     api(projects.classloaders)
     api(projects.collections)
     api(projects.concurrent)

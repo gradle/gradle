@@ -259,7 +259,7 @@ They can be defined by plugins or inline:
 =====
 [source, kotlin]
 ----
-val functionalTest by tasks.registering(Test::class) {
+tasks.register<Test>("functionalTest") {
     testClassesDirs = functionalTestSourceSet.output.classesDirs
     classpath = functionalTestSourceSet.runtimeClasspath
     useJUnitPlatform()

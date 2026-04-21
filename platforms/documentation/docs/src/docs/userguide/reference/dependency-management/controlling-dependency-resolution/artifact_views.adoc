@@ -63,8 +63,8 @@ Consider the following example which selects all sources for a given runtime cla
 NOTE: This example uses incubating APIs.
 
 ====
-include::sample[dir="snippets/dependencyManagement/performingResolution-artifactResolution/kotlin",files="build.gradle.kts[tags=variant-reselection]"]
-include::sample[dir="snippets/dependencyManagement/performingResolution-artifactResolution/groovy",files="build.gradle[tags=variant-reselection]"]
+include::sample[dir="snippets/reference/dependency-management/controlling-dependency-resolution/performingResolution-artifactResolution/kotlin",files="build.gradle.kts[tags=variant-reselection]"]
+include::sample[dir="snippets/reference/dependency-management/controlling-dependency-resolution/performingResolution-artifactResolution/groovy",files="build.gradle[tags=variant-reselection]"]
 ====
 
 Using the `ArtifactView.withVariantReselection()` API, Gradle will optionally perform graph variant selection again _before_ performing artifact selection on the new selected variant.
@@ -75,7 +75,7 @@ As a result, the sources jar is resolved for each node:
 
 [source,text]
 ----
-include::{snippetsPath}/dependencyManagement/performingResolution-artifactResolution/tests/resolve-sources.out[]
+include::{snippetsPath}/reference/dependency-management/controlling-dependency-resolution/performingResolution-artifactResolution/tests/resolve-sources.out[]
 ----
 
 When this API is used, the attributes used for variant reselection are specified solely by the `ArtifactView.getAttributes()` method.
@@ -90,22 +90,22 @@ Furthermore, lenient artifact resolution can be used to resolve artifacts when t
 Consider the following example, where some dependencies may not exist:
 
 ====
-include::sample[dir="snippets/dependencyManagement/performingResolution-artifactResolution-lenient/kotlin",files="build.gradle.kts[tags=lenient-resolution-dependencies]"]
-include::sample[dir="snippets/dependencyManagement/performingResolution-artifactResolution-lenient/groovy",files="build.gradle[tags=lenient-resolution-dependencies]"]
+include::sample[dir="snippets/reference/dependency-management/controlling-dependency-resolution/performingResolution-artifactResolution-lenient/kotlin",files="build.gradle.kts[tags=lenient-resolution-dependencies]"]
+include::sample[dir="snippets/reference/dependency-management/controlling-dependency-resolution/performingResolution-artifactResolution-lenient/groovy",files="build.gradle[tags=lenient-resolution-dependencies]"]
 ====
 
 Lenient resolution is performed by using the `ArtifactView.lenient()` method:
 
 ====
-include::sample[dir="snippets/dependencyManagement/performingResolution-artifactResolution-lenient/kotlin",files="build.gradle.kts[tags=resolve-lenient]"]
-include::sample[dir="snippets/dependencyManagement/performingResolution-artifactResolution-lenient/groovy",files="build.gradle[tags=resolve-lenient]"]
+include::sample[dir="snippets/reference/dependency-management/controlling-dependency-resolution/performingResolution-artifactResolution-lenient/kotlin",files="build.gradle.kts[tags=resolve-lenient]"]
+include::sample[dir="snippets/reference/dependency-management/controlling-dependency-resolution/performingResolution-artifactResolution-lenient/groovy",files="build.gradle[tags=resolve-lenient]"]
 ====
 
 We can see that the task succeeds with the failing artifact omitted:
 
 [source,text]
 ----
-include::{snippetsPath}/dependencyManagement/performingResolution-artifactResolution-lenient/tests/resolve-lenient.out[]
+include::{snippetsPath}/reference/dependency-management/controlling-dependency-resolution/performingResolution-artifactResolution-lenient/tests/resolve-lenient.out[]
 ----
 
 == 3. Filtering selected artifacts
@@ -119,22 +119,22 @@ The action is passed the `ComponentIdentifier` of the component that owns the va
 Consider the following example, where we have one project dependency and one external dependency:
 
 ====
-include::sample[dir="snippets/dependencyManagement/performingResolution-artifactResolution-componentFilter/kotlin",files="build.gradle.kts[tags=component-filter-dependencies]"]
-include::sample[dir="snippets/dependencyManagement/performingResolution-artifactResolution-componentFilter/groovy",files="build.gradle[tags=component-filter-dependencies]"]
+include::sample[dir="snippets/reference/dependency-management/controlling-dependency-resolution/performingResolution-artifactResolution-componentFilter/kotlin",files="build.gradle.kts[tags=component-filter-dependencies]"]
+include::sample[dir="snippets/reference/dependency-management/controlling-dependency-resolution/performingResolution-artifactResolution-componentFilter/groovy",files="build.gradle[tags=component-filter-dependencies]"]
 ====
 
 Using the `componentFilter` method, we can specify filters that select only artifacts of a certain type:
 
 ====
-include::sample[dir="snippets/dependencyManagement/performingResolution-artifactResolution-componentFilter/kotlin",files="build.gradle.kts[tags=resolve-component-filter]"]
-include::sample[dir="snippets/dependencyManagement/performingResolution-artifactResolution-componentFilter/groovy",files="build.gradle[tags=resolve-component-filter]"]
+include::sample[dir="snippets/reference/dependency-management/controlling-dependency-resolution/performingResolution-artifactResolution-componentFilter/kotlin",files="build.gradle.kts[tags=resolve-component-filter]"]
+include::sample[dir="snippets/reference/dependency-management/controlling-dependency-resolution/performingResolution-artifactResolution-componentFilter/groovy",files="build.gradle[tags=resolve-component-filter]"]
 ====
 
 Notice how we resolve project dependencies and module dependencies separately:
 
 [source,text]
 ----
-include::{snippetsPath}/dependencyManagement/performingResolution-artifactResolution-componentFilter/tests/resolve-component-filter.out[]
+include::{snippetsPath}/reference/dependency-management/controlling-dependency-resolution/performingResolution-artifactResolution-componentFilter/tests/resolve-component-filter.out[]
 ----
 
 == 4. Triggering artifact transforms
@@ -148,8 +148,8 @@ When Gradle cannot find a matching set of artifacts from the node in question, i
 Below, we use the unzip example from the <<artifact_transforms.adoc#sec:implementing-artifact-transforms,artifact transforms>> chapter to demonstrate how to use the `ArtifactView` API to request attributes that trigger a transform:
 
 ====
-include::sample[dir="snippets/dependencyManagement/artifactTransforms-unzip/kotlin",files="build.gradle.kts[tags=resolve-transformed-files]"]
-include::sample[dir="snippets/dependencyManagement/artifactTransforms-unzip/groovy",files="build.gradle[tags=resolve-transformed-files]"]
+include::sample[dir="snippets/reference/dependency-management/controlling-dependency-resolution/artifactTransforms-unzip/kotlin",files="build.gradle.kts[tags=resolve-transformed-files]"]
+include::sample[dir="snippets/reference/dependency-management/controlling-dependency-resolution/artifactTransforms-unzip/groovy",files="build.gradle[tags=resolve-transformed-files]"]
 ====
 
 Gradle performs artifact selection using the graph resolution attributes specified on the configuration, concatenated with the attributes specified in the `attributes` block of the `ArtifactView`.
@@ -158,7 +158,7 @@ The task output shows that the artifacts have been transformed:
 
 [source,text]
 ----
-include::{snippetsPath}/dependencyManagement/artifactTransforms-unzip/tests/artifactTransformUnzip.out[]
+include::{snippetsPath}/reference/dependency-management/controlling-dependency-resolution/artifactTransforms-unzip/tests/artifactTransformUnzip.out[]
 ----
 
 The transform code (`ArtifactTransform`) used uncompress the JAR file (from `ZIP` to `UNZIP`) can be seen in the next chapter.

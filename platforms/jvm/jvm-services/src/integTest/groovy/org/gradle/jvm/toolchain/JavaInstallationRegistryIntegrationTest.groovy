@@ -21,7 +21,7 @@ import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.internal.jvm.Jvm
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.InstalledJdkTestPreconditions
 
 class JavaInstallationRegistryIntegrationTest extends AbstractIntegrationSpec {
 
@@ -49,7 +49,7 @@ class JavaInstallationRegistryIntegrationTest extends AbstractIntegrationSpec {
         succeeds("show", "-Dorg.gradle.java.installations.auto-detect=false")
     }
 
-    @Requires(IntegTestPreconditions.MoreThanOneJavaHomeAvailable)
+    @Requires(InstalledJdkTestPreconditions.MoreThanOneJavaHomeAvailable)
     def "installation registry is populated by environment"() {
         def firstJavaHome = AvailableJavaHomes.availableJvms[0].javaHome.absolutePath
         def secondJavaHome = AvailableJavaHomes.availableJvms[1].javaHome.absolutePath
@@ -99,7 +99,7 @@ class JavaInstallationRegistryIntegrationTest extends AbstractIntegrationSpec {
         outputContains(secondJavaHome)
     }
 
-    @Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
+    @Requires(InstalledJdkTestPreconditions.JavaHomeWithDifferentVersionAvailable)
     def "installation registry is populated by JAVA_HOME environment variable"() {
         def currentJvm = Jvm.current().javaHome.absolutePath
         def otherJvm = AvailableJavaHomes.differentVersion.javaHome.absolutePath

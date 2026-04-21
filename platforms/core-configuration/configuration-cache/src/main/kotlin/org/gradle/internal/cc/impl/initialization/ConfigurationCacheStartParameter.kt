@@ -38,15 +38,6 @@ class ConfigurationCacheStartParameter internal constructor(
     internalOptions: InternalOptions,
     private val modelParameters: BuildModelParameters,
 ) {
-    /**
-     * Internal Configuration Cache options.
-     */
-    object Options {
-        /**
-         * See [org.gradle.internal.cc.impl.initialization.ConfigurationCacheStartParameter.customReportOutputDirectory].
-         */
-        const val REPORT_OUTPUT_DIR = "org.gradle.internal.configuration-cache.report-output-directory"
-    }
 
     val taskExecutionAccessPreStable: Boolean = internalOptions.getBoolean("org.gradle.internal.configuration-cache.task-execution-access-pre-stable", false)
 
@@ -63,7 +54,7 @@ class ConfigurationCacheStartParameter internal constructor(
      * The default (when null) is to write the report under `<root build buildDir>/reports/configuration-cache`.
      */
     val customReportOutputDirectory: File? by lazy {
-        internalOptions.getStringOrNull(Options.REPORT_OUTPUT_DIR)?.let {
+        internalOptions.getStringOrNull("org.gradle.internal.configuration-cache.report-output-directory")?.let {
             buildTreeLocations.buildTreeRootDirectory.resolve(it)
         }
     }
@@ -181,6 +172,7 @@ class ConfigurationCacheStartParameter internal constructor(
 
     val develocityPluginVersion: String?
         get() = startParameter.develocityPluginVersion
+
     /**
      * Determines whether Isolated Projects option was enabled.
      *

@@ -72,7 +72,6 @@ import org.gradle.api.internal.filestore.ArtifactIdentifierFileStore;
 import org.gradle.api.internal.filestore.DefaultArtifactIdentifierFileStore;
 import org.gradle.api.internal.filestore.TwoStageArtifactIdentifierFileStore;
 import org.gradle.api.internal.project.HoldsProjectState;
-import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 import org.gradle.internal.component.external.model.ModuleComponentGraphResolveStateFactory;
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveStateFactory;
 import org.gradle.internal.component.model.ComponentIdGenerator;
@@ -158,8 +157,8 @@ class DependencyManagementBuildTreeScopeServices implements ServiceRegistrationP
         ExternalResourceFileStore externalResourceFileStore = artifactCaches.withReadOnlyCache((md, manager) ->
             (ExternalResourceFileStore) new TwoStageExternalResourceFileStore(defaultExternalResourceFileStoreFactory.create(md), writableFileStore)).orElse(writableFileStore);
         CachedExternalResourceIndex<String> writableByUrlCachedExternalResourceIndex = prepareArtifactUrlCachedResolutionIndex(timeProvider, artifactCaches.getWritableCacheAccessCoordinator(), externalResourceFileStore, artifactCaches.getWritableCacheMetadata());
-        ArtifactIdentifierFileStore<ModuleComponentArtifactIdentifier> writableArtifactIdentifierFileStore = artifactCaches.withWritableCache((md, manager) -> defaultArtifactIdentifierFileStoreFactory.create(md));
-        ArtifactIdentifierFileStore<ModuleComponentArtifactIdentifier> artifactIdentifierFileStore = artifactCaches.<ArtifactIdentifierFileStore<ModuleComponentArtifactIdentifier>>withReadOnlyCache((md, manager) -> new TwoStageArtifactIdentifierFileStore(
+        ArtifactIdentifierFileStore writableArtifactIdentifierFileStore = artifactCaches.withWritableCache((md, manager) -> defaultArtifactIdentifierFileStoreFactory.create(md));
+        ArtifactIdentifierFileStore artifactIdentifierFileStore = artifactCaches.withReadOnlyCache((md, manager) -> (ArtifactIdentifierFileStore) new TwoStageArtifactIdentifierFileStore(
             defaultArtifactIdentifierFileStoreFactory.create(md),
             writableArtifactIdentifierFileStore
         )).orElse(writableArtifactIdentifierFileStore);
@@ -197,7 +196,7 @@ class DependencyManagementBuildTreeScopeServices implements ServiceRegistrationP
         ModuleSourcesSerializer moduleSourcesSerializer,
         ChecksumService checksumService
     ) {
-        ArtifactIdentifierFileStore<ModuleComponentArtifactIdentifier> artifactIdentifierFileStore = fileStoreAndIndexProvider.getArtifactIdentifierFileStore();
+        ArtifactIdentifierFileStore artifactIdentifierFileStore = fileStoreAndIndexProvider.getArtifactIdentifierFileStore();
         ModuleRepositoryCaches writableCaches = artifactCaches.withWritableCache((md, manager) -> prepareModuleRepositoryCaches(md, manager, timeProvider, moduleIdentifierFactory, attributeContainerSerializer, capabilitySelectorSerializer, mavenMetadataFactory, ivyMetadataFactory, stringInterner, artifactIdentifierFileStore, moduleSourcesSerializer, checksumService));
         AtomicReference<Path> roCachePath = new AtomicReference<>();
         Optional<ModuleRepositoryCaches> readOnlyCaches = artifactCaches.withReadOnlyCache((ro, manager) -> {
@@ -223,20 +222,7 @@ class DependencyManagementBuildTreeScopeServices implements ServiceRegistrationP
         return new ModuleRepositoryCacheProvider(persistentCaches, inMemoryOnlyCaches);
     }
 
-    private static ModuleRepositoryCaches prepareModuleRepositoryCaches(
-        ArtifactCacheMetadata artifactCacheMetadata,
-        ArtifactCacheLockingAccessCoordinator cacheAccessCoordinator,
-        BuildCommencedTimeProvider timeProvider,
-        ImmutableModuleIdentifierFactory moduleIdentifierFactory,
-        AttributeContainerSerializer attributeContainerSerializer,
-        CapabilitySelectorSerializer capabilitySelectorSerializer,
-        MavenMutableModuleMetadataFactory mavenMetadataFactory,
-        IvyMutableModuleMetadataFactory ivyMetadataFactory,
-        SimpleMapInterner stringInterner,
-        ArtifactIdentifierFileStore<ModuleComponentArtifactIdentifier> artifactIdentifierFileStore,
-        ModuleSourcesSerializer moduleSourcesSerializer,
-        ChecksumService checksumService
-    ) {
+    private static ModuleRepositoryCaches prepareModuleRepositoryCaches(ArtifactCacheMetadata artifactCacheMetadata, ArtifactCacheLockingAccessCoordinator cacheAccessCoordinator, BuildCommencedTimeProvider timeProvider, ImmutableModuleIdentifierFactory moduleIdentifierFactory, AttributeContainerSerializer attributeContainerSerializer, CapabilitySelectorSerializer capabilitySelectorSerializer, MavenMutableModuleMetadataFactory mavenMetadataFactory, IvyMutableModuleMetadataFactory ivyMetadataFactory, SimpleMapInterner stringInterner, ArtifactIdentifierFileStore artifactIdentifierFileStore, ModuleSourcesSerializer moduleSourcesSerializer, ChecksumService checksumService) {
         DefaultModuleVersionsCache moduleVersionsCache = new DefaultModuleVersionsCache(
             timeProvider,
             cacheAccessCoordinator,
@@ -272,20 +258,7 @@ class DependencyManagementBuildTreeScopeServices implements ServiceRegistrationP
         );
     }
 
-    private static ModuleRepositoryCaches prepareReadOnlyModuleRepositoryCaches(
-        ArtifactCacheMetadata artifactCacheMetadata,
-        ArtifactCacheLockingAccessCoordinator cacheAccessCoordinator,
-        BuildCommencedTimeProvider timeProvider,
-        ImmutableModuleIdentifierFactory moduleIdentifierFactory,
-        AttributeContainerSerializer attributeContainerSerializer,
-        CapabilitySelectorSerializer capabilitySelectorSerializer,
-        MavenMutableModuleMetadataFactory mavenMetadataFactory,
-        IvyMutableModuleMetadataFactory ivyMetadataFactory,
-        SimpleMapInterner stringInterner,
-        ArtifactIdentifierFileStore<ModuleComponentArtifactIdentifier> artifactIdentifierFileStore,
-        ModuleSourcesSerializer moduleSourcesSerializer,
-        ChecksumService checksumService
-    ) {
+    private static ModuleRepositoryCaches prepareReadOnlyModuleRepositoryCaches(ArtifactCacheMetadata artifactCacheMetadata, ArtifactCacheLockingAccessCoordinator cacheAccessCoordinator, BuildCommencedTimeProvider timeProvider, ImmutableModuleIdentifierFactory moduleIdentifierFactory, AttributeContainerSerializer attributeContainerSerializer, CapabilitySelectorSerializer capabilitySelectorSerializer, MavenMutableModuleMetadataFactory mavenMetadataFactory, IvyMutableModuleMetadataFactory ivyMetadataFactory, SimpleMapInterner stringInterner, ArtifactIdentifierFileStore artifactIdentifierFileStore, ModuleSourcesSerializer moduleSourcesSerializer, ChecksumService checksumService) {
         ReadOnlyModuleVersionsCache moduleVersionsCache = new ReadOnlyModuleVersionsCache(
             timeProvider,
             cacheAccessCoordinator,

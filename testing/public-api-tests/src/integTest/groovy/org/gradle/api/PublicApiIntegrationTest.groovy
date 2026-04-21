@@ -20,14 +20,15 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
+import org.gradle.test.preconditions.JdkVersionTestPreconditions
+
 
 @Requires([
     // We compile and execute build-logic with Java 17
-    UnitTestPreconditions.Jdk17OrLater,
+    JdkVersionTestPreconditions.Jdk17OrLater,
     // Because of TestKit
-    IntegTestPreconditions.NotEmbeddedExecutor
+    TestExecutionPreconditions.NotEmbeddedExecutor
 ])
 class PublicApiIntegrationTest extends AbstractIntegrationSpec implements JavaToolchainFixture {
     // Need to pin this to a specific JVM version to avoid Kotlin complaining about using a different version to Java
@@ -165,7 +166,7 @@ class PublicApiIntegrationTest extends AbstractIntegrationSpec implements JavaTo
 
             class PublishedApiTestPlugin : Plugin<Project> {
                 override fun apply(project: Project) {
-                    val customTask by project.tasks.registering(CustomTask::class) {
+                    project.tasks.register<CustomTask>("customTask") {
                         mapValues.set(mapOf("alma" to 1, "bela" to 2))
                         println("Hello from plugin")
                     }

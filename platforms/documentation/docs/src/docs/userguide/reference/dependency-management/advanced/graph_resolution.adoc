@@ -438,8 +438,8 @@ Callbacks are notified for each node and edge in the graph.
 This function can be used as a base for any use case that requires traversing a dependency graph:
 
 ====
-include::sample[dir="snippets/dependencyManagement/performingResolution-resolutionResult/kotlin",files="build.gradle.kts[tags=graph-traversal-function]"]
-include::sample[dir="snippets/dependencyManagement/performingResolution-resolutionResult/groovy",files="build.gradle[tags=graph-traversal-function]"]
+include::sample[dir="snippets/reference/dependency-management/advanced/performingResolution-resolutionResult/kotlin",files="build.gradle.kts[tags=graph-traversal-function]"]
+include::sample[dir="snippets/reference/dependency-management/advanced/performingResolution-resolutionResult/groovy",files="build.gradle[tags=graph-traversal-function]"]
 ====
 
 This function starts at the root variant, and performs a breadth-first traversal of the graph.
@@ -449,8 +449,8 @@ With this function, the node callback is always called before the edge callback 
 Below, we leverage the above traversal function to transform a dependency graph into a `.dot` file for visualization:
 
 ====
-include::sample[dir="snippets/dependencyManagement/performingResolution-resolutionResult/kotlin",files="build.gradle.kts[tags=define-graph-traversal-task]"]
-include::sample[dir="snippets/dependencyManagement/performingResolution-resolutionResult/groovy",files="build.gradle[tags=define-graph-traversal-task]"]
+include::sample[dir="snippets/reference/dependency-management/advanced/performingResolution-resolutionResult/kotlin",files="build.gradle.kts[tags=define-graph-traversal-task]"]
+include::sample[dir="snippets/reference/dependency-management/advanced/performingResolution-resolutionResult/groovy",files="build.gradle[tags=define-graph-traversal-task]"]
 ====
 
 NOTE: A proper implementation would not use `println` but would write to an output file. For more details on declaring task inputs and outputs, see the <<writing_tasks_intermediate.adoc#writing_tasks,Writing Tasks>> section.
@@ -458,8 +458,8 @@ NOTE: A proper implementation would not use `println` but would write to an outp
 When we register the task, we use the `ResolutionResult` API to access the root component and root variant of the `runtimeClasspath` configuration:
 
 ====
-include::sample[dir="snippets/dependencyManagement/performingResolution-resolutionResult/kotlin",files="build.gradle.kts[tags=register-graph-traversal-task]"]
-include::sample[dir="snippets/dependencyManagement/performingResolution-resolutionResult/groovy",files="build.gradle[tags=register-graph-traversal-task]"]
+include::sample[dir="snippets/reference/dependency-management/advanced/performingResolution-resolutionResult/kotlin",files="build.gradle.kts[tags=register-graph-traversal-task]"]
+include::sample[dir="snippets/reference/dependency-management/advanced/performingResolution-resolutionResult/groovy",files="build.gradle[tags=register-graph-traversal-task]"]
 ====
 
 NOTE: This example uses incubating APIs.
@@ -468,7 +468,7 @@ Running this task, we get the following output:
 
 [source,text]
 ----
-include::{snippetsPath}/dependencyManagement/performingResolution-resolutionResult/tests/dot.out[]
+include::{snippetsPath}/reference/dependency-management/advanced/performingResolution-resolutionResult/tests/dot.out[]
 ----
 
 image::dep-man-adv-3.png[]
@@ -477,7 +477,7 @@ Compare this to the output of the `dependencies` task:
 
 [source,text]
 ----
-include::{snippetsPath}/dependencyManagement/performingResolution-resolutionResult/tests/dependencies.out[]
+include::{snippetsPath}/reference/dependency-management/advanced/performingResolution-resolutionResult/tests/dependencies.out[]
 ----
 
 Notice how the graph is the same for both representations, the only difference it the chosen *variant* information available in the dot graph.

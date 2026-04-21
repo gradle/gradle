@@ -155,8 +155,8 @@ To help teams adopt configuration caching, Gradle provides a strict mode behind 
 You can enable this feature flag in your build using the following configuration:
 
 ====
-include::sample[dir="snippets/configurationCache/stableFeatureFlag/kotlin",files="settings.gradle.kts[]"]
-include::sample[dir="snippets/configurationCache/stableFeatureFlag/groovy",files="settings.gradle[]"]
+include::sample[dir="snippets/optimizing-builds/configuration-cache/stableFeatureFlag/kotlin",files="settings.gradle.kts[]"]
+include::sample[dir="snippets/optimizing-builds/configuration-cache/stableFeatureFlag/groovy",files="settings.gradle[]"]
 ====
 
 Enabling the `STABLE_CONFIGURATION_CACHE` feature flag activates stricter validation and introduces the following behavior:

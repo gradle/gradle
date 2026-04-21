@@ -20,7 +20,7 @@ package org.gradle.test.fixtures.server.http
 import org.bbottema.javasocksproxyserver.SyncSocksServer
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import org.gradle.util.ports.FixedAvailablePortAllocator
 import org.gradle.util.ports.PortAllocator
 import org.junit.rules.ExternalResource
@@ -38,7 +38,7 @@ import org.junit.rules.ExternalResource
  * starting the proxy.
  *
  */
-@Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "Socks proxy for localhost breaks things")
+@Requires(value = TestExecutionPreconditions.NotEmbeddedExecutor, reason = "Socks proxy for localhost breaks things")
 class SocksProxyServer extends ExternalResource {
     private PortAllocator portFinder = FixedAvailablePortAllocator.getInstance()
     private SyncSocksServer socksServer

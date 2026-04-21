@@ -46,9 +46,11 @@ dependencies {
     api(libs.kotlinStdlib)
 
     // TODO - it might be good to allow projects to contribute state to save and restore, rather than have this project know about everything
+    implementation(projects.buildCacheCore)
     implementation(projects.buildDiscovery)
     implementation(projects.buildDiscoveryImpl)
     implementation(projects.buildProcessServices)
+    implementation(projects.classpath)
     implementation(projects.classloaders)
     implementation(projects.coreFlowServicesApi)
     implementation(projects.coreKotlinExtensions)

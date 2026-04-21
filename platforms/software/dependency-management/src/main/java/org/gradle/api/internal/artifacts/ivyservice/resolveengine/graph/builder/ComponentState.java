@@ -18,11 +18,9 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ComponentResolutionState;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphComponent;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ResolvedGraphVariant;
@@ -31,10 +29,10 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.Compone
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasonInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons;
 import org.gradle.api.internal.capabilities.ImmutableCapability;
-import org.gradle.internal.Pair;
 import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
 import org.gradle.internal.component.model.ComponentGraphResolveState;
 import org.gradle.internal.component.model.ComponentGraphSpecificResolveState;
+import org.gradle.internal.component.model.ComponentIdGenerator;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
 import org.gradle.internal.component.model.DefaultComponentOverrideMetadata;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
@@ -43,13 +41,10 @@ import org.gradle.internal.resolve.result.DefaultBuildableComponentResolveResult
 import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 /**
@@ -68,14 +63,22 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
     private volatile ComponentGraphResolveState resolveState;
     private volatile ComponentGraphSpecificResolveState graphResolveState;
 
-    private ComponentSelectionState state = ComponentSelectionState.Selectable;
-    private ModuleVersionResolveException metadataResolveFailure;
+    /**
+     * An evicted component has been evicted and will never (*), ever be chosen starting from the moment it is evicted.
+     * Either because it has been excluded, or because conflict resolution selected a different version.
+     *
+     * // TODO: (*) This invariant was originally stated, but existing logic in practice
+     * violated this condition. We should clarify whether we intend for this invariant to hold
+     * and if so how we can enforce it.
+     */
+    private boolean evicted = false;
+
+    private @Nullable  ModuleVersionResolveException metadataResolveFailure;
     private ModuleSelectors<SelectorState> selectors;
     private DependencyGraphBuilder.VisitState visitState = DependencyGraphBuilder.VisitState.NotSeen;
 
     private boolean rejected;
     private boolean root;
-    private Pair<Capability, Collection<NodeState>> capabilityReject;
 
     ComponentState(long resultId, ModuleResolveState module, ModuleVersionIdentifier id, ComponentIdentifier componentIdentifier, ComponentMetaDataResolver resolver) {
         this.resultId = resultId;
@@ -194,6 +197,14 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
             return;
         }
 
+        if (module.isVirtualPlatform()) {
+            // Modules have registered as participants of this platform via belongsTo.
+            // This means the platform is virtual. Resolve with synthetic virtual platform
+            // metadata without attempting a real download.
+            resolveAsVirtualPlatform();
+            return;
+        }
+
         ComponentOverrideMetadata componentOverrideMetadata;
         if (selectors != null && selectors.size() > 0) {
             // Taking the first selector here to determine the 'changing' status is our best bet to get the selector that will most likely be chosen in the end.
@@ -204,9 +215,7 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
         } else {
             componentOverrideMetadata = DefaultComponentOverrideMetadata.EMPTY;
         }
-        if (tryResolveVirtualPlatform()) {
-            return;
-        }
+
         DefaultBuildableComponentResolveResult result = new DefaultBuildableComponentResolveResult();
         resolver.resolve(componentIdentifier, componentOverrideMetadata, result);
 
@@ -218,22 +227,22 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
         graphResolveState = result.getGraphState();
     }
 
-    @SuppressWarnings("ReferenceEquality") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
-    private boolean tryResolveVirtualPlatform() {
-        if (module.isVirtualPlatform()) {
-            for (ComponentState version : module.getAllVersions()) {
-                if (version != this) {
-                    ComponentGraphResolveState versionState = version.getResolveStateOrNull();
-                    if (versionState instanceof LenientPlatformGraphResolveState) {
-                        LenientPlatformGraphResolveState lenientState = (LenientPlatformGraphResolveState) versionState;
-                        ComponentGraphResolveState withIds = lenientState.copyWithIds((ModuleComponentIdentifier) componentIdentifier, id);
-                        setState(withIds, ComponentGraphSpecificResolveState.EMPTY_STATE);
-                        return true;
-                    }
-                }
-            }
-        }
-        return false;
+    /**
+     * Create a new virtual platform state and resolve this component using that state.
+     */
+    void resolveAsVirtualPlatform() {
+        ResolveState resolveState = module.getResolveState();
+        ComponentIdGenerator idGenerator = resolveState.getIdGenerator();
+        LenientPlatformResolveMetadata metadata = new LenientPlatformResolveMetadata((ModuleComponentIdentifier) componentIdentifier, id);
+        LenientPlatformGraphResolveState virtualPlatformState = new LenientPlatformGraphResolveState(
+            idGenerator.nextComponentId(),
+            idGenerator.nextVariantId(),
+            metadata,
+            module.getPlatformState(),
+            resolveState
+        );
+
+        setState(virtualPlatformState, ComponentGraphSpecificResolveState.EMPTY_STATE);
     }
 
     public void setState(ComponentGraphResolveState state, ComponentGraphSpecificResolveState graphState) {
@@ -319,47 +328,21 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
         return incoming;
     }
 
-    public boolean isSelected() {
-        return state == ComponentSelectionState.Selected;
-    }
-
-    public boolean isCandidateForConflictResolution() {
-        return state.isCandidateForConflictResolution();
+    public boolean isNotEvicted() {
+        return !evicted;
     }
 
     void evict() {
-        state = ComponentSelectionState.Evicted;
+        this.evicted = true;
     }
 
-    void select() {
-        state = ComponentSelectionState.Selected;
-    }
-
-    void makeSelectable() {
-        state = ComponentSelectionState.Selectable;
+    void unEvict() {
+        this.evicted = false;
     }
 
     @Override
     public void reject() {
         this.rejected = true;
-    }
-
-    public void rejectForCapabilityConflict(Capability capability, Collection<NodeState> conflictedNodes) {
-        this.rejected = true;
-        if (this.capabilityReject == null) {
-            this.capabilityReject = Pair.of(capability, new HashSet<>(conflictedNodes));
-        } else {
-            mergeCapabilityRejects(capability, conflictedNodes);
-        }
-    }
-
-    private void mergeCapabilityRejects(Capability capability, Collection<NodeState> conflictedNodes) {
-        // Only merge if about the same capability, otherwise last wins
-        if (this.capabilityReject.getLeft().equals(capability)) {
-            this.capabilityReject.getRight().addAll(conflictedNodes);
-        } else {
-            this.capabilityReject = Pair.of(capability, new HashSet<>(conflictedNodes));
-        }
     }
 
     @Override
@@ -368,21 +351,7 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
     }
 
     public String getRejectedErrorMessage() {
-        if (capabilityReject != null) {
-            return formatCapabilityRejectMessage(module.getId(), capabilityReject);
-        } else {
-            return new ComponentRejectedMessageBuilder().buildFailureMessage(module);
-        }
-    }
-
-    private static String formatCapabilityRejectMessage(ModuleIdentifier id, Pair<Capability, Collection<NodeState>> capabilityConflict) {
-        return "Module '" + id + "' has been rejected:\n" +
-            "   Cannot select module with conflict on capability '" + formatCapability(capabilityConflict.left) + "' also provided by " +
-            capabilityConflict.getRight().stream().map(NodeState::getDisplayName).sorted().collect(Collectors.toList());
-    }
-
-    private static String formatCapability(Capability capability) {
-        return capability.getGroup() + ":" + capability.getName() + ":" + capability.getVersion();
+        return new ComponentRejectedMessageBuilder().buildFailureMessage(module);
     }
 
     @Override
@@ -393,40 +362,6 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
     @Override
     public VirtualPlatformState getPlatformState() {
         return module.getPlatformState();
-    }
-
-    /**
-     * Describes the possible states of a component in the graph.
-     */
-    enum ComponentSelectionState {
-        /**
-         * A selectable component is either new to the graph, or has been visited before,
-         * but wasn't selected because another compatible version was used.
-         */
-        Selectable(true),
-
-        /**
-         * A selected component has been chosen, at some point, as the version to use.
-         * This is not for a lifetime: a component can later be evicted through conflict resolution,
-         * or another compatible component can be chosen instead if more constraints arise.
-         */
-        Selected(true),
-
-        /**
-         * An evicted component has been evicted and will never, ever be chosen starting from the moment it is evicted.
-         * Either because it has been excluded, or because conflict resolution selected a different version.
-         */
-        Evicted(false);
-
-        private final boolean candidateForConflictResolution;
-
-        ComponentSelectionState(boolean candidateForConflictResolution) {
-            this.candidateForConflictResolution = candidateForConflictResolution;
-        }
-
-        boolean isCandidateForConflictResolution() {
-            return candidateForConflictResolution;
-        }
     }
 
     public ImmutableCapability getImplicitCapability() {

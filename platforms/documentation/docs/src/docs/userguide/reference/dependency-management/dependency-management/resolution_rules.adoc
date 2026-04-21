@@ -75,8 +75,8 @@ You can enforce a specific version of a dependency, regardless of what versions 
 This is useful for ensuring consistency and avoiding conflicts due to different versions of the same dependency being used.
 
 ====
-include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-forceForConfiguration/kotlin",files="build.gradle.kts[tags=force-per-configuration]"]
-include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-forceForConfiguration/groovy",files="build.gradle[tags=force-per-configuration]"]
+include::sample[dir="snippets/reference/dependency-management/dependency-management/managingTransitiveDependencies-forceForConfiguration/kotlin",files="build.gradle.kts[tags=force-per-configuration]"]
+include::sample[dir="snippets/reference/dependency-management/dependency-management/managingTransitiveDependencies-forceForConfiguration/groovy",files="build.gradle[tags=force-per-configuration]"]
 ====
 
 WARNING: Forcing a specific version of a dependency should be a conscious and deliberate decision. It can lead to conflicts or unexpected behavior, especially when transitive dependencies rely on different versions.
@@ -106,8 +106,8 @@ These methods can be insufficient for large-scale projects.
 By declaring module replacements, you can address this issue globally across projects, allowing organizations to handle such conflicts holistically.
 
 ====
-include::sample[dir="snippets/dependencyManagement/customizingResolution-replacementRule/kotlin",files="build.gradle.kts[tags=module_replacement_declaration]"]
-include::sample[dir="snippets/dependencyManagement/customizingResolution-replacementRule/groovy",files="build.gradle[tags=module_replacement_declaration]"]
+include::sample[dir="snippets/reference/dependency-management/dependency-management/customizingResolution-replacementRule/kotlin",files="build.gradle.kts[tags=module_replacement_declaration]"]
+include::sample[dir="snippets/reference/dependency-management/dependency-management/customizingResolution-replacementRule/groovy",files="build.gradle[tags=module_replacement_declaration]"]
 ====
 
 Once declared, Gradle treats any version of `guava` as superior to `google-collections` during conflict resolution, ensuring only `guava` appears in the classpath.
@@ -144,8 +144,8 @@ Dependency substitution can be used to replace an external module with a locally
 The external module can be replaced whether a version is specified:
 
 ====
-include::sample[dir="snippets/dependencyManagement/customizingResolution-substitutionRule/kotlin",files="build.gradle.kts[tags=module_to_project_substitution]"]
-include::sample[dir="snippets/dependencyManagement/customizingResolution-substitutionRule/groovy",files="build.gradle[tags=module_to_project_substitution]"]
+include::sample[dir="snippets/reference/dependency-management/dependency-management/customizingResolution-substitutionRule/kotlin",files="build.gradle.kts[tags=module_to_project_substitution]"]
+include::sample[dir="snippets/reference/dependency-management/dependency-management/customizingResolution-substitutionRule/groovy",files="build.gradle[tags=module_to_project_substitution]"]
 ====
 
 - Substituted projects must be part of the multi-project build (included via `settings.gradle`).
@@ -159,8 +159,8 @@ You can also use substitution rules to replace a project dependency with an exte
 This technique can accelerate development by allowing certain dependencies to be downloaded from a repository instead of being built locally:
 
 ====
-include::sample[dir="snippets/dependencyManagement/customizingResolution-substitutionRule/kotlin",files="build.gradle.kts[tags=project_to_module_substitution]"]
-include::sample[dir="snippets/dependencyManagement/customizingResolution-substitutionRule/groovy",files="build.gradle[tags=project_to_module_substitution]"]
+include::sample[dir="snippets/reference/dependency-management/dependency-management/customizingResolution-substitutionRule/kotlin",files="build.gradle.kts[tags=project_to_module_substitution]"]
+include::sample[dir="snippets/reference/dependency-management/dependency-management/customizingResolution-substitutionRule/groovy",files="build.gradle[tags=project_to_module_substitution]"]
 ====
 
 - The substituted module must include a version.
@@ -174,8 +174,8 @@ You can conditionally substitute a module dependency with a local project in a m
 This is particularly useful when you want to use a locally developed version of a dependency if it exists, otherwise fall back to the external module:
 
 ====
-include::sample[dir="snippets/dependencyManagement/customizingResolution-conditionalSubstitutionRule/kotlin/consumer",files="build.gradle.kts[tags=project_substitution]"]
-include::sample[dir="snippets/dependencyManagement/customizingResolution-conditionalSubstitutionRule/groovy/consumer",files="build.gradle[tags=project_substitution]"]
+include::sample[dir="snippets/reference/dependency-management/dependency-management/customizingResolution-conditionalSubstitutionRule/kotlin/consumer",files="build.gradle.kts[tags=project_substitution]"]
+include::sample[dir="snippets/reference/dependency-management/dependency-management/customizingResolution-conditionalSubstitutionRule/groovy/consumer",files="build.gradle[tags=project_substitution]"]
 ====
 
 - The substitution only occurs if a local project matching the dependency name is found.
@@ -202,15 +202,15 @@ Substituting a dependency based on attributes allows you to override the default
 This technique is useful for managing platform and library dependencies in complex builds, particularly when you want to consume a regular library but the platform dependency was incorrectly declared:
 
 ====
-include::sample[dir="snippets/dependencyManagement/customizingResolution-attributeSubstitutionRule/kotlin",files="lib/build.gradle.kts[tags=dependencies]"]
-include::sample[dir="snippets/dependencyManagement/customizingResolution-attributeSubstitutionRule/groovy",files="lib/build.gradle[tags=dependencies]"]
+include::sample[dir="snippets/reference/dependency-management/dependency-management/customizingResolution-attributeSubstitutionRule/kotlin",files="lib/build.gradle.kts[tags=dependencies]"]
+include::sample[dir="snippets/reference/dependency-management/dependency-management/customizingResolution-attributeSubstitutionRule/groovy",files="lib/build.gradle[tags=dependencies]"]
 ====
 
 In this example, the substitution rule targets the platform version of `com.google.guava:guava` and replaces it with the regular library version:
 
 ====
-include::sample[dir="snippets/dependencyManagement/customizingResolution-attributeSubstitutionRule/kotlin",files="consumer/build.gradle.kts[tags=substitution_rule]"]
-include::sample[dir="snippets/dependencyManagement/customizingResolution-attributeSubstitutionRule/groovy",files="consumer/build.gradle[tags=substitution_rule]"]
+include::sample[dir="snippets/reference/dependency-management/dependency-management/customizingResolution-attributeSubstitutionRule/kotlin",files="consumer/build.gradle.kts[tags=substitution_rule]"]
+include::sample[dir="snippets/reference/dependency-management/dependency-management/customizingResolution-attributeSubstitutionRule/groovy",files="consumer/build.gradle[tags=substitution_rule]"]
 ====
 
 Without the `platform` keyword, the substitution would not specifically target the platform dependency.
@@ -218,8 +218,8 @@ Without the `platform` keyword, the substitution would not specifically target t
 The following rule performs the same substitution but uses the more granular **variant** notation, allowing for customization of the dependency's attributes:
 
 ====
-include::sample[dir="snippets/dependencyManagement/customizingResolution-attributeSubstitutionRule/kotlin",files="consumer/build.gradle.kts[tags=substitution_rule_alternative]"]
-include::sample[dir="snippets/dependencyManagement/customizingResolution-attributeSubstitutionRule/groovy",files="consumer/build.gradle[tags=substitution_rule_alternative]"]
+include::sample[dir="snippets/reference/dependency-management/dependency-management/customizingResolution-attributeSubstitutionRule/kotlin",files="consumer/build.gradle.kts[tags=substitution_rule_alternative]"]
+include::sample[dir="snippets/reference/dependency-management/dependency-management/customizingResolution-attributeSubstitutionRule/groovy",files="consumer/build.gradle[tags=substitution_rule_alternative]"]
 ====
 
 By using attribute-based substitution, you can precisely control which dependencies are replaced, ensuring Gradle resolves the correct versions and variants in your build.
@@ -239,8 +239,8 @@ Capabilities allow you to specify that a particular variant of a dependency offe
 This example substitutes a regular dependency with its <<java_testing.adoc#sec:java_test_fixtures,test fixtures>> using a capability:
 
 ====
-include::sample[dir="snippets/dependencyManagement/customizingResolution-capabilitySubstitutionRule/kotlin",files="build.gradle.kts[tags=substitution_rule]"]
-include::sample[dir="snippets/dependencyManagement/customizingResolution-capabilitySubstitutionRule/groovy",files="build.gradle[tags=substitution_rule]"]
+include::sample[dir="snippets/reference/dependency-management/dependency-management/customizingResolution-capabilitySubstitutionRule/kotlin",files="build.gradle.kts[tags=substitution_rule]"]
+include::sample[dir="snippets/reference/dependency-management/dependency-management/customizingResolution-capabilitySubstitutionRule/groovy",files="build.gradle[tags=substitution_rule]"]
 ====
 
 Here, we substitute the regular `com.acme:lib:1.0` dependency with its `lib-test-fixtures` variant.
@@ -259,8 +259,8 @@ Although Gradle discourages the use of classifiers, it provides a way to handle 
 Consider the following setup:
 
 ====
-include::sample[dir="snippets/dependencyManagement/customizingResolution-classifierSubstitutionRule/kotlin",files="consumer/build.gradle.kts[tags=dependencies]"]
-include::sample[dir="snippets/dependencyManagement/customizingResolution-classifierSubstitutionRule/groovy",files="consumer/build.gradle[tags=dependencies]"]
+include::sample[dir="snippets/reference/dependency-management/dependency-management/customizingResolution-classifierSubstitutionRule/kotlin",files="consumer/build.gradle.kts[tags=dependencies]"]
+include::sample[dir="snippets/reference/dependency-management/dependency-management/customizingResolution-classifierSubstitutionRule/groovy",files="consumer/build.gradle[tags=dependencies]"]
 ====
 
 In the example above, the first level dependency on `quasar` makes us think that Gradle would resolve `quasar-core-0.8.0.jar` but it's not the case.
@@ -279,8 +279,8 @@ Execution failed for task ':consumer:resolve'.
 That's because there's a dependency on another project, `lib`, which itself depends on a different version of `quasar-core`:
 
 ====
-include::sample[dir="snippets/dependencyManagement/customizingResolution-classifierSubstitutionRule/kotlin",files="lib/build.gradle.kts[tags=dependencies]"]
-include::sample[dir="snippets/dependencyManagement/customizingResolution-classifierSubstitutionRule/groovy",files="lib/build.gradle[tags=dependencies]"]
+include::sample[dir="snippets/reference/dependency-management/dependency-management/customizingResolution-classifierSubstitutionRule/kotlin",files="lib/build.gradle.kts[tags=dependencies]"]
+include::sample[dir="snippets/reference/dependency-management/dependency-management/customizingResolution-classifierSubstitutionRule/groovy",files="lib/build.gradle[tags=dependencies]"]
 ====
 
 - The consumer depends on `quasar-core:0.8.0` without a classifier.
@@ -290,8 +290,8 @@ include::sample[dir="snippets/dependencyManagement/customizingResolution-classif
 To resolve this conflict, you can instruct Gradle to ignore classifiers when resolving `quasar-core` dependencies:
 
 ====
-include::sample[dir="snippets/dependencyManagement/customizingResolution-classifierSubstitutionRule/kotlin",files="consumer/build.gradle.kts[tags=substitution_rule]"]
-include::sample[dir="snippets/dependencyManagement/customizingResolution-classifierSubstitutionRule/groovy",files="consumer/build.gradle[tags=substitution_rule]"]
+include::sample[dir="snippets/reference/dependency-management/dependency-management/customizingResolution-classifierSubstitutionRule/kotlin",files="consumer/build.gradle.kts[tags=substitution_rule]"]
+include::sample[dir="snippets/reference/dependency-management/dependency-management/customizingResolution-classifierSubstitutionRule/groovy",files="consumer/build.gradle[tags=substitution_rule]"]
 ====
 
 This rule effectively replaces any dependency on `quasar-core` found in the graph with a dependency without classifier.
@@ -323,8 +323,8 @@ Calling link:{groovyDslPath}/org.gradle.api.artifacts.ComponentSelection.html#or
 The following example shows a rule that disallows a particular version of a module but allows the dynamic version to choose the next best candidate:
 
 ====
-include::sample[dir="snippets/dependencyManagement/customizingResolution-selectionRule/kotlin",files="build.gradle.kts[tags=reject-version-1-1]"]
-include::sample[dir="snippets/dependencyManagement/customizingResolution-selectionRule/groovy",files="build.gradle[tags=reject-version-1-1]"]
+include::sample[dir="snippets/reference/dependency-management/dependency-management/customizingResolution-selectionRule/kotlin",files="build.gradle.kts[tags=reject-version-1-1]"]
+include::sample[dir="snippets/reference/dependency-management/dependency-management/customizingResolution-selectionRule/groovy",files="build.gradle[tags=reject-version-1-1]"]
 ====
 
 Note that version selection is applied starting with the highest version first.
@@ -336,8 +336,8 @@ Similarly, rules can be targeted at specific modules.
 Modules must be specified in the form of `group:module`:
 
 ====
-include::sample[dir="snippets/dependencyManagement/customizingResolution-selectionRule/kotlin",files="build.gradle.kts[tags=targeted-component-selection]"]
-include::sample[dir="snippets/dependencyManagement/customizingResolution-selectionRule/groovy",files="build.gradle[tags=targeted-component-selection]"]
+include::sample[dir="snippets/reference/dependency-management/dependency-management/customizingResolution-selectionRule/kotlin",files="build.gradle.kts[tags=targeted-component-selection]"]
+include::sample[dir="snippets/reference/dependency-management/dependency-management/customizingResolution-selectionRule/groovy",files="build.gradle[tags=targeted-component-selection]"]
 ====
 
 Component selection rules can also consider component metadata when selecting a version.
@@ -346,8 +346,8 @@ Possible additional metadata that can be considered are link:{javadocPath}/org/g
 Note that this extra information may not always be available and thus should be checked for `null` values:
 
 ====
-include::sample[dir="snippets/dependencyManagement/customizingResolution-selectionRule/kotlin",files="build.gradle.kts[tags=component-selection-with-metadata]"]
-include::sample[dir="snippets/dependencyManagement/customizingResolution-selectionRule/groovy",files="build.gradle[tags=component-selection-with-metadata]"]
+include::sample[dir="snippets/reference/dependency-management/dependency-management/customizingResolution-selectionRule/kotlin",files="build.gradle.kts[tags=component-selection-with-metadata]"]
+include::sample[dir="snippets/reference/dependency-management/dependency-management/customizingResolution-selectionRule/groovy",files="build.gradle[tags=component-selection-with-metadata]"]
 ====
 
 A link:{groovyDslPath}/org.gradle.api.artifacts.ComponentSelection.html[ComponentSelection] argument is _always_ required as a parameter when declaring a component selection rule.
@@ -360,8 +360,8 @@ You can set default dependencies for a configuration to ensure that a default ve
 This is useful for plugins that rely on versioned tools and want to provide a default if the user doesn't specify a version:
 
 ====
-include::sample[dir="snippets/dependencyManagement/customizingResolution-defaultDependency/kotlin",files="build.gradle.kts[tags=configuration-default-dependencies]"]
-include::sample[dir="snippets/dependencyManagement/customizingResolution-defaultDependency/groovy",files="build.gradle[tags=configuration-default-dependencies]"]
+include::sample[dir="snippets/reference/dependency-management/dependency-management/customizingResolution-defaultDependency/kotlin",files="build.gradle.kts[tags=configuration-default-dependencies]"]
+include::sample[dir="snippets/reference/dependency-management/dependency-management/customizingResolution-defaultDependency/groovy",files="build.gradle[tags=configuration-default-dependencies]"]
 ====
 
 In this example, the `pluginTool` configuration will use `org.gradle:my-util:1.0` as a default dependency unless another version is specified.
@@ -376,8 +376,8 @@ WARNING: Excluding a transitive dependency should be a conscious and deliberate 
 This approach will automatically exclude the specified transitive dependency from all dependencies declared within the configuration:
 
 ====
-include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-excludeForConfiguration/kotlin",files="build.gradle.kts[tags=exclude-transitive-dependencies]"]
-include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-excludeForConfiguration/groovy",files="build.gradle[tags=exclude-transitive-dependencies]"]
+include::sample[dir="snippets/reference/dependency-management/dependency-management/managingTransitiveDependencies-excludeForConfiguration/kotlin",files="build.gradle.kts[tags=exclude-transitive-dependencies]"]
+include::sample[dir="snippets/reference/dependency-management/dependency-management/managingTransitiveDependencies-excludeForConfiguration/groovy",files="build.gradle[tags=exclude-transitive-dependencies]"]
 ====
 
 In this example, the `commons-collections` dependency will be excluded from the `implementation` configuration, regardless of whether it is a direct or transitive dependency.
@@ -385,7 +385,7 @@ In this example, the `commons-collections` dependency will be excluded from the 
 Below is a simplified usage of the `commons-beanutils` library, where we only call `PropertyUtils.setSimpleProperty()` on a POJO (Plain Old Java Object):
 
 ====
-include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-excludeForDependency/common",files="src/main/java/Main.java"]
+include::sample[dir="snippets/reference/dependency-management/dependency-management/managingTransitiveDependencies-excludeForDependency/common",files="src/main/java/Main.java"]
 ====
 
 This specific usage doesn't require `commons-collections`, which we've verified with test coverage.
@@ -401,15 +401,15 @@ An exclusion is only applied if all paths to a dependency agree on it.
 For example, if another dependency (like `opencsv`) also brings in `commons-beanutils` (but without an exclusion), the transitive `commons-collections` will still appear:
 
 ====
-include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-excludeForDependency/kotlin",files="build.gradle.kts[tags=exclude-transitive-dependencies-2]"]
-include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-excludeForDependency/groovy",files="build.gradle[tags=exclude-transitive-dependencies-2]"]
+include::sample[dir="snippets/reference/dependency-management/dependency-management/managingTransitiveDependencies-excludeForDependency/kotlin",files="build.gradle.kts[tags=exclude-transitive-dependencies-2]"]
+include::sample[dir="snippets/reference/dependency-management/dependency-management/managingTransitiveDependencies-excludeForDependency/groovy",files="build.gradle[tags=exclude-transitive-dependencies-2]"]
 ====
 
 To fully exclude `commons-collections`, you must also exclude it from `opencsv`:
 
 ====
-include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-excludeForDependency/kotlin",files="build.gradle.kts[tags=exclude-transitive-dependencies-3]"]
-include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-excludeForDependency/groovy",files="build.gradle[tags=exclude-transitive-dependencies-3]"]
+include::sample[dir="snippets/reference/dependency-management/dependency-management/managingTransitiveDependencies-excludeForDependency/kotlin",files="build.gradle.kts[tags=exclude-transitive-dependencies-3]"]
+include::sample[dir="snippets/reference/dependency-management/dependency-management/managingTransitiveDependencies-excludeForDependency/groovy",files="build.gradle[tags=exclude-transitive-dependencies-3]"]
 ====
 
 Using excludes should be a conscious and well-tested decision.
@@ -434,8 +434,8 @@ Version conflicts can be forced to fail using:
 This will fail the build when conflicting versions of the same dependency are found:
 
 ====
-include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-resolutionStrategy/kotlin",files="build.gradle.kts[tags=fail-on-version-conflict]"]
-include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-resolutionStrategy/groovy",files="build.gradle[tags=fail-on-version-conflict]"]
+include::sample[dir="snippets/reference/dependency-management/dependency-management/managingTransitiveDependencies-resolutionStrategy/kotlin",files="build.gradle.kts[tags=fail-on-version-conflict]"]
+include::sample[dir="snippets/reference/dependency-management/dependency-management/managingTransitiveDependencies-resolutionStrategy/groovy",files="build.gradle[tags=fail-on-version-conflict]"]
 ====
 
 [[sec:disabling-resolution-transitive-dependencies]]
@@ -450,8 +450,8 @@ You can tell Gradle to disable transitive dependency management for a dependency
 In the following example, transitive dependency resolution is disabled for the `guava` dependency:
 
 ====
-include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-disableForDependency/kotlin",files="build.gradle.kts[tags=transitive-per-dependency]"]
-include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-disableForDependency/groovy",files="build.gradle[tags=transitive-per-dependency]"]
+include::sample[dir="snippets/reference/dependency-management/dependency-management/managingTransitiveDependencies-disableForDependency/kotlin",files="build.gradle.kts[tags=transitive-per-dependency]"]
+include::sample[dir="snippets/reference/dependency-management/dependency-management/managingTransitiveDependencies-disableForDependency/groovy",files="build.gradle[tags=transitive-per-dependency]"]
 ====
 
 This ensures only the main artifact for `guava` is resolved, and none of its transitive dependencies will be included.
@@ -461,8 +461,8 @@ NOTE: Disabling transitive dependency resolution will likely require you to decl
 If you want to disable transitive resolution globally across all dependencies, you can set this behavior at the configuration level:
 
 ====
-include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-disableForConfiguration/kotlin",files="build.gradle.kts[tags=transitive-per-configuration]"]
-include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-disableForConfiguration/groovy",files="build.gradle[tags=transitive-per-configuration]"]
+include::sample[dir="snippets/reference/dependency-management/dependency-management/managingTransitiveDependencies-disableForConfiguration/kotlin",files="build.gradle.kts[tags=transitive-per-configuration]"]
+include::sample[dir="snippets/reference/dependency-management/dependency-management/managingTransitiveDependencies-disableForConfiguration/groovy",files="build.gradle[tags=transitive-per-configuration]"]
 ====
 
 This disables transitive resolution for all dependencies in the project.
@@ -481,8 +481,8 @@ This feature is particularly useful for implementing advanced dependency managem
 With *dependency resolve rules*, you can redirect dependencies to specific versions or even different modules entirely, allowing you to enforce consistent versions across a project or override problematic dependencies:
 
 ====
-include::sample[dir="snippets/dependencyManagement/customizingResolution-resolutionStrategy/kotlin",files="build.gradle.kts[tags=resolve-rules]"]
-include::sample[dir="snippets/dependencyManagement/customizingResolution-resolutionStrategy/groovy",files="build.gradle[tags=resolve-rules]"]
+include::sample[dir="snippets/reference/dependency-management/dependency-management/customizingResolution-resolutionStrategy/kotlin",files="build.gradle.kts[tags=resolve-rules]"]
+include::sample[dir="snippets/reference/dependency-management/dependency-management/customizingResolution-resolutionStrategy/groovy",files="build.gradle[tags=resolve-rules]"]
 ====
 
 In this example, if a dependency on `com.example:old-library` is requested, it will be substituted with `com.example:new-library:1.0.0` during resolution.
@@ -503,8 +503,8 @@ This approach ensures that only approved versions are used, while allowing devel
 The rule implementation can be encapsulated in a corporate plugin, making it easy to apply across all projects within the organization:
 
 ====
-include::sample[dir="snippets/dependencyManagement/customizingResolution-resolutionStrategy/kotlin",files="build.gradle.kts[tags=custom-versioning-scheme]"]
-include::sample[dir="snippets/dependencyManagement/customizingResolution-resolutionStrategy/groovy",files="build.gradle[tags=custom-versioning-scheme]"]
+include::sample[dir="snippets/reference/dependency-management/dependency-management/customizingResolution-resolutionStrategy/kotlin",files="build.gradle.kts[tags=custom-versioning-scheme]"]
+include::sample[dir="snippets/reference/dependency-management/dependency-management/customizingResolution-resolutionStrategy/groovy",files="build.gradle[tags=custom-versioning-scheme]"]
 ====
 
 In this setup, whenever a developer specifies `default` as the version, the resolve rule replaces it with the approved version from the corporate catalog.
@@ -525,8 +525,8 @@ With a resolve rule, you can enforce this substitution: "anytime version `1.2` i
 Unlike forcing a version, this rule only affects the specific version `1.2`, leaving other versions unaffected:
 
 ====
-include::sample[dir="snippets/dependencyManagement/customizingResolution-resolutionStrategy/kotlin",files="build.gradle.kts[tags=denying_version]"]
-include::sample[dir="snippets/dependencyManagement/customizingResolution-resolutionStrategy/groovy",files="build.gradle[tags=denying_version]"]
+include::sample[dir="snippets/reference/dependency-management/dependency-management/customizingResolution-resolutionStrategy/kotlin",files="build.gradle.kts[tags=denying_version]"]
+include::sample[dir="snippets/reference/dependency-management/dependency-management/customizingResolution-resolutionStrategy/groovy",files="build.gradle[tags=denying_version]"]
 ====
 
 If version `1.3` is also present in the dependency graph, then even with this rule, Gradle’s default conflict resolution strategy would select `1.3` as the latest version.
@@ -542,8 +542,8 @@ Below are two examples illustrating these use cases.
 This example demonstrates how to add a dependency to a configuration based on some condition, evaluated lazily:
 
 ====
-include::sample[dir="snippets/dependencyManagement/customizingResolution-lazyDependencies/kotlin",files="build.gradle.kts[tags=configuration-lazy-add-dependency]"]
-include::sample[dir="snippets/dependencyManagement/customizingResolution-lazyDependencies/groovy",files="build.gradle[tags=configuration-lazy-add-dependency]"]
+include::sample[dir="snippets/reference/dependency-management/dependency-management/customizingResolution-lazyDependencies/kotlin",files="build.gradle.kts[tags=configuration-lazy-add-dependency]"]
+include::sample[dir="snippets/reference/dependency-management/dependency-management/customizingResolution-lazyDependencies/groovy",files="build.gradle[tags=configuration-lazy-add-dependency]"]
 ====
 
 In this case, `addLater` is used to defer the evaluation of the dependency, allowing it to be added only when certain conditions are met.
@@ -551,8 +551,8 @@ In this case, `addLater` is used to defer the evaluation of the dependency, allo
 In this example, the build script sets a preferred version of a dependency, which will be used if no version is explicitly specified:
 
 ====
-include::sample[dir="snippets/dependencyManagement/customizingResolution-lazyDependencies/kotlin",files="build.gradle.kts[tags=preferred-version-constraints]"]
-include::sample[dir="snippets/dependencyManagement/customizingResolution-lazyDependencies/groovy",files="build.gradle[tags=preferred-version-constraints]"]
+include::sample[dir="snippets/reference/dependency-management/dependency-management/customizingResolution-lazyDependencies/kotlin",files="build.gradle.kts[tags=preferred-version-constraints]"]
+include::sample[dir="snippets/reference/dependency-management/dependency-management/customizingResolution-lazyDependencies/groovy",files="build.gradle[tags=preferred-version-constraints]"]
 ====
 
 This ensures that `org:foo` uses version `1.0` unless the user specifies another version.

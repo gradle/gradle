@@ -26,11 +26,13 @@ import org.gradle.integtests.fixtures.versions.KotlinGradlePluginVersions
 import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.fixtures.server.http.MavenHttpPluginRepository
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.JdkVersionTestPreconditions
+
 import org.hamcrest.Matchers
 import org.junit.Rule
 
 @PolyglotDslTest
+@SkipDsl(dsl = GradleDsl.GROOVY, because = "Groovy DSL is not supported for declarative configuration")
 class ProjectTypeDeclarationIntegrationTest extends AbstractIntegrationSpec implements ProjectTypeFixture, PolyglotTestFixture {
     @Rule
     MavenHttpPluginRepository pluginPortal = MavenHttpPluginRepository.asGradlePluginPortal(executer, mavenRepo)
@@ -174,7 +176,6 @@ class ProjectTypeDeclarationIntegrationTest extends AbstractIntegrationSpec impl
         outputDoesNotContain("Applying AnotherProjectTypeImplPlugin")
     }
 
-    @SkipDsl(dsl = GradleDsl.GROOVY, because = "Groovy has no problem with finding non-public methods/types ...")
     def 'can declare and configure a custom project type with different public and implementation model types'() {
         given:
         withProjectTypeThatHasDifferentPublicAndImplementationTypes().prepareToExecute()
@@ -298,7 +299,6 @@ class ProjectTypeDeclarationIntegrationTest extends AbstractIntegrationSpec impl
         failure.assertHasCause("The project has already applied the 'testProjectType' project type and is also attempting to apply the 'anotherProjectType' project type.  Only one project type can be applied to a project.")
     }
 
-    @SkipDsl(dsl = GradleDsl.GROOVY, because = "Groovy can use a property value on the assignment RHS")
     @SkipDsl(dsl = GradleDsl.KOTLIN, because = "Kotlin can use a property value on the assignment RHS")
     def 'sensible error when declarative script uses a property as value for another property'() {
         given:
@@ -343,7 +343,7 @@ class ProjectTypeDeclarationIntegrationTest extends AbstractIntegrationSpec impl
         outputContains("Applying ProjectTypeImplPlugin")
     }
 
-    @Requires(UnitTestPreconditions.Jdk23OrEarlier) // Because Kotlin does not support 24 yet and falls back to 23 causing inconsistent JVM targets
+    @Requires(JdkVersionTestPreconditions.Jdk23OrEarlier) // Because Kotlin does not support 24 yet and falls back to 23 causing inconsistent JVM targets
     def 'can declare and configure a custom project type in Kotlin using an action class'() {
         given:
         def pluginBuilder = withKotlinProjectTypeThatBindsWithClass()

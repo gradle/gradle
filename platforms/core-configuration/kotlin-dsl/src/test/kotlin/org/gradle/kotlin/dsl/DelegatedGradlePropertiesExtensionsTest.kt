@@ -4,6 +4,7 @@ import org.gradle.api.InvalidUserCodeException
 import org.gradle.api.Project
 import org.gradle.api.initialization.Settings
 import org.gradle.api.internal.DynamicObjectAware
+import org.gradle.test.fixtures.ExpectDeprecationExtension
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.project.DefaultDynamicLookupRoutine
 import org.gradle.api.internal.project.DynamicLookupRoutine
@@ -26,117 +27,147 @@ class DelegatedGradlePropertiesExtensionsTest {
 
     @Test
     fun `non-nullable delegated property access of existing non-null gradle property`() {
+        ExpectDeprecationExtension.intercept(
+            "The 'val name: Type by settings' property delegate syntax has been deprecated."
+        ) {
+            withMockForSettings(existing = "p" to 42) {
 
-        withMockForSettings(existing = "p" to 42) {
+                @Suppress("DEPRECATION")
+                val p: Int by settings
+                assertThat(p, equalTo(42))
+            }
 
-            val p: Int by settings
-            assertThat(p, equalTo(42))
-        }
+            withMockForProject(existing = "p" to 42) {
 
-        withMockForProject(existing = "p" to 42) {
-
-            val p: Int by project
-            assertThat(p, equalTo(42))
+                @Suppress("DEPRECATION")
+                val p: Int by project
+                assertThat(p, equalTo(42))
+            }
         }
     }
 
     @Test
     fun `non-nullable delegated property access of existing null gradle property throws`() {
+        ExpectDeprecationExtension.intercept(
+            "The 'val name: Type by settings' property delegate syntax has been deprecated."
+        ) {
+            withMockForSettings(existing = "p" to null) {
 
-        withMockForSettings(existing = "p" to null) {
-
-            val p: Any by settings
-            try {
-                p.toString()
-                fail("InvalidUserCodeException not thrown")
-            } catch (ex: InvalidUserCodeException) {
-                assertThat(ex.message, equalTo("Cannot get non-null property 'p' on settings as it is null"))
+                @Suppress("DEPRECATION")
+                val p: Any by settings
+                try {
+                    p.toString()
+                    fail("InvalidUserCodeException not thrown")
+                } catch (ex: InvalidUserCodeException) {
+                    assertThat(ex.message, equalTo("Cannot get non-null property 'p' on settings as it is null"))
+                }
             }
-        }
 
-        withMockForProject(existing = "p" to null) {
+            withMockForProject(existing = "p" to null) {
 
-            val p: Any by project
-            try {
-                p.toString()
-                fail("InvalidUserCodeException not thrown")
-            } catch (ex: InvalidUserCodeException) {
-                assertThat(ex.message, equalTo("Cannot get non-null property 'p' on project as it is null"))
+                @Suppress("DEPRECATION")
+                val p: Any by project
+                try {
+                    p.toString()
+                    fail("InvalidUserCodeException not thrown")
+                } catch (ex: InvalidUserCodeException) {
+                    assertThat(ex.message, equalTo("Cannot get non-null property 'p' on project as it is null"))
+                }
             }
         }
     }
 
     @Test
     fun `non-nullable delegated property access of non-existing gradle property throws`() {
+        ExpectDeprecationExtension.intercept(
+            "The 'val name: Type by settings' property delegate syntax has been deprecated."
+        ) {
+            withMockForSettings(absent = "p") {
 
-        withMockForSettings(absent = "p") {
-
-            val p: Any by settings
-            try {
-                p.toString()
-                fail("InvalidUserCodeException not thrown")
-            } catch (ex: InvalidUserCodeException) {
-                assertThat(ex.message, equalTo("Cannot get non-null property 'p' on settings as it does not exist"))
+                @Suppress("DEPRECATION")
+                val p: Any by settings
+                try {
+                    p.toString()
+                    fail("InvalidUserCodeException not thrown")
+                } catch (ex: InvalidUserCodeException) {
+                    assertThat(ex.message, equalTo("Cannot get non-null property 'p' on settings as it does not exist"))
+                }
             }
-        }
 
-        withMockForProject(absent = "p") {
+            withMockForProject(absent = "p") {
 
-            val p: Any by project
-            try {
-                p.toString()
-                fail("InvalidUserCodeException not thrown")
-            } catch (ex: InvalidUserCodeException) {
-                assertThat(ex.message, equalTo("Cannot get non-null property 'p' on project as it does not exist"))
+                @Suppress("DEPRECATION")
+                val p: Any by project
+                try {
+                    p.toString()
+                    fail("InvalidUserCodeException not thrown")
+                } catch (ex: InvalidUserCodeException) {
+                    assertThat(ex.message, equalTo("Cannot get non-null property 'p' on project as it does not exist"))
+                }
             }
         }
     }
 
     @Test
     fun `nullable delegated property access of existing non-null gradle property`() {
+        ExpectDeprecationExtension.intercept(
+            "The 'val name: Type? by settings' property delegate syntax has been deprecated."
+        ) {
+            withMockForSettings(existing = "p" to 42) {
 
-        withMockForSettings(existing = "p" to 42) {
+                @Suppress("DEPRECATION")
+                val p: Int? by settings
+                assertThat(p, equalTo(42))
+            }
 
-            val p: Int? by settings
-            assertThat(p, equalTo(42))
-        }
+            withMockForProject(existing = "p" to 42) {
 
-        withMockForProject(existing = "p" to 42) {
-
-            val p: Int? by project
-            assertThat(p, equalTo(42))
+                @Suppress("DEPRECATION")
+                val p: Int? by project
+                assertThat(p, equalTo(42))
+            }
         }
     }
 
     @Test
     fun `nullable delegated property access of existing null gradle property`() {
+        ExpectDeprecationExtension.intercept(
+            "The 'val name: Type? by settings' property delegate syntax has been deprecated."
+        ) {
+            withMockForSettings(existing = "p" to null) {
 
-        withMockForSettings(existing = "p" to null) {
+                @Suppress("DEPRECATION")
+                val p: Int? by settings
+                assertThat(p, nullValue())
+            }
 
-            val p: Int? by settings
-            assertThat(p, nullValue())
-        }
+            withMockForProject(existing = "p" to null) {
 
-        withMockForProject(existing = "p" to null) {
-
-            val p: Int? by project
-            assertThat(p, nullValue())
+                @Suppress("DEPRECATION")
+                val p: Int? by project
+                assertThat(p, nullValue())
+            }
         }
     }
 
     @Test
     fun `nullable delegated property access of non-existing gradle property`() {
+        ExpectDeprecationExtension.intercept(
+            "The 'val name: Type? by settings' property delegate syntax has been deprecated."
+        ) {
+            withMockForSettings(absent = "p") {
 
-        withMockForSettings(absent = "p") {
+                @Suppress("DEPRECATION")
+                val p: Int? by settings
+                assertThat(p, nullValue())
+            }
 
-            val p: Int? by settings
-            assertThat(p, nullValue())
-        }
+            withMockForProject(absent = "p") {
 
-        withMockForProject(absent = "p") {
-
-            val p: Int? by project
-            assertThat(p, nullValue())
+                @Suppress("DEPRECATION")
+                val p: Int? by project
+                assertThat(p, nullValue())
+            }
         }
     }
 

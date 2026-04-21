@@ -81,7 +81,7 @@ import org.gradle.api.internal.project.ProjectIdentity;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
-import org.gradle.api.problems.internal.InternalProblems;
+import org.gradle.api.problems.internal.ProblemsInternal;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
@@ -308,19 +308,26 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
     private void initializeInheritedArtifacts() {
         if (inheritedArtifacts == null) {
-            inheritedArtifacts = new InheritedCollection<>(configurationServices, PublishArtifact.class, ownArtifacts, extendsFrom, Configuration::getAllArtifacts);
+            // Use addCollectionProvider to avoid eagerly calling realizePending() on ownArtifacts,
+            // which can force realization of lazy artifact providers before variant computation
+            // has completed.
+            CompositeDomainObjectSet<PublishArtifact> all = CompositeDomainObjectSet.create(PublishArtifact.class, configurationServices.getCollectionCallbackActionDecorator());
+            all.addCollectionProvider(configurationServices.getProviderFactory().provider(() -> ownArtifacts));
+            inheritedArtifacts = new InheritedCollection<>(all, extendsFrom, Configuration::getAllArtifacts);
         }
     }
 
     private void initializeInheritedDependencies() {
         if (inheritedDependencies == null) {
-            inheritedDependencies = new InheritedCollection<>(configurationServices, Dependency.class, ownDependencies, extendsFrom, Configuration::getAllDependencies);
+            CompositeDomainObjectSet<Dependency> all = configurationServices.getDomainObjectCollectionFactory().newDomainObjectSet(Dependency.class, ownDependencies);
+            inheritedDependencies = new InheritedCollection<>(all, extendsFrom, Configuration::getAllDependencies);
         }
     }
 
     private void initializeInheritedDependencyConstraints() {
         if (inheritedDependencyConstraints == null) {
-            inheritedDependencyConstraints = new InheritedCollection<>(configurationServices, DependencyConstraint.class, ownDependencyConstraints, extendsFrom, Configuration::getAllDependencyConstraints);
+            CompositeDomainObjectSet<DependencyConstraint> all = configurationServices.getDomainObjectCollectionFactory().newDomainObjectSet(DependencyConstraint.class, ownDependencyConstraints);
+            inheritedDependencyConstraints = new InheritedCollection<>(all, extendsFrom, Configuration::getAllDependencyConstraints);
         }
     }
 
@@ -1629,7 +1636,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         return roleAtCreation;
     }
 
-    public InternalProblems getProblems() {
+    public ProblemsInternal getProblems() {
         return configurationServices.getProblems();
     }
 
@@ -1755,13 +1762,13 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
         private final Path buildTreePath;
         private final DisplayName displayName;
-        private final InternalProblems problems;
+        private final ProblemsInternal problems;
         private final ResolveExceptionMapper exceptionMapper;
 
         public DefaultResolutionHost(
             Path buildTreePath,
             DisplayName displayName,
-            InternalProblems problems,
+            ProblemsInternal problems,
             ResolveExceptionMapper exceptionMapper
         ) {
             this.buildTreePath = buildTreePath;
@@ -1771,7 +1778,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         }
 
         @Override
-        public InternalProblems getProblems() {
+        public ProblemsInternal getProblems() {
             return problems;
         }
 
@@ -1881,14 +1888,12 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         private final List<Provider<DomainObjectCollection<? extends T>>> inheritedCollections = new ArrayList<>();
 
         public InheritedCollection(
-            ConfigurationServicesBundle configurationServices,
-            Class<T> type,
-            DomainObjectCollection<T> own,
+            CompositeDomainObjectSet<T> all,
             ExtendedConfigurations extendsFrom,
             Function<Configuration, DomainObjectCollection<T>> configurationToCollection
         ) {
             this.configurationToCollection = configurationToCollection;
-            this.all = configurationServices.getDomainObjectCollectionFactory().newDomainObjectSet(type, own);
+            this.all = all;
 
             updateExtendedConfigurations(extendsFrom);
         }

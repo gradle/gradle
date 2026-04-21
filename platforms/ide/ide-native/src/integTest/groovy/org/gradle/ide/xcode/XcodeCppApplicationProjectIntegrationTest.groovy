@@ -22,8 +22,8 @@ import org.gradle.nativeplatform.fixtures.app.CppSourceElement
 import org.gradle.test.precondition.Requires
 
 import static org.gradle.ide.xcode.internal.XcodeUtils.toSpaceSeparatedList
-import static org.gradle.test.preconditions.IntegTestPreconditions.NotEmbeddedExecutor
-import static org.gradle.test.preconditions.UnitTestPreconditions.HasXCode
+import static org.gradle.test.preconditions.TestExecutionPreconditions.NotEmbeddedExecutor
+import static org.gradle.test.preconditions.TestEnvironmentPreconditions.HasXCode
 
 class XcodeCppApplicationProjectIntegrationTest extends AbstractXcodeCppProjectIntegrationTest {
     @Override

@@ -26,7 +26,8 @@ import org.gradle.buildinit.plugins.internal.modifiers.Language
 import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.JdkVersionTestPreconditions
+
 
 import static org.gradle.buildinit.plugins.internal.modifiers.Language.GROOVY
 import static org.gradle.buildinit.plugins.internal.modifiers.Language.JAVA
@@ -113,7 +114,7 @@ abstract class AbstractMultiProjectJvmApplicationInitIntegrationTest extends Abs
     }
 
     protected void assertTestPassed(String projectName, String className, String name) {
-        GenericTestExecutionResult testResults = new GenericHtmlTestExecutionResult(targetDir.file(projectName), "build/reports/tests/test", resultsTestFramework)
+        GenericTestExecutionResult testResults = new GenericHtmlTestExecutionResult(targetDir.file(projectName), "build/reports/tests/test")
         testResults.testPath(className, name).onlyRoot().assertHasResult(TestResult.ResultType.SUCCESS)
     }
 
@@ -306,7 +307,7 @@ class GroovyDslMultiProjectGroovyApplicationInitIntegrationTest3 extends Abstrac
     }
 }
 
-@Requires(value = UnitTestPreconditions.KotlinSupportedJdk.class)
+@Requires(value = JdkVersionTestPreconditions.KotlinSupportedJdk.class)
 @ToBeFixedForIsolatedProjects(skip = FLAKY, because = "KGP modifies service parameter properties concurrently")
 class GroovyDslMultiProjectKotlinApplicationInitIntegrationTest1 extends AbstractMultiProjectJvmApplicationInitIntegrationTest1 {
     def setup() {
@@ -314,7 +315,7 @@ class GroovyDslMultiProjectKotlinApplicationInitIntegrationTest1 extends Abstrac
     }
 }
 
-@Requires(value = UnitTestPreconditions.KotlinSupportedJdk.class)
+@Requires(value = JdkVersionTestPreconditions.KotlinSupportedJdk.class)
 @ToBeFixedForIsolatedProjects(skip = FLAKY, because = "KGP modifies service parameter properties concurrently")
 class GroovyDslMultiProjectKotlinApplicationInitIntegrationTest2 extends AbstractMultiProjectJvmApplicationInitIntegrationTest2 {
     def setup() {
@@ -322,7 +323,7 @@ class GroovyDslMultiProjectKotlinApplicationInitIntegrationTest2 extends Abstrac
     }
 }
 
-@Requires(value = UnitTestPreconditions.KotlinSupportedJdk.class)
+@Requires(value = JdkVersionTestPreconditions.KotlinSupportedJdk.class)
 @ToBeFixedForIsolatedProjects(skip = FLAKY, because = "KGP modifies service parameter properties concurrently")
 class GroovyDslMultiProjectKotlinApplicationInitIntegrationTest3 extends AbstractMultiProjectJvmApplicationInitIntegrationTest3 {
     def setup() {
@@ -330,21 +331,21 @@ class GroovyDslMultiProjectKotlinApplicationInitIntegrationTest3 extends Abstrac
     }
 }
 
-@Requires(value = UnitTestPreconditions.Jdk23OrEarlier, reason = "Scala cannot compile on Java 24 yet")
+@Requires(value = JdkVersionTestPreconditions.Jdk23OrEarlier, reason = "Scala cannot compile on Java 24 yet")
 class GroovyDslMultiProjectScalaApplicationInitIntegrationTest1 extends AbstractMultiProjectJvmApplicationInitIntegrationTest1 {
     def setup() {
         setupDslAndLanguage(BuildInitDsl.GROOVY, SCALA)
     }
 }
 
-@Requires(value = UnitTestPreconditions.Jdk23OrEarlier, reason = "Scala cannot compile on Java 24 yet")
+@Requires(value = JdkVersionTestPreconditions.Jdk23OrEarlier, reason = "Scala cannot compile on Java 24 yet")
 class GroovyDslMultiProjectScalaApplicationInitIntegrationTest2 extends AbstractMultiProjectJvmApplicationInitIntegrationTest2 {
     def setup() {
         setupDslAndLanguage(BuildInitDsl.GROOVY, SCALA)
     }
 }
 
-@Requires(value = UnitTestPreconditions.Jdk23OrEarlier, reason = "Scala cannot compile on Java 24 yet")
+@Requires(value = JdkVersionTestPreconditions.Jdk23OrEarlier, reason = "Scala cannot compile on Java 24 yet")
 class GroovyDslMultiProjectScalaApplicationInitIntegrationTest3 extends AbstractMultiProjectJvmApplicationInitIntegrationTest3 {
     def setup() {
         setupDslAndLanguage(BuildInitDsl.GROOVY, SCALA)
@@ -387,7 +388,7 @@ class KotlinDslMultiProjectGroovyApplicationInitIntegrationTest3 extends Abstrac
     }
 }
 
-@Requires(value = UnitTestPreconditions.KotlinSupportedJdk.class)
+@Requires(value = JdkVersionTestPreconditions.KotlinSupportedJdk.class)
 @ToBeFixedForIsolatedProjects(skip = FLAKY, because = "KGP modifies service parameter properties concurrently")
 class KotlinDslMultiProjectKotlinApplicationInitIntegrationTest1 extends AbstractMultiProjectJvmApplicationInitIntegrationTest1 {
     def setup() {
@@ -395,7 +396,7 @@ class KotlinDslMultiProjectKotlinApplicationInitIntegrationTest1 extends Abstrac
     }
 }
 
-@Requires(value = UnitTestPreconditions.KotlinSupportedJdk.class)
+@Requires(value = JdkVersionTestPreconditions.KotlinSupportedJdk.class)
 @ToBeFixedForIsolatedProjects(skip = FLAKY, because = "KGP modifies service parameter properties concurrently")
 class KotlinDslMultiProjectKotlinApplicationInitIntegrationTest2 extends AbstractMultiProjectJvmApplicationInitIntegrationTest2 {
     def setup() {
@@ -403,7 +404,7 @@ class KotlinDslMultiProjectKotlinApplicationInitIntegrationTest2 extends Abstrac
     }
 }
 
-@Requires(value = UnitTestPreconditions.KotlinSupportedJdk.class)
+@Requires(value = JdkVersionTestPreconditions.KotlinSupportedJdk.class)
 @ToBeFixedForIsolatedProjects(skip = FLAKY, because = "KGP modifies service parameter properties concurrently")
 class KotlinDslMultiProjectKotlinApplicationInitIntegrationTest3 extends AbstractMultiProjectJvmApplicationInitIntegrationTest3 {
     def setup() {
@@ -411,21 +412,21 @@ class KotlinDslMultiProjectKotlinApplicationInitIntegrationTest3 extends Abstrac
     }
 }
 
-@Requires(value = UnitTestPreconditions.Jdk23OrEarlier, reason = "Scala cannot compile on Java 24 yet")
+@Requires(value = JdkVersionTestPreconditions.Jdk23OrEarlier, reason = "Scala cannot compile on Java 24 yet")
 class KotlinDslMultiProjectScalaApplicationInitIntegrationTest1 extends AbstractMultiProjectJvmApplicationInitIntegrationTest1 {
     def setup() {
         setupDslAndLanguage(BuildInitDsl.KOTLIN, SCALA)
     }
 }
 
-@Requires(value = UnitTestPreconditions.Jdk23OrEarlier, reason = "Scala cannot compile on Java 24 yet")
+@Requires(value = JdkVersionTestPreconditions.Jdk23OrEarlier, reason = "Scala cannot compile on Java 24 yet")
 class KotlinDslMultiProjectScalaApplicationInitIntegrationTest2 extends AbstractMultiProjectJvmApplicationInitIntegrationTest2 {
     def setup() {
         setupDslAndLanguage(BuildInitDsl.KOTLIN, SCALA)
     }
 }
 
-@Requires(value = UnitTestPreconditions.Jdk23OrEarlier, reason = "Scala cannot compile on Java 24 yet")
+@Requires(value = JdkVersionTestPreconditions.Jdk23OrEarlier, reason = "Scala cannot compile on Java 24 yet")
 class KotlinDslMultiProjectScalaApplicationInitIntegrationTest3 extends AbstractMultiProjectJvmApplicationInitIntegrationTest3 {
     def setup() {
         setupDslAndLanguage(BuildInitDsl.KOTLIN, SCALA)

@@ -25,8 +25,8 @@ All the source sets, tasks and configurations exposed by the Java plugin are imp
 To use the Java Library plugin, include the following in your build script:
 
 ====
-include::sample[dir="snippets/java-library/quickstart/kotlin",files="build.gradle.kts[tags=use-plugin]"]
-include::sample[dir="snippets/java-library/quickstart/groovy",files="build.gradle[tags=use-plugin]"]
+include::sample[dir="snippets/reference/platforms/jvm/quickstart/kotlin",files="build.gradle.kts[tags=use-plugin]"]
+include::sample[dir="snippets/reference/platforms/jvm/quickstart/groovy",files="build.gradle[tags=use-plugin]"]
 ====
 
 [[sec:java_library_separation]]
@@ -38,8 +38,8 @@ The plugin exposes two <<dependency_configurations.adoc#sub:what-are-dependency-
 The `api` configuration should be used to declare dependencies which are exported by the library API, whereas the `implementation` configuration should be used to declare dependencies which are internal to the component.
 
 ====
-include::sample[dir="snippets/java-library/quickstart/kotlin",files="build.gradle.kts[tags=dependencies]"]
-include::sample[dir="snippets/java-library/quickstart/groovy",files="build.gradle[tags=dependencies]"]
+include::sample[dir="snippets/reference/platforms/jvm/quickstart/kotlin",files="build.gradle.kts[tags=dependencies]"]
+include::sample[dir="snippets/reference/platforms/jvm/quickstart/groovy",files="build.gradle[tags=dependencies]"]
 ====
 
 Dependencies appearing in the `api` configurations will be transitively exposed to consumers of the library, and as such will appear on the compile classpath of consumers. Dependencies found in the `implementation` configuration will, on the other hand, not be exposed to consumers, and therefore not leak into the consumers' compile classpath. This comes with several benefits:
@@ -95,7 +95,7 @@ The following class makes use of a couple of third-party libraries, one of which
 [source,java]
 .src/main/java/org/gradle/HttpClientWrapper.java
 ----
-include::{snippetsPath}/java-library/quickstart/common/src/main/java/org/gradle/HttpClientWrapper.java[tag=sample]
+include::{snippetsPath}/reference/platforms/jvm/quickstart/common/src/main/java/org/gradle/HttpClientWrapper.java[tag=sample]
 ----
 
 The _public_ constructor of `HttpClientWrapper` uses `HttpClient` as a parameter, so it is exposed to consumers and therefore belongs to the API. Note that `HttpGet` and `HttpEntity` are used in the signature of a _private_ method, and so they don't count towards making HttpClient an API dependency.
@@ -105,8 +105,8 @@ On the other hand, the `ExceptionUtils` type, coming from the `commons-lang` lib
 Therefore, we can deduce that `httpclient` is an API dependency, whereas `commons-lang` is an implementation dependency. This conclusion translates into the following declaration in the build script:
 
 ====
-include::sample[dir="snippets/java-library/quickstart/kotlin",files="build.gradle.kts[tags=dependencies]"]
-include::sample[dir="snippets/java-library/quickstart/groovy",files="build.gradle[tags=dependencies]"]
+include::sample[dir="snippets/reference/platforms/jvm/quickstart/kotlin",files="build.gradle.kts[tags=dependencies]"]
+include::sample[dir="snippets/reference/platforms/jvm/quickstart/groovy",files="build.gradle[tags=dependencies]"]
 ====
 
 [[sec:java_library_configurations_graph]]
@@ -227,7 +227,7 @@ In the module info file, you declare a _module name_, which packages of your mod
 
 [source,java,indent=0]
 ----
-include::{snippetsPath}/java-library/module/groovy/src/main/java/module-info.java[]
+include::{snippetsPath}/reference/platforms/jvm/module/groovy/src/main/java/module-info.java[]
 ----
 
 To tell the Java compiler that a Jar is a module, as opposed to a traditional Java library, Gradle needs to place it on the so called _module path_.
@@ -285,8 +285,8 @@ Java Modules also have a version that is encoded as part of the module identity 
 This version can be inspected when a module is running.
 
 ====
-include::sample[dir="snippets/java-library/module/kotlin",files="build.gradle.kts[tags=declareVersion]"]
-include::sample[dir="snippets/java-library/module/groovy",files="build.gradle[tags=declareVersion]"]
+include::sample[dir="snippets/reference/platforms/jvm/module/kotlin",files="build.gradle.kts[tags=declareVersion]"]
+include::sample[dir="snippets/reference/platforms/jvm/module/groovy",files="build.gradle[tags=declareVersion]"]
 ====
 
 === Using libraries that are not modules
@@ -303,13 +303,13 @@ Gradle puts such libraries on the classpath instead of the module path.
 The classpath is then treated as one module (the so called _unnamed_ module) by Java.
 
 ====
-include::sample[dir="snippets/java-library/module/kotlin",files="build.gradle.kts[tags=dependencies]"]
-include::sample[dir="snippets/java-library/module/groovy",files="build.gradle[tags=dependencies]"]
+include::sample[dir="snippets/reference/platforms/jvm/module/kotlin",files="build.gradle.kts[tags=dependencies]"]
+include::sample[dir="snippets/reference/platforms/jvm/module/groovy",files="build.gradle[tags=dependencies]"]
 ====
 
 [source,java,indent=0]
 ----
-include::{snippetsPath}/java-library/module/kotlin/src/main/java/module-info.java[]
+include::{snippetsPath}/reference/platforms/jvm/module/kotlin/src/main/java/module-info.java[]
 ----
 
 While a real module cannot directly depend on the unnamed module (only by adding command line flags), automatic modules can also see the unnamed module.
@@ -328,8 +328,8 @@ This corresponds to the behaviour of Gradle versions <7.0.
 To make this work, you need to set `modularity.inferModulePath = false` on the Java extension (for all tasks) or on individual tasks.
 
 ====
-include::sample[dir="snippets/java-library/module-disabled/kotlin",files="build.gradle.kts[tags=disableModulePath]"]
-include::sample[dir="snippets/java-library/module-disabled/groovy",files="build.gradle[tags=disableModulePath]"]
+include::sample[dir="snippets/reference/platforms/jvm/module-disabled/kotlin",files="build.gradle.kts[tags=disableModulePath]"]
+include::sample[dir="snippets/reference/platforms/jvm/module-disabled/groovy",files="build.gradle[tags=disableModulePath]"]
 ====
 
 [[sec:java_library_modular_auto]]
@@ -345,8 +345,8 @@ Still, there are a few cases where you might consider to (initally) only provide
 To turn a normal Java project into an _automatic module_, just add the manifest entry with the module name:
 
 ====
-include::sample[dir="snippets/java-library/module/kotlin",files="build.gradle.kts[tags=automaticModuleName]"]
-include::sample[dir="snippets/java-library/module/groovy",files="build.gradle[tags=automaticModuleName]"]
+include::sample[dir="snippets/reference/platforms/jvm/module/kotlin",files="build.gradle.kts[tags=automaticModuleName]"]
+include::sample[dir="snippets/reference/platforms/jvm/module/groovy",files="build.gradle[tags=automaticModuleName]"]
 ====
 
 [NOTE]

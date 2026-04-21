@@ -45,8 +45,8 @@ plugins {
 A lot of the information needed to publish the plugin - `group`, `version`, and `id` - is already in your build file:
 
 ====
-include::sample[dir="snippets/plugins/fileSizeDiffBinaryPlugin/kotlin", files="plugin/build.gradle.kts[tags=plugin-id]"]
-include::sample[dir="snippets/plugins/fileSizeDiffBinaryPlugin/groovy", files="plugin/build.gradle[tags=plugin-id]"]
+include::sample[dir="snippets/fundamentals/developing-plugins/fileSizeDiffBinaryPlugin/kotlin", files="plugin/build.gradle.kts[tags=plugin-id]"]
+include::sample[dir="snippets/fundamentals/developing-plugins/fileSizeDiffBinaryPlugin/groovy", files="plugin/build.gradle[tags=plugin-id]"]
 ====
 
 `group = "org.example"` sets the *group* ID of the plugin.

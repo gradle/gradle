@@ -1,6 +1,7 @@
 import gradlebuild.basics.BuildEnvironment
 import gradlebuild.basics.buildCommitId
 import gradlebuild.integrationtests.addDependenciesAndConfigurations
+import gradlebuild.integrationtests.configureTestSourceSetInIde
 import gradlebuild.integrationtests.tasks.SmokeIdeTest
 import gradlebuild.performance.generator.tasks.RemoteProject
 
@@ -15,6 +16,8 @@ val smokeIdeTestSourceSet = sourceSets.create("smokeIdeTest") {
     runtimeClasspath += sourceSets.main.get().output
 }
 
+configureTestSourceSetInIde(smokeIdeTestSourceSet)
+
 jvmCompile {
     addCompilationFrom(smokeIdeTestSourceSet)
 }
@@ -27,21 +30,12 @@ dependencyAnalysis {
 
 addDependenciesAndConfigurations("smokeIde")
 
-val smokeIdeTestImplementation: Configuration by configurations
-val smokeIdeTestDistributionRuntimeOnly: Configuration by configurations
-val ideStarter by configurations.creating {
+val smokeIdeTestImplementation = configurations.getByName("smokeIdeTestImplementation")
+val smokeIdeTestDistributionRuntimeOnly = configurations.getByName("smokeIdeTestDistributionRuntimeOnly")
+val ideStarter = configurations.create("ideStarter") {
     isCanBeConsumed = false
 }
 val ideStarterBuildDir = layout.buildDirectory.dir("ideStarter")
-
-plugins.withType<IdeaPlugin> {
-    with(model) {
-        module {
-            testSources.from(smokeIdeTestSourceSet.java.srcDirs, smokeIdeTestSourceSet.groovy.srcDirs)
-            testResources.from(smokeIdeTestSourceSet.resources.srcDirs)
-        }
-    }
-}
 
 abstract class IdeStarterPathProvider : CommandLineArgumentProvider {
     @get: InputDirectory
@@ -53,17 +47,17 @@ abstract class IdeStarterPathProvider : CommandLineArgumentProvider {
 }
 
 tasks {
-    val unzipIdeStarter by registering(Sync::class) {
+    val unzipIdeStarter = register<Sync>("unzipIdeStarter") {
         from(zipTree(ideStarter.elements.map { it.single() }))
         into(ideStarterBuildDir)
     }
 
-    val fetchGradle by registering(RemoteProject::class) {
+    val fetchGradle = register<RemoteProject>("fetchGradle") {
         remoteUri = rootDir.absolutePath
         ref = buildCommitId
     }
 
-    val shrinkGradle by registering(Sync::class) {
+    val shrinkGradle = register<Sync>("shrinkGradle") {
         from(fetchGradle.map { it.outputDirectory }) {
             exclude("subprojects/*/*/src/**")
             exclude("testing/*/*/src/**")

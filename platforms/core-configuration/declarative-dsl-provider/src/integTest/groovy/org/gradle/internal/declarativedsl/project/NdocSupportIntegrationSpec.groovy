@@ -25,6 +25,7 @@ import org.gradle.test.fixtures.dsl.GradleDsl
 
 
 @PolyglotDslTest
+@SkipDsl(dsl = GradleDsl.GROOVY, because = "Groovy DSL is not supported for declarative configuration")
 class NdocSupportIntegrationSpec extends AbstractIntegrationSpec implements ProjectTypeFixture, PolyglotTestFixture {
     def setup() {
         file("gradle.properties") << """
@@ -32,7 +33,6 @@ class NdocSupportIntegrationSpec extends AbstractIntegrationSpec implements Proj
         """
     }
 
-    @SkipDsl(dsl = GradleDsl.GROOVY, because = "Neither the foo() method is available in Groovy, nor can the x or y values remain undefined")
     def "can create elements in an out-projected named domain object container"() {
         given:
         withProjectTypeWithNdoc(true).prepareToExecute()

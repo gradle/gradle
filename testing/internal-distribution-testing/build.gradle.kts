@@ -98,14 +98,14 @@ val prepareVersionsInfo = tasks.register<PrepareVersionsInfo>("prepareVersionsIn
     mostRecentSnapshot = gradleModule.identity.releasedVersions.map { it.mostRecentSnapshot.version }
 }
 
-val copyTestedVersionsInfo by tasks.registering(Copy::class) {
+val copyTestedVersionsInfo = tasks.register<Copy>("copyTestedVersionsInfo") {
     from(isolated.rootProject.projectDirectory.file("gradle/dependency-management/agp-versions.properties"))
     from(isolated.rootProject.projectDirectory.file("gradle/dependency-management/kotlin-versions.properties"))
     from(isolated.rootProject.projectDirectory.file("gradle/dependency-management/smoke-tested-plugins.properties"))
     into(layout.buildDirectory.dir("generated-resources/tested-versions"))
 }
 
-val generateLanguageAnnotations by tasks.registering(GenerateLanguageAnnotations::class) {
+val generateLanguageAnnotations = tasks.register<GenerateLanguageAnnotations>("generateLanguageAnnotations") {
     classpath.from(configurations.integTestDistributionRuntimeClasspath)
     packageName = "org.gradle.integtests.fixtures"
     destDir = layout.buildDirectory.dir("generated/sources/language-annotations/groovy/main")

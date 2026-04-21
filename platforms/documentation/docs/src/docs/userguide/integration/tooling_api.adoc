@@ -63,8 +63,8 @@ As the Tooling API is an interface for developers, the Javadoc is the main docum
 To use the Tooling API, add the following repository and dependency declarations to your build script:
 
 ====
-include::sample[dir="snippets/toolingApi/runBuild/kotlin",files="build.gradle.kts[tags=use-tooling-api]"]
-include::sample[dir="snippets/toolingApi/runBuild/groovy",files="build.gradle[tags=use-tooling-api]"]
+include::sample[dir="snippets/integration/runBuild/kotlin",files="build.gradle.kts[tags=use-tooling-api]"]
+include::sample[dir="snippets/integration/runBuild/groovy",files="build.gradle[tags=use-tooling-api]"]
 ====
 
 The main entry point to the Tooling API is the link:{javadocPath}/org/gradle/tooling/GradleConnector.html[GradleConnector].

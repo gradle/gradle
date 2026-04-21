@@ -25,8 +25,8 @@ It doesn't require the <<java_plugin.adoc#java_plugin,Java plugin>>, but for pro
 To use the Ear plugin, include the following in your build script:
 
 ====
-include::sample[dir="snippets/ear/earWithWar/kotlin",files="build.gradle.kts[tags=use-ear-plugin]"]
-include::sample[dir="snippets/ear/earWithWar/groovy",files="build.gradle[tags=use-ear-plugin]"]
+include::sample[dir="snippets/reference/core-plugins/earWithWar/kotlin",files="build.gradle.kts[tags=use-ear-plugin]"]
+include::sample[dir="snippets/reference/core-plugins/earWithWar/groovy",files="build.gradle[tags=use-ear-plugin]"]
 ====
 
 [[sec:ear_tasks]]
@@ -78,8 +78,8 @@ The link:{groovyDslPath}/org.gradle.plugins.ear.Ear.html[Ear] class in the API d
 Here is an example with the most important customization options:
 
 ====
-include::sample[dir="snippets/ear/earCustomized/kotlin/ear",files="build.gradle.kts[]"]
-include::sample[dir="snippets/ear/earCustomized/groovy/ear",files="build.gradle[]"]
+include::sample[dir="snippets/reference/core-plugins/earCustomized/kotlin/ear",files="build.gradle.kts[]"]
+include::sample[dir="snippets/reference/core-plugins/earCustomized/groovy/ear",files="build.gradle[]"]
 ====
 
 You can also use customization options that the link:{groovyDslPath}/org.gradle.plugins.ear.Ear.html[Ear] task provides, such as `from` and `metaInf`.

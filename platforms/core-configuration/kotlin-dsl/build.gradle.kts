@@ -15,8 +15,8 @@ description = "Kotlin DSL Provider"
 
 dependencies {
     api(projects.antApi)
-    api(projects.buildProcessServices)
     api(projects.baseServices)
+    api(projects.buildProcessServices)
     api(projects.classloaders)
     api(projects.core)
     api(projects.coreApi)
@@ -49,6 +49,7 @@ dependencies {
     implementation(projects.buildOperations)
     implementation(projects.buildDiscoveryImpl)
     implementation(projects.buildOption)
+    implementation(projects.classpath)
     implementation(projects.coreKotlinExtensions)
     implementation(projects.declarativeDslEvaluator)
     implementation(projects.declarativeDslProvider)

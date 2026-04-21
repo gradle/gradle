@@ -22,13 +22,11 @@ import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
 import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.artifacts.ModuleIdentifier;
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.ComponentSelectorConverter;
-import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.SubstitutionResult;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
@@ -37,6 +35,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.Resolved
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.strict.StrictVersionConstraints;
 import org.gradle.api.internal.capabilities.ImmutableCapability;
 import org.gradle.api.internal.capabilities.ShadowedCapability;
+import org.gradle.internal.Pair;
 import org.gradle.internal.Try;
 import org.gradle.internal.collect.PersistentSet;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
@@ -45,7 +44,6 @@ import org.gradle.internal.component.external.model.VirtualComponentIdentifier;
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
 import org.gradle.internal.component.local.model.LocalVariantGraphResolveState;
 import org.gradle.internal.component.model.ComponentGraphResolveState;
-import org.gradle.internal.component.model.ComponentGraphSpecificResolveState;
 import org.gradle.internal.component.model.DelegatingDependencyMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
@@ -66,6 +64,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Represents a node in the dependency graph.
@@ -87,9 +86,21 @@ public class NodeState implements DependencyGraphNode {
 
     @Nullable
     ExcludeSpec previousTraversalExclusions;
-
     private boolean queued;
+
+    /**
+     * The number of unresolved capability conflicts this node is involved in.
+     */
+    private int numCapabilityConflicts;
+
+    /**
+     * The node this node has been replaced by in a capability conflict, if this
+     * node has been previously involved in a resolved capability conflict and
+     * has lost that conflict.
+     */
     private @Nullable NodeState replacement;
+    private @Nullable Pair<Capability, Collection<NodeState>> capabilityReject;
+
     private int transitiveEdgeCount;
     private @Nullable Set<ModuleIdentifier> upcomingNoLongerPendingConstraints;
 
@@ -577,6 +588,7 @@ public class NodeState implements DependencyGraphNode {
 
     /**
      * If a component declares that it belongs to a platform, we add an edge to the platform.
+     * Whether the platform is real or virtual is determined later during component resolution.
      *
      * @param resolutionFilter The excludes inherited from all incoming edges
      * @param ancestorsStrictVersions The strict versions inherited from all incoming edges
@@ -586,17 +598,17 @@ public class NodeState implements DependencyGraphNode {
         List<? extends VirtualComponentIdentifier> owners = component.getMetadata().getPlatformOwners();
         if (!owners.isEmpty()) {
             for (VirtualComponentIdentifier owner : owners) {
-                if (owner instanceof ModuleComponentIdentifier) {
-                    ModuleComponentIdentifier platformId = (ModuleComponentIdentifier) owner;
-
-                    // There are 2 possibilities here:
-                    // 1. the "platform" referenced is a real module, in which case we directly add it to the graph
-                    // 2. the "platform" is a virtual, constructed thing, in which case we add virtual edges to the graph
-                    resolvePlatform(platformId);
+                if (owner instanceof ModuleComponentIdentifier platformId) {
+                    // Register this module as a participant of the owning virtual platform.
+                    // If the platform turns out to be real (published), this is harmless.
+                    // If the platform is virtual, this enables the platform component to
+                    // be resolved as a virtual platform later during metadata resolution.
+                    ModuleResolveState platformModule = resolveState.getModule(platformId.getModuleIdentifier());
+                    platformModule.getPlatformState().participatingModule(component.getModule());
 
                     boolean forced = hasStrongOpinion();
                     final ModuleComponentSelector selector = DefaultModuleComponentSelector.newSelector(platformId.getModuleIdentifier(), platformId.getVersion());
-                    DependencyMetadata dependencyMetadata = new LenientPlatformDependencyMetadata(resolveState, this, selector, platformId, platformId, forced, true, false);
+                    DependencyMetadata dependencyMetadata = new LenientPlatformDependencyMetadata(selector, platformId, forced, false);
                     EdgeState virtualPlatformEdge = createEdge(dependencyMetadata);
 
                     registerOutgoingEdge(
@@ -605,32 +617,10 @@ public class NodeState implements DependencyGraphNode {
                         discoveredEdges,
                         virtualPlatformEdge
                     );
+                } else {
+                    throw new IllegalStateException("Expected platform ID to be a module identifier: " + owner);
                 }
             }
-        }
-    }
-
-    /**
-     * Resolve the given platform, creating a lenient platform if the platform does not exist.
-     */
-    private void resolvePlatform(ModuleComponentIdentifier componentId) {
-        ModuleVersionIdentifier toModuleVersionId = DefaultModuleVersionIdentifier.newId(componentId.getModuleIdentifier(), componentId.getVersion());
-        ComponentState componentState = resolveState.getModule(componentId.getModuleIdentifier()).getVersion(toModuleVersionId, componentId);
-        // We need to check if the target version exists. For this, we have to try to get metadata for the aligned version.
-        // If it's there, it means we can align, otherwise, we must NOT add the edge, or resolution would fail
-        ComponentGraphResolveState resolvedComponent = componentState.getResolveStateOrNull();
-
-        VirtualPlatformState virtualPlatformState = null;
-        if (resolvedComponent == null || resolvedComponent instanceof LenientPlatformGraphResolveState) {
-            virtualPlatformState = componentState.getModule().getPlatformState();
-            virtualPlatformState.participatingModule(component.getModule());
-        }
-        if (resolvedComponent == null) {
-            // the platform doesn't exist, so we're building a lenient one
-            ComponentGraphResolveState newLenientPlatform = LenientPlatformGraphResolveState.of(resolveState.getIdGenerator(), componentId, toModuleVersionId, virtualPlatformState, this, resolveState);
-            componentState.setState(newLenientPlatform, ComponentGraphSpecificResolveState.EMPTY_STATE);
-            // And now let's make sure we do not have another version of that virtual platform missing its metadata
-            componentState.getModule().maybeCreateVirtualMetadata(resolveState);
         }
     }
 
@@ -755,20 +745,92 @@ public class NodeState implements DependencyGraphNode {
         resolveState.onMoreSelected(this);
     }
 
+    /**
+     * Determine if this node should be processed when it is dequeued during traversal, or if it
+     * instead be removed from the graph.
+     * <p>
+     * False if this node has no incoming edges, or is in conflict and should temporarily not
+     * contribute to the graph. We need special handling for root since it does not yet have
+     * its own module, but should never be considered a conflict participant.
+     */
+    boolean contributesToGraph() {
+        return !isSelected() || isInCapabilityConflict() || (getComponent().getModule().isInModuleConflict() && !isRoot());
+    }
+
     @Override
     public boolean isSelected() {
         return !incomingEdges.isEmpty();
     }
 
+    public void markInCapabilityConflict() {
+        this.numCapabilityConflicts++;
+        if (numCapabilityConflicts == 1) {
+            resolveState.onFewerSelected(this);
+        }
+    }
+
+    public boolean isInCapabilityConflict() {
+        return numCapabilityConflicts > 0;
+    }
+
+    public void onFilteredFromConflict() {
+        numCapabilityConflicts--;
+        assert numCapabilityConflicts >= 0;
+    }
+
     /**
-     * Mark this node as being evicted by another node in the same component,
-     * after these two nodes entered a capability conflict and the conflict
-     * was resolved with the given node as the winner and this node as a loser.
+     * Resolve a capability conflict this node is involved in.
      */
     @SuppressWarnings("ReferenceEquality") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
-    public void replaceWith(@Nullable NodeState replacement) {
-        assert replacement == null || replacement.getComponent() == getComponent();
-        this.replacement = replacement;
+    public void resolveCapabilityConflict(NodeState winner) {
+        numCapabilityConflicts--;
+        assert numCapabilityConflicts >= 0;
+        if (winner == this) {
+            resolveState.onMoreSelected(this);
+        } else {
+            this.replacement = winner;
+            restartIncomingEdges();
+        }
+    }
+
+    public boolean isRejectedForCapabilityConflict() {
+        return capabilityReject != null;
+    }
+
+    public void rejectForCapabilityConflict(Capability capability, Collection<NodeState> conflictedNodes) {
+        if (this.capabilityReject == null) {
+            this.capabilityReject = Pair.of(capability, new HashSet<>(conflictedNodes));
+        } else {
+            mergeCapabilityRejects(capability, conflictedNodes);
+        }
+
+        numCapabilityConflicts--;
+        assert numCapabilityConflicts >= 0;
+        resolveState.onMoreSelected(this);
+    }
+
+    private void mergeCapabilityRejects(Capability capability, Collection<NodeState> conflictedNodes) {
+        // Only merge if about the same capability, otherwise last wins
+        if (this.capabilityReject.getLeft().equals(capability)) {
+            this.capabilityReject.getRight().addAll(conflictedNodes);
+        } else {
+            this.capabilityReject = Pair.of(capability, new HashSet<>(conflictedNodes));
+        }
+    }
+
+    public String getRejectedErrorMessage() {
+        assert capabilityReject != null;
+        return formatCapabilityRejectMessage(getComponent().getModule().getId(), capabilityReject);
+    }
+
+    private static String formatCapabilityRejectMessage(ModuleIdentifier id, Pair<Capability, Collection<NodeState>> capabilityConflict) {
+        return "Module '" + id + "' has been rejected:\n" +
+            "   Cannot select module with conflict on capability '" + formatCapability(capabilityConflict.left) + "' also provided by " +
+            capabilityConflict.getRight().stream().map(NodeState::getDisplayName).sorted().collect(Collectors.toList());
+    }
+
+    private static String formatCapability(Capability capability) {
+        return capability.getGroup() + ":" + capability.getName() + ":" + capability.getVersion();
     }
 
     /**
@@ -1174,26 +1236,11 @@ public class NodeState implements DependencyGraphNode {
     }
 
     /**
-     * Called for each participant of a conflict after the conflict was resolved.
-     */
-    @SuppressWarnings("ReferenceEquality") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
-    public void restart(ComponentState selected) {
-        if (component == selected && replacement == null) {
-            // We are in the selected component and are not replaced by another node in our own component.
-            // We are the winning node. Queue ourselves up for traversal.
-            resolveState.onMoreSelected(this);
-        } else {
-            // We are the losing node. Retarget all incoming edges so they are attached to their correct nodes.
-            restartIncomingEdges();
-        }
-    }
-
-    /**
      * Called on losing nodes after conflict resolution to retarget their existing incoming
      * edges to the winning node. This method must be called after any relevant state is updated
      * so that retargeting chooses the correct new target node.
      */
-    private void restartIncomingEdges() {
+    void restartIncomingEdges() {
         if (incomingEdges.size() == 1) {
             EdgeState singleEdge = incomingEdges.get(0);
             singleEdge.retarget();
@@ -1206,10 +1253,6 @@ public class NodeState implements DependencyGraphNode {
         // This method is called on a node that fails conflict resolution. If, after retargeting,
         // we still have incoming edges, something went wrong.
         assert incomingEdges.isEmpty();
-    }
-
-    public void deselect() {
-        removeOutgoingEdges();
     }
 
     void prepareForConstraintNoLongerPending(ModuleIdentifier moduleIdentifier) {
@@ -1342,11 +1385,9 @@ public class NodeState implements DependencyGraphNode {
 
     private void dependsTransitivelyOn(Set<NodeState> visited) {
         for (EdgeState outgoingEdge : getOutgoingEdges()) {
-            if (outgoingEdge.getTargetComponent() != null) {
-                for (NodeState nodeState : outgoingEdge.getTargetComponent().getNodes()) {
-                    if (visited.add(nodeState)) {
-                        nodeState.dependsTransitivelyOn(visited);
-                    }
+            for (NodeState nodeState : outgoingEdge.getTargetNodes()) {
+                if (visited.add(nodeState)) {
+                    nodeState.dependsTransitivelyOn(visited);
                 }
             }
         }

@@ -18,7 +18,7 @@ package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import org.hamcrest.CoreMatchers
 
 class MultiProjectDependencyIntegrationTest extends AbstractIntegrationSpec {
@@ -184,7 +184,7 @@ project(':c') {
 
     // 'c' + 'd' _may_ be built with parallel executer
     // test can't handle parallel task execution
-    @Requires(IntegTestPreconditions.NotParallelOrConfigCacheExecutor)
+    @Requires(TestExecutionPreconditions.NotParallelOrConfigCacheExecutor)
     def "project dependency a->[b,c] and c->d and b fails"() {
         projectDependency from: 'a', to: ['b', 'c']
         projectDependency from: 'c', to: ['d']

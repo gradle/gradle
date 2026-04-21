@@ -20,7 +20,7 @@ import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.ScalaCoverage
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import spock.lang.Issue
 
 import static org.gradle.scala.ScalaCompilationFixture.scalaDependency
@@ -308,7 +308,7 @@ class ScalaPluginIntegrationTest extends MultiVersionIntegrationSpec {
         !output.contains("FAILED")
     }
 
-    @Requires(IntegTestPreconditions.NotNoDaemonExecutor)
+    @Requires(TestExecutionPreconditions.NotNoDaemonExecutor)
     def "Scala compiler daemon respects keepalive option"() {
         buildFile << """
             plugins {

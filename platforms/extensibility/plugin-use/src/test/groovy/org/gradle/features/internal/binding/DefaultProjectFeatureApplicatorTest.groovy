@@ -32,7 +32,7 @@ import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.api.plugins.PluginContainer
-import org.gradle.api.problems.internal.InternalProblemReporter
+import org.gradle.api.problems.internal.ProblemReporterInternal
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.internal.Cast
 import org.gradle.internal.extensibility.ExtensibleDynamicObject
@@ -61,7 +61,7 @@ class DefaultProjectFeatureApplicatorTest extends Specification {
     def taskContainer = Mock(TaskContainer)
     def projectLayout = Mock(ProjectLayout)
     def configurationContainer = Mock(ConfigurationContainer)
-    def internalProblemReporter = Mock(InternalProblemReporter)
+    def internalProblemReporter = Mock(ProblemReporterInternal)
     def services = Mock(ServiceLookup)
     def typeAnnotationMetadataStore = Mock(TypeAnnotationMetadataStore)
     def projectFeatureRegistry = Mock(ProjectFeatureDeclarations)

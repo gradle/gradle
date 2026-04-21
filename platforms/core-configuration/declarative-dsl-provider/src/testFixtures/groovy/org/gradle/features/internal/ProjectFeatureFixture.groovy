@@ -45,6 +45,7 @@ import org.gradle.features.internal.builders.features.ProjectFeatureWithNoBuildM
 import org.gradle.features.internal.builders.settings.KotlinSettingsPluginClassBuilder
 import org.gradle.features.internal.builders.settings.SettingsPluginClassBuilder
 import org.gradle.features.internal.builders.definitions.ProjectTypeDefinitionWithDeeplyNestedNdocClassBuilder
+import org.gradle.features.internal.builders.definitions.ProjectTypeDefinitionWithInternallyCreatedFooClassBuilder
 import org.gradle.features.internal.builders.definitions.ProjectTypeDefinitionWithNdocContainingDefinitionsClassBuilder
 import org.gradle.features.internal.builders.types.ProjectTypePluginClassBuilder
 import org.gradle.features.internal.builders.types.ProjectTypePluginWithDeeplyNestedNdocClassBuilder
@@ -217,6 +218,7 @@ trait ProjectFeatureFixture extends ProjectTypeFixture {
         def anotherProjectFeature = new ProjectFeaturePluginClassBuilder(anotherFeatureDefinition)
             .bindingTypeClassName(anotherProjectTypeDefinition.publicTypeClassName)
             .projectFeaturePluginClassName("AnotherProjectFeatureImplPlugin")
+            .withUnsafeDefinition()
         def settingsBuilder = new SettingsPluginClassBuilder()
             .registersProjectType(projectType.projectTypePluginClassName)
             .registersProjectType(anotherProjectType.projectTypePluginClassName)
@@ -501,6 +503,23 @@ trait ProjectFeatureFixture extends ProjectTypeFixture {
             .registersProjectType(projectType.projectTypePluginClassName)
             .registersProjectFeature(featurePlugin.projectFeaturePluginClassName)
         return withProjectFeature(projectTypeDefinition, projectType, featureDefinition, featurePlugin, settingsBuilder)
+    }
+
+    PluginBuilder withProjectTypeUsingNonDiscoverableDefinition() {
+        def projectTypeDefinition = new ProjectTypeDefinitionWithInternallyCreatedFooClassBuilder()
+        def projectType = new ProjectTypePluginClassBuilder(projectTypeDefinition)
+            .withUnsafeApplyAction()
+        projectType.bindingModifiers.add("withUnsafeDefinitionImplementationType(${projectTypeDefinition.publicTypeClassName}.class)")
+
+        def projectFeatureDefinition = new ProjectFeatureNestedDefinitionClassBuilder()
+        def projectFeature = new ProjectFeaturePluginClassBuilder(projectFeatureDefinition)
+            .bindingTypeClassName(projectTypeDefinition.fullyQualifiedPublicTypeClassName + ".Foo.FooBuildModel")
+            .bindToBuildModel()
+
+        def settingsBuilder = new SettingsPluginClassBuilder()
+            .registersProjectType(projectType.projectTypePluginClassName)
+            .registersProjectFeature(projectFeature.projectFeaturePluginClassName)
+        return withProjectFeature(projectTypeDefinition, projectType, projectFeatureDefinition, projectFeature, settingsBuilder)
     }
 
     PluginBuilder withKotlinProjectFeaturePluginThatBindsWithClass() {

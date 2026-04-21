@@ -41,7 +41,7 @@ These types enable:
 For example, instead of using a `String`, you should use a `Property<String>`:
 
 ====
-include::sample[dir="snippets/gradle-types/example/groovy/app",files="build.gradle[tags=demo]"]
+include::sample[dir="snippets/fundamentals/authoring-builds/example/groovy/app",files="build.gradle[tags=demo]"]
 ====
 
 [source,bash]
@@ -50,7 +50,7 @@ $ ./gradlew demoTask
 ----
 [source,text]
 ----
-include::{snippetsPath}/gradle-types/example/tests/gradleTypes.out[]
+include::{snippetsPath}/fundamentals/authoring-builds/example/tests/gradleTypes.out[]
 ----
 
 This example showcases that:

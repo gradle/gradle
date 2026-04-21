@@ -26,11 +26,6 @@ import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_JUPITER
 
 @TargetCoverage({ JUNIT_JUPITER })
 class JUnitJupiterFilteringIntegrationTest extends AbstractTestFilteringIntegrationTest implements JUnitJupiterMultiVersionTest {
-    @Override
-    GenericTestExecutionResult.TestFramework getTestFramework() {
-        return GenericTestExecutionResult.TestFramework.JUNIT_JUPITER
-    }
-
     @Issue("https://github.com/gradle/gradle/issues/19808")
     def "nested classes are executed when filtering by class name on the command line"() {
         given:
@@ -108,8 +103,8 @@ class JUnitJupiterFilteringIntegrationTest extends AbstractTestFilteringIntegrat
         fails "test", "--tests", commandLineFilter
 
         then:
-        def testResult = resultsFor(testDirectory, "tests/test", testFramework)
-        testResult.assertAtLeastTestPathsExecutedPreNormalized(expectedTests as String[])
+        def testResult = resultsFor()
+        testResult.assertAtLeastTestPathsExecuted(expectedTests as String[])
         assertExpectedTestCounts(testResult, expectedTests)
 
         where:
@@ -177,7 +172,7 @@ class JUnitJupiterFilteringIntegrationTest extends AbstractTestFilteringIntegrat
 
         then:
         result.assertTaskExecuted(":test")
-        def testResult = resultsFor(testDirectory, "tests/test", testFramework)
+        def testResult = resultsFor()
         assertExpectedTestCounts(testResult, expectedTests)
 
         where:

@@ -69,8 +69,8 @@ Module dependencies are the most common dependencies.
 They refer to a module in a repository:
 
 ====
-include::sample[dir="snippets/dependencyManagement/catalogs-settings/kotlin",files="build.gradle.kts[tags=use_catalog_equiv]"]
-include::sample[dir="snippets/dependencyManagement/catalogs-settings/groovy",files="build.gradle[tags=use_catalog_equiv]"]
+include::sample[dir="snippets/reference/dependency-management/basics/catalogs-settings/kotlin",files="build.gradle.kts[tags=use_catalog_equiv]"]
+include::sample[dir="snippets/reference/dependency-management/basics/catalogs-settings/groovy",files="build.gradle[tags=use_catalog_equiv]"]
 ====
 
 === 2. Project dependencies
@@ -81,8 +81,8 @@ This is useful in multi-project builds where multiple projects are part of the s
 Project dependencies are declared by referencing the project path:
 
 ====
-include::sample[dir="snippets/dependencyManagement/declaringDependencies-projectDependencies/kotlin/web-service",files="build.gradle.kts[tags=project-dependencies]"]
-include::sample[dir="snippets/dependencyManagement/declaringDependencies-projectDependencies/groovy/web-service",files="build.gradle[tags=project-dependencies]"]
+include::sample[dir="snippets/reference/dependency-management/basics/declaringDependencies-projectDependencies/kotlin/web-service",files="build.gradle.kts[tags=project-dependencies]"]
+include::sample[dir="snippets/reference/dependency-management/basics/declaringDependencies-projectDependencies/groovy/web-service",files="build.gradle[tags=project-dependencies]"]
 ====
 
 === 3. File dependencies
@@ -97,8 +97,8 @@ image::dependency-management-file-dependencies.png[]
 To add files as dependencies for a configuration, you simply pass a <<working_with_files.adoc#sec:file_collections,file collection>> as a dependency:
 
 ====
-include::sample[dir="snippets/artifacts/externalDependencies/kotlin",files="build.gradle.kts[tags=file-dependencies]"]
-include::sample[dir="snippets/artifacts/externalDependencies/groovy",files="build.gradle[tags=file-dependencies]"]
+include::sample[dir="snippets/reference/dependency-management/basics/externalDependencies/kotlin",files="build.gradle.kts[tags=file-dependencies]"]
+include::sample[dir="snippets/reference/dependency-management/basics/externalDependencies/groovy",files="build.gradle[tags=file-dependencies]"]
 ====
 
 WARNING: It is recommended to use project dependencies or external dependencies over file dependencies.
@@ -112,14 +112,14 @@ image::declaring-dependencies-2.png[]
 The Java app contains the following Java class:
 
 ====
-include::sample[dir="snippets/dependencyManagement/declaringDependencies-basic/common/app/src/main/java/org/example",files="InitializeCollection.java[]"]
+include::sample[dir="snippets/reference/dependency-management/basics/declaringDependencies-basic/common/app/src/main/java/org/example",files="InitializeCollection.java[]"]
 ====
 
 To add the link:https://mvnrepository.com/artifact/com.google.guava/guava[Guava] library to your Gradle project as a dependency, you must add the following line to your build file:
 
 ====
-include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-disableForConfiguration/kotlin",files="build.gradle.kts[tags=dependency-config]"]
-include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-disableForConfiguration/groovy",files="build.gradle[tags=dependency-config]"]
+include::sample[dir="snippets/reference/dependency-management/basics/managingTransitiveDependencies-disableForConfiguration/kotlin",files="build.gradle.kts[tags=dependency-config]"]
+include::sample[dir="snippets/reference/dependency-management/basics/managingTransitiveDependencies-disableForConfiguration/groovy",files="build.gradle[tags=dependency-config]"]
 ====
 
 Where:
@@ -143,8 +143,8 @@ This task can be particularly useful for debugging dependency issues, such as ve
 For example, let's say our `app` project contains the follow lines in its build script:
 
 ====
-include::sample[dir="snippets/dependencyManagement/declaringDependencies-basic/kotlin/app",files="build.gradle.kts[tags=java-dependency-mgmt]"]
-include::sample[dir="snippets/dependencyManagement/declaringDependencies-basic/groovy/app",files="build.gradle[tags=java-dependency-mgmt]"]
+include::sample[dir="snippets/reference/dependency-management/basics/declaringDependencies-basic/kotlin/app",files="build.gradle.kts[tags=java-dependency-mgmt]"]
+include::sample[dir="snippets/reference/dependency-management/basics/declaringDependencies-basic/groovy/app",files="build.gradle[tags=java-dependency-mgmt]"]
 ====
 
 Running the `dependencies` task on the `app` project yields the following:
@@ -155,7 +155,7 @@ $ ./gradlew app:dependencies
 ----
 [source,text]
 ----
-include::{snippetsPath}/dependencyManagement/declaringDependencies-basic/tests/basicJavaDepTests.out[]
+include::{snippetsPath}/reference/dependency-management/basics/declaringDependencies-basic/tests/basicJavaDepTests.out[]
 ----
 
 We can clearly see that for the `implementation` configuration, the `com.google.guava:guava:30.0-jre` dependency has been added.

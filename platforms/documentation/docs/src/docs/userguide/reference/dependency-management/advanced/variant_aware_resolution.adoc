@@ -396,8 +396,8 @@ WARNING: Secondary variants are sometimes referred to in tooling or logs, but th
 The simplest scenario is a typical Java library
 
 ====
-include::sample[dir="snippets/dependencyManagement/customizingResolution-secondaryVariants/kotlin", files="build.gradle.kts[tags=lib]"]
-include::sample[dir="snippets/dependencyManagement/customizingResolution-secondaryVariants/groovy", files="build.gradle[tags=lib]"]
+include::sample[dir="snippets/reference/dependency-management/advanced/customizingResolution-secondaryVariants/kotlin", files="build.gradle.kts[tags=lib]"]
+include::sample[dir="snippets/reference/dependency-management/advanced/customizingResolution-secondaryVariants/groovy", files="build.gradle[tags=lib]"]
 ====
 
 The `apiElements` variant represents the public API of a library and is used during dependency resolution when a consuming project requests `java-api` usage:
@@ -408,7 +408,7 @@ $ ./gradlew outgoingVariants -q
 ----
 [source,text]
 ----
-include::{snippetsPath}/dependencyManagement/customizingResolution-secondaryVariants/tests/secondaryVariants.out[]
+include::{snippetsPath}/reference/dependency-management/advanced/customizingResolution-secondaryVariants/tests/secondaryVariants.out[]
 ----
 
 As shown in the output, in addition to its main artifact (`some-library-1.2.3.jar`), `apiElements` also exposes a **secondary variant** named `classes`, which provides the compiled class files as a `java-classes-directory`.
@@ -419,8 +419,8 @@ For example, enabling consumers to use unjarred class files for faster access in
 Let's create a secondary variant of our Java library:
 
 ====
-include::sample[dir="snippets/dependencyManagement/customizingResolution-secondaryVariants/kotlin", files="build.gradle.kts[tags=add]"]
-include::sample[dir="snippets/dependencyManagement/customizingResolution-secondaryVariants/groovy", files="build.gradle[tags=add]"]
+include::sample[dir="snippets/reference/dependency-management/advanced/customizingResolution-secondaryVariants/kotlin", files="build.gradle.kts[tags=add]"]
+include::sample[dir="snippets/reference/dependency-management/advanced/customizingResolution-secondaryVariants/groovy", files="build.gradle[tags=add]"]
 ====
 
 And we can see our new secondary variant is created for `apiElements`:
@@ -431,7 +431,7 @@ $ ./gradlew outgoingVariants -q
 ----
 [source,text]
 ----
-include::{snippetsPath}/dependencyManagement/customizingResolution-secondaryVariants/tests/secondaryVariantsAdded.out[]
+include::{snippetsPath}/reference/dependency-management/advanced/customizingResolution-secondaryVariants/tests/secondaryVariantsAdded.out[]
 ----
 
 To create a completely new variant for our library, we must also create a new configuration.
@@ -440,8 +440,8 @@ The code below defines a custom consumable configuration `fooFiles` with two **s
 The base configuration sets `FooAttribute = main`, which is inherited by `fooFilesVariant1`, while `fooFilesVariant2` overrides it to `secondary`.
 
 ====
-include::sample[dir="snippets/dependencyManagement/customizingResolution-secondaryVariants/kotlin", files="build.gradle.kts[tags=custom]"]
-include::sample[dir="snippets/dependencyManagement/customizingResolution-secondaryVariants/groovy", files="build.gradle[tags=custom]"]
+include::sample[dir="snippets/reference/dependency-management/advanced/customizingResolution-secondaryVariants/kotlin", files="build.gradle.kts[tags=custom]"]
+include::sample[dir="snippets/reference/dependency-management/advanced/customizingResolution-secondaryVariants/groovy", files="build.gradle[tags=custom]"]
 ====
 
 The output reflects this structure, showing `fooFiles` as the primary variant and both secondary variants with their corresponding `FooAttribute` and `FooVariantAttribute` values, which Gradle uses during **artifact selection** to match a consumer's requested attributes:
@@ -452,7 +452,7 @@ $ ./gradlew outgoingVariants -q
 ----
 [source,text]
 ----
-include::{snippetsPath}/dependencyManagement/customizingResolution-secondaryVariants/tests/secondaryVariantsNew.out[]
+include::{snippetsPath}/reference/dependency-management/advanced/customizingResolution-secondaryVariants/tests/secondaryVariantsNew.out[]
 ----
 
 [[sec:variant-visual]]

@@ -93,7 +93,7 @@ $ gradlew.bat build
 ----
 [source,text]
 ----
-include::{snippetsPath}/wrapper/simple/tests/wrapperBatchFileExecution.out[]
+include::{snippetsPath}/fundamentals/running-builds/simple/tests/wrapperBatchFileExecution.out[]
 ----
 
 [[sec:view_the_wrapper]]

@@ -53,8 +53,8 @@ It's also worth bearing in mind that the `test` source set automatically creates
 All you need to do in most cases is configure the appropriate compilation and runtime dependencies and add any necessary configuration to the `test` task. The following example shows a simple setup that uses JUnit Platform and changes the maximum heap size for the tests' JVM to 1 gigabyte:
 
 ====
-include::sample[dir="snippets/java/basic/kotlin",files="build.gradle.kts[tags=java-basic-test-config]"]
-include::sample[dir="snippets/java/basic/groovy",files="build.gradle[tags=java-basic-test-config]"]
+include::sample[dir="snippets/reference/platforms/jvm/basic/kotlin",files="build.gradle.kts[tags=java-basic-test-config]"]
+include::sample[dir="snippets/reference/platforms/jvm/basic/groovy",files="build.gradle[tags=java-basic-test-config]"]
 ====
 
 The link:{groovyDslPath}/org.gradle.api.tasks.testing.Test.html[Test] task has many generic configuration options as well as several framework-specific ones that you can find described in link:{javadocPath}/org/gradle/api/tasks/testing/junit/JUnitOptions.html[JUnitOptions], link:{javadocPath}/org/gradle/api/tasks/testing/junitplatform/JUnitPlatformOptions.html[JUnitPlatformOptions] and link:{javadocPath}/org/gradle/api/tasks/testing/testng/TestNGOptions.html[TestNGOptions]. We cover a significant number of them in the rest of the chapter.
@@ -115,8 +115,8 @@ With Gradle's test filtering you can select tests to run based on:
 You can enable filtering either in the build script or via the `--tests` command-line option. Here's an example of some filters that are applied every time the build runs:
 
 ====
-include::sample[dir="snippets/testing/filtering/kotlin",files="build.gradle.kts[tags=test-filtering]"]
-include::sample[dir="snippets/testing/filtering/groovy",files="build.gradle[tags=test-filtering]"]
+include::sample[dir="snippets/reference/platforms/jvm/filtering/kotlin",files="build.gradle.kts[tags=test-filtering]"]
+include::sample[dir="snippets/reference/platforms/jvm/filtering/groovy",files="build.gradle[tags=test-filtering]"]
 ====
 
 For more details and examples of declaring filters in the build script, please see the link:{javadocPath}/org/gradle/api/tasks/testing/TestFilter.html[TestFilter] reference.
@@ -223,8 +223,8 @@ NOTE: To aggregate test results across multiple subprojects, see the <<test_repo
 Unlike with many of the testing configuration options, there are several project-level convention properties that affect the test reports. For example, you can change the destination of the test results and reports like so:
 
 ====
-include::sample[dir="snippets/java/customDirs/kotlin",files="build.gradle.kts[tags=custom-report-dirs]"]
-include::sample[dir="snippets/java/customDirs/groovy",files="build.gradle[tags=custom-report-dirs]"]
+include::sample[dir="snippets/reference/platforms/jvm/customDirs/kotlin",files="build.gradle.kts[tags=custom-report-dirs]"]
+include::sample[dir="snippets/reference/platforms/jvm/customDirs/groovy",files="build.gradle[tags=custom-report-dirs]"]
 ====
 
 [source,bash]
@@ -233,7 +233,7 @@ $ ./gradlew -q showDirs
 ----
 [source,text]
 ----
-include::{snippetsPath}/java/customDirs/tests/javaCustomReportDirs.out[]
+include::{snippetsPath}/reference/platforms/jvm/customDirs/tests/javaCustomReportDirs.out[]
 ----
 
 Follow the link to the convention properties for more details.
@@ -241,8 +241,8 @@ Follow the link to the convention properties for more details.
 There is also a standalone link:{groovyDslPath}/org.gradle.api.tasks.testing.TestReport.html[TestReport] task type that you can use to generate a custom HTML test report. All it requires are a value for `destinationDir` and the test results you want included in the report. Here is a sample which generates a combined report for the unit tests from all subprojects:
 
 ====
-include::sample[dir="snippets/testing/testReport/kotlin",files="buildSrc/src/main/kotlin/myproject.java-conventions.gradle.kts[tags=test-report];build.gradle.kts[tags=test-report]"]
-include::sample[dir="snippets/testing/testReport/groovy",files="buildSrc/src/main/groovy/myproject.java-conventions.gradle[tags=test-report];build.gradle[tags=test-report]"]
+include::sample[dir="snippets/reference/platforms/jvm/testReport/kotlin",files="buildSrc/src/main/kotlin/myproject.java-conventions.gradle.kts[tags=test-report];build.gradle.kts[tags=test-report]"]
+include::sample[dir="snippets/reference/platforms/jvm/testReport/groovy",files="buildSrc/src/main/groovy/myproject.java-conventions.gradle[tags=test-report];build.gradle[tags=test-report]"]
 ====
 
 In this example, we use a convention plugin `myproject.java-conventions` to expose the test results from a project to Gradle's <<variant_aware_resolution.adoc#sec:understanding-variant-selection,variant aware dependency management engine>>.
@@ -264,15 +264,15 @@ By default, the files are written to `layout.buildDirectory.dir("test-results/$t
 The location can be changed for all test tasks of a project, or individually per test task.
 
 ====
-include::sample[dir="snippets/testing/junit-xml-results/kotlin",files="build.gradle.kts[tags=configure-location-convention]"]
-include::sample[dir="snippets/testing/junit-xml-results/groovy",files="build.gradle[tags=configure-location-convention]"]
+include::sample[dir="snippets/reference/platforms/jvm/junit-xml-results/kotlin",files="build.gradle.kts[tags=configure-location-convention]"]
+include::sample[dir="snippets/reference/platforms/jvm/junit-xml-results/groovy",files="build.gradle[tags=configure-location-convention]"]
 ====
 
 With the above configuration, the XML files will be written to `layout.buildDirectory.dir("junit-xml/$testTaskName")`.
 
 ====
-include::sample[dir="snippets/testing/junit-xml-results/kotlin",files="build.gradle.kts[tags=configure-location-task]"]
-include::sample[dir="snippets/testing/junit-xml-results/groovy",files="build.gradle[tags=configure-location-task]"]
+include::sample[dir="snippets/reference/platforms/jvm/junit-xml-results/kotlin",files="build.gradle.kts[tags=configure-location-task]"]
+include::sample[dir="snippets/reference/platforms/jvm/junit-xml-results/groovy",files="build.gradle[tags=configure-location-task]"]
 ====
 
 With the above configuration, the XML files for the `test` task will be written to `layout.buildDirectory.dir("test-results/test-junit-xml")`.
@@ -285,8 +285,8 @@ The content of the XML files can also be configured to convey the results differ
 link:{javadocPath}/org/gradle/api/tasks/testing/JUnitXmlReport.html[JUnitXmlReport] options.
 
 ====
-include::sample[dir="snippets/testing/junit-xml-results/kotlin",files="build.gradle.kts[tags=configure-content]"]
-include::sample[dir="snippets/testing/junit-xml-results/groovy",files="build.gradle[tags=configure-content]"]
+include::sample[dir="snippets/reference/platforms/jvm/junit-xml-results/kotlin",files="build.gradle.kts[tags=configure-content]"]
+include::sample[dir="snippets/reference/platforms/jvm/junit-xml-results/groovy",files="build.gradle[tags=configure-content]"]
 ====
 
 [[junit_xml_configuration_output_filtering]]
@@ -396,22 +396,22 @@ For dividing test classes based upon their purpose, see the incubating <<jvm_tes
 JUnit 4.8 introduced the concept of categories for grouping JUnit 4 tests classes and methods.footnote:[The JUnit wiki contains a detailed description on how to work with JUnit categories: https://github.com/junit-team/junit/wiki/Categories[].] link:{groovyDslPath}/org.gradle.api.tasks.testing.Test.html#org.gradle.api.tasks.testing.Test:useJUnit(org.gradle.api.Action)[Test.useJUnit(org.gradle.api.Action)] allows you to specify the JUnit categories you want to include and exclude. For example, the following configuration includes tests in `CategoryA` and excludes those in `CategoryB` for the `test` task:
 
 ====
-include::sample[dir="snippets/testing/junit-categories/kotlin",files="build.gradle.kts[tags=test-categories]"]
-include::sample[dir="snippets/testing/junit-categories/groovy",files="build.gradle[tags=test-categories]"]
+include::sample[dir="snippets/reference/platforms/jvm/junit-categories/kotlin",files="build.gradle.kts[tags=test-categories]"]
+include::sample[dir="snippets/reference/platforms/jvm/junit-categories/groovy",files="build.gradle[tags=test-categories]"]
 ====
 
 http://junit.org/junit5/docs/current/user-guide[JUnit Platform] introduced http://junit.org/junit5/docs/current/user-guide/#writing-tests-tagging-and-filtering[tagging] to replace categories. You can specify the included/excluded tags via link:{javadocPath}/org/gradle/api/tasks/testing/Test.html#useJUnitPlatform-org.gradle.api.Action-[Test.useJUnitPlatform(org.gradle.api.Action)], as follows:
 
 ====
-include::sample[dir="snippets/testing/junitplatform-tagging/kotlin",files="build.gradle.kts[tags=test-tags]"]
-include::sample[dir="snippets/testing/junitplatform-tagging/groovy",files="build.gradle[tags=test-tags]"]
+include::sample[dir="snippets/reference/platforms/jvm/junitplatform-tagging/kotlin",files="build.gradle.kts[tags=test-tags]"]
+include::sample[dir="snippets/reference/platforms/jvm/junitplatform-tagging/groovy",files="build.gradle[tags=test-tags]"]
 ====
 
 The TestNG framework uses the concept of test groups for a similar effect.footnote:[The TestNG documentation contains more details about test groups: https://testng.org/#_test_groups[].] You can configure which test groups to include or exclude during the test execution via the link:{groovyDslPath}/org.gradle.api.tasks.testing.Test.html#org.gradle.api.tasks.testing.Test:useTestNG(org.gradle.api.Action)[Test.useTestNG(org.gradle.api.Action)] setting, as seen here:
 
 ====
-include::sample[dir="snippets/testing/testng-groups/kotlin",files="build.gradle.kts[tags=test-config]"]
-include::sample[dir="snippets/testing/testng-groups/groovy",files="build.gradle[tags=test-config]"]
+include::sample[dir="snippets/reference/platforms/jvm/testng-groups/kotlin",files="build.gradle.kts[tags=test-config]"]
+include::sample[dir="snippets/reference/platforms/jvm/testng-groups/groovy",files="build.gradle[tags=test-config]"]
 ====
 
 [[using_junit5]]
@@ -431,8 +431,8 @@ The JUnit Platform serves as a foundation for launching testing frameworks on th
 The following code enables JUnit Platform support in `build.gradle`:
 
 ====
-include::sample[dir="snippets/testing/junitplatform-jupiter/kotlin",files="build.gradle.kts[tags=enabling-junit-platform]"]
-include::sample[dir="snippets/testing/junitplatform-jupiter/groovy",files="build.gradle[tags=enabling-junit-platform]"]
+include::sample[dir="snippets/reference/platforms/jvm/junitplatform-jupiter/kotlin",files="build.gradle.kts[tags=enabling-junit-platform]"]
+include::sample[dir="snippets/reference/platforms/jvm/junitplatform-jupiter/groovy",files="build.gradle[tags=enabling-junit-platform]"]
 ====
 
 See link:{javadocPath}/org/gradle/api/tasks/testing/Test.html#useJUnitPlatform--[Test.useJUnitPlatform()] for more details.
@@ -443,8 +443,8 @@ See link:{javadocPath}/org/gradle/api/tasks/testing/Test.html#useJUnitPlatform--
 To enable JUnit Jupiter support in Gradle, all you need to do is add the following dependency:
 
 ====
-include::sample[dir="snippets/testing/junitplatform-jupiter/kotlin",files="build.gradle.kts[tags=jupiter-dependencies]"]
-include::sample[dir="snippets/testing/junitplatform-jupiter/groovy",files="build.gradle[tags=jupiter-dependencies]"]
+include::sample[dir="snippets/reference/platforms/jvm/junitplatform-jupiter/kotlin",files="build.gradle.kts[tags=jupiter-dependencies]"]
+include::sample[dir="snippets/reference/platforms/jvm/junitplatform-jupiter/groovy",files="build.gradle[tags=jupiter-dependencies]"]
 ====
 
 You can then put your test cases into _src/test/java_ as normal and execute them with `gradle test`.
@@ -455,8 +455,8 @@ You can then put your test cases into _src/test/java_ as normal and execute them
 If you want to run JUnit 3/4 tests on JUnit Platform, or even mix them with Jupiter tests, you should add extra JUnit Vintage Engine dependencies:
 
 ====
-include::sample[dir="snippets/testing/junitplatform-mix/kotlin",files="build.gradle.kts[tags=vintage-dependencies]"]
-include::sample[dir="snippets/testing/junitplatform-mix/groovy",files="build.gradle[tags=vintage-dependencies]"]
+include::sample[dir="snippets/reference/platforms/jvm/junitplatform-mix/kotlin",files="build.gradle.kts[tags=vintage-dependencies]"]
+include::sample[dir="snippets/reference/platforms/jvm/junitplatform-mix/groovy",files="build.gradle[tags=vintage-dependencies]"]
 ====
 
 In this way, you can use `gradle test` to test JUnit 3/4 tests on JUnit Platform, without the need to rewrite them.
@@ -472,8 +472,8 @@ By default, all test engines on the test runtime classpath will be used.
 To control specific test engine implementations explicitly, you can add the following setting to your build script:
 
 ====
-include::sample[dir="snippets/testing/junitplatform-engine/kotlin",files="build.gradle.kts[tags=filter-engine]"]
-include::sample[dir="snippets/testing/junitplatform-engine/groovy",files="build.gradle[tags=filter-engine]"]
+include::sample[dir="snippets/reference/platforms/jvm/junitplatform-engine/kotlin",files="build.gradle.kts[tags=filter-engine]"]
+include::sample[dir="snippets/reference/platforms/jvm/junitplatform-engine/groovy",files="build.gradle[tags=filter-engine]"]
 ====
 
 [[test_execution_order]]
@@ -484,8 +484,8 @@ TestNG allows explicit control of the execution order of tests when you use a _t
 While preserving the order of tests is the default behavior when directly working with _testng.xml_ files, the https://javadoc.io/doc/org.testng/testng/latest/org/testng/TestNG.html[TestNG API] that is used by Gradle's TestNG integration executes tests in unpredictable order by default.footnote:[The TestNG documentation contains more details about test ordering when working with `testng.xml` files: http://testng.org/doc/documentation-main.html#testng-xml[].] The ability to preserve test execution order was introduced with TestNG version 5.14.5. Setting the `preserveOrder` property to `true` for an older TestNG version will cause the build to fail.
 
 ====
-include::sample[dir="snippets/testing/testng-preserveorder/kotlin",files="build.gradle.kts[tags=test-config]"]
-include::sample[dir="snippets/testing/testng-preserveorder/groovy",files="build.gradle[tags=test-config]"]
+include::sample[dir="snippets/reference/platforms/jvm/testng-preserveorder/kotlin",files="build.gradle.kts[tags=test-config]"]
+include::sample[dir="snippets/reference/platforms/jvm/testng-preserveorder/groovy",files="build.gradle[tags=test-config]"]
 ====
 
 The `groupByInstance` property controls whether tests should be grouped by instance rather than by class. The http://testng.org/doc/documentation-main.html#dependencies-with-annotations[TestNG documentation] explains the difference in more detail, but essentially, if you have a test method `A()` that depends on `B()`, grouping by instance ensures that each A-B pairing, e.g. `B(1)`-`A(1)`, is executed before the next pairing. With group by class, all `B()` methods are run and then all `A()` ones.
@@ -493,8 +493,8 @@ The `groupByInstance` property controls whether tests should be grouped by insta
 Note that you typically only have more than one instance of a test if you're using a data provider to parameterize it. Also, grouping tests by instances was introduced with TestNG version 6.1. Setting the `groupByInstances` property to `true` for an older TestNG version will cause the build to fail.
 
 ====
-include::sample[dir="snippets/testing/testng-groupbyinstances/kotlin",files="build.gradle.kts[tags=test-config]"]
-include::sample[dir="snippets/testing/testng-groupbyinstances/groovy",files="build.gradle[tags=test-config]"]
+include::sample[dir="snippets/reference/platforms/jvm/testng-groupbyinstances/kotlin",files="build.gradle.kts[tags=test-config]"]
+include::sample[dir="snippets/reference/platforms/jvm/testng-groupbyinstances/groovy",files="build.gradle[tags=test-config]"]
 ====
 
 [[testNgParameterizedReporting]]
@@ -524,8 +524,8 @@ You may also need to perform some additional configuration depending on what for
 Let's start with a practical example that implements the first three steps in a build script, centered around a new source set `intTest`:
 
 ====
-include::sample[dir="snippets/java/basic/kotlin",files="build.gradle.kts[tags=practical-integ-test-source-set]"]
-include::sample[dir="snippets/java/basic/groovy",files="build.gradle[tags=practical-integ-test-source-set]"]
+include::sample[dir="snippets/reference/platforms/jvm/basic/kotlin",files="build.gradle.kts[tags=practical-integ-test-source-set]"]
+include::sample[dir="snippets/reference/platforms/jvm/basic/groovy",files="build.gradle[tags=practical-integ-test-source-set]"]
 ====
 
 This will set up a new source set called `intTest` that automatically creates:
@@ -553,8 +553,8 @@ There are a couple of other facets of the example you should take note of:
 Creating and configuring a source set automatically sets up the compilation stage, but it does nothing with respect to running the integration tests. So the last piece of the puzzle is a custom test task that uses the information from the new source set to configure its runtime classpath and the test classes:
 
 ====
-include::sample[dir="snippets/java/basic/kotlin",files="build.gradle.kts[tags=integ-test-task]"]
-include::sample[dir="snippets/java/basic/groovy",files="build.gradle[tags=integ-test-task]"]
+include::sample[dir="snippets/reference/platforms/jvm/basic/kotlin",files="build.gradle.kts[tags=integ-test-task]"]
+include::sample[dir="snippets/reference/platforms/jvm/basic/groovy",files="build.gradle[tags=integ-test-task]"]
 ====
 
 Again, we're accessing a source set to get the relevant information, i.e. where the compiled test classes are — the `testClassesDirs` property — and what needs to be on the classpath when running them — `classpath`.
@@ -671,8 +671,8 @@ You can however, setup module patching for tests like this:
 * Configure both the `testCompileJava` and `test` tasks with arguments to patch the main classes with the test classes as shown below.
 
 ====
-include::sample[dir="snippets/testing/patch-module/kotlin",files="build.gradle.kts[tags=patchArgs]"]
-include::sample[dir="snippets/testing/patch-module/groovy",files="build.gradle[tags=patchArgs]"]
+include::sample[dir="snippets/reference/platforms/jvm/patch-module/kotlin",files="build.gradle.kts[tags=patchArgs]"]
+include::sample[dir="snippets/reference/platforms/jvm/patch-module/groovy",files="build.gradle[tags=patchArgs]"]
 ====
 
 NOTE: If custom arguments are used for patching, these are not picked up by Eclipse and IDEA.
@@ -693,8 +693,8 @@ This excludes the `test` task and any other task that it _exclusively_ depends o
 Skipping a test via the build script can be done a few ways. One common approach is to make test execution conditional via the link:{groovyDslPath}/org.gradle.api.Task.html#org.gradle.api.Task:onlyIf(java.lang.String,org.gradle.api.specs.Spec)[Task.onlyIf(String, org.gradle.api.specs.Spec)] method. The following sample skips the `test` task if the project has a property called `mySkipTests`:
 
 ====
-include::sample[dir="snippets/java/basic/kotlin",files="build.gradle.kts[tags=skip-tests-condition]"]
-include::sample[dir="snippets/java/basic/groovy",files="build.gradle[tags=skip-tests-condition]"]
+include::sample[dir="snippets/reference/platforms/jvm/basic/kotlin",files="build.gradle.kts[tags=skip-tests-condition]"]
+include::sample[dir="snippets/reference/platforms/jvm/basic/groovy",files="build.gradle[tags=skip-tests-condition]"]
 ====
 
 In this case, Gradle will mark the skipped tests as "SKIPPED" rather than exclude them from the build.
@@ -755,8 +755,8 @@ Test fixtures are commonly used to setup the code under test, or provide utiliti
 Java projects can enable test fixtures support by applying the `java-test-fixtures` plugin, in addition to the `java` or `java-library` plugins:
 
 ====
-include::sample[dir="snippets/java/fixtures/kotlin",files="lib/build.gradle.kts[tags=use-plugin]"]
-include::sample[dir="snippets/java/fixtures/groovy",files="lib/build.gradle[tags=use-plugin]"]
+include::sample[dir="snippets/reference/platforms/jvm/fixtures/kotlin",files="lib/build.gradle.kts[tags=use-plugin]"]
+include::sample[dir="snippets/reference/platforms/jvm/fixtures/groovy",files="lib/build.gradle[tags=use-plugin]"]
 ====
 
 This will automatically create a `testFixtures` source set, in which you can write your test fixtures.
@@ -770,7 +770,7 @@ For example for this main class:
 [source,java,indent=0]
 .src/main/java/com/acme/Person.java
 ----
-include::{snippetsPath}/java/fixtures/groovy/lib/src/main/java/com/acme/Person.java[tags=sample]
+include::{snippetsPath}/reference/platforms/jvm/fixtures/groovy/lib/src/main/java/com/acme/Person.java[tags=sample]
 ----
 
 A test fixture can be written in `src/testFixtures/java`:
@@ -778,7 +778,7 @@ A test fixture can be written in `src/testFixtures/java`:
 [source,java,indent=0]
 .src/testFixtures/java/com/acme/Simpsons.java
 ----
-include::{snippetsPath}/java/fixtures/groovy/lib/src/testFixtures/java/com/acme/Simpsons.java[tags=sample]
+include::{snippetsPath}/reference/platforms/jvm/fixtures/groovy/lib/src/testFixtures/java/com/acme/Simpsons.java[tags=sample]
 ----
 
 === Declaring dependencies of test fixtures
@@ -786,8 +786,8 @@ include::{snippetsPath}/java/fixtures/groovy/lib/src/testFixtures/java/com/acme/
 Similarly to the link:java_library_plugin.html[Java Library Plugin], test fixtures expose an API and an implementation configuration:
 
 ====
-include::sample[dir="snippets/java/fixtures/kotlin",files="lib/build.gradle.kts[tags=test_fixtures_deps]"]
-include::sample[dir="snippets/java/fixtures/groovy",files="lib/build.gradle[tags=test_fixtures_deps]"]
+include::sample[dir="snippets/reference/platforms/jvm/fixtures/kotlin",files="lib/build.gradle.kts[tags=test_fixtures_deps]"]
+include::sample[dir="snippets/reference/platforms/jvm/fixtures/groovy",files="lib/build.gradle[tags=test_fixtures_deps]"]
 ====
 
 It's worth noticing that if a dependency is an _implementation_ dependency of test fixtures, then _when compiling tests that depend on those test fixtures_, the implementation dependencies will _not leak_ into the compile classpath.
@@ -800,8 +800,8 @@ It is often the case that a dependent project tests also needs the test fixtures
 This can be achieved very easily using the `testFixtures` keyword:
 
 ====
-include::sample[dir="snippets/java/fixtures/kotlin",files="build.gradle.kts[tags=consumer_dependencies]"]
-include::sample[dir="snippets/java/fixtures/groovy",files="build.gradle[tags=consumer_dependencies]"]
+include::sample[dir="snippets/reference/platforms/jvm/fixtures/kotlin",files="build.gradle.kts[tags=consumer_dependencies]"]
+include::sample[dir="snippets/reference/platforms/jvm/fixtures/groovy",files="build.gradle[tags=consumer_dependencies]"]
 ====
 
 === Publishing test fixtures
@@ -812,8 +812,8 @@ For both Maven and Ivy, an artifact with that classifier is simply published alo
 However, if you use the `maven-publish` or `ivy-publish` plugin, test fixtures are published as additional variants in {metadata-file-spec}[Gradle Module Metadata] and you can directly depend on test fixtures of external libraries in another Gradle project:
 
 ====
-include::sample[dir="snippets/java/fixtures/kotlin",files="build.gradle.kts[tags=external-test-fixtures-dependency]"]
-include::sample[dir="snippets/java/fixtures/groovy",files="build.gradle[tags=external-test-fixtures-dependency]"]
+include::sample[dir="snippets/reference/platforms/jvm/fixtures/kotlin",files="build.gradle.kts[tags=external-test-fixtures-dependency]"]
+include::sample[dir="snippets/reference/platforms/jvm/fixtures/groovy",files="build.gradle[tags=external-test-fixtures-dependency]"]
 ====
 
 It's worth noting that if the external project is _not_ publishing Gradle Module Metadata, then resolution will fail with an error indicating that such a variant cannot be found:
@@ -824,7 +824,7 @@ $ ./gradlew dependencyInsight --configuration functionalTestClasspath --dependen
 ----
 [source,text]
 ----
-include::{snippetsPath}/java/fixtures/tests/dependencyInsight.out[]
+include::{snippetsPath}/reference/platforms/jvm/fixtures/tests/dependencyInsight.out[]
 ----
 
 The error message mentions the missing `com.google.code.gson:gson-test-fixtures` capability, which is indeed not defined for this library.
@@ -833,8 +833,8 @@ That's because by convention, for projects that use the `java-test-fixtures` plu
 NOTE: If you publish your library and use test fixtures, but do not want to publish the fixtures, you can deactivate publishing of the _test fixtures variants_ as shown below.
 
 ====
-include::sample[dir="snippets/java/fixtures/kotlin/lib",files="build.gradle.kts[tags=disable-test-fixtures-publishing]"]
-include::sample[dir="snippets/java/fixtures/groovy/lib",files="build.gradle[tags=disable-test-fixtures-publishing]"]
+include::sample[dir="snippets/reference/platforms/jvm/fixtures/kotlin/lib",files="build.gradle.kts[tags=disable-test-fixtures-publishing]"]
+include::sample[dir="snippets/reference/platforms/jvm/fixtures/groovy/lib",files="build.gradle[tags=disable-test-fixtures-publishing]"]
 ====
 
 [[sec:non-class-based-testing]]
@@ -904,8 +904,8 @@ It is better to separate class-based and non-class-based tests into different ta
 Using Java Test Suites makes this easy to do.
 
 ====
-include::sample[dir="snippets/testing/non-class-based-testing/kotlin/lib",files="build.gradle.kts[tags=test-setup]"]
-include::sample[dir="snippets/testing/non-class-based-testing/groovy/lib",files="build.gradle[tags=test-setup]"]
+include::sample[dir="snippets/reference/platforms/jvm/non-class-based-testing/kotlin/lib",files="build.gradle.kts[tags=test-setup]"]
+include::sample[dir="snippets/reference/platforms/jvm/non-class-based-testing/groovy/lib",files="build.gradle[tags=test-setup]"]
 ====
 
 <1> Ensure the test task uses the JUnit Jupiter test framework.  When not using Test Suites, you should call `useJUnitPlatform()` on the `Test` task itself.
@@ -943,11 +943,11 @@ These files are idiomatically located in the `src/test/definitions` directory.
 The test definition files in this example are very simple and look like this:
 
 ====
-include::sample[dir="snippets/testing/non-class-based-testing/common/lib/src/test/definitions",files="ExampleTests.xml[]"]
+include::sample[dir="snippets/reference/platforms/jvm/non-class-based-testing/common/lib/src/test/definitions",files="ExampleTests.xml[]"]
 ====
 
 ====
-include::sample[dir="snippets/testing/non-class-based-testing/common/lib/src/test/definitions/sub",files="MoreTests.xml[]"]
+include::sample[dir="snippets/reference/platforms/jvm/non-class-based-testing/common/lib/src/test/definitions/sub",files="MoreTests.xml[]"]
 ====
 
 The custom engine in this example logs messages when discovering and executing tests.

@@ -24,7 +24,8 @@ import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.OsTestPreconditions
+
 import org.gradle.util.Matchers
 import org.gradle.util.internal.ToBeImplemented
 import org.junit.Rule
@@ -2471,7 +2472,7 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
     // endregion duplicates in compressed files
 
     @Issue("https://github.com/gradle/gradle/issues/862")
-    @Requires(UnitTestPreconditions.NotWindows)
+    @Requires(OsTestPreconditions.NotWindows)
     // NTFS does not support colons in file names
     def "can copy files with semicolons"() {
         given:

@@ -28,8 +28,8 @@ Note that if you want to benefit from the <<java_library_plugin.adoc#sec:java_li
 To use the Scala plugin, include the following in your build script:
 
 ====
-include::sample[dir="snippets/scala/quickstart/kotlin",files="build.gradle.kts[tags=use-plugin]"]
-include::sample[dir="snippets/scala/quickstart/groovy",files="build.gradle[tags=use-plugin]"]
+include::sample[dir="snippets/reference/platforms/jvm/quickstart/kotlin",files="build.gradle.kts[tags=use-plugin]"]
+include::sample[dir="snippets/reference/platforms/jvm/quickstart/groovy",files="build.gradle[tags=use-plugin]"]
 ====
 
 [[sec:scala_tasks]]
@@ -107,8 +107,8 @@ Scala source files for the given source set. May also contain Java source files 
 Just like the Java plugin, the Scala plugin allows you to configure custom locations for Scala production and test source files.
 
 ====
-include::sample[dir="snippets/scala/customizedLayout/kotlin",files="build.gradle.kts[tags=custom-source-locations]"]
-include::sample[dir="snippets/scala/customizedLayout/groovy",files="build.gradle[tags=custom-source-locations]"]
+include::sample[dir="snippets/reference/platforms/jvm/customizedLayout/kotlin",files="build.gradle.kts[tags=custom-source-locations]"]
+include::sample[dir="snippets/reference/platforms/jvm/customizedLayout/groovy",files="build.gradle[tags=custom-source-locations]"]
 ====
 
 [[sec:scala_version]]
@@ -121,15 +121,15 @@ The `scalaToolchainRuntimeClasspath` configuration resolves the dependencies dec
 NOTE: Direct dependencies on the Scala SDK do not need to be declared when the `scalaVersion` property is set.
 
 ====
-include::sample[dir="snippets/scala/quickstart/kotlin",files="build.gradle.kts[tags=scala-version]"]
-include::sample[dir="snippets/scala/quickstart/groovy",files="build.gradle[tags=scala-version]"]
+include::sample[dir="snippets/reference/platforms/jvm/quickstart/kotlin",files="build.gradle.kts[tags=scala-version]"]
+include::sample[dir="snippets/reference/platforms/jvm/quickstart/groovy",files="build.gradle[tags=scala-version]"]
 ====
 
 Configuring Gradle to use Scala 3 is no different from Scala 2.
 
 ====
-include::sample[dir="snippets/scala/scala3/kotlin",files="build.gradle.kts[tags=scala-version]"]
-include::sample[dir="snippets/scala/scala3/groovy",files="build.gradle[tags=scala-version]"]
+include::sample[dir="snippets/reference/platforms/jvm/scala3/kotlin",files="build.gradle.kts[tags=scala-version]"]
+include::sample[dir="snippets/reference/platforms/jvm/scala3/groovy",files="build.gradle[tags=scala-version]"]
 ====
 
 NOTE: The `scalaVersion` property is incubating.
@@ -143,22 +143,22 @@ Omitting the Scala version from the `scala` extension will be deprecated in a fu
 Scala 2 projects need to declare a `scala-library` dependency.
 
 ====
-include::sample[dir="snippets/scala/quickstart/kotlin/inferred-version",files="build.gradle.kts[tags=scala-dependency]"]
-include::sample[dir="snippets/scala/quickstart/groovy/inferred-version",files="build.gradle[tags=scala-dependency]"]
+include::sample[dir="snippets/reference/platforms/jvm/quickstart/kotlin/inferred-version",files="build.gradle.kts[tags=scala-dependency]"]
+include::sample[dir="snippets/reference/platforms/jvm/quickstart/groovy/inferred-version",files="build.gradle[tags=scala-dependency]"]
 ====
 
 Scala 3 projects need to declare a `scala3-library_3` dependency instead:
 
 ====
-include::sample[dir="snippets/scala/scala3/kotlin/inferred-version",files="build.gradle.kts[tags=scala-dependency]"]
-include::sample[dir="snippets/scala/scala3/groovy/inferred-version",files="build.gradle[tags=scala-dependency]"]
+include::sample[dir="snippets/reference/platforms/jvm/scala3/kotlin/inferred-version",files="build.gradle.kts[tags=scala-dependency]"]
+include::sample[dir="snippets/reference/platforms/jvm/scala3/groovy/inferred-version",files="build.gradle[tags=scala-dependency]"]
 ====
 
 If Scala is only used for test code, the `scala-library` dependency should be added to the `testImplementation` configuration:
 
 ====
-include::sample[dir="snippets/scala/scalaDependency/kotlin",files="build.gradle.kts[tags=scala-test-dependency]"]
-include::sample[dir="snippets/scala/scalaDependency/groovy",files="build.gradle[tags=scala-test-dependency]"]
+include::sample[dir="snippets/reference/platforms/jvm/scalaDependency/kotlin",files="build.gradle.kts[tags=scala-test-dependency]"]
+include::sample[dir="snippets/reference/platforms/jvm/scalaDependency/groovy",files="build.gradle[tags=scala-test-dependency]"]
 ====
 
 [[sec:configure_scala_classpath]]
@@ -181,8 +181,8 @@ Gradle will provide a default version of Zinc, but if you need to use a particul
 Gradle supports version 1.6.0 of Zinc and above.
 
 ====
-include::sample[dir="snippets/scala/zincDependency/kotlin",files="build.gradle.kts[tags=zinc-dependency]"]
-include::sample[dir="snippets/scala/zincDependency/groovy",files="build.gradle[tags=zinc-dependency]"]
+include::sample[dir="snippets/reference/platforms/jvm/zincDependency/kotlin",files="build.gradle.kts[tags=zinc-dependency]"]
+include::sample[dir="snippets/reference/platforms/jvm/zincDependency/groovy",files="build.gradle[tags=zinc-dependency]"]
 ====
 
 The Zinc compiler itself needs a compatible version of `scala-library` that may be different from the version required by your application.
@@ -207,8 +207,8 @@ You can diagnose problems with the version of the Zinc compiler selected by runn
 The Scala plugin adds a configuration named `scalaCompilerPlugins` which is used to declare and resolve optional compiler plugins.
 
 ====
-include::sample[dir="snippets/scala/compilerPlugin/kotlin",files="build.gradle.kts[tags=compiler-plugin]"]
-include::sample[dir="snippets/scala/compilerPlugin/groovy",files="build.gradle[tags=compiler-plugin]"]
+include::sample[dir="snippets/reference/platforms/jvm/compilerPlugin/kotlin",files="build.gradle.kts[tags=compiler-plugin]"]
+include::sample[dir="snippets/reference/platforms/jvm/compilerPlugin/groovy",files="build.gradle[tags=compiler-plugin]"]
 ====
 
 [[sec:scala_convention_properties]]
@@ -276,8 +276,8 @@ Scala compilation takes place in an external process.
 Memory settings for the external process default to the defaults of the JVM. To adjust memory settings, configure the `scalaCompileOptions.forkOptions` property as needed:
 
 ====
-include::sample[dir="snippets/scala/zinc/kotlin",files="build.gradle.kts[tags=adjust-memory]"]
-include::sample[dir="snippets/scala/zinc/groovy",files="build.gradle[tags=adjust-memory]"]
+include::sample[dir="snippets/reference/platforms/jvm/zinc/kotlin",files="build.gradle.kts[tags=adjust-memory]"]
+include::sample[dir="snippets/reference/platforms/jvm/zinc/groovy",files="build.gradle[tags=adjust-memory]"]
 ====
 
 [[sec:scala_incremental_compilation]]
@@ -288,8 +288,8 @@ By compiling only classes whose source code has changed since the previous compi
 The Scala plugin defaults to incremental compilation by integrating with https://github.com/typesafehub/zinc[Zinc], a standalone version of https://github.com/harrah/xsbt[sbt]'s incremental Scala compiler. If you want to disable the incremental compilation, set `force = true` in your build file:
 
 ====
-include::sample[dir="snippets/scala/force/kotlin",files="build.gradle.kts[tags=force-compilation]"]
-include::sample[dir="snippets/scala/force/groovy",files="build.gradle[tags=force-compilation]"]
+include::sample[dir="snippets/reference/platforms/jvm/force/kotlin",files="build.gradle.kts[tags=force-compilation]"]
+include::sample[dir="snippets/reference/platforms/jvm/force/groovy",files="build.gradle[tags=force-compilation]"]
 ====
 
 _Note:_ This will only cause all classes to be recompiled if at least one input source file has changed. If there are no changes to the source files, the `compileScala` task will still be considered `UP-TO-DATE` as usual.
@@ -311,6 +311,6 @@ When the Eclipse plugin encounters a Scala project, it adds additional configura
 When the IDEA plugin encounters a Scala project, it adds additional configuration to make the project work with IDEA out of the box. Specifically, the plugin adds a Scala SDK (IntelliJ IDEA 14+) and a Scala compiler library that matches the Scala version on the project's class path. The Scala plugin is backwards compatible with earlier versions of IntelliJ IDEA and it is possible to add a Scala facet instead of the default Scala SDK by configuring `targetVersion` on link:{groovyDslPath}/org.gradle.plugins.ide.idea.model.IdeaModel.html[IdeaModel].
 
 ====
-include::sample[dir="snippets/scala/ideaTargetVersion/kotlin",files="build.gradle.kts[tags=scala-idea-target-version]"]
-include::sample[dir="snippets/scala/ideaTargetVersion/groovy",files="build.gradle[tags=scala-idea-target-version]"]
+include::sample[dir="snippets/reference/platforms/jvm/ideaTargetVersion/kotlin",files="build.gradle.kts[tags=scala-idea-target-version]"]
+include::sample[dir="snippets/reference/platforms/jvm/ideaTargetVersion/groovy",files="build.gradle[tags=scala-idea-target-version]"]
 ====

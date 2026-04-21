@@ -16,7 +16,6 @@
 
 package org.gradle.features.internal.builders.definitions
 
-import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition
 import org.gradle.features.binding.BuildModel
 import org.gradle.features.binding.Definition
 import org.gradle.test.fixtures.plugin.PluginBuilder
@@ -73,8 +72,6 @@ class ProjectTypeDefinitionClassBuilder {
         return """
             package org.gradle.test;
 
-            import ${HiddenInDefinition.class.name};
-
             import org.gradle.api.Action;
             import org.gradle.api.model.ObjectFactory;
             import org.gradle.api.provider.ListProperty;
@@ -90,11 +87,6 @@ class ProjectTypeDefinitionClassBuilder {
 
                 @Nested
                 Foo getFoo();
-
-                @${HiddenInDefinition.class.simpleName}
-                default void foo(Action<? super Foo> action) {
-                    action.execute(getFoo());
-                }
 
                 ${maybeInjectedServiceDeclaration}
 

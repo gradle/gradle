@@ -187,7 +187,7 @@ fun IntermediateToolingModelProvider.getIsolatedModels(requester: ProjectState, 
 
 private
 fun buildOutputModel(base: ScriptModelBase, model: IntermediateScriptModel): StandardKotlinDslScriptModel {
-    val classPath = base.scriptPaths.bin + model.localClassPath
+    val classPath = model.localClassPath
     val gradleKotlinDslJar = classPath.filter(::isGradleKotlinDslJar)
     val sourcePath = gradleKotlinDslJar + base.scriptPaths.src + model.localSourcePath
     val implicitImports = base.implicitImports + model.localImplicitImports
@@ -297,13 +297,8 @@ object IsolatedScriptsModelBuilder : ToolingModelBuilder {
 
 private
 fun isolatedScriptsModelFor(project: ProjectInternal): IsolatedScriptsModel {
-    // TODO:isolated compute own classpaths
-    val additionalClassPath = ClassPath.EMPTY
-    val additionalSourcePath = ClassPath.EMPTY
     val models = mutableListOf<IntermediateScriptModel>().apply {
-        buildScriptModelFor(project, additionalClassPath, additionalSourcePath)?.let {
-            add(it)
-        }
+        addNotNull(buildScriptModelFor(project))
         addAll(precompiledScriptModelsFor(project))
     }
     return IsolatedScriptsModel(models)
@@ -311,12 +306,7 @@ fun isolatedScriptsModelFor(project: ProjectInternal): IsolatedScriptsModel {
 
 
 private
-fun buildScriptModelFor(
-    project: ProjectInternal,
-    localClassPath: ClassPath,
-    localSourcePath: ClassPath
-): IntermediateScriptModel? {
-
+fun buildScriptModelFor(project: ProjectInternal): IntermediateScriptModel? {
     val buildScript = project.discoverBuildScript()
         ?: return null
 
@@ -327,10 +317,12 @@ fun buildScriptModelFor(
         project.accessorsClassPathOf(compilationClassPath)
     } ?: AccessorsClassPath.empty
 
+    val classpathSources = sourcePathFor(listOf(project.buildscript))
+
     return IntermediateScriptModel(
         scriptFile = buildScript,
-        localClassPath = localClassPath + accessorsClassPath.bin,
-        localSourcePath = localSourcePath + accessorsClassPath.src,
+        localClassPath = compilationClassPath + accessorsClassPath.bin,
+        localSourcePath = classpathSources + accessorsClassPath.src,
     )
 }
 

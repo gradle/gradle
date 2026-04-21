@@ -16,7 +16,6 @@
 
 package org.gradle.features.internal.builders.definitions
 
-import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition
 import org.gradle.features.binding.BuildModel
 import org.gradle.features.binding.Definition
 
@@ -40,7 +39,6 @@ class ProjectTypeDefinitionNestedDeeplyWithinNdocClassBuilder extends ProjectTyp
             import org.gradle.api.tasks.Nested;
             import ${Definition.class.name};
             import ${BuildModel.class.name};
-            import ${HiddenInDefinition.class.name};
 
             public interface ${publicTypeClassName} extends ${Definition.class.simpleName}<${publicTypeClassName}.ModelType> {
                 Property<String> getId();
@@ -52,11 +50,6 @@ class ProjectTypeDefinitionNestedDeeplyWithinNdocClassBuilder extends ProjectTyp
 
                     @Nested
                     Group getGroup();
-
-                    @${HiddenInDefinition.class.simpleName}
-                    default void group(Action<? super Group> action) {
-                        action.execute(getGroup());
-                    }
 
                     interface SourceModel extends ${BuildModel.class.simpleName} {
                         Property<String> getProcessedDir();

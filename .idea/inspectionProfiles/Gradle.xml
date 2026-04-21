@@ -118,6 +118,46 @@
       <replaceConfiguration name="Treat some Guava Collection factory methods as Deprecated" uuid="82f9f9ab-9c3b-367f-99ad-40841dc13819" text="com.google.common.collect.Sets.newTreeSet()" recursive="false" caseInsensitive="false" type="JAVA" pattern_context="default" reformatAccordingToStyle="true" shortenFQN="true" replacement="new java.util.TreeSet&lt;&gt;()">
         <constraint name="__context__" within="" contains="" />
       </replaceConfiguration>
+      <replaceConfiguration name="Use getBoolean() for InternalOption&lt;Boolean&gt;" suppressId="use_getBoolean" problemDescriptor="Use `getBoolean()` instead of `getOptionValue().get()`" text="$receiver$.getOptionValue($opt$).get()" recursive="false" caseInsensitive="false" type="JAVA" pattern_context="default" reformatAccordingToStyle="true" shortenFQN="true" useStaticImport="true" replacement="$receiver$.getBoolean($opt$)">
+        <constraint name="__context__" within="" contains="" />
+        <constraint name="receiver" nameOfExprType="InternalOptions" exprTypeWithinHierarchy="true" within="" contains="" />
+        <constraint name="opt" nameOfExprType="InternalOption&lt;Boolean&gt;" exprTypeWithinHierarchy="true" within="" contains="" />
+      </replaceConfiguration>
+      <replaceConfiguration name="Use getBoolean() for InternalOption&lt;Boolean&gt; (Kotlin)" suppressId="use_getBoolean" problemDescriptor="Use `getBoolean()` instead of `getOptionValue().get()`" text="$receiver$.getOptionValue($opt$).get()" recursive="false" caseInsensitive="false" type="Kotlin" pattern_context="default" reformatAccordingToStyle="true" shortenFQN="true" useStaticImport="true" replacement="$receiver$.getBoolean($opt$)">
+        <constraint name="__context__" within="" contains="" />
+        <constraint name="receiver" nameOfExprType="InternalOptions" exprTypeWithinHierarchy="true" within="" contains="" />
+        <constraint name="opt" nameOfExprType="InternalOption&lt;Boolean&gt;" exprTypeWithinHierarchy="true" within="" contains="" />
+      </replaceConfiguration>
+      <replaceConfiguration name="Use getInt() for InternalOption&lt;Integer&gt;" suppressId="use_getInt" problemDescriptor="Use `getInt()` instead of `getOptionValue().get()`" text="$receiver$.getOptionValue($opt$).get()" recursive="false" caseInsensitive="false" type="JAVA" pattern_context="default" reformatAccordingToStyle="true" shortenFQN="true" useStaticImport="true" replacement="$receiver$.getInt($opt$)">
+        <constraint name="__context__" within="" contains="" />
+        <constraint name="receiver" nameOfExprType="InternalOptions" exprTypeWithinHierarchy="true" within="" contains="" />
+        <constraint name="opt" nameOfExprType="InternalOption&lt;Integer&gt;" exprTypeWithinHierarchy="true" within="" contains="" />
+      </replaceConfiguration>
+      <replaceConfiguration name="Use getInt() for InternalOption&lt;Integer&gt; (Kotlin)" suppressId="use_getInt" problemDescriptor="Use `getInt()` instead of `getOptionValue().get()`" text="$receiver$.getOptionValue($opt$).get()" recursive="false" caseInsensitive="false" type="Kotlin" pattern_context="default" reformatAccordingToStyle="true" shortenFQN="true" useStaticImport="true" replacement="$receiver$.getInt($opt$)">
+        <constraint name="__context__" within="" contains="" />
+        <constraint name="receiver" nameOfExprType="InternalOptions" exprTypeWithinHierarchy="true" within="" contains="" />
+        <constraint name="opt" nameOfExprType="InternalOption&lt;Integer&gt;" exprTypeWithinHierarchy="true" within="" contains="" />
+      </replaceConfiguration>
+      <replaceConfiguration name="Use getValue() for InternalOption&lt;String&gt;" suppressId="use_getValue" problemDescriptor="Use `getValue()` instead of `getOptionValue().get()`" text="$receiver$.getOptionValue($opt$).get()" recursive="false" caseInsensitive="false" type="JAVA" pattern_context="default" reformatAccordingToStyle="true" shortenFQN="true" useStaticImport="true" replacement="$receiver$.getValue($opt$)">
+        <constraint name="__context__" within="" contains="" />
+        <constraint name="receiver" nameOfExprType="InternalOptions" exprTypeWithinHierarchy="true" within="" contains="" />
+        <constraint name="opt" nameOfExprType="InternalOption&lt;String&gt;" exprTypeWithinHierarchy="true" within="" contains="" />
+      </replaceConfiguration>
+      <replaceConfiguration name="Use getValue() for InternalOption&lt;String&gt; (Kotlin)" suppressId="use_getValue" problemDescriptor="Use `getValue()` instead of `getOptionValue().get()`" text="$receiver$.getOptionValue($opt$).get()" recursive="false" caseInsensitive="false" type="Kotlin" pattern_context="default" reformatAccordingToStyle="true" shortenFQN="true" useStaticImport="true" replacement="$receiver$.getValue($opt$)">
+        <constraint name="__context__" within="" contains="" />
+        <constraint name="receiver" nameOfExprType="InternalOptions" exprTypeWithinHierarchy="true" within="" contains="" />
+        <constraint name="opt" nameOfExprType="InternalOption&lt;String&gt;" exprTypeWithinHierarchy="true" within="" contains="" />
+      </replaceConfiguration>
+      <replaceConfiguration name="Use getValueOrNull() for InternalOption&lt;@Nullable String&gt;" suppressId="use_getValueOrNull" problemDescriptor="Use `getValueOrNull()` instead of `getOptionValue().get()`" text="$receiver$.getOptionValue($opt$).get()" recursive="false" caseInsensitive="false" type="JAVA" pattern_context="default" reformatAccordingToStyle="true" shortenFQN="true" useStaticImport="true" replacement="$receiver$.getValueOrNull($opt$)">
+        <constraint name="__context__" within="" contains="" />
+        <constraint name="receiver" nameOfExprType="InternalOptions" exprTypeWithinHierarchy="true" within="" contains="" />
+        <constraint name="opt" nameOfExprType="InternalOption&lt;.*Nullable String&gt;" exprTypeWithinHierarchy="true" within="" contains="" />
+      </replaceConfiguration>
+      <replaceConfiguration name="Use getValueOrNull() for InternalOption&lt;@Nullable String&gt; (Kotlin)" suppressId="use_getValueOrNull" problemDescriptor="Use `getValueOrNull()` instead of `getOptionValue().get()`" text="$receiver$.getOptionValue($opt$).get()" recursive="false" caseInsensitive="false" type="Kotlin" pattern_context="default" reformatAccordingToStyle="true" shortenFQN="true" useStaticImport="true" replacement="$receiver$.getValueOrNull($opt$)">
+        <constraint name="__context__" within="" contains="" />
+        <constraint name="receiver" nameOfExprType="InternalOptions" exprTypeWithinHierarchy="true" within="" contains="" />
+        <constraint name="opt" nameOfExprType="InternalOption&lt;.*Nullable String&gt;" exprTypeWithinHierarchy="true" within="" contains="" />
+      </replaceConfiguration>
       <replaceConfiguration name="Use @ToBeImplemented annotation" suppressId="not_yet_implemented" problemDescriptor="Prefer '@ToBeImplemented' annotation" text="@NotYetImplemented" recursive="false" caseInsensitive="false" type="Groovy" pattern_context="File" reformatAccordingToStyle="true" shortenFQN="true" useStaticImport="true" replacement="@org.gradle.util.internal.ToBeImplemented">
         <constraint name="__context__" within="" contains="" />
       </replaceConfiguration>

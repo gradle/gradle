@@ -43,17 +43,9 @@ Provide the credentials as Gradle properties (`gradle.publish.key` and `gradle.p
 
 Add the `com.gradle.plugin-publish` plugin to your build:
 
-++++
-<div style="text-align: right;">
-  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/developingPlugins/publishingPlugins">
-    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
-  </a>
-</div>
-++++
-
 ====
-include::sample[dir="snippets/developingPlugins/publishingPlugins/kotlin",files="build.gradle.kts[tags=plugins_block]"]
-include::sample[dir="snippets/developingPlugins/publishingPlugins/groovy",files="build.gradle[tags=plugins_block]"]
+include::sample[dir="snippets/reference/plugin-development/publishingPlugins/kotlin",files="build.gradle.kts[tags=plugins_block]"]
+include::sample[dir="snippets/reference/plugin-development/publishingPlugins/groovy",files="build.gradle[tags=plugins_block]"]
 ====
 
 The latest version is listed on the link:https://plugins.gradle.org/plugin/com.gradle.plugin-publish[{portal}].
@@ -68,17 +60,9 @@ Older versions required applying these plugins manually.
 
 Configure the plugin in `build.gradle(.kts)`:
 
-++++
-<div style="text-align: right;">
-  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/developingPlugins/publishingPlugins">
-    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
-  </a>
-</div>
-++++
-
 ====
-include::sample[dir="snippets/developingPlugins/publishingPlugins/kotlin",files="build.gradle.kts[tags=global_config]"]
-include::sample[dir="snippets/developingPlugins/publishingPlugins/groovy",files="build.gradle[tags=global_config]"]
+include::sample[dir="snippets/reference/plugin-development/publishingPlugins/kotlin",files="build.gradle.kts[tags=global_config]"]
+include::sample[dir="snippets/reference/plugin-development/publishingPlugins/groovy",files="build.gradle[tags=global_config]"]
 ====
 <1> Set `group` to identify your published artifacts.
 <2> Set `version` for the plugin release.
@@ -92,8 +76,8 @@ WARNING: The group and artifact must reasonably represent the organization, pers
 Define plugin-specific properties inside the `gradlePlugin {}` block:
 
 ====
-include::sample[dir="snippets/developingPlugins/publishingPlugins/kotlin",files="build.gradle.kts[tags=per_plugin_config]"]
-include::sample[dir="snippets/developingPlugins/publishingPlugins/groovy",files="build.gradle[tags=per_plugin_config]"]
+include::sample[dir="snippets/reference/plugin-development/publishingPlugins/kotlin",files="build.gradle.kts[tags=per_plugin_config]"]
+include::sample[dir="snippets/reference/plugin-development/publishingPlugins/groovy",files="build.gradle[tags=per_plugin_config]"]
 ====
 <1> Plugin specific configuration also goes into the `gradlePlugin` block.
 <2> This is where we previously added global properties.
@@ -107,8 +91,8 @@ include::sample[dir="snippets/developingPlugins/publishingPlugins/groovy",files=
 For example, take a look at the configuration for the https://plugins.gradle.org/plugin/org.ysb33r.gradletest[GradleTest plugin]:
 
 ====
-include::sample[dir="snippets/developingPlugins/publishingPlugins/kotlin",files="build.gradle.kts[tags=plugin_example]"]
-include::sample[dir="snippets/developingPlugins/publishingPlugins/groovy",files="build.gradle[tags=plugin_example]"]
+include::sample[dir="snippets/reference/plugin-development/publishingPlugins/kotlin",files="build.gradle.kts[tags=plugin_example]"]
+include::sample[dir="snippets/reference/plugin-development/publishingPlugins/groovy",files="build.gradle[tags=plugin_example]"]
 ====
 
 image::plugin-portal-plugin-page.png[]
@@ -160,15 +144,7 @@ If you published a plugin without using the <<java_gradle_plugin.adoc#java_gradl
 
 To use such a plugin, add a `resolutionStrategy` block inside `pluginManagement {}` in the consuming project’s `settings.gradle(.kts)`:
 
-++++
-<div style="text-align: right;">
-  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/plugins/customPlugin">
-    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
-  </a>
-</div>
-++++
-
 ====
-include::sample[dir="snippets/plugins/customPlugin/kotlin/consumer",files="settings.gradle.kts[tags=use-legacy-plugin]"]
-include::sample[dir="snippets/plugins/customPlugin/groovy/consumer",files="settings.gradle[tags=use-legacy-plugin]"]
+include::sample[dir="snippets/reference/plugin-development/customPlugin/kotlin/consumer",files="settings.gradle.kts[tags=use-legacy-plugin]"]
+include::sample[dir="snippets/reference/plugin-development/customPlugin/groovy/consumer",files="settings.gradle[tags=use-legacy-plugin]"]
 ====

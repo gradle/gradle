@@ -49,6 +49,7 @@ import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.resources.ProjectLeaseRegistry;
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
 import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistration;
@@ -156,6 +157,7 @@ public final class BuildCacheServices extends AbstractGradleModuleServices {
                 StartParameterInternal startParameter,
                 BuildOperationRunner buildOperationRunner,
                 BuildOperationProgressEventEmitter buildOperationProgressEventEmitter,
+                ProjectLeaseRegistry projectLeaseRegistry,
                 TemporaryFileProvider temporaryFileProvider,
                 BuildCacheEntryPacker packer,
                 OriginMetadataFactory originMetadataFactory,
@@ -168,7 +170,8 @@ public final class BuildCacheServices extends AbstractGradleModuleServices {
                     originMetadataFactory,
                     stringInterner,
                     temporaryFileProvider,
-                    packer
+                    packer,
+                    projectLeaseRegistry
                 );
             }
         });

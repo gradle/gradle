@@ -28,11 +28,13 @@ import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.gradle.test.fixtures.server.http.MavenHttpPluginRepository
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.JdkVersionTestPreconditions
+
 import org.hamcrest.Matchers
 import org.junit.Rule
 
 @PolyglotDslTest
+@SkipDsl(dsl = GradleDsl.GROOVY, because = "Groovy DSL is not supported for declarative configuration")
 class ProjectFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec implements ProjectFeatureFixture, PolyglotTestFixture {
 
     @Rule
@@ -129,7 +131,7 @@ class ProjectFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec i
         outputContains("Binding FeatureDefinition")
     }
 
-    @Requires(UnitTestPreconditions.Jdk23OrEarlier) // Because Kotlin does not support 24 yet and falls back to 23 causing inconsistent JVM targets
+    @Requires(JdkVersionTestPreconditions.Jdk23OrEarlier) // Because Kotlin does not support 24 yet and falls back to 23 causing inconsistent JVM targets
     def "can declare and configure a custom project feature in Kotlin"() {
         PluginBuilder pluginBuilder = withKotlinProjectFeaturePlugin()
         pluginBuilder.applyBuildScriptPlugin("org.jetbrains.kotlin.jvm", new KotlinGradlePluginVersions().getLatestStableOrRC())
@@ -203,7 +205,6 @@ class ProjectFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec i
         outputContains("Binding AnotherFeatureDefinition")
     }
 
-    @SkipDsl(dsl = GradleDsl.GROOVY, because = "Groovy has no problem with finding non-public methods/types ...")
     def 'can declare and configure a custom project feature with a definition that has public and implementation types'() {
         given:
         PluginBuilder pluginBuilder = withProjectFeatureDefinitionThatHasPublicAndImplementationTypes()
@@ -489,7 +490,7 @@ class ProjectFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec i
         )
     }
 
-    @Requires(UnitTestPreconditions.Jdk23OrEarlier) // Because Kotlin does not support 24 yet and falls back to 23 causing inconsistent JVM targets
+    @Requires(JdkVersionTestPreconditions.Jdk23OrEarlier) // Because Kotlin does not support 24 yet and falls back to 23 causing inconsistent JVM targets
     def "can declare and configure a custom project feature in Kotlin that has no build model"() {
         PluginBuilder pluginBuilder = withKotlinProjectFeaturePluginsThatHasNoBuildModel()
         pluginBuilder.applyBuildScriptPlugin("org.jetbrains.kotlin.jvm", "2.2.20")
@@ -535,7 +536,7 @@ class ProjectFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec i
         outputContains("Binding FeatureDefinition")
     }
 
-    @Requires(UnitTestPreconditions.Jdk23OrEarlier) // Because Kotlin does not support 24 yet and falls back to 23 causing inconsistent JVM targets
+    @Requires(JdkVersionTestPreconditions.Jdk23OrEarlier) // Because Kotlin does not support 24 yet and falls back to 23 causing inconsistent JVM targets
     def "can declare and configure a custom project feature in Kotlin using an action class"() {
         PluginBuilder pluginBuilder = withKotlinProjectFeaturePluginThatBindsWithClass()
         pluginBuilder.applyBuildScriptPlugin("org.jetbrains.kotlin.jvm", new KotlinGradlePluginVersions().getLatestStableOrRC())
@@ -708,6 +709,38 @@ class ProjectFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec i
         then:
         outputContains("definition text = main")
         outputContains("Binding GroupFeatureDefinition")
+    }
+
+    def "can register build model for a non-discoverable nested definition"() {
+        given:
+        PluginBuilder pluginBuilder = withProjectTypeUsingNonDiscoverableDefinition()
+        pluginBuilder.addBuildScriptContent pluginBuildScriptForJava
+        pluginBuilder.prepareToExecute()
+
+        settingsFile() << pluginsFromIncludedBuild
+
+        buildFile() << """
+            testProjectType {
+                id = "test"
+                foo {
+                    bar = "baz"
+                    feature {
+                        text = "foo"
+                        fizz {
+                            buzz = "buz"
+                        }
+                    }
+                }
+            }
+        """
+
+        when:
+        run(":printTestProjectTypeDefinitionConfiguration", ":printFeatureDefinitionConfiguration")
+
+        then:
+        outputContains("definition foo.bar = baz")
+        outputContains("model foo.barProcessed = BAZ")
+        outputContains("model text = foo BAZ")
     }
 
     static String getDeclarativeScriptThatConfiguresOnlyTestProjectFeature() {

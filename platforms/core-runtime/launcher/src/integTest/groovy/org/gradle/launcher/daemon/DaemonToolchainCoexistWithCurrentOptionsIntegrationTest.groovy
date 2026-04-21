@@ -22,10 +22,11 @@ import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
 import org.gradle.internal.buildconfiguration.fixture.DaemonJvmPropertiesFixture
 import org.gradle.internal.jvm.Jvm
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
+import org.gradle.test.preconditions.InstalledJdkTestPreconditions
 
 @Requires(
-    value = IntegTestPreconditions.NotEmbeddedExecutor,
+    value = TestExecutionPreconditions.NotEmbeddedExecutor,
     reason = "Prevent addition of Java 9 JPMS args to the launcher and potentially daemon process which could be Java 8"
 )
 class DaemonToolchainCoexistWithCurrentOptionsIntegrationTest extends AbstractIntegrationSpec implements DaemonJvmPropertiesFixture, JavaToolchainFixture {
@@ -33,7 +34,7 @@ class DaemonToolchainCoexistWithCurrentOptionsIntegrationTest extends AbstractIn
         executer.requireDaemon().requireIsolatedDaemons() // Prevent addition of Java 9 JPMS args to the launcher and potentially daemon process which could be Java 8
     }
 
-    @Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
+    @Requires(InstalledJdkTestPreconditions.JavaHomeWithDifferentVersionAvailable)
     def "Given disabled auto-detection When using daemon toolchain Then option is ignored resolving with expected toolchain"() {
         given:
         def otherJvm = AvailableJavaHomes.differentVersion
@@ -46,7 +47,7 @@ class DaemonToolchainCoexistWithCurrentOptionsIntegrationTest extends AbstractIn
         assertDaemonUsedJvm(otherJvm)
     }
 
-    @Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
+    @Requires(InstalledJdkTestPreconditions.JavaHomeWithDifferentVersionAvailable)
     def "Given defined org.gradle.java.home gradle property When using daemon toolchain Then option is ignored resolving with expected toolchain"() {
         given:
         def otherJvm = AvailableJavaHomes.differentVersion
@@ -59,7 +60,7 @@ class DaemonToolchainCoexistWithCurrentOptionsIntegrationTest extends AbstractIn
         assertDaemonUsedJvm(otherJvm)
     }
 
-    @Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
+    @Requires(InstalledJdkTestPreconditions.JavaHomeWithDifferentVersionAvailable)
     def "Given daemon toolchain properties When executing any task passing them as arguments Then those are ignored since aren't defined on daemon-jvm properties file"() {
         given:
         def otherJvm = AvailableJavaHomes.differentVersion
@@ -74,7 +75,7 @@ class DaemonToolchainCoexistWithCurrentOptionsIntegrationTest extends AbstractIn
         assertDaemonUsedJvm(Jvm.current())
     }
 
-    @Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
+    @Requires(InstalledJdkTestPreconditions.JavaHomeWithDifferentVersionAvailable)
     def "Given daemon toolchain properties defined on gradle properties When executing any task Then those are ignored since aren't defined on daemon-jvm properties file"() {
         given:
         def otherJvm = AvailableJavaHomes.differentVersion
@@ -91,7 +92,7 @@ class DaemonToolchainCoexistWithCurrentOptionsIntegrationTest extends AbstractIn
         assertDaemonUsedJvm(Jvm.current())
     }
 
-    @Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
+    @Requires(InstalledJdkTestPreconditions.JavaHomeWithDifferentVersionAvailable)
     def "Given defined org.gradle.java.home under Build properties When executing any task Then this is ignored since isn't defined on gradle properties file"() {
         given:
         def otherJvm = AvailableJavaHomes.differentVersion

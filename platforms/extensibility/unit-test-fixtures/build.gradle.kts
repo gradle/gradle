@@ -45,7 +45,6 @@ dependencies {
     implementation(projects.instrumentationAgentServices)
     implementation(projects.logging)
     implementation(projects.loggingApi)
-    implementation(projects.modelCore)
     implementation(projects.native)
     implementation(projects.problemsApi)
     implementation(projects.serviceRegistryBuilder)

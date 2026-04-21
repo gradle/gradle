@@ -20,11 +20,12 @@ import org.gradle.api.JavaVersion
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.TestEnvironmentPreconditions
+
 import org.hamcrest.CoreMatchers
 import org.junit.Rule
 
-@Requires(UnitTestPreconditions.NotInGradleceptionBuild)
+@Requires(TestEnvironmentPreconditions.NotInGradleceptionBuild)
 class BlockingHttpServerTest extends ConcurrentSpec {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())

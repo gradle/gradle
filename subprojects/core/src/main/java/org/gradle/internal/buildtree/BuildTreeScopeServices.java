@@ -42,7 +42,7 @@ import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.api.logging.configuration.ShowStacktrace;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.problems.internal.InternalProblems;
+import org.gradle.api.problems.internal.ProblemsInternal;
 import org.gradle.api.tasks.util.internal.PatternSetFactory;
 import org.gradle.configuration.project.BuiltInCommand;
 import org.gradle.execution.DefaultTaskSelector;
@@ -85,6 +85,7 @@ import org.gradle.internal.service.PrivateService;
 import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistrationProvider;
+import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.GradleModuleServices;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.problems.buildtree.ProblemDiagnosticsFactory;
@@ -100,18 +101,15 @@ public class BuildTreeScopeServices implements ServiceRegistrationProvider {
     private final BuildActionModelRequirements buildActionRequirements;
     private final BuildModelParameters buildModelParameters;
     private final BuildInvocationScopeId buildInvocationScopeId;
-    private final BuildTreeState buildTree;
 
     public BuildTreeScopeServices(
         BuildActionModelRequirements buildActionRequirements,
         BuildModelParameters buildModelParameters,
-        BuildInvocationScopeId buildInvocationScopeId,
-        BuildTreeState buildTree
+        BuildInvocationScopeId buildInvocationScopeId
     ) {
         this.buildActionRequirements = buildActionRequirements;
         this.buildModelParameters = buildModelParameters;
         this.buildInvocationScopeId = buildInvocationScopeId;
-        this.buildTree = buildTree;
     }
 
     protected void configure(ServiceRegistration registration, List<GradleModuleServices> servicesProviders) {
@@ -124,7 +122,7 @@ public class BuildTreeScopeServices implements ServiceRegistrationProvider {
             services.registerBuildTreeServices(registration);
         }
         registration.add(BuildInvocationScopeId.class, buildInvocationScopeId);
-        registration.add(BuildTreeState.class, buildTree);
+        registration.add(BuildTreeServices.class);
         registration.add(GradleEnterprisePluginManager.class);
         registration.add(BuildLifecycleControllerFactory.class, DefaultBuildLifecycleControllerFactory.class);
         registration.add(BuildOptionBuildOperationProgressEventsEmitter.class);
@@ -152,12 +150,13 @@ public class BuildTreeScopeServices implements ServiceRegistrationProvider {
 
     @Provides
     ObjectFactory createObjectFactory(
+        ServiceRegistry buildTreeServices,
         InstantiatorFactory instantiatorFactory, DirectoryFileTreeFactory directoryFileTreeFactory, PatternSetFactory patternSetFactory,
         PropertyFactory propertyFactory, FilePropertyFactory filePropertyFactory, TaskDependencyFactory taskDependencyFactory, FileCollectionFactory fileCollectionFactory,
         DomainObjectCollectionFactory domainObjectCollectionFactory, NamedObjectInstantiator instantiator
     ) {
         return new DefaultObjectFactory(
-            instantiatorFactory.decorate(buildTree.getServices()),
+            instantiatorFactory.decorate(buildTreeServices),
             instantiator,
             directoryFileTreeFactory,
             patternSetFactory,
@@ -184,7 +183,7 @@ public class BuildTreeScopeServices implements ServiceRegistrationProvider {
     }
 
     @Provides
-    protected BuildTaskSelector createBuildTaskSelector(BuildStateRegistry buildRegistry, TaskSelector taskSelector, List<BuiltInCommand> commands, InternalProblems problemsService) {
+    protected BuildTaskSelector createBuildTaskSelector(BuildStateRegistry buildRegistry, TaskSelector taskSelector, List<BuiltInCommand> commands, ProblemsInternal problemsService) {
         return new DefaultBuildTaskSelector(buildRegistry, taskSelector, commands, problemsService);
     }
 

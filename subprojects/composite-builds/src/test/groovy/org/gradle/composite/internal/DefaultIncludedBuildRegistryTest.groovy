@@ -38,7 +38,7 @@ import org.gradle.internal.build.PublicBuildPath
 import org.gradle.internal.build.RootBuildState
 import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.buildtree.BuildTreeLifecycleControllerFactory
-import org.gradle.internal.buildtree.BuildTreeState
+import org.gradle.internal.buildtree.BuildTreeServices
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.exception.ExceptionAnalyser
 import org.gradle.internal.operations.BuildOperationRunner
@@ -64,7 +64,7 @@ class DefaultIncludedBuildRegistryTest extends Specification {
     }
     def services = new DefaultServiceRegistry()
     def buildLayoutFactory = Mock(BuildLayoutFactory)
-    def buildTree = Mock(BuildTreeState)
+    def buildTree = Mock(BuildTreeServices)
     def factory = new BuildStateFactory(
         buildTree,
         listenerManager,

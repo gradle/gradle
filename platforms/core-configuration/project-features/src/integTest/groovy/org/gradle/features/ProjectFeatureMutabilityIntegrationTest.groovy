@@ -24,6 +24,7 @@ import org.gradle.features.internal.ProjectFeatureFixture
 import org.gradle.test.fixtures.dsl.GradleDsl
 
 @PolyglotDslTest
+@SkipDsl(dsl = GradleDsl.GROOVY, because = "Groovy DSL is not supported for declarative configuration")
 class ProjectFeatureMutabilityIntegrationTest extends AbstractIntegrationSpec
     implements ProjectFeatureFixture, PolyglotTestFixture {
 

@@ -50,7 +50,7 @@ import org.gradle.process.ExecOperations
 import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import org.gradle.tooling.events.FinishEvent
 import org.gradle.tooling.events.OperationCompletionListener
 import org.gradle.util.internal.ToBeImplemented
@@ -778,7 +778,7 @@ service: closed with value 10001
         outputContains("service: closed with value 12")
     }
 
-    @Requires(IntegTestPreconditions.NotConfigCached)
+    @Requires(TestExecutionPreconditions.NotConfigCached)
     def "service can be used at configuration and execution time"() {
         serviceImplementation()
         buildFile << """
@@ -825,7 +825,7 @@ service: closed with value 10001
         outputContains("service: closed with value 11")
     }
 
-    @Requires(value = IntegTestPreconditions.NotConfigCached, reason = "already covers CC behavior")
+    @Requires(value = TestExecutionPreconditions.NotConfigCached, reason = "already covers CC behavior")
     def "service used at configuration is discarded before execution time when used with configuration cache"() {
         serviceImplementation()
         buildFile << """
@@ -882,7 +882,7 @@ service: closed with value 10001
     @ToBeImplemented
     @Issue("https://github.com/gradle/gradle/issues/17559")
     // Test assumes sequential configuration :subproject1 :subproject2
-    @Requires(IntegTestPreconditions.NotIsolatedProjects)
+    @Requires(TestExecutionPreconditions.NotIsolatedProjects)
     def "service provided by a plugin cannot be shared by subprojects with different classloaders"() {
         createDirs("plugin1", "plugin2", "subproject1", "subproject2")
         settingsFile """

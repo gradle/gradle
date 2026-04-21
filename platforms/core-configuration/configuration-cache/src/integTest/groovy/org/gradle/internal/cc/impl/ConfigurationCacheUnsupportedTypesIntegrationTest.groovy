@@ -95,7 +95,8 @@ import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.locking.DefaultDependencyLockingHandler
 import org.gradle.invocation.DefaultGradle
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.JdkVersionTestPreconditions
+
 import spock.lang.Shared
 
 import java.util.concurrent.Executor
@@ -387,7 +388,7 @@ class ConfigurationCacheUnsupportedTypesIntegrationTest extends AbstractConfigur
         DefaultSourceDirectorySet      | SourceDirectorySet | ""                                          | "project.objects.sourceDirectorySet('some', 'more')" | 'file tree'
     }
 
-    @Requires(UnitTestPreconditions.Jdk14OrLater)
+    @Requires(JdkVersionTestPreconditions.Jdk14OrLater)
     def "reports when task field references a record containing type #baseType"() {
         file("buildSrc/src/main/java/JavaRecord.java") << """
             public record JavaRecord(${baseType.name} value, int filler) {}
@@ -468,7 +469,7 @@ class ConfigurationCacheUnsupportedTypesIntegrationTest extends AbstractConfigur
         concreteTypeName = concreteType instanceof Class ? concreteType.name : concreteType
     }
 
-    @Requires(UnitTestPreconditions.Jdk14OrLater)
+    @Requires(JdkVersionTestPreconditions.Jdk14OrLater)
     def "reports when task field is declared with record containing type #baseType"() {
         file("buildSrc/src/main/java/JavaRecord.java") << """
             public record JavaRecord(${baseType.name} value, int filler) {}

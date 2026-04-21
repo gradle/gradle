@@ -141,15 +141,15 @@ The programmatic approach is useful if you want to change the settings permanent
 To change how long Gradle will cache the resolved version for a dynamic version, use:
 
 ====
-include::sample[dir="snippets/dependencyManagement/troubleshooting-cache-dynamic/kotlin",files="build.gradle.kts[tags=dynamic-version-cache-control]"]
-include::sample[dir="snippets/dependencyManagement/troubleshooting-cache-dynamic/groovy",files="build.gradle[tags=dynamic-version-cache-control]"]
+include::sample[dir="snippets/reference/dependency-management/dependency-management/troubleshooting-cache-dynamic/kotlin",files="build.gradle.kts[tags=dynamic-version-cache-control]"]
+include::sample[dir="snippets/reference/dependency-management/dependency-management/troubleshooting-cache-dynamic/groovy",files="build.gradle[tags=dynamic-version-cache-control]"]
 ====
 
 To change how long Gradle will cache the metadata and artifacts for a changing module, use:
 
 ====
-include::sample[dir="snippets/dependencyManagement/troubleshooting-cache-changing/kotlin",files="build.gradle.kts[tags=changing-module-cache-control]"]
-include::sample[dir="snippets/dependencyManagement/troubleshooting-cache-changing/groovy",files="build.gradle[tags=changing-module-cache-control]"]
+include::sample[dir="snippets/reference/dependency-management/dependency-management/troubleshooting-cache-changing/kotlin",files="build.gradle.kts[tags=changing-module-cache-control]"]
+include::sample[dir="snippets/reference/dependency-management/dependency-management/troubleshooting-cache-changing/groovy",files="build.gradle[tags=changing-module-cache-control]"]
 ====
 
 [[sec:controlling-dependency-caching-command-line]]

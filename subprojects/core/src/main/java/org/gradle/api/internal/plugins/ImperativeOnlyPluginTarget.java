@@ -20,7 +20,7 @@ import org.apache.commons.lang3.reflect.TypeUtils;
 import org.gradle.api.Plugin;
 import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
-import org.gradle.api.problems.internal.InternalProblems;
+import org.gradle.api.problems.internal.ProblemsInternal;
 import org.gradle.configuration.ConfigurationTargetIdentifier;
 import org.gradle.internal.deprecation.Documentation;
 import org.jspecify.annotations.Nullable;
@@ -33,9 +33,9 @@ public class ImperativeOnlyPluginTarget<T extends PluginAwareInternal> implement
 
     private final PluginTargetType targetType;
     private final T target;
-    private final InternalProblems problems;
+    private final ProblemsInternal problems;
 
-    public ImperativeOnlyPluginTarget(PluginTargetType targetType, T target, InternalProblems problems) {
+    public ImperativeOnlyPluginTarget(PluginTargetType targetType, T target, ProblemsInternal problems) {
         this.targetType = targetType;
         this.target = target;
         this.problems = problems;

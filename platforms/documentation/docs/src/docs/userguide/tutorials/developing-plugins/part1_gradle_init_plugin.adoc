@@ -164,8 +164,8 @@ When you're writing a plugin, you'll use the `java-gradle-plugin` to:
 This is what the `gradlePlugin {}` and `plugins {}` block looks like:
 
 ====
-include::sample[dir="snippets/plugins/plugin-tutorial/kotlin",files="plugin/build.gradle.kts[tags=plugin-init]"]
-include::sample[dir="snippets/plugins/plugin-tutorial/groovy",files="plugin/build.gradle[tags=plugin-init]"]
+include::sample[dir="snippets/tutorials/developing-plugins/plugin-tutorial/kotlin",files="plugin/build.gradle.kts[tags=plugin-init]"]
+include::sample[dir="snippets/tutorials/developing-plugins/plugin-tutorial/groovy",files="plugin/build.gradle[tags=plugin-init]"]
 ====
 
 * `gradlePlugin {}`: This is where you configure the plugins you're authoring.
@@ -188,8 +188,8 @@ You can find it at `plugin/src/main/groovy/org/example/PluginTutorialPlugin.groo
 ====
 
 ====
-include::sample[dir="snippets/plugins/plugin-tutorial/kotlin",files="plugin/src/main/kotlin/org/example/PluginTutorialPlugin.kt[]"]
-include::sample[dir="snippets/plugins/plugin-tutorial/groovy",files="plugin/src/main/groovy/org/example/PluginTutorialPlugin.groovy[]"]
+include::sample[dir="snippets/tutorials/developing-plugins/plugin-tutorial/kotlin",files="plugin/src/main/kotlin/org/example/PluginTutorialPlugin.kt[]"]
+include::sample[dir="snippets/tutorials/developing-plugins/plugin-tutorial/groovy",files="plugin/src/main/groovy/org/example/PluginTutorialPlugin.groovy[]"]
 ====
 
 * `Plugin<Project>`: Our plugin needs to implement this interface to work with a `Project` object.

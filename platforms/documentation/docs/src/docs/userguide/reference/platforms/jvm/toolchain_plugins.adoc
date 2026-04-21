@@ -32,7 +32,7 @@ The plugins provide the mapping logic via an implementation of link:{javadocPath
 .JavaToolchainResolverImplementation.java
 [source,java]
 ----
-include::{snippetsPath}/java/toolchain-management/groovy/buildSrc/src/main/java/org/myorg/JavaToolchainResolverImplementation.java[tags=java-toolchain-resolver-implementation]
+include::{snippetsPath}/reference/platforms/jvm/toolchain-management/groovy/buildSrc/src/main/java/org/myorg/JavaToolchainResolverImplementation.java[tags=java-toolchain-resolver-implementation]
 ----
 <1> This class is `abstract` because `JavaToolchainResolver` is a <<build_services.adoc#build_services,build service>>. Gradle provides dynamic implementations for certain abstract methods at runtime.
 <2> The mapping method returns a download response wrapped in an `Optional`. If the resolver implementation can't provide a matching toolchain, the enclosing `Optional` contains an empty value.
@@ -44,7 +44,7 @@ Use a settings plugin (`Plugin<Settings>`) to register the `JavaToolchainResolve
 .JavaToolchainResolverPlugin.java
 [source,java]
 ----
-include::{snippetsPath}/java/toolchain-management/groovy/buildSrc/src/main/java/org/myorg/JavaToolchainResolverPlugin.java[tags=java-toolchain-resolver-plugin]
+include::{snippetsPath}/reference/platforms/jvm/toolchain-management/groovy/buildSrc/src/main/java/org/myorg/JavaToolchainResolverPlugin.java[tags=java-toolchain-resolver-plugin]
 ----
 <1> The plugin uses <<service_injection.adoc#property_injection,property injection>>, so it must be `abstract` and a settings plugin.
 <2> To register the resolver implementation, use property injection to access the link:{javadocPath}/org/gradle/jvm/toolchain/JavaToolchainResolverRegistry.html[JavaToolchainResolverRegistry] Gradle service.
