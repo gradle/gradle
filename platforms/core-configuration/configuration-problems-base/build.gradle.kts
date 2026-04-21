@@ -47,7 +47,6 @@ dependencies {
     api(projects.fileTemp)
     api(projects.logging)
     api(projects.loggingApi)
-    api(projects.messaging)
     api(projects.problemsApi)
     api(projects.stdlibJavaExtensions)
 
@@ -56,7 +55,6 @@ dependencies {
     implementation(libs.guava)
     implementation(libs.jacksonCore)
 
-    implementation(projects.core)
     implementation(projects.hashing)
     implementation(projects.stdlibKotlinExtensions)
 }
