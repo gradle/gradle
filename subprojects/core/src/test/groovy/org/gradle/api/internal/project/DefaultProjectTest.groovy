@@ -18,6 +18,7 @@ package org.gradle.api.internal.project
 
 import org.apache.tools.ant.types.FileSet
 import org.gradle.api.Action
+import org.gradle.internal.buildoption.FeatureFlags
 import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.api.AntBuilder
 import org.gradle.api.DefaultTask
@@ -207,6 +208,7 @@ class DefaultProjectTest extends Specification {
         def fileResolver = TestFiles.resolver(rootDir)
         projectServiceRegistryFactoryMock.createFor({ it != null }) >> serviceRegistryMock
         serviceRegistryMock.get(TaskContainerInternal) >> taskContainerMock
+        serviceRegistryMock.get((Class) FeatureFlags) >> Stub(FeatureFlags) { isEnabled(_) >> false }
         taskContainerMock.getTasksAsDynamicObject() >> new BeanDynamicObject(new TaskContainerDynamicObject(someTask: testTask))
         serviceRegistryMock.get((Type) RepositoryHandler) >> repositoryHandlerMock
         serviceRegistryMock.get(RoleBasedConfigurationContainerInternal) >> configurationContainerMock
