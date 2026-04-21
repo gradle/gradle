@@ -32,6 +32,7 @@ import spock.lang.Specification
 import static org.gradle.api.tasks.diagnostics.internal.repositories.model.RepositoryDeclarationSite.Scope.PROJECT
 import static org.gradle.api.tasks.diagnostics.internal.repositories.model.RepositoryDeclarationSite.Scope.SETTINGS
 
+/** Tests for {@link ConsoleRepositoriesReportRenderer}. */
 class ConsoleRepositoriesReportRendererTest extends Specification {
     def output = new TestStyledTextOutput()
 
@@ -39,7 +40,7 @@ class ConsoleRepositoriesReportRendererTest extends Specification {
         given:
         def model = new RepositoryReportFullModel(
             new RepositoryReportSettingsModel([], [], []),
-            new TreeMap<>(RepositoryReportFullModel.pathComparator())
+            new TreeMap<>(RepositoryReportFullModel.getPathComparator())
         )
         def renderer = new ConsoleRepositoriesReportRenderer(new RepositoriesReportSpec(null))
 
@@ -57,7 +58,7 @@ class ConsoleRepositoriesReportRendererTest extends Specification {
 
     def "renders filtered empty model with project-specific empty message"() {
         given:
-        def projects = new TreeMap<>(RepositoryReportFullModel.pathComparator())
+        def projects = new TreeMap<>(RepositoryReportFullModel.getPathComparator())
         projects.put(Path.path(":app"),
             new RepositoryReportProjectModel(Path.path(":app"), "app", [], []))
         def model = new RepositoryReportFullModel(
@@ -85,7 +86,7 @@ class ConsoleRepositoriesReportRendererTest extends Specification {
             true, [], false, ReportContentFilter.EMPTY, [RepositoryRole.PLUGINS] as Set, site
         )
         def settings = new RepositoryReportSettingsModel([], [repo], [])
-        def projects = new TreeMap<>(RepositoryReportFullModel.pathComparator())
+        def projects = new TreeMap<>(RepositoryReportFullModel.getPathComparator())
         projects.put(Path.path(":app"),
             new RepositoryReportProjectModel(Path.path(":app"), "app", [], []))
         def model = new RepositoryReportFullModel(settings, projects)
@@ -123,7 +124,7 @@ class ConsoleRepositoriesReportRendererTest extends Specification {
         def repo2 = new ReportRepository(
             "MavenRepo", RepositoryType.MAVEN, "https://repo.maven.apache.org/maven2/",
             true, [], false, content, [RepositoryRole.PROJECT_DEPENDENCIES] as Set, site2)
-        def projects = new TreeMap<>(RepositoryReportFullModel.pathComparator())
+        def projects = new TreeMap<>(RepositoryReportFullModel.getPathComparator())
         projects.put(Path.path(":app"),
             new RepositoryReportProjectModel(Path.path(":app"), "app", [], [repo1]))
         projects.put(Path.path(":lib"),
@@ -150,7 +151,7 @@ class ConsoleRepositoriesReportRendererTest extends Specification {
             "RepoA", RepositoryType.MAVEN, "https://a.example/",
             true, [], false, ReportContentFilter.EMPTY,
             [RepositoryRole.PROJECT_DEPENDENCIES] as Set, site)
-        def projects = new TreeMap<>(RepositoryReportFullModel.pathComparator())
+        def projects = new TreeMap<>(RepositoryReportFullModel.getPathComparator())
         projects.put(Path.path(":app"),
             new RepositoryReportProjectModel(Path.path(":app"), "app", [], [repo]))
         projects.put(Path.path(":lib"),
@@ -182,7 +183,7 @@ class ConsoleRepositoriesReportRendererTest extends Specification {
             [RepositoryRole.SETTINGS_BUILDSCRIPT_DEPENDENCIES] as Set, site
         )
         def settings = new RepositoryReportSettingsModel([repo], [], [])
-        def projects = new TreeMap<>(RepositoryReportFullModel.pathComparator())
+        def projects = new TreeMap<>(RepositoryReportFullModel.getPathComparator())
         def model = new RepositoryReportFullModel(settings, projects)
         def renderer = new ConsoleRepositoriesReportRenderer(new RepositoriesReportSpec(null))
 
@@ -221,7 +222,7 @@ class ConsoleRepositoriesReportRendererTest extends Specification {
             [RepositoryRole.PROJECT_DEPENDENCIES] as Set, projSite
         )
         def settings = new RepositoryReportSettingsModel([], [pluginRepo], [drmRepo])
-        def projects = new TreeMap<>(RepositoryReportFullModel.pathComparator())
+        def projects = new TreeMap<>(RepositoryReportFullModel.getPathComparator())
         projects.put(Path.path(":app"),
             new RepositoryReportProjectModel(Path.path(":app"), "app", [], [appRepo]))
         def model = new RepositoryReportFullModel(settings, projects)
@@ -248,7 +249,7 @@ class ConsoleRepositoriesReportRendererTest extends Specification {
             [RepositoryRole.PROJECT_DEPENDENCIES] as Set, projSite
         )
         def settings = new RepositoryReportSettingsModel([], [], [])
-        def projects = new TreeMap<>(RepositoryReportFullModel.pathComparator())
+        def projects = new TreeMap<>(RepositoryReportFullModel.getPathComparator())
         projects.put(Path.path(":app"),
             new RepositoryReportProjectModel(Path.path(":app"), "app", [], [appRepo]))
         projects.put(Path.path(":lib"),
@@ -282,7 +283,7 @@ class ConsoleRepositoriesReportRendererTest extends Specification {
             [RepositoryRole.SETTINGS_BUILDSCRIPT_DEPENDENCIES] as Set, settingsSite
         )
         def settings = new RepositoryReportSettingsModel([settingsBuildscriptRepo], [], [])
-        def projects = new TreeMap<>(RepositoryReportFullModel.pathComparator())
+        def projects = new TreeMap<>(RepositoryReportFullModel.getPathComparator())
         projects.put(Path.path(":app"),
             new RepositoryReportProjectModel(Path.path(":app"), "app", [], []))
         projects.put(Path.path(":lib"),
@@ -316,7 +317,7 @@ class ConsoleRepositoriesReportRendererTest extends Specification {
             [RepositoryRole.PROJECT_DEPENDENCIES] as Set, otherSite
         )
         def settings = new RepositoryReportSettingsModel([], [], [])
-        def projects = new TreeMap<>(RepositoryReportFullModel.pathComparator())
+        def projects = new TreeMap<>(RepositoryReportFullModel.getPathComparator())
         projects.put(Path.path(":foo"),
             new RepositoryReportProjectModel(Path.path(":foo"), "foo", [], []))
         projects.put(Path.path(":other"),
@@ -345,7 +346,7 @@ class ConsoleRepositoriesReportRendererTest extends Specification {
             "DeadRepo", RepositoryType.MAVEN, "http://127.0.0.1:1/",
             true, [], false, ReportContentFilter.EMPTY,
             [RepositoryRole.PROJECT_DEPENDENCIES] as Set, site)
-        def projects = new TreeMap<>(RepositoryReportFullModel.pathComparator())
+        def projects = new TreeMap<>(RepositoryReportFullModel.getPathComparator())
         projects.put(Path.path(":app"),
             new RepositoryReportProjectModel(Path.path(":app"), "app", [], [repo]))
         def model = new RepositoryReportFullModel(new RepositoryReportSettingsModel([], [], []), projects)
@@ -374,7 +375,7 @@ class ConsoleRepositoriesReportRendererTest extends Specification {
             "AuthRepo", RepositoryType.MAVEN, "https://auth.example/",
             true, [], false, ReportContentFilter.EMPTY,
             [RepositoryRole.PROJECT_DEPENDENCIES] as Set, site)
-        def projects = new TreeMap<>(RepositoryReportFullModel.pathComparator())
+        def projects = new TreeMap<>(RepositoryReportFullModel.getPathComparator())
         projects.put(Path.path(":app"),
             new RepositoryReportProjectModel(Path.path(":app"), "app", [], [repo]))
         def model = new RepositoryReportFullModel(new RepositoryReportSettingsModel([], [], []), projects)
@@ -402,7 +403,7 @@ class ConsoleRepositoriesReportRendererTest extends Specification {
             "BadRepo", RepositoryType.MAVEN, "http://[not-a-url/",
             true, [], false, ReportContentFilter.EMPTY,
             [RepositoryRole.PROJECT_DEPENDENCIES] as Set, site)
-        def projects = new TreeMap<>(RepositoryReportFullModel.pathComparator())
+        def projects = new TreeMap<>(RepositoryReportFullModel.getPathComparator())
         projects.put(Path.path(":app"),
             new RepositoryReportProjectModel(Path.path(":app"), "app", [], [repo]))
         def model = new RepositoryReportFullModel(new RepositoryReportSettingsModel([], [], []), projects)
@@ -431,7 +432,7 @@ class ConsoleRepositoriesReportRendererTest extends Specification {
             "AnyRepo", RepositoryType.MAVEN, "https://any.example/",
             true, [], false, ReportContentFilter.EMPTY,
             [RepositoryRole.PROJECT_DEPENDENCIES] as Set, site)
-        def projects = new TreeMap<>(RepositoryReportFullModel.pathComparator())
+        def projects = new TreeMap<>(RepositoryReportFullModel.getPathComparator())
         projects.put(Path.path(":app"),
             new RepositoryReportProjectModel(Path.path(":app"), "app", [], [repo]))
         def model = new RepositoryReportFullModel(new RepositoryReportSettingsModel([], [], []), projects)
@@ -461,7 +462,7 @@ class ConsoleRepositoriesReportRendererTest extends Specification {
             "LiveRepo", RepositoryType.MAVEN, "https://live.example/",
             true, [], false, ReportContentFilter.EMPTY,
             [RepositoryRole.PROJECT_DEPENDENCIES] as Set, site)
-        def projects = new TreeMap<>(RepositoryReportFullModel.pathComparator())
+        def projects = new TreeMap<>(RepositoryReportFullModel.getPathComparator())
         projects.put(Path.path(":app"),
             new RepositoryReportProjectModel(Path.path(":app"), "app", [], [repo]))
         def model = new RepositoryReportFullModel(new RepositoryReportSettingsModel([], [], []), projects)
@@ -495,7 +496,7 @@ class ConsoleRepositoriesReportRendererTest extends Specification {
             true, [], false, ReportContentFilter.EMPTY,
             [RepositoryRole.PROJECT_DEPENDENCIES] as Set, siteWithoutCreds
         )
-        def projects = new TreeMap<>(RepositoryReportFullModel.pathComparator())
+        def projects = new TreeMap<>(RepositoryReportFullModel.getPathComparator())
         projects.put(Path.path(":app"),
             new RepositoryReportProjectModel(Path.path(":app"), "app", [], [repoWithCreds, repoWithoutCreds]))
         def settings = new RepositoryReportSettingsModel([], [], [])
@@ -515,7 +516,7 @@ class ConsoleRepositoriesReportRendererTest extends Specification {
         text.count("Credentials: PRESENT") == 1
     }
 
-    def "identityKey differs when hasCredentials differs"() {
+    def "getIdentityKey differs when hasCredentials differs"() {
         given:
         def site = new RepositoryDeclarationSite(PROJECT, Path.path(":app"), "repositories")
         def withCreds = new ReportRepository(
@@ -528,8 +529,8 @@ class ConsoleRepositoriesReportRendererTest extends Specification {
             [RepositoryRole.PROJECT_DEPENDENCIES] as Set, site)
 
         expect:
-        withCreds.identityKey() != withoutCreds.identityKey()
-        withCreds.identityKey().hashCode() != withoutCreds.identityKey().hashCode()
+        withCreds.getIdentityKey() != withoutCreds.getIdentityKey()
+        withCreds.getIdentityKey().hashCode() != withoutCreds.getIdentityKey().hashCode()
     }
 
     def "All Repositories numbers settings buckets before per-project entries"() {
@@ -559,7 +560,7 @@ class ConsoleRepositoriesReportRendererTest extends Specification {
             [RepositoryRole.PROJECT_DEPENDENCIES] as Set, appSite
         )
         def settings = new RepositoryReportSettingsModel([bsRepo], [plRepo], [drmRepo])
-        def projects = new TreeMap<>(RepositoryReportFullModel.pathComparator())
+        def projects = new TreeMap<>(RepositoryReportFullModel.getPathComparator())
         projects.put(Path.path(":app"),
             new RepositoryReportProjectModel(Path.path(":app"), "app", [], [appRepo]))
         def model = new RepositoryReportFullModel(settings, projects)

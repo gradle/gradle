@@ -28,7 +28,7 @@ import java.util.Set;
  * Immutable value object representing a single repository as it appears on the report.
  *
  * <p>Captures identity-forming attributes (name, type, location, auth/content) plus the
- * role(s) the repository plays and where it was declared. See {@link #identityKey()} for
+ * role(s) the repository plays and where it was declared. See {@link #getIdentityKey()} for
  * the structural key used by the renderer to detect duplicate declarations.
  */
 @NullMarked
@@ -42,6 +42,7 @@ public final class ReportRepository {
     private final ReportContentFilter contentFilter;
     private final Set<RepositoryRole> roles;
     private final RepositoryDeclarationSite declarationSite;
+    private final IdentityKey identityKey;
 
     public ReportRepository(
         String name,
@@ -63,6 +64,7 @@ public final class ReportRepository {
         this.contentFilter = Objects.requireNonNull(contentFilter);
         this.roles = ImmutableSet.copyOf(roles);
         this.declarationSite = Objects.requireNonNull(declarationSite);
+        this.identityKey = new IdentityKey(name, type, location, secure, this.authSchemes, hasCredentials, contentFilter);
     }
 
     public String getName() {
@@ -102,14 +104,17 @@ public final class ReportRepository {
     }
 
     /**
+     * Returns the identity key used to detect duplicate repository declarations.
+     */
+    public IdentityKey getIdentityKey() {
+        return identityKey;
+    }
+
+    /**
      * Structural key for identifying "identical" repositories. Excludes roles
      * and declarationSite — two entries with the same configuration but
      * declared in different places compare equal by this key.
      */
-    public IdentityKey identityKey() {
-        return new IdentityKey(name, type, location, secure, authSchemes, hasCredentials, contentFilter);
-    }
-
     public static final class IdentityKey {
         private final String name;
         private final RepositoryType type;

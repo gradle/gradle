@@ -177,7 +177,7 @@ public abstract class RepositoriesReportTask extends ConventionReportTask {
                 Set.of(RepositoryRole.PROJECT_DEPENDENCIES))
         );
 
-        TreeMap<Path, RepositoryReportProjectModel> projects = new TreeMap<>(RepositoryReportFullModel.pathComparator());
+        TreeMap<Path, RepositoryReportProjectModel> projects = new TreeMap<>(RepositoryReportFullModel.getPathComparator());
         for (Project p : root.getAllprojects()) {
             ProjectInternal pi = (ProjectInternal) p;
             projects.put(pi.getProjectPath(),
@@ -193,7 +193,7 @@ public abstract class RepositoriesReportTask extends ConventionReportTask {
 
         List<ReportRepository> buildscriptRepos = convertRepos(
             project.getBuildscript().getRepositories(), factory, buildscriptSite,
-            Set.of(RepositoryRole.PROJECT_LEGACY_PLUGINS, RepositoryRole.PROJECT_BUILDSCRIPT_DEPENDENCIES),
+            Set.of(RepositoryRole.PROJECT_BUILDSCRIPT_DEPENDENCIES),
             project
         );
         List<ReportRepository> projectRepos = convertRepos(
@@ -233,7 +233,7 @@ public abstract class RepositoriesReportTask extends ConventionReportTask {
                     repo.getName(), context, site.getBlock(), repo.getClass().getName());
                 continue;
             }
-            out.add(factory.toReportRepository((AbstractArtifactRepository) repo, roles, site));
+            out.add(factory.buildReportRepository((AbstractArtifactRepository) repo, roles, site));
         }
         return ImmutableList.copyOf(out);
     }

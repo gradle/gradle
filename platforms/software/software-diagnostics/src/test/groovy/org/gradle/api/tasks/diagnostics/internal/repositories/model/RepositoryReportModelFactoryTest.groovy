@@ -27,6 +27,7 @@ import spock.lang.Specification
 
 import static org.gradle.api.tasks.diagnostics.internal.repositories.model.RepositoryDeclarationSite.Scope.SETTINGS
 
+/** Tests for {@link RepositoryReportModelFactory}. */
 class RepositoryReportModelFactoryTest extends Specification {
     def factory = new RepositoryReportModelFactory()
 
@@ -49,7 +50,7 @@ class RepositoryReportModelFactoryTest extends Specification {
         def site = new RepositoryDeclarationSite(SETTINGS, null, "pluginManagement.repositories")
 
         when:
-        def result = factory.toReportRepository(repo, [RepositoryRole.PLUGINS] as Set, site)
+        def result = factory.buildReportRepository(repo, [RepositoryRole.PLUGINS] as Set, site)
 
         then:
         result.name == "MavenRepo"
@@ -80,7 +81,7 @@ class RepositoryReportModelFactoryTest extends Specification {
         def site = new RepositoryDeclarationSite(SETTINGS, null, "repositories")
 
         when:
-        def result = factory.toReportRepository(repo, [RepositoryRole.PROJECT_DEPENDENCIES] as Set, site)
+        def result = factory.buildReportRepository(repo, [RepositoryRole.PROJECT_DEPENDENCIES] as Set, site)
 
         then:
         result.type == RepositoryType.FLAT_DIR
@@ -107,7 +108,7 @@ class RepositoryReportModelFactoryTest extends Specification {
         }
 
         when:
-        def result = factory.toReportRepository(repo, [RepositoryRole.PLUGINS] as Set,
+        def result = factory.buildReportRepository(repo, [RepositoryRole.PLUGINS] as Set,
             new RepositoryDeclarationSite(SETTINGS, null, "pluginManagement.repositories"))
 
         then:
@@ -131,7 +132,7 @@ class RepositoryReportModelFactoryTest extends Specification {
         }
 
         when:
-        def result = factory.toReportRepository(repo, [RepositoryRole.PROJECT_DEPENDENCIES] as Set,
+        def result = factory.buildReportRepository(repo, [RepositoryRole.PROJECT_DEPENDENCIES] as Set,
             new RepositoryDeclarationSite(SETTINGS, null, "dependencyResolutionManagement.repositories"))
 
         then:
@@ -168,7 +169,7 @@ class RepositoryReportModelFactoryTest extends Specification {
         }
 
         when:
-        def result = factory.toReportRepository(repo, [RepositoryRole.PROJECT_DEPENDENCIES] as Set,
+        def result = factory.buildReportRepository(repo, [RepositoryRole.PROJECT_DEPENDENCIES] as Set,
             new RepositoryDeclarationSite(SETTINGS, null, "repositories"))
 
         then:
@@ -196,7 +197,7 @@ class RepositoryReportModelFactoryTest extends Specification {
         }
 
         when:
-        def result = factory.toReportRepository(repo, [RepositoryRole.PROJECT_DEPENDENCIES] as Set,
+        def result = factory.buildReportRepository(repo, [RepositoryRole.PROJECT_DEPENDENCIES] as Set,
             new RepositoryDeclarationSite(SETTINGS, null, "repositories"))
 
         then:
@@ -224,7 +225,7 @@ class RepositoryReportModelFactoryTest extends Specification {
         }
 
         when:
-        def result = factory.toReportRepository(repo, [RepositoryRole.PROJECT_DEPENDENCIES] as Set,
+        def result = factory.buildReportRepository(repo, [RepositoryRole.PROJECT_DEPENDENCIES] as Set,
             new RepositoryDeclarationSite(SETTINGS, null, "repositories"))
 
         then:
@@ -245,7 +246,7 @@ class RepositoryReportModelFactoryTest extends Specification {
         }
 
         when:
-        def result = factory.toReportRepository(repo, [RepositoryRole.PROJECT_DEPENDENCIES] as Set,
+        def result = factory.buildReportRepository(repo, [RepositoryRole.PROJECT_DEPENDENCIES] as Set,
             new RepositoryDeclarationSite(SETTINGS, null, "repositories"))
 
         then:
@@ -271,7 +272,7 @@ class RepositoryReportModelFactoryTest extends Specification {
         }
 
         when:
-        def result = factory.toReportRepository(repo, [RepositoryRole.PLUGINS] as Set,
+        def result = factory.buildReportRepository(repo, [RepositoryRole.PLUGINS] as Set,
             new RepositoryDeclarationSite(SETTINGS, null, "pluginManagement.repositories"))
 
         then:
@@ -295,7 +296,7 @@ class RepositoryReportModelFactoryTest extends Specification {
         }
 
         when:
-        def result = factory.toReportRepository(repo, [RepositoryRole.PROJECT_DEPENDENCIES] as Set,
+        def result = factory.buildReportRepository(repo, [RepositoryRole.PROJECT_DEPENDENCIES] as Set,
             new RepositoryDeclarationSite(SETTINGS, null, "repositories"))
 
         then:

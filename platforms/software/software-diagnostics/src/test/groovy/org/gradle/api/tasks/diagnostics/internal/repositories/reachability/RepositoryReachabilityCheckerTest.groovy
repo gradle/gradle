@@ -27,7 +27,6 @@ import org.gradle.util.Path
 import spock.lang.AutoCleanup
 import spock.lang.Specification
 
-import java.net.InetSocketAddress
 import java.time.Duration
 import java.util.concurrent.atomic.AtomicInteger
 

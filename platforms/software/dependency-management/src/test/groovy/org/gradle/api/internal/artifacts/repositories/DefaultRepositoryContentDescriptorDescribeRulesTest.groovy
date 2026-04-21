@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.repositories
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser
 import spock.lang.Specification
 
+/** Tests for {@link DefaultRepositoryContentDescriptor} describe rules. */
 class DefaultRepositoryContentDescriptorDescribeRulesTest extends Specification {
     def descriptor = new DefaultRepositoryContentDescriptor({ "test" }, new VersionParser())
 

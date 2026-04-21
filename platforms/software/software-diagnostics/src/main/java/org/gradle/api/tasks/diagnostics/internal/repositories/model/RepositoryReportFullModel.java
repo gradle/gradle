@@ -36,6 +36,10 @@ public final class RepositoryReportFullModel {
     private final RepositoryReportSettingsModel settings;
     private final SortedMap<Path, RepositoryReportProjectModel> projectsByPath;
 
+    public static Comparator<Path> getPathComparator() {
+        return PATH_COMPARATOR;
+    }
+
     public RepositoryReportFullModel(
         RepositoryReportSettingsModel settings,
         SortedMap<Path, RepositoryReportProjectModel> projectsByPath
@@ -57,10 +61,6 @@ public final class RepositoryReportFullModel {
 
     public SortedMap<Path, RepositoryReportProjectModel> getProjectsByPath() {
         return projectsByPath;
-    }
-
-    public static Comparator<Path> pathComparator() {
-        return PATH_COMPARATOR;
     }
 
     private static final class PathComparator implements Comparator<Path>, Serializable {

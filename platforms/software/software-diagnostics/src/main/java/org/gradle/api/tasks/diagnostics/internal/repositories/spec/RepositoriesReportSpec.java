@@ -21,7 +21,6 @@ import org.gradle.api.tasks.diagnostics.internal.repositories.reachability.Reach
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
-import java.util.Collections;
 import java.util.Map;
 
 /**
@@ -36,7 +35,7 @@ public final class RepositoriesReportSpec {
     private final Map<String, ReachabilityStatus> reachabilityByLocation;
 
     public RepositoriesReportSpec(@Nullable String projectFilter) {
-        this(projectFilter, false, Collections.emptyMap());
+        this(projectFilter, false, ImmutableMap.of());
     }
 
     public RepositoriesReportSpec(

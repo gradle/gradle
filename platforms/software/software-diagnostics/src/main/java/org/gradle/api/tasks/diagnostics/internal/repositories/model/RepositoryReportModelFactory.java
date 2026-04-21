@@ -62,7 +62,7 @@ public final class RepositoryReportModelFactory {
      * @param site where this repository was declared
      * @return the immutable report model for this repository
      */
-    public ReportRepository toReportRepository(
+    public ReportRepository buildReportRepository(
         AbstractArtifactRepository repo,
         Set<RepositoryRole> roles,
         RepositoryDeclarationSite site

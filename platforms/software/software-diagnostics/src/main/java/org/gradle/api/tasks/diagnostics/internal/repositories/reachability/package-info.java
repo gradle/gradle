@@ -14,6 +14,9 @@
  * limitations under the License.
  */
 
+/**
+ * URL reachability checking for remote repository endpoints.
+ */
 @NullMarked
 package org.gradle.api.tasks.diagnostics.internal.repositories.reachability;
 

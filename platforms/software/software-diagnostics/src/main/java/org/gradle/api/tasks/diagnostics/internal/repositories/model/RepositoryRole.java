@@ -31,9 +31,7 @@ public enum RepositoryRole {
     PLUGINS,
     /** Used by the settings script buildscript classpath — from {@code settings.buildscript.repositories}. */
     SETTINGS_BUILDSCRIPT_DEPENDENCIES,
-    /** Used by legacy {@code apply plugin} classpath loading — from {@code project.buildscript.repositories}. */
-    PROJECT_LEGACY_PLUGINS,
-    /** Used by non-plugin buildscript classpath dependencies — from {@code project.buildscript.repositories}. */
+    /** Used by buildscript classpath dependencies (including legacy plugin loading) — from {@code project.buildscript.repositories}. */
     PROJECT_BUILDSCRIPT_DEPENDENCIES,
     /** Used by project dependency resolution — from {@code project.repositories} and {@code settings.dependencyResolutionManagement.repositories}. */
     PROJECT_DEPENDENCIES

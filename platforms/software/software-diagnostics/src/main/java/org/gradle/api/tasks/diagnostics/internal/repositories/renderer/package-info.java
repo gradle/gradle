@@ -14,6 +14,9 @@
  * limitations under the License.
  */
 
+/**
+ * Console text renderer for the repositories report.
+ */
 @NullMarked
 package org.gradle.api.tasks.diagnostics.internal.repositories.renderer;
 

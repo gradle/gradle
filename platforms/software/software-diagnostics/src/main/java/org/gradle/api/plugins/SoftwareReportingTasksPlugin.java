@@ -69,14 +69,13 @@ public abstract class SoftwareReportingTasksPlugin implements Plugin<Project> {
             task.setGroup(HelpTasksPlugin.HELP_GROUP);
             task.setImpliesSubProjects(true);
         });
-        boolean offline = project.getGradle().getStartParameter().isOffline();
         tasks.register(HelpTasksPlugin.REPOSITORIES_TASK, RepositoriesReportTask.class, task -> {
             task.setDescription("Displays the repositories available for dependency resolution.");
             task.setGroup(HelpTasksPlugin.HELP_GROUP);
             task.setImpliesSubProjects(true);
             // Capture the offline flag at config time so the task action doesn't need to access
             // Gradle.startParameter at execution time (which is CC-incompatible).
-            task.getOfflineMode().convention(offline);
+            task.getOfflineMode().convention(project.getGradle().getStartParameter().isOffline());
         });
         tasks.withType(TaskReportTask.class).configureEach(task -> {
             task.getShowTypes().convention(false);

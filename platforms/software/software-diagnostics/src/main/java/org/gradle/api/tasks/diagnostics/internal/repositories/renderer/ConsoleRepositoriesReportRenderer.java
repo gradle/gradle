@@ -89,13 +89,14 @@ public final class ConsoleRepositoriesReportRenderer {
     }
 
     private boolean isModelEmpty(RepositoryReportFullModel model) {
-        if (!model.getSettings().getPluginManagementRepositories().isEmpty()) {
+        var settings = model.getSettings();
+        if (!settings.getPluginManagementRepositories().isEmpty()) {
             return false;
         }
-        if (!model.getSettings().getSettingsBuildscriptRepositories().isEmpty()) {
+        if (!settings.getSettingsBuildscriptRepositories().isEmpty()) {
             return false;
         }
-        if (!model.getSettings().getDependencyResolutionManagementRepositories().isEmpty()) {
+        if (!settings.getDependencyResolutionManagementRepositories().isEmpty()) {
             return false;
         }
         for (RepositoryReportProjectModel p : model.getProjectsByPath().values()) {
@@ -107,24 +108,25 @@ public final class ConsoleRepositoriesReportRenderer {
     }
 
     private void renderFull(RepositoryReportFullModel model, StyledTextOutput out) {
+        var settings = model.getSettings();
+        var projectsByPath = model.getProjectsByPath();
+        List<ReportRepository> pluginMgmt = settings.getPluginManagementRepositories();
+        List<ReportRepository> settingsBuildscript = settings.getSettingsBuildscriptRepositories();
+        List<ReportRepository> drm = settings.getDependencyResolutionManagementRepositories();
+
         // Section 1: All Repositories — flat, globally numbered in the following order:
         //   SETTINGS_BUILDSCRIPT_DEPENDENCIES, PLUGINS, settings DRM,
         //   then (alphabetical by project) buildscript repos + project.repositories.
         List<ReportRepository> allRepos = new ArrayList<>();
-        allRepos.addAll(model.getSettings().getSettingsBuildscriptRepositories());
-        allRepos.addAll(model.getSettings().getPluginManagementRepositories());
-        allRepos.addAll(model.getSettings().getDependencyResolutionManagementRepositories());
-        for (RepositoryReportProjectModel p : model.getProjectsByPath().values()) {
+        allRepos.addAll(settingsBuildscript);
+        allRepos.addAll(pluginMgmt);
+        allRepos.addAll(drm);
+        for (RepositoryReportProjectModel p : projectsByPath.values()) {
             allRepos.addAll(p.getBuildscriptRepositories());
             allRepos.addAll(p.getProjectRepositories());
         }
 
-        IdentityHashMap<ReportRepository, Integer> numbers = new IdentityHashMap<>();
-        int n = 1;
-        for (ReportRepository r : allRepos) {
-            numbers.put(r, n++);
-        }
-
+        Map<ReportRepository, Integer> numbers = assignNumbers(allRepos);
         Set<ReportRepository> starred = computeStarred(allRepos);
         MarkerSet markers = new MarkerSet();
 
@@ -133,17 +135,17 @@ public final class ConsoleRepositoriesReportRenderer {
         // Section 2: Repositories by Location — settings block (all three buckets, in section-1 order) first,
         // then per-project blocks in alphabetical order.
         List<ReportRepository> settingsRefs = new ArrayList<>();
-        settingsRefs.addAll(model.getSettings().getSettingsBuildscriptRepositories());
-        settingsRefs.addAll(model.getSettings().getPluginManagementRepositories());
-        settingsRefs.addAll(model.getSettings().getDependencyResolutionManagementRepositories());
+        settingsRefs.addAll(settingsBuildscript);
+        settingsRefs.addAll(pluginMgmt);
+        settingsRefs.addAll(drm);
 
         Map<Path, List<ReportRepository>> projectRefs = new LinkedHashMap<>();
-        for (Map.Entry<Path, RepositoryReportProjectModel> e : model.getProjectsByPath().entrySet()) {
+        for (Map.Entry<Path, RepositoryReportProjectModel> e : projectsByPath.entrySet()) {
             List<ReportRepository> refs = new ArrayList<>();
             // Settings-inherited buckets are listed in Gradle's actual repo-search order
             // (pluginManagement precedes DRM — settings.buildscript is not inherited per-project).
-            refs.addAll(model.getSettings().getPluginManagementRepositories());
-            refs.addAll(model.getSettings().getDependencyResolutionManagementRepositories());
+            refs.addAll(pluginMgmt);
+            refs.addAll(drm);
             refs.addAll(e.getValue().getBuildscriptRepositories());
             refs.addAll(e.getValue().getProjectRepositories());
             projectRefs.put(e.getKey(), refs);
@@ -163,17 +165,14 @@ public final class ConsoleRepositoriesReportRenderer {
         RepositoryReportProjectModel target = model.getProjectsByPath().get(filterPath);
         assert target != null : "validateFilter() should have rejected unknown project '" + filter + "'";
 
+        var settings = model.getSettings();
         List<ReportRepository> filtered = new ArrayList<>();
-        filtered.addAll(model.getSettings().getPluginManagementRepositories());
-        filtered.addAll(model.getSettings().getDependencyResolutionManagementRepositories());
+        filtered.addAll(settings.getPluginManagementRepositories());
+        filtered.addAll(settings.getDependencyResolutionManagementRepositories());
         filtered.addAll(target.getBuildscriptRepositories());
         filtered.addAll(target.getProjectRepositories());
 
-        IdentityHashMap<ReportRepository, Integer> numbers = new IdentityHashMap<>();
-        int n = 1;
-        for (ReportRepository r : filtered) {
-            numbers.put(r, n++);
-        }
+        Map<ReportRepository, Integer> numbers = assignNumbers(filtered);
         Set<ReportRepository> starred = computeStarred(filtered);
         MarkerSet markers = new MarkerSet();
 
@@ -239,14 +238,23 @@ public final class ConsoleRepositoriesReportRenderer {
         }
     }
 
+    private static Map<ReportRepository, Integer> assignNumbers(List<ReportRepository> repos) {
+        IdentityHashMap<ReportRepository, Integer> numbers = new IdentityHashMap<>();
+        int n = 1;
+        for (ReportRepository r : repos) {
+            numbers.put(r, n++);
+        }
+        return numbers;
+    }
+
     private Set<ReportRepository> computeStarred(List<ReportRepository> all) {
         Map<ReportRepository.IdentityKey, Integer> counts = new HashMap<>();
         for (ReportRepository r : all) {
-            counts.merge(r.identityKey(), 1, Integer::sum);
+            counts.merge(r.getIdentityKey(), 1, Integer::sum);
         }
         Set<ReportRepository> starred = Collections.newSetFromMap(new IdentityHashMap<>());
         for (ReportRepository r : all) {
-            if (counts.get(r.identityKey()) > 1) {
+            if (counts.get(r.getIdentityKey()) > 1) {
                 starred.add(r);
             }
         }
@@ -357,23 +365,24 @@ public final class ConsoleRepositoriesReportRenderer {
         out.withStyle(Header).println("Legend");
         out.println(DIVIDER);
         out.println();
+        StyledTextOutput info = out.withStyle(Info);
         if (markers.starUsed) {
-            out.withStyle(Info).println("(*) Identical repository declaration found in multiple locations.");
-            out.withStyle(Info).println("    Consider consolidating to settings.dependencyResolutionManagement.repositories");
-            out.withStyle(Info).println("    or settings.pluginManagement.repositories.");
-            out.withStyle(Info).println("    See " + LEGEND_URL);
+            info.println("(*) Identical repository declaration found in multiple locations.");
+            info.println("    Consider consolidating to settings.dependencyResolutionManagement.repositories");
+            info.println("    or settings.pluginManagement.repositories.");
+            info.println("    See " + LEGEND_URL);
         }
         if (markers.unreachableUsed) {
-            out.withStyle(Info).println("(ur) Unreachable — the URL could not be contacted.");
+            info.println("(ur) Unreachable \u2014 the URL could not be contacted.");
         }
         if (markers.unauthorizedUsed) {
-            out.withStyle(Info).println("(ua) Unauthorized — the URL returned 401/403; credentials were not sent.");
+            info.println("(ua) Unauthorized \u2014 the URL returned 401/403; credentials were not sent.");
         }
         if (markers.malformedUsed) {
-            out.withStyle(Info).println("(m)  Malformed URL — the URL could not be parsed.");
+            info.println("(m)  Malformed URL \u2014 the URL could not be parsed.");
         }
         if (markers.offlineUsed) {
-            out.withStyle(Info).println("(o)  Running in offline mode — no reachability checks were performed.");
+            info.println("(o)  Running in offline mode \u2014 no reachability checks were performed.");
         }
     }
 

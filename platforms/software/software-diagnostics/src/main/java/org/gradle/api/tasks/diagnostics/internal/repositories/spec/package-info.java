@@ -14,6 +14,9 @@
  * limitations under the License.
  */
 
+/**
+ * Report specification and filter options for the repositories report.
+ */
 @NullMarked
 package org.gradle.api.tasks.diagnostics.internal.repositories.spec;
 

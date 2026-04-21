@@ -14,6 +14,10 @@
  * limitations under the License.
  */
 
+/**
+ * Model classes for the repositories report, representing repository declarations,
+ * content filters, and report structure.
+ */
 @NullMarked
 package org.gradle.api.tasks.diagnostics.internal.repositories.model;
 

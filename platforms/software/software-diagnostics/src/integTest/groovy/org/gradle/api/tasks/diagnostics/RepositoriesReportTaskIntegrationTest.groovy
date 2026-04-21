@@ -24,6 +24,7 @@ import org.junit.Rule
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
+/** Tests for {@link org.gradle.api.tasks.diagnostics.RepositoriesReportTask}. */
 class RepositoriesReportTaskIntegrationTest extends AbstractIntegrationSpec {
     @Rule
     public final HttpServer server = new HttpServer()
@@ -41,9 +42,11 @@ class RepositoriesReportTaskIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "task reports empty when no repositories declared"() {
-        expect:
+        when:
         succeeds ':repositories'
-        outputContains('There are no repositories present.')
+
+        then:
+        result.groupedOutput.task(":repositories").assertOutputContains("""There are no repositories present.""")
         outputDoesNotContain('All Repositories')
         outputDoesNotContain('Repositories by Location')
         outputDoesNotContain('(none)')
@@ -58,14 +61,26 @@ class RepositoriesReportTaskIntegrationTest extends AbstractIntegrationSpec {
             }
         """
 
-        expect:
+        when:
         succeeds ':repositories'
-        outputContains('All Repositories')
-        outputContains('''MavenRepo (1)
+
+        then:
+        result.groupedOutput.task(":repositories").assertOutputContains("""--------------------------------------------------------
+All Repositories
+--------------------------------------------------------
+
+MavenRepo (1)
     Location:   https://repo.maven.apache.org/maven2/
     Type:       MAVEN
     Roles:      PROJECT_DEPENDENCIES
-    Defined in: project ':' > repositories''')
+    Defined in: project ':' > repositories
+
+--------------------------------------------------------
+Repositories by Location
+--------------------------------------------------------
+
+project ':' uses
+    - MavenRepo (1)""")
     }
 
     def "task reports settings pluginManagement repo under All Repositories with PLUGINS role"() {
@@ -79,10 +94,29 @@ class RepositoriesReportTaskIntegrationTest extends AbstractIntegrationSpec {
             rootProject.name = "myLib"
         """
 
-        expect:
+        when:
         succeeds ':repositories'
-        outputContains('All Repositories')
-        outputContains('PLUGINS')
+
+        then:
+        result.groupedOutput.task(":repositories").assertOutputContains("""--------------------------------------------------------
+All Repositories
+--------------------------------------------------------
+
+Gradle Central Plugin Repository (1)
+    Location:   https://plugins.gradle.org/m2
+    Type:       MAVEN
+    Roles:      PLUGINS
+    Defined in: settings > pluginManagement.repositories
+
+--------------------------------------------------------
+Repositories by Location
+--------------------------------------------------------
+
+settings uses
+    - Gradle Central Plugin Repository (1)
+
+project ':' uses
+    - Gradle Central Plugin Repository (1)""")
     }
 
     def "task reports settings.buildscript repo in All Repositories and under settings uses"() {
@@ -96,11 +130,26 @@ class RepositoriesReportTaskIntegrationTest extends AbstractIntegrationSpec {
             rootProject.name = "myLib"
         """
 
-        expect:
+        when:
         succeeds ':repositories'
-        outputContains('All Repositories')
-        outputContains('SETTINGS_BUILDSCRIPT_DEPENDENCIES')
-        outputContains('settings uses')
+
+        then:
+        result.groupedOutput.task(":repositories").assertOutputContains("""--------------------------------------------------------
+All Repositories
+--------------------------------------------------------
+
+MavenRepo (1)
+    Location:   https://repo.maven.apache.org/maven2/
+    Type:       MAVEN
+    Roles:      SETTINGS_BUILDSCRIPT_DEPENDENCIES
+    Defined in: settings > buildscript.repositories
+
+--------------------------------------------------------
+Repositories by Location
+--------------------------------------------------------
+
+settings uses
+    - MavenRepo (1)""")
     }
 
     def "multi-project: PLUGINS and DRM repos appear under every project's reference list"() {
@@ -118,13 +167,45 @@ class RepositoriesReportTaskIntegrationTest extends AbstractIntegrationSpec {
         """
         createDirs("app", "lib")
 
-        expect:
+        when:
         succeeds ':repositories'
-        outputContains("project ':app' uses")
-        outputContains("project ':lib' uses")
-        // each project should reference at least the DRM and PLUGINS entries
-        result.output.count('- Gradle Central Plugin Repository') >= 2 ||
-            result.output.count('- MavenRepo') >= 2
+
+        then:
+        result.groupedOutput.task(":repositories").assertOutputContains("""--------------------------------------------------------
+All Repositories
+--------------------------------------------------------
+
+Gradle Central Plugin Repository (1)
+    Location:   https://plugins.gradle.org/m2
+    Type:       MAVEN
+    Roles:      PLUGINS
+    Defined in: settings > pluginManagement.repositories
+
+MavenRepo (2)
+    Location:   https://repo.maven.apache.org/maven2/
+    Type:       MAVEN
+    Roles:      PROJECT_DEPENDENCIES
+    Defined in: settings > dependencyResolutionManagement.repositories
+
+--------------------------------------------------------
+Repositories by Location
+--------------------------------------------------------
+
+settings uses
+    - Gradle Central Plugin Repository (1)
+    - MavenRepo (2)
+
+project ':' uses
+    - Gradle Central Plugin Repository (1)
+    - MavenRepo (2)
+
+project ':app' uses
+    - Gradle Central Plugin Repository (1)
+    - MavenRepo (2)
+
+project ':lib' uses
+    - Gradle Central Plugin Repository (1)
+    - MavenRepo (2)""")
     }
 
     def "--project filter limits Repositories by Location to the single project"() {
@@ -181,12 +262,44 @@ class RepositoriesReportTaskIntegrationTest extends AbstractIntegrationSpec {
         file('app/build.gradle') << 'repositories { mavenCentral() }'
         file('lib/build.gradle') << 'repositories { mavenCentral() }'
 
-        expect:
+        when:
         succeeds ':repositories'
-        result.output.count('MavenRepo') >= 2
-        outputContains('*')
-        outputContains('Legend')
-        outputContains('Identical repository declaration')
+
+        then:
+        result.groupedOutput.task(":repositories").assertOutputContains("""--------------------------------------------------------
+All Repositories
+--------------------------------------------------------
+
+MavenRepo (1) *
+    Location:   https://repo.maven.apache.org/maven2/
+    Type:       MAVEN
+    Roles:      PROJECT_DEPENDENCIES
+    Defined in: project ':app' > repositories
+
+MavenRepo (2) *
+    Location:   https://repo.maven.apache.org/maven2/
+    Type:       MAVEN
+    Roles:      PROJECT_DEPENDENCIES
+    Defined in: project ':lib' > repositories
+
+--------------------------------------------------------
+Repositories by Location
+--------------------------------------------------------
+
+project ':app' uses
+    - MavenRepo (1)
+
+project ':lib' uses
+    - MavenRepo (2)
+
+--------------------------------------------------------
+Legend
+--------------------------------------------------------
+
+(*) Identical repository declaration found in multiple locations.
+    Consider consolidating to settings.dependencyResolutionManagement.repositories
+    or settings.pluginManagement.repositories.
+    See https://docs.gradle.org/current/userguide/centralizing_repositories.html""")
     }
 
     def "non-identical declarations do NOT trigger Legend"() {
@@ -404,7 +517,7 @@ class RepositoriesReportTaskIntegrationTest extends AbstractIntegrationSpec {
         outputContains('MAVEN_LOCAL')
     }
 
-    def "project buildscript repo gets both PROJECT_LEGACY_PLUGINS and PROJECT_BUILDSCRIPT_DEPENDENCIES roles"() {
+    def "project buildscript repo gets PROJECT_BUILDSCRIPT_DEPENDENCIES role"() {
         given:
         buildFile.text = """
             buildscript {
@@ -414,9 +527,26 @@ class RepositoriesReportTaskIntegrationTest extends AbstractIntegrationSpec {
             }
         """
 
-        expect:
+        when:
         succeeds ':repositories'
-        outputContains('Roles:      PROJECT_LEGACY_PLUGINS, PROJECT_BUILDSCRIPT_DEPENDENCIES')
+
+        then:
+        result.groupedOutput.task(":repositories").assertOutputContains("""--------------------------------------------------------
+All Repositories
+--------------------------------------------------------
+
+MavenRepo (1)
+    Location:   https://repo.maven.apache.org/maven2/
+    Type:       MAVEN
+    Roles:      PROJECT_BUILDSCRIPT_DEPENDENCIES
+    Defined in: project ':' > buildscript.repositories
+
+--------------------------------------------------------
+Repositories by Location
+--------------------------------------------------------
+
+project ':' uses
+    - MavenRepo (1)""")
     }
 
     def "does not list repositories from included builds"() {
@@ -437,9 +567,26 @@ class RepositoriesReportTaskIntegrationTest extends AbstractIntegrationSpec {
             }
         """
 
-        expect:
+        when:
         succeeds ':repositories'
-        outputContains('MavenRepo')
+
+        then:
+        result.groupedOutput.task(":repositories").assertOutputContains("""--------------------------------------------------------
+All Repositories
+--------------------------------------------------------
+
+MavenRepo (1)
+    Location:   https://repo.maven.apache.org/maven2/
+    Type:       MAVEN
+    Roles:      PROJECT_DEPENDENCIES
+    Defined in: project ':' > repositories
+
+--------------------------------------------------------
+Repositories by Location
+--------------------------------------------------------
+
+project ':' uses
+    - MavenRepo (1)""")
         outputDoesNotContain('included.example.com')
         outputDoesNotContain("project ':included' uses")
     }
@@ -550,10 +697,9 @@ class RepositoriesReportTaskIntegrationTest extends AbstractIntegrationSpec {
         // Project-plugin-added repo: PROJECT_DEPENDENCIES, attributed to :app
         outputContains('https://project-plugin-repo.example.com/')
         outputContains("Defined in: project ':app' > repositories")
-        // All 5 RepositoryRole values appear
+        // All 4 RepositoryRole values appear
         outputContains('PLUGINS')
         outputContains('SETTINGS_BUILDSCRIPT_DEPENDENCIES')
-        outputContains('PROJECT_LEGACY_PLUGINS')
         outputContains('PROJECT_BUILDSCRIPT_DEPENDENCIES')
         outputContains('PROJECT_DEPENDENCIES')
         // Per-project reference blocks
@@ -763,12 +909,33 @@ class RepositoriesReportTaskIntegrationTest extends AbstractIntegrationSpec {
             }
         """
 
-        expect:
+        when:
         succeeds ':repositories', '--offline'
-        outputContains('All Repositories (o)')
-        outputContains('Legend')
-        outputContains('(o)  Running in offline mode')
-        // Offline suppresses per-repo reachability markers.
+
+        then:
+        result.groupedOutput.task(":repositories").assertOutputContains("""--------------------------------------------------------
+All Repositories (o)
+--------------------------------------------------------
+
+maven (1)
+    Location:   https://example.com/
+    Type:       MAVEN
+    Roles:      PROJECT_DEPENDENCIES
+    Defined in: project ':' > repositories
+
+--------------------------------------------------------
+Repositories by Location
+--------------------------------------------------------
+
+project ':' uses
+    - maven (1)
+
+--------------------------------------------------------
+Legend
+--------------------------------------------------------
+
+(o)  Running in offline mode \u2014 no reachability checks were performed.
+""")
         outputDoesNotContain('(ur)')
         outputDoesNotContain('(ua)')
     }
