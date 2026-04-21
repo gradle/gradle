@@ -14,12 +14,6 @@
  * limitations under the License.
  */
 
-import org.gradle.api.internal.GradleInternal
-import org.gradle.build.event.BuildEventsListenerRegistry
-import org.gradle.internal.nativeintegration.network.HostnameLookup
-import org.gradle.tooling.events.FinishEvent
-import org.gradle.tooling.events.OperationCompletionListener
-
 
 class Helper(private val providers: ProviderFactory) {
     val originalUrls: Map<String, String> = mapOf(
@@ -29,7 +23,11 @@ class Helper(private val providers: ProviderFactory) {
         "gradle-prod-plugins" to "https://plugins.gradle.org/m2",
         "gradlejavascript" to "https://repo.gradle.org/gradle/javascript-public",
         "gradle-public" to "https://repo.gradle.org/gradle/public",
-        "gradle-enterprise-rc" to "https://repo.gradle.org/gradle/enterprise-libs-release-candidates"
+        "gradle-enterprise-rc" to "https://repo.gradle.org/gradle/enterprise-libs-release-candidates",
+        "android-studio-installers" to "https://redirector.gvt1.com/edgedl/android/studio",
+        "jetbrains-ide-installers" to "https://download.jetbrains.com",
+        "intellij-releases" to "https://www.jetbrains.com/intellij-repository/releases",
+        "jetbrains-runtime" to "https://cache-redirector.jetbrains.com/intellij-jbr"
     )
 
     val mirrorUrls: Map<String, String> =
@@ -51,9 +49,12 @@ class Helper(private val providers: ProviderFactory) {
             return
         }
         handler.all {
-            if (this is MavenArtifactRepository) {
+            if (this is UrlArtifactRepository) {
+                // see https://github.com/gradle/gradle/issues/37612
+                @Suppress("USELESS_ELVIS")
+                val currentUrl = this.url?.toString() ?: return@all
                 originalUrls.forEach { name, originalUrl ->
-                    if (normalizeUrl(originalUrl) == normalizeUrl(this.url.toString()) && mirrorUrls.containsKey(name)) {
+                    if (normalizeUrl(originalUrl) == normalizeUrl(currentUrl) && mirrorUrls.containsKey(name)) {
                         mirrorUrls.get(name)?.let { this.setUrl(it) }
                     }
                 }

@@ -61,18 +61,10 @@ class IdeProvisioningPlugin : Plugin<Project> {
             val versions = loadProperties(project.rootDir.resolve(VERSIONS_FILE))
 
             repositories.intellijPlatform {
-                androidStudioInstallers {
-                    url = uri("https://repo.grdev.net/artifactory/android-studio")
-                }
-                jetbrainsIdeInstallers {
-                    url = uri("https://repo.grdev.net/artifactory/jetbrains-ide-installers")
-                }
-                releases {
-                    url = uri("https://repo.grdev.net/artifactory/jetbrains")
-                }
-                jetbrainsRuntime {
-                    url = uri("https://repo.grdev.net/artifactory/intellij-jbr")
-                }
+                androidStudioInstallers()
+                jetbrainsIdeInstallers()
+                releases()
+                jetbrainsRuntime()
                 // Required for resolving bundledModule:* artifacts (e.g. intellij-platform-test-runtime) from extracted IDE archives
                 localPlatformArtifacts()
             }
