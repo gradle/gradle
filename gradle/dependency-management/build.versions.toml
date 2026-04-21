@@ -44,7 +44,10 @@ jhighlight = { module = "com.uwyn:jhighlight", version = "1.0" }
 jmhPlugin = { module = "me.champeau.jmh:jmh-gradle-plugin", version = "0.7.3" }
 jsoup = { module = "org.jsoup:jsoup", version = "1.15.3" }
 jspecify = { module = "org.jspecify:jspecify", version = "1.0.0" }
+junit = { group = "junit", name = "junit", version = "4.13.2!!" } # keep JUnit 4 transitive we have sometimes up to date
 junitBom = { group = "org.junit", name = "junit-bom", version.ref = "junit" }
+junitJupiter = { group = "org.junit.jupiter", name = "junit-jupiter", version.ref = "junit" }
+junitPlatform = { group = "org.junit.platform", name = "junit-platform-launcher", version.ref = "junit" }
 kgp = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin"}
 kotlinCompilerEmbeddable = { module = "org.jetbrains.kotlin:kotlin-compiler-embeddable"}
 kotlinMetadata = { module = "org.jetbrains.kotlin:kotlin-metadata-jvm"}

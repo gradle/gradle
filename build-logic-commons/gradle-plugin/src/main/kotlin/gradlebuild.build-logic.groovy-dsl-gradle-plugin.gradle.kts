@@ -24,6 +24,7 @@ plugins {
     id("gradlebuild.private-javadoc")
 }
 
+val buildLibs = project.versionCatalogs.named("buildLibs")
 val testLibs = project.versionCatalogs.named("testLibs")
 
 dependencies {
@@ -34,7 +35,7 @@ dependencies {
     testImplementation(testLibs.findLibrary("bytebuddy").get())
     testImplementation(testLibs.findLibrary("objenesis").get())
 
-    testRuntimeOnly(testLibs.findLibrary("junitPlatform").get())
+    testRuntimeOnly(buildLibs.findLibrary("junitPlatform").get())
 }
 
 tasks.withType<GroovyCompile>().configureEach {

@@ -27,9 +27,9 @@ dependencies {
         because("For manually defined KotlinSourceSet accessor - sourceSets.main.get().kotlin")
     }
 
-    testImplementation(testLibs.junit5JupiterEngine)
+    testImplementation(buildLibs.junit5JupiterEngine)
 
-    testRuntimeOnly(testLibs.junitPlatform)
+    testRuntimeOnly(buildLibs.junitPlatform)
 }
 
 tasks.test {

@@ -22,5 +22,5 @@ dependencies {
     implementation(libs.asm)
     implementation(libs.maven3Model)
 
-    testImplementation(testLibs.junitJupiter)
+    testImplementation(buildLibs.junitJupiter)
 }

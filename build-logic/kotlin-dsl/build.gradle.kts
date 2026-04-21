@@ -16,6 +16,6 @@ dependencies {
     implementation(libs.asm)
     implementation(buildLibs.qdox)
 
-    testImplementation(testLibs.junit)
+    testImplementation(buildLibs.junitJupiter)
     testImplementation(testLibs.mockitoKotlin)
 }

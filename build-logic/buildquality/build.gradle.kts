@@ -31,6 +31,6 @@ dependencies {
         because("Arch-test plugin configures the PTS extension")
     }
 
-    testImplementation(testLibs.junit5JupiterEngine)
+    testImplementation(buildLibs.junitJupiter)
     testImplementation(buildLibs.commonsLang3)
 }
