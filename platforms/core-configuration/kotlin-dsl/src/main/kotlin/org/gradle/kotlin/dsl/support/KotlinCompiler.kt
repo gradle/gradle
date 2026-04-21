@@ -61,7 +61,6 @@ import org.jetbrains.kotlin.config.JvmTarget.JVM_1_8
 import org.jetbrains.kotlin.name.NameUtils
 import org.jetbrains.kotlin.samWithReceiver.SamWithReceiverPluginNames
 import org.jetbrains.kotlin.scripting.compiler.plugin.KOTLIN_SCRIPTING_PLUGIN_ID
-import org.jetbrains.kotlin.scripting.compiler.plugin.ScriptingCompilerConfigurationComponentRegistrar
 import org.slf4j.Logger
 import java.io.ByteArrayOutputStream
 import java.io.File
@@ -74,62 +73,63 @@ import kotlin.reflect.KClass
 import kotlin.reflect.jvm.jvmName
 
 
-private val compiler by lazy { Compiler() }
-
-
 internal
-fun compileKotlinScriptToDirectory(
-    outputDirectory: File,
-    compilerOptions: KotlinCompilerOptions,
-    scriptFile: File,
-    implicitImports: List<String>,
-    template: KClass<out Any>,
-    classPath: List<File>,
-    moduleRegistry: ModuleRegistry,
-    logger: Logger,
-    pathTranslation: (String) -> String
-): String {
-    compileKotlinScriptToDirectory(
-        outputDirectory,
-        compilerOptions,
-        scriptFile,
-        implicitImports,
-        template,
-        classPath,
-        moduleRegistry,
-        messageCollectorFor(logger, compilerOptions.allWarningsAsErrors, pathTranslation)
-    )
+class KotlinCompiler(val moduleRegistry: ModuleRegistry) {
 
-    return NameUtils.getScriptNameForFile(scriptFile.name).asString()
-}
+    private val btaCompiler by lazy { BTACompiler(moduleRegistry) }
 
 
-private
-fun compileKotlinScriptToDirectory(
-    outputDirectory: File,
-    compilerOptions: KotlinCompilerOptions,
-    scriptFile: File,
-    implicitImports: List<String>,
-    template: KClass<out Any>,
-    classPath: List<File>,
-    moduleRegistry: ModuleRegistry,
-    messageRenderer: LoggingMessageRenderer
-) {
-    Output.withRedirecting(messageRenderer.log) {
-        compiler.compile(
-            listOf(Path(scriptFile.path)),
-            outputDirectory.toPath(),
+    internal
+    fun compileKotlinScriptToDirectory(
+        outputDirectory: File,
+        compilerOptions: KotlinCompilerOptions,
+        scriptFile: File,
+        implicitImports: List<String>,
+        template: KClass<out Any>,
+        classPath: List<File>,
+        logger: Logger,
+        pathTranslation: (String) -> String
+    ): String {
+        compileKotlinScriptToDirectory(
+            outputDirectory,
             compilerOptions,
-            classPath,
-            template,
+            scriptFile,
             implicitImports,
-            moduleRegistry,
-            messageRenderer
+            template,
+            classPath,
+            messageCollectorFor(logger, compilerOptions.allWarningsAsErrors, pathTranslation)
         )
-        if (messageRenderer.errors.isNotEmpty()) {
-            throw ScriptCompilationException(messageRenderer.errors)
+
+        return NameUtils.getScriptNameForFile(scriptFile.name).asString()
+    }
+
+
+    private
+    fun compileKotlinScriptToDirectory(
+        outputDirectory: File,
+        compilerOptions: KotlinCompilerOptions,
+        scriptFile: File,
+        implicitImports: List<String>,
+        template: KClass<out Any>,
+        classPath: List<File>,
+        messageRenderer: LoggingMessageRenderer
+    ) {
+        Output.withRedirecting(messageRenderer.log) {
+            btaCompiler.compile(
+                listOf(Path(scriptFile.path)),
+                outputDirectory.toPath(),
+                compilerOptions,
+                classPath,
+                template,
+                implicitImports,
+                messageRenderer
+            )
+            if (messageRenderer.errors.isNotEmpty()) {
+                throw ScriptCompilationException(messageRenderer.errors)
+            }
         }
     }
+
 }
 
 
@@ -366,7 +366,7 @@ fun clickableFileUrlFor(path: String): String =
 
 
 @OptIn(ExperimentalBuildToolsApi::class, ExperimentalCompilerArgument::class)
-private class Compiler {
+private class BTACompiler(val moduleRegistry: ModuleRegistry) {
 
     companion object {
         private const val MODULE_NAME = "buildscript"
@@ -380,6 +380,45 @@ private class Compiler {
     // TODO: session should be closed after no longer needed, for cleanup to happen
     private val buildSession = toolchains.createBuildSession()
 
+    private val plugins: List<CompilerPlugin> by lazy {
+        fun pathOfJar(moduleRegistry: ModuleRegistry, jarName: String): Path? {
+            val module = moduleRegistry.findModule(jarName)
+            val jarUri = module?.implementationClasspath?.asURIs?.firstOrNull()
+            if (jarUri != null) {
+                return  Paths.get(jarUri)
+            }
+
+            return null
+        }
+
+        val scriptingPlugin = pathOfJar(moduleRegistry, "kotlin-scripting-compiler-embeddable")?.let {
+            CompilerPlugin(
+                pluginId = KOTLIN_SCRIPTING_PLUGIN_ID,
+                classpath = listOf(it),
+                rawArguments = listOf(),
+                orderingRequirements = setOf()
+            )
+        }
+        val samWithReceiverPlugin = pathOfJar(moduleRegistry, "kotlin-sam-with-receiver-compiler-plugin")?.let {
+            CompilerPlugin(
+                pluginId = SamWithReceiverPluginNames.PLUGIN_ID,
+                classpath = listOf(it),
+                rawArguments = listOf(CompilerPluginOption(SamWithReceiverPluginNames.ANNOTATION_OPTION_NAME, HasImplicitReceiver::class.qualifiedName!!)),
+                orderingRequirements = setOf()
+            )
+        }
+        val assignmentPlugin = pathOfJar(moduleRegistry, "kotlin-assignment-compiler-plugin-embeddable")?.let {
+            CompilerPlugin(
+                pluginId = AssignmentPluginNames.PLUGIN_ID,
+                classpath = listOf(it),
+                rawArguments = listOf(CompilerPluginOption(AssignmentPluginNames.ANNOTATION_OPTION_NAME, SupportsKotlinAssignmentOverloading::class.qualifiedName!!)),
+                orderingRequirements = setOf()
+            )
+        }
+
+        listOfNotNull(scriptingPlugin, samWithReceiverPlugin, assignmentPlugin)
+    }
+
     @OptIn(ExperimentalCompilerArgument::class)
     fun compile(
         sources: List<Path>,
@@ -388,7 +427,6 @@ private class Compiler {
         classPath: List<File>,
         template: KClass<out Any>,
         implicitImports: List<String>,
-        moduleRegistry: ModuleRegistry,
         messageRenderer: LoggingMessageRenderer
     ) {
         val operationBuilder = toolchains.jvm.jvmCompilationOperationBuilder(sources, destinationDirectory)
@@ -400,7 +438,6 @@ private class Compiler {
         operationBuilder.compilerArguments.let {
             it.configureScriptEnvironment(classPath, template, implicitImports)
             it.configureLanguageVersion(compilerOptions)
-            it.configurePlugins(moduleRegistry)
             it.configureMisc()
         }
 
@@ -416,11 +453,9 @@ private class Compiler {
         this[CLASSPATH] = classPath.map { it.toPath() }
 
         this[SCRIPT_TEMPLATES] = listOf(template.jvmName)
-        this[X_SCRIPT_RESOLVER_ENVIRONMENT] = arrayOf(
-            resolverEnvironmentStringFor(
-                listOf(kotlinDslImplicitImports to implicitImports)
-            )
-        )
+        this[X_SCRIPT_RESOLVER_ENVIRONMENT] = arrayOf(resolverEnvironmentStringFor(listOf(kotlinDslImplicitImports to implicitImports)))
+
+        this[COMPILER_PLUGINS] = plugins
     }
 
     fun JvmCompilerArguments.Builder.configureLanguageVersion(compilerOptions: KotlinCompilerOptions) {
@@ -436,61 +471,6 @@ private class Compiler {
         this.also { // apply java type enhancement settings
             it[X_JSR305] = arrayOf("strict", "under-migration:strict")
         }
-    }
-
-    fun JvmCompilerArguments.Builder.configurePlugins(moduleRegistry: ModuleRegistry) {
-        fun pathOfJar(moduleRegistry: ModuleRegistry, classLoader: ClassLoader, jarName: String): Path? {
-            val module = moduleRegistry.findModule(jarName)
-            val jarUri = module?.implementationClasspath?.asURIs?.firstOrNull()
-            if (jarUri != null) {
-                return  Paths.get(jarUri)
-            }
-
-            // TODO: remove the crap below, but that means that all tests need some usable moduleRegistry... or do they? maybe we can just not fail, but instead not initialize plugins?
-
-            /*if (classLoader is URLClassLoader) {
-                val jarFile = classLoader.urLs.firstOrNull { it.file.contains(jarName) }
-                if (jarFile != null) {
-                    return Paths.get(jarFile.toURI())
-                }
-            }
-
-            val pathToJar = System.getProperty("java.class.path").split(File.pathSeparator).firstOrNull { it.contains(jarName) }
-            if (pathToJar != null) {
-                return Paths.get(pathToJar)
-            }
-
-            throw RuntimeException("$jarName.jar not found on the classpath!")*/
-
-            return null
-        }
-
-        val scriptingPlugin = pathOfJar(moduleRegistry, ScriptingCompilerConfigurationComponentRegistrar::class.java.classLoader, "kotlin-scripting-compiler-embeddable")?.let {
-            CompilerPlugin(
-                pluginId = KOTLIN_SCRIPTING_PLUGIN_ID,
-                classpath = listOf(it),
-                rawArguments = listOf(),
-                orderingRequirements = setOf()
-            )
-        }
-        val samWithReceiverPlugin = pathOfJar(moduleRegistry, SamWithReceiverPluginNames::class.java.classLoader, "kotlin-sam-with-receiver-compiler-plugin")?.let {
-            CompilerPlugin(
-                pluginId = SamWithReceiverPluginNames.PLUGIN_ID,
-                classpath = listOf(it),
-                rawArguments = listOf(CompilerPluginOption(SamWithReceiverPluginNames.ANNOTATION_OPTION_NAME, HasImplicitReceiver::class.qualifiedName!!)),
-                orderingRequirements = setOf()
-            )
-        }
-        val assignmentPlugin = pathOfJar(moduleRegistry, AssignmentPluginNames::class.java.classLoader, "kotlin-assignment-compiler-plugin-embeddable")?.let {
-            CompilerPlugin(
-                pluginId = AssignmentPluginNames.PLUGIN_ID,
-                classpath = listOf(it),
-                rawArguments = listOf(CompilerPluginOption(AssignmentPluginNames.ANNOTATION_OPTION_NAME, SupportsKotlinAssignmentOverloading::class.qualifiedName!!)),
-                orderingRequirements = setOf()
-            )
-        }
-
-        this[COMPILER_PLUGINS] = listOfNotNull(scriptingPlugin, samWithReceiverPlugin, assignmentPlugin)
     }
 
     fun JvmCompilerArguments.Builder.configureMisc() {

@@ -35,9 +35,9 @@ import org.gradle.kotlin.dsl.support.CompiledKotlinPluginsBlock
 import org.gradle.kotlin.dsl.support.CompiledKotlinSettingsBuildscriptBlock
 import org.gradle.kotlin.dsl.support.CompiledKotlinSettingsPluginManagementBlock
 import org.gradle.kotlin.dsl.support.CompiledKotlinSettingsScript
+import org.gradle.kotlin.dsl.support.KotlinCompiler
 import org.gradle.kotlin.dsl.support.KotlinCompilerOptions
 import org.gradle.kotlin.dsl.support.KotlinScriptHost
-import org.gradle.kotlin.dsl.support.compileKotlinScriptToDirectory
 import org.gradle.kotlin.dsl.support.bytecode.ALOAD
 import org.gradle.kotlin.dsl.support.bytecode.ARETURN
 import org.gradle.kotlin.dsl.support.bytecode.ASTORE
@@ -102,6 +102,8 @@ class ResidualProgramCompiler(
     private val stage1BlocksAccessorsClassPath: ClassPath = ClassPath.EMPTY,
     private val packageName: String? = null,
 ) {
+
+    private val kotlinCompiler: KotlinCompiler = KotlinCompiler(moduleRegistry)
 
     fun compile(program: ResidualProgram) = when (program) {
         is Static -> emitStaticProgram(program)
@@ -719,14 +721,13 @@ class ResidualProgramCompiler(
         return InternalName.from(
             compileBuildOperationRunner(originalPath, stage) {
                 checkAllMetadataInClasspath(compilerOptions, compileClassPath, metadataCompatibilityChecker)
-                compileKotlinScriptToDirectory(
+                kotlinCompiler.compileKotlinScriptToDirectory(
                     outputDir,
                     compilerOptions,
                     scriptFile,
                     implicitImports,
                     scriptTemplate,
                     compileClassPath.asFiles,
-                    moduleRegistry,
                     logger
                 ) { path ->
                     if (path == scriptFile.path) originalPath
