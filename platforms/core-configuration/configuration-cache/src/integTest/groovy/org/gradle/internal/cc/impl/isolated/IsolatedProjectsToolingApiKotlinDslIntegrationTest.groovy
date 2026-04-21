@@ -16,10 +16,13 @@
 
 package org.gradle.internal.cc.impl.isolated
 
+import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 import org.gradle.integtests.fixtures.build.KotlinDslTestProjectInitiation
+import org.gradle.tooling.BuildException
 import org.gradle.tooling.model.kotlin.dsl.EditorReport
 import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptModel
 import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptsModel
+import org.gradle.util.internal.ToBeImplemented
 
 import static org.gradle.integtests.tooling.fixture.ToolingApiModelChecker.checkModel
 
@@ -61,6 +64,7 @@ class IsolatedProjectsToolingApiKotlinDslIntegrationTest extends AbstractIsolate
         fixture.assertModelLoaded()
     }
 
+    @ToBeImplemented
     def "can fetch KotlinDslScripts model for build with convention plugin from #buildLogicLocation"() {
         withBuildScriptIn(buildLogicLocation, """
             plugins {
@@ -95,22 +99,12 @@ class IsolatedProjectsToolingApiKotlinDslIntegrationTest extends AbstractIsolate
 
         when:
         withIsolatedProjects()
-        def model = fetchModel(KotlinDslScriptsModel)
-
-        then:
-        fixture.assertModelStored {
-            projectConfigured(":$buildLogicLocation")
-            modelsCreated(":", KotlinDslScriptsModel)
-            modelsCreated(":a", [isolatedScriptsModel])
-        }
-        checkKotlinDslScriptsModel(model, originalModel)
-
-        when:
-        withIsolatedProjects()
         fetchModel(KotlinDslScriptsModel)
 
         then:
-        fixture.assertModelLoaded()
+        def e = thrown(BuildException)
+        e.cause.message.contains("Plugin class 'org.jetbrains.kotlin.gradle.plugin.KotlinBaseApiPlugin': Cannot call BuildServicesRegistry.getRegistrations() when Isolated Projects is enabled. Use BuildServicesRegistry.registerIfAbsent(String, Class) instead.")
+        e.cause.message.contains("Plugin class 'org.jetbrains.kotlin.gradle.plugin.KotlinPluginWrapper': Cannot call BuildServicesRegistry.getRegistrations() when Isolated Projects is enabled. Use BuildServicesRegistry.registerIfAbsent(String, Class) instead.")
 
         where:
         buildLogicLocation | pluginManagementBlock
@@ -118,6 +112,7 @@ class IsolatedProjectsToolingApiKotlinDslIntegrationTest extends AbstractIsolate
         "build-logic"      | """pluginManagement { includeBuild("build-logic") }"""
     }
 
+    @ToBeImplemented
     def "can fetch KotlinDslScripts model for build with Kotlin extension from #buildLogicLocation"() {
         withBuildScriptIn(buildLogicLocation, """
             plugins {
@@ -151,22 +146,12 @@ class IsolatedProjectsToolingApiKotlinDslIntegrationTest extends AbstractIsolate
 
         when:
         withIsolatedProjects()
-        def model = fetchModel(KotlinDslScriptsModel)
-
-        then:
-        fixture.assertModelStored {
-            projectConfigured(":$buildLogicLocation")
-            modelsCreated(":", KotlinDslScriptsModel)
-            modelsCreated(":a", [isolatedScriptsModel])
-        }
-        checkKotlinDslScriptsModel(model, originalModel)
-
-        when:
-        withIsolatedProjects()
         fetchModel(KotlinDslScriptsModel)
 
         then:
-        fixture.assertModelLoaded()
+        def e = thrown(BuildException)
+        e.cause.message.contains("Plugin class 'org.jetbrains.kotlin.gradle.plugin.KotlinBaseApiPlugin': Cannot call BuildServicesRegistry.getRegistrations() when Isolated Projects is enabled. Use BuildServicesRegistry.registerIfAbsent(String, Class) instead.")
+        e.cause.message.contains("Plugin class 'org.jetbrains.kotlin.gradle.plugin.KotlinPluginWrapper': Cannot call BuildServicesRegistry.getRegistrations() when Isolated Projects is enabled. Use BuildServicesRegistry.registerIfAbsent(String, Class) instead.")
 
         where:
         buildLogicLocation | settingsBlock                     | buildscriptBlock
@@ -174,6 +159,7 @@ class IsolatedProjectsToolingApiKotlinDslIntegrationTest extends AbstractIsolate
         "build-logic"      | """includeBuild("build-logic")""" | """buildscript { dependencies { classpath("org.test:build-logic") } }"""
     }
 
+    @ToBeImplemented
     def "can fetch KotlinDslScripts model for build with build-logic using Kotlin extension from included build"() {
         withBuildScriptIn("included", """
             plugins {
@@ -242,22 +228,12 @@ class IsolatedProjectsToolingApiKotlinDslIntegrationTest extends AbstractIsolate
 
         when:
         withIsolatedProjects()
-        def model = fetchModel(KotlinDslScriptsModel)
-
-        then:
-        fixture.assertModelStored {
-            projectsConfigured(":build-logic", ":included")
-            modelsCreated(":", KotlinDslScriptsModel)
-            modelsCreated(":a", [isolatedScriptsModel])
-        }
-        checkKotlinDslScriptsModel(model, originalModel)
-
-        when:
-        withIsolatedProjects()
         fetchModel(KotlinDslScriptsModel)
 
         then:
-        fixture.assertModelLoaded()
+        def e = thrown(BuildException)
+        e.cause.message.contains("Plugin class 'org.jetbrains.kotlin.gradle.plugin.KotlinBaseApiPlugin': Cannot call BuildServicesRegistry.getRegistrations() when Isolated Projects is enabled. Use BuildServicesRegistry.registerIfAbsent(String, Class) instead.")
+        e.cause.message.contains("Plugin class 'org.jetbrains.kotlin.gradle.plugin.KotlinPluginWrapper': Cannot call BuildServicesRegistry.getRegistrations() when Isolated Projects is enabled. Use BuildServicesRegistry.registerIfAbsent(String, Class) instead.")
     }
 
     static void checkKotlinDslScriptsModel(actual, expected) {
