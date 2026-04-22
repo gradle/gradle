@@ -523,9 +523,6 @@ of a child project lists only the properties defined on that project itself.
 Properties inherited from parent projects are not present in the report.
 This is a consequence of the <<sec:no_implicit_parents_lookup,no implicit parent lookup>> behavior.
 
-Direct uses of link:{javadocPath}/org/gradle/api/Project.html#getProperties()[`Project.getProperties()`]
-continue to be reported as an Isolated Projects violation, as that API is being <<upgrading_version_9.adoc#deprecated_get_properties,phased out>>.
-
 [[sec:migration]]
 == Migration
 

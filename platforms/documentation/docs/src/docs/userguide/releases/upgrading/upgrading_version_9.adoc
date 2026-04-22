@@ -2167,7 +2167,7 @@ See the link:https://docs.develocity.ai/current/miscellaneous/compatibility/#dev
 
 The following usages of `getProperties()` have been deprecated and will be removed in Gradle 10:
 
-- link:{javadocPath}/org/gradle/api/Project.html#getProperties()[`Project.getProperties()`] — calling `getProperties()` or accessing the `properties` property on a `Project` instance.
+- `Project.getProperties()` — calling `getProperties()` or accessing the `properties` property on a `Project` instance.
 - Calling `getProperties()` (or accessing the `properties` property) on a build script, settings script, or init script. This is a separate API on the script base class, but has the same problems.
 
 This method, which historically existed for convenience, makes build logic harder to understand and navigate due to the untyped nature of the properties and the fact that they are sourced from many different locations and containers.
