@@ -30,6 +30,7 @@ import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Delete;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.logging.ConsoleRenderer;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.plugins.ide.IdeWorkspace;
@@ -86,6 +87,10 @@ public abstract class IdePlugin implements Plugin<Project> {
             @Override
             public void execute(Delete task) {
                 task.setGroup("IDE");
+                DeprecationLogger.deprecateTask(task.getName())
+                    .willBeRemovedInGradle10()
+                    .withUpgradeGuideSection(9, "ide_task_deprecation")
+                    .nagUser();
             }
         });
         lifecycleTask.configure(new Action<Task>() {
@@ -93,6 +98,10 @@ public abstract class IdePlugin implements Plugin<Project> {
             public void execute(Task task) {
                 task.setGroup("IDE");
                 task.shouldRunAfter(cleanTask);
+                DeprecationLogger.deprecateTask(task.getName())
+                    .willBeRemovedInGradle10()
+                    .withUpgradeGuideSection(9, "ide_task_deprecation")
+                    .nagUser();
             }
         });
         onApply(target);
@@ -192,6 +201,10 @@ public abstract class IdePlugin implements Plugin<Project> {
                 openTask.dependsOn(lifecycleTask);
                 openTask.setGroup("IDE");
                 openTask.setDescription("Opens the " + workspace.getDisplayName());
+                DeprecationLogger.deprecateTask(openTask.getName())
+                    .willBeRemovedInGradle10()
+                    .withUpgradeGuideSection(9, "ide_task_deprecation")
+                    .nagUser();
 
                 ExecOperations execOperations = getExecOperations();
                 openTask.doLast(new Action<Task>() {

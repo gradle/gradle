@@ -48,6 +48,7 @@ import org.gradle.api.plugins.jvm.internal.JvmFeatureInternal;
 import org.gradle.api.plugins.scala.ScalaBasePlugin;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.TaskProvider;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.xml.XmlTransformer;
 import org.gradle.plugins.ide.api.XmlFileContentMerger;
 import org.gradle.plugins.ide.idea.internal.IdeaModuleInternal;
@@ -169,6 +170,10 @@ public abstract class IdeaPlugin extends IdePlugin {
                 public void execute(GenerateIdeaWorkspace task) {
                     task.setDescription("Generates an IDEA workspace file (IWS)");
                     task.setOutputFile(new File(project.getProjectDir(), project.getName() + ".iws"));
+                    DeprecationLogger.deprecateTask(task.getName())
+                        .willBeRemovedInGradle10()
+                        .withUpgradeGuideSection(9, "ide_task_deprecation")
+                        .nagUser();
                 }
             });
             addWorker(task, IDEA_WORKSPACE_TASK_NAME, false);
@@ -183,8 +188,12 @@ public abstract class IdeaPlugin extends IdePlugin {
             final TaskProvider<GenerateIdeaProject> projectTask = project.getTasks().register(IDEA_PROJECT_TASK_NAME, GenerateIdeaProject.class, ideaProject);
             projectTask.configure(new Action<GenerateIdeaProject>() {
                 @Override
-                public void execute(GenerateIdeaProject projectTask) {
-                    projectTask.setDescription("Generates IDEA project file (IPR)");
+                public void execute(GenerateIdeaProject task) {
+                    task.setDescription("Generates IDEA project file (IPR)");
+                    DeprecationLogger.deprecateTask(task.getName())
+                        .willBeRemovedInGradle10()
+                        .withUpgradeGuideSection(9, "ide_task_deprecation")
+                        .nagUser();
                 }
             });
             projectTask.configure(IdePluginHelper.withGracefulDegradation());
@@ -278,6 +287,10 @@ public abstract class IdeaPlugin extends IdePlugin {
             @Override
             public void execute(GenerateIdeaModule task) {
                 task.setDescription("Generates IDEA module files (IML)");
+                DeprecationLogger.deprecateTask(task.getName())
+                    .willBeRemovedInGradle10()
+                    .withUpgradeGuideSection(9, "ide_task_deprecation")
+                    .nagUser();
             }
         });
         task.configure(IdePluginHelper.withGracefulDegradation());
