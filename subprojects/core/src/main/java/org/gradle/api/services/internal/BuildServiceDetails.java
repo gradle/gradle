@@ -18,6 +18,7 @@ package org.gradle.api.services.internal;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.services.BuildService;
 import org.gradle.api.services.BuildServiceParameters;
+import org.gradle.internal.Cast;
 import org.jspecify.annotations.Nullable;
 
 /**
@@ -31,7 +32,7 @@ public class BuildServiceDetails<T extends BuildService<P>, P extends BuildServi
     private final int maxUsages;
     private final boolean resolved;
 
-    public BuildServiceDetails(BuildIdentifier buildIdentifier, String name, Class<T> implementationType, @Nullable P parameters, @Nullable Integer maxUsages) {
+    public BuildServiceDetails(BuildIdentifier buildIdentifier, String name, Class<T> implementationType, P parameters, @Nullable Integer maxUsages) {
         this.buildIdentifier = buildIdentifier;
         this.name = name;
         this.implementationType = implementationType;
@@ -44,7 +45,7 @@ public class BuildServiceDetails<T extends BuildService<P>, P extends BuildServi
         this.buildIdentifier = buildIdentifier;
         this.name = name;
         this.implementationType = implementationType;
-        this.parameters = null;
+        this.parameters = Cast.uncheckedNonnullCast(BuildServiceParameters.None.INSTANCE);
         this.maxUsages = -1;
         this.resolved = false;
     }

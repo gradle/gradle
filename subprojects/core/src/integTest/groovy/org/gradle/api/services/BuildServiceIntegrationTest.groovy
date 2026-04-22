@@ -1308,7 +1308,12 @@ Hello, subproject1
                 }
             }
 
-            def provider = gradle.sharedServices.registerIfAbsent("counter", CountingService) {}
+            def provider = gradle.sharedServices.registerIfAbsent("counter", CountingService) { spec ->
+                println("Spec parameters: " + spec.parameters)
+                spec.parameters {
+                    println("Configure closure parameters: " + it)
+                }
+            }
 
             task check {
                 doFirst {
@@ -1321,6 +1326,8 @@ Hello, subproject1
         run("check")
 
         then:
+        outputContains("Spec parameters: org.gradle.api.services.BuildServiceParameters\$None@")
+        outputContains("Configure closure parameters: org.gradle.api.services.BuildServiceParameters\$None@")
         outputContains("service: parameters = org.gradle.api.services.BuildServiceParameters\$None@")
     }
 

@@ -61,7 +61,7 @@ public class RegisteredBuildServiceProvider<T extends BuildService<P>, P extends
         BuildIdentifier buildIdentifier,
         String name,
         Class<T> implementationType,
-        @Nullable P parameters,
+        P parameters,
         IsolationScheme<BuildService<?>, BuildServiceParameters> isolationScheme,
         InstantiationScheme instantiationScheme,
         IsolatableFactory isolatableFactory,
@@ -151,7 +151,8 @@ public class RegisteredBuildServiceProvider<T extends BuildService<P>, P extends
     private Try<T> instantiate() {
         // TODO - extract some shared infrastructure to take care of instantiation (eg which services are visible, strict vs lenient, decorated or not?)
         // TODO - should hold the project lock to do the isolation. Should work the same way as artifact transforms (a work node does the isolation, etc)
-        P isolatedParameters = isolatableFactory.isolate(getParameters()).isolate();
+        P parameters = getParameters();
+        P isolatedParameters = isolatableFactory.isolate(parameters == BuildServiceParameters.None.INSTANCE ? null : parameters).isolate();
         // TODO - reuse this in other places
         ServiceLookup instantiationServices = instantiationServicesFor(isolatedParameters);
         try {

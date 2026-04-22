@@ -84,12 +84,13 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
         TypedRegistration<T> registration = null;
         try {
             Class<T> parameterType = isolationScheme.parameterTypeForOrNull(actionType);
-            T parameterObject = parameterType == null ? null : parametersInstantiationScheme.withServices(services).instantiator().newInstance(parameterType);
+            T nullableParameterObject = parameterType == null ? null : parametersInstantiationScheme.withServices(services).instantiator().newInstance(parameterType);
+            T parameterObject = parameterType == null ? Cast.uncheckedNonnullCast(TransformParameters.None.INSTANCE) : nullableParameterObject;
             registration = Cast.uncheckedNonnullCast(instantiatorFactory.decorateLenient(services).newInstance(TypedRegistration.class, parameterObject, attributesFactory));
             registrationAction.execute(registration);
             registration.validateAttributes();
 
-            TransformRegistration finalizedRegistration = registrationFactory.create(registration.from.asImmutable(), registration.to.asImmutable(), actionType, parameterObject);
+            TransformRegistration finalizedRegistration = registrationFactory.create(registration.from.asImmutable(), registration.to.asImmutable(), actionType, nullableParameterObject);
             registeredTransforms.add(finalizedRegistration);
         } catch (Exception e) {
             throw new VariantTransformConfigurationException(buildFailureToRegisterMsg(registration, actionType), e, documentationRegistry);
@@ -134,7 +135,7 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
         @Inject
         protected abstract DocumentationRegistry getDocumentationRegistry();
 
-        public TypedRegistration(@Nullable T parameterObject, AttributesFactory attributesFactory) {
+        public TypedRegistration(T parameterObject, AttributesFactory attributesFactory) {
             this.parameterObject = parameterObject;
             this.from = attributesFactory.mutable();
             this.to = attributesFactory.mutable();
@@ -152,18 +153,12 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
 
         @Override
         public T getParameters() {
-            if (parameterObject == null) {
-                throw new IllegalStateException("Cannot query parameters for artifact transform without parameters.");
-            }
             return parameterObject;
         }
 
         @Override
         public void parameters(Action<? super T> action) {
-            if (parameterObject == null) {
-                throw new IllegalStateException("Cannot configure parameters for artifact transform without parameters.");
-            }
-            action.execute(parameterObject);
+            action.execute(getParameters());
         }
 
         public void validateAttributes() {

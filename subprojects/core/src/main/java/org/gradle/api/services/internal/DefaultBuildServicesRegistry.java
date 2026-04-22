@@ -218,7 +218,7 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
     }
 
     @Override
-    public BuildServiceProvider<?, ?> registerIfAbsent(String name, Class<? extends BuildService<?>> implementationType, @Nullable BuildServiceParameters parameters, int maxUsages) {
+    public BuildServiceProvider<?, ?> registerIfAbsent(String name, Class<? extends BuildService<?>> implementationType, BuildServiceParameters parameters, int maxUsages) {
         Supplier<BuildServiceSpec<?>> buildServiceSpecSupplier = () -> {
             DefaultServiceSpec<?> spec = uncheckedNonnullCast(specInstantiator.newInstance(DefaultServiceSpec.class, parameters));
             spec.getMaxParallelUsages().set(maxUsages);
@@ -265,11 +265,11 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
         Class<P> parameterType = isolationScheme.parameterTypeForOrNull(implementationType);
         return parameterType != null
             ? paramsInstantiator.newInstance(parameterType)
-            : null;
+            : Cast.uncheckedNonnullCast(BuildServiceParameters.None.INSTANCE);
     }
 
     @Override
-    public BuildServiceProvider<?, ?> register(String name, Class<? extends BuildService<?>> implementationType, @Nullable BuildServiceParameters parameters, int maxUsages) {
+    public BuildServiceProvider<?, ?> register(String name, Class<? extends BuildService<?>> implementationType, BuildServiceParameters parameters, int maxUsages) {
         return withRegistrations(registrations -> {
             DefaultServiceRegistration<?, ?> registration = Cast.uncheckedCast(registrations.findByName(name));
             if (registration != null) {
@@ -295,7 +295,7 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
     private <T extends BuildService<P>, P extends BuildServiceParameters> BuildServiceProvider<T, P> doRegister(
         String name,
         Class<T> implementationType,
-        @Nullable P parameters,
+        P parameters,
         @Nullable Integer maxParallelUsages,
         NamedDomainObjectSet<BuildServiceRegistration<?, ?>> registrations
     ) {
@@ -422,7 +422,7 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
 
         @Override
         public void parameters(Action<? super P> configureAction) {
-            configureAction.execute(parameters);
+            configureAction.execute(getParameters());
         }
     }
 

@@ -148,9 +148,10 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
     }
 
     private <P extends ValueSourceParameters> void configureParameters(@Nullable P parameters, Action<? super ValueSourceSpec<P>> configureAction) {
+        P specParameters = parameters != null ? parameters : Cast.uncheckedNonnullCast(ValueSourceParameters.None.INSTANCE);
         DefaultValueSourceSpec<P> valueSourceSpec = Cast.uncheckedNonnullCast(specInstantiator.newInstance(
             DefaultValueSourceSpec.class,
-            parameters
+            specParameters
         ));
         configureAction.execute(valueSourceSpec);
     }

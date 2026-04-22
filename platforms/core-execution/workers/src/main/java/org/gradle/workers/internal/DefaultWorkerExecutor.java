@@ -148,9 +148,8 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
     private <T extends WorkParameters> AsyncWorkCompletion submitWork(Class<? extends WorkAction<T>> workActionClass, Action<? super T> parameterAction, WorkerSpec workerSpec, WorkerFactory workerFactory) {
         Class<T> parameterType = isolationScheme.parameterTypeForOrNull(workActionClass);
         T parameters = (parameterType == null) ? null : instantiator.newInstance(parameterType);
-        if (parameters != null) {
-            parameterAction.execute(parameters);
-        }
+        T actionParameters = parameters != null ? parameters : Cast.uncheckedNonnullCast(WorkParameters.None.INSTANCE);
+        parameterAction.execute(actionParameters);
 
         String description = workActionClass.getName();
         WorkerRequirement workerRequirement = getWorkerRequirement(workActionClass, workerSpec, parameters);
