@@ -28,14 +28,15 @@ class IdeaProjectIntegrationTest extends AbstractIdeIntegrationTest {
     @Test
     void "allows configuring the VCS"() {
         //when
+        expectTaskDeprecations("ideaModule", "ideaProject", "ideaWorkspace", "idea")
         runTask('idea', '''
-apply plugin: "java"
-apply plugin: "idea"
+            apply plugin: "java"
+            apply plugin: "idea"
 
-idea.project {
-    vcs = 'Git'
-}
-''')
+            idea.project {
+                vcs = 'Git'
+            }
+        ''')
 
         //then
         def ipr = getFile([:], 'root.ipr').text
@@ -47,31 +48,32 @@ idea.project {
     void enablesCustomizationsOnNewModel() {
         //when
         createDirs("someProjectThatWillBeExcluded", "api")
+        expectTaskDeprecations("ideaModule", "ideaProject", "ideaWorkspace", "idea")
         def result = runTask ':idea', 'include "someProjectThatWillBeExcluded", "api"', '''
-allprojects {
-    apply plugin: "java"
-    apply plugin: "idea"
-}
-
-idea {
-    project {
-        jdkName = '1.3'
-        wildcards += '!?*.ruby'
-
-        //let's remove one of the subprojects from generation:
-        modules -= project(':someProjectThatWillBeExcluded').idea.module
-
-        outputFile = new File(outputFile.parentFile, 'someBetterName.ipr')
-
-        ipr {
-            withXml {
-                def node = it.asNode()
-                node.appendNode('someInterestingConfiguration', 'hey buddy!')
+            allprojects {
+                apply plugin: "java"
+                apply plugin: "idea"
             }
-        }
-    }
-}
-'''
+
+            idea {
+                project {
+                    jdkName = '1.3'
+                    wildcards += '!?*.ruby'
+
+                    //let's remove one of the subprojects from generation:
+                    modules -= project(':someProjectThatWillBeExcluded').idea.module
+
+                    outputFile = new File(outputFile.parentFile, 'someBetterName.ipr')
+
+                    ipr {
+                        withXml {
+                            def node = it.asNode()
+                            node.appendNode('someInterestingConfiguration', 'hey buddy!')
+                        }
+                    }
+                }
+            }
+        '''
         result.assertTasksScheduled(":ideaModule", ":ideaProject", ":ideaWorkspace",
             ":api:ideaModule",
             ":idea"
@@ -88,58 +90,60 @@ idea {
     @Test
     void configuresHooks() {
         def ipr = file('root.ipr')
-        ipr.text = '''<?xml version="1.0" encoding="UTF-8"?>
-<project version="4">
-  <component name="CompilerConfiguration">
-    <option name="DEFAULT_COMPILER" value="Javac"/>
-    <annotationProcessing enabled="false" useClasspath="true"/>
-    <wildcardResourcePatterns>
-      <entry name="!?*.groovy"/>
-      <entry name="!?*.java"/>
-      <entry name="!?*.fooBar"/>
-    </wildcardResourcePatterns>
-  </component>
-  <component name="ProjectModuleManager">
-    <modules>
-      <module fileurl="file://$PROJECT_DIR$/root.iml" filepath="$PROJECT_DIR$/root.iml"/>
-    </modules>
-  </component>
-  <component name="ProjectRootManager" version="2" languageLevel="JDK_1_5" assert-keyword="true" jdk-15="true" project-jdk-type="JavaSDK" assert-jdk-15="true" project-jdk-name="1.5">
-    <output url="file://$PROJECT_DIR$/out"/>
-  </component>
-  <component name="VcsDirectoryMappings">
-    <mapping directory="" vcs="Git" />
-  </component>
-</project>
-'''
+        ipr.text = '''
+            <?xml version="1.0" encoding="UTF-8"?>
+            <project version="4">
+              <component name="CompilerConfiguration">
+                <option name="DEFAULT_COMPILER" value="Javac"/>
+                <annotationProcessing enabled="false" useClasspath="true"/>
+                <wildcardResourcePatterns>
+                  <entry name="!?*.groovy"/>
+                  <entry name="!?*.java"/>
+                  <entry name="!?*.fooBar"/>
+                </wildcardResourcePatterns>
+              </component>
+              <component name="ProjectModuleManager">
+                <modules>
+                  <module fileurl="file://$PROJECT_DIR$/root.iml" filepath="$PROJECT_DIR$/root.iml"/>
+                </modules>
+              </component>
+              <component name="ProjectRootManager" version="2" languageLevel="JDK_1_5" assert-keyword="true" jdk-15="true" project-jdk-type="JavaSDK" assert-jdk-15="true" project-jdk-name="1.5">
+                <output url="file://$PROJECT_DIR$/out"/>
+              </component>
+              <component name="VcsDirectoryMappings">
+                <mapping directory="" vcs="Git" />
+              </component>
+            </project>
+        '''.strip()
 
         //when
+        expectTaskDeprecations("ideaModule", "ideaProject", "ideaWorkspace", "idea")
         runTask 'idea', '''
-apply plugin: "java"
-apply plugin: "idea"
+            apply plugin: "java"
+            apply plugin: "idea"
 
-def hooks = []
+            def hooks = []
 
-idea {
-    project {
-        ipr {
-            beforeMerged {
-                assert it.wildcards.contains('!?*.fooBar')
-                it.wildcards << '!?*.fooBarTwo'
-                hooks << 'before'
+            idea {
+                project {
+                    ipr {
+                        beforeMerged {
+                            assert it.wildcards.contains('!?*.fooBar')
+                            it.wildcards << '!?*.fooBarTwo'
+                            hooks << 'before'
+                        }
+                        whenMerged {
+                            assert it.wildcards.contains('!?*.fooBarTwo')
+                            hooks << 'when'
+                        }
+                    }
+                }
             }
-            whenMerged {
-                assert it.wildcards.contains('!?*.fooBarTwo')
-                hooks << 'when'
-            }
-        }
-    }
-}
 
-ideaProject.doLast {
-    assert hooks == ['before', 'when']
-}
-'''
+            ideaProject.doLast {
+                assert hooks == ['before', 'when']
+            }
+        '''
         //then no exception thrown
     }
 }

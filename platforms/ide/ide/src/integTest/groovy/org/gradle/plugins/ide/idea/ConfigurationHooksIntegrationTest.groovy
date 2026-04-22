@@ -27,67 +27,68 @@ class ConfigurationHooksIntegrationTest extends AbstractIdeIntegrationTest {
 
     @Test
     void triggersBeforeAndWhenConfigurationHooks() {
-
         //this test is a bit peculiar as it has assertions inside the gradle script
         //couldn't find a better way of asserting on before/when configured hooks
+        expectTaskDeprecations("idea", "ideaModule", "ideaProject", "ideaWorkspace")
         runIdeaTask '''
-apply plugin: 'java'
-apply plugin: 'idea'
+            apply plugin: 'java'
+            apply plugin: 'idea'
 
-def beforeConfiguredObjects = 0
-def whenConfiguredObjects = 0
+            def beforeConfiguredObjects = 0
+            def whenConfiguredObjects = 0
 
-idea {
-    project {
-        ipr {
-            beforeMerged {beforeConfiguredObjects++ }
-            whenMerged {whenConfiguredObjects++ }
-        }
-    }
-    workspace {
-        iws {
-            beforeMerged {beforeConfiguredObjects++ }
-            whenMerged {whenConfiguredObjects++ }
-        }
-    }
-    module {
-        iml {
-            beforeMerged {beforeConfiguredObjects++ }
-            whenMerged {whenConfiguredObjects++ }
-        }
-    }
-}
+            idea {
+                project {
+                    ipr {
+                        beforeMerged {beforeConfiguredObjects++ }
+                        whenMerged {whenConfiguredObjects++ }
+                    }
+                }
+                workspace {
+                    iws {
+                        beforeMerged {beforeConfiguredObjects++ }
+                        whenMerged {whenConfiguredObjects++ }
+                    }
+                }
+                module {
+                    iml {
+                        beforeMerged {beforeConfiguredObjects++ }
+                        whenMerged {whenConfiguredObjects++ }
+                    }
+                }
+            }
 
-tasks.idea {
-    doLast {
-        assert beforeConfiguredObjects == 3 : "beforeConfigured() hooks should be fired for domain model objects"
-        assert whenConfiguredObjects == 3 : "whenConfigured() hooks should be fired for domain model objects"
-    }
-}
-'''
+            tasks.idea {
+                doLast {
+                    assert beforeConfiguredObjects == 3 : "beforeConfigured() hooks should be fired for domain model objects"
+                    assert whenConfiguredObjects == 3 : "whenConfigured() hooks should be fired for domain model objects"
+                }
+            }
+        '''
     }
 
     @Test
     void whenHooksApplyChangesToGeneratedFile() {
         //when
+        expectTaskDeprecations("idea", "ideaModule", "ideaProject", "ideaWorkspace")
         runIdeaTask '''
-apply plugin: 'java'
-apply plugin: 'idea'
+            apply plugin: 'java'
+            apply plugin: 'idea'
 
-idea {
-    module {
-        iml {
-            whenMerged { it.jdkName = '1.44' }
-        }
-    }
+            idea {
+                module {
+                    iml {
+                        whenMerged { it.jdkName = '1.44' }
+                    }
+                }
 
-    project {
-        ipr {
-            whenMerged { it.wildcards += '!?*.ruby' }
-        }
-    }
-}
-'''
+                project {
+                    ipr {
+                        whenMerged { it.wildcards += '!?*.ruby' }
+                    }
+                }
+            }
+        '''
         //then
         def iml = getFile([:], 'root.iml').text
         assert iml.contains('1.44')
