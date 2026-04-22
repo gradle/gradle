@@ -17,6 +17,7 @@
 package gradlebuild.pluginpublish.extension
 
 import org.gradle.plugin.devel.GradlePluginDevelopmentExtension
+import org.gradle.kotlin.dsl.assign
 
 
 abstract class PluginPublishExtension(

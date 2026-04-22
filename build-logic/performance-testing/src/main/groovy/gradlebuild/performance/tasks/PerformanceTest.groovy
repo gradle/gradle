@@ -196,7 +196,7 @@ abstract class PerformanceTest extends DistributionTest {
         DefaultTestFilter filter = getFilter() as DefaultTestFilter
         List<String> scenarios = []
         Set<String> classOnlyFilters = new LinkedHashSet<>()
-        filter.getCommandLineIncludePatterns().each { includePattern ->
+        filter.getCommandLineIncludePatterns().get().each { includePattern ->
             def lastDot = includePattern.lastIndexOf(".")
             if (lastDot == -1) {
                 classOnlyFilters.add(includePattern)
@@ -211,7 +211,7 @@ abstract class PerformanceTest extends DistributionTest {
                 }
             }
         }
-        filter.setCommandLineIncludePatterns(classOnlyFilters)
+        filter.getCommandLineIncludePatterns().set(classOnlyFilters)
         setScenarios(scenarios.join(";"))
     }
 

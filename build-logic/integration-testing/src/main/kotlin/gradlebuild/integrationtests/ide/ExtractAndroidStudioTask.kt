@@ -31,6 +31,7 @@ import org.gradle.process.ExecOperations
 import org.gradle.work.DisableCachingByDefault
 import java.io.File
 import javax.inject.Inject
+import org.gradle.kotlin.dsl.assign
 
 private const val VOLUME_NAME = "AndroidStudioForGradle"
 

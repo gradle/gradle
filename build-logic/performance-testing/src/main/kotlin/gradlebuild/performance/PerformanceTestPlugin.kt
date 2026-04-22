@@ -416,7 +416,7 @@ class PerformanceTestExtension(
                         setTestNameIncludePatterns(scenariosFromFile)
                     }
                     doFirst {
-                        assert((filter as DefaultTestFilter).includePatterns.isNotEmpty()) { "Running $name requires to add a test filter" }
+                        assert((filter as DefaultTestFilter).includePatterns.get().isNotEmpty()) { "Running $name requires to add a test filter" }
                     }
                 }
                 mustRunAfter(currentlyRegisteredTestProjects)

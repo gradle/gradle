@@ -24,6 +24,7 @@ import org.gradle.api.tasks.testing.Test
 import org.gradle.util.GradleVersion
 import java.io.StringReader
 import java.util.Properties
+import org.gradle.kotlin.dsl.assign
 
 
 abstract class BuildBucketProvider : BuildService<BuildBucketProvider.Params> {

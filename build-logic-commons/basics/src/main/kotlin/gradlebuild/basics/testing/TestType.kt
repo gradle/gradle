@@ -26,14 +26,14 @@ enum class TestType(val prefix: String, val executers: List<String>) {
 
 
 fun Test.includeSpockAnnotation(fqcn: String) {
-    systemProperties.compute("include.spock.annotation") { _, oldValue ->
+    systemProperties.get().compute("include.spock.annotation") { _, oldValue ->
         if (oldValue == null) fqcn else "$oldValue,$fqcn"
     }
 }
 
 
 fun Test.excludeSpockAnnotation(fqcn: String) {
-    systemProperties.compute("exclude.spock.annotation") { _, oldValue ->
+    systemProperties.get().compute("exclude.spock.annotation") { _, oldValue ->
         if (oldValue == null) fqcn else "$oldValue,$fqcn"
     }
 }

@@ -215,7 +215,7 @@ plugins.withType<GroovyBasePlugin> {
             config = configFile("checkstyle-groovy.xml")
             source(allGroovy)
             classpath = compileClasspath
-            reports.xml.outputLocation = checkstyle.reportsDir.resolve("${this@all.name}-groovy.xml")
+            reports.xml.outputLocation = checkstyle.reportsDir.map {  it.asFile.resolve("${this@all.name}-groovy.xml") }
         }
     }
 }
