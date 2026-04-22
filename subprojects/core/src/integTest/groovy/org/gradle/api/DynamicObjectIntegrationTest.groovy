@@ -47,13 +47,10 @@ class DynamicObjectIntegrationTest extends AbstractIntegrationSpec {
               ext.sharedProperty = 'shared'
               assert 'root' == rootProperty
               assert 'root' == property('rootProperty')
-              assert 'root' == properties.rootProperty
               assert 'child' == childProperty
               assert 'child' == property('childProperty')
-              assert 'child' == properties.childProperty
               assert 'shared' == sharedProperty
               assert 'shared' == property('sharedProperty')
-              assert 'shared' == properties.sharedProperty
         """
         if (GradleContextualExecuter.notConfigCache) { // this is a check for execution time
             buildFile "child/build.gradle", """
@@ -74,7 +71,6 @@ class DynamicObjectIntegrationTest extends AbstractIntegrationSpec {
             """
             expectTaskProjectDeprecation()
         }
-        expectScriptGetPropertiesDeprecation(3)
 
         expect:
         succeeds("testTask")
@@ -153,11 +149,9 @@ global=some value
 assert 'some value' == global
 assert hasProperty('global')
 assert 'some value' == property('global')
-assert 'some value' == properties.global
 assert 'some value' == project.global
 assert project.hasProperty('global')
 assert 'some value' == project.property('global')
-assert 'some value' == project.properties.global
 '''
         file("child/gradle.properties") << '''
 global=overridden value
@@ -165,9 +159,6 @@ global=overridden value
         file("child/build.gradle") << '''
 assert 'overridden value' == global
 '''
-
-        expectScriptGetPropertiesDeprecation()
-        expectProjectGetPropertiesDeprecation()
 
         expect:
         succeeds()
@@ -471,7 +462,6 @@ assert 'overridden value' == global
             }
 
             assert p1 == 1
-            assert properties.p1 == 1
             assert ext.p1 == 1
             assert hasProperty("p1")
             assert property("p1") == 1
@@ -499,8 +489,6 @@ assert 'overridden value' == global
                 }
             }
         """
-
-        expectScriptGetPropertiesDeprecation()
 
         expect:
         succeeds("run")
@@ -1001,19 +989,4 @@ task print(type: MyTask) {
         }
     }
 
-    private void expectScriptGetPropertiesDeprecation(int repeated = 1) {
-        repeated.times {
-            executer.expectDocumentedDeprecationWarning("Dynamically calling getProperties() on a script has been deprecated. " +
-                "This will fail with an error in Gradle 10. " +
-                "Consult the upgrading guide for further information: " +
-                "https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_get_properties")
-        }
-    }
-
-    private void expectProjectGetPropertiesDeprecation() {
-        executer.expectDocumentedDeprecationWarning("The Project.getProperties method has been deprecated. " +
-            "This will fail with an error in Gradle 10. " +
-            "Consult the upgrading guide for further information: " +
-            "https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_get_properties")
-    }
 }

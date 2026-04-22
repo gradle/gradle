@@ -17,7 +17,6 @@
 package org.gradle.smoketests
 
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
-import org.gradle.util.GradleVersion
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.JdkVersionTestPreconditions
@@ -66,7 +65,6 @@ class BomSupportPluginsSmokeTest extends AbstractSmokeTest {
 
         when:
         def runner = runner('checkDep')
-        runner.maybeExpectLegacyDeprecationWarning("The Project.getProperties method has been deprecated. This will fail with an error in Gradle 10. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_9.html#deprecated_get_properties")
         runner.build()
 
         then:
