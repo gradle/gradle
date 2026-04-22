@@ -31,7 +31,6 @@ dependencies {
     api(libs.inject)
     api(libs.jspecify)
 
-    implementation(projects.configurationProblemsBase)
     implementation(projects.enterpriseOperations)
     implementation(projects.fileOperations)
     implementation(projects.functional)
@@ -41,7 +40,6 @@ dependencies {
     implementation(projects.time)
 
     implementation(libs.guava)
-    implementation(libs.kotlinStdlib)
     implementation(libs.slf4jApi)
 
     testImplementation(testFixtures(projects.core))

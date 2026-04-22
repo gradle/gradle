@@ -20,9 +20,6 @@ import groovy.lang.Binding;
 import groovy.lang.MissingMethodException;
 import groovy.lang.MissingPropertyException;
 import org.gradle.api.internal.DynamicObjectAware;
-import org.gradle.api.internal.project.DefaultProject;
-import org.gradle.internal.configuration.problems.IsolatedProjectsProblemsReporter;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.logging.StandardOutputCapture;
 import org.gradle.internal.metaobject.AbstractDynamicObject;
 import org.gradle.internal.metaobject.BeanDynamicObject;
@@ -36,7 +33,6 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.jspecify.annotations.Nullable;
 
 import java.io.PrintStream;
-import java.util.Map;
 import java.util.function.Supplier;
 
 @SuppressWarnings("this-escape")
@@ -44,12 +40,10 @@ public abstract class BasicScript extends org.gradle.groovy.scripts.Script imple
     private StandardOutputCapture standardOutputCapture;
     private Object target;
     private final ScriptDynamicObject dynamicObject = new ScriptDynamicObject(this);
-    private IsolatedProjectsProblemsReporter reporter;
 
     @Override
     public void init(Object target, ServiceRegistry services) {
         standardOutputCapture = services.get(StandardOutputCapture.class);
-        reporter = services.get(IsolatedProjectsProblemsReporter.class);
         setScriptTarget(target);
     }
 
@@ -80,17 +74,6 @@ public abstract class BasicScript extends org.gradle.groovy.scripts.Script imple
     @Override
     public void setProperty(String property, Object newValue) {
         dynamicObject.setProperty(property, newValue);
-    }
-
-    @Deprecated
-    public Map<String, ? extends @Nullable Object> getProperties() {
-        DeprecationLogger.deprecateAction("Dynamically calling getProperties() on a script")
-            .willBecomeAnErrorInGradle10()
-            .withUpgradeGuideSection(9, "deprecated_get_properties")
-            .nagUser();
-
-        DefaultProject.reportGetPropertiesProblem(reporter, "Script.getProperties()");
-        return reporter.runIgnoringProblemsOnCurrentThread(dynamicObject::getProperties);
     }
 
     public boolean hasProperty(String property) {
@@ -161,12 +144,6 @@ public abstract class BasicScript extends org.gradle.groovy.scripts.Script imple
 
         public void setTarget(Object target) {
             dynamicTarget = DynamicObjectUtil.asDynamicObject(target);
-        }
-
-        @Deprecated
-        @Override
-        public Map<String, ? extends @Nullable Object> getProperties() {
-            return dynamicTarget.getProperties();
         }
 
         @Override

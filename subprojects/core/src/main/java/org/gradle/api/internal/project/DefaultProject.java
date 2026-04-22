@@ -94,7 +94,6 @@ import org.gradle.internal.build.BuildState;
 import org.gradle.internal.buildoption.FeatureFlags;
 import org.gradle.internal.buildoption.InternalOption;
 import org.gradle.internal.buildoption.InternalOptions;
-import org.gradle.internal.configuration.problems.IsolatedProjectsProblemsReporter;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.extensibility.ExtensibleDynamicObject;
@@ -390,9 +389,6 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     @Inject
     protected abstract ProjectEvaluator getProjectEvaluator();
-
-    @Inject
-    protected abstract IsolatedProjectsProblemsReporter getIsolatedProjectsProblemsReporter();
 
     @Inject
     @Override
@@ -1176,15 +1172,6 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
         } finally {
             extensibleDynamicObject.setCallerContext(previous);
         }
-    }
-
-    public static void reportGetPropertiesProblem(IsolatedProjectsProblemsReporter reporter, String method) {
-        reporter.report(factory ->
-            factory.problem("Unsupported API usage", message -> message
-                .text("use of ").reference(method)
-                .text(" is not allowed with Isolated Projects")
-            ).build()
-        );
     }
 
     @SuppressWarnings("deprecation")
