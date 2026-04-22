@@ -1159,6 +1159,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     @Override
     public Object property(String propertyName) throws MissingPropertyException {
+        RemovedGetPropertiesAccess.failIfPropertiesAccess(propertyName);
         return dynamicLookupRoutine.property(extensibleDynamicObject, propertyName);
     }
 

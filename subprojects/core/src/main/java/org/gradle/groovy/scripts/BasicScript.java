@@ -21,6 +21,7 @@ import groovy.lang.MissingMethodException;
 import groovy.lang.MissingPropertyException;
 import org.gradle.api.internal.DynamicObjectAware;
 import org.gradle.api.internal.project.DynamicLookupRoutine;
+import org.gradle.api.internal.project.RemovedGetPropertiesAccess;
 import org.gradle.internal.logging.StandardOutputCapture;
 import org.gradle.internal.metaobject.AbstractDynamicObject;
 import org.gradle.internal.metaobject.BeanDynamicObject;
@@ -65,6 +66,7 @@ public abstract class BasicScript extends org.gradle.groovy.scripts.Script imple
 
     @Override
     public Object getProperty(String property) {
+        RemovedGetPropertiesAccess.failIfPropertiesAccess(property);
         return dynamicLookupRoutine.property(dynamicObject, property);
     }
 
