@@ -41,6 +41,23 @@ The previous step will help you identify potential problems by issuing deprecati
 
 === Deprecations
 
+[[ide_task_deprecation]]
+==== Deprecation of file generation task of IDE plugins
+
+The `idea` and `eclipse` plugins contribute tasks for generating IDE specific files on disk.
+These tasks were originally the primary way to set up a project for an IDE, but since all modern IDEs have developed built-in Gradle integration (IntelliJ IDEA's Gradle import, Eclipse Buildship, etc.) and can import Gradle projects directly without needing these generated files.
+We are deprecating these file generation tasks:
+
+* `idea` / `ideaProject` / `ideaModule` / `ideaWorkspace` (generate `.ipr`, `.iml`, `.iws` files)
+* `eclipse` / `eclipseProject` / `eclipseClasspath` / `eclipseJdt` (generate `.project`, `.classpath`, `.settings/org.eclipse.jdt.core.prefs` files)
+* `openIdea` (generates files and opens IDEA)
+* associated `clean*` tasks
+
+Note: not all the functionality of the plugins is being deprecated, only the tasks.
+When you apply the plugins and configure the `idea { ... }` or `eclipse { ... }` blocks in your build scripts, you can customize how your IDE understands your project (e.g., marking source directories as test sources, adjusting dependency scopes, setting Java language levels).
+These customizations are picked up automatically by the Gradle integration built into IDEs.
+This functionality will continue to work unchanged.
+
 [[dependency_project_notation]]
 ==== Deprecation of using Project objects as dependency notation
 
