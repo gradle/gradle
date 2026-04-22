@@ -39,47 +39,48 @@ class EclipseWtpModelIntegrationTest extends AbstractEclipseIntegrationTest {
         mavenRepo.module("gradle", "baz").publish()
 
         //when
+        expectTaskDeprecations("eclipse", "eclipseClasspath", "eclipseJdt", "eclipseProject", "eclipseWtp", "eclipseWtpComponent", "eclipseWtpFacet")
         runEclipseTask """
-apply plugin: 'java'
-apply plugin: 'war'
-apply plugin: 'eclipse-wtp'
+            apply plugin: 'java'
+            apply plugin: 'war'
+            apply plugin: 'eclipse-wtp'
 
-configurations {
-  configOne
-  configTwo
-}
+            configurations {
+              configOne
+              configTwo
+            }
 
-repositories {
-  maven { url = "${mavenRepo.uri}" }
-}
+            repositories {
+              maven { url = "${mavenRepo.uri}" }
+            }
 
-dependencies {
-  configOne 'gradle:foo:1.0', 'gradle:bar:1.0', 'gradle:baz:1.0'
-  configTwo 'gradle:baz:1.0'
-}
+            dependencies {
+              configOne 'gradle:foo:1.0', 'gradle:bar:1.0', 'gradle:baz:1.0'
+              configTwo 'gradle:baz:1.0'
+            }
 
-eclipse {
+            eclipse {
 
-  wtp {
-    component {
-      contextPath = 'killerApp'
+              wtp {
+                component {
+                  contextPath = 'killerApp'
 
-      sourceDirs += file('someExtraSourceDir')
+                  sourceDirs += file('someExtraSourceDir')
 
-      plusConfigurations << configurations.configOne
-      minusConfigurations << configurations.configTwo
+                  plusConfigurations << configurations.configOne
+                  minusConfigurations << configurations.configTwo
 
-      deployName = 'someBetterDeployName'
+                  deployName = 'someBetterDeployName'
 
-      resource sourcePath: './src/foo/bar', deployPath: './deploy/foo/bar'
+                  resource sourcePath: './src/foo/bar', deployPath: './deploy/foo/bar'
 
-      property name: 'wbPropertyOne', value: 'New York!'
-    }
-    facet {
-      facet name: 'gradleFacet', version: '1.333'
-    }
-  }
-}
+                  property name: 'wbPropertyOne', value: 'New York!'
+                }
+                facet {
+                  facet name: 'gradleFacet', version: '1.333'
+                }
+              }
+            }
         """
 
         // Classpath
@@ -112,23 +113,24 @@ eclipse {
         mavenRepo.module("gradle", "baz", "2.0").publish()
 
         //when
+        expectTaskDeprecations("eclipse", "eclipseClasspath", "eclipseJdt", "eclipseProject", "eclipseWtp", "eclipseWtpComponent", "eclipseWtpFacet")
         runEclipseTask """
-apply plugin: 'java'
-apply plugin: 'war'
-apply plugin: 'eclipse-wtp'
+            apply plugin: 'java'
+            apply plugin: 'war'
+            apply plugin: 'eclipse-wtp'
 
-repositories {
-  maven { url = "${mavenRepo.uri}" }
-}
+            repositories {
+              maven { url = "${mavenRepo.uri}" }
+            }
 
-dependencies {
-  implementation 'gradle:foo:1.0', 'gradle:bar:1.0', 'gradle:baz:1.0'
-}
+            dependencies {
+              implementation 'gradle:foo:1.0', 'gradle:bar:1.0', 'gradle:baz:1.0'
+            }
 
-configurations.all {
-  exclude module: 'bar' //an exclusion
-  resolutionStrategy.force 'gradle:baz:2.0' //forced module
-}
+            configurations.all {
+              exclude module: 'bar' //an exclusion
+              resolutionStrategy.force 'gradle:baz:2.0' //forced module
+            }
         """
 
         def classpath = getClasspath()
@@ -149,34 +151,35 @@ configurations.all {
 '''
 
         //when
+        expectTaskDeprecations("eclipse", "eclipseClasspath", "eclipseJdt", "eclipseProject", "eclipseWtp", "eclipseWtpComponent", "eclipseWtpFacet")
         runEclipseTask """
-apply plugin: 'java'
-apply plugin: 'war'
-apply plugin: 'eclipse-wtp'
+            apply plugin: 'java'
+            apply plugin: 'war'
+            apply plugin: 'eclipse-wtp'
 
-def hooks = []
+            def hooks = []
 
-eclipse {
-  wtp {
-    component {
-      file {
-        beforeMerged {
-          hooks << 'beforeMerged'
-          assert it.deployName == 'coolDeployName'
-        }
-        whenMerged {
-          hooks << 'whenMerged'
-          it.deployName = 'betterDeployName'
-        }
-        withXml { it.asNode().appendNode('be', 'cool') }
-      }
-    }
-  }
-}
+            eclipse {
+              wtp {
+                component {
+                  file {
+                    beforeMerged {
+                      hooks << 'beforeMerged'
+                      assert it.deployName == 'coolDeployName'
+                    }
+                    whenMerged {
+                      hooks << 'whenMerged'
+                      it.deployName = 'betterDeployName'
+                    }
+                    withXml { it.asNode().appendNode('be', 'cool') }
+                  }
+                }
+              }
+            }
 
-eclipseWtpComponent.doLast() {
-  assert hooks == ['beforeMerged', 'whenMerged']
-}
+            eclipseWtpComponent.doLast() {
+              assert hooks == ['beforeMerged', 'whenMerged']
+            }
 
         """
 
@@ -204,31 +207,32 @@ eclipseWtpComponent.doLast() {
 '''
 
         //when
+        expectTaskDeprecations("eclipse", "eclipseClasspath", "eclipseJdt", "eclipseProject", "eclipseWtp", "eclipseWtpComponent", "eclipseWtpFacet")
         runEclipseTask """
-import org.gradle.plugins.ide.eclipse.model.Facet
+            import org.gradle.plugins.ide.eclipse.model.Facet
 
-apply plugin: 'java'
-apply plugin: 'war'
-apply plugin: 'eclipse-wtp'
+            apply plugin: 'java'
+            apply plugin: 'war'
+            apply plugin: 'eclipse-wtp'
 
-eclipse {
-  wtp {
-    facet {
-      file {
-        beforeMerged {
-          assert it.facets.contains(new Facet('facet.one', '1.0'))
-          it.facets.add(new Facet('facet.two', '2.0'))
-        }
-        whenMerged {
-          assert it.facets.contains(new Facet('facet.one', '1.0'))
-          assert it.facets.contains(new Facet('facet.two', '2.0'))
-          it.facets.add(new Facet('facet.three', '3.0'))
-        }
-        withXml { it.asNode().appendNode('be', 'cool') }
-      }
-    }
-  }
-}
+            eclipse {
+              wtp {
+                facet {
+                  file {
+                    beforeMerged {
+                      assert it.facets.contains(new Facet('facet.one', '1.0'))
+                      it.facets.add(new Facet('facet.two', '2.0'))
+                    }
+                    whenMerged {
+                      assert it.facets.contains(new Facet('facet.one', '1.0'))
+                      assert it.facets.contains(new Facet('facet.two', '2.0'))
+                      it.facets.add(new Facet('facet.three', '3.0'))
+                    }
+                    withXml { it.asNode().appendNode('be', 'cool') }
+                  }
+                }
+              }
+            }
         """
 
         def facet = getFile([:], '.settings/org.eclipse.wst.common.project.facet.core.xml').text
@@ -244,29 +248,30 @@ eclipse {
     @Test
     void "file dependencies respect plus minus configurations"() {
         //when
+        expectTaskDeprecations("eclipse", "eclipseClasspath", "eclipseJdt", "eclipseProject", "eclipseWtp", "eclipseWtpComponent", "eclipseWtpFacet")
         runEclipseTask """
-apply plugin: 'java'
-apply plugin: 'war'
-apply plugin: 'eclipse-wtp'
+            apply plugin: 'java'
+            apply plugin: 'war'
+            apply plugin: 'eclipse-wtp'
 
-configurations {
-  configOne
-  configTwo
-}
+            configurations {
+              configOne
+              configTwo
+            }
 
-dependencies {
-  configOne files('foo.txt', 'bar.txt', 'baz.txt')
-  configTwo files('baz.txt')
-}
+            dependencies {
+              configOne files('foo.txt', 'bar.txt', 'baz.txt')
+              configTwo files('baz.txt')
+            }
 
-eclipse {
-  wtp {
-    component {
-        plusConfigurations << configurations.configOne
-        minusConfigurations << configurations.configTwo
-    }
-  }
-}
+            eclipse {
+              wtp {
+                component {
+                    plusConfigurations << configurations.configOne
+                    minusConfigurations << configurations.configTwo
+                }
+              }
+            }
         """
 
         def classpath = getClasspath()
@@ -286,25 +291,26 @@ eclipse {
 
         def build = file('build.gradle')
         build << """
-project(':impl') {
-  apply plugin: 'java'
-  apply plugin: 'war'
-  apply plugin: 'eclipse-wtp'
+            project(':impl') {
+              apply plugin: 'java'
+              apply plugin: 'war'
+              apply plugin: 'eclipse-wtp'
 
-  dependencies { implementation project(':contrib') }
+              dependencies { implementation project(':contrib') }
 
-  eclipse.project.name = 'cool-impl'
-}
+              eclipse.project.name = 'cool-impl'
+            }
 
-project(':contrib') {
-  apply plugin: 'java'
-  apply plugin: 'eclipse-wtp'
-  //should not have war nor ear applied
+            project(':contrib') {
+              apply plugin: 'java'
+              apply plugin: 'eclipse-wtp'
+              //should not have war nor ear applied
 
-  eclipse.project.name = 'cool-contrib'
-}
-"""
+              eclipse.project.name = 'cool-contrib'
+            }
+        """
         //when
+        expectTaskDeprecations("eclipse", "eclipseClasspath", "eclipseJdt", "eclipseProject", "eclipseWtp", "eclipseWtpComponent", "eclipseWtpFacet")
         executer.withTasks('eclipse').run()
 
         //then
@@ -326,21 +332,22 @@ project(':contrib') {
 
         def build = file('build.gradle')
         build << """
-project(':impl') {
-  apply plugin: 'java'
-  apply plugin: 'war'
-  apply plugin: 'eclipse-wtp'
+            project(':impl') {
+              apply plugin: 'java'
+              apply plugin: 'war'
+              apply plugin: 'eclipse-wtp'
 
-  dependencies { implementation project(':contrib') }
+              dependencies { implementation project(':contrib') }
 
-  eclipse.project.name = 'cool-impl'
-}
+              eclipse.project.name = 'cool-impl'
+            }
 
-project(':contrib') {
-  apply plugin: 'java'
-}
-"""
+            project(':contrib') {
+              apply plugin: 'java'
+            }
+        """
         //when
+        expectTaskDeprecations("eclipse", "eclipseClasspath", "eclipseJdt", "eclipseProject", "eclipseWtp", "eclipseWtpComponent", "eclipseWtpFacet")
         executer.withTasks('eclipse').run()
 
         //then no exception thrown
@@ -354,18 +361,19 @@ project(':contrib') {
         file('xxxResource').createDir()
 
         //when
+        expectTaskDeprecations("eclipse", "eclipseClasspath", "eclipseJdt", "eclipseProject", "eclipseWtp", "eclipseWtpComponent", "eclipseWtpFacet")
         runEclipseTask """
-          apply plugin: 'java'
-          apply plugin: 'war'
-          apply plugin: 'eclipse-wtp'
+            apply plugin: 'java'
+            apply plugin: 'war'
+            apply plugin: 'eclipse-wtp'
 
-          sourceSets.main.java.srcDirs 'yyySource', 'xxxSource'
+            sourceSets.main.java.srcDirs 'yyySource', 'xxxSource'
 
-          eclipse.wtp.component {
-            resource sourcePath: 'xxxResource', deployPath: 'deploy-xxx'
-            resource sourcePath: 'yyyResource', deployPath: 'deploy-yyy'
-          }
-"""
+            eclipse.wtp.component {
+              resource sourcePath: 'xxxResource', deployPath: 'deploy-xxx'
+              resource sourcePath: 'yyyResource', deployPath: 'deploy-yyy'
+            }
+        """
         //then
         def component = getComponentFile().text
 
@@ -384,20 +392,21 @@ project(':contrib') {
         file('xxxResource').createDir()
 
         //when
+        expectTaskDeprecations("eclipse", "eclipseClasspath", "eclipseJdt", "eclipseProject", "eclipseWtp", "eclipseWtpComponent", "eclipseWtpFacet")
         runEclipseTask """
-          apply plugin: 'java'
-          apply plugin: 'ear'
-          apply plugin: 'eclipse-wtp'
+            apply plugin: 'java'
+            apply plugin: 'ear'
+            apply plugin: 'eclipse-wtp'
 
-          sourceSets.main.java.srcDirs 'yyySource', 'xxxSource'
+            sourceSets.main.java.srcDirs 'yyySource', 'xxxSource'
 
-          ear.appDirectory = file 'nonexistentAppDir'
+            ear.appDirectory = file 'nonexistentAppDir'
 
-          eclipse.wtp.component {
-            resource sourcePath: 'xxxResource', deployPath: 'deploy-xxx'
-            resource sourcePath: 'yyyResource', deployPath: 'deploy-yyy'
-          }
-"""
+            eclipse.wtp.component {
+              resource sourcePath: 'xxxResource', deployPath: 'deploy-xxx'
+              resource sourcePath: 'yyyResource', deployPath: 'deploy-yyy'
+            }
+        """
         //then
         def component = getComponentFile().text
 
@@ -416,13 +425,14 @@ project(':contrib') {
         file('coolAppDir').createDir()
 
         //when
+        expectTaskDeprecations("eclipse", "eclipseClasspath", "eclipseJdt", "eclipseProject", "eclipseWtp", "eclipseWtpComponent", "eclipseWtpFacet")
         runEclipseTask """
-          apply plugin: 'java'
-          apply plugin: 'ear'
-          apply plugin: 'eclipse-wtp'
+            apply plugin: 'java'
+            apply plugin: 'ear'
+            apply plugin: 'eclipse-wtp'
 
-          ear.appDirectory = file 'coolAppDir'
-"""
+            ear.appDirectory = file 'coolAppDir'
+        """
         //then
         def component = getComponentFile().text
 
@@ -456,6 +466,7 @@ project(':contrib') {
         """
 
         //when
+        expectTaskDeprecations("eclipse", "eclipseClasspath", "eclipseJdt", "eclipseProject", "eclipseWtp", "eclipseWtpComponent", "eclipseWtpFacet")
         executer.withTasks("eclipse").run()
 
         //then the container is configured
@@ -472,6 +483,7 @@ project(':contrib') {
         """
 
         //when
+        expectTaskDeprecations("eclipse", "eclipseClasspath", "eclipseJdt", "eclipseProject", "eclipseWtp", "eclipseWtpComponent", "eclipseWtpFacet")
         executer.withTasks("eclipse").run()
 
         //then container is added only once:
@@ -506,6 +518,7 @@ project(':contrib') {
         """
 
         //when
+        expectTaskDeprecations("eclipse", "eclipseClasspath", "eclipseJdt", "eclipseProject", "eclipseWtp", "eclipseWtpComponent", "eclipseWtpFacet")
         executer.withTasks("eclipse").run()
 
         //then
@@ -536,6 +549,7 @@ project(':contrib') {
         """
 
         //when
+        expectTaskDeprecations("eclipse", "eclipseClasspath", "eclipseJdt", "eclipseProject", "eclipseWtp", "eclipseWtpComponent", "eclipseWtpFacet")
         executer.withTasks("eclipse").run()
 
         //then
@@ -568,6 +582,7 @@ project(':contrib') {
         """
 
         //when
+        expectTaskDeprecations("eclipse", "eclipseClasspath", "eclipseJdt", "eclipseProject", "eclipseWtp", "eclipseWtpComponent", "eclipseWtpFacet")
         executer.withTasks("eclipse").run()
 
         //then

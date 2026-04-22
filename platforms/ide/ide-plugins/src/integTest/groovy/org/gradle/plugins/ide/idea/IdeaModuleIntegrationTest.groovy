@@ -43,49 +43,50 @@ class IdeaModuleIntegrationTest extends AbstractIdeIntegrationTest {
         }
 
         //when
+        expectTaskDeprecations("idea", "ideaModule", "ideaProject", "ideaWorkspace")
         runTask 'idea', '''
-apply plugin: "java"
-apply plugin: "idea"
+            apply plugin: "java"
+            apply plugin: "idea"
 
-configurations {
-  provided
-  compileClasspath.extendsFrom(provided)
-}
-
-idea {
-    pathVariables CUSTOM_VARIABLE: file('customModuleContentRoot').parentFile
-
-    module {
-        name = 'foo'
-        contentRoot = file('customModuleContentRoot')
-
-        sourceDirs += file('additionalCustomSources')
-        resourceDirs += file('additionalCustomResources')
-        resourceDirs += file('additionalCustomGeneratedResources')
-        generatedSourceDirs += file('additionalCustomGeneratedResources')
-        excludeDirs += file('excludeMePlease')
-
-        scopes.PROVIDED.plus += [ configurations.compileClasspath ]
-        downloadJavadoc = true
-        downloadSources = false
-
-        inheritOutputDirs = false
-        outputDir = file('muchBetterOutputDir')
-        testOutputDir = file('muchBetterTestOutputDir')
-
-        jdkName = '1.6'
-
-        iml {
-            generateTo = file('customImlFolder')
-
-            withXml {
-                def node = it.asNode()
-                node.appendNode('someInterestingConfiguration', 'hey!')
+            configurations {
+              provided
+              compileClasspath.extendsFrom(provided)
             }
-        }
-    }
-}
-'''
+
+            idea {
+                pathVariables CUSTOM_VARIABLE: file('customModuleContentRoot').parentFile
+
+                module {
+                    name = 'foo'
+                    contentRoot = file('customModuleContentRoot')
+
+                    sourceDirs += file('additionalCustomSources')
+                    resourceDirs += file('additionalCustomResources')
+                    resourceDirs += file('additionalCustomGeneratedResources')
+                    generatedSourceDirs += file('additionalCustomGeneratedResources')
+                    excludeDirs += file('excludeMePlease')
+
+                    scopes.PROVIDED.plus += [ configurations.compileClasspath ]
+                    downloadJavadoc = true
+                    downloadSources = false
+
+                    inheritOutputDirs = false
+                    outputDir = file('muchBetterOutputDir')
+                    testOutputDir = file('muchBetterTestOutputDir')
+
+                    jdkName = '1.6'
+
+                    iml {
+                        generateTo = file('customImlFolder')
+
+                        withXml {
+                            def node = it.asNode()
+                            node.appendNode('someInterestingConfiguration', 'hey!')
+                        }
+                    }
+                }
+            }
+        '''
 
         //then
         def iml = parseImlFile('customImlFolder/foo')
@@ -129,23 +130,24 @@ idea {
         }
 
         //when
+        expectTaskDeprecations("idea", "ideaModule", "ideaProject", "ideaWorkspace")
         runIdeaTask '''
-apply plugin: 'java'
-apply plugin: 'idea'
+            apply plugin: 'java'
+            apply plugin: 'idea'
 
-sourceSets {
-   main {
-      resources {
-         srcDir 'src/main/java'
-      }
-   }
-   test {
-      resources {
-         srcDir 'src/test/java'
-      }
-   }
-}
-'''
+            sourceSets {
+               main {
+                  resources {
+                     srcDir 'src/main/java'
+                  }
+               }
+               test {
+                  resources {
+                     srcDir 'src/test/java'
+                  }
+               }
+            }
+        '''
 
         //then
         def iml = parseImlFile('root')
@@ -161,30 +163,31 @@ sourceSets {
     @Test
     void plusMinusConfigurationsWorkFineForSelfResolvingFileDependencies() {
         //when
+        expectTaskDeprecations("idea", "ideaModule", "ideaProject", "ideaWorkspace")
         runTask 'idea', '''
-apply plugin: "java"
-apply plugin: "idea"
+            apply plugin: "java"
+            apply plugin: "idea"
 
-configurations {
-  bar
-  foo
-  foo.extendsFrom(bar)
-  baz
-}
+            configurations {
+              bar
+              foo
+              foo.extendsFrom(bar)
+              baz
+            }
 
-dependencies {
-  bar files('bar.jar')
-  foo files('foo.jar', 'foo2.jar', 'foo3.jar')
-  baz files('foo3.jar')
-}
+            dependencies {
+              bar files('bar.jar')
+              foo files('foo.jar', 'foo2.jar', 'foo3.jar')
+              baz files('foo3.jar')
+            }
 
-idea {
-    module {
-        scopes.COMPILE.plus << configurations.foo
-        scopes.COMPILE.minus += [configurations.bar, configurations.baz]
-    }
-}
-'''
+            idea {
+                module {
+                    scopes.COMPILE.plus << configurations.foo
+                    scopes.COMPILE.minus += [configurations.bar, configurations.baz]
+                }
+            }
+        '''
         def content = getFile([:], 'root.iml').text
 
         //then
@@ -199,24 +202,25 @@ idea {
     @Test
     void scopesCustomizedUsingPlusEqualOperator() {
         //when
+        expectTaskDeprecations("idea", "ideaModule", "ideaProject", "ideaWorkspace")
         runTask 'idea', '''
-apply plugin: "java"
-apply plugin: "idea"
+            apply plugin: "java"
+            apply plugin: "idea"
 
-configurations {
-  bar
-}
+            configurations {
+              bar
+            }
 
-idea {
-    module {
-        scopes.COMPILE.plus += [ configurations.bar ]
-    }
-}
+            idea {
+                module {
+                    scopes.COMPILE.plus += [ configurations.bar ]
+                }
+            }
 
-dependencies {
-  bar files('bar.jar')
-}
-'''
+            dependencies {
+              bar files('bar.jar')
+            }
+        '''
         def content = getFile([:], 'root.iml').text
 
         //then
@@ -228,33 +232,34 @@ dependencies {
         //given
         def existingIml = file('root.iml')
         existingIml << '''<?xml version="1.0" encoding="UTF-8"?>
-<module relativePaths="true" type="JAVA_MODULE" version="4">
-  <component name="NewModuleRootManager" inherit-compiler-output="true">
-    <exclude-output/>
-    <orderEntry type="inheritedJdk"/>
-    <content url="file://$MODULE_DIR$/">
-      <excludeFolder url="file://$MODULE_DIR$/folderThatWasExcludedEarlier"/>
-    </content>
-    <orderEntry type="sourceFolder" forTests="false"/>
-  </component>
-  <component name="ModuleRootManager"/>
-</module>'''
+            <module relativePaths="true" type="JAVA_MODULE" version="4">
+              <component name="NewModuleRootManager" inherit-compiler-output="true">
+                <exclude-output/>
+                <orderEntry type="inheritedJdk"/>
+                <content url="file://$MODULE_DIR$/">
+                  <excludeFolder url="file://$MODULE_DIR$/folderThatWasExcludedEarlier"/>
+                </content>
+                <orderEntry type="sourceFolder" forTests="false"/>
+              </component>
+              <component name="ModuleRootManager"/>
+            </module>'''
 
         //when
+        expectTaskDeprecations("idea", "ideaModule", "ideaProject", "ideaWorkspace")
         runTask(['idea'], '''
-apply plugin: "java"
-apply plugin: "idea"
+            apply plugin: "java"
+            apply plugin: "idea"
 
-idea {
-    module {
-        excludeDirs = [project.file('folderThatIsExcludedNow')] as Set
-        iml {
-            beforeMerged { it.excludeFolders.clear() }
-            whenMerged   { it.jdkName = '1.33'   }
-        }
-    }
-}
-''')
+            idea {
+                module {
+                    excludeDirs = [project.file('folderThatIsExcludedNow')] as Set
+                    iml {
+                        beforeMerged { it.excludeFolders.clear() }
+                        whenMerged   { it.jdkName = '1.33'   }
+                    }
+                }
+            }
+        ''')
         //then
         def iml = getFile([:], 'root.iml').text
         assert iml.contains('folderThatIsExcludedNow')
@@ -266,28 +271,29 @@ idea {
     @Test
     void shouldNotPutSourceSetsOutputDirOnClasspath() {
         //when
+        expectTaskDeprecations("idea", "ideaModule", "ideaProject", "ideaWorkspace")
         runTask 'idea', '''
-apply plugin: "java"
-apply plugin: "idea"
+            apply plugin: "java"
+            apply plugin: "idea"
 
-task generate {
-    doLast {
-        file('build/generated/main/foo.resource').with {
-            parentFile.mkdirs()
-            text = "resource"
-        }
-        file('build/ws/test/service.xml').with {
-            parentFile.mkdirs()
-            text = "<xml/>"
-        }
-    }
-}
+            task generate {
+                doLast {
+                    file('build/generated/main/foo.resource').with {
+                        parentFile.mkdirs()
+                        text = "resource"
+                    }
+                    file('build/ws/test/service.xml').with {
+                        parentFile.mkdirs()
+                        text = "<xml/>"
+                    }
+                }
+            }
 
-tasks.idea.dependsOn generate
+            tasks.idea.dependsOn generate
 
-sourceSets.main.output.dir "$buildDir/generated/main"
-sourceSets.test.output.dir "$buildDir/ws/test"
-'''
+            sourceSets.main.output.dir "$buildDir/generated/main"
+            sourceSets.test.output.dir "$buildDir/ws/test"
+        '''
         //then
         def dependencies = parseIml("root.iml").dependencies
         assert dependencies.libraries.size() == 2
@@ -298,16 +304,17 @@ sourceSets.test.output.dir "$buildDir/ws/test"
     @Test
     void theBuiltByTaskBeExecuted() {
         //when
+        expectTaskDeprecations("idea", "ideaModule", "ideaProject", "ideaWorkspace")
         def result = runIdeaTask('''
-apply plugin: "java"
-apply plugin: "idea"
+            apply plugin: "java"
+            apply plugin: "idea"
 
-sourceSets.main.output.dir "$buildDir/generated/main", builtBy: 'generateForMain'
-sourceSets.test.output.dir "$buildDir/generated/test", builtBy: 'generateForTest'
+            sourceSets.main.output.dir "$buildDir/generated/main", builtBy: 'generateForMain'
+            sourceSets.test.output.dir "$buildDir/generated/test", builtBy: 'generateForTest'
 
-task generateForMain
-task generateForTest
-''')
+            task generateForMain
+            task generateForTest
+        ''')
         //then
         result.assertTasksScheduled(':generateForMain', ':generateForTest', ':ideaModule', ':ideaProject', ':ideaWorkspace', ':idea')
     }
@@ -322,23 +329,24 @@ task generateForTest
         module.publish()
 
         //when
+        expectTaskDeprecations("idea", "ideaModule", "ideaProject", "ideaWorkspace")
         runIdeaTask """
-apply plugin: 'java'
-apply plugin: 'idea'
+            apply plugin: 'java'
+            apply plugin: 'idea'
 
-repositories {
-    maven { url = "${repoDir.toURI()}" }
-}
+            repositories {
+                maven { url = "${repoDir.toURI()}" }
+            }
 
-dependencies {
-    implementation 'coolGroup:niceArtifact:1.0'
-}
+            dependencies {
+                implementation 'coolGroup:niceArtifact:1.0'
+            }
 
-idea.module {
-    downloadSources = false
-    downloadJavadoc = false
-}
-"""
+            idea.module {
+                downloadSources = false
+                downloadJavadoc = false
+            }
+        """
         def content = getFile([:], 'root.iml').text
 
         //then
@@ -354,19 +362,20 @@ idea.module {
         maven(repoDir).module("org.gradle", "artifact2").publish()
 
         //when
+        expectTaskDeprecations("idea", "ideaModule", "ideaProject", "ideaWorkspace")
         runIdeaTask """
-apply plugin: 'java'
-apply plugin: 'idea'
+            apply plugin: 'java'
+            apply plugin: 'idea'
 
-repositories {
-    maven { url = "${repoDir.toURI()}" }
-}
+            repositories {
+                maven { url = "${repoDir.toURI()}" }
+            }
 
-dependencies {
-    implementation 'org.gradle:artifact1:1.0'
-    implementation 'org.gradle:artifact2:1.0'
-}
-"""
+            dependencies {
+                implementation 'org.gradle:artifact1:1.0'
+                implementation 'org.gradle:artifact2:1.0'
+            }
+        """
         def content = getFile([:], 'root.iml').text
 
         //then
@@ -383,15 +392,16 @@ dependencies {
         file('artifact2.jar').createNewFile()
 
         //when
+        expectTaskDeprecations("idea", "ideaModule", "ideaProject", "ideaWorkspace")
         runIdeaTask """
-apply plugin: 'java'
-apply plugin: 'idea'
+            apply plugin: 'java'
+            apply plugin: 'idea'
 
-dependencies {
-    implementation files('artifact1.jar')
-    implementation files('artifact2.jar')
-}
-"""
+            dependencies {
+                implementation files('artifact1.jar')
+                implementation files('artifact2.jar')
+            }
+        """
         def content = getFile([:], 'root.iml').text
 
         //then
@@ -407,18 +417,19 @@ dependencies {
         testFile('repo/hibernate-core.jar').createFile()
 
         //when
+        expectTaskDeprecations("idea", "ideaModule", "ideaProject", "ideaWorkspace")
         runIdeaTask """
-apply plugin: 'java'
-apply plugin: 'idea'
+            apply plugin: 'java'
+            apply plugin: 'idea'
 
-repositories {
-  flatDir { dirs 'repo' }
-}
+            repositories {
+              flatDir { dirs 'repo' }
+            }
 
-dependencies {
-    implementation ':hibernate-core:'
-}
-"""
+            dependencies {
+                implementation ':hibernate-core:'
+            }
+        """
         def content = getFile([:], 'root.iml').text
 
         //then
@@ -436,25 +447,26 @@ dependencies {
         file('someDependency.jar').createFile()
 
         //when
+        expectTaskDeprecations("idea", "ideaModule")
         runIdeaTask """
-subprojects {
-    apply plugin: 'java'
-    apply plugin: 'idea'
-}
+            subprojects {
+                apply plugin: 'java'
+                apply plugin: 'idea'
+            }
 
-project(':impl') {
-    repositories {
-        maven { url = "${repoDir.toURI()}" }
-    }
+            project(':impl') {
+                repositories {
+                    maven { url = "${repoDir.toURI()}" }
+                }
 
-    dependencies {
-        implementation 'groupOne:artifactTwo:1.0'
-        implementation project(':someApiProject')
-        implementation 'i.dont:Exist:1.0'
-        implementation files('someDependency.jar')
-    }
-}
-"""
+                dependencies {
+                    implementation 'groupOne:artifactTwo:1.0'
+                    implementation project(':someApiProject')
+                    implementation 'i.dont:Exist:1.0'
+                    implementation files('someDependency.jar')
+                }
+            }
+        """
         def content = getFile([print : true], 'impl/impl.iml').text
 
         //then
@@ -473,20 +485,21 @@ project(':impl') {
         maven(repoDir).module("org.gradle", "impl-artifact").publish()
 
         //when
+        expectTaskDeprecations("idea", "ideaModule", "ideaProject", "ideaWorkspace")
         runIdeaTask """
-apply plugin: 'java'
-apply plugin: 'idea'
+            apply plugin: 'java'
+            apply plugin: 'idea'
 
-repositories {
-    maven { url = "${repoDir.toURI()}" }
-}
+            repositories {
+                maven { url = "${repoDir.toURI()}" }
+            }
 
-dependencies {
-    implementation 'org.gradle:api-artifact:1.0'
-    testImplementation 'org.gradle:impl-artifact:1.0'
-    runtimeOnly 'org.gradle:impl-artifact:1.0'
-}
-"""
+            dependencies {
+                implementation 'org.gradle:api-artifact:1.0'
+                testImplementation 'org.gradle:impl-artifact:1.0'
+                runtimeOnly 'org.gradle:impl-artifact:1.0'
+            }
+        """
         //then
         def dependencies = parseIml("root.iml").dependencies
         assert dependencies.libraries.size() == 3
@@ -503,29 +516,30 @@ dependencies {
         maven(repoDir).module("foo", "bar").publish()
 
         //when
+        expectTaskDeprecations("idea", "ideaModule", "ideaProject", "ideaWorkspace")
         runIdeaTask """
-apply plugin: 'java'
-apply plugin: 'idea'
+            apply plugin: 'java'
+            apply plugin: 'idea'
 
-repositories {
-    maven { url = "${repoDir.toURI()}" }
-}
+            repositories {
+                maven { url = "${repoDir.toURI()}" }
+            }
 
-configurations {
-  myCustom
-}
+            configurations {
+              myCustom
+            }
 
-dependencies {
-    myCustom 'foo:bar:1.0'
-}
+            dependencies {
+                myCustom 'foo:bar:1.0'
+            }
 
-idea {
-  module {
-    scopes.PROVIDED.plus << configurations.myCustom
-    scopes.COMPILE.plus << configurations.myCustom
-  }
-}
-"""
+            idea {
+              module {
+                scopes.PROVIDED.plus << configurations.myCustom
+                scopes.COMPILE.plus << configurations.myCustom
+              }
+            }
+        """
         //then
         def dependencies = parseIml("root.iml").dependencies
         assert dependencies.libraries.size() == 1
@@ -540,30 +554,31 @@ idea {
         maven(repoDir).module("foo", "bar").publish()
 
         //when
+        expectTaskDeprecations("idea", "ideaModule", "ideaProject", "ideaWorkspace")
         runIdeaTask """
-apply plugin: 'java'
-apply plugin: 'idea'
+            apply plugin: 'java'
+            apply plugin: 'idea'
 
-repositories {
-    maven { url = "${repoDir.toURI()}" }
-}
+            repositories {
+                maven { url = "${repoDir.toURI()}" }
+            }
 
-configurations {
-  myCustom
-}
+            configurations {
+              myCustom
+            }
 
-dependencies {
-    myCustom 'foo:bar:1.0'
-    implementation 'org.gradle:api-artifact:1.0'
-}
+            dependencies {
+                myCustom 'foo:bar:1.0'
+                implementation 'org.gradle:api-artifact:1.0'
+            }
 
-idea {
-  module {
-    scopes.TEST.plus += [configurations.myCustom]
-    scopes.RUNTIME.plus += [configurations.myCustom]
-  }
-}
-"""
+            idea {
+              module {
+                scopes.TEST.plus += [configurations.myCustom]
+                scopes.RUNTIME.plus += [configurations.myCustom]
+              }
+            }
+        """
         //then
         def dependencies = parseIml("root.iml").dependencies
         assert dependencies.libraries.size() == 3
@@ -579,21 +594,22 @@ idea {
         maven(repoDir).module("foo", "bar").publish()
 
         //when
+        expectTaskDeprecations("idea", "ideaModule", "ideaProject", "ideaWorkspace")
         runIdeaTask """
-apply plugin: 'idea'
+            apply plugin: 'idea'
 
-repositories {
-    maven { url = "${repoDir.toURI()}" }
-}
+            repositories {
+                maven { url = "${repoDir.toURI()}" }
+            }
 
-configurations {
-  compile
-}
+            configurations {
+              compile
+            }
 
-dependencies {
-    compile 'org.gradle:api-artifact:1.0'
-}
-"""
+            dependencies {
+                compile 'org.gradle:api-artifact:1.0'
+            }
+        """
         //then
         def dependencies = parseIml("root.iml").dependencies
         assert dependencies.libraries.isEmpty()
@@ -607,33 +623,34 @@ dependencies {
         module.publish()
 
         //when
+        expectTaskDeprecations("idea", "ideaModule", "ideaProject", "ideaWorkspace")
         ExecutionResult result = runIdeaTask """
-apply plugin: 'java'
-apply plugin: 'idea'
+            apply plugin: 'java'
+            apply plugin: 'idea'
 
-repositories {
-    maven { url = "${mavenRepo.uri}" }
-}
+            repositories {
+                maven { url = "${mavenRepo.uri}" }
+            }
 
-configurations {
-    myPlusConfig
-    myMinusConfig
-}
+            configurations {
+                myPlusConfig
+                myMinusConfig
+            }
 
-dependencies {
-    myPlusConfig("myGroup:missing-extra-artifact:1.0")
-    myPlusConfig("myGroup:filtered-artifact:1.0")
-    myMinusConfig("myGroup:filtered-artifact:1.0")
-    runtimeOnly("myGroup:missing-artifact:1.0")
-    implementation("myGroup:existing-artifact:1.0")
-    idea {
-        module {
-            scopes.COMPILE.plus += [ configurations.myPlusConfig ]
-            scopes.COMPILE.minus += [ configurations.myMinusConfig ]
-        }
-    }
-}
-"""
+            dependencies {
+                myPlusConfig("myGroup:missing-extra-artifact:1.0")
+                myPlusConfig("myGroup:filtered-artifact:1.0")
+                myMinusConfig("myGroup:filtered-artifact:1.0")
+                runtimeOnly("myGroup:missing-artifact:1.0")
+                implementation("myGroup:existing-artifact:1.0")
+                idea {
+                    module {
+                        scopes.COMPILE.plus += [ configurations.myPlusConfig ]
+                        scopes.COMPILE.minus += [ configurations.myMinusConfig ]
+                    }
+                }
+            }
+        """
         String expected = """Could not resolve: myGroup:missing-extra-artifact:1.0
 Could not resolve: myGroup:missing-artifact:1.0
 """
@@ -649,20 +666,21 @@ Could not resolve: myGroup:missing-artifact:1.0
         mavenRepo.module('org.gradle.test', 'testCompileOnly', '1.0').dependsOn(shared).publish()
 
         // when
+        expectTaskDeprecations("idea", "ideaModule", "ideaProject", "ideaWorkspace")
         runIdeaTask """
-apply plugin: 'java'
-apply plugin: 'idea'
+            apply plugin: 'java'
+            apply plugin: 'idea'
 
-repositories {
-    maven { url = "${mavenRepo.uri}" }
-}
+            repositories {
+                maven { url = "${mavenRepo.uri}" }
+            }
 
-dependencies {
-    implementation 'org.gradle.test:compile:1.0'
-    compileOnly 'org.gradle.test:compileOnly:1.0'
-    testCompileOnly 'org.gradle.test:testCompileOnly:1.0'
-}
-"""
+            dependencies {
+                implementation 'org.gradle.test:compile:1.0'
+                compileOnly 'org.gradle.test:compileOnly:1.0'
+                testCompileOnly 'org.gradle.test:testCompileOnly:1.0'
+            }
+        """
 
         // then
         def dependencies = parseIml("root.iml").dependencies
@@ -681,6 +699,7 @@ dependencies {
         mavenRepo.module('org.gradle.test', 'compileOnly', '1.0').dependsOn(shared).publish()
 
         // when
+        expectTaskDeprecations("idea", "ideaModule", "ideaProject", "ideaWorkspace")
         runIdeaTask """
             apply plugin: 'java'
             apply plugin: 'idea'
@@ -710,6 +729,7 @@ dependencies {
         mavenRepo.module('org.gradle.test', 'bothCompileAndCompileOnly', '2.0').publish()
 
         // when
+        expectTaskDeprecations("idea", "ideaModule", "ideaProject", "ideaWorkspace")
         runIdeaTask """
             apply plugin: 'java'
             apply plugin: 'idea'
@@ -739,6 +759,7 @@ dependencies {
         mavenRepo.module('org.gradle.test', 'bothCompileAndCompileOnly', '2.0').publish()
 
         // when
+        expectTaskDeprecations("idea", "ideaModule", "ideaProject", "ideaWorkspace")
         runIdeaTask """
             apply plugin: 'java'
             apply plugin: 'idea'
@@ -768,6 +789,7 @@ dependencies {
         mavenRepo.module('org.gradle.test', 'bothCompileAndCompileOnly', '2.0').publish()
 
         // when
+        expectTaskDeprecations("idea", "ideaModule", "ideaProject", "ideaWorkspace")
         runIdeaTask """
             apply plugin: 'java'
             apply plugin: 'idea'
@@ -795,6 +817,7 @@ dependencies {
         mavenRepo.module('org.gradle.test', 'foo', '1.0').publish()
 
         // when
+        expectTaskDeprecations("idea", "ideaModule", "ideaProject", "ideaWorkspace")
         runIdeaTask """
             apply plugin: 'war'
             apply plugin: 'idea'
@@ -820,6 +843,7 @@ dependencies {
         mavenRepo.module('org.gradle.test', 'foo', '1.0').publish()
 
         // when
+        expectTaskDeprecations("idea", "ideaModule", "ideaProject", "ideaWorkspace")
         runIdeaTask """
             apply plugin: 'war'
             apply plugin: 'idea'

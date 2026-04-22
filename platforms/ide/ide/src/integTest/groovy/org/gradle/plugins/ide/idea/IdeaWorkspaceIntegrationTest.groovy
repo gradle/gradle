@@ -24,22 +24,23 @@ class IdeaWorkspaceIntegrationTest extends AbstractIdeIntegrationTest {
     @Test
     void enablesCustomizationOfIws() {
         //when
+        expectTaskDeprecations("ideaModule", "ideaProject", "ideaWorkspace", "idea")
         runIdeaTask '''
-apply plugin: "java"
-apply plugin: "idea"
+            apply plugin: "java"
+            apply plugin: "idea"
 
-idea.workspace.iws.withXml { it.asNode().appendNode('foo', 'bar') }
+            idea.workspace.iws.withXml { it.asNode().appendNode('foo', 'bar') }
 
-idea {
-    workspace {
-        iws {
-            withXml {
-                it.asNode().appendNode('stay', 'happy')
+            idea {
+                workspace {
+                    iws {
+                        withXml {
+                            it.asNode().appendNode('stay', 'happy')
+                        }
+                    }
+                }
             }
-        }
-    }
-}
-'''
+        '''
 
         //then
         String content = getFile([:], "root.iws").text

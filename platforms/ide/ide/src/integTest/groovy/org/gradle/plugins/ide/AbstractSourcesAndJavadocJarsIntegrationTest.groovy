@@ -67,13 +67,14 @@ abstract class AbstractSourcesAndJavadocJarsIntegrationTest extends AbstractIdeI
         module.allowAll()
 
         buildFile << """
-dependencies {
-    implementation 'some:module:1.0:api'
-}
-"""
+            dependencies {
+                implementation 'some:module:1.0:api'
+            }
+        """
 
         when:
         useMavenRepo(repo)
+        expectTaskDeprecations(getIdeTask())
         succeeds ideTask
 
         then:
@@ -82,6 +83,7 @@ dependencies {
 
         when:
         server.resetExpectations()
+        expectTaskDeprecations(getIdeTask())
         succeeds ideTask
 
         then:
@@ -95,6 +97,7 @@ dependencies {
 
         when:
         useMavenRepo(repo)
+        expectTaskDeprecations(getIdeTask())
         succeeds ideTask
 
         then:
@@ -123,6 +126,7 @@ dependencies {
 
 
         then:
+        expectTaskDeprecations(getIdeTask())
         succeeds ideTask
         ideFileContainsNoSourcesAndJavadocEntry()
     }
@@ -153,6 +157,7 @@ dependencies {
 
         when:
         useIvyRepo(repo)
+        expectTaskDeprecations(getIdeTask())
         succeeds ideTask
 
         then:
@@ -160,6 +165,7 @@ dependencies {
 
         when:
         server.resetExpectations()
+        expectTaskDeprecations(getIdeTask())
         succeeds ideTask
 
         then:
@@ -184,11 +190,12 @@ dependencies {
         when:
         useIvyRepo(repo)
         buildFile << """
-dependencies {
-    implementation 'some:module:1.0:api'
-    testImplementation 'some:module:1.0:tests'
-}"""
-
+            dependencies {
+                    implementation 'some:module:1.0:api'
+                    testImplementation 'some:module:1.0:tests'
+                }
+        """
+        expectTaskDeprecations(getIdeTask())
         succeeds ideTask
 
         then:
@@ -219,6 +226,7 @@ dependencies {
 
         when:
         useIvyRepo(repo)
+        expectTaskDeprecations(getIdeTask())
         succeeds ideTask
 
         then:
@@ -239,6 +247,7 @@ dependencies {
         module.allowAll()
 
         then:
+        expectTaskDeprecations(getIdeTask())
         succeeds ideTask
         ideFileContainsNoSourcesAndJavadocEntry()
     }
@@ -261,6 +270,7 @@ dependencies {
         javadocArtifact.expectGetBroken()
 
         then:
+        expectTaskDeprecations(getIdeTask())
         succeeds ideTask
         ideFileContainsNoSourcesAndJavadocEntry()
     }
@@ -277,6 +287,7 @@ dependencies {
 
         when:
         useIvyRepo(repo)
+        expectTaskDeprecations(getIdeTask())
         succeeds ideTask
 
         then:
@@ -290,6 +301,7 @@ dependencies {
 
         when:
         buildFile << """repositories { flatDir { dir "repo" } }"""
+        expectTaskDeprecations(getIdeTask())
         succeeds ideTask
 
         then:
@@ -312,8 +324,9 @@ dependencies {
 
             idea.module.downloadSources = false
             eclipse.classpath.downloadSources = false
-            """
+        """
         when:
+        expectTaskDeprecations(getIdeTask())
         succeeds ideTask
 
         then:
@@ -334,9 +347,10 @@ dependencies {
             dependencies {
                 implementation gradleApi()
             }
-            """
+        """
         when:
         args("--offline")
+        expectTaskDeprecations(getIdeTask())
         succeeds ideTask
 
         then:
@@ -358,9 +372,10 @@ dependencies {
             dependencies {
                 implementation localGroovy()
             }
-            """
+        """
 
         when:
+        expectTaskDeprecations(getIdeTask())
         succeeds ideTask
 
         then:
@@ -390,9 +405,10 @@ dependencies {
             dependencies {
                 implementation gradleApi()
             }
-            """
+        """
 
         when:
+        expectTaskDeprecations(getIdeTask())
         succeeds ideTask
 
         then:
@@ -416,9 +432,10 @@ dependencies {
             dependencies {
                 implementation gradleTestKit()
             }
-            """
+        """
 
         when:
+        expectTaskDeprecations(getIdeTask())
         succeeds ideTask
 
         then:
@@ -440,9 +457,10 @@ dependencies {
 
             idea.module.downloadSources = false
             eclipse.classpath.downloadSources = false
-            """
+        """
 
         when:
+        expectTaskDeprecations(getIdeTask())
         succeeds ideTask
 
         then:
@@ -461,10 +479,11 @@ dependencies {
             dependencies {
                 implementation localGroovy()
             }
-            """
+        """
 
         when:
         args("--offline")
+        expectTaskDeprecations(getIdeTask())
         succeeds ideTask
 
         then:
@@ -491,6 +510,7 @@ dependencies {
         """
 
         when:
+        expectTaskDeprecations(getIdeTask())
         succeeds ideTask
 
         then:
@@ -559,33 +579,33 @@ dependencies {
 
     String getBaseBuildScript() {
         """
-apply plugin: "java"
-apply plugin: "idea"
-apply plugin: "eclipse"
-
-dependencies {
-    implementation("some:module:1.0")
-}
-
-idea {
-    module {
-        downloadJavadoc = true
-    }
-}
-
-eclipse {
-    classpath {
-        downloadJavadoc = true
-    }
-}
-
-task resolve {
-    def runtimeClasspath = configurations.runtimeClasspath
-    doLast {
-        runtimeClasspath.each { println it }
-    }
-}
-"""
+            apply plugin: "java"
+            apply plugin: "idea"
+            apply plugin: "eclipse"
+            
+            dependencies {
+                implementation("some:module:1.0")
+            }
+            
+            idea {
+                module {
+                    downloadJavadoc = true
+                }
+            }
+            
+            eclipse {
+                classpath {
+                    downloadJavadoc = true
+                }
+            }
+            
+            task resolve {
+                def runtimeClasspath = configurations.runtimeClasspath
+                doLast {
+                    runtimeClasspath.each { println it }
+                }
+            }
+        """
     }
 
     abstract String getIdeTask()

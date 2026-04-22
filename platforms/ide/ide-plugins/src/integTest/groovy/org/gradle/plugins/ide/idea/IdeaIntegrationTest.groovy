@@ -51,10 +51,12 @@ class IdeaIntegrationTest extends AbstractIdeIntegrationTest implements StableCo
         """
 
         //given
+        expectTaskDeprecations("idea", "ideaModule", "ideaProject", "ideaWorkspace")
         executer.withTasks('idea').run()
         def projectContent = getFile([:], 'master.ipr').text
         def moduleContent = getFile([:], 'master.iml').text
 
+        expectTaskDeprecations("idea", "ideaModule", "ideaProject", "ideaWorkspace")
         executer.withTasks('idea').run()
         def projectContentAfterMerge = getFile([:], 'master.ipr').text
         def moduleContentAfterMerge = getFile([:], 'master.iml').text
@@ -66,6 +68,7 @@ class IdeaIntegrationTest extends AbstractIdeIntegrationTest implements StableCo
 
     @Test
     void canCreateAndDeleteMetaData() {
+        expectTaskDeprecations("idea", "ideaModule", "ideaProject", "ideaWorkspace")
         executer.withTasks('idea').run()
 
         assertHasExpectedContents('root.ipr')
@@ -76,11 +79,13 @@ class IdeaIntegrationTest extends AbstractIdeIntegrationTest implements StableCo
         if (!GradleContextualExecuter.isConfigCache()) {
             expectTaskGetProjectDeprecations(3)
         }
+        expectTaskDeprecations("cleanIdea", "cleanIdeaModule", "cleanIdeaProject")
         executer.withTasks('cleanIdea').run()
     }
 
     @Test
     void worksWithAnEmptyProject() {
+        expectTaskDeprecations("idea", "ideaModule", "ideaProject", "ideaWorkspace")
         executer.withTasks('idea').run()
 
         assertHasExpectedContents('root.ipr')
@@ -90,6 +95,7 @@ class IdeaIntegrationTest extends AbstractIdeIntegrationTest implements StableCo
     @Test
     void worksWithASubProjectThatDoesNotHaveTheIdeaPluginApplied() {
         createDirs("a", "b")
+        expectTaskDeprecations("idea", "ideaModule", "ideaProject", "ideaWorkspace")
         executer.withTasks('idea').run()
 
         assertHasExpectedContents('root.ipr')
@@ -98,6 +104,7 @@ class IdeaIntegrationTest extends AbstractIdeIntegrationTest implements StableCo
     @Test
     void worksWithNonStandardLayout() {
         createDirs("a child project")
+        expectTaskDeprecations("idea", "ideaModule", "ideaProject", "ideaWorkspace")
         executer.inDirectory(testDirectory.file('root')).withTasks('idea').run()
 
         assertHasExpectedContents('root/root.ipr')
@@ -107,6 +114,7 @@ class IdeaIntegrationTest extends AbstractIdeIntegrationTest implements StableCo
 
     @Test
     void overwritesExistingDependencies() {
+        expectTaskDeprecations("idea", "ideaModule", "ideaProject", "ideaWorkspace")
         executer.withTasks('idea').run()
 
         assertHasExpectedContents('root.iml')
@@ -114,6 +122,7 @@ class IdeaIntegrationTest extends AbstractIdeIntegrationTest implements StableCo
 
     @Test
     void addsScalaSdkAndCompilerLibraries() {
+        expectTaskDeprecations("idea", "ideaModule", "ideaProject", "ideaWorkspace")
         executer.withTasks('idea').run()
 
         hasProjectLibrary('root.ipr', 'scala-sdk-2.10.0', [], [], [], ['compiler-bridge_2.10', 'scala-library-2.10.0', 'scala-compiler-2.10.0', 'scala-reflect-2.10.0', 'compiler-interface', 'util-interface'])
@@ -139,6 +148,7 @@ class IdeaIntegrationTest extends AbstractIdeIntegrationTest implements StableCo
 
     @Test
     void addsScalaFacetAndCompilerLibraries() {
+        expectTaskDeprecations("idea", "ideaModule", "ideaProject", "ideaWorkspace")
         executer.withTasks('idea').run()
 
         hasProjectLibrary('root.ipr', 'scala-compiler-2.10.0', ['compiler-bridge_2.10', 'scala-compiler-2.10.0', 'scala-library-2.10.0', 'scala-reflect-2.10.0', 'compiler-interface', 'util-interface'], [], [], [])
@@ -164,6 +174,7 @@ class IdeaIntegrationTest extends AbstractIdeIntegrationTest implements StableCo
 
     @Test
     void outputDirsDefaultToToIdeaDefaults() {
+        expectTaskDeprecations("idea", "ideaModule", "ideaProject", "ideaWorkspace")
         runIdeaTask("apply plugin: 'java'; apply plugin: 'idea'")
 
         def module = parseImlFile("root")
@@ -176,17 +187,18 @@ class IdeaIntegrationTest extends AbstractIdeIntegrationTest implements StableCo
         def artifact1 = maven(repoDir).module("myGroup", "myArtifact1").dependsOnModules("myArtifact2").publish().artifactFile
         def artifact2 = maven(repoDir).module("myGroup", "myArtifact2").dependsOnModules("myArtifact1").publish().artifactFile
 
+        expectTaskDeprecations("idea", "ideaModule", "ideaProject", "ideaWorkspace")
         runIdeaTask """
-apply plugin: "java"
-apply plugin: "idea"
+            apply plugin: "java"
+            apply plugin: "idea"
 
-repositories {
-    maven { url = "${repoDir.toURI()}" }
-}
+            repositories {
+                maven { url = "${repoDir.toURI()}" }
+            }
 
-dependencies {
-    implementation "myGroup:myArtifact1:1.0"
-}
+            dependencies {
+                implementation "myGroup:myArtifact1:1.0"
+            }
         """
 
         def module = parseImlFile("root")
@@ -200,22 +212,23 @@ dependencies {
         def repoDir = file("repo")
         def artifact1 = maven(repoDir).module("myGroup", "myArtifact1").publish().artifactFile
 
+        expectTaskDeprecations("idea", "ideaModule", "ideaProject", "ideaWorkspace")
         runIdeaTask """
-    apply plugin: "java"
-    apply plugin: "idea"
+            apply plugin: "java"
+            apply plugin: "idea"
 
-    repositories {
-        maven { url = "${repoDir.toURI()}" }
-    }
+            repositories {
+                maven { url = "${repoDir.toURI()}" }
+            }
 
-    idea {
-       pathVariables("GRADLE_REPO": file("repo"))
-    }
+            idea {
+               pathVariables("GRADLE_REPO": file("repo"))
+            }
 
-    dependencies {
-        implementation "myGroup:myArtifact1:1.0"
-    }
-            """
+            dependencies {
+                implementation "myGroup:myArtifact1:1.0"
+            }
+        """
 
         def module = parseImlFile("root")
         def libs = module.component.orderEntry.library
@@ -227,14 +240,15 @@ dependencies {
 
     @Test
     void onlyAddsSourceDirsThatExistOnFileSystem() {
+        expectTaskDeprecations("idea", "ideaModule", "ideaProject", "ideaWorkspace")
         runIdeaTask """
-apply plugin: "java"
-apply plugin: "groovy"
-apply plugin: "idea"
+            apply plugin: "java"
+            apply plugin: "groovy"
+            apply plugin: "idea"
 
-sourceSets.main.java.srcDirs.each { it.mkdirs() }
-sourceSets.main.resources.srcDirs.each { it.mkdirs() }
-sourceSets.test.groovy.srcDirs.each { it.mkdirs() }
+            sourceSets.main.java.srcDirs.each { it.mkdirs() }
+            sourceSets.main.resources.srcDirs.each { it.mkdirs() }
+            sourceSets.test.groovy.srcDirs.each { it.mkdirs() }
         """
 
         def module = parseImlFile("root")
@@ -252,22 +266,23 @@ sourceSets.test.groovy.srcDirs.each { it.mkdirs() }
 
     @Test
     void triggersWithXmlConfigurationHooks() {
+        expectTaskDeprecations("idea", "ideaModule", "ideaProject", "ideaWorkspace")
         runIdeaTask '''
-apply plugin: 'java'
-apply plugin: 'idea'
+            apply plugin: 'java'
+            apply plugin: 'idea'
 
-def hookActivated = 0
+            def hookActivated = 0
 
-idea.module.iml {
-    withXml { hookActivated++ }
-}
+            idea.module.iml {
+                withXml { hookActivated++ }
+            }
 
-tasks.idea {
-    doLast {
-        assert hookActivated == 1 : "withXml() hook should be fired"
-    }
-}
-'''
+            tasks.idea {
+                doLast {
+                    assert hookActivated == 1 : "withXml() hook should be fired"
+                }
+            }
+        '''
     }
 
     @Test
@@ -276,21 +291,22 @@ tasks.idea {
         maven(repoDir).module("myGroup", "myArtifact1").dependsOnModules("myArtifact2").publish()
         maven(repoDir).module("myGroup", "myArtifact2").publish()
 
+        expectTaskDeprecations("idea", "ideaModule", "ideaProject", "ideaWorkspace")
         runIdeaTask """
-apply plugin: 'java'
-apply plugin: 'idea'
+            apply plugin: 'java'
+            apply plugin: 'idea'
 
-repositories {
-    maven { url = "${repoDir.toURI()}" }
-}
+            repositories {
+                maven { url = "${repoDir.toURI()}" }
+            }
 
-configurations {
-    implementation.exclude module: 'myArtifact2'
-}
+            configurations {
+                implementation.exclude module: 'myArtifact2'
+            }
 
-dependencies {
-    implementation "myGroup:myArtifact1:1.0"
-}
+            dependencies {
+                implementation "myGroup:myArtifact1:1.0"
+            }
         """
 
         def module = parseImlFile("root")
@@ -304,19 +320,20 @@ dependencies {
         maven(repoDir).module("myGroup", "myArtifact1").dependsOnModules("myArtifact2").publish()
         maven(repoDir).module("myGroup", "myArtifact2").publish()
 
+        expectTaskDeprecations("idea", "ideaModule", "ideaProject", "ideaWorkspace")
         runIdeaTask """
-apply plugin: 'java'
-apply plugin: 'idea'
+            apply plugin: 'java'
+            apply plugin: 'idea'
 
-repositories {
-    maven { url = "${repoDir.toURI()}" }
-}
+            repositories {
+                maven { url = "${repoDir.toURI()}" }
+            }
 
-dependencies {
-    implementation("myGroup:myArtifact1:1.0") {
-        exclude module: "myArtifact2"
-    }
-}
+            dependencies {
+                implementation("myGroup:myArtifact1:1.0") {
+                    exclude module: "myArtifact2"
+                }
+            }
         """
 
         def module = parseImlFile("root")
@@ -326,16 +343,17 @@ dependencies {
 
     @Test
     void allowsCustomOutputFolders() {
+        expectTaskDeprecations("idea", "ideaModule", "ideaProject", "ideaWorkspace")
         runIdeaTask """
-apply plugin: 'java'
-apply plugin: 'idea'
+            apply plugin: 'java'
+            apply plugin: 'idea'
 
-idea.module {
-    inheritOutputDirs = false
-    outputDir = file('foo-out')
-    testOutputDir = file('foo-out-test')
-}
-"""
+            idea.module {
+                inheritOutputDirs = false
+                outputDir = file('foo-out')
+                testOutputDir = file('foo-out-test')
+            }
+        """
 
         //then
         def iml = getFile([:], 'root.iml').text
@@ -346,44 +364,46 @@ idea.module {
 
     @Test
     void dslSupportsShortFormsForModule() {
+        expectTaskDeprecations("idea", "ideaModule", "ideaProject", "ideaWorkspace")
         runTask('idea', """
-apply plugin: 'idea'
+            apply plugin: 'idea'
 
-idea.module.name = 'X'
-assert idea.module.name == 'X'
+            idea.module.name = 'X'
+            assert idea.module.name == 'X'
 
-idea {
-    module.name += 'X'
-    assert module.name == 'XX'
-}
+            idea {
+                module.name += 'X'
+                assert module.name == 'XX'
+            }
 
-idea.module {
-    name += 'X'
-    assert name == 'XXX'
-}
+            idea.module {
+                name += 'X'
+                assert name == 'XXX'
+            }
 
-""")
+        """)
     }
 
     @Test
     void dslSupportsShortFormsForProject() {
+        expectTaskDeprecations("idea", "ideaModule", "ideaProject", "ideaWorkspace")
         runTask('idea', """
-apply plugin: 'idea'
+            apply plugin: 'idea'
 
-idea.project.wildcards = ['1'] as Set
-assert idea.project.wildcards == ['1'] as Set
+            idea.project.wildcards = ['1'] as Set
+            assert idea.project.wildcards == ['1'] as Set
 
-idea {
-    project.wildcards += '2'
-    assert project.wildcards == ['1', '2'] as Set
-}
+            idea {
+                project.wildcards += '2'
+                assert project.wildcards == ['1', '2'] as Set
+            }
 
-idea.project {
-    wildcards += '3'
-    assert wildcards == ['1', '2', '3'] as Set
-}
+            idea.project {
+                wildcards += '3'
+                assert wildcards == ['1', '2', '3'] as Set
+            }
 
-""")
+        """)
     }
 
     @Test
@@ -392,12 +412,13 @@ idea.project {
         file('root.iml') << 'messed up iml file'
 
         file('build.gradle') << '''
-apply plugin: "java"
-apply plugin: "idea"
-'''
+            apply plugin: "java"
+            apply plugin: "idea"
+        '''
         file('settings.gradle') << 'rootProject.name = "root"'
 
         //when
+        expectTaskDeprecations("ideaModule")
         def failure = executer.withTasks('idea').runWithFailure()
 
         //then
@@ -408,11 +429,12 @@ apply plugin: "idea"
     void hasDefaultProjectLanguageLevelIfNoJavaPluginApplied() {
         //given
         file('build.gradle') << '''
-apply plugin: "idea"
-'''
+            apply plugin: "idea"
+        '''
         file('settings.gradle') << 'rootProject.name = "root"'
 
         //when
+        expectTaskDeprecations("idea", "ideaModule", "ideaProject", "ideaWorkspace")
         executer.withTasks('idea').run()
 
         //then
@@ -428,18 +450,19 @@ apply plugin: "idea"
 
     @Test
     void canAddProjectLibraries() {
+        expectTaskDeprecations("idea", "ideaModule", "ideaProject", "ideaWorkspace")
         runTask("idea", """
-apply plugin: 'idea'
+            apply plugin: 'idea'
 
-idea.project {
-    def lib = new org.gradle.plugins.ide.idea.model.ProjectLibrary()
-    lib.name = "someLib"
-    lib.classes << file("someClasses.jar")
-    lib.javadoc << file("someJavadoc.jar")
-    lib.sources << file("someSources.jar")
-    projectLibraries << lib
-}
-""")
+            idea.project {
+                def lib = new org.gradle.plugins.ide.idea.model.ProjectLibrary()
+                lib.name = "someLib"
+                lib.classes << file("someClasses.jar")
+                lib.javadoc << file("someJavadoc.jar")
+                lib.sources << file("someSources.jar")
+                projectLibraries << lib
+            }
+        """)
 
         hasProjectLibrary("root.ipr", "someLib", ["someClasses.jar"], ["someJavadoc.jar"], ["someSources.jar"], [])
     }
