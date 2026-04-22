@@ -119,9 +119,14 @@ class FilePropertyLifecycleIntegrationTest extends AbstractIntegrationSpec imple
         file("in.dir").createDir()
 
         expect:
-        executer.expectDocumentedDeprecationWarning("Changing property value of task ':show' property 'prop' at execution time. This behavior has been deprecated. Starting with Gradle 11, changing property value of task ':show' property 'prop' at execution time will become an error.")
-        succeeds("show")
-        outputContains("value: " + file("other." + fileMethod))
+        if (GradleContextualExecuter.configCache) {
+            fails("show")
+            failure.assertHasCause("The value for task ':show' property 'prop' cannot be changed any further.")
+        } else {
+            executer.expectDocumentedDeprecationWarning("Changing property value of task ':show' property 'prop' at execution time. This behavior has been deprecated. Starting with Gradle 11, changing property value of task ':show' property 'prop' at execution time will become an error.")
+            succeeds("show")
+            outputContains("value: " + file("other." + fileMethod))
+        }
 
         where:
         annotation         | propertyType          | fileMethod
