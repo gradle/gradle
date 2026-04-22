@@ -17,6 +17,7 @@ package org.gradle.plugins.ide.eclipse;
 
 import org.gradle.api.internal.PropertiesTransformer;
 import org.gradle.api.tasks.Internal;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.plugins.ide.api.PropertiesFileContentMerger;
 import org.gradle.plugins.ide.api.PropertiesGeneratorTask;
 import org.gradle.plugins.ide.eclipse.model.EclipseJdt;
@@ -42,6 +43,15 @@ public abstract class GenerateEclipseJdt extends PropertiesGeneratorTask<Jdt> {
     @Inject
     public GenerateEclipseJdt(EclipseJdt jdt) {
         this.jdt = jdt;
+    }
+
+    @Override
+    protected void generate() {
+        DeprecationLogger.deprecateTask(getName())
+            .willBeRemovedInGradle10()
+            .withUpgradeGuideSection(9, "ide_task_deprecation")
+            .nagUser();
+        super.generate();
     }
 
     @Override
