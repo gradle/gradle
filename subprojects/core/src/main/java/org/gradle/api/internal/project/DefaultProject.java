@@ -1178,19 +1178,6 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
         }
     }
 
-    @SuppressWarnings("deprecation")
-    @Override
-    public Map<String, ? extends @Nullable Object> getProperties() {
-        DeprecationLogger.deprecateMethod(Project.class, "getProperties")
-            .willBecomeAnErrorInGradle10()
-            .withUpgradeGuideSection(9, "deprecated_get_properties")
-            .nagUser();
-
-        IsolatedProjectsProblemsReporter reporter = getIsolatedProjectsProblemsReporter();
-        reportGetPropertiesProblem(reporter, "Project.getProperties()");
-        return reporter.runIgnoringProblemsOnCurrentThread(extensibleDynamicObject::getProperties);
-    }
-
     public static void reportGetPropertiesProblem(IsolatedProjectsProblemsReporter reporter, String method) {
         reporter.report(factory ->
             factory.problem("Unsupported API usage", message -> message

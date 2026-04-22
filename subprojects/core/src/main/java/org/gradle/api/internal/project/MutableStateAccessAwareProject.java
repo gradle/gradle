@@ -463,13 +463,6 @@ public abstract class MutableStateAccessAwareProject implements ProjectInternal,
         return delegate.hasProperty(propertyName);
     }
 
-    @SuppressWarnings("deprecation")
-    @Override
-    public Map<String, ? extends @Nullable Object> getProperties() {
-        onMutableStateAccess("properties");
-        return delegate.getProperties();
-    }
-
     @Override
     public Map<String, ? extends @Nullable Object> collectPropertiesInternal() {
         return delegate.collectPropertiesInternal();

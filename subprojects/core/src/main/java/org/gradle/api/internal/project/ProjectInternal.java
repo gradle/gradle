@@ -230,8 +230,7 @@ public interface ProjectInternal extends Project, ProjectIdentifier, HasScriptSe
     Object getLifecycleActionsState();
 
     /**
-     * Returns the project's properties without firing the deprecation of {@link Project#getProperties()}
-     * or the Isolated Projects violation it triggers.
+     * Returns the project's properties.
      *
      * <p>Intended for internal callers (e.g., diagnostic tasks) that have a legitimate need to enumerate
      * the project's properties and accept responsibility for the call.
