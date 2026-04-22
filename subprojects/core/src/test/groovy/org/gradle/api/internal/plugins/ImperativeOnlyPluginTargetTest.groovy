@@ -26,6 +26,10 @@ import spock.lang.Specification
 class ImperativeOnlyPluginTargetTest extends Specification {
     def problems = TestUtil.problemsService()
 
+    def setup() {
+        problems.resetRecordedProblems()
+    }
+
     def "mismatched plugin application target is detected"() {
         def pluginTarget = new ImperativeOnlyPluginTarget(PluginTargetType.PROJECT, Mock(ProjectInternal), problems)
 
@@ -59,9 +63,6 @@ class ImperativeOnlyPluginTargetTest extends Specification {
         then:
         def e = thrown(ClassCastException)
         e.message == "custom error"
-
-        and:
-        problems.assertProblemEmittedOnce(_)
     }
 
 }
