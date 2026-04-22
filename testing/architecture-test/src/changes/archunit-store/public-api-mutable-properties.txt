@@ -39,7 +39,6 @@ Method <org.gradle.api.Project.getParent()> does not have raw return type (org.g
 Method <org.gradle.api.Project.getPath()> does not have raw return type (java.lang.String) assignable to any of [Provider] in (Project.java:0)
 Method <org.gradle.api.Project.getProject()> does not have raw return type (org.gradle.api.Project) assignable to any of [Provider] in (Project.java:0)
 Method <org.gradle.api.Project.getProjectDir()> does not have raw return type (java.io.File) assignable to any of [Provider] in (Project.java:0)
-Method <org.gradle.api.Project.getProperties()> does not have raw return type (java.util.Map) assignable to any of [Provider] in (Project.java:0)
 Method <org.gradle.api.Project.getProviders()> does not have raw return type (org.gradle.api.provider.ProviderFactory) assignable to any of [Provider] in (Project.java:0)
 Method <org.gradle.api.Project.getRepositories()> does not have raw return type (org.gradle.api.artifacts.dsl.RepositoryHandler) assignable to any of [Provider] in (Project.java:0)
 Method <org.gradle.api.Project.getResources()> does not have raw return type (org.gradle.api.resources.ResourceHandler) assignable to any of [Provider] in (Project.java:0)

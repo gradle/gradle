@@ -1473,19 +1473,6 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
     boolean hasProperty(String propertyName);
 
     /**
-     * <p>Returns the properties of this project. See <a href="#properties">here</a> for details of the properties which
-     * are available for a project.</p>
-     *
-     * @return A map from property name to value.
-     * @deprecated This method will be removed in Gradle 10.0.0. Use {@link #findProperty(String)} or
-     * {@link org.gradle.api.provider.ProviderFactory#gradleProperty(String)} instead.
-     * See the <a href="https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_get_properties">upgrade guide</a> for more details.
-     */
-    @Deprecated
-    @HiddenInDefinition
-    Map<String, ? extends @Nullable Object> getProperties();
-
-    /**
      * <p>Returns the value of the given property.  This method locates a property as follows:</p>
      *
      * <ol>

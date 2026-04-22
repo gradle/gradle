@@ -1177,16 +1177,6 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
         return dynamicLookupRoutine.hasProperty(extensibleDynamicObject, propertyName);
     }
 
-    @SuppressWarnings("deprecation")
-    @Override
-    public Map<String, ? extends @Nullable Object> getProperties() {
-        DeprecationLogger.deprecateMethod(Project.class, "getProperties")
-            .willBecomeAnErrorInGradle10()
-            .withUpgradeGuideSection(9, "deprecated_get_properties")
-            .nagUser();
-        return dynamicLookupRoutine.getProperties(extensibleDynamicObject);
-    }
-
     @Override
     public WorkResult copy(Closure closure) {
         return copy(configureUsing(closure));
