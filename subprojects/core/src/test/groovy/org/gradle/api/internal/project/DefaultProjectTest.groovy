@@ -768,7 +768,7 @@ def scriptMethod(Closure closure) {
         !child1.hasProperty(propertyName)
     }
 
-    def properties() {
+    def "collects the properties of the project"() {
         given:
         serviceRegistryMock.get(ServiceRegistryFactory) >> Stub(ServiceRegistryFactory)
 
@@ -776,7 +776,7 @@ def scriptMethod(Closure closure) {
         project.ext.additional = 'additional'
 
         then:
-        def properties = project.properties
+        def properties = project.collectPropertiesInternal()
         properties.name == 'root'
         properties.additional == 'additional'
         properties['someTask'] == testTask
