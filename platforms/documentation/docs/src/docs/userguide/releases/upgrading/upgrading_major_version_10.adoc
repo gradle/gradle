@@ -1,0 +1,180 @@
+// Copyright (C) 2026 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[upgrading_major_version_10]]
+
+= Upgrading to Gradle 10.0.0
+
+This chapter provides the information you need to migrate your Gradle 9.x builds to Gradle 10.0.0.
+For migrating within Gradle 9.x, see the <<upgrading_version_9.adoc#upgrading_version_9, older migration guide>> first.
+
+We recommend the following steps for all users:
+
+. Try running `gradle help --scan` and view the https://docs.gradle.com/develocity/get-started/#identifying_deprecated_gradle_functionality[deprecations view] of the generated Build Scan.
++
+image::deprecations.png[Deprecations View in a Build Scan]
++
+This lets you see any deprecation warnings that apply to your build.
++
+Alternatively, you can run `gradle help --warning-mode=all` to see the deprecations in the console, though it may not report as much detailed information.
+. Update your plugins.
++
+Some plugins may break with a new major version of Gradle, as these releases can remove public APIs.
+Using the latest version of a plugin increases the likelihood that it is already compatible with the new major Gradle version.
++
+. Run `gradle wrapper --gradle-version 10.0.0` to update the project to 10.0.0.
+. Try to run the project and debug any errors using the <<troubleshooting.adoc#troubleshooting, Troubleshooting Guide>>.
+
+[[changes_major_10]]
+== API removals and breaking changes
+
+[[removed_get_properties]]
+=== Removal of `getProperties()`
+
+The following usages of `getProperties()`, <<upgrading_version_9.adoc#deprecated_get_properties,deprecated in Gradle 9.6.0>>, have been removed:
+
+- link:{javadocPath}/org/gradle/api/Project.html[`Project.getProperties()`] — calling `getProperties()` or accessing the `properties` property on a `Project` instance.
+- Calling `getProperties()` (or accessing the `properties` property) on a build script, settings script, or init script.
+
+This method, which historically existed for convenience, made build logic harder to understand and navigate due to the untyped nature of the properties and the fact that they were sourced from many different locations and containers.
+It also hurt performance by eagerly resolving properties from the environment, reducing the potential for Configuration Cache hits.
+The hierarchical look-up of properties through the parent projects chain created implicit coupling of the mutable state between projects, making it incompatible with the vision of <<sharing_build_logic_between_subprojects.adoc#sec:convention_plugins_vs_cross_configuration,isolated projects>>.
+
+==== What happens now when this API is used
+
+- Kotlin DSL scripts (`build.gradle.kts`) referencing `properties` or `project.properties` fail at script compilation with an unresolved reference.
+- Groovy DSL scripts referencing `properties` or `project.properties` at runtime fail with an `InvalidUserCodeException` naming the replacement APIs.
+- Java, Kotlin, or Groovy plugin code that calls `project.getProperties()` fails to compile against Gradle 10.
+
+The `./gradlew properties` diagnostic task continues to work: it is a command-line introspection tool, not part of production build logic, and is not subject to the isolation concerns above.
+
+==== Note for plugin authors
+
+If your plugin calls `project.getProperties()` (or `project.properties` from Groovy), it will no longer build or run against Gradle 10.
+Replace those usages with one of the APIs in the migration table below before releasing your next compatible version.
+
+==== Migration guide
+
+To access <<build_environment.adoc#sec:project_properties,project properties>>, prefer `providers.gradleProperty("name")` which returns a type-safe `Provider` and is compatible with lazy configuration.
+Note that `providers.gradleProperty()` resolves properties at the build level — it does not include properties from `gradle.properties` files in subproject directories, nor extra properties or other properties set dynamically on individual projects.
+If you need to access <<writing_build_scripts_intermediate.adoc#sec:extra_properties,extra properties>>, use `ext` properties directly.
+
+The following table shows common migration scenarios for project properties:
+
+[cols="1a,1a", options="header"]
+|===
+| Before (removed) | After (recommended)
+
+| Accessing a single project property:
+[source,kotlin]
+----
+val value = project.properties["myProp"]
+----
+[source,groovy]
+----
+def value = project.properties.myProp
+----
+| Wire the provider as a task property for better Configuration Cache support:
+[source,kotlin]
+----
+val myProp: Provider<String> =
+    providers.gradleProperty("myProp")
+----
+If you need the value immediately:
+[source,groovy]
+----
+def value = providers.gradleProperty("myProp")
+    .orNull
+----
+
+| Accessing a property with a default value (Kotlin, Java, or Groovy):
+[source,kotlin]
+----
+val value = project.properties
+    .getOrDefault("myProp", "default")
+----
+Accessing a property with a default value (Groovy, idiomatic):
+[source,groovy]
+----
+def value = project.properties["myProp"] ?: "default"
+----
+| Use `providers.gradleProperty()` with `getOrElse()`:
+[source,kotlin]
+----
+val value = providers
+    .gradleProperty("myProp")
+    .getOrElse("default")
+----
+[source,groovy]
+----
+def value = providers.gradleProperty("myProp")
+    .getOrElse("default")
+----
+
+| Kotlin property delegation:
+[source,kotlin]
+----
+val myProp: String by project.properties
+----
+| Get the project property directly:
+[source,kotlin]
+----
+val myProp = project.property("myProp") as String
+----
+
+| Forwarding properties as system properties:
+[source,kotlin]
+----
+test {
+    systemProperties(
+        project.properties.filter {
+            it.key.startsWith("test.")
+        }
+    )
+}
+----
+| Use `providers.gradlePropertiesPrefixedBy()`:
+[source,kotlin]
+----
+test {
+    systemProperties(
+        providers
+            .gradlePropertiesPrefixedBy("test.")
+            .get()
+    )
+}
+----
+
+| Token replacement in resource files (common in Minecraft mods, Spring Boot, etc.):
+[source,groovy]
+----
+processResources {
+    filesMatching("plugin.yml") {
+        expand project.properties
+    }
+}
+----
+| Build an explicit map of only the properties you need:
+[source,groovy]
+----
+processResources {
+    filesMatching("plugin.yml") {
+        expand(
+            "version": project.version,
+            "name": project.name
+        )
+    }
+}
+----
+|===
