@@ -47,6 +47,7 @@ import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.internal.component.external.model.TestFixturesSupport;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.xml.XmlTransformer;
 import org.gradle.plugins.ear.EarPlugin;
 import org.gradle.plugins.ide.api.PropertiesFileContentMerger;
@@ -165,6 +166,10 @@ public abstract class EclipsePlugin extends IdePlugin {
                 task.setDescription("Generates the Eclipse project file.");
                 task.setInputFile(project.file(".project"));
                 task.setOutputFile(project.file(".project"));
+                DeprecationLogger.deprecateTask(task.getName())
+                    .willBeRemovedInGradle10()
+                    .withUpgradeGuideSection(9, "ide_task_deprecation")
+                    .nagUser();
             }
         });
         addWorker(task, ECLIPSE_PROJECT_TASK_NAME);
@@ -240,6 +245,10 @@ public abstract class EclipsePlugin extends IdePlugin {
                         task.setDescription("Generates the Eclipse classpath file.");
                         task.setInputFile(project.file(".classpath"));
                         task.setOutputFile(project.file(".classpath"));
+                        DeprecationLogger.deprecateTask(task.getName())
+                            .willBeRemovedInGradle10()
+                            .withUpgradeGuideSection(9, "ide_task_deprecation")
+                            .nagUser();
                     }
                 });
                 task.configure(IdePluginHelper.withGracefulDegradation());
@@ -408,6 +417,10 @@ public abstract class EclipsePlugin extends IdePlugin {
                         task.setDescription("Generates the Eclipse JDT settings file.");
                         task.setOutputFile(project.file(".settings/org.eclipse.jdt.core.prefs"));
                         task.setInputFile(project.file(".settings/org.eclipse.jdt.core.prefs"));
+                        DeprecationLogger.deprecateTask(task.getName())
+                            .willBeRemovedInGradle10()
+                            .withUpgradeGuideSection(9, "ide_task_deprecation")
+                            .nagUser();
                     }
                 });
                 addWorker(task, ECLIPSE_JDT_TASK_NAME);
