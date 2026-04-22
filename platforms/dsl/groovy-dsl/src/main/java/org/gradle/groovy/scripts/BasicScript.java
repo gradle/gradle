@@ -20,6 +20,7 @@ import groovy.lang.Binding;
 import groovy.lang.MissingMethodException;
 import groovy.lang.MissingPropertyException;
 import org.gradle.api.internal.DynamicObjectAware;
+import org.gradle.api.internal.project.RemovedGetPropertiesAccess;
 import org.gradle.internal.logging.StandardOutputCapture;
 import org.gradle.internal.metaobject.AbstractDynamicObject;
 import org.gradle.internal.metaobject.BeanDynamicObject;
@@ -33,6 +34,7 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.jspecify.annotations.Nullable;
 
 import java.io.PrintStream;
+import java.util.Map;
 import java.util.function.Supplier;
 
 @SuppressWarnings("this-escape")
@@ -74,6 +76,13 @@ public abstract class BasicScript extends org.gradle.groovy.scripts.Script imple
     @Override
     public void setProperty(String property, Object newValue) {
         dynamicObject.setProperty(property, newValue);
+    }
+
+    /**
+     * Fails scripts that read {@code properties} or call {@code getProperties()}.
+     */
+    public Map<String, ? extends @Nullable Object> getProperties() {
+        throw RemovedGetPropertiesAccess.failure();
     }
 
     public boolean hasProperty(String property) {

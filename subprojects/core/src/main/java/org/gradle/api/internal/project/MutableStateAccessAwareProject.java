@@ -463,6 +463,13 @@ public abstract class MutableStateAccessAwareProject implements ProjectInternal,
         return delegate.hasProperty(propertyName);
     }
 
+    /**
+     * Fails Groovy code that reads {@code properties} or calls {@code getProperties()} on a project.
+     */
+    public Map<String, ? extends @Nullable Object> getProperties() {
+        throw RemovedGetPropertiesAccess.failure();
+    }
+
     @Override
     public Map<String, ? extends @Nullable Object> collectPropertiesInternal() {
         return delegate.collectPropertiesInternal();

@@ -1174,6 +1174,13 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
         }
     }
 
+    /**
+     * Fails Groovy code that reads {@code properties} or calls {@code getProperties()} on a project.
+     */
+    public Map<String, ? extends @Nullable Object> getProperties() {
+        throw RemovedGetPropertiesAccess.failure();
+    }
+
     @SuppressWarnings("deprecation")
     @Override
     public Map<String, ? extends @Nullable Object> collectPropertiesInternal() {
