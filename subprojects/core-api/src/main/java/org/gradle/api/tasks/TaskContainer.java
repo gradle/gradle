@@ -104,7 +104,7 @@ public interface TaskContainer extends TaskCollection<Task>, PolymorphicDomainOb
      * @return The newly created task object
      * @throws InvalidUserDataException If a task with the given name already exists in this project.
      * @throws NullPointerException If any of the values in <code>{@value Task#TASK_CONSTRUCTOR_ARGS}</code> is null.
-     * @see Project#getProperties()  More information about how tasks are exposed by name in build scripts
+     * @see Project#findProperty(String)  More information about how tasks are exposed by name in build scripts
      *
      * @deprecated Use {@link #register(String, Action)} or {@link #register(String, Class, Action)} instead. See <a href="https://docs.gradle.org/current/userguide/task_configuration_avoidance.html">documentation</a> for more information.
      */
@@ -123,7 +123,7 @@ public interface TaskContainer extends TaskCollection<Task>, PolymorphicDomainOb
      * @param configureClosure The closure to use to configure the task.
      * @return The newly created task object
      * @throws InvalidUserDataException If a task with the given name already exists in this project.
-     * @see Project#getProperties()  More information about how tasks are exposed by name in build scripts
+     * @see Project#findProperty(String)  More information about how tasks are exposed by name in build scripts
      *
      * @deprecated Use {@link #register(String, Action)} instead. See <a href="https://docs.gradle.org/current/userguide/task_configuration_avoidance.html">documentation</a> for more information.
      */
@@ -141,7 +141,7 @@ public interface TaskContainer extends TaskCollection<Task>, PolymorphicDomainOb
      * @param configureClosure The closure to use to configure the task.
      * @return The newly created task object
      * @throws InvalidUserDataException If a task with the given name already exists in this project.
-     * @see Project#getProperties()  More information about how tasks are exposed by name in build scripts
+     * @see Project#findProperty(String)  More information about how tasks are exposed by name in build scripts
      *
      * @deprecated Use {@link #register(String, Action)} instead. See <a href="https://docs.gradle.org/current/userguide/task_configuration_avoidance.html">documentation</a> for more information.
      */
@@ -158,7 +158,7 @@ public interface TaskContainer extends TaskCollection<Task>, PolymorphicDomainOb
      * @param name The name of the task to be created
      * @return The newly created task object
      * @throws InvalidUserDataException If a task with the given name already exists in this project.
-     * @see Project#getProperties()  More information about how tasks are exposed by name in build scripts
+     * @see Project#findProperty(String)  More information about how tasks are exposed by name in build scripts
      *
      * @deprecated Use {@link #register(String)} instead. See <a href="https://docs.gradle.org/current/userguide/task_configuration_avoidance.html">documentation</a> for more information.
      */
@@ -176,7 +176,7 @@ public interface TaskContainer extends TaskCollection<Task>, PolymorphicDomainOb
      * @param type The type of task to create.
      * @return The newly created task object
      * @throws InvalidUserDataException If a task with the given name already exists in this project.
-     * @see Project#getProperties()  More information about how tasks are exposed by name in build scripts
+     * @see Project#findProperty(String)  More information about how tasks are exposed by name in build scripts
      *
      * @deprecated Use {@link #register(String, Class)} instead. See <a href="https://docs.gradle.org/current/userguide/task_configuration_avoidance.html">documentation</a> for more information.
      */
@@ -198,7 +198,7 @@ public interface TaskContainer extends TaskCollection<Task>, PolymorphicDomainOb
      * @return The newly created task object
      * @throws InvalidUserDataException If a task with the given name already exists in this project.
      * @throws NullPointerException If any of the values in {@code constructorArgs} is null.
-     * @see Project#getProperties()  More information about how tasks are exposed by name in build scripts
+     * @see Project#findProperty(String)  More information about how tasks are exposed by name in build scripts
      * @since 4.7
      *
      * @deprecated Use {@link #register(String, Class, Object...)} instead. See <a href="https://docs.gradle.org/current/userguide/task_configuration_avoidance.html">documentation</a> for more information.
@@ -217,7 +217,7 @@ public interface TaskContainer extends TaskCollection<Task>, PolymorphicDomainOb
      * @param configuration The action to configure the task with.
      * @return The newly created task object.
      * @throws InvalidUserDataException If a task with the given name already exists in this project.
-     * @see Project#getProperties()  More information about how tasks are exposed by name in build scripts
+     * @see Project#findProperty(String)  More information about how tasks are exposed by name in build scripts
      *
      * @deprecated Use {@link #register(String, Class, Action)} instead. See <a href="https://docs.gradle.org/current/userguide/task_configuration_avoidance.html">documentation</a> for more information.
      */
@@ -235,7 +235,7 @@ public interface TaskContainer extends TaskCollection<Task>, PolymorphicDomainOb
      * @param configuration The action to configure the task with.
      * @return The newly created task object.
      * @throws InvalidUserDataException If a task with the given name already exists in this project.
-     * @see Project#getProperties()  More information about how tasks are exposed by name in build scripts
+     * @see Project#findProperty(String)  More information about how tasks are exposed by name in build scripts
      *
      * @deprecated Use {@link #register(String, Action)} instead. See <a href="https://docs.gradle.org/current/userguide/task_configuration_avoidance.html">documentation</a> for more information.
      */
@@ -325,7 +325,7 @@ public interface TaskContainer extends TaskCollection<Task>, PolymorphicDomainOb
      *
      * @param name The name of the task to be created
      * @return The newly created task object
-     * @see Project#getProperties()  More information about how tasks are exposed by name in build scripts
+     * @see Project#findProperty(String)  More information about how tasks are exposed by name in build scripts
      */
     Task replace(String name);
 
@@ -339,7 +339,7 @@ public interface TaskContainer extends TaskCollection<Task>, PolymorphicDomainOb
      * @param name The name of the task to be created.
      * @param type The type of task to create.
      * @return The newly created task object
-     * @see Project#getProperties()  More information about how tasks are exposed by name in build scripts
+     * @see Project#findProperty(String)  More information about how tasks are exposed by name in build scripts
      */
     <T extends Task> T replace(String name, Class<T> type);
 }
