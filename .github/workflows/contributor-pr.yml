@@ -7,6 +7,8 @@ on:
   pull_request:
     branches:
       - master
+    # Include ready_for_review so CI runs when a draft PR is marked ready (not in GitHub’s default set).
+    types: [opened, synchronize, reopened, ready_for_review]
 
 concurrency:
   # On master/release, we don't want any jobs cancelled so the sha is used to name the group
@@ -24,6 +26,7 @@ permissions: {}
 jobs:
   build:
     name: "Compile All"
+    if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
     permissions:
       contents: read
     runs-on: ubuntu-latest
