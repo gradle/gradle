@@ -19,8 +19,8 @@ import org.gradle.BuildListener;
 import org.gradle.api.ProjectEvaluationListener;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.plugins.PluginAwareInternal;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectRegistry;
+import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
 import org.gradle.initialization.SettingsState;
@@ -46,10 +46,11 @@ import java.util.function.Supplier;
 @ServiceScope(Scope.Build.class)
 public interface GradleInternal extends Gradle, PluginAwareInternal {
     /**
-     * {@inheritDoc}
+     * Returns the state of the root project.
+     *
+     * @throws IllegalStateException when the root project is not yet available, see {@link #setRootProjectState(ProjectState)}
      */
-    @Override
-    ProjectInternal getRootProject() throws IllegalStateException;
+    ProjectState getRootProjectState() throws IllegalStateException;
 
     @Override
     @Nullable
@@ -71,9 +72,9 @@ public interface GradleInternal extends Gradle, PluginAwareInternal {
     TaskExecutionGraphInternal getTaskGraph();
 
     /**
-     * Returns the default project. This is used to resolve relative names and paths provided on the UI.
+     * Returns the state of the default project. This is used to resolve relative names and paths provided on the UI.
      */
-    ProjectInternal getDefaultProject();
+    ProjectState getDefaultProjectState();
 
     /**
      * Returns the broadcaster for {@link ProjectEvaluationListener} events for this build
@@ -97,20 +98,20 @@ public interface GradleInternal extends Gradle, PluginAwareInternal {
     void attachSettings(@Nullable SettingsState settings);
 
     /**
-     * Called by the BuildLoader after the default project is determined.  Until the BuildLoader
-     * is executed, {@link #getDefaultProject()} will return null.
+     * Called by the BuildLoader after the default project is determined. Until the BuildLoader
+     * is executed, {@link #getDefaultProjectState()} will throw {@link IllegalStateException}.
      *
-     * @param defaultProject The default project for this build.
+     * @param defaultProject The state of the default project for this build.
      */
-    void setDefaultProject(ProjectInternal defaultProject);
+    void setDefaultProjectState(ProjectState defaultProject);
 
     /**
-     * Called by the BuildLoader after the root project is determined.  Until the BuildLoader
-     * is executed, {@link #getRootProject()} will throw {@link IllegalStateException}.
+     * Called by the BuildLoader after the root project is determined. Until the BuildLoader
+     * is executed, {@link #getRootProjectState()} will throw {@link IllegalStateException}.
      *
-     * @param rootProject The root project for this build.
+     * @param rootProject The state of the root project for this build.
      */
-    void setRootProject(ProjectInternal rootProject);
+    void setRootProjectState(ProjectState rootProject);
 
     /**
      * Returns the broadcaster for {@link BuildListener} events

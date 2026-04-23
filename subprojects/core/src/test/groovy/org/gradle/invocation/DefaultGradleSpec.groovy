@@ -20,6 +20,7 @@ import org.gradle.api.Action
 import org.gradle.api.Project
 import org.gradle.api.ProjectEvaluationListener
 import org.gradle.api.ProjectState
+import org.gradle.api.internal.project.ProjectState as InternalProjectState
 import org.gradle.api.Task
 import org.gradle.api.execution.TaskExecutionListener
 import org.gradle.api.initialization.dsl.ScriptHandler
@@ -382,18 +383,20 @@ class DefaultGradleSpec extends Specification {
         thrown IllegalStateException
 
         when:
-        def rootProject = project('root')
-        gradle.rootProject = rootProject
+        def rootProjectState = projectState('root')
+        gradle.rootProjectState = rootProjectState
 
         then:
-        gradle.rootProject == rootProject
+        gradle.rootProject == rootProjectState.mutableModel
+        gradle.rootProjectState == rootProjectState
     }
 
     def "root project action is executed when projects are loaded"() {
         given:
         def action = Mock(Action)
-        def rootProject = project('root')
-        gradle.rootProject = rootProject
+        def rootProjectState = projectState('root')
+        def rootProject = rootProjectState.mutableModel
+        gradle.rootProjectState = rootProjectState
 
         when:
         gradle.rootProject(action)
@@ -405,7 +408,7 @@ class DefaultGradleSpec extends Specification {
         gradle.buildListenerBroadcaster.projectsLoaded(gradle)
 
         then:
-        1 * crossProjectConfigurator.rootProject(project(), _) >> { p, a ->
+        1 * crossProjectConfigurator.rootProject(rootProject, _) >> { p, a ->
             a.execute(p)
         }
         1 * action.execute(rootProject)
@@ -414,8 +417,9 @@ class DefaultGradleSpec extends Specification {
     def "allprojects action is executed when projects are loaded"() {
         given:
         def action = Mock(Action)
-        def rootProject = project('root')
-        gradle.rootProject = rootProject
+        def rootProjectState = projectState('root')
+        def rootProject = rootProjectState.mutableModel
+        gradle.rootProjectState = rootProjectState
 
         when:
         gradle.allprojects(action)
@@ -427,7 +431,7 @@ class DefaultGradleSpec extends Specification {
         gradle.buildListenerBroadcaster.projectsLoaded(gradle)
 
         then:
-        1 * crossProjectConfigurator.rootProject(project(), _) >> { p, a ->
+        1 * crossProjectConfigurator.rootProject(rootProject, _) >> { p, a ->
             a.execute(p)
         }
         1 * rootProject.allprojects(action)
@@ -438,7 +442,7 @@ class DefaultGradleSpec extends Specification {
         gradle.toString() == 'build'
 
         when:
-        gradle.rootProject = project('rootProject')
+        gradle.rootProjectState = projectState('rootProject')
 
         then:
         gradle.toString() == "build 'rootProject'"
@@ -481,6 +485,16 @@ class DefaultGradleSpec extends Specification {
         def project = Mock(ProjectInternal)
         _ * project.name >> name
         return project
+    }
+
+    private InternalProjectState projectState(String name) {
+        def project = project(name)
+        def state = Mock(InternalProjectState)
+        _ * state.name >> name
+        _ * state.mutableModel >> project
+        _ * state.applyToMutableState(_) >> { java.util.function.Consumer c -> c.accept(project) }
+        _ * state.fromMutableState(_) >> { java.util.function.Function f -> f.apply(project) }
+        return state
     }
 
     static class TestListenerManager extends DefaultListenerManager {

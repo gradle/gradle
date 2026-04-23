@@ -42,6 +42,7 @@ import org.gradle.api.internal.project.CrossBuildModelAccess;
 import org.gradle.api.internal.project.CrossProjectConfigurator;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectRegistry;
+import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.invocation.GradleLifecycle;
 import org.gradle.api.model.ObjectFactory;
@@ -97,8 +98,8 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
     private @Nullable Supplier<? extends ClassLoaderScope> classLoaderScope;
     private @Nullable ClassLoaderScope baseProjectClassLoaderScope;
     private @Nullable SettingsState settings;
-    private @Nullable ProjectInternal rootProject;
-    private @Nullable ProjectInternal defaultProject;
+    private @Nullable ProjectState rootProject;
+    private @Nullable ProjectState defaultProject;
     private boolean projectsLoaded;
 
     public DefaultGradle(BuildState buildState, StartParameter startParameter, ServiceRegistry buildScopeServices) {
@@ -119,8 +120,10 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
                 ProjectEvaluationListener isolatedListener = isolatedProjectEvaluationListenerProvider.isolateFor(DefaultGradle.this);
 
                 if (!rootProjectActions.isEmpty()) {
-                    gradleLifecycleActionExecutor.executeBeforeProjectFor(rootProject);
-                    buildScopeServices.get(CrossProjectConfigurator.class).rootProject(rootProject, rootProjectActions);
+                    getRootProjectState().applyToMutableState(rootProjectModel -> {
+                        gradleLifecycleActionExecutor.executeBeforeProjectFor(rootProjectModel);
+                        buildScopeServices.get(CrossProjectConfigurator.class).rootProject(rootProjectModel, rootProjectActions);
+                    });
                 }
                 if (isolatedListener != null) {
                     projectEvaluationListenerBroadcast.add(isolatedListener);
@@ -280,6 +283,13 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
 
     @Override
     public ProjectInternal getRootProject() {
+        // At the very least, verify we have the lock at the time of access.
+        // In most cases other Gradle implementations will wrap the project in mutable state checks.
+        return getRootProjectState().fromMutableState(m -> m);
+    }
+
+    @Override
+    public ProjectState getRootProjectState() {
         if (rootProject == null) {
             throw new IllegalStateException("The root project is not yet available for " + this + ".");
         }
@@ -287,7 +297,7 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
     }
 
     @Override
-    public void setRootProject(ProjectInternal rootProject) {
+    public void setRootProjectState(ProjectState rootProject) {
         this.rootProject = rootProject;
     }
 
@@ -298,8 +308,7 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
 
     private void rootProject(String registrationPoint, Action<? super Project> action) {
         if (projectsLoaded) {
-            assert rootProject != null;
-            action.execute(rootProject);
+            getRootProjectState().applyToMutableState(action::execute);
         } else {
             // only need to decorate when this callback is delayed
             rootProjectActions.add(decorate(registrationPoint, action));
@@ -312,7 +321,7 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
     }
 
     @Override
-    public ProjectInternal getDefaultProject() {
+    public ProjectState getDefaultProjectState() {
         if (defaultProject == null) {
             throw new IllegalStateException("The default project is not yet available for " + this + ".");
         }
@@ -320,7 +329,7 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
     }
 
     @Override
-    public void setDefaultProject(ProjectInternal defaultProject) {
+    public void setDefaultProjectState(ProjectState defaultProject) {
         this.defaultProject = defaultProject;
     }
 

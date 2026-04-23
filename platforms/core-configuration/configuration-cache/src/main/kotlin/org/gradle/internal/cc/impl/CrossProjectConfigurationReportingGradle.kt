@@ -34,6 +34,7 @@ import org.gradle.api.internal.project.CrossProjectConfigurator
 import org.gradle.api.internal.project.CrossProjectModelAccess
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectRegistry
+import org.gradle.api.internal.project.ProjectState as InternalProjectState
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.invocation.GradleLifecycle
 import org.gradle.api.plugins.ExtensionContainer
@@ -82,7 +83,13 @@ class CrossProjectConfigurationReportingGradle(
         }
 
     override fun getRootProject(): ProjectInternal =
-        crossProjectModelAccess.access(referrerProject, delegate.rootProject)
+        delegate.rootProjectState.fromMutableState {
+            // Intentionally leak mutable state here, as we wrapped it in our mutable violation checks already.
+            crossProjectModelAccess.access(referrerProject, it)
+        }
+
+    override fun getRootProjectState(): InternalProjectState =
+        delegate.rootProjectState
 
     override fun rootProject(action: Action<in Project>) {
         delegate.rootProject(action.withCrossProjectModelAccessCheck())
@@ -129,7 +136,8 @@ class CrossProjectConfigurationReportingGradle(
         delegate.afterProject(action.withCrossProjectModelAccessCheck())
     }
 
-    override fun getDefaultProject(): ProjectInternal = crossProjectModelAccess.access(referrerProject, delegate.defaultProject)
+    override fun getDefaultProjectState(): InternalProjectState =
+        delegate.defaultProjectState
 
     override fun getGradle(): Gradle = this
 
@@ -315,12 +323,12 @@ class CrossProjectConfigurationReportingGradle(
         delegate.attachSettings(settings)
     }
 
-    override fun setDefaultProject(defaultProject: ProjectInternal) {
-        delegate.defaultProject = defaultProject
+    override fun setDefaultProjectState(defaultProject: InternalProjectState) {
+        delegate.defaultProjectState = defaultProject
     }
 
-    override fun setRootProject(rootProject: ProjectInternal) {
-        delegate.rootProject = rootProject
+    override fun setRootProjectState(rootProject: InternalProjectState) {
+        delegate.rootProjectState = rootProject
     }
 
     override fun getBuildListenerBroadcaster(): BuildListener =

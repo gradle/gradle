@@ -116,7 +116,7 @@ public class DefaultBuildTaskSelector implements BuildTaskSelector {
     private ProjectResolutionResult resolveProject(TaskSelector.SelectionContext context, Path path, BuildState targetBuild) {
         // Just a name -> use default project + select tasks with matching name in default project and subprojects
         if (!path.isAbsolute() && path.segmentCount() == 1) {
-            return new ProjectResolutionResult(targetBuild, targetBuild.getMutableModel().getDefaultProject().getOwner(), true, path.getName());
+            return new ProjectResolutionResult(targetBuild, targetBuild.getMutableModel().getDefaultProjectState(), true, path.getName());
         }
 
         // <path>:name -> resolve <path> to a project + select task with matching name in that project
@@ -128,7 +128,7 @@ public class DefaultBuildTaskSelector implements BuildTaskSelector {
         if (projectPath.isAbsolute()) {
             matchingProject = buildRegistry.getRootBuild().getProjects().getRootProject();
         } else {
-            matchingProject = targetBuild.getMutableModel().getDefaultProject().getOwner();
+            matchingProject = targetBuild.getMutableModel().getDefaultProjectState();
         }
         while (projectPath.segmentCount() > 0) {
             String next = projectPath.segment(0);

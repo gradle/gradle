@@ -31,6 +31,7 @@ import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.plugins.PluginManagerInternal
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectRegistry
+import org.gradle.api.internal.project.ProjectState
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.invocation.GradleLifecycle
 import org.gradle.api.plugins.ExtensionContainer
@@ -119,10 +120,15 @@ class CrossBuildConfigurationReportingGradle(
     // region mutable state
     override fun getRootProject(): ProjectInternal {
         onBuildMutableStateAccess("getRootProject")
-        return delegate.getRootProject()
+        return delegate.rootProjectState.mutableModel
     }
 
-    override fun setRootProject(rootProject: ProjectInternal) {
+    override fun getRootProjectState(): ProjectState {
+        onBuildMutableStateAccess("getRootProjectState")
+        return delegate.rootProjectState
+    }
+
+    override fun setRootProjectState(rootProject: ProjectState) {
         shouldNotBeUsed()
     }
 
@@ -135,12 +141,12 @@ class CrossBuildConfigurationReportingGradle(
         return delegate.taskGraph
     }
 
-    override fun getDefaultProject(): ProjectInternal {
-        onBuildMutableStateAccess("getDefaultProject")
-        return delegate.getDefaultProject()
+    override fun getDefaultProjectState(): ProjectState {
+        onBuildMutableStateAccess("getDefaultProjectState")
+        return delegate.defaultProjectState
     }
 
-    override fun setDefaultProject(defaultProject: ProjectInternal) {
+    override fun setDefaultProjectState(defaultProject: ProjectState) {
         shouldNotBeUsed()
     }
 

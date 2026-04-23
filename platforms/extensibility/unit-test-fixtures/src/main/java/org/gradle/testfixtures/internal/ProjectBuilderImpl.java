@@ -225,8 +225,8 @@ public class ProjectBuilderImpl {
         projectState.createMutableModel(rootProjectScope, baseScope);
         ProjectInternal project = projectState.getMutableModel();
 
-        gradle.setRootProject(project);
-        gradle.setDefaultProject(project);
+        gradle.setRootProjectState(projectState);
+        gradle.setDefaultProjectState(projectState);
 
         // Lock root project; this won't ever be released as ProjectBuilder has no lifecycle
         coordinationService.withStateLock(DefaultResourceLockCoordinationService.lock(project.getOwner().getAccessLock()));
