@@ -56,6 +56,7 @@ Prohibited types include classes and interfaces from the `java.util.concurrent` 
 * `Exchanger`, `SynchronousQueue`
 
 Using these for cross-task synchronization will not work because the configuration cache isolates tasks: each task instance receives its own independent object, and no global synchronization occurs.
+The isolation also applies to objects used in `synchronized` blocks, so they cannot be used for cross-task synchronization either. However, Gradle doesn't detect such uses automatically like it does for synchronization primitives.
 
 To share or coordinate state between tasks, use <<build_services.adoc#build_services, shared build services>> or declare explicit task inputs/outputs and use providers or task outputs.
 
