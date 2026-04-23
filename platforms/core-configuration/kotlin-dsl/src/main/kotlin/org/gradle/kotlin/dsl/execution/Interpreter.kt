@@ -28,6 +28,7 @@ import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.invocation.Gradle
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.initialization.ClassLoaderScopeOrigin
+import org.gradle.internal.classloader.ClassLoaderFactory
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.exceptions.LocationAwareException
 import org.gradle.internal.hash.HashCode
@@ -74,7 +75,12 @@ import java.nio.file.Path
  * @see ResidualProgramCompiler
  */
 internal
-class Interpreter(val host: Host, val buildOperationRunner: BuildOperationRunner, val moduleRegistry: ModuleRegistry) {
+class Interpreter(
+    val host: Host,
+    val buildOperationRunner: BuildOperationRunner,
+    val moduleRegistry: ModuleRegistry,
+    val classLoaderFactory: ClassLoaderFactory
+) {
 
     interface Host {
 
@@ -347,7 +353,8 @@ class Interpreter(val host: Host, val buildOperationRunner: BuildOperationRunner
                     compileBuildOperationRunner = host::runCompileBuildOperation,
                     stage1BlocksAccessorsClassPath = stage1BlocksAccessorsClassPath,
                     packageName = residualProgram.packageName,
-                    moduleRegistry = moduleRegistry
+                    moduleRegistry = moduleRegistry,
+                    classLoaderFactory = classLoaderFactory,
                 ).compile(residualProgram.document)
             }
         }
@@ -505,6 +512,7 @@ class Interpreter(val host: Host, val buildOperationRunner: BuildOperationRunner
                                     interpreterLogger,
                                     scriptHost.temporaryFileProvider,
                                     moduleRegistry,
+                                    classLoaderFactory,
                                     scriptHost.metadataCompatibilityChecker,
                                     host::runCompileBuildOperation
                                 ).emitStage2ProgramFor(

@@ -26,6 +26,7 @@ import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.initialization.ClassLoaderScopeOrigin
 import org.gradle.internal.Describables
 import org.gradle.internal.classloader.ClasspathUtil
+import org.gradle.internal.classloader.DefaultClassLoaderFactory
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.internal.hash.HashCode
@@ -110,7 +111,12 @@ class SimplifiedKotlinScriptEvaluator(
 ) : AutoCloseable {
 
     fun eval(script: String, target: Any, topLevelScript: Boolean = false) {
-        Interpreter(InterpreterHost(), TestBuildOperationRunner(), TestModuleRegistry()).eval(
+        Interpreter(
+            InterpreterHost(),
+            TestBuildOperationRunner(),
+            TestModuleRegistry(),
+            DefaultClassLoaderFactory()
+        ).eval(
             target,
             scriptSourceFor(script),
             Hashing.md5().hashString(script),
