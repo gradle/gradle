@@ -29,7 +29,8 @@ import org.gradle.integtests.fixtures.daemon.DaemonClientFixture
 import org.gradle.process.TestExecHttpServer
 import org.gradle.process.TestJavaMain
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.OsTestPreconditions
+
 import org.gradle.util.internal.TextUtil
 import org.junit.Rule
 import spock.lang.Issue
@@ -328,7 +329,7 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/31282")
-    @Requires(UnitTestPreconditions.NotWindows)
+    @Requires(OsTestPreconditions.NotWindows)
     def "running multiple tasks that fork processes is multi-thread safe"() {
         def numOfProjects = 1000
         numOfProjects.times {
@@ -418,7 +419,7 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
         fails("run")
 
         then:
-        failure.assertHasDescription("Execution failed for task ':run'")
+        failure.assertHasDescription("Execution failed for task ':run' (registered in build file 'build.gradle').")
             .assertHasCause("Working directory '${file("does/not/exist")}' does not exist.")
             .assertHasNoCause("No such file or directory")
     }
@@ -436,7 +437,7 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
         fails("run")
 
         then:
-        failure.assertHasDescription("Execution failed for task ':run'")
+        failure.assertHasDescription("Execution failed for task ':run' (registered in build file 'build.gradle').")
             .assertHasCause("Working directory '${file("is/not/dir")}' is not a directory.")
     }
 

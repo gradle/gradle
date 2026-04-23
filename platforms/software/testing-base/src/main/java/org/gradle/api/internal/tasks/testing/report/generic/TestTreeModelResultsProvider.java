@@ -91,7 +91,8 @@ public final class TestTreeModelResultsProvider implements TestResultsProvider {
     }
 
     private static final Comparator<PerRootInfo> PER_ROOT_INFO_BY_START_TIME =
-        Comparator.comparing(leaf -> leaf.getResults().get(0).getStartTime());
+        Comparator.comparingLong((PerRootInfo leaf) -> leaf.getResults().get(0).getStartTime())
+                  .thenComparingLong(PerRootInfo::getId);
 
     private static Map<Long, ClassNode> createClasses(TestTreeModel root) {
         Map<org.gradle.util.Path, TestTreeModel> parentOfPath = buildParentOfPathMap(root);

@@ -16,16 +16,20 @@
 
 package org.gradle.internal.declarativedsl
 
-import org.gradle.api.internal.plugins.BuildModel
-import org.gradle.api.internal.plugins.Definition
+import org.gradle.features.binding.BuildModel
+import org.gradle.features.binding.Definition
+import org.gradle.features.internal.builders.definitions.ProjectTypeDefinitionClassBuilder
+import org.gradle.features.internal.builders.settings.SettingsPluginClassBuilder
+import org.gradle.features.internal.builders.types.ProjectTypePluginClassBuilder
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.polyglot.PolyglotDslTest
 import org.gradle.integtests.fixtures.polyglot.PolyglotTestFixture
 import org.gradle.integtests.fixtures.polyglot.SkipDsl
-import org.gradle.internal.declarativedsl.settings.ProjectTypeFixture
+import org.gradle.features.internal.ProjectTypeFixture
 import org.gradle.test.fixtures.dsl.GradleDsl
 
 @PolyglotDslTest
+@SkipDsl(dsl = GradleDsl.GROOVY, because = "Groovy DSL is not supported for declarative configuration")
 class WorkingWithFilesIntegrationTest extends AbstractIntegrationSpec implements ProjectTypeFixture, PolyglotTestFixture {
 
     def setup() {
@@ -36,7 +40,7 @@ class WorkingWithFilesIntegrationTest extends AbstractIntegrationSpec implements
 
     def 'set single value: #name (set defaults: #setDefaults) (set values: #setValues)'() {
         given:
-        def projectType = new ProjectTypePluginClassBuilder(definition as ProjectTypeDefinitionClassBuilder).withoutConventions().withUnsafeDefinition()
+        def projectType = new ProjectTypePluginClassBuilder(definition as ProjectTypeDefinitionClassBuilder).withUnsafeDefinition()
         def settingsBuilder = new SettingsPluginClassBuilder()
             .registersProjectType(projectType.projectTypePluginClassName)
 
@@ -90,10 +94,9 @@ class WorkingWithFilesIntegrationTest extends AbstractIntegrationSpec implements
         new DefinitionWithJavaBeanPropertiesOfFileSystemLocations() | "Directory and RegularFile Java Bean properties" | true        | true
     }
 
-    @SkipDsl(dsl = GradleDsl.GROOVY, because = "Groovy doesn't have the `listOf(...)` function")
     def 'set multi value: #name (set defaults: #setDefaults) (set values: #setValues)'() {
         given:
-        def projectType = new ProjectTypePluginClassBuilder(definition as ProjectTypeDefinitionClassBuilder).withoutConventions().withUnsafeDefinition()
+        def projectType = new ProjectTypePluginClassBuilder(definition as ProjectTypeDefinitionClassBuilder).withUnsafeDefinition()
         def settingsBuilder = new SettingsPluginClassBuilder()
             .registersProjectType(projectType.projectTypePluginClassName)
 
@@ -142,10 +145,9 @@ class WorkingWithFilesIntegrationTest extends AbstractIntegrationSpec implements
     }
 
     @SkipDsl(dsl = GradleDsl.KOTLIN, because = "Test is specific to the Declarative DSL")
-    @SkipDsl(dsl = GradleDsl.GROOVY, because = "Test is specific to the Declarative DSL")
     def "using a read-only property by mistake gives a helpful error message for #name (set defaults: #setDefaults)"() {
         given:
-        def projectType = new ProjectTypePluginClassBuilder(definition as ProjectTypeDefinitionClassBuilder).withoutConventions()
+        def projectType = new ProjectTypePluginClassBuilder(definition as ProjectTypeDefinitionClassBuilder)
         def settingsBuilder = new SettingsPluginClassBuilder()
             .registersProjectType(projectType.projectTypePluginClassName)
 

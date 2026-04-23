@@ -1,0 +1,3 @@
+rootProject.name = "snippets"
+
+include("lib")

@@ -21,14 +21,14 @@ import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import org.gradle.workers.fixtures.WorkerExecutorFixture
 import org.junit.Rule
 
 import java.time.Instant
 
 @IntegrationTestTimeout(120)
-@Requires(IntegTestPreconditions.NotParallelExecutor)
+@Requires(TestExecutionPreconditions.NotParallelExecutor)
 class WorkerExecutorParallelBuildOperationsIntegrationTest extends AbstractWorkerExecutorIntegrationTest {
     @Rule
     BlockingHttpServer blockingHttpServer = new BlockingHttpServer()
@@ -104,7 +104,7 @@ class WorkerExecutorParallelBuildOperationsIntegrationTest extends AbstractWorke
     }
 
     @Requires(
-        value = IntegTestPreconditions.NotConfigCached,
+        value = TestExecutionPreconditions.NotConfigCached,
         reason = """Assumptions about project locking do not hold.
 With CC enabled, the project is immutable so tasks run in parallel.
 This means workTask and slowTask would be expected to run concurrently in this case."""

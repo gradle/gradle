@@ -25,7 +25,7 @@ import org.gradle.api.provider.Provider
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import spock.lang.Issue
 
 /**
@@ -216,7 +216,7 @@ abstract class Resolve extends Copy {
         "RegularFile" | "layout.projectDirectory.file('foo')" | File.separator + "foo"
     }
 
-    @Requires(IntegTestPreconditions.NotParallelExecutor)
+    @Requires(TestExecutionPreconditions.NotParallelExecutor)
     def "serialized mutable class is isolated during artifact transformation"() {
         mavenRepo.module("test", "test", "1.3").publish()
         mavenRepo.module("test", "test2", "2.3").publish()
@@ -396,7 +396,7 @@ abstract class Resolve extends Copy {
         when:
         fails ':consumer:resolve'
         then:
-        failureDescriptionContains(isConfigCache ? "MakeGreen" : "Execution failed for task ':consumer:resolve'.")
+        failureDescriptionContains(isConfigCache ? "MakeGreen" : "Execution failed for task ':consumer:resolve' (registered in build file 'build.gradle').")
         failureCauseContains(isConfigCache ? "MakeGreen" : "Could not isolate parameters null of artifact transform MakeGreen")
     }
 }

@@ -16,11 +16,9 @@
 
 package org.gradle.internal.execution.impl;
 
-import com.google.common.collect.ImmutableList;
-import org.gradle.api.problems.Severity;
-import org.gradle.api.problems.internal.InternalProblem;
-import org.gradle.api.problems.internal.InternalProblemReporter;
-import org.gradle.api.problems.internal.InternalProblems;
+import org.gradle.api.problems.internal.ProblemInternal;
+import org.gradle.api.problems.internal.ProblemReporterInternal;
+import org.gradle.api.problems.internal.ProblemsInternal;
 import org.gradle.internal.execution.ExecutionProblemHandler;
 import org.gradle.internal.execution.Identity;
 import org.gradle.internal.execution.UnitOfWork;
@@ -34,16 +32,9 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
-import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.collect.ImmutableSet.toImmutableSet;
-import static java.util.function.Function.identity;
-import static java.util.stream.Collectors.groupingBy;
-import static java.util.stream.Collectors.mapping;
-import static org.gradle.api.problems.Severity.ERROR;
-import static org.gradle.api.problems.Severity.WARNING;
 
 public class DefaultExecutionProblemHandler implements ExecutionProblemHandler {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultExecutionProblemHandler.class);
@@ -60,19 +51,13 @@ public class DefaultExecutionProblemHandler implements ExecutionProblemHandler {
 
     @Override
     public void handleReportedProblems(Identity identity, UnitOfWork work, WorkValidationContext validationContext) {
-        InternalProblems problemsService = validationContext.getProblemsService();
-        InternalProblemReporter reporter = problemsService.getInternalReporter();
-        List<InternalProblem> problems = validationContext.getProblems();
-
-        Map<Severity, ImmutableList<InternalProblem>> problemsMap = problems.stream()
-            .collect(
-                groupingBy(p -> p.getDefinition().getSeverity(),
-                    mapping(identity(), toImmutableList())));
-        List<InternalProblem> warnings = problemsMap.getOrDefault(WARNING, ImmutableList.of());
-        List<InternalProblem> errors = problemsMap.getOrDefault(ERROR, ImmutableList.of());
+        ProblemsInternal problemsService = validationContext.getProblemsService();
+        ProblemReporterInternal reporter = problemsService.getInternalReporter();
+        List<ProblemInternal> errors = validationContext.getErrors();
+        List<ProblemInternal> warnings = validationContext.getWarnings();
 
         if (!warnings.isEmpty()) {
-            for (InternalProblem warning : warnings) {
+            for (ProblemInternal warning : warnings) {
                 reporter.report(warning);
             }
             warningReporter.recordValidationWarnings(identity, work, warnings);
@@ -88,14 +73,14 @@ public class DefaultExecutionProblemHandler implements ExecutionProblemHandler {
         }
     }
 
-    private static void throwValidationException(UnitOfWork work, WorkValidationContext validationContext, Collection<? extends InternalProblem> validationErrors) {
+    private static void throwValidationException(UnitOfWork work, WorkValidationContext validationContext, Collection<? extends ProblemInternal> validationErrors) {
         Set<String> uniqueErrors = validationErrors.stream()
             .map(TypeValidationProblemRenderer::renderMinimalInformationAbout)
             .collect(toImmutableSet());
         WorkValidationException workValidationException = WorkValidationException.forProblems(uniqueErrors)
             .withSummaryForContext(work.getDisplayName(), validationContext)
             .get();
-        InternalProblemReporter reporter = validationContext.getProblemsService().getInternalReporter();
+        ProblemReporterInternal reporter = validationContext.getProblemsService().getInternalReporter();
         throw reporter.throwing(workValidationException, validationErrors);
     }
 }

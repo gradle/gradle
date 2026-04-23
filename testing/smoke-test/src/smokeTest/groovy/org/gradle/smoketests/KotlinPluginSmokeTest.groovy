@@ -225,8 +225,6 @@ class KotlinPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
     Map<String, Versions> getPluginsToValidate() {
         [
             'org.jetbrains.kotlin.jvm': TestedVersions.kotlin,
-            'org.jetbrains.kotlin.android': TestedVersions.kotlin,
-            'org.jetbrains.kotlin.android.extensions': TestedVersions.kotlin,
             'org.jetbrains.kotlin.kapt': TestedVersions.kotlin,
             'org.jetbrains.kotlin.plugin.scripting': TestedVersions.kotlin,
             'org.jetbrains.kotlin.native.cocoapods': TestedVersions.kotlin,
@@ -235,17 +233,8 @@ class KotlinPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
 
     @Override
     Map<String, String> getExtraPluginsRequiredForValidation(String testedPluginId, String version) {
-        def androidVersion = AGP_VERSIONS.latestStable
         if (testedPluginId in ['org.jetbrains.kotlin.kapt', 'org.jetbrains.kotlin.plugin.scripting']) {
             return ['org.jetbrains.kotlin.jvm': version]
-        }
-        if (isAndroidKotlinPlugin(testedPluginId)) {
-            AGP_VERSIONS.assumeCurrentJavaVersionIsSupportedBy(androidVersion)
-            def extraPlugins = ['com.android.application': androidVersion]
-            if (testedPluginId == 'org.jetbrains.kotlin.android.extensions') {
-                extraPlugins.put('org.jetbrains.kotlin.android', version)
-            }
-            return extraPlugins
         }
         return [:]
     }

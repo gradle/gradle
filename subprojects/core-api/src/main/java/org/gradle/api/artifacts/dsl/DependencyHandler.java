@@ -17,10 +17,12 @@ package org.gradle.api.artifacts.dsl;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.ArtifactView;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ExternalModuleDependency;
 import org.gradle.api.artifacts.MinimalExternalModuleDependency;
+import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.artifacts.query.ArtifactResolutionQuery;
 import org.gradle.api.artifacts.transform.TransformAction;
 import org.gradle.api.artifacts.transform.TransformParameters;
@@ -329,6 +331,28 @@ public interface DependencyHandler extends ExtensionAware {
      * @return The dependency.
      */
     Dependency project(Map<String, ?> notation);
+
+    /**
+     * Creates a dependency on the current project.
+     *
+     * @return The dependency.
+     *
+     * @since 9.5.0
+     */
+    @Incubating
+    ProjectDependency project();
+
+    /**
+     * Creates a dependency on a project by path.
+     *
+     * @param projectPath the path of the project, e.g. ":sub-project"
+     * @return The dependency.
+     *
+     * @since 9.5.0
+     * @see org.gradle.api.Project#getPath()
+     */
+    @Incubating
+    ProjectDependency project(String projectPath);
 
     /**
      * Creates a dependency on the API of the current version of Gradle.

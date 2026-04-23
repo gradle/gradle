@@ -22,7 +22,7 @@ import org.gradle.internal.logging.sink.GroupingProgressLogEventGenerator
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import org.junit.Rule
 
 abstract class AbstractBasicGroupedTaskLoggingFunctionalTest extends AbstractConsoleGroupedTaskFunctionalTest {
@@ -143,7 +143,7 @@ abstract class AbstractBasicGroupedTaskLoggingFunctionalTest extends AbstractCon
         result.groupedOutput.task(':log').output =~ /First line of text\n{3,}Last line of text/
     }
 
-    @Requires(IntegTestPreconditions.NotParallelExecutor)
+    @Requires(TestExecutionPreconditions.NotParallelExecutor)
     def "long running task output correctly interleave with other tasks in parallel"() {
         given:
         server.start()

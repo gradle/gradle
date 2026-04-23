@@ -1,0 +1,17 @@
+Detailed task information for libs
+
+Paths
+     :api:libs (registered in build file 'api/build.gradle')
+     :webapp:libs (registered in build file 'webapp/build.gradle')
+
+Type
+     Task (org.gradle.api.Task)
+
+Options
+     --rerun     Causes the task to be re-run even if up-to-date.
+
+Description
+     Builds the JAR
+
+Group
+     build

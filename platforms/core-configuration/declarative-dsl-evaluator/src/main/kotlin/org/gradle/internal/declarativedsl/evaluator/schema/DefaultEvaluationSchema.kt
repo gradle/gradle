@@ -19,6 +19,7 @@ package org.gradle.internal.declarativedsl.evaluator.schema
 import org.gradle.declarative.dsl.evaluation.AnalysisStatementFilter
 import org.gradle.declarative.dsl.evaluation.EvaluationSchema
 import org.gradle.declarative.dsl.evaluation.OperationGenerationId
+import org.gradle.declarative.dsl.evaluation.SchemaBuildingFailure
 import org.gradle.declarative.dsl.schema.AnalysisSchema
 import org.gradle.internal.declarativedsl.analysis.DefaultOperationGenerationId
 import org.gradle.internal.declarativedsl.analysis.analyzeEverything
@@ -26,6 +27,7 @@ import org.gradle.internal.declarativedsl.analysis.analyzeEverything
 
 class DefaultEvaluationSchema(
     override val analysisSchema: AnalysisSchema,
+    override val analysisSchemaBuildingFailures: List<SchemaBuildingFailure>,
     override val analysisStatementFilter: AnalysisStatementFilter = analyzeEverything,
     override val operationGenerationId: OperationGenerationId = DefaultOperationGenerationId.finalEvaluation,
 ) : EvaluationSchema

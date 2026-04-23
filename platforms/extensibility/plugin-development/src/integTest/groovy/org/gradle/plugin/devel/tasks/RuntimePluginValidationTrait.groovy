@@ -18,9 +18,6 @@ package org.gradle.plugin.devel.tasks
 
 import org.gradle.test.fixtures.file.TestFile
 
-import static org.gradle.api.problems.Severity.ERROR
-import static org.gradle.api.problems.Severity.WARNING
-
 trait RuntimePluginValidationTrait implements CommonPluginValidationTrait{
     @Override
     def setup() {
@@ -50,9 +47,9 @@ trait RuntimePluginValidationTrait implements CommonPluginValidationTrait{
 
     void assertValidationFailsWith(List<AbstractPluginValidationIntegrationSpec.DocumentedProblem> messages) {
         def expectedDeprecations = messages
-            .findAll { problem -> problem.severity == WARNING }
+            .findAll { problem -> problem.severity == "warning" }
         def expectedFailures = messages
-            .findAll { problem -> problem.severity == ERROR }
+            .findAll { problem -> problem.severity == "error" }
 
         expectedDeprecations.forEach { warning ->
             expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer, warning.message, warning.id, warning.section)

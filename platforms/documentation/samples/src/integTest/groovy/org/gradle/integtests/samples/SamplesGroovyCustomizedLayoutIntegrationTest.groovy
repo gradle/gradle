@@ -25,7 +25,7 @@ import org.junit.Rule
 class SamplesGroovyCustomizedLayoutIntegrationTest extends AbstractSampleIntegrationTest {
 
     @Rule
-    public final Sample sample = new Sample(testDirectoryProvider, 'groovy/customizedLayout')
+    public final Sample sample = new Sample(testDirectoryProvider, 'integration-tests/groovy/customizedLayout')
 
     def "groovy project customized layout sample with #dsl dsl"() {
         given:

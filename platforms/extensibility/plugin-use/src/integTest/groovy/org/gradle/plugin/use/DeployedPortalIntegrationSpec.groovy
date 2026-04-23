@@ -19,12 +19,13 @@ package org.gradle.plugin.use
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.TestEnvironmentPreconditions
+
 
 import static org.hamcrest.CoreMatchers.startsWith
 
 //These tests depend on https://plugins.gradle.org
-@Requires(UnitTestPreconditions.Online)
+@Requires(TestEnvironmentPreconditions.Online)
 @LeaksFileHandles
 class DeployedPortalIntegrationSpec extends AbstractIntegrationSpec {
 

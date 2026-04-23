@@ -99,15 +99,31 @@ public abstract class GradleJavadocsPlugin implements Plugin<Project> {
             options.setCharSet("utf-8");
 
             options.addBooleanOption("-allow-script-in-comments", true);
-            options.setHeader("<link rel=\"stylesheet\" href=\"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/stackoverflow-light.min.css\">" +
-                "<script src=\"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js\"></script>" +
-                "<script src=\"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/kotlin.min.js\"></script>" +
-                "<script src=\"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/groovy.min.js\"></script>" +
-                "<script src=\"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/java.min.js\"></script>" +
-                "<script>hljs.highlightAll();</script>" +
-                "<link href=\"https://fonts.cdnfonts.com/css/dejavu-sans\" rel=\"stylesheet\">" +
-                "<link href=\"https://fonts.cdnfonts.com/css/dejavu-serif\" rel=\"stylesheet\">" +
-                "<link href=\"https://fonts.cdnfonts.com/css/dejavu-sans-mono\" rel=\"stylesheet\">"
+            options.setHeader(
+                "<link id=\"hljs-theme\" rel=\"stylesheet\" href=\"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/stackoverflow-light.min.css\">" +
+                    "<script>" +
+                    "(function() {" +
+                    "var mql = window.matchMedia('(prefers-color-scheme: dark)');" +
+                    "var hljsEl = document.getElementById('hljs-theme');" +
+                    "function applyTheme(dark) {" +
+                    "var t = dark ? 'dark' : 'light';" +
+                    "document.documentElement.setAttribute('data-theme', t);" +
+                    "if (hljsEl) hljsEl.href = 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/stackoverflow-' + t + '.min.css';" +
+                    "}" +
+                    "applyTheme(mql.matches);" +
+                    "mql.addEventListener('change', function(e) { applyTheme(e.matches); });" +
+                    "})();" +
+                    "</script>" +
+                    "<script src=\"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js\"></script>" +
+                    "<script src=\"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/languages/xml.min.js\"></script>" +
+                    "<script src=\"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/languages/kotlin.min.js\"></script>" +
+                    "<script src=\"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/languages/groovy.min.js\"></script>" +
+                    "<script src=\"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/languages/java.min.js\"></script>" +
+                    "<script src=\"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/languages/properties.min.js\"></script>" +
+                    "<script>if (typeof hljs !== 'undefined') { hljs.highlightAll(); }</script>" +
+                    "<link href=\"https://fonts.cdnfonts.com/css/dejavu-sans\" rel=\"stylesheet\">" +
+                    "<link href=\"https://fonts.cdnfonts.com/css/dejavu-serif\" rel=\"stylesheet\">" +
+                    "<link href=\"https://fonts.cdnfonts.com/css/dejavu-sans-mono\" rel=\"stylesheet\">"
             );
 
             // TODO: This would be better to model as separate options

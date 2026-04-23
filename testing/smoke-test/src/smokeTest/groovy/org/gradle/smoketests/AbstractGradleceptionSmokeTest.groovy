@@ -16,22 +16,21 @@
 
 package org.gradle.smoketests
 
-import org.gradle.api.JavaVersion
-import org.gradle.api.specs.Spec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
-import org.gradle.internal.jvm.inspection.JvmInstallationMetadata
+import org.gradle.test.GradleBuildJvmSpec
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import org.gradle.test.preconditions.SmokeTestPreconditions
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.JdkVersionTestPreconditions
+
 
 import java.text.SimpleDateFormat
 
 @Requires([
-    UnitTestPreconditions.Jdk9OrLater,
-    IntegTestPreconditions.NotConfigCached,
+    JdkVersionTestPreconditions.Jdk9OrLater,
+    TestExecutionPreconditions.NotConfigCached,
     SmokeTestPreconditions.GradleBuildJvmSpecAvailable
 ])
 abstract class AbstractGradleceptionSmokeTest extends AbstractSmokeTest {
@@ -92,7 +91,7 @@ abstract class AbstractGradleceptionSmokeTest extends AbstractSmokeTest {
     }
 
     private SmokeTestGradleRunner runnerWithTestKitDir(File testKitDir, List<String> gradleArgs) {
-        runner(*(gradleArgs + ["-g", IntegrationTestBuildContext.INSTANCE.gradleUserHomeDir.absolutePath]))
+        runnerWithGradleUserHome(IntegrationTestBuildContext.INSTANCE.gradleUserHomeDir, *(gradleArgs as String[]))
             .withTestKitDir(testKitDir)
     }
 
@@ -105,14 +104,4 @@ abstract class AbstractGradleceptionSmokeTest extends AbstractSmokeTest {
             setTimeZone(TimeZone.getTimeZone("UTC"))
         }
     }
-
-    static class GradleBuildJvmSpec implements Spec<JvmInstallationMetadata> {
-
-        @Override
-        boolean isSatisfiedBy(JvmInstallationMetadata jvm) {
-            return jvm.languageVersion == JavaVersion.VERSION_17
-        }
-
-    }
 }
-

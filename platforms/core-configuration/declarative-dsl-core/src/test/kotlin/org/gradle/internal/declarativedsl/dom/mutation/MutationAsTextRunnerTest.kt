@@ -17,6 +17,7 @@
 package org.gradle.internal.declarativedsl.dom.mutation
 
 import org.gradle.declarative.dsl.evaluation.EvaluationSchema
+import org.gradle.declarative.dsl.evaluation.SchemaBuildingFailure
 import org.gradle.declarative.dsl.schema.AnalysisSchema
 import org.gradle.internal.declarativedsl.analysis.DefaultOperationGenerationId
 import org.gradle.internal.declarativedsl.analysis.analyzeEverything
@@ -222,6 +223,7 @@ val nestedTwoNestedThreeMutationDefinition = object : MutationDefinition {
 private
 val schema = object : EvaluationSchema {
     override val analysisSchema = schemaFromTypes(TopLevelReceiverForMutations::class, listOf(TopLevelReceiverForMutations::class, NestedOne::class, NestedTwo::class))
+    override val analysisSchemaBuildingFailures: List<SchemaBuildingFailure> = emptyList()
     override val operationGenerationId = DefaultOperationGenerationId.finalEvaluation
     override val analysisStatementFilter = analyzeEverything
 }

@@ -27,8 +27,8 @@ Let's look at a Java project where the code relies on link:https://mvnrepository
 The build file of the project includes the following:
 
 ====
-include::sample[dir="snippets/dependencyManagement/introductionDependencies/kotlin",files="build.gradle.kts[tags=dependency-intro]"]
-include::sample[dir="snippets/dependencyManagement/introductionDependencies/groovy",files="build.gradle[tags=dependency-intro]"]
+include::sample[dir="snippets/reference/dependency-management/introductionDependencies/kotlin",files="build.gradle.kts[tags=dependency-intro]"]
+include::sample[dir="snippets/reference/dependency-management/introductionDependencies/groovy",files="build.gradle[tags=dependency-intro]"]
 ====
 
 Within the `dependencies` block, there are three things to notice when a dependency is declared:
@@ -45,8 +45,8 @@ To let Gradle know where to find external dependencies, use the `repositories{}`
 Let's expand our example:
 
 ====
-include::sample[dir="snippets/dependencyManagement/introductionDependencies/kotlin",files="build.gradle.kts[tags=dependency-repo]"]
-include::sample[dir="snippets/dependencyManagement/introductionDependencies/groovy",files="build.gradle[tags=dependency-repo]"]
+include::sample[dir="snippets/reference/dependency-management/introductionDependencies/kotlin",files="build.gradle.kts[tags=dependency-repo]"]
+include::sample[dir="snippets/reference/dependency-management/introductionDependencies/groovy",files="build.gradle[tags=dependency-repo]"]
 ====
 
 In this example, Gradle fetches the `guava` and `juneau-marshall` _dependencies_ from the link:https://repo1.maven.org/maven2/[Maven Central] and link:https://maven.google.com/[Google] _repositories_.

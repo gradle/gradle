@@ -67,8 +67,6 @@ public abstract class BaseScalaCompileOptions implements Serializable {
 
     private IncrementalCompileOptions incrementalOptions = getObjectFactory().newInstance(IncrementalCompileOptions.class);
 
-    private final Property<KeepAliveMode> keepAliveMode = getObjectFactory().property(KeepAliveMode.class);
-
     @Inject
     protected abstract ObjectFactory getObjectFactory();
 
@@ -279,7 +277,5 @@ public abstract class BaseScalaCompileOptions implements Serializable {
      */
     @Incubating
     @Input
-    public Property<KeepAliveMode> getKeepAliveMode() {
-        return this.keepAliveMode;
-    }
+    public abstract Property<KeepAliveMode> getKeepAliveMode();
 }

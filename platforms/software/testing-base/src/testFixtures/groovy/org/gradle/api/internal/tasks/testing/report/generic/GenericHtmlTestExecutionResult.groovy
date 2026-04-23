@@ -1,0 +1,755 @@
+/*
+ * Copyright 2024 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.gradle.api.internal.tasks.testing.report.generic
+
+import com.google.common.collect.HashBasedTable
+import com.google.common.collect.ImmutableListMultimap
+import com.google.common.collect.ImmutableMultiset
+import com.google.common.collect.LinkedListMultimap
+import com.google.common.collect.ListMultimap
+import com.google.common.collect.Maps
+import com.google.common.collect.Multimap
+import com.google.common.collect.Multimaps
+import com.google.common.collect.Multisets
+import com.google.common.collect.Streams
+import com.google.common.collect.Table
+import org.gradle.api.Action
+import org.gradle.api.tasks.testing.TestResult
+import org.gradle.internal.lazy.Lazy
+import org.gradle.internal.time.TimeFormatting
+import org.gradle.util.Path
+import org.gradle.util.internal.TextUtil
+import org.hamcrest.Matcher
+import org.jsoup.Jsoup
+import org.jsoup.nodes.Document
+import org.jsoup.nodes.Element
+
+import java.nio.file.Files
+import java.time.Duration
+import java.util.stream.Collectors
+import java.util.stream.Stream
+
+import static org.gradle.api.internal.tasks.testing.report.generic.TestPathSelector.literal
+
+import static org.hamcrest.CoreMatchers.equalTo
+import static org.hamcrest.CoreMatchers.hasItems
+import static org.hamcrest.MatcherAssert.assertThat
+import static org.hamcrest.Matchers.greaterThanOrEqualTo
+import static org.hamcrest.Matchers.notNullValue
+import static org.junit.jupiter.api.Assertions.fail
+
+class GenericHtmlTestExecutionResult implements GenericTestExecutionResult {
+    private final Lazy<Set<Path>> executedTestPathsLazy = Lazy.locking().of({
+        def reportPath = htmlReportDirectory.toPath()
+        try (Stream<java.nio.file.Path> paths = Files.walk(reportPath)) {
+            return paths.filter {
+                it.getFileName().toString().endsWith(".html")
+            }.collect {
+                def html = Jsoup.parse(it.toFile(), null)
+                def breadcrumbs = html.selectFirst(".breadcrumbs")
+                if (breadcrumbs == null) {
+                    return Path.ROOT
+                }
+                def elements = breadcrumbs.select(".breadcrumb").collect { it.text().trim() }
+                if (elements.size() == 1 || elements[0] != "all") {
+                    throw new IllegalStateException("First element should always be 'all'")
+                }
+                def path = Path.ROOT
+                for (int i = 1; i < elements.size(); i++) {
+                    path = path.child(elements[i])
+                }
+                def childrenWithoutFiles = html.select("td.path").collect { path.child(it.text()) }
+                return [path] + childrenWithoutFiles
+            }.flatten().toSet()
+        }
+    })
+    private final File htmlReportDirectory
+
+    GenericHtmlTestExecutionResult(File projectDirectory, String testReportDirectory = "build/reports/tests/test") {
+        this.htmlReportDirectory = new File(projectDirectory, testReportDirectory)
+        // For debugging purposes, always log the location of the report
+        println "HTML test report directory: ${htmlReportDirectory}"
+    }
+
+    /**
+     * Only public for HtmlTestExecutionResult to use.
+     * Prefer to add additional methods for the exact assertion over using this method with arbitrary checking.
+     *
+     * @return the set of executed test paths
+     */
+    Set<Path> getExecutedTestPaths() {
+        return executedTestPathsLazy.get()
+    }
+
+    GenericTestExecutionResult assertHtml(String cssQuery, Action<Collection<?>> action) {
+        def parsedHtml = Jsoup.parse(htmlReportDirectory.toPath().resolve("index.html").toFile(), null)
+        def matched = parsedHtml.select(cssQuery)
+        assert matched : "Queried HTML report for $cssQuery"
+        action.execute(matched)
+        return this
+    }
+
+    private static TestPathSelector parseLiteralPath(String path) {
+        if (!path.startsWith(":")) {
+            path = ":" + path
+        }
+        def parsed = Path.path(path)
+        def segments = parsed.segments().collect { literal(it) }
+        return TestPathSelector.of(*segments)
+    }
+
+    private static Set<TestPathSelector> parseSelectorsWithAncestors(String... testPathSelectors) {
+        Stream.of(testPathSelectors)
+            .map { parseLiteralPath(it) }
+            .flatMap {
+                Stream.concat(
+                    Stream.of(it),
+                    Streams.stream(it.ancestors()),
+                )
+            }
+            .collect(Collectors.toSet())
+    }
+
+    private static void addUnmatchedPathMessages(Set<Path> unmatchedPaths, ArrayList<String> failureMessages) {
+        if (!unmatchedPaths.isEmpty()) {
+            failureMessages.add("Some executed test paths did not match any selector:")
+            unmatchedPaths.toSorted().each { path ->
+                failureMessages.add("  " + path)
+            }
+        }
+    }
+
+    private void addUnmatchedSelectorMessages(Set<TestPathSelector> unmatchedSelectors, ArrayList<String> failureMessages) {
+        if (!unmatchedSelectors.isEmpty()) {
+            failureMessages.add("Some selectors did not match any executed test path:")
+            unmatchedSelectors
+                .collect {
+                    it.toString()
+                }
+                .toSorted()
+                .each { selector ->
+                    failureMessages.add("  " + selector)
+                }
+            failureMessages.add("Executed test paths were:")
+            executedTestPaths.toSorted().each { path ->
+                failureMessages.add("  " + path)
+            }
+        }
+    }
+
+    private static void addMatchedSelectorMessages(
+        ListMultimap<TestPathSelector, Path> matchedSelectorsToPaths,
+        ArrayList<String> failureMessages
+    ) {
+        if (!matchedSelectorsToPaths.isEmpty()) {
+            failureMessages.add("Some selectors matched an executed test path:")
+            Multimaps.asMap(matchedSelectorsToPaths)
+                .toSorted(Comparator.comparing(Map.Entry::getKey, Comparator.comparing(TestPathSelector::toString)))
+                .forEach { selector, paths ->
+                    failureMessages.add("  " + selector + " matched:")
+                    paths.toSorted().each { path ->
+                        failureMessages.add("    " + path)
+                    }
+                }
+        }
+    }
+
+    private static void printAllNonMatches(HashBasedTable<TestPathSelector, Path, String> allNonMatches) {
+        System.err.println "All non-matches:"
+        allNonMatches.rowKeySet().toSorted().each { selector ->
+            System.err.println "  Selector: " + selector
+            allNonMatches.row(selector).toSorted(Comparator.comparing(Map.Entry::getKey)).forEach { path, message ->
+                System.err.println "    Path: " + path + " - " + message
+            }
+        }
+    }
+
+    @Override
+    GenericTestExecutionResult assertTestPathsExecuted(String... testPathSelectors) {
+        Set<TestPathSelector> extendedTestPathSelectors = parseSelectorsWithAncestors(testPathSelectors)
+
+        Table<TestPathSelector, Path, String> allNonMatchMessages = HashBasedTable.create()
+        Set<TestPathSelector> unmatchedSelectors = new HashSet<>(extendedTestPathSelectors)
+        Set<Path> unmatchedPaths = new HashSet<>(executedTestPaths)
+
+        for (def selector in extendedTestPathSelectors) {
+            for (def iter = unmatchedPaths.iterator(); iter.hasNext(); ) {
+                def executedPath = iter.next()
+                def matchResult = selector.matches(executedPath)
+                if (matchResult.isMatch()) {
+                    // Don't show non-matches for this selector anymore
+                    allNonMatchMessages.rowMap().remove(selector)
+                    unmatchedSelectors.remove(selector)
+                    iter.remove()
+                    break
+                } else {
+                    allNonMatchMessages.put(selector, executedPath, matchResult.getDisplayName())
+                }
+            }
+        }
+
+        List<String> failureMessages = []
+        addUnmatchedSelectorMessages(unmatchedSelectors, failureMessages)
+        addUnmatchedPathMessages(unmatchedPaths, failureMessages)
+        if (!failureMessages.isEmpty()) {
+            printAllNonMatches(allNonMatchMessages)
+            fail(failureMessages.join("\n"))
+        }
+        return this
+    }
+
+    @Override
+    GenericTestExecutionResult assertAtLeastTestPathsExecuted(String... testPathSelectors) {
+        Set<TestPathSelector> selectors = parseSelectorsWithAncestors(testPathSelectors)
+
+        Set<TestPathSelector> unmatchedSelectors = selectors.findAll {
+            !executedTestPaths.any { executedPath ->
+                it.matches(executedPath)
+            }
+        }
+
+        List<String> failureMessages = []
+        addUnmatchedSelectorMessages(unmatchedSelectors, failureMessages)
+        if (!failureMessages.isEmpty()) {
+            fail(failureMessages.join("\n"))
+        }
+
+        return this
+    }
+
+    private static Set<TestPathSelector> parseSelectors(String... testPathSelectors) {
+        Stream.of(testPathSelectors)
+            .map { parseLiteralPath(it) }
+            .collect(Collectors.toSet())
+    }
+
+    @Override
+    GenericTestExecutionResult assertTestPathsNotExecuted(String... testPaths) {
+        Set<TestPathSelector> selectors = parseSelectors(testPaths)
+
+        ImmutableListMultimap.Builder<TestPathSelector, Path> matchedSelectorsToPaths = ImmutableListMultimap.builder()
+
+        for (def selector in selectors) {
+            for (def executedPath in executedTestPaths) {
+                if (selector.matches(executedPath).isMatch()) {
+                    matchedSelectorsToPaths.put(selector, executedPath)
+                }
+            }
+        }
+
+        List<String> failureMessages = []
+        addMatchedSelectorMessages(matchedSelectorsToPaths.build(), failureMessages)
+        if (!failureMessages.isEmpty()) {
+            fail(failureMessages.join("\n"))
+        }
+
+        return this
+    }
+
+    @Override
+    TestPathExecutionResult testPath(String rootTestPath) {
+        assertAtLeastTestPathsExecuted(rootTestPath)
+
+        def reportPath = diskPathForTestPath(rootTestPath)
+        if (Files.exists(reportPath)) {
+            return new HtmlTestPathExecutionResult(reportPath.toFile())
+        } else {
+            return new TestPathExecutionResult() {
+                private final TestPathRootExecutionResult doesNotExist = new TestPathRootExecutionResult() {
+                    @Override
+                    TestPathRootExecutionResult assertOnlyChildrenExecuted(String... testNames) {
+                        assert !testNames.empty
+                        return this
+                    }
+
+                    @Override
+                    TestPathRootExecutionResult assertChildrenExecuted(String... testNames) {
+                        assert !testNames.empty
+                        return this
+                    }
+
+                    @Override
+                    TestPathRootExecutionResult assertChildCount(int tests, int failures) {
+                        assert tests == 0
+                        return this
+                    }
+
+                    @Override
+                    int getExecutedChildCount() {
+                        return 0
+                    }
+
+                    @Override
+                    TestPathRootExecutionResult assertChildrenSkipped(String... testNames) {
+                        assert !testNames.empty
+                        return this
+                    }
+
+                    @Override
+                    int getSkippedChildCount() {
+                        return 0
+                    }
+
+                    @Override
+                    TestPathRootExecutionResult assertChildrenFailed(String... testNames) {
+                        assert !testNames.empty
+                        return this
+                    }
+
+                    @Override
+                    int getFailedChildCount() {
+                        return 0
+                    }
+
+                    @Override
+                    TestPathRootExecutionResult assertStdout(Matcher<? super String> matcher) {
+                        matcher.matches("")
+                        return this
+                    }
+
+                    @Override
+                    TestPathRootExecutionResult assertStderr(Matcher<? super String> matcher) {
+                        matcher.matches("")
+                        return this
+                    }
+
+                    @Override
+                    TestPathRootExecutionResult assertHasResult(TestResult.ResultType resultType) {
+                        return this
+                    }
+
+                    @Override
+                    TestPathRootExecutionResult assertDisplayName(Matcher<? super String> matcher) {
+                        assert false
+                        return this
+                    }
+
+                    @Override
+                    TestPathRootExecutionResult assertFailureMessages(Matcher<? super String> matcher) {
+                        assert false
+                        return this
+                    }
+
+                    @Override
+                    TestPathRootExecutionResult assertThatSingleDuration(Matcher<? super Duration> matcher) {
+                        assert false
+                        return this
+                    }
+
+                    @Override
+                    String getFailureMessages() {
+                        assert false
+                        return this
+                    }
+
+                    @Override
+                    TestPathRootExecutionResult assertMetadataKeys(List<String> keys) {
+                        assert false
+                        return this
+                    }
+
+                    @Override
+                    TestPathRootExecutionResult assertMetadata(List<Map.Entry<String, String>> metadata) {
+                        assert false
+                        return this
+                    }
+
+                    @Override
+                    TestPathRootExecutionResult assertFileAttachments(Map<String, TestPathRootExecutionResult.ShowAs> expectedAttachments) {
+                        assert false
+                        return this
+                    }
+                }
+
+                @Override
+                TestPathRootExecutionResult onlyRoot() {
+                    return doesNotExist
+                }
+
+                @Override
+                TestPathRootExecutionResult singleRootWithRun(int runNumber) {
+                    assert false
+                    return doesNotExist
+                }
+
+                @Override
+                TestPathRootExecutionResult root(String rootName) {
+                    assert false
+                    return doesNotExist
+                }
+
+                @Override
+                TestPathRootExecutionResult rootAndRun(String rootName, int runNumber) {
+                    assert false
+                    return doesNotExist
+                }
+
+                @Override
+                List<String> getRootNames() {
+                    return [rootTestPath]
+                }
+
+                @Override
+                int getRunCount(String rootName) {
+                    assert false
+                    return 0
+                }
+            }
+        }
+    }
+
+    @Override
+    TestPathExecutionResult testPath(String... testPathElements) {
+        String joined = Stream.of(testPathElements).collect(Collectors.joining(":", ":", ""))
+        return this.testPath(joined)
+    }
+
+    @Override
+    boolean testPathExists(String testPath) {
+        return Files.exists(diskPathForTestPath(testPath))
+    }
+
+    @Override
+    GenericTestExecutionResult assertMetadata(List<String> keys) {
+        def metadataElems = Jsoup.parse(htmlReportDirectory.toPath().resolve("index.html").toFile(), null).select('.key')
+        assertThat(metadataElems.collect() { it.text() }, equalTo(keys))
+        return this
+    }
+
+    private java.nio.file.Path diskPathForTestPath(String testPath) {
+        if (!testPath.startsWith(":")) {
+            testPath = ":" + testPath
+        }
+        // If shrinking is done, then it is up to the test to know that and provide the correct path.
+        // In the event that our tests may or may not shrink, we should consider adding a flag to ensure that tests which check
+        // explicitly for shrinking or not do not give incorrect results due to adjusted paths here.
+        def path = Path.path(testPath)
+        java.nio.file.Path nonLeafPath = htmlReportDirectory.toPath().resolve(
+            HtmlTestReportPathBuilder.buildFilePath(false, path, false)
+        )
+        if (Files.exists(nonLeafPath)) {
+            return nonLeafPath
+        } else {
+            return htmlReportDirectory.toPath().resolve(
+                HtmlTestReportPathBuilder.buildFilePath(false, path, true)
+            )
+        }
+    }
+
+    private static Map<String, Element> getTabs(Element base) {
+        def container = base.selectFirst('.tab-container')
+        // Check container only for presence. If no container, return empty map.
+        // Otherwise, we expect the structure to be correct.
+        if (container == null) {
+            return Collections.emptyMap()
+        }
+        def tabs = container.select('> .tab')
+        def tabNames = container.select('> .tabLinks > li')
+        assert tabs.size() == tabNames.size()
+        Map<String, Element> result = new LinkedHashMap<>()
+        for (int i = 0; i < tabs.size(); i++) {
+            def tabName = tabNames.get(i).text()
+            assert !result.containsKey(tabName) : "Duplicate tab name: " + tabName
+            result[tabName] = tabs.get(i)
+        }
+        return result
+    }
+
+    private static class HtmlTestPathExecutionResult implements TestPathExecutionResult {
+        private final List<String> rootNames = []
+        private final List<String> rootDisplayNames = []
+        private final ListMultimap<String, Element> rootAndRunElements = LinkedListMultimap.create()
+
+        HtmlTestPathExecutionResult(File htmlFile) {
+            Document html = Jsoup.parse(htmlFile, null)
+            Map<String, Element> rootElements = getTabs(html)
+            rootElements.forEach { name, content ->
+                rootNames.add(name)
+                rootDisplayNames.add(content.selectFirst('h1').text())
+                Map<String, Element> subTabs = getTabs(content)
+                if (subTabs.containsKey("summary")) {
+                    // Only a single run, these tabs are the run details tabs
+                    rootAndRunElements.put(name, content)
+                } else {
+                    // Multiple runs
+                    rootAndRunElements.putAll(name, subTabs.values())
+                }
+            }
+        }
+
+        private getSingleRoot() {
+            assertThat(
+                "has multiple roots: " + rootAndRunElements.keySet(),
+                rootAndRunElements.keySet().size(),
+                equalTo(1)
+            )
+            Multimaps.asMap(rootAndRunElements).values().first()
+        }
+
+        @Override
+        TestPathRootExecutionResult onlyRoot() {
+            List<Element> singleRoot = getSingleRoot()
+            assertThat(
+                "has multiple runs",
+                singleRoot.size(),
+                equalTo(1)
+            )
+            return new HtmlTestPathRootExecutionResult(singleRoot.first(), rootDisplayNames.first())
+        }
+
+        @Override
+        TestPathRootExecutionResult singleRootWithRun(int runNumber) {
+            List<Element> singleRoot = getSingleRoot()
+            return new HtmlTestPathRootExecutionResult(singleRoot.get(runNumber - 1), rootDisplayNames.first())
+        }
+
+        @Override
+        TestPathRootExecutionResult root(String rootName) {
+            assertThat(rootAndRunElements.keySet(), hasItems(rootName))
+            List<Element> runs = rootAndRunElements.get(rootName)
+            assertThat(
+                "root '" + rootName + "' has multiple runs",
+                runs.size(),
+                equalTo(1)
+            )
+            def index = rootNames.indexOf(rootName)
+            return new HtmlTestPathRootExecutionResult(runs.first(), rootDisplayNames[index])
+        }
+
+        @Override
+        TestPathRootExecutionResult rootAndRun(String rootName, int runNumber) {
+            assertThat(rootAndRunElements.keySet(), hasItems(rootName))
+            List<Element> runs = rootAndRunElements.get(rootName)
+            assertThat(
+                "root '" + rootName + "' has not enough runs (requested run number: "
+                    + runNumber + ", but only has " + runs.size() + " runs)",
+                runs.size(),
+                greaterThanOrEqualTo(runNumber)
+            )
+            def index = rootNames.indexOf(rootName)
+            return new HtmlTestPathRootExecutionResult(runs.get(runNumber - 1), rootDisplayNames[index])
+        }
+
+        @Override
+        List<String> getRootNames() {
+            return rootNames
+        }
+
+        @Override
+        int getRunCount(String rootName) {
+            return rootAndRunElements.get(rootName).size()
+        }
+    }
+
+    private static class HtmlTestPathRootExecutionResult implements TestPathRootExecutionResult {
+        private final Element html
+        private final String displayName
+        private Multimap<String, TestInfo> testsExecuted = LinkedListMultimap.create()
+        private Multimap<String, TestInfo> testsSucceeded = LinkedListMultimap.create()
+        private Multimap<String, TestInfo> testsFailures = LinkedListMultimap.create()
+        private Multimap<String, TestInfo> testsSkipped = LinkedListMultimap.create()
+
+        HtmlTestPathRootExecutionResult(Element html, String displayName) {
+            this.html = html
+            this.displayName = displayName
+            extractCases()
+        }
+
+        private void extractCases() {
+            def summarySection = getTabs(html).get("summary")
+            assertThat("no summary section found", summarySection, notNullValue())
+            def allSection = getTabs(summarySection).get("All")
+            def allTestsContainer = allSection == null ? summarySection : allSection
+            extractTestCaseTo(allTestsContainer, "tr > td.success:eq(0)", testsSucceeded)
+            extractTestCaseTo(allTestsContainer, "tr > td.failures:eq(0)", testsFailures)
+            extractTestCaseTo(allTestsContainer, "tr > td.skipped:eq(0)", testsSkipped)
+        }
+
+        private extractTestCaseTo(Element element, String cssSelector, Multimap<String, TestInfo> target) {
+            def hasNameColumn = hasNameColumn(element)
+            element.select(cssSelector).each {
+                def testDisplayName = it.text().trim()
+                def testName = hasNameColumn ? it.nextElementSibling().text().trim() : testDisplayName
+                def testInfo = new TestInfo(testName, testDisplayName)
+                testsExecuted.put(testName, testInfo)
+                target.put(testName, testInfo)
+            }
+        }
+
+        private static boolean hasNameColumn(Element element) {
+            return element.select('tr > th').size() == 7
+        }
+
+        @Override
+        TestPathRootExecutionResult assertOnlyChildrenExecuted(String... testNames) {
+            def executedAndNotSkipped = Multisets.difference(testsExecuted.keys(), testsSkipped.keys())
+            assertThat("in " + displayName, executedAndNotSkipped, equalTo(ImmutableMultiset.copyOf(testNames)))
+            return this
+        }
+
+        @Override
+        TestPathRootExecutionResult assertChildrenExecuted(String... testNames) {
+            def executedAndNotSkipped = Multisets.difference(testsExecuted.keys(), testsSkipped.keys())
+            assertThat("in " + displayName, executedAndNotSkipped, hasItems(testNames))
+            return this
+        }
+
+        @Override
+        TestPathRootExecutionResult assertChildCount(int tests, int failures) {
+            assertThat("in " + displayName, testsExecuted.size(), equalTo(tests))
+            assertThat("in " + displayName, testsFailures.size(), equalTo(failures))
+            return this
+        }
+
+        @Override
+        int getExecutedChildCount() {
+            return testsExecuted.size()
+        }
+
+        @Override
+        TestPathRootExecutionResult assertChildrenSkipped(String... testNames) {
+            assertThat("in " + displayName, testsSkipped.keys(), equalTo(ImmutableMultiset.copyOf(testNames)))
+            return this
+        }
+
+        @Override
+        int getSkippedChildCount() {
+            return testsSkipped.size()
+        }
+
+        @Override
+        TestPathRootExecutionResult assertChildrenFailed(String... testNames) {
+            assertThat("in " + displayName, testsFailures.keys(), equalTo(ImmutableMultiset.copyOf(testNames)))
+            return this
+        }
+
+        @Override
+        int getFailedChildCount() {
+            return testsFailures.size()
+        }
+
+        @Override
+        TestPathRootExecutionResult assertStdout(Matcher<? super String> matcher) {
+            return assertOutput('standard output', matcher)
+        }
+
+        @Override
+        TestPathRootExecutionResult assertStderr(Matcher<? super String> matcher) {
+            return assertOutput('error output', matcher)
+        }
+
+        private TestPathRootExecutionResult assertOutput(heading, Matcher<? super String> matcher) {
+            def tabs = html.select("div.tab")
+            def tab = tabs.find { it.select("h2").text() == heading }
+            assertThat(
+                "in " + displayName,
+                tab ? TextUtil.normaliseLineSeparators(tab.select("span > pre").first().textNodes().first().wholeText)
+                    : "",
+                matcher,
+            )
+            return this
+        }
+
+        @Override
+        TestPathRootExecutionResult assertHasResult(TestResult.ResultType expectedResultType) {
+            assert getResultType() == expectedResultType
+            return this
+        }
+
+        private getResultType() {
+            // Currently the report only contains leaf results
+            assertChildCount(0, 0)
+            def successRateElement = html.selectFirst('.summary .successRate')
+            if (successRateElement.hasClass("failures")) {
+                return TestResult.ResultType.FAILURE
+            } else if (successRateElement.hasClass("skipped")) {
+                return TestResult.ResultType.SKIPPED
+            } else {
+                return TestResult.ResultType.SUCCESS
+            }
+        }
+
+        @Override
+        TestPathRootExecutionResult assertDisplayName(Matcher<? super String> matcher) {
+            assertThat(displayName, matcher)
+            return this
+        }
+
+        @Override
+        TestPathRootExecutionResult assertFailureMessages(Matcher<? super String> matcher) {
+            assertThat("in " + displayName, getFailureMessages(), matcher)
+            return this
+        }
+
+        @Override
+        TestPathRootExecutionResult assertThatSingleDuration(Matcher<? super Duration> matcher) {
+            def durationText = html.selectFirst('.summary .infoBox.duration .counter').text()
+            def durationTexts = durationText.split(' ')
+            assertThat("multiple durations in " + displayName, durationTexts.length, equalTo(1))
+            def duration = TimeFormatting.parseDurationVeryTerse(durationTexts[0])
+            assertThat("in " + displayName, duration, matcher)
+            return this
+        }
+
+        @Override
+        String getFailureMessages() {
+            html.selectFirst('.result-details pre')?.text() ?: ''
+        }
+
+        @Override
+        TestPathRootExecutionResult assertMetadataKeys(List<String> expectedKeys) {
+            def metadataKeys = html.select('.metadata td.key').collect() { it.text() }
+            assertThat("in " + displayName, metadataKeys, equalTo(expectedKeys))
+            return this
+        }
+
+        @Override
+        TestPathRootExecutionResult assertMetadata(List<Map.Entry<String, String>> expectedMetadata) {
+            def metadataKeys = html.select('.metadata td.key').collect() { it.text() }
+            def metadataRenderedValues = html.select('.metadata td.value').collect { it.html()}
+            def metadata = [metadataKeys, metadataRenderedValues].transpose().collect { List<String> it ->
+                Maps.immutableEntry(it[0], it[1])
+            }
+            assertThat("in " + displayName, metadata, equalTo(expectedMetadata))
+            return this
+        }
+
+        @Override
+        TestPathRootExecutionResult assertFileAttachments(Map<String, ShowAs> expectedAttachments) {
+            def fileAttachments = html.select('.attachments tr').findAll { it.getElementsByTag('td').size() > 0 }
+            Map<String, ShowAs> actual = fileAttachments.collectEntries {
+                def columns = it.getElementsByTag("td")
+                assert columns.size() == 2 : "unexpected table"
+                def key = columns[0]
+                def content = columns[1]
+                def shownAs
+                if (content.getElementsByTag("img").size() > 0) {
+                    shownAs = ShowAs.IMAGE
+                } else if (content.getElementsByTag("video").size() > 0) {
+                    shownAs = ShowAs.VIDEO
+                } else if (content.getElementsByTag("a").size() > 0) {
+                    shownAs = ShowAs.LINK
+                } else {
+                    shownAs = null
+                }
+                [key.text(), shownAs]
+            }
+
+            assertThat("in " + displayName, actual, equalTo(expectedAttachments))
+            return this
+        }
+    }
+}

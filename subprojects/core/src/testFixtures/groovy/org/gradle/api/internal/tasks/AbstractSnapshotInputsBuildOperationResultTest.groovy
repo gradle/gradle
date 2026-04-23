@@ -28,7 +28,8 @@ import org.gradle.internal.fingerprint.impl.DefaultFileSystemLocationFingerprint
 import org.gradle.internal.hash.TestHashCodes
 import org.gradle.internal.snapshot.TestSnapshotFixture
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.OsTestPreconditions
+
 import spock.lang.Specification
 
 import static org.gradle.internal.fingerprint.DirectorySensitivity.DEFAULT
@@ -40,7 +41,7 @@ abstract class AbstractSnapshotInputsBuildOperationResultTest<RESULT extends Bas
     abstract RESULT createSnapshotInputsBuildOperationResult(CachingState cachingState, Set<InputFilePropertySpec> inputFilePropertySpecs)
     abstract VISITOR createMockVisitor()
 
-    @Requires(UnitTestPreconditions.NotWindows)
+    @Requires(OsTestPreconditions.NotWindows)
     def "properly visits structure when ignoring directories"() {
         given:
         def visitor = createMockVisitor()
@@ -105,7 +106,7 @@ abstract class AbstractSnapshotInputsBuildOperationResultTest<RESULT extends Bas
         0 * visitor._
     }
 
-    @Requires(UnitTestPreconditions.NotWindows)
+    @Requires(OsTestPreconditions.NotWindows)
     def "properly visits structure when ignoring only the root directory"() {
         given:
         def visitor = createMockVisitor()
@@ -157,7 +158,7 @@ abstract class AbstractSnapshotInputsBuildOperationResultTest<RESULT extends Bas
         0 * visitor._
     }
 
-    @Requires(UnitTestPreconditions.NotWindows)
+    @Requires(OsTestPreconditions.NotWindows)
     def "properly visits structure when not ignoring directories"() {
         given:
         def visitor = createMockVisitor()

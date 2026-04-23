@@ -23,22 +23,37 @@ import java.util.List;
 import java.util.function.BiConsumer;
 
 public class ReplayingTypeValidationContext implements TypeValidationContext {
-    private final List<BiConsumer<String, TypeValidationContext>> problems = new ArrayList<>();
+    private final List<BiConsumer<String, TypeValidationContext>> warnings = new ArrayList<>();
+    private final List<BiConsumer<String, TypeValidationContext>> errors = new ArrayList<>();
 
     @Override
-    public void visitTypeProblem(Action<? super TypeAwareProblemBuilder> problemSpec) {
-        problems.add((ownerProperty, validationContext) -> validationContext.visitTypeProblem(problemSpec));
+    public void visitTypeError(Action<? super TypeAwareProblemBuilder> problemSpec) {
+        errors.add((ownerProperty, validationContext) -> validationContext.visitTypeError(problemSpec));
     }
 
     @Override
-    public void visitPropertyProblem(Action<? super TypeAwareProblemBuilder> problemSpec) {
-        problems.add((ownerProperty, validationContext) -> validationContext.visitPropertyProblem(builder -> {
+    public void visitTypeWarning(Action<? super TypeAwareProblemBuilder> problemSpec) {
+        warnings.add((ownerProperty, validationContext) -> validationContext.visitTypeWarning(problemSpec));
+    }
+
+    @Override
+    public void visitPropertyError(Action<? super TypeAwareProblemBuilder> problemSpec) {
+        errors.add((ownerProperty, validationContext) -> validationContext.visitPropertyError(builder -> {
+            problemSpec.execute(builder);
+            builder.parentProperty(ownerProperty);
+        }));
+    }
+
+    @Override
+    public void visitPropertyWarning(Action<? super TypeAwareProblemBuilder> problemSpec) {
+        warnings.add((ownerProperty, validationContext) -> validationContext.visitPropertyWarning(builder -> {
             problemSpec.execute(builder);
             builder.parentProperty(ownerProperty);
         }));
     }
 
     public void replay(@Nullable String ownerProperty, TypeValidationContext target) {
-        problems.forEach(problem -> problem.accept(ownerProperty, target));
+        warnings.forEach(problem -> problem.accept(ownerProperty, target));
+        errors.forEach(problem -> problem.accept(ownerProperty, target));
     }
 }

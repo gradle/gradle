@@ -53,7 +53,7 @@ public abstract class OutgoingVariantsReportTask extends AbstractConfigurationRe
      */
     @Input
     @Optional
-    @Option(option = "all", description = "Shows all variants, including legacy and deprecated configurations")
+    @Option(option = "all", description = "Shows all variants, including legacy and deprecated configurations, and variants without attributes")
     public abstract Property<Boolean> getShowAll();
 
     @Override

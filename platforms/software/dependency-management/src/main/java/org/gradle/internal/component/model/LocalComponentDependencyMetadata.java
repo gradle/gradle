@@ -33,8 +33,8 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
 
     private final ComponentSelector selector;
     private final @Nullable String dependencyConfiguration;
-    private final List<ExcludeMetadata> excludes;
-    private final List<IvyArtifactName> artifactNames;
+    private final ImmutableList<ExcludeMetadata> excludes;
+    private final ImmutableList<IvyArtifactName> artifactNames;
     private final boolean force;
     private final boolean changing;
     private final boolean transitive;
@@ -46,8 +46,8 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
     public LocalComponentDependencyMetadata(
         ComponentSelector selector,
         @Nullable String dependencyConfiguration,
-        List<IvyArtifactName> artifactNames,
-        List<ExcludeMetadata> excludes,
+        ImmutableList<IvyArtifactName> artifactNames,
+        ImmutableList<ExcludeMetadata> excludes,
         boolean force, boolean changing, boolean transitive, boolean constraint, boolean endorsing,
         @Nullable String reason
     ) {
@@ -57,15 +57,15 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
     public LocalComponentDependencyMetadata(
         ComponentSelector selector,
         @Nullable String dependencyConfiguration,
-        List<IvyArtifactName> artifactNames,
-        List<ExcludeMetadata> excludes,
+        ImmutableList<IvyArtifactName> artifactNames,
+        ImmutableList<ExcludeMetadata> excludes,
         boolean force, boolean changing, boolean transitive,
         boolean constraint, boolean endorsing, boolean fromLock,
         @Nullable String reason
     ) {
         this.selector = selector;
         this.dependencyConfiguration = dependencyConfiguration;
-        this.artifactNames = asImmutable(artifactNames);
+        this.artifactNames = artifactNames;
         this.excludes = excludes;
         this.force = force;
         this.changing = changing;
@@ -74,10 +74,6 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
         this.endorsing = endorsing;
         this.fromLock = fromLock;
         this.reason = reason;
-    }
-
-    private static List<IvyArtifactName> asImmutable(List<IvyArtifactName> artifactNames) {
-        return artifactNames.isEmpty() ? Collections.emptyList() : artifactNames instanceof ImmutableList ? artifactNames : ImmutableList.copyOf(artifactNames);
     }
 
     @Override
@@ -112,7 +108,7 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
     }
 
     @Override
-    public List<ExcludeMetadata> getExcludes() {
+    public ImmutableList<ExcludeMetadata> getExcludes() {
         return excludes;
     }
 
@@ -147,7 +143,7 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
     }
 
     @Override
-    public List<IvyArtifactName> getArtifacts() {
+    public ImmutableList<IvyArtifactName> getArtifacts() {
         return artifactNames;
     }
 
@@ -160,7 +156,7 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
     }
 
     @Override
-    public LocalOriginDependencyMetadata withTargetAndArtifacts(ComponentSelector target, List<IvyArtifactName> artifacts) {
+    public LocalOriginDependencyMetadata withTargetAndArtifacts(ComponentSelector target, ImmutableList<IvyArtifactName> artifacts) {
         if (selector.equals(target) && artifacts.equals(getArtifacts())) {
             return this;
         }
@@ -192,7 +188,7 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
         return new LocalComponentDependencyMetadata(selector, dependencyConfiguration, artifactNames, excludes, force, changing, transitive, constraint, endorsing, fromLock, reason);
     }
 
-    private LocalOriginDependencyMetadata copyWithTargetAndArtifacts(ComponentSelector selector, List<IvyArtifactName> artifactNames) {
+    private LocalOriginDependencyMetadata copyWithTargetAndArtifacts(ComponentSelector selector, ImmutableList<IvyArtifactName> artifactNames) {
         return new LocalComponentDependencyMetadata(selector, dependencyConfiguration, artifactNames, excludes, force, changing, transitive, constraint, endorsing, fromLock, reason);
     }
 

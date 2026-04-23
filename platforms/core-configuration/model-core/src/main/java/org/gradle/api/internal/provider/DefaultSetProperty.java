@@ -26,6 +26,7 @@ import org.jspecify.annotations.Nullable;
 
 import java.util.Collections;
 import java.util.Set;
+import java.util.function.Supplier;
 
 import static org.gradle.internal.Cast.uncheckedNonnullCast;
 
@@ -45,7 +46,17 @@ public class DefaultSetProperty<T> extends AbstractCollectionProperty<T, Set<T>>
     }
 
     public DefaultSetProperty(PropertyHost host, Class<T> elementType) {
-        super(host, Set.class, elementType, Cast.uncheckedNonnullCast(FACTORY));
+        super(host, new ValidatingValueCollector<>(Set.class, elementType, ValueSanitizers.forType(elementType)), elementType);
+    }
+
+    @Override
+    protected final Class<Set<T>> getCollectionType() {
+        return Cast.uncheckedNonnullCast(Set.class);
+    }
+
+    @Override
+    protected final Supplier<ImmutableCollection.Builder<T>> getCollectionFactory() {
+        return Cast.uncheckedNonnullCast(FACTORY);
     }
 
     @Override

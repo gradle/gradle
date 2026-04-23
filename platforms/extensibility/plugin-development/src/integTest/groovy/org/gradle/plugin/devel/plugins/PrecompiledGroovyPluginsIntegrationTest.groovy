@@ -21,7 +21,7 @@ import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheFixtu
 import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import spock.lang.Issue
 
 class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
@@ -919,7 +919,7 @@ class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
         outputContains("from custom task")
     }
 
-    @Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "Requires a Gradle distribution on the test-under-test classpath, but gradleApi() does not offer the full distribution")
+    @Requires(value = TestExecutionPreconditions.NotEmbeddedExecutor, reason = "Requires a Gradle distribution on the test-under-test classpath, but gradleApi() does not offer the full distribution")
     def "can write tests for precompiled script plugins"() {
         given:
         pluginWithSampleTask("src/main/groovy/test-plugin.gradle")
@@ -1118,7 +1118,7 @@ class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
         pluginName << ["org.gradle.my-plugin", "org.gradle"]
     }
 
-    @Requires(IntegTestPreconditions.NotConfigCached)
+    @Requires(TestExecutionPreconditions.NotConfigCached)
     @Issue("https://github.com/gradle/gradle/issues/23267")
     def "hits configuration cache when no changes are present"() {
         given:

@@ -23,7 +23,6 @@ import org.gradle.api.internal.tasks.testing.TestExecutionSpec
 import org.gradle.api.internal.tasks.testing.TestResultProcessor
 import org.gradle.api.internal.tasks.testing.TestStartEvent
 import org.gradle.api.internal.tasks.testing.report.VerifiesGenericTestReportResults
-import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
 import org.gradle.api.tasks.testing.TestFailure
 import org.gradle.api.tasks.testing.TestResult
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
@@ -35,11 +34,6 @@ import static org.hamcrest.Matchers.containsString
  * Integration tests showing the behavior of custom {@link TestExecuter} implementations configured on Test tasks.
  */
 class TestTaskCustomExecuterIntegrationTest extends AbstractIntegrationSpec implements VerifiesGenericTestReportResults {
-    @Override
-    GenericTestExecutionResult.TestFramework getTestFramework() {
-        return GenericTestExecutionResult.TestFramework.CUSTOM
-    }
-
     def setup() {
         buildFile << """
             plugins {
@@ -85,7 +79,7 @@ class TestTaskCustomExecuterIntegrationTest extends AbstractIntegrationSpec impl
         fails("test")
 
         then:
-        failureDescriptionContains("Execution failed for task ':test'.")
+        failureDescriptionContains("Execution failed for task ':test' (registered by plugin 'org.gradle.jvm-test-suite').")
         failureCauseContains("Bad executer always fails")
 
         then:
@@ -122,7 +116,7 @@ class TestTaskCustomExecuterIntegrationTest extends AbstractIntegrationSpec impl
         fails("test")
 
         then:
-        failureDescriptionContains("Execution failed for task ':test'.")
+        failureDescriptionContains("Execution failed for task ':test' (registered by plugin 'org.gradle.jvm-test-suite').")
         failureCauseContains("Bad executer always fails")
 
         resultsFor()
@@ -166,7 +160,7 @@ class TestTaskCustomExecuterIntegrationTest extends AbstractIntegrationSpec impl
         fails("test")
 
         then:
-        failureDescriptionContains("Execution failed for task ':test'.")
+        failureDescriptionContains("Execution failed for task ':test' (registered by plugin 'org.gradle.jvm-test-suite').")
         failureCauseContains("Bad executer always fails")
 
         resultsFor()
@@ -212,7 +206,7 @@ class TestTaskCustomExecuterIntegrationTest extends AbstractIntegrationSpec impl
         fails("test")
 
         then:
-        failureDescriptionContains("Execution failed for task ':test'.")
+        failureDescriptionContains("Execution failed for task ':test' (registered by plugin 'org.gradle.jvm-test-suite').")
         failureCauseContains("Properly failing executer always fails")
 
         resultsFor()
@@ -280,7 +274,7 @@ class TestTaskCustomExecuterIntegrationTest extends AbstractIntegrationSpec impl
         fails("test")
 
         then:
-        failureDescriptionContains("Execution failed for task ':test'.")
+        failureDescriptionContains("Execution failed for task ':test' (registered by plugin 'org.gradle.jvm-test-suite').")
         failureCauseContains("Remote executors cannot be used as no Develocity server is configured. Try setting maxLocalExecutors > 0.")
 
         if (shouldShowFailure) {

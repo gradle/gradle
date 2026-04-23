@@ -18,12 +18,13 @@ package org.gradle.ide.xcode
 
 import org.gradle.ide.xcode.fixtures.AbstractXcodeIntegrationSpec
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.TestEnvironmentPreconditions
+
 
 import static org.gradle.util.Matchers.containsText
 
 class XcodeErrorIntegrationTest extends AbstractXcodeIntegrationSpec {
-    @Requires(UnitTestPreconditions.HasXCode)
+    @Requires(TestEnvironmentPreconditions.HasXCode)
     def "fails to build when project code is broken"() {
         useXcodebuildTool()
 
@@ -43,7 +44,7 @@ class XcodeErrorIntegrationTest extends AbstractXcodeIntegrationSpec {
             .withProject(rootXcodeProject)
             .withScheme("App")
             .fails()
-        failure.assertHasDescription("Execution failed for task ':compileDebugSwift'.")
+        failure.assertHasDescription("Execution failed for task ':compileDebugSwift' (registered by plugin class 'org.gradle.language.swift.plugins.SwiftBasePlugin').")
         failure.assertHasCause("A build operation failed.")
         failure.assertThatCause(containsText("Swift compiler failed while compiling swift file(s)"))
     }

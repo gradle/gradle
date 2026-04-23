@@ -28,6 +28,7 @@ import org.gradle.internal.declarativedsl.dom.fromLanguageTree.toDocument
 import org.gradle.internal.declarativedsl.dom.resolution.DocumentWithResolution
 import org.gradle.internal.declarativedsl.dom.resolution.resolutionContainer
 import org.gradle.internal.declarativedsl.evaluator.checks.DocumentLowLevelResolutionCheck
+import org.gradle.internal.declarativedsl.evaluator.runner.AnalysisStepResult.PassedAnalysisStepResult
 import org.gradle.internal.declarativedsl.evaluator.runner.EvaluationResult.NotEvaluated
 import org.gradle.internal.declarativedsl.evaluator.runner.EvaluationResult.NotEvaluated.StageFailure.PropertyLinkErrors
 import org.gradle.internal.declarativedsl.evaluator.runner.EvaluationResult.NotEvaluated.StageFailure.DocumentCheckFailures
@@ -49,7 +50,7 @@ data class ParseAndResolveResult(
 )
 
 
-abstract class AbstractAnalysisStepRunner : InterpretationSequenceStepRunner<AnalysisStepContext, AnalysisStepResult> {
+abstract class AbstractAnalysisStepRunner : InterpretationSequenceStepRunner<AnalysisStepContext, PassedAnalysisStepResult, AnalysisStepResult> {
     abstract fun parseAndResolve(evaluationSchema: EvaluationSchema, scriptIdentifier: String, scriptSource: String): ParseAndResolveResult
 
     override fun runInterpretationSequenceStep(
@@ -57,10 +58,14 @@ abstract class AbstractAnalysisStepRunner : InterpretationSequenceStepRunner<Ana
         scriptSource: String,
         step: InterpretationSequenceStep,
         stepContext: AnalysisStepContext
-    ): EvaluationResult<AnalysisStepResult> {
+    ): AnalysisEvaluationResult {
         val failureReasons = mutableListOf<NotEvaluated.StageFailure>()
 
         val evaluationSchema = step.evaluationSchemaForStep
+        if (evaluationSchema.analysisSchemaBuildingFailures.isNotEmpty()) {
+            failureReasons += NotEvaluated.StageFailure.SchemaBuildingFailures(evaluationSchema.analysisSchemaBuildingFailures)
+            return NotEvaluated(failureReasons, AnalysisStepResult.FailedSchemaBuilding)
+        }
 
         val parseAndResolveResult = parseAndResolve(evaluationSchema, scriptIdentifier, scriptSource)
         if (parseAndResolveResult.failureReasons.isNotEmpty()) {
@@ -94,7 +99,7 @@ abstract class AbstractAnalysisStepRunner : InterpretationSequenceStepRunner<Ana
             failureReasons += PropertyLinkErrors(propertyLinkIssues)
         }
 
-        val analysisResult = AnalysisStepResult(evaluationSchema, parseAndResolveResult.languageModel, resolution, parseAndResolveResult.resolutionTrace, propertyLinkTrace)
+        val analysisResult = PassedAnalysisStepResult(evaluationSchema, parseAndResolveResult.languageModel, resolution, parseAndResolveResult.resolutionTrace, propertyLinkTrace)
 
         return when {
             failureReasons.isNotEmpty() -> NotEvaluated(failureReasons, partialStepResult = analysisResult)

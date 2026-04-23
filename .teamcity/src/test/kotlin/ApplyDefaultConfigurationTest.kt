@@ -76,12 +76,10 @@ class ApplyDefaultConfigurationTest {
 
         assertEquals(
             listOf(
-                "EC2_BUILD_CUSTOMIZATIONS",
                 "KILL_LEAKED_PROCESSES_FROM_PREVIOUS_BUILDS",
                 "GRADLE_RUNNER",
                 "KILL_PROCESSES_STARTED_BY_GRADLE",
                 "CHECK_CLEAN_M2_ANDROID_USER_HOME",
-                "EC2_POST_BUILD",
             ),
             steps.items.map(BuildStep::name),
         )
@@ -102,7 +100,6 @@ class ApplyDefaultConfigurationTest {
 
         assertEquals(
             listOf(
-                "EC2_BUILD_CUSTOMIZATIONS",
                 "KILL_LEAKED_PROCESSES_FROM_PREVIOUS_BUILDS",
                 "GRADLE_RUNNER",
                 "KILL_ALL_GRADLE_PROCESSES",
@@ -111,7 +108,6 @@ class ApplyDefaultConfigurationTest {
                 "MARK_BUILD_SUCCESSFUL_ON_RETRY_SUCCESS",
                 "KILL_PROCESSES_STARTED_BY_GRADLE",
                 "CHECK_CLEAN_M2_ANDROID_USER_HOME",
-                "EC2_POST_BUILD",
             ),
             steps.items.map(BuildStep::name),
         )

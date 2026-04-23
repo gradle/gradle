@@ -1,8 +1,8 @@
 # ADR-0005 - Introduce a UI architecture module to the core platform
 
-## Date
+## Status
 
-2024-02-07
+- ACCEPTED on 2024-02-07
 
 ## Context
 
@@ -25,10 +25,6 @@ This includes:
 The UI architecture module uses the core runtime architecture module. It provides APIs that are used by the other modules and platforms. 
 
 This ADR does not specify the owner of this new architecture module. However, as a separate module, it can be assigned ownership independently of the other core services.
-
-## Status
-
-ACCEPTED
 
 ## Consequences
 

@@ -18,14 +18,14 @@ package org.gradle.integtests
 
 
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import org.hamcrest.CoreMatchers
 import spock.lang.Issue
 
 import static org.hamcrest.CoreMatchers.containsString
 import static org.hamcrest.MatcherAssert.assertThat
 
-@Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = NOT_EMBEDDED_REASON)
+@Requires(value = TestExecutionPreconditions.NotEmbeddedExecutor, reason = NOT_EMBEDDED_REASON)
 class WrapperProjectIntegrationTest extends AbstractWrapperIntegrationSpec {
     def setup() {
         file("build.gradle") << """

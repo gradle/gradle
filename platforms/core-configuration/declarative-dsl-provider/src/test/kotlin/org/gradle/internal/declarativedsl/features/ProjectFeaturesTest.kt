@@ -1,0 +1,165 @@
+/*
+ * Copyright 2026 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.gradle.internal.declarativedsl.features
+
+import org.gradle.api.Plugin
+import org.gradle.api.Project
+import org.gradle.api.initialization.Settings
+import org.gradle.features.binding.BuildModel
+import org.gradle.features.binding.Definition
+import org.gradle.features.binding.ProjectFeatureApplyAction
+import org.gradle.features.internal.binding.ProjectFeatureBindingDeclaration
+import org.gradle.features.binding.TargetTypeInformation
+import org.gradle.declarative.dsl.schema.ProjectFeatureOrigin
+import org.gradle.internal.declarativedsl.analysis.analyzeEverything
+import org.gradle.internal.declarativedsl.common.gradleDslGeneralSchema
+import org.gradle.internal.declarativedsl.evaluationSchema.buildEvaluationAndConversionSchema
+import org.gradle.internal.declarativedsl.evaluationSchema.buildEvaluationSchema
+import org.gradle.features.internal.binding.ModelDefault
+import org.gradle.features.internal.binding.ProjectFeatureApplyActionFactory
+import org.gradle.features.internal.binding.ProjectFeatureImplementation
+import org.gradle.features.internal.binding.ProjectFeatureDeclarations
+import org.gradle.internal.declarativedsl.schemaUtils.typeFor
+import org.junit.Assert
+import org.junit.Assert.assertTrue
+import org.junit.Test
+import org.mockito.kotlin.mock
+
+
+class ProjectFeaturesTest {
+    @Test
+    fun `project types are added to the schema along with their supertypes`() {
+        val registryMock = mock<ProjectFeatureDeclarations> { mock ->
+            on(mock.projectFeatureImplementations).thenReturn(
+                setOf(
+                    setOf(
+                        object : ProjectFeatureImplementation<Subtype, ModelType> {
+                            override fun getFeatureName(): String = "subtype"
+                            override fun getDefinitionPublicType(): Class<Subtype> = Subtype::class.java
+                            override fun getDefinitionImplementationType(): Class<out Subtype> = definitionPublicType
+                            override fun getTargetDefinitionType(): TargetTypeInformation<*> = TargetTypeInformation.DefinitionTargetTypeInformation(Project::class.java)
+                            override fun getDefinitionSafety(): ProjectFeatureBindingDeclaration.Safety = ProjectFeatureBindingDeclaration.Safety.UNSAFE
+                            override fun getApplyActionSafety(): ProjectFeatureBindingDeclaration.Safety = ProjectFeatureBindingDeclaration.Safety.UNSAFE
+                            override fun getBuildModelType(): Class<ModelType> = ModelType::class.java
+                            override fun getBuildModelImplementationType(): Class<out ModelType> = buildModelType
+                            override fun getNestedBuildModelTypes(): Map<Class<*>, Class<*>> = emptyMap()
+                            override fun getPluginClass(): Class<out Plugin<Project>> = SubtypePlugin::class.java
+                            override fun getRegisteringPluginClass(): Class<out Plugin<Settings>> = SubtypeEcosystemPlugin::class.java
+                            override fun getRegisteringPluginId(): String = "com.example.test"
+                            override fun getApplyActionFactory(): ProjectFeatureApplyActionFactory<Subtype, ModelType, Project> =
+                                ProjectFeatureApplyActionFactory { _ -> ProjectFeatureApplyAction { _, _, _, _ -> } }
+
+                            override fun addModelDefault(rule: ModelDefault<*>) = Unit
+                            override fun <V : ModelDefault.Visitor<*>> visitModelDefaults(type: Class<out ModelDefault<V>>, visitor: V) = Unit
+                        },
+                    ),
+                    setOf(
+                        // Another feature with the same definition type and a different name + target
+                        object : ProjectFeatureImplementation<Subtype, ModelType> {
+                            override fun getFeatureName(): String = "safeFeature"
+                            override fun getDefinitionPublicType(): Class<Subtype> = Subtype::class.java
+                            override fun getDefinitionImplementationType(): Class<out Subtype> = definitionPublicType
+                            override fun getTargetDefinitionType(): TargetTypeInformation<*> = TargetTypeInformation.DefinitionTargetTypeInformation(Supertype::class.java)
+                            override fun getDefinitionSafety(): ProjectFeatureBindingDeclaration.Safety = ProjectFeatureBindingDeclaration.Safety.SAFE
+                            override fun getApplyActionSafety(): ProjectFeatureBindingDeclaration.Safety = ProjectFeatureBindingDeclaration.Safety.SAFE
+                            override fun getBuildModelType(): Class<ModelType> = ModelType::class.java
+                            override fun getBuildModelImplementationType(): Class<out ModelType> = buildModelType
+                            override fun getNestedBuildModelTypes(): Map<Class<*>, Class<*>> = emptyMap()
+
+                            override fun getPluginClass(): Class<out Plugin<Project>> = SubtypePlugin::class.java
+                            override fun getRegisteringPluginClass(): Class<out Plugin<Settings>> = SubtypeEcosystemPlugin::class.java
+                            override fun getRegisteringPluginId(): String = "com.example.test"
+                            override fun getApplyActionFactory(): ProjectFeatureApplyActionFactory<Subtype, ModelType, Project> =
+                                ProjectFeatureApplyActionFactory { _ -> ProjectFeatureApplyAction { _, _, _, _ -> } }
+
+                            override fun addModelDefault(rule: ModelDefault<*>) = Unit
+                            override fun <V : ModelDefault.Visitor<*>> visitModelDefaults(type: Class<out ModelDefault<V>>, visitor: V) = Unit
+                        }
+                    ),
+                ).associateBy { it.first().getFeatureName() }
+            )
+        }
+
+        val schemaForSettings = buildEvaluationSchema(TopLevel::class, analyzeEverything) {
+            gradleDslGeneralSchema()
+            projectFeaturesDefaultsComponent(TopLevel::class, registryMock)
+        }
+
+        val schemaForProject = buildEvaluationAndConversionSchema(TopLevel::class, analyzeEverything) {
+            gradleDslGeneralSchema()
+            projectFeaturesComponent(TopLevel::class, registryMock, withDefaultsApplication = false)
+        }
+
+        listOf(schemaForSettings, schemaForProject).forEach { schema ->
+            assertTrue(schema.analysisSchema.dataClassTypesByFqName.any { it.key.qualifiedName == Supertype::class.qualifiedName })
+
+            assertTrue(schema.analysisSchema.dataClassTypesByFqName.any { it.key.qualifiedName == Any::class.qualifiedName })
+            assertTrue(schema.analysisSchema.dataClassTypesByFqName.any { it.value.javaTypeName == "java.lang.Object" })
+        }
+
+        fun ProjectFeatureOrigin.validateSubtypeFeature() {
+            Assert.assertEquals("subtype", featureName)
+            Assert.assertEquals(SubtypePlugin::class.java.name, featurePluginClassName)
+            Assert.assertEquals(SubtypeEcosystemPlugin::class.java.name, ecosystemPluginClassName)
+            Assert.assertEquals("com.example.test", ecosystemPluginId)
+            Assert.assertEquals(Project::class.java.name, targetDefinitionClassName)
+            Assert.assertNull(targetBuildModelClassName)
+            Assert.assertFalse(isSafeDefinition)
+        }
+        fun ProjectFeatureOrigin.validateSafeFeature() {
+            Assert.assertEquals("safeFeature", featureName)
+            Assert.assertEquals(SubtypePlugin::class.java.name, featurePluginClassName)
+            Assert.assertEquals(SubtypeEcosystemPlugin::class.java.name, ecosystemPluginClassName)
+            Assert.assertEquals("com.example.test", ecosystemPluginId)
+            Assert.assertEquals(Supertype::class.java.name, targetDefinitionClassName)
+            Assert.assertNull(targetBuildModelClassName)
+            Assert.assertTrue(isSafeDefinition)
+        }
+
+        val schema = schemaForProject.analysisSchema
+
+        schema.topLevelReceiverType.memberFunctions.single { it.simpleName == "subtype" }.metadata.filterIsInstance<ProjectFeatureOrigin>().run {
+            single { it.featureName == "subtype" }.validateSubtypeFeature()
+        }
+        schema.typeFor<Supertype>().memberFunctions.single { it.simpleName == "safeFeature" }.metadata.filterIsInstance<ProjectFeatureOrigin>().run {
+            single { it.featureName == "safeFeature" }.validateSafeFeature()
+        }
+
+        schema.typeFor<Subtype>().metadata.filterIsInstance<ProjectFeatureOrigin>().run {
+            single { it.featureName == "subtype" }.validateSubtypeFeature()
+            single { it.featureName == "safeFeature" }.validateSafeFeature()
+        }
+    }
+
+    internal
+    interface TopLevel
+
+    internal
+    interface Supertype : Definition<ModelType>
+
+    internal
+    interface Subtype : Supertype
+
+    internal
+    interface ModelType : BuildModel
+
+    internal
+    interface SubtypePlugin : Plugin<Project>
+
+    internal
+    interface SubtypeEcosystemPlugin : Plugin<Settings>
+}

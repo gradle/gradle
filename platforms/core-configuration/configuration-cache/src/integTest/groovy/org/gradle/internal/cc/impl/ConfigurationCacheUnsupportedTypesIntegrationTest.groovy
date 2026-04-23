@@ -40,11 +40,7 @@ import org.gradle.api.artifacts.dsl.DependencyLockingHandler
 import org.gradle.api.artifacts.dsl.RepositoryHandler
 import org.gradle.api.artifacts.query.ArtifactResolutionQuery
 import org.gradle.api.artifacts.repositories.ArtifactRepository
-import org.gradle.api.artifacts.result.ArtifactResolutionResult
-import org.gradle.api.artifacts.result.ArtifactResult
-import org.gradle.api.artifacts.result.ComponentArtifactsResult
 import org.gradle.api.artifacts.result.ResolutionResult
-import org.gradle.api.artifacts.result.UnresolvedComponentResult
 import org.gradle.api.artifacts.type.ArtifactTypeContainer
 import org.gradle.api.attributes.AttributeMatchingStrategy
 import org.gradle.api.attributes.AttributesSchema
@@ -59,8 +55,8 @@ import org.gradle.api.internal.artifacts.DefaultResolvedArtifact
 import org.gradle.api.internal.artifacts.DefaultResolvedDependency
 import org.gradle.api.internal.artifacts.configurations.DefaultConfiguration.ConfigurationResolvableDependencies
 import org.gradle.api.internal.artifacts.configurations.DefaultConfigurationContainer
-import org.gradle.api.internal.artifacts.configurations.DefaultResolvableConfiguration
 import org.gradle.api.internal.artifacts.configurations.DefaultLegacyConfiguration
+import org.gradle.api.internal.artifacts.configurations.DefaultResolvableConfiguration
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
 import org.gradle.api.internal.artifacts.dsl.DefaultComponentMetadataHandler
 import org.gradle.api.internal.artifacts.dsl.DefaultComponentModuleMetadataHandler
@@ -73,11 +69,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultRe
 import org.gradle.api.internal.artifacts.query.DefaultArtifactResolutionQuery
 import org.gradle.api.internal.artifacts.repositories.DefaultMavenArtifactRepository
 import org.gradle.api.internal.artifacts.resolver.DefaultResolutionOutputs.DefaultArtifactView
-import org.gradle.api.internal.artifacts.result.DefaultArtifactResolutionResult
-import org.gradle.api.internal.artifacts.result.DefaultComponentArtifactsResult
 import org.gradle.api.internal.artifacts.result.DefaultResolutionResult
-import org.gradle.api.internal.artifacts.result.DefaultResolvedArtifactResult
-import org.gradle.api.internal.artifacts.result.DefaultUnresolvedComponentResult
 import org.gradle.api.internal.artifacts.type.DefaultArtifactTypeContainer
 import org.gradle.api.internal.attributes.DefaultAttributeMatchingStrategy
 import org.gradle.api.internal.attributes.DefaultAttributesSchema
@@ -103,7 +95,8 @@ import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.locking.DefaultDependencyLockingHandler
 import org.gradle.invocation.DefaultGradle
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.JdkVersionTestPreconditions
+
 import spock.lang.Shared
 
 import java.util.concurrent.Executor
@@ -324,10 +317,6 @@ class ConfigurationCacheUnsupportedTypesIntegrationTest extends AbstractConfigur
         DefaultResolvedDependency             | ResolvedDependency             | "project.configurations.create(java.util.UUID.randomUUID().toString()).tap { project.dependencies.add(name, 'junit:junit:4.13') }.resolvedConfiguration.firstLevelModuleDependencies.first()"
         DefaultResolvedArtifact               | ResolvedArtifact               | "project.configurations.create(java.util.UUID.randomUUID().toString()).tap { project.dependencies.add(name, 'junit:junit:4.13') }.resolvedConfiguration.resolvedArtifacts.first()"
         DefaultArtifactView                   | ArtifactView                   | "project.configurations.maybeCreate('some').incoming.artifactView {}"
-        DefaultArtifactResolutionResult       | ArtifactResolutionResult       | "project.dependencies.createArtifactResolutionQuery().forModule('junit', 'junit', '4.13').withArtifacts(JvmLibrary).execute()"
-        DefaultComponentArtifactsResult       | ComponentArtifactsResult       | "project.dependencies.createArtifactResolutionQuery().forModule('junit', 'junit', '4.13').withArtifacts(JvmLibrary).execute().components.first()"
-        DefaultUnresolvedComponentResult      | UnresolvedComponentResult      | "project.dependencies.createArtifactResolutionQuery().forModule('junit', 'junit', '100').withArtifacts(JvmLibrary).execute().components.first()"
-        DefaultResolvedArtifactResult         | ArtifactResult                 | "project.dependencies.createArtifactResolutionQuery().forModule('junit', 'junit', '4.13').withArtifacts(JvmLibrary, SourcesArtifact).execute().components.first().getArtifacts(SourcesArtifact).first()"
 
         // direct BuildService reference, build services must always be referenced via their providers
         'SomeBuildService'                    | BuildService                   | "project.gradle.sharedServices.registerIfAbsent('service', SomeBuildService) {}.get()"
@@ -418,7 +407,7 @@ class ConfigurationCacheUnsupportedTypesIntegrationTest extends AbstractConfigur
         DefaultSourceDirectorySet      | SourceDirectorySet | ""                                          | "project.objects.sourceDirectorySet('some', 'more')" | 'file tree'
     }
 
-    @Requires(UnitTestPreconditions.Jdk14OrLater)
+    @Requires(JdkVersionTestPreconditions.Jdk14OrLater)
     def "reports when task field references a record containing type #baseType"() {
         file("buildSrc/src/main/java/JavaRecord.java") << """
             public record JavaRecord(${baseType.name} value, int filler) {}
@@ -499,7 +488,7 @@ class ConfigurationCacheUnsupportedTypesIntegrationTest extends AbstractConfigur
         concreteTypeName = concreteType instanceof Class ? concreteType.name : concreteType
     }
 
-    @Requires(UnitTestPreconditions.Jdk14OrLater)
+    @Requires(JdkVersionTestPreconditions.Jdk14OrLater)
     def "reports when task field is declared with record containing type #baseType"() {
         file("buildSrc/src/main/java/JavaRecord.java") << """
             public record JavaRecord(${baseType.name} value, int filler) {}

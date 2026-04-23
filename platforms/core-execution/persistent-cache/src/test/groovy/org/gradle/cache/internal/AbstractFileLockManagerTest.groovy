@@ -28,7 +28,8 @@ import org.gradle.internal.concurrent.CompositeStoppable
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.FileSystemTestPreconditions
+
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -408,7 +409,7 @@ abstract class AbstractFileLockManagerTest extends Specification {
         mode << [Shared, Exclusive]
     }
 
-    @Requires(UnitTestPreconditions.NoMandatoryFileLockOnOpen)
+    @Requires(FileSystemTestPreconditions.NoMandatoryFileLockOnOpen)
     def "writes lock file with info region while exclusive lock is open"() {
         expect:
         def lock = createLock(Exclusive)
@@ -420,7 +421,7 @@ abstract class AbstractFileLockManagerTest extends Specification {
         lock?.close()
     }
 
-    @Requires(UnitTestPreconditions.NoMandatoryFileLockOnOpen)
+    @Requires(FileSystemTestPreconditions.NoMandatoryFileLockOnOpen)
     def "writes dirty lock file with info region while updating file"() {
         given:
         writeFile()
@@ -442,7 +443,7 @@ abstract class AbstractFileLockManagerTest extends Specification {
         lock?.close()
     }
 
-    @Requires(UnitTestPreconditions.NoMandatoryFileLockOnOpen)
+    @Requires(FileSystemTestPreconditions.NoMandatoryFileLockOnOpen)
     def "long descriptor strings are trimmed when written to information region"() {
         setup:
         def customMetaDataProvider = Mock(ProcessMetaDataProvider)

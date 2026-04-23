@@ -1,0 +1,26 @@
+plugins {
+    id 'java-library'
+}
+
+// tag::use_catalog_entries[]
+dependencies {
+    // Provider<MinimalExternalModuleDependency>
+    implementation(libs.groovy.core)
+    // MinimalExternalModuleDependency
+    implementation(libs.groovy.core.get())
+}
+// end::use_catalog_entries[]
+
+// tag::use_provider_in_apis[]
+configurations.configureEach {
+    resolutionStrategy.dependencySubstitution {
+        all {
+            if (requested instanceof ModuleComponentSelector
+                && requested.group == "org.codehaus.groovy"
+                && requested.module == "groovy-all") {
+                useTarget(libs.groovy.core)
+            }
+        }
+    }
+}
+// end::use_provider_in_apis[]

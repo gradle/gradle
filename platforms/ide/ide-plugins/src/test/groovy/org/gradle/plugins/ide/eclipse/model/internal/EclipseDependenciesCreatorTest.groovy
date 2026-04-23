@@ -49,7 +49,7 @@ class EclipseDependenciesCreatorTest extends AbstractProjectBuilderSpec {
         eclipseClasspath.plusConfigurations = [project.configurations.compileClasspath, project.configurations.runtimeClasspath, project.configurations.testCompileClasspath, project.configurations.testRuntimeClasspath]
 
         when:
-        project.dependencies.add('implementation', childProject)
+        project.dependencies.add('implementation', project.getDependencyFactory().createProjectDependency(childProject.path))
         def result = dependenciesProvider.createDependencyEntries()
 
         then:
@@ -66,7 +66,7 @@ class EclipseDependenciesCreatorTest extends AbstractProjectBuilderSpec {
         eclipseClasspath.plusConfigurations = [project.configurations.compileClasspath, project.configurations.runtimeClasspath, project.configurations.testCompileClasspath, project.configurations.testRuntimeClasspath]
 
         when:
-        project.dependencies.add('testImplementation', project)
+        project.dependencies.add('testImplementation', project.getDependencyFactory().createProjectDependency())
         def result = dependenciesProvider.createDependencyEntries()
 
         then:

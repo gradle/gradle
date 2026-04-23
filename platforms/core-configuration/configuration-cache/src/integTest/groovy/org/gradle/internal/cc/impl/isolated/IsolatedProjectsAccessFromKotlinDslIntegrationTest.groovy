@@ -164,7 +164,7 @@ class IsolatedProjectsAccessFromKotlinDslIntegrationTest extends AbstractIsolate
     }
 
     @Issue("https://github.com/gradle/gradle/issues/28204")
-    def "access to #description delegated property value is causing a violation"() {
+    def "access to #description project property value is causing a violation"() {
         given:
         settingsFile << """
             include("a")
@@ -175,7 +175,7 @@ class IsolatedProjectsAccessFromKotlinDslIntegrationTest extends AbstractIsolate
 
         // Requires a sub-project
         file("a/build.gradle.kts") << """
-            val myProperty: $type by project
+            val myProperty = $expression
             println("myProperty: " + myProperty) // actual access to the value is required to trigger a lookup
         """
 
@@ -191,8 +191,8 @@ class IsolatedProjectsAccessFromKotlinDslIntegrationTest extends AbstractIsolate
         }
 
         where:
-        description    | type
-        "nullable"     | "String?"
-        "non-nullable" | "String"
+        description    | expression
+        "nullable"     | 'project.findProperty("myProperty") as String?'
+        "non-nullable" | 'project.property("myProperty") as String'
     }
 }

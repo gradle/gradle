@@ -19,10 +19,10 @@ package org.gradle.integtests.composite
 import org.gradle.api.internal.tasks.execution.ExecuteTaskBuildOperationType
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import org.junit.Rule
 
-@Requires(IntegTestPreconditions.NotParallelExecutor)
+@Requires(TestExecutionPreconditions.NotParallelExecutor)
 class CompositeBuildParallelIntegrationTest extends AbstractCompositeBuildIntegrationTest {
     @Rule BlockingHttpServer server = new BlockingHttpServer()
 

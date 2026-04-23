@@ -449,7 +449,8 @@ class BuildModelParametersProviderTest extends Specification {
 
     def "display map contains all parameter getters"() {
         def expectedGetterCount =
-            BuildModelParameters.methods.count { it.name.matches(/^(is|get)[A-Z].*/) && it.name != 'getClass' }
+            BuildModelParameters.methods.count { it.name.matches(/^(is|get)[A-Z].*/) && it.name != 'getClass' } -
+                1 // isVintage helper
 
         expect:
         def params = parameters(runsTasks: true, createsModel: false)

@@ -49,7 +49,7 @@ public interface WorkerLeaseService extends WorkerLeaseRegistry, ProjectLeaseReg
      * the new lock is released and the old locks reacquired.
      * If a lock cannot be immediately (re)acquired, the current worker lease will be released and the method will block until the locks are (re)acquired.
      */
-    <T> T withReplacedLocks(Collection<? extends ResourceLock> currentLocks, ResourceLock newLock, Factory<T> factory);
+    <T extends @Nullable Object> T withReplacedLocks(Collection<? extends ResourceLock> currentLocks, ResourceLock newLock, Factory<T> factory);
 
     /**
      * Runs a given {@link Factory} while the specified locks are released and then reacquire the locks

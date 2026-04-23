@@ -52,8 +52,8 @@ Platforms are also commonly published as Maven BOMs (Bill of Materials), which G
 To use a platform, declare a dependency with the `platform` keyword:
 
 ====
-include::sample[dir="snippets/java-platform/recommender/kotlin/consumer",files="build.gradle.kts[tags=get-recommendations]"]
-include::sample[dir="snippets/java-platform/recommender/groovy/consumer",files="build.gradle[tags=get-recommendations]"]
+include::sample[dir="snippets/reference/dependency-management/centralizing-dependencies/recommender/kotlin/consumer",files="build.gradle.kts[tags=get-recommendations]"]
+include::sample[dir="snippets/reference/dependency-management/centralizing-dependencies/recommender/groovy/consumer",files="build.gradle[tags=get-recommendations]"]
 ====
 
 This notation automatically performs several actions:
@@ -68,8 +68,8 @@ If <<dependency_versions.adoc#sec:strict-version,strict version>> enforcement is
 In Java projects, the `java-platform` plugin combined with <<dependency_constraints.adoc#dependency-constraints,dependency constraints>> can be used to create a platform:
 
 ====
-include::sample[dir="snippets/java-platform/recommender/kotlin/platform",files="build.gradle.kts[tags=full-platform]"]
-include::sample[dir="snippets/java-platform/recommender/groovy/platform",files="build.gradle[tags=full-platform]"]
+include::sample[dir="snippets/reference/dependency-management/centralizing-dependencies/recommender/kotlin/platform",files="build.gradle.kts[tags=full-platform]"]
+include::sample[dir="snippets/reference/dependency-management/centralizing-dependencies/recommender/groovy/platform",files="build.gradle[tags=full-platform]"]
 ====
 
 This defines a custom platform with specific versions of `commons-httpclient` and `commons-lang3` that can be applied in other projects.
@@ -90,8 +90,8 @@ Gradle treats all entries in the block of a BOM similar to <<dependency_constrai
 To import a BOM, declare a dependency on it using the `platform` dependency modifier method:
 
 ====
-include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-constraintsFromBOM/kotlin",files="build.gradle.kts[tags=dependency-on-bom]"]
-include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-constraintsFromBOM/groovy",files="build.gradle[tags=dependency-on-bom]"]
+include::sample[dir="snippets/reference/dependency-management/centralizing-dependencies/managingTransitiveDependencies-constraintsFromBOM/kotlin",files="build.gradle.kts[tags=dependency-on-bom]"]
+include::sample[dir="snippets/reference/dependency-management/centralizing-dependencies/managingTransitiveDependencies-constraintsFromBOM/groovy",files="build.gradle[tags=dependency-on-bom]"]
 ====
 
 In this example, the Spring Boot BOM provides the versions for `gson` and `dom4j`, so no explicit versions are needed.
@@ -102,8 +102,8 @@ In this example, the Spring Boot BOM provides the versions for `gson` and `dom4j
 The `enforcedPlatform` keyword can be used to override any versions found in the dependency graph, but should be used with caution as it is effectively transitive and exports forced versions to all consumers of your project:
 
 ====
-include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-enforcedConstraintsFromBOM/kotlin",files="build.gradle.kts[tags=dependency-on-bom]"]
-include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-enforcedConstraintsFromBOM/groovy",files="build.gradle[tags=dependency-on-bom]"]
+include::sample[dir="snippets/reference/dependency-management/centralizing-dependencies/managingTransitiveDependencies-enforcedConstraintsFromBOM/kotlin",files="build.gradle.kts[tags=dependency-on-bom]"]
+include::sample[dir="snippets/reference/dependency-management/centralizing-dependencies/managingTransitiveDependencies-enforcedConstraintsFromBOM/groovy",files="build.gradle[tags=dependency-on-bom]"]
 ====
 
 When using `enforcedPlatform`, exercise caution if your software component is intended for consumption by others.

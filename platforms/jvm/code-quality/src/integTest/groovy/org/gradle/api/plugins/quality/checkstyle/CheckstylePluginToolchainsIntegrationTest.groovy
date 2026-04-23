@@ -16,6 +16,7 @@
 
 package org.gradle.api.plugins.quality.checkstyle
 
+import org.gradle.api.JavaVersion
 import org.gradle.api.specs.Spec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
@@ -25,7 +26,8 @@ import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.jvm.inspection.JvmInstallationMetadata
 import org.gradle.quality.integtest.fixtures.CheckstyleCoverage
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
+import org.gradle.test.preconditions.InstalledJdkTestPreconditions
 import org.hamcrest.Matcher
 import spock.lang.Issue
 
@@ -164,7 +166,7 @@ class CheckstylePluginToolchainsIntegrationTest extends MultiVersionIntegrationS
         file("build/reports/checkstyle/main.html").assertExists()
     }
 
-    @Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "explicit locale")
+    @Requires(value = TestExecutionPreconditions.NotEmbeddedExecutor, reason = "explicit locale")
     def "analyze bad code with the toolchain JDK"() {
         executer.withDefaultLocale(new Locale('en'))
         badCode()
@@ -175,7 +177,7 @@ class CheckstylePluginToolchainsIntegrationTest extends MultiVersionIntegrationS
         expect:
         fails("checkstyleMain")
         outputContains("Running checkstyle with toolchain '${jdk.javaHome.absolutePath}'.")
-        failure.assertHasDescription("Execution failed for task ':checkstyleMain'.")
+        failure.assertHasDescription("Execution failed for task ':checkstyleMain' (registered by plugin 'org.gradle.checkstyle').")
         failure.assertHasErrorOutput("Name 'class1' must match pattern")
         failure.assertHasResolutions(SCAN)
         file("build/reports/checkstyle/main.xml").assertContents(containsClass("org.gradle.class1"))
@@ -183,6 +185,46 @@ class CheckstylePluginToolchainsIntegrationTest extends MultiVersionIntegrationS
 
         file("build/reports/checkstyle/main.html").assertContents(containsClass("org.gradle.class1"))
         file("build/reports/checkstyle/main.html").assertContents(containsClass("org.gradle.class2"))
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/34759")
+    @Requires(InstalledJdkTestPreconditions.Java8HomeAvailable)
+    def "fails with helpful error when using incompatible Java 8 toolchain with Checkstyle 10.x"() {
+        given:
+        goodCode()
+        writeDummyConfig()
+        def java8 = AvailableJavaHomes.getJdk(JavaVersion.VERSION_1_8)
+        withInstallations(java8)
+
+        buildFile << """
+            plugins {
+                id 'java'
+                id 'checkstyle'
+            }
+
+            java {
+                toolchain {
+                    languageVersion = JavaLanguageVersion.of(8)
+                }
+            }
+
+            checkstyle {
+                toolVersion = '10.24.0'  // Requires Java 11+, incompatible with Java 8 toolchain
+            }
+
+            repositories {
+                ${mavenCentralRepository()}
+            }
+        """
+
+        when:
+        fails("checkstyleMain")
+
+        then:
+        failure.assertHasDescription("Execution failed for task ':checkstyleMain' (registered by plugin 'org.gradle.checkstyle').")
+        failure.assertHasCause("Checkstyle 10.24.0 is not compatible with the configured JVM (1.8).")
+        failure.assertHasResolution("Find a compatible version of Checkstyle at https://checkstyle.org/releasenotes.html.")
+        failure.assertHasResolution("Configure the toolchain used by Checkstyle at https://docs.gradle.org/current/userguide/checkstyle_plugin.html#sec:checkstyle_configuration.")
     }
 
     Jvm setupExecutorForToolchains() {

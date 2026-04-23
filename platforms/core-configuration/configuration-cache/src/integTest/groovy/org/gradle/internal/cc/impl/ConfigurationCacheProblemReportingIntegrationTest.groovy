@@ -560,7 +560,7 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
             withProblem("Task `:broken` of type `org.gradle.api.DefaultTask`: cannot serialize object of type 'org.gradle.api.internal.project.DefaultProject', a subtype of 'org.gradle.api.Project', as these are not supported with the configuration cache.")
             problemsWithStackTraceCount = 0
         }
-        failure.assertHasDescription("Execution failed for task ':broken'.")
+        failure.assertHasDescription("Execution failed for task ':broken' (registered in build file 'build.gradle').")
         failure.assertHasCause("BOOM")
         failure.assertHasFailures(2)
 
@@ -575,7 +575,7 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
             withProblem("Task `:broken` of type `org.gradle.api.DefaultTask`: cannot serialize object of type 'org.gradle.api.internal.project.DefaultProject', a subtype of 'org.gradle.api.Project', as these are not supported with the configuration cache.")
             problemsWithStackTraceCount = 0
         }
-        failure.assertHasDescription("Execution failed for task ':broken'.")
+        failure.assertHasDescription("Execution failed for task ':broken' (registered in build file 'build.gradle').")
         failure.assertHasCause("BOOM")
         failure.assertHasFailures(1)
 
@@ -589,7 +589,7 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
             withProblem("Task `:broken` of type `org.gradle.api.DefaultTask`: cannot deserialize object of type 'org.gradle.api.Project' as these are not supported with the configuration cache.")
             problemsWithStackTraceCount = 0
         }
-        failure.assertHasDescription("Execution failed for task ':broken'.")
+        failure.assertHasDescription("Execution failed for task ':broken' (registered in build file 'build.gradle').")
         failure.assertHasCause("BOOM")
         failure.assertHasFailures(2)
     }

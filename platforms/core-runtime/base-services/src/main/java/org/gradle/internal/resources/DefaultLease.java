@@ -40,9 +40,18 @@ public class DefaultLease extends AbstractTrackedResourceLock {
     @Override
     protected boolean acquireLock() {
         if (parent.grantLease()) {
-            ownerThread = Thread.currentThread();
+            doAcquireLock();
         }
         return ownerThread != null;
+    }
+
+    protected void doForceAcquireLock() {
+        parent.forceGrantLease();
+        doAcquireLock();
+    }
+
+    private void doAcquireLock() {
+        ownerThread = Thread.currentThread();
     }
 
     @Override

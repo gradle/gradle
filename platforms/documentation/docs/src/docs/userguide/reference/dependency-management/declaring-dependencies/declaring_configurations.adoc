@@ -63,8 +63,8 @@ These configurations help organize and categorize dependencies for different par
 For example, to express a dependency on another project, you would use a *declarable configurations* like `implementation`:
 
 ====
-include::sample[dir="snippets/dependencyManagement/attributeMatching/kotlin",files="build.gradle.kts[tags=declare-configuration]"]
-include::sample[dir="snippets/dependencyManagement/attributeMatching/groovy",files="build.gradle[tags=declare-configuration]"]
+include::sample[dir="snippets/reference/dependency-management/declaring-dependencies/attributeMatching/kotlin",files="build.gradle.kts[tags=declare-configuration]"]
+include::sample[dir="snippets/reference/dependency-management/declaring-dependencies/attributeMatching/groovy",files="build.gradle[tags=declare-configuration]"]
 ====
 
 *Configurations used for declaring dependencies* define and manage the specific libraries or projects your code requires for tasks such as compilation or testing.
@@ -81,8 +81,8 @@ When resolved, they represent the classpaths needed for compilation and runtime,
 The following shows three different APIs available to create a resolvable configuration called `compileClasspath`:
 
 ====
-include::sample[dir="snippets/dependencyManagement/attributeMatching/kotlin",files="build.gradle.kts[tags=concrete-classpath]"]
-include::sample[dir="snippets/dependencyManagement/attributeMatching/groovy",files="build.gradle[tags=concrete-classpath]"]
+include::sample[dir="snippets/reference/dependency-management/declaring-dependencies/attributeMatching/kotlin",files="build.gradle.kts[tags=concrete-classpath]"]
+include::sample[dir="snippets/reference/dependency-management/declaring-dependencies/attributeMatching/groovy",files="build.gradle[tags=concrete-classpath]"]
 ====
 
 *Resolvable configurations* are those that can be resolved to produce a set of files or artifacts.
@@ -99,8 +99,8 @@ For example, the `exposedApi` configuration is a **consumable configuration** th
 The following shows three different APIs available to create a consumable configuration called `exposedApi`:
 
 ====
-include::sample[dir="snippets/dependencyManagement/attributeMatching/kotlin",files="build.gradle.kts[tags=setup-configurations]"]
-include::sample[dir="snippets/dependencyManagement/attributeMatching/groovy",files="build.gradle[tags=setup-configurations]"]
+include::sample[dir="snippets/reference/dependency-management/declaring-dependencies/attributeMatching/kotlin",files="build.gradle.kts[tags=setup-configurations]"]
+include::sample[dir="snippets/reference/dependency-management/declaring-dependencies/attributeMatching/groovy",files="build.gradle[tags=setup-configurations]"]
 ====
 
 A library typically provides consumable configurations like `apiElements` (for compilation) and `runtimeElements` (for runtime dependencies).
@@ -130,8 +130,8 @@ When you apply the Java or Java Library (`java`, `java-library`, `application`) 
 - `apiElements` (`java-library` only) and `runtimeElements`.
 
 ====
-include::sample[dir="snippets/artifacts/dependencyBasics/kotlin",files="build.gradle.kts[tags=configurations]"]
-include::sample[dir="snippets/artifacts/dependencyBasics/groovy",files="build.gradle[tags=configurations]"]
+include::sample[dir="snippets/reference/dependency-management/declaring-dependencies/dependencyBasics/kotlin",files="build.gradle.kts[tags=configurations]"]
+include::sample[dir="snippets/reference/dependency-management/declaring-dependencies/dependencyBasics/groovy",files="build.gradle[tags=configurations]"]
 ====
 
 There is a relationship between these configurations.
@@ -174,8 +174,8 @@ These are used internally by AGP tasks such as `compileDebugJavaWithJavac` or `m
 These control what other modules receive when they declare a dependency on a particular variant of your library.
 
 ====
-include::sample[dir="snippets/dependencyManagement/declaringConfigurations-android/kotlin",files="build.gradle.kts[tags=configurations]"]
-include::sample[dir="snippets/dependencyManagement/declaringConfigurations-android/groovy",files="build.gradle[tags=configurations]"]
+include::sample[dir="snippets/reference/dependency-management/declaring-dependencies/declaringConfigurations-android/kotlin",files="build.gradle.kts[tags=configurations]"]
+include::sample[dir="snippets/reference/dependency-management/declaring-dependencies/declaringConfigurations-android/groovy",files="build.gradle[tags=configurations]"]
 ====
 
 There is a relationship between these configurations, similar to the Java plugin, but **scoped per variant**.
@@ -222,8 +222,8 @@ The same underlying concepts apply â€” declarable, resolvable, and consumable â€
 * When you publish a KMP library, these configurations define the artifacts and metadata that Gradle and consumers use to resolve the right variant for their platform.
 
 ====
-include::sample[dir="snippets/dependencyManagement/declaringConfigurations-kmp/kotlin",files="build.gradle.kts[tags=configurations]"]
-include::sample[dir="snippets/dependencyManagement/declaringConfigurations-kmp/groovy",files="build.gradle[tags=configurations]"]
+include::sample[dir="snippets/reference/dependency-management/declaring-dependencies/declaringConfigurations-kmp/kotlin",files="build.gradle.kts[tags=configurations]"]
+include::sample[dir="snippets/reference/dependency-management/declaring-dependencies/declaringConfigurations-kmp/groovy",files="build.gradle[tags=configurations]"]
 ====
 
 There is a relationship between these configurations, similar to Java and Android, but **organized per source set and target**.
@@ -272,8 +272,8 @@ For backwards compatibility, the flags have a default value of `true`, but as a 
 This example demonstrates how to manually declare the core Java configurations (normally provided by the <<java_plugin.adoc#java_plugin,Java plugin>>) in Gradle:
 
 ====
-include::sample[dir="snippets/dependencyManagement/attributeMatching/kotlin",files="build.gradle.kts[tags=java-configuration-example]"]
-include::sample[dir="snippets/dependencyManagement/attributeMatching/groovy",files="build.gradle[tags=java-configuration-example]"]
+include::sample[dir="snippets/reference/dependency-management/declaring-dependencies/attributeMatching/kotlin",files="build.gradle.kts[tags=java-configuration-example]"]
+include::sample[dir="snippets/reference/dependency-management/declaring-dependencies/attributeMatching/groovy",files="build.gradle[tags=java-configuration-example]"]
 ====
 
 The following configurations are created:
@@ -334,8 +334,8 @@ Suppose you want to generate Javadocs with AsciiDoc formatting embedded within y
 By setting up the `asciidoclet` configuration, you enable Gradle to use Asciidoclet, allowing your Javadoc task to produce HTML documentation with enhanced formatting options:
 
 ====
-include::sample[dir="snippets/java/basic/kotlin",files="build.gradle.kts[tags=create-custom-doclet]"]
-include::sample[dir="snippets/java/basic/groovy",files="build.gradle[tags=create-custom-doclet]"]
+include::sample[dir="snippets/reference/dependency-management/declaring-dependencies/basic/kotlin",files="build.gradle.kts[tags=create-custom-doclet]"]
+include::sample[dir="snippets/reference/dependency-management/declaring-dependencies/basic/groovy",files="build.gradle[tags=create-custom-doclet]"]
 ====
 
 You can manage custom configurations using the `configurations` block.
@@ -385,8 +385,8 @@ This allows smoke tests to leverage the same dependencies as unit tests without 
 The configuration can be declared in `build.gradle(.kts)` as follows:
 
 ====
-include::sample[dir="snippets/dependencyManagement/definingUsingConfigurations-inheritance/kotlin",files="build.gradle.kts[tags=configuration-definition]"]
-include::sample[dir="snippets/dependencyManagement/definingUsingConfigurations-inheritance/groovy",files="build.gradle[tags=configuration-definition]"]
+include::sample[dir="snippets/reference/dependency-management/declaring-dependencies/definingUsingConfigurations-inheritance/kotlin",files="build.gradle.kts[tags=configuration-definition]"]
+include::sample[dir="snippets/reference/dependency-management/declaring-dependencies/definingUsingConfigurations-inheritance/groovy",files="build.gradle[tags=configuration-definition]"]
 ====
 
 This setup enables the `smokeTest` source set to inherit JUnit and any other testing dependencies, making it easier to define and execute smoke tests while keeping them separate from unit tests.
@@ -418,15 +418,15 @@ Consider the following example that demonstrates how to declare a set of configu
 NOTE: This example uses incubating APIs.
 
 ====
-include::sample[dir="snippets/dependencyManagement/performingResolution-resolutionResult/kotlin",files="build.gradle.kts[tags=declare-configurations]"]
-include::sample[dir="snippets/dependencyManagement/performingResolution-resolutionResult/groovy",files="build.gradle[tags=declare-configurations]"]
+include::sample[dir="snippets/reference/dependency-management/declaring-dependencies/performingResolution-resolutionResult/kotlin",files="build.gradle.kts[tags=declare-configurations]"]
+include::sample[dir="snippets/reference/dependency-management/declaring-dependencies/performingResolution-resolutionResult/groovy",files="build.gradle[tags=declare-configurations]"]
 ====
 
 Dependencies can be declared on the `implementation` configuration using the dependencies block. See the <<declaring_dependencies.adoc#one-declaring-dependencies,Declaring Dependencies>> chapter for more information on the types of dependencies that can be declared, and the various options for customizing dependency declarations.
 
 ====
-include::sample[dir="snippets/dependencyManagement/performingResolution-resolutionResult/kotlin",files="build.gradle.kts[tags=declaring-dependencies]"]
-include::sample[dir="snippets/dependencyManagement/performingResolution-resolutionResult/groovy",files="build.gradle[tags=declaring-dependencies]"]
+include::sample[dir="snippets/reference/dependency-management/declaring-dependencies/performingResolution-resolutionResult/kotlin",files="build.gradle.kts[tags=declaring-dependencies]"]
+include::sample[dir="snippets/reference/dependency-management/declaring-dependencies/performingResolution-resolutionResult/groovy",files="build.gradle[tags=declaring-dependencies]"]
 ====
 
 Now that we've created a _dependency scope_ configuration for declaring dependencies, and a _resolvable_ configuration for resolving those dependencies, we can use Gradle's <<dependency_resolution.adoc#dependency-resolution-basics,dependency resolution APIs>> to access the results of resolution.

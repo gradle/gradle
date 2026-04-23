@@ -37,7 +37,7 @@ import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory
 import org.gradle.api.internal.provider.PropertyFactory
 import org.gradle.api.internal.tasks.TaskDependencyFactory
-import org.gradle.api.problems.internal.InternalProblems
+import org.gradle.api.problems.internal.ProblemsInternal
 import org.gradle.api.tasks.util.internal.PatternSetFactory
 import org.gradle.composite.internal.BuildTreeWorkGraphController
 import org.gradle.internal.build.BuildStateRegistry
@@ -99,6 +99,7 @@ import org.gradle.internal.serialize.codecs.core.TaskNodeCodec
 import org.gradle.internal.serialize.codecs.core.TaskReferenceCodec
 import org.gradle.internal.serialize.codecs.core.UnsupportedFingerprintBuildServiceProviderCodec
 import org.gradle.internal.serialize.codecs.core.UnsupportedFingerprintFlowProviders
+import org.gradle.internal.serialize.codecs.core.UserCodeSourceCodec
 import org.gradle.internal.serialize.codecs.core.ValueSourceProviderCodec
 import org.gradle.internal.serialize.codecs.core.WorkNodeActionCodec
 import org.gradle.internal.serialize.codecs.core.WorkNodeCodec
@@ -111,7 +112,10 @@ import org.gradle.internal.serialize.codecs.core.jos.JavaSerializationEncodingLo
 import org.gradle.internal.serialize.codecs.core.unsupportedTypes
 import org.gradle.internal.serialize.codecs.dm.ArtifactCollectionCodec
 import org.gradle.internal.serialize.codecs.dm.AttributeContainerCodec
+import org.gradle.internal.serialize.codecs.dm.DefaultComponentArtifactsResultCodec
 import org.gradle.internal.serialize.codecs.dm.DefaultResolvableArtifactCodec
+import org.gradle.internal.serialize.codecs.dm.DefaultResolvedArtifactResultCodec
+import org.gradle.internal.serialize.codecs.dm.DefaultUnresolvedComponentResultCodec
 import org.gradle.internal.serialize.codecs.dm.ImmutableAttributesCodec
 import org.gradle.internal.serialize.codecs.dm.ImmutableAttributesSchemaCodec
 import org.gradle.internal.serialize.codecs.dm.LocalFileDependencyBackedArtifactSetCodec
@@ -194,7 +198,7 @@ class DefaultConfigurationCacheCodecs(
     taskDependencyFactory: TaskDependencyFactory,
     val javaSerializationEncodingLookup: JavaSerializationEncodingLookup,
     transformStepNodeFactory: TransformStepNodeFactory,
-    problems: InternalProblems
+    problems: ProblemsInternal
 ) : ConfigurationCacheCodecs {
 
     private
@@ -256,11 +260,15 @@ class DefaultConfigurationCacheCodecs(
             bind(ResolveArtifactNodeCodec)
             bind(WorkNodeActionCodec)
             bind(CapabilitySerializer())
+            bind(DefaultComponentArtifactsResultCodec())
+            bind(DefaultResolvedArtifactResultCodec())
+            bind(DefaultUnresolvedComponentResultCodec())
 
             bind(DefaultCopySpecCodec(patternSetFactory, fileCollectionFactory, propertyFactory, instantiator, fileSystemOperations))
             bind(DestinationRootCopySpecCodec(fileResolver))
 
             bind(TaskReferenceCodec)
+            bind(UserCodeSourceCodec)
 
             bind(IsolatedManagedValueCodec(managedFactoryRegistry))
             bind(IsolatedImmutableManagedValueCodec(managedFactoryRegistry))

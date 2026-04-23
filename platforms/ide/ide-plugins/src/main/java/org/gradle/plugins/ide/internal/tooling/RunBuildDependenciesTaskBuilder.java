@@ -39,6 +39,9 @@ import java.util.stream.Collectors;
 
 @NullMarked
 public class RunBuildDependenciesTaskBuilder implements ParameterizedToolingModelBuilder<EclipseRuntime> {
+
+    private static final String MODEL_NAME = RunClosedProjectBuildDependencies.class.getName();
+
     private Map<String, Boolean> projectOpenStatus;
 
     @Override
@@ -93,7 +96,7 @@ public class RunBuildDependenciesTaskBuilder implements ParameterizedToolingMode
 
     @Override
     public boolean canBuild(String modelName) {
-        return "org.gradle.tooling.model.eclipse.RunClosedProjectBuildDependencies".equals(modelName);
+        return MODEL_NAME.equals(modelName);
     }
 
     @Override

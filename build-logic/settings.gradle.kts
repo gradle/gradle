@@ -52,7 +52,6 @@ include("lifecycle")
 
 // Special purpose build logic for subproject - please preserve alphabetical order
 include("binary-compatibility")
-include("build-init-samples")
 include("buildquality")
 include("documentation")
 include("integration-testing")

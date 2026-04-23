@@ -16,7 +16,6 @@
 package org.gradle.testing.testng
 
 import org.gradle.api.internal.tasks.testing.report.VerifiesGenericTestReportResults
-import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
 import org.gradle.api.tasks.testing.TestResult
 import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
 import org.gradle.integtests.fixtures.TestResources
@@ -25,11 +24,6 @@ import spock.lang.Issue
 
 @Issue("GRADLE-1682")
 class TestNGJdkNavigationIntegrationTest extends AbstractSampleIntegrationTest implements VerifiesGenericTestReportResults {
-    @Override
-    GenericTestExecutionResult.TestFramework getTestFramework() {
-        return GenericTestExecutionResult.TestFramework.TEST_NG
-    }
-
     @Rule
     final TestResources resources = new TestResources(testDirectoryProvider)
 

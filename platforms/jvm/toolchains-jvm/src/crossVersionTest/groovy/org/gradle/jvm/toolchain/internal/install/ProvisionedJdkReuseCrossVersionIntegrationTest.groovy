@@ -23,7 +23,7 @@ import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.internal.jvm.Jvm
 import org.gradle.jvm.toolchain.JdkRepository
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.InstalledJdkTestPreconditions
 import org.gradle.util.GradleVersion
 import org.junit.Assume
 
@@ -37,7 +37,7 @@ import static org.gradle.jvm.toolchain.JavaToolchainDownloadUtil.singleUrlResolv
 
 // We need to test specifically versions before the toolchain provisioning was fixed that support resolvers.
 @IgnoreVersions({ !it.isSupportsCustomToolchainResolvers() || it.isNonFlakyToolchainProvisioning() })
-@Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
+@Requires(InstalledJdkTestPreconditions.JavaHomeWithDifferentVersionAvailable)
 class ProvisionedJdkReuseCrossVersionIntegrationTest extends CrossVersionIntegrationSpec {
 
     JdkRepository jdkRepository
@@ -96,7 +96,11 @@ class ProvisionedJdkReuseCrossVersionIntegrationTest extends CrossVersionIntegra
         jdkRepository.reset()
 
         when:
-        def result = version previous withGradleUserHomeDir userHome withTasks 'run' withArguments '-Dorg.gradle.java.installations.auto-download=true' run()
+        def result = version(previous)
+            .withGradleUserHomeDir(userHome)
+            .withTasks('run')
+            .withArguments('-Dorg.gradle.java.installations.auto-download=true', "-Porg.gradle.java.installations.auto-detect=false")
+            .run()
 
         then:
         def previousJavaHome = getPrintedJavaHome(result)
@@ -111,7 +115,11 @@ class ProvisionedJdkReuseCrossVersionIntegrationTest extends CrossVersionIntegra
         }
 
         when:
-        result = version current withGradleUserHomeDir userHome withTasks 'run' withArguments '-Dorg.gradle.java.installations.auto-download=true' run()
+        result = version(current)
+            .withGradleUserHomeDir(userHome)
+            .withTasks('run')
+            .withArguments('-Dorg.gradle.java.installations.auto-download=true', "-Porg.gradle.java.installations.auto-detect=false")
+            .run()
 
         then:
         def currentJavaHome = getPrintedJavaHome(result)

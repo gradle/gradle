@@ -20,7 +20,6 @@ import com.gradle.develocity.agent.gradle.test.DevelocityTestConfiguration
 import gradlebuild.basics.BuildEnvironment
 import gradlebuild.basics.FlakyTestStrategy
 import gradlebuild.basics.accessors.kotlinMainSourceSet
-import gradlebuild.basics.buildRunningOnCi
 import gradlebuild.basics.flakyTestStrategy
 import gradlebuild.basics.maxParallelForks
 import gradlebuild.basics.maxTestDistributionLocalExecutors
@@ -44,7 +43,6 @@ import org.gradle.internal.jvm.JpmsConfiguration
 import org.gradle.internal.os.OperatingSystem
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import java.time.Duration
-import java.util.Optional
 
 plugins {
     groovy
@@ -70,12 +68,11 @@ the<JvmCompileExtension>().apply {
     }
     addCompilationFrom(sourceSets.main) {
         // For the production code, we derive the JVM version from the target runtime
-        targetJvmVersion = gradleModule.targetRuntimes.computeProductionJvmTargetVersion()
+        targetJvmVersion = gradleModule.computedRuntimes.computeProductionJvmTargetVersion()
     }
     addCompilationFrom(sourceSets.test)
 }
 
-removeTeamcityTempProperty()
 addDependencies()
 configureCompileDefaults()
 addCompileAllTasks()
@@ -102,14 +99,16 @@ fun configureCompileDefaults() {
 fun ModuleTargetRuntimes.computeProductionJvmTargetVersion(): Provider<Int> {
     // Should be kept in sync with org.gradle.internal.jvm.SupportedJavaVersions
     val targetRuntimeJavaVersions = mapOf(
-        usedInWorkers to 8,
-        usedInClient to 8,
-        usedInDaemon to 8
+        client to 8,
+        daemon to 17,
+        worker to 8
     )
 
-    return reduceBooleanFlagValues(targetRuntimeJavaVersions, ::minOf).orElse(provider {
-        throw GradleException("No target JVM version configured. Specify at least one runtime target for $project on the '${GradleModuleExtension.NAME}' extension.")
-    })
+    // By default, compile to 17. This ensures projects that do not declare any target runtimes
+    // can successfully resolve their classpaths. Then, `:checkTargetRuntimes` will ensure that
+    // each project declares the proper target runtimes. Note that `:checkTargetRuntimes` cannot
+    // execute unless all project classpaths can be successfully resolved.
+    return reduceBooleanFlagValues(targetRuntimeJavaVersions, ::minOf).orElse(17)
 }
 
 fun configureSourcesVariant() {
@@ -118,8 +117,7 @@ fun configureSourcesVariant() {
     }
 
     // TODO: This should not be necessary anymore now that we have variant reselection.
-    @Suppress("UnusedPrivateProperty")
-    val transitiveSourcesElements by configurations.creating {
+    configurations.create("transitiveSourcesElements") {
         isCanBeResolved = false
         isCanBeConsumed = true
         extendsFrom(configurations.implementation.get())
@@ -177,7 +175,7 @@ fun addDependencies() {
         testRuntimeOnly(testLibs.findLibrary("junitPlatform").get())
 
         // use a separate configuration for the platform dependency that does not get published as part of 'apiElements' or 'runtimeElements'
-        val platformImplementation by configurations.creating
+        val platformImplementation = configurations.create("platformImplementation")
         configurations["compileClasspath"].extendsFrom(platformImplementation)
         configurations["runtimeClasspath"].extendsFrom(platformImplementation)
         configurations["testCompileClasspath"].extendsFrom(platformImplementation)
@@ -275,7 +273,10 @@ fun Test.isUnitTest() = listOf("test", "writePerformanceScenarioDefinitions", "w
  * If enabled, test JVM will inherit the DEVELOCITY_ACCESS_TOKEN
  * environment variable. This allows build scans to be published for integration tests.
  */
-fun Test.inheritDevelocityAccessTokenEnv() = setOf("smoke-test").contains(project.name)
+fun Test.inheritedEnvVars(): List<String> = when {
+    project.name == "smoke-test" -> listOf("DEVELOCITY_ACCESS_KEY", "CI")
+    else -> emptyList()
+}
 
 fun Test.usesEmbeddedExecuter() = systemProperties["org.gradle.integtest.executer"]?.equals("embedded") ?: false
 
@@ -306,7 +307,7 @@ fun configureTests() {
     tasks.withType<Test>().configureEach {
 
         configureAndroidUserHome()
-        filterEnvironmentVariables(inheritDevelocityAccessTokenEnv())
+        filterEnvironmentVariables(inheritedEnvVars())
 
         maxParallelForks = project.maxParallelForks
 
@@ -374,14 +375,6 @@ fun configureTests() {
     }
 }
 
-fun removeTeamcityTempProperty() {
-    // Undo: https://github.com/JetBrains/teamcity-gradle/blob/e1dc98db0505748df7bea2e61b5ee3a3ba9933db/gradle-runner-agent/src/main/scripts/init.gradle#L818
-    if (project.buildRunningOnCi.get() && project.hasProperty("teamcity")) {
-        @Suppress("UNCHECKED_CAST") val teamcity = project.property("teamcity") as MutableMap<String, Any>
-        teamcity["teamcity.build.tempDir"] = ""
-    }
-}
-
 fun Project.isPerformanceProject() = setOf("build-scan-performance", "performance").contains(name)
 
 fun Project.isNativeProject() = name.contains("native")
@@ -418,11 +411,6 @@ fun TaskContainer.registerCITestDistributionLifecycleTasks() {
         group = ciGroup
     }
 
-    register("allVersionsCrossVersionTest") {
-        description = "Run cross-version tests against all released versions (latest patch release of each)"
-        group = ciGroup
-    }
-
     register("allVersionsIntegMultiVersionTest") {
         description = "Run all multi-version integration tests with all version to cover"
         group = ciGroup
@@ -454,37 +442,4 @@ fun Test.configureAndroidUserHome() {
     val androidUserHomeForTest = project.layout.buildDirectory.dir("androidUserHomeForTest/$name").get().asFile.absolutePath
     environment["ANDROID_PREFS_ROOT"] = androidUserHomeForTest
     environment["ANDROID_USER_HOME"] = androidUserHomeForTest
-}
-
-/**
- * Reduces a map of boolean flags to a single property by applying the given combiner function
- * to the corresponding values of the properties that are true.
- *
- * @param flags The map of boolean properties to their values.
- * @param combiner The function to combine the values of the true properties.
- *
- * @return A property that contains the reduced value.
- */
-fun <T : Any> reduceBooleanFlagValues(flags: Map<Property<Boolean>, T>, combiner: (T, T) -> T): Provider<T> {
-    return flags.entries
-        .map { entry ->
-            entry.key.map {
-                when (it) {
-                    true -> Optional.of(entry.value)
-                    false -> Optional.empty()
-                }
-            }.orElse(provider {
-                throw GradleException("Expected boolean flag to be configured")
-            })
-        }
-        .reduce { acc, next ->
-            acc.zip(next) { left, right ->
-                when {
-                    !left.isPresent -> right
-                    !right.isPresent -> left
-                    else -> Optional.of(combiner(left.get(), right.get()))
-                }
-            }
-        }
-        .map { it.orElse(null) }
 }

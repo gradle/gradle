@@ -93,6 +93,8 @@ private fun fragmentsForProjectType(accessor: Accessor.ForProjectType): Fragment
         else -> "project feature"
     }
 
+    val calledMethod = "applyProjectFeature"
+
     className to sequenceOf(
         AccessorFragment(
             source = """
@@ -101,7 +103,7 @@ private fun fragmentsForProjectType(accessor: Accessor.ForProjectType): Fragment
             |         */
             |        @Incubating
             |        ${annotations}fun $targetTypeKotlinString.`${functionName}`(configure: Action<in ${spec.modelType.type.kotlinString}>) {
-            |            applyProjectType(this, "$functionName", configure)
+            |            $calledMethod(this, "$functionName", configure)
             |        }
             """.trimMargin(),
             signature = JvmMethodSignature(
@@ -117,7 +119,7 @@ private fun fragmentsForProjectType(accessor: Accessor.ForProjectType): Fragment
                     CHECKCAST(DynamicObjectAware::class.internalName)
                     LDC(functionName)
                     ALOAD(1)
-                    invokeRuntime("applyProjectFeature", "(L${DynamicObjectAware::class.internalName};L${String::class.internalName};L${Action::class.internalName};)V")
+                    invokeRuntime(calledMethod, "(L${DynamicObjectAware::class.internalName};L${String::class.internalName};L${Action::class.internalName};)V")
                     RETURN()
                 }
             },

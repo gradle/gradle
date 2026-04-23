@@ -21,7 +21,9 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.StableConfigurationCacheDeprecations
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.OsTestPreconditions
+import org.gradle.test.preconditions.FileSystemTestPreconditions
+
 import spock.lang.Issue
 
 class SyncTaskIntegrationTest extends AbstractIntegrationSpec implements StableConfigurationCacheDeprecations {
@@ -415,7 +417,7 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec implements StableC
         syncMethod << ["project.sync", "fsOps.sync"]
     }
 
-    @Requires(UnitTestPreconditions.Windows)
+    @Requires(OsTestPreconditions.Windows)
     @UnsupportedWithConfigurationCache(iterationMatchers = [".*using project.sync method"], because = "legacy Project.sync at execution time")
     def "sync fails when unable to clean-up files using #syncMethod method"() {
         given:
@@ -453,7 +455,7 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec implements StableC
         syncMethod << ["project.sync", "fsOps.sync"]
     }
 
-    @Requires(UnitTestPreconditions.FilePermissions)
+    @Requires(FileSystemTestPreconditions.FilePermissions)
     def "sync fails when the output contains unreadable files"() {
         given:
         def input = file("readableFile.txt").createFile()

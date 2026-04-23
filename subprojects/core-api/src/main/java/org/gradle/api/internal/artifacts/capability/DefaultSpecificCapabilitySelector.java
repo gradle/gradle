@@ -50,8 +50,8 @@ public final class DefaultSpecificCapabilitySelector implements CapabilitySelect
     @Override
     public String getDisplayName() {
         // We intentionally do not display the version here.
-        // An exact version selector does not have a version.
-        return "coordinates '" + getGroup() + ":" + getName() + "'";
+        // A specific version selector does not have a version.
+        return "'" + getGroup() + ":" + getName() + "'";
     }
 
     /**

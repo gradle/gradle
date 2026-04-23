@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.tasks.userinput;
 
+import org.jspecify.annotations.Nullable;
+
 import java.util.Collection;
 import java.util.function.Function;
 
@@ -29,6 +31,7 @@ public class NonInteractiveUserInputHandler extends AbstractUserInputHandler imp
     public void finish() {
     }
 
+    @Nullable
     @Override
     public Boolean askYesNoQuestion(String question) {
         return null;

@@ -42,9 +42,9 @@ import org.gradle.api.logging.Logging;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.problems.ProblemSpec;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
-import org.gradle.api.problems.internal.InternalProblem;
-import org.gradle.api.problems.internal.InternalProblemSpec;
-import org.gradle.api.problems.internal.InternalProblems;
+import org.gradle.api.problems.internal.ProblemInternal;
+import org.gradle.api.problems.internal.ProblemSpecInternal;
+import org.gradle.api.problems.internal.ProblemsInternal;
 import org.gradle.api.provider.Property;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.UncheckedException;
@@ -83,7 +83,6 @@ import static org.gradle.api.internal.catalog.problems.VersionCatalogProblemId.T
 import static org.gradle.api.internal.catalog.problems.VersionCatalogProblemId.UNDEFINED_ALIAS_REFERENCE;
 import static org.gradle.api.internal.catalog.problems.VersionCatalogProblemId.UNDEFINED_VERSION_REFERENCE;
 import static org.gradle.api.internal.catalog.problems.VersionCatalogProblemId.UNSUPPORTED_FILE_FORMAT;
-import static org.gradle.api.problems.Severity.ERROR;
 import static org.gradle.internal.RenderingUtils.quotedOxfordListOf;
 import static org.gradle.internal.deprecation.Documentation.userManual;
 
@@ -150,7 +149,7 @@ public abstract class DefaultVersionCatalogBuilder implements VersionCatalogBuil
     }
 
     @Inject
-    protected abstract InternalProblems getProblemsService();
+    protected abstract ProblemsInternal getProblemsService();
 
     @Override
     public String getLibrariesExtensionName() {
@@ -213,15 +212,14 @@ public abstract class DefaultVersionCatalogBuilder implements VersionCatalogBuil
         return new DefaultVersionCatalog(name, description.getOrElse(""), realizedLibs.build(), ImmutableMap.copyOf(bundles), ImmutableMap.copyOf(versionConstraints), realizedPlugins.build());
     }
 
-    private static InternalProblemSpec configureVersionCatalogError(InternalProblemSpec builder, String message, VersionCatalogProblemId catalogProblemId) {
+    private static ProblemSpecInternal configureVersionCatalogError(ProblemSpecInternal builder, String message, VersionCatalogProblemId catalogProblemId) {
         return builder.
             id(TextUtil.screamingSnakeToKebabCase(catalogProblemId.name()), catalogProblemId.getDisplayName(), GradleCoreProblemGroup.versionCatalog())
             .contextualLabel(message)
-            .documentedAt(userManual(VERSION_CATALOG_PROBLEMS, catalogProblemId.name().toLowerCase(Locale.ROOT)))
-            .severity(ERROR);
+            .documentedAt(userManual(VERSION_CATALOG_PROBLEMS, catalogProblemId.name().toLowerCase(Locale.ROOT)));
     }
 
-    private static RuntimeException throwVersionCatalogProblemException(InternalProblems problemsService, InternalProblem problem) {
+    private static RuntimeException throwVersionCatalogProblemException(ProblemsInternal problemsService, ProblemInternal problem) {
         throw throwError(problemsService, "Invalid catalog definition", ImmutableList.of(problem));
     }
 

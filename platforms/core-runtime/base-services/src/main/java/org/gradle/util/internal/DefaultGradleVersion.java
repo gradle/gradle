@@ -47,6 +47,7 @@ public final class DefaultGradleVersion extends GradleVersion {
     private final int majorPart;
     private final @Nullable String buildTime;
     private final @Nullable String commitId;
+    private final @Nullable String scriptTemplateCommitId;
     private final @Nullable Long snapshot;
     private final String versionPart;
     private final @Nullable Stage stage;
@@ -83,8 +84,9 @@ public final class DefaultGradleVersion extends GradleVersion {
 
             String buildTimestamp = Objects.requireNonNull(properties.get("buildTimestampIso"), "Cannot find build timestamp in build receipt").toString();
             String commitId = Objects.requireNonNull(properties.get("commitId"), "Cannot find commit id in build receipt").toString();
+            String scriptTemplateCommitId = Objects.requireNonNull(properties.get("scriptTemplateCommitId"), "Cannot find script template commit id in build receipt").toString();
 
-            CURRENT = new DefaultGradleVersion(version, "unknown".equals(buildTimestamp) ? null : buildTimestamp, commitId);
+            CURRENT = new DefaultGradleVersion(version, "unknown".equals(buildTimestamp) ? null : buildTimestamp, commitId, scriptTemplateCommitId);
         } catch (Exception e) {
             throw new GradleException(format("Could not load version details from resource '%s'.", resource), e);
         } finally {
@@ -104,12 +106,13 @@ public final class DefaultGradleVersion extends GradleVersion {
      * @throws IllegalArgumentException On unrecognized version string.
      */
     public static DefaultGradleVersion version(String version) throws IllegalArgumentException {
-        return new DefaultGradleVersion(version, null, null);
+        return new DefaultGradleVersion(version, null, null, null);
     }
 
-    private DefaultGradleVersion(String version, @Nullable String buildTime, @Nullable String commitId) {
+    private DefaultGradleVersion(String version, @Nullable String buildTime, @Nullable String commitId, @Nullable String scriptTemplateCommitId) {
         this.version = version;
         this.buildTime = buildTime;
+        this.scriptTemplateCommitId = scriptTemplateCommitId;
         Matcher matcher = VERSION_PATTERN.matcher(version);
         if (!matcher.matches()) {
             throw new IllegalArgumentException(format("'%s' is not a valid Gradle version string (examples: '9.0.0', '9.1.0-rc-1')", version));
@@ -196,6 +199,10 @@ public final class DefaultGradleVersion extends GradleVersion {
 
     public @Nullable String getGitRevision() {
         return commitId;
+    }
+
+    public @Nullable String getScriptTemplateGitRevision() {
+        return scriptTemplateCommitId;
     }
 
     @Override

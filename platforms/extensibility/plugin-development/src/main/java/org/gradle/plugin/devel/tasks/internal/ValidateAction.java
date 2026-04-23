@@ -17,7 +17,6 @@
 package org.gradle.plugin.devel.tasks.internal;
 
 import com.google.common.io.Files;
-import com.google.gson.Gson;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.transform.CacheableTransform;
 import org.gradle.api.artifacts.transform.TransformAction;
@@ -30,7 +29,7 @@ import org.gradle.api.logging.Logging;
 import org.gradle.api.problems.Problem;
 import org.gradle.api.problems.ProblemSpec;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
-import org.gradle.api.problems.internal.InternalProblems;
+import org.gradle.api.problems.internal.ProblemsInternal;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.UntrackedTask;
@@ -54,7 +53,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import static org.gradle.api.problems.Severity.ERROR;
 import static org.gradle.internal.deprecation.Documentation.userManual;
 
 public abstract class ValidateAction implements WorkAction<ValidateAction.Params> {
@@ -70,27 +68,26 @@ public abstract class ValidateAction implements WorkAction<ValidateAction.Params
     }
 
     @Inject
-    public abstract InternalProblems getProblems();
+    public abstract ProblemsInternal getProblems();
 
     @Override
     public void execute() {
-        List<Problem> taskValidationProblems = new ArrayList<>();
+        List<Problem> taskValidationWarnings = new ArrayList<>();
+        List<Problem> taskValidationErrors = new ArrayList<>();
 
         Params params = getParameters();
 
-        params.getClasses().getAsFileTree().visit(new ValidationProblemCollector(taskValidationProblems, params, getProblems()));
-        storeResults(taskValidationProblems, params.getOutputFile());
+        params.getClasses().getAsFileTree().visit(new ValidationProblemCollector(taskValidationWarnings, taskValidationErrors, params, getProblems()));
+        storeResults(taskValidationWarnings, taskValidationErrors, params.getOutputFile());
     }
 
-
-    private static void storeResults(List<Problem> problemMessages, RegularFileProperty outputFile) {
+    private static void storeResults(List<Problem> warnings, List<Problem> errors, RegularFileProperty outputFile) {
         if (outputFile.isPresent()) {
             File output = outputFile.get().getAsFile();
             try {
                 //noinspection ResultOfMethodCallIgnored
                 output.createNewFile();
-                Gson gson = ValidationProblemSerialization.createGsonBuilder().create();
-                Files.asCharSink(output, StandardCharsets.UTF_8).write(gson.toJson(problemMessages));
+                Files.asCharSink(output, StandardCharsets.UTF_8).write(ValidationProblemSerialization.serialize(warnings, errors));
             } catch (IOException ex) {
                 throw new java.io.UncheckedIOException(ex);
             }
@@ -115,13 +112,15 @@ public abstract class ValidateAction implements WorkAction<ValidateAction.Params
 
     private static class ValidationProblemCollector extends EmptyFileVisitor {
         private final ClassLoader classLoader;
-        private final List<Problem> taskValidationProblems;
+        private final List<Problem> taskValidationWarnings;
+        private final List<Problem> taskValidationErrors;
         private final Params params;
-        private final InternalProblems problems;
+        private final ProblemsInternal problems;
 
-        public ValidationProblemCollector(List<Problem> taskValidationProblems, Params params, InternalProblems problems) {
+        public ValidationProblemCollector(List<Problem> taskValidationWarnings, List<Problem> taskValidationErrors, Params params, ProblemsInternal problems) {
             this.classLoader = Thread.currentThread().getContextClassLoader();
-            this.taskValidationProblems = taskValidationProblems;
+            this.taskValidationErrors = taskValidationErrors;
+            this.taskValidationWarnings = taskValidationWarnings;
             this.params = params;
             this.problems = problems;
         }
@@ -140,18 +139,19 @@ public abstract class ValidateAction implements WorkAction<ValidateAction.Params
                     LOGGER.debug("Could not load class: " + className, e);
                     continue;
                 }
-                collectValidationProblems(clazz, taskValidationProblems, params.getEnableStricterValidation().get(), problems);
+                collectValidationProblems(clazz, taskValidationWarnings, taskValidationErrors, params.getEnableStricterValidation().get(), problems);
             }
         }
 
-        private static void collectValidationProblems(Class<?> topLevelBean, List<Problem> taskValidationProblems, boolean enableStricterValidation, InternalProblems problems) {
+        private static void collectValidationProblems(Class<?> topLevelBean, List<Problem> taskValidationWarnings, List<Problem> taskValidationErrors, boolean enableStricterValidation, ProblemsInternal problems) {
             DefaultTypeValidationContext validationContext = createTypeValidationContext(topLevelBean, enableStricterValidation, problems);
             PropertyValidationAccess.collectValidationProblems(topLevelBean, validationContext);
 
-            taskValidationProblems.addAll(validationContext.getProblems());
+            taskValidationWarnings.addAll(validationContext.getWarnings());
+            taskValidationErrors.addAll(validationContext.getErrors());
         }
 
-        private static DefaultTypeValidationContext createTypeValidationContext(Class<?> topLevelBean, boolean enableStricterValidation, InternalProblems problems) {
+        private static DefaultTypeValidationContext createTypeValidationContext(Class<?> topLevelBean, boolean enableStricterValidation, ProblemsInternal problems) {
             if (Task.class.isAssignableFrom(topLevelBean)) {
                 return createValidationContextAndValidateCacheableAnnotations(topLevelBean, CacheableTask.class, enableStricterValidation, problems);
             }
@@ -161,7 +161,7 @@ public abstract class ValidateAction implements WorkAction<ValidateAction.Params
             return createValidationContext(topLevelBean, enableStricterValidation, problems);
         }
 
-        private static DefaultTypeValidationContext createValidationContextAndValidateCacheableAnnotations(Class<?> topLevelBean, Class<? extends Annotation> cacheableAnnotationClass, boolean enableStricterValidation, InternalProblems problems) {
+        private static DefaultTypeValidationContext createValidationContextAndValidateCacheableAnnotations(Class<?> topLevelBean, Class<? extends Annotation> cacheableAnnotationClass, boolean enableStricterValidation, ProblemsInternal problems) {
             boolean cacheable = topLevelBean.isAnnotationPresent(cacheableAnnotationClass);
             DefaultTypeValidationContext validationContext = createValidationContext(topLevelBean, cacheable || enableStricterValidation, problems);
             if (enableStricterValidation) {
@@ -170,7 +170,7 @@ public abstract class ValidateAction implements WorkAction<ValidateAction.Params
             return validationContext;
         }
 
-        private static DefaultTypeValidationContext createValidationContext(Class<?> topLevelBean, boolean reportCacheabilityProblems, InternalProblems problems) {
+        private static DefaultTypeValidationContext createValidationContext(Class<?> topLevelBean, boolean reportCacheabilityProblems, ProblemsInternal problems) {
             return DefaultTypeValidationContext.withRootType(topLevelBean, reportCacheabilityProblems, problems);
         }
 
@@ -188,13 +188,12 @@ public abstract class ValidateAction implements WorkAction<ValidateAction.Params
                 String disableCachingAnnotation = "@" + DisableCachingByDefault.class.getSimpleName();
                 String untrackedTaskAnnotation = "@" + UntrackedTask.class.getSimpleName();
                 String workType = isTask ? "task" : "transform action";
-                validationContext.visitTypeProblem(problem -> {
+                validationContext.visitTypeError(problem -> {
                         ProblemSpec builder = problem
                             .withAnnotationType(topLevelBean)
                             .id(TextUtil.screamingSnakeToKebabCase(ValidationTypes.NOT_CACHEABLE_WITHOUT_REASON), "Not cacheable without reason", GradleCoreProblemGroup.validation().type())
                             .contextualLabel("must be annotated either with " + cacheableAnnotation + " or with " + disableCachingAnnotation)
                             .documentedAt(userManual("validation_problems", "disable_caching_by_default"))
-                            .severity(ERROR)
                             .details("The " + workType + " author should make clear why a " + workType + " is not cacheable")
                             .solution("Add " + disableCachingAnnotation + "(because = ...)")
                             .solution("Add " + cacheableAnnotation);

@@ -17,7 +17,6 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Issue
@@ -304,7 +303,6 @@ class RepositoryContentFilteringIntegrationTest extends AbstractHttpDependencyRe
         ]
     }
 
-    @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
     def "two configurations can use the same repositories with filtering and do not interfere with each other"() {
         def mod = mavenHttpRepo.module('org', 'foo', '1.0').publish()
 
@@ -322,10 +320,12 @@ class RepositoryContentFilteringIntegrationTest extends AbstractHttpDependencyRe
                 conf "org:foo:1.0"
                 conf2 "org:foo:1.0"
             }
-            tasks.register("verify") {
-                doFirst {
-                    $check1
-                    $check2
+            task verify {
+                def check1Provider = providers.provider { $check1 }
+                def check2Provider = providers.provider { $check2 }
+                doLast {
+                    assert check1Provider.get()
+                    assert check2Provider.get()
                 }
             }
         """
@@ -745,13 +745,12 @@ class RepositoryContentFilteringIntegrationTest extends AbstractHttpDependencyRe
 
     static String checkConfIsUnresolved() {
         """def confIncoming = configurations.conf.incoming.resolutionResult.allDependencies
-                    assert confIncoming.every { it instanceof UnresolvedDependencyResult }"""
+                    confIncoming.every { it instanceof UnresolvedDependencyResult }"""
     }
 
     static String checkConf2IsResolved() {
         """def conf2Incoming = configurations.conf2.incoming.resolutionResult.allDependencies
-                    assert conf2Incoming.every { it instanceof ResolvedDependencyResult }
-                    assert configurations.conf2.files.name == ['foo-1.0.jar']"""
+                    conf2Incoming.every { it instanceof ResolvedDependencyResult } && configurations.conf2.files.name == ['foo-1.0.jar']"""
     }
 
     void repositories(@DelegatesTo(value = RepositorySpec, strategy = Closure.DELEGATE_FIRST) Closure<Void> spec) {

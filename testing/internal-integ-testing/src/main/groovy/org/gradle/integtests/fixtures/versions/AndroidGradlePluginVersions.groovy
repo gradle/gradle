@@ -19,10 +19,9 @@ package org.gradle.integtests.fixtures.versions
 import org.gradle.api.JavaVersion
 import org.gradle.internal.Factory
 import org.gradle.util.internal.VersionNumber
+import org.junit.jupiter.api.Assumptions
 
 import javax.annotation.Nullable
-
-import static org.junit.Assume.assumeTrue
 
 
 /**
@@ -136,15 +135,11 @@ class AndroidGradlePluginVersions {
                     $agpNightlyRepositoryDeclaration
                     gradlePluginPortal()
                 }
-            }
-            allprojects {
-                buildscript {
+                settings.dependencyResolutionManagement {
                     repositories {
                         $agpNightlyRepositoryDeclaration
                     }
-                }
-                repositories {
-                    $agpNightlyRepositoryDeclaration
+                    repositoriesMode.set(RepositoriesMode.PREFER_SETTINGS)
                 }
             }
         """
@@ -156,6 +151,10 @@ class AndroidGradlePluginVersions {
             maven {
                 name = 'agp-nightly-build-$nightlyBuildId'
                 url = 'https://androidx.dev/studio/builds/$nightlyBuildId/artifacts/artifacts/repository/'
+                content {
+                    includeGroupByRegex("com.android.*")
+                    includeGroupByRegex("androidx.*")
+                }
             }
         """
     }
@@ -181,9 +180,9 @@ class AndroidGradlePluginVersions {
         VersionNumber agpVersionNumber = VersionNumber.parse(agpVersion)
         JavaVersion current = JavaVersion.current()
         JavaVersion mini = getMinimumJavaVersionFor(agpVersionNumber)
-        assumeTrue("AGP $agpVersion minimum supported Java version is $mini, current is $current", current >= mini)
+        Assumptions.assumeTrue(current >= mini, " AGP $agpVersion minimum supported Java version is $mini, current is $current")
         JavaVersion maxi = getMaximumJavaVersionFor(agpVersionNumber)
-        assumeTrue("AGP $agpVersion maximum supported Java version is $maxi, current is $current", current <= maxi)
+        Assumptions.assumeTrue(current <= maxi, "AGP $agpVersion maximum supported Java version is $maxi, current is $current")
     }
 
     static JavaVersion getMinimumJavaVersionFor(String agpVersion) {
@@ -191,12 +190,6 @@ class AndroidGradlePluginVersions {
     }
 
     static String getBuildToolsVersionFor(String agpVersion) {
-        VersionNumber version = VersionNumber.parse(agpVersion).baseVersion
-
-        if (version < AGP_9_0) {
-            return "35.0.0"
-        }
-
         return buildToolsVersion()
     }
 

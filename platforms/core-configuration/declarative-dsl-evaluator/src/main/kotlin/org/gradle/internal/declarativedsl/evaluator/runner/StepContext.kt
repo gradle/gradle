@@ -33,14 +33,20 @@ data class AnalysisStepContext(
     val supportedResolutionResultHandlers: Iterable<ResolutionResultHandler>
 ) : StepContext
 
+typealias AnalysisEvaluationResult = EvaluationResult<AnalysisStepResult.PassedAnalysisStepResult, AnalysisStepResult>
 
-data class AnalysisStepResult(
-    val evaluationSchema: EvaluationSchema,
-    val languageTreeResult: LanguageTreeResult,
-    val resolutionResult: ResolutionResult,
-    val resolutionTrace: ResolutionTrace,
-    val propertyLinkTrace: PropertyLinkTrace
-) : StepResult
+sealed interface AnalysisStepResult : StepResult {
+
+    data object FailedSchemaBuilding : AnalysisStepResult
+
+    data class PassedAnalysisStepResult(
+        val evaluationSchema: EvaluationSchema,
+        val languageTreeResult: LanguageTreeResult,
+        val resolutionResult: ResolutionResult,
+        val resolutionTrace: ResolutionTrace,
+        val propertyLinkTrace: PropertyLinkTrace
+    ) : AnalysisStepResult
+}
 
 
 interface StepResult

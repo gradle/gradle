@@ -118,7 +118,7 @@ class RootComponentResolutionIntegrationTest extends AbstractIntegrationSpec {
             }
 
             dependencies {
-                conf project
+                conf project()
             }
 
             task resolve {
@@ -156,7 +156,7 @@ class RootComponentResolutionIntegrationTest extends AbstractIntegrationSpec {
             }
 
             dependencies {
-                conf project
+                conf project()
             }
 
             task resolve {

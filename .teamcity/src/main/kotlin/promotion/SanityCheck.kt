@@ -20,7 +20,6 @@ object SanityCheck : BuildType({
         gradleWrapper {
             tasks = "tasks"
             gradleParams = ""
-            param("org.jfrog.artifactory.selectedDeployableServer.defaultModuleVersionConfiguration", "GLOBAL")
         }
     }
 

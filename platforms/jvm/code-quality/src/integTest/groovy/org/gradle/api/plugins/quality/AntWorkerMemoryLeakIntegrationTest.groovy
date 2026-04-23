@@ -21,8 +21,9 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.GitUtility
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
+import org.gradle.test.preconditions.JdkVersionTestPreconditions
+
 import org.gradle.testing.fixture.GroovyCoverage
 import org.gradle.util.internal.VersionNumber
 import spock.lang.Issue
@@ -161,7 +162,7 @@ class AntWorkerMemoryLeakIntegrationTest extends AbstractIntegrationSpec {
         return VersionNumber.parse(GroovyCoverage.SUPPORTED_BY_JDK.min()) <= VersionNumber.parse("2.4.7") ? [ "2.4.7" ] : []
     }
 
-    @Requires([UnitTestPreconditions.Jdk11OrLater, IntegTestPreconditions.NotConfigCached]) // grgit 5 requires JDK 11, see https://github.com/ajoberstar/grgit/issues/355
+    @Requires([JdkVersionTestPreconditions.Jdk11OrLater, TestExecutionPreconditions.NotConfigCached]) // grgit 5 requires JDK 11, see https://github.com/ajoberstar/grgit/issues/355
     void "does not fail with a PermGen space error or a missing method exception"() {
         given:
         GitUtility.initGitDir(testDirectory)

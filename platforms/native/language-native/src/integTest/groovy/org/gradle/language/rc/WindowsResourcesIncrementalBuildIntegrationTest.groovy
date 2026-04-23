@@ -23,7 +23,7 @@ import org.gradle.nativeplatform.fixtures.app.HelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.WindowsResourceHelloWorldApp
 import org.gradle.nativeplatform.internal.CompilerOutputFileNamingSchemeFactory
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 
 import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.VISUALCPP
 
@@ -57,7 +57,7 @@ model {
         mainResourceFile = file("src/main/rc/resources.rc")
     }
 
-    @Requires(IntegTestPreconditions.NotParallelExecutor)
+    @Requires(TestExecutionPreconditions.NotParallelExecutor)
     def "does not re-compile sources with no change"() {
         when:
         run "mainExecutable"

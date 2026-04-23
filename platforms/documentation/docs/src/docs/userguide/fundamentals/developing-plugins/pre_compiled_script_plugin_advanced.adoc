@@ -37,15 +37,15 @@ A Gradle term for reusable build logic that applies standard plugin configuratio
 They typically look like this:
 
 ====
-include::sample[dir="snippets/plugins/precompiledScriptPlugins-inBuildSrc/kotlin", files="buildSrc/src/main/kotlin/java-library-convention.gradle.kts[]"]
-include::sample[dir="snippets/plugins/precompiledScriptPlugins-inBuildSrc/groovy", files="buildSrc/src/main/groovy/java-library-convention.gradle[]"]
+include::sample[dir="snippets/fundamentals/developing-plugins/precompiledScriptPlugins-inBuildSrc/kotlin", files="buildSrc/src/main/kotlin/java-library-convention.gradle.kts[]"]
+include::sample[dir="snippets/fundamentals/developing-plugins/precompiledScriptPlugins-inBuildSrc/groovy", files="buildSrc/src/main/groovy/java-library-convention.gradle[]"]
 ====
 
 And are applied in other projects like this:
 
 ====
-include::sample[dir="snippets/plugins/precompiledScriptPlugins-inBuildSrc/kotlin", files="build.gradle.kts[]"]
-include::sample[dir="snippets/plugins/precompiledScriptPlugins-inBuildSrc/groovy", files="build.gradle[]"]
+include::sample[dir="snippets/fundamentals/developing-plugins/precompiledScriptPlugins-inBuildSrc/kotlin", files="build.gradle.kts[]"]
+include::sample[dir="snippets/fundamentals/developing-plugins/precompiledScriptPlugins-inBuildSrc/groovy", files="build.gradle[]"]
 ====
 
 == Structuring Precompiled Script Plugins
@@ -199,8 +199,8 @@ In the root of your project, add a `buildSrc` directory:
 Create `buildSrc/build.gradle.kts` with the supporting build logic your convention plugin will need to compile:
 
 ====
-include::sample[dir="snippets/testing/testReport/kotlin", files="buildSrc/build.gradle.kts[]"]
-include::sample[dir="snippets/testing/testReport/groovy", files="buildSrc/build.gradle[]"]
+include::sample[dir="snippets/fundamentals/developing-plugins/testReport/kotlin", files="buildSrc/build.gradle.kts[]"]
+include::sample[dir="snippets/fundamentals/developing-plugins/testReport/groovy", files="buildSrc/build.gradle[]"]
 ====
 
 === 3. Create a plugin script
@@ -221,8 +221,8 @@ Inside `buildSrc/src/main/kotlin` or `buildSrc/src/main/groovy`, write your conv
 In this example, the `myproject.java-conventions.gradle(.kts)` file contains the following code:
 
 ====
-include::sample[dir="snippets/testing/testReport/kotlin", files="buildSrc/src/main/kotlin/myproject.java-conventions.gradle.kts[]"]
-include::sample[dir="snippets/testing/testReport/groovy", files="buildSrc/src/main/groovy/myproject.java-conventions.gradle[]"]
+include::sample[dir="snippets/fundamentals/developing-plugins/testReport/kotlin", files="buildSrc/src/main/kotlin/myproject.java-conventions.gradle.kts[]"]
+include::sample[dir="snippets/fundamentals/developing-plugins/testReport/groovy", files="buildSrc/src/main/groovy/myproject.java-conventions.gradle[]"]
 ====
 
 The name of the script (`myproject.java-conventions.gradle(.kts)`) becomes the plugin ID: `myproject.java-conventions`.
@@ -232,8 +232,8 @@ The name of the script (`myproject.java-conventions.gradle(.kts)`) becomes the p
 In the `build.gradle(.kts)` of a consuming project, apply the plugin:
 
 ====
-include::sample[dir="snippets/testing/testReport/kotlin", files="core/build.gradle.kts[]"]
-include::sample[dir="snippets/testing/testReport/groovy", files="core/build.gradle[]"]
+include::sample[dir="snippets/fundamentals/developing-plugins/testReport/kotlin", files="core/build.gradle.kts[]"]
+include::sample[dir="snippets/fundamentals/developing-plugins/testReport/groovy", files="core/build.gradle[]"]
 ====
 
 [.text-right]

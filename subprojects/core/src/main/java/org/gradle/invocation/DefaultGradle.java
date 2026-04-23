@@ -38,6 +38,7 @@ import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.plugins.DefaultObjectConfigurationAction;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.project.AbstractPluginAware;
+import org.gradle.api.internal.project.CrossBuildModelAccess;
 import org.gradle.api.internal.project.CrossProjectConfigurator;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectRegistry;
@@ -85,6 +86,7 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
     private final CrossProjectConfigurator crossProjectConfigurator;
     private final IsolatedProjectEvaluationListenerProvider isolatedProjectEvaluationListenerProvider;
     private final GradleLifecycleActionExecutor gradleLifecycleActionExecutor;
+    private final CrossBuildModelAccess crossBuildModelAccess;
 
     // Mutable State
     private final ListenerBroadcast<BuildListener> buildListenerBroadcast;
@@ -106,6 +108,7 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
         this.crossProjectConfigurator = buildScopeServices.get(CrossProjectConfigurator.class);
         this.isolatedProjectEvaluationListenerProvider = buildScopeServices.get(IsolatedProjectEvaluationListenerProvider.class);
         this.gradleLifecycleActionExecutor = buildScopeServices.get(GradleLifecycleActionExecutor.class);
+        this.crossBuildModelAccess = buildScopeServices.get(CrossBuildModelAccess.class);
 
         this.buildListenerBroadcast = getListenerManager().createAnonymousBroadcaster(BuildListener.class);
         this.projectEvaluationListenerBroadcast = getListenerManager().createAnonymousBroadcaster(ProjectEvaluationListener.class);
@@ -158,7 +161,9 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
     @Override
     public @Nullable GradleInternal getParent() {
         BuildState parent = buildState.getParent();
-        return parent == null ? null : parent.getMutableModel();
+        return parent != null
+            ? crossBuildModelAccess.access(this, parent.getMutableModel())
+            : null;
     }
 
     @Override

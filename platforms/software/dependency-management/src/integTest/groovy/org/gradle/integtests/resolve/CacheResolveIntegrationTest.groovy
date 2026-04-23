@@ -18,16 +18,16 @@ package org.gradle.integtests.resolve
 import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
 import org.gradle.cache.internal.scopes.DefaultCacheScopeMapping
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.cache.CachingIntegrationFixture
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.hash.Hashing
 import org.gradle.test.fixtures.file.TestFile
+import spock.lang.Issue
 
 import java.nio.file.Files
 
 class CacheResolveIntegrationTest extends AbstractHttpDependencyResolutionTest implements CachingIntegrationFixture {
-
-    @ToBeFixedForConfigurationCache(because = "CC does not check for deleted or modified artifacts in local cache")
+    @Issue("https://github.com/gradle/gradle/issues/16179")
     void "cache handles manual deletion of cached artifacts"() {
         given:
         def module = ivyHttpRepo.module('group', 'projectA', '1.2').publish()
@@ -60,9 +60,12 @@ task deleteCacheFiles(type: Delete) {
         succeeds('deleteCacheFiles')
 
         when:
-        server.resetExpectations()
-        module.ivy.expectGet()
-        module.jar.expectGet()
+        // CC does not check for deleted or modified artifacts in local cache, see linked issue
+        if (!GradleContextualExecuter.isConfigCache()) {
+            server.resetExpectations()
+            module.ivy.expectGet()
+            module.jar.expectGet()
+        }
 
         then:
         succeeds('listJars')

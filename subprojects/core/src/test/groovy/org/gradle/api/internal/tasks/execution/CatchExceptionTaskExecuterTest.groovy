@@ -16,19 +16,29 @@
 
 package org.gradle.api.internal.tasks.execution
 
+import org.gradle.api.DefaultTask
 import org.gradle.api.internal.TaskInternal
+import org.gradle.api.internal.project.ProjectIdentity
+import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.internal.project.taskfactory.TestTaskIdentities
 import org.gradle.api.internal.tasks.TaskExecuter
 import org.gradle.api.internal.tasks.TaskExecuterResult
 import org.gradle.api.internal.tasks.TaskExecutionContext
 import org.gradle.api.internal.tasks.TaskExecutionOutcome
 import org.gradle.api.internal.tasks.TaskStateInternal
 import org.gradle.api.tasks.TaskExecutionException
+import org.gradle.util.Path
 import spock.lang.Specification
 
 class CatchExceptionTaskExecuterTest extends Specification {
     private TaskExecuter delegate = Mock(TaskExecuter)
     private CatchExceptionTaskExecuter executer = new CatchExceptionTaskExecuter(delegate)
-    private TaskInternal task = Mock(TaskInternal)
+    def project = Mock(ProjectInternal) {
+        getProjectIdentity() >> ProjectIdentity.forRootProject(Path.ROOT, "name")
+    }
+    def task = Stub(TaskInternal) {
+        getTaskIdentity() >> TestTaskIdentities.create("name", DefaultTask.class, project)
+    }
     private TaskStateInternal state = new TaskStateInternal()
     private TaskExecutionContext context = Mock(TaskExecutionContext)
 

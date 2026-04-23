@@ -1,0 +1,34 @@
+// tag::custom-config[]
+plugins {
+    id("application")
+}
+
+// This configuration is used to declare dependencies only.
+def instrumentedRuntimeDependencies = configurations.dependencyScope("instrumentedRuntimeDependencies")
+
+// This resolvable configuration is used to resolve the instrumented JAR files.
+def instrumentedRuntime = configurations.resolvable("instrumentedRuntime") {
+    // Wire the dependency declarations
+    extendsFrom(instrumentedRuntimeDependencies.get())
+
+    // These attributes must be compatible with the producer
+    attributes {
+        attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements, "instrumented-jar"))
+    }
+}
+// end::custom-config[]
+
+// tag::dependency[]
+dependencies {
+    // Declare a project dependency on the producer's instrumented output
+    add("instrumentedRuntimeDependencies", project(":producer"))
+}
+// end::dependency[]
+
+// tag::task[]
+tasks.register("runWithInstrumentation",JavaExec) {
+    // Use the resolved instrumented classpath
+    classpath = configurations["instrumentedRuntime"]
+    mainClass.set("com.example.Main")
+}
+// end::task[]

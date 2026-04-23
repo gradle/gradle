@@ -20,7 +20,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import spock.lang.Issue
 
 class PropertyIntegrationTest extends AbstractIntegrationSpec {
@@ -156,7 +156,7 @@ task thing(type: SomeTask) {
         fails("thing")
 
         then:
-        failure.assertHasDescription("Execution failed for task ':thing'.")
+        failure.assertHasDescription("Execution failed for task ':thing' (registered in build file 'build.gradle').")
         failure.assertHasCause("Cannot query the value of task ':thing' property 'prop' because it has no value available.")
     }
 
@@ -193,7 +193,7 @@ task thing(type: SomeTask) {
         fails("thing")
 
         then:
-        failure.assertHasDescription("Execution failed for task ':thing'.")
+        failure.assertHasDescription("Execution failed for task ':thing' (registered in build file 'build.gradle').")
         if (GradleContextualExecuter.isConfigCache()) {
             failure.assertHasCause("""Cannot query the value of task ':thing' property 'prop' because it has no value available.
 The value of this property is derived from:
@@ -244,7 +244,7 @@ task thing {
         if (GradleContextualExecuter.isConfigCache()) {
             failure.assertHasDescription("Configuration cache state could not be cached: field `prop` of task `:thing` of type `SomeTask`: error writing value of type 'org.gradle.api.internal.provider.DefaultProperty'")
         } else {
-            failure.assertHasDescription("Execution failed for task ':thing'.")
+            failure.assertHasDescription("Execution failed for task ':thing' (registered in build file 'build.gradle').")
             failure.assertHasCause("Failed to calculate the value of task ':thing' property 'prop'.")
         }
         failure.assertHasCause("broken")
@@ -470,7 +470,7 @@ assert custom.prop.get() == "value 4"
         fails("someTask")
 
         then:
-        failure.assertHasDescription("Execution failed for task ':someTask'.")
+        failure.assertHasDescription("Execution failed for task ':someTask' (registered in build file 'build.gradle').")
         def expectedCause = "Cannot ${setter.contains(".get()") ? "get" : "set"} the value of task ':someTask' property 'prop' of type java.lang.String ${typeDescription}"
         failure.assertHasCause(expectedCause)
 
@@ -531,7 +531,7 @@ assert custom.prop.get() == "value 4"
     }
 
     @Requires(
-        value = IntegTestPreconditions.NotParallelExecutor,
+        value = TestExecutionPreconditions.NotParallelExecutor,
         reason = "--parallel is specified explicitly, no need to run with multiple executor types"
     )
     @Issue("https://github.com/gradle/gradle/issues/12811")
@@ -568,7 +568,7 @@ assert custom.prop.get() == "value 4"
                 def m = extensions.create('model', Model)
                 m.prop.finalizeValueOnRead()
                 def c = configurations.create("incoming")
-                dependencies.incoming(project(":producer"))
+                dependencies.incoming(dependencies.project(":producer"))
                 m.prop = c.elements.map { files -> files*.asFile*.text.join(",") }
                 task consumer1(type: SomeTask) {
                     prop = m.prop
@@ -590,7 +590,7 @@ assert custom.prop.get() == "value 4"
     }
 
     @Requires(
-        value = IntegTestPreconditions.NotParallelExecutor,
+        value = TestExecutionPreconditions.NotParallelExecutor,
         reason = "--parallel is specified explicitly, no need to run with multiple executor types"
     )
     @Issue("https://github.com/gradle/gradle/issues/12969")
@@ -627,7 +627,7 @@ assert custom.prop.get() == "value 4"
                 def m = extensions.create('model', Model)
                 m.prop.finalizeValueOnRead()
                 def c = configurations.create("incoming")
-                dependencies.incoming(project(":producer"))
+                dependencies.incoming(dependencies.project(":producer"))
                 m.prop = c.elements.map { files -> files*.asFile*.text.join(",") }
                 task consumer1 {
                     inputs.files(c)

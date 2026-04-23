@@ -16,7 +16,6 @@
 
 package org.gradle.language
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.nativeplatform.OperatingSystemFamily
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.SourceElement
@@ -24,16 +23,16 @@ import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 
 abstract class AbstractNativeLanguageComponentIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
 
-    @ToBeFixedForConfigurationCache
     def "binaries have the right platform type"() {
         given:
         makeSingleProject()
         buildFile << """
             task verifyBinariesPlatformType {
+                def binaries = provider { ${componentUnderTestDsl}.binaries.get() }.map { it.targetMachine }
                 doLast {
-                    ${componentUnderTestDsl}.binaries.get().each {
-                        assert it.targetMachine.operatingSystemFamily.name == "${DefaultNativePlatform.currentOperatingSystem.toFamilyName()}"
-                        assert it.targetMachine.architecture.name == "${defaultArchitecture}"
+                    binaries.get().each {
+                        assert it.operatingSystemFamily.name == "${DefaultNativePlatform.currentOperatingSystem.toFamilyName()}"
+                        assert it.architecture.name == "${defaultArchitecture}"
                     }
                 }
             }
@@ -43,15 +42,16 @@ abstract class AbstractNativeLanguageComponentIntegrationTest extends AbstractIn
         succeeds "verifyBinariesPlatformType"
     }
 
-    @ToBeFixedForConfigurationCache
     def "binaries have the right tool chain type"() {
         given:
         makeSingleProject()
+
         buildFile << """
             task verifyBinariesToolChainType {
+                def binaries = provider { ${componentUnderTestDsl}.binaries.get() }.map { components -> components.collect { it.toolChain.getClass() } }
                 doLast {
-                    ${componentUnderTestDsl}.binaries.get().each {
-                        assert it.toolChain instanceof ${AbstractInstalledToolChainIntegrationSpec.toolChain.implementationClass}
+                    binaries.get().each {
+                        assert ${AbstractInstalledToolChainIntegrationSpec.toolChain.implementationClass}.isAssignableFrom(it)
                     }
                 }
             }

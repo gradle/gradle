@@ -20,6 +20,7 @@ import org.gradle.declarative.dsl.schema.ConfigureAccessor
 import org.gradle.declarative.dsl.schema.DataClass
 import org.gradle.declarative.dsl.schema.DataMemberFunction
 import org.gradle.declarative.dsl.schema.FunctionSemantics
+
 import org.gradle.declarative.dsl.tooling.builders.AbstractDeclarativeDslToolingModelsCrossVersionTest
 import org.gradle.declarative.dsl.tooling.models.DeclarativeSchemaModel
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
@@ -236,8 +237,8 @@ class DeclarativeDslToolingModelsCrossVersionTest extends AbstractDeclarativeDsl
             import org.gradle.api.model.ObjectFactory;
             import org.gradle.api.provider.ListProperty;
             import org.gradle.api.provider.Property;
-            import org.gradle.api.internal.plugins.Definition;
-            import org.gradle.api.internal.plugins.BuildModel;
+            import org.gradle.features.binding.Definition;
+            import org.gradle.features.binding.BuildModel;
 
             import java.util.ArrayList;
             import javax.inject.Inject;
@@ -317,12 +318,12 @@ class DeclarativeDslToolingModelsCrossVersionTest extends AbstractDeclarativeDsl
             import org.gradle.api.model.ObjectFactory;
             import org.gradle.api.tasks.Nested;
             import javax.inject.Inject;
-            import org.gradle.api.internal.plugins.BindsProjectType;
-            import org.gradle.api.internal.plugins.BindsProjectFeature;
-            import org.gradle.api.internal.plugins.ProjectTypeBinding;
-            import org.gradle.api.internal.plugins.ProjectFeatureBinding;
-            import org.gradle.api.internal.plugins.ProjectTypeBindingBuilder;
-            import org.gradle.api.internal.plugins.ProjectFeatureBindingBuilder;
+            import org.gradle.features.annotations.BindsProjectType;
+            import org.gradle.features.annotations.BindsProjectFeature;
+            import org.gradle.features.binding.ProjectTypeBinding;
+            import org.gradle.features.binding.ProjectFeatureBinding;
+            import org.gradle.features.binding.ProjectTypeBindingBuilder;
+            import org.gradle.features.binding.ProjectFeatureBindingBuilder;
 
             @BindsProjectType(SoftwareTypeImplPlugin.TypeBinding.class)
             @BindsProjectFeature(SoftwareTypeImplPlugin.FeatureBinding.class)
@@ -379,9 +380,9 @@ class DeclarativeDslToolingModelsCrossVersionTest extends AbstractDeclarativeDsl
             import org.gradle.api.model.ObjectFactory;
             import org.gradle.api.tasks.Nested;
             import javax.inject.Inject;
-            import org.gradle.api.internal.plugins.BindsProjectType;
-            import org.gradle.api.internal.plugins.ProjectTypeBinding;
-            import org.gradle.api.internal.plugins.ProjectTypeBindingBuilder;
+            import org.gradle.features.annotations.BindsProjectType;
+            import org.gradle.features.binding.ProjectTypeBinding;
+            import org.gradle.features.binding.ProjectTypeBindingBuilder;
 
             @BindsProjectType(AnotherSoftwareTypeImplPlugin.Binding.class)
             abstract public class AnotherSoftwareTypeImplPlugin implements Plugin<Project> {
@@ -409,10 +410,10 @@ class DeclarativeDslToolingModelsCrossVersionTest extends AbstractDeclarativeDsl
             import org.gradle.api.Plugin;
             import org.gradle.api.initialization.Settings;
             import org.gradle.api.internal.SettingsInternal;
-            import org.gradle.api.internal.plugins.software.RegistersSoftwareTypes;
+            import org.gradle.features.annotations.RegistersProjectFeatures;
 
             @SuppressWarnings("UnstableApiUsage")
-            @RegistersSoftwareTypes({SoftwareTypeImplPlugin.class, AnotherSoftwareTypeImplPlugin.class})
+            @RegistersProjectFeatures({SoftwareTypeImplPlugin.class, AnotherSoftwareTypeImplPlugin.class})
             abstract public class SoftwareTypeRegistrationPlugin implements Plugin<Settings> {
                 @Override
                 public void apply(Settings target) {

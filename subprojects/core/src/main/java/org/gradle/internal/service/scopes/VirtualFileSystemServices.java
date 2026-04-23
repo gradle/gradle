@@ -44,8 +44,7 @@ import org.gradle.cache.scopes.BuildTreeScopedCacheBuilderFactory;
 import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory;
 import org.gradle.initialization.RootBuildLifecycleListener;
 import org.gradle.internal.build.BuildAddedListener;
-import org.gradle.internal.buildoption.IntegerInternalOption;
-import org.gradle.internal.buildoption.InternalFlag;
+import org.gradle.internal.buildoption.InternalOption;
 import org.gradle.internal.buildoption.InternalOptions;
 import org.gradle.internal.classloader.ClasspathHasher;
 import org.gradle.internal.event.ListenerManager;
@@ -114,17 +113,16 @@ public class VirtualFileSystemServices extends AbstractGradleModuleServices {
      *
      * @see org.gradle.initialization.StartParameterBuildOptions.WatchFileSystemOption
      */
-    public static final InternalFlag VFS_DROP_PROPERTY = new InternalFlag("org.gradle.internal.vfs.drop");
-    private static final int DEFAULT_MAX_HIERARCHIES_TO_WATCH = 50;
-    public static final IntegerInternalOption MAX_HIERARCHIES_TO_WATCH_PROPERTY = new IntegerInternalOption("org.gradle.internal.vfs.watch.hierarchies.max", DEFAULT_MAX_HIERARCHIES_TO_WATCH);
+    public static final InternalOption<Boolean> VFS_DROP_PROPERTY = InternalOptions.ofBoolean("org.gradle.internal.vfs.drop", false);
+    public static final InternalOption<Integer> MAX_HIERARCHIES_TO_WATCH_PROPERTY = InternalOptions.ofInt("org.gradle.internal.vfs.watch.hierarchies.max", 50);
     private static final int FILE_HASHER_MEMORY_CACHE_SIZE = 300000;
 
     public static boolean isDropVfs(InternalOptions options) {
-        return options.getOption(VFS_DROP_PROPERTY).get();
+        return options.getBoolean(VFS_DROP_PROPERTY);
     }
 
     public static int getMaximumNumberOfWatchedHierarchies(InternalOptions options) {
-        return options.getOption(MAX_HIERARCHIES_TO_WATCH_PROPERTY).get();
+        return options.getInt(MAX_HIERARCHIES_TO_WATCH_PROPERTY);
     }
 
     @Override

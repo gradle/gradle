@@ -16,11 +16,13 @@
 
 package org.gradle.kotlin.dsl.dcl
 
-import org.gradle.api.internal.plugins.BindsProjectType
-import org.gradle.api.internal.plugins.BuildModel
-import org.gradle.api.internal.plugins.Definition
-import org.gradle.api.internal.plugins.ProjectTypeBinding
-import org.gradle.api.internal.plugins.ProjectTypeBindingBuilder
+import org.gradle.api.provider.Property
+import org.gradle.features.annotations.BindsProjectType
+import org.gradle.features.annotations.RegistersProjectFeatures
+import org.gradle.features.binding.BuildModel
+import org.gradle.features.binding.Definition
+import org.gradle.features.binding.ProjectTypeBinding
+import org.gradle.features.binding.ProjectTypeBindingBuilder
 import org.gradle.kotlin.dsl.accessors.DCL_ENABLED_PROPERTY_NAME
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import kotlin.test.Test
@@ -85,9 +87,9 @@ class OptInDclAccessorsIntegrationTest : AbstractKotlinIntegrationTest() {
 
                 import org.gradle.api.Plugin
                 import org.gradle.api.initialization.Settings
-                import org.gradle.api.internal.plugins.software.RegistersSoftwareTypes
+                import ${RegistersProjectFeatures::class.qualifiedName}
 
-                @RegistersSoftwareTypes(MyPlugin::class)
+                @${RegistersProjectFeatures::class.simpleName}(MyPlugin::class)
                 class MyEcosystemPlugin : Plugin<Settings> {
                     override fun apply(settings: Settings) = Unit
                 }
@@ -169,7 +171,8 @@ class OptInDclAccessorsIntegrationTest : AbstractKotlinIntegrationTest() {
                 import ${ProjectTypeBindingBuilder::class.java.name}
                 import ${Definition::class.java.name}
                 import ${BuildModel::class.java.name}
-                import org.gradle.api.internal.plugins.features.dsl.bindProjectType
+                import ${Property::class.java.name}
+                import org.gradle.features.dsl.bindProjectType
 
                 @RequiresOptIn("Some Experimental API", RequiresOptIn.Level.ERROR)
                 annotation class SomeExperimentalApi
@@ -196,8 +199,8 @@ class OptInDclAccessorsIntegrationTest : AbstractKotlinIntegrationTest() {
                 interface Model : ${BuildModel::class.java.simpleName} { }
 
                 @SomeExperimentalApi
-                abstract class MyElement(val elementName: String) : Named {
-                    override fun getName() = elementName
+                interface MyElement : Named {
+                    val elementName: Property<String>
                 }
                 """.trimIndent()
         )

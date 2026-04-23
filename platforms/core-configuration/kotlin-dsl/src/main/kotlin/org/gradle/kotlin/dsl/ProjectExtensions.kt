@@ -33,7 +33,9 @@ import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.plugins.PluginAware
 
 import org.gradle.api.tasks.TaskContainer
+import org.gradle.internal.Factory
 import org.gradle.internal.component.local.model.OpaqueComponentIdentifier
+import org.gradle.internal.deprecation.DeprecationLogger
 
 import org.gradle.kotlin.dsl.provider.fileCollectionOf
 import org.gradle.kotlin.dsl.provider.gradleKotlinDslOf
@@ -182,8 +184,24 @@ fun Project.artifacts(configuration: ArtifactHandlerScope.() -> Unit) =
 /**
  * Locates a property on [Project].
  */
-operator fun Project.provideDelegate(any: Any?, property: KProperty<*>): PropertyDelegate =
-    propertyDelegateFor(serviceOf(), this, property)
+@Deprecated("Use 'val property = project.property(name)' or 'val property = project.findProperty(name)' instead. See the Gradle 9.6 upgrading guide.")
+@Suppress("DEPRECATION")
+operator fun Project.provideDelegate(any: Any?, property: KProperty<*>): PropertyDelegate {
+    if (property.returnType.isMarkedNullable) {
+        DeprecationLogger.deprecate("The 'val name: Type? by project' property delegate syntax")
+            .withAdvice("Use 'val property = project.findProperty(name)' instead.")
+            .willBeRemovedInGradle10()
+            .withUpgradeGuideSection(9, "kotlin_dsl_delegated_properties")
+            .nagUser()
+    } else {
+        DeprecationLogger.deprecate("The 'val name: Type by project' property delegate syntax")
+            .withAdvice("Use 'val property = project.property(name)' instead.")
+            .willBeRemovedInGradle10()
+            .withUpgradeGuideSection(9, "kotlin_dsl_delegated_properties")
+            .nagUser()
+    }
+    return DeprecationLogger.whileDisabled(Factory { propertyDelegateFor(serviceOf(), this, property) })
+}
 
 
 /**

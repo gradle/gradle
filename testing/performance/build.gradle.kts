@@ -9,6 +9,7 @@ description = "Performance tests for the Gradle build tool"
 dependencies {
     performanceTestImplementation(projects.baseServices)
     performanceTestImplementation(projects.core)
+    performanceTestImplementation(projects.internalIntegTesting)
     performanceTestImplementation(projects.internalTesting)
     performanceTestImplementation(projects.stdlibJavaExtensions)
     performanceTestImplementation(projects.toolingApi)

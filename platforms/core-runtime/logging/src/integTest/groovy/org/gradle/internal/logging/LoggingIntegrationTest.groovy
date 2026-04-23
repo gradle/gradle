@@ -241,7 +241,7 @@ class LoggingIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @ToBeFixedForConfigurationCache(because = "https://github.com/gradle/gradle/issues/31830", iterationMatchers = 'sample emits (quiet|lifecycle) logging')
-    @UsesSample('tutorial/logging/groovy')
+    @UsesSample('integration-tests/tutorial/logging/groovy')
     def "sample emits #level logging"() {
         LogLevel logLevel = sample."$level"
 

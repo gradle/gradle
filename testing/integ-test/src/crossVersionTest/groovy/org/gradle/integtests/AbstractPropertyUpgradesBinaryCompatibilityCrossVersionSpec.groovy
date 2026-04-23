@@ -42,7 +42,7 @@ abstract class AbstractPropertyUpgradesBinaryCompatibilityCrossVersionSpec exten
     /**
      * These packages are not available with the version we are building a plugin with and will cause plugin compilation to fail.
      */
-    private static final List<String> BLACKLISTED_PACKAGES = [
+    private static final List<String> EXCLUDED_PACKAGES = [
         // Testkit is not available on compile classpath for plugin
         "org.gradle.testkit"
     ]
@@ -51,7 +51,7 @@ abstract class AbstractPropertyUpgradesBinaryCompatibilityCrossVersionSpec exten
         def runtimeInfoJar = previous.gradleHomeDir.file("lib/gradle-runtime-api-info-${previous.version.baseVersion.version}.jar")
         def importsReader = new DefaultImportsReader(RuntimeApiInfo.create(DefaultClassPath.of(runtimeInfoJar)))
         return importsReader.importPackages.findAll {
-            !BLACKLISTED_PACKAGES.any { packageName -> it.startsWith(packageName) }
+            !EXCLUDED_PACKAGES.any { packageName -> it.startsWith(packageName) }
         }.collect { it + ".*" }
     }
 

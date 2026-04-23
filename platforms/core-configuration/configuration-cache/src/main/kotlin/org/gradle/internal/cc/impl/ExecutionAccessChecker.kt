@@ -19,13 +19,17 @@ package org.gradle.internal.cc.impl
 import org.gradle.api.internal.provider.ConfigurationTimeBarrier
 import org.gradle.execution.ExecutionAccessChecker
 import org.gradle.execution.ExecutionAccessListener
+import org.gradle.internal.event.ListenerManager
 
 
 internal
 class ConfigurationTimeBarrierBasedExecutionAccessChecker(
+    listenerManager: ListenerManager,
     private val configurationTimeBarrier: ConfigurationTimeBarrier,
-    private val broadcaster: ExecutionAccessListener
 ) : ExecutionAccessChecker {
+
+    private val broadcaster: ExecutionAccessListener = listenerManager.getBroadcaster(ExecutionAccessListener::class.java)
+
     override fun disallowedAtExecutionInjectedServiceAccessed(injectedServiceType: Class<*>, getterName: String, consumer: String) {
         if (shouldReportExecutionTimeAccess()) {
             broadcaster.disallowedAtExecutionInjectedServiceAccessed(injectedServiceType, getterName, consumer)

@@ -39,6 +39,7 @@ import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshotHierarchyVisitor;
 import org.gradle.internal.snapshot.SnapshotVisitResult;
 import org.gradle.internal.vfs.FileSystemAccess;
+import org.gradle.internal.work.WorkerLeaseService;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -84,6 +85,7 @@ public class AssignImmutableWorkspaceStep<C extends IdentityContext> implements 
     private final FileSystemAccess fileSystemAccess;
     private final ImmutableWorkspaceMetadataStore workspaceMetadataStore;
     private final OutputSnapshotter outputSnapshotter;
+    private final WorkerLeaseService workerLeaseService;
     private final Step<? super PreviousExecutionContext, ? extends CachingResult> delegate;
 
     public AssignImmutableWorkspaceStep(
@@ -91,12 +93,14 @@ public class AssignImmutableWorkspaceStep<C extends IdentityContext> implements 
         FileSystemAccess fileSystemAccess,
         ImmutableWorkspaceMetadataStore workspaceMetadataStore,
         OutputSnapshotter outputSnapshotter,
+        WorkerLeaseService workerLeaseService,
         Step<? super PreviousExecutionContext, ? extends CachingResult> delegate
     ) {
         this.deleter = deleter;
         this.fileSystemAccess = fileSystemAccess;
         this.workspaceMetadataStore = workspaceMetadataStore;
         this.outputSnapshotter = outputSnapshotter;
+        this.workerLeaseService = workerLeaseService;
         this.delegate = delegate;
     }
 
@@ -108,7 +112,7 @@ public class AssignImmutableWorkspaceStep<C extends IdentityContext> implements 
         ImmutableWorkspace workspace = workspaceProvider.getWorkspace(uniqueId);
         // Loads a workspace result or creates it,
         // but only execute loadOrCreateWorkspace() once across all threads that try to run it at the same time
-        ConcurrentResult<WorkspaceResult> result = workspace.getOrCompute(() -> loadOrCreateWorkspace(work, workspace, context));
+        ConcurrentResult<WorkspaceResult> result = workspace.getOrCompute(workerLeaseService, () -> loadOrCreateWorkspace(work, workspace, context));
 
         // If a result is produced by the current thread, return it, otherwise map it as up-to-date
         return result.isProducedByCurrentThread()

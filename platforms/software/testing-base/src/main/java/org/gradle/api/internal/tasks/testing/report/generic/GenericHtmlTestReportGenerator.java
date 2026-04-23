@@ -21,7 +21,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Multimaps;
-import org.gradle.api.GradleException;
 import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.file.EmptyFileVisitor;
 import org.gradle.api.file.FileVisitDetails;
@@ -59,7 +58,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -71,31 +69,6 @@ import java.util.stream.Collectors;
 public abstract class GenericHtmlTestReportGenerator implements TestReportGenerator {
 
     private static final Logger LOG = Logging.getLogger(GenericHtmlTestReportGenerator.class);
-
-    public static String getFilePath(org.gradle.util.Path path, boolean isLeaf) {
-        String filePath;
-        if (path.segmentCount() == 0) {
-            filePath = "index.html";
-        } else if (isLeaf && !Objects.equals(path.getName(), "index")) {
-            // Avoid using a directory for each leaf node unless its name clashes (i.e. "index")
-            // This reduces VFS overhead from many directories for large test suites
-            String prefix = String.join("/", Iterables.transform(
-                path.getParent().segments(),
-                name -> SafeFileLocationUtils.toSafeFileName(name, true)
-            ));
-            filePath = prefix + (prefix.isEmpty() ? "" : "/") + SafeFileLocationUtils.toSafeFileName(path.getName() + ".html", false);
-        } else {
-            filePath = String.join("/", Iterables.transform(
-                path.segments(),
-                name -> SafeFileLocationUtils.toSafeFileName(name, true)
-            )) + "/index.html";
-        }
-        return filePath;
-    }
-
-    private static String getFilePath(TestTreeModel tree) {
-        return getFilePath(tree.getPath(), tree.getChildren().isEmpty());
-    }
 
     private final BuildOperationRunner buildOperationRunner;
     private final BuildOperationExecutor buildOperationExecutor;
@@ -160,6 +133,10 @@ public abstract class GenericHtmlTestReportGenerator implements TestReportGenera
         try {
             HtmlReportRenderer htmlRenderer = new HtmlReportRenderer();
             buildOperationRunner.run(new DeleteOldReportOperation(fileCollectionFactory, deleter, reportsDirectory));
+            final String basePath = reportsDirectory.toAbsolutePath().toString();
+            final boolean shrink = HtmlTestReportPathBuilder.needsShrinking(
+                new SafeFileLocationUtils.PathLimitChecker(basePath), model
+            );
 
             ListMultimap<String, Integer> namesToIndexes = ArrayListMultimap.create();
             List<String> rootDisplayNames = new ArrayList<>(model.getPerRootInfo().size());
@@ -179,7 +156,7 @@ public abstract class GenericHtmlTestReportGenerator implements TestReportGenera
                 }
             });
 
-            htmlRenderer.render(model, new ReportRenderer<TestTreeModel, HtmlReportBuilder>() {
+            htmlRenderer.render(model, new ReportRenderer<>() {
                 @Override
                 public void render(final TestTreeModel model, final HtmlReportBuilder output) {
                     buildOperationExecutor.runAll(
@@ -205,6 +182,7 @@ public abstract class GenericHtmlTestReportGenerator implements TestReportGenera
                         }
                     }
                     queue.add(new HtmlReportFileGenerator(
+                        shrink,
                         requestsBuilder.build(),
                         output,
                         outputReaders,
@@ -213,7 +191,7 @@ public abstract class GenericHtmlTestReportGenerator implements TestReportGenera
                 }
             }, reportsDirectory.toFile());
         } catch (Exception e) {
-            throw new GradleException(String.format("Could not generate test report to '%s'.", reportsDirectory), e);
+            throw new GenericHtmlReportGenerationException(String.format("Could not generate test report to '%s'.", reportsDirectory), e);
         }
     }
 
@@ -229,17 +207,20 @@ public abstract class GenericHtmlTestReportGenerator implements TestReportGenera
     }
 
     private static final class HtmlReportFileGenerator implements RunnableBuildOperation {
+        private final boolean shrink;
         private final List<TestTreeModel> requests;
         private final HtmlReportBuilder output;
         private final List<TestOutputReader> outputReaders;
         private final List<String> rootDisplayNames;
 
         HtmlReportFileGenerator(
+            boolean shrink,
             List<TestTreeModel> requests,
             HtmlReportBuilder output,
             List<TestOutputReader> outputReaders,
             List<String> rootDisplayNames
         ) {
+            this.shrink = shrink;
             this.requests = requests;
             this.output = output;
             this.outputReaders = outputReaders;
@@ -257,9 +238,9 @@ public abstract class GenericHtmlTestReportGenerator implements TestReportGenera
 
         @Override
         public void run(BuildOperationContext context) {
-            GenericPageRenderer renderer = new GenericPageRenderer(outputReaders, rootDisplayNames);
+            GenericPageRenderer renderer = new GenericPageRenderer(shrink, outputReaders, rootDisplayNames);
             for (TestTreeModel request : requests) {
-                output.renderHtmlPage(getFilePath(request), request, renderer);
+                output.renderHtmlPage(HtmlTestReportPathBuilder.buildFilePathForModel(shrink, request), request, renderer);
             }
         }
     }

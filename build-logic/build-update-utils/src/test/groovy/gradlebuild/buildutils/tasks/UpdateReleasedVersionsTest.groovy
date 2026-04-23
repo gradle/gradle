@@ -39,7 +39,7 @@ class UpdateReleasedVersionsTest extends Specification {
         def version = new ReleasedVersion('4.2', '20170913122310+0000')
 
         expect:
-        UpdateReleasedVersions.@Companion.updateReleasedVersions(version, versions) == releasedVersions(snapshot, rc, [version])
+        ReleasedVersionsHelperKt.updateReleasedVersions(version, versions) == releasedVersions(snapshot, rc, [version])
     }
 
     def "final releases are sorted by version"() {
@@ -57,7 +57,7 @@ class UpdateReleasedVersionsTest extends Specification {
         def version = new ReleasedVersion('4.2', '20170913122310+0000')
         expect:
         def expectedVersions = (finalVersionsBefore + version).sort { it.version }.reverse()
-        UpdateReleasedVersions.@Companion.updateReleasedVersions(version, versions) == releasedVersions(snapshot, rc, expectedVersions)
+        ReleasedVersionsHelperKt.updateReleasedVersions(version, versions) == releasedVersions(snapshot, rc, expectedVersions)
     }
 
     def "newer snapshots are stored"() {
@@ -68,7 +68,7 @@ class UpdateReleasedVersionsTest extends Specification {
 
         def newSnapshot = snapshot(version, referenceBuildTime + buildTime)
         expect:
-        UpdateReleasedVersions.@Companion.updateReleasedVersions(newSnapshot, versions) == releasedVersions(newSnapshot, rc, [])
+        ReleasedVersionsHelperKt.updateReleasedVersions(newSnapshot, versions) == releasedVersions(newSnapshot, rc, [])
 
         where:
         version | buildTime
@@ -85,7 +85,7 @@ class UpdateReleasedVersionsTest extends Specification {
 
         def newSnapshot = snapshot(version, referenceBuildTime + buildTime)
         expect:
-        UpdateReleasedVersions.@Companion.updateReleasedVersions(newSnapshot, versions) == releasedVersions(oldSnapshot, rc, [])
+        ReleasedVersionsHelperKt.updateReleasedVersions(newSnapshot, versions) == releasedVersions(oldSnapshot, rc, [])
 
         where:
         version | buildTime
@@ -102,7 +102,7 @@ class UpdateReleasedVersionsTest extends Specification {
 
         def newRc = releasedVersion(version, referenceBuildTime + buildTime)
         expect:
-        UpdateReleasedVersions.@Companion.updateReleasedVersions(newRc, versions) == releasedVersions(snapshotVersion, newRc, [])
+        ReleasedVersionsHelperKt.updateReleasedVersions(newRc, versions) == releasedVersions(snapshotVersion, newRc, [])
 
         where:
         version | buildTime
@@ -119,7 +119,7 @@ class UpdateReleasedVersionsTest extends Specification {
 
         def newRc = releasedVersion(version, referenceBuildTime + buildTime)
         expect:
-        UpdateReleasedVersions.@Companion.updateReleasedVersions(newRc, versions) == releasedVersions(snapshotVersion, oldRc, [])
+        ReleasedVersionsHelperKt.updateReleasedVersions(newRc, versions) == releasedVersions(snapshotVersion, oldRc, [])
 
         where:
         version | buildTime

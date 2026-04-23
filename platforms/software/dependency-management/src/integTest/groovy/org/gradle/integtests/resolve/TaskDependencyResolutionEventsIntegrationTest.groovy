@@ -16,11 +16,11 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 
 class TaskDependencyResolutionEventsIntegrationTest extends AbstractIntegrationSpec {
 
-    @ToBeFixedForConfigurationCache(because = "broken file collection")
+    @UnsupportedWithConfigurationCache(because = "under CC, the configuration is resolved during cache entry writing, which triggers the beforeResolve/afterResolve callbacks that this test expects not to fire during task dependency calculation")
     def "does not generate events when task dependencies are calculated for configuration that is used as a task input"() {
         given:
         buildFile << """

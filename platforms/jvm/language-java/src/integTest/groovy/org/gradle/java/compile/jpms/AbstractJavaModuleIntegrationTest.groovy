@@ -20,13 +20,14 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.maven.MavenModule
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.JdkVersionTestPreconditions
+
 
 import static org.gradle.test.fixtures.jpms.ModuleJarFixture.autoModuleJar
 import static org.gradle.test.fixtures.jpms.ModuleJarFixture.moduleJar
 import static org.gradle.test.fixtures.jpms.ModuleJarFixture.traditionalJar
 
-@Requires(UnitTestPreconditions.Jdk9OrLater)
+@Requires(JdkVersionTestPreconditions.Jdk9OrLater)
 abstract class AbstractJavaModuleIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {

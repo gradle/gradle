@@ -85,9 +85,15 @@ public class EclipseModelAwareUniqueProjectNameProvider extends AbstractUniquePr
         // try to get the name from EclipseProject.name
         state.getOwner().ensureProjectsConfigured();
 
-        EclipseModel model = state.getMutableModel().getExtensions().findByType(EclipseModel.class);
-        if (model != null && model.getProject().getName() != null) {
-            return model.getProject().getName();
+        String modelName = state.fromMutableState(project -> {
+            EclipseModel model = project.getExtensions().findByType(EclipseModel.class);
+            if (model != null) {
+                return model.getProject().getName();
+            }
+            return null;
+        });
+        if (modelName != null) {
+            return modelName;
         }
 
         // fallback: take the name from the ProjectState

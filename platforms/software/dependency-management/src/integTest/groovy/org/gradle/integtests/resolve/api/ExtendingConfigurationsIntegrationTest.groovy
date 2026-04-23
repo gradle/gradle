@@ -16,7 +16,6 @@
 package org.gradle.integtests.resolve.api
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.extensions.FluidDependenciesResolveTest
 import spock.lang.Issue
 
@@ -24,7 +23,6 @@ import spock.lang.Issue
 class ExtendingConfigurationsIntegrationTest extends AbstractDependencyResolutionTest {
 
     @Issue("GRADLE-2873")
-    @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
     def "may replace configuration extension targets"() {
         mavenRepo.module("org", "foo").publish()
         mavenRepo.module("org", "bar").publish()
@@ -41,24 +39,20 @@ class ExtendingConfigurationsIntegrationTest extends AbstractDependencyResolutio
                 barConf 'org:bar:1.0'
             }
 
-            task check {
-                doLast {
-                    configurations.conf.extendsFrom(configurations.fooConf)
-                    assert configurations.conf.allDependencies*.name == ['foo']
+            configurations.conf.extendsFrom(configurations.fooConf)
+            assert configurations.conf.allDependencies*.name == ['foo']
 
-                    //purposefully again:
-                    configurations.conf.extendsFrom(configurations.fooConf)
-                    assert configurations.conf.allDependencies*.name == ['foo']
+            //purposefully again:
+            configurations.conf.extendsFrom(configurations.fooConf)
+            assert configurations.conf.allDependencies*.name == ['foo']
 
-                    //replace:
-                    configurations.conf.extendsFrom = [configurations.barConf] as Set
-                    assert configurations.conf.allDependencies*.name == ['bar']
-                }
-            }
+            //replace:
+            configurations.conf.extendsFrom = [configurations.barConf] as Set
+            assert configurations.conf.allDependencies*.name == ['bar']
         """
 
         when:
-        run "check"
+        run "help"
 
         then:
         noExceptionThrown()
@@ -244,7 +238,7 @@ task checkResolveParentThenChild {
         succeeds 'resolvableConfigurations', '--all'
         outputContains("""
 --------------------------------------------------
-Configuration conf2
+Configuration conf2 (n)
 --------------------------------------------------
 
 Extended Configurations
@@ -268,11 +262,37 @@ Extended Configurations
         succeeds 'resolvableConfigurations', '--all'
         outputContains("""
 --------------------------------------------------
-Configuration conf2
+Configuration conf2 (n)
 --------------------------------------------------
 
 Extended Configurations
     - conf1
+""")
+    }
+
+    def "can extend from multiple configuration providers"() {
+        given:
+        buildFile """
+            def conf1 = configurations.resolvable('conf1')
+            def conf2 = configurations.resolvable('conf2')
+
+            configurations {
+                resolvable('conf3') {
+                    extendsFrom conf1, conf2
+                }
+            }
+        """
+
+        expect:
+        succeeds 'resolvableConfigurations', '--all'
+        outputContains("""
+--------------------------------------------------
+Configuration conf3 (n)
+--------------------------------------------------
+
+Extended Configurations
+    - conf1
+    - conf2
 """)
     }
 
@@ -432,5 +452,38 @@ Extended Configurations
         outputContains("[foo-1.0.jar, bar-1.0.jar]")
         outputContains("Realizing one")
         outputDoesNotContain("Realizing zzz")
+    }
+
+    def "variant computation does not eagerly realize lazy artifact providers on consumable configurations"() {
+        given:
+        buildFile """
+            plugins {
+                id 'java-library'
+            }
+
+            configurations.dependencyScope("parent")
+            configurations.consumable("lazyOutgoing") {
+                extendsFrom(configurations.parent)
+                outgoing.artifacts(provider {
+                    throw new RuntimeException("Lazy artifact provider should not be realized during variant computation")
+                })
+            }
+
+            configurations.dependencyScope("selfDep")
+            dependencies {
+                selfDep project(":")
+            }
+            configurations.resolvable("trigger") {
+                extendsFrom(configurations.selfDep)
+            }
+
+            tasks.register("resolve") {
+                inputs.files(configurations.trigger)
+                doLast { println "resolved" }
+            }
+        """
+
+        expect:
+        succeeds "resolve"
     }
 }

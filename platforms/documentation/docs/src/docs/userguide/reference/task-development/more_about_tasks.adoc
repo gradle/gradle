@@ -35,7 +35,7 @@ All available tasks in your project come from Gradle plugins and build scripts.
 
 You can list all the available tasks in a project by running the following command in the terminal:
 
-[source,text]
+[source,bash]
 ----
 $ ./gradlew tasks
 ----
@@ -103,10 +103,12 @@ Currently, the `app` subproject's build file is empty.
 
 To see the tasks available in the `app` subproject, run `./gradlew :app:tasks`:
 
-[source,text]
+[source,bash]
 ----
 $ ./gradlew :app:tasks
-
+----
+[source,text]
+----
 > Task :app:tasks
 
 ------------------------------------------------------------
@@ -160,10 +162,12 @@ plugins {
 The `base` plugin adds central lifecycle tasks.
 Now when we run `./gradlew app:tasks`, we can see the `assemble` and `build` tasks are available:
 
-[source,text]
+[source,bash]
 ----
 $ ./gradlew :app:tasks
-
+----
+[source,text]
+----
 > Task :app:tasks
 
 ------------------------------------------------------------
@@ -224,6 +228,24 @@ Actions include, but are not limited to, compiling code, zipping files, and publ
 `NO-SOURCE`:: *Task did not need to execute its actions.*
 * Task has inputs and outputs, but <<incremental_build.adoc#skip-when-empty,no sources>> (i.e., inputs were not found).
 
+[[sec:task_provenance]]
+== Task provenance
+
+Gradle tracks where each task is registered, whether by a build script, settings script, or plugin.
+This provenance information appears in several places:
+
+When a task fails, the error message includes its provenance to help you locate the source of the problem:
+
+[source,text]
+----
+Execution failed for task ':app:compileJava' (registered by plugin 'org.gradle.api.plugins.JavaPlugin').
+----
+
+NOTE: Provenance is omitted from failure messages for verification failures (e.g., test failures), since those are expected outcomes rather than configuration issues.
+
+The `help --task` and `tasks` commands also include provenance in their output.
+You can use `tasks --provenance` to see where each task was registered.
+
 [[sec:task_groups]]
 == Task group and description
 
@@ -238,10 +260,12 @@ The build contains a subproject called `app`.
 
 Let's list the available tasks in `app` at the moment:
 
-[source, text]
+[source,bash]
 ----
 $ ./gradlew :app:tasks
-
+----
+[source,text]
+----
 > Task :app:tasks
 
 ------------------------------------------------------------
@@ -319,10 +343,12 @@ tasks.register("helloTask") {
 
 Although `helloTask` is not listed, it can still be executed by Gradle:
 
-[source, text]
+[source,bash]
 ----
 $ ./gradlew :app:tasks
-
+----
+[source,text]
+----
 > Task :app:tasks
 
 ------------------------------------------------------------
@@ -369,10 +395,12 @@ tasks.register("helloTask") {
 
 Now that the group is added, the task is visible:
 
-[source, text]
+[source,bash]
 ----
 $ ./gradlew :app:tasks
-
+----
+[source,text]
+----
 > Task :app:tasks
 
 ------------------------------------------------------------
@@ -465,10 +493,12 @@ gradle-project
 
 Run `app:tasks` to see available tasks in the `app` subproject:
 
-[source,text]
+[source,bash]
 ----
 $ ./gradlew :app:tasks
-
+----
+[source,text]
+----
 > Task :app:tasks
 
 ------------------------------------------------------------
@@ -569,10 +599,12 @@ tasks.named("tasks", TaskReportTask) {          // Move all existing tasks to th
 
 Now, when we list tasks available in `app`, the list is shorter:
 
-[source, text]
+[source,bash]
 ----
 $ ./gradlew :app:tasks
-
+----
+[source,text]
+----
 > Task :app:tasks
 
 ------------------------------------------------------------
@@ -628,10 +660,12 @@ plugins {
 
 Once again, we list the available tasks to see what new tasks are available:
 
-[source,text]
+[source,bash]
 ----
 $ ./gradlew :app:tasks
-
+----
+[source,text]
+----
 > Task :app:tasks
 
 ------------------------------------------------------------
@@ -677,10 +711,12 @@ We see that many new tasks are available such as `jar` and `testClasses`.
 Additionally, the `java-library` plugin has wired actionable tasks to lifecycle tasks.
 If we call the `:build` task, we can see several tasks have been executed, including the `:app:compileJava` task.
 
+[source,bash]
+----
+$ ./gradlew :app:build
+----
 [source,text]
 ----
-$./gradlew :app:build
-
 > Task :app:compileJava
 > Task :app:processResources NO-SOURCE
 > Task :app:classes
@@ -707,10 +743,12 @@ Therefore, if we've built our project before and made only minor changes, rerunn
 For example, if we modify only the test code in our project, leaving the production code unchanged, executing the build will solely recompile the test code.
 Gradle marks the tasks for the production code as `UP-TO-DATE`, indicating that it remains unchanged since the last successful build:
 
+[source,bash]
+----
+$ ./gradlew :app:build
+----
 [source,text]
 ----
-$./gradlew :app:build
-
 gradle@MacBook-Pro temp1 % ./gradlew :app:build
 > Task :app:compileJava UP-TO-DATE
 > Task :app:processResources NO-SOURCE
@@ -734,10 +772,12 @@ To enable this feature, activate the build cache by using the `--build-cache` <<
 
 This optimization has the potential to accelerate your builds significantly:
 
+[source,bash]
+----
+$ ./gradlew :app:clean :app:build --build-cache
+----
 [source,text]
 ----
-$./gradlew :app:clean :app:build --build-cache
-
 > Task :app:compileJava FROM-CACHE
 > Task :app:processResources NO-SOURCE
 > Task :app:classes UP-TO-DATE
@@ -843,8 +883,8 @@ You define actions for Gradle to take by registering tasks in build scripts or p
 Tasks are defined using strings for task names:
 
 ====
-include::sample[dir="snippets/tasks/defineUsingStringTaskNames/kotlin",files="build.gradle.kts[tags=simple_register]"]
-include::sample[dir="snippets/tasks/defineUsingStringTaskNames/groovy",files="build.gradle[tags=simple_register]"]
+include::sample[dir="snippets/reference/task-development/defineUsingStringTaskNames/kotlin",files="build.gradle.kts[tags=simple_register]"]
+include::sample[dir="snippets/reference/task-development/defineUsingStringTaskNames/groovy",files="build.gradle[tags=simple_register]"]
 ====
 
 In the example above, the task is added to the link:{javadocPath}/org/gradle/api/tasks/TaskCollection.html[`TasksCollection`] using the link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html#register-java.lang.String-java.lang.Class-[`register()`] method in link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html[`TaskContainer`].
@@ -860,8 +900,8 @@ Let’s look at the `Copy` task provided by Gradle as an example.
 We first register a task called `myCopy` of type `Copy` in the build script:
 
 ====
-include::sample[dir="snippets/tasks/configureUsingBlock/kotlin",files="build.gradle.kts[tags=declare-task]"]
-include::sample[dir="snippets/tasks/configureUsingBlock/groovy",files="build.gradle[tags=declare-task]"]
+include::sample[dir="snippets/reference/task-development/configureUsingBlock/kotlin",files="build.gradle.kts[tags=declare-task]"]
+include::sample[dir="snippets/reference/task-development/configureUsingBlock/groovy",files="build.gradle[tags=declare-task]"]
 ====
 
 This registers a copy task with no default behavior.
@@ -874,8 +914,8 @@ The following examples show several ways to achieve the same configuration:
 Use `named()` to configure an existing task registered elsewhere:
 
 ====
-include::sample[dir="snippets/tasks/configureUsingVar/kotlin",files="build.gradle.kts[tags=configure]"]
-include::sample[dir="snippets/tasks/configureUsingVar/groovy",files="build.gradle[tags=configure]"]
+include::sample[dir="snippets/reference/task-development/configureUsingVar/kotlin",files="build.gradle.kts[tags=configure]"]
+include::sample[dir="snippets/reference/task-development/configureUsingVar/groovy",files="build.gradle[tags=configure]"]
 ====
 
 ==== 2. Using a configuration block:
@@ -883,8 +923,8 @@ include::sample[dir="snippets/tasks/configureUsingVar/groovy",files="build.gradl
 Use a block to configure the task immediately upon registering it:
 
 ====
-include::sample[dir="snippets/tasks/defineAndConfigure/kotlin",files="build.gradle.kts[tags=no-description]"]
-include::sample[dir="snippets/tasks/defineAndConfigure/groovy",files="build.gradle[tags=no-description]"]
+include::sample[dir="snippets/reference/task-development/defineAndConfigure/kotlin",files="build.gradle.kts[tags=no-description]"]
+include::sample[dir="snippets/reference/task-development/defineAndConfigure/groovy",files="build.gradle[tags=no-description]"]
 ====
 
 ==== 3. Name method as call:

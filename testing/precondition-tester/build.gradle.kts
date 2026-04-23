@@ -19,6 +19,7 @@ import gradlebuild.integrationtests.tasks.DistributionTest
 
 plugins {
     id("gradlebuild.internal.java")
+    id("gradlebuild.cross-version-tests")
 }
 
 description = "Internal project testing and collecting information about all the test preconditions."
@@ -44,6 +45,9 @@ dependencies {
     testImplementation(testFixtures(projects.smokeTest)) {
         because("Smoke test preconditions are coming from here")
     }
+    testImplementation(testFixtures(projects.platformNative)) {
+        because("Native test preconditions are coming from here")
+    }
 
     // This is a special dependency, as some of the preconditions might need a distribution.
     // E.g. see "IntegTestPreconditions.groovy"
@@ -60,6 +64,13 @@ dependencies {
 
     integTestDistributionRuntimeOnly(projects.distributionsCore)
     crossVersionTestDistributionRuntimeOnly(projects.distributionsCore)
+}
+
+configurations.integTestImplementation {
+    extendsFrom(configurations.testImplementation)
+}
+configurations.crossVersionTestImplementation {
+    extendsFrom(configurations.testImplementation)
 }
 
 tasks {

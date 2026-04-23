@@ -128,7 +128,7 @@ class WorkerDaemonLoggingIntegrationTest extends AbstractDaemonWorkerExecutorInt
         succeeds("runInWorker2")
 
         and:
-        def logOperations = buildOperations.all(ExecuteWorkItemBuildOperationType)
+        def logOperations = buildOperations.typed(ExecuteWorkItemBuildOperationType)
         def taskOperations = logOperations.collect {
             buildOperations.parentsOf(it).reverse().find { parent -> buildOperations.isType(parent, ExecuteTaskBuildOperationType) }
         }.unique()

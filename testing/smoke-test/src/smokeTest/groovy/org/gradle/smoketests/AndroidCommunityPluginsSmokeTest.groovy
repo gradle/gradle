@@ -47,23 +47,23 @@ class AndroidCommunityPluginsSmokeTest extends AbstractPluginValidatingSmokeTest
     Map<String, Versions> getPluginsToValidate() {
         [
             // https://mvnrepository.com/artifact/com.google.gms/google-services?repo=google
-            (GOOGLE_SERVICES_PLUGIN_ID): Versions.of('4.3.15'),
+            (GOOGLE_SERVICES_PLUGIN_ID): Versions.of('4.4.4'),
             // https://mvnrepository.com/artifact/com.google.firebase.crashlytics/com.google.firebase.crashlytics.gradle.plugin
-            (CRASHLYTICS_PLUGIN_ID): Versions.of('2.9.7'),
+            (CRASHLYTICS_PLUGIN_ID): Versions.of('3.0.6'),
             // https://mvnrepository.com/artifact/com.google.firebase/perf-plugin
-            (FIREBASE_PERF_PLUGIN_ID): Versions.of('1.4.2'),
+            (FIREBASE_PERF_PLUGIN_ID): Versions.of('2.0.2'),
             // https://plugins.gradle.org/plugin/com.bugsnag.android.gradle
-            (BUGSNAG_PLUGIN_ID): Versions.of('8.0.1'),
+            (BUGSNAG_PLUGIN_ID): Versions.of('8.2.0'),
             // https://plugins.gradle.org/plugin/com.osacky.fladle
-            (FLADLE_PLUGIN_ID): Versions.of('0.17.4'),
+            (FLADLE_PLUGIN_ID): Versions.of('0.21.0'),
             // https://plugins.gradle.org/plugin/com.github.triplet.play
-            (TRIPLET_PLAY_PLUGIN_ID): Versions.of('3.9.0'),
+            (TRIPLET_PLAY_PLUGIN_ID): Versions.of('4.0.0'),
             // https://mvnrepository.com/artifact/androidx.navigation.safeargs/androidx.navigation.safeargs.gradle.plugin
-            (SAFEARGS_PLUGIN_ID): Versions.of('2.6.0'),
+            (SAFEARGS_PLUGIN_ID): Versions.of('2.9.7'),
             // https://mvnrepository.com/artifact/com.google.dagger/hilt-android-gradle-plugin
-            (DAGGER_HILT_ANDROID_PLUGIN_ID): Versions.of('2.47'),
+            (DAGGER_HILT_ANDROID_PLUGIN_ID): Versions.of('2.59.2'),
             // https://mvnrepository.com/artifact/io.sentry.android.gradle/io.sentry.android.gradle.gradle.plugin
-            (SENTRY_PLUGIN_ID): Versions.of('3.11.1'),
+            (SENTRY_PLUGIN_ID): Versions.of('6.2.0'),
         ]
     }
 
@@ -173,7 +173,6 @@ class AndroidCommunityPluginsSmokeTest extends AbstractPluginValidatingSmokeTest
         if (testedPluginId == DAGGER_HILT_ANDROID_PLUGIN_ID) {
             return [
                 'com.android.application': ANDROID_PLUGIN_VERSION_FOR_TESTS,
-                'org.jetbrains.kotlin.android': KOTLIN_VERSIONS.latestStable
             ]
         }
         return ['com.android.application': ANDROID_PLUGIN_VERSION_FOR_TESTS]

@@ -19,7 +19,7 @@ package org.gradle.api.plugins.java;
 import org.gradle.api.Named;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.file.SourceDirectorySet;
-import org.gradle.api.internal.plugins.Definition;
+import org.gradle.features.binding.Definition;
 import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition;
 import org.jspecify.annotations.NullMarked;
 

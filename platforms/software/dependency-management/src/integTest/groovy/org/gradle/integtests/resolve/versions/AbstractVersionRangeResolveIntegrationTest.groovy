@@ -19,13 +19,13 @@ package org.gradle.integtests.resolve.versions
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.resolve.scenarios.VersionRangeResolveTestScenarios
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 
 /**
  * A comprehensive test of dependency resolution of a single module version, given a set of input selectors.
  * This integration test validates all scenarios in {@link VersionRangeResolveTestScenarios}, as well as some adhoc scenarios.
  */
-@Requires(value = IntegTestPreconditions.IsEmbeddedExecutor, reason = ONLY_RUN_ON_EMBEDDED_REASON)
+@Requires(value = TestExecutionPreconditions.IsEmbeddedExecutor, reason = ONLY_RUN_ON_EMBEDDED_REASON)
 abstract class AbstractVersionRangeResolveIntegrationTest extends AbstractDependencyResolutionTest {
 
     public static final String ONLY_RUN_ON_EMBEDDED_REASON = """

@@ -22,7 +22,8 @@ import org.gradle.integtests.fixtures.StableConfigurationCacheDeprecations
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
+import org.gradle.test.preconditions.InstalledJdkTestPreconditions
 import org.gradle.util.internal.TextUtil
 import spock.lang.Issue
 
@@ -356,8 +357,8 @@ class ConfigureRuntimeClasspathNormalizationIntegrationTest extends AbstractInte
     }
 
     @Requires(value = [
-        IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable,
-        IntegTestPreconditions.NotEmbeddedExecutor,
+        InstalledJdkTestPreconditions.JavaHomeWithDifferentVersionAvailable,
+        TestExecutionPreconditions.NotEmbeddedExecutor,
     ], reason = "must run with different JDK")
     def "property ordering is consistent"() {
         def differentJdk = AvailableJavaHomes.differentVersion

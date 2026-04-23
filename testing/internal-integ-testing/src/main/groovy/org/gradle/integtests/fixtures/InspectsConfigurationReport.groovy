@@ -75,8 +75,8 @@ trait InspectsConfigurationReport {
         outputContains("Re-run this report with the '--all' flag to include legacy configurations (legacy = consumable and resolvable).")
     }
 
-    void promptsForRerunToFindMoreVariants() {
-        outputContains("Re-run this report with the '--all' flag to include legacy variants (legacy = consumable and resolvable).")
+    void promptsForRerunToFindMoreVariants(boolean includeVariantsWithoutAttributes = false) {
+        outputContains("Re-run this report with the '--all' flag to include legacy variants (legacy = consumable and resolvable)${ includeVariantsWithoutAttributes ? ", and variants without attributes." : "" }")
     }
 
     void doesNotPromptForRerunToFindMoreConfigurations() {
@@ -84,6 +84,19 @@ trait InspectsConfigurationReport {
     }
 
     void doesNotPromptForRerunToFindMoreVariants() {
-        outputDoesNotContain("Re-run this report with the '--all' flag to include legacy variants (legacy = consumable and resolvable).")
+        outputDoesNotContain("Re-run this report with the '--all' flag to include legacy variants (legacy = consumable and resolvable)")
+        outputDoesNotContain("Re-run this report with the '--all' flag to include legacy variants (legacy = consumable and resolvable), and variants without attributes.")
+    }
+
+    void hasNonSelectableVariantsLegend() {
+        outputContains("(n) Variant not selectable via attributes. Variants without attributes cannot be used for variant-aware dependency resolution.")
+    }
+
+    void doesNotHaveNonSelectableVariantsLegend() {
+        outputDoesNotContain("(n) Variant not selectable via attributes. Variants without attributes cannot be used for variant-aware dependency resolution.")
+    }
+
+    void hasConfigurationsLackingAttributesLegend() {
+        outputContains("(n) Configuration lacks attributes, and may encounter problems when used for variant-aware dependency resolution.")
     }
 }

@@ -23,7 +23,7 @@ import org.gradle.integtests.fixtures.versions.KotlinGradlePluginVersions
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import spock.lang.Issue
 
 @LeaksFileHandles
@@ -136,7 +136,7 @@ class NestedInputKotlinImplementationTrackingIntegrationTest extends AbstractInt
         project2.file('build/tmp/myTask/output.txt').text == "hello"
     }
 
-    @Requires(IntegTestPreconditions.NotEmbeddedExecutor)
+    @Requires(TestExecutionPreconditions.NotEmbeddedExecutor)
     def "task action defined in latest Kotlin can be tracked when using language version #kotlinLanguageVersion"() {
         file("buildSrc/build.gradle.kts") << """
             plugins {
@@ -191,8 +191,8 @@ class NestedInputKotlinImplementationTrackingIntegrationTest extends AbstractInt
         """
 
         when:
-        if (['1.8', '1.9', '2.0'].contains(kotlinLanguageVersion)) {
-            executer.expectExternalDeprecatedMessage("w: Language version $kotlinLanguageVersion is deprecated and its support will be removed in a future version of Kotlin")
+        if (['2.0'].contains(kotlinLanguageVersion)) {
+            executer.expectExternalDeprecatedMessage("w: Language version $kotlinLanguageVersion is deprecated and its support will be removed in a future version of Kotlin. Update the version to 2.1.")
         }
         run "myTask"
 

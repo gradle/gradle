@@ -56,7 +56,7 @@ import org.gradle.api.internal.initialization.loadercache.DummyClassLoaderCache
 import org.gradle.api.internal.model.DefaultObjectFactory
 import org.gradle.api.internal.model.NamedObjectInstantiator
 import org.gradle.api.internal.plugins.PluginManagerInternal
-import org.gradle.api.internal.project.ant.AntLoggingAdapter
+import org.gradle.api.internal.project.ant.BasicAntBuilder
 import org.gradle.api.internal.project.taskfactory.ITaskFactory
 import org.gradle.api.internal.provider.DefaultPropertyFactory
 import org.gradle.api.internal.provider.PropertyHost
@@ -101,9 +101,9 @@ import org.gradle.model.internal.manage.instance.ManagedProxyFactory
 import org.gradle.model.internal.manage.schema.ModelSchemaStore
 import org.gradle.model.internal.registry.ModelRegistry
 import org.gradle.normalization.internal.InputNormalizationHandlerInternal
-import org.gradle.plugin.software.internal.ProjectFeatureApplicator
-import org.gradle.plugin.software.internal.ProjectFeatureDeclarations
-import org.gradle.plugin.software.internal.ProjectFeaturesDynamicObject
+import org.gradle.features.internal.binding.ProjectFeatureApplicator
+import org.gradle.features.internal.binding.ProjectFeatureDeclarations
+import org.gradle.features.internal.binding.ProjectFeaturesDynamicObject
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Path
 import org.gradle.util.TestClosure
@@ -170,7 +170,6 @@ class DefaultProjectTest extends Specification {
     PluginManagerInternal pluginManager = Stub(PluginManagerInternal)
     PluginContainer pluginContainer = Stub(PluginContainer)
     ManagedProxyFactory managedProxyFactory = Stub(ManagedProxyFactory)
-    AntLoggingAdapter antLoggingAdapter = Stub(AntLoggingAdapter)
     AttributesSchema attributesSchema = Stub(AttributesSchema)
     TextFileResourceLoader textResourceLoader = Stub(TextFileResourceLoader)
     ApiTextResourceAdapter.Factory textResourceAdapterFactory = Stub(ApiTextResourceAdapter.Factory)
@@ -187,7 +186,7 @@ class DefaultProjectTest extends Specification {
         rootDir = new File("/path/root").absoluteFile
         buildFile = new File(rootDir, TEST_BUILD_FILE_NAME)
 
-        testAntBuilder = new DefaultAntBuilder(null, antLoggingAdapter)
+        testAntBuilder = new BasicAntBuilder()
 
         antBuilderFactoryMock.createAntBuilder() >> testAntBuilder
         script.getDisplayName() >> '[build file]'
@@ -283,14 +282,17 @@ class DefaultProjectTest extends Specification {
         def child1ClassLoaderScope = rootProjectClassLoaderScope.createChild("project-child1", null)
         child1State = Mock(ProjectState)
         child1State.owner >> buildState
+        child1State.displayName >> Describables.of("project ':child1'")
         child1 = defaultProject("child1", child1State, project, new File("child1"), child1ClassLoaderScope)
         child1State.mutableModel >> child1
         child1State.name >> "child1"
         chilchildState = Mock(ProjectState)
         chilchildState.owner >> buildState
+        chilchildState.displayName >> Describables.of("project ':child1:childchild'")
         childchild = defaultProject("childchild", chilchildState, child1, new File("childchild"), child1ClassLoaderScope.createChild("project-childchild", null))
         child2State = Mock(ProjectState)
         child2State.owner >> buildState
+        child2State.displayName >> Describables.of("project ':child2'")
         child2 = defaultProject("child2", child2State, project, new File("child2"), rootProjectClassLoaderScope.createChild("project-child2", null))
         child2State.mutableModel >> child2
         child2State.name >> "child2"

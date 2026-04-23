@@ -24,21 +24,29 @@ import org.gradle.api.internal.project.ProjectState
 import org.gradle.api.internal.properties.GradleProperties
 import org.gradle.api.internal.properties.GradlePropertiesController
 import org.gradle.initialization.properties.DefaultGradleProperties
+import org.gradle.internal.build.AllProjectsAccess
 import org.gradle.internal.build.BuildProjectRegistry
 import org.gradle.internal.build.BuildState
 import spock.lang.Specification
 
+import java.util.function.Consumer
+
 class ProjectPropertySettingBuildLoaderTest extends Specification {
 
-    final ProjectState childProjectState = projectState()
-    final ProjectInternal childProject = childProjectState.getMutableModel()
+    final ProjectInternal childProject = Mock()
+    final ProjectState childProjectState = projectState(childProject)
 
-    final ProjectState rootProjectState = projectState([childProjectState] as Set)
-    final ProjectInternal rootProject = rootProjectState.getMutableModel()
+    final ProjectInternal rootProject = Mock()
+    final ProjectState rootProjectState = projectState(rootProject, [childProjectState] as Set)
 
+    final AllProjectsAccess allProjectsAccess = Mock(AllProjectsAccess) {
+        getMutableModel(rootProjectState) >> rootProject
+        getMutableModel(childProjectState) >> childProject
+    }
     final BuildState buildState = Mock(BuildState) {
         getProjects() >> Mock(BuildProjectRegistry) {
             getRootProject() >> rootProjectState
+            applyToMutableStateOfAllProjects(_) >> { Consumer<AllProjectsAccess> c -> c.accept(allProjectsAccess) }
         }
     }
     final GradleInternal gradle = Mock() {
@@ -146,14 +154,9 @@ class ProjectPropertySettingBuildLoaderTest extends Specification {
         new DefaultGradleProperties(props)
     }
 
-    ProjectState projectState(Set<ProjectState> children = []) {
-        def state = Mock(ProjectState) {
+    ProjectState projectState(ProjectInternal project, Set<ProjectState> children = []) {
+        Mock(ProjectState) {
             getChildProjects() >> children
         }
-        def project = Mock(ProjectInternal) {
-            getOwner() >> state
-        }
-        _ * state.getMutableModel() >> project
-        state
     }
 }

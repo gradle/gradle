@@ -16,12 +16,12 @@
 
 package org.gradle.internal.declarativedsl
 
-import org.gradle.api.internal.plugins.BindsProjectType
-import org.gradle.api.internal.plugins.BuildModel
-import org.gradle.api.internal.plugins.Definition
-import org.gradle.api.internal.plugins.ProjectTypeBinding
-import org.gradle.api.internal.plugins.ProjectTypeBindingBuilder
-import org.gradle.api.internal.plugins.software.RegistersSoftwareTypes
+import org.gradle.features.annotations.BindsProjectType
+import org.gradle.features.annotations.RegistersProjectFeatures
+import org.gradle.features.binding.BuildModel
+import org.gradle.features.binding.Definition
+import org.gradle.features.binding.ProjectTypeBinding
+import org.gradle.features.binding.ProjectTypeBindingBuilder
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.junit.Before
 import org.junit.Test
@@ -336,10 +336,9 @@ class ErrorHandlingOnReflectiveCallsSpec extends AbstractKotlinIntegrationTest {
         import org.gradle.api.Plugin;
         import org.gradle.api.initialization.Settings;
         import org.gradle.api.internal.SettingsInternal;
-        import org.gradle.plugin.software.internal.SoftwareTypeRegistry;
-        import ${RegistersSoftwareTypes.class.name};
+        import ${RegistersProjectFeatures.class.name};
 
-        @RegistersSoftwareTypes({ RestrictedPlugin.class })
+        @${RegistersProjectFeatures.class.simpleName}({ RestrictedPlugin.class })
         abstract public class SoftwareTypeRegistrationPlugin implements Plugin<Settings> {
             @Override
             public void apply(Settings target) {

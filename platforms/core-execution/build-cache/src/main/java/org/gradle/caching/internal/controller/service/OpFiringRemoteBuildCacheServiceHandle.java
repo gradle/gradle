@@ -25,6 +25,7 @@ import org.gradle.caching.internal.controller.operations.LoadOperationMissResult
 import org.gradle.caching.internal.controller.operations.StoreOperationDetails;
 import org.gradle.caching.internal.controller.operations.StoreOperationResult;
 import org.gradle.caching.internal.operations.BuildCacheRemoteDisabledDueToFailureProgressDetails;
+import org.gradle.internal.concurrent.BlockingNotifier;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
@@ -48,9 +49,10 @@ public class OpFiringRemoteBuildCacheServiceHandle extends BaseRemoteBuildCacheS
         BuildOperationRunner buildOperationRunner,
         BuildOperationProgressEventEmitter buildOperationProgressEventEmitter,
         boolean logStackTraces,
-        boolean disableOnError
+        boolean disableOnError,
+        BlockingNotifier blockingNotifier
     ) {
-        super(service, push, role, logStackTraces, disableOnError);
+        super(service, push, role, logStackTraces, disableOnError, blockingNotifier);
         this.buildPath = buildPath;
         this.buildOperationRunner = buildOperationRunner;
         this.buildOperationProgressEventEmitter = buildOperationProgressEventEmitter;
@@ -61,7 +63,7 @@ public class OpFiringRemoteBuildCacheServiceHandle extends BaseRemoteBuildCacheS
         buildOperationRunner.run(new RunnableBuildOperation() {
             @Override
             public void run(BuildOperationContext context) {
-                loadInner(key, new OpFiringEntryReader(loadTarget));
+                doLoad(key, new OpFiringEntryReader(loadTarget));
                 context.setResult(
                     loadTarget.isLoaded()
                         ? new LoadOperationHitResult(loadTarget.getLoadedSize())

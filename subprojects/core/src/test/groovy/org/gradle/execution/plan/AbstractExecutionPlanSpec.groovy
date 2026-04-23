@@ -34,6 +34,8 @@ import org.gradle.api.internal.tasks.TaskRequiredServices
 import org.gradle.api.internal.tasks.TaskStateInternal
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.api.tasks.TaskDestroyables
+import org.gradle.internal.Describables
+import org.gradle.internal.code.UserCodeSource
 import org.gradle.internal.resources.DefaultResourceLockCoordinationService
 import org.gradle.internal.resources.ResourceLock
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -109,7 +111,7 @@ abstract class AbstractExecutionPlanSpec extends Specification {
         task.localState >> emptyTaskLocalState()
         task.inputs >> emptyTaskInputs()
         task.requiredServices >> emptyTaskRequiredServices()
-        task.taskIdentity >> TestTaskIdentities.create(name, DefaultTask, project)
+        task.taskIdentity >> TestTaskIdentities.create(name, DefaultTask, project, new UserCodeSource.Script(Describables.of("mock"), null))
         return task
     }
 

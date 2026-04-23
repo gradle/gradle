@@ -1,7 +1,28 @@
 [
   {
+    "name": "ant",
+    "path": "platforms/software/ant",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "name": "ant-api",
+    "path": "platforms/software/ant-api",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "name": "ant-impl",
+    "path": "platforms/software/ant-impl",
+    "unitTests": true,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
     "name": "ant-worker",
-    "path": "platforms/jvm/ant-worker",
+    "path": "platforms/software/ant-worker",
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false
@@ -91,6 +112,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "build-cache-core",
+    "path": "platforms/core-execution/build-cache-core",
+    "unitTests": true,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
     "name": "build-cache-example-client",
     "path": "platforms/core-execution/build-cache-example-client",
     "unitTests": true,
@@ -151,13 +179,6 @@
     "path": "platforms/core-runtime/build-discovery-reporting",
     "unitTests": true,
     "functionalTests": false,
-    "crossVersionTests": false
-  },
-  {
-    "name": "build-events",
-    "path": "subprojects/build-events",
-    "unitTests": true,
-    "functionalTests": true,
     "crossVersionTests": false
   },
   {
@@ -226,8 +247,15 @@
   {
     "name": "classloaders",
     "path": "platforms/core-runtime/classloaders",
-    "unitTests": false,
+    "unitTests": true,
     "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "name": "classpath",
+    "path": "platforms/core-runtime/classpath",
+    "unitTests": true,
+    "functionalTests": true,
     "crossVersionTests": false
   },
   {
@@ -343,6 +371,27 @@
     "crossVersionTests": false
   },
   {
+    "name": "credentials",
+    "path": "platforms/software/credentials",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "name": "credentials-api",
+    "path": "platforms/software/credentials-api",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "name": "credentials-impl",
+    "path": "platforms/software/credentials-impl",
+    "unitTests": true,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "daemon-logging",
     "path": "platforms/core-runtime/daemon-logging",
     "unitTests": false,
@@ -353,6 +402,13 @@
     "name": "daemon-main",
     "path": "platforms/core-runtime/daemon-main",
     "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "name": "daemon-messaging",
+    "path": "platforms/core-runtime/daemon-messaging",
+    "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false
   },
@@ -693,10 +749,24 @@
     "crossVersionTests": false
   },
   {
+    "name": "hashing-services",
+    "path": "platforms/core-execution/hashing-services",
+    "unitTests": true,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "ide",
     "path": "platforms/ide/ide",
     "unitTests": true,
     "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
+    "name": "ide-model-impls",
+    "path": "platforms/ide/ide-model-impls",
+    "unitTests": true,
+    "functionalTests": false,
     "crossVersionTests": false
   },
   {
@@ -773,6 +843,13 @@
     "name": "internal-build-reports",
     "path": "packaging/internal-build-reports",
     "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "name": "internal-distribution-testing",
+    "path": "testing/internal-distribution-testing",
+    "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false
   },
@@ -929,6 +1006,13 @@
     "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": true
+  },
+  {
+    "name": "kotlin-dsl-tooling-model-impls",
+    "path": "platforms/core-configuration/kotlin-dsl-tooling-model-impls",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
   },
   {
     "name": "kotlin-dsl-tooling-models",
@@ -1192,7 +1276,21 @@
   {
     "name": "process-services",
     "path": "platforms/core-runtime/process-services",
+    "unitTests": true,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
+    "name": "process-services-api",
+    "path": "platforms/core-runtime/process-services-api",
     "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "name": "process-services-base",
+    "path": "platforms/core-runtime/process-services-base",
+    "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false
   },
@@ -1414,6 +1512,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "start-parameter",
+    "path": "platforms/core-runtime/start-parameter",
+    "unitTests": true,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "stdlib-java-extensions",
     "path": "platforms/core-runtime/stdlib-java-extensions",
     "unitTests": true,
@@ -1533,6 +1638,13 @@
     "crossVersionTests": true
   },
   {
+    "name": "tooling-native-model-impls",
+    "path": "platforms/native/tooling-native-model-impls",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "unit-test-fixtures",
     "path": "platforms/extensibility/unit-test-fixtures",
     "unitTests": true,
@@ -1565,6 +1677,13 @@
     "path": "platforms/core-execution/worker-main",
     "unitTests": true,
     "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "name": "worker-process-services",
+    "path": "platforms/core-execution/worker-process-services",
+    "unitTests": true,
+    "functionalTests": true,
     "crossVersionTests": false
   },
   {

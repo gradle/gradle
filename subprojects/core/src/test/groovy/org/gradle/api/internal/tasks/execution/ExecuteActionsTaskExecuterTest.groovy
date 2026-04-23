@@ -17,13 +17,16 @@ package org.gradle.api.internal.tasks.execution
 
 import com.google.common.collect.ImmutableSortedMap
 import com.google.common.collect.ImmutableSortedSet
+import org.gradle.api.DefaultTask
 import org.gradle.api.execution.TaskActionListener
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.TaskOutputsEnterpriseInternal
 import org.gradle.api.internal.changedetection.changes.DefaultTaskExecutionMode
 import org.gradle.api.internal.file.TestFiles
+import org.gradle.api.internal.project.ProjectIdentity
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.internal.project.taskfactory.TestTaskIdentities
 import org.gradle.api.internal.tasks.InputChangesAwareTaskAction
 import org.gradle.api.internal.tasks.TaskExecutionContext
 import org.gradle.api.internal.tasks.TaskExecutionOutcome
@@ -69,6 +72,7 @@ import org.gradle.internal.snapshot.impl.ClassImplementationSnapshot
 import org.gradle.internal.snapshot.impl.DefaultValueSnapshotter
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot
 import org.gradle.internal.work.AsyncWorkTracker
+import org.gradle.util.Path
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
@@ -83,7 +87,13 @@ import static org.gradle.internal.work.AsyncWorkTracker.ProjectLockRetention.REL
 
 class ExecuteActionsTaskExecuterTest extends Specification {
     def problems = TestUtil.problemsService()
-    def task = Mock(TaskInternal)
+    def project = Mock(ProjectInternal) {
+        getProjectIdentity() >> ProjectIdentity.forRootProject(Path.ROOT, "name")
+    }
+    def task = Stub(TaskInternal) {
+        getTaskIdentity() >> TestTaskIdentities.create("name", DefaultTask.class, project)
+        toString() >> "task"
+    }
     def taskOutputs = Mock(TaskOutputsEnterpriseInternal)
     def action1 = Mock(InputChangesAwareTaskAction) {
         getActionImplementation(_ as ClassLoaderHierarchyHasher) >> ImplementationSnapshot.of("Action1", TestHashCodes.hashCodeFrom(1234))
@@ -326,7 +336,7 @@ class ExecuteActionsTaskExecuterTest extends Specification {
         TaskExecutionException wrappedFailure = (TaskExecutionException) state.failure
         wrappedFailure instanceof TaskExecutionException
         wrappedFailure.task == task
-        wrappedFailure.message.startsWith("Execution failed for ")
+        wrappedFailure.message == "Execution failed for task."
         wrappedFailure.cause.is(failure)
     }
 

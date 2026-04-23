@@ -19,7 +19,6 @@ package org.gradle.internal.buildconfiguration;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.problems.ProblemReporter;
 import org.gradle.api.problems.Problems;
-import org.gradle.api.problems.Severity;
 import org.gradle.buildconfiguration.tasks.UpdateDaemonJvm;
 import org.gradle.configuration.project.ProjectConfigureAction;
 import org.gradle.internal.Pair;
@@ -28,12 +27,12 @@ import org.gradle.internal.deprecation.Documentation;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.jvm.toolchain.JavaLanguageVersion;
 import org.gradle.jvm.toolchain.JavaToolchainDownload;
-import org.gradle.jvm.toolchain.internal.DefaultJvmVendorSpec;
-import org.gradle.jvm.toolchain.internal.JavaToolchainResolverService;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
 import org.gradle.jvm.toolchain.JvmVendorSpec;
 import org.gradle.jvm.toolchain.internal.DefaultJavaToolchainRequest;
+import org.gradle.jvm.toolchain.internal.DefaultJvmVendorSpec;
 import org.gradle.jvm.toolchain.internal.DefaultToolchainSpec;
+import org.gradle.jvm.toolchain.internal.JavaToolchainResolverService;
 import org.gradle.platform.Architecture;
 import org.gradle.platform.BuildPlatform;
 import org.gradle.platform.BuildPlatformFactory;
@@ -89,7 +88,6 @@ public class DaemonJvmPropertiesConfigurator implements ProjectConfigureAction {
                                 UnconfiguredToolchainRepositoriesResolver exception = new UnconfiguredToolchainRepositoriesResolver();
                                 throw reporter.throwing(exception, UpdateDaemonJvm.TASK_CONFIGURATION_PROBLEM_ID,
                                     problemSpec -> {
-                                        problemSpec.severity(Severity.ERROR);
                                         problemSpec.solution("Configure toolchain download repositories in your build settings.");
                                         problemSpec.documentedAt(Documentation.userManual("toolchains", "sub:download_repositories").getUrl());
                                 });
@@ -104,7 +102,6 @@ public class DaemonJvmPropertiesConfigurator implements ProjectConfigureAction {
                                 throw reporter.throwing(new IllegalStateException("Toolchain resolvers did not return download URLs providing a JDK matching " + toolchainSpec + " for any of the requested platforms " + platforms),
                                     UpdateDaemonJvm.TASK_CONFIGURATION_PROBLEM_ID,
                                     problemSpec -> {
-                                        problemSpec.severity(Severity.ERROR);
                                         problemSpec.solution("Use a toolchain download repository capable of resolving the toolchain spec for the given platforms.");
                                         problemSpec.documentedAt(Documentation.userManual("gradle_daemon", "sec:daemon_jvm_provisioning").getUrl());
                                     });

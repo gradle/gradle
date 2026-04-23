@@ -23,6 +23,7 @@ import org.gradle.internal.classpath.ClasspathWalker;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
+import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.service.scopes.Scope;
@@ -44,6 +45,7 @@ public class RuntimeShadedJarFactory {
     private final ClasspathWalker classpathWalker;
     private final ClasspathBuilder classpathBuilder;
     private final BuildOperationRunner buildOperationRunner;
+    private final BuildOperationExecutor buildOperationExecutor;
     private final RuntimeApiInfo runtimeApiInfo;
 
     public RuntimeShadedJarFactory(
@@ -52,6 +54,7 @@ public class RuntimeShadedJarFactory {
         ClasspathWalker classpathWalker,
         ClasspathBuilder classpathBuilder,
         BuildOperationRunner buildOperationRunner,
+        BuildOperationExecutor buildOperationExecutor,
         RuntimeApiInfo runtimeApiInfo
     ) {
         this.cache = cache;
@@ -59,6 +62,7 @@ public class RuntimeShadedJarFactory {
         this.classpathWalker = classpathWalker;
         this.classpathBuilder = classpathBuilder;
         this.buildOperationRunner = buildOperationRunner;
+        this.buildOperationExecutor = buildOperationExecutor;
         this.runtimeApiInfo = runtimeApiInfo;
     }
 
@@ -69,6 +73,7 @@ public class RuntimeShadedJarFactory {
                 URL resource = getPackageListUrl(type);
                 RuntimeShadedJarCreator creator = new RuntimeShadedJarCreator(
                     progressLoggerFactory,
+                    buildOperationExecutor,
                     new ImplementationDependencyRelocator(resource),
                     classpathWalker,
                     classpathBuilder

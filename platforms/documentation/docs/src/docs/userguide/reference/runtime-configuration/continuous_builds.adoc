@@ -22,7 +22,7 @@ For example, you can continuously run the `test` task and all dependent tasks by
 
 [source,bash]
 ----
-$ gradle test --continuous
+$ ./gradlew test --continuous
 ----
 
 Gradle will behave as if you ran `gradle test` after a change to sources or tests that contribute to the requested tasks.

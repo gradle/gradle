@@ -16,6 +16,7 @@
 
 package org.gradle.internal.cc.impl
 
+import org.gradle.api.internal.project.ProjectState
 import org.gradle.api.logging.LogLevel
 import org.gradle.cache.internal.streams.BlockAddress
 import org.gradle.cache.internal.streams.BlockAddressSerializer
@@ -31,7 +32,6 @@ import org.gradle.internal.cc.impl.cacheentry.ModelKey
 import org.gradle.internal.cc.impl.fingerprint.ClassLoaderScopesFingerprintController
 import org.gradle.internal.cc.impl.initialization.ConfigurationCacheStartParameter
 import org.gradle.internal.cc.impl.io.safeWrap
-import org.gradle.internal.cc.impl.problems.ConfigurationCacheProblems
 import org.gradle.internal.cc.impl.serialize.ConfigurationCacheCodecs
 import org.gradle.internal.cc.impl.serialize.DefaultClassDecoder
 import org.gradle.internal.cc.impl.serialize.DefaultClassEncoder
@@ -39,6 +39,7 @@ import org.gradle.internal.cc.impl.serialize.DefaultSharedObjectDecoder
 import org.gradle.internal.cc.impl.serialize.DefaultSharedObjectEncoder
 import org.gradle.internal.cc.impl.serialize.ParallelStringDecoder
 import org.gradle.internal.cc.impl.serialize.ParallelStringEncoder
+import org.gradle.internal.configuration.problems.ProblemsListener
 import org.gradle.internal.encryption.EncryptionService
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.instantiation.InstantiatorFactory
@@ -100,7 +101,7 @@ internal
 class DefaultConfigurationCacheIO internal constructor(
     private val startParameter: ConfigurationCacheStartParameter,
     private val host: ConfigurationCacheHost,
-    private val problems: ConfigurationCacheProblems,
+    private val problems: ProblemsListener,
     private val beanStateReaderLookup: BeanStateReaderLookup,
     private val beanStateWriterLookup: BeanStateWriterLookup,
     private val eventEmitter: BuildOperationProgressEventEmitter,
@@ -184,6 +185,7 @@ class DefaultConfigurationCacheIO internal constructor(
         !stateFile.exists -> {
             emptyList()
         }
+
         else -> withReadContextFor(stateFile, customClassDecoder = NullClassDecoder) {
             readStrings().map { CandidateEntry(it) }
         }
@@ -229,12 +231,12 @@ class DefaultConfigurationCacheIO internal constructor(
             }
         }
 
-    override fun WriteContext.writeIncludedBuildStateTo(stateFile: ConfigurationCacheStateFile, buildTreeState: StoredBuildTreeState) =
+    override fun WriteContext.writeIncludedBuildStateTo(stateFile: ConfigurationCacheStateFile, buildTreeState: StoredBuildTreeState, shouldStoreProject: (ProjectState) -> Boolean) =
         // we share the string encoder with the root build, but not the shared object encoder
         withSharedObjectEncoderFor(stateFile, currentStringEncoder) { sharedObjectEncoder ->
             writeConfigurationCacheStateWithSpecialEncoders(SpecialEncoders(currentStringEncoder, sharedObjectEncoder), stateFile) { cacheState ->
                 cacheState.run {
-                    writeBuildContent(host.currentBuild, buildTreeState)
+                    writeBuildContent(host.currentBuild, buildTreeState, shouldStoreProject)
                 }
             }
         }

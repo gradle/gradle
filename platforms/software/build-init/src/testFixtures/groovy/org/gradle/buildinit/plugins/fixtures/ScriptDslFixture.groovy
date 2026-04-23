@@ -132,7 +132,7 @@ class ScriptDslFixture {
         if (expectedTestSuite == JvmTestSuitePlugin.DEFAULT_TEST_SUITE_NAME) {
             switch (scriptDsl) {
                 case KOTLIN:
-                    assert getBuildFile().text.contains("val test by getting(JvmTestSuite::class)")
+                    assert getBuildFile().text.contains("val test = named<JvmTestSuite>(\"test\")")
                     break;
                 default:
                     assert getBuildFile().text.contains("test {")
@@ -140,7 +140,7 @@ class ScriptDslFixture {
         } else {
             switch (scriptDsl) {
                 case KOTLIN:
-                    assert getBuildFile().text.contains("val ${expectedTestSuite} by registering(JvmTestSuite::class)")
+                    assert getBuildFile().text.contains("val ${expectedTestSuite} = register<JvmTestSuite>(\"${expectedTestSuite}\")")
                     break;
                 default:
                     assert getBuildFile().text.contains("${expectedTestSuite}(JvmTestSuite) {")

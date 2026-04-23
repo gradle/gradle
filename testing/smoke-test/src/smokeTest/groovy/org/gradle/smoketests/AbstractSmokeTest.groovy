@@ -32,7 +32,6 @@ import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler
 import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.internal.TextUtil
-import org.gradle.util.internal.VersionNumber
 import spock.lang.Specification
 import spock.lang.TempDir
 
@@ -53,17 +52,6 @@ abstract class AbstractSmokeTest extends Specification {
         // https://developer.android.com/studio/releases/gradle-plugin
         // Update by running `./gradlew updateAgpVersions`
         static androidGradle = Versions.of(*AGP_VERSIONS.latestsPlusNightly)
-        static androidGradle9AndAbove = Versions.of(*AGP_VERSIONS.latests.findAll { v ->
-            VersionNumber.parse(v).major >= 9
-        })
-        static androidGradleBefore9 = Versions.of(*AGP_VERSIONS.latests.findAll { v ->
-            VersionNumber.parse(v).baseVersion < AndroidGradlePluginVersions.AGP_9_0
-        }.tap { versions ->
-            // This assertion will fail when we stop testing AGP 8.x
-            // It is time to remove the tests that reference this
-            // And to remove androidGradle9AndAbove in favor of simply androidGradle
-            assert !versions.isEmpty()
-        })
 
         // https://search.maven.org/search?q=g:org.jetbrains.kotlin%20AND%20a:kotlin-project&core=gav
         // Update by running `./gradlew updateKotlinVersions`
@@ -133,10 +121,15 @@ abstract class AbstractSmokeTest extends Specification {
 
     @TempDir
     File testProjectDir
-    File buildFile
-    File settingsFile
+
+    @TempDir
+    File freshGradleUserHomeDir
+
     @TempDir
     File buildCacheDir
+
+    File buildFile
+    File settingsFile
 
     def setup() {
         buildFile = new File(testProjectDir, defaultBuildFileName)
@@ -174,6 +167,17 @@ abstract class AbstractSmokeTest extends Specification {
             jvmArgs,
             testProjectDir
         )
+    }
+
+    protected SmokeTestGradleRunner runnerWithGradleUserHome(File gradleUserHomeDir, String... tasks) {
+        List<String> args = tasks.toList()
+        args.add("-g")
+        args.add(gradleUserHomeDir.absolutePath)
+        runner(*args)
+    }
+
+    protected SmokeTestGradleRunner runnerWithFreshGradleUserHome(String... tasks) {
+        runnerWithGradleUserHome(freshGradleUserHomeDir, *tasks)
     }
 
     private List<String> configurationCacheParameters() {
@@ -266,8 +270,6 @@ abstract class AbstractSmokeTest extends Specification {
 class SmokeTestedVersionsSanityCheck extends Specification {
     def specialPlugins = [
         AbstractSmokeTest.TestedVersions.androidGradle,
-        AbstractSmokeTest.TestedVersions.androidGradle9AndAbove,
-        AbstractSmokeTest.TestedVersions.androidGradleBefore9,
         AbstractSmokeTest.TestedVersions.kotlin,
     ].size()
 

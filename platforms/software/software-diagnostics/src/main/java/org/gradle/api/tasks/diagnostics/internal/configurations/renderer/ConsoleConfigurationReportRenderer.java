@@ -92,13 +92,22 @@ public final class ConsoleConfigurationReportRenderer extends AbstractConfigurat
     private void writeNonLegacyResults(ConfigurationReportModel data) {
         final List<ReportConfiguration> nonLegacyConfigs = data.getAllConfigs().stream()
             .filter(spec::isPurelyCorrectType)
+            .filter(c -> !(spec.isFilterConfigurationsWithoutAttributes() && c.getAttributes().isEmpty()))
             .collect(Collectors.toList());
         if (nonLegacyConfigs.isEmpty()) {
             message("There are no purely " + spec.getReportedConfigurationDirection() + " " + spec.getReportedTypeAlias() + "s present in project '" + data.getProjectName() + "'.");
 
             final boolean hasLegacyConfigs = data.getAllConfigs().stream().anyMatch(ReportConfiguration::isLegacy);
-            if (hasLegacyConfigs) {
-                message("Re-run this report with the '--all' flag to include legacy " + spec.getReportedTypeAlias() + "s (legacy = consumable and resolvable).");
+            final boolean hasConfWithoutAttrsWereFiltered = spec.isFilterConfigurationsWithoutAttributes() && data.getAllConfigs().stream()
+                .filter(spec::isPurelyCorrectType)
+                .anyMatch(c -> c.getAttributes().isEmpty());
+            if (hasLegacyConfigs || hasConfWithoutAttrsWereFiltered) {
+                String rerunMessage = "Re-run this report with the '--all' flag to include legacy " + spec.getReportedTypeAlias() + "s (legacy = consumable and resolvable)";
+                if (hasConfWithoutAttrsWereFiltered) {
+                    rerunMessage += ", and " + spec.getReportedTypeAlias() + "s without attributes";
+                }
+                rerunMessage += ".";
+                message(rerunMessage);
             }
         } else {
             writeResults(data, nonLegacyConfigs);
@@ -159,6 +168,7 @@ public final class ConsoleConfigurationReportRenderer extends AbstractConfigurat
         boolean hasIncubating = configs.stream().anyMatch(ReportConfiguration::hasIncubatingAttributes) ||
             configs.stream().flatMap(c -> c.getSecondaryVariants().stream()).anyMatch(ReportSecondaryVariant::hasIncubatingAttributes);
         boolean hasVariants = configs.stream().anyMatch(ReportConfiguration::hasVariants);
+        boolean hasNonSelectable = configs.stream().anyMatch(c -> c.getAttributes().isEmpty());
 
         output.style(StyledTextOutput.Style.Info);
         if (hasLegacy) {
@@ -168,6 +178,15 @@ public final class ConsoleConfigurationReportRenderer extends AbstractConfigurat
             output.text("(i) Configuration uses incubating attributes such as ");
             output.withStyle(StyledTextOutput.Style.Identifier).text("Category.VERIFICATION");
             output.println(".");
+        }
+        if (hasNonSelectable) {
+            String typeAlias = spec.getReportedTypeAlias();
+            String capitalizedType = StringUtils.capitalize(typeAlias);
+            if ("configuration".equals(typeAlias)) {
+                output.println("(n) " + capitalizedType + " lacks attributes, and may encounter problems when used for variant-aware dependency resolution.");
+            } else {
+                output.println("(n) " + capitalizedType + " not selectable via attributes. " + capitalizedType + "s without attributes cannot be used for variant-aware dependency resolution.");
+            }
         }
         if (recursiveExtensionsPrinted) {
             output.println("(t) Configuration extended transitively.");
@@ -242,6 +261,9 @@ public final class ConsoleConfigurationReportRenderer extends AbstractConfigurat
         }
         if (config.hasIncubatingAttributes()) {
             indicators += " (i)";
+        }
+        if (config.getAttributes().isEmpty()) {
+            indicators += " (n)";
         }
         return indicators;
     }

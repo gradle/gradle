@@ -13,6 +13,14 @@
       }
     } ]
   }, {
+    "testId" : "org.gradle.performance.crossbuild.ip.IsolatedProjectsAndroidSyncPerformanceComparisonTest.sync Studio after included build logic refactoring",
+    "groups" : [ {
+      "testProject" : "android500Kts",
+      "coverage" : {
+        "per_day" : [ "linux" ]
+      }
+    } ]
+  }, {
     "testId" : "org.gradle.performance.experiment.declarativedsl.DeclarativeDslFirstUsePerformanceTest.clean checkout",
     "groups" : [ {
       "testProject" : "largeEmptyMultiProjectDeclarativeDsl",
@@ -494,6 +502,22 @@
       }
     }, {
       "testProject" : "mediumMonolithicJavaProject",
+      "coverage" : {
+        "per_day" : [ "linux" ]
+      }
+    } ]
+  }, {
+    "testId" : "org.gradle.performance.regression.ip.IsolatedProjectsAndroidSyncPerformanceRegressionTest.sync Studio after included build logic refactoring with cold daemon",
+    "groups" : [ {
+      "testProject" : "android500Kts",
+      "coverage" : {
+        "per_day" : [ "linux" ]
+      }
+    } ]
+  }, {
+    "testId" : "org.gradle.performance.regression.ip.IsolatedProjectsAndroidSyncPerformanceRegressionTest.sync Studio after included build logic refactoring with warm daemon",
+    "groups" : [ {
+      "testProject" : "android500Kts",
       "coverage" : {
         "per_day" : [ "linux" ]
       }

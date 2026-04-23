@@ -27,6 +27,7 @@ Alternatively, the properties can be <<build_environment.adoc#sec:gradle_configu
 
 *Example 1:* Configuring an HTTP proxy using `gradle.properties`:
 ====
+[source,properties]
 ----
 systemProp.http.proxyHost=www.somehost.org
 systemProp.http.proxyPort=8080
@@ -40,6 +41,7 @@ There are separate settings for HTTPS.
 
 *Example 2:* Configuring an HTTPS proxy using `gradle.properties`:
 ====
+[source,properties]
 ----
 systemProp.https.proxyHost=www.somehost.org
 systemProp.https.proxyPort=8080
@@ -54,6 +56,7 @@ There are separate settings for SOCKS.
 
 *Example 3:* Configuring a SOCKS proxy using `gradle.properties`:
 ====
+[source,properties]
 ----
 systemProp.socksProxyHost=www.somehost.org
 systemProp.socksProxyPort=1080

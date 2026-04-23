@@ -16,14 +16,15 @@
 package org.gradle.integtests.fixtures.validation;
 
 import com.google.common.collect.ImmutableSet;
+import org.gradle.api.Action;
 import org.gradle.api.problems.ProblemGroup;
-import org.gradle.api.problems.Severity;
 import org.gradle.internal.deprecation.Documentation;
 import org.gradle.internal.properties.PropertyValue;
 import org.gradle.internal.properties.PropertyVisitor;
 import org.gradle.internal.properties.annotations.AbstractPropertyAnnotationHandler;
 import org.gradle.internal.properties.annotations.PropertyMetadata;
 import org.gradle.internal.reflect.annotations.AnnotationCategory;
+import org.gradle.internal.reflect.validation.TypeAwareProblemBuilder;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 
 class ValidationProblemPropertyAnnotationHandler extends AbstractPropertyAnnotationHandler {
@@ -42,20 +43,34 @@ class ValidationProblemPropertyAnnotationHandler extends AbstractPropertyAnnotat
 
     @Override
     public void validatePropertyMetadata(PropertyMetadata propertyMetadata, TypeValidationContext validationContext) {
-        validationContext.visitPropertyProblem(problem ->
-            problem
-                .forProperty(propertyMetadata.getPropertyName())
-                .id("test-problem", "test problem", ProblemGroup.create("root", "root"))
-                .documentedAt(Documentation.userManual("id", "section"))
-                .severity(annotationValue(propertyMetadata))
-                .details("this is a test")
-        );
+        String propertyName = propertyMetadata.getPropertyName();
+        if (annotationValue(propertyMetadata)) {
+            validationContext.visitPropertyError(new ProblemBuilder(propertyName));
+        } else {
+            validationContext.visitPropertyWarning(new ProblemBuilder(propertyName));
+        }
     }
 
-    private Severity annotationValue(PropertyMetadata propertyMetadata) {
+    private boolean annotationValue(PropertyMetadata propertyMetadata) {
         return propertyMetadata.getAnnotationForCategory(AnnotationCategory.TYPE)
             .map(ValidationProblem.class::cast)
-            .map(ValidationProblem::value)
-            .orElse(Severity.WARNING);
+            .map(ValidationProblem::fatal)
+            .orElse(false);
+    }
+
+    private static class ProblemBuilder implements Action<TypeAwareProblemBuilder> {
+        private final String propertyName;
+
+        public ProblemBuilder(String propertyName) {
+            this.propertyName = propertyName;
+        }
+
+        @Override
+        public void execute(TypeAwareProblemBuilder problem) {
+            TypeAwareProblemBuilder builder = problem.forProperty(propertyName);
+            builder.id("test-problem", "test problem", ProblemGroup.create("root", "root"))
+                .documentedAt(Documentation.userManual("id", "section"))
+                .details("this is a test");
+        }
     }
 }

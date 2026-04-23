@@ -45,7 +45,7 @@ abstract class AbstractJUnit3FilteringIntegrationTest extends AbstractTestingMul
         succeeds("test", "--tests", "FooTest.testPass")
 
         then:
-        def result = new DefaultTestExecutionResult(testDirectory, testFramework)
+        def result = new DefaultTestExecutionResult(testDirectory)
         result.assertTestClassesExecuted("FooTest")
         result.testClass("FooTest").assertTestsExecuted("testPass")
 

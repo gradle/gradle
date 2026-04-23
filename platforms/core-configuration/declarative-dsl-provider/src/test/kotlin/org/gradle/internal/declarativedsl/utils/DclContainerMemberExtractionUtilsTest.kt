@@ -22,11 +22,15 @@ import org.gradle.internal.declarativedsl.ndoc.DclContainerMemberExtractionUtils
 import org.gradle.internal.declarativedsl.ndoc.DclContainerMemberExtractionUtils.elementTypeFromNdocContainerType
 import org.gradle.internal.declarativedsl.schemaBuilder.DefaultSchemaBuildingHost
 import org.gradle.internal.declarativedsl.schemaBuilder.LossySchemaBuildingOperation
+import org.gradle.internal.declarativedsl.schemaBuilder.SchemaBuildingIssue
+import org.gradle.internal.declarativedsl.schemaBuilder.SchemaResult
 import org.gradle.internal.declarativedsl.schemaBuilder.asSupported
+import org.gradle.internal.declarativedsl.schemaBuilder.map
 import org.gradle.internal.declarativedsl.schemaBuilder.orError
 import org.gradle.internal.declarativedsl.schemaBuilder.toKType
 import org.junit.Assert
 import org.junit.Test
+import org.junit.jupiter.api.assertInstanceOf
 import org.junit.jupiter.api.assertThrows
 import kotlin.reflect.KType
 import kotlin.reflect.typeOf
@@ -40,7 +44,10 @@ class DclContainerMemberExtractionUtilsTest {
         DclContainerMemberExtractionUtils.elementFactoryFunctionNameFromElementType(type.asSupported(host).orError())
 
     private fun elementTypeFromNdocContainerType(type: KType): KType? =
-        elementTypeFromNdocContainerType(host, type.asSupported(host).orError())?.toKType()
+        elementTypeFromNdocContainerType(host, type.asSupported(host).orError()).orError()?.toKType()
+
+    private fun elementTypeFromNdocContainerTypeResult(type: KType): SchemaResult<KType?> =
+        elementTypeFromNdocContainerType(host, type.asSupported(host).orError()).map { it?.toKType() }
 
     @Test
     fun `the default element factory name is the decapitalized type name`() {
@@ -102,20 +109,26 @@ class DclContainerMemberExtractionUtilsTest {
     }
 
     @Test
-    fun `no element type is extracted from NDOC parameterized with a star-projected type`() {
+    fun `no element type is extracted from NDOC parameterized with a bound type parameter`() {
         abstract class Parameterized<P : Any> : NamedDomainObjectContainer<P> {
             abstract val t: Parameterized<P>
         }
 
-        Assert.assertNull(elementTypeFromNdocContainerType(Parameterized<*>::t.returnType))
+        assertInstanceOf<SchemaResult.Failure>(elementTypeFromNdocContainerTypeResult(Parameterized<*>::t.returnType)).run {
+            assertInstanceOf<SchemaBuildingIssue.IllegalUsageOfTypeParameterBoundByClass>(issue)
+        }
     }
 
     @Test
     fun `no element type is extracted from in-projected types`() {
         abstract class Subtype<S : Any> : NamedDomainObjectContainer<S>
 
-        Assert.assertNull(elementTypeFromNdocContainerType(typeOf<NamedDomainObjectContainer<in String>>()))
-        Assert.assertNull(elementTypeFromNdocContainerType(typeOf<Subtype<in String>>()))
+        assertInstanceOf<SchemaResult.Failure>(elementTypeFromNdocContainerTypeResult(typeOf<NamedDomainObjectContainer<in String>>())).run {
+            assertInstanceOf<SchemaBuildingIssue.IllegalVarianceInParameterizedTypeUsage>(issue)
+        }
+        assertInstanceOf<SchemaResult.Failure>(elementTypeFromNdocContainerTypeResult(typeOf<Subtype<in String>>())).run {
+            assertInstanceOf<SchemaBuildingIssue.IllegalVarianceInParameterizedTypeUsage>(issue)
+        }
     }
 
     @Test

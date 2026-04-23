@@ -23,7 +23,8 @@ import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
 import org.gradle.internal.jvm.Jvm
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.OsTestPreconditions
+
 import org.gradle.util.internal.TextUtil
 
 import static org.gradle.api.tasks.JavaExecToolchainFixture.writeJavaWrapperThatCannotBeProbed
@@ -85,7 +86,7 @@ class JavaExecToolchainIntegrationTest extends AbstractIntegrationSpec implement
         withInstallations(jdkCurrent, jdkOther).runAndFail(":run")
 
         then:
-        failureDescriptionStartsWith("Execution failed for task ':run'.")
+        failureDescriptionStartsWith("Execution failed for task ':run' (registered by plugin 'org.gradle.application').")
         failureHasCause("Toolchain from `executable` property does not match toolchain from `javaLauncher` property")
     }
 
@@ -102,7 +103,7 @@ class JavaExecToolchainIntegrationTest extends AbstractIntegrationSpec implement
         withInstallations(jdkCurrent, jdkOther).runAndFail(":run")
 
         then:
-        failureDescriptionStartsWith("Execution failed for task ':run'.")
+        failureDescriptionStartsWith("Execution failed for task ':run' (registered in build file 'build.gradle').")
         failureHasCause("Toolchain from `executable` property does not match toolchain from `javaLauncher` property")
     }
 
@@ -176,7 +177,7 @@ class JavaExecToolchainIntegrationTest extends AbstractIntegrationSpec implement
         "assigned tool" | "when configured"                    | "other"  | null           | "other"
     }
 
-    @Requires(UnitTestPreconditions.Unix)
+    @Requires(OsTestPreconditions.Unix)
     def "can specify executable that cannot be probed"() {
         Jvm currentJdk = Jvm.current()
         Jvm otherJdk = AvailableJavaHomes.differentVersion
@@ -195,7 +196,7 @@ class JavaExecToolchainIntegrationTest extends AbstractIntegrationSpec implement
         outputContains("Task is untracked because: Java launcher cannot be probed")
     }
 
-    @Requires(UnitTestPreconditions.Unix)
+    @Requires(OsTestPreconditions.Unix)
     def "task is not incremental when outputs are declared but executable cannot be probed"() {
         Jvm currentJdk = Jvm.current()
         Jvm otherJdk = AvailableJavaHomes.differentVersion

@@ -79,7 +79,7 @@ class ThirdPartyExtensionsComponent(
     private val extensions: List<ExtensionInfo>,
 ) : AnalysisSchemaComponent {
     override fun typeDiscovery(): List<TypeDiscovery> = listOf(
-        FixedTypeDiscovery(schemaTypeToExtend, extensions.map { TypeDiscovery.DiscoveredClass(it.type, listOf(Special("extension type"))) })
+        FixedTypeDiscovery(schemaTypeToExtend, extensions.map { TypeDiscovery.DiscoveredClass(it.type, Special("extension type")) })
     )
 
     override fun functionExtractors(): List<FunctionExtractor> = listOf(

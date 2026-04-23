@@ -518,6 +518,12 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         """
 
         when:
+        if (expr == "properties") {
+            executer.expectDocumentedDeprecationWarning("Dynamically calling getProperties() on a script has been deprecated. " +
+                "This will fail with an error in Gradle 10. " +
+                "Consult the upgrading guide for further information: " +
+                "https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_get_properties")
+        }
         isolatedProjectsFails(":a:help")
 
         then:

@@ -19,9 +19,9 @@ package org.gradle.integtests.resolve.versions
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 
-@Requires(value = IntegTestPreconditions.IsEmbeddedExecutor, reason = AbstractVersionRangeResolveIntegrationTest.ONLY_RUN_ON_EMBEDDED_REASON)
+@Requires(value = TestExecutionPreconditions.IsEmbeddedExecutor, reason = AbstractVersionRangeResolveIntegrationTest.ONLY_RUN_ON_EMBEDDED_REASON)
 @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
 class MavenRichVersionConstraintsIntegrationTest extends AbstractRichVersionConstraintsIntegrationTest {
     // Test split in two to reduce overall serial time execution

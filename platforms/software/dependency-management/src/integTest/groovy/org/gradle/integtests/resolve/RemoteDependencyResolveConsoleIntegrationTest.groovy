@@ -19,7 +19,7 @@ package org.gradle.integtests.resolve
 import org.gradle.api.logging.configuration.ConsoleOutput
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.integtests.fixtures.RichConsoleStyling
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.gradle.integtests.fixtures.executer.LogContent
 import org.gradle.test.fixtures.ConcurrentTestUtil
@@ -34,7 +34,6 @@ class RemoteDependencyResolveConsoleIntegrationTest extends AbstractDependencyRe
         server.start()
     }
 
-    @ToBeFixedForConfigurationCache(because = "Dependencies are not resolved during task execution")
     def "shows work-in-progress during graph and file resolution"() {
         def m1 = mavenRepo.module("test", "one", "1.2").publish()
         def m2 = mavenRepo.module("test", "two", "1.2").publish()
@@ -72,10 +71,17 @@ class RemoteDependencyResolveConsoleIntegrationTest extends AbstractDependencyRe
 
         then:
         ConcurrentTestUtil.poll {
-            outputContainsProgress(build,
-                "> :resolve > Resolve dependencies of :compile",
-                "> one-1.2.pom", "> two-1.2.pom"
-            )
+            if (GradleContextualExecuter.isConfigCache()) {
+                outputContainsProgress(build,
+                    "> Storing configuration cache state > : > Resolve dependencies of :compile",
+                    "> one-1.2.pom", "> two-1.2.pom"
+                )
+            } else {
+                outputContainsProgress(build,
+                    "> :resolve > Resolve dependencies of :compile",
+                    "> one-1.2.pom", "> two-1.2.pom"
+                )
+            }
         }
 
         when:
@@ -85,10 +91,17 @@ class RemoteDependencyResolveConsoleIntegrationTest extends AbstractDependencyRe
 
         then:
         ConcurrentTestUtil.poll {
-            outputContainsProgress(build,
-                "> :resolve > Resolve dependencies of :compile",
-                "> one-1.2.pom > 1 KiB/2 KiB downloaded", "> two-1.2.pom > 1 KiB/2 KiB downloaded"
-            )
+            if (GradleContextualExecuter.isConfigCache()) {
+                outputContainsProgress(build,
+                    "> Storing configuration cache state > : > Resolve dependencies of :compile",
+                    "> one-1.2.pom > 1 KiB/2 KiB downloaded", "> two-1.2.pom > 1 KiB/2 KiB downloaded"
+                )
+            } else {
+                outputContainsProgress(build,
+                    "> :resolve > Resolve dependencies of :compile",
+                    "> one-1.2.pom > 1 KiB/2 KiB downloaded", "> two-1.2.pom > 1 KiB/2 KiB downloaded"
+                )
+            }
         }
 
         when:
@@ -98,10 +111,17 @@ class RemoteDependencyResolveConsoleIntegrationTest extends AbstractDependencyRe
 
         then:
         ConcurrentTestUtil.poll {
-            outputContainsProgress(build,
-                "> :resolve > Resolve files of configuration ':compile'",
-                "> one-1.2.jar", "> two-1.2.jar"
-            )
+            if (GradleContextualExecuter.isConfigCache()) {
+                outputContainsProgress(build,
+                    "> Storing configuration cache state > : > Resolve files of configuration ':compile'",
+                    "> one-1.2.jar", "> two-1.2.jar"
+                )
+            } else {
+                outputContainsProgress(build,
+                    "> :resolve > Resolve files of configuration ':compile'",
+                    "> one-1.2.jar", "> two-1.2.jar"
+                )
+            }
         }
 
         when:
@@ -111,10 +131,17 @@ class RemoteDependencyResolveConsoleIntegrationTest extends AbstractDependencyRe
 
         then:
         ConcurrentTestUtil.poll {
-            outputContainsProgress(build,
-                "> :resolve > Resolve files of configuration ':compile'",
-                "> one-1.2.jar > 1 KiB/2 KiB downloaded", "> two-1.2.jar > 1 KiB/2 KiB downloaded"
-            )
+            if (GradleContextualExecuter.isConfigCache()) {
+                outputContainsProgress(build,
+                    "> Storing configuration cache state > : > Resolve files of configuration ':compile'",
+                    "> one-1.2.jar > 1 KiB/2 KiB downloaded", "> two-1.2.jar > 1 KiB/2 KiB downloaded"
+                )
+            } else {
+                outputContainsProgress(build,
+                    "> :resolve > Resolve files of configuration ':compile'",
+                    "> one-1.2.jar > 1 KiB/2 KiB downloaded", "> two-1.2.jar > 1 KiB/2 KiB downloaded"
+                )
+            }
         }
 
         getM1Jar.release()

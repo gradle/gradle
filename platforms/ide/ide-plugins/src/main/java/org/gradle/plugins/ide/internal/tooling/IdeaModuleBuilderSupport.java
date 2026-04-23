@@ -17,6 +17,7 @@
 package org.gradle.plugins.ide.internal.tooling;
 
 import org.gradle.api.JavaVersion;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.plugins.ide.idea.model.Dependency;
 import org.gradle.plugins.ide.idea.model.IdeaLanguageLevel;
 import org.gradle.plugins.ide.idea.model.IdeaModule;
@@ -105,8 +106,9 @@ public class IdeaModuleBuilderSupport {
             .setScope(new DefaultIdeaDependencyScope(d.getScope()))
             .setExported(d.isExported());
 
-        if (d.getModuleVersion() != null) {
-            defaultDependency.setGradleModuleVersion(new DefaultGradleModuleVersion(d.getModuleVersion()));
+        ModuleVersionIdentifier moduleVersionId = d.getModuleVersion();
+        if (moduleVersionId != null) {
+            defaultDependency.setGradleModuleVersion(new DefaultGradleModuleVersion(moduleVersionId.getGroup(), moduleVersionId.getName(), moduleVersionId.getVersion()));
         }
         return defaultDependency;
     }

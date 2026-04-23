@@ -100,7 +100,7 @@ abstract class AbstractKotlinScriptModelCrossVersionTest extends ToolingApiSpeci
         return fetchKotlinBuildScriptModelFor(
             projectDir,
             scriptFile,
-            { selectedProjectDir -> rawConnector().forProjectDirectory(selectedProjectDir) }
+            { selectedProjectDir -> connector().forProjectDirectory(selectedProjectDir) }
         )
     }
 

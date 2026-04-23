@@ -403,7 +403,7 @@ task resolveDependencies {
             }
 
             dependencies {
-                implementation(project)
+                implementation(project())
                 implementation("org:direct:1.0")
             }
 

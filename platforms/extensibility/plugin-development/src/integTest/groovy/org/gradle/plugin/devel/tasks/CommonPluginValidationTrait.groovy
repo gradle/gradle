@@ -19,20 +19,17 @@ package org.gradle.plugin.devel.tasks
 import org.gradle.internal.reflect.validation.ValidationMessageDisplayConfiguration
 import org.gradle.test.fixtures.file.TestFile
 
-import static org.gradle.api.problems.Severity.ERROR
-import static org.gradle.api.problems.Severity.WARNING
-
 trait CommonPluginValidationTrait {
     static <T extends ValidationMessageDisplayConfiguration> AbstractPluginValidationIntegrationSpec.DocumentedProblem error(T message, String id = "incremental_build", String section = "") {
-        new AbstractPluginValidationIntegrationSpec.DocumentedProblem(message, ERROR, id, section)
+        new AbstractPluginValidationIntegrationSpec.DocumentedProblem(message, "error", id, section)
     }
 
     static <T extends ValidationMessageDisplayConfiguration> AbstractPluginValidationIntegrationSpec.DocumentedProblem warning(T message, String id = "incremental_build", String section = "") {
-        new AbstractPluginValidationIntegrationSpec.DocumentedProblem(message, WARNING, id, section)
+        new AbstractPluginValidationIntegrationSpec.DocumentedProblem(message, "warning", id, section)
     }
 
     static <T extends ValidationMessageDisplayConfiguration> AbstractPluginValidationIntegrationSpec.DocumentedProblem warning(String message, String id = "incremental_build", String section = "") {
-        new AbstractPluginValidationIntegrationSpec.DocumentedProblem(message, WARNING, id, section)
+        new AbstractPluginValidationIntegrationSpec.DocumentedProblem(message, "warning", id, section)
     }
 
     TestFile getJavaTaskSource() {

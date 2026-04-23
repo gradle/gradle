@@ -43,7 +43,7 @@ class SwiftMissingToolchainIntegrationTest extends AbstractIntegrationSpec imple
         fails("assemble")
 
         then:
-        failure.assertHasDescription("Execution failed for task ':compileDebugSwift'.")
+        failure.assertHasDescription("Execution failed for task ':compileDebugSwift' (registered by plugin class 'org.gradle.language.swift.plugins.SwiftBasePlugin').")
         failure.assertHasCause("""No tool chain is available to build Swift for host operating system '${osName}' architecture '${archName}':
   - Tool chain 'swiftc' (Swift Compiler):
       - Could not find Swift compiler 'swiftc'. Searched in:

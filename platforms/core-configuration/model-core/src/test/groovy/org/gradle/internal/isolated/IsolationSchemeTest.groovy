@@ -84,7 +84,7 @@ class IsolationSchemeTest extends Specification {
         serviceType << [ExecOperations, FileSystemOperations, ObjectFactory, ProviderFactory]
     }
 
-    def "does not expose white-listed service when it is not available in backing registry"() {
+    def "does not expose allowed service when it is not available in backing registry"() {
         def allServices = Mock(ServiceLookup)
         def params = Stub(SomeParams)
         _ * allServices.find(serviceType) >> null
@@ -108,7 +108,7 @@ class IsolationSchemeTest extends Specification {
         serviceType << [ExecOperations, FileSystemOperations]
     }
 
-    def "does not expose service that is not white-listed"() {
+    def "does not expose service that is not allowed"() {
         def allServices = Mock(ServiceLookup)
         def params = Stub(SomeParams)
 

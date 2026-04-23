@@ -1,13 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="EntryPointsManager">
-    <list size="6">
+    <list size="7">
       <item index="0" class="java.lang.String" itemvalue="com.tngtech.archunit.junit.ArchTest" />
-      <item index="1" class="java.lang.String" itemvalue="org.gradle.internal.instrumentation.api.annotations.BytecodeUpgrade" />
-      <item index="2" class="java.lang.String" itemvalue="org.gradle.internal.instrumentation.api.annotations.InterceptJvmCalls" />
-      <item index="3" class="java.lang.String" itemvalue="org.gradle.internal.service.Provides" />
-      <item index="4" class="java.lang.String" itemvalue="org.gradle.internal.scan.UsedByScanPlugin" />
-      <item index="5" class="java.lang.String" itemvalue="org.gradle.api.model.ManagedObjectCreator" />
+      <item index="1" class="java.lang.String" itemvalue="org.gradle.api.model.ManagedObjectCreator" />
+      <item index="2" class="java.lang.String" itemvalue="org.gradle.api.services.ServiceReference" />
+      <item index="3" class="java.lang.String" itemvalue="org.gradle.internal.instrumentation.api.annotations.BytecodeUpgrade" />
+      <item index="4" class="java.lang.String" itemvalue="org.gradle.internal.instrumentation.api.annotations.InterceptJvmCalls" />
+      <item index="5" class="java.lang.String" itemvalue="org.gradle.internal.scan.UsedByScanPlugin" />
+      <item index="6" class="java.lang.String" itemvalue="org.gradle.internal.service.Provides" />
     </list>
     <pattern value="org.gradle.internal.service.ServiceRegistrationProvider" hierarchically="true" method="configure" />
   </component>
@@ -70,4 +71,3 @@
   </component>
   <component name="ProjectRootManager" version="2" languageLevel="JDK_17" default="true" project-jdk-name="17" project-jdk-type="JavaSDK" />
 </project>
-

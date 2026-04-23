@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.dependencies.DefaultProjectDependency;
 import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParser;
+import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.internal.project.ProjectStateRegistry;
@@ -38,25 +39,32 @@ public class DefaultProjectDependencyFactory {
     private final ObjectFactory objectFactory;
     private final AttributesFactory attributesFactory;
     private final ProjectStateRegistry projectStateRegistry;
+    private final ProjectFinder projectFinder;
 
     public DefaultProjectDependencyFactory(
         Instantiator instantiator,
         CapabilityNotationParser capabilityNotationParser,
         ObjectFactory objectFactory,
         AttributesFactory attributesFactory,
-        ProjectStateRegistry projectStateRegistry
+        ProjectStateRegistry projectStateRegistry,
+        ProjectFinder projectFinder
     ) {
         this.instantiator = instantiator;
         this.capabilityNotationParser = capabilityNotationParser;
         this.objectFactory = objectFactory;
         this.attributesFactory = attributesFactory;
         this.projectStateRegistry = projectStateRegistry;
+        this.projectFinder = projectFinder;
     }
 
     public ProjectDependency create(ProjectState projectState) {
         DefaultProjectDependency projectDependency = instantiator.newInstance(DefaultProjectDependency.class, projectState);
         injectServices(projectDependency);
         return projectDependency;
+    }
+
+    public ProjectDependency create(String projectPath) {
+        return create(projectFinder.resolveIdentityPath(projectPath));
     }
 
     public ProjectDependency create(Path projectIdentityPath) {

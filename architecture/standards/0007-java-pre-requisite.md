@@ -1,8 +1,8 @@
-# ADR-0007 - Support running Gradle on multiple Java versions and do not embed a Java runtime in the Gradle distribution 
+# ADR-0007 - Support running Gradle on multiple Java versions and do not embed a Java runtime in the Gradle distribution
 
-## Date
+## Status
 
-2024-12-20
+- PROPOSED on 2024-12-20
 
 ## Context
 
@@ -45,10 +45,6 @@ What would have happened if Gradle was limited to _only Java 11_ at the time?
 2. The Gradle Daemon, Worker processes, and Tooling API client will continue to support running on different Java versions during a single Gradle invocation.
    The exact versions supported will be determined by the Gradle version.
 3. Regarding the Tooling API client, it is the responsibility of the application embedding it to provide the Java runtime.
-
-## Status
-
-PROPOSED
 
 ## Consequences
 

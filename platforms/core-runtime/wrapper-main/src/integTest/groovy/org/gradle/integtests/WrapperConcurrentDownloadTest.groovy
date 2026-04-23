@@ -18,11 +18,11 @@ package org.gradle.integtests
 
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import org.junit.Rule
 import spock.lang.Issue
 
-@Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = NOT_EMBEDDED_REASON)
+@Requires(value = TestExecutionPreconditions.NotEmbeddedExecutor, reason = NOT_EMBEDDED_REASON)
 class WrapperConcurrentDownloadTest extends AbstractWrapperIntegrationSpec {
     @Rule BlockingHttpServer server = new BlockingHttpServer()
 

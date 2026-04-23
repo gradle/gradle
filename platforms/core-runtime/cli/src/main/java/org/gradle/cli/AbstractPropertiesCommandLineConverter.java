@@ -22,12 +22,14 @@ public abstract class AbstractPropertiesCommandLineConverter extends AbstractCom
     protected abstract String getPropertyOption();
     protected abstract String getPropertyOptionDetailed();
     protected abstract String getPropertyOptionDescription();
+    protected abstract OptionCategory getCategory();
 
     @Override
     public void configure(CommandLineParser parser) {
         CommandLineOption option = parser.option(getPropertyOption(), getPropertyOptionDetailed());
         option = option.hasArguments();
         option.hasDescription(getPropertyOptionDescription());
+        option.hasCategory(getCategory());
     }
 
     @Override

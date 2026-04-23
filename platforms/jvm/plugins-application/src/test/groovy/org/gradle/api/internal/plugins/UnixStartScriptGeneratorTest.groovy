@@ -165,6 +165,20 @@ class UnixStartScriptGeneratorTest extends Specification {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/30101")
+    def "meta-comment URLs in template source use HEAD not gitRef"() {
+        given:
+        def templateText = new UnixStartScriptGenerator().template.asString()
+        // The meta-comment block (between <% /* and */ %>) contains two URLs that should use HEAD
+        def metaCommentMatcher = templateText =~ /(?s)<%\s*\/\*(.*)\*\/\s*%>/
+        assert metaCommentMatcher.find()
+        def metaComment = metaCommentMatcher.group(1)
+
+        expect:
+        metaComment.contains("https://github.com/gradle/gradle/blob/HEAD/")
+        !metaComment.contains('${gitRef}')
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/30101")
     def "uses github permalinks in embedded documentation when gitRef specified"() {
         given:
         JavaAppStartScriptGenerationDetails details = createScriptGenerationDetails(
@@ -197,7 +211,7 @@ class UnixStartScriptGeneratorTest extends Specification {
         String scriptRelPath,
         AppEntryPoint appEntryPoint = new MainClass(""),
         List<String> classpath = ['path\\to\\Jar.jar'],
-        String gitRef = null
+        String gitRef = "HEAD" // HEAD convention in CreateStartScripts / WrapperGenerator always populates a specific ref
     ) {
         final String applicationName = 'TestApp'
         return new DefaultJavaAppStartScriptGenerationDetails(applicationName, gitRef, null, null, appEntryPoint, defaultJvmOpts, classpath, [], scriptRelPath, null)

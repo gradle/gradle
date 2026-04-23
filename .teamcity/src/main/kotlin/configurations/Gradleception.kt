@@ -10,7 +10,6 @@ import common.customGradle
 import common.functionalTestParameters
 import common.getBuildScanCustomValueParam
 import common.gradleWrapper
-import common.requiresNotEc2Agent
 import common.requiresNotSharedHost
 import common.skipConditionally
 import jetbrains.buildServer.configs.kotlin.BuildSteps
@@ -64,8 +63,6 @@ class Gradleception(
             "Builds Gradle with the version of Gradle which is currently under development (twice)$descriptionSuffix"
 
         requirements {
-            // Gradleception is a heavy build which runs ~40m on EC2 agents but only ~20m on Hetzner agents
-            requiresNotEc2Agent()
             requiresNotSharedHost()
         }
 

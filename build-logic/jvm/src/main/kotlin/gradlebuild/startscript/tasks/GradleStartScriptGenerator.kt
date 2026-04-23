@@ -34,6 +34,7 @@ import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
+import org.gradle.api.provider.Property
 import org.gradle.util.internal.TextUtil
 import java.io.File
 import java.nio.charset.StandardCharsets
@@ -65,6 +66,9 @@ abstract class GradleStartScriptGenerator : DefaultTask() {
     @get:PathSensitive(PathSensitivity.NONE)
     abstract val windowsScriptTemplate: ConfigurableFileCollection
 
+    @get:Input
+    abstract val scriptTemplateGitRef: Property<String>
+
     @get:OutputDirectory
     abstract val startScriptsDir: DirectoryProperty
 
@@ -77,9 +81,8 @@ abstract class GradleStartScriptGenerator : DefaultTask() {
         logging.captureStandardOutput(LogLevel.INFO)
         val generator = StartScriptGenerator(createUnixStartScriptGenerator(), createWindowsStartScriptGenerator())
         generator.setApplicationName("Gradle")
-        //generator.setGitRef(DefaultGradleVersion.current().getGitRevision()) // TODO uncomment after wrapper upgrade. See #35693
+        generator.setGitRef(scriptTemplateGitRef.get())
         generator.setOptsEnvironmentVar("GRADLE_OPTS")
-        generator.setExitEnvironmentVar("GRADLE_EXIT_CONSOLE")
         generator.setEntryPoint(ExecutableJar("lib/$launcherJarName"))
         generator.setScriptRelPath("bin/gradle")
         generator.setClasspath(emptyList())

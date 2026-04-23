@@ -17,6 +17,7 @@
 package org.gradle.internal.declarativedsl.schemaBuidler
 
 import org.gradle.api.provider.ListProperty
+import org.gradle.declarative.dsl.evaluation.SchemaBuildingFailure
 import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition
 import org.gradle.declarative.dsl.model.annotations.VisibleInDefinition
 import org.gradle.declarative.dsl.schema.AnalysisSchema
@@ -24,7 +25,6 @@ import org.gradle.internal.declarativedsl.analysis.DeclarativeDslInterpretationE
 import org.gradle.internal.declarativedsl.assertFailsWith
 import org.gradle.internal.declarativedsl.schemaBuilder.DeclarativeDslSchemaBuildingException
 import org.gradle.internal.declarativedsl.schemaBuilder.SchemaFailureReporter
-import org.gradle.internal.declarativedsl.schemaBuilder.SchemaResult
 import org.gradle.internal.declarativedsl.schemaBuilder.schemaFromTypes
 import org.gradle.internal.declarativedsl.schemaUtils.findFunctionFor
 import org.junit.Assert.assertEquals
@@ -135,15 +135,15 @@ class SchemeExtractionErrorTest {
                     |* Conflicting annotations: @VisibleInDefinition and @HiddenInDefinition are present
                     |  in member 'var org.gradle.internal.declarativedsl.schemaBuidler.SchemeExtractionErrorTest.MultipleInvalidMembers.s: kotlin.String'
                     |  in class 'org.gradle.internal.declarativedsl.schemaBuidler.SchemeExtractionErrorTest.MultipleInvalidMembers'
-                    |
-                    |* Unsupported property declaration: nullable read-only property
-                    |  in member 'val org.gradle.internal.declarativedsl.schemaBuidler.SchemeExtractionErrorTest.MultipleInvalidMembers.y: kotlin.Int?'
-                    |  in class 'org.gradle.internal.declarativedsl.schemaBuidler.SchemeExtractionErrorTest.MultipleInvalidMembers'
-                    |
+                |
                     |* Illegal 'IN' variance
                     |  in type argument 'in kotlin.String'
                     |  in parameter 'x'
                     |  in member 'fun org.gradle.internal.declarativedsl.schemaBuidler.SchemeExtractionErrorTest.MultipleInvalidMembers.f(org.gradle.api.provider.ListProperty<in kotlin.String>): kotlin.Int'
+                    |  in class 'org.gradle.internal.declarativedsl.schemaBuidler.SchemeExtractionErrorTest.MultipleInvalidMembers'
+                    |
+                    |* Unsupported property declaration: nullable read-only property
+                    |  in member 'val org.gradle.internal.declarativedsl.schemaBuidler.SchemeExtractionErrorTest.MultipleInvalidMembers.y: kotlin.Int?'
                     |  in class 'org.gradle.internal.declarativedsl.schemaBuidler.SchemeExtractionErrorTest.MultipleInvalidMembers'
                     """.trimMargin(),
                     message
@@ -156,7 +156,7 @@ class SchemeExtractionErrorTest {
         var schema: AnalysisSchema? = null
 
         val reporter = object : SchemaFailureReporter {
-            override fun report(partialSchema: AnalysisSchema, failures: List<SchemaResult.Failure>) {
+            override fun report(partialSchema: AnalysisSchema, failures: List<SchemaBuildingFailure>) {
                 schema = partialSchema
                 assertTrue(failures.isNotEmpty())
             }

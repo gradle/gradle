@@ -95,18 +95,40 @@ public class Providers {
         return new ChangingProvider<>(value);
     }
 
+    /**
+     * Creates a provider that caches the once computed value of the given provider.
+     * The returned provider is thread-safe but may trigger computation of the inner provider multiple times if accessed under contention.
+     * <p>
+     * The returned provider has the same dependencies as the given provider, but only until computed.
+     *
+     * @param provider the provider of value to cache
+     * @return the caching provider
+     * @param <T> the type of the value
+     */
     public static <T> ProviderInternal<T> memoizing(ProviderInternal<T> provider) {
         return memoizing(provider, null);
     }
 
+    /**
+     * Creates a provider that caches the once computed value of the given provider.
+     * The returned provider is thread-safe but may trigger computation of the inner provider multiple times if accessed under contention.
+     * <p>
+     * The returned provider has the same dependencies as the given provider, but only until computed.
+     *
+     * @param provider the provider of value to cache
+     * @param displayName the optional supplier of display name for the returned provider
+     * @return the caching provider
+     * @param <T> the type of the value
+     */
     public static <T> ProviderInternal<T> memoizing(ProviderInternal<T> provider, @Nullable SerializableSupplier<DisplayName> displayName) {
         return new MemoizingProvider<>(provider, displayName);
     }
 
     private static class MemoizingProvider<T> extends AbstractMinimalProvider<T> {
         private final ProviderInternal<T> provider;
+        // We may compute the value multiple times under contention.
         @Nullable
-        private Value<? extends T> value;
+        private volatile Value<? extends T> value;
         @Nullable
         private final Supplier<DisplayName> displayName;
 
@@ -122,16 +144,17 @@ public class Providers {
 
         @Override
         public ExecutionTimeValue<? extends T> calculateExecutionTimeValue() {
-            if (value != null) {
-                return ExecutionTimeValue.value(value);
+            Value<? extends T> fixedValue = value;
+            if (fixedValue != null) {
+                return ExecutionTimeValue.value(fixedValue);
             }
             ExecutionTimeValue<? extends T> executionTimeValue = provider.calculateExecutionTimeValue();
             if (executionTimeValue.isMissing()) {
                 return executionTimeValue;
             }
             if (executionTimeValue.hasFixedValue()) {
-                value = executionTimeValue.toValue();
-                return ExecutionTimeValue.value(value);
+                value = fixedValue = executionTimeValue.toValue();
+                return ExecutionTimeValue.value(fixedValue);
             }
             return ExecutionTimeValue.changingValue(this);
         }
@@ -146,10 +169,11 @@ public class Providers {
 
         @Override
         protected Value<? extends T> calculateOwnValue(ValueConsumer consumer) {
-            if (value == null) {
-                value = provider.calculateValue(consumer);
+            Value<? extends T> result = value;
+            if (result == null) {
+                value = result = provider.calculateValue(consumer);
             }
-            return value;
+            return result;
         }
 
         @Override

@@ -113,8 +113,8 @@ For instance, you can set up a Maven repository will optionally resolve JARs tha
 This is done by configuring metadata sources for the repository:
 
 ====
-include::sample[dir="snippets/artifacts/defineRepository/kotlin",files="build.gradle.kts[tags=maven-repo-with-metadata-sources]"]
-include::sample[dir="snippets/artifacts/defineRepository/groovy",files="build.gradle[tags=maven-repo-with-metadata-sources]"]
+include::sample[dir="snippets/reference/dependency-management/declaring-repositories/defineRepository/kotlin",files="build.gradle.kts[tags=maven-repo-with-metadata-sources]"]
+include::sample[dir="snippets/reference/dependency-management/declaring-repositories/defineRepository/groovy",files="build.gradle[tags=maven-repo-with-metadata-sources]"]
 ====
 
 You can specify multiple metadata sources, and Gradle will search through them in a predefined order.
@@ -188,6 +188,6 @@ If found, Gradle will prefer the Gradle metadata.
 To disable this behavior, use the `ignoreGradleMetadataRedirection()` option:
 
 ====
-include::sample[dir="snippets/artifacts/defineRepository/kotlin",files="build.gradle.kts[tags=maven-repo-with-ignore-gradle-metadata-redirection]"]
-include::sample[dir="snippets/artifacts/defineRepository/groovy",files="build.gradle[tags=maven-repo-with-ignore-gradle-metadata-redirection]"]
+include::sample[dir="snippets/reference/dependency-management/declaring-repositories/defineRepository/kotlin",files="build.gradle.kts[tags=maven-repo-with-ignore-gradle-metadata-redirection]"]
+include::sample[dir="snippets/reference/dependency-management/declaring-repositories/defineRepository/groovy",files="build.gradle[tags=maven-repo-with-ignore-gradle-metadata-redirection]"]
 ====

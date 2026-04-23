@@ -21,8 +21,8 @@ import org.gradle.api.Project
 import org.gradle.api.initialization.Settings
 import org.gradle.api.internal.SettingsInternal
 import org.gradle.api.internal.initialization.ClassLoaderScope
-import org.gradle.api.internal.plugins.Definition
-import org.gradle.api.internal.plugins.TargetTypeInformation
+import org.gradle.features.binding.Definition
+import org.gradle.features.binding.TargetTypeInformation
 import org.gradle.api.reflect.TypeOf
 import org.gradle.declarative.dsl.evaluation.InterpretationSequence
 import org.gradle.declarative.dsl.schema.ConfigureFromGetterOrigin
@@ -40,7 +40,7 @@ import org.gradle.kotlin.dsl.accessors.ContainerElementFactoryEntry
 import org.gradle.kotlin.dsl.accessors.NestedModelEntry
 import org.gradle.kotlin.dsl.accessors.ProjectFeatureEntry
 import org.gradle.kotlin.dsl.support.serviceOf
-import org.gradle.plugin.software.internal.ProjectFeatureDeclarations
+import org.gradle.features.internal.binding.ProjectFeatureDeclarations
 import java.lang.reflect.ParameterizedType
 import java.lang.reflect.Type
 import java.lang.reflect.WildcardType
@@ -149,7 +149,9 @@ internal class DefaultKotlinDslDclSchemaCollector : KotlinDslDclSchemaCollector 
                     is DataClass -> type.memberFunctions.filter { it.metadata.any { item -> item is ConfigureFromGetterOrigin } }.mapNotNull { function ->
                         val nestedModelType = (function.semantics as? FunctionSemantics.ConfigureSemantics)?.configuredType?.let(typeRefContext::resolveRef)
                             as? DataClass ?: return@mapNotNull null
-                        NestedModelEntry(function.simpleName, typeOf(type, classLoader)!!, typeOf(nestedModelType, classLoader)!!)
+                        val ownerClass = typeOf(type, classLoader) ?: return@mapNotNull null
+                        val nestedModelClass = typeOf(nestedModelType, classLoader) ?: return@mapNotNull null
+                        NestedModelEntry(function.simpleName, ownerClass, nestedModelClass)
                     }
                     else -> emptyList()
                 }

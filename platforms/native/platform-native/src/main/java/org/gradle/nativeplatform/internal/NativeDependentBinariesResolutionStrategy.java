@@ -20,7 +20,6 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.Ordering;
 import org.gradle.api.CircularReferenceException;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.internal.resolve.ProjectModelResolver;
 import org.gradle.api.reporting.dependents.internal.DependentComponentsUtils;
@@ -56,7 +55,6 @@ import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -155,22 +153,24 @@ public class NativeDependentBinariesResolutionStrategy extends AbstractDependent
     private State buildState() {
         State state = new State();
 
-        List<ProjectInternal> orderedProjects = Ordering.usingToString().sortedCopy(projectRegistry.getAllProjects().stream().map(ProjectState::getMutableModel).collect(Collectors.toList()));
-        for (ProjectInternal project : orderedProjects) {
-            if (project.getPlugins().hasPlugin(ComponentModelBasePlugin.class)) {
-                ModelRegistry modelRegistry = projectModelResolver.resolveProjectModel(project.getPath());
-                ModelMap<NativeComponentSpec> components = modelRegistry.realize("components", ModelTypes.modelMap(NativeComponentSpec.class));
-                for (NativeBinarySpecInternal binary : allBinariesOf(components.withType(VariantComponentSpec.class))) {
-                    state.registerBinary(binary);
-                }
-                ModelMap<Object> testSuites = modelRegistry.find("testSuites", ModelTypes.modelMap(Object.class));
-                if (testSuites != null) {
-                    for (NativeBinarySpecInternal binary : allBinariesOf(testSuites.withType(NativeComponentSpec.class).withType(VariantComponentSpec.class))) {
+        projectRegistry.applyToMutableStateOfAllProjects(access -> {
+            List<? extends ProjectState> orderedProjects = Ordering.usingToString().sortedCopy(projectRegistry.getAllProjects());
+            for (ProjectState projectState : orderedProjects) {
+                if (access.getMutableModel(projectState).getPlugins().hasPlugin(ComponentModelBasePlugin.class)) {
+                    ModelRegistry modelRegistry = projectModelResolver.resolveProjectModel(projectState.getProjectPath().toString());
+                    ModelMap<NativeComponentSpec> components = modelRegistry.realize("components", ModelTypes.modelMap(NativeComponentSpec.class));
+                    for (NativeBinarySpecInternal binary : allBinariesOf(components.withType(VariantComponentSpec.class))) {
                         state.registerBinary(binary);
+                    }
+                    ModelMap<Object> testSuites = modelRegistry.find("testSuites", ModelTypes.modelMap(Object.class));
+                    if (testSuites != null) {
+                        for (NativeBinarySpecInternal binary : allBinariesOf(testSuites.withType(NativeComponentSpec.class).withType(VariantComponentSpec.class))) {
+                            state.registerBinary(binary);
+                        }
                     }
                 }
             }
-        }
+        });
 
         for (NativeBinarySpecInternal nativeBinary : state.dependencies.keySet()) {
             for (NativeLibraryBinary libraryBinary : nativeBinary.getDependentBinaries()) {

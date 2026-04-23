@@ -17,7 +17,8 @@
 package org.gradle.internal.nativeintegration.jansi
 
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.OsTestPreconditions
+
 import spock.lang.Specification
 
 class JansiLibraryFactoryIntegrationTest extends Specification {
@@ -25,7 +26,7 @@ class JansiLibraryFactoryIntegrationTest extends Specification {
 
     def factory = new JansiLibraryFactory()
 
-    @Requires(UnitTestPreconditions.MacOs)
+    @Requires(OsTestPreconditions.MacOs)
     def "jansi library can be created for MacOSX"() {
         when:
         JansiLibrary jansiLibrary = factory.create()
@@ -34,7 +35,7 @@ class JansiLibraryFactoryIntegrationTest extends Specification {
         jansiLibrary.resourcePath ==  JANSI_NATIVE_PACKAGE_PATH + jansiLibrary.path
     }
 
-    @Requires(UnitTestPreconditions.Linux)
+    @Requires(OsTestPreconditions.Linux)
     def "jansi library can be created for Linux"() {
         when:
         JansiLibrary jansiLibrary = factory.create()
@@ -43,7 +44,7 @@ class JansiLibraryFactoryIntegrationTest extends Specification {
         jansiLibrary.resourcePath ==  JANSI_NATIVE_PACKAGE_PATH + jansiLibrary.path
     }
 
-    @Requires(UnitTestPreconditions.Windows)
+    @Requires(OsTestPreconditions.Windows)
     def "jansi library can be created for Windows"() {
         when:
         JansiLibrary jansiLibrary = factory.create()

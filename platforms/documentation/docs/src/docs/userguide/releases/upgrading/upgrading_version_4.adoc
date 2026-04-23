@@ -101,6 +101,7 @@ General::
 +
 Use the link:{groovyDslPath}/org.gradle.api.Task.html#org.gradle.api.Task:doLast(org.gradle.api.Action)[Task.doLast()] method instead, like this:
 +
+[source,groovy]
 ----
 task myTask {
     doLast {
@@ -168,6 +169,7 @@ Tasks & properties::
 +
 Attempting to replace a built-in task will produce an error similar to the following:
 +
+[source,text]
 ----
 > Cannot add task 'wrapper' as a task with that name already exists.
 ----
@@ -447,6 +449,7 @@ Gradle now provides support for importing bill of materials (BOM) files, which a
 
 The following example picks the versions of the `gson` and `dom4j` dependencies from the declared Spring Boot BOM:
 
+[source,groovy]
 ----
 dependencies {
     // import a BOM

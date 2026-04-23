@@ -1,0 +1,45 @@
+/*
+ * Copyright 2026 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.gradle.features.binding;
+
+import org.gradle.api.Incubating;
+import org.gradle.api.model.ObjectFactory;
+
+/**
+ * Represents the context in which a project feature is applied and the services
+ * available in that context.
+ *
+ * @since 9.5.0
+ */
+@Incubating
+public interface ProjectFeatureApplicationContext {
+
+    /**
+     * The ObjectFactory for the Project object the project feature is applied to.
+     *
+     * @since 9.5.0
+     */
+    ObjectFactory getObjectFactory();
+
+    /**
+     * Allows a {@link ProjectFeatureApplyAction} or {@link ProjectTypeApplyAction} to access the build model object of a given
+     * definition object.
+     *
+     * @since 9.5.0
+     */
+    <T extends Definition<V>, V extends BuildModel> V getBuildModel(T definition);
+}

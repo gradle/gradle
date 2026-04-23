@@ -20,10 +20,10 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheFixture
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import spock.lang.Issue
 
-@Requires(value = IntegTestPreconditions.NotConfigCached, reason = "handles CC explicitly")
+@Requires(value = TestExecutionPreconditions.NotConfigCached, reason = "handles CC explicitly")
 class ConfigurationCacheBuildCacheIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture {
 
     def configurationCache = new ConfigurationCacheFixture(this)
@@ -55,7 +55,7 @@ class ConfigurationCacheBuildCacheIntegrationTest extends AbstractIntegrationSpe
         fails "compileJava"
 
         then:
-        failureDescriptionStartsWith("Execution failed for task ':compileJava'.")
+        failureDescriptionStartsWith("Execution failed for task ':compileJava' (registered by plugin class 'org.gradle.api.plugins.JavaBasePlugin').")
         failureCauseContains("Invocation of 'Task.project' by task ':compileJava' at execution time is unsupported with the configuration cache.")
 
         and:
@@ -69,7 +69,7 @@ class ConfigurationCacheBuildCacheIntegrationTest extends AbstractIntegrationSpe
         fails "compileJava"
 
         then: "the task is still executed and fails"
-        failureDescriptionStartsWith("Execution failed for task ':compileJava'.")
+        failureDescriptionStartsWith("Execution failed for task ':compileJava' (registered by plugin class 'org.gradle.api.plugins.JavaBasePlugin').")
         failureCauseContains("Invocation of 'Task.project' by task ':compileJava' at execution time is unsupported with the configuration cache.")
 
         and: "configuration cache is not reused"

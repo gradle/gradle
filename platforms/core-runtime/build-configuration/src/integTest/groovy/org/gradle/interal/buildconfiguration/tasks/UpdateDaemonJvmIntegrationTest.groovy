@@ -21,13 +21,15 @@ import org.gradle.api.JavaVersion
 import org.gradle.buildconfiguration.tasks.UpdateDaemonJvm
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
 import org.gradle.internal.buildconfiguration.fixture.DaemonJvmPropertiesFixture
 import org.gradle.internal.jvm.Jvm
 import org.gradle.platform.Architecture
 import org.gradle.platform.OperatingSystem
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
+import org.gradle.test.preconditions.InstalledJdkTestPreconditions
 
 import java.util.stream.Stream
 
@@ -36,7 +38,7 @@ import static org.gradle.jvm.toolchain.JavaToolchainDownloadUtil.applyToolchainR
 import static org.gradle.jvm.toolchain.JavaToolchainDownloadUtil.constantUrlResolverCode
 import static org.gradle.jvm.toolchain.JavaToolchainDownloadUtil.noUrlResolverCode
 
-@Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "explicitly requests a daemon")
+@Requires(value = TestExecutionPreconditions.NotEmbeddedExecutor, reason = "explicitly requests a daemon")
 class UpdateDaemonJvmIntegrationTest extends AbstractIntegrationSpec implements DaemonJvmPropertiesFixture, JavaToolchainFixture {
 
     def setup() {
@@ -66,12 +68,15 @@ class UpdateDaemonJvmIntegrationTest extends AbstractIntegrationSpec implements 
         fails "updateDaemonJvm"
 
         then:
-        // TODO The description is different with CC on, and this should use the problem validation test API
+        if (!GradleContextualExecuter.isConfigCache()) {
+            failureDescriptionContains("Execution failed for task ':updateDaemonJvm'.")
+            // TODO The description is different with CC on, and this should use the problem validation test API
 //        failureDescriptionContains("Execution failed for task ':updateDaemonJvm'.")
+        }
         failureHasCause('Invalid task configuration')
         failureCauseContains('Toolchain download repositories have not been configured.')
         failure.assertHasResolution('Configure toolchain download repositories in your build settings.')
-        failure.assertHasDocumentationInResolutions('toolchains.html#sub:download_repositories')
+        failure.assertHasResolution("For more information, see https://docs.gradle.org/current/userguide/toolchains.html#sub:download_repositories")
 
     }
 
@@ -153,7 +158,7 @@ tasks.named("updateDaemonJvm") {
         fails "updateDaemonJvm", "--jvm-version=7"
 
         then:
-        failureDescriptionContains("Execution failed for task ':updateDaemonJvm'")
+        failureDescriptionContains("Execution failed for task ':updateDaemonJvm'.")
         failureHasCause("Unsupported Java version '7' provided for the 'jvm-version' option. Gradle can only run with Java 8 and above.")
     }
 
@@ -254,7 +259,7 @@ tasks.named("updateDaemonJvm") {
         assertJvmCriteria(otherJvm.javaVersion)
     }
 
-    @Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
+    @Requires(InstalledJdkTestPreconditions.JavaHomeWithDifferentVersionAvailable)
     def "Given defined valid criteria matching with local toolchain When execute updateDaemonJvm with different criteria Then criteria get modified using the expected local toolchain"() {
         given:
         def otherJvm = AvailableJavaHomes.differentVersion
@@ -329,10 +334,10 @@ tasks.named("updateDaemonJvm") {
         failureHasCause("Invalid task configuration")
         failureCauseContains("Toolchain resolvers did not return download URLs providing a JDK matching {languageVersion=20, vendor=vendor matching('FOO'), implementation=vendor-specific, nativeImageCapable=false} for any of the requested platforms")
         failure.assertHasResolution('Use a toolchain download repository capable of resolving the toolchain spec for the given platforms.')
-        failure.assertHasDocumentationInResolutions('gradle_daemon.html#sec:daemon_jvm_provisioning')
+        failure.assertHasResolution('For more information, see https://docs.gradle.org/current/userguide/gradle_daemon.html#sec:daemon_jvm_provisioning')
     }
 
-    @Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
+    @Requires(InstalledJdkTestPreconditions.JavaHomeWithDifferentVersionAvailable)
     def "configuring the languageVersion will use that value for the generate properties file"() {
         given:
         buildFile("""

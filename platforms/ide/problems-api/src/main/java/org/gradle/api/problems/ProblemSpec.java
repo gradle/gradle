@@ -176,6 +176,8 @@ public interface ProblemSpec {
      * @param severity the severity
      * @return this
      * @since 8.6
+     * @deprecated Severity is now determined automatically: use {@link ProblemReporter#report} for warnings and {@link ProblemReporter#throwing} for errors.
      */
+    @Deprecated
     ProblemSpec severity(Severity severity);
 }

@@ -123,7 +123,7 @@ class UnsafeConfigurationResolutionDeprecationIntegrationTest extends AbstractDe
         fails(":resolve")
 
         then:
-        failure.assertHasFailure("Execution failed for task ':resolve'.") {
+        failure.assertHasFailure("Execution failed for task ':resolve' (registered in build file 'build.gradle').") {
             it.assertHasCause("Resolution of the configuration ':bar' was attempted without an exclusive lock. This is unsafe and not allowed.")
         }
         failure.assertHasResolution("For more information, please refer to https://docs.gradle.org/${GradleVersion.current().version}/userguide/viewing_debugging_dependencies.html#sub:resolving-unsafe-configuration-resolution-errors in the Gradle documentation.")
@@ -210,10 +210,10 @@ class UnsafeConfigurationResolutionDeprecationIntegrationTest extends AbstractDe
         "incoming.resolutionResult.root"                              | _
         "incoming.resolutionResult.rootComponent.get()"               | _
         "incoming.artifacts.artifactFiles.files"                      | _
-        "incoming.artifacts.artifacts"                                | "org.gradle.api.artifacts.result.ArtifactResult"
+        "incoming.artifacts.artifacts"                                | _
         "incoming.artifactView { }.files.files"                       | _
-        "incoming.artifactView { }.artifacts.artifacts"               | "org.gradle.api.artifacts.result.ArtifactResult"
-        "incoming.artifactView { }.artifacts.resolvedArtifacts.get()" | "org.gradle.api.artifacts.result.ArtifactResult"
+        "incoming.artifactView { }.artifacts.artifacts"               | _
+        "incoming.artifactView { }.artifacts.resolvedArtifacts.get()" | _
         "incoming.artifactView { }.artifacts.failures"                | _
         "incoming.artifactView { }.artifacts.artifactFiles.files"     | _
         "resolve()"                                                   | _

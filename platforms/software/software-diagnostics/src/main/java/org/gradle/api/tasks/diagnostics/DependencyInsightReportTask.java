@@ -119,7 +119,6 @@ public abstract class DependencyInsightReportTask extends DefaultTask {
 
     private Spec<DependencyResult> dependencySpec;
     private boolean showSinglePathToDependency;
-    private final Property<Boolean> showingAllVariants = getProject().getObjects().property(Boolean.class);
     private transient Configuration configuration;
     private final Property<ResolvedComponentResult> rootComponentProperty = getProject().getObjects().property(ResolvedComponentResult.class);
 
@@ -262,9 +261,7 @@ public abstract class DependencyInsightReportTask extends DefaultTask {
     @Option(option = "all-variants", description = "Show all variants of each dependency")
     @Incubating
     @Internal
-    public Property<Boolean> getShowingAllVariants() {
-        return showingAllVariants;
-    }
+    public abstract Property<Boolean> getShowingAllVariants();
 
     @Inject
     protected abstract StyledTextOutputFactory getTextOutputFactory();

@@ -108,7 +108,9 @@ sealed interface DataType : Serializable {
         DataClass::class,
         EnumClass::class
     ])
-    sealed interface ClassDataType : DataType, HasTypeName
+    sealed interface ClassDataType : DataType, HasTypeName {
+        val metadata: List<SchemaItemMetadata>
+    }
 
     /**
      * A template for a parameterized type.

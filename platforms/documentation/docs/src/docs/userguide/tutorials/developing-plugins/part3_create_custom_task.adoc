@@ -42,18 +42,20 @@ We'll then register this task in our plugin so users can execute it with a simpl
 
 Let's create the class that will contain our Slack messaging logic.
 
+====
 [.multi-language-text.lang-kotlin]
-----
+=====
 Create a new file called `SlackTask.kt` in `src/main/kotlin/org/example/` and add the following code:
-----
+=====
 [.multi-language-text.lang-groovy]
-----
+=====
 Create a new file called `SlackTask.groovy` in `src/main/groovy/org/example/` and add the following code:
-----
+=====
+====
 
 ====
-include::sample[dir="snippets/plugins/plugin-tutorial/kotlin",files="plugin/src/main/kotlin/org/example/SlackTask.kt[]"]
-include::sample[dir="snippets/plugins/plugin-tutorial/groovy",files="plugin/src/main/groovy/org/example/SlackTask.groovy[]"]
+include::sample[dir="snippets/tutorials/developing-plugins/plugin-tutorial/kotlin",files="plugin/src/main/kotlin/org/example/SlackTask.kt[]"]
+include::sample[dir="snippets/tutorials/developing-plugins/plugin-tutorial/groovy",files="plugin/src/main/groovy/org/example/SlackTask.groovy[]"]
 ====
 
 This custom task type does a few important things:
@@ -68,8 +70,8 @@ This custom task type does a few important things:
 Since our custom task uses the Slack API client, we need to add it as a dependency in our plugin's `build.gradle(.kts)` file.
 
 ====
-include::sample[dir="snippets/plugins/plugin-tutorial/kotlin",files="plugin/build.gradle.kts[tags=slack-api]"]
-include::sample[dir="snippets/plugins/plugin-tutorial/groovy",files="plugin/build.gradle[tags=slack-api]"]
+include::sample[dir="snippets/tutorials/developing-plugins/plugin-tutorial/kotlin",files="plugin/build.gradle.kts[tags=slack-api]"]
+include::sample[dir="snippets/tutorials/developing-plugins/plugin-tutorial/groovy",files="plugin/build.gradle[tags=slack-api]"]
 ====
 
 == Step 4: Register it in the Plugin
@@ -77,18 +79,20 @@ include::sample[dir="snippets/plugins/plugin-tutorial/groovy",files="plugin/buil
 Now that we've defined our custom `SlackTask` class, we need to register it in our plugin's `apply` method.
 This makes it available for users to run with a command like `./gradlew sendTestSlackMessage`.
 
+====
 [.multi-language-text.lang-kotlin]
-----
+=====
 Open your plugin implementation file, `SlackPlugin.kt` (in `src/main/kotlin/org/example/`), and modify it to look like this:
-----
+=====
 [.multi-language-text.lang-groovy]
-----
+=====
 Open your plugin implementation file, `SlackPlugin.groovy` (in `src/main/groovy/org/example/`), and modify it to look like this:
-----
+=====
+====
 
 ====
-include::sample[dir="snippets/plugins/plugin-tutorial/kotlin",files="plugin/src/main/kotlin/org/example/SlackPlugin.kt[tags=slack-task]"]
-include::sample[dir="snippets/plugins/plugin-tutorial/groovy",files="plugin/src/main/groovy/org/example/SlackPlugin.groovy[tags=slack-task]"]
+include::sample[dir="snippets/tutorials/developing-plugins/plugin-tutorial/kotlin",files="plugin/src/main/kotlin/org/example/SlackPlugin.kt[tags=slack-task]"]
+include::sample[dir="snippets/tutorials/developing-plugins/plugin-tutorial/groovy",files="plugin/src/main/groovy/org/example/SlackPlugin.groovy[tags=slack-task]"]
 ====
 
 This code:

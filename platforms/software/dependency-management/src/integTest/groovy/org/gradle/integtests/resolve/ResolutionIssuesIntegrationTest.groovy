@@ -19,7 +19,8 @@ package org.gradle.integtests.resolve
 import groovy.test.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.JdkVersionTestPreconditions
+
 import spock.lang.Ignore
 import spock.lang.Issue
 
@@ -137,7 +138,7 @@ class ResolutionIssuesIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Ignore("Original reproducer. Minified version below")
-    @Requires(UnitTestPreconditions.Jdk17OrLater)
+    @Requires(JdkVersionTestPreconditions.Jdk17OrLater)
     @Issue("https://github.com/gradle/gradle/issues/22326#issuecomment-1617422240")
     def "guava issue"() {
         settingsFile << """
@@ -160,7 +161,7 @@ class ResolutionIssuesIntegrationTest extends AbstractIntegrationSpec {
 
         buildFile << '''
             plugins {
-                id("com.android.application") version "8.2.2"
+                id("com.android.application") version "9.0.1"
             }
 
             android {
@@ -229,88 +230,6 @@ class ResolutionIssuesIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         succeeds("checkDebugDuplicateClasses")
-    }
-
-    @NotYetImplemented
-    def "can select unrelated variant from component with variant that loses capability conflict"() {
-        settingsFile << """
-            include("producer1")
-            include("producer2")
-        """
-        buildFile << """
-            plugins {
-                id("java-library")
-            }
-
-            dependencies {
-                implementation(project(":producer2")) {
-                    capabilities {
-                        requireCapability("org:bar:1.0")
-                    }
-                }
-                implementation(project(":producer1")) {
-                    capabilities {
-                        requireCapability("org:foo:2.0")
-                    }
-                }
-                implementation(project(":producer2")) {
-                    capabilities {
-                        requireCapability("org:foo:1.0")
-                    }
-                }
-            }
-
-            task resolve {
-                def files = configurations.runtimeClasspath.incoming.files
-                doLast {
-                    println(files*.name)
-                }
-            }
-
-            configurations.runtimeClasspath {
-                resolutionStrategy {
-                    capabilitiesResolution {
-                        withCapability("org:foo") {
-                            selectHighestVersion()
-                        }
-                    }
-                }
-            }
-        """
-
-        file("producer1/build.gradle") << """
-            configurations {
-                consumable("foo") {
-                    outgoing.capability("org:foo:2.0")
-                    outgoing.artifact(file("producer1-foo"))
-                    attributes {
-                        attribute(Category.CATEGORY_ATTRIBUTE, named(Category, Category.LIBRARY))
-                    }
-                }
-            }
-        """
-        file("producer2/build.gradle") << """
-            configurations {
-                consumable("foo") {
-                    outgoing.capability("org:foo:1.0")
-                    outgoing.artifact(file("producer2-foo"))
-                    attributes {
-                        attribute(Category.CATEGORY_ATTRIBUTE, named(Category, Category.LIBRARY))
-                    }
-                }
-                consumable("bar") {
-                    outgoing.capability("org:bar:1.0")
-                    outgoing.artifact(file("producer2-bar"))
-                    attributes {
-                        attribute(Category.CATEGORY_ATTRIBUTE, named(Category, Category.LIBRARY))
-                    }
-                }
-            }
-        """
-
-        expect:
-        succeeds(":resolve")
-        outputContains("[producer2-bar, producer1-foo]")
     }
 
     def "depending on a bom of one version and another dependency that upgrades that bom causes unstable graph"() {

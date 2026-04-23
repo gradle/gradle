@@ -21,12 +21,13 @@ import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.app.IncrementalHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.ObjectiveCppHelloWorldApp
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.OsTestPreconditions
+
 
 import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.GCC_COMPATIBLE
 
 @RequiresInstalledToolChain(GCC_COMPATIBLE)
-@Requires(UnitTestPreconditions.NotWindows)
+@Requires(OsTestPreconditions.NotWindows)
 class ObjectiveCppLanguageIncrementalCompileIntegrationTest extends ObjectiveCLanguageIncrementalCompileIntegrationTest {
     @Override
     IncrementalHelloWorldApp getHelloWorldApp() {

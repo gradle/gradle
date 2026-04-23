@@ -1456,7 +1456,7 @@ org:leaf:[1.5,2.0] FAILED
 
             project(':B') {
                 configurations.create('default')
-                dependencies.add("default", project(':C'))
+                dependencies.add("default", dependencies.project(':C'))
             }
         """
 

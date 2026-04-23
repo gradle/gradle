@@ -19,15 +19,16 @@ package org.gradle.api.tasks
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
+import org.gradle.test.preconditions.FileSystemTestPreconditions
+
 
 import java.nio.file.Files
 import java.nio.file.StandardCopyOption
 
 @Requires(value = [
-    UnitTestPreconditions.Symlinks,
-    IntegTestPreconditions.NotEmbeddedExecutor,
+    FileSystemTestPreconditions.Symlinks,
+    TestExecutionPreconditions.NotEmbeddedExecutor,
 ], reason = "requires isolated daemons for symlink data cleanup between builds")
 class IncrementalBuildSymlinkHandlingIntegrationTest extends AbstractIntegrationSpec implements ValidationMessageChecker {
     def setup() {

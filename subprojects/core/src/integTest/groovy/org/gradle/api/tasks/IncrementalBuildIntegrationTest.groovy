@@ -17,13 +17,11 @@ package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.internal.ToBeImplemented
 import spock.lang.Issue
-
-import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache.Skip.INVESTIGATE
 
 class IncrementalBuildIntegrationTest extends AbstractIntegrationSpec implements ValidationMessageChecker, DirectoryBuildCacheFixture {
 
@@ -74,64 +72,57 @@ public class DirTransformerTask extends DefaultTask {
 import org.gradle.api.*
 import org.gradle.api.tasks.*
 
-public class TransformerTask extends DefaultTask {
-    private File inputFile
-    private File outputFile
-    private String format = "[%s]"
-
+public abstract class TransformerTask extends DefaultTask {
     @InputFile
-    public File getInputFile() {
-        return inputFile
-    }
-
-    public void setInputFile(File inputFile) {
-        this.inputFile = inputFile
-    }
+    public abstract RegularFileProperty getInputFile()
 
     @OutputFile
-    public File getOutputFile() {
-        return outputFile
-    }
-
-    public void setOutputFile(File outputFile) {
-        this.outputFile = outputFile
-    }
+    public abstract RegularFileProperty getOutputFile()
 
     @Input
-    public String getFormat() {
-        return format
-    }
+    public abstract Property<String> getFormat()
 
-    public void setFormat(String format) {
-        this.format = format
+    TransformerTask() {
+        format.convention("[%s]")
     }
 
     @TaskAction
     public void transform() {
-        outputFile.text = String.format(format, inputFile.text)
+        outputFile.get().asFile.text = String.format(format.get(), inputFile.get().asFile.text)
     }
 }
 '''
     }
 
-    @ToBeFixedForConfigurationCache(because = "task wrongly up-to-date")
     def "skips task when output file is up-to-date"() {
         writeTransformerTask()
 
-        buildFile << '''
-task a(type: TransformerTask) {
-    inputFile = file('src.txt')
-    outputFile = file('src.a.txt')
-}
-task b(type: TransformerTask, dependsOn: a) {
-    inputFile = a.outputFile
-    outputFile = file('src.b.txt')
-}
-// Use a separate build script to avoid invalidating task implementations
-apply from: 'changes.gradle'
-'''
-        def changesFile = file('changes.gradle').createFile()
+        // Use Gradle properties to control task configuration so that CC is properly
+        // invalidated when configuration changes (applied scripts are not tracked by CC)
+        buildFile """
+            def aInputPath = providers.gradleProperty('aInput').getOrElse('src.txt')
+            def aOutputPath = providers.gradleProperty('aOutput').getOrElse('src.a.txt')
+            def bOutputPath = providers.gradleProperty('bOutput').getOrElse('src.b.txt')
+            def aFormatVal = providers.gradleProperty('aFormat').getOrElse('[%s]')
+            def bInputOverride = providers.gradleProperty('bInput')
 
+            tasks.register("a", TransformerTask) {
+                inputFile = file(aInputPath)
+                outputFile = file(aOutputPath)
+                format = aFormatVal
+            }
+            tasks.register("b", TransformerTask) {
+                dependsOn("a")
+                if (bInputOverride.isPresent()) {
+                    inputFile = file(bInputOverride.get())
+                } else {
+                    inputFile = a.outputFile
+                }
+                outputFile = file(bOutputPath)
+            }
+        """
+
+        def extraArgs = []
         TestFile inputFile = file('src.txt')
         TestFile outputFileA = file('src.a.txt')
         TestFile outputFileB = file('src.b.txt')
@@ -268,50 +259,44 @@ apply from: 'changes.gradle'
 
         // Change input file location
         when:
-        changesFile << '''
-a.inputFile = file('new-a-input.txt')
-'''
+        extraArgs << "-PaInput=new-a-input.txt"
         file('new-a-input.txt').text = 'new content'
-        succeeds "b"
+        succeeds("b", *extraArgs)
 
         then:
+        outputFileA.text == '[new content]'
+        outputFileB.text == '[[new content]]'
         result.assertTasksExecuted(":a")
         result.assertTasksSkipped(":b")
-        outputFileA.text == '[new content]'
 
         when:
-        succeeds "b"
+        succeeds("b", *extraArgs)
 
         then:
         result.assertTasksSkipped(":a", ":b")
 
         // Change final output file destination
         when:
-        changesFile << '''
-b.outputFile = file('new-output.txt')
-'''
-        succeeds "b"
+        extraArgs << "-PbOutput=new-output.txt"
+        succeeds("b", *extraArgs)
         outputFileB = file('new-output.txt')
 
         then:
+        outputFileB.text == '[[new content]]'
+        outputFileA.text == '[new content]'
         result.assertTasksSkipped(":a")
         result.assertTasksExecuted(":b")
 
-        outputFileB.text == '[[new content]]'
-
         when:
-        succeeds "b"
+        succeeds("b", *extraArgs)
 
         then:
         result.assertTasksSkipped(":a", ":b")
 
         // Change intermediate output file destination
         when:
-        changesFile << '''
-a.outputFile = file('new-a-output.txt')
-b.inputFile = a.outputFile
-'''
-        succeeds "b"
+        extraArgs << "-PaOutput=new-a-output.txt"
+        succeeds("b", *extraArgs)
         outputFileA = file('new-a-output.txt')
 
         then:
@@ -319,17 +304,15 @@ b.inputFile = a.outputFile
         outputFileA.text == '[new content]'
 
         when:
-        succeeds "b"
+        succeeds("b", *extraArgs)
 
         then:
         result.assertTasksSkipped(":a", ":b")
 
         // Change an input property of the first task (the content format)
         when:
-        changesFile << '''
-a.format = '- %s -'
-'''
-        succeeds "b"
+        extraArgs << "-PaFormat=- %s -"
+        succeeds("b", *extraArgs)
 
         then:
         result.assertTasksExecuted(":a", ":b")
@@ -338,14 +321,14 @@ a.format = '- %s -'
         outputFileB.text == '[- new content -]'
 
         when:
-        succeeds "b"
+        succeeds("b", *extraArgs)
 
         then:
         result.assertTasksSkipped(":a", ":b")
 
         // Run with --rerun-tasks command-line options
         when:
-        succeeds "b", "--rerun-tasks"
+        succeeds("b", "--rerun-tasks", *extraArgs)
 
         then:
         result.assertTasksExecuted(":a", ":b")
@@ -356,21 +339,21 @@ a.format = '- %s -'
         file('.gradle').assertIsDir().deleteDir()
         outputFileA.makeOlder()
         outputFileB.makeOlder()
-        succeeds "b"
+        succeeds("b", *extraArgs)
 
         then:
         result.assertTasksExecuted(":a", ":b")
 
         when:
         outputFileB.delete()
-        succeeds "b"
+        succeeds("b", *extraArgs)
 
         then:
         result.assertTasksExecuted(":b")
         result.assertTasksSkipped(":a")
 
         when:
-        succeeds "b"
+        succeeds("b", *extraArgs)
 
         then:
         result.assertTasksSkipped(":a", ":b")
@@ -1081,7 +1064,7 @@ task b(dependsOn: a)
         output.contains "Task 'b2' file 'output.txt' with 'output-file'"
     }
 
-    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
+    @UnsupportedWithConfigurationCache(because = "Custom classloader, https://github.com/gradle/gradle/issues/11510")
     def "task loaded with custom classloader fails the build"() {
         file("input.txt").text = "data"
         buildFile << """
@@ -1118,7 +1101,7 @@ task b(dependsOn: a)
         })
     }
 
-    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
+    @UnsupportedWithConfigurationCache(because = "Custom classloader, https://github.com/gradle/gradle/issues/11510")
     def "task with custom action loaded with custom classloader fails the build"() {
         file("input.txt").text = "data"
         buildFile << """

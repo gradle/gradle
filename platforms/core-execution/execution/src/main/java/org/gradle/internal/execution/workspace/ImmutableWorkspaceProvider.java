@@ -16,6 +16,8 @@
 
 package org.gradle.internal.execution.workspace;
 
+import org.gradle.internal.work.WorkerLeaseService;
+
 import java.io.File;
 import java.util.function.Supplier;
 
@@ -40,7 +42,7 @@ public interface ImmutableWorkspaceProvider {
          *
          * This method makes sure only one thread is executing the given action for a workspace at a time.
          */
-        <T> ConcurrentResult<T> getOrCompute(Supplier<T> action);
+        <T> ConcurrentResult<T> getOrCompute(WorkerLeaseService workerLeaseService, Supplier<T> action);
 
         /**
          * Returns true if the workspace has been soft deleted.

@@ -104,7 +104,6 @@ public abstract class Wrapper extends DefaultTask {
     private DistributionType distributionType = WrapperDefaults.DISTRIBUTION_TYPE;
     private String archivePath = WrapperDefaults.ARCHIVE_PATH;
     private PathBase archiveBase = WrapperDefaults.ARCHIVE_BASE;
-    private final Property<Integer> networkTimeout = getProject().getObjects().property(Integer.class);
     private boolean distributionUrlConfigured = false;
     private final boolean isOffline = getProject().getGradle().getStartParameter().isOffline();
 
@@ -135,7 +134,9 @@ public abstract class Wrapper extends DefaultTask {
             unixScript, getBatchScript(),
             getDistributionUrl(),
             getValidateDistributionUrl().get(),
-            networkTimeout.getOrNull()
+            getNetworkTimeout().getOrNull(),
+            getRetries().getOrNull(),
+            getRetryBackOffMs().getOrNull()
         );
     }
 
@@ -328,7 +329,7 @@ public abstract class Wrapper extends DefaultTask {
     }
 
     /**
-     * The list of available gradle distribution types. Always returns the contents of {@link DistributionType#values()}. 
+     * The list of available gradle distribution types. Always returns the contents of {@link DistributionType#values()}.
      * @deprecated Since 9.3.0. Use {@link DistributionType#values()} directly instead.
      */
     @Internal
@@ -492,12 +493,40 @@ public abstract class Wrapper extends DefaultTask {
      * @since 7.6
      */
     @Input
-    @Incubating
     @Optional
     @Option(option = "network-timeout", description = "Timeout in ms to use when the wrapper is performing network operations.")
-    public Property<Integer> getNetworkTimeout() {
-        return networkTimeout;
-    }
+    public abstract Property<Integer> getNetworkTimeout();
+
+    /**
+     * The number of retries to attempt when downloading the Gradle distribution.
+     *
+     * If a download fails, the wrapper will attempt to download it again up to the specified number of times.
+     *
+     * @return The number of retries property.
+     *
+     * @since 9.5.0
+     */
+    @Input
+    @Incubating
+    @Optional
+    @Option(option = "retries", description = "The number of download retries.")
+    public abstract Property<Integer> getRetries();
+
+    /**
+     * The initial back off in milliseconds to wait between download retries.
+     *
+     * After a failed download attempt, the wrapper will wait for this amount of time before attempting the next retry,
+     * doubling the delay on each subsequent failure.
+     *
+     * @return The initial retry back off property in milliseconds.
+     *
+     * @since 9.5.0
+     */
+    @Input
+    @Incubating
+    @Optional
+    @Option(option = "retry-back-off-ms", description = "The initial back off in milliseconds between retries (doubles on each failure).")
+    public abstract Property<Integer> getRetryBackOffMs();
 
     /**
      * Indicates if this task will validate the distribution url that has been configured.

@@ -29,6 +29,10 @@ class KotlinScriptServices : AbstractGradleModuleServices() {
         registration.addProvider(org.gradle.kotlin.dsl.provider.BuildServices)
     }
 
+    override fun registerBuildTreeServices(registration: ServiceRegistration) {
+        registration.addProvider(org.gradle.kotlin.dsl.accessors.BuildTreeServices)
+    }
+
     override fun registerGlobalServices(registration: ServiceRegistration) {
         registration.addProvider(org.gradle.kotlin.dsl.support.GlobalServices)
     }

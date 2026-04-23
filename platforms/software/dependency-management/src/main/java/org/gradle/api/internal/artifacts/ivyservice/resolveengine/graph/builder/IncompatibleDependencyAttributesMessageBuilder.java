@@ -19,10 +19,7 @@ import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.internal.attributes.AttributeMergingException;
-import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.logging.text.TreeFormatter;
-
-import java.util.Set;
 
 class IncompatibleDependencyAttributesMessageBuilder {
     static String buildMergeErrorMessage(ModuleResolveState module, AttributeMergingException e) {
@@ -33,26 +30,20 @@ class IncompatibleDependencyAttributesMessageBuilder {
         fmt.append(attribute.toString());
         fmt.append("' are requested");
         fmt.startChildren();
-        Set<EdgeState> incomingEdges = module.getIncomingEdges();
-        incomingEdges.addAll(module.getUnattachedEdges());
-        for (EdgeState incomingEdge : incomingEdges) {
-            SelectorState selector = incomingEdge.getSelector();
+        module.visitAllIncomingEdges(incomingEdge -> {
+            ComponentSelector selector = incomingEdge.getDependencyMetadata().getSelector();
             for (String path : MessageBuilderHelper.formattedPathsTo(incomingEdge)) {
                 String requestedAttribute = formatAttributeQuery(selector, attribute);
                 fmt.node(path + " " + requestedAttribute);
             }
-        }
+        });
         fmt.endChildren();
         return fmt.toString();
     }
 
-    private static String formatAttributeQuery(SelectorState state, Attribute<?> attribute) {
-        DependencyMetadata dependencyMetadata = state.getDependencyMetadata();
-        ComponentSelector selector = dependencyMetadata.getSelector();
+    private static String formatAttributeQuery(ComponentSelector selector, Attribute<?> attribute) {
         if (selector instanceof ModuleComponentSelector) {
-            StringBuilder sb = new StringBuilder("wants '" + state.getRequested() + "' with attribute " + attribute.getName() + " = ");
-            sb.append(selector.getAttributes().getAttribute(attribute));
-            return sb.toString();
+            return "wants '" + selector.getDisplayName() + "' with attribute " + attribute.getName() + " = " + selector.getAttributes().getAttribute(attribute);
         } else {
             // This is a safety net, it's unsure whether this can happen, because it's likely (certain?)
             // that for a specific module resolve state, all selectors are of the same type

@@ -16,9 +16,14 @@
 
 package org.gradle.api.internal.project.taskfactory;
 
+import org.gradle.api.DefaultTask;
 import org.gradle.api.Task;
+import org.gradle.api.internal.project.ProjectIdentity;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.internal.code.UserCodeSource;
 import org.gradle.internal.id.ConfigurationCacheableIdFactory;
+import org.gradle.util.Path;
+import org.jspecify.annotations.Nullable;
 
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -29,10 +34,23 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 public class TestTaskIdentities {
 
+    private static final AtomicLong ID_COUNTER = new AtomicLong(0);
     private static final TaskIdentityFactory DEFAULT_FACTORY = factory();
 
     public static <T extends Task> TaskIdentity<T> create(String name, Class<T> type, ProjectInternal project) {
-        return DEFAULT_FACTORY.create(name, type, project);
+        return DEFAULT_FACTORY.create(name, type, project, null);
+    }
+
+    public static <T extends Task> TaskIdentity<T> create(String name, Class<T> type, ProjectInternal project, @Nullable UserCodeSource source) {
+        return DEFAULT_FACTORY.create(name, type, project, source);
+    }
+
+    /**
+     * Create a {@link TaskIdentity} with the given {@link UserCodeSource}, using dummy values for all other fields.
+     */
+    public static TaskIdentity<DefaultTask> createWithSource(@Nullable UserCodeSource source) {
+        ProjectIdentity projectIdentity = ProjectIdentity.forRootProject(Path.ROOT, "test");
+        return new TaskIdentity<>(DefaultTask.class, "test", projectIdentity, ID_COUNTER.incrementAndGet(), source);
     }
 
     public static TaskIdentityFactory factory() {

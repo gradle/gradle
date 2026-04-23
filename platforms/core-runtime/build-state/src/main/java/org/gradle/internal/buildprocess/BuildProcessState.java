@@ -19,6 +19,7 @@ package org.gradle.internal.buildprocess;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.installation.CurrentGradleInstallation;
 import org.gradle.internal.instrumentation.agent.AgentStatus;
+import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.internal.service.scopes.GlobalScopeServices;
@@ -26,18 +27,21 @@ import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry;
 import org.gradle.internal.service.scopes.Scope;
 
 import java.io.Closeable;
+import java.util.Collection;
 
 /**
  * Encapsulates the state of a build process, such as the Gradle daemon. An instance is created for each process that runs a build.
  */
 public class BuildProcessState implements Closeable {
+
     private final ServiceRegistry services;
 
     public BuildProcessState(
         final boolean longLiving,
         AgentStatus agentStatus,
         CurrentGradleInstallation currentGradleInstallation,
-        ServiceRegistry... parents
+        Collection<ServiceRegistrationProvider> serviceProviders,
+        Collection<ServiceRegistry> parents
     ) {
         ServiceRegistryBuilder builder = ServiceRegistryBuilder.builder()
             .scopeStrictly(Scope.Global.class)
@@ -47,11 +51,10 @@ public class BuildProcessState implements Closeable {
         for (ServiceRegistry parent : parents) {
             builder.parent(parent);
         }
-        addProviders(builder);
+        for (ServiceRegistrationProvider serviceProvider : serviceProviders) {
+            builder.provider(serviceProvider);
+        }
         services = builder.build();
-    }
-
-    protected void addProviders(ServiceRegistryBuilder builder) {
     }
 
     public ServiceRegistry getServices() {
@@ -63,4 +66,5 @@ public class BuildProcessState implements Closeable {
         // Force the user home services to be stopped first, because the dependencies between the user home services and the global services are not preserved currently
         CompositeStoppable.stoppable(services.get(GradleUserHomeScopeServiceRegistry.class), services).stop();
     }
+
 }

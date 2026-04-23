@@ -65,7 +65,7 @@ import static org.gradle.util.internal.CollectionUtils.join;
  * be registered as a listener of that type. Alternatively, service implementations can be annotated with {@link org.gradle.internal.service.scopes.ListenerService} to indicate that the should be
  * registered as a listener.</p>
  */
-public class DefaultServiceRegistry implements CloseableServiceRegistry, ContainsServices {
+public class DefaultServiceRegistry extends AbstractServiceRegistry implements CloseableServiceRegistry {
     private enum State {INIT, STARTED, CLOSED}
 
     private final static ServiceRegistry[] NO_PARENTS = new ServiceRegistry[0];
@@ -135,15 +135,18 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
     }
 
     @Override
-    public ServiceProvider asProvider() {
+    ServiceProvider asServiceProvider() {
         return thisAsServiceProvider;
     }
 
     private static ServiceProvider toParentServices(ServiceRegistry serviceRegistry) {
-        if (serviceRegistry instanceof ContainsServices) {
-            return new ParentServices(((ContainsServices) serviceRegistry).asProvider());
+        if (serviceRegistry instanceof AbstractServiceRegistry) {
+            return new ParentServices(((AbstractServiceRegistry) serviceRegistry).asServiceProvider());
         }
-        throw new IllegalArgumentException(String.format("Service registry %s cannot be used as a parent for another service registry.", serviceRegistry));
+        throw new IllegalArgumentException(
+            String.format("Service registry %s cannot be used as a parent for another service registry."
+                + " Expected an instance of %s but got %s.",
+                serviceRegistry, AbstractServiceRegistry.class.getSimpleName(), serviceRegistry.getClass().getSimpleName()));
     }
 
     /**

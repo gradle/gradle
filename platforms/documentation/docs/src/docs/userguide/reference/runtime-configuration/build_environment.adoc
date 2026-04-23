@@ -185,26 +185,47 @@ $ export ORG_GRADLE_PROJECT_myProperty='Hi, world'
 +
 This is typically the preferred method for supplying project properties, especially secrets, to unattended builds like those running on CI servers.
 
+=== Accessing a project property
+
+The recommended way to access a project property is through the <<lazy_configuration.adoc#lazy_properties,Provider API>>:
+
+[source,kotlin]
+----
+val myProperty: Provider<String> = providers.gradleProperty("myProperty")
+----
+
+The returned `Provider` is lazy and compatible with the <<configuration_cache_requirements.adoc#config_cache:requirements:reading_sys_props_and_env_vars,Configuration Cache>>.
+The provider resolves the property from the build-level sources listed above: command-line `-P` arguments, `org.gradle.project.pass:[*]` system properties, `ORG_GRADLE_PROJECT_pass:[*]` environment variables, and `gradle.properties` files in the Gradle User Home, build root, and Gradle installation directories.
+
+[NOTE]
+====
+`providers.gradleProperty()` does not include properties from `gradle.properties` files in subproject directories, nor extra properties or other properties set dynamically on individual `Project` instances.
+To access those, use `project.findProperty("name")` or extra properties directly.
+====
+
+For other ways to access properties, see the following methods on the link:{groovyDslPath}/org.gradle.api.Project.html[Project] object:
+
+- `findProperty("name")` — returns the value or `null`, checking dynamically configured containers, like extra properties, and parent projects as well.
+- `property("name")` — returns the value or throws if the property is missing
+- `hasProperty("name")` — checks if the property exists
+
 It is possible to change the behavior of a task based on project properties specified at invocation time.
 Suppose you’d like to ensure release builds are only triggered by CI.
 A simple way to handle this is through an `isCI` project property:
 
-++++
-<div style="text-align: right;">
-  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/tutorial/configureTaskUsingProjectProperty">
-    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
-  </a>
-</div>
-++++
-
 ====
-include::sample[dir="snippets/tutorial/configureTaskUsingProjectProperty/kotlin",files="build.gradle.kts[]"]
-include::sample[dir="snippets/tutorial/configureTaskUsingProjectProperty/groovy",files="build.gradle[]"]
+include::sample[dir="snippets/reference/runtime-configuration/configureTaskUsingProjectProperty/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="snippets/reference/runtime-configuration/configureTaskUsingProjectProperty/groovy",files="build.gradle[]"]
+====
+
+[source,bash]
 ----
 $ ./gradlew performRelease -PisCI=true --quiet
+----
+[source,text]
+----
 include::{snippetsPath}/tutorial/configureTaskUsingProjectProperty/tests/configureTaskUsingProjectProperty.out[]
 ----
-====
 
 Note that running `./gradlew performRelease` yields the same results as long as your `gradle.properties` file includes `isCI=true`:
 
@@ -217,6 +238,9 @@ isCI=true
 [source,bash]
 ----
 $ ./gradlew performRelease --quiet
+----
+[source,text]
+----
 include::{snippetsPath}/tutorial/configureTaskUsingProjectProperty/tests/configureTaskUsingProjectProperty.out[]
 ----
 
@@ -465,6 +489,7 @@ When set to `all`, `summary`, or `none`, Gradle will use <<command_line_interfac
 +
 _Default is `summary`._
 
+[[sec:property:workers_max]]
 `org.gradle.workers.max=(max # of worker processes)`::
 When configured, Gradle will use a maximum of the <<command_line_interface.adoc#sec:command_line_performance,given number of workers>>.
 +
@@ -527,6 +552,19 @@ Specifies the `GRADLE_USER_HOME` directory for Gradle to store its global config
 +
 Defaults to `USER_HOME/.gradle` if not set.
 
+`GRADLE_DAEMON_BIND_ADDRESS`::
+Specifies the IP address or hostname that Gradle uses to bind the local socket for client-daemon and cross-daemon communication.
++
+By default, Gradle automatically selects the loopback address (or wildcard address as a fallback) for this socket.
+This may not work correctly in environments with specific network configurations, such as multiple network interfaces, multiple TCP/IP stacks etc.
++
+Setting this variable skips auto-detection and uses the provided address directly:
++
+[source,text]
+----
+GRADLE_DAEMON_BIND_ADDRESS=192.168.1.10 ./gradlew build
+----
+
 `JAVA_HOME`::
 Specifies the JDK installation directory to use for the client VM.
 +
@@ -538,3 +576,10 @@ Overrides for the default Gradle library repository.
 Can be used to specify a default Gradle repository URL in `org.gradle.plugins.ide.internal.resolver`.
 +
 Useful override to specify an internally hosted repository if your company uses a firewall/proxy.
+
+`NO_COLOR`::
+When present and non-empty, disables color output while preserving other styling (bold, underline) and rich features (progress bars, animations).
++
+Follows the link:https://no-color.org/[no-color.org] convention.
+See <<command_line_interface.adoc#sec:command_line_customizing_log_format,Customizing log format>> for more options.
+

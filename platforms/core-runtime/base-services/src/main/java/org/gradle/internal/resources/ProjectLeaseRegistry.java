@@ -17,15 +17,18 @@
 package org.gradle.internal.resources;
 
 import org.gradle.internal.Factory;
+import org.gradle.internal.concurrent.BlockingNotifier;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.util.Path;
+import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Collection;
 
 @ServiceScope(Scope.BuildSession.class)
-public interface ProjectLeaseRegistry {
+@NullMarked
+public interface ProjectLeaseRegistry extends BlockingNotifier {
     /**
      * Get the lock for the state of all projects of the given build. This lock provides exclusive access to the state of all projects in the build.While this lock is held, no project state locks can be held.
      */
@@ -88,13 +91,20 @@ public interface ProjectLeaseRegistry {
     boolean isAllowedUncontrolledAccessToAnyProject();
 
     /**
-     * Performs some blocking action. If the current thread is allowed to make changes to project locks, then release all locks
+     * {@link #blocking(Factory)}, but returns no result.
+     */
+    @Override
+    void blocking(Runnable action);
+
+    /**
+     * Performs some blocking action, returning the result. If the current thread is allowed to make changes to project locks, then release all locks
      * then run the action and reacquire any locks.
      * If the current thread is not allowed to make changes to the project locks (via {@link #whileDisallowingProjectLockChanges(Factory)},
      * then it is safe to run the action without releasing the project locks. The worker lease is, however, released prior to running the
      * action and reacquired at the end.
      */
-    void blocking(Runnable action);
+    @Override
+    <T extends @Nullable Object> T blocking(Factory<T> action);
 
     /**
      * Runs the given action and disallows the current thread from attempting to acquire or release any project locks.

@@ -66,7 +66,7 @@ class ApplicationPluginTest extends AbstractProjectBuilderSpec {
         task.applicationName == project.application.applicationName
         task.outputDir == project.file('build/scripts')
         task.defaultJvmOpts == []
-        task.gitRef.get() == DefaultGradleVersion.current().getGitRevision()
+        task.gitRef.get() == DefaultGradleVersion.current().getScriptTemplateGitRevision()
     }
 
     def "adds distZip task to project"() {

@@ -96,8 +96,8 @@ Here's the suggested directory structure:
 This `build.gradle(.kts)` for this `filesizediff` plugin looks as follows:
 
 ====
-include::sample[dir="snippets/plugins/fileSizeDiffBinaryPlugin/kotlin", files="plugin/build.gradle.kts[tags=simple]"]
-include::sample[dir="snippets/plugins/fileSizeDiffBinaryPlugin/groovy", files="plugin/build.gradle[tags=simple]"]
+include::sample[dir="snippets/fundamentals/developing-plugins/fileSizeDiffBinaryPlugin/kotlin", files="plugin/build.gradle.kts[tags=simple]"]
+include::sample[dir="snippets/fundamentals/developing-plugins/fileSizeDiffBinaryPlugin/groovy", files="plugin/build.gradle[tags=simple]"]
 ====
 <1> `java-gradle-plugin` - Sets up various configurations you need to do plugin development in Java
 <2> `junit` testing framework - A popular Java testing framework
@@ -110,7 +110,7 @@ The extension defines the plugin’s configurable inputs, two file properties in
 .src/main/java/org/example/FileSizeDiffExtension.java
 [source,java]
 ----
-include::{snippetsPath}/plugins/fileSizeDiffBinaryPlugin/common/plugin/src/main/java/org/example/FileSizeDiffExtension.java[]
+include::{snippetsPath}/fundamentals/developing-plugins/fileSizeDiffBinaryPlugin/common/plugin/src/main/java/org/example/FileSizeDiffExtension.java[]
 ----
 
 The two properties representing the input files are of the `RegularFileProperty` type which extends `Property` and are therefore <<lazy_eager_evaluation.adoc#lazy_evaluation,lazy>>.
@@ -131,7 +131,7 @@ The task does the bulk of the work:
 .src/main/java/org/example/FileSizeDiffTask.java
 [source,java]
 ----
-include::{snippetsPath}/plugins/fileSizeDiffBinaryPlugin/common/plugin/src/main/java/org/example/FileSizeDiffTask.java[]
+include::{snippetsPath}/fundamentals/developing-plugins/fileSizeDiffBinaryPlugin/common/plugin/src/main/java/org/example/FileSizeDiffTask.java[]
 ----
 
 The task defines two input file properties and one output file property:
@@ -165,7 +165,7 @@ This class wires up the extension and task when the plugin is applied:
 .src/main/java/org/example/FileSizeDiffPlugin.java
 [source,java]
 ----
-include::{snippetsPath}/plugins/fileSizeDiffBinaryPlugin/common/plugin/src/main/java/org/example/FileSizeDiffPlugin.java[]
+include::{snippetsPath}/fundamentals/developing-plugins/fileSizeDiffBinaryPlugin/common/plugin/src/main/java/org/example/FileSizeDiffPlugin.java[]
 ----
 
 In the plugin class, we override the `apply` method, which is invoked when the plugin is applied to a project via `build.gradle(.kts)`.
@@ -183,8 +183,8 @@ This ensures the task uses the values provided by the user in their build script
 This enables the following usage in a `build.gradle(.kts)` file:
 
 ====
-include::sample[dir="snippets/plugins/fileSizeDiffBinaryPlugin/kotlin", files="build.gradle.kts"]
-include::sample[dir="snippets/plugins/fileSizeDiffBinaryPlugin/groovy", files="build.gradle"]
+include::sample[dir="snippets/fundamentals/developing-plugins/fileSizeDiffBinaryPlugin/kotlin", files="build.gradle.kts"]
+include::sample[dir="snippets/fundamentals/developing-plugins/fileSizeDiffBinaryPlugin/groovy", files="build.gradle"]
 ====
 
 [.text-right]

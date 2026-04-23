@@ -4,6 +4,45 @@ plugins {
 
 description = "Collection of test fixtures for both unit tests and integration tests, internal use only"
 
+dependencies {
+    api(projects.baseServices)
+    api(projects.concurrent)
+    api(projects.hashing)
+    api(projects.serviceLookup)
+    api(projects.stdlibJavaExtensions)
+
+    api(libs.groovy)
+    api(testLibs.hamcrest)
+    api(libs.jspecify)
+    api(libs.jsr305)
+    api(testLibs.junit)
+    api(testLibs.junit5JupiterApi)
+    api(testLibs.spock)
+
+    implementation(projects.baseAsm)
+    implementation(projects.buildOperations)
+    implementation(projects.buildProcessServices)
+    implementation(projects.functional)
+    implementation(projects.native)
+    implementation(projects.serialization)
+
+    implementation(libs.ant)
+    implementation(libs.asm)
+    implementation(libs.commonsCompress)
+    implementation(libs.commonsIo)
+    implementation(libs.commonsLang)
+    implementation(libs.guava)
+    implementation(libs.kotlinCompilerEmbeddable)
+    implementation(libs.slf4jApi)
+    implementation(testLibs.testcontainers)
+    implementation(testLibs.dockerJavaApi)
+
+    compileOnly(libs.kotlinStdlib)
+
+    runtimeOnly(libs.groovyJson)
+    runtimeOnly(testLibs.bytebuddy)
+}
+
 jvmCompile {
     compilations {
         named("main") {
@@ -18,48 +57,4 @@ sourceSets {
         // Incremental Groovy joint-compilation doesn't work with the Error Prone annotation processor
         errorprone.enabled = false
     }
-}
-
-dependencies {
-    api(projects.baseServices)
-    api(projects.concurrent)
-    api(projects.hashing)
-    api(projects.serviceLookup)
-    api(projects.stdlibJavaExtensions)
-    api(projects.testingBaseInfrastructure)
-
-    api(libs.groovy)
-    api(libs.groovyXml)
-    api(libs.guava)
-    api(testLibs.hamcrest)
-    api(libs.jspecify)
-    api(libs.jsr305)
-    api(testLibs.junit)
-    api(testLibs.junit5JupiterApi)
-    api(testLibs.spock)
-
-    implementation(projects.baseAsm)
-    implementation(projects.buildOperations)
-    implementation(projects.buildProcessServices)
-    implementation(projects.functional)
-    implementation(projects.native)
-    implementation(projects.serialization)
-    implementation(projects.testingBase)
-    implementation(projects.time)
-
-    implementation(libs.ant)
-    implementation(libs.asm)
-    implementation(libs.commonsCompress)
-    implementation(libs.commonsIo)
-    implementation(libs.commonsLang)
-    implementation(libs.jsoup)
-    implementation(libs.kotlinCompilerEmbeddable)
-    implementation(libs.slf4jApi)
-    implementation(testLibs.testcontainers)
-    implementation(testLibs.dockerJavaApi)
-
-    compileOnly(libs.kotlinStdlib)
-
-    runtimeOnly(libs.groovyJson)
-    runtimeOnly(testLibs.bytebuddy)
 }

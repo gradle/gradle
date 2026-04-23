@@ -47,7 +47,8 @@ class ProjectDependencyFactoryTest extends Specification {
         capabilityNotationParser,
         TestUtil.objectFactory(),
         AttributeTestUtil.attributesFactory(),
-        projectStateRegistry
+        projectStateRegistry,
+        projectFinder
     )
     def factory = new ProjectDependencyFactory(depFactory)
 
@@ -57,7 +58,7 @@ class ProjectDependencyFactoryTest extends Specification {
         final Map<String, Object> mapNotation = GUtil.map("path", ":foo:bar", "configuration", "compile", "transitive", expectedTransitive);
 
         when:
-        def projectDependency = factory.createFromMap(projectFinder, mapNotation);
+        def projectDependency = factory.createFromMap(mapNotation);
 
         then:
         projectDependency.path == projectState.identity.projectPath.asString()
@@ -67,7 +68,7 @@ class ProjectDependencyFactoryTest extends Specification {
 
     def "fails with decent message if provided map is invalid"() {
         when:
-        factory.createFromMap(projectFinder, GUtil.map("paths", ":foo:bar"));
+        factory.createFromMap(GUtil.map("paths", ":foo:bar"));
 
         then:
         def ex = thrown(InvalidUserDataException)

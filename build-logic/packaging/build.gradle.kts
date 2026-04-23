@@ -12,6 +12,7 @@ dependencies {
         // TODO turn this around: move corresponding code to this project and let docs depend on it
         because("API metadata generation is part of the DSL guide")
     }
+    implementation(projects.dependencyModules)
     implementation(projects.jvm)
     implementation(projects.kotlinDsl)
 
@@ -19,6 +20,7 @@ dependencies {
 
     implementation(buildLibs.gson)
     implementation(libs.asm)
+    implementation(libs.maven3Model)
 
     testImplementation(testLibs.junitJupiter)
 }

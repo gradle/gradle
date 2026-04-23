@@ -114,8 +114,8 @@ Versions are ordered based on the following rules:
 When you declare a version using the shorthand notation, then the version is considered a <<#sec:required-version,required version>>:
 
 ====
-include::sample[dir="snippets/dependencyManagement/declaringDependencies-concreteVersion/kotlin",files="build.gradle.kts[tags=required-version]"]
-include::sample[dir="snippets/dependencyManagement/declaringDependencies-concreteVersion/groovy",files="build.gradle[tags=required-version]"]
+include::sample[dir="snippets/reference/dependency-management/declaring-dependencies/declaringDependencies-concreteVersion/kotlin",files="build.gradle.kts[tags=required-version]"]
+include::sample[dir="snippets/reference/dependency-management/declaring-dependencies/declaringDependencies-concreteVersion/groovy",files="build.gradle[tags=required-version]"]
 ====
 
 This means the minimum version will be `1.7.15` and it can be optimistically upgraded by the engine.
@@ -123,8 +123,8 @@ This means the minimum version will be `1.7.15` and it can be optimistically upg
 To enforce a <<sec:strict-version,strict version>> and ensure that only the specified version of a dependency is used, rejecting any other versions even if they would normally be compatible:
 
 ====
-include::sample[dir="snippets/dependencyManagement/declaringDependencies-concreteVersion/kotlin",files="build.gradle.kts[tags=rich-version-intro]"]
-include::sample[dir="snippets/dependencyManagement/declaringDependencies-concreteVersion/groovy",files="build.gradle[tags=rich-version-intro]"]
+include::sample[dir="snippets/reference/dependency-management/declaring-dependencies/declaringDependencies-concreteVersion/kotlin",files="build.gradle.kts[tags=rich-version-intro]"]
+include::sample[dir="snippets/reference/dependency-management/declaring-dependencies/declaringDependencies-concreteVersion/groovy",files="build.gradle[tags=rich-version-intro]"]
 ====
 
 Gradle supports a model for *rich version* declarations, allowing you to combine different levels of version specificity.
@@ -171,15 +171,15 @@ Dynamic versions are supported.
 Rich version declaration is accessed through the `version` DSL method on a dependency or constraint declaration, which gives you access to link:{javadocPath}/org/gradle/api/artifacts/MutableVersionConstraint.html[MutableVersionConstraint]:
 
 ====
-include::sample[dir="snippets/dependencyManagement/declaringDependencies-concreteVersion/kotlin",files="build.gradle.kts[tags=rich-version]"]
-include::sample[dir="snippets/dependencyManagement/declaringDependencies-concreteVersion/groovy",files="build.gradle[tags=rich-version]"]
+include::sample[dir="snippets/reference/dependency-management/declaring-dependencies/declaringDependencies-concreteVersion/kotlin",files="build.gradle.kts[tags=rich-version]"]
+include::sample[dir="snippets/reference/dependency-management/declaring-dependencies/declaringDependencies-concreteVersion/groovy",files="build.gradle[tags=rich-version]"]
 ====
 
 To enforce <<sec:strict-version,strict versions>>, you can also use the `!!` notation:
 
 ====
-include::sample[dir="snippets/dependencyManagement/declaringDependencies-concreteVersion/kotlin",files="build.gradle.kts[tags=strict-shorthand]"]
-include::sample[dir="snippets/dependencyManagement/declaringDependencies-concreteVersion/groovy",files="build.gradle[tags=strict-shorthand]"]
+include::sample[dir="snippets/reference/dependency-management/declaring-dependencies/declaringDependencies-concreteVersion/kotlin",files="build.gradle.kts[tags=strict-shorthand]"]
+include::sample[dir="snippets/reference/dependency-management/declaring-dependencies/declaringDependencies-concreteVersion/groovy",files="build.gradle[tags=strict-shorthand]"]
 ====
 
 The notation `[1.7, 1.8[!!1.7.25` above is equivalent to:
@@ -308,8 +308,8 @@ However, the production source code of the project requires an API from `Commons
 The dependency version can be enforced by declaring it as `strict` it in the build script:
 
 ====
-include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-forceForDependency/kotlin",files="build.gradle.kts[tags=force-using-strictly]"]
-include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-forceForDependency/groovy",files="build.gradle[tags=force-using-strictly]"]
+include::sample[dir="snippets/reference/dependency-management/declaring-dependencies/managingTransitiveDependencies-forceForDependency/kotlin",files="build.gradle.kts[tags=force-using-strictly]"]
+include::sample[dir="snippets/reference/dependency-management/declaring-dependencies/managingTransitiveDependencies-forceForDependency/groovy",files="build.gradle[tags=force-using-strictly]"]
 ====
 
 [[sec:strict-version-consequences]]
@@ -333,8 +333,8 @@ Then if a consumer chooses `1.1` (or any other version in the range), the build 
 For larger projects, it's advisable to declare *dependencies without versions* and manage versions using <<platforms.adoc#sec:sharing-dep-versions-between-projects,platforms>>:
 
 ====
-include::sample[dir="snippets/dependencyManagement/declaringDependencies-withoutVersion/kotlin",files="build.gradle.kts[tags=dependencies-without-version]"]
-include::sample[dir="snippets/dependencyManagement/declaringDependencies-withoutVersion/groovy",files="build.gradle[tags=dependencies-without-version]"]
+include::sample[dir="snippets/reference/dependency-management/declaring-dependencies/declaringDependencies-withoutVersion/kotlin",files="build.gradle.kts[tags=dependencies-without-version]"]
+include::sample[dir="snippets/reference/dependency-management/declaring-dependencies/declaringDependencies-withoutVersion/groovy",files="build.gradle[tags=dependencies-without-version]"]
 ====
 
 This approach centralizes version management, including transitive dependencies.
@@ -351,8 +351,8 @@ You can easily manage these ever-changing dependencies by using a *dynamic versi
 A dynamic version can be either a version range (e.g., `2.+`) or a placeholder for the latest available version (e.g., `latest.integration`):
 
 ====
-include::sample[dir="snippets/dependencyManagement/declaringDependencies-dynamicVersion/kotlin",files="build.gradle.kts[tags=dependencies]"]
-include::sample[dir="snippets/dependencyManagement/declaringDependencies-dynamicVersion/groovy",files="build.gradle[tags=dependencies]"]
+include::sample[dir="snippets/reference/dependency-management/declaring-dependencies/declaringDependencies-dynamicVersion/kotlin",files="build.gradle.kts[tags=dependencies]"]
+include::sample[dir="snippets/reference/dependency-management/declaring-dependencies/declaringDependencies-dynamicVersion/groovy",files="build.gradle[tags=dependencies]"]
 ====
 
 Using dynamic versions and changing modules can lead to unreproducible builds.
@@ -374,8 +374,8 @@ Snapshot versions contain the suffix `-SNAPSHOT`.
 The following example demonstrates how to declare a snapshot version on the Spring dependency:
 
 ====
-include::sample[dir="snippets/dependencyManagement/declaringDependencies-changingVersion/kotlin",files="build.gradle.kts[tags=dependencies]"]
-include::sample[dir="snippets/dependencyManagement/declaringDependencies-changingVersion/groovy",files="build.gradle[tags=dependencies]"]
+include::sample[dir="snippets/reference/dependency-management/declaring-dependencies/declaringDependencies-changingVersion/kotlin",files="build.gradle.kts[tags=dependencies]"]
+include::sample[dir="snippets/reference/dependency-management/declaring-dependencies/declaringDependencies-changingVersion/groovy",files="build.gradle[tags=dependencies]"]
 ====
 
 Gradle is flexible enough to treat any version as a changing version.

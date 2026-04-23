@@ -93,8 +93,8 @@ internal
 fun moduleMetadataBytesFor(fileFacades: List<InternalName>): ByteArray {
     val kmModule = KmModule()
     kmModule.packageParts["org.gradle.kotlin.dsl"] = KmPackageParts(
-        fileFacades.map { it.value }.toMutableList(),
-        emptyMap<String, String>().toMutableMap()
+        fileFacades.mapTo(ArrayList(fileFacades.size)) { it.value },
+        mutableMapOf()
     )
     return KotlinModuleMetadata(kmModule, JvmMetadataVersion.LATEST_STABLE_SUPPORTED).write()
 }

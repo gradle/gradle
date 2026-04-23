@@ -19,13 +19,14 @@ To make build scripts more concise, Gradle automatically adds a set of import st
 
 Gradle implicitly adds the following imports to each script (for both Groovy and Kotlin):
 
-[source]
+[source,text]
 ----
 include::default-imports.txt[]
 ----
 
 Additionally, for Groovy, the following imports are added too:
-[source]
+
+[source,groovy]
 ----
 import java.lang.*
 import java.io.*

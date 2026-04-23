@@ -25,8 +25,8 @@ A plugin is any class that implements the link:{javadocPath}/org/gradle/api/Plug
 For example, this is a "hello world" *plugin*:
 
 ====
-include::sample[dir="snippets/plugins/simple/kotlin", files="build.gradle.kts[tags=plugin]"]
-include::sample[dir="snippets/plugins/simple/groovy", files="build.gradle[tags=plugin]"]
+include::sample[dir="snippets/unused/plugins/simple/kotlin", files="build.gradle.kts[tags=plugin]"]
+include::sample[dir="snippets/unused/plugins/simple/groovy", files="build.gradle[tags=plugin]"]
 ====
 <1> Extend the `org.gradle.api.Plugin` interface.
 <2> Override the `apply` method.
@@ -139,15 +139,15 @@ Let's take a look at an example with the following structure:
 Our `my-create-file-plugin.gradle.kts` file contains the following code:
 
 ====
-include::sample[dir="snippets/plugins/simple/kotlin", files="buildSrc/src/main/kotlin/my-create-file-plugin.gradle.kts[]"]
-include::sample[dir="snippets/plugins/simple/groovy", files="buildSrc/src/main/groovy/my-create-file-plugin.gradle[]"]
+include::sample[dir="snippets/unused/plugins/simple/kotlin", files="buildSrc/src/main/kotlin/my-create-file-plugin.gradle.kts[]"]
+include::sample[dir="snippets/unused/plugins/simple/groovy", files="buildSrc/src/main/groovy/my-create-file-plugin.gradle[]"]
 ====
 
 The pre-compiled script can now be applied in the `build.gradle(.kts`) file of any subproject:
 
 ====
-include::sample[dir="snippets/plugins/simple/kotlin", files="build.gradle.kts[tags=apply-conv]"]
-include::sample[dir="snippets/plugins/simple/groovy", files="build.gradle[tags=apply-conv]"]
+include::sample[dir="snippets/unused/plugins/simple/kotlin", files="build.gradle.kts[tags=apply-conv]"]
+include::sample[dir="snippets/unused/plugins/simple/groovy", files="build.gradle[tags=apply-conv]"]
 ====
 
 The `createMyFileTaskInConventionPlugin` task from the plugin is now available in your subproject.
@@ -185,21 +185,21 @@ This plugin has been re-written in Kotlin and is called `MyCreateFileBinaryPlugi
 It is still stored in `buildSrc`:
 
 ====
-include::sample[dir="snippets/plugins/simple/kotlin", files="buildSrc/src/main/kotlin/MyCreateFileBinaryPlugin.kt[]"]
+include::sample[dir="snippets/unused/plugins/simple/kotlin", files="buildSrc/src/main/kotlin/MyCreateFileBinaryPlugin.kt[]"]
 ====
 
 The plugin can be published and given an `id` using a `gradlePlugin{}` block so that it can be referenced in the root:
 
 ====
-include::sample[dir="snippets/plugins/simple/kotlin", files="buildSrc/build.gradle.kts[tags=plugin-3]"]
-include::sample[dir="snippets/plugins/simple/groovy", files="buildSrc/build.gradle[tags=plugin-3]"]
+include::sample[dir="snippets/unused/plugins/simple/kotlin", files="buildSrc/build.gradle.kts[tags=plugin-3]"]
+include::sample[dir="snippets/unused/plugins/simple/groovy", files="buildSrc/build.gradle[tags=plugin-3]"]
 ====
 
 Then, the plugin can be applied in the build file:
 
 ====
-include::sample[dir="snippets/plugins/simple/kotlin", files="build.gradle.kts[tags=apply]"]
-include::sample[dir="snippets/plugins/simple/groovy", files="build.gradle[tags=apply]"]
+include::sample[dir="snippets/unused/plugins/simple/kotlin", files="build.gradle.kts[tags=apply]"]
+include::sample[dir="snippets/unused/plugins/simple/groovy", files="build.gradle[tags=apply]"]
 ====
 
 Consult the <<plugins.adoc#custom_plugins,Developing Plugins chapter>> to learn more.

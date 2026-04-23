@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import org.gradle.plugins.ide.idea.model.IdeaModel
+import gradlebuild.integrationtests.configureTestSourceSetInIde
 
 /**
  * Test Fixtures Plugin.
@@ -34,10 +34,7 @@ plugins {
 }
 
 jvmCompile {
-    addCompilationFrom(sourceSets.named("testFixtures")) {
-        // By default, test fixtures compile to the same JVM version as the production code.
-        targetJvmVersion = compilations.named("main").flatMap { it.targetJvmVersion }
-    }
+    addCompilationFrom(sourceSets.named("testFixtures"))
 }
 
 // The below mimics what the java-library plugin does, but creating a library of test fixtures instead.
@@ -49,11 +46,11 @@ sourceSets.matching { it.name.endsWith("Test") }.all {
     )
 }
 
-val testFixturesApi by configurations
-val testFixturesImplementation by configurations
-val testFixturesRuntimeOnly by configurations
-val testFixturesRuntimeElements by configurations
-val testFixturesApiElements by configurations
+val testFixturesApi = configurations.getByName("testFixturesApi")
+val testFixturesImplementation = configurations.getByName("testFixturesImplementation")
+val testFixturesRuntimeOnly = configurations.getByName("testFixturesRuntimeOnly")
+val testFixturesRuntimeElements = configurations.getByName("testFixturesRuntimeElements")
+val testFixturesApiElements = configurations.getByName("testFixturesApiElements")
 
 // Required due to: https://github.com/gradle/gradle/issues/13278
 testFixturesRuntimeElements.extendsFrom(testFixturesRuntimeOnly)
@@ -86,13 +83,4 @@ javaComponent.withVariantsFromConfiguration(testFixturesApiElements) {
     skip()
 }
 
-plugins.withType<IdeaPlugin> {
-    configure<IdeaModel> {
-        module {
-            val testFixtures = sourceSets.testFixtures.get()
-            testSources.from(testFixtures.java.srcDirs)
-            testSources.from(testFixtures.groovy.srcDirs)
-            testResources.from(testFixtures.resources.srcDirs)
-        }
-    }
-}
+configureTestSourceSetInIde(sourceSets.testFixtures.get())

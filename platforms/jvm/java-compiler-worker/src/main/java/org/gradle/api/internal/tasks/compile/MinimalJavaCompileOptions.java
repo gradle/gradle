@@ -20,7 +20,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.tasks.compile.CompileOptions;
-import org.gradle.api.tasks.compile.DebugOptions;
 import org.jspecify.annotations.Nullable;
 
 import java.io.File;
@@ -34,7 +33,7 @@ public class MinimalJavaCompileOptions implements Serializable {
     private String bootClasspath;
     private String extensionDirs;
     private MinimalJavaCompilerDaemonForkOptions forkOptions;
-    private DebugOptions debugOptions;
+    private String debugLevel;
     private boolean debug;
     private boolean deprecation;
     private boolean failOnError;
@@ -58,7 +57,7 @@ public class MinimalJavaCompileOptions implements Serializable {
         this.bootClasspath = getAsPath(compileOptions.getBootstrapClasspath());
         this.extensionDirs = compileOptions.getExtensionDirs();
         this.forkOptions = new MinimalJavaCompilerDaemonForkOptions(compileOptions.getForkOptions());
-        this.debugOptions = compileOptions.getDebugOptions();
+        this.debugLevel = compileOptions.getDebugOptions().getDebugLevel();
         this.debug = compileOptions.isDebug();
         this.deprecation = compileOptions.isDeprecation();
         this.failOnError = compileOptions.isFailOnError();
@@ -126,12 +125,12 @@ public class MinimalJavaCompileOptions implements Serializable {
         this.forkOptions = forkOptions;
     }
 
-    public DebugOptions getDebugOptions() {
-        return debugOptions;
+    public String getDebugLevel() {
+        return debugLevel;
     }
 
-    public void setDebugOptions(DebugOptions debugOptions) {
-        this.debugOptions = debugOptions;
+    public void setDebugLevel(String debugLevel) {
+        this.debugLevel = debugLevel;
     }
 
     public boolean isDebug() {

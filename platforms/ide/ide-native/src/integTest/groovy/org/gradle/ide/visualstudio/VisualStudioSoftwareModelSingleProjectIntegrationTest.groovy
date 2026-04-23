@@ -26,7 +26,7 @@ import org.gradle.nativeplatform.fixtures.app.ExeWithLibraryUsingLibraryHelloWor
 import org.gradle.nativeplatform.fixtures.app.MixedLanguageHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.WindowsResourceHelloWorldApp
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import spock.lang.Issue
 
 import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.VISUALCPP
@@ -142,7 +142,7 @@ model {
         mainSolution.assertReferencesProject(projectFile, projectConfigurations)
     }
 
-    @Requires(IntegTestPreconditions.HasMsBuild)
+    @Requires(TestExecutionPreconditions.HasMsBuild)
     def "can build executable from visual studio"() {
         useMsbuildTool()
         def debugBinary = executable("build/exe/main/win32/debug/main")
@@ -173,7 +173,7 @@ model {
         installation('build/install/main/win32/debug').assertInstalled()
     }
 
-    @Requires(IntegTestPreconditions.HasMsBuild)
+    @Requires(TestExecutionPreconditions.HasMsBuild)
     def "can build library from visual studio"() {
         useMsbuildTool()
         def debugBinaryLib = staticLibrary("build/libs/main/static/win32/debug/main")
@@ -205,7 +205,7 @@ model {
         debugBinaryDll.assertExists()
     }
 
-    @Requires(IntegTestPreconditions.HasMsBuild)
+    @Requires(TestExecutionPreconditions.HasMsBuild)
     def "can detect build failure from visual studio"() {
         useMsbuildTool()
 
@@ -233,7 +233,7 @@ model {
         resultDebug.assertHasErrorOutput("broken.cpp(1): error C2143: syntax error: missing ';' before '!'")
     }
 
-    @Requires(IntegTestPreconditions.HasMsBuild)
+    @Requires(TestExecutionPreconditions.HasMsBuild)
     def "can clean from visual studio"() {
         useMsbuildTool()
         def debugBinary = executable('build/exe/main/win32/debug/main')

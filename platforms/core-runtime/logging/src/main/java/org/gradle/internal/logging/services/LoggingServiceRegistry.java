@@ -16,6 +16,8 @@
 
 package org.gradle.internal.logging.services;
 
+import org.gradle.api.internal.file.temp.GradleUserHomeTemporaryFileProvider;
+import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.logging.LoggingManagerFactory;
 import org.gradle.internal.logging.LoggingManagerInternal;
@@ -37,6 +39,7 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.internal.time.Clock;
 import org.gradle.internal.time.Time;
+import org.gradle.wrapper.GradleUserHomeLookup;
 
 /**
  * A {@link org.gradle.internal.service.ServiceRegistry} implementation that provides the logging services. To use this:
@@ -178,7 +181,8 @@ public abstract class LoggingServiceRegistry implements ServiceRegistrationProvi
 
     // Intentionally not a "create" method as this should not be exposed as a service
     protected OutputEventRenderer makeOutputEventRenderer() {
-        OutputEventRenderer eventRenderer = new OutputEventRenderer(Time.clock(), userInput);
+        TemporaryFileProvider temporaryFileProvider = new GradleUserHomeTemporaryFileProvider(GradleUserHomeLookup::gradleUserHome);
+        OutputEventRenderer eventRenderer = new OutputEventRenderer(Time.clock(), userInput, temporaryFileProvider);
         userInput.attachConsole(eventRenderer);
         return eventRenderer;
     }

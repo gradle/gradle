@@ -61,6 +61,8 @@ import org.gradle.api.internal.artifacts.transform.TransformExecutionListener;
 import org.gradle.api.internal.artifacts.transform.TransformStepNodeDependencyResolver;
 import org.gradle.api.internal.artifacts.verification.signatures.DefaultSignatureVerificationServiceFactory;
 import org.gradle.api.internal.artifacts.verification.signatures.SignatureVerificationServiceFactory;
+import org.gradle.api.internal.project.ProjectStateRegistry;
+import org.gradle.api.internal.artifacts.dsl.dependencies.UnknownProjectFinder;
 import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.catalog.DefaultDependenciesAccessors;
 import org.gradle.api.internal.catalog.DependenciesAccessorsWorkspaceProvider;
@@ -129,7 +131,6 @@ class DependencyManagementBuildScopeServices implements ServiceRegistrationProvi
         registration.add(ResolvedArtifactSetResolver.class);
         registration.add(ExternalModuleComponentResolverFactory.class);
         registration.add(ResolverProviderFactories.class);
-        registration.add(DefaultProjectDependencyFactory.class);
         registration.add(DependencyManagementManagedTypesFactory.class);
         registration.add(RuntimeShadedJarFactory.class);
     }
@@ -163,6 +164,24 @@ class DependencyManagementBuildScopeServices implements ServiceRegistrationProvi
     @Provides
     CapabilityNotationParser createCapabilityNotationParser() {
         return new CapabilityNotationParserFactory(false).create();
+    }
+
+    @Provides
+    DefaultProjectDependencyFactory createProjectDependencyFactory(
+        Instantiator instantiator,
+        CapabilityNotationParser capabilityNotationParser,
+        ObjectFactory objectFactory,
+        AttributesFactory attributesFactory,
+        ProjectStateRegistry projectStateRegistry
+    ) {
+        return new DefaultProjectDependencyFactory(
+            instantiator,
+            capabilityNotationParser,
+            objectFactory,
+            attributesFactory,
+            projectStateRegistry,
+            new UnknownProjectFinder("Project dependencies cannot be declared here.")
+        );
     }
 
     @Provides

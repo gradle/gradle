@@ -104,6 +104,7 @@ After this, Gradle loads the task graph from the cache and proceeds with task ex
 
 NOTE: When it is enabled, Gradle always loads from the configuration cache - even on a cache miss - to ensure that hits and misses are handled consistently.
 
+[[subsequent_runs]]
 === Subsequent Runs
 
 image::configuration-cache-3.png[]

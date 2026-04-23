@@ -50,7 +50,7 @@ import org.gradle.process.ExecOperations
 import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import org.gradle.tooling.events.FinishEvent
 import org.gradle.tooling.events.OperationCompletionListener
 import org.gradle.util.internal.ToBeImplemented
@@ -587,7 +587,7 @@ service: closed with value 10001
         fails 'missingService'
 
         then:
-        failure.assertHasDescription("Execution failed for task ':missingService'")
+        failure.assertHasDescription("Execution failed for task ':missingService' (registered in build file 'build.gradle').")
         failure.assertHasCause("Cannot query the value of task ':missingService' property 'counter' because it has no value available.")
     }
 
@@ -778,7 +778,7 @@ service: closed with value 10001
         outputContains("service: closed with value 12")
     }
 
-    @Requires(IntegTestPreconditions.NotConfigCached)
+    @Requires(TestExecutionPreconditions.NotConfigCached)
     def "service can be used at configuration and execution time"() {
         serviceImplementation()
         buildFile << """
@@ -825,7 +825,7 @@ service: closed with value 10001
         outputContains("service: closed with value 11")
     }
 
-    @Requires(value = IntegTestPreconditions.NotConfigCached, reason = "already covers CC behavior")
+    @Requires(value = TestExecutionPreconditions.NotConfigCached, reason = "already covers CC behavior")
     def "service used at configuration is discarded before execution time when used with configuration cache"() {
         serviceImplementation()
         buildFile << """
@@ -882,7 +882,7 @@ service: closed with value 10001
     @ToBeImplemented
     @Issue("https://github.com/gradle/gradle/issues/17559")
     // Test assumes sequential configuration :subproject1 :subproject2
-    @Requires(IntegTestPreconditions.NotIsolatedProjects)
+    @Requires(TestExecutionPreconditions.NotIsolatedProjects)
     def "service provided by a plugin cannot be shared by subprojects with different classloaders"() {
         createDirs("plugin1", "plugin2", "subproject1", "subproject2")
         settingsFile """
@@ -945,7 +945,7 @@ Hello, subproject1
         outputContains """
 > Task :subproject2:hello FAILED
 """
-        failureDescriptionContains("Execution failed for task ':subproject2:hello'.")
+        failureDescriptionContains("Execution failed for task ':subproject2:hello' (registered by plugin 'my.plugin1').")
         failureCauseContains("assert MyService == myService.type")
     }
 
@@ -1423,7 +1423,7 @@ Hello, subproject1
         fails("check")
 
         then:
-        failure.assertHasDescription("Execution failed for task ':check'.")
+        failure.assertHasDescription("Execution failed for task ':check' (registered in build file 'build.gradle').")
         failure.assertHasCause("Services of type ${serviceType.simpleName} are not available for injection into instances of type BuildService.")
 
         where:
@@ -1555,11 +1555,11 @@ Hello, subproject1
 
         then:
         failure.assertHasFailures(2)
-        failure.assertHasDescription("Execution failed for task ':first'.")
+        failure.assertHasDescription("Execution failed for task ':first' (registered in build file 'build.gradle').")
         failure.assertHasCause("Failed to create service 'counter1'.")
         failure.assertHasCause("Could not create an instance of type CountingService.")
         failure.assertHasCause("broken")
-        failure.assertHasDescription("Execution failed for task ':second'.")
+        failure.assertHasDescription("Execution failed for task ':second' (registered in build file 'build.gradle').")
         failure.assertHasCause("Failed to create service 'counter2'.")
         failure.assertHasCause("Could not create an instance of type CountingService.")
         failure.assertHasCause("broken")
@@ -1569,11 +1569,11 @@ Hello, subproject1
 
         then:
         failure.assertHasFailures(2)
-        failure.assertHasDescription("Execution failed for task ':first'.")
+        failure.assertHasDescription("Execution failed for task ':first' (registered in build file 'build.gradle').")
         failure.assertHasCause("Failed to create service 'counter1'.")
         failure.assertHasCause("Could not create an instance of type CountingService.")
         failure.assertHasCause("broken")
-        failure.assertHasDescription("Execution failed for task ':second'.")
+        failure.assertHasDescription("Execution failed for task ':second' (registered in build file 'build.gradle').")
         failure.assertHasCause("Failed to create service 'counter2'.")
         failure.assertHasCause("Could not create an instance of type CountingService.")
         failure.assertHasCause("broken")

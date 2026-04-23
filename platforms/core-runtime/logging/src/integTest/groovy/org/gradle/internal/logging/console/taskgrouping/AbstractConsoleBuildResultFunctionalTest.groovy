@@ -18,13 +18,13 @@ package org.gradle.internal.logging.console.taskgrouping
 
 import org.fusesource.jansi.Ansi
 import org.gradle.api.logging.LogLevel
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.console.AbstractConsoleGroupedTaskFunctionalTest
 import org.gradle.integtests.fixtures.executer.LogContent
+import org.gradle.integtests.fixtures.flow.FlowActionsFixture
 
 import static org.hamcrest.CoreMatchers.containsString
 
-abstract class AbstractConsoleBuildResultFunctionalTest extends AbstractConsoleGroupedTaskFunctionalTest {
+abstract class AbstractConsoleBuildResultFunctionalTest extends AbstractConsoleGroupedTaskFunctionalTest implements FlowActionsFixture {
     protected final StyledOutput buildFailed = styled(Ansi.Color.RED, Ansi.Attribute.INTENSITY_BOLD).text('BUILD FAILED').off()
     protected final StyledOutput buildSuccessful = styled(Ansi.Color.GREEN, Ansi.Attribute.INTENSITY_BOLD).text('BUILD SUCCESSFUL').off()
 
@@ -78,14 +78,11 @@ BUILD SUCCESSFUL in [ \\dms]+
         result.assertNotOutput("actionable task")
     }
 
-    @ToBeFixedForConfigurationCache(because = "Gradle.buildFinished")
     def "outcome for successful build is logged after user logic has completed"() {
         given:
-        buildFile << """
+        buildFile """
             task success { doLast { } }
-            gradle.buildFinished {
-                println "build finished"
-            }
+            ${buildFinishedFlowAction """ println "build finished" """ }
         """
 
         when:
@@ -113,9 +110,9 @@ BUILD SUCCESSFUL in [ \\dms]+
         and:
         // Ensure the failure is a location that the fixtures can see
         if (level == LogLevel.DEBUG) {
-            failure.assertThatDescription(containsString("Execution failed for task ':broken'"))
+            failure.assertThatDescription(containsString("Execution failed for task ':broken' (registered in build file 'build.gradle')."))
         } else {
-            failure.assertHasDescription("Execution failed for task ':broken'")
+            failure.assertHasDescription("Execution failed for task ':broken' (registered in build file 'build.gradle').")
         }
         failure.assertHasCause("broken")
 
@@ -126,7 +123,7 @@ BUILD SUCCESSFUL in [ \\dms]+
 
         outputWithFailureAndNoDebugging.contains("FAILURE: Build failed with an exception.")
         outputWithFailureAndNoDebugging.contains("* What went wrong:")
-        outputWithFailureAndNoDebugging.contains("Execution failed for task ':broken'.")
+        outputWithFailureAndNoDebugging.contains("Execution failed for task ':broken' (registered in build file 'build.gradle').")
 
         !outputWithoutFailure.contains("Build failed with an exception.")
         !outputWithoutFailure.contains("* What went wrong:")

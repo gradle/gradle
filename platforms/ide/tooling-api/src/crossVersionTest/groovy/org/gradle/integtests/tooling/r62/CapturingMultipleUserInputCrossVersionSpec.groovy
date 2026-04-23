@@ -17,12 +17,9 @@
 package org.gradle.integtests.tooling.r62
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
-import org.gradle.integtests.tooling.fixture.TestResultHandler
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.ProjectConnection
 import spock.lang.Timeout
-
-import static org.gradle.test.fixtures.ConcurrentTestUtil.poll
 
 @TargetGradleVersion(">=8.7")
 @Timeout(120)
@@ -100,31 +97,13 @@ class CapturingMultipleUserInputCrossVersionSpec extends ToolingApiSpecification
     }
 
     private void runBuildWithStandardInput(ProjectConnection connection, String answer1, String answer2) {
-        def stdin = new PipedInputStream()
-        def stdinWriter = new PipedOutputStream(stdin)
-        def resultHandler = new TestResultHandler()
+        def sep = System.getProperty('line.separator')
+        def stdin = new ByteArrayInputStream((answer1 + sep + answer2 + sep).bytes)
 
         connection.newBuild()
             .forTasks(DUMMY_TASK_NAME)
             .setStandardInput(stdin)
-            .run(resultHandler)
-
-        poll(60) {
-            assert getOutput().contains(FOO.prompt)
-        }
-
-        stdinWriter.write((answer1 + System.getProperty('line.separator')).bytes)
-
-        poll(60) {
-            assert getOutput().contains(BAR.prompt)
-        }
-
-        stdinWriter.write((answer2 + System.getProperty('line.separator')).bytes)
-        stdinWriter.close()
-
-        resultHandler.finished()
-        resultHandler.assertNoFailure()
-
+            .run()
     }
 
     private String getOutput() {

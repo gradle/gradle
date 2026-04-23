@@ -22,7 +22,7 @@ import org.gradle.nativeplatform.fixtures.app.CppAppWithLibrary
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.ExeWithLibraryUsingLibraryHelloWorldApp
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 
 class VisualStudioMultiProjectIntegrationTest extends AbstractVisualStudioIntegrationSpec {
     def app = new CppHelloWorldApp()
@@ -343,7 +343,7 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractVisualStudioIntegr
         greetLibProject.projectConfigurations['debug'].includePath == filePath("src/main/public", "src/main/headers")
     }
 
-    @Requires(IntegTestPreconditions.HasMsBuild)
+    @Requires(TestExecutionPreconditions.HasMsBuild)
     def "can build executable that depends on static library in another project from visual studio"() {
         useMsbuildTool()
         def app = new CppAppWithLibrary()
@@ -384,7 +384,7 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractVisualStudioIntegr
         installation('exe/build/install/main/debug').assertInstalled()
     }
 
-    @Requires(IntegTestPreconditions.HasMsBuild)
+    @Requires(TestExecutionPreconditions.HasMsBuild)
     def "skip unbuildable static library project when building solution from visual studio"() {
         useMsbuildTool()
         def app = new CppAppWithLibrary()

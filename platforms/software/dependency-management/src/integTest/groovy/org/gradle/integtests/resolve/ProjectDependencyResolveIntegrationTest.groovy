@@ -730,7 +730,7 @@ class ProjectDependencyResolveIntegrationTest extends AbstractIntegrationSpec im
             }
 
             dependencies {
-                a project
+                a project()
             }
 
             configurations.b.dependencies.addAllLater provider(() -> {
@@ -877,5 +877,33 @@ class ProjectDependencyResolveIntegrationTest extends AbstractIntegrationSpec im
 
         expect:
         succeeds("help")
+    }
+
+    def "can resolve a project dependency on the current project"() {
+        settingsFile << "rootProject.name = 'bar'"
+        buildFile << """
+            apply plugin: 'java'
+            dependencies {
+                implementation project()
+                implementation "org:foo:1.0"
+            }
+            repositories {
+                maven { url = '${mavenRepo.uri}' }
+            }
+            task resolve {
+                def files = configurations.runtimeClasspath.incoming.files
+                doLast {
+                    println "resolved: " + files.collect { it.name }.join(", ")
+                }
+            }
+        """
+
+        mavenRepo.module("org", "foo").publish()
+
+        when:
+        succeeds("resolve")
+
+        then:
+        outputContains "resolved: bar.jar, foo-1.0.jar"
     }
 }

@@ -16,13 +16,15 @@
 
 package org.gradle.internal.cc.impl
 
-import org.gradle.api.internal.GradleInternal
+import org.gradle.api.internal.project.CrossBuildModelAccess
 import org.gradle.api.internal.project.CrossProjectModelAccess
+import org.gradle.api.internal.project.DefaultCrossBuildModelAccess
 import org.gradle.api.internal.project.DefaultCrossProjectModelAccess
 import org.gradle.api.internal.project.DefaultDynamicLookupRoutine
 import org.gradle.api.internal.project.DynamicLookupRoutine
-import org.gradle.api.internal.project.ProjectRegistry
-import org.gradle.configuration.ProjectsPreparer
+import org.gradle.api.internal.provider.ConfigurationTimeBarrier
+import org.gradle.api.internal.tasks.TaskExecutionAccessChecker
+import org.gradle.api.internal.tasks.execution.TaskExecutionAccessListener
 import org.gradle.configuration.ScriptPluginFactory
 import org.gradle.configuration.internal.DefaultDynamicCallContextTracker
 import org.gradle.configuration.internal.DynamicCallContextTracker
@@ -33,137 +35,79 @@ import org.gradle.configuration.project.LifecycleProjectEvaluator
 import org.gradle.configuration.project.PluginsProjectConfigureActions
 import org.gradle.configuration.project.ProjectEvaluator
 import org.gradle.initialization.BuildCancellationToken
-import org.gradle.initialization.SettingsPreparer
-import org.gradle.initialization.TaskExecutionPreparer
 import org.gradle.initialization.VintageBuildModelController
 import org.gradle.internal.build.BuildModelController
 import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.cc.base.services.ProjectRefResolver
 import org.gradle.internal.cc.impl.fingerprint.ConfigurationCacheFingerprintController
-import org.gradle.internal.configuration.problems.ProblemFactory
-import org.gradle.internal.configuration.problems.ProblemsListener
-import org.gradle.internal.extensions.core.get
-import org.gradle.internal.model.StateTransitionControllerFactory
+import org.gradle.internal.cc.impl.initialization.ConfigurationCacheStartParameter
+import org.gradle.internal.cc.impl.serialize.ConfigurationCacheCodecs
+import org.gradle.internal.cc.impl.serialize.DefaultConfigurationCacheCodecs
+import org.gradle.internal.event.ListenerManager
+import org.gradle.internal.execution.WorkExecutionTracker
 import org.gradle.internal.operations.BuildOperationRunner
-import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.service.CachingServiceLocator
 import org.gradle.internal.service.Provides
 import org.gradle.internal.service.ServiceRegistration
 import org.gradle.internal.service.ServiceRegistrationProvider
-import org.gradle.invocation.GradleLifecycleActionExecutor
 
 
 internal object BuildModelControllerServices : ServiceRegistrationProvider {
 
     @Provides
-    fun configure(registration: ServiceRegistration, buildModelParameters: BuildModelParameters) {
-        if (buildModelParameters.isConfigurationCache) {
-            registration.addProvider(ConfigurationCacheBuildControllerProvider())
-            registration.add(ProjectRefResolver::class.java)
-        } else {
-            registration.addProvider(VintageBuildControllerProvider())
-        }
-        if (buildModelParameters.isIsolatedProjects) {
-            registration.addProvider(ConfigurationCacheIsolatedProjectsProvider())
-        } else {
-            registration.addProvider(VintageIsolatedProjectsProvider())
-        }
-        if (buildModelParameters.isCachingModelBuilding) {
-            registration.addProvider(ConfigurationCacheModelProvider())
-        } else {
-            registration.addProvider(VintageModelProvider())
-        }
-    }
+    fun configure(registration: ServiceRegistration, buildModelParameters: BuildModelParameters) = with(registration) {
+        // region ALL MODES
+        add(RelevantProjectsRegistry::class.java)
+        // endregion
 
-    private
-    class ConfigurationCacheBuildControllerProvider : ServiceRegistrationProvider {
-        @Provides
-        fun createBuildModelController(
-            gradle: GradleInternal,
-            stateTransitionControllerFactory: StateTransitionControllerFactory,
-            cache: BuildTreeConfigurationCache
-        ): BuildModelController {
-            val vintageController = VintageBuildControllerProvider().createBuildModelController(gradle, stateTransitionControllerFactory)
-            return ConfigurationCacheAwareBuildModelController(gradle, vintageController, cache)
-        }
-    }
+        if (buildModelParameters.isVintage) {
+            // region ALL MODES
+            add(BuildModelController::class.java, VintageBuildModelController::class.java)
+            add(CrossBuildModelAccess::class.java, DefaultCrossBuildModelAccess::class.java)
+            add(CrossProjectModelAccess::class.java, DefaultCrossProjectModelAccess::class.java)
+            add(DynamicLookupRoutine::class.java, DefaultDynamicLookupRoutine::class.java)
+            // endregion
+        } else if (buildModelParameters.isConfigurationCache) {
+            // region ALL MODES
+            add(BuildModelController::class.java, ConfigurationCacheAwareBuildModelController::class.java)
+            // endregion
 
-    private
-    class VintageBuildControllerProvider : ServiceRegistrationProvider {
-        @Provides
-        fun createBuildModelController(
-            gradle: GradleInternal,
-            stateTransitionControllerFactory: StateTransitionControllerFactory
-        ): BuildModelController {
-            val projectsPreparer: ProjectsPreparer = gradle.services.get()
-            val settingsPreparer: SettingsPreparer = gradle.services.get()
-            val taskExecutionPreparer: TaskExecutionPreparer = gradle.services.get()
-            return VintageBuildModelController(gradle, projectsPreparer, settingsPreparer, taskExecutionPreparer, stateTransitionControllerFactory)
-        }
-    }
+            // region CC and IP
+            add(ProjectRefResolver::class.java)
+            add(ConfigurationCacheHost::class.java, DefaultConfigurationCacheHost::class.java)
+            add(ConfigurationCacheCodecs::class.java, DefaultConfigurationCacheCodecs::class.java)
+            add(ConfigurationCacheBuildTreeIO::class.java, ConfigurationCacheIncludedBuildIO::class.java, DefaultConfigurationCacheIO::class.java)
 
-    private
-    class ConfigurationCacheIsolatedProjectsProvider : ServiceRegistrationProvider {
-        @Provides
-        fun createCrossProjectModelAccess(
-            projectRegistry: ProjectRegistry,
-            problemsListener: ProblemsListener,
-            problemFactory: ProblemFactory,
-            coupledProjectsListener: CoupledProjectsListener,
-            dynamicCallProblemReporting: DynamicCallProblemReporting,
-            buildModelParameters: BuildModelParameters,
-            instantiator: Instantiator,
-            gradleLifecycleActionExecutor: GradleLifecycleActionExecutor
-        ): CrossProjectModelAccess {
-            val delegate = VintageIsolatedProjectsProvider().createCrossProjectModelAccess(projectRegistry, instantiator, gradleLifecycleActionExecutor)
-            return ProblemReportingCrossProjectModelAccess(
-                delegate,
-                problemsListener,
-                coupledProjectsListener,
-                problemFactory,
-                dynamicCallProblemReporting,
-                buildModelParameters,
-                instantiator
-            )
-        }
-
-        @Provides
-        fun createDynamicCallContextTracker(): DynamicCallContextTracker {
-            return DefaultDynamicCallContextTracker()
-        }
-
-        @Provides
-        fun createDynamicCallProjectIsolationProblemReporting(dynamicCallContextTracker: DynamicCallContextTracker): DynamicCallProblemReporting =
-            DefaultDynamicCallProblemReporting().also { reporting ->
-                dynamicCallContextTracker.onEnter(reporting::enterDynamicCall)
-                dynamicCallContextTracker.onLeave(reporting::leaveDynamicCall)
+            if (!buildModelParameters.isIsolatedProjects) {
+                add(CrossBuildModelAccess::class.java, DefaultCrossBuildModelAccess::class.java)
+                add(CrossProjectModelAccess::class.java, DefaultCrossProjectModelAccess::class.java)
+                add(DynamicLookupRoutine::class.java, DefaultDynamicLookupRoutine::class.java)
+            } else { // IP
+                add(CrossBuildModelAccess::class.java, ProblemReportingCrossBuildModelAccess::class.java)
+                add(CrossProjectModelAccess::class.java, ProblemReportingCrossProjectModelAccess::class.java)
+                add(DynamicLookupRoutine::class.java, TrackingDynamicLookupRoutine::class.java)
+                add(DynamicCallContextTracker::class.java, DefaultDynamicCallContextTracker::class.java)
             }
+            // endregion
+        } else error("no other modes are supported")
 
-        @Provides
-        fun createDynamicLookupRoutine(
-            dynamicCallContextTracker: DynamicCallContextTracker,
-            buildModelParameters: BuildModelParameters
-        ): DynamicLookupRoutine = when {
-            buildModelParameters.isIsolatedProjects -> TrackingDynamicLookupRoutine(dynamicCallContextTracker)
-            else -> DefaultDynamicLookupRoutine()
+        if (buildModelParameters.isCachingModelBuilding) {
+            addProvider(ConfigurationCacheModelProvider())
+        } else {
+            addProvider(VintageModelProvider())
         }
     }
 
-    private
-    class VintageIsolatedProjectsProvider : ServiceRegistrationProvider {
-        @Provides
-        fun createCrossProjectModelAccess(
-            projectRegistry: ProjectRegistry,
-            instantiator: Instantiator,
-            gradleLifecycleActionExecutor: GradleLifecycleActionExecutor
-        ): CrossProjectModelAccess {
-            return DefaultCrossProjectModelAccess(projectRegistry, instantiator, gradleLifecycleActionExecutor)
+    // region IP services which are not instantiated unless IP is enabled
+
+    @Provides
+    fun createDynamicCallProjectIsolationProblemReporting(dynamicCallContextTracker: DynamicCallContextTracker): DynamicCallProblemReporting =
+        DefaultDynamicCallProblemReporting().also { reporting ->
+            dynamicCallContextTracker.onEnter(reporting::enterDynamicCall)
+            dynamicCallContextTracker.onLeave(reporting::leaveDynamicCall)
         }
 
-        @Provides
-        fun createDynamicLookupRoutine(): DynamicLookupRoutine =
-            DefaultDynamicLookupRoutine()
-    }
+    // endregion
 
     private
     class ConfigurationCacheModelProvider : ServiceRegistrationProvider {
@@ -196,5 +140,41 @@ internal object BuildModelControllerServices : ServiceRegistrationProvider {
             )
             return LifecycleProjectEvaluator(buildOperationRunner, withActionsEvaluator, cancellationToken)
         }
+    }
+
+    // TODO:configuration-cache simplify after https://github.com/gradle/gradle/issues/37567 is addressed
+    @Provides
+    fun createTaskExecutionAccessChecker(
+        /** In non-CC builds, [BuildTreeConfigurationCache] is not registered; accepting a list here is a way to ignore its absence. */
+        configurationCache: List<BuildTreeConfigurationCache>,
+        configurationTimeBarrier: ConfigurationTimeBarrier,
+        modelParameters: BuildModelParameters,
+        /** In non-CC builds, [ConfigurationCacheStartParameter] is not registered; accepting a list here is a way to ignore its absence. */
+        configurationCacheStartParameter: List<ConfigurationCacheStartParameter>,
+        listenerManager: ListenerManager,
+        workExecutionTracker: WorkExecutionTracker,
+    ): TaskExecutionAccessChecker {
+        val broadcast = listenerManager.getBroadcaster(TaskExecutionAccessListener::class.java)
+        val workGraphLoadingState = workGraphLoadingStateFrom(configurationCache)
+        return when {
+            !modelParameters.isConfigurationCache -> TaskExecutionAccessCheckers.TaskStateBased(workGraphLoadingState, broadcast, workExecutionTracker)
+            configurationCacheStartParameter.single().taskExecutionAccessPreStable -> TaskExecutionAccessCheckers.TaskStateBased(
+                workGraphLoadingState,
+                broadcast,
+                workExecutionTracker
+            )
+
+            else -> TaskExecutionAccessCheckers.ConfigurationTimeBarrierBased(configurationTimeBarrier, workGraphLoadingState, broadcast, workExecutionTracker)
+        }
+    }
+
+    private
+    fun workGraphLoadingStateFrom(maybeConfigurationCache: List<BuildTreeConfigurationCache>): WorkGraphLoadingState {
+        if (maybeConfigurationCache.isEmpty()) {
+            return WorkGraphLoadingState { false }
+        }
+
+        val configurationCache = maybeConfigurationCache.single()
+        return WorkGraphLoadingState { configurationCache.isLoaded }
     }
 }

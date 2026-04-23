@@ -35,6 +35,10 @@ import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
+import it.unimi.dsi.fastutil.longs.LongSet;
+import it.unimi.dsi.fastutil.longs.LongSets;
+
 import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
@@ -145,7 +149,7 @@ public class BuildOperationNotificationBridge implements BuildOperationNotificat
         private final BuildOperationNotificationListener notificationListener;
 
         private final Map<OperationIdentifier, OperationIdentifier> parents = new ConcurrentHashMap<>();
-        private final Map<OperationIdentifier, Object> active = new ConcurrentHashMap<>();
+        private final LongSet active = LongSets.synchronize(new LongOpenHashSet());
 
         private Adapter(BuildOperationNotificationListener notificationListener) {
             this.notificationListener = notificationListener;
@@ -157,7 +161,7 @@ public class BuildOperationNotificationBridge implements BuildOperationNotificat
             OperationIdentifier parentId = buildOperation.getParentId();
 
             if (parentId != null) {
-                if (active.containsKey(parentId)) {
+                if (active.contains(parentId.getId())) {
                     parents.put(id, parentId);
                 } else {
                     parentId = parents.get(parentId);
@@ -171,7 +175,7 @@ public class BuildOperationNotificationBridge implements BuildOperationNotificat
                 return;
             }
 
-            active.put(id, "");
+            active.add(id.getId());
 
             Started notification = new Started(startEvent.getStartTime(), id, parentId, buildOperation.getDetails());
 
@@ -206,7 +210,7 @@ public class BuildOperationNotificationBridge implements BuildOperationNotificat
         }
 
         private OperationIdentifier findOwner(OperationIdentifier id) {
-            if (active.containsKey(id)) {
+            if (active.contains(id.getId())) {
                 return id;
             } else {
                 return parents.get(id);
@@ -217,7 +221,7 @@ public class BuildOperationNotificationBridge implements BuildOperationNotificat
         public void finished(BuildOperationDescriptor buildOperation, OperationFinishEvent finishEvent) {
             OperationIdentifier id = buildOperation.getId();
             OperationIdentifier parentId = parents.remove(id);
-            if (active.remove(id) == null) {
+            if (!active.remove(id.getId())) {
                 return;
             }
 

@@ -36,20 +36,24 @@ import org.gradle.api.tasks.testing.Test;
 import org.gradle.jvm.toolchain.JavaLanguageVersion;
 import org.gradle.jvm.toolchain.JavaToolchainService;
 
+import javax.inject.Inject;
 import java.util.Collections;
 
-public class GradleBuildDocumentationPlugin implements Plugin<Project> {
+public abstract class GradleBuildDocumentationPlugin implements Plugin<Project> {
+
+    @Inject
+    protected abstract ProviderFactory getProviders();
+
     @Override
     public void apply(Project project) {
         ProjectLayout layout = project.getLayout();
         TaskContainer tasks = project.getTasks();
         ObjectFactory objects = project.getObjects();
-        ProviderFactory providers = project.getProviders();
 
         GradleDocumentationExtension extension = project.getExtensions().create("gradleDocumentation", GradleDocumentationExtension.class);
         applyConventions(project, tasks, objects, layout, extension);
 
-        extension.getQuickFeedback().convention(providers.provider(() -> project.hasProperty("quickDocs")));
+        extension.getQuickFeedback().convention(getProviders().gradleProperty("quickDocs").map(x -> true).orElse(false));
 
         project.apply(target -> target.plugin(GradleReleaseNotesPlugin.class));
         project.apply(target -> target.plugin(GradleJavadocsPlugin.class));

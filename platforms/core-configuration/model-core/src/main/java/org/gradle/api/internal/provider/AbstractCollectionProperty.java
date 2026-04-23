@@ -79,18 +79,14 @@ import static org.gradle.api.internal.provider.AppendOnceList.toAppendOnceList;
 public abstract class AbstractCollectionProperty<T, C extends Collection<T>> extends AbstractProperty<C, CollectionSupplier<T, C>>
     implements CollectionPropertyInternal<T, C> {
 
-    private final Class<? extends Collection> collectionType;
     private final Class<T> elementType;
-    private final Supplier<ImmutableCollection.Builder<T>> collectionFactory;
     private final ValueCollector<T> valueCollector;
     private CollectionSupplier<T, C> defaultValue;
 
-    AbstractCollectionProperty(PropertyHost host, Class<? extends Collection> collectionType, Class<T> elementType, Supplier<ImmutableCollection.Builder<T>> collectionFactory) {
+    AbstractCollectionProperty(PropertyHost host, ValueCollector<T> valueCollector, Class<T> elementType) {
         super(host);
-        this.collectionType = collectionType;
         this.elementType = elementType;
-        this.collectionFactory = collectionFactory;
-        valueCollector = new ValidatingValueCollector<>(collectionType, elementType, ValueSanitizers.forType(elementType));
+        this.valueCollector = valueCollector;
         init();
     }
 
@@ -117,6 +113,8 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         return new NoValueSupplier(Value.missing());
     }
 
+    protected abstract Class<C> getCollectionType();
+
     /**
      * Creates an empty immutable collection.
      */
@@ -140,7 +138,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
 
     @Override
     public void add(final T element) {
-        Preconditions.checkNotNull(element, "Cannot add a null element to a property of type %s.", collectionType.getSimpleName());
+        Preconditions.checkNotNull(element, "Cannot add a null element to a property of type %s.", getCollectionType().getSimpleName());
         addExplicitCollector(new SingleElement<>(element));
     }
 
@@ -220,7 +218,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
     @Override
     @NonNull
     public Class<C> getType() {
-        return Cast.uncheckedNonnullCast(collectionType);
+        return Cast.uncheckedNonnullCast(getCollectionType());
     }
 
     @Override
@@ -248,7 +246,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
             set(Cast.<Provider<C>>uncheckedCast(object));
         } else {
             if (object != null && !(object instanceof Iterable)) {
-                throw new IllegalArgumentException(String.format("Cannot set the value of a property of type %s using an instance of type %s.", collectionType.getName(), object.getClass().getName()));
+                throw new IllegalArgumentException(String.format("Cannot set the value of a property of type %s using an instance of type %s.", getCollectionType().getName(), object.getClass().getName()));
             }
             set(Cast.<Iterable<? extends T>>uncheckedCast(object));
         }
@@ -270,12 +268,12 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         }
         ProviderInternal<? extends Iterable<? extends T>> p = Providers.internal(provider);
         if (p.getType() != null && !Iterable.class.isAssignableFrom(p.getType())) {
-            throw new IllegalArgumentException(String.format("Cannot set the value of a property of type %s using a provider of type %s.", collectionType.getName(), p.getType().getName()));
+            throw new IllegalArgumentException(String.format("Cannot set the value of a property of type %s using a provider of type %s.", getCollectionType().getName(), p.getType().getName()));
         }
         if (p instanceof CollectionPropertyInternal) {
             CollectionPropertyInternal<T, C> collectionProp = Cast.uncheckedCast(p);
             if (!elementType.isAssignableFrom(collectionProp.getElementType())) {
-                throw new IllegalArgumentException(String.format("Cannot set the value of a property of type %s with element type %s using a provider with element type %s.", collectionType.getName(), elementType.getName(), collectionProp.getElementType().getName()));
+                throw new IllegalArgumentException(String.format("Cannot set the value of a property of type %s with element type %s using a provider with element type %s.", getCollectionType().getName(), elementType.getName(), collectionProp.getElementType().getName()));
             }
         }
         setSupplier(newSupplierOf(new ElementsFromCollectionProvider<>(p)));
@@ -345,7 +343,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
 
     @Override
     protected String describeContents() {
-        String typeDisplayName = collectionType.getSimpleName().toLowerCase(Locale.ROOT);
+        String typeDisplayName = getCollectionType().getSimpleName().toLowerCase(Locale.ROOT);
         return String.format("%s(%s, %s)", typeDisplayName, elementType, describeValue());
     }
 
@@ -463,8 +461,10 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         }
     }
 
+    protected abstract Supplier<ImmutableCollection.Builder<T>> getCollectionFactory();
+
     private CollectingSupplier<T, C> newSupplierOf(Collector<T> value) {
-        return new CollectingSupplier<>(getType(), collectionFactory, valueCollector, value);
+        return new CollectingSupplier<>(getType(), getCollectionFactory(), valueCollector, value);
     }
 
     private static class CollectingSupplier<T, C extends Collection<T>> extends AbstractCollectingSupplier<Collector<T>, C> implements CollectionSupplier<T, C> {

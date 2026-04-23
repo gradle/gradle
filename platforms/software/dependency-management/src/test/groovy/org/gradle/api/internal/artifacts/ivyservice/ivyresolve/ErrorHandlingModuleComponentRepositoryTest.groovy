@@ -47,7 +47,7 @@ class ErrorHandlingModuleComponentRepositoryTest extends Specification {
 
     private static final String REPOSITORY_ID = 'abc'
     def delegate = Mock(ModuleComponentRepositoryAccess)
-    def repositoryBlacklister = new ConnectionFailureRepositoryDisabler()
+    def repositoryDisabler = new ConnectionFailureRepositoryDisabler()
 
     @Shared
     def runtimeError = new RuntimeException('Something went wrong')
@@ -76,7 +76,7 @@ class ErrorHandlingModuleComponentRepositoryTest extends Specification {
     ErrorHandlingModuleComponentRepository.ErrorHandlingModuleComponentRepositoryAccess access
 
     private ErrorHandlingModuleComponentRepository.ErrorHandlingModuleComponentRepositoryAccess createAccess(int maxRetries = 1, int backoff = 0) {
-        new ErrorHandlingModuleComponentRepository.ErrorHandlingModuleComponentRepositoryAccess(delegate, 'abc', repositoryBlacklister, maxRetries, backoff, 'abc', false)
+        new ErrorHandlingModuleComponentRepository.ErrorHandlingModuleComponentRepositoryAccess(delegate, 'abc', repositoryDisabler, maxRetries, backoff, 'abc', false)
     }
 
     private static HttpErrorStatusCodeException status(int statusCode) {
@@ -108,7 +108,7 @@ class ErrorHandlingModuleComponentRepositoryTest extends Specification {
 
         then: 'resolution fails and repo may be disabled'
         1 * result.failed(_ as ModuleVersionResolveException)
-        repositoryBlacklister.isDisabled(REPOSITORY_ID) == disablesRepo
+        repositoryDisabler.isDisabled(REPOSITORY_ID) == disablesRepo
 
         // Continue only if repo is marked disabled
         if (!disablesRepo) { return }
@@ -145,7 +145,7 @@ class ErrorHandlingModuleComponentRepositoryTest extends Specification {
 
         then: 'resolution fails and repo may be disabled'
         1 * result.failed(_ as ModuleVersionResolveException)
-        repositoryBlacklister.isDisabled(REPOSITORY_ID) == disablesRepo
+        repositoryDisabler.isDisabled(REPOSITORY_ID) == disablesRepo
 
         // Continue only if repo is marked disabled
         if (!disablesRepo) { return }
@@ -184,7 +184,7 @@ class ErrorHandlingModuleComponentRepositoryTest extends Specification {
 
         then: 'resolution fails and repo may be disabled'
         1 * result.failed(_ as ArtifactResolveException)
-        repositoryBlacklister.isDisabled(REPOSITORY_ID) == disablesRepo
+        repositoryDisabler.isDisabled(REPOSITORY_ID) == disablesRepo
 
         // Continue only if repo is marked disabled
         if (!disablesRepo) { return }
@@ -223,7 +223,7 @@ class ErrorHandlingModuleComponentRepositoryTest extends Specification {
 
         then: 'resolution fails and repo may be disabled'
         1 * result.failed(_ as ArtifactResolveException)
-        repositoryBlacklister.isDisabled(REPOSITORY_ID) == disablesRepo
+        repositoryDisabler.isDisabled(REPOSITORY_ID) == disablesRepo
 
         // Continue only if repo is marked disabled
         if (!disablesRepo) { return }
@@ -256,7 +256,7 @@ class ErrorHandlingModuleComponentRepositoryTest extends Specification {
 
         then: 'resolution fails and repo is not disabled'
         1 * result.failed(_ as ArtifactResolveException)
-        !repositoryBlacklister.isDisabled(REPOSITORY_ID)
+        !repositoryDisabler.isDisabled(REPOSITORY_ID)
 
         where:
         desc | exception

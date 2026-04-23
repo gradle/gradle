@@ -29,7 +29,6 @@ import org.gradle.internal.component.external.descriptor.Configuration;
 import org.gradle.internal.component.model.ExcludeMetadata;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -120,13 +119,13 @@ public class LazyToRealisedModuleComponentResolveMetadataHelper {
         List<GradleDependencyMetadata> result = new ArrayList<>(dependencies.size());
         for (ComponentVariant.Dependency dependency : dependencies) {
             ModuleComponentSelector selector = DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId(dependency.getGroup(), dependency.getModule()), dependency.getVersionConstraint(), dependency.getAttributes(), dependency.getCapabilitySelectors());
-            List<ExcludeMetadata> excludes = dependency.getExcludes();
+            ImmutableList<ExcludeMetadata> excludes = dependency.getExcludes();
             result.add(new GradleDependencyMetadata(selector, excludes, false, dependency.isEndorsingStrictVersions(), dependency.getReason(), force, dependency.getDependencyArtifact()));
         }
         for (ComponentVariant.DependencyConstraint dependencyConstraint : dependencyConstraints) {
             result.add(new GradleDependencyMetadata(
                 DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId(dependencyConstraint.getGroup(), dependencyConstraint.getModule()), dependencyConstraint.getVersionConstraint(), dependencyConstraint.getAttributes(), ImmutableSet.of()),
-                Collections.emptyList(),
+                ImmutableList.of(),
                 true,
                 false,
                 dependencyConstraint.getReason(),

@@ -16,14 +16,15 @@
 
 package org.gradle.internal.declarativedsl.schemaBuilder
 
+import org.gradle.declarative.dsl.evaluation.SchemaBuildingFailure
 import org.gradle.declarative.dsl.schema.AnalysisSchema
 
 interface SchemaFailureReporter {
-    fun report(partialSchema: AnalysisSchema, failures: List<SchemaResult.Failure>)
+    fun report(partialSchema: AnalysisSchema, failures: List<SchemaBuildingFailure>)
 }
 
 object ThrowingSchemaFailureReporter : SchemaFailureReporter {
-    override fun report(partialSchema: AnalysisSchema, failures: List<SchemaResult.Failure>) {
+    override fun report(partialSchema: AnalysisSchema, failures: List<SchemaBuildingFailure>) {
         if (failures.isNotEmpty()) {
             throw DeclarativeDslSchemaBuildingException(
                 if (failures.size == 1) {
@@ -35,5 +36,16 @@ object ThrowingSchemaFailureReporter : SchemaFailureReporter {
                 }
             )
         }
+    }
+}
+
+class CollectingSchemaFailureReporter : SchemaFailureReporter {
+    private val mutableFailures = mutableListOf<SchemaBuildingFailure>()
+
+    val failures: List<SchemaBuildingFailure>
+        get() = mutableFailures
+
+    override fun report(partialSchema: AnalysisSchema, failures: List<SchemaBuildingFailure>) {
+        this.mutableFailures.addAll(failures)
     }
 }

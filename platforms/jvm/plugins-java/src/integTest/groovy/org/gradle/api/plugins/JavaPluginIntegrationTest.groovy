@@ -159,7 +159,7 @@ Artifacts
             }
 
             dependencies {
-                sourceElements project
+                sourceElements project()
             }
 
             def testResolve = tasks.register('testResolve') {

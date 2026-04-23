@@ -17,6 +17,7 @@
 package org.gradle.kotlin.dsl.support
 
 import org.gradle.kotlin.dsl.fixtures.FolderBasedTest
+import org.gradle.kotlin.dsl.fixtures.walkReproducibly
 
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat

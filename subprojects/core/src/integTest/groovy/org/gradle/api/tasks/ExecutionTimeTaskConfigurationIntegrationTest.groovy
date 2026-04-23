@@ -17,27 +17,24 @@
 package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-
-import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache.Skip.INVESTIGATE
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 
 class ExecutionTimeTaskConfigurationIntegrationTest extends AbstractIntegrationSpec {
-    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def "fails when task is configured using #config during execution time"() {
         buildFile.text = """
             def anAction = {} as Action
 
-            task broken1 {
+            def broken1 = tasks.register("broken1") {
                 doLast {
                     $config
                 }
             }
 
-            task broken2 {
+            def broken2 = tasks.register("broken2") {
                 doLast {}
             }
 
-            task broken3 {
+            def broken3 = tasks.register("broken3") {
                 dependsOn broken2
                 doLast {
                     broken2.configure { $config }
@@ -52,6 +49,9 @@ class ExecutionTimeTaskConfigurationIntegrationTest extends AbstractIntegrationS
         then:
         failure.assertHasCause("Cannot call ${description} on task ':broken1' after task has started execution.")
         failure.assertHasCause("Cannot call ${description} on task ':broken2' after task has started execution.")
+        if (GradleContextualExecuter.configCache) {
+            failureDescriptionContains("Configuration cache problems found in this build.")
+        }
 
         where:
         config                                                      | description

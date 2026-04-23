@@ -53,7 +53,6 @@ class StartScriptGeneratorIntegrationTest extends AbstractIntegrationSpec {
                     generator.setApplicationName("Jar Starter")
                     generator.setGitRef("6c9eca778c871a6310d2c3f2c3d3f8e67a915538")
                     generator.setOptsEnvironmentVar("JAR_STARTER_OPTS")
-                    generator.setExitEnvironmentVar("JAR_STARTER_EXIT")
                     // The jar is at <output dir>/main.jar
                     generator.setEntryPoint(new ${ExecutableJar.class.getName()}("main.jar"))
                     // The script is at <output dir>/jar-starter

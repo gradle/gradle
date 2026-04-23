@@ -16,6 +16,7 @@
 
 package org.gradle.internal.enterprise.core
 
+import org.gradle.initialization.StartParameterBuildOptions
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.polyglot.PolyglotDslTest
 import org.gradle.integtests.fixtures.polyglot.PolyglotTestFixture
@@ -398,6 +399,65 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec implemen
         pluginNotApplied()
     }
 
+    def "does auto-apply plugin when develocity URL is configured via gradle.properties"() {
+        given:
+        file('gradle.properties') << """
+            com.gradle.develocity.url=https://develocity.example.com
+        """.stripIndent()
+
+        when:
+        runBuildWithoutScanRequest()
+
+        then:
+        pluginAppliedOnce()
+    }
+
+    def "does auto-apply plugin when develocity URL is configured via CLI"() {
+        when:
+        runBuildWithoutScanRequest("--develocity-url", "https://develocity.example.com")
+
+        then:
+        pluginAppliedOnce()
+    }
+
+    def "does auto-apply plugin when develocity URL is configured via environment variable"() {
+        given:
+        executer.withEnvironmentVars([(StartParameterBuildOptions.DevelocityUrlOption.ENVIRONMENT_VARIABLE):"https://develocity.example.com"])
+
+        when:
+        runBuildWithoutScanRequest()
+
+        then:
+        pluginAppliedOnce()
+    }
+
+    def "does auto-apply a different plugin version when develocity URL and plugin version are configured via gradle.properties"() {
+        given:
+        fixture.runtimeVersion = PLUGIN_NEWER_VERSION
+        fixture.artifactVersion = PLUGIN_NEWER_VERSION
+        fixture.publishDummyPlugin(executer)
+
+        file('gradle.properties') << """
+            com.gradle.develocity.url=https://develocity.example.com
+            com.gradle.develocity.plugin.version=$PLUGIN_NEWER_VERSION
+        """.stripIndent()
+
+        when:
+        runBuildWithoutScanRequest()
+
+        then:
+        pluginAppliedOnce()
+    }
+
+    def "fails to auto-apply plugin when develocity URL is configured via CLI but plugin version is set to incompatible version"() {
+        when:
+        fails("--develocity-url", "https://develocity.example.com", "--develocity-plugin-version", '4.3.0', 'dummy')
+
+        then:
+        failure.assertHasDescription("The specified Develocity plugin version '4.3.0' is not supported. Version 4.4.0 or higher is required when using a custom Develocity URL.")
+    }
+
+
     private void runBuildWithScanRequest(String... additionalArgs) {
         List<String> allArgs = ["--${BuildScanOption.LONG_OPTION}", "-s"]
 
@@ -409,7 +469,11 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec implemen
         runBuildWithoutScanRequest()
     }
 
-    private void runBuildWithoutScanRequest() {
+    private void runBuildWithoutScanRequest(String... additionalArgs) {
+        if (additionalArgs) {
+            args(additionalArgs)
+        }
+
         succeeds("dummy")
     }
 

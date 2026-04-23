@@ -16,7 +16,7 @@
 
 package org.gradle.internal.configuration.problems
 
-import org.gradle.internal.DisplayName
+import org.gradle.api.Describable
 import org.gradle.internal.cc.impl.problems.JsonWriter
 import org.gradle.internal.code.UserCodeSource
 import org.gradle.internal.configuration.problems.StructuredMessage.Fragment.Reference
@@ -179,7 +179,7 @@ sealed class PropertyTrace {
 
     @ConsistentCopyVisibility
     data class BuildLogic private constructor(
-        val source: DisplayName,
+        val source: Describable,
         val lineNumber: Int? = null
     ) : PropertyTrace() {
         constructor(location: Location) : this(location.sourceShortDisplayName, location.lineNumber)

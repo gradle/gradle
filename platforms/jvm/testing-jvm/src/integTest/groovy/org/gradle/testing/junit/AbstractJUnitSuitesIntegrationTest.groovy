@@ -17,7 +17,6 @@
 package org.gradle.testing.junit
 
 import org.gradle.api.internal.tasks.testing.report.generic.GenericHtmlTestExecutionResult
-import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
 import org.gradle.api.tasks.testing.TestResult
 import org.gradle.testing.fixture.AbstractTestingMultiVersionIntegrationTest
 import spock.lang.Issue
@@ -26,7 +25,6 @@ abstract class AbstractJUnitSuitesIntegrationTest extends AbstractTestingMultiVe
     abstract String getTestFrameworkSuiteDependencies()
     abstract String getTestFrameworkSuiteImports()
     abstract String getTestFrameworkSuiteAnnotations(String classes)
-    abstract GenericTestExecutionResult.TestFramework getTestFramework()
 
     def "test classes can be shared by multiple suites"() {
         given:
@@ -79,11 +77,11 @@ abstract class AbstractJUnitSuitesIntegrationTest extends AbstractTestingMultiVe
         then:
         GenericHtmlTestExecutionResult result = resultsFor()
         result.assertTestPathsExecuted(
-            ':org.gradle.SomeTestSuite:org.gradle.SomeTest:ok',
-            ':org.gradle.SomeOtherTestSuite:org.gradle.SomeTest:ok'
+            ":org.gradle.SomeTestSuite:org.gradle.SomeTest:${maybeParentheses('ok')}",
+            ":org.gradle.SomeOtherTestSuite:org.gradle.SomeTest:${maybeParentheses('ok')}"
         )
-        result.testPath(":org.gradle.SomeTestSuite:org.gradle.SomeTest:ok").onlyRoot().assertHasResult(TestResult.ResultType.SUCCESS)
-        result.testPath(":org.gradle.SomeOtherTestSuite:org.gradle.SomeTest:ok").onlyRoot().assertHasResult(TestResult.ResultType.SUCCESS)
+        result.testPath(":org.gradle.SomeTestSuite:org.gradle.SomeTest:${maybeParentheses('ok')}").onlyRoot().assertHasResult(TestResult.ResultType.SUCCESS)
+        result.testPath(":org.gradle.SomeOtherTestSuite:org.gradle.SomeTest:${maybeParentheses('ok')}").onlyRoot().assertHasResult(TestResult.ResultType.SUCCESS)
 
     }
 
@@ -131,12 +129,12 @@ abstract class AbstractJUnitSuitesIntegrationTest extends AbstractTestingMultiVe
         then:
         GenericHtmlTestExecutionResult result = resultsFor()
         result.assertTestPathsExecuted(
-            ':org.gradle.SomeTestSuite:org.gradle.TestRunBySuite:ok'
+            ":org.gradle.SomeTestSuite:org.gradle.TestRunBySuite:${maybeParentheses('ok')}"
         )
         result.assertTestPathsNotExecuted(
             ':org.gradle.TestRunBySuite',
-            ':org.gradle.TestRunBySuite:ok'
+            ":org.gradle.TestRunBySuite:${maybeParentheses('ok')}"
         )
-        result.testPath(":org.gradle.SomeTestSuite:org.gradle.TestRunBySuite:ok").onlyRoot().assertHasResult(TestResult.ResultType.SUCCESS)
+        result.testPath(":org.gradle.SomeTestSuite:org.gradle.TestRunBySuite:${maybeParentheses('ok')}").onlyRoot().assertHasResult(TestResult.ResultType.SUCCESS)
     }
 }

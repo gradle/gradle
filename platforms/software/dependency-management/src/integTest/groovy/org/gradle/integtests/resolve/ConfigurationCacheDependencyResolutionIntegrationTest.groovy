@@ -21,11 +21,11 @@ import org.gradle.integtests.resolve.transform.ArtifactTransformTestFixture
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import org.junit.Rule
 import spock.lang.Issue
 
-@Requires(value = IntegTestPreconditions.NotConfigCached, reason = "handles CC explicitly")
+@Requires(value = TestExecutionPreconditions.NotConfigCached, reason = "handles CC explicitly")
 class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractIntegrationSpec implements ArtifactTransformTestFixture {
     @Rule
     HttpServer httpServer = new HttpServer()
@@ -1109,7 +1109,7 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractInte
         outputContains("processing root.blue")
         outputContains("processing a.jar")
         outputContains("processing a.blue")
-        failure.assertHasFailure("Execution failed for task ':resolve'.") {
+        failure.assertHasFailure("Execution failed for task ':resolve' (registered in build file 'build.gradle').") {
             it.assertHasCause("Failed to transform root.blue to match attributes {artifactType=blue, color=green}.")
             it.assertHasCause("Failed to transform a.jar (project :a) to match attributes {artifactType=jar, color=green}.")
             it.assertHasCause("Failed to transform a.blue to match attributes {artifactType=blue, color=green}.")
@@ -1125,7 +1125,7 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractInte
         outputContains("processing root.blue")
         outputContains("processing a.jar")
         outputContains("processing a.blue")
-        failure.assertHasFailure("Execution failed for task ':resolve'.") {
+        failure.assertHasFailure("Execution failed for task ':resolve' (registered in build file 'build.gradle').") {
             it.assertHasCause("Failed to transform root.blue to match attributes {artifactType=blue, color=green}.")
             it.assertHasCause("Failed to transform a.jar (project :a) to match attributes {artifactType=jar, color=green}.")
             it.assertHasCause("Failed to transform a.blue to match attributes {artifactType=blue, color=green}.")
@@ -1165,7 +1165,7 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractInte
         output.count("processing") == 2
         outputContains("processing a.jar")
         outputContains("processing b.jar")
-        failure.assertHasFailure("Execution failed for task ':resolve'.") {
+        failure.assertHasFailure("Execution failed for task ':resolve' (registered in build file 'build.gradle').") {
             it.assertHasCause("Failed to transform a.jar (project :a) to match attributes {artifactType=jar, color=green}.")
             // TODO - should collect all failures rather than stopping on first failure
         }
@@ -1178,7 +1178,7 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractInte
         output.count("processing") == 2
         outputContains("processing a.jar")
         outputContains("processing b.jar")
-        failure.assertHasFailure("Execution failed for task ':resolve'.") {
+        failure.assertHasFailure("Execution failed for task ':resolve' (registered in build file 'build.gradle').") {
             it.assertHasCause("Failed to transform a.jar (project :a) to match attributes {artifactType=jar, color=green}.")
             // TODO - should collect all failures rather than stopping on first failure
         }
@@ -1221,7 +1221,7 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractInte
         output.count("processing") == 2
         outputContains("processing thing1-1.2.jar")
         outputContains("processing thing2-1.2.jar")
-        failure.assertHasFailure("Execution failed for task ':resolve'.") {
+        failure.assertHasFailure("Execution failed for task ':resolve' (registered in build file 'build.gradle').") {
             it.assertHasCause("Failed to transform thing1-1.2.jar (group:thing1:1.2) to match attributes {artifactType=jar, color=green, org.gradle.status=release}.")
             it.assertHasCause("Failed to transform thing2-1.2.jar (group:thing2:1.2) to match attributes {artifactType=jar, color=green, org.gradle.status=release}.")
         }
@@ -1234,7 +1234,7 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractInte
         output.count("processing") == 2
         outputContains("processing thing1-1.2.jar")
         outputContains("processing thing2-1.2.jar")
-        failure.assertHasFailure("Execution failed for task ':resolve'.") {
+        failure.assertHasFailure("Execution failed for task ':resolve' (registered in build file 'build.gradle').") {
             it.assertHasCause("Failed to transform thing1-1.2.jar (group:thing1:1.2) to match attributes {artifactType=jar, color=green, org.gradle.status=release}.")
             it.assertHasCause("Failed to transform thing2-1.2.jar (group:thing2:1.2) to match attributes {artifactType=jar, color=green, org.gradle.status=release}.")
         }
@@ -1272,12 +1272,12 @@ dependencies {
     }
 }
 
-val sourceFiles by configurations.creating {
+val sourceFiles = configurations.create("sourceFiles") {
     isCanBeConsumed = false
     isCanBeResolved = false
 }
 
-val summarizedFiles by configurations.creating {
+val summarizedFiles = configurations.create("summarizedFiles") {
     extendsFrom(sourceFiles)
     isCanBeConsumed = false
     isCanBeResolved = true

@@ -14,34 +14,46 @@
  * limitations under the License.
  */
 import gradlebuild.basics.BuildEnvironment
+import gradlebuild.basics.FileLocationProvider
 import gradlebuild.docs.FindBrokenInternalLinks
 import gradlebuild.integrationtests.tasks.DistributionTest
 import gradlebuild.performance.tasks.PerformanceTest
-import gradlebuild.testcleanup.extension.TestFilesCleanupBuildServiceRootExtension
+import gradlebuild.testcleanup.TestFilesCleanupService
 import me.champeau.gradle.japicmp.JapicmpTask
 
 if (BuildEnvironment.isCiServer && project.name != "gradle-kotlin-dsl-accessors") {
-    val globalExtension = rootProject.extensions.getByType<TestFilesCleanupBuildServiceRootExtension>()
-    project.gradle.taskGraph.whenReady {
-        val allTasks = this@whenReady.allTasks
-        val taskPathToReports = allTasks.associate { it.path to it.customReports() + it.attachedReportLocations() }.filter { it.value.isNotEmpty() }
-        globalExtension.taskPathToReports = taskPathToReports
+    val testFilesCleanupService = project.gradle.sharedServices.registerIfAbsent("testFilesCleanupBuildService", TestFilesCleanupService::class.java) {
+        throw IllegalStateException("Must be already created")
+    }
+
+    project.tasks.withType<ValidatePlugins>().configureEach {
+        testFilesCleanupService.get().addTaskReports(path, validatePluginsReports())
+    }
+
+    project.tasks.withType<FindBrokenInternalLinks>().configureEach {
+        testFilesCleanupService.get().addTaskReports(path, findBrokenInternalLinksReports())
+    }
+    project.tasks.withType<DistributionTest>().configureEach {
+        testFilesCleanupService.get().addTaskReports(path, distributionReports())
+    }
+    project.tasks.withType<JapicmpTask>().configureEach {
+        testFilesCleanupService.get().addTaskReports(path, japicmpReports())
+    }
+    project.tasks.withType<PerformanceTest>().configureEach {
+        testFilesCleanupService.get().addTaskReports(path, performanceTestReports())
     }
 }
 
-fun Task.customReports(): List<File> = when (this) {
-    is ValidatePlugins -> listOf(outputFile.get().asFile)
-    is FindBrokenInternalLinks -> listOf(reportFile.get().asFile)
-    is DistributionTest -> listOf(
-        gradleInstallationForTest.gradleUserHomeDir.dir("test-kit-daemon").get().asFile,
-        gradleInstallationForTest.gradleUserHomeDir.dir("kotlin-compiler-daemon").get().asFile,
-        gradleInstallationForTest.daemonRegistry.get().asFile
-    )
-    else -> emptyList()
-}
+fun ValidatePlugins.validatePluginsReports(): List<FileLocationProvider> = listOf(outputFile)
 
-fun Task.attachedReportLocations() = when (this) {
-    is JapicmpTask -> listOf(richReport.get().destinationDir.get().asFile.resolve(richReport.get().reportName.get()))
-    is PerformanceTest -> listOf(reportDir.parentFile)
-    else -> emptyList()
-}
+fun FindBrokenInternalLinks.findBrokenInternalLinksReports(): List<FileLocationProvider> = listOf(reportFile)
+
+fun DistributionTest.distributionReports(): List<FileLocationProvider> = listOf(
+    gradleInstallationForTest.gradleUserHomeDir.dir("test-kit-daemon"),
+    gradleInstallationForTest.gradleUserHomeDir.dir("kotlin-compiler-daemon"),
+    gradleInstallationForTest.daemonRegistry,
+)
+
+fun JapicmpTask.japicmpReports(): List<FileLocationProvider> = listOf(richReport.flatMap { it.destinationDir.file(it.reportName) })
+
+fun PerformanceTest.performanceTestReports(): List<FileLocationProvider> = listOf(layout.file(provider { reportDir.parentFile }))

@@ -23,8 +23,9 @@ import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 import org.gradle.internal.jvm.Jvm
 import org.gradle.test.precondition.Requires
 import org.gradle.test.precondition.TestPrecondition
-import org.gradle.test.preconditions.IntegTestPreconditions
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.InstalledJdkTestPreconditions
+import org.gradle.test.preconditions.JdkVersionTestPreconditions
+
 import org.gradle.workers.fixtures.OptionsVerifier
 import org.gradle.workers.fixtures.WorkerExecutorFixture
 import org.junit.Assume
@@ -34,7 +35,7 @@ import static org.gradle.util.internal.TextUtil.normaliseFileSeparators
 
 @IntegrationTestTimeout(180)
 class WorkerDaemonIntegrationTest extends AbstractWorkerExecutorIntegrationTest implements JavaToolchainFixture {
-    boolean isOracleJDK = TestPrecondition.satisfied(UnitTestPreconditions.JdkOracle) && (Jvm.current().jre != null)
+    boolean isOracleJDK = TestPrecondition.satisfied(JdkVersionTestPreconditions.JdkOracle) && (Jvm.current().jre != null)
 
     WorkerExecutorFixture.WorkActionClass workActionThatPrintsWorkingDirectory
 
@@ -148,7 +149,7 @@ class WorkerDaemonIntegrationTest extends AbstractWorkerExecutorIntegrationTest 
         assertWorkerExecuted("runInDaemon")
     }
 
-    @Requires(IntegTestPreconditions.Java11HomeAvailable)
+    @Requires(InstalledJdkTestPreconditions.Java11HomeAvailable)
     def "worker daemons honor different executable specified in fork options"() {
         def differentJvm = AvailableJavaHomes.differentJdkWithValidJre
         Assume.assumeNotNull(differentJvm)

@@ -44,7 +44,7 @@ public class DefaultActionExecutionSpecFactory implements ActionExecutionSpecFac
             spec.getClassLoaderStructure(),
             spec.getBaseDir(),
             spec.getProjectCacheDir(),
-            spec.getAdditionalWhitelistedServices().stream().map(Class::getName).collect(Collectors.toSet())
+            spec.getAdditionalAllowedServices().stream().map(Class::getName).collect(Collectors.toSet())
         );
     }
 
@@ -54,7 +54,7 @@ public class DefaultActionExecutionSpecFactory implements ActionExecutionSpecFac
         Class<? extends WorkAction<T>> implementationClass,
         T params,
         WorkerRequirement workerRequirement,
-        Set<Class<?>> additionalWhitelistedServices
+        Set<Class<?>> additionalAllowedServices
     ) {
         ClassLoaderStructure classLoaderStructure = workerRequirement instanceof IsolatedClassLoaderWorkerRequirement
             ? ((IsolatedClassLoaderWorkerRequirement) workerRequirement).getClassLoaderStructure()
@@ -68,23 +68,23 @@ public class DefaultActionExecutionSpecFactory implements ActionExecutionSpecFac
             classLoaderStructure,
             workerRequirement.getWorkerDirectory(),
             workerRequirement.getProjectCacheDir(),
-            additionalWhitelistedServices
+            additionalAllowedServices
         );
     }
 
     @Override
     public <T extends WorkParameters> SimpleActionExecutionSpec<T> newSimpleSpec(IsolatedParametersActionExecutionSpec<T> spec) {
         T params = Cast.uncheckedCast(spec.getIsolatedParams().isolate());
-        return new SimpleActionExecutionSpec<>(spec.getImplementationClass(), params, spec.getAdditionalWhitelistedServices());
+        return new SimpleActionExecutionSpec<>(spec.getImplementationClass(), params, spec.getAdditionalAllowedServices());
     }
 
     @Override
     public <T extends WorkParameters> SimpleActionExecutionSpec<T> newSimpleSpec(TransportableActionExecutionSpec spec) {
         T params = Cast.uncheckedCast(serializerRegistry.deserialize(spec.getSerializedParameters()).isolate());
-        Set<Class<?>> additionalWhitelistedServices = spec.getAdditionalWhitelistedServicesClassNames()
+        Set<Class<?>> additionalAllowedServices = spec.getAdditionalAllowedServicesClassNames()
             .stream().map(DefaultActionExecutionSpecFactory::fromClassName)
             .collect(Collectors.toSet());
-        return new SimpleActionExecutionSpec<>(Cast.uncheckedCast(fromClassName(spec.getImplementationClassName())), params, additionalWhitelistedServices);
+        return new SimpleActionExecutionSpec<>(Cast.uncheckedCast(fromClassName(spec.getImplementationClassName())), params, additionalAllowedServices);
     }
 
     static Class<?> fromClassName(String className) {

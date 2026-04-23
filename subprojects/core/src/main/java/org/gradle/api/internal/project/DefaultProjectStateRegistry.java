@@ -25,8 +25,8 @@ import org.gradle.initialization.ProjectDescriptorInternal;
 import org.gradle.initialization.ProjectDescriptorRegistry;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
-import org.gradle.internal.Factories;
 import org.gradle.internal.Factory;
+import org.gradle.internal.build.AllProjectsAccess;
 import org.gradle.internal.build.BuildProjectRegistry;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.concurrent.CompositeStoppable;
@@ -38,6 +38,7 @@ import org.gradle.internal.resources.ResourceLock;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.util.Path;
+import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
 import java.io.Closeable;
@@ -201,6 +202,7 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry, Closea
         CompositeStoppable.stoppable(projectsByPath.values()).stop();
     }
 
+    @NullMarked
     private static class DefaultBuildProjectRegistry implements BuildProjectRegistry {
         private final BuildState owner;
         private final WorkerLeaseService workerLeaseService;
@@ -243,18 +245,43 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry, Closea
         }
 
         @Override
-        public void withMutableStateOfAllProjects(Runnable runnable) {
-            withMutableStateOfAllProjects(Factories.toFactory(runnable));
-        }
-
-        @Override
-        public <T> T withMutableStateOfAllProjects(Factory<T> factory) {
+        public <T extends @Nullable Object> T fromMutableStateOfAllProjects(Function<AllProjectsAccess, T> factory) {
             ResourceLock allProjectsLock = workerLeaseService.getAllProjectsLock(owner.getIdentityPath());
             Collection<? extends ResourceLock> locks = workerLeaseService.getCurrentProjectLocks();
-            return workerLeaseService.withReplacedLocks(locks, allProjectsLock, factory);
+            return workerLeaseService.withReplacedLocks(locks, allProjectsLock, () ->
+                factory.apply(new AllProjectsAccessImpl(owner, workerLeaseService, allProjectsLock))
+            );
         }
     }
 
+    @NullMarked
+    private static final class AllProjectsAccessImpl implements AllProjectsAccess {
+        private final BuildState owner;
+        private final WorkerLeaseService workerLeaseService;
+        private final ResourceLock allProjectsLock;
+
+        private AllProjectsAccessImpl(BuildState owner, WorkerLeaseService workerLeaseService, ResourceLock allProjectsLock) {
+            this.owner = owner;
+            this.workerLeaseService = workerLeaseService;
+            this.allProjectsLock = allProjectsLock;
+        }
+
+        @Override
+        public ProjectInternal getMutableModel(ProjectState project) {
+            if (!project.getOwner().getIdentityPath().equals(owner.getIdentityPath())) {
+                throw new IllegalArgumentException(
+                    "Attempting to access mutable state of " + project.getIdentityPath() + " using AllProjectsAccess for " + owner.getIdentityPath() + "." +
+                        " AllProjectsAccess can only be used to access the mutable state of projects in the same build.");
+            }
+            if (!workerLeaseService.getCurrentProjectLocks().contains(allProjectsLock)) {
+                throw new IllegalStateException("Cannot access mutable project state without holding the all projects lock for " + owner.getDisplayName() + ".");
+            }
+            // SAFETY: The caller is only allowed to call this method while holding the all projects lock
+            return project.getMutableModel();
+        }
+    }
+
+    @NullMarked
     private class ProjectStateImpl implements ProjectState, Closeable {
 
         private final ProjectDescriptorInternal descriptor;
@@ -446,12 +473,12 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry, Closea
         }
 
         @Override
-        public <S> S fromMutableState(Function<? super ProjectInternal, ? extends S> function) {
+        public <S extends @Nullable Object> S fromMutableState(Function<? super ProjectInternal, ? extends S> function) {
             return runWithModelLock(() -> function.apply(getMutableModel()));
         }
 
         @Override
-        public <S> S runWithModelLock(Supplier<S> action) {
+        public <S extends @Nullable Object> S runWithModelLock(Supplier<S> action) {
             Thread currentThread = Thread.currentThread();
             if (workerLeaseService.isAllowedUncontrolledAccessToAnyProject() || canDoAnythingToThisProject.contains(currentThread)) {
                 // Current thread is allowed to access anything at any time, so run the action

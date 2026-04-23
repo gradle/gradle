@@ -30,7 +30,7 @@ import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.internal.consumer.ConnectionParameters
 import org.gradle.tooling.internal.consumer.Distribution
@@ -48,7 +48,7 @@ import static spock.lang.Retry.Mode.SETUP_FEATURE_CLEANUP
 
 @Issue("GRADLE-1933")
 @Retry(condition = { onWindowsSocketDisappearance(instance, failure) }, mode = SETUP_FEATURE_CLEANUP, count = 2)
-@Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "concurrent tooling api is only supported for forked mode")
+@Requires(value = TestExecutionPreconditions.NotEmbeddedExecutor, reason = "concurrent tooling api is only supported for forked mode")
 class ConcurrentToolingApiIntegrationSpec extends AbstractIntegrationSpec implements OtherGradleVersionFixture {
 
     @Rule
@@ -270,11 +270,11 @@ project.description = text
         concurrent.finished()
     }
 
-    static void distributionProgressMessage(connector, String message) {
+    static void distributionProgressMessage(ToolingApiConnector connector, String message) {
         connector.distribution = new ConfigurableDistribution(delegate: connector.distribution, operation: { it.description = message })
     }
 
-    static void distributionOperation(connector, Closure operation) {
+    static void distributionOperation(ToolingApiConnector connector, Closure operation) {
         connector.distribution = new ConfigurableDistribution(delegate: connector.distribution, operation: operation)
     }
 

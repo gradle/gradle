@@ -18,7 +18,7 @@ package gradlebuild.performance.generator.tasks
 import org.gradle.work.DisableCachingByDefault
 
 @DisableCachingByDefault(because = "Not made cacheable, yet")
-class KtsProjectGeneratorTask extends JvmProjectGeneratorTask {
+abstract class KtsProjectGeneratorTask extends JvmProjectGeneratorTask {
 
     KtsProjectGeneratorTask() {
         this.rootProjectTemplates = ['kts-settings', 'kts-empty', 'gradle-properties']
@@ -37,7 +37,7 @@ class KtsProjectGeneratorTask extends JvmProjectGeneratorTask {
 
     @Override
     List<String> getEffectiveRootProjectTemplates() {
-        subprojectNames.empty ? (subProjectTemplates + ['kts-settings', 'gradle-properties']) : rootProjectTemplates
+        hasSubprojects() ? rootProjectTemplates : (subProjectTemplates + ['kts-settings', 'gradle-properties'])
     }
 }
 

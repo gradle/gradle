@@ -15,14 +15,14 @@
  */
 
 plugins {
-    id("gradlebuild.distribution.implementation-java")
+    id("gradlebuild.internal.java")
 }
 
 dependencies {
     api(projects.internalInstrumentationApi)
 
     api(libs.asm)
-    api(libs.javaPoet)
+    api(buildLibs.javaPoet)
     api(libs.jspecify)
 
     implementation(libs.asmTree)

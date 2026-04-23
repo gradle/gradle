@@ -267,7 +267,7 @@ public abstract class SigningExtension {
      */
     @SuppressWarnings("unused")
     public void useInMemoryPgpKeys(@Nullable String defaultSecretKey, @Nullable String defaultPassword) {
-        setSignatories(new InMemoryPgpSignatoryProvider(defaultSecretKey, defaultPassword));
+        setSignatories(new InMemoryPgpSignatoryProvider(project, defaultSecretKey, defaultPassword));
     }
 
     /**
@@ -288,7 +288,7 @@ public abstract class SigningExtension {
      */
     @SuppressWarnings("unused")
     public void useInMemoryPgpKeys(@Nullable String defaultKeyId, @Nullable String defaultSecretKey, @Nullable String defaultPassword) {
-        setSignatories(new InMemoryPgpSignatoryProvider(defaultKeyId, defaultSecretKey, defaultPassword));
+        setSignatories(new InMemoryPgpSignatoryProvider(project, defaultKeyId, defaultSecretKey, defaultPassword));
     }
 
     /**

@@ -20,6 +20,9 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.jvm.SupportedJavaVersions
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.JdkVersionTestPreconditions
+
 import org.junit.Assume
 import spock.lang.Issue
 
@@ -763,6 +766,7 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
     }
 
     @Issue("https://github.com/gradle/gradle/issues/23049")
+    @Requires(value = JdkVersionTestPreconditions.KotlinSupportedJdk.class)
     def "nested Kotlin #typeName is validated with warning"() {
         kotlinTaskSource << """
             import org.gradle.api.*;

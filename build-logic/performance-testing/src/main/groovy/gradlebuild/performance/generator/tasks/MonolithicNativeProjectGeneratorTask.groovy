@@ -36,7 +36,7 @@ import org.gradle.work.DisableCachingByDefault
  * in a way that doesn't allow us to reuse the compilation steps (we don't do this now).
  */
 @DisableCachingByDefault(because = "Not made cacheable, yet")
-class MonolithicNativeProjectGeneratorTask extends AbstractProjectGeneratorTask {
+abstract class MonolithicNativeProjectGeneratorTask extends AbstractProjectGeneratorTask {
 
     def generateRootProject() {
         super.generateRootProject()

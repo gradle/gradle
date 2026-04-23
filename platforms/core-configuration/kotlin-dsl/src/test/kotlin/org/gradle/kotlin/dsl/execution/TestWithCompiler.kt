@@ -93,14 +93,13 @@ abstract class TestWithCompiler : TestWithTempFiles() {
     fun scriptHostWith(
         target: Any = mock(),
         scriptHandler: ScriptHandlerInternal = mock()
-    ) = KotlinScriptHost(target, scriptSource(), scriptHandler, mock(), mock(), mock {
+    ) = KotlinScriptHost(target, scriptSource(), scriptHandler, mock(), mock(), mock(), mock {
         on { get(ObjectFactory::class.java) } doAnswer { mock<ObjectFactory>() }
     })
 
     private
     fun scriptSource(): ScriptSource = mock {
         on { fileName } doReturn "script.gradle.kts"
-        on { className } doReturn "Script_gradle"
     }
 }
 

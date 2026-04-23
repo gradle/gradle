@@ -18,9 +18,9 @@ package org.gradle.api.tasks.compile
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 
-@Requires(IntegTestPreconditions.NotParallelExecutor)
+@Requires(TestExecutionPreconditions.NotParallelExecutor)
 class JavaAnnotationProcessingCompileAvoidanceIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
         settingsFile << "include 'a', 'b'"

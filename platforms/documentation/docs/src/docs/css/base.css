@@ -1,4 +1,7 @@
-/* Lato (bold, regular) */
+/*
+ * Gradle Markdown Theme
+ */
+
 @font-face {
     font-display: swap;
     font-family: Lato;
@@ -538,7 +541,7 @@ h3.releaseinfo {
     display: none;
     width: 170px;
     background-color: white;
-    top: 40px;
+    top: 100%;
     left: 7px; /* NOTE: This must match the padding of .site-header__navigation-link */
     padding: 3px 10px 6px 10px;
     z-index: 100;
@@ -1555,7 +1558,6 @@ div.example code.filename {
         flex: 0.2 1 auto;
     }
 }
-
 
 @supports (-moz-appearance:meterbar) and (background-blend-mode:difference,normal) {
     /* Firefox only */

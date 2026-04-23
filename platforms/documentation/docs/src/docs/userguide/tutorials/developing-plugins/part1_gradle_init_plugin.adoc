@@ -42,7 +42,7 @@ Let's get started by creating our project.
 
 First, create a new directory called `plugin-tutorial` and navigate into it:
 
-[source,text]
+[source,bash]
 ----
 $ mkdir plugin-tutorial
 $ cd plugin-tutorial
@@ -164,8 +164,8 @@ When you're writing a plugin, you'll use the `java-gradle-plugin` to:
 This is what the `gradlePlugin {}` and `plugins {}` block looks like:
 
 ====
-include::sample[dir="snippets/plugins/plugin-tutorial/kotlin",files="plugin/build.gradle.kts[tags=plugin-init]"]
-include::sample[dir="snippets/plugins/plugin-tutorial/groovy",files="plugin/build.gradle[tags=plugin-init]"]
+include::sample[dir="snippets/tutorials/developing-plugins/plugin-tutorial/kotlin",files="plugin/build.gradle.kts[tags=plugin-init]"]
+include::sample[dir="snippets/tutorials/developing-plugins/plugin-tutorial/groovy",files="plugin/build.gradle[tags=plugin-init]"]
 ====
 
 * `gradlePlugin {}`: This is where you configure the plugins you're authoring.
@@ -175,18 +175,21 @@ include::sample[dir="snippets/plugins/plugin-tutorial/groovy",files="plugin/buil
 == Step 4: Review the Plugin Code
 
 The plugin code is a simple "Hello, World!" example that `gradle init` generated for us.
-[.multi-language-text.lang-kotlin]
-----
-You can find it at `plugin/src/main/kotlin/org/example/PluginTutorialPlugin.kt`:
-----
-[.multi-language-text.lang-groovy]
-----
-You can find it at `plugin/src/main/groovy/org/example/PluginTutorialPlugin.groovy`:
-----
 
 ====
-include::sample[dir="snippets/plugins/plugin-tutorial/kotlin",files="plugin/src/main/kotlin/org/example/PluginTutorialPlugin.kt[]"]
-include::sample[dir="snippets/plugins/plugin-tutorial/groovy",files="plugin/src/main/groovy/org/example/PluginTutorialPlugin.groovy[]"]
+[.multi-language-text.lang-kotlin]
+=====
+You can find it at `plugin/src/main/kotlin/org/example/PluginTutorialPlugin.kt`:
+=====
+[.multi-language-text.lang-groovy]
+=====
+You can find it at `plugin/src/main/groovy/org/example/PluginTutorialPlugin.groovy`:
+=====
+====
+
+====
+include::sample[dir="snippets/tutorials/developing-plugins/plugin-tutorial/kotlin",files="plugin/src/main/kotlin/org/example/PluginTutorialPlugin.kt[]"]
+include::sample[dir="snippets/tutorials/developing-plugins/plugin-tutorial/groovy",files="plugin/src/main/groovy/org/example/PluginTutorialPlugin.groovy[]"]
 ====
 
 * `Plugin<Project>`: Our plugin needs to implement this interface to work with a `Project` object.

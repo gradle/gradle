@@ -17,15 +17,10 @@
 package org.gradle.integtests.fixtures
 
 import groovy.transform.CompileStatic
-import org.gradle.api.specs.Spec
-import org.gradle.api.specs.Specs
 import org.gradle.integtests.fixtures.executer.GradleExecuter
-import org.gradle.internal.operations.BuildOperationType
 import org.gradle.internal.operations.trace.BuildOperationRecord
 import org.gradle.internal.operations.trace.BuildOperationTrace
 import org.gradle.test.fixtures.file.TestDirectoryProvider
-
-import java.util.regex.Pattern
 
 @CompileStatic
 class BuildOperationsFixture extends BuildOperationTreeQueries {
@@ -52,75 +47,23 @@ class BuildOperationsFixture extends BuildOperationTreeQueries {
         getTree().roots
     }
 
+    @Override
+    List<BuildOperationRecord> getRecords() {
+        getTree().records
+    }
+
+    @Override
+    List<BuildOperationRecord> parentsOf(def child) {
+        getTree().parentsOf(child)
+    }
+
+    @Override
+    BuildOperationRecord withId(Long child) {
+        getTree().withId(child)
+    }
+
     List<BuildOperationRecord> getDanglingChildren() {
         new BuildOperationTreeFixture(BuildOperationTrace.readPartialTree(path)).roots.findAll { it.parentId != null }
-    }
-
-    @Override
-    @SuppressWarnings("GrUnnecessaryPublicModifier")
-    public <T extends BuildOperationType<?, ?>> BuildOperationRecord root(Class<T> type, Spec<? super BuildOperationRecord> predicate = Specs.satisfyAll()) {
-        return getTree().root(type, predicate)
-    }
-
-    @Override
-    @SuppressWarnings("GrUnnecessaryPublicModifier")
-    public <T extends BuildOperationType<?, ?>> BuildOperationRecord first(Class<T> type, Spec<? super BuildOperationRecord> predicate = Specs.satisfyAll()) {
-        return getTree().first(type, predicate)
-    }
-
-    @Override
-    @SuppressWarnings("GrUnnecessaryPublicModifier")
-    public <T extends BuildOperationType<?, ?>> boolean isType(BuildOperationRecord record, Class<T> type) {
-        return getTree().isType(record, type)
-    }
-
-    @Override
-    @SuppressWarnings("GrUnnecessaryPublicModifier")
-    public <T extends BuildOperationType<?, ?>> List<BuildOperationRecord> all(Class<T> type, Spec<? super BuildOperationRecord> predicate = Specs.satisfyAll()) {
-        return getTree().all(type, predicate)
-    }
-
-    @Override
-    BuildOperationRecord first(Pattern displayName) {
-        return getTree().first(displayName)
-    }
-
-    @Override
-    List<BuildOperationRecord> all() {
-        return getTree().all()
-    }
-
-    @Override
-    List<BuildOperationRecord> all(Pattern displayName) {
-        return getTree().all(displayName)
-    }
-
-    @Override
-    BuildOperationRecord only(Pattern displayName) {
-        return getTree().only(displayName)
-    }
-
-    @Override
-    BuildOperationRecord singleOrNone(Pattern displayName) {
-        return getTree().singleOrNone(displayName)
-    }
-
-    @Override
-    List<BuildOperationRecord> parentsOf(BuildOperationRecord child) {
-        return getTree().parentsOf(child)
-    }
-
-    @Override
-    void none(Pattern displayName) {
-        getTree().none(displayName)
-    }
-
-    @Override
-    void debugTree(
-        Spec<? super BuildOperationRecord> predicate = Specs.SATISFIES_ALL,
-        Spec<? super BuildOperationRecord> progressPredicate = Specs.SATISFIES_ALL
-    ) {
-        getTree().debugTree(predicate, progressPredicate)
     }
 
     private BuildOperationTreeFixture getTree() {

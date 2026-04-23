@@ -226,11 +226,11 @@ class IsolatedProjectsFixture {
     }
 
     private void assertProjectsConfigured(HasIntermediateDetails details) {
-        def configuredProjects = buildOperations.all(ConfigureProjectBuildOperationType)
+        def configuredProjects = buildOperations.typed(ConfigureProjectBuildOperationType)
         assert configuredProjects.collect { fullPath(it) }.toSet() == details.projects
 
         // Scripts - one or more for settings, and one for each project build script
-        def scripts = buildOperations.all(ApplyScriptPluginBuildOperationType)
+        def scripts = buildOperations.typed(ApplyScriptPluginBuildOperationType)
         assert !scripts.empty
         def sortedScripts = scripts.toSorted { it -> it.startTime }
         assert sortedScripts.first().details.targetType == "settings"
@@ -275,7 +275,7 @@ class IsolatedProjectsFixture {
     }
 
     private List<ModelRequest> modelRequests() {
-        buildOperations.all(QueryToolingModelBuildOperationType).collect { new ModelRequest(it) }
+        buildOperations.typed(QueryToolingModelBuildOperationType).collect { new ModelRequest(it) }
     }
 
     private static String fullPath(BuildOperationRecord operationRecord) {

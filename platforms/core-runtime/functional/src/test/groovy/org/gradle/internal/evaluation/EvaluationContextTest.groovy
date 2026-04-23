@@ -245,6 +245,47 @@ class EvaluationContextTest extends Specification {
         result == "fallback"
     }
 
+    def "can evaluate deeper than initial capacity of 8 levels"() {
+        given:
+        def depth = 12
+        def owners = (1..depth).collect { createOwner() }
+        def evaluation = Mock(TestEvaluation)
+
+        when:
+        def result = nestEvaluations(owners, 0, evaluation)
+
+        then:
+        1 * evaluation.evaluate() >> "deep result"
+        result == "deep result"
+    }
+
+    def "detects cycle at depth beyond initial capacity of 8"() {
+        given:
+        def depth = 10
+        def owners = (1..depth).collect { createOwner() }
+
+        when:
+        nestEvaluations(owners, 0) {
+            // Re-evaluate the first owner to trigger a cycle spanning all levels
+            context().evaluate(owners[0]) {}
+        }
+
+        then:
+        CircularEvaluationException ex = thrown()
+        ex.evaluationCycle.first() === owners[0]
+        ex.evaluationCycle.last() === owners[0]
+        ex.evaluationCycle.size() == depth + 1
+    }
+
+    private String nestEvaluations(List<EvaluationOwner> owners, int index, ScopedEvaluation<String, RuntimeException> leaf) {
+        if (index == owners.size()) {
+            return leaf.evaluate()
+        }
+        return context().evaluate(owners[index]) {
+            nestEvaluations(owners, index + 1, leaf)
+        }
+    }
+
     BiFunction<EvaluationOwner, TestEvaluation, String> evaluateInLambda() {
         return new BiFunction<EvaluationOwner, TestEvaluation, String>() {
             @Override

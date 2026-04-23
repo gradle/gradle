@@ -16,10 +16,10 @@
 
 package org.gradle.internal.declarativedsl.project
 
-import org.gradle.api.internal.plugins.BindsProjectType
-import org.gradle.api.internal.plugins.ProjectTypeBinding
-import org.gradle.api.internal.plugins.ProjectTypeBindingBuilder
-import org.gradle.api.internal.plugins.software.RegistersSoftwareTypes
+import org.gradle.features.annotations.BindsProjectType
+import org.gradle.features.annotations.RegistersProjectFeatures
+import org.gradle.features.binding.ProjectTypeBinding
+import org.gradle.features.binding.ProjectTypeBindingBuilder
 import org.gradle.features.registration.TaskRegistrar
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.intellij.lang.annotations.Language
@@ -275,15 +275,15 @@ secondaryAccess { three, true, true}"""
 
         import java.util.ArrayList;
         import java.util.List;
-        import org.gradle.api.internal.plugins.Definition;import org.gradle.declarative.dsl.model.annotations.Adding;
+        import org.gradle.declarative.dsl.model.annotations.Adding;
         import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition;
         import org.gradle.api.Action;
         import org.gradle.api.model.ObjectFactory;
         import org.gradle.api.provider.ListProperty;
         import org.gradle.api.provider.MapProperty;
         import org.gradle.api.provider.Property;
-        import org.gradle.api.internal.plugins.Definition;
-        import org.gradle.api.internal.plugins.BuildModel;
+        import org.gradle.features.binding.Definition;
+        import org.gradle.features.binding.BuildModel;
 
         import javax.inject.Inject;
 
@@ -383,8 +383,8 @@ secondaryAccess { three, true, true}"""
         import org.gradle.api.provider.Property
         import org.gradle.declarative.dsl.model.annotations.Adding
         import javax.inject.Inject
-        import org.gradle.api.internal.plugins.Definition
-        import org.gradle.api.internal.plugins.BuildModel
+        import org.gradle.features.binding.Definition
+        import org.gradle.features.binding.BuildModel
 
         abstract class Extension @Inject constructor(private val objects: ObjectFactory) : Definition<Extension.Model> {
             val primaryAccess: Access
@@ -466,9 +466,9 @@ secondaryAccess { three, true, true}"""
         import org.gradle.api.Plugin;
         import org.gradle.api.initialization.Settings;
         import org.gradle.api.internal.SettingsInternal;
-        import ${RegistersSoftwareTypes.class.name};
+        import ${RegistersProjectFeatures.class.name};
 
-        @RegistersSoftwareTypes({ RestrictedPlugin.class })
+        @${RegistersProjectFeatures.class.simpleName}({ RestrictedPlugin.class })
         abstract public class SoftwareTypeRegistrationPlugin implements Plugin<Settings> {
             @Override
             public void apply(Settings target) {

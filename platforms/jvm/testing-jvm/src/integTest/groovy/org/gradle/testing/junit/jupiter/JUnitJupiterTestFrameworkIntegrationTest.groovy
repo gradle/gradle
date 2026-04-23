@@ -16,7 +16,7 @@
 
 package org.gradle.testing.junit.jupiter
 
-import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
+
 import org.gradle.testing.AbstractTestFrameworkIntegrationTest
 import org.gradle.testing.fixture.JUnitCoverage
 
@@ -39,8 +39,8 @@ class JUnitJupiterTestFrameworkIntegrationTest extends AbstractTestFrameworkInte
     }
 
     @Override
-    GenericTestExecutionResult.TestFramework getTestFramework() {
-        return GenericTestExecutionResult.TestFramework.JUNIT_JUPITER
+    boolean isJUnitJupiter() {
+        return true
     }
 
     @Override

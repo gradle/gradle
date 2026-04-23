@@ -19,7 +19,7 @@ package org.gradle.nativeplatform
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 
 class NativeDependentComponentsReportIntegrationTest extends AbstractIntegrationSpec {
 
@@ -232,7 +232,7 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
         }.join('\n')
     }
 
-    @Requires(IntegTestPreconditions.NotParallelExecutor)
+    @Requires(TestExecutionPreconditions.NotParallelExecutor)
     def "can show dependent components in parallel"() {
         given: 'a multiproject build'
         settingsFile.text = multiProjectSettings()
@@ -368,7 +368,7 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
         fails 'dependentComponents'
 
         then:
-        failure.assertHasDescription "Execution failed for task ':dependentComponents'."
+        failure.assertHasDescription "Execution failed for task ':dependentComponents' (registered by plugin 'org.gradle.component-reporting-tasks')."
         failure.assertHasCause '''
             Circular dependency between the following binaries:
             lib:sharedLibrary
@@ -403,7 +403,7 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
         fails 'dependentComponents'
 
         then:
-        failure.assertHasDescription "Execution failed for task ':dependentComponents'."
+        failure.assertHasDescription "Execution failed for task ':dependentComponents' (registered by plugin 'org.gradle.component-reporting-tasks')."
         failure.assertHasCause '''
             Circular dependency between the following binaries:
             another:sharedLibrary
@@ -438,7 +438,7 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
         fails 'api:dependentComponents'
 
         then:
-        failure.assertHasDescription "Execution failed for task ':api:dependentComponents'."
+        failure.assertHasDescription "Execution failed for task ':api:dependentComponents' (registered by plugin 'org.gradle.component-reporting-tasks')."
         failure.assertHasCause '''
             Circular dependency between the following binaries:
             :api:api:sharedLibrary

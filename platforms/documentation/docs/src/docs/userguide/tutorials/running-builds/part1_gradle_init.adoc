@@ -43,10 +43,12 @@ NOTE: This tutorial primarily uses macOS and the command line for examples, but 
 
 To test the Gradle installation, run Gradle from the command-line:
 
-[source,text]
+[source,bash]
 ----
 $ gradle
-
+----
+[source,text]
+----
 Welcome to Gradle 8.13.
 
 Directory '/' does not contain a Gradle build.
@@ -58,12 +60,12 @@ If Gradle is not installed, please refer to the <<installation.adoc#installation
 
 Create a new directory called `tutorial` and `cd` into it:
 
-[source,text]
+[source,bash]
 ----
 $ mkdir tutorial
 ----
 
-[source,text]
+[source,bash]
 ----
 $ cd tutorial
 ----
@@ -153,14 +155,14 @@ From now on, you will never invoke Gradle directly; instead, you will use the Gr
 
 Use the wrapper by entering the following command:
 
-[source,text]
+[source,bash]
 ----
 $ ./gradlew build
 ----
 
 In Windows, the command is:
 
-[source,text]
+[source,shell]
 ----
 $ gradlew.bat build
 ----
@@ -186,11 +188,11 @@ The Gradle Wrapper is designed to be committed to source control so that anyone 
 
 In this case, we invoked Gradle through the wrapper to build our project, so we can see that the `app` directory now includes a new `build` folder:
 
-[source,text]
+[source,bash]
 ----
 $ cd app
 ----
-[source,text]
+[source,bash]
 ----
 $ ls -al
 ----
@@ -268,17 +270,9 @@ Gradle reads the `settings.gradle(.kts)` file to figure out which subprojects co
 
 Take a look at the file in your project:
 
-++++
-<div style="text-align: right;">
-  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/init/generated">
-    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
-  </a>
-</div>
-++++
-
 ====
-include::sample[dir="snippets/init/generated/kotlin",files="settings.gradle.kts[]"]
-include::sample[dir="snippets/init/generated/groovy",files="settings.gradle[]"]
+include::sample[dir="snippets/tutorials/running-builds/generated/kotlin",files="settings.gradle.kts[]"]
+include::sample[dir="snippets/tutorials/running-builds/generated/groovy",files="settings.gradle[]"]
 ====
 
 The `tutorial` root project includes the `app` subproject.
@@ -295,8 +289,8 @@ The `build.gradle(.kts)` file is read and executed by Gradle.
 Take a closer look at the build file in your `app` subproject (under the `app` directory):
 
 ====
-include::sample[dir="snippets/init/generated/kotlin",files="app/build.gradle.kts[tags=init-og]"]
-include::sample[dir="snippets/init/generated/groovy",files="app/build.gradle[tags=init-og]"]
+include::sample[dir="snippets/tutorials/running-builds/generated/kotlin",files="app/build.gradle.kts[tags=init-og]"]
+include::sample[dir="snippets/tutorials/running-builds/generated/groovy",files="app/build.gradle[tags=init-og]"]
 ====
 
 This build script lets Gradle know which dependencies and plugins the `app` subproject is using and where to find them.

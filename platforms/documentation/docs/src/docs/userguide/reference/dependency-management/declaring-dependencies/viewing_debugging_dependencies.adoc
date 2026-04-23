@@ -36,7 +36,7 @@ The dependency tree shows the selected version of each dependency and provides i
 The `dependencies` task is particularly useful for analyzing transitive dependencies.
 While your build file lists direct dependencies, the task helps you understand which transitive dependencies are resolved during the build.
 
-[source,text]
+[source,bash]
 ----
 $ ./gradlew dependencies
 ----
@@ -45,10 +45,12 @@ TIP: To render the graph of dependencies declared in the `buildscript` `classpat
 
 === Understanding output annotations
 
-[source,text]
+[source,bash]
 ----
 $ ./gradlew :app:dependencies
-
+----
+[source,text]
+----
 > Task :app:dependencies
 
 ------------------------------------------------------------
@@ -89,12 +91,12 @@ The following examples display dependencies for the `testRuntimeClasspath` confi
 
 [source,bash]
 ----
-$ gradle -q dependencies --configuration testRuntimeClasspath
+$ ./gradlew -q dependencies --configuration testRuntimeClasspath
 ----
 
 [source,bash]
 ----
-$ gradle -q dependencies --configuration tRC
+$ ./gradlew -q dependencies --configuration tRC
 ----
 
 To view a list of all configurations in a project, including those provided by plugins, run the `resolvableConfigurations` report.
@@ -109,15 +111,19 @@ This avoids polluting other contexts, such as the compilation classpath for your
 The following example declares a custom dependency configuration named `scm` that contains the JGit dependency:
 
 ====
-include::sample[dir="snippets/dependencyManagement/inspectingDependencies-dependenciesReport/kotlin",files="build.gradle.kts[tags=dependency-declaration]"]
-include::sample[dir="snippets/dependencyManagement/inspectingDependencies-dependenciesReport/groovy",files="build.gradle[tags=dependency-declaration]"]
+include::sample[dir="snippets/reference/dependency-management/declaring-dependencies/inspectingDependencies-dependenciesReport/kotlin",files="build.gradle.kts[tags=dependency-declaration]"]
+include::sample[dir="snippets/reference/dependency-management/declaring-dependencies/inspectingDependencies-dependenciesReport/groovy",files="build.gradle[tags=dependency-declaration]"]
 ====
 
 Use the following command to view a dependency tree for the `scm` dependency configuration:
 
+[source,bash]
 ----
-$ gradle -q dependencies --configuration scm
-include::{snippetsPath}/dependencyManagement/inspectingDependencies-dependenciesReport/tests/dependencyReport.out[]
+$ ./gradlew -q dependencies --configuration scm
+----
+[source,text]
+----
+include::{snippetsPath}/reference/dependency-management/declaring-dependencies/inspectingDependencies-dependenciesReport/tests/dependencyReport.out[]
 ----
 
 [[sec:identifying-reason-dependency-selection]]
@@ -128,8 +134,8 @@ A project may request two different versions of the same dependency either direc
 The following example introduces a conflict with `commons-codec:commons-codec`, added both as a direct dependency and a transitive dependency of JGit:
 
 ====
-include::sample[dir="snippets/dependencyManagement/inspectingDependencies-dependencyInsightReport/kotlin",files="build.gradle.kts[tags=dependency-declaration]"]
-include::sample[dir="snippets/dependencyManagement/inspectingDependencies-dependencyInsightReport/groovy",files="build.gradle[tags=dependency-declaration]"]
+include::sample[dir="snippets/reference/dependency-management/declaring-dependencies/inspectingDependencies-dependencyInsightReport/kotlin",files="build.gradle.kts[tags=dependency-declaration]"]
+include::sample[dir="snippets/reference/dependency-management/declaring-dependencies/inspectingDependencies-dependencyInsightReport/groovy",files="build.gradle[tags=dependency-declaration]"]
 ====
 
 Gradle provides the built-in `dependencyInsight` task to render a  _dependency insight report_ from the command line.
@@ -153,9 +159,13 @@ Render information about all variants, not only the selected variant.
 
 The following code snippet demonstrates how to run a dependency insight report for all paths to a dependency named `commons-codec` within the `scm` configuration:
 
+[source,bash]
 ----
-$ gradle -q dependencyInsight --dependency commons-codec --configuration scm
-include::{snippetsPath}/dependencyManagement/inspectingDependencies-dependencyInsightReport/tests/dependencyInsightReport.out[]
+$ ./gradlew -q dependencyInsight --dependency commons-codec --configuration scm
+----
+[source,text]
+----
+include::{snippetsPath}/reference/dependency-management/declaring-dependencies/inspectingDependencies-dependencyInsightReport/tests/dependencyInsightReport.out[]
 ----
 
 === Understanding the selection reasons

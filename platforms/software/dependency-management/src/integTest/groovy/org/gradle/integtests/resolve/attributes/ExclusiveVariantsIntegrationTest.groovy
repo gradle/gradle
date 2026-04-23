@@ -65,7 +65,7 @@ class ExclusiveVariantsIntegrationTest extends AbstractIntegrationSpec {
             }
 
             dependencies {
-                resolver(project)
+                resolver(project())
             }
 
             tasks.register('resolveSample', Copy) {

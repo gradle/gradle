@@ -20,7 +20,6 @@ import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.android.AndroidHome
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
-import org.gradle.test.fixtures.Flaky
 import org.gradle.testkit.runner.TaskOutcome
 
 /**
@@ -33,7 +32,6 @@ import org.gradle.testkit.runner.TaskOutcome
  * To run your tests against all AGP versions from agp-versions.properties, use higher version of java by setting -PtestJavaVersion=<version>
  * See {@link org.gradle.integtests.fixtures.versions.AndroidGradlePluginVersions#assumeCurrentJavaVersionIsSupportedBy() assumeCurrentJavaVersionIsSupportedBy} for more details
  */
-@Flaky(because = "https://github.com/gradle/gradle-private/issues/4910")
 class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implements ValidationMessageChecker, RunnerFactory {
 
     public static final String JAVA_COMPILE_DEPRECATION_MESSAGE = "Extending the JavaCompile task has been deprecated. This is scheduled to be removed in Gradle 7.0. Configure the task instead."
@@ -70,6 +68,7 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
         def result = runner
             .deprecations(AndroidDeprecations) {
                 expectMultiStringNotationDeprecation(agpVersion)
+                expectProjectDependencyNotationDeprecation()
             }
             .build()
 
@@ -90,6 +89,7 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
         result = runner
             .deprecations(AndroidDeprecations) {
                 expectMultiStringNotationDeprecationIf(agpVersion, GradleContextualExecuter.isNotConfigCache())
+                expectProjectDependencyNotationDeprecationIf(GradleContextualExecuter.isNotConfigCache())
             }
             .build()
 
@@ -109,6 +109,7 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
         result = runner
             .deprecations(AndroidDeprecations) {
                 expectMultiStringNotationDeprecationIf(agpVersion, GradleContextualExecuter.isNotConfigCache())
+                expectProjectDependencyNotationDeprecationIf(GradleContextualExecuter.isNotConfigCache())
             }
             .build()
 
@@ -127,11 +128,13 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
         agpRunner(agpVersion, 'clean')
             .deprecations(AndroidDeprecations) {
                 expectMultiStringNotationDeprecation(agpVersion)
+                expectProjectDependencyNotationDeprecation()
             }
             .build()
         result = runner
             .deprecations(AndroidDeprecations) {
                 expectMultiStringNotationDeprecationIf(agpVersion, GradleContextualExecuter.isNotConfigCache())
+                expectProjectDependencyNotationDeprecationIf(GradleContextualExecuter.isNotConfigCache())
             }.build()
 
         then:
@@ -206,20 +209,28 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
         '''.stripIndent()
 
         file('settings.gradle') << """
+            pluginManagement {
+                repositories {
+                    ${googleRepository()}
+                    ${mavenCentralRepository()}
+                    gradlePluginPortal()
+                }
+            }
+            dependencyResolutionManagement {
+                ${googleRepository()}
+                ${mavenCentralRepository()}
+            }
             include ':${app}'
             include ':${library}'
         """
 
-        file('build.gradle') << buildscript(agpVersion) << """
-            subprojects {
-                ${googleRepository()}
-                ${mavenCentralRepository()}
-            }
-        """
+        file('build.gradle') << ""
 
         def appBuildFile = file("${app}/build.gradle")
         appBuildFile << """
-            apply plugin: 'com.android.application'
+            plugins {
+                id 'com.android.application' version '${agpVersion}'
+            }
 
             android.defaultConfig.applicationId "org.gradle.android.myapplication"
         """
@@ -235,7 +246,9 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
 
         def libraryBuildFile = file("${library}/build.gradle")
         libraryBuildFile << """
-            apply plugin: 'com.android.library'
+            plugins {
+                id 'com.android.library' version '${agpVersion}'
+            }
         """
         libraryBuildFile << androidPluginConfiguration(libPackage, agpVersion)
         libraryBuildFile << activityDependency()
@@ -253,18 +266,6 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
         """
     }
 
-    private static String buildscript(String pluginVersion) {
-        """
-            buildscript {
-                ${mavenCentralRepository()}
-                ${googleRepository()}
-
-                dependencies {
-                    classpath 'com.android.tools.build:gradle:${pluginVersion}'
-                }
-            }
-        """.stripIndent()
-    }
 
     private writeActivity(String basedir, String packageName, String className, changed = false) {
         String resourceName = className.toLowerCase()
@@ -346,7 +347,6 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
             'com.android.application': TestedVersions.androidGradle,
             'com.android.library': TestedVersions.androidGradle,
             'com.android.test': TestedVersions.androidGradle,
-            'com.android.reporting': TestedVersions.androidGradleBefore9,
             'com.android.dynamic-feature': TestedVersions.androidGradle,
         ]
     }

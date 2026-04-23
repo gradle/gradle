@@ -1,0 +1,14 @@
+> Configure project :my-app:app
+propertiesFileMessage = null
+systemMessage = Hello
+propertiesMessage = Hello
+
+> Configure project :my-utils:number-utils
+propertiesFileMessage = null
+systemMessage = Hello
+propertiesMessage = Hello
+
+> Configure project :
+propertiesFileMessage = Hello
+systemMessage = Hello
+propertiesMessage = Hello

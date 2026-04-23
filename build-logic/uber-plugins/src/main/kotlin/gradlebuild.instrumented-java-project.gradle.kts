@@ -28,7 +28,6 @@ dependencies {
     compileOnly(project(":internal-instrumentation-api"))
     compileOnly(project(":stdlib-java-extensions"))
     compileOnly(libs.findLibrary("asm").get())
-    compileOnly(libs.findLibrary("asmUtil").get())
     compileOnly(libs.findLibrary("asmTree").get())
     annotationProcessor(project(":internal-instrumentation-processor"))
     annotationProcessor(platform(project(":distributions-dependencies")))

@@ -23,6 +23,7 @@ import org.gradle.api.artifacts.MinimalExternalModuleDependency;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderConvertible;
+import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition;
 import org.gradle.internal.Cast;
 
 import javax.inject.Inject;
@@ -47,6 +48,7 @@ import javax.inject.Inject;
  * @since 8.0
  */
 @NonExtensible
+@HiddenInDefinition
 @SuppressWarnings("JavadocReference")
 public abstract class DependencyModifier {
     /**

@@ -19,6 +19,7 @@ package org.gradle.kotlin.dsl.internal.sharedruntime.support
 import java.io.Closeable
 import java.io.File
 import java.util.jar.JarFile
+import java.util.zip.ZipException
 
 
 private
@@ -70,13 +71,11 @@ class ClassBytesRepository(
 
     private
     fun classBytesSupplierForSourceName(sourceName: String): ClassBytesSupplier? =
-        classFilePathCandidatesFor(sourceName)
-            .mapNotNull(::classBytesSupplierForFilePath)
-            .firstOrNull()
+        classFilePathCandidatesFor(sourceName).firstNotNullOfOrNull(::classBytesSupplierForFilePath)
 
     private
     fun classBytesSupplierForFilePath(classFilePath: String): ClassBytesSupplier? =
-        classBytesIndex.asSequence().mapNotNull { it(classFilePath) }.firstOrNull()
+        classBytesIndex.firstNotNullOfOrNull { it(classFilePath) }
 
     private
     fun sourceNamesFrom(entry: File): Sequence<String> =
@@ -137,7 +136,13 @@ class ClassBytesRepository(
 
     private
     fun openJarFile(file: File) =
-        openJars.computeIfAbsent(file, ::JarFile)
+        openJars.computeIfAbsent(file) {
+            try {
+                JarFile(it)
+            } catch (e: ZipException) {
+                throw ZipException("${e.message} (file: $it)").apply { initCause(e) }
+            }
+        }
 
     override fun close() {
         openJars.values.forEach(JarFile::close)

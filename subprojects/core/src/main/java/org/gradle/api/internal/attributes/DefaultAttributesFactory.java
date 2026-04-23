@@ -16,6 +16,7 @@
 package org.gradle.api.internal.attributes;
 
 import com.google.common.collect.ImmutableList;
+import org.gradle.api.Describable;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.api.internal.provider.PropertyFactory;
@@ -64,6 +65,11 @@ public final class DefaultAttributesFactory implements AttributesFactory {
     @Override
     public AttributeContainerInternal mutable(AttributeContainerInternal fallback) {
         return join(fallback, mutable());
+    }
+
+    @Override
+    public FreezableAttributeContainer freezable(AttributeContainerInternal fallback, Describable owner) {
+        return new FreezableAttributeContainer(fallback, owner, propertyFactory);
     }
 
     @Override

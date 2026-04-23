@@ -22,7 +22,7 @@ import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.gradle.kotlin.dsl.support.expectedKotlinDslPluginsVersion
 import org.gradle.kotlin.dsl.support.toKotlinJvmTarget
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions.NotEmbeddedExecutor
+import org.gradle.test.preconditions.TestExecutionPreconditions.NotEmbeddedExecutor
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.not

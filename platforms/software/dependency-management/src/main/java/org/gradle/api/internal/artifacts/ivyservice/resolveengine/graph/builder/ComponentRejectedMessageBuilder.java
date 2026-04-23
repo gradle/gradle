@@ -18,13 +18,11 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder
 import com.google.common.base.Joiner;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.internal.artifacts.ResolvedVersionConstraint;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphEdge;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasonInternal;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 /**
  * A utility class that packages the logic necessary to build a message describing why a {@link ComponentState} was rejected.
@@ -45,13 +43,7 @@ class ComponentRejectedMessageBuilder {
             sb.append("Cannot find a version of '").append(module.getId()).append("' that satisfies the version constraints:\n");
         }
 
-        Set<? extends DependencyGraphEdge> allEdges = module.getAllIncomingEdges();
-        renderEdges(sb, allEdges);
-        return sb.toString();
-    }
-
-    private static void renderEdges(StringBuilder sb, Set<? extends DependencyGraphEdge> incomingEdges) {
-        for (DependencyGraphEdge incomingEdge : incomingEdges) {
+        module.visitAllIncomingEdges(incomingEdge -> {
             ComponentSelector selector = incomingEdge.getDependencyMetadata().getSelector();
             for (String path : MessageBuilderHelper.formattedPathsTo(incomingEdge)) {
                 sb.append("   ").append(path);
@@ -60,7 +52,9 @@ class ComponentRejectedMessageBuilder {
                 renderReason(sb, incomingEdge.getReason());
                 sb.append("\n");
             }
-        }
+        });
+
+        return sb.toString();
     }
 
     private static void renderSelector(StringBuilder sb, ComponentSelector selector) {

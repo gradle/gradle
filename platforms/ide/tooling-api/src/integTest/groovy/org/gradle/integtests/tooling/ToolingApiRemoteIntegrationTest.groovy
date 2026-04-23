@@ -24,7 +24,8 @@ import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.OsTestPreconditions
+
 import org.gradle.tooling.BuildCancelledException
 import org.gradle.tooling.BuildLauncher
 import org.gradle.tooling.GradleConnectionException
@@ -281,7 +282,7 @@ class ToolingApiRemoteIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue('https://github.com/gradle/gradle/issues/15405')
-    @Requires(UnitTestPreconditions.NotWindows)
+    @Requires(OsTestPreconditions.NotWindows)
     // cannot delete files when daemon is running
     def "calling disconnect on existing connection does not re-trigger wrapper download"() {
         setup:

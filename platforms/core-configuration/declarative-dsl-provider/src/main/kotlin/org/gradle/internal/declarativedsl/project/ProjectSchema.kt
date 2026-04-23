@@ -23,8 +23,8 @@ import org.gradle.internal.declarativedsl.evaluationSchema.DefaultInterpretation
 import org.gradle.internal.declarativedsl.evaluationSchema.buildEvaluationAndConversionSchema
 import org.gradle.internal.declarativedsl.evaluationSchema.ifConversionSupported
 import org.gradle.internal.declarativedsl.evaluator.conversion.EvaluationAndConversionSchema
-import org.gradle.internal.declarativedsl.software.projectFeaturesComponent
-import org.gradle.plugin.software.internal.ProjectFeatureDeclarations
+import org.gradle.internal.declarativedsl.features.projectFeaturesComponent
+import org.gradle.features.internal.binding.ProjectFeatureDeclarations
 
 
 internal

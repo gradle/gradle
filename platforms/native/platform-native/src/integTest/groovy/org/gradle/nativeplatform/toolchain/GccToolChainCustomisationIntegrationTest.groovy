@@ -22,7 +22,8 @@ import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.app.CHelloWorldApp
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.OsTestPreconditions
+
 
 import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.GCC_COMPATIBLE
 import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.SUPPORTS_32
@@ -107,7 +108,7 @@ model {
         executable("build/exe/main/sparc/main").exec().out == helloWorldApp.englishOutput
     }
 
-    @Requires(UnitTestPreconditions.NotWindows)
+    @Requires(OsTestPreconditions.NotWindows)
     def "can configure tool executables"() {
         def binDir = testDirectory.createDir("bin")
         wrapperTool(binDir, "c-compiler", toolChain.CCompiler, "-DFRENCH")
@@ -133,7 +134,7 @@ model {
         executable("build/exe/main/main").exec().out == helloWorldApp.frenchOutput
     }
 
-    @Requires(UnitTestPreconditions.NotWindows)
+    @Requires(OsTestPreconditions.NotWindows)
     def "can configure platform specific executables"() {
         def binDir = testDirectory.createDir("bin")
         wrapperTool(binDir, "french-c-compiler", toolChain.CCompiler, "-DFRENCH")
@@ -201,7 +202,7 @@ model {
         executable("build/exe/execTest/alwaysFrench/execTest").exec().out == "C compiler used"
     }
 
-    @Requires(UnitTestPreconditions.NotWindows)
+    @Requires(OsTestPreconditions.NotWindows)
     def "can configure setTargets with alternate toolchain"() {
         def binDir = testDirectory.createDir("bin")
         wrapperTool(binDir, "french-c-compiler", toolChain.CCompiler, "-DFRENCH")

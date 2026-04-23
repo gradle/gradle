@@ -72,6 +72,7 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.accesscontrol.AllowUsingApiForExternalUse;
 import org.gradle.internal.logging.StandardOutputCapture;
 import org.gradle.internal.metaobject.DynamicObject;
+import org.gradle.internal.metaobject.HierarchicalDynamicObject;
 import org.gradle.internal.model.ModelContainer;
 import org.gradle.internal.model.RuleBasedPluginListener;
 import org.gradle.internal.service.ServiceRegistry;
@@ -465,6 +466,7 @@ public abstract class MutableStateAccessAwareProject implements ProjectInternal,
         return delegate.hasProperty(propertyName);
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     public Map<String, ? extends @Nullable Object> getProperties() {
         onMutableStateAccess("properties");
@@ -745,7 +747,7 @@ public abstract class MutableStateAccessAwareProject implements ProjectInternal,
     }
 
     @Override
-    public DynamicObject getInheritedScope() {
+    public HierarchicalDynamicObject getInheritedScope() {
         return delegate.getInheritedScope();
     }
 

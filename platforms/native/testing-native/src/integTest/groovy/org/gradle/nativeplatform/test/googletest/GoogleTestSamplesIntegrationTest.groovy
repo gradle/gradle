@@ -18,31 +18,28 @@
 package org.gradle.nativeplatform.test.googletest
 
 import org.gradle.integtests.fixtures.Sample
-import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.NativeTestPreconditions
+import org.gradle.test.preconditions.TestEnvironmentPreconditions
+
 import org.junit.Rule
 
-import static org.junit.Assume.assumeTrue
-
-@Requires(UnitTestPreconditions.CanInstallExecutable)
+@Requires(TestEnvironmentPreconditions.CanInstallExecutable)
 @RequiresInstalledToolChain(ToolChainRequirement.SUPPORTS_32)
 class GoogleTestSamplesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     @Rule public final Sample googleTest = sample(temporaryFolder, 'google-test')
 
     private static Sample sample(TestDirectoryProvider testDirectoryProvider, String name) {
-        return new Sample(testDirectoryProvider, "native-binaries/${name}/groovy", name)
+        return new Sample(testDirectoryProvider, "integration-tests/native-binaries/${name}/groovy", name)
     }
 
+    @Requires(NativeTestPreconditions.NotWindowsOrVisualCpp2015)
     def "googleTest"() {
         given:
-        // On windows, GoogleTest sample only works out of the box with VS2015
-        assumeTrue(!OperatingSystem.current().windows || isVisualCpp2015())
-
         sample googleTest
 
         when:
@@ -77,7 +74,4 @@ class GoogleTestSamplesIntegrationTest extends AbstractInstalledToolChainIntegra
         failingResults.checkTestCases(2, 1, 1)
     }
 
-    private static boolean isVisualCpp2015() {
-        return toolChain.meets(ToolChainRequirement.VISUALCPP_2015)
-    }
-  }
+}

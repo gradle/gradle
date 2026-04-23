@@ -24,6 +24,8 @@ import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.HierarchicalNameSerializer;
 import org.gradle.internal.serialize.MapSerializer;
 import org.gradle.internal.serialize.SetSerializer;
+import org.gradle.internal.serialize.SortedMapSerializer;
+import org.gradle.internal.serialize.SortedSetSerializer;
 import org.gradle.internal.serialize.kryo.KryoBackedDecoder;
 import org.gradle.internal.serialize.kryo.KryoBackedEncoder;
 
@@ -68,7 +70,7 @@ public class DefaultInstrumentationAnalysisSerializer implements Instrumentation
     }
 
     private static void writeTypesMap(Map<String, Set<String>> typesMap, Encoder encoder, HierarchicalNameSerializer nameSerializer) throws Exception {
-        MapSerializer<String, Set<String>> serializer = new MapSerializer<>(nameSerializer, new SetSerializer<>(nameSerializer));
+        SortedMapSerializer<String, Set<String>> serializer = new SortedMapSerializer<>(nameSerializer, new SortedSetSerializer<>(nameSerializer));
         serializer.write(encoder, typesMap);
     }
 

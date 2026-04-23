@@ -35,6 +35,7 @@ import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Nested
+import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
@@ -152,10 +153,7 @@ abstract class GenerateClasspathModuleProperties : DefaultTask() {
             }
             is ProjectComponentIdentifier -> {
                 val moduleName: String = "gradle-" + id.projectName
-                val alias: ModuleAlias? = component.moduleVersion?.let {
-                    ModuleAlias(it.group, it.name, it.version)
-                }
-                return moduleName to alias
+                return moduleName to null
             }
             else -> throw AssertionError("Unknown component type ${component.id}")
         }
@@ -163,7 +161,7 @@ abstract class GenerateClasspathModuleProperties : DefaultTask() {
 
     data class GraphNode(
         @get:Input val moduleName: String,
-        @get:Nested val alias: ModuleAlias?,
+        @get:Nested @get:Optional val alias: ModuleAlias?,
         @get:Internal val dependencyComponentIds: Set<ComponentIdentifier> // Can be declared input after https://github.com/gradle/gradle/pull/36174
     )
 

@@ -27,13 +27,14 @@ run {
 
         // Working tasks that would otherwise be matched by filters below
         task.name in listOf(
-            "publishLocalPublicationToLocalRepository",
             "publishEmbeddedKotlinPluginMarkerMavenPublicationToTestRepository",
             "publishKotlinDslBasePluginMarkerMavenPublicationToTestRepository",
             "publishKotlinDslCompilerSettingsPluginMarkerMavenPublicationToTestRepository",
             "publishKotlinDslPluginMarkerMavenPublicationToTestRepository",
             "publishKotlinDslPrecompiledScriptPluginsPluginMarkerMavenPublicationToTestRepository",
+            "publishLocalPublicationToLocalRepository",
             "publishPluginMavenPublicationToTestRepository",
+            "publishPlugins",
             "publishPluginsToTestRepository",
         ) -> false
 
@@ -62,16 +63,9 @@ run {
         task.name.startsWith("userguide") -> true
         task.name == "samplesMultiPage" -> true
         task.typeSimpleName() in listOf(
-            "KtsProjectGeneratorTask",
             "JavaExecProjectGeneratorTask",
-            "JvmProjectGeneratorTask",
-            "NativeProjectGeneratorTask",
-            "MonolithicNativeProjectGeneratorTask",
             "NativeProjectWithDepsGeneratorTask",
-            "CppMultiProjectGeneratorTask",
-            "BuildBuilderGenerator",
             "PerformanceTest",
-            "BuildCommitDistribution",
             "DetermineBaselines",
         ) -> true
 

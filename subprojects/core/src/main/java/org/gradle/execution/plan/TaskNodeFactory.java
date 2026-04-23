@@ -25,7 +25,7 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.PluginContainer;
-import org.gradle.api.problems.internal.InternalProblems;
+import org.gradle.api.problems.internal.ProblemsInternal;
 import org.gradle.composite.internal.BuildTreeWorkGraphController;
 import org.gradle.internal.Cast;
 import org.gradle.internal.execution.WorkValidationContext;
@@ -51,7 +51,7 @@ import java.util.function.Function;
 public class TaskNodeFactory {
     private final Map<Task, TaskNode> nodes = new ConcurrentHashMap<>();
     private final BuildTreeWorkGraphController workGraphController;
-    private final InternalProblems problems;
+    private final ProblemsInternal problems;
     private final GradleInternal thisBuild;
     private final DefaultTypeOriginInspectorFactory typeOriginInspectorFactory;
     private final Function<LocalTaskNode, ResolveMutationsNode> resolveMutationsNodeFactory;
@@ -62,7 +62,7 @@ public class TaskNodeFactory {
         NodeValidator nodeValidator,
         BuildOperationRunner buildOperationRunner,
         ExecutionNodeAccessHierarchies accessHierarchies,
-        InternalProblems problems
+        ProblemsInternal problems
     ) {
         this.thisBuild = thisBuild;
         this.workGraphController = workGraphController;

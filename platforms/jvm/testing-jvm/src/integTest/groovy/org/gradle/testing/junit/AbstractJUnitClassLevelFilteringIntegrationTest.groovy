@@ -59,7 +59,7 @@ abstract class AbstractJUnitClassLevelFilteringIntegrationTest extends AbstractT
 
         then:
         def result = resultsFor()
-        result.assertTestPathsExecuted(':SubClass:superTest')
-        result.testPath(':SubClass:superTest').onlyRoot().assertHasResult(TestResult.ResultType.SUCCESS)
+        result.assertTestPathsExecuted(":SubClass:${maybeParentheses('superTest')}")
+        result.testPath(":SubClass:${maybeParentheses('superTest')}").onlyRoot().assertHasResult(TestResult.ResultType.SUCCESS)
     }
 }

@@ -18,7 +18,6 @@ package org.gradle.testing
 
 import com.google.common.collect.ImmutableListMultimap
 import org.gradle.api.internal.tasks.testing.report.VerifiesGenericTestReportResults
-import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
 import org.gradle.api.tasks.testing.TestResult
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.logging.ConsoleRenderer
@@ -28,12 +27,6 @@ import static org.gradle.util.Matchers.containsText
 import static org.hamcrest.CoreMatchers.equalTo
 
 class TestEventReporterHtmlReportIntegrationTest extends AbstractIntegrationSpec implements VerifiesGenericTestReportResults {
-
-    @Override
-    GenericTestExecutionResult.TestFramework getTestFramework() {
-        return GenericTestExecutionResult.TestFramework.CUSTOM
-    }
-
     def "successful tests do not emit HTML reports to console"() {
         given:
         buildFile << passingTask("passing")
@@ -138,6 +131,54 @@ class TestEventReporterHtmlReportIntegrationTest extends AbstractIntegrationSpec
                 "index", "0",
                 "index", "1"
             ).entries().toList())
+    }
+
+    def "HTML report is correct when test group is re-emitted without children"() {
+        given:
+        buildFile """
+            abstract class CustomTestTask extends DefaultTask {
+                @Inject
+                abstract TestEventReporterFactory getTestEventReporterFactory()
+
+                @Inject
+                abstract ProjectLayout getLayout()
+
+                @TaskAction
+                void runTests() {
+                    try (def reporter = testEventReporterFactory.createTestEventReporter(
+                        name,
+                        getLayout().getBuildDirectory().dir("test-results/" + name).get(),
+                        getLayout().getBuildDirectory().dir("reports/tests/" + name).get()
+                    )) {
+                       reporter.started(Instant.now())
+                       try (def mySuite = reporter.reportTestGroup(name + " suite")) {
+                            mySuite.started(Instant.now())
+                            try (def myTest = mySuite.reportTest(name + " test", name + " test")) {
+                                 myTest.started(Instant.now())
+                                 myTest.succeeded(Instant.now())
+                            }
+                            mySuite.succeeded(Instant.now())
+                       }
+                       try (def mySuite = reporter.reportTestGroup(name + " suite")) {
+                            mySuite.started(Instant.now())
+                            mySuite.succeeded(Instant.now())
+                       }
+                       reporter.succeeded(Instant.now())
+                   }
+                }
+            }
+            tasks.register("reemitted", CustomTestTask)
+        """
+
+        when:
+        succeeds("reemitted")
+
+        then:
+        def results = aggregateResults()
+        results
+            .testPath(":reemitted suite")
+            .onlyRoot()
+            .assertChildCount(1, 0)
     }
 
     def "emits test results in error exception message when test fails"() {
@@ -252,7 +293,7 @@ class TestEventReporterHtmlReportIntegrationTest extends AbstractIntegrationSpec
         then:
         failure.assertHasFailures(2)
 
-        def aggregateResults = aggregateResults('', GenericTestExecutionResult.TestFramework.CUSTOM)
+        def aggregateResults = aggregateResults('')
         assert aggregateResults.testPath(":").rootNames == ["aFirst", "bSecond", "cThird", "dFourth"]
     }
 

@@ -64,4 +64,12 @@ public abstract class AbstractConfigurationReportSpec {
     }
 
     public abstract boolean isPurelyCorrectType(ReportConfiguration configuration);
+
+    /**
+     * Whether to filter out configurations without attributes when not showing legacy configs.
+     * Defaults to {@code true} to preserve existing behavior for outgoing variants.
+     */
+    public boolean isFilterConfigurationsWithoutAttributes() {
+        return true;
+    }
 }

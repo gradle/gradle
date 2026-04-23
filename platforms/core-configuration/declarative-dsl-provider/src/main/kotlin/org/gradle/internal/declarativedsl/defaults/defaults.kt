@@ -19,8 +19,8 @@ package org.gradle.internal.declarativedsl.defaults
 import org.gradle.internal.declarativedsl.analysis.AssignmentRecord
 import org.gradle.internal.declarativedsl.analysis.DataAdditionRecord
 import org.gradle.internal.declarativedsl.analysis.NestedObjectAccessRecord
-import org.gradle.plugin.software.internal.ModelDefault
-import org.gradle.plugin.software.internal.ModelDefault.Visitor
+import org.gradle.features.internal.binding.ModelDefault
+import org.gradle.features.internal.binding.ModelDefault.Visitor
 
 
 /**

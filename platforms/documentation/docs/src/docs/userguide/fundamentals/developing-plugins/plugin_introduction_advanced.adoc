@@ -22,8 +22,8 @@ A Gradle plugin is an add-on that enhances your build by adding tasks, applying 
 You *apply* plugins using the plugins block:
 
 ====
-include::sample[dir="snippets/plugins/dsl/kotlin", files="build.gradle.kts[tags=use-community-plugin]"]
-include::sample[dir="snippets/plugins/dsl/groovy", files="build.gradle[tags=use-community-plugin]"]
+include::sample[dir="snippets/fundamentals/developing-plugins/dsl/kotlin", files="build.gradle.kts[tags=use-community-plugin]"]
+include::sample[dir="snippets/fundamentals/developing-plugins/dsl/groovy", files="build.gradle[tags=use-community-plugin]"]
 ====
 
 When you *apply* a plugin, it typically does one or both of the following:
@@ -40,15 +40,15 @@ Most plugins provide DSL blocks you can use to fine-tune their behavior in build
 For instance, the Java plugin lets you configure how tests are run using the `test` task:
 
 ====
-include::sample[dir="snippets/testing/junitplatform-engine/kotlin", files="build.gradle.kts[tags=filter-engine]"]
-include::sample[dir="snippets/testing/junitplatform-engine/groovy", files="build.gradle[tags=filter-engine]"]
+include::sample[dir="snippets/fundamentals/developing-plugins/junitplatform-engine/kotlin", files="build.gradle.kts[tags=filter-engine]"]
+include::sample[dir="snippets/fundamentals/developing-plugins/junitplatform-engine/groovy", files="build.gradle[tags=filter-engine]"]
 ====
 
 And Java options using the `java {}` block:
 
 ====
-include::sample[dir="snippets/java/fixtures/kotlin/lib",files="build.gradle.kts[tag=java-block]"]
-include::sample[dir="snippets/java/fixtures/groovy/lib",files="build.gradle[tag=java-block]"]
+include::sample[dir="snippets/fundamentals/developing-plugins/fixtures/kotlin/lib",files="build.gradle.kts[tag=java-block]"]
+include::sample[dir="snippets/fundamentals/developing-plugins/fixtures/groovy/lib",files="build.gradle[tag=java-block]"]
 ====
 
 == Plugin Types

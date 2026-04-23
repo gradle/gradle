@@ -1,8 +1,8 @@
 # ADR-0006 - Use of Provider APIs in Gradle
 
-## Date
+## Status
 
-2024-06-21
+- ACCEPTED on 2024-06-21
 
 ## Context
 
@@ -289,10 +289,6 @@ String value = getSomeProperty().getOrElse("convention")
 // This should be always:
 String value = getSomeProperty().get()
 ```
-
-## Status
-
-ACCEPTED
 
 ## Consequences
 

@@ -16,13 +16,11 @@
 
 package org.gradle.api.publish.maven
 
-import org.gradle.api.credentials.PasswordCredentials
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
-import org.gradle.util.TestCredentialUtil
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import org.gradle.util.internal.GUtil
 import org.junit.Rule
 import spock.lang.Issue
@@ -30,7 +28,7 @@ import spock.lang.Issue
 import static org.gradle.util.internal.GFileUtils.deleteDirectory
 import static org.gradle.util.internal.GFileUtils.listFiles
 
-@Requires(value = IntegTestPreconditions.NotConfigCached, reason = "handles CC explicitly")
+@Requires(value = TestExecutionPreconditions.NotConfigCached, reason = "handles CC explicitly")
 class ConfigurationCacheMavenPublishIntegrationTest extends AbstractIntegrationSpec {
     @Rule
     public final HttpServer server = new HttpServer()
@@ -96,7 +94,7 @@ class ConfigurationCacheMavenPublishIntegrationTest extends AbstractIntegrationS
         !GUtil.isSecureUrl(server.uri)
 
         when:
-        prepareMavenHttpRepository(projectConfig.remoteRepo, TestCredentialUtil.defaultPasswordCredentials(username, password))
+        prepareMavenHttpRepository(projectConfig.remoteRepo, new HttpServer.PasswordCredentials(username, password))
         run(*(projectConfig.tasks))
         server.resetExpectations()
 
@@ -110,7 +108,7 @@ class ConfigurationCacheMavenPublishIntegrationTest extends AbstractIntegrationS
         metadataFile.delete()
         deleteDirectory(mavenRepo.rootDir)
 
-        prepareMavenHttpRepository(projectConfig.remoteRepo, TestCredentialUtil.defaultPasswordCredentials(username, password))
+        prepareMavenHttpRepository(projectConfig.remoteRepo, new HttpServer.PasswordCredentials(username, password))
         run(*(projectConfig.tasks))
         server.resetExpectations()
 
@@ -188,7 +186,7 @@ class ConfigurationCacheMavenPublishIntegrationTest extends AbstractIntegrationS
         def projectConfig = configureProject(username, password, repositoryName, true)
 
         when:
-        prepareMavenHttpRepository(projectConfig.remoteRepo, TestCredentialUtil.defaultPasswordCredentials(username, password))
+        prepareMavenHttpRepository(projectConfig.remoteRepo, new HttpServer.PasswordCredentials(username, password))
         run(*(projectConfig.tasks))
         server.resetExpectations()
 
@@ -213,7 +211,7 @@ class ConfigurationCacheMavenPublishIntegrationTest extends AbstractIntegrationS
         def projectConfig = configureProject(username, password, repositoryName, true)
 
         when:
-        prepareMavenHttpRepository(projectConfig.remoteRepo, TestCredentialUtil.defaultPasswordCredentials(username, password))
+        prepareMavenHttpRepository(projectConfig.remoteRepo, new HttpServer.PasswordCredentials(username, password))
         run(*(projectConfig.tasks))
         server.resetExpectations()
 
@@ -347,7 +345,7 @@ class ConfigurationCacheMavenPublishIntegrationTest extends AbstractIntegrationS
         MavenHttpRepository remoteRepo
     }
 
-    private void prepareMavenHttpRepository(MavenHttpRepository repository, PasswordCredentials credentials) {
+    private void prepareMavenHttpRepository(MavenHttpRepository repository, HttpServer.PasswordCredentials credentials) {
         def rootModule = repository.module("group", "root")
         rootModule.pom.expectPublish(true, credentials)
         rootModule.moduleMetadata.expectPublish(true, credentials)

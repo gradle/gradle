@@ -38,10 +38,9 @@ import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.internal.Cast;
 import org.gradle.internal.IoActions;
 import org.gradle.internal.UncheckedException;
-import org.gradle.internal.buildoption.InternalFlag;
 import org.gradle.internal.buildoption.InternalOption;
 import org.gradle.internal.buildoption.InternalOptions;
-import org.gradle.internal.buildoption.StringInternalOption;
+import org.gradle.internal.concurrent.MultiProducerSingleConsumerProcessor;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationListener;
@@ -57,7 +56,6 @@ import org.jspecify.annotations.Nullable;
 
 import java.io.BufferedOutputStream;
 import java.io.BufferedWriter;
-import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -66,6 +64,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.Duration;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -79,11 +78,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Queue;
 import java.util.Set;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.RejectedExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Stream;
 
 import static org.gradle.internal.Cast.uncheckedCast;
@@ -124,7 +118,7 @@ public class BuildOperationTrace implements Stoppable {
 
     public static final String SYSPROP = "org.gradle.internal.operations.trace";
 
-    private static final InternalOption<@Nullable String> TRACE_OPTION = StringInternalOption.of(SYSPROP);
+    private static final InternalOption<@Nullable String> TRACE_OPTION = InternalOptions.ofStringOrNull(SYSPROP);
 
     /**
      * A list of either details or result class names, delimited by {@link #FILTER_SEPARATOR},
@@ -137,7 +131,7 @@ public class BuildOperationTrace implements Stoppable {
      */
     public static final String FILTER_SYSPROP = SYSPROP + ".filter";
 
-    private static final InternalOption<@Nullable String> FILTER_OPTION = StringInternalOption.of(FILTER_SYSPROP);
+    private static final InternalOption<@Nullable String> FILTER_OPTION = InternalOptions.ofStringOrNull(FILTER_SYSPROP);
 
     /**
      * A flag controlling whether tree generation is enabled ({@code false} by default).
@@ -145,7 +139,7 @@ public class BuildOperationTrace implements Stoppable {
      */
     public static final String TREE_SYSPROP = SYSPROP + ".tree";
 
-    private static final InternalFlag TRACE_TREE_OPTION = new InternalFlag(TREE_SYSPROP, false);
+    private static final InternalOption<Boolean> TRACE_TREE_OPTION = InternalOptions.ofBoolean(TREE_SYSPROP, false);
 
     /**
      * Delimiter for entries in {@link #FILTER_SYSPROP}.
@@ -157,6 +151,7 @@ public class BuildOperationTrace implements Stoppable {
     private final boolean outputTree;
     private final @Nullable BuildOperationListener listener;
     private final @Nullable TraceWriter writer;
+    private final @Nullable MultiProducerSingleConsumerProcessor<SerializedOperation> processor;
 
     private final BuildOperationListenerManager buildOperationListenerManager;
 
@@ -168,17 +163,22 @@ public class BuildOperationTrace implements Stoppable {
             this.outputTree = false;
             this.listener = null;
             this.writer = null;
+            this.processor = null;
             return;
         }
 
-        this.writer = new AsyncTraceWriter(new DefaultTraceWriter(basePath));
+        this.writer = new TraceWriter(basePath);
+        this.processor = new MultiProducerSingleConsumerProcessor<>("trace-writer", writer::write);
+        this.processor.start();
+
         Set<String> filter = getFilter(internalOptions);
+        SerializingBuildOperationListener serializer = new SerializingBuildOperationListener(processor);
         if (filter != null) {
             this.outputTree = false;
-            this.listener = new FilteringBuildOperationListener(new SerializingBuildOperationListener(writer), filter);
+            this.listener = new FilteringBuildOperationListener(serializer, filter);
         } else {
-            this.outputTree = internalOptions.getOption(TRACE_TREE_OPTION).get();
-            this.listener = new SerializingBuildOperationListener(writer);
+            this.outputTree = internalOptions.getBoolean(TRACE_TREE_OPTION);
+            this.listener = serializer;
         }
 
         buildOperationListenerManager.addListener(listener);
@@ -186,7 +186,7 @@ public class BuildOperationTrace implements Stoppable {
 
     @Nullable
     private static Path resolveBasePath(InternalOptions internalOptions, File userActionRootDir) {
-        String basePath = internalOptions.getOption(TRACE_OPTION).get();
+        String basePath = internalOptions.getValueOrNull(TRACE_OPTION);
         if (basePath == null || basePath.equals("false")) {
             return null;
         }
@@ -197,7 +197,7 @@ public class BuildOperationTrace implements Stoppable {
 
     @Nullable
     private static Set<String> getFilter(InternalOptions internalOptions) {
-        String filterProperty = internalOptions.getOption(FILTER_OPTION).get();
+        String filterProperty = internalOptions.getValueOrNull(FILTER_OPTION);
         if (filterProperty == null) {
             return null;
         }
@@ -211,17 +211,19 @@ public class BuildOperationTrace implements Stoppable {
             buildOperationListenerManager.removeListener(listener);
         }
         if (writer != null) {
+            assert processor != null;
+            processor.stop(Duration.ofMinutes(1));
             writer.complete(outputTree);
         }
     }
 
-    private static class DefaultTraceWriter implements TraceWriter {
+    private static class TraceWriter {
 
         private final Path basePath;
         private final ObjectMapper objectMapper;
         private final OutputStream logOutputStream;
 
-        public DefaultTraceWriter(Path basePath) {
+        public TraceWriter(Path basePath) {
             this.basePath = basePath;
             this.objectMapper = createObjectMapper();
             this.logOutputStream = openStream(logFile(basePath).toFile());
@@ -255,7 +257,6 @@ public class BuildOperationTrace implements Stoppable {
             }
         }
 
-        @Override
         public void write(SerializedOperation serializedOperation) {
             try {
                 objectMapper.writeValue(logOutputStream, serializedOperation.toMap());
@@ -270,7 +271,6 @@ public class BuildOperationTrace implements Stoppable {
             }
         }
 
-        @Override
         public void complete(boolean writeTree) {
             try {
                 System.out.println("Build operation trace: " + logFile(basePath));
@@ -599,25 +599,25 @@ public class BuildOperationTrace implements Stoppable {
 
     private static class SerializingBuildOperationListener implements BuildOperationListener {
 
-        private final TraceWriter writer;
+        MultiProducerSingleConsumerProcessor<SerializedOperation> handler;
 
-        public SerializingBuildOperationListener(TraceWriter writer) {
-            this.writer = writer;
+        public SerializingBuildOperationListener(MultiProducerSingleConsumerProcessor<SerializedOperation> handler) {
+            this.handler = handler;
         }
 
         @Override
         public void started(BuildOperationDescriptor buildOperation, OperationStartEvent startEvent) {
-            writer.write(new SerializedOperationStart(buildOperation, startEvent));
+            handler.submit(new SerializedOperationStart(buildOperation, startEvent));
         }
 
         @Override
         public void progress(OperationIdentifier buildOperationId, OperationProgressEvent progressEvent) {
-            writer.write(new SerializedOperationProgress(buildOperationId, progressEvent));
+            handler.submit(new SerializedOperationProgress(buildOperationId, progressEvent));
         }
 
         @Override
         public void finished(BuildOperationDescriptor buildOperation, OperationFinishEvent finishEvent) {
-            writer.write(new SerializedOperationFinish(buildOperation, finishEvent));
+            handler.submit(new SerializedOperationFinish(buildOperation, finishEvent));
         }
     }
 
@@ -651,117 +651,6 @@ public class BuildOperationTrace implements Stoppable {
                 (finishEvent.getResult() != null && filter.contains(finishEvent.getResult().getClass().getName()))
             ) {
                 delegate.finished(buildOperation, finishEvent);
-            }
-        }
-    }
-
-    interface TraceWriter {
-
-        /**
-         * Write a serialized operation to the log file.
-         */
-        void write(SerializedOperation serializedOperation);
-
-        /**
-         * This method must be called after all write operations have been completed.
-         */
-        void complete(boolean writeTree);
-
-    }
-
-    /**
-     * A {@link TraceWriter} that offloads all writing operations to a separate thread.
-     */
-    private static class AsyncTraceWriter implements TraceWriter {
-
-        private final TraceWriter delegate;
-        private final AsyncExecutor executor;
-
-        public AsyncTraceWriter(TraceWriter delegate) {
-            this.delegate = delegate;
-            this.executor = new AsyncExecutor();
-        }
-
-        @Override
-        public void write(SerializedOperation operation) {
-            executor.execute(() -> delegate.write(operation));
-        }
-
-        @Override
-        public void complete(boolean outputTree) {
-            try {
-                executor.execute(() -> delegate.complete(outputTree));
-            } finally {
-                IoActions.closeQuietly(executor);
-            }
-        }
-
-    }
-
-    /**
-     * Executes submitted operations sequentially in a separate thread.
-     * <p>
-     * This executor takes special care to ensure that any exceptions thrown by
-     * submitted actions are rethrown on the calling thread, rather than being
-     * silently ignored.
-     * <p>
-     * The use case for this executor strongly overlaps with that of
-     * {@code org.gradle.kotlin.dsl.concurrent.AsyncIOScopeFactory}.
-     * We should consider merging these implementations.
-     */
-    private static class AsyncExecutor implements Closeable {
-
-        private final ExecutorService executor;
-        private final AtomicReference<@Nullable Throwable> failure = new AtomicReference<>();
-
-        public AsyncExecutor() {
-            this.executor = Executors.newSingleThreadExecutor();
-        }
-
-        @SuppressWarnings("FutureReturnValueIgnored")
-        private void execute(Runnable r) {
-            // Throw any exception that was caught in a previous operation
-            checkForException();
-
-            // Enqueue this operation
-            try {
-                executor.submit(() -> {
-                    try {
-                        r.run();
-                    } catch (Throwable e) {
-                        if (failure.compareAndSet(null, e)) {
-                            // This is the first failure. Cancel all other operations
-                            executor.shutdownNow();
-                        }
-                    }
-                });
-            } catch (RejectedExecutionException e) {
-                // Executor has been shut down. Rethrow the original failure if present
-                checkForException();
-
-                // Executor was shut down, but we didn't do it. Just rethrow the rejected exception.
-                throw e;
-            }
-        }
-
-        @Override
-        public void close() {
-            executor.shutdown();
-            try {
-                if (!executor.awaitTermination(1, TimeUnit.MINUTES)) {
-                    throw new RuntimeException("Timed out waiting for trace writer to complete");
-                }
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                throw UncheckedException.throwAsUncheckedException(e);
-            }
-            checkForException();
-        }
-
-        private void checkForException() {
-            Throwable failure = this.failure.get();
-            if (failure != null) {
-                throw new RuntimeException("Failure when writing build operation trace", failure);
             }
         }
     }

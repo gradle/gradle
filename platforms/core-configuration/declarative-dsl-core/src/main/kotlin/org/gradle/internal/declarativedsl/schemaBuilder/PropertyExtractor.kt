@@ -22,9 +22,13 @@ import org.gradle.declarative.dsl.schema.DataProperty
 import org.gradle.declarative.dsl.schema.DataTypeRef
 import org.gradle.internal.declarativedsl.analysis.DefaultDataProperty
 import org.gradle.internal.declarativedsl.analysis.DefaultDataProperty.DefaultPropertyMode
-import java.util.Locale
+import org.gradle.internal.declarativedsl.analysis.SchemaItemMetadataInternal.UnsafeSchemaItemInternal.DefaultUnsafeInjectProperty
+import org.gradle.internal.declarativedsl.analysis.SchemaItemMetadataInternal.UnsafeSchemaItemInternal.DefaultUnsafeJavaBeanProperty
+import org.gradle.internal.declarativedsl.analysis.SchemaItemMetadataInternal.UnsafeSchemaItemInternal.DefaultUnsafeNonAbstractMember
+import javax.inject.Inject
 import kotlin.reflect.KClass
 import kotlin.reflect.KClassifier
+import kotlin.reflect.KMutableProperty
 import kotlin.reflect.KType
 import kotlin.reflect.full.allSuperclasses
 
@@ -86,12 +90,11 @@ class DefaultPropertyExtractor(
         return getters.mapNotNull { (name, getter) ->
             checkNotNull(getter)
             host.inContextOfModelMember(getter.kCallable) {
-                val nameAfterGet = name.substringAfter("get")
-                val propertyName = nameAfterGet.replaceFirstChar { it.lowercase(Locale.getDefault()) }
+                val propertyName = getter.javaBeanName
                 if (!propertyNamePredicate(propertyName)) {
                     return@inContextOfModelMember null
                 }
-                val setter = functionsByName["set$nameAfterGet"]?.find { fn -> fn.parameters.singleOrNull()?.type == getter.returnType }
+                val setter = functionsByName[getter.javaBeanSetterFunctionName]?.find { fn -> fn.parameters.singleOrNull()?.type == getter.returnType }
 
                 val canWrite = setter != null
 
@@ -117,7 +120,12 @@ class DefaultPropertyExtractor(
                         DefaultPropertyMode.of(canRead, canWrite),
                         hasDefaultValue = true,
                         isDirectAccessOnly = isDirectAccessOnly,
-                        isHiddenInDsl = false
+                        isHiddenInDsl = false,
+                        metadata = listOfNotNull(
+                            if (getter.kCallable.annotations.any { it is Inject }) DefaultUnsafeInjectProperty else null,
+                            if (setter != null) DefaultUnsafeJavaBeanProperty else null,
+                            if (!getter.kCallable.isAbstract || setter?.kCallable?.isAbstract == false) DefaultUnsafeNonAbstractMember else null
+                        )
                     ),
                     metadata = PropertyExtractionMetadata(listOfNotNull(getter, setter), getter.returnType)
                 )
@@ -158,6 +166,11 @@ class DefaultPropertyExtractor(
                 },
                 isHiddenInDsl = false,
                 isDirectAccessOnly = isDirectAccessOnly,
+                metadata = listOfNotNull(
+                    if (property.kCallable.annotationsWithGetters.any { it is Inject }) DefaultUnsafeInjectProperty else null,
+                    if (property.kCallable is KMutableProperty) DefaultUnsafeJavaBeanProperty else null,
+                    if (!property.kCallable.isAbstract) DefaultUnsafeNonAbstractMember else null
+                )
             ),
             metadata = PropertyExtractionMetadata(listOf(property), property.returnType)
         )
@@ -168,7 +181,7 @@ class DefaultPropertyExtractor(
 
     private fun checkPropertyModeAndNullability(host: SchemaBuildingHost, isWritable: Boolean, type: CollectedPropertyType): SchemaResult<Unit> {
         if (!isWritable && type.isNullable)
-            return host.schemaBuildingFailure(SchemaBuildingIssue.UnsupportedNullableReadOnlyProperty)
+            return host.schemaBuildingFailure(SchemaBuildingIssue.UnsupportedNullableReadOnlyProperty())
         return schemaResult(Unit)
     }
 }

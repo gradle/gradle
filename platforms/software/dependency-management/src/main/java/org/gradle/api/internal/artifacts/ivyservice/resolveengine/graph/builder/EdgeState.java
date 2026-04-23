@@ -71,7 +71,7 @@ class EdgeState implements DependencyGraphEdge {
     private final boolean isConstraint;
 
     private @Nullable SelectorState selector;
-    private ModuleVersionResolveException targetNodeSelectionFailure;
+    private @Nullable ModuleVersionResolveException targetNodeSelectionFailure;
 
     /**
      * The accumulated exclusions that apply to this edge based on the paths from the root
@@ -144,7 +144,14 @@ class EdgeState implements DependencyGraphEdge {
         if (selector == null || !selector.isResolved() || selector.getFailure() != null) {
             return null;
         }
-        return getSelectedComponent();
+        ModuleResolveState targetModule = selector.getTargetModule();
+        if (targetModule.isInModuleConflict()) {
+            // Do not download metadata for modules in conflict, as the module might
+            // lose the conflict, and we want to avoid wasted IO.
+            return null;
+        }
+
+        return targetModule.getSelected();
     }
 
     SelectorState getSelector() {
@@ -241,20 +248,28 @@ class EdgeState implements DependencyGraphEdge {
             // performed selection.
             List<EdgeState> unattachedEdges = targetComponent.getModule().getUnattachedEdges();
             if (!unattachedEdges.isEmpty()) {
-                for (EdgeState otherEdge : new ArrayList<>(unattachedEdges)) {
-                    if (!otherEdge.isConstraint()) {
-                        otherEdge.attachToTargetNodes();
-                        if (otherEdge.targetNodeSelectionFailure != null) {
-                            // Copy selection failure
-                            this.targetNodeSelectionFailure = otherEdge.targetNodeSelectionFailure;
-                            return;
-                        }
+                for (EdgeState unattachedEdge : new ArrayList<>(unattachedEdges)) {
+                    if (!unattachedEdge.isConstraint()) {
+                        unattachedEdge.attachToTargetNodes();
                     }
                 }
             }
+
+            // A constraint by definition attaches to any other nodes in the component it constrains.
             for (NodeState node : targetComponent.getNodes()) {
                 if (node.isSelected() && !node.isRoot()) {
                     targetNodes.add(node);
+                }
+            }
+
+            // If we couldn't attach to any nodes, try to inherit any failures that hard edges have
+            // encountered during selection.
+            if (targetNodes.isEmpty()) {
+                for (EdgeState unattachedEdge : targetComponent.getModule().getUnattachedEdges()) {
+                    if (!unattachedEdge.isConstraint() && unattachedEdge.targetNodeSelectionFailure != null) {
+                        this.targetNodeSelectionFailure = unattachedEdge.targetNodeSelectionFailure;
+                        return;
+                    }
                 }
             }
             return;
@@ -411,7 +426,7 @@ class EdgeState implements DependencyGraphEdge {
         if (selectorFailure != null) {
             return selectorFailure;
         }
-        ComponentState selectedComponent = getSelectedComponent();
+        ComponentState selectedComponent = selector.getTargetModule().getSelected();
         if (selectedComponent == null) {
             ModuleSelectors<SelectorState> selectors = selector.getTargetModule().getSelectors();
             for (SelectorState state : selectors) {
@@ -510,11 +525,6 @@ class EdgeState implements DependencyGraphEdge {
     @Override
     public boolean isConstraint() {
         return isConstraint;
-    }
-
-    @Nullable
-    private ComponentState getSelectedComponent() {
-        return selector.getTargetModule().getSelected();
     }
 
     DependencyState getDependencyState() {

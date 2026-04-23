@@ -121,7 +121,7 @@ Consider the following code:
 =====
 [source, kotlin]
 ----
-val check by tasks.registering
+val check = tasks.register("check")
 tasks.register("verificationTask") {
     // Configure verificationTask
 
@@ -156,8 +156,8 @@ Other tasks should be modified in their own configuration action:
 =====
 [source, kotlin]
 ----
-val check by tasks.registering
-val verificationTask by tasks.registering {
+val check = tasks.register("check")
+val verificationTask = tasks.register("verificationTask") {
     // Configure verificationTask
 }
 check { dependsOn(verificationTask) }
@@ -322,7 +322,7 @@ Useful when the task is referenced multiple times in the same build script.
 =====
 [source, kotlin]
 ----
-val someTask by tasks.registering
+val someTask = tasks.register("someTask")
 
 task("anEagerTask") {
     dependsOn(someTask)

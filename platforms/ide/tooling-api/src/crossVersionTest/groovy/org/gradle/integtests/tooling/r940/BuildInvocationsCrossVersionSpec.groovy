@@ -18,10 +18,7 @@ package org.gradle.integtests.tooling.r940
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.tooling.BuildAction
-import org.gradle.tooling.BuildController
 import org.gradle.tooling.model.gradle.BuildInvocations
-import org.gradle.tooling.model.gradle.GradleBuild
 
 class BuildInvocationsCrossVersionSpec extends ToolingApiSpecification {
 
@@ -150,37 +147,5 @@ class BuildInvocationsCrossVersionSpec extends ToolingApiSpecification {
 
         then: "Task from included build executes successfully (fixed in Gradle 7.6)"
         result.output.toString().contains('INCLUDED_TASK_EXECUTED')
-    }
-
-    /**
-     * BuildAction that fetches BuildInvocations for the root build and all included builds.
-     * This simulates what IDEs typically do to gather task information across the entire composite build.
-     */
-    static class FetchAllBuildInvocations implements BuildAction<AllBuildInvocationsResult>, Serializable {
-        @Override
-        AllBuildInvocationsResult execute(BuildController controller) {
-            GradleBuild gradleBuild = controller.getBuildModel()
-
-            // Get BuildInvocations for root build
-            BuildInvocations rootInvocations = controller.getModel(BuildInvocations.class)
-
-            // Get BuildInvocations for each included build
-            List<BuildInvocations> includedInvocations = []
-            for (GradleBuild includedBuild : gradleBuild.includedBuilds) {
-                includedInvocations.add(controller.getModel(includedBuild, BuildInvocations.class))
-            }
-
-            return new AllBuildInvocationsResult(rootInvocations, includedInvocations)
-        }
-    }
-
-    static class AllBuildInvocationsResult implements Serializable {
-        final BuildInvocations rootBuildInvocations
-        final List<BuildInvocations> includedBuildInvocations
-
-        AllBuildInvocationsResult(BuildInvocations rootBuildInvocations, List<BuildInvocations> includedBuildInvocations) {
-            this.rootBuildInvocations = rootBuildInvocations
-            this.includedBuildInvocations = includedBuildInvocations
-        }
     }
 }

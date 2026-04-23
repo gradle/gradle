@@ -25,7 +25,7 @@ WARNING: The Test Event Reporting API is incubating.
 Let's take a look at a quick example that defines a custom Gradle task, `CustomTest`, which demonstrates how to capture and report test events:
 
 ====
-include::sample[dir="snippets/tasks/customTest/groovy",files="src/main/java/com/example/CustomTest.java[]"]
+include::sample[dir="snippets/integration/customTest/groovy",files="src/main/java/com/example/CustomTest.java[]"]
 ====
 
 <1> The `GroupTestEventReporter` is initialized to act as the root event reporter.
@@ -49,5 +49,3 @@ By using the Test Event Reporting API:
 - **Integration**: Custom tests (even those outside JVM frameworks) can generate events compatible with Gradle's test reporting infrastructure.
 - **Rich Metadata**: Developers can attach additional context (e.g., error messages or parent class details) to test events.
 - **Consistency**: Results integrate seamlessly with Gradle’s HTML reports, making it easier to debug and understand test outcomes.
-
-For a downloadable example, refer to the link:../samples/sample_custom_test_task.html[Custom Test Task Sample].

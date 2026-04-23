@@ -24,17 +24,16 @@ import org.gradle.internal.declarativedsl.evaluator.defaults.ModelDefaultsDefini
 import org.gradle.internal.declarativedsl.evaluator.defaults.ModelDefaultsRepository
 import org.gradle.internal.declarativedsl.evaluator.defaults.ModelDefaultsResolutionResults
 import org.gradle.internal.declarativedsl.evaluator.defaults.defaultsForAllUsedProjectFeatures
+import org.gradle.internal.declarativedsl.evaluator.runner.AnalysisEvaluationResult
 import org.gradle.internal.declarativedsl.evaluator.runner.AnalysisStepContext
-import org.gradle.internal.declarativedsl.evaluator.runner.AnalysisStepResult
 import org.gradle.internal.declarativedsl.evaluator.runner.AnalysisStepRunner
-import org.gradle.internal.declarativedsl.evaluator.runner.EvaluationResult
 import org.gradle.internal.declarativedsl.evaluator.schema.DeclarativeScriptContext
 import org.gradle.internal.declarativedsl.evaluator.schema.InterpretationSchemaBuildingResult
 import java.io.File
 
 
 class AnalysisSequenceResult(
-    val stepResults: Map<InterpretationSequenceStep, EvaluationResult<AnalysisStepResult>>
+    val stepResults: Map<InterpretationSequenceStep, AnalysisEvaluationResult>
 )
 
 

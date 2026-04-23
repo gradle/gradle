@@ -31,14 +31,13 @@ import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginAdapter
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 
 import static com.google.common.base.CaseFormat.UPPER_CAMEL
 import static com.google.common.base.CaseFormat.UPPER_UNDERSCORE
-import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache.Skip.INVESTIGATE
 
 class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec implements ValidationMessageChecker {
 
@@ -146,7 +145,7 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
         !operations.hasOperation(SnapshotTaskInputsBuildOperationType)
     }
 
-    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
+    @UnsupportedWithConfigurationCache(because = "Custom classloader, https://github.com/gradle/gradle/issues/11510")
     def "handles invalid implementation classloader"() {
         given:
         buildFile """
@@ -200,7 +199,7 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
         }
     }
 
-    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
+    @UnsupportedWithConfigurationCache(because = "Custom classloader, https://github.com/gradle/gradle/issues/11510")
     def "handles invalid action classloader"() {
         given:
         buildFile """
@@ -404,7 +403,6 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
         }
     }
 
-    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def "exposes file inputs, not ignoring empty directories"() {
         given:
         withBuildCache()
@@ -413,9 +411,10 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
             file("build.gradle") << """
                 task foo {
                     inputs.dir('src').ignoreEmptyDirectories(false).withPropertyName('src')
-                    outputs.file('output.txt')
+                    def outputFile = file('output.txt')
+                    outputs.file(outputFile)
                     doLast {
-                        file('output.txt') << 'do stuff'
+                        outputFile << 'do stuff'
                     }
                 }
             """
@@ -513,7 +512,7 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
         }
     }
 
-    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
+    @UnsupportedWithConfigurationCache(because = "Custom classloader, https://github.com/gradle/gradle/issues/11510")
     def "handles invalid nested bean classloader"() {
         given:
         buildFile """

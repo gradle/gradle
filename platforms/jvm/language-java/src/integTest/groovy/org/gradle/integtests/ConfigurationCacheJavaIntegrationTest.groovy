@@ -16,18 +16,18 @@
 
 package org.gradle.integtests
 
-import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
+
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.test.fixtures.archive.JarTestFixture
 import org.gradle.test.fixtures.archive.ZipTestFixture
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import org.junit.Test
 
 import static org.hamcrest.CoreMatchers.containsString
 
-@Requires(value = IntegTestPreconditions.NotConfigCached, reason = "handles CC explicitly")
+@Requires(value = TestExecutionPreconditions.NotConfigCached, reason = "handles CC explicitly")
 class ConfigurationCacheJavaIntegrationTest extends AbstractIntegrationSpec {
 
     def configurationCache = newConfigurationCacheFixture()
@@ -573,7 +573,7 @@ class ConfigurationCacheJavaIntegrationTest extends AbstractIntegrationSpec {
                 `java-library`
             }
 
-            val manifestClasspath by configurations.creating {
+            val manifestClasspath = configurations.create("manifestClasspath") {
                 assert(isCanBeResolved)
                 isCanBeConsumed = false
                 isTransitive = false
@@ -658,7 +658,7 @@ class ConfigurationCacheJavaIntegrationTest extends AbstractIntegrationSpec {
     }
 
     protected void assertTestsExecuted(String testClass, String... testNames) {
-        new DefaultTestExecutionResult(testDirectory, GenericTestExecutionResult.TestFramework.JUNIT4)
+        new DefaultTestExecutionResult(testDirectory)
             .testClass(testClass)
             .assertTestsExecuted(testNames)
     }

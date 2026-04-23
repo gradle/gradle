@@ -35,7 +35,7 @@ class DefaultMultiCauseExceptionIntegrationTest  extends AbstractIntegrationSpec
         fails 'myTask'
 
         then:
-        failure.assertHasDescription("Execution failed for task ':myTask'.")
+        failure.assertHasDescription("Execution failed for task ':myTask' (registered in build file 'build.gradle').")
             .assertHasResolution('resolution1')
     }
 
@@ -57,7 +57,7 @@ class DefaultMultiCauseExceptionIntegrationTest  extends AbstractIntegrationSpec
         fails 'myTask'
 
         then:
-        failure.assertHasDescription("Execution failed for task ':myTask'.")
+        failure.assertHasDescription("Execution failed for task ':myTask' (registered in build file 'build.gradle').")
             .assertHasCause('failure')
             .assertHasResolution('resolution1')
             .assertHasResolution('resolution2')
@@ -81,7 +81,7 @@ class DefaultMultiCauseExceptionIntegrationTest  extends AbstractIntegrationSpec
         fails 'myTask'
 
         then:
-        failure.assertHasDescription("Execution failed for task ':myTask'.")
+        failure.assertHasDescription("Execution failed for task ':myTask' (registered in build file 'build.gradle').")
             .assertHasCause('failure')
             .assertHasResolution('resolution1')
     }

@@ -110,7 +110,7 @@ class ArtifactTransformEdgeCasesIntegrationTest extends AbstractIntegrationSpec 
                 }
             }
 
-            val forceResolution by tasks.registering {
+            tasks.register("forceResolution") {
                 inputs.files(configurations.getByName("resolveMe").incoming.artifactView {
                     // After getting initial square-blue-liquid variant with liquid request, we request something red-round
                     // There should be 2 separate transformation chains of equal length that produce this
@@ -313,7 +313,7 @@ class ArtifactTransformEdgeCasesIntegrationTest extends AbstractIntegrationSpec 
                 }
             }
 
-            val forceResolution by tasks.registering {
+            tasks.register("forceResolution") {
                 inputs.files(configurations.getByName("resolveMe").incoming.artifactView {
                     // After getting initial square-blue-liquid-smooth variant with liquid request, we request something red-round
                     // There should be 2 separate transformation chains of equal length that produce this
@@ -434,7 +434,7 @@ class ArtifactTransformEdgeCasesIntegrationTest extends AbstractIntegrationSpec 
                 }
             }
 
-            val forceResolution by tasks.registering {
+            tasks.register("forceResolution") {
                 inputs.files(configurations.getByName("resolveMe").incoming.artifactView {
                     // After getting initial square-blue-smooth variant with smooth request, we request something red
                     // There should be 2 separate transformation chains of equal length that produce this
@@ -522,7 +522,7 @@ class ArtifactTransformEdgeCasesIntegrationTest extends AbstractIntegrationSpec 
                 }
             }
 
-            val forceResolution by tasks.registering {
+            tasks.register("forceResolution") {
                 inputs.files(configurations.getByName("resolveMe").incoming.artifactView {
                     // After getting initial square-blue variant with square request, we request something also red
                     // A transformation must be run to produce this, but it shouldn't be created or run because there are no artifacts
@@ -603,7 +603,7 @@ class ArtifactTransformEdgeCasesIntegrationTest extends AbstractIntegrationSpec 
                 }
             }
 
-            val forceResolution by tasks.registering {
+            tasks.register("forceResolution") {
                 inputs.files(configurations.getByName("resolveMe").incoming.artifactView {
                     // After getting initial square-blue variant with square request, we request something red-round
                     // A transformation chain must be run to produce this, but the first transformation should remove input artifacts, resulting in the color transform running on empty dir
@@ -671,7 +671,7 @@ class ArtifactTransformEdgeCasesIntegrationTest extends AbstractIntegrationSpec 
                 }
             }
 
-            val forceResolution by tasks.registering {
+            tasks.register("forceResolution") {
                 inputs.files(configurations.getByName("resolveMe").incoming.artifactView {
                     // After getting initial square-blue variant with blue request, we request something red
                     attributes.attribute(shape, "red")

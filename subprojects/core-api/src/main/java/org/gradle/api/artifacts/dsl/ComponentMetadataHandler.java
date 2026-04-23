@@ -37,6 +37,7 @@ import org.gradle.internal.service.scopes.ServiceScope;
  * </ol>
  *
  * <p>Example shows a basic way of removing certain transitive dependencies from one of our dependencies.</p>
+ *
  * <pre class='autoTested'>
  * plugins {
  *     id 'java'

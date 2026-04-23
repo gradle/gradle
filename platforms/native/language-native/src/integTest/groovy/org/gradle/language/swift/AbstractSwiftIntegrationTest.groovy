@@ -47,7 +47,7 @@ abstract class AbstractSwiftIntegrationTest extends AbstractSwiftComponentIntegr
 
         expect:
         fails "assemble"
-        failure.assertHasDescription("Execution failed for task '$developmentBinaryCompileTask'.")
+        failure.assertHasDescription("Execution failed for task '$developmentBinaryCompileTask' (registered by plugin class 'org.gradle.language.swift.plugins.SwiftBasePlugin').")
         failure.assertHasCause("A build operation failed.")
         failure.assertThatCause(Matchers.containsText("Swift compiler failed while compiling swift file(s)"))
     }

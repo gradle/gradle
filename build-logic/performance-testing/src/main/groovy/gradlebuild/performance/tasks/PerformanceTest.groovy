@@ -90,8 +90,14 @@ abstract class PerformanceTest extends DistributionTest {
     @Input
     String checks
 
+    @Input
+    boolean generateDiffs = true
+
     @Internal
     abstract Property<String> getChannel()
+
+    @Internal
+    abstract Property<Boolean> getBuildOperationTrace()
 
     @Internal
     String buildId
@@ -236,6 +242,11 @@ abstract class PerformanceTest extends DistributionTest {
         this.checks = checks
     }
 
+    @Option(option = "generate-diffs", description = "Whether to generate differential flame graphs after profiling")
+    void setGenerateDiffs(boolean generateDiffs) {
+        this.generateDiffs = generateDiffs
+    }
+
     @Option(option = "profiler", description = "Allows configuring a profiler to use. The same options as for Gradle profilers --profiler command line option are available and 'none' to disable profiling")
     @Optional
     @Input
@@ -323,9 +334,12 @@ abstract class PerformanceTest extends DistributionTest {
             addSystemPropertyIfExist(result, "org.gradle.performance.crossVersionOnly", crossVersionOnly.get())
             addSystemPropertyIfExist(result, "org.gradle.performance.execution.warmups", warmups)
             addSystemPropertyIfExist(result, "org.gradle.performance.execution.runs", runs)
+            addSystemPropertyIfExist(result, "org.gradle.performance.execution.generateDiffs", generateDiffs)
             addSystemPropertyIfExist(result, "org.gradle.performance.regression.checks", checks)
             addSystemPropertyIfExist(result, "org.gradle.performance.execution.channel", channel.get())
             addSystemPropertyIfExist(result, "org.gradle.performance.debugArtifactsDirectory", getDebugArtifactsDirectory())
+            addSystemPropertyIfExist(result, "org.gradle.performance.db.profiling.output", new File(debugArtifactsDirectory, "db-profiling.txt").absolutePath)
+            addSystemPropertyIfExist(result, "org.gradle.performance.buildOperationTrace", buildOperationTrace.get())
             addSystemPropertyIfExist(result, "gradleBuildBranch", branchName)
 
             if (profiler.isPresent() && profiler.get() != "none") {

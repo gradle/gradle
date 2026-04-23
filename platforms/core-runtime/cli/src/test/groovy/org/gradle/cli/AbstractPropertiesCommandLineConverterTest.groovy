@@ -20,7 +20,7 @@ import spock.lang.Specification
 
 class AbstractPropertiesCommandLineConverterTest extends Specification {
 
-    final AbstractPropertiesCommandLineConverter converter = new AbstractPropertiesCommandLineConverter(){
+    final AbstractPropertiesCommandLineConverter converter = new AbstractPropertiesCommandLineConverter() {
         @Override
         protected String getPropertyOption() {
             return "A"
@@ -34,6 +34,11 @@ class AbstractPropertiesCommandLineConverterTest extends Specification {
         @Override
         protected String getPropertyOptionDescription() {
             return "Test Description of a test property based option"
+        }
+
+        @Override
+        protected OptionCategory getCategory() {
+            return OptionCategory.OTHER
         }
     }
 

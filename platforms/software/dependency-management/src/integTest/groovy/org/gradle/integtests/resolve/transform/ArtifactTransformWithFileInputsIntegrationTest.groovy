@@ -463,7 +463,7 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
         then:
         result.assertTasksScheduled(":a:tool", ":b:producer", ":c:producer")
         outputDoesNotContain("processing")
-        failure.assertHasDescription("Execution failed for task ':a:tool'.")
+        failure.assertHasDescription("Execution failed for task ':a:tool' (registered in build file 'build.gradle').")
         failure.assertHasFailures(1)
         failure.assertHasCause("broken")
     }
@@ -523,7 +523,7 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
         PathSensitivity.ABSOLUTE  | [['first/input', 'foo'], ['first/input', 'foo'], ['third/input', 'foo']]
     }
 
-    @ToBeFixedForConfigurationCache(because = "classpath normalization configuration is not serialized")
+    @ToBeFixedForConfigurationCache(because = "classpath normalization configuration is not serialized, https://github.com/gradle/gradle/issues/37156")
     def "can use classpath normalization for parameter object"() {
         createDirs("a", "b", "c")
         settingsFile << """

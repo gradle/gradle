@@ -18,7 +18,7 @@ package org.gradle.internal.service.scopes;
 import org.gradle.StartParameter;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.state.DefaultExecutionHistoryCacheAccess;
-import org.gradle.api.problems.internal.InternalProblems;
+import org.gradle.api.problems.internal.ProblemsInternal;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
@@ -88,6 +88,7 @@ import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.vfs.FileSystemAccess;
 import org.gradle.internal.vfs.VirtualFileSystem;
+import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.util.GradleVersion;
 
 import java.util.Collections;
@@ -158,7 +159,8 @@ public class ExecutionBuildServices implements ServiceRegistrationProvider {
         OverlappingOutputDetector overlappingOutputDetector,
         StartParameter startParameter,
         TimeoutHandler timeoutHandler,
-        InternalProblems problems
+        ProblemsInternal problems,
+        WorkerLeaseService workerLeaseService
     ) {
         UniqueId buildId = buildInvocationScopeId.getId();
         Supplier<OutputsCleaner> skipEmptyWorkOutputsCleanerSupplier = () -> new OutputsCleaner(deleter, buildOutputCleanupRegistry::isOutputOwnedByBuild, buildOutputCleanupRegistry::isOutputOwnedByBuild);
@@ -167,7 +169,7 @@ public class ExecutionBuildServices implements ServiceRegistrationProvider {
         // @formatter:off
         // CHECKSTYLE:OFF
         Step<IdentityContext, WorkspaceResult> immutablePipeline =
-            new AssignImmutableWorkspaceStep<>(deleter, fileSystemAccess, immutableWorkspaceMetadataStore, outputSnapshotter,
+            new AssignImmutableWorkspaceStep<>(deleter, fileSystemAccess, immutableWorkspaceMetadataStore, outputSnapshotter, workerLeaseService,
             new MarkSnapshottingInputsStartedStep<>(
             new CaptureImmutableStateBeforeExecutionStep<>(
             new ValidateStep.Immutable<>(problemHandler,

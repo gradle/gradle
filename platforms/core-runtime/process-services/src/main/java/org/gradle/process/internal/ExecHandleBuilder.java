@@ -19,6 +19,7 @@ package org.gradle.process.internal;
 import org.gradle.process.BaseExecSpec;
 import org.gradle.process.ExecSpec;
 import org.gradle.process.ProcessForkOptions;
+import org.gradle.process.internal.streams.StreamsHandler;
 
 /**
  * Deprecated. Use {@link ClientExecHandleBuilder} instead. Kept for now since it's used by the Kotlin plugin.

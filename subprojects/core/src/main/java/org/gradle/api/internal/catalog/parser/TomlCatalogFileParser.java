@@ -30,9 +30,9 @@ import org.gradle.api.internal.catalog.problems.VersionCatalogProblemId;
 import org.gradle.api.problems.ProblemSpec;
 import org.gradle.api.problems.Problems;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
-import org.gradle.api.problems.internal.InternalProblemReporter;
-import org.gradle.api.problems.internal.InternalProblemSpec;
-import org.gradle.api.problems.internal.InternalProblems;
+import org.gradle.api.problems.internal.ProblemReporterInternal;
+import org.gradle.api.problems.internal.ProblemSpecInternal;
+import org.gradle.api.problems.internal.ProblemsInternal;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
@@ -67,7 +67,6 @@ import static org.gradle.api.internal.catalog.problems.VersionCatalogProblemId.I
 import static org.gradle.api.internal.catalog.problems.VersionCatalogProblemId.INVALID_PLUGIN_NOTATION;
 import static org.gradle.api.internal.catalog.problems.VersionCatalogProblemId.TOML_SYNTAX_ERROR;
 import static org.gradle.api.internal.catalog.problems.VersionCatalogProblemId.UNSUPPORTED_FORMAT_VERSION;
-import static org.gradle.api.problems.Severity.ERROR;
 import static org.gradle.internal.RenderingUtils.quotedOxfordListOf;
 import static org.gradle.internal.deprecation.Documentation.userManual;
 import static org.gradle.util.internal.TextUtil.getPluralEnding;
@@ -146,23 +145,22 @@ public class TomlCatalogFileParser {
         }
     }
 
-    private InternalProblemReporter getInternalReporter() {
+    private ProblemReporterInternal getInternalReporter() {
         return getInternalProblems().getInternalReporter();
     }
 
     @NullMarked
-    private static ProblemSpec configureVersionCatalogError(InternalProblemSpec builder, String message, VersionCatalogProblemId catalogProblemId) {
+    private static ProblemSpec configureVersionCatalogError(ProblemSpecInternal builder, String message, VersionCatalogProblemId catalogProblemId) {
         return configureVersionCatalogError(builder, message, catalogProblemId, input -> input);
     }
 
-    private static InternalProblemSpec configureVersionCatalogError(InternalProblemSpec builder, String label, VersionCatalogProblemId catalogProblemId, Function<InternalProblemSpec, InternalProblemSpec> locationDefiner) {
-        InternalProblemSpec definingLocation = builder
+    private static ProblemSpecInternal configureVersionCatalogError(ProblemSpecInternal builder, String label, VersionCatalogProblemId catalogProblemId, Function<ProblemSpecInternal, ProblemSpecInternal> locationDefiner) {
+        ProblemSpecInternal definingLocation = builder
             .id(screamingSnakeToKebabCase(catalogProblemId.name()), catalogProblemId.getDisplayName(), GradleCoreProblemGroup.versionCatalog())
             .contextualLabel(label)
             .documentedAt(userManual(VERSION_CATALOG_PROBLEMS, catalogProblemId.name().toLowerCase(Locale.ROOT)));
-        InternalProblemSpec definingCategory = locationDefiner.apply(definingLocation);
-        return definingCategory
-            .severity(ERROR);
+        ProblemSpecInternal definingCategory = locationDefiner.apply(definingLocation);
+        return definingCategory;
     }
 
     private void assertNoParseErrors(TomlParseResult result) {
@@ -180,7 +178,7 @@ public class TomlCatalogFileParser {
     }
 
     private void reportErrors(List<TomlParseError> errors) {
-        InternalProblemReporter internalReporter = getInternalReporter();
+        ProblemReporterInternal internalReporter = getInternalReporter();
         errors.stream().map(error -> internalReporter.internalCreate(builder ->
             configureVersionCatalogError(builder, error.getMessage(), TOML_SYNTAX_ERROR, definingLocation -> {
                 definingLocation.lineInFileLocation(catalogFilePath.toAbsolutePath().toString(), error.position().line(), error.position().column());
@@ -188,7 +186,7 @@ public class TomlCatalogFileParser {
             })
                 .details("TOML syntax invalid.")
                 .solution("Fix the TOML file according to the syntax described at https://toml.io")
-        )).forEach(internalReporter::report);
+        )).forEach(internalReporter::reportError);
     }
 
     private String getProblemString(List<TomlParseError> errors) {
@@ -210,8 +208,8 @@ public class TomlCatalogFileParser {
             .collect(joining("\n"));
     }
 
-    private InternalProblems getInternalProblems() {
-        return (InternalProblems) problemsServiceSupplier.get();
+    private ProblemsInternal getInternalProblems() {
+        return (ProblemsInternal) problemsServiceSupplier.get();
     }
 
     private void verifyMetadata(@Nullable TomlTable metadataTable) {
@@ -309,14 +307,50 @@ public class TomlCatalogFileParser {
         }
     }
 
-    private static void expectedKeys(TomlTable table, Set<String> allowedKeys, String context) {
+    private void expectedKeys(TomlTable table, Set<String> allowedKeys, String context, @Nullable String alias) {
         Set<String> actualKeys = table.keySet();
         if (!allowedKeys.containsAll(actualKeys)) {
             Set<String> difference = Sets.difference(actualKeys, allowedKeys);
+            if (alias != null && looksLikeDottedKeyAliases(table, allowedKeys, difference)) {
+                throwDottedKeyError(alias, difference);
+            }
             throw new InvalidUserDataException("On " + context + " expected to find any of " + quotedOxfordListOf(allowedKeys, "or")
                 + " but found unexpected key" + getPluralEnding(difference) + " " + quotedOxfordListOf(difference, "and")
                 + ".");
         }
+    }
+
+    private static boolean looksLikeDottedKeyAliases(TomlTable table, Set<String> allowedKeys, Set<String> unexpectedKeys) {
+        if (unexpectedKeys.size() == 1 && table.size() == 1) {
+            String key = unexpectedKeys.iterator().next();
+            if (!allowedKeys.contains(key) && table.get(key) instanceof String) {
+                return true;
+            }
+        }
+        return unexpectedKeys.stream().anyMatch(key -> {
+            Object value = table.get(key);
+            if (value instanceof TomlTable) {
+                Set<String> subKeys = ((TomlTable) value).keySet();
+                return !Sets.intersection(subKeys, allowedKeys).isEmpty();
+            }
+            return false;
+        });
+    }
+
+    private void throwDottedKeyError(String alias, Set<String> dottedKeys) {
+        List<String> dottedNames = dottedKeys.stream()
+            .sorted()
+            .map(key -> alias + "." + key)
+            .collect(toList());
+        boolean plural = dottedNames.size() > 1;
+        String label = getProblemInVersionCatalog(versionCatalogBuilder) + ", "
+            + (plural ? "entries " : "entry ")
+            + quotedOxfordListOf(dottedNames, "and")
+            + (plural ? " are not valid aliases" : " is not a valid alias") + ".";
+        throw throwVersionCatalogProblemException(builder ->
+            configureVersionCatalogError(builder, label, TOML_SYNTAX_ERROR)
+                .details("Dots (.) in TOML keys create nested entries and cannot be used in alias names")
+                .solution("Use '-' or '_' separators instead of '.' or a nested entry, e.g. '" + alias + "-" + dottedKeys.iterator().next() + "'"));
     }
 
     private void parseLibrary(String alias, TomlTable librariesTable, VersionCatalogBuilder versionCatalogBuilder, StrictVersionParser strictVersionParser) {
@@ -341,7 +375,7 @@ public class TomlCatalogFileParser {
             return;
         }
         if (gav instanceof TomlTable) {
-            expectedKeys((TomlTable) gav, LIBRARY_COORDINATES, "library declaration '" + alias + "'");
+            expectedKeys((TomlTable) gav, LIBRARY_COORDINATES, "library declaration '" + alias + "'", alias);
         }
         String group = expectString(alias, librariesTable, "group");
         String name = expectString(alias, librariesTable, "name");
@@ -373,7 +407,7 @@ public class TomlCatalogFileParser {
             strictly = richVersion.strictly;
         } else if (version instanceof TomlTable) {
             TomlTable versionTable = (TomlTable) version;
-            expectedKeys(versionTable, VERSION_KEYS, "version declaration of alias '" + alias + "'");
+            expectedKeys(versionTable, VERSION_KEYS, "version declaration of alias '" + alias + "'", null);
             versionRef = notEmpty(versionTable.getString("ref"), "version reference", alias);
             require = notEmpty(versionTable.getString("require"), "required version", alias);
             prefer = notEmpty(versionTable.getString("prefer"), "preferred version", alias);
@@ -420,7 +454,7 @@ public class TomlCatalogFileParser {
             }
         }
         if (coordinates instanceof TomlTable) {
-            expectedKeys((TomlTable) coordinates, PLUGIN_COORDINATES, "plugin declaration '" + alias + "'");
+            expectedKeys((TomlTable) coordinates, PLUGIN_COORDINATES, "plugin declaration '" + alias + "'", alias);
         }
         String id = expectString(alias, librariesTable, "id");
         Object version = librariesTable.get(alias + ".version");
@@ -438,7 +472,7 @@ public class TomlCatalogFileParser {
             strictly = richVersion.strictly;
         } else if (version instanceof TomlTable) {
             TomlTable versionTable = (TomlTable) version;
-            expectedKeys(versionTable, VERSION_KEYS, "version declaration of alias '" + alias + "'");
+            expectedKeys(versionTable, VERSION_KEYS, "version declaration of alias '" + alias + "'", null);
             versionRef = notEmpty(versionTable.getString("ref"), "version reference", alias);
             require = notEmpty(versionTable.getString("require"), "required version", alias);
             prefer = notEmpty(versionTable.getString("prefer"), "preferred version", alias);
@@ -482,6 +516,7 @@ public class TomlCatalogFileParser {
             strictly = richVersion.strictly;
         } else if (version instanceof TomlTable) {
             TomlTable versionTable = (TomlTable) version;
+            expectedKeys(versionTable, VERSION_KEYS, "version declaration of alias '" + alias + "'", alias);
             require = notEmpty(versionTable.getString("require"), "required version", alias);
             prefer = notEmpty(versionTable.getString("prefer"), "preferred version", alias);
             strictly = notEmpty(versionTable.getString("strictly"), "strict version", alias);
@@ -596,7 +631,7 @@ public class TomlCatalogFileParser {
         builder.version(alias, v -> configureVersion(require, strictly, prefer, rejectedVersions, rejectAll, v));
     }
 
-    private RuntimeException throwVersionCatalogProblemException(Action<InternalProblemSpec> action) {
+    private RuntimeException throwVersionCatalogProblemException(Action<ProblemSpecInternal> action) {
         throw throwError(getInternalProblems(), INVALID_TOML_CATALOG_DEFINITION, ImmutableList.of(getInternalReporter().internalCreate(action)));
     }
 }

@@ -37,8 +37,6 @@ import org.gradle.internal.component.model.AbstractComponentGraphResolveState;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentArtifactResolveMetadata;
 import org.gradle.internal.component.model.ComponentConfigurationIdentifier;
-import org.gradle.internal.component.model.ComponentGraphResolveState;
-import org.gradle.internal.component.model.ComponentIdGenerator;
 import org.gradle.internal.component.model.DefaultVariantMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.ExcludeMetadata;
@@ -51,7 +49,6 @@ import org.gradle.internal.component.model.VariantGraphResolveMetadata;
 import org.gradle.internal.component.model.VariantGraphResolveState;
 import org.gradle.internal.component.model.VariantIdentifier;
 import org.gradle.internal.component.model.VariantResolveMetadata;
-import org.gradle.internal.lazy.Lazy;
 import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -61,49 +58,34 @@ import java.util.Set;
 
 public class LenientPlatformGraphResolveState extends AbstractComponentGraphResolveState<LenientPlatformResolveMetadata> {
 
-    private final ComponentIdGenerator idGenerator;
-    private final NodeState platformNode;
-    private final ResolveState resolveState;
-    private final VirtualPlatformState virtualPlatformState;
+    private final LenientPlatformVariantGraphResolveState variant;
 
-    public static LenientPlatformGraphResolveState of(
-        ComponentIdGenerator componentIdGenerator,
-        ModuleComponentIdentifier moduleComponentIdentifier,
-        ModuleVersionIdentifier moduleVersionIdentifier,
-        VirtualPlatformState virtualPlatformState,
-        NodeState platformNode,
-        ResolveState resolveState
-    ) {
-        LenientPlatformResolveMetadata metadata = new LenientPlatformResolveMetadata(moduleComponentIdentifier, moduleVersionIdentifier);
-        return new LenientPlatformGraphResolveState(componentIdGenerator.nextComponentId(), metadata, componentIdGenerator, virtualPlatformState, platformNode, resolveState);
-    }
-
-    private LenientPlatformGraphResolveState(
-        long instanceId,
+    public LenientPlatformGraphResolveState(
+        long componentId,
+        long variantId,
         LenientPlatformResolveMetadata metadata,
-        ComponentIdGenerator idGenerator,
         VirtualPlatformState virtualPlatformState,
-        NodeState platformNode,
         ResolveState resolveState
     ) {
-        super(instanceId, metadata, resolveState.getAttributeDesugaring());
-        this.idGenerator = idGenerator;
-        this.platformNode = platformNode;
-        this.resolveState = resolveState;
-        this.virtualPlatformState = virtualPlatformState;
+        super(componentId, metadata, resolveState.getAttributeDesugaring());
+
+        this.variant = createVariant(variantId, virtualPlatformState, resolveState, metadata.getId());
     }
 
-    /**
-     * Create a copy of this component with the given ids.
-     */
-    public ComponentGraphResolveState copyWithIds(ModuleComponentIdentifier componentIdentifier, ModuleVersionIdentifier moduleVersionIdentifier) {
-        return new LenientPlatformGraphResolveState(
-            idGenerator.nextComponentId(),
-            getMetadata().copyWithIds(componentIdentifier, moduleVersionIdentifier),
-            idGenerator,
+    private static LenientPlatformVariantGraphResolveState createVariant(
+        long instanceId,
+        VirtualPlatformState virtualPlatformState,
+        ResolveState resolveState,
+        ModuleComponentIdentifier platformId
+    ) {
+        String name = Dependency.DEFAULT_CONFIGURATION;
+        NamedVariantIdentifier variantId = new NamedVariantIdentifier(platformId, name);
+        return new LenientPlatformVariantGraphResolveState(
+            instanceId,
+            platformId,
             virtualPlatformState,
-            platformNode,
-            resolveState
+            resolveState,
+            new LenientPlatformVariantGraphResolveMetadata(variantId, name)
         );
     }
 
@@ -151,19 +133,11 @@ public class LenientPlatformGraphResolveState extends AbstractComponentGraphReso
     }
 
     @Override
-    public LenientPlatformGraphSelectionCandidates getCandidatesForGraphVariantSelection() {
-        return new LenientPlatformGraphSelectionCandidates(this);
+    public GraphSelectionCandidates getCandidatesForGraphVariantSelection() {
+        return new LenientPlatformGraphSelectionCandidates(variant);
     }
 
-    public static class LenientPlatformGraphSelectionCandidates implements GraphSelectionCandidates {
-
-        private final LenientPlatformGraphResolveState component;
-        private final Lazy<LenientPlatformVariantGraphResolveState> implicitVariantState;
-
-        public LenientPlatformGraphSelectionCandidates(LenientPlatformGraphResolveState component) {
-            this.component = component;
-            this.implicitVariantState = Lazy.locking().of(() -> createImplicitVariant(component));
-        }
+    private record LenientPlatformGraphSelectionCandidates(VariantGraphResolveState variant) implements GraphSelectionCandidates {
 
         @Override
         public List<? extends VariantGraphResolveState> getVariantsForAttributeMatching() {
@@ -173,52 +147,7 @@ public class LenientPlatformGraphResolveState extends AbstractComponentGraphReso
 
         @Override
         public VariantGraphResolveState getLegacyVariant() {
-            return implicitVariantState.get();
-        }
-
-        /**
-         * The variant that is selected when a normal dependency targets this component.
-         */
-        private static LenientPlatformVariantGraphResolveState createImplicitVariant(LenientPlatformGraphResolveState component) {
-            VariantDependencyFactory dependencyFactory = new ImplicitVariantDependencyFactory(
-                component.virtualPlatformState,
-                component.resolveState,
-                component.platformNode,
-                component.getMetadata().getModuleVersionId()
-            );
-
-            String name = Dependency.DEFAULT_CONFIGURATION;
-            NamedVariantIdentifier id = new NamedVariantIdentifier(component.getMetadata().getId(), name);
-            return new LenientPlatformVariantGraphResolveState(
-                component.idGenerator.nextVariantId(),
-                component.getMetadata().getId(),
-                new LenientPlatformVariantGraphResolveMetadata(id, name, false, dependencyFactory)
-            );
-        }
-
-        /**
-         * The variant that is selected when a virtual platform edge targets this component.
-         *
-         * @param platformId The consuming platform.
-         */
-        public VariantGraphResolveState getVariantForSourceNode(
-            NodeState from,
-            @Nullable ComponentIdentifier platformId
-        ) {
-            VariantDependencyFactory dependencyFactory = new SourceAwareVariantDependencyFactory(
-                component.virtualPlatformState,
-                component.resolveState,
-                from,
-                platformId
-            );
-
-            String name = Dependency.DEFAULT_CONFIGURATION;
-            NamedVariantIdentifier id = new NamedVariantIdentifier(component.getMetadata().getId(), name);
-            return new LenientPlatformVariantGraphResolveState(
-                component.idGenerator.nextVariantId(),
-                component.getMetadata().getId(),
-                new LenientPlatformVariantGraphResolveMetadata(id, name, true, dependencyFactory)
-            );
+            return variant;
         }
 
     }
@@ -230,19 +159,13 @@ public class LenientPlatformGraphResolveState extends AbstractComponentGraphReso
 
         private final VariantIdentifier id;
         private final String name;
-        private final boolean transitive;
-        private final VariantDependencyFactory dependencyFactory;
 
         public LenientPlatformVariantGraphResolveMetadata(
             VariantIdentifier id,
-            String name,
-            boolean transitive,
-            VariantDependencyFactory dependencyFactory
+            String name
         ) {
             this.id = id;
             this.name = name;
-            this.transitive = transitive;
-            this.dependencyFactory = dependencyFactory;
         }
 
         @Override
@@ -265,13 +188,9 @@ public class LenientPlatformGraphResolveState extends AbstractComponentGraphReso
             return ImmutableCapabilities.EMPTY;
         }
 
-        public List<? extends ModuleDependencyMetadata> getDependencies() {
-            return dependencyFactory.getDependencies();
-        }
-
         @Override
         public boolean isTransitive() {
-            return transitive;
+            return true;
         }
 
         @Override
@@ -287,17 +206,27 @@ public class LenientPlatformGraphResolveState extends AbstractComponentGraphReso
     private static class LenientPlatformVariantGraphResolveState implements VariantGraphResolveState {
 
         private final long instanceId;
+        private final ModuleComponentIdentifier platformId;
+        private final VirtualPlatformState virtualPlatformState;
+        private final ResolveState resolveState;
         private final LenientPlatformVariantGraphResolveMetadata metadata;
+
         private final LenientPlatformVariantArtifactResolveState artifactResolveState;
 
         public LenientPlatformVariantGraphResolveState(
             long instanceId,
-            ModuleComponentIdentifier componentId,
+            ModuleComponentIdentifier platformId,
+            VirtualPlatformState virtualPlatformState,
+            ResolveState resolveState,
             LenientPlatformVariantGraphResolveMetadata metadata
         ) {
             this.instanceId = instanceId;
+            this.platformId = platformId;
+            this.virtualPlatformState = virtualPlatformState;
+            this.resolveState = resolveState;
             this.metadata = metadata;
-            this.artifactResolveState = new LenientPlatformVariantArtifactResolveState(componentId, metadata);
+
+            this.artifactResolveState = new LenientPlatformVariantArtifactResolveState(platformId, metadata);
         }
 
         @Override
@@ -322,7 +251,74 @@ public class LenientPlatformGraphResolveState extends AbstractComponentGraphReso
 
         @Override
         public List<? extends DependencyMetadata> getDependencies() {
-            return metadata.getDependencies();
+            List<ModuleDependencyMetadata> result = null;
+            List<String> candidateVersions = virtualPlatformState.getCandidateVersions();
+            Set<ModuleResolveState> modules = virtualPlatformState.getParticipatingModules();
+            boolean forced = virtualPlatformState.isForced();
+
+            for (ModuleResolveState module : modules) {
+                ComponentState selected = module.getSelected();
+                if (selected != null) {
+                    ModuleDependencyMetadata resultForSelected = getDependencyForParticipatingComponent(module, selected, candidateVersions, forced);
+                    if (resultForSelected != null) {
+                        if (result == null) {
+                            result = new ArrayList<>(modules.size());
+                        }
+                        result.add(resultForSelected);
+                    }
+
+                    virtualPlatformState.attachOrphanEdges();
+                }
+            }
+
+            return result == null ? Collections.emptyList() : result;
+        }
+
+        private @Nullable ModuleDependencyMetadata getDependencyForParticipatingComponent(
+            ModuleResolveState module,
+            ComponentState selectedComponent,
+            List<String> candidateVersions,
+            boolean forced
+        ) {
+            for (String target : candidateVersions) {
+                ModuleComponentIdentifier targetComponentId = DefaultModuleComponentIdentifier.newId(module.getId(), target);
+
+                // We will only add dependencies to the leaves if there is such a published module.
+                // To do this, we either check module has already selected the target version
+                // or we need to resolve the potential target version to see if it exists.
+                if (selectedComponent.getComponentId().equals(targetComponentId) ||
+                    componentVersionExists(targetComponentId)
+                ) {
+                    return createConstraint(targetComponentId, forced);
+                }
+            }
+
+            return null;
+        }
+
+        /**
+         * Determine if the given component version exists, by resolving it.
+         */
+        private boolean componentVersionExists(ModuleComponentIdentifier componentId) {
+            ModuleVersionIdentifier moduleVersionId =
+                DefaultModuleVersionIdentifier.newId(componentId.getModuleIdentifier(), componentId.getVersion());
+            return resolveState.getModule(componentId.getModuleIdentifier())
+                .getVersion(moduleVersionId, componentId)
+                .getResolveStateOrNull() != null;
+        }
+
+        private LenientPlatformDependencyMetadata createConstraint(
+            ModuleComponentIdentifier targetComponentId,
+            boolean forced
+        ) {
+            ModuleComponentSelector selector =
+                DefaultModuleComponentSelector.newSelector(targetComponentId.getModuleIdentifier(), targetComponentId.getVersion());
+            return new LenientPlatformDependencyMetadata(
+                selector,
+                platformId,
+                forced,
+                true
+            );
         }
 
         @Override
@@ -339,6 +335,7 @@ public class LenientPlatformGraphResolveState extends AbstractComponentGraphReso
         public VariantArtifactResolveState prepareForArtifactResolution() {
             return artifactResolveState;
         }
+
     }
 
     /**
@@ -374,164 +371,6 @@ public class LenientPlatformGraphResolveState extends AbstractComponentGraphReso
                 ImmutableList.of(),
                 variant.getCapabilities()
             ));
-        }
-
-    }
-
-    /**
-     * Factory for dependencies of a variant.
-     * <p>
-     * Lenient platforms have both an implicit variant and a source-aware variant.
-     * The implicit variant is selected when a normal dependency targets the platform,
-     * while the source-aware variant is selected when another lenient platform targets the platform.
-     * <p>
-     * These two schemes have different approaches to selecting dependencies.
-     */
-    interface VariantDependencyFactory {
-
-        List<? extends ModuleDependencyMetadata> getDependencies();
-
-    }
-
-    /**
-     * Dependencies for the implicit variant of a lenient platform.
-     */
-    private static class ImplicitVariantDependencyFactory implements VariantDependencyFactory {
-
-        private final VirtualPlatformState virtualPlatformState;
-        private final ResolveState resolveState;
-        private final NodeState platformNode;
-        private final ModuleVersionIdentifier moduleVersionIdentifier;
-
-        public ImplicitVariantDependencyFactory(
-            VirtualPlatformState virtualPlatformState,
-            ResolveState resolveState,
-            NodeState platformNode,
-            ModuleVersionIdentifier moduleVersionIdentifier
-        ) {
-            this.virtualPlatformState = virtualPlatformState;
-            this.resolveState = resolveState;
-            this.platformNode = platformNode;
-            this.moduleVersionIdentifier = moduleVersionIdentifier;
-        }
-
-        @Override
-        public List<? extends ModuleDependencyMetadata> getDependencies() {
-            ImmutableList.Builder<ModuleDependencyMetadata> dependencies = new ImmutableList.Builder<>();
-            Set<ModuleResolveState> participatingModules = virtualPlatformState.getParticipatingModules();
-            for (ModuleResolveState module : participatingModules) {
-                dependencies.add(new LenientPlatformDependencyMetadata(
-                    resolveState,
-                    platformNode,
-                    DefaultModuleComponentSelector.newSelector(module.getId(), moduleVersionIdentifier.getVersion()),
-                    DefaultModuleComponentIdentifier.newId(module.getId(), moduleVersionIdentifier.getVersion()),
-                    virtualPlatformState.getSelectedPlatformId(),
-                    virtualPlatformState.isForced(),
-                    true,
-                    true
-                ));
-            }
-            return dependencies.build();
-        }
-    }
-
-    /**
-     * Dependencies for the source-aware variant of a lenient platform.
-     */
-    private static class SourceAwareVariantDependencyFactory implements VariantDependencyFactory {
-
-        private final VirtualPlatformState virtualPlatformState;
-        private final ResolveState resolveState;
-        private final NodeState from;
-        private final ComponentIdentifier platformId;
-
-        public SourceAwareVariantDependencyFactory(
-            VirtualPlatformState virtualPlatformState,
-            ResolveState resolveState,
-            NodeState from,
-            @Nullable ComponentIdentifier platformId
-        ) {
-            this.virtualPlatformState = virtualPlatformState;
-            this.resolveState = resolveState;
-            this.from = from;
-            this.platformId = platformId;
-        }
-
-        @Override
-        public List<? extends ModuleDependencyMetadata> getDependencies() {
-            List<ModuleDependencyMetadata> result = null;
-            List<String> candidateVersions = virtualPlatformState.getCandidateVersions();
-            Set<ModuleResolveState> modules = virtualPlatformState.getParticipatingModules();
-            for (ModuleResolveState module : modules) {
-                ComponentState selected = module.getSelected();
-                if (selected != null) {
-                    ModuleDependencyMetadata resultForSelected = getDependencyForParticipatingComponent(module, selected, candidateVersions);
-                    if (resultForSelected != null) {
-                        if (result == null) {
-                            result = new ArrayList<>(modules.size());
-                        }
-                        result.add(resultForSelected);
-                    }
-
-                    virtualPlatformState.attachOrphanEdges();
-                }
-            }
-            return result == null ? Collections.emptyList() : result;
-        }
-
-        private @Nullable ModuleDependencyMetadata getDependencyForParticipatingComponent(
-            ModuleResolveState module,
-            ComponentState selectedComponent,
-            List<String> candidateVersions
-        ) {
-            for (String target : candidateVersions) {
-                ModuleComponentIdentifier targetComponentId = DefaultModuleComponentIdentifier.newId(module.getId(), target);
-                ComponentIdentifier platformId = virtualPlatformState.getSelectedPlatformId();
-                if (platformId == null) {
-                    // Not sure this can happen, unless in error state
-                    platformId = this.platformId;
-                }
-
-                // We will only add dependencies to the leaves if there is such a published module.
-                // To do this, we either check module has already selected the target version
-                // or we need to resolve the potential target version to see if it exists.
-                if (selectedComponent.getComponentId().equals(targetComponentId) ||
-                    componentVersionExists(targetComponentId)
-                ) {
-                    return createDependencyMetadata(targetComponentId, platformId);
-                }
-            }
-
-            return null;
-        }
-
-        /**
-         * Determine if the given component version exists, by resolving it.
-         */
-        private boolean componentVersionExists(ModuleComponentIdentifier componentId) {
-            ModuleVersionIdentifier moduleVersionId =
-                DefaultModuleVersionIdentifier.newId(componentId.getModuleIdentifier(), componentId.getVersion());
-            return resolveState.getModule(componentId.getModuleIdentifier())
-                .getVersion(moduleVersionId, componentId)
-                .getResolveStateOrNull() != null;
-        }
-
-        private LenientPlatformDependencyMetadata createDependencyMetadata(
-            ModuleComponentIdentifier targetComponentId,
-            ComponentIdentifier platformId
-        ) {
-            ModuleComponentSelector selector =
-                DefaultModuleComponentSelector.newSelector(targetComponentId.getModuleIdentifier(), targetComponentId.getVersion());
-            return new LenientPlatformDependencyMetadata(
-                resolveState,
-                from,
-                selector,
-                targetComponentId,
-                platformId,
-                virtualPlatformState.isForced(),
-                false,
-                true
-            );
         }
 
     }

@@ -18,20 +18,19 @@ package org.gradle.execution.taskgraph
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
+import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import org.junit.Rule
 import spock.lang.Issue
 import spock.lang.Timeout
 
-import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache.Skip.INVESTIGATE
 
-@Requires(IntegTestPreconditions.NotParallelExecutor)
+@Requires(TestExecutionPreconditions.NotParallelExecutor)
 @ToBeFixedForIsolatedProjects(because = "allprojects")
 // no point, always runs in parallel
 class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec implements ValidationMessageChecker {
@@ -268,7 +267,7 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec imple
         }
     }
 
-    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
+    @UnsupportedWithConfigurationCache(because = "With CC, resolution happens during configuration phase")
     def "tasks from same project do not run in parallel even when tasks do undeclared dependency resolution"() {
         given:
         executer.beforeExecute {
@@ -529,7 +528,7 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec imple
         }
     }
 
-    @Requires(IntegTestPreconditions.IsEmbeddedExecutor)
+    @Requires(TestExecutionPreconditions.IsEmbeddedExecutor)
     // this test only works in embedded mode because of the use of validation test fixtures
     def "other tasks are not started when an invalid task is running"() {
         given:
@@ -555,7 +554,7 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec imple
         run ":aPingWithCacheableWarnings", ":bPing", ":cPing"
     }
 
-    @Requires(IntegTestPreconditions.IsEmbeddedExecutor)
+    @Requires(TestExecutionPreconditions.IsEmbeddedExecutor)
     // this test only works in embedded mode because of the use of validation test fixtures
     def "invalid task is not executed in parallel with other task"() {
         given:

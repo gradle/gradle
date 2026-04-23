@@ -139,6 +139,8 @@ public interface ProjectState extends ModelContainer<ProjectInternal> {
 
     /**
      * Returns the mutable model for this project. This should not be used directly. This property is here to help with migration away from direct usage.
+     * If you are using the mutable state of many projects, consider using one of the methods from {@link org.gradle.internal.build.BuildProjectRegistry}
+     * that provide {@link org.gradle.internal.build.AllProjectsAccess} instead, which checks the lock state.
      */
     ProjectInternal getMutableModel();
 

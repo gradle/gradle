@@ -16,9 +16,8 @@
 
 package org.gradle.internal.component.model;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.component.ComponentSelector;
-
-import java.util.List;
 
 /**
  * A dependency that is defined locally in a build script, not resolved from a repository.
@@ -29,7 +28,7 @@ public interface LocalOriginDependencyMetadata extends ForcingDependencyMetadata
     LocalOriginDependencyMetadata withTarget(ComponentSelector target);
 
     @Override
-    LocalOriginDependencyMetadata withTargetAndArtifacts(ComponentSelector target, List<IvyArtifactName> artifacts);
+    LocalOriginDependencyMetadata withTargetAndArtifacts(ComponentSelector target, ImmutableList<IvyArtifactName> artifacts);
 
     @Override
     LocalOriginDependencyMetadata forced();

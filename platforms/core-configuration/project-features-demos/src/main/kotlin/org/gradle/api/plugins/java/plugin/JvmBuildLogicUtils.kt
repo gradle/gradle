@@ -18,7 +18,7 @@ package org.gradle.api.plugins.java.plugin
 
 import org.gradle.api.Named
 import org.gradle.api.NamedDomainObjectProvider
-import org.gradle.api.internal.plugins.ProjectFeatureApplicationContext
+import org.gradle.features.binding.ProjectFeatureApplicationContext
 import org.gradle.api.plugins.java.HasCompiledBytecode
 import org.gradle.api.plugins.java.HasJarFile
 import org.gradle.api.plugins.java.HasProcessedResources

@@ -16,7 +16,7 @@
 
 package org.gradle.internal.declarativedsl.settings
 
-import groovy.test.NotYetImplemented
+import org.gradle.features.internal.ProjectFeatureFixture
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.integtests.fixtures.polyglot.PolyglotDslTest
@@ -24,9 +24,11 @@ import org.gradle.integtests.fixtures.polyglot.SkipDsl
 import org.gradle.integtests.fixtures.polyglot.PolyglotTestFixture
 import org.gradle.internal.declarativedsl.DeclarativeTestUtils
 import org.gradle.test.fixtures.dsl.GradleDsl
+import spock.lang.Issue
 
 @PolyglotDslTest
-class ProjectTypeModelDefaultsIntegrationTest extends AbstractIntegrationSpec implements ProjectTypeFixture, PolyglotTestFixture {
+@SkipDsl(dsl = GradleDsl.GROOVY, because = "Groovy DSL is not supported for declarative configuration")
+class ProjectTypeModelDefaultsIntegrationTest extends AbstractIntegrationSpec implements ProjectFeatureFixture, PolyglotTestFixture {
 
     def setup() {
         file("gradle.properties") << """
@@ -50,17 +52,16 @@ class ProjectTypeModelDefaultsIntegrationTest extends AbstractIntegrationSpec im
 
         where:
         testCase                                           | modelDefault                 | buildConfiguration    | expectedValues
-        "top-level property has default and is set"        | setId("default")             | setId("test")         | expected("id":"test", "foo.bar":"bar")
+        "top-level property has default and is set"        | setId("default")             | setId("test")         | expected("id":"test", "foo.bar":"null")
         "top-level property has default, nested is set"    | setId("default")             | setFooBar("baz")      | expected("id":"default", "foo.bar":"baz")
-        "nested property has default and is set"           | setFooBar("default")         | setFooBar("baz")      | expected("id":"<no id>", "foo.bar":"baz")
-        "nested property has default, top-level is set"    | setFooBar("default")         | setId("test")         | expected("id": "test", "foo.bar":"default")
-        "no defaults, top-level property is set"           | ""                           | setId("test")         | expected("id":"test", "foo.bar":"bar")
+        "nested property has default and is set"           | setFooBar("default")         | setFooBar("baz")      | expected("id":"null", "foo.bar":"baz")
+        "nested property has default, top-level is set"    | setFooBar("default")         | setId("test")         | expected("id":"test", "foo.bar":"default")
+        "no defaults, top-level property is set"           | ""                           | setId("test")         | expected("id":"test", "foo.bar":"null")
         "everything has default and nothing set"           | setAll("default", "default") | ""                    | expected("id":"default", "foo.bar":"default")
         "everything has default and is set"                | setAll("default", "default") | setAll("test", "baz") | expected("id":"test", "foo.bar":"baz")
     }
 
     @SkipDsl(dsl = GradleDsl.KOTLIN, because = "Kotlin DSL does accept re-assigning values")
-    @SkipDsl(dsl = GradleDsl.GROOVY, because = "Groovy DSL does accept re-assigning values")
     def "sensible error when defaults are set more than once (#testCase)"() {
         given:
         withProjectType().prepareToExecute()
@@ -284,19 +285,18 @@ class ProjectTypeModelDefaultsIntegrationTest extends AbstractIntegrationSpec im
     }
 
     @SkipDsl(dsl = GradleDsl.KOTLIN, because = "Test is written with build files for specific DSLs in mind")
-    @SkipDsl(dsl = GradleDsl.GROOVY, because = "Test is written with build files for specific DSLs in mind")
-    def "can configure build-level defaults in a non-declarative settings file and apply in a declarative project file (#type settings script)"() {
+    def "can configure build-level defaults in a non-declarative settings file and apply in a declarative project file (kotlin settings script)"() {
         given:
         withProjectType().prepareToExecute()
 
-        file("settings.gradle${extension}") << getDeclarativeSettingsScriptThatSetsDefaults(setAll("default", "default")) + """
+        file("settings.gradle.kts") << getDeclarativeSettingsScriptThatSetsDefaults(setAll("default", "default")) + """
             include("declarative")
             include("non-declarative")
         """
 
         file("declarative/build.gradle.dcl") << getDeclarativeScriptThatConfiguresOnlyTestProjectType(setId("foo"))
 
-        file("non-declarative/build.gradle${extension}") << getDeclarativeScriptThatConfiguresOnlyTestProjectType(setFooBar("bar"))
+        file("non-declarative/build.gradle.kts") << getDeclarativeScriptThatConfiguresOnlyTestProjectType(setFooBar("bar"))
 
         when:
         run(":declarative:printTestProjectTypeDefinitionConfiguration")
@@ -311,16 +311,10 @@ class ProjectTypeModelDefaultsIntegrationTest extends AbstractIntegrationSpec im
         then:
         outputContains("definition id = default")
         outputContains("definition foo.bar = bar")
-
-        where:
-        type     | extension
-        "groovy" | ""
-        "kotlin" | ".kts"
     }
 
     @SkipDsl(dsl = GradleDsl.KOTLIN, because = "Test is written with build files for specific DSLs in mind")
-    @SkipDsl(dsl = GradleDsl.GROOVY, because = "Test is written with build files for specific DSLs in mind")
-    def "can configure build-level defaults in a declarative settings file and apply in a non-declarative project file (#type build script)"() {
+    def "can configure build-level defaults in a declarative settings file and apply in a non-declarative project file (kotlin build script)"() {
         given:
         withProjectType().prepareToExecute()
 
@@ -329,7 +323,7 @@ class ProjectTypeModelDefaultsIntegrationTest extends AbstractIntegrationSpec im
             include("declarative")
         """
 
-        file("non-declarative/build.gradle${extension}") << getDeclarativeScriptThatConfiguresOnlyTestProjectType(setFooBar("bar"))
+        file("non-declarative/build.gradle.kts") << getDeclarativeScriptThatConfiguresOnlyTestProjectType(setFooBar("bar"))
         file("declarative/build.gradle.dcl") << getDeclarativeScriptThatConfiguresOnlyTestProjectType(setId("bar"))
 
         when:
@@ -345,17 +339,11 @@ class ProjectTypeModelDefaultsIntegrationTest extends AbstractIntegrationSpec im
         then:
         outputContains("definition id = bar")
         outputContains("definition foo.bar = default")
-
-        where:
-        type     | extension
-        "groovy" | ""
-        "kotlin" | ".kts"
     }
 
-    @SkipDsl(dsl = GradleDsl.GROOVY, because = "Neither the foo() method is available in Groovy, nor can the x or y values remain undefined")
     def "can configure defaults for named domain object container elements"() {
         given:
-        withProjectTypeWithNdoc().prepareToExecute()
+        withProjectTypeWithNdoc(false).prepareToExecute()
 
         settingsFile() << getDeclarativeSettingsScriptThatSetsDefaultsForNdoc()
 
@@ -372,7 +360,6 @@ class ProjectTypeModelDefaultsIntegrationTest extends AbstractIntegrationSpec im
         outputContains("Foo(name = two, x = 2, y = 22)")
     }
 
-    @NotYetImplemented
     def "can configure build-level defaults in a settings plugin"() {
         given:
         withSettingsPluginThatConfiguresModelDefaults().prepareToExecute()
@@ -386,11 +373,63 @@ class ProjectTypeModelDefaultsIntegrationTest extends AbstractIntegrationSpec im
 
         then:
         outputContains("definition id = test")
-        outputContains("definition foo.bar = plugin")
+        outputContains("definition foo.bar = settings")
+    }
+
+    def "can configure build-level defaults that applies features to a project type (#testCase)"() {
+        given:
+        withProjectFeature().prepareToExecute()
+
+        settingsFile() << getDeclarativeSettingsScriptThatSetsDefaults(modelDefault)
+
+        buildFile() << getDeclarativeScriptThatConfiguresOnlyTestProjectType(buildConfiguration) << DeclarativeTestUtils.nonDeclarativeSuffixForKotlinDsl
+
+        when:
+        run(":printFeatureDefinitionConfiguration")
+
+        then:
+        expectedValues.each { String value -> outputContains(value) }
+
+        where:
+        testCase                                           | modelDefault                 | buildConfiguration      | expectedValues
+        "feature is set in default and build script"       | setFeatureText("default")    | setFeatureText("test")  | expected("text":"test")
+        "feature is set in default but not build script"   | setFeatureText("default")    | ""                      | expected("text":"default")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/37377")
+    def "configuring build-level defaults applies features in the correct order"() {
+        given:
+        withProjectFeature().prepareToExecute()
+
+        settingsFile() << getDeclarativeSettingsScriptThatSetsDefaults(setFeatureText("default"))
+
+        buildFile() << declarativeScriptThatConfiguresOnlyTestProjectType << DeclarativeTestUtils.nonDeclarativeSuffixForKotlinDsl
+
+        when:
+        run(":printFeatureDefinitionConfiguration")
+
+        then:
+        outputContains("Binding TestProjectTypeDefinition")
+        outputContains("Binding FeatureDefinition")
+        outputContains("definition text = default")
+
+        and:
+        output.indexOf("Binding TestProjectTypeDefinition") < output.indexOf("Binding FeatureDefinition")
     }
 
     private static String[] expected(Map<String, String> expectations) {
         return expectations.collect { k, v -> "definition ${k} = ${v}" }
+    }
+
+    static String setFeatureText(String text) {
+        return """
+            feature {
+                text = "${text}"
+                fizz {
+                    buzz = ""
+                }
+            }
+        """
     }
 
     static String setId(String id) {

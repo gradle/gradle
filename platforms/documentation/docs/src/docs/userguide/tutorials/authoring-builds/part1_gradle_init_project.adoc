@@ -39,11 +39,11 @@ The Community Edition is a free version of IntelliJ IDEA.
 
 Create a new directory called `authoring-tutorial` and `cd` into it:
 
-[source,text]
+[source,bash]
 ----
 $ mkdir authoring-tutorial
 ----
-[source,text]
+[source,bash]
 ----
 $ cd authoring-tutorial
 ----
@@ -331,10 +331,12 @@ Applying the Application plugin implicitly applies the Java plugin and adds task
 Thanks to the `application` plugin, you can run the application directly from the command line.
 The `run` task tells Gradle to execute the `main` method in the class assigned to the `mainClass` property.
 
-[source,text]
+[source,bash]
 ----
 $ ./gradlew run
-
+----
+[source,text]
+----
 > Task :app:run
 Hello World!
 
@@ -349,10 +351,12 @@ The archive will also contain a script to start the application with a single co
 
 Run `./gradlew build`:
 
-[source,text]
+[source,bash]
 ----
 $ ./gradlew build
-
+----
+[source,text]
+----
 > Task :app:compileJava
 > Task :app:processResources NO-SOURCE
 > Task :app:classes
@@ -378,9 +382,12 @@ If you run a full build as shown above, Gradle will have produced the archive in
 The best way to learn more about what your build is doing behind the scenes is to publish a link:https://scans.gradle.com[Build Scan].
 To do so, run the `build` task again with the `--scan` flag.
 
-[source]
+[source,bash]
 ----
 $ ./gradlew build --scan
+----
+[source,text]
+----
 > Task :app:compileJava UP-TO-DATE
 > Task :app:processResources NO-SOURCE
 > Task :app:classes UP-TO-DATE

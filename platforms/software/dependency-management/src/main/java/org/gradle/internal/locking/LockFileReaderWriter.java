@@ -234,7 +234,8 @@ public class LockFileReaderWriter {
                 content.add(builder);
             }
             content.add("empty=" + emptyLockIds.stream().sorted().collect(Collectors.joining(",")));
-            Files.write(lockfilePath, content, CHARSET);
+            byte[] bytes = String.join("\n", content).concat("\n").getBytes(CHARSET);
+            Files.write(lockfilePath, bytes);
         } catch (IOException e) {
             throw new RuntimeException("Unable to write unique lockfile", e);
         }

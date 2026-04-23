@@ -33,6 +33,9 @@ class TestFilesCleanupServiceTest {
     @TempDir
     lateinit var projectDir: File
 
+    @TempDir
+    lateinit var testKitDir: File
+
     private
     fun File.mkdirsAndWriteText(text: String) {
         parentFile.mkdirs()
@@ -162,17 +165,28 @@ class TestFilesCleanupServiceTest {
     private
     fun run(vararg args: String) = GradleRunner.create()
         .withProjectDir(projectDir)
-        .withTestKitDir(projectDir.resolve("test-kit"))
+        .withTestKitDir(testKitDir)
         .withPluginClasspath()
         .forwardOutput()
-        .withArguments(*args)
+        /*
+        This is a workaround to use `--no-daemon` with TestKit.
+        Without this, daemon may keep writing to project dir after the test finishes, resulting in errors like:
+
+        org.junit.platform.commons.JUnitException: Failed to close extension context
+	        at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	        at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+        Caused by: java.io.IOException: Failed to delete temp directory /var/folders/_2/vxp7qn2x7qzd0zqqm8p128lh0000gq/T/junit-4205933054320696172.
+	        at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
+         */
+        .withDebug(true)
+        .withArguments(*args, "--stacktrace", "--no-watch-fs")
 
     private
     fun assertArchivedFilesSeen(vararg archiveFileNames: String) {
         val rootDirFiles = projectDir.resolve("build").walk().toList()
 
         archiveFileNames.forEach { fileName ->
-            assertTrue(rootDirFiles.any { it.name == fileName })
+            assertTrue(rootDirFiles.any { it.name == fileName }, "File $fileName does not exist")
         }
     }
 
@@ -185,11 +199,11 @@ class TestFilesCleanupServiceTest {
 
     @Test
     fun `fail build if leftover file found and test passes`() {
-        val result = run(":successful-test-with-leftover:test", "--no-watch-fs").buildAndFail()
+        val result = run(":successful-test-with-leftover:test").buildAndFail()
         assertEquals(TaskOutcome.SUCCESS, result.task(":successful-test-with-leftover:test")!!.outcome)
 
-        assertEquals(1, StringUtils.countMatches(result.output, "Found non-empty test files dir"))
-        assertEquals(1, StringUtils.countMatches(result.output, "Failed to stop service 'testFilesCleanupBuildService'"))
+        assertEquals(2, StringUtils.countMatches(result.output, "Found non-empty test files dir"))
+        assertEquals(2, StringUtils.countMatches(result.output, "Failed to stop service 'testFilesCleanupBuildService'"))
         result.output.assertContains("successful-test-with-leftover/build/tmp/teŝt files/leftover")
 
         assertLeftoverFilesCleanedUpEventually("successful-test-with-leftover/build/tmp/teŝt files")
@@ -197,7 +211,7 @@ class TestFilesCleanupServiceTest {
 
     @Test
     fun `flaky tests without leftovers get reports achieved`() {
-        val result = run(":flaky-test-without-leftover:test", "--no-watch-fs").build()
+        val result = run(":flaky-test-without-leftover:test").build()
         assertEquals(TaskOutcome.SUCCESS, result.task(":flaky-test-without-leftover:test")!!.outcome)
 
         assertArchivedFilesSeen("report-flaky-test-without-leftover-test.zip")
@@ -209,16 +223,15 @@ class TestFilesCleanupServiceTest {
             ":failed-report-with-leftover:test",
             ":successful-report:test",
             ":failed-test-with-leftover:test",
-            "--continue",
-            "--no-watch-fs"
+            "--continue"
         ).buildAndFail()
         assertEquals(TaskOutcome.SUCCESS, result.task(":successful-report:test")!!.outcome)
         assertEquals(TaskOutcome.FAILED, result.task(":failed-report-with-leftover:test")!!.outcome)
         assertEquals(TaskOutcome.FAILED, result.task(":failed-test-with-leftover:test")!!.outcome)
 
         // leftover files failed tests are reported but not counted as an exception, but cleaned up eventually
-        assertEquals(1, StringUtils.countMatches(result.output, "Found non-empty test files dir"))
-        assertEquals(1, StringUtils.countMatches(result.output, "Failed to stop service 'testFilesCleanupBuildService'"))
+        assertEquals(2, StringUtils.countMatches(result.output, "Found non-empty test files dir"))
+        assertEquals(2, StringUtils.countMatches(result.output, "Failed to stop service 'testFilesCleanupBuildService'"))
         result.output.assertContains("failed-report-with-leftover/build/tmp/teŝt files/leftover")
         result.output.assertContains("failed-test-with-leftover/build/tmp/teŝt files/leftover")
 
@@ -237,7 +250,7 @@ class TestFilesCleanupServiceTest {
 
     @Test
     fun `build does not fail if a flaky test has leftover files`() {
-        val result = run(":flaky-test-with-leftover:test", "--no-watch-fs").build()
+        val result = run(":flaky-test-with-leftover:test").build()
 
         // leftover files failed tests are reported but not counted as an exception, but cleaned up eventually
         assertEquals(1, StringUtils.countMatches(result.output, "Leftover files"))

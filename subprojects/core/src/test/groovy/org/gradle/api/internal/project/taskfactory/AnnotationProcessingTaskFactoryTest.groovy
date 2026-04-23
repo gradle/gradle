@@ -920,7 +920,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec imp
     private <T extends TaskInternal> T expectTaskCreated(String name, final Class<T> type, T task) {
         // We cannot just stub here as we want to return a different task each time.
         def projectId = ProjectIdentity.forRootProject(Path.ROOT, "root")
-        def id = new TaskIdentity(type, name, projectId, 12)
+        def id = new TaskIdentity(type, name, projectId, 12, null)
         1 * delegate.create(id) >> task
         def createdTask = factory.create(id)
         assert createdTask.is(task)

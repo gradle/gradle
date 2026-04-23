@@ -11,6 +11,7 @@ dependencies {
 
     implementation(projects.buildUpdateUtils)
 
+    implementation(buildLibs.gradleGuidesPlugin)
     implementation(buildLibs.javaParserCore)
     implementation(buildLibs.guava)
     implementation(buildLibs.jhighlight) {

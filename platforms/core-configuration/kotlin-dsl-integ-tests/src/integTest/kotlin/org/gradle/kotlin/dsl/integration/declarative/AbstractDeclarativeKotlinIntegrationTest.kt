@@ -16,6 +16,7 @@
 
 package org.gradle.kotlin.dsl.integration.declarative
 
+import org.gradle.features.annotations.RegistersProjectFeatures
 import org.gradle.kotlin.dsl.accessors.DCL_ENABLED_PROPERTY_NAME
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 
@@ -36,9 +37,9 @@ abstract class AbstractDeclarativeKotlinIntegrationTest : AbstractKotlinIntegrat
 
                 import org.gradle.api.Plugin
                 import org.gradle.api.initialization.Settings
-                import org.gradle.api.internal.plugins.software.RegistersSoftwareTypes
+                import ${RegistersProjectFeatures::class.qualifiedName}
 
-                @RegistersSoftwareTypes($pluginClassName::class)
+                @${RegistersProjectFeatures::class.simpleName}($pluginClassName::class)
                 class MyEcosystemPlugin : Plugin<Settings> {
                     override fun apply(settings: Settings) = Unit
                 }

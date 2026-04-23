@@ -16,17 +16,18 @@
 
 package org.gradle.launcher.daemon.server;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.internal.buildprocess.BuildProcessState;
 import org.gradle.internal.installation.CurrentGradleInstallation;
 import org.gradle.internal.instrumentation.agent.AgentStatus;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.launcher.daemon.configuration.DaemonServerConfiguration;
 import org.gradle.launcher.daemon.registry.DaemonRegistryServices;
 
 import java.io.Closeable;
+import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -44,15 +45,15 @@ public class DaemonProcessState implements Closeable {
             !configuration.isSingleUse(),
             AgentStatus.of(configuration.isInstrumentationAgentAllowed()),
             CurrentGradleInstallation.locate(),
-            loggingServices,
-            NativeServices.getInstance()
-        ) {
-            @Override
-            protected void addProviders(ServiceRegistryBuilder builder) {
-                builder.provider(new DaemonServices(configuration, loggingManager));
-                builder.provider(new DaemonRegistryServices(configuration.getBaseDir()));
-            }
-        };
+            ImmutableList.of(
+                new DaemonServices(configuration, loggingManager),
+                new DaemonRegistryServices(configuration.getBaseDir())
+            ),
+            Arrays.asList(
+                loggingServices,
+                NativeServices.getInstance()
+            )
+        );
     }
 
     public ServiceRegistry getServices() {

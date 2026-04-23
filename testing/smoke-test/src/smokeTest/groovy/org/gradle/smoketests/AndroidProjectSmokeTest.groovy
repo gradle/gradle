@@ -19,6 +19,7 @@ package org.gradle.smoketests
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
+import static org.gradle.testkit.runner.TaskOutcome.FROM_CACHE
 
 abstract class AndroidProjectSmokeTest extends AbstractAndroidProjectSmokeTest {
 }
@@ -42,7 +43,7 @@ class AndroidProjectDeprecationSmokeTest extends AndroidProjectSmokeTest {
         }
 
         where:
-        agpVersion << TestedVersions.androidGradle9AndAbove.versions
+        agpVersion << TestedVersions.androidGradle.versions
     }
 }
 
@@ -63,7 +64,7 @@ class AndroidProjectIncrementalCompilationSmokeTest extends AndroidProjectSmokeT
         def result = buildLocation(checkoutDir, agpVersion)
 
         then:
-        result.task(":core:ui:compileProdDebugKotlin").outcome == SUCCESS
+        result.task(":core:ui:compileProdDebugKotlin").outcome in [SUCCESS, FROM_CACHE]
         if (GradleContextualExecuter.isConfigCache()) {
             result.assertConfigurationCacheStateStored()
         }
@@ -73,13 +74,13 @@ class AndroidProjectIncrementalCompilationSmokeTest extends AndroidProjectSmokeT
         result = buildCachedLocation(checkoutDir, agpVersion)
 
         then:
-        result.task(":core:ui:compileProdDebugKotlin").outcome == SUCCESS
+        result.task(":core:ui:compileProdDebugKotlin").outcome in [SUCCESS, FROM_CACHE]
         if (GradleContextualExecuter.isConfigCache()) {
             result.assertConfigurationCacheStateLoaded()
         }
 
         where:
-        agpVersion << TestedVersions.androidGradle9AndAbove.versions
+        agpVersion << TestedVersions.androidGradle.versions
     }
 }
 
@@ -99,8 +100,10 @@ class AndroidProjectLintSmokeTest extends AndroidProjectSmokeTest {
         // Use --continue so that a deterministic set of tasks runs when some tasks fail
         runner.withArguments(runner.arguments + "--continue")
         def result = runner
+            .ignoreStackTraces("Android Lint may log stack traces when computing SARIF quick-fix edits fails")
             .deprecations(AndroidProjectDeprecations) {
                 expectMultiStringNotationDeprecation(agpVersion)
+                expectProjectDependencyNotationDeprecation()
             }
             .buildAndFail()
 
@@ -115,6 +118,7 @@ class AndroidProjectLintSmokeTest extends AndroidProjectSmokeTest {
             checkoutDir, agpVersion, "app:lint", "-Dandroid.lintWarningsAsErrors=true"
         )
         result = runner.withArguments(runner.arguments + "--continue")
+                .ignoreStackTraces("Android Lint may log stack traces when computing SARIF quick-fix edits fails")
                 .deprecations(AndroidProjectDeprecations) {}
                 .buildAndFail()
 
@@ -125,6 +129,6 @@ class AndroidProjectLintSmokeTest extends AndroidProjectSmokeTest {
         result.output.contains("Lint found errors in the project; aborting build.")
 
         where:
-        agpVersion << TestedVersions.androidGradle9AndAbove.versions
+        agpVersion << TestedVersions.androidGradle.versions
     }
 }

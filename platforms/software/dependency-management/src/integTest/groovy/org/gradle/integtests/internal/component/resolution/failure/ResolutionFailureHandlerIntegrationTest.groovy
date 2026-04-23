@@ -500,7 +500,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
 
         String basicOutput = """   Failures:
       - Could not resolve com.google.code.gson:gson:2.8.5."""
-        String fullOutput = """          - Unable to find a variant with the requested capability: feature 'test-fixtures':
+        String fullOutput = """          - Unable to find a variant of 'com.google.code.gson:gson:2.8.5' with the requested capability: feature 'test-fixtures':
                - Variant 'compile' provides 'com.google.code.gson:gson:2.8.5'
                - Variant 'enforced-platform-compile' provides 'com.google.code.gson:gson-derived-enforced-platform:2.8.5'
                - Variant 'enforced-platform-runtime' provides 'com.google.code.gson:gson-derived-enforced-platform:2.8.5'
@@ -570,7 +570,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
 
-            val forceResolution by tasks.registering {
+            tasks.register("forceResolution") {
                 inputs.files(configurations.getByName("resolveMe").incoming.artifactView {
                     lenient($lenient)
                     attributes.attribute(color, "red")
@@ -732,8 +732,8 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
                 consumable("default") {
                     outgoing {
                         variants {
-                            val v1 by creating { }
-                            val v2 by creating { }
+                            create("v1")
+                            create("v2")
                         }
                     }
                 }
@@ -801,7 +801,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
 
-            val forceResolution by tasks.registering {
+            tasks.register("forceResolution") {
                 inputs.files(configurations.getByName("resolveMe").incoming.artifactView {
                     attributes.attribute(color, "red")
                 }.artifacts.artifactFiles)
@@ -824,7 +824,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
 
                     outgoing {
                         variants {
-                            val secondary by creating {
+                            create("secondary") {
                                 // Without artifacts on the variant, we would get a AmbiguousArtifactVariantsException - need a mismatch with the derived artifact type of "jar"
                                 artifact(file("secondary.jar"))
                             }
@@ -998,7 +998,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
             val color = Attribute.of("color", String::class.java)
 
             configurations {
-                val default by getting {
+                getByName("default") {
                     attributes.attribute(color, "blue")
                 }
 
@@ -1081,7 +1081,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
             val color = Attribute.of("color", String::class.java)
 
             configurations {
-                val mismatch by configurations.creating {
+                configurations.create("mismatch") {
                     attributes.attribute(color, "blue")
                 }
 
@@ -1109,7 +1109,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
             val color = Attribute.of("color", String::class.java)
 
             // TODO: Can't use dependencyScope here yet, as it doesn't support capabilities
-            val incompatible: Configuration by configurations.creating {
+            val incompatible = configurations.create("incompatible") {
                 isCanBeDeclared = true
                 isCanBeConsumed = false
                 isCanBeResolved = false
@@ -1195,7 +1195,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
                 abstract val resolvedFiles: ConfigurableFileCollection
             }
 
-            val forceResolution by tasks.registering(ForceResolution::class) {
+            tasks.register<ForceResolution>("forceResolution") {
                 resolvedFiles.from(configurations.getByName("resolveMe"))
                 doLast {
                     resolvedFiles.forEach { println(it) }

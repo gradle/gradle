@@ -36,10 +36,334 @@ The previous step will help you identify potential problems by issuing deprecati
 . Run `gradle wrapper --gradle-version {gradleVersion}` to update the project to {gradleVersion}.
 . Try to run the project and debug any errors using the <<troubleshooting.adoc#troubleshooting, Troubleshooting Guide>>.
 
-[[changes_9.5.0]]
-== Upgrading from 9.4.0 and earlier
+[[changes_9.6.0]]
+== Upgrading from 9.5.0 and earlier
+
+=== Deprecations
+
+[[dependency_project_notation]]
+==== Deprecation of using Project objects as dependency notation
+
+Passing a `Project` object directly as a dependency notation has been deprecated and will become an error in Gradle 10.
+
+Previously, you could declare a project dependency by passing a `Project` instance directly:
+
+====
+[.multi-language-sample]
+=====
+.build.gradle
+[source,groovy]
+----
+def someProject = project(":some-project")
+dependencies {
+    implementation(someProject)  // Deprecated
+}
+----
+=====
+====
+
+Instead, use the `project()` method on `DependencyHandler` or the `createProjectDependency()` method on `DependencyFactory`:
+
+====
+[.multi-language-sample]
+=====
+.build.gradle
+[source,groovy]
+----
+dependencies {
+    implementation(project(":some-project"))
+}
+----
+=====
+====
+
+Or, when using the `DependencyFactory` directly (e.g., from a plugin):
+
+[source,java]
+----
+Configuration implementation = project.getConfigurations().getByName("implementation");
+ProjectDependency dependency = project.getDependencyFactory().createProjectDependency(":some-project");
+implementation.getDependencies().add(dependency);
+----
+
+[[deprecate_problem_spec_severity]]
+==== Deprecation of `ProblemSpec.severity()`
+
+Problem severity can no longer be set explicitly when creating a new instance.
+Instead, it is determined by the reporting method: `ProblemReporter.report()` produces warnings and `ProblemReporter.throwing()` produces errors.
+Calling `.severity()` on `ProblemSpec` is now a no-op and will be removed in Gradle 10.0.
+
+[[deprecated_get_properties]]
+==== Deprecation of `getProperties()`
+
+The following usages of `getProperties()` have been deprecated and will be removed in Gradle 10.0.0:
+
+- link:{javadocPath}/org/gradle/api/Project.html#getProperties()[`Project.getProperties()`] — calling `getProperties()` or accessing the `properties` property on a `Project` instance.
+- Calling `getProperties()` (or accessing the `properties` property) on a build script, settings script, or init script. This is a separate API on the script base class, but has the same problems.
+
+This method, which historically existed for convenience, makes build logic harder to understand and navigate due to the untyped nature of the properties and the fact that they are sourced from many different locations and containers.
+Using this method also hurts performance of builds by eagerly resolving properties from the environment, reducing the potential for more frequent Configuration Cache hits.
+The hierarchical look-up of properties through the parent projects chain creates implicit coupling of the mutable state between projects.
+This impedes the potential of scalability in the future model, where projects are <<sharing_build_logic_between_subprojects.adoc#sec:convention_plugins_vs_cross_configuration,isolated from each other>>.
+
+To access <<build_environment.adoc#sec:project_properties,project properties>>, prefer `providers.gradleProperty("name")` which returns a type-safe `Provider` and is compatible with lazy configuration.
+Note that `providers.gradleProperty()` resolves properties at the build level — it does not include properties from `gradle.properties` files in subproject directories, nor extra properties or other properties set dynamically on individual projects.
+If you need to access <<writing_build_scripts_intermediate.adoc#sec:extra_properties,extra properties>>, use `ext` properties directly.
+
+The following table shows common migration scenarios for project properties:
+
+[cols="1a,1a", options="header"]
+|===
+| Before (deprecated) | After (recommended)
+
+| Accessing a single project property:
+[source,kotlin]
+----
+val value = project.properties["myProp"]
+----
+[source,groovy]
+----
+def value = project.properties.myProp
+----
+| Wire the provider as a task property for better Configuration Cache support:
+[source,kotlin]
+----
+val myProp: Provider<String> =
+    providers.gradleProperty("myProp")
+----
+If you need the value immediately:
+[source,groovy]
+----
+def value = providers.gradleProperty("myProp")
+    .orNull
+----
+
+| Accessing a property with a default value (Kotlin, Java, or Groovy):
+[source,kotlin]
+----
+val value = project.properties
+    .getOrDefault("myProp", "default")
+----
+Accessing a property with a default value (Groovy, idiomatic):
+[source,groovy]
+----
+def value = project.properties["myProp"] ?: "default"
+----
+| Use `providers.gradleProperty()` with `getOrElse()`:
+[source,kotlin]
+----
+val value = providers
+    .gradleProperty("myProp")
+    .getOrElse("default")
+----
+[source,groovy]
+----
+def value = providers.gradleProperty("myProp")
+    .getOrElse("default")
+----
+
+| Kotlin property delegation:
+[source,kotlin]
+----
+val myProp: String by project.properties
+----
+| Get the project property directly:
+[source,kotlin]
+----
+val myProp = project.property("myProp") as String
+----
+
+| Forwarding properties as system properties:
+[source,kotlin]
+----
+test {
+    systemProperties(
+        project.properties.filter {
+            it.key.startsWith("test.")
+        }
+    )
+}
+----
+| Use `providers.gradlePropertiesPrefixedBy()`:
+[source,kotlin]
+----
+test {
+    systemProperties(
+        providers
+            .gradlePropertiesPrefixedBy("test.")
+            .get()
+    )
+}
+----
+
+| Token replacement in resource files (common in Minecraft mods, Spring Boot, etc.):
+[source,groovy]
+----
+processResources {
+    filesMatching("plugin.yml") {
+        expand project.properties
+    }
+}
+----
+| Build an explicit map of only the properties you need:
+[source,groovy]
+----
+processResources {
+    filesMatching("plugin.yml") {
+        expand(
+            "version": project.version,
+            "name": project.name
+        )
+    }
+}
+|===
+
+[[kotlin_dsl_delegated_properties]]
+==== Deprecation of Kotlin DSL delegated properties
+
+All Kotlin DSL property delegate extensions have been deprecated and will
+be removed in Gradle 10. This includes container delegates (`by
+registering`, `by creating`, `by existing`, `by getting`), property
+delegates (`by project`, `by settings`, `by extra`), and value delegates
+(`Property<T>` and `ConfigurableFileCollection` getValue/setValue
+operators).
+
+Use the explicit API instead.
+
+The container delegates (`registering`, `creating`, `existing`, `getting`)
+are defined on `NamedDomainObjectContainer` and
+`NamedDomainObjectCollection`. They apply to any container, not just
+`tasks` or `configurations`.
+
+The examples below use a generic
+`container` placeholder; replace it with `tasks`, `configurations`,
+`sourceSets`, or whichever container you use.
+
+**Container delegates:**
+
+[cols="1,1"]
+|===
+|Deprecated delegate |Replacement
+
+|`val x by container.registering`
+|`val x = container.register("x")`
+
+|`val x by container.registering { }`
+|`val x = container.register("x") { }`
+
+|`val x by container.registering(Type::class)`
+|`val x = container.register<Type>("x")`
+
+|`val x by container.registering(Type::class) { }`
+|`val x = container.register<Type>("x") { }`
+
+|`val x by container.creating`
+|`val x = container.create("x")`
+
+|`val x by container.creating { }`
+|`val x = container.create("x") { }`
+
+|`val x by container.creating(Type::class)`
+|`val x = container.create<Type>("x")`
+
+|`val x by container.creating(Type::class) { }`
+|`val x = container.create<Type>("x") { }`
+
+|`val x by container.existing`
+|`val x = container.named("x")`
+
+|`val x by container.existing { }`
+|`val x = container.named("x") { }`
+
+|`val x by container.existing(Type::class)`
+|`val x = container.named<Type>("x")`
+
+|`val x by container.existing(Type::class) { }`
+|`val x = container.named<Type>("x") { }`
+
+|`val x by container.getting`
+|`val x = container.getByName("x")`
+
+|`val x by container.getting { }`
+|`val x = container.getByName("x") { }`
+
+|`val x by container.getting(Type::class)`
+|`val x = container.getByName<Type>("x")`
+
+|`val x by container.getting(Type::class) { }`
+|`val x = container.getByName<Type>("x") { }`
+
+|`val x: Type by container` (lookup)
+|`val x = container.getByName("x")`
+
+|`val x: Type by provider` (`NamedDomainObjectProvider<T>` unwrap)
+|`val x = provider.get()`
+|===
+
+**Property, extra, and value delegates:**
+
+[cols="1,1"]
+|===
+|Deprecated delegate |Replacement
+
+|`val p: String by project`
+|`val p = project.property("p")`
+
+|`val p: String? by project`
+|`val p = project.findProperty("p")`
+
+|`val p: String by settings` (Gradle property)
+|`val p = providers.gradleProperty("p").get()`
+
+|`val p: String? by settings` (Gradle property, nullable)
+|`val p = providers.gradleProperty("p").orNull`
+
+|`val p: String by settings` (extra property)
+|`val p = extra["p"] as String`
+
+|`val p: String? by settings` (extra property, nullable)
+|`val p = extra["p"] as String?`
+
+|`val v by extra("value")` or `val v by extra { value }`
+|`extra.set("v", value)`
+
+|`val v: String by extra`
+|`val v = extra["v"] as String`
+
+|`val v: String? by extra`
+|`val v = extra["v"] as String?`
+
+|`val x: String by myProperty` (`Property<T>` read)
+|`val x = myProperty.get()`
+
+|`x = "new"` via `var x: String by myProperty` (`Property<T>` write)
+|`myProperty.set("new")`
+
+|`val files by myFileCollection` (`ConfigurableFileCollection` read)
+|`val files = myFileCollection.getFiles()`
+
+|`files = ...` via `var files by myFileCollection` (`ConfigurableFileCollection` write)
+|`myFileCollection.setFrom(...)`
+
+|`val ext: Type by extensions`
+|`val ext = extensions.getByType<Type>()`
+|===
+
+Delegated properties are being removed because they create silent
+correctness bugs (e.g. no-op delegates, wrong extra property scope),
+couple entity names to variable names, diverge between build scripts and
+class-based plugins, and duplicate functionality already provided by
+explicit APIs or other DSL sugar.
 
 === Potential breaking changes
+
+[[agp_8x_incompatible]]
+==== Android Gradle Plugin 8.x is no longer compatible with Gradle 9.6
+
+Several internal classes used by Android Gradle Plugin (AGP) 8.x have been changed.
+Since AGP 8.x relied on these internal classes directly, it is no longer compatible with Gradle 9.6 and later.
+
+To resolve this, upgrade to AGP 9.x, which only uses the public Gradle API and fully supports Gradle 9.6.
 
 ==== Concurrency synchronization primitives can no longer be serialized by the Configuration Cache
 
@@ -52,19 +376,136 @@ Previously, attempts to serialize these types could fail with exceptions such as
 If your build requires shared, synchronized state, use <<build_services.adoc#build_services, shared build services>>, which are explicitly designed for safe coordination between tasks.
 For a complete list of types that are incompatible with the Configuration Cache, see the <<configuration_cache_requirements.adoc#config_cache:requirements:disallowed_types, documentation>>.
 
-[[changes_9.4.0]]
-== Upgrading from 9.3.0 and earlier
+[[changes_9.5.0]]
+== Upgrading from 9.4.0 and earlier
 
 === Potential breaking changes
 
+==== Upgrade to Kotlin 2.3.20
+
+The embedded Kotlin has been upgraded from 2.3.10 to link:https://github.com/JetBrains/kotlin/releases/tag/v2.3.20[Kotlin 2.3.20].
+
+==== Plugins requested by precompiled settings plugins are now validated at compile time
+
+Gradle now validates plugin requests in precompiled settings plugins (`*.settings.gradle.kts`) during compilation, failing the build if a requested plugin cannot be resolved.
+This matches the existing behavior for precompiled script plugins targeting `Project`.
+
+Previously, if a precompiled settings plugin was never applied, invalid plugin requests in its `plugins {}` block went undetected until the plugin was used by a consuming build, at which point the build would fail unexpectedly.
+
+[source,kotlin]
+.buildSrc/src/main/kotlin/my-precompiled-plugin.settings.gradle.kts
+----
+plugins {
+    id("com.example.invalid.plugin") // now fails at compile time if unresolvable
+}
+----
+
+If you have precompiled settings plugins that are declared but not currently applied, check their `plugins {}` blocks and remove or fix any plugin requests that cannot be resolved from the dependencies available in the build being compiled.
+
+==== The Windows start script has been reworked to improve usability
+
+The default Windows start script template (used for `gradlew.bat` and application start scripts) has been reworked to improve usability and consistency with the Unix shell script.
+
+If you use a custom start script template or invoke `gradlew.bat` from another batch file, review the changes below, as some may affect your build.
+
+The new script includes the following changes:
+
+- The `OS` variable check has been removed, since Gradle no longer supports non-NT-based versions of Windows.
+- `endlocal` is now called before invoking the application, so environment variable changes made inside the script do not leak into the invoked process. Any environment variables needed by the application must be set before calling `gradlew.bat`.
+- `& CALL` is now used after invoking the application, which suppresses the "Terminate batch job (Y/N)?" prompt. If your scripts rely on this prompt for flow control, they will need to be updated.
+- `exit /b` has been replaced with `"%COMSPEC%" /c exit`, enabling the use of `&&` and `||` operators when calling the script from another batch file.
+
+Upgrading the wrapper to the new script may cause a one-time error if done before Gradle 8.14, because `cmd.exe` re-reads the script after it changes.
+To avoid this, first upgrade to Gradle 8.14 or 9.0.0, then upgrade to 9.5.0.
+
+==== Calling `.values()` on environment variables or system properties is now tracked as Configuration Cache input
+
+Starting with Gradle 9.5.0, calling `.values()` on the maps returned from `System.getenv()` or `System.getProperties()` now records all environment variables or system properties as Configuration Cache inputs.
+This is consistent with how <<configuration_cache_requirements.adoc#config_cache:requirements:reading_sys_props_and_env_vars, `.forEach()` calls are already tracked>>.
+
+As a result, if your build configuration uses `System.getenv().values()` or `System.getProperties().values()`, any change to any environment variable or system property will invalidate the Configuration Cache entry, not just the ones your build actually uses.
+If you experience unexpected cache invalidations after upgrading, check whether your build or any plugins call `.values()` on these maps, and consider switching to targeted property lookups instead.
+
+==== Dependency lockfiles are generated with a platform-independent line ending
+
+In the context of <<dependency_locking#locking-versions, Dependency Locking>>, lockfiles now use Unix line endings (LF, `\n`) instead of the system default.
+Existing lockfiles using Windows line endings (CRLF, `\r\n`) can still be read, but newly generated lockfiles will always use LF.
+
+When running a lock update with Gradle 9.5.0 or above, if your lockfiles were previously generated on Windows, all line endings will be updated to LF. This will appear as a large diff in version control even if no dependencies have changed. This is expected and only happens once.
+
+==== Dependency verification armored key rings now render non-ASCII characters correctly
+
+In the context of <<dependency_verification#verifying-dependencies, Dependency Verification>>, when a key has metadata that contains non-ASCII characters, it is now properly rendered in the key header.
+
+When running a <<dependency_verification#sec:local-keyring,dependency verification key export>> with Gradle 9.5.0 or above, if your keyring already contained keys with non-ASCII metadata, the exported armored keyring will be updated to render those characters correctly.
+This is expected to happen only once.
+
+==== The `outgoingVariants` and `resolvableConfigurations` reports now hide variants without attributes by default
+
+The `outgoingVariants` and `resolvableConfigurations` report tasks now only show variants and configurations that have attributes defined, since only these can participate in variant-aware dependency resolution.
+
+Previously, variants and configurations without attributes were included in the default output. They are now hidden unless the `--all` flag is passed.
+
+When shown (via `--all`), attributeless entries are marked with `(n)` in the report to indicate they are not selectable via variant-aware resolution.
+
+If you rely on seeing attributeless variants or configurations in these reports, add `--all` to your invocation:
+
+[source,bash]
+----
+./gradlew outgoingVariants --all
+./gradlew resolvableConfigurations --all
+----
+
+=== Deprecations
+
+[[deprecate_exit_environment_var]]
+==== Deprecation of setting an exit environment variable
+
+link:{javadocPath}/org/gradle/jvm/application/tasks/CreateStartScripts.html#getExitEnvironmentVar()[`CreateStartScripts.getExitEnvironmentVar()`] and link:{javadocPath}/org/gradle/jvm/application/tasks/CreateStartScripts.html#setExitEnvironmentVar(java.lang.String)[`CreateStartScripts.setExitEnvironmentVar(String)`] have been deprecated and will be removed in Gradle 10.0.0.
+
+As of this release, these methods are no-ops and have no effect, even with custom start script templates.
+This is a result of the link:https://github.com/gradle/gradle/pull/36510[Windows start script template no longer using an exit environment variable].
+
+If you are using a custom start script template that references the exit environment variable, update your template to remove this dependency.
+There is no replacement API, the exit environment variable concept has been removed entirely.
+
+
+[[changes_9.4.0]]
+== Upgrading from 9.3.1 and earlier
+
+=== Potential breaking changes
+
+==== `ProjectBuilder` now enforces consistent build-scoped locations
+
+link:{javadocPath}/org/gradle/testfixtures/ProjectBuilder.html[`ProjectBuilder`] allows you to configure a specific project directory for tests.
+While `project.projectDir` and `project.rootDir` have always respected this setting, `project.layout.settingsDirectory` previously did not.
+This discrepancy could cause file resolution to inadvertently escape the project directory.
+
+Gradle now anchors the settings search directly to the configured project directory.
+This ensures that `layout.settingsDirectory`, `projectDir`, and `rootDir` all point to the same consistent location.
+Projects created via `ProjectBuilder` are now better isolated from the host build environment.
+
+If your tests specifically relied on `layout.settingsDirectory` pointing to an external location, they will need to be adjusted.
+Even if you do not use `settingsDirectory` directly, you may still observe changes in file resolution.
+Previously, dependency management files could be "leaked" into the test from the host build environment; this is no longer the case.
+
+For more details see link:https://github.com/gradle/gradle/issues/32928[the related issue].
+
 ==== The `java-gradle-plugin` plugin now adds the `gradleApi()` dependency to the `compileOnlyApi` scope
 
-The `java-gradle-plugin` now attaches the `gradleApi()` dependency to the `compileOnlyApi` scope instead of the `api` scope.
+The `gradleApi()` dependency is now added to the `compileOnlyApi` scope instead of the `api` scope.
+This prevents the `gradleApi()` from leaking into the runtime classpath of other dependents of the plugin project.
 
-For most plugin projects, this change should be transparent and without any side effects:
+This might break projects that were implicitly relying on the `gradleApi()` being on the compilation or runtime classpath.
+If this is the case, add a `gradleApi()` dependency to the appropriate scope to restore the previous behavior.
 
-- Your plugin still has full access to Gradle types (like `Project`, `Task`, etc.) during build time.
-- Gradle will no longer leak its own API as a transitive runtime dependency of your plugin.
+For most plugin projects, this change should be transparent as:
+
+- at compilation time, the plugin project will get the `gradleApi()`
+- the default test source set will also automatically get the `gradleApi()` dependency on the compilation and runtime classpaths
+
+If any additional test source set is used (e.g., integration tests), the `plugin` extension offers the `plugins.testSourceSet` method to register the source set for automatic management.
+If this cannot be done, a regular declaration of the `gradleApi()` dependency on the test source can be used as well.
 
 ==== Stricter validation for published plugins
 
@@ -200,14 +641,14 @@ plugins {
 [[deprecate_version_in_precompiled_settings_script_plugins]]
 ==== Deprecation of `version` in precompiled Settings script plugins
 
-The use of `version` within <<implementing_gradle_plugins_precompiled.adoc#implementing_precompiled_plugins, precompiled script plugins>> is now deprecated and will become an error in Gradle 10.0.0.
+The use of `version` within <<implementing_gradle_plugins_precompiled.adoc#settings_pre_compiled_plugins, precompiled Settings script plugins>> is now deprecated and will become an error in Gradle 10.0.0.
 
-In precompiled Settings scripts, `version` has no effect.
+In precompiled scripts, `version` has no effect.
 The plugin version is already fixed by the script's own build file; declaring it again inside the script is ignored and causes confusion about which version is actually in use.
 
 To fix this, remove the `.version()` or `version "..."` call from the `plugins {}` block:
 
-.my-settings-plugin.gradle.kts
+.my-plugin.settings.gradle.kts
 [source,kotlin]
 ----
 plugins {
@@ -215,6 +656,47 @@ plugins {
     id("org.gradle.test-retry") version "x.y.z"
     // Recommended:
     id("org.gradle.test-retry")
+}
+----
+
+==== Deprecation of `Dependencies.getProject()` method
+
+The `getProject()` method on `Dependencies` has been deprecated and will be removed in Gradle 10.0.0.
+
+`Dependencies` is used to configure dependencies in test suites.
+Previously, `getProject()` was used by Gradle internally to reference the current project.
+While never intended for public use, it could be used unintentionally in build scripts.
+
+For example, the following configuration accidentally invokes the deprecated method because `project.path` resolves against the `Dependencies` object rather than the top-level `Project` object:
+
+[source,kotlin]
+----
+testing {
+    suites {
+        val integrationTest by registering(JvmTestSuite::class) {
+            dependencies {
+                implementation(project(project.path)) // `project.path` accesses `Dependencies.getProject()`
+            }
+        }
+    }
+}
+----
+
+The configuration above may now fail to compile with an error in 9.5.0 if `-Werror` is set.
+
+To depend on the current project, use the `project()` method without arguments.
+This syntax is the idiomatic way to reference the project in both test suites and standard `dependencies {}` blocks:
+
+[source,kotlin]
+----
+testing {
+    suites {
+        val integrationTest by registering(JvmTestSuite::class) {
+            dependencies {
+                implementation(project())
+            }
+        }
+    }
 }
 ----
 
@@ -891,4 +1373,3 @@ Instead, you should specify these settings as <<build_environment.adoc#sec:gradl
 ----
 -Dorg.gradle.java.installations.auto-detect=false
 ----
-

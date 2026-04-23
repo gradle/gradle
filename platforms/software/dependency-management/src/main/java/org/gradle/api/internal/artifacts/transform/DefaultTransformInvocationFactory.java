@@ -28,7 +28,6 @@ import org.gradle.internal.Deferrable;
 import org.gradle.internal.Try;
 import org.gradle.internal.buildoption.InternalOption;
 import org.gradle.internal.buildoption.InternalOptions;
-import org.gradle.internal.buildoption.StringInternalOption;
 import org.gradle.internal.execution.DeferredResult;
 import org.gradle.internal.execution.ExecutionEngine;
 import org.gradle.internal.execution.Identity;
@@ -43,7 +42,8 @@ import java.util.Arrays;
 import java.util.List;
 
 public class DefaultTransformInvocationFactory implements TransformInvocationFactory {
-    private static final InternalOption<@Nullable String> CACHING_DISABLED_PROPERTY = StringInternalOption.of("org.gradle.internal.transform-caching-disabled");
+    private static final InternalOption<@Nullable String> CACHING_DISABLED_PROPERTY =
+        InternalOptions.ofStringOrNull("org.gradle.internal.transform-caching-disabled");
 
     private final ExecutionEngine executionEngine;
     private final InternalOptions internalOptions;
@@ -147,7 +147,7 @@ public class DefaultTransformInvocationFactory implements TransformInvocationFac
     }
 
     private boolean isCachingDisabledByProperty(Transform transform) {
-        String experimentalProperty = internalOptions.getOption(CACHING_DISABLED_PROPERTY).get();
+        String experimentalProperty = internalOptions.getValueOrNull(CACHING_DISABLED_PROPERTY);
         if (experimentalProperty != null) {
             if (experimentalProperty.isEmpty() || experimentalProperty.equals("true")) {
                 return true;
