@@ -350,7 +350,40 @@ Implement both: hybrid (Fix A) eliminates the syscall overhead for the majority 
 caches; larger minimum size (Fix B) reduces growIndex churn during the early
 put-heavy phase.
 
-## 12. In-place value overwrite for updates
+## 12. ~~In-place value overwrite for updates~~ (IMPLEMENTED)
+
+### Implemented design: serialize-into-buffer, single combined write
+
+Each `put` serializes the value into a **reusable in-memory entry buffer** (with the 21-byte
+entry header reserved at the front). Once the exact serialized size is known, `put` decides:
+
+- If an entry for this key already exists and the new entry size ≤ the old entry size,
+  write the entry (header + value) at the **existing offset** in a single positional write.
+  The index is left untouched. Same syscall count as BTree's in-place update.
+- Otherwise, append the entry at the end of the data log and repoint the index bucket.
+  The old data becomes dead space (reclaimed by item 5 when implemented).
+
+The entry buffer is a `ByteArrayOutputStream` that grows to the largest serialized value
+seen, then is reused. Per-cache memory cost: O(largest value). For most caches this is < 32 KB;
+for execution history (~80–240 KB per entry) it grows to ~256 KB. Bounded.
+
+The previous streaming write path (which seek-back-wrote the header after the value) has been
+removed — every put is now one combined positional write.
+
+### Observed syscall reduction
+
+| Scenario                              | Before | After |
+|---------------------------------------|--------|-------|
+| Insert (small value, ≤ 32 KB)         | 4      | 3     |
+| Insert (large value, e.g. 240 KB)     | ~11    | 3     |
+| Update fits in old slot               | 4      | 2     |
+| Update outgrows old slot (appends)    | 4      | 4     |
+
+The ~11→3 reduction for large inserts is the largest win: the old streaming path
+flushed the encoder's 32 KB buffer to disk every chunk, so a 240 KB value needed
+8 separate `pwrite` calls for the value plus 1 for the header plus 2 for the index.
+
+### Original problem analysis
 
 ### Problem: append-only writes vs BTree's in-place updates
 
@@ -440,8 +473,8 @@ entries from ~200 KB to ~5-10 KB — small enough for the 32 KB in-place buffer.
 | Data file compaction       | Medium-High | Bounded .dat growth        | Faster reads (less seeking)  |
 | ~~Fix entryCount drift~~       | ~~Low~~         | ~~None~~                       | ~~Prevents premature growth~~ DONE    |
 | Incremental flush          | High        | None                       | Faster flush for large caches|
-| ~~Eliminate per-put allocs~~   | ~~Low~~         | ~~None~~                       | ~~Less GC pressure on writes~~ DONE |
+| ~~Eliminate per-put allocs~~   | ~~Low~~         | ~~None~~                       | ~~Less GC pressure on writes~~ DONE (subsumed by item 12) |
 | Merge into single file     | Medium      | None                       | One fewer fsync per flush    |
 | ~~Bounded index memory~~       | ~~Medium-High~~ | ~~O(n) -> O(1) for large~~     | ~~Prevents OOM on large caches~~ DONE (on-disk probing) |
 | Hybrid + min index size    | Medium      | Bounded (threshold)        | Restores perf for small caches |
-| In-place value overwrite   | High        | Needs buffer or size hint  | ~2x fewer syscalls for updates (but entries too large for exec history) |
+| ~~In-place value overwrite~~   | ~~High~~        | ~~O(largest value)~~           | ~~BTree-parity for updates; large-insert syscalls 11→3~~ DONE |

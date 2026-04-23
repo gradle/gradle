@@ -25,6 +25,7 @@ import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -41,10 +42,26 @@ import java.nio.file.StandardOpenOption;
  * No in-memory index — memory usage is O(1) regardless of cache size. The OS page cache provides
  * near-memory performance for hot buckets without explicit cache management.</p>
  *
+ * <h3>Writes: in-place when possible (BTree-style)</h3>
+ * <p>Each {@code put} serializes the value into a reusable in-memory buffer (with the entry header
+ * reserved at the front). The new entry is written in a single positional write. When the key
+ * already exists and the new entry fits in the old slot, the write goes to the existing offset
+ * and the index is left untouched — same syscall count as BTree's in-place updates. Otherwise
+ * the entry is appended to the end of the data log and the bucket is updated to the new offset.
+ * The buffer grows to the largest serialized value seen, then is reused.</p>
+ *
+ * <h3>Torn-write detection</h3>
+ * <p>Each data entry ends with a 4-byte tail equal to {@code ENTRY_HEADER_SIZE + valueLen} (a
+ * value derivable from the header). Reads verify the tail bytes against the expected value;
+ * mismatch indicates a torn write (typical pattern: leading pages on disk, trailing pages
+ * stale or zeros after a crash). Detection turns a corrupt entry into a {@code null} result
+ * (cache miss) instead of returning malformed data, and the cache self-heals on the next
+ * {@code put} for that key. Same scheme as {@code BTree}'s block-tail check.</p>
+ *
  * <h3>File layout</h3>
  * <pre>
- *   &lt;base&gt;.dat  — append-only data log: [keyHash:8][valueLen:4][lastWrite:8][type:1][value:N] per entry
- *   &lt;base&gt;.idx  — hash-table index:     header(16) + N × [keyHash:8][offset:8]
+ *   &lt;base&gt;.dat  — data log: [keyHash:8][valueLen:4][lastWrite:8][type:1][value:N][tail:4] per entry
+ *   &lt;base&gt;.idx  — hash-table index: header(16) + N × [keyHash:8][offset:8]
  *   Header: [magic:4][bucketCount:4][entryCount:4][occupiedSlots:4]
  * </pre>
  */
@@ -54,13 +71,14 @@ public class LogHashPersistentIndexedCache<K, V> implements PersistentIndexedCac
     private static final Logger LOGGER = LoggerFactory.getLogger(LogHashPersistentIndexedCache.class);
 
     // --- Index file format ---
-    static final int MAGIC = 0x47484133; // "GHA3"
+    static final int MAGIC = 0x47484134; // "GHA4" — bumped when entry tail-count was added
     private static final int HEADER_SIZE = 16;
     private static final int BUCKET_SIZE = 16;
     private static final int MIN_BUCKET_COUNT = 8192; // 128 KB initial index, covers ~6000 entries at 75% load
 
     // --- Data entry format ---
     private static final int ENTRY_HEADER_SIZE = 21; // keyHash:8 + valueLen:4 + lastWrite:8 + type:1
+    private static final int ENTRY_TAIL_SIZE = 4;    // bytesWritten check, BTree-style
     private static final byte ENTRY_PUT = 1;
 
     // --- I/O tuning ---
@@ -69,10 +87,12 @@ public class LogHashPersistentIndexedCache<K, V> implements PersistentIndexedCac
     private static final int KRYO_BUFFER_SIZE = 512;
     private static final int WRITE_BUFFER_SIZE = 32 * 1024;
 
-    // --- Upsert return codes ---
-    private static final int UPSERT_NEW = 0;
-    private static final int UPSERT_UPDATED = 1;
-    private static final int UPSERT_REVIVED = 2;
+    // --- Probe sentinels returned by probeForExisting ---
+    private static final long UPSERT_NEW_SLOT = Long.MIN_VALUE; // bucket was empty
+    private static final long UPSERT_REVIVED_SLOT = -1L;        // bucket held a tombstone
+
+    // Reusable buffer of zeros for reserving header space at the front of the entry buffer.
+    private static final byte[] HEADER_PLACEHOLDER = new byte[ENTRY_HEADER_SIZE];
 
     // --- File paths and serializers (immutable after construction) ---
     private final File baseFile;
@@ -97,12 +117,20 @@ public class LogHashPersistentIndexedCache<K, V> implements PersistentIndexedCac
     private long appendPosition;
 
     // --- Writer-side buffers (single-threaded, reusable) ---
-    private final PositionalOutputStream writeStream = new PositionalOutputStream();
-    private final KryoBackedEncoder writeEncoder = new KryoBackedEncoder(writeStream, WRITE_BUFFER_SIZE);
-    private final ByteBuffer entryHeaderBuffer = ByteBuffer.allocate(ENTRY_HEADER_SIZE);
+    // Holds [header placeholder | serialized value | tail placeholder] for the current put.
+    // Grows as needed to fit the largest value seen, then is reused. The cached ByteBuffer
+    // wrapper is re-created only when the underlying byte[] grows.
+    private final EntryBuffer entryBuffer = new EntryBuffer(WRITE_BUFFER_SIZE);
+    private final KryoBackedEncoder entryEncoder = new KryoBackedEncoder(entryBuffer, WRITE_BUFFER_SIZE);
+    private byte[] cachedEntryArray = entryBuffer.buffer();
+    private ByteBuffer cachedEntryByteBuffer = ByteBuffer.wrap(cachedEntryArray);
     private final ByteBuffer writerProbeBuf = ByteBuffer.allocate(PROBE_CHUNK_BUCKETS * BUCKET_SIZE);
     private final ByteBuffer writerBucketBuf = ByteBuffer.allocate(BUCKET_SIZE);
     private final ByteBuffer headerFlushBuf = ByteBuffer.allocate(8);
+    private final ByteBuffer valueLenReadBuf = ByteBuffer.allocate(12); // keyHash:8 + valueLen:4
+
+    // File position of the bucket selected by the most recent probeForExisting() call.
+    private long lastBucketPos;
 
     // --- Reader-side buffers (ThreadLocal for concurrent access) ---
     private final ThreadLocal<ReadBuffer> readBuffers = ThreadLocal.withInitial(ReadBuffer::new);
@@ -381,45 +409,125 @@ public class LogHashPersistentIndexedCache<K, V> implements PersistentIndexedCac
         ensureOpen();
         try {
             long hash = hashKey(key);
-            long offset = appendPosition;
 
-            // Stream the serialized value directly to the data file, then seek back to write the header.
-            writeStream.reset(dataChannel, offset + ENTRY_HEADER_SIZE);
-            writeEncoder.flush();
-            valueSerializer.write(writeEncoder, value);
-            writeEncoder.flush();
-            int valueLen = writeStream.getBytesWritten();
+            // Serialize value into the reusable buffer first so we know the exact size.
+            int valueLen = serializeIntoEntryBuffer(value);
+            int newEntrySize = ENTRY_HEADER_SIZE + valueLen + ENTRY_TAIL_SIZE;
 
-            // Write header (includes type byte) via seek-back — one pwrite for the whole header
-            entryHeaderBuffer.clear();
-            entryHeaderBuffer.putLong(hash);
-            entryHeaderBuffer.putInt(valueLen);
-            entryHeaderBuffer.putLong(System.currentTimeMillis());
-            entryHeaderBuffer.put(ENTRY_PUT);
-            entryHeaderBuffer.flip();
-            dataChannel.write(entryHeaderBuffer, offset);
+            // Probe to find existing entry or empty slot. Sets lastBucketPos.
+            long existingOffset = probeForExisting(hash);
+            long bucketPos = lastBucketPos;
 
-            appendPosition = offset + ENTRY_HEADER_SIZE + valueLen;
-
-            // Optimistic growth check before combined probe.
-            // If the entry already exists (update), growth was slightly premature — harmless.
-            if ((occupiedSlots + 1) * 4 > bucketCount * 3) {
-                growIndex();
+            // In-place update when an existing live entry's slot can hold the new entry.
+            // Same syscall count as BTree's in-place update path. The tail-size term cancels:
+            //   newSize <= oldSize  ⇔  HDR + newValueLen + TAIL <= HDR + oldValueLen + TAIL
+            //                       ⇔  newValueLen <= oldValueLen
+            if (existingOffset >= 0) {
+                int oldValueLen = readValueLenAt(existingOffset);
+                if (valueLen <= oldValueLen) {
+                    fillEntryHeaderAndTail(hash, valueLen);
+                    writeEntry(existingOffset, newEntrySize);
+                    return; // index unchanged — same offset, same hash
+                }
+                // Falls through: append at end and repoint the bucket. Old data becomes dead space.
             }
 
-            // Single-pass probe: find the slot, determine new/update/revived, and write
-            int result = probeAndUpsert(hash, offset);
-            if (result == UPSERT_NEW) {
+            // Append at end of data log.
+            long offset = appendPosition;
+            fillEntryHeaderAndTail(hash, valueLen);
+            writeEntry(offset, newEntrySize);
+            appendPosition = offset + newEntrySize;
+
+            // Optimistic growth check — only grow when we're about to consume a previously-empty
+            // slot. Updates and tombstone-revivals reuse existing slots so they don't trigger growth.
+            if (existingOffset == UPSERT_NEW_SLOT && (occupiedSlots + 1) * 4 > bucketCount * 3) {
+                growIndex();
+                // Bucket positions changed — re-probe in the grown index.
+                existingOffset = probeForExisting(hash);
+                bucketPos = lastBucketPos;
+            }
+
+            writeBucket(indexChannel, bucketPos, hash, offset);
+
+            if (existingOffset == UPSERT_NEW_SLOT) {
                 entryCount++;
                 occupiedSlots++;
-            } else if (result == UPSERT_REVIVED) {
+            } else if (existingOffset == UPSERT_REVIVED_SLOT) {
                 entryCount++;
             }
+            // UPSERT_UPDATED (existingOffset >= 0 reaching here): counters unchanged.
             indexDirty = true;
         } catch (Exception e) {
             throw UncheckedException.throwAsUncheckedException(
                 new IOException(String.format("Could not add entry '%s' to %s.", key, this), e), true);
         }
+    }
+
+    /**
+     * Serializes a value into {@link #entryBuffer}, reserving the first {@link #ENTRY_HEADER_SIZE}
+     * bytes for the header and the last {@link #ENTRY_TAIL_SIZE} bytes for the tail integrity
+     * check. Both are filled in by {@link #fillEntryHeaderAndTail} after we know {@code valueLen}.
+     *
+     * @return the number of value bytes (excluding header and tail)
+     */
+    private int serializeIntoEntryBuffer(V value) throws Exception {
+        entryBuffer.reset();
+        entryBuffer.write(HEADER_PLACEHOLDER, 0, ENTRY_HEADER_SIZE);
+        valueSerializer.write(entryEncoder, value);
+        entryEncoder.flush();
+        int valueLen = entryBuffer.size() - ENTRY_HEADER_SIZE;
+        // Reserve 4 bytes at the end for the tail (HEADER_PLACEHOLDER's first 4 bytes are zero).
+        entryBuffer.write(HEADER_PLACEHOLDER, 0, ENTRY_TAIL_SIZE);
+        return valueLen;
+    }
+
+    /**
+     * Writes the entry header at the front of the entry buffer and the integrity tail at the end.
+     * Tail value is {@code ENTRY_HEADER_SIZE + valueLen}, derivable from the header — readers
+     * recompute the same value from the header and compare against the on-disk bytes.
+     */
+    private void fillEntryHeaderAndTail(long hash, int valueLen) {
+        ByteBuffer eb = entryByteBuffer();
+        // clear() sets limit to capacity so subsequent absolute-index writes are in range.
+        eb.clear();
+        eb.putLong(hash);
+        eb.putInt(valueLen);
+        eb.putLong(System.currentTimeMillis());
+        eb.put(ENTRY_PUT);
+        // Write tail at absolute index — doesn't disturb position/limit.
+        eb.putInt(ENTRY_HEADER_SIZE + valueLen, ENTRY_HEADER_SIZE + valueLen);
+    }
+
+    /** Writes the entry buffer's first {@code totalLen} bytes to the data file at {@code offset}. */
+    private void writeEntry(long offset, int totalLen) throws IOException {
+        ByteBuffer eb = entryByteBuffer();
+        eb.position(0).limit(totalLen);
+        while (eb.hasRemaining()) {
+            int n = dataChannel.write(eb, offset + eb.position());
+            if (n <= 0) {
+                throw new IOException("Truncated write at offset " + offset);
+            }
+        }
+    }
+
+    /** Returns a ByteBuffer wrapping the current entry buffer array, refreshed if the array grew. */
+    private ByteBuffer entryByteBuffer() {
+        byte[] buf = entryBuffer.buffer();
+        if (cachedEntryArray != buf) {
+            cachedEntryArray = buf;
+            cachedEntryByteBuffer = ByteBuffer.wrap(buf);
+        }
+        return cachedEntryByteBuffer;
+    }
+
+    /** Reads just the valueLen field of an existing data entry (12-byte pread). */
+    private int readValueLenAt(long offset) throws IOException {
+        valueLenReadBuf.clear();
+        int n = dataChannel.read(valueLenReadBuf, offset);
+        if (n < 12) {
+            throw new IOException("Truncated entry header at offset " + offset);
+        }
+        return valueLenReadBuf.getInt(8);
     }
 
     @Override
@@ -442,10 +550,14 @@ public class LogHashPersistentIndexedCache<K, V> implements PersistentIndexedCac
     // ═══════════════════════════════════════════════════════════════════════
 
     /**
-     * Combined probe + insert/update in a single pass. Probes the on-disk index to find the
-     * target bucket (empty or same-hash), writes the bucket, and returns the result type.
+     * Probes the on-disk index for an existing entry with the given hash. Stashes the file
+     * position of the target bucket in {@link #lastBucketPos} so the caller can write the
+     * bucket later (or skip the write entirely for in-place updates).
+     *
+     * @return {@link #UPSERT_NEW_SLOT} (empty slot found), {@link #UPSERT_REVIVED_SLOT} (slot
+     *     held a tombstone with this hash), or the existing live entry's offset (>= 0).
      */
-    private int probeAndUpsert(long hash, long offset) throws IOException {
+    private long probeForExisting(long hash) throws IOException {
         FileChannel ch = indexChannel;
         int bc = bucketCount;
         int mask = bucketMask;
@@ -466,19 +578,20 @@ public class LogHashPersistentIndexedCache<K, V> implements PersistentIndexedCac
                 int bufPos = i * BUCKET_SIZE;
                 long stored = writerProbeBuf.getLong(bufPos);
                 if (stored == 0) {
-                    writeBucket(ch, filePos + (long) i * BUCKET_SIZE, hash, offset);
-                    return UPSERT_NEW;
+                    lastBucketPos = filePos + (long) i * BUCKET_SIZE;
+                    return UPSERT_NEW_SLOT;
                 }
                 if (stored == hash) {
                     long existingOffset = writerProbeBuf.getLong(bufPos + 8);
-                    writeBucket(ch, filePos + (long) i * BUCKET_SIZE, hash, offset);
-                    return existingOffset < 0 ? UPSERT_REVIVED : UPSERT_UPDATED;
+                    lastBucketPos = filePos + (long) i * BUCKET_SIZE;
+                    return existingOffset; // >= 0 (live) or -1 (tombstone, == UPSERT_REVIVED_SLOT)
                 }
             }
 
             probesCompleted += bucketsToRead;
         }
-        return UPSERT_NEW; // shouldn't reach here with proper growth
+        // Should be unreachable: growIndex() keeps load factor below 75%.
+        throw new IOException("Index probe exhausted without finding empty slot");
     }
 
     /**
@@ -636,6 +749,12 @@ public class LogHashPersistentIndexedCache<K, V> implements PersistentIndexedCac
     /**
      * Reads and deserializes a value from the data file using positional read (pread).
      * Thread-safe: {@link FileChannel#read(ByteBuffer, long)} does not modify channel position.
+     *
+     * <p>Per-entry corruption (truncated read, invalid {@code valueLen}, tail mismatch,
+     * deserializer failure) returns {@code null} so the cache reports a miss and self-heals on
+     * the next {@code put} for that key. {@link IOException} from the underlying channel still
+     * propagates — those indicate structural / file-system level problems that the caller's
+     * {@code rebuild()} path is meant for.</p>
      */
     @Nullable
     private V readValue(FileChannel ch, long offset) throws IOException {
@@ -654,18 +773,29 @@ public class LogHashPersistentIndexedCache<K, V> implements PersistentIndexedCac
         rb.specBuf.getLong(); // skip lastWrite timestamp
         rb.specBuf.get();    // skip type byte
 
-        byte[] valueBuf = rb.ensureReadCapacity(valueLen);
+        // Read value bytes plus the 4-byte tail into a single buffer.
+        int needed = valueLen + ENTRY_TAIL_SIZE;
+        byte[] valueBuf = rb.ensureReadCapacity(needed);
 
         int available = rb.specBuf.remaining();
-        if (available >= valueLen) {
-            rb.specBuf.get(valueBuf, 0, valueLen);
+        if (available >= needed) {
+            rb.specBuf.get(valueBuf, 0, needed);
         } else {
             rb.specBuf.get(valueBuf, 0, available);
-            ByteBuffer remainder = ByteBuffer.wrap(valueBuf, available, valueLen - available);
-            read = ch.read(remainder, offset + ENTRY_HEADER_SIZE + available);
-            if (read < valueLen - available) {
+            ByteBuffer remainder = ByteBuffer.wrap(valueBuf, available, needed - available);
+            int extra = ch.read(remainder, offset + ENTRY_HEADER_SIZE + available);
+            if (extra < needed - available) {
                 return null;
             }
+        }
+
+        // Verify tail. Bytes [valueLen, valueLen + 4) of valueBuf hold the on-disk tail.
+        int tail = ByteBuffer.wrap(valueBuf, valueLen, ENTRY_TAIL_SIZE).getInt();
+        int expectedTail = ENTRY_HEADER_SIZE + valueLen;
+        if (tail != expectedTail) {
+            LOGGER.warn("{} entry at offset {} has bad tail (expected {}, got {}) — torn write? Treating as miss.",
+                this, offset, expectedTail, tail);
+            return null;
         }
 
         rb.decoderInput.setData(valueBuf, valueLen);
@@ -673,7 +803,11 @@ public class LogHashPersistentIndexedCache<K, V> implements PersistentIndexedCac
         try {
             return valueSerializer.read(rb.decoder);
         } catch (Exception e) {
-            throw UncheckedException.throwAsUncheckedException(e);
+            // Per-entry deserialization failure — likely a torn write whose tail happened to
+            // match (rare), or a serializer bug. Either way, treat as a cache miss; the next
+            // put for this key will overwrite the broken bucket.
+            LOGGER.warn("{} entry at offset {} failed to deserialize — treating as miss.", this, offset, e);
+            return null;
         }
     }
 
@@ -744,6 +878,20 @@ public class LogHashPersistentIndexedCache<K, V> implements PersistentIndexedCac
                 valueReadBuffer = new byte[Math.max(valueReadBuffer.length * 2, size)];
             }
             return valueReadBuffer;
+        }
+    }
+
+    /**
+     * A {@link ByteArrayOutputStream} subclass that exposes its backing array so the cache can
+     * write the buffered entry to the data file via positional I/O without an extra copy.
+     */
+    private static final class EntryBuffer extends ByteArrayOutputStream {
+        EntryBuffer(int initialCapacity) {
+            super(initialCapacity);
+        }
+
+        byte[] buffer() {
+            return buf;
         }
     }
 }
