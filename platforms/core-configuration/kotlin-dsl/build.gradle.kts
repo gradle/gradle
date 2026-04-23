@@ -100,6 +100,15 @@ dependencies {
     implementation(libs.kotlinAssignmentCompilerEmbeddable) {
         isTransitive = false
     }
+    /*implementation(libs.kotlinDaemonClient) {
+        isTransitive = false
+    }
+    implementation(libs.kotlinDaemonEmbeddable) {
+        isTransitive = false
+    }
+    implementation(libs.kotlinCompilerRunner) {
+        isTransitive = false
+    }*/
     shadow(libs.kotlinMetadataJvm) {
         isTransitive = false
     }
