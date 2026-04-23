@@ -17,13 +17,13 @@
 package org.gradle.internal.model;
 
 import org.gradle.api.Project;
-import org.gradle.api.internal.initialization.StandaloneDomainObjectContext;
 import org.gradle.api.internal.tasks.NodeExecutionContext;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.internal.tasks.WorkNodeAction;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.Try;
 import org.gradle.internal.resources.ProjectLeaseRegistry;
+import org.gradle.internal.resources.ResourceLock;
 import org.gradle.internal.service.ServiceLookupException;
 import org.jspecify.annotations.Nullable;
 
@@ -119,21 +119,10 @@ public class CalculatedValueContainer<T, S extends ValueCalculator<? extends T>>
     }
 
     @Override
-    public boolean usesMutableProjectState() {
+    public @Nullable ResourceLock getAccessLock() {
         CalculationState<T, S> calculationState = this.calculationState;
         if (calculationState != null) {
-            return calculationState.supplier.usesMutableProjectState();
-        } else {
-            // Value has already been calculated, so no longer needs project state
-            return false;
-        }
-    }
-
-    @Override
-    public Project getOwningProject() {
-        CalculationState<T, S> calculationState = this.calculationState;
-        if (calculationState != null) {
-            return calculationState.supplier.getOwningProject();
+            return calculationState.supplier.getAccessLock();
         } else {
             // Value has already been calculated, so no longer needs project state
             return null;
@@ -141,13 +130,13 @@ public class CalculatedValueContainer<T, S extends ValueCalculator<? extends T>>
     }
 
     @Override
-    public ModelContainer<?> getResourceToLock() {
+    public @Nullable Project getOwningProject() {
         CalculationState<T, S> calculationState = this.calculationState;
-        if (calculationState != null && calculationState.supplier.usesMutableProjectState()) {
-            return calculationState.supplier.getOwningProject().getOwner();
+        if (calculationState != null) {
+            return calculationState.supplier.getOwningProject();
         } else {
-            // TODO: The supplier should be able to give us a better answer than this.
-            return StandaloneDomainObjectContext.ANONYMOUS.getModel();
+            // Value has already been calculated, so no longer needs project state
+            return null;
         }
     }
 
@@ -182,17 +171,22 @@ public class CalculatedValueContainer<T, S extends ValueCalculator<? extends T>>
     }
 
     @Override
-    public void finalizeIfNotAlready() {
-        finalizeIfNotAlready(null);
+    public boolean finalizeIfNotAlready() {
+        return finalizeIfNotAlready(null);
     }
 
-    private void finalizeIfNotAlready(@Nullable NodeExecutionContext context) {
+    /**
+     * Calculates the value, if not already calculated.
+     *
+     * @return true if this call executed the calculation, false if the calculation was already completed.
+     */
+    private boolean finalizeIfNotAlready(@Nullable NodeExecutionContext context) {
         CalculationState<T, S> calculationState = this.calculationState;
         if (calculationState == null) {
             // Already calculated
-            return;
+            return false;
         }
-        calculationState.attachValue(this, context);
+        return calculationState.attachValue(this, context);
     }
 
     private static class CalculationState<T, S extends ValueCalculator<? extends T>> {
@@ -208,13 +202,20 @@ public class CalculatedValueContainer<T, S extends ValueCalculator<? extends T>>
             this.defaultContext = defaultContext;
         }
 
-        // Can be called multiple times
-        void attachValue(CalculatedValueContainer<T, ?> owner, @Nullable NodeExecutionContext context) {
+        /**
+         * Executes the calculation if not already completed, attaching the result to {@code owner}.
+         * This method may be called concurrently from multiple threads, but the calculation will only be executed once.
+         * If multiple threads call this method concurrently, they will block until the calculation is completed.
+         *
+         * @return true if this call executed the calculation, false if the calculation was already completed
+         * before this call or if this call blocked waiting for another thread to complete the calculation.
+         */
+        boolean attachValue(CalculatedValueContainer<T, ?> owner, @Nullable NodeExecutionContext context) {
             acquireLock();
             try {
                 if (done) {
                     // Already calculated
-                    return;
+                    return false;
                 }
                 done = true;
 
@@ -227,6 +228,7 @@ public class CalculatedValueContainer<T, S extends ValueCalculator<? extends T>>
                     return supplier.calculateValue(effectiveContext);
                 });
                 owner.calculationState = null;
+                return true;
             } finally {
                 releaseLock();
             }
