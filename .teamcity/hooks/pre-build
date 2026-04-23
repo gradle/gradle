@@ -112,7 +112,9 @@ function restoreArtifactCache() {
   fi
 }
 
-echo "##teamcity[setParameter name='env.DEVELOCITY_ACCESS_KEY' value='ge.gradle.org=%ge.gradle.org.access.key.without.domain%;%gbt-td.grdev.net.access.key%;usw2-edge.gradle.org=%ge.gradle.org.access.key.without.domain%;eun-edge.gradle.org=%ge.gradle.org.access.key.without.domain%']"
+# For Gradle steps in this build
+echo "##teamcity[setParameter name='env.DEVELOCITY_ACCESS_KEY' value='%ge.gradle.org.access.key.us%;%gbt-td.grdev.net.access.key%;usw2-edge.gradle.org=%ge.gradle.org.access.key.without.domain%;eun-edge.gradle.org=%ge.gradle.org.access.key.without.domain%']"
+# For AC CLI
 export DEVELOCITY_ACCESS_KEY="${DEVELOCITY_ACCESS_KEY_ALL}"
 echo "Prefix: ${DEVELOCITY_ACCESS_KEY:0:20}"
 
