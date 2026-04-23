@@ -27,6 +27,7 @@ import org.gradle.groovy.scripts.internal.ScriptSourceHasher
 import org.gradle.initialization.ClassLoaderScopeRegistry
 import org.gradle.initialization.layout.BuildLayoutFactory
 import org.gradle.internal.buildoption.InternalOptions
+import org.gradle.internal.classloader.ClassLoaderFactory
 import org.gradle.internal.classloader.ClasspathHasher
 import org.gradle.internal.classpath.CachedClasspathTransformer
 import org.gradle.internal.classpath.transforms.ClasspathElementTransformFactoryForLegacy
@@ -106,6 +107,7 @@ object BuildServices : ServiceRegistrationProvider {
         progressLoggerFactory: ProgressLoggerFactory,
         buildOperationRunner: BuildOperationRunner,
         moduleRegistry: ModuleRegistry,
+        classLoaderFactory: ClassLoaderFactory,
         cachedClasspathTransformer: CachedClasspathTransformer,
         scriptExecutionListener: ScriptExecutionListener,
         executionEngine: ExecutionEngine,
@@ -135,6 +137,7 @@ object BuildServices : ServiceRegistrationProvider {
             progressLoggerFactory,
             buildOperationRunner,
             moduleRegistry,
+            classLoaderFactory,
             cachedClasspathTransformer,
             scriptExecutionListener,
             executionEngine,

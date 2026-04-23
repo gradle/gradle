@@ -18,39 +18,32 @@ package org.gradle.kotlin.dsl.fixtures
 
 import org.gradle.api.internal.classpath.Module
 import org.gradle.api.internal.classpath.ModuleRegistry
+import org.gradle.api.internal.classpath.UnknownModuleException
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
 import java.io.File
 
-class TestModuleRegistry : ModuleRegistry { // TODO: this works, but might not be the best thing to do...
-    override fun findModule(name: String): org.gradle.api.internal.classpath.Module {
-        return TestModule(name)
+class TestModuleRegistry : ModuleRegistry {
+    override fun findModule(name: String): Module? {
+        return findPathToJar(name)?.let { TestModule(it) }
     }
 
     override fun getModule(name: String): org.gradle.api.internal.classpath.Module {
-        TODO("Not yet implemented")
+        return findModule(name) ?: throw UnknownModuleException("Cannot find module '$name'.")
+    }
+
+    private fun findPathToJar(jarName: String): String? {
+        return System.getProperty("java.class.path").split(File.pathSeparator).firstOrNull { it.contains(jarName) }
     }
 }
 
 private
-class TestModule(val jarName: String) : org.gradle.api.internal.classpath.Module {
-    override fun getName(): String {
-        TODO("Not yet implemented")
-    }
+class TestModule(val pathToJar: String) : org.gradle.api.internal.classpath.Module {
+    override fun getName(): String = TODO("Not yet implemented")
 
-    override fun getImplementationClasspath(): ClassPath {
-        val pathToJar = System.getProperty("java.class.path").split(File.pathSeparator).firstOrNull { it.contains(jarName) }
-        if (pathToJar != null) {
-            return DefaultClassPath.of(File(pathToJar))
-        }
-        throw RuntimeException("$jarName.jar not found on the classpath!")
-    }
+    override fun getImplementationClasspath(): ClassPath = DefaultClassPath.of(File(pathToJar))
 
-    override fun getDependencyNames(): List<String> {
-        TODO("Not yet implemented")
-    }
+    override fun getDependencyNames(): List<String> = TODO("Not yet implemented")
 
-    override fun getAlias(): Module.ModuleAlias {
-        TODO("Not yet implemented")
-    }
+    override fun getAlias(): Module.ModuleAlias = TODO("Not yet implemented")
 }

@@ -20,7 +20,12 @@ import com.google.common.annotations.VisibleForTesting
 import org.gradle.api.HasImplicitReceiver
 import org.gradle.api.JavaVersion
 import org.gradle.api.SupportsKotlinAssignmentOverloading
+import org.gradle.api.internal.ClassPathProvider
 import org.gradle.api.internal.classpath.ModuleRegistry
+import org.gradle.internal.classloader.ClassLoaderFactory
+import org.gradle.internal.classloader.FilteringClassLoader
+import org.gradle.internal.classloader.VisitableURLClassLoader
+import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.io.NullOutputStream
 import org.gradle.internal.logging.ConsoleRenderer
 import org.gradle.kotlin.dsl.provider.PrecompiledScriptsEnvironment.EnvironmentProperties.kotlinDslImplicitImports
@@ -28,6 +33,8 @@ import org.jetbrains.kotlin.assignment.plugin.AssignmentPluginNames
 import org.jetbrains.kotlin.buildtools.api.CompilerMessageRenderer
 import org.jetbrains.kotlin.buildtools.api.CompilerMessageRenderer.Severity
 import org.jetbrains.kotlin.buildtools.api.CompilerMessageRenderer.SourceLocation
+import org.jetbrains.kotlin.buildtools.api.DelicateBuildToolsApi
+import org.jetbrains.kotlin.buildtools.api.ExecutionPolicy
 import org.jetbrains.kotlin.buildtools.api.ExperimentalBuildToolsApi
 import org.jetbrains.kotlin.buildtools.api.KotlinToolchains
 import org.jetbrains.kotlin.buildtools.api.arguments.CommonCompilerArguments.Companion.API_VERSION
@@ -53,6 +60,7 @@ import org.jetbrains.kotlin.buildtools.api.arguments.JvmCompilerArguments.Compan
 import org.jetbrains.kotlin.buildtools.api.arguments.JvmCompilerArguments.Companion.X_SCRIPT_RESOLVER_ENVIRONMENT
 import org.jetbrains.kotlin.buildtools.api.arguments.enums.JvmDefaultMode
 import org.jetbrains.kotlin.buildtools.api.arguments.enums.SamConversionsMode
+import org.jetbrains.kotlin.buildtools.api.daemonExecutionPolicy
 import org.jetbrains.kotlin.buildtools.api.jvm.JvmPlatformToolchain.Companion.jvm
 import org.jetbrains.kotlin.buildtools.api.jvm.operations.JvmCompilationOperation
 import org.jetbrains.kotlin.buildtools.api.jvm.operations.JvmCompilationOperation.CompilerArgumentsLogLevel
@@ -68,7 +76,6 @@ import java.io.OutputStream
 import java.io.PrintStream
 import java.nio.file.Path
 import java.nio.file.Paths
-import kotlin.collections.firstOrNull
 import kotlin.io.path.Path
 import kotlin.reflect.KClass
 import kotlin.reflect.jvm.jvmName
@@ -79,10 +86,9 @@ import kotlin.script.experimental.util.PropertiesCollection
 
 
 internal
-class KotlinCompiler(val moduleRegistry: ModuleRegistry) {
+class KotlinCompiler(val moduleRegistry: ModuleRegistry, val classLoaderFactory: ClassLoaderFactory) {
 
-    private val btaCompiler by lazy { BTACompiler(moduleRegistry) }
-
+    private val btaCompiler by lazy { BTACompiler(moduleRegistry, classLoaderFactory) }
 
     internal
     fun compileKotlinScriptToDirectory(
@@ -382,23 +388,112 @@ private
 fun clickableFileUrlFor(path: String): String =
     ConsoleRenderer().asClickableFileUrl(File(path))
 
+private
+inline fun <reified T : PropertiesCollection> scriptConfigInstance(kclass: KClass<out T>): T? =
+    kclass.objectInstance ?: run {
+        val noArgsConstructor = kclass.java.constructors.singleOrNull { it.parameters.isEmpty() }
+        noArgsConstructor?.let {
+            try {
+                it.isAccessible = true
+            } catch (_: RuntimeException) {
+            }
+            it.newInstance() as T
+        }
+    }
+
+
+@VisibleForTesting
+fun JavaVersion.toKotlinJvmTarget(): JvmTarget {
+    // JvmTarget.fromString(JavaVersion.majorVersion) works from Java 9 to Java 26
+    return JvmTarget.fromString(majorVersion)
+        ?: if (this <= JavaVersion.VERSION_1_8) JVM_1_8
+        else JvmTarget.JVM_26
+}
+
 
 @OptIn(ExperimentalBuildToolsApi::class, ExperimentalCompilerArgument::class)
-private class BTACompiler(val moduleRegistry: ModuleRegistry) {
+private class BTACompiler(val moduleRegistry: ModuleRegistry, val classLoaderFactory: ClassLoaderFactory) {
 
     companion object {
         private const val MODULE_NAME = "buildscript"
+
+        private const val DAEMON_MODE = false // TODO: which mode to use in the end?
     }
 
-    // TODO: this should be done in an isolated classloader and then we can load an
-    //  implementation with a different version than the API we are using, thus making it configurable to users
-    //  supported versions range from -3 major version to +1 major version
-    private val toolchains = KotlinToolchains.loadImplementation(this::class.java.classLoader)
+    private val plugins: List<CompilerPlugin> = createPlugins()
+
+    private val toolchains = KotlinToolchains.loadImplementation(createCompilerClassLoader())
 
     // TODO: session should be closed after no longer needed, for cleanup to happen
     private val buildSession = toolchains.createBuildSession()
 
-    private val plugins: List<CompilerPlugin> by lazy {
+    @OptIn(ExperimentalCompilerArgument::class)
+    fun compile(
+        sources: List<Path>,
+        destinationDirectory: Path,
+        compilerOptions: KotlinCompilerOptions,
+        classPath: List<File>,
+        template: KClass<out Any>,
+        implicitImports: List<String>,
+        messageRenderer: LoggingMessageRenderer
+    ) {
+        val operationBuilder = toolchains.jvm.jvmCompilationOperationBuilder(sources, destinationDirectory)
+
+        // compilation operation config
+        operationBuilder[JvmCompilationOperation.COMPILER_ARGUMENTS_LOG_LEVEL] = CompilerArgumentsLogLevel.DEBUG
+        // TODO: incremental compilation should make explicit fingerprint checking obsolete
+
+        operationBuilder.compilerArguments.let {
+            it.configureScriptEnvironment(classPath, template, implicitImports)
+            it.configureLanguageVersion(compilerOptions)
+            it.configureMisc()
+        }
+
+        operationBuilder[JvmCompilationOperation.COMPILER_MESSAGE_RENDERER] = messageRenderer
+
+        val executionPolicy = createExecutionPolicy()
+
+        // TODO: what JDK does the Daemon run on? KotlinBuildScriptIntegrationTest has failing tests when running on the console, which points to this area
+
+        val operation = operationBuilder.build()
+        buildSession.executeOperation(operation, executionPolicy)
+    }
+
+    private fun JvmCompilerArguments.Builder.configureScriptEnvironment(classPath: List<File>, template: KClass<out Any>, implicitImports: List<String>) {
+        this[NO_STDLIB] = true // Don't automatically include the Kotlin/JVM stdlib and Kotlin reflection dependencies in the classpath.
+        this[NO_REFLECT] = true // Don't automatically include the Kotlin reflection dependency in the classpath.
+        this[CLASSPATH] = classPath.map { it.toPath() }
+
+        this[SCRIPT_TEMPLATES] = listOf(template.jvmName)
+        this[X_SCRIPT_RESOLVER_ENVIRONMENT] = arrayOf(resolverEnvironmentStringFor(listOf(kotlinDslImplicitImports to implicitImports)))
+
+        this[COMPILER_PLUGINS] = plugins
+    }
+
+    private fun JvmCompilerArguments.Builder.configureLanguageVersion(compilerOptions: KotlinCompilerOptions) {
+        this[LANGUAGE_VERSION] = org.jetbrains.kotlin.buildtools.api.arguments.enums.KotlinVersion.V2_2
+        this[API_VERSION] = org.jetbrains.kotlin.buildtools.api.arguments.enums.KotlinVersion.V2_2
+        this[JVM_TARGET] = org.jetbrains.kotlin.buildtools.api.arguments.enums.JvmTarget.valueOf("JVM_" + compilerOptions.jvmTarget.toKotlinJvmTarget().description) // TODO: ugly conversion
+
+        this[X_SKIP_METADATA_VERSION_CHECK] = compilerOptions.skipMetadataVersionCheck
+        this[X_SKIP_PRERELEASE_CHECK] = true
+        this[X_ALLOW_UNSTABLE_DEPENDENCIES] = true
+        this[JVM_DEFAULT] = JvmDefaultMode.ENABLE
+
+        this.also { // apply java type enhancement settings
+            it[X_JSR305] = arrayOf("strict", "under-migration:strict")
+        }
+    }
+
+    private fun JvmCompilerArguments.Builder.configureMisc() {
+        this[X_ALLOW_ANY_SCRIPTS_IN_SOURCE_ROOTS] = true
+        this[X_USE_FIR_LT] = false
+        this[X_SAM_CONVERSIONS] = SamConversionsMode.CLASS
+
+        this[JvmCompilerArguments.MODULE_NAME] = MODULE_NAME
+    }
+
+    private fun createPlugins(): List<CompilerPlugin> {
         fun pathOfJar(moduleRegistry: ModuleRegistry, jarName: String): Path? {
             val module = moduleRegistry.findModule(jarName)
             val jarUri = module?.implementationClasspath?.asURIs?.firstOrNull()
@@ -434,90 +529,56 @@ private class BTACompiler(val moduleRegistry: ModuleRegistry) {
             )
         }
 
-        listOfNotNull(scriptingPlugin, samWithReceiverPlugin, assignmentPlugin)
+        return listOfNotNull(scriptingPlugin, samWithReceiverPlugin, assignmentPlugin)
     }
 
-    @OptIn(ExperimentalCompilerArgument::class)
-    fun compile(
-        sources: List<Path>,
-        destinationDirectory: Path,
-        compilerOptions: KotlinCompilerOptions,
-        classPath: List<File>,
-        template: KClass<out Any>,
-        implicitImports: List<String>,
-        messageRenderer: LoggingMessageRenderer
-    ) {
-        val operationBuilder = toolchains.jvm.jvmCompilationOperationBuilder(sources, destinationDirectory)
+    private fun createCompilerClassLoader(): ClassLoader {
+        // TODO: since we have an isolated class loader, we can load an implementation with a different version than
+        //  the API we are using, thus making it configurable to users supported versions range from -3 major version
+        //  to +1 major version
 
-        // compilation operation config
-        operationBuilder[JvmCompilationOperation.COMPILER_ARGUMENTS_LOG_LEVEL] = CompilerArgumentsLogLevel.DEBUG
-        // TODO: incremental compilation should make explicit fingerprint checking obsolete
-
-        operationBuilder.compilerArguments.let {
-            it.configureScriptEnvironment(classPath, template, implicitImports)
-            it.configureLanguageVersion(compilerOptions)
-            it.configureMisc()
+        val apiParent = KotlinToolchains::class.java.classLoader
+        val filterSpec = FilteringClassLoader.Spec().apply {
+            allowPackage("org.jetbrains.kotlin.buildtools.api")
         }
+        val filteredParent = classLoaderFactory.createFilteringClassLoader(apiParent, filterSpec)
 
-        operationBuilder[JvmCompilationOperation.COMPILER_MESSAGE_RENDERER] = messageRenderer
-
-        // TODO: executeOperation has an overload with configurable ExecutionPolicy, that's how Daemon mode can be enabled
-        buildSession.executeOperation(operationBuilder.build(), toolchains.createInProcessExecutionPolicy())
+        val implClasspath = BTACompilerClasspathProvider(moduleRegistry).findClassPath("")
+        return VisitableURLClassLoader.fromClassPath("isolated-bta-loader", filteredParent, implClasspath)
     }
 
-    fun JvmCompilerArguments.Builder.configureScriptEnvironment(classPath: List<File>, template: KClass<out Any>, implicitImports: List<String>) {
-        this[NO_STDLIB] = true // Don't automatically include the Kotlin/JVM stdlib and Kotlin reflection dependencies in the classpath.
-        this[NO_REFLECT] = true // Don't automatically include the Kotlin reflection dependency in the classpath.
-        this[CLASSPATH] = classPath.map { it.toPath() }
-
-        this[SCRIPT_TEMPLATES] = listOf(template.jvmName)
-        this[X_SCRIPT_RESOLVER_ENVIRONMENT] = arrayOf(resolverEnvironmentStringFor(listOf(kotlinDslImplicitImports to implicitImports)))
-
-        this[COMPILER_PLUGINS] = plugins
-    }
-
-    fun JvmCompilerArguments.Builder.configureLanguageVersion(compilerOptions: KotlinCompilerOptions) {
-        this[LANGUAGE_VERSION] = org.jetbrains.kotlin.buildtools.api.arguments.enums.KotlinVersion.V2_2
-        this[API_VERSION] = org.jetbrains.kotlin.buildtools.api.arguments.enums.KotlinVersion.V2_2
-        this[JVM_TARGET] = org.jetbrains.kotlin.buildtools.api.arguments.enums.JvmTarget.valueOf("JVM_" + compilerOptions.jvmTarget.toKotlinJvmTarget().description) // TODO: ugly conversion
-
-        this[X_SKIP_METADATA_VERSION_CHECK] = compilerOptions.skipMetadataVersionCheck
-        this[X_SKIP_PRERELEASE_CHECK] = true
-        this[X_ALLOW_UNSTABLE_DEPENDENCIES] = true
-        this[JVM_DEFAULT] = JvmDefaultMode.ENABLE
-
-        this.also { // apply java type enhancement settings
-            it[X_JSR305] = arrayOf("strict", "under-migration:strict")
-        }
-    }
-
-    fun JvmCompilerArguments.Builder.configureMisc() {
-        this[X_ALLOW_ANY_SCRIPTS_IN_SOURCE_ROOTS] = true
-        this[X_USE_FIR_LT] = false
-        this[X_SAM_CONVERSIONS] = SamConversionsMode.CLASS
-
-        this[JvmCompilerArguments.MODULE_NAME] = MODULE_NAME
-    }
-}
-
-private
-inline fun <reified T : PropertiesCollection> scriptConfigInstance(kclass: KClass<out T>): T? =
-    kclass.objectInstance ?: run {
-        val noArgsConstructor = kclass.java.constructors.singleOrNull { it.parameters.isEmpty() }
-        noArgsConstructor?.let {
-            try {
-                it.isAccessible = true
-            } catch (_: RuntimeException) {
+    private fun createExecutionPolicy(): ExecutionPolicy =
+        if (DAEMON_MODE) {
+            toolchains.daemonExecutionPolicy {
+                @OptIn(DelicateBuildToolsApi::class)
+                // this[ExecutionPolicy.WithDaemon.DAEMON_RUN_DIR_PATH] = daemonRunPath // TODO: examine how KGP configures its daemon
+                this[ExecutionPolicy.WithDaemon.SHUTDOWN_DELAY_MILLIS] = 10_000
             }
-            it.newInstance() as T
+        } else {
+            toolchains.createInProcessExecutionPolicy()
+        }
+
+    private class BTACompilerClasspathProvider(private val moduleRegistry: ModuleRegistry): ClassPathProvider {
+        override fun findClassPath(name: String): ClassPath {
+            var classpath = ClassPath.EMPTY
+
+            classpath = classpath.plus(moduleRegistry.getModule("kotlin-build-tools-impl").getImplementationClasspath())
+            classpath = classpath.plus(moduleRegistry.getModule("kotlin-compiler-embeddable").getImplementationClasspath())
+            classpath = classpath.plus(moduleRegistry.getModule("kotlin-script-runtime").getImplementationClasspath())
+            classpath = classpath.plus(moduleRegistry.getModule("kotlin-stdlib").getImplementationClasspath())
+            classpath = classpath.plus(moduleRegistry.getModule("kotlin-reflect").getImplementationClasspath())
+            classpath = classpath.plus(moduleRegistry.getModule("kotlin-scripting-common").getImplementationClasspath())
+            classpath = classpath.plus(moduleRegistry.getModule("kotlin-scripting-compiler-impl-embeddable").getImplementationClasspath())
+            classpath = classpath.plus(moduleRegistry.getModule("kotlin-scripting-jvm").getImplementationClasspath())
+            classpath = classpath.plus(moduleRegistry.getModule("kotlinx-coroutines-core-jvm").getImplementationClasspath())
+
+            if (DAEMON_MODE) {
+                classpath = classpath.plus(moduleRegistry.getModule("kotlin-compiler-runner").getImplementationClasspath())
+                classpath = classpath.plus(moduleRegistry.getModule("kotlin-daemon-client").getImplementationClasspath())
+                classpath = classpath.plus(moduleRegistry.getModule("kotlin-daemon-embeddable").getImplementationClasspath())
+            }
+
+            return classpath
         }
     }
-
-
-@VisibleForTesting
-fun JavaVersion.toKotlinJvmTarget(): JvmTarget {
-    // JvmTarget.fromString(JavaVersion.majorVersion) works from Java 9 to Java 26
-    return JvmTarget.fromString(majorVersion)
-        ?: if (this <= JavaVersion.VERSION_1_8) JVM_1_8
-        else JvmTarget.JVM_26
 }

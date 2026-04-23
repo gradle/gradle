@@ -16,12 +16,12 @@
 
 package org.gradle.kotlin.dsl.integration
 
+import org.gradle.internal.classloader.DefaultClassLoaderFactory
 import org.gradle.kotlin.dsl.fixtures.TestModuleRegistry
 import org.gradle.kotlin.dsl.fixtures.TestWithTempFiles
 import org.gradle.kotlin.dsl.fixtures.testRuntimeClassPath
 import org.gradle.kotlin.dsl.fixtures.withClassLoaderFor
 import org.gradle.kotlin.dsl.integration.KotlinScriptCompilerTest.TheImplicitReceiver
-import org.gradle.kotlin.dsl.support.KotlinCompiler
 import org.gradle.kotlin.dsl.support.KotlinCompilerOptions
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
@@ -51,7 +51,7 @@ open class TheKotlinScriptTemplate(
 
 class KotlinScriptCompilerTest : TestWithTempFiles() {
 
-    private val compiler = KotlinCompiler(TestModuleRegistry())
+    private val compiler = KotlinCompiler(TestModuleRegistry(), DefaultClassLoaderFactory())
 
     @Test
     fun canInjectImplicitReceiver() {
