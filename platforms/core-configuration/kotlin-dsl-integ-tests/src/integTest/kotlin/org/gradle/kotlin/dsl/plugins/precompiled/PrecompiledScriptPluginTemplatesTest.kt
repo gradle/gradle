@@ -507,7 +507,7 @@ class PrecompiledScriptPluginTemplatesTest : AbstractPrecompiledScriptPluginTest
                 open class ProjectPlugin : Plugin<Project> {
                     override fun apply(target: Project) {
                         val projectName = target.name
-                        target.task("run") {
+                        target.tasks.register("run") {
                             doLast { println("Project " + projectName + "!") }
                         }
                     }
