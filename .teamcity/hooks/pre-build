@@ -16,6 +16,7 @@
 #
 
 set -euo pipefail
+set -x
 AC_CLI_VERSION="1.0.0"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # Only run for the gradle/gradle repository.
