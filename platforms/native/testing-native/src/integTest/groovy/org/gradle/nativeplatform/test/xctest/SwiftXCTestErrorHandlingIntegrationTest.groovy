@@ -29,7 +29,6 @@ import org.gradle.nativeplatform.fixtures.app.XCTestSourceFileElement
 import org.gradle.test.fixtures.file.DoesNotSupportNonAsciiPaths
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.TestEnvironmentPreconditions
-
 import org.gradle.util.internal.VersionNumber
 
 import static org.gradle.util.Matchers.containsText
@@ -42,10 +41,9 @@ class SwiftXCTestErrorHandlingIntegrationTest extends AbstractInstalledToolChain
         buildWithApplicationAndDependencies()
         buildFile << """
             project(':app') {
-                def dir = project.layout.projectDirectory.dir("does-not-exist")
                 tasks.withType(XCTest).configureEach {
                     doFirst {
-                        workingDirectory = dir
+                        workingDirectory.get().asFile.deleteDir()
                     }
                 }
             }
@@ -55,7 +53,7 @@ class SwiftXCTestErrorHandlingIntegrationTest extends AbstractInstalledToolChain
 
         and:
         failure.assertHasCause("Test process encountered an unexpected problem.")
-        failure.assertHasCause("Working directory '${file('app/does-not-exist')}' does not exist.")
+        failure.assertHasCause("Working directory '${file('app/build/install/test')}' does not exist.")
     }
 
     def "fails when application cannot load shared library at runtime"() {
