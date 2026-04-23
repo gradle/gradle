@@ -16,7 +16,6 @@
 #
 
 set -euo pipefail
-set -x
 AC_CLI_VERSION="1.0.0"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # Only run for the gradle/gradle repository.
@@ -26,7 +25,11 @@ if [[ "${REMOTE_URL}" != "https://github.com/gradle/gradle.git" ]]; then
   exit 0
 fi
 
-EC2_INSTANCE_TYPE=$(curl -s "http://169.254.169.254/latest/meta-data/instance-type")
+EC2_INSTANCE_TYPE=$(curl -sf --connect-timeout 1 --max-time 2 "http://169.254.169.254/latest/meta-data/instance-type" || true)
+if [[ -z "${EC2_INSTANCE_TYPE}" ]]; then
+  echo "Skipping pre-build: not running on EC2 (metadata endpoint unreachable)"
+  exit 0
+fi
 echo "##teamcity[addBuildTag 'ec2-instance-type=$EC2_INSTANCE_TYPE']"
 
 AC_CLI_JAR="${SCRIPT_DIR}/develocity-artifact-cache-cli-${AC_CLI_VERSION}.jar"
