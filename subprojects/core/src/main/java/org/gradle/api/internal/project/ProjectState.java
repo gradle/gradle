@@ -45,6 +45,13 @@ public interface ProjectState extends ModelContainer<ProjectInternal> {
     BuildState getOwner();
 
     /**
+     * Returns the root project of the build that contains this project.
+     */
+    default ProjectState getRootProject() {
+        return getOwner().getProjects().getRootProject();
+    }
+
+    /**
      * Returns the parent of this project, as per {@link Project#getParent()}.
      * <p>
      * This will be null for the root project of any build in the build tree.

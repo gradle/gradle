@@ -36,8 +36,6 @@ class IsolatedProjectsAccessIntegrationTest extends AbstractIsolatedProjectsInte
         then:
         fixture.assertStateStoredAndDiscarded {
             projectsConfigured(":", ":sub", ":sub:par")
-            // TODO:isolated this reported IP problem should not be reported
-            problem("Build file 'sub/par/build.gradle': line 2: Project ':sub' cannot access 'Project.findProperty' functionality on another project ':'", 1)
             problem("Build file 'sub/par/build.gradle': line 2: Project ':sub:par' cannot access 'Project.findProperty' functionality on another project ':'", 1)
         }
     }

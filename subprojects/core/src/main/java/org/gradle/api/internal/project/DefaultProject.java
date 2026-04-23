@@ -226,7 +226,8 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
         this.owner = owner;
         this.classLoaderScope = selfClassLoaderScope;
         this.baseClassLoaderScope = baseClassLoaderScope;
-        this.rootProject = parent != null ? parent.getRootProject() : this;
+        // TODO:isolated mutable model of the current project should NOT keep a direct link to the mutable model of root and parent projects
+        this.rootProject = parent != null ? owner.getRootProject().getMutableModel() : this;
         this.projectDir = projectDir;
         this.buildFile = buildFile;
         this.parent = parent;
