@@ -122,6 +122,54 @@ class ConfigurationCacheNamedDeserializationIntegrationTest extends AbstractConf
         outputContains("prefixed = X-foo")
     }
 
+    def "can load configuration cache with decorated Managed+GeneratedSubclass instance after daemon restart"() {
+        given:
+        file("buildSrc/src/main/java/my/Thing.java") << """
+            package my;
+            import org.gradle.api.provider.Property;
+            public abstract class Thing {
+                public abstract Property<String> getFoo();
+            }
+        """
+
+        buildFile """
+            import my.Thing
+
+            abstract class ShowThing extends DefaultTask {
+                @Internal
+                Thing value
+
+                @TaskAction
+                void show() {
+                    println("foo = " + value.foo.get())
+                }
+            }
+
+            tasks.register("show", ShowThing) {
+                value = objects.newInstance(Thing)
+                value.foo.set("baz")
+            }
+        """
+        def configurationCache = new ConfigurationCacheFixture(this)
+
+        when:
+        configurationCacheRun("show")
+
+        then:
+        configurationCache.assertStateStored()
+        outputContains("foo = baz")
+
+        when:
+        stopDaemons()
+
+        and:
+        configurationCacheRun("show")
+
+        then:
+        configurationCache.assertStateLoaded()
+        outputContains("foo = baz")
+    }
+
     void stopDaemons() {
         executer.withArguments("--stop", "--info").run()
     }
