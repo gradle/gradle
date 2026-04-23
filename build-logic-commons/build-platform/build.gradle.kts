@@ -84,7 +84,9 @@ dependencies {
         api("org.openmbee.junit:junit-xml-parser:1.0.0")
         api("org.ow2.asm:asm:$asmVersion")
         api("org.ow2.asm:asm-commons:$asmVersion")
+        api("org.ow2.asm:asm-analysis:$asmVersion")
         api("org.ow2.asm:asm-tree:$asmVersion")
+        api("org.ow2.asm:asm-util:$asmVersion")
         api("xerces:xercesImpl:2.12.2") {
             because("Maven Central and JCenter disagree on version 2.9.1 metadata")
         }
