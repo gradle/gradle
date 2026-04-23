@@ -16,34 +16,49 @@
 
 package gradlebuild.integrationtests.ide
 
+import org.gradle.api.DefaultTask
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.file.ConfigurableFileCollection
-import org.gradle.api.plugins.JavaPluginExtension
+import org.gradle.api.file.DirectoryProperty
+import org.gradle.api.provider.Property
+import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.InputFiles
+import org.gradle.api.tasks.Internal
+import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
+import org.gradle.api.tasks.TaskAction
+import org.gradle.internal.os.OperatingSystem
 import org.gradle.kotlin.dsl.*
 import org.gradle.process.CommandLineArgumentProvider
+import org.gradle.work.DisableCachingByDefault
+import org.jetbrains.intellij.platform.gradle.Constants.Configurations.Attributes.ArtifactType
 import org.jetbrains.intellij.platform.gradle.IntelliJPlatformType
-import org.jetbrains.intellij.platform.gradle.extensions.IntelliJPlatformDependenciesExtension
-import org.jetbrains.intellij.platform.gradle.extensions.IntelliJPlatformExtension
-import org.jetbrains.intellij.platform.gradle.extensions.IntelliJPlatformTestingExtension
+import org.jetbrains.intellij.platform.gradle.extensions.IntelliJPlatformRepositoriesExtension
 import org.jetbrains.intellij.platform.gradle.extensions.intellijPlatform
+import org.jetbrains.intellij.platform.gradle.providers.AndroidStudioDownloadLinkValueSource
+import org.jetbrains.intellij.platform.gradle.services.ExtractorService
 import java.io.File
+import java.nio.file.Files
 import java.util.Properties
+
+abstract class IdeProvisioningExtension {
+    abstract val androidStudioInstallPath: DirectoryProperty
+}
 
 class IdeProvisioningPlugin : Plugin<Project> {
 
     companion object {
         private const val VERSIONS_FILE = "gradle/dependency-management/smoke-tested-ides.properties"
-
-        private const val INTELLIJ_ULTIMATE_ENTRY = "intellij.ultimate"
-        private const val ANDROID_STUDIO_ENTRY = "android.studio"
+        private const val ANDROID_STUDIO_VERSION_KEY = "android.studio"
+        private const val INTELLIJ_IDEA_VERSION_KEY = "intellij.idea"
+        private const val ANDROID_STUDIO_ARCHIVE_CONFIGURATION = "androidStudioArchive"
+        private const val INTELLIJ_IDEA_ARCHIVE_CONFIGURATION = "intellijIdeaArchive"
 
         fun ideArchivesProvider(project: Project): IdeArchivesProvider = project.objects.newInstance<IdeArchivesProvider>().apply {
-            androidStudioArchive.from(project.configurations.named("intellijPlatformDependencyArchive_$ANDROID_STUDIO_ENTRY"))
-            intellijUltimateArchive.from(project.configurations.named("intellijPlatformDependencyArchive_$INTELLIJ_ULTIMATE_ENTRY"))
+            androidStudioArchive.from(project.configurations.named(ANDROID_STUDIO_ARCHIVE_CONFIGURATION))
+            intellijIdeaArchive.from(project.configurations.named(INTELLIJ_IDEA_ARCHIVE_CONFIGURATION))
         }
 
         private fun loadProperties(file: File): Properties {
@@ -56,49 +71,99 @@ class IdeProvisioningPlugin : Plugin<Project> {
 
     override fun apply(target: Project) {
         with(target) {
-            pluginManager.apply("org.jetbrains.intellij.platform.module")
+            val versions = loadProperties(rootDir.resolve(VERSIONS_FILE))
+            val androidStudioVersion = versions.requireKey(ANDROID_STUDIO_VERSION_KEY)
+            val intellijIdeaVersion = versions.requireKey(INTELLIJ_IDEA_VERSION_KEY)
 
-            val versions = loadProperties(project.rootDir.resolve(VERSIONS_FILE))
-
+            IntelliJPlatformRepositoriesExtension.register(project, repositories)
             repositories.intellijPlatform {
                 androidStudioInstallers()
                 jetbrainsIdeInstallers()
-                releases()
-                jetbrainsRuntime()
-                // Required for resolving bundledModule:* artifacts (e.g. intellij-platform-test-runtime) from extracted IDE archives
-                localPlatformArtifacts()
             }
 
-            // We only use the plugin for IDE provisioning, not for building IntelliJ plugins.
-            extensions.getByType<IntelliJPlatformExtension>().instrumentCode.set(false)
-
-            // The IntelliJ Platform sets `toolchain.languageVersion` convention
-            extensions.getByType<JavaPluginExtension>().toolchain.languageVersion.unsetConvention()
-
-            // we need to declare at least one dependency on an IDE distribution, otherwise the plugin will complain
-            val intellijDeps = dependencies.extensions.getByType<IntelliJPlatformDependenciesExtension>()
-            intellijDeps.androidStudio(versions[ANDROID_STUDIO_ENTRY] as String)
-
-            val testing = the<IntelliJPlatformTestingExtension>()
-            versions.entries.forEach { (key, versionValue) ->
-                val (platformType, installer) = when (key) {
-                    ANDROID_STUDIO_ENTRY -> IntelliJPlatformType.AndroidStudio to true
-                    INTELLIJ_ULTIMATE_ENTRY -> IntelliJPlatformType.IntellijIdeaUltimate to false
-                    else -> error("Unknown IDE entry: $key")
-                }
-                testing.testIde.register(key as String) {
-                    type = platformType
-                    version = versionValue as String
-                    useInstaller = installer
-                }
+            val androidStudioArchive = configurations.register(ANDROID_STUDIO_ARCHIVE_CONFIGURATION) { isCanBeConsumed = false }
+            val intellijIdeaArchive = configurations.register(INTELLIJ_IDEA_ARCHIVE_CONFIGURATION) {
+                isCanBeConsumed = false
+                // JetBrains CDN intermittently serves gzip-encoded HTML for missing `.asc` URLs,
+                // which Gradle caches and then fails to parse as a PGP signature (ArmoredInputException).
+                resolutionStrategy.disableDependencyVerification()
             }
 
-            // The IntelliJ Platform plugin auto-populates intellijPluginVerifierIdes with
-            // the latest release for plugin verification. We don't need that — clear it.
-            configurations.named("intellijPluginVerifierIdes") {
-                withDependencies { clear() }
+            dependencies {
+                add(androidStudioArchive.name, androidStudioDependencyCoordinates(androidStudioVersion).get())
+                add(intellijIdeaArchive.name, intellijIdeaInstallerCoordinates(intellijIdeaVersion))
+            }
+
+            val extractor = gradle.sharedServices.registerIfAbsent("intellijExtractorService", ExtractorService::class.java) {}
+
+            val extractAndroidStudio = tasks.register<ExtractIde>("extractAndroidStudio") {
+                service.set(extractor)
+                archive.from(androidStudioArchive)
+                targetDir.set(layout.buildDirectory.dir("android-studio"))
+            }
+
+            extensions.create<IdeProvisioningExtension>("ideProvisioning").apply {
+                androidStudioInstallPath.set(extractAndroidStudio.flatMap { it.targetDir })
             }
         }
+    }
+
+    private fun Project.androidStudioDependencyCoordinates(asVersion: String): Provider<String> {
+        val installer = IntelliJPlatformType.AndroidStudio.installer!!
+        val downloadLink = providers.of(AndroidStudioDownloadLinkValueSource::class) {
+            parameters {
+                androidStudioUrl.set("https://jb.gg/android-studio-releases-list.xml")
+                androidStudioVersion.set(asVersion)
+            }
+        }
+        return downloadLink.map { link ->
+            val parts = link.split('/')
+            val fileName = parts.last()
+            val downloadVersion = parts[parts.size - 2]
+            val (classifier, extension) = fileName
+                .substringAfter("${installer.artifactId}-")
+                .substringAfter("$downloadVersion-")
+                .split(".", limit = 2)
+            "${installer.groupId}:${installer.artifactId}:$downloadVersion:$classifier@$extension"
+        }
+    }
+
+    private fun intellijIdeaInstallerCoordinates(version: String): String {
+        val installer = IntelliJPlatformType.IntellijIdeaUltimate.installer!!
+        val os = OperatingSystem.current()
+        val arch = System.getProperty("os.arch").takeIf { it == "aarch64" }
+        val (extension, classifier) = when {
+            os.isWindows -> ArtifactType.ZIP to "win"
+            os.isLinux -> ArtifactType.TAR_GZ to arch
+            os.isMacOsX -> ArtifactType.DMG to arch
+            else -> error("Unsupported operating system for IntelliJ IDEA installer: $os")
+        }
+        val classifierPart = classifier?.let { ":$it" } ?: ""
+        return "${installer.groupId}:${installer.artifactId}:$version$classifierPart@$extension"
+    }
+
+    private fun Properties.requireKey(key: String): String =
+        getProperty(key) ?: error("Missing '$key' in $VERSIONS_FILE")
+}
+
+@DisableCachingByDefault(because = "Not worth caching")
+abstract class ExtractIde : DefaultTask() {
+    @get:Internal
+    abstract val service: Property<ExtractorService>
+
+    @get:InputFiles
+    @get:PathSensitive(PathSensitivity.NONE)
+    abstract val archive: ConfigurableFileCollection
+
+    @get:OutputDirectory
+    abstract val targetDir: DirectoryProperty
+
+    @TaskAction
+    fun run() {
+        val target = targetDir.get().asFile.toPath()
+        target.toFile().deleteRecursively()
+        Files.createDirectories(target)
+        service.get().extract(archive.singleFile.toPath(), target)
     }
 }
 
@@ -109,10 +174,10 @@ abstract class IdeArchivesProvider : CommandLineArgumentProvider {
 
     @get: InputFiles
     @get: PathSensitive(PathSensitivity.NONE)
-    abstract val intellijUltimateArchive: ConfigurableFileCollection
+    abstract val intellijIdeaArchive: ConfigurableFileCollection
 
     override fun asArguments(): Iterable<String> = listOf(
         "-Dandroid.studio.archive=${androidStudioArchive.singleFile.absolutePath}",
-        "-Didea.ultimate.archive=${intellijUltimateArchive.singleFile.absolutePath}"
+        "-Dintellij.idea.archive=${intellijIdeaArchive.singleFile.absolutePath}"
     )
 }

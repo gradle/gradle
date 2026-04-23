@@ -23,18 +23,11 @@ import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.UntrackedTask
 import org.w3c.dom.Element
 import org.w3c.dom.NodeList
-import java.io.OutputStream
 import java.net.URI
-import java.security.DigestInputStream
-import java.security.MessageDigest
 
 /**
- * Fetches the latest released versions of Android Studio and IntelliJ IDEA Ultimate,
+ * Fetches the latest released versions of Android Studio and IntelliJ IDEA,
  * updates `smoke-tested-ides.properties` and the verification-metadata.xml checksums.
- *
- * Android Studio checksums are extracted directly from the releases XML.
- * IntelliJ IDEA Ultimate checksum is computed by streaming the Maven artifact
- * and calculating SHA-256 (the Maven repo does not serve .sha256 files).
  */
 @UntrackedTask(because = "Not worth tracking")
 abstract class UpdateSmokeTestedIdeVersions : AbstractVersionsUpdateTask() {
@@ -45,11 +38,11 @@ abstract class UpdateSmokeTestedIdeVersions : AbstractVersionsUpdateTask() {
     @TaskAction
     fun update() {
         val androidStudio = fetchLatestAndroidStudioRelease()
-        val intellij = fetchLatestIntelliJUltimateRelease()
+        val intellij = fetchLatestIntelliJIdeaRelease()
 
         updateProperties {
             setProperty("android.studio", androidStudio.version)
-            setProperty("intellij.ultimate", intellij.version)
+            setProperty("intellij.idea", intellij.version)
         }
 
         updateVerificationMetadata(androidStudio, intellij)
@@ -69,44 +62,34 @@ abstract class UpdateSmokeTestedIdeVersions : AbstractVersionsUpdateTask() {
             .getElementsByTagName("download")
             .asSequence()
             .map { it.text("link").substringAfterLast('/') to it.text("checksum") }
-            .filter { (filename, _) -> PLATFORM_SUFFIXES.any { filename.endsWith(it) } }
+            .filter { (filename, _) -> AS_PLATFORM_SUFFIXES.any { filename.endsWith(it) } }
             .map { (filename, sha) ->
                 // Ivy artifact name includes the version: android-studio-{version}-{rest of CDN filename}
                 ArtifactChecksum("android-studio-$version-${filename.removePrefix("android-studio-")}", sha)
             }
             .toList()
 
-        require(artifacts.size == PLATFORM_SUFFIXES.size) {
-            "Expected ${PLATFORM_SUFFIXES.size} platform artifacts but got ${artifacts.size}"
+        require(artifacts.size == AS_PLATFORM_SUFFIXES.size) {
+            "Expected ${AS_PLATFORM_SUFFIXES.size} platform artifacts but got ${artifacts.size}"
         }
 
         return IdeRelease("com.google.android.studio", "android-studio", version, artifacts)
     }
 
     private
-    fun fetchLatestIntelliJUltimateRelease(): IdeRelease {
+    fun fetchLatestIntelliJIdeaRelease(): IdeRelease {
         val version = Gson()
             .fromJson(URI(INTELLIJ_PRODUCTS_URL).toURL().readText(), Array<IntelliJProduct>::class.java)
             .firstOrNull()?.releases?.firstOrNull { it.type == "release" }?.version
-            ?: error("No release version found for IntelliJ IDEA Ultimate")
+            ?: error("No release version found for IntelliJ IDEA")
 
-        val artifactUrl = "$INTELLIJ_MAVEN_REPO_URL/com/jetbrains/intellij/idea/ideaIU/$version/ideaIU-$version.zip"
-        val fileName = artifactUrl.substringAfterLast('/')
-        // unfortunately, I found no source with published SHA-256
-        logger.lifecycle("Computing SHA-256 for $fileName (streaming from Maven, this may take a while)...")
-        return IdeRelease(
-            "com.jetbrains.intellij.idea", "ideaIU", version,
-            listOf(ArtifactChecksum(fileName, computeSha256(artifactUrl))),
-        )
-    }
-
-    private
-    fun computeSha256(url: String): String {
-        val digest = MessageDigest.getInstance("SHA-256")
-        DigestInputStream(URI(url).toURL().openStream(), digest).use { input ->
-            input.copyTo(OutputStream.nullOutputStream())
+        val artifacts = IJ_PLATFORM_SUFFIXES.map { suffix ->
+            val fileName = "ideaIU-$version$suffix"
+            val sha = URI("$INTELLIJ_DOWNLOAD_URL/$fileName.sha256").toURL().readText().trim().substringBefore(' ')
+            ArtifactChecksum(fileName, sha)
         }
-        return digest.digest().joinToString("") { "%02x".format(it) }
+
+        return IdeRelease("idea", "ideaIU", version, artifacts)
     }
 
     private
@@ -180,13 +163,21 @@ abstract class UpdateSmokeTestedIdeVersions : AbstractVersionsUpdateTask() {
     companion object {
         private const val ANDROID_STUDIO_RELEASES_URL = "https://jb.gg/android-studio-releases-list.xml"
         private const val INTELLIJ_PRODUCTS_URL = "https://data.services.jetbrains.com/products?code=IU&fields=code,releases.type,releases.version"
-        private const val INTELLIJ_MAVEN_REPO_URL = "https://www.jetbrains.com/intellij-repository/releases"
+        private const val INTELLIJ_DOWNLOAD_URL = "https://download.jetbrains.com/idea"
 
-        private val PLATFORM_SUFFIXES = setOf(
+        private val AS_PLATFORM_SUFFIXES = setOf(
             "linux.tar.gz",
             "mac.dmg",
             "mac_arm.dmg",
             "windows.zip",
+        )
+
+        private val IJ_PLATFORM_SUFFIXES = listOf(
+            ".tar.gz",
+            "-aarch64.tar.gz",
+            ".dmg",
+            "-aarch64.dmg",
+            ".win.zip",
         )
 
         private fun NodeList.asSequence(): Sequence<Element> =

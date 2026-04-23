@@ -70,7 +70,7 @@ guice = { group = "com.google.inject", name = "guice", version.ref = "guice" }
 hamcrest = { group = "org.hamcrest", name = "hamcrest", version.ref = "hamcrest" }
 hikariCP = { group = "com.zaxxer", name = "HikariCP", version.ref = "hikariCP" }
 httpmime = { group = "org.apache.httpcomponents", name = "httpmime", version.ref = "httpmime" }
-intellijPlatform = { group = "org.jetbrains.intellij.platform.module", name = "org.jetbrains.intellij.platform.module.gradle.plugin", version.ref = "intellijPlatform" }
+intellijPlatform = { group = "org.jetbrains.intellij.platform", name = "intellij-platform-gradle-plugin", version.ref = "intellijPlatform" }
 jacksonKotlin = { group = "com.fasterxml.jackson.module", name = "jackson-module-kotlin", version.ref = "jackson" }
 jetty = { group = "org.eclipse.jetty", name = "jetty-http", version.ref = "jetty" }
 jettySecurity = { group = "org.eclipse.jetty", name = "jetty-security", version.ref = "jetty" }

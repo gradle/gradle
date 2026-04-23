@@ -51,7 +51,7 @@ abstract class AbstractIdeSyncTest extends Specification {
 
     private enum IDE {
         ANDROID_STUDIO,
-        INTELLIJ_IDEA_ULTIMATE,
+        INTELLIJ_IDEA,
     }
 
     @Rule
@@ -92,7 +92,7 @@ abstract class AbstractIdeSyncTest extends Specification {
     protected void ideaSync(
         @Nullable IdeScenario scenario = null
     ) {
-        ideSync(IDE.INTELLIJ_IDEA_ULTIMATE, scenario)
+        ideSync(IDE.INTELLIJ_IDEA, scenario)
     }
 
     private void ideSync(IDE ide, IdeScenario scenario) {
@@ -158,9 +158,9 @@ abstract class AbstractIdeSyncTest extends Specification {
                 ideType = "as-0"
                 archivePath = System.getProperty("android.studio.archive")
             }
-            case IDE.INTELLIJ_IDEA_ULTIMATE -> {
+            case IDE.INTELLIJ_IDEA -> {
                 ideType = "iu-0"
-                archivePath = System.getProperty("idea.ultimate.archive")
+                archivePath = System.getProperty("intellij.idea.archive")
             }
         }
         args += "--ide=$ideType"
