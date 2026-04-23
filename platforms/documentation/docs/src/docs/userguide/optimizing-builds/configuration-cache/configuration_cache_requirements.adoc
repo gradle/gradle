@@ -59,8 +59,6 @@ Using these for cross-task synchronization will not work because the configurati
 
 To share or coordinate state between tasks, use <<build_services.adoc#build_services, shared build services>> or declare explicit task inputs/outputs and use providers or task outputs.
 
-See the <<releases/upgrading/upgrading_version_9.adoc#changes_9.5.0, upgrading notes for this release>> for a short note about this change.
-
 [[config_cache:requirements:gradle_model_types]]
 === Gradle Model Types
 

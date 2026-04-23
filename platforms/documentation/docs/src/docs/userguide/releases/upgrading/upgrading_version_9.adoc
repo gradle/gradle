@@ -365,6 +365,7 @@ Since AGP 8.x relied on these internal classes directly, it is no longer compati
 
 To resolve this, upgrade to AGP 9.x, which only uses the public Gradle API and fully supports Gradle 9.6.
 
+[[concurrency_primitives_prohibited_by_cc]]
 ==== Concurrency synchronization primitives can no longer be serialized by the Configuration Cache
 
 Configuration cache serialization now emits a proper problem when attempting to serialize most of Java's standard concurrency synchronization primitives.
