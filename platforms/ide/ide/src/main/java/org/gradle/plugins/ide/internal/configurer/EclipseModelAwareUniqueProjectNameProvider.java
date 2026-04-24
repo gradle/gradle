@@ -17,7 +17,7 @@ package org.gradle.plugins.ide.internal.configurer;
 
 import org.gradle.api.internal.project.ProjectIdentity;
 import org.gradle.api.internal.project.ProjectState;
-import org.gradle.api.internal.project.ProjectStateRegistry;
+import org.gradle.api.internal.project.ProjectStateLookup;
 import org.gradle.plugins.ide.eclipse.model.EclipseModel;
 import org.jspecify.annotations.Nullable;
 
@@ -37,8 +37,8 @@ public class EclipseModelAwareUniqueProjectNameProvider extends AbstractUniquePr
     private List<ProjectStateWrapper> reservedNames = Collections.emptyList();
     private Map<ProjectIdentity, ProjectStateWrapper> projectToInformationMap = Collections.emptyMap();
 
-    public EclipseModelAwareUniqueProjectNameProvider(ProjectStateRegistry projectRegistry) {
-        super(projectRegistry);
+    public EclipseModelAwareUniqueProjectNameProvider(ProjectStateLookup projectStateLookup) {
+        super(projectStateLookup);
     }
 
     public synchronized void setReservedProjectNames(List<String> reservedNames) {
@@ -65,7 +65,7 @@ public class EclipseModelAwareUniqueProjectNameProvider extends AbstractUniquePr
         if (deduplicated == null) {
 
             projectToInformationMap = new HashMap<>();
-            for (ProjectState state : projectRegistry.getAllProjects()) {
+            for (ProjectState state : projectStateLookup.getAllProjects()) {
                 String projectNameForEclipse = getName(state);
                 projectToInformationMap.put(state.getIdentity(), new ProjectStateWrapper(projectNameForEclipse, state));
             }

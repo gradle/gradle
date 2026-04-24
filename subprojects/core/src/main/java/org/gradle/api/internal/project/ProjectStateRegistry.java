@@ -29,19 +29,13 @@ import org.gradle.util.Path;
 import org.jspecify.annotations.Nullable;
 
 import javax.annotation.concurrent.ThreadSafe;
-import java.util.Collection;
 
 /**
  * A registry of all projects present in a build tree.
  */
 @ThreadSafe
 @ServiceScope(Scope.BuildTree.class)
-public interface ProjectStateRegistry {
-    /**
-     * Returns all projects in the build tree.
-     */
-    Collection<? extends ProjectState> getAllProjects();
-
+public interface ProjectStateRegistry extends ProjectStateLookup {
     /**
      * Locates the state object that owns the given public project model. Can use {@link ProjectInternal#getOwner()} instead.
      */
@@ -56,11 +50,6 @@ public interface ProjectStateRegistry {
      * Locates the state object that owns the project with the identity path.
      */
     ProjectState stateFor(Path identityPath) throws IllegalArgumentException;
-
-    /**
-     * Locates the state object that owns the project with the given identity path, or null if this project is not present.
-     */
-    @Nullable ProjectState findProjectState(Path identityPath);
 
     /**
      * Locates the state objects for all projects of the given build.

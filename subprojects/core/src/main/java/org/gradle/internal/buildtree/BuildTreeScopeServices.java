@@ -30,6 +30,7 @@ import org.gradle.api.internal.model.DefaultObjectFactory;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.api.internal.options.InternalOptionsFactory;
 import org.gradle.api.internal.project.DefaultProjectStateRegistry;
+import org.gradle.api.internal.project.ProjectStateLookup;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.project.taskfactory.TaskIdentityFactory;
 import org.gradle.api.internal.properties.DefaultGradlePropertiesController;
@@ -127,7 +128,7 @@ public class BuildTreeScopeServices implements ServiceRegistrationProvider {
         registration.add(BuildLifecycleControllerFactory.class, DefaultBuildLifecycleControllerFactory.class);
         registration.add(BuildOptionBuildOperationProgressEventsEmitter.class);
         registration.add(BuildInclusionCoordinator.class);
-        registration.add(ProjectStateRegistry.class, DefaultProjectStateRegistry.class);
+        registration.add(ProjectStateRegistry.class, ProjectStateLookup.class, DefaultProjectStateRegistry.class);
         registration.add(ConfigurationTimeBarrier.class, DefaultConfigurationTimeBarrier.class);
         registration.add(ProblemReporter.class, DeprecationsReporter.class);
         registration.add(ProjectConfigurer.class, TaskPathProjectEvaluator.class);

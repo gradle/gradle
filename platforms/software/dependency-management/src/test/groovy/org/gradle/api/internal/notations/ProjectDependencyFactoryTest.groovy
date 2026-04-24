@@ -21,7 +21,7 @@ import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParserFactory
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder
 import org.gradle.api.internal.project.ProjectIdentity
 import org.gradle.api.internal.project.ProjectState
-import org.gradle.api.internal.project.ProjectStateRegistry
+import org.gradle.api.internal.project.ProjectStateLookup
 import org.gradle.util.AttributeTestUtil
 import org.gradle.util.Path
 import org.gradle.util.TestUtil
@@ -39,15 +39,15 @@ class ProjectDependencyFactoryTest extends Specification {
     }
 
     def capabilityNotationParser = new CapabilityNotationParserFactory(false).create()
-    def projectStateRegistry = Mock(ProjectStateRegistry) {
-        findProjectState(Path.path(":foo:bar")) >> projectState
+    def projectStateLookup = Mock(ProjectStateLookup) {
+        findProject(Path.path(":foo:bar")) >> projectState
     }
     def depFactory = new DefaultProjectDependencyFactory(
         TestUtil.instantiatorFactory().decorateLenient(),
         capabilityNotationParser,
         TestUtil.objectFactory(),
         AttributeTestUtil.attributesFactory(),
-        projectStateRegistry,
+        projectStateLookup,
         projectFinder
     )
     def factory = new ProjectDependencyFactory(depFactory)
