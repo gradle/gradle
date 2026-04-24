@@ -16,8 +16,12 @@
 
 package org.gradle.internal.cc.impl.isolated
 
+import org.gradle.api.internal.DocumentationRegistry
+import org.gradle.util.GradleVersion
 import org.gradle.util.internal.ToBeImplemented
 import spock.lang.Issue
+
+import static org.gradle.api.internal.DocumentationRegistry.BASE_URL
 
 class IsolatedProjectsAccessFromKotlinDslIntegrationTest extends AbstractIsolatedProjectsIntegrationTest {
     def "reports problem when build script uses #block block to apply plugins to another project"() {
@@ -176,9 +180,18 @@ class IsolatedProjectsAccessFromKotlinDslIntegrationTest extends AbstractIsolate
 
         // Requires a sub-project
         file("a/build.gradle.kts") << """
-            val myProperty = $expression
+            val myProperty$expression
             println("myProperty: " + myProperty) // actual access to the value is required to trigger a lookup
         """
+        if (expectDelegateDeprecation) {
+            executer.expectDocumentedDeprecationWarning(
+                "The 'val name: Type? by project' property delegate syntax has been deprecated. " +
+                    "This is scheduled to be removed in Gradle 10. " +
+                    "Use 'val property = project.findProperty(name)' instead. " +
+                    "Consult the upgrading guide for further information: " +
+                    "${BASE_URL}/userguide/upgrading_version_9.html#kotlin_dsl_delegated_properties"
+            )
+        }
 
         when:
         isolatedProjectsFails("help")
@@ -188,12 +201,13 @@ class IsolatedProjectsAccessFromKotlinDslIntegrationTest extends AbstractIsolate
 
         fixture.assertStateStoredAndDiscarded {
             projectsConfigured(":", ":a")
-            problem("Build file 'a/build.gradle.kts': Project ':a' cannot dynamically look up property 'myProperty' in the parent project ':' via 'val ... by project'")
+            problem("Build file 'a/build.gradle.kts': Project ':a' cannot dynamically look up property 'myProperty' in the parent project ':' via '$callerApi'")
         }
 
         where:
-        description    | expression
-        "nullable"     | 'project.findProperty("myProperty") as String?'
-        "non-nullable" | 'project.property("myProperty") as String'
+        description    | expression                                                      | callerApi              | expectDelegateDeprecation
+        "nullable"     | ' = project.findProperty("myProperty") as String?'   | 'findProperty()'       | false
+        "non-nullable" | ' = project.property("myProperty") as String'        | 'property()'           | false
+        "delegated"    | ': String? by project'                                | 'val ... by project'   | true
     }
 }
