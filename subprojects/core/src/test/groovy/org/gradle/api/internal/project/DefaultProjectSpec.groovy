@@ -40,6 +40,7 @@ import org.gradle.api.internal.tasks.TaskContainerInternal
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.tasks.util.internal.PatternSets
 import org.gradle.configuration.internal.ListenerBuildOperationDecorator
+import org.gradle.internal.build.BuildState
 import org.gradle.internal.Describables
 import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.internal.management.DependencyResolutionManagementInternal
@@ -295,6 +296,13 @@ class DefaultProjectSpec extends Specification {
         }
 
         build.services >> serviceRegistry
+        build.projectRegistry >> Mock(ProjectRegistry)
+
+        def buildOwner = Stub(BuildState) {
+            getMutableModel() >> build
+            getIdentityPath() >> build.identityPath
+        }
+        build.owner >> buildOwner
 
         def projectPath = parent == null ? Path.ROOT : parent.projectPath.child(name)
         def buildPath
@@ -312,18 +320,20 @@ class DefaultProjectSpec extends Specification {
             identity = ProjectIdentity.forSubproject(buildPath, projectPath)
         }
 
-        def container = Mock(ProjectState)
-        _ * container.projectPath >> identity.projectPath
-        _ * container.identityPath >> identity.buildTreePath
-        _ * container.owner >> build.owner
-        _ * container.displayName >> Describables.of(name)
-        _ * container.identity >> identity
-
         def descriptor = Mock(ImmutableProjectDescriptor) {
             getIdentity() >> identity
             getProjectDir() >> new File("project")
             getBuildFile() >> new File("build file")
         }
+
+        def container = Mock(ProjectState)
+        _ * container.projectPath >> identity.projectPath
+        _ * container.identityPath >> identity.buildTreePath
+        _ * container.owner >> buildOwner
+        _ * container.displayName >> Describables.of(name)
+        _ * container.identity >> identity
+        _ * container.descriptor >> descriptor
+        _ * container.getParent() >> (parent != null ? parent.owner : null)
 
         def scriptResolution = Stub(ProjectScopedScriptResolution) {
             resolveScriptsForProject(_, _) >> { project, action -> action.get() }
@@ -331,6 +341,6 @@ class DefaultProjectSpec extends Specification {
 
         def instantiator = TestUtil.instantiatorFactory().decorateLenient(serviceRegistry)
         def factory = new ProjectFactory(instantiator, new DefaultTextFileResourceLoader(null), scriptResolution)
-        return factory.createProject(build, descriptor, container, parent, serviceRegistryFactory, Stub(ClassLoaderScope), Stub(ClassLoaderScope))
+        return factory.createProject(container, Stub(ClassLoaderScope), Stub(ClassLoaderScope), serviceRegistryFactory)
     }
 }

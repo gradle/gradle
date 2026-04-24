@@ -177,7 +177,7 @@ class DefaultProjectState implements ProjectState, Closeable {
 
     @Override
     public void createMutableModel(ClassLoaderScope selfClassLoaderScope, ClassLoaderScope baseClassLoaderScope) {
-        controller.createMutableModel(descriptor, owner, this, selfClassLoaderScope, baseClassLoaderScope, projectFactory);
+        controller.createMutableModel(this, selfClassLoaderScope, baseClassLoaderScope, projectFactory);
     }
 
     @Override

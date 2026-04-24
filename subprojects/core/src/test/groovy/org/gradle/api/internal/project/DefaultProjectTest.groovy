@@ -82,6 +82,7 @@ import org.gradle.initialization.ClassLoaderScopeRegistryListener
 import org.gradle.internal.Actions
 import org.gradle.internal.Describables
 import org.gradle.internal.build.BuildState
+import org.gradle.internal.project.ImmutableProjectDescriptor
 import org.gradle.internal.deprecation.DeprecationLogger
 import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.internal.logging.LoggingManagerInternal
@@ -269,6 +270,7 @@ class DefaultProjectTest extends Specification {
 
         buildState = Stub(BuildState)
         buildState.getIdentityPath() >> Path.ROOT
+        buildState.getMutableModel() >> build
 
         serviceRegistryMock.get((Type) ObjectFactory) >> Stub(ObjectFactory)
         serviceRegistryMock.get((Type) DependencyLockingHandler) >> Stub(DependencyLockingHandler)
@@ -279,6 +281,7 @@ class DefaultProjectTest extends Specification {
         projectState.displayName >> Describables.of("displayname")
         projectState.owner >> buildState
         project = defaultProject('root', projectState, null, rootDir, rootProjectClassLoaderScope)
+        projectState.mutableModel >> project
         def child1ClassLoaderScope = rootProjectClassLoaderScope.createChild("project-child1", null)
         child1State = Mock(ProjectState)
         child1State.owner >> buildState
@@ -324,18 +327,20 @@ class DefaultProjectTest extends Specification {
         _ * owner.projectPath >> identity.projectPath
         _ * owner.depth >> owner.projectPath.segmentCount()
 
+        def descriptor = Stub(ImmutableProjectDescriptor) {
+            getProjectDir() >> rootDir
+            getBuildFile() >> new File(rootDir, 'build.gradle')
+        }
+        _ * owner.descriptor >> descriptor
+        _ * owner.getParent() >> (parent != null ? parent.owner : null)
+
         def project = TestUtil.instantiatorFactory().decorateLenient().newInstance(
             DefaultProject,
-            name,
-            parent,
-            rootDir,
-            new File(rootDir, 'build.gradle'),
-            script,
-            build,
             owner,
-            projectServiceRegistryFactoryMock,
             scope,
-            baseClassLoaderScope
+            baseClassLoaderScope,
+            script,
+            projectServiceRegistryFactoryMock
         )
         _ * owner.applyToMutableState(_) >> { Consumer action -> action.accept(project) }
         return project
