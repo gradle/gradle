@@ -22,6 +22,7 @@ import org.gradle.internal.concurrent.Stoppable
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
+import org.gradle.kotlin.dsl.support.cleanupKotlinCompilers
 import org.jetbrains.kotlin.K1Deprecation
 import org.jetbrains.kotlin.cli.jvm.compiler.KotlinCoreEnvironment
 
@@ -44,7 +45,8 @@ class KotlinCompilerContextDisposer(
     }
 
     @OptIn(K1Deprecation::class)
-    override fun projectsEvaluated(gradle: Gradle) {
+    override fun projectsEvaluated(gradle: Gradle) { // TODO: If configuration fails (or in some tooling-api paths that don't reach projectsEvaluated), cleanup never fires. do these in the stop method instead?
         KotlinCoreEnvironment.disposeApplicationEnvironment()
+        cleanupKotlinCompilers()
     }
 }
