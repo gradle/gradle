@@ -57,6 +57,65 @@ import org.gradle.test.fixtures.plugin.PluginBuilder as GradlePluginBuilder
  *     }
  * }
  * </pre>
+ *
+ * <h2>DSL opt-outs and modifiers (cheat-sheet)</h2>
+ *
+ * <p>The plugin DSL exposes several one-line toggles that affect how the generated
+ * plugin is emitted. They are grouped here by the class on which they are declared
+ * so call sites know which nested {@code { }} scope to use.</p>
+ *
+ * <table>
+ *   <caption>DSL opt-outs and modifiers</caption>
+ *   <tr><th>DSL call</th><th>Effect</th><th>Declared on</th></tr>
+ *   <tr>
+ *     <td>{@code noPlugin()}</td>
+ *     <td>Suppress plugin file entirely; only the definition is emitted.</td>
+ *     <td>{@link DefinitionAndPluginBuilder} (component scope)</td>
+ *   </tr>
+ *   <tr>
+ *     <td>{@code noBindings()}</td>
+ *     <td>Emit a plain {@code Plugin<Project>} with no {@code @BindsProjectType} /
+ *         {@code @BindsProjectFeature} annotation and no inner classes.</td>
+ *     <td>{@link PluginClassBuilder} ({@code plugin { }} scope)</td>
+ *   </tr>
+ *   <tr>
+ *     <td>{@code noBuildModel()}</td>
+ *     <td>Use {@code BuildModel.None} instead of a real build model; omits the
+ *         inner build-model interface on the definition and flips the plugin's
+ *         generic argument accordingly. Must be called on <em>both</em> the
+ *         definition and the plugin for consistent output.</td>
+ *     <td>{@link DefinitionBuilder} and {@link PluginClassBuilder}</td>
+ *   </tr>
+ *   <tr>
+ *     <td>{@code unsafeDefinition()}</td>
+ *     <td>Append {@code .withUnsafeDefinition()} to the generated binding chain.</td>
+ *     <td>{@link PluginClassBuilder}</td>
+ *   </tr>
+ *   <tr>
+ *     <td>{@code unsafeApplyAction()}</td>
+ *     <td>Append {@code .withUnsafeApplyAction()} to the generated binding chain.</td>
+ *     <td>{@link PluginClassBuilder}</td>
+ *   </tr>
+ *   <tr>
+ *     <td>{@code bindToBuildModel()}</td>
+ *     <td>Use {@code bindProjectFeatureToBuildModel} instead of
+ *         {@code bindProjectFeatureToDefinition} for the primary binding
+ *         (feature plugins only).</td>
+ *     <td>{@link PluginClassBuilder}</td>
+ *   </tr>
+ *   <tr>
+ *     <td>{@code bindingStyle(REIFIED)}</td>
+ *     <td>Kotlin only: use reified type-parameter binding. Typically combined
+ *         with {@code noBuildModel()}.</td>
+ *     <td>{@link PluginClassBuilder}</td>
+ *   </tr>
+ *   <tr>
+ *     <td>{@code applyAction { eagerlyReadDefinitionValues() }}</td>
+ *     <td>Read the definition's property values eagerly (at apply time) rather
+ *         than via the standard mapping code path.</td>
+ *     <td>{@link ApplyActionDeclaration} ({@code applyAction { }} scope)</td>
+ *   </tr>
+ * </table>
  */
 class PluginClassBuilder {
     /** Whether this plugin binds a project type or a project feature. */
@@ -111,9 +170,6 @@ class PluginClassBuilder {
     /** Custom Java code to insert in the apply action body (before task registration). */
     String customApplyActionCode = ""
 
-    /** Pending binding method name, applied to new bindings when they are created. */
-    private String pendingBindingMethodName = null
-
     /** Returns the primary binding's name, or null if no bindings exist. */
     String getName() {
         bindings ? bindings[0].name : null
@@ -135,6 +191,9 @@ class PluginClassBuilder {
     }
 
     // --- Fluent API ---
+
+    /** Overrides the generated plugin class name. */
+    void pluginClassName(String className) { this.pluginClassName = className }
 
     /** Sets the source code language (Java or Kotlin). */
     void language(Language language) { this.language = language }
@@ -161,17 +220,6 @@ class PluginClassBuilder {
     void bindToBuildModel() {
         if (bindings) {
             bindings[0].bindingMethodName = "bindProjectFeatureToBuildModel"
-        }
-        pendingBindingMethodName = "bindProjectFeatureToBuildModel"
-    }
-
-    /** Overrides the generated plugin class name. */
-    void pluginClassName(String className) { this.pluginClassName = className }
-
-    /** Overrides the name used in binding registration. */
-    void name(String name) {
-        if (bindings) {
-            bindings[0].name = name
         }
     }
 

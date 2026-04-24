@@ -532,11 +532,9 @@ class ProjectTypeModelDefaultsIntegrationTest extends AbstractIntegrationSpec im
                 }
             }
             settings {
-                defaults {
-                    defaultFor(type) {
-                        property "id", "settings"
-                        property "foo.bar", "settings"
-                    }
+                defaultFor(type) {
+                    property "id", "settings"
+                    property "foo.bar", "settings"
                 }
             }
         }

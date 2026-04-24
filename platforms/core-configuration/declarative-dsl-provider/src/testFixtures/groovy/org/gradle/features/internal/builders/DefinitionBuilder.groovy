@@ -152,34 +152,40 @@ class DefinitionBuilder {
     // --- DSL methods ---
 
     /**
-     * Configures the existing {@code BuildModel} inner interface (e.g. to add properties).
-     * The build model must already exist (set by the factory method or a prior call).
+     * Declares a {@code BuildModel} inner interface on this definition with the given class name,
+     * replacing any existing build model and resetting {@link #usesNoBuildModel} to {@code false}.
      *
-     * @param config closure to configure the build model
-     */
-    void buildModel(
-        @DelegatesTo(value = BuildModelDeclaration, strategy = Closure.DELEGATE_FIRST)
-        Closure config
-    ) {
-        if (this.buildModel == null) {
-            throw new IllegalStateException("No build model exists. Use buildModel(String, Closure) to create one first.")
-        }
-        config.delegate = this.buildModel
-        config.resolveStrategy = Closure.DELEGATE_FIRST
-        config.call()
-    }
-
-    /**
-     * Declares a {@code BuildModel} inner interface on this definition with the given class name.
-     *
-     * @param modelClassName the simple class name (e.g. "ModelType")
-     * @param config optional closure to add properties to the build model
+     * @param modelClassName the simple class name for the build model (e.g. "ModelType")
+     * @param config         optional closure delegating to {@link BuildModelDeclaration}
      */
     void buildModel(String modelClassName,
         @DelegatesTo(value = BuildModelDeclaration, strategy = Closure.DELEGATE_FIRST)
         Closure config = {}
     ) {
         this.buildModel = new BuildModelDeclaration(className: modelClassName)
+        this.usesNoBuildModel = false
+        config.delegate = this.buildModel
+        config.resolveStrategy = Closure.DELEGATE_FIRST
+        config.call()
+    }
+
+    /**
+     * Configures the existing {@code BuildModel} inner interface (e.g. to add properties).
+     * The build model must already exist (set by the factory method or a prior call to
+     * {@link #buildModel(String, Closure)}).
+     *
+     * @param config closure delegating to {@link BuildModelDeclaration}
+     */
+    void buildModel(
+        @DelegatesTo(value = BuildModelDeclaration, strategy = Closure.DELEGATE_FIRST)
+        Closure config
+    ) {
+        if (this.buildModel == null) {
+            throw new IllegalStateException(
+                "buildModel(Closure) called with no existing build model to configure. " +
+                "Pass a class name to create one, e.g. buildModel(\"ModelType\") { ... }."
+            )
+        }
         config.delegate = this.buildModel
         config.resolveStrategy = Closure.DELEGATE_FIRST
         config.call()

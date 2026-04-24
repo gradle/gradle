@@ -65,9 +65,7 @@ class DefinitionAndPluginBuilder {
         Closure config = {}
     ) {
         definition.className = className
-        config.delegate = definition
-        config.resolveStrategy = Closure.DELEGATE_FIRST
-        config.call()
+        definition(config)
     }
 
     /**

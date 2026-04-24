@@ -62,11 +62,9 @@ class SettingsBuilderTest extends Specification {
         settings.language = sourceLanguage
         settings.pluginClassName = pluginClassName
         settings.registersProjectType("TestProjectTypeImplPlugin")
-        settings.defaults {
-            defaultFor(type) {
-                property "id", "from-defaults"
-                property "foo.bar", "default-bar"
-            }
+        settings.defaultFor(type) {
+            property "id", "from-defaults"
+            property "foo.bar", "default-bar"
         }
 
         when:

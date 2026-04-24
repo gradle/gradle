@@ -383,10 +383,8 @@ class TestScenarioFixtureIntegrationTest extends AbstractIntegrationSpec impleme
                 }
             }
             settings {
-                defaults {
-                    defaultFor(type) {
-                        property "id", "from-defaults"
-                    }
+                defaultFor(type) {
+                    property "id", "from-defaults"
                 }
             }
         }.tap { configureForLanguage(it, sourceLanguage) }.prepareToExecute()

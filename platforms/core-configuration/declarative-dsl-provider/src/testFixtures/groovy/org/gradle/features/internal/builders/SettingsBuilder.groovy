@@ -27,7 +27,7 @@ import org.gradle.test.fixtures.plugin.PluginBuilder as GradlePluginBuilder
  * its {@code apply()} method.</p>
  *
  * <p>This builder is typically not configured directly — {@link TestScenarioBuilder} auto-populates
- * it from the declared project types and features. Use the {@link #defaults} method to add
+ * it from the declared project types and features. Use the {@link #defaultFor} method to add
  * default property values.</p>
  */
 class SettingsBuilder {
@@ -65,19 +65,24 @@ class SettingsBuilder {
     }
 
     /**
-     * Configures model defaults that the settings plugin applies via {@code settings.getDefaults().add()}.
+     * Adds default property values for a project type. The settings plugin emits
+     * {@code settings.getDefaults().add(...)} for each call.
      *
-     * @param config closure delegating to {@link DefaultsBuilder}
+     * @param type the project type component whose definition receives the defaults
+     * @param config closure delegating to {@link DefaultDeclaration}
      */
-    void defaults(
-        @DelegatesTo(value = DefaultsBuilder, strategy = Closure.DELEGATE_FIRST)
+    void defaultFor(DefinitionAndPluginBuilder type,
+        @DelegatesTo(value = DefaultDeclaration, strategy = Closure.DELEGATE_FIRST)
         Closure config
     ) {
-        def builder = new DefaultsBuilder()
-        config.delegate = builder
+        def decl = new DefaultDeclaration(
+            typeName: type.name,
+            definitionClassName: type.definition.className
+        )
+        config.delegate = decl
         config.resolveStrategy = Closure.DELEGATE_FIRST
         config.call()
-        defaults.addAll(builder.defaults)
+        defaults.add(decl)
     }
 
     /**
@@ -167,30 +172,4 @@ class SettingsBuilder {
         return """definition.${navigation}.get${DefinitionBuilder.capitalize(parts[-1])}().convention("${value}");"""
     }
 
-    /**
-     * DSL delegate for configuring model defaults inside a {@link SettingsBuilder#defaults} block.
-     */
-    static class DefaultsBuilder {
-        List<DefaultDeclaration> defaults = []
-
-        /**
-         * Adds default property values for a project type.
-         *
-         * @param type the project type component whose definition receives the defaults
-         * @param config closure to configure default property values
-         */
-        void defaultFor(DefinitionAndPluginBuilder type,
-            @DelegatesTo(value = DefaultDeclaration, strategy = Closure.DELEGATE_FIRST)
-            Closure config
-        ) {
-            def decl = new DefaultDeclaration(
-                typeName: type.name,
-                definitionClassName: type.definition.className
-            )
-            config.delegate = decl
-            config.resolveStrategy = Closure.DELEGATE_FIRST
-            config.call()
-            defaults.add(decl)
-        }
-    }
 }
