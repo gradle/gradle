@@ -1991,4 +1991,69 @@ This can indicate that a dependency has been compromised. Please carefully verif
         def artifact = module.getArtifact([type: artifactType, classifier: classifier])
         return new File(new File(modulePath, getChecksum(module, "sha1", artifactType)), artifact.file.name)
     }
+
+    def "treats corrupt signature file as missing signature and warns"() {
+        createMetadataFile {
+            keyServer(keyServerFixture.uri)
+            verifySignatures()
+        }
+
+        given:
+        javaLibrary()
+        def module = uncheckedModule("org", "foo", "1.0") {
+            withSignature { artifact ->
+                // triggers ArmoredInputException in bcpg
+                def out = new ByteArrayOutputStream()
+                out.write("-----BEGIN PGP SIGNATURE-----\n\n".bytes)
+                out.write([0xff, 0xfe, 0xfd, 0xfc, 0x0a] as byte[])
+                out.write("-----END PGP SIGNATURE-----\n".bytes)
+                new File("${artifact}.asc").bytes = out.toByteArray()
+            }
+        }
+        buildFile """
+            dependencies {
+                implementation "org:foo:1.0"
+            }
+        """
+
+        when:
+        fails ":compileJava"
+
+        then:
+        def jarAsc = getCachedArtifactLocation(module, 'jar.asc')
+        outputContains("Could not read signatures from ${jarAsc}, treating as missing. Got ArmoredInputException: invalid armor")
+    }
+
+    def "corrupt signature file falls back to checksum verification"() {
+        given:
+        javaLibrary()
+        def module = uncheckedModule("org", "foo", "1.0") {
+            withSignature { artifact ->
+                // Corrupt .asc — same bytes as previous test, reproduces ArmoredInputException.
+                def out = new ByteArrayOutputStream()
+                out.write("-----BEGIN PGP SIGNATURE-----\n\n".bytes)
+                out.write([0xff, 0xfe, 0xfd, 0xfc, 0x0a] as byte[])
+                out.write("-----END PGP SIGNATURE-----\n".bytes)
+                new File("${artifact}.asc").bytes = out.toByteArray()
+            }
+        }
+        createMetadataFile {
+            keyServer(keyServerFixture.uri)
+            verifySignatures()
+            addChecksum(module, "sha256", "jar", "jar")
+            addChecksum(module, "sha256", "pom", "pom")
+        }
+        buildFile """
+            dependencies {
+                implementation "org:foo:1.0"
+            }
+        """
+
+        when:
+        succeeds ":compileJava"
+
+        then:
+        def jarAsc = getCachedArtifactLocation(module, 'jar.asc')
+        outputContains("Could not read signatures from ${jarAsc}, treating as missing. Got ArmoredInputException: invalid armor")
+    }
 }

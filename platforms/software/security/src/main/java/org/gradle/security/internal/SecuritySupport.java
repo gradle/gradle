@@ -85,7 +85,8 @@ public class SecuritySupport {
         ) {
             return readSignatureList(decoderStream, file.toString());
         } catch (IOException | PGPException e) {
-            throw UncheckedException.throwAsUncheckedException(e);
+            LOGGER.warn("Could not read signatures from {}, treating as missing. Got {}: {}", file, e.getClass().getSimpleName(), e.getMessage());
+            return null;
         }
     }
 
