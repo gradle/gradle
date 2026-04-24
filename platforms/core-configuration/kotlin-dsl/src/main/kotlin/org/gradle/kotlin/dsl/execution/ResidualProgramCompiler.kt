@@ -36,7 +36,6 @@ import org.gradle.kotlin.dsl.support.CompiledKotlinPluginsBlock
 import org.gradle.kotlin.dsl.support.CompiledKotlinSettingsBuildscriptBlock
 import org.gradle.kotlin.dsl.support.CompiledKotlinSettingsPluginManagementBlock
 import org.gradle.kotlin.dsl.support.CompiledKotlinSettingsScript
-import org.gradle.kotlin.dsl.support.KotlinCompiler
 import org.gradle.kotlin.dsl.support.KotlinCompilerOptions
 import org.gradle.kotlin.dsl.support.KotlinScriptHost
 import org.gradle.kotlin.dsl.support.bytecode.ALOAD
@@ -61,6 +60,7 @@ import org.gradle.kotlin.dsl.support.bytecode.loadByteArray
 import org.gradle.kotlin.dsl.support.bytecode.publicClass
 import org.gradle.kotlin.dsl.support.bytecode.publicDefaultConstructor
 import org.gradle.kotlin.dsl.support.bytecode.publicMethod
+import org.gradle.kotlin.dsl.support.kotlinCompiler
 import org.gradle.plugin.management.internal.MultiPluginRequests
 import org.gradle.plugin.use.internal.PluginRequestCollector
 import org.jetbrains.kotlin.buildtools.api.arguments.ExperimentalCompilerArgument
@@ -100,8 +100,6 @@ class ResidualProgramCompiler(
     private val stage1BlocksAccessorsClassPath: ClassPath = ClassPath.EMPTY,
     private val packageName: String? = null,
 ) {
-
-    private val kotlinCompiler: KotlinCompiler = KotlinCompiler(moduleRegistry, classLoaderFactory)
 
     fun compile(program: ResidualProgram) = when (program) {
         is Static -> emitStaticProgram(program)
@@ -258,7 +256,7 @@ class ResidualProgramCompiler(
                 stage1BlocksClassPath
             )
 
-        val implicitReceiverType = kotlinCompiler.implicitReceiverOf(scriptTemplate)!!
+        val implicitReceiverType = kotlinCompiler(moduleRegistry, classLoaderFactory).implicitReceiverOf(scriptTemplate)!!
         compiledScriptClassInstantiation(compiledBuildscriptWithPluginsBlock) {
 
             emitPluginRequestCollectorInstantiation()
@@ -584,7 +582,7 @@ class ResidualProgramCompiler(
         scriptTemplate: KClass<out Any>
     ) {
 
-        val implicitReceiverType = kotlinCompiler.implicitReceiverOf(scriptTemplate)
+        val implicitReceiverType = kotlinCompiler(moduleRegistry, classLoaderFactory).implicitReceiverOf(scriptTemplate)
         compiledScriptClassInstantiation(compiledScriptClass) {
 
             // ${compiledScriptClass}(scriptHost)
@@ -719,7 +717,7 @@ class ResidualProgramCompiler(
         return InternalName.from(
             compileBuildOperationRunner(originalPath, stage) {
                 checkAllMetadataInClasspath(compilerOptions, compileClassPath, metadataCompatibilityChecker)
-                kotlinCompiler.compileKotlinScriptToDirectory(
+                kotlinCompiler(moduleRegistry, classLoaderFactory).compileKotlinScriptToDirectory(
                     outputDir,
                     compilerOptions,
                     scriptFile,
