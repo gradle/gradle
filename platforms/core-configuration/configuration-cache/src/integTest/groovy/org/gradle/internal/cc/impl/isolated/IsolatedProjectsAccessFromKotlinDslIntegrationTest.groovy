@@ -16,8 +16,7 @@
 
 package org.gradle.internal.cc.impl.isolated
 
-import org.gradle.api.internal.DocumentationRegistry
-import org.gradle.util.GradleVersion
+
 import org.gradle.util.internal.ToBeImplemented
 import spock.lang.Issue
 
