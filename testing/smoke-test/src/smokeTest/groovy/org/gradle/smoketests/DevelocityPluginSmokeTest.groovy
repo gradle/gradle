@@ -599,6 +599,21 @@ public class MyFlakyTest {
 
         setupLocalBuildCache()
         setupJavaProject()
+        setupMinimalChildProject()
+    }
+
+    /**
+     * Adds an empty child project so the Develocity plugin is exercised in a multi-project
+     * build. Catches issues where the plugin's cross-project iteration (e.g., allprojects,
+     * subprojects) accidentally triggers the deprecated implicit parent property lookup.
+     *
+     * See the deprecated_accessing_parent_project_properties spec for context.
+     */
+    private void setupMinimalChildProject() {
+        settingsFile << """
+            include("child")
+        """
+        file("child/build.gradle") << ""
     }
 
     private TestFile setupJavaProject(TestFile projectDir = new TestFile(testProjectDir)) {

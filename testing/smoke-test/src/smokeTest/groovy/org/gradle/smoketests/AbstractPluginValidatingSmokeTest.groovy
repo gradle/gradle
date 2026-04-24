@@ -63,6 +63,7 @@ abstract class AbstractPluginValidatingSmokeTest extends AbstractSmokeTest imple
 
             $buildScriptConfigurationForValidation
         """
+        setupMinimalChildProject()
         configureValidation(id, version)
 
         expect:
@@ -71,6 +72,25 @@ abstract class AbstractPluginValidatingSmokeTest extends AbstractSmokeTest imple
         where:
         iterations << iterations()
         (id, version) = iterations
+    }
+
+    /**
+     * Adds a minimal empty child project so that validation exercises the parent/child
+     * project scenario in addition to the root-only case. This catches issues where a
+     * plugin's dynamic property/method resolution on the root project walks into child
+     * projects (or vice versa) unintentionally.
+     *
+     * The child is intentionally empty — we're validating that the plugin applied to the
+     * root doesn't trigger parent-property-lookup deprecations via its own dynamic
+     * resolution paths.
+     *
+     * See the deprecated_accessing_parent_project_properties spec for context.
+     */
+    private void setupMinimalChildProject() {
+        settingsFile << """
+            include("child")
+        """
+        file("child/build.gradle") << ""
     }
 
     void configureValidation(String testedPluginId, String version) {
