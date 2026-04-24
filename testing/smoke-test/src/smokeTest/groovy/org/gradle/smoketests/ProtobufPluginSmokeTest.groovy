@@ -26,7 +26,7 @@ import static org.gradle.testkit.runner.TaskOutcome.UP_TO_DATE
 class ProtobufPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
 
     // https://central.sonatype.com/artifact/com.google.protobuf/protobuf-java/versions
-    private static protobufToolsVersion = "4.31.1"
+    private static protobufToolsVersion = "4.34.1"
 
     @Issue("https://plugins.gradle.org/plugin/com.google.protobuf")
     def "protobuf plugin"() {
