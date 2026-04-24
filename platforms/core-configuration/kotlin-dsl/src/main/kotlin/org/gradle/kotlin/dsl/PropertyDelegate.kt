@@ -76,6 +76,7 @@ inline fun <T> withKotlinDelegationContext(owner: DynamicObject, action: () -> T
 }
 
 
+@Suppress("DEPRECATION")
 private
 class NullableDynamicPropertyDelegate(
     private val dynamicLookupRoutine: DynamicLookupRoutine,
