@@ -74,6 +74,7 @@ import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.OutputStream
 import java.io.PrintStream
+import java.net.URLClassLoader
 import java.nio.file.Path
 import java.nio.file.Paths
 import kotlin.io.path.Path
@@ -84,14 +85,55 @@ import kotlin.script.experimental.api.ScriptCompilationConfiguration
 import kotlin.script.experimental.api.implicitReceivers
 import kotlin.script.experimental.util.PropertiesCollection
 
+private const val DAEMON_MODE = false // TODO: which mode to use in the end?
 
-internal
-class KotlinCompiler(val moduleRegistry: ModuleRegistry, val classLoaderFactory: ClassLoaderFactory) {
+private val classloaderInstances: MutableMap<ClassPath, URLClassLoader> = mutableMapOf() // necessary because some Kotlin code is retaining them and we can't clean it up properly
+private val compilerInstances: MutableMap<Pair<ModuleRegistry, ClassLoaderFactory>, KotlinCompiler> = mutableMapOf()
 
-    private val btaCompiler by lazy { BTACompiler(moduleRegistry, classLoaderFactory) }
+internal fun kotlinCompiler(moduleRegistry: ModuleRegistry, classLoaderFactory: ClassLoaderFactory): KotlinCompiler {
+    val classLoader = classloaderInstances.computeIfAbsent(
+        BTACompilerClasspathProvider(moduleRegistry).findClassPath(""),
+        { classPath -> createCompilerClassLoader(classPath, classLoaderFactory) })
+    return compilerInstances.computeIfAbsent(Pair(moduleRegistry, classLoaderFactory), { KotlinCompilerImpl(moduleRegistry, classLoader) })
+}
 
-    internal
+internal fun cleanupKotlinCompilers() {
+    compilerInstances.values.forEach { kotlinCompiler -> (kotlinCompiler as KotlinCompilerImpl).clean() }
+    compilerInstances.clear() // TODO: should we do this for each build? it's basically just for closing the BTA session... does that make sense? is it worth it?
+
+    /*
+
+    classloaderInstances.values.forEach { classLoader -> classLoader.close() }
+    classloaderInstances.clear()
+
+    // If we clean up the classloaders, there will be metadata related OOM failures after multiple builds (BTA seems to retain them)
+    // Most likely all this cleanup should be done at the end of life of a daemon, which basically means never, I guess
+
+     */
+}
+
+internal interface KotlinCompiler {
     fun compileKotlinScriptToDirectory(
+        outputDirectory: File,
+        compilerOptions: KotlinCompilerOptions,
+        scriptFile: File,
+        implicitImports: List<String>,
+        template: KClass<out Any>,
+        classPath: List<File>,
+        logger: Logger,
+        pathTranslation: (String) -> String
+    ): String
+
+    fun implicitReceiverOf(template: KClass<*>): KClass<*>?
+}
+
+private
+class KotlinCompilerImpl(val moduleRegistry: ModuleRegistry, val classLoader: ClassLoader) : KotlinCompiler {
+
+    private val lazyBTACompiler = lazy { BTACompiler(moduleRegistry, classLoader) }
+    private val btaCompiler by lazyBTACompiler
+
+    override fun compileKotlinScriptToDirectory(
         outputDirectory: File,
         compilerOptions: KotlinCompilerOptions,
         scriptFile: File,
@@ -114,12 +156,11 @@ class KotlinCompiler(val moduleRegistry: ModuleRegistry, val classLoaderFactory:
         return NameUtils.getScriptNameForFile(scriptFile.name).asString()
     }
 
-    private val receiverCache: MutableMap<KClass<*>, KClass<*>> by lazy { mutableMapOf() }
+    private val receiverCache: MutableMap<KClass<*>, KClass<*>> = mutableMapOf()
 
-    internal
-    fun implicitReceiverOf(template: KClass<*>): KClass<*>? {
+    override fun implicitReceiverOf(template: KClass<*>): KClass<*>? {
         return receiverCache.getOrPut(template) {
-            val compilationConfigurationClass : KClass<out ScriptCompilationConfiguration>? = template.annotations.firstNotNullOfOrNull { (it as? KotlinScript)?.compilationConfiguration }
+            val compilationConfigurationClass: KClass<out ScriptCompilationConfiguration>? = template.annotations.firstNotNullOfOrNull { (it as? KotlinScript)?.compilationConfiguration }
             return compilationConfigurationClass?.let {
                 val compileConfiguration = scriptConfigInstance(compilationConfigurationClass)
                 compileConfiguration?.get(ScriptCompilationConfiguration.implicitReceivers)?.firstOrNull()?.fromClass
@@ -152,6 +193,13 @@ class KotlinCompiler(val moduleRegistry: ModuleRegistry, val classLoaderFactory:
                 throw ScriptCompilationException(messageRenderer.errors)
             }
         }
+    }
+
+    fun clean() {
+        if (lazyBTACompiler.isInitialized()) {
+            btaCompiler.clean()
+        }
+        receiverCache.clear()
     }
 
 }
@@ -412,19 +460,16 @@ fun JavaVersion.toKotlinJvmTarget(): JvmTarget {
 
 
 @OptIn(ExperimentalBuildToolsApi::class, ExperimentalCompilerArgument::class)
-private class BTACompiler(val moduleRegistry: ModuleRegistry, val classLoaderFactory: ClassLoaderFactory) {
+private class BTACompiler(val moduleRegistry: ModuleRegistry, classLoader: ClassLoader) {
 
     companion object {
         private const val MODULE_NAME = "buildscript"
-
-        private const val DAEMON_MODE = false // TODO: which mode to use in the end?
     }
 
     private val plugins: List<CompilerPlugin> = createPlugins()
 
-    private val toolchains = KotlinToolchains.loadImplementation(createCompilerClassLoader())
+    private val toolchains = KotlinToolchains.loadImplementation(classLoader)
 
-    // TODO: session should be closed after no longer needed, for cleanup to happen
     private val buildSession = toolchains.createBuildSession()
 
     @OptIn(ExperimentalCompilerArgument::class)
@@ -457,6 +502,10 @@ private class BTACompiler(val moduleRegistry: ModuleRegistry, val classLoaderFac
 
         val operation = operationBuilder.build()
         buildSession.executeOperation(operation, executionPolicy)
+    }
+
+    fun clean() {
+        buildSession.close()
     }
 
     private fun JvmCompilerArguments.Builder.configureScriptEnvironment(classPath: List<File>, template: KClass<out Any>, implicitImports: List<String>) {
@@ -498,7 +547,7 @@ private class BTACompiler(val moduleRegistry: ModuleRegistry, val classLoaderFac
             val module = moduleRegistry.findModule(jarName)
             val jarUri = module?.implementationClasspath?.asURIs?.firstOrNull()
             if (jarUri != null) {
-                return  Paths.get(jarUri)
+                return Paths.get(jarUri)
             }
 
             return null
@@ -532,20 +581,6 @@ private class BTACompiler(val moduleRegistry: ModuleRegistry, val classLoaderFac
         return listOfNotNull(scriptingPlugin, samWithReceiverPlugin, assignmentPlugin)
     }
 
-    private fun createCompilerClassLoader(): ClassLoader {
-        // TODO: since we have an isolated class loader, we can load an implementation with a different version than
-        //  the API we are using, thus making it configurable to users supported versions range from -3 major version
-        //  to +1 major version
-
-        val apiParent = KotlinToolchains::class.java.classLoader
-        val filterSpec = FilteringClassLoader.Spec().apply {
-            allowPackage("org.jetbrains.kotlin.buildtools.api")
-        }
-        val filteredParent = classLoaderFactory.createFilteringClassLoader(apiParent, filterSpec)
-
-        val implClasspath = BTACompilerClasspathProvider(moduleRegistry).findClassPath("")
-        return VisitableURLClassLoader.fromClassPath("isolated-bta-loader", filteredParent, implClasspath)
-    }
 
     private fun createExecutionPolicy(): ExecutionPolicy =
         if (DAEMON_MODE) {
@@ -557,28 +592,44 @@ private class BTACompiler(val moduleRegistry: ModuleRegistry, val classLoaderFac
         } else {
             toolchains.createInProcessExecutionPolicy()
         }
+}
 
-    private class BTACompilerClasspathProvider(private val moduleRegistry: ModuleRegistry): ClassPathProvider {
-        override fun findClassPath(name: String): ClassPath {
-            var classpath = ClassPath.EMPTY
+private class BTACompilerClasspathProvider(private val moduleRegistry: ModuleRegistry) : ClassPathProvider {
+    override fun findClassPath(name: String): ClassPath {
+        var classpath = ClassPath.EMPTY
 
-            classpath = classpath.plus(moduleRegistry.getModule("kotlin-build-tools-impl").getImplementationClasspath())
-            classpath = classpath.plus(moduleRegistry.getModule("kotlin-compiler-embeddable").getImplementationClasspath())
-            classpath = classpath.plus(moduleRegistry.getModule("kotlin-script-runtime").getImplementationClasspath())
-            classpath = classpath.plus(moduleRegistry.getModule("kotlin-stdlib").getImplementationClasspath())
-            classpath = classpath.plus(moduleRegistry.getModule("kotlin-reflect").getImplementationClasspath())
-            classpath = classpath.plus(moduleRegistry.getModule("kotlin-scripting-common").getImplementationClasspath())
-            classpath = classpath.plus(moduleRegistry.getModule("kotlin-scripting-compiler-impl-embeddable").getImplementationClasspath())
-            classpath = classpath.plus(moduleRegistry.getModule("kotlin-scripting-jvm").getImplementationClasspath())
-            classpath = classpath.plus(moduleRegistry.getModule("kotlinx-coroutines-core-jvm").getImplementationClasspath())
+        classpath = classpath.plus(moduleRegistry.getModule("kotlin-build-tools-impl").getImplementationClasspath())
+        classpath = classpath.plus(moduleRegistry.getModule("kotlin-compiler-embeddable").getImplementationClasspath())
+        classpath = classpath.plus(moduleRegistry.getModule("kotlin-script-runtime").getImplementationClasspath())
+        classpath = classpath.plus(moduleRegistry.getModule("kotlin-stdlib").getImplementationClasspath())
+        classpath = classpath.plus(moduleRegistry.getModule("kotlin-reflect").getImplementationClasspath())
+        classpath = classpath.plus(moduleRegistry.getModule("kotlin-scripting-common").getImplementationClasspath())
+        classpath = classpath.plus(moduleRegistry.getModule("kotlin-scripting-compiler-impl-embeddable").getImplementationClasspath())
+        classpath = classpath.plus(moduleRegistry.getModule("kotlin-scripting-jvm").getImplementationClasspath())
+        classpath = classpath.plus(moduleRegistry.getModule("kotlinx-coroutines-core-jvm").getImplementationClasspath())
 
-            if (DAEMON_MODE) {
-                classpath = classpath.plus(moduleRegistry.getModule("kotlin-compiler-runner").getImplementationClasspath())
-                classpath = classpath.plus(moduleRegistry.getModule("kotlin-daemon-client").getImplementationClasspath())
-                classpath = classpath.plus(moduleRegistry.getModule("kotlin-daemon-embeddable").getImplementationClasspath())
-            }
-
-            return classpath
+        if (DAEMON_MODE) {
+            classpath = classpath.plus(moduleRegistry.getModule("kotlin-compiler-runner").getImplementationClasspath())
+            classpath = classpath.plus(moduleRegistry.getModule("kotlin-daemon-client").getImplementationClasspath())
+            classpath = classpath.plus(moduleRegistry.getModule("kotlin-daemon-embeddable").getImplementationClasspath())
         }
+
+        return classpath
     }
+}
+
+
+@OptIn(ExperimentalBuildToolsApi::class)
+private fun createCompilerClassLoader(classPath: ClassPath, classLoaderFactory: ClassLoaderFactory): URLClassLoader {
+    // TODO: since we have an isolated class loader, we can load an implementation with a different version than
+    //  the API we are using, thus making it configurable to users supported versions range from -3 major version
+    //  to +1 major version
+
+    val apiParent = KotlinToolchains::class.java.classLoader
+    val filterSpec = FilteringClassLoader.Spec().apply {
+        allowPackage("org.jetbrains.kotlin.buildtools.api")
+    }
+    val filteredParent = classLoaderFactory.createFilteringClassLoader(apiParent, filterSpec)
+
+    return VisitableURLClassLoader.fromClassPath("isolated-bta-loader", filteredParent, classPath)
 }
