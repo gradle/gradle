@@ -1008,7 +1008,7 @@ class PluginClassBuilder {
             } else {
                 lines << """
                     @javax.inject.Inject
-                    abstract protected ${service.type.name} get${DefinitionBuilder.capitalize(service.name)}();"""
+                    abstract protected ${service.type.name} get${JavaSources.capitalize(service.name)}();"""
             }
         }
         return lines.join("\n")
@@ -1039,13 +1039,13 @@ class PluginClassBuilder {
         def printStatements = []
         primaryDefinition.properties.each { property ->
             def varName = "${property.name}AtApplyTime"
-            eagerReads << "String ${varName} = definition.get${DefinitionBuilder.capitalize(property.name)}().get();"
+            eagerReads << "String ${varName} = definition.get${JavaSources.capitalize(property.name)}().get();"
             printStatements << """System.out.println("apply time ${property.name} = " + ${varName});"""
         }
         primaryDefinition.nestedTypes.findAll { !it.isNdoc }.each { nestedType ->
             nestedType.properties.each { property ->
-                def varName = "${nestedType.name}${DefinitionBuilder.capitalize(property.name)}AtApplyTime"
-                eagerReads << "String ${varName} = definition.get${DefinitionBuilder.capitalize(nestedType.name)}().get${DefinitionBuilder.capitalize(property.name)}().get();"
+                def varName = "${nestedType.name}${JavaSources.capitalize(property.name)}AtApplyTime"
+                eagerReads << "String ${varName} = definition.get${JavaSources.capitalize(nestedType.name)}().get${JavaSources.capitalize(property.name)}().get();"
                 printStatements << """System.out.println("apply time ${nestedType.name}.${property.name} = " + ${varName});"""
             }
         }
@@ -1069,7 +1069,7 @@ class PluginClassBuilder {
     private String generateBuildModelImplClasses() {
         return buildModelImplementations.collect { implementation ->
             def propertyDeclarations = implementation.properties.collect { property ->
-                "public abstract ${getPropertyReturnType(property)} get${DefinitionBuilder.capitalize(property.name)}();"
+                "public abstract ${getPropertyReturnType(property)} get${JavaSources.capitalize(property.name)}();"
             }.join("\n")
             """
                 public static abstract class ${implementation.implClassName} implements ${primaryDefinition.className}.${implementation.interfaceName} {

@@ -85,8 +85,8 @@ class SharedTypeDsl {
         Closure config = {}
     ) { target.implementsDefinition(buildModelName, config) }
 
-    /** Sets the top-level class shape for this shared type. Default: {@link SharedTypeShape#INTERFACE}. */
-    void shape(SharedTypeShape s) { target.sharedShape = s }
+    /** Sets the top-level class shape for this shared type. Default: {@link TypeShape#INTERFACE}. */
+    void shape(TypeShape s) { target.sharedShape = s }
 
     // --- Disallowed ---
 

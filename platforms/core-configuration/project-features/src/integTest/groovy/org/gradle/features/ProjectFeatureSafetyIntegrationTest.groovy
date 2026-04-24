@@ -30,8 +30,8 @@ import org.gradle.features.internal.TestScenarioFixture
 import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.fixtures.plugin.PluginBuilder
 
-import static org.gradle.features.internal.builders.DefinitionBuilder.Shape.ABSTRACT_CLASS
-import static org.gradle.features.internal.builders.DefinitionBuilder.Shape.INTERFACE
+import static org.gradle.features.internal.builders.TypeShape.ABSTRACT_CLASS
+import static org.gradle.features.internal.builders.TypeShape.INTERFACE
 
 @PolyglotDslTest
 @SkipDsl(dsl = GradleDsl.GROOVY, because = "Groovy DSL is not supported for declarative configuration")

@@ -157,19 +157,11 @@ class SettingsBuilder {
     }
 
     private static String generateDefaultConvention(String propertyPath, Object value, Language language = Language.JAVA) {
-        def parts = propertyPath.split("\\.")
-        if (language == Language.KOTLIN) {
-            if (parts.length == 1) {
-                return """definition.${parts[0]}.convention("${value}")"""
-            }
-            def navigation = parts[0..-2].collect { it }.join(".")
-            return """definition.${navigation}.${parts[-1]}.convention("${value}")"""
-        }
-        if (parts.length == 1) {
-            return """definition.get${DefinitionBuilder.capitalize(parts[0])}().convention("${value}");"""
-        }
-        def navigation = parts[0..-2].collect { "get${DefinitionBuilder.capitalize(it)}()" }.join(".")
-        return """definition.${navigation}.get${DefinitionBuilder.capitalize(parts[-1])}().convention("${value}");"""
+        def parts = propertyPath.split("\\.") as List<String>
+        def leading = parts.size() > 1 ? parts.subList(0, parts.size() - 1) : []
+        def navigated = leading.inject("definition") { expr, part -> language.propertyAccessor(expr, part) }
+        def fullAccessor = language.propertyAccessor(navigated, parts[-1])
+        return """${fullAccessor}.convention("${value}")${language.statementEnd()}"""
     }
 
 }

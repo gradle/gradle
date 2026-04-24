@@ -35,7 +35,7 @@ import org.gradle.test.preconditions.JdkVersionTestPreconditions
 import org.hamcrest.Matchers
 import org.junit.Rule
 
-import static org.gradle.features.internal.builders.DefinitionBuilder.Shape.ABSTRACT_CLASS
+import static org.gradle.features.internal.builders.TypeShape.ABSTRACT_CLASS
 import static org.gradle.features.internal.builders.Language.KOTLIN
 import static org.gradle.features.internal.builders.PluginClassBuilder.BindingStyle.REIFIED
 

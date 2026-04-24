@@ -16,8 +16,8 @@
 
 package org.gradle.features.internal
 
-import org.gradle.features.internal.builders.DefinitionBuilder
 import org.gradle.features.internal.builders.Language
+import org.gradle.features.internal.builders.TypeShape
 import org.gradle.features.registration.TaskRegistrar
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.versions.KotlinGradlePluginVersions
@@ -65,7 +65,7 @@ class TestScenarioFixtureIntegrationTest extends AbstractIntegrationSpec impleme
             delegate.language(sourceLanguage)
             projectType("testProjectType") {
                 definition {
-                    shape DefinitionBuilder.Shape.ABSTRACT_CLASS
+                    shape TypeShape.ABSTRACT_CLASS
                     buildModel("ModelType") { property "id", String }
                     property "id", String
                     property("foo", "Foo") {
@@ -444,7 +444,7 @@ class TestScenarioFixtureIntegrationTest extends AbstractIntegrationSpec impleme
             }
             projectType("testProjectType") {
                 definition {
-                    shape DefinitionBuilder.Shape.ABSTRACT_CLASS
+                    shape TypeShape.ABSTRACT_CLASS
                     buildModel("ModelType") { property "id", String }
                     property "id", String
                     property "srcSet", srcSet

@@ -100,7 +100,7 @@ class PropertyTypeDeclaration {
      * (interface or abstract class). Ignored when this declaration is used as an inner
      * nested type.
      */
-    SharedTypeShape sharedShape = SharedTypeShape.INTERFACE
+    TypeShape sharedShape = TypeShape.INTERFACE
 
     /**
      * Explicit shape for this nested type's emitted body. When null, the effective
@@ -109,9 +109,9 @@ class PropertyTypeDeclaration {
      *
      * <p>Ignored for {@code isNdoc}, {@code isUndiscoverable}, and {@code isSharedRef}:
      * those emit a fixed form dictated by their kind. Attempting to set a shape on
-     * such a declaration via {@link #shape(DefinitionBuilder.Shape)} throws.</p>
+     * such a declaration via {@link #shape(TypeShape)} throws.</p>
      */
-    DefinitionBuilder.Shape shape = null
+    TypeShape shape = null
 
     /** Adds a simple property to this nested type. */
     void property(String name, Class type) {
@@ -228,7 +228,7 @@ class PropertyTypeDeclaration {
      * from the enclosing definition (or enclosing nested). Not supported on NDOC,
      * undiscoverable, or shared-ref declarations: those always emit a fixed form.
      */
-    void shape(DefinitionBuilder.Shape s) {
+    void shape(TypeShape s) {
         if (isNdoc || isUndiscoverable || isSharedRef) {
             throw new IllegalStateException(
                 "shape(...) is not supported on NDOC, undiscoverable, or shared-ref nested types; " +

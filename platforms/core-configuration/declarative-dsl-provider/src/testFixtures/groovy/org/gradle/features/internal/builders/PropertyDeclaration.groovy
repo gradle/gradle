@@ -31,7 +31,7 @@ package org.gradle.features.internal.builders
  */
 class PropertyDeclaration {
     /** Controls whether a java bean property generates abstract or concrete accessors. */
-    enum Shape {
+    enum JavaBeanStyle {
         /** Generates abstract getter/setter declarations. This is the default. */
         ABSTRACT,
         /** Generates a concrete backing field with getter/setter. Only valid for java bean properties in abstract classes. */
@@ -54,7 +54,7 @@ class PropertyDeclaration {
     boolean isJavaBean = false
 
     /** Controls whether a java bean property is abstract or concrete. Only relevant when {@code isJavaBean} is true. */
-    Shape shape = Shape.ABSTRACT
+    JavaBeanStyle shape = JavaBeanStyle.ABSTRACT
 
     /** Annotation source fragments (e.g. "@Incubating") to emit on the getter. Each entry is rendered verbatim on its own line immediately before the getter. */
     List<String> allAnnotations = []
@@ -69,19 +69,8 @@ class PropertyDeclaration {
     PropertyTypeDeclaration sharedTypeRef = null
 
     /** Sets the shape of this property declaration. */
-    void shape(Shape s) { this.shape = s }
+    void shape(JavaBeanStyle s) { this.shape = s }
 
     /** Adds annotation source fragments to be emitted on the getter. Each string is inserted verbatim (including the leading {@code @}). */
     void annotations(String... items) { this.allAnnotations.addAll(items as List) }
-
-    /**
-     * Returns true if this property requires a backing field initialized via {@code ObjectFactory}
-     * in an abstract class constructor. This applies to {@code Property<Directory>} and
-     * {@code Property<RegularFile>} — i.e., non-readOnly, non-javaBean, non-list properties
-     * where the type is {@code Directory} or {@code RegularFile}.
-     */
-    boolean isPropertyFieldType() {
-        return !isReadOnly && !isJavaBean && !isList &&
-            (type == org.gradle.api.file.Directory || type == org.gradle.api.file.RegularFile)
-    }
 }

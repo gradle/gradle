@@ -20,7 +20,6 @@ import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.RegularFile
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.file.Directory
-import org.gradle.declarative.dsl.model.annotations.Adding
 import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition
 import org.gradle.features.binding.BuildModel
 import org.gradle.features.binding.Definition
@@ -58,14 +57,6 @@ import org.gradle.test.fixtures.plugin.PluginBuilder
  * </pre>
  */
 class DefinitionBuilder {
-    /** Controls whether the generated definition is an interface or an abstract class. */
-    enum Shape {
-        /** Generates a Java interface. This is the default. */
-        INTERFACE,
-        /** Generates a Java abstract class with constructor injection and concrete nested type fields. */
-        ABSTRACT_CLASS
-    }
-
     /** The simple class name of the definition (e.g. "TestProjectTypeDefinition"). */
     String className
 
@@ -73,7 +64,7 @@ class DefinitionBuilder {
     String packageName = "org.gradle.test"
 
     /** Whether to generate an interface or abstract class. */
-    Shape shape = Shape.INTERFACE
+    TypeShape shape = TypeShape.INTERFACE
 
     /** The class name of the separate implementation type, or null if there is none. */
     String implementationClassName
@@ -97,7 +88,7 @@ class DefinitionBuilder {
      * This is test-only scaffolding used by tests that assert on
      * {@code "(${name} is configured)"} output.
      *
-     * <p>Silently no-op on {@link Shape#INTERFACE} definitions: the underlying emit
+     * <p>Silently no-op on {@link TypeShape#INTERFACE} definitions: the underlying emit
      * sites already require {@code ABSTRACT_CLASS}, and this flag is strictly
      * additive. Also silently no-op for NDOC and undiscoverable nested types,
      * which never carry this scaffolding.</p>
@@ -202,7 +193,7 @@ class DefinitionBuilder {
 
     /**
      * Enables generation of {@code maybe${X}Configured()} scaffolding for each non-NDOC,
-     * non-undiscoverable nested type. Off by default. Silently no-op on {@link Shape#INTERFACE}.
+     * non-undiscoverable nested type. Off by default. Silently no-op on {@link TypeShape#INTERFACE}.
      * See {@link #showsConfigureInvocations}.
      */
     void showConfigureInvocations() {
@@ -336,9 +327,9 @@ class DefinitionBuilder {
      * {@link PropertyTypeDeclaration#initializeWith(String)} is inlined into the enclosing constructor
      * immediately after the field is created.
      *
-     * <p>Requires the definition to use {@link Shape#ABSTRACT_CLASS}. Interface-shaped definitions
+     * <p>Requires the definition to use {@link TypeShape#ABSTRACT_CLASS}. Interface-shaped definitions
      * cannot declare undiscoverable properties; this method will fail if the shape is
-     * {@link Shape#INTERFACE}. Because {@code parentDefinition} definitions render via the
+     * {@link TypeShape#INTERFACE}. Because {@code parentDefinition} definitions render via the
      * interface path (for both the parent and the empty child), declaring undiscoverable in a
      * parent/child setup is also rejected by this same guard.</p>
      *
@@ -356,7 +347,7 @@ class DefinitionBuilder {
         @DelegatesTo(value = PropertyTypeDeclaration, strategy = Closure.DELEGATE_FIRST)
         Closure config = {}
     ) {
-        if (shape == Shape.INTERFACE) {
+        if (shape == TypeShape.INTERFACE) {
             throw new IllegalStateException(
                 "undiscoverable(...) requires ABSTRACT_CLASS shape; set shape(ABSTRACT_CLASS) before declaring undiscoverable properties."
             )
@@ -379,7 +370,7 @@ class DefinitionBuilder {
     }
 
     /** Sets the shape (interface or abstract class) of the generated definition. */
-    void shape(Shape s) { this.shape = s }
+    void shape(TypeShape s) { this.shape = s }
 
     /**
      * Declares that this definition has a separate implementation type class.
@@ -444,7 +435,7 @@ class DefinitionBuilder {
     }
 
     String getPublicTypeClassContent() {
-        if (shape == Shape.ABSTRACT_CLASS) {
+        if (shape == TypeShape.ABSTRACT_CLASS) {
             return generateAbstractClassContent(className)
         }
         if (parentDefinition) {
@@ -454,21 +445,11 @@ class DefinitionBuilder {
     }
 
     /**
-     * Resolves the effective body shape for a nested type. An explicit shape on the
-     * nested wins; otherwise the nested inherits from the enclosing context (the outer
-     * definition's shape for top-level nested, or the parent nested's effective shape
-     * for sub-nested).
-     */
-    static Shape effectiveShapeOf(PropertyTypeDeclaration nested, Shape enclosingShape) {
-        return nested.shape ?: enclosingShape
-    }
-
-    /**
      * Returns true if the outer abstract class needs a backing field (and corresponding
      * constructor initialization) for this nested type. NDOC never uses field-backed
      * storage. Undiscoverable and shared-ref always do (their access patterns require it).
      * Regular nested types use field-backed storage only when their effective shape is
-     * {@link Shape#ABSTRACT_CLASS}.
+     * {@link TypeShape#ABSTRACT_CLASS}.
      */
     private boolean needsBackingField(PropertyTypeDeclaration nested) {
         if (nested.isNdoc) {
@@ -477,7 +458,7 @@ class DefinitionBuilder {
         if (nested.isUndiscoverable || nested.isSharedRef) {
             return true
         }
-        return effectiveShapeOf(nested, this.shape) == Shape.ABSTRACT_CLASS
+        return NestedRenderer.effectiveShapeOf(nested, this.shape) == TypeShape.ABSTRACT_CLASS
     }
 
     /**
@@ -485,15 +466,15 @@ class DefinitionBuilder {
      * before any emission. Currently enforces:
      * <ul>
      *     <li>{@link #showsConfigureInvocations} requires every regular top-level nested type
-     *         to be effectively {@link Shape#ABSTRACT_CLASS}, because the side-effect
+     *         to be effectively {@link TypeShape#ABSTRACT_CLASS}, because the side-effect
      *         scaffolding is emitted into the concrete getter path only.</li>
      * </ul>
      */
     private void validateShapes() {
-        if (shape == Shape.ABSTRACT_CLASS && showsConfigureInvocations) {
+        if (shape == TypeShape.ABSTRACT_CLASS && showsConfigureInvocations) {
             def offenders = nestedTypes.findAll { nested ->
                 !nested.isNdoc && !nested.isUndiscoverable && !nested.isSharedRef &&
-                    effectiveShapeOf(nested, this.shape) == Shape.INTERFACE
+                    NestedRenderer.effectiveShapeOf(nested, this.shape) == TypeShape.INTERFACE
             }
             if (!offenders.isEmpty()) {
                 def names = offenders.collect { it.name }.join(", ")
@@ -602,12 +583,12 @@ class DefinitionBuilder {
      * accessors on both sides, so {@code .set(...)} works symmetrically.
      */
     private String generateSharedRefMapping(String accessorName, PropertyTypeDeclaration ref, Language language) {
-        def statementEnd = (language == Language.KOTLIN) ? "" : ";"
-        def defExpr = propertyAccessor("definition", accessorName, language)
-        def modelExpr = propertyAccessor("model", accessorName, language)
+        def statementEnd = language.statementEnd()
+        def defExpr = language.propertyAccessor("definition", accessorName)
+        def modelExpr = language.propertyAccessor("model", accessorName)
         return ref.properties.findAll { !it.isList && !it.isReadOnly && !it.isJavaBean }.collect { scalar ->
-            def defAccess = propertyAccessor(defExpr, scalar.name, language)
-            def modelAccess = propertyAccessor(modelExpr, scalar.name, language)
+            def defAccess = language.propertyAccessor(defExpr, scalar.name)
+            def modelAccess = language.propertyAccessor(modelExpr, scalar.name)
             "${modelAccess}.set(${defAccess})${statementEnd}"
         }.join("\n")
     }
@@ -630,18 +611,18 @@ class DefinitionBuilder {
         }
         def elementExpression
         if (nestedType.isNdoc) {
-            elementExpression = decapitalize(nestedType.typeName)
+            elementExpression = JavaSources.decapitalize(nestedType.typeName)
         } else {
-            elementExpression = propertyAccessor("definition", nestedType.name, language)
+            elementExpression = language.propertyAccessor("definition", nestedType.name)
         }
         def modelExpression = "context.getBuildModel(${elementExpression})"
-        def statementEnd = (language == Language.KOTLIN) ? "" : ";"
+        def statementEnd = language.statementEnd()
         def mappings = []
         nestedType.buildModel.properties.findAll { !it.isList }.each { bmProp ->
             def defProp = nestedType.properties.find { it.name == bmProp.name && !it.isList }
             if (defProp) {
-                def modelAccess = propertyAccessor(modelExpression, bmProp.name, language)
-                def defAccess = propertyAccessor(elementExpression, defProp.name, language)
+                def modelAccess = language.propertyAccessor(modelExpression, bmProp.name)
+                def defAccess = language.propertyAccessor(elementExpression, defProp.name)
                 mappings << "${modelAccess}.set(${defAccess})${statementEnd}"
             }
         }
@@ -651,16 +632,12 @@ class DefinitionBuilder {
         if (!nestedType.isNdoc) {
             return mappings.join("\n")
         }
-        def containerAccessor = propertyAccessor("definition", nestedType.name, language)
+        def containerAccessor = language.propertyAccessor("definition", nestedType.name)
         def body = mappings.join("\n    ")
         if (language == Language.KOTLIN) {
             return "${containerAccessor}.configureEach { ${elementExpression} ->\n    ${body}\n}"
         }
         return "${containerAccessor}.configureEach(${elementExpression} -> {\n    ${body}\n});"
-    }
-
-    private static String decapitalize(String name) {
-        return name.length() == 1 ? name.toLowerCase() : name[0].toLowerCase() + name[1..-1]
     }
 
     /**
@@ -671,10 +648,10 @@ class DefinitionBuilder {
         def lines = []
         properties.each { property ->
             if (property.isList && dependenciesDeclaration) {
-                def accessor = "definition.printList(${propertyAccessor('definition', property.name, language)}.get())"
-                lines << printStatement("definition", property.name, accessor, language)
+                def accessor = "definition.printList(${language.propertyAccessor('definition', property.name)}.get())"
+                lines << language.printStatement("definition", property.name, accessor)
             } else {
-                lines << printStatement("definition", property.name, generatePropertyAccess("definition", property, language), language)
+                lines << language.printStatement("definition", property.name, generatePropertyAccess("definition", property, language))
             }
         }
         nestedTypes.each { nestedType ->
@@ -684,34 +661,34 @@ class DefinitionBuilder {
                 return
             }
             if (nestedType.isNdoc) {
-                def accessor = "${propertyAccessor('definition', nestedType.name, language)}.stream().map(Object::toString).collect(java.util.stream.Collectors.joining(\", \"))"
-                lines << printStatement("definition", nestedType.name, accessor, language)
+                def accessor = "${language.propertyAccessor('definition', nestedType.name)}.stream().map(Object::toString).collect(java.util.stream.Collectors.joining(\", \"))"
+                lines << language.printStatement("definition", nestedType.name, accessor)
             } else {
                 nestedType.properties.each { property ->
-                    def parentAccessor = propertyAccessor("definition", nestedType.name, language)
+                    def parentAccessor = language.propertyAccessor("definition", nestedType.name)
                     if (property.isList && dependenciesDeclaration) {
-                        def accessor = "definition.printList(${parentAccessor}.get${capitalize(property.name)}().get())"
-                        lines << printStatement("definition", "${nestedType.name}.${property.name}", accessor, language)
+                        def accessor = "definition.printList(${parentAccessor}.get${JavaSources.capitalize(property.name)}().get())"
+                        lines << language.printStatement("definition", "${nestedType.name}.${property.name}", accessor)
                     } else {
-                        lines << printStatement("definition", "${nestedType.name}.${property.name}",
-                            generatePropertyAccess(parentAccessor, property, language), language)
+                        lines << language.printStatement("definition", "${nestedType.name}.${property.name}",
+                            generatePropertyAccess(parentAccessor, property, language))
                     }
                 }
             }
         }
         if (dependenciesDeclaration) {
             dependenciesDeclaration.collectors.each { collectorName ->
-                def accessor = "definition.printDependencies(${propertyAccessor('definition', 'dependencies', language)}.get${capitalize(collectorName)}())"
-                lines << printStatement("definition", collectorName, accessor, language)
+                def accessor = "definition.printDependencies(${language.propertyAccessor('definition', 'dependencies')}.get${JavaSources.capitalize(collectorName)}())"
+                lines << language.printStatement("definition", collectorName, accessor)
             }
         }
-        if (shape == Shape.ABSTRACT_CLASS && showsConfigureInvocations) {
+        if (shape == TypeShape.ABSTRACT_CLASS && showsConfigureInvocations) {
             nestedTypes.findAll { nested ->
                 !nested.isNdoc && !nested.isUndiscoverable && !nested.isSharedRef &&
-                    effectiveShapeOf(nested, this.shape) == Shape.ABSTRACT_CLASS
+                    NestedRenderer.effectiveShapeOf(nested, this.shape) == TypeShape.ABSTRACT_CLASS
             }.each { nestedType ->
-                def methodCall = "definition.maybe${capitalize(nestedType.name)}Configured()"
-                lines << printCall("\"definition \" + ${methodCall}", language)
+                def methodCall = "definition.maybe${JavaSources.capitalize(nestedType.name)}Configured()"
+                lines << language.printCall("\"definition \" + ${methodCall}")
             }
         }
         return lines.join("\n")
@@ -727,7 +704,7 @@ class DefinitionBuilder {
         }
         def lines = []
         buildModel.properties.each { property ->
-            lines << printStatement("model", property.name, generatePropertyAccess("model", property, language), language)
+            lines << language.printStatement("model", property.name, generatePropertyAccess("model", property, language))
         }
         return lines.join("\n")
     }
@@ -770,11 +747,11 @@ class DefinitionBuilder {
             public interface ${effectiveClassName} ${extendsClause} {
                 ${generatePropertyDeclarations(false)}
 
-                ${generateInjectedServiceDeclarations(injectedServices, false)}
+                ${JavaSources.generateInjectedServiceDeclarations(injectedServices, false)}
 
                 ${generateNestedTypeDeclarations(false)}
 
-                ${renderNestedBodies(nestedTypes, Shape.INTERFACE)}
+                ${NestedRenderer.renderNestedBodies(nestedTypes, TypeShape.INTERFACE)}
 
                 ${generateBuildModelInterface()}
             }
@@ -792,7 +769,7 @@ class DefinitionBuilder {
             package ${packageName};
 
             ${hiddenInDefinitionImport}
-            import ${Adding.class.name};
+            import org.gradle.declarative.dsl.model.annotations.Adding;
 
             import org.gradle.api.Action;
             import org.gradle.api.Named;
@@ -817,15 +794,15 @@ class DefinitionBuilder {
 
                 ${generatePropertyDeclarations(true)}
 
-                ${generateAddingMethods(properties)}
+                ${JavaSources.generateAddingMethods(properties)}
 
                 ${generateAbstractNestedGetters()}
 
                 ${generateDependenciesMembers()}
 
-                ${generateInjectedServiceDeclarations(injectedServices, true)}
+                ${JavaSources.generateInjectedServiceDeclarations(injectedServices, true)}
 
-                ${renderNestedBodies(nestedTypes, Shape.ABSTRACT_CLASS)}
+                ${NestedRenderer.renderNestedBodies(nestedTypes, TypeShape.ABSTRACT_CLASS)}
 
                 ${generateAbstractClassMethods()}
 
@@ -870,34 +847,34 @@ class DefinitionBuilder {
     }
 
     private String generatePropertyGetter(PropertyDeclaration property, boolean isAbstract) {
-        def returnType = getPropertyReturnType(property)
+        def returnType = JavaSources.getPropertyReturnType(property)
         def prefix = isAbstract ? "public abstract " : ""
-        def getterName = "get${capitalize(property.name)}"
+        def getterName = "get${JavaSources.capitalize(property.name)}"
 
         if (property.isJavaBean) {
-            if (property.shape == PropertyDeclaration.Shape.CONCRETE) {
+            if (property.shape == PropertyDeclaration.JavaBeanStyle.CONCRETE) {
                 return """private ${property.type.simpleName} ${property.name};
 
-                ${renderAnnotations(property.allAnnotations, '                ')}public ${property.type.simpleName} ${getterName}() {
+                ${JavaSources.renderAnnotations(property.allAnnotations, '                ')}public ${property.type.simpleName} ${getterName}() {
                     return ${property.name};
                 }
 
-                public void set${capitalize(property.name)}(${property.type.simpleName} value) {
+                public void set${JavaSources.capitalize(property.name)}(${property.type.simpleName} value) {
                     this.${property.name} = value;
                 }"""
             }
-            def setter = isAbstract ? "public abstract void set${capitalize(property.name)}(${property.type.simpleName} value);" : "void set${capitalize(property.name)}(${property.type.simpleName} value);"
-            return """${renderAnnotations(property.allAnnotations, '                ')}${prefix}${property.type.simpleName} ${getterName}();
+            def setter = isAbstract ? "public abstract void set${JavaSources.capitalize(property.name)}(${property.type.simpleName} value);" : "void set${JavaSources.capitalize(property.name)}(${property.type.simpleName} value);"
+            return """${JavaSources.renderAnnotations(property.allAnnotations, '                ')}${prefix}${property.type.simpleName} ${getterName}();
                 ${setter}"""
         }
 
-        if (property.isPropertyFieldType()) {
-            return """${renderAnnotations(property.allAnnotations, '                ')}public ${returnType} ${getterName}() {
+        if (JavaSources.needsBackingProperty(property)) {
+            return """${JavaSources.renderAnnotations(property.allAnnotations, '                ')}public ${returnType} ${getterName}() {
                     return ${property.name};
                 }"""
         }
 
-        return "${renderAnnotations(property.allAnnotations, '                ')}${prefix}${returnType} ${getterName}();"
+        return "${JavaSources.renderAnnotations(property.allAnnotations, '                ')}${prefix}${returnType} ${getterName}();"
     }
 
     private String generateNestedTypeDeclarations(boolean isAbstract) {
@@ -906,232 +883,18 @@ class DefinitionBuilder {
             if (nestedType.isNdoc) {
                 if (nestedType.isOutProjected) {
                     // Private getter + public out-projected getter
-                    lines << "${renderAnnotations(nestedType.allAnnotations, '                ')}abstract NamedDomainObjectContainer<${nestedType.typeName}> get${capitalize(nestedType.name)}();"
-                    lines << "public NamedDomainObjectContainer<? extends ${nestedType.typeName}> getOut${capitalize(nestedType.name)}() { return get${capitalize(nestedType.name)}(); };"
+                    lines << "${JavaSources.renderAnnotations(nestedType.allAnnotations, '                ')}abstract NamedDomainObjectContainer<${nestedType.typeName}> get${JavaSources.capitalize(nestedType.name)}();"
+                    lines << "public NamedDomainObjectContainer<? extends ${nestedType.typeName}> getOut${JavaSources.capitalize(nestedType.name)}() { return get${JavaSources.capitalize(nestedType.name)}(); };"
                 } else {
-                    lines << "${renderAnnotations(nestedType.allAnnotations, '                ')}public abstract NamedDomainObjectContainer<${nestedType.typeName}> get${capitalize(nestedType.name)}();"
+                    lines << "${JavaSources.renderAnnotations(nestedType.allAnnotations, '                ')}public abstract NamedDomainObjectContainer<${nestedType.typeName}> get${JavaSources.capitalize(nestedType.name)}();"
                 }
             } else {
                 def prefix = isAbstract ? "public abstract " : ""
-                lines << """${renderAnnotations(nestedType.allAnnotations, '                ')}@Nested
-                ${prefix}${nestedType.typeName} get${capitalize(nestedType.name)}();"""
+                lines << """${JavaSources.renderAnnotations(nestedType.allAnnotations, '                ')}@Nested
+                ${prefix}${nestedType.typeName} get${JavaSources.capitalize(nestedType.name)}();"""
             }
         }
         return lines.join("\n\n")
-    }
-
-    /**
-     * Renders the bodies of each nested type in {@code items}, joined by blank lines.
-     * Each body respects the nested type's effective shape (explicit {@code shape}
-     * override, or fallback to {@code enclosingEffective}). NDOC, undiscoverable, and
-     * shared-ref use their fixed rendering regardless. Sibling build-model interfaces
-     * are appended after each non-NDOC body that has one. Shared-ref entries are
-     * skipped; their type body is produced by {@link SharedTypeBuilder}.
-     */
-    static String renderNestedBodies(List<PropertyTypeDeclaration> items, Shape enclosingEffective) {
-        items.collect { sub ->
-            if (sub.isSharedRef) {
-                return ""
-            }
-            String body
-            if (sub.isNdoc) {
-                body = sub.implementsDefinition
-                    ? generateNdocDefinitionInterface(sub)
-                    : generateNdocElementClass(sub)
-            } else if (sub.isUndiscoverable) {
-                body = generateUndiscoverableInterface(sub)
-            } else {
-                def subEff = effectiveShapeOf(sub, enclosingEffective)
-                body = (subEff == Shape.ABSTRACT_CLASS)
-                    ? generateNestedAbstractClassBody(sub, subEff)
-                    : generateNestedInterfaceBody(sub, subEff)
-            }
-            if (sub.buildModel && !sub.isNdoc) {
-                body += "\n" + generateNestedBuildModelInterface(sub)
-            }
-            return body
-        }.findAll { it }.join("\n\n")
-    }
-
-    /**
-     * Renders a regular nested type as a public interface body. Sub-nested bodies are
-     * dispatched via {@link #renderNestedBodies} with enclosing effective shape
-     * {@link Shape#INTERFACE}, so each sub inherits INTERFACE unless it overrides.
-     */
-    static String generateNestedInterfaceBody(PropertyTypeDeclaration nested, Shape enclosingEffective) {
-        def extendsClause = ""
-        if (nested.implementsDefinition && nested.buildModel) {
-            extendsClause = "extends ${Definition.class.simpleName}<${nested.buildModel.className}>"
-        }
-
-        def propertyGetters = nested.properties.collect { property ->
-            "${renderAnnotations(property.allAnnotations, '                ')}public abstract ${getPropertyReturnType(property)} get${capitalize(property.name)}();"
-        }.join("\n")
-
-        def services = generateInjectedServiceDeclarations(nested.injectedServices, false)
-
-        def nestedAccessors = nested.nestedTypes.collect { sub ->
-            renderSubAccessor(sub, false)
-        }.join("\n\n")
-
-        def nestedBodies = renderNestedBodies(nested.nestedTypes, Shape.INTERFACE)
-
-        return """
-            public interface ${nested.typeName} ${extendsClause} {
-                ${services}
-                ${propertyGetters}
-                ${nestedAccessors}
-                ${nestedBodies}
-            }
-        """
-    }
-
-    /**
-     * Renders a regular nested type as a public abstract static class body. Sub-nested
-     * accessors use {@code @Nested public abstract} form. Sub-nested bodies are dispatched
-     * via {@link #renderNestedBodies} with enclosing effective shape {@link Shape#ABSTRACT_CLASS}.
-     */
-    static String generateNestedAbstractClassBody(PropertyTypeDeclaration nested, Shape enclosingEffective) {
-        def implementsClause = nested.implementsDefinition && nested.buildModel
-            ? "implements ${Definition.class.simpleName}<${nested.buildModel.className}>"
-            : ""
-
-        def services = generateInjectedServiceDeclarations(nested.injectedServices, true)
-
-        def propertyGetters = nested.properties.collect { property ->
-            "${renderAnnotations(property.allAnnotations, '                ')}public abstract ${getPropertyReturnType(property)} get${capitalize(property.name)}();"
-        }.join("\n")
-
-        def addingMethods = generateAddingMethods(nested.properties)
-
-        def nestedAccessors = nested.nestedTypes.collect { sub ->
-            renderSubAccessor(sub, true)
-        }.join("\n\n")
-
-        def nestedBodies = renderNestedBodies(nested.nestedTypes, Shape.ABSTRACT_CLASS)
-
-        return """
-            public abstract static class ${nested.typeName} ${implementsClause} {
-                public ${nested.typeName}() { }
-
-                ${services}
-
-                ${propertyGetters}
-
-                ${addingMethods}
-
-                ${nestedAccessors}
-
-                ${nestedBodies}
-            }
-        """
-    }
-
-    /**
-     * Renders an NDOC element that implements {@code Definition<BuildModel>}: an interface
-     * body with an inner build-model interface (inner-qualified, unlike regular nested
-     * build models which are siblings).
-     */
-    static String generateNdocDefinitionInterface(PropertyTypeDeclaration nested) {
-        def extendsClause = nested.buildModel
-            ? "extends ${Definition.class.simpleName}<${nested.typeName}.${nested.buildModel.className}>, Named"
-            : ""
-        def propertyGetters = nested.properties.collect { property ->
-            "${renderAnnotations(property.allAnnotations, '                ')}public abstract ${getPropertyReturnType(property)} get${capitalize(property.name)}();"
-        }.join("\n")
-        def subNestedBodies = renderNestedBodies(nested.nestedTypes, Shape.INTERFACE)
-        def bmIface = ""
-        if (nested.buildModel) {
-            def buildModelPropertyGetters = nested.buildModel.properties.collect { property ->
-                "${renderAnnotations(property.allAnnotations, '                    ')}${getPropertyReturnType(property)} get${capitalize(property.name)}();"
-            }.join("\n")
-            bmIface = """
-                public interface ${nested.buildModel.className} extends BuildModel {
-                    ${buildModelPropertyGetters}
-                }
-                """
-        }
-        return """
-            public interface ${nested.typeName} ${extendsClause} {
-                ${propertyGetters}
-                ${subNestedBodies}
-                ${bmIface}
-            }
-            """
-    }
-
-    /**
-     * Renders a sub-nested accessor inside a parent body. NDOC subs always use
-     * {@code public abstract NamedDomainObjectContainer<...>}. Regular subs use
-     * {@code @Nested public abstract Sub getSub();} when emitted inside an abstract class
-     * body, or the unqualified interface-member form {@code @Nested Sub getSub();} inside
-     * an interface body. Shared-ref entries emit no accessor (defensive: only top-level).
-     */
-    static String renderSubAccessor(PropertyTypeDeclaration sub, boolean inAbstractClass) {
-        if (sub.isSharedRef) {
-            return ""
-        }
-        if (sub.isNdoc) {
-            return "${renderAnnotations(sub.allAnnotations, '                ')}public abstract NamedDomainObjectContainer<${sub.typeName}> get${capitalize(sub.name)}();"
-        }
-        def prefix = inAbstractClass ? "public abstract " : ""
-        return """${renderAnnotations(sub.allAnnotations, '                ')}@Nested
-                ${prefix}${sub.typeName} get${capitalize(sub.name)}();"""
-    }
-
-    static String generateNestedBuildModelInterface(PropertyTypeDeclaration nestedType) {
-        if (!nestedType.buildModel) {
-            return ""
-        }
-        def buildModelPropertyGetters = nestedType.buildModel.properties.collect { property ->
-            "${renderAnnotations(property.allAnnotations, '                ')}${getPropertyReturnType(property)} get${capitalize(property.name)}();"
-        }.join("\n")
-        return """
-            public interface ${nestedType.buildModel.className} extends BuildModel {
-                ${buildModelPropertyGetters}
-            }
-        """
-    }
-
-    static String generateNdocElementClass(PropertyTypeDeclaration nestedType) {
-        def propertyGetters = nestedType.properties.collect { property ->
-            "${renderAnnotations(property.allAnnotations, '                ')}public abstract ${getPropertyReturnType(property)} get${capitalize(property.name)}();"
-        }.join("\n")
-
-        // NDOC element is itself an abstract static class; sub accessors use the abstract-class form.
-        def nestedAccessors = nestedType.nestedTypes.collect { sub ->
-            renderSubAccessor(sub, true)
-        }.join("\n\n")
-
-        // Sub bodies default to INTERFACE (preserves prior behavior where sub-nested inside
-        // an NDOC element always rendered as interfaces); each sub can override via its own shape.
-        def nestedInterfaces = renderNestedBodies(nestedType.nestedTypes, Shape.INTERFACE)
-
-        return """
-            public abstract static class ${nestedType.typeName} implements Named {
-                private String name;
-
-                public ${nestedType.typeName}(String name) {
-                    this.name = name;
-                }
-
-                @Override
-                public String getName() {
-                    return name;
-                }
-
-                ${propertyGetters}
-
-                ${nestedAccessors}
-
-                ${nestedInterfaces}
-
-                @Override
-                public String toString() {
-                    return "${nestedType.typeName}(name = " + name${nestedType.properties.collect { property -> " + \", ${property.name} = \" + get${capitalize(property.name)}().get()" }.join('')} + ")";
-                }
-            }
-        """
     }
 
     private String generateBuildModelInterface() {
@@ -1139,13 +902,13 @@ class DefinitionBuilder {
             return ""
         }
         def buildModelPropertyGetters = buildModel.properties.collect { property ->
-            "${renderAnnotations(property.allAnnotations, '                ')}${getPropertyReturnType(property)} get${capitalize(property.name)}();"
+            "${JavaSources.renderAnnotations(property.allAnnotations, '                ')}${JavaSources.getPropertyReturnType(property)} get${JavaSources.capitalize(property.name)}();"
         }.join("\n")
 
         def implInterface = ""
         if (buildModel.implementationClassName) {
             def implPropertyGetters = buildModel.properties.collect { property ->
-                "${renderAnnotations(property.allAnnotations, '                    ')}${getPropertyReturnType(property)} get${capitalize(property.name)}();"
+                "${JavaSources.renderAnnotations(property.allAnnotations, '                    ')}${JavaSources.getPropertyReturnType(property)} get${JavaSources.capitalize(property.name)}();"
             }.join("\n")
             implInterface = """
                 public interface ${buildModel.implementationClassName} extends ${buildModel.className} {
@@ -1167,10 +930,10 @@ class DefinitionBuilder {
         nestedTypes.findAll { needsBackingField(it) }.each { nestedType ->
             lines << "private final ${nestedType.typeName} ${nestedType.name};"
             if (!nestedType.isUndiscoverable && !nestedType.isSharedRef && showsConfigureInvocations) {
-                lines << "private boolean is${capitalize(nestedType.name)}Configured = false;"
+                lines << "private boolean is${JavaSources.capitalize(nestedType.name)}Configured = false;"
             }
         }
-        properties.findAll { it.isPropertyFieldType() }.each { property ->
+        properties.findAll { JavaSources.needsBackingProperty(it) }.each { property ->
             lines << "private final Property<${property.type.simpleName}> ${property.name};"
         }
         return lines.join("\n")
@@ -1178,7 +941,7 @@ class DefinitionBuilder {
 
     private String generateAbstractClassConstructor(String effectiveClassName) {
         def hasNestedTypes = nestedTypes.any { needsBackingField(it) }
-        def hasPropertyFields = properties.any { it.isPropertyFieldType() }
+        def hasPropertyFields = properties.any { JavaSources.needsBackingProperty(it) }
         if (hasNestedTypes || hasPropertyFields) {
             def needsObjectFactory = hasNestedTypes || hasPropertyFields
             def params = needsObjectFactory ? "ObjectFactory objects" : ""
@@ -1189,8 +952,8 @@ class DefinitionBuilder {
                     inits << it.initializationCode
                 }
             }
-            properties.findAll { it.isPropertyFieldType() }.each {
-                inits << "this.${it.name} = ${propertyFieldInitializer(it)};"
+            properties.findAll { JavaSources.needsBackingProperty(it) }.each {
+                inits << "this.${it.name} = ${JavaSources.propertyFieldInitializer(it)};"
             }
             return """
                 @Inject
@@ -1199,7 +962,7 @@ class DefinitionBuilder {
                 }
             """
         }
-        def hasConcreteJavaBeans = properties.any { it.isJavaBean && it.shape == PropertyDeclaration.Shape.CONCRETE }
+        def hasConcreteJavaBeans = properties.any { it.isJavaBean && it.shape == PropertyDeclaration.JavaBeanStyle.CONCRETE }
         if (hasConcreteJavaBeans) {
             return """
                 @Inject
@@ -1215,10 +978,10 @@ class DefinitionBuilder {
         nestedTypes.each { nestedType ->
             if (nestedType.isNdoc) {
                 if (nestedType.isOutProjected) {
-                    lines << "${renderAnnotations(nestedType.allAnnotations, '                ')}abstract NamedDomainObjectContainer<${nestedType.typeName}> get${capitalize(nestedType.name)}();"
-                    lines << "public NamedDomainObjectContainer<? extends ${nestedType.typeName}> getOut${capitalize(nestedType.name)}() { return get${capitalize(nestedType.name)}(); };"
+                    lines << "${JavaSources.renderAnnotations(nestedType.allAnnotations, '                ')}abstract NamedDomainObjectContainer<${nestedType.typeName}> get${JavaSources.capitalize(nestedType.name)}();"
+                    lines << "public NamedDomainObjectContainer<? extends ${nestedType.typeName}> getOut${JavaSources.capitalize(nestedType.name)}() { return get${JavaSources.capitalize(nestedType.name)}(); };"
                 } else {
-                    lines << "${renderAnnotations(nestedType.allAnnotations, '                ')}public abstract NamedDomainObjectContainer<${nestedType.typeName}> get${capitalize(nestedType.name)}();"
+                    lines << "${JavaSources.renderAnnotations(nestedType.allAnnotations, '                ')}public abstract NamedDomainObjectContainer<${nestedType.typeName}> get${JavaSources.capitalize(nestedType.name)}();"
                 }
             } else if (nestedType.isUndiscoverable) {
                 // The Action-taking method is the sole DCL schema entry point for undiscoverable
@@ -1234,10 +997,10 @@ class DefinitionBuilder {
                 // effectively-ABSTRACT_CLASS regular nested types. Carries the optional
                 // configure-invocations side effect.
                 def sideEffect = showsConfigureInvocations && !nestedType.isSharedRef
-                    ? "is${capitalize(nestedType.name)}Configured = true; // TODO: get rid of the side effect in the getter"
+                    ? "is${JavaSources.capitalize(nestedType.name)}Configured = true; // TODO: get rid of the side effect in the getter"
                     : ""
                 lines << """
-                ${renderAnnotations(nestedType.allAnnotations, '                ')}public ${nestedType.typeName} get${capitalize(nestedType.name)}() {
+                ${JavaSources.renderAnnotations(nestedType.allAnnotations, '                ')}public ${nestedType.typeName} get${JavaSources.capitalize(nestedType.name)}() {
                     ${sideEffect}
                     return ${nestedType.name};
                 }
@@ -1246,56 +1009,11 @@ class DefinitionBuilder {
                 // Effectively-INTERFACE regular nested under an abstract-class outer:
                 // no field, Gradle's ObjectFactory synthesizes the instance for the @Nested
                 // abstract getter. Cannot carry side effects, enforced at build() time.
-                lines << """${renderAnnotations(nestedType.allAnnotations, '                ')}@Nested
-                public abstract ${nestedType.typeName} get${capitalize(nestedType.name)}();"""
+                lines << """${JavaSources.renderAnnotations(nestedType.allAnnotations, '                ')}@Nested
+                public abstract ${nestedType.typeName} get${JavaSources.capitalize(nestedType.name)}();"""
             }
         }
         return lines.join("\n")
-    }
-
-    static String generateUndiscoverableInterface(PropertyTypeDeclaration nestedType) {
-        def extendsClause = nestedType.implementsDefinition && nestedType.buildModel
-            ? "extends ${Definition.class.simpleName}<${nestedType.typeName}.${nestedType.buildModel.className}>"
-            : ""
-
-        def services = generateInjectedServiceDeclarations(nestedType.injectedServices, false)
-
-        def propertyGetters = nestedType.properties.collect { property ->
-            "${renderAnnotations(property.allAnnotations, '                ')}public abstract ${getPropertyReturnType(property)} get${capitalize(property.name)}();"
-        }.join("\n")
-
-        // Undiscoverable is itself an interface; sub accessors use interface-member form.
-        def nestedAccessors = nestedType.nestedTypes.collect { sub ->
-            renderSubAccessor(sub, false)
-        }.join("\n\n")
-
-        def nestedInterfaces = renderNestedBodies(nestedType.nestedTypes, Shape.INTERFACE)
-
-        def bmIface = ""
-        if (nestedType.buildModel) {
-            def buildModelPropertyGetters = nestedType.buildModel.properties.collect { property ->
-                "${renderAnnotations(property.allAnnotations, '                    ')}${getPropertyReturnType(property)} get${capitalize(property.name)}();"
-            }.join("\n")
-            bmIface = """
-                public interface ${nestedType.buildModel.className} extends BuildModel {
-                    ${buildModelPropertyGetters}
-                }
-            """
-        }
-
-        return """
-            public interface ${nestedType.typeName} ${extendsClause} {
-                ${services}
-
-                ${propertyGetters}
-
-                ${nestedAccessors}
-
-                ${nestedInterfaces}
-
-                ${bmIface}
-            }
-        """
     }
 
     private String getDependenciesInterfaceContent() {
@@ -1303,7 +1021,7 @@ class DefinitionBuilder {
             return ""
         }
         def collectorGetters = dependenciesDeclaration.collectors.collect { name ->
-            "DependencyCollector get${capitalize(name)}();"
+            "DependencyCollector get${JavaSources.capitalize(name)}();"
         }.join("\n\n")
         return """
             package ${packageName};
@@ -1340,19 +1058,6 @@ class DefinitionBuilder {
         """
     }
 
-    static String generateAddingMethods(List<PropertyDeclaration> props) {
-        def lines = []
-        props.findAll { it.isList }.each { property ->
-            lines << """
-                @${Adding.class.simpleName}
-                public void addTo${capitalize(property.name)}(${property.type.simpleName} value) {
-                    get${capitalize(property.name)}().add(value);
-                }
-            """
-        }
-        return lines.join("\n")
-    }
-
     private String generateAbstractClassMethods() {
         if (!showsConfigureInvocations) {
             return ""
@@ -1363,11 +1068,11 @@ class DefinitionBuilder {
         def lines = []
         nestedTypes.findAll { nested ->
             !nested.isNdoc && !nested.isUndiscoverable && !nested.isSharedRef &&
-                effectiveShapeOf(nested, this.shape) == Shape.ABSTRACT_CLASS
+                NestedRenderer.effectiveShapeOf(nested, this.shape) == TypeShape.ABSTRACT_CLASS
         }.each { nestedType ->
             lines << """
-                public String maybe${capitalize(nestedType.name)}Configured() {
-                    return is${capitalize(nestedType.name)}Configured ? "(${nestedType.name} is configured)" : "";
+                public String maybe${JavaSources.capitalize(nestedType.name)}Configured() {
+                    return is${JavaSources.capitalize(nestedType.name)}Configured ? "(${nestedType.name} is configured)" : "";
                 }
             """
         }
@@ -1382,8 +1087,8 @@ class DefinitionBuilder {
         def fields = nestedFields.collect { "private final ${it.typeName} ${it.name};" }.join("\n")
         def inits = nestedFields.collect { "this.${it.name} = objects.newInstance(${it.typeName}.class);" }.join("\n")
         def getters = nestedFields.collect {
-            """${renderAnnotations(it.allAnnotations, '                ')}@Override
-                public ${it.typeName} get${capitalize(it.name)}() {
+            """${JavaSources.renderAnnotations(it.allAnnotations, '                ')}@Override
+                public ${it.typeName} get${JavaSources.capitalize(it.name)}() {
                     return ${it.name};
                 }"""
         }.join("\n\n")
@@ -1400,35 +1105,21 @@ class DefinitionBuilder {
         """
     }
 
-    static String generateInjectedServiceDeclarations(List<ServiceDeclaration> services, boolean isAbstract) {
-        return services.collect { service ->
-            if (isAbstract) {
-                """@Inject
-                protected abstract ${service.type.name} get${capitalize(service.name)}();"""
-            } else {
-                """@Inject
-                ${service.type.name} get${capitalize(service.name)}();"""
-            }
-        }.join("\n")
-    }
-
     private String generatePropertyMapping(PropertyDeclaration buildModelProperty, PropertyDeclaration definitionProperty, Language language) {
-        def modelAccessor = propertyAccessor("model", buildModelProperty.name, language)
-        def definitionAccessor = propertyAccessor("definition", definitionProperty.name, language)
-        def statementEnd = (language == Language.KOTLIN) ? "" : ";"
-        return "${modelAccessor}.set(${definitionAccessor})${statementEnd}"
+        def modelAccessor = language.propertyAccessor("model", buildModelProperty.name)
+        def definitionAccessor = language.propertyAccessor("definition", definitionProperty.name)
+        return "${modelAccessor}.set(${definitionAccessor})${language.statementEnd()}"
     }
 
     private static String generatePropertyAccess(String objectExpression, PropertyDeclaration property, Language language) {
-        def accessor = propertyAccessor(objectExpression, property.name, language)
+        def accessor = language.propertyAccessor(objectExpression, property.name)
         if (property.sharedTypeRef != null) {
             // Direct nested-object reference; no .get()/.getOrNull() unwrap.
             return accessor
         }
         if (property.isReadOnly || property.isJavaBean) {
             if (property.type == Directory || property.type == RegularFile) {
-                def asFile = (language == Language.KOTLIN) ? ".asFile.absolutePath" : ".getAsFile().getAbsolutePath()"
-                return "${accessor}${asFile}"
+                return "${accessor}${language.asFileExpression()}"
             }
             if (property.isReadOnly) {
                 return accessor
@@ -1438,89 +1129,11 @@ class DefinitionBuilder {
             return "${accessor}.get()"
         }
         if (property.type == DirectoryProperty || property.type == RegularFileProperty) {
-            def asFile = (language == Language.KOTLIN) ? ".asFile.absolutePath" : ".getAsFile().getAbsolutePath()"
-            return "${accessor}.get()${asFile}"
+            return "${accessor}.get()${language.asFileExpression()}"
         }
         if (property.type == Directory || property.type == RegularFile) {
-            def asFile = (language == Language.KOTLIN) ? ".asFile.absolutePath" : ".getAsFile().getAbsolutePath()"
-            return "${accessor}.get()${asFile}"
+            return "${accessor}.get()${language.asFileExpression()}"
         }
         return "${accessor}.getOrNull()"
-    }
-
-    /**
-     * Generates a property accessor expression appropriate for the language.
-     * Java: {@code object.getFoo()}, Kotlin: {@code object.foo}.
-     */
-    static String propertyAccessor(String objectExpression, String propertyName, Language language) {
-        if (language == Language.KOTLIN) {
-            return "${objectExpression}.${propertyName}"
-        }
-        return "${objectExpression}.get${capitalize(propertyName)}()"
-    }
-
-    private static String printStatement(String objectType, String propertyName, String valueExpression, Language language) {
-        return printCall("\"${objectType} ${propertyName} = \" + ${valueExpression}", language)
-    }
-
-    private static String printCall(String expression, Language language) {
-        if (language == Language.KOTLIN) {
-            return "println(${expression})"
-        }
-        return "System.out.println(${expression});"
-    }
-
-    static String getPropertyReturnType(PropertyDeclaration property) {
-        if (property.sharedTypeRef != null) {
-            return property.sharedTypeRef.typeName
-        }
-        if (property.isReadOnly) {
-            return property.type.simpleName
-        }
-        if (property.isJavaBean) {
-            return property.type.simpleName
-        }
-        if (property.isList) {
-            return "ListProperty<${property.type.simpleName}>"
-        }
-        if (property.type == DirectoryProperty) {
-            return "DirectoryProperty"
-        }
-        if (property.type == RegularFileProperty) {
-            return "RegularFileProperty"
-        }
-        return "Property<${property.type.simpleName}>"
-    }
-
-    private static boolean isFileType(Class type) {
-        return type in [DirectoryProperty, RegularFileProperty, Directory, RegularFile]
-    }
-
-    static String propertyFieldInitializer(PropertyDeclaration property) {
-        if (property.type == Directory) {
-            return "objects.directoryProperty()"
-        }
-        if (property.type == RegularFile) {
-            return "objects.fileProperty()"
-        }
-        throw new IllegalStateException("Unsupported property field type: ${property.type}")
-    }
-
-    static String capitalize(String name) {
-        return name.length() == 1 ? name.toUpperCase() : name[0].toUpperCase() + name[1..-1]
-    }
-
-    /**
-     * Renders user-supplied annotation source fragments as a prefix to be inserted immediately
-     * before a getter. For an empty list, returns the empty string so existing output is
-     * byte-identical. For a non-empty list, returns each annotation joined by a newline + the
-     * supplied indent, with a trailing newline + indent so the caller's next token (the getter
-     * keyword) sits on a fresh, correctly-indented line.
-     */
-    static String renderAnnotations(List<String> annotations, String indent) {
-        if (annotations.isEmpty()) {
-            return ""
-        }
-        return annotations.collect { "${it}\n${indent}" }.join("")
     }
 }

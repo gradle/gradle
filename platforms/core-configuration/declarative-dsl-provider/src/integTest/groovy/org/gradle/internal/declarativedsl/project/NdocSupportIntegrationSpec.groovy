@@ -17,7 +17,7 @@
 package org.gradle.internal.declarativedsl.project
 
 import org.gradle.features.internal.TestScenarioFixture
-import org.gradle.features.internal.builders.DefinitionBuilder
+import org.gradle.features.internal.builders.TypeShape
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.polyglot.PolyglotDslTest
 import org.gradle.integtests.fixtures.polyglot.PolyglotTestFixture
@@ -40,7 +40,7 @@ class NdocSupportIntegrationSpec extends AbstractIntegrationSpec implements Test
         testScenario {
             projectType("testProjectType") {
                 definition {
-                    shape DefinitionBuilder.Shape.ABSTRACT_CLASS
+                    shape TypeShape.ABSTRACT_CLASS
                     property "id", String
                     buildModel {
                         property "id", String

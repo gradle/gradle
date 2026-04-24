@@ -17,7 +17,7 @@
 package org.gradle.internal.declarativedsl.settings
 
 import org.gradle.features.internal.TestScenarioFixture
-import org.gradle.features.internal.builders.DefinitionBuilder
+import org.gradle.features.internal.builders.TypeShape
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.integtests.fixtures.polyglot.PolyglotDslTest
@@ -270,7 +270,7 @@ class ProjectTypeModelDefaultsIntegrationTest extends AbstractIntegrationSpec im
         testScenario {
             projectType("testProjectType") {
                 definition {
-                    shape DefinitionBuilder.Shape.ABSTRACT_CLASS
+                    shape TypeShape.ABSTRACT_CLASS
                     showConfigureInvocations()
                     property "id", String
                     buildModel {
@@ -470,7 +470,7 @@ class ProjectTypeModelDefaultsIntegrationTest extends AbstractIntegrationSpec im
         return testScenario {
             projectType("testProjectType") {
                 definition {
-                    shape DefinitionBuilder.Shape.ABSTRACT_CLASS
+                    shape TypeShape.ABSTRACT_CLASS
                     property "id", String
                     buildModel {
                         property "id", String
@@ -501,7 +501,7 @@ class ProjectTypeModelDefaultsIntegrationTest extends AbstractIntegrationSpec im
         return testScenario {
             projectType("testProjectType") {
                 definition {
-                    shape DefinitionBuilder.Shape.ABSTRACT_CLASS
+                    shape TypeShape.ABSTRACT_CLASS
                     buildModel {
                         property "id", String
                     }

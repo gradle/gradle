@@ -22,6 +22,7 @@ import org.gradle.api.model.ObjectFactory
 import org.gradle.features.internal.builders.DefinitionBuilder
 import org.gradle.features.internal.builders.Language
 import org.gradle.features.internal.builders.PropertyTypeDeclaration
+import org.gradle.features.internal.builders.TypeShape
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import spock.lang.Specification
@@ -66,7 +67,7 @@ class DefinitionBuilderTest extends Specification {
     def "generates abstract class definition"() {
         given:
         def builder = new DefinitionBuilder("TestProjectTypeDefinition")
-        builder.shape(DefinitionBuilder.Shape.ABSTRACT_CLASS)
+        builder.shape(TypeShape.ABSTRACT_CLASS)
         builder.buildModel("ModelType") { property "id", String }
         builder.property("id", String)
         builder.property("foo", "Foo") {
@@ -95,7 +96,7 @@ class DefinitionBuilderTest extends Specification {
     def "emits maybe<X>Configured scaffolding when showConfigureInvocations is enabled"() {
         given:
         def builder = new DefinitionBuilder("TestProjectTypeDefinition")
-        builder.shape(DefinitionBuilder.Shape.ABSTRACT_CLASS)
+        builder.shape(TypeShape.ABSTRACT_CLASS)
         builder.buildModel("ModelType") { property "id", String }
         builder.showConfigureInvocations()
         builder.property("id", String)
@@ -118,7 +119,7 @@ class DefinitionBuilderTest extends Specification {
     def "omits maybe<X>Configured scaffolding by default"() {
         given:
         def builder = new DefinitionBuilder("TestProjectTypeDefinition")
-        builder.shape(DefinitionBuilder.Shape.ABSTRACT_CLASS)
+        builder.shape(TypeShape.ABSTRACT_CLASS)
         builder.buildModel("ModelType") { property "id", String }
         builder.property("id", String)
         builder.property("foo", "Foo") {
@@ -139,7 +140,7 @@ class DefinitionBuilderTest extends Specification {
     def "showConfigureInvocations is a no-op on INTERFACE shape"() {
         given:
         def builder = new DefinitionBuilder("TestProjectTypeDefinition")
-        builder.shape(DefinitionBuilder.Shape.INTERFACE)
+        builder.shape(TypeShape.INTERFACE)
         builder.buildModel("ModelType") { property "id", String }
         builder.showConfigureInvocations()
         builder.property("id", String)
@@ -427,7 +428,7 @@ class DefinitionBuilderTest extends Specification {
     def "generates abstract class definition with undiscoverable property"() {
         given:
         def builder = new DefinitionBuilder("TestProjectTypeDefinition")
-        builder.shape(DefinitionBuilder.Shape.ABSTRACT_CLASS)
+        builder.shape(TypeShape.ABSTRACT_CLASS)
         builder.buildModel("ModelType") { property "id", String }
         // showConfigureInvocations() is enabled so the negative assertions below prove
         // that the undiscoverable branch suppresses scaffolding even when it is requested.
@@ -460,7 +461,7 @@ class DefinitionBuilderTest extends Specification {
     def "inlines user-supplied initialization code for undiscoverable property in constructor"() {
         given:
         def builder = new DefinitionBuilder("TestProjectTypeDefinition")
-        builder.shape(DefinitionBuilder.Shape.ABSTRACT_CLASS)
+        builder.shape(TypeShape.ABSTRACT_CLASS)
         builder.buildModel("ModelType") { property "id", String }
         builder.property("id", String)
         builder.undiscoverable("foo", "Foo") {
@@ -485,7 +486,7 @@ class DefinitionBuilderTest extends Specification {
     def "generates abstract class definition with undiscoverable property implementing Definition"() {
         given:
         def builder = new DefinitionBuilder("TestProjectTypeDefinition")
-        builder.shape(DefinitionBuilder.Shape.ABSTRACT_CLASS)
+        builder.shape(TypeShape.ABSTRACT_CLASS)
         builder.buildModel("ModelType") { property "id", String }
         builder.property("id", String)
         builder.undiscoverable("foo", "Foo") {
@@ -608,7 +609,7 @@ class DefinitionBuilderTest extends Specification {
     def "skips nested build model mapping for undiscoverable type implementing Definition"() {
         given:
         def builder = new DefinitionBuilder("TestProjectTypeDefinition")
-        builder.shape(DefinitionBuilder.Shape.ABSTRACT_CLASS)
+        builder.shape(TypeShape.ABSTRACT_CLASS)
         builder.buildModel("ModelType") { property "id", String }
         builder.property("id", String)
         builder.undiscoverable("foo", "Foo") {
@@ -755,7 +756,7 @@ class DefinitionBuilderTest extends Specification {
     def "emits annotations on NDOC getter in abstract class shape"() {
         given:
         def builder = new DefinitionBuilder("TestProjectTypeDefinition")
-        builder.shape(DefinitionBuilder.Shape.ABSTRACT_CLASS)
+        builder.shape(TypeShape.ABSTRACT_CLASS)
         builder.buildModel("ModelType") { property "id", String }
         builder.ndoc("sources", "Source") {
             annotations("@Incubating")
@@ -774,7 +775,7 @@ class DefinitionBuilderTest extends Specification {
     def "emits annotations on abstract class shape property getter"() {
         given:
         def builder = new DefinitionBuilder("TestProjectTypeDefinition")
-        builder.shape(DefinitionBuilder.Shape.ABSTRACT_CLASS)
+        builder.shape(TypeShape.ABSTRACT_CLASS)
         builder.buildModel("ModelType") { property "id", String }
         builder.property("id", String) {
             annotations("@Incubating")
@@ -812,10 +813,10 @@ class DefinitionBuilderTest extends Specification {
     def "emits annotations on concrete javaBean getter but not field or setter"() {
         given:
         def builder = new DefinitionBuilder("FeatureDefinition")
-        builder.shape(DefinitionBuilder.Shape.ABSTRACT_CLASS)
+        builder.shape(TypeShape.ABSTRACT_CLASS)
         builder.buildModel("FeatureModel") { property "text", String }
         builder.javaBeanProperty("dir", Directory) {
-            shape(org.gradle.features.internal.builders.PropertyDeclaration.Shape.CONCRETE)
+            shape(org.gradle.features.internal.builders.PropertyDeclaration.JavaBeanStyle.CONCRETE)
             annotations("@Incubating")
         }
 
@@ -917,7 +918,7 @@ class DefinitionBuilderTest extends Specification {
     def "throws when annotations are declared on undiscoverable top-level declaration"() {
         given:
         def builder = new DefinitionBuilder("TestProjectTypeDefinition")
-        builder.shape(DefinitionBuilder.Shape.ABSTRACT_CLASS)
+        builder.shape(TypeShape.ABSTRACT_CLASS)
         builder.buildModel("ModelType") { property "id", String }
 
         when:
@@ -935,7 +936,7 @@ class DefinitionBuilderTest extends Specification {
     def "allows annotations on sub-nested declarations inside undiscoverable closure"() {
         given:
         def builder = new DefinitionBuilder("TestProjectTypeDefinition")
-        builder.shape(DefinitionBuilder.Shape.ABSTRACT_CLASS)
+        builder.shape(TypeShape.ABSTRACT_CLASS)
         builder.buildModel("ModelType") { property "id", String }
         builder.undiscoverable("foo", "Foo") {
             property("bar", "Bar") {
@@ -980,7 +981,7 @@ class DefinitionBuilderTest extends Specification {
         sharedRef.property("name", String)
 
         def builder = new DefinitionBuilder("TestProjectTypeDefinition")
-        builder.shape(DefinitionBuilder.Shape.ABSTRACT_CLASS)
+        builder.shape(TypeShape.ABSTRACT_CLASS)
         builder.buildModel("ModelType") { property "id", String }
         builder.property("id", String)
         builder.property("srcSet", sharedRef)
@@ -1097,7 +1098,7 @@ class DefinitionBuilderTest extends Specification {
         builder.buildModel("ModelType") { property "id", String }
         builder.property("id", String)
         builder.property("foo", "Foo") {
-            shape DefinitionBuilder.Shape.ABSTRACT_CLASS
+            shape TypeShape.ABSTRACT_CLASS
             property "bar", String
         }
 
@@ -1121,10 +1122,10 @@ class DefinitionBuilderTest extends Specification {
         builder.buildModel("ModelType") { property "id", String }
         builder.property("id", String)
         builder.property("foo", "Foo") {
-            shape DefinitionBuilder.Shape.ABSTRACT_CLASS
+            shape TypeShape.ABSTRACT_CLASS
             property "bar", String
             property("inner", "Inner") {
-                shape DefinitionBuilder.Shape.ABSTRACT_CLASS
+                shape TypeShape.ABSTRACT_CLASS
                 property "value", String
             }
         }
@@ -1166,11 +1167,11 @@ class DefinitionBuilderTest extends Specification {
     def "abstract-class outer with shape(INTERFACE) nested emits @Nested abstract getter and interface body"() {
         given:
         def builder = new DefinitionBuilder("TestProjectTypeDefinition")
-        builder.shape(DefinitionBuilder.Shape.ABSTRACT_CLASS)
+        builder.shape(TypeShape.ABSTRACT_CLASS)
         builder.buildModel("ModelType") { property "id", String }
         builder.property("id", String)
         builder.property("foo", "Foo") {
-            shape DefinitionBuilder.Shape.INTERFACE
+            shape TypeShape.INTERFACE
             property "bar", String
         }
 
@@ -1193,7 +1194,7 @@ class DefinitionBuilderTest extends Specification {
     def "abstract-class outer with default nested emits sub-nested bodies (gap-fix)"() {
         given:
         def builder = new DefinitionBuilder("TestProjectTypeDefinition")
-        builder.shape(DefinitionBuilder.Shape.ABSTRACT_CLASS)
+        builder.shape(TypeShape.ABSTRACT_CLASS)
         builder.buildModel("ModelType") { property "id", String }
         builder.property("id", String)
         builder.property("foo", "Foo") {
@@ -1221,7 +1222,7 @@ class DefinitionBuilderTest extends Specification {
         builder.buildModel("ModelType") { property "id", String }
         builder.property("id", String)
         builder.property("foo", "Foo") {
-            shape DefinitionBuilder.Shape.ABSTRACT_CLASS
+            shape TypeShape.ABSTRACT_CLASS
             implementsDefinition("FooBuildModel") {
                 property "barProcessed", String
             }
@@ -1242,11 +1243,11 @@ class DefinitionBuilderTest extends Specification {
     def "showConfigureInvocations rejects effectively-INTERFACE nested"() {
         given:
         def builder = new DefinitionBuilder("TestProjectTypeDefinition")
-        builder.shape(DefinitionBuilder.Shape.ABSTRACT_CLASS)
+        builder.shape(TypeShape.ABSTRACT_CLASS)
         builder.buildModel("ModelType") { property "id", String }
         builder.showConfigureInvocations()
         builder.property("foo", "Foo") {
-            shape DefinitionBuilder.Shape.INTERFACE
+            shape TypeShape.INTERFACE
             property "bar", String
         }
 
@@ -1267,7 +1268,7 @@ class DefinitionBuilderTest extends Specification {
 
         when:
         builder.ndoc("sources", "Source") {
-            shape DefinitionBuilder.Shape.ABSTRACT_CLASS
+            shape TypeShape.ABSTRACT_CLASS
         }
 
         then:
@@ -1279,12 +1280,12 @@ class DefinitionBuilderTest extends Specification {
     def "shape(...) rejected on undiscoverable declaration"() {
         given:
         def builder = new DefinitionBuilder("TestProjectTypeDefinition")
-        builder.shape(DefinitionBuilder.Shape.ABSTRACT_CLASS)
+        builder.shape(TypeShape.ABSTRACT_CLASS)
         builder.buildModel("ModelType") { property "id", String }
 
         when:
         builder.undiscoverable("foo", "Foo") {
-            shape DefinitionBuilder.Shape.INTERFACE
+            shape TypeShape.INTERFACE
         }
 
         then:
@@ -1298,7 +1299,7 @@ class DefinitionBuilderTest extends Specification {
         def sharedRef = new PropertyTypeDeclaration(typeName: "SourceSet", isSharedRef: true)
 
         when:
-        sharedRef.shape(DefinitionBuilder.Shape.ABSTRACT_CLASS)
+        sharedRef.shape(TypeShape.ABSTRACT_CLASS)
 
         then:
         def e = thrown(IllegalStateException)
@@ -1312,7 +1313,7 @@ class DefinitionBuilderTest extends Specification {
         builder.buildModel("ModelType") { property "id", String }
         builder.property("id", String)
         builder.property("foo", "Foo") {
-            shape DefinitionBuilder.Shape.ABSTRACT_CLASS
+            shape TypeShape.ABSTRACT_CLASS
             property "bar", String
         }
         builder.parentDefinition {

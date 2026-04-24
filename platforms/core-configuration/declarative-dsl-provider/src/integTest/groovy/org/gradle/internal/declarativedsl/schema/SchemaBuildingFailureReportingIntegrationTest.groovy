@@ -20,7 +20,7 @@ import org.gradle.features.internal.TestScenarioFixture
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.plugin.PluginBuilder
 
-import static org.gradle.features.internal.builders.DefinitionBuilder.Shape.ABSTRACT_CLASS
+import static org.gradle.features.internal.builders.TypeShape.ABSTRACT_CLASS
 
 class SchemaBuildingFailureReportingIntegrationTest extends AbstractIntegrationSpec implements TestScenarioFixture {
     def setup() {

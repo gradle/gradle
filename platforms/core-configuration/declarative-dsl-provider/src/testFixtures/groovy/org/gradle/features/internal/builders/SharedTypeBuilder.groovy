@@ -42,7 +42,7 @@ class SharedTypeBuilder {
 
     void build(PluginBuilder pluginBuilder) {
         def path = "src/main/java/${packageName.replace('.', '/')}/${declaration.typeName}.java"
-        pluginBuilder.file(path).text = declaration.sharedShape == SharedTypeShape.ABSTRACT_CLASS
+        pluginBuilder.file(path).text = declaration.sharedShape == TypeShape.ABSTRACT_CLASS
             ? generateAbstractClassContent()
             : generateInterfaceContent()
     }
@@ -52,24 +52,24 @@ class SharedTypeBuilder {
             ? "extends ${Definition.class.simpleName}<${declaration.typeName}.${declaration.buildModel.className}>"
             : ""
 
-        def services = DefinitionBuilder.generateInjectedServiceDeclarations(declaration.injectedServices, false)
+        def services = JavaSources.generateInjectedServiceDeclarations(declaration.injectedServices, false)
 
         def propertyGetters = declaration.properties.collect { property ->
-            "${DefinitionBuilder.renderAnnotations(property.allAnnotations, '                ')}" +
-                "${DefinitionBuilder.getPropertyReturnType(property)} get${DefinitionBuilder.capitalize(property.name)}();"
+            "${JavaSources.renderAnnotations(property.allAnnotations, '                ')}" +
+                "${JavaSources.getPropertyReturnType(property)} get${JavaSources.capitalize(property.name)}();"
         }.join("\n")
 
         def nestedAccessors = declaration.nestedTypes.collect { subNested ->
             if (subNested.isNdoc) {
-                "${DefinitionBuilder.renderAnnotations(subNested.allAnnotations, '                ')}" +
-                    "NamedDomainObjectContainer<${subNested.typeName}> get${DefinitionBuilder.capitalize(subNested.name)}();"
+                "${JavaSources.renderAnnotations(subNested.allAnnotations, '                ')}" +
+                    "NamedDomainObjectContainer<${subNested.typeName}> get${JavaSources.capitalize(subNested.name)}();"
             } else {
-                """${DefinitionBuilder.renderAnnotations(subNested.allAnnotations, '                ')}@Nested
-                ${subNested.typeName} get${DefinitionBuilder.capitalize(subNested.name)}();"""
+                """${JavaSources.renderAnnotations(subNested.allAnnotations, '                ')}@Nested
+                ${subNested.typeName} get${JavaSources.capitalize(subNested.name)}();"""
             }
         }.join("\n\n")
 
-        def nestedInterfaces = DefinitionBuilder.renderNestedBodies(declaration.nestedTypes, DefinitionBuilder.Shape.INTERFACE)
+        def nestedInterfaces = NestedRenderer.renderNestedBodies(declaration.nestedTypes, TypeShape.INTERFACE)
 
         def buildModelInterface = generateBuildModelInterface()
 
@@ -134,25 +134,25 @@ class SharedTypeBuilder {
             """
         }
 
-        def services = DefinitionBuilder.generateInjectedServiceDeclarations(declaration.injectedServices, true)
+        def services = JavaSources.generateInjectedServiceDeclarations(declaration.injectedServices, true)
 
         def propertyGetters = declaration.properties.collect { property ->
-            "${DefinitionBuilder.renderAnnotations(property.allAnnotations, '                ')}" +
-                "public abstract ${DefinitionBuilder.getPropertyReturnType(property)} get${DefinitionBuilder.capitalize(property.name)}();"
+            "${JavaSources.renderAnnotations(property.allAnnotations, '                ')}" +
+                "public abstract ${JavaSources.getPropertyReturnType(property)} get${JavaSources.capitalize(property.name)}();"
         }.join("\n")
 
         def nestedGetters = declaration.nestedTypes.collect { sub ->
             if (sub.isNdoc) {
-                "${DefinitionBuilder.renderAnnotations(sub.allAnnotations, '                ')}" +
-                    "public abstract NamedDomainObjectContainer<${sub.typeName}> get${DefinitionBuilder.capitalize(sub.name)}();"
+                "${JavaSources.renderAnnotations(sub.allAnnotations, '                ')}" +
+                    "public abstract NamedDomainObjectContainer<${sub.typeName}> get${JavaSources.capitalize(sub.name)}();"
             } else {
-                """${DefinitionBuilder.renderAnnotations(sub.allAnnotations, '                ')}public ${sub.typeName} get${DefinitionBuilder.capitalize(sub.name)}() {
+                """${JavaSources.renderAnnotations(sub.allAnnotations, '                ')}public ${sub.typeName} get${JavaSources.capitalize(sub.name)}() {
                     return ${sub.name};
                 }"""
             }
         }.join("\n\n")
 
-        def nestedTypeBodies = DefinitionBuilder.renderNestedBodies(declaration.nestedTypes, DefinitionBuilder.Shape.INTERFACE)
+        def nestedTypeBodies = NestedRenderer.renderNestedBodies(declaration.nestedTypes, TypeShape.INTERFACE)
 
         def buildModelInterface = generateBuildModelInterface()
 
@@ -198,8 +198,8 @@ class SharedTypeBuilder {
             return ""
         }
         def buildModelPropertyGetters = declaration.buildModel.properties.collect { property ->
-            "${DefinitionBuilder.renderAnnotations(property.allAnnotations, '                ')}" +
-                "${DefinitionBuilder.getPropertyReturnType(property)} get${DefinitionBuilder.capitalize(property.name)}();"
+            "${JavaSources.renderAnnotations(property.allAnnotations, '                ')}" +
+                "${JavaSources.getPropertyReturnType(property)} get${JavaSources.capitalize(property.name)}();"
         }.join("\n")
         return """
             public interface ${declaration.buildModel.className} extends BuildModel {

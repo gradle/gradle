@@ -21,8 +21,8 @@ import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.RegularFile
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.features.internal.TestScenarioFixture
-import org.gradle.features.internal.builders.DefinitionBuilder
 import org.gradle.features.internal.builders.PropertyDeclaration
+import org.gradle.features.internal.builders.TypeShape
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.polyglot.PolyglotDslTest
 import org.gradle.integtests.fixtures.polyglot.PolyglotTestFixture
@@ -229,7 +229,7 @@ class WorkingWithFilesIntegrationTest extends AbstractIntegrationSpec implements
             fixture.testScenario {
                 projectType("testProjectType") {
                     definition {
-                        shape DefinitionBuilder.Shape.ABSTRACT_CLASS
+                        shape TypeShape.ABSTRACT_CLASS
                         property "dir", Directory
                         property "file", RegularFile
                         buildModel {
@@ -254,12 +254,12 @@ class WorkingWithFilesIntegrationTest extends AbstractIntegrationSpec implements
             fixture.testScenario {
                 projectType("testProjectType") {
                     definition {
-                        shape DefinitionBuilder.Shape.ABSTRACT_CLASS
+                        shape TypeShape.ABSTRACT_CLASS
                         javaBeanProperty("dir", Directory) {
-                            shape PropertyDeclaration.Shape.CONCRETE
+                            shape PropertyDeclaration.JavaBeanStyle.CONCRETE
                         }
                         javaBeanProperty("file", RegularFile) {
-                            shape PropertyDeclaration.Shape.CONCRETE
+                            shape PropertyDeclaration.JavaBeanStyle.CONCRETE
                         }
                         buildModel {
                             property "dir", DirectoryProperty
