@@ -38,7 +38,8 @@ class IdentifyStepTest extends StepSpec<ExecutionRequestContext> {
     interface MyWorkClass extends UnitOfWork {
     }
 
-    def step = new IdentifyStep<>(buildOperationRunner, classloaderHierarchyHasher, delegate)
+    def fastUpToDateCheckState = new FastUpToDateCheckState()
+    def step = new IdentifyStep<>(buildOperationRunner, classloaderHierarchyHasher, fastUpToDateCheckState, delegate)
 
     def "delegates with assigned identity"() {
         def inputSnapshot = Mock(ValueSnapshot)

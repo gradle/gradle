@@ -129,6 +129,17 @@ abstract class AbstractTransformExecution implements UnitOfWork {
     }
 
     @Override
+    public Optional<String> getStableCacheKey() {
+        transform.isolateParametersIfNotAlready();
+        return Optional.of(
+            transform.getImplementationClass().getName()
+                + "|" + transform.getFromAttributes()
+                + "|" + transform.getToAttributes()
+                + "|" + transform.getSecondaryInputHash()
+                + "|" + inputArtifact.getAbsolutePath());
+    }
+
+    @Override
     public Identity identify(Map<String, ValueSnapshot> scalarInputs, Map<String, CurrentFileCollectionFingerprint> fileInputs) {
         TransformWorkspaceIdentity transformWorkspaceIdentity = createIdentity(scalarInputs, fileInputs);
         emitIdentifyTransformExecutionProgressDetails(transformWorkspaceIdentity);

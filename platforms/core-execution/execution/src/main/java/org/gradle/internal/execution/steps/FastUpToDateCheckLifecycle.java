@@ -18,10 +18,20 @@ package org.gradle.internal.execution.steps;
 
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
+import org.jspecify.annotations.Nullable;
 
 @ServiceScope(Scope.UserHome.class)
 public interface FastUpToDateCheckLifecycle {
     void resetForBuildStart();
-    void setConfigurationCacheHit(boolean configurationCacheHit);
+
+    /**
+     * Signals configuration cache state for the current build.
+     *
+     * @param cacheKey the hit CC cache key, or {@code null} on CC miss.
+     *                 Used to detect when the CC key changes between builds so
+     *                 the identity cache can be cleared for memory hygiene.
+     */
+    void setConfigurationCacheHit(@Nullable String cacheKey);
+
     void clearChangedPaths();
 }

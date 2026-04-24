@@ -39,6 +39,7 @@ class ConfigurationCacheAwareBuildTreeWorkController(
     private val buildRegistry: BuildStateRegistry,
     private val buildModelParameters: BuildModelParameters,
     private val fastUpToDateCheckState: org.gradle.internal.execution.steps.FastUpToDateCheckLifecycle,
+    private val configurationCacheKey: String,
     heapDumpDir: String?,
 ) : BuildTreeWorkController {
 
@@ -80,9 +81,9 @@ class ConfigurationCacheAwareBuildTreeWorkController(
                 // We don't want to fold the code below here so the "live" graph can be garbage collected before execution.
                 null
             } else {
-                if (workGraph.wasLoadedFromCache) {
-                    fastUpToDateCheckState.setConfigurationCacheHit(true)
-                }
+                fastUpToDateCheckState.setConfigurationCacheHit(
+                    if (workGraph.wasLoadedFromCache) configurationCacheKey else null
+                )
                 maybeDumpHeap("cc-hit")
                 val runResult = TaskRunResult.ofExecutionResult(workExecutor.execute(workGraph.graph))
                 fastUpToDateCheckState.clearChangedPaths()
@@ -108,6 +109,7 @@ class ConfigurationCacheAwareBuildTreeWorkController(
         return workGraph.withNewWorkGraph { graph ->
             val finalizedGraph = cache.loadRequestedTasks(graph, scheduleTaskSelectorPostProcessing)
             maybeDumpHeap("cc-miss-load")
+            fastUpToDateCheckState.setConfigurationCacheHit(null)
             val runResult = TaskRunResult.ofExecutionResult(workExecutor.execute(finalizedGraph))
             fastUpToDateCheckState.clearChangedPaths()
             runResult

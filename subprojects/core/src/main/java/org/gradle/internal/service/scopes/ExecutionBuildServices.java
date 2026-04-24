@@ -217,7 +217,7 @@ public class ExecutionBuildServices implements ServiceRegistrationProvider {
         ))))))))))))))))))))));
 
         return new DefaultExecutionEngine(
-            new IdentifyStep<>(buildOperationRunner, classLoaderHierarchyHasher,
+            new IdentifyStep<>(buildOperationRunner, classLoaderHierarchyHasher, fastUpToDateCheckState,
             new IdentityCacheStep<>(buildOperationProgressEventEmitter,
             new ExecuteWorkBuildOperationFiringStep<>(buildOperationRunner,
             new ChoosePipelineStep<>(

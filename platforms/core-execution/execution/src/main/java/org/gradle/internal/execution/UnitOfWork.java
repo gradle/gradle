@@ -43,6 +43,23 @@ public interface UnitOfWork extends Describable {
     Identity identify(Map<String, ValueSnapshot> scalarInputs, Map<String, CurrentFileCollectionFingerprint> fileInputs);
 
     /**
+     * A stable key identifying this work unit across builds, used to cache the identity
+     * computed by {@link #identify} and avoid re-fingerprinting inputs when they haven't changed.
+     *
+     * <p>The key must be:
+     * <ul>
+     *   <li>Stable across builds — same inputs (path, implementation, etc.) must produce the same key.</li>
+     *   <li>Unique across different work units of the same type — no two work units may share a key
+     *       unless they are truly identical for identity-computation purposes.</li>
+     * </ul>
+     *
+     * <p>Returning {@link Optional#empty()} opts this work unit out of identity caching.
+     */
+    default Optional<String> getStableCacheKey() {
+        return Optional.empty();
+    }
+
+    /**
      * Executes the work synchronously.
      */
     WorkOutput execute(ExecutionContext executionContext);

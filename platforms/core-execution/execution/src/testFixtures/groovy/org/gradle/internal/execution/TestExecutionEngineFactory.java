@@ -27,6 +27,7 @@ import org.gradle.internal.execution.steps.BroadcastChangingOutputsStep;
 import org.gradle.internal.execution.steps.CaptureMutableStateBeforeExecutionStep;
 import org.gradle.internal.execution.steps.CaptureOutputsAfterExecutionStep;
 import org.gradle.internal.execution.steps.ExecuteStep;
+import org.gradle.internal.execution.steps.FastUpToDateCheckState;
 import org.gradle.internal.execution.steps.IdentifyStep;
 import org.gradle.internal.execution.steps.IdentityCacheStep;
 import org.gradle.internal.execution.steps.LoadPreviousExecutionStateStep;
@@ -70,7 +71,7 @@ public class TestExecutionEngineFactory {
         ExecutionProblemHandler problemHandler = new DefaultExecutionProblemHandler(validationWarningReporter, virtualFileSystem);
         // @formatter:off
         return new DefaultExecutionEngine(
-            new IdentifyStep<>(buildOperationRunner, classloaderHierarchyHasher,
+            new IdentifyStep<>(buildOperationRunner, classloaderHierarchyHasher, new FastUpToDateCheckState(),
             new IdentityCacheStep<>(progressEventEmitter,
             new AssignMutableWorkspaceStep<>(
             new LoadPreviousExecutionStateStep<>(

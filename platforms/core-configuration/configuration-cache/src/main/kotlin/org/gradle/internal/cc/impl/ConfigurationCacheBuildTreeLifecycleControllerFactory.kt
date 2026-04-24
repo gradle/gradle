@@ -46,6 +46,7 @@ class ConfigurationCacheBuildTreeLifecycleControllerFactory internal constructor
     parameterCarrierFactory: ToolingModelParameterCarrier.Factory,
     buildOperationRunner: BuildOperationRunner,
     private val fastUpToDateCheckLifecycle: FastUpToDateCheckLifecycle,
+    private val configurationCacheKey: ConfigurationCacheKey,
 ) : BuildTreeLifecycleControllerFactory {
 
     private
@@ -88,6 +89,7 @@ class ConfigurationCacheBuildTreeLifecycleControllerFactory internal constructor
             buildStateRegistry,
             buildModelParameters,
             fastUpToDateCheckLifecycle,
+            configurationCacheKey.string,
             startParameter.configurationCacheHeapDumpDir
         )
 

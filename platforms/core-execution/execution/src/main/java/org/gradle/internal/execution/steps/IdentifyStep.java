@@ -26,6 +26,7 @@ import org.gradle.internal.execution.Identity;
 import org.gradle.internal.execution.ImplementationVisitor;
 import org.gradle.internal.execution.InputFingerprinter;
 import org.gradle.internal.execution.UnitOfWork;
+import org.gradle.internal.execution.steps.FastUpToDateCheckState.CachedIdentity;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.operations.BuildOperationRunner;
@@ -35,33 +36,69 @@ import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Optional;
+
 public class IdentifyStep<C extends ExecutionRequestContext, R extends Result> extends BuildOperationStep<C, R> implements DeferredExecutionAwareStep<C, R> {
     private static final Logger LOGGER = LoggerFactory.getLogger(IdentifyStep.class);
 
     private final ClassLoaderHierarchyHasher classLoaderHierarchyHasher;
+    private final FastUpToDateCheckState fastUpToDateCheckState;
     private final DeferredExecutionAwareStep<? super IdentityContext, R> delegate;
 
     public IdentifyStep(
         BuildOperationRunner buildOperationRunner,
         ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
+        FastUpToDateCheckState fastUpToDateCheckState,
         DeferredExecutionAwareStep<? super IdentityContext, R> delegate
     ) {
         super(buildOperationRunner);
         this.classLoaderHierarchyHasher = classLoaderHierarchyHasher;
+        this.fastUpToDateCheckState = fastUpToDateCheckState;
         this.delegate = delegate;
     }
 
     @Override
     public R execute(UnitOfWork work, C context) {
-        return delegate.execute(work, createIdentityContext(work, context));
+        return delegate.execute(work, resolveIdentityContext(work, context));
     }
 
     @Override
     public <T> Deferrable<Try<T>> executeDeferred(UnitOfWork work, C context, Cache<Identity, DeferredResult<T>> cache) {
-        return delegate.executeDeferred(work, createIdentityContext(work, context), cache);
+        return delegate.executeDeferred(work, resolveIdentityContext(work, context), cache);
     }
 
-    private IdentityContext createIdentityContext(UnitOfWork work, C context) {
+    private IdentityContext resolveIdentityContext(UnitOfWork work, C context) {
+        IdentityContext cached = tryGetCachedIdentityContext(work, context);
+        if (cached != null) {
+            return cached;
+        }
+        return computeAndStoreIdentityContext(work, context);
+    }
+
+    @Nullable
+    private IdentityContext tryGetCachedIdentityContext(UnitOfWork work, C context) {
+        Optional<String> stableKey = work.getStableCacheKey();
+        if (!stableKey.isPresent()) {
+            return null;
+        }
+        CachedIdentity cached = fastUpToDateCheckState.lookupCachedIdentity(stableKey.get());
+        if (cached == null) {
+            return null;
+        }
+        if (LOGGER.isInfoEnabled()) {
+            LOGGER.info("Reusing cached identity for {}", work.getDisplayName());
+        }
+        return new IdentityContext(
+            context,
+            cached.getImplementation(),
+            cached.getAdditionalImplementations(),
+            cached.getInputProperties(),
+            cached.getInputFileProperties(),
+            cached.getIdentity()
+        );
+    }
+
+    private IdentityContext computeAndStoreIdentityContext(UnitOfWork work, C context) {
         ImplementationsBuilder implementationsBuilder = new ImplementationsBuilder(classLoaderHierarchyHasher);
         work.visitImplementations(implementationsBuilder);
         ImplementationSnapshot implementation = implementationsBuilder.getImplementation();
@@ -84,6 +121,13 @@ public class IdentifyStep<C extends ExecutionRequestContext, R extends Result> e
         ImmutableSortedMap<String, ValueSnapshot> scalarInputProperties = inputs.getValueSnapshots();
         ImmutableSortedMap<String, CurrentFileCollectionFingerprint> fileInputProperties = inputs.getFileFingerprints();
         Identity identity = work.identify(scalarInputProperties, fileInputProperties);
+
+        work.getStableCacheKey().ifPresent(key ->
+            fastUpToDateCheckState.storeCachedIdentity(
+                key,
+                new CachedIdentity(implementation, additionalImplementations, scalarInputProperties, fileInputProperties, identity)
+            )
+        );
 
         return new IdentityContext(
             context,
