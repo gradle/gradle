@@ -257,9 +257,9 @@ processResources {
 
 === Potential breaking changes
 
-==== Upgrade to Kotlin 2.3.21-RC2
+==== Upgrade to Kotlin 2.3.21
 
-The embedded Kotlin has been upgraded from 2.3.20 to link:https://github.com/JetBrains/kotlin/releases/tag/v2.3.21-RC2[Kotlin 2.3.21-RC2].
+The embedded Kotlin has been upgraded from 2.3.20 to link:https://github.com/JetBrains/kotlin/releases/tag/v2.3.21[Kotlin 2.3.21].
 
 [[kotlin_dsl_delegated_properties]]
 ==== Deprecation of Kotlin DSL delegated properties

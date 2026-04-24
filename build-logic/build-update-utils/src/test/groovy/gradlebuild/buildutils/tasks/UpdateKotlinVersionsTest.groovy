@@ -102,13 +102,13 @@ class UpdateKotlinVersionsTest extends Specification {
     def "previous minor keeps its latest stable alongside a newer RC"() {
         // Regression test: before the fix, when a newer minor published its first pre-release
         // (e.g. 2.4.0-Beta1), the previous minor's selection switched from the per-patch logic to
-        // "pick the top-sorted version", letting a -RC for the next patch (2.3.21-RC2) displace the
+        // "pick the top-sorted version", letting a -RC for the next patch (2.3.21-RC) displace the
         // last stable (2.3.20). That caused `latestStable` to fall back from 2.3.20 to 2.2.21 and
         // broke AGP alpha07 smoke tests.
         given:
         def allVersions = [
             "2.4.0-Beta1",
-            "2.3.21-RC2",
+            "2.3.21-RC",
             "2.3.20", "2.3.20-RC3", "2.3.20-Beta2",
             "2.3.10", "2.3.10-RC",
             "2.3.0", "2.3.0-RC", "2.3.0-Beta1",
@@ -121,7 +121,7 @@ class UpdateKotlinVersionsTest extends Specification {
         def selected = UpdateKotlinVersions.selectVersionsFrom("2.0.0", allVersions)
 
         then:
-        selected == ["2.0.0", "2.0.21", "2.1.21", "2.2.21", "2.3.20", "2.3.21-RC2", "2.4.0-Beta1"]
+        selected == ["2.0.0", "2.0.21", "2.1.21", "2.2.21", "2.3.20", "2.3.21-RC", "2.4.0-Beta1"]
     }
 
     def "previous minor with no stable patch is dropped"() {
@@ -146,12 +146,12 @@ class UpdateKotlinVersionsTest extends Specification {
 
     def "two-digit patch numbers in the current minor do not collide"() {
         // Regression test: the old algorithm grouped patches by `String.take(5)`, so "2.3.20" and
-        // "2.3.21-RC2" hashed to the same bucket "2.3.2" and the RC was silently swallowed. The
+        // "2.3.21-RC" hashed to the same bucket "2.3.2" and the RC was silently swallowed. The
         // refactored algorithm groups by the parsed `micro` integer so adjacent two-digit patches
         // stay distinct.
         given:
         def allVersions = [
-            "2.3.21-RC2",
+            "2.3.21-RC",
             "2.3.20",
             "2.3.10",
             "2.3.0",
@@ -162,6 +162,6 @@ class UpdateKotlinVersionsTest extends Specification {
         def selected = UpdateKotlinVersions.selectVersionsFrom("2.0.0", allVersions)
 
         then:
-        selected == ["2.0.0", "2.0.21", "2.1.21", "2.2.21", "2.3.20", "2.3.21-RC2"]
+        selected == ["2.0.0", "2.0.21", "2.1.21", "2.2.21", "2.3.20", "2.3.21-RC"]
     }
 }

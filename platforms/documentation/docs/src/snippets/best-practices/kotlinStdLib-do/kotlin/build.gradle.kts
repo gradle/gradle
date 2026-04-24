@@ -1,5 +1,5 @@
 // tag::do-this[]
 plugins {
-    kotlin("jvm").version("2.3.20") // <1>
+    kotlin("jvm").version("2.3.21") // <1>
 }
 // end::do-this[]
