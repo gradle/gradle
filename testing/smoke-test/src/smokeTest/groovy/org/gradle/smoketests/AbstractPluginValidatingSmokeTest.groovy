@@ -18,8 +18,6 @@ package org.gradle.smoketests
 
 import groovy.transform.SelfType
 
-import static org.gradle.api.internal.DocumentationRegistry.BASE_URL
-
 @SelfType(AbstractSmokeTest)
 abstract class AbstractPluginValidatingSmokeTest extends AbstractSmokeTest implements WithPluginValidation {
 
@@ -70,7 +68,7 @@ abstract class AbstractPluginValidatingSmokeTest extends AbstractSmokeTest imple
             "This will fail with an error in Gradle 10. " +
             "Cannot dynamically invoke method '$methodName' on root project 'test' from project ':child'. " +
             "Consult the upgrading guide for further information: " +
-            "${BASE_URL}/userguide/upgrading_version_9.html#deprecated_accessing_parent_project_properties"
+            "${ DEPRECATED_PARENT_PROPERTY_ACCESS_URL}"
     }
 
     protected static String parentPropertyAccessDeprecation(String propertyName) {
@@ -78,7 +76,7 @@ abstract class AbstractPluginValidatingSmokeTest extends AbstractSmokeTest imple
             "This will fail with an error in Gradle 10. " +
             "Property '$propertyName' was not found in project ':child' and was dynamically resolved from root project 'test'. " +
             "Consult the upgrading guide for further information: " +
-            "${BASE_URL}/userguide/upgrading_version_9.html#deprecated_accessing_parent_project_properties"
+            "${DEPRECATED_PARENT_PROPERTY_ACCESS_URL}"
     }
 
     private List<List<String>> iterations() {

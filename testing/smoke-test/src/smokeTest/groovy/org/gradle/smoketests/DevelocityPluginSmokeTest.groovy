@@ -31,8 +31,6 @@ import spock.lang.Issue
 import java.nio.charset.StandardCharsets
 import java.util.concurrent.ConcurrentHashMap
 
-import static org.gradle.api.internal.DocumentationRegistry.BASE_URL
-
 // https://plugins.gradle.org/plugin/com.gradle.develocity
 class DevelocityPluginSmokeTest extends AbstractSmokeTest {
 
@@ -216,7 +214,7 @@ class DevelocityPluginSmokeTest extends AbstractSmokeTest {
                 "Dynamically invoking parent method from a child project has been deprecated. This will fail with an error in Gradle 10. " +
                     "Cannot dynamically invoke method 'develocity' on root project 'test' from project ':child'. " +
                     "Consult the upgrading guide for further information: " +
-                    "${BASE_URL}/userguide/upgrading_version_9.html#deprecated_accessing_parent_project_properties")
+                    "${DEPRECATED_PARENT_PROPERTY_ACCESS_URL}")
             .build().output.contains("Build scan written to")
 
         where:
