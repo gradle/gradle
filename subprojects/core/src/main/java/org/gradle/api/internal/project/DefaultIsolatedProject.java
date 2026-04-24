@@ -16,8 +16,9 @@
 
 package org.gradle.api.internal.project;
 
-import org.gradle.api.project.IsolatedProject;
 import org.gradle.api.file.Directory;
+import org.gradle.api.project.IsolatedProject;
+import org.jspecify.annotations.Nullable;
 
 public final class DefaultIsolatedProject implements IsolatedProject {
 
@@ -62,7 +63,7 @@ public final class DefaultIsolatedProject implements IsolatedProject {
     }
 
     @Override
-    public boolean equals(Object obj) {
+    public boolean equals(@Nullable Object obj) {
         if (!(obj instanceof DefaultIsolatedProject)) {
             return false;
         }

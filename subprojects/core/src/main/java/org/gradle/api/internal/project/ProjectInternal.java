@@ -49,7 +49,6 @@ import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.registry.ModelRegistryScope;
 import org.gradle.normalization.internal.InputNormalizationHandlerInternal;
 import org.gradle.util.Path;
-import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Map;
@@ -160,7 +159,6 @@ public interface ProjectInternal extends Project, ProjectIdentifier, HasScriptSe
     void fireDeferredConfiguration();
 
     @Override
-    @NullMarked
     ProjectIdentity getProjectIdentity();
 
     /**
@@ -240,7 +238,7 @@ public interface ProjectInternal extends Project, ProjectIdentifier, HasScriptSe
      * @return true if the given object is a {@link ProjectInternal} with the same identity as this project, false otherwise
      */
     @Override
-    boolean equals(Object obj);
+    boolean equals(@Nullable Object obj);
 
     /**
      * Returns the hash code of this project based on its {@link #getProjectIdentity() identity}.

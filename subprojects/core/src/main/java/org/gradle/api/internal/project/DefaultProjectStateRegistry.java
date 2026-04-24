@@ -41,7 +41,6 @@ import org.gradle.internal.resources.ResourceLock;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.util.Path;
-import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
 import java.io.Closeable;
@@ -235,7 +234,6 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry, Closea
         CompositeStoppable.stoppable(projectsByPath.values()).stop();
     }
 
-    @NullMarked
     private static class DefaultBuildProjectRegistry implements BuildProjectRegistry {
         private final BuildState owner;
         private final WorkerLeaseService workerLeaseService;
@@ -287,7 +285,6 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry, Closea
         }
     }
 
-    @NullMarked
     private static final class AllProjectsAccessImpl implements AllProjectsAccess {
         private final BuildState owner;
         private final WorkerLeaseService workerLeaseService;
@@ -314,7 +311,6 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry, Closea
         }
     }
 
-    @NullMarked
     private class ProjectStateImpl implements ProjectState, Closeable {
 
         private final ImmutableProjectDescriptor descriptor;
@@ -564,7 +560,7 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry, Closea
         private final ProjectLeaseRegistry projectLeaseRegistry;
         private final ModelContainer<?> owner;
         private final ReentrantLock lock = new ReentrantLock();
-        private volatile T value;
+        private volatile @Nullable T value;
 
         public CalculatedModelValueImpl(ProjectStateImpl owner, WorkerLeaseService projectLeaseRegistry, @Nullable T initialValue) {
             this.projectLeaseRegistry = projectLeaseRegistry;
@@ -582,7 +578,7 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry, Closea
         }
 
         @Override
-        public T getOrNull() {
+        public @Nullable T getOrNull() {
             // Grab the current value, ignore updates that may be happening
             return value;
         }

@@ -130,7 +130,6 @@ import org.gradle.util.Configurable;
 import org.gradle.util.Path;
 import org.gradle.util.internal.ClosureBackedAction;
 import org.gradle.util.internal.ConfigureUtil;
-import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
 import javax.inject.Inject;
@@ -182,17 +181,17 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     private @Nullable Object group;
 
-    private Object version;
+    private @Nullable Object version;
 
-    private Property<Object> status;
+    private @Nullable Property<Object> status;
 
     private List<String> defaultTasks = new ArrayList<>();
 
     private final ProjectStateInternal state;
 
-    private AntBuilderFactory antBuilderFactory;
+    private @Nullable AntBuilderFactory antBuilderFactory;
 
-    private AntBuilder ant;
+    private @Nullable AntBuilder ant;
 
     private final TaskContainerInternal taskContainer;
 
@@ -204,7 +203,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     private final DynamicLookupRoutine dynamicLookupRoutine;
 
-    private String description;
+    private @Nullable String description;
 
     private boolean preparedForRuleBasedPlugins;
 
@@ -602,7 +601,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     }
 
     @Override
-    public final boolean equals(Object obj) {
+    public final boolean equals(@Nullable Object obj) {
         if (!(obj instanceof ProjectInternal)) {
             return false;
         }
@@ -630,7 +629,6 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
         return owner.getProjectPath();
     }
 
-    @NonNull
     @Override
     public ProjectIdentity getProjectIdentity() {
         return owner.getIdentity();
@@ -1151,11 +1149,13 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
         }
     }
 
+    @Nullable
     @Override
     public Object property(String propertyName) throws MissingPropertyException {
         return dynamicLookupRoutine.property(extensibleDynamicObject, propertyName);
     }
 
+    @Nullable
     @Override
     public Object findProperty(String propertyName) {
         return dynamicLookupRoutine.findProperty(extensibleDynamicObject, propertyName);
@@ -1501,6 +1501,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
         configuration.execute(getDependencyLocking());
     }
 
+    @Nullable
     @Override
     public ProjectEvaluationListener stepEvaluationListener(ProjectEvaluationListener listener, Action<ProjectEvaluationListener> step) {
         ListenerBroadcast<ProjectEvaluationListener> original = this.evaluationListener;

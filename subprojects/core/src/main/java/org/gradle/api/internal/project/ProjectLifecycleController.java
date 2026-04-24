@@ -29,6 +29,7 @@ import org.gradle.internal.service.scopes.ProjectScopeServices;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.internal.service.scopes.ServiceScope;
+import org.jspecify.annotations.Nullable;
 
 import java.io.Closeable;
 
@@ -39,8 +40,8 @@ import java.io.Closeable;
 public class ProjectLifecycleController implements Closeable {
     private final ServiceRegistry buildServices;
     private final StateTransitionController<State> controller;
-    private ProjectInternal project;
-    private CloseableServiceRegistry projectScopeServices;
+    private @Nullable ProjectInternal project;
+    private @Nullable CloseableServiceRegistry projectScopeServices;
 
     private enum State implements StateTransitionController.State {
         NotCreated, Created, Configured
