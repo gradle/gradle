@@ -24,4 +24,14 @@ class KtLintPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
             'org.jlleitschuh.gradle.ktlint-idea': TestedVersions.ktlintIdea,
         ]
     }
+
+    @Override
+    String getChildProjectConfiguration(String testedPluginId, String version) {
+        testedPluginId == 'org.jlleitschuh.gradle.ktlint' ? "ktlint {}" : null
+    }
+
+    @Override
+    List<String> getChildProjectExpectedDeprecations(String testedPluginId, String version) {
+        testedPluginId == 'org.jlleitschuh.gradle.ktlint' ? [parentMethodInvocationDeprecation('ktlint')] : []
+    }
 }

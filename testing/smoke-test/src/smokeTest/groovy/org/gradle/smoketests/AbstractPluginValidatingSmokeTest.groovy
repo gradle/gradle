@@ -18,6 +18,8 @@ package org.gradle.smoketests
 
 import groovy.transform.SelfType
 
+import static org.gradle.api.internal.DocumentationRegistry.BASE_URL
+
 @SelfType(AbstractSmokeTest)
 abstract class AbstractPluginValidatingSmokeTest extends AbstractSmokeTest implements WithPluginValidation {
 
@@ -33,6 +35,50 @@ abstract class AbstractPluginValidatingSmokeTest extends AbstractSmokeTest imple
 
     String getBuildScriptConfigurationForValidation() {
         ""
+    }
+
+    /**
+     * Override to opt a plugin into the "configure from subproject" smoke test. Return the
+     * content that should go into {@code child/build.gradle} — typically a DSL snippet that
+     * references the plugin's project extension (e.g. {@code spotless { }}). Return
+     * {@code null} to skip the test for this plugin/version.
+     *
+     * <p>The purpose is to catch plugins that rely on the deprecated implicit parent-project
+     * property/method lookup to resolve their DSL extension from subprojects — the same
+     * failure mode as the Develocity 3.x case. See the
+     * deprecated_accessing_parent_project_properties spec for context.
+     */
+    String getChildProjectConfiguration(String testedPluginId, String version) {
+        null
+    }
+
+    /**
+     * Override to declare deprecation warnings that the "configure from subproject" test
+     * should expect for a given plugin/version. The returned warnings are passed to
+     * {@link SmokeTestGradleRunner#expectLegacyDeprecationWarning(String)} — appropriate
+     * for third-party plugin issues that are out of our control.
+     *
+     * <p>Use {@link #parentMethodInvocationDeprecation(String)} to build the parent-walking
+     * deprecation message for a plugin that resolves its DSL extension from subprojects.
+     */
+    List<String> getChildProjectExpectedDeprecations(String testedPluginId, String version) {
+        []
+    }
+
+    protected static String parentMethodInvocationDeprecation(String methodName) {
+        "Dynamically invoking parent method from a child project has been deprecated. " +
+            "This will fail with an error in Gradle 10. " +
+            "Cannot dynamically invoke method '$methodName' on root project 'test' from project ':child'. " +
+            "Consult the upgrading guide for further information: " +
+            "${BASE_URL}/userguide/upgrading_version_9.html#deprecated_accessing_parent_project_properties"
+    }
+
+    protected static String parentPropertyAccessDeprecation(String propertyName) {
+        "Accessing a property from a parent project has been deprecated. " +
+            "This will fail with an error in Gradle 10. " +
+            "Property '$propertyName' was not found in project ':child' and was dynamically resolved from root project 'test'. " +
+            "Consult the upgrading guide for further information: " +
+            "${BASE_URL}/userguide/upgrading_version_9.html#deprecated_accessing_parent_project_properties"
     }
 
     private List<List<String>> iterations() {
@@ -68,6 +114,40 @@ abstract class AbstractPluginValidatingSmokeTest extends AbstractSmokeTest imple
 
         expect:
         performValidation(version)
+
+        where:
+        iterations << iterations()
+        (id, version) = iterations
+    }
+
+    def "configures plugin #id version #version from subproject"(String id, String version) {
+        def childConfig = getChildProjectConfiguration(id, version)
+
+        given:
+        def extraPluginsBlock = getExtraPluginsRequiredForValidation(id, version).collect { pluginId, pluginVersion ->
+            "                id '$pluginId'" + (pluginVersion ? "version '$pluginVersion'" : "")
+        }.join('\n')
+        SmokeTestGradleRunner testRunner = null
+        if (childConfig != null) {
+            buildFile << """
+                plugins {
+                    $extraPluginsBlock
+                    id '$id'${version ? " version '$version'" : ""}
+                }
+
+                $buildScriptConfigurationForValidation
+            """
+            settingsFile << """
+                rootProject.name = "test"
+                include("child")
+            """
+            file("child/build.gradle") << childConfig
+            testRunner = runner("help")
+            getChildProjectExpectedDeprecations(id, version).each { testRunner.expectLegacyDeprecationWarning(it) }
+        }
+
+        expect:
+        childConfig == null || testRunner.build() != null
 
         where:
         iterations << iterations()

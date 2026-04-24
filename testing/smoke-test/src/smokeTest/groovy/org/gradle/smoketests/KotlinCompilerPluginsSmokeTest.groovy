@@ -24,4 +24,14 @@ class KotlinCompilerPluginsSmokeTest extends AbstractPluginValidatingSmokeTest {
             'org.jetbrains.kotlin.plugin.spring': TestedVersions.kotlin
         ]
     }
+
+    @Override
+    String getChildProjectConfiguration(String testedPluginId, String version) {
+        "allOpen {}"
+    }
+
+    @Override
+    List<String> getChildProjectExpectedDeprecations(String testedPluginId, String version) {
+        [parentMethodInvocationDeprecation('allOpen')]
+    }
 }

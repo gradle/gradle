@@ -16,11 +16,29 @@
 
 package org.gradle.smoketests
 
+import static org.gradle.api.internal.DocumentationRegistry.BASE_URL
+
 class DetektPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
     @Override
     Map<String, Versions> getPluginsToValidate() {
         [
             'io.gitlab.arturbosch.detekt': TestedVersions.detekt
+        ]
+    }
+
+    @Override
+    String getChildProjectConfiguration(String testedPluginId, String version) {
+        "detekt {}"
+    }
+
+    @Override
+    List<String> getChildProjectExpectedDeprecations(String testedPluginId, String version) {
+        [
+            "The ReportingExtension.file(String) method has been deprecated. This is scheduled to be removed in Gradle 10. " +
+                "Please use the getBaseDirectory().file(String) or getBaseDirectory().dir(String) method instead. " +
+                "Consult the upgrading guide for further information: " +
+                "${BASE_URL}/userguide/upgrading_version_9.html#reporting_extension_file",
+            parentMethodInvocationDeprecation('detekt'),
         ]
     }
 }

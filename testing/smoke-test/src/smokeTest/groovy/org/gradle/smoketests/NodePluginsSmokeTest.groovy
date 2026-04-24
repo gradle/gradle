@@ -46,4 +46,14 @@ class NodePluginsSmokeTest extends AbstractPluginValidatingSmokeTest implements 
             }
         }
     }
+
+    @Override
+    String getChildProjectConfiguration(String testedPluginId, String version) {
+        "node {}"
+    }
+
+    @Override
+    List<String> getChildProjectExpectedDeprecations(String testedPluginId, String version) {
+        [parentMethodInvocationDeprecation('node')]
+    }
 }

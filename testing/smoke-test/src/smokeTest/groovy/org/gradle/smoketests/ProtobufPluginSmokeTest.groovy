@@ -108,4 +108,14 @@ class ProtobufPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
     Map<String, String> getExtraPluginsRequiredForValidation() {
         ['java': '']
     }
+
+    @Override
+    String getChildProjectConfiguration(String testedPluginId, String version) {
+        "protobuf {}"
+    }
+
+    @Override
+    List<String> getChildProjectExpectedDeprecations(String testedPluginId, String version) {
+        [parentMethodInvocationDeprecation('protobuf')]
+    }
 }

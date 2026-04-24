@@ -60,4 +60,14 @@ class SpotBugsPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
             'com.github.spotbugs': Versions.of(TestedVersions.spotbugs)
         ]
     }
+
+    @Override
+    String getChildProjectConfiguration(String testedPluginId, String version) {
+        "spotbugs {}"
+    }
+
+    @Override
+    List<String> getChildProjectExpectedDeprecations(String testedPluginId, String version) {
+        [parentMethodInvocationDeprecation('spotbugs')]
+    }
 }

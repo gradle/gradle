@@ -24,6 +24,16 @@ class PublishingSmokeTest extends AbstractPluginValidatingSmokeTest {
         ]
     }
 
+    @Override
+    String getChildProjectConfiguration(String testedPluginId, String version) {
+        "mavenPublishing {}"
+    }
+
+    @Override
+    List<String> getChildProjectExpectedDeprecations(String testedPluginId, String version) {
+        [parentMethodInvocationDeprecation('mavenPublishing')]
+    }
+
     def "can publish with vanniktech maven publish plugin"() {
         given:
         settingsFile << """

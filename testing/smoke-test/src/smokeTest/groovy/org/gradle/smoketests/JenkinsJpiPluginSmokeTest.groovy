@@ -28,4 +28,14 @@ class JenkinsJpiPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
             'org.jenkins-ci.jpi': TestedVersions.jenkinsJpi,
         ]
     }
+
+    @Override
+    String getChildProjectConfiguration(String testedPluginId, String version) {
+        "jenkinsPlugin {}"
+    }
+
+    @Override
+    List<String> getChildProjectExpectedDeprecations(String testedPluginId, String version) {
+        [parentMethodInvocationDeprecation('jenkinsPlugin')]
+    }
 }

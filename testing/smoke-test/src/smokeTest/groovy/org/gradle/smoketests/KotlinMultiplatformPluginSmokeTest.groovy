@@ -23,6 +23,7 @@ import org.gradle.util.GradleVersion
 import org.gradle.util.internal.VersionNumber
 import spock.lang.Issue
 
+import static org.gradle.api.internal.DocumentationRegistry.BASE_URL
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
 /**
@@ -206,6 +207,27 @@ class KotlinMultiplatformPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
         [
             'org.jetbrains.kotlin.multiplatform': TestedVersions.kotlin
         ]
+    }
+
+    @Override
+    String getChildProjectConfiguration(String testedPluginId, String version) {
+        "kotlin {}"
+    }
+
+    @Override
+    List<String> getChildProjectExpectedDeprecations(String testedPluginId, String version) {
+        def deprecations = [parentMethodInvocationDeprecation('kotlin')]
+        if (VersionNumber.parse(version) < VersionNumber.parse("2.3.0")) {
+            // Older Kotlin Multiplatform versions declare artifacts on the deprecated 'archives' configuration.
+            deprecations << (
+                "The archives configuration has been deprecated for artifact declaration. " +
+                    "This will fail with an error in Gradle 10. " +
+                    "Add artifacts as direct task dependencies of the 'assemble' task instead of declaring them in the archives configuration. " +
+                    "Consult the upgrading guide for further information: " +
+                    "${BASE_URL}/userguide/upgrading_version_9.html#sec:archives-configuration"
+            )
+        }
+        deprecations
     }
 
     private void replaceCssSupportBlocksInBuildFile() {

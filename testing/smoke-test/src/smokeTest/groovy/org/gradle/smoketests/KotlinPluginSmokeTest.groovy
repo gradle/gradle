@@ -21,6 +21,7 @@ import org.gradle.integtests.fixtures.versions.KotlinGradlePluginVersions
 import org.gradle.util.GradleVersion
 import org.gradle.util.internal.VersionNumber
 
+import static org.gradle.api.internal.DocumentationRegistry.BASE_URL
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 import static org.gradle.testkit.runner.TaskOutcome.UP_TO_DATE
 
@@ -237,5 +238,33 @@ class KotlinPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
             return ['org.jetbrains.kotlin.jvm': version]
         }
         return [:]
+    }
+
+    @Override
+    String getChildProjectConfiguration(String testedPluginId, String version) {
+        // cocoapods requires multiplatform setup; skip.
+        testedPluginId == 'org.jetbrains.kotlin.native.cocoapods' ? null : "kotlin {}"
+    }
+
+    @Override
+    List<String> getChildProjectExpectedDeprecations(String testedPluginId, String version) {
+        if (testedPluginId == 'org.jetbrains.kotlin.native.cocoapods') {
+            return []
+        }
+        def deprecations = [parentMethodInvocationDeprecation('kotlin')]
+        if (VersionNumber.parse(version) < VersionNumber.parse("2.1.0")) {
+            // Kotlin 2.0.x declares legacy 'java-api-jars' and 'java-runtime-jars' Usage values.
+            ['java-api-jars': 'java-api', 'java-runtime-jars': 'java-runtime'].each { legacy, modern ->
+                deprecations << (
+                    "Declaring a Usage attribute with a legacy value has been deprecated. " +
+                        "This will fail with an error in Gradle 10. " +
+                        "A Usage attribute was declared with value '${legacy}'. " +
+                        "Declare a Usage attribute with value '${modern}' and a LibraryElements attribute with value 'jar' instead. " +
+                        "Consult the upgrading guide for further information: " +
+                        "${BASE_URL}/userguide/upgrading_version_9.html#deprecate_legacy_usage_values"
+                )
+            }
+        }
+        deprecations
     }
 }

@@ -28,4 +28,14 @@ class JibPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
     Map<String, String> getExtraPluginsRequiredForValidation() {
         ['java': '']
     }
+
+    @Override
+    String getChildProjectConfiguration(String testedPluginId, String version) {
+        "jib {}"
+    }
+
+    @Override
+    List<String> getChildProjectExpectedDeprecations(String testedPluginId, String version) {
+        [parentMethodInvocationDeprecation('jib')]
+    }
 }

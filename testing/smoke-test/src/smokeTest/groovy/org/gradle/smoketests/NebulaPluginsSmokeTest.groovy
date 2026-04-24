@@ -245,6 +245,30 @@ testImplementation('junit:junit:4.7')""")
             'com.netflix.nebula.resolution-rules': Versions.of(TestedVersions.nebulaResolutionRules)
         ]
     }
+
+    @Override
+    String getChildProjectConfiguration(String testedPluginId, String version) {
+        switch (testedPluginId) {
+            case 'com.netflix.nebula.dependency-recommender':
+                return "dependencyRecommendations {}"
+            case 'com.netflix.nebula.lint':
+                return "gradleLint.rules = []"
+            default:
+                return null
+        }
+    }
+
+    @Override
+    List<String> getChildProjectExpectedDeprecations(String testedPluginId, String version) {
+        switch (testedPluginId) {
+            case 'com.netflix.nebula.dependency-recommender':
+                return [parentMethodInvocationDeprecation('dependencyRecommendations')]
+            case 'com.netflix.nebula.lint':
+                return [parentPropertyAccessDeprecation('gradleLint')]
+            default:
+                return []
+        }
+    }
 }
 
 

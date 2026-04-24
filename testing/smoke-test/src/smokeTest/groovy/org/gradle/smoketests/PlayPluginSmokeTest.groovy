@@ -77,4 +77,14 @@ class PlayPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
             'org.gradle.playframework': Versions.of(TestedVersions.playframework)
         ]
     }
+
+    @Override
+    String getChildProjectConfiguration(String testedPluginId, String version) {
+        "play {}"
+    }
+
+    @Override
+    List<String> getChildProjectExpectedDeprecations(String testedPluginId, String version) {
+        [parentMethodInvocationDeprecation('play')]
+    }
 }

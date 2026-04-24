@@ -31,6 +31,8 @@ import spock.lang.Issue
 import java.nio.charset.StandardCharsets
 import java.util.concurrent.ConcurrentHashMap
 
+import static org.gradle.api.internal.DocumentationRegistry.BASE_URL
+
 // https://plugins.gradle.org/plugin/com.gradle.develocity
 class DevelocityPluginSmokeTest extends AbstractSmokeTest {
 
@@ -177,6 +179,7 @@ class DevelocityPluginSmokeTest extends AbstractSmokeTest {
     private static final VersionNumber FIRST_VERSION_UNDER_DEVELOCITY_BRAND = VersionNumber.parse("3.17")
     private static final VersionNumber FIRST_VERSION_WITH_IMPORT_JUNIT_XML_REPORTS = VersionNumber.parse("3.17")
     private static final VersionNumber FIRST_VERSION_WITHOUT_CROSS_PROJECT_IMPORT_JUNIT_XML_REPORTS = VersionNumber.parse("4.4")
+    private static final VersionNumber FIRST_VERSION_4 = VersionNumber.parse("4.0")
 
     def "coverage at least up to auto-applied version"() {
         expect:
@@ -193,6 +196,31 @@ class DevelocityPluginSmokeTest extends AbstractSmokeTest {
 
         where:
         version << SUPPORTED
+    }
+
+    def "can configure buildScan from subproject with plugin #version"() {
+        when:
+        usePluginVersion version
+        file("child/build.gradle") << """
+            develocity {
+                buildScan {
+                    tag("child-tag")
+                    value("origin", "child-project")
+                }
+            }
+        """
+
+        then:
+        scanRunner()
+            .expectLegacyDeprecationWarningIf(VersionNumber.parse(version) < FIRST_VERSION_4,
+                "Dynamically invoking parent method from a child project has been deprecated. This will fail with an error in Gradle 10. " +
+                    "Cannot dynamically invoke method 'develocity' on root project 'test' from project ':child'. " +
+                    "Consult the upgrading guide for further information: " +
+                    "${BASE_URL}/userguide/upgrading_version_9.html#deprecated_accessing_parent_project_properties")
+            .build().output.contains("Build scan written to")
+
+        where:
+        version << SUPPORTED.findAll { VersionNumber.parse(it) >= FIRST_VERSION_UNDER_DEVELOCITY_BRAND }
     }
 
     @Issue("https://github.com/gradle/gradle/issues/34252")
@@ -611,6 +639,7 @@ public class MyFlakyTest {
      */
     private void setupMinimalChildProject() {
         settingsFile << """
+            rootProject.name = "test"
             include("child")
         """
         file("child/build.gradle") << ""

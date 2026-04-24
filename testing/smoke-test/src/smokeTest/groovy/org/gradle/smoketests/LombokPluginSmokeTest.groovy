@@ -23,4 +23,14 @@ class LombokPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
             'io.freefair.lombok': TestedVersions.lombok
         ]
     }
+
+    @Override
+    String getChildProjectConfiguration(String testedPluginId, String version) {
+        "lombok {}"
+    }
+
+    @Override
+    List<String> getChildProjectExpectedDeprecations(String testedPluginId, String version) {
+        [parentMethodInvocationDeprecation('lombok')]
+    }
 }
