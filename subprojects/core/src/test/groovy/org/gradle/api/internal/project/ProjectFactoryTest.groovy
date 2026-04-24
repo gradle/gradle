@@ -59,12 +59,15 @@ class ProjectFactoryTest extends Specification {
 
     def setup() {
         owner.identityPath >> buildId
+        owner.mutableModel >> gradle
 
         projectDescriptor.identity >> projectIdentity
         projectDescriptor.projectDir >> projectDir
         projectDescriptor.buildFile >> buildFile
 
         projectState.identity >> projectIdentity
+        projectState.owner >> owner
+        projectState.descriptor >> projectDescriptor
 
         projectDir.createDir()
     }
@@ -77,11 +80,11 @@ class ProjectFactoryTest extends Specification {
         serviceRegistry.get(DependencyResolutionManagementInternal) >> dependencyResolutionManagement
 
         when:
-        def result = factory.createProject(gradle, projectDescriptor, projectState, null, serviceRegistryFactory, rootProjectScope, baseScope)
+        def result = factory.createProject(projectState, rootProjectScope, baseScope, serviceRegistryFactory)
 
         then:
         result == project
-        1 * instantiator.newInstance(DefaultProject, "name", null, projectDir, buildFile, { it instanceof TextResourceScriptSource }, gradle, projectState, serviceRegistryFactory, rootProjectScope, baseScope) >> project
+        1 * instantiator.newInstance(DefaultProject, projectState, rootProjectScope, baseScope, { it instanceof TextResourceScriptSource }, serviceRegistryFactory) >> project
         1 * projectRegistry.addProject(project)
         1 * dependencyResolutionManagement.configureProject(project)
     }
@@ -92,28 +95,26 @@ class ProjectFactoryTest extends Specification {
         gradle.services >> serviceRegistry
         serviceRegistry.get(DependencyResolutionManagementInternal) >> dependencyResolutionManagement
         when:
-        def result = factory.createProject(gradle, projectDescriptor, projectState, null, serviceRegistryFactory, rootProjectScope, baseScope)
+        def result = factory.createProject(projectState, rootProjectScope, baseScope, serviceRegistryFactory)
 
         then:
         result == project
-        1 * instantiator.newInstance(DefaultProject, "name", null, projectDir, buildFile, { it.resource instanceof EmptyFileTextResource }, gradle, projectState, serviceRegistryFactory, rootProjectScope, baseScope) >> project
+        1 * instantiator.newInstance(DefaultProject, projectState, rootProjectScope, baseScope, { it.resource instanceof EmptyFileTextResource }, serviceRegistryFactory) >> project
         1 * projectRegistry.addProject(project)
         1 * dependencyResolutionManagement.configureProject(project)
     }
 
     def "creates a child project"() {
-        def parent = Mock(ProjectInternal)
-
         given:
         gradle.projectRegistry >> projectRegistry
         gradle.services >> serviceRegistry
         serviceRegistry.get(DependencyResolutionManagementInternal) >> dependencyResolutionManagement
         when:
-        def result = factory.createProject(gradle, projectDescriptor, projectState, parent, serviceRegistryFactory, rootProjectScope, baseScope)
+        def result = factory.createProject(projectState, rootProjectScope, baseScope, serviceRegistryFactory)
 
         then:
         result == project
-        1 * instantiator.newInstance(DefaultProject, "name", parent, projectDir, buildFile, _, gradle, projectState, serviceRegistryFactory, rootProjectScope, baseScope) >> project
+        1 * instantiator.newInstance(DefaultProject, projectState, rootProjectScope, baseScope, _, serviceRegistryFactory) >> project
         1 * projectRegistry.addProject(project)
         1 * dependencyResolutionManagement.configureProject(project)
     }

@@ -217,28 +217,25 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     private Object beforeProjectActionState;
 
     public DefaultProject(
-        String name,
-        @Nullable ProjectInternal parent,
-        File projectDir,
-        File buildFile,
-        ScriptSource buildScriptSource,
-        GradleInternal gradle,
         ProjectState owner,
-        ServiceRegistryFactory serviceRegistryFactory,
         ClassLoaderScope selfClassLoaderScope,
-        ClassLoaderScope baseClassLoaderScope
+        ClassLoaderScope baseClassLoaderScope,
+        ScriptSource buildScriptSource,
+        ServiceRegistryFactory serviceRegistryFactory
     ) {
         this.owner = owner;
         this.classLoaderScope = selfClassLoaderScope;
         this.baseClassLoaderScope = baseClassLoaderScope;
-        this.rootProject = parent != null ? parent.getRootProject() : this;
-        this.projectDir = projectDir;
-        this.buildFile = buildFile;
-        this.parent = parent;
-        this.name = name;
-        this.state = new ProjectStateInternal();
         this.buildScriptSource = buildScriptSource;
-        this.gradle = gradle;
+
+        ProjectState parentProjectOwner = owner.getParent();
+        this.parent = parentProjectOwner == null ? null : parentProjectOwner.getMutableModel();
+        this.rootProject = parent != null ? parent.getRootProject() : this;
+        this.name = owner.getIdentity().getProjectName();
+        this.projectDir = owner.getDescriptor().getProjectDir();
+        this.buildFile = owner.getDescriptor().getBuildFile();
+        this.state = new ProjectStateInternal();
+        this.gradle = owner.getOwner().getMutableModel();
 
         services = serviceRegistryFactory.createFor(this);
         taskContainer = services.get(TaskContainerInternal.class);
