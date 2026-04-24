@@ -30,7 +30,6 @@ import org.gradle.internal.buildtree.BuildModelParameters
  *
  * @see org.gradle.internal.buildtree.BuildModelParameters
  */
-internal
 object BuildModelParametersProvider {
 
     private

@@ -48,4 +48,7 @@ dependencies {
     pluginsRuntimeOnly(projects.isolatedActionServices) {
         because("This is required for IsolatedProjectEvaluationListenerProvider service implementation.")
     }
+    pluginsRuntimeOnly(projects.buildTreeControl) {
+        because("We always need a BuildModelParameters service implementation")
+    }
 }

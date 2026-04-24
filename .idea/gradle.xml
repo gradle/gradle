@@ -99,6 +99,7 @@
             <option value="$PROJECT_DIR$/platforms/core-configuration/base-diagnostics" />
             <option value="$PROJECT_DIR$/platforms/core-configuration/base-services-groovy" />
             <option value="$PROJECT_DIR$/platforms/core-configuration/bean-serialization-services" />
+            <option value="$PROJECT_DIR$/platforms/core-configuration/build-tree-control" />
             <option value="$PROJECT_DIR$/platforms/core-configuration/configuration-cache" />
             <option value="$PROJECT_DIR$/platforms/core-configuration/configuration-cache-base" />
             <option value="$PROJECT_DIR$/platforms/core-configuration/configuration-problems-base" />
@@ -170,8 +171,8 @@
             <option value="$PROJECT_DIR$/platforms/core-runtime/build-process-services" />
             <option value="$PROJECT_DIR$/platforms/core-runtime/build-profile" />
             <option value="$PROJECT_DIR$/platforms/core-runtime/build-state" />
-            <option value="$PROJECT_DIR$/platforms/core-runtime/classpath" />
             <option value="$PROJECT_DIR$/platforms/core-runtime/classloaders" />
+            <option value="$PROJECT_DIR$/platforms/core-runtime/classpath" />
             <option value="$PROJECT_DIR$/platforms/core-runtime/cli" />
             <option value="$PROJECT_DIR$/platforms/core-runtime/client-services" />
             <option value="$PROJECT_DIR$/platforms/core-runtime/collections" />
