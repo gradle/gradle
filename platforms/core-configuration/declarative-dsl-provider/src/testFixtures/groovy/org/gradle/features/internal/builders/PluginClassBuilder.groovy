@@ -16,19 +16,11 @@
 
 package org.gradle.features.internal.builders
 
-import org.gradle.api.provider.ProviderFactory
-import org.gradle.features.annotations.BindsProjectFeature
 import org.gradle.features.annotations.BindsProjectType
-import org.gradle.features.binding.BuildModel
-import org.gradle.features.binding.Definition
 import org.gradle.features.binding.ProjectFeatureApplicationContext
-import org.gradle.features.binding.ProjectFeatureApplyAction
-import org.gradle.features.binding.ProjectFeatureBinding
-import org.gradle.features.binding.ProjectFeatureBindingBuilder
 import org.gradle.features.binding.ProjectTypeApplyAction
 import org.gradle.features.binding.ProjectTypeBinding
 import org.gradle.features.binding.ProjectTypeBindingBuilder
-import org.gradle.features.file.ProjectFeatureLayout
 import org.gradle.features.internal.builders.dsl.ClosureConfigure
 import org.gradle.features.registration.TaskRegistrar
 
@@ -248,16 +240,37 @@ class PluginClassBuilder extends AbstractPluginBuilder {
         if (kind == PluginKind.PROJECT_TYPE) {
             return generateJavaProjectTypePlugin()
         }
-        return generateJavaProjectFeaturePlugin()
+        return asFeature().renderJava()
     }
 
     private StandalonePluginBuilder asStandalone() {
         def b = new StandalonePluginBuilder()
+        copyCommonStateTo(b)
+        return b
+    }
+
+    private AbstractFeaturePluginBuilder asFeature() {
+        AbstractFeaturePluginBuilder b
+        if (hasNoBuildModel) {
+            b = new NoBuildModelFeaturePluginBuilder()
+        } else if (bindings.count { it.bindingTypeClassName != null } > 1) {
+            b = new MultiTargetFeaturePluginBuilder()
+        } else {
+            b = new FeaturePluginBuilder()
+        }
+        copyCommonStateTo(b)
+        b.bindings = bindings
+        return b
+    }
+
+    private void copyCommonStateTo(AbstractPluginBuilder b) {
         b.pluginClassName = pluginClassName
         b.packageName = packageName
         b.language = language
         b.type = type
-        return b
+        b.bindingModifiers = bindingModifiers
+        b.applyActionDeclaration = applyActionDeclaration
+        b.customApplyActionCode = customApplyActionCode
     }
 
     private String generateJavaProjectTypePlugin() {
@@ -388,226 +401,6 @@ class PluginClassBuilder extends AbstractPluginBuilder {
         """
     }
 
-    private String generateJavaProjectFeaturePlugin() {
-        if (hasNoBuildModel) {
-            return generateJavaFeatureWithNoBuildModel()
-        }
-        if (bindings.count { it.bindingTypeClassName != null } > 1) {
-            return generateJavaFeatureWithMultipleBindingTargets()
-        }
-        return generateJavaFeaturePlugin()
-    }
-
-    private String generateJavaFeaturePlugin() {
-        def modifiers = maybeDeclareBindingModifiers()
-        def implType = primaryDefinition.implementationClassName
-            ? ".withUnsafeDefinitionImplementationType(${primaryDefinition.implementationClassName}.class)"
-            : ""
-        def bmImplType = primaryDefinition.buildModelFullImplementationClassName
-            ? ".withBuildModelImplementationType(${primaryDefinition.buildModelFullImplementationClassName}.class)"
-            : ""
-
-        def parentType = getParentTypeForApplyAction()
-        def buildModelType = primaryDefinition.buildModelFullPublicClassName
-
-        return """
-            package ${packageName};
-
-            import org.gradle.api.Plugin;
-            import org.gradle.api.Project;
-            import ${BindsProjectFeature.class.name};
-            import ${ProjectFeatureBindingBuilder.class.name};
-            import static ${ProjectFeatureBindingBuilder.class.name}.bindingToTargetDefinition;
-            import ${ProjectFeatureBinding.class.name};
-            import ${ProjectFeatureApplyAction.class.name};
-            import ${ProjectFeatureApplicationContext.class.name};
-            import ${BuildModel.class.name};
-
-            @${BindsProjectFeature.class.simpleName}(${pluginClassName}.Binding.class)
-            public class ${pluginClassName} implements Plugin<Project> {
-
-                static class Binding implements ${ProjectFeatureBinding.class.simpleName} {
-                    @Override public void bind(${ProjectFeatureBindingBuilder.class.simpleName} builder) {
-                        builder.${bindingMethodName}(
-                            "${name}",
-                            ${primaryDefinition.className}.class,
-                            ${bindingTypeClassName}.class,
-                            ${pluginClassName}.ApplyAction.class
-                        )
-                        ${implType}${bmImplType}${modifiers};
-                    }
-                }
-
-                static abstract class ApplyAction implements ${ProjectFeatureApplyAction.class.simpleName}<${primaryDefinition.className}, ${buildModelType}, ${parentType}> {
-                    @javax.inject.Inject public ApplyAction() { }
-
-                    ${generateJavaFeatureApplyActionServices()}
-
-                    @Override
-                    public void apply(${ProjectFeatureApplicationContext.class.simpleName} context, ${primaryDefinition.className} definition, ${buildModelType} model, ${parentType} parent) {
-                        System.out.println("Binding ${primaryDefinition.className}");
-                        System.out.println("${name} model class: " + model.getClass().getSimpleName());
-                        System.out.println("${name} parent model class: " + context.getBuildModel(parent).getClass().getSimpleName());
-
-                        ${buildModelMappingForLanguage()}
-
-                        getTaskRegistrar().register("print${primaryDefinition.className}Configuration", task -> {
-                            task.doLast(t -> {
-                                ${displayDefinitionValuesForLanguage()}
-                                ${displayModelValuesForLanguage()}
-                            });
-                        });
-                    }
-                }
-
-                @Override
-                public void apply(Project project) {
-
-                }
-            }
-        """
-    }
-
-    private String generateJavaFeatureWithNoBuildModel() {
-        def modifiers = maybeDeclareBindingModifiers()
-
-        return """
-            package ${packageName};
-
-            import org.gradle.api.Plugin;
-            import org.gradle.api.Project;
-            import ${BindsProjectFeature.class.name};
-            import ${ProjectFeatureBindingBuilder.class.name};
-            import static ${ProjectFeatureBindingBuilder.class.name}.bindingToTargetDefinition;
-            import ${ProjectFeatureBinding.class.name};
-            import ${ProjectFeatureApplyAction.class.name};
-            import ${ProjectFeatureApplicationContext.class.name};
-            import org.gradle.features.binding.BuildModel;
-
-            @${BindsProjectFeature.class.simpleName}(${pluginClassName}.Binding.class)
-            public class ${pluginClassName} implements Plugin<Project> {
-
-                static class Binding implements ${ProjectFeatureBinding.class.simpleName} {
-                    @Override public void bind(${ProjectFeatureBindingBuilder.class.simpleName} builder) {
-                        builder.${bindingMethodName}(
-                            "${name}",
-                            ${primaryDefinition.className}.class,
-                            ${bindingTypeClassName}.class,
-                            ${pluginClassName}.ApplyAction.class
-                        )${modifiers};
-                    }
-                }
-
-                static abstract class ApplyAction implements ${ProjectFeatureApplyAction.class.name}<${primaryDefinition.className}, BuildModel.None, ${bindingTypeClassName}> {
-                    @javax.inject.Inject public ApplyAction() { }
-
-                    ${generateJavaFeatureApplyActionServices()}
-
-                    @Override
-                    public void apply(${ProjectFeatureApplicationContext.class.name} context, ${primaryDefinition.className} definition, BuildModel.None model, ${bindingTypeClassName} parent) {
-                        System.out.println("Binding ${primaryDefinition.className}");
-                        System.out.println("${name} model class: " + model.getClass().getSimpleName());
-
-                        ${customApplyActionCode}
-
-                        getTaskRegistrar().register("print${primaryDefinition.className}Configuration", task -> {
-                            task.doLast(t -> {
-                                ${displayDefinitionValuesForLanguage()}
-                            });
-                        });
-                    }
-                }
-
-                @Override
-                public void apply(Project project) {
-                }
-            }
-        """
-    }
-
-    private String generateJavaFeatureWithMultipleBindingTargets() {
-        def modifiers = maybeDeclareBindingModifiers()
-        def buildModelType = primaryDefinition.buildModelFullPublicClassName
-
-        // Each binding target gets its own concrete ApplyAction subclass
-        def allTargets = bindings.collect { it.bindingTypeClassName }.findAll { it != null }
-        def bindCalls = allTargets.withIndex().collect { target, idx ->
-            def simpleTarget = target.tokenize('.').last()
-            """builder.${bindingMethodName}(
-                            "${name}",
-                            ${primaryDefinition.className}.class,
-                            ${target}.class,
-                            ${pluginClassName}.${simpleTarget}ApplyAction.class
-                        )${modifiers};"""
-        }.join("\n                        ")
-
-        def concreteActions = allTargets.withIndex().collect { target, idx ->
-            def simpleTarget = target.tokenize('.').last()
-            def parentType = (bindingMethodName == "bindProjectFeatureToBuildModel")
-                ? "${Definition.class.name}<${target}>"
-                : target
-            """
-                static abstract class ${simpleTarget}ApplyAction extends BaseApplyAction<${parentType}> {
-                    @javax.inject.Inject public ${simpleTarget}ApplyAction() { }
-                    @Override protected String getTaskName() { return "print${primaryDefinition.className}${idx + 1}Configuration"; }
-                }
-            """
-        }.join("\n")
-
-        return """
-            package ${packageName};
-
-            import org.gradle.api.Plugin;
-            import org.gradle.api.Project;
-            import ${BindsProjectFeature.class.name};
-            import ${ProjectFeatureBindingBuilder.class.name};
-            import static ${ProjectFeatureBindingBuilder.class.name}.bindingToTargetDefinition;
-            import ${ProjectFeatureBinding.class.name};
-            import ${ProjectFeatureApplyAction.class.name};
-            import ${ProjectFeatureApplicationContext.class.name};
-            import ${Definition.class.name};
-
-            @${BindsProjectFeature.class.simpleName}(${pluginClassName}.Binding.class)
-            public class ${pluginClassName} implements Plugin<Project> {
-
-                static class Binding implements ${ProjectFeatureBinding.class.simpleName} {
-                    @Override public void bind(${ProjectFeatureBindingBuilder.class.simpleName} builder) {
-                        ${bindCalls}
-                    }
-                }
-
-                static abstract class BaseApplyAction<P extends ${Definition.class.name}<?>> implements ${ProjectFeatureApplyAction.class.name}<${primaryDefinition.className}, ${buildModelType}, P> {
-                    @javax.inject.Inject public BaseApplyAction() { }
-
-                    ${generateJavaFeatureApplyActionServices()}
-
-                    abstract protected String getTaskName();
-
-                    @Override
-                    public void apply(${ProjectFeatureApplicationContext.class.name} context, ${primaryDefinition.className} definition, ${buildModelType} model, P parent) {
-                        System.out.println("Binding ${primaryDefinition.className}");
-                        System.out.println("${name} model class: " + model.getClass().getSimpleName());
-
-                        ${buildModelMappingForLanguage()}
-
-                        getTaskRegistrar().register(getTaskName(), task -> {
-                            task.doLast(t -> {
-                                ${displayDefinitionValuesForLanguage()}
-                                ${displayModelValuesForLanguage()}
-                            });
-                        });
-                    }
-                }
-
-                ${concreteActions}
-
-                @Override
-                public void apply(Project project) {
-                }
-            }
-        """
-    }
-
     // --- Kotlin code generation ---
 
     @Override
@@ -621,10 +414,7 @@ class PluginClassBuilder extends AbstractPluginBuilder {
             }
             return generateKotlinProjectTypePlugin()
         }
-        if (hasNoBuildModel) {
-            return generateKotlinReifiedFeaturePlugin()
-        }
-        return generateKotlinFeaturePlugin()
+        return asFeature().renderKotlin()
     }
 
     private String generateKotlinProjectTypePlugin() {
@@ -742,114 +532,6 @@ class PluginClassBuilder extends AbstractPluginBuilder {
         """
     }
 
-    private String generateKotlinFeaturePlugin() {
-        def modifiers = maybeDeclareBindingModifiers()
-        def parentType = getParentTypeForApplyAction()
-        def buildModelType = primaryDefinition.buildModelFullPublicClassName
-
-        return """
-            package ${packageName}
-
-            import org.gradle.api.Plugin
-            import org.gradle.api.Project
-            import ${BindsProjectFeature.class.name}
-            import ${ProjectFeatureBindingBuilder.class.name}
-            import ${ProjectFeatureBinding.class.name}
-            import ${ProjectFeatureApplyAction.class.name}
-            import ${ProjectFeatureApplicationContext.class.name}
-            import javax.inject.Inject
-
-            @${BindsProjectFeature.class.simpleName}(${pluginClassName}.Binding::class)
-            class ${pluginClassName} : Plugin<Project> {
-
-                class Binding : ${ProjectFeatureBinding.class.simpleName} {
-                    override fun bind(builder: ${ProjectFeatureBindingBuilder.class.simpleName}) {
-                        builder.${bindingMethodName}("${name}", ${primaryDefinition.className}::class.java, ${bindingTypeClassName}::class.java, ${pluginClassName}.ApplyAction::class.java)${modifiers}
-                    }
-                }
-
-                abstract class ApplyAction @Inject constructor() : ${ProjectFeatureApplyAction.class.simpleName}<${primaryDefinition.className}, ${buildModelType}, ${parentType}> {
-
-                    @get:Inject
-                    abstract val taskRegistrar: ${TaskRegistrar.class.name}
-
-                    @get:Inject
-                    abstract val projectFeatureLayout: ${ProjectFeatureLayout.class.name}
-
-                    @get:Inject
-                    abstract val providerFactory: ${ProviderFactory.class.name}
-
-                    override fun apply(context: ${ProjectFeatureApplicationContext.class.name}, definition: ${primaryDefinition.className}, model: ${buildModelType}, parent: ${parentType}) {
-                        println("Binding ${primaryDefinition.className}")
-                        println("${name} model class: " + model::class.simpleName)
-                        println("${name} parent model class: " + context.getBuildModel(parent)::class.simpleName)
-
-                        ${buildModelMappingForLanguage()}
-
-                        taskRegistrar.register("print${primaryDefinition.className}Configuration") { task ->
-                            task.doLast { _ ->
-                                ${displayDefinitionValuesForLanguage()}
-                                ${displayModelValuesForLanguage()}
-                            }
-                        }
-                    }
-                }
-
-                override fun apply(project: Project) {
-                }
-            }
-        """
-    }
-
-    private String generateKotlinReifiedFeaturePlugin() {
-        def modifiers = maybeDeclareBindingModifiers()
-
-        return """
-            package ${packageName}
-
-            import org.gradle.api.Plugin
-            import org.gradle.api.Project
-            import ${BindsProjectFeature.class.name}
-            import ${ProjectFeatureBindingBuilder.class.name}
-            import ${ProjectFeatureBinding.class.name}
-            import ${ProjectFeatureApplyAction.class.name}
-            import ${ProjectFeatureApplicationContext.class.name}
-            import ${BuildModel.class.name}
-            import org.gradle.features.dsl.bindProjectFeature
-            import javax.inject.Inject
-
-            @${BindsProjectFeature.class.simpleName}(${pluginClassName}.Binding::class)
-            class ${pluginClassName} : Plugin<Project> {
-
-                class Binding : ${ProjectFeatureBinding.class.simpleName} {
-                    override fun bind(builder: ${ProjectFeatureBindingBuilder.class.simpleName}) {
-                        builder.bindProjectFeature("${name}", ${pluginClassName}.ApplyAction::class)${modifiers}
-                    }
-                }
-
-                abstract class ApplyAction @Inject constructor() : ${ProjectFeatureApplyAction.class.simpleName}<${primaryDefinition.className}, BuildModel.None, ${bindingTypeClassName}> {
-
-                    @get:Inject
-                    abstract val taskRegistrar: ${TaskRegistrar.class.name}
-
-                    override fun apply(context: ${ProjectFeatureApplicationContext.class.name}, definition: ${primaryDefinition.className}, model: BuildModel.None, parent: ${bindingTypeClassName}) {
-                        println("Binding ${primaryDefinition.className}")
-                        println("${name} model class: " + model::class.simpleName)
-
-                        taskRegistrar.register("print${primaryDefinition.className}Configuration") { task ->
-                            task.doLast { _ ->
-                                ${displayDefinitionValuesForLanguage()}
-                            }
-                        }
-                    }
-                }
-
-                override fun apply(project: Project) {
-                }
-            }
-        """
-    }
-
     // --- Service injection helpers ---
 
     private String generateJavaTypeApplyActionServices() {
@@ -860,68 +542,6 @@ class PluginClassBuilder extends AbstractPluginBuilder {
                     @javax.inject.Inject
                     abstract protected ${TaskRegistrar.class.name} getTaskRegistrar();
         """
-    }
-
-    private String generateJavaFeatureApplyActionServices() {
-        if (!applyActionDeclaration.injectedServices.isEmpty()) {
-            return generateCustomServices(applyActionDeclaration.injectedServices, true)
-        }
-        return """
-                    @javax.inject.Inject
-                    abstract protected ${TaskRegistrar.class.name} getTaskRegistrar();
-
-                    @javax.inject.Inject
-                    abstract protected ${ProjectFeatureLayout.class.name} getProjectFeatureLayout();
-
-                    @javax.inject.Inject
-                    abstract protected ${ProviderFactory.class.name} getProviderFactory();
-        """
-    }
-
-    private String generateCustomServices(List<ServiceDeclaration> services, boolean isFeature) {
-        def lines = []
-        services.each { service ->
-            if (service.name == "project") {
-                lines << """
-                    @javax.inject.Inject
-                    abstract protected Project getProject(); // Unsafe Service
-
-                    protected org.gradle.api.tasks.TaskContainer getTaskRegistrar() {
-                        return getProject().getTasks();
-                    }"""
-                if (isFeature) {
-                    lines << """
-                    @javax.inject.Inject
-                    abstract protected ${ProjectFeatureLayout.class.name} getProjectFeatureLayout();
-
-                    @javax.inject.Inject
-                    abstract protected ${ProviderFactory.class.name} getProviderFactory();"""
-                }
-            } else if (service.name == "unknown") {
-                lines << """
-                    interface UnknownService extends ${TaskRegistrar.class.name} { }
-
-                    protected ${TaskRegistrar.class.name} getTaskRegistrar() {
-                        return getUnknownService();
-                    }
-
-                    @javax.inject.Inject
-                    abstract protected UnknownService getUnknownService();"""
-                if (isFeature) {
-                    lines << """
-                    @javax.inject.Inject
-                    abstract protected ${ProjectFeatureLayout.class.name} getProjectFeatureLayout();
-
-                    @javax.inject.Inject
-                    abstract protected ${ProviderFactory.class.name} getProviderFactory();"""
-                }
-            } else {
-                lines << """
-                    @javax.inject.Inject
-                    abstract protected ${service.type.name} get${JavaSources.capitalize(service.name)}();"""
-            }
-        }
-        return lines.join("\n")
     }
 
     // --- Apply action body generation ---
@@ -990,17 +610,6 @@ class PluginClassBuilder extends AbstractPluginBuilder {
     }
 
     // --- Helpers ---
-
-    private String getParentTypeForApplyAction() {
-        if (bindingMethodName == "bindProjectFeatureToBuildModel") {
-            return "${Definition.class.name}<${bindingTypeClassName}>"
-        }
-        return bindingTypeClassName
-    }
-
-    private String maybeDeclareBindingModifiers() {
-        return bindingModifiers.isEmpty() ? "" : bindingModifiers.collect { ".${it}" }.join("")
-    }
 
     /** Returns the build model mapping code for the current language. */
     private String buildModelMappingForLanguage() {

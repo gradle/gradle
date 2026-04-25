@@ -16,6 +16,9 @@
 
 package org.gradle.features.internal.builders
 
+import org.gradle.api.provider.ProviderFactory
+import org.gradle.features.file.ProjectFeatureLayout
+import org.gradle.features.registration.TaskRegistrar
 import org.gradle.test.fixtures.plugin.PluginBuilder as GradlePluginBuilder
 
 /**
@@ -106,4 +109,63 @@ abstract class AbstractPluginBuilder {
 
     /** Renders the Kotlin source for this plugin shape. */
     protected abstract String renderKotlin()
+
+    // --- Shared rendering helpers ---
+
+    /** Renders the binding-chain modifier suffix (e.g. {@code .withUnsafeDefinition()}). */
+    protected String maybeDeclareBindingModifiers() {
+        return bindingModifiers.isEmpty() ? "" : bindingModifiers.collect { ".${it}" }.join("")
+    }
+
+    /**
+     * Emits injected-service declarations for an apply-action class body.
+     *
+     * @param services the configured custom services
+     * @param isFeature whether the apply-action is a feature plugin (extra default services)
+     */
+    protected static String generateCustomServices(List<ServiceDeclaration> services, boolean isFeature) {
+        def lines = []
+        services.each { service ->
+            if (service.name == "project") {
+                lines << """
+                    @javax.inject.Inject
+                    abstract protected Project getProject(); // Unsafe Service
+
+                    protected org.gradle.api.tasks.TaskContainer getTaskRegistrar() {
+                        return getProject().getTasks();
+                    }"""
+                if (isFeature) {
+                    lines << """
+                    @javax.inject.Inject
+                    abstract protected ${ProjectFeatureLayout.class.name} getProjectFeatureLayout();
+
+                    @javax.inject.Inject
+                    abstract protected ${ProviderFactory.class.name} getProviderFactory();"""
+                }
+            } else if (service.name == "unknown") {
+                lines << """
+                    interface UnknownService extends ${TaskRegistrar.class.name} { }
+
+                    protected ${TaskRegistrar.class.name} getTaskRegistrar() {
+                        return getUnknownService();
+                    }
+
+                    @javax.inject.Inject
+                    abstract protected UnknownService getUnknownService();"""
+                if (isFeature) {
+                    lines << """
+                    @javax.inject.Inject
+                    abstract protected ${ProjectFeatureLayout.class.name} getProjectFeatureLayout();
+
+                    @javax.inject.Inject
+                    abstract protected ${ProviderFactory.class.name} getProviderFactory();"""
+                }
+            } else {
+                lines << """
+                    @javax.inject.Inject
+                    abstract protected ${service.type.name} get${JavaSources.capitalize(service.name)}();"""
+            }
+        }
+        return lines.join("\n")
+    }
 }
