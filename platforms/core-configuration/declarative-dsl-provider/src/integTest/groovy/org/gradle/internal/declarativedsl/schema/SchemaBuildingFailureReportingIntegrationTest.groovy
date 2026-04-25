@@ -112,7 +112,7 @@ class SchemaBuildingFailureReportingIntegrationTest extends AbstractIntegrationS
                     buildModel {
                         property "id", String
                     }
-                    property("foo", "Foo") {
+                    nested("foo", "Foo") {
                         implementsDefinition("FooBuildModel") {
                             property "barProcessed", String
                         }
@@ -126,7 +126,7 @@ class SchemaBuildingFailureReportingIntegrationTest extends AbstractIntegrationS
                     buildModel {
                         property "text", String
                     }
-                    property("fizz", "Fizz") {
+                    nested("fizz", "Fizz") {
                         shape ABSTRACT_CLASS
                         property ("buzz", String)
                     }
@@ -387,7 +387,7 @@ class SchemaBuildingFailureReportingIntegrationTest extends AbstractIntegrationS
                     buildModel {
                         property "id", String
                     }
-                    property("foo", "Foo") {
+                    nested("foo", "Foo") {
                         implementsDefinition("FooBuildModel") {
                             property "barProcessed", String
                         }
@@ -404,11 +404,11 @@ class SchemaBuildingFailureReportingIntegrationTest extends AbstractIntegrationS
             projectFeature("feature") {
                 definition {
                     property "text", String
-                    property "shared", shared
+                    sharedProperty "shared", shared
                     buildModel {
                         property "text", String
                     }
-                    property("fizz", "Fizz") {
+                    nested("fizz", "Fizz") {
                         property "buzz", String
                     }
                 }
@@ -419,11 +419,11 @@ class SchemaBuildingFailureReportingIntegrationTest extends AbstractIntegrationS
             projectFeature("anotherFeature") {
                 definition {
                     property "text", String
-                    property("shared", shared)
+                    sharedProperty("shared", shared)
                     buildModel {
                         property "text", String
                     }
-                    property("fizz", "Fizz") {
+                    nested("fizz", "Fizz") {
                         property "buzz", String
                     }
                 }
@@ -465,7 +465,7 @@ class SchemaBuildingFailureReportingIntegrationTest extends AbstractIntegrationS
                     buildModel {
                         property "id", String
                     }
-                    property("foo", "Foo") {
+                    nested("foo", "Foo") {
                         implementsDefinition("FooBuildModel") {
                             property "barProcessed", String
                         }
@@ -479,7 +479,7 @@ class SchemaBuildingFailureReportingIntegrationTest extends AbstractIntegrationS
                     buildModel {
                         property "text", String
                     }
-                    property("fizz", "Fizz") {
+                    nested("fizz", "Fizz") {
                         property "buzz", String
                     }
                 }

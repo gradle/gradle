@@ -50,7 +50,7 @@ class ProjectFeatureSafetyIntegrationTest extends AbstractIntegrationSpec implem
                     buildModel {
                         property "text", String
                     }
-                    property("fizz", "Fizz") {
+                    nested("fizz", "Fizz") {
                         property "buzz", String
                     }
                     shape ABSTRACT_CLASS
@@ -96,7 +96,7 @@ class ProjectFeatureSafetyIntegrationTest extends AbstractIntegrationSpec implem
                     buildModel {
                         property "text", String
                     }
-                    property("fizz", "Fizz") {
+                    nested("fizz", "Fizz") {
                         property "buzz", String
                     }
                     shape ABSTRACT_CLASS
@@ -144,7 +144,7 @@ class ProjectFeatureSafetyIntegrationTest extends AbstractIntegrationSpec implem
                     buildModel {
                         property "text", String
                     }
-                    property("fizz", "Fizz") {
+                    nested("fizz", "Fizz") {
                         property "buzz", String
                     }
                     injectedService "objects", ObjectFactory
@@ -194,7 +194,7 @@ class ProjectFeatureSafetyIntegrationTest extends AbstractIntegrationSpec implem
                     buildModel {
                         property "text", String
                     }
-                    property("fizz", "Fizz") {
+                    nested("fizz", "Fizz") {
                         injectedService "objects", ObjectFactory
                         property "buzz", String
                     }
@@ -244,7 +244,7 @@ class ProjectFeatureSafetyIntegrationTest extends AbstractIntegrationSpec implem
                     buildModel {
                         property "text", String
                     }
-                    property("fizz", "Fizz") {
+                    nested("fizz", "Fizz") {
                         injectedService "objects", ObjectFactory
                         property "buzz", String
                     }
@@ -297,7 +297,7 @@ class ProjectFeatureSafetyIntegrationTest extends AbstractIntegrationSpec implem
                     buildModel {
                         property "text", String
                     }
-                    property("fizz", "Fizz") {
+                    nested("fizz", "Fizz") {
                         property "buzz", String
                     }
                     parentDefinition {
@@ -349,7 +349,7 @@ class ProjectFeatureSafetyIntegrationTest extends AbstractIntegrationSpec implem
                     buildModel {
                         property "text", String
                     }
-                    property("fizz", "Fizz") {
+                    nested("fizz", "Fizz") {
                         shape INTERFACE
                         property "buzz", String
                     }
@@ -401,7 +401,7 @@ class ProjectFeatureSafetyIntegrationTest extends AbstractIntegrationSpec implem
                     buildModel {
                         property "text", String
                     }
-                    property("fizz", "Fizz") {
+                    nested("fizz", "Fizz") {
                         property "buzz", String
                     }
                 }
@@ -454,7 +454,7 @@ class ProjectFeatureSafetyIntegrationTest extends AbstractIntegrationSpec implem
                     buildModel {
                         property "text", String
                     }
-                    property("fizz", "Fizz") {
+                    nested("fizz", "Fizz") {
                         property "buzz", String
                     }
                 }
@@ -514,7 +514,7 @@ class ProjectFeatureSafetyIntegrationTest extends AbstractIntegrationSpec implem
                     buildModel {
                         property "text", String
                     }
-                    property("fizz", "Fizz") {
+                    nested("fizz", "Fizz") {
                         property "buzz", String
                     }
                 }

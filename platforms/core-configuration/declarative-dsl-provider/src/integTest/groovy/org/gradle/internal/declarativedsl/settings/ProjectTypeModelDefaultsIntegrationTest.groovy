@@ -276,11 +276,11 @@ class ProjectTypeModelDefaultsIntegrationTest extends AbstractIntegrationSpec im
                     buildModel {
                         property "id", String
                     }
-                    property("foo", "Foo") {
+                    nested("foo", "Foo") {
                         property "bar", String
                     }
                     listProperty "list", String
-                    property("bar", "Bar") {
+                    nested("bar", "Bar") {
                         listProperty "baz", String
                     }
                     dependencies {
@@ -458,7 +458,7 @@ class ProjectTypeModelDefaultsIntegrationTest extends AbstractIntegrationSpec im
                         property "id", String
                     }
                     property "id", String
-                    property("foo", "Foo") {
+                    nested("foo", "Foo") {
                         property "bar", String
                     }
                 }
@@ -475,11 +475,11 @@ class ProjectTypeModelDefaultsIntegrationTest extends AbstractIntegrationSpec im
                     buildModel {
                         property "id", String
                     }
-                    property("foo", "Foo") {
+                    nested("foo", "Foo") {
                         property "bar", String
                     }
                     listProperty "list", String
-                    property("bar", "Bar") {
+                    nested("bar", "Bar") {
                         listProperty "baz", String
                     }
                     dependencies {
@@ -526,7 +526,7 @@ class ProjectTypeModelDefaultsIntegrationTest extends AbstractIntegrationSpec im
                         property "id", String
                     }
                     property "id", String
-                    property("foo", "Foo") {
+                    nested("foo", "Foo") {
                         property "bar", String
                     }
                 }
@@ -548,7 +548,7 @@ class ProjectTypeModelDefaultsIntegrationTest extends AbstractIntegrationSpec im
                         property "id", String
                     }
                     property "id", String
-                    property("foo", "Foo") {
+                    nested("foo", "Foo") {
                         property "bar", String
                     }
                 }
@@ -559,7 +559,7 @@ class ProjectTypeModelDefaultsIntegrationTest extends AbstractIntegrationSpec im
                         property "text", String
                     }
                     property "text", String
-                    property("fizz", "Fizz") {
+                    nested("fizz", "Fizz") {
                         property "buzz", String
                     }
                 }

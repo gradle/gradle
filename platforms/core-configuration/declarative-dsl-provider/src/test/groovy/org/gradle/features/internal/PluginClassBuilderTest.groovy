@@ -45,7 +45,7 @@ class PluginClassBuilderTest extends Specification {
         def defn = new DefinitionBuilder("TestProjectTypeDefinition")
         defn.buildModel("ModelType") { property "id", String }
         defn.property("id", String)
-        defn.property("foo", "Foo") {
+        defn.nested("foo", "Foo") {
             implementsDefinition("FooBuildModel") { property "barProcessed", String }
             property "bar", String
         }
@@ -59,7 +59,7 @@ class PluginClassBuilderTest extends Specification {
             property "dir", DirectoryProperty
         }
         defn.property("text", String)
-        defn.property("fizz", "Fizz") { property "buzz", String }
+        defn.nested("fizz", "Fizz") { property "buzz", String }
         return defn
     }
 

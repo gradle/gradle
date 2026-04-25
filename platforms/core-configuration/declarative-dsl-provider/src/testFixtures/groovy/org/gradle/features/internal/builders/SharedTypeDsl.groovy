@@ -54,11 +54,22 @@ class SharedTypeDsl {
         Closure config
     ) { target.listProperty(name, elementType, config) }
 
-    /** Adds a sub-nested type with its own properties. */
+    /**
+     * Adds a sub-nested type with its own properties.
+     *
+     * @deprecated Use {@link #nested(String, String, Closure)} instead.
+     */
+    @Deprecated
     void property(String name, String nestedTypeName,
         @DelegatesTo(value = PropertyTypeDeclaration, strategy = Closure.DELEGATE_FIRST)
         Closure config = {}
-    ) { target.property(name, nestedTypeName, config) }
+    ) { target.nested(name, nestedTypeName, config) }
+
+    /** Adds a sub-nested type with its own properties. */
+    void nested(String name, String nestedTypeName,
+        @DelegatesTo(value = PropertyTypeDeclaration, strategy = Closure.DELEGATE_FIRST)
+        Closure config = {}
+    ) { target.nested(name, nestedTypeName, config) }
 
     /** Adds a {@code NamedDomainObjectContainer} sub-nested type. */
     void ndoc(String name, String elementTypeName,

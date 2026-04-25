@@ -62,7 +62,7 @@ class ProjectTypeDeclarationIntegrationTest extends AbstractIntegrationSpec impl
                     buildModel {
                         property "id", String
                     }
-                    property("foo", "Foo") {
+                    nested("foo", "Foo") {
                         property "bar", String
                     }
                 }
@@ -104,7 +104,7 @@ class ProjectTypeDeclarationIntegrationTest extends AbstractIntegrationSpec impl
                     buildModel {
                         property "id", String
                     }
-                    property("foo", "Foo") {
+                    nested("foo", "Foo") {
                         property "bar", String
                     }
                 }
@@ -152,7 +152,7 @@ class ProjectTypeDeclarationIntegrationTest extends AbstractIntegrationSpec impl
                     buildModel {
                         property "id", String
                     }
-                    property("foo", "Foo") {
+                    nested("foo", "Foo") {
                         property "bar", String
                     }
                 }
@@ -198,7 +198,7 @@ class ProjectTypeDeclarationIntegrationTest extends AbstractIntegrationSpec impl
                     buildModel {
                         property "id", String
                     }
-                    property("foo", "Foo") {
+                    nested("foo", "Foo") {
                         property "bar", String
                     }
                 }
@@ -249,7 +249,7 @@ class ProjectTypeDeclarationIntegrationTest extends AbstractIntegrationSpec impl
                     buildModel {
                         property "id", String
                     }
-                    property("foo", "Foo") {
+                    nested("foo", "Foo") {
                         property "bar", String
                     }
                 }
@@ -262,7 +262,7 @@ class ProjectTypeDeclarationIntegrationTest extends AbstractIntegrationSpec impl
                         property "id", String
                         property "foo", String
                     }
-                    property("bar", "Bar") {
+                    nested("bar", "Bar") {
                         property "baz", String
                     }
                 }
@@ -319,7 +319,7 @@ class ProjectTypeDeclarationIntegrationTest extends AbstractIntegrationSpec impl
                     buildModel {
                         property "id", String
                     }
-                    property("foo", "Foo") {
+                    nested("foo", "Foo") {
                         property "bar", String
                     }
                 }
@@ -332,7 +332,7 @@ class ProjectTypeDeclarationIntegrationTest extends AbstractIntegrationSpec impl
                         property "id", String
                         property "foo", String
                     }
-                    property("bar", "Bar") {
+                    nested("bar", "Bar") {
                         property "baz", String
                     }
                 }
@@ -373,7 +373,7 @@ class ProjectTypeDeclarationIntegrationTest extends AbstractIntegrationSpec impl
                     buildModel {
                         property "id", String
                     }
-                    property("foo", "Foo") {
+                    nested("foo", "Foo") {
                         property "bar", String
                     }
                     implementationType("TestProjectTypeDefinitionImpl")
@@ -454,7 +454,7 @@ class ProjectTypeDeclarationIntegrationTest extends AbstractIntegrationSpec impl
                     buildModel {
                         property "id", String
                     }
-                    property("foo", "Foo") {
+                    nested("foo", "Foo") {
                         property "bar", String
                     }
                 }
@@ -465,7 +465,7 @@ class ProjectTypeDeclarationIntegrationTest extends AbstractIntegrationSpec impl
                     buildModel {
                         property "id", String
                     }
-                    property("foo", "Foo") {
+                    nested("foo", "Foo") {
                         property "bar", String
                     }
                 }
@@ -510,7 +510,7 @@ class ProjectTypeDeclarationIntegrationTest extends AbstractIntegrationSpec impl
                     buildModel {
                         property "id", String
                     }
-                    property("foo", "Foo") {
+                    nested("foo", "Foo") {
                         property "bar", String
                     }
                 }
@@ -524,7 +524,7 @@ class ProjectTypeDeclarationIntegrationTest extends AbstractIntegrationSpec impl
                     }
                     property("id", String)
                     property("foo", String)
-                    property("bar", "Bar") {
+                    nested("bar", "Bar") {
                         property "baz", String
                     }
                 }
@@ -586,7 +586,7 @@ class ProjectTypeDeclarationIntegrationTest extends AbstractIntegrationSpec impl
 
                     property("id", String)
                     property("foo", String)
-                    property("bar", "Bar") {
+                    nested("bar", "Bar") {
                         property "baz", String
                     }
                 }
@@ -598,7 +598,7 @@ class ProjectTypeDeclarationIntegrationTest extends AbstractIntegrationSpec impl
                     buildModel {
                         property "id", String
                     }
-                    property("foo", "Foo") {
+                    nested("foo", "Foo") {
                         property "bar", String
                     }
                 }
@@ -640,7 +640,7 @@ class ProjectTypeDeclarationIntegrationTest extends AbstractIntegrationSpec impl
                     buildModel {
                         property "id", String
                     }
-                    property("foo", "Foo") {
+                    nested("foo", "Foo") {
                         property "bar", String
                     }
                 }

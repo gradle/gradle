@@ -45,7 +45,7 @@ class ProjectTypeSafetyIntegrationTest extends AbstractIntegrationSpec implement
                     buildModel {
                         property "id", String
                     }
-                    property("foo", "Foo") {
+                    nested("foo", "Foo") {
                         property "bar", String
                     }
                     shape ABSTRACT_CLASS
@@ -86,7 +86,7 @@ class ProjectTypeSafetyIntegrationTest extends AbstractIntegrationSpec implement
                     buildModel {
                         property "id", String
                     }
-                    property("foo", "Foo") {
+                    nested("foo", "Foo") {
                         property "bar", String
                     }
                     shape ABSTRACT_CLASS
@@ -126,7 +126,7 @@ class ProjectTypeSafetyIntegrationTest extends AbstractIntegrationSpec implement
                     buildModel {
                         property "id", String
                     }
-                    property("foo", "Foo") {
+                    nested("foo", "Foo") {
                         property "bar", String
                     }
                     injectedService "objects", ObjectFactory
@@ -167,7 +167,7 @@ class ProjectTypeSafetyIntegrationTest extends AbstractIntegrationSpec implement
                     buildModel {
                         property "id", String
                     }
-                    property("foo", "Foo") {
+                    nested("foo", "Foo") {
                         injectedService "objects", ObjectFactory
                         property "bar", String
                     }
@@ -209,7 +209,7 @@ class ProjectTypeSafetyIntegrationTest extends AbstractIntegrationSpec implement
                     buildModel {
                         property "id", String
                     }
-                    property("foo", "Foo") {
+                    nested("foo", "Foo") {
                         injectedService "objects", ObjectFactory
                         property "bar", String
                     }
@@ -256,7 +256,7 @@ class ProjectTypeSafetyIntegrationTest extends AbstractIntegrationSpec implement
                     buildModel {
                         property "id", String
                     }
-                    property("foo", "Foo") {
+                    nested("foo", "Foo") {
                         property "bar", String
                     }
                     parentDefinition {
@@ -299,7 +299,7 @@ class ProjectTypeSafetyIntegrationTest extends AbstractIntegrationSpec implement
                     buildModel {
                         property "id", String
                     }
-                    property("foo", "Foo") {
+                    nested("foo", "Foo") {
                         property "bar", String
                     }
                     shape ABSTRACT_CLASS
@@ -351,7 +351,7 @@ class ProjectTypeSafetyIntegrationTest extends AbstractIntegrationSpec implement
                     buildModel {
                         property "id", String
                     }
-                    property("foo", "Foo") {
+                    nested("foo", "Foo") {
                         property "bar", String
                     }
                 }
@@ -397,7 +397,7 @@ class ProjectTypeSafetyIntegrationTest extends AbstractIntegrationSpec implement
                     buildModel {
                         property "id", String
                     }
-                    property("foo", "Foo") {
+                    nested("foo", "Foo") {
                         property "bar", String
                     }
                 }
@@ -451,7 +451,7 @@ class ProjectTypeSafetyIntegrationTest extends AbstractIntegrationSpec implement
                     buildModel {
                         property "id", String
                     }
-                    property("foo", "Foo") {
+                    nested("foo", "Foo") {
                         property "bar", String
                     }
                 }

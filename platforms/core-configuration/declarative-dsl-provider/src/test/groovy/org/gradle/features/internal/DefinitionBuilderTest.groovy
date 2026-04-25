@@ -39,7 +39,7 @@ class DefinitionBuilderTest extends Specification {
         def builder = new DefinitionBuilder("TestProjectTypeDefinition")
         builder.buildModel("ModelType") { property "id", String }
         builder.property("id", String)
-        builder.property("foo", "Foo") {
+        builder.nested("foo", "Foo") {
             implementsDefinition("FooBuildModel") {
                 property "barProcessed", String
             }
@@ -70,7 +70,7 @@ class DefinitionBuilderTest extends Specification {
         builder.shape(TypeShape.ABSTRACT_CLASS)
         builder.buildModel("ModelType") { property "id", String }
         builder.property("id", String)
-        builder.property("foo", "Foo") {
+        builder.nested("foo", "Foo") {
             implementsDefinition("FooBuildModel") {
                 property "barProcessed", String
             }
@@ -100,7 +100,7 @@ class DefinitionBuilderTest extends Specification {
         builder.buildModel("ModelType") { property "id", String }
         builder.showConfigureInvocations()
         builder.property("id", String)
-        builder.property("foo", "Foo") {
+        builder.nested("foo", "Foo") {
             property "bar", String
         }
 
@@ -122,7 +122,7 @@ class DefinitionBuilderTest extends Specification {
         builder.shape(TypeShape.ABSTRACT_CLASS)
         builder.buildModel("ModelType") { property "id", String }
         builder.property("id", String)
-        builder.property("foo", "Foo") {
+        builder.nested("foo", "Foo") {
             property "bar", String
         }
 
@@ -144,7 +144,7 @@ class DefinitionBuilderTest extends Specification {
         builder.buildModel("ModelType") { property "id", String }
         builder.showConfigureInvocations()
         builder.property("id", String)
-        builder.property("foo", "Foo") {
+        builder.nested("foo", "Foo") {
             property "bar", String
         }
 
@@ -165,7 +165,7 @@ class DefinitionBuilderTest extends Specification {
         builder.buildModel("ModelType") { property "id", String }
         builder.injectedService("objects", ObjectFactory)
         builder.property("id", String)
-        builder.property("foo", "Foo") {
+        builder.nested("foo", "Foo") {
             property "bar", String
         }
 
@@ -184,7 +184,7 @@ class DefinitionBuilderTest extends Specification {
         def builder = new DefinitionBuilder("TestProjectTypeDefinition")
         builder.buildModel("ModelType") { property "id", String }
         builder.property("id", String)
-        builder.property("foo", "Foo") {
+        builder.nested("foo", "Foo") {
             injectedService "objects", ObjectFactory
             property "bar", String
         }
@@ -284,7 +284,7 @@ class DefinitionBuilderTest extends Specification {
         builder.buildModel("ModelType") { property "id", String }
         builder.implementationType("TestProjectTypeDefinitionImpl")
         builder.property("id", String)
-        builder.property("foo", "Foo") {
+        builder.nested("foo", "Foo") {
             property "bar", String
         }
 
@@ -305,7 +305,7 @@ class DefinitionBuilderTest extends Specification {
         def builder = new DefinitionBuilder("TestProjectTypeDefinition")
         builder.buildModel("ModelType") { property "id", String }
         builder.property("id", String)
-        builder.property("foo", "Foo") {
+        builder.nested("foo", "Foo") {
             property "bar", String
         }
         builder.parentDefinition {
@@ -546,7 +546,7 @@ class DefinitionBuilderTest extends Specification {
         def builder = new DefinitionBuilder("TestProjectTypeDefinition")
         builder.buildModel("ModelType") { property "id", String }
         builder.property("id", String)
-        builder.property("foo", "Foo") {
+        builder.nested("foo", "Foo") {
             implementsDefinition("FooBuildModel") {
                 property "bar", String
             }
@@ -569,7 +569,7 @@ class DefinitionBuilderTest extends Specification {
         def builder = new DefinitionBuilder("TestProjectTypeDefinition")
         builder.buildModel("ModelType") { property "id", String }
         builder.property("id", String)
-        builder.property("foo", "Foo") {
+        builder.nested("foo", "Foo") {
             implementsDefinition("FooBuildModel") {
                 property "barProcessed", String
             }
@@ -631,7 +631,7 @@ class DefinitionBuilderTest extends Specification {
         def builder = new DefinitionBuilder("TestProjectTypeDefinition")
         builder.buildModel("ModelType") { property "id", String }
         builder.property("id", String)
-        builder.property("foo", "Foo") {
+        builder.nested("foo", "Foo") {
             implementsDefinition("FooBuildModel") {
                 property "bar", String
                 mapping("// custom nested mapping")
@@ -650,7 +650,7 @@ class DefinitionBuilderTest extends Specification {
         def builder = new DefinitionBuilder("TestProjectTypeDefinition")
         builder.buildModel("ModelType") { property "id", String }
         builder.property("id", String)
-        builder.property("foo", "Foo") {
+        builder.nested("foo", "Foo") {
             property "bar", String
         }
 
@@ -716,7 +716,7 @@ class DefinitionBuilderTest extends Specification {
         given:
         def builder = new DefinitionBuilder("TestProjectTypeDefinition")
         builder.buildModel("ModelType") { property "id", String }
-        builder.property("foo", "Foo") {
+        builder.nested("foo", "Foo") {
             annotations("@Incubating")
             property "bar", String
         }
@@ -896,7 +896,7 @@ class DefinitionBuilderTest extends Specification {
         builder.buildModel("ModelType") { property "id", String }
         builder.implementationType("TestProjectTypeDefinitionImpl")
         builder.property("id", String)
-        builder.property("foo", "Foo") {
+        builder.nested("foo", "Foo") {
             annotations("@Incubating")
             property "bar", String
         }
@@ -939,7 +939,7 @@ class DefinitionBuilderTest extends Specification {
         builder.shape(TypeShape.ABSTRACT_CLASS)
         builder.buildModel("ModelType") { property "id", String }
         builder.undiscoverable("foo", "Foo") {
-            property("bar", "Bar") {
+            nested("bar", "Bar") {
                 annotations("@Incubating")
                 property "baz", String
             }
@@ -962,7 +962,7 @@ class DefinitionBuilderTest extends Specification {
         def builder = new DefinitionBuilder("TestProjectTypeDefinition")
         builder.buildModel("ModelType") { property "id", String }
         builder.property("id", String)
-        builder.property("srcSet", sharedRef)
+        builder.sharedProperty("srcSet", sharedRef)
 
         when:
         def pluginBuilder = new PluginBuilder(tempDir)
@@ -984,7 +984,7 @@ class DefinitionBuilderTest extends Specification {
         builder.shape(TypeShape.ABSTRACT_CLASS)
         builder.buildModel("ModelType") { property "id", String }
         builder.property("id", String)
-        builder.property("srcSet", sharedRef)
+        builder.sharedProperty("srcSet", sharedRef)
 
         when:
         def pluginBuilder = new PluginBuilder(tempDir)
@@ -1007,10 +1007,10 @@ class DefinitionBuilderTest extends Specification {
         def builder = new DefinitionBuilder("TestProjectTypeDefinition")
         builder.buildModel("ModelType") {
             property "id", String
-            property "srcSet", sharedRef
+            sharedProperty "srcSet", sharedRef
         }
         builder.property("id", String)
-        builder.property("srcSet", sharedRef)
+        builder.sharedProperty("srcSet", sharedRef)
 
         when:
         def pluginBuilder = new PluginBuilder(tempDir)
@@ -1035,10 +1035,10 @@ class DefinitionBuilderTest extends Specification {
         def builder = new DefinitionBuilder("TestProjectTypeDefinition")
         builder.buildModel("ModelType") {
             property "id", String
-            property "srcSet", sharedRef
+            sharedProperty "srcSet", sharedRef
         }
         builder.property("id", String)
-        builder.property("srcSet", sharedRef)
+        builder.sharedProperty("srcSet", sharedRef)
 
         expect:
         def java = builder.getBuildModelMapping(Language.JAVA)
@@ -1062,10 +1062,10 @@ class DefinitionBuilderTest extends Specification {
         def builder = new DefinitionBuilder("TestProjectTypeDefinition")
         builder.buildModel("ModelType") {
             property "id", String
-            property "srcSet", sharedRef
+            sharedProperty "srcSet", sharedRef
         }
         builder.property("id", String)
-        builder.property("srcSet", sharedRef)
+        builder.sharedProperty("srcSet", sharedRef)
 
         expect:
         def java = builder.getBuildModelMapping(Language.JAVA)
@@ -1097,7 +1097,7 @@ class DefinitionBuilderTest extends Specification {
         def builder = new DefinitionBuilder("TestProjectTypeDefinition")
         builder.buildModel("ModelType") { property "id", String }
         builder.property("id", String)
-        builder.property("foo", "Foo") {
+        builder.nested("foo", "Foo") {
             shape TypeShape.ABSTRACT_CLASS
             property "bar", String
         }
@@ -1121,10 +1121,10 @@ class DefinitionBuilderTest extends Specification {
         def builder = new DefinitionBuilder("TestProjectTypeDefinition")
         builder.buildModel("ModelType") { property "id", String }
         builder.property("id", String)
-        builder.property("foo", "Foo") {
+        builder.nested("foo", "Foo") {
             shape TypeShape.ABSTRACT_CLASS
             property "bar", String
-            property("inner", "Inner") {
+            nested("inner", "Inner") {
                 shape TypeShape.ABSTRACT_CLASS
                 property "value", String
             }
@@ -1147,8 +1147,8 @@ class DefinitionBuilderTest extends Specification {
         def builder = new DefinitionBuilder("TestProjectTypeDefinition")
         builder.buildModel("ModelType") { property "id", String }
         builder.property("id", String)
-        builder.property("foo", "Foo") {
-            property("inner", "Inner") {
+        builder.nested("foo", "Foo") {
+            nested("inner", "Inner") {
                 property "value", String
             }
         }
@@ -1170,7 +1170,7 @@ class DefinitionBuilderTest extends Specification {
         builder.shape(TypeShape.ABSTRACT_CLASS)
         builder.buildModel("ModelType") { property "id", String }
         builder.property("id", String)
-        builder.property("foo", "Foo") {
+        builder.nested("foo", "Foo") {
             shape TypeShape.INTERFACE
             property "bar", String
         }
@@ -1197,9 +1197,9 @@ class DefinitionBuilderTest extends Specification {
         builder.shape(TypeShape.ABSTRACT_CLASS)
         builder.buildModel("ModelType") { property "id", String }
         builder.property("id", String)
-        builder.property("foo", "Foo") {
+        builder.nested("foo", "Foo") {
             property "bar", String
-            property("inner", "Inner") {
+            nested("inner", "Inner") {
                 property "value", String
             }
         }
@@ -1221,7 +1221,7 @@ class DefinitionBuilderTest extends Specification {
         def builder = new DefinitionBuilder("TestProjectTypeDefinition")
         builder.buildModel("ModelType") { property "id", String }
         builder.property("id", String)
-        builder.property("foo", "Foo") {
+        builder.nested("foo", "Foo") {
             shape TypeShape.ABSTRACT_CLASS
             implementsDefinition("FooBuildModel") {
                 property "barProcessed", String
@@ -1246,7 +1246,7 @@ class DefinitionBuilderTest extends Specification {
         builder.shape(TypeShape.ABSTRACT_CLASS)
         builder.buildModel("ModelType") { property "id", String }
         builder.showConfigureInvocations()
-        builder.property("foo", "Foo") {
+        builder.nested("foo", "Foo") {
             shape TypeShape.INTERFACE
             property "bar", String
         }
@@ -1312,7 +1312,7 @@ class DefinitionBuilderTest extends Specification {
         def builder = new DefinitionBuilder("TestProjectTypeDefinition")
         builder.buildModel("ModelType") { property "id", String }
         builder.property("id", String)
-        builder.property("foo", "Foo") {
+        builder.nested("foo", "Foo") {
             shape TypeShape.ABSTRACT_CLASS
             property "bar", String
         }

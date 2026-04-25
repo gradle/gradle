@@ -42,7 +42,7 @@ class ProjectFeatureMutabilityIntegrationTest extends AbstractIntegrationSpec
                     buildModel {
                         property "id", String
                     }
-                    property("foo", "Foo") {
+                    nested("foo", "Foo") {
                         property "bar", String
                     }
                 }
@@ -87,7 +87,7 @@ class ProjectFeatureMutabilityIntegrationTest extends AbstractIntegrationSpec
                     buildModel {
                         property "id", String
                     }
-                    property("foo", "Foo") {
+                    nested("foo", "Foo") {
                         property "bar", String
                     }
                 }
@@ -172,7 +172,7 @@ class ProjectFeatureMutabilityIntegrationTest extends AbstractIntegrationSpec
                     buildModel {
                         property "id", String
                     }
-                    property("foo", "Foo") {
+                    nested("foo", "Foo") {
                         implementsDefinition("FooBuildModel") {
                             property "barProcessed", String
                         }

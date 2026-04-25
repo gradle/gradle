@@ -68,7 +68,7 @@ class TestScenarioFixtureIntegrationTest extends AbstractIntegrationSpec impleme
                     shape TypeShape.ABSTRACT_CLASS
                     buildModel("ModelType") { property "id", String }
                     property "id", String
-                    property("foo", "Foo") {
+                    nested("foo", "Foo") {
                         property "bar", String
                     }
                 }
@@ -124,7 +124,7 @@ class TestScenarioFixtureIntegrationTest extends AbstractIntegrationSpec impleme
                 definition {
                     buildModel("ModelType") { property "id", String }
                     property "id", String
-                    property("foo", "Foo") { property "bar", String }
+                    nested("foo", "Foo") { property "bar", String }
                     implementationType("TestProjectTypeDefinitionImpl")
                 }
             }
@@ -352,7 +352,7 @@ class TestScenarioFixtureIntegrationTest extends AbstractIntegrationSpec impleme
                 definition {
                     buildModel("ModelType") { property "id", String }
                     property "id", String
-                    property("foo", "Foo") { property "bar", String }
+                    nested("foo", "Foo") { property "bar", String }
                 }
                 plugin {
                     applyAction {
@@ -412,7 +412,7 @@ class TestScenarioFixtureIntegrationTest extends AbstractIntegrationSpec impleme
                 definition {
                     buildModel("ModelType") { property "id", String }
                     property "id", String
-                    property "srcSet", srcSet
+                    sharedProperty "srcSet", srcSet
                 }
             }
         }.tap { configureForLanguage(it, sourceLanguage) }.prepareToExecute()
@@ -447,7 +447,7 @@ class TestScenarioFixtureIntegrationTest extends AbstractIntegrationSpec impleme
                     shape TypeShape.ABSTRACT_CLASS
                     buildModel("ModelType") { property "id", String }
                     property "id", String
-                    property "srcSet", srcSet
+                    sharedProperty "srcSet", srcSet
                 }
             }
         }.prepareToExecute()
@@ -471,7 +471,7 @@ class TestScenarioFixtureIntegrationTest extends AbstractIntegrationSpec impleme
         testScenario {
             def srcSet = sharedType("SourceSet") {
                 property "name", String
-                property("meta", "SourceSetMeta") {
+                nested("meta", "SourceSetMeta") {
                     property "owner", String
                 }
                 ndoc("variants", "Variant") {
@@ -482,7 +482,7 @@ class TestScenarioFixtureIntegrationTest extends AbstractIntegrationSpec impleme
                 definition {
                     buildModel("ModelType") { property "id", String }
                     property "id", String
-                    property "srcSet", srcSet
+                    sharedProperty "srcSet", srcSet
                 }
             }
         }.prepareToExecute()
@@ -510,10 +510,10 @@ class TestScenarioFixtureIntegrationTest extends AbstractIntegrationSpec impleme
                 definition {
                     buildModel("ModelType") {
                         property "id", String
-                        property "srcSet", srcSet
+                        sharedProperty "srcSet", srcSet
                     }
                     property "id", String
-                    property "srcSet", srcSet
+                    sharedProperty "srcSet", srcSet
                 }
             }
         }.prepareToExecute()
@@ -541,7 +541,7 @@ class TestScenarioFixtureIntegrationTest extends AbstractIntegrationSpec impleme
                 definition {
                     buildModel("ModelType") { property "id", String }
                     property "id", String
-                    property "srcSet", srcSet
+                    sharedProperty "srcSet", srcSet
                 }
             }
         }.prepareToExecute()

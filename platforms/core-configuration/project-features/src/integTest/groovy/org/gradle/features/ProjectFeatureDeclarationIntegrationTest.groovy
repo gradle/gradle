@@ -66,7 +66,7 @@ class ProjectFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec i
                     buildModel {
                         property "id", String
                     }
-                    property("foo", "Foo") {
+                    nested("foo", "Foo") {
                         property "bar", String
                     }
                 }
@@ -77,7 +77,7 @@ class ProjectFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec i
                     buildModel {
                         property "text", String
                     }
-                    property("fizz", "Fizz") {
+                    nested("fizz", "Fizz") {
                         property "buzz", String
                     }
                 }
@@ -135,7 +135,7 @@ class ProjectFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec i
                     buildModel {
                         property "id", String
                     }
-                    property("foo", "Foo") {
+                    nested("foo", "Foo") {
                         property "bar", String
                     }
                 }
@@ -146,7 +146,7 @@ class ProjectFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec i
                     buildModel {
                         property "text", String
                     }
-                    property("fizz", "Fizz") {
+                    nested("fizz", "Fizz") {
                         property "buzz", String
                     }
                 }
@@ -207,7 +207,7 @@ class ProjectFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec i
                     buildModel {
                         property "id", String
                     }
-                    property("foo", "Foo") {
+                    nested("foo", "Foo") {
                         property "bar", String
                     }
                 }
@@ -218,7 +218,7 @@ class ProjectFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec i
                     buildModel {
                         property "text", String
                     }
-                    property("fizz", "Fizz") {
+                    nested("fizz", "Fizz") {
                         property "buzz", String
                     }
                 }
@@ -285,7 +285,7 @@ class ProjectFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec i
                     buildModel {
                         property "id", String
                     }
-                    property("foo", "Foo") {
+                    nested("foo", "Foo") {
                         property "bar", String
                     }
                 }
@@ -296,7 +296,7 @@ class ProjectFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec i
                     buildModel {
                         property "text", String
                     }
-                    property("fizz", "Fizz") {
+                    nested("fizz", "Fizz") {
                         property "buzz", String
                     }
                 }
@@ -354,7 +354,7 @@ class ProjectFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec i
                     buildModel {
                         property "id", String
                     }
-                    property("foo", "Foo") {
+                    nested("foo", "Foo") {
                         property "bar", String
                     }
                 }
@@ -365,7 +365,7 @@ class ProjectFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec i
                     buildModel {
                         property "text", String
                     }
-                    property("fizz", "Fizz") {
+                    nested("fizz", "Fizz") {
                         property "buzz", String
                     }
                 }
@@ -379,7 +379,7 @@ class ProjectFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec i
                     buildModel {
                         property "text", String
                     }
-                    property("fizz", "Fizz") {
+                    nested("fizz", "Fizz") {
                         property "buzz", String
                     }
                 }
@@ -450,7 +450,7 @@ class ProjectFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec i
                     buildModel {
                         property "id", String
                     }
-                    property("foo", "Foo") {
+                    nested("foo", "Foo") {
                         property "bar", String
                     }
                 }
@@ -461,7 +461,7 @@ class ProjectFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec i
                     buildModel {
                         property "text", String
                     }
-                    property("fizz", "Fizz") {
+                    nested("fizz", "Fizz") {
                         property "buzz", String
                     }
                     implementationType("FeatureDefinitionImpl")
@@ -539,7 +539,7 @@ class ProjectFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec i
                     buildModel {
                         property "id", String
                     }
-                    property("foo", "Foo") {
+                    nested("foo", "Foo") {
                         property "bar", String
                     }
                 }
@@ -550,7 +550,7 @@ class ProjectFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec i
                     buildModel {
                         property "text", String
                     }
-                    property("fizz", "Fizz") {
+                    nested("fizz", "Fizz") {
                         property "buzz", String
                     }
                 }
@@ -583,7 +583,7 @@ class ProjectFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec i
                     buildModel {
                         property "id", String
                     }
-                    property("foo", "Foo") {
+                    nested("foo", "Foo") {
                         property "bar", String
                     }
                 }
@@ -594,7 +594,7 @@ class ProjectFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec i
                     buildModel {
                         property "text", String
                     }
-                    property("fizz", "Fizz") {
+                    nested("fizz", "Fizz") {
                         property "buzz", String
                     }
                 }
@@ -608,7 +608,7 @@ class ProjectFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec i
                     buildModel {
                         property "text", String
                     }
-                    property("fizz", "Fizz") {
+                    nested("fizz", "Fizz") {
                         property "buzz", String
                     }
                 }
@@ -663,7 +663,7 @@ class ProjectFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec i
                     buildModel {
                         property "id", String
                     }
-                    property("foo", "Foo") {
+                    nested("foo", "Foo") {
                         property "bar", String
                     }
                 }
@@ -674,7 +674,7 @@ class ProjectFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec i
                     buildModel {
                         property "text", String
                     }
-                    property("fizz", "Fizz") {
+                    nested("fizz", "Fizz") {
                         property "buzz", String
                     }
                 }
@@ -688,7 +688,7 @@ class ProjectFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec i
                     buildModel {
                         property "id", String
                     }
-                    property("foo", "Foo") {
+                    nested("foo", "Foo") {
                         property "bar", String
                     }
                 }
@@ -699,7 +699,7 @@ class ProjectFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec i
                     buildModel {
                         property "text", String
                     }
-                    property("fizz", "Fizz") {
+                    nested("fizz", "Fizz") {
                         property "buzz", String
                     }
                 }
@@ -752,7 +752,7 @@ class ProjectFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec i
                     buildModel {
                         property "id", String
                     }
-                    property("foo", "Foo") {
+                    nested("foo", "Foo") {
                         property "bar", String
                     }
                 }
@@ -763,7 +763,7 @@ class ProjectFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec i
                     buildModel {
                         property "text", String
                     }
-                    property("fizz", "Fizz") {
+                    nested("fizz", "Fizz") {
                         property "buzz", String
                     }
                 }
@@ -821,7 +821,7 @@ class ProjectFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec i
                     buildModel {
                         property "id", String
                     }
-                    property("foo", "Foo") {
+                    nested("foo", "Foo") {
                         property "bar", String
                     }
                 }
@@ -829,7 +829,7 @@ class ProjectFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec i
             projectFeature("feature") {
                 definition {
                     property "text", String
-                    property("fizz", "Fizz") {
+                    nested("fizz", "Fizz") {
                         property "buzz", String
                     }
                     buildModel("FeatureModel") {
@@ -889,7 +889,7 @@ class ProjectFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec i
                     buildModel {
                         property "id", String
                     }
-                    property("foo", "Foo") {
+                    nested("foo", "Foo") {
                         implementsDefinition("FooBuildModel") {
                             property "barProcessed", String
                         }
@@ -908,7 +908,7 @@ class ProjectFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec i
                             model.getDir().set(getProjectFeatureLayout().getProjectDirectory().dir(definition.getText().get()));
                         """
                     }
-                    property("fizz", "Fizz") {
+                    nested("fizz", "Fizz") {
                         property "buzz", String
                     }
                 }
@@ -953,7 +953,7 @@ class ProjectFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec i
                     buildModel {
                         property "id", String
                     }
-                    property("foo", "Foo") {
+                    nested("foo", "Foo") {
                         implementsDefinition("FooBuildModel") {
                             property "barProcessed", String
                         }
@@ -978,7 +978,7 @@ class ProjectFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec i
                             model.getDir().set(getProjectFeatureLayout().getProjectDirectory().dir(definition.getText().get()));
                         """
                     }
-                    property("fizz", "Fizz") {
+                    nested("fizz", "Fizz") {
                         property "buzz", String
                     }
                 }
@@ -1024,7 +1024,7 @@ class ProjectFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec i
                     buildModel {
                         property "id", String
                     }
-                    property("foo", "Foo") {
+                    nested("foo", "Foo") {
                         property "bar", String
                     }
                 }
@@ -1087,7 +1087,7 @@ class ProjectFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec i
                     buildModel {
                         property "id", String
                     }
-                    property("foo", "Foo") {
+                    nested("foo", "Foo") {
                         property "bar", String
                     }
                 }
@@ -1105,7 +1105,7 @@ class ProjectFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec i
             projectFeature("anotherFeature") {
                 definition {
                     property "text", String
-                    property("fizz", "Fizz") {
+                    nested("fizz", "Fizz") {
                         property "buzz", String
                     }
                     buildModel("AnotherFeatureModel") {
@@ -1222,7 +1222,7 @@ class ProjectFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec i
                     buildModel {
                         property "id", String
                     }
-                    property("foo", "Foo") {
+                    nested("foo", "Foo") {
                         property "bar", String
                     }
                 }
@@ -1230,7 +1230,7 @@ class ProjectFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec i
             projectFeature("feature") {
                 definition {
                     property "text", String
-                    property("fizz", "Fizz") {
+                    nested("fizz", "Fizz") {
                         property "buzz", String
                     }
                     noBuildModel()
@@ -1280,13 +1280,13 @@ class ProjectFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec i
         PluginBuilder pluginBuilder = testScenario {
             def type = projectType("testProjectType") {
                 definition {
-                    property("foo", "Foo") {
+                    nested("foo", "Foo") {
                         implementsDefinition("FooBuildModel") {
                             property "barProcessed", String
                         }
                         property "bar", String
                     }
-                    property("bar", "Bar") {
+                    nested("bar", "Bar") {
                         implementsDefinition("BarBuildModel") {
                             property "bazProcessed", String
                         }
@@ -1300,7 +1300,7 @@ class ProjectFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec i
                     buildModel {
                         property "text", String
                     }
-                    property("fizz", "Fizz") {
+                    nested("fizz", "Fizz") {
                         property "buzz", String
                     }
                 }
@@ -1377,7 +1377,7 @@ class ProjectFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec i
                     buildModel {
                         property "text", String
                     }
-                    property("fizz", "Fizz") {
+                    nested("fizz", "Fizz") {
                         property "buzz", String
                     }
                 }
@@ -1420,7 +1420,7 @@ class ProjectFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec i
         PluginBuilder pluginBuilder = testScenario {
             def type = projectType("testProjectType") {
                 definition {
-                    property("group", "Group") {
+                    nested("group", "Group") {
                         ndoc("sources", "Source") {
                             implementsDefinition("SourceModel") {
                                 property "processedDir", String
@@ -1436,7 +1436,7 @@ class ProjectFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec i
                     buildModel {
                         property "text", String
                     }
-                    property("fizz", "Fizz") {
+                    nested("fizz", "Fizz") {
                         property "buzz", String
                     }
                 }
@@ -1483,7 +1483,7 @@ class ProjectFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec i
                 definition {
                     ndoc("sources", "Source") {
                         property "sourceDir", String
-                        property("group", "Group") {
+                        nested("group", "Group") {
                             implementsDefinition("GroupModel")
                             property "groupName", String
                         }
@@ -1499,7 +1499,7 @@ class ProjectFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec i
                     buildModel {
                         property "text", String
                     }
-                    property("fizz", "Fizz") {
+                    nested("fizz", "Fizz") {
                         property "buzz", String
                     }
                 }
