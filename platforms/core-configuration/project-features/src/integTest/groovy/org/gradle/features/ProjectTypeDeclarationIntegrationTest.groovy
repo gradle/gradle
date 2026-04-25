@@ -22,7 +22,6 @@ import org.gradle.integtests.fixtures.polyglot.PolyglotDslTest
 import org.gradle.integtests.fixtures.polyglot.SkipDsl
 import org.gradle.integtests.fixtures.polyglot.PolyglotTestFixture
 import org.gradle.features.internal.TestScenarioFixture
-import org.gradle.features.internal.builders.PluginClassBuilder
 import org.gradle.integtests.fixtures.versions.KotlinGradlePluginVersions
 import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.fixtures.plugin.PluginBuilder
@@ -159,7 +158,7 @@ class ProjectTypeDeclarationIntegrationTest extends AbstractIntegrationSpec impl
                     }
                 }
                 plugin {
-                    bindingStyle PluginClassBuilder.BindingStyle.REIFIED
+                    reifiedBinding()
                 }
             }
         }

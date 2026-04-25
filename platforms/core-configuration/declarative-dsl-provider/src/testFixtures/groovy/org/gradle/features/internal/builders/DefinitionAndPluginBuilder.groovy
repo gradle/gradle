@@ -20,7 +20,7 @@ import org.gradle.features.internal.builders.dsl.ClosureConfigure
 import org.gradle.test.fixtures.plugin.PluginBuilder as GradlePluginBuilder
 
 /**
- * Pairs a {@link DefinitionBuilder} with a {@link PluginClassBuilder} to form a complete
+ * Pairs a {@link DefinitionBuilder} with a {@link PluginConfig} to form a complete
  * project type or project feature component.
  *
  * <p>Each {@code projectType {}} or {@code projectFeature {}} block in the test scenario DSL
@@ -38,8 +38,8 @@ class DefinitionAndPluginBuilder {
     /** The definition builder for this component. */
     DefinitionBuilder definition
 
-    /** The plugin builder for this component. */
-    PluginClassBuilder plugin
+    /** The plugin configuration for this component. */
+    PluginConfig plugin
 
     /**
      * Configures the definition for this component.
@@ -70,10 +70,10 @@ class DefinitionAndPluginBuilder {
     /**
      * Configures the plugin for this component.
      *
-     * @param config closure delegating to {@link PluginClassBuilder}
+     * @param config closure delegating to {@link PluginConfig}
      */
     void plugin(
-        @DelegatesTo(value = PluginClassBuilder, strategy = Closure.DELEGATE_FIRST)
+        @DelegatesTo(value = PluginConfig, strategy = Closure.DELEGATE_FIRST)
         Closure config
     ) {
         ClosureConfigure.configure(plugin, config)
@@ -104,8 +104,8 @@ class DefinitionAndPluginBuilder {
     static DefinitionAndPluginBuilder forProjectType(String name) {
         def definition = new DefinitionBuilder("${capitalize(name)}Definition")
         definition.buildModel("${capitalize(name)}Model")
-        def plugin = new PluginClassBuilder()
-        plugin.kind = PluginClassBuilder.PluginKind.PROJECT_TYPE
+        def plugin = new PluginConfig()
+        plugin.kind = PluginKind.PROJECT_TYPE
         plugin.pluginClassName = "${capitalize(name)}ImplPlugin"
         plugin.packageName = definition.packageName
         plugin.bindings.add(new BindingDeclaration(definition: definition, name: name))
@@ -125,8 +125,8 @@ class DefinitionAndPluginBuilder {
     static DefinitionAndPluginBuilder forProjectFeature(String name) {
         def definition = new DefinitionBuilder("${capitalize(name)}Definition")
         definition.buildModel("${capitalize(name)}Model")
-        def plugin = new PluginClassBuilder()
-        plugin.kind = PluginClassBuilder.PluginKind.PROJECT_FEATURE
+        def plugin = new PluginConfig()
+        plugin.kind = PluginKind.PROJECT_FEATURE
         plugin.pluginClassName = "${capitalize(name)}ImplPlugin"
         plugin.packageName = definition.packageName
         plugin.bindings.add(new BindingDeclaration(

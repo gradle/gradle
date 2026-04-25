@@ -25,8 +25,8 @@ package org.gradle.features.internal.builders
  * <p>For project feature plugins that bind to multiple parent types, set {@link #bindingTypeClassName}
  * to specify the additional parent type class name.</p>
  *
- * @see PluginClassBuilder#bindsType
- * @see PluginClassBuilder#bindsFeatureTo
+ * @see PluginConfig#bindsType
+ * @see PluginConfig#bindsFeatureTo
  */
 class BindingDeclaration {
     /** The definition builder for the additional type binding. Used by project type plugins. */

@@ -48,7 +48,7 @@ import org.gradle.test.fixtures.plugin.PluginBuilder
  *
  * <p>In addition to generating source files, this builder provides derived accessor methods
  * ({@link #getBuildModelMapping()}, {@link #displayDefinitionPropertyValues()}, etc.) that are
- * consumed by {@link PluginClassBuilder} to generate the mapping and display code in plugin apply actions.</p>
+ * consumed by {@link PluginConfig} to generate the mapping and display code in plugin apply actions.</p>
  *
  * <p>Example usage:</p>
  * <pre>
@@ -113,7 +113,7 @@ class DefinitionBuilder implements HasProperties, HasNestedTypes, HasInjectedSer
     DefinitionBuilder() {}
     DefinitionBuilder(String className) { this.className = className }
 
-    // --- Derived accessors used by PluginClassBuilder ---
+    // --- Derived accessors used by PluginConfig ---
 
     /** Returns the fully qualified class name (e.g. "org.gradle.test.TestProjectTypeDefinition"). */
     String getFullyQualifiedPublicTypeClassName() {
@@ -354,7 +354,7 @@ class DefinitionBuilder implements HasProperties, HasNestedTypes, HasInjectedSer
         """
     }
 
-    // --- Build model mapping (consumed by PluginClassBuilder) ---
+    // --- Build model mapping (consumed by PluginConfig) ---
 
     /**
      * Returns code that maps definition property values to build model properties,

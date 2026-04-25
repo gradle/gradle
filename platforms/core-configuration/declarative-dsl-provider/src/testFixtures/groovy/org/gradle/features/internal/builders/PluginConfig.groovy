@@ -17,114 +17,94 @@
 package org.gradle.features.internal.builders
 
 import org.gradle.features.internal.builders.dsl.ClosureConfigure
+import org.gradle.test.fixtures.plugin.PluginBuilder as GradlePluginBuilder
 
 /**
- * Generates Java or Kotlin source code for a project type or project feature plugin.
- *
- * <p>The generated plugin class contains:</p>
- * <ul>
- *     <li>A binding annotation ({@code @BindsProjectType} or {@code @BindsProjectFeature})</li>
- *     <li>An inner {@code Binding} class that registers the type/feature with the framework</li>
- *     <li>An inner {@code ApplyAction} class that maps definition properties to the build model
- *         and registers a print task for test verification</li>
- * </ul>
- *
- * <p>The builder derives definition and type information from its {@link #bindings} list.
- * The primary binding ({@code bindings[0]}) provides the definition used for mapping code
- * and display logic. Apply actions are always implemented as classes.</p>
- *
- * <p>Example usage:</p>
- * <pre>
- * plugin {
- *     unsafeDefinition()
- *     applyAction {
- *         injectedService "taskRegistrar", TaskRegistrar
- *         eagerlyReadDefinitionValues()
- *     }
- * }
- * </pre>
+ * Collects DSL configuration for a plugin before the concrete {@link AbstractPluginBuilder}
+ * subclass is chosen. Each DSL method on the {@code plugin { }} closure populates this record;
+ * the concrete builder is instantiated once at {@link #resolve()} time (called from
+ * {@link DefinitionAndPluginBuilder#build} or {@link TestScenarioBuilder#build}).
  *
  * <h2>DSL opt-outs and modifiers (cheat-sheet)</h2>
  *
- * <p>The plugin DSL exposes several one-line toggles that affect how the generated
- * plugin is emitted. They are grouped here by the class on which they are declared
- * so call sites know which nested {@code { }} scope to use.</p>
+ * <p>The plugin DSL exposes several one-line toggles that affect how the generated plugin is
+ * emitted. They are grouped here so call sites know which nested {@code { }} scope to use.</p>
  *
  * <table>
  *   <caption>DSL opt-outs and modifiers</caption>
- *   <tr><th>DSL call</th><th>Effect</th><th>Declared on</th></tr>
+ *   <tr><th>DSL call</th><th>Effect</th></tr>
  *   <tr>
  *     <td>{@code type PluginType.X}</td>
  *     <td>Control plugin emission shape: {@code WITH_BINDINGS} (default; emit a
  *         binding-annotated plugin), {@code WITHOUT_BINDINGS} (emit a plain
  *         {@code Plugin<Project>} with no annotation or inner classes), or
  *         {@code NO_PLUGIN} (suppress plugin file entirely; emit only the definition).</td>
- *     <td>{@link PluginClassBuilder} ({@code plugin { }} scope)</td>
  *   </tr>
  *   <tr>
  *     <td>{@code noBuildModel()}</td>
- *     <td>Use {@code BuildModel.None} instead of a real build model; omits the
- *         inner build-model interface on the definition and flips the plugin's
- *         generic argument accordingly. Must be called on <em>both</em> the
- *         definition and the plugin for consistent output.</td>
- *     <td>{@link DefinitionBuilder} and {@link PluginClassBuilder}</td>
+ *     <td>Use {@code BuildModel.None} instead of a real build model; omits the inner build-model
+ *         interface on the definition and flips the plugin's generic argument accordingly. Must
+ *         be called on <em>both</em> the definition and the plugin for consistent output.</td>
  *   </tr>
  *   <tr>
  *     <td>{@code unsafeDefinition()}</td>
  *     <td>Append {@code .withUnsafeDefinition()} to the generated binding chain.</td>
- *     <td>{@link PluginClassBuilder}</td>
  *   </tr>
  *   <tr>
  *     <td>{@code unsafeApplyAction()}</td>
  *     <td>Append {@code .withUnsafeApplyAction()} to the generated binding chain.</td>
- *     <td>{@link PluginClassBuilder}</td>
  *   </tr>
  *   <tr>
  *     <td>{@code bindToBuildModel()}</td>
  *     <td>Use {@code bindProjectFeatureToBuildModel} instead of
- *         {@code bindProjectFeatureToDefinition} for the primary binding
- *         (feature plugins only).</td>
- *     <td>{@link PluginClassBuilder}</td>
+ *         {@code bindProjectFeatureToDefinition} for the primary binding (feature plugins only).</td>
  *   </tr>
  *   <tr>
- *     <td>{@code bindingStyle(REIFIED)}</td>
- *     <td>Kotlin only: use reified type-parameter binding. Typically combined
- *         with {@code noBuildModel()}.</td>
- *     <td>{@link PluginClassBuilder}</td>
+ *     <td>{@code reifiedBinding()}</td>
+ *     <td>Kotlin only: emit reified type-parameter binding for a project-type plugin.</td>
  *   </tr>
  *   <tr>
  *     <td>{@code applyAction { eagerlyReadDefinitionValues() }}</td>
- *     <td>Read the definition's property values eagerly (at apply time) rather
- *         than via the standard mapping code path.</td>
- *     <td>{@link ApplyActionDeclaration} ({@code applyAction { }} scope)</td>
+ *     <td>Read the definition's property values eagerly (at apply time) rather than via the
+ *         standard mapping code path.</td>
  *   </tr>
  * </table>
  */
-class PluginClassBuilder extends AbstractPluginBuilder {
-    /** Whether this plugin binds a project type or a project feature. */
-    enum PluginKind {
-        /** Generates a plugin with {@code @BindsProjectType}. */
-        PROJECT_TYPE,
-        /** Generates a plugin with {@code @BindsProjectFeature}. */
-        PROJECT_FEATURE
-    }
+class PluginConfig {
 
-    /** Controls how the binding is expressed in Kotlin code. */
-    enum BindingStyle {
-        /** Standard class-based binding (used for both Java and Kotlin). */
-        CLASS,
-        /** Kotlin-only reified type parameter binding (used for no-build-model features). */
-        REIFIED
-    }
+    // --- Common state ---
+
+    /** The simple class name of the generated plugin (e.g. "ProjectTypeImplPlugin"). */
+    String pluginClassName
+
+    /** The Java package for generated source files. */
+    String packageName = "org.gradle.test"
+
+    /** The language to generate source code in. */
+    Language language = Language.JAVA
+
+    /** The emission shape of this plugin. See {@link PluginType}. */
+    PluginType type = PluginType.WITH_BINDINGS
+
+    /** Modifiers appended to the binding chain (e.g. ".withUnsafeDefinition()"). */
+    List<String> bindingModifiers = []
+
+    /** Configuration for the apply action's services and behavior. */
+    ApplyActionDeclaration applyActionDeclaration = new ApplyActionDeclaration()
+
+    /** Custom code to insert in the apply action body (before task registration). */
+    String customApplyActionCode = ""
+
+    // --- Discriminator state ---
 
     /** Whether this is a project type or project feature plugin. */
     PluginKind kind = PluginKind.PROJECT_TYPE
 
-    /** The binding style (relevant for Kotlin generation). */
-    BindingStyle bindingStyle = BindingStyle.CLASS
-
     /** Whether the feature plugin has no build model (uses {@code BuildModel.None}). */
     boolean hasNoBuildModel = false
+
+    /** Whether the project-type plugin uses the Kotlin reified binding form. */
+    boolean reifiedStyle = false
 
     /** Bindings for this plugin. The first entry is the primary binding. */
     List<BindingDeclaration> bindings = []
@@ -133,32 +113,46 @@ class PluginClassBuilder extends AbstractPluginBuilder {
     List<BuildModelImplDeclaration> buildModelImplementations = []
 
     /** Returns the primary binding's name, or null if no bindings exist. */
-    String getName() {
-        bindings ? bindings[0].name : null
-    }
+    String getName() { bindings ? bindings[0].name : null }
 
     /** Returns the primary binding's definition, or null if no bindings exist. */
-    DefinitionBuilder getPrimaryDefinition() {
-        bindings ? bindings[0].definition : null
-    }
+    DefinitionBuilder getPrimaryDefinition() { bindings ? bindings[0].definition : null }
 
     /** Returns the primary binding's target type class name (feature plugins only). */
-    String getBindingTypeClassName() {
-        bindings ? bindings[0].bindingTypeClassName : null
-    }
+    String getBindingTypeClassName() { bindings ? bindings[0].bindingTypeClassName : null }
 
     /** Returns the primary binding's method name (feature plugins only). */
     String getBindingMethodName() {
         bindings ? bindings[0].bindingMethodName : "bindProjectFeatureToDefinition"
     }
 
-    // --- Fluent API (subclass-specific) ---
+    // --- Common fluent API ---
 
-    /** Sets the binding style (CLASS or REIFIED). Only affects Kotlin generation. */
-    void bindingStyle(BindingStyle style) { this.bindingStyle = style }
+    /** Overrides the generated plugin class name. */
+    void pluginClassName(String className) { this.pluginClassName = className }
+
+    /** Sets the source code language (Java or Kotlin). */
+    void language(Language language) { this.language = language }
+
+    /** Sets the plugin emission shape. See {@link PluginType}. */
+    void type(PluginType type) { this.type = type }
+
+    /** Adds {@code .withUnsafeDefinition()} to the binding chain. */
+    void unsafeDefinition() { bindingModifiers.add("withUnsafeDefinition()") }
+
+    /** Adds {@code .withUnsafeApplyAction()} to the binding chain. */
+    void unsafeApplyAction() { bindingModifiers.add("withUnsafeApplyAction()") }
+
+    /** Sets custom code to execute in the apply action before task registration. */
+    void applyActionCode(String code) { this.customApplyActionCode = code }
+
+    // --- Subclass-specific fluent API ---
 
     /** Marks this feature plugin as having no build model (uses {@code BuildModel.None}). */
     void noBuildModel() { this.hasNoBuildModel = true }
+
+    /** Selects Kotlin reified-style binding for a project-type plugin. */
+    void reifiedBinding() { this.reifiedStyle = true }
 
     /** Changes the feature binding method to {@code bindProjectFeatureToBuildModel}. */
     void bindToBuildModel() {
@@ -188,8 +182,6 @@ class PluginClassBuilder extends AbstractPluginBuilder {
     /**
      * Declares a feature binding target by referencing another component (typically a project type).
      * Resolves to the target's definition class name.
-     *
-     * @param type the project type component to bind to
      */
     void bindsFeatureTo(DefinitionAndPluginBuilder type) {
         bindsFeatureTo(type.definition.className)
@@ -224,50 +216,59 @@ class PluginClassBuilder extends AbstractPluginBuilder {
         ))
     }
 
-    // --- Code generation ---
-
-    @Override
-    protected String renderJava() {
-        return resolveSubclass().renderJava()
+    /** Configures the apply action's injected services and behavior. */
+    void applyAction(
+        @DelegatesTo(value = ApplyActionDeclaration, strategy = Closure.DELEGATE_FIRST)
+        Closure config
+    ) {
+        ClosureConfigure.configure(applyActionDeclaration, config)
     }
 
-    @Override
-    protected String renderKotlin() {
-        return resolveSubclass().renderKotlin()
-    }
+    // --- Resolution & build ---
 
-    private AbstractPluginBuilder resolveSubclass() {
+    /**
+     * Selects the concrete {@link AbstractPluginBuilder} subclass that will render this plugin
+     * and copies the collected DSL state onto it.
+     */
+    AbstractPluginBuilder resolve() {
+        AbstractPluginBuilder b
         if (type == PluginType.WITHOUT_BINDINGS) {
-            return asStandalone()
+            b = new StandalonePluginBuilder()
+        } else if (kind == PluginKind.PROJECT_TYPE) {
+            b = resolveTypeBuilder()
+        } else {
+            b = resolveFeatureBuilder()
         }
-        if (kind == PluginKind.PROJECT_TYPE) {
-            return asType()
-        }
-        return asFeature()
-    }
-
-    private StandalonePluginBuilder asStandalone() {
-        def b = new StandalonePluginBuilder()
-        copyCommonStateTo(b)
+        b.pluginClassName = pluginClassName
+        b.packageName = packageName
+        b.language = language
+        b.type = type
+        b.bindingModifiers = bindingModifiers
+        b.applyActionDeclaration = applyActionDeclaration
+        b.customApplyActionCode = customApplyActionCode
         return b
     }
 
-    private AbstractTypePluginBuilder asType() {
+    /** Generates the plugin source file and writes it to the plugin builder. */
+    void build(GradlePluginBuilder pluginBuilder) {
+        resolve().build(pluginBuilder)
+    }
+
+    private AbstractTypePluginBuilder resolveTypeBuilder() {
         AbstractTypePluginBuilder b
         if (bindings.count { it.definition != null } > 1) {
             b = new MultiTypePluginBuilder()
-        } else if (bindingStyle == BindingStyle.REIFIED) {
+        } else if (reifiedStyle) {
             b = new ReifiedSingleTypePluginBuilder()
         } else {
             b = new SingleTypePluginBuilder()
         }
-        copyCommonStateTo(b)
         b.bindings = bindings
         b.buildModelImplementations = buildModelImplementations
         return b
     }
 
-    private AbstractFeaturePluginBuilder asFeature() {
+    private AbstractFeaturePluginBuilder resolveFeatureBuilder() {
         AbstractFeaturePluginBuilder b
         if (hasNoBuildModel) {
             b = new NoBuildModelFeaturePluginBuilder()
@@ -276,19 +277,7 @@ class PluginClassBuilder extends AbstractPluginBuilder {
         } else {
             b = new FeaturePluginBuilder()
         }
-        copyCommonStateTo(b)
         b.bindings = bindings
         return b
     }
-
-    private void copyCommonStateTo(AbstractPluginBuilder b) {
-        b.pluginClassName = pluginClassName
-        b.packageName = packageName
-        b.language = language
-        b.type = type
-        b.bindingModifiers = bindingModifiers
-        b.applyActionDeclaration = applyActionDeclaration
-        b.customApplyActionCode = customApplyActionCode
-    }
-
 }

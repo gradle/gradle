@@ -21,7 +21,8 @@ import org.gradle.api.file.DirectoryProperty
 import org.gradle.features.internal.builders.BindingDeclaration
 import org.gradle.features.internal.builders.DefinitionBuilder
 import org.gradle.features.internal.builders.Language
-import org.gradle.features.internal.builders.PluginClassBuilder
+import org.gradle.features.internal.builders.PluginConfig
+import org.gradle.features.internal.builders.PluginKind
 import org.gradle.features.internal.builders.PluginType
 import org.gradle.features.registration.TaskRegistrar
 import org.gradle.test.fixtures.file.TestFile
@@ -29,14 +30,14 @@ import org.gradle.test.fixtures.plugin.PluginBuilder
 import spock.lang.Specification
 import spock.lang.TempDir
 
-class PluginClassBuilderTest extends Specification {
+class PluginConfigTest extends Specification {
     @TempDir
     File tempDirFile
 
     TestFile getTempDir() { new TestFile(tempDirFile) }
 
-    private PluginClassBuilder pluginFor(DefinitionBuilder defn, String name) {
-        def plugin = new PluginClassBuilder()
+    private PluginConfig pluginFor(DefinitionBuilder defn, String name) {
+        def plugin = new PluginConfig()
         plugin.packageName = defn.packageName
         plugin.bindings.add(new BindingDeclaration(definition: defn, name: name))
         return plugin
@@ -68,7 +69,7 @@ class PluginClassBuilderTest extends Specification {
         given:
         def defn = standardTypeDefinition()
         def plugin = pluginFor(defn, "testProjectType")
-        plugin.kind = PluginClassBuilder.PluginKind.PROJECT_TYPE
+        plugin.kind = PluginKind.PROJECT_TYPE
         plugin.pluginClassName = "ProjectTypeImplPlugin"
 
         when:
@@ -91,7 +92,7 @@ class PluginClassBuilderTest extends Specification {
         given:
         def defn = standardTypeDefinition()
         def plugin = pluginFor(defn, "testProjectType")
-        plugin.kind = PluginClassBuilder.PluginKind.PROJECT_TYPE
+        plugin.kind = PluginKind.PROJECT_TYPE
         plugin.pluginClassName = "ProjectTypeImplPlugin"
         plugin.unsafeDefinition()
 
@@ -108,7 +109,7 @@ class PluginClassBuilderTest extends Specification {
         given:
         def defn = standardTypeDefinition()
         def plugin = pluginFor(defn, "testProjectType")
-        plugin.kind = PluginClassBuilder.PluginKind.PROJECT_TYPE
+        plugin.kind = PluginKind.PROJECT_TYPE
         plugin.pluginClassName = "ProjectTypeImplPlugin"
         plugin.unsafeApplyAction()
 
@@ -125,7 +126,7 @@ class PluginClassBuilderTest extends Specification {
         given:
         def defn = standardTypeDefinition()
         def plugin = pluginFor(defn, "testProjectType")
-        plugin.kind = PluginClassBuilder.PluginKind.PROJECT_TYPE
+        plugin.kind = PluginKind.PROJECT_TYPE
         plugin.pluginClassName = "ProjectTypeImplPlugin"
         plugin.applyAction { injectedService "project", Project }
         plugin.unsafeApplyAction()
@@ -144,7 +145,7 @@ class PluginClassBuilderTest extends Specification {
         given:
         def defn = standardTypeDefinition()
         def plugin = pluginFor(defn, "testProjectType")
-        plugin.kind = PluginClassBuilder.PluginKind.PROJECT_TYPE
+        plugin.kind = PluginKind.PROJECT_TYPE
         plugin.pluginClassName = "ProjectTypeImplPlugin"
         plugin.applyAction { injectedService "unknown", TaskRegistrar }
         plugin.unsafeApplyAction()
@@ -163,7 +164,7 @@ class PluginClassBuilderTest extends Specification {
         given:
         def defn = standardTypeDefinition()
         def plugin = pluginFor(defn, "testProjectType")
-        plugin.kind = PluginClassBuilder.PluginKind.PROJECT_TYPE
+        plugin.kind = PluginKind.PROJECT_TYPE
         plugin.pluginClassName = "NotAProjectTypePlugin"
         plugin.type = PluginType.WITHOUT_BINDINGS
 
@@ -185,7 +186,7 @@ class PluginClassBuilderTest extends Specification {
         anotherDefn.property("name", String)
 
         def plugin = pluginFor(defn, "testProjectType")
-        plugin.kind = PluginClassBuilder.PluginKind.PROJECT_TYPE
+        plugin.kind = PluginKind.PROJECT_TYPE
         plugin.pluginClassName = "ProjectTypeImplPlugin"
         plugin.bindsType(anotherDefn, "anotherProjectType")
 
@@ -203,7 +204,7 @@ class PluginClassBuilderTest extends Specification {
         given:
         def defn = standardTypeDefinition()
         def plugin = pluginFor(defn, "testProjectType")
-        plugin.kind = PluginClassBuilder.PluginKind.PROJECT_TYPE
+        plugin.kind = PluginKind.PROJECT_TYPE
         plugin.pluginClassName = "ProjectTypeImplPlugin"
         plugin.applyAction {
             injectedService "taskRegistrar", TaskRegistrar
@@ -226,7 +227,7 @@ class PluginClassBuilderTest extends Specification {
         given:
         def defn = standardFeatureDefinition()
         def plugin = pluginFor(defn, "feature")
-        plugin.kind = PluginClassBuilder.PluginKind.PROJECT_FEATURE
+        plugin.kind = PluginKind.PROJECT_FEATURE
         plugin.pluginClassName = "ProjectFeatureImplPlugin"
         plugin.bindsFeatureTo("TestProjectTypeDefinition")
 
@@ -252,7 +253,7 @@ class PluginClassBuilderTest extends Specification {
         given:
         def defn = standardFeatureDefinition()
         def plugin = pluginFor(defn, "feature")
-        plugin.kind = PluginClassBuilder.PluginKind.PROJECT_FEATURE
+        plugin.kind = PluginKind.PROJECT_FEATURE
         plugin.pluginClassName = "ProjectFeatureImplPlugin"
         plugin.bindToBuildModel()
         plugin.bindsFeatureTo("org.gradle.test.TestProjectTypeDefinition.ModelType")
@@ -274,7 +275,7 @@ class PluginClassBuilderTest extends Specification {
         defn.property("text", String)
 
         def plugin = pluginFor(defn, "feature")
-        plugin.kind = PluginClassBuilder.PluginKind.PROJECT_FEATURE
+        plugin.kind = PluginKind.PROJECT_FEATURE
         plugin.pluginClassName = "ProjectFeatureImplPlugin"
         plugin.noBuildModel()
         plugin.bindsFeatureTo("TestProjectTypeDefinition")
@@ -293,7 +294,7 @@ class PluginClassBuilderTest extends Specification {
         given:
         def defn = standardTypeDefinition()
         def plugin = pluginFor(defn, "testProjectType")
-        plugin.kind = PluginClassBuilder.PluginKind.PROJECT_TYPE
+        plugin.kind = PluginKind.PROJECT_TYPE
         plugin.pluginClassName = "ProjectTypeImplPlugin"
         plugin.language = Language.KOTLIN
 
@@ -314,7 +315,7 @@ class PluginClassBuilderTest extends Specification {
         given:
         def defn = standardFeatureDefinition()
         def plugin = pluginFor(defn, "feature")
-        plugin.kind = PluginClassBuilder.PluginKind.PROJECT_FEATURE
+        plugin.kind = PluginKind.PROJECT_FEATURE
         plugin.pluginClassName = "ProjectFeatureImplPlugin"
         plugin.bindsFeatureTo("TestProjectTypeDefinition")
         plugin.language = Language.KOTLIN
@@ -341,10 +342,9 @@ class PluginClassBuilderTest extends Specification {
         defn.property("text", String)
 
         def plugin = pluginFor(defn, "feature")
-        plugin.kind = PluginClassBuilder.PluginKind.PROJECT_FEATURE
+        plugin.kind = PluginKind.PROJECT_FEATURE
         plugin.pluginClassName = "ProjectFeatureImplPlugin"
         plugin.noBuildModel()
-        plugin.bindingStyle = PluginClassBuilder.BindingStyle.REIFIED
         plugin.bindsFeatureTo("TestProjectTypeDefinition")
         plugin.language = Language.KOTLIN
 

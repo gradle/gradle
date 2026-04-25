@@ -32,7 +32,7 @@ package org.gradle.features.internal.builders
  *     <li>{@code "unknown"} — injects a custom {@code UnknownService} interface (for testing unknown service detection)</li>
  * </ul>
  *
- * @see PluginClassBuilder#applyAction
+ * @see PluginConfig#applyAction
  */
 class ApplyActionDeclaration {
     /** Services to inject into the apply action. If empty, defaults are used. */

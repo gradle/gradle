@@ -37,7 +37,6 @@ import org.junit.Rule
 
 import static org.gradle.features.internal.builders.TypeShape.ABSTRACT_CLASS
 import static org.gradle.features.internal.builders.Language.KOTLIN
-import static org.gradle.features.internal.builders.PluginClassBuilder.BindingStyle.REIFIED
 import static org.gradle.features.internal.builders.PluginType.WITHOUT_BINDINGS
 
 @PolyglotDslTest
@@ -1239,7 +1238,6 @@ class ProjectFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec i
                 plugin {
                     bindsFeatureTo(type)
                     noBuildModel()
-                    bindingStyle REIFIED
                 }
             }
         }

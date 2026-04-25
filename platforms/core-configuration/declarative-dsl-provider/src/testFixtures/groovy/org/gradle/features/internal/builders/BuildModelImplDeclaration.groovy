@@ -24,7 +24,7 @@ package org.gradle.features.internal.builders
  * the build model interface from the definition's nested NDOC element. It is registered
  * via {@code .withNestedBuildModelImplementationType()} in the plugin's binding chain.</p>
  *
- * @see PluginClassBuilder#providesBuildModelImpl
+ * @see PluginConfig#providesBuildModelImpl
  */
 class BuildModelImplDeclaration {
     /** The simple class name of the implementation (e.g. "DefaultSourceModel"). */

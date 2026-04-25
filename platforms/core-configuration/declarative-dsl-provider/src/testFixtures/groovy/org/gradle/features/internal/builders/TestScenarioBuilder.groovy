@@ -47,7 +47,7 @@ class TestScenarioBuilder {
     List<DefinitionAndPluginBuilder> features = []
 
     /** Standalone plugins not paired with any definition. */
-    List<PluginClassBuilder> standalonePlugins = []
+    List<PluginConfig> standalonePlugins = []
 
     /** Top-level shared types declared in this scenario, generated as individual Java source files. */
     List<PropertyTypeDeclaration> sharedTypes = []
@@ -99,13 +99,13 @@ class TestScenarioBuilder {
      *
      * @param className the plugin class name
      * @param config optional closure to customize the plugin
-     * @return the created PluginClassBuilder, for capturing cross-references
+     * @return the created PluginConfig, for capturing cross-references
      */
-    PluginClassBuilder plugin(String className,
-        @DelegatesTo(value = PluginClassBuilder, strategy = Closure.DELEGATE_FIRST)
+    PluginConfig plugin(String className,
+        @DelegatesTo(value = PluginConfig, strategy = Closure.DELEGATE_FIRST)
         Closure config = {}
     ) {
-        def plugin = new PluginClassBuilder()
+        def plugin = new PluginConfig()
         plugin.pluginClassName = className
         plugin.type = PluginType.WITHOUT_BINDINGS
         ClosureConfigure.configure(plugin, config)
@@ -192,7 +192,7 @@ class TestScenarioBuilder {
         }
         standalonePlugins.each { plugin ->
             if (plugin.type == PluginType.WITH_BINDINGS) {
-                if (plugin.kind == PluginClassBuilder.PluginKind.PROJECT_TYPE) {
+                if (plugin.kind == PluginKind.PROJECT_TYPE) {
                     settings.registersProjectType(plugin.pluginClassName)
                 } else {
                     settings.registersProjectFeature(plugin.pluginClassName)

@@ -27,7 +27,7 @@ import org.gradle.declarative.dsl.model.annotations.Adding
  *
  * <p>Owns name-casing, annotation rendering, and the small property/service
  * emission rules that are shared across {@link DefinitionBuilder},
- * {@link SharedTypeBuilder}, {@link SettingsBuilder}, and {@link PluginClassBuilder}.</p>
+ * {@link SharedTypeBuilder}, {@link SettingsBuilder}, and {@link PluginConfig}.</p>
  */
 class JavaSources {
     static String capitalize(String name) {

@@ -193,10 +193,12 @@ class ProjectFeatureMutabilityIntegrationTest extends AbstractIntegrationSpec
                         });
 
                         getTaskRegistrar().register("printSourceModels", DefaultTask.class, task -> {
+                            java.util.List<String> processedDirs = definition.getSources().stream()
+                                .map(source -> context.getBuildModel(source).getProcessedDir().get())
+                                .collect(java.util.stream.Collectors.toList());
                             task.doLast("print", t -> {
-                                definition.getSources().forEach(source -> {
-                                    TestProjectTypeDefinition.Source.SourceModel sourceModel = context.getBuildModel(source);
-                                    System.out.println("source processed dir = " + sourceModel.getProcessedDir().get());
+                                processedDirs.forEach(dir -> {
+                                    System.out.println("source processed dir = " + dir);
                                 });
                             });
                         });
