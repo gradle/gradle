@@ -16,13 +16,7 @@
 
 package org.gradle.features.internal.builders
 
-import org.gradle.features.annotations.BindsProjectType
-import org.gradle.features.binding.ProjectFeatureApplicationContext
-import org.gradle.features.binding.ProjectTypeApplyAction
-import org.gradle.features.binding.ProjectTypeBinding
-import org.gradle.features.binding.ProjectTypeBindingBuilder
 import org.gradle.features.internal.builders.dsl.ClosureConfigure
-import org.gradle.features.registration.TaskRegistrar
 
 /**
  * Generates Java or Kotlin source code for a project type or project feature plugin.
@@ -234,18 +228,42 @@ class PluginClassBuilder extends AbstractPluginBuilder {
 
     @Override
     protected String renderJava() {
+        return resolveSubclass().renderJava()
+    }
+
+    @Override
+    protected String renderKotlin() {
+        return resolveSubclass().renderKotlin()
+    }
+
+    private AbstractPluginBuilder resolveSubclass() {
         if (type == PluginType.WITHOUT_BINDINGS) {
-            return asStandalone().renderJava()
+            return asStandalone()
         }
         if (kind == PluginKind.PROJECT_TYPE) {
-            return generateJavaProjectTypePlugin()
+            return asType()
         }
-        return asFeature().renderJava()
+        return asFeature()
     }
 
     private StandalonePluginBuilder asStandalone() {
         def b = new StandalonePluginBuilder()
         copyCommonStateTo(b)
+        return b
+    }
+
+    private AbstractTypePluginBuilder asType() {
+        AbstractTypePluginBuilder b
+        if (bindings.count { it.definition != null } > 1) {
+            b = new MultiTypePluginBuilder()
+        } else if (bindingStyle == BindingStyle.REIFIED) {
+            b = new ReifiedSingleTypePluginBuilder()
+        } else {
+            b = new SingleTypePluginBuilder()
+        }
+        copyCommonStateTo(b)
+        b.bindings = bindings
+        b.buildModelImplementations = buildModelImplementations
         return b
     }
 
@@ -273,363 +291,4 @@ class PluginClassBuilder extends AbstractPluginBuilder {
         b.customApplyActionCode = customApplyActionCode
     }
 
-    private String generateJavaProjectTypePlugin() {
-        if (bindings.count { it.definition != null } > 1) {
-            return generateJavaProjectTypeWithMultipleBindings()
-        }
-
-        def modifiers = maybeDeclareBindingModifiers()
-        def implType = primaryDefinition.implementationClassName
-            ? ".withUnsafeDefinitionImplementationType(${primaryDefinition.implementationClassName}.class)"
-            : ""
-        def ndocImplTypes = buildModelImplementations.collect {
-            ".withNestedBuildModelImplementationType(${primaryDefinition.className}.${it.interfaceName}.class, ${it.implClassName}.class)"
-        }.join("")
-
-        return """
-            package ${packageName};
-
-            import org.gradle.api.DefaultTask;
-            import org.gradle.api.Plugin;
-            import org.gradle.api.Project;
-            import org.gradle.api.provider.ListProperty;
-            import org.gradle.api.provider.Property;
-            import org.gradle.api.tasks.Nested;
-            import ${ProjectTypeApplyAction.class.name};
-            import ${ProjectFeatureApplicationContext.class.name};
-            import ${ProjectTypeBinding.class.name};
-            import ${BindsProjectType.class.name};
-            import ${ProjectTypeBindingBuilder.class.name};
-            import javax.inject.Inject;
-
-            @${BindsProjectType.class.simpleName}(${pluginClassName}.Binding.class)
-            abstract public class ${pluginClassName} implements Plugin<Project> {
-
-                static class Binding implements ${ProjectTypeBinding.class.simpleName} {
-                    public void bind(${ProjectTypeBindingBuilder.class.simpleName} builder) {
-                        builder.bindProjectType("${name}", ${primaryDefinition.className}.class, ${pluginClassName}.ApplyAction.class)
-                        ${implType}${ndocImplTypes}${modifiers};
-                    }
-                }
-
-                static abstract class ApplyAction implements ${ProjectTypeApplyAction.class.name}<${primaryDefinition.className}, ${primaryDefinition.fullyQualifiedBuildModelClassName}> {
-                    @javax.inject.Inject
-                    public ApplyAction() { }
-
-                    ${generateJavaTypeApplyActionServices()}
-
-                    @Override
-                    public void apply(${ProjectFeatureApplicationContext.class.name} context, ${primaryDefinition.className} definition, ${primaryDefinition.fullyQualifiedBuildModelClassName} model) {
-                        System.out.println("Binding " + ${primaryDefinition.className}.class.getSimpleName());
-
-                        ${generateTypeApplyActionBody()}
-                    }
-                }
-
-                ${generateBuildModelImplClasses()}
-
-                @Override
-                public void apply(Project target) {
-                    System.out.println("Applying " + getClass().getSimpleName());
-                }
-            }
-        """
-    }
-
-    private String generateJavaProjectTypeWithMultipleBindings() {
-        // Each binding gets its own ApplyAction class since each
-        // has different definition/model type parameters
-        def allBindings = bindings.collect { [name: it.name, definition: it.definition] }
-
-        def bindCalls = allBindings.collect { binding ->
-            "builder.bindProjectType(\"${binding.name}\", ${binding.definition.className}.class, ${binding.definition.className}ApplyAction.class);"
-        }.join("\n")
-
-        def applyActionClasses = allBindings.collect { binding ->
-            def bindingDefinition = binding.definition
-            """
-                static abstract class ${bindingDefinition.className}ApplyAction implements ${ProjectTypeApplyAction.class.name}<${bindingDefinition.className}, ${bindingDefinition.fullyQualifiedBuildModelClassName}> {
-                    @javax.inject.Inject public ${bindingDefinition.className}ApplyAction() { }
-
-                    @javax.inject.Inject
-                    abstract protected ${TaskRegistrar.class.name} getTaskRegistrar();
-
-                    @Override
-                    public void apply(${ProjectFeatureApplicationContext.class.name} context, ${bindingDefinition.className} definition, ${bindingDefinition.fullyQualifiedBuildModelClassName} model) {
-                        System.out.println("Binding " + ${bindingDefinition.className}.class.getSimpleName());
-                        ${bindingDefinition.getBuildModelMapping(language)}
-                        getTaskRegistrar().register("print${bindingDefinition.className}Configuration", DefaultTask.class, task -> {
-                            task.doLast("print restricted extension content", t -> {
-                                ${bindingDefinition.displayDefinitionPropertyValues(language)}
-                                ${bindingDefinition.displayModelPropertyValues(language)}
-                            });
-                        });
-                    }
-                }
-            """
-        }.join("\n")
-
-        return """
-            package ${packageName};
-
-            import org.gradle.api.DefaultTask;
-            import org.gradle.api.Plugin;
-            import org.gradle.api.Project;
-            import org.gradle.api.provider.ListProperty;
-            import org.gradle.api.provider.Property;
-            import org.gradle.api.tasks.Nested;
-            import ${ProjectTypeApplyAction.class.name};
-            import ${ProjectFeatureApplicationContext.class.name};
-            import ${BindsProjectType.class.name};
-            import javax.inject.Inject;
-
-            @${BindsProjectType.class.simpleName}(${pluginClassName}.Binding.class)
-            abstract public class ${pluginClassName} implements Plugin<Project> {
-                static class Binding implements ${ProjectTypeBinding.class.name} {
-                    public void bind(${ProjectTypeBindingBuilder.class.name} builder) {
-                        ${bindCalls}
-                    }
-                }
-
-                ${applyActionClasses}
-
-                @Override
-                public void apply(Project target) {
-                    System.out.println("Applying " + getClass().getSimpleName());
-                }
-            }
-        """
-    }
-
-    // --- Kotlin code generation ---
-
-    @Override
-    protected String renderKotlin() {
-        if (type == PluginType.WITHOUT_BINDINGS) {
-            return asStandalone().renderKotlin()
-        }
-        if (kind == PluginKind.PROJECT_TYPE) {
-            if (bindingStyle == BindingStyle.REIFIED) {
-                return generateKotlinReifiedProjectTypePlugin()
-            }
-            return generateKotlinProjectTypePlugin()
-        }
-        return asFeature().renderKotlin()
-    }
-
-    private String generateKotlinProjectTypePlugin() {
-        def modifiers = maybeDeclareBindingModifiers()
-        def implType = primaryDefinition.implementationClassName
-            ? ".withUnsafeDefinitionImplementationType(${primaryDefinition.implementationClassName}::class.java)"
-            : ""
-
-        return """
-            package ${packageName}
-
-            import org.gradle.api.Task
-            import org.gradle.api.Plugin
-            import org.gradle.api.Project
-            import org.gradle.api.provider.ListProperty
-            import org.gradle.api.provider.Property
-            import org.gradle.api.tasks.Nested
-            import ${ProjectTypeBinding.class.name}
-            import ${BindsProjectType.class.name}
-            import ${ProjectTypeBindingBuilder.class.name}
-            import ${ProjectTypeApplyAction.class.name}
-            import javax.inject.Inject
-
-            @${BindsProjectType.class.simpleName}(${pluginClassName}.Binding::class)
-            class ${pluginClassName} : Plugin<Project> {
-
-                class Binding : ${ProjectTypeBinding.class.simpleName} {
-                    override fun bind(builder: ${ProjectTypeBindingBuilder.class.simpleName}) {
-                        builder.bindProjectType("${name}", ${primaryDefinition.className}::class.java, ${pluginClassName}.ApplyAction::class.java)
-                        ${implType}${modifiers}
-                    }
-                }
-
-                abstract class ApplyAction @Inject constructor() : ${ProjectTypeApplyAction.class.simpleName}<${primaryDefinition.className}, ${primaryDefinition.fullyQualifiedBuildModelClassName}> {
-
-                    @get:javax.inject.Inject
-                    abstract val taskRegistrar: ${TaskRegistrar.class.name}
-
-                    override fun apply(context: ${ProjectFeatureApplicationContext.class.name}, definition: ${primaryDefinition.className}, model: ${primaryDefinition.fullyQualifiedBuildModelClassName}) {
-                        println("Binding " + ${primaryDefinition.className}::class.simpleName)
-
-                        ${buildModelMappingForLanguage()}
-
-                        taskRegistrar.register("print${primaryDefinition.className}Configuration") { task: Task ->
-                            task.doLast { _: Task ->
-                                ${displayDefinitionValuesForLanguage()}
-                                ${displayModelValuesForLanguage()}
-                            }
-                        }
-                    }
-                }
-
-                override fun apply(project: Project) {
-                    println("Applying " + this::class.java.simpleName)
-                }
-            }
-        """
-    }
-
-    private String generateKotlinReifiedProjectTypePlugin() {
-        def modifiers = maybeDeclareBindingModifiers()
-        def implType = primaryDefinition.implementationClassName
-            ? ".withUnsafeDefinitionImplementationType(${primaryDefinition.implementationClassName}::class.java)"
-            : ""
-
-        return """
-            package ${packageName}
-
-            import org.gradle.api.Task
-            import org.gradle.api.Plugin
-            import org.gradle.api.Project
-            import org.gradle.api.provider.ListProperty
-            import org.gradle.api.provider.Property
-            import org.gradle.api.tasks.Nested
-            import ${ProjectTypeBinding.class.name}
-            import ${BindsProjectType.class.name}
-            import ${ProjectTypeBindingBuilder.class.name}
-            import ${ProjectTypeApplyAction.class.name}
-            import org.gradle.features.dsl.bindProjectType
-            import javax.inject.Inject
-
-            @${BindsProjectType.class.simpleName}(${pluginClassName}.Binding::class)
-            class ${pluginClassName} : Plugin<Project> {
-
-                class Binding : ${ProjectTypeBinding.class.simpleName} {
-                    override fun bind(builder: ${ProjectTypeBindingBuilder.class.simpleName}) {
-                        builder.bindProjectType("${name}", ${pluginClassName}.ApplyAction::class)
-                        ${implType}${modifiers}
-                    }
-                }
-
-                abstract class ApplyAction @Inject constructor() : ${ProjectTypeApplyAction.class.simpleName}<${primaryDefinition.className}, ${primaryDefinition.fullyQualifiedBuildModelClassName}> {
-
-                    @get:javax.inject.Inject
-                    abstract val taskRegistrar: ${TaskRegistrar.class.name}
-
-                    override fun apply(context: ${ProjectFeatureApplicationContext.class.name}, definition: ${primaryDefinition.className}, model: ${primaryDefinition.fullyQualifiedBuildModelClassName}) {
-                        println("Binding " + ${primaryDefinition.className}::class.simpleName)
-
-                        ${buildModelMappingForLanguage()}
-
-                        taskRegistrar.register("print${primaryDefinition.className}Configuration") { task: Task ->
-                            task.doLast { _: Task ->
-                                ${displayDefinitionValuesForLanguage()}
-                                ${displayModelValuesForLanguage()}
-                            }
-                        }
-                    }
-                }
-
-                override fun apply(project: Project) {
-                    println("Applying " + this::class.java.simpleName)
-                }
-            }
-        """
-    }
-
-    // --- Service injection helpers ---
-
-    private String generateJavaTypeApplyActionServices() {
-        if (!applyActionDeclaration.injectedServices.isEmpty()) {
-            return generateCustomServices(applyActionDeclaration.injectedServices, false)
-        }
-        return """
-                    @javax.inject.Inject
-                    abstract protected ${TaskRegistrar.class.name} getTaskRegistrar();
-        """
-    }
-
-    // --- Apply action body generation ---
-
-    private String generateTypeApplyActionBody() {
-        if (applyActionDeclaration.readsValuesEagerly) {
-            return generateEagerReadApplyBody()
-        }
-        return """
-                        ${buildModelMappingForLanguage()}
-
-                        getTaskRegistrar().register("print${primaryDefinition.className}Configuration", DefaultTask.class, task -> {
-                            task.doLast("print restricted extension content", t -> {
-                                ${displayDefinitionValuesForLanguage()}
-                                ${displayModelValuesForLanguage()}
-                            });
-                        });
-
-                        ${customApplyActionCode}
-        """
-    }
-
-    private String generateEagerReadApplyBody() {
-        def eagerReads = []
-        def printStatements = []
-        primaryDefinition.properties.each { property ->
-            def varName = "${property.name}AtApplyTime"
-            eagerReads << "String ${varName} = definition.get${JavaSources.capitalize(property.name)}().get();"
-            printStatements << """System.out.println("apply time ${property.name} = " + ${varName});"""
-        }
-        primaryDefinition.nestedTypes.findAll { it.kind != NestedKind.NDOC }.each { nestedType ->
-            nestedType.properties.each { property ->
-                def varName = "${nestedType.name}${JavaSources.capitalize(property.name)}AtApplyTime"
-                eagerReads << "String ${varName} = definition.get${JavaSources.capitalize(nestedType.name)}().get${JavaSources.capitalize(property.name)}().get();"
-                printStatements << """System.out.println("apply time ${nestedType.name}.${property.name} = " + ${varName});"""
-            }
-        }
-
-        return """
-                        // Eagerly read values at apply time.
-                        // These reads throw MissingValueException if the definition
-                        // hasn't been configured yet - that is what this fixture tests against.
-                        ${eagerReads.join("\n")}
-
-                        ${buildModelMappingForLanguage()}
-
-                        getTaskRegistrar().register("printApplyTimeValues", DefaultTask.class, task -> {
-                            task.doLast("print", t -> {
-                                ${printStatements.join("\n")}
-                            });
-                        });
-        """
-    }
-
-    private String generateBuildModelImplClasses() {
-        return buildModelImplementations.collect { implementation ->
-            def propertyDeclarations = implementation.properties.collect { property ->
-                "public abstract ${getPropertyReturnType(property)} get${JavaSources.capitalize(property.name)}();"
-            }.join("\n")
-            """
-                public static abstract class ${implementation.implClassName} implements ${primaryDefinition.className}.${implementation.interfaceName} {
-                    ${propertyDeclarations}
-                }
-            """
-        }.join("\n")
-    }
-
-    // --- Helpers ---
-
-    /** Returns the build model mapping code for the current language. */
-    private String buildModelMappingForLanguage() {
-        return primaryDefinition.getBuildModelMapping(language)
-    }
-
-    /** Returns the definition property display code for the current language. */
-    private String displayDefinitionValuesForLanguage() {
-        return primaryDefinition.displayDefinitionPropertyValues(language)
-    }
-
-    /** Returns the model property display code for the current language. */
-    private String displayModelValuesForLanguage() {
-        return primaryDefinition.displayModelPropertyValues(language)
-    }
-
-    private static String getPropertyReturnType(PropertyDeclaration property) {
-        if (property.kind == PropertyKind.LIST_PROPERTY) {
-            return "org.gradle.api.provider.ListProperty<${property.type.simpleName}>"
-        }
-        return "org.gradle.api.provider.Property<${property.type.simpleName}>"
-    }
 }
