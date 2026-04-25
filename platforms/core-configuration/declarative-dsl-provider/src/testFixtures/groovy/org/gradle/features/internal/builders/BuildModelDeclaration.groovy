@@ -16,7 +16,8 @@
 
 package org.gradle.features.internal.builders
 
-import org.gradle.features.internal.builders.dsl.ClosureConfigure
+import org.gradle.features.internal.builders.dsl.HasProperties
+import org.gradle.features.internal.builders.dsl.HasSharedRefInProperties
 
 /**
  * Describes a {@code BuildModel} inner interface to be generated inside a definition type.
@@ -32,7 +33,7 @@ import org.gradle.features.internal.builders.dsl.ClosureConfigure
  * }
  * </pre>
  */
-class BuildModelDeclaration {
+class BuildModelDeclaration implements HasProperties, HasSharedRefInProperties {
     /** The simple class name of the build model interface (e.g. "ModelType", "FeatureModel"). */
     String className
 
@@ -45,44 +46,14 @@ class BuildModelDeclaration {
     /** Per-language custom build model mapping code. When set, overrides the auto-derived mapping. */
     Map<Language, String> customMappings = [:]
 
-    /** Adds a property to this build model. */
-    void property(String name, Class type) {
-        properties.add(new PropertyDeclaration(name: name, type: type))
-    }
-
-    /** Adds a property to this build model with optional configuration (e.g. annotations). */
-    void property(String name, Class type,
-        @DelegatesTo(value = PropertyDeclaration, strategy = Closure.DELEGATE_FIRST)
-        Closure config
-    ) {
-        properties.add(ClosureConfigure.configure(new PropertyDeclaration(name: name, type: type), config))
-    }
-
     /**
-     * Adds a property whose type is a previously declared shared type (see
-     * {@code TestScenarioBuilder.sharedType(...)}).
+     * Adds a property whose type is a previously declared shared type.
      *
-     * <p>Emits a plain getter returning the shared type directly (no {@code @Nested},
-     * no {@code Property<T>} wrapping).</p>
-     *
-     * @param name the accessor name on this build model
-     * @param ref the shared-type reference returned by {@code TestScenarioBuilder.sharedType(...)}
+     * @deprecated Use {@link HasSharedRefInProperties#sharedProperty(String, PropertyTypeDeclaration)} instead.
      */
+    @Deprecated
     void property(String name, PropertyTypeDeclaration ref) {
-        properties.add(new PropertyDeclaration(name: name, sharedTypeRef: ref))
-    }
-
-    /** Adds a {@code ListProperty<T>} to this build model. */
-    void listProperty(String name, Class elementType) {
-        properties.add(new PropertyDeclaration(name: name, type: elementType, isList: true))
-    }
-
-    /** Adds a {@code ListProperty<T>} to this build model with optional configuration (e.g. annotations). */
-    void listProperty(String name, Class elementType,
-        @DelegatesTo(value = PropertyDeclaration, strategy = Closure.DELEGATE_FIRST)
-        Closure config
-    ) {
-        properties.add(ClosureConfigure.configure(new PropertyDeclaration(name: name, type: elementType, isList: true), config))
+        sharedProperty(name, ref)
     }
 
     /**

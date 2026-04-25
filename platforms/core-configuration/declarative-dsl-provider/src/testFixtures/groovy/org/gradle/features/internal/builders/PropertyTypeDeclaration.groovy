@@ -17,6 +17,10 @@
 package org.gradle.features.internal.builders
 
 import org.gradle.features.internal.builders.dsl.ClosureConfigure
+import org.gradle.features.internal.builders.dsl.HasAnnotations
+import org.gradle.features.internal.builders.dsl.HasInjectedServices
+import org.gradle.features.internal.builders.dsl.HasNestedTypes
+import org.gradle.features.internal.builders.dsl.HasProperties
 
 /**
  * Describes a nested type within a definition.
@@ -36,7 +40,7 @@ import org.gradle.features.internal.builders.dsl.ClosureConfigure
  * <p>Nested types can themselves contain properties, injected services, sub-nested types, and
  * optionally implement {@code Definition<BuildModel>} (for NDOC elements that are definitions).</p>
  */
-class PropertyTypeDeclaration {
+class PropertyTypeDeclaration implements HasProperties, HasNestedTypes, HasInjectedServices, HasAnnotations {
     /** The accessor name for this nested type (e.g. "foo" generates "getFoo()"). */
     String name
 
@@ -115,63 +119,17 @@ class PropertyTypeDeclaration {
      */
     TypeShape shape = null
 
-    /** Adds a simple property to this nested type. */
-    void property(String name, Class type) {
-        properties.add(new PropertyDeclaration(name: name, type: type))
-    }
-
-    /** Adds a simple property to this nested type with optional configuration (e.g. annotations). */
-    void property(String name, Class type,
-        @DelegatesTo(value = PropertyDeclaration, strategy = Closure.DELEGATE_FIRST)
-        Closure config
-    ) {
-        properties.add(ClosureConfigure.configure(new PropertyDeclaration(name: name, type: type), config))
-    }
-
-    /** Adds a {@code ListProperty<T>} to this nested type. */
-    void listProperty(String name, Class elementType) {
-        properties.add(new PropertyDeclaration(name: name, type: elementType, isList: true))
-    }
-
-    /** Adds a {@code ListProperty<T>} to this nested type with optional configuration (e.g. annotations). */
-    void listProperty(String name, Class elementType,
-        @DelegatesTo(value = PropertyDeclaration, strategy = Closure.DELEGATE_FIRST)
-        Closure config
-    ) {
-        properties.add(ClosureConfigure.configure(new PropertyDeclaration(name: name, type: elementType, isList: true), config))
-    }
-
     /**
      * Adds a sub-nested type with its own properties.
      *
-     * @param name the accessor name
-     * @param nestedTypeName the type name for the sub-nested type
-     * @param config optional configuration closure
+     * @deprecated Use {@link HasNestedTypes#nested(String, String, Closure)} instead.
      */
+    @Deprecated
     void property(String name, String nestedTypeName,
         @DelegatesTo(value = PropertyTypeDeclaration, strategy = Closure.DELEGATE_FIRST)
         Closure config = {}
     ) {
-        nestedTypes.add(ClosureConfigure.configure(new PropertyTypeDeclaration(name: name, typeName: nestedTypeName), config))
-    }
-
-    /**
-     * Adds a {@code NamedDomainObjectContainer} sub-nested type.
-     *
-     * @param name the accessor name
-     * @param elementTypeName the element type name
-     * @param config optional configuration closure
-     */
-    void ndoc(String name, String elementTypeName,
-        @DelegatesTo(value = PropertyTypeDeclaration, strategy = Closure.DELEGATE_FIRST)
-        Closure config = {}
-    ) {
-        nestedTypes.add(ClosureConfigure.configure(new PropertyTypeDeclaration(name: name, typeName: elementTypeName, isNdoc: true), config))
-    }
-
-    /** Adds an injected service to this nested type. */
-    void injectedService(String name, Class type) {
-        injectedServices.add(new ServiceDeclaration(name: name, type: type))
+        nested(name, nestedTypeName, config)
     }
 
     /**
@@ -189,9 +147,6 @@ class PropertyTypeDeclaration {
         this.buildModel = new BuildModelDeclaration(className: buildModelName)
         ClosureConfigure.configure(this.buildModel, config)
     }
-
-    /** Adds annotation source fragments to be emitted on the getter. Each string is inserted verbatim (including the leading {@code @}). */
-    void annotations(String... items) { this.allAnnotations.addAll(items as List) }
 
     /** Marks this type as a {@code NamedDomainObjectContainer} element. */
     void asNdoc() { this.isNdoc = true }

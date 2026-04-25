@@ -24,6 +24,11 @@ import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition
 import org.gradle.features.binding.BuildModel
 import org.gradle.features.binding.Definition
 import org.gradle.features.internal.builders.dsl.ClosureConfigure
+import org.gradle.features.internal.builders.dsl.HasInjectedServices
+import org.gradle.features.internal.builders.dsl.HasNestedTypes
+import org.gradle.features.internal.builders.dsl.HasProperties
+import org.gradle.features.internal.builders.dsl.HasSharedRefInNestedTypes
+import org.gradle.features.internal.builders.dsl.HasUndiscoverableNested
 import org.gradle.test.fixtures.plugin.PluginBuilder
 
 /**
@@ -57,7 +62,7 @@ import org.gradle.test.fixtures.plugin.PluginBuilder
  * }
  * </pre>
  */
-class DefinitionBuilder {
+class DefinitionBuilder implements HasProperties, HasNestedTypes, HasInjectedServices, HasSharedRefInNestedTypes, HasUndiscoverableNested {
     /** The simple class name of the definition (e.g. "TestProjectTypeDefinition"). */
     String className
 
@@ -197,19 +202,6 @@ class DefinitionBuilder {
         this.showsConfigureInvocations = true
     }
 
-    /** Adds a {@code Property<T>} getter to the definition. */
-    void property(String name, Class type) {
-        properties.add(new PropertyDeclaration(name: name, type: type))
-    }
-
-    /** Adds a {@code Property<T>} getter with optional configuration (e.g. annotations). */
-    void property(String name, Class type,
-        @DelegatesTo(value = PropertyDeclaration, strategy = Closure.DELEGATE_FIRST)
-        Closure config
-    ) {
-        properties.add(ClosureConfigure.configure(new PropertyDeclaration(name: name, type: type), config))
-    }
-
     /** Adds a read-only property that returns the concrete type directly (e.g. {@code Directory getDir()}). */
     void readOnlyProperty(String name, Class type) {
         properties.add(new PropertyDeclaration(name: name, type: type, isReadOnly: true))
@@ -228,122 +220,27 @@ class DefinitionBuilder {
         properties.add(ClosureConfigure.configure(new PropertyDeclaration(name: name, type: type, isJavaBean: true), config))
     }
 
-    /** Adds a {@code ListProperty<T>} getter to the definition. */
-    void listProperty(String name, Class elementType) {
-        properties.add(new PropertyDeclaration(name: name, type: elementType, isList: true))
-    }
-
-    /** Adds a {@code ListProperty<T>} getter with optional configuration (e.g. annotations). */
-    void listProperty(String name, Class elementType,
-        @DelegatesTo(value = PropertyDeclaration, strategy = Closure.DELEGATE_FIRST)
-        Closure config
-    ) {
-        properties.add(ClosureConfigure.configure(new PropertyDeclaration(name: name, type: elementType, isList: true), config))
-    }
-
     /**
      * Adds a {@code @Nested} type with its own properties, services, and sub-nested types.
      *
-     * @param name the accessor name (e.g. "foo" generates {@code getFoo()} and {@code foo(Action)})
-     * @param nestedTypeName the type name of the nested interface/class (e.g. "Foo")
-     * @param config closure to configure the nested type's properties
+     * @deprecated Use {@link HasNestedTypes#nested(String, String, Closure)} instead.
      */
+    @Deprecated
     void property(String name, String nestedTypeName,
         @DelegatesTo(value = PropertyTypeDeclaration, strategy = Closure.DELEGATE_FIRST)
         Closure config = {}
     ) {
-        nestedTypes.add(ClosureConfigure.configure(new PropertyTypeDeclaration(name: name, typeName: nestedTypeName), config))
+        nested(name, nestedTypeName, config)
     }
 
     /**
-     * Adds a property whose type is a previously declared shared type (see
-     * {@code TestScenarioBuilder.sharedType(...)}).
+     * Adds a property whose type is a previously declared shared type.
      *
-     * <p>Emits a {@code @Nested} getter returning the shared type's class directly (no
-     * {@code Property<T>} wrapping). The shared type's body is NOT re-emitted inline; it
-     * lives in its own top-level file produced by {@link SharedTypeBuilder}.</p>
-     *
-     * @param name the accessor name on this definition
-     * @param ref the shared-type reference returned by {@code TestScenarioBuilder.sharedType(...)}
+     * @deprecated Use {@link HasSharedRefInNestedTypes#sharedProperty(String, PropertyTypeDeclaration)} instead.
      */
+    @Deprecated
     void property(String name, PropertyTypeDeclaration ref) {
-        def synthesized = new PropertyTypeDeclaration(
-            name: name,
-            typeName: ref.typeName,
-            properties: ref.properties,
-            nestedTypes: ref.nestedTypes,
-            injectedServices: ref.injectedServices,
-            implementsDefinition: ref.implementsDefinition,
-            buildModel: ref.buildModel,
-            isSharedRef: true
-        )
-        nestedTypes.add(synthesized)
-    }
-
-    /**
-     * Adds a {@code NamedDomainObjectContainer<T>} property to the definition.
-     *
-     * @param name the accessor name (e.g. "sources" generates {@code getSources()})
-     * @param elementTypeName the element type name (e.g. "Source")
-     * @param config closure to configure the NDOC element type
-     */
-    void ndoc(String name, String elementTypeName,
-        @DelegatesTo(value = PropertyTypeDeclaration, strategy = Closure.DELEGATE_FIRST)
-        Closure config = {}
-    ) {
-        nestedTypes.add(ClosureConfigure.configure(new PropertyTypeDeclaration(name: name, typeName: elementTypeName, isNdoc: true), config))
-    }
-
-    /**
-     * Adds an <em>undiscoverable</em> nested type to the definition: an inner object that Gradle's
-     * property machinery cannot auto-discover. The enclosing definition owns the instance as a
-     * {@code private final} field, initialized in the constructor via {@code ObjectFactory}. No
-     * {@code @Nested} annotation is emitted and <strong>no public getter is generated</strong>;
-     * the only entry point is the generated {@code foo(Action)} method, which executes the
-     * action against the field. Optional initialization code supplied via
-     * {@link PropertyTypeDeclaration#initializeWith(String)} is inlined into the enclosing constructor
-     * immediately after the field is created.
-     *
-     * <p>Requires the definition to use {@link TypeShape#ABSTRACT_CLASS}. Interface-shaped definitions
-     * cannot declare undiscoverable properties; this method will fail if the shape is
-     * {@link TypeShape#INTERFACE}. Because {@code parentDefinition} definitions render via the
-     * interface path (for both the parent and the empty child), declaring undiscoverable in a
-     * parent/child setup is also rejected by this same guard.</p>
-     *
-     * <p>The inner type is always a Java {@code interface} (not an abstract static class). It may
-     * optionally extend {@code Definition<Foo.FooBuildModel>} via {@code implementsDefinition(...)}
-     * inside the configuration closure. Nesting another {@code undiscoverable(...)} inside this
-     * closure is not supported — the inner type is a pure interface and has no constructor in which
-     * to initialize a sub-field.</p>
-     *
-     * @param name the accessor name (e.g. "foo" generates the {@code foo(Action)} DSL method)
-     * @param typeName the inner interface name (e.g. "Foo")
-     * @param config closure to configure the undiscoverable type's properties
-     */
-    void undiscoverable(String name, String typeName,
-        @DelegatesTo(value = PropertyTypeDeclaration, strategy = Closure.DELEGATE_FIRST)
-        Closure config = {}
-    ) {
-        if (shape == TypeShape.INTERFACE) {
-            throw new IllegalStateException(
-                "undiscoverable(...) requires ABSTRACT_CLASS shape; set shape(ABSTRACT_CLASS) before declaring undiscoverable properties."
-            )
-        }
-        def nestedType = ClosureConfigure.configure(
-            new PropertyTypeDeclaration(name: name, typeName: typeName, isUndiscoverable: true),
-            config
-        )
-        if (!nestedType.allAnnotations.isEmpty()) {
-            throw new IllegalStateException(
-                "annotations(...) cannot be used on an undiscoverable declaration; it has no public getter."
-            )
-        }
-        nestedTypes.add(nestedType)
-    }
-
-    /** Adds an {@code @Inject} service accessor to the definition. */
-    void injectedService(String name, Class type) {
-        injectedServices.add(new ServiceDeclaration(name: name, type: type))
+        sharedProperty(name, ref)
     }
 
     /** Sets the shape (interface or abstract class) of the generated definition. */
