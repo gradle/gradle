@@ -47,16 +47,6 @@ class BuildModelDeclaration implements HasProperties, HasSharedRefInProperties {
     Map<Language, String> customMappings = [:]
 
     /**
-     * Adds a property whose type is a previously declared shared type.
-     *
-     * @deprecated Use {@link HasSharedRefInProperties#sharedProperty(String, PropertyTypeDeclaration)} instead.
-     */
-    @Deprecated
-    void property(String name, PropertyTypeDeclaration ref) {
-        sharedProperty(name, ref)
-    }
-
-    /**
      * Declares that this build model has a separate implementation interface.
      *
      * @param implClassName the simple class name of the implementation interface

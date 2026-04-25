@@ -55,7 +55,7 @@ import org.gradle.test.fixtures.plugin.PluginBuilder
  * definition("TestProjectTypeDefinition") {
  *     buildModel("ModelType") { property "id", String }
  *     property "id", String
- *     property("foo", "Foo") {
+ *     nested("foo", "Foo") {
  *         implementsDefinition("FooBuildModel") { property "barProcessed", String }
  *         property "bar", String
  *     }
@@ -218,29 +218,6 @@ class DefinitionBuilder implements HasProperties, HasNestedTypes, HasInjectedSer
         Closure config
     ) {
         properties.add(ClosureConfigure.configure(new PropertyDeclaration(name: name, type: type, isJavaBean: true), config))
-    }
-
-    /**
-     * Adds a {@code @Nested} type with its own properties, services, and sub-nested types.
-     *
-     * @deprecated Use {@link HasNestedTypes#nested(String, String, Closure)} instead.
-     */
-    @Deprecated
-    void property(String name, String nestedTypeName,
-        @DelegatesTo(value = PropertyTypeDeclaration, strategy = Closure.DELEGATE_FIRST)
-        Closure config = {}
-    ) {
-        nested(name, nestedTypeName, config)
-    }
-
-    /**
-     * Adds a property whose type is a previously declared shared type.
-     *
-     * @deprecated Use {@link HasSharedRefInNestedTypes#sharedProperty(String, PropertyTypeDeclaration)} instead.
-     */
-    @Deprecated
-    void property(String name, PropertyTypeDeclaration ref) {
-        sharedProperty(name, ref)
     }
 
     /** Sets the shape (interface or abstract class) of the generated definition. */

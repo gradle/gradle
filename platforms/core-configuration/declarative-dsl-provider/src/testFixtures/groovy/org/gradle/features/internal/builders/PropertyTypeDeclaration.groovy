@@ -120,19 +120,6 @@ class PropertyTypeDeclaration implements HasProperties, HasNestedTypes, HasInjec
     TypeShape shape = null
 
     /**
-     * Adds a sub-nested type with its own properties.
-     *
-     * @deprecated Use {@link HasNestedTypes#nested(String, String, Closure)} instead.
-     */
-    @Deprecated
-    void property(String name, String nestedTypeName,
-        @DelegatesTo(value = PropertyTypeDeclaration, strategy = Closure.DELEGATE_FIRST)
-        Closure config = {}
-    ) {
-        nested(name, nestedTypeName, config)
-    }
-
-    /**
      * Marks this nested type as implementing {@code Definition<BuildModel>}, which
      * makes it eligible for NDOC-based registration and feature binding.
      *

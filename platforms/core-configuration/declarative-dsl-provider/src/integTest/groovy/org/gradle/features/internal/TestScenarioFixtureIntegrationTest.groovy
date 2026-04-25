@@ -595,19 +595,6 @@ class TestScenarioFixtureIntegrationTest extends AbstractIntegrationSpec impleme
         e.message.contains("outProjected")
     }
 
-    def "sharedType rejects undiscoverable at DSL time"() {
-        when:
-        testScenario {
-            sharedType("SourceSet") {
-                undiscoverable("foo", "Foo") { property "bar", String }
-            }
-        }
-
-        then:
-        def e = thrown(IllegalStateException)
-        e.message.contains("undiscoverable")
-    }
-
     def "sharedType rejects initializeWith at DSL time"() {
         when:
         testScenario {

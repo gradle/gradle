@@ -116,29 +116,52 @@ class TestScenarioBuilder {
     /**
      * Declares a shared type at the scenario level.
      *
-     * <p>Returns a reference that can be passed to {@code property(name, ref)} on either a
+     * <p>Returns a reference that can be passed to {@code sharedProperty(name, ref)} on either a
      * {@link DefinitionBuilder} or a {@link BuildModelDeclaration}. The referenced type is
      * rendered once as a top-level Java file via {@link SharedTypeBuilder} rather than
      * duplicated inline at each use site.</p>
      *
-     * <p>Allowed inside the closure: {@code property}, {@code listProperty}, sub-nested
-     * {@code property(name, String, Closure)}, {@code ndoc}, {@code injectedService},
-     * {@code annotations}, {@code implementsDefinition}, and {@code shape}. Disallowed (throws
-     * {@link IllegalStateException}): {@code asNdoc}, {@code outProjected},
-     * {@code undiscoverable}, and {@code initializeWith} — these are containment-site concerns.</p>
+     * <p>Allowed inside the closure: {@code property}, {@code listProperty}, {@code nested},
+     * {@code ndoc}, {@code injectedService}, {@code annotations}, and {@code implementsDefinition}.
+     * {@code undiscoverable(...)} is structurally unavailable because
+     * {@link PropertyTypeDeclaration} does not mix in {@code HasUndiscoverableNested}.
+     * {@code asNdoc}, {@code outProjected}, {@code initializeWith}, and {@code shape}
+     * are syntactically callable but rejected at scenario-build time — these are
+     * containment-site concerns, not properties of a shared type itself.</p>
      *
      * @param typeName simple class name of the generated top-level type (e.g. "SourceSet")
-     * @param config configuration closure delegating to {@link SharedTypeDsl}
+     * @param config configuration closure delegating to {@link PropertyTypeDeclaration}
      * @return the declaration, to be captured and passed as a property type
      */
     PropertyTypeDeclaration sharedType(String typeName,
-        @DelegatesTo(value = SharedTypeDsl, strategy = Closure.DELEGATE_FIRST)
+        @DelegatesTo(value = PropertyTypeDeclaration, strategy = Closure.DELEGATE_FIRST)
         Closure config = {}
     ) {
-        def declaration = new PropertyTypeDeclaration(typeName: typeName)
-        ClosureConfigure.configure(new SharedTypeDsl(declaration), config)
+        def declaration = ClosureConfigure.configure(new PropertyTypeDeclaration(typeName: typeName), config)
+        validateSharedTypeDeclaration(declaration)
         sharedTypes.add(declaration)
         return declaration
+    }
+
+    private static void validateSharedTypeDeclaration(PropertyTypeDeclaration d) {
+        if (d.isNdoc) {
+            throw new IllegalStateException(
+                "asNdoc() is not allowed on a sharedType; NDOC-ness is a property of the use-site containment."
+            )
+        }
+        if (d.isOutProjected) {
+            throw new IllegalStateException("outProjected() is not allowed on a sharedType.")
+        }
+        if (d.initializationCode != null) {
+            throw new IllegalStateException(
+                "initializeWith(...) is not allowed on a sharedType; it is only meaningful for undiscoverable fields."
+            )
+        }
+        if (d.shape != null) {
+            throw new IllegalStateException(
+                "shape(TypeShape) is not allowed on a sharedType; the shared type's body shape is set via the sharedShape field."
+            )
+        }
     }
 
     /**
