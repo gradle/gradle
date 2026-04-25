@@ -16,6 +16,7 @@
 
 package org.gradle.features.internal.builders
 
+import org.gradle.features.internal.builders.dsl.ClosureConfigure
 import org.gradle.test.fixtures.plugin.PluginBuilder as GradlePluginBuilder
 
 /**
@@ -49,9 +50,7 @@ class DefinitionAndPluginBuilder {
         @DelegatesTo(value = DefinitionBuilder, strategy = Closure.DELEGATE_FIRST)
         Closure config
     ) {
-        config.delegate = definition
-        config.resolveStrategy = Closure.DELEGATE_FIRST
-        config.call()
+        ClosureConfigure.configure(definition, config)
     }
 
     /**
@@ -77,9 +76,7 @@ class DefinitionAndPluginBuilder {
         @DelegatesTo(value = PluginClassBuilder, strategy = Closure.DELEGATE_FIRST)
         Closure config
     ) {
-        config.delegate = plugin
-        config.resolveStrategy = Closure.DELEGATE_FIRST
-        config.call()
+        ClosureConfigure.configure(plugin, config)
     }
 
     /** Whether to suppress plugin generation for this component. */

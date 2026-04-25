@@ -17,6 +17,7 @@
 package org.gradle.features.internal.builders
 
 import org.gradle.features.annotations.RegistersProjectFeatures
+import org.gradle.features.internal.builders.dsl.ClosureConfigure
 import org.gradle.test.fixtures.plugin.PluginBuilder as GradlePluginBuilder
 
 /**
@@ -75,14 +76,10 @@ class SettingsBuilder {
         @DelegatesTo(value = DefaultDeclaration, strategy = Closure.DELEGATE_FIRST)
         Closure config
     ) {
-        def decl = new DefaultDeclaration(
+        defaults.add(ClosureConfigure.configure(new DefaultDeclaration(
             typeName: type.name,
             definitionClassName: type.definition.className
-        )
-        config.delegate = decl
-        config.resolveStrategy = Closure.DELEGATE_FIRST
-        config.call()
-        defaults.add(decl)
+        ), config))
     }
 
     /**

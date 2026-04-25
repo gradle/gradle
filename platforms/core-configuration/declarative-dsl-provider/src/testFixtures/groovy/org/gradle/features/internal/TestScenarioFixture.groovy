@@ -18,6 +18,7 @@ package org.gradle.features.internal
 
 import groovy.transform.SelfType
 import org.gradle.features.internal.builders.TestScenarioBuilder
+import org.gradle.features.internal.builders.dsl.ClosureConfigure
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.plugin.PluginBuilder
 
@@ -50,11 +51,7 @@ trait TestScenarioFixture {
         @DelegatesTo(value = TestScenarioBuilder, strategy = Closure.DELEGATE_FIRST)
         Closure config
     ) {
-        def scenario = new TestScenarioBuilder()
-        config.delegate = scenario
-        config.resolveStrategy = Closure.DELEGATE_FIRST
-        config.call()
-
+        def scenario = ClosureConfigure.configure(new TestScenarioBuilder(), config)
         return scenario.build(file("plugins"))
     }
 

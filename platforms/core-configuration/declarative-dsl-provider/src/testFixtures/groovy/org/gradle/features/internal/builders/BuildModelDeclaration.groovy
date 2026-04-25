@@ -16,6 +16,8 @@
 
 package org.gradle.features.internal.builders
 
+import org.gradle.features.internal.builders.dsl.ClosureConfigure
+
 /**
  * Describes a {@code BuildModel} inner interface to be generated inside a definition type.
  *
@@ -53,11 +55,7 @@ class BuildModelDeclaration {
         @DelegatesTo(value = PropertyDeclaration, strategy = Closure.DELEGATE_FIRST)
         Closure config
     ) {
-        def property = new PropertyDeclaration(name: name, type: type)
-        config.delegate = property
-        config.resolveStrategy = Closure.DELEGATE_FIRST
-        config.call()
-        properties.add(property)
+        properties.add(ClosureConfigure.configure(new PropertyDeclaration(name: name, type: type), config))
     }
 
     /**
@@ -84,11 +82,7 @@ class BuildModelDeclaration {
         @DelegatesTo(value = PropertyDeclaration, strategy = Closure.DELEGATE_FIRST)
         Closure config
     ) {
-        def property = new PropertyDeclaration(name: name, type: elementType, isList: true)
-        config.delegate = property
-        config.resolveStrategy = Closure.DELEGATE_FIRST
-        config.call()
-        properties.add(property)
+        properties.add(ClosureConfigure.configure(new PropertyDeclaration(name: name, type: elementType, isList: true), config))
     }
 
     /**

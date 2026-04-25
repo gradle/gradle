@@ -29,6 +29,7 @@ import org.gradle.features.binding.ProjectTypeApplyAction
 import org.gradle.features.binding.ProjectTypeBinding
 import org.gradle.features.binding.ProjectTypeBindingBuilder
 import org.gradle.features.file.ProjectFeatureLayout
+import org.gradle.features.internal.builders.dsl.ClosureConfigure
 import org.gradle.features.registration.TaskRegistrar
 import org.gradle.test.fixtures.plugin.PluginBuilder as GradlePluginBuilder
 
@@ -274,11 +275,10 @@ class PluginClassBuilder {
         @DelegatesTo(value = BuildModelImplDeclaration, strategy = Closure.DELEGATE_FIRST)
         Closure config = {}
     ) {
-        def declaration = new BuildModelImplDeclaration(implClassName: implClassName, interfaceName: interfaceName)
-        config.delegate = declaration
-        config.resolveStrategy = Closure.DELEGATE_FIRST
-        config.call()
-        buildModelImplementations.add(declaration)
+        buildModelImplementations.add(ClosureConfigure.configure(
+            new BuildModelImplDeclaration(implClassName: implClassName, interfaceName: interfaceName),
+            config
+        ))
     }
 
     /**
@@ -290,9 +290,7 @@ class PluginClassBuilder {
         @DelegatesTo(value = ApplyActionDeclaration, strategy = Closure.DELEGATE_FIRST)
         Closure config
     ) {
-        config.delegate = applyActionDeclaration
-        config.resolveStrategy = Closure.DELEGATE_FIRST
-        config.call()
+        ClosureConfigure.configure(applyActionDeclaration, config)
     }
 
     // --- Code generation ---

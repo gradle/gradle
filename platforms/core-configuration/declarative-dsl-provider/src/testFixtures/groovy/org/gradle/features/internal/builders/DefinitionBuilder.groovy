@@ -23,6 +23,7 @@ import org.gradle.api.file.Directory
 import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition
 import org.gradle.features.binding.BuildModel
 import org.gradle.features.binding.Definition
+import org.gradle.features.internal.builders.dsl.ClosureConfigure
 import org.gradle.test.fixtures.plugin.PluginBuilder
 
 /**
@@ -155,9 +156,7 @@ class DefinitionBuilder {
     ) {
         this.buildModel = new BuildModelDeclaration(className: modelClassName)
         this.usesNoBuildModel = false
-        config.delegate = this.buildModel
-        config.resolveStrategy = Closure.DELEGATE_FIRST
-        config.call()
+        ClosureConfigure.configure(this.buildModel, config)
     }
 
     /**
@@ -177,9 +176,7 @@ class DefinitionBuilder {
                 "Pass a class name to create one, e.g. buildModel(\"ModelType\") { ... }."
             )
         }
-        config.delegate = this.buildModel
-        config.resolveStrategy = Closure.DELEGATE_FIRST
-        config.call()
+        ClosureConfigure.configure(this.buildModel, config)
     }
 
     /**
@@ -210,11 +207,7 @@ class DefinitionBuilder {
         @DelegatesTo(value = PropertyDeclaration, strategy = Closure.DELEGATE_FIRST)
         Closure config
     ) {
-        def property = new PropertyDeclaration(name: name, type: type)
-        config.delegate = property
-        config.resolveStrategy = Closure.DELEGATE_FIRST
-        config.call()
-        properties.add(property)
+        properties.add(ClosureConfigure.configure(new PropertyDeclaration(name: name, type: type), config))
     }
 
     /** Adds a read-only property that returns the concrete type directly (e.g. {@code Directory getDir()}). */
@@ -232,11 +225,7 @@ class DefinitionBuilder {
         @DelegatesTo(value = PropertyDeclaration, strategy = Closure.DELEGATE_FIRST)
         Closure config
     ) {
-        def property = new PropertyDeclaration(name: name, type: type, isJavaBean: true)
-        config.delegate = property
-        config.resolveStrategy = Closure.DELEGATE_FIRST
-        config.call()
-        properties.add(property)
+        properties.add(ClosureConfigure.configure(new PropertyDeclaration(name: name, type: type, isJavaBean: true), config))
     }
 
     /** Adds a {@code ListProperty<T>} getter to the definition. */
@@ -249,11 +238,7 @@ class DefinitionBuilder {
         @DelegatesTo(value = PropertyDeclaration, strategy = Closure.DELEGATE_FIRST)
         Closure config
     ) {
-        def property = new PropertyDeclaration(name: name, type: elementType, isList: true)
-        config.delegate = property
-        config.resolveStrategy = Closure.DELEGATE_FIRST
-        config.call()
-        properties.add(property)
+        properties.add(ClosureConfigure.configure(new PropertyDeclaration(name: name, type: elementType, isList: true), config))
     }
 
     /**
@@ -267,11 +252,7 @@ class DefinitionBuilder {
         @DelegatesTo(value = PropertyTypeDeclaration, strategy = Closure.DELEGATE_FIRST)
         Closure config = {}
     ) {
-        def nestedType = new PropertyTypeDeclaration(name: name, typeName: nestedTypeName)
-        config.delegate = nestedType
-        config.resolveStrategy = Closure.DELEGATE_FIRST
-        config.call()
-        nestedTypes.add(nestedType)
+        nestedTypes.add(ClosureConfigure.configure(new PropertyTypeDeclaration(name: name, typeName: nestedTypeName), config))
     }
 
     /**
@@ -310,11 +291,7 @@ class DefinitionBuilder {
         @DelegatesTo(value = PropertyTypeDeclaration, strategy = Closure.DELEGATE_FIRST)
         Closure config = {}
     ) {
-        def nestedType = new PropertyTypeDeclaration(name: name, typeName: elementTypeName, isNdoc: true)
-        config.delegate = nestedType
-        config.resolveStrategy = Closure.DELEGATE_FIRST
-        config.call()
-        nestedTypes.add(nestedType)
+        nestedTypes.add(ClosureConfigure.configure(new PropertyTypeDeclaration(name: name, typeName: elementTypeName, isNdoc: true), config))
     }
 
     /**
@@ -352,10 +329,10 @@ class DefinitionBuilder {
                 "undiscoverable(...) requires ABSTRACT_CLASS shape; set shape(ABSTRACT_CLASS) before declaring undiscoverable properties."
             )
         }
-        def nestedType = new PropertyTypeDeclaration(name: name, typeName: typeName, isUndiscoverable: true)
-        config.delegate = nestedType
-        config.resolveStrategy = Closure.DELEGATE_FIRST
-        config.call()
+        def nestedType = ClosureConfigure.configure(
+            new PropertyTypeDeclaration(name: name, typeName: typeName, isUndiscoverable: true),
+            config
+        )
         if (!nestedType.allAnnotations.isEmpty()) {
             throw new IllegalStateException(
                 "annotations(...) cannot be used on an undiscoverable declaration; it has no public getter."
@@ -389,10 +366,7 @@ class DefinitionBuilder {
         @DelegatesTo(value = DependenciesDeclaration, strategy = Closure.DELEGATE_FIRST)
         Closure config
     ) {
-        this.dependenciesDeclaration = new DependenciesDeclaration()
-        config.delegate = this.dependenciesDeclaration
-        config.resolveStrategy = Closure.DELEGATE_FIRST
-        config.call()
+        this.dependenciesDeclaration = ClosureConfigure.configure(new DependenciesDeclaration(), config)
     }
 
     /**
@@ -405,11 +379,7 @@ class DefinitionBuilder {
         @DelegatesTo(value = DefinitionBuilder, strategy = Closure.DELEGATE_FIRST)
         Closure config
     ) {
-        def parent = new DefinitionBuilder()
-        config.delegate = parent
-        config.resolveStrategy = Closure.DELEGATE_FIRST
-        config.call()
-        this.parentDefinition = parent
+        this.parentDefinition = ClosureConfigure.configure(new DefinitionBuilder(), config)
     }
 
     // --- Code generation ---

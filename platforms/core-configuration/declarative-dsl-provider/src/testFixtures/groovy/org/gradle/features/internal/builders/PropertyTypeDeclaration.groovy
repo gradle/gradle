@@ -16,6 +16,8 @@
 
 package org.gradle.features.internal.builders
 
+import org.gradle.features.internal.builders.dsl.ClosureConfigure
+
 /**
  * Describes a nested type within a definition.
  *
@@ -123,11 +125,7 @@ class PropertyTypeDeclaration {
         @DelegatesTo(value = PropertyDeclaration, strategy = Closure.DELEGATE_FIRST)
         Closure config
     ) {
-        def property = new PropertyDeclaration(name: name, type: type)
-        config.delegate = property
-        config.resolveStrategy = Closure.DELEGATE_FIRST
-        config.call()
-        properties.add(property)
+        properties.add(ClosureConfigure.configure(new PropertyDeclaration(name: name, type: type), config))
     }
 
     /** Adds a {@code ListProperty<T>} to this nested type. */
@@ -140,11 +138,7 @@ class PropertyTypeDeclaration {
         @DelegatesTo(value = PropertyDeclaration, strategy = Closure.DELEGATE_FIRST)
         Closure config
     ) {
-        def property = new PropertyDeclaration(name: name, type: elementType, isList: true)
-        config.delegate = property
-        config.resolveStrategy = Closure.DELEGATE_FIRST
-        config.call()
-        properties.add(property)
+        properties.add(ClosureConfigure.configure(new PropertyDeclaration(name: name, type: elementType, isList: true), config))
     }
 
     /**
@@ -158,11 +152,7 @@ class PropertyTypeDeclaration {
         @DelegatesTo(value = PropertyTypeDeclaration, strategy = Closure.DELEGATE_FIRST)
         Closure config = {}
     ) {
-        def nested = new PropertyTypeDeclaration(name: name, typeName: nestedTypeName)
-        config.delegate = nested
-        config.resolveStrategy = Closure.DELEGATE_FIRST
-        config.call()
-        nestedTypes.add(nested)
+        nestedTypes.add(ClosureConfigure.configure(new PropertyTypeDeclaration(name: name, typeName: nestedTypeName), config))
     }
 
     /**
@@ -176,11 +166,7 @@ class PropertyTypeDeclaration {
         @DelegatesTo(value = PropertyTypeDeclaration, strategy = Closure.DELEGATE_FIRST)
         Closure config = {}
     ) {
-        def nested = new PropertyTypeDeclaration(name: name, typeName: elementTypeName, isNdoc: true)
-        config.delegate = nested
-        config.resolveStrategy = Closure.DELEGATE_FIRST
-        config.call()
-        nestedTypes.add(nested)
+        nestedTypes.add(ClosureConfigure.configure(new PropertyTypeDeclaration(name: name, typeName: elementTypeName, isNdoc: true), config))
     }
 
     /** Adds an injected service to this nested type. */
@@ -201,9 +187,7 @@ class PropertyTypeDeclaration {
     ) {
         this.implementsDefinition = true
         this.buildModel = new BuildModelDeclaration(className: buildModelName)
-        config.delegate = this.buildModel
-        config.resolveStrategy = Closure.DELEGATE_FIRST
-        config.call()
+        ClosureConfigure.configure(this.buildModel, config)
     }
 
     /** Adds annotation source fragments to be emitted on the getter. Each string is inserted verbatim (including the leading {@code @}). */

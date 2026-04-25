@@ -16,6 +16,7 @@
 
 package org.gradle.features.internal.builders
 
+import org.gradle.features.internal.builders.dsl.ClosureConfigure
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.plugin.PluginBuilder as GradlePluginBuilder
 
@@ -68,10 +69,7 @@ class TestScenarioBuilder {
         @DelegatesTo(value = DefinitionAndPluginBuilder, strategy = Closure.DELEGATE_FIRST)
         Closure config = {}
     ) {
-        def type = DefinitionAndPluginBuilder.forProjectType(name)
-        config.delegate = type
-        config.resolveStrategy = Closure.DELEGATE_FIRST
-        config.call()
+        def type = ClosureConfigure.configure(DefinitionAndPluginBuilder.forProjectType(name), config)
         types.add(type)
         return type
     }
@@ -87,10 +85,7 @@ class TestScenarioBuilder {
         @DelegatesTo(value = DefinitionAndPluginBuilder, strategy = Closure.DELEGATE_FIRST)
         Closure config = {}
     ) {
-        def feature = DefinitionAndPluginBuilder.forProjectFeature(name)
-        config.delegate = feature
-        config.resolveStrategy = Closure.DELEGATE_FIRST
-        config.call()
+        def feature = ClosureConfigure.configure(DefinitionAndPluginBuilder.forProjectFeature(name), config)
         features.add(feature)
         return feature
     }
@@ -113,9 +108,7 @@ class TestScenarioBuilder {
         def plugin = new PluginClassBuilder()
         plugin.pluginClassName = className
         plugin.exposesBindings = false
-        config.delegate = plugin
-        config.resolveStrategy = Closure.DELEGATE_FIRST
-        config.call()
+        ClosureConfigure.configure(plugin, config)
         standalonePlugins.add(plugin)
         return plugin
     }
@@ -143,10 +136,7 @@ class TestScenarioBuilder {
         Closure config = {}
     ) {
         def declaration = new PropertyTypeDeclaration(typeName: typeName)
-        def dsl = new SharedTypeDsl(declaration)
-        config.delegate = dsl
-        config.resolveStrategy = Closure.DELEGATE_FIRST
-        config.call()
+        ClosureConfigure.configure(new SharedTypeDsl(declaration), config)
         sharedTypes.add(declaration)
         return declaration
     }
@@ -160,9 +150,7 @@ class TestScenarioBuilder {
         @DelegatesTo(value = SettingsBuilder, strategy = Closure.DELEGATE_FIRST)
         Closure config
     ) {
-        config.delegate = settings
-        config.resolveStrategy = Closure.DELEGATE_FIRST
-        config.call()
+        ClosureConfigure.configure(settings, config)
     }
 
     /**
