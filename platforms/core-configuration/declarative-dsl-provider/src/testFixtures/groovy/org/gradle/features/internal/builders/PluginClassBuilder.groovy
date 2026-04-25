@@ -243,7 +243,7 @@ class PluginClassBuilder extends AbstractPluginBuilder {
     @Override
     protected String renderJava() {
         if (type == PluginType.WITHOUT_BINDINGS) {
-            return generateNoBindingsPlugin()
+            return asStandalone().renderJava()
         }
         if (kind == PluginKind.PROJECT_TYPE) {
             return generateJavaProjectTypePlugin()
@@ -251,20 +251,13 @@ class PluginClassBuilder extends AbstractPluginBuilder {
         return generateJavaProjectFeaturePlugin()
     }
 
-    private String generateNoBindingsPlugin() {
-        return """
-            package ${packageName};
-
-            import org.gradle.api.Plugin;
-            import org.gradle.api.Project;
-
-            abstract public class ${pluginClassName} implements Plugin<Project> {
-                @Override
-                public void apply(Project target) {
-
-                }
-            }
-        """
+    private StandalonePluginBuilder asStandalone() {
+        def b = new StandalonePluginBuilder()
+        b.pluginClassName = pluginClassName
+        b.packageName = packageName
+        b.language = language
+        b.type = type
+        return b
     }
 
     private String generateJavaProjectTypePlugin() {
@@ -620,7 +613,7 @@ class PluginClassBuilder extends AbstractPluginBuilder {
     @Override
     protected String renderKotlin() {
         if (type == PluginType.WITHOUT_BINDINGS) {
-            return generateKotlinNoBindingsPlugin()
+            return asStandalone().renderKotlin()
         }
         if (kind == PluginKind.PROJECT_TYPE) {
             if (bindingStyle == BindingStyle.REIFIED) {
@@ -632,20 +625,6 @@ class PluginClassBuilder extends AbstractPluginBuilder {
             return generateKotlinReifiedFeaturePlugin()
         }
         return generateKotlinFeaturePlugin()
-    }
-
-    private String generateKotlinNoBindingsPlugin() {
-        return """
-            package ${packageName}
-
-            import org.gradle.api.Plugin
-            import org.gradle.api.Project
-
-            abstract class ${pluginClassName} : Plugin<Project> {
-                override fun apply(target: Project) {
-                }
-            }
-        """
     }
 
     private String generateKotlinProjectTypePlugin() {
