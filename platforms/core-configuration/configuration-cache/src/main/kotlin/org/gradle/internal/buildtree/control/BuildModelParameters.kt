@@ -22,6 +22,7 @@ import org.gradle.internal.buildtree.BuildModelParameters
 internal sealed class AbstractBuildModelParameters : BuildModelParameters {
 
     override fun toDisplayMap(): Map<String, Any?> = mapOf(
+        "isVintage" to isVintage,
         "cachingModelBuilding" to isCachingModelBuilding,
         "configurationCache" to isConfigurationCache,
         "configurationCacheDisabledReason" to configurationCacheDisabledReason,

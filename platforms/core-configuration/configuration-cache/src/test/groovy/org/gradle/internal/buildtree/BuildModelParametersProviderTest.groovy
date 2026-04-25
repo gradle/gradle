@@ -29,6 +29,7 @@ class BuildModelParametersProviderTest extends Specification {
 
     def vintageDefaults() {
         [
+            isVintage: true,
             parallelProjectExecution: false,
             configureOnDemand: false,
 
@@ -51,6 +52,7 @@ class BuildModelParametersProviderTest extends Specification {
 
     def configurationCacheDefaults() {
         vintageDefaults() + [
+            isVintage: false,
             configurationCache: true,
             configurationCacheParallelLoad: true,
             parallelProjectExecution: false, // With CC, tasks are known to be isolated, so they run in parallel even without "parallel execution"
@@ -423,8 +425,7 @@ class BuildModelParametersProviderTest extends Specification {
 
     def "display map contains all parameter getters"() {
         def expectedGetterCount =
-            BuildModelParameters.methods.count { it.name.matches(/^(is|get)[A-Z].*/) && it.name != 'getClass' } -
-                1 // isVintage helper
+            BuildModelParameters.methods.count { it.name.matches(/^(is|get)[A-Z].*/) && it.name != 'getClass' }
 
         expect:
         def params = parameters(runsTasks: true, createsModel: false)

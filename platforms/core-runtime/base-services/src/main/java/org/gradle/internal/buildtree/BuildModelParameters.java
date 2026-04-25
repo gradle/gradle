@@ -25,8 +25,11 @@ import java.util.Map;
 @ServiceScope(Scope.BuildTree.class)
 public interface BuildModelParameters {
 
+    /**
+     * Vintage mode is when neither CC nor IP are enabled.
+     */
     default boolean isVintage() {
-        return !isConfigurationCache();
+        return !isConfigurationCache() && !isIsolatedProjects();
     }
 
     /**
@@ -46,6 +49,11 @@ public interface BuildModelParameters {
 
     boolean isConfigureOnDemand();
 
+    /**
+     * Whether Configuration Cache is enabled.
+     * <p>
+     * Also true if Isolated Projects is enabled.
+     */
     boolean isConfigurationCache();
 
     /**
@@ -60,6 +68,9 @@ public interface BuildModelParameters {
 
     boolean isConfigurationCacheParallelLoad();
 
+    /**
+     * Whether Isolated Projects is enabled.
+     */
     boolean isIsolatedProjects();
 
     /**
