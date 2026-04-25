@@ -31,7 +31,6 @@ import org.gradle.features.binding.ProjectTypeBindingBuilder
 import org.gradle.features.file.ProjectFeatureLayout
 import org.gradle.features.internal.builders.dsl.ClosureConfigure
 import org.gradle.features.registration.TaskRegistrar
-import org.gradle.test.fixtures.plugin.PluginBuilder as GradlePluginBuilder
 
 /**
  * Generates Java or Kotlin source code for a project type or project feature plugin.
@@ -115,7 +114,7 @@ import org.gradle.test.fixtures.plugin.PluginBuilder as GradlePluginBuilder
  *   </tr>
  * </table>
  */
-class PluginClassBuilder {
+class PluginClassBuilder extends AbstractPluginBuilder {
     /** Whether this plugin binds a project type or a project feature. */
     enum PluginKind {
         /** Generates a plugin with {@code @BindsProjectType}. */
@@ -135,23 +134,8 @@ class PluginClassBuilder {
     /** Whether this is a project type or project feature plugin. */
     PluginKind kind = PluginKind.PROJECT_TYPE
 
-    /** The simple class name of the generated plugin (e.g. "ProjectTypeImplPlugin"). */
-    String pluginClassName
-
-    /** The Java package for generated source files. */
-    String packageName = "org.gradle.test"
-
-    /** The language to generate source code in. */
-    Language language = Language.JAVA
-
     /** The binding style (relevant for Kotlin generation). */
     BindingStyle bindingStyle = BindingStyle.CLASS
-
-    /** Modifiers appended to the binding chain (e.g. ".withUnsafeDefinition()"). */
-    List<String> bindingModifiers = []
-
-    /** The emission shape of this plugin. See {@link PluginType}. */
-    PluginType type = PluginType.WITH_BINDINGS
 
     /** Whether the feature plugin has no build model (uses {@code BuildModel.None}). */
     boolean hasNoBuildModel = false
@@ -161,12 +145,6 @@ class PluginClassBuilder {
 
     /** Build model implementation classes provided by this plugin (for NDOC element models). */
     List<BuildModelImplDeclaration> buildModelImplementations = []
-
-    /** Configuration for the apply action's services and behavior. */
-    ApplyActionDeclaration applyActionDeclaration = new ApplyActionDeclaration()
-
-    /** Custom Java code to insert in the apply action body (before task registration). */
-    String customApplyActionCode = ""
 
     /** Returns the primary binding's name, or null if no bindings exist. */
     String getName() {
@@ -188,31 +166,13 @@ class PluginClassBuilder {
         bindings ? bindings[0].bindingMethodName : "bindProjectFeatureToDefinition"
     }
 
-    // --- Fluent API ---
-
-    /** Overrides the generated plugin class name. */
-    void pluginClassName(String className) { this.pluginClassName = className }
-
-    /** Sets the source code language (Java or Kotlin). */
-    void language(Language language) { this.language = language }
+    // --- Fluent API (subclass-specific) ---
 
     /** Sets the binding style (CLASS or REIFIED). Only affects Kotlin generation. */
     void bindingStyle(BindingStyle style) { this.bindingStyle = style }
 
-    /** Adds {@code .withUnsafeDefinition()} to the binding chain. */
-    void unsafeDefinition() { bindingModifiers.add("withUnsafeDefinition()") }
-
-    /** Adds {@code .withUnsafeApplyAction()} to the binding chain. */
-    void unsafeApplyAction() { bindingModifiers.add("withUnsafeApplyAction()") }
-
-    /** Sets the plugin emission shape. See {@link PluginType}. */
-    void type(PluginType type) { this.type = type }
-
     /** Marks this feature plugin as having no build model (uses {@code BuildModel.None}). */
     void noBuildModel() { this.hasNoBuildModel = true }
-
-    /** Sets custom Java code to execute in the apply action before task registration. */
-    void applyActionCode(String code) { this.customApplyActionCode = code }
 
     /** Changes the feature binding method to {@code bindProjectFeatureToBuildModel}. */
     void bindToBuildModel() {
@@ -278,41 +238,10 @@ class PluginClassBuilder {
         ))
     }
 
-    /**
-     * Configures the apply action's injected services and behavior.
-     *
-     * @see ApplyActionDeclaration
-     */
-    void applyAction(
-        @DelegatesTo(value = ApplyActionDeclaration, strategy = Closure.DELEGATE_FIRST)
-        Closure config
-    ) {
-        ClosureConfigure.configure(applyActionDeclaration, config)
-    }
-
     // --- Code generation ---
 
-    /**
-     * Generates the plugin source file and writes it to the plugin builder.
-     * Produces a single {@code .java} or {@code .kt} file depending on the configured language.
-     */
-    void build(GradlePluginBuilder pluginBuilder) {
-        if (type == PluginType.NO_PLUGIN) {
-            throw new IllegalStateException(
-                "PluginClassBuilder.build() invoked on a NO_PLUGIN plugin; " +
-                "the caller should have skipped emission."
-            )
-        }
-        if (language == Language.KOTLIN) {
-            pluginBuilder.file("src/main/kotlin/${packageName.replace('.', '/')}/${pluginClassName}.kt") << getKotlinClassContent()
-        } else {
-            pluginBuilder.file("src/main/java/${packageName.replace('.', '/')}/${pluginClassName}.java") << getJavaClassContent()
-        }
-    }
-
-    // --- Java code generation ---
-
-    private String getJavaClassContent() {
+    @Override
+    protected String renderJava() {
         if (type == PluginType.WITHOUT_BINDINGS) {
             return generateNoBindingsPlugin()
         }
@@ -688,7 +617,8 @@ class PluginClassBuilder {
 
     // --- Kotlin code generation ---
 
-    private String getKotlinClassContent() {
+    @Override
+    protected String renderKotlin() {
         if (type == PluginType.WITHOUT_BINDINGS) {
             return generateKotlinNoBindingsPlugin()
         }
