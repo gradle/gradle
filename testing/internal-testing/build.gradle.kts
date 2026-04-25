@@ -15,6 +15,7 @@ dependencies {
     api(testLibs.hamcrest)
     api(libs.jspecify)
     api(libs.jsr305)
+    api(testLibs.jqwikApi)
     api(testLibs.junit)
     api(testLibs.junit5JupiterApi)
     api(testLibs.spock)

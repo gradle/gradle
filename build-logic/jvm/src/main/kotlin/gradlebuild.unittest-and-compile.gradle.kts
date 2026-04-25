@@ -167,11 +167,13 @@ fun addDependencies() {
         testImplementation(testLibs.findLibrary("groovyTest").get())
         testImplementation(libs.findLibrary("groovyXml").get())
         testImplementation(testLibs.findLibrary("spock").get())
+        testImplementation(testLibs.findLibrary("jqwikApi").get())
         testImplementation(testLibs.findLibrary("junit5Vintage").get())
         testImplementation(testLibs.findLibrary("spockJUnit4").get())
         testImplementation(testLibs.findLibrary("develocityTestAnnotation").get())
         testRuntimeOnly(testLibs.findLibrary("bytebuddy").get())
         testRuntimeOnly(testLibs.findLibrary("objenesis").get())
+        testRuntimeOnly(testLibs.findLibrary("jqwikEngine").get())
         testRuntimeOnly(testLibs.findLibrary("junitPlatform").get())
 
         // use a separate configuration for the platform dependency that does not get published as part of 'apiElements' or 'runtimeElements'
@@ -226,6 +228,13 @@ fun Test.configureFlakyTest() {
             includeSpockAnnotation("org.gradle.test.fixtures.Flaky")
         }
     }
+}
+
+fun Test.configureJqwik() {
+    systemProperty(
+        "jqwik.database",
+        layout.buildDirectory.file("tmp/${name}/jqwik-database").get().asFile
+    )
 }
 
 fun Test.runWithJavaVersion(testJvmVersion: JavaLanguageVersion) {
@@ -330,6 +339,7 @@ fun configureTests() {
         useJUnitPlatform()
         configureSpock()
         configureFlakyTest()
+        configureJqwik()
 
         extensions.findByType<DevelocityTestConfiguration>()?.testDistribution {
             this as TestDistributionConfigurationInternal

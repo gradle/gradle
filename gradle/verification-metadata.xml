@@ -350,6 +350,7 @@
          <trusted-key id="A7892505CF1A58076453E52D7999BEFBA1039E8B" group="net.bytebuddy"/>
          <trusted-key id="A7D8BE3D575D6C5040E889331B6E3BDDD4415872" group="net.openhft" name="zero-allocation-hashing"/>
          <trusted-key id="AA417737BD805456DB3CBDDE6601E5C08DCCBB96" group="info.picocli"/>
+         <trusted-key id="AAAA9D3F580C7223DBD1FF425746EE07D997DDB6" group="net.jqwik"/>
          <trusted-key id="AC6A8BC1BA5426F13D93060E806E7D417A281864" group="com.google.guava" name="guava-jdk5"/>
          <trusted-key id="ACF39CCDED38E2C6F0898BF28F7F6C0451967B84" group="org.scala-lang"/>
          <trusted-key id="AD296CA014321485EB6780FF8B8E0CB0F6A7657E" group="org.asciidoctor"/>

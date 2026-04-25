@@ -20,6 +20,7 @@ hikariCP = "4.0.3!!" # 5.x requires Java 11+
 httpmime = "4.5.10!!"
 jetty = "9.4.58.v20250814!!" # CVE-2024-13009
 joptSimple = "5.0.4!!" # needed to create profiler in Gradle profiler API
+jqwik = "1.9.3!!"
 jtar = "2.3!!"
 junit5ForTests = "5.12.2!!"
 junitForTests = "4.13.2!!"
@@ -78,6 +79,8 @@ jettyUtil = { group = "org.eclipse.jetty", name = "jetty-util", version.ref = "j
 jettyWebApp = { group = "org.eclipse.jetty", name = "jetty-webapp", version.ref = "jetty" }
 jettyWebsocket = { group = "org.eclipse.jetty.websocket", name = "websocket-client", version.ref = "jetty" }
 joptSimple = { group = "net.sf.jopt-simple", name = "jopt-simple", version.ref = "joptSimple" }
+jqwikApi = { group = "net.jqwik", name = "jqwik-api", version.ref = "jqwik" }
+jqwikEngine = { group = "net.jqwik", name = "jqwik-engine", version.ref = "jqwik" }
 jtar = { group = "org.kamranzafar", name = "jtar", version.ref = "jtar" }
 junit = { group = "junit", name = "junit", version.ref = "junitForTests" }
 junit5JupiterApi = { group = "org.junit.jupiter", name = "junit-jupiter-api", version.ref = "junit5ForTests" }

@@ -21,6 +21,8 @@ import org.hamcrest.BaseMatcher;
 import org.hamcrest.CoreMatchers;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
+import org.hamcrest.TypeSafeMatcher;
+import org.jspecify.annotations.NullMarked;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
@@ -103,6 +105,85 @@ public class Matchers {
             return false;
         }
         return a.hashCode() == b.hashCode();
+    }
+
+    /**
+     * Returns a matcher that matches if the examined object compares equal to it in both directions.
+     *
+     * @param other the object to compare against
+     * @return a matcher that matches if the examined object compares equal to it in both directions
+     * @param <T> the type of the objects being compared
+     */
+    public static <T extends Comparable<T>> Matcher<T> strictlyComparesEqual(final T other) {
+        return new ComparableMatcher<T>(other) {
+            @Override
+            protected String getComparisonPhrase() {
+                return "compares equal to";
+            }
+
+            @Override
+            public boolean matchesSafely(T t) {
+                return t.compareTo(other) == 0 && other.compareTo(t) == 0;
+            }
+        };
+    }
+
+    /**
+     * Returns a matcher that matches if the examined object compares less than the given object in both directions.
+     *
+     * @param other the object to compare against
+     * @return a matcher that matches if the examined object compares less than the given object in both directions
+     * @param <T> the type of the objects being compared
+     */
+    public static <T extends Comparable<T>> Matcher<T> strictlyLessThan(final T other) {
+        return new ComparableMatcher<T>(other) {
+            @Override
+            protected String getComparisonPhrase() {
+                return "less than";
+            }
+
+            @Override
+            public boolean matchesSafely(T t) {
+                return t.compareTo(other) < 0 && other.compareTo(t) > 0;
+            }
+        };
+    }
+
+    /**
+     * Returns a matcher that matches if the examined object compares greater than the given object in both directions.
+     *
+     * @param other the object to compare against
+     * @return a matcher that matches if the examined object compares greater than the given object in both directions
+     * @param <T> the type of the objects being compared
+     */
+    public static <T extends Comparable<T>> Matcher<T> strictlyGreaterThan(final T other) {
+        return new ComparableMatcher<T>(other) {
+            @Override
+            protected String getComparisonPhrase() {
+                return "greater than";
+            }
+
+            @Override
+            public boolean matchesSafely(T t) {
+                return t.compareTo(other) > 0 && other.compareTo(t) < 0;
+            }
+        };
+    }
+
+    @NullMarked
+    private static abstract class ComparableMatcher<T extends Comparable<T>> extends TypeSafeMatcher<T> {
+        protected final T other;
+
+        ComparableMatcher(T other) {
+            this.other = other;
+        }
+
+        @Override
+        public void describeTo(Description description) {
+            description.appendText("an Object that is strictly " + getComparisonPhrase() + " ").appendValue(other);
+        }
+
+        protected abstract String getComparisonPhrase();
     }
 
     public static Matcher<String> containsLine(final Matcher<? super String> matcher) {
@@ -207,5 +288,4 @@ public class Matchers {
     public static Matcher<String> containsNormalizedString(String substring) {
         return normalizedLineSeparators(CoreMatchers.containsString(substring));
     }
-
 }

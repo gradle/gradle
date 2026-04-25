@@ -153,7 +153,7 @@ lTnIlPYRfkCNBzD2mwD/X7x9ehPOlw1DvbnpVGSkASVsGOGBm/9s0dIyraI6Jw8=
 -----END PGP PUBLIC KEY BLOCK-----
 
 pub    825C06C827AF6B66
-uid    C?dric Champeau <cedric@gradle.com>
+uid    Cédric Champeau <cedric@gradle.com>
 
 -----BEGIN PGP PUBLIC KEY BLOCK-----
 
@@ -173,7 +173,7 @@ tCRDw6lkcmljIENoYW1wZWF1IDxjZWRyaWNAZ3JhZGxlLmNvbT4=
 -----END PGP PUBLIC KEY BLOCK-----
 
 pub    82D8373A8E0F8D06
-uid    Marcin Miel?y?ski <lopx@gazeta.pl>
+uid    Marcin Mielżyński <lopx@gazeta.pl>
 
 sub    83552A552A0D431C
 sub    83BA874687329CBE
@@ -1820,7 +1820,7 @@ GEkoCkoKBC0cwfM2XbPlihbogGF2Uncwm4ySdlapyZ0LWBze2ea98kqmxu8N60Xp
 -----END PGP PUBLIC KEY BLOCK-----
 
 pub    B0F3710FA64900E7
-uid    ?amonn McManus <eamonn@mcmanus.net>
+uid    �amonn McManus <eamonn@mcmanus.net>
 
 sub    B15AD8EFBD28D3CB
 -----BEGIN PGP PUBLIC KEY BLOCK-----
@@ -4166,7 +4166,7 @@ bGEtaW50ZXJuYWxzQGdvb2dsZWdyb3Vwcy5jb20+
 -----END PGP PUBLIC KEY BLOCK-----
 
 pub    F067A2FD751AE3E4
-uid    David Burstr?m <david.burstrom@gmail.com>
+uid    David Burström <david.burstrom@gmail.com>
 
 sub    28CFDE1EB61BB6AA
 -----BEGIN PGP PUBLIC KEY BLOCK-----
@@ -4798,7 +4798,7 @@ SgeAjndCE/Pi
 -----END PGP PUBLIC KEY BLOCK-----
 
 pub    0551FD3684FCBBB7
-uid    Tibor Diga?a <tibordigana@apache.org>
+uid    Tibor Digaňa <tibordigana@apache.org>
 
 -----BEGIN PGP PUBLIC KEY BLOCK-----
 
@@ -5479,7 +5479,7 @@ imnN3V61Pcs/yzHnyyW2OD0PUbX3JvcC4xdhABEBAAE=
 -----END PGP PUBLIC KEY BLOCK-----
 
 pub    15C71C0A4E0B8EDD
-uid    Matthias Bl?sing <mblaesing@doppel-helix.eu>
+uid    Matthias Bläsing <mblaesing@doppel-helix.eu>
 
 -----BEGIN PGP PUBLIC KEY BLOCK-----
 
@@ -6151,7 +6151,7 @@ nE2l2ony
 -----END PGP PUBLIC KEY BLOCK-----
 
 pub    1FD507154FB9BA39
-uid    Tam?s Cserven?k <tamas@cservenak.net>
+uid    Tamás Cservenák <tamas@cservenak.net>
 
 sub    8DC6F3D0ABDBD017
 -----BEGIN PGP PUBLIC KEY BLOCK-----
@@ -8464,6 +8464,34 @@ ZS5vcmc+
 =DAIw
 -----END PGP PUBLIC KEY BLOCK-----
 
+pub    5746EE07D997DDB6
+uid    Johannes Link <business@johanneslink.net>
+
+sub    1E637C44EB427F7A
+-----BEGIN PGP PUBLIC KEY BLOCK-----
+
+xsBNBFo8zOsBCADLpsbBCTaUswFx5G7/SfA8B81sGn/n+G4WTUA2Z3hK+nJwt2kf
+hBZ60cUYByXhYHE4x+R65vXaQ8tlbXsJ4ujqj6OhzGK1AeNaj5inJa45y4loxwcc
+YiNim3OXlib7eJyYp3xbgDyd0QBZ/ar4VmS03FhBl0660vJPTgZtjx6qZ5/ei7VR
+DCbJySvYGxIPjI3C4qI6vhN9UBck1NwQbuP+lrn0ldxay6c+8mv0gGuZRu4kJn4q
+94MZyh7+s2W8dgJ7j2KttibIj9vSTm6NeF0jCN1E0FeH5shaX7W8ehC0827U9TD/
+gNDk5y+2P0ZXOk1ELNZCARwqO47MIMctmB0FABEBAAG0KUpvaGFubmVzIExpbmsg
+PGJ1c2luZXNzQGpvaGFubmVzbGluay5uZXQ+zsBNBFo8zOsBCADMZwt1GbHiGcFL
+GSFbiR24hFmRNFswa89ngR4H+a87V8EGVsdHyuFmvcf41YeGEzGMx2OAewDe1HF5
+fVgEUcQW9PV6mORIHtv0eJ9dccad9yrpyo5Fy/dGxEOq2m/Xr04ohYSEeEJo1vS1
+1rbe5Iecvq95cG14Uo8YBNxRuGKmRDfDiYnOUGwIwoiXA5ALXMxGaSsogO3nMboE
+mnSHWK96g8whhSW7uiuHAyIjYkRZdzcToetQM/qa0kdWRviX2QPEZx6nR92AFZJS
+xY9HAr7ml4bdaylLT4c6XYDvIPkTt7bG9SmwxpAq2XYIrbV9TBeQt3rj6wVZtdSq
+dNZv6l2VABEBAAHCwHwEGAEIACYWIQSqqp0/WAxyI9vR/0JXRu4H2ZfdtgUCWjzM
+6wIbDAUJA8JnAAAKCRBXRu4H2Zfdtpp0B/9Eeb2WYeCt3B59hez5DQgQ0orD+JZR
+uvg4TWLYvqzY6FepjTayUA1YNGwgvuHH435NzTOqTMh7+ZvMGj1+7PycWOAVV8hu
+0KL3cKITcrUYXtVyx8SZ+kJs5gP+h9dJs73UuZ3yzbU6roLzF5OBuYpS2UuZcTi7
+wXpbArHY/xfqsVX72Im5zRnF2oM/ii3Ls06QoJttz8vVqjbidzlE9T11EQAYiZg2
+476i7qDhGmRSprS7JInkQmPAU/wk5LiOyEixYmmbqE2z4cihVPiSbJvq8Aq9/kIA
+tnm0fSdIbTfy7k7csyEMd1F22Frxi96KHz4CRe7CYrIbjZlCklfRpQ7Z
+=hyvw
+-----END PGP PUBLIC KEY BLOCK-----
+
 pub    59A252FB1199D873
 uid    Tagir Valeev <lany@ngs.ru>
 
@@ -9974,7 +10002,7 @@ Dn+10bchvXI=
 -----END PGP PUBLIC KEY BLOCK-----
 
 pub    7D713008CC07E9AD
-uid    Aur?lien Pupier <apupier@redhat.com>
+uid    Aurélien Pupier <apupier@redhat.com>
 
 -----BEGIN PGP PUBLIC KEY BLOCK-----
 
