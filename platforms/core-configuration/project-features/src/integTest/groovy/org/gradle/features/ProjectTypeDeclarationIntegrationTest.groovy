@@ -30,6 +30,8 @@ import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.JdkVersionTestPreconditions
 
 import static org.gradle.features.internal.builders.Language.KOTLIN
+import static org.gradle.features.internal.builders.PluginType.NO_PLUGIN
+import static org.gradle.features.internal.builders.PluginType.WITHOUT_BINDINGS
 import org.gradle.test.fixtures.server.http.MavenHttpPluginRepository
 
 import org.hamcrest.Matchers
@@ -428,7 +430,7 @@ class ProjectTypeDeclarationIntegrationTest extends AbstractIntegrationSpec impl
                     ndoc("foos", "Foo") {}
                 }
                 plugin {
-                    noBindings()
+                    type WITHOUT_BINDINGS
                     pluginClassName "NotAProjectTypePlugin"
                 }
             }
@@ -514,7 +516,9 @@ class ProjectTypeDeclarationIntegrationTest extends AbstractIntegrationSpec impl
                         property "bar", String
                     }
                 }
-                noPlugin()
+                plugin {
+                    type NO_PLUGIN
+                }
             }
             def anotherProjectType = projectType("anotherProjectType") {
                 definition {
@@ -528,7 +532,9 @@ class ProjectTypeDeclarationIntegrationTest extends AbstractIntegrationSpec impl
                         property "baz", String
                     }
                 }
-                noPlugin()
+                plugin {
+                    type NO_PLUGIN
+                }
             }
             plugin("CombinedPlugin") {
                 bindsType anotherProjectType

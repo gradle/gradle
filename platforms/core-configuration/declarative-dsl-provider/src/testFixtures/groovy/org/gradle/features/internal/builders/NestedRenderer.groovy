@@ -32,7 +32,10 @@ class NestedRenderer {
      * for sub-nested).
      */
     static TypeShape effectiveShapeOf(PropertyTypeDeclaration nested, TypeShape enclosingShape) {
-        return nested.shape ?: enclosingShape
+        if (nested.kind != NestedKind.PLAIN) {
+            return enclosingShape
+        }
+        return nested.plainData().shape ?: enclosingShape
     }
 
     /**
@@ -45,23 +48,28 @@ class NestedRenderer {
      */
     static String renderNestedBodies(List<PropertyTypeDeclaration> items, TypeShape enclosingEffective) {
         items.collect { sub ->
-            if (sub.isSharedRef) {
-                return ""
-            }
             String body
-            if (sub.isNdoc) {
-                body = sub.implementsDefinition
-                    ? generateNdocDefinitionInterface(sub)
-                    : generateNdocElementClass(sub)
-            } else if (sub.isUndiscoverable) {
-                body = generateUndiscoverableInterface(sub)
-            } else {
-                def subEff = effectiveShapeOf(sub, enclosingEffective)
-                body = (subEff == TypeShape.ABSTRACT_CLASS)
-                    ? generateNestedAbstractClassBody(sub, subEff)
-                    : generateNestedInterfaceBody(sub, subEff)
+            switch (sub.kind) {
+                case NestedKind.SHARED_REF:
+                    return ""
+                case NestedKind.NDOC:
+                    body = sub.implementsDefinition
+                        ? generateNdocDefinitionInterface(sub)
+                        : generateNdocElementClass(sub)
+                    break
+                case NestedKind.UNDISCOVERABLE:
+                    body = generateUndiscoverableInterface(sub)
+                    break
+                case NestedKind.PLAIN:
+                    def subEff = effectiveShapeOf(sub, enclosingEffective)
+                    body = (subEff == TypeShape.ABSTRACT_CLASS)
+                        ? generateNestedAbstractClassBody(sub, subEff)
+                        : generateNestedInterfaceBody(sub, subEff)
+                    break
+                default:
+                    throw new IllegalStateException("Unreachable: unknown NestedKind ${sub.kind}")
             }
-            if (sub.buildModel && !sub.isNdoc) {
+            if (sub.buildModel && sub.kind != NestedKind.NDOC) {
                 body += "\n" + generateNestedBuildModelInterface(sub)
             }
             return body
@@ -183,10 +191,10 @@ class NestedRenderer {
      * an interface body. Shared-ref entries emit no accessor (defensive: only top-level).
      */
     static String renderSubAccessor(PropertyTypeDeclaration sub, boolean inAbstractClass) {
-        if (sub.isSharedRef) {
+        if (sub.kind == NestedKind.SHARED_REF) {
             return ""
         }
-        if (sub.isNdoc) {
+        if (sub.kind == NestedKind.NDOC) {
             return "${JavaSources.renderAnnotations(sub.allAnnotations, '                ')}public abstract NamedDomainObjectContainer<${sub.typeName}> get${JavaSources.capitalize(sub.name)}();"
         }
         def prefix = inAbstractClass ? "public abstract " : ""

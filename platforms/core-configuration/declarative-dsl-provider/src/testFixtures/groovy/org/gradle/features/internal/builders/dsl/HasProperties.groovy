@@ -27,7 +27,7 @@ trait HasProperties {
 
     /** Adds a {@code Property<T>} getter. */
     void property(String name, Class type) {
-        properties.add(new PropertyDeclaration(name: name, type: type))
+        properties.add(PropertyDeclaration.property(name, type))
     }
 
     /** Adds a {@code Property<T>} getter with optional configuration (e.g. annotations). */
@@ -35,12 +35,12 @@ trait HasProperties {
         @DelegatesTo(value = PropertyDeclaration, strategy = Closure.DELEGATE_FIRST)
         Closure config
     ) {
-        properties.add(ClosureConfigure.configure(new PropertyDeclaration(name: name, type: type), config))
+        properties.add(ClosureConfigure.configure(PropertyDeclaration.property(name, type), config))
     }
 
     /** Adds a {@code ListProperty<T>} getter. */
     void listProperty(String name, Class elementType) {
-        properties.add(new PropertyDeclaration(name: name, type: elementType, isList: true))
+        properties.add(PropertyDeclaration.listProperty(name, elementType))
     }
 
     /** Adds a {@code ListProperty<T>} getter with optional configuration. */
@@ -48,6 +48,6 @@ trait HasProperties {
         @DelegatesTo(value = PropertyDeclaration, strategy = Closure.DELEGATE_FIRST)
         Closure config
     ) {
-        properties.add(ClosureConfigure.configure(new PropertyDeclaration(name: name, type: elementType, isList: true), config))
+        properties.add(ClosureConfigure.configure(PropertyDeclaration.listProperty(name, elementType), config))
     }
 }

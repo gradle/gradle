@@ -39,7 +39,7 @@ trait HasUndiscoverableNested {
             )
         }
         def nestedType = ClosureConfigure.configure(
-            new PropertyTypeDeclaration(name: name, typeName: typeName, isUndiscoverable: true),
+            PropertyTypeDeclaration.undiscoverable(name, typeName),
             config
         )
         if (!nestedType.allAnnotations.isEmpty()) {

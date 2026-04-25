@@ -30,15 +30,6 @@ trait HasSharedRefInNestedTypes {
 
     /** Adds a property whose type is a previously declared shared type. */
     void sharedProperty(String name, PropertyTypeDeclaration ref) {
-        nestedTypes.add(new PropertyTypeDeclaration(
-            name: name,
-            typeName: ref.typeName,
-            properties: ref.properties,
-            nestedTypes: ref.nestedTypes,
-            injectedServices: ref.injectedServices,
-            implementsDefinition: ref.implementsDefinition,
-            buildModel: ref.buildModel,
-            isSharedRef: true
-        ))
+        nestedTypes.add(PropertyTypeDeclaration.sharedRef(name, ref))
     }
 }

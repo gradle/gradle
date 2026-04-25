@@ -18,6 +18,8 @@ package org.gradle.features.internal
 
 import org.gradle.features.internal.builders.Language
 import org.gradle.features.internal.builders.TestScenarioBuilder
+
+import static org.gradle.features.internal.builders.PluginType.NO_PLUGIN
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Specification
 import spock.lang.TempDir
@@ -247,11 +249,13 @@ class TestScenarioBuilderTest extends Specification {
         pb.pluginIds["com.example.standalone-plugin-1"] == "PluginB"
     }
 
-    def "noPlugin suppresses plugin registration and ID assignment"() {
+    def "NO_PLUGIN suppresses plugin registration and ID assignment"() {
         given:
         def scenario = new TestScenarioBuilder()
         scenario.projectType("testProjectType") {
-            noPlugin()
+            plugin {
+                type NO_PLUGIN
+            }
         }
 
         when:
@@ -262,11 +266,13 @@ class TestScenarioBuilderTest extends Specification {
         pb.pluginIds.containsKey("com.example.test-software-ecosystem")
     }
 
-    def "noPlugin with standalone plugin for combined scenario"() {
+    def "NO_PLUGIN with standalone plugin for combined scenario"() {
         given:
         def scenario = new TestScenarioBuilder()
         scenario.projectType("testProjectType") {
-            noPlugin()
+            plugin {
+                type NO_PLUGIN
+            }
         }
         scenario.plugin("CombinedPlugin") {}
 

@@ -93,7 +93,7 @@ class TestScenarioBuilder {
     /**
      * Declares a standalone plugin not paired with any definition.
      *
-     * <p>Standalone plugins default to {@code exposesBindings = false}, generating a plain
+     * <p>Standalone plugins default to {@code type = PluginType.WITHOUT_BINDINGS}, generating a plain
      * {@code Plugin<Project>} with an empty {@code apply()} method. The closure can override
      * this or add bindings if needed.</p>
      *
@@ -107,7 +107,7 @@ class TestScenarioBuilder {
     ) {
         def plugin = new PluginClassBuilder()
         plugin.pluginClassName = className
-        plugin.exposesBindings = false
+        plugin.type = PluginType.WITHOUT_BINDINGS
         ClosureConfigure.configure(plugin, config)
         standalonePlugins.add(plugin)
         return plugin
@@ -137,31 +137,9 @@ class TestScenarioBuilder {
         @DelegatesTo(value = PropertyTypeDeclaration, strategy = Closure.DELEGATE_FIRST)
         Closure config = {}
     ) {
-        def declaration = ClosureConfigure.configure(new PropertyTypeDeclaration(typeName: typeName), config)
-        validateSharedTypeDeclaration(declaration)
+        def declaration = ClosureConfigure.configure(PropertyTypeDeclaration.sharedDeclaration(typeName), config)
         sharedTypes.add(declaration)
         return declaration
-    }
-
-    private static void validateSharedTypeDeclaration(PropertyTypeDeclaration d) {
-        if (d.isNdoc) {
-            throw new IllegalStateException(
-                "asNdoc() is not allowed on a sharedType; NDOC-ness is a property of the use-site containment."
-            )
-        }
-        if (d.isOutProjected) {
-            throw new IllegalStateException("outProjected() is not allowed on a sharedType.")
-        }
-        if (d.initializationCode != null) {
-            throw new IllegalStateException(
-                "initializeWith(...) is not allowed on a sharedType; it is only meaningful for undiscoverable fields."
-            )
-        }
-        if (d.shape != null) {
-            throw new IllegalStateException(
-                "shape(TypeShape) is not allowed on a sharedType; the shared type's body shape is set via the sharedShape field."
-            )
-        }
     }
 
     /**
@@ -206,14 +184,14 @@ class TestScenarioBuilder {
         settings.language = language
 
         // Auto-register plugins with settings (skip suppressed plugins)
-        types.findAll { !it.suppressPlugin }.each {
+        types.findAll { it.plugin.type != PluginType.NO_PLUGIN }.each {
             settings.registersProjectType(it.plugin.pluginClassName)
         }
-        features.findAll { !it.suppressPlugin }.each {
+        features.findAll { it.plugin.type != PluginType.NO_PLUGIN }.each {
             settings.registersProjectFeature(it.plugin.pluginClassName)
         }
         standalonePlugins.each { plugin ->
-            if (plugin.exposesBindings) {
+            if (plugin.type == PluginType.WITH_BINDINGS) {
                 if (plugin.kind == PluginClassBuilder.PluginKind.PROJECT_TYPE) {
                     settings.registersProjectType(plugin.pluginClassName)
                 } else {
@@ -232,7 +210,7 @@ class TestScenarioBuilder {
         pluginBuilder.addPluginId("com.example.test-software-ecosystem", settings.pluginClassName)
 
         types.eachWithIndex { type, i ->
-            if (!type.suppressPlugin) {
+            if (type.plugin.type != PluginType.NO_PLUGIN) {
                 def pluginId = i == 0
                     ? "com.example.test-project-type-impl"
                     : "com.example.additional-type-impl-${i}"
@@ -242,7 +220,7 @@ class TestScenarioBuilder {
         }
 
         features.eachWithIndex { feature, i ->
-            if (!feature.suppressPlugin) {
+            if (feature.plugin.type != PluginType.NO_PLUGIN) {
                 def pluginId = i == 0
                     ? "com.example.test-software-feature-impl"
                     : "com.example.additional-feature-impl-${i}"

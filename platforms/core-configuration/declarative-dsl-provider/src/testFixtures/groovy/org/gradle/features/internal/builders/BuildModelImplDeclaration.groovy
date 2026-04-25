@@ -38,6 +38,6 @@ class BuildModelImplDeclaration {
 
     /** Adds a property to this build model implementation. */
     void property(String name, Class type) {
-        properties.add(new PropertyDeclaration(name: name, type: type))
+        properties.add(PropertyDeclaration.property(name, type))
     }
 }

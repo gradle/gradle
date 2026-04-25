@@ -79,18 +79,10 @@ class DefinitionAndPluginBuilder {
         ClosureConfigure.configure(plugin, config)
     }
 
-    /** Whether to suppress plugin generation for this component. */
-    boolean suppressPlugin = false
-
-    /** Suppresses plugin class generation for this component. The definition is still generated. */
-    void noPlugin() {
-        this.suppressPlugin = true
-    }
-
     /** Generates all source files for this component (definition + plugin) and writes them to the plugin builder. */
     void build(GradlePluginBuilder pluginBuilder) {
         definition.build(pluginBuilder)
-        if (!suppressPlugin) {
+        if (plugin.type != PluginType.NO_PLUGIN) {
             plugin.build(pluginBuilder)
         }
     }

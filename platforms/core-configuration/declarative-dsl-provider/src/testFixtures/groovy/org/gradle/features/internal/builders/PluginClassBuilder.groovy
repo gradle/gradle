@@ -69,14 +69,11 @@ import org.gradle.test.fixtures.plugin.PluginBuilder as GradlePluginBuilder
  *   <caption>DSL opt-outs and modifiers</caption>
  *   <tr><th>DSL call</th><th>Effect</th><th>Declared on</th></tr>
  *   <tr>
- *     <td>{@code noPlugin()}</td>
- *     <td>Suppress plugin file entirely; only the definition is emitted.</td>
- *     <td>{@link DefinitionAndPluginBuilder} (component scope)</td>
- *   </tr>
- *   <tr>
- *     <td>{@code noBindings()}</td>
- *     <td>Emit a plain {@code Plugin<Project>} with no {@code @BindsProjectType} /
- *         {@code @BindsProjectFeature} annotation and no inner classes.</td>
+ *     <td>{@code type PluginType.X}</td>
+ *     <td>Control plugin emission shape: {@code WITH_BINDINGS} (default; emit a
+ *         binding-annotated plugin), {@code WITHOUT_BINDINGS} (emit a plain
+ *         {@code Plugin<Project>} with no annotation or inner classes), or
+ *         {@code NO_PLUGIN} (suppress plugin file entirely; emit only the definition).</td>
  *     <td>{@link PluginClassBuilder} ({@code plugin { }} scope)</td>
  *   </tr>
  *   <tr>
@@ -153,8 +150,8 @@ class PluginClassBuilder {
     /** Modifiers appended to the binding chain (e.g. ".withUnsafeDefinition()"). */
     List<String> bindingModifiers = []
 
-    /** Whether this plugin exposes bindings. If false, generates a plain plugin with no binding annotation. */
-    boolean exposesBindings = true
+    /** The emission shape of this plugin. See {@link PluginType}. */
+    PluginType type = PluginType.WITH_BINDINGS
 
     /** Whether the feature plugin has no build model (uses {@code BuildModel.None}). */
     boolean hasNoBuildModel = false
@@ -208,8 +205,8 @@ class PluginClassBuilder {
     /** Adds {@code .withUnsafeApplyAction()} to the binding chain. */
     void unsafeApplyAction() { bindingModifiers.add("withUnsafeApplyAction()") }
 
-    /** Generates a plain plugin with no binding annotation or inner classes. */
-    void noBindings() { this.exposesBindings = false }
+    /** Sets the plugin emission shape. See {@link PluginType}. */
+    void type(PluginType type) { this.type = type }
 
     /** Marks this feature plugin as having no build model (uses {@code BuildModel.None}). */
     void noBuildModel() { this.hasNoBuildModel = true }
@@ -229,7 +226,7 @@ class PluginClassBuilder {
      * Each binding generates its own ApplyAction class.
      */
     void bindsType(DefinitionAndPluginBuilder type) {
-        exposesBindings = true
+        this.type = PluginType.WITH_BINDINGS
         bindings.add(new BindingDeclaration(definition: type.definition, name: type.name))
     }
 
@@ -238,7 +235,7 @@ class PluginClassBuilder {
      * Each binding generates its own ApplyAction class.
      */
     void bindsType(DefinitionBuilder additionalDefinition, String typeName) {
-        exposesBindings = true
+        type = PluginType.WITH_BINDINGS
         bindings.add(new BindingDeclaration(definition: additionalDefinition, name: typeName))
     }
 
@@ -258,7 +255,7 @@ class PluginClassBuilder {
      * {@code ApplyAction<P>} class.
      */
     void bindsFeatureTo(String className) {
-        exposesBindings = true
+        type = PluginType.WITH_BINDINGS
         if (bindings && bindings[0].bindingTypeClassName == null) {
             bindings[0].bindingTypeClassName = className
         } else {
@@ -300,6 +297,12 @@ class PluginClassBuilder {
      * Produces a single {@code .java} or {@code .kt} file depending on the configured language.
      */
     void build(GradlePluginBuilder pluginBuilder) {
+        if (type == PluginType.NO_PLUGIN) {
+            throw new IllegalStateException(
+                "PluginClassBuilder.build() invoked on a NO_PLUGIN plugin; " +
+                "the caller should have skipped emission."
+            )
+        }
         if (language == Language.KOTLIN) {
             pluginBuilder.file("src/main/kotlin/${packageName.replace('.', '/')}/${pluginClassName}.kt") << getKotlinClassContent()
         } else {
@@ -310,7 +313,7 @@ class PluginClassBuilder {
     // --- Java code generation ---
 
     private String getJavaClassContent() {
-        if (!exposesBindings) {
+        if (type == PluginType.WITHOUT_BINDINGS) {
             return generateNoBindingsPlugin()
         }
         if (kind == PluginKind.PROJECT_TYPE) {
@@ -686,7 +689,7 @@ class PluginClassBuilder {
     // --- Kotlin code generation ---
 
     private String getKotlinClassContent() {
-        if (!exposesBindings) {
+        if (type == PluginType.WITHOUT_BINDINGS) {
             return generateKotlinNoBindingsPlugin()
         }
         if (kind == PluginKind.PROJECT_TYPE) {
@@ -1040,7 +1043,7 @@ class PluginClassBuilder {
             eagerReads << "String ${varName} = definition.get${JavaSources.capitalize(property.name)}().get();"
             printStatements << """System.out.println("apply time ${property.name} = " + ${varName});"""
         }
-        primaryDefinition.nestedTypes.findAll { !it.isNdoc }.each { nestedType ->
+        primaryDefinition.nestedTypes.findAll { it.kind != NestedKind.NDOC }.each { nestedType ->
             nestedType.properties.each { property ->
                 def varName = "${nestedType.name}${JavaSources.capitalize(property.name)}AtApplyTime"
                 eagerReads << "String ${varName} = definition.get${JavaSources.capitalize(nestedType.name)}().get${JavaSources.capitalize(property.name)}().get();"
@@ -1106,7 +1109,7 @@ class PluginClassBuilder {
     }
 
     private static String getPropertyReturnType(PropertyDeclaration property) {
-        if (property.isList) {
+        if (property.kind == PropertyKind.LIST_PROPERTY) {
             return "org.gradle.api.provider.ListProperty<${property.type.simpleName}>"
         }
         return "org.gradle.api.provider.Property<${property.type.simpleName}>"

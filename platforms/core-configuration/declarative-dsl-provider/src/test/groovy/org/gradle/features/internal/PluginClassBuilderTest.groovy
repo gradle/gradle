@@ -22,6 +22,7 @@ import org.gradle.features.internal.builders.BindingDeclaration
 import org.gradle.features.internal.builders.DefinitionBuilder
 import org.gradle.features.internal.builders.Language
 import org.gradle.features.internal.builders.PluginClassBuilder
+import org.gradle.features.internal.builders.PluginType
 import org.gradle.features.registration.TaskRegistrar
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.plugin.PluginBuilder
@@ -164,7 +165,7 @@ class PluginClassBuilderTest extends Specification {
         def plugin = pluginFor(defn, "testProjectType")
         plugin.kind = PluginClassBuilder.PluginKind.PROJECT_TYPE
         plugin.pluginClassName = "NotAProjectTypePlugin"
-        plugin.noBindings()
+        plugin.type = PluginType.WITHOUT_BINDINGS
 
         when:
         def pb = new PluginBuilder(tempDir)

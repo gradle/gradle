@@ -816,7 +816,7 @@ class DefinitionBuilderTest extends Specification {
         builder.shape(TypeShape.ABSTRACT_CLASS)
         builder.buildModel("FeatureModel") { property "text", String }
         builder.javaBeanProperty("dir", Directory) {
-            shape(org.gradle.features.internal.builders.PropertyDeclaration.JavaBeanStyle.CONCRETE)
+            shape(org.gradle.features.internal.builders.JavaBeanStyle.CONCRETE)
             annotations("@Incubating")
         }
 
@@ -1296,7 +1296,7 @@ class DefinitionBuilderTest extends Specification {
 
     def "shape(...) rejected on shared-ref property"() {
         given:
-        def sharedRef = new PropertyTypeDeclaration(typeName: "SourceSet", isSharedRef: true)
+        def sharedRef = PropertyTypeDeclaration.sharedDeclaration("SourceSet")
 
         when:
         sharedRef.shape(TypeShape.ABSTRACT_CLASS)

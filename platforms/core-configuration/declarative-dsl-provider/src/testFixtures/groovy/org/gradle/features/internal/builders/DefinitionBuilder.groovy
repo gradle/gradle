@@ -204,12 +204,12 @@ class DefinitionBuilder implements HasProperties, HasNestedTypes, HasInjectedSer
 
     /** Adds a read-only property that returns the concrete type directly (e.g. {@code Directory getDir()}). */
     void readOnlyProperty(String name, Class type) {
-        properties.add(new PropertyDeclaration(name: name, type: type, isReadOnly: true))
+        properties.add(PropertyDeclaration.readOnly(name, type))
     }
 
     /** Adds a Java Bean property with getter/setter pair instead of {@code Property<T>}. */
     void javaBeanProperty(String name, Class type) {
-        properties.add(new PropertyDeclaration(name: name, type: type, isJavaBean: true))
+        properties.add(PropertyDeclaration.javaBean(name, type))
     }
 
     /** Adds a Java Bean property with getter/setter pair, with optional configuration (e.g. shape). */
@@ -217,7 +217,7 @@ class DefinitionBuilder implements HasProperties, HasNestedTypes, HasInjectedSer
         @DelegatesTo(value = PropertyDeclaration, strategy = Closure.DELEGATE_FIRST)
         Closure config
     ) {
-        properties.add(ClosureConfigure.configure(new PropertyDeclaration(name: name, type: type, isJavaBean: true), config))
+        properties.add(ClosureConfigure.configure(PropertyDeclaration.javaBean(name, type), config))
     }
 
     /** Sets the shape (interface or abstract class) of the generated definition. */
@@ -296,13 +296,17 @@ class DefinitionBuilder implements HasProperties, HasNestedTypes, HasInjectedSer
      * {@link TypeShape#ABSTRACT_CLASS}.
      */
     private boolean needsBackingField(PropertyTypeDeclaration nested) {
-        if (nested.isNdoc) {
-            return false
+        switch (nested.kind) {
+            case NestedKind.NDOC:
+                return false
+            case NestedKind.UNDISCOVERABLE:
+            case NestedKind.SHARED_REF:
+                return true
+            case NestedKind.PLAIN:
+                return NestedRenderer.effectiveShapeOf(nested, this.shape) == TypeShape.ABSTRACT_CLASS
+            default:
+                throw new IllegalStateException("Unreachable: unknown NestedKind ${nested.kind}")
         }
-        if (nested.isUndiscoverable || nested.isSharedRef) {
-            return true
-        }
-        return NestedRenderer.effectiveShapeOf(nested, this.shape) == TypeShape.ABSTRACT_CLASS
     }
 
     /**
@@ -317,7 +321,7 @@ class DefinitionBuilder implements HasProperties, HasNestedTypes, HasInjectedSer
     private void validateShapes() {
         if (shape == TypeShape.ABSTRACT_CLASS && showsConfigureInvocations) {
             def offenders = nestedTypes.findAll { nested ->
-                !nested.isNdoc && !nested.isUndiscoverable && !nested.isSharedRef &&
+                nested.kind == NestedKind.PLAIN &&
                     NestedRenderer.effectiveShapeOf(nested, this.shape) == TypeShape.INTERFACE
             }
             if (!offenders.isEmpty()) {
@@ -389,7 +393,7 @@ class DefinitionBuilder implements HasProperties, HasNestedTypes, HasInjectedSer
         }
         // Only simple (non-list) properties are expected to map to build model properties.
         // List properties and nested types are display-only and don't participate in mapping.
-        def mappableProperties = properties.findAll { !it.isList }
+        def mappableProperties = properties.findAll { it.kind != PropertyKind.LIST_PROPERTY }
         def unmappedDefinitionProperties = mappableProperties.findAll { defProp ->
             !buildModel.properties.any { it.name == defProp.name }
         }
@@ -402,11 +406,11 @@ class DefinitionBuilder implements HasProperties, HasNestedTypes, HasInjectedSer
         }
         def mappings = []
         buildModel.properties.each { buildModelProperty ->
-            if (buildModelProperty.sharedTypeRef != null) {
+            if (buildModelProperty.kind == PropertyKind.SHARED_REF) {
                 // Shared-ref on the build model: auto-map only if the definition has a matching
                 // shared-ref entry by the same accessor name and the shared type is not itself
                 // definition-shaped (which would require context.getBuildModel, punted).
-                def matchingRef = nestedTypes.find { it.isSharedRef && it.name == buildModelProperty.name }
+                def matchingRef = nestedTypes.find { it.kind == NestedKind.SHARED_REF && it.name == buildModelProperty.name }
                 if (matchingRef && !matchingRef.implementsDefinition) {
                     mappings << generateSharedRefMapping(buildModelProperty.name, matchingRef, language)
                 }
@@ -430,7 +434,7 @@ class DefinitionBuilder implements HasProperties, HasNestedTypes, HasInjectedSer
         def statementEnd = language.statementEnd()
         def defExpr = language.propertyAccessor("definition", accessorName)
         def modelExpr = language.propertyAccessor("model", accessorName)
-        return ref.properties.findAll { !it.isList && !it.isReadOnly && !it.isJavaBean }.collect { scalar ->
+        return ref.properties.findAll { it.kind == PropertyKind.PROPERTY }.collect { scalar ->
             def defAccess = language.propertyAccessor(defExpr, scalar.name)
             def modelAccess = language.propertyAccessor(modelExpr, scalar.name)
             "${modelAccess}.set(${defAccess})${statementEnd}"
@@ -441,20 +445,25 @@ class DefinitionBuilder implements HasProperties, HasNestedTypes, HasInjectedSer
         if (nestedType.buildModel.customMappings.containsKey(language)) {
             return nestedType.buildModel.customMappings[language]
         }
-        if (nestedType.isUndiscoverable) {
-            // Auto-derived mappings would need definition.getFoo(), but undiscoverable
-            // nested types have no public getter. Custom mappings are handled above.
-            return ""
-        }
-        if (nestedType.isSharedRef) {
-            // Shared types are not registered via feature binding, so context.getBuildModel(...)
-            // would not resolve at runtime. Shared-ref ↔ shared-ref auto-mapping happens in
-            // generateTopLevelBuildModelMapping via generateSharedRefMapping; otherwise rely on
-            // a custom mapping(...) block on the referring build model.
-            return ""
+        switch (nestedType.kind) {
+            case NestedKind.UNDISCOVERABLE:
+                // Auto-derived mappings would need definition.getFoo(), but undiscoverable
+                // nested types have no public getter. Custom mappings are handled above.
+                return ""
+            case NestedKind.SHARED_REF:
+                // Shared types are not registered via feature binding, so context.getBuildModel(...)
+                // would not resolve at runtime. Shared-ref ↔ shared-ref auto-mapping happens in
+                // generateTopLevelBuildModelMapping via generateSharedRefMapping; otherwise rely on
+                // a custom mapping(...) block on the referring build model.
+                return ""
+            case NestedKind.PLAIN:
+            case NestedKind.NDOC:
+                break
+            default:
+                throw new IllegalStateException("Unreachable: unknown NestedKind ${nestedType.kind}")
         }
         def elementExpression
-        if (nestedType.isNdoc) {
+        if (nestedType.kind == NestedKind.NDOC) {
             elementExpression = JavaSources.decapitalize(nestedType.typeName)
         } else {
             elementExpression = language.propertyAccessor("definition", nestedType.name)
@@ -462,8 +471,8 @@ class DefinitionBuilder implements HasProperties, HasNestedTypes, HasInjectedSer
         def modelExpression = "context.getBuildModel(${elementExpression})"
         def statementEnd = language.statementEnd()
         def mappings = []
-        nestedType.buildModel.properties.findAll { !it.isList }.each { bmProp ->
-            def defProp = nestedType.properties.find { it.name == bmProp.name && !it.isList }
+        nestedType.buildModel.properties.findAll { it.kind != PropertyKind.LIST_PROPERTY }.each { bmProp ->
+            def defProp = nestedType.properties.find { it.name == bmProp.name && it.kind != PropertyKind.LIST_PROPERTY }
             if (defProp) {
                 def modelAccess = language.propertyAccessor(modelExpression, bmProp.name)
                 def defAccess = language.propertyAccessor(elementExpression, defProp.name)
@@ -473,7 +482,7 @@ class DefinitionBuilder implements HasProperties, HasNestedTypes, HasInjectedSer
         if (mappings.isEmpty()) {
             return ""
         }
-        if (!nestedType.isNdoc) {
+        if (nestedType.kind != NestedKind.NDOC) {
             return mappings.join("\n")
         }
         def containerAccessor = language.propertyAccessor("definition", nestedType.name)
@@ -491,7 +500,7 @@ class DefinitionBuilder implements HasProperties, HasNestedTypes, HasInjectedSer
     String displayDefinitionPropertyValues(Language language) {
         def lines = []
         properties.each { property ->
-            if (property.isList && dependenciesDeclaration) {
+            if (property.kind == PropertyKind.LIST_PROPERTY && dependenciesDeclaration) {
                 def accessor = "definition.printList(${language.propertyAccessor('definition', property.name)}.get())"
                 lines << language.printStatement("definition", property.name, accessor)
             } else {
@@ -499,18 +508,18 @@ class DefinitionBuilder implements HasProperties, HasNestedTypes, HasInjectedSer
             }
         }
         nestedTypes.each { nestedType ->
-            if (nestedType.isUndiscoverable) {
+            if (nestedType.kind == NestedKind.UNDISCOVERABLE) {
                 // Undiscoverable types have no public getter, so their properties cannot be
                 // accessed from the task body for display.
                 return
             }
-            if (nestedType.isNdoc) {
+            if (nestedType.kind == NestedKind.NDOC) {
                 def accessor = "${language.propertyAccessor('definition', nestedType.name)}.stream().map(Object::toString).collect(java.util.stream.Collectors.joining(\", \"))"
                 lines << language.printStatement("definition", nestedType.name, accessor)
             } else {
                 nestedType.properties.each { property ->
                     def parentAccessor = language.propertyAccessor("definition", nestedType.name)
-                    if (property.isList && dependenciesDeclaration) {
+                    if (property.kind == PropertyKind.LIST_PROPERTY && dependenciesDeclaration) {
                         def accessor = "definition.printList(${parentAccessor}.get${JavaSources.capitalize(property.name)}().get())"
                         lines << language.printStatement("definition", "${nestedType.name}.${property.name}", accessor)
                     } else {
@@ -528,7 +537,7 @@ class DefinitionBuilder implements HasProperties, HasNestedTypes, HasInjectedSer
         }
         if (shape == TypeShape.ABSTRACT_CLASS && showsConfigureInvocations) {
             nestedTypes.findAll { nested ->
-                !nested.isNdoc && !nested.isUndiscoverable && !nested.isSharedRef &&
+                nested.kind == NestedKind.PLAIN &&
                     NestedRenderer.effectiveShapeOf(nested, this.shape) == TypeShape.ABSTRACT_CLASS
             }.each { nestedType ->
                 def methodCall = "definition.maybe${JavaSources.capitalize(nestedType.name)}Configured()"
@@ -695,8 +704,8 @@ class DefinitionBuilder implements HasProperties, HasNestedTypes, HasInjectedSer
         def prefix = isAbstract ? "public abstract " : ""
         def getterName = "get${JavaSources.capitalize(property.name)}"
 
-        if (property.isJavaBean) {
-            if (property.shape == PropertyDeclaration.JavaBeanStyle.CONCRETE) {
+        if (property.kind == PropertyKind.JAVA_BEAN) {
+            if (property.javaBeanData().style == JavaBeanStyle.CONCRETE) {
                 return """private ${property.type.simpleName} ${property.name};
 
                 ${JavaSources.renderAnnotations(property.allAnnotations, '                ')}public ${property.type.simpleName} ${getterName}() {
@@ -724,8 +733,8 @@ class DefinitionBuilder implements HasProperties, HasNestedTypes, HasInjectedSer
     private String generateNestedTypeDeclarations(boolean isAbstract) {
         def lines = []
         nestedTypes.each { nestedType ->
-            if (nestedType.isNdoc) {
-                if (nestedType.isOutProjected) {
+            if (nestedType.kind == NestedKind.NDOC) {
+                if (nestedType.ndocData().outProjected) {
                     // Private getter + public out-projected getter
                     lines << "${JavaSources.renderAnnotations(nestedType.allAnnotations, '                ')}abstract NamedDomainObjectContainer<${nestedType.typeName}> get${JavaSources.capitalize(nestedType.name)}();"
                     lines << "public NamedDomainObjectContainer<? extends ${nestedType.typeName}> getOut${JavaSources.capitalize(nestedType.name)}() { return get${JavaSources.capitalize(nestedType.name)}(); };"
@@ -773,7 +782,7 @@ class DefinitionBuilder implements HasProperties, HasNestedTypes, HasInjectedSer
         def lines = []
         nestedTypes.findAll { needsBackingField(it) }.each { nestedType ->
             lines << "private final ${nestedType.typeName} ${nestedType.name};"
-            if (!nestedType.isUndiscoverable && !nestedType.isSharedRef && showsConfigureInvocations) {
+            if (nestedType.kind == NestedKind.PLAIN && showsConfigureInvocations) {
                 lines << "private boolean is${JavaSources.capitalize(nestedType.name)}Configured = false;"
             }
         }
@@ -792,8 +801,8 @@ class DefinitionBuilder implements HasProperties, HasNestedTypes, HasInjectedSer
             def inits = []
             nestedTypes.findAll { needsBackingField(it) }.each {
                 inits << "this.${it.name} = objects.newInstance(${it.typeName}.class);"
-                if (it.isUndiscoverable && it.initializationCode) {
-                    inits << it.initializationCode
+                if (it.kind == NestedKind.UNDISCOVERABLE && it.undiscoverableData().initializationCode) {
+                    inits << it.undiscoverableData().initializationCode
                 }
             }
             properties.findAll { JavaSources.needsBackingProperty(it) }.each {
@@ -806,7 +815,7 @@ class DefinitionBuilder implements HasProperties, HasNestedTypes, HasInjectedSer
                 }
             """
         }
-        def hasConcreteJavaBeans = properties.any { it.isJavaBean && it.shape == PropertyDeclaration.JavaBeanStyle.CONCRETE }
+        def hasConcreteJavaBeans = properties.any { it.kind == PropertyKind.JAVA_BEAN && it.javaBeanData().style == JavaBeanStyle.CONCRETE }
         if (hasConcreteJavaBeans) {
             return """
                 @Inject
@@ -820,14 +829,14 @@ class DefinitionBuilder implements HasProperties, HasNestedTypes, HasInjectedSer
     private String generateAbstractNestedGetters() {
         def lines = []
         nestedTypes.each { nestedType ->
-            if (nestedType.isNdoc) {
-                if (nestedType.isOutProjected) {
+            if (nestedType.kind == NestedKind.NDOC) {
+                if (nestedType.ndocData().outProjected) {
                     lines << "${JavaSources.renderAnnotations(nestedType.allAnnotations, '                ')}abstract NamedDomainObjectContainer<${nestedType.typeName}> get${JavaSources.capitalize(nestedType.name)}();"
                     lines << "public NamedDomainObjectContainer<? extends ${nestedType.typeName}> getOut${JavaSources.capitalize(nestedType.name)}() { return get${JavaSources.capitalize(nestedType.name)}(); };"
                 } else {
                     lines << "${JavaSources.renderAnnotations(nestedType.allAnnotations, '                ')}public abstract NamedDomainObjectContainer<${nestedType.typeName}> get${JavaSources.capitalize(nestedType.name)}();"
                 }
-            } else if (nestedType.isUndiscoverable) {
+            } else if (nestedType.kind == NestedKind.UNDISCOVERABLE) {
                 // The Action-taking method is the sole DCL schema entry point for undiscoverable
                 // types: there is intentionally no public getter, so the declarative engine can
                 // only navigate into the inner object through this method.
@@ -840,7 +849,7 @@ class DefinitionBuilder implements HasProperties, HasNestedTypes, HasInjectedSer
                 // Field-backed concrete getter: used for shared-ref (always) and for
                 // effectively-ABSTRACT_CLASS regular nested types. Carries the optional
                 // configure-invocations side effect.
-                def sideEffect = showsConfigureInvocations && !nestedType.isSharedRef
+                def sideEffect = showsConfigureInvocations && nestedType.kind == NestedKind.PLAIN
                     ? "is${JavaSources.capitalize(nestedType.name)}Configured = true; // TODO: get rid of the side effect in the getter"
                     : ""
                 lines << """
@@ -911,7 +920,7 @@ class DefinitionBuilder implements HasProperties, HasNestedTypes, HasInjectedSer
         // this filter is belt-and-braces — it also documents the contract in-place.
         def lines = []
         nestedTypes.findAll { nested ->
-            !nested.isNdoc && !nested.isUndiscoverable && !nested.isSharedRef &&
+            nested.kind == NestedKind.PLAIN &&
                 NestedRenderer.effectiveShapeOf(nested, this.shape) == TypeShape.ABSTRACT_CLASS
         }.each { nestedType ->
             lines << """
@@ -924,7 +933,7 @@ class DefinitionBuilder implements HasProperties, HasNestedTypes, HasInjectedSer
     }
 
     private String generateImplConstructorAndFields() {
-        def nestedFields = nestedTypes.findAll { !it.isNdoc }
+        def nestedFields = nestedTypes.findAll { it.kind != NestedKind.NDOC }
         if (nestedFields.isEmpty()) {
             return ""
         }
@@ -957,19 +966,19 @@ class DefinitionBuilder implements HasProperties, HasNestedTypes, HasInjectedSer
 
     private static String generatePropertyAccess(String objectExpression, PropertyDeclaration property, Language language) {
         def accessor = language.propertyAccessor(objectExpression, property.name)
-        if (property.sharedTypeRef != null) {
+        if (property.kind == PropertyKind.SHARED_REF) {
             // Direct nested-object reference; no .get()/.getOrNull() unwrap.
             return accessor
         }
-        if (property.isReadOnly || property.isJavaBean) {
+        if (property.kind == PropertyKind.READ_ONLY || property.kind == PropertyKind.JAVA_BEAN) {
             if (property.type == Directory || property.type == RegularFile) {
                 return "${accessor}${language.asFileExpression()}"
             }
-            if (property.isReadOnly) {
+            if (property.kind == PropertyKind.READ_ONLY) {
                 return accessor
             }
         }
-        if (property.isList) {
+        if (property.kind == PropertyKind.LIST_PROPERTY) {
             return "${accessor}.get()"
         }
         if (property.type == DirectoryProperty || property.type == RegularFileProperty) {

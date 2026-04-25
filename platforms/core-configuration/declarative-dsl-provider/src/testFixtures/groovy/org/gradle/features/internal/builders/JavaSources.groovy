@@ -53,25 +53,25 @@ class JavaSources {
     }
 
     static String getPropertyReturnType(PropertyDeclaration property) {
-        if (property.sharedTypeRef != null) {
-            return property.sharedTypeRef.typeName
+        switch (property.kind) {
+            case PropertyKind.SHARED_REF:
+                return property.sharedRefData().ref.typeName
+            case PropertyKind.READ_ONLY:
+            case PropertyKind.JAVA_BEAN:
+                return property.type.simpleName
+            case PropertyKind.LIST_PROPERTY:
+                return "ListProperty<${property.type.simpleName}>"
+            case PropertyKind.PROPERTY:
+                if (property.type == DirectoryProperty) {
+                    return "DirectoryProperty"
+                }
+                if (property.type == RegularFileProperty) {
+                    return "RegularFileProperty"
+                }
+                return "Property<${property.type.simpleName}>"
+            default:
+                throw new IllegalStateException("Unreachable: unknown PropertyKind ${property.kind}")
         }
-        if (property.isReadOnly) {
-            return property.type.simpleName
-        }
-        if (property.isJavaBean) {
-            return property.type.simpleName
-        }
-        if (property.isList) {
-            return "ListProperty<${property.type.simpleName}>"
-        }
-        if (property.type == DirectoryProperty) {
-            return "DirectoryProperty"
-        }
-        if (property.type == RegularFileProperty) {
-            return "RegularFileProperty"
-        }
-        return "Property<${property.type.simpleName}>"
     }
 
     static String propertyFieldInitializer(PropertyDeclaration property) {
@@ -91,7 +91,7 @@ class JavaSources {
      * where the type is {@code Directory} or {@code RegularFile}.
      */
     static boolean needsBackingProperty(PropertyDeclaration property) {
-        return !property.isReadOnly && !property.isJavaBean && !property.isList &&
+        return property.kind == PropertyKind.PROPERTY &&
             (property.type == Directory || property.type == RegularFile)
     }
 
@@ -109,7 +109,7 @@ class JavaSources {
 
     static String generateAddingMethods(List<PropertyDeclaration> props) {
         def lines = []
-        props.findAll { it.isList }.each { property ->
+        props.findAll { it.kind == PropertyKind.LIST_PROPERTY }.each { property ->
             lines << """
                 @${Adding.class.simpleName}
                 public void addTo${capitalize(property.name)}(${property.type.simpleName} value) {

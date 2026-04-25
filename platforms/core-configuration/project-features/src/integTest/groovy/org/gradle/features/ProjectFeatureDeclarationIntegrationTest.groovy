@@ -38,6 +38,7 @@ import org.junit.Rule
 import static org.gradle.features.internal.builders.TypeShape.ABSTRACT_CLASS
 import static org.gradle.features.internal.builders.Language.KOTLIN
 import static org.gradle.features.internal.builders.PluginClassBuilder.BindingStyle.REIFIED
+import static org.gradle.features.internal.builders.PluginType.WITHOUT_BINDINGS
 
 @PolyglotDslTest
 @SkipDsl(dsl = GradleDsl.GROOVY, because = "Groovy DSL is not supported for declarative configuration")
@@ -533,7 +534,7 @@ class ProjectFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec i
     def 'sensible error when a project feature plugin is registered that does not expose a project feature'() {
         given:
         def pluginBuilder = testScenario {
-            def type = projectType("testProjectType") {
+            def testType = projectType("testProjectType") {
                 definition {
                     property "id", String
                     buildModel {
@@ -555,8 +556,8 @@ class ProjectFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec i
                     }
                 }
                 plugin {
-                    bindsFeatureTo(type)
-                    noBindings()
+                    bindsFeatureTo(testType)
+                    type WITHOUT_BINDINGS
                 }
             }
         }

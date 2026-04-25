@@ -31,6 +31,6 @@ trait HasSharedRefInProperties {
 
     /** Adds a property whose type is a previously declared shared type. */
     void sharedProperty(String name, PropertyTypeDeclaration ref) {
-        properties.add(new PropertyDeclaration(name: name, sharedTypeRef: ref))
+        properties.add(PropertyDeclaration.sharedRef(name, ref))
     }
 }

@@ -25,7 +25,7 @@ import org.gradle.test.fixtures.plugin.PluginBuilder
  * {@code TestScenarioBuilder.sharedType(...)}.
  *
  * <p>The generated file is either a public interface or a public abstract class,
- * determined by {@link PropertyTypeDeclaration#sharedShape}. It may declare properties,
+ * determined by {@link SharedRefKindData#sharedShape} on the declaration. It may declare properties,
  * sub-nested types (rendered as inner interfaces/classes), injected services, and
  * optionally extend {@code Definition<BuildModel>}.</p>
  *
@@ -42,7 +42,7 @@ class SharedTypeBuilder {
 
     void build(PluginBuilder pluginBuilder) {
         def path = "src/main/java/${packageName.replace('.', '/')}/${declaration.typeName}.java"
-        pluginBuilder.file(path).text = declaration.sharedShape == TypeShape.ABSTRACT_CLASS
+        pluginBuilder.file(path).text = declaration.sharedRefData().sharedShape == TypeShape.ABSTRACT_CLASS
             ? generateAbstractClassContent()
             : generateInterfaceContent()
     }
@@ -60,7 +60,7 @@ class SharedTypeBuilder {
         }.join("\n")
 
         def nestedAccessors = declaration.nestedTypes.collect { subNested ->
-            if (subNested.isNdoc) {
+            if (subNested.kind == NestedKind.NDOC) {
                 "${JavaSources.renderAnnotations(subNested.allAnnotations, '                ')}" +
                     "NamedDomainObjectContainer<${subNested.typeName}> get${JavaSources.capitalize(subNested.name)}();"
             } else {
@@ -111,7 +111,7 @@ class SharedTypeBuilder {
             ? "implements ${Definition.class.simpleName}<${declaration.typeName}.${declaration.buildModel.className}>"
             : ""
 
-        def nonNdocSubs = declaration.nestedTypes.findAll { !it.isNdoc }
+        def nonNdocSubs = declaration.nestedTypes.findAll { it.kind != NestedKind.NDOC }
         def fields = nonNdocSubs.collect { sub ->
             "private final ${sub.typeName} ${sub.name};"
         }.join("\n")
@@ -142,7 +142,7 @@ class SharedTypeBuilder {
         }.join("\n")
 
         def nestedGetters = declaration.nestedTypes.collect { sub ->
-            if (sub.isNdoc) {
+            if (sub.kind == NestedKind.NDOC) {
                 "${JavaSources.renderAnnotations(sub.allAnnotations, '                ')}" +
                     "public abstract NamedDomainObjectContainer<${sub.typeName}> get${JavaSources.capitalize(sub.name)}();"
             } else {

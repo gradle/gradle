@@ -31,7 +31,7 @@ trait HasNestedTypes {
         Closure config = {}
     ) {
         nestedTypes.add(ClosureConfigure.configure(
-            new PropertyTypeDeclaration(name: name, typeName: nestedTypeName),
+            PropertyTypeDeclaration.plain(name, nestedTypeName),
             config
         ))
     }
@@ -42,7 +42,7 @@ trait HasNestedTypes {
         Closure config = {}
     ) {
         nestedTypes.add(ClosureConfigure.configure(
-            new PropertyTypeDeclaration(name: name, typeName: elementTypeName, isNdoc: true),
+            PropertyTypeDeclaration.ndocOf(name, elementTypeName),
             config
         ))
     }
