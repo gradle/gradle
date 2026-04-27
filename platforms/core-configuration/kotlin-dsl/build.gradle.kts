@@ -113,12 +113,12 @@ dependencies {
     runtimeOnly(libs.kotlinDaemonClient) {
         isTransitive = false
     }
-    /*runtimeOnly(libs.kotlinDaemonEmbeddable) {
+    runtimeOnly(libs.kotlinDaemonEmbeddable) {
         isTransitive = false
     }
     runtimeOnly(libs.kotlinCompilerRunner) {
         isTransitive = false
-    }*/
+    }
 
     testImplementation(projects.buildCacheHttp)
     testImplementation(projects.buildCacheLocal)
