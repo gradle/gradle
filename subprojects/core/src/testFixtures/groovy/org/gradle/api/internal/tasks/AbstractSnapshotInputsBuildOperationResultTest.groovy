@@ -241,7 +241,7 @@ abstract class AbstractSnapshotInputsBuildOperationResultTest<RESULT extends Bas
         0 * visitor._
     }
 
-    @Requires(OsTestPreconditions.NotWindows)
+    @Requires(UnitTestPreconditions.NotWindows)
     def "file visitor provides file length"() {
         given:
         def visitor = createMockVisitor()
