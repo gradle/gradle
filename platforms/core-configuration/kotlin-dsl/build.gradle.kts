@@ -100,15 +100,6 @@ dependencies {
     implementation(libs.kotlinAssignmentCompilerEmbeddable) {
         isTransitive = false
     }
-    /*implementation(libs.kotlinDaemonClient) {
-        isTransitive = false
-    }
-    implementation(libs.kotlinDaemonEmbeddable) {
-        isTransitive = false
-    }
-    implementation(libs.kotlinCompilerRunner) {
-        isTransitive = false
-    }*/
     shadow(libs.kotlinMetadataJvm) {
         isTransitive = false
     }
@@ -119,6 +110,15 @@ dependencies {
     runtimeOnly(libs.kotlinScriptingJvm) {
         isTransitive = false
     }
+    runtimeOnly(libs.kotlinDaemonClient) {
+        isTransitive = false
+    }
+    /*runtimeOnly(libs.kotlinDaemonEmbeddable) {
+        isTransitive = false
+    }
+    runtimeOnly(libs.kotlinCompilerRunner) {
+        isTransitive = false
+    }*/
 
     testImplementation(projects.buildCacheHttp)
     testImplementation(projects.buildCacheLocal)
