@@ -30,6 +30,8 @@ import org.gradle.internal.io.NullOutputStream
 import org.gradle.internal.logging.ConsoleRenderer
 import org.gradle.kotlin.dsl.provider.PrecompiledScriptsEnvironment.EnvironmentProperties.kotlinDslImplicitImports
 import org.jetbrains.kotlin.assignment.plugin.AssignmentPluginNames
+import org.jetbrains.kotlin.buildtools.api.BaseCompilationOperation
+import org.jetbrains.kotlin.buildtools.api.BaseCompilationOperation.Companion.COMPILER_MESSAGE_RENDERER
 import org.jetbrains.kotlin.buildtools.api.CompilerMessageRenderer
 import org.jetbrains.kotlin.buildtools.api.CompilerMessageRenderer.Severity
 import org.jetbrains.kotlin.buildtools.api.CompilerMessageRenderer.SourceLocation
@@ -47,6 +49,7 @@ import org.jetbrains.kotlin.buildtools.api.arguments.CommonCompilerArguments.Com
 import org.jetbrains.kotlin.buildtools.api.arguments.CompilerPlugin
 import org.jetbrains.kotlin.buildtools.api.arguments.CompilerPluginOption
 import org.jetbrains.kotlin.buildtools.api.arguments.ExperimentalCompilerArgument
+import org.jetbrains.kotlin.buildtools.api.arguments.Jsr305
 import org.jetbrains.kotlin.buildtools.api.arguments.JvmCompilerArguments
 import org.jetbrains.kotlin.buildtools.api.arguments.JvmCompilerArguments.Companion.CLASSPATH
 import org.jetbrains.kotlin.buildtools.api.arguments.JvmCompilerArguments.Companion.JVM_DEFAULT
@@ -62,7 +65,6 @@ import org.jetbrains.kotlin.buildtools.api.arguments.enums.JvmDefaultMode
 import org.jetbrains.kotlin.buildtools.api.arguments.enums.SamConversionsMode
 import org.jetbrains.kotlin.buildtools.api.daemonExecutionPolicy
 import org.jetbrains.kotlin.buildtools.api.jvm.JvmPlatformToolchain.Companion.jvm
-import org.jetbrains.kotlin.buildtools.api.jvm.operations.JvmCompilationOperation
 import org.jetbrains.kotlin.buildtools.api.jvm.operations.JvmCompilationOperation.CompilerArgumentsLogLevel
 import org.jetbrains.kotlin.config.JvmTarget
 import org.jetbrains.kotlin.config.JvmTarget.JVM_1_8
@@ -389,7 +391,7 @@ class LoggingMessageRenderer(
 ) : CompilerMessageRenderer {
     val errors = arrayListOf<ScriptCompilationError>()
 
-    override fun render(severity: Severity, message: String, location: SourceLocation?): String? {
+    override fun render(severity: Severity, message: String, location: SourceLocation?): String {
         fun msg() =
             location?.run {
                 path.let(pathTranslation).let { path ->
@@ -485,7 +487,7 @@ private class BTACompiler(val moduleRegistry: ModuleRegistry, classLoader: Class
         val operationBuilder = toolchains.jvm.jvmCompilationOperationBuilder(sources, destinationDirectory)
 
         // compilation operation config
-        operationBuilder[JvmCompilationOperation.COMPILER_ARGUMENTS_LOG_LEVEL] = CompilerArgumentsLogLevel.DEBUG
+        operationBuilder[BaseCompilationOperation.COMPILER_ARGUMENTS_LOG_LEVEL] = CompilerArgumentsLogLevel.DEBUG
         // TODO: incremental compilation should make explicit fingerprint checking obsolete
 
         operationBuilder.compilerArguments.let {
@@ -494,7 +496,7 @@ private class BTACompiler(val moduleRegistry: ModuleRegistry, classLoader: Class
             it.configureMisc()
         }
 
-        operationBuilder[JvmCompilationOperation.COMPILER_MESSAGE_RENDERER] = messageRenderer
+        operationBuilder[COMPILER_MESSAGE_RENDERER] = messageRenderer
 
         val executionPolicy = createExecutionPolicy()
 
@@ -514,7 +516,7 @@ private class BTACompiler(val moduleRegistry: ModuleRegistry, classLoader: Class
         this[CLASSPATH] = classPath.map { it.toPath() }
 
         this[SCRIPT_TEMPLATES] = listOf(template.jvmName)
-        this[X_SCRIPT_RESOLVER_ENVIRONMENT] = arrayOf(resolverEnvironmentStringFor(listOf(kotlinDslImplicitImports to implicitImports)))
+        this[X_SCRIPT_RESOLVER_ENVIRONMENT] = listOf(resolverEnvironmentStringFor(listOf(kotlinDslImplicitImports to implicitImports)))
 
         this[COMPILER_PLUGINS] = plugins
     }
@@ -530,7 +532,7 @@ private class BTACompiler(val moduleRegistry: ModuleRegistry, classLoader: Class
         this[JVM_DEFAULT] = JvmDefaultMode.ENABLE
 
         this.also { // apply java type enhancement settings
-            it[X_JSR305] = arrayOf("strict", "under-migration:strict")
+            it[X_JSR305] = listOf(Jsr305.Global(Jsr305.Mode.STRICT), Jsr305.UnderMigration(Jsr305.Mode.STRICT))
         }
     }
 
@@ -600,6 +602,7 @@ private class BTACompilerClasspathProvider(private val moduleRegistry: ModuleReg
 
         classpath = classpath.plus(moduleRegistry.getModule("kotlin-build-tools-impl").getImplementationClasspath())
         classpath = classpath.plus(moduleRegistry.getModule("kotlin-compiler-embeddable").getImplementationClasspath())
+        classpath = classpath.plus(moduleRegistry.getModule("kotlin-daemon-client").getImplementationClasspath())
         classpath = classpath.plus(moduleRegistry.getModule("kotlin-script-runtime").getImplementationClasspath())
         classpath = classpath.plus(moduleRegistry.getModule("kotlin-stdlib").getImplementationClasspath())
         classpath = classpath.plus(moduleRegistry.getModule("kotlin-reflect").getImplementationClasspath())
@@ -610,7 +613,6 @@ private class BTACompilerClasspathProvider(private val moduleRegistry: ModuleReg
 
         if (DAEMON_MODE) {
             classpath = classpath.plus(moduleRegistry.getModule("kotlin-compiler-runner").getImplementationClasspath())
-            classpath = classpath.plus(moduleRegistry.getModule("kotlin-daemon-client").getImplementationClasspath())
             classpath = classpath.plus(moduleRegistry.getModule("kotlin-daemon-embeddable").getImplementationClasspath())
         }
 
