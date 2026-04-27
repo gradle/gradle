@@ -18,6 +18,7 @@ package org.gradle.smoketests
 
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager
+import org.gradle.internal.enterprise.impl.legacy.DevelocityPluginCompatibility
 import org.gradle.plugin.management.internal.autoapply.AutoAppliedDevelocityPlugin
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
@@ -177,7 +178,6 @@ class DevelocityPluginSmokeTest extends AbstractSmokeTest {
     private static final VersionNumber FIRST_VERSION_UNDER_DEVELOCITY_BRAND = VersionNumber.parse("3.17")
     private static final VersionNumber FIRST_VERSION_WITH_IMPORT_JUNIT_XML_REPORTS = VersionNumber.parse("3.17")
     private static final VersionNumber FIRST_VERSION_WITHOUT_CROSS_PROJECT_IMPORT_JUNIT_XML_REPORTS = VersionNumber.parse("4.4")
-    private static final VersionNumber FIRST_VERSION_4 = VersionNumber.parse("4.0")
 
     def "coverage at least up to auto-applied version"() {
         expect:
@@ -210,7 +210,7 @@ class DevelocityPluginSmokeTest extends AbstractSmokeTest {
 
         then:
         scanRunner()
-            .expectLegacyDeprecationWarningIf(VersionNumber.parse(version) < FIRST_VERSION_4,
+            .expectLegacyDeprecationWarningIf(VersionNumber.parse(version) < DevelocityPluginCompatibility.FIRST_PLUGIN_VERSION_WITHOUT_PARENT_PROPERTY_LOOKUP_NUMBER,
                 "Dynamically invoking parent method from a child project has been deprecated. This will fail with an error in Gradle 10. " +
                     "Cannot dynamically invoke method 'develocity' on root project 'test' from project ':child'. " +
                     "Consult the upgrading guide for further information: " +

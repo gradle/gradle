@@ -16,12 +16,11 @@
 
 package org.gradle.smoketests
 
-import org.gradle.api.internal.DocumentationRegistry
+
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.JdkVersionTestPreconditions
-
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
@@ -67,7 +66,7 @@ class PlayPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
             "This will fail with an error in Gradle ${major+1}. " +
             "Use JVM 17 or greater to execute Gradle. " +
             "Projects can continue to use older JVM versions via toolchains. " +
-            "Consult the upgrading guide for further information: ${new DocumentationRegistry().getDocumentationFor("upgrading_version_${major}", "minimum_daemon_jvm_version")}"
+            "Consult the upgrading guide for further information: ${DOCS.getDocumentationFor("upgrading_version_${major}", "minimum_daemon_jvm_version")}"
     }
 
 

@@ -39,6 +39,18 @@ public class DevelocityPluginCompatibility {
     private static final String ISOLATED_PROJECTS_SUPPORTED_PLUGIN_VERSION = "3.15";
     private static final VersionNumber ISOLATED_PROJECTS_SUPPORTED_PLUGIN_VERSION_NUMBER = VersionNumber.parse(ISOLATED_PROJECTS_SUPPORTED_PLUGIN_VERSION);
 
+    /**
+     * Develocity plugin 4.0 is the first version that registers its project extension on every project,
+     * so configuring {@code develocity { ... }} from a subproject no longer relies on Gradle's
+     * implicit parent-project property lookup. Versions below 4.0 trip the
+     * {@code deprecated_accessing_parent_project_properties} deprecation when scan tags/values are
+     * configured from subprojects.
+     */
+    @VisibleForTesting
+    public static final String FIRST_PLUGIN_VERSION_WITHOUT_PARENT_PROPERTY_LOOKUP = "4.0";
+    @VisibleForTesting
+    public static final VersionNumber FIRST_PLUGIN_VERSION_WITHOUT_PARENT_PROPERTY_LOOKUP_NUMBER = VersionNumber.parse(FIRST_PLUGIN_VERSION_WITHOUT_PARENT_PROPERTY_LOOKUP);
+
     public static boolean isUnsupportedPluginVersion(VersionNumber pluginBaseVersion) {
         return MINIMUM_SUPPORTED_PLUGIN_VERSION_NUMBER.compareTo(pluginBaseVersion) > 0;
     }
@@ -61,5 +73,9 @@ public class DevelocityPluginCompatibility {
             pluginVersion,
             ISOLATED_PROJECTS_SUPPORTED_PLUGIN_VERSION
         );
+    }
+
+    public static boolean isAffectedByParentPropertyLookup(VersionNumber pluginBaseVersion) {
+        return FIRST_PLUGIN_VERSION_WITHOUT_PARENT_PROPERTY_LOOKUP_NUMBER.compareTo(pluginBaseVersion) > 0;
     }
 }

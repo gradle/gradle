@@ -18,6 +18,7 @@ package org.gradle.internal.enterprise.impl;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.gradle.internal.buildtree.BuildModelParameters;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.enterprise.GradleEnterprisePluginCheckInResult;
 import org.gradle.internal.enterprise.GradleEnterprisePluginCheckInService;
 import org.gradle.internal.enterprise.GradleEnterprisePluginMetadata;
@@ -29,8 +30,10 @@ import org.jspecify.annotations.Nullable;
 
 import java.util.function.Supplier;
 
+import static org.gradle.internal.enterprise.impl.legacy.DevelocityPluginCompatibility.FIRST_PLUGIN_VERSION_WITHOUT_PARENT_PROPERTY_LOOKUP;
 import static org.gradle.internal.enterprise.impl.legacy.DevelocityPluginCompatibility.getUnsupportedPluginMessage;
 import static org.gradle.internal.enterprise.impl.legacy.DevelocityPluginCompatibility.getUnsupportedWithIsolatedProjectsMessage;
+import static org.gradle.internal.enterprise.impl.legacy.DevelocityPluginCompatibility.isAffectedByParentPropertyLookup;
 import static org.gradle.internal.enterprise.impl.legacy.DevelocityPluginCompatibility.isUnsupportedPluginVersion;
 import static org.gradle.internal.enterprise.impl.legacy.DevelocityPluginCompatibility.isUnsupportedWithIsolatedProjects;
 
@@ -76,6 +79,14 @@ public class DefaultGradleEnterprisePluginCheckInService implements GradleEnterp
 
         if (isIsolatedProjectsEnabled && isUnsupportedWithIsolatedProjects(pluginBaseVersion)) {
             return checkInUnsupportedResult(pluginBaseVersion, getUnsupportedWithIsolatedProjectsMessage(pluginVersion));
+        }
+
+        if (isAffectedByParentPropertyLookup(pluginBaseVersion)) {
+            DeprecationLogger.deprecateIndirectUsage("Develocity plugin " + pluginVersion)
+                .withAdvice("Upgrade to Develocity plugin " + FIRST_PLUGIN_VERSION_WITHOUT_PARENT_PROPERTY_LOOKUP + " or newer.")
+                .willBecomeAnErrorInGradle10()
+                .withUpgradeGuideSection(9, "deprecated_accessing_parent_project_properties")
+                .nagUser();
         }
 
         DefaultGradleEnterprisePluginAdapter adapter = pluginAdapterFactory.create(serviceFactory);

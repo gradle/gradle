@@ -50,6 +50,7 @@ dependencies {
     smokeTestImplementation(projects.jvmServices)
     smokeTestImplementation(projects.buildOption)
     smokeTestImplementation(projects.processServices)
+    smokeTestImplementation(projects.enterprise)
     smokeTestImplementation(libs.commonsIo)
     smokeTestImplementation(libs.groovyJson)
     smokeTestImplementation(libs.commonsHttpclient)
