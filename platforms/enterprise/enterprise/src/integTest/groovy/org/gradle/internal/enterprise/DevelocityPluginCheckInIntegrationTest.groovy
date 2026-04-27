@@ -16,7 +16,6 @@
 
 package org.gradle.internal.enterprise
 
-import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager
 import org.gradle.test.precondition.Requires
@@ -24,7 +23,6 @@ import org.gradle.test.preconditions.TestExecutionPreconditions
 
 import static org.gradle.internal.enterprise.impl.DefaultGradleEnterprisePluginCheckInService.UNSUPPORTED_TOGGLE
 import static org.gradle.internal.enterprise.impl.DefaultGradleEnterprisePluginCheckInService.UNSUPPORTED_TOGGLE_MESSAGE
-import static org.gradle.internal.enterprise.impl.legacy.DevelocityPluginCompatibility.FIRST_PLUGIN_VERSION_WITHOUT_PARENT_PROPERTY_LOOKUP
 import static org.gradle.internal.enterprise.impl.legacy.DevelocityPluginCompatibility.MINIMUM_SUPPORTED_PLUGIN_VERSION
 
 class DevelocityPluginCheckInIntegrationTest extends AbstractIntegrationSpec {
@@ -102,6 +100,9 @@ class DevelocityPluginCheckInIntegrationTest extends AbstractIntegrationSpec {
         settingsFile << """
             println "present: " + services.get($GradleEnterprisePluginManager.name).present
         """
+        if (supported) {
+            plugin.expectParentPropertyLookupDeprecation(executer, pluginVersion)
+        }
 
         when:
         succeeds("t", "-Dorg.gradle.unsafe.isolated-projects=true")
@@ -128,13 +129,7 @@ class DevelocityPluginCheckInIntegrationTest extends AbstractIntegrationSpec {
         plugin.artifactVersion = pluginVersion
         applyPlugin()
         if (deprecated) {
-            executer.expectDocumentedDeprecationWarning(
-                "Develocity plugin ${pluginVersion} has been deprecated. " +
-                    "This will fail with an error in Gradle 10. " +
-                    "Upgrade to Develocity plugin ${FIRST_PLUGIN_VERSION_WITHOUT_PARENT_PROPERTY_LOOKUP} or newer. " +
-                    "Consult the upgrading guide for further information: " +
-                    "${new DocumentationRegistry().getDocumentationFor("upgrading_version_9", "deprecated_accessing_parent_project_properties")}"
-            )
+            plugin.expectParentPropertyLookupDeprecation(executer, pluginVersion)
         }
 
         expect:
