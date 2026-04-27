@@ -45,8 +45,12 @@ public abstract class GenerateMavenPom extends DefaultTask {
 
     private final Transient.Var<MavenPom> pom = varOf();
     private Object destination;
-    private final Cached<MavenPomFileGenerator.MavenPomSpec> mavenPomSpec = Cached.of(() ->
-        MavenPomFileGenerator.generateSpec((MavenPomInternal) getPom())
+    // Skip the (potentially expensive) spec computation for disabled tasks. Cached.Deferred
+    // forces evaluation at configuration cache store time, which would otherwise trigger
+    // version-mapping / dependency-graph resolution even for tasks that will never run.
+    private final Cached<MavenPomFileGenerator.MavenPomSpec> mavenPomSpec = Cached.of(
+        () -> MavenPomFileGenerator.generateSpec((MavenPomInternal) getPom()),
+        this::getEnabled
     );
 
     @Inject

@@ -43,7 +43,13 @@ import java.io.File;
 public abstract class GenerateIvyDescriptor extends DefaultTask {
 
     private Transient.Var<IvyModuleDescriptorSpec> descriptor = Transient.varOf();
-    private final Cached<IvyDescriptorFileGenerator.DescriptorFileSpec> ivyDescriptorSpec = Cached.of(this::computeIvyDescriptorFileSpec);
+    // Skip the (potentially expensive) descriptor spec computation for disabled tasks.
+    // Cached.Deferred forces evaluation at configuration cache store time, which would otherwise
+    // trigger version-mapping / dependency-graph resolution even for tasks that will never run.
+    private final Cached<IvyDescriptorFileGenerator.DescriptorFileSpec> ivyDescriptorSpec = Cached.of(
+        this::computeIvyDescriptorFileSpec,
+        this::getEnabled
+    );
 
     private Object destination;
 

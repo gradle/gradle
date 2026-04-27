@@ -20,10 +20,87 @@ import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.Flaky
 import spock.lang.Specification
 
+import java.util.concurrent.Callable
 import java.util.concurrent.CyclicBarrier
+import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
+import java.util.function.BooleanSupplier
 
 class CachedTest extends Specification {
+
+    def "shouldEvaluate=false at serialization time skips the computation and yields null"() {
+        given:
+        def invocations = new AtomicInteger(0)
+        def cached = Cached.of(
+            { invocations.incrementAndGet(); "value" } as Callable<String>,
+            { false } as BooleanSupplier
+        )
+
+        when:
+        def restored = roundTrip(cached)
+
+        then:
+        invocations.get() == 0
+        restored.get() == null
+    }
+
+    def "shouldEvaluate=true at serialization time forces the computation"() {
+        given:
+        def invocations = new AtomicInteger(0)
+        def cached = Cached.of(
+            { invocations.incrementAndGet(); "value" } as Callable<String>,
+            { true } as BooleanSupplier
+        )
+
+        when:
+        def restored = roundTrip(cached)
+
+        then:
+        invocations.get() == 1
+        restored.get() == "value"
+    }
+
+    def "shouldEvaluate is queried at writeReplace time, not at construction"() {
+        given:
+        def shouldEvaluate = new AtomicBoolean(false)
+        def invocations = new AtomicInteger(0)
+        def cached = Cached.of(
+            { invocations.incrementAndGet(); "value" } as Callable<String>,
+            { shouldEvaluate.get() } as BooleanSupplier
+        )
+
+        when: "shouldEvaluate is flipped to true after construction, before serialization"
+        shouldEvaluate.set(true)
+        def restored = roundTrip(cached)
+
+        then:
+        invocations.get() == 1
+        restored.get() == "value"
+    }
+
+    def "Cached.of without predicate behaves as before"() {
+        given:
+        def invocations = new AtomicInteger(0)
+        def cached = Cached.of({ invocations.incrementAndGet(); "value" } as Callable<String>)
+
+        when:
+        def restored = roundTrip(cached)
+
+        then:
+        invocations.get() == 1
+        restored.get() == "value"
+    }
+
+    /**
+     * Simulates configuration cache serialization by invoking the private {@code writeReplace}
+     * method that {@code Cached.Deferred} declares for that purpose. Returns the substituted
+     * {@code Fixed} that would be serialized in production.
+     */
+    private static <T> Cached<T> roundTrip(Cached<T> input) {
+        def writeReplace = input.getClass().getDeclaredMethod("writeReplace")
+        writeReplace.setAccessible(true)
+        return writeReplace.invoke(input) as Cached<T>
+    }
 
     /**
      * Once https://github.com/gradle/gradle/issues/31239 is addressed,

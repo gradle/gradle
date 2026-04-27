@@ -31,16 +31,15 @@ import org.gradle.api.internal.artifacts.ProjectComponentIdentifierInternal;
 import org.gradle.api.internal.artifacts.dependencies.DefaultProjectDependencyConstraint;
 import org.gradle.api.internal.artifacts.dependencies.ProjectDependencyInternal;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyPublicationResolver;
-import org.gradle.internal.Actions;
 import org.gradle.internal.component.local.model.ProjectComponentSelectorInternal;
 import org.gradle.util.Path;
 import org.jspecify.annotations.Nullable;
 
+import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
-
-import static org.gradle.api.internal.artifacts.result.DefaultResolvedComponentResult.eachElement;
 
 /**
  * A {@link VariantDependencyResolver} that performs version mapping.
@@ -51,6 +50,11 @@ public class VersionMappingComponentDependencyResolver implements ComponentDepen
 
     private final ProjectDependencyPublicationResolver projectDependencyResolver;
     private final ResolvedComponentResult root;
+
+    private boolean indexed;
+    private Map<ModuleKey, ModuleVersionIdentifier> selectedByCoordinates;
+    private Map<ModuleKey, ModuleVersionIdentifier> selectedByRequestedModule;
+    private Map<Path, ModuleVersionIdentifier> selectedByRequestedProjectIdentity;
 
     public VersionMappingComponentDependencyResolver(
         ProjectDependencyPublicationResolver projectDependencyResolver,
@@ -96,42 +100,97 @@ public class VersionMappingComponentDependencyResolver implements ComponentDepen
 
     @Nullable
     public ModuleVersionIdentifier maybeResolveVersion(String group, String module, @Nullable Path identityPath) {
-        final Set<ResolvedComponentResult> resolvedComponentResults = new LinkedHashSet<>();
-        eachElement(root, Actions.doNothing(), Actions.doNothing(), resolvedComponentResults);
+        ensureIndexed();
 
-        for (ResolvedComponentResult selected : resolvedComponentResults) {
-            ModuleVersionIdentifier moduleVersion = selected.getModuleVersion();
-            if (moduleVersion != null && group.equals(moduleVersion.getGroup()) && module.equals(moduleVersion.getName())) {
-                return moduleVersion;
-            }
+        ModuleKey key = new ModuleKey(group, module);
+        ModuleVersionIdentifier resolved = selectedByCoordinates.get(key);
+        if (resolved != null) {
+            return resolved;
         }
 
-        final Set<DependencyResult> allDependencies = new LinkedHashSet<>();
-        eachElement(root, Actions.doNothing(), allDependencies::add, new HashSet<>());
-
-        // If we reach this point it means we have a dependency which doesn't belong to the resolution result
+        // If we reach this point it means we have a dependency which doesn't belong to the resolution result.
         // Which can mean two things:
         // 1. the graph used to get the resolved version has nothing to do with the dependencies we're trying to get versions for (likely user error)
-        // 2. the graph contains first-level dependencies which have been substituted (likely) so we're going to iterate on dependencies instead
-        for (DependencyResult dependencyResult : allDependencies) {
-            if (dependencyResult instanceof ResolvedDependencyResult) {
-                ComponentSelector rcs = dependencyResult.getRequested();
-                ResolvedComponentResult selected = ((ResolvedDependencyResult) dependencyResult).getSelected();
-                if (rcs instanceof ModuleComponentSelector) {
-                    ModuleComponentSelector requested = (ModuleComponentSelector) rcs;
-                    if (requested.getGroup().equals(group) && requested.getModule().equals(module)) {
-                        return getModuleVersionId(selected);
-                    }
-                } else if (rcs instanceof ProjectComponentSelector) {
-                    ProjectComponentSelectorInternal pcs = (ProjectComponentSelectorInternal) rcs;
-                    if (pcs.getIdentityPath().equals(identityPath)) {
-                        return getModuleVersionId(selected);
-                    }
-                }
-            }
+        // 2. the graph contains first-level dependencies which have been substituted (likely) so we fall back to looking up the requested coordinates
+        resolved = selectedByRequestedModule.get(key);
+        if (resolved != null) {
+            return resolved;
+        }
+
+        if (identityPath != null) {
+            return selectedByRequestedProjectIdentity.get(identityPath);
         }
 
         return null;
+    }
+
+    /**
+     * Lazily indexes the resolution graph the first time it is queried.
+     *
+     * <p>Without this, every call to {@link #maybeResolveVersion} would walk the entire graph
+     * twice, leading to {@code O(graphSize × dependencies)} work when generating module/POM
+     * metadata for components with large dependency graphs.
+     */
+    private void ensureIndexed() {
+        if (indexed) {
+            return;
+        }
+        Map<ModuleKey, ModuleVersionIdentifier> byCoordinates = new HashMap<>();
+        Map<ModuleKey, ModuleVersionIdentifier> byRequestedModule = new HashMap<>();
+        Map<Path, ModuleVersionIdentifier> byRequestedProjectIdentity = new HashMap<>();
+        indexGraph(root, byCoordinates, byRequestedModule, byRequestedProjectIdentity, new HashSet<>());
+
+        this.selectedByCoordinates = byCoordinates;
+        this.selectedByRequestedModule = byRequestedModule;
+        this.selectedByRequestedProjectIdentity = byRequestedProjectIdentity;
+        this.indexed = true;
+    }
+
+    private void indexGraph(
+        ResolvedComponentResult node,
+        Map<ModuleKey, ModuleVersionIdentifier> byCoordinates,
+        Map<ModuleKey, ModuleVersionIdentifier> byRequestedModule,
+        Map<Path, ModuleVersionIdentifier> byRequestedProjectIdentity,
+        Set<ResolvedComponentResult> visited
+    ) {
+        if (!visited.add(node)) {
+            return;
+        }
+
+        ModuleVersionIdentifier moduleVersion = node.getModuleVersion();
+        if (moduleVersion != null) {
+            byCoordinates.putIfAbsent(new ModuleKey(moduleVersion.getGroup(), moduleVersion.getName()), moduleVersion);
+        }
+
+        for (DependencyResult dependency : node.getDependencies()) {
+            if (!(dependency instanceof ResolvedDependencyResult)) {
+                continue;
+            }
+            ResolvedDependencyResult resolved = (ResolvedDependencyResult) dependency;
+            ResolvedComponentResult selected = resolved.getSelected();
+            ComponentSelector requested = resolved.getRequested();
+
+            if (requested instanceof ModuleComponentSelector) {
+                ModuleComponentSelector mcs = (ModuleComponentSelector) requested;
+                ModuleKey key = new ModuleKey(mcs.getGroup(), mcs.getModule());
+                if (!byRequestedModule.containsKey(key)) {
+                    ModuleVersionIdentifier id = getModuleVersionId(selected);
+                    if (id != null) {
+                        byRequestedModule.put(key, id);
+                    }
+                }
+            } else if (requested instanceof ProjectComponentSelector) {
+                Path requestedIdentityPath = ((ProjectComponentSelectorInternal) requested).getIdentityPath();
+                if (!byRequestedProjectIdentity.containsKey(requestedIdentityPath)) {
+                    ModuleVersionIdentifier id = getModuleVersionId(selected);
+                    if (id != null) {
+                        byRequestedProjectIdentity.put(requestedIdentityPath, id);
+                    }
+                }
+            }
+
+            indexGraph(selected, byCoordinates, byRequestedModule, byRequestedProjectIdentity, visited);
+        }
     }
 
     @Nullable
@@ -142,5 +201,32 @@ public class VersionMappingComponentDependencyResolver implements ComponentDepen
             return projectDependencyResolver.resolveComponent(ModuleVersionIdentifier.class, identityPath);
         }
         return selected.getModuleVersion();
+    }
+
+    private static final class ModuleKey {
+        private final String group;
+        private final String module;
+
+        ModuleKey(String group, String module) {
+            this.group = group;
+            this.module = module;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (!(o instanceof ModuleKey)) {
+                return false;
+            }
+            ModuleKey other = (ModuleKey) o;
+            return group.equals(other.group) && module.equals(other.module);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(group, module);
+        }
     }
 }

@@ -88,7 +88,10 @@ public abstract class GenerateModuleMetadata extends DefaultTask {
     private final Transient<Property<Publication>> publication;
     private final Transient<ListProperty<Publication>> publications;
     private final FileCollection variantFiles;
-    private final Cached<InputState> inputState = Cached.of(this::computeInputState);
+    // Skip the (potentially expensive) module metadata spec computation for disabled tasks.
+    // Cached.Deferred forces evaluation at configuration cache store time, which would otherwise
+    // trigger version-mapping / dependency-graph resolution even for tasks that will never run.
+    private final Cached<InputState> inputState = Cached.of(this::computeInputState, this::getEnabled);
 
     public GenerateModuleMetadata() {
         ObjectFactory objectFactory = getObjectFactory();

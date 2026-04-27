@@ -24,6 +24,7 @@ import org.jspecify.annotations.Nullable;
 
 import java.util.Objects;
 import java.util.concurrent.Callable;
+import java.util.function.BooleanSupplier;
 
 /**
  * Represents a computation that must execute only once and
@@ -44,7 +45,20 @@ public abstract class Cached<T> {
      * @see <a href="https://github.com/gradle/gradle/issues/31239">bug report</a>
      */
     public static <T> Cached<T> of(Callable<T> computation) {
-        return new Deferred<>(computation);
+        return new Deferred<>(computation, null);
+    }
+
+    /**
+     * Creates a cacheable computation that is only evaluated at serialization time when
+     * {@code shouldEvaluate} returns {@code true}. When the predicate returns {@code false} the
+     * computation is skipped entirely and the cached value is treated as {@code null}.
+     *
+     * <p>Intended for {@link Cached} fields owned by a task that can be disabled — the predicate
+     * is typically {@code task::getEnabled}. A disabled task that will never run pays nothing for
+     * its cached input state at configuration cache store time.
+     */
+    public static <T> Cached<T> of(Callable<T> computation, BooleanSupplier shouldEvaluate) {
+        return new Deferred<>(computation, Objects.requireNonNull(shouldEvaluate));
     }
 
     public abstract T get();
@@ -53,10 +67,12 @@ public abstract class Cached<T> {
 
         // TODO(https://github.com/gradle/gradle/issues/31239) fields are volatile as a workaround for call sites still unwisely using Cached from multiple threads.
         private volatile @Nullable Callable<T> computation;
+        private volatile @Nullable BooleanSupplier shouldEvaluate;
         private volatile @Nullable Try<T> result;
 
-        public Deferred(@NonNull Callable<T> computation) {
+        public Deferred(@NonNull Callable<T> computation, @Nullable BooleanSupplier shouldEvaluate) {
             this.computation = computation;
+            this.shouldEvaluate = shouldEvaluate;
         }
 
         @Override
@@ -80,7 +96,14 @@ public abstract class Cached<T> {
             return EvaluationContext.current().evaluate(this, () -> Try.ofFailable(toCompute));
         }
 
+        @SuppressWarnings("NullAway")
         private Object writeReplace() {
+            BooleanSupplier check = shouldEvaluate;
+            if (check != null && !check.getAsBoolean()) {
+                // Predicate vetoed evaluation — don't invoke the computation. The serialized form
+                // carries a null result; callers must tolerate get() returning null in this case.
+                return new Fixed<T>(Try.successful((T) null));
+            }
             return new Fixed<>(result());
         }
     }
