@@ -160,20 +160,6 @@ trait ValidationMessageChecker {
             .solution("Remove the @${config.ignoringAnnotation} annotation")
     }
 
-    String ignoredAnnotatedWithOptionalMessage(@DelegatesTo(value = IgnoredAnnotationPropertyMessage, strategy = Closure.DELEGATE_FIRST) Closure<?> spec = {}) {
-        ignoredAnnotatedWithOptionalConfig(spec).render()
-    }
-
-    IgnoredAnnotationPropertyMessage ignoredAnnotatedWithOptionalConfig(@DelegatesTo(value = IgnoredAnnotationPropertyMessage, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
-        def config = display(IgnoredAnnotationPropertyMessage, 'ignored_property_must_not_be_annotated', spec)
-        // @Optional-specific variant: hardcodes "@Optional" rather than using config.alsoAnnotatedWith,
-        // since the message and reason are tailored to the @Optional case
-        config.description("annotated with @${config.ignoringAnnotation} should not be also annotated with @Optional")
-            .reason("@${config.ignoringAnnotation} properties are excluded from up-to-date checks; @Optional is redundant and not allowed here")
-            .solution("Remove the @Optional annotation")
-            .solution("Remove the @${config.ignoringAnnotation} annotation and add an input or output annotation")
-    }
-
     String conflictingAnnotationsMessage(@DelegatesTo(value = ConflictingAnnotation, strategy = Closure.DELEGATE_FIRST) Closure<?> spec = {}) {
         ConflictingAnnotation config = conflictingAnnotationsConfig(spec)
         config.render()
@@ -209,16 +195,6 @@ trait ValidationMessageChecker {
             .render()
     }
 
-    String missingCachingAnnotationMessage(@DelegatesTo(value = MissingCachingAnnotation, strategy = Closure.DELEGATE_FIRST) Closure<?> spec = {}) {
-        missingCachingAnnotationConfig(spec).render()
-    }
-
-    MissingCachingAnnotation missingCachingAnnotationConfig(@DelegatesTo(value = MissingCachingAnnotation, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
-        def config = display(MissingCachingAnnotation, 'disable_caching_by_default', spec)
-        config.description("must be annotated either with ${config.cacheableAnnotation} or with @DisableCachingByDefault")
-            .reason("The ${config.workType} author should make clear why a ${config.workType} is not cacheable.")
-    }
-
     String missingAnnotationMessage(@DelegatesTo(value = MissingAnnotation, strategy = Closure.DELEGATE_FIRST) Closure<?> spec = {}) {
         missingAnnotationConfig(spec).render()
     }
@@ -229,18 +205,6 @@ trait ValidationMessageChecker {
             .reason("Properties must be annotated so that Gradle knows how to handle them during up-to-date checking")
             .solution("Add ${config.kind}")
             .solution("Mark it as @Internal")
-    }
-
-    String missingAnnotationWithOptionalMessage(@DelegatesTo(value = MissingAnnotation, strategy = Closure.DELEGATE_FIRST) Closure<?> spec = {}) {
-        missingAnnotationWithOptionalConfig(spec).render()
-    }
-
-    MissingAnnotation missingAnnotationWithOptionalConfig(@DelegatesTo(value = MissingAnnotation, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
-        def config = display(MissingAnnotation, 'missing_annotation', spec)
-        config.description("is missing ${config.kind}")
-            .reason("@Optional is a modifier annotation and has no effect without an input or output annotation")
-            .solution("Add an input or output annotation")
-            .solution("Replace @Optional with @Internal for ignoring this property")
     }
 
     String ignoredAnnotationOnField(@DelegatesTo(value = IgnoredAnnotationOnField, strategy = Closure.DELEGATE_FIRST) Closure<?> spec = {}) {
@@ -487,48 +451,6 @@ trait ValidationMessageChecker {
         }.render()
     }
 
-    String unsupportedValueType(@DelegatesTo(value = UnsupportedValueType, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
-        UnsupportedValueType config = unsupportedValueTypeConfig(spec)
-        config.render()
-    }
-
-    UnsupportedValueType unsupportedValueTypeConfig(@DelegatesTo(value = UnsupportedValueType, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
-        def config = display(UnsupportedValueType, "unsupported_value_type", spec)
-        if (config.propertyType.contains("URL")) {
-            config.description("has @Input annotation used on type 'java.net.URL' or a property of this type")
-                .reason("Type 'java.net.URL' is not supported on properties annotated with @Input because Java Serialization can be inconsistent for this type")
-                .solution("Use type 'java.net.URI' instead")
-        } else {
-            config.description("has @${config.annotationType} annotation used on property of type '${config.propertyType}'")
-                .reason("${config.unsupportedValueType} is not supported on task properties annotated with @${config.annotationType}.")
-        }
-        config
-    }
-
-    String nestedMapUnsupportedKeyType(@DelegatesTo(value = NestedMapUnsupportedKeyType, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
-        NestedMapUnsupportedKeyType config = nestedMapUnsupportedKeyTypeConfig(spec)
-           config.render()
-    }
-
-    NestedMapUnsupportedKeyType nestedMapUnsupportedKeyTypeConfig(@DelegatesTo(value = NestedMapUnsupportedKeyType, strategy = Closure.DELEGATE_FIRST)Closure<?> spec) {
-        def config = display(NestedMapUnsupportedKeyType, "unsupported_key_type_of_nested_map", spec)
-        config.description("where key of nested map is of type '${config.keyType}'.")
-            .reason("Key of nested map must be an enum or one of the following types: 'java.lang.String', 'java.lang.Integer'.")
-            .solution("Change type of key to an enum or one of the following types: 'java.lang.String', 'java.lang.Integer'.")
-    }
-
-    String nestedTypeUnsupported(@DelegatesTo(value = NestedTypeUnsupported, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
-        NestedTypeUnsupported config = nestedTypeUnsupportedConfig(spec)
-            config.render()
-    }
-
-    NestedTypeUnsupported nestedTypeUnsupportedConfig(@DelegatesTo(value = NestedTypeUnsupported, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
-        def config = display(NestedTypeUnsupported, "unsupported_nested_type", spec)
-        config.description("with nested type '${config.annotatedType}' is not supported.")
-            .solution("Use a different input annotation if type is not a bean.")
-            .solution("Use a different package that doesn't conflict with standard Java or Kotlin types for custom types.")
-    }
-
     void expectThatExecutionOptimizationDisabledWarningIsDisplayed(GradleExecuter executer,
                                                                    String message,
                                                                    String docId = "incremental_build",
@@ -548,19 +470,6 @@ trait ValidationMessageChecker {
         spec.delegate = conf
         spec()
         return (T) conf
-    }
-
-    static class UnresolvableInput extends ValidationMessageDisplayConfiguration<UnresolvableInput> {
-        String conversionProblem
-
-        UnresolvableInput(ValidationMessageChecker checker) {
-            super(checker)
-        }
-
-        UnresolvableInput conversionProblem(String details) {
-            this.conversionProblem = details
-            this
-        }
     }
 
     static class IgnoredAnnotationOnField extends ValidationMessageDisplayConfiguration<IgnoredAnnotationOnField> {
@@ -857,42 +766,6 @@ trait ValidationMessageChecker {
         }
     }
 
-    static class MissingCachingAnnotation extends ValidationMessageDisplayConfiguration<MissingCachingAnnotation> {
-        String workType
-        String cacheableAnnotation
-
-        MissingCachingAnnotation(ValidationMessageChecker checker) {
-            super(checker)
-        }
-
-        MissingCachingAnnotation forTask() {
-            workType("task")
-            cacheableAnnotation("@CacheableTask")
-            solution("Add @DisableCachingByDefault(because = ...).")
-            solution("Add ${cacheableAnnotation}.")
-            solution("Add @UntrackedTask(because = ...).")
-            return this
-        }
-
-        MissingCachingAnnotation forTransformAction() {
-            workType("transform action")
-            cacheableAnnotation("@CacheableTransform")
-            solution("Add @DisableCachingByDefault(because = ...).")
-            solution("Add ${cacheableAnnotation}.")
-            return this
-        }
-
-        MissingCachingAnnotation workType(String workType) {
-            this.workType = workType
-            this
-        }
-
-        MissingCachingAnnotation cacheableAnnotation(String cacheableAnnotation) {
-            this.cacheableAnnotation = cacheableAnnotation
-            this
-        }
-    }
-
     static class SimpleMessage extends ValidationMessageDisplayConfiguration<SimpleMessage> {
 
         SimpleMessage(ValidationMessageChecker checker) {
@@ -1060,83 +933,6 @@ trait ValidationMessageChecker {
             postfix = "was implemented by the Java lambda '${lambdaPrefix}\$\$Lambda\$<non-deterministic>'."
             reason = "Using Java lambdas is not supported as task inputs."
             solution = "Use an (anonymous inner) class instead."
-            this
-        }
-    }
-
-    static class NotCacheableWithoutReason extends ValidationMessageDisplayConfiguration<NotCacheableWithoutReason> {
-        String workType
-        String cacheableAnnotation
-        List<String> otherAnnotations = []
-
-        NotCacheableWithoutReason(ValidationMessageChecker checker) {
-            super(checker)
-        }
-
-        NotCacheableWithoutReason noReasonOnTask() {
-            workType = "task"
-            cacheableAnnotation = "@CacheableTask"
-            otherAnnotations.add("@UntrackedTask(because = ...)")
-            this
-        }
-
-        NotCacheableWithoutReason noReasonOnArtifactTransform() {
-            workType = "transform action"
-            cacheableAnnotation = "@CacheableTransform"
-            this
-        }
-    }
-
-    static class UnsupportedValueType extends ValidationMessageDisplayConfiguration<UnsupportedValueType> {
-
-        String annotationType
-        String propertyType
-        String unsupportedValueType
-
-        UnsupportedValueType(ValidationMessageChecker checker) {
-            super(checker)
-        }
-
-        UnsupportedValueType annotationType(String annotationType) {
-            this.annotationType = annotationType
-            this
-        }
-
-        UnsupportedValueType propertyType(String propertyType) {
-            this.propertyType = propertyType
-            this
-        }
-
-        UnsupportedValueType unsupportedValueType(String unsupportedValueType) {
-            this.unsupportedValueType = unsupportedValueType
-            this
-        }
-    }
-
-    static class NestedMapUnsupportedKeyType extends ValidationMessageDisplayConfiguration<NestedMapUnsupportedKeyType> {
-
-        String keyType
-
-        NestedMapUnsupportedKeyType(ValidationMessageChecker checker) {
-            super(checker)
-        }
-
-        NestedMapUnsupportedKeyType keyType(String keyType) {
-            this.keyType = keyType
-            this
-        }
-    }
-
-    static class NestedTypeUnsupported extends ValidationMessageDisplayConfiguration<NestedTypeUnsupported> {
-
-        String annotatedType
-
-        NestedTypeUnsupported(ValidationMessageChecker checker) {
-            super(checker)
-        }
-
-        NestedTypeUnsupported annotatedType(String annotatedType) {
-            this.annotatedType = annotatedType
             this
         }
     }

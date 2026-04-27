@@ -26,6 +26,7 @@ dependencies {
     api(libs.inject)
 
     implementation(projects.processServicesApi)
+    implementation(projects.problemsRendering)
 
     implementation(projects.buildProcessServices)
     implementation(projects.classloaders)

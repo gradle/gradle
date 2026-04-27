@@ -73,8 +73,7 @@ public class ImperativeOnlyPluginTarget<T extends PluginAwareInternal> implement
         ProblemId id = ProblemId.create("target-type-mismatch", "Unexpected plugin type", GradleCoreProblemGroup.pluginApplication());
         throw problems.getInternalReporter()
             .throwing(new IllegalArgumentException(message), id, spec -> {
-                spec.withException(new IllegalArgumentException(message))
-                    .contextualLabel(message)
+                spec.contextualLabel(message)
                     .documentedAt(Documentation.userManual("custom_plugins", "project_vs_settings_vs_init_plugins").toString());
             });
     }

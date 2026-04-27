@@ -23,6 +23,7 @@ import spock.lang.Issue;
 
 import java.io.File;
 
+import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.startsWith;
 
 public class ProjectLoadingIntegrationTest extends AbstractIntegrationTest {
@@ -287,6 +288,6 @@ public class ProjectLoadingIntegrationTest extends AbstractIntegrationTest {
         getTestDirectory().createDir("root").file("build.gradle").writelns("task thing");
 
         inTestDirectory().withArguments("-p", settingsDir.getAbsolutePath()).withTasks("thing").runWithFailure()
-            .assertHasDescription("Task 'thing' not found in root project 'gradle'.");
+            .assertThatDescription(containsString("Task 'thing' not found in root project 'gradle'."));
     }
 }

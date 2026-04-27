@@ -24,6 +24,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.Compone
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.DefaultComponentSelectionDescriptor
 import org.gradle.api.internal.attributes.AttributesFactory
 import org.gradle.api.internal.project.ProjectIdentity
+import org.gradle.api.problems.Severity
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.internal.Describables
 import org.gradle.internal.component.external.model.DefaultImmutableCapability
@@ -134,6 +135,7 @@ class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDep
         }
 
         given:
+        enableProblemsApiCheck()
         buildFile << """
             interface NestedBean {
                 $annotation
@@ -184,23 +186,18 @@ class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDep
 
         then:
         failureDescriptionStartsWith("Some problems were found with the configuration of task ':verify' (type 'TaskWithInput').")
-        failureDescriptionContains("Type 'TaskWithInput' property 'direct' has $annotation annotation used on property of type 'ResolvedArtifactResult'.")
-        failureDescriptionContains("Type 'TaskWithInput' property 'providerInput' has $annotation annotation used on property of type 'Provider<ResolvedArtifactResult>'.")
-        failureDescriptionContains("Type 'TaskWithInput' property 'propertyInput' has $annotation annotation used on property of type 'Property<ResolvedArtifactResult>'.")
-        failureDescriptionContains("Type 'TaskWithInput' property 'setPropertyInput' has $annotation annotation used on property of type 'SetProperty<ResolvedArtifactResult>'.")
-        failureDescriptionContains("Type 'TaskWithInput' property 'listPropertyInput' has $annotation annotation used on property of type 'ListProperty<ResolvedArtifactResult>'.")
-        failureDescriptionContains("Type 'TaskWithInput' property 'mapPropertyInput' has $annotation annotation used on property of type 'MapProperty<String, ResolvedArtifactResult>'.")
-        failureDescriptionContains("Type 'TaskWithInput' property 'nestedInput.nested' has $annotation annotation used on property of type 'Property<ResolvedArtifactResult>'.")
-
-        // Because
-        failureDescriptionContains("ResolvedArtifactResult is not supported on task properties annotated with $annotation.")
-
-        // Possible solutions
-        failureDescriptionContains("1. Extract artifact metadata and annotate with @Input.")
-        failureDescriptionContains("2. Extract artifact files and annotate with @InputFiles.")
-
-        // Documentation
-        failureDescriptionContains(documentationRegistry.getDocumentationRecommendationFor("information", "validation_problems", "unsupported_value_type"))
+        def expectedDetails = "ResolvedArtifactResult is not supported on task properties annotated with $annotation".toString()
+        def expectedContextualLabelPattern = ~/Type 'TaskWithInput' property '[^']+' has \Q$annotation\E annotation used on property of type '[^']+'/
+        receivedProblems.size().times { index ->
+            verifyAll(receivedProblem(index)) {
+                severity == Severity.ERROR
+                fqid == 'validation:property-validation:unsupported-value-type'
+                definition.id.displayName == 'Unsupported value type'
+                contextualLabel ==~ expectedContextualLabelPattern
+                details == expectedDetails
+                definition.documentationLink.url == "https://docs.gradle.org/${distribution.version.version}/userguide/validation_problems.html#unsupported_value_type"
+            }
+        }
 
         where:
         annotation    | _

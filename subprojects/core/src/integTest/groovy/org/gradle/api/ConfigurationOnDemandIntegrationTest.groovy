@@ -16,6 +16,7 @@
 
 package org.gradle.api
 
+import org.gradle.api.problems.Severity
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
@@ -37,6 +38,7 @@ class ConfigurationOnDemandIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
         file("gradle.properties") << "org.gradle.configureondemand=true"
+        enableProblemsApiCheck()
     }
 
     @Requires(
@@ -394,6 +396,19 @@ project(':api') {
         then:
         executed ':b:buildNeeded', ':a:buildNeeded'
         fixture.assertProjectsConfigured(":", ":b", ":a")
+        // The deprecation warning is emitted once per :buildNeeded task that runs (1 under embedded, 2 under CC).
+        receivedProblems.size().times { i ->
+            verifyAll(receivedProblem(i)) {
+                severity == Severity.WARNING
+                fqid == 'deprecation:the-buildneeded-task-has-been-deprecated'
+                definition.id.displayName == 'The buildNeeded task has been deprecated.'
+                contextualLabel == 'The buildNeeded task has been deprecated.'
+                details == 'This is scheduled to be removed in Gradle 10.'
+                solutions == []
+                additionalData.asMap == ['type': 'USER_CODE_DIRECT']
+                originLocations.size() == 1
+            }
+        }
     }
 
     @ToBeFixedForIsolatedProjects(because = "buildDependents is not IP compatible, configure projects from root,")
@@ -416,6 +431,19 @@ project(':api') {
         executed ':b:buildDependents', ':a:buildDependents'
         //unfortunately buildDependents requires all projects to be configured
         fixture.assertProjectsConfigured(":", ":a", ":b", ":c")
+        // The deprecation warning is emitted once per :buildDependents task that runs (1 under embedded, 2 under CC).
+        receivedProblems.size().times { i ->
+            verifyAll(receivedProblem(i)) {
+                severity == Severity.WARNING
+                fqid == 'deprecation:the-builddependents-task-has-been-deprecated'
+                definition.id.displayName == 'The buildDependents task has been deprecated.'
+                contextualLabel == 'The buildDependents task has been deprecated.'
+                details == 'This is scheduled to be removed in Gradle 10.'
+                solutions == []
+                additionalData.asMap == ['type': 'USER_CODE_DIRECT']
+                originLocations.size() == 1
+            }
+        }
     }
 
     @ToBeFixedForIsolatedProjects(because = "configure-on-demand is not supported in IP mode")
@@ -506,8 +534,18 @@ project(':b') {
         runAndFail(":a:one", "-x", "two")
 
         then:
-        failure.assertHasDescription("Task 'two' not found in project ':c' and its subprojects.")
+        failureDescriptionContains("Task 'two' not found in project ':c' and its subprojects.")
         fixture.assertProjectsConfigured(":", ":a", ":c", ':c:child')
+        verifyAll(receivedProblem) {
+            severity == Severity.ERROR
+            fqid == 'task-selection:selection-failed'
+            definition.id.displayName == 'Selection failed'
+            contextualLabel == "Task 'two' not found in project ':c' and its subprojects."
+            details == null
+            solutions == []
+            additionalData.asMap == ['requestedPath': 'two']
+            originLocations == []
+        }
     }
 
     @Issue("https://github.com/gradle/gradle/issues/29154")
@@ -535,8 +573,18 @@ allprojects {
         runAndFail(":a:one", "-x", "two")
 
         then:
-        failure.assertHasDescription("Task 'two' not found in project ':c' and its subprojects.")
+        failureDescriptionContains("Task 'two' not found in project ':c' and its subprojects.")
         fixture.assertProjectsConfigured(":", ":a", ":c", ':c:child')
+        verifyAll(receivedProblem) {
+            severity == Severity.ERROR
+            fqid == 'task-selection:selection-failed'
+            definition.id.displayName == 'Selection failed'
+            contextualLabel == "Task 'two' not found in project ':c' and its subprojects."
+            details == null
+            solutions == []
+            additionalData.asMap == ['requestedPath': 'two']
+            originLocations == []
+        }
     }
 
     @Issue("https://github.com/gradle/gradle/issues/29154")

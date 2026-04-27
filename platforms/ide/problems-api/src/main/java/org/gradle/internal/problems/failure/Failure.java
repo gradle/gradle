@@ -83,12 +83,4 @@ public interface Failure {
      * The problems associated with the failure.
      */
     List<ProblemInternal> getProblems();
-
-    /**
-     * Creates a new copy of this failure without problems.
-     * <p>
-     * We currently need this for console logging. As soon as we report problems consistently in the console,
-     * we can remove this method.
-     */
-    Failure withoutProblems();
 }

@@ -18,21 +18,15 @@ package org.gradle.execution.plan;
 
 import org.gradle.api.internal.GeneratedSubclasses;
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.problems.ProblemReporter;
 import org.gradle.api.problems.internal.ProblemInternal;
 import org.gradle.api.problems.internal.ProblemsInternal;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.execution.WorkValidationContext;
 import org.gradle.internal.execution.WorkValidationException;
+import org.gradle.internal.execution.WorkValidationUtils;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
-import org.gradle.internal.reflect.validation.TypeValidationProblemRenderer;
 
 import java.util.List;
-import java.util.Set;
-
-import static com.google.common.collect.ImmutableSet.toImmutableSet;
-import static org.gradle.internal.deprecation.DeprecationMessageBuilder.withDocumentation;
-import static org.gradle.internal.reflect.validation.TypeValidationProblemRenderer.convertToSingleLine;
-import static org.gradle.internal.reflect.validation.TypeValidationProblemRenderer.renderMinimalInformationAbout;
 
 /**
  * This class will validate a {@link LocalTaskNode}, logging any warnings discovered and halting
@@ -51,7 +45,7 @@ public class DefaultNodeValidator implements NodeValidator {
         WorkValidationContext validationContext = validateNode(node);
         List<? extends ProblemInternal> warnings = validationContext.getWarnings();
         List<? extends ProblemInternal> errors = validationContext.getErrors();
-        logWarnings(warnings);
+        WorkValidationUtils.reportAsDeprecation(warnings);
         reportErrors(warnings, errors, node.getTask(), validationContext);
         return !warnings.isEmpty() || !errors.isEmpty();
     }
@@ -65,36 +59,14 @@ public class DefaultNodeValidator implements NodeValidator {
         return validationContext;
     }
 
-    private void logWarnings(List<? extends ProblemInternal> warnings) {
-        // We are logging all the warnings that we encountered during validation here
-        warnings.stream()
-            .forEach(problem -> {
-                // Because our deprecation warning system doesn't support multiline strings (bummer!) both in rendering
-                // **and** testing (no way to capture multiline deprecation warnings), we have to resort to removing details
-                // and rendering
-                String warning = convertToSingleLine(renderMinimalInformationAbout(problem, false, false));
-                withDocumentation(problem, DeprecationLogger.deprecateBehaviour(warning)
-                    .withContext("Execution optimizations are disabled to ensure correctness.")
-                    // Bump this to a next major version when we bump Gradle major version
-                    .willBecomeAnErrorInGradle10())
-                    .nagUser();
-            });
-    }
-
     private void reportErrors(List<? extends ProblemInternal> warnings, List<? extends ProblemInternal> errors, TaskInternal task, WorkValidationContext validationContext) {
-        problemsService.getInternalReporter().report(warnings);
-        problemsService.getInternalReporter().reportError(errors);
-        Set<String> uniqueErrors = getUniqueErrors(errors);
-        if (!uniqueErrors.isEmpty()) {
-            throw WorkValidationException.forProblems(uniqueErrors)
-                .withSummaryForContext(task.toString(), validationContext)
-                .get();
+        ProblemReporter reporter = problemsService.getReporter();
+        reporter.report(warnings);
+        if (errors.isEmpty()) {
+            return;
         }
-    }
-
-    private static Set<String> getUniqueErrors(List<? extends ProblemInternal> problems) {
-        return problems.stream()
-            .map(TypeValidationProblemRenderer::renderMinimalInformationAbout)
-            .collect(toImmutableSet());
+        List<ProblemInternal> reportedErrors = WorkValidationUtils.deduplicateAndTruncate(errors);
+        WorkValidationException exception = WorkValidationException.withSummaryForContext(task.toString(), validationContext, reportedErrors.size());
+        throw reporter.throwing(exception, reportedErrors);
     }
 }

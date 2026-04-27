@@ -16,6 +16,7 @@
 
 package org.gradle.plugin.devel.tasks
 
+import org.gradle.api.problems.Severity
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.GroovyBuildScriptLanguage
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
@@ -29,6 +30,7 @@ class TaskFromPluginValidationIntegrationTest extends AbstractIntegrationSpec im
 
     def setup() {
         expectReindentedValidationMessage()
+        enableProblemsApiCheck()
     }
 
     def "detects that a problem is from a task declared in a precompiled script plugin"() {
@@ -50,10 +52,15 @@ class TaskFromPluginValidationIntegrationTest extends AbstractIntegrationSpec im
         fails ':myTask'
 
         then:
-        failureDescriptionContains(dummyValidationProblem {
-            inPlugin('test.gradle.demo.plugin')
-            type('SomeTask').property('input')
-        }.trim())
+        failure.assertHasDescription("A problem was found with the configuration of task ':myTask' (type 'SomeTask').")
+        verifyAll(receivedProblem) {
+            severity == Severity.ERROR
+            fqid == 'root:test-problem'
+            definition.id.displayName == 'test problem'
+            contextualLabel == "In plugin 'test.gradle.demo.plugin' type 'SomeTask' property 'input' test problem"
+            details == 'This is a test.'
+            definition.documentationLink.url == "https://docs.gradle.org/${distribution.version.version}/userguide/id.html#section"
+        }
     }
 
     def "detects that a problem is from a task declared in plugin"() {
@@ -107,10 +114,15 @@ class TaskFromPluginValidationIntegrationTest extends AbstractIntegrationSpec im
         fails ':myTask'
 
         then:
-        failureDescriptionContains(dummyValidationProblem {
-            inPlugin('org.gradle.demo.plugin')
-            type('org.gradle.demo.plugin.SomeTask').property('input')
-        })
+        failure.assertHasDescription("A problem was found with the configuration of task ':myTask' (type 'SomeTask').")
+        verifyAll(receivedProblem) {
+            severity == Severity.ERROR
+            fqid == 'root:test-problem'
+            definition.id.displayName == 'test problem'
+            contextualLabel == "In plugin 'org.gradle.demo.plugin' type 'org.gradle.demo.plugin.SomeTask' property 'input' test problem"
+            details == 'This is a test.'
+            definition.documentationLink.url == "https://docs.gradle.org/${distribution.version.version}/userguide/id.html#section"
+        }
     }
 
     /**
