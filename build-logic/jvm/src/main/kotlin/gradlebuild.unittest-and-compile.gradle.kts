@@ -169,6 +169,7 @@ fun addDependencies() {
         testImplementation(testLibs.findLibrary("spock").get())
         testImplementation(testLibs.findLibrary("junit5Vintage").get())
         testImplementation(testLibs.findLibrary("spockJUnit4").get())
+        testImplementation(testLibs.findLibrary("mockitoCore").get())
         testImplementation(testLibs.findLibrary("develocityTestAnnotation").get())
         testRuntimeOnly(testLibs.findLibrary("bytebuddy").get())
         testRuntimeOnly(testLibs.findLibrary("objenesis").get())
