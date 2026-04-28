@@ -702,6 +702,51 @@ include::sample[dir="snippets/structuring-builds/isolatedProjects-lifecycleApi/k
 include::sample[dir="snippets/structuring-builds/isolatedProjects-lifecycleApi/groovy",files="settings.gradle[tags=lifecycle-before-project]"]
 ====
 
+[NOTE]
+====
+The example above applies the `base` plugin, which ships with Gradle and is therefore always on the project's plugin classpath.
+Applying a convention plugin from an included build (registered via `pluginManagement.includeBuild(...)`) requires extra setup; see <<sec:lifecycle_callbacks_with_included_plugin_builds>>.
+====
+
+[[sec:lifecycle_callbacks_with_included_plugin_builds]]
+===== Applying convention plugins from an included build
+
+When build logic is provided by a plugin build registered via `pluginManagement.includeBuild(...)`, the plugin is not on the settings or project plugin classpath until something resolves it.
+Plugins from `pluginManagement.includeBuild` are resolved lazily — only when a `plugins {}` block in some script triggers resolution.
+A `gradle.lifecycle.beforeProject { apply(plugin = "...") }` callback does not trigger resolution and will therefore fail with `Plugin with id '...' not found.`
+
+To make a convention plugin from an included plugin build available to `gradle.lifecycle` callbacks, declare it in the settings `plugins {}` block with `apply false`.
+Doing so resolves the plugin at settings evaluation time and exports its classpath into the settings classloader scope, which is the parent of every project's classloader scope:
+
+[source,kotlin]
+.settings.gradle.kts
+----
+pluginManagement {
+    includeBuild("build-logic")
+}
+
+plugins {
+    // Resolves `my.convention` against the included plugin build and
+    // exports its classpath to all projects, without applying it here.
+    id("my.convention") apply false
+}
+
+include("sub1")
+include("sub2")
+
+gradle.lifecycle.beforeProject {
+    apply(plugin = "my.convention")
+}
+----
+
+If the same convention logic lives in `buildSrc/` instead of an included plugin build, the `apply false` declaration is not required: Gradle eagerly builds `buildSrc` and exports its classpath to all projects automatically.
+
+[NOTE]
+====
+The `apply false` declaration is a current requirement, not the long-term ergonomic story.
+A more direct way to make convention plugins from `pluginManagement.includeBuild` available to `gradle.lifecycle` callbacks is planned.
+====
+
 [[sec:isolated_project_api]]
 ==== Use `IsolatedProject` instead of `Project`
 
