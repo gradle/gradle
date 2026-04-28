@@ -130,6 +130,16 @@ class ConfigurationCacheFingerprintWriter(
     private
     val projectForThread = ThreadLocal<ProjectScopedSink>()
 
+    /**
+     * Maps each file-backed project script (build scripts and applied local scripts) to the
+     * [ProjectScopedSink]s that own it. Populated while a project sink is active so
+     * [onScriptClassLoaded] can recover the correct project scope when the [projectForThread]
+     * ThreadLocal is lost across worker-lease handoffs during parallel project evaluation
+     * under Isolated Projects.
+     */
+    private
+    val scriptFileToProjectSinks = ConcurrentHashMap<File, MutableSet<ProjectScopedSink>>()
+
     private
     val projectDependencies = newConcurrentHashSet<ProjectSpecificFingerprint>()
 
@@ -274,6 +284,12 @@ class ConfigurationCacheFingerprintWriter(
     fun scriptSourceObserved(scriptSource: ScriptSource) {
         if (isInputTrackingDisabled()) {
             return
+        }
+
+        scriptSource.resource.file?.let { scriptFile ->
+            projectForThread.get()?.let { projectSink ->
+                registerScriptFile(projectSink, scriptFile)
+            }
         }
 
         scriptSource.uri?.takeIf { it.isHttp }?.let { uri ->
@@ -594,13 +610,47 @@ class ConfigurationCacheFingerprintWriter(
         }
         projectForThread.set(projectSink)
         try {
-            return action()
+            return action().also { result ->
+                if (result is File) {
+                    registerScriptFile(projectSink, result)
+                }
+            }
         } finally {
             if (!keepAlive) {
-                sinksForProject.remove(project.buildTreePath)
+                unregisterProjectSink(project, projectSink)
             }
             projectForThread.set(previous)
         }
+    }
+
+    private
+    fun registerScriptFile(projectSink: ProjectScopedSink, scriptFile: File) {
+        projectSink.scriptFiles.add(scriptFile)
+        scriptFileToProjectSinks.computeIfAbsent(scriptFile) { newConcurrentHashSet() }.add(projectSink)
+    }
+
+    private
+    fun unregisterProjectSink(project: ProjectIdentity, projectSink: ProjectScopedSink) {
+        sinksForProject.remove(project.buildTreePath)
+        projectSink.scriptFiles.forEach { scriptFile ->
+            scriptFileToProjectSinks.computeIfPresent(scriptFile) { _, projectSinks ->
+                projectSinks.remove(projectSink)
+                projectSinks.takeIf { it.isNotEmpty() }
+            }
+        }
+        projectSink.scriptFiles.clear()
+    }
+
+    private
+    fun captureResolvedScriptForKnownProjects(scriptFile: File): Boolean {
+        val projectSinks = scriptFileToProjectSinks[scriptFile] ?: return false
+        projectSinks.forEach { projectSink ->
+            if (scriptFile.isFile) {
+                projectSink.captureFile(scriptFile)
+            }
+            projectSink.captureFileSystemEntry(scriptFile)
+        }
+        return true
     }
 
     fun projectObserved(consumingProjectPath: Path?, targetProjectPath: Path) {
@@ -956,6 +1006,8 @@ class ConfigurationCacheFingerprintWriter(
         private val writer: ScopedFingerprintWriter<ProjectSpecificFingerprint>
     ) : Sink(host) {
 
+        val scriptFiles: MutableSet<File> = newConcurrentHashSet()
+
         private
         val projectIdentityPath = project.buildTreePath
 
@@ -975,7 +1027,31 @@ class ConfigurationCacheFingerprintWriter(
     }
 
     fun onScriptFileResolved(scriptFile: File) {
-        fileObserved(scriptFile)
+        if (isInputTrackingDisabled()) {
+            return
+        }
+
+        projectForThread.get()?.let { projectSink ->
+            registerScriptFile(projectSink, scriptFile)
+            // Only capture file content for files that exist. For non-existent candidates
+            // (e.g. build.gradle when only build.gradle.kts is present), capturing content
+            // would cause "file has changed" on creation instead of the more accurate
+            // "file system entry has been created". Content for existing scripts will also
+            // be captured via onScriptClassLoaded when the script class is compiled.
+            if (scriptFile.isFile) {
+                projectSink.captureFile(scriptFile)
+            }
+            projectSink.captureFileSystemEntry(scriptFile)
+            return
+        }
+
+        if (captureResolvedScriptForKnownProjects(scriptFile)) {
+            return
+        }
+
+        // Without a project association, only track existence so project script content
+        // doesn't end up in the build-scoped fingerprint during script discovery.
+        sink().captureFileSystemEntry(scriptFile)
     }
 
     fun onGradlePropertiesLoaded(
