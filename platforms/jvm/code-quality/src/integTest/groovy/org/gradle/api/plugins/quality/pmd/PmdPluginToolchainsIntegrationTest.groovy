@@ -115,6 +115,7 @@ class PmdPluginToolchainsIntegrationTest extends AbstractPmdPluginVersionIntegra
                 ruleSetFiles = files()
                 ruleSets = ["category/java/errorprone.xml"]
                 rulesMinimumPriority = 5
+                // Required because the plugin is not applied; deprecation warning is expected.
                 targetJdk = TargetJdk.VERSION_1_4
                 threads = 1
                 incrementalAnalysis = false
@@ -122,6 +123,12 @@ class PmdPluginToolchainsIntegrationTest extends AbstractPmdPluginVersionIntegra
         """
 
         when:
+        executer.expectDocumentedDeprecationWarning("The Pmd.setTargetJdk(TargetJdk) method has been deprecated. " +
+            "This is scheduled to be removed in Gradle 10. " +
+            "This property is a no-op for PMD 5.0 and later, which infer the language version from the rule sets. " +
+            "Remove the targetJdk configuration from your build. " +
+            "Consult the upgrading guide for further information: " +
+            "https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_pmd_target_jdk")
         succeeds("myPmd")
 
         then:
