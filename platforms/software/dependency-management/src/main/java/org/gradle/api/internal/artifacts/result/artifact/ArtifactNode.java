@@ -20,6 +20,7 @@ import org.gradle.api.artifacts.ArtifactCollection;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.file.FileCollection;
+import org.gradle.internal.component.model.VariantIdentifier;
 
 import java.util.Collection;
 import java.util.List;
@@ -35,6 +36,11 @@ import java.util.List;
  * and also exposes the edges to other artifact nodes that this node depends on.
  */
 public interface ArtifactNode {
+
+    /**
+     * The identifier of the variant that backs this node in the graph.
+     */
+    VariantIdentifier getId();
 
     /**
      * The attributes of the variant in the original graph that this artifact node

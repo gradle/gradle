@@ -22,6 +22,7 @@ import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.GraphStructure;
+import org.gradle.internal.component.model.VariantIdentifier;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Collection;
@@ -48,6 +49,11 @@ public class DefaultArtifactNode implements ArtifactNode {
 
     public int getNodeIndex() {
         return index;
+    }
+
+    @Override
+    public VariantIdentifier getId() {
+        return structure.nodes().id(index);
     }
 
     @Override
@@ -101,7 +107,7 @@ public class DefaultArtifactNode implements ArtifactNode {
 
     @Override
     public String toString() {
-        return structure.components().id(structure.nodes().owner(index)) + " (" + structure.nodes().displayName(index) + ")";
+        return getId().getDisplayName();
     }
 
 }

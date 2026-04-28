@@ -50,6 +50,7 @@ import org.gradle.internal.component.external.model.DefaultModuleComponentSelect
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
 import org.gradle.internal.component.model.ComponentGraphResolveState;
 import org.gradle.internal.component.model.VariantGraphResolveState;
+import org.gradle.internal.component.model.VariantIdentifier;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.internal.resolve.caching.DesugaringAttributeContainerSerializer;
 import org.gradle.internal.serialize.Decoder;
@@ -83,6 +84,7 @@ public class StreamingResolutionResultBuilder implements DependencyGraphVisitor 
     private final Supplier<StatefulSerializers> statefulSerializersFactory;
     private final ComponentSelectionReasonSerializer reasonSerializer;
     private final Serializer<ComponentIdentifier> componentIdSerializer;
+    private final Serializer<VariantIdentifier> variantIdSerializer;
     private final AttributeContainerSerializer attributeContainerSerializer;
     private final ImmutableCapabilitiesSerializer capabilitySerializer;
     private final Serializer<ModuleVersionIdentifier> moduleVersionIdSerializer;
@@ -125,6 +127,7 @@ public class StreamingResolutionResultBuilder implements DependencyGraphVisitor 
         StatefulSerializers statefulSerializers = statefulSerializersFactory.get();
         this.reasonSerializer = new ComponentSelectionReasonSerializer(componentSelectionDescriptorFactory);
         this.componentIdSerializer = new ComponentIdentifierSerializer();
+        this.variantIdSerializer = new VariantIdentifierSerializer(componentIdSerializer);
         this.attributeContainerSerializer = statefulSerializers.attributeContainerSerializer();
         this.capabilitySerializer = new ImmutableCapabilitiesSerializer();
         this.moduleVersionIdSerializer = new ModuleVersionIdentifierSerializer(moduleIdentifierFactory);
@@ -145,6 +148,7 @@ public class StreamingResolutionResultBuilder implements DependencyGraphVisitor 
                 graphElementStore,
                 reasonSerializer,
                 componentIdSerializer,
+                variantIdSerializer,
                 capabilitySerializer,
                 moduleVersionIdSerializer,
                 attributeDesugaring
@@ -241,6 +245,7 @@ public class StreamingResolutionResultBuilder implements DependencyGraphVisitor 
         encoder.writeBoolean(adhoc);
         if (adhoc) {
             encoder.writeString(node.getMetadata().getName());
+            variantIdSerializer.write(encoder, node.getMetadata().getId());
             attributeContainerSerializer.write(encoder, node.getMetadata().getAttributes());
             capabilitySerializer.write(encoder, node.getMetadata().getCapabilities());
         } else {
@@ -405,6 +410,7 @@ public class StreamingResolutionResultBuilder implements DependencyGraphVisitor 
         private final ThisBuildTreeOnlyGraphElementStore graphElementStore;
         private final ComponentSelectionReasonSerializer reasonSerializer;
         private final Serializer<ComponentIdentifier> componentIdSerializer;
+        private final Serializer<VariantIdentifier> variantIdSerializer;
         private final ImmutableCapabilitiesSerializer capabilitySerializer;
         private final Serializer<ModuleVersionIdentifier> moduleVersionIdSerializer;
         private final AttributeDesugaring attributeDesugaring;
@@ -419,6 +425,7 @@ public class StreamingResolutionResultBuilder implements DependencyGraphVisitor 
             ThisBuildTreeOnlyGraphElementStore graphElementStore,
             ComponentSelectionReasonSerializer reasonSerializer,
             Serializer<ComponentIdentifier> componentIdSerializer,
+            Serializer<VariantIdentifier> variantIdSerializer,
             ImmutableCapabilitiesSerializer capabilitySerializer,
             Serializer<ModuleVersionIdentifier> moduleVersionIdSerializer,
             AttributeDesugaring attributeDesugaring
@@ -428,6 +435,7 @@ public class StreamingResolutionResultBuilder implements DependencyGraphVisitor 
             this.graphElementStore = graphElementStore;
             this.reasonSerializer = reasonSerializer;
             this.componentIdSerializer = componentIdSerializer;
+            this.variantIdSerializer = variantIdSerializer;
             this.capabilitySerializer = capabilitySerializer;
             this.moduleVersionIdSerializer = moduleVersionIdSerializer;
             this.attributeDesugaring = attributeDesugaring;
@@ -494,17 +502,20 @@ public class StreamingResolutionResultBuilder implements DependencyGraphVisitor 
             long ownerId = decoder.readSmallLong();
 
             String variantName;
+            VariantIdentifier id;
             ImmutableAttributes attributes;
             ImmutableCapabilities rawCapabilities;
             long externalVariantId = -1;
             if (decoder.readBoolean()) {
                 variantName = decoder.readString();
+                id = variantIdSerializer.read(decoder);
                 attributes = attributeContainerSerializer.read(decoder);
                 rawCapabilities = capabilitySerializer.read(decoder);
             } else {
                 long instanceId = decoder.readSmallLong();
                 VariantGraphResolveState variant = graphElementStore.getVariant(instanceId);
                 variantName = variant.getMetadata().getName();
+                id = variant.getMetadata().getId();
                 attributes = attributeDesugaring.desugar(variant.getMetadata().getAttributes());
                 rawCapabilities = variant.getMetadata().getCapabilities();
 
@@ -516,9 +527,10 @@ public class StreamingResolutionResultBuilder implements DependencyGraphVisitor 
             builder.addNode(
                 nodeId,
                 ownerId,
+                variantName,
+                id,
                 attributes,
                 rawCapabilities,
-                variantName,
                 externalVariantId
             );
 
