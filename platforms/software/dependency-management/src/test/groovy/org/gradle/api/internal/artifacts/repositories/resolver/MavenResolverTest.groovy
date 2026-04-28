@@ -121,7 +121,6 @@ class MavenResolverTest extends Specification {
         builder.metadataSources = []
         builder.authenticated = false
         builder.authenticationSchemes = []
-        builder.artifactUrls = []
         def descriptor = builder.create()
         new MavenResolver(descriptor, new URI("http://localhost"), transport, Stub(LocallyAvailableResourceFinder), Stub(FileStore), metadataSources, metadataArtifactProvider, Stub(MavenMetadataLoader), supplier, lister, Mock(Instantiator), TestUtil.checksumService, false)
     }

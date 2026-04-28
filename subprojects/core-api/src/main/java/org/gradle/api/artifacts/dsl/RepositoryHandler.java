@@ -32,44 +32,12 @@ import org.gradle.internal.HasInternalProtocol;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
-import java.util.Map;
-
 /**
  * A {@code RepositoryHandler} manages a set of repositories, allowing repositories to be defined and queried.
  */
 @HasInternalProtocol
 @ServiceScope(Scope.Project.class)
 public interface RepositoryHandler extends ArtifactRepositoryContainer {
-
-    /**
-     * Adds a resolver that looks into a number of directories for artifacts. The artifacts are expected to be located in the
-     * root of the specified directories. The resolver ignores any group/organization information specified in the
-     * dependency section of your build script. If you only use this kind of resolver you might specify your
-     * dependencies like <code>":junit:4.4"</code> instead of <code>"junit:junit:4.4"</code>.
-     *
-     * The following parameter are accepted as keys for the map:
-     *
-     * <table>
-     * <caption>Shows property keys and associated values</caption>
-     * <tr><th>Key</th>
-     *     <th>Description of Associated Value</th></tr>
-     * <tr><td><code>name</code></td>
-     *     <td><em>(optional)</em> The name of the repository.
-     * The default is a Hash value of the rootdir paths. The name is used in the console output,
-     * to point to information related to a particular repository. A name must be unique amongst a repository group.</td></tr>
-     * <tr><td><code>dirs</code></td>
-     *     <td>Specifies a list of rootDirs where to look for dependencies. These are evaluated as per {@link org.gradle.api.Project#files(Object...)}</td></tr>
-     * </table>
-     *
-     * @param args The arguments used to configure the repository.
-     * @return the added resolver
-     * @throws org.gradle.api.InvalidUserDataException In the case neither rootDir nor rootDirs is specified of if both
-     * are specified.
-     * @deprecated This method is scheduled to be removed in Gradle 10. Use {@link #flatDir(Action)} instead.
-     */
-    @Deprecated
-    @HiddenInDefinition
-    FlatDirectoryArtifactRepository flatDir(Map<String, ?> args);
 
     /**
      * Adds and configures a repository which will look for dependencies in a number of local directories.
@@ -111,31 +79,6 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
      */
     @HiddenInDefinition
     ArtifactRepository gradlePluginPortal(Action<? super ArtifactRepository> action);
-
-    /**
-     * Adds a repository which looks in the Maven central repository for dependencies. The URL used to access this repository is
-     * {@value org.gradle.api.artifacts.ArtifactRepositoryContainer#MAVEN_CENTRAL_URL}.
-     *
-     * <p>The following parameter is accepted as a key for the map:
-     *
-     * <table>
-     * <caption>Shows property keys and associated values</caption>
-     * <tr><th>Key</th>
-     *     <th>Description of Associated Value</th></tr>
-     * <tr><td><code>name</code></td>
-     *     <td><em>(optional)</em> The name of the repository. The default is
-     * {@value org.gradle.api.artifacts.ArtifactRepositoryContainer#DEFAULT_MAVEN_CENTRAL_REPO_NAME} is used as the name. A name
-     * must be unique amongst a repository group.
-     * </td></tr>
-     * </table>
-     *
-     * @param args Configuration map for the Maven Central repository.
-     * @return the added repository
-     * @deprecated This method is scheduled to be removed in Gradle 10. Use {@link #mavenCentral(Action)} instead.
-     */
-    @Deprecated
-    @HiddenInDefinition
-    MavenArtifactRepository mavenCentral(Map<String, ?> args);
 
     /**
      * Adds a repository which looks in the Maven central repository for dependencies. The URL used to access this repository is

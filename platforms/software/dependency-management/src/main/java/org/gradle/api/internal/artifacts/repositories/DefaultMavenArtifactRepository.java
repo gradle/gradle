@@ -16,8 +16,6 @@
 package org.gradle.api.internal.artifacts.repositories;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ComponentMetadataListerDetails;
@@ -49,7 +47,6 @@ import org.gradle.api.internal.artifacts.repositories.resolver.ResourcePattern;
 import org.gradle.api.internal.artifacts.repositories.resolver.VersionLister;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
-import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.internal.Cast;
@@ -60,7 +57,6 @@ import org.gradle.internal.component.external.model.ModuleComponentResolveMetada
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
 import org.gradle.internal.component.external.model.maven.MutableMavenModuleResolveMetadata;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.hash.ChecksumService;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.isolation.IsolatableFactory;
@@ -76,18 +72,14 @@ import javax.inject.Inject;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Set;
 
 public abstract class DefaultMavenArtifactRepository extends AbstractAuthenticationSupportedRepository<MavenRepositoryDescriptor> implements MavenArtifactRepository, ResolutionAwareRepository {
     private static final DefaultMavenPomMetadataSource.MavenMetadataValidator NO_OP_VALIDATION_SERVICES = (repoName, metadata, artifactResolver) -> true;
 
     private final Transformer<String, MavenArtifactRepository> describer;
-    private final FileResolver fileResolver;
     private final RepositoryTransportFactory transportFactory;
     private final DefaultUrlArtifactRepository urlArtifactRepository;
-    private List<Object> additionalUrls = new ArrayList<>();
     private final LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder;
     private final FileStore<ModuleComponentArtifactIdentifier> artifactFileStore;
     private final MetaDataParser<MutableMavenModuleResolveMetadata> pomParser;
@@ -102,7 +94,6 @@ public abstract class DefaultMavenArtifactRepository extends AbstractAuthenticat
 
     @Inject
     public DefaultMavenArtifactRepository(Transformer<String, MavenArtifactRepository> describer,
-                                          FileResolver fileResolver,
                                           RepositoryTransportFactory transportFactory,
                                           LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder,
                                           InstantiatorFactory instantiatorFactory,
@@ -122,7 +113,6 @@ public abstract class DefaultMavenArtifactRepository extends AbstractAuthenticat
     ) {
         super(instantiatorFactory.decorateLenient(), authenticationContainer, objectFactory, providerFactory, versionParser);
         this.describer = describer;
-        this.fileResolver = fileResolver;
         this.urlArtifactRepository = urlArtifactRepositoryFactory.create("Maven", this::getDisplayName);
         this.transportFactory = transportFactory;
         this.locallyAvailableResourceFinder = locallyAvailableResourceFinder;
@@ -172,75 +162,22 @@ public abstract class DefaultMavenArtifactRepository extends AbstractAuthenticat
     }
 
     @Override
-    @Deprecated
-    public Set<URI> getArtifactUrls() {
-        nagAboutArtifactUrlsDeprecation("getArtifactUrls()");
-        return getArtifactUrlsInternal();
-    }
-
-    private Set<URI> getArtifactUrlsInternal() {
-        Set<URI> result = new LinkedHashSet<>();
-        for (Object additionalUrl : additionalUrls) {
-            result.add(fileResolver.resolveUri(additionalUrl));
-        }
-        return result;
-    }
-
-    @Override
-    @Deprecated
-    public void artifactUrls(Object... urls) {
-        nagAboutArtifactUrlsDeprecation("artifactUrls(Object...)");
-        invalidateDescriptor();
-        additionalUrls.addAll(ImmutableList.copyOf(urls));
-    }
-
-    @Override
-    @Deprecated
-    public void setArtifactUrls(Set<URI> urls) {
-        nagAboutArtifactUrlsDeprecation("setArtifactUrls(Set)");
-        invalidateDescriptor();
-        setArtifactUrlsInternal(urls);
-    }
-
-    @Override
-    @Deprecated
-    public void setArtifactUrls(Iterable<?> urls) {
-        nagAboutArtifactUrlsDeprecation("setArtifactUrls(Iterable)");
-        invalidateDescriptor();
-        setArtifactUrlsInternal(urls);
-    }
-
-    private void setArtifactUrlsInternal(Iterable<?> urls) {
-        additionalUrls = Lists.newArrayList(urls);
-    }
-
-    private static void nagAboutArtifactUrlsDeprecation(String methodWithParams) {
-        DeprecationLogger.deprecateMethod(MavenArtifactRepository.class, methodWithParams)
-            .willBeRemovedInGradle10()
-            .withUpgradeGuideSection(9, "deprecated_maven_artifact_urls")
-            .nagUser();
-    }
-
-    @Override
     protected MavenRepositoryDescriptor createDescriptor() {
         URI rootUri = validateUrl();
         return new MavenRepositoryDescriptor.Builder(getName(), rootUri)
             .setAuthenticated(usesCredentials())
             .setAuthenticationSchemes(getAuthenticationSchemes())
             .setMetadataSources(metadataSources.asList())
-            .setArtifactUrls(Sets.newHashSet(getArtifactUrlsInternal()))
             .create();
     }
 
     @Override
     protected Collection<URI> getRepositoryUrls() {
-        // In a similar way to Ivy, Maven may use other hosts for additional artifacts, but not POMs
         ImmutableList.Builder<URI> builder = ImmutableList.builder();
         URI root = getUrl();
         if (root != null) {
             builder.add(root);
         }
-        builder.addAll(getArtifactUrlsInternal());
         return builder.build();
     }
 

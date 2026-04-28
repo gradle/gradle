@@ -275,46 +275,6 @@ task retrieve(type: Sync) {
         succeeds 'retrieve'
     }
 
-    def "uses artifactsUrl to resolve artifacts"() {
-        given:
-        def repo1 = mavenHttpRepo("repo1")
-        def repo2 = mavenHttpRepo("repo2")
-
-        buildFile << """
-repositories {
-    maven {
-        url = "${repo1.uri}"
-        artifactUrls '${repo2.uri}'
-    }
-}
-configurations { compile }
-dependencies {
-    compile 'group:projectA:1.0', 'group:projectB:1.0'
-}
-task retrieve(type: Sync) {
-    into 'libs'
-    from configurations.compile
-}
-"""
-
-        def projectA = repo1.module('group', 'projectA').publish()
-        def projectB = repo1.module('group', 'projectB').publish()
-        def projectBArtifacts = repo2.module('group', 'projectB').publish()
-
-        when:
-        projectA.pom.expectGet()
-        projectB.pom.expectGet()
-
-        projectA.artifact.expectGet()
-        projectB.artifact.expectGetMissing()
-        projectBArtifacts.artifact.expectGet()
-
-        then:
-        executer.expectDocumentedDeprecationWarning("The MavenArtifactRepository.artifactUrls(Object...) method has been deprecated. This is scheduled to be removed in Gradle 10. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_maven_artifact_urls")
-        succeeds 'retrieve'
-        file('libs').assertHasDescendants('projectA-1.0.jar', 'projectB-1.0.jar')
-    }
-
     def "can resolve and cache dependencies from HTTP Maven repository with invalid settings.xml"() {
         given:
         def projectB = mavenHttpRepo.module('group', 'projectB', '1.0').publish()

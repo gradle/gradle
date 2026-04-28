@@ -38,7 +38,6 @@ import org.gradle.internal.resource.ExternalResourceRepository
 import org.gradle.internal.resource.cached.DefaultExternalResourceFileStore
 import org.gradle.internal.resource.local.FileResourceRepository
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder
-import org.gradle.test.fixtures.ExpectDeprecation
 import org.gradle.util.SnapshotTestUtil
 import org.gradle.util.TestUtil
 import spock.lang.Specification
@@ -96,82 +95,6 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
         then:
         repo instanceof MavenResolver
         repo.root == uri
-    }
-
-    @ExpectDeprecation("The MavenArtifactRepository.artifactUrls(Object...) method has been deprecated.")
-    def "creates repository with additional artifact URLs"() {
-        given:
-        def uri = new URI("https://localhost:9090/repo")
-        def uri1 = new URI("https://localhost:9090/repo1")
-        def uri2 = new URI("https://localhost:9090/repo2")
-        _ * resolver.resolveUri('repo-dir') >> uri
-        _ * resolver.resolveUri('repo1') >> uri1
-        _ * resolver.resolveUri('repo2') >> uri2
-        transportFactory.createTransport('https', 'repo', _, _) >> transport()
-
-        and:
-        repository.name = 'repo'
-        repository.url = 'repo-dir'
-        repository.artifactUrls('repo1', 'repo2')
-
-        when:
-        def repo = repository.createResolver()
-
-        then:
-        repo instanceof MavenResolver
-        repo.root == uri
-        repo.artifactPatterns.size() == 3
-        repo.artifactPatterns.any { it.startsWith uri.toString() }
-        repo.artifactPatterns.any { it.startsWith uri1.toString() }
-        repo.artifactPatterns.any { it.startsWith uri2.toString() }
-    }
-
-    @ExpectDeprecation("The MavenArtifactRepository.setArtifactUrls(Set) method has been deprecated.")
-    def "setArtifactUrls(Set) replaces additional artifact URLs"() {
-        given:
-        def uri = new URI("https://localhost:9090/repo")
-        def uri1 = new URI("https://localhost:9090/repo1")
-        _ * resolver.resolveUri('repo-dir') >> uri
-        _ * resolver.resolveUri(uri1) >> uri1
-        transportFactory.createTransport('https', 'repo', _, _) >> transport()
-
-        and:
-        repository.name = 'repo'
-        repository.url = 'repo-dir'
-        repository.setArtifactUrls([uri1] as Set)
-
-        when:
-        def repo = repository.createResolver()
-
-        then:
-        repo instanceof MavenResolver
-        repo.artifactPatterns.size() == 2
-        repo.artifactPatterns.any { it.startsWith uri.toString() }
-        repo.artifactPatterns.any { it.startsWith uri1.toString() }
-    }
-
-    @ExpectDeprecation("The MavenArtifactRepository.setArtifactUrls(Iterable) method has been deprecated.")
-    def "setArtifactUrls(Iterable) replaces additional artifact URLs"() {
-        given:
-        def uri = new URI("https://localhost:9090/repo")
-        def uri1 = new URI("https://localhost:9090/repo1")
-        _ * resolver.resolveUri('repo-dir') >> uri
-        _ * resolver.resolveUri('repo1') >> uri1
-        transportFactory.createTransport('https', 'repo', _, _) >> transport()
-
-        and:
-        repository.name = 'repo'
-        repository.url = 'repo-dir'
-        repository.setArtifactUrls(['repo1'])
-
-        when:
-        def repo = repository.createResolver()
-
-        then:
-        repo instanceof MavenResolver
-        repo.artifactPatterns.size() == 2
-        repo.artifactPatterns.any { it.startsWith uri.toString() }
-        repo.artifactPatterns.any { it.startsWith uri1.toString() }
     }
 
     def "creates s3 repository"() {
@@ -341,33 +264,6 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
         different.descriptor.id == repo.descriptor.id
     }
 
-    @ExpectDeprecation("The MavenArtifactRepository.artifactUrls(Object...) method has been deprecated.")
-    def "repositories have the same id when artifact urls and other configuration is the same"() {
-        def repo = newRepo()
-        def same = newRepo()
-        def different = newRepo()
-
-        given:
-        repo.url = new URI("http://localhost")
-        repo.artifactUrls(new URI("http://localhost/dir"))
-        same.url = new URI("http://localhost")
-        same.artifactUrls(new URI("http://localhost/dir"))
-        different.url = new URI("http://localhost")
-
-        and:
-        _ * resolver.resolveUri(_) >> { URI uri -> uri }
-
-        expect:
-        same.descriptor.id == repo.descriptor.id
-        different.descriptor.id != repo.descriptor.id
-
-        when:
-        different.artifactUrls(new URI("http://localhost/dir"))
-
-        then:
-        different.descriptor.id == repo.descriptor.id
-    }
-
     def "repositories have the same id when metadata sources and other configuration is the same"() {
         def repo = newRepo()
         def same = newRepo()
@@ -406,7 +302,7 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
 
     private DefaultMavenArtifactRepository newRepo() {
         def repo = TestUtil.objectFactory().newInstance(DefaultMavenArtifactRepository, new DefaultMavenArtifactRepository.DefaultDescriber(),
-            resolver, transportFactory, locallyAvailableResourceFinder, TestUtil.instantiatorFactory(),
+            transportFactory, locallyAvailableResourceFinder, TestUtil.instantiatorFactory(),
             artifactIdentifierFileStore, pomParser, metadataParser, authenticationContainer, externalResourceFileStore,
             Mock(FileResourceRepository), mavenMetadataFactory, SnapshotTestUtil.isolatableFactory(),
             TestUtil.objectFactory(), urlArtifactRepositoryFactory, TestUtil.checksumService, providerFactory, new VersionParser())
