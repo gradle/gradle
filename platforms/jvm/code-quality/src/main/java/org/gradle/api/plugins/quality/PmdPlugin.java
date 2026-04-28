@@ -17,7 +17,6 @@ package org.gradle.api.plugins.quality;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
-import org.gradle.api.JavaVersion;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.ProjectLayout;
@@ -28,7 +27,6 @@ import org.gradle.api.plugins.quality.internal.AbstractCodeQualityPlugin;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.SourceSet;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.jvm.toolchain.JavaLauncher;
 import org.gradle.jvm.toolchain.JavaToolchainService;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
@@ -59,7 +57,6 @@ import static org.gradle.api.internal.lambdas.SerializableLambdas.action;
  * @see Pmd
  * @see <a href="https://docs.gradle.org/current/userguide/pmd_plugin.html">PMD plugin reference</a>
  */
-@SuppressWarnings("deprecation") // The targetJdk property and TargetJdk type are themselves deprecated.
 public abstract class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
 
     // When updating DEFAULT_PMD_VERSION, also update links in Pmd and PmdExtension!
@@ -91,32 +88,7 @@ public abstract class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
         extension.getThreads().convention(1);
         extension.setRuleSetFiles(project.getLayout().files());
         extension.getRuleSetsProperty().convention(project.getProviders().provider(() -> ruleSetsConvention(extension)));
-        conventionMappingOf(extension).map("targetJdk", () ->
-            DeprecationLogger.whileDisabled(() -> getDefaultTargetJdk(getJavaPluginExtension().getSourceCompatibility())));
         return extension;
-    }
-
-    /**
-     * Returns the default {@link TargetJdk} for the given Java source compatibility version.
-     *
-     * @deprecated The {@code targetJdk} property is a no-op for PMD 5.0 and later. Scheduled to be removed in Gradle 10.
-     */
-    @Deprecated
-    public TargetJdk getDefaultTargetJdk(JavaVersion javaVersion) {
-        DeprecationLogger.deprecateMethod(PmdPlugin.class, "getDefaultTargetJdk(JavaVersion)")
-            .withAdvice("This method is only used to compute the deprecated PMD targetJdk property, which is a no-op for PMD 5.0 and later.")
-            .willBeRemovedInGradle10()
-            .withUpgradeGuideSection(9, "deprecated_pmd_target_jdk")
-            .nagUser();
-        return DeprecationLogger.whileDisabled(() -> {
-            try {
-                return TargetJdk.toVersion(javaVersion.toString());
-            } catch (IllegalArgumentException ignored) {
-                // TargetJDK does not include 1.1, 1.2 and 1.8;
-                // Use same fallback as PMD
-                return TargetJdk.VERSION_1_4;
-            }
-        });
     }
 
     @Override
@@ -166,7 +138,6 @@ public abstract class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
         taskMapping.map("ruleSetConfig", () -> extension.getRuleSetConfig());
         taskMapping.map("ruleSetFiles", () -> extension.getRuleSetFiles());
         taskMapping.map("consoleOutput", () -> extension.isConsoleOutput());
-        taskMapping.map("targetJdk", () -> DeprecationLogger.whileDisabled(extension::getTargetJdk));
 
         task.getRulesMinimumPriority().convention(extension.getRulesMinimumPriority());
         task.getMaxFailures().convention(extension.getMaxFailures());

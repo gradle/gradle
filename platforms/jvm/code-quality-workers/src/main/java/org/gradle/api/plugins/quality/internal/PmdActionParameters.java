@@ -25,12 +25,9 @@ import org.gradle.api.provider.Property;
 /**
  * Parameters used to configure a {@link PmdAction}.
  */
-@SuppressWarnings("deprecation") // TargetJdk is deprecated; this internal type is removed alongside it.
 public interface PmdActionParameters extends AntWorkParameters {
 
     ConfigurableFileCollection getPmdClasspath();
-
-    Property<org.gradle.api.plugins.quality.TargetJdk> getTargetJdk();
 
     ListProperty<String> getRuleSets();
 

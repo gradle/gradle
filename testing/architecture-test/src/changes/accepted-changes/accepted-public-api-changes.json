@@ -1,3 +1,148 @@
 {
-    "acceptedApiChanges": []
+    "acceptedApiChanges": [
+        {
+            "type": "org.gradle.api.plugins.quality.Pmd",
+            "member": "Method org.gradle.api.plugins.quality.Pmd.getTargetJdk()",
+            "acceptation": "Removed deprecated method (deprecated in 9.6, removed in 10.0)",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.Pmd",
+            "member": "Method org.gradle.api.plugins.quality.Pmd.setTargetJdk(org.gradle.api.plugins.quality.TargetJdk)",
+            "acceptation": "Removed deprecated method (deprecated in 9.6, removed in 10.0)",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.PmdExtension",
+            "member": "Method org.gradle.api.plugins.quality.PmdExtension.getTargetJdk()",
+            "acceptation": "Removed deprecated method (deprecated in 9.6, removed in 10.0)",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.PmdExtension",
+            "member": "Method org.gradle.api.plugins.quality.PmdExtension.setTargetJdk(java.lang.Object)",
+            "acceptation": "Removed deprecated method (deprecated in 9.6, removed in 10.0)",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.PmdExtension",
+            "member": "Method org.gradle.api.plugins.quality.PmdExtension.setTargetJdk(org.gradle.api.plugins.quality.TargetJdk)",
+            "acceptation": "Removed deprecated method (deprecated in 9.6, removed in 10.0)",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.PmdPlugin",
+            "member": "Method org.gradle.api.plugins.quality.PmdPlugin.getDefaultTargetJdk(org.gradle.api.JavaVersion)",
+            "acceptation": "Removed deprecated method (deprecated in 9.6, removed in 10.0)",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.TargetJdk",
+            "member": "Class org.gradle.api.plugins.quality.TargetJdk",
+            "acceptation": "Removed deprecated type (deprecated in 9.6, removed in 10.0)",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.TargetJdk",
+            "member": "Field VERSION_1_3",
+            "acceptation": "Removed deprecated type (deprecated in 9.6, removed in 10.0)",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.TargetJdk",
+            "member": "Field VERSION_1_4",
+            "acceptation": "Removed deprecated type (deprecated in 9.6, removed in 10.0)",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.TargetJdk",
+            "member": "Field VERSION_1_5",
+            "acceptation": "Removed deprecated type (deprecated in 9.6, removed in 10.0)",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.TargetJdk",
+            "member": "Field VERSION_1_6",
+            "acceptation": "Removed deprecated type (deprecated in 9.6, removed in 10.0)",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.TargetJdk",
+            "member": "Field VERSION_1_7",
+            "acceptation": "Removed deprecated type (deprecated in 9.6, removed in 10.0)",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.TargetJdk",
+            "member": "Field VERSION_JSP",
+            "acceptation": "Removed deprecated type (deprecated in 9.6, removed in 10.0)",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.TargetJdk",
+            "member": "Method org.gradle.api.plugins.quality.TargetJdk.getName()",
+            "acceptation": "Removed deprecated type (deprecated in 9.6, removed in 10.0)",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.TargetJdk",
+            "member": "Method org.gradle.api.plugins.quality.TargetJdk.toString()",
+            "acceptation": "Removed deprecated type (deprecated in 9.6, removed in 10.0)",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.TargetJdk",
+            "member": "Method org.gradle.api.plugins.quality.TargetJdk.toVersion(java.lang.Object)",
+            "acceptation": "Removed deprecated type (deprecated in 9.6, removed in 10.0)",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.TargetJdk",
+            "member": "Method org.gradle.api.plugins.quality.TargetJdk.valueOf(java.lang.String)",
+            "acceptation": "Removed deprecated type (deprecated in 9.6, removed in 10.0)",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.TargetJdk",
+            "member": "Method org.gradle.api.plugins.quality.TargetJdk.values()",
+            "acceptation": "Removed deprecated type (deprecated in 9.6, removed in 10.0)",
+            "changes": [
+                "Method has been removed"
+            ]
+        }
+    ]
 }

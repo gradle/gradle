@@ -40,7 +40,6 @@ import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.Describables;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.internal.nativeintegration.console.ConsoleDetector;
 import org.gradle.internal.nativeintegration.console.ConsoleMetaData;
@@ -60,12 +59,10 @@ import java.util.stream.Collectors;
  * @see PmdExtension
  */
 @CacheableTask
-@SuppressWarnings("deprecation") // The targetJdk property and TargetJdk type are themselves deprecated.
 public abstract class Pmd extends AbstractCodeQualityTask implements Reporting<PmdReports> {
 
     private FileCollection pmdClasspath;
     private List<String> ruleSets;
-    private TargetJdk targetJdk;
     private TextResource ruleSetConfig;
     private FileCollection ruleSetFiles;
     private final PmdReports reports;
@@ -90,7 +87,6 @@ public abstract class Pmd extends AbstractCodeQualityTask implements Reporting<P
     private void setupParameters(PmdActionParameters parameters) {
         parameters.getAntLibraryClasspath().setFrom(getPmdClasspath());
         parameters.getPmdClasspath().setFrom(getPmdClasspath());
-        parameters.getTargetJdk().set(DeprecationLogger.whileDisabled(this::getTargetJdk));
         parameters.getRuleSets().set(getRuleSets());
         parameters.getRuleSetConfigFiles().from(getRuleSetFiles());
         if (getRuleSetConfig() != null) {
@@ -216,39 +212,6 @@ public abstract class Pmd extends AbstractCodeQualityTask implements Reporting<P
      */
     public void setRuleSets(List<String> ruleSets) {
         this.ruleSets = ruleSets;
-    }
-
-    /**
-     * The target JDK to use with PMD.
-     *
-     * @deprecated This property is a no-op for PMD 5.0 and later, which infer the language version from the rule sets.
-     *     Scheduled to be removed in Gradle 10.
-     */
-    @Deprecated
-    @Input
-    public TargetJdk getTargetJdk() {
-        nagAboutTargetJdkDeprecation("getTargetJdk()");
-        return targetJdk;
-    }
-
-    /**
-     * The target JDK to use with PMD.
-     *
-     * @deprecated This property is a no-op for PMD 5.0 and later, which infer the language version from the rule sets.
-     *     Scheduled to be removed in Gradle 10.
-     */
-    @Deprecated
-    public void setTargetJdk(TargetJdk targetJdk) {
-        nagAboutTargetJdkDeprecation("setTargetJdk(TargetJdk)");
-        this.targetJdk = targetJdk;
-    }
-
-    private static void nagAboutTargetJdkDeprecation(String methodWithParams) {
-        DeprecationLogger.deprecateMethod(Pmd.class, methodWithParams)
-            .withAdvice("This property is a no-op for PMD 5.0 and later, which infer the language version from the rule sets. Remove the targetJdk configuration from your build.")
-            .willBeRemovedInGradle10()
-            .withUpgradeGuideSection(9, "deprecated_pmd_target_jdk")
-            .nagUser();
     }
 
     /**
