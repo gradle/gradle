@@ -75,8 +75,9 @@ public class DefaultArtifactNode implements ArtifactNode {
 
             ImmutableList.Builder<ArtifactEdge> builder = ImmutableList.builderWithExpectedSize(end - start);
             for (int i = start; i < end; i++) {
+                // We only expose non-constraint edges in this API.
+                // Constraint edges are of little value when analyzing artifact relationships.
                 if (!edgeStructure.constraint(i)) {
-                    // We only expose non-constraint edges in this API
                     int targetNode = edgeStructure.targetNode(i);
                     if (targetNode == -1) {
                         GraphStructure.Edges.EdgeFailure failure = edgeStructure.failure(i);

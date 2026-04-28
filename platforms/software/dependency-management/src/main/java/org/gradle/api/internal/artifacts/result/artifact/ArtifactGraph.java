@@ -34,7 +34,7 @@ import java.util.function.Function;
  * <p>
  * Artifact resolution builds on top of an existing graph, deriving artifacts from each
  * node in the source graph. For each node in the source graph, artifacts are selected
- * to produce a graph {@link ArtifactNode}s exposing the artifacts derived for that node.
+ * to produce a graph of {@link ArtifactNode}s exposing the artifacts derived for that node.
  */
 public interface ArtifactGraph {
 
@@ -47,14 +47,22 @@ public interface ArtifactGraph {
     /**
      * Returns a collection containing all artifacts from all nodes in the graph that match
      * the given filter.
+     * <p>
+     * Calling this method does not trigger graph or artifact resolution until the underlying
+     * collection is queried. Once queried, only artifacts from the selected nodes are resolved.
      */
     ArtifactCollection getArtifacts(Spec<ArtifactNode> filter);
 
     /**
      * Returns a collection containing all files from all nodes in the graph that match
      * the given filter.
+     * <p>
+     * Calling this method does not trigger graph or artifact resolution until the underlying
+     * collection is queried. Once queried, only files from the selected nodes are resolved.
      */
-    FileCollection getFiles(Spec<ArtifactNode> filter);
+    default FileCollection getFiles(Spec<ArtifactNode> filter) {
+        return getArtifacts(filter).getArtifactFiles();
+    }
 
     /**
      * Return a collection containing all artifacts from all nodes returned by the given selector.
@@ -66,7 +74,7 @@ public interface ArtifactGraph {
      * Calling this method does not trigger graph or artifact resolution until the underlying
      * collection is queried. Once queried, only artifacts from the selected nodes are resolved.
      */
-    ArtifactCollection getArtifactsFromRoot(Function<ArtifactNode, Iterable<ArtifactNode>> selector);
+    ArtifactCollection getArtifactsFromTraversal(Function<ArtifactNode, Iterable<ArtifactNode>> selector);
 
     /**
      * Return a collection containing all files from all nodes returned by the given selector.
@@ -78,6 +86,8 @@ public interface ArtifactGraph {
      * Calling this method does not trigger graph or artifact resolution until the underlying
      * collection is queried. Once queried, only files from the selected nodes are resolved.
      */
-    FileCollection getFilesFromRoot(Function<ArtifactNode, Iterable<ArtifactNode>> selector);
+    default FileCollection getFilesFromTraversal(Function<ArtifactNode, Iterable<ArtifactNode>> selector) {
+        return getArtifactsFromTraversal(selector).getArtifactFiles();
+    }
 
 }

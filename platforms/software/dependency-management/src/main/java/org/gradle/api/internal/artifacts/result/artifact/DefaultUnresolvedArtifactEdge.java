@@ -42,4 +42,5 @@ public class DefaultUnresolvedArtifactEdge implements UnresolvedArtifactEdge {
     public String toString() {
         return requested.getDisplayName() + " -> " + failure.getMessage();
     }
+
 }

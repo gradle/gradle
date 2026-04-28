@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.result.artifact;
 
 import org.gradle.api.artifacts.component.ComponentSelector;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Default implementation of {@link ResolvedArtifactEdge}.
@@ -27,7 +28,7 @@ public class DefaultResolvedArtifactEdge implements ResolvedArtifactEdge {
     private final ComponentSelector requested;
     private final ArtifactGraphInternal graph;
 
-    private ArtifactNode targetNode;
+    private @Nullable ArtifactNode targetNode;
 
     public DefaultResolvedArtifactEdge(
         int targetNodeIndex,

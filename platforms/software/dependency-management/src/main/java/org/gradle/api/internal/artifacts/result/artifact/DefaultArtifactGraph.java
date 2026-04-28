@@ -20,7 +20,6 @@ import com.google.common.collect.Streams;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import org.gradle.api.artifacts.ArtifactCollection;
-import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.ivyservice.ResolutionFailureProvider;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.CompositeResolvedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
@@ -32,9 +31,7 @@ import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.lazy.Lazy;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.IntStream;
@@ -48,11 +45,11 @@ public class DefaultArtifactGraph implements ArtifactGraphInternal {
     private final Int2ObjectMap<ArtifactNode> nodeCache = new Int2ObjectOpenHashMap<>();
 
     public DefaultArtifactGraph(
-        Supplier<DefaultArtifactGraph.Details> detailsProvider,
+        Lazy<Details> lazyDetails,
         boolean lenient,
         ArtifactCollectionFactory artifactCollectionFactory
     ) {
-        this.lazyDetails = Lazy.unsafe().of(detailsProvider);
+        this.lazyDetails = lazyDetails;
         this.lenient = lenient;
         this.artifactCollectionFactory = artifactCollectionFactory;
     }
@@ -64,67 +61,39 @@ public class DefaultArtifactGraph implements ArtifactGraphInternal {
 
     @Override
     public ArtifactCollection getArtifacts(Spec<ArtifactNode> filter) {
-        return createLazyArtifactCollection(lazyDetails.map(details -> {
-            int count = details.graphStructure().nodes().count();
-            IntStream indices = IntStream.range(0, count)
+        return createLazyArtifactCollection(() -> {
+            int count = lazyDetails.get().graphStructure().nodes().count();
+            return IntStream.range(0, count)
                 .filter(index -> filter.isSatisfiedBy(getNode(index)));
-            return artifactCollectionDetailsForIndices(details, indices);
-        }));
+        });
     }
 
     @Override
-    public FileCollection getFiles(Spec<ArtifactNode> filter) {
-        return getArtifacts(filter).getArtifactFiles();
+    public ArtifactCollection getArtifactsFromTraversal(Function<ArtifactNode, Iterable<ArtifactNode>> selector) {
+        return createLazyArtifactCollection(() ->
+            Streams.stream(selector.apply(getRoot().get())).mapToInt(node -> {
+                int index = ((DefaultArtifactNode) node).getNodeIndex();
+                if (nodeCache.get(index) == nodeCache.defaultReturnValue()) {
+                    throw new IllegalArgumentException("Cannot select a node that is not in the graph: " + node);
+                }
+                return index;
+            })
+        );
     }
 
-    @Override
-    public ArtifactCollection getArtifactsFromRoot(Function<ArtifactNode, Iterable<ArtifactNode>> selector) {
-        return createLazyArtifactCollection(lazyDetails.map(details -> {
-            IntStream indices = Streams.stream(selector.apply(getRoot().get()))
-                .mapToInt(node -> ((DefaultArtifactNode) node).getNodeIndex());
-            return artifactCollectionDetailsForIndices(details, indices);
+    private ArtifactCollection createLazyArtifactCollection(Supplier<IntStream> indices) {
+        ResolvedArtifactSet artifactSet = new ArtifactCollectionFactory.LazyResolvedArtifactSet(lazyDetails.map(details -> {
+            SelectedArtifactResults artifacts = details.artifacts;
+            List<ResolvedArtifactSet> includedArtifactSets =
+                indices.get().mapToObj(artifacts::getArtifactsWithId).toList();
+            return CompositeResolvedArtifactSet.of(includedArtifactSets);
         }));
-    }
 
-    private ArtifactCollection createLazyArtifactCollection(Lazy<ArtifactCollectionDetails> detailsProvider) {
         return artifactCollectionFactory.create(
-            new ArtifactCollectionFactory.LazyResolvedArtifactSet(detailsProvider.map(ArtifactCollectionDetails::artifactSet)),
-            new ArtifactCollectionFactory.LazyResolutionFailureProvider(detailsProvider.map(ArtifactCollectionDetails::failures)),
+            artifactSet,
+            ResolutionFailureProvider.EMPTY,
             lenient
         );
-    }
-
-    private static ArtifactCollectionDetails artifactCollectionDetailsForIndices(Details details, IntStream nodeIndices) {
-        GraphStructure structure = details.graphStructure();
-        GraphStructure.Nodes nodes = structure.nodes();
-        GraphStructure.Edges edges = structure.edges();
-        int count = nodes.count();
-
-        List<ResolvedArtifactSet> includedArtifactSets = new ArrayList<>(count);
-        List<GraphStructure.Edges.EdgeFailure> failures = new ArrayList<>();
-        nodeIndices.forEach(index -> {
-            includedArtifactSets.add(details.artifacts.getArtifactsWithId(index));
-            visitFailureForNode(index, edges, failures::add);
-        });
-
-        return new ArtifactCollectionDetails(
-            CompositeResolvedArtifactSet.of(includedArtifactSets),
-            failures.isEmpty() ? ResolutionFailureProvider.EMPTY : new EdgeFailuresBackedFailureProvider(failures)
-        );
-    }
-
-    private static void visitFailureForNode(int index, GraphStructure.Edges edges, Consumer<GraphStructure.Edges.EdgeFailure> visitor) {
-        for (int e = edges.start(index); e < edges.end(index); e++) {
-            int targetNode = edges.targetNode(e);
-            if (targetNode == -1) {
-                visitor.accept(edges.failure(e));
-            }
-        }
-    }
-
-    @Override
-    public FileCollection getFilesFromRoot(Function<ArtifactNode, Iterable<ArtifactNode>> selector) {
-        return getArtifactsFromRoot(selector).getArtifactFiles();
     }
 
     @Override
@@ -143,13 +112,9 @@ public class DefaultArtifactGraph implements ArtifactGraphInternal {
     public ArtifactCollection artifactsFor(int nodeIndex) {
         Details details = lazyDetails.get();
         var artifacts = details.artifacts.getArtifactsWithId(nodeIndex);
-
-        List<GraphStructure.Edges.EdgeFailure> failures = new ArrayList<>();
-        visitFailureForNode(nodeIndex, details.graphStructure().edges(), failures::add);
-
         return artifactCollectionFactory.create(
             artifacts,
-            failures.isEmpty() ? ResolutionFailureProvider.EMPTY : new EdgeFailuresBackedFailureProvider(failures),
+            ResolutionFailureProvider.EMPTY,
             lenient
         );
     }
@@ -158,30 +123,5 @@ public class DefaultArtifactGraph implements ArtifactGraphInternal {
         GraphStructure graphStructure,
         SelectedArtifactResults artifacts
     ) {}
-
-    private record EdgeFailuresBackedFailureProvider(
-        List<GraphStructure.Edges.EdgeFailure> failures
-    ) implements ResolutionFailureProvider {
-
-        @Override
-        public boolean hasAnyFailure() {
-            return !failures.isEmpty();
-        }
-
-        @Override
-        public void visitFailures(Consumer<Throwable> visitor) {
-            if (!failures.isEmpty()) {
-                for (GraphStructure.Edges.EdgeFailure failure : failures) {
-                    visitor.accept(failure.failure());
-                }
-            }
-        }
-
-    }
-
-    record ArtifactCollectionDetails(
-        ResolvedArtifactSet artifactSet,
-        ResolutionFailureProvider failures
-    ) { }
 
 }

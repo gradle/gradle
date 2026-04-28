@@ -52,7 +52,6 @@ import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.model.CalculatedValueFactory;
 
 import javax.inject.Inject;
-import java.util.function.Supplier;
 
 /**
  * Default implementation of {@link ResolutionOutputsInternal}. This class is in charge of
@@ -61,6 +60,7 @@ import java.util.function.Supplier;
  * <ul>
  *     <li>{@link org.gradle.api.file.FileCollection}</li>
  *     <li>{@link org.gradle.api.artifacts.ArtifactCollection}</li>
+ *     <li>{@link org.gradle.api.internal.artifacts.result.artifact.ArtifactGraph}</li>
  *     <li>{@link org.gradle.api.artifacts.ArtifactView}</li>
  *     <li>{@link org.gradle.api.artifacts.result.ResolvedVariantResult}</li>
  *     <li>{@link org.gradle.api.artifacts.result.ResolvedComponentResult}</li>
@@ -119,13 +119,14 @@ public class DefaultResolutionOutputs implements ResolutionOutputsInternal {
         DefaultArtifactViewConfiguration viewConfiguration = objectFactory.newInstance(DefaultArtifactViewConfiguration.class, attributesFactory);
         action.execute(viewConfiguration);
 
-        DefaultArtifactCollectionFactory defaultArtifactCollectionFactory = new DefaultArtifactCollectionFactory(
+        ArtifactCollectionFactory artifactCollectionFactory = new DefaultArtifactCollectionFactory(
             artifactSetResolver,
             resolutionAccess.getHost(),
             taskDependencyFactory,
             calculatedValueContainerFactory,
             attributeDesugaring
         );
+
         return new DefaultArtifactView(
             viewConfiguration.lenient,
             viewConfiguration.componentFilter,
@@ -134,7 +135,7 @@ public class DefaultResolutionOutputs implements ResolutionOutputsInternal {
 
             resolutionAccess,
             attributesFactory,
-            defaultArtifactCollectionFactory
+            artifactCollectionFactory
         );
     }
 
@@ -160,7 +161,7 @@ public class DefaultResolutionOutputs implements ResolutionOutputsInternal {
 
             ResolutionAccess resolutionAccess,
             AttributesFactory attributesFactory,
-            ArtifactCollectionFactory artifactCollectionFactory1
+            ArtifactCollectionFactory artifactCollectionFactory
         ) {
             this.lenient = lenient;
             this.componentFilter = componentFilter;
@@ -170,14 +171,15 @@ public class DefaultResolutionOutputs implements ResolutionOutputsInternal {
             this.resolutionAccess = resolutionAccess;
             this.attributesFactory = attributesFactory;
 
-            this.artifactCollectionFactory = artifactCollectionFactory1;
+            this.artifactCollectionFactory = artifactCollectionFactory;
         }
 
         @Override
         public ArtifactCollectionInternal getArtifacts() {
+            Lazy<ResolverResults> results = Lazy.unsafe().of(() -> resolutionAccess.getResults().getValue());
             return artifactCollectionFactory.create(
-                new ArtifactCollectionFactory.LazyResolvedArtifactSet(Lazy.unsafe().of(() -> selectArtifacts(resolutionAccess.getResults().getValue()).getArtifacts())),
-                new ArtifactCollectionFactory.LazyResolutionFailureProvider(Lazy.unsafe().of(() -> resolutionAccess.getResults().getValue().getVisitedGraph())),
+                new ArtifactCollectionFactory.LazyResolvedArtifactSet(results.map(x -> selectArtifacts(x).getArtifacts())),
+                new ArtifactCollectionFactory.LazyResolutionFailureProvider(results.map(ResolverResults::getVisitedGraph)),
                 lenient
             );
         }
@@ -190,17 +192,17 @@ public class DefaultResolutionOutputs implements ResolutionOutputsInternal {
         @Override
         public ArtifactGraph getArtifactGraph() {
             if (componentFilter != Specs.SATISFIES_ALL) {
-                throw new UnsupportedOperationException("Cannot get the artifact graph for a view with a component filter.");
+                throw new UnsupportedOperationException("Cannot get the artifact graph for an ArtifactView with a component filter.");
             }
 
-            Supplier<DefaultArtifactGraph.Details> detailsProvider = () -> {
+            Lazy<DefaultArtifactGraph.Details> lazyDetails = Lazy.unsafe().of(() -> {
                 ResolverResults value = resolutionAccess.getResults().getValue();
                 SelectedArtifactResults artifacts = selectArtifacts(value);
                 GraphStructure graphStructure = value.getVisitedGraph().getGraphStructureSource().get();
                 return new DefaultArtifactGraph.Details(graphStructure, artifacts);
-            };
+            });
 
-            return new DefaultArtifactGraph(detailsProvider, lenient, artifactCollectionFactory);
+            return new DefaultArtifactGraph(lazyDetails, lenient, artifactCollectionFactory);
         }
 
         private SelectedArtifactResults selectArtifacts(ResolverResults results) {
@@ -306,7 +308,11 @@ public class DefaultResolutionOutputs implements ResolutionOutputsInternal {
     ) implements ArtifactCollectionFactory {
 
         @Override
-        public ArtifactCollectionInternal create(ResolvedArtifactSet artifacts, ResolutionFailureProvider failures, boolean lenient) {
+        public ArtifactCollectionInternal create(
+            ResolvedArtifactSet artifacts,
+            ResolutionFailureProvider failures,
+            boolean lenient
+        ) {
             return new DefaultArtifactCollection(
                 new DefaultSelectedArtifactSet(
                     artifactResolver,
