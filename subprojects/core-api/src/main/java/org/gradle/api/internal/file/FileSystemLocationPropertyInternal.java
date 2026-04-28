@@ -20,6 +20,7 @@ import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.file.FileSystemLocationProperty;
 import org.gradle.api.provider.Provider;
 import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
 /**
  * This class was added just to support FileSystemLocation properties in the convention mapping.
@@ -33,4 +34,11 @@ public interface FileSystemLocationPropertyInternal<T extends FileSystemLocation
      * Same as {@link FileSystemLocationProperty#convention(Provider)} but it also works with a Provider of a File.
      */
     void conventionFromAnyFile(Provider<Object> provider);
+
+    /**
+     * Sets the location of this file using a path string. Relative paths are resolved against the project directory of the owning project.
+     *
+     * <p>Mirrors {@link FileSystemLocationProperty#set(java.io.File)} for path strings — kept implementation-only as this is meant for Groovy DSL backwards source compatibility only.</p>
+     */
+    void set(@Nullable CharSequence path);
 }

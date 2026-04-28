@@ -217,6 +217,8 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory, FileFact
         public void setFromAnyValue(Object object) {
             if (object instanceof File) {
                 set((File) object);
+            } else if (object instanceof CharSequence) {
+                set((CharSequence) object);
             } else {
                 super.setFromAnyValue(object);
             }
@@ -241,6 +243,15 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory, FileFact
                 return;
             }
             set(fromFile(file));
+        }
+
+        @Override
+        public void set(@Nullable CharSequence path) {
+            if (path == null) {
+                set((T) null);
+                return;
+            }
+            set(getFileResolver().resolve(path));
         }
 
         @Override
