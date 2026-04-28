@@ -33,6 +33,7 @@ dependencies {
     implementation(projects.graphSerialization)
     implementation(projects.graphIsolation)
     implementation(projects.modelCore)
+    implementation(projects.serviceLookup)
     implementation(projects.serviceProvider)
     implementation(projects.stdlibJavaExtensions)
     implementation(projects.stdlibKotlinExtensions)

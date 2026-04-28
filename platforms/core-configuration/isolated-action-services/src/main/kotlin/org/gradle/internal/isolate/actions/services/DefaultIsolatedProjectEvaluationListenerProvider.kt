@@ -20,8 +20,11 @@ import org.gradle.api.IsolatedAction
 import org.gradle.api.Project
 import org.gradle.api.ProjectEvaluationListener
 import org.gradle.api.ProjectState
+import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.invocation.Gradle
+import org.gradle.api.plugins.UnknownPluginException
+import org.gradle.internal.build.BuildIncluder
 import org.gradle.internal.cc.base.serialize.IsolateOwners
 import org.gradle.internal.code.UserCodeApplicationContext
 import org.gradle.internal.extensions.stdlib.uncheckedCast
@@ -146,7 +149,7 @@ class EagerBeforeProject(
         val actions = isolatedActions(gradle, isolated)
         val state = IsolatedProjectActionsState.beforeProjectExecuted(actions.afterProject)
         target.setLifecycleActionsState(state)
-        executeAll(actions.beforeProject, target)
+        executeAll(actions.beforeProject, target, gradle)
     }
 }
 
@@ -169,7 +172,7 @@ class IsolatedProjectEvaluationListener(
                 val actions = isolatedActions(gradle, isolated)
                 // preserve isolate semantics between `beforeProject` and `afterProject`
                 project.setLifecycleActionsState(IsolatedProjectActionsState.beforeProjectExecuted(actions.afterProject))
-                executeAll(actions.beforeProject, project)
+                executeAll(actions.beforeProject, project, gradle)
             }
 
             is IsolatedProjectActionsState.BeforeProjectExecuted -> {
@@ -186,17 +189,69 @@ class IsolatedProjectEvaluationListener(
             "afterEvaluate action cannot execute before beforeEvaluate"
         }
         project.setLifecycleActionsState(IsolatedProjectActionsState.afterProjectExecuted())
-        executeAll(actionsState.afterProject, project)
+        executeAll(actionsState.afterProject, project, gradle)
     }
 }
 
 
 private
-fun executeAll(actions: IsolatedProjectActionList, project: Project) {
+fun executeAll(actions: IsolatedProjectActionList, project: Project, gradle: Gradle) {
     for (action in actions) {
-        action.execute(project)
+        try {
+            action.execute(project)
+        } catch (t: Throwable) {
+            rethrowWithLifecyclePluginHintIfApplicable(t, gradle)
+        }
     }
 }
+
+
+private
+fun rethrowWithLifecyclePluginHintIfApplicable(t: Throwable, gradle: Gradle): Nothing {
+    val toThrow = lifecyclePluginHintFor(t, gradle) ?: t
+    throw toThrow
+}
+
+
+private
+fun lifecyclePluginHintFor(t: Throwable, gradle: Gradle): Throwable? {
+    if (!hasIncludedPluginBuilds(gradle)) return null
+    val unknown = findUnknownPluginInCauseChain(t) ?: return null
+    val pluginId = unknown.message?.let(::extractMissingPluginId) ?: return null
+    return UnknownPluginException(unknown.message + lifecyclePluginHint(pluginId)).also { it.initCause(t) }
+}
+
+
+private
+fun hasIncludedPluginBuilds(gradle: Gradle): Boolean {
+    val gradleInternal = gradle as? GradleInternal ?: return false
+    val buildIncluder = gradleInternal.services.find(BuildIncluder::class.java) as? BuildIncluder ?: return false
+    return buildIncluder.registeredPluginBuilds.isNotEmpty()
+}
+
+
+private
+tailrec fun findUnknownPluginInCauseChain(t: Throwable?): UnknownPluginException? = when (t) {
+    null -> null
+    is UnknownPluginException -> t
+    else -> findUnknownPluginInCauseChain(t.cause.takeUnless { it === t })
+}
+
+
+private
+val unknownPluginIdRegex = Regex("""Plugin with id '([^']+)' not found\.""")
+
+
+private
+fun extractMissingPluginId(message: String): String? =
+    unknownPluginIdRegex.find(message)?.groupValues?.get(1)
+
+
+private
+fun lifecyclePluginHint(pluginId: String): String = "\n" +
+    "If this plugin is provided by a build registered via `pluginManagement.includeBuild(...)`, " +
+    "declare it in the settings `plugins {}` block (e.g. `plugins { id(\"$pluginId\") apply false }`) " +
+    "to make it available to `gradle.lifecycle` callbacks."
 
 
 private
