@@ -18,17 +18,13 @@ package org.gradle.integtests
 
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.StableConfigurationCacheDeprecations
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 
-class TaskActionIntegrationTest extends AbstractIntegrationSpec {
+class TaskActionIntegrationTest extends AbstractIntegrationSpec implements StableConfigurationCacheDeprecations {
     // When configuration cache is enabled, this is tested in ConfigurationCacheTaskExecutionIntegrationTest
     @UnsupportedWithConfigurationCache(because = "tests unsupported behaviour")
     def "nags when task action uses Task.project"() {
-        if (featureFlag) {
-            settingsFile """
-                enableFeaturePreview 'STABLE_CONFIGURATION_CACHE'
-            """
-        }
         buildFile """
             task broken {
                 doLast {
@@ -38,24 +34,16 @@ class TaskActionIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        executer.expectDocumentedDeprecationWarning("Invocation of Task.project at execution time has been deprecated. This will fail with an error in Gradle 10. This API is incompatible with the configuration cache, which will become the only mode supported by Gradle in a future release. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#task_project")
+        expectTaskGetProjectDeprecations()
         succeeds("broken")
 
         then:
         noExceptionThrown()
-
-        where:
-        featureFlag << [true, false]
     }
 
     // When configuration cache is enabled, this is tested in ConfigurationCacheTaskExecutionIntegrationTest
     @UnsupportedWithConfigurationCache(because = "tests unsupported behaviour")
     def "nags when task action uses #accessor"() {
-        if (featureFlag) {
-            settingsFile """
-                enableFeaturePreview 'STABLE_CONFIGURATION_CACHE'
-            """
-        }
         buildFile """
             task broken {
                 doLast {
@@ -72,25 +60,18 @@ class TaskActionIntegrationTest extends AbstractIntegrationSpec {
         noExceptionThrown()
 
         where:
-        [featureFlag, accessor, deprecatedProperty] << [true, false].collectMany { flag ->
-            [
+        [accessor, deprecatedProperty] << [
                 ["getTaskDependencies()", "taskDependencies"],
-                ["getDependsOn()",        "dependsOn"],
-                ["getMustRunAfter()",     "mustRunAfter"],
-                ["getFinalizedBy()",      "finalizedBy"],
-                ["getShouldRunAfter()",   "shouldRunAfter"],
-            ].collect { [flag] + it }
-        }
+                ["getDependsOn()", "dependsOn"],
+                ["getMustRunAfter()", "mustRunAfter"],
+                ["getFinalizedBy()", "finalizedBy"],
+                ["getShouldRunAfter()", "shouldRunAfter"],
+        ]
     }
 
     // When configuration cache is enabled, this is tested in ConfigurationCacheTaskExecutionIntegrationTest
     @UnsupportedWithConfigurationCache(because = "tests unsupported behaviour")
-    def "nags when task action uses Task.getExtensions() (featureFlag=#featureFlag)"() {
-        if (featureFlag) {
-            settingsFile """
-                enableFeaturePreview 'STABLE_CONFIGURATION_CACHE'
-            """
-        }
+    def "nags when task action uses Task.getExtensions()"() {
         buildFile """
             task broken {
                 doLast {
@@ -100,24 +81,16 @@ class TaskActionIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        executer.expectDocumentedDeprecationWarning("Invocation of Task.extensions at execution time has been deprecated. This will fail with an error in Gradle 10. This API is incompatible with the configuration cache, which will become the only mode supported by Gradle in a future release. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#task_extensions")
+        expectTaskGetExtensionsDeprecations()
         succeeds("broken")
 
         then:
         noExceptionThrown()
-
-        where:
-        featureFlag << [true, false]
     }
 
     // When configuration cache is enabled, this is tested in ConfigurationCacheUnsupportedTypesIntegrationTest
     @UnsupportedWithConfigurationCache(because = "tests unsupported behaviour")
-    def "nags when task action accesses injected #serviceType service (featureFlag=#featureFlag)"() {
-        if (featureFlag) {
-            settingsFile """
-                enableFeaturePreview 'STABLE_CONFIGURATION_CACHE'
-            """
-        }
+    def "nags when task action accesses injected #serviceType service"() {
         buildFile """
             abstract class Foo extends DefaultTask {
                 @javax.inject.Inject
@@ -140,13 +113,12 @@ class TaskActionIntegrationTest extends AbstractIntegrationSpec {
         noExceptionThrown()
 
         where:
-        [featureFlag, serviceType] << [true, false].collectMany { flag ->
+        serviceType <<
             [
                 "org.gradle.api.Project",
                 "org.gradle.api.internal.project.ProjectInternal",
                 "org.gradle.api.invocation.Gradle",
                 "org.gradle.api.internal.GradleInternal",
-            ].collect { [flag, it] }
-        }
+            ]
     }
 }

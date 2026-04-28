@@ -56,7 +56,7 @@ abstract class AbstractTaskProjectAccessChecker(
 
     override fun notifyConventionAccess(task: TaskInternal, invocationDescription: String) {
         if (shouldReportExecutionTimeAccess(task)) {
-            broadcaster.onConventionAccess(invocationDescription, task, currentTask())
+            broadcaster.onTaskExtensionAccess(invocationDescription, task, currentTask())
         }
     }
 

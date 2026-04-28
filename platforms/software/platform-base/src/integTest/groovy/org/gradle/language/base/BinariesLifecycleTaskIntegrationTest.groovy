@@ -17,11 +17,12 @@
 package org.gradle.language.base
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.StableConfigurationCacheDeprecations
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.internal.logging.text.DiagnosticsVisitor
 
 @UnsupportedWithConfigurationCache(because = "software model")
-class BinariesLifecycleTaskIntegrationTest extends AbstractIntegrationSpec {
+class BinariesLifecycleTaskIntegrationTest extends AbstractIntegrationSpec implements StableConfigurationCacheDeprecations {
     def setup() {
         settingsFile << """rootProject.name = 'assemble-binary'"""
         buildFile << """
@@ -66,11 +67,7 @@ class BinariesLifecycleTaskIntegrationTest extends AbstractIntegrationSpec {
         withStandaloneBinaries("ignoreMe")
 
         when:
-        executer.expectDocumentedDeprecationWarning(
-            "Invocation of Task.taskDependencies at execution time has been deprecated. " +
-            "This will fail with an error in Gradle 10. " +
-            "This API is incompatible with the configuration cache, which will become the only mode supported by Gradle in a future release. " +
-            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#task_dependencies")
+        expectTaskGetTaskDependenciesDeprecations()
         fails "assemble"
 
         then:
@@ -106,11 +103,7 @@ class BinariesLifecycleTaskIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        executer.expectDocumentedDeprecationWarning(
-            "Invocation of Task.taskDependencies at execution time has been deprecated. " +
-            "This will fail with an error in Gradle 10. " +
-            "This API is incompatible with the configuration cache, which will become the only mode supported by Gradle in a future release. " +
-            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#task_dependencies")
+        expectTaskGetTaskDependenciesDeprecations()
         run "assemble"
 
         then:

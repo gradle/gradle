@@ -114,6 +114,7 @@ object BuildTreeModelControllerServices : ServiceRegistrationProvider {
         }
 
         add(InstrumentedExecutionAccessListenerRegistry::class.java)
+        add(ExecutionAccessChecker::class.java, ConfigurationTimeBarrierBasedExecutionAccessChecker::class.java)
 
         if (modelParameters.isVintage) {
             // region ALL MODES
@@ -124,7 +125,6 @@ object BuildTreeModelControllerServices : ServiceRegistrationProvider {
             add(ProjectScopedScriptResolution::class.java, ProjectScopedScriptResolution.NO_OP)
             add(ConfigurationCacheInputsListener::class.java, PromoInputsListener::class.java)
             add(BuildTreeModelSideEffectExecutor::class.java, DefaultBuildTreeModelSideEffectExecutor::class.java)
-            add(ExecutionAccessChecker::class.java, ConfigurationTimeBarrierBasedExecutionAccessChecker::class.java)
             // endregion
 
             // region VT-only
@@ -143,7 +143,6 @@ object BuildTreeModelControllerServices : ServiceRegistrationProvider {
                 ConfigurationCacheBuildTreeModelSideEffectExecutor::class.java,
                 ConfigurationCacheBuildTreeModelSideEffectExecutor::class.java
             )
-            add(ExecutionAccessChecker::class.java, ConfigurationTimeBarrierBasedExecutionAccessChecker::class.java)
             // endregion
 
             // region CC and IP

@@ -185,10 +185,6 @@ These methods can still be used during configuration time.
 
 The deprecation is only issued if the Configuration Cache is **not** enabled.
 When the Configuration Cache is enabled, calls to these methods are reported as Configuration Cache problems instead.
-
-The deprecation of `Task.getTaskDependencies()` was originally introduced in <<upgrading_version_7.adoc#task_dependencies, Gradle 7.4>> but was only issued when the <<configuration_cache_enabling.adoc#config_cache:stable,`STABLE_CONFIGURATION_CACHE`>> feature flag was enabled.
-That feature flag no longer controls this deprecation.
-The other methods listed above are newly deprecated in this version.
 This is another step towards moving users away from idioms that are incompatible with the Configuration Cache, which will become the only mode supported by Gradle in a future release.
 For example:
 
@@ -223,9 +219,6 @@ This method can still be used during configuration time.
 
 The deprecation is only issued if the Configuration Cache is **not** enabled.
 When the Configuration Cache is enabled, calls to this method are reported as Configuration Cache problems instead.
-
-This deprecation was originally introduced in <<upgrading_version_8.adoc#task_convention, Gradle 8.2>> but was only issued when the <<configuration_cache_enabling.adoc#config_cache:stable,`STABLE_CONFIGURATION_CACHE`>> feature flag was enabled.
-That feature flag no longer controls this deprecation.
 This is another step towards moving users away from idioms that are incompatible with the Configuration Cache, which will become the only mode supported by Gradle in a future release.
 
 For example:
@@ -259,9 +252,6 @@ These services can still be read during configuration time.
 
 The deprecation is only issued if the Configuration Cache is **not** enabled.
 When the Configuration Cache is enabled, such accesses are reported as Configuration Cache problems instead.
-
-This restriction was originally enforced only when the <<configuration_cache_enabling.adoc#config_cache:stable,`STABLE_CONFIGURATION_CACHE`>> feature flag was enabled.
-That feature flag no longer controls this deprecation.
 This is another step towards moving users away from idioms that are incompatible with the Configuration Cache, which will become the only mode supported by Gradle in a future release.
 
 For example:

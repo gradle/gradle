@@ -73,7 +73,7 @@ class DefaultConfigurationCacheProblemsListener internal constructor(
         onTaskExecutionAccessProblem(invocationDescription, task, runningTask)
     }
 
-    override fun onConventionAccess(invocationDescription: String, task: TaskInternal, runningTask: TaskInternal?) {
+    override fun onTaskExtensionAccess(invocationDescription: String, task: TaskInternal, runningTask: TaskInternal?) {
         if (canAccessConventions(task.javaClass.name, invocationDescription)) {
             return
         }
