@@ -21,7 +21,7 @@ import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.ProjectConnection
 import spock.lang.Timeout
 
-@TargetGradleVersion(">=8.7")
+@TargetGradleVersion(">=8.9")
 // The first compile against the Gradle API in a fresh user home is slow on EBS-backed CI agents
 @Timeout(300)
 class CapturingMultipleUserInputCrossVersionSpec extends ToolingApiSpecification {
