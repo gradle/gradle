@@ -46,6 +46,9 @@ public interface SettingsInternal extends Settings, PluginAwareInternal, Finaliz
     @HiddenInDefinition
     StartParameter getStartParameter();
 
+    @Override
+    ProjectDescriptorInternal getRootProject();
+
     @HiddenInDefinition
     ScriptSource getSettingsScript();
 

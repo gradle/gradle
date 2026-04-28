@@ -54,7 +54,6 @@ import org.gradle.api.tasks.TaskAction
 import org.gradle.groovy.scripts.TextResourceScriptSource
 import org.gradle.initialization.BuildLayoutParameters
 import org.gradle.initialization.ClassLoaderScopeRegistry
-import org.gradle.initialization.ProjectDescriptorInternal
 import org.gradle.internal.Describables
 import org.gradle.internal.Try
 import org.gradle.internal.build.NestedRootBuildRunner.createNestedBuildTree
@@ -109,7 +108,7 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
     private
     val asyncIOScopeFactory: AsyncIOScopeFactory,
 
-) : ClassPathSensitiveCodeGenerationTask() {
+    ) : ClassPathSensitiveCodeGenerationTask() {
 
     private
     val projectDesc = project.toString()
@@ -472,7 +471,7 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
     }
 
     private fun descriptorForRoot(settings: SettingsInternal): ImmutableProjectDescriptor {
-        val descriptor = settings.rootProject as ProjectDescriptorInternal
+        val descriptor = settings.rootProject
         val identity = ProjectIdentity.forRootProject(settings.gradle.owner.identityPath, descriptor.name)
         return DefaultImmutableProjectDescriptor(
             identity, descriptor.projectDir, { descriptor.buildFile }, null, emptyList()

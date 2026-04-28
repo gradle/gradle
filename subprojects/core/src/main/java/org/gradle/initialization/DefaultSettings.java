@@ -22,7 +22,6 @@ import org.gradle.api.UnknownProjectException;
 import org.gradle.api.cache.CacheConfigurations;
 import org.gradle.api.file.BuildLayout;
 import org.gradle.api.initialization.ConfigurableIncludedBuild;
-import org.gradle.api.initialization.ProjectDescriptor;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.initialization.SharedModelDefaults;
 import org.gradle.api.initialization.dsl.ScriptHandler;
@@ -224,7 +223,7 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
     }
 
     @Override
-    public ProjectDescriptor getRootProject() {
+    public ProjectDescriptorInternal getRootProject() {
         return rootProjectDescriptor;
     }
 
