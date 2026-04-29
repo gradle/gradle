@@ -15,8 +15,8 @@
  */
 package org.gradle.tooling.internal.consumer;
 
-import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.DocumentationRegistry;
+import org.gradle.api.internal.jvm.JavaVersionParser;
 import org.gradle.internal.jvm.SupportedJavaVersions;
 import org.gradle.tooling.GradleConnectionException;
 import org.gradle.tooling.GradleConnector;
@@ -49,7 +49,7 @@ public class DefaultGradleConnector extends GradleConnector implements ProjectCo
         this.connectionFactory = connectionFactory;
         this.distributionFactory = distributionFactory;
 
-        int currentMajor = Integer.parseInt(JavaVersion.current().getMajorVersion());
+        int currentMajor = JavaVersionParser.parseMajorVersion(System.getProperty("java.version"));
         if (currentMajor < SupportedJavaVersions.FUTURE_MINIMUM_CLIENT_JAVA_VERSION) {
             int currentMajorGradleVersion = GradleVersion.current().getMajorVersion();
 
