@@ -90,7 +90,13 @@ public interface ProjectState extends ModelContainer<ProjectInternal> {
     /**
      * Returns the project directory.
      */
-    File getProjectDir();
+    default File getProjectDir() {
+        return getDescriptor().getProjectDir();
+    }
+
+    default File getBuildFile() {
+        return getDescriptor().getBuildFile();
+    }
 
     /**
      * Returns the identifier of the default component produced by this project.

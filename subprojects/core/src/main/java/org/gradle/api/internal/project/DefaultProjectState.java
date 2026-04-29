@@ -32,7 +32,6 @@ import org.gradle.internal.work.WorkerLeaseService;
 import org.jspecify.annotations.Nullable;
 
 import java.io.Closeable;
-import java.io.File;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.Set;
@@ -90,11 +89,6 @@ class DefaultProjectState implements ProjectState, Closeable {
     @Override
     public ProjectIdentity getIdentity() {
         return identity;
-    }
-
-    @Override
-    public File getProjectDir() {
-        return descriptor.getProjectDir();
     }
 
     @Override

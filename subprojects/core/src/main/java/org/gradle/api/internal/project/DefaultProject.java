@@ -82,6 +82,9 @@ import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.configuration.internal.ListenerBuildOperationDecorator;
 import org.gradle.configuration.project.ProjectConfigurationActionContainer;
 import org.gradle.configuration.project.ProjectEvaluator;
+import org.gradle.features.internal.binding.ProjectFeatureApplicator;
+import org.gradle.features.internal.binding.ProjectFeatureDeclarations;
+import org.gradle.features.internal.binding.ProjectFeatureSupportInternal;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
@@ -123,9 +126,6 @@ import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.normalization.InputNormalizationHandler;
 import org.gradle.normalization.internal.InputNormalizationHandlerInternal;
-import org.gradle.features.internal.binding.ProjectFeatureApplicator;
-import org.gradle.features.internal.binding.ProjectFeatureDeclarations;
-import org.gradle.features.internal.binding.ProjectFeatureSupportInternal;
 import org.gradle.util.Configurable;
 import org.gradle.util.Path;
 import org.gradle.util.internal.ClosureBackedAction;
@@ -169,10 +169,6 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     private final GradleInternal gradle;
 
     private final ScriptSource buildScriptSource;
-
-    private final File projectDir;
-
-    private final File buildFile;
 
     @Nullable
     private final ProjectInternal parent;
@@ -232,8 +228,6 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
         this.parent = parentProjectOwner == null ? null : parentProjectOwner.getMutableModel();
         this.rootProject = parent != null ? parent.getRootProject() : this;
         this.name = owner.getIdentity().getProjectName();
-        this.projectDir = owner.getDescriptor().getProjectDir();
-        this.buildFile = owner.getDescriptor().getBuildFile();
         this.state = new ProjectStateInternal();
         this.gradle = owner.getOwner().getMutableModel();
 
@@ -385,7 +379,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     @Override
     public File getBuildFile() {
-        return buildFile;
+        return owner.getBuildFile();
     }
 
     @Override
@@ -830,7 +824,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     @Override
     public File getProjectDir() {
-        return projectDir;
+        return owner.getProjectDir();
     }
 
     @Override
