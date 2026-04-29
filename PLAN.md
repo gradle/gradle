@@ -465,78 +465,442 @@ instantiations, etc.) from the rebuilt map. A test asserts that
 `schema.topLevelReceiverType.documentation` and
 `schema.dataClassTypesByFqName[fqn].documentation` agree.
 
-## Implementation steps
+## Implementation plan (strict TDD)
 
-Ordered so each step is reviewable on its own.
+Each cycle is a red→green pair: a test is added that fails for an
+expected reason, then the smallest implementation change that makes it
+pass is committed. Test framework: JUnit 5 + Kotlin assertions, matching
+the existing `declarative-dsl-core/src/test` style.
 
-1. **Add `documentation: String?` to public schema interfaces.**
-   Files in `declarative-dsl-tooling-models/.../schema/`. Add to:
-   `DataClass`, `DataProperty`, `SchemaMemberFunction`, `DataTopLevelFunction`,
-   `DataConstructor`, `DataParameter`, `EnumClass`. Also add
-   `entryDocumentation: Map<String, String>` to `EnumClass`.
+Cycles are grouped into five phases. Within a phase, cycles depend on
+each other and should be done in order. Between phases, dependencies are
+spelled out.
 
-2. **Plumb through `Default*` implementations.**
-   Files in `declarative-dsl-core/.../analysis/Default*`. Add field with
-   `null` default. Update constructors and `copy`-style usages.
+Sample catalogs referenced by name (`Sample A`–`Sample L`) are listed
+in the **Sample catalogs** section after the cycles. They are based on
+real definition types from the
+`platforms/core-configuration/project-features-demos` project so the
+fixtures resemble real declarative definitions.
 
-3. **Update kotlinx serialization.**
-   `declarative-dsl-core/.../serialization/SchemaSerialization.kt`. Add
-   the new field to each `@Serializable` shape with the same default
-   as on the `Default*` impl (`null` / `emptyMap()`).
+### Phase 1 — Schema fields and plumbing
 
-4. **Define the catalog data model.**
-   New `@Serializable` types in a dedicated package (likely
-   `declarative-dsl-core/.../documentation/`) representing the JSON
-   structure above.
+Lays the public-API foundation. After this phase, the schema can carry
+documentation; nothing fills it in yet.
 
-5. **Implement the loader.**
-   `DocumentationCatalogLoader` in `declarative-dsl-provider`. Signature:
-   `(ClassLoader, AnalysisSchema) → DocumentationCatalog`. The schema
-   parameter is the un-grafted schema, used for orphan-key validation.
-   Responsibilities, in order: enumerate
-   `META-INF/declarative-dsl/documentation.json` resources via
-   `getResources(...)`; parse each (collect parse-error issues per
-   resource); merge with the last-wins conflict policy (collect
-   override-loser issues per resource); drop any catalog entries whose
-   keys don't resolve in the schema (collect orphan issues per
-   resource); emit one `Logger.warn(...)` per resource that has any
-   issues, with the per-resource summary format from *Diagnostics*.
-   Returns a clean catalog: every entry is guaranteed to address an
-   actual schema definition.
+**Cycle 1.1 — Field reads back as null/empty by default.**
+Red: build a small schema (using existing schema-builder test helpers)
+and assert that every `Default*`'s `documentation` is `null` and
+`EnumClass.entryDocumentation` is empty. Compile fails on the access.
+Green: add `documentation: String?` to the seven public interfaces
+listed in *Definitions that carry documentation*; add
+`entryDocumentation: Map<String, String>` to `EnumClass`; update each
+`Default*` impl with a default constructor argument
+(`null` / `emptyMap()`); update the kotlinx-serialization shapes in
+`SchemaSerialization.kt` with matching defaults.
 
-6. **Implement the grafter.**
-   Pure function `graftDocumentation(AnalysisSchema, DocumentationCatalog)
-   → AnalysisSchema` in `declarative-dsl-core`. No Gradle dependencies,
-   no `Logger`, no diagnostics — the catalog is already validated by the
-   loader, so every entry is known to match a schema definition. Returns
-   a new schema with `documentation` filled on each matching definition.
-   Walks the schema tree, looks up each key, copies the `Default*` value
-   with the `documentation` set. Rebuild the FQN map first, then resolve
-   every direct `DataClass` reference held by `AnalysisSchema`
-   (top-level receiver, generic instantiations, etc.) from the rebuilt
-   map so all aliases agree.
+### Phase 2 — Catalog model and key projection
 
-7. **Wire into schema building.**
-   Hook the loader into `PluginsInterpretationSequenceStep.whenEvaluated`
-   (or an immediately-following step) so the catalog is read from
-   `settings.classLoaderScope.localClassLoader` right after
-   `targetScope.lock()`. The grafter produces the single build-scoped
-   `AnalysisSchema` that subsequent DCL evaluation uses for every script
-   in the build.
+Pure data and a pure projection function — no schema, no Gradle, no
+classloader yet.
 
-8. **Tests.**
-   - Unit: catalog parsing, function-signature key building, grafter on a
-     hand-built schema.
-   - Aliasing: documenting the top-level receiver's FQN populates
-     `documentation` on both `schema.topLevelReceiverType` and the same
-     type's entry in `dataClassTypesByFqName`.
-   - Integration: a fixture plugin shipping a `documentation.json` resource;
-     assert the resulting schema carries the expected docs end-to-end.
-   - Parent-classloader discovery: a fixture catalog placed in a JAR on
-     the parent classloader (simulating a Gradle JAR) is found by the
-     plugin-classloader scan and applied.
-   - Conflict: two fixture JARs documenting the same key; assert
-     last-wins and that a warning is emitted.
+**Cycle 2.1 — Catalog model parses JSON.**
+Red: deserialize **Sample A** into the catalog data classes; assert the
+expected tree. (Cycle fails at compile because the data classes don't
+exist yet.)
+Green: define `DocumentationCatalog`, `TypeDocumentation`,
+`FunctionDocumentation`, `EnumDocumentation` as `@Serializable` data
+classes in `declarative-dsl-core/.../documentation/`, mirroring the
+*Resource format* JSON shape.
+
+**Cycle 2.2 — Function-signature key projection.**
+Red: assert `paramTypeFragment` and `functionKey` produce the expected
+strings for each input variant — primitives (one per row of the
+primitive table), class types (FQN, nested with `$`), parameterized
+types (erased), vararg (element + `[]`). Multiple parameterized cases
+on table-driven tests.
+Green: implement `paramTypeFragment(DataTypeRef): String` and
+`functionKey(simpleName: String, parameters: List<DataParameter>):
+String` in the same package, pure functions.
+
+### Phase 3 — Grafter
+
+Pure schema rebuilder. Each cycle adds one definition kind. No
+diagnostics; the input catalog is assumed valid (the loader validates).
+
+**Cycle 3.1 — Grafter applies type docs.**
+Red: graft **Sample A** onto a hand-built schema containing
+`CheckstyleDefinition`; assert
+`schema.dataClassTypesByFqName[fq].documentation == "Configuration for ..."`.
+Original schema unchanged (immutability).
+Green: implement the type-level pass of `graftDocumentation`.
+
+**Cycle 3.2 — Property docs.**
+Red: extend the previous test; assert `ignoreFailures` and `configFile`
+properties have docs.
+Green: extend grafter for properties.
+
+**Cycle 3.3 — Member function docs (with parameter docs).**
+Red: graft **Sample C** onto a schema containing `CheckstyleModel`;
+assert `setReports(...)` carries function doc and that its `reports`
+parameter carries the parameter doc.
+Green: extend grafter for functions and parameters in one cycle (they
+co-locate in the catalog under each function's `parameters` block).
+
+**Cycle 3.4 — Constructor docs.**
+Red: graft **Sample I** (constructors and top-level functions) onto a
+schema with constructors; assert.
+Green: extend grafter for constructors.
+
+**Cycle 3.5 — Top-level function docs.**
+Red: same Sample I; assert top-level function and its parameter doc.
+Green: extend grafter for `externalFunctionsByFqName` /
+`infixFunctionsByFqName`.
+
+**Cycle 3.6 — Enum type docs and entry docs.**
+Red: graft **Sample J** onto a schema with an enum; assert both enum-type
+doc and per-entry docs.
+Green: extend grafter for `EnumClass.documentation` and
+`entryDocumentation`.
+
+**Cycle 3.7 — Top-level receiver aliasing.**
+Red: graft a sample documenting the FQN of the top-level receiver type;
+assert `schema.topLevelReceiverType.documentation` and
+`schema.dataClassTypesByFqName[fq].documentation` are both populated and
+identical (same string instance is fine).
+Green: rebuild direct `DataClass` references held by `AnalysisSchema`
+(top-level receiver, generic instantiation values) from the rebuilt FQN
+map so all aliases agree.
+
+### Phase 4 — Loader
+
+Resource discovery, parsing, merging, and per-resource diagnostics.
+Lives in `declarative-dsl-provider`. Each cycle adds one diagnostic
+behaviour.
+
+**Cycle 4.1 — Loads a single resource.**
+Red: a `URLClassLoader` over a synthetic JAR containing **Sample A** at
+the fixed path; loader returns the parsed catalog with that single
+type entry. No warnings emitted.
+Green: implement resource enumeration via `getResources(...)`, parsing
+each, returning the merged result. Logger is captured by a test fixture
+(no real Gradle Logger needed in unit tests).
+
+**Cycle 4.2 — Merges multiple resources without conflicts.**
+Red: classloader has **Sample D** split across two synthetic JARs (one
+for `CheckstyleDefinition`, one for `AntlrGrammarsDefinition`); loader
+returns a merged catalog covering both, no warnings.
+Green: implement the merge.
+
+**Cycle 4.3 — Filters orphans, warns once.**
+Red: classloader serves **Sample E**; loader returns a catalog that
+omits the orphan keys, and exactly one `Logger.warn` is captured with
+the per-resource summary text from the *Diagnostics* template.
+Green: implement orphan detection (using the schema parameter) and the
+per-resource warning emission.
+
+**Cycle 4.4 — Resolves conflicts last-wins, warns the loser.**
+Red: classloader serves **Sample F** (two catalogs document the same
+key); loader's merged catalog has the last entry; the losing resource
+gets a per-resource warning naming the overridden key(s).
+Green: implement conflict tracking and warning.
+
+**Cycle 4.5 — Reports parse errors, keeps loading siblings.**
+Red: classloader has both **Sample G** (malformed) and **Sample A**
+(valid); loader returns a catalog containing Sample A's entries; one
+parse-error warning is emitted naming the malformed resource; Sample A
+is unaffected.
+Green: implement parse-error handling (catch the kotlinx exception per
+resource, summarize, continue).
+
+**Cycle 4.6 — Ignores unknown JSON fields silently.**
+Red: classloader serves **Sample H** (extra top-level key); loader
+parses successfully and emits no warnings.
+Green: confirm `ignoreUnknownKeys = true` is set on the kotlinx Json
+instance.
+
+**Cycle 4.7 — Truncates long issue lists.**
+Red: classloader serves **Sample L** (15 orphan keys); the captured
+warning contains exactly 10 keys and the literal `(+5 more)`.
+Green: implement the cap-at-10 truncation in the warning formatter.
+
+### Phase 5 — Wiring (integration)
+
+End-to-end against a real DCL build; lives in the integration-test
+module that already exercises declarative DSL.
+
+**Cycle 5.1 — Plugin contributes documentation.**
+Red: integration test runs a build with a fixture settings plugin that
+ships **Sample A** at the fixed path inside its JAR; the test resolves
+the build's analysis schema (via existing tooling-model or test-fixture
+hooks) and asserts the documentation is present.
+Green: hook
+`DocumentationCatalogLoader.load(settings.classLoaderScope.localClassLoader, schema)`
+into `PluginsInterpretationSequenceStep.whenEvaluated` (or an
+immediately-following step), then call `graftDocumentation` and pass
+the grafted schema downstream.
+
+**Cycle 5.2 — Parent-classloader discovery.**
+Red: integration test where the fixture catalog lives in a JAR placed on
+the parent classloader (simulating a Gradle JAR above the plugin
+classloader); same assertion as 5.1.
+Green: should pass with no extra code — `getResources()` walks the
+parent chain. The cycle exists to pin the behaviour.
+
+**Cycle 5.3 — Diagnostics surface in the build log.**
+Red: integration test runs with a fixture plugin shipping **Sample E**
+(orphan keys); assert the build output contains the expected warning
+text.
+Green: should pass; this is regression coverage for the wiring.
+
+## Sample catalogs
+
+All catalogs target schema definitions drawn from
+`platforms/core-configuration/project-features-demos` so the fixtures
+look like realistic plugin contributions.
+
+### Sample A — type doc + property docs
+
+Covers: type entry, simple property keys, primitives in property types
+(via the `Property<T>` wrapper, which is erased in the catalog).
+
+```json
+{
+  "types": {
+    "org.gradle.api.plugins.checkstyle.CheckstyleDefinition": {
+      "documentation": "Configuration for the Checkstyle quality check on a source set.",
+      "properties": {
+        "ignoreFailures": "Whether Checkstyle violations should fail the build.",
+        "configFile": "Path to the Checkstyle configuration XML file."
+      }
+    }
+  }
+}
+```
+
+### Sample B — inheritance
+
+Covers: a documented child type does not silently document its parent's
+members; only the keys present in the catalog get docs.
+
+```json
+{
+  "types": {
+    "org.gradle.api.plugins.checkstyle.CheckstyleSourceSetDefinition": {
+      "documentation": "A source-set–scoped Checkstyle definition that produces a build model."
+    }
+  }
+}
+```
+
+(Asserted: `CheckstyleSourceSetDefinition.documentation` is populated;
+`CheckstyleDefinition.documentation` is still null.)
+
+### Sample C — function with parameter doc
+
+Covers: function key projection (one parameter, parameterized type
+erased), parameter doc keyed by name.
+
+```json
+{
+  "types": {
+    "org.gradle.api.plugins.checkstyle.CheckstyleModel": {
+      "functions": {
+        "setReports(org.gradle.api.provider.Provider)": {
+          "documentation": "Replace the configured reports.",
+          "parameters": {
+            "reports": "Provider that supplies the reports configuration."
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+### Sample D — multi-resource merge
+
+Two separate JSON files, each in its own synthetic JAR. Covers:
+non-conflicting merge across multiple contributing JARs.
+
+JAR 1:
+```json
+{
+  "types": {
+    "org.gradle.api.plugins.checkstyle.CheckstyleDefinition": {
+      "documentation": "Checkstyle config."
+    }
+  }
+}
+```
+
+JAR 2:
+```json
+{
+  "types": {
+    "org.gradle.api.plugins.antlr.AntlrGrammarsDefinition": {
+      "documentation": "ANTLR grammars binding.",
+      "properties": {
+        "trace": "Enable trace output during parsing.",
+        "traceLexer": "Enable trace output for the lexer."
+      }
+    }
+  }
+}
+```
+
+### Sample E — orphan keys
+
+Covers: orphan filtering and warning. The `removedProperty` and
+`org.example.NotInSchema` entries do not exist in the schema.
+
+```json
+{
+  "types": {
+    "org.gradle.api.plugins.checkstyle.CheckstyleDefinition": {
+      "properties": {
+        "ignoreFailures": "Valid.",
+        "removedProperty": "This property no longer exists in the schema."
+      }
+    },
+    "org.example.NotInSchema": {
+      "documentation": "This type is not in the schema."
+    }
+  }
+}
+```
+
+### Sample F — conflict (last-wins)
+
+Two JARs both document `CheckstyleDefinition` with different strings.
+The loader emits a per-resource warning to the loser; the merged catalog
+contains the winner's value.
+
+JAR 1 (loser):
+```json
+{ "types": { "org.gradle.api.plugins.checkstyle.CheckstyleDefinition": { "documentation": "First version." } } }
+```
+
+JAR 2 (winner):
+```json
+{ "types": { "org.gradle.api.plugins.checkstyle.CheckstyleDefinition": { "documentation": "Overriding version." } } }
+```
+
+### Sample G — malformed JSON
+
+Literally not valid JSON. The loader emits a parse-error warning naming
+the resource and continues to load siblings.
+
+```
+{ this is not json }
+```
+
+### Sample H — forward-compat
+
+Valid catalog with an extra unknown top-level key. The loader ignores
+the unknown field and emits no warning.
+
+```json
+{
+  "types": {
+    "org.gradle.api.plugins.checkstyle.CheckstyleDefinition": { "documentation": "Hello." }
+  },
+  "futureExtensionPoint": { "x": "y" }
+}
+```
+
+### Sample I — constructors and top-level functions
+
+A small synthetic top-level helper and a constructor on a synthetic
+type. (The demos do not exercise these directly; the test schema
+includes a hand-built receiver type with a constructor and a helper.)
+
+```json
+{
+  "types": {
+    "org.example.demo.Coords": {
+      "constructors": {
+        "(java.lang.String,int)": {
+          "documentation": "Build coordinates from group and depth.",
+          "parameters": {
+            "group": "The group name.",
+            "depth": "Numeric depth."
+          }
+        }
+      }
+    }
+  },
+  "topLevelFunctions": {
+    "org.example.demo.HelpersKt.coords(java.lang.String,int)": {
+      "documentation": "Convenience builder for Coords."
+    }
+  }
+}
+```
+
+### Sample J — enum
+
+A synthetic enum (the demos do not currently include one). Covers enum
+type doc and per-entry docs.
+
+```json
+{
+  "enums": {
+    "org.example.demo.Severity": {
+      "documentation": "Severity level for a quality finding.",
+      "entries": {
+        "INFO": "Informational; not a violation.",
+        "WARN": "A potential issue.",
+        "ERROR": "A violation that fails the build."
+      }
+    }
+  }
+}
+```
+
+### Sample K — varargs and primitives
+
+Covers every entry of the primitive table and the vararg `[]` rule.
+
+```json
+{
+  "types": {
+    "org.example.demo.AllParams": {
+      "functions": {
+        "kitchenSink(int,long,boolean,java.lang.String,java.lang.String[])": {
+          "documentation": "Exercises every parameter type fragment.",
+          "parameters": {
+            "i": "An int.",
+            "l": "A long.",
+            "b": "A boolean.",
+            "s": "A String.",
+            "rest": "Vararg of Strings."
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+### Sample L — high-volume orphans (truncation)
+
+A catalog with 15 orphan property entries on a real type, to verify the
+truncation cap of 10 in the warning text.
+
+```json
+{
+  "types": {
+    "org.gradle.api.plugins.checkstyle.CheckstyleDefinition": {
+      "properties": {
+        "orphan1": "...",
+        "orphan2": "...",
+        "...": "...",
+        "orphan15": "..."
+      }
+    }
+  }
+}
+```
 
 ## Open questions for later
 
