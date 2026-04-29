@@ -30,7 +30,7 @@ abstract class AbstractDomainObjectContainerIntegrationTest extends AbstractInte
         if (method.startsWith("Project")) {
             return "root project 'root'"
         } else if (method.startsWith("Gradle")) {
-            return "build 'root'"
+            return "build ':'"
         } else {
             return containerStringRepresentation
         }
