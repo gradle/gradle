@@ -40,6 +40,7 @@ import org.gradle.api.internal.tasks.TaskContainerInternal
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.tasks.util.internal.PatternSets
 import org.gradle.configuration.internal.ListenerBuildOperationDecorator
+import org.gradle.initialization.DependenciesAccessors
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.Describables
 import org.gradle.internal.instantiation.InstantiatorFactory
@@ -340,7 +341,14 @@ class DefaultProjectSpec extends Specification {
         }
 
         def instantiator = TestUtil.instantiatorFactory().decorateLenient(serviceRegistry)
-        def factory = new ProjectFactory(instantiator, new DefaultTextFileResourceLoader(null), scriptResolution)
+        def factory = new ProjectFactory(
+            instantiator,
+            new DefaultTextFileResourceLoader(null),
+            scriptResolution,
+            Stub(DependencyResolutionManagementInternal),
+            Stub(DependenciesAccessors),
+            Mock(ProjectRegistry)
+        )
         return factory.createProject(container, Stub(ClassLoaderScope), Stub(ClassLoaderScope), serviceRegistryFactory)
     }
 }

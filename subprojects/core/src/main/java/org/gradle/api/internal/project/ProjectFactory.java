@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.project;
 
-import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.groovy.scripts.TextResourceScriptSource;
@@ -34,14 +33,28 @@ import org.gradle.util.internal.NameValidator;
 import java.io.File;
 
 public class ProjectFactory implements IProjectFactory {
+
     private final Instantiator instantiator;
     private final TextFileResourceLoader textFileResourceLoader;
     private final ProjectScopedScriptResolution scriptResolution;
+    private final DependencyResolutionManagementInternal dependencyResolutionManagement;
+    private final DependenciesAccessors dependenciesAccessors;
+    private final ProjectRegistry projectRegistry;
 
-    public ProjectFactory(Instantiator instantiator, TextFileResourceLoader textFileResourceLoader, ProjectScopedScriptResolution scriptResolution) {
+    public ProjectFactory(
+        Instantiator instantiator,
+        TextFileResourceLoader textFileResourceLoader,
+        ProjectScopedScriptResolution scriptResolution,
+        DependencyResolutionManagementInternal dependencyResolutionManagement,
+        DependenciesAccessors dependenciesAccessors,
+        ProjectRegistry projectRegistry
+    ) {
         this.instantiator = instantiator;
         this.textFileResourceLoader = textFileResourceLoader;
         this.scriptResolution = scriptResolution;
+        this.dependencyResolutionManagement = dependencyResolutionManagement;
+        this.dependenciesAccessors = dependenciesAccessors;
+        this.projectRegistry = projectRegistry;
     }
 
     @Override
@@ -63,13 +76,12 @@ public class ProjectFactory implements IProjectFactory {
             source,
             serviceRegistryFactory
         );
-        GradleInternal gradle = owner.getOwner().getMutableModel();
-        gradle.getServices().get(DependencyResolutionManagementInternal.class).configureProject(project);
+        dependencyResolutionManagement.configureProject(project);
         project.beforeEvaluate(p -> {
             NameValidator.validate(project.getName(), "project name", DefaultProjectDescriptor.INVALID_NAME_IN_INCLUDE_HINT);
-            gradle.getServices().get(DependenciesAccessors.class).createExtensions(project);
+            dependenciesAccessors.createExtensions(project);
         });
-        gradle.getProjectRegistry().addProject(project);
+        projectRegistry.addProject(project);
         return project;
     }
 }

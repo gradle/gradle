@@ -24,9 +24,7 @@ import org.gradle.internal.model.StateTransitionControllerFactory;
 import org.gradle.internal.service.CloseableServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.ProjectScopeServices;
-import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
-import org.gradle.internal.service.scopes.ServiceScope;
 import org.jspecify.annotations.Nullable;
 
 import java.io.Closeable;
@@ -34,7 +32,6 @@ import java.io.Closeable;
 /**
  * Controls the lifecycle of the mutable {@link ProjectInternal} instance for a project, plus its services.
  */
-@ServiceScope(Scope.Project.class)
 public class ProjectLifecycleController implements Closeable {
     private final ServiceRegistry buildServices;
     private final StateTransitionController<State> controller;

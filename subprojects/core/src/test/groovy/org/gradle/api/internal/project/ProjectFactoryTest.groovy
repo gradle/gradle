@@ -16,9 +16,9 @@
 
 package org.gradle.api.internal.project
 
-import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.groovy.scripts.TextResourceScriptSource
+import org.gradle.initialization.DependenciesAccessors
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.management.DependencyResolutionManagementInternal
 import org.gradle.internal.project.ImmutableProjectDescriptor
@@ -26,7 +26,6 @@ import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.resource.DefaultTextFileResourceLoader
 import org.gradle.internal.resource.EmptyFileTextResource
 import org.gradle.internal.scripts.ProjectScopedScriptResolution
-import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.scopes.ServiceRegistryFactory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Path
@@ -42,24 +41,29 @@ class ProjectFactoryTest extends Specification {
     def projectDir = tmpDir.file("project")
     def projectIdentity = ProjectIdentity.forRootProject(buildId, "name")
     def projectDescriptor = Stub(ImmutableProjectDescriptor)
-    def gradle = Stub(GradleInternal)
     def serviceRegistryFactory = Stub(ServiceRegistryFactory)
-    def projectRegistry = Mock(ProjectRegistry)
     def project = Stub(DefaultProject)
     def owner = Stub(BuildState)
     def projectState = Stub(ProjectState)
     def scriptResolution = Stub(ProjectScopedScriptResolution) {
         resolveScriptsForProject(_, _) >> { project, action -> action.get() }
     }
-    def factory = new ProjectFactory(instantiator, new DefaultTextFileResourceLoader(), scriptResolution)
+    def dependencyResolutionManagement = Mock(DependencyResolutionManagementInternal)
+    def dependenciesAccessors = Mock(DependenciesAccessors)
+    def projectRegistry = Mock(ProjectRegistry)
+    def factory = new ProjectFactory(
+        instantiator,
+        new DefaultTextFileResourceLoader(),
+        scriptResolution,
+        dependencyResolutionManagement,
+        dependenciesAccessors,
+        projectRegistry
+    )
     def rootProjectScope = Mock(ClassLoaderScope)
     def baseScope = Mock(ClassLoaderScope)
-    def serviceRegistry = Mock(ServiceRegistry)
-    def dependencyResolutionManagement = Mock(DependencyResolutionManagementInternal)
 
     def setup() {
         owner.identityPath >> buildId
-        owner.mutableModel >> gradle
 
         projectDescriptor.identity >> projectIdentity
         projectDescriptor.projectDir >> projectDir
@@ -75,9 +79,6 @@ class ProjectFactoryTest extends Specification {
     def "creates a project with build script"() {
         given:
         buildFile.createFile()
-        gradle.projectRegistry >> projectRegistry
-        gradle.services >> serviceRegistry
-        serviceRegistry.get(DependencyResolutionManagementInternal) >> dependencyResolutionManagement
 
         when:
         def result = factory.createProject(projectState, rootProjectScope, baseScope, serviceRegistryFactory)
@@ -90,10 +91,6 @@ class ProjectFactoryTest extends Specification {
     }
 
     def "creates a project with missing build script"() {
-        given:
-        gradle.projectRegistry >> projectRegistry
-        gradle.services >> serviceRegistry
-        serviceRegistry.get(DependencyResolutionManagementInternal) >> dependencyResolutionManagement
         when:
         def result = factory.createProject(projectState, rootProjectScope, baseScope, serviceRegistryFactory)
 
@@ -105,10 +102,6 @@ class ProjectFactoryTest extends Specification {
     }
 
     def "creates a child project"() {
-        given:
-        gradle.projectRegistry >> projectRegistry
-        gradle.services >> serviceRegistry
-        serviceRegistry.get(DependencyResolutionManagementInternal) >> dependencyResolutionManagement
         when:
         def result = factory.createProject(projectState, rootProjectScope, baseScope, serviceRegistryFactory)
 
