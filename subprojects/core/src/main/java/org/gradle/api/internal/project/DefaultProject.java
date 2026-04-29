@@ -778,7 +778,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     @Override
     public IsolatedProject getIsolated() {
-        return new DefaultIsolatedProject(this, rootProject);
+        return owner.getIsolated();
     }
 
     @Override
