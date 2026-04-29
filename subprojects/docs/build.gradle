@@ -633,6 +633,7 @@ tasks.named("docsTest") { task ->
 
         excludeTestsMatching "org.gradle.docs.samples.*.snippet-swift*.sample"
         excludeTestsMatching "org.gradle.docs.samples.*.building-swift*.sample"
+        excludeTestsMatching "*java7CrossCompilation*"
         if (OperatingSystem.current().macOsX && System.getProperty("os.arch") == "aarch64") {
             excludeTestsMatching "org.gradle.docs.samples.*.snippet-native*.sample"
             // We don't have Android SDK installed on mac M1 now
