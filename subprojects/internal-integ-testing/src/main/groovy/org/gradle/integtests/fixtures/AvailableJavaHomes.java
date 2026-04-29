@@ -67,6 +67,7 @@ import java.util.stream.Collectors;
 import static org.gradle.internal.jvm.inspection.JvmInstallationMetadata.JavaInstallationCapability.JAVA_COMPILER;
 import static org.gradle.util.TestUtil.providerFactory;
 
+
 /**
  * Allows the tests to get hold of an alternative Java installation when needed.
  */
@@ -253,6 +254,7 @@ public abstract class AvailableJavaHomes {
             new BaseDirJvmLocator(SystemProperties.getInstance().getUserHome()),
             new CurrentInstallationSupplier(providerFactory()),
             new EnvVariableJvmLocator(),
+            new ToolchainInstallatioinPathsSystemPropertyJvmLocator(),
             new IntellijInstallationSupplier(providerFactory(), new IdentityFileResolver()),
             new JabbaInstallationSupplier(providerFactory()),
             new LinuxInstallationSupplier(providerFactory()),
@@ -261,6 +263,29 @@ public abstract class AvailableJavaHomes {
             new SdkmanInstallationSupplier(providerFactory()),
             new WindowsInstallationSupplier(windowsRegistry, OperatingSystem.current(), providerFactory())
         );
+    }
+
+     /**
+     * On CI we pass -Porg.gradle.java.installations.paths=X,Y,Z to the build, then "forward" it
+     * as system property to get deterministic results.
+     */
+    private static class ToolchainInstallatioinPathsSystemPropertyJvmLocator implements InstallationSupplier {
+
+        private String getSourceName() {
+            return "System properties " + "org.gradle.java.installations.paths";
+        }
+
+        @Override
+        public Set<InstallationLocation> get() {
+            final String property = System.getProperty("org.gradle.java.installations.paths");
+            if (property != null) {
+                return Arrays.stream(property.split(","))
+                    .filter(path -> !path.trim().isEmpty())
+                    .map(path -> new InstallationLocation(new File(path), getSourceName()))
+                    .collect(Collectors.toSet());
+            }
+            return Collections.emptySet();
+        }
     }
 
     /**

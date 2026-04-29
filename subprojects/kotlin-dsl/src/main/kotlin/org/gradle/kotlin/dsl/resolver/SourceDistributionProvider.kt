@@ -93,7 +93,7 @@ class SourceDistributionResolver(val project: Project) : SourceDistributionProvi
 
     private
     fun createSourceRepository() = ivy {
-        val repoName = repositoryNameFor(gradleVersion)
+        val repoName = repositoryName()
         name = "Gradle $repoName"
         setUrl("https://services.gradle.org/$repoName")
         metadataSources {
@@ -108,8 +108,8 @@ class SourceDistributionResolver(val project: Project) : SourceDistributionProvi
     }
 
     private
-    fun repositoryNameFor(gradleVersion: String) =
-        if (isSnapshot(gradleVersion)) "distributions-snapshots" else "distributions"
+    fun repositoryName() =
+        "distributions"
 
     private
     fun dependencyVersion(gradleVersion: String) =
@@ -120,7 +120,11 @@ class SourceDistributionResolver(val project: Project) : SourceDistributionProvi
 
     private
     fun toVersionRange(gradleVersion: String) =
-        "(${minimumGradleVersion()}, $gradleVersion]"
+        "(${minimumGradleVersion()}, ${baseVersion(gradleVersion)}]"
+
+    private
+    fun baseVersion(gradleVersion: String) =
+        GradleVersion.version(gradleVersion).baseVersion.version
 
     private
     inline fun <reified T : TransformAction<TransformParameters.None>> registerTransform(configure: Action<TransformSpec<TransformParameters.None>>) =
@@ -132,7 +136,7 @@ class SourceDistributionResolver(val project: Project) : SourceDistributionProvi
 
     private
     fun minimumGradleVersion(): String {
-        val baseVersionString = GradleVersion.version(gradleVersion).baseVersion.version
+        val baseVersionString = baseVersion(gradleVersion)
         val (major, minor) = baseVersionString.split('.')
         return when (minor) {
             // TODO:kotlin-dsl consider commenting out this clause once the 1st 6.0 snapshot is out

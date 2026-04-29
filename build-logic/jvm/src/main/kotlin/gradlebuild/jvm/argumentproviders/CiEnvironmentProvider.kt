@@ -17,6 +17,7 @@
 package gradlebuild.jvm.argumentproviders
 
 import gradlebuild.basics.BuildEnvironment
+import gradlebuild.basics.toolchainInstallationPaths
 import org.gradle.api.Named
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.testing.Test
@@ -29,7 +30,8 @@ class CiEnvironmentProvider(private val test: Test) : CommandLineArgumentProvide
 
     override fun asArguments(): Iterable<String> {
         return if (BuildEnvironment.isCiServer) {
-            getRepoMirrorSystemProperties() + mapOf(
+            getRepoMirrorSystemProperties() +
+                getToolchainInstallationPathsProperty() + mapOf(
                 "org.gradle.test.maxParallelForks" to test.maxParallelForks,
                 "org.gradle.ci.agentCount" to 2,
                 "org.gradle.ci.agentNum" to BuildEnvironment.agentNum
@@ -39,6 +41,11 @@ class CiEnvironmentProvider(private val test: Test) : CommandLineArgumentProvide
         } else {
             listOf()
         }
+    }
+
+    private
+    fun getToolchainInstallationPathsProperty(): List<String> {
+        return test.project.toolchainInstallationPaths?.let { listOf("-Dorg.gradle.java.installations.paths=$it") } ?: emptyList()
     }
 
     private

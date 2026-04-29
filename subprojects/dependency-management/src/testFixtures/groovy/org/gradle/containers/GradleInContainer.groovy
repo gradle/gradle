@@ -32,7 +32,7 @@ import org.testcontainers.utility.MountableFile
 @CompileStatic
 @NotThreadSafe
 class GradleInContainer {
-    static final String BASE_IMAGE = "openjdk:11-jre-slim"
+    static final String BASE_IMAGE = "eclipse-temurin:11-jre"
 
     private final GradleContainer container
     private final GradleContainerExecuter executer

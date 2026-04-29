@@ -61,6 +61,7 @@ import org.gradle.api.JavaVersion
 import org.gradle.api.Project
 import org.gradle.api.provider.Provider
 import org.gradle.jvm.toolchain.JvmVendorSpec
+
 import org.jetbrains.kotlin.util.capitalizeDecapitalize.toUpperCaseAsciiOnly
 
 
@@ -318,6 +319,10 @@ val Project.testSplitExcludeTestClasses: String
 
 val Project.testSplitOnlyTestGradleVersion: String
     get() = project.stringPropertyOrEmpty(TEST_SPLIT_ONLY_TEST_GRADLE_VERSION)
+
+
+val Project.toolchainInstallationPaths: String?
+    get() = gradleProperty("org.gradle.java.installations.paths").orNull
 
 
 val Project.predictiveTestSelectionEnabled: Provider<Boolean>
