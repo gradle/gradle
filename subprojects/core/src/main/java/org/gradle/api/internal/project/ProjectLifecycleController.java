@@ -29,6 +29,7 @@ import org.gradle.internal.service.scopes.ProjectScopeServices;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.internal.service.scopes.ServiceScope;
+import org.gradle.internal.work.Synchronizer;
 import org.jspecify.annotations.Nullable;
 
 import java.io.Closeable;
@@ -49,9 +50,9 @@ public class ProjectLifecycleController implements Closeable {
         NotCreated, Created, Configured
     }
 
-    public ProjectLifecycleController(DisplayName displayName, StateTransitionControllerFactory factory, ServiceRegistry buildServices) {
+    public ProjectLifecycleController(DisplayName displayName, StateTransitionControllerFactory factory, Synchronizer synchronizer, ServiceRegistry buildServices) {
         this.buildServices = buildServices;
-        controller = factory.newController(displayName, State.NotCreated);
+        controller = factory.newController(displayName, State.NotCreated, synchronizer);
     }
 
     public boolean isCreated() {

@@ -23,6 +23,7 @@ import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.model.CalculatedModelValue;
 import org.gradle.internal.model.ModelContainer;
+import org.gradle.internal.model.ModelContainerSynchronizer;
 import org.gradle.internal.model.StateTransitionControllerFactory;
 import org.gradle.internal.project.ImmutableProjectDescriptor;
 import org.gradle.internal.resources.ProjectLeaseRegistry;
@@ -72,7 +73,7 @@ class DefaultProjectState implements ProjectState, Closeable {
         this.descriptor = descriptor;
         this.identity = descriptor.getIdentity();
         this.projectFactory = projectFactory;
-        this.controller = new ProjectLifecycleController(getDisplayName(), stateTransitionControllerFactory, buildServices);
+        this.controller = new ProjectLifecycleController(getDisplayName(), stateTransitionControllerFactory, new ModelContainerSynchronizer(this), buildServices);
         this.workerLeaseService = workerLeaseService;
         this.projectStateLookup = projectStateLookup;
         this.allProjectsLock = workerLeaseService.getAllProjectsLock(owner.getIdentityPath());
