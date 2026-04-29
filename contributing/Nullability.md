@@ -306,7 +306,7 @@ When this doesn't help and suppression is necessary:
       // ...
     }
     ```
-2. **Use  [`Cast.unsafeStripNullable`](../platforms/core-runtime/stdlib-java-extensions/src/main/java/org/gradle/internal/Cast.java)** - For cases where you know the value conforms to the type but
+2. **Use  `Cast.unsafeStripNullable`** - For cases where you know the value conforms to the type but
    NullAway cannot infer, mostly happens with creative generic usage. Use sparingly.
 3. **Use `@SuppressWarnings("NullAway")`** - Only as a last resort with a comment explaining why it is safe and with the minimal possible scope.
 
@@ -385,4 +385,4 @@ What remains to be done is:
 1. ensure all internal packages/classes are null marked
 2. automatically null mark all packages without the need to create a package-info file
 
-[^1]: This was decided by [ADR](../architecture/standards/0008-use-nullaway.md), see it for more details and rationale.
+[^1]: This was decided by [ADR](https://github.com/gradle/gradle/blob/master/architecture/standards/0008-use-nullaway.md), see it for more details and rationale.
