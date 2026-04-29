@@ -127,6 +127,8 @@ tasks {
                 excludeTestsMatching(santaTrackerTestPattern)
             }
         }
+        
+        dependsOn("androidHomeWarmup")
     }
 
     register<SmokeTest>("configCacheSmokeTest") {
