@@ -1,7 +1,6 @@
 package configurations
 
 import common.JvmCategory
-import common.requiresNotEc2Agent
 import common.toCapitalized
 import jetbrains.buildServer.configs.kotlin.buildFeatures.parallelTests
 import model.CIBuildModel
@@ -19,11 +18,6 @@ class SmokeTests(model: CIBuildModel, stage: Stage, testJava: JvmCategory, task:
                 numberOfBatches = splitNumber
             }
         }
-    }
-
-    requirements {
-        // Smoke tests is usually heavy and the build time is twice on EC2 agents
-        requiresNotEc2Agent()
     }
 
     applyTestDefaults(
