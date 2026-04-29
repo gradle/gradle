@@ -27,8 +27,10 @@ import java.util.Collection;
 public interface ProjectStateLookup {
 
     /**
-     * Returns all projects in the build tree.
-     */
+ * Retrieve all ProjectState instances present in the build tree.
+ *
+ * @return a collection containing every ProjectState in the build tree
+ */
     Collection<? extends ProjectState> getAllProjects();
 
     /**

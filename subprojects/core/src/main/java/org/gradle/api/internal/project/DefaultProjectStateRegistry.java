@@ -57,6 +57,12 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry, Closea
     private final Map<ProjectComponentIdentifier, ProjectState> projectsById = new HashMap<>();
     private final Map<BuildIdentifier, DefaultBuildProjectRegistry> projectsByBuild = new HashMap<>();
 
+    /**
+     * Create a registry for project states that uses the provided worker lease service to manage
+     * access and locking for project-level operations.
+     *
+     * @param workerLeaseService the service used to obtain and manage worker leases/locks for project access
+     */
     public DefaultProjectStateRegistry(WorkerLeaseService workerLeaseService) {
         this.workerLeaseService = workerLeaseService;
     }
@@ -133,6 +139,15 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry, Closea
         }
     }
 
+    /**
+     * Removes and stops all projects associated with the given build from this registry.
+     *
+     * <p>For the specified build, this removes each project's entries from the registry's global
+     * lookup maps, stops their stoppables, and clears the per-build project registry. If the build
+     * has no registered projects this method does nothing.
+     *
+     * @param build the build whose projects should be discarded
+     */
     @Override
     public void discardProjectsFor(BuildState build) {
         DefaultBuildProjectRegistry registry = projectsByBuild.get(build.getBuildIdentifier());
@@ -146,6 +161,14 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry, Closea
         }
     }
 
+    /**
+     * Creates a DefaultProjectState for the given project descriptor and registers it in both the global registries and the provided per-build registry.
+     *
+     * @param buildState the owning BuildState for the project
+     * @param projectRegistry the per-build registry to add the project to
+     * @param descriptor the immutable project descriptor to create state for
+     * @return the newly created and registered ProjectState
+     */
     @GuardedBy("lock")
     private ProjectState addProject(BuildState buildState, DefaultBuildProjectRegistry projectRegistry, ImmutableProjectDescriptor descriptor) {
         ServiceRegistry buildServices = buildState.getMutableModel().getServices();
@@ -158,6 +181,12 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry, Closea
         return projectState;
     }
 
+    /**
+     * Provides a live view of all registered project states.
+     *
+     * @return a collection of all ProjectState instances currently registered; the returned collection
+     *         is backed by the registry's internal map and reflects subsequent changes. 
+     */
     @Override
     public Collection<ProjectState> getAllProjects() {
         synchronized (lock) {
@@ -171,6 +200,13 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry, Closea
         return ((ProjectInternal) project).getOwner();
     }
 
+    /**
+     * Locate the ProjectState for the given project component identifier.
+     *
+     * @param identifier the component identifier of the project to locate
+     * @return the matching ProjectState
+     * @throws IllegalArgumentException if no project is registered for the given identifier
+     */
     @Override
     public ProjectState stateFor(ProjectComponentIdentifier identifier) {
         synchronized (lock) {
@@ -182,6 +218,13 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry, Closea
         }
     }
 
+    /**
+     * Retrieve the registered ProjectState for the given project identity path.
+     *
+     * @param identityPath the identity path of the project to look up
+     * @return the ProjectState associated with the specified identity path
+     * @throws IllegalArgumentException if no project is registered for the provided path
+     */
     @Override
     public ProjectState stateFor(Path identityPath) {
         synchronized (lock) {
@@ -193,6 +236,12 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry, Closea
         }
     }
 
+    /**
+     * Retrieves the project state for the given project identity path within the registry.
+     *
+     * @param identityPath the project's identity path (for example, {@code Path.ROOT} for the root project)
+     * @return the corresponding {@code ProjectState}, or {@code null} if no project is registered at that path
+     */
     @Override
     public @Nullable ProjectState findProject(Path identityPath) {
         synchronized (lock) {
@@ -234,11 +283,25 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry, Closea
         private final WorkerLeaseService workerLeaseService;
         private final Map<Path, ProjectState> projectsByPath = new LinkedHashMap<>();
 
+        /**
+         * Creates a build-scoped project registry for the given build.
+         *
+         * @param owner the BuildState that owns and is associated with this registry
+         * @param workerLeaseService service used to acquire and manage project locks/leases for access control
+         */
         public DefaultBuildProjectRegistry(BuildState owner, WorkerLeaseService workerLeaseService) {
             this.owner = owner;
             this.workerLeaseService = workerLeaseService;
         }
 
+        /**
+         * Registers the given project state under the specified project path within this build registry.
+         *
+         * Associates the provided `projectPath` with `projectState`, replacing any existing entry for that path.
+         *
+         * @param projectPath the identity path of the project within the build
+         * @param projectState the project state to register
+         */
         public void add(Path projectPath, DefaultProjectState projectState) {
             projectsByPath.put(projectPath, projectState);
         }
@@ -248,6 +311,13 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry, Closea
             return getProject(Path.ROOT);
         }
 
+        /**
+         * Retrieve the project state for the given project path within this build.
+         *
+         * @param projectPath the identity path of the project within the build
+         * @return the {@link ProjectState} for the specified project path
+         * @throws IllegalArgumentException if no project with the given path exists in this build
+         */
         @Override
         public ProjectState getProject(Path projectPath) {
             ProjectState projectState = projectsByPath.get(projectPath);
@@ -291,6 +361,14 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry, Closea
             this.allProjectsLock = allProjectsLock;
         }
 
+        /**
+         * Provide access to a project's mutable model for projects in the same build while holding the all-projects lock.
+         *
+         * @param project the project whose mutable model is requested; must belong to the same build as the owner
+         * @return the project's mutable model
+         * @throws IllegalArgumentException if the project does not belong to the same build as the owner
+         * @throws IllegalStateException if the all-projects lock is not currently held
+         */
         @Override
         public ProjectInternal getMutableModel(ProjectState project) {
             if (!project.getOwner().getIdentityPath().equals(owner.getIdentityPath())) {

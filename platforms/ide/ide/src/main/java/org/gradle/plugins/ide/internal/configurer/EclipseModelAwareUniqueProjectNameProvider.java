@@ -37,10 +37,24 @@ public class EclipseModelAwareUniqueProjectNameProvider extends AbstractUniquePr
     private List<ProjectStateWrapper> reservedNames = Collections.emptyList();
     private Map<ProjectIdentity, ProjectStateWrapper> projectToInformationMap = Collections.emptyMap();
 
+    /**
+     * Constructs an EclipseModelAwareUniqueProjectNameProvider using the provided ProjectStateLookup.
+     *
+     * @param projectStateLookup lookup for project states used to build and deduplicate candidate names
+     */
     public EclipseModelAwareUniqueProjectNameProvider(ProjectStateLookup projectStateLookup) {
         super(projectStateLookup);
     }
 
+    /**
+     * Sets the list of reserved project names used during name deduplication.
+     *
+     * Each provided name is wrapped into a ProjectStateWrapper and added to the pool
+     * considered when generating unique project names. Clears the cached deduplicated
+     * mapping so names will be recomputed on next access.
+     *
+     * @param reservedNames the names to reserve; each will be wrapped and included in the deduplication pool
+     */
     public synchronized void setReservedProjectNames(List<String> reservedNames) {
         this.reservedNames = reservedNames.stream().map(ProjectStateWrapper::new).collect(Collectors.toList());
         deduplicated = null;
@@ -61,6 +75,15 @@ public class EclipseModelAwareUniqueProjectNameProvider extends AbstractUniquePr
         return projectIdentity.getProjectName();
     }
 
+    /**
+     * Compute and cache a mapping from each project identity to its deduplicated unique project name.
+     *
+     * This method lazily initializes the cached mapping (`deduplicated`) by collecting candidate names
+     * (including reserved names and names derived from each project's Eclipse model or state),
+     * running hierarchical de-duplication, and storing the resulting unique names keyed by project identity.
+     *
+     * @return a map where each key is a ProjectIdentity and the value is the deduplicated unique project name for that project
+     */
     private synchronized Map<ProjectIdentity, String> getDeduplicatedNames() {
         if (deduplicated == null) {
 

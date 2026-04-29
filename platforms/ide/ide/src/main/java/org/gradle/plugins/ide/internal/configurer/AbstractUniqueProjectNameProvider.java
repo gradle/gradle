@@ -26,17 +26,23 @@ public abstract class AbstractUniqueProjectNameProvider implements UniqueProject
 
     protected final ProjectStateLookup projectStateLookup;
 
+    /**
+     * Creates a new AbstractUniqueProjectNameProvider that uses the given lookup to resolve projects.
+     *
+     * @param projectStateLookup lookup used to find project states by build-tree path; stored for use by subclasses
+     */
     protected AbstractUniqueProjectNameProvider(ProjectStateLookup projectStateLookup) {
         this.projectStateLookup = projectStateLookup;
     }
 
     /**
-     * Finds the "parent" project based on the build-tree path of the current project.
-     * <p>
-     * This is different from looking up the {@link ProjectState#getParent() parent project} inside a given build,
-     * because a root project of a build does not have a parent. In the context of project hiearachy shown in the IDE, however,
-     * we are looking for the "parent" project based on the build-tree path.
-     * This means that the <b>"parent" project might belong to a different build.</b>
+     * Locate the parent project corresponding to this project's build-tree parent path.
+     *
+     * <p>If this project has no parent path or no project is registered at the parent path, returns {@code null}.
+     * The identified parent project may belong to a different build than the given project.
+     *
+     * @param projectIdentity the project whose build-tree parent path will be looked up
+     * @return the parent project's identity if present, {@code null} otherwise
      */
     @Nullable
     protected ProjectIdentity findParentInBuildTree(ProjectIdentity projectIdentity) {

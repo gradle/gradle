@@ -47,8 +47,12 @@ public interface ProjectStateRegistry extends ProjectStateLookup {
     ProjectState stateFor(ProjectComponentIdentifier identifier) throws IllegalArgumentException;
 
     /**
-     * Locates the state object that owns the project with the identity path.
-     */
+ * Locate the ProjectState that owns the project identified by the given identity path.
+ *
+ * @param identityPath the project's identity path within the build tree
+ * @return the ProjectState that owns the project with the given identity path
+ * @throws IllegalArgumentException if no project with the given identity path is registered
+ */
     ProjectState stateFor(Path identityPath) throws IllegalArgumentException;
 
     /**

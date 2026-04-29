@@ -43,11 +43,35 @@ public class ToolingModelServices extends AbstractGradleModuleServices {
 
     private static class BuildScopeToolingServices implements ServiceRegistrationProvider {
 
+        /**
+         * Create a UniqueProjectNameProvider that derives unique project names from the provided project state lookup.
+         *
+         * @param projectStateLookup lookup used to read project state when constructing unique project names
+         * @return a UniqueProjectNameProvider backed by the given project state lookup
+         */
         @Provides
         protected UniqueProjectNameProvider createBuildProjectRegistry(ProjectStateLookup projectStateLookup) {
             return new DefaultUniqueProjectNameProvider(projectStateLookup);
         }
 
+        /**
+         * Produces an action that registers build-scoped tooling model builders into a ToolingModelBuilderRegistry.
+         *
+         * The returned action captures the supplied collaborators and, when executed, registers the full set of builders
+         * required to construct IDE and Gradle tooling models for the build. It chooses isolated or non‑isolated
+         * implementations for project/IDE builders based on the provided BuildModelParameters.
+         *
+         * @param taskLister locator for project tasks used by builders that report task invocations
+         * @param projectPublicationRegistry registry of project publications used by publication-related builders
+         * @param fileCollectionFactory factory for creating file collections required by environment-related builders
+         * @param buildStateRegistry registry exposing build-level state used by build-level builders
+         * @param projectStateLookup lookup service for project state information used by builders that need project visibility
+         * @param buildModelParameters parameters that influence which builder implementations are selected (e.g., isolation)
+         * @param intermediateToolingModelProvider provider for intermediate tooling models used by isolated builder variants
+         * @param failedIncludedBuildsRegistry listener/registry for included-build failures used by build builders
+         * @param failureFactory factory for constructing failure representations consumed by build builders
+         * @return an action which, when executed with a ToolingModelBuilderRegistry, registers all build-scoped tooling model builders
+         */
         @Provides
         protected BuildScopeToolingModelBuilderRegistryAction createIdeBuildScopeToolingModelBuilderRegistryAction(
             final ProjectTaskLister taskLister,

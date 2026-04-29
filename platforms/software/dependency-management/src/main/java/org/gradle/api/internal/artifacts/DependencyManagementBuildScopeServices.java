@@ -166,6 +166,11 @@ class DependencyManagementBuildScopeServices implements ServiceRegistrationProvi
         return new CapabilityNotationParserFactory(false).create();
     }
 
+    /**
+     * Create a DefaultProjectDependencyFactory for parsing, validating, and instantiating project dependencies.
+     *
+     * @return a DefaultProjectDependencyFactory capable of creating project dependency objects and validating project references
+     */
     @Provides
     DefaultProjectDependencyFactory createProjectDependencyFactory(
         Instantiator instantiator,

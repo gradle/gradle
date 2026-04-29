@@ -113,6 +113,16 @@ public class BuildTreeScopeServices implements ServiceRegistrationProvider {
         this.buildInvocationScopeId = buildInvocationScopeId;
     }
 
+    /**
+     * Register core build-tree services and invoke module-provided build-tree service registrations.
+     *
+     * Registers BuildActionModelRequirements and BuildModelParameters first (they must be available for eager
+     * configure calls), then calls registerBuildTreeServices on each provided GradleModuleServices, and finally
+     * registers the remaining base infrastructure services required for a single Gradle build tree.
+     *
+     * @param registration the ServiceRegistration to populate with build-tree services
+     * @param servicesProviders module service providers whose build-tree registrations will be invoked
+     */
     protected void configure(ServiceRegistration registration, List<GradleModuleServices> servicesProviders) {
         // It's important that these services are registered first, before build-tree GradleModuleServices providers are invoked,
         // because some of them require these services for eager `configure` calls

@@ -41,6 +41,17 @@ public class DefaultProjectDependencyFactory {
     private final ProjectStateLookup projectStateLookup;
     private final ProjectFinder projectFinder;
 
+    /**
+     * Creates a DefaultProjectDependencyFactory configured with the collaborators required to construct
+     * and configure project dependencies.
+     *
+     * @param instantiator                    used to instantiate DefaultProjectDependency instances
+     * @param capabilityNotationParser        parses capability notation into Capability objects for dependencies
+     * @param objectFactory                   supplies objects used within created dependencies
+     * @param attributesFactory               provides attribute handling for created dependencies
+     * @param projectStateLookup              resolves a project's ProjectState by its identity path
+     * @param projectFinder                   resolves string project paths to identity Path instances
+     */
     public DefaultProjectDependencyFactory(
         Instantiator instantiator,
         CapabilityNotationParser capabilityNotationParser,
@@ -63,10 +74,24 @@ public class DefaultProjectDependencyFactory {
         return projectDependency;
     }
 
+    /**
+     * Creates a ProjectDependency for the project identified by the given project path.
+     *
+     * @param projectPath the project path string to resolve (e.g. ":sub:project")
+     * @return the ProjectDependency for the project resolved from {@code projectPath}
+     * @throws UnknownProjectException if no project exists for the provided path
+     */
     public ProjectDependency create(String projectPath) {
         return create(projectFinder.resolveIdentityPath(projectPath));
     }
 
+    /**
+     * Create a ProjectDependency for the project identified by the given identity path.
+     *
+     * @param projectIdentityPath the identity path of the target project
+     * @return the configured ProjectDependency for the specified project
+     * @throws UnknownProjectException if no project exists with the given identity path
+     */
     public ProjectDependency create(Path projectIdentityPath) {
         ProjectState projectState = projectStateLookup.findProject(projectIdentityPath);
         if (projectState == null) {

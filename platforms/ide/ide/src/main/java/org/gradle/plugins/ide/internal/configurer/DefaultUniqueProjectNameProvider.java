@@ -30,16 +30,35 @@ public class DefaultUniqueProjectNameProvider extends AbstractUniqueProjectNameP
     @Nullable
     private Map<ProjectIdentity, String> deduplicated;
 
+    /**
+     * Creates a provider that produces unique project names based on project state information.
+     *
+     * @param projectStateLookup lookup used to obtain all project states for building and caching deduplicated names
+     */
     public DefaultUniqueProjectNameProvider(ProjectStateLookup projectStateLookup) {
         super(projectStateLookup);
     }
 
+    /**
+     * Provide a deduplicated project name for the given project identity.
+     *
+     * @param projectIdentity the project whose unique name is requested
+     * @return the deduplicated unique name for the project, or the project's original name if no deduplicated name is available
+     */
     @Override
     public String getUniqueName(ProjectIdentity projectIdentity) {
         String uniqueName = getDeduplicatedNames().get(projectIdentity);
         return uniqueName != null ? uniqueName : projectIdentity.getProjectName();
     }
 
+    /**
+     * Lazily computes and caches a mapping from ProjectIdentity to its deduplicated (unique) project name.
+     *
+     * The mapping is computed on first invocation and stored for subsequent calls; this method is synchronized
+     * to ensure thread-safe lazy initialization.
+     *
+     * @return a map that maps each ProjectIdentity to its deduplicated unique project name
+     */
     private synchronized Map<ProjectIdentity, String> getDeduplicatedNames() {
         if (deduplicated == null) {
             HierarchicalElementDeduplicator<ProjectIdentity> deduplicator = new HierarchicalElementDeduplicator<>(new ProjectPathDeduplicationAdapter());

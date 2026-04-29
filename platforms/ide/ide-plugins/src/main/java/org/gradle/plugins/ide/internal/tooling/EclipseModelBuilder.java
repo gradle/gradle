@@ -109,16 +109,34 @@ public class EclipseModelBuilder implements ParameterizedToolingModelBuilder<Ecl
     private EclipseRuntime eclipseRuntime;
     private Map<String, Boolean> projectOpenStatus = new HashMap<>();
 
+    /**
+     * Create a new EclipseModelBuilder using the given collaborators.
+     *
+     * @param gradleProjectBuilder the component that builds Gradle project representations for model construction
+     * @param uniqueProjectNameProvider the provider that supplies unique Eclipse workspace project names
+     */
     @VisibleForTesting
     public EclipseModelBuilder(GradleProjectBuilderInternal gradleProjectBuilder, EclipseModelAwareUniqueProjectNameProvider uniqueProjectNameProvider) {
         this.gradleProjectBuilder = gradleProjectBuilder;
         this.uniqueProjectNameProvider = uniqueProjectNameProvider;
     }
 
+    /**
+     * Creates an EclipseModelBuilder configured with a name provider derived from the given ProjectStateLookup.
+     *
+     * @param gradleProjectBuilder used to build Gradle project models for the workspace and included builds
+     * @param projectStateLookup used to construct an EclipseModelAwareUniqueProjectNameProvider for deriving unique Eclipse project names
+     */
     public EclipseModelBuilder(GradleProjectBuilderInternal gradleProjectBuilder, ProjectStateLookup projectStateLookup) {
         this(gradleProjectBuilder, new EclipseModelAwareUniqueProjectNameProvider(projectStateLookup));
     }
 
+    /**
+     * Indicates whether this builder supports the specified tooling model.
+     *
+     * @param modelName the name of the tooling model to check
+     * @return `true` if the model name matches either {@code ECLIPSE_PROJECT_MODEL_NAME} or {@code ECLIPSE_HIERARCHICAL_PROJECT_MODEL_NAME}, `false` otherwise
+     */
     @Override
     public boolean canBuild(String modelName) {
         return modelName.equals(ECLIPSE_PROJECT_MODEL_NAME) || modelName.equals(ECLIPSE_HIERARCHICAL_PROJECT_MODEL_NAME);

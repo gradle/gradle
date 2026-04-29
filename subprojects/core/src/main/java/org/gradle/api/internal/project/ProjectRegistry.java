@@ -38,14 +38,25 @@ public interface ProjectRegistry extends HoldsProjectState {
 
     // This is only here because it is used by the Develocity plugin in ImportJUnitXmlReports.
     // The ProjectRegistry and ProjectIdentifier types are legacy and should be
-    // removed once we no longer support Develocity plugins that use this API.
+    /**
+     * Looks up a project by its Gradle path for legacy Develocity plugin compatibility.
+     *
+     * @param path the Gradle project path (for example ``:subproject``)
+     * @return the {@link ProjectIdentifier} for the project at the given path, or {@code null} if no project matches
+     * @deprecated kept only for compatibility with Develocity-based plugins (e.g. ImportJUnitXmlReports); do not use in new code
+     */
     @Deprecated
     @UsedByScanPlugin("ImportJUnitXmlReports")
     @Nullable ProjectIdentifier getProject(String path);
 
     /**
-     * Prefer {@link ProjectStateRegistry#findProject(Path)}.
-     */
+ * Finds a registered project by its string path.
+ *
+ * <p>Prefer {@link ProjectStateRegistry#findProject(Path)}.</p>
+ *
+ * @param path the project's path (for example {@code ":sub:project"})
+ * @return the matching {@code ProjectInternal}, or {@code null} if no project is registered for the path
+ */
     @Nullable ProjectInternal getProjectInternal(String path);
 
     Set<ProjectInternal> getAllProjects(String path);
