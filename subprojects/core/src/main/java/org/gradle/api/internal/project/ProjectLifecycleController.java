@@ -18,7 +18,6 @@ package org.gradle.api.internal.project;
 
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.internal.DisplayName;
-import org.gradle.internal.logging.LoggingManagerFactory;
 import org.gradle.internal.model.StateTransitionController;
 import org.gradle.internal.model.StateTransitionControllerFactory;
 import org.gradle.internal.service.CloseableServiceRegistry;
@@ -65,8 +64,7 @@ public class ProjectLifecycleController implements Closeable {
     ) {
         controller.transition(State.NotCreated, State.Created, () -> {
             ServiceRegistryFactory serviceRegistryFactory = domainObject -> {
-                LoggingManagerFactory loggingManagerFactory = buildServices.get(LoggingManagerFactory.class);
-                projectScopeServices = ProjectScopeServices.create(buildServices, (ProjectInternal) domainObject, loggingManagerFactory);
+                projectScopeServices = ProjectScopeServices.create(buildServices, (ProjectInternal) domainObject);
                 return projectScopeServices;
             };
             project = projectFactory.createProject(owner, selfClassLoaderScope, baseClassLoaderScope, serviceRegistryFactory);

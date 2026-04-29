@@ -116,25 +116,21 @@ public class ProjectScopeServices implements ServiceRegistrationProvider {
 
     public static CloseableServiceRegistry create(
         ServiceRegistry buildServices,
-        ProjectInternal project,
-        LoggingManagerFactory loggingManagerInternalFactory
+        ProjectInternal project
     ) {
         return ServiceRegistryBuilder.builder()
             .scopeStrictly(Scope.Project.class)
             .displayName("project services")
             .parent(buildServices)
-            .provider(new ProjectScopeServices(project, loggingManagerInternalFactory))
+            .provider(new ProjectScopeServices(project))
             .provider(new WorkerSharedProjectScopeServices(project.getProjectDir()))
             .build();
     }
 
     private final ProjectInternal project;
-    private final LoggingManagerFactory loggingManagerInternalFactory;
 
-
-    public ProjectScopeServices(ProjectInternal project, LoggingManagerFactory loggingManagerInternalFactory) {
+    public ProjectScopeServices(ProjectInternal project) {
         this.project = project;
-        this.loggingManagerInternalFactory = loggingManagerInternalFactory;
     }
 
     @Provides
@@ -168,8 +164,8 @@ public class ProjectScopeServices implements ServiceRegistrationProvider {
     }
 
     @Provides
-    protected LoggingManagerInternal createLoggingManager() {
-        return loggingManagerInternalFactory.createLoggingManager();
+    protected LoggingManagerInternal createLoggingManager(LoggingManagerFactory loggingManagerFactory) {
+        return loggingManagerFactory.createLoggingManager();
     }
 
     @Provides
