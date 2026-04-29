@@ -95,7 +95,6 @@ public abstract class PmdExtension extends CodeQualityExtension {
      *     Scheduled to be removed in Gradle 10.
      */
     @Deprecated
-    @ToBeReplacedByLazyProperty
     public TargetJdk getTargetJdk() {
         nagAboutTargetJdkDeprecation("getTargetJdk()");
         return targetJdk;

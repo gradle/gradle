@@ -226,7 +226,6 @@ public abstract class Pmd extends AbstractCodeQualityTask implements Reporting<P
      */
     @Deprecated
     @Input
-    @ToBeReplacedByLazyProperty
     public TargetJdk getTargetJdk() {
         nagAboutTargetJdkDeprecation("getTargetJdk()");
         return targetJdk;
