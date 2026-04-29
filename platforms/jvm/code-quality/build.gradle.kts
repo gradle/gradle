@@ -22,7 +22,6 @@ description = "Plugins and integration with code quality (Checkstyle, PMD, CodeN
 
 dependencies {
     api(projects.baseServices)
-    api(projects.codeQualityWorkers)
     api(projects.core)
     api(projects.coreApi)
     api(projects.modelCore)
@@ -38,7 +37,7 @@ dependencies {
     api(libs.inject)
     api(libs.jspecify)
 
-    implementation(projects.logging)
+    implementation(projects.codeQualityWorkers)
     implementation(projects.native)
     implementation(projects.pluginsGroovy)
     implementation(projects.serviceLookup)
