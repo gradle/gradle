@@ -176,6 +176,31 @@ The following types/formats are supported:
   - String describing the module in 'group:name' format, for example 'org.gradle:gradle-core'.""")
     }
 
+    def 'string-form git URL is resolved against the settings directory'() {
+        // GitVersionControlSpec.setUrl(String) routes through FileResolver.resolveUri so that
+        // relative path strings are resolved the same way Project.uri(String) resolves them.
+        given:
+        def commit = repo.commit('initial commit')
+
+        settingsFile << """
+            sourceControl {
+                vcsMappings {
+                    withModule("org.test:dep") {
+                        from(GitVersionControlSpec) {
+                            // Relative path resolved against the settings directory.
+                            url = "dep"
+                        }
+                    }
+                }
+            }
+        """
+
+        expect:
+        succeeds('assemble')
+        def gitCheckout = checkoutDir(repo.name, commit.id.name, "git-repo:${repo.url.toASCIIString()}")
+        gitCheckout.file('.git').assertExists()
+    }
+
     @Issue('gradle/gradle-native#206')
     def 'can define and use source repositories with initscript resolution present'() {
         given:
