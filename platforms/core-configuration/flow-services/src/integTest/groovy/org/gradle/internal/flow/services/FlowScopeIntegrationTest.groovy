@@ -282,9 +282,9 @@ class FlowScopeIntegrationTest extends AbstractIntegrationSpec {
         succeeds 'help'
 
         then:
-        outputContains 'Spec parameters: org.gradle.api.flow.FlowParameters$None@'
-        outputContains 'Configure closure parameters: org.gradle.api.flow.FlowParameters$None@'
-        outputContains 'Execute parameters: org.gradle.api.flow.FlowParameters$None@'
+        outputContains 'Spec parameters: FlowParameters.None'
+        outputContains 'Configure closure parameters: FlowParameters.None'
+        outputContains 'Execute parameters: FlowParameters.None'
     }
 
     def "value source with build work result provider cannot be obtained at configuration time"() {

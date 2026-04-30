@@ -47,15 +47,18 @@ public interface TransformParameters {
      *
      * @since 5.3
      */
-    final class None implements TransformParameters {
+    @Incubating
+    enum None implements TransformParameters {
         /**
          * Singleton instance of {@link None}.
          *
          * @since 9.6.0
          */
-        @Incubating
-        public static final None INSTANCE = new None();
+        INSTANCE;
 
-        private None() {}
+        @Override
+        public String toString() {
+            return "TransformParameters.None";
+        }
     }
 }

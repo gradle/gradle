@@ -49,7 +49,7 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
     private final InstantiationScheme parametersInstantiationScheme;
     private final TransformRegistrationFactory registrationFactory;
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private final IsolationScheme<TransformAction<?>, TransformParameters> isolationScheme = new IsolationScheme<TransformAction<?>, TransformParameters>((Class) TransformAction.class, TransformParameters.class, TransformParameters.None.class, TransformParameters.None.INSTANCE);
+    private final IsolationScheme<TransformAction<?>, TransformParameters> isolationScheme = new IsolationScheme<TransformAction<?>, TransformParameters>((Class) TransformAction.class, TransformParameters.class, TransformParameters.None.class);
     private final DocumentationRegistry documentationRegistry;
 
     public DefaultVariantTransformRegistry(
@@ -83,14 +83,13 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
 
         TypedRegistration<T> registration = null;
         try {
-            Class<T> parameterType = isolationScheme.parameterTypeForOrNull(actionType);
-            T nullableParameterObject = parameterType == null ? null : parametersInstantiationScheme.withServices(services).instantiator().newInstance(parameterType);
-            T parameterObject = parameterType == null ? Cast.uncheckedNonnullCast(TransformParameters.None.INSTANCE) : nullableParameterObject;
+            Class<T> parameterType = isolationScheme.parameterTypeFor(actionType);
+            T parameterObject = isolationScheme.instantiateParameters(parameterType, parametersInstantiationScheme.withServices(services).instantiator()::newInstance);
             registration = Cast.uncheckedNonnullCast(instantiatorFactory.decorateLenient(services).newInstance(TypedRegistration.class, parameterObject, attributesFactory));
             registrationAction.execute(registration);
             registration.validateAttributes();
 
-            TransformRegistration finalizedRegistration = registrationFactory.create(registration.from.asImmutable(), registration.to.asImmutable(), actionType, nullableParameterObject);
+            TransformRegistration finalizedRegistration = registrationFactory.create(registration.from.asImmutable(), registration.to.asImmutable(), actionType, parameterObject);
             registeredTransforms.add(finalizedRegistration);
         } catch (Exception e) {
             throw new VariantTransformConfigurationException(buildFailureToRegisterMsg(registration, actionType), e, documentationRegistry);
@@ -158,7 +157,7 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
 
         @Override
         public void parameters(Action<? super T> action) {
-            action.execute(getParameters());
+            action.execute(parameterObject);
         }
 
         public void validateAttributes() {

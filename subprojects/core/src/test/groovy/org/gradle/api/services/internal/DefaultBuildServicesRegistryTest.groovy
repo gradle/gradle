@@ -226,7 +226,7 @@ class DefaultBuildServicesRegistryTest extends Specification {
 
     def "can tweak max parallel usage via the registration"() {
         when:
-        registerService("service", BuildService) {
+        registerService("service", NoParamsServiceImpl) {
             it.maxParallelUsages = 42
         }
         def registration = registry.registrations.getByName("service")
@@ -253,7 +253,7 @@ class DefaultBuildServicesRegistryTest extends Specification {
 
     def "can use base service type to create a service with no state"() {
         when:
-        def provider = registerService("service", BuildService)
+        def provider = registerService("service", NoParamsServiceImpl)
         def service = provider.get()
 
         then:
@@ -262,7 +262,7 @@ class DefaultBuildServicesRegistryTest extends Specification {
 
     def "registration for service with no state is visible"() {
         when:
-        registerService("service", BuildService)
+        registerService("service", NoParamsServiceImpl)
 
         then:
         registry.registrations.getByName("service") != null
@@ -336,7 +336,7 @@ class DefaultBuildServicesRegistryTest extends Specification {
 
     def "can locate resource corresponding to service registration"() {
         when:
-        def service1 = registerService("service", BuildService) {
+        def service1 = registerService("service", NoParamsServiceImpl) {
             it.maxParallelUsages = 42
         }
         def service2 = registerService("no-max", ServiceImpl)

@@ -42,15 +42,18 @@ public interface WorkParameters {
      *
      * @since 5.6
      */
-    final class None implements WorkParameters {
+    @Incubating
+    enum None implements WorkParameters {
         /**
          * Singleton instance of {@link None}.
          *
          * @since 9.6.0
          */
-        @Incubating
-        public static final None INSTANCE = new None();
+        INSTANCE;
 
-        private None() {}
+        @Override
+        public String toString() {
+            return "WorkParameters.None";
+        }
     }
 }

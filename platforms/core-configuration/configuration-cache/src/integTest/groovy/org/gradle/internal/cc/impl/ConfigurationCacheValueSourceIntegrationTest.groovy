@@ -55,9 +55,9 @@ class ConfigurationCacheValueSourceIntegrationTest extends AbstractConfiguration
 
         then:
         configurationCache.assertStateStored()
-        output.contains("Spec parameters: org.gradle.api.provider.ValueSourceParameters\$None@")
-        output.contains("Configure closure parameters: org.gradle.api.provider.ValueSourceParameters\$None@")
-        output.contains("Parameters: org.gradle.api.provider.ValueSourceParameters\$None@")
+        output.contains("Spec parameters: ValueSourceParameters.None")
+        output.contains("Configure closure parameters: ValueSourceParameters.None")
+        output.contains("Parameters: ValueSourceParameters.None")
         output.contains("Hello!")
     }
 

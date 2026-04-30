@@ -75,7 +75,7 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
     private final IsolatableFactory isolatableFactory;
     private final SharedResourceLeaseRegistry leaseRegistry;
     private final IsolationScheme<BuildService<?>, BuildServiceParameters> isolationScheme = new IsolationScheme<>(
-        Cast.uncheckedCast(BuildService.class), BuildServiceParameters.class, BuildServiceParameters.None.class, BuildServiceParameters.None.INSTANCE);
+        Cast.uncheckedCast(BuildService.class), BuildServiceParameters.class, BuildServiceParameters.None.class);
     private final Instantiator paramsInstantiator;
     private final Instantiator specInstantiator;
     private final BuildServiceProvider.Listener listener;
@@ -260,12 +260,9 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
         return locks.build();
     }
 
-    @Nullable
     private <T extends BuildService<P>, P extends BuildServiceParameters> P instantiateParametersOf(Class<T> implementationType) {
-        Class<P> parameterType = isolationScheme.parameterTypeForOrNull(implementationType);
-        return parameterType != null
-            ? paramsInstantiator.newInstance(parameterType)
-            : Cast.uncheckedNonnullCast(BuildServiceParameters.None.INSTANCE);
+        Class<P> parameterType = isolationScheme.parameterTypeFor(implementationType);
+        return isolationScheme.instantiateParameters(parameterType, paramsInstantiator::newInstance);
     }
 
     @Override
@@ -422,7 +419,7 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
 
         @Override
         public void parameters(Action<? super P> configureAction) {
-            configureAction.execute(getParameters());
+            configureAction.execute(parameters);
         }
     }
 

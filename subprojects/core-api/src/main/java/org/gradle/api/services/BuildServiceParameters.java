@@ -29,16 +29,18 @@ public interface BuildServiceParameters {
      *
      * @since 6.1
      */
-    final class None implements BuildServiceParameters {
+    @Incubating
+    enum None implements BuildServiceParameters {
         /**
          * Singleton instance of {@link None}.
          *
          * @since 9.6.0
          */
-        @Incubating
-        public static final None INSTANCE = new None();
+        INSTANCE;
 
-        private None() {
+        @Override
+        public String toString() {
+            return "BuildServiceParameters.None";
         }
     }
 }

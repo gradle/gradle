@@ -27,7 +27,6 @@ import org.gradle.api.problems.internal.ProblemsInternal
 import org.gradle.api.services.BuildService
 import org.gradle.api.services.ServiceReference
 import org.gradle.api.tasks.Input
-import org.gradle.internal.Cast
 import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.internal.properties.PropertyValue
 import org.gradle.internal.properties.PropertyVisitor
@@ -46,13 +45,15 @@ class FlowParametersInstantiator(
     instantiatorFactory: InstantiatorFactory,
     services: ServiceRegistry
 ) {
-    fun <P : FlowParameters> newInstance(parametersType: Class<P>?, configure: (P) -> Unit): P {
-        val parameters: P = parametersType?.let { instantiator.newInstance(it) } ?: Cast.uncheckedNonnullCast(FlowParameters.None.INSTANCE)
+    fun <P : FlowParameters> newInstance(parametersType: Class<P>, configure: (P) -> Unit): P {
+        val parameters: P = if (parametersType == FlowParameters.None::class.java) {
+            parametersType.enumConstants[0]
+        } else {
+            instantiator.newInstance(parametersType)
+        }
         configure(parameters)
         // TODO(mlopatkin) this doesn't prevent late binding to a task output (e.g. there can be a Property in the chain that is set later).
-        if (parametersType != null) {
-            validate(parametersType, parameters)
-        }
+        validate(parametersType, parameters)
         return parameters
     }
 

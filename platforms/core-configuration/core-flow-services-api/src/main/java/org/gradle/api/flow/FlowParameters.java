@@ -45,9 +45,12 @@ public interface FlowParameters {
      * @since 8.1
      */
     @Incubating
-    final class None implements FlowParameters {
-        public final static None INSTANCE = new None();
+    enum None implements FlowParameters {
+        INSTANCE;
 
-        private None() {}
+        @Override
+        public String toString() {
+            return "FlowParameters.None";
+        }
     }
 }

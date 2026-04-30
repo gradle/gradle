@@ -622,8 +622,8 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
 
         expect:
         succeeds(":a:resolve")
-        outputContains("Configure closure parameters: org.gradle.api.artifacts.transform.TransformParameters\$None@")
-        outputContains("Parameters: org.gradle.api.artifacts.transform.TransformParameters\$None@")
+        outputContains("Configure closure parameters: TransformParameters.None")
+        outputContains("Parameters: TransformParameters.None")
     }
 
     @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")

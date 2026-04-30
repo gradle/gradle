@@ -38,16 +38,18 @@ public interface ValueSourceParameters {
      *
      * @since 6.1
      */
-    final class None implements ValueSourceParameters {
+    @Incubating
+    enum None implements ValueSourceParameters {
         /**
          * Singleton instance of {@link None}.
          *
          * @since 9.6.0
          */
-        @Incubating
-        public static final None INSTANCE = new None();
+        INSTANCE;
 
-        private None() {
+        @Override
+        public String toString() {
+            return "ValueSourceParameters.None";
         }
     }
 }

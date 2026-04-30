@@ -131,7 +131,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
         registration.from.getAttribute(TEST_ATTRIBUTE) == "FROM"
         registration.to.getAttribute(TEST_ATTRIBUTE) == "TO"
         registration.transformStep.transform.implementationClass == ParameterlessTestTransform
-        registration.transformStep.transform.isolatedParameters.supplier.parameterObject == null
+        registration.transformStep.transform.isolatedParameters.supplier.parameterObject.is(TransformParameters.None.INSTANCE)
     }
 
     def "cannot use TransformParameters as parameter type"() {

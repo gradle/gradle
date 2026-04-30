@@ -1326,9 +1326,9 @@ Hello, subproject1
         run("check")
 
         then:
-        outputContains("Spec parameters: org.gradle.api.services.BuildServiceParameters\$None@")
-        outputContains("Configure closure parameters: org.gradle.api.services.BuildServiceParameters\$None@")
-        outputContains("service: parameters = org.gradle.api.services.BuildServiceParameters\$None@")
+        outputContains("Spec parameters: BuildServiceParameters.None")
+        outputContains("Configure closure parameters: BuildServiceParameters.None")
+        outputContains("service: parameters = BuildServiceParameters.None")
     }
 
     def "service can be registered without action"() {
