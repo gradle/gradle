@@ -422,12 +422,6 @@ class DirectoryPropertyCodec(
         }
     }
 
-    // Ignore isDisallowChanges value - will be set anyway
-    override suspend fun ReadContext.decode(): DefaultDirectoryVar {
-        readBoolean()
-        return decodeThis()
-    }
-
     override suspend fun ReadContext.decodeThis(): DefaultDirectoryVar {
         return decodePreservingIdentity { id ->
             val fileResolver = readNonNull<FileResolver>()
@@ -437,7 +431,6 @@ class DirectoryPropertyCodec(
             isolate.identities.putInstance(id, property)
             val provider: Provider<Directory> = providerCodec.run { decodeProvider() }.uncheckedCast()
             property.value(provider)
-            property.disallowChanges()
             property
         }
     }
@@ -456,12 +449,6 @@ class RegularFilePropertyCodec(
         }
     }
 
-    // Ignore isDisallowChanges value - will be set anyway
-    override suspend fun ReadContext.decode(): DefaultRegularFileVar {
-        readBoolean()
-        return decodeThis()
-    }
-
     override suspend fun ReadContext.decodeThis(): DefaultRegularFileVar {
         return decodePreservingIdentity { id ->
             val fileResolver = readNonNull<FileResolver>()
@@ -470,7 +457,6 @@ class RegularFilePropertyCodec(
             isolate.identities.putInstance(id, property)
             val provider: Provider<RegularFile> = providerCodec.run { decodeProvider() }.uncheckedCast()
             property.value(provider)
-            property.disallowChanges()
             property
         }
     }
