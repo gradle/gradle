@@ -47,6 +47,7 @@ dependencies {
     implementation(projects.stdlibJavaExtensions)
     implementation(projects.stdlibKotlinExtensions)
 
+    implementation(libs.fastutil)
     implementation(libs.guava)
 }
 
