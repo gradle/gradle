@@ -97,6 +97,33 @@ class IsolatedProjectsBeforeProjectPluginApplicationIntegrationTest extends Abst
         outputContains("convention applied to :b")
     }
 
+    def "applying included-build plugin via beforeProject works from a settings convention plugin"() {
+        given:
+        file("build-logic/src/main/groovy/my.lifecycle.settings.gradle") << """
+            gradle.lifecycle.beforeProject {
+                it.apply plugin: '${CONVENTION_PLUGIN_ID}'
+            }
+        """
+        file("settings.gradle.kts") << """
+            pluginManagement {
+                includeBuild("build-logic")
+            }
+            plugins {
+                id("my.lifecycle")
+            }
+            rootProject.name = "consumer"
+            include("a")
+            include("b")
+        """
+
+        when:
+        isolatedProjectsRun(":a:verifyConvention", ":b:verifyConvention")
+
+        then:
+        outputContains("convention applied to :a")
+        outputContains("convention applied to :b")
+    }
+
     def "applying included-build plugin via beforeProject reuses configuration cache"() {
         given:
         file("settings.gradle.kts") << """
