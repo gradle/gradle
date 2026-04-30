@@ -16,6 +16,7 @@
 
 package org.gradle.jvm.toolchain
 
+import org.gradle.api.problems.Severity
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.internal.jvm.Jvm
@@ -169,6 +170,81 @@ class JavaInstallationRegistryIntegrationTest extends AbstractIntegrationSpec {
                 .run()
         then:
         outputContains(javaHome)
+    }
+
+    def "invalid installation paths are reported as problems via the Problems API"() {
+        enableProblemsApiCheck()
+
+        buildFile << """
+            import org.gradle.internal.jvm.inspection.JavaInstallationRegistry;
+
+            abstract class ShowPlugin implements Plugin<Project> {
+                @Inject
+                abstract JavaInstallationRegistry getRegistry()
+
+                void apply(Project project) {
+                    project.tasks.register("show") {
+                       registry.listInstallations().each { println it.location }
+                    }
+                }
+            }
+
+            apply plugin: ShowPlugin
+        """
+
+        when:
+        result = executer
+            .withArgument("-Dorg.gradle.java.installations.paths=${new File("/nonexistent/jdk1").absolutePath},${new File("/nonexistent/jdk2").absolutePath}")
+            .withArgument("-Dorg.gradle.java.installations.auto-detect=false")
+            .withTasks("show")
+            .run()
+
+        then:
+        verifyAll(receivedProblem(0)) {
+            fqid == 'jvm-toolchain:invalid-jvm-installation'
+            severity == Severity.WARNING
+        }
+        verifyAll(receivedProblem(1)) {
+            fqid == 'jvm-toolchain:invalid-jvm-installation'
+            severity == Severity.WARNING
+        }
+    }
+
+    @Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
+    def "valid installations are still discovered when invalid paths report problems"() {
+        enableProblemsApiCheck()
+
+        def validJavaHome = AvailableJavaHomes.differentVersion.javaHome.absolutePath
+
+        buildFile << """
+            import org.gradle.internal.jvm.inspection.JavaInstallationRegistry;
+
+            abstract class ShowPlugin implements Plugin<Project> {
+                @Inject
+                abstract JavaInstallationRegistry getRegistry()
+
+                void apply(Project project) {
+                    project.tasks.register("show") {
+                       registry.listInstallations().each { println it.location }
+                    }
+                }
+            }
+
+            apply plugin: ShowPlugin
+        """
+
+        when:
+        result = executer
+            .withArgument("-Dorg.gradle.java.installations.paths=${new File("/nonexistent/jdk").absolutePath}," + validJavaHome)
+            .withTasks("show")
+            .run()
+
+        then:
+        outputContains(validJavaHome)
+        verifyAll(receivedProblem) {
+            fqid == 'jvm-toolchain:invalid-jvm-installation'
+            severity == Severity.WARNING
+        }
     }
 
     private static String relativePath(TestFile from, String to) {

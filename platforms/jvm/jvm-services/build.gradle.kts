@@ -32,6 +32,7 @@ dependencies {
     api(projects.processServices)
     api(projects.processServicesBase)
     api(projects.persistentCache)
+    api(projects.problemsApi)
 
     api(libs.inject)
     api(libs.jspecify)
