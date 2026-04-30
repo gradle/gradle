@@ -17,6 +17,7 @@
 package org.gradle.api.file
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.TestExecutionPreconditions
 import spock.lang.Issue
@@ -94,6 +95,7 @@ class RelativePathFilesIntegrationTest extends AbstractIntegrationSpec {
         "ConfigurableFileTree"       | "fileTree()"       | ["abc/subDir2/file2.txt"]
     }
 
+    @ToBeFixedForConfigurationCache(because = "https://github.com/gradle/gradle/issues/32591")
     def "ConfigurableFileCollection files derived from directory property via #method respect execution time directory change"() {
         settingsFile """
             include("sub")
