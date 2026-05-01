@@ -28,13 +28,11 @@ import org.gradle.api.provider.Provider
 import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.service.scopes.Scope.BuildTree
 import org.gradle.internal.service.scopes.ServiceScope
-import org.gradle.vcs.internal.VcsMappingsStore
 import java.util.concurrent.ConcurrentHashMap
 
 @ServiceScope(BuildTree::class)
 internal class DefaultConfigurationCacheDegradationController(
     private val configurationTimeBarrier: ConfigurationTimeBarrier,
-    private val vcsMappingsStore: VcsMappingsStore,
     private val buildModelParameters: BuildModelParameters
 ) : ConfigurationCacheDegradationController, HoldsProjectState {
 
@@ -82,18 +80,10 @@ internal class DefaultConfigurationCacheDegradationController(
         } else ImmutableMap.of()
 
     private fun collectFeatureDegradationReasons(): Map<String, List<String>> =
-        if (isSourceDependenciesUsed()) {
-            ImmutableMap.of(
-                "source dependencies",
-                listOf("Source dependencies are not compatible yet")
-            )
-        } else ImmutableMap.of()
+        ImmutableMap.of()
 
     private fun workGraphContains(task: Task): Boolean =
         task.project.gradle.taskGraph.hasTask(task)
-
-    private fun isSourceDependenciesUsed(): Boolean =
-        vcsMappingsStore.asResolver().hasRules()
 
     internal data class DegradationDecision(
         private val taskDegradationReasons: Map<TaskIdentity<*>, List<String>>,

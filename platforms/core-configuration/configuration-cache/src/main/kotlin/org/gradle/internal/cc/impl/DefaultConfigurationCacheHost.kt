@@ -146,6 +146,10 @@ class DefaultConfigurationCacheHost internal constructor(
             return DefaultConfigurationCacheBuild(buildStateRegistry.addIncludedBuild(buildDefinition, buildPath), fileResolver, buildStateRegistry, settingsFile)
         }
 
+        override fun addImplicitIncludedBuild(buildDefinition: BuildDefinition, settingsFile: File?, buildPath: Path): ConfigurationCacheBuild {
+            return DefaultConfigurationCacheBuild(buildStateRegistry.addImplicitIncludedBuild(buildDefinition, buildPath), fileResolver, buildStateRegistry, settingsFile)
+        }
+
         override fun getBuildSrcOf(ownerId: BuildIdentifier): ConfigurationCacheBuild {
             return DefaultConfigurationCacheBuild(buildStateRegistry.getBuildSrcNestedBuild(buildStateRegistry.getBuild(ownerId))!!, fileResolver, buildStateRegistry, null)
         }

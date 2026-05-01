@@ -39,5 +39,7 @@ interface ConfigurationCacheBuild {
 
     fun addIncludedBuild(buildDefinition: BuildDefinition, settingsFile: File?, buildPath: Path): ConfigurationCacheBuild
 
+    fun addImplicitIncludedBuild(buildDefinition: BuildDefinition, settingsFile: File?, buildPath: Path): ConfigurationCacheBuild
+
     fun getBuildSrcOf(ownerId: BuildIdentifier): ConfigurationCacheBuild
 }
