@@ -81,7 +81,7 @@ The Configuration Cache and the <<build_cache#build_cache,Build Cache>> store di
 image::configuration-cache-2.png[]
 
 [[config_cache:intro:how_does_it_work]]
-== How the Configuration Cache Works
+== How It Works
 
 When the Configuration Cache is enabled, and you run Gradle for a set of tasks (for example, `./gradlew check`), Gradle's job is to avoid re-running the configuration phase if nothing about the build configuration has changed.
 
@@ -109,13 +109,13 @@ But **whether they run, and when they do, depends on a cache hit or miss**.
 | Runs the scheduled tasks against the deserialized task graph. Tasks are isolated from each other through serialization (see <<config_cache:intro:serialization, Serialization>>), which enables intra-project parallel execution.
 |===
 
-=== The hit-or-miss decision
+=== The Hit-or-Miss Decision
 
 At the start of every invocation, Gradle uses the requested tasks (and their command-line arguments) as a *cache key*, then checks whether a stored entry matches that key.
 If a candidate entry exists, Gradle compares the build's current <<config_cache:intro:build_configuration_inputs, configuration inputs>> against the entry's recorded fingerprint.
 A **hit** means every recorded input still matches; a **miss** means at least one input has changed (or no entry exists for this key yet).
 
-=== Cache miss
+=== Cache Miss
 
 image::configuration-cache-1.png[]
 
@@ -139,7 +139,7 @@ This is why we recommend testing your plugin with `--configuration-cache` from t
 ====
 
 [[subsequent_runs]]
-=== Cache hit
+=== Cache Hit
 
 image::configuration-cache-3.png[]
 
@@ -242,6 +242,28 @@ While the task graph is being serialized, Gradle is also recording the build's <
 To capture those reads without requiring plugins to declare them, Gradle uses a Java agent and rewrites the bytecode of build-script and plugin classes at load time.
 <<configuration_cache_requirements.adoc#config_cache:requirements:bytecode_modifications_and_isolation, Bytecode Modifications and Java Agent>> describes the implications and the Worker API escape hatch for libraries that can't tolerate rewriting.
 
+[[config_cache:intro:behavior_differences]]
+== Behavioral Differences
+
+Some builds behave differently when the Configuration Cache is enabled than when it is disabled.
+These differences are inherent to how the cache works and are worth knowing about, because a build that previously succeeded without the Configuration Cache may now fail with it enabled.
+
+=== Dependency resolution is eager
+
+Without the Configuration Cache, dependency resolution is lazy: a configuration is resolved only when a task that needs its files actually runs.
+A configuration that declares an invalid dependency, or one that depends on a misconfigured repository, may pass silently if no scheduled task ever touches it.
+
+With the Configuration Cache enabled, the resolved state of every declared configuration must be captured before execution begins so that it can be serialized into the cache entry.
+Resolution therefore happens during configuration, or at the boundary between configuration and execution, regardless of whether the tasks that need a given configuration are scheduled to run.
+
+The practical consequence: a build that contained latent dependency-declaration errors (an invalid coordinate in an unused configuration, a typo'd repository URL, missing credentials for a repository nobody actually fetched from) may pass without the Configuration Cache and fail with it enabled.
+
+=== Configuration-time problems surface earlier
+
+More generally, the Configuration Cache promotes a number of latent configuration-time problems from "silent" to "failure."
+Build scripts that relied on patterns the Configuration Cache rejects (referencing the `Project` object at execution time, capturing live JVM state in a task field, registering build listeners, and others) will fail at store time even if the offending code path is rarely exercised at runtime.
+The full set of rules build logic must follow under the Configuration Cache is enumerated in <<configuration_cache_requirements.adoc#config_cache:requirements, the requirements>>.
+
 [[config_cache:intro:performance_improvements]]
 == Performance Improvements
 
@@ -264,6 +286,9 @@ Gradle walks the dependency graph, resolves versions, and computes the resulting
 When the Configuration Cache is enabled, the *resolved* dependency state becomes part of the cache entry: the resolved configurations, their files, and the artifact metadata are all serialized and replayed on a cache hit.
 On a hit, dependency resolution does not re-run; tasks see the same resolved classpaths that the previous build computed.
 On a miss, resolution runs as part of the configuration phase and the result is stored alongside the rest of the entry.
+
+Resolution under the Configuration Cache also covers every declared configuration regardless of whether the tasks needing it run.
+See <<config_cache:intro:behavior_differences, Behavior differences from a build without the Configuration Cache>> for the implications.
 
 [[config_cache:in_action]]
 image::configuration-cache/running-help.gif[]
