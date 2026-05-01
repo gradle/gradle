@@ -21,46 +21,21 @@
 Gradle supports the concept of *feature <<variant_attributes.adoc#variant-attributes,variants>>*, allowing a single library to be split into multiple related but distinct modules.
 Each *feature variant* can declare its own set of dependencies and can be consumed individually alongside the main library.
 
-For example:
+For example, a producer can register a feature variant:
 
-[source,kotlin]
-.producer/build.gradle.kts
-----
-plugins {
-    id("java-library")
-}
+====
+include::sample[dir="snippets/how-to/dependency-management/dependency-management/feature-variants-intro/kotlin",files="library/build.gradle.kts[tags=producer]"]
+include::sample[dir="snippets/how-to/dependency-management/dependency-management/feature-variants-intro/groovy",files="library/build.gradle[tags=producer]"]
+====
 
-java {
-    registerFeature("jsonSupport") {
-        usingSourceSet(sourceSets.create("jsonSupport"))
-    }
-}
+And a consumer can require the feature's capability:
 
-dependencies {
-    "jsonSupportApi"("com.fasterxml.jackson.core:jackson-databind:2.16.0")
-}
-----
+====
+include::sample[dir="snippets/how-to/dependency-management/dependency-management/feature-variants-intro/kotlin",files="consumer/build.gradle.kts[tags=consumer]"]
+include::sample[dir="snippets/how-to/dependency-management/dependency-management/feature-variants-intro/groovy",files="consumer/build.gradle[tags=consumer]"]
+====
 
-[source,kotlin]
-.consumer/build.gradle.kts
-----
-plugins {
-    id("application")
-}
-
-repositories {
-    mavenCentral()
-}
-
-dependencies {
-    implementation("org.example:library:1.0") {
-        capabilities {
-            requireCapability("org.example:library-json-support")
-        }
-    }
-}
-----
-
+[[sec:why_use_feature_variants]]
 == Why Use Feature Variants?
 
 Feature variants offer several advantages over traditional dependency management:
@@ -104,15 +79,10 @@ To achieve this, consumers must explicitly declare separate dependencies:
 * One dependency for the main library (the "main" feature).
 * Another dependency explicitly requiring the capability of the additional feature (e.g., test fixtures).
 
-[source,kotlin]
-----
-java {
-    registerFeature("testFixtures") {
-        usingSourceSet(sourceSets.create("testFixtures"))
-        capability("com.example", "library-test-fixtures", version.toString())
-    }
-}
-----
+====
+include::sample[dir="snippets/how-to/dependency-management/dependency-management/feature-variants-test-fixtures/kotlin",files="build.gradle.kts[tags=register_test_fixtures]"]
+include::sample[dir="snippets/how-to/dependency-management/dependency-management/feature-variants-test-fixtures/groovy",files="build.gradle[tags=register_test_fixtures]"]
+====
 
 NOTE: While the resolution engine supports multi-variant components independently of the ecosystem, *feature variants* are currently *only supported by the Java plugins*.
 
@@ -170,7 +140,7 @@ For example, if your component has:
 - name: `provider`
 - version: `1.0`
 
-and you define a feature named `mongodbSupport`, the feature's capability would be:
+And you define a feature named `mongodbSupport`, the feature's capability would be:
 
 - `org.gradle.demo:provider-mongodb-support:1.0`
 

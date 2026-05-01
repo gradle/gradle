@@ -39,6 +39,7 @@ The previous step will help you identify potential problems by issuing deprecati
 [[changes_9.6.0]]
 == Upgrading from 9.5.0 and earlier
 
+[[v9_deprecations_9_6]]
 === Deprecations
 
 [[deprecated_maven_artifact_urls]]
@@ -368,6 +369,7 @@ processResources {
         )
     }
 }
+----
 |===
 
 [[changes_9.6.0]]
@@ -382,23 +384,13 @@ The embedded Kotlin has been upgraded from 2.3.20 to link:https://github.com/Jet
 [[kotlin_dsl_delegated_properties]]
 ==== Deprecation of Kotlin DSL delegated properties
 
-All Kotlin DSL property delegate extensions have been deprecated and will
-be removed in Gradle 10. This includes container delegates (`by
-registering`, `by creating`, `by existing`, `by getting`), property
-delegates (`by project`, `by settings`, `by extra`), and value delegates
-(`Property<T>` and `ConfigurableFileCollection` getValue/setValue
-operators).
+All Kotlin DSL property delegate extensions have been deprecated and will be removed in Gradle 10. This includes container delegates (`by registering`, `by creating`, `by existing`, `by getting`), property delegates (`by project`, `by settings`, `by extra`), and value delegates (`Property<T>` and `ConfigurableFileCollection` getValue/setValue operators).
 
 Use the explicit API instead.
 
-The container delegates (`registering`, `creating`, `existing`, `getting`)
-are defined on `NamedDomainObjectContainer` and
-`NamedDomainObjectCollection`. They apply to any container, not just
-`tasks` or `configurations`.
+The container delegates (`registering`, `creating`, `existing`, `getting`) are defined on `NamedDomainObjectContainer` and `NamedDomainObjectCollection`. They apply to any container, not just `tasks` or `configurations`.
 
-The examples below use a generic
-`container` placeholder; replace it with `tasks`, `configurations`,
-`sourceSets`, or whichever container you use.
+The examples below use a generic `container` placeholder; replace it with `tasks`, `configurations`, `sourceSets`, or whichever container you use.
 
 **Container delegates:**
 
@@ -510,11 +502,7 @@ The examples below use a generic
 |`val ext = extensions.getByType<Type>()`
 |===
 
-Delegated properties are being removed because they create silent
-correctness bugs (e.g. no-op delegates, wrong extra property scope),
-couple entity names to variable names, diverge between build scripts and
-class-based plugins, and duplicate functionality already provided by
-explicit APIs or other DSL sugar.
+Delegated properties are being removed because they create silent correctness bugs (e.g. no-op delegates, wrong extra property scope), couple entity names to variable names, diverge between build scripts and class-based plugins, and duplicate functionality already provided by explicit APIs or other DSL sugar.
 
 [[agp_8x_incompatible]]
 ==== Android Gradle Plugin 8.x is no longer compatible with Gradle 9.6
@@ -527,12 +515,15 @@ To resolve this, upgrade to AGP 9.x, which only uses the public Gradle API and f
 [[changes_9.5.0]]
 == Upgrading from 9.4.0 and earlier
 
+[[v9_potential_breaking_changes_9_5]]
 === Potential breaking changes
 
+[[v9_upgrade_to_kotlin_2_3_20]]
 ==== Upgrade to Kotlin 2.3.20
 
 The embedded Kotlin has been upgraded from 2.3.10 to link:https://github.com/JetBrains/kotlin/releases/tag/v2.3.20[Kotlin 2.3.20].
 
+[[v9_plugins_requested_by_precompiled_settings_plugins_validated]]
 ==== Plugins requested by precompiled settings plugins are now validated at compile time
 
 Gradle now validates plugin requests in precompiled settings plugins (`*.settings.gradle.kts`) during compilation, failing the build if a requested plugin cannot be resolved.
@@ -550,6 +541,7 @@ plugins {
 
 If you have precompiled settings plugins that are declared but not currently applied, check their `plugins {}` blocks and remove or fix any plugin requests that cannot be resolved from the dependencies available in the build being compiled.
 
+[[v9_windows_start_script_reworked]]
 ==== The Windows start script has been reworked to improve usability
 
 The default Windows start script template (used for `gradlew.bat` and application start scripts) has been reworked to improve usability and consistency with the Unix shell script.
@@ -566,6 +558,7 @@ The new script includes the following changes:
 Upgrading the wrapper to the new script may cause a one-time error if done before Gradle 8.14, because `cmd.exe` re-reads the script after it changes.
 To avoid this, first upgrade to Gradle 8.14 or 9.0.0, then upgrade to 9.5.0.
 
+[[v9_values_tracked_as_configuration_cache_input]]
 ==== Calling `.values()` on environment variables or system properties is now tracked as Configuration Cache input
 
 Starting with Gradle 9.5.0, calling `.values()` on the maps returned from `System.getenv()` or `System.getProperties()` now records all environment variables or system properties as Configuration Cache inputs.
@@ -574,6 +567,7 @@ This is consistent with how <<configuration_cache_requirements.adoc#config_cache
 As a result, if your build configuration uses `System.getenv().values()` or `System.getProperties().values()`, any change to any environment variable or system property will invalidate the Configuration Cache entry, not just the ones your build actually uses.
 If you experience unexpected cache invalidations after upgrading, check whether your build or any plugins call `.values()` on these maps, and consider switching to targeted property lookups instead.
 
+[[v9_dependency_lockfiles_platform_independent_line_ending]]
 ==== Dependency lockfiles are generated with a platform-independent line ending
 
 In the context of <<dependency_locking#locking-versions, Dependency Locking>>, lockfiles now use Unix line endings (LF, `\n`) instead of the system default.
@@ -581,6 +575,7 @@ Existing lockfiles using Windows line endings (CRLF, `\r\n`) can still be read, 
 
 When running a lock update with Gradle 9.5.0 or above, if your lockfiles were previously generated on Windows, all line endings will be updated to LF. This will appear as a large diff in version control even if no dependencies have changed. This is expected and only happens once.
 
+[[v9_dependency_verification_armored_key_rings_non_ascii]]
 ==== Dependency verification armored key rings now render non-ASCII characters correctly
 
 In the context of <<dependency_verification#verifying-dependencies, Dependency Verification>>, when a key has metadata that contains non-ASCII characters, it is now properly rendered in the key header.
@@ -588,6 +583,7 @@ In the context of <<dependency_verification#verifying-dependencies, Dependency V
 When running a <<dependency_verification#sec:local-keyring,dependency verification key export>> with Gradle 9.5.0 or above, if your keyring already contained keys with non-ASCII metadata, the exported armored keyring will be updated to render those characters correctly.
 This is expected to happen only once.
 
+[[v9_outgoing_variants_hide_attributeless_by_default]]
 ==== The `outgoingVariants` and `resolvableConfigurations` reports now hide variants without attributes by default
 
 The `outgoingVariants` and `resolvableConfigurations` report tasks now only show variants and configurations that have attributes defined, since only these can participate in variant-aware dependency resolution.
@@ -604,6 +600,7 @@ If you rely on seeing attributeless variants or configurations in these reports,
 ./gradlew resolvableConfigurations --all
 ----
 
+[[v9_deprecations_9_5]]
 === Deprecations
 
 [[deprecate_exit_environment_var]]
@@ -617,12 +614,13 @@ This is a result of the link:https://github.com/gradle/gradle/pull/36510[Windows
 If you are using a custom start script template that references the exit environment variable, update your template to remove this dependency.
 There is no replacement API, the exit environment variable concept has been removed entirely.
 
-
 [[changes_9.4.0]]
 == Upgrading from 9.3.1 and earlier
 
+[[v9_potential_breaking_changes_9_4]]
 === Potential breaking changes
 
+[[v9_project_builder_enforces_consistent_build_scoped_locations]]
 ==== `ProjectBuilder` now enforces consistent build-scoped locations
 
 link:{javadocPath}/org/gradle/testfixtures/ProjectBuilder.html[`ProjectBuilder`] allows you to configure a specific project directory for tests.
@@ -639,6 +637,7 @@ Previously, dependency management files could be "leaked" into the test from the
 
 For more details see link:https://github.com/gradle/gradle/issues/32928[the related issue].
 
+[[v9_java_gradle_plugin_compile_only_api]]
 ==== The `java-gradle-plugin` plugin now adds the `gradleApi()` dependency to the `compileOnlyApi` scope
 
 The `gradleApi()` dependency is now added to the `compileOnlyApi` scope instead of the `api` scope.
@@ -655,6 +654,7 @@ For most plugin projects, this change should be transparent as:
 If any additional test source set is used (e.g., integration tests), the `plugin` extension offers the `plugins.testSourceSet` method to register the source set for automatic management.
 If this cannot be done, a regular declaration of the `gradleApi()` dependency on the test source can be used as well.
 
+[[v9_stricter_validation_for_published_plugins]]
 ==== Stricter validation for published plugins
 
 For plugin builds that apply any of the `com.gradle.plugin-publish`, `ivy-publish`, or `maven-publish` plugins, Gradle now automatically enables stricter validation of plugin code.
@@ -670,6 +670,7 @@ tasks.validatePlugins {
 }
 ----
 
+[[v9_codenarc_compilation_classpath_set_by_default]]
 ==== CodeNarc compilation classpath is set by default
 
 The CodeNarc plugin now automatically populates the `compilationClasspath` of a `CodeNarc` task with the compile classpath of its associated source set.
@@ -699,6 +700,7 @@ tasks.withType<CodeNarc>().configureEach {
 
 If your build relies on a custom configuration for the `compilationClasspath` of a `CodeNarc` task, you will need to continue explicitly setting it to override the new default behavior.
 
+[[v9_system_property_priority_for_wrapper_execution]]
 ==== System property priority for Wrapper execution has changed
 
 The priority of <<build_environment.adoc#sec:gradle_system_properties,system properties>> passed to the <<gradle_wrapper.adoc#gradle_wrapper,Gradle Wrapper>> now correctly follows the documented order of precedence.
@@ -716,14 +718,17 @@ If a property is defined in multiple locations, Gradle now strictly honors the f
 
 For more details see the link:https://github.com/gradle/gradle/issues/36189[related issue].
 
+[[v9_upgrade_to_kotlin_2_3_0]]
 ==== Upgrade to Kotlin 2.3.0
 
 The embedded Kotlin has been upgraded from 2.2.21 to link:https://github.com/JetBrains/kotlin/releases/tag/v2.3.0[Kotlin 2.3.0].
 
+[[v9_upgrade_to_zinc_1_12_0]]
 ==== Upgrade to Zinc 1.12.0
 
 Zinc has been updated to https://github.com/sbt/zinc/releases/tag/v1.12.0[1.12.0].
 
+[[v9_deprecations_9_4]]
 === Deprecations
 
 [[findAll_removal]]
@@ -807,6 +812,7 @@ plugins {
 }
 ----
 
+[[v9_deprecation_of_dependencies_get_project]]
 ==== Deprecation of `Dependencies.getProject()` method
 
 The `getProject()` method on `Dependencies` has been deprecated and will be removed in Gradle 10.0.0.
@@ -851,8 +857,10 @@ testing {
 [[changes_9.3.0]]
 == Upgrading from 9.2.0 and earlier
 
+[[v9_potential_breaking_changes_9_3]]
 === Potential breaking changes
 
+[[v9_referential_equality_not_guaranteed_for_project]]
 ==== Referential equality is not guaranteed for `Project` instances
 
 Instances of `Project` type representing the same logical Gradle project do not provide any guarantee of being equal by reference (`==` in Java, `===` in Kotlin).
@@ -893,6 +901,7 @@ project.getRootProject() == project.getParent();
 In general, it is better to check project equality via `Project.getPath()` or `Project.getBuildTreePath()` for composite-build support.
 The paths are also better suited to be keys in data structures, like maps.
 
+[[v9_testng_output_may_change]]
 ==== TestNG output may change when using versions before 6.9.13.3
 
 As part of the `AbstractTestTask` refactoring, Gradle’s integration with TestNG has been updated.
@@ -905,26 +914,32 @@ When using TestNG versions **earlier than 6.9.13.3**, this can lead to different
 
 To get correct and stable output, we recommend upgrading to **TestNG 6.9.13.3 or newer**.
 
+[[v9_upgrade_to_kotlin_2_2_21]]
 ==== Upgrade to Kotlin 2.2.21
 
 The embedded Kotlin has been upgraded from 2.2.20 to link:https://github.com/JetBrains/kotlin/releases/tag/v2.2.21[2.2.21].
 
+[[v9_upgrade_to_jansi_2_4_2]]
 ==== Upgrade to Jansi 2.4.2
 
 Jansi was upgraded from https://github.com/fusesource/jansi/blob/jansi-2.4.2/changelog.md#jansi-118-released-2019-04-02[1.18] to https://github.com/fusesource/jansi/releases/tag/jansi-2.4.2[2.4.2] to pick up support for Windows ARM64.
 
+[[v9_upgrade_to_asm_9_9]]
 ==== Upgrade to ASM 9.9
 
 ASM was upgraded from 9.8 to https://asm.ow2.io/versions.html[9.9] to ensure earlier compatibility for Java 26.
 
+[[v9_upgrade_to_groovy_4_0_29]]
 ==== Upgrade to Groovy 4.0.29
 
 Groovy has been updated to https://groovy-lang.org/changelogs/changelog-4.0.29.html[4.0.29].
 
+[[v9_upgrade_to_jacoco_0_8_14]]
 ==== Upgrade to JaCoCo 0.8.14
 
 JaCoCo has been updated to https://www.jacoco.org/jacoco/trunk/doc/changes.html[0.8.14].
 
+[[v9_deprecations_9_3]]
 === Deprecations
 
 [[deprecated_wrapper_get_available_distribution_types]]
@@ -1070,6 +1085,7 @@ dependencies {
 
 [[deprecate_moduleversionselector_to_modulecomponentselector]]
 ==== Deprecation of `ModuleVersionSelector` to `ModuleComponentSelector` conversion
+
 The conversion of `ModuleVersionSelector` to `ModuleComponentSelector` (used in
 link:{javadocPath}/org/gradle/api/artifacts/ResolutionStrategy.html#force(java.lang.Object...)[`ResolutionStrategy.force(...)`],
 link:{javadocPath}/org/gradle/api/artifacts/DependencyResolveDetails.html#useTarget(java.lang.Object)[`DependencyResolveDetails.useTarget(Object)`], and
@@ -1085,17 +1101,21 @@ To fix this deprecation, pass one of the supported notations (for example, a Str
 [[changes_9.2.0]]
 == Upgrading from 9.1.0 and earlier
 
+[[v9_potential_breaking_changes_9_2]]
 === Potential breaking changes
 
+[[v9_upgrade_to_kotlin_2_2_20]]
 ==== Upgrade to Kotlin 2.2.20
 
 The embedded Kotlin has been upgraded from 2.2.0 to link:https://github.com/JetBrains/kotlin/releases/tag/v2.2.20[Kotlin 2.2.20].
 
+[[v9_removed_object_factory_dependency_collector]]
 ==== Removed incubating `ObjectFactory#dependencyCollector()` method
 
 The incubating `ObjectFactory#dependencyCollector()` method has been removed.
 You can still create `DependencyCollectors` within Gradle <<properties_providers.adoc#managed_types, managed types>>.
 
+[[v9_consumable_configurations_initialized_lazily]]
 ==== Consumable configurations in bundled plugins are now initialized lazily
 
 Consumable configurations created by bundled Gradle plugins are now initialized only when needed.
@@ -1164,6 +1184,7 @@ tasks.withType(ValidatePlugins).configureEach {
 
 If the specified Java version is **not** compatible with the Gradle daemon, you must update it to a <<compatibility.adoc#java_runtime,compatible version>>.
 
+[[v9_deprecations_9_2]]
 === Deprecations
 
 [[project_container_methods]]
@@ -1207,16 +1228,20 @@ The following bundled plugins apply the Java plugin automatically:
 [[changes_9.1.0]]
 == Upgrading from 9.0.0 and earlier
 
+[[v9_potential_breaking_changes_9_1]]
 === Potential breaking changes
 
+[[v9_upgrade_to_asm_9_8]]
 ==== Upgrade to ASM 9.8
 
 ASM was upgraded from 9.7.1 to https://asm.ow2.io/versions.html[9.8] to ensure earlier compatibility for Java 25.
 
+[[v9_upgrade_to_groovy_4_0_28]]
 ==== Upgrade to Groovy 4.0.28
 
 Groovy has been updated to https://groovy-lang.org/changelogs/changelog-4.0.28.html[Groovy 4.0.28].
 
+[[v9_deprecations_9_1]]
 === Deprecations
 
 [[dependency_multi_string_notation]]

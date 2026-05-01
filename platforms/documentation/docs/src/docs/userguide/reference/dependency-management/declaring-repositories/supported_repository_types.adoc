@@ -102,16 +102,10 @@ Despite its drawbacks, there are rare cases where `mavenLocal()` can be useful:
 
 To mitigate risks, consider restricting `mavenLocal()` to specific dependencies using a repository filter:
 
-[source,groovy]
-----
-repositories {
-    mavenLocal {
-        content {
-            includeGroup("com.example.myproject") // Only allow this group from mavenLocal
-        }
-    }
-}
-----
+====
+include::sample[dir="snippets/reference/dependency-management/declaring-repositories/supportedRepositoryTypes-mavenLocalFilter/kotlin",files="build.gradle.kts[tags=maven-local-filter]"]
+include::sample[dir="snippets/reference/dependency-management/declaring-repositories/supportedRepositoryTypes-mavenLocalFilter/groovy",files="build.gradle[tags=maven-local-filter]"]
+====
 
 This ensures that `mavenLocal()` is only used for expected dependencies and avoids unexpected resolution issues.
 

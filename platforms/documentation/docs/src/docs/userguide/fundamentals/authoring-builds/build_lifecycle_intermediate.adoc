@@ -29,6 +29,7 @@ image::gradle-basic-10.png[]
 </p>
 ++++
 
+[[sec:build_phases]]
 == Build Phases
 
 A Gradle build has three distinct phases.

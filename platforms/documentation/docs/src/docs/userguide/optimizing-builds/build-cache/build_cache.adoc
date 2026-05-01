@@ -209,6 +209,7 @@ The annotation can be used on its own, or together with `@CacheableTask`.
 NOTE: This annotation is only for documenting the reason behind not caching the task by default.
 Build logic can override this decision via the runtime API (see below).
 
+[[sec:enable_caching_of_non_cacheable_tasks]]
 == Enable caching of non-cacheable tasks
 
 As we have seen, built-in tasks, or tasks provided by plugins, are cacheable if their class is annotated with the `Cacheable` annotation.

@@ -42,7 +42,7 @@ The official SHA-256 checksums can be found on the link:https://gradle.org/relea
 
 === Tags
 
-`<<tags_reference.adoc#tag:properties,#properties>>`, `<<tags_reference.adoc#tag:wrapper,#wrapper>>`
+<<tags_reference.adoc#tag:properties,`#properties`>>, <<tags_reference.adoc#tag:wrapper,`#wrapper`>>
 
 [[validate_wrapper_checksum]]
 == Validate the Gradle Wrapper on every Upgrade
@@ -102,4 +102,4 @@ jobs:
 
 === Tags
 
-`<<tags_reference.adoc#tag:wrapper,#wrapper>>`
+<<tags_reference.adoc#tag:wrapper,`#wrapper`>>

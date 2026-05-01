@@ -39,8 +39,10 @@ The previous step will help you identify potential problems by issuing deprecati
 [[changes_8.14]]
 == Upgrading from 8.13 and earlier
 
+[[v8_14_potential_breaking_changes]]
 === Potential breaking changes
 
+[[v8_14_gradle_wrapper_executable_jar]]
 ==== The Gradle Wrapper is now an executable JAR
 
 The Gradle Wrapper JAR has been converted into an executable JAR.
@@ -48,6 +50,7 @@ This means it now includes a `Main-Class` attribute, allowing it to be launched 
 
 When you update the wrapper scripts using the `gradle wrapper` or `./gradlew wrapper` command, the wrapper JAR will be updated automatically to reflect this change.
 
+[[v8_14_changes_to_settings_defaults]]
 ==== Changes to `Settings` defaults
 
 The incubating `Settings.getDefaults()` method, introduced in Gradle 8.10, has been removed.
@@ -55,37 +58,44 @@ Use the `Settings.defaults(Action<SharedModelDefaults>)` method instead, which a
 
 This change allows default values to be interpreted in the context of individual projects rather than at the `Settings` level.
 
+[[v8_14_upgrade_to_guava_33_4_6]]
 ==== Upgrade to Guava 33.4.6
 
 Guava has been updated from version 32.1.2 to 33.4.6.
 This release deprecates several core features, including `Charsets`.
 For full details, see the https://github.com/google/guava/releases[Guava release notes].
 
+[[v8_14_eclipse_classpath_base_source_output_dir]]
 ==== `EclipseClasspath.baseSourceOutputDir` is now a `DirectoryProperty`
 
 The incubating `EclipseClasspath.baseSourceOutputDir` was previously declared as a `Property<File>`.
 It has now been correctly updated to a `DirectoryProperty` to reflect the intended type.
 
+[[v8_14_upgrade_to_groovy_3_0_24]]
 ==== Upgrade to Groovy 3.0.24
 
 Groovy has been updated to https://groovy-lang.org/changelogs/changelog-3.0.24.html[Groovy 3.0.24].
 
 Since the previous version was 3.0.22, this includes changes for https://groovy-lang.org/changelogs/changelog-3.0.23.html[Groovy 3.0.23] as well.
 
+[[v8_14_upgrade_to_jacoco_0_8_13]]
 ==== Upgrade to JaCoCo 0.8.13
 
 JaCoCo has been updated to https://www.jacoco.org/jacoco/trunk/doc/changes.html[0.8.13].
 
+[[v8_14_javaexec_uses_toolchain_by_default]]
 ==== `JavaExec` now uses the toolchain from the `java` extension by default
 
 Previously, the `JavaExec` task used the same Java version as the Gradle process itself.
 Starting in Gradle 9.0.0, when the `java-base` plugin is applied, `JavaExec` will instead default to the Java toolchain configured in the `java` extension.
 You can override the toolchain explicitly in the `JavaExec` task configuration if needed.
 
+[[v8_14_upgrade_to_slf4j_2_0_17]]
 ==== Upgrade to SLF4J 2.0.17
 
 SLF4J has been updated from 1.7.36 to https://www.slf4j.org/news.html#2.0.17[2.0.17].
 
+[[v8_14_deprecations]]
 === Deprecations
 
 [[null-attribute-lookup]]
@@ -153,8 +163,10 @@ Starting in 8.0, adding an artifact to a configuration that is neither resolvabl
 [[changes_8.13]]
 == Upgrading from 8.12 and earlier
 
+[[v8_13_potential_breaking_changes]]
 === Potential breaking changes
 
+[[v8_13_changes_to_jvm_test_suite]]
 ==== Changes to JvmTestSuite
 
 The `testType` property was removed from link:{javadocPath}/org/gradle/api/plugins/jvm/JvmTestSuite.html[JvmTestSuite] and both the `TestSuiteTargetName` and `TestSuiteType` attributes have been removed.
@@ -162,6 +174,7 @@ Test reports and JaCoCo reports can now be aggregated between projects by specif
 
 See below for additional details.
 
+[[v8_13_changes_to_test_report_aggregation_and_jacoco_aggregation]]
 ==== Changes to Test Report Aggregation and Jacoco Aggregation
 
 Several changes have been made to the incubating <<test_report_aggregation_plugin#test_report_aggregation_plugin,Test Report Aggregation>> and <<jacoco_report_aggregation_plugin.adoc#jacoco_report_aggregation_plugin,JaCoCo Report Aggregation>> plugins.
@@ -199,6 +212,7 @@ reporting {
 }
 ----
 
+[[v8_13_changed_behavior_build_launcher_add_jvm_arguments]]
 ==== Changed behavior when calling `BuildLauncher.addJvmArguments`
 
 Issue (link:https://github.com/gradle/gradle/issues/31462[#31426]) was fixed, that caused `BuildLauncher.addJvmArguments` to override flags coming from the `org.gradle.jvmargs` system property.
@@ -211,10 +225,12 @@ val buildLauncher: BuildLauncher = connector.connect().newBuild()
 buildLauncher.setJvmArguments("-Xmx2048m", "-Dmy.custom.property=value")
 ----
 
+[[v8_13_upgrade_to_asm_9_7_1]]
 ==== Upgrade to ASM 9.7.1
 
 ASM was upgraded from 9.6 to https://asm.ow2.io/versions.html[9.7.1] to ensure earlier compatibility for Java 24.
 
+[[v8_13_source_level_deprecation_of_project_task_methods]]
 ==== Source level deprecation of Project.task methods
 
 Eager task creation methods on link:{javadocPath}/org/gradle/api/Project.html#task(java.lang.String)[the `Project` interface] have been marked `@Deprecated` and will generate compiler and IDE warnings when used in build scripts or plugin code.
@@ -224,8 +240,10 @@ However, if the build is configured to fail on warnings during Kotlin script or 
 
 A standard Gradle deprecation warning will be printed upon use when these methods are fully deprecated in a future version.
 
+[[v8_13_deprecations]]
 === Deprecations
 
+[[v8_13_recursively_querying_attribute_container_in_lazy_provider]]
 ==== Recursively querying `AttributeContainer` in lazy provider
 
 In Gradle 9.0.0, querying the contents of an `AttributeContainer` from within an attribute value provider of the same container will become an error.
@@ -315,25 +333,31 @@ class MyValue {
 [[changes_8.12]]
 == Upgrading from 8.11 and earlier
 
+[[v8_12_potential_breaking_changes]]
 === Potential breaking changes
 
+[[v8_12_upgrade_to_kotlin_2_0_21]]
 ==== Upgrade to Kotlin 2.0.21
 
 The embedded Kotlin has been updated from 2.0.20 to link:https://github.com/JetBrains/kotlin/releases/tag/v2.0.21[Kotlin 2.0.21].
 
+[[v8_12_upgrade_to_ant_1_10_15]]
 ==== Upgrade to Ant 1.10.15
 
 Ant has been updated to https://github.com/apache/ant/blob/rel/1.10.15/WHATSNEW[Ant 1.10.15].
 
+[[v8_12_upgrade_to_zinc_1_10_4]]
 ==== Upgrade to Zinc 1.10.4
 
 Zinc has been updated to https://github.com/sbt/zinc/releases/tag/v1.10.4[1.10.4].
 
+[[v8_12_swift_sdk_discovery]]
 ==== Swift SDK discovery
 
 To determine the location of the Mac OS X SDK for Swift, Gradle now passes the `--sdk macosx` arguments to `xcrun`.
 This is necessary because the SDK could be discovered inconsistently without this argument across different environments.
 
+[[v8_12_source_level_deprecation_of_task_container_create_methods]]
 ==== Source level deprecation of TaskContainer.create methods
 
 Eager task creation methods on link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html[the `TaskContainer` interface] have been marked `@Deprecated` and will generate compiler and IDE warnings when used in build scripts or plugin code.
@@ -343,6 +367,7 @@ However, if the build is configured to fail on warnings during Kotlin script or 
 
 A standard Gradle deprecation warning will be printed upon use when these methods are fully deprecated in a future version.
 
+[[v8_12_deprecations]]
 === Deprecations
 
 [[deprecated_ambiguous_transformation_chains]]
@@ -410,7 +435,7 @@ For instance, this wil *not* be allowed:
 > gradlew init tasks
 ----
 
-[[task_project]]
+[[task_project_v8]]
 ==== Calling `Task.getProject()` from a task action
 
 Calling link:{javadocPath}/org/gradle/api/Task.html#getProject--[Task.getProject()] from a task action at execution time is now deprecated and will be made an error in Gradle 10.
@@ -472,8 +497,10 @@ They should be replaced with `ReportingExtension.getBaseDirectory()` property.
 [[changes_8.11]]
 == Upgrading from 8.10 and earlier
 
+[[v8_11_potential_breaking_changes]]
 === Potential breaking changes
 
+[[v8_11_upgrade_to_kotlin_2_0_20]]
 ==== Upgrade to Kotlin 2.0.20
 
 The embedded Kotlin has been updated from 1.9.24 to link:https://github.com/JetBrains/kotlin/releases/tag/v2.0.20[Kotlin 2.0.20].
@@ -483,6 +510,7 @@ The default `kotlin-test` version in JVM test suites has been upgraded to 2.0.20
 
 Kotlin DSL scripts are still compiled with Kotlin language version set to 1.8 for backward compatibility.
 
+[[v8_11_gradle_daemon_jvm_configuration_via_toolchain]]
 ==== Gradle daemon JVM configuration via toolchain
 
 The type of the property `UpdateDaemonJvm.jvmVersion` is now `Property<JavaLanguageVersion>`.
@@ -497,6 +525,7 @@ With:
 
 Using the CLI options to configure which JVM version to use for the Gradle Daemon has no impact.
 
+[[v8_11_name_matching_changes]]
 ==== Name matching changes
 
 The name-matching logic has been updated to treat numbers as word boundaries for camelCase names.
@@ -509,6 +538,7 @@ This change impacts:
 - Project selection
 - Configuration selection in dependency report tasks
 
+[[v8_11_deprecations]]
 === Deprecations
 
 [[deprecated_fork_options_java_home]]
@@ -750,8 +780,10 @@ These methods on link:{javadocPath}/org/gradle/api/tasks/javadoc/Javadoc.html[Ja
 [[changes_8.10]]
 == Upgrading from 8.9 and earlier
 
+[[v8_10_potential_breaking_changes]]
 === Potential breaking changes
 
+[[v8_10_java_compile_tasks_may_fail_when_using_jre]]
 ==== `JavaCompile` tasks may fail when using a JRE even if compilation is not necessary
 
 The `JavaCompile` tasks may sometimes fail when using a JRE instead of a JDK.
@@ -761,22 +793,27 @@ With the new enforcement, the absence of a compiler causes this to fail when onl
 
 This can be fixed by setting the `sourceCompatibility`/`targetCompatibility` explicitly in the `java` extension, or by setting `sourceCompatibility`/`targetCompatibility` or `release` in the relevant task(s).
 
+[[v8_10_upgrade_to_kotlin_1_9_24]]
 ==== Upgrade to Kotlin 1.9.24
 
 The embedded Kotlin has been updated from 1.9.23 to link:https://github.com/JetBrains/kotlin/releases/tag/v1.9.24[Kotlin 1.9.24].
 
+[[v8_10_upgrade_to_ant_1_10_14]]
 ==== Upgrade to Ant 1.10.14
 
 Ant has been updated to https://archive.apache.org/dist/ant/RELEASE-NOTES-1.10.14.html[Ant 1.10.14].
 
+[[v8_10_upgrade_to_jacoco_0_8_12]]
 ==== Upgrade to JaCoCo 0.8.12
 
 JaCoCo has been updated to https://www.jacoco.org/jacoco/trunk/doc/changes.html[0.8.12].
 
+[[v8_10_upgrade_to_groovy_3_0_22]]
 ==== Upgrade to Groovy 3.0.22
 
 Groovy has been updated to https://groovy-lang.org/changelogs/changelog-3.0.22.html[Groovy 3.0.22].
 
+[[v8_10_deprecations]]
 === Deprecations
 
 [[minimum_daemon_jvm_version]]
@@ -831,8 +868,10 @@ Extending configurations in different projects is deprecated and will result in 
 [[changes_8.9]]
 == Upgrading from 8.8 and earlier
 
+[[v8_9_potential_breaking_changes]]
 === Potential breaking changes
 
+[[v8_9_change_to_toolchain_provisioning]]
 ==== Change to toolchain provisioning
 
 In previous versions of Gradle, toolchain provisioning could leave a partially provisioned toolchain in place **with a marker file indicating that the toolchain was fully provisioned**.
@@ -843,16 +882,19 @@ This means all your existing toolchains will be re-provisioned the first time yo
 Gradle 8.9 also writes the old marker file (`provisioned.ok`) to indicate that the toolchain was fully provisioned.
 This means that if you return to an older version of Gradle, an 8.9-provisioned toolchain will **not** be re-provisioned.
 
+[[v8_9_upgrade_to_kotlin_1_9_23]]
 ==== Upgrade to Kotlin 1.9.23
 
 The embedded Kotlin has been updated from 1.9.22 to link:https://github.com/JetBrains/kotlin/releases/tag/v1.9.23[Kotlin 1.9.23].
 
+[[v8_9_change_the_encoding_of_daemon_log_files]]
 ==== Change the encoding of daemon log files
 
 In previous versions of Gradle, the daemon log file, located at `$<<directory_layout.adoc#dir:gradle_user_home,GRADLE_USER_HOME>>/daemon/{gradleVersion}/`, was encoded with the default JVM encoding.
 This file is now always encoded with UTF-8 to prevent clients who may use different default encodings from reading data incorrectly.
 This change may affect third-party tools trying to read this file.
 
+[[v8_9_compiling_against_gradle_implementation_classpath]]
 ==== Compiling against Gradle implementation classpath
 
 In previous versions of Gradle, Java projects that had no declared dependencies could implicitly compile against Gradle's runtime classes.
@@ -860,6 +902,7 @@ This means that some projects were able to compile without any declared dependen
 This situation is unlikely to arise in projects since IDE integration and test execution would be compromised.
 However, if you need to utilize the Gradle API, declare a `gradleApi` dependency or apply the `java-gradle-plugin` plugin.
 
+[[v8_9_configuration_cache_implementation_packages_under_org_gradle_internal]]
 ==== Configuration cache implementation packages now under `org.gradle.internal`
 
 References to Gradle types not part of the public API should be avoided, as their direct use is unsupported.
@@ -871,11 +914,13 @@ However, before this release, the configuration cache subsystem did not follow t
 
 To address this issue, all code initially under the `org.gradle.configurationcache*` packages has been moved to new internal packages (`org.gradle.internal.*`).
 
+[[v8_9_file_system_watching_on_macos_11_disabled]]
 === File-system watching on macOS 11 (Big Sur) and earlier is disabled
 
 Since Gradle 8.8, file-system watching has only been supported on macOS 12 (Monterey) and later.
 We added a check to automatically disable file-system watching on macOS 11 (Big Sur) and earlier versions.
 
+[[v8_9_possible_change_to_jdk8_compiler_output_with_annotation_processors]]
 ==== Possible change to JDK8-based compiler output when annotation processors are used
 
 The Java compilation infrastructure has been updated to use the <<reporting_problems.adoc#sec:reporting_problems,Problems API>>.
@@ -890,6 +935,7 @@ For example, Java standard types like `java.lang.String` will be reported as `ja
 [[changes_8.8]]
 == Upgrading from 8.7 and earlier
 
+[[v8_8_deprecations]]
 === Deprecations
 
 [[mutate_configuration_after_locking]]
@@ -1163,8 +1209,10 @@ plugins {
 
 We encourage you to use the https://plugins.gradle.org/plugin/com.gradle.develocity[latest released Develocity plugin version], even when using an older Gradle version.
 
+[[v8_8_potential_breaking_changes]]
 === Potential breaking changes
 
+[[v8_8_changes_in_the_problems_api]]
 ==== Changes in the Problems API
 
 We have implemented several refactorings of the Problems API, including a significant change in how problem definitions and contextual information are handled.
@@ -1174,6 +1222,7 @@ In implementing this spec, we have introduced the following breaking changes to 
 
 - The `label(String)` and `description(String)` methods have been replaced with the `id(String, String)` method and its overloaded variants.
 
+[[v8_8_changes_to_collection_properties]]
 ==== Changes to collection properties
 
 The following incubating API introduced in 8.7 have been removed:
@@ -1183,6 +1232,7 @@ The following incubating API introduced in 8.7 have been removed:
 
 Replacements that better handle conventions are under consideration for a future 8.x release.
 
+[[v8_8_upgrade_to_groovy_3_0_21]]
 ==== Upgrade to Groovy 3.0.21
 
 Groovy has been updated to https://groovy-lang.org/changelogs/changelog-3.0.21.html[Groovy 3.0.21].
@@ -1205,6 +1255,7 @@ tasks.create("foo", { Task it -> it.description = "Foo task" } as Action)
 tasks.create("foo", { it.description = "Foo task" } as Action<Task>)
 ----
 
+[[v8_8_upgrade_to_asm_9_7]]
 ==== Upgrade to ASM 9.7
 
 ASM was upgraded from 9.6 to https://asm.ow2.io/versions.html[9.7] to ensure earlier compatibility for Java 23.
@@ -1212,43 +1263,53 @@ ASM was upgraded from 9.6 to https://asm.ow2.io/versions.html[9.7] to ensure ear
 [[changes_8.7]]
 == Upgrading from 8.6 and earlier
 
+[[v8_7_potential_breaking_changes]]
 === Potential breaking changes
 
+[[v8_7_upgrade_to_kotlin_1_9_22]]
 ==== Upgrade to Kotlin 1.9.22
 
 The embedded Kotlin has been updated from 1.9.10 to link:https://github.com/JetBrains/kotlin/releases/tag/v1.9.22[Kotlin 1.9.22].
 
+[[v8_7_upgrade_to_apache_sshd_2_10_0]]
 ==== Upgrade to Apache SSHD 2.10.0
 
 Apache SSHD has been updated from 2.0.0 to https://mina.apache.org/sshd-project/download_2.10.0.html[2.10.0].
 
+[[v8_7_replacement_and_upgrade_of_jsch]]
 ==== Replacement and upgrade of JSch
 
 JSch has been replaced by https://github.com/mwiede/jsch[`com.github.mwiede:jsch`] and updated from 0.1.55 to https://github.com/mwiede/jsch/releases/tag/jsch-0.2.16[0.2.16]
 
+[[v8_7_upgrade_to_eclipse_jgit_5_13_3]]
 ==== Upgrade to Eclipse JGit 5.13.3
 
 Eclipse JGit has been updated from 5.7.0 to https://projects.eclipse.org/projects/technology.jgit/releases/5.13.3[5.13.3].
 
 This includes reworking the way that Gradle configures JGit for SSH operations by moving from JSch to Apache SSHD.
 
+[[v8_7_upgrade_to_apache_commons_compress_1_25_0]]
 ==== Upgrade to Apache Commons Compress 1.25.0
 
 Apache Commons Compress has been updated from 1.21 to https://commons.apache.org/proper/commons-compress/changes-report.html#a1.25.0[1.25.0].
 This change may affect the checksums of the produced jars, zips, and other archive types because the metadata of the produced artifacts may differ.
 
+[[v8_7_upgrade_to_asm_9_6]]
 ==== Upgrade to ASM 9.6
 
 ASM was upgraded from 9.5 to https://asm.ow2.io/versions.html[9.6] for better support of multi-release jars.
 
+[[v8_7_upgrade_of_the_version_catalog_parser]]
 ==== Upgrade of the version catalog parser
 
 The version catalog parser has been upgraded and is now compliant with https://toml.io/en/v1.0.0[version 1.0.0 of the TOML spec].
 
 This should not impact catalogs that use the <<version_catalogs.adoc#sec::toml-dependencies-format,recommended syntax>> or were generated by Gradle for publication.
 
+[[v8_7_deprecations]]
 === Deprecations
 
+[[v8_7_deprecated_registration_of_plugin_conventions]]
 ==== Deprecated registration of plugin conventions
 
 Using plugin conventions has been emitting warnings since Gradle 8.2.
@@ -1387,17 +1448,21 @@ These members will be removed in Gradle 9.0.0.
 [[changes_8.6]]
 == Upgrading from 8.5 and earlier
 
+[[v8_6_potential_breaking_changes]]
 === Potential breaking changes
 
+[[v8_6_upgrade_to_jacoco_0_8_11]]
 ==== Upgrade to JaCoCo 0.8.11
 
 JaCoCo has been updated to https://www.jacoco.org/jacoco/trunk/doc/changes.html[0.8.11].
 
+[[v8_6_dependency_adder_renamed_to_dependency_collector]]
 ==== `DependencyAdder` renamed to `DependencyCollector`
 
 The incubating `DependencyAdder` interface has been renamed to link:{javadocPath}/org/gradle/api/artifacts/dsl/DependencyCollector.html[`DependencyCollector`].
 A `getDependencies` method has been added to the interface that returns all declared dependencies.
 
+[[v8_6_deprecations]]
 === Deprecations
 
 [[deprecate_register_feature_main_source_set]]
@@ -1638,12 +1703,15 @@ dependencies {
 [[changes_8.5]]
 == Upgrading from 8.4 and earlier
 
+[[v8_5_potential_breaking_changes]]
 === Potential breaking changes
 
+[[v8_5_upgrade_to_kotlin_1_9_20]]
 ==== Upgrade to Kotlin 1.9.20
 
 The embedded Kotlin has been updated to link:https://github.com/JetBrains/kotlin/releases/tag/v1.9.20[Kotlin 1.9.20].
 
+[[v8_5_changes_to_groovy_task_conventions]]
 ==== Changes to Groovy task conventions
 
 The `groovy-base` plugin is now responsible for configuring source and target compatibility version conventions on all `GroovyCompile` tasks.
@@ -1651,12 +1719,14 @@ The `groovy-base` plugin is now responsible for configuring source and target co
 If you are using this task *without applying `grooy-base`*, you will have to manually set compatibility versions on these tasks.
 In general, the `groovy-base` plugin should be applied whenever working with Groovy language tasks.
 
+[[v8_5_provider_filter]]
 ==== Provider.filter
 
 The type of argument passed to `Provider.filter` is changed from `Predicate` to `Spec` for a more consistent API.
 This change should not affect anyone using `Provider.filter` with a lambda expression.
 However, this might affect plugin authors if they don't use SAM conversions to create a lambda.
 
+[[v8_5_deprecations]]
 === Deprecations
 
 [[org_gradle_util_reports_deprecations_8]]
@@ -1710,12 +1780,15 @@ project(":project-without-directory").projectDir.mkdirs()
 [[changes_8.4]]
 == Upgrading from 8.3 and earlier
 
+[[v8_4_potential_breaking_changes]]
 === Potential breaking changes
 
+[[v8_4_upgrade_to_kotlin_1_9_10]]
 ==== Upgrade to Kotlin 1.9.10
 
 The embedded Kotlin has been updated to link:https://github.com/JetBrains/kotlin/releases/tag/v1.9.10[Kotlin 1.9.10].
 
+[[v8_4_xml_parsing_now_requires_recent_parsers]]
 ==== XML parsing now requires recent parsers
 
 Gradle 8.4 now configures XML parsers with security features enabled.
@@ -1737,6 +1810,7 @@ systemProp.javax.xml.parsers.DocumentBuilderFactory=com.sun.org.apache.xerces.in
 
 See the link:https://github.com/gradle/gradle/security/advisories/GHSA-mrff-q8qj-xvg8[CVE-2023-42445] advisory for more details and ways to enable secure XML processing on previous Gradle versions.
 
+[[v8_4_ear_plugin_with_customized_jee_1_3_descriptor]]
 ==== EAR plugin with customized JEE 1.3 descriptor
 
 Gradle 8.4 forbids external XML entities when parsing XML documents.
@@ -1802,6 +1876,7 @@ systemProp.javax.xml.accessExternalDTD=http
 Note that this will enable HTTP access to external DTDs for the whole build JVM.
 See the link:https://docs.oracle.com/en/java/javase/13/security/java-api-xml-processing-jaxp-security-guide.html#GUID-8CD65EF5-D113-4D5C-A564-B875C8625FAC[JAXP documentation] for more details.
 
+[[v8_4_deprecations]]
 === Deprecations
 
 [[generate_maven_pom_method_deprecations]]
@@ -1817,14 +1892,17 @@ They were never intended to be public API.
 [[changes_8.3]]
 == Upgrading from 8.2 and earlier
 
+[[v8_3_potential_breaking_changes]]
 === Potential breaking changes
 
+[[v8_3_deprecated_project_build_dir_can_cause_script_compilation_failure]]
 ==== Deprecated `Project.buildDir` can cause script compilation failure
 
 With the deprecation of `Project.buildDir`, buildscripts that are compiled with warnings as errors could fail if the deprecated field is used.
 
 See <<#project_builddir, the deprecation entry>> for details.
 
+[[v8_3_test_launcher_api_no_longer_ignores_build_failures]]
 ==== `TestLauncher` API no longer ignores build failures
 
 The `TestLauncher` interface is part of the Tooling API, specialized for running tests.
@@ -1887,6 +1965,7 @@ Kotlin 1.9 dropped support for Kotlin language and API level 1.3.
 If you build Gradle plugins written in Kotlin with this version of Gradle and need to support Gradle <7.0 you need to stick to using the Kotlin Gradle Plugin <1.9.0 and configure the Kotlin language and API levels to 1.3.
 See the <<compatibility.adoc#compatibility, Compatibility Matrix>> for details about other versions.
 
+[[v8_3_eager_evaluation_of_configuration_attributes]]
 ==== Eager evaluation of `Configuration` attributes
 
 Gradle 8.3 updates the `org.gradle.libraryelements` and `org.gradle.jvm.version` attributes of JVM Configurations to be present at the time of creation, as opposed to previously, where they were only present after the Configuration had been resolved or consumed.
@@ -1942,6 +2021,7 @@ configurations {
 ======
 =====
 
+[[v8_3_deprecations]]
 === Deprecations
 
 [[project_builddir]]
@@ -2227,6 +2307,7 @@ More information on the compatibility can be found link:https://docs.gradle.com/
 [[changes_8.2]]
 == Upgrading from 8.1 and earlier
 
+[[v8_2_potential_breaking_changes]]
 === Potential breaking changes
 
 [[kotlin_1_8.20]]
@@ -2247,36 +2328,43 @@ kotlin.incremental.useClasspathSnapshot=false
 
 See link:https://youtrack.jetbrains.com/issue/KT-57757/[KT-57757] for more information.
 
+[[v8_2_upgrade_to_groovy_3_0_17]]
 ==== Upgrade to Groovy 3.0.17
 
 Groovy has been updated to https://groovy-lang.org/changelogs/changelog-3.0.17.html[Groovy 3.0.17].
 
 Since the previous version was 3.0.15, the https://groovy-lang.org/changelogs/changelog-3.0.16.html[3.0.16] changes are also included.
 
+[[v8_2_upgrade_to_ant_1_10_13]]
 ==== Upgrade to Ant 1.10.13
 
 Ant has been updated to https://ant.apache.org/index.html[Ant 1.10.13].
 
 Since the previous version was 1.10.11, the https://github.com/apache/ant/blob/rel/1.10.12/WHATSNEW[1.10.12] changes are also included.
 
+[[v8_2_upgrade_to_codenarc_3_2_0]]
 ==== Upgrade to CodeNarc 3.2.0
 
 The default version of CodeNarc has been updated to https://github.com/CodeNarc/CodeNarc/blob/v3.2.0/CHANGELOG.md#version-320----jan-2023[CodeNarc 3.2.0].
 
+[[v8_2_upgrade_to_pmd_6_55_0]]
 ==== Upgrade to PMD 6.55.0
 
 PMD has been updated to https://docs.pmd-code.org/pmd-doc-6.55.0/pmd_release_notes.html[PMD 6.55.0].
 
 Since the previous version was 6.48.0, all changes since then are included.
 
+[[v8_2_upgrade_to_jacoco_0_8_9]]
 ==== Upgrade to JaCoCo 0.8.9
 
 JaCoCo has been updated to https://www.jacoco.org/jacoco/trunk/doc/changes.html[0.8.9].
 
+[[v8_2_plugin_compatibility_changes]]
 ==== Plugin compatibility changes
 
 A plugin compiled with Gradle >= 8.2 that makes use of the Kotlin DSL functions link:{kotlinDslPath}/gradle/org.gradle.kotlin.dsl/the.html[`Project.the<T>()`], link:{kotlinDslPath}/gradle/org.gradle.kotlin.dsl/the.html[`Project.the(KClass)`] or link:{kotlinDslPath}/gradle/org.gradle.kotlin.dsl/configure.html[`Project.configure<T> {}`] cannot run on Gradle <= 6.1.
 
+[[v8_2_deferred_or_avoided_configuration_of_some_tasks]]
 ==== Deferred or avoided configuration of some tasks
 
 When performing dependency resolution, Gradle creates an internal representation of the available link:{javadocPath}/org/gradle/api/artifacts/Configuration.html[Configuration]s.
@@ -2308,6 +2396,7 @@ For example, avoid doing something like this:
     }
 ----
 
+[[v8_2_deprecations]]
 === Deprecations
 
 [[compile_options_generated_sources_directory]]
@@ -2791,6 +2880,7 @@ To avoid these conflicts, this behavior is deprecated and will be removed in Gra
 
 To prepare for this change in behavior, either declare the required dependencies explicitly or migrate to link:jvm_test_suite_plugin.html[Test Suites], where these dependencies are managed automatically.
 
+[[v8_2_test_suites]]
 ===== Test Suites
 
 Builds that use test suites will not be affected by this change.
@@ -2798,6 +2888,7 @@ Test suites manage the test
 framework dependencies automatically and do not require dependencies to be explicitly declared.
 See link:jvm_test_suite_plugin.html[the user manual] for further information on migrating to test suites.
 
+[[v8_2_manually_declaring_dependencies]]
 ===== Manually declaring dependencies
 
 In the absence of test suites, dependencies must be manually declared on the test runtime classpath:
@@ -2940,8 +3031,10 @@ As such, all properties originally mentioned in the feature documentation (which
 Note that the original `org.gradle.unsafe.configuration-cache...` properties continue to be honored in this release,
 and no warnings will be produced if they are used, but they will be deprecated and removed in a future release.
 
+[[v8_1_potential_breaking_changes]]
 === Potential breaking changes
 
+[[v8_1_kotlin_dsl_scripts_emit_compilation_warnings]]
 ==== Kotlin DSL scripts emit compilation warnings
 
 Compilation warnings from Kotlin DSL scripts are printed to the console output.
@@ -2949,6 +3042,7 @@ For example, the use of deprecated APIs in Kotlin DSL will emit warnings each ti
 
 This is a potentially breaking change if you are consuming the console output of Gradle builds.
 
+[[v8_1_configuring_kotlin_compiler_options_with_kotlin_dsl_plugin]]
 ==== Configuring Kotlin compiler options with the `kotlin-dsl` plugin applied
 
 If you are configuring custom Kotlin compiler options on a project with the <<kotlin_dsl.adoc#sec:kotlin-dsl_plugin, kotlin-dsl>> plugin applied you might encounter a breaking change.
@@ -3008,6 +3102,7 @@ tasks.withType(KotlinCompile::class).configureEach {
 
 If you were already adding to `freeCompilerArgs` instead of setting its value, you should not experience a build failure.
 
+[[v8_1_new_api_introduced_may_clash_with_existing_gradle_dsl_code]]
 ==== New API introduced may clash with existing Gradle DSL code
 
 When a new property or method is added to an existing type in the Gradle DSL, it may clash with names already used in user code.
@@ -3019,6 +3114,7 @@ This is a non-exhaustive list of API additions in 8.1 that may cause name collis
 * link:{javadocPath}/org/gradle/api/tasks/JavaExec.html#getJvmArguments--[`JavaExec.getJvmArguments()`]
 * link:{javadocPath}/org/gradle/process/JavaExecSpec.html#getJvmArguments--[`JavaExecSpec.getJvmArguments()`]
 
+[[v8_1_using_unsupported_api_to_start_external_processes_at_configuration_time]]
 ==== Using unsupported API to start external processes at configuration time is no longer allowed with the configuration cache enabled
 
 Since Gradle 7.5, using `Project.exec`, `Project.javaexec`, and standard Java and Groovy APIs to run external processes at configuration time has been considered an error only if the <<configuration_cache_enabling.adoc#config_cache:stable,feature preview `STABLE_CONFIGURATION_CACHE`>> was enabled.
@@ -3027,6 +3123,7 @@ The <<configuration_cache_requirements.adoc#config_cache:requirements:external_p
 
 Builds that do not use the configuration cache, or only start external processes at execution time are not affected by this change.
 
+[[v8_1_deprecations]]
 === Deprecations
 
 [[configurations_allowed_usage]]
@@ -3342,6 +3439,7 @@ Note that it is not an error when no test sources are present, in this case the 
 It is only an error when test sources are present, but no test was selected for execution.
 This is changed to avoid accidental successful test runs due to erroneous configuration.
 
+[[v8_1_changes_in_the_ide_integration]]
 === Changes in the IDE integration
 
 [[kotlin_dsl_plugins_catalogs_workaround]]

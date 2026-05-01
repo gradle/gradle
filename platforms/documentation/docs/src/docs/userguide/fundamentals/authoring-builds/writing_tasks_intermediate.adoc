@@ -24,6 +24,7 @@ This might be compiling some classes, creating a JAR, generating Javadoc, or pub
 
 When a user runs `./gradlew build` in the command line, Gradle will execute the `build` *task* along with any other tasks it depends on.
 
+[[sec:task_types]]
 == Task Types
 
 A *task type* defines what kind of work a *task* can do.
@@ -61,7 +62,7 @@ $ ./gradlew hello
 ----
 [source,text]
 ----
-include::{snippetsPath}/tutorial/hello/tests/hello.out[]
+include::{snippetsPath}/fundamentals/authoring-builds/hello/tests/hello.out[]
 ----
 
 When you *register* (i.e. create) a *task* in your build script, you can:
@@ -77,6 +78,7 @@ include::sample[dir="snippets/fundamentals/authoring-builds/taskTutorial/kotlin"
 include::sample[dir="snippets/fundamentals/authoring-builds/taskTutorial/groovy", files="build.gradle[tags=copy]"]
 ====
 
+[[sec:built_in_task_types]]
 == Built-in Task Types
 
 ++++
@@ -98,7 +100,7 @@ include::sample[dir="snippets/fundamentals/authoring-builds/incrementalTask/kotl
 include::sample[dir="snippets/fundamentals/authoring-builds/incrementalTask/groovy",files="build.gradle[tags=removed-output]"]
 ====
 
-There are many *task types* developers can take advantage of, including `GroovyDoc`, `Zip`, `Jar`, `JacocoReport`, `Sign`, or `Delete`, which are detailed in the link:link:{groovyDslPath}/org.gradle.api.plugins.antlr.AntlrTask.html[DSL].
+There are many *task types* developers can take advantage of, including `GroovyDoc`, `Zip`, `Jar`, `JacocoReport`, `Sign`, or `Delete`, which are detailed in the link:{groovyDslPath}/org.gradle.api.plugins.antlr.AntlrTask.html[DSL].
 
 [[sec:sample_task]]
 == Custom Task Types
@@ -197,6 +199,7 @@ If nothing changes, the *task* is skipped.
 </p>
 ++++
 
+[[sec:task_action]]
 == Task Action
 
 *Task actions* are the blocks of code that define what the *custom task* does when it runs.
@@ -230,6 +233,7 @@ include::sample[dir="snippets/fundamentals/authoring-builds/hello/groovy", files
 In this example, the *action* is `println("Hello world!")`.
 It will run when the *task* is executed.
 
+[[sec:task_group_and_description]]
 == Task Group and Description
 
 **Group** and **description** are metadata properties used to organize and document tasks.
@@ -264,7 +268,7 @@ $ gradle -q intro
 ----
 [source,text]
 ----
-include::{snippetsPath}/tutorial/intro/tests/intro.out[]
+include::{snippetsPath}/fundamentals/authoring-builds/intro/tests/intro.out[]
 ----
 
 ++++
@@ -289,7 +293,7 @@ $ ./gradlew -q taskX
 ----
 [source,text]
 ----
-include::{snippetsPath}/tutorial/lazyDependsOn/tests/lazyDependsOn.out[]
+include::{snippetsPath}/fundamentals/authoring-builds/lazyDependsOn/tests/lazyDependsOn.out[]
 ----
 
 The `hello` *task* from the previous example is updated to include a dependency:
@@ -339,7 +343,7 @@ $ ./gradlew -q hello
 ----
 [source,text]
 ----
-include::{snippetsPath}/tutorial/helloEnhanced/tests/helloEnhanced.out[]
+include::{snippetsPath}/fundamentals/authoring-builds/helloEnhanced/tests/helloEnhanced.out[]
 ----
 
 TIP: The calls `doFirst` and `doLast` can be executed multiple times.
@@ -348,6 +352,7 @@ When the task executes, the actions in the action list are executed in order.
 
 A task is optionally *configured* in a build script using the link:{javadocPath}/org/gradle/api/tasks/TaskCollection.html[`TaskCollection.named()`] method.
 
+[[sec:task_classification]]
 == Task Classification
 
 There are two classes of tasks that can be executed:
@@ -357,6 +362,7 @@ There are two classes of tasks that can be executed:
 
 Typically, a *lifecycle* tasks depends on many *actionable* tasks, and is used to execute many tasks at once.
 
+[[sec:task_performance]]
 == Task Performance
 
 To write "good" Gradle tasks, you should focus on three things: **speed**, **clarity**, and **intelligence**.

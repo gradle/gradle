@@ -98,6 +98,7 @@ By default, Gradle attempts to use all schemes supported by the http://hc.apache
 However, you may want to explicitly specify which authentication schemes should be used when interacting with a remote server.
 When explicitly declared, only those specified schemes will be used.
 
+[[sec:basic_authentication]]
 ==== Basic authentication
 
 You can specify credentials for Maven repositories secured by basic authentication using link:{javadocPath}/org/gradle/api/credentials/PasswordCredentials.html[PasswordCredentials]:
@@ -107,6 +108,7 @@ include::sample[dir="snippets/reference/dependency-management/declaring-reposito
 include::sample[dir="snippets/reference/dependency-management/declaring-repositories/defineRepository/groovy",files="build.gradle[tags=authenticated-maven-repo]"]
 ====
 
+[[sec:digest_authentication]]
 ==== Digest Authentication
 
 To configure a repository to use only link:{javadocPath}/org/gradle/authentication/http/DigestAuthentication.html[DigestAuthentication]:
@@ -116,6 +118,7 @@ include::sample[dir="snippets/reference/dependency-management/declaring-reposito
 include::sample[dir="snippets/reference/dependency-management/declaring-repositories/defineRepository/groovy",files="build.gradle[tags=digest-authentication]"]
 ====
 
+[[sec:supported_authentication_schemes]]
 ==== Supported Authentication Schemes
 
 link:{javadocPath}/org/gradle/authentication/http/BasicAuthentication.html[BasicAuthentication]::
@@ -280,16 +283,19 @@ include::sample[dir="snippets/reference/dependency-management/declaring-reposito
 
 In this example, the username and password are automatically looked up from properties named `mySecureRepositoryUsername` and `mySecureRepositoryPassword`.
 
+[[sec:configuration_property_prefix]]
 === Configuration property prefix
 
 The configuration property prefix, known as the *identity*, is derived from the repository name.
 Credentials can be provided through any of the supported Gradle property mechanisms: `gradle.properties` file, command-line arguments, environment variables, or a combination of these.
 
+[[sec:conditional_credential_requirement]]
 === Conditional credential requirement
 
 Credentials are only required when the build process needs them. For example, if a project is configured to publish artifacts to a secured repository, but the publishing task isn't invoked, Gradle won’t require the credentials.
 However, if a task requiring credentials is part of the build process, Gradle will check for their presence before running any tasks to prevent build failures due to missing credentials.
 
+[[sec:supported_credential_types]]
 === Supported credential types
 
 Lookup is only supported for the credential types listed in the table below:

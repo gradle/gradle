@@ -36,59 +36,8 @@ That parameter tells Gradle that the action only wants to process the changed in
 
 In addition, the task needs to declare at least one incremental file input property by using either link:{javadocPath}/org/gradle/work/Incremental.html[`@Incremental`] or link:{javadocPath}/org/gradle/api/tasks/SkipWhenEmpty.html[`@SkipWhenEmpty`]:
 
-====
-[.multi-language-sample]
-=====
-[source,kotlin]
-.build.gradle.kts
-----
-public class IncrementalReverseTask : DefaultTask() {
-
-    @get:Incremental
-    @get:InputDirectory
-    val inputDir: DirectoryProperty = project.objects.directoryProperty()
-
-    @get:OutputDirectory
-    val outputDir: DirectoryProperty = project.objects.directoryProperty()
-
-    @get:Input
-    val inputProperty: RegularFileProperty = project.objects.fileProperty() // File input property
-
-    @TaskAction
-    fun execute(inputs: InputChanges) { // InputChanges parameter
-        val msg = if (inputs.isIncremental) "CHANGED inputs are out of date"
-                  else "ALL inputs are out of date"
-        println(msg)
-    }
-}
-----
-=====
-[.multi-language-sample]
-=====
-[source,groovy]
-.build.gradle
-----
-class IncrementalReverseTask extends DefaultTask {
-
-    @Incremental
-    @InputDirectory
-    def File inputDir
-
-    @OutputDirectory
-    def File outputDir
-
-    @Input
-    def inputProperty // File input property
-
-    @TaskAction
-    void execute(InputChanges inputs) { // InputChanges parameter
-        println inputs.incremental ? "CHANGED inputs are out of date"
-                                   : "ALL inputs are out of date"
-    }
-}
-----
-=====
-====
+include::sample[dir="snippets/reference/task-development/customTasks-incrementalTask/kotlin",files="build.gradle.kts[tags=incremental-task]"]
+include::sample[dir="snippets/reference/task-development/customTasks-incrementalTask/groovy",files="build.gradle[tags=incremental-task]"]
 
 [IMPORTANT]
 ====
@@ -301,7 +250,7 @@ The setter method for the property is annotated with link:{javadocPath}/org/grad
 [source,java]
 .UrlVerify.java
 ----
-include::{snippetsPath}/tasks/commandLineOption-stringOption/common/buildSrc/src/main/java/UrlVerify.java[tag=custom-task-implementation]
+include::{snippetsPath}/reference/task-development/commandLineOption-stringOption/common/buildSrc/src/main/java/UrlVerify.java[tag=custom-task-implementation]
 ----
 
 All options declared for a task can be <<#sec:listing_task_options,rendered as console output>> by running the `help` task and the `--task` option.
@@ -329,7 +278,7 @@ $ ./gradlew -q verifyUrl --url=http://www.google.com/
 ----
 [source,text]
 ----
-include::{snippetsPath}/tasks/commandLineOption-stringOption/tests/taskCommandLineOption.out[]
+include::{snippetsPath}/reference/task-development/commandLineOption-stringOption/tests/taskCommandLineOption.out[]
 ----
 
 [[sec:supported_task_option_data_types]]
@@ -408,7 +357,7 @@ The task implementation provides a list of available values for the option `outp
 [source,java]
 .UrlProcess.java
 ----
-include::{snippetsPath}/tasks/commandLineOption-optionValues/common/buildSrc/src/main/java/UrlProcess.java[tag=custom-task-implementation]
+include::{snippetsPath}/reference/task-development/commandLineOption-optionValues/common/buildSrc/src/main/java/UrlProcess.java[tag=custom-task-implementation]
 ----
 
 [[sec:listing_task_options]]
@@ -425,9 +374,10 @@ $ ./gradlew -q help --task processUrl
 ----
 [source,text]
 ----
-include::{snippetsPath}/tasks/commandLineOption-optionValues/tests-kotlin/helpTaskOptions.kotlin.out[]
+include::{snippetsPath}/reference/task-development/commandLineOption-optionValues/tests-kotlin/helpTaskOptions.kotlin.out[]
 ----
 
+[[limitations]]
 === Limitations
 
 Support for declaring command line options currently comes with a few limitations.
@@ -439,6 +389,7 @@ There's no programmatic equivalent for defining options.
 - If you specify a task option name that conflicts with the name of a built-in Gradle option, use the `--` delimiter before calling your task to reference that option.
 For more information, see <<command_line_interface.adoc#sec:disambiguate_task_options_from_built_in_options, Disambiguate Task Options from Built-in Options>>.
 
+[[sec:verification_failures]]
 == Verification failures
 
 Normally, exceptions thrown during task execution result in a failure that immediately terminates a build.

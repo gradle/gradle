@@ -12,34 +12,40 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+[[caching_android_projects]]
 = Caching Android projects
 
 While it is true that Android uses the Java toolchain as its foundation, there are nevertheless some significant differences from pure Java projects; these differences impact task cacheability.
 This is even more true for Android projects that include Kotlin source code (and therefore use the `kotlin-android` plugin).
 
+[[android_disambiguation]]
 == Disambiguation
 
 This guide is about Gradle’s build cache, but you may have also heard about the Android build cache.
 These are different things.
 The Android cache is internal to certain tasks in the Android plugin, and will eventually be removed in favor of native Gradle support.
 
+[[android_why_use_build_cache]]
 == Why use the build cache?
 
 The build cache can _significantly_ improve build performance for Android projects, in many cases by 30-40%.
 Many of the compilation and assembly tasks provided by the Android Gradle Plugin are cacheable, and more are made so with each new iteration.
 
+[[android_faster_ci_builds]]
 === Faster CI builds
 
 CI builds benefit particularly from the build cache.
 A typical CI build starts with a `clean`, which means that pre-existing build outputs are deleted and none of the tasks that make up the build will be `UP-TO-DATE`.
 However, it is likely that many of those tasks will have been run with exactly the same inputs in a prior CI build, populating the build cache; the outputs from those prior runs can safely be reused, resulting in dramatic build performance improvements.
 
+[[android_reusing_ci_builds]]
 === Reusing CI builds for local development
 
 When you sign into work at the start of your day, it’s not unusual for your first task to be pulling the main branch and then running a build (Android Studio will probably do the latter, whether you ask it to or not).
 Assuming all merges to main are built on CI (a best practice!), you can expect this first local build of the day to enjoy a larger-than-typical benefit with Gradle’s _remote cache_.
 CI already built this commit -- why should you re-do that work?
 
+[[android_switching_branches]]
 === Switching branches
 
 During local development, it is not uncommon to switch branches several times per day.
@@ -49,6 +55,7 @@ You then switch to Branch B to conduct a code review, help a colleague, or addre
 You then switch back to Branch A to continue your original work.
 When you next build, all of the outputs previously built while working on Branch A can be reused from the cache, saving potentially a lot of time.
 
+[[android_gradle_plugin]]
 == The Android Gradle Plugin
 
 Android Studio users should use the latest Android Gradle Plugin to ensure compatibility and benefit from performance improvements in new releases.
@@ -57,10 +64,12 @@ The first thing you should always do when working to optimize your build is ensu
 At the time of writing, they are 3.3.0 and 5.0, respectively.
 Each new version of these tools includes many performance improvements, not least of which is to the build cache.
 
+[[android_java_and_kotlin_compilation]]
 == Java and Kotlin compilation
 
 The <<caching_java_projects.adoc#java_compilation,discussion>> above in "Caching Java projects" is equally relevant here, with the caveat that, for projects that include Kotlin source code, the Kotlin compiler does not currently support <<java_plugin.adoc#sec:java_compile_avoidance,compile avoidance>> in the way that the Java compiler does.
 
+[[android_annotation_processors_and_kotlin]]
 == Annotation processors and Kotlin
 
 The <<caching_java_projects.adoc#annotation_processors,advice above>> for pure Java projects also applies to Android projects.
@@ -73,16 +82,19 @@ include::sample[dir="snippets/optimizing-builds/build-cache/caching-android-proj
 include::sample[dir="snippets/optimizing-builds/build-cache/caching-android-projects/groovy",files="build.gradle[tags=cacheKapt]"]
 ====
 
+[[android_unit_test_execution]]
 == Unit test execution
 
 Like unit tests in a pure Java project, the equivalent test task in an Android project (`AndroidUnitTest`) is also cacheable since Android Gradle Plugin 3.6.0.
 
+[[android_instrumented_test_execution]]
 == Instrumented test execution (i.e., Espresso tests)
 
 Android instrumented tests (`DeviceProviderInstrumentTestTask`), often referred to as "Espresso" tests, are also not cacheable.
 The Google Android team is also working to make such tests cacheable.
 Please see https://issuetracker.google.com/issues/115873051[this issue].
 
+[[android_lint]]
 == Lint
 
 Users of Android’s `Lint` task are well aware of the heavy performance penalty they pay for using it, but also know that it is indispensable for finding common issues in Android projects.
@@ -90,6 +102,7 @@ Currently, this task is not cacheable.
 This task is planned to be cacheable with the release of Android Gradle Plugin 3.5.
 This is another reason to always use the latest version of the Android plugin!
 
+[[android_fabric_plugin_and_crashlytics]]
 == The Fabric Plugin and Crashlytics
 
 The https://docs.fabric.io/android/fabric/overview.html[Fabric] plugin, which is used to integrate the Crashlytics crash-reporting tool (among others), is very popular, yet imposes some hefty performance penalties during the build process.
@@ -102,6 +115,7 @@ You may find instructions for that in the https://docs.fabric.io/android/crashly
 
 NOTE: The fix described in the referenced documentation does not work directly if you are using the Kotlin DSL; see below for the workaround.
 
+[[android_fabric_kotlin_dsl]]
 === Kotlin DSL
 
 The fix described in the referenced documentation does not work directly if you are using the Kotlin DSL; this is due to incompatibilities between that Kotlin DSL and the Fabric plugin.

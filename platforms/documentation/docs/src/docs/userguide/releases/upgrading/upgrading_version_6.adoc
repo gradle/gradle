@@ -38,8 +38,10 @@ The previous step will help you identify potential problems by issuing deprecati
 [[changes_7.0]]
 == Upgrading from 6.9 and earlier
 
+[[v6_changes_in_the_ide_integration]]
 === Changes in the IDE integration
 
+[[v6_changes_in_the_idea_model]]
 ==== Changes in the IDEA model
 
 The `getGeneratedSourceDirectories()` and `getGeneratedTestDirectories()` methods are removed from the `IdeaContentRoot` interface.
@@ -56,6 +58,7 @@ Head over to <<dependency_locking.adoc#sec:migrate-single-lockfile,the documenta
 The migration can be performed per configuration and does not have to be done in a single step.
 Gradle will automatically clean up previous lock files when migrating them over to the new file format.
 
+[[v6_gradle_module_metadata_is_now_reproducible_by_default]]
 === Gradle Module Metadata is now reproducible by default
 
 The `buildId` field will not be populated by default to ensure that the produced metadata file remains unchanged when no build inputs are changed.
@@ -71,13 +74,16 @@ We recommend that you consider <<declaring_repositories.adoc#three-declaring-rep
 
 Gradle emits a deprecation warning when `jcenter()` is used as a repository and this method is scheduled to be removed in Gradle 8.0.
 
+[[v6_potential_breaking_changes_7_0]]
 === Potential breaking changes
 
+[[v6_updates_to_bundled_gradle_dependencies_7_0]]
 ==== Updates to bundled Gradle dependencies
 
 - Kotlin has been updated to https://kotlinlang.org/docs/reference/whatsnew1430.html[Kotlin 1.4.31].
 - Groovy has been updated to https://groovy-lang.org/releasenotes/groovy-3.0.html[Groovy 3.0.7].
 
+[[v6_changes_to_groovy_and_groovy_dsl]]
 ==== Changes to Groovy and Groovy DSL
 
 Due to the update to the next major version of Groovy, you may experience minor issues when upgrading to Gradle 7.0.
@@ -87,6 +93,7 @@ If you encounter syntax errors, check the https://groovy.apache.org/#reporting-i
 
 https://issues.apache.org/jira/browse/GROOVY-9936[Some very specific regressions] have already been fixed in the next minor version of Groovy.
 
+[[v6_groovy_modularization]]
 ===== Groovy modularization
 
 Gradle no longer embeds a copy of `groovy-all` that bundles all Groovy modules into a single jar--only the most important modules are distributed in the Gradle distribution.
@@ -122,13 +129,15 @@ But the following Groovy modules are *not* included:
 
 You can pull these dependencies into your build like any other external dependency.
 
+[[v6_building_gradle_plugins_with_groovy_3]]
 ===== Building Gradle plugins with Groovy 3
 
 Plugins built with Gradle 7.0 will now have Groovy 3 on their classpath when using `gradleApi()` or `localGroovy()`.
 
 NOTE: If you use https://spockframework.org/[Spock] to test your plugins, you will need to use Spock 2.x. There are no compatible versions of Spock 1.x and Groovy 3.
 
-```
+[source,groovy]
+----
 dependencies {
     // Ensure you use the Groovy 3.x variant
     testImplementation('org.spockframework:spock-core:2.0-groovy-3.0') {
@@ -140,8 +149,9 @@ dependencies {
 tasks.withType(Test).configureEach {
     useJUnitPlatform()
 }
-```
+----
 
+[[v6_performance]]
 ===== Performance
 
 Depending on the number of subprojects and Groovy DSL build scripts, you may notice a performance regression when compiling build scripts for the first time or when changes are made to the build script's classpath.
@@ -149,15 +159,18 @@ This is due to the slower performance of the Groovy 3 parser, but the Groovy tea
 
 In general, we are also looking at how we can improve the performance of build script compilation for both Groovy DSL and Kotlin DSL.
 
+[[v6_encountering_could_not_find_method]]
 ===== Encountering 'Could not find method X for arguments Y on DefaultDependencyHandler'
 
 While the following error initially looks like a compile error, it is actually due to the fact that specific `Configuration`s have been removed.
 Please refer to <<sec:configuration_removal>> for more details.
 
-```
+[source,text]
+----
 Could not find method testCompile() for arguments [DefaultExternalModuleDependency{group='org.junit', name='junit-bom', version='5.7.0', configuration='default'}] on object of type org.gradle.api.internal.artifacts.dsl.dependencies.DefaultDependencyHandler.
-```
+----
 
+[[v6_updates_to_default_tool_integration_versions_7_0]]
 ==== Updates to default tool integration versions
 
 - PMD has been updated to https://github.com/pmd/pmd/releases/tag/pmd_releases%2F6.31.0[PMD 6.31.0].
@@ -209,17 +222,19 @@ When using the Groovy DSL, you need to watch out for a particular upgrade proble
 If you were creating custom configurations that extend one of the removed configurations, Gradle may silently create configurations that do not exist.
 
 This looks something like:
-```
+[source,groovy]
+----
 configurations {
   // This silently creates a configuration called "runtime"
   myConf extendsFrom runtime
 }
-```
+----
 
 The result of dependency resolution for your custom configuration may not be the same as Gradle 6.x or before.
 You may notice missing dependencies or artifacts.
 --
 
+[[v6_location_of_temporary_project_files_for_project_builder]]
 ==== Location of temporary project files for `ProjectBuilder`
 
 The `ProjectBuilder` API is used for inspecting Gradle builds in unit tests. This API used to create temporary project files under the system temporary directory as defined by `java.io.tmpdir`.
@@ -229,6 +244,7 @@ This may cause test failures when the test expects particular file paths.
 
 If the test uses `ProjectBuilder.withProjectDir(...)`, it is unaffected.
 
+[[v6_location_of_temporary_files_for_testkit_tests]]
 ==== Location of temporary files for TestKit tests
 
 Tests that use the <<test_kit#test_kit, TestKit>> API used to create temporary files under the system temporary directory as defined by `java.io.tmpdir`.
@@ -240,6 +256,7 @@ This may cause test failures when the test expects particular file paths.
 
 If the test uses `GradleRunner.withTestKitDir(...)`, it is unaffected.
 
+[[v6_file_system_watching_with_testkit_on_windows]]
 ==== File system watching with TestKit on Windows
 
 The file system watching implementation on Windows adds a lock to the root project directory in order to watch for changes.
@@ -248,6 +265,7 @@ For example, tests that use TestKit together with JUnit's `@TempDir` extension, 
 To avoid problems with these file locks, `<<test_kit#test_kit,TestKit>>` disables file system watching for builds executed on Windows via `GradleRunner`.
 If you'd like to override the default behavior, you can enable file system watching by passing `--watch-fs` to `GradleRunner.withArguments()`.
 
+[[v6_removal_of_the_legacy_maven_plugin]]
 ==== Removal of the legacy `maven` plugin
 
 The `maven` plugin has been removed.
@@ -255,6 +273,7 @@ You should use the `maven-publish` plugin instead.
 
 Please refer to the <<publishing_maven.adoc#publishing_maven, documentation of the Maven Publish plugin>> for more details.
 
+[[v6_removal_of_the_upload_archives_task]]
 ==== Removal of the `uploadArchives` task
 
 The `uploadArchives` task was used in combination with the legacy Ivy or Maven publishing mechanisms.
@@ -264,6 +283,7 @@ You should migrate to the `maven-publish` or `ivy-publish` plugin instead.
 Please refer to the <<publishing_maven.adoc#publishing_maven, documentation of the Maven Publish plugin>> for publishing on Maven repositories.
 Please refer to the <<publishing_ivy.adoc#publishing_ivy, documentation of the Ivy Publish plugin>> for publishing on Ivy repositories.
 
+[[v6_changes_in_dependency_version_sorting]]
 ==== Changes in dependency version sorting
 
 In the context of dependency version sorting, a `-SNAPSHOT` version is now considered to be right before a final release but after any `-RC` version.
@@ -272,11 +292,13 @@ This brings the Gradle algorithm closer to the Maven one for well-known version 
 
 Have a look at <<dependency_versions.adoc#sec:single-version-declarations,the documentation>> for all the rules Gradle applies.
 
+[[v6_removal_of_play_framework_plugins]]
 ==== Removal of Play Framework plugins
 
 The deprecated Play plugins have been removed.
 An external replacement, the link:https://gradle.github.io/playframework[Play Framework plugin], is available from the plugin portal.
 
+[[v6_removal_of_deprecated_jvm_plugins]]
 === Removal of deprecated JVM plugins
 
 These unmaintained alternative JVM plugins have been removed:
@@ -284,6 +306,7 @@ These unmaintained alternative JVM plugins have been removed:
 
 Please use the stable <<java_library_plugin.adoc#java_library_plugin,Java Library>> and <<scala_plugin.adoc#scala_plugin,Scala>> plugins instead.
 
+[[v6_removal_of_experimental_javascript_plugins]]
 ==== Removal of experimental JavaScript plugins
 
 The following plugins for experimental JavaScript integration are now removed from the distribution:
@@ -291,10 +314,12 @@ The following plugins for experimental JavaScript integration are now removed fr
 
 If you used these plugins despite their experimental nature, you may find suitable replacements in the https://plugins.gradle.org/[Plugin Portal].
 
+[[v6_configuring_the_layout_of_an_ivy_repository]]
 ==== Configuring the layout of an Ivy repository
 
 The `layout` method taking a configuration block has been removed and is replaced by link:{groovyDslPath}/org.gradle.api.artifacts.repositories.IvyArtifactRepository.html#org.gradle.api.artifacts.repositories.IvyArtifactRepository:patternLayout(org.gradle.api.Action)[patternLayout].
 
+[[v6_executing_a_gradle_build_without_a_settings_file_is_now_an_error]]
 ==== Executing a Gradle build without a settings file is now an error
 
 A Gradle build is defined by its `settings.gradle(.kts)` file found in the current or parent directory.
@@ -304,6 +329,7 @@ To fix this error, <<settings_file_basics.adoc#sec:settings_file_script,create a
 
 Exceptions to this are invoking Gradle with the `init` task or using diagnostic command line flags, such as `--version`.
 
+[[v6_calling_project_after_evaluate_after_project_evaluation_is_now_an_error]]
 ==== Calling Project.afterEvaluate() after project evaluation is now an error
 
 Gradle 6.x warns users about the wrong behavior and ignores the target action in this scenario.
@@ -311,23 +337,28 @@ Starting from 7.0 the same case will produce an error. Plugins and build scripts
 If you have such a build failure and the related `afterEvaluate` statement is declared in your build sources then you can simply delete it.
 If `afterEvaluate` is declared in a plugin then report the issue to the plugin maintainers.
 
+[[v6_modifying_file_collections_after_values_finalized_is_now_an_error]]
 === Modifying file collections after values finalized is now an error
 
 Calling any mutator methods (i.e. `clear()`, `add()`, `remove()`, etc.) on `ConfigurableFileCollection` after the stored value calculated throws an exception.
 Users and plugin authors should adjust their code such that all configuration on `ConfigurableFileCollection` happens during configuration time, before the values are read.
 
+[[v6_removal_of_project_layout_configurable_files]]
 ==== Removal of `ProjectLayout#configurableFiles`
 
 Please use `ObjectFactory#fileCollection()` instead.
 
+[[v6_removal_of_base_plugin_convention_libs_dir_and_dists_dir]]
 ==== Removal of `BasePluginConvention.libsDir` and `BasePluginConvention.distsDir`
 
 Please use the `libsDirectory` and `distsDirectory` properties instead.
 
+[[v6_removal_of_unable_to_delete_file_exception]]
 ==== Removal of `UnableToDeleteFileException`
 
 Existing usages should be replaced with `RuntimeException`.
 
+[[v6_properties_removed_in_checkstyle_and_pmd_plugins]]
 ==== Properties removed in Checkstyle and PMD plugins
 
 * The `configDir` getters and setters have been removed from the Checkstle task and extension.
@@ -335,25 +366,30 @@ Use the `configDirectory` property instead.
 * The `rulePriority` getter and setter have been removed from the Pmd task and extension.
 Use the `rulesMinimumPriority` property instead.
 
+[[v6_removal_of_base_name_property_in_distribution_plugin]]
 ==== Removal of `baseName` property in `distribution` plugin
 
 The `getBaseName()` and `setBaseName()` methods were removed from the `Distribution` class. Clients should replace the usages with the `distributionBaseName` property.
 
+[[v6_using_abstract_task]]
 ==== Using `AbstractTask`
 
 Registering a task with the `AbstractTask` type or with a type extending `AbstractTask` was deprecated in Gradle 6.5 and is now an error in Gradle 7.0.
 You can use link:{javadocPath}/org/gradle/api/DefaultTask.html[DefaultTask] instead.
 
+[[v6_removal_of_build_listener_build_started]]
 ==== Removal of `BuildListener.buildStarted(Gradle)`
 
 `BuildListener.buildStarted(Gradle)` was deprecated in Gradle 6.0 and is now removed in Gradle 7.0.
 Please use link:{javadocPath}/org/gradle/BuildListener.html#beforeSettings-org.gradle.api.initialization.Settings-[BuildListener.beforeSettings(Settings)] instead.
 
+[[v6_removal_of_unused_start_parameter_apis]]
 ==== Removal of unused `StartParameter` APIs
 
 The following APIs, which were not usable via command line options anymore since Gradle 5.0, are now removed:
 `StartParameter.useEmptySettings()`, `StartParameter.isUseEmptySettings()`, `StartParameter.setSearchUpwards(boolean)` and `StartParameter.isSearchUpwards()`.
 
+[[v6_removal_of_searching_for_settings_files_in_master_directories]]
 ==== Removal of searching for settings files in 'master' directories
 
 Gradle no longer supports discovering the settings file in a directory named `master` in a sibling directory.
@@ -362,6 +398,7 @@ You can find more information about <<multi_project_builds.adoc#multi_project_bu
 Alternatively, you can still run tasks in builds like this by invoking the build from the `master` directory only using a
 <<multi_project_builds_intermediate.adoc#sec:executing_tasks_by_fully_qualified_name,fully qualified path to the task>>.
 
+[[v6_modularity_infer_module_path_defaults_to_true]]
 ==== `modularity.inferModulePath` defaults to 'true'
 
 <<java_library_plugin.adoc#sec:java_library_modular,Compiling>>,
@@ -371,21 +408,25 @@ now works automatically for any source set that defines a module by containing a
 Usually, this is the behavior you need.
 If this is causing issues in cases you manually configure the module path, or use a 3rd party plugin for it, you can still opt out of this by setting `modularity.inferModulePath` to `false` on the java extension or individual tasks.
 
+[[v6_removal_of_validate_task_properties]]
 ==== Removal of `ValidateTaskProperties`
 
 The `ValidateTaskProperties` task has been removed and replaced by the link:{javadocPath}/org/gradle/plugin/devel/tasks/ValidatePlugins.html[ValidatePlugins] task.
 
+[[v6_removal_of_immutable_file_collection]]
 ==== Removal of `ImmutableFileCollection`
 
 The `ImmutableFileCollection` type has been removed.
 Use the link:{javadocPath}/org/gradle/api/file/ProjectLayout.html#files-java.lang.Object...-[factory method] instead.
 A handle to the project layout can be obtained via link:{javadocPath}/org/gradle/api/Project.html#getLayout--[Project.layout].
 
+[[v6_removal_of_component_selection_reason_get_description]]
 ==== Removal of `ComponentSelectionReason.getDescription`
 
 The method `ComponentSelectionReason.getDescription` has been removed.
 It is replaced by `ComponentSelectionReason.getDescriptions` which returns a list of `ComponentSelectionDescriptor`, each having a `getDescription`.
 
+[[v6_removal_of_domain_object_collection_constructors]]
 ==== Removal of domain object collection constructors
 
 The following deprecated constructors were removed:
@@ -395,41 +436,49 @@ The following deprecated constructors were removed:
 - DefaultPolymorphicDomainObjectContainer(Class, Instantiator)
 - FactoryNamedDomainObjectContainer(Class, Instantiator, NamedDomainObjectFactory)
 
+[[v6_removal_of_arbitrary_local_cache_configuration]]
 ==== Removal of arbitrary local cache configuration
 
 The local build cache configuration now needs to be done via link:{javadocPath}/org/gradle/caching/configuration/BuildCacheConfiguration.html#local-org.gradle.api.Action-[BuildCacheConfiguration.local()].
 
+[[v6_removal_of_default_version_selector_scheme_constructor]]
 ==== Removal of DefaultVersionSelectorScheme constructor
 
 This internal API was used in plugins, amongst other the https://github.com/nebula-plugins[Nebula plugins], and was deprecated in the Gradle 5.x timeline and is now removed.
 Latest plugins version should no longer reference it.
 
+[[v6_setting_the_config_loc_config_property_on_the_checkstyle_plugin_is_now_an_error]]
 ==== Setting the `config_loc` config property on the `checkstyle` plugin is now an error
 
 The `checkstyle` plugin now fails for the following configuration
-```
+[source,groovy]
+----
 checkstyle {
     configProperties['config_loc'] = file("path/to/checkstyle-config-dir")
 }
-```
+----
 Builds should declare the checkstyle configuration with the `checkstyle` block:
-```
+[source,groovy]
+----
 checkstyle {
     configDirectory = file("path/to/checkstyle-config-dir")
 }
-```
+----
 
+[[v6_querying_the_mapped_value_of_a_provider_before_the_producer_has_completed_is_now_an_error]]
 ==== Querying the mapped value of a provider before the producer has completed is now an error
 
 Gradle 6.x warns users about the wrong behavior and then returns a possibly incorrect provider value.
 Starting with 7.0 the same case will produce an error.
 Plugins and build scripts should be adjusted to query the mapped value of a provider, for example a task output property, after the task has completed.
 
+[[v6_task_validation_problems_are_now_errors]]
 ==== Task validation problems are now errors
 
 Gradle 6.0 started warning about problems with task definitions (such as incorrectly defined inputs or outputs).
 For Gradle 7.0, those warnings are now errors and will fail the build.
 
+[[v6_change_in_behavior_when_theres_a_strict_version_conflict_with_a_local_project]]
 ==== Change in behavior when there's a strict version conflict with a local project
 
 Previous Gradle releases had an inconsistent behavior in regard to conflict resolution in a particular configuration:
@@ -441,6 +490,7 @@ Starting from Gradle 7, this will trigger a dependency resolution failure.
 
 See https://github.com/gradle/gradle/issues/16706[this issue] for more context.
 
+[[v6_deprecations_7_0]]
 === Deprecations
 
 [[missing_dependencies]]
@@ -463,26 +513,31 @@ No upgrade notes from 6.8 to 6.9, as 6.9 only contains bug fixes.
 [[changes_6.8]]
 == Upgrading from 6.7 and earlier
 
+[[v6_potential_breaking_changes_6_8]]
 === Potential breaking changes
 
+[[v6_toolchain_api_is_now_marked_as_non_null]]
 ==== Toolchain API is now marked as @NonNull
 
 The API supporting the Java Toolchain feature in `org.gradle.jvm.toolchain` is now marked as `@NonNull`.
 
 This may impact Kotlin consumers where the return types of APIs are no longer nullable.
 
+[[v6_updates_to_default_tool_integration_versions_6_8]]
 ==== Updates to default tool integration versions
 
 - JaCoCo has been updated to http://www.jacoco.org/jacoco/trunk/doc/changes.html[0.8.6].
 - Checkstyle has been updated to https://checkstyle.sourceforge.io/releasenotes.html#Release_8.37[Checkstyle 8.37].
 - CodeNarc has been updated to https://github.com/CodeNarc/CodeNarc/blob/v2.0.0/CHANGELOG.md[CodeNarc 2.0.0].
 
+[[v6_updates_to_bundled_gradle_dependencies_6_8]]
 ==== Updates to bundled Gradle dependencies
 
 - Kotlin has been updated to https://blog.jetbrains.com/kotlin/2020/08/kotlin-1-4-released-with-a-focus-on-quality-and-performance/[Kotlin 1.4.20].
   Note that Gradle scripts are still using the Kotlin 1.3 language.
 - Apache Ant has been updated to 1.10.9 to fix https://github.com/gradle/gradle/security/advisories/GHSA-j45w-qrgf-25vm[CVE-2020-11979]
 
+[[v6_projects_imported_into_eclipse_now_include_custom_source_set_classpaths]]
 ==== Projects imported into Eclipse now include custom source set classpaths
 
 Previously, projects imported by Eclipse only included dependencies for the main and test source sets.
@@ -490,6 +545,7 @@ The compile and runtime classpaths of custom source sets were ignored.
 
 Since Gradle 6.8, projects imported into Eclipse include the compile and runtime classpath for every source set defined by the build.
 
+[[v6_source_task_is_no_longer_sensitive_to_empty_directories]]
 ==== SourceTask is no longer sensitive to empty directories
 
 Previously, empty directories would be taken into account during up-to-date checks and build cache key calculations for the sources declared in `SourceTask`.
@@ -498,15 +554,17 @@ In Gradle 6.8, `SourceTask` now ignores empty directories during doing up-to-dat
 In the vast majority of cases, this is the desired behavior, but it is possible that a task may extend `SourceTask` but also produce different outputs when empty directories are present in the sources.
 For tasks where this is a concern, you can expose a separate property without the `@IgnoreEmptyDirectories` annotation in order to capture those changes:
 
-```
+[source,java]
+----
 @InputFiles
 @SkipWhenEmpty
 @PathSensitive(PathSensitivity.ABSOLUTE)
 public FileTree getSourcesWithEmptyDirectories() {
     return super.getSource()
 }
-```
+----
 
+[[v6_changes_to_publications]]
 ==== Changes to publications
 
 Publishing a component which has a dependency on an enforced platform now triggers a validation error, preventing accidental publishing of bad metadata:
@@ -514,6 +572,7 @@ enforced platforms use cases should be limited to applications, not things which
 
 If, for some reason, you still want to publish components with dependencies on enforced platforms, you can disable the validation following the <<publishing_setup.adoc#sec:suppressing_validation_errors, documentation>>.
 
+[[v6_changing_default_excludes_during_the_execution_phase_6_8]]
 ==== Changing default excludes during the execution phase
 
 Gradle's file trees apply some default exclude patterns for convenience — the same defaults as Ant in fact.
@@ -523,6 +582,7 @@ Sometimes, Ant's default excludes prove problematic, for example when you want t
 Changing Gradle's default excludes during the execution phase can lead to correctness problems with up-to-date checks.
 As a consequence, you are only allowed to change Gradle's default excludes in the settings script, see the <<working_with_files.adoc#sec:change_default_excludes,user manual>> for an example.
 
+[[v6_deprecations_6_8]]
 === Deprecations
 
 [[referencing_tasks_from_included_builds]]
@@ -552,8 +612,10 @@ While the change should be transparent to Kotlin clients, Java clients calling K
 [[changes_6.7]]
 == Upgrading from 6.6 and earlier
 
+[[v6_potential_breaking_changes_6_7]]
 === Potential breaking changes
 
+[[v6_buildsrc_can_now_see_included_builds_from_the_root]]
 ==== buildSrc can now see included builds from the root
 
 Previously, `buildSrc` was built in such a way that included builds were ignored from the root build.
@@ -562,14 +624,17 @@ Since Gradle 6.7, `buildSrc` can see any included build from the root build.
 This may cause dependencies to be substituted from an included build in `buildSrc`.
 This may also change the order in which some builds are executed if an included build is needed by `buildSrc`.
 
+[[v6_updates_to_default_tool_integration_versions_6_7]]
 ==== Updates to default tool integration versions
 
 - PMD has been updated to https://github.com/pmd/pmd/releases/tag/pmd_releases%2F6.26.0[PMD 6.26.0].
 - Checkstyle has been updated to https://checkstyle.sourceforge.io/releasenotes.html#Release_8.35[Checkstyle 8.35].
 - CodeNarc has been updated to https://github.com/CodeNarc/CodeNarc/blob/v1.6.1/CHANGELOG.md[CodeNarc 1.6.1].
 
+[[v6_deprecations_6_7]]
 === Deprecations
 
+[[v6_changing_default_excludes_during_the_execution_phase_6_7]]
 ==== Changing default excludes during the execution phase
 
 Gradle's file trees apply some default exclude patterns for convenience — the same defaults as Ant in fact.
@@ -579,34 +644,40 @@ Sometimes, Ant's default excludes prove problematic, for example when you want t
 Changing Gradle's default excludes during the execution phase can lead to correctness problems with up-to-date checks, and is deprecated.
 You are only allowed to change Gradle's default excludes in the settings script, see the <<working_with_files.adoc#sec:change_default_excludes,user manual>> for an example.
 
+[[v6_using_a_configuration_directly_as_a_dependency]]
 ==== Using a Configuration directly as a dependency
 
 Gradle allowed instances of `Configuration` to be used directly as dependencies:
 
-```
+[source,groovy]
+----
 dependencies {
     implementation(configurations.myConfiguration)
 }
-```
+----
 
 This behavior is now deprecated as it is confusing: one could expect the "dependent configuration" to be resolved first and add the result of resolution as dependencies to the including configuration, which is not the case.
 The deprecated version can be replaced with the actual behavior, which is configuration inheritance:
 
-```
+[source,groovy]
+----
 configurations.implementation.extendsFrom(configurations.myConfiguration)
-```
+----
 
 
 [[changes_6.6]]
 == Upgrading from 6.5 and earlier
 
+[[v6_potential_breaking_changes_6_6]]
 === Potential breaking changes
 
+[[v6_updates_to_bundled_gradle_dependencies_6_6]]
 ==== Updates to bundled Gradle dependencies
 
 - Ant has been updated to https://downloads.apache.org/ant/RELEASE-NOTES-1.10.8.html[1.10.8].
 - Groovy has been updated to https://groovy-lang.org/changelogs/changelog-2.5.12.html[Groovy 2.5.12].
 
+[[v6_dependency_substitutions_and_variant_aware_dependency_resolution]]
 ==== Dependency substitutions and variant aware dependency resolution
 
 While adding support for expressing <<resolution_rules#sec:variant-aware-substitutions, variant support>> in dependency substitutions, a bug fix introduced a behaviour change that some builds may rely upon.
@@ -623,6 +694,7 @@ You can be affected by this change if you:
 
 See the <<resolution_rules#sec:variant-aware-substitutions, documentation>> for resolving issues if you are impacted.
 
+[[v6_deprecations_6_6]]
 === Deprecations
 
 No deprecations were made in Gradle 6.6.
@@ -630,17 +702,21 @@ No deprecations were made in Gradle 6.6.
 [[changes_6.5]]
 == Upgrading from 6.4 and earlier
 
+[[v6_potential_breaking_changes_6_5]]
 === Potential breaking changes
 
+[[v6_updates_to_bundled_gradle_dependencies_6_5]]
 ==== Updates to bundled Gradle dependencies
 
 - Kotlin has been updated to https://github.com/JetBrains/kotlin/releases/tag/v1.3.72[Kotlin 1.3.72].
 - Groovy has been updated to https://groovy-lang.org/changelogs/changelog-2.5.11.html[Groovy 2.5.11].
 
+[[v6_updates_to_default_tool_integration_versions_6_5]]
 ==== Updates to default tool integration versions
 
 - PMD has been updated to https://github.com/pmd/pmd/releases/tag/pmd_releases%2F6.23.0[PMD 6.23.0].
 
+[[v6_deprecations_6_5]]
 === Deprecations
 
 [[abstract_task_deprecated]]
@@ -656,6 +732,7 @@ No deprecations were made in Gradle 6.6.
 [[changes_6.4]]
 == Upgrading from 6.3 and earlier
 
+[[v6_potential_breaking_changes_6_4]]
 === Potential breaking changes
 
 [[upgrade:pmd_expects_6]]
@@ -665,26 +742,30 @@ Gradle 6.4 enabled incremental analysis by default.
 Incremental analysis is only available in PMD 6.0.0 or higher.
 If you want to use an older PMD version, you need to disable incremental analysis:
 
-```
+[source,groovy]
+----
 pmd {
     incrementalAnalysis = false
 }
-```
+----
 
+[[v6_changes_in_dependency_locking]]
 ==== Changes in dependency locking
 
 With Gradle 6.4, the incubating API for <<dependency_locking.adoc#sec:fine-tuning-dependency-locking-behaviour-with-lock-mode, dependency locking `LockMode`>> has changed.
 The value is now set via a `Property<LockMode>` instead of a direct setter.
 This means that the notation to set the value has to be updated for the Kotlin DSL:
 
-```
+[source,kotlin]
+----
 dependencyLocking {
     lockMode.set(LockMode.STRICT)
 }
-```
+----
 
 Users of the Groovy DSL should not be impacted as the notation `lockMode = LockMode.STRICT` remains valid.
 
+[[v6_java_versions_in_published_metadata]]
 ==== Java versions in published metadata
 
 If a Java library is published with Gradle Module Metadata, the information which Java version it supports is encoded in the `org.gradle.jvm.version` attribute.
@@ -693,11 +774,13 @@ If that was not configured, it was set to the current Java version running Gradl
 Changing the version of a particular compile task, e.g. `javaCompile.targetCompatibility` had no effect on that attribute, leading to wrong information if the attribute was not adjusted manually.
 This is now fixed and the attribute defaults to the setting of the compile task that is associated with the sources from which the published jar is built.
 
+[[v6_ivy_repositories_with_custom_layouts]]
 ==== Ivy repositories with custom layouts
 
 Gradle versions from 6.0 to 6.3.x included could generate bad Gradle Module Metadata when publishing on an Ivy repository which had a custom repository layout.
 Starting from 6.4, Gradle will no longer publish Gradle Module Metadata if it detects that you are using a custom repository layout.
 
+[[v6_new_properties_may_shadow_variables_in_build_scripts]]
 ==== New properties may shadow variables in build scripts
 
 This release introduces some new properties -- `mainClass`, `mainModule`, `modularity` -- in different places.
@@ -708,10 +791,12 @@ You can fix it by renaming the corresponding variable in the build script.
 Affected is configuration code inside the `application {}` and `java {}` configuration blocks, inside a java execution setup with `project.javaexec {}`, and inside various task configurations
 (`JavaExec`, `CreateStartScripts`, `JavaCompile`, `Test`, `Javadoc`).
 
+[[v6_updates_to_bundled_gradle_dependencies_6_4]]
 ==== Updates to bundled Gradle dependencies
 
 - Kotlin has been updated to https://github.com/JetBrains/kotlin/releases/tag/v1.3.71[Kotlin 1.3.71].
 
+[[v6_deprecations_6_4]]
 === Deprecations
 
 There were no deprecations between Gradle 6.3 and 6.4.
@@ -719,8 +804,10 @@ There were no deprecations between Gradle 6.3 and 6.4.
 [[changes_6.3]]
 == Upgrading from 6.2 and earlier
 
+[[v6_potential_breaking_changes_6_3]]
 === Potential breaking changes
 
+[[v6_fewer_dependencies_available_in_idea]]
 ==== Fewer dependencies available in IDEA
 
 Gradle no longer includes the annotation processor classpath as provided dependencies in IDEA.
@@ -731,24 +818,29 @@ Before Gradle introduced <<java_plugin.adoc#sec:incremental_annotation_processin
 This is no longer necessary because Gradle has a separate <<java_plugin.adoc#tab:configurations,annotation processor classpath>>.
 The dependencies for annotation processors are not added to an IDEA module's classpath when a Gradle project with annotation processors is imported.
 
+[[v6_updates_to_bundled_gradle_dependencies_6_3]]
 ==== Updates to bundled Gradle dependencies
 
 - Kotlin has been updated to https://blog.jetbrains.com/kotlin/2020/03/kotlin-1-3-70-released/[Kotlin 1.3.70].
 - Groovy has been updated to http://groovy-lang.org/changelogs/changelog-2.5.10.html[Groovy 2.5.10].
 
+[[v6_updates_to_default_tool_integration_versions_6_3]]
 ==== Updates to default tool integration versions
 
 - PMD has been updated to https://pmd.github.io/pmd-6.21.0/pmd_release_notes.html#24-january-2020---6210[PMD 6.21.0].
 - CodeNarc has been updated to https://github.com/CodeNarc/CodeNarc/blob/v1.5/CHANGELOG.md#version-15----nov-2019[CodeNarc 1.5].
 
+[[v6_rich_console_support_removed_for_some_32_bit_operating_systems]]
 ==== Rich console support removed for some 32-bit operating systems
 
 Gradle 6.3 does not support the <<command_line_interface.adoc#sec:rich_console, rich console>> for 32-bit Unix systems and for old FreeBSD versions (older than FreeBSD 10). Microsoft Windows 32-bit is unaffected.
 
 Gradle will continue building projects on 32-bit systems but will no longer show the rich console.
 
+[[v6_deprecations_6_3]]
 === Deprecations
 
+[[v6_using_default_and_archives_configurations]]
 ==== Using default and archives configurations
 
 Almost every Gradle project has the _default_ and _archives_ configurations which are added by the _base_ plugin.
@@ -762,8 +854,10 @@ For declaring dependencies, please use the configurations provided by the plugin
 [[changes_6.2]]
 == Upgrading from 6.1 and earlier
 
+[[v6_potential_breaking_changes_6_2]]
 === Potential breaking changes
 
+[[v6_compile_and_runtime_classpath_now_request_library_variants_by_default]]
 ==== Compile and runtime classpath now request library variants by default
 
 A classpath in a JVM project now explicitly requests the `org.gradle.category=library` attribute.
@@ -772,6 +866,7 @@ For example, when the library does not support the required Java version.
 The practical effect is that now all <<java_platform_plugin.adoc#sec:java_platform_consumption,platform dependencies>> have to be declared as such.
 Before, platform dependencies also worked, accidentally, when the `platform()` keyword was omitted for local platforms or platforms published with Gradle Module Metadata.
 
+[[v6_properties_from_project_root_gradle_properties_leaking_into_buildsrc_and_included_builds]]
 ==== Properties from project root `gradle.properties` leaking into `buildSrc` and included builds
 
 There was a regression in Gradle 6.2 and Gradle 6.2.1 that caused Gradle properties set in the project root `gradle.properties` file to leak into the `buildSrc` build and any builds included by the root.
@@ -780,6 +875,7 @@ This could cause your build to start failing if the `buildSrc` build or an inclu
 
 The regression has been fixed in Gradle 6.2.2.
 
+[[v6_deprecations_6_2]]
 === Deprecations
 
 There were no deprecations between Gradle 6.1 and 6.2.
@@ -787,15 +883,18 @@ There were no deprecations between Gradle 6.1 and 6.2.
 [[changes_6.1]]
 == Upgrading from 6.0 and earlier
 
+[[v6_deprecations_6_1]]
 === Deprecations
 
+[[v6_querying_a_mapped_output_property_of_a_task_before_the_task_has_completed]]
 ==== Querying a mapped output property of a task before the task has completed
 
 Querying the value of a mapped output property before the task has completed can cause strange build failures because it indicates stale or non-existent outputs may be used by mistake.
 This behavior is deprecated and will emit a deprecation warning. This will become an error in Gradle 7.0.
 
 The following example demonstrates this problem where the Producer's output file is parsed before the Producer executes:
-```
+[source,groovy]
+----
 class Consumer extends DefaultTask {
     @Input
     final Property<Integer> threadPoolSize = ...
@@ -811,11 +910,13 @@ consumer.threadPoolSize = producer.outputFile.map { it.text.toInteger() }
 
 // Emits deprecation warning
 println("thread pool size = " + consumer.threadPoolSize.get())
-```
+----
 
 Querying the value of `consumer.threadPoolSize` will produce a deprecation warning if done prior to `producer` completing, as the output file has not yet been generated.
 
+[[v6_discontinued_methods]]
 ==== Discontinued methods
+
 The following methods have been discontinued and should no longer be used. They will be removed in Gradle 7.0.
 
 - `BasePluginConvention.setProject(ProjectInternal)`
@@ -830,8 +931,10 @@ A set of alternative plugins for Java and Scala development were introduced in G
 These plugins are now deprecated and will eventually be removed.
 If you are still using one of these old plugins (`java-lang`, `scala-lang`, `jvm-component`, `jvm-resources`, `junit-test-suite`) please consult the documentation on <<building_java_projects.adoc#building_java_projects,Building Java & JVM projects>> to determine which of the stable JVM plugins are appropriate for your project.
 
+[[v6_potential_breaking_changes_6_1]]
 === Potential breaking changes
 
+[[v6_project_layout_is_no_longer_available_to_worker_actions_as_a_service]]
 ==== `ProjectLayout` is no longer available to worker actions as a service
 
 In Gradle 6.0, the `ProjectLayout` service was made available to worker actions via service injection.
@@ -839,23 +942,27 @@ This service allowed for mutable state to leak into a worker action and introduc
 
 `ProjectLayout` has been removed from the available services.  Worker actions that were using `ProjectLayout` should switch to injecting the `projectDirectory` or `buildDirectory` as a parameter instead.
 
+[[v6_updates_to_bundled_gradle_dependencies_6_1]]
 ==== Updates to bundled Gradle dependencies
 
 - Kotlin has been updated to https://blog.jetbrains.com/kotlin/2019/11/kotlin-1-3-60-released/[Kotlin 1.3.61].
 
+[[v6_updates_to_default_tool_integration_versions_6_1]]
 ==== Updates to default tool integration versions
 
 - Checkstyle has been updated to https://checkstyle.org/releasenotes.html#Release_8.27[Checkstyle 8.27].
 - PMD has been updated to https://pmd.github.io/pmd-6.20.0/pmd_release_notes.html#29-november-2019---6200[PMD 6.20.0].
 
+[[v6_publishing_spring_boot_applications]]
 ==== Publishing Spring Boot applications
 
 Starting from Gradle 6.2, Gradle performs a sanity check before uploading, to make sure you don't upload stale files (files produced by another build).
 This introduces a problem with Spring Boot applications which are uploaded using the `components.java` component:
 
-```
+[source,text]
+----
 Artifact my-application-0.0.1-SNAPSHOT.jar wasn't produced by this build.
-```
+----
 
 This is caused by the fact that the main `jar` task is disabled by the Spring Boot application, and the component expects it to be present.
 Because the `bootJar` task uses the _same file_ as the main `jar` task by default, previous releases of Gradle would either:
@@ -866,18 +973,20 @@ Because the `bootJar` task uses the _same file_ as the main `jar` task by defaul
 A workaround is to tell Gradle what to upload.
 If you want to upload the `bootJar`, then you need to configure the outgoing configurations to do this:
 
-```
+[source,groovy]
+----
 configurations {
    [apiElements, runtimeElements].each {
        it.outgoing.artifacts.removeIf { it.buildDependencies.getDependencies(null).contains(jar) }
        it.outgoing.artifact(bootJar)
    }
 }
-```
+----
 
 Alternatively, you might want to re-enable the `jar` task, and add the `bootJar` with a different classifier.
 
-```
+[source,groovy]
+----
 jar {
    enabled = true
 }
@@ -885,4 +994,4 @@ jar {
 bootJar {
    classifier = 'application'
 }
-```
+----

@@ -50,6 +50,7 @@ include::sample[dir="snippets/fundamentals/running-builds/generated/groovy",file
 <2> Add dependencies.
 <3> Use convention properties.
 
+[[sec:add_plugins]]
 == 1. Add plugins
 
 Plugins extend Gradle's functionality and can contribute tasks to a project.
@@ -66,6 +67,7 @@ The `application` plugin facilitates creating an executable JVM application.
 Applying the <<application_plugin.adoc#application_plugin,Application plugin>> also implicitly applies the <<java_plugin.adoc#java_plugin,Java plugin>>.
 The `java` plugin adds Java compilation along with testing and bundling capabilities to a project.
 
+[[sec:add_dependencies]]
 == 2. Add dependencies
 
 Your project needs external libraries to compile, run, and test.
@@ -77,6 +79,7 @@ include::sample[dir="snippets/fundamentals/running-builds/generated/kotlin",file
 include::sample[dir="snippets/fundamentals/running-builds/generated/groovy",files="app/build.gradle[tags=init-dep]"]
 ====
 
+[[sec:use_convention_properties]]
 == 3. Use convention properties
 
 A plugin adds tasks to a project.

@@ -134,6 +134,7 @@ include::sample[dir="snippets/reference/platforms/jvm/scala3/groovy",files="buil
 
 NOTE: The `scalaVersion` property is incubating.
 
+[[sec:declaring_scala_dependencies]]
 === Declaring Scala dependencies
 
 When not using the `scalaVersion` property, the Scala SDK dependency must be declared manually on the `implementation` configuration.

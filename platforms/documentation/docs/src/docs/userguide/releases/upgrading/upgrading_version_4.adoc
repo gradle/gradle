@@ -21,6 +21,7 @@ For example, if you're upgrading from Gradle 4.3 to 5.0, you will also need to a
 
 TIP: If you are using Gradle for Android, you need to move to version 3.3 or higher of both the Android Gradle Plugin and Android Studio.
 
+[[for_all_users]]
 == For all users
 
  . If you are not already on the latest 4.10.x release, read the sections <<#changes_4.10,below>> for help upgrading your project to the latest 4.10.x release.
@@ -68,11 +69,13 @@ Other notable changes to be aware of that may break your build include:
 
 If you are not already on version 4.10, skip down to the section that applies to your current Gradle version and work your way up until you reach here. Then, apply these changes when moving from Gradle 4.10 to 5.0.
 
+[[other_changes_5_0]]
 === Other changes
 
  * The `enableFeaturePreview('IMPROVED_POM_SUPPORT')` and `enableFeaturePreview('STABLE_PUBLISHING')` flags are no longer necessary. These features are now enabled by default.
  * Gradle now bundles <<#rel5.0:jaxb_and_java9, JAXB>> for Java 9 and above. You can remove the `--add-modules java.xml.bind` option from `org.gradle.jvmargs`, if set.
 
+[[potential_breaking_changes_5_0]]
 === Potential breaking changes
 
 The changes in this section have the potential to break your build, but the vast majority have been deprecated for quite some time and few builds will be affected by a large number of them.
@@ -208,12 +211,14 @@ Ideally you shouldn't use classes from this package, but, as a quick fix, you ca
 
 If you are not already on version 4.9, skip down to the section that applies to your current Gradle version and work your way up until you reach here. Then, apply these changes when upgrading to Gradle 4.10.
 
+[[deprecated_classes_methods_and_properties_4_10]]
 === Deprecated classes, methods and properties
 
 Follow the API links to learn how to deal with these deprecations (if no extra information is provided here):
 
  * `TaskContainer.add()` and `TaskContainer.addAll()` — use link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html#create-java.lang.String-java.lang.Class-org.gradle.api.Action-[TaskContainer.create()] or link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html#register-java.lang.String-java.lang.Class-org.gradle.api.Action-[TaskContainer.register()] instead
 
+[[potential_breaking_changes_4_10]]
 === Potential breaking changes
 
  * There have been several potentially breaking changes in Kotlin DSL — see the _Breaking changes_ section of https://github.com/gradle/kotlin-dsl/releases/tag/v1.0-RC3[that project's release notes].
@@ -229,6 +234,7 @@ Standard property assignment still works in that one case.
 
  * <<#rel4.9:lazy_task_creation,Consider trying the lazy API for task creation and configuration>>
 
+[[potential_breaking_changes_4_9]]
 === Potential breaking changes
 
  * You can no longer use GPath syntax with link:{javadocPath}/org/gradle/api/tasks/TaskCollection.html#withType-java.lang.Class-[tasks.withType()].
@@ -245,6 +251,7 @@ For example, you would replace `tasks.withType(JavaCompile).name` with `tasks.wi
  * Consider migrating to the built-in <<dependency_locking.adoc#sec:dependency-locking,dependency locking mechanism>> if you are currently using a plugin or custom solution for this
 
 
+[[potential_breaking_changes_4_8]]
 === Potential breaking changes
 
  * Build will now fail if a specified init script is not found.
@@ -258,6 +265,7 @@ This may lead to compilation errors in the build script. See https://github.com/
 
 [[deprecations_4.8]]
 === Deprecations
+
 Prior to this release, builds were allowed to replace built-in tasks. link:https://docs.gradle.org/4.8/release-notes.html#overwriting-gradle\'s-built-in-tasks[This feature has been deprecated].
 
 The full list of built-in tasks that should not be replaced is:
@@ -266,6 +274,7 @@ The full list of built-in tasks that should not be replaced is:
 [[changes_4.7]]
 == Upgrading from 4.6 and earlier
 
+[[potential_breaking_changes_4_7]]
 === Potential breaking changes
 
  * Gradle will now, by convention, look for Checkstyle configuration files in the root project's _config/checkstyle_ directory.
@@ -283,6 +292,7 @@ Checkstyle configuration files in subprojects — the old by-convention location
 [[changes_4.6]]
 == Upgrading from 4.5 and earlier
 
+[[deprecations_4_6]]
 === Deprecations
 
 [[rel4.6:annotation_processor_configuration]]
@@ -292,6 +302,7 @@ They should be added to the `annotationProcessor` configuration instead.
 If you don't want any processing, but your compile classpath contains a processor unintentionally (e.g. as part of a library you depend on), use the `-proc:none` compiler argument to ignore it.
  * Use link:{javadocPath}/org/gradle/process/CommandLineArgumentProvider.html[CommandLineArgumentProvider] in place of link:https://docs.gradle.org/4.10.3/javadoc/org/gradle/api/tasks/compile/CompilerArgumentProvider.html[CompilerArgumentProvider].
 
+[[potential_breaking_changes_4_6]]
 === Potential breaking changes
 
  * The Java plugins now add a `__sourceSet__AnnotationProcessor` configuration for each source set, which might break if any of them match existing configurations you have. We recommend you remove your conflicting configuration declarations.
@@ -306,6 +317,7 @@ If you don't want any processing, but your compile classpath contains a processo
  * Make sure you have a _settings.gradle_ file: it avoids a performance penalty and allows you to set the root project's name.
  * Gradle now ignores the build cache configuration of included builds (<<composite_builds.adoc#composite_builds,composite builds>>) and instead uses the root build's configuration for all the builds.
 
+[[potential_breaking_changes_4_5]]
 === Potential breaking changes
 
  * Two overloaded `ValidateTaskProperties.setOutputFile()` methods were removed. They are replaced with auto-generated setters when the task is accessed from a build script, but that won't be the case from plugins and other code outside of the build script.
@@ -318,6 +330,7 @@ If you don't want any processing, but your compile classpath contains a processo
 [[changes_4.4]]
 == Upgrading from 4.3 and earlier
 
+[[potential_breaking_changes_4_4]]
 === Potential breaking changes
 
  * link:{groovyDslPath}/org.gradle.api.tasks.testing.AbstractTestTask.html[AbstractTestTask] is now extended by non-JVM test tasks as well as link:{groovyDslPath}/org.gradle.api.tasks.testing.Test.html[Test]. Plugins should beware configuring all tasks of type `AbstractTestTask` because of this.
@@ -337,12 +350,14 @@ You can bypass the toolchain discovery by specifying the installation directory 
 
  * The `plugins {}` block can now be <<plugins_intermediate.adoc#sec:subprojects_plugins_dsl,used in subprojects>> and for <<plugins_intermediate.adoc#sec:buildsrc_plugins_dsl,plugins in the _buildSrc_ directory>>.
 
+[[other_deprecations_4_3]]
 === Other deprecations
 
  * You should no longer run Gradle versions older than 2.6 via the Tooling API.
  * You should no longer run any version of Gradle via an older version of the Tooling API than 3.0.
  * You should no longer chain link:{javadocPath}/org/gradle/api/tasks/TaskInputs.html#property-java.lang.String-java.lang.Object-[TaskInputs.property(String,Object)] and link:{javadocPath}/org/gradle/api/tasks/TaskInputs.html#properties-java.util.Map-[TaskInputs.properties(Map)] methods.
 
+[[potential_breaking_changes_4_3]]
 === Potential breaking changes
 
  * link:{javadocPath}/org/gradle/api/DefaultTask.html#newOutputDirectory--[DefaultTask.newOutputDirectory()] now returns a `DirectoryProperty` instead of a `DirectoryVar`.
@@ -364,6 +379,7 @@ Prefer using separate properties with `@OutputFile`/`@OutputDirectory` annotatio
 [[changes_4.2]]
 == Upgrading from 4.1 and earlier
 
+[[potential_breaking_changes_4_2]]
 === Potential breaking changes
 
  * The `withPathSensitivity()` methods on link:{javadocPath}/org/gradle/api/tasks/TaskFilePropertyBuilder.html[TaskFilePropertyBuilder] and link:{javadocPath}/org/gradle/api/tasks/TaskOutputFilePropertyBuilder.html[TaskOutputFilePropertyBuilder] have been removed.
@@ -375,12 +391,14 @@ Prefer using separate properties with `@OutputFile`/`@OutputDirectory` annotatio
 
  * Consider using the new <<worker_api.adoc#worker_api,Worker API>> to enable units of work within your build to run in parallel.
 
+[[deprecated_classes_methods_and_properties_4_1]]
 === Deprecated classes, methods and properties
 
 Follow the API links to learn how to deal with these deprecations (if no extra information is provided here):
 
  * link:https://docs.gradle.org/4.10.3/javadoc/org/gradle/api/Nullable.html[Nullable]
 
+[[potential_breaking_changes_4_1]]
 === Potential breaking changes
 
  * Non-Java projects that have a <<declaring_dependencies_basics.adoc#sec:project-dependencies,project dependency>> on a Java project now consume the `runtimeElements` configuration by default instead of the `default` configuration.
@@ -391,6 +409,7 @@ For example: `project(path: ':myJavaProject', configuration: 'default')`.
  * [Kotlin DSL] Base package renamed from `org.gradle.script.lang.kotlin` to `org.gradle.kotlin.dsl`.
 
 
+[[changes_in_detail]]
 == Changes in detail
 
 [[rel5.0:default_memory_settings]]
@@ -422,6 +441,7 @@ We recommend configuring a ruleset explicitly, though.
 
 [[rel5.0:library_upgrades]]
 === [5.0] Library upgrades
+
 Several libraries that are used by Gradle have been upgraded:
 
  * Groovy was upgraded from 2.4.15 to https://groovy-lang.org/releasenotes/groovy-2.5.html[2.5.4].
@@ -475,11 +495,15 @@ This is particularly useful if you develop and publish Java libraries with Gradl
 [[rel5.0:changes_to_default_task]]
 === [5.0] Changes to property factory methods on `DefaultTask`
 
+[[property_factory_methods_on_default_task_are_now_final]]
 ==== Property factory methods on `DefaultTask` are now final
+
 The property factory methods such as `newInputFile()` are intended to be called from the constructor of a type that extends `DefaultTask`.
 These methods are now final to avoid subclasses overriding these methods and using state that is not initialized.
 
+[[inputs_and_outputs_are_not_automatically_registered]]
 ==== Inputs and outputs are not automatically registered
+
 The Property instances that are returned by these methods are no longer automatically registered as inputs or outputs of the task.
 The Property instances need to be declared as inputs or outputs in the usual ways, such as attaching annotations such as `@OutputFile` or using the runtime API to register the property.
 

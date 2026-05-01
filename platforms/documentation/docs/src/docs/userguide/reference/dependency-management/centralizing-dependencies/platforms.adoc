@@ -63,6 +63,7 @@ This notation automatically performs several actions:
 
 If <<dependency_versions.adoc#sec:strict-version,strict version>> enforcement isn't needed, you can disable it using the `doNotEndorseStrictVersions` method.
 
+[[sec:creating_a_platform]]
 == Creating a platform
 
 In Java projects, the `java-platform` plugin combined with <<dependency_constraints.adoc#dependency-constraints,dependency constraints>> can be used to create a platform:

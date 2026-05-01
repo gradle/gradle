@@ -12,11 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+[[testing_plugins]]
 = Testing Plugins
 
 Testing plays a crucial role in the development process by ensuring reliable and high-quality software.
 This principle applies to build code, including Gradle plugins.
 
+[[the_sample_project]]
 == The sample project
 
 This section revolves around a sample project called the "URL verifier plugin".
@@ -47,6 +49,7 @@ include::{snippetsPath}/reference/plugin-development/testingPlugins/tests/verify
 
 Before diving into the code, let's first revisit the different types of tests and the tooling that supports implementing them.
 
+[[the_importance_of_testing]]
 == The importance of testing
 
 Testing is a crucial part of the software development life cycle, ensuring that software functions correctly and meets quality standards before release.
@@ -67,6 +70,7 @@ image::testing-pyramid.png[]
 2. *Integration Testing:* Validates that multiple units or components work together, often with external systems like file I/O or HTTP.
 3. *Functional Testing:* Tests the system from the end user's perspective, ensuring correct functionality. End-to-end tests for Gradle plugins simulate a build, apply the plugin, and execute specific tasks to verify functionality.
 
+[[tooling_support]]
 === Tooling support
 
 Testing Gradle plugins, both manually and automatically, is simplified with the appropriate tools.
@@ -120,11 +124,13 @@ The command line output of the `verifyUrl` task from the project `include-plugin
 
 Manual testing has its place in the development process, but it is not a replacement for automated testing.
 
+[[setting_up_automated_tests]]
 == Setting up automated tests
 
 Setting up a suite of tests early on is crucial to the success of your plugin.
 Automated tests become an invaluable safety net when upgrading the plugin to a new Gradle version or enhancing/refactoring the code.
 
+[[organizing_test_source_code]]
 === Organizing test source code
 
 We recommend implementing a good distribution of unit, integration, and functional tests to cover the most important use cases.
@@ -160,6 +166,7 @@ You can configure the source directories for compilation and test execution.
 The <<jvm_test_suite_plugin.adoc#jvm_test_suite_plugin,Test Suite plugin>> provides a DSL and API to model multiple groups of automated tests into test suites in JVM-based projects.
 You can also rely on third-party plugins for convenience, such as the link:https://github.com/nebula-plugins/nebula-project-plugin#nebula-facet-plugin[Nebula Facet plugin] or the link:https://github.com/unbroken-dome/gradle-testsets-plugin[TestSets plugin].
 
+[[modeling_test_types]]
 === Modeling test types
 
 In Gradle, source code directories are represented using the concept of <<java_plugin.adoc#source_sets,source sets>>.
@@ -169,21 +176,10 @@ When you define a source set, Gradle automatically sets up compilation tasks for
 A pre-configured source set can be created with one line of build script code.
 The source set automatically registers configurations to define dependencies for the sources of the source set:
 
-[source,groovy]
-----
-// Define a source set named 'test' for test sources
-sourceSets {
-    test {
-        java {
-            srcDirs = ['src/test/java']
-        }
-    }
-}
-// Specify a test implementation dependency on JUnit
-dependencies {
-    testImplementation 'junit:junit:4.12'
-}
-----
+====
+include::sample[dir="snippets/reference/plugin-development/testingPlugins-sourceSetExample/kotlin",files="build.gradle.kts[tags=source-set-example]"]
+include::sample[dir="snippets/reference/plugin-development/testingPlugins-sourceSetExample/groovy",files="build.gradle[tags=source-set-example]"]
+====
 
 We use that to define an `integrationTestImplementation` dependency to the project itself, which represents the "main" variant of our project (i.e., the compiled plugin code):
 
@@ -201,6 +197,7 @@ include::sample[dir="snippets/reference/plugin-development/testingPlugins/kotlin
 include::sample[dir="snippets/reference/plugin-development/testingPlugins/groovy/url-verifier-plugin",files="build.gradle[tags=test-task]"]
 ====
 
+[[configuring_a_test_framework]]
 === Configuring a test framework
 
 Gradle does not dictate the use of a specific test framework. Popular choices include link:https://junit.org/[JUnit], link:https://testng.org/[TestNG] and link:http://spockframework.org/[Spock].
@@ -216,6 +213,7 @@ include::sample[dir="snippets/reference/plugin-development/testingPlugins/groovy
 NOTE: Spock is a Groovy-based BDD test framework that even includes APIs for creating Stubs and Mocks.
 The Gradle team prefers Spock over other options for its expressiveness and conciseness.
 
+[[implementing_automated_tests]]
 == Implementing automated tests
 
 This section discusses representative implementation examples for unit, integration, and functional tests.
@@ -315,11 +313,13 @@ Please see the <<test_kit.adoc#test_kit,TestKit documentation>> to get more fami
 include::{snippetsPath}/reference/plugin-development/testingPlugins/common/url-verifier-plugin/src/functionalTest/groovy/org/myorg/UrlVerifierPluginFunctionalTest.groovy[]
 ----
 
+[[ide_integration_testing]]
 ==== IDE integration
 
 TestKit determines the plugin classpath by running a specific Gradle task.
 You will need to execute the `assemble` task to initially generate the plugin classpath or to reflect changes to it even when running TestKit-based functional tests from the IDE.
 
+[[example_of_a_unit_test]]
 == Example of a unit test
 
 The following is an example of a unit test of the `Greeting` plugin from <<implementing_gradle_plugins_binary.adoc#implementing_binary_plugins, Binary Plugins>>:
@@ -329,6 +329,7 @@ include::sample[dir="snippets/reference/plugin-development/plugin-binary/kotlin"
 include::sample[dir="snippets/reference/plugin-development/plugin-binary/groovy",files="plugin/src/test/groovy/org/example/GreetingPluginTest.groovy[]"]
 ====
 
+[[example_of_a_functional_test]]
 == Example of a functional test
 
 The following is an example of a functional test of the `Greeting` plugin from <<implementing_gradle_plugins_binary.adoc#implementing_binary_plugins, Binary Plugins>>:

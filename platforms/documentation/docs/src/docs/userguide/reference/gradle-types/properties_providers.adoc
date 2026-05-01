@@ -75,6 +75,7 @@ Providers:
 * A `Provider` can be created from another `Provider` using link:{javadocPath}/org/gradle/api/provider/Provider.html#map-org.gradle.api.Transformer-[Provider.map(Transformer)].
 * Many other types extend `Provider` and can be used wherever a `Provider` is required.
 
+[[chaining_providers]]
 == Chaining Providers
 
 Chaining `Providers` preserves laziness and is essential to use when writing build logic.
@@ -142,7 +143,7 @@ Here is an example of a task type with an `uri` property of type `URI`:
 [source,java]
 .Download.java
 ----
-include::{snippetsPath}/plugins/mutableManagedProperty/groovy/buildSrc/src/main/java/Download.java[tags=download]
+include::{snippetsPath}/reference/plugin-development/mutableManagedProperty/groovy/buildSrc/src/main/java/Download.java[tags=download]
 ----
 
 Note that for a property to be considered a mutable managed property, the property's getter methods must have `public` or `protected` visibility.
@@ -191,7 +192,7 @@ Here is an example of a task type with a `uri` provider that is derived from a `
 [source,java]
 .Download.java
 ----
-include::{snippetsPath}/plugins/readOnlyManagedProperty/groovy/buildSrc/src/main/java/Download.java[tags=download]
+include::{snippetsPath}/reference/plugin-development/readOnlyManagedProperty/groovy/buildSrc/src/main/java/Download.java[tags=download]
 ----
 
 [[read_only_managed_nested_properties]]
@@ -210,8 +211,8 @@ The `Resource` type is also a custom Gradle type and defines some managed proper
 [source,java]
 .Download.java
 ----
-include::{snippetsPath}/plugins/readOnlyNestedProperty/groovy/buildSrc/src/main/java/Download.java[tags=download]
-include::{snippetsPath}/plugins/readOnlyNestedProperty/groovy/buildSrc/src/main/java/Resource.java[tags=resource]
+include::{snippetsPath}/reference/plugin-development/readOnlyNestedProperty/groovy/buildSrc/src/main/java/Download.java[tags=download]
+include::{snippetsPath}/reference/plugin-development/readOnlyNestedProperty/groovy/buildSrc/src/main/java/Resource.java[tags=resource]
 ----
 
 [[read_only_managed_name_property]]
@@ -252,7 +253,7 @@ For example, this managed type is defined as an interface:
 [source,java]
 .Resource.java
 ----
-include::{snippetsPath}/plugins/readOnlyNestedProperty/groovy/buildSrc/src/main/java/Resource.java[tags=resource]
+include::{snippetsPath}/reference/plugin-development/readOnlyNestedProperty/groovy/buildSrc/src/main/java/Resource.java[tags=resource]
 ----
 
 A _named managed type_ is a managed type that additionally has an abstract property "name" of type `String`.
@@ -263,6 +264,7 @@ include::sample[dir="snippets/reference/gradle-types/property/kotlin",files="bui
 include::sample[dir="snippets/reference/gradle-types/property/groovy",files="build.gradle[tags=named]"]
 ====
 
+[[using_java_bean_properties]]
 == Using Java Bean Properties
 
 Sometimes you may see properties implemented in the Java bean property style.

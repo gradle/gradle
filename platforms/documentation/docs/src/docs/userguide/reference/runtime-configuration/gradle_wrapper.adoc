@@ -413,6 +413,7 @@ This increases security against targeted attacks by preventing a man-in-the-midd
 
 To enable this feature, download the `.sha256` file associated with the Gradle distribution you want to verify.
 
+[[downloading_the_sha_256_file]]
 ==== Downloading the SHA-256 file
 
 You can download the `.sha256` file from the link:https://services.gradle.org/distributions/[stable releases] or link:https://services.gradle.org/distributions-snapshots/[release candidate and nightly releases].
@@ -420,6 +421,7 @@ The format of the file is a single line of text that is the SHA-256 hash of the 
 
 You can also reference the link:https://gradle.org/release-checksums/[list of Gradle distribution checksums].
 
+[[configuring_checksum_verification]]
 ==== Configuring checksum verification
 
 Add the downloaded (SHA-256 checksum) hash sum to `gradle-wrapper.properties` using the `distributionSha256Sum` property or use `--gradle-distribution-sha256-sum` on the command-line:
@@ -447,10 +449,12 @@ To verify the integrity of the Wrapper JAR, Gradle has created a link:https://gi
 
 Gradle also publishes the link:https://gradle.org/release-checksums/[checksums of all releases] (except for version 3.3 to 4.0.2, which did not generate reproducible JARs), so you can manually verify the integrity of the Wrapper JAR.
 
+[[automatically_verifying_the_gradle_wrapper_jar_on_github]]
 === Automatically verifying the Gradle Wrapper JAR on GitHub
 
 The link:https://github.com/marketplace/actions/build-with-gradle#the-wrapper-validation-action[GitHub Action] is released separately from Gradle, so please check its documentation for how to apply it to your project.
 
+[[manually_verifying_the_gradle_wrapper_jar]]
 === Manually verifying the Gradle Wrapper JAR
 
 You can manually verify the checksum of the Wrapper JAR to ensure that it has not been tampered with by running the following commands on one of the major operating systems.
@@ -522,6 +526,7 @@ Manually verifying the checksum of the Wrapper JAR on Windows (using PowerShell)
 OK: Checksum match
 ----
 
+[[troubleshooting_a_checksum_mismatch]]
 === Troubleshooting a checksum mismatch
 
 If the checksum does not match the one you expected, chances are the `wrapper` task wasn't executed with the upgraded Gradle distribution.

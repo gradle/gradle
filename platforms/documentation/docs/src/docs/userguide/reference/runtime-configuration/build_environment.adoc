@@ -20,6 +20,7 @@ Configuring the build environment is a powerful way to customize the build proce
 There are many mechanisms available.
 By leveraging these mechanisms, you can make your Gradle builds more flexible and adaptable to different environments and requirements.
 
+[[sec:available_mechanisms]]
 == Available mechanisms
 
 Gradle provides multiple mechanisms for configuring the behavior of Gradle itself and specific projects:
@@ -49,6 +50,7 @@ Gradle provides multiple mechanisms for configuring the behavior of Gradle itsel
 |`JAVA_HOME`
 |===
 
+[[sec:priority_for_configurations]]
 == Priority for configurations
 
 When configuring Gradle behavior, you can use these methods, but you must consider their priority.
@@ -104,6 +106,7 @@ org.gradle.java.home=/path/to/your/java/home
 $ export JAVA_HOME=/path/to/your/java/home
 ----
 
+[[sec:the_gradle_properties_file]]
 == The `gradle.properties` file
 
 Gradle properties, system properties, and project properties can be found in the `gradle.properties` file:
@@ -143,6 +146,7 @@ Project properties are specific to your Gradle project, they can be used to cust
 Project properties can be accessed in your build files and get passed in from an external source when your build is executed.
 Project properties can be retrieved in build scripts <<glossary.adoc#sub:terminology_lazy,lazily>> using `providers.gradleProperty()`.
 
+[[setting_a_project_property]]
 === Setting a project property
 
 You have four options to add project properties, listed in order of priority:
@@ -185,6 +189,7 @@ $ export ORG_GRADLE_PROJECT_myProperty='Hi, world'
 +
 This is typically the preferred method for supplying project properties, especially secrets, to unattended builds like those running on CI servers.
 
+[[accessing_a_project_property]]
 === Accessing a project property
 
 The recommended way to access a project property is through the <<lazy_configuration.adoc#lazy_properties,Provider API>>:
@@ -224,7 +229,7 @@ $ ./gradlew performRelease -PisCI=true --quiet
 ----
 [source,text]
 ----
-include::{snippetsPath}/tutorial/configureTaskUsingProjectProperty/tests/configureTaskUsingProjectProperty.out[]
+include::{snippetsPath}/reference/runtime-configuration/configureTaskUsingProjectProperty/tests/configureTaskUsingProjectProperty.out[]
 ----
 
 Note that running `./gradlew performRelease` yields the same results as long as your `gradle.properties` file includes `isCI=true`:
@@ -241,7 +246,7 @@ $ ./gradlew performRelease --quiet
 ----
 [source,text]
 ----
-include::{snippetsPath}/tutorial/configureTaskUsingProjectProperty/tests/configureTaskUsingProjectProperty.out[]
+include::{snippetsPath}/reference/runtime-configuration/configureTaskUsingProjectProperty/tests/configureTaskUsingProjectProperty.out[]
 ----
 
 [[sec:gradle_command_line_flags]]
@@ -255,6 +260,7 @@ The command line interface and the available flags are described in <<command_li
 System properties are variables set at the JVM level and accessible to the Gradle build process.
 System properties can be retrieved in build scripts <<glossary.adoc#sub:terminology_lazy,lazily>> using `providers.systemProperty()`.
 
+[[setting_a_system_property]]
 === Setting a system property
 
 You have two options to add system properties listed in order of priority:
@@ -274,6 +280,7 @@ $ ./gradlew build -Dgradle.wrapperUser=myuser
 systemProp.gradle.wrapperUser=myuser
 ----
 
+[[system_properties_reference]]
 === System properties reference
 
 For a quick reference, the following are _common_ system properties:
@@ -294,6 +301,7 @@ Only the root project's `gradle.properties` file will be checked for properties 
 Gradle properties configure Gradle itself and usually have the name `org.gradle.*`.
 Gradle properties should not be used in build logic, their values should not be read/retrieved in build scripts.
 
+[[setting_a_gradle_property]]
 === Setting a Gradle property
 
 You have two options to add Gradle properties listed in order of priority:
@@ -343,6 +351,7 @@ If an option is configured in multiple locations, the _first one_ found in any o
 
 NOTE: The location of the `GRADLE_USER_HOME` may have been changed beforehand via the `-Dgradle.user.home` system property passed on the command line.
 
+[[gradle_properties_reference]]
 === Gradle properties reference
 
 For reference, the following properties are common Gradle properties:
@@ -501,6 +510,7 @@ _Default is the number of CPU processors._
 Gradle provides a number of environment variables, which are listed below.
 Environment variables can be retrieved in build scripts <<glossary.adoc#sub:terminology_lazy,lazily>> using `providers.environmentVariable()`.
 
+[[setting_environment_variables]]
 === Setting environment variables
 
 Let's take an example that sets the $JAVA_HOME environment variable:
@@ -523,6 +533,7 @@ task printEnvVariables {
 
 ----
 
+[[environment_variables_reference]]
 === Environment variables reference
 
 The following environment variables are available for the `gradle` command:

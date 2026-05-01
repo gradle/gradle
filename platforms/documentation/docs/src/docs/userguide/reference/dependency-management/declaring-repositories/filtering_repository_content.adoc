@@ -75,6 +75,7 @@ In that case, the build configuration will fail.
 Your options are either to declare all repositories in settings or to use non-exclusive content filtering.
 ====
 
+[[sec:maven_repository_filtering]]
 === Maven repository filtering
 
 For <<supported_repository_types.adoc#sec:maven-repo,Maven repositories>>, it's often the case that a repository would either contain releases or snapshots.

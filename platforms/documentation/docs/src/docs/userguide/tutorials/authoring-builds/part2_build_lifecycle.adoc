@@ -30,6 +30,7 @@ Learn about the Gradle build lifecycle and what each phase represents.
 
 1. You initialized your Java app in <<part1_gradle_init_project.adoc#part1_begin,part 1>>.
 
+[[ab_part2_step1]]
 == Step 1. Understanding the Build Lifecycle
 
 A Gradle build has three distinct phases:
@@ -45,6 +46,7 @@ Let's see it in action.
 
 image::gradle-build-lifecycle.png[]
 
+[[ab_part2_step2]]
 == Step 2. Update the Settings File
 
 Add the following line to the top of the Settings file:
@@ -66,6 +68,7 @@ println('SETTINGS FILE: This is executed during the initialization phase')
 ----
 =====
 
+[[ab_part2_step3]]
 == Step 3. Update the Build Script
 
 Add the following lines to the bottom of the Build script:
@@ -142,6 +145,7 @@ tasks.named("task2") {
 ----
 =====
 
+[[ab_part2_step4]]
 == Step 4. Run a Gradle Task
 
 Run the `task1` task that you registered and configured in Step 3:

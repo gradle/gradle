@@ -46,6 +46,7 @@ Runs CodeNarc against the test Groovy source files.
 +
 Runs CodeNarc against the given source set's Groovy source files.
 
+[[sec:codenarc_dependencies_added_to_other_tasks]]
 === Dependencies added to other tasks
 
 The CodeNarc plugin adds the following dependencies to tasks defined by the Groovy plugin.

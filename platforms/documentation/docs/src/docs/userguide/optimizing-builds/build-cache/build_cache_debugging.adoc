@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+[[build_cache_debugging]]
 = Debugging and diagnosing Build Cache misses
 
 To make the most of task output caching, it is important that any necessary inputs to your tasks are specified correctly, while at the same time avoiding unneeded inputs.
@@ -25,6 +26,7 @@ If you have a cache hit which you didn't expect we suggest to declare whatever c
 
 Below we describe a step-by-step process that should help shake out any problems with caching in your build.
 
+[[ensure_incremental_build_works]]
 === Ensure incremental build works
 
 First, make sure your build does the right thing without the cache.
@@ -155,6 +157,7 @@ BUILD SUCCESSFUL
 
 You should see the exact same results as you saw with the previous <<#in-place_caching_test,in place caching test>> step.
 
+[[cross_platform_tests]]
 === Cross-platform tests
 
 If your build passes the <<#caching_relocation_test,relocation test>>, it is in good shape already.
@@ -163,11 +166,13 @@ A typical example of cross-platform builds is when CI runs on Linux VMs, while d
 
 To test cross-platform cache reuse, set up a `remote` cache (see <<build_cache_use_cases.adoc#share_results_between_ci_builds,share results between CI builds>>) and populate it from one platform and consume it from the other.
 
+[[incremental_cache_usage]]
 === Incremental cache usage
 
 After these experiments with fully cached builds, you can go on and try to make typical changes to your project and see if enough tasks are still cached.
 If the results are not satisfactory, you can think about restructuring your project to reduce dependencies between different tasks.
 
+[[evaluating_cache_performance_over_time]]
 === Evaluating cache performance over time
 
 Consider recording execution times of your builds, generating graphs, and analyzing the results.
@@ -178,6 +183,7 @@ You can also make changes to your code base manually or automatically and check 
 If you have tasks that are re-executing instead of loading their outputs from the cache, then it may point to a problem in your build.
 Techniques for debugging a cache miss are explained in the following section.
 
+[[helpful_data_for_diagnosing_a_cache_miss]]
 == Helpful data for diagnosing a cache miss
 
 A cache miss happens when Gradle calculates a build cache key for a task which is different from any existing build cache key in the cache.
@@ -267,6 +273,7 @@ For example, having your integration test configuration including all the unit t
 are re-executed when a unit test changes.
 Another option is that the task tracks absolute paths instead of relative paths and the location of the project directory changed on disk.
 
+[[cache_miss_example]]
 == Example
 
 We will walk you through the process of diagnosing a cache miss.

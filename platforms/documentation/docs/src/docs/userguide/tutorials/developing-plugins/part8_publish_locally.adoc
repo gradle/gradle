@@ -36,6 +36,7 @@ Learn how to verify your plugin can be published by pushing it to a local Maven 
 6. You wrote a functional test in <<part6_functional_test.adoc#part6_begin,part 6>>.
 7. You created a dummy consumer project in <<part7_use_consumer_project.adoc#part7_begin,part 7>>.
 
+[[dp_part8_step1]]
 == Step 1: Add Plugin Metadata
 
 In your `plugin/build.gradle(.kts)` file, apply the `maven-publish` plugin and make sure you have the `group` and `version` defined:
@@ -47,6 +48,7 @@ include::sample[dir="snippets/tutorials/developing-plugins/plugin-tutorial/groov
 
 TIP: The `group` and `version` **must** be set or the `publish` task will fail.
 
+[[dp_part8_step2]]
 == Step 2: Publish to a Local Folder
 
 Use the `publishing {}` block from the `maven-publish` plugin to add a Maven repository that points to `build/local-repo` in your plugin's build file:
@@ -85,6 +87,7 @@ BUILD SUCCESSFUL in 1s
 You should now see artifacts under `plugin/build/local-repo/`.
 Take a moment to look at these files.
 
+[[dp_part8_step3]]
 == Step 3: Configure the Local Repository in `consumer`
 
 Point your **consumer** build to that repo and apply the plugin **with a version**:
@@ -94,6 +97,7 @@ include::sample[dir="snippets/tutorials/developing-plugins/plugin-tutorial/kotli
 include::sample[dir="snippets/tutorials/developing-plugins/plugin-tutorial/groovy",files="consumer/settings.gradle[tags=repo]"]
 ====
 
+[[dp_part8_step4]]
 == Step 4: Apply the Plugin in the `consumer` Project
 
 ====

@@ -51,6 +51,7 @@ _Depends on_: `__sourceSet__Classes`
 +
 Runs Checkstyle against the given source set's Java source files.
 
+[[sec:checkstyle_dependencies_added_to_other_tasks]]
 === Dependencies added to other tasks
 
 The Checkstyle plugin adds the following dependencies to tasks defined by the Java plugin.
@@ -101,30 +102,17 @@ checkstyle {
 
 If another dependency is added, the default `com.puppycrawl.tools:checkstyle` dependency will be removed:
 
-[source,kotlin]
-----
-checkstyle {
-    toolVersion = "10.12.4"
-}
-
-dependencies {
-    checkstyle "group:artifact:version"
-}
-----
+====
+include::sample[dir="snippets/reference/core-plugins/checkstylePlugin-dependencies/kotlin",files="build.gradle.kts[tags=replace-dependency]"]
+include::sample[dir="snippets/reference/core-plugins/checkstylePlugin-dependencies/groovy",files="build.gradle[tags=replace-dependency]"]
+====
 
 To add a dependency to the `checkstyle` configuration while also retaining a dependency on `com.puppycrawl.tools:checkstyle`, use the following solution:
 
-[source,kotlin]
-----
-checkstyle {
-    toolVersion = "10.12.4"
-}
-
-dependencies {
-    checkstyle "com.puppycrawl.tools:checkstyle:${checkstyle.toolVersion}"
-    checkstyle "group:artifact:version"
-}
-----
+====
+include::sample[dir="snippets/reference/core-plugins/checkstylePlugin-dependencies/kotlin",files="build.gradle.kts[tags=add-dependency]"]
+include::sample[dir="snippets/reference/core-plugins/checkstylePlugin-dependencies/groovy",files="build.gradle[tags=add-dependency]"]
+====
 
 [[sec:checkstyle_configuration]]
 == Configuration

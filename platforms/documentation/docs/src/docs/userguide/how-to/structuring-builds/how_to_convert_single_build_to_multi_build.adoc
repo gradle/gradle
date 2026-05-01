@@ -29,6 +29,7 @@ In contrast, a multi-project build consists of:
 * A **root project** that contains shared configurations and dependencies, as defined in `settings.gradle(.kts)`.
 * Multiple **subprojects**, each with its own `build.gradle(.kts)`, dependencies, and tasks.
 
+[[sec:single_project_structure]]
 == Step 1: Project Structure
 
 Let's start with a typical single-project setup, created by `gradle init`:
@@ -74,6 +75,7 @@ root
 <2> The original application module, now a subproject
 <3> A new library module
 
+[[sec:create_new_subprojects]]
 == Step 2: Create One or More New Subprojects
 
 Now you can create your additional projects as directories in the `root`.
@@ -114,6 +116,7 @@ root
 <1> The application module, containing its own source code
 <2> The new library module, storing reusable code
 
+[[sec:update_settings_file]]
 == Step 3: Update `settings.gradle(.kts)`
 
 Ensure that `settings.gradle(.kts)` is located in the root directory:
@@ -142,6 +145,7 @@ include::sample[dir="snippets/how-to/structuring-builds/structuring-builds/singl
 
 *There should be no other settings files*.
 
+[[sec:create_build_files]]
 == Step 4: Create `build.gradle(.kts)` Files for Each Subproject
 
 Each subproject must have its own `build.gradle(.kts)` file:
@@ -181,6 +185,7 @@ include::sample[dir="snippets/how-to/structuring-builds/structuring-builds/singl
 include::sample[dir="snippets/how-to/structuring-builds/structuring-builds/single-multi-build/groovy",files="library/build.gradle[]"]
 ====
 
+[[sec:modify_root_build_file]]
 == Step 5: Modify or Delete the Root `build.gradle(.kts)`
 
 A build file in the root project is **optional**:

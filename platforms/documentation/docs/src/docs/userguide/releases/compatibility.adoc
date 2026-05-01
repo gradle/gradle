@@ -110,17 +110,20 @@ Beta and RC versions may or may not work.
 | 2.3.21 | 9.6.0 | 2.2
 |===
 
+[[groovy_compatibility]]
 == Groovy
 
 Gradle is tested with Groovy 1.5.8 through 5.0.2.
 
 Gradle plugins written in Groovy must use Groovy 4.x for compatibility with Gradle and Groovy DSL build scripts.
 
+[[android_compatibility]]
 == Android
 
 Gradle is tested with Android Gradle Plugin 9.0 through 9.2.0-alpha05.
 Alpha and beta versions may or may not work.
 
+[[target_platforms]]
 == Target Platforms
 
 Gradle supports a defined set of platform targets, which are combinations of:

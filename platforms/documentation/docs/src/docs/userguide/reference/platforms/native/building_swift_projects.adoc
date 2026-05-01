@@ -135,6 +135,7 @@ You’ll discover that Gradle has a rich API for working with dependencies — o
 
 [[sec:swift_compile_link]]
 == Compiling and linking your code
+
 Compiling both your code can be trivially easy if you follow the conventions:
 
 1. Put your source code under the _src/main/swift_ directory

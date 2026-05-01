@@ -153,6 +153,7 @@ The Groovy plugin does not add any convention properties to the project.
 
 The Groovy plugin adds the following extensions to each source set in the project. You can use these properties in your build script as though they were properties of the source set object.
 
+[[sec:groovy_plugin_source_set_properties]]
 === Groovy Plugin — source set properties
 
 `groovy` — link:{groovyDslPath}/org.gradle.api.tasks.GroovySourceDirectorySet.html[GroovySourceDirectorySet] (read-only)::
@@ -167,6 +168,7 @@ The source directories containing the Groovy source files of this source set. Ma
 
 The Groovy plugin also modifies some source set properties:
 
+[[sec:groovy_plugin_modified_source_set_properties]]
 === Groovy Plugin - modified source set properties
 
 [%header%autowidth,compact]
@@ -290,6 +292,7 @@ Also see <<java_plugin.adoc#sec:incremental_compilation_known_issues,Known issue
 With <<toolchains.adoc#toolchains,toolchain support>> added to `GroovyCompile`, it is possible to compile Groovy code using a different Java version than the one running Gradle.
 If you also have Java source files, this will also configure `JavaCompile` to use the right Java compiler is used, as can be seen in the <<building_java_projects.adoc#sec:java_cross_compilation,Java plugin>> documentation.
 
+[[sec:example_configure_java_7_build_for_groovy]]
 === Example: Configure Java 7 build for Groovy
 
 ====

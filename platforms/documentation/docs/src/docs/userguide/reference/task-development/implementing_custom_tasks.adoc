@@ -140,42 +140,8 @@ Second, we need to specify a name for the zip file, which we've called `myApplic
 Here is what the complete task looks like:
 
 ====
-[.multi-language-sample]
-=====
-.app/build.gradle.kts
-[source,kotlin]
-----
-val packageApp = tasks.register<Zip>("packageApp") {
-    from(layout.projectDirectory.file("run.sh"))                // input - run.sh file
-    from(tasks.jar) {                                           // input - jar task output
-        into("libs")
-    }
-    from(configurations.runtimeClasspath) {                     // input - jar of dependencies
-        into("libs")
-    }
-    destinationDirectory.set(layout.buildDirectory.dir("dist")) // output - location of the zip file
-    archiveFileName.set("myApplication.zip")                    // output - name of the zip file
-}
-----
-=====
-[.multi-language-sample]
-=====
-.app/build.gradle
-[source,groovy]
-----
-def packageApp = tasks.register(Zip, 'packageApp') {
-    from layout.projectDirectory.file('run.sh')                 // input - run.sh file
-    from tasks.jar {                                            // input - jar task output
-        into 'libs'
-    }
-    from configurations.runtimeClasspath {                      // input - jar of dependencies
-        into 'libs'
-    }
-    destinationDirectory.set(layout.buildDirectory.dir('dist')) // output - location of the zip file
-    archiveFileName.set('myApplication.zip')                    // output - name of the zip file
-}
-----
-=====
+include::sample[dir="snippets/reference/task-development/implementingCustomTasks-packageApp/kotlin",files="build.gradle.kts[tags=package-app]"]
+include::sample[dir="snippets/reference/task-development/implementingCustomTasks-packageApp/groovy",files="build.gradle[tags=package-app]"]
 ====
 
 If we run our `packageApp` task, `myApplication.zip` is produced:
@@ -230,26 +196,8 @@ Let's wire it to a lifecycle task.
 The following is added to the build script so that the `packageApp` actionable task is wired to the `build` lifecycle task using link:{javadocPath}/org/gradle/api/DefaultTask.html#dependsOn-java.lang.Object...-[`dependsOn()`]:
 
 ====
-[.multi-language-sample]
-=====
-.app/build.gradle.kts
-[source,kotlin]
-----
-tasks.build {
-    dependsOn(packageApp)
-}
-----
-=====
-[.multi-language-sample]
-=====
-.app/build.gradle
-[source,groovy]
-----
-tasks.build {
-    dependsOn(packageApp)
-}
-----
-=====
+include::sample[dir="snippets/reference/task-development/implementingCustomTasks-packageApp/kotlin",files="build.gradle.kts[tags=wire-lifecycle]"]
+include::sample[dir="snippets/reference/task-development/implementingCustomTasks-packageApp/groovy",files="build.gradle[tags=wire-lifecycle]"]
 ====
 
 We see that running `:build` also runs `:packageApp`:
@@ -282,6 +230,7 @@ BUILD SUCCESSFUL in 1s
 
 You could define your own lifecycle task if needed.
 
+[[sec:task_implementation_by_extending_defaulttask]]
 == Task implementation by extending `DefaultTask`
 
 To address more individual needs, and if no existing plugins provide the build functionality you need, you can create your own task implementation.
@@ -461,86 +410,8 @@ With inputs and outputs defined, the only thing that remains is the actual task 
 Inside this method, we write code accessing inputs and outputs using Gradle-specific APIs:
 
 ====
-[.multi-language-sample]
-=====
-.buildSrc/src/main/kotlin/GenerateReportTask.kt
-[source,kotlin]
-----
-import org.gradle.api.DefaultTask
-import org.gradle.api.file.DirectoryProperty
-import org.gradle.api.file.RegularFileProperty
-import org.gradle.api.tasks.InputDirectory
-import org.gradle.api.tasks.OutputFile
-import org.gradle.api.tasks.TaskAction
-
-abstract class GenerateReportTask : DefaultTask() {
-
-    @get:InputDirectory
-    abstract val sourceDirectory: DirectoryProperty
-
-    @get:OutputFile
-    abstract val reportFile: RegularFileProperty
-
-    @TaskAction
-    fun generateReport() {
-        val sourceDirectory = sourceDirectory.asFile.get()
-        val reportFile = reportFile.asFile.get()
-        val fileCount = sourceDirectory.listFiles().count { it.isFile }
-        val directoryCount = sourceDirectory.listFiles().count { it.isDirectory }
-
-        val reportContent = """
-            |Report for directory: ${sourceDirectory.absolutePath}
-            |------------------------------
-            |Number of files: $fileCount
-            |Number of subdirectories: $directoryCount
-        """.trimMargin()
-
-        reportFile.writeText(reportContent)
-        println("Report generated at: ${reportFile.absolutePath}")
-    }
-}
-----
-=====
-[.multi-language-sample]
-=====
-.buildSrc/src/main/groovy/GenerateReportTask.groovy
-[source,groovy]
-----
-import org.gradle.api.DefaultTask
-import org.gradle.api.file.DirectoryProperty
-import org.gradle.api.file.RegularFileProperty
-import org.gradle.api.tasks.InputDirectory
-import org.gradle.api.tasks.OutputFile
-import org.gradle.api.tasks.TaskAction
-
-abstract class GenerateReportTask extends DefaultTask {
-
-    @InputDirectory
-    abstract DirectoryProperty getSourceDirectory()
-
-    @OutputFile
-    abstract RegularFileProperty getReportFile()
-
-    @TaskAction
-    void generateReport() {
-        def sourceDirectory = sourceDirectory.asFile.get()
-        def reportFile = reportFile.asFile.get()
-        def fileCount = sourceDirectory.listFiles().count { it.isFile() }
-        def directoryCount = sourceDirectory.listFiles().count { it.isDirectory() }
-
-        def reportContent = """
-            Report for directory: ${sourceDirectory.absolutePath}
-            ------------------------------
-            Number of files: $fileCount
-            Number of subdirectories: $directoryCount
-        """.trim()
-
-        reportFile.text = reportContent
-        println("Report generated at: ${reportFile.absolutePath}")
-    }
-}
-----
-=====
+include::sample[dir="snippets/reference/task-development/implementingCustomTasks-generateReport/kotlin",files="GenerateReportTask.kt[tags=generate-report-task]"]
+include::sample[dir="snippets/reference/task-development/implementingCustomTasks-generateReport/groovy",files="GenerateReportTask.groovy[tags=generate-report-task]"]
 ====
 
 The task action generates a report of the files in the `sourceDirectory`.
@@ -549,34 +420,8 @@ In the application build file, we register a task of type `GenerateReportTask` u
 At the same time, we configure the inputs and outputs of the task:
 
 ====
-[.multi-language-sample]
-=====
-.app/build.gradle.kts
-[source,kotlin]
-----
-tasks.register<GenerateReportTask>("generateReport") {
-    sourceDirectory = layout.projectDirectory.dir("src/main")
-    reportFile = layout.buildDirectory.file("reports/directoryReport.txt")
-}
-
-tasks.build {
-    dependsOn("generateReport")
-}
-----
-=====
-[.multi-language-sample]
-=====
-.app/build.gradle
-[source,groovy]
-----
-tasks.register("generateReport", GenerateReportTask) {
-    sourceDirectory = layout.projectDirectory.dir("src/main")
-    reportFile = layout.buildDirectory.file("reports/directoryReport.txt")
-}
-
-tasks.build.dependsOn("generateReport")
-----
-=====
+include::sample[dir="snippets/reference/task-development/implementingCustomTasks-generateReport/kotlin",files="build.gradle.kts[tags=register-task]"]
+include::sample[dir="snippets/reference/task-development/implementingCustomTasks-generateReport/groovy",files="build.gradle[tags=register-task]"]
 ====
 
 The `generateReport` task is wired to the `build` task.
@@ -622,6 +467,7 @@ BUILD SUCCESSFUL in 1s
 13 actionable tasks: 10 executed, 3 up-to-date
 ----
 
+[[sec:task_actions]]
 == Task actions
 
 A task action is the code that implements what a task is doing, as demonstrated in the previous section.
@@ -634,91 +480,15 @@ Let's look at an example of a simple Gradle build with one `app` subproject that
 The project has common build logic in the `buildSrc` folder where `my-convention-plugin` resides:
 
 ====
-[.multi-language-sample]
-=====
-.app/build.gradle.kts
-[source,kotlin]
-----
-plugins {
-    id("my-convention-plugin")
-}
-
-version = "1.0"
-
-application {
-    mainClass = "org.example.app.App"
-}
-----
-=====
-[.multi-language-sample]
-=====
-.app/build.gradle
-[source,groovy]
-----
-plugins {
-    id 'my-convention-plugin'
-}
-
-version = '1.0'
-
-application {
-    mainClass = 'org.example.app.App'
-}
-----
-=====
+include::sample[dir="snippets/reference/task-development/implementingCustomTasks-conventionPlugin/kotlin",files="build.gradle.kts[tags=convention-plugin]"]
+include::sample[dir="snippets/reference/task-development/implementingCustomTasks-conventionPlugin/groovy",files="build.gradle[tags=convention-plugin]"]
 ====
 
 We define a task called `printVersion` in the build file of the `app`:
 
 ====
-[.multi-language-sample]
-=====
-.buildSrc/src/main/kotlin/PrintVersion.kt
-[source,kotlin]
-----
-import org.gradle.api.DefaultTask
-import org.gradle.api.provider.Property
-import org.gradle.api.tasks.Input
-import org.gradle.api.tasks.TaskAction
-
-abstract class PrintVersion : DefaultTask() {
-
-    // Configuration code
-    @get:Input
-    abstract val version: Property<String>
-
-    // Execution code
-    @TaskAction
-    fun print() {
-        println("Version: ${version.get()}")
-    }
-}
-----
-=====
-[.multi-language-sample]
-=====
-.buildSrc/src/main/groovy/PrintVersion.groovy
-[source,groovy]
-----
-import org.gradle.api.DefaultTask
-import org.gradle.api.provider.Property
-import org.gradle.api.tasks.Input
-import org.gradle.api.tasks.TaskAction
-
-abstract class PrintVersion extends DefaultTask {
-
-    // Configuration code
-    @Input
-    abstract Property<String> getVersion()
-
-    // Execution code
-    @TaskAction
-    void printVersion() {
-        println("Version: ${getVersion().get()}")
-    }
-}
-----
-=====
+include::sample[dir="snippets/reference/task-development/implementingCustomTasks-printVersion/kotlin",files="PrintVersion.kt[tags=print-version]"]
+include::sample[dir="snippets/reference/task-development/implementingCustomTasks-printVersion/groovy",files="PrintVersion.groovy[tags=print-version]"]
 ====
 
 This task does one simple thing: it prints out the version of the project to the command line.
@@ -807,40 +577,8 @@ The methods are called `doFirst{}` and `doLast{}` because the task can have mult
 If the task already has an action defined, you can use this distinction to decide if your additional action should run before or after the existing actions:
 
 ====
-[.multi-language-sample]
-=====
-.app/build.gradle.kts
-[source,kotlin]
-----
-tasks.register("printVersionDynamic") {
-    doFirst {
-        // Task action = Execution code
-        // Run before exiting actions
-    }
-    doLast {
-        // Task action = Execution code
-        // Run after existing actions
-    }
-}
-----
-=====
-[.multi-language-sample]
-=====
-.app/build.gradle
-[source,groovy]
-----
-tasks.register("printVersionDynamic") {
-    doFirst {
-        // Task action = Execution code
-        // Run before exiting actions
-    }
-    doLast {
-        // Task action = Execution code
-        // Run after existing actions
-    }
-}
-----
-=====
+include::sample[dir="snippets/reference/task-development/implementingCustomTasks-doFirstLast/kotlin",files="build.gradle.kts[tags=do-first-last]"]
+include::sample[dir="snippets/reference/task-development/implementingCustomTasks-doFirstLast/groovy",files="build.gradle[tags=do-first-last]"]
 ====
 
 If you only have one action, which is the case here because we start with an empty task, we typically use the `doLast{}` method.
@@ -850,32 +588,8 @@ Instead of declaring a property and annotating it with `@Input`, we use the gene
 Then, we add the action code, a `println()` statement, inside the `doLast{}` method:
 
 ====
-[.multi-language-sample]
-=====
-.app/build.gradle.kts
-[source,kotlin]
-----
-tasks.register("printVersionDynamic") {
-    inputs.property("version", project.version.toString())
-    doLast {
-        println("Version: ${inputs.properties["version"]}")
-    }
-}
-----
-=====
-[.multi-language-sample]
-=====
-.app/build.gradle
-[source,groovy]
-----
-tasks.register("printVersionDynamic") {
-    inputs.property("version", project.version)
-    doLast {
-        println("Version: ${inputs.properties["version"]}")
-    }
-}
-----
-=====
+include::sample[dir="snippets/reference/task-development/implementingCustomTasks-dynamicInputs/kotlin",files="build.gradle.kts[tags=dynamic-inputs]"]
+include::sample[dir="snippets/reference/task-development/implementingCustomTasks-dynamicInputs/groovy",files="build.gradle[tags=dynamic-inputs]"]
 ====
 
 We saw two alternative approaches to implementing a custom task in Gradle.
@@ -893,90 +607,19 @@ Once the task is registered, you can't remove it.
 You could, instead, clear its actions:
 
 ====
-[.multi-language-sample]
-=====
-.app/build.gradle.kts
-[source,kotlin]
-----
-tasks.compileJava {
-    // Clear existing actions
-    actions.clear()
-
-    // Add a new action
-    doLast {
-        println("Custom action: Compiling Java classes...")
-    }
-}
-----
-=====
-[.multi-language-sample]
-=====
-.app/build.gradle
-[source,groovy]
-----
-tasks.compileJava {
-    // Clear existing actions
-    actions.clear()
-
-    // Add a new action
-    doLast {
-        println("Custom action: Compiling Java classes...")
-    }
-}
-----
-=====
+include::sample[dir="snippets/reference/task-development/implementingCustomTasks-clearActions/kotlin",files="build.gradle.kts[tags=clear-actions]"]
+include::sample[dir="snippets/reference/task-development/implementingCustomTasks-clearActions/groovy",files="build.gradle[tags=clear-actions]"]
 ====
 
 It's also difficult, and in certain cases impossible, to remove certain task dependencies that have been set up already by the plugins you are using.
 You could, instead, modify its behavior:
 
 ====
-[.multi-language-sample]
-=====
-.app/build.gradle.kts
-[source,kotlin]
-----
-tasks.compileJava {
-    // Modify the task behavior
-    doLast {
-        val outputDir = File("$buildDir/compiledClasses")
-        outputDir.mkdirs()
-
-        val compiledFiles = sourceSets["main"].output.files
-        compiledFiles.forEach { compiledFile ->
-            val destinationFile = File(outputDir, compiledFile.name)
-            compiledFile.copyTo(destinationFile, true)
-        }
-
-        println("Java compilation completed. Compiled classes copied to: ${outputDir.absolutePath}")
-    }
-}
-----
-=====
-[.multi-language-sample]
-=====
-.app/build.gradle
-[source,groovy]
-----
-tasks.compileJava {
-    // Modify the task behavior
-    doLast {
-        def outputDir = file("$buildDir/compiledClasses")
-        outputDir.mkdirs()
-
-        def compiledFiles = sourceSets["main"].output.files
-        compiledFiles.each { compiledFile ->
-            def destinationFile = new File(outputDir, compiledFile.name)
-            compiledFile.copyTo(destinationFile)
-        }
-
-        println("Java compilation completed. Compiled classes copied to: ${outputDir.absolutePath}")
-    }
-}
-----
-=====
+include::sample[dir="snippets/reference/task-development/implementingCustomTasks-modifyBehavior/kotlin",files="build.gradle.kts[tags=modify-behavior]"]
+include::sample[dir="snippets/reference/task-development/implementingCustomTasks-modifyBehavior/groovy",files="build.gradle[tags=modify-behavior]"]
 ====
 
+[[sec:understanding_inputs_and_outputs]]
 == Understanding inputs and outputs
 
 Task inputs and outputs are important for:
@@ -985,6 +628,7 @@ Task inputs and outputs are important for:
 2. *Linking task inputs and outputs* - When outputs of one task are linked to the inputs of another, Gradle can automatically create task dependencies.
 3. *Using dependency configurations* - Task outputs can be used to tell Gradle that an artifact produced by a task should be added to a specific configuration.
 
+[[sec:declaring_inputs_and_outputs]]
 == Declaring inputs and outputs
 
 You can configure the inputs and outputs of a task in two main ways:
@@ -993,122 +637,21 @@ You can configure the inputs and outputs of a task in two main ways:
 
 2. **Dynamic Configuration:** Add inputs and outputs to a task dynamically, meaning you can customize the inputs and outputs for each execution of the task based on specific conditions or requirements. This approach allows for more flexibility and fine-grained control over the task's behavior.
 
-[.multi-language-sample]
-=====
-[source, kotlin]
-----
-abstract class ConfigurableTask : DefaultTask() {
+====
+include::sample[dir="snippets/reference/task-development/implementingCustomTasks-configurableTask/kotlin",files="build.gradle.kts[tags=configurable-task]"]
+include::sample[dir="snippets/reference/task-development/implementingCustomTasks-configurableTask/groovy",files="build.gradle[tags=configurable-task]"]
+====
 
-    @get:Input
-    abstract val inputProperty: Property<String>
-
-    @get:OutputFile
-    abstract val outputFile: RegularFileProperty
-
-    // Static Configuration: Inputs and Outputs defined in the task class
-    init {
-        group = "custom"
-        description = "A configurable task example"
-    }
-
-    @TaskAction
-    fun executeTask() {
-        println("Executing task with input: ${inputProperty.get()} and output: ${outputFile.asFile.get()}")
-    }
-
-}
-
-// Dynamic Configuration: Adding inputs and outputs to a task instance
-tasks.register("dynamicTask", ConfigurableTask::class) {
-    // Set the input property dynamically
-    inputProperty = "dynamic input value"
-
-    // Set the output file dynamically
-    outputFile = layout.buildDirectory.file("dynamicOutput.txt")
-}
-----
-=====
-[.multi-language-sample]
-=====
-[source, groovy]
-----
-abstract class ConfigurableTask extends DefaultTask {
-
-    @Input
-    abstract Property<String> getInputProperty()
-
-    @OutputFile
-    abstract RegularFileProperty getOutputFile()
-
-    // Static Configuration: Inputs and Outputs defined in the task class
-    ConfigurableTask() {
-        group = 'custom'
-        description = 'A configurable task example'
-    }
-
-    @TaskAction
-    void executeTask() {
-        println "Executing task with input: ${inputProperty.get()} and output: ${outputFile.asFile.get()}"
-    }
-
-}
-
-// Dynamic Configuration: Adding inputs and outputs to a task instance
-tasks.register('dynamicTask', ConfigurableTask) {
-    // Set the input property dynamically
-    inputProperty = 'dynamic input value'
-
-    // Set the output file dynamically
-    outputFile = layout.buildDirectory.file('dynamicOutput.txt')
-}
-----
-=====
-
+[[sec:creating_lazy_inputs_and_outputs]]
 == Creating lazy inputs and outputs
 
 Gradle has the concept of lazy configuration, which allows task inputs and outputs to be referenced before they’re actually set.
 This is done via a `Property` class type.
 
-[.multi-language-sample]
-=====
-[source, kotlin]
-----
-abstract class MyTask : DefaultTask() {
-    // Avoid Java Bean properties
-    @Input
-    var myEagerProperty: String = "default value"
-
-    // Use Gradle managed properties instead
-    @get:Input
-    abstract val myLazyProperty: Property<String>
-
-    @TaskAction
-    fun myAction() {
-        println("Use ${myLazyProperty.get()} and do NOT use $myEagerProperty")
-    }
-}
-----
-=====
-[.multi-language-sample]
-=====
-[source, groovy]
-----
-abstract class MyTask extends DefaultTask {
-    // Avoid Java Bean properties
-    @Input
-    String myEagerProperty = "default value"
-
-    // Use Gradle managed properties instead
-    @Input
-    abstract Property<String> getMyLazyProperty()
-
-    @TaskAction
-    void myAction() {
-        println("Use ${myLazyProperty.get()} and do NOT use $myEagerProperty")
-    }
-}
-----
-=====
+====
+include::sample[dir="snippets/reference/task-development/implementingCustomTasks-lazyProperties/kotlin",files="build.gradle.kts[tags=lazy-properties]"]
+include::sample[dir="snippets/reference/task-development/implementingCustomTasks-lazyProperties/groovy",files="build.gradle[tags=lazy-properties]"]
+====
 
 One advantage of this mechanism is that you can link the output file of one task to the input file of another, all before the filename has even been decided.
 The `Property` class also knows about which task it’s linked to, so using inputs and outputs in this way enables Gradle to automatically add the required task dependency.
@@ -1168,6 +711,7 @@ Notes:
 
 WARNING: Avoid using `FileTree` when order matters — it has no guaranteed, stable file order and may cause unpredictable behavior.
 
+[[sec:annotating_inputs_and_outputs]]
 == Annotating inputs and outputs
 
 A good practice is to create a task class for your custom task.
@@ -1251,70 +795,11 @@ When a task with an @OutputFile-annotated property is executed, Gradle will chec
 Note that in Kotlin the annotations are prefixed with `get:`, so `@InputFile` becomes `@get:InputFile`.
 
 ====
-[.multi-language-sample]
-=====
-.build.gradle.kts
-[source,kotlin]
-----
-abstract class AllTypes : DefaultTask() {
-
-    //inputs
-    @get:Input
-    abstract val inputString: Property<String>
-    @get:InputFile
-    abstract val inputFile: RegularFileProperty
-    @get:InputDirectory
-    abstract val inputDirectory: DirectoryProperty
-    @get:InputFiles
-    abstract val inputFileCollection: ConfigurableFileCollection
-    @get:Classpath
-    abstract val inputClasspath: ConfigurableFileCollection
-
-    // outputs
-    @get:OutputFile
-    abstract val outputFile: RegularFileProperty
-    @get:OutputDirectory
-    abstract val outputDirectory: DirectoryProperty
-    @get:OutputFiles
-    abstract val outputFiles: ConfigurableFileCollection
-    @get:OutputDirectories
-    abstract val outputDirectories: ConfigurableFileCollection
-}
-----
-=====
-[.multi-language-sample]
-=====
-.build.gradle
-[source,groovy]
-----
-abstract class AllTypes extends DefaultTask {
-
-    //inputs
-    @Input
-    abstract Property<String> getInputString()
-    @InputFile
-    abstract RegularFileProperty getInputFile()
-    @InputDirectory
-    abstract DirectoryProperty getInputDirectory()
-    @InputFiles
-    abstract ConfigurableFileCollection getInputFileCollection()
-    @Classpath
-    abstract ConfigurableFileCollection getInputClasspath()
-
-    // outputs
-    @OutputFile
-    abstract RegularFileProperty getOutputFile()
-    @OutputDirectory
-    abstract DirectoryProperty getOutputDirectory()
-    @OutputFiles
-    abstract ConfigurableFileCollection getOutputFiles()
-    @OutputDirectories
-    abstract ConfigurableFileCollection getOutputDirectories()
-}
-----
-=====
+include::sample[dir="snippets/reference/task-development/implementingCustomTasks-allTypes/kotlin",files="build.gradle.kts[tags=all-types]"]
+include::sample[dir="snippets/reference/task-development/implementingCustomTasks-allTypes/groovy",files="build.gradle[tags=all-types]"]
 ====
 
+[[sec:extending_existing_tasks]]
 == Extending existing tasks
 
 Sometimes writing tasks from scratch is not what's needed.

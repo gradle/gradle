@@ -203,6 +203,7 @@ For integration with a local Maven installation, it is sometimes useful to publi
 
 The Maven Publish Plugin makes this easy to do by automatically creating a link:{javadocPath}/org/gradle/api/publish/maven/tasks/PublishToMavenLocal.html[PublishToMavenLocal] task for each link:{groovyDslPath}/org.gradle.api.publish.maven.MavenPublication.html[MavenPublication] in the `publishing.publications` container. The task name follows the pattern of `publish__PubName__PublicationToMavenLocal`. Each of these tasks is wired into the `publishToMavenLocal` aggregate task. You do not need to have `mavenLocal()` in your `publishing.repositories` section.
 
+[[sec:publishing_to_maven_central]]
 == Publishing to Maven Central
 
 ++++
@@ -294,81 +295,13 @@ You may have some logic inside your publishing block or in a plugin that is depe
 For instance, the following logic assumes that the subprojects will be evaluated when the artifactId is set:
 
 ====
-[.multi-language-sample]
-=====
-.build.gradle.kts
-[source,kotlin]
-----
-subprojects {
-    publishing {
-        publications {
-            create<MavenPublication>("mavenJava") {
-                from(components["java"])
-                artifactId = tasks.jar.get().archiveBaseName.get()
-            }
-        }
-    }
-}
-----
-=====
-[.multi-language-sample]
-=====
-.build.gradle
-[source,groovy]
-----
-subprojects {
-    publishing {
-        publications {
-            mavenJava(MavenPublication) {
-                from components.java
-                artifactId = jar.archiveBaseName
-            }
-        }
-    }
-}
-----
-=====
+include::sample[dir="snippets/reference/dependency-management/publishing/publishingMaven-deferredConfig/kotlin",files="build.gradle.kts[tags=deferred-config-before]"]
+include::sample[dir="snippets/reference/dependency-management/publishing/publishingMaven-deferredConfig/groovy",files="build.gradle[tags=deferred-config-before]"]
 ====
 
 This kind of logic must now be wrapped in an `afterEvaluate {}` block.
 
 ====
-[.multi-language-sample]
-=====
-.build.gradle.kts
-[source,kotlin]
-----
-subprojects {
-    publishing {
-        publications {
-            create<MavenPublication>("mavenJava") {
-                from(components["java"])
-                afterEvaluate {
-                    artifactId = tasks.jar.get().archiveBaseName.get()
-                }
-            }
-        }
-    }
-}
-----
-=====
-[.multi-language-sample]
-=====
-.build.gradle
-[source,groovy]
-----
-subprojects {
-    publishing {
-        publications {
-            mavenJava(MavenPublication) {
-                from components.java
-                afterEvaluate {
-                    artifactId = jar.archiveBaseName
-                }
-            }
-        }
-    }
-}
-----
-=====
+include::sample[dir="snippets/reference/dependency-management/publishing/publishingMaven-deferredConfig/kotlin",files="build.gradle.kts[tags=deferred-config-after]"]
+include::sample[dir="snippets/reference/dependency-management/publishing/publishingMaven-deferredConfig/groovy",files="build.gradle[tags=deferred-config-after]"]
 ====

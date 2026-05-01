@@ -17,6 +17,7 @@
 
 This guide explains how to manage and upgrade versions of **transitive dependencies** in Gradle using **dependency constraints**.
 
+[[sec:why_upgrade_transitive_dependency]]
 == Why Upgrade a Transitive Dependency?
 
 There are many reasons to upgrade a version of a dependency:
@@ -26,6 +27,7 @@ There are many reasons to upgrade a version of a dependency:
 * *Performance improvements* make builds faster and more efficient.
 * *New features* provide additional functionality and better compatibility.
 
+[[sec:setting_dependency_constraints]]
 == Setting Dependency Constraints on Transitive Dependencies
 
 <<dependency_constraints.adoc#dependency-constraints,Dependency constraints>> allow you to define the **version** or **version range** of both direct dependencies and transitive dependencies.
@@ -49,6 +51,7 @@ Running `./gradlew dependencies --configuration runtimeClasspath` showcases the 
 include::sample[dir="snippets/how-to/dependency-management/dependency-management/upgrade-transitives/tests",files="dependencies.out"]
 ====
 
+[[sec:upgrade_summary]]
 == Summary
 
 Use dependency constraints when:

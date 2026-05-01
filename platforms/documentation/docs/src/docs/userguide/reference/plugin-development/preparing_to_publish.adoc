@@ -19,6 +19,7 @@ To share a Gradle plugin, package it into JAR files and generate the accompanyin
 
 Gradle’s publishing plugins add tasks and conventions to prepare artifacts and metadata for distribution to repositories such as a local Maven repository, Maven Central, JFrog Artifactory, or the Gradle Plugin Portal.
 
+[[sec:applying_a_publishing_plugin]]
 == Applying a Publishing Plugin
 
 Apply one or more publishing plugins in your plugin project:
@@ -38,6 +39,7 @@ plugins {
 
 Applying a publishing plugin registers tasks that assemble your plugin JAR(s) and generate metadata files (POM, Gradle Module Metadata, and the plugin marker module).
 
+[[sec:minimum_configuration]]
 == Minimum Configuration
 
 A plugin project must at least declare:
@@ -52,6 +54,7 @@ include::sample[dir="snippets/reference/plugin-development/pluginWithVariants/gr
 
 This lets Gradle generate the **plugin marker module** (`org.example.greeting.gradle.plugin`) and other metadata required by repositories and consumers.
 
+[[sec:local_publishing_and_testing]]
 == Local Publishing and Testing
 
 Before publishing remotely, publish to a local Maven directory:
@@ -118,6 +121,7 @@ include::sample[dir="snippets/reference/plugin-development/pluginWithVariants/gr
 
 Consumers can then apply your plugin by **ID** without publishing to a public repository.
 
+[[sec:validating]]
 == Validating
 
 To validate a Plugin Portal publication (no upload):

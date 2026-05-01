@@ -116,15 +116,10 @@ Gradle treats dependencies marked as "changing" (such as SNAPSHOT dependencies) 
 To declare a dependency as changing, you can set the `changing = true` attribute in your dependency declaration.
 This is useful for dependencies expected to change frequently without a new version number:
 
-[source,groovy]
-----
-dependencies {
-    implementation("com.example:some-library:1.0-SNAPSHOT") // Automatically gets treated as changing
-    implementation("com.example:my-library:1.0") {  // Must be explicitly set as changing
-        changing = true
-    }
-}
-----
+====
+include::sample[dir="snippets/reference/dependency-management/dependency-management/dependencyCaching-changingDeps/kotlin",files="build.gradle.kts[tags=changing-deps]"]
+include::sample[dir="snippets/reference/dependency-management/dependency-management/dependencyCaching-changingDeps/groovy",files="build.gradle[tags=changing-deps]"]
+====
 
 [[sec:controlling-dynamic-version-caching]]
 === Caching changing dependencies

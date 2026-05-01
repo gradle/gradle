@@ -25,6 +25,7 @@ Then, for each project declared in the settings file, Gradle creates a correspon
 
 Gradle then locates the associated build script (e.g., `build.gradle(.kts)`) and uses it during the configuration phase to configure each `Project` object.
 
+[[sec:anatomy_of_a_build_script]]
 == Anatomy of a Build Script
 
 Gradle build scripts are written in either <<groovy_build_script_primer.adoc#groovy_build_script_primer, Groovy DSL>> or <<kotlin_dsl.adoc#kotdsl:kotlin_dsl, Kotlin DSL>> (domain-specific language).
@@ -153,7 +154,7 @@ $ gradle -q printProperties
 ----
 [source,text]
 ----
-include::{snippetsPath}/tutorial/extraProperties/tests/extraProperties.out[]
+include::{snippetsPath}/fundamentals/authoring-builds/extraProperties/tests/extraProperties.out[]
 ----
 
 Gradle uses special syntax for defining extra properties to ensure fail-fast behavior.
@@ -286,6 +287,7 @@ include::sample[dir="snippets/fundamentals/authoring-builds/simple/kotlin/sub-pr
 include::sample[dir="snippets/fundamentals/authoring-builds/simple/groovy/sub-project-a", files="build.gradle[tags=doc]"]
 ====
 
+[[sec:accessing_project_properties]]
 == Accessing Project Properties in Build Scripts
 
 In a Gradle build script, you can refer to project-level properties like `name`, `version`, or `group` without needing to qualify them with `project`:
@@ -301,7 +303,7 @@ $ gradle -q check
 ----
 [source,text]
 ----
-include::{snippetsPath}/tutorial/projectApi/tests/projectApi.out[]
+include::{snippetsPath}/fundamentals/authoring-builds/projectApi/tests/projectApi.out[]
 ----
 
 This works because of how Gradle evaluates build scripts:
@@ -311,6 +313,7 @@ This works because of how Gradle evaluates build scripts:
 
 While you can always use `project.name` to be explicit, using the shorthand `name` is common and safe in most situations.
 
+[[sec:accessing_settings_properties]]
 == Accessing Settings Properties in Settings Scripts
 
 Just like build scripts operate within a `Project` context, settings scripts (`settings.gradle(.kts)`) operate within a `Settings` context.

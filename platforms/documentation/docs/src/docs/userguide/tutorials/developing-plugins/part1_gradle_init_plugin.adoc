@@ -36,6 +36,7 @@ Before we start, make sure you have everything you need:
 
 2.  **IntelliJ IDEA**: Install the free link:https://www.jetbrains.com/idea/download/[IntelliJ IDEA Community Edition]. It's a great tool for working with Gradle projects.
 
+[[dp_part1_step1]]
 == Step 1: Initializing the Project
 
 Let's get started by creating our project.
@@ -70,6 +71,7 @@ When prompted for additional options, just accept the default values.
 
 NOTE: All examples in this tutorial are based on a macOS environment.
 
+[[dp_part1_step2]]
 == Step 2: Understanding the Project Layout
 
 After `gradle init` finishes, you'll have a new project structure.
@@ -150,6 +152,7 @@ The project should look like this:
 <8> The default folder for functional tests.
 =====
 
+[[dp_part1_step3]]
 == Step 3: Review the Gradle Build File
 
 Let's take a look at the `build.gradle(.kts)` file inside the `plugin` directory.
@@ -172,6 +175,7 @@ include::sample[dir="snippets/tutorials/developing-plugins/plugin-tutorial/groov
 * `val greeting by plugins.creating {}` or `plugins.greeting {}`: This registers a new plugin definition with the ID `org.example.greeting`.
 * `implementationClass = "org.example.PluginTutorialPlugin"`: This points to the main class that contains your plugin's logic.
 
+[[dp_part1_step4]]
 == Step 4: Review the Plugin Code
 
 The plugin code is a simple "Hello, World!" example that `gradle init` generated for us.
@@ -197,6 +201,7 @@ include::sample[dir="snippets/tutorials/developing-plugins/plugin-tutorial/groov
 * `tasks.register("greeting")`: This is how we register a new task. Users can run it from the command line with `./gradlew greeting`.
 * `doLast {}`: This block contains the code that runs when the task is executed.
 
+[[dp_part1_step5]]
 == Step 5: Understand the Plugin's Behavior
 
 To see the plugin in action, you can apply the plugin using its ID (`org.example.greeting`) in a `plugins` block:
@@ -215,6 +220,7 @@ After applying it, running the `greeting` task with `./gradlew greeting` will pr
 Hello from plugin 'org.example.greeting'
 ----
 
+[[dp_part1_step6]]
 == Step 6: What we will Build
 
 This tutorial will guide you in building a powerful **Slack Notification Gradle Plugin**.
@@ -226,6 +232,7 @@ The finished plugin will be able to:
 * Automatically report build success or failure at the end of the build.
 * Integrate seamlessly with the build lifecycle using modern Gradle APIs like `FlowAction`.
 
+[[dp_part1_step7]]
 == Step 7: Slack Client API Setup
 
 To get started, you'll need to set up the Slack API Client.
