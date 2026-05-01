@@ -256,6 +256,11 @@ A configuration that declares an invalid dependency, or one that depends on a mi
 With the Configuration Cache enabled, the resolved state of every declared configuration must be captured before execution begins so that it can be serialized into the cache entry.
 Resolution therefore happens during configuration, or at the boundary between configuration and execution, regardless of whether the tasks that need a given configuration are scheduled to run.
 
+This includes tasks that would otherwise skip early at execution time.
+For example, the Java plugin's compile task is skipped when its source set is empty; without the Configuration Cache, the early skip also bypasses input fingerprinting, so the task's compile classpath is never resolved (a configuration with an invalid dependency may go undetected).
+With the Configuration Cache enabled, resolution still happens at store time because the resolved state must be captured into the cache entry.
+A practical benefit of this: cache hits remain stable when sources are added to a previously empty project, since the dependency graph has already been resolved and serialized.
+
 The practical consequence: a build that contained latent dependency-declaration errors (an invalid coordinate in an unused configuration, a typo'd repository URL, missing credentials for a repository nobody actually fetched from) may pass without the Configuration Cache and fail with it enabled.
 
 === Configuration-time problems surface earlier
