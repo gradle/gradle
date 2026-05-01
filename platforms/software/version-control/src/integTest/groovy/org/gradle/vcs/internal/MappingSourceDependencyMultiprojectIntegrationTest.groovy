@@ -16,6 +16,7 @@
 
 package org.gradle.vcs.internal
 
+import org.gradle.integtests.fixtures.modes.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import org.gradle.vcs.git.GitVersionControlSpec
 
@@ -37,6 +38,7 @@ class MappingSourceDependencyMultiprojectIntegrationTest extends AbstractSourceD
     }
 
     @ToBeFixedForIsolatedProjects(because = "included build uses allprojects { apply plugin: 'java' }")
+    @ToBeFixedForConfigurationCache(because = "Test fixture queues per-invocation HTTP expectations; CC reuses resolved graph and skips the second resolve")
     def "can map all modules in group to repo using all {}"() {
         settingsFile << """
             sourceControl {
@@ -68,6 +70,7 @@ class MappingSourceDependencyMultiprojectIntegrationTest extends AbstractSourceD
         assertResolvesTo("foo-1.0.jar", "bar-1.0.jar")
     }
 
+    @ToBeFixedForConfigurationCache(because = "Test fixture queues per-invocation HTTP expectations; CC reuses resolved graph and skips the second resolve")
     def "can map to a repository containing multiple separate builds"() {
         repo.file("settings.gradle").delete()
         repo.file("foo/build.gradle") << """
