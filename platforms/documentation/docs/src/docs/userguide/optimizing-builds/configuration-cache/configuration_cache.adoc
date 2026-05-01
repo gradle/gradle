@@ -199,8 +199,8 @@ When Gradle loads a cache entry, it reverses the process to reconstruct the task
 A Configuration Cache entry contains:
 
 - The set of tasks scheduled to run, in dependency order.
-- Each task's configured state: the values of its `@Input`-annotated and other declared properties.
-- The graph of objects reachable through those properties (file collections, providers, nested beans, dependency results, build service references).
+- Each task instance's complete state: every reachable field is serialized, including private fields and fields that are not annotated as `@Input`, `@OutputFile`, or `@Internal`.
+- The graph of objects reachable through those fields (file collections, providers, nested beans, dependency results, build service references).
 
 Anything *not* reachable from a scheduled task is excluded.
 References to types that cannot survive the configuration-to-execution boundary (`Project`, `Gradle`, `ClassLoader`, `Configuration`, and others enumerated in <<configuration_cache_requirements.adoc#config_cache:requirements, the requirements>>) are rejected with a Configuration Cache problem at store time, before they can cause a runtime failure on a later load.
