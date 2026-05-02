@@ -17,6 +17,7 @@
 package org.gradle.vcs.internal
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.vcs.fixtures.GitFileRepository
 import org.junit.Rule
 
@@ -54,6 +55,7 @@ class SourceDependencyBuildLookupIntegrationTest extends AbstractIntegrationSpec
         repo.createLightWeightTag("2.0")
     }
 
+    @ToBeFixedForConfigurationCache(because = "Test build script reads `gradle` from a Groovy closure at execution time, masking the assertion under test")
     def "source dependency builds are not visible to main build"() {
         given:
         buildFile << """

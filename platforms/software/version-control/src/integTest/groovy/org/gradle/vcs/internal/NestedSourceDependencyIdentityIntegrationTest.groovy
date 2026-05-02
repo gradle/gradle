@@ -17,6 +17,7 @@
 package org.gradle.vcs.internal
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.modes.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import org.gradle.vcs.fixtures.GitFileRepository
 import org.junit.Rule
@@ -136,6 +137,7 @@ Required by:
     }
 
     @ToBeFixedForIsolatedProjects(because = "allprojects in nested included build")
+    @ToBeFixedForConfigurationCache(because = "doLast block reads configurations from a Groovy closure at execution time")
     def "includes build identifier in dependency resolution results with #display"() {
         repoC.file("a/.gitkeepdir").touch()
         repoC.file("settings.gradle") << """
