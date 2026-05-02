@@ -1,1 +1,2 @@
+org.gradle.nativeplatform.internal.services.PluginsModelNativeServices
 org.gradle.nativeplatform.test.internal.services.NativeTestingServices
