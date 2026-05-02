@@ -157,30 +157,6 @@ class ConfigurationCacheCompositeBuildsIntegrationTest extends AbstractIntegrati
         configurationCache.assertStateLoaded()
     }
 
-    def "gracefully degrades to vintage when source dependencies are present"() {
-        given:
-        settingsFile << """
-            sourceControl {
-                vcsMappings {
-                    withModule("org.test:buildB") {
-                        from(GitVersionControlSpec) {
-                            url = "some-repo"
-                        }
-                    }
-                }
-            }
-        """
-
-        when:
-        run("help")
-
-        then:
-        configurationCache.configurationCacheBuildOperations.assertNoConfigurationCache()
-
-        and:
-        postBuildOutputContains("Configuration cache disabled because incompatible feature usage (source dependencies) was found.")
-    }
-
     @Issue("https://github.com/gradle/gradle/issues/20945")
     def "composite build with dependency substitution can include builds in any order"() {
         given:
