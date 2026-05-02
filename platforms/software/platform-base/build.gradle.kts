@@ -30,6 +30,7 @@ dependencies {
     testImplementation(projects.native)
     testImplementation(projects.snapshots)
     testImplementation(projects.processServices)
+    testImplementation(projects.softwareDiagnostics)
 
     testFixturesApi(projects.fileCollections)
     testFixturesApi(testFixtures(projects.modelCore))

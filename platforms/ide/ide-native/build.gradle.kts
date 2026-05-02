@@ -33,9 +33,10 @@ dependencies {
     api(projects.platformNative)
     api(projects.serviceProvider)
 
+    api(projects.pluginsModelNative)
+
     implementation(projects.modelCore)
     implementation(projects.testingNative)
-    implementation(projects.pluginsModelNative)
     implementation(projects.loggingApi)
     implementation(projects.serviceLookup)
     implementation(projects.functional)

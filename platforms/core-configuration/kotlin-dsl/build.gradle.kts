@@ -119,8 +119,8 @@ dependencies {
     testImplementation(projects.buildCacheLocal)
     testImplementation(projects.buildInit)
     testImplementation(projects.jacoco)
-    testImplementation(projects.platformNative) {
-        because("BuildType from platform-native is used in ProjectAccessorsClassPathTest")
+    testImplementation(projects.pluginsModelNative) {
+        because("BuildType from plugins-model-native is used in ProjectAccessorsClassPathTest")
     }
     testImplementation(projects.platformJvm)
     testImplementation(projects.versionControl)
