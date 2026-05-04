@@ -282,7 +282,7 @@
   {
     "name": "code-quality-workers",
     "path": "platforms/jvm/code-quality-workers",
-    "unitTests": true,
+    "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false
   },

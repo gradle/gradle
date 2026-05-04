@@ -63,7 +63,6 @@ public abstract class Pmd extends AbstractCodeQualityTask implements Reporting<P
 
     private FileCollection pmdClasspath;
     private List<String> ruleSets;
-    private TargetJdk targetJdk;
     private TextResource ruleSetConfig;
     private FileCollection ruleSetFiles;
     private final PmdReports reports;
@@ -88,7 +87,6 @@ public abstract class Pmd extends AbstractCodeQualityTask implements Reporting<P
     private void setupParameters(PmdActionParameters parameters) {
         parameters.getAntLibraryClasspath().setFrom(getPmdClasspath());
         parameters.getPmdClasspath().setFrom(getPmdClasspath());
-        parameters.getTargetJdk().set(getTargetJdk());
         parameters.getRuleSets().set(getRuleSets());
         parameters.getRuleSetConfigFiles().from(getRuleSetFiles());
         if (getRuleSetConfig() != null) {
@@ -214,22 +212,6 @@ public abstract class Pmd extends AbstractCodeQualityTask implements Reporting<P
      */
     public void setRuleSets(List<String> ruleSets) {
         this.ruleSets = ruleSets;
-    }
-
-    /**
-     * The target JDK to use with PMD.
-     */
-    @Input
-    @ToBeReplacedByLazyProperty
-    public TargetJdk getTargetJdk() {
-        return targetJdk;
-    }
-
-    /**
-     * The target JDK to use with PMD.
-     */
-    public void setTargetJdk(TargetJdk targetJdk) {
-        this.targetJdk = targetJdk;
     }
 
     /**

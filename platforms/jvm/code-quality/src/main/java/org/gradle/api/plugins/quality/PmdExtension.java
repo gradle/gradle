@@ -36,7 +36,6 @@ public abstract class PmdExtension extends CodeQualityExtension {
 
     private final Project project;
 
-    private TargetJdk targetJdk;
     private TextResource ruleSetConfig;
     private ConfigurableFileCollection ruleSetFiles;
     private boolean consoleOutput;
@@ -87,24 +86,6 @@ public abstract class PmdExtension extends CodeQualityExtension {
     }
 
     /**
-     * The target jdk to use with pmd, 1.3, 1.4, 1.5, 1.6, 1.7 or jsp
-     */
-    @ToBeReplacedByLazyProperty
-    public TargetJdk getTargetJdk() {
-        return targetJdk;
-    }
-
-    /**
-     * Sets the target jdk used with pmd.
-     *
-     * @param targetJdk The target jdk
-     * @since 4.0
-     */
-    public void setTargetJdk(TargetJdk targetJdk) {
-        this.targetJdk = targetJdk;
-    }
-
-    /**
      * The maximum number of failures to allow before stopping the build.
      *
      * If {@code ignoreFailures} is set, this is ignored and no limit is enforced.
@@ -112,15 +93,6 @@ public abstract class PmdExtension extends CodeQualityExtension {
      * @since 6.4
      */
     public abstract Property<Integer> getMaxFailures();
-
-    /**
-     * Sets the target jdk used with pmd.
-     *
-     * @param value The value for the target jdk as defined by {@link TargetJdk#toVersion(Object)}
-     */
-    public void setTargetJdk(Object value) {
-        targetJdk = TargetJdk.toVersion(value);
-    }
 
     /**
      * The rule priority threshold; violations for rules with a lower priority will not be reported. Default value is 5, which means that all violations will be reported.

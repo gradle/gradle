@@ -115,7 +115,6 @@ class PmdPluginToolchainsIntegrationTest extends AbstractPmdPluginVersionIntegra
                 ruleSetFiles = files()
                 ruleSets = ["category/java/errorprone.xml"]
                 rulesMinimumPriority = 5
-                targetJdk = TargetJdk.VERSION_1_4
                 threads = 1
                 incrementalAnalysis = false
             }

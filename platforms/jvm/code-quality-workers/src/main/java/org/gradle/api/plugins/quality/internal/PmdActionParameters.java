@@ -19,7 +19,6 @@ package org.gradle.api.plugins.quality.internal;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.plugins.internal.ant.AntWorkParameters;
-import org.gradle.api.plugins.quality.TargetJdk;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
 
@@ -29,8 +28,6 @@ import org.gradle.api.provider.Property;
 public interface PmdActionParameters extends AntWorkParameters {
 
     ConfigurableFileCollection getPmdClasspath();
-
-    Property<TargetJdk> getTargetJdk();
 
     ListProperty<String> getRuleSets();
 

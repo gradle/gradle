@@ -17,7 +17,6 @@ package org.gradle.api.plugins.quality;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
-import org.gradle.api.JavaVersion;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.ProjectLayout;
@@ -89,19 +88,7 @@ public abstract class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
         extension.getThreads().convention(1);
         extension.setRuleSetFiles(project.getLayout().files());
         extension.getRuleSetsProperty().convention(project.getProviders().provider(() -> ruleSetsConvention(extension)));
-        conventionMappingOf(extension).map("targetJdk", () ->
-            getDefaultTargetJdk(getJavaPluginExtension().getSourceCompatibility()));
         return extension;
-    }
-
-    public TargetJdk getDefaultTargetJdk(JavaVersion javaVersion) {
-        try {
-            return TargetJdk.toVersion(javaVersion.toString());
-        } catch (IllegalArgumentException ignored) {
-            // TargetJDK does not include 1.1, 1.2 and 1.8;
-            // Use same fallback as PMD
-            return TargetJdk.VERSION_1_4;
-        }
     }
 
     @Override
@@ -151,7 +138,6 @@ public abstract class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
         taskMapping.map("ruleSetConfig", () -> extension.getRuleSetConfig());
         taskMapping.map("ruleSetFiles", () -> extension.getRuleSetFiles());
         taskMapping.map("consoleOutput", () -> extension.isConsoleOutput());
-        taskMapping.map("targetJdk", () -> extension.getTargetJdk());
 
         task.getRulesMinimumPriority().convention(extension.getRulesMinimumPriority());
         task.getMaxFailures().convention(extension.getMaxFailures());

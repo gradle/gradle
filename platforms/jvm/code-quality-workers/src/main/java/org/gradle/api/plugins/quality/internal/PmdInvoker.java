@@ -88,11 +88,6 @@ class PmdInvoker implements Action<AntBuilderDelegate> {
         String htmlFormat = "html";
         if (version.compareTo(VersionNumber.parse("5.0.0")) < 0) {
             // <5.x
-            // NOTE: PMD 5.0.2 apparently introduces an element called "language" that serves the same purpose
-            // http://sourceforge.net/p/pmd/bugs/1004/
-            // http://java-pmd.30631.n5.nabble.com/pmd-pmd-db05bc-pmd-AntTask-support-for-language-td5710041.html
-            antPmdArgs.put("targetjdk", parameters.getTargetJdk().get().getName());
-
             htmlFormat = "betterhtml";
 
             // fallback to basic on pre 5.0 for backwards compatible
