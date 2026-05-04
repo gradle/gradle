@@ -119,9 +119,6 @@ dependencies {
     testImplementation(projects.buildCacheLocal)
     testImplementation(projects.buildInit)
     testImplementation(projects.jacoco)
-    testImplementation(projects.pluginsModelNative) {
-        because("BuildType from plugins-model-native is used in ProjectAccessorsClassPathTest")
-    }
     testImplementation(projects.platformJvm)
     testImplementation(projects.versionControl)
     testImplementation(testFixtures(projects.core))
@@ -143,7 +140,7 @@ dependencies {
     integTestImplementation(testLibs.mockitoKotlin)
 
     testRuntimeOnly(projects.distributionsNative) {
-        because("SimplifiedKotlinScriptEvaluator reads default imports from the distribution (default-imports.txt) and BuildType from platform-native is used in ProjectAccessorsClassPathTest.")
+        because("SimplifiedKotlinScriptEvaluator reads default imports from the distribution (default-imports.txt).")
     }
 
     testFixturesImplementation(projects.baseServices)
