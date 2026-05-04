@@ -16,8 +16,13 @@
 
 package org.gradle.vcs.internal.resolver;
 
+import com.google.common.collect.ImmutableSet;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
+import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
+import org.gradle.api.internal.artifacts.ivyservice.CacheExpirationControl;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ChangingValueDependencyResolutionListener;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.LatestVersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.Version;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionComparator;
@@ -29,34 +34,71 @@ import org.gradle.vcs.internal.VersionRef;
 import org.jspecify.annotations.Nullable;
 
 import java.io.File;
+import java.time.Duration;
 import java.util.Set;
 
 public class DefaultVcsVersionWorkingDirResolver implements VcsVersionWorkingDirResolver {
+
+    // Source-dependency floating refs are re-resolved on every build today (no on-disk metadata TTL).
+    // Mirror that semantic for CC: an Expiry of zero forces invalidation of any cached entry that
+    // resolved a dynamic source-dep selector. A future cacheDynamicVersionsFor-equivalent for source
+    // deps would replace this with a real Duration without changing the writer or checker.
+    private static final CacheExpirationControl.Expiry ALWAYS_EXPIRED = new CacheExpirationControl.Expiry() {
+        @Override
+        public boolean isMustCheck() {
+            return true;
+        }
+
+        @Override
+        public Duration getKeepFor() {
+            return Duration.ZERO;
+        }
+    };
+
     private final VersionSelectorScheme versionSelectorScheme;
     private final VersionComparator versionComparator;
     private final VersionParser versionParser;
     private final VcsVersionSelectionCache inMemoryCache;
     private final PersistentVcsMetadataCache persistentCache;
+    private final ChangingValueDependencyResolutionListener listener;
 
-    public DefaultVcsVersionWorkingDirResolver(VersionSelectorScheme versionSelectorScheme, VersionComparator versionComparator, VersionParser versionParser, VcsVersionSelectionCache inMemoryCache, PersistentVcsMetadataCache persistentCache) {
+    public DefaultVcsVersionWorkingDirResolver(VersionSelectorScheme versionSelectorScheme, VersionComparator versionComparator, VersionParser versionParser, VcsVersionSelectionCache inMemoryCache, PersistentVcsMetadataCache persistentCache, ChangingValueDependencyResolutionListener listener) {
         this.versionSelectorScheme = versionSelectorScheme;
         this.versionComparator = versionComparator;
         this.versionParser = versionParser;
         this.inMemoryCache = inMemoryCache;
         this.persistentCache = persistentCache;
+        this.listener = listener;
     }
 
     @Nullable
     @Override
     public File selectVersion(ModuleComponentSelector selector, VersionControlRepositoryConnection repository) {
-        VersionRef selectedVersion = selectVersionFromRepository(repository, selector.getVersionConstraint());
+        VersionConstraint constraint = selector.getVersionConstraint();
+        VersionRef selectedVersion = selectVersionFromRepository(repository, constraint);
         if (selectedVersion == null) {
             return null;
         }
 
+        if (isDynamic(constraint)) {
+            ModuleVersionIdentifier resolvedId = DefaultModuleVersionIdentifier.newId(selector.getModuleIdentifier(), selectedVersion.getVersion());
+            listener.onDynamicVersionSelection(selector, ALWAYS_EXPIRED, ImmutableSet.of(resolvedId));
+        }
+
         File workingDir = prepareWorkingDir(repository, selectedVersion);
-        persistentCache.putVersionForSelector(repository, selector.getVersionConstraint(), selectedVersion);
+        persistentCache.putVersionForSelector(repository, constraint, selectedVersion);
         return workingDir;
+    }
+
+    private boolean isDynamic(VersionConstraint constraint) {
+        if (constraint.getBranch() != null) {
+            return true;
+        }
+        String version = constraint.getRequiredVersion();
+        if (version.isEmpty()) {
+            return false;
+        }
+        return versionSelectorScheme.parseSelector(version).isDynamic();
     }
 
     private File prepareWorkingDir(VersionControlRepositoryConnection repository, VersionRef selectedVersion) {

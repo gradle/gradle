@@ -72,7 +72,6 @@ class GitVersionSelectionIntegrationTest extends AbstractIntegrationSpec {
         '''
     }
 
-    @ToBeFixedForConfigurationCache(because = "Source-dep floating-ref invalidation not implemented; CC reuses stale resolution after upstream commit (see #13506)")
     def "selects and builds from master for latest.integration selector"() {
         given:
         buildFile << """
@@ -229,7 +228,6 @@ Required by:
         result.assertTasksScheduled(":dep:jar_2.0", ":checkDeps")
     }
 
-    @ToBeFixedForConfigurationCache(because = "Source-dep floating-ref invalidation not implemented; CC reuses stale resolution after new tag pushed (see #13506)")
     def "selects and builds from highest tag that matches #selector selector"() {
         given:
         buildFile << """
@@ -367,7 +365,6 @@ Required by:
         "HEAD"    | _
     }
 
-    @ToBeFixedForConfigurationCache(because = "Source-dep floating-ref invalidation not implemented; CC reuses stale resolution after branch HEAD moves (see #13506)")
     def "selects and builds latest from branch for branch selector"() {
         given:
         buildFile << """

@@ -20,7 +20,6 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.TestExecutionPreconditions
-import groovy.test.NotYetImplemented
 import org.gradle.vcs.fixtures.GitFileRepository
 import org.gradle.vcs.git.GitVersionControlSpec
 import org.junit.Rule
@@ -44,15 +43,6 @@ class SourceDependencyConfigurationCacheIntegrationTest extends AbstractIntegrat
     }
 
     def setup() {
-        buildFile << """
-            apply plugin: 'java'
-            group = 'org.gradle'
-            version = '2.0'
-
-            dependencies {
-                implementation "org.test:dep:latest.integration"
-            }
-        """
         file("src/main/java/Main.java") << """
             public class Main {
                 Dep dep = null;
@@ -64,11 +54,13 @@ class SourceDependencyConfigurationCacheIntegrationTest extends AbstractIntegrat
                 allprojects {
                     apply plugin: 'java'
                     group = 'org.test'
+                    version = '1.0'
                 }
             """
             file("src/main/java/Dep.java") << "public class Dep {}"
         }
         repo.commit('initial')
+        repo.createLightWeightTag('1.0')
 
         settingsFile << """
             sourceControl {
@@ -83,7 +75,34 @@ class SourceDependencyConfigurationCacheIntegrationTest extends AbstractIntegrat
         """
     }
 
+    private void useStaticVersion() {
+        buildFile << """
+            apply plugin: 'java'
+            group = 'org.gradle'
+            version = '2.0'
+
+            dependencies {
+                implementation "org.test:dep:1.0"
+            }
+        """
+    }
+
+    private void useDynamicVersion() {
+        buildFile << """
+            apply plugin: 'java'
+            group = 'org.gradle'
+            version = '2.0'
+
+            dependencies {
+                implementation "org.test:dep:latest.integration"
+            }
+        """
+    }
+
     def "stores configuration cache entry for build using a source dependency"() {
+        given:
+        useStaticVersion()
+
         when:
         succeeds("assemble")
 
@@ -93,7 +112,10 @@ class SourceDependencyConfigurationCacheIntegrationTest extends AbstractIntegrat
         result.assertTaskExecuted(":compileJava")
     }
 
-    def "reuses configuration cache entry on second invocation"() {
+    def "reuses configuration cache entry on second invocation with static version"() {
+        given:
+        useStaticVersion()
+
         when:
         succeeds("assemble")
 
@@ -108,6 +130,9 @@ class SourceDependencyConfigurationCacheIntegrationTest extends AbstractIntegrat
     }
 
     def "invalidates configuration cache when vcsMappings block changes"() {
+        given:
+        useStaticVersion()
+
         when:
         succeeds("assemble")
 
@@ -134,8 +159,10 @@ class SourceDependencyConfigurationCacheIntegrationTest extends AbstractIntegrat
         configurationCache.assertStateStored()
     }
 
-    @NotYetImplemented
-    def "invalidates configuration cache when source dependency upstream commit changes"() {
+    def "always invalidates configuration cache when source dependency uses a dynamic selector"() {
+        given:
+        useDynamicVersion()
+
         when:
         succeeds("assemble")
 
@@ -143,8 +170,26 @@ class SourceDependencyConfigurationCacheIntegrationTest extends AbstractIntegrat
         configurationCache.assertStateStored()
 
         when:
-        // Add a new commit to the source-dep repo. With `latest.integration` resolving to the
-        // branch HEAD, a fresh run would pick up the new commit; CC must invalidate.
+        // No source-dep changes — CC must still invalidate because the selector is dynamic
+        // (the resolved commit may have moved). Mirrors how external dynamic versions work
+        // under CC (TTL=0 vs the 24h default for external repos).
+        succeeds("assemble")
+
+        then:
+        configurationCache.assertStateStored()
+    }
+
+    def "invalidates configuration cache when source dependency upstream commit changes"() {
+        given:
+        useDynamicVersion()
+
+        when:
+        succeeds("assemble")
+
+        then:
+        configurationCache.assertStateStored()
+
+        when:
         depProject.file("src/main/java/Dep.java").text = "public class Dep { int extra; }"
         repo.commit('updated')
         succeeds("assemble")
