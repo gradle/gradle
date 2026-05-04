@@ -29,13 +29,13 @@ public interface BuildServiceParameters {
      *
      * @since 6.1
      */
-    @Incubating
     enum None implements BuildServiceParameters {
         /**
          * Singleton instance of {@link None}.
          *
          * @since 9.6.0
          */
+        @Incubating
         INSTANCE;
 
         @Override

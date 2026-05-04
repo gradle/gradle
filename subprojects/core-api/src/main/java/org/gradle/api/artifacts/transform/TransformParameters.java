@@ -47,13 +47,13 @@ public interface TransformParameters {
      *
      * @since 5.3
      */
-    @Incubating
     enum None implements TransformParameters {
         /**
          * Singleton instance of {@link None}.
          *
          * @since 9.6.0
          */
+        @Incubating
         INSTANCE;
 
         @Override

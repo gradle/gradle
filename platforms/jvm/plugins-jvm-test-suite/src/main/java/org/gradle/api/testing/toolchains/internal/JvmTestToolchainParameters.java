@@ -24,9 +24,12 @@ package org.gradle.api.testing.toolchains.internal;
  */
 public interface JvmTestToolchainParameters {
     /**
-     * Marker interface for {@link JvmTestToolchain} implementations that do not require any configuration.
+     * Used for {@link JvmTestToolchain implementations} without parameters.
      */
     enum None implements JvmTestToolchainParameters {
+        /**
+         * Singleton instance of {@link None}.
+         */
         INSTANCE;
 
         @Override

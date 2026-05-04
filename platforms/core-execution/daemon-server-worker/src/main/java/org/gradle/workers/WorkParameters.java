@@ -42,13 +42,13 @@ public interface WorkParameters {
      *
      * @since 5.6
      */
-    @Incubating
     enum None implements WorkParameters {
         /**
          * Singleton instance of {@link None}.
          *
          * @since 9.6.0
          */
+        @Incubating
         INSTANCE;
 
         @Override

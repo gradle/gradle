@@ -44,8 +44,13 @@ public interface FlowParameters {
      *
      * @since 8.1
      */
-    @Incubating
     enum None implements FlowParameters {
+        /**
+         * Singleton instance of {@link None}.
+         *
+         * @since 9.6.0
+         */
+        @Incubating
         INSTANCE;
 
         @Override

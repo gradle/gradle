@@ -38,13 +38,13 @@ public interface ValueSourceParameters {
      *
      * @since 6.1
      */
-    @Incubating
     enum None implements ValueSourceParameters {
         /**
          * Singleton instance of {@link None}.
          *
          * @since 9.6.0
          */
+        @Incubating
         INSTANCE;
 
         @Override
