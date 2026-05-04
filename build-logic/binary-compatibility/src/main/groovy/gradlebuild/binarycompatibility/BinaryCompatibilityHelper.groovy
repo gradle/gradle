@@ -18,9 +18,8 @@ package gradlebuild.binarycompatibility
 
 import gradlebuild.binarycompatibility.filters.AnonymousClassesFilter
 import gradlebuild.binarycompatibility.filters.BridgeForBytecodeUpgradeAdapterClassFilter
-import gradlebuild.binarycompatibility.filters.EnumSyntheticMethodsFilter
-import gradlebuild.binarycompatibility.filters.KotlinBridgeMethodsFilter
 import gradlebuild.binarycompatibility.filters.KotlinInternalFilter
+import gradlebuild.binarycompatibility.filters.KotlinBridgeMethodsFilter
 import gradlebuild.binarycompatibility.rules.AcceptedRegressionsRulePostProcess
 import gradlebuild.binarycompatibility.rules.AcceptedRegressionsRuleSetup
 import gradlebuild.binarycompatibility.rules.BinaryBreakingChangesRule
@@ -61,7 +60,6 @@ class BinaryCompatibilityHelper {
             addExcludeFilter(KotlinInternalFilter)
             addExcludeFilter(KotlinBridgeMethodsFilter)
             addExcludeFilter(BridgeForBytecodeUpgradeAdapterClassFilter)
-            addExcludeFilter(EnumSyntheticMethodsFilter)
 
             def mainApiChangesJsonFilePath = mainApiChangesJsonFile.path
             def projectRootDirPath = projectRootDir.asFile.path
