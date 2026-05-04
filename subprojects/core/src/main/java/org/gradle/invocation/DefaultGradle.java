@@ -43,6 +43,7 @@ import org.gradle.api.internal.project.CrossProjectConfigurator;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.api.internal.project.ProjectState;
+import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.invocation.GradleLifecycle;
 import org.gradle.api.model.ObjectFactory;
@@ -58,8 +59,11 @@ import org.gradle.internal.InternalBuildAdapter;
 import org.gradle.internal.InternalListener;
 import org.gradle.internal.MutableActionSet;
 import org.gradle.internal.build.BuildState;
+import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.PublicBuildPath;
+import org.gradle.internal.build.StandAloneNestedBuild;
 import org.gradle.internal.composite.IncludedBuildInternal;
+import org.gradle.internal.composite.IncludedBuildSrcBuild;
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
@@ -543,7 +547,24 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
                 return includedBuild;
             }
         }
+        if (SettingsInternal.BUILD_SRC.equals(name)) {
+            IncludedBuild buildSrc = findBuildSrcAsIncludedBuild();
+            if (buildSrc != null) {
+                return buildSrc;
+            }
+        }
         throw new UnknownDomainObjectException("Included build '" + name + "' not found in " + this + ".");
+    }
+
+    @Nullable
+    private IncludedBuild findBuildSrcAsIncludedBuild() {
+        BuildStateRegistry buildStateRegistry = buildScopeServices.get(BuildStateRegistry.class);
+        StandAloneNestedBuild buildSrcBuild = buildStateRegistry.getBuildSrcNestedBuild(buildState);
+        if (buildSrcBuild == null) {
+            return null;
+        }
+        TaskDependencyFactory taskDependencyFactory = buildSrcBuild.getMutableModel().getServices().get(TaskDependencyFactory.class);
+        return new IncludedBuildSrcBuild(buildSrcBuild, taskDependencyFactory);
     }
 
     @Override
