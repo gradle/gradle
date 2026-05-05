@@ -28,6 +28,7 @@ import org.gradle.internal.Factory
 import org.gradle.internal.InternalBuildAdapter
 import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.cc.impl.DefaultConfigurationCacheDegradationController
+import org.gradle.internal.configuration.problems.IsolatedProjectsProblemsListener
 import org.gradle.internal.configuration.problems.ProblemsListener
 import org.gradle.internal.configuration.problems.PropertyProblem
 import org.gradle.internal.configuration.problems.PropertyTrace
@@ -54,7 +55,8 @@ internal class ConfigurationCachePromoHandler(
     private val buildRegistry: BuildStateRegistry,
     private val degradationController: DefaultConfigurationCacheDegradationController,
     private val documentationRegistry: DocumentationRegistry
-) : RootBuildLifecycleListener, ProblemsListener {
+) : RootBuildLifecycleListener, ProblemsListener, IsolatedProjectsProblemsListener {
+
     private val problems = object {
         @Volatile
         private var _seenProblems = false // if ever, only goes false -> true
@@ -138,4 +140,7 @@ internal class ConfigurationCachePromoHandler(
     private fun TaskExecutionGraph.hasIncompatibleTasks() = allTasks.any { !(it as TaskInternal).isCompatibleWithConfigurationCache }
 
     private fun runWithoutBuildDefinition() = rootBuildLayout.isBuildDefinitionMissing
+
+    override fun onIsolatedProjectsProblem(problem: PropertyProblem) = Unit
+
 }
