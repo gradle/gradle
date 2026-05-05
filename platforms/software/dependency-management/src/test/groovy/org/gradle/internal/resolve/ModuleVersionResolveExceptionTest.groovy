@@ -61,4 +61,31 @@ Required by:
     org:a:1.2 > org:b:5 > org:c:1.0
     org:a:1.2 > org:c:1.0''')
     }
+
+    // The two methods below enforce the non-null AND non-empty path-element contract.
+    // The contract is fail-fast at the producer site so any future regression that
+    // reintroduces a degenerate path surfaces here rather than latently in getMessage().
+    // See https://github.com/gradle/gradle/issues/36284.
+
+    def "withIncomingPaths rejects collections containing null elements"() {
+        Describable a = Describables.of("org:a:1.2")
+        def exception = new ModuleVersionResolveException(DefaultModuleComponentSelector.newSelector(mid("a", "b"), "c"), new RuntimeException())
+
+        when:
+        exception.withIncomingPaths([[a], null])
+
+        then:
+        thrown(NullPointerException)
+    }
+
+    def "withIncomingPaths rejects collections containing empty path elements"() {
+        Describable a = Describables.of("org:a:1.2")
+        def exception = new ModuleVersionResolveException(DefaultModuleComponentSelector.newSelector(mid("a", "b"), "c"), new RuntimeException())
+
+        when:
+        exception.withIncomingPaths([[a], []])
+
+        then:
+        thrown(IllegalArgumentException)
+    }
 }

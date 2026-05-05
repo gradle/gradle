@@ -20,6 +20,7 @@ import groovy.test.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.JdkVersionTestPreconditions
+import org.gradle.test.preconditions.TestEnvironmentPreconditions
 
 import spock.lang.Ignore
 import spock.lang.Issue
@@ -282,5 +283,59 @@ class ResolutionIssuesIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         succeeds(":dependencies", "--configuration", "compileClasspath")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/36284")
+    @Requires(TestEnvironmentPreconditions.Online)
+    def "lenient ArtifactView failures expose messages without NPE for androidx.room artifacts"() {
+        // Reproducer for the user-reported scenario: iterating
+        // ArtifactCollection.failures and reading `.message` on each
+        // ModuleVersionResolveException previously NPE'd at
+        // ModuleVersionResolveException.getMessage() line 111 because
+        // DependencyGraphPathResolver.calculatePaths could return a paths
+        // collection containing a null element when a direct dependee's
+        // module had returned to "pending" state and lost all its
+        // constraint-only incoming edges.
+        buildFile << """
+            plugins {
+                id("java")
+            }
+
+            ${mavenCentralRepository()}
+            ${googleRepository()}
+
+            dependencies {
+                implementation("androidx.room:room-sqlite-wrapper:2.8.3")
+                implementation("androidx.room:room-runtime:2.8.3")
+            }
+
+            abstract class DependencyGraphPrinter extends DefaultTask {
+                @Internal
+                abstract Property<ArtifactCollection> getAc()
+
+                @TaskAction
+                void action() {
+                    println("Failures:")
+                    ac.get().failures.each {
+                        // Pre-fix: this throws NPE from
+                        // ModuleVersionResolveException.getMessage().
+                        // Post-fix: messages render with the "Required by:"
+                        // tail omitting any unreachable direct dependees.
+                        println(it.message)
+                    }
+                }
+            }
+
+            tasks.register("dgp", DependencyGraphPrinter) { task ->
+                def artifactCollection = configurations.compileClasspath.incoming.artifactView {
+                    lenient = true
+                }.artifacts
+                task.ac.set(artifactCollection)
+            }
+        """
+
+        expect:
+        succeeds("dgp")
+        outputContains("Failures:")
     }
 }

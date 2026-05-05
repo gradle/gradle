@@ -32,6 +32,24 @@ import java.util.Set;
 
 public class DependencyGraphPathResolver {
 
+    /**
+     * Calculates the shortest "incoming path" from each direct dependee of a broken dependency
+     * back to the resolution root, used to render the "Required by:" tail in
+     * {@link org.gradle.internal.resolve.ModuleVersionResolveException#getMessage}.
+     *
+     * <p>Some direct dependees can have an empty {@code getDependents()} chain at the time
+     * this runs — most commonly because the dependee's module was pushed back to "pending"
+     * state during resolution and {@code ModuleResolveState.clearIncomingAttachedConstraints}
+     * removed all of its constraint-only incoming edges. That is intentional engine design
+     * (the module is "no longer part of the graph"), so the back-link is genuinely gone by
+     * the time path resolution runs. The handling for that case is documented at the
+     * relevant assembly site below; see
+     * <a href="https://github.com/gradle/gradle/issues/36284">issue 36284</a> for details.
+     *
+     * <p><b>Contract:</b> the returned collection's element lists are guaranteed non-null
+     * and non-empty. Direct dependees whose path back to the root cannot be reconstructed
+     * are omitted — there is no entry for them rather than a null entry.
+     */
     public static Collection<List<Describable>> calculatePaths(
         List<DependencyGraphNode> fromNodes,
         DependencyGraphNode toNode,
@@ -86,7 +104,15 @@ public class DependencyGraphPathResolver {
         List<List<Describable>> paths = new ArrayList<>();
         for (DependencyGraphComponent version : directDependees) {
             List<Describable> path = shortestPaths.get(version);
-            paths.add(path);
+            // Skip direct dependees whose path back to root could not be reconstructed
+            // (typically because the dependee's module returned to "pending" state during
+            // resolution and ModuleResolveState.clearIncomingAttachedConstraints removed
+            // its constraint-only incoming edges — see issue 36284). Including null here
+            // would break consumers like ModuleVersionResolveException.getMessage(); the
+            // failure's "Required by:" tail simply omits these dependees.
+            if (path != null) {
+                paths.add(path);
+            }
         }
         return paths;
     }

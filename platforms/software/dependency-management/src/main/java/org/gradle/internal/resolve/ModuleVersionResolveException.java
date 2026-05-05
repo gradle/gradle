@@ -32,6 +32,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Formatter;
 import java.util.List;
+import java.util.Objects;
 
 @Contextual
 public class ModuleVersionResolveException extends DefaultMultiCauseExceptionNoStackTrace {
@@ -91,10 +92,23 @@ public class ModuleVersionResolveException extends DefaultMultiCauseExceptionNoS
 
     /**
      * Creates a copy of this exception, with the given incoming paths.
+     *
+     * <p>Each incoming path must be non-null and non-empty. Null elements are
+     * rejected with {@link NullPointerException}; empty paths are rejected with
+     * {@link IllegalArgumentException}. This contract is enforced fail-fast at
+     * the producer site to prevent latent NPEs in {@link #getMessage()} when
+     * the resulting message is rendered to the user — see
+     * <a href="https://github.com/gradle/gradle/issues/36284">issue 36284</a>.
      */
     public ModuleVersionResolveException withIncomingPaths(Collection<? extends List<Describable>> paths) {
         ModuleVersionResolveException copy = createCopy();
-        copy.paths.addAll(paths);
+        for (List<Describable> path : paths) {
+            Objects.requireNonNull(path, "incoming path must not be null");
+            if (path.isEmpty()) {
+                throw new IllegalArgumentException("incoming path must not be empty");
+            }
+            copy.paths.add(path);
+        }
         copy.initCauses(getCauses());
         copy.setStackTrace(getStackTrace());
         return copy;
