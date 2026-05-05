@@ -57,4 +57,17 @@ class ProjectIdentityTest extends Specification {
         identity.displayName == "project ':included:sub'"
         identity.toString() == "project ':included:sub'"
     }
+
+    def "resolveProjectPath does not involve the build path"() {
+        // Use a non-root build path to make any leakage observable.
+        def buildPath = Path.path(":included")
+        def rootIdentity = ProjectIdentity.forRootProject(buildPath, "includedApp")
+        def subIdentity = ProjectIdentity.forSubproject(buildPath, Path.path(":sub"))
+
+        expect:
+        rootIdentity.resolveProjectPath(":other") == Path.path(":other")
+        rootIdentity.resolveProjectPath("other") == Path.path(":other")
+        subIdentity.resolveProjectPath(":other") == Path.path(":other")
+        subIdentity.resolveProjectPath("other") == Path.path(":sub:other")
+    }
 }

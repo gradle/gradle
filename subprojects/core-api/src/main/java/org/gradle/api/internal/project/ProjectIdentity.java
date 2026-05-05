@@ -153,6 +153,18 @@ public final class ProjectIdentity implements DisplayName {
     }
 
     /**
+     * Given a potentially relative path to a project, resolve it to an absolute path within the build,
+     * using this project as the base for resolving relative paths. This is purely a project path operation,
+     * and does not use the build path in any way.
+     *
+     * @param path a path to a project, either absolute or relative to this project
+     * @return the absolute path to the project within the build, i.e. not including the build path
+     */
+    public Path resolveProjectPath(String path) {
+        return projectPath.absolutePath(Path.path(path));
+    }
+
+    /**
      * Returns the display name of this project in a human-readable format.
      * <ul>
      *     <li>For the root project: {@code root project 'projectName'}</li>

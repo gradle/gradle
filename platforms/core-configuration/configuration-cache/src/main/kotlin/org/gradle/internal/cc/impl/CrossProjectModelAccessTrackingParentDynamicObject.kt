@@ -18,7 +18,7 @@ package org.gradle.internal.cc.impl
 
 import groovy.lang.MissingMethodException
 import groovy.lang.MissingPropertyException
-import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.internal.project.ProjectIdentity
 import org.gradle.internal.configuration.problems.IsolatedProjectsProblemsReporter
 import org.gradle.internal.configuration.problems.PropertyKind
 import org.gradle.internal.configuration.problems.PropertyTrace.Project
@@ -30,9 +30,9 @@ import java.util.Locale.ENGLISH
 
 internal
 class CrossProjectModelAccessTrackingParentDynamicObject(
-    private val ownerProject: ProjectInternal,
+    private val ownerProject: ProjectIdentity,
     private val delegate: HierarchicalDynamicObject,
-    private val referrerProject: ProjectInternal,
+    private val referrerProject: ProjectIdentity,
     private val ipProblems: IsolatedProjectsProblemsReporter,
     private val coupledProjectsListener: CoupledProjectsListener,
 ) : HierarchicalDynamicObject {
@@ -144,22 +144,22 @@ class CrossProjectModelAccessTrackingParentDynamicObject(
     @Suppress("ThrowingExceptionsWithoutMessageOrCause") // false-positive on the `.exception()` call
     private
     fun onAccess(memberKind: MemberKind, memberName: String?) {
-        coupledProjectsListener.onProjectReference(referrerProject.owner, ownerProject.owner)
+        coupledProjectsListener.onProjectReference(referrerProject, ownerProject)
 
         ipProblems.report {
             problem {
                 text("Project ")
-                reference(referrerProject.identityPath.toString())
+                reference(referrerProject.buildTreePath.toString())
                 text(" cannot dynamically look up a ")
                 text(memberKind.name.lowercase(ENGLISH))
                 text(" in the parent project ")
-                reference(ownerProject.identityPath.toString())
+                reference(ownerProject.buildTreePath.toString())
             }
                 .mapLocation { location ->
                     when (memberKind) {
                         MemberKind.PROPERTY -> {
                             if (memberName != null)
-                                Property(PropertyKind.PropertyUsage, memberName, Project(referrerProject.path, location))
+                                Property(PropertyKind.PropertyUsage, memberName, Project(referrerProject.projectPath.toString(), location))
                             else location
                         }
 

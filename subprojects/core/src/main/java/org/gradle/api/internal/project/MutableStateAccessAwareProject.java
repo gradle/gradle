@@ -108,17 +108,17 @@ public abstract class MutableStateAccessAwareProject implements ProjectInternal,
 
     public static <T extends MutableStateAccessAwareProject> ProjectInternal wrap(
         ProjectInternal target,
-        ProjectInternal referrer,
+        ProjectIdentity referrer,
         Supplier<T> wrapperSupplier
     ) {
-        return target == referrer ? target : wrapperSupplier.get();
+        return target.getProjectIdentity().equals(referrer) ? target : wrapperSupplier.get();
     }
 
     protected final ProjectInternal delegate;
-    protected final ProjectInternal referrer;
+    protected final ProjectIdentity referrer;
     private final DynamicObject dynamicObject;
 
-    protected MutableStateAccessAwareProject(ProjectInternal delegate, ProjectInternal referrer) {
+    protected MutableStateAccessAwareProject(ProjectInternal delegate, ProjectIdentity referrer) {
         this.delegate = delegate;
         this.referrer = referrer;
         this.dynamicObject = new HasPropertyMissingDynamicObject(this, Project.class, this::hasPropertyMissing);
@@ -242,7 +242,7 @@ public abstract class MutableStateAccessAwareProject implements ProjectInternal,
 
     @Nullable
     @Override
-    public ProjectInternal getParent(ProjectInternal referrer) {
+    public ProjectInternal getParent(ProjectIdentity referrer) {
         return delegate.getParent(referrer);
     }
 
@@ -304,7 +304,7 @@ public abstract class MutableStateAccessAwareProject implements ProjectInternal,
     }
 
     @Override
-    public ProjectInternal getRootProject(ProjectInternal referrer) {
+    public ProjectInternal getRootProject(ProjectIdentity referrer) {
         return delegate.getRootProject(referrer);
     }
 
@@ -337,7 +337,7 @@ public abstract class MutableStateAccessAwareProject implements ProjectInternal,
     }
 
     @Override
-    public void subprojects(ProjectInternal referrer, Action<? super Project> configureAction) {
+    public void subprojects(ProjectIdentity referrer, Action<? super Project> configureAction) {
         delegate.subprojects(referrer, configureAction);
     }
 
@@ -362,7 +362,7 @@ public abstract class MutableStateAccessAwareProject implements ProjectInternal,
     }
 
     @Override
-    public void allprojects(ProjectInternal referrer, Action<? super Project> configureAction) {
+    public void allprojects(ProjectIdentity referrer, Action<? super Project> configureAction) {
         delegate.allprojects(referrer, configureAction);
     }
 
@@ -382,12 +382,12 @@ public abstract class MutableStateAccessAwareProject implements ProjectInternal,
     }
 
     @Override
-    public ProjectInternal project(ProjectInternal referrer, String path, Action<? super Project> configureAction) {
+    public ProjectInternal project(ProjectIdentity referrer, String path, Action<? super Project> configureAction) {
         return delegate.project(referrer, path, configureAction);
     }
 
     @Override
-    public ProjectInternal project(ProjectInternal referrer, String path) throws UnknownProjectException {
+    public ProjectInternal project(ProjectIdentity referrer, String path) throws UnknownProjectException {
         return delegate.project(referrer, path);
     }
 
@@ -398,7 +398,7 @@ public abstract class MutableStateAccessAwareProject implements ProjectInternal,
     }
 
     @Override
-    public Set<? extends ProjectInternal> getSubprojects(ProjectInternal referrer) {
+    public Set<? extends ProjectInternal> getSubprojects(ProjectIdentity referrer) {
         return delegate.getSubprojects(referrer);
     }
 
@@ -409,7 +409,7 @@ public abstract class MutableStateAccessAwareProject implements ProjectInternal,
     }
 
     @Override
-    public Map<String, Project> getChildProjects(ProjectInternal referrer) {
+    public Map<String, Project> getChildProjects(ProjectIdentity referrer) {
         return delegate.getChildProjects(referrer);
     }
 
@@ -419,7 +419,7 @@ public abstract class MutableStateAccessAwareProject implements ProjectInternal,
     }
 
     @Override
-    public Set<? extends ProjectInternal> getAllprojects(ProjectInternal referrer) {
+    public Set<? extends ProjectInternal> getAllprojects(ProjectIdentity referrer) {
         return delegate.getAllprojects(referrer);
     }
 
@@ -430,7 +430,7 @@ public abstract class MutableStateAccessAwareProject implements ProjectInternal,
 
     @Nullable
     @Override
-    public ProjectInternal findProject(ProjectInternal referrer, String path) {
+    public ProjectInternal findProject(ProjectIdentity referrer, String path) {
         return delegate.findProject(referrer, path);
     }
 

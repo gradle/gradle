@@ -258,7 +258,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
         taskContainer = services.get(TaskContainerInternal.class);
         extensibleDynamicObject = new ExtensibleDynamicObject(this, Project.class, services.get(InstantiatorFactory.class).decorateLenient(services));
 
-        @Nullable HierarchicalDynamicObject parentInherited = services.get(CrossProjectModelAccess.class).parentProjectDynamicInheritedScope(this);
+        @Nullable HierarchicalDynamicObject parentInherited = services.get(CrossProjectModelAccess.class).parentProjectDynamicInheritedScope(owner);
         if (parentInherited != null) {
             extensibleDynamicObject.setParent(parentInherited);
             extensibleDynamicObject.setFailOnParentAccess(services.get(InternalOptions.class).getBoolean(FAIL_ON_PARENT_PROPERTY_LOOKUP));
@@ -379,17 +379,17 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     @Override
     public ProjectInternal getRootProject() {
-        return getRootProject(this);
+        return getRootProject(getProjectIdentity());
     }
 
     @Override
-    public ProjectInternal getRootProject(ProjectInternal referrer) {
+    public ProjectInternal getRootProject(ProjectIdentity referrer) {
         return getCrossProjectModelAccess().access(referrer, rootProject);
     }
 
     @Override
     public GradleInternal getGradle() {
-        return getCrossProjectModelAccess().gradleInstanceForProject(this, gradle);
+        return getCrossProjectModelAccess().gradleInstanceForProject(getProjectIdentity(), gradle);
     }
 
     @Inject
@@ -423,12 +423,12 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     @Override
     @Nullable
     public ProjectInternal getParent() {
-        return getParent(this);
+        return getParent(getProjectIdentity());
     }
 
     @Nullable
     @Override
-    public ProjectInternal getParent(ProjectInternal referrer) {
+    public ProjectInternal getParent(ProjectIdentity referrer) {
         if (parent == null) {
             return null;
         }
@@ -529,12 +529,12 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     @Override
     public Map<String, Project> getChildProjects() {
-        return getChildProjects(this);
+        return getChildProjects(getProjectIdentity());
     }
 
     @Override
-    public Map<String, Project> getChildProjects(ProjectInternal referrer) {
-        return getCrossProjectModelAccess().getChildProjects(referrer, this);
+    public Map<String, Project> getChildProjects(ProjectIdentity referrer) {
+        return getCrossProjectModelAccess().getChildProjects(referrer, getOwner());
     }
 
     @Override
@@ -696,11 +696,11 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     @Override
     public ProjectInternal project(String path) {
-        return project(this, path);
+        return project(getProjectIdentity(), path);
     }
 
     @Override
-    public ProjectInternal project(ProjectInternal referrer, String path) throws UnknownProjectException {
+    public ProjectInternal project(ProjectIdentity referrer, String path) throws UnknownProjectException {
         ProjectInternal project = findProject(referrer, path);
         if (project == null) {
             throw new UnknownProjectException(String.format("Project with path '%s' could not be found in %s.", path, this));
@@ -710,63 +710,62 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     @Override
     public ProjectInternal findProject(String path) {
-        return findProject(this, path);
+        return findProject(getProjectIdentity(), path);
     }
 
     @Nullable
     @Override
-    public ProjectInternal findProject(ProjectInternal referrer, String path) {
-        Path targetPath = getProjectIdentity().getProjectPath().absolutePath(Path.path(path));
-        return getCrossProjectModelAccess().findProject(referrer, targetPath);
+    public ProjectInternal findProject(ProjectIdentity referrer, String path) {
+        return getCrossProjectModelAccess().findProject(referrer, getProjectIdentity().resolveProjectPath(path));
     }
 
     @Override
     public Set<Project> getAllprojects() {
-        return Cast.uncheckedCast(getAllprojects(this));
+        return Cast.uncheckedCast(getAllprojects(getProjectIdentity()));
     }
 
     @Override
-    public Set<? extends ProjectInternal> getAllprojects(ProjectInternal referrer) {
-        return getCrossProjectModelAccess().getAllprojects(referrer, this);
+    public Set<? extends ProjectInternal> getAllprojects(ProjectIdentity referrer) {
+        return getCrossProjectModelAccess().getAllprojects(referrer, getProjectIdentity());
     }
 
     @Override
     public void allprojects(Closure configureClosure) {
-        allprojects(this, ConfigureUtil.configureUsing(configureClosure));
+        allprojects(getProjectIdentity(), ConfigureUtil.configureUsing(configureClosure));
     }
 
     @Override
     public void allprojects(Action<? super Project> action) {
-        allprojects(this, action);
+        allprojects(getProjectIdentity(), action);
     }
 
     @Override
-    public void allprojects(ProjectInternal referrer, Action<? super Project> action) {
+    public void allprojects(ProjectIdentity referrer, Action<? super Project> action) {
         getProjectConfigurator().allprojects(getAllprojects(referrer), action);
     }
 
     @Override
     public Set<Project> getSubprojects() {
-        return Cast.uncheckedCast(getSubprojects(this));
+        return Cast.uncheckedCast(getSubprojects(getProjectIdentity()));
     }
 
     @Override
-    public Set<? extends ProjectInternal> getSubprojects(ProjectInternal referrer) {
-        return getCrossProjectModelAccess().getSubprojects(referrer, this);
+    public Set<? extends ProjectInternal> getSubprojects(ProjectIdentity referrer) {
+        return getCrossProjectModelAccess().getSubprojects(referrer, getProjectIdentity());
     }
 
     @Override
     public void subprojects(Closure configureClosure) {
-        subprojects(this, ConfigureUtil.configureUsing(configureClosure));
+        subprojects(getProjectIdentity(), ConfigureUtil.configureUsing(configureClosure));
     }
 
     @Override
     public void subprojects(Action<? super Project> action) {
-        subprojects(this, action);
+        subprojects(getProjectIdentity(), action);
     }
 
     @Override
-    public void subprojects(ProjectInternal referrer, Action<? super Project> configureAction) {
+    public void subprojects(ProjectIdentity referrer, Action<? super Project> configureAction) {
         getProjectConfigurator().subprojects(getSubprojects(referrer), configureAction);
     }
 
@@ -1253,16 +1252,16 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     @Override
     public Project project(String path, Closure configureClosure) {
-        return project(this, path, ConfigureUtil.configureUsing(configureClosure));
+        return project(getProjectIdentity(), path, ConfigureUtil.configureUsing(configureClosure));
     }
 
     @Override
     public Project project(String path, Action<? super Project> configureAction) {
-        return project(this, path, configureAction);
+        return project(getProjectIdentity(), path, configureAction);
     }
 
     @Override
-    public ProjectInternal project(ProjectInternal referrer, String path, Action<? super Project> configureAction) {
+    public ProjectInternal project(ProjectIdentity referrer, String path, Action<? super Project> configureAction) {
         ProjectInternal project = project(referrer, path);
         getProjectConfigurator().project(project, configureAction);
         return project;

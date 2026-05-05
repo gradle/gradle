@@ -19,6 +19,7 @@ package org.gradle.internal.cc.impl
 import groovy.lang.Closure
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.project.CrossProjectModelAccess
+import org.gradle.api.internal.project.ProjectIdentity
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal
 import java.util.Objects
@@ -26,7 +27,7 @@ import java.util.Objects
 
 class CrossProjectModelAccessTrackingClosure<T>(
     private val delegate: Closure<T>,
-    private val referrerProject: ProjectInternal,
+    private val referrerProject: ProjectIdentity,
     private val crossProjectModelAccess: CrossProjectModelAccess
 ) : Closure<T>(
     trackingProjectAccess(crossProjectModelAccess, referrerProject, delegate.owner),
@@ -53,7 +54,7 @@ class CrossProjectModelAccessTrackingClosure<T>(
 
     companion object {
         private
-        fun trackingProjectAccess(crossProjectModelAccess: CrossProjectModelAccess, referrerProject: ProjectInternal, modelObject: Any): Any =
+        fun trackingProjectAccess(crossProjectModelAccess: CrossProjectModelAccess, referrerProject: ProjectIdentity, modelObject: Any): Any =
             when (modelObject) {
                 is ProjectInternal -> crossProjectModelAccess.access(referrerProject, modelObject)
                 is GradleInternal -> crossProjectModelAccess.gradleInstanceForProject(referrerProject, modelObject)

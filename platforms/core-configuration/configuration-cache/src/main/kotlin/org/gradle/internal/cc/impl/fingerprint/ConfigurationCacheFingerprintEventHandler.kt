@@ -23,6 +23,7 @@ import org.gradle.api.internal.artifacts.ivyservice.CacheExpirationControl
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ChangingValueDependencyResolutionListener
 import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.internal.file.collections.FileCollectionObservationListener
+import org.gradle.api.internal.project.ProjectIdentity
 import org.gradle.api.internal.project.ProjectState
 import org.gradle.api.internal.properties.GradlePropertiesListener
 import org.gradle.api.internal.properties.GradlePropertyScope
@@ -201,7 +202,7 @@ internal class ConfigurationCacheFingerprintEventHandler(
         delegate?.onChangingModuleResolve(moduleId, expiry)
     }
 
-    override fun onProjectReference(referrer: ProjectState, target: ProjectState) {
+    override fun onProjectReference(referrer: ProjectIdentity, target: ProjectIdentity) {
         delegate?.onProjectReference(referrer, target)
     }
 
