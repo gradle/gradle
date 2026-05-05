@@ -663,6 +663,6 @@ class ProblemReportingCrossProjectModelAccess(
         }
 
         private
-        fun StructuredMessage.Builder.reference(identity: ProjectIdentity) = reference(identity.buildTreePath.toString())
+        fun StructuredMessage.Builder.reference(identity: ProjectIdentity) = reference(identity.buildTreePath)
     }
 }

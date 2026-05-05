@@ -149,17 +149,17 @@ class CrossProjectModelAccessTrackingParentDynamicObject(
         ipProblems.report {
             problem {
                 text("Project ")
-                reference(referrerProject.buildTreePath.toString())
+                reference(referrerProject.buildTreePath)
                 text(" cannot dynamically look up a ")
                 text(memberKind.name.lowercase(ENGLISH))
                 text(" in the parent project ")
-                reference(ownerProject.buildTreePath.toString())
+                reference(ownerProject.buildTreePath)
             }
                 .mapLocation { location ->
                     when (memberKind) {
                         MemberKind.PROPERTY -> {
                             if (memberName != null)
-                                Property(PropertyKind.PropertyUsage, memberName, Project(referrerProject.projectPath.toString(), location))
+                                Property(PropertyKind.PropertyUsage, memberName, Project(referrerProject.projectPath.asString(), location))
                             else location
                         }
 
