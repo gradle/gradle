@@ -16,11 +16,6 @@ dependencies {
 
     implementation(libs.commonsLang)
 
-    runtimeOnly(projects.classpath)
-    runtimeOnly(projects.core)
-    runtimeOnly(projects.normalization)
-    runtimeOnly(projects.processServices)
-
     compileOnly(libs.jspecify)
 
     testImplementation(testFixtures(projects.baseServices))
