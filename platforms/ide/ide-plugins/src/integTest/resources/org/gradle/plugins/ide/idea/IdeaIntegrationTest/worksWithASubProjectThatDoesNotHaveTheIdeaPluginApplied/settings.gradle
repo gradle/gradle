@@ -1,3 +1,0 @@
-include 'a', 'b'
-
-rootProject.name = 'root'

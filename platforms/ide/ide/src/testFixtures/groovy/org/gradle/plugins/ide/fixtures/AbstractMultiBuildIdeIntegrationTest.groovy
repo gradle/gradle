@@ -16,23 +16,19 @@
 
 package org.gradle.plugins.ide.fixtures
 
-import org.gradle.plugins.ide.AbstractIdeIntegrationSpec
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Issue
 
 /**
  * Common behaviour tests for all IDE plugins dealing with multiple builds (buildSrc, composite builds, etc).
  */
-abstract class AbstractMultiBuildIdeIntegrationTest extends AbstractIdeIntegrationSpec {
+abstract class AbstractMultiBuildIdeIntegrationTest extends AbstractIntegrationSpec {
     abstract String getPluginId()
     abstract String getWorkspaceTask()
     abstract String getLibraryPluginId()
     abstract IdeWorkspaceFixture workspace(TestFile workspaceDir, String ideWorkspaceName)
     abstract IdeProjectFixture project(TestFile projectDir, String ideProjectName)
-
-    protected String[] getDeprecatedTaskNames() {
-        return new String[0]
-    }
 
     @Issue("https://github.com/gradle/gradle/issues/5110")
     def "buildSrc project can apply IDE plugin"() {
@@ -41,7 +37,6 @@ abstract class AbstractMultiBuildIdeIntegrationTest extends AbstractIdeIntegrati
         """
 
         expect:
-        expectTaskDeprecations(getDeprecatedTaskNames())
         succeeds(":buildSrc:${workspaceTask}")
         def workspace = workspace(file("buildSrc"), "buildSrc")
         if (libraryPluginId == "java-library") {
@@ -76,7 +71,6 @@ abstract class AbstractMultiBuildIdeIntegrationTest extends AbstractIdeIntegrati
 
         when:
         executer.inDirectory(buildA)
-        expectTaskDeprecations(getDeprecatedTaskNames())
         run(":${workspaceTask}")
 
         then:
@@ -125,7 +119,6 @@ abstract class AbstractMultiBuildIdeIntegrationTest extends AbstractIdeIntegrati
 
         when:
         executer.inDirectory(buildA)
-        expectTaskDeprecations(getDeprecatedTaskNames())
         run(":${workspaceTask}")
 
         then:

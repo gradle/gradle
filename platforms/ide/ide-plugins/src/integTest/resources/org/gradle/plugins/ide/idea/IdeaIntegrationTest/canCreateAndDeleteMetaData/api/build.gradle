@@ -1,7 +1,0 @@
-dependencies {
-    runtimeOnly 'commons-collections:commons-collections:3.2.2@jar'
-}
-
-cleanIdea.doLast {
-    assert !file("api/api.iml").isFile()
-}
