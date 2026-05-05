@@ -32,6 +32,7 @@ dependencies {
     implementation(projects.enterpriseLogging)
     implementation(projects.logging)
     implementation(projects.modelReflect)
+    implementation(projects.publish)
     implementation(projects.testingNative)
 
     implementation(libs.commonsLang)

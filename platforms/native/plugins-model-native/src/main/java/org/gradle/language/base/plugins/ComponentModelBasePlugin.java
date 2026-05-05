@@ -23,6 +23,7 @@ import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
+import org.gradle.api.publish.internal.plugins.PublishingPluginRules;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectIdentifier;
@@ -98,6 +99,10 @@ public abstract class ComponentModelBasePlugin implements Plugin<Project> {
     public void apply(Project project) {
         project.getPluginManager().apply(LanguageBasePlugin.class);
         project.getPluginManager().apply(BinaryBasePlugin.class);
+
+        project.getPluginManager().withPlugin("org.gradle.publishing", appliedPlugin -> {
+            project.getPluginManager().apply(PublishingPluginRules.class);
+        });
     }
 
     @SuppressWarnings("UnusedDeclaration")

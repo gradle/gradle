@@ -21,7 +21,6 @@ dependencies {
     api(libs.inject)
     api(libs.jspecify)
 
-    implementation(projects.serviceLookup)
     implementation(projects.baseServicesGroovy) {
         because("Required for Specs")
     }

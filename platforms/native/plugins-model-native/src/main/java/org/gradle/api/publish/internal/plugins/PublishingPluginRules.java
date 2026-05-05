@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.publish.plugins;
+package org.gradle.api.publish.internal.plugins;
 
 import org.gradle.api.Task;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectPublicationRegistry;
@@ -29,7 +29,7 @@ import org.gradle.model.RuleSource;
 /**
  * These bindings are only here for backwards compatibility, as some users might depend on the extensions being available in the model.
  */
-class PublishingPluginRules extends RuleSource {
+public class PublishingPluginRules extends RuleSource {
     @Model
     PublishingExtension publishing(ExtensionContainer extensions) {
         return extensions.getByType(PublishingExtension.class);
