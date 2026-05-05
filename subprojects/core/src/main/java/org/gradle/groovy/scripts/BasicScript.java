@@ -21,19 +21,17 @@ import groovy.lang.MissingMethodException;
 import groovy.lang.MissingPropertyException;
 import org.gradle.api.internal.DynamicObjectAware;
 import org.gradle.api.internal.project.DynamicLookupRoutine;
+import org.gradle.api.internal.project.RemovedGetPropertiesAccess;
 import org.gradle.internal.logging.StandardOutputCapture;
 import org.gradle.internal.metaobject.AbstractDynamicObject;
 import org.gradle.internal.metaobject.BeanDynamicObject;
 import org.gradle.internal.metaobject.DynamicInvokeResult;
 import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.internal.metaobject.DynamicObjectUtil;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.scripts.GradleScript;
 import org.gradle.internal.service.ServiceRegistry;
-import org.jspecify.annotations.Nullable;
 
 import java.io.PrintStream;
-import java.util.Map;
 
 public abstract class BasicScript extends org.gradle.groovy.scripts.Script implements org.gradle.api.Script, DynamicObjectAware, GradleScript {
     private StandardOutputCapture standardOutputCapture;
@@ -68,21 +66,13 @@ public abstract class BasicScript extends org.gradle.groovy.scripts.Script imple
 
     @Override
     public Object getProperty(String property) {
+        RemovedGetPropertiesAccess.failIfPropertiesAccess(property);
         return dynamicLookupRoutine.property(dynamicObject, property);
     }
 
     @Override
     public void setProperty(String property, Object newValue) {
         dynamicLookupRoutine.setProperty(dynamicObject, property, newValue);
-    }
-
-    @Deprecated
-    public Map<String, ? extends @Nullable Object> getProperties() {
-        DeprecationLogger.deprecateAction("Dynamically calling getProperties() on a script")
-            .willBecomeAnErrorInGradle10()
-            .withUpgradeGuideSection(9, "deprecated_get_properties")
-            .nagUser();
-        return dynamicLookupRoutine.getProperties(dynamicObject);
     }
 
     public boolean hasProperty(String property) {
@@ -119,12 +109,6 @@ public abstract class BasicScript extends org.gradle.groovy.scripts.Script imple
 
         public void setTarget(Object target) {
             dynamicTarget = DynamicObjectUtil.asDynamicObject(target);
-        }
-
-        @Deprecated
-        @Override
-        public Map<String, ? extends @Nullable Object> getProperties() {
-            return dynamicTarget.getProperties();
         }
 
         @Override

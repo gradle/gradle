@@ -756,20 +756,6 @@ def scriptMethod(Closure closure) {
         !child1.hasProperty(propertyName)
     }
 
-    def properties() {
-        given:
-        serviceRegistryMock.get(ServiceRegistryFactory) >> Stub(ServiceRegistryFactory)
-
-        when:
-        project.ext.additional = 'additional'
-
-        then:
-        def properties = project.properties
-        properties.name == 'root'
-        properties.additional == 'additional'
-        properties['someTask'] == testTask
-    }
-
     def extraPropertiesAreInheritable() {
         when:
         project.ext.somename = 'somevalue'

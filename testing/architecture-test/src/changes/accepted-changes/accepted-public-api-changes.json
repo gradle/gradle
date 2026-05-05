@@ -1,3 +1,20 @@
 {
-    "acceptedApiChanges": []
+    "acceptedApiChanges": [
+        {
+            "type": "org.gradle.api.Project",
+            "member": "Method org.gradle.api.Project.getProperties()",
+            "acceptation": "Remove Project.getProperties() for Gradle 10 (see #37385)",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.KotlinBuildScript",
+            "member": "Class org.gradle.kotlin.dsl.KotlinBuildScript",
+            "acceptation": "Remove Project.getProperties() for Gradle 10 (see #37385)",
+            "changes": [
+                "org.gradle.kotlin.dsl.support.delegates.ProjectDelegate.getProperties()"
+            ]
+        }
+    ]
 }

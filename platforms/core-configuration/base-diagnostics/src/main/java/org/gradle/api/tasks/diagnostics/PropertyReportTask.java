@@ -17,6 +17,7 @@ package org.gradle.api.tasks.diagnostics;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.Project;
+import org.gradle.api.internal.DynamicObjectAware;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
@@ -26,7 +27,6 @@ import org.gradle.api.tasks.diagnostics.internal.PropertyReportRenderer;
 import org.gradle.api.tasks.diagnostics.internal.ReportRenderer;
 import org.gradle.api.tasks.options.Option;
 import org.gradle.internal.Pair;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.internal.scan.UsedByScanPlugin;
 import org.gradle.work.DisableCachingByDefault;
@@ -74,10 +74,9 @@ public abstract class PropertyReportTask extends AbstractProjectBasedReportTask<
         return computePropertyReportModel(project);
     }
 
-    @SuppressWarnings("deprecation")
     private PropertyReportTask.PropertyReportModel computePropertyReportModel(Project project) {
         PropertyReportModel model = new PropertyReportModel();
-        Map<String, ?> projectProperties = DeprecationLogger.whileDisabled(project::getProperties);
+        Map<String, ?> projectProperties = ((DynamicObjectAware) project).getAsDynamicObject().getProperties();
         if (getProperty().isPresent()) {
             String propertyName = getProperty().get();
             if ("properties".equals(propertyName)) {

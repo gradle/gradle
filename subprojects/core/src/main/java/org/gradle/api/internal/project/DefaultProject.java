@@ -1173,6 +1173,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     @Override
     @Nullable
     public Object property(String propertyName) throws MissingPropertyException {
+        RemovedGetPropertiesAccess.failIfPropertiesAccess(propertyName);
         return dynamicLookupRoutine.property(extensibleDynamicObject, propertyName);
     }
 
@@ -1190,16 +1191,6 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     @Override
     public boolean hasProperty(String propertyName) {
         return dynamicLookupRoutine.hasProperty(extensibleDynamicObject, propertyName);
-    }
-
-    @SuppressWarnings("deprecation")
-    @Override
-    public Map<String, ? extends @Nullable Object> getProperties() {
-        DeprecationLogger.deprecateMethod(Project.class, "getProperties")
-            .willBecomeAnErrorInGradle10()
-            .withUpgradeGuideSection(9, "deprecated_get_properties")
-            .nagUser();
-        return dynamicLookupRoutine.getProperties(extensibleDynamicObject);
     }
 
     @Override
