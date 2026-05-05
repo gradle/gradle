@@ -1,3 +1,884 @@
 {
-    "acceptedApiChanges": []
+    "acceptedApiChanges": [
+        {
+            "type": "org.gradle.kotlin.dsl.ConfigurableFileCollectionExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.ConfigurableFileCollectionExtensionsKt.getValue(org.gradle.api.file.ConfigurableFileCollection,java.lang.Object,kotlin.reflect.KProperty)",
+            "acceptation": "Remove Kotlin DSL delegated property extensions for Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.ConfigurableFileCollectionExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.ConfigurableFileCollectionExtensionsKt.setValue(org.gradle.api.file.ConfigurableFileCollection,java.lang.Object,kotlin.reflect.KProperty,java.lang.Iterable)",
+            "acceptation": "Remove Kotlin DSL delegated property extensions for Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.ExistingDomainObjectDelegate",
+            "member": "Class org.gradle.kotlin.dsl.ExistingDomainObjectDelegate",
+            "acceptation": "Remove Kotlin DSL delegated property extensions for Gradle 10",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.ExistingDomainObjectDelegate",
+            "member": "Constructor org.gradle.kotlin.dsl.ExistingDomainObjectDelegate(java.lang.Object,kotlin.jvm.internal.DefaultConstructorMarker)",
+            "acceptation": "Remove Kotlin DSL delegated property extensions for Gradle 10",
+            "changes": [
+                "Constructor has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.ExistingDomainObjectDelegate",
+            "member": "Field Companion",
+            "acceptation": "Remove Kotlin DSL delegated property extensions for Gradle 10",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.ExistingDomainObjectDelegateProvider",
+            "member": "Class org.gradle.kotlin.dsl.ExistingDomainObjectDelegateProvider",
+            "acceptation": "Remove Kotlin DSL delegated property extensions for Gradle 10",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.ExistingDomainObjectDelegateProvider",
+            "member": "Constructor org.gradle.kotlin.dsl.ExistingDomainObjectDelegateProvider(java.lang.Object,kotlin.jvm.internal.DefaultConstructorMarker)",
+            "acceptation": "Remove Kotlin DSL delegated property extensions for Gradle 10",
+            "changes": [
+                "Constructor has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.ExistingDomainObjectDelegateProvider",
+            "member": "Field Companion",
+            "acceptation": "Remove Kotlin DSL delegated property extensions for Gradle 10",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.ExistingDomainObjectDelegateProviderWithAction",
+            "member": "Class org.gradle.kotlin.dsl.ExistingDomainObjectDelegateProviderWithAction",
+            "acceptation": "Remove Kotlin DSL delegated property extensions for Gradle 10",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.ExistingDomainObjectDelegateProviderWithAction",
+            "member": "Constructor org.gradle.kotlin.dsl.ExistingDomainObjectDelegateProviderWithAction(java.lang.Object,kotlin.jvm.functions.Function1,kotlin.jvm.internal.DefaultConstructorMarker)",
+            "acceptation": "Remove Kotlin DSL delegated property extensions for Gradle 10",
+            "changes": [
+                "Constructor has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.ExistingDomainObjectDelegateProviderWithAction",
+            "member": "Field Companion",
+            "acceptation": "Remove Kotlin DSL delegated property extensions for Gradle 10",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.ExistingDomainObjectDelegateProviderWithType",
+            "member": "Class org.gradle.kotlin.dsl.ExistingDomainObjectDelegateProviderWithType",
+            "acceptation": "Remove Kotlin DSL delegated property extensions for Gradle 10",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.ExistingDomainObjectDelegateProviderWithType",
+            "member": "Constructor org.gradle.kotlin.dsl.ExistingDomainObjectDelegateProviderWithType(java.lang.Object,kotlin.reflect.KClass,kotlin.jvm.internal.DefaultConstructorMarker)",
+            "acceptation": "Remove Kotlin DSL delegated property extensions for Gradle 10",
+            "changes": [
+                "Constructor has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.ExistingDomainObjectDelegateProviderWithType",
+            "member": "Field Companion",
+            "acceptation": "Remove Kotlin DSL delegated property extensions for Gradle 10",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.ExistingDomainObjectDelegateProviderWithTypeAndAction",
+            "member": "Class org.gradle.kotlin.dsl.ExistingDomainObjectDelegateProviderWithTypeAndAction",
+            "acceptation": "Remove Kotlin DSL delegated property extensions for Gradle 10",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.ExistingDomainObjectDelegateProviderWithTypeAndAction",
+            "member": "Constructor org.gradle.kotlin.dsl.ExistingDomainObjectDelegateProviderWithTypeAndAction(java.lang.Object,kotlin.reflect.KClass,kotlin.jvm.functions.Function1,kotlin.jvm.internal.DefaultConstructorMarker)",
+            "acceptation": "Remove Kotlin DSL delegated property extensions for Gradle 10",
+            "changes": [
+                "Constructor has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.ExistingDomainObjectDelegateProviderWithTypeAndAction",
+            "member": "Field Companion",
+            "acceptation": "Remove Kotlin DSL delegated property extensions for Gradle 10",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.ExtensionContainerExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.ExtensionContainerExtensionsKt.getValue(org.gradle.api.plugins.ExtensionContainer,java.lang.Object,kotlin.reflect.KProperty)",
+            "acceptation": "Remove Kotlin DSL delegated property extensions for Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.ExtraPropertiesExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.ExtraPropertiesExtensionsKt.invoke(org.gradle.api.plugins.ExtraPropertiesExtension,java.lang.Object)",
+            "acceptation": "Remove Kotlin DSL delegated property extensions for Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.ExtraPropertiesExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.ExtraPropertiesExtensionsKt.invoke(org.gradle.api.plugins.ExtraPropertiesExtension,kotlin.jvm.functions.Function0)",
+            "acceptation": "Remove Kotlin DSL delegated property extensions for Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.ExtraPropertiesExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.ExtraPropertiesExtensionsKt.provideDelegate(org.gradle.api.plugins.ExtraPropertiesExtension,java.lang.Object,kotlin.reflect.KProperty)",
+            "acceptation": "Remove Kotlin DSL delegated property extensions for Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.InitialValueExtraPropertyDelegate",
+            "member": "Class org.gradle.kotlin.dsl.InitialValueExtraPropertyDelegate",
+            "acceptation": "Remove Kotlin DSL delegated property extensions for Gradle 10",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.InitialValueExtraPropertyDelegate",
+            "member": "Constructor org.gradle.kotlin.dsl.InitialValueExtraPropertyDelegate(org.gradle.api.plugins.ExtraPropertiesExtension,kotlin.jvm.internal.DefaultConstructorMarker)",
+            "acceptation": "Remove Kotlin DSL delegated property extensions for Gradle 10",
+            "changes": [
+                "Constructor has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.InitialValueExtraPropertyDelegate",
+            "member": "Field Companion",
+            "acceptation": "Remove Kotlin DSL delegated property extensions for Gradle 10",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.InitialValueExtraPropertyDelegate",
+            "member": "Method org.gradle.kotlin.dsl.InitialValueExtraPropertyDelegate.getValue(java.lang.Object,kotlin.reflect.KProperty)",
+            "acceptation": "Remove Kotlin DSL delegated property extensions for Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.InitialValueExtraPropertyDelegate",
+            "member": "Method org.gradle.kotlin.dsl.InitialValueExtraPropertyDelegate.setValue(java.lang.Object,kotlin.reflect.KProperty,java.lang.Object)",
+            "acceptation": "Remove Kotlin DSL delegated property extensions for Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.InitialValueExtraPropertyDelegateProvider",
+            "member": "Class org.gradle.kotlin.dsl.InitialValueExtraPropertyDelegateProvider",
+            "acceptation": "Remove Kotlin DSL delegated property extensions for Gradle 10",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.InitialValueExtraPropertyDelegateProvider",
+            "member": "Constructor org.gradle.kotlin.dsl.InitialValueExtraPropertyDelegateProvider(org.gradle.api.plugins.ExtraPropertiesExtension,java.lang.Object,kotlin.jvm.internal.DefaultConstructorMarker)",
+            "acceptation": "Remove Kotlin DSL delegated property extensions for Gradle 10",
+            "changes": [
+                "Constructor has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.InitialValueExtraPropertyDelegateProvider",
+            "member": "Field Companion",
+            "acceptation": "Remove Kotlin DSL delegated property extensions for Gradle 10",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.InitialValueExtraPropertyDelegateProvider",
+            "member": "Method org.gradle.kotlin.dsl.InitialValueExtraPropertyDelegateProvider.provideDelegate(java.lang.Object,kotlin.reflect.KProperty)",
+            "acceptation": "Remove Kotlin DSL delegated property extensions for Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.MutablePropertyDelegate",
+            "member": "Class org.gradle.kotlin.dsl.MutablePropertyDelegate",
+            "acceptation": "Remove Kotlin DSL delegated property extensions for Gradle 10",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.MutablePropertyDelegate",
+            "member": "Method org.gradle.kotlin.dsl.MutablePropertyDelegate.setValue(java.lang.Object,kotlin.reflect.KProperty,java.lang.Object)",
+            "acceptation": "Remove Kotlin DSL delegated property extensions for Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.NamedDomainObjectCollectionDelegateProvider",
+            "member": "Class org.gradle.kotlin.dsl.NamedDomainObjectCollectionDelegateProvider",
+            "acceptation": "Remove Kotlin DSL delegated property extensions for Gradle 10",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.NamedDomainObjectCollectionDelegateProvider",
+            "member": "Constructor org.gradle.kotlin.dsl.NamedDomainObjectCollectionDelegateProvider(org.gradle.api.NamedDomainObjectCollection,kotlin.jvm.functions.Function1,kotlin.jvm.internal.DefaultConstructorMarker)",
+            "acceptation": "Remove Kotlin DSL delegated property extensions for Gradle 10",
+            "changes": [
+                "Constructor has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.NamedDomainObjectCollectionDelegateProvider",
+            "member": "Field Companion",
+            "acceptation": "Remove Kotlin DSL delegated property extensions for Gradle 10",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.NamedDomainObjectCollectionDelegateProvider",
+            "member": "Method org.gradle.kotlin.dsl.NamedDomainObjectCollectionDelegateProvider.provideDelegate(java.lang.Object,kotlin.reflect.KProperty)",
+            "acceptation": "Remove Kotlin DSL delegated property extensions for Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.NamedDomainObjectCollectionExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.NamedDomainObjectCollectionExtensionsKt.existing(org.gradle.api.NamedDomainObjectCollection,kotlin.jvm.functions.Function1)",
+            "acceptation": "Remove Kotlin DSL delegated property extensions for Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.NamedDomainObjectCollectionExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.NamedDomainObjectCollectionExtensionsKt.existing(org.gradle.api.NamedDomainObjectCollection,kotlin.reflect.KClass)",
+            "acceptation": "Remove Kotlin DSL delegated property extensions for Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.NamedDomainObjectCollectionExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.NamedDomainObjectCollectionExtensionsKt.existing(org.gradle.api.NamedDomainObjectCollection,kotlin.reflect.KClass,kotlin.jvm.functions.Function1)",
+            "acceptation": "Remove Kotlin DSL delegated property extensions for Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.NamedDomainObjectCollectionExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.NamedDomainObjectCollectionExtensionsKt.getExisting(org.gradle.api.NamedDomainObjectCollection)",
+            "acceptation": "Remove Kotlin DSL delegated property extensions for Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.NamedDomainObjectCollectionExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.NamedDomainObjectCollectionExtensionsKt.getGetting(org.gradle.api.NamedDomainObjectCollection)",
+            "acceptation": "Remove Kotlin DSL delegated property extensions for Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.NamedDomainObjectCollectionExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.NamedDomainObjectCollectionExtensionsKt.getValue(org.gradle.api.NamedDomainObjectProvider,java.lang.Object,kotlin.reflect.KProperty)",
+            "acceptation": "Remove Kotlin DSL delegated property extensions for Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.NamedDomainObjectCollectionExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.NamedDomainObjectCollectionExtensionsKt.getValue(org.gradle.kotlin.dsl.ExistingDomainObjectDelegate,java.lang.Object,kotlin.reflect.KProperty)",
+            "acceptation": "Remove Kotlin DSL delegated property extensions for Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.NamedDomainObjectCollectionExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.NamedDomainObjectCollectionExtensionsKt.getting(org.gradle.api.NamedDomainObjectCollection,kotlin.jvm.functions.Function1)",
+            "acceptation": "Remove Kotlin DSL delegated property extensions for Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.NamedDomainObjectCollectionExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.NamedDomainObjectCollectionExtensionsKt.provideDelegate(java.lang.Object,java.lang.Object,kotlin.reflect.KProperty)",
+            "acceptation": "Hidden for source compatibility while kept for binary compatibility with plugins compiled against Gradle 9.x",
+            "changes": [
+                "Parameter 1 from null accepting to non-null accepting breaking change"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.NamedDomainObjectCollectionExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.NamedDomainObjectCollectionExtensionsKt.provideDelegate(org.gradle.api.NamedDomainObjectCollection,java.lang.Object,kotlin.reflect.KProperty)",
+            "acceptation": "Remove Kotlin DSL delegated property extensions for Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.NamedDomainObjectCollectionExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.NamedDomainObjectCollectionExtensionsKt.provideDelegate(org.gradle.kotlin.dsl.ExistingDomainObjectDelegateProvider,java.lang.Object,kotlin.reflect.KProperty)",
+            "acceptation": "Remove Kotlin DSL delegated property extensions for Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.NamedDomainObjectCollectionExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.NamedDomainObjectCollectionExtensionsKt.provideDelegate(org.gradle.kotlin.dsl.ExistingDomainObjectDelegateProviderWithAction,java.lang.Object,kotlin.reflect.KProperty)",
+            "acceptation": "Remove Kotlin DSL delegated property extensions for Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.NamedDomainObjectCollectionExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.NamedDomainObjectCollectionExtensionsKt.provideDelegate(org.gradle.kotlin.dsl.ExistingDomainObjectDelegateProviderWithType,java.lang.Object,kotlin.reflect.KProperty)",
+            "acceptation": "Remove Kotlin DSL delegated property extensions for Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.NamedDomainObjectCollectionExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.NamedDomainObjectCollectionExtensionsKt.provideDelegate(org.gradle.kotlin.dsl.ExistingDomainObjectDelegateProviderWithTypeAndAction,java.lang.Object,kotlin.reflect.KProperty)",
+            "acceptation": "Remove Kotlin DSL delegated property extensions for Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.NamedDomainObjectContainerCreatingDelegateProvider",
+            "member": "Class org.gradle.kotlin.dsl.NamedDomainObjectContainerCreatingDelegateProvider",
+            "acceptation": "Remove Kotlin DSL delegated property extensions for Gradle 10",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.NamedDomainObjectContainerCreatingDelegateProvider",
+            "member": "Constructor org.gradle.kotlin.dsl.NamedDomainObjectContainerCreatingDelegateProvider(org.gradle.api.NamedDomainObjectContainer,kotlin.jvm.functions.Function1,kotlin.jvm.internal.DefaultConstructorMarker)",
+            "acceptation": "Remove Kotlin DSL delegated property extensions for Gradle 10",
+            "changes": [
+                "Constructor has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.NamedDomainObjectContainerCreatingDelegateProvider",
+            "member": "Field Companion",
+            "acceptation": "Remove Kotlin DSL delegated property extensions for Gradle 10",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.NamedDomainObjectContainerCreatingDelegateProvider",
+            "member": "Method org.gradle.kotlin.dsl.NamedDomainObjectContainerCreatingDelegateProvider.provideDelegate(java.lang.Object,kotlin.reflect.KProperty)",
+            "acceptation": "Remove Kotlin DSL delegated property extensions for Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.NamedDomainObjectContainerExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.NamedDomainObjectContainerExtensionsKt.creating(org.gradle.api.NamedDomainObjectContainer,kotlin.jvm.functions.Function1)",
+            "acceptation": "Remove Kotlin DSL delegated property extensions for Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.NamedDomainObjectContainerExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.NamedDomainObjectContainerExtensionsKt.creating(org.gradle.api.PolymorphicDomainObjectContainer,java.lang.Class,kotlin.jvm.functions.Function1)",
+            "acceptation": "Remove Kotlin DSL delegated property extensions for Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.NamedDomainObjectContainerExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.NamedDomainObjectContainerExtensionsKt.creating(org.gradle.api.PolymorphicDomainObjectContainer,kotlin.reflect.KClass)",
+            "acceptation": "Remove Kotlin DSL delegated property extensions for Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.NamedDomainObjectContainerExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.NamedDomainObjectContainerExtensionsKt.creating(org.gradle.api.PolymorphicDomainObjectContainer,kotlin.reflect.KClass,kotlin.jvm.functions.Function1)",
+            "acceptation": "Remove Kotlin DSL delegated property extensions for Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.NamedDomainObjectContainerExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.NamedDomainObjectContainerExtensionsKt.getCreating(org.gradle.api.NamedDomainObjectContainer)",
+            "acceptation": "Remove Kotlin DSL delegated property extensions for Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.NamedDomainObjectContainerExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.NamedDomainObjectContainerExtensionsKt.getRegistering(org.gradle.api.NamedDomainObjectContainer)",
+            "acceptation": "Remove Kotlin DSL delegated property extensions for Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.NamedDomainObjectContainerExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.NamedDomainObjectContainerExtensionsKt.getting(org.gradle.api.NamedDomainObjectContainer,kotlin.reflect.KClass)",
+            "acceptation": "Remove Kotlin DSL delegated property extensions for Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.NamedDomainObjectContainerExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.NamedDomainObjectContainerExtensionsKt.getting(org.gradle.api.NamedDomainObjectContainer,kotlin.reflect.KClass,kotlin.jvm.functions.Function1)",
+            "acceptation": "Remove Kotlin DSL delegated property extensions for Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.NamedDomainObjectContainerExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.NamedDomainObjectContainerExtensionsKt.provideDelegate(org.gradle.kotlin.dsl.RegisteringDomainObjectDelegateProvider,java.lang.Object,kotlin.reflect.KProperty)",
+            "acceptation": "Remove Kotlin DSL delegated property extensions for Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.NamedDomainObjectContainerExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.NamedDomainObjectContainerExtensionsKt.provideDelegate(org.gradle.kotlin.dsl.RegisteringDomainObjectDelegateProviderWithAction,java.lang.Object,kotlin.reflect.KProperty)",
+            "acceptation": "Remove Kotlin DSL delegated property extensions for Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.NamedDomainObjectContainerExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.NamedDomainObjectContainerExtensionsKt.provideDelegate(org.gradle.kotlin.dsl.RegisteringDomainObjectDelegateProviderWithType,java.lang.Object,kotlin.reflect.KProperty)",
+            "acceptation": "Remove Kotlin DSL delegated property extensions for Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.NamedDomainObjectContainerExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.NamedDomainObjectContainerExtensionsKt.provideDelegate(org.gradle.kotlin.dsl.RegisteringDomainObjectDelegateProviderWithTypeAndAction,java.lang.Object,kotlin.reflect.KProperty)",
+            "acceptation": "Remove Kotlin DSL delegated property extensions for Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.NamedDomainObjectContainerExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.NamedDomainObjectContainerExtensionsKt.registering(org.gradle.api.NamedDomainObjectContainer,kotlin.jvm.functions.Function1)",
+            "acceptation": "Remove Kotlin DSL delegated property extensions for Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.NamedDomainObjectContainerExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.NamedDomainObjectContainerExtensionsKt.registering(org.gradle.api.PolymorphicDomainObjectContainer,kotlin.reflect.KClass)",
+            "acceptation": "Remove Kotlin DSL delegated property extensions for Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.NamedDomainObjectContainerExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.NamedDomainObjectContainerExtensionsKt.registering(org.gradle.api.PolymorphicDomainObjectContainer,kotlin.reflect.KClass,kotlin.jvm.functions.Function1)",
+            "acceptation": "Remove Kotlin DSL delegated property extensions for Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.PolymorphicDomainObjectContainerCreatingDelegateProvider",
+            "member": "Class org.gradle.kotlin.dsl.PolymorphicDomainObjectContainerCreatingDelegateProvider",
+            "acceptation": "Remove Kotlin DSL delegated property extensions for Gradle 10",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.PolymorphicDomainObjectContainerCreatingDelegateProvider",
+            "member": "Constructor org.gradle.kotlin.dsl.PolymorphicDomainObjectContainerCreatingDelegateProvider(org.gradle.api.PolymorphicDomainObjectContainer,java.lang.Class,kotlin.jvm.functions.Function1,kotlin.jvm.internal.DefaultConstructorMarker)",
+            "acceptation": "Remove Kotlin DSL delegated property extensions for Gradle 10",
+            "changes": [
+                "Constructor has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.PolymorphicDomainObjectContainerCreatingDelegateProvider",
+            "member": "Field Companion",
+            "acceptation": "Remove Kotlin DSL delegated property extensions for Gradle 10",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.PolymorphicDomainObjectContainerCreatingDelegateProvider",
+            "member": "Method org.gradle.kotlin.dsl.PolymorphicDomainObjectContainerCreatingDelegateProvider.provideDelegate(java.lang.Object,kotlin.reflect.KProperty)",
+            "acceptation": "Remove Kotlin DSL delegated property extensions for Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.PolymorphicDomainObjectContainerGettingDelegateProvider",
+            "member": "Class org.gradle.kotlin.dsl.PolymorphicDomainObjectContainerGettingDelegateProvider",
+            "acceptation": "Remove Kotlin DSL delegated property extensions for Gradle 10",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.PolymorphicDomainObjectContainerGettingDelegateProvider",
+            "member": "Constructor org.gradle.kotlin.dsl.PolymorphicDomainObjectContainerGettingDelegateProvider(org.gradle.api.NamedDomainObjectContainer,kotlin.reflect.KClass,kotlin.jvm.functions.Function1,kotlin.jvm.internal.DefaultConstructorMarker)",
+            "acceptation": "Remove Kotlin DSL delegated property extensions for Gradle 10",
+            "changes": [
+                "Constructor has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.PolymorphicDomainObjectContainerGettingDelegateProvider",
+            "member": "Field Companion",
+            "acceptation": "Remove Kotlin DSL delegated property extensions for Gradle 10",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.PolymorphicDomainObjectContainerGettingDelegateProvider",
+            "member": "Method org.gradle.kotlin.dsl.PolymorphicDomainObjectContainerGettingDelegateProvider.provideDelegate(java.lang.Object,kotlin.reflect.KProperty)",
+            "acceptation": "Remove Kotlin DSL delegated property extensions for Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.ProjectExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.ProjectExtensionsKt.provideDelegate(org.gradle.api.Project,java.lang.Object,kotlin.reflect.KProperty)",
+            "acceptation": "Remove Kotlin DSL delegated property extensions for Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.PropertyDelegate",
+            "member": "Class org.gradle.kotlin.dsl.PropertyDelegate",
+            "acceptation": "Remove Kotlin DSL delegated property extensions for Gradle 10",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.PropertyDelegate",
+            "member": "Method org.gradle.kotlin.dsl.PropertyDelegate.getValue(java.lang.Object,kotlin.reflect.KProperty)",
+            "acceptation": "Remove Kotlin DSL delegated property extensions for Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.PropertyDelegateKt",
+            "member": "Class org.gradle.kotlin.dsl.PropertyDelegateKt",
+            "acceptation": "Remove Kotlin DSL delegated property extensions for Gradle 10",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.PropertyStateExtensionsKt",
+            "member": "Class org.gradle.kotlin.dsl.PropertyStateExtensionsKt",
+            "acceptation": "Remove Kotlin DSL delegated property extensions for Gradle 10",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.PropertyStateExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.PropertyStateExtensionsKt.getValue(org.gradle.api.provider.Property,java.lang.Object,kotlin.reflect.KProperty)",
+            "acceptation": "Remove Kotlin DSL delegated property extensions for Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.PropertyStateExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.PropertyStateExtensionsKt.setValue(org.gradle.api.provider.Property,java.lang.Object,kotlin.reflect.KProperty,java.lang.Object)",
+            "acceptation": "Remove Kotlin DSL delegated property extensions for Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.RegisteringDomainObjectDelegateProvider",
+            "member": "Class org.gradle.kotlin.dsl.RegisteringDomainObjectDelegateProvider",
+            "acceptation": "Remove Kotlin DSL delegated property extensions for Gradle 10",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.RegisteringDomainObjectDelegateProvider",
+            "member": "Constructor org.gradle.kotlin.dsl.RegisteringDomainObjectDelegateProvider(java.lang.Object,kotlin.jvm.internal.DefaultConstructorMarker)",
+            "acceptation": "Remove Kotlin DSL delegated property extensions for Gradle 10",
+            "changes": [
+                "Constructor has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.RegisteringDomainObjectDelegateProvider",
+            "member": "Field Companion",
+            "acceptation": "Remove Kotlin DSL delegated property extensions for Gradle 10",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.RegisteringDomainObjectDelegateProviderWithAction",
+            "member": "Class org.gradle.kotlin.dsl.RegisteringDomainObjectDelegateProviderWithAction",
+            "acceptation": "Remove Kotlin DSL delegated property extensions for Gradle 10",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.RegisteringDomainObjectDelegateProviderWithAction",
+            "member": "Constructor org.gradle.kotlin.dsl.RegisteringDomainObjectDelegateProviderWithAction(java.lang.Object,kotlin.jvm.functions.Function1,kotlin.jvm.internal.DefaultConstructorMarker)",
+            "acceptation": "Remove Kotlin DSL delegated property extensions for Gradle 10",
+            "changes": [
+                "Constructor has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.RegisteringDomainObjectDelegateProviderWithAction",
+            "member": "Field Companion",
+            "acceptation": "Remove Kotlin DSL delegated property extensions for Gradle 10",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.RegisteringDomainObjectDelegateProviderWithType",
+            "member": "Class org.gradle.kotlin.dsl.RegisteringDomainObjectDelegateProviderWithType",
+            "acceptation": "Remove Kotlin DSL delegated property extensions for Gradle 10",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.RegisteringDomainObjectDelegateProviderWithType",
+            "member": "Constructor org.gradle.kotlin.dsl.RegisteringDomainObjectDelegateProviderWithType(java.lang.Object,kotlin.reflect.KClass,kotlin.jvm.internal.DefaultConstructorMarker)",
+            "acceptation": "Remove Kotlin DSL delegated property extensions for Gradle 10",
+            "changes": [
+                "Constructor has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.RegisteringDomainObjectDelegateProviderWithType",
+            "member": "Field Companion",
+            "acceptation": "Remove Kotlin DSL delegated property extensions for Gradle 10",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.RegisteringDomainObjectDelegateProviderWithTypeAndAction",
+            "member": "Class org.gradle.kotlin.dsl.RegisteringDomainObjectDelegateProviderWithTypeAndAction",
+            "acceptation": "Remove Kotlin DSL delegated property extensions for Gradle 10",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.RegisteringDomainObjectDelegateProviderWithTypeAndAction",
+            "member": "Constructor org.gradle.kotlin.dsl.RegisteringDomainObjectDelegateProviderWithTypeAndAction(java.lang.Object,kotlin.reflect.KClass,kotlin.jvm.functions.Function1,kotlin.jvm.internal.DefaultConstructorMarker)",
+            "acceptation": "Remove Kotlin DSL delegated property extensions for Gradle 10",
+            "changes": [
+                "Constructor has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.RegisteringDomainObjectDelegateProviderWithTypeAndAction",
+            "member": "Field Companion",
+            "acceptation": "Remove Kotlin DSL delegated property extensions for Gradle 10",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.SettingsExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.SettingsExtensionsKt.provideDelegate(org.gradle.api.initialization.Settings,java.lang.Object,kotlin.reflect.KProperty)",
+            "acceptation": "Remove Kotlin DSL delegated property extensions for Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.TaskContainerExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.TaskContainerExtensionsKt.creating(org.gradle.api.tasks.TaskContainer,java.lang.Class,kotlin.jvm.functions.Function1)",
+            "acceptation": "Remove Kotlin DSL delegated property extensions for Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.TaskContainerExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.TaskContainerExtensionsKt.creating(org.gradle.api.tasks.TaskContainer,kotlin.jvm.functions.Function1)",
+            "acceptation": "Remove Kotlin DSL delegated property extensions for Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.TaskContainerExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.TaskContainerExtensionsKt.creating(org.gradle.api.tasks.TaskContainer,kotlin.reflect.KClass)",
+            "acceptation": "Remove Kotlin DSL delegated property extensions for Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.TaskContainerExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.TaskContainerExtensionsKt.creating(org.gradle.api.tasks.TaskContainer,kotlin.reflect.KClass,kotlin.jvm.functions.Function1)",
+            "acceptation": "Remove Kotlin DSL delegated property extensions for Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.TaskContainerExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.TaskContainerExtensionsKt.getCreating(org.gradle.api.tasks.TaskContainer)",
+            "acceptation": "Remove Kotlin DSL delegated property extensions for Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.TaskContainerExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.TaskContainerExtensionsKt.provideDelegate(org.gradle.kotlin.dsl.ExistingDomainObjectDelegateProvider,java.lang.Object,kotlin.reflect.KProperty)",
+            "acceptation": "Remove Kotlin DSL delegated property extensions for Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.TaskContainerExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.TaskContainerExtensionsKt.provideDelegate(org.gradle.kotlin.dsl.ExistingDomainObjectDelegateProviderWithAction,java.lang.Object,kotlin.reflect.KProperty)",
+            "acceptation": "Remove Kotlin DSL delegated property extensions for Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.TaskContainerExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.TaskContainerExtensionsKt.provideDelegate(org.gradle.kotlin.dsl.ExistingDomainObjectDelegateProviderWithType,java.lang.Object,kotlin.reflect.KProperty)",
+            "acceptation": "Remove Kotlin DSL delegated property extensions for Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.TaskContainerExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.TaskContainerExtensionsKt.provideDelegate(org.gradle.kotlin.dsl.ExistingDomainObjectDelegateProviderWithTypeAndAction,java.lang.Object,kotlin.reflect.KProperty)",
+            "acceptation": "Remove Kotlin DSL delegated property extensions for Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.TaskContainerExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.TaskContainerExtensionsKt.provideDelegate(org.gradle.kotlin.dsl.RegisteringDomainObjectDelegateProvider,java.lang.Object,kotlin.reflect.KProperty)",
+            "acceptation": "Remove Kotlin DSL delegated property extensions for Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.TaskContainerExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.TaskContainerExtensionsKt.provideDelegate(org.gradle.kotlin.dsl.RegisteringDomainObjectDelegateProviderWithAction,java.lang.Object,kotlin.reflect.KProperty)",
+            "acceptation": "Remove Kotlin DSL delegated property extensions for Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.TaskContainerExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.TaskContainerExtensionsKt.provideDelegate(org.gradle.kotlin.dsl.RegisteringDomainObjectDelegateProviderWithType,java.lang.Object,kotlin.reflect.KProperty)",
+            "acceptation": "Remove Kotlin DSL delegated property extensions for Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.TaskContainerExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.TaskContainerExtensionsKt.provideDelegate(org.gradle.kotlin.dsl.RegisteringDomainObjectDelegateProviderWithTypeAndAction,java.lang.Object,kotlin.reflect.KProperty)",
+            "acceptation": "Remove Kotlin DSL delegated property extensions for Gradle 10",
+            "changes": [
+                "Method has been removed"
+            ]
+        }
+    ]
 }

@@ -16,10 +16,9 @@
 
 package org.gradle.kotlin.dsl.integration
 
-import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.tasks.Copy
-import org.gradle.kotlin.dsl.*
+import org.gradle.kotlin.dsl.getByName
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.gradle.kotlin.dsl.fixtures.DslTestFixture
 import org.gradle.kotlin.dsl.fixtures.runWithProjectBuilderProject
@@ -188,153 +187,9 @@ class TaskContainerDslIntegrationTest : AbstractKotlinIntegrationTest() {
         )
     }
 
-    @Test
-    fun `polymorphic named domain object container delegated properties`() {
-
-        testTaskContainerVia(
-            "delegated-properties", before = beforeDelegatedProperties,
-            script = """
-
-            fun untyped() {
-
-                val foo: Task by tasks.getting
-                val bar: Task by tasks.getting {
-                    description += "B"
-                }
-
-                val bazar: Task by tasks.creating
-                val castle: Task by tasks.creating {
-                    description += "!"
-                }
-
-                val bat: TaskProvider<Task> by tasks.existing
-                val pipistrelle: TaskProvider<Task> by tasks.existing {
-                    description += "B"
-                }
-
-                val yate: TaskProvider<Task> by tasks.registering
-                val vansire: TaskProvider<Task> by tasks.registering {
-                    description += "!"
-                }
-            }
-
-            fun typed() {
-
-                val foo: Task by tasks.getting(Task::class)
-                val bar: Copy by tasks.getting(Copy::class) {
-                    description += "C"
-                    destinationDir = file("out")
-                }
-
-                val cathedral: Copy by tasks.creating(Copy::class)
-                val hill: Copy by tasks.creating(Copy::class) {
-                    description += "!"
-                    destinationDir = file("out")
-                }
-
-                val bat: TaskProvider<Copy> by tasks.existing(Copy::class)
-                val pipistrelle: TaskProvider<Copy> by tasks.existing(Copy::class) {
-                    description += "C"
-                    destinationDir = file("out")
-                }
-
-                val veduta: TaskProvider<Copy> by tasks.registering(Copy::class)
-                val diptote: TaskProvider<Copy> by tasks.registering(Copy::class) {
-                    description += "!"
-                    destinationDir = file("out")
-                }
-            }
-
-            untyped()
-            typed()
-            """
-        )
-    }
-
-    @Test
-    fun `polymorphic named domain object container scope delegated properties`() {
-
-        testTaskContainerVia(
-            "scope-delegated-properties", before = beforeDelegatedProperties,
-            script = """
-
-            fun untyped() {
-
-                tasks {
-
-                    val foo: Task by getting
-                    val bar: Task by getting {
-                        description += "B"
-                    }
-
-                    val bazar: Task by creating
-                    val castle: Task by creating {
-                        description += "!"
-                    }
-
-                    val bat: TaskProvider<Task> by existing
-                    val pipistrelle: TaskProvider<Task> by existing {
-                        description += "B"
-                    }
-
-                    val yate: TaskProvider<Task> by registering
-                    val vansire: TaskProvider<Task> by registering {
-                        description += "!"
-                    }
-                }
-            }
-
-            fun typed() {
-                tasks {
-
-                    val foo: Task by getting(Task::class)
-                    val bar: Copy by getting(Copy::class) {
-                        description += "C"
-                        destinationDir = file("out")
-                    }
-
-                    val cathedral: Copy by creating(Copy::class)
-                    val hill: Copy by creating(Copy::class) {
-                        description += "!"
-                        destinationDir = file("out")
-                    }
-
-                    val bat: TaskProvider<Copy> by existing(Copy::class)
-                    val pipistrelle: TaskProvider<Copy> by existing(Copy::class) {
-                        description += "C"
-                        destinationDir = file("out")
-                    }
-
-                    val veduta: TaskProvider<Copy> by registering(Copy::class)
-                    val diptote: TaskProvider<Copy> by registering(Copy::class) {
-                        description += "!"
-                        destinationDir = file("out")
-                    }
-                }
-            }
-
-            untyped()
-            typed()
-            """
-        )
-    }
-
-    @Suppress("DEPRECATION")
-    private
-    val beforeDelegatedProperties: Project.() -> Unit = {
-        // For cases not exercised by delegated properties
-        tasks["bar"].description += "A"
-        tasks.create<Copy>("cabin")
-        tasks.create<Copy>("valley").description += "!"
-        tasks["pipistrelle"].description += "A"
-        tasks.create<Copy>("quartern")
-        tasks.create<Copy>("koto").description += "!"
-    }
-
     private
     fun testTaskContainerVia(
         name: String,
-        before: Project.() -> Unit = {},
         script: String,
         tasksAssertions: List<TaskAssertion> = tasksConfigurationAssertions
     ) {
@@ -343,8 +198,6 @@ class TaskContainerDslIntegrationTest : AbstractKotlinIntegrationTest() {
             preRegisteredTasks.forEach {
                 tasks.register(it.name, it.type.java)
             }
-
-            before()
 
             dslTestFixture.evalScript(
                 script,
