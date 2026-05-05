@@ -21,6 +21,7 @@ import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.tasks.TaskReference;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.StandAloneNestedBuild;
+import org.jspecify.annotations.NullMarked;
 
 import java.io.File;
 
@@ -33,6 +34,7 @@ import java.io.File;
  * <p>Reachable only from the {@code Gradle} instance whose owner directly contains the
  * {@code buildSrc} directory.</p>
  */
+@NullMarked
 public class IncludedBuildSrcBuild implements IncludedBuildInternal {
 
     private final StandAloneNestedBuild buildSrcBuild;
