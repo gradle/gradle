@@ -18,6 +18,7 @@ package org.gradle.api.internal.project;
 
 import groovy.lang.Closure;
 import groovy.lang.MissingPropertyException;
+import kotlin.Unit;
 import org.gradle.api.Action;
 import org.gradle.api.AntBuilder;
 import org.gradle.api.CircularReferenceException;
@@ -92,6 +93,7 @@ import org.gradle.internal.Factories;
 import org.gradle.internal.Factory;
 import org.gradle.internal.buildoption.InternalOption;
 import org.gradle.internal.buildoption.InternalOptions;
+import org.gradle.internal.configuration.problems.IsolatedProjectsProblemsReporter;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.extensibility.ExtensibleDynamicObject;
@@ -394,6 +396,9 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     @Inject
     protected abstract ProjectEvaluator getProjectEvaluator();
+
+    @Inject
+    protected abstract IsolatedProjectsProblemsReporter getIsolatedProjectsProblemsReporter();
 
     @Inject
     @Override
@@ -1196,7 +1201,20 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
             .willBecomeAnErrorInGradle10()
             .withUpgradeGuideSection(9, "deprecated_get_properties")
             .nagUser();
-        return extensibleDynamicObject.getProperties();
+
+        IsolatedProjectsProblemsReporter reporter = getIsolatedProjectsProblemsReporter();
+        reportGetPropertiesProblem(reporter);
+        return reporter.runIgnoringProblemsOnCurrentThread(extensibleDynamicObject::getProperties);
+    }
+
+    public static void reportGetPropertiesProblem(IsolatedProjectsProblemsReporter reporter) {
+        reporter.report(factory ->
+            factory.problem(null, builder -> {
+                builder.text("use of ").reference("Project.getProperties()")
+                    .text(" is not allowed with Isolated Projects");
+                return Unit.INSTANCE;
+            }).exception().build()
+        );
     }
 
     @Override

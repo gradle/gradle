@@ -17,7 +17,9 @@
 package org.gradle.api.tasks.diagnostics
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 
+@ToBeFixedForIsolatedProjects(because = "The `properties` task calls Project.getProperties() internally, which is a hard violation under Isolated Projects")
 class PropertyReportTaskIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {

@@ -20,13 +20,15 @@ import groovy.lang.Binding;
 import groovy.lang.MissingMethodException;
 import groovy.lang.MissingPropertyException;
 import org.gradle.api.internal.DynamicObjectAware;
+import org.gradle.api.internal.project.DefaultProject;
+import org.gradle.internal.configuration.problems.IsolatedProjectsProblemsReporter;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.logging.StandardOutputCapture;
 import org.gradle.internal.metaobject.AbstractDynamicObject;
 import org.gradle.internal.metaobject.BeanDynamicObject;
 import org.gradle.internal.metaobject.DynamicInvokeResult;
 import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.internal.metaobject.DynamicObjectUtil;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.scripts.GradleScript;
 import org.gradle.internal.service.ServiceRegistry;
 import org.jspecify.annotations.Nullable;
@@ -38,10 +40,12 @@ public abstract class BasicScript extends org.gradle.groovy.scripts.Script imple
     private StandardOutputCapture standardOutputCapture;
     private Object target;
     private final ScriptDynamicObject dynamicObject = new ScriptDynamicObject(this);
+    private IsolatedProjectsProblemsReporter reporter;
 
     @Override
     public void init(Object target, ServiceRegistry services) {
         standardOutputCapture = services.get(StandardOutputCapture.class);
+        reporter = services.get(IsolatedProjectsProblemsReporter.class);
         setScriptTarget(target);
     }
 
@@ -79,7 +83,9 @@ public abstract class BasicScript extends org.gradle.groovy.scripts.Script imple
             .willBecomeAnErrorInGradle10()
             .withUpgradeGuideSection(9, "deprecated_get_properties")
             .nagUser();
-        return dynamicObject.getProperties();
+
+        DefaultProject.reportGetPropertiesProblem(reporter);
+        return reporter.runIgnoringProblemsOnCurrentThread(dynamicObject::getProperties);
     }
 
     public boolean hasProperty(String property) {

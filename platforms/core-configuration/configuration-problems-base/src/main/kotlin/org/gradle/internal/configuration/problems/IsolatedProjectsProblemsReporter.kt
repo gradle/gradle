@@ -23,28 +23,20 @@ import org.gradle.internal.service.scopes.ServiceScope
  * Reports Isolated Projects violation problems.
  *
  * This must be used instead of [IsolatedProjectsProblemsListener] to ensure the mechanism of ignoring problems
- * is honered by all reported problems.
+ * is honored by all reported problems.
+ *
+ * The service is registered in all build modes; outside Isolated Projects the wired implementation is a
+ * no-op so that callers can invoke [report] and [runIgnoringProblemsOnCurrentThread] unconditionally.
  */
 @ServiceScope(Scope.BuildTree::class)
-class IsolatedProjectsProblemsReporter(
-    private val problemFactory: ProblemFactory,
-    private val problemsListener: IsolatedProjectsProblemsListener
-) {
-
-    private val ignoreDepth: ThreadLocal<Int> = ThreadLocal.withInitial { 0 }
-
+interface IsolatedProjectsProblemsReporter {
     /**
      * Reports an Isolated Projects violation problem.
      *
      * The problem may be ignored entirely (not just suppressed), in case the current call runs
      * in the context of [runIgnoringProblemsOnCurrentThread].
      */
-    fun report(builder: ProblemFactory.() -> PropertyProblem) {
-        if (ignoreDepth.get() > 0) {
-            return
-        }
-        problemsListener.onIsolatedProjectsProblem(problemFactory.builder())
-    }
+    fun report(builder: ProblemFactory.() -> PropertyProblem)
 
     /**
      * Runs the given action, ignoring any problems reported by [report].
@@ -52,13 +44,5 @@ class IsolatedProjectsProblemsReporter(
      * This is useful when a root-cause problem has just been reported and further problems
      * either stem from Gradle's internals and/or might be misleading to the user.
      */
-    fun <T> runIgnoringProblemsOnCurrentThread(action: () -> T): T {
-        val depth = ignoreDepth.get()
-        ignoreDepth.set(depth + 1)
-        try {
-            return action()
-        } finally {
-            ignoreDepth.set(depth)
-        }
-    }
+    fun <T> runIgnoringProblemsOnCurrentThread(action: () -> T): T
 }

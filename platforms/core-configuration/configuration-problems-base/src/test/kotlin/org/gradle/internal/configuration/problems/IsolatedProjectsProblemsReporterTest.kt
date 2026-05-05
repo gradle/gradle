@@ -30,7 +30,7 @@ class IsolatedProjectsProblemsReporterTest {
 
     private val recorded = mutableListOf<PropertyProblem>()
 
-    private val reporter = IsolatedProjectsProblemsReporter(StubProblemFactory, recordingListener(recorded))
+    private val reporter = DefaultIsolatedProjectsProblemsReporter(StubProblemFactory, recordingListener(recorded))
 
     @Test
     fun `report forwards the built problem to the listener`() {
@@ -101,7 +101,7 @@ class IsolatedProjectsProblemsReporterTest {
         val threadCount = 3
         val latch = CountDownLatch(threadCount)
         val results = Collections.synchronizedList(mutableListOf<PropertyProblem>())
-        val sharedReporter = IsolatedProjectsProblemsReporter(StubProblemFactory, recordingListener(results))
+        val sharedReporter = DefaultIsolatedProjectsProblemsReporter(StubProblemFactory, recordingListener(results))
 
         val ignoringThread = thread {
             sharedReporter.runIgnoringProblemsOnCurrentThread {
