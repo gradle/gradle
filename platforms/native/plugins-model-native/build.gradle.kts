@@ -21,7 +21,6 @@ dependencies {
     api(projects.serviceProvider)
     api(projects.softwareDiagnostics)
     api(projects.stdlibJavaExtensions)
-    api(projects.testSuitesBase)
     api(projects.workers)
 
     api(libs.jspecify)

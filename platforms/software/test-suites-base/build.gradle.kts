@@ -13,10 +13,13 @@ dependencies {
     api(projects.stdlibJavaExtensions)
     api(projects.baseServices)
     api(projects.coreApi)
-    api(projects.modelCore)
-    api(projects.platformBase)
 
     implementation(libs.commonsLang)
+
+    runtimeOnly(projects.classpath)
+    runtimeOnly(projects.core)
+    runtimeOnly(projects.normalization)
+    runtimeOnly(projects.processServices)
 
     compileOnly(libs.jspecify)
 
