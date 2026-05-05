@@ -35,6 +35,9 @@ import org.gradle.api.internal.resolve.ProjectModelResolver;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.tasks.TaskContainer;
+import org.gradle.ide.visualstudio.internal.plugins.VisualStudioPluginRules.VisualStudioExtensionRules;
+import org.gradle.ide.visualstudio.internal.plugins.VisualStudioPluginRules.VisualStudioPluginProjectRules;
+import org.gradle.ide.visualstudio.internal.plugins.VisualStudioPluginRules.VisualStudioPluginRootRules;
 import org.gradle.internal.Cast;
 import org.gradle.internal.build.BuildProjectRegistry;
 import org.gradle.internal.build.BuildState;
@@ -132,6 +135,14 @@ public abstract class NativeComponentModelPlugin implements Plugin<Project> {
         project.getPluginManager().apply(StandardToolChainsPlugin.class);
         project.getExtensions().create(BuildTypeContainer.class, "buildTypes", DefaultBuildTypeContainer.class);
         project.getExtensions().create(FlavorContainer.class, "flavors", DefaultFlavorContainer.class);
+
+        project.getPluginManager().withPlugin("org.gradle.visual-studio", appliedPlugin -> {
+            project.getPluginManager().apply(VisualStudioExtensionRules.class);
+            if (project == project.getRootProject()) {
+                project.getPluginManager().apply(VisualStudioPluginRootRules.class);
+            }
+            project.getPluginManager().apply(VisualStudioPluginProjectRules.class);
+        });
     }
 
     static class Rules extends RuleSource {

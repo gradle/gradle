@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.ide.visualstudio.plugins;
+package org.gradle.ide.visualstudio.internal.plugins;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.internal.project.ProjectIdentifier;
@@ -35,15 +35,15 @@ import org.gradle.nativeplatform.NativeBinarySpec;
 import org.gradle.platform.base.BinaryContainer;
 
 @Incubating
-class VisualStudioPluginRules {
-    static class VisualStudioExtensionRules extends RuleSource {
+public class VisualStudioPluginRules {
+    public static class VisualStudioExtensionRules extends RuleSource {
         @Model
         public static VisualStudioExtensionInternal visualStudio(ExtensionContainer extensionContainer) {
             return (VisualStudioExtensionInternal) extensionContainer.getByType(VisualStudioExtension.class);
         }
     }
 
-    static class VisualStudioPluginRootRules extends RuleSource {
+    public static class VisualStudioPluginRootRules extends RuleSource {
         // This ensures that subprojects are realized and register their project and project configuration IDE artifacts
         @Mutate
         public static void ensureSubprojectsAreRealized(TaskContainer tasks, ProjectIdentifier projectIdentifier, ServiceRegistry serviceRegistry) {
@@ -56,7 +56,7 @@ class VisualStudioPluginRules {
         }
     }
 
-    static class VisualStudioPluginProjectRules extends RuleSource {
+    public static class VisualStudioPluginProjectRules extends RuleSource {
         @Mutate
         public static void createVisualStudioModelForBinaries(VisualStudioExtensionInternal visualStudioExtension, BinaryContainer binaries) {
             for (NativeBinarySpec binary : binaries.withType(NativeBinarySpec.class)) {
