@@ -29,15 +29,17 @@ dependencies {
     implementation(projects.baseCompilerWorker)
     implementation(projects.daemonServerWorker)
     implementation(projects.enterpriseLogging)
+    implementation(projects.logging)
+    implementation(projects.modelReflect)
     implementation(projects.testingNative)
 
     implementation(libs.commonsLang)
     implementation(libs.guava)
 
     runtimeOnly(projects.dependencyManagement)
-    runtimeOnly(projects.logging)
 
     testImplementation(testFixtures(projects.core))
+    testImplementation(testFixtures(projects.coreApi))
     testImplementation(testFixtures(projects.modelCore))
     testImplementation(testFixtures(projects.platformBase))
     testImplementation(testFixtures(projects.platformNative))

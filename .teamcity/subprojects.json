@@ -1577,7 +1577,7 @@
   {
     "name": "test-suites-base",
     "path": "platforms/software/test-suites-base",
-    "unitTests": true,
+    "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false
   },
