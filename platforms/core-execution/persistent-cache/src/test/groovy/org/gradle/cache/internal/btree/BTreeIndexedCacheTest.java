@@ -36,6 +36,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.hamcrest.CoreMatchers.*;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertTrue;
@@ -245,18 +246,17 @@ public class BTreeIndexedCacheTest {
         }
 
         checkAddsAndRemoves(null, values);
-
-        long len = cacheFile.length();
+        // After 2000 add+remove operations, the file ends up at this exact deterministic size.
+        // If this number changes, a BTree internal layout or allocation strategy changed — verify it's intentional.
+        assertEquals(409561, cacheFile.length());
 
         checkAddsAndRemoves(Collections.reverseOrder(), values);
-
-        // The exact size depends on order-dependent free list reuse in the BTree (1.4x is empirical),
-        // plus up to one chunk for chunk-aligned file growth.
-        assertTrue(cacheFile.length() < (long) (1.4 * len) + FileBackedBlockStore.FILE_GROWTH_CHUNK_SIZE);
+        // Doing the cycle again with a reversed remove order grows the file due to order-dependent free list reuse.
+        assertEquals(565796, cacheFile.length());
 
         checkAdds(values);
-
-        assertTrue(cacheFile.length() < 2 * len + FileBackedBlockStore.FILE_GROWTH_CHUNK_SIZE);
+        // Re-adding all values fills the BTree from the existing free list, with some additional growth.
+        assertEquals(650972, cacheFile.length());
 
         cache.close();
     }
