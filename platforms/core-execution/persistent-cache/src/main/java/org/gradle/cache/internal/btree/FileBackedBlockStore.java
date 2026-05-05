@@ -75,15 +75,30 @@ public class FileBackedBlockStore implements BlockStore {
 
     @Override
     public void close() {
+        IOException failure = null;
         try {
             // Trim chunk-growth padding so the next open() starts allocating right after the last block,
-            // and we don't waste disk space. If a daemon is killed before close is called, we still may waste max 64KB.
+            // and we don't waste disk space. If a daemon is killed before close is called, we still may waste max FILE_GROWTH_CHUNK_SIZE.
             if (nextBlock < currentFileSize) {
                 file.setLength(nextBlock);
             }
-            file.close();
         } catch (IOException e) {
-            throw UncheckedException.throwAsUncheckedException(e);
+            failure = e;
+        } finally {
+            try {
+                // We try really hard to close the file even if setLength fails, since
+                // on Windows leaking the handle can prevent a new daemon from reopening the cache.
+                file.close();
+            } catch (IOException e) {
+                if (failure != null) {
+                    failure.addSuppressed(e);
+                } else {
+                    failure = e;
+                }
+            }
+        }
+        if (failure != null) {
+            throw UncheckedException.throwAsUncheckedException(failure);
         }
     }
 
@@ -215,7 +230,6 @@ public class FileBackedBlockStore implements BlockStore {
             // Write header
             outputStream.writeByte(payload.getType());
             outputStream.writeInt(payloadSize);
-            long finalSize = pos + HEADER_SIZE + TAIL_SIZE + payloadSize;
 
             // Write body
             payload.write(outputStream);
@@ -228,13 +242,14 @@ public class FileBackedBlockStore implements BlockStore {
             outputStream.writeInt((int) bytesWritten);
             output.done();
 
-            // Grow the file in 64KB chunks instead of exact sizes to reduce ftruncate syscalls.
-            // On cloud block storage (e.g. EBS), ftruncate triggers expensive metadata journal
-            // commits. Growing it in chunks reduces the number of ftruncate syscalls and increases performance on such storages.
-            if (currentFileSize < finalSize) {
-                long newSize = (finalSize + FILE_GROWTH_CHUNK_SIZE - 1) / FILE_GROWTH_CHUNK_SIZE * FILE_GROWTH_CHUNK_SIZE;
-                file.setLength(newSize);
-                currentFileSize = newSize;
+            // Grow the file in FILE_GROWTH_CHUNK_SIZE chunks instead of exact sizes to reduce ftruncate syscalls.
+            // On cloud block storage (e.g. EBS), ftruncate triggers expensive metadata journal commits.
+            // Growing in chunks reduces the number of ftruncate syscalls and improves performance on such storages.
+            long blockEnd = pos + getSize();
+            if (blockEnd > currentFileSize) {
+                long nextFileSize = (blockEnd + FILE_GROWTH_CHUNK_SIZE - 1) / FILE_GROWTH_CHUNK_SIZE * FILE_GROWTH_CHUNK_SIZE;
+                file.setLength(nextFileSize);
+                currentFileSize = nextFileSize;
             }
         }
 

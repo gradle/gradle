@@ -250,12 +250,13 @@ public class BTreeIndexedCacheTest {
 
         checkAddsAndRemoves(Collections.reverseOrder(), values);
 
-        // Tolerance accounts for free list fragmentation and chunk-aligned file growth
-        assertTrue(cacheFile.length() < 2 * len);
+        // The exact size depends on order-dependent free list reuse in the BTree (1.4x is empirical),
+        // plus up to one chunk for chunk-aligned file growth.
+        assertTrue(cacheFile.length() < (long) (1.4 * len) + FileBackedBlockStore.FILE_GROWTH_CHUNK_SIZE);
 
         checkAdds(values);
 
-        assertTrue(cacheFile.length() < 2 * 2 * len);
+        assertTrue(cacheFile.length() < 2 * len + FileBackedBlockStore.FILE_GROWTH_CHUNK_SIZE);
 
         cache.close();
     }
@@ -347,9 +348,9 @@ public class BTreeIndexedCacheTest {
         cache.put("key_1", 99);
 
         // Truncate into actual block data, not just the chunk-growth padding at the end
-        RandomAccessFile file = new RandomAccessFile(cacheFile, "rw");
-        file.setLength(100);
-        file.close();
+        try (RandomAccessFile file = new RandomAccessFile(cacheFile, "rw")) {
+            file.setLength(100);
+        }
 
         cache.reset();
 
@@ -377,15 +378,20 @@ public class BTreeIndexedCacheTest {
     @Test
     public void fileGrowsInChunksToReduceSystemCalls() {
         createCache();
-        for (int i = 0; i < 100; i++) {
+        long chunkSize = FileBackedBlockStore.FILE_GROWTH_CHUNK_SIZE;
+        // Enough entries to force the file to grow past the first chunk
+        int entryCount = 5000;
+        for (int i = 0; i < entryCount; i++) {
             cache.put("key_" + i, i);
             // File size should always be a multiple of the growth chunk size
-            assertThat(cacheFile.length() % FileBackedBlockStore.FILE_GROWTH_CHUNK_SIZE, equalTo(0L));
+            assertThat(cacheFile.length() % chunkSize, equalTo(0L));
         }
+        // Verify the file actually grew past the first chunk so the chunk-growth path was exercised
+        assertTrue(cacheFile.length() > chunkSize);
 
         // All entries survive a reopen
         cache.reset();
-        for (int i = 0; i < 100; i++) {
+        for (int i = 0; i < entryCount; i++) {
             assertThat(cache.get("key_" + i), equalTo(i));
         }
 
@@ -409,6 +415,49 @@ public class BTreeIndexedCacheTest {
         // Data survives the trim
         cache = new BTreePersistentIndexedCache<>(cacheFile, stringSerializer, integerSerializer, (short) 4, 100);
         assertThat(cache.get("key_1"), equalTo(1));
+        verifyAndCloseCache();
+    }
+
+    @Test
+    public void canReadCacheFileLeftWithChunkAlignedPadding() throws IOException {
+        // Simulates a daemon that grew the file to a chunk boundary but was killed before close()
+        // could trim the padding. The next daemon must read existing entries and write new ones correctly.
+
+        // First daemon writes entries and closes cleanly (close trims chunk-growth padding).
+        createCache();
+        for (int i = 0; i < 50; i++) {
+            cache.put("key_" + i, i);
+        }
+        cache.close();
+        long trimmedLength = cacheFile.length();
+
+        // Simulate a crashed daemon by re-padding the file to a chunk-aligned size larger than
+        // the trimmed length, as if the daemon had grown the file but never trimmed it on close.
+        long chunkSize = FileBackedBlockStore.FILE_GROWTH_CHUNK_SIZE;
+        long paddedLength = ((trimmedLength + chunkSize - 1) / chunkSize) * chunkSize + chunkSize;
+        try (RandomAccessFile file = new RandomAccessFile(cacheFile, "rw")) {
+            file.setLength(paddedLength);
+        }
+        assertThat(cacheFile.length(), equalTo(paddedLength));
+
+        // A new daemon reopens the padded cache and can still read all original entries.
+        createCache();
+        for (int i = 0; i < 50; i++) {
+            assertThat(cache.get("key_" + i), equalTo(i));
+        }
+
+        // The new daemon writes additional entries. New blocks are allocated past the padded length,
+        // leaving the simulated chunk-aligned padding as a gap between old and new blocks.
+        for (int i = 50; i < 100; i++) {
+            cache.put("key_" + i, i);
+        }
+        assertTrue(cacheFile.length() > paddedLength);
+
+        // All entries (old and new) are readable.
+        for (int i = 0; i < 100; i++) {
+            assertThat(cache.get("key_" + i), equalTo(i));
+        }
+
         verifyAndCloseCache();
     }
 
