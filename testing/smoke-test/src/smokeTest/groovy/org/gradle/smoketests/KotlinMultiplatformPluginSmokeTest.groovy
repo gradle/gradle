@@ -16,9 +16,9 @@
 
 package org.gradle.smoketests
 
+import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.versions.KotlinGradlePluginVersions
-import org.gradle.test.fixtures.Flaky
 import org.gradle.util.GradleVersion
 import org.gradle.util.internal.VersionNumber
 import org.junit.jupiter.api.Assumptions
@@ -62,7 +62,7 @@ class KotlinMultiplatformPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
         kotlinVersion << TestedVersions.kotlin.versions
     }
 
-    @Flaky(because = "https://github.com/gradle/gradle-private/issues/4643")
+    @ToBeFixedForIsolatedProjects(because = "Kotlin accesses projects from tasks in task graph: https://github.com/JetBrains/kotlin/blob/d6383256f1addbe92344b932f7d278f42bfef5bb/libraries/tools/kotlin-gradle-plugin/src/common/kotlin/org/jetbrains/kotlin/compilerRunner/GradleKotlinCompilerRunner.kt#L304")
     def 'can run tests with kotlin multiplatform with js project (kotlin=#kotlinVersion)'() {
         given:
         withKotlinBuildFile()
