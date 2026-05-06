@@ -41,7 +41,7 @@ class ReportingTaskDependencyUsageTracker(
         ipProblems.report {
             problem {
                 text("Project ")
-                reference(referrer.buildTreePath.toString())
+                reference(referrer.buildTreePath)
                 text(" cannot access task dependencies directly")
             }
                 .exception()

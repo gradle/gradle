@@ -152,7 +152,7 @@ class CrossProjectConfigurationReportingTaskExecutionGraph(
         ipProblems.report {
             problem {
                 text("Project ")
-                reference(referrerProject.buildTreePath.toString())
+                reference(referrerProject.buildTreePath)
                 text(" cannot access the tasks in the task graph that were created by other projects")
             }.exception { message ->
                 // As the exception message is not used for grouping, we can safely add the exact task name to it:
