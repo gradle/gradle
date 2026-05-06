@@ -440,6 +440,35 @@ assert custom.prop.get() == "value 4"
         succeeds()
     }
 
+    def "can set String property value using a File"() {
+        given:
+        buildFile """
+            interface SomeExtension {
+                Property<String> getProp()
+            }
+
+            extensions.create('custom', SomeExtension)
+            custom.prop = file('a.txt')
+            assert custom.prop.get() == file('a.txt').toString()
+
+            custom.prop = providers.provider { file('b.txt') }
+            assert custom.prop.get() == file('b.txt').toString()
+
+            custom.prop = null
+            custom.prop.convention(file('c.txt'))
+            assert custom.prop.get() == file('c.txt').toString()
+
+            custom.prop.convention(providers.provider { file('d.txt') })
+            assert custom.prop.get() == file('d.txt').toString()
+
+            custom.prop = file('e.txt').absoluteFile
+            assert custom.prop.get() == file('e.txt').absoluteFile.toString()
+        """
+
+        expect:
+        succeeds()
+    }
+
     def "can set Enum property value using an string"() {
         given:
         buildFile """
