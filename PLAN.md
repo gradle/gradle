@@ -1095,6 +1095,20 @@ here so the omission is recorded rather than forgotten.
     all is itself an open question; revisit when a concrete use case
     appears.
 
+- **Ship a Gradle authored documentation catalog.** The loader is
+  designed to pick up catalogs from Gradle's own JARs (see
+  *Classpath resource*), but this plan does not produce them. In the
+  long run, Gradle should ship documentation catalogs in its API JARs
+  covering:
+  - Gradle types that plugin schemas reuse (e.g. `Property<T>`,
+    `DirectoryProperty`, `RegularFileProperty`,
+    `NamedDomainObjectContainer<T>`, etc.).
+  - The DCL synthesised members described in the preceding entry,
+    once the schema metadata supports documenting them.
+
+  Without this, plugin authored catalogs cover plugin defined types
+  only; hovering on a Gradle type in a schema viewer shows nothing.
+
 ## Open questions for later
 
 - Owner only conflict policy (tightening from last wins).
