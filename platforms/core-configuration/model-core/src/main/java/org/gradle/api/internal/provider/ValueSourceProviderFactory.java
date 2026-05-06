@@ -26,6 +26,8 @@ import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.jspecify.annotations.Nullable;
 
+import java.util.function.Supplier;
+
 /**
  * Service to create providers from {@link ValueSource}s.
  *
@@ -44,7 +46,7 @@ public interface ValueSourceProviderFactory {
     <T, P extends ValueSourceParameters> Provider<T> instantiateValueSourceProvider(
         Class<? extends ValueSource<T, P>> valueSourceType,
         Class<P> parametersType,
-        P parameters
+        Supplier<P> parametersSupplier
     );
 
     /**

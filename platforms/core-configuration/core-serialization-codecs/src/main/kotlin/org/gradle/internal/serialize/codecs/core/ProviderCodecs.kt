@@ -323,18 +323,22 @@ object ValueSourceProviderCodec : Codec<ValueSourceProvider<*, *>> {
     private
     suspend fun ReadContext.decodeValueSource(): ValueSourceProvider<*, *> =
         // TODO:configuration-cache `decodePreservingSharedIdentity` should be unnecessary for shared objects
-        decodePreservingSharedIdentity {
+        decodePreservingIdentity(sharedIdentities) { id ->
             val valueSourceType = readClass()
             val parametersType = readClass()
             val parameters = read()!!
 
             val valueSourceProviderFactory = isolate.owner.serviceOf<ValueSourceProviderFactory>()
+            var decodedParameters: ValueSourceParameters? = null
             val provider =
                 valueSourceProviderFactory.instantiateValueSourceProvider<Any, ValueSourceParameters>(
                     valueSourceType.uncheckedCast(),
-                    parametersType.uncheckedCast(),
-                    parameters.uncheckedCast()
+                    parametersType?.uncheckedCast(),
+                    { decodedParameters }
                 )
+
+            sharedIdentities.putInstance(id, provider)
+            decodedParameters = read()!!.uncheckedCast()
             provider.uncheckedCast()
         }
 }
