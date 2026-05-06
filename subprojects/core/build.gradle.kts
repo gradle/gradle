@@ -33,6 +33,7 @@ dependencies {
     api(projects.credentialsApi)
     api(projects.daemonMessaging)
     api(projects.declarativeDslApi)
+    api(projects.domainObjectCollections)
     api(projects.enterpriseLogging)
     api(projects.enterpriseOperations)
     api(projects.execution)
@@ -220,6 +221,7 @@ dependencies {
 
     testImplementation(projects.dependencyManagement)
 
+    testImplementation(testFixtures(projects.domainObjectCollections))
     testImplementation(testFixtures(projects.serialization))
     testImplementation(testFixtures(projects.coreApi))
     testImplementation(testFixtures(projects.messaging))
@@ -246,6 +248,7 @@ dependencies {
     integTestImplementation(libs.jetbrainsAnnotations)
     integTestImplementation(testLibs.jetty)
     integTestImplementation(testLibs.littleproxy)
+    integTestImplementation(testFixtures(projects.domainObjectCollections))
     integTestImplementation(testFixtures(projects.native))
     integTestImplementation(testFixtures(projects.fileTemp))
     integTestImplementation(testFixtures(projects.launcher))
