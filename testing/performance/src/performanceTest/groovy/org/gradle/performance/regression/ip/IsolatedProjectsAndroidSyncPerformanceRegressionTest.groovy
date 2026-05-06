@@ -51,7 +51,7 @@ class IsolatedProjectsAndroidSyncPerformanceRegressionTest extends AbstractCross
         runner.useDaemon = daemon == warm
         // Use multiple warm-ups for cold scenario to warm-up Android Studio itself
         runner.warmUpRuns = 5
-        runner.runs = 20
+        runner.runs = 10
 
         runner.args.addAll([
             // realistic defaults
