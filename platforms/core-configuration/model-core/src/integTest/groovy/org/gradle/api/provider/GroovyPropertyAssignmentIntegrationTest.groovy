@@ -118,7 +118,10 @@ class GroovyPropertyAssignmentIntegrationTest extends AbstractProviderOperatorIn
         where:
         description                              | operation | inputType                       | inputValue                                               | expectedResult
         "Collection<T> = null"                   | "="       | "ListProperty<MyObject>"        | 'null'                                                   | 'undefined'
-        "Collection<T> = T[]"                    | "="       | "ListProperty<MyObject>"        | '[new MyObject("a")] as MyObject[]'                      | unsupportedWithCause("Cannot set the value of a property of type java.util.List using an instance of type [LMyObject;")
+        "ListProperty<T> = T"                    | "="       | "ListProperty<MyObject>"        | 'new MyObject("a")'                                      | '[a]'
+        "SetProperty<T> = T"                     | "="       | "SetProperty<MyObject>"         | 'new MyObject("a")'                                      | '[a]'
+        "Collection<T> = T[]"                    | "="       | "ListProperty<MyObject>"        | '[new MyObject("a"), new MyObject("b")] as MyObject[]'   | '[a, b]'
+        "SetProperty<T> = T[]"                   | "="       | "SetProperty<MyObject>"         | '[new MyObject("a"), new MyObject("b")] as MyObject[]'   | '[a, b]'
         "Collection<T> = Iterable<T>"            | "="       | "ListProperty<MyObject>"        | '[new MyObject("a")] as Iterable<MyObject>'              | '[a]'
         "Collection<T> = provider { null }"      | "="       | "ListProperty<MyObject>"        | 'provider { null }'                                      | 'undefined'
         "Collection<T> = Provider<Iterable<T>>"  | "="       | "ListProperty<MyObject>"        | 'provider { [new MyObject("a")] as Iterable<MyObject> }' | '[a]'
