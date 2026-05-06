@@ -13,10 +13,12 @@ dependencies {
     api(projects.baseServices)
     api(projects.core)
     api(projects.coreApi)
+    api(projects.enterpriseLogging)
     api(projects.fileCollections)
     api(projects.files)
     api(projects.modelCore)
     api(projects.platformBase)
+    api(projects.reportRendering)
     api(projects.serviceLookup)
     api(projects.serviceProvider)
     api(projects.softwareDiagnostics)
@@ -28,7 +30,6 @@ dependencies {
 
     implementation(projects.baseCompilerWorker)
     implementation(projects.daemonServerWorker)
-    implementation(projects.enterpriseLogging)
     implementation(projects.logging)
     implementation(projects.modelReflect)
     implementation(projects.publish)
@@ -48,7 +49,9 @@ dependencies {
     testRuntimeOnly(projects.distributionsCore) {
         because("ProjectBuilder tests load services from a Gradle distribution.")
     }
-    integTestDistributionRuntimeOnly(projects.distributionsNative)
+    integTestDistributionRuntimeOnly(projects.distributionsFull) {
+        because("ModelReportIntegrationTest verifies the full set of tasks contributed by a Gradle distribution.")
+    }
 }
 
 gradleModule {
