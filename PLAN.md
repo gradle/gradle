@@ -73,6 +73,65 @@ Rather than promoting entries to a richer type, add a parallel
 `entryDocumentation: Map<String, String>` field. Keys are entry names,
 values are docs. Entries without docs are simply absent from the map.
 
+**JavaBean accessors and Kotlin properties become a single `DataProperty`.**
+The schema's `PropertyExtractor` walks JavaBean getters with the `get`
+prefix and Kotlin properties, returning one `DataProperty` per
+accessor pair: name is the bean stripped or Kotlin name (`x`); a
+matching setter (`setX(T)`) is consumed and folds into the property's
+`ReadWrite` mode rather than appearing as a separate member function.
+The catalog mirrors this:
+
+- A `properties[<name>]` doc covers both read and write. There is no
+  separate setter doc.
+- A `functions[setX(T)]` entry would be an orphan (the schema has no
+  such function) and would surface as an orphan key warning.
+
+**Only the `get` prefix is bean folded.** `isJavaBeanGetter`
+([ClassMembersForSchema.kt:434](platforms/core-configuration/declarative-dsl-core/src/main/kotlin/org/gradle/internal/declarativedsl/schemaBuilder/ClassMembersForSchema.kt#L434))
+matches `getXxx` only. A `boolean isReady()` getter does **not** become
+a property `ready`; it appears as a member function `isReady()` in the
+schema. The catalog must document it under `functions["isReady()"]`,
+not under `properties.ready`. (Generators that follow Java's bean
+convention naively will produce orphan property entries here.)
+
+**Getters returning a complex type also synthesize a configuring
+function.** `GetterBasedConfiguringFunctionExtractor`
+([FunctionExtractor.kt:353](platforms/core-configuration/declarative-dsl-core/src/main/kotlin/org/gradle/internal/declarativedsl/schemaBuilder/FunctionExtractor.kt#L353))
+emits a zero parameter `DataMemberFunction` with `simpleName` equal to
+the property name and `semantics = AccessAndConfigure(...)` whenever a
+getter (or Kotlin read only property) returns a configurable nested
+type. So `getTestReports(): TestReports` (no setter) yields:
+
+1. A `DataProperty("testReports", valueType = TestReports, ...)`.
+2. A `DataMemberFunction("testReports"(), AccessAndConfigure)` carrying
+   `ConfigureFromGetterOrigin` metadata that records the original
+   getter.
+
+In DCL the user writes `testReports { ... }`, which resolves to the
+configuring function. The catalog only documents the property side
+(`properties[testReports]`); the grafter mirrors the property's doc
+onto the synthesized configuring function, recognising it via the
+`ConfigureFromGetterOrigin` metadata. Mirror is "fill if null", so an
+explicit `functions[testReports()]` entry, if present, still wins.
+Generators should not emit such an explicit entry: it would duplicate
+the property doc and risk diverging strings.
+
+**Inherited members get their own `DataProperty` / `DataMemberFunction`
+instances.** The schema runs `PropertyExtractor` and `FunctionExtractor`
+per type; for a subtype, inherited members are included in the
+extraction (sourced via `mergeMembersBySignature` from the supertype's
+declared members). So `CheckstyleSourceSetDefinition` ends up with its
+own `DataProperty("ignoreFailures", ...)` instance distinct from the
+one on `CheckstyleDefinition`. Catalogs document each member at its
+**definition site** (the supertype that declares it). The grafter
+mirrors documentation **down the supertype chain**: for each subtype
+property or member function whose documentation is `null`, it walks
+the supertype chain (`DataClass.supertypes`, transitively) and copies
+the documentation from a same named documented member on a supertype.
+Mirror is "fill if null", so an explicit subtype catalog entry still
+wins. Generators should emit each member's doc once, on the type that
+declares it.
+
 **Not documented (intentionally):** `ParameterizedTypeSignature` and
 `ParameterizedTypeInstance` (e.g. `Property<T>`, `List<T>`,
 `ListProperty<T>`). DCL users never type these names; they write the
@@ -394,6 +453,13 @@ Used as the value type in `functions`, `constructors`, and
   `compute(java.lang.String,int)`.
 - Constructor: `(<jvm form args>)`, no name. Default: `()`.
 - Args list is comma separated, **no whitespace**.
+- The trailing **configure block lambda** is excluded from the args
+  list. For a function with configure semantics like
+  `feature(name: String, action: Action<Foo>)` the schema drops the
+  lambda, so the catalog key is `feature(java.lang.String)`, not
+  `feature(java.lang.String,org.gradle.api.Action)`. The schema's own
+  rule lives in `DefaultFunctionExtractor.memberFunction`
+  ([FunctionExtractor.kt:142](platforms/core-configuration/declarative-dsl-core/src/main/kotlin/org/gradle/internal/declarativedsl/schemaBuilder/FunctionExtractor.kt#L142)).
 
 #### JVM form parameter type fragments
 
@@ -407,6 +473,35 @@ Each comma separated piece in an args list:
   `void`.
 - Vararg: element type fragment plus `[]`. `vararg s: String` becomes
   `java.lang.String[]`.
+
+#### Schema visibility rules to apply
+
+Definition types use annotations to control what reaches the schema.
+The generator must honour them and skip the same members/types the
+schema skips. Otherwise the emitted entries would be orphans and warn
+at load time.
+
+- `@HiddenInDefinition` on a member excludes that member.
+- `@HiddenInDefinition` on a type makes the type itself hidden and
+  drops its supertypes from declarative use.
+- `@VisibleInDefinition` is the counter annotation, used in a subtype
+  to re expose an inherited hidden member or type.
+
+The annotations live in
+`org.gradle.declarative.dsl.model.annotations` (declarative-dsl-api).
+The reference for the exact rules is the schema's own
+`ClassMembersForSchema`, which is what the loader will validate
+against.
+
+#### Configure functions synthesized from getters
+
+Do not emit a `functions["name()"]` entry for a getter that the schema
+turns into a configure block (a getter without a setter, returning a
+configurable complex type, e.g. `getTestReports(): TestReports`).
+Document only the property; the grafter mirrors the property's doc
+onto the synthesized configuring function. Emitting both risks
+diverging strings and adds no information. See *Definitions that
+carry documentation* for the full rationale.
 
 #### Loader behaviour generators can rely on
 
@@ -548,8 +643,8 @@ properties have docs.
 Green: extend grafter for properties.
 
 **Cycle 3.3: Member function docs (with parameter docs).**
-Red: graft **Sample C** onto a schema containing `CheckstyleModel`;
-assert `setReports(...)` carries function doc and that its `reports`
+Red: graft **Sample C** onto a schema containing `LibraryDependencies`;
+assert `copyTo(...)` carries function doc and that its `target`
 parameter carries the parameter doc.
 Green: extend grafter for functions and parameters in one cycle (they
 co locate in the catalog under each function's `parameters` block).
@@ -578,6 +673,40 @@ and identical (same string instance is fine).
 Green: rebuild direct `DataClass` references held by `AnalysisSchema`
 (top level receiver, generic instantiation values) from the rebuilt FQN
 map so all aliases agree.
+
+**Cycle 3.8: Mirror property docs onto getter synthesized configure
+functions.**
+Red: graft **Sample M** onto a schema containing `JavaLibraryModel`
+(which has a `getTestReports()` getter that the schema turns into a
+configure block). The catalog documents only the `testReports`
+property. Assert that both the property and the synthesized
+`testReports()` `DataMemberFunction` carry the same documentation
+string. An explicit `functions["testReports()"]` entry in the catalog,
+if present, still takes precedence over the mirrored value.
+Green: extend the grafter with a pass that walks each
+`DataMemberFunction` whose `metadata` contains
+`ConfigureFromGetterOrigin` and whose `documentation` is `null`, and
+fills it from the same named property in the same enclosing class.
+
+**Cycle 3.9: Mirror inherited member docs down the supertype chain.**
+Red: graft **Sample N** onto a schema containing
+`CheckstyleSourceSetDefinition` (which extends `CheckstyleDefinition`).
+The catalog documents only the parent's
+`properties[ignoreFailures]`. Assert that
+`CheckstyleSourceSetDefinition`'s inherited
+`DataProperty("ignoreFailures", ...)` carries the same documentation
+string, even though the catalog never names the child type. An
+explicit subtype entry, if present, still takes precedence over the
+mirrored value.
+Green: extend the grafter with a pass that walks each `DataClass`,
+inspects each property and member function, and for any with `null`
+documentation searches the supertype chain (transitively via
+`DataClass.supertypes` and `dataClassTypesByFqName`) for a documented
+same named member, copying the doc from the first match. The two
+mirror passes (configure functions in 3.8 and inheritance in 3.9) are
+independent; the grafter runs the inheritance mirror first so that an
+inherited property's doc can subsequently flow into a configure
+function synthesized on the subtype.
 
 ### Phase 4: Loader
 
@@ -703,20 +832,24 @@ members; only the keys present in the catalog get docs.
 (Asserted: `CheckstyleSourceSetDefinition.documentation` is populated;
 `CheckstyleDefinition.documentation` is still null.)
 
-### Sample C: function with parameter doc
+### Sample C: member function with parameter doc
 
-Covers: function key projection (one parameter, parameterized type
-erased), parameter doc keyed by name.
+Covers: function key projection (one parameter, class type), parameter
+doc keyed by name. Uses a non bean member function from the demos
+(`LibraryDependencies.copyTo(LibraryDependencies)`) so the function is
+genuinely a member function in the schema and not a bean accessor
+folded into a property. (Parameterized erasure is exercised separately
+by the unit tests in Cycle 2.2.)
 
 ```json
 {
   "types": {
-    "org.gradle.api.plugins.checkstyle.CheckstyleModel": {
+    "org.gradle.api.plugins.java.LibraryDependencies": {
       "functions": {
-        "setReports(org.gradle.api.provider.Provider)": {
-          "documentation": "Replace the configured reports.",
+        "copyTo(org.gradle.api.plugins.java.LibraryDependencies)": {
+          "documentation": "Copy all dependencies and constraints from this collector to the target.",
           "parameters": {
-            "reports": "Provider that supplies the reports configuration."
+            "target": "Destination receiving the copied dependencies."
           }
         }
       }
@@ -909,6 +1042,59 @@ the truncation cap of 10 in the warning text.
   }
 }
 ```
+
+### Sample M: getter synthesized configure function (mirror)
+
+Covers the grafter's mirror pass for configure functions synthesized
+from getters returning a complex type. `JavaLibraryModel.getTestReports()`
+returns a `TestReports` nested interface with no setter, so the schema
+synthesizes a configuring function `testReports()` carrying
+`ConfigureFromGetterOrigin` metadata. The catalog only documents the
+`testReports` property; after grafting, both the property and the
+synthesized configuring function carry the same string.
+
+```json
+{
+  "types": {
+    "org.gradle.api.plugins.java.JavaLibraryModel": {
+      "properties": {
+        "testReports": "Configures the destinations for test reports produced by this library."
+      }
+    }
+  }
+}
+```
+
+(Asserted: `properties[testReports].documentation` is populated **and**
+the synthesized `testReports()` `DataMemberFunction` carries the same
+documentation string. No `functions["testReports()"]` entry in the
+catalog.)
+
+### Sample N: inherited member doc (supertype mirror)
+
+Covers the grafter's inheritance mirror pass. The catalog documents
+`ignoreFailures` only on the parent type `CheckstyleDefinition`. After
+grafting, the child type `CheckstyleSourceSetDefinition` (which extends
+`CheckstyleDefinition`) carries the same documentation on its own
+distinct `DataProperty("ignoreFailures", ...)` instance, even though
+the catalog never names the child.
+
+```json
+{
+  "types": {
+    "org.gradle.api.plugins.checkstyle.CheckstyleDefinition": {
+      "properties": {
+        "ignoreFailures": "Whether Checkstyle violations should fail the build."
+      }
+    }
+  }
+}
+```
+
+(Asserted: both
+`CheckstyleDefinition.properties[ignoreFailures].documentation` **and**
+`CheckstyleSourceSetDefinition.properties[ignoreFailures].documentation`
+carry the same string.)
 
 ## Open questions for later
 
