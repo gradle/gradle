@@ -17,7 +17,7 @@ if (providers.systemProperty("create1").getOrNull() != null) {
             create("libs") {
                 from("com.mycompany:catalog:1.0")
                 // Override a specific version for this project
-                version("kotlin", "2.3.21")
+                version("kotlin", "2.4.0-Beta2")
             }
 
             // A local catalog for project-specific dependencies
