@@ -54,6 +54,9 @@ dependencies {
     integTestImplementation(libs.jgit)
 
     testFixturesApi(testFixtures(projects.ide))
+    testFixturesApi(testFixtures(projects.platformNative))
+    testFixturesImplementation(projects.internalIntegTesting)
+    testFixturesImplementation(projects.native)
     testFixturesImplementation(libs.plist)
     testFixturesImplementation(libs.guava)
     testFixturesImplementation(libs.groovyXml)
