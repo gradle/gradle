@@ -590,6 +590,9 @@ class ProblemReportingCrossProjectModelAccess(
             }
         }
 
+        /**
+         * Based on vintage configuration order, would the delegate project be configured before the referrer project?
+         */
         private
         fun isDelegateBeforeReferrer(): Boolean = ProjectOrderingUtil.compare(delegate.projectIdentity, referrer) < 0
 
