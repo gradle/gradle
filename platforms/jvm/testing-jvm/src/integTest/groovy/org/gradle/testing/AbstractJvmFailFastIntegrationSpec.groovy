@@ -132,7 +132,7 @@ abstract class AbstractJvmFailFastIntegrationSpec extends AbstractTestingMultiVe
                 0
             }
         }
-        resourceForTest.keySet().with {
+        verifyAll(resourceForTest.keySet()) {
             def doesntExist = count { path ->
                 !testResults.testPathExists(path)
             }

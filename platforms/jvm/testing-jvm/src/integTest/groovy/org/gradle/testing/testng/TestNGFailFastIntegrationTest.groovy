@@ -56,7 +56,7 @@ class TestNGFailFastIntegrationTest extends AbstractJvmFailFastIntegrationSpec i
                 0
             }
         }
-        resourceForTest.keySet().with {
+        verifyAll(resourceForTest.keySet()) {
             def doesntExist = count {path ->
                 !testResults.testPathExists(path)
             }

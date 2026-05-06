@@ -107,20 +107,20 @@ class PmdPluginTest extends AbstractProjectBuilderSpec {
     private void configuresPmdTask(String taskName, SourceSet sourceSet) {
         def task = project.tasks.findByName(taskName)
         assert task instanceof Pmd
-        task.with {
-            assert description == "Run PMD analysis for ${sourceSet.name} classes"
+        verifyAll(task) {
+            description == "Run PMD analysis for ${sourceSet.name} classes"
             source as List == sourceSet.allJava as List
-            assert pmdClasspath == project.configurations.pmd
-            assert ruleSets == ["category/java/errorprone.xml"]
-            assert ruleSetConfig == null
-            assert ruleSetFiles.empty
-            assert reports.xml.outputLocation.asFile.get() == project.file("build/reports/pmd/${sourceSet.name}.xml")
-            assert reports.html.outputLocation.asFile.get() == project.file("build/reports/pmd/${sourceSet.name}.html")
-            assert ignoreFailures == false
-            assert maxFailures.get() == 0
-            assert rulesMinimumPriority.get() == 5
-            assert incrementalAnalysis.get() == true
-            assert threads.get() == 1
+            pmdClasspath == project.configurations.pmd
+            ruleSets == ["category/java/errorprone.xml"]
+            ruleSetConfig == null
+            ruleSetFiles.empty
+            reports.xml.outputLocation.asFile.get() == project.file("build/reports/pmd/${sourceSet.name}.xml")
+            reports.html.outputLocation.asFile.get() == project.file("build/reports/pmd/${sourceSet.name}.html")
+            ignoreFailures == false
+            maxFailures.get() == 0
+            rulesMinimumPriority.get() == 5
+            incrementalAnalysis.get() == true
+            threads.get() == 1
         }
     }
 
@@ -186,18 +186,18 @@ class PmdPluginTest extends AbstractProjectBuilderSpec {
     private void hasCustomizedSettings(String taskName, SourceSet sourceSet) {
         def task = project.tasks.findByName(taskName)
         assert task instanceof Pmd
-        task.with {
-            assert description == "Run PMD analysis for ${sourceSet.name} classes"
+        verifyAll(task) {
+            description == "Run PMD analysis for ${sourceSet.name} classes"
             source as List == sourceSet.allJava as List
-            assert pmdClasspath == project.configurations.pmd
-            assert ruleSets == ["java-braces", "java-unusedcode"]
-            assert ruleSetConfig.asString() == "ruleset contents"
-            assert ruleSetFiles.singleFile == project.file("my-ruleset.xml")
-            assert reports.xml.outputLocation.asFile.get() == project.file("pmd-reports/${sourceSet.name}.xml")
-            assert reports.html.outputLocation.asFile.get() == project.file("pmd-reports/${sourceSet.name}.html")
-            assert ignoreFailures == true
-            assert maxFailures.get() == 17
-            assert rulesMinimumPriority.get() == 3
+            pmdClasspath == project.configurations.pmd
+            ruleSets == ["java-braces", "java-unusedcode"]
+            ruleSetConfig.asString() == "ruleset contents"
+            ruleSetFiles.singleFile == project.file("my-ruleset.xml")
+            reports.xml.outputLocation.asFile.get() == project.file("pmd-reports/${sourceSet.name}.xml")
+            reports.html.outputLocation.asFile.get() == project.file("pmd-reports/${sourceSet.name}.html")
+            ignoreFailures == true
+            maxFailures.get() == 17
+            rulesMinimumPriority.get() == 3
             task.threads.get() == 2
         }
     }
