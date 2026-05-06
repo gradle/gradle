@@ -16,13 +16,12 @@
 
 package org.gradle.integtests.resolve.catalog
 
-import org.gradle.api.internal.catalog.problems.VersionCatalogErrorMessages
 import org.gradle.api.internal.catalog.problems.VersionCatalogProblemId
 import org.gradle.api.internal.catalog.problems.VersionCatalogProblemTestFor
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import spock.lang.Issue
 
-class VersionCatalogExtensionIntegrationTest extends AbstractVersionCatalogIntegrationTest implements VersionCatalogErrorMessages {
+class VersionCatalogExtensionIntegrationTest extends AbstractVersionCatalogIntegrationTest {
 
     def resolve = new ResolveTestFixture(testDirectory)
 
@@ -124,16 +123,12 @@ class VersionCatalogExtensionIntegrationTest extends AbstractVersionCatalogInteg
         fails()
 
         then:
-        verifyContains(failure.error, aliasNotFinished {
-            inCatalog("libs")
-            alias("my.great.lib")
-        })
-
-        and:
         verifyAll(receivedProblem) {
             fqid == 'dependency-version-catalog:alias-not-finished'
-            contextualLabel == 'Problem: In version catalog libs, dependency alias builder \'my.great.lib\' was not finished.'
+            definition.id.displayName == 'Alias builder not finished'
+            contextualLabel == 'In version catalog libs, dependency alias builder \'my.great.lib\' was not finished'
             details == 'A version was not set or explicitly declared as not wanted'
+            definition.documentationLink.url == docUrlFor('alias_not_finished')
             solutions == [
                 'Call `.version()` to give the alias a version',
                 'Call `.withoutVersion()` to explicitly declare that the alias should not have a version',
@@ -1956,17 +1951,12 @@ Second: 1.1"""
         fails "help"
 
         then:
-        verifyContains(failure.error, reservedAlias {
-            inCatalog("libs")
-            alias(reserved)
-            reservedAliases "extensions", "convention"
-        })
-
-        and:
         verifyAll(receivedProblem) {
             fqid == 'dependency-version-catalog:reserved-alias-name'
-            contextualLabel == "Problem: In version catalog libs, alias '$reserved' is a reserved alias."
+            definition.id.displayName == 'Reserved alias name'
+            contextualLabel == "In version catalog libs, alias '$reserved' is a reserved alias"
             details == "Alias '$reserved' is a reserved name in Gradle which prevents generation of accessors."
+            definition.documentationLink.url == docUrlFor('reserved_alias_name')
             solutions == [ 'Use a different alias which doesn\'t contain any of \'convention\' or \'extensions\'.' ]
         }
 
@@ -1997,17 +1987,12 @@ Second: 1.1"""
         fails "help"
 
         then:
-        verifyContains(failure.error, reservedAlias {
-            inCatalog("libs")
-            shouldNotContain(reserved)
-            reservedNames "class"
-        })
-
-        and:
         verifyAll(receivedProblem) {
             fqid == 'dependency-version-catalog:reserved-alias-name'
-            contextualLabel == "Problem: In version catalog libs, alias '$reserved' is a reserved alias."
+            definition.id.displayName == 'Reserved alias name'
+            contextualLabel == "In version catalog libs, alias '$reserved' is a reserved alias"
             details == "Alias '$reserved' is a reserved name in Gradle which prevents generation of accessors."
+            definition.documentationLink.url == docUrlFor('reserved_alias_name')
             solutions == [ 'Use a different alias which doesn\'t contain \'class\'.' ]
         }
 
@@ -2038,17 +2023,12 @@ Second: 1.1"""
         fails "help"
 
         then:
-        verifyContains(failure.error, reservedAlias {
-            inCatalog("libs")
-            alias(reservedName).shouldNotBeEqualTo(prefix)
-            reservedAliasPrefix('bundles', 'plugins', 'versions')
-        })
-
-        and:
         verifyAll(receivedProblem) {
             fqid == 'dependency-version-catalog:reserved-alias-name'
-            contextualLabel == "Problem: In version catalog libs, alias '$reservedName' is a reserved alias."
+            definition.id.displayName == 'Reserved alias name'
+            contextualLabel == "In version catalog libs, alias '$reservedName' is a reserved alias"
             details == "Prefix for dependency shouldn\'t be equal to '$prefix'"
+            definition.documentationLink.url == docUrlFor('reserved_alias_name')
             solutions == [ 'Use a different alias which prefix is not equal to \'bundles\', \'plugins\', or \'versions\'' ]
         }
 

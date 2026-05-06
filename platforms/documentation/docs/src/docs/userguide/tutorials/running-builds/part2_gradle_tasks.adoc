@@ -31,6 +31,7 @@ Learn the basics of Gradle tasks by running one and looking at its output.
 
 1. You initialized your Java app in <<part1_gradle_init.adoc#part1_begin,part 1>>.
 
+[[rb_part2_step1]]
 == Step 1. Viewing available Tasks
 
 A _task_ is a basic unit of work that can be done by Gradle as part of the build.
@@ -95,6 +96,7 @@ $ ./gradlew :app:tasks --all
 
 This shows internal and lifecycle tasks that are normally hidden in the default summary.
 
+[[rb_part2_step2]]
 == Step 2. Understanding Tasks
 
 Tasks can come from several places.
@@ -140,6 +142,7 @@ Popular built-in tasks include:
 
 With many more documented in the Kotlin and Groovy DSLs.
 
+[[rb_part2_step3]]
 == Step 3. Understanding Dependencies Between Tasks
 
 Often, one task needs another task to run first.
@@ -166,6 +169,7 @@ The output is `Hello! How are you?`.
 Task execution order is automatically determined by Gradle, taking into account explicit and implicit task dependencies.
 If there is no dependency between tasks, Gradle enables users to request a specific execution order.
 
+[[rb_part2_step4]]
 == Step 4. Viewing Tasks in the IDE (Optional)
 
 Project tasks are also available in IntelliJ.
@@ -175,6 +179,7 @@ On the right-hand side of your window, open the `Gradle` pane to view all availa
 
 image::tutorial/intellij-idea-tasks.png[]
 
+[[rb_part2_step5]]
 == Step 5. Running Tasks in the IDE (Optional)
 
 You can run a Gradle task via IntelliJ by double-clicking that task in the pane.
@@ -192,6 +197,7 @@ BUILD SUCCESSFUL in 966ms
 3:18:24 AM: Execution finished 'build'.
 ----
 
+[[rb_part2_step6]]
 == Step 6. Running Tasks in the Terminal
 
 Run the following command in your terminal:

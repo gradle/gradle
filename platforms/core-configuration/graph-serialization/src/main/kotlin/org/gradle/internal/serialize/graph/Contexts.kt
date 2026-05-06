@@ -151,20 +151,20 @@ object NullClassEncoder : ClassEncoder {
 
 
 object NullClassDecoder : ClassDecoder {
-    override fun Decoder.decodeClass(): Class<*> =
+    override fun ReadContext.decodeClass(): Class<*> =
         error("Cannot decode class in this context.")
 }
 
 
 interface ClassDecoder {
-    fun Decoder.decodeClass(): Class<*>
+    fun ReadContext.decodeClass(): Class<*>
 
     /**
      * Decodes a [ClassLoader] previously encoded via [ClassEncoder.encodeClassLoader].
      *
      * @return the previously encoded [ClassLoader] or `null` when [ClassEncoder.encodeClassLoader] returns `false`
      */
-    fun Decoder.decodeClassLoader(): ClassLoader? = null
+    fun ReadContext.decodeClassLoader(): ClassLoader? = null
 }
 
 

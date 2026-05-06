@@ -25,6 +25,7 @@ While you can publish to private repositories to restrict access, publishing to 
 
 image::plugin-portal-page.png[]
 
+[[account_setup]]
 == Account setup
 
 Before publishing, create a {portal} account and generate an API key:
@@ -97,14 +98,17 @@ include::sample[dir="snippets/reference/plugin-development/publishingPlugins/gro
 
 image::plugin-portal-plugin-page.png[]
 
+[[sources_and_javadoc]]
 === Sources and Javadoc
 
 The Plugin Publish Plugin automatically creates and publishes <<building_java_projects.adoc#sec:java_packaging,Javadoc and sources JARs>>.
 
+[[signing_artifacts]]
 === Signing artifacts
 
 From version 1.0.0, applying the <<signing_plugin.adoc#signing_plugin,`signing`>> plugin automatically signs plugin artifacts.
 
+[[shadow_dependencies]]
 === Shadow dependencies
 
 From version 1.0.0, applying https://github.com/GradleUp/shadow[`com.gradleup.shadow`] automatically creates fat JARs for plugins.
@@ -138,6 +142,7 @@ This process can take a few days.
 
 After approval, your plugin appears on the Portal and is available for anyone to use.
 
+[[plugins_published_without_portal]]
 == Plugins published without {portal}
 
 If you published a plugin without using the <<java_gradle_plugin.adoc#java_gradle_plugin,Java Gradle Plugin Development Plugin>>, the publication will lack the <<plugins_intermediate.adoc#sec:plugin_markers,Plugin Marker Artifact>> required by the plugins DSL.

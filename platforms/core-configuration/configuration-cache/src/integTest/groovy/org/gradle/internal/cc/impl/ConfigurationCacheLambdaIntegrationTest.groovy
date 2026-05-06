@@ -19,6 +19,7 @@ package org.gradle.internal.cc.impl
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.file.SourceDirectorySet
 import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheFixture
+import spock.lang.Issue
 
 class ConfigurationCacheLambdaIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
 
@@ -328,5 +329,57 @@ class ConfigurationCacheLambdaIntegrationTest extends AbstractConfigurationCache
 
         then:
         succeeds("a", "b")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/32607")
+    def "can serialize property with circular reference in a lambda"() {
+        javaFile("buildSrc/src/main/java/com/example/MyTask.java", """
+            package com.example;
+
+            import org.gradle.api.DefaultTask;
+            import org.gradle.api.provider.Property;
+            import org.gradle.api.tasks.Internal;
+            import org.gradle.api.tasks.TaskAction;
+
+            public abstract class MyTask extends DefaultTask {
+                @Internal
+                abstract Property<String> getValue();
+
+                @TaskAction
+                public void action() {
+                    System.out.println("value = " + getValue().getOrNull());
+                }
+            }
+        """)
+
+        javaFile("buildSrc/src/main/java/com/example/MyPlugin.java", """
+            package com.example;
+
+            import org.gradle.api.Plugin;
+            import org.gradle.api.Project;
+
+            import java.io.File;
+
+            public class MyPlugin implements Plugin<Project> {
+                @Override
+                public void apply(Project p) {
+                    var environment = p.getProviders().systemProperty("some.property");
+                    p.getTasks().register("run", MyTask.class, task -> {
+                        var value = task.getValue();
+                        value.set(environment.map(v -> v + System.identityHashCode(value)));
+                    });
+                }
+            }
+        """)
+
+        buildFile """
+            apply plugin: com.example.MyPlugin
+        """
+
+        when:
+        configurationCacheRun("run", "-Dsome.property=some value")
+
+        then:
+        outputContains("some value")
     }
 }

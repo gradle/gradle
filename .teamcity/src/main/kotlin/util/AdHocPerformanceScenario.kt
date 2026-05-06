@@ -70,10 +70,10 @@ abstract class AdHocPerformanceScenario(
             )
             text(
                 "testJavaVersion",
-                "21",
+                "17",
                 display = ParameterDisplay.PROMPT,
                 allowEmpty = false,
-                description = "The java version to run the performance tests, e.g. 8/11/21",
+                description = "The java version to run the performance tests, e.g. 8/11/17",
             )
             select(
                 "testJavaVendor",

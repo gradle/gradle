@@ -89,6 +89,7 @@ As noted in the limitations, you must link:https://www.jetbrains.com/help/idea/g
 
 Builds with slow configuration time might affect the IDE responsiveness, so please check out the <<performance.adoc#performance_gradle,performance section>> to help resolve such issues.
 
+[[automatic_build_import_vs_automatic_reloading_of_script_dependencies]]
 === Automatic build import vs. automatic reloading of script dependencies
 
 Both IntelliJ IDEA and Android Studio will detect when you make changes to your build logic and offer two suggestions:
@@ -116,6 +117,7 @@ Many of the objects, functions, and properties in your build scripts come from t
 
 TIP: Use the link:{kotlinDslPath}/[Kotlin DSL reference] search to explore available members.
 
+[[script_file_names]]
 === Script file names
 
 * Groovy DSL script files use the `.gradle` file name extension.
@@ -152,6 +154,7 @@ All Kotlin DSL build scripts come with implicit imports, including:
 ** `java.io.File`
 ** `javax.inject.Inject`
 
+[[avoid_using_internal_kotlin_dsl_apis]]
 === Avoid Using Internal Kotlin DSL APIs
 
 Using internal Kotlin DSL APIs in plugins and build scripts can break builds when either Gradle or plugins are updated.
@@ -300,6 +303,7 @@ If you can't find a type-safe accessor, _fall back to using the normal API_ for 
 To do so, you need to know the names and/or types of the configured model elements.
 We will now show you how these can be discovered by examining the script in detail.
 
+[[artifact_configurations]]
 ==== Artifact configurations
 
 The following sample demonstrates how to reference and configure artifact configurations without type-safe accessors:
@@ -313,6 +317,7 @@ You can use string literals for configuration names in dependency declarations a
 
 While the IDE won't be able to help you discover the available configurations, you can look them up either in the corresponding plugin's documentation or by running `./gradlew dependencies`.
 
+[[project_extensions]]
 ==== Project extensions
 
 Project extensions have both a name and a unique type.
@@ -340,6 +345,7 @@ include::sample[dir="snippets/reference/dsl-apis/basics/kotlin",files="build.gra
 
 The snippet above also demonstrates one way to configure elements of a project extension that is a container.
 
+[[elements_in_project_extension_containers]]
 ==== Elements in project-extension containers
 
 Container-based project extensions, such as `SourceSetContainer`, allow you to configure the elements they hold.
@@ -357,6 +363,7 @@ For project extensions and conventions, you can discover what elements are prese
 
 As a last resort, you may also review the plugin's source code to find out what it does.
 
+[[tasks]]
 ==== Tasks
 
 Tasks are not managed through a container-based project extension, but they are part of a container that behaves in a similar way.
@@ -403,6 +410,7 @@ We will explore each of these methods, using the `tasks` container as an example
 
 TIP: You can leverage the type-safe accessors described in <<kotdsl:accessor_applicability,another section>> when configuring existing elements on supported containers. That section also explains which containers support type-safe accessors.
 
+[[using_the_container_api]]
 === Using the container API
 
 All containers in Gradle implement link:{groovyDslPath}/org.gradle.api.NamedDomainObjectContainer.html#org.gradle.api.NamedDomainObjectContainer[NamedDomainObjectContainer<DomainObjectType>].
@@ -425,6 +433,7 @@ include::sample[dir="snippets/reference/dsl-apis/containers-api/kotlin",files="b
 
 NOTE: The above sample relies on the <<task_configuration_avoidance.adoc#task_configuration_avoidance,configuration avoidance APIs>>. If you need or want to eagerly configure or register container elements, simply replace `named()` with `getByName()` and `register()` with `create()`.
 
+[[configuring_multiple_container_elements_together]]
 === Configuring multiple container elements together
 
 When configuring several elements of a container, you can group interactions in a block to avoid repeating the container's name on each interaction.
@@ -484,6 +493,7 @@ include::sample[dir="snippets/reference/dsl-apis/basics/kotlin",files="build.gra
 `Property`, `Provider`, and `NamedDomainObjectProvider` are <<properties_providers.adoc#properties_and_providers,types>> that represent deferred and lazy evaluation of values and objects.
 The Kotlin DSL provides a specialized syntax for working with these types.
 
+[[using_a_property]]
 === Using a `Property`
 
 A property represents a value that can be set and read lazily:
@@ -495,6 +505,7 @@ A property represents a value that can be set and read lazily:
 include::sample[dir="snippets/reference/dsl-apis/basics/kotlin/my-sub-project",files="build.gradle.kts[tags=property]"]
 ====
 
+[[using_a_provider]]
 === Using a `Provider`
 
 A provider represents a read-only, lazily-evaluated value:
@@ -506,6 +517,7 @@ A provider represents a read-only, lazily-evaluated value:
 include::sample[dir="snippets/reference/dsl-apis/basics/kotlin/my-sub-project",files="build.gradle.kts[tags=provider]"]
 ====
 
+[[using_a_named_domain_object_provider]]
 === Using a `NamedDomainObjectProvider`
 
 A named domain object provider represents a lazily-evaluated named object from a Gradle container (like tasks or extensions):
@@ -535,6 +547,7 @@ include::sample[dir="snippets/reference/dsl-apis/assignment/kotlin",files="build
 <2> Set value with lazy property assignment using the `=` operator
 <3> The `=` operator can be used also for assigning lazy values
 
+[[lazy_property_assignment_ide_support]]
 === IDE support
 
 Lazy property assignment is supported from IntelliJ 2022.3 and from Android Studio Giraffe.
@@ -574,6 +587,7 @@ By default, the code will target Java 8.
 
 Gradle embeds Kotlin in order to provide support for Kotlin-based scripts.
 
+[[kotlin_versions]]
 === Kotlin versions
 
 Gradle ships with `kotlin-compiler-embeddable` plus matching versions of `kotlin-stdlib` and `kotlin-reflect` libraries.
@@ -582,6 +596,7 @@ The `kotlin` package from those modules is visible through the Gradle classpath.
 
 The link:https://kotlinlang.org/docs/reference/compatibility.html[compatibility] guarantees provided by Kotlin apply for both backward and forward compatibility.
 
+[[backward_compatibility]]
 ==== Backward compatibility
 
 Our approach is to only make backward-incompatible Kotlin upgrades with major Gradle releases.
@@ -591,6 +606,7 @@ Plugin authors aiming to maintain compatibility with older Gradle versions must 
 This is no different from working with any new API in Gradle.
 For example, if a new API for dependency resolution is introduced, a plugin must either drop support for older Gradle versions or organize its code to conditionally execute the new code path on compatible versions.
 
+[[forward_compatibility]]
 ==== Forward compatibility
 
 The primary compatibility concern lies between the external `kotlin-gradle-plugin` version and the `kotlin-stdlib` version shipped with Gradle.
@@ -635,6 +651,7 @@ Both link:{kotlin-reference}java-interop.html[calling Java from Kotlin] and link
 The same mostly applies to interoperability with Groovy code.
 In addition, the Kotlin DSL provides several ways to opt into Groovy semantics, which we look at next.
 
+[[static_extensions]]
 === Static extensions
 
 Both the Groovy and Kotlin languages support extending existing classes via link:https://groovy-lang.org/metaprogramming.html#_extension_modules[Groovy Extension modules] and link:{kotlin-reference}extensions.html[Kotlin extensions].
@@ -654,6 +671,7 @@ To call a Groovy extension method from Kotlin, the same approach applies: call i
 include::sample[dir="snippets/reference/dsl-apis/interoperability-static-extensions/kotlin",files="build.gradle.kts[tags=groovy-from-kotlin]"]
 ====
 
+[[named_parameters_and_default_arguments]]
 === Named parameters and default arguments
 
 Both the Groovy and Kotlin languages support named function parameters and default arguments, although they are implemented very differently.
@@ -661,6 +679,7 @@ Kotlin has fully-fledged support for both, as described in the Kotlin language r
 Groovy implements link:https://groovy-lang.org/objectorientation.html#_named_arguments[named arguments] in a non-type-safe way based on a `Map<String, ?>` parameter, which means they cannot be combined with link:https://groovy-lang.org/objectorientation.html#_default_arguments[default arguments].
 In other words, you can only use one or the other in Groovy for any given method.
 
+[[calling_kotlin_from_groovy]]
 ==== Calling Kotlin from Groovy
 
 To call a Kotlin function that has named arguments from Groovy, just use a normal method call with positional parameters:
@@ -675,6 +694,7 @@ There is no way to provide values by argument name.
 
 To call a Kotlin function that has default arguments from Groovy, always pass values for all the function parameters.
 
+[[calling_groovy_from_kotlin]]
 ==== Calling Groovy from Kotlin
 
 To call a Groovy function with named arguments from Kotlin, you need to pass a `Map<String, ?>`, as shown in this example:
@@ -690,6 +710,7 @@ groovyNamedArgumentTakingMethod(mapOf(
 
 To call a Groovy function with default arguments from Kotlin, always pass values for all the parameters.
 
+[[groovy_closures_from_kotlin]]
 === Groovy closures from Kotlin
 
 You may sometimes have to call Groovy methods that take link:https://groovy-lang.org/closures.html[Closure] arguments from Kotlin code.
@@ -733,6 +754,7 @@ The `KotlinClosure0` to `KotlinClosure2` types allows adapting Kotlin functions 
 include::sample[dir="snippets/reference/dsl-apis/interoperability-kotlinClosure/kotlin",files="build.gradle.kts[tags=kotlinClosure]"]
 ====
 
+[[the_kotlin_dsl_groovy_builder]]
 === The Kotlin DSL Groovy Builder
 
 If some plugin makes heavy use of link:https://groovy-lang.org/metaprogramming.html[Groovy metaprogramming], then using it from Kotlin or Java or any statically-compiled language can be very cumbersome.

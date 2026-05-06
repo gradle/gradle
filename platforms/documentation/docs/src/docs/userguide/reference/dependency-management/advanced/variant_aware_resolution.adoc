@@ -30,6 +30,7 @@ Each *variant* may have its own *artifacts* and *dependencies*.
 Gradle uses *attributes* to determine which *variant* to choose.
 These *attributes* add context to each *variant*, describing when they should be used.
 
+[[sec:components_variants]]
 == Components
 
 Let's review our description of <<graph_resolution#sec:components,components>> in the previous section.
@@ -144,6 +145,7 @@ Gradle's dependency resolution engine follows this *attribute matching* algorith
 
 image::dep-man-adv-5.png[]
 
+[[sec:step_1_find_compatible_candidates]]
 === Step 1: Find Compatible Candidates
 
 The *requested attributes* are matched against the *candidate attributes*.
@@ -155,6 +157,7 @@ The *requested attributes* are matched against the *candidate attributes*.
 *** ELSE IF the *candidate attribute passes the compatibility test*, the candidate remains compatible.
 *** ELSE, the candidate is eliminated.
 
+[[sec:step_2_most_matching_attributes]]
 === Step 2: Most Matching Attributes
 
 After filtering, Gradle checks if one **candidate is a strict superset** of all others.
@@ -165,6 +168,7 @@ After filtering, Gradle checks if one **candidate is a strict superset** of all 
 ** Has **no missing attributes** compared to another candidate.
 * IF **such a strict superset exists**, that candidate wins.
 
+[[sec:step_3_disambiguation_using_requested_attributes]]
 === Step 3: Disambiguation Using Requested Attributes
 
 If multiple candidates remain, Gradle attempts **disambiguation**:
@@ -183,6 +187,7 @@ If **multiple candidates still remain**, Gradle processes **unordered attributes
 * IF **only one candidate remains**, that candidate wins.
 * IF *no candidates remain*, Gradle falls back to the most compatible candidates (step 2).
 
+[[sec:step_4_disambiguation_using_extra_attributes]]
 === Step 4: Disambiguation Using Extra Attributes
 
 If multiple candidates still remain, Gradle considers **extra attributes**:
@@ -209,6 +214,7 @@ Then, Gradle processes **unordered extra attributes**:
 * IF **only one candidate remains**, that candidate wins.
 * IF *no candidates remain*, Gradle falls back to the original compatible candidates (step 1).
 
+[[sec:step_5_disambiguation_using_extra_attribute_presence]]
 === Step 5: Disambiguation Using Extra Attribute Presence
 
 If candidates **still** remain, Gradle eliminates candidates based on **requested attributes**:
@@ -218,6 +224,7 @@ If candidates **still** remain, Gradle eliminates candidates based on **requeste
 ** ELSE, *remove candidates* that do provide it.
 * IF **only one candidate remains**, that candidate wins.
 
+[[sec:step_6_failure_condition]]
 === Step 6: Failure Condition
 
 Unless otherwise indicated, if at any point **no candidates remain**, **resolution fails**.
@@ -238,6 +245,7 @@ There are two exceptions to the variant-aware resolution process:
 - When a consumer _explicitly selects a configuration by name_, the *artifacts* associated with that configuration are used.
 ====
 
+[[sec:a_simple_example]]
 == A Simple Example
 
 Let’s walk through an example where a _consumer_ is trying to use a library for compilation.
@@ -275,6 +283,7 @@ Finally, Gradle evaluates the *variants* and selects the correct one:
 
 As a result, Gradle selects the `apiElements` *variant* and provides its *artifacts* and *dependencies* to the _consumer_.
 
+[[sec:a_complicated_example]]
 == A Complicated Example
 
 In real-world scenarios, both _consumers_ and _producers_ often work with multiple *attributes*.
@@ -580,6 +589,7 @@ As they indicate, this is where the difference is made between what needs to be 
 It also shows *secondary variants*.
 For example, the *secondary variant* `classes` from `apiElements` is what allows Gradle to skip the JAR creation when compiling against a <<java_library_plugin.adoc#sec:java_library_classes_usage,`java-library` project>>.
 
+[[sec:information_about_invalid_consumable_configurations]]
 ==== Information about invalid consumable configurations
 
 A project cannot have multiple configurations with the same *attributes* and *capabilities*.
@@ -588,6 +598,7 @@ In that case, the project will fail to build.
 In order to be able to visualize such issues, the outgoing *variant* reports handle those errors in a lenient fashion.
 This allows the report to display information about the issue.
 
+[[sec:resolvable_configurations_report]]
 === Resolvable configurations report
 
 Gradle also offers a complimentary report task called `resolvableConfigurations` that displays the _resolvable_ configurations of a project, which are those which can have dependencies added and be resolved.

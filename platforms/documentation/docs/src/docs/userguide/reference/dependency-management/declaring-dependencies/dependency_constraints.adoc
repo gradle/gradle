@@ -72,6 +72,7 @@ include::sample[dir="snippets/reference/dependency-management/declaring-dependen
 If `commons-codec` isn’t brought in transitively, the constraint is a no-op (it doesn’t add the module).
 If it is brought in, the constraint guides the version selection.
 
+[[sec:rich_versions_and_strict_versions_for_constraints]]
 == Rich versions and strict versions for constraints
 
 You can attach <<dependency_versions.adoc#sec:rich-version-constraints,*rich versions*>> to constraints:
@@ -81,6 +82,7 @@ include::sample[dir="snippets/reference/dependency-management/declaring-dependen
 include::sample[dir="snippets/reference/dependency-management/declaring-dependencies/managingTransitiveDependencies-versionsWithConstraints/groovy",files="build.gradle[tags=dependency-strictly]"]
 ====
 
+[[sec:transitivity_of_constraints]]
 == Transitivity of constraints
 
 Dependency constraints are transitive.
@@ -89,6 +91,7 @@ If `library A` depends on `library B`, and `library B` declares a constraint on 
 
 For example, if `library A` depends on `module C version 2`, but `library B` declares a constraint on `module C version 3`, `library A` will resolve `module C version 3`.
 
+[[sec:publishing_constraints]]
 == Publishing constraints
 
 Dependency constraints are only published when using <<publishing_gradle_module_metadata.adoc#sec:understanding-gradle-module-md,Gradle Module Metadata>>.

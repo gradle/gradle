@@ -71,6 +71,7 @@ gradle -h
 NOTE: Many command-line flags can be specified in `gradle.properties` to avoid needing to be typed.
 See the <<build_environment.adoc#sec:gradle_configuration_properties, Configuring build environment guide>> for details.
 
+[[sec:command_line_usage]]
 == Command-line usage
 
 The following sections describe the use of the Gradle command-line interface.
@@ -105,6 +106,7 @@ To pass an option to a task, prefix the option name with `--` after the task nam
 $ gradle :exampleTask --exampleOption=exampleValue
 ----
 
+[[disambiguate_conflicting_task_options]]
 ==== Disambiguate task options from built-in options
 
 Gradle does not prevent tasks from registering options that conflict with Gradle's built-in options, like `--profile` or `--help`.
@@ -178,6 +180,7 @@ $ gradle taskName
 
 TIP: When executing the Gradle Wrapper from a subproject directory, reference `gradlew` relatively. For example: `../gradlew taskName`.
 
+[[executing_multiple_tasks]]
 === Executing multiple tasks
 
 You can also specify multiple tasks.
@@ -190,6 +193,7 @@ For example, the following will execute the `test` and `deploy` tasks in the ord
 $ gradle test deploy
 ----
 
+[[command_line_order_safety]]
 === Command line order safety
 
 Although Gradle will always attempt to execute the build quickly, command line ordering safety will also be honored.
@@ -219,7 +223,7 @@ $ gradle dist --exclude-task test
 ----
 [source,text]
 ----
-include::{snippetsPath}/tutorial/excludeTasks/tests/excludeTask.out[]
+include::{snippetsPath}/reference/runtime-configuration/excludeTasks/tests/excludeTask.out[]
 ----
 
 image::commandLineTutorialTasks.png[]
@@ -283,11 +287,12 @@ $ ./gradlew mAL:cT
 ----
 [source,text]
 ----
-include::{snippetsPath}/tutorial/nameMatching/tests/nameMatching.out[]
+include::{snippetsPath}/reference/runtime-configuration/nameMatching/tests/nameMatching.out[]
 ----
 
 Abbreviations can also be used with the `-x` command-line option.
 
+[[tracing_name_expansion]]
 === Tracing name expansion
 
 For complex projects, it might be ambiguous if the intended tasks were executed. When using abbreviated names, a single typo can lead to the execution of unexpected tasks.
@@ -304,10 +309,12 @@ No exact task with name ':cT' has been found. Checking for abbreviated names.
 Found exactly one task name, that matches the abbreviated name ':cT': ':compileTest'.
 ----
 
+[[sec:common_tasks]]
 == Common tasks
 
 The following are task conventions applied by built-in and most major Gradle plugins.
 
+[[computing_all_outputs]]
 === Computing all outputs
 
 It is common in Gradle builds for the `build` task to designate assembling all outputs and running all checks:
@@ -317,6 +324,7 @@ It is common in Gradle builds for the `build` task to designate assembling all o
 $ ./gradlew build
 ----
 
+[[running_applications]]
 === Running applications
 
 It is common for applications to run with the `run` task, which assembles the application and executes some script or binary:
@@ -326,6 +334,7 @@ It is common for applications to run with the `run` task, which assembles the ap
 $ ./gradlew run
 ----
 
+[[running_all_checks]]
 === Running all checks
 
 It is common for _all_ verification tasks, including tests and linting, to be executed using the `check` task:
@@ -335,6 +344,7 @@ It is common for _all_ verification tasks, including tests and linting, to be ex
 $ ./gradlew check
 ----
 
+[[cleaning_outputs]]
 === Cleaning outputs
 
 You can delete the contents of the build directory using the `clean` task. Doing so will cause pre-computed outputs to be lost, causing significant additional build time for the subsequent task execution:
@@ -350,6 +360,7 @@ $ ./gradlew clean
 Gradle provides several built-in tasks which show particular details of your build.
 This can be useful for understanding your build's structure and dependencies, as well as debugging problems.
 
+[[listing_projects]]
 === Listing projects
 
 Running the `projects` task gives you a list of the subprojects of the selected project, displayed in a hierarchy:
@@ -437,7 +448,7 @@ $ ./gradlew -q help --task libs
 ----
 [source,text]
 ----
-include::{snippetsPath}/tutorial/projectReports/tests/taskHelp.out[]
+include::{snippetsPath}/reference/runtime-configuration/projectReports/tests/taskHelp.out[]
 ----
 
 This information includes the full task path, the task type, possible <<sec:task_options,task-specific command line options>>, and the description of the given task.
@@ -445,6 +456,7 @@ The output also includes provenance information showing where the task was regis
 
 You can get detailed information about the task class types using the `--types` option or using `--no-types` to hide this information.
 
+[[reporting_dependencies]]
 === Reporting dependencies
 
 https://scans.gradle.com/[Build Scan] gives a full, visual report of what dependencies exist on which configurations, transitive dependencies, and dependency version selection.
@@ -533,7 +545,7 @@ $ ./gradlew -q api:properties
 ----
 [source,text]
 ----
-include::{snippetsPath}/tutorial/projectReports/tests/propertyListReport.out[]
+include::{snippetsPath}/reference/runtime-configuration/projectReports/tests/propertyListReport.out[]
 ----
 
 You can also query a single property with the optional `--property` argument:
@@ -544,7 +556,7 @@ $ ./gradlew -q api:properties --property allprojects
 ----
 [source,text]
 ----
-include::{snippetsPath}/tutorial/projectReports/tests/propertyReport.out[]
+include::{snippetsPath}/reference/runtime-configuration/projectReports/tests/propertyReport.out[]
 ----
 
 [[sec:command_line_completion]]
@@ -638,6 +650,7 @@ Toggles <<file_system_watching.adoc#sec:daemon_watch_fs,watching the file system
 When enabled, Gradle reuses information it collects about the file system between builds.
 _Enabled by default on operating systems where Gradle supports this feature._
 
+[[gradle_daemon_options]]
 === Gradle daemon options
 
 You can manage the <<gradle_daemon.adoc#gradle_daemon,Gradle Daemon>> through the following command line options.
@@ -660,6 +673,7 @@ A <<build_environment.adoc#sec:gradle_configuration_properties,Gradle property>>
 [[sec:command_line_logging]]
 == Logging options
 
+[[setting_log_level]]
 === Setting log level
 
 You can customize the <<logging.adoc#logging,verbosity>> of Gradle logging with the following options, ordered from least verbose to most verbose.
@@ -878,6 +892,7 @@ Causes the task to be rerun even if up-to-date. Similar to `<<#sec:rerun_tasks,-
 [[sec:command_line_bootstrapping_projects]]
 == Bootstrapping new projects
 
+[[creating_new_gradle_builds]]
 === Creating new Gradle builds
 
 Use the built-in `gradle init` task to create a new Gradle build, with new or existing projects.
@@ -896,6 +911,7 @@ See <<build_init_plugin.adoc#build_init_plugin, init plugin documentation>> for 
 $ gradle init --type java-library
 ----
 
+[[standardize_and_provision_gradle]]
 === Standardize and provision Gradle
 
 The built-in `gradle wrapper` task generates a script, `gradlew`, that invokes a declared version of Gradle, downloading it beforehand if necessary.

@@ -400,9 +400,11 @@ class PropertyCodec(
     override suspend fun ReadContext.decodeThis(): DefaultProperty<*> {
         return decodePreservingIdentity { id ->
             val type: Class<Any> = readClass().uncheckedCast()
-            val provider = providerCodec.run { decodeProvider() }
-            val property = propertyFactory.property(type).provider(provider)
+            val property = propertyFactory.property(type)
             isolate.identities.putInstance(id, property)
+
+            val provider = providerCodec.run { decodeProvider() }
+            property.provider(provider)
             property
         }
     }

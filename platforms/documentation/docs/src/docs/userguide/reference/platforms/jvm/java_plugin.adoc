@@ -106,6 +106,7 @@ _Depends on_: `compile__SourceSet__Java`, `process__SourceSet__Resources`
 +
 Prepares the given source set's classes and resources for packaging and execution. Some plugins may add additional compilation tasks for the source set.
 
+[[sec:java_lifecycle_tasks]]
 === Lifecycle Tasks
 
 The Java plugin attaches some of its tasks to the lifecycle tasks defined by the <<base_plugin.adoc#sec:base_tasks,Base Plugin>> — which the Java Plugin applies automatically — and it also adds a few other lifecycle tasks:
@@ -285,6 +286,7 @@ For information on the `api`, `compileOnlyApi` , or consumable configurations, p
 <<dependency_management_for_java_projects.adoc#dependency_management_for_java_projects, Dependency Management for Java Projects>>.
 ====
 
+[[sec:java_declarable_configurations]]
 === Declarable (Bucket) Configurations
 
 [%header%autowidth,compact]
@@ -320,6 +322,7 @@ For information on the `api`, `compileOnlyApi` , or consumable configurations, p
 | Represents annotation processors used during the compilation of a project's source code (i.e., annotation processors used during compilation).
 |===
 
+[[sec:java_resolvable_configurations]]
 === Resolvable Configurations
 
 [%header%autowidth,compact]
@@ -392,6 +395,7 @@ include::sample[dir="snippets/reference/platforms/jvm/basic/groovy",files="build
 
 Below is the list of properties and DSL functions with short explanations available inside the `java` extension.
 
+[[sec:toolchain_and_compatibility]]
 === Toolchain and compatibility
 
 `toolchain`::
@@ -405,6 +409,7 @@ _Note that using a <<toolchains.adoc#toolchains, toolchain>> is preferred to usi
 Java version to generate classes for. Default value: `__sourceCompatibility__`. +
 _Note that using a <<toolchains.adoc#toolchains, toolchain>> is preferred to using a compatibility setting for most cases._
 
+[[sec:java_packaging_plugin]]
 === Packaging
 
 `withJavadocJar()`::
@@ -413,6 +418,7 @@ Automatically packages Javadoc and creates a variant `javadocElements` with an a
 `withSourcesJar()`::
 Automatically packages source code and creates a variant `sourceElements` with an artifact `-sources.jar`, which will be part of the publication.
 
+[[sec:java_directory_properties]]
 === Directory properties
 
 `String reporting.baseDir`::
@@ -454,6 +460,7 @@ The directory to generate documentation into. Default value: `layout.buildDirect
 `String dependencyCacheDirName`::
 The name of the directory to cache source dependency information relative to the build directory. Default value: `dependency-cache`.
 
+[[sec:java_other_properties]]
 === Other properties
 
 `(read-only) link:{javadocPath}/org/gradle/api/tasks/SourceSetContainer.html[SourceSetContainer] sourceSets`::
@@ -523,6 +530,7 @@ All annotation processors need to opt in to this feature, otherwise they will tr
 As a user you can see which annotation processors are triggering full recompilations in the `--info` log.
 Incremental annotation processing will be deactivated if a custom `executable` or `javaHome` is configured on the compile task.
 
+[[sec:making_an_annotation_processor_incremental]]
 === Making an annotation processor incremental
 
 Please first have a look at <<#sec:incremental_compile,incremental Java compilation>>, as incremental annotation processing builds on top of it.
@@ -533,6 +541,7 @@ Please consult the information below to decide which category fits your processo
 You can then register your processor for incremental compilation using a file in the processor's META-INF directory.
 The format is one line per processor, with the fully qualified name of the processor class and its case-insensitive category separated by a comma.
 
+[[sec:example_registering_incremental_annotation_processors]]
 === Example: Registering incremental annotation processors
 
 [source,java]
@@ -545,6 +554,7 @@ include::{snippetsPath}/reference/platforms/jvm/incrementalAnnotationProcessing/
 If your processor can only decide at runtime whether it is incremental or not, you can declare it as "dynamic" in the META-INF descriptor
 and return its true type at runtime using the link:{javaApi}/javax/annotation/processing/Processor.html#getSupportedOptions--[Processor#getSupportedOptions()] method.
 
+[[sec:example_registering_incremental_annotation_processors_dynamically]]
 === Example: Registering incremental annotation processors dynamically
 
 [source,java,indent=0]
@@ -567,11 +577,13 @@ Both categories have the following limitations:
     the `location` argument must be one of these values from link:{javaApi}/javax/tools/StandardLocation.html[StandardLocation]: `CLASS_OUTPUT`, `SOURCE_OUTPUT`, or `NATIVE_HEADER_OUTPUT`.
     Any other argument will disable incremental processing.
 
+[[sec:isolating_annotation_processors]]
 === "Isolating" annotation processors
 
 The fastest category, these look at each annotated element in isolation, creating generated files or validation messages for it.
 For instance an `EntityProcessor` could create a `<TypeName>Repository` for each type annotated  with `@Entity`.
 
+[[sec:example_an_isolated_annotation_processor]]
 === Example: An isolated annotation processor
 
 [source,java,indent=0]
@@ -593,11 +605,13 @@ include::{snippetsPath}/reference/platforms/jvm/incrementalAnnotationProcessing/
 When a source file is recompiled, Gradle will recompile all files generated from it.
 When a source file is deleted, the files generated from it are deleted.
 
+[[sec:aggregating_annotation_processors]]
 === "Aggregating" annotation processors
 
 These can aggregate several source files into one or more output files or validation messages.
 For instance, a `ServiceRegistryProcessor` could create a single `ServiceRegistry` with one method for each type annotated with `@Service`.
 
+[[sec:example_an_aggregating_annotation_processor]]
 === Example: An aggregating annotation processor
 
 [source,java,indent=0]
@@ -609,6 +623,7 @@ include::{snippetsPath}/reference/platforms/jvm/incrementalAnnotationProcessing/
 Gradle will always reprocess (but not recompile) all annotated files that the processor was registered for.
 Gradle will always recompile any files the processor generates.
 
+[[sec:state_of_support_in_popular_annotation_processors]]
 === State of support in popular annotation processors
 
 NOTE: Many popular annotation processors support incremental annotation processing (see the table below).
@@ -769,6 +784,7 @@ include::sample[dir="snippets/reference/platforms/jvm/apt/kotlin", files="build.
 include::sample[dir="snippets/reference/platforms/jvm/apt/groovy", files="build.gradle[tags=annotation-processing]"]
 ====
 
+[[sec:variant_aware_selection]]
 == Variant aware selection
 
 The whole set of JVM plugins leverage <<variant_aware_resolution.adoc#sec:understanding-variant-selection,variant aware resolution>> for the dependencies used.

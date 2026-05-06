@@ -203,6 +203,7 @@ The XCTest Plugin adds a link:{groovyDslPath}/org.gradle.nativeplatform.tasks.Li
 Read the <<building_swift_projects.adoc#sec:introducing_build_variants-swift,introduction to build variants>> for more information.
 Some of the most common configuration options are shown below.
 
+[[sec:xctest_link_task_macos]]
 ==== macOS
 
 [horizontal]
@@ -220,6 +221,7 @@ link:{groovyDslPath}/org.gradle.nativeplatform.tasks.LinkMachOBundle.html#org.gr
 
 link:{groovyDslPath}/org.gradle.nativeplatform.tasks.LinkMachOBundle.html#org.gradle.nativeplatform.tasks.LinkMachOBundle:toolChain[toolChain]:: <<building_swift_projects.adoc#sec:swift_supported_tool_chain,automatically selected based on target machine>>
 
+[[sec:xctest_link_task_linux]]
 ==== Linux
 
 [horizontal]

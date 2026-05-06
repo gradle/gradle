@@ -70,6 +70,7 @@ dependencies {
     implementation(projects.logging)
     implementation(projects.messaging)
     implementation(projects.modelCore)
+    implementation(projects.normalization)
     implementation(projects.persistentCache)
     implementation(projects.problemsApi)
     implementation(projects.scopedPersistentCache)

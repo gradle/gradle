@@ -80,9 +80,13 @@ abstract class AbstractUserTypeCodecTest {
         }
 
     protected
-    fun <T : Any> configurationCacheRoundtripOf(graph: T, codec: Codec<Any?> = userTypesCodec()): T =
-        writeToByteArray(graph, codec)
-            .let { readFromByteArray(it, codec)!! }
+    fun <T : Any> configurationCacheRoundtripOf(
+        graph: T,
+        codec: Codec<Any?> = userTypesCodec(),
+        integrityCheck: Boolean = false
+    ): T =
+        writeToByteArray(graph, codec, integrityCheck)
+            .let { readFromByteArray(it, codec, integrityCheck)!! }
             .uncheckedCast()
 
     internal
@@ -92,11 +96,12 @@ abstract class AbstractUserTypeCodecTest {
     }
 
     internal
-    fun writeToByteArray(graph: Any, codec: Codec<Any?>): ByteArray {
+    fun writeToByteArray(graph: Any, codec: Codec<Any?>, integrityCheck: Boolean = false): ByteArray {
         val outputStream = ByteArrayOutputStream()
         writeTo(
             outputStream, graph, codec,
-            loggingProblemsListener()
+            loggingProblemsListener(),
+            integrityCheck
         )
         return outputStream.toByteArray()
     }
@@ -106,9 +111,10 @@ abstract class AbstractUserTypeCodecTest {
         outputStream: OutputStream,
         graph: Any,
         codec: Codec<Any?>,
-        problemsListener: ProblemsListener = mock()
+        problemsListener: ProblemsListener = mock(),
+        integrityCheck: Boolean = false
     ) {
-        writeContextFor(KryoBackedEncoder(outputStream), codec, problemsListener).useToRun {
+        writeContextFor(KryoBackedEncoder(outputStream), codec, problemsListener, integrityCheck).useToRun {
             withIsolateMock(codec) {
                 runWriteOperation {
                     write(graph)
@@ -118,12 +124,17 @@ abstract class AbstractUserTypeCodecTest {
     }
 
     internal
-    fun readFromByteArray(bytes: ByteArray, codec: Codec<Any?>) =
-        readFrom(ByteArrayInputStream(bytes), codec, loggingProblemsListener())
+    fun readFromByteArray(bytes: ByteArray, codec: Codec<Any?>, integrityCheck: Boolean = false) =
+        readFrom(ByteArrayInputStream(bytes), codec, loggingProblemsListener(), integrityCheck)
 
     private
-    fun readFrom(inputStream: ByteArrayInputStream, codec: Codec<Any?>, problemsListener: ProblemsListener) =
-        readContextFor(inputStream, codec, problemsListener).run {
+    fun readFrom(
+        inputStream: ByteArrayInputStream,
+        codec: Codec<Any?>,
+        problemsListener: ProblemsListener,
+        integrityCheck: Boolean = false
+    ) =
+        readContextFor(inputStream, codec, problemsListener, integrityCheck).run {
             withIsolateMock(codec) {
                 runReadOperation {
                     read()
@@ -138,25 +149,35 @@ abstract class AbstractUserTypeCodecTest {
         }
 
     private
-    fun writeContextFor(encoder: FlushableEncoder, codec: Codec<Any?>, problemHandler: ProblemsListener) =
+    fun writeContextFor(
+        encoder: FlushableEncoder,
+        codec: Codec<Any?>,
+        problemHandler: ProblemsListener,
+        integrityCheck: Boolean = false
+    ) =
         DefaultWriteContext(
             codec = codec,
             encoder = encoder,
             classEncoder = DefaultClassEncoder(mock()),
             beanStateWriterLookup = DefaultBeanStateWriterLookup(),
-            isIntegrityCheckEnabled = false,
+            isIntegrityCheckEnabled = integrityCheck,
             logger = mock(),
             tracer = null,
             problemsListener = problemHandler
         )
 
     private
-    fun readContextFor(inputStream: ByteArrayInputStream, codec: Codec<Any?>, problemsListener: ProblemsListener) =
+    fun readContextFor(
+        inputStream: ByteArrayInputStream,
+        codec: Codec<Any?>,
+        problemsListener: ProblemsListener,
+        integrityCheck: Boolean = false
+    ) =
         DefaultReadContext(
             codec = codec,
             decoder = KryoBackedDecoder(inputStream),
             beanStateReaderLookup = beanStateReaderLookupForTesting(),
-            isIntegrityCheckEnabled = false,
+            isIntegrityCheckEnabled = integrityCheck,
             logger = mock(),
             problemsListener = problemsListener,
             classDecoder = DefaultClassDecoder(mock(), mock())

@@ -21,6 +21,7 @@ import org.gradle.integtests.fixtures.versions.KotlinGradlePluginVersions
 import org.gradle.test.fixtures.Flaky
 import org.gradle.util.GradleVersion
 import org.gradle.util.internal.VersionNumber
+import org.junit.jupiter.api.Assumptions
 import spock.lang.Issue
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
@@ -150,6 +151,10 @@ class KotlinMultiplatformPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
     def "kotlin project can consume kotlin multiplatform java project"() {
         given:
         def kotlinVersionNumber = VersionNumber.parse(kotlinVersion)
+        if (GradleContextualExecuter.isolatedProjects) {
+            // KMP 2.0.21 and earlier are not compatible with IP
+            Assumptions.assumeTrue(kotlinVersionNumber > VersionNumber.parse("2.0.21"))
+        }
 
         buildFile << """
             plugins {

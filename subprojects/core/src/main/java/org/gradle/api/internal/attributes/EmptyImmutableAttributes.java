@@ -89,7 +89,7 @@ public final class EmptyImmutableAttributes extends AbstractAttributeContainer i
 
     @Override
     public int hashCode() {
-        return EmptyImmutableAttributes.class.hashCode();
+        return EmptyImmutableAttributes.class.getName().hashCode();
     }
 
 }

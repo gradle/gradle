@@ -19,8 +19,7 @@ package org.gradle.internal.cc.impl
 import org.gradle.api.Task
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.tasks.TaskDependencyUsageTracker
-import org.gradle.internal.configuration.problems.IsolatedProjectsProblemsListener
-import org.gradle.internal.configuration.problems.ProblemFactory
+import org.gradle.internal.configuration.problems.IsolatedProjectsProblemsReporter
 
 
 /**
@@ -31,12 +30,22 @@ internal
 class ReportingTaskDependencyUsageTracker(
     private val referrer: ProjectInternal,
     private val coupledProjectsListener: CoupledProjectsListener,
-    private val ipProblems: IsolatedProjectsProblemsListener,
-    private val problemFactory: ProblemFactory
+    private val ipProblems: IsolatedProjectsProblemsReporter,
 ) : TaskDependencyUsageTracker {
+
+    @Suppress("ThrowingExceptionsWithoutMessageOrCause")
     override fun onTaskDependencyUsage(taskDependencies: Set<Task>) {
         checkForCoupledProjects(taskDependencies)
-        reportProjectIsolationProblemOnApiUsage()
+
+        ipProblems.report {
+            problem {
+                text("Project ")
+                reference(referrer.identityPath.toString())
+                text(" cannot access task dependencies directly")
+            }
+                .exception()
+                .build()
+        }
     }
 
     private
@@ -45,18 +54,5 @@ class ReportingTaskDependencyUsageTracker(
             val otherProject = task.project as ProjectInternal
             coupledProjectsListener.onProjectReference(referrer.owner, otherProject.owner)
         }
-    }
-
-    @Suppress("ThrowingExceptionsWithoutMessageOrCause")
-    private
-    fun reportProjectIsolationProblemOnApiUsage() {
-        val problem = problemFactory.problem {
-            text("Project ")
-            reference(referrer.identityPath.toString())
-            text(" cannot access task dependencies directly")
-        }
-            .exception()
-            .build()
-        ipProblems.onIsolatedProjectsProblem(problem)
     }
 }

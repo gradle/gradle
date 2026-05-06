@@ -58,14 +58,14 @@ class AccessorTest {
                 enum = B
             }""".trimIndent()
         )
-        assertEquals(123, runtimeInstanceFromResult(schema, resolution, configureLambdas, runtimeCustomAccessors, ::MyReceiver).myHiddenInstance.value.x)
-        assertEquals(Enum.B, runtimeInstanceFromResult(schema, resolution, configureLambdas, runtimeCustomAccessors, ::MyReceiver).myHiddenInstance.value.enum)
+        assertEquals(123, runtimeInstanceFromResult(resolution, configureLambdas, runtimeCustomAccessors, ::MyReceiver).myHiddenInstance.value.x)
+        assertEquals(Enum.B, runtimeInstanceFromResult(resolution, configureLambdas, runtimeCustomAccessors, ::MyReceiver).myHiddenInstance.value.enum)
     }
 
     @Test
     fun `triggers the custom accessor with empty block`() {
         val resolution = schema.resolve("configureCustomInstance { }")
-        assertTrue(runtimeInstanceFromResult(schema, resolution, configureLambdas, runtimeCustomAccessors, ::MyReceiver).myHiddenInstance.isInitialized())
+        assertTrue(runtimeInstanceFromResult(resolution, configureLambdas, runtimeCustomAccessors, ::MyReceiver).myHiddenInstance.isInitialized())
     }
 
 
@@ -80,7 +80,7 @@ class AccessorTest {
                 y = "test"
             }""".trimIndent()
         )
-        val runtimeInstanceFromResult = runtimeInstanceFromResult(schema, resolution, configureLambdas, runtimeCustomAccessors, ::MyReceiver)
+        val runtimeInstanceFromResult = runtimeInstanceFromResult(resolution, configureLambdas, runtimeCustomAccessors, ::MyReceiver)
         assertEquals(123, runtimeInstanceFromResult.myLambdaReceiver.x)
         assertEquals("test", runtimeInstanceFromResult.myLambdaReceiver.y)
     }

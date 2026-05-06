@@ -42,6 +42,7 @@ import org.gradle.api.internal.project.MutableStateAccessAwareProject
 import org.gradle.api.internal.project.ProjectIdentifier
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectRegistry
+import org.gradle.api.internal.project.ProjectState
 import org.gradle.api.internal.tasks.TaskDependencyFactory
 import org.gradle.api.internal.tasks.TaskDependencyUsageTracker
 import org.gradle.api.logging.Logger
@@ -60,8 +61,7 @@ import org.gradle.internal.cc.impl.CrossProjectModelAccessPattern.ALLPROJECTS
 import org.gradle.internal.cc.impl.CrossProjectModelAccessPattern.CHILD
 import org.gradle.internal.cc.impl.CrossProjectModelAccessPattern.DIRECT
 import org.gradle.internal.cc.impl.CrossProjectModelAccessPattern.SUBPROJECT
-import org.gradle.internal.configuration.problems.IsolatedProjectsProblemsListener
-import org.gradle.internal.configuration.problems.ProblemFactory
+import org.gradle.internal.configuration.problems.IsolatedProjectsProblemsReporter
 import org.gradle.internal.configuration.problems.StructuredMessage
 import org.gradle.internal.extensions.stdlib.uncheckedCast
 import org.gradle.internal.logging.StandardOutputCapture
@@ -82,10 +82,8 @@ import java.util.concurrent.Callable
 
 internal
 class ProblemReportingCrossProjectModelAccess(
-    private val ipProblems: IsolatedProjectsProblemsListener,
+    private val ipProblems: IsolatedProjectsProblemsReporter,
     private val coupledProjectsListener: CoupledProjectsListener,
-    private val problemFactory: ProblemFactory,
-    private val dynamicCallProblemReporting: DynamicCallProblemReporting,
     private val buildModelParameters: BuildModelParameters,
     private val instantiator: Instantiator,
     projectRegistry: ProjectRegistry,
@@ -101,7 +99,15 @@ class ProblemReportingCrossProjectModelAccess(
     }
 
     override fun access(referrer: ProjectInternal, project: ProjectInternal): ProjectInternal {
+        // We purposefully leak mutable state here, as we wrap all mutable access with immediate failures in the case of cross-project access,
+        // so there's no risk of race conditions.
         return project.wrap(referrer, CrossProjectModelAccessInstance(DIRECT, project), instantiator)
+    }
+
+    override fun accessFromState(referrer: ProjectInternal, projectState: ProjectState): ProjectInternal {
+        return projectState.fromMutableState { project ->
+            access(referrer, project)
+        }
     }
 
     override fun getChildProjects(referrer: ProjectInternal, target: ProjectInternal): MutableMap<String, Project> {
@@ -127,17 +133,17 @@ class ProblemReportingCrossProjectModelAccess(
     }
 
     override fun taskDependencyUsageTracker(referrerProject: ProjectInternal): TaskDependencyUsageTracker {
-        return ReportingTaskDependencyUsageTracker(referrerProject, coupledProjectsListener, ipProblems, problemFactory)
+        return ReportingTaskDependencyUsageTracker(referrerProject, coupledProjectsListener, ipProblems)
     }
 
     override fun taskGraphForProject(referrerProject: ProjectInternal, taskGraph: TaskExecutionGraphInternal): TaskExecutionGraphInternal {
-        return CrossProjectConfigurationReportingTaskExecutionGraph(taskGraph, referrerProject, ipProblems, this, coupledProjectsListener, problemFactory)
+        return CrossProjectConfigurationReportingTaskExecutionGraph(taskGraph, referrerProject, ipProblems, this, coupledProjectsListener)
     }
 
     override fun parentProjectDynamicInheritedScope(referrerProject: ProjectInternal): HierarchicalDynamicObject? {
         val parent = referrerProject.parent ?: return null
         return CrossProjectModelAccessTrackingParentDynamicObject(
-            parent, parent.inheritedScope, referrerProject, ipProblems, coupledProjectsListener, problemFactory, dynamicCallProblemReporting
+            parent, parent.inheritedScope, referrerProject, ipProblems, coupledProjectsListener
         )
     }
 
@@ -154,9 +160,7 @@ class ProblemReportingCrossProjectModelAccess(
             access,
             ipProblems,
             coupledProjectsListener,
-            problemFactory,
             buildModelParameters,
-            dynamicCallProblemReporting
         )
     }
 
@@ -165,12 +169,46 @@ class ProblemReportingCrossProjectModelAccess(
         delegate: ProjectInternal,
         referrer: ProjectInternal,
         private val access: CrossProjectModelAccessInstance,
-        private val ipProblems: IsolatedProjectsProblemsListener,
+        private val ipProblems: IsolatedProjectsProblemsReporter,
         private val coupledProjectsListener: CoupledProjectsListener,
-        private val problemFactory: ProblemFactory,
         private val buildModelParameters: BuildModelParameters,
-        private val dynamicCallProblemReporting: DynamicCallProblemReporting,
     ) : MutableStateAccessAwareProject(delegate, referrer) {
+
+        override fun hasProperty(propertyName: String): Boolean {
+            onIsolationViolation("hasProperty")
+            return ipProblems.runIgnoringProblemsOnCurrentThread {
+                delegate.hasProperty(propertyName)
+            }
+        }
+
+        override fun findProperty(propertyName: String): Any? {
+            onIsolationViolation("findProperty")
+            return ipProblems.runIgnoringProblemsOnCurrentThread {
+                delegate.findProperty(propertyName)
+            }
+        }
+
+        override fun property(propertyName: String): Any? {
+            onIsolationViolation("property")
+            return ipProblems.runIgnoringProblemsOnCurrentThread {
+                delegate.property(propertyName)
+            }
+        }
+
+        override fun setProperty(name: String, value: Any?) {
+            onIsolationViolation("setProperty")
+            return ipProblems.runIgnoringProblemsOnCurrentThread {
+                delegate.setProperty(name, value)
+            }
+        }
+
+        @Suppress("DEPRECATION")
+        override fun getProperties(): Map<String, Any?> {
+            onIsolationViolation("properties")
+            return ipProblems.runIgnoringProblemsOnCurrentThread {
+                delegate.properties
+            }
+        }
 
         override fun onMutableStateAccess(what: String) {
             onIsolationViolation(what)
@@ -497,19 +535,14 @@ class ProblemReportingCrossProjectModelAccess(
         ): Any? {
             val delegateBean = (delegate as DynamicObjectAware).asDynamicObject
 
-            dynamicCallProblemReporting.enterDynamicCall(delegateBean)
-
-            try {
-                dynamicCallProblemReporting.unreportedProblemInCurrentCall(CrossProjectModelAccessTrackingParentDynamicObject.PROBLEM_KEY)
-
+            return ipProblems.runIgnoringProblemsOnCurrentThread {
                 val delegateResult = delegateBean.action()
 
-                if (delegateResult.isFound) {
-                    return delegateResult.value
+                if (!delegateResult.isFound) {
+                    throw delegateBean.resultNotFoundExceptionProvider()
                 }
-                throw delegateBean.resultNotFoundExceptionProvider()
-            } finally {
-                dynamicCallProblemReporting.leaveDynamicCall(delegateBean)
+
+                delegateResult.value
             }
         }
 
@@ -561,19 +594,19 @@ class ProblemReportingCrossProjectModelAccess(
             accessRefKind: String,
             buildAdditionalMessage: StructuredMessage.Builder.() -> Unit = {}
         ) {
-            val problem = problemFactory.problem {
-                text("Project ")
-                reference(referrer)
-                text(" cannot access ")
-                reference(accessRef)
-                text(" $accessRefKind on ")
-                describeCrossProjectAccess()
-                buildAdditionalMessage()
+            ipProblems.report {
+                problem {
+                    text("Project ")
+                    reference(referrer)
+                    text(" cannot access ")
+                    reference(accessRef)
+                    text(" $accessRefKind on ")
+                    describeCrossProjectAccess()
+                    buildAdditionalMessage()
+                }
+                    .exception()
+                    .build()
             }
-                .exception()
-                .build()
-
-            ipProblems.onIsolatedProjectsProblem(problem)
         }
 
         private

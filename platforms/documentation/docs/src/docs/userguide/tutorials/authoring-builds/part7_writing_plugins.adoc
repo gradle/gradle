@@ -35,43 +35,19 @@ Learn the basics of writing and applying Gradle plugins.
 5. You authored a Build script in <<part5_build_scripts.adoc#part5_begin,part 5>>.
 6. You authored a Task in <<part6_writing_tasks.adoc#part6_begin,part 6>>.
 
+[[ab_part7_step1]]
 == Step 1. Develop the Plugin
 
 Let's tie our custom `LicenseTask` to our plugin.
 
 Update the `LicensePlugin` with the code for the `Plugin` below (don't change anything else in the file):
 
-[.multi-language-sample]
-=====
-.gradle/license-plugin/plugin/src/main/kotlin/license/LicensePlugin.kt
-[source,kotlin]
-----
-class LicensePlugin: Plugin<Project> {
-    override fun apply(project: Project) {
-        project.tasks.register("license", LicenseTask::class.java) { task ->
-            task.description = "add a license header to source code"   // Add description
-            task.group = "from license plugin"                         // Add group
-        }
-    }
-}
-----
-=====
-[.multi-language-sample]
-=====
-.gradle/license-plugin/plugin/src/main/kotlin/license/LicensePlugin.groovy
-[source, groovy]
-----
-class LicensePlugin implements Plugin<Project> {
-    void apply(Project project) {
-        project.tasks.register("license", LicenseTask) { task ->
-            task.setDescription("add a license header to source code")  // Add description
-            task.setGroup("from license plugin")                        // Add group
-        }
-    }
-}
-----
-=====
+====
+include::sample[dir="snippets/tutorials/authoring-builds/writingPlugins-licensePlugin/kotlin",files="build.gradle.kts[tags=license-plugin]"]
+include::sample[dir="snippets/tutorials/authoring-builds/writingPlugins-licensePlugin/groovy",files="build.gradle[tags=license-plugin]"]
+====
 
+[[ab_part7_step2]]
 == Step 2. Add a license.txt file
 
 Add a file called `license.txt` to the root directory of the project and add the following text to it:
@@ -94,6 +70,7 @@ Add a file called `license.txt` to the root directory of the project and add the
  */
 ----
 
+[[ab_part7_step3]]
 == Step 3. Apply the Plugin
 
 Apply the plugin to the `app` subproject (if not done already):
@@ -140,6 +117,7 @@ From license plugin tasks
 license - add a license header to source code
 ----
 
+[[ab_part7_step4]]
 == Step 4. Run the custom Task
 
 Finally, it's time to run the new task.
@@ -222,6 +200,7 @@ public class App {
 
 Congratulations, you have completed the tutorial!
 
+[[ab_part7_next_steps]]
 == Step 4. Next steps
 
 If you haven’t read the <<gradle_directories_intermediate.adoc#gradle_directories,Beyond the Basics>> section yet, we recommend starting there to learn important mid-level topics.

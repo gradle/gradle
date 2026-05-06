@@ -85,7 +85,7 @@ class PerformanceTestBuildTypeTest {
         val expectedRunnerParams =
             listOf(
                 "-PperformanceBaselines=%performance.baselines%",
-                "-PtestJavaVersion=21",
+                "-PtestJavaVersion=17",
                 "-PtestJavaVendor=openjdk",
                 "-PautoDownloadAndroidStudio=true",
                 "-PrunAndroidStudioInHeadlessMode=true",
@@ -164,7 +164,7 @@ class PerformanceTestBuildTypeTest {
         val expectedRunnerParams =
             listOf(
                 "-PperformanceBaselines=%performance.baselines%",
-                "-PtestJavaVersion=21",
+                "-PtestJavaVersion=17",
                 "-PtestJavaVendor=openjdk",
                 "-PautoDownloadAndroidStudio=true",
                 "-PrunAndroidStudioInHeadlessMode=true",

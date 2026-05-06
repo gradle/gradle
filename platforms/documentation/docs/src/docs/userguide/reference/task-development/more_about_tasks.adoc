@@ -559,42 +559,8 @@ We can configure the `:tasks` task and limit the tasks shown to a certain group.
 Let's create our own group so that all tasks are hidden by default by updating the `app` build script:
 
 ====
-[.multi-language-sample]
-=====
-.app/build.gradle.kts
-[source,kotlin]
-----
-val myBuildGroup = "my app build"               // Create a group name
-
-tasks.register<TaskReportTask>("tasksAll") {    // Register the tasksAll task
-group = myBuildGroup
-description = "Show additional tasks."
-setShowDetail(true)
-}
-
-tasks.named<TaskReportTask>("tasks") {          // Move all existing tasks to the group
-displayGroup = myBuildGroup
-}
-----
-=====
-[.multi-language-sample]
-=====
-.app/build.gradle
-[source,groovy]
-----
-def myBuildGroup = "my app build"               // Create a group name
-
-tasks.register("tasksAll", TaskReportTask) {    // Register the tasksAll task
-    group = myBuildGroup
-    description = "Show additional tasks."
-    setShowDetail(true)
-}
-
-tasks.named("tasks", TaskReportTask) {          // Move all existing tasks to the group
-    displayGroup = myBuildGroup
-}
-----
-=====
+include::sample[dir="snippets/reference/task-development/moreAboutTasks-taskGrouping/kotlin",files="app/build.gradle.kts[tags=task-grouping]"]
+include::sample[dir="snippets/reference/task-development/moreAboutTasks-taskGrouping/groovy",files="app/build.gradle[tags=task-grouping]"]
 ====
 
 Now, when we list tasks available in `app`, the list is shorter:
@@ -817,63 +783,12 @@ With Gradle tasks, there are three states to consider:
 *Implementing* a task is commonly done by extending Gradle's link:{javadocPath}/org/gradle/api/DefaultTask.html[`DefaultTask`] class:
 
 ====
-[.multi-language-sample]
-=====
-[source,kotlin]
-----
-tasks.register<Copy>("myCopy")                              // <1>
-
-tasks.named<Copy>("myCopy") {                               // <2>
-    from("resources")
-    into("target")
-    include("**/*.txt", "**/*.xml", "**/*.properties")
-}
-
-abstract class MyCopyTask : DefaultTask() {                 // <3>
-    @TaskAction
-    fun copyFiles() {
-        val sourceDir = File("sourceDir")
-        val destinationDir = File("destinationDir")
-        sourceDir.listFiles()?.forEach { file ->
-            if (file.isFile && file.extension == "txt") {
-                file.copyTo(File(destinationDir, file.name))
-            }
-        }
-    }
-}
-----
-<1> Register the `myCopy` task of type `Copy` to let Gradle know we intend to use it in our build logic.
-<2> Configure the registered `myCopy` task with the inputs and outputs it needs according to its link:{javadocPath}/org/gradle/api/tasks/Copy.html[API].
-<3> Implement a custom task type called `MyCopyTask` which extends `DefaultTask` and defines the `copyFiles` task action.
-=====
-[.multi-language-sample]
-=====
-[source,groovy]
-----
-tasks.register("myCopy", Copy)                              // <1>
-
-tasks.named("myCopy", Copy) {                               // <2>
-    from "resources"
-    into "target"
-    include "**/*.txt", "**/*.xml", "**/*.properties"
-}
-
-abstract class MyCopyTask extends DefaultTask {             // <3>
-    @TaskAction
-    void copyFiles() {
-        fileTree('sourceDir').matching {
-            include '**/*.txt'
-        }.forEach { file ->
-            file.copyTo(file.path.replace('sourceDir', 'destinationDir'))
-        }
-    }
-}
-----
-<1> Register the `myCopy` task of type `Copy` to let Gradle know we intend to use it in our build logic.
-<2> Configure the registered `myCopy` task with the inputs and outputs it needs according to its link:{javadocPath}/org/gradle/api/tasks/Copy.html[API].
-<3> Implement a custom task type called `MyCopyTask` which extends `DefaultTask` and defines the `copyFiles` task action.
-=====
+include::sample[dir="snippets/reference/task-development/moreAboutTasks-registerConfigureImplement/kotlin",files="build.gradle.kts[tags=register-configure-implement]"]
+include::sample[dir="snippets/reference/task-development/moreAboutTasks-registerConfigureImplement/groovy",files="build.gradle[tags=register-configure-implement]"]
 ====
+<1> Register the `myCopy` task of type `Copy` to let Gradle know we intend to use it in our build logic.
+<2> Configure the registered `myCopy` task with the inputs and outputs it needs according to its link:{javadocPath}/org/gradle/api/tasks/Copy.html[API].
+<3> Implement a custom task type called `MyCopyTask` which extends `DefaultTask` and defines the `copyFiles` task action.
 
 [[sec:defining_tasks]]
 === 1. Registering tasks
@@ -909,6 +824,7 @@ Since the task is of type `Copy`, a Gradle supported task type, it can be config
 
 The following examples show several ways to achieve the same configuration:
 
+[[using_the_named_method]]
 ==== 1. Using the `named()` method:
 
 Use `named()` to configure an existing task registered elsewhere:
@@ -918,6 +834,7 @@ include::sample[dir="snippets/reference/task-development/configureUsingVar/kotli
 include::sample[dir="snippets/reference/task-development/configureUsingVar/groovy",files="build.gradle[tags=configure]"]
 ====
 
+[[using_a_configuration_block]]
 ==== 2. Using a configuration block:
 
 Use a block to configure the task immediately upon registering it:
@@ -927,6 +844,7 @@ include::sample[dir="snippets/reference/task-development/defineAndConfigure/kotl
 include::sample[dir="snippets/reference/task-development/defineAndConfigure/groovy",files="build.gradle[tags=no-description]"]
 ====
 
+[[name_method_as_call]]
 ==== 3. Name method as call:
 
 A popular option that is only supported in Groovy is the shorthand notation:

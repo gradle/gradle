@@ -31,6 +31,14 @@ The plugin adds a number of tasks to the project that perform the quality checks
 
 Note that PMD will run with the same Java version used to run Gradle.
 
+[[sec:pmd_supported_versions]]
+=== Supported PMD versions
+
+Gradle supports PMD versions from 5.1.0 through 7.24.0.
+
+Older PMD releases may work but are not tested against.
+Use link:{groovyDslPath}/org.gradle.api.plugins.quality.PmdExtension.html#org.gradle.api.plugins.quality.PmdExtension:toolVersion[`pmd.toolVersion`] to select a specific PMD version.
+
 [[sec:pmd_tasks]]
 == Tasks
 

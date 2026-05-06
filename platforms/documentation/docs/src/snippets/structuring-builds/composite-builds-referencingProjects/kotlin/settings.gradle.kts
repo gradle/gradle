@@ -1,0 +1,2 @@
+rootProject.name = "composite-builds-referencingProjects"
+include("core-schema")

@@ -67,6 +67,7 @@ This section explores ways to optimize performance, highlights common pitfalls, 
 |<<improve_older_projects,Improve Older Gradle Releases>>
 |===
 
+[[inspect_your_build]]
 == 0. Inspect your Build
 
 Before making any changes, <<inspect.adoc#inspecting_build_scans,inspect your build>> with a link:https://gradle.com/develocity/product/build-scan/[*Build Scan*] or *profile report*.
@@ -110,6 +111,7 @@ When our reference project is updated to use Gradle 8.13, the build (`./gradlew 
 
 image::performance/performance-2.png[]
 
+[[update_java]]
 === Java
 
 Gradle runs on the Java Virtual Machine (JVM), and Java updates often enhance performance.
@@ -117,6 +119,7 @@ To get the best Gradle performance, use the latest Java version.
 
 TIP: Don't forget to check out <<compatibility.adoc#compatibility,compatibility guide>> to make sure your version of Java is compatible with your version of Gradle.
 
+[[update_plugins]]
 === Plugins
 
 Plugins play a key role in build performance.
@@ -161,6 +164,7 @@ When the parallel flag is used on our reference project, the build (`./gradlew c
 
 image::performance/performance-3.png[]
 
+[[visualize_parallelism_with_build_scan]]
 === Visualize Parallelism with Build Scan
 
 A Build Scan provides a visual timeline of task execution in the *"Timeline"* tab.
@@ -278,6 +282,7 @@ image::performance/performance-5.png[]
 For more information about the Build Cache, check out the
 <<build_cache_use_cases.adoc#use_cases_cache,Build Cache documentation>>.
 
+[[visualize_build_cache_with_build_scan]]
 === Visualize the Build Cache with Build Scan
 
 A Build Scan helps you analyze *Build Cache effectiveness* through the *"Build Cache"* tab in the *"Performance"* page.
@@ -372,6 +377,7 @@ When leveraging incremental builds on our reference project, the build (`./gradl
 
 image::performance/performance-7.png[]
 
+[[visualize_incremental_builds_with_build_scan]]
 === Visualize Incremental Builds with Build Scan Timelines
 
 Look at the Build Scan *"Timeline"* view to identify tasks that could benefit from incremental builds.
@@ -432,6 +438,7 @@ The following sections introduce techniques to reduce time spent in the configur
 
 NOTE: You can also <<enable_configuration_cache,enable the configuration cache>> to minimize the impact of a slow configuration phase. However, even with caching, the configuration phase still runs occasionally. Optimizing it remains crucial.
 
+[[avoid_expensive_or_blocking_work]]
 === Avoid Expensive or Blocking Work
 
 Time-consuming work should be avoided in the configuration phase.
@@ -440,44 +447,19 @@ However, it can sometimes sneak in unexpectedly.
 While encrypting data or making remote service calls is obvious when done in a build script, such logic is often hidden inside plugins or custom task classes.
 Expensive operations in a plugin’s `apply()` method or a task's constructor are a red flag:
 
-[source,groovy]
-----
-class ExpensivePlugin implements Plugin<Project> {
-    @Override
-    void apply(Project project) {
-        // BAD: Makes an expensive network call at configuration time
-        def response = new URL("https://example.com/dependencies.json").text
-        def dependencies = new groovy.json.JsonSlurper().parseText(response)
-
-        dependencies.each { dep ->
-            project.dependencies.add("implementation", dep)
-        }
-    }
-}
-----
+====
+include::sample[dir="snippets/optimizing-builds/performanceTips/kotlin",files="build.gradle.kts[tags=expensive-plugin]"]
+include::sample[dir="snippets/optimizing-builds/performanceTips/groovy",files="build.gradle[tags=expensive-plugin]"]
+====
 
 Instead:
 
-[source,groovy]
-----
-class OptimizedPlugin implements Plugin<Project> {
-    @Override
-    void apply(Project project) {
-        project.tasks.register("fetchDependencies") {
-            doLast {
-                // GOOD: Runs only when the task is executed
-                def response = new URL("https://example.com/dependencies.json").text
-                def dependencies = new groovy.json.JsonSlurper().parseText(response)
+====
+include::sample[dir="snippets/optimizing-builds/performanceTips/kotlin",files="build.gradle.kts[tags=optimized-plugin]"]
+include::sample[dir="snippets/optimizing-builds/performanceTips/groovy",files="build.gradle[tags=optimized-plugin]"]
+====
 
-                dependencies.each { dep ->
-                    project.dependencies.add("implementation", dep)
-                }
-            }
-        }
-    }
-}
-----
-
+[[only_apply_plugins_where_needed]]
 === Only Apply Plugins where they're needed
 
 Each applied plugin or script adds to configuration time, with some plugins having a larger impact than others.
@@ -500,33 +482,18 @@ To optimize this:
 
 - If only one subproject requires the script, remove it from the others, reducing the configuration delay by *2 seconds*.
 +
-[source,groovy]
-----
-project(":subproject1") {
-    apply from: "$rootDir/script-a.gradle"  // Applied only where needed
-}
-
-project(":subproject2") {
-    apply from: "$rootDir/script-a.gradle"
-}
-----
+====
+include::sample[dir="snippets/optimizing-builds/performanceTips/kotlin",files="build.gradle.kts[tags=apply-selectively]"]
+include::sample[dir="snippets/optimizing-builds/performanceTips/groovy",files="build.gradle[tags=apply-selectively]"]
+====
 - If multiple—but not all—subprojects use the script, refactor it into a custom plugin inside <<sharing_build_logic_between_subprojects.adoc#sec:using_buildsrc,`buildSrc`>> and apply it only to the relevant subprojects. This reduces configuration time and avoids code duplication.
 +
-[source,groovy]
-----
-plugins {
-    id 'com.example.my-custom-plugin' apply false  // Declare the plugin but don't apply it globally
-}
+====
+include::sample[dir="snippets/optimizing-builds/performanceTips/kotlin",files="build.gradle.kts[tags=apply-custom-plugin]"]
+include::sample[dir="snippets/optimizing-builds/performanceTips/groovy",files="build.gradle[tags=apply-custom-plugin]"]
+====
 
-project(":subproject1") {
-    apply plugin: 'com.example.my-custom-plugin'  // Apply only where needed
-}
-
-project(":subproject2") {
-    apply plugin: 'com.example.my-custom-plugin'
-}
-----
-
+[[statically_compile_tasks_and_plugins]]
 === Statically Compile Tasks and Plugins
 
 Many Gradle plugins and tasks are written in Groovy due to its concise syntax, functional APIs, and powerful extensions.
@@ -566,6 +533,7 @@ Dependency resolution simplifies integrating third-party libraries into your pro
 Gradle contacts remote servers to discover and download dependencies.
 You can optimize how dependencies are referenced to minimize these remote calls.
 
+[[avoid_unnecessary_and_unused_dependencies]]
 === Avoid Unnecessary and Unused Dependencies
 
 Managing third-party libraries and their transitive dependencies adds significant maintenance and build time costs.
@@ -575,6 +543,7 @@ If you only use a small portion of a library, consider:
 - Implementing the required functionality yourself.
 - Copying the necessary code (with attribution) if the library is open source.
 
+[[optimize_repository_order]]
 === Optimize Repository Order
 
 Gradle searches repositories in the order they are declared.
@@ -588,6 +557,7 @@ repositories {
 }
 ----
 
+[[minimize_repository_count]]
 === Minimize Repository Count
 
 Limit the number of repositories to the minimum required.
@@ -601,20 +571,16 @@ repositories {
 }
 ----
 
+[[minimize_dynamic_and_snapshot_versions]]
 === Minimize Dynamic and Snapshot Versions
 
 Dynamic (`"2.+"`) and snapshot versions (`"-SNAPSHOT"`) cause Gradle to check remote repositories frequently.
 By default, Gradle caches dynamic versions for 24 hours, but this can be configured with the `cacheDynamicVersionsFor` and `cacheChangingModulesFor` properties:
 
-[source,groovy]
-----
-configurations.all {
-    resolutionStrategy {
-        cacheDynamicVersionsFor 4, 'hours'
-        cacheChangingModulesFor 10, 'minutes'
-    }
-}
-----
+====
+include::sample[dir="snippets/optimizing-builds/performanceTips/kotlin",files="build.gradle.kts[tags=cache-dynamic-versions]"]
+include::sample[dir="snippets/optimizing-builds/performanceTips/groovy",files="build.gradle[tags=cache-dynamic-versions]"]
+====
 
 If a build file or initialization script lowers these values, Gradle queries repositories more often.
 When you don't need the absolute latest release of a dependency every time you build, consider
@@ -629,6 +595,7 @@ When this happens it is indicated with a message in the build output:
 Calculating task graph as configuration cache cannot be reused because cached version information for org.test:projectA:1.+ has expired.
 ----
 
+[[find_dynamic_and_changing_versions]]
 ==== Find dynamic and changing versions with Build Scan
 
 To locate dynamic dependencies, use a Build Scan:
@@ -637,6 +604,7 @@ image::performance/dependency-dynamic-versions.png[title="Find dependencies with
 
 Where possible, replace dynamic versions with fixed versions like `"1.2"` or `"3.0.3.GA"` for better caching.
 
+[[avoid_dependency_resolution_during_configuration]]
 === Avoid dependency resolution during configuration
 
 Dependency resolution is an I/O-intensive process.
@@ -644,18 +612,12 @@ Gradle caches results, but triggering resolution in the *configuration phase* ad
 
 This code forces dependency resolution during configuration, slowing down every build:
 
-[source,groovy]
-----
-task printDeps {
-    doFirst {
-        configurations.compileClasspath.files.each { println it } // Deferring Dependency Resolution
-    }
-    doLast {
-        configurations.compileClasspath.files.each { println it } // Resolving Dependencies During Configuration
-    }
-}
-----
+====
+include::sample[dir="snippets/optimizing-builds/performanceTips/kotlin",files="build.gradle.kts[tags=defer-resolution]"]
+include::sample[dir="snippets/optimizing-builds/performanceTips/groovy",files="build.gradle[tags=defer-resolution]"]
+====
 
+[[switch_to_declarative_syntax]]
 ==== Switch to declarative syntax
 
 Evaluating a configuration file during the *configuration phase* forces Gradle to resolve dependencies too early, increasing build times.
@@ -682,6 +644,7 @@ include::sample[dir="snippets/optimizing-builds/resolveAtBuildTime/groovy",files
 The `from()` method in Gradle’s `Copy` task does *not* trigger immediate <<dependency_configurations.adoc#sub:what-are-dependency-configurations,dependency resolution>> because it references the dependency *configuration*, not the resolved files.
 This ensures that dependencies are resolved only when the `Copy` task executes.
 
+[[visualize_dependency_resolution_with_build_scan]]
 ==== Visualize dependency resolution with Build Scan
 
 The "Dependency resolution" tab on the performance page of a Build Scan shows dependency
@@ -695,6 +658,7 @@ This example shows the build resolves dependencies too early in the lifecycle.
 You can also find a "Settings and suggestions" tab on the "Performance" page.
 This shows dependencies resolved during the configuration phase.
 
+[[remove_or_improve_custom_dependency_resolution_logic]]
 === Remove or improve custom dependency resolution logic
 
 Gradle allows users to model dependency resolution in a flexible way.
@@ -706,17 +670,10 @@ This logic may exist in your build scripts or as part of a third-party plugin.
 
 This example forces a custom dependency version but also introduces expensive logic that slows down resolution:
 
-[source,groovy]
-----
-configurations.all {
-    resolutionStrategy.eachDependency { details ->
-        if (details.requested.group == "com.example" && details.requested.name == "library") {
-            def versionInfo = new URL("https://example.com/version-check").text  // Remote call during resolution
-            details.useVersion(versionInfo.trim())  // Dynamically setting a version based on an HTTP response
-        }
-    }
-}
-----
+====
+include::sample[dir="snippets/optimizing-builds/performanceTips/kotlin",files="build.gradle.kts[tags=custom-resolution-logic]"]
+include::sample[dir="snippets/optimizing-builds/performanceTips/groovy",files="build.gradle[tags=custom-resolution-logic]"]
+====
 
 Instead of fetching dependency versions dynamically, define them in a version catalog:
 
@@ -727,6 +684,7 @@ dependencies {
 }
 ----
 
+[[remove_slow_or_unexpected_dependency_downloads]]
 === Remove slow or unexpected dependency downloads
 
 Slow dependency downloads can significantly impact build performance.
@@ -767,6 +725,7 @@ dependencies {
 
 The following sections apply to projects that use the `java` plugin or other JVM languages.
 
+[[optimize_test_execution]]
 === Optimize test execution
 
 Tests often account for a significant portion of build time.
@@ -786,6 +745,7 @@ Gradle offers several strategies to speed up test execution:
 
 Let’s take a closer look at each option.
 
+[[run_tests_in_parallel]]
 ==== A. Run tests in parallel
 
 Gradle can run multiple test classes or methods in parallel.
@@ -802,6 +762,7 @@ Parallel test execution assumes that tests are isolated.
 Avoid shared resources such as file systems, databases, or external services.
 Tests that share state or resources may fail intermittently due to race conditions or resource conflicts.
 
+[[fork_tests_into_multiple_processes]]
 ==== B. Fork tests into multiple processes
 
 By default, Gradle runs all tests in a single forked JVM process.
@@ -816,6 +777,7 @@ include::sample[dir="snippets/optimizing-builds/parallelTestExecution/groovy",fi
 
 WARNING: Forking a JVM is an expensive operation. Setting `forkEvery` too low can increase test time due to excessive process startup overhead.
 
+[[disable_test_reports]]
 ==== C. Disable test reports
 
 Gradle generates HTML and JUnit XML test reports by default, even if you don't intend to view them.
@@ -833,6 +795,7 @@ include::sample[dir="snippets/optimizing-builds/parallelTestExecution/kotlin",fi
 include::sample[dir="snippets/optimizing-builds/parallelTestExecution/groovy",files="build.gradle[tags=disable-reports]"]
 ====
 
+[[conditionally_enable_reports]]
 ===== Conditionally enable reports
 
 If you occasionally need reports without modifying the build file, you can make report generation conditional on a project property.
@@ -840,30 +803,8 @@ If you occasionally need reports without modifying the build file, you can make 
 This example disables reports unless the `createReports` property is present:
 
 ====
-[.multi-language-sample]
-=====
-[source,kotlin]
-----
-tasks.withType<Test>().configureEach {
-    if (!project.hasProperty("createReports")) {
-        reports.html.required = false
-        reports.junitXml.required = false
-    }
-}
-----
-=====
-[.multi-language-sample]
-=====
-[source,groovy]
-----
-tasks.withType(Test).configureEach {
-    if (!project.hasProperty("createReports")) {
-        reports.html.required = false
-        reports.junitXml.required = false
-    }
-}
-----
-=====
+include::sample[dir="snippets/optimizing-builds/performance-conditionalReports/kotlin",files="build.gradle.kts[tags=conditional-reports]"]
+include::sample[dir="snippets/optimizing-builds/performance-conditionalReports/groovy",files="build.gradle[tags=conditional-reports]"]
 ====
 
 To generate reports, pass the property via the command line:
@@ -881,6 +822,7 @@ Or define the property in the `gradle.properties` file located in the <<director
 createReports=true
 ----
 
+[[optimize_the_compiler]]
 === Optimize the compiler
 
 The Java compiler is fast, but in large projects with hundreds or thousands of classes, compilation time can still become significant.
@@ -890,6 +832,7 @@ Gradle offers several ways to optimize Java compilation:
 * A. Run the compiler in a separate process
 * B. Use `implementation` visibility for internal dependencies
 
+[[run_compiler_as_separate_process]]
 ==== A. Run the compiler as a separate process
 
 By default, Gradle runs compilation in the same process as the build logic.
@@ -926,6 +869,7 @@ Running compilation in its own JVM helps reduce garbage collection in the main G
 
 Forking compilation has little effect on small builds but can help significantly when a single task compiles more than a thousand source files.
 
+[[use_implementation_for_internal_dependencies]]
 ==== B. Use `implementation` for internal dependencies
 
 In Gradle 3.4 and later, you can use `api` for dependencies that should be exposed to downstream projects and `implementation` for internal dependencies.
@@ -980,6 +924,7 @@ We recommend using the latest Gradle version to benefit from the latest performa
 
 If you're using an older version of Gradle, consider the following optimizations to improve build performance.
 
+[[older_enable_the_daemon]]
 === Enable the Daemon
 
 The Gradle Daemon significantly improves build performance by avoiding JVM startup costs between builds.
@@ -988,6 +933,7 @@ The Daemon has been enabled by default since Gradle 3.0.
 If you're using an older version, consider <<update_gradle,upgrading Gradle>>.
 If upgrading isn't an option, you can <<enable_daemon,enable the Daemon manually>>.
 
+[[older_enable_incremental_compilation]]
 === Enable Incremental Compilation
 
 Gradle can analyze class dependencies and recompile only the parts of your code affected by a change.
@@ -1016,6 +962,7 @@ tasks.withType(JavaCompile).configureEach {
 =====
 ====
 
+[[older_use_compile_avoidance]]
 === Use Compile Avoidance
 
 Many code changes, such as edits to method bodies, are _ABI-compatible_ — they do not affect a class’s public API.

@@ -1,26 +1,26 @@
 # some versions are in shared-versions.properties
 [versions]
 asciidoctor = "2.5.13"
-bytebuddy = "1.17.5"
+bytebuddy = "1.18.8"
 checkstyle = "10.25.0"
 develocity = "4.4.1"
-groovy = "4.0.29"
+groovy = "4.0.31"
 hamcrest = "3.0"
 javaPoet = "1.13.0"
 javaparser = "3.18.0"
 junit = "6.0.3"
 log4j="2.25.3" # CVE-2025-68161 on lower versions
-mockitoKotlin = "4.1.0"
-objenesis = "2.6"
+mockitoKotlin = "6.3.0"
+objenesis = "3.5"
 spock = "2.4-groovy-4.0"
 
 [libraries]
-ant = { module = "org.apache.ant:ant", version = "1.10.15" } # Bump the version brought in transitively by gradle-guides-plugin
+ant = { module = "org.apache.ant:ant", version = "1.10.17" } # Bump the version brought in transitively by gradle-guides-plugin
 asciidoctor = { module = "org.asciidoctor:asciidoctorj", version.ref = "asciidoctor" }
 asciidoctorApi = { module = "org.asciidoctor:asciidoctorj-api", version.ref = "asciidoctor" }
 asciidoctorJvm = { module = "org.asciidoctor:asciidoctor-gradle-jvm", version = "4.0.2" }
 bytebuddy = { group = "net.bytebuddy", name = "byte-buddy", version.ref = "bytebuddy" }
-codenarc = { module = "org.codenarc:CodeNarc", version = "3.6.0-groovy-4.0" }
+codenarc = { module = "org.codenarc:CodeNarc", version = "3.7.0-groovy-4.0" }
 commonsIo = { module = "commons-io:commons-io", version = "2.14.0" }
 commonsLang3 = { module = "org.apache.commons:commons-lang3", version = "3.20.0" }
 dependencyAnalysisPlugin = { module = "com.autonomousapps:dependency-analysis-gradle-plugin", version = "3.4.0" }

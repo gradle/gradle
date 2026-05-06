@@ -37,8 +37,8 @@ import spock.lang.Specification
 
 class ComponentMetadataDetailsAdapterTest extends Specification {
     private instantiator = TestUtil.instantiatorFactory().decorateLenient()
-    private dependencyMetadataNotationParser = DependencyMetadataNotationParser.parser(instantiator, DirectDependencyMetadataImpl.class, SimpleMapInterner.notThreadSafe())
-    private dependencyConstraintMetadataNotationParser = DependencyMetadataNotationParser.parser(instantiator, DependencyConstraintMetadataImpl.class, SimpleMapInterner.notThreadSafe())
+    private dependencyMetadataNotationParser = DependencyMetadataNotationParser.parser(instantiator, DirectDependencyMetadataImpl.class, SimpleMapInterner.notThreadSafe(), TestUtil.problemsService())
+    private dependencyConstraintMetadataNotationParser = DependencyMetadataNotationParser.parser(instantiator, DependencyConstraintMetadataImpl.class, SimpleMapInterner.notThreadSafe(), TestUtil.problemsService())
     private componentIdentifierNotationParser = new ComponentIdentifierParserFactory().create()
 
     def versionIdentifier = DefaultModuleVersionIdentifier.newId(DefaultModuleIdentifier.newId("org.test", "producer"), "1.0")

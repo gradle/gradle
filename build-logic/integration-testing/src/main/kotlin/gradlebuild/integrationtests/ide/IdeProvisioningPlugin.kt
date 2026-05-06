@@ -82,14 +82,10 @@ class IdeProvisioningPlugin : Plugin<Project> {
             }
 
             val androidStudioArchive = configurations.register(ANDROID_STUDIO_ARCHIVE_CONFIGURATION) { isCanBeConsumed = false }
-            val intellijIdeaArchive = configurations.register(INTELLIJ_IDEA_ARCHIVE_CONFIGURATION) {
-                isCanBeConsumed = false
-                // TODO: remove this once a new IntelliJ platform plugin has a new release with the fix for https://github.com/JetBrains/intellij-platform-gradle-plugin/issues/2140
-                resolutionStrategy.disableDependencyVerification()
-            }
+            val intellijIdeaArchive = configurations.register(INTELLIJ_IDEA_ARCHIVE_CONFIGURATION) { isCanBeConsumed = false }
 
             dependencies {
-                add(androidStudioArchive.name, androidStudioDependencyCoordinates(androidStudioVersion).get())
+                add(androidStudioArchive.name, androidStudioDependencyCoordinates(androidStudioVersion))
                 add(intellijIdeaArchive.name, intellijIdeaInstallerCoordinates(intellijIdeaVersion))
             }
 

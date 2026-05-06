@@ -44,7 +44,9 @@ Our Java library produces the following variant for the `runtimeElements` config
 [source,bash]
 ----
 $ ./gradlew :producer:outgoingVariants --variant runtimeElements
-
+----
+[source,text]
+----
 > Task :producer:outgoingVariants
 --------------------------------------------------
 Variant runtimeElements
@@ -138,7 +140,9 @@ A great way to check everything is working is by running the `resolvableConfigur
 [source,bash]
 ----
 $ ./gradlew consumer:resolvableConfigurations --configuration instrumentedRuntime
-
+----
+[source,text]
+----
 > Task :consumer:resolvableConfigurations
 --------------------------------------------------
 Configuration instrumentedRuntime
@@ -149,6 +153,7 @@ Attributes
     - org.gradle.usage           = java-runtime
 ----
 
+[[sec:setup_defaults]]
 == Step 3: Setting up Defaults
 
 To ensure that Gradle doesn't fail when resolving dependencies without an instrumented variant, we need to define a fallback.

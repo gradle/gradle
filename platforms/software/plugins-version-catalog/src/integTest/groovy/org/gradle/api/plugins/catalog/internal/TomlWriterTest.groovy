@@ -37,6 +37,8 @@ class TomlWriterTest extends Specification {
     @TempDir
     File tempTomlDir
 
+    private final problems = TestUtil.problemsService()
+
     def "generates an equivalent file from an input (#file)"() {
         given:
         def sourceModel = parse("/org/gradle/api/plugins/catalog/internal/${file}.toml")
@@ -77,9 +79,8 @@ format.version = "1.1"
         parse("/org/gradle/api/plugins/catalog/internal/wrong.toml")
 
         then:
-        def exception = thrown(InvalidUserDataException.class)
-        exception.message.contains("In file '")
-        exception.message.contains("wrong.toml'")
+        thrown(InvalidUserDataException.class)
+        problems.emitted.any { problem -> problem.originLocations.any { it.path?.contains("wrong.toml") } }
     }
 
     private Model generateFromModel(Model sourceModel) {
@@ -103,7 +104,7 @@ format.version = "1.1"
 
     private Model parse(Path path) {
         def supplier = Stub(Supplier)
-        def problems = TestUtil.problemsService()
+        def problemsService = problems
         def builder = new DefaultVersionCatalogBuilder(
             "libs",
             Interners.newStrongInterner(),
@@ -112,11 +113,11 @@ format.version = "1.1"
             supplier) {
             @Override
             protected ProblemsInternal getProblemsService() {
-                problems
+                problemsService
             }
         }
 
-        TomlCatalogFileParser.parse(path, builder, { problems })
+        TomlCatalogFileParser.parse(path, builder, { problemsService })
         return new Model(builder.build())
     }
 

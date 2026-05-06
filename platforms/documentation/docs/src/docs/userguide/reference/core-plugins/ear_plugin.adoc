@@ -39,6 +39,7 @@ _Depends on_: `compile` (only if the Java plugin is also applied)
 +
 Assembles the application EAR file.
 
+[[sec:ear_dependencies_added_to_other_tasks]]
 === Dependencies added to other tasks
 
 The Ear plugin adds the following dependencies to tasks added by the <<base_plugin.adoc#base_plugin,Base Plugin>>.

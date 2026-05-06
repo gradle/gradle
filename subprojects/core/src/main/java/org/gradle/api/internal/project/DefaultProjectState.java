@@ -20,6 +20,7 @@ import com.google.common.collect.Iterables;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
+import org.gradle.api.project.IsolatedProject;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.model.CalculatedModelValue;
 import org.gradle.internal.model.ModelContainer;
@@ -105,6 +106,11 @@ class DefaultProjectState implements ProjectState, Closeable {
     @Override
     public ImmutableProjectDescriptor getDescriptor() {
         return descriptor;
+    }
+
+    @Override
+    public IsolatedProject getIsolated() {
+        return new DefaultIsolatedProject(this);
     }
 
     @Override

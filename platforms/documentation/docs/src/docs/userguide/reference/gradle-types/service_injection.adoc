@@ -83,8 +83,8 @@ The constructor uses this to create a nested `Resource` object (also a custom Gr
 [source,java]
 .DownloadExtension.java
 ----
-include::{snippetsPath}/plugins/nestedObjects/groovy/buildSrc/src/main/java/DownloadExtension.java[tags=download-extension]
-include::{snippetsPath}/plugins/nestedObjects/groovy/buildSrc/src/main/java/Resource.java[tags=resource]
+include::{snippetsPath}/reference/plugin-development/nestedObjects/groovy/buildSrc/src/main/java/DownloadExtension.java[tags=download-extension]
+include::{snippetsPath}/reference/plugin-development/nestedObjects/groovy/buildSrc/src/main/java/Resource.java[tags=resource]
 ----
 
 Here is another example using `javax.inject.Inject`:
@@ -308,7 +308,7 @@ You can learn more at <<test_reporting_api.adoc#test_reporting_api,Test Reportin
 
 link:{javadocPath}/org/gradle/api/artifacts/dsl/DependencyFactory.html[`DependencyFactory`] is a service that provides methods for creating dependencies in a type-safe way.
 
-You can learn more in the <<implementing_gradle_plugins_binary.adoc#sec:differences_with_top_level_dependencies,Implementing Binary Plugins guide>>.
+You can learn more in the <<implementing_gradle_plugins_binary.adoc#sec:differences_with_top_level_dependencies_plugins,Implementing Binary Plugins guide>>.
 
 [[service_injection_patterns]]
 == Service injection patterns
@@ -316,6 +316,7 @@ You can learn more in the <<implementing_gradle_plugins_binary.adoc#sec:differen
 There are two ways that services can be provided to an object.
 
 === Constructor injection
+
 A service can be injected into the constructor of the class. The constructor must be public and annotated with the `javax.inject.Inject` annotation.
 
 Gradle uses the declared type of each constructor parameter to determine the services that the object requires.
@@ -326,11 +327,12 @@ Here is an example that shows a task type that receives an `WorkerExecutor` via 
 [source,java]
 .Download.java
 ----
-include::{snippetsPath}/plugins/constructorServiceInjection/groovy/buildSrc/src/main/java/Download.java[tags=download]
+include::{snippetsPath}/reference/plugin-development/constructorServiceInjection/groovy/buildSrc/src/main/java/Download.java[tags=download]
 ----
 
 [[property_injection]]
 === Property injection
+
 A service can be injected by adding a property getter method annotated with the `javax.inject.Inject` annotation to the class.
 
 Gradle defers the creation of the service until the getter method is called. This can be more performant than constructor injection.
@@ -345,5 +347,5 @@ Here is an example that shows a task type that receives two services via propert
 [source,java]
 .Download.java
 ----
-include::{snippetsPath}/plugins/propertyServiceInjection/groovy/buildSrc/src/main/java/Download.java[tags=download]
+include::{snippetsPath}/reference/plugin-development/propertyServiceInjection/groovy/buildSrc/src/main/java/Download.java[tags=download]
 ----

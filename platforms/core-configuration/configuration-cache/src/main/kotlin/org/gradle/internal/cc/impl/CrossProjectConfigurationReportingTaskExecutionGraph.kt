@@ -29,8 +29,7 @@ import org.gradle.execution.plan.ScheduledWork
 import org.gradle.execution.taskgraph.TaskExecutionGraphExecutionListener
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal
 import org.gradle.internal.build.ExecutionResult
-import org.gradle.internal.configuration.problems.IsolatedProjectsProblemsListener
-import org.gradle.internal.configuration.problems.ProblemFactory
+import org.gradle.internal.configuration.problems.IsolatedProjectsProblemsReporter
 import org.gradle.internal.extensions.stdlib.capitalized
 import org.gradle.util.Path
 import java.util.Objects
@@ -40,10 +39,9 @@ internal
 class CrossProjectConfigurationReportingTaskExecutionGraph(
     taskGraph: TaskExecutionGraphInternal,
     private val referrerProject: ProjectInternal,
-    private val ipProblems: IsolatedProjectsProblemsListener,
+    private val ipProblems: IsolatedProjectsProblemsReporter,
     private val crossProjectModelAccess: CrossProjectModelAccess,
     private val coupledProjectsListener: CoupledProjectsListener,
-    private val problemFactory: ProblemFactory
 ) : TaskExecutionGraphInternal {
 
     private
@@ -147,7 +145,17 @@ class CrossProjectConfigurationReportingTaskExecutionGraph(
     private
     fun reportCrossProjectTaskAccess(coupledProjects: Iterable<ProjectInternal>, requestPath: String? = null) {
         reportCoupledProjects(coupledProjects)
-        reportProjectIsolationProblem(requestPath)
+
+        ipProblems.report {
+            problem {
+                text("Project ")
+                reference(referrerProject.identityPath.toString())
+                text(" cannot access the tasks in the task graph that were created by other projects")
+            }.exception { message ->
+                // As the exception message is not used for grouping, we can safely add the exact task name to it:
+                message.capitalized() + if (requestPath != null) "; tried to access '$requestPath'" else ""
+            }.build()
+        }
     }
 
     private
@@ -155,19 +163,6 @@ class CrossProjectConfigurationReportingTaskExecutionGraph(
         coupledProjects.forEach { other ->
             coupledProjectsListener.onProjectReference(referrerProject.owner, other.owner)
         }
-    }
-
-    private
-    fun reportProjectIsolationProblem(requestPath: String?) {
-        val problem = problemFactory.problem {
-            text("Project ")
-            reference(referrerProject.identityPath.toString())
-            text(" cannot access the tasks in the task graph that were created by other projects")
-        }.exception { message ->
-            // As the exception message is not used for grouping, we can safely add the exact task name to it:
-            message.capitalized() + if (requestPath != null) "; tried to access '$requestPath'" else '"'
-        }.build()
-        ipProblems.onIsolatedProjectsProblem(problem)
     }
 
     private

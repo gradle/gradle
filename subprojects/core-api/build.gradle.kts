@@ -8,6 +8,11 @@ dependencies {
     compileOnly(libs.jetbrainsAnnotations)
 
     api(projects.antApi)
+    api(projects.credentialsApi)
+    api(projects.stdlibJavaExtensions)
+    api(projects.buildCacheSpi)
+    api(projects.loggingApi)
+    api(projects.normalizationApi)
     api(projects.baseServices)
     api(projects.buildCacheSpi)
     api(projects.credentialsApi)

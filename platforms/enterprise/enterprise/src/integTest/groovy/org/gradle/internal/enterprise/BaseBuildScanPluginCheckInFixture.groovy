@@ -18,8 +18,12 @@ package org.gradle.internal.enterprise
 
 import org.gradle.api.Plugin
 import org.gradle.api.initialization.Settings
+import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.execution.RunRootBuildWorkBuildOperationType
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.GradleExecuter
+import org.gradle.internal.enterprise.impl.legacy.DevelocityPluginCompatibility
+import org.gradle.util.internal.VersionNumber
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager
 import org.gradle.internal.operations.notify.BuildOperationFinishedNotification
 import org.gradle.internal.operations.notify.BuildOperationNotificationListener
@@ -32,6 +36,8 @@ import org.gradle.test.fixtures.plugin.PluginBuilder
 
 import javax.annotation.Nullable
 import java.util.regex.Pattern
+
+import static org.gradle.internal.enterprise.impl.legacy.DevelocityPluginCompatibility.FIRST_PLUGIN_VERSION_WITHOUT_PARENT_PROPERTY_LOOKUP
 
 @SuppressWarnings("GrMethodMayBeStatic")
 abstract class BaseBuildScanPluginCheckInFixture {
@@ -208,6 +214,27 @@ abstract class BaseBuildScanPluginCheckInFixture {
 
     void assertUnsupportedMessage(String output, String unsupported) {
         assert output.contains("${propertyPrefix}.checkIn.unsupported.reasonMessage = $unsupported")
+    }
+
+    /**
+     * Registers an expectation for the deprecation warning emitted at plugin check-in for
+     * Develocity plugin versions affected by the implicit parent-project property lookup.
+     */
+    void expectParentPropertyLookupDeprecation(GradleExecuter executer, String pluginVersion) {
+        // Under IP, plugin versions older than 3.15 hit the unsupported-with-IP path
+        // and short-circuit before the pre-4.0 deprecation, so the warning is not emitted.
+        if (GradleContextualExecuter.isIsolatedProjects()
+            && DevelocityPluginCompatibility.isUnsupportedWithIsolatedProjects(VersionNumber.parse(pluginVersion))) {
+            return
+        }
+        executer.expectDocumentedDeprecationWarning(
+            "Usage of the Develocity plugin ${pluginVersion} has been deprecated. " +
+                "This will fail with an error in Gradle 10. " +
+                "The plugin application will be ignored. " +
+                "Upgrade to version ${FIRST_PLUGIN_VERSION_WITHOUT_PARENT_PROPERTY_LOOKUP} or later of the Develocity plugin. " +
+                "Consult the upgrading guide for further information: " +
+                "${new DocumentationRegistry().getDocumentationFor("upgrading_version_9", "deprecated_develocity_plugin_pre_4_0")}"
+        )
     }
 
     void assertEndOfBuildWithFailure(String output, @Nullable String failure) {

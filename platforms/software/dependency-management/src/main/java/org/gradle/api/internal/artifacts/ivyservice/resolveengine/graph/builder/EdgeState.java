@@ -257,6 +257,9 @@ class EdgeState implements DependencyGraphEdge {
 
             // A constraint by definition attaches to any other nodes in the component it constrains.
             for (NodeState node : targetComponent.getNodes()) {
+                while (node.getReplacement() != null) {
+                    node = node.getReplacement();
+                }
                 if (node.isSelected() && !node.isRoot()) {
                     targetNodes.add(node);
                 }

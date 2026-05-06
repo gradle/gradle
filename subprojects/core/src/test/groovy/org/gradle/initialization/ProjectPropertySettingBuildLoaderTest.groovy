@@ -51,6 +51,7 @@ class ProjectPropertySettingBuildLoaderTest extends Specification {
     }
     final GradleInternal gradle = Mock() {
         getOwner() >> buildState
+        getRootProjectState() >> rootProjectState
     }
     final SettingsInternal settings = Mock()
 
@@ -60,7 +61,6 @@ class ProjectPropertySettingBuildLoaderTest extends Specification {
     final ExtraPropertiesExtensionInternal childExtraProperties = Mock()
 
     def setup() {
-        _ * gradle.rootProject >> rootProject
         _ * rootProject.extensions >> Mock(ExtensionContainerInternal) {
             extraProperties >> { rootExtraProperties }
         }

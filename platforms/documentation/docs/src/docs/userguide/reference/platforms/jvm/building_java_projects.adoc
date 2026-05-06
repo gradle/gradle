@@ -26,6 +26,7 @@ However the described features are shared by all JVM plugins.
 Specifics of the different plugins are available in their dedicated documentation.
 ====
 
+[[sec:introduction]]
 == Introduction
 
 The simplest build script for a Java project applies the <<java_library_plugin.adoc#java_library_plugin,Java Library Plugin>> and optionally sets the project version and selects the <<toolchains.adoc#toolchains,Java toolchain>> to use:
@@ -235,6 +236,7 @@ Crucially, we're using the _method_ `srcDir()` here to append a directory path, 
 
 You can see all the properties and methods available on source sets in the DSL reference for link:{groovyDslPath}/org.gradle.api.tasks.SourceSet.html[SourceSet] and link:{groovyDslPath}/org.gradle.api.file.SourceDirectorySet.html[SourceDirectorySet]. Note that `srcDirs` and `srcDir()` are both on `SourceDirectorySet`.
 
+[[sec:changing_compiler_options]]
 === Changing compiler options
 
 Most of the compiler options are accessible through the corresponding task, such as `compileJava` and `compileTestJava`. These tasks are of type link:{groovyDslPath}/org.gradle.api.tasks.compile.JavaCompile.html[JavaCompile], so read the task reference for an up-to-date and comprehensive list of the options.
@@ -299,6 +301,7 @@ The bytecode produced by the compiler also corresponds to the requested Java ver
 The `release` option of the Java compiler was introduced in Java 9.
 However, using this option with Gradle is only possible starting with Java 10, due to a https://bugs.openjdk.org/browse/JDK-8139607[bug in Java 9].
 
+[[sec:using_java_compatibility_options]]
 ==== Using Java compatibility options
 
 WARNING: Using compatibility properties can lead to runtime failures when executing compiled code due to weaker guarantees they provide.
@@ -316,6 +319,7 @@ Defines the minimum JVM version your code should run on, i.e. it determines the 
 
 These options can be set per link:{groovyDslPath}/org.gradle.api.tasks.compile.JavaCompile.html[JavaCompile] task, or on the `java { }` extension for all compile tasks, using properties with the same names.
 
+[[sec:targeting_java_6_and_java_7]]
 ==== Targeting Java 6 and Java 7
 
 Gradle itself can only run on a JVM with Java version 8 or higher.
@@ -641,6 +645,7 @@ include::sample[dir="snippets/reference/platforms/jvm/compileTaskClasspath/groov
 
 All of this is possible through the use of <<lazy_configuration.adoc#lazy_configuration,directory properties>>.
 
+[[sec:extra_language_support]]
 === Extra language support
 
 Beyond core Gradle, there are other https://plugins.gradle.org/search?term=jvm[great plugins] for more JVM languages!

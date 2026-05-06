@@ -19,6 +19,7 @@ Gradle provides a rich and flexible model for declaring dependencies, managing v
 
 image::gradle-basic-13.png[]
 
+[[sec:declare_dependencies]]
 == Declare Dependencies
 
 The `dependencies{}` block is where you declare the external libraries, internal modules, or files your project needs to compile, run, or test:
@@ -36,16 +37,12 @@ The **set of configurations available** depends on the plugins you apply (e.g., 
 Gradle recommends the **single-string notation** for external modules.
 The map notation is deprecated as of Gradle 9.1.0 and will fail your build in Gradle 10:
 
-[source,kotlin]
-----
-dependencies {
-    // GOOD: single-string notation
-    implementation("com.google.guava:guava:32.1.2-jre")
-    // BAD: map notation
-    implementation(group = "com.google.guava", name = "guava", version = "32.1.2-jre")
-}
-----
+====
+include::sample[dir="snippets/fundamentals/authoring-builds/dependenciesIntermediate/kotlin",files="build.gradle.kts[tags=string-notation]"]
+include::sample[dir="snippets/fundamentals/authoring-builds/dependenciesIntermediate/groovy",files="build.gradle[tags=string-notation]"]
+====
 
+[[sec:centralize_versions]]
 == Centralize Versions with Version Catalogs
 
 Gradle recommends using version catalogs to declare dependency versions in a single, reusable location:
@@ -61,6 +58,7 @@ include::sample[dir="snippets/fundamentals/authoring-builds/generated/kotlin",fi
 include::sample[dir="snippets/fundamentals/authoring-builds/generated/groovy",files="app/build.gradle[tags=init-dep]"]
 ====
 
+[[sec:enforce_constrain_versions]]
 == Enforce and Constrain Versions
 
 Gradle allows you to constrain dependency versions to avoid unwanted upgrades or enforce known good versions:
@@ -77,55 +75,30 @@ include::sample[dir="snippets/fundamentals/authoring-builds/managingTransitiveDe
 include::sample[dir="snippets/fundamentals/authoring-builds/managingTransitiveDependencies-versionsWithConstraints/groovy",files="build.gradle[tags=dependency-constraints]"]
 ====
 
+[[sec:resolve_conflicts_capabilities]]
 == Resolve Conflicts with Capabilities
 
 Sometimes multiple libraries provide the same functionality under different coordinates. This can lead to classpath conflicts:
 
-[source,kotlin]
-----
-dependencies {
-    implementation("jaxen:jaxen:1.1.6")     // Transitive dependency that brings XPath functionality
-    implementation("org.jdom:jdom2:2.0.6")  // Also offers XPath functionality
-}
-
-----
+====
+include::sample[dir="snippets/fundamentals/authoring-builds/dependenciesIntermediate/kotlin",files="build.gradle.kts[tags=conflict-deps]"]
+include::sample[dir="snippets/fundamentals/authoring-builds/dependenciesIntermediate/groovy",files="build.gradle[tags=conflict-deps]"]
+====
 
 Gradle lets you model these cases using capabilities.
 For example:
 
-[source,kotlin]
-----
-dependencies {
-    implementation("jaxen:jaxen:1.1.6") {
-        capabilities {
-            requireCapability("xml:xpath-support")
-        }
-    }
-    implementation("org.jdom:jdom2:2.0.6")
-}
-----
+====
+include::sample[dir="snippets/fundamentals/authoring-builds/dependenciesIntermediate/kotlin",files="build.gradle.kts[tags=capability-deps]"]
+include::sample[dir="snippets/fundamentals/authoring-builds/dependenciesIntermediate/groovy",files="build.gradle[tags=capability-deps]"]
+====
 
 Then declare capabilities via a component metadata rule:
 
-[source,kotlin]
-----
-components {
-    withModule("jaxen:jaxen") {
-        allVariants {
-            withCapabilities {
-                addCapability("xml", "xpath-support", "1.0")
-            }
-        }
-    }
-    withModule("org.jdom:jdom2") {
-        allVariants {
-            withCapabilities {
-                addCapability("xml", "xpath-support", "1.0")
-            }
-        }
-    }
-}
-----
+====
+include::sample[dir="snippets/fundamentals/authoring-builds/dependenciesIntermediate/kotlin",files="build.gradle.kts[tags=metadata-rule]"]
+include::sample[dir="snippets/fundamentals/authoring-builds/dependenciesIntermediate/groovy",files="build.gradle[tags=metadata-rule]"]
+====
 
 Gradle will now treat `jaxen` and `jdom2` as alternate implementations and select the one with a required capability.
 

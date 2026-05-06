@@ -12,9 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-[[best_practices]]
+[[sec:best_practices]]
 = Best Practices for Authoring Gradle Builds
 
+[[sec:best_practices_introduction]]
 == Introduction
 
 Gradle is a powerful and flexible tool for building software, but along with these benefits comes complexity and the need for clear guidance on best practices.
@@ -42,10 +43,12 @@ The items in this guide are meant to be _brief_, _understandable_, and _actionab
 - After reading, they should understand why a particular approach is beneficial or problematic and where to find further reference material.
 - Recommendations should be widely applicable to _many_ or _most_ typical builds and should provide specific, concrete advice.
 
+[[sec:best_practices_page_index]]
 == Index
 
 To view all Gradle Best Practices at a glance, along with the Gradle version they were introduced in, visit the <<best_practices_index.adoc#best_practices_index,Index Page>>.
 
+[[sec:best_practices_list]]
 == Best Practices
 
 - <<best_practices_general.adoc#best_practices_general,General Best Practices>>
@@ -56,11 +59,13 @@ To view all Gradle Best Practices at a glance, along with the Gradle version the
 - <<best_practices_security.adoc#best_practices_for_security,Best Practices for Security>>
 - <<best_practices_testing.adoc#best_practices_for_testing,Best Practices for Testing>>
 
+[[sec:best_practices_other_advice]]
 == Other Advice
 
 - <<performance.adoc#performance_gradle, Improving the Performance of Gradle Builds>>
 - <<organizing_gradle_projects.adoc#sec:structuring_recommendations,Structuring Gradle Builds>>
 
+[[sec:best_practices_references]]
 == References
 
 - <<tags_reference.adoc#tags_reference,Tags Used in Best Practices>>

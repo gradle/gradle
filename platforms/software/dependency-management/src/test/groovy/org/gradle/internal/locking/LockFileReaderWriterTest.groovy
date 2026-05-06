@@ -29,6 +29,7 @@ import java.nio.charset.StandardCharsets
 import org.gradle.util.GradleVersion
 import org.gradle.util.Path
 import org.junit.Rule
+import spock.lang.Issue
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -44,6 +45,7 @@ class LockFileReaderWriterTest extends Specification {
     ProjectIdentity identity = ProjectIdentity.forSubproject(Path.ROOT, Path.path(":foo"))
     DomainObjectContext context = Mock() {
         identityPath(_) >> { String value -> Path.path(value) }
+        projectPath(_) >> { String value -> Path.path(":foo:" + value) }
         getProjectIdentity() >> identity
         getDisplayName() >> identity.displayName
     }
@@ -57,13 +59,18 @@ class LockFileReaderWriterTest extends Specification {
         lockFileReaderWriter = new LockFileReaderWriter(resolver, context, lockFile, listener)
     }
 
+    private String expectedHeader() {
+        LockFileReaderWriter.LOCKFILE_HEADER_LIST.join('\n') +
+            '\n# To regenerate this file, run: ./gradlew :foo:dependencies --write-locks'
+    }
+
     def 'writes a unique lock file'() {
         when:
         lockDir.deleteDir()
         lockFileReaderWriter.writeUniqueLockfile([a: ['foo', 'bar'], b: ['foo'], c: []])
 
         then:
-        tmpDir.file(LockFileReaderWriter.UNIQUE_LOCKFILE_NAME).text == """${LockFileReaderWriter.LOCKFILE_HEADER_LIST.join('\n')}
+        tmpDir.file(LockFileReaderWriter.UNIQUE_LOCKFILE_NAME).text == """${expectedHeader()}
 bar=a
 foo=a,b
 empty=c
@@ -89,7 +96,7 @@ empty=c
         lockFileReaderWriter.writeUniqueLockfile([b: ['foo', 'bar'], d: ['bar', 'foobar'],a: ['foo'], e: [], f: [], c: []])
 
         then:
-        tmpDir.file(LockFileReaderWriter.UNIQUE_LOCKFILE_NAME).text == """${LockFileReaderWriter.LOCKFILE_HEADER_LIST.join('\n')}
+        tmpDir.file(LockFileReaderWriter.UNIQUE_LOCKFILE_NAME).text == """${expectedHeader()}
 bar=b,d
 foo=a,b
 foobar=d
@@ -107,7 +114,7 @@ empty=c,e,f
         lockFileReaderWriter.writeUniqueLockfile([a: ['foo', 'bar'], b: ['foo'], c: []])
 
         then:
-        testLockFile.text == """${LockFileReaderWriter.LOCKFILE_HEADER_LIST.join('\n')}
+        testLockFile.text == """${expectedHeader()}
 bar=a
 foo=a,b
 empty=c
@@ -209,7 +216,7 @@ empty=d
         lockFileReaderWriter.writeUniqueLockfile([a: ['foo', 'bar'], b: ['foo'], c: []])
 
         then:
-        tmpDir.file("buildscript-$LockFileReaderWriter.UNIQUE_LOCKFILE_NAME").text == """${LockFileReaderWriter.LOCKFILE_HEADER_LIST.join('\n')}
+        tmpDir.file("buildscript-$LockFileReaderWriter.UNIQUE_LOCKFILE_NAME").text == """${expectedHeader()}
 bar=a
 foo=a,b
 empty=c
@@ -311,5 +318,31 @@ empty=d
         then:
         def ex = thrown(IllegalStateException)
         ex.getMessage().contains("Dependency locking cannot be used for project ':foo'")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/37735")
+    def 'writes regeneration comment for root project'() {
+        given:
+        DomainObjectContext rootContext = Mock() {
+            identityPath(_) >> { String value -> Path.path(value) }
+            projectPath(_) >> { String value -> Path.path(":" + value) }
+            getDisplayName() >> "root project 'myProject'"
+        }
+        FileResolver rootResolver = Mock()
+        rootResolver.canResolveRelativePath() >> true
+        rootResolver.resolve(LockFileReaderWriter.DEPENDENCY_LOCKING_FOLDER) >> lockDir
+        rootResolver.resolve(LockFileReaderWriter.UNIQUE_LOCKFILE_NAME) >> tmpDir.file(LockFileReaderWriter.UNIQUE_LOCKFILE_NAME)
+        def writer = new LockFileReaderWriter(rootResolver, rootContext, lockFile, listener)
+
+        when:
+        writer.writeUniqueLockfile([a: ['foo']])
+
+        then:
+        def expectedRootHeader = LockFileReaderWriter.LOCKFILE_HEADER_LIST.join('\n') +
+            '\n# To regenerate this file, run: ./gradlew :dependencies --write-locks'
+        tmpDir.file(LockFileReaderWriter.UNIQUE_LOCKFILE_NAME).text == """${expectedRootHeader}
+foo=a
+empty=
+"""
     }
 }

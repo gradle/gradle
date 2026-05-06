@@ -352,8 +352,6 @@ This can indicate that a dependency has been compromised. Please carefully verif
         """
 
         when:
-        //TODO: remove this once dependency verification stops triggering dependency resolution at execution time
-        executer.withBuildJvmOpts("-Dorg.gradle.internal.configuration-cache.task-execution-access-pre-stable=true")
         fails "resolve"
 
         then:

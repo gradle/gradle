@@ -453,6 +453,10 @@ class TestProblems implements ProblemsInternal {
         assert summarizer.emitted.isEmpty()
     }
 
+    List<Problem> getEmitted() {
+        summarizer.emitted
+    }
+
     void assertHasDeprecation(String expectedMessage) {
         def deprecationMessages = getDeprecationMessages()
         assert deprecationMessages.size() > 0

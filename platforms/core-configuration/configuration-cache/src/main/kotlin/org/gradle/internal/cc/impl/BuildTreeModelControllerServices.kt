@@ -60,6 +60,7 @@ import org.gradle.internal.cc.impl.services.RemoteScriptUpToDateChecker
 import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.internal.configuration.problems.CommonReport
 import org.gradle.internal.configuration.problems.DefaultProblemFactory
+import org.gradle.internal.configuration.problems.IsolatedProjectsProblemsReporter
 import org.gradle.internal.configuration.problems.ProblemFactory
 import org.gradle.internal.configuration.problems.ProblemsListener
 import org.gradle.internal.nativeintegration.filesystem.FileSystem
@@ -158,6 +159,7 @@ object BuildTreeModelControllerServices : ServiceRegistrationProvider {
 
             if (modelParameters.isIsolatedProjects) {
                 add(ClassLoaderScopesFingerprintController::class.java, IsolatedProjectsClassLoaderScopesFingerprintController::class.java)
+                add(IsolatedProjectsProblemsReporter::class.java)
             } else {
                 add(ClassLoaderScopesFingerprintController::class.java, ConfigurationCacheClassLoaderScopesFingerprintController::class.java)
             }

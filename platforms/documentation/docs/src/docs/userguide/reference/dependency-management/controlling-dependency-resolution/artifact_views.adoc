@@ -31,6 +31,7 @@ An `ArtifactView` can:
 NOTE: The `ArtifactView` can produce results as both a `FileCollection` and an `ArtifactCollection`.
 The examples below only demonstrate using a `FileCollection` as the output.
 
+[[sec:performing_variant_reselection]]
 == 1. Performing variant reselection
 
 Standard artifact selection can only select between variants of the component selected by the result of graph selection.
@@ -81,6 +82,7 @@ include::{snippetsPath}/reference/dependency-management/controlling-dependency-r
 When this API is used, the attributes used for variant reselection are specified solely by the `ArtifactView.getAttributes()` method.
 The graph resolution attributes specified on the configuration are completely ignored during variant reselection.
 
+[[sec:performing_lenient_artifact_selection]]
 == 2. Performing lenient artifact selection and resolution
 
 The `ArtifactView` API can also be used to perform lenient artifact resolution.
@@ -108,6 +110,7 @@ We can see that the task succeeds with the failing artifact omitted:
 include::{snippetsPath}/reference/dependency-management/controlling-dependency-resolution/performingResolution-artifactResolution-lenient/tests/resolve-lenient.out[]
 ----
 
+[[sec:filtering_selected_artifacts]]
 == 3. Filtering selected artifacts
 
 The `ArtifactView` API can be used to filter specific artifacts from the resulting `FileCollection` or `ArtifactCollection`.
@@ -137,6 +140,7 @@ Notice how we resolve project dependencies and module dependencies separately:
 include::{snippetsPath}/reference/dependency-management/controlling-dependency-resolution/performingResolution-artifactResolution-componentFilter/tests/resolve-component-filter.out[]
 ----
 
+[[sec:triggering_artifact_transforms]]
 == 4. Triggering artifact transforms
 
 An `ArtifactView` can be used to trigger artifact selection using _attributes_ different from those used to resolve the graph.

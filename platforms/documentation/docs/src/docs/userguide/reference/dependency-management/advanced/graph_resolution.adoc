@@ -17,6 +17,7 @@
 
 During the _graph resolution_ phase, Gradle constructs a *resolved dependency graph*, which models the relationships between different components and their variants.
 
+[[sec:modules]]
 == Modules
 
 Graph resolution begins with *dependencies* declared in the build script:
@@ -40,6 +41,7 @@ Each version of a *module* is referred to as a *component*.
 
 In the example above for the link:https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-databind/2.17.2[`com.fasterxml.jackson.core:jackson-databind:2.17.2`] *module*, `2.17.2` is the version.
 
+[[sec:metadata]]
 == Metadata
 
 A *component* is detailed by *metadata*, which is available in the repository where the *component* is hosted as a `ivy`, `pom`, or link:https://repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-databind/2.17.2/jackson-databind-2.17.2.module[`GMM`] metadata.
@@ -91,6 +93,7 @@ Here’s a condensed sample of the *metadata* for link:https://repo1.maven.org/m
 Some items in the file should be familiar to you such as "files", "dependencies", "components", "module" and "version".
 Let's focus on the *variants* provided in the *metadata*.
 
+[[sec:variants]]
 == Variants
 
 A *variant* is a specific variation of a *component* tailored for a particular use case or environment.
@@ -126,6 +129,7 @@ Each *variant* consists of a set of *artifacts* and defines a set of *dependenci
 
 To differentiate between the `apiElements` and `runtimeElements` variants, Gradle uses *attributes*.
 
+[[sec:attributes]]
 == Attributes
 
 To differentiate between *variants*, Gradle uses *attributes*.
@@ -155,6 +159,7 @@ In the *metadata* for Jackson Databind, we see that the `runtimeElements` *varia
 
 Now that we understand the building blocks for dependency management, let's look into graph resolution.
 
+[[sec:dependency_graph]]
 == Dependency Graph
 
 Gradle builds a dependency graph that represents a configuration's *dependencies* and their relationships.
@@ -194,6 +199,7 @@ In the example above, the resolvable configuration, `compileClasspath` could res
 
 So how does Gradle build the dependency graph?
 
+[[sec:graph_resolution_flow]]
 == Graph Resolution Flow
 
 Graph resolution operates on a _node-by-node_ (i.e., *variant*-by-*variant*) basis.
@@ -350,6 +356,7 @@ A. **Determining existing versions for dynamic dependencies**: When a dynamic ve
 
 B. **Resolving module dependencies for a specific version**: Gradle retrieves the dependencies associated with a module based on the specified version, ensuring the correct transitive dependencies are included in the build.
 
+[[sec:determining_existing_versions_for_dynamic_dependencies]]
 === A. Determining existing versions for dynamic dependencies
 
 When faced with a dynamic version, Gradle must identify the available concrete versions.
@@ -364,6 +371,7 @@ The result is a list of candidate versions that Gradle evaluates and matches to 
 Gradle <<dependency_caching.adoc#sec:controlling-dynamic-version-caching,caches>> this information to optimize future resolution.
 At this point, <<#sec:resolution-strategy,version conflict resolution>> is resumed.
 
+[[sec:resolving_module_dependencies_for_a_specific_version]]
 === B. Resolving module dependencies for a specific version
 
 When Gradle tries to resolve a required dependency with a specific version, it follows this process:

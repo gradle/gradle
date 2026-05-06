@@ -22,44 +22,42 @@ import org.jspecify.annotations.Nullable;
 
 public final class DefaultIsolatedProject implements IsolatedProject {
 
-    private final ProjectInternal project;
-    private final ProjectInternal rootProject;
+    private final ProjectState owner;
 
-    public DefaultIsolatedProject(ProjectInternal project, ProjectInternal rootProject) {
-        this.project = project;
-        this.rootProject = rootProject;
+    public DefaultIsolatedProject(ProjectState owner) {
+        this.owner = owner;
     }
 
     @Override
     public String getName() {
-        return project.getName();
+        return owner.getName();
     }
 
     @Override
     public String getPath() {
-        return project.getPath();
+        return owner.getProjectPath().asString();
     }
 
     @Override
     public String getBuildTreePath() {
-        return project.getBuildTreePath();
+        return owner.getIdentityPath().asString();
     }
 
     @Override
     public Directory getProjectDirectory() {
-        return project.getLayout().getProjectDirectory();
+        // TODO: avoid mutable model access and have a Directory-typed project dir available on ProjectState
+        // This mutable state access is safe, because the project directory is immutable in the layout.
+        return owner.getMutableModel().getLayout().getProjectDirectory();
     }
 
     @Override
     public IsolatedProject getRootProject() {
-        return project.equals(rootProject)
-            ? this
-            : rootProject.getIsolated();
+        return owner.isRootProject() ? this : owner.getOwner().getRootProject().getIsolated();
     }
 
     @Override
     public int hashCode() {
-        return project.hashCode();
+        return owner.getIdentity().hashCode();
     }
 
     @Override
@@ -68,11 +66,11 @@ public final class DefaultIsolatedProject implements IsolatedProject {
             return false;
         }
         DefaultIsolatedProject that = (DefaultIsolatedProject) obj;
-        return this.project.equals(that.project);
+        return this.owner.getIdentity().equals(that.owner.getIdentity());
     }
 
     @Override
     public String toString() {
-        return "DefaultIsolatedProject{" + project + '}';
+        return "DefaultIsolatedProject{" + owner.getDisplayName() + '}';
     }
 }

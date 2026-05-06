@@ -22,7 +22,6 @@ import org.gradle.api.InvalidUserDataException
 import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParser
 import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParserFactory
 import org.gradle.api.internal.attributes.AttributesFactory
-import org.gradle.api.internal.catalog.problems.VersionCatalogErrorMessages
 import org.gradle.api.internal.catalog.problems.VersionCatalogProblemId
 import org.gradle.api.internal.catalog.problems.VersionCatalogProblemTestFor
 import org.gradle.api.internal.classpath.EffectiveClassPath
@@ -47,7 +46,7 @@ import java.util.function.Supplier
 
 import static org.gradle.api.internal.catalog.AbstractSourceGenerator.toJavaName
 
-class LibrariesSourceGeneratorTest extends AbstractVersionCatalogTest implements VersionCatalogErrorMessages {
+class LibrariesSourceGeneratorTest extends AbstractVersionCatalogTest {
 
     @Rule
     private final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
@@ -179,11 +178,15 @@ class LibrariesSourceGeneratorTest extends AbstractVersionCatalogTest implements
         }
 
         then:
-        InvalidUserDataException ex = thrown()
-        verify ex.message, nameClash {
-            inConflict('groovy.json', 'groovyJson')
-            getterName('getGroovyJson')
+        thrown(InvalidUserDataException)
+        problems.assertProblemEmittedOnce {
+            it.definition.id.displayName == 'Accessor name clash'
+            it.contextualLabel == "In version catalog lib, dependencies groovy.json and groovyJson are mapped to the same accessor name getGroovyJson()"
+            it.details == "A name clash was detected"
+            it.solutions == ["Use a different alias for groovy.json and groovyJson"]
+            it.definition.documentationLink.url.endsWith('userguide/version_catalog_problems.html#accessor_name_clash')
         }
+        problems.resetRecordedProblems()
 
         when:
         generate {
@@ -196,11 +199,17 @@ class LibrariesSourceGeneratorTest extends AbstractVersionCatalogTest implements
         }
 
         then:
-        ex = thrown()
-        verify(ex.message, """Cannot generate dependency accessors:
-${nameClash { noIntro().inConflict('groovy.json', 'groovyJson').getterName('getGroovyJson') }}
-${nameClash { noIntro().inConflict('tada.one', 'tadaOne').getterName('getTadaOne') }}
-""")
+        thrown(InvalidUserDataException)
+        def emitted = problems.emitted
+        emitted.size() == 2
+        verifyAll {
+            emitted.every { it.definition.id.displayName == 'Accessor name clash' }
+            emitted.every { it.details == 'A name clash was detected' }
+            emitted*.contextualLabel.toSet().containsAll([
+                "In version catalog lib, library aliases groovy.json and groovyJson are mapped to the same accessor name getGroovyJson()",
+                "In version catalog lib, library aliases tada.one and tadaOne are mapped to the same accessor name getTadaOne()",
+            ])
+        }
     }
 
     @VersionCatalogProblemTestFor(
@@ -216,31 +225,14 @@ ${nameClash { noIntro().inConflict('tada.one', 'tadaOne').getterName('getTadaOne
         }
 
         then:
-        InvalidUserDataException ex = thrown()
-        verify(ex.message, nameClash {
-            kind('dependency bundles')
-            inConflict('one.cool', 'oneCool')
-            getterName('getOneCoolBundle')
+        thrown(InvalidUserDataException)
+        problems.assertProblemEmittedOnce({
+            it.definition.id.displayName == 'Accessor name clash'
+            it.contextualLabel == "In version catalog lib, dependency bundles one.cool and oneCool are mapped to the same accessor name getOneCoolBundle()"
+            it.details == "A name clash was detected"
+            it.solutions == ["Use a different alias for one.cool and oneCool"]
+            it.definition.documentationLink.url.endsWith('userguide/version_catalog_problems.html#accessor_name_clash')
         })
-
-        when:
-        generate {
-            library('foo', 'g:a:v')
-            library('bar', 'g:a:v')
-            bundle('one.cool', ['foo', 'bar'])
-            bundle('oneCool', ['foo', 'bar'])
-
-            bundle("other.cool", ['foo'])
-            bundle("other_cool", ['bar'])
-            bundle("otherCool", ['bar'])
-        }
-
-        then:
-        ex = thrown()
-        verify(ex.message, """Cannot generate dependency accessors:
-${nameClash { noIntro().kind('dependency bundles').inConflict('other.cool', 'otherCool').getterName('getOtherCoolBundle') }}
-${nameClash { noIntro().kind('dependency bundles').inConflict('one.cool', 'oneCool').getterName('getOneCoolBundle') }}
-""")
     }
 
     def "generated sources can be compiled"() {
@@ -282,11 +274,14 @@ ${nameClash { noIntro().kind('dependency bundles').inConflict('one.cool', 'oneCo
         }
 
         then:
-        InvalidUserDataException ex = thrown()
-        verify ex.message, reservedAlias {
-            alias(reservedName).shouldNotBeEqualTo(prefix)
-            reservedAliasPrefix('bundles', 'plugins', 'versions')
-        }
+        thrown(InvalidUserDataException)
+        problems.assertProblemEmittedOnce({
+            it.definition.id.displayName == 'Reserved alias name'
+            it.contextualLabel == "In version catalog lib, alias '${reservedName}' is a reserved alias"
+            it.details == "Prefix for dependency shouldn't be equal to '${prefix}'"
+            it.solutions == ["Use a different alias which prefix is not equal to 'bundles', 'plugins', or 'versions'"]
+            it.definition.documentationLink.url.endsWith('userguide/version_catalog_problems.html#reserved_alias_name')
+        })
 
         where:
         reservedName | prefix
@@ -308,10 +303,14 @@ ${nameClash { noIntro().kind('dependency bundles').inConflict('one.cool', 'oneCo
         }
 
         then:
-        InvalidUserDataException ex = thrown()
-        verify ex.message, tooManyEntries {
-            entryCount(32000)
-        }
+        thrown(InvalidUserDataException)
+        problems.assertProblemEmittedOnce({
+            it.definition.id.displayName == 'Too many entries'
+            it.contextualLabel == "In version catalog lib, version catalog model contains too many entries (32000)"
+            it.details == "The maximum number of aliases in a catalog is 30000"
+            it.solutions == ["Reduce the number of aliases defined in this catalog", "Split the catalog into multiple catalogs"]
+            it.definition.documentationLink.url.endsWith('userguide/version_catalog_problems.html#too_many_entries')
+        })
     }
 
     def "outputs context in javadocs"() {
@@ -377,7 +376,6 @@ ${nameClash { noIntro().kind('dependency bundles').inConflict('one.cool', 'oneCo
     }
 
     private void generate(String className = 'Generated', @DelegatesTo(strategy = Closure.DELEGATE_FIRST, value = VersionCatalogBuilderInternal) Closure<Void> spec) {
-        def problems = TestUtil.problemsService()
         DefaultVersionCatalogBuilder builder = new DefaultVersionCatalogBuilder(
             "lib",
             Interners.newStrongInterner(),

@@ -1113,8 +1113,22 @@
     "crossVersionTests": false
   },
   {
+    "name": "normalization",
+    "path": "platforms/core-execution/normalization",
+    "unitTests": true,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
+    "name": "normalization-api",
+    "path": "platforms/core-execution/normalization-api",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "normalization-java",
-    "path": "platforms/jvm/normalization-java",
+    "path": "platforms/core-execution/normalization-java",
     "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false

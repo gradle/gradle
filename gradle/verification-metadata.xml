@@ -128,7 +128,10 @@
          </trusted-key>
          <trusted-key id="1CEED21A8E77F056ED2341A84410603103CE3AF4" group="com.googlecode.plist" name="dd-plist"/>
          <trusted-key id="1D0A8B5E77C678A7C724445ABF984B4145EA13F7" group="com.squareup" name="javapoet"/>
-         <trusted-key id="1D217F8475EEE9F19AB8DD6B793FD5751A0F0780" group="com.squareup.okio"/>
+         <trusted-key id="1D217F8475EEE9F19AB8DD6B793FD5751A0F0780">
+            <trusting group="com.squareup.okio"/>
+            <trusting group="com.squareup.retrofit2"/>
+         </trusted-key>
          <trusted-key id="1D85469D8559C2E1DF5F925131D2D79DF7E85DD3" group="org.jcommander" name="jcommander"/>
          <trusted-key id="1FA37FBE4453C1073E7EF61D6449005F96BC97A3" group="de.undercouch"/>
          <trusted-key id="1FA868A348719E88B6D0DE24C03EF1D7D692BCFF" group="org.scala-lang"/>
@@ -267,6 +270,7 @@
             <trusting group="org.apache.maven.wagon" name="wagon-provider-api"/>
             <trusting group="org.codehaus.plexus" name="plexus-cipher"/>
          </trusted-key>
+         <trusted-key id="6A93161EB1990E8346E7BA2B23738DFD7C40DE43" group="org.apache.ant"/>
          <trusted-key id="6BDACA2C0493CCA133B372D09C4F7E9D98B1CC53" group="commons-io" name="commons-io"/>
          <trusted-key id="6CB87B18A453990EAC9453F87D713008CC07E9AD" group="xerces" name="xercesImpl"/>
          <trusted-key id="6D98490C6F1ACDDD448E45954F77679369475BAA" group="com.yarnpkg" name="yarn"/>
@@ -930,9 +934,9 @@
             <sha256 value="cee1ad9674ff4615f492a314a986c77b7c223ae03255c77aacc60c6cea62d59c" origin="Verified" reason="Artifact is not signed"/>
          </artifact>
       </component>
-      <component group="org.jetbrains.intellij.platform" name="intellij-platform-gradle-plugin" version="2.14.0">
-         <artifact name="intellij-platform-gradle-plugin-2.14.0.jar">
-            <sha256 value="49a7612526ca4edafa6e260500c0abc59c9794b24a90771c6c3cf961358b58f4" origin="Verified" reason="Artifact is not signed"/>
+      <component group="org.jetbrains.intellij.platform" name="intellij-platform-gradle-plugin" version="2.16.0">
+         <artifact name="intellij-platform-gradle-plugin-2.16.0.jar">
+            <sha256 value="3fd15c6c2890d758102f82236997cc990b2a32d4df5f7dc0c59e0df3eb54a30b" origin="Verified" reason="Artifact is not signed"/>
          </artifact>
       </component>
       <component group="org.jetbrains.kotlin" name="kotlin-stdlib" version="2.0.0">

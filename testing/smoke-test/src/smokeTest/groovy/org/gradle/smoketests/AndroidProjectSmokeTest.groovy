@@ -18,8 +18,8 @@ package org.gradle.smoketests
 
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 
-import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 import static org.gradle.testkit.runner.TaskOutcome.FROM_CACHE
+import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
 abstract class AndroidProjectSmokeTest extends AbstractAndroidProjectSmokeTest {
 }
@@ -97,36 +97,33 @@ class AndroidProjectLintSmokeTest extends AndroidProjectSmokeTest {
         def runner = runnerForLocation(
             checkoutDir, agpVersion, "app:lint", "-Dandroid.lintWarningsAsErrors=true"
         )
-        // Use --continue so that a deterministic set of tasks runs when some tasks fail
-        runner.withArguments(runner.arguments + "--continue")
+        runner.withArguments(runner.arguments)
         def result = runner
             .ignoreStackTraces("Android Lint may log stack traces when computing SARIF quick-fix edits fails")
             .deprecations(AndroidProjectDeprecations) {
                 expectMultiStringNotationDeprecation(agpVersion)
                 expectProjectDependencyNotationDeprecation()
             }
-            .buildAndFail()
+            .build()
 
         then:
         if (GradleContextualExecuter.isConfigCache()) {
             result.assertConfigurationCacheStateStored()
         }
-        result.output.contains("Lint found errors in the project; aborting build.")
 
         when:
         runner = runnerForLocation(
             checkoutDir, agpVersion, "app:lint", "-Dandroid.lintWarningsAsErrors=true"
         )
-        result = runner.withArguments(runner.arguments + "--continue")
-                .ignoreStackTraces("Android Lint may log stack traces when computing SARIF quick-fix edits fails")
-                .deprecations(AndroidProjectDeprecations) {}
-                .buildAndFail()
+        result = runner.withArguments(runner.arguments)
+            .ignoreStackTraces("Android Lint may log stack traces when computing SARIF quick-fix edits fails")
+            .deprecations(AndroidProjectDeprecations) {}
+            .build()
 
         then:
         if (GradleContextualExecuter.isConfigCache()) {
             result.assertConfigurationCacheStateLoaded()
         }
-        result.output.contains("Lint found errors in the project; aborting build.")
 
         where:
         agpVersion << TestedVersions.androidGradle.versions

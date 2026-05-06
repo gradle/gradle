@@ -19,6 +19,7 @@ Gradle resolves module dependencies by looking for metadata files (`.module`, `.
 If none of these files are found, the build fails.
 In some cases, you may need to customize how Gradle resolves artifacts.
 
+[[sec:why_custom_artifact_resolution]]
 == Why Use Custom Artifact Resolution?
 
 You might need to tweak artifact resolution in the following scenarios:
@@ -27,6 +28,7 @@ You might need to tweak artifact resolution in the following scenarios:
 * The module metadata declares **multiple artifacts** (e.g., an Ivy dependency descriptor).
 * You want to **download only a specific artifact** without transitive dependencies.
 
+[[sec:resolve_artifact_without_metadata]]
 == Step 1: Resolving an Artifact Without Metadata
 
 Let’s say you want to build a web application that uses JavaScript libraries, such as **jQuery**, and download them from a repository instead of checking them into version control.
@@ -43,6 +45,7 @@ include::sample[dir="snippets/how-to/dependency-management/dependency-management
 
 WARNING: Declaring dependencies with a custom extension (e.g. `@zip`, `@jar`, or `@custom`) disables metadata resolution. Gradle treats this as a request for a specific artifact, skipping variant-aware resolution and component metadata. You may need to provide metadata with a custom <<component_metadata_rules.adoc#component-metadata-rules,component metadata rule>>.
 
+[[sec:resolve_artifact_with_classifier]]
 == Step 2: Resolving an Artifact with a Classifier
 
 Some libraries provide multiple variations or **flavors** of an artifact.
@@ -67,6 +70,7 @@ include::sample[dir="snippets/how-to/dependency-management/dependency-management
 include::sample[dir="snippets/how-to/dependency-management/dependency-management/dependency-management/declaringDependencies-artifactOnlyWithClassifier/groovy",files="build.gradle[tags=artifact-only-dependency-declaration]"]
 ====
 
+[[sec:resolve_artifacts_summary]]
 == Summary
 
 Gradle can fetch **non-Java** artifacts like JavaScript libraries from external repositories:

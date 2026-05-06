@@ -70,9 +70,8 @@ public class BuildSrcBuildListenerFactory {
             GradleInternal gradleInternal = (GradleInternal) gradle;
             // Run only those tasks scheduled by this selector and not the default tasks
             gradleInternal.getStartParameter().setTaskRequests(Collections.emptyList());
-            ProjectInternal rootProject = gradleInternal.getRootProject();
-            rootProjectState = rootProject.getOwner();
-            rootProjectConfiguration.execute(rootProject);
+            rootProjectState = gradleInternal.getOwner().getRootProject();
+            rootProjectState.applyToMutableState(rootProjectConfiguration::execute);
         }
 
         @SuppressWarnings("deprecation")

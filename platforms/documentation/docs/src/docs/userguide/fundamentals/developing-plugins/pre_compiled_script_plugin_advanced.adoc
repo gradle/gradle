@@ -27,6 +27,7 @@ Some benefits of *precompiled script plugins*:
 * **Avoid boilerplate**: No need to write full plugin classes or register plugins manually.
 * **Faster adoption**: Use familiar script syntax while reaping the benefits of structured plugin development.
 
+[[sec:convention_plugins_precompiled]]
 == Convention Plugins
 
 Most *precompiled script plugins* are used as *convention plugins*.
@@ -48,6 +49,7 @@ include::sample[dir="snippets/fundamentals/developing-plugins/precompiledScriptP
 include::sample[dir="snippets/fundamentals/developing-plugins/precompiledScriptPlugins-inBuildSrc/groovy", files="build.gradle[]"]
 ====
 
+[[sec:structuring_precompiled_plugins]]
 == Structuring Precompiled Script Plugins
 
 Precompiled script plugins are typically placed in either:
@@ -121,6 +123,7 @@ build-logic
 =====
 ====
 
+[[sec:applying_precompiled_plugin]]
 == Applying a Precompiled Script Plugin
 
 You apply a precompiled script plugin using its ID, derived from the script filename (excluding the `.gradle.kts` or `.gradle` extension).
@@ -149,6 +152,7 @@ plugins {
 The script itself acts as the plugin.
 There is no need to explicitly implement the link:{javadocPath}/org/gradle/api/Plugin.html[`Plugin`] interface; a requirement for binary plugins.
 
+[[sec:publishing_precompiled_plugin]]
 == Publishing a Precompiled Script Plugin
 
 You can publish a precompiled script plugin to a repository, either a public one such as the https://plugins.gradle.org/[Gradle Plugin Portal], or a private artifact repository like Maven, Artifactory, or Nexus.

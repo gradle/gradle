@@ -53,6 +53,14 @@ public class DefaultCrossProjectModelAccess implements CrossProjectModelAccess {
     }
 
     @Override
+    public ProjectInternal accessFromState(ProjectInternal referrer, ProjectState projectState) {
+        return projectState.fromMutableState(project ->
+            // We purposefully leak mutable state here, as we're not in IP here so it's safe.
+            access(referrer, project)
+        );
+    }
+
+    @Override
     @Nullable
     public ProjectInternal findProject(ProjectInternal referrer, Path path) {
         if (!path.isAbsolute()) {

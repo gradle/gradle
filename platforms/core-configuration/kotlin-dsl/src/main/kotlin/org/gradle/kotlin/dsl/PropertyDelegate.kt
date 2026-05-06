@@ -20,7 +20,6 @@ import org.gradle.api.InvalidUserCodeException
 
 import org.gradle.api.internal.DynamicObjectAware
 import org.gradle.api.internal.plugins.DslObject
-import org.gradle.api.internal.project.DynamicLookupRoutine
 import org.gradle.internal.metaobject.DynamicObject
 import org.gradle.kotlin.dsl.support.uncheckedCast
 
@@ -48,10 +47,10 @@ interface MutablePropertyDelegate : PropertyDelegate {
 
 @Suppress("DEPRECATION")
 internal
-fun propertyDelegateFor(dynamicLookupRoutine: DynamicLookupRoutine, target: Any, property: KProperty<*>): PropertyDelegate =
+fun propertyDelegateFor(target: Any, property: KProperty<*>): PropertyDelegate =
     dynamicObjectFor(target).let { owner ->
-        if (property.returnType.isMarkedNullable) NullableDynamicPropertyDelegate(dynamicLookupRoutine, owner, property.name)
-        else NonNullDynamicPropertyDelegate(dynamicLookupRoutine, owner, property.name) { target.toString() }
+        if (property.returnType.isMarkedNullable) NullableDynamicPropertyDelegate(owner, property.name)
+        else NonNullDynamicPropertyDelegate(owner, property.name) { target.toString() }
     }
 
 
@@ -63,27 +62,27 @@ fun dynamicObjectFor(target: Any): DynamicObject =
 @Suppress("DEPRECATION")
 private
 class NullableDynamicPropertyDelegate(
-    private val dynamicLookupRoutine: DynamicLookupRoutine,
     private val owner: DynamicObject,
     private val name: String
 ) : PropertyDelegate {
 
-    override fun <T> getValue(receiver: Any?, property: KProperty<*>): T =
-        uncheckedCast(dynamicLookupRoutine.findProperty(owner, name))
+    override fun <T> getValue(receiver: Any?, property: KProperty<*>): T {
+        val result = owner.tryGetProperty(name)
+        return uncheckedCast(if (result.isFound) result.value else null)
+    }
 }
 
 
 @Suppress("DEPRECATION")
 private
 class NonNullDynamicPropertyDelegate(
-    private val dynamicLookupRoutine: DynamicLookupRoutine,
     private val owner: DynamicObject,
     private val name: String,
     private val describeOwner: () -> String
 ) : PropertyDelegate {
 
     override fun <T> getValue(receiver: Any?, property: KProperty<*>): T =
-        dynamicLookupRoutine.tryGetProperty(owner, name).run {
+        owner.tryGetProperty(name).run {
             if (isFound && value != null) uncheckedCast<T>(value)
             else throw InvalidUserCodeException("Cannot get non-null property '$name' on ${describeOwner()} as it ${if (isFound) "is null" else "does not exist"}")
         }

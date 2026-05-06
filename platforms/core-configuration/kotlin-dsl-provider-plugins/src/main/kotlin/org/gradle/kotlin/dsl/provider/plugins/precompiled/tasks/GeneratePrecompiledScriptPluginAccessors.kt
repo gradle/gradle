@@ -436,8 +436,7 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
                     val projectState = gradle.serviceOf<ProjectStateRegistry>().registerProject(gradle.owner, projectDescriptor)
                     projectState.createMutableModel(rootProjectScope, baseScope)
                     val rootProject = projectState.mutableModel
-                    gradle.rootProject = rootProject
-                    gradle.defaultProject = rootProject
+                    gradle.defaultProjectState = projectState
                     rootProject.projectEvaluationBroadcaster.beforeEvaluate(rootProject)
                     rootProject.run {
                         applyPlugins(plugins)

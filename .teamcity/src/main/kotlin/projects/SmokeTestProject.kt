@@ -33,9 +33,11 @@ class SmokeTestProject(
             setOf(
                 SpecificBuild.SmokeTestsMaxJavaVersion,
                 SpecificBuild.ConfigCacheAndroidProjectSmokeTests,
+                SpecificBuild.IsolatedProjectsAndroidProjectSmokeTests,
                 SpecificBuild.GradleBuildSmokeTests,
                 SpecificBuild.ConfigCacheSmokeTestsMaxJavaVersion,
                 SpecificBuild.ConfigCacheSmokeTestsMinJavaVersion,
+                SpecificBuild.IsolatedProjectsSmokeTestsMaxJavaVersion,
                 SpecificBuild.SmokeIdeTests,
                 SpecificBuild.Gradleception,
             )

@@ -22,6 +22,7 @@ Let's create a binary plugin that offers both.
 When you write a plugin in Gradle, if you want to share it between multiple projects then the best option is to create the plugin in a separate repository.
 This way, you can publish it to a private or public Maven repository, and then apply it in whatever project you need.
 
+[[sec:components_of_a_plugin]]
 == Components of a Plugin
 
 First, let's review the three components of a plugin:
@@ -103,6 +104,7 @@ include::sample[dir="snippets/fundamentals/developing-plugins/fileSizeDiffBinary
 <2> `junit` testing framework - A popular Java testing framework
 <3> Plugin configuration - Sets an id of `org.example.filesizediff` which we can use to reference the plugin
 
+[[sec:extension]]
 == 1. Extension
 
 The extension defines the plugin’s configurable inputs, two file properties in this case:
@@ -124,6 +126,7 @@ The two properties representing the input files are of the `RegularFileProperty`
 </p>
 ++++
 
+[[sec:task]]
 == 2. Task
 
 The task does the bulk of the work:
@@ -158,6 +161,7 @@ The task logic is implemented in a method annotated with `@TaskAction`, which:
 </p>
 ++++
 
+[[sec:plugin]]
 == 3. Plugin
 
 This class wires up the extension and task when the plugin is applied:

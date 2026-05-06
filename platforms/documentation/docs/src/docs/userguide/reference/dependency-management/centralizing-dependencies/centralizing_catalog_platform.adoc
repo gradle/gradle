@@ -36,19 +36,10 @@ mylib = { group = "com.example", name = "mylib", version = "1.0.0" }
 - **Purpose:** A platform is a module in the dependency graph that enforces or aligns versions of dependencies (including transitive dependencies). It influences dependency resolution and ensures version consistency across different modules.
 - **Effect on Dependency Graph:** Platforms **apply** or **enforce** versions to dependencies that are declarated locally without versions.  These versions in a platform are propagated through the dependency graph, affecting transitive dependencies and downstream consumers. They are a formal part of the dependency graph and can dictate the version chosen during resolution.
 
-[source,kotlin]
-.build.gradle.kts
-----
-plugins {
-    `java-platform`
-}
-
-dependencies {
-    constraints {
-        api("com.example:mylib:2.0.0")
-    }
-}
-----
+====
+include::sample[dir="snippets/reference/dependency-management/centralizing-dependencies/catalogsPlatforms-platformExample/kotlin",files="build.gradle.kts[tags=platform-example]"]
+include::sample[dir="snippets/reference/dependency-management/centralizing-dependencies/catalogsPlatforms-platformExample/groovy",files="build.gradle[tags=platform-example]"]
+====
 
 [[sec:catalog-platform]]
 == Using a catalog with a platform

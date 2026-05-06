@@ -191,7 +191,7 @@ $ ./gradlew -q hello
 ----
 [source,text]
 ----
-include::{snippetsPath}/plugins/greeting/tests/greeting.out[]
+include::{snippetsPath}/reference/plugin-development/greeting/tests/greeting.out[]
 ----
 
 This means that changes to the extension's `message` property will trigger the task to be considered out-of-date, ensuring that the task is re-executed with the new message.

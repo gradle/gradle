@@ -149,13 +149,19 @@ tasks {
     register<SmokeTest>("smokeTest") {
         description = "Runs Smoke tests"
         configureForSmokeTest(excludes = listOf(gradleBuildTestPattern, androidProjectTestPattern))
-        
-        dependsOn("androidHomeWarmup")
     }
 
     register<SmokeTest>("configCacheSmokeTest") {
         description = "Runs Smoke tests with the configuration cache"
         systemProperty("org.gradle.integtest.executer", "configCache")
+        configureForSmokeTest(excludes = listOf(gradleBuildTestPattern, androidProjectTestPattern))
+
+        dependsOn("androidHomeWarmup")
+    }
+
+    register<SmokeTest>("isolatedProjectsSmokeTest") {
+        description = "Runs Smoke tests with Isolated Projects"
+        systemProperty("org.gradle.integtest.executer", "isolatedProjects")
         configureForSmokeTest(excludes = listOf(gradleBuildTestPattern, androidProjectTestPattern))
 
         dependsOn("androidHomeWarmup")
@@ -189,6 +195,16 @@ tasks {
         maxParallelForks = 1 // those tests are pretty expensive, we shouldn't execute them concurrently
         jvmArgs("-Xmx700m")
         systemProperty("org.gradle.integtest.executer", "configCache")
+
+        dependsOn("androidHomeWarmup")
+    }
+
+    register<SmokeTest>("isolatedProjectsAndroidProjectSmokeTest") {
+        description = "Runs Android project Smoke tests with IsolatedProjects"
+        configureForSmokeTest(androidProject, includes = listOf(androidProjectTestPattern))
+        maxParallelForks = 1 // those tests are pretty expensive, we shouldn't execute them concurrently
+        jvmArgs("-Xmx700m")
+        systemProperty("org.gradle.integtest.executer", "isolatedProjects")
 
         dependsOn("androidHomeWarmup")
     }

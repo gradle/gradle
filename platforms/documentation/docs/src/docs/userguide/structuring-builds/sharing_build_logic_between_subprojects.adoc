@@ -258,6 +258,7 @@ With <<glossary.adoc#sub:terminology_cross_configuration,cross-project configura
 In the long run, cross-project configuration usually grows in complexity and becomes a burden.
 Cross-project configuration can also introduce configuration-time coupling between projects, which can prevent optimizations like configuration-on-demand from working properly.
 
+[[convention_plugins_versus_cross_configuration]]
 == Convention plugins versus cross-project configuration
 
 The two most common uses of cross-project configuration can be better modeled using convention plugins:

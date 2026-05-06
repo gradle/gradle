@@ -221,7 +221,7 @@ However, Isolated Projects will catch violations as you change your build logic,
 
 Much of the performance benefit of Isolated Projects comes from running project configuration in parallel.
 The degree of parallelism is controlled by the <<build_environment.adoc#sec:property:workers_max,`org.gradle.workers.max` Gradle property>>,
-which sets the maximum number of parallel units of work across all <<build_lifecycle.adoc#build_lifecycle,build phases>>,
+which sets the maximum number of parallel units of work across all <<build_lifecycle.adoc#build_lifecycle_reference,build phases>>,
 including configuration.
 
 The default value is the number of CPU cores on your machine, which is usually a good choice.
@@ -267,12 +267,24 @@ When at least one violation is detected, the build results cannot be considered 
 
 Here is an example of the build logic that contains a violation:
 
-[source,kotlin]
+[.multi-language-sample]
+=====
 .app/build.gradle.kts
+[source,kotlin]
 ----
 // ⚠️ `Project.version` is mutable state of the root project and cannot be accessed from a subproject
 val commonVersion = rootProject.version
 ----
+=====
+[.multi-language-sample]
+=====
+.app/build.gradle
+[source,groovy]
+----
+// ⚠️ `Project.version` is mutable state of the root project and cannot be accessed from a subproject
+def commonVersion = rootProject.version
+----
+=====
 
 [source,bash]
 ----
@@ -545,27 +557,10 @@ Actions registered as `GradleLifecycle` callbacks are *link:{javadocPath}/org/gr
 The example below shows how this API could be used in a settings script or <<plugins.adoc#project_vs_settings_vs_init_plugins, settings plugins>> to apply configuration to all projects,
 while avoiding <<sharing_build_logic_between_subprojects.adoc#sec:convention_plugins_vs_cross_configuration, cross-project configuration>>:
 
-[source,kotlin]
-.settings.gradle.kts
-----
-include("sub1")
-include("sub2")
-
-val sharedGroup = "org.example.app"
-val sharedVersion: String =
-    layout.settingsDirectory.file("version.txt").asFile.readText()
-
-gradle.lifecycle.beforeProject {
-    apply(plugin = "base")
-
-    repositories {
-        mavenCentral()
-    }
-
-    group = sharedGroup
-    version = sharedVersion
-}
-----
+====
+include::sample[dir="snippets/structuring-builds/isolatedProjects-lifecycleApi/kotlin",files="settings.gradle.kts[tags=lifecycle-before-project]"]
+include::sample[dir="snippets/structuring-builds/isolatedProjects-lifecycleApi/groovy",files="settings.gradle[tags=lifecycle-before-project]"]
+====
 
 [[sec:isolated_project_api]]
 ==== Use `IsolatedProject` instead of `Project`
@@ -580,14 +575,28 @@ The use of the isolated view makes it obvious to build logic readers that no cro
 
 The example below shows how the API could be used from a `Project` configuration callback to query the root project directory:
 
-[source,kotlin]
+[.multi-language-sample]
+=====
 .settings.gradle.kts
+[source,kotlin]
 ----
 gradle.lifecycle.beforeProject {
     val rootDir = project.isolated.rootProject.projectDirectory
     println("The root project directory is $rootDir")
 }
 ----
+=====
+[.multi-language-sample]
+=====
+.settings.gradle
+[source,groovy]
+----
+gradle.lifecycle.beforeProject {
+    def rootDir = project.isolated.rootProject.projectDirectory
+    println("The root project directory is $rootDir")
+}
+----
+=====
 
 [[sec:vs_other_features]]
 == Isolated Projects and other Gradle features
