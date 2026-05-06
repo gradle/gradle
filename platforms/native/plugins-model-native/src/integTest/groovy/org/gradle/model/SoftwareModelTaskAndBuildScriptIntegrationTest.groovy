@@ -41,7 +41,7 @@ class SoftwareModelTaskAndBuildScriptIntegrationTest extends AbstractIntegration
     @ToBeFixedForIsolatedProjects(because = "project cannot dynamically look up a method in the parent project")
     def "methods defined in project build script are visible to descendant projects when script contains only methods and model block"() {
         createDirs("child1")
-        settingsFile << "include 'child1'"
+        settingsFile << "rootProject.name = 'root'\ninclude 'child1'"
         buildFile << """
 def doSomething(def value) {
     return value.toString()
@@ -59,15 +59,27 @@ println "child: " + doSomething(11)
 
         expect:
         // Invoke twice to exercise script caching
+        expectParentMethodAccessDeprecation('doSomething', ':child1', "root project 'root'")
         succeeds("hello")
         outputContains("child: 11")
 
         and:
+        if (GradleContextualExecuter.notConfigCache) {
+            expectParentMethodAccessDeprecation('doSomething', ':child1', "root project 'root'")
+        }
         succeeds("hello")
         if (GradleContextualExecuter.notConfigCache) {
             outputContains("child: 11")
         } else {
             outputDoesNotContain("child:")
         }
+    }
+
+    private void expectParentMethodAccessDeprecation(String methodName, String childPath, String parentDisplayName) {
+        executer.expectDocumentedDeprecationWarning("Accessing a method from a parent project has been deprecated. " +
+            "This will fail with an error in Gradle 10. " +
+            "Method '${methodName}' was not found in project '${childPath}' and was dynamically resolved from ${parentDisplayName}. " +
+            "Consult the upgrading guide for further information: " +
+            "https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_accessing_parent_project_properties")
     }
 }

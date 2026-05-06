@@ -119,6 +119,7 @@ abstract class AbstractProjectDependencyConflictResolutionIntegrationSpec extend
 """)
 
         then:
+        executer.noDeprecationChecks()
         succeeds('check')
 
         where:

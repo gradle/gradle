@@ -27,6 +27,9 @@ class ExtraPropertiesIntegrationTest extends AbstractIntegrationSpec {
     def 'extra properties are inherited to child and grandchild projects'() {
         given:
         extraPropertiesMultiBuild()
+        expectParentPropertyAccessDeprecation('testProp', ':a', "root project 'extra-properties'")
+        expectParentPropertyAccessDeprecation('testProp', ':b', "root project 'extra-properties'")
+        expectParentPropertyAccessDeprecation('testProp', ':a:a1', "project ':a'")
 
         expect:
         succeeds checkTestPropTasks()
@@ -43,9 +46,19 @@ class ExtraPropertiesIntegrationTest extends AbstractIntegrationSpec {
                 }
             """.stripIndent()
         }
+        expectParentPropertyAccessDeprecation('testProp', ':b', "root project 'extra-properties'")
+        expectParentPropertyAccessDeprecation('testProp', ':a:a1', "project ':a'")
 
         expect:
         succeeds checkTestPropTasks()
+    }
+
+    private void expectParentPropertyAccessDeprecation(String propertyName, String childPath, String parentDisplayName) {
+        executer.expectDocumentedDeprecationWarning("Accessing a property from a parent project has been deprecated. " +
+            "This will fail with an error in Gradle 10. " +
+            "Property '${propertyName}' was not found in project '${childPath}' and was dynamically resolved from ${parentDisplayName}. " +
+            "Consult the upgrading guide for further information: " +
+            "https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_accessing_parent_project_properties")
     }
 
     BuildTestFile extraPropertiesMultiBuild(Map expectedPropPerProject = [:], @DelegatesTo(BuildTestFile) Closure configuration = {}) {

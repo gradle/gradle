@@ -23,6 +23,7 @@ import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.plugins.ExtraPropertiesExtension;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.instantiation.InstanceGenerator;
 import org.gradle.internal.metaobject.AbstractDynamicObject;
 import org.gradle.internal.metaobject.BeanDynamicObject;
@@ -39,6 +40,8 @@ import java.util.Deque;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import static org.gradle.util.internal.TextUtil.capitalize;
 
 /**
  * A {@link DynamicObject} implementation that provides extensibility.
@@ -286,16 +289,21 @@ public class ExtensibleDynamicObject extends AbstractDynamicObject implements Hi
     }
 
     private void failOnParentAccessIfNeeded(String memberKind, String memberName, DynamicObject resolvedParent) {
-        if (!failOnParentAccess) {
-            return;
+        if (failOnParentAccess) {
+            throw new InvalidUserCodeException(
+                "Implicit parent-project " + memberKind + " lookup is not allowed: "
+                    + memberKind + " '" + memberName + "' was resolved from " + resolvedParent.getDisplayName()
+                    + " for " + getDisplayName() + ". "
+                    + "Define '" + memberName + "' explicitly in " + getDisplayName()
+                    + ", or unset the org.gradle.internal.fail-on-parent-property-lookup system property."
+            );
         }
-        throw new InvalidUserCodeException(
-            "Implicit parent-project " + memberKind + " lookup is not allowed: "
-                + memberKind + " '" + memberName + "' was resolved from " + resolvedParent.getDisplayName()
-                + " for " + getDisplayName() + ". "
-                + "Define '" + memberName + "' explicitly in " + getDisplayName()
-                + ", or unset the org.gradle.internal.fail-on-parent-property-lookup system property."
-        );
+        DeprecationLogger.deprecateAction("Accessing a " + memberKind + " from a parent project")
+            .withContext(capitalize(memberKind) + " '" + memberName + "' was not found in " + getDisplayName()
+                + " and was dynamically resolved from " + resolvedParent.getDisplayName() + ".")
+            .willBecomeAnErrorInGradle10()
+            .withUpgradeGuideSection(9, "deprecated_accessing_parent_project_properties")
+            .nagUser();
     }
 
     @Override

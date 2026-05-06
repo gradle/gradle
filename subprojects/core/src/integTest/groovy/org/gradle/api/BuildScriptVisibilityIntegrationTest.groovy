@@ -24,7 +24,7 @@ class BuildScriptVisibilityIntegrationTest extends AbstractIntegrationSpec {
     @ToBeFixedForIsolatedProjects(because = "project cannot dynamically look up a method in the parent project")
     def "methods defined in project build script are visible to descendant projects"() {
         createDirs("child1")
-        settingsFile << "include 'child1'"
+        settingsFile << "rootProject.name = 'root'\ninclude 'child1'"
         buildFile """
 def doSomething(def value) {
     return "{" + value + "}"
@@ -42,6 +42,8 @@ println "child: " + doSomethingElse(11)
 
         expect:
         // Invoke twice to exercise script caching
+        expectParentMethodAccessDeprecation('doSomething', ':child1', "root project 'root'")
+        expectParentMethodAccessDeprecation('doSomethingElse', ':child1', "root project 'root'")
         succeeds()
         outputContains("root: {10}")
         outputContains("root: [10]")
@@ -49,6 +51,10 @@ println "child: " + doSomethingElse(11)
         outputContains("child: [11]")
 
         and:
+        if (GradleContextualExecuter.notConfigCache) {
+            expectParentMethodAccessDeprecation('doSomething', ':child1', "root project 'root'")
+            expectParentMethodAccessDeprecation('doSomethingElse', ':child1', "root project 'root'")
+        }
         succeeds()
         if (GradleContextualExecuter.notConfigCache) {
             outputContains("root: {10}")
@@ -64,7 +70,7 @@ println "child: " + doSomethingElse(11)
     @ToBeFixedForIsolatedProjects(because = "project cannot dynamically look up a method in the parent project")
     def "methods defined in project build script are visible to script plugins applied to project and descendants"() {
         createDirs("child1")
-        settingsFile << "include 'child1'"
+        settingsFile << "rootProject.name = 'root'\ninclude 'child1'"
         buildFile << """
 def doSomething(def value) {
     return "{" + value + "}"
@@ -84,6 +90,8 @@ println project.path + " - " + doSomethingElse(12)
 
         expect:
         // Invoke twice to exercise script caching
+        expectParentMethodAccessDeprecation('doSomething', ':child1', "root project 'root'")
+        expectParentMethodAccessDeprecation('doSomethingElse', ':child1', "root project 'root'")
         succeeds()
         outputContains(": - {12}")
         outputContains(": - [12]")
@@ -91,6 +99,10 @@ println project.path + " - " + doSomethingElse(12)
         outputContains(":child1 - [12]")
 
         and:
+        if (GradleContextualExecuter.notConfigCache) {
+            expectParentMethodAccessDeprecation('doSomething', ':child1', "root project 'root'")
+            expectParentMethodAccessDeprecation('doSomethingElse', ':child1', "root project 'root'")
+        }
         succeeds()
         if (GradleContextualExecuter.notConfigCache) {
             outputContains(": - {12}")
@@ -106,7 +118,7 @@ println project.path + " - " + doSomethingElse(12)
     @ToBeFixedForIsolatedProjects(because = "project cannot dynamically look up a method in the parent project")
     def "methods defined in project build script are visible to descendant projects when script contains only methods"() {
         createDirs("child1")
-        settingsFile << "include 'child1'"
+        settingsFile << "rootProject.name = 'root'\ninclude 'child1'"
         buildFile << """
 def doSomething(def value) {
     return value.toString()
@@ -118,10 +130,14 @@ println "child: " + doSomething(11)
 
         expect:
         // Invoke twice to exercise script caching
+        expectParentMethodAccessDeprecation('doSomething', ':child1', "root project 'root'")
         succeeds()
         outputContains("child: 11")
 
         and:
+        if (GradleContextualExecuter.notConfigCache) {
+            expectParentMethodAccessDeprecation('doSomething', ':child1', "root project 'root'")
+        }
         succeeds()
         if (GradleContextualExecuter.notConfigCache) {
             outputContains("child: 11")
@@ -249,5 +265,13 @@ println project.path + " ok"
             outputDoesNotContain(": ok")
             outputDoesNotContain(":child1")
         }
+    }
+
+    private void expectParentMethodAccessDeprecation(String methodName, String childPath, String parentDisplayName) {
+        executer.expectDocumentedDeprecationWarning("Accessing a method from a parent project has been deprecated. " +
+            "This will fail with an error in Gradle 10. " +
+            "Method '${methodName}' was not found in project '${childPath}' and was dynamically resolved from ${parentDisplayName}. " +
+            "Consult the upgrading guide for further information: " +
+            "https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_accessing_parent_project_properties")
     }
 }

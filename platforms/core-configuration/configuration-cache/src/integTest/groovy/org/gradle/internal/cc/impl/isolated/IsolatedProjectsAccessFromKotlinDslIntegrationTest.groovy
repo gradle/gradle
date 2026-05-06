@@ -169,7 +169,9 @@ class IsolatedProjectsAccessFromKotlinDslIntegrationTest extends AbstractIsolate
     }
 
     @Issue("https://github.com/gradle/gradle/issues/28204")
-    def "access to #description project property value is causing a violation"() {
+    def "child project does not walk parent's dynamic scope for project.findProperty"() {
+        // Under Isolated Projects the parent's dynamic scope is not wired up on the child,
+        // so findProperty silently returns null instead of finding the value on the parent.
         given:
         settingsFile << """
             include("a")
@@ -180,24 +182,34 @@ class IsolatedProjectsAccessFromKotlinDslIntegrationTest extends AbstractIsolate
 
         // Requires a sub-project
         file("a/build.gradle.kts") << """
-            val myProperty = $expression
-            println("myProperty: " + myProperty) // actual access to the value is required to trigger a lookup
+            val myProperty = project.findProperty("myProperty") as String?
+            println("myProperty: " + myProperty)
+        """
+
+        expect:
+        isolatedProjectsRun("help")
+        outputContains("myProperty: null")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/28204")
+    def "child project fails locally when project.property is defined only on parent"() {
+        given:
+        settingsFile << """
+            include("a")
+        """
+        buildKotlinFile << """
+            project.extensions.extraProperties["myProperty"] = "hello"
+        """
+
+        file("a/build.gradle.kts") << """
+            val myProperty = project.property("myProperty") as String
+            println("myProperty: " + myProperty)
         """
 
         when:
         isolatedProjectsFails("help")
 
         then:
-        outputContains("myProperty: hello")
-
-        fixture.assertStateStoredAndDiscarded {
-            projectsConfigured(":", ":a")
-            problem("Build file 'a/build.gradle.kts': Project ':a' cannot dynamically look up a property in the parent project ':'")
-        }
-
-        where:
-        description    | expression
-        "nullable"     | 'project.findProperty("myProperty") as String?'
-        "non-nullable" | 'project.property("myProperty") as String'
+        failureDescriptionContains("Could not get unknown property 'myProperty' for project ':a'")
     }
 }

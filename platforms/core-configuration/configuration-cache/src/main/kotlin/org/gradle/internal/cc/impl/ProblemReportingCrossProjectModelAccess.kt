@@ -145,10 +145,11 @@ class ProblemReportingCrossProjectModelAccess(
     }
 
     override fun parentProjectDynamicInheritedScope(referrer: ProjectState): HierarchicalDynamicObject? {
-        val parent = referrer.parent ?: return null
-        return CrossProjectModelAccessTrackingParentDynamicObject(
-            parent, referrer.identity, ipProblems, coupledProjectsListener
-        )
+        // Under Isolated Projects, child projects do not walk the parent's dynamic scope at all:
+        // a property/method that's defined only on the parent fails with the standard
+        // MissingPropertyException/MissingMethodException. This matches the eventual Gradle 10
+        // behavior and removes the parent-walk surface entirely from IP builds.
+        return null
     }
 
     private
