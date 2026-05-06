@@ -94,6 +94,12 @@ public class ProjectLifecycleController implements Closeable {
     }
 
     public void ensureSelfConfigured() {
+        // Avoid taking the controller lock if already configured, to avoid contention and deadlocks.
+        // ProjectState#ensureConfigured tries to configure parent projects, and child projects shouldn't
+        // need to all take the lock if the parent project(s) are already configured.
+        if (controller.inStateOrLater(State.Configured)) {
+            return;
+        }
         controller.maybeTransitionIfNotCurrentlyTransitioning(State.Created, State.Configured, () -> project.evaluateUnchecked());
     }
 
