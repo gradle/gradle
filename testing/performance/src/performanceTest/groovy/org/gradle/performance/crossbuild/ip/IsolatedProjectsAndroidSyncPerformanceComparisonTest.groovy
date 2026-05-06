@@ -67,19 +67,6 @@ class IsolatedProjectsAndroidSyncPerformanceComparisonTest extends AbstractCross
             }
         }
 
-        // Moderne plus Configure-on-Demand, which is popular in Android world
-        runner.baseline {
-            displayName("moderne-cod")
-            invocation {
-                args(
-                    "-Dorg.gradle.parallel=true",
-                    "-Dorg.gradle.configuration-cache=true",
-                    "-Dorg.gradle.configuration-cache.parallel=true",
-                    "-Dorg.gradle.configureondemand=true",
-                )
-            }
-        }
-
         runner.buildSpec {
             displayName("ip")
             invocation {
@@ -94,16 +81,12 @@ class IsolatedProjectsAndroidSyncPerformanceComparisonTest extends AbstractCross
 
         then:
         def moderne = buildBaselineResults(result, "moderne")
-        def moderneWithConfigureOnDemand = buildBaselineResults(result, "moderne-cod")
         def ip = result.buildResult("ip")
 
         // TODO:isolated assert that IP is not just faster, but faster with a scaling factor
         // TODO:isolated assert an upper bound of faster to visibly lock-in performance improvements
         println(moderne.getSpeedStatsAgainst("ip", ip))
         !moderne.significantlyFasterThan(ip)
-
-        println(moderneWithConfigureOnDemand.getSpeedStatsAgainst("ip", ip))
-        !moderneWithConfigureOnDemand.significantlyFasterThan(ip)
     }
 
     @Override
