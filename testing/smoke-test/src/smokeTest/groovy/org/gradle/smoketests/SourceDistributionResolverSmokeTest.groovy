@@ -40,12 +40,9 @@ class SourceDistributionResolverSmokeTest extends AbstractSmokeTest {
         fallbackServer.start()
 
         withWrapperDistributionUrl("${primaryServer.uri}/$repositoryName/gradle-${gradleVersion.version}-bin.zip")
-        primaryServer.expectGetMissing("/$repositoryName/")
+        primaryServer.expectHeadMissing("/$repositoryName/$artifactFileName")
 
-        def fallbackDir = file("fallback-repo/$repositoryName")
-        fallbackDir.mkdirs()
         buildContext.srcDistribution.copyTo(file("fallback-repo/$repositoryName/$artifactFileName"))
-        fallbackServer.expectGetDirectoryListing("/$repositoryName/", fallbackDir)
         fallbackServer.expectHead("/$repositoryName/$artifactFileName", buildContext.srcDistribution)
         fallbackServer.expectGet("/$repositoryName/$artifactFileName", buildContext.srcDistribution)
         withSourceResolutionAssertionBuildScript("fallback repository")
@@ -103,10 +100,7 @@ class SourceDistributionResolverSmokeTest extends AbstractSmokeTest {
         def fallbackServer = new HttpServer()
         fallbackServer.start()
 
-        def fallbackDir = file("fallback-repo/$repositoryName")
-        fallbackDir.mkdirs()
         buildContext.srcDistribution.copyTo(file("fallback-repo/$repositoryName/$artifactFileName"))
-        fallbackServer.expectGetDirectoryListing("/$repositoryName/", fallbackDir)
         fallbackServer.expectHead("/$repositoryName/$artifactFileName", buildContext.srcDistribution)
         fallbackServer.expectGet("/$repositoryName/$artifactFileName", buildContext.srcDistribution)
         withSourceResolutionAssertionBuildScript("fallback repository")
