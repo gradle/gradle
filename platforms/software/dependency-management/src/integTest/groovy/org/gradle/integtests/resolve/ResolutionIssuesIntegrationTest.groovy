@@ -20,6 +20,7 @@ import groovy.test.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.JdkVersionTestPreconditions
+import org.gradle.test.preconditions.TestEnvironmentPreconditions
 
 import spock.lang.Ignore
 import spock.lang.Issue
@@ -230,6 +231,51 @@ class ResolutionIssuesIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         succeeds("checkDebugDuplicateClasses")
+    }
+
+    @Requires(TestEnvironmentPreconditions.Online)
+    @Issue("https://github.com/gradle/gradle/issues/36284")
+    def "lenient artifact view exposes failure messages from androidx.room reproducer without NPE"() {
+        // Verbatim reproducer from issue 36284. With the bug, getMessage() throws
+        // NPE because DependencyGraphPathResolver.calculatePaths returns a list
+        // containing a null entry for a directDependee whose incoming edges no
+        // longer chain back to the root component.
+        buildFile << """
+            plugins {
+                id("java")
+            }
+
+            ${mavenCentralRepository()}
+            ${googleRepository()}
+
+            dependencies {
+                implementation("androidx.room:room-sqlite-wrapper:2.8.3")
+                implementation("androidx.room:room-runtime:2.8.3")
+            }
+
+            abstract class DependencyGraphPrinter extends DefaultTask {
+                @Internal
+                abstract Property<ArtifactCollection> getAc()
+
+                @TaskAction
+                void action() {
+                    println("Failures: ")
+                    ac.get().failures.each {
+                        println(it.message)
+                    }
+                }
+            }
+
+            tasks.register("dgp", DependencyGraphPrinter) {
+                def collection = configurations.compileClasspath.incoming.artifactView {
+                    lenient = true
+                }.artifacts
+                ac.set(collection)
+            }
+        """
+
+        expect:
+        succeeds("dgp")
     }
 
     def "depending on a bom of one version and another dependency that upgrades that bom causes unstable graph"() {

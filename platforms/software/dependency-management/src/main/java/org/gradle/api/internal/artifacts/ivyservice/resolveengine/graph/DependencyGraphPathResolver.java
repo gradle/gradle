@@ -19,13 +19,14 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph;
 import org.gradle.api.Describable;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.internal.Describables;
+import org.jspecify.annotations.Nullable;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
+import java.util.Deque;
+import java.util.HashMap;
 import java.util.LinkedHashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -37,57 +38,79 @@ public class DependencyGraphPathResolver {
         DependencyGraphNode toNode,
         DomainObjectContext owner
     ) {
-        // Include the shortest path from each version that has a direct dependency on the broken dependency, back to the root
+        // Compute the shortest path from each component that has a direct dependency on the broken
+        // dependency back to the root component. Each search is an independent BFS in the reverse
+        // ("dependents") direction, which is robust against cycles in the resolved graph (e.g.
+        // mutually-dependent KMP variants like room-runtime <-> room-common-jvm).
 
-        Map<ResolvedGraphComponent, List<Describable>> shortestPaths = new LinkedHashMap<>();
-        List<Describable> rootPath = new ArrayList<>();
-        rootPath.add(Describables.of(owner.getDisplayName()));
-        shortestPaths.put(toNode.getOwner(), rootPath);
+        DependencyGraphComponent root = toNode.getOwner();
+        Describable rootDescribable = Describables.of(owner.getDisplayName());
 
         Set<DependencyGraphComponent> directDependees = new LinkedHashSet<>();
         for (DependencyGraphNode node : fromNodes) {
             directDependees.add(node.getOwner());
         }
 
-        Set<DependencyGraphComponent> seen = new HashSet<>();
-        LinkedList<DependencyGraphComponent> queue = new LinkedList<>(directDependees);
-        while (!queue.isEmpty()) {
-            DependencyGraphComponent version = queue.getFirst();
-            if (version == toNode.getOwner()) {
-                queue.removeFirst();
-            } else if (seen.add(version)) {
-                for (DependencyGraphComponent incomingVersion : version.getDependents()) {
-                    queue.add(0, incomingVersion);
-                }
-            } else {
-                queue.remove();
-                List<Describable> shortest = null;
-                for (DependencyGraphComponent incomingVersion : version.getDependents()) {
-                    List<Describable> candidate = shortestPaths.get(incomingVersion);
-                    if (candidate == null) {
-                        continue;
-                    }
-                    if (shortest == null) {
-                        shortest = candidate;
-                    } else if (shortest.size() > candidate.size()) {
-                        shortest = candidate;
-                    }
-
-                }
-                if (shortest == null) {
-                    continue;
-                }
-                List<Describable> path = new ArrayList<>(shortest);
-                path.add(Describables.of(version.getComponentId().getDisplayName()));
-                shortestPaths.put(version, path);
+        List<List<Describable>> paths = new ArrayList<>();
+        for (DependencyGraphComponent dependee : directDependees) {
+            List<Describable> path = shortestPathToRoot(dependee, root, rootDescribable);
+            if (path != null) {
+                paths.add(path);
             }
         }
-
-        List<List<Describable>> paths = new ArrayList<>();
-        for (DependencyGraphComponent version : directDependees) {
-            List<Describable> path = shortestPaths.get(version);
-            paths.add(path);
-        }
         return paths;
+    }
+
+    private static @Nullable List<Describable> shortestPathToRoot(
+        DependencyGraphComponent start,
+        DependencyGraphComponent root,
+        Describable rootDescribable
+    ) {
+        if (start == root) {
+            List<Describable> single = new ArrayList<>(1);
+            single.add(rootDescribable);
+            return single;
+        }
+        Map<DependencyGraphComponent, DependencyGraphComponent> predecessor = new HashMap<>();
+        predecessor.put(start, null);
+        Deque<DependencyGraphComponent> queue = new ArrayDeque<>();
+        queue.add(start);
+        boolean reachedRoot = false;
+        while (!queue.isEmpty()) {
+            DependencyGraphComponent current = queue.removeFirst();
+            if (current == root) {
+                reachedRoot = true;
+                break;
+            }
+            for (DependencyGraphComponent next : current.getDependents()) {
+                if (!predecessor.containsKey(next)) {
+                    predecessor.put(next, current);
+                    queue.addLast(next);
+                }
+            }
+        }
+        if (!reachedRoot) {
+            return null;
+        }
+
+        // Reconstruct the start->root chain by walking predecessors back from root.
+        Deque<DependencyGraphComponent> chain = new ArrayDeque<>();
+        DependencyGraphComponent walk = root;
+        while (walk != null) {
+            chain.addFirst(walk);
+            walk = predecessor.get(walk);
+        }
+
+        // Output format expected by ModuleVersionResolveException#getMessage:
+        // [<rootDisplayName>, <intermediate componentIds...>, <directDependee componentId>]
+        // The chain holds [start, ..., root] so we walk it in reverse, emitting rootDescribable
+        // first and skipping root's componentId.
+        List<Describable> result = new ArrayList<>(chain.size());
+        result.add(rootDescribable);
+        DependencyGraphComponent[] reversed = chain.toArray(new DependencyGraphComponent[0]);
+        for (int i = reversed.length - 2; i >= 0; i--) {
+            result.add(Describables.of(reversed[i].getComponentId().getDisplayName()));
+        }
+        return result;
     }
 }
