@@ -45,7 +45,7 @@ class IsolatedProjectsAndroidSyncPerformanceComparisonTest extends AbstractCross
     }
 
     // TODO:isolated introduce cold/warm daemon variation
-    def "sync Studio after included build logic refactoring"() {
+    def "sync Studio after build logic ABI change"() {
         given:
         studioSetup()
         def runner = getRunner() // otherwise, IDEA thinks it's PerformanceTestRunner despite the override

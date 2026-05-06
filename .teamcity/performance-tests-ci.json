@@ -13,7 +13,7 @@
       }
     } ]
   }, {
-    "testId" : "org.gradle.performance.crossbuild.ip.IsolatedProjectsAndroidSyncPerformanceComparisonTest.sync Studio after included build logic refactoring",
+    "testId" : "org.gradle.performance.crossbuild.ip.IsolatedProjectsAndroidSyncPerformanceComparisonTest.sync Studio after build logic ABI change",
     "groups" : [ {
       "testProject" : "android500Kts",
       "coverage" : {
@@ -507,7 +507,7 @@
       }
     } ]
   }, {
-    "testId" : "org.gradle.performance.regression.ip.IsolatedProjectsAndroidSyncPerformanceRegressionTest.sync Studio after included build logic refactoring with cold daemon",
+    "testId" : "org.gradle.performance.regression.ip.IsolatedProjectsAndroidSyncPerformanceRegressionTest.sync Studio after build logic ABI change with cold daemon",
     "groups" : [ {
       "testProject" : "android500Kts",
       "coverage" : {
@@ -515,7 +515,7 @@
       }
     } ]
   }, {
-    "testId" : "org.gradle.performance.regression.ip.IsolatedProjectsAndroidSyncPerformanceRegressionTest.sync Studio after included build logic refactoring with warm daemon",
+    "testId" : "org.gradle.performance.regression.ip.IsolatedProjectsAndroidSyncPerformanceRegressionTest.sync Studio after build logic ABI change with warm daemon",
     "groups" : [ {
       "testProject" : "android500Kts",
       "coverage" : {

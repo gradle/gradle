@@ -45,7 +45,7 @@ class IsolatedProjectsAndroidSyncPerformanceRegressionTest extends AbstractCross
     @RunFor([
         @Scenario(type = PER_DAY, operatingSystems = [LINUX], testProjects = ["android500Kts"])
     ])
-    def "sync Studio after included build logic refactoring with #daemon daemon"() {
+    def "sync Studio after build logic ABI change with #daemon daemon"() {
         studioSetup()
         def runner = getRunner() // otherwise, IDEA thinks it's PerformanceTestRunner despite the override
         runner.useDaemon = daemon == warm
