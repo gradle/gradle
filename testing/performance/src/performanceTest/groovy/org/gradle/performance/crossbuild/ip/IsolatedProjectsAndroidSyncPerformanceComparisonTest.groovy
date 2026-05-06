@@ -22,13 +22,13 @@ import org.gradle.performance.annotations.RunFor
 import org.gradle.performance.annotations.Scenario
 import org.gradle.performance.fixture.GradleBuildExperimentSpec
 import org.gradle.performance.results.CrossBuildPerformanceResults
-import org.gradle.profiler.mutations.ApplyAbiChangeToKotlinSourceFileMutator
+import org.gradle.profiler.mutations.ApplyAbiChangeToSourceFileMutator
 
 import static org.gradle.performance.annotations.ScenarioType.PER_DAY
 import static org.gradle.performance.results.OperatingSystem.LINUX
 
 @RunFor(
-    @Scenario(type = PER_DAY, operatingSystems = [LINUX], testProjects = ["android500Kts"])
+    @Scenario(type = PER_DAY, operatingSystems = [LINUX], testProjects = ["android100Kts"])
 )
 class IsolatedProjectsAndroidSyncPerformanceComparisonTest extends AbstractCrossBuildPerformanceTest {
 
@@ -51,7 +51,7 @@ class IsolatedProjectsAndroidSyncPerformanceComparisonTest extends AbstractCross
         def runner = getRunner() // otherwise, IDEA thinks it's PerformanceTestRunner despite the override
 
         runner.addBuildMutator { settings ->
-            new ApplyAbiChangeToKotlinSourceFileMutator(new File(settings.projectDir, "build-logic/convention/src/main/kotlin/org/example/awesome/utils.kt"))
+            new ApplyAbiChangeToSourceFileMutator(new File(settings.projectDir, "build-logic/convention/src/main/java/org/example/awesome/AwesomeStringUtils.java"))
         }
 
         // 'Moderne' configuration that is used by performance aware teams
