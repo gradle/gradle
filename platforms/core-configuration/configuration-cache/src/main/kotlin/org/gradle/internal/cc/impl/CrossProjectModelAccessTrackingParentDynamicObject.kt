@@ -19,6 +19,7 @@ package org.gradle.internal.cc.impl
 import groovy.lang.MissingMethodException
 import groovy.lang.MissingPropertyException
 import org.gradle.api.internal.project.ProjectIdentity
+import org.gradle.api.internal.project.ProjectState
 import org.gradle.internal.configuration.problems.IsolatedProjectsProblemsReporter
 import org.gradle.internal.configuration.problems.PropertyKind
 import org.gradle.internal.configuration.problems.PropertyTrace.Project
@@ -30,110 +31,111 @@ import java.util.Locale.ENGLISH
 
 internal
 class CrossProjectModelAccessTrackingParentDynamicObject(
-    private val ownerProject: ProjectIdentity,
-    private val delegate: HierarchicalDynamicObject,
+    private val parent: ProjectState,
     private val referrerProject: ProjectIdentity,
     private val ipProblems: IsolatedProjectsProblemsReporter,
     private val coupledProjectsListener: CoupledProjectsListener,
 ) : HierarchicalDynamicObject {
 
+    private fun getMutableDelegate(): HierarchicalDynamicObject = parent.mutableModel.inheritedScope
+
     override fun getParent(): HierarchicalDynamicObject? {
-        return delegate.getParent()
+        return getMutableDelegate().getParent()
     }
 
     override fun hasMethod(name: String, vararg arguments: Any?): Boolean {
         onAccess(MemberKind.METHOD, name)
         return ipProblems.runIgnoringProblemsOnCurrentThread {
-            delegate.hasMethod(name, *arguments)
+            getMutableDelegate().hasMethod(name, *arguments)
         }
     }
 
     override fun tryInvokeMethod(name: String, vararg arguments: Any?): DynamicInvokeResult {
         onAccess(MemberKind.METHOD, name)
         return ipProblems.runIgnoringProblemsOnCurrentThread {
-            delegate.tryInvokeMethod(name, *arguments)
+            getMutableDelegate().tryInvokeMethod(name, *arguments)
         }
     }
 
     override fun hasProperty(name: String): Boolean {
         onAccess(MemberKind.PROPERTY, name)
         return ipProblems.runIgnoringProblemsOnCurrentThread {
-            delegate.hasProperty(name)
+            getMutableDelegate().hasProperty(name)
         }
     }
 
     override fun tryGetProperty(name: String): DynamicInvokeResult {
         onAccess(MemberKind.PROPERTY, name)
         return ipProblems.runIgnoringProblemsOnCurrentThread {
-            delegate.tryGetProperty(name)
+            getMutableDelegate().tryGetProperty(name)
         }
     }
 
     override fun trySetProperty(name: String, value: Any?): DynamicInvokeResult {
         onAccess(MemberKind.PROPERTY, name)
         return ipProblems.runIgnoringProblemsOnCurrentThread {
-            delegate.trySetProperty(name, value)
+            getMutableDelegate().trySetProperty(name, value)
         }
     }
 
     override fun trySetPropertyWithoutInstrumentation(name: String, value: Any?): DynamicInvokeResult {
         onAccess(MemberKind.PROPERTY, name)
         return ipProblems.runIgnoringProblemsOnCurrentThread {
-            delegate.trySetPropertyWithoutInstrumentation(name, value)
+            getMutableDelegate().trySetPropertyWithoutInstrumentation(name, value)
         }
     }
 
     override fun getProperties(): MutableMap<String, *> {
         onAccess(MemberKind.PROPERTY, null)
         return ipProblems.runIgnoringProblemsOnCurrentThread {
-            delegate.properties
+            getMutableDelegate().properties
         }
     }
 
     override fun getMissingProperty(name: String): MissingPropertyException {
         onAccess(MemberKind.PROPERTY, name)
         return ipProblems.runIgnoringProblemsOnCurrentThread {
-            delegate.getMissingProperty(name)
+            getMutableDelegate().getMissingProperty(name)
         }
     }
 
     override fun setMissingProperty(name: String): MissingPropertyException {
         onAccess(MemberKind.PROPERTY, name)
         return ipProblems.runIgnoringProblemsOnCurrentThread {
-            delegate.setMissingProperty(name)
+            getMutableDelegate().setMissingProperty(name)
         }
     }
 
     override fun methodMissingException(name: String, vararg params: Any?): MissingMethodException {
         onAccess(MemberKind.METHOD, name)
         return ipProblems.runIgnoringProblemsOnCurrentThread {
-            delegate.methodMissingException(name, *params)
+            getMutableDelegate().methodMissingException(name, *params)
         }
     }
 
     override fun getProperty(name: String): Any? {
         onAccess(MemberKind.PROPERTY, name)
         return ipProblems.runIgnoringProblemsOnCurrentThread {
-            delegate.getProperty(name)
+            getMutableDelegate().getProperty(name)
         }
     }
 
     override fun setProperty(name: String, value: Any?) {
         onAccess(MemberKind.PROPERTY, name)
         return ipProblems.runIgnoringProblemsOnCurrentThread {
-            delegate.setProperty(name, value)
+            getMutableDelegate().setProperty(name, value)
         }
     }
 
     override fun invokeMethod(name: String, vararg arguments: Any?): Any? {
         onAccess(MemberKind.METHOD, name)
         return ipProblems.runIgnoringProblemsOnCurrentThread {
-            delegate.invokeMethod(name, *arguments)
+            getMutableDelegate().invokeMethod(name, *arguments)
         }
     }
 
     override fun getDisplayName(): String {
-        return delegate.displayName
+        return getMutableDelegate().displayName
     }
 
     private
@@ -144,7 +146,7 @@ class CrossProjectModelAccessTrackingParentDynamicObject(
     @Suppress("ThrowingExceptionsWithoutMessageOrCause") // false-positive on the `.exception()` call
     private
     fun onAccess(memberKind: MemberKind, memberName: String?) {
-        coupledProjectsListener.onProjectReference(referrerProject, ownerProject)
+        coupledProjectsListener.onProjectReference(referrerProject, this.parent.identity)
 
         ipProblems.report {
             problem {
@@ -153,7 +155,7 @@ class CrossProjectModelAccessTrackingParentDynamicObject(
                 text(" cannot dynamically look up a ")
                 text(memberKind.name.lowercase(ENGLISH))
                 text(" in the parent project ")
-                reference(ownerProject.buildTreePath)
+                reference(parent.identityPath)
             }
                 .mapLocation { location ->
                     when (memberKind) {
