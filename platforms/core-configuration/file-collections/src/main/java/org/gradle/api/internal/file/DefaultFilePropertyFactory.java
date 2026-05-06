@@ -245,7 +245,11 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory, FileFact
             set(fromFile(file));
         }
 
-        @Override
+        /**
+         * Sets the location of this property using a path string. Relative paths are resolved against the project directory of the owning project.
+         *
+         * <p>Mirrors {@link FileSystemLocationProperty#set(java.io.File)} for path strings — kept implementation-only as this is meant for Groovy DSL backwards source compatibility only.</p>
+         */
         public void set(@Nullable CharSequence path) {
             if (path == null) {
                 set((T) null);
