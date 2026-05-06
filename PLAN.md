@@ -26,21 +26,51 @@ extra channel.
 
 ### Documentation shape
 
-A single optional `String` field on each definition type. No structured
-summary/description split, no source links.
+Documentation is carried as a new `SchemaItemMetadata` variant rather
+than as a direct field on each schema interface. This keeps the schema
+API as a stable shape (no public field additions on existing
+interfaces) and matches the existing pattern where metadata is the
+extension point for cross cutting per item information.
+
+The new variant lives alongside the others in
+`org.gradle.declarative.dsl.schema.SchemaItemMetadata`:
 
 ```kotlin
-val documentation: String?
+interface SchemaDocumentation : SchemaItemMetadata {
+    val text: String?                     // main doc for the item
+    val parts: Map<String, String>        // sub keyed docs (entries, parameters, …)
+}
 ```
 
-`null` means "no documentation available" and is the default for any
-definition not covered by a contributed resource.
+`text` is the doc for the item itself (a class, an enum, a property,
+a function). `parts` is a map of sub keyed docs whose meaning depends
+on the item kind:
+
+| Item kind                | `text`         | `parts`                         |
+|--------------------------|----------------|----------------------------------|
+| `DataClass`              | type doc       | empty                           |
+| `EnumClass`              | enum type doc  | entry name → entry doc          |
+| `SchemaMemberFunction`   | function doc   | parameter name → parameter doc  |
+| `DataProperty`           | property doc   | empty                           |
+
+Items with no documentation simply have no `SchemaDocumentation`
+instance in their `metadata` list (rather than a present instance with
+all nulls/empties). Consumers read with:
+
+```kotlin
+val docs = item.metadata.filterIsInstance<SchemaDocumentation>().firstOrNull()
+docs?.text
+docs?.parts?.get("x")
+```
+
+The grafter ensures **at most one** `SchemaDocumentation` per item:
+if a documented item already has one (e.g. from a mirror pass), an
+explicit catalog entry replaces it. Consumers can rely on `firstOrNull`.
 
 **Content format: CommonMark.** Generators MUST emit valid CommonMark
-strings (or `null` when there is no documentation). Consumers SHOULD
-render the string as Markdown when displaying it; consumers that cannot
-render Markdown MAY display the string verbatim, accepting that
-formatting markers will be visible.
+strings. Consumers SHOULD render the string as Markdown when
+displaying it; consumers that cannot render Markdown MAY display the
+string verbatim, accepting that formatting markers will be visible.
 
 CommonMark, not GitHub Flavored Markdown, is chosen because it is the
 strict subset every renderer agrees on; GFM extensions like tables are
@@ -48,30 +78,34 @@ not portable across consumers.
 
 There is no v1 syntax for cross references between schema definitions
 inside the doc (e.g. linking from `Foo.bar`'s doc to `Bar.baz`).
-Generators may use any plain text convention; resolving those references
-is a concern for the consumer.
+Generators may use any plain text convention; resolving those
+references is a concern for the consumer.
 
 ### Definitions that carry documentation
 
 Public schema interfaces in
-`platforms/core-configuration/declarative-dsl-tooling-models/src/main/kotlin/org/gradle/declarative/dsl/schema/`:
+`platforms/core-configuration/declarative-dsl-tooling-models/src/main/kotlin/org/gradle/declarative/dsl/schema/`
+that may carry a `SchemaDocumentation` entry in their `metadata` list:
 
 - `DataClass`
 - `DataProperty`
 - `SchemaMemberFunction` (covers `DataMemberFunction` and `DataBuilderFunction`)
-- `DataTopLevelFunction`
-- `DataConstructor`
-- `DataParameter`
-- `EnumClass` (both the type itself and per entry documentation)
+- `EnumClass`
 
-Parameter docs are the most valuable shape for IDE completion popups,
-and enum entry docs commonly explain the semantics of each value, so
-both ship in v1.
+Each of these already exposes `metadata: List<SchemaItemMetadata>`
+(directly or via the `ClassDataType` supertype); no public interface
+changes are needed.
 
-`EnumClass` currently exposes entries as `entryNames: List<String>`.
-Rather than promoting entries to a richer type, add a parallel
-`entryDocumentation: Map<String, String>` field. Keys are entry names,
-values are docs. Entries without docs are simply absent from the map.
+**Parameter docs flow through the function's `parts` map.**
+`DataParameter` does **not** carry documentation directly; per
+parameter docs live in the parent `SchemaMemberFunction`'s
+`SchemaDocumentation.parts`, keyed by parameter name. This keeps the
+schema interface surface untouched.
+
+**Enum entry docs flow through the enum's `parts` map.** No parallel
+`entryDocumentation` field on `EnumClass`; entry docs live in the enum's
+`SchemaDocumentation.parts`, keyed by entry name (matching
+`EnumClass.entryNames`).
 
 **JavaBean accessors and Kotlin properties become a single `DataProperty`.**
 The schema's `PropertyExtractor` walks JavaBean getters with the `get`
@@ -83,8 +117,9 @@ The catalog mirrors this:
 
 - A `properties[<name>]` doc covers both read and write. There is no
   separate setter doc.
-- A `functions[setX(T)]` entry would be an orphan (the schema has no
-  such function) and would surface as an orphan key warning.
+- A `functions[setX(T)]` entry would be silently dropped: the schema
+  has no such function, so the loader filters it out without a
+  warning.
 
 **Only the `get` prefix is bean folded.** `isJavaBeanGetter`
 ([ClassMembersForSchema.kt:434](platforms/core-configuration/declarative-dsl-core/src/main/kotlin/org/gradle/internal/declarativedsl/schemaBuilder/ClassMembersForSchema.kt#L434))
@@ -92,7 +127,8 @@ matches `getXxx` only. A `boolean isReady()` getter does **not** become
 a property `ready`; it appears as a member function `isReady()` in the
 schema. The catalog must document it under `functions["isReady()"]`,
 not under `properties.ready`. (Generators that follow Java's bean
-convention naively will produce orphan property entries here.)
+convention naively will produce property entries that the loader
+silently drops as not present in the schema.)
 
 **Getters returning a complex type also synthesize a configuring
 function.** `GetterBasedConfiguringFunctionExtractor`
@@ -109,12 +145,12 @@ type. So `getTestReports(): TestReports` (no setter) yields:
 
 In DCL the user writes `testReports { ... }`, which resolves to the
 configuring function. The catalog only documents the property side
-(`properties[testReports]`); the grafter mirrors the property's doc
-onto the synthesized configuring function, recognising it via the
-`ConfigureFromGetterOrigin` metadata. Mirror is "fill if null", so an
-explicit `functions[testReports()]` entry, if present, still wins.
-Generators should not emit such an explicit entry: it would duplicate
-the property doc and risk diverging strings.
+(`properties[testReports]`); the grafter mirrors the property's
+`SchemaDocumentation` onto the synthesized configuring function,
+recognising it via the `ConfigureFromGetterOrigin` metadata. Mirror is
+"fill if absent", so an explicit `functions[testReports()]` entry,
+if present, still wins. Generators should not emit such an explicit
+entry: it would duplicate the property doc and risk diverging strings.
 
 **Inherited members get their own `DataProperty` / `DataMemberFunction`
 instances.** The schema runs `PropertyExtractor` and `FunctionExtractor`
@@ -122,35 +158,40 @@ per type; for a subtype, inherited members are included in the
 extraction (sourced via `mergeMembersBySignature` from the supertype's
 declared members). So `CheckstyleSourceSetDefinition` ends up with its
 own `DataProperty("ignoreFailures", ...)` instance distinct from the
-one on `CheckstyleDefinition`. Catalogs document each member at its
-**definition site** (the supertype that declares it). The grafter
-mirrors documentation **down the supertype chain**: for each subtype
-property or member function whose documentation is `null`, it walks
-the supertype chain (`DataClass.supertypes`, transitively) and copies
-the documentation from a same named documented member on a supertype.
-Mirror is "fill if null", so an explicit subtype catalog entry still
-wins. Generators should emit each member's doc once, on the type that
-declares it.
+one on `CheckstyleDefinition`. **Generators emit docs at every type
+that exposes the member, including inherited ones.** This works
+naturally with KDoc/Javadoc tooling (Dokka, javadoc), which resolves
+inheritance at extraction time: asking "what is the doc for
+`Foo.foo()`?" returns the inherited doc transparently. The catalog
+ends up with an entry for each subtype site; the grafter applies them
+directly without any inheritance walk.
 
-**Not documented (intentionally):** `ParameterizedTypeSignature` and
+This means **the doc pipeline does not require the schema to carry
+declaring type origin metadata.** Direct per type emission, paired
+with the loader's silent filtering of catalog entries that don't
+match the schema (#2), covers inheritance without a grafter side
+mirror or schema side change. The same is true for members
+contributed via generic supertypes (e.g. `Definition<T>`): they are
+not present in the schema as proper `DataClass`es, but their members
+appear as members of the concrete subtype, where the generator emits
+docs naturally.
+
+**Not documented in v1:** `ParameterizedTypeSignature` and
 `ParameterizedTypeInstance` (e.g. `Property<T>`, `List<T>`,
-`ListProperty<T>`). DCL users never type these names; they write the
-*value* a property holds, not the wrapper type. Given a property
-declared as `scope: Property<String>`, a DCL file says `scope = "..."`,
-and the schema describes it as "a property named `scope` that can have
-`String` values". The `Property` wrapper is implementation detail. The
-property itself (`DataProperty.documentation`) is the right place for
-user facing doc; the type wrapping its value is not. Same reasoning for
-`List<String>` etc. The property doc covers the user visible meaning.
+`ListProperty<T>`). The v1 demos do not exercise these as documented
+definitions, and the long term plan is to derive their
+`SchemaDocumentation` from the class they originate from rather than
+have generators emit it directly. See *Postponed for future
+iterations* for the long term direction.
 
 Also intentionally not documented:
 
 - **`ExternalObjectProviderKey`**. An external object's user visible
   meaning is its type, which is documented via the `DataClass` it
   references. The key itself is just a named pointer.
-- **`AssignmentAugmentation`**. The `+=` style syntax; its underlying
-  `function: DataTopLevelFunction` is already documentable through the
-  function field, which is sufficient.
+- **`AssignmentAugmentation`**. The `+=` style syntax. Out of scope
+  for v1 along with top level functions (see *Postponed for future
+  iterations*).
 - **`defaultImports`**. A list of FQNs, not a definition.
 
 ### Classpath resource
@@ -197,19 +238,7 @@ loading is "deserialize and graft":
           "documentation": "...",
           "parameters": { "x": "..." }
         }
-      },
-      "constructors": {
-        "(java.lang.String)": {
-          "documentation": "...",
-          "parameters": { "name": "..." }
-        }
       }
-    }
-  },
-  "topLevelFunctions": {
-    "org.example.HelperKt.helper(java.lang.String)": {
-      "documentation": "...",
-      "parameters": { "x": "..." }
     }
   },
   "enums": {
@@ -224,7 +253,7 @@ loading is "deserialize and graft":
 Keys are written in **JVM binary form** throughout. Definition types
 may be authored in any JVM language, and the JVM form is the language
 neutral canonical name available on the schema
-(`ClassDataType.javaTypeName`, `DataTopLevelFunction.ownerJvmTypeName`).
+(`ClassDataType.javaTypeName`).
 
 - **Type keys**: JVM binary FQN of the class. Top level:
   `org.example.Bar`. Nested: `org.example.Outer$Inner` (dollar
@@ -232,13 +261,6 @@ neutral canonical name available on the schema
 - **Property keys**: simple property name.
 - **Function keys**: `simpleName(parameter list)`. Parameter list is
   comma separated, no spaces. Parameterless: `simpleName()`.
-- **Constructor keys**: `(parameter list)` only, no name. Default
-  constructor: `()`.
-- **Top level function keys**:
-  `<ownerJvmTypeName>.<simpleName>(parameter list)`. For Kotlin top
-  level functions, `ownerJvmTypeName` is the synthetic file class
-  (e.g. `org.example.HelperKt`). For Java static methods, the declaring
-  class.
 
 **Parameter type fragments** (each entry in a parameter list) project
 `DataParameter.type: DataTypeRef` to a JVM form string:
@@ -273,8 +295,8 @@ neutral canonical name available on the schema
 
 #### Parameter documentation keys
 
-Inside each function/constructor/topLevelFunction entry, parameter docs
-are keyed by **simple parameter name**:
+Inside each function entry, parameter docs are keyed by **simple
+parameter name**:
 
 ```json
 "doX(java.lang.String,int)": {
@@ -319,16 +341,24 @@ plugin JAR documenting a type defined by a Gradle JAR):
 
 The loader is **never fatal**. Documentation is purely additive: its
 absence degrades tooling but cannot break correctness, so the loader
-warns rather than fails. Three classes of issue are detected:
+warns rather than fails. Two classes of issue surface as warnings:
 
 - **Malformed JSON.** The resource is unparseable in part or whole.
   Generator bug; user cannot fix it.
-- **Orphan keys.** A documented key (type, member, parameter, etc.)
-  doesn't match anything in the schema. Typical cause: the contributing
-  plugin renamed or removed a definition without updating its catalog.
 - **Conflicts where this resource lost.** The same key was contributed
   by another resource that took precedence under last wins. Useful to
   diagnose "why aren't my docs showing?".
+
+**Orphan keys are silent.** A documented key that doesn't match
+anything in the current schema is dropped without a warning. With #2's
+"include all docs in catalog" posture, an entry not present in the
+current schema may be perfectly valid for another build's schema (a
+hidden member, a type only used by a depending plugin, etc.); a
+warning here would fire uniformly on benign omissions and real
+generator bugs alike, so the signal is not worth the noise. Generator
+bugs (typos in member names, etc.) surface only when someone notices
+missing docs and looks; the tradeoff is acceptable given doc is
+additive.
 
 **One warning log statement is emitted per resource that has at least
 one issue**, summarizing all of its issues in a single message. A clean
@@ -352,29 +382,26 @@ Documentation issues in <jar path>:
   parse error: <kotlinx serialization message>
 ```
 
-When the resource parses but has other issues, each category with any
-issue appears on its own indented line, in this order:
+When the resource parses but has other issues, the conflict category
+appears on its own indented line:
 
 ```
 Documentation issues in <jar path>:
-  orphan keys (<n>): <k1>, <k2>, …, <k10> (+<n−10> more)
   keys overridden by other catalogs (<m>): <k1>, <k2>, …, <k10> (+<m−10> more)
 ```
 
-Categories with zero issues are omitted entirely.
+A resource with no issues produces no log output.
 
-Each category truncates its key list at **10** keys; the count in
+The category truncates its key list at **10** keys; the count in
 parentheses is the full count, and `(+N more)` signals the remainder.
 Individual keys are listed verbatim, e.g.
-`Bar.compute(java.lang.String,int)` for member functions,
-`(java.lang.String)` for constructors,
-`org.example.HelperKt.helper()` for top level functions.
+`Bar.compute(java.lang.String,int)` for member functions and the
+fully qualified type name for type and enum keys.
 
-Worked example (a JAR with two orphan keys and one overridden key):
+Worked example (a JAR with one overridden key):
 
 ```
 Documentation issues in /Users/alice/.gradle/caches/.../my-plugin-1.0.jar:
-  orphan keys (2): org.example.Foo.removed(), org.example.Bar
   keys overridden by other catalogs (1): org.example.Baz
 ```
 
@@ -401,9 +428,8 @@ One file per JAR that contributes definitions:
 
 - Path: `META-INF/declarative-dsl/documentation.json`
 - Encoding: UTF-8 JSON.
-- Top level object with optional keys: `types`, `enums`,
-  `topLevelFunctions`. Any key may be absent if the JAR contributes
-  nothing in that key space.
+- Top level object with optional keys: `types`, `enums`. Any key may
+  be absent if the JAR contributes nothing in that key space.
 
 All `documentation` values are **CommonMark** strings (or omitted /
 `null` when absent).
@@ -418,7 +444,6 @@ Value: object with optional members:
 - `documentation`: CommonMark string for the type itself.
 - `properties`: map of property simple name to CommonMark string.
 - `functions`: map of function key to function doc object (see below).
-- `constructors`: map of constructor key to function doc object.
 
 #### `enums[<jvm fqn>]`
 
@@ -430,28 +455,18 @@ Value: object with optional members:
 - `entries`: map of enum entry simple name (matching
   `EnumClass.entryNames`) to CommonMark string.
 
-#### `topLevelFunctions[<owner>.<name>(args)]`
-
-Key: `<ownerJvmTypeName>.<simpleName>(<jvm form args>)`. For Kotlin top
-level functions, `ownerJvmTypeName` is the synthetic file class (e.g.
-`org.example.HelperKt`). For Java statics, the declaring class.
-
-Value: function doc object.
-
 #### Function doc object
 
-Used as the value type in `functions`, `constructors`, and
-`topLevelFunctions`. Optional members:
+Used as the value type in `functions`. Optional members:
 
 - `documentation`: CommonMark string for the function.
 - `parameters`: map of parameter simple name to CommonMark string.
   Nameless parameters cannot be documented in v1.
 
-#### Function and constructor key syntax
+#### Function key syntax
 
-- Member function: `<simpleName>(<jvm form args>)`, e.g.
+- `<simpleName>(<jvm form args>)`, e.g.
   `compute(java.lang.String,int)`.
-- Constructor: `(<jvm form args>)`, no name. Default: `()`.
 - Args list is comma separated, **no whitespace**.
 - The trailing **configure block lambda** is excluded from the args
   list. For a function with configure semantics like
@@ -474,24 +489,18 @@ Each comma separated piece in an args list:
 - Vararg: element type fragment plus `[]`. `vararg s: String` becomes
   `java.lang.String[]`.
 
-#### Schema visibility rules to apply
+#### Visibility annotations: ignore them
 
-Definition types use annotations to control what reaches the schema.
-The generator must honour them and skip the same members/types the
-schema skips. Otherwise the emitted entries would be orphans and warn
-at load time.
-
-- `@HiddenInDefinition` on a member excludes that member.
-- `@HiddenInDefinition` on a type makes the type itself hidden and
-  drops its supertypes from declarative use.
-- `@VisibleInDefinition` is the counter annotation, used in a subtype
-  to re expose an inherited hidden member or type.
-
-The annotations live in
-`org.gradle.declarative.dsl.model.annotations` (declarative-dsl-api).
-The reference for the exact rules is the schema's own
-`ClassMembersForSchema`, which is what the loader will validate
-against.
+Definition types may carry `@HiddenInDefinition` and
+`@VisibleInDefinition` annotations to control what reaches the schema.
+**Generators emit docs for all members regardless of these
+annotations.** It is not known upfront which types and members will
+end up in any given build's schema (a hidden member can be overridden
+as visible in a subtype; a plugin can expose types that its own schema
+doesn't use but a depending plugin's schema does). Including all docs
+in the catalog and letting the loader silently filter against the
+actual built schema is simpler and works across all such cases. Entries
+the schema doesn't include are dropped without a warning.
 
 #### Configure functions synthesized from getters
 
@@ -508,8 +517,8 @@ carry documentation* for the full rationale.
 - The loader is non fatal. Bad catalogs warn, never fail the build.
 - Conflict resolution is last wins; the losing resource gets a per
   resource warning.
-- Orphan keys (keys that do not address an actual schema definition)
-  are warned and dropped.
+- Orphan keys (keys that do not address a definition in the current
+  build's schema) are silently dropped, with no warning.
 - Unknown JSON fields are silently ignored (forward compat).
 
 #### Currently out of scope
@@ -558,15 +567,17 @@ level receiver appears both as `topLevelReceiverType: DataClass` and
 (when it has an FQN) as an entry in `dataClassTypesByFqName`. A naive
 grafter that only rebuilds the FQN map would leave
 `topLevelReceiverType` pointing at the *old* `DataClass`, so consumers
-reading `schema.topLevelReceiverType.documentation` would see `null`
-even though the same type's entry in the map is populated.
+reading `schema.topLevelReceiverType.metadata` would not see the
+`SchemaDocumentation` even though the same type's entry in the map
+carries it.
 
 The grafter must rebuild the schema in a single pass that updates every
 reference consistently, typically by rebuilding the map first and then
 resolving each direct reference (top level receiver, generic
-instantiations, etc.) from the rebuilt map. A test asserts that
-`schema.topLevelReceiverType.documentation` and
-`schema.dataClassTypesByFqName[fqn].documentation` agree.
+instantiations, etc.) from the rebuilt map. A test asserts that the
+`SchemaDocumentation` reachable via `schema.topLevelReceiverType` is
+the same instance as the one reachable via
+`schema.dataClassTypesByFqName[fqn]`.
 
 ## Implementation plan (strict TDD)
 
@@ -590,16 +601,21 @@ fixtures resemble real declarative definitions.
 Lays the public API foundation. After this phase, the schema can carry
 documentation; nothing fills it in yet.
 
-**Cycle 1.1: Field reads back as null/empty by default.**
-Red: build a small schema (using existing schema builder test helpers)
-and assert that every `Default*`'s `documentation` is `null` and
-`EnumClass.entryDocumentation` is empty. Compile fails on the access.
-Green: add `documentation: String?` to the seven public interfaces
-listed in *Definitions that carry documentation*; add
-`entryDocumentation: Map<String, String>` to `EnumClass`; update each
-`Default*` impl with a default constructor argument
-(`null` / `emptyMap()`); update the kotlinx serialization shapes in
-`SchemaSerialization.kt` with matching defaults.
+**Cycle 1.1: `SchemaDocumentation` exists and round trips through
+serialization.**
+Red: assert that a `SchemaDocumentation` instance can be constructed
+with a non null `text` and a non empty `parts` map, that it satisfies
+`SchemaItemMetadata`, and that a `Default*` carrying it in its
+`metadata` list serializes via `SchemaSerialization` and deserializes
+back to an equal value. Compile fails because the type does not exist
+yet.
+Green: add the `SchemaDocumentation` interface to
+`org.gradle.declarative.dsl.schema` next to the other
+`SchemaItemMetadata` variants; add a `Default*` implementation in
+`org.gradle.internal.declarativedsl.analysis` next to
+`DefaultSchemaItemMetadata`; register the new variant in
+`SchemaSerialization.kt`. No existing schema interface gets a new
+field; no `Default*` impl outside this new one is touched.
 
 ### Phase 2: Catalog model and key projection
 
@@ -633,80 +649,58 @@ diagnostics; the input catalog is assumed valid (the loader validates).
 **Cycle 3.1: Grafter applies type docs.**
 Red: graft **Sample A** onto a hand built schema containing
 `CheckstyleDefinition`; assert
-`schema.dataClassTypesByFqName[fq].documentation == "Configuration for ..."`.
-Original schema unchanged (immutability).
+`schema.dataClassTypesByFqName[fq].metadata` contains a
+`SchemaDocumentation` whose `text` is the expected string. Original
+schema unchanged (immutability).
 Green: implement the type level pass of `graftDocumentation`.
 
 **Cycle 3.2: Property docs.**
 Red: extend the previous test; assert `ignoreFailures` and `configFile`
-properties have docs.
+properties' `metadata` lists each contain a `SchemaDocumentation` with
+the expected `text`.
 Green: extend grafter for properties.
 
 **Cycle 3.3: Member function docs (with parameter docs).**
 Red: graft **Sample C** onto a schema containing `LibraryDependencies`;
-assert `copyTo(...)` carries function doc and that its `target`
-parameter carries the parameter doc.
-Green: extend grafter for functions and parameters in one cycle (they
-co locate in the catalog under each function's `parameters` block).
+assert that `copyTo(...)`'s `metadata` contains a `SchemaDocumentation`
+whose `text` carries the function doc and whose `parts` map contains
+`"target"` with the parameter doc.
+Green: extend grafter for functions and parameters in one cycle (the
+function and its parameter docs land in the same `SchemaDocumentation`
+instance).
 
-**Cycle 3.4: Constructor docs.**
-Red: graft **Sample I** (constructors and top level functions) onto a
-schema with constructors; assert.
-Green: extend grafter for constructors.
+**Cycle 3.4: Enum type docs and entry docs.**
+Red: graft **Sample J** onto a schema with an enum; assert that the
+enum's `metadata` contains a `SchemaDocumentation` whose `text` is the
+enum type doc and whose `parts` map covers each documented entry by
+name.
+Green: extend grafter for enums (entries land in the same
+`SchemaDocumentation.parts` as the type doc).
 
-**Cycle 3.5: Top level function docs.**
-Red: same Sample I; assert top level function and its parameter doc.
-Green: extend grafter for `externalFunctionsByFqName` /
-`infixFunctionsByFqName`.
-
-**Cycle 3.6: Enum type docs and entry docs.**
-Red: graft **Sample J** onto a schema with an enum; assert both enum
-type doc and per entry docs.
-Green: extend grafter for `EnumClass.documentation` and
-`entryDocumentation`.
-
-**Cycle 3.7: Top level receiver aliasing.**
+**Cycle 3.5: Top level receiver aliasing.**
 Red: graft a sample documenting the FQN of the top level receiver type;
-assert `schema.topLevelReceiverType.documentation` and
-`schema.dataClassTypesByFqName[fq].documentation` are both populated
-and identical (same string instance is fine).
+assert that the `SchemaDocumentation` reachable via
+`schema.topLevelReceiverType.metadata` is the same instance as the one
+reachable via `schema.dataClassTypesByFqName[fq].metadata`.
 Green: rebuild direct `DataClass` references held by `AnalysisSchema`
-(top level receiver, generic instantiation values) from the rebuilt FQN
-map so all aliases agree.
+(top level receiver, generic instantiation values) from the rebuilt
+FQN map so all aliases agree.
 
-**Cycle 3.8: Mirror property docs onto getter synthesized configure
-functions.**
+**Cycle 3.6: Mirror property `SchemaDocumentation` onto getter
+synthesized configure functions.**
 Red: graft **Sample M** onto a schema containing `JavaLibraryModel`
 (which has a `getTestReports()` getter that the schema turns into a
 configure block). The catalog documents only the `testReports`
 property. Assert that both the property and the synthesized
-`testReports()` `DataMemberFunction` carry the same documentation
-string. An explicit `functions["testReports()"]` entry in the catalog,
-if present, still takes precedence over the mirrored value.
+`testReports()` `DataMemberFunction` carry equal `SchemaDocumentation`
+in their `metadata`. An explicit `functions["testReports()"]` entry in
+the catalog, if present, still takes precedence over the mirrored
+value.
 Green: extend the grafter with a pass that walks each
 `DataMemberFunction` whose `metadata` contains
-`ConfigureFromGetterOrigin` and whose `documentation` is `null`, and
-fills it from the same named property in the same enclosing class.
-
-**Cycle 3.9: Mirror inherited member docs down the supertype chain.**
-Red: graft **Sample N** onto a schema containing
-`CheckstyleSourceSetDefinition` (which extends `CheckstyleDefinition`).
-The catalog documents only the parent's
-`properties[ignoreFailures]`. Assert that
-`CheckstyleSourceSetDefinition`'s inherited
-`DataProperty("ignoreFailures", ...)` carries the same documentation
-string, even though the catalog never names the child type. An
-explicit subtype entry, if present, still takes precedence over the
-mirrored value.
-Green: extend the grafter with a pass that walks each `DataClass`,
-inspects each property and member function, and for any with `null`
-documentation searches the supertype chain (transitively via
-`DataClass.supertypes` and `dataClassTypesByFqName`) for a documented
-same named member, copying the doc from the first match. The two
-mirror passes (configure functions in 3.8 and inheritance in 3.9) are
-independent; the grafter runs the inheritance mirror first so that an
-inherited property's doc can subsequently flow into a configure
-function synthesized on the subtype.
+`ConfigureFromGetterOrigin` and lacks a `SchemaDocumentation`, and
+adds one copied from the same named property in the same enclosing
+class.
 
 ### Phase 4: Loader
 
@@ -728,12 +722,14 @@ for `CheckstyleDefinition`, one for `AntlrGrammarsDefinition`); loader
 returns a merged catalog covering both, no warnings.
 Green: implement the merge.
 
-**Cycle 4.3: Filters orphans, warns once.**
+**Cycle 4.3: Filters orphans silently.**
 Red: classloader serves **Sample E**; loader returns a catalog that
-omits the orphan keys, and exactly one `Logger.warn` is captured with
-the per resource summary text from the *Diagnostics* template.
-Green: implement orphan detection (using the schema parameter) and the
-per resource warning emission.
+omits the orphan keys; **no `Logger.warn` is captured**. Generator
+bugs that produce orphan entries are dropped silently because the
+"include all docs" posture in the Generator contract makes orphan vs.
+"hidden in this build" indistinguishable.
+Green: implement orphan filtering (using the schema parameter) without
+emitting any warning.
 
 **Cycle 4.4: Resolves conflicts last wins, warns the loser.**
 Red: classloader serves **Sample F** (two catalogs document the same
@@ -756,8 +752,9 @@ Green: confirm `ignoreUnknownKeys = true` is set on the kotlinx Json
 instance.
 
 **Cycle 4.7: Truncates long issue lists.**
-Red: classloader serves **Sample L** (15 orphan keys); the captured
-warning contains exactly 10 keys and the literal `(+5 more)`.
+Red: classloader serves **Sample L** (15 catalogs colliding on the
+same set of keys, so each loser carries 15 overridden entries); the
+captured warning contains exactly 10 keys and the literal `(+5 more)`.
 Green: implement the cap at 10 truncation in the warning formatter.
 
 ### Phase 5: Wiring (integration)
@@ -784,9 +781,10 @@ Green: should pass with no extra code, since `getResources()` walks the
 parent chain. The cycle exists to pin the behaviour.
 
 **Cycle 5.3: Diagnostics surface in the build log.**
-Red: integration test runs with a fixture plugin shipping **Sample E**
-(orphan keys); assert the build output contains the expected warning
-text.
+Red: integration test runs with two fixture plugins both contributing
+**Sample F** (the same key with conflicting docs); assert the build
+output contains the expected per resource warning naming the
+overridden key.
 Green: should pass; this is regression coverage for the wiring.
 
 ## Sample catalogs
@@ -829,8 +827,8 @@ members; only the keys present in the catalog get docs.
 }
 ```
 
-(Asserted: `CheckstyleSourceSetDefinition.documentation` is populated;
-`CheckstyleDefinition.documentation` is still null.)
+(Asserted: `CheckstyleSourceSetDefinition.metadata` contains a
+`SchemaDocumentation`; `CheckstyleDefinition.metadata` does not.)
 
 ### Sample C: member function with parameter doc
 
@@ -889,10 +887,11 @@ JAR 2:
 }
 ```
 
-### Sample E: orphan keys
+### Sample E: orphan keys (silent filtering)
 
-Covers: orphan filtering and warning. The `removedProperty` and
-`org.example.NotInSchema` entries do not exist in the schema.
+Covers: silent orphan filtering. The `removedProperty` and
+`org.example.NotInSchema` entries do not exist in the schema. The
+loader drops them without a warning, and the build proceeds.
 
 ```json
 {
@@ -949,35 +948,6 @@ the unknown field and emits no warning.
 }
 ```
 
-### Sample I: constructors and top level functions
-
-A small synthetic top level helper and a constructor on a synthetic
-type. (The demos do not exercise these directly; the test schema
-includes a hand built receiver type with a constructor and a helper.)
-
-```json
-{
-  "types": {
-    "org.example.demo.Coords": {
-      "constructors": {
-        "(java.lang.String,int)": {
-          "documentation": "Build coordinates from group and depth.",
-          "parameters": {
-            "group": "The group name.",
-            "depth": "Numeric depth."
-          }
-        }
-      }
-    }
-  },
-  "topLevelFunctions": {
-    "org.example.demo.HelpersKt.coords(java.lang.String,int)": {
-      "documentation": "Convenience builder for Coords."
-    }
-  }
-}
-```
-
 ### Sample J: enum
 
 A synthetic enum (the demos do not currently include one). Covers enum
@@ -1023,25 +993,33 @@ Covers every entry of the primitive table and the vararg `[]` rule.
 }
 ```
 
-### Sample L: high volume orphans (truncation)
+### Sample L: high volume conflicts (truncation)
 
-A catalog with 15 orphan property entries on a real type, to verify
-the truncation cap of 10 in the warning text.
+A pair of catalogs that document the same 15 keys on a real type with
+different doc strings, so each loser carries 15 overridden entries.
+Used to verify the truncation cap of 10 in the warning text. (Set up
+in tests by replicating the same property keys across the two
+fixtures; the actual property names can be made up since the test
+fixture's hand built schema decides what is in the schema.)
 
 ```json
 {
   "types": {
     "org.gradle.api.plugins.checkstyle.CheckstyleDefinition": {
       "properties": {
-        "orphan1": "...",
-        "orphan2": "...",
+        "p1": "version A",
+        "p2": "version A",
         "...": "...",
-        "orphan15": "..."
+        "p15": "version A"
       }
     }
   }
 }
 ```
+
+A second catalog provides the same 15 property keys with `"version B"`
+docs; whichever loads last wins; the loser logs a single warning
+listing 10 keys plus `(+5 more)`.
 
 ### Sample M: getter synthesized configure function (mirror)
 
@@ -1065,36 +1043,57 @@ synthesized configuring function carry the same string.
 }
 ```
 
-(Asserted: `properties[testReports].documentation` is populated **and**
-the synthesized `testReports()` `DataMemberFunction` carries the same
-documentation string. No `functions["testReports()"]` entry in the
+(Asserted: the `testReports` property's `metadata` contains a
+`SchemaDocumentation` **and** the synthesized `testReports()`
+`DataMemberFunction`'s `metadata` carries an equivalent
+`SchemaDocumentation`. No `functions["testReports()"]` entry in the
 catalog.)
 
-### Sample N: inherited member doc (supertype mirror)
+## Postponed for future iterations
 
-Covers the grafter's inheritance mirror pass. The catalog documents
-`ignoreFailures` only on the parent type `CheckstyleDefinition`. After
-grafting, the child type `CheckstyleSourceSetDefinition` (which extends
-`CheckstyleDefinition`) carries the same documentation on its own
-distinct `DataProperty("ignoreFailures", ...)` instance, even though
-the catalog never names the child.
+Things intentionally left out of v1 that may come back later. Listed
+here so the omission is recorded rather than forgotten.
 
-```json
-{
-  "types": {
-    "org.gradle.api.plugins.checkstyle.CheckstyleDefinition": {
-      "properties": {
-        "ignoreFailures": "Whether Checkstyle violations should fail the build."
-      }
-    }
-  }
-}
-```
+- **Top level functions.** The schema has a few hand written built ins
+  in `externalFunctionsByFqName` / `infixFunctionsByFqName`, no custom
+  ones. Their documentation can live alongside their construction in
+  code for now, so the catalog format does not include a
+  `topLevelFunctions` block. Add support if/when custom top level
+  functions become a thing or when the volume justifies a catalog
+  driven approach.
 
-(Asserted: both
-`CheckstyleDefinition.properties[ignoreFailures].documentation` **and**
-`CheckstyleSourceSetDefinition.properties[ignoreFailures].documentation`
-carry the same string.)
+- **Parameterized type documentation.**
+  `ParameterizedTypeSignature` and `ParameterizedTypeInstance` (e.g.
+  `Property<T>`, `List<T>`, `ListProperty<T>`) carry no documentation
+  in v1. In the long run they should derive their
+  `SchemaDocumentation` from the class they originate from (the same
+  class whose KDoc/Javadoc the generator already extracts), so that
+  schema viewers showing a parameterized type can render the
+  originating class's doc. Adjacent improvement mentioned by Sergey:
+  the schema introspection tool currently does not print these types;
+  making it print them is a complement to this work but lives outside
+  this plan.
+
+- **Documentation for synthesised member functions.** The schema
+  synthesises member functions in two cases that v1 does not
+  document:
+  - **Dependency collector overloads** (`api(...)`,
+    `implementation(...)`, etc.) generated by
+    `DependencyCollectorFunctionExtractorAndRuntimeResolver` from a
+    declared `DependencyCollector`-typed property. The originating
+    property's KDoc is the natural doc source. The cleanest long
+    term path is to extend the schema with a metadata entry
+    identifying these synthesised overloads (parallel to
+    `ConfigureFromGetterOrigin` already used for getter synthesised
+    configure functions), then have the grafter mirror docs from
+    the originating property.
+  - **Container element factories** generated by
+    `ContainersSchemaComponent`. They already carry
+    `ContainerElementFactory(elementType)` metadata, but there is no
+    clear source of doc since the source declares only the container,
+    not the factory function. Whether these need documentation at
+    all is itself an open question; revisit when a concrete use case
+    appears.
 
 ## Open questions for later
 
