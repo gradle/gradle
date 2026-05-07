@@ -914,11 +914,11 @@ $ gradle init --type java-library
 [[standardize_and_provision_gradle]]
 === Standardize and provision Gradle
 
-The built-in `gradle wrapper` task generates a script, `gradlew`, that invokes a declared version of Gradle, downloading it beforehand if necessary.
+The built-in `gradle :wrapper` task generates a script, `gradlew`, that invokes a declared version of Gradle, downloading it beforehand if necessary.
 
 [source,bash]
 ----
-$ ./gradlew wrapper --gradle-version=8.1
+$ ./gradlew :wrapper --gradle-version=8.1
 ----
 
 You can also specify `--distribution-type=(bin|all)`, `--gradle-distribution-url`, `--gradle-distribution-sha256-sum` in addition to `--gradle-version`. +
