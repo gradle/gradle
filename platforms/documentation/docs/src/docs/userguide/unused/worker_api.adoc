@@ -52,7 +52,7 @@ You should name this class `CreateMD5`:
 .buildSrc/src/main/java/CreateMD5.java
 [source,java]
 ----
-include::{snippetsPath}/workerApi/md5CustomTask/groovy/buildSrc/src/main/java/CreateMD5.java[]
+include::{snippetsPath}/workerApi/md5CustomTask/common/buildSrc/src/main/java/CreateMD5.java[]
 ----
 <1> link:{javadocPath}/org/gradle/api/tasks/SourceTask.html[SourceTask] is a convenience type for tasks that operate on a set of source files.
 <2> The task output will go into a configured directory.
@@ -127,7 +127,7 @@ There is no need to create a concrete implementation because Gradle will generat
 .buildSrc/src/main/java/MD5WorkParameters.java
 [source,java]
 ----
-include::{snippetsPath}/workerApi/md5NoIsolation/groovy/buildSrc/src/main/java/MD5WorkParameters.java[]
+include::{snippetsPath}/workerApi/md5NoIsolation/common/buildSrc/src/main/java/MD5WorkParameters.java[]
 ----
 <1> Use `Property` objects to represent the source and MD5 hash files.
 
@@ -137,7 +137,7 @@ This class is your "unit of work" implementation, and it should be an abstract c
 .buildSrc/src/main/java/GenerateMD5.java
 [source,java]
 ----
-include::{snippetsPath}/workerApi/md5NoIsolation/groovy/buildSrc/src/main/java/GenerateMD5.java[]
+include::{snippetsPath}/workerApi/md5NoIsolation/common/buildSrc/src/main/java/GenerateMD5.java[]
 ----
 <1> Do not implement the `getParameters()` method - Gradle will inject this at runtime.
 
@@ -147,7 +147,7 @@ link:{javadocPath}/org/gradle/workers/WorkerExecutor.html[WorkerExecutor] instea
 .buildSrc/src/main/java/CreateMD5.java
 [source,java]
 ----
-include::{snippetsPath}/workerApi/md5NoIsolation/groovy/buildSrc/src/main/java/CreateMD5.java[]
+include::{snippetsPath}/workerApi/md5NoIsolation/common/buildSrc/src/main/java/CreateMD5.java[]
 ----
 <1> The link:{javadocPath}/org/gradle/workers/WorkerExecutor.html[WorkerExecutor] service is required in order to submit your work.
 Create an abstract getter method annotated `javax.inject.Inject`, and Gradle will inject the service at runtime when the task is created.
@@ -201,7 +201,7 @@ The `classLoaderIsolation()` method tells Gradle to run this work in a thread wi
 .buildSrc/src/main/java/CreateMD5.java
 [source, groovy]
 ----
-include::{snippetsPath}/workerApi/md5ClassloaderIsolation/groovy/buildSrc/src/main/java/CreateMD5.java[]
+include::{snippetsPath}/workerApi/md5ClassloaderIsolation/common/buildSrc/src/main/java/CreateMD5.java[]
 ----
 <1> Expose an input property for the codec library classpath.
 <2> Configure the classpath on the link:{javadocPath}/org/gradle/workers/ClassLoaderWorkerSpec.html[ClassLoaderWorkerSpec] when creating the work queue.
@@ -246,7 +246,7 @@ You may also want to configure custom settings for the new process:
 .buildSrc/src/main/java/CreateMD5.java
 [source,java]
 ----
-include::{snippetsPath}/workerApi/md5ProcessIsolation/groovy/buildSrc/src/main/java/CreateMD5.java[]
+include::{snippetsPath}/workerApi/md5ProcessIsolation/common/buildSrc/src/main/java/CreateMD5.java[]
 ----
 <1> Change the isolation mode to `PROCESS`.
 <2> Set up the link:{javadocPath}/org/gradle/process/JavaForkOptions.html[JavaForkOptions] for the new process.
