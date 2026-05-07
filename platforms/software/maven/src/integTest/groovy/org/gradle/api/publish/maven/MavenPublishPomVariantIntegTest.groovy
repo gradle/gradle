@@ -71,4 +71,37 @@ class MavenPublishPomVariantIntegTest extends AbstractIntegrationSpec {
         expect:
         succeeds(':consumer:resolvePom')
     }
+
+    def "pomElements is not included in published Gradle Module Metadata"() {
+        settingsFile << "rootProject.name = 'lib'"
+
+        buildFile << """
+            plugins {
+                id 'java-library'
+                id 'maven-publish'
+            }
+
+            group = 'com.example'
+            version = '1.0'
+
+            publishing {
+                publications {
+                    maven(MavenPublication) {
+                        from components.java
+                    }
+                }
+                repositories {
+                    maven { url = uri("\$buildDir/repo") }
+                }
+            }
+        """
+
+        when:
+        succeeds 'generateMetadataFileForMavenPublication'
+
+        then:
+        def gmm = file('build/publications/maven/module.json').text
+        !gmm.contains('pomElements')
+        !gmm.contains('"category": "metadata"')
+    }
 }
