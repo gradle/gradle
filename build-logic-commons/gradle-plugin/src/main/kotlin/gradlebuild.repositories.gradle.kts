@@ -16,6 +16,13 @@
 
 repositories {
     maven {
+        name = "Kotlin development repository"
+        url = uri("https://redirector.kotlinlang.org/maven/dev/")
+        mavenContent {
+            includeGroupByRegex("org\\.jetbrains\\.kotlin(\\..*)?")
+        }
+    }
+    maven {
         name = "Gradle public repository"
         url = uri("https://repo.gradle.org/gradle/public")
         content {
