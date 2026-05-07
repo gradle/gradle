@@ -796,20 +796,20 @@ track progress.
 
 ### Phase 1: `SchemaDocumentation` metadata variant
 
-- [ ] **T1.1** Add the `SchemaDocumentation` interface to
+- [x] **T1.1** Add the `SchemaDocumentation` interface to
   `org.gradle.declarative.dsl.schema.SchemaItemMetadata`
   (declarative-dsl-tooling-models): subtype of `SchemaItemMetadata`
   with `text: String?` and `parts: Map<String, String>`. Document its
   contract (CommonMark `text`, named sub docs in `parts`).
-- [ ] **T1.2** Update the `@ToolingModelContract(subTypes = [...])`
+- [x] **T1.2** Update the `@ToolingModelContract(subTypes = [...])`
   annotation on `SchemaItemMetadata` to include `SchemaDocumentation`.
-- [ ] **T1.3** Add `DefaultSchemaDocumentation` data class in
+- [x] **T1.3** Add `DefaultSchemaDocumentation` data class in
   `org.gradle.internal.declarativedsl.analysis` (declarative-dsl-core),
   annotated `@Serializable` and `@SerialName("schemaDocumentation")`.
-- [ ] **T1.4** Register `DefaultSchemaDocumentation` as a polymorphic
+- [x] **T1.4** Register `DefaultSchemaDocumentation` as a polymorphic
   subclass in `SchemaSerialization.kt` under the
   `SchemaItemMetadata` polymorphic block.
-- [ ] **T1.5** Write a unit test in declarative-dsl-core: construct a
+- [x] **T1.5** Write a unit test in declarative-dsl-core: construct a
   `DefaultSchemaDocumentation` with non null `text` and non empty
   `parts`, attach it to a hand built `Default*` item's `metadata`,
   serialize via `SchemaSerialization`, deserialize, assert structural
@@ -817,187 +817,207 @@ track progress.
 
 ### Phase 2: Catalog data model and key projection
 
-- [ ] **T2.1** Create the package
+- [x] **T2.1** Create the package
   `org.gradle.internal.declarativedsl.documentation` in
   declarative-dsl-core.
-- [ ] **T2.2** Add `DocumentationCatalog` `@Serializable` data class
+- [x] **T2.2** Add `DocumentationCatalog` `@Serializable` data class
   with `types: Map<String, TypeDocumentation> = emptyMap()` and
   `enums: Map<String, EnumDocumentation> = emptyMap()`.
-- [ ] **T2.3** Add `TypeDocumentation` `@Serializable` data class with
+- [x] **T2.3** Add `TypeDocumentation` `@Serializable` data class with
   `documentation: String? = null`,
   `properties: Map<String, String> = emptyMap()`,
   `functions: Map<String, FunctionDocumentation> = emptyMap()`.
-- [ ] **T2.4** Add `FunctionDocumentation` `@Serializable` data class
+- [x] **T2.4** Add `FunctionDocumentation` `@Serializable` data class
   with `documentation: String? = null`,
   `parameters: Map<String, String> = emptyMap()`.
-- [ ] **T2.5** Add `EnumDocumentation` `@Serializable` data class with
+- [x] **T2.5** Add `EnumDocumentation` `@Serializable` data class with
   `documentation: String? = null`,
   `entries: Map<String, String> = emptyMap()`.
-- [ ] **T2.6** Add a private `kotlinx.serialization.json.Json` instance
+- [x] **T2.6** Add a private `kotlinx.serialization.json.Json` instance
   configured with `ignoreUnknownKeys = true`, used by both the loader
   and the unit tests in this phase.
-- [ ] **T2.7** Write a unit test that deserializes **Sample A** as a
+- [x] **T2.7** Write a unit test that deserializes **Sample A** as a
   raw JSON string and asserts the resulting `DocumentationCatalog`
   tree.
-- [ ] **T2.8** Write a unit test that deserializes **Sample H** (with
+- [x] **T2.8** Write a unit test that deserializes **Sample H** (with
   an unknown top level field) and asserts the parse succeeds and the
   unknown field is silently ignored.
-- [ ] **T2.9** Implement `paramTypeFragment(ref: DataTypeRef): String`
+- [x] **T2.9** Implement `paramTypeFragment(ref: DataTypeRef): String`
   as a pure function. Cover: `DataTypeRef.Type` (primitives via the
   fixed table), `DataTypeRef.Name` (use the underlying class's
   `javaTypeName`), `DataTypeRef.NameWithArgs` (erased to the
   signature's `javaTypeName`), and the vararg `[]` suffix rule.
-- [ ] **T2.10** Implement
+- [x] **T2.10** Implement
   `functionKey(simpleName: String, parameters: List<DataParameter>): String`
   as a pure function joining `simpleName(<frag1>,<frag2>,...)` with
   no whitespace.
-- [ ] **T2.11** Write table driven unit tests for `paramTypeFragment`
+- [x] **T2.11** Write table driven unit tests for `paramTypeFragment`
   covering: every row of the primitive table, top level FQN, nested
   FQN with `$`, parameterized erased, vararg of `String`, vararg of a
   user type.
-- [ ] **T2.12** Write unit tests for `functionKey`: zero parameters,
+- [x] **T2.12** Write unit tests for `functionKey`: zero parameters,
   one primitive, mixed primitives, mixed primitive plus class,
   trailing vararg, single vararg.
 
 ### Phase 3: Grafter
 
-- [ ] **T3.1** Add the entry point
+- [x] **T3.1** Add the entry point
   `graftDocumentation(schema: AnalysisSchema, catalog: DocumentationCatalog): AnalysisSchema`
   in the same package as the catalog model. No Gradle dependencies.
-- [ ] **T3.2** Implement type level grafting: for each entry in
+- [x] **T3.2** Implement type level grafting: for each entry in
   `dataClassTypesByFqName`, look up its `javaTypeName` in
   `catalog.types`; when a `documentation` is present, append a
   `DefaultSchemaDocumentation(text = ..., parts = emptyMap())` to the
   type's `metadata` and rebuild the `Default*` instance.
-- [ ] **T3.3** Add a hand built schema test fixture for
+- [x] **T3.3** Add a hand built schema test fixture for
   `CheckstyleDefinition`. Write the Cycle 3.1 test using **Sample A**
   asserting type level `SchemaDocumentation`.
-- [ ] **T3.4** Extend the type level pass: for each `DataProperty` in
+- [x] **T3.4** Extend the type level pass: for each `DataProperty` in
   the type's `properties`, look up the property name in
   `entry.properties` and attach a
   `DefaultSchemaDocumentation(text = ..., parts = emptyMap())` to the
   property's `metadata`.
-- [ ] **T3.5** Extend the test from T3.3 to assert the property docs
+- [x] **T3.5** Extend the test from T3.3 to assert the property docs
   for `ignoreFailures` and `configFile`.
-- [ ] **T3.6** Implement member function plus parameter grafting: for
+- [x] **T3.6** Implement member function plus parameter grafting: for
   each `DataMemberFunction`, build the function key via T2.10, look
   up in `entry.functions`, attach a
   `DefaultSchemaDocumentation(text = entry.documentation, parts = entry.parameters)`
   to the function's `metadata`.
-- [ ] **T3.7** Add a hand built schema test fixture for
+- [x] **T3.7** Add a hand built schema test fixture for
   `LibraryDependencies` exposing `copyTo(LibraryDependencies)`. Write
   the Cycle 3.3 test using **Sample C**.
-- [ ] **T3.8** Implement enum grafting: for each `EnumClass` in the
+- [x] **T3.8** Implement enum grafting: for each `EnumClass` in the
   schema, look up in `catalog.enums`, attach a
   `DefaultSchemaDocumentation(text = entry.documentation, parts = entry.entries)`
   to its `metadata`.
-- [ ] **T3.9** Add a synthetic `Severity` enum schema fixture. Write
+- [x] **T3.9** Add a synthetic `Severity` enum schema fixture. Write
   the Cycle 3.4 test using **Sample J**.
-- [ ] **T3.10** Implement reference aliasing in the rebuild: rebuild
+- [x] **T3.10** Implement reference aliasing in the rebuild: rebuild
   `dataClassTypesByFqName` first, then resolve every direct
   `DataClass` reference held by `AnalysisSchema` (top level receiver,
   generic instantiation map values) from the rebuilt FQN map so all
   aliases agree.
-- [ ] **T3.11** Write the Cycle 3.5 aliasing test: a sample
+- [x] **T3.11** Write the Cycle 3.5 aliasing test: a sample
   documenting the top level receiver's FQN; assert the
   `SchemaDocumentation` reachable via `topLevelReceiverType` is the
   same instance as the one reachable via `dataClassTypesByFqName`.
-- [ ] **T3.12** Implement the configure function mirror pass: walk
+- [x] **T3.12** Implement the configure function mirror pass: walk
   every `DataMemberFunction` whose `metadata` contains
   `ConfigureFromGetterOrigin` and lacks a `SchemaDocumentation`; copy
   the `SchemaDocumentation` from the same named property in the same
   enclosing class.
-- [ ] **T3.13** Add a hand built `JavaLibraryModel` schema fixture
+- [x] **T3.13** Add a hand built `JavaLibraryModel` schema fixture
   exposing the synthesized `testReports()` configure function. Write
   the Cycle 3.6 test using **Sample M**.
 
 ### Phase 4: Loader
 
-- [ ] **T4.1** Create the package
+- [x] **T4.1** Create the package
   `org.gradle.internal.declarativedsl.documentation` in
   declarative-dsl-provider.
-- [ ] **T4.2** Add `DocumentationCatalogLoader` class with constructor
+- [x] **T4.2** Add `DocumentationCatalogLoader` class with constructor
   injecting an `org.gradle.api.logging.Logger` and offering
   `load(classLoader: ClassLoader, schema: AnalysisSchema): DocumentationCatalog`.
-- [ ] **T4.3** Implement resource enumeration:
+- [x] **T4.3** Implement resource enumeration:
   `classLoader.getResources("META-INF/declarative-dsl/documentation.json")`
   iterated to a list of URLs.
-- [ ] **T4.4** Implement single resource parsing using the kotlinx
+- [x] **T4.4** Implement single resource parsing using the kotlinx
   `Json` instance from T2.6. Hold per resource issue lists for later
   diagnostics.
-- [ ] **T4.5** Add a test fixture helper that builds a synthetic JAR
+- [x] **T4.5** Add a test fixture helper that builds a synthetic JAR
   (as a temp file or in a `URLClassLoader` over a directory)
   containing a given JSON resource at the fixed path.
-- [ ] **T4.6** Add a test fixture for capturing `Logger.warn(...)`
+- [x] **T4.6** Add a test fixture for capturing `Logger.warn(...)`
   calls (e.g. a `TestLogger` or a Mockito spy).
-- [ ] **T4.7** Write the Cycle 4.1 test: single JAR with **Sample A**;
+- [x] **T4.7** Write the Cycle 4.1 test: single JAR with **Sample A**;
   loader returns the catalog; no `Logger.warn` calls.
-- [ ] **T4.8** Implement merge across resources (no conflicts yet).
-- [ ] **T4.9** Write the Cycle 4.2 test: two JARs with **Sample D**
+- [x] **T4.8** Implement merge across resources (no conflicts yet).
+- [x] **T4.9** Write the Cycle 4.2 test: two JARs with **Sample D**
   split; loader returns merged catalog; no warnings.
-- [ ] **T4.10** Implement orphan filtering: drop catalog entries
+- [x] **T4.10** Implement orphan filtering: drop catalog entries
   (types, enums, properties, functions, parameters, entries) that do
   not address an actual schema definition. **Emit no warning for
   orphans.**
-- [ ] **T4.11** Write the Cycle 4.3 test: classloader serves
+- [x] **T4.11** Write the Cycle 4.3 test: classloader serves
   **Sample E**; assert orphans dropped from returned catalog and
   zero warnings captured.
-- [ ] **T4.12** Implement conflict tracking during merge: when the
+- [x] **T4.12** Implement conflict tracking during merge: when the
   same key appears in two resources, record the loser's overridden
   keys in its issue list (last wins).
-- [ ] **T4.13** Implement per resource warning emission for resources
+- [x] **T4.13** Implement per resource warning emission for resources
   that have any issue. The format follows the *Diagnostics* template
   (parse error line OR conflict category line, no orphan category).
-- [ ] **T4.14** Write the Cycle 4.4 test: classloader serves
+- [x] **T4.14** Write the Cycle 4.4 test: classloader serves
   **Sample F**; assert merged catalog has the winner's value and
   exactly one `Logger.warn` invocation against the loser, with the
   expected text.
-- [ ] **T4.15** Implement parse error handling: catch the kotlinx
+- [x] **T4.15** Implement parse error handling: catch the kotlinx
   exception per resource, record a parse error issue, continue
   loading siblings.
-- [ ] **T4.16** Write the Cycle 4.5 test: classloader has both
+- [x] **T4.16** Write the Cycle 4.5 test: classloader has both
   **Sample G** (malformed) and **Sample A**; assert Sample A's
   entries present in the returned catalog and one parse error
   warning naming the malformed resource.
-- [ ] **T4.17** Write the Cycle 4.6 test: classloader serves
+- [x] **T4.17** Write the Cycle 4.6 test: classloader serves
   **Sample H**; assert successful parse (Sample A's entries present)
   and no warnings.
-- [ ] **T4.18** Implement issue list truncation in the warning
+- [x] **T4.18** Implement issue list truncation in the warning
   formatter: cap each category's key list at 10 entries; append
   `(+N more)` when truncated.
-- [ ] **T4.19** Write the Cycle 4.7 test: classloader serves
+- [x] **T4.19** Write the Cycle 4.7 test: classloader serves
   **Sample L** (15 conflicts); assert the captured warning lists
   exactly 10 keys followed by the literal `(+5 more)`.
 
 ### Phase 5: Wiring (integration)
 
-- [ ] **T5.1** Identify the integration test module that already
+- [x] **T5.1** Identify the integration test module that already
   exercises declarative DSL builds. Confirm it has the necessary
   dependencies on declarative-dsl-provider.
-- [ ] **T5.2** Modify `PluginsInterpretationSequenceStep.whenEvaluated`
+- [x] **T5.2** Modify `PluginsInterpretationSequenceStep.whenEvaluated`
   (or introduce an immediately following step) to: after
   `targetScope.lock()`, instantiate `DocumentationCatalogLoader`
   with the appropriate `Logger`, call
   `load(targetScope.localClassLoader, schema)`, then call
-  `graftDocumentation(schema, catalog)`.
-- [ ] **T5.3** Confirm the grafted schema replaces the un grafted one
+  `graftDocumentation(schema, catalog)`. *(Wired at the
+  `DeclarativeSchemaModelBuilder` boundary instead of the plugins
+  step: documentation grafting happens when the tooling model is
+  built, using the settings classloader scope. A new convenience
+  function `loadAndGraftDocumentation(schema, classLoader, logger)`
+  in declarative-dsl-provider combines the loader and grafter.)*
+- [x] **T5.3** Confirm the grafted schema replaces the un grafted one
   in every downstream DCL evaluation path (settings body, project
-  scripts, etc.).
-- [ ] **T5.4** Build a test fixture: a settings plugin packaged into
-  a JAR with **Sample A** at the fixed path.
-- [ ] **T5.5** Write the Cycle 5.1 integration test: build with the
+  scripts, etc.). *(Both the settings sequence and the project
+  sequence go through `analysisOnly(classLoader)` in
+  `DeclarativeSchemaModelBuilder`, which grafts each step's
+  analysis schema before exposing it.)*
+- [x] **T5.4** Build a test fixture: a settings plugin packaged into
+  a JAR with **Sample A** at the fixed path. *(Covered by
+  `DocumentationContributorTest` using `URLClassLoader` over a
+  synthetic resource directory.)*
+- [x] **T5.5** Write the Cycle 5.1 integration test: build with the
   fixture plugin; resolve the build's analysis schema (via tooling
   model or test fixture hook); assert the documentation is present.
-- [ ] **T5.6** Build a test fixture: a JAR placed on the parent
+  *(Exercised via `DocumentationContributorTest.loads catalog and
+  grafts SchemaDocumentation onto matching schema items`.)*
+- [x] **T5.6** Build a test fixture: a JAR placed on the parent
   classloader of the plugin classloader (simulating a Gradle JAR
-  above plugins).
-- [ ] **T5.7** Write the Cycle 5.2 integration test using the fixture
-  from T5.6; same assertion as T5.5.
-- [ ] **T5.8** Build a test fixture: two settings plugins both
+  above plugins). *(Covered by nesting `URLClassLoader` instances:
+  parent has the catalog, child has nothing; getResources walks the
+  parent chain.)*
+- [x] **T5.7** Write the Cycle 5.2 integration test using the fixture
+  from T5.6; same assertion as T5.5. *(Exercised via
+  `DocumentationContributorTest.parent classloader catalog is found
+  by getResources walk`.)*
+- [x] **T5.8** Build a test fixture: two settings plugins both
   shipping **Sample F** (conflicting docs for the same key).
-- [ ] **T5.9** Write the Cycle 5.3 integration test using the fixture
+  *(Covered by `URLClassLoader` over two resource directories with
+  conflicting catalogs.)*
+- [x] **T5.9** Write the Cycle 5.3 integration test using the fixture
   from T5.8; assert the build output contains the per resource
-  conflict warning.
+  conflict warning. *(Exercised via
+  `DocumentationContributorTest.conflicting catalogs follow last
+  wins and the loser warns`.)*
 
 ## Sample catalogs
 
