@@ -10,7 +10,15 @@
 <meta name="twitter:description" content="We are excited to announce Gradle @version@.">
 <meta name="twitter:image" content="https://gradle.org/assets/images/releases/gradle-default.png">
 
-We are excited to announce Gradle @version@ (released [@releaseDate@](https://gradle.org/releases/)).
+Gradle @version@ is the first patch release for Gradle 9.5.0. (released [@releaseDate@](https://gradle.org/releases/)).
+
+The following issues were resolved:
+
+* TODO
+
+We recommend upgrading to Gradle @version@.
+
+---
 
 This release improves [diagnostics and reporting](#diagnostics-and-reporting-improvements) with task provenance in errors and reports that helps to quickly locate the source of a failing task, plus clearer logging when the client JVM is incompatible with daemon requirements, which makes it easier to diagnose unexpected daemon behavior.
 
