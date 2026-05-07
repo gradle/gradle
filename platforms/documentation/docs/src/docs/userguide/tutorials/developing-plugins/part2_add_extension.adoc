@@ -100,6 +100,11 @@ include::sample[dir="snippets/tutorials/developing-plugins/plugin-tutorial/groov
 Now, let's define the class that holds the configurable properties for our plugin.
 We'll use Gradle's `Property<T>` type for these properties, as this makes them configurable lazily and fully compatible with the Configuration Cache.
 
+Declare the extension as an `abstract class` with `abstract` property getters.
+These are <<properties_providers.adoc#managed_properties,managed properties>>: Gradle generates the implementation at runtime through class decoration and creates the `Property<T>` instances for you, so there is no need to write a constructor or to inject an `ObjectFactory` manually.
+
+TIP: An extension that carries no custom logic can also be declared as an `interface` with abstract getters. Gradle will fully instantiate it for you in the same way.
+
 Create a new file called `plugin/src/main/kotlin/org/example/SlackExtension.kt` and add the following code:
 
 ====
