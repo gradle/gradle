@@ -72,6 +72,11 @@ public abstract class Sync extends AbstractCopyTask {
     private final PatternFilterable preserveInDestination = new PatternSet();
 
     @Override
+    protected boolean skipWhenSourceIsEmpty() {
+        return false;
+    }
+
+    @Override
     protected CopyAction createCopyAction() {
         File destinationDir = getDestinationDir();
         if (destinationDir == null) {
