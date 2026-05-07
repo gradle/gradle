@@ -63,10 +63,14 @@ data class EnumDocumentation(
 )
 
 
-/**
- * Lenient JSON instance used to parse documentation catalogs. Tolerates unknown fields so the format
- * can evolve additively.
- */
-internal val documentationCatalogJson: Json = Json {
+private val documentationCatalogJson: Json = Json {
     ignoreUnknownKeys = true
 }
+
+
+/**
+ * Parses a JSON string into a `DocumentationCatalog`. Unknown fields are ignored so the format can
+ * evolve additively.
+ */
+fun parseDocumentationCatalog(json: String): DocumentationCatalog =
+    documentationCatalogJson.decodeFromString(json)

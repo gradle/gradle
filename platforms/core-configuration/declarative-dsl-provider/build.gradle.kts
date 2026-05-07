@@ -25,6 +25,7 @@ dependencies {
     api(projects.declarativeDslCore)
     api(projects.declarativeDslEvaluator)
     api(projects.declarativeDslToolingModels)
+    api(projects.loggingApi)
     api(projects.serviceProvider)
     api(projects.projectFeatures)
     api(projects.stdlibJavaExtensions)

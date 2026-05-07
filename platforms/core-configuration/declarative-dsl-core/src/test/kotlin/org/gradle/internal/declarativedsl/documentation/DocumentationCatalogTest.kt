@@ -40,7 +40,7 @@ class DocumentationCatalogTest {
             }
         """.trimIndent()
 
-        val catalog = documentationCatalogJson.decodeFromString<DocumentationCatalog>(sampleA)
+        val catalog = parseDocumentationCatalog(sampleA)
 
         assertTrue(catalog.enums.isEmpty())
         val checkstyleEntry = catalog.types["org.gradle.api.plugins.checkstyle.CheckstyleDefinition"]!!
@@ -69,7 +69,7 @@ class DocumentationCatalogTest {
             }
         """.trimIndent()
 
-        val catalog = documentationCatalogJson.decodeFromString<DocumentationCatalog>(sampleH)
+        val catalog = parseDocumentationCatalog(sampleH)
 
         val entry = catalog.types["org.gradle.api.plugins.checkstyle.CheckstyleDefinition"]!!
         assertEquals("Hello.", entry.documentation)
@@ -100,7 +100,7 @@ class DocumentationCatalogTest {
             }
         """.trimIndent()
 
-        val catalog = documentationCatalogJson.decodeFromString<DocumentationCatalog>(raw)
+        val catalog = parseDocumentationCatalog(raw)
 
         val fooFunc = catalog.types["org.example.Foo"]!!.functions["doX(java.lang.String,int)"]!!
         assertEquals("Does X.", fooFunc.documentation)
@@ -119,7 +119,7 @@ class DocumentationCatalogTest {
 
     @Test
     fun `empty catalog deserializes to empty maps`() {
-        val catalog = documentationCatalogJson.decodeFromString<DocumentationCatalog>("{}")
+        val catalog = parseDocumentationCatalog("{}")
 
         assertTrue(catalog.types.isEmpty())
         assertTrue(catalog.enums.isEmpty())
@@ -129,7 +129,7 @@ class DocumentationCatalogTest {
     fun `omitted optional fields fall back to defaults`() {
         val raw = """{ "types": { "org.example.Foo": {} } }"""
 
-        val catalog = documentationCatalogJson.decodeFromString<DocumentationCatalog>(raw)
+        val catalog = parseDocumentationCatalog(raw)
 
         val entry = catalog.types["org.example.Foo"]!!
         assertNull(entry.documentation)

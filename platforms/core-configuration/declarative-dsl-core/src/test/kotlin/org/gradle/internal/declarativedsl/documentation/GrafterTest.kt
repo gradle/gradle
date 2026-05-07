@@ -50,7 +50,7 @@ class GrafterTest {
     @Test
     fun `grafts type doc onto a matching DataClass`() {
         val schema = checkstyleSchema()
-        val catalog = documentationCatalogJson.decodeFromString<DocumentationCatalog>(sampleA)
+        val catalog = parseDocumentationCatalog(sampleA)
 
         val grafted = graftDocumentation(schema, catalog)
 
@@ -66,7 +66,7 @@ class GrafterTest {
     @Test
     fun `grafts property docs onto each matching DataProperty`() {
         val schema = checkstyleSchema()
-        val catalog = documentationCatalogJson.decodeFromString<DocumentationCatalog>(sampleA)
+        val catalog = parseDocumentationCatalog(sampleA)
 
         val grafted = graftDocumentation(schema, catalog)
 
@@ -94,7 +94,7 @@ class GrafterTest {
               }
             }
         """.trimIndent()
-        val catalog = documentationCatalogJson.decodeFromString<DocumentationCatalog>(partialCatalog)
+        val catalog = parseDocumentationCatalog(partialCatalog)
 
         val grafted = graftDocumentation(schema, catalog)
 
@@ -106,7 +106,7 @@ class GrafterTest {
     @Test
     fun `grafts function doc and per-parameter doc onto a member function`() {
         val schema = libraryDependenciesSchema()
-        val catalog = documentationCatalogJson.decodeFromString<DocumentationCatalog>(sampleC)
+        val catalog = parseDocumentationCatalog(sampleC)
 
         val grafted = graftDocumentation(schema, catalog)
 
@@ -126,7 +126,7 @@ class GrafterTest {
     @Test
     fun `grafts enum doc and per-entry docs onto a matching EnumClass`() {
         val schema = severityEnumSchema()
-        val catalog = documentationCatalogJson.decodeFromString<DocumentationCatalog>(sampleJ)
+        val catalog = parseDocumentationCatalog(sampleJ)
 
         val grafted = graftDocumentation(schema, catalog)
 
@@ -158,7 +158,7 @@ class GrafterTest {
               }
             }
         """.trimIndent()
-        val catalog = documentationCatalogJson.decodeFromString<DocumentationCatalog>(raw)
+        val catalog = parseDocumentationCatalog(raw)
 
         val grafted = graftDocumentation(schema, catalog)
 
@@ -171,7 +171,7 @@ class GrafterTest {
     @Test
     fun `mirrors property doc onto getter synthesised configure function`() {
         val schema = javaLibraryModelSchema()
-        val catalog = documentationCatalogJson.decodeFromString<DocumentationCatalog>(sampleM)
+        val catalog = parseDocumentationCatalog(sampleM)
 
         val grafted = graftDocumentation(schema, catalog)
 
@@ -200,7 +200,7 @@ class GrafterTest {
               }
             }
         """.trimIndent()
-        val catalog = documentationCatalogJson.decodeFromString<DocumentationCatalog>(raw)
+        val catalog = parseDocumentationCatalog(raw)
 
         val grafted = graftDocumentation(schema, catalog)
 
@@ -213,7 +213,7 @@ class GrafterTest {
     @Test
     fun `original schema is left untouched`() {
         val original = checkstyleSchema()
-        val catalog = documentationCatalogJson.decodeFromString<DocumentationCatalog>(sampleA)
+        val catalog = parseDocumentationCatalog(sampleA)
 
         val grafted = graftDocumentation(original, catalog)
 
