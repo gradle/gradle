@@ -48,7 +48,6 @@ import org.gradle.internal.cc.impl.initialization.DefaultConfigurationCacheProbl
 import org.gradle.internal.cc.impl.initialization.InstrumentedExecutionAccessListenerRegistry
 import org.gradle.internal.cc.impl.initialization.VintageInjectedClasspathInstrumentationStrategy
 import org.gradle.internal.cc.impl.models.DefaultToolingModelParameterCarrierFactory
-import org.gradle.internal.cc.impl.problems.BuildNameProvider
 import org.gradle.internal.cc.impl.problems.ConfigurationCacheProblems
 import org.gradle.internal.cc.impl.promo.ConfigurationCachePromoHandler
 import org.gradle.internal.cc.impl.promo.PromoInputsListener
@@ -88,7 +87,6 @@ object BuildTreeModelControllerServices : ServiceRegistrationProvider {
     ): Unit = with(registration) {
 
         // region ALL MODES
-        add(BuildNameProvider::class.java)
         add(ToolingModelParameterCarrier.Factory::class.java, DefaultToolingModelParameterCarrierFactory::class.java)
         add(BuildToolingModelControllerFactory::class.java, DefaultBuildToolingModelControllerFactory::class.java)
         add(JavaSerializationEncodingLookup::class.java)
