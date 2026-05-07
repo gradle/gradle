@@ -17,6 +17,7 @@
 package org.gradle.internal.operations;
 
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.time.ExponentialBackoff;
 import org.gradle.internal.work.DefaultWorkerLimits;
 import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.internal.work.WorkerThreadPool;
@@ -24,8 +25,11 @@ import org.gradle.internal.work.WorkerThreadPoolHelper;
 import org.jspecify.annotations.Nullable;
 
 import javax.annotation.concurrent.GuardedBy;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -256,16 +260,12 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
         private boolean waitForNextOperation() {
             lock.lock();
             try {
-                // If the token was already invalidated (e.g. in runBatch), exit immediately
-                // to avoid becoming a zombie thread stuck in await().
-                if (token != null && !token.isValid()) {
-                    return false;
-                }
-                while (queueState == QueueState.Working && helper.isQueueEmpty()) {
-                    if (helper.isExtraWorker()) {
-                        // We should exit, immediately invalidate our token to ensure the count goes down now.
-                        invalidateIfNeeded();
+                while (true) {
+                    if (shouldExit()) {
                         return false;
+                    }
+                    if (!helper.isQueueEmpty()) {
+                        return true;
                     }
                     try {
                         workAvailable.await();
@@ -273,16 +273,32 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
                         throw UncheckedException.throwAsUncheckedException(e);
                     }
                 }
-                return !helper.isQueueEmpty();
             } finally {
                 lock.unlock();
             }
         }
 
+        @GuardedBy("lock")
+        private boolean shouldExit() {
+            if (token != null && !token.isValid()) {
+                return true;
+            }
+            if (queueState != QueueState.Working && helper.isQueueEmpty()) {
+                return true;
+            }
+            if (helper.isExtraWorker()) {
+                if (token != null) {
+                    token.invalidateIfNeeded();
+                }
+                return true;
+            }
+            return false;
+        }
+
         private void runBatch() {
             int operationsExecuted;
             if (context.requiresWorkerLease()) {
-                operationsExecuted = workerLeases.runAsWorkerThread(this::executePendingWork);
+                operationsExecuted = runBatchWithLeaseRetry();
             } else {
                 operationsExecuted = executePendingWork();
             }
@@ -291,6 +307,34 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
             // condition where the pending count is 0, but a child worker lease is still held when
             // the parent lease is released.
             completeOperations(operationsExecuted);
+        }
+
+        private int runBatchWithLeaseRetry() {
+            try {
+                // Retry acquiring the lease forever, or until we `shouldExit()`.
+                return ExponentialBackoff.of(Integer.MAX_VALUE, TimeUnit.MILLISECONDS).retryUntil(() -> {
+                    Optional<Integer> result = workerLeases.tryRunAsWorkerThread(this::executePendingWork);
+                    if (result.isPresent()) {
+                        return ExponentialBackoff.Result.successful(result.get());
+                    }
+                    lock.lock();
+                    try {
+                        if (shouldExit()) {
+                            return ExponentialBackoff.Result.successful(0);
+                        }
+                    } finally {
+                        lock.unlock();
+                    }
+                    return ExponentialBackoff.Result.notSuccessful(0);
+                });
+            } catch (IOException e) {
+                // TODO: Redesign ExponentialBackoff to not have IOException as part of the interface
+                // This would never actually be thrown because our "query" doesn't throw it.
+                throw new AssertionError("Unexpected IOException while trying to acquire worker lease", e);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                throw UncheckedException.throwAsUncheckedException(e);
+            }
         }
 
         private int executePendingWork() {

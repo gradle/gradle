@@ -91,6 +91,11 @@ class TestWorkerLeaseService implements WorkerLeaseService {
     }
 
     @Override
+    <T> Optional<T> tryRunAsWorkerThread(Factory<T> action) {
+        return Optional.ofNullable(action.create())
+    }
+
+    @Override
     void runAsUnmanagedWorkerThread(Runnable action) {
         action.run()
     }

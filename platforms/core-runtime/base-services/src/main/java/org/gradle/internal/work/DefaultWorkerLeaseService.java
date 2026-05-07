@@ -42,6 +42,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.gradle.internal.resources.DefaultResourceLockCoordinationService.lock;
@@ -132,6 +133,21 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, ProjectPar
     @Override
     public void runAsWorkerThread(Runnable action) {
         runAsWorkerThread(Factories.<Void>toFactory(action));
+    }
+
+    @Override
+    public <T> Optional<T> tryRunAsWorkerThread(Factory<T> action) {
+        Collection<? extends ResourceLock> locks = workerLeaseLockRegistry.getResourceLocksByCurrentThread();
+        if (!locks.isEmpty()) {
+            // Already a worker
+            return Optional.of(action.create());
+        }
+        DefaultWorkerLease lease = newWorkerLease();
+        boolean acquired = coordinationService.withStateLock(tryLock(lease));
+        if (!acquired) {
+            return Optional.empty();
+        }
+        return Optional.of(runAndReleaseLocks(Collections.singletonList(lease), action));
     }
 
     @Override
@@ -275,11 +291,15 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, ProjectPar
      */
     private <T> T withLocksAcquired(Collection<? extends ResourceLock> locksToAcquire, Factory<T> factory) {
         acquireLocksWithoutWorkerLeaseWhileBlocked(locksToAcquire);
-        return resourceLockStatistics.measure("Acquired", locksToAcquire, () -> {
+        return runAndReleaseLocks(locksToAcquire, factory);
+    }
+
+    private <T> T runAndReleaseLocks(Collection<? extends ResourceLock> locksHeld, Factory<T> factory) {
+        return resourceLockStatistics.measure("Acquired", locksHeld, () -> {
             try {
                 return factory.create();
             } finally {
-                releaseLocks(locksToAcquire);
+                releaseLocks(locksHeld);
             }
         });
     }

@@ -79,7 +79,7 @@ public class ExponentialBackoff<S extends ExponentialBackoff.Signal> {
     }
 
     long backoffPeriodFor(int iteration) {
-        return random.nextInt(Math.min(iteration, CAP_FACTOR)) * slotTime;
+        return (random.nextInt(Math.min(iteration, CAP_FACTOR)) + 1) * slotTime;
     }
 
     public CountdownTimer getTimer() {
