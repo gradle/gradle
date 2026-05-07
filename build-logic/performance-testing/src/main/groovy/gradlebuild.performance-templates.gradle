@@ -422,6 +422,14 @@ performanceTest.registerAndroidTestProject("nowInAndroidBuild", ["-Xms4g", "-Xmx
     }
 }
 
+performanceTest.registerAndroidTestProject("android100Kts", ["-Xms4g", "-Xmx4g"], RemoteProject) {
+    setRemoteUriAndRefFromGradleProperty("isolatedProjectsTestbedRef")
+    subdirectory = 'android-100-kts'
+    doLast {
+        setMaxWorkers(outputDirectory, 8)
+    }
+}
+
 // When manually opening the project in Android Studio 2025.3, it recommends this max memory based on the project size
 performanceTest.registerAndroidTestProject("android500Kts", ["-Xms8g", "-Xmx8g"], RemoteProject) {
     setRemoteUriAndRefFromGradleProperty("isolatedProjectsTestbedRef")
