@@ -78,7 +78,7 @@ public interface JavaToolchainSpec extends Describable {
     /**
      * The value of System.getProperty("java.version").
      *
-     * @since 9.3.0
+     * @since 9.6.0
      */
     @Incubating
     Property<String> getImplementationVersion();
