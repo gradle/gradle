@@ -82,6 +82,7 @@ import java.net.URLClassLoader
 import java.nio.file.Path
 import java.nio.file.Paths
 import kotlin.io.path.Path
+import kotlin.jvm.java
 import kotlin.reflect.KClass
 import kotlin.reflect.jvm.jvmName
 import kotlin.script.experimental.annotations.KotlinScript
@@ -89,16 +90,27 @@ import kotlin.script.experimental.api.ScriptCompilationConfiguration
 import kotlin.script.experimental.api.implicitReceivers
 import kotlin.script.experimental.util.PropertiesCollection
 
-private const val DAEMON_MODE = true // TODO: which mode to use in the end?
-private const val KEEPALIVE_FLAG = false // TODO: which mode to use in the end?
+// TODO: which modes to use in the end?
+private const val DAEMON_MODE = false
+private const val KEEPALIVE_FLAG = true
+private const val THREAD_POOL_FLAG = false
+private const val ISOLATED_CLASSLOADER = DAEMON_MODE || false // can't use non-isolated classloader in Daemon mode
+private const val REUSE_BUILD_SESSION = true
+
+private val systemProperties: Map<String, String> = mapOf(
+    KOTLIN_COMPILER_ENVIRONMENT_KEEPALIVE_PROPERTY.property to KEEPALIVE_FLAG.toString(),
+    "kotlin.bta.use-thread-pool" to THREAD_POOL_FLAG.toString()
+)
 
 private val classloaderInstances: MutableMap<ClassPath, URLClassLoader> = mutableMapOf() // necessary because some Kotlin code is retaining them and we can't clean it up properly
 private val compilerInstances: MutableMap<Pair<ModuleRegistry, ClassLoaderFactory>, KotlinCompiler> = mutableMapOf()
 
 internal fun kotlinCompiler(moduleRegistry: ModuleRegistry, classLoaderFactory: ClassLoaderFactory): KotlinCompiler {
-    val classLoader = classloaderInstances.computeIfAbsent(
-        BTACompilerClasspathProvider(moduleRegistry).findClassPath(""),
-        { classPath -> createCompilerClassLoader(classPath, classLoaderFactory) })
+    val classLoader = if (ISOLATED_CLASSLOADER) {
+        classloaderInstances.computeIfAbsent(BTACompilerClasspathProvider(moduleRegistry).findClassPath(""), { classPath -> createCompilerClassLoader(classPath, classLoaderFactory) })
+    } else {
+        KotlinCompiler::class.java.classLoader
+    }
     return compilerInstances.computeIfAbsent(Pair(moduleRegistry, classLoaderFactory), { KotlinCompilerImpl(moduleRegistry, classLoader) })
 }
 
@@ -475,14 +487,11 @@ private class BTACompiler(val moduleRegistry: ModuleRegistry, classLoader: Class
     private lateinit var buildSession: KotlinToolchains.BuildSession
 
     init {
-        val work: () -> Unit = {
+        SystemProperties.getInstance().withSystemProperties(systemProperties) {
             toolchains = KotlinToolchains.loadImplementation(classLoader)
-            buildSession = toolchains.createBuildSession()
-        }
-        if (KEEPALIVE_FLAG) {
-            SystemProperties.getInstance().withSystemProperty(KOTLIN_COMPILER_ENVIRONMENT_KEEPALIVE_PROPERTY.property, "true", work)
-        } else {
-            work()
+            if ((REUSE_BUILD_SESSION && !::buildSession.isInitialized) || !REUSE_BUILD_SESSION) {
+                buildSession = toolchains.createBuildSession()
+            }
         }
     }
 
@@ -500,7 +509,7 @@ private class BTACompiler(val moduleRegistry: ModuleRegistry, classLoader: Class
         implicitImports: List<String>,
         messageRenderer: LoggingMessageRenderer
     ) {
-        val work: () -> Unit = {
+        SystemProperties.getInstance().withSystemProperties(systemProperties) {
             val operationBuilder = toolchains.jvm.jvmCompilationOperationBuilder(sources, destinationDirectory)
 
             // compilation operation config
@@ -522,15 +531,12 @@ private class BTACompiler(val moduleRegistry: ModuleRegistry, classLoader: Class
             val operation = operationBuilder.build()
             buildSession.executeOperation(operation, executionPolicy)
         }
-        if (KEEPALIVE_FLAG) {
-            SystemProperties.getInstance().withSystemProperty(KOTLIN_COMPILER_ENVIRONMENT_KEEPALIVE_PROPERTY.property, "true", work)
-        } else {
-            work()
-        }
     }
 
     fun clean() {
-        buildSession.close()
+        if (!REUSE_BUILD_SESSION) {
+            buildSession.close()
+        }
     }
 
     private fun JvmCompilerArguments.Builder.configureScriptEnvironment(classPath: List<File>, template: KClass<out Any>, implicitImports: List<String>) {
