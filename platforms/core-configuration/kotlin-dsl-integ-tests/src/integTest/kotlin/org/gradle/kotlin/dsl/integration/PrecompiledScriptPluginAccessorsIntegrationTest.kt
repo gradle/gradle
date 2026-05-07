@@ -316,13 +316,17 @@ class PrecompiledScriptPluginAccessorsIntegrationTest : AbstractKotlinIntegratio
 
             include("producer")
             include("consumer")
+            """
+        )
+        withBuildScript(
+            """
+            plugins { `kotlin-dsl` apply false }
 
-            dependencyResolutionManagement {
+            allprojects {
                 $repositoriesBlock
             }
             """
         )
-        withBuildScript("""plugins { `kotlin-dsl` apply false }""")
         withFolders {
             "producer" {
                 withFile(
