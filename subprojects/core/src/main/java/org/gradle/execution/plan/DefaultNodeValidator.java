@@ -65,8 +65,7 @@ public class DefaultNodeValidator implements NodeValidator {
         if (errors.isEmpty()) {
             return;
         }
-        List<ProblemInternal> reportedErrors = WorkValidationUtils.deduplicateAndTruncate(errors);
-        WorkValidationException exception = WorkValidationException.withSummaryForContext(task.toString(), validationContext, reportedErrors.size());
-        throw reporter.throwing(exception, reportedErrors);
+        WorkValidationException exception = WorkValidationException.withSummaryForContext(task.toString(), validationContext, errors.size());
+        throw reporter.throwing(exception, errors);
     }
 }
