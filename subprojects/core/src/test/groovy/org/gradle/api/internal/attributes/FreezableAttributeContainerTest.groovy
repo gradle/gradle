@@ -17,17 +17,25 @@
 package org.gradle.api.internal.attributes
 
 import org.gradle.api.Describable
+import org.gradle.api.Named
 import org.gradle.api.attributes.Attribute
+import org.gradle.api.internal.provider.DefaultProvider
 import org.gradle.util.AttributeTestUtil
+import spock.lang.Issue
+
+import java.util.concurrent.atomic.AtomicReference
 
 /**
  * Unit tests for the {@link FreezableAttributeContainer} class.
  */
 final class FreezableAttributeContainerTest extends BaseAttributeContainerTest {
+
+    def factory = AttributeTestUtil.attributesFactory()
+
     @Override
     protected FreezableAttributeContainer createContainer(Map<Attribute<?>, ?> attributes = [:], Map<Attribute<?>, ?> moreAttributes = [:]) {
-        def mutableContainer = AttributeTestUtil.attributesFactory().mutable()
-        FreezableAttributeContainer container = new FreezableAttributeContainer(mutableContainer, { "owner" } as Describable);
+        def mutableContainer = factory.mutable()
+        FreezableAttributeContainer container = factory.freezable(mutableContainer, { "owner" } as Describable)
         attributes.forEach { key, value ->
             container.attribute(key, value)
         }
@@ -50,4 +58,45 @@ final class FreezableAttributeContainerTest extends BaseAttributeContainerTest {
             assert it[Attribute.of("test", String)] == "b" // Second attribute to be added remains
         }
     }
+
+    interface Foo extends Named {}
+
+    @Issue("https://github.com/gradle/gradle/issues/37256")
+    def "can addAllLater with freezable container as a source, when frozen container uses itself to instantiate named object"() {
+        def attr = Attribute.of("test", Foo)
+
+        def freezable = createContainer()
+        freezable.attributeProvider(attr, new DefaultProvider<Foo>(() -> {
+            freezable.named(Foo, "value")
+        }))
+
+        def other = factory.mutable()
+        other.addAllLater(freezable)
+        freezable.freeze()
+
+        expect:
+        other.getAttribute(attr).name == "value"
+    }
+
+    def "attributes sourced from addAllLater are frozen"() {
+        def attr = Attribute.of("test", String)
+        def freezable = createContainer()
+
+        AtomicReference<String> value = new AtomicReference<>("initial")
+        freezable.attributeProvider(attr, new DefaultProvider<String>(() -> value.get()))
+
+        def other = factory.mutable()
+        other.addAllLater(freezable)
+
+        expect:
+        other.getAttribute(attr) == "initial"
+
+        when:
+        freezable.freeze()
+        value.set("final")
+
+        then:
+        other.getAttribute(attr) == "initial"
+    }
+
 }

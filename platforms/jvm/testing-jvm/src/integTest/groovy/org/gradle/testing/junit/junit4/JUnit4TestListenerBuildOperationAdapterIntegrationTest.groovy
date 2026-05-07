@@ -22,5 +22,4 @@ import static org.gradle.testing.fixture.JUnitCoverage.JUNIT4_REVERSE_TEST_ORDER
 
 @TargetCoverage({ JUNIT4_REVERSE_TEST_ORDER })
 class JUnit4TestListenerBuildOperationAdapterIntegrationTest extends AbstractJUnit4TestListenerBuildOperationAdapterIntegrationTest implements JUnit4MultiVersionTest {
-    boolean emitsTestClassOperations = false
 }

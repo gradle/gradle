@@ -69,8 +69,8 @@ class BuildSrcIdentityIntegrationTest extends AbstractIntegrationSpec {
         then:
         outputContains("""
 runtimeClasspath - Runtime classpath of source set 'main'.
-\\--- project :buildSrc:b1
-     \\--- project :buildSrc:b2
+\\--- project ':buildSrc:b1'
+     \\--- project ':buildSrc:b2'
 """)
 
         where:
@@ -100,7 +100,7 @@ runtimeClasspath - Runtime classpath of source set 'main'.
         fails()
 
         then:
-        failure.assertHasDescription("Execution failed for task ':buildSrc:compileJava'.")
+        failure.assertHasDescription("Execution failed for task ':buildSrc:compileJava' (registered by plugin class 'org.gradle.api.plugins.JavaBasePlugin').")
         failure.assertHasCause("Could not resolve all files for configuration ':buildSrc:compileClasspath'.")
         failure.assertHasCause("""Could not find org.test:test:1.2.
 Searched in the following locations:
@@ -121,7 +121,7 @@ Required by:
         fails()
 
         then:
-        failure.assertHasDescription("Execution failed for task ':buildSrc:compileJava'.")
+        failure.assertHasDescription("Execution failed for task ':buildSrc:compileJava' (registered by plugin class 'org.gradle.api.plugins.JavaBasePlugin').")
         failure.assertHasCause("Could not resolve all files for configuration ':buildSrc:compileClasspath'.")
         failure.assertHasCause("Could not find test-1.2.jar (org.test:test:1.2).")
 
@@ -144,7 +144,7 @@ Required by:
         fails()
 
         then:
-        failure.assertHasDescription("Execution failed for task ':buildSrc:classes'.")
+        failure.assertHasDescription("Execution failed for task ':buildSrc:classes' (registered by plugin class 'org.gradle.api.plugins.JavaBasePlugin').")
         failure.assertHasCause("broken")
 
         where:
@@ -182,7 +182,7 @@ Required by:
 
                 def selectors = configurations.runtimeClasspath.incoming.resolutionResult.allDependencies.requested
                 assert selectors.size() == 1
-                assert selectors[0].displayName == 'project :buildSrc:a'
+                assert selectors[0].displayName == "project ':buildSrc:a'"
                 assert selectors[0].buildPath == ':buildSrc'
                 assert selectors[0].projectPath == ':a'
             }

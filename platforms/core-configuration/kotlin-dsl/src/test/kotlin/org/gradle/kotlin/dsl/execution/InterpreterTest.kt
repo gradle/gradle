@@ -24,6 +24,8 @@ import org.gradle.initialization.ClassLoaderScopeOrigin
 import org.gradle.internal.Describables
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.hash.TestHashCodes
+import org.gradle.internal.operations.TestBuildOperationRunner
+import org.gradle.internal.resource.ResourceLocation
 import org.gradle.internal.resource.TextResource
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.kotlin.dsl.fixtures.DummyCompiledScript
@@ -32,6 +34,7 @@ import org.gradle.kotlin.dsl.fixtures.assertStandardOutputOf
 import org.gradle.kotlin.dsl.fixtures.classLoaderFor
 import org.gradle.kotlin.dsl.fixtures.testRuntimeClassPath
 import org.gradle.kotlin.dsl.support.KotlinCompilerOptions
+import org.gradle.kotlin.dsl.support.KotlinScriptHost
 import org.junit.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doAnswer
@@ -49,7 +52,7 @@ class InterpreterTest : TestWithTempFiles() {
     @Test
     fun `caches specialized programs`() {
 
-        val scriptPath = "/src/settings.gradle.kts"
+        val scriptPath = "src/settings.gradle.kts"
 
         val shortScriptDisplayName = Describables.of("short display name")
         val longScriptDisplayName = Describables.of("long display name")
@@ -75,8 +78,12 @@ class InterpreterTest : TestWithTempFiles() {
         val stage1TemplateId = "Settings/TopLevel/stage1"
         val stage2TemplateId = "Settings/TopLevel/stage2"
 
+        val scriptSourceLocation = mock<ResourceLocation> {
+            on { getFile() } doReturn root.resolve(scriptPath)
+        }
         val scriptSourceResource = mock<TextResource> {
             on { getText() } doReturn text
+            on { getLocation() } doReturn scriptSourceLocation
         }
 
         val scriptSource = mock<ScriptSource> {
@@ -104,15 +111,19 @@ class InterpreterTest : TestWithTempFiles() {
         val stage1CacheDir = root.resolve("stage1").apply { mkdir() }
         val stage2CacheDir = root.resolve("stage2").apply { mkdir() }
 
-        val stage1ProgramId = ProgramId(stage1TemplateId, sourceHash, parentClassLoader)
-        val stage2ProgramId = ProgramId(stage2TemplateId, sourceHash, targetScopeExportClassLoader, accessorsClassPathHash, compilationClassPathHash)
+        val stage1ProgramId = ProgramId(stage1TemplateId, scriptPath, sourceHash, parentClassLoader)
+        val stage2ProgramId = ProgramId(stage2TemplateId, scriptPath, sourceHash, targetScopeExportClassLoader, accessorsClassPathHash, compilationClassPathHash)
 
         val mockServiceRegistry = mock<ServiceRegistry> {
             on { get(GradleUserHomeTemporaryFileProvider::class.java) } doReturn GradleUserHomeTemporaryFileProvider {
                 tempFolder.createDir("gradle-user-home")
             }
+            on { get(KotlinMetadataCompatibilityChecker::class.java) } doReturn object : KotlinMetadataCompatibilityChecker {
+                override fun incompatibleClasspathElements(classPath: ClassPath): List<File> = listOf()
+            }
         }
 
+        val buildOperationRunner = TestBuildOperationRunner()
         val host = mock<Interpreter.Host> {
 
             on { serviceRegistryFor(any(), any()) } doReturn mockServiceRegistry
@@ -170,12 +181,13 @@ class InterpreterTest : TestWithTempFiles() {
             }
 
             on { compilerOptions } doReturn KotlinCompilerOptions()
+            on { buildTreeRootDir } doReturn root.toPath()
         }
 
         try {
 
             val target = mock<Settings>()
-            val subject = Interpreter(host)
+            val subject = Interpreter(host, buildOperationRunner)
             assertStandardOutputOf("stage 1\nstage 2\n") {
                 subject.eval(
                     target,
@@ -247,6 +259,231 @@ class InterpreterTest : TestWithTempFiles() {
                 it.close()
             }
         }
+    }
+
+    private class TestProgram1 : ExecutableProgram() {
+        override fun execute(programHost: ExecutableProgram.Host, scriptHost: KotlinScriptHost<*>) {
+            // No-op implementation for testing
+        }
+    }
+
+    private class TestProgram2 : ExecutableProgram() {
+        override fun execute(programHost: ExecutableProgram.Host, scriptHost: KotlinScriptHost<*>) {
+            // No-op implementation for testing
+        }
+    }
+
+    @Test
+    fun `eval uses cached program when input is identical`() {
+        val scriptText = "println(\"test\")"
+        val scriptPath = "src/settings.gradle.kts"
+        val sourceHash = TestHashCodes.hashCodeFrom(42)
+
+        val scriptSource = createScriptSource(scriptPath, scriptText)
+        val parentClassLoader = mock<ClassLoader>()
+        val baseScope = createMockScope(parentClassLoader)
+        val targetScope = createMockScope(mock(), baseScope)
+
+        val buildOperationRunner = TestBuildOperationRunner()
+        val cachingHost = createCachingHostMock(DummyCompiledScript(TestProgram1::class.java))
+
+        val interpreter = Interpreter(cachingHost.host, buildOperationRunner)
+        val target = mock<Settings>()
+
+        // When we eval the same script twice
+        interpreter.eval(target, scriptSource, sourceHash, mock(), targetScope, baseScope, true)
+        val compilationsAfterFirst = cachingHost.compilationCount
+
+        interpreter.eval(target, scriptSource, sourceHash, mock(), targetScope, baseScope, true)
+        val compilationsAfterSecond = cachingHost.compilationCount
+
+        // Then compilation should only happen once (cache hit on the second call)
+        assert(compilationsAfterFirst == 1) { "First eval should trigger compilation" }
+        assert(compilationsAfterSecond == 1) {
+            "Second eval with same script should use cache, not recompile (compilations: $compilationsAfterSecond vs $compilationsAfterFirst)"
+        }
+    }
+
+    @Test
+    fun `eval treats different scriptBuildTreePath as cache miss`() {
+        val scriptText = "println(\"test\")"
+        val sourceHash = TestHashCodes.hashCodeFrom(42)
+
+        // Create two script sources with different file names
+        val scriptSource1 = createScriptSource("src/settings.gradle.kts", scriptText)
+        val scriptSource2 = createScriptSource("src/settings-v2.gradle.kts", scriptText)
+
+        val parentClassLoader = mock<ClassLoader>()
+        val baseScope = createMockScope(parentClassLoader)
+        val targetScope = createMockScope(mock(), baseScope)
+
+        val compiledProgram1 = DummyCompiledScript(TestProgram1::class.java)
+        val compiledProgram2 = DummyCompiledScript(TestProgram2::class.java)
+        val buildOperationRunner = TestBuildOperationRunner()
+        val cachingHost = createCachingHostMock(compiledProgram1, compiledProgram2)
+
+        val interpreter = Interpreter(cachingHost.host, buildOperationRunner)
+        val target = mock<Settings>()
+
+        // When we eval the first script with the first filename
+        interpreter.eval(target, scriptSource1, sourceHash, mock(), targetScope, baseScope, true)
+        val compilationsAfterFirst = cachingHost.compilationCount
+
+        // And eval second script with a different filename
+        interpreter.eval(target, scriptSource2, sourceHash, mock(), targetScope, baseScope, true)
+        val compilationsAfterSecond = cachingHost.compilationCount
+
+        // Then both should compile (cache miss due to different scriptFileName)
+        assert(compilationsAfterFirst == 1) { "First script should compile" }
+        assert(compilationsAfterSecond == 2) {
+            "Second script with different scriptFileName should also compile (cache miss)"
+        }
+
+        // And both should be in the cache with different keys
+        assert(cachingHost.programCache.size == 2) { "Cache should contain entries for both scriptFileNames" }
+        val cachedFileNames = cachingHost.programCache.keys.map { it.buildTreeScriptPath }.toSet()
+        assert("src/settings.gradle.kts" in cachedFileNames && "src/settings-v2.gradle.kts" in cachedFileNames) {
+            "Both scriptFileNames should be cache keys"
+        }
+    }
+
+    @Test
+    fun `eval treats different script contents as cache miss`() {
+        val scriptPath = "src/settings.gradle.kts"
+
+        // Create two script sources with the same fileName and className but different contents
+        val scriptText1 = "println(\"version 1\")"
+        val scriptText2 = "println(\"version 2\")"
+        val sourceHash1 = TestHashCodes.hashCodeFrom(42)
+        val sourceHash2 = TestHashCodes.hashCodeFrom(43)
+
+        val scriptSource1 = createScriptSource(scriptPath, scriptText1)
+        val scriptSource2 = createScriptSource(scriptPath, scriptText2)
+
+        val parentClassLoader = mock<ClassLoader>()
+        val baseScope = createMockScope(parentClassLoader)
+        val targetScope = createMockScope(mock(), baseScope)
+
+        val compiledProgram1 = DummyCompiledScript(TestProgram1::class.java)
+        val compiledProgram2 = DummyCompiledScript(TestProgram2::class.java)
+        val buildOperationRunner = TestBuildOperationRunner()
+        val cachingHost = createCachingHostMock(compiledProgram1, compiledProgram2)
+
+        val interpreter = Interpreter(cachingHost.host, buildOperationRunner)
+        val target = mock<Settings>()
+
+        // When we eval the first script with the first content
+        interpreter.eval(target, scriptSource1, sourceHash1, mock(), targetScope, baseScope, true)
+        val compilationsAfterFirst = cachingHost.compilationCount
+
+        // And eval a second script with different content (different sourceHash)
+        interpreter.eval(target, scriptSource2, sourceHash2, mock(), targetScope, baseScope, true)
+        val compilationsAfterSecond = cachingHost.compilationCount
+
+        // Then both should compile (cache miss due to different sourceHash)
+        assert(compilationsAfterFirst == 1) { "First script should compile" }
+        assert(compilationsAfterSecond == 2) {
+            "Second script with different content should also compile (cache miss)"
+        }
+
+        // And both should be in the cache with different keys
+        assert(cachingHost.programCache.size == 2) { "Cache should contain entries for both sourceHashes" }
+        val cachedSourceHashes = cachingHost.programCache.keys.map { it.sourceHash }.toSet()
+        assert(sourceHash1 in cachedSourceHashes && sourceHash2 in cachedSourceHashes) {
+            "Both sourceHashes should be cache keys"
+        }
+    }
+
+    private
+    class CachingHostMock(
+        val host: Interpreter.Host,
+        val programCache: MutableMap<ProgramId, CompiledScript>,
+        private val compilationCountRef: IntArray
+    ) {
+        val compilationCount: Int
+            get() = compilationCountRef[0]
+    }
+
+    private
+    fun createCachingHostMock(vararg compiledPrograms: CompiledScript): CachingHostMock {
+        val programCache = mutableMapOf<ProgramId, CompiledScript>()
+        val compilationCountRef = intArrayOf(0)
+
+        val mockServiceRegistry = mock<ServiceRegistry> {
+            on { get(GradleUserHomeTemporaryFileProvider::class.java) } doReturn GradleUserHomeTemporaryFileProvider {
+                tempFolder.createDir("gradle-user-home")
+            }
+            on { get(KotlinMetadataCompatibilityChecker::class.java) } doReturn object : KotlinMetadataCompatibilityChecker {
+                override fun incompatibleClasspathElements(classPath: ClassPath): List<File> = listOf()
+            }
+        }
+
+        val host = mock<Interpreter.Host> {
+            on { cachedClassFor(any()) } doAnswer { invocation ->
+                val programId = invocation.getArgument<ProgramId>(0)
+                programCache[programId]
+            }
+            on { cache(any(), any()) } doAnswer { invocation ->
+                val program = invocation.getArgument<CompiledScript>(0)
+                val programId = invocation.getArgument<ProgramId>(1)
+                programCache[programId] = program
+            }
+            on { serviceRegistryFor(any(), any()) } doReturn mockServiceRegistry
+            on { compilerOptions } doReturn KotlinCompilerOptions()
+            on { compilationClassPathOf(any()) } doReturn testRuntimeClassPath
+            on { stage1BlocksAccessorsFor(any()) } doReturn ClassPath.EMPTY
+            on { accessorsClassPathFor(any()) } doReturn ClassPath.EMPTY
+            on { hashOf(any()) } doReturn TestHashCodes.hashCodeFrom(0)
+            on { implicitImports } doReturn emptyList()
+            on { startCompilerOperation(any()) } doAnswer {
+                compilationCountRef[0]++
+                mock<AutoCloseable>()
+            }
+            on { cachedDirFor(any(), any(), any(), any(), any()) } doAnswer { invocation ->
+                val outputDir = root.resolve("compile-${compilationCountRef[0]}").apply { mkdir() }
+                invocation.getArgument<(File) -> Unit>(4).invoke(outputDir)
+                outputDir
+            }
+            on { loadClassInChildScopeOf(any(), any(), any(), any(), any(), any()) } doAnswer {
+                if (compiledPrograms.isEmpty()) {
+                    DummyCompiledScript(TestProgram1::class.java)
+                } else {
+                    compiledPrograms[(compilationCountRef[0] - 1).coerceIn(0, compiledPrograms.size - 1)]
+                }
+            }
+            on { runCompileBuildOperation(any(), any(), any()) } doAnswer {
+                it.getArgument<() -> String>(2)()
+            }
+            on { buildTreeRootDir } doReturn root.toPath()
+        }
+
+        return CachingHostMock(host, programCache, compilationCountRef)
+    }
+
+    private
+    fun createScriptSource(scriptBuildTreePath: String, text: String): ScriptSource {
+        val resourceLocation = mock<ResourceLocation> {
+            on { getFile() } doReturn root.resolve(scriptBuildTreePath)
+        }
+        val textResource = mock<TextResource> {
+            on { getText() } doReturn text
+            on { getLocation() } doReturn resourceLocation
+        }
+        val shortDisplayName = Describables.of("<test>")
+        val longDisplayName = Describables.of(scriptBuildTreePath)
+        return mock {
+            on { this.fileName } doReturn scriptBuildTreePath
+            on { this.shortDisplayName } doReturn shortDisplayName
+            on { this.longDisplayName } doReturn longDisplayName
+            on { this.displayName } doReturn scriptBuildTreePath
+            on { resource } doReturn textResource
+        }
+    }
+
+    private
+    fun createMockScope(exportClassLoader: ClassLoader, parent: ClassLoaderScope? = null): ClassLoaderScope = mock {
+        on { this.exportClassLoader } doReturn exportClassLoader
+        parent?.let { on { this.parent } doReturn it }
     }
 
     private

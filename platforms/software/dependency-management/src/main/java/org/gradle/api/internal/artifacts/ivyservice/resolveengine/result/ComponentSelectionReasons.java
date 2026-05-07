@@ -16,17 +16,11 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 
-import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Iterables;
-import org.gradle.api.Describable;
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.result.ComponentSelectionCause;
 import org.gradle.api.artifacts.result.ComponentSelectionDescriptor;
-import org.gradle.api.artifacts.result.ComponentSelectionReason;
 
-import java.util.ArrayDeque;
-import java.util.Collection;
-import java.util.Iterator;
 import java.util.List;
 
 public class ComponentSelectionReasons {
@@ -40,39 +34,35 @@ public class ComponentSelectionReasons {
     public static final ComponentSelectionDescriptorInternal REJECTION = new DefaultComponentSelectionDescriptor(ComponentSelectionCause.REJECTION);
     public static final ComponentSelectionDescriptorInternal BY_ANCESTOR = new DefaultComponentSelectionDescriptor(ComponentSelectionCause.BY_ANCESTOR);
 
-    public static ComponentSelectionReason requested() {
-        return new DefaultComponentSelectionReason(REQUESTED);
+    public static ComponentSelectionReasonInternal requested() {
+        return of(REQUESTED);
     }
 
-    public static ComponentSelectionReason root() {
-        return new DefaultComponentSelectionReason(ROOT);
+    public static ComponentSelectionReasonInternal root() {
+        return of(ROOT);
     }
 
-    public static ComponentSelectionReason of(ComponentSelectionDescriptor... descriptions) {
-        return new DefaultComponentSelectionReason(descriptions);
+    public static ComponentSelectionReasonInternal of(ComponentSelectionDescriptorInternal descriptions) {
+        return new DefaultComponentSelectionReason(ImmutableList.of(descriptions));
     }
 
-    public static ComponentSelectionReasonInternal of(Collection<ComponentSelectionDescriptorInternal> dependencyReasons) {
-        return new DefaultComponentSelectionReason(dependencyReasons.toArray(new ComponentSelectionDescriptor[0]));
-    }
-
-    public static ComponentSelectionReasonInternal empty() {
-        return new DefaultComponentSelectionReason();
+    public static ComponentSelectionReasonInternal of(ImmutableSet<ComponentSelectionDescriptorInternal> dependencyReasons) {
+        assert !dependencyReasons.isEmpty();
+        return new DefaultComponentSelectionReason(dependencyReasons.asList());
     }
 
     public static boolean isCauseExpected(ComponentSelectionDescriptor descriptor) {
         return descriptor.getCause() == ComponentSelectionCause.REQUESTED || descriptor.getCause() == ComponentSelectionCause.ROOT;
     }
 
-    private static class DefaultComponentSelectionReason implements ComponentSelectionReasonInternal {
+    static class DefaultComponentSelectionReason implements ComponentSelectionReasonInternal {
 
-        private final ArrayDeque<ComponentSelectionDescriptorInternal> descriptions;
+        private final ImmutableList<ComponentSelectionDescriptorInternal> descriptions;
 
-        private DefaultComponentSelectionReason(ComponentSelectionDescriptor... descriptors) {
-            descriptions = new ArrayDeque<>(1);
-            for (ComponentSelectionDescriptor descriptor : descriptors) {
-                descriptions.add((ComponentSelectionDescriptorInternal) descriptor);
-            }
+        // Package private since static factories enforce non-empty and no duplicates,
+        // but the serializer can skip the set creation.
+        DefaultComponentSelectionReason(ImmutableList<ComponentSelectionDescriptorInternal> descriptions) {
+            this.descriptions = descriptions;
         }
 
         @Override
@@ -101,7 +91,7 @@ public class ComponentSelectionReasons {
 
         @Override
         public boolean isExpected() {
-            return descriptions.size() == 1 && isCauseExpected(Iterables.getLast(descriptions));
+            return descriptions.size() == 1 && isCauseExpected(getLast());
         }
 
         @Override
@@ -111,35 +101,12 @@ public class ComponentSelectionReasons {
 
         @Override
         public String toString() {
-            return descriptions.getLast().toString();
-        }
-
-        @Override
-        public ComponentSelectionReasonInternal addCause(ComponentSelectionCause cause, Describable description) {
-            addCause(new DefaultComponentSelectionDescriptor(cause, description));
-            return this;
-        }
-
-
-        @Override
-        public ComponentSelectionReasonInternal setCause(ComponentSelectionDescriptor description) {
-            descriptions.clear();
-            addCause(description);
-            return this;
-        }
-
-        @Override
-        public ComponentSelectionReasonInternal addCause(ComponentSelectionDescriptor description) {
-            ComponentSelectionDescriptorInternal descriptor = (ComponentSelectionDescriptorInternal) description;
-            if (!descriptions.contains(descriptor)) {
-                descriptions.add(descriptor);
-            }
-            return this;
+            return getLast().toString();
         }
 
         @Override
         public List<ComponentSelectionDescriptorInternal> getDescriptions() {
-            return ImmutableList.copyOf(descriptions);
+            return descriptions;
         }
 
         @Override
@@ -157,6 +124,10 @@ public class ComponentSelectionReasons {
             return false;
         }
 
+        private ComponentSelectionDescriptorInternal getLast() {
+            return descriptions.get(descriptions.size() - 1);
+        }
+
         @Override
         public boolean equals(Object o) {
             if (this == o) {
@@ -166,26 +137,13 @@ public class ComponentSelectionReasons {
                 return false;
             }
             DefaultComponentSelectionReason that = (DefaultComponentSelectionReason) o;
-            return sameDescriptorsAs(that);
-        }
-
-        private boolean sameDescriptorsAs(DefaultComponentSelectionReason that) {
-            if (descriptions.size() != that.descriptions.size()) {
-                return false;
-            }
-            Iterator<ComponentSelectionDescriptorInternal> it1 = descriptions.iterator();
-            Iterator<ComponentSelectionDescriptorInternal> it2 = descriptions.iterator();
-            while (it1.hasNext()) {
-                if (!it1.next().equals(it2.next())) {
-                    return false;
-                }
-            }
-            return true;
+            return descriptions.equals(that.descriptions);
         }
 
         @Override
         public int hashCode() {
-            return Objects.hashCode(descriptions);
+            return descriptions.hashCode();
         }
+
     }
 }

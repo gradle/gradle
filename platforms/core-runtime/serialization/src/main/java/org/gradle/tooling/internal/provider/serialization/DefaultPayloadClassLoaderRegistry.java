@@ -22,7 +22,6 @@ import org.gradle.internal.classloader.ClassLoaderSpec;
 import org.gradle.internal.classloader.ClassLoaderVisitor;
 import org.gradle.internal.classloader.SystemClassLoaderSpec;
 import org.gradle.internal.classloader.VisitableURLClassLoader;
-import org.gradle.util.internal.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -137,27 +136,13 @@ public class DefaultPayloadClassLoaderRegistry implements PayloadClassLoaderRegi
     }
 
     private static class ClassLoaderSpecVisitor extends ClassLoaderVisitor {
-        final ClassLoader classLoader;
+
         final List<ClassLoader> parents = new ArrayList<ClassLoader>();
         ClassLoaderSpec spec;
-        URL[] classPath;
-
-        public ClassLoaderSpecVisitor(ClassLoader classLoader) {
-            this.classLoader = classLoader;
-        }
 
         @Override
-        public void visit(ClassLoader candidate) {
-            if (candidate == classLoader) {
-                super.visit(candidate);
-            } else {
-                parents.add(candidate);
-            }
-        }
-
-        @Override
-        public void visitClassPath(URL[] classPath) {
-            this.classPath = classPath;
+        public void visitParent(ClassLoader classLoader) {
+            parents.add(classLoader);
         }
 
         @Override
@@ -186,16 +171,8 @@ public class DefaultPayloadClassLoaderRegistry implements PayloadClassLoaderRegi
     private class DetailsToClassLoaderTransformer implements ClassLoaderCache.Transformer<ClassLoaderDetails, ClassLoader> {
         @Override
         public ClassLoaderDetails transform(ClassLoader classLoader) {
-            ClassLoaderSpecVisitor visitor = new ClassLoaderSpecVisitor(classLoader);
+            ClassLoaderSpecVisitor visitor = new ClassLoaderSpecVisitor();
             visitor.visit(classLoader);
-
-            if (visitor.spec == null) {
-                if (visitor.classPath == null) {
-                    visitor.spec = SystemClassLoaderSpec.INSTANCE;
-                } else {
-                    visitor.spec = new VisitableURLClassLoader.Spec("unknown-loader", CollectionUtils.toList(visitor.classPath));
-                }
-            }
 
             UUID uuid = UUID.randomUUID();
             ClassLoaderDetails details = new ClassLoaderDetails(uuid, visitor.spec);

@@ -18,11 +18,11 @@ package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.gradle.test.fixtures.server.http.MavenHttpPluginRepository
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.OsTestPreconditions
+
 import org.gradle.util.internal.ToBeImplemented
 import spock.lang.Issue
 
@@ -35,7 +35,7 @@ import static org.gradle.integtests.fixtures.SuggestionsMessages.repositoryHint
 // Restrict the number of combinations because that's not really what we want to test
 @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
 @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
-class RepositoriesDeclaredInSettingsIntegrationTest extends AbstractModuleDependencyResolveTest implements PluginDslSupport {
+class RepositoriesDeclaredInSettingsIntegrationTest extends AbstractModuleDependencyResolveTest {
     boolean isDeclareRepositoriesInSettings() {
         true
     }
@@ -272,8 +272,14 @@ class RepositoriesDeclaredInSettingsIntegrationTest extends AbstractModuleDepend
 
         """
 
-        withPlugins(['org.gradle.repo-conventions': '1.0'])
-        buildFile << """
+        def buildFileText = buildFile.text
+        buildFile.text = """
+            plugins {
+                id("org.gradle.repo-conventions").version("1.0")
+            }
+
+            ${buildFileText}
+
             dependencies {
                 conf 'org:module:1.0'
             }
@@ -556,17 +562,18 @@ class RepositoriesDeclaredInSettingsIntegrationTest extends AbstractModuleDepend
         }
     }
 
-    @ToBeFixedForConfigurationCache(because = "task uses dependency resolution API")
     def "mutation of settings repositories after settings have been evaluated is disallowed"() {
-
         buildFile << """
-            tasks.register('mutateSettings') {
-                doLast {
+            task mutateSettings {
+                def mutate = providers.provider {
                     gradle.settings.dependencyResolutionManagement {
                         repositories {
                             maven { url = 'dummy' }
                         }
                     }
+                }
+                doLast {
+                    mutate.get()
                 }
             }
         """
@@ -607,7 +614,7 @@ class RepositoriesDeclaredInSettingsIntegrationTest extends AbstractModuleDepend
     }
 
     // fails to delete directory under Windows otherwise
-    @Requires(UnitTestPreconditions.NotWindows)
+    @Requires(OsTestPreconditions.NotWindows)
     def "can use a published settings plugin which will apply to both the main build and buildSrc"() {
         def pluginPortal = MavenHttpPluginRepository.asGradlePluginPortal(executer, mavenRepo)
         pluginPortal.start()
@@ -745,7 +752,7 @@ class RepositoriesDeclaredInSettingsIntegrationTest extends AbstractModuleDepend
     }
 
     // fails to delete directory under Windows otherwise
-    @Requires(UnitTestPreconditions.NotWindows)
+    @Requires(OsTestPreconditions.NotWindows)
     void "repositories declared in settings shouldn't be used to resolve plugins"() {
         def pluginPortal = MavenHttpPluginRepository.asGradlePluginPortal(executer, mavenRepo)
         pluginPortal.start()
@@ -767,7 +774,14 @@ class RepositoriesDeclaredInSettingsIntegrationTest extends AbstractModuleDepend
             'org:module:1.0'()
         }
 
-        withPlugins(['org.gradle.test.hello-world': '1.0'])
+        def buildFileText = buildFile.text
+        buildFile.text = """
+            plugins {
+                id("org.gradle.test.hello-world").version("1.0")
+            }
+
+            ${buildFileText}
+        """
 
         when:
         plugin.allowAll()

@@ -76,7 +76,7 @@ public class SystemProperties {
     }
 
     public String getLineSeparator() {
-        return System.getProperty("line.separator");
+        return System.lineSeparator();
     }
 
     /**

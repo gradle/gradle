@@ -22,6 +22,10 @@ import java.util.TreeSet;
 
 import static org.gradle.api.tasks.testing.TestResult.ResultType;
 
+/**
+ * @deprecated Only present for compatibility with cashapp/paparazzi. No replacement.
+ */
+@Deprecated
 public abstract class CompositeTestResults extends TestResultModel {
     private final CompositeTestResults parent;
     private int tests;

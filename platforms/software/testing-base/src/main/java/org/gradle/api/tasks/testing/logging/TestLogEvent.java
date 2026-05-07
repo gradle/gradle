@@ -16,6 +16,8 @@
 
 package org.gradle.api.tasks.testing.logging;
 
+import org.gradle.api.Incubating;
+
 /**
  * Test events that can be logged.
  */
@@ -48,5 +50,12 @@ public enum TestLogEvent {
     /**
      * A test has written a message to standard error.
      */
-    STANDARD_ERROR
+    STANDARD_ERROR,
+
+    /**
+     * A test has written metadata.
+     * @since 9.4.0
+     */
+    @Incubating
+    METADATA,
 }

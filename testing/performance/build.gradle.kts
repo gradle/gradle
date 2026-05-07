@@ -9,6 +9,7 @@ description = "Performance tests for the Gradle build tool"
 dependencies {
     performanceTestImplementation(projects.baseServices)
     performanceTestImplementation(projects.core)
+    performanceTestImplementation(projects.internalIntegTesting)
     performanceTestImplementation(projects.internalTesting)
     performanceTestImplementation(projects.stdlibJavaExtensions)
     performanceTestImplementation(projects.toolingApi)
@@ -17,14 +18,14 @@ dependencies {
 
     performanceTestImplementation(libs.commonsLang)
     performanceTestImplementation(libs.commonsIo)
-    performanceTestImplementation(libs.gradleProfiler)
-    performanceTestImplementation(libs.jettyServer)
-    performanceTestImplementation(libs.jettyWebApp)
-    performanceTestImplementation(libs.junit)
-    performanceTestImplementation(libs.servletApi)
+    performanceTestImplementation(testLibs.gradleProfiler)
+    performanceTestImplementation(testLibs.jettyServer)
+    performanceTestImplementation(testLibs.jettyWebApp)
+    performanceTestImplementation(testLibs.junit)
+    performanceTestImplementation(testLibs.servletApi)
 
     performanceTestRuntimeOnly(projects.coreApi)
-    performanceTestRuntimeOnly(libs.jetty)
+    performanceTestRuntimeOnly(testLibs.jetty)
 
     performanceTestDistributionRuntimeOnly(projects.distributionsFull) {
         because("All Gradle features have to be available.")
@@ -37,7 +38,7 @@ dependencies {
 dependencyAnalysis {
     issues {
         onUnusedDependencies {
-            exclude(libs.junitJupiter)
+            exclude(testLibs.junitJupiter)
         }
 
         ignoreSourceSet(sourceSets.performanceTest.name)

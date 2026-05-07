@@ -20,7 +20,7 @@ import org.gradle.api.Project;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.tasks.TaskDependencyUsageTracker;
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
-import org.gradle.internal.metaobject.DynamicObject;
+import org.gradle.internal.metaobject.HierarchicalDynamicObject;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.util.Path;
@@ -46,9 +46,29 @@ public interface CrossProjectModelAccess {
     @Nullable ProjectInternal findProject(ProjectInternal referrer, Path path);
 
     /**
+     * Wrap the given project to ensure mutable state access is correctly handled across project boundaries,
+     * according to the current cross-project model access policy.
+     *
+     * <p>
+     * If possible, callers should prefer {@link #accessFromState(ProjectInternal, ProjectState)},
+     * as it does not require a reference to the mutable state of the project.
+     * </p>
+     *
      * @param referrer The project from which the return value will be used.
      */
     ProjectInternal access(ProjectInternal referrer, ProjectInternal project);
+
+    /**
+     * Variant of {@link #access(ProjectInternal, ProjectInternal)} that takes a {@link ProjectState},
+     * to avoid needing to have a reference to the mutable state of the project in the caller.
+     *
+     * <p>
+     * This should be preferred over {@code access(ProjectInternal, ProjectInternal)} where possible.
+     * </p>
+     *
+     * @param referrer The project from which the return value will be used.
+     */
+    ProjectInternal accessFromState(ProjectInternal referrer, ProjectState projectState);
 
     /**
      * @param referrer The project from which the return value will be used.
@@ -105,5 +125,5 @@ public interface CrossProjectModelAccess {
      * The returned object handles cross-project model access according to the current policy.
      */
     @Nullable
-    DynamicObject parentProjectDynamicInheritedScope(ProjectInternal referrerProject);
+    HierarchicalDynamicObject parentProjectDynamicInheritedScope(ProjectInternal referrerProject);
 }

@@ -208,7 +208,7 @@ class ModuleComponentSelectorParsersTest extends Specification {
 
         then:
         def ex = thrown(InvalidUserDataException)
-        ex.message.contains "Cannot convert a version catalog entry 'pluginId:1.0' to an object of type ModuleVersionSelector. Only dependency accessors are supported but not plugin, bundle or version accessors for 'force()'"
+        ex.message.contains "Cannot convert a version catalog entry 'pluginId:1.0' to an object of type ModuleComponentSelector. Only dependency accessors are supported but not plugin, bundle or version accessors for 'force()'"
     }
 
     def "reports unsupported provider convertible type"() {
@@ -224,7 +224,7 @@ class ModuleComponentSelectorParsersTest extends Specification {
 
         then:
         def ex = thrown(InvalidUserDataException)
-        ex.message.contains "Cannot convert a version catalog entry 'pluginId:1.0' to an object of type ModuleVersionSelector. Only dependency accessors are supported but not plugin, bundle or version accessors for 'force()'"
+        ex.message.contains "Cannot convert a version catalog entry 'pluginId:1.0' to an object of type ModuleComponentSelector. Only dependency accessors are supported but not plugin, bundle or version accessors for 'force()'"
     }
 
     def "reports unsupported versions if rich constraints are used"() {
@@ -240,7 +240,7 @@ class ModuleComponentSelectorParsersTest extends Specification {
 
         then:
         def ex = thrown(InvalidUserDataException)
-        ex.message.contains "Cannot convert a version catalog entry: 'org.foo:bar:{require 1.0; prefer 1.2}' to an object of type ModuleVersionSelector. Rich versions are not supported for 'force()'."
+        ex.message.contains "Cannot convert a version catalog entry: 'org.foo:bar:{require 1.0; prefer 1.2}' to an object of type ModuleComponentSelector. Rich versions are not supported for 'force()'."
     }
 
     def "reports invalid format if version is empty"() {
@@ -255,6 +255,6 @@ class ModuleComponentSelectorParsersTest extends Specification {
 
         then:
         def ex = thrown(InvalidUserDataException)
-        ex.message.contains "Cannot convert a version catalog entry: 'org.foo:bar' to an object of type ModuleVersionSelector. Version cannot be empty for 'force()'."
+        ex.message.contains "Cannot convert a version catalog entry: 'org.foo:bar' to an object of type ModuleComponentSelector. Version cannot be empty for 'force()'."
     }
 }

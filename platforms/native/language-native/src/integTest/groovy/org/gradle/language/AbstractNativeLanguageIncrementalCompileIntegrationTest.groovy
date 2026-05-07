@@ -21,7 +21,7 @@ import org.gradle.integtests.fixtures.CompilationOutputsFixture
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.IncrementalHelloWorldApp
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.util.internal.GUtil
+import org.gradle.util.internal.TextUtil
 
 abstract class AbstractNativeLanguageIncrementalCompileIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     IncrementalHelloWorldApp app
@@ -37,7 +37,7 @@ abstract class AbstractNativeLanguageIncrementalCompileIntegrationTest extends A
     abstract IncrementalHelloWorldApp getHelloWorldApp()
 
     String getSourceType() {
-        GUtil.toCamelCase(app.sourceType)
+        TextUtil.toCamelCase(app.sourceType)
     }
 
     def "setup"() {

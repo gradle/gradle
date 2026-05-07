@@ -1,0 +1,23 @@
+plugins {
+    id 'java-library'
+}
+
+// tag::verify_shared_versions[]
+tasks.register('verifySharedVersions') {
+    def distToml = file('gradle/distribution.versions.toml').text
+    def testToml = file('gradle/test.versions.toml').text
+
+    doLast {
+        // Extract the errorProne version from each file
+        def regex = /errorProne\s*=\s*"(.+?)"/
+        def distMatcher = distToml =~ regex
+        def testMatcher = testToml =~ regex
+
+        def distVersion = distMatcher ? distMatcher[0][1] : null
+        def testVersion = testMatcher ? testMatcher[0][1] : null
+
+        assert distVersion == testVersion :
+            "errorProne version mismatch: distribution=$distVersion, test=$testVersion"
+    }
+}
+// end::verify_shared_versions[]

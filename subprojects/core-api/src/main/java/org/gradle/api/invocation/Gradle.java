@@ -30,8 +30,10 @@ import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.plugins.PluginAware;
+import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.services.BuildServiceRegistry;
 import org.gradle.internal.HasInternalProtocol;
+import org.gradle.internal.accesscontrol.ForExternalUse;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.jspecify.annotations.Nullable;
@@ -101,6 +103,7 @@ public interface Gradle extends PluginAware, ExtensionAware {
      * @return The root project. Never returns null.
      * @throws IllegalStateException When called before the root project is available.
      */
+    @ForExternalUse
     Project getRootProject() throws IllegalStateException;
 
     /**
@@ -400,4 +403,13 @@ public interface Gradle extends PluginAware, ExtensionAware {
      * @since 3.1
      */
     IncludedBuild includedBuild(String name) throws UnknownDomainObjectException;
+
+    /**
+     * Provides access to methods to create various kinds of {@link org.gradle.api.provider.Provider} instances.
+     *
+     * @return the provider factory. Never returns null.
+     * @since 9.4.0
+     */
+    @Incubating
+    ProviderFactory getProviders();
 }

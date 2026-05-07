@@ -18,20 +18,24 @@ package org.gradle.testing.junit.platform
 
 import spock.lang.Issue
 
+import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_PLATFORM
 import static org.gradle.testing.fixture.JUnitCoverage.LATEST_JUPITER_VERSION
-import static org.gradle.testing.fixture.JUnitCoverage.LATEST_PLATFORM_VERSION
 
 /**
  * Tests JUnitPlatform integrations with {@code LauncherSessionListener}.
  */
 class JUnitPlatformLauncherSessionListenerIntegrationTest extends JUnitPlatformIntegrationSpec {
+    @Override
+    String getJupiterVersion() {
+        return LATEST_JUPITER_VERSION
+    }
 
     /**
      * @see <a href=https://github.com/JetBrains/intellij-community/commit/d41841670c8a98c0464ef25ef490c79b5bafe8a9">The IntelliJ commit</a>
      * which introduced a {@code LauncherSessionListener} onto the test classpath when using the {@code org.jetbrains.intellij} plugin.
      */
     @Issue("https://github.com/gradle/gradle/issues/22333")
-    def "LauncherSessionListeners can be implemented and are loaded by junit"() {
+    def "LauncherSessionListeners can be implemented and are loaded by junit with platform version #platformVersion"() {
         settingsFile << "include 'other'"
         file("other/build.gradle") << """
             plugins {
@@ -41,7 +45,7 @@ class JUnitPlatformLauncherSessionListenerIntegrationTest extends JUnitPlatformI
             ${mavenCentralRepository()}
 
             dependencies {
-                implementation("org.junit.platform:junit-platform-launcher:1.10.0")
+                implementation("org.junit.platform:junit-platform-launcher:$platformVersion")
             }
         """
         file("other/src/main/java/com/example/MyLauncherSessionListener.java") << """
@@ -94,14 +98,17 @@ class JUnitPlatformLauncherSessionListenerIntegrationTest extends JUnitPlatformI
         then:
         outputContains("Session opened")
         outputContains("Session closed")
+
+        where:
+        platformVersion << JUNIT_PLATFORM
     }
 
-    def "creates LauncherSession before loading test classes"() {
+    def "creates LauncherSession before loading test classes with platform version #platformVersion"() {
         given:
         createSimpleJupiterTest()
         buildFile << """
             dependencies {
-                testImplementation 'org.junit.platform:junit-platform-launcher:${LATEST_PLATFORM_VERSION}'
+                testImplementation 'org.junit.platform:junit-platform-launcher:${platformVersion}'
             }
             test {
                 testLogging {
@@ -138,5 +145,8 @@ class JUnitPlatformLauncherSessionListenerIntegrationTest extends JUnitPlatformI
         outputContains('launcherSessionOpened')
         outputContains('Loading class org.gradle.JUnitJupiterTest')
         outputContains('launcherSessionClosed')
+
+        where:
+        platformVersion << JUNIT_PLATFORM
     }
 }

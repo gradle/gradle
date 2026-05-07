@@ -16,6 +16,7 @@
 
 package org.gradle.api.problems
 
+import org.gradle.api.logging.configuration.WarningMode
 import org.gradle.api.problems.internal.StackTraceLocation
 import org.gradle.api.problems.internal.TaskLocation
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
@@ -50,6 +51,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         verifyAll(receivedProblem) {
             definition.id.fqid == 'generic:type'
             definition.id.displayName == 'label'
+            definition.severity == Severity.WARNING
             with(oneLocation(StackTraceLocation).fileLocation) {
                 length == -1
                 column == -1
@@ -203,25 +205,6 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
-    def "can emit a problem with a severity"(Severity severity) {
-        given:
-        withReportProblemTask """
-            ${problemIdScript()}
-            problems.getReporter().report(problemId) {
-                it.severity(Severity.${severity.name()})
-            }
-        """
-
-        when:
-        run('reportProblem')
-
-        then:
-        receivedProblem.definition.severity == severity
-
-        where:
-        severity << Severity.values()
-    }
-
     def "can emit a problem with a solution"() {
         given:
         withReportProblemTask """
@@ -334,7 +317,10 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         fails('reportProblem')
 
         then:
-        receivedProblem.exception.message == 'test'
+        verifyAll(receivedProblem) {
+            exception.message == 'test'
+            definition.severity == Severity.ERROR
+        }
     }
 
     def "can rethrow a caught exception"() {
@@ -364,8 +350,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
             ${problemIdScript()}
             for (int i = 0; i < 10; i++) {
                 problems.getReporter().report(problemId) {
-                        it.severity(Severity.WARNING)
-                        .solution("solution \$i")
+                    it.solution("solution \$i")
                 }
             }
         """
@@ -394,8 +379,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
             ${problemIdScript()}
             for (int i = 0; i < 10; i++) {
                 problems.getReporter().report(${ProblemId.name}.create("type\$i", "This is the heading problem text\$i", problemGroup)) {
-                        it.severity(Severity.WARNING)
-                        .details("This is a huge amount of extremely and very relevant details for this problem\$i")
+                    it.details("This is a huge amount of extremely and very relevant details for this problem\$i")
                         .solution("solution")
                 }
             }
@@ -428,8 +412,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
             ${problemIdScript()}
             for (int i = 0; i < 10; i++) {
                 problems.getReporter().report(${ProblemId.name}.create("type\$i", "This is the heading problem text\$i", problemGroup)) {
-                        it.severity(Severity.WARNING)
-                        .details("This is a huge amount of extremely and very relevant details for this problem\$i")
+                    it.details("This is a huge amount of extremely and very relevant details for this problem\$i")
                         .solution("solution")
                 }
             }
@@ -447,10 +430,101 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
             verifyAll(receivedProblem(num)) {
                 definition.id.displayName == "This is the heading problem text$num"
                 definition.id.name == "type$num"
-                definition.severity == Severity.WARNING
                 details == "This is a huge amount of extremely and very relevant details for this problem$num"
                 solutions == ["solution"]
             }
+        }
+    }
+
+    def "problem report message is not rendered in the output if --warning-mode=none is set"() {
+        given:
+        withReportProblemTask """
+            ${problemIdScript()}
+            problems.getReporter().report(problemId) {
+                it.contextualLabel("Some problem")
+            }
+        """
+
+        when:
+        executer.withWarningMode(WarningMode.None)
+        run("reportProblem")
+
+        then:
+        testDirectory.file(problemsReportOutputDirectory, problemsReportHtmlName).exists()
+        !output.contains(problemsReportOutputPrefix)
+        receivedProblem != null
+    }
+
+    def "problems are rendered on the console when WarningMode=all configured"() {
+        given:
+        withReportProblemTask """
+            ${ProblemGroup.name} problemGroup = ${ProblemGroup.name}.create("sample-problems", "Sample Problems");
+            ${ProblemId.name} problemId = ${ProblemId.name}.create("prototype-project", "Project is a prototype", problemGroup)
+            problems.getReporter().report(problemId) { spec ->
+                spec.contextualLabel("This is a prototype and not a guideline for modeling real-life projects")
+                spec.details("Complex build logic like the Problems API usage should be integrated into plugins")
+                spec.solution("Look up the samples index for real-life examples")
+                spec.documentedAt("https://example.com/some-problem")
+                spec.lineInFileLocation("/path/to/script", 20)
+            }
+        """
+
+        when:
+        run('reportProblem')
+
+        then:
+        outputContains """
+Problem found: Project is a prototype (id: sample-problems:prototype-project)
+  This is a prototype and not a guideline for modeling real-life projects
+    Complex build logic like the Problems API usage should be integrated into plugins
+    For more information, please refer to https://example.com/some-problem.
+    Location: /path/to/script line 20
+    Possible solution: Look up the samples index for real-life examples.
+        """
+        verifyAll(receivedProblem) {
+            definition.id.fqid == 'sample-problems:prototype-project'
+        }
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/35914")
+    def "build failure message does not contain duplicate information"() {
+        given:
+        disableProblemsApiCheck()
+        def solution = 'Look up the samples index for real-life examples'
+        def docLink = 'https://example.com/some-problem'
+        withReportProblemTask """
+            ${problemIdScript()}
+            problems.getReporter().throwing(new RuntimeException(), problemId) { spec ->
+                spec.solution("$solution")
+                spec.documentedAt("$docLink")
+            }
+        """
+
+        when:
+        fails('reportProblem')
+
+        then:
+        errorOutput.count(solution) == 1
+        errorOutput.count(docLink) == 1
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/36719")
+    def "minimal DeprecationLogger nagging can emit problems"() {
+        setup:
+        ignoreCleanupAssertions()
+        buildFile << """
+            org.gradle.internal.deprecation.DeprecationLogger
+                .deprecate("Feature")
+                .willBeRemovedInGradle10()
+                .undocumented()
+                .nagUser()
+        """
+        executer.expectDocumentedDeprecationWarning("Feature has been deprecated. This is scheduled to be removed in Gradle 10.")
+
+        expect:
+        succeeds("help")
+        verifyAll(receivedProblem) {
+            it.definition.id.group.name == 'deprecation'
         }
     }
 

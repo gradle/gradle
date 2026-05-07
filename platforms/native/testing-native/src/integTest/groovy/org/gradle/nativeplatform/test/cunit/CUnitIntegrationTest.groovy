@@ -25,15 +25,16 @@ import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.CHelloWorldApp
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.TestEnvironmentPreconditions
+
 import org.gradle.util.internal.TextUtil
 import spock.lang.Issue
 
-@Requires(UnitTestPreconditions.CanInstallExecutable)
+@Requires(TestEnvironmentPreconditions.CanInstallExecutable)
 @RequiresInstalledToolChain(ToolChainRequirement.SUPPORTS_32)
 class CUnitIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
 
-    def prebuiltDir = buildContext.getSamplesDir().file("native-binaries/cunit/groovy/libs")
+    def prebuiltDir = buildContext.getSamplesDir().file("integration-tests/native-binaries/cunit/groovy/libs")
     def prebuiltPath = TextUtil.normaliseFileSeparators(prebuiltDir.path)
     def app = new CHelloWorldApp()
 

@@ -28,15 +28,18 @@ import gradlebuild.integrationtests.extension.IntegrationTestExtension
 import gradlebuild.integrationtests.tasks.DistributionTest
 import gradlebuild.integrationtests.tasks.GenerateAutoTestedSamplesTestTask
 import gradlebuild.integrationtests.tasks.IntegrationTest
-import gradlebuild.modules.extension.ExternalModulesExtension
 import gradlebuild.testing.services.BuildBucketProvider
 import org.gradle.api.Action
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
+import org.gradle.api.artifacts.Dependency
+import org.gradle.api.artifacts.ModuleDependency
+import org.gradle.api.artifacts.VersionCatalogsExtension
 import org.gradle.api.attributes.Category
 import org.gradle.api.attributes.LibraryElements
 import org.gradle.api.attributes.Usage
 import org.gradle.api.file.ConfigurableFileCollection
+import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.tasks.GroovySourceDirectorySet
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.PathSensitive
@@ -46,13 +49,19 @@ import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.api.tasks.compile.GroovyCompile
 import org.gradle.kotlin.dsl.*
+import org.gradle.kotlin.dsl.configure
+import org.gradle.kotlin.dsl.withType
+import org.gradle.plugins.ide.eclipse.EclipsePlugin
+import org.gradle.plugins.ide.eclipse.model.EclipseModel
 import org.gradle.plugins.ide.idea.IdeaPlugin
+import org.gradle.plugins.ide.idea.model.IdeaModel
 import org.gradle.process.CommandLineArgumentProvider
+import kotlin.apply
 
+val CROSSVERSION_TEST_MODELS = "${TestType.CROSSVERSION.prefix}TestModels"
 
 fun Project.addDependenciesAndConfigurations(prefix: String) {
     configurations {
-        getByName("${prefix}TestImplementation") { extendsFrom(configurations["testImplementation"]) }
         val platformImplementation = findByName("platformImplementation")
 
         val distributionRuntimeOnly = bucket("${prefix}TestDistributionRuntimeOnly", "Declare the distribution that is required to run tests")
@@ -88,12 +97,13 @@ fun Project.addDependenciesAndConfigurations(prefix: String) {
 
     // do not attempt to find projects when the plugin is applied just to generate accessors
     if (project.name != "gradle-kotlin-dsl-accessors" && project.name != "enterprise-plugin-performance" && project.name != "test" /* remove once wrapper is updated */) {
+        val testLibs = project.the<VersionCatalogsExtension>().named("testLibs")
         dependencies {
             "${prefix}TestImplementation"(project)
-            "${prefix}TestImplementation"(project.the<ExternalModulesExtension>().junitJupiter)
-            "${prefix}TestRuntimeOnly"(project.the<ExternalModulesExtension>().junitPlatform)
-            "${prefix}TestRuntimeOnly"(project.the<ExternalModulesExtension>().junit5Vintage)
-            "${prefix}TestImplementation"(project(":internal-integ-testing"))
+            "${prefix}TestImplementation"(testLibs.findLibrary("junitJupiter").get())
+            "${prefix}TestRuntimeOnly"(testLibs.findLibrary("junitPlatform").get())
+            "${prefix}TestRuntimeOnly"(testLibs.findLibrary("junit5Vintage").get())
+            "${prefix}TestImplementation"(project(":internal-distribution-testing"))
             "${prefix}TestFullDistributionRuntimeClasspath"(project(":distributions-full"))
             // Add the agent JAR to the test runtime classpath so the InProcessGradleExecuter can find the module and spawn daemons.
             // This doesn't apply the agent to the test process.
@@ -109,7 +119,7 @@ internal
 fun Project.createGenerateAutoTestedSamplesTestTask(sourceSet: SourceSet, testType: TestType) {
     val prefix = testType.prefix
     val sourceSets = the<SourceSetContainer>()
-    val main by sourceSets.getting
+    val main = sourceSets.getByName("main")
     val sourceSet = sourceSets.getByName("${prefix}Test")
 
     val groovySourceDir = sourceSet.extensions.findByType<GroovySourceDirectorySet>()
@@ -230,17 +240,29 @@ fun DistributionTest.setSystemPropertiesOfTestJVM(defaultVersions: String) {
     }
 }
 
+fun Project.configureTestSourceSetInIde(sourceSet: SourceSet) {
+    plugins.withType<EclipsePlugin> {
+        configure<EclipseModel> {
+            classpath {
+                plusConfigurations.apply {
+                    add(configurations.getByName(sourceSet.compileClasspathConfigurationName))
+                    add(configurations.getByName(sourceSet.runtimeClasspathConfigurationName))
+                }
+            }
+        }
+    }
 
-internal
-fun Project.configureIde(testType: TestType) {
-    val prefix = testType.prefix
-    val sourceSet = the<SourceSetContainer>().getByName("${prefix}Test")
-
-    // We apply lazy as we don't want to depend on the order
     plugins.withType<IdeaPlugin> {
-        with(model) {
+        configure<IdeaModel> {
             module {
-                testSources.from(sourceSet.java.srcDirs, sourceSet.the<GroovySourceDirectorySet>().srcDirs)
+                val testKotlinSourceSet = sourceSet.extensions.findByName("kotlin") as SourceDirectorySet?
+                // workaround for https://github.com/gradle/gradle/issues/34646
+                if (testKotlinSourceSet != null) {
+                    testSources.from(sourceSet.java.srcDirs, sourceSet.the<GroovySourceDirectorySet>().srcDirs, testKotlinSourceSet.srcDirs)
+                }
+                else {
+                    testSources.from(sourceSet.java.srcDirs, sourceSet.the<GroovySourceDirectorySet>().srcDirs)
+                }
                 testResources.from(sourceSet.resources.srcDirs)
             }
         }
@@ -280,4 +302,15 @@ fun Project.localRepositoryResolver(name: String, extends: Configuration? = null
     if (extends != null) {
         extendsFrom(extends)
     }
+}
+
+fun Project.crossVersionTestModels(notation: kotlin.Any, configureAction: Action<Dependency> = Action {}) = provider {
+    val dependency = dependencies.create(notation)
+    if (dependency is ModuleDependency) {
+        dependency.capabilities {
+            requireCapability("${dependency.group}:${dependency.name}-${CROSSVERSION_TEST_MODELS}")
+        }
+    }
+    configureAction.execute(dependency)
+    return@provider dependency
 }

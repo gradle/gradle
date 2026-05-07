@@ -89,6 +89,7 @@ class DslTestFixture(private val testDirectory: File) {
         eval(
             script,
             target,
+            testDirectory,
             baseCacheDir,
             baseTempDir,
             scriptCompilationClassPath,

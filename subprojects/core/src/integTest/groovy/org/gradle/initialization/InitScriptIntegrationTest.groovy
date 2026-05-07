@@ -19,6 +19,7 @@ package org.gradle.initialization
 import org.gradle.api.Plugin
 import org.gradle.api.initialization.Settings
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.process.ShellScript
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.plugin.PluginBuilder
@@ -177,5 +178,139 @@ class InitScriptIntegrationTest extends AbstractIntegrationSpec {
                 println "Project \${p.name} evaluated"
             }
         """
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/29678")
+    def "can use lazy providers.exec in init script in Groovy DSL"() {
+        given:
+        def script = ShellScript.builder().printText("1.2.3").writeTo(testDirectory, "version")
+        def commandLine = ShellScript.cmdToVarargLiterals(script.commandLine)
+
+        file("init.gradle") << """
+            def versionProvider = providers.exec {
+                commandLine($commandLine, "version.txt")
+            }.standardOutput.asText
+
+            gradle.settingsEvaluated {
+                println "Version from lazy provider: " + versionProvider.get().trim()
+            }
+        """
+
+        executer.usingInitScript(file('init.gradle'))
+        settingsFile << "rootProject.name = 'test'"
+        buildFile << "task hello"
+
+        when:
+        succeeds 'hello'
+
+        then:
+        outputContains("Version from lazy provider: 1.2.3")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/29678")
+    def "can use lazy providers.exec in init script in Kolin DSL"() {
+        given:
+        def script = ShellScript.builder().printText("1.2.3").writeTo(testDirectory, "version")
+        def commandLine = ShellScript.cmdToVarargLiterals(script.commandLine)
+
+        kotlinFile "init.gradle.kts", """
+        val versionProvider = providers.exec {
+            commandLine($commandLine)
+        }.standardOutput.getAsText()
+        gradle.settingsEvaluated {
+            println("Version from lazy provider: " + versionProvider.get().trim())
+        }
+        """
+
+        executer.usingInitScript(file('init.gradle.kts'))
+        kotlinFile "build.gradle.kts", '''
+            tasks.register("hello") {}
+        '''
+        settingsFile << "rootProject.name = 'test'"
+
+        when:
+        succeeds 'hello'
+
+        then:
+        outputContains("Version from lazy provider: 1.2.3")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/29678")
+    def "can use providers for other provider factory methods"() {
+        given:
+        file("init.gradle") << """
+            def envVar = providers.environmentVariable("PATH")
+            def sysProp = providers.systemProperty("java.version")
+            def custom = providers.provider { "custom value" }
+
+            println "Has PATH: " + envVar.present
+            println "Has Java version: " + sysProp.present
+            println "Custom: " + custom.get()
+        """
+
+        executer.usingInitScript(file('init.gradle'))
+        buildFile << "task hello"
+
+        when:
+        succeeds 'hello'
+
+        then:
+        outputContains("Has PATH: true")
+        outputContains("Has Java version: true")
+        outputContains("Custom: custom value")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/29678")
+    def "can use providers from initscript block in Groovy DSL"() {
+        given:
+        def script = ShellScript.builder().printText("gradle-providers-test").writeTo(testDirectory, "version")
+        def commandLine = ShellScript.cmdToVarargLiterals(script.commandLine)
+
+        file("init.gradle") << """
+            initscript {
+                // Test that providers is accessible from within initscript block
+                def configValue = providers.exec {
+                    commandLine($commandLine, "config.txt")
+                }.standardOutput.asText.get().trim()
+                println "Config using providers from initscript block: \${configValue}"
+            }
+        """
+
+        executer.usingInitScript(file('init.gradle'))
+        buildFile << "task hello"
+
+        when:
+        succeeds 'hello'
+
+        then:
+        outputContains("Config using providers from initscript block: gradle-providers-test")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/29678")
+    def "can use providers from initscript block in Kotlin DSL"() {
+        given:
+        def script = ShellScript.builder().printText("gradle-providers-test").writeTo(testDirectory, "version")
+        def commandLine = ShellScript.cmdToVarargLiterals(script.commandLine)
+
+        kotlinFile "init.gradle.kts", """
+            initscript {
+                // Test that providers is accessible from within initscript block
+                val configValue = providers.exec {
+                    commandLine($commandLine, "config.txt")
+                }.standardOutput.getAsText().get().trim()
+                println("Config using providers from initscript block: \${configValue}")
+            }
+        """
+
+        executer.usingInitScript(file('init.gradle.kts'))
+        kotlinFile "build.gradle.kts", '''
+            tasks.register("hello") {}
+        '''
+
+        when:
+        succeeds 'hello'
+
+        then:
+        outputContains("Config using providers from initscript block: gradle-providers-test")
     }
 }

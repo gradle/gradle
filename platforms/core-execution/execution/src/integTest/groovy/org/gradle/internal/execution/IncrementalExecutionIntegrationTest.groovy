@@ -20,7 +20,6 @@ import com.google.common.collect.ImmutableList
 import com.google.common.collect.Iterables
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.problems.ProblemId
-import org.gradle.api.problems.Severity
 import org.gradle.api.problems.internal.GradleCoreProblemGroup
 import org.gradle.cache.Cache
 import org.gradle.cache.ManualEvictionInMemoryCache
@@ -54,8 +53,8 @@ import org.gradle.util.TestUtil
 import org.junit.Rule
 import spock.lang.Specification
 
-import static org.gradle.internal.execution.ExecutionEngine.ExecutionOutcome.EXECUTED_NON_INCREMENTALLY
-import static org.gradle.internal.execution.ExecutionEngine.ExecutionOutcome.UP_TO_DATE
+import static org.gradle.internal.execution.Execution.ExecutionOutcome.EXECUTED_NON_INCREMENTALLY
+import static org.gradle.internal.execution.Execution.ExecutionOutcome.UP_TO_DATE
 
 class IncrementalExecutionIntegrationTest extends Specification implements ValidationMessageChecker {
     @Rule
@@ -135,7 +134,7 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
             "file1": file("parent1/outFile"),
             "file2": file("parent2/outFile")
         ).withWork { ->
-            UnitOfWork.WorkResult.DID_WORK
+            WorkOutput.WorkResult.DID_WORK
         }.build()
 
         when:
@@ -246,9 +245,8 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
             .withValidator { context ->
                 context
                     .forType(UnitOfWork, false)
-                    .visitPropertyProblem {
+                    .visitPropertyWarning {
                         it.id(ProblemId.create("test-problem", "Validation problem", GradleCoreProblemGroup.validation().type()))
-                            .severity(Severity.WARNING)
                             .documentedAt(Documentation.userManual("id", "section"))
                             .details("Test")
                     }
@@ -564,13 +562,11 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
     def "invalid work is not executed"() {
         def invalidWork = builder
             .withValidator { validationContext ->
-                validationContext.forType(Object, true).visitTypeProblem {
-                    it
-                        .withAnnotationType(Object)
+                validationContext.forType(Object, true).visitTypeError {
+                    it.withAnnotationType(Object)
                         .id(ProblemId.create("test-problem", "Validation error", GradleCoreProblemGroup.validation().type()))
                         .documentedAt(Documentation.userManual("id", "section"))
                         .details("Test")
-                        .severity(Severity.ERROR)
                 }
             }
             .withWork({ throw new RuntimeException("Should not get executed") })
@@ -588,7 +584,7 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
 
     def "results are loaded from identity cache"() {
         def work = builder.build()
-        def cache = new ManualEvictionInMemoryCache<UnitOfWork.Identity, Try<Object>>()
+        def cache = new ManualEvictionInMemoryCache<Identity, Try<Object>>()
 
         when:
         def executedResult = executeDeferred(work, cache)
@@ -616,7 +612,7 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
         ]
         def unitOfWork = builder.withOutputDirs(outputDir).withWork { ->
             files.each { it.createFile() }
-            UnitOfWork.WorkResult.DID_WORK
+            WorkOutput.WorkResult.DID_WORK
         }.build()
         execute(unitOfWork)
 
@@ -697,7 +693,7 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
         createExecutor().createRequest(unitOfWork).execute()
     }
 
-    String executeDeferred(UnitOfWork unitOfWork, Cache<UnitOfWork.Identity, Try<Object>> cache) {
+    String executeDeferred(UnitOfWork unitOfWork, Cache<Identity, Try<Object>> cache) {
         virtualFileSystem.invalidateAll()
         def result = createExecutor().createRequest(unitOfWork)
             .executeDeferred(cache)

@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.repositories.resolver
 
+import com.google.common.collect.ImmutableList
 import org.gradle.api.artifacts.component.ModuleComponentSelector
 import org.gradle.internal.component.external.model.GradleDependencyMetadata
 import org.gradle.internal.component.external.model.ModuleDependencyMetadata
@@ -25,7 +26,7 @@ class DependenciesMetadataAdapterOnGradleMetadataTest extends DependenciesMetada
 
     @Override
     ModuleDependencyMetadata newDependency(ModuleComponentSelector requested) {
-        new GradleDependencyMetadata(requested, [], false, false, null, false, (IvyArtifactName) null)
+        new GradleDependencyMetadata(requested, ImmutableList.of(), false, false, null, false, (IvyArtifactName) null)
     }
 
 }

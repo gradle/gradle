@@ -23,5 +23,4 @@ import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_VINTAGE
 
 @TargetCoverage({ JUNIT_VINTAGE })
 class JUnitVintageTestListenerBuildOperationAdapterIntegrationTest extends AbstractJUnit4TestListenerBuildOperationAdapterIntegrationTest implements JUnitVintageMultiVersionTest {
-    boolean emitsTestClassOperations = true
 }

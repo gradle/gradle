@@ -16,9 +16,9 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.factories;
 
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
+import org.gradle.internal.collect.PersistentSet;
 
 import java.util.Iterator;
-import java.util.Set;
 
 /**
  * This factory is responsible for optimizing in special cases: null parameters,
@@ -40,18 +40,19 @@ public class OptimizingExcludeFactory extends DelegatingExcludeFactory {
     }
 
     @Override
-    public ExcludeSpec anyOf(Set<ExcludeSpec> specs) {
-        return Optimizations.optimizeCollection(this, specs, list -> {
-            if (list.size() == 2) {
-                Iterator<ExcludeSpec> it = list.iterator();
+    public ExcludeSpec anyOf(PersistentSet<ExcludeSpec> specs) {
+        return Optimizations.optimizeCollection(this, specs, set -> {
+            if (set.size() == 2) {
+                Iterator<ExcludeSpec> it = set.iterator();
+                // TODO: Return anyOf(set) to preserve the original set when it fails to optimize
                 return delegate.anyOf(it.next(), it.next());
             }
-            return delegate.anyOf(list);
+            return delegate.anyOf(set);
         });
     }
 
     @Override
-    public ExcludeSpec allOf(Set<ExcludeSpec> specs) {
+    public ExcludeSpec allOf(PersistentSet<ExcludeSpec> specs) {
         return Optimizations.optimizeCollection(this, specs, list -> {
             if (list.size() == 2) {
                 Iterator<ExcludeSpec> it = list.iterator();

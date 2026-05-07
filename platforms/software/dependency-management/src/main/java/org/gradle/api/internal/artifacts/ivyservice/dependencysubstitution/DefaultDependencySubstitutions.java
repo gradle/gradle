@@ -529,8 +529,9 @@ public class DefaultDependencySubstitutions implements DependencySubstitutionsIn
         }
 
         private AttributeContainerInternal createCategory(String category) {
-            return (AttributeContainerInternal) attributesFactory.mutable()
-                .attribute(Category.CATEGORY_ATTRIBUTE, objectFactory.named(Category.class, category));
+            AttributeContainer attributeContainer = attributesFactory.mutable();
+            return (AttributeContainerInternal) attributeContainer
+                .attribute(Category.CATEGORY_ATTRIBUTE, attributeContainer.named(Category.class, category));
         }
 
         @Override

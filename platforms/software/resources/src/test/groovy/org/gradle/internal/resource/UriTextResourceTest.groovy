@@ -262,12 +262,12 @@ class UriTextResourceTest extends Specification {
 
     def usesUriToBuildDisplayNameWhenUsingHttpUri() {
         when:
-        UriTextResource resource = new UriTextResource("<file-type>", new URI("http://www.gradle.org/unknown.txt"), resolver)
+        UriTextResource resource = new UriTextResource("<file-type>", new URI("https://www.gradle.org/unknown.txt"), resolver)
 
         then:
-        resource.displayName == '<file-type> \'http://www.gradle.org/unknown.txt\''
-        resource.longDisplayName.displayName == '<file-type> \'http://www.gradle.org/unknown.txt\''
-        resource.shortDisplayName.displayName == '<file-type> \'http://www.gradle.org/unknown.txt\''
+        resource.displayName == '<file-type> \'https://www.gradle.org/unknown.txt\''
+        resource.longDisplayName.displayName == '<file-type> \'https://www.gradle.org/unknown.txt\''
+        resource.shortDisplayName.displayName == '<file-type> \'https://www.gradle.org/unknown.txt\''
     }
 
     def extractsCharacterEncodingFromContentType() {

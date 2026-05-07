@@ -17,7 +17,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
       
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v6
@@ -26,7 +26,7 @@ jobs:
           aws-region: "eu-central-1"
       
       - name: Get secrets
-        uses: aws-actions/aws-secretsmanager-get-secrets@v2
+        uses: aws-actions/aws-secretsmanager-get-secrets@v3
         with:
           secret-ids: |
             PERFORMANCE_DB_URL, gha/gradle/_all/PERFORMANCE_DB_URL

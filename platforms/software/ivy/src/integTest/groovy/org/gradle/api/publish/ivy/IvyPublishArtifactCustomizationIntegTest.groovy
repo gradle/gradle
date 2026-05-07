@@ -336,7 +336,7 @@ class IvyPublishArtifactCustomizationIntegTest extends AbstractIvyPublishIntegTe
         fails 'publish'
 
         then:
-        failure.assertHasDescription("Execution failed for task ':publishIvyPublicationToIvyRepository'.")
+        failure.assertHasDescription("Execution failed for task ':publishIvyPublicationToIvyRepository' (registered by plugin 'org.gradle.ivy-publish').")
         failure.assertHasCause("Failed to publish publication 'ivy' to repository 'ivy'")
         failure.assertHasCause("Invalid publication 'ivy': artifact file is a directory")
     }
@@ -354,7 +354,7 @@ class IvyPublishArtifactCustomizationIntegTest extends AbstractIvyPublishIntegTe
         fails 'publish'
 
         then:
-        failure.assertHasDescription("Execution failed for task ':publishIvyPublicationToIvyRepository'.")
+        failure.assertHasDescription("Execution failed for task ':publishIvyPublicationToIvyRepository' (registered by plugin 'org.gradle.ivy-publish').")
         failure.assertHasCause("Failed to publish publication 'ivy' to repository 'ivy'")
         failure.assertHasCause("Could not read '${file('no-exist')}' as it does not exist.")
     }

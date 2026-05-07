@@ -27,8 +27,6 @@ import gradlebuild.basics.kotlindsl.execAndGetStdoutIgnoringError
 import gradlebuild.basics.logicalBranch
 import gradlebuild.basics.predictiveTestSelectionEnabled
 import gradlebuild.basics.testDistributionEnabled
-import org.gradle.api.internal.BuildType
-import org.gradle.api.internal.GradleInternal
 import org.gradle.internal.operations.BuildOperationDescriptor
 import org.gradle.internal.operations.BuildOperationListener
 import org.gradle.internal.operations.BuildOperationListenerManager
@@ -80,10 +78,6 @@ buildScan {
     }
 }
 
-if ((project.gradle as GradleInternal).services.get(BuildType::class.java) != BuildType.TASKS) {
-    buildScan?.tag("SYNC")
-}
-
 fun DevelocityConfiguration.extractCiData() {
     fun isEc2Agent() = InetAddress.getLocalHost().hostName.startsWith("ip-")
 
@@ -124,7 +118,7 @@ fun DevelocityConfiguration.extractCiData() {
                 link("Build Type Scans", customValueSearchUrl(mapOf(tcBuildTypeName to buildType)))
             }
             System.getProperty("buildScan.PartOf")?.let {
-                it.toString().split(",").forEach { partOf ->
+                it.split(",").forEach { partOf ->
                     value("PartOf", partOf)
                 }
             }

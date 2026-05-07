@@ -32,7 +32,8 @@ class MavenPublishFeaturesJavaIntegTest extends AbstractMavenPublishFeaturesJava
                     canBeResolved = false
                     assert canBeConsumed
                     attributes {
-                        attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, org.gradle.api.internal.artifacts.JavaEcosystemSupport.DEPRECATED_JAVA_RUNTIME_JARS))
+                        attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, Usage.JAVA_RUNTIME))
+                        attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, project.objects.named(LibraryElements, LibraryElements.JAR))
                     }
                     outgoing.capability("org:optional-feature:\${version}")
                 }
@@ -86,7 +87,7 @@ class MavenPublishFeaturesJavaIntegTest extends AbstractMavenPublishFeaturesJava
             withoutModuleMetadata {
                 shouldFail {
                     // documents the current behavior
-                    assertHasCause("Unable to find a variant with the requested capability: coordinates 'org:optional-feature'")
+                    assertHasCause("Unable to find a variant of 'org.gradle.test:publishTest:1.9' with the requested capability: 'org:optional-feature'")
                 }
             }
         }
@@ -106,7 +107,8 @@ class MavenPublishFeaturesJavaIntegTest extends AbstractMavenPublishFeaturesJava
                     canBeResolved = false
                     assert canBeConsumed
                     attributes {
-                        attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, "java-runtime-jars"))
+                        attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, Usage.JAVA_RUNTIME))
+                        attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, project.objects.named(LibraryElements, LibraryElements.JAR))
                     }
                     outgoing.capability("org:optional-feature1:\${version}")
                 }
@@ -118,7 +120,8 @@ class MavenPublishFeaturesJavaIntegTest extends AbstractMavenPublishFeaturesJava
                     canBeResolved = false
                     assert canBeConsumed
                     attributes {
-                        attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, "java-runtime-jars"))
+                        attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, Usage.JAVA_RUNTIME))
+                        attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, project.objects.named(LibraryElements, LibraryElements.JAR))
                     }
                     outgoing.capability("org:optional-feature2:\${version}")
                 }
@@ -192,7 +195,8 @@ class MavenPublishFeaturesJavaIntegTest extends AbstractMavenPublishFeaturesJava
                     canBeResolved = false
                     assert canBeConsumed
                     attributes {
-                        attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, "java-runtime-jars"))
+                        attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, Usage.JAVA_RUNTIME))
+                        attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, project.objects.named(LibraryElements, LibraryElements.JAR))
                     }
                     outgoing.capability("org:optional-feature:\${version}")
                 }
@@ -274,7 +278,7 @@ class MavenPublishFeaturesJavaIntegTest extends AbstractMavenPublishFeaturesJava
                 withoutModuleMetadata {
                     shouldFail {
                         // documents the current behavior
-                        assertHasCause("Unable to find a variant with the requested capability: coordinates 'org:optional-feature'")
+                        assertHasCause("Unable to find a variant of 'org.gradle.test:publishTest:1.9' with the requested capability: 'org:optional-feature'")
                     }
                 }
             }
@@ -303,7 +307,8 @@ class MavenPublishFeaturesJavaIntegTest extends AbstractMavenPublishFeaturesJava
                     canBeResolved = false
                     assert canBeConsumed
                     attributes {
-                        attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, "java-runtime-jars"))
+                        attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, Usage.JAVA_RUNTIME))
+                        attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, project.objects.named(LibraryElements, LibraryElements.JAR))
                     }
                     outgoing.capability("org:optional-feature:\${version}")
                 }
@@ -370,7 +375,7 @@ class MavenPublishFeaturesJavaIntegTest extends AbstractMavenPublishFeaturesJava
             withoutModuleMetadata {
                 shouldFail {
                     // documents the current behavior
-                    assertHasCause("Unable to find a variant with the requested capability: coordinates 'org:optional-feature'")
+                    assertHasCause("Unable to find a variant of 'org.gradle.test:publishTest:1.9' with the requested capability: 'org:optional-feature'")
                 }
             }
         }
@@ -458,7 +463,7 @@ class MavenPublishFeaturesJavaIntegTest extends AbstractMavenPublishFeaturesJava
             withoutModuleMetadata {
                 shouldFail {
                     // documents the current behavior
-                    assertHasCause("Unable to find a variant with the requested capability: coordinates 'org:optional-feature'")
+                    assertHasCause("Unable to find a variant of 'org.gradle.test:publishTest:1.9' with the requested capability: 'org:optional-feature'")
                 }
             }
         }

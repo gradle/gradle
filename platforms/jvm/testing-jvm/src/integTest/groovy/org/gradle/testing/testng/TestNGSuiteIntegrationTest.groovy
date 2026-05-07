@@ -17,13 +17,14 @@
 
 package org.gradle.testing.testng
 
+
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.testing.fixture.TestNGCoverage
 import spock.lang.Issue
 
-@TargetCoverage({ TestNGCoverage.SUPPORTED_BY_JDK })
+@TargetCoverage({ TestNGCoverage.SUPPORTS_ICLASS_LISTENER })
 class TestNGSuiteIntegrationTest extends MultiVersionIntegrationSpec {
 
     /**

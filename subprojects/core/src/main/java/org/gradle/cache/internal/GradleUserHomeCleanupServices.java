@@ -17,7 +17,7 @@
 package org.gradle.cache.internal;
 
 import org.gradle.api.internal.cache.CacheConfigurationsInternal;
-import org.gradle.cache.PersistentCache;
+import org.gradle.cache.HasCleanupAction;
 import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory;
 import org.gradle.initialization.GradleUserHomeDirProvider;
 import org.gradle.internal.event.ListenerManager;
@@ -56,7 +56,7 @@ public class GradleUserHomeCleanupServices implements ServiceRegistrationProvide
             public void beforeComplete() {
                 if (cacheConfigurations.getCleanupFrequency().get().shouldCleanupOnEndOfSession()) {
                     gradleUserHomeCleanupService.cleanup();
-                    cacheFactory.visitCaches(PersistentCache::cleanup);
+                    cacheFactory.visitCaches(HasCleanupAction::cleanup);
                 }
             }
         });

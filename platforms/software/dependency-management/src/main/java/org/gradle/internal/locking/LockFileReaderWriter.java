@@ -224,17 +224,23 @@ public class LockFileReaderWriter {
             .forEach(GFileUtils::deleteQuietly);
     }
 
-    private static void writeUniqueLockfile(Path lockfilePath, Map<String, List<String>> dependencyToLockId, List<String> emptyLockIds) {
+    private String buildRegenerationComment() {
+        return "# To regenerate this file, run: ./gradlew " + context.projectPath("dependencies") + " --write-locks";
+    }
+
+    private void writeUniqueLockfile(Path lockfilePath, Map<String, List<String>> dependencyToLockId, List<String> emptyLockIds) {
         try {
             Files.createDirectories(lockfilePath.getParent());
             List<String> content = new ArrayList<>(50);
             content.addAll(LOCKFILE_HEADER_LIST);
+            content.add(buildRegenerationComment());
             for (Map.Entry<String, List<String>> entry : dependencyToLockId.entrySet()) {
                 String builder = entry.getKey() + "=" + entry.getValue().stream().sorted().collect(Collectors.joining(","));
                 content.add(builder);
             }
             content.add("empty=" + emptyLockIds.stream().sorted().collect(Collectors.joining(",")));
-            Files.write(lockfilePath, content, CHARSET);
+            byte[] bytes = String.join("\n", content).concat("\n").getBytes(CHARSET);
+            Files.write(lockfilePath, bytes);
         } catch (IOException e) {
             throw new RuntimeException("Unable to write unique lockfile", e);
         }

@@ -16,14 +16,16 @@
 
 package org.gradle.launcher.daemon
 
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.internal.remote.internal.inet.TcpOutgoingConnector
+import org.gradle.test.preconditions.OsTestPreconditions
+
 import org.gradle.testdistribution.LocalOnly
 import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
 import org.gradle.internal.remote.internal.inet.InetAddressFactory
 import org.gradle.launcher.daemon.logging.DaemonMessages
 import org.gradle.test.fixtures.Flaky
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import org.junit.Rule
 import org.junit.rules.ExternalResource
 import spock.lang.Issue
@@ -31,10 +33,11 @@ import spock.lang.Issue
 import java.nio.ByteBuffer
 import java.nio.channels.ServerSocketChannel
 import java.nio.channels.SocketChannel
+import java.nio.charset.StandardCharsets
 
 import static org.gradle.test.fixtures.ConcurrentTestUtil.poll
 
-@Requires([IntegTestPreconditions.CanKillProcess, UnitTestPreconditions.NotAlpine])
+@Requires([TestExecutionPreconditions.CanKillProcess, OsTestPreconditions.NotAlpine])
 @LocalOnly
 class DaemonInitialCommunicationFailureIntegrationSpec extends DaemonIntegrationSpec {
 
@@ -164,6 +167,8 @@ class DaemonInitialCommunicationFailureIntegrationSpec extends DaemonIntegration
 
         when:
         def socket = new Socket(new InetAddressFactory().localBindingAddress, daemon.port)
+
+        socket.outputStream.write(TcpOutgoingConnector.CONNECTION_PREAMBLE)
         socket.outputStream.write("GET / HTTP/1.0\n\n".getBytes())
         socket.outputStream.flush()
 
@@ -198,17 +203,13 @@ class DaemonInitialCommunicationFailureIntegrationSpec extends DaemonIntegration
                 @Override
                 void run() {
                     while (true) {
-                        SocketChannel connection
                         try {
-                            connection = socket.accept()
+                            SocketChannel connection = socket.accept()
+                            connection.write(ByteBuffer.wrap("hello".getBytes(StandardCharsets.UTF_8)))
+                            //leave the connection open, so the client can read our message even if there is some delay
+                            //all connections are closed with the socket after the test
                         } catch (IOException e) {
                             return
-                        }
-                        try {
-                            connection.read(ByteBuffer.allocate(4096))
-                            connection.write(ByteBuffer.wrap("hello".bytes))
-                        } finally {
-                            connection.close()
                         }
                     }
                 }

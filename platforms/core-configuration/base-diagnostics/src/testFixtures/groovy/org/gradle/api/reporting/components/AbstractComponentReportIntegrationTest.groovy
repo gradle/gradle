@@ -41,6 +41,10 @@ abstract class AbstractComponentReportIntegrationTest extends AbstractIntegratio
     String removeIrrelevantOutput(String output) {
         return output.readLines().findAll {
             !it.isEmpty() && !(it ==~ /^Download http.*$/) && !(it ==~ /.*has been deprecated.*$/)
+                && !(it ==~ /.*Problem found.*$/)
+                && !(it ==~ /.*invocation of 'Task.project' at execution time is unsupported.*$/)
+                && !(it ==~ /.*Possible solution:.*$/)
+                && !(it ==~ /.*For more information, please refer to https:\/\/docs.gradle.org\/.*$/)
         }.join('\n')
     }
 

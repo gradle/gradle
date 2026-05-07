@@ -26,18 +26,18 @@ import org.gradle.internal.jvm.Jvm
 import org.gradle.jvm.toolchain.internal.InstallationLocation
 import org.gradle.process.internal.DefaultClientExecHandleBuilderFactory
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.InstalledJdkTestPreconditions
 
 class DefaultJvmMetadataDetectorIntegrationTest extends AbstractIntegrationSpec {
 
-    @Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
+    @Requires(InstalledJdkTestPreconditions.JavaHomeWithDifferentVersionAvailable)
     def "works on real installation"() {
         when:
         def detector = new DefaultJvmMetadataDetector(
             DefaultClientExecHandleBuilderFactory.of(TestFiles.pathToFileResolver(), new DefaultExecutorFactory(), new DefaultBuildCancellationToken()),
             TestFiles.tmpDirTemporaryFileProvider(new File(SystemProperties.getInstance().getJavaIoTmpDir()))
         )
-        Jvm jvm = AvailableJavaHomes.differentJdk //the detector has special handling for the current JVM
+        Jvm jvm = AvailableJavaHomes.differentVersion //the detector has special handling for the current JVM
         def javaHome = InstallationLocation.userDefined(jvm.getJavaHome(), "test")
         def metadata = detector.getMetadata(javaHome)
 

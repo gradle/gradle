@@ -16,11 +16,13 @@
 
 package org.gradle.internal.logging.slf4j;
 
+import org.gradle.api.internal.file.temp.GradleUserHomeTemporaryFileProvider;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.logging.console.DefaultUserInputReceiver;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.logging.sink.OutputEventRenderer;
 import org.gradle.internal.time.Clock;
+import org.gradle.wrapper.GradleUserHomeLookup;
 import org.slf4j.ILoggerFactory;
 import org.slf4j.Logger;
 import org.slf4j.Marker;
@@ -54,6 +56,7 @@ public class OutputEventListenerBackedLoggerContext implements ILoggerFactory {
         addNoOpLogger("org.apache.http.headers");
         addNoOpLogger(META_INF_EXTENSION_MODULE_LOGGER_NAME);
         addNoOpLogger("org.littleshoot.proxy.HttpRequestHandler");
+        addNoOpLogger("org.littleshoot.proxy.impl.ClientToProxyConnection");
         // We ignore logging from here because this is when the Groovy runtime is initialized.
         // This may happen in BuildOperationTrace, and then the logging from the plugin factory would go into the build operation trace again.
         // That then will fail because we can't use JsonOutput in BuildOperationTrace when the Groovy VM hasn't been initialized.
@@ -86,7 +89,7 @@ public class OutputEventListenerBackedLoggerContext implements ILoggerFactory {
     public void reset() {
         setLevel(DEFAULT_LOG_LEVEL);
         DefaultUserInputReceiver userInputReceiver = new DefaultUserInputReceiver();
-        OutputEventRenderer renderer = new OutputEventRenderer(clock, userInputReceiver);
+        OutputEventRenderer renderer = new OutputEventRenderer(clock, userInputReceiver, new GradleUserHomeTemporaryFileProvider(GradleUserHomeLookup::gradleUserHome));
         userInputReceiver.attachConsole(renderer);
         renderer.attachSystemOutAndErr();
         setOutputEventListener(renderer);

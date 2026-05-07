@@ -49,7 +49,7 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
     private final InstantiationScheme parametersInstantiationScheme;
     private final TransformRegistrationFactory registrationFactory;
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private final IsolationScheme<TransformAction<?>, TransformParameters> isolationScheme = new IsolationScheme<TransformAction<?>, TransformParameters>((Class)TransformAction.class, TransformParameters.class, TransformParameters.None.class);
+    private final IsolationScheme<TransformAction<?>, TransformParameters> isolationScheme = new IsolationScheme<TransformAction<?>, TransformParameters>((Class) TransformAction.class, TransformParameters.class, TransformParameters.None.class, TransformParameters.None.INSTANCE);
     private final DocumentationRegistry documentationRegistry;
 
     public DefaultVariantTransformRegistry(
@@ -83,7 +83,7 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
 
         TypedRegistration<T> registration = null;
         try {
-            Class<T> parameterType = isolationScheme.parameterTypeFor(actionType);
+            Class<T> parameterType = isolationScheme.parameterTypeForOrNull(actionType);
             T parameterObject = parameterType == null ? null : parametersInstantiationScheme.withServices(services).instantiator().newInstance(parameterType);
             registration = Cast.uncheckedNonnullCast(instantiatorFactory.decorateLenient(services).newInstance(TypedRegistration.class, parameterObject, attributesFactory));
             registrationAction.execute(registration);

@@ -16,6 +16,7 @@
 
 package org.gradle.testing.junit.junit4
 
+
 import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
 import org.gradle.testing.AbstractTestReportIntegrationTest
 import org.gradle.util.internal.VersionNumber

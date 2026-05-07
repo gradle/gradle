@@ -29,6 +29,7 @@ import common.gradleWrapper
 import common.killProcessStep
 import common.performanceTestCommandLine
 import common.removeSubstDirOnWindows
+import common.setArtifactRules
 import common.substDirOnWindows
 import jetbrains.buildServer.configs.kotlin.BuildStep
 import jetbrains.buildServer.configs.kotlin.BuildSteps
@@ -37,6 +38,7 @@ import model.CIBuildModel
 import model.PerformanceTestBuildSpec
 import model.PerformanceTestType
 import model.Stage
+import model.cleanupPerformanceTestSplits
 
 class PerformanceTest(
     model: CIBuildModel,
@@ -60,7 +62,7 @@ class PerformanceTest(
             val buildTypeThis = this
             val performanceTestTaskNames = getPerformanceTestTaskNames(performanceSubProject, testProjects, performanceTestTaskSuffix)
             applyPerformanceTestSettings(os = os, arch = arch, timeout = type.timeout)
-            artifactRules = INDIVIDUAL_PERFORAMCE_TEST_ARTIFACT_RULES
+            setArtifactRules(INDIVIDUAL_PERFORAMCE_TEST_ARTIFACT_RULES)
 
             params {
                 text(
@@ -70,6 +72,7 @@ class PerformanceTest(
                     allowEmpty = true,
                     description = "The baselines you want to run performance tests against. Empty means default baseline.",
                 )
+                param("env.PERFORMANCE_STAGE", stage.stageName.toString())
                 param("env.PERFORMANCE_CHANNEL", performanceTestBuildSpec.channel())
                 param("env.PERFORMANCE_DB_PASSWORD_TCAGENT", "%performance.db.password.tcagent%")
                 when (os) {
@@ -117,6 +120,7 @@ class PerformanceTest(
                     removeSubstDirOnWindows(os)
                     killProcessStep(buildTypeThis, KILL_PROCESSES_STARTED_BY_GRADLE, os, executionMode = BuildStep.ExecutionMode.ALWAYS)
                     checkCleanM2AndAndroidUserHome(os)
+                    cleanupPerformanceTestSplits(os)()
                 }
             }
 

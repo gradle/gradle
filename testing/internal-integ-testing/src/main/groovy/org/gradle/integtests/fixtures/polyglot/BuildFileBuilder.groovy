@@ -19,12 +19,13 @@ package org.gradle.integtests.fixtures.polyglot
 import groovy.transform.CompileStatic
 import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.util.internal.TextUtil
+import org.jspecify.annotations.Nullable
 
 @CompileStatic
 class BuildFileBuilder extends MultiSectionHandler<BuildFileBuilder> implements PolyglotFileGenerator {
     private final String id
-    private String group
-    private String version
+    private final Map<String, @Nullable String> plugins = [:]
     private final Set<String> configurationNames = [] as Set
 
     BuildFileBuilder(String id) {
@@ -47,8 +48,17 @@ class BuildFileBuilder extends MultiSectionHandler<BuildFileBuilder> implements 
         })
     }
 
-    BuildFileBuilder applyFrom(String buildFile, GradleDsl targetFileDsl = GradleDsl.GROOVY) {
-        sections << new GenericSection({ """apply from: '${targetFileDsl.fileNameFor(buildFile)}'""" }, { """apply(from = "${targetFileDsl.fileNameFor(buildFile)}")""" })
+    BuildFileBuilder plugin(String pluginId, String pluginVersion = null) {
+        plugins[pluginId] = pluginVersion
+        this
+    }
+
+    BuildFileBuilder applyFrom(File scriptFile) {
+        def path = TextUtil.escapeString(scriptFile.absolutePath)
+        sections << new GenericSection(
+            { "apply from: \"${path}\"" },
+            { "apply(from = \"${path}\")" }
+        )
         this
     }
 
@@ -87,23 +97,27 @@ class BuildFileBuilder extends MultiSectionHandler<BuildFileBuilder> implements 
 
     class GroovyWriter {
         void writeTo(TestFile buildFile) {
-            buildFile << BuilderSupport.prettyPrint("""
-                plugins {
-                }
-
-                ${sections.collect { it.generateSection(GradleDsl.GROOVY) }.join("\n                ")}
-            """)
+            buildFile << """
+                ${pluginsBlock()}
+                ${sections.collect { it.generateSection(GradleDsl.GROOVY) }.join("\n")}
+            """
         }
     }
 
     class KotlinWriter {
         void writeTo(TestFile buildFile) {
-            buildFile << BuilderSupport.prettyPrint("""
-                plugins {
-                }
-
-                ${sections.collect { it.generateSection(GradleDsl.KOTLIN) }.join("\n                ")}
-            """)
+            buildFile << """
+                ${pluginsBlock()}
+                ${sections.collect { it.generateSection(GradleDsl.KOTLIN) }.join("\n")}
+            """
         }
+    }
+
+    private String pluginsBlock() {
+        return """
+            plugins {
+                ${plugins.entrySet().collect { "id(\"${it.key}\")" + (it.value != null ? ".version(\"${it.value}\")" : "") }.join("\n")}
+            }
+        """
     }
 }

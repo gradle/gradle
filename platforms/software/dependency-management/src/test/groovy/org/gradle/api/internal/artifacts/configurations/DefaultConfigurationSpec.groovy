@@ -34,7 +34,6 @@ import org.gradle.api.artifacts.ResolvableDependencies
 import org.gradle.api.artifacts.ResolveException
 import org.gradle.api.artifacts.ResolvedConfiguration
 import org.gradle.api.artifacts.UnresolvedDependency
-import org.gradle.api.artifacts.result.ResolvedComponentResult
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.internal.CollectionCallbackActionDecorator
 import org.gradle.api.internal.ConfigurationServicesBundle
@@ -42,6 +41,8 @@ import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.DomainObjectContext
 import org.gradle.api.internal.artifacts.ConfigurationResolver
 import org.gradle.api.internal.artifacts.DefaultExcludeRule
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
+import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.DefaultResolverResults
 import org.gradle.api.internal.artifacts.DependencyResolutionServices
 import org.gradle.api.internal.artifacts.ResolveExceptionMapper
@@ -55,9 +56,10 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Selec
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedArtifactSet
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results.DefaultVisitedGraphResults
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results.VisitedGraphResults
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.GraphStructure
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.GraphStructureBuilder
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ResolvedDependencyGraph
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
-import org.gradle.api.internal.artifacts.result.MinimalResolutionResult
 import org.gradle.api.internal.attributes.AttributeDesugaring
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.file.TestFiles
@@ -65,11 +67,13 @@ import org.gradle.api.internal.initialization.StandaloneDomainObjectContext
 import org.gradle.api.internal.project.ProjectIdentity
 import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
+import org.gradle.api.provider.Provider
 import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.internal.Describables
 import org.gradle.internal.Factories
 import org.gradle.internal.code.UserCodeApplicationContext
+import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.ImmutableCapabilities
 import org.gradle.internal.component.model.VariantIdentifier
 import org.gradle.internal.dispatch.Dispatch
@@ -84,6 +88,8 @@ import org.gradle.util.TestUtil
 import org.spockframework.util.ExceptionUtil
 import spock.lang.Issue
 import spock.lang.Specification
+
+import java.util.function.Supplier
 
 import static org.gradle.api.artifacts.Configuration.State.RESOLVED
 import static org.gradle.api.artifacts.Configuration.State.RESOLVED_WITH_FAILURES
@@ -187,15 +193,45 @@ class DefaultConfigurationSpec extends Specification {
         configuration.extendsFrom == [configuration3] as Set
     }
 
-    def "extended configurations are not duplicated"() {
+    def "can extend multiple provided configurations"() {
         def configuration = conf()
-        def configuration1 = conf("other")
+        def configuration1 = conf("otherConf1")
+        def configuration2 = conf("otherConf2")
 
         when:
-        configuration.extendsFrom(configuration1, configuration1)
+        configuration.extendsFrom provider(configuration1)
 
         then:
         configuration.extendsFrom == [configuration1] as Set
+
+        when:
+        configuration.extendsFrom provider(configuration2)
+
+        then:
+        configuration.extendsFrom == [configuration1, configuration2] as Set
+
+        when:
+        def configuration3 = conf("replacedConf")
+        configuration.setExtendsFrom([])
+        configuration.extendsFrom(provider(configuration3))
+
+        then:
+        configuration.extendsFrom == [configuration3] as Set
+    }
+
+    def "extended configurations are not duplicated"() {
+        def configuration = conf()
+        def configuration1 = conf("other")
+        def configuration2 = conf("other2")
+        def configuration2Provider = provider(configuration2)
+
+        when:
+        configuration.extendsFrom(configuration1, configuration1)
+        configuration.extendsFrom(configuration2Provider)
+        configuration.extendsFrom(configuration2Provider)
+
+        then:
+        configuration.extendsFrom == [configuration1, configuration2] as Set
     }
 
     def "reports direct cycle in configurations"() {
@@ -204,7 +240,19 @@ class DefaultConfigurationSpec extends Specification {
         configuration.extendsFrom(otherConf)
 
         when:
-        otherConf.extendsFrom(configuration)
+        otherConf.extendsFrom(configuration).resolve()
+
+        then:
+        thrown InvalidUserDataException
+    }
+
+    def "reports direct cycle in configurations with providers"() {
+        def configuration = conf()
+        def otherConf = conf("other")
+        configuration.extendsFrom(provider(otherConf))
+
+        when:
+        otherConf.extendsFrom(configuration).resolve()
 
         then:
         thrown InvalidUserDataException
@@ -218,6 +266,20 @@ class DefaultConfigurationSpec extends Specification {
         when:
         configuration.extendsFrom(conf1)
         conf1.extendsFrom(conf2)
+        conf2.extendsFrom(configuration)
+
+        then:
+        thrown InvalidUserDataException
+    }
+
+    def "reports indirect cycle in extended configurations with providers"() {
+        def configuration = conf()
+        def conf1 = conf("other")
+        def conf2 = conf("other2")
+
+        when:
+        configuration.extendsFrom(conf1)
+        conf1.extendsFrom(provider(conf2))
         conf2.extendsFrom(configuration)
 
         then:
@@ -242,6 +304,24 @@ class DefaultConfigurationSpec extends Specification {
         def root2 = conf("root2")
         def middle2 = conf("middle2").extendsFrom(root2)
         def leaf = conf("leaf1").extendsFrom(middle1, middle2)
+
+        when:
+        def hierarchy = leaf.hierarchy
+
+        then:
+        hierarchy.size() == 5
+        hierarchy.iterator().next() == leaf
+        assertBothExistsAndOneIsBeforeOther(hierarchy, middle1, root1);
+        assertBothExistsAndOneIsBeforeOther(hierarchy, middle2, root2);
+    }
+
+    def "creates hierarchy with provided configurations"() {
+        def root1 = conf("root1")
+        def middle1 = conf("middle1").extendsFrom(provider(root1))
+        def root2 = conf("root2")
+        def middle2 = conf("middle2").extendsFrom(provider(root2))
+        def leaf = conf("leaf1").extendsFrom(provider(middle1))
+        leaf.extendsFrom(provider(middle2))
 
         when:
         def hierarchy = leaf.hierarchy
@@ -285,6 +365,21 @@ class DefaultConfigurationSpec extends Specification {
     def "get all dependencies"() {
         def parentConf = conf("parent")
         def configuration = conf().extendsFrom(parentConf)
+        def dependency = Mock(Dependency)
+        def projectDependency = Mock(ProjectDependency.class);
+
+        when:
+        parentConf.dependencies.add(dependency)
+        configuration.dependencies.add(projectDependency)
+
+        then:
+        configuration.dependencies as Set == [projectDependency] as Set
+        configuration.allDependencies as Set == [dependency, projectDependency] as Set
+    }
+
+    def "get all dependencies with provided configuration"() {
+        def parentConf = conf("parent")
+        def configuration = conf().extendsFrom(provider(parentConf))
         def dependency = Mock(Dependency)
         def projectDependency = Mock(ProjectDependency.class);
 
@@ -446,6 +541,7 @@ class DefaultConfigurationSpec extends Specification {
         configuration.incoming.files.buildDependencies.getDependencies(targetTask) == requiredTasks
     }
 
+    @ExpectDeprecation("The Configuration.getTaskDependencyFromProjectDependency(boolean, String) method has been deprecated.")
     def "task dependency from project dependency without common configuration"() {
         // This test exists because a NullPointerException was thrown by getTaskDependencyFromProjectDependency()
         // if the rootProject defined a task as the same name as a subproject task, but did not define the same configuration.
@@ -505,6 +601,60 @@ class DefaultConfigurationSpec extends Specification {
         def masterParent2Parent1 = conf()
         def masterParent2Parent2 = conf()
         masterParent2.extendsFrom masterParent2Parent1, masterParent2Parent2
+
+        def allArtifacts = master.allArtifacts
+
+        def added = []
+        allArtifacts.whenObjectAdded { added << it.name }
+        def removed = []
+        allArtifacts.whenObjectRemoved { removed << it.name }
+
+        expect:
+        allArtifacts.empty
+
+        when:
+        masterParent1.artifacts << artifact("p1-1")
+        masterParent1Parent1.artifacts << artifact("p1p1-1")
+        masterParent1Parent2.artifacts << artifact("p1p2-1")
+        masterParent2.artifacts << artifact("p2-1")
+        masterParent2Parent1.artifacts << artifact("p2p1-1")
+        masterParent2Parent2.artifacts << artifact("p2p2-1")
+
+        then:
+        allArtifacts.size() == 6
+        added == ["p1-1", "p1p1-1", "p1p2-1", "p2-1", "p2p1-1", "p2p2-1"]
+
+        when:
+        masterParent2Parent2.artifacts.remove masterParent2Parent2.artifacts.toList().first()
+
+        then:
+        allArtifacts.size() == 5
+        removed == ["p2p2-1"]
+
+        when:
+        removed.clear()
+        masterParent1.extendsFrom = []
+
+        then:
+        allArtifacts.size() == 3
+        removed == ["p1p1-1", "p1p2-1"]
+    }
+
+    def "all artifacts collection has inherited artifacts from provided configurations"() {
+        given:
+        def master = conf()
+
+        def masterParent1 = conf()
+        def masterParent2 = conf()
+        master.extendsFrom provider(masterParent1), provider(masterParent2)
+
+        def masterParent1Parent1 = conf()
+        def masterParent1Parent2 = conf()
+        masterParent1.extendsFrom provider(masterParent1Parent1), provider(masterParent1Parent2)
+
+        def masterParent2Parent1 = conf()
+        def masterParent2Parent2 = conf()
+        masterParent2.extendsFrom provider(masterParent2Parent1), provider(masterParent2Parent2)
 
         def allArtifacts = master.allArtifacts
 
@@ -625,24 +775,22 @@ class DefaultConfigurationSpec extends Specification {
         baseRole << [
             ConfigurationRoles.ALL,
             ConfigurationRoles.RESOLVABLE,
-            ConfigurationRoles.RESOLVABLE_DEPENDENCY_SCOPE
-        ] + ConfigurationRolesForMigration.ALL - ConfigurationRolesForMigration.CONSUMABLE_TO_RETIRED - deprecatedRoles
+            ConfigurationRoles.RESOLVABLE_DEPENDENCY_SCOPE,
+            ConfigurationRolesForMigration.LEGACY_TO_RESOLVABLE_DEPENDENCY_SCOPE
+        ]
     }
 
     @ExpectDeprecation("The conf configuration has been deprecated for dependency declaration")
-    void "deprecations are passed to copies when corresponding role is #baseRole (deprecated)"() {
+    void "deprecations are passed to copies when role deprecates declaration"() {
         expect:
-        deprecationsArePassedToCopies(baseRole)
-
-        where:
-        baseRole << deprecatedRoles
+        deprecationsArePassedToCopies(ConfigurationRolesForMigration.RESOLVABLE_DEPENDENCY_SCOPE_TO_RESOLVABLE)
     }
 
-    private static deprecatedRoles = [
-        ConfigurationRolesForMigration.RESOLVABLE_DEPENDENCY_SCOPE_TO_RESOLVABLE,
-        ConfigurationRolesForMigration.LEGACY_TO_RESOLVABLE_DEPENDENCY_SCOPE,
-        ConfigurationRolesForMigration.RESOLVABLE_DEPENDENCY_SCOPE_TO_DEPENDENCY_SCOPE
-    ]
+    @ExpectDeprecation("Calling copy() on configuration ':conf' has been deprecated")
+    void "deprecations are passed to copies when role deprecates resolution"() {
+        expect:
+        deprecationsArePassedToCopies(ConfigurationRolesForMigration.RESOLVABLE_DEPENDENCY_SCOPE_TO_DEPENDENCY_SCOPE)
+    }
 
     private void deprecationsArePassedToCopies(ConfigurationRole baseRole) {
         // given:
@@ -847,6 +995,19 @@ This method is only meant to be called on configurations which allow the (non-de
         config.incoming.dependencies as List == [dep1]
     }
 
+    def "incoming dependencies set contains inherited dependencies from provided configurations"() {
+        def parent = conf("conf")
+        def config = conf("conf")
+        Dependency dep1 = Mock()
+
+        given:
+        config.extendsFrom provider(parent)
+        parent.dependencies.add(dep1)
+
+        expect:
+        config.incoming.dependencies as List == [dep1]
+    }
+
     def "incoming dependencies set files are resolved lazily"() {
         setup:
         def config = conf("conf")
@@ -951,6 +1112,25 @@ This method is only meant to be called on configurations which allow the (non-de
         copied.excludeRules.collect { [group: it.group, module: it.module] }.sort { it.group } == [p1Exclude, p2Exclude]
     }
 
+    def "a recursive copy of a configuration includes inherited exclude rules from provided configurations"() {
+        given:
+        def (p1, p2, child) = [conf("p1"), conf("p2"), conf("child")]
+        child.extendsFrom provider(p1)
+        child.extendsFrom provider(p2)
+
+        and:
+        def (p1Exclude, p2Exclude) = [[group: 'p1', module: 'p1'], [group: 'p2', module: 'p2']]
+        p1.exclude p1Exclude
+        p2.exclude p2Exclude
+
+        when:
+        def copied = child.copyRecursive()
+
+        then:
+        copied.excludeRules.size() == 2
+        copied.excludeRules.collect { [group: it.group, module: it.module] }.sort { it.group } == [p1Exclude, p2Exclude]
+    }
+
     def "copied configuration has own instance of resolution strategy"() {
         def strategy = Mock(ResolutionStrategyInternal)
         def conf = conf()
@@ -967,19 +1147,17 @@ This method is only meant to be called on configurations which allow the (non-de
 
     def "provides resolution result"() {
         def config = conf("conf")
-        def graph = Mock(ResolvedDependencyGraph) {
-            getRootComponent() >> Mock(ResolvedComponentResult)
-        }
-        def result = new MinimalResolutionResult(() -> graph, ImmutableAttributes.EMPTY)
-        def graphResults = new DefaultVisitedGraphResults(result, [] as Set)
+        Supplier<GraphStructure> source = Mock()
+        def graph = new ResolvedDependencyGraph(ImmutableAttributes.EMPTY, source, null)
+        def graphResults = new DefaultVisitedGraphResults(graph, [] as Set)
 
         resolver.resolveGraph(config) >> DefaultResolverResults.graphResolved(graphResults, visitedArtifacts(), Mock(ResolverResults.LegacyResolverResults))
 
         when:
-        def out = config.incoming.resolutionResult
+        config.incoming.resolutionResult.root
 
         then:
-        out.root == result.graphSource.get().rootComponent
+        1 * source.get() >> emptyGraph()
     }
 
     def "resolving configuration puts it into the right state and broadcasts events"() {
@@ -1165,6 +1343,7 @@ This method is only meant to be called on configurations which allow the (non-de
         1 * resolver.resolveGraph(copy) >> graphResolved()
     }
 
+    @ExpectDeprecation("The Configuration.getTaskDependencyFromProjectDependency(boolean, String) method has been deprecated.")
     def "provides task dependency from project dependency using 'dependents'"() {
         def conf = conf("conf")
         when:
@@ -1247,6 +1426,33 @@ This method is only meant to be called on configurations which allow the (non-de
         0 * _
     }
 
+    def "dependency actions are called on self first, then on parent from provided configuration"() {
+        def parentWhenEmptyAction = Mock(Action)
+        def parentMutation = Mock(Action)
+        def parent = conf("parent", ":parent")
+        parent.defaultDependencies parentWhenEmptyAction
+        parent.withDependencies parentMutation
+
+        def conf = conf("conf")
+        def defaultDependencyAction = Mock(Action)
+        def mutation = Mock(Action)
+        conf.extendsFrom provider(parent)
+        conf.defaultDependencies defaultDependencyAction
+        conf.withDependencies mutation
+
+        when:
+        conf.runDependencyActions()
+
+        then:
+        1 * defaultDependencyAction.execute(conf.dependencies)
+        1 * mutation.execute(conf.dependencies)
+
+        then:
+        1 * parentWhenEmptyAction.execute(parent.dependencies)
+        1 * parentMutation.execute(conf.dependencies)
+        0 * _
+    }
+
     def "observation forbids further mutation of basic state"() {
         def configuration = conf()
 
@@ -1260,6 +1466,11 @@ This method is only meant to be called on configurations which allow the (non-de
 
         when:
         configuration.extendsFrom(conf("other"))
+        then:
+        thrown(InvalidUserCodeException)
+
+        when:
+        configuration.extendsFrom(provider(conf("other")))
         then:
         thrown(InvalidUserCodeException)
 
@@ -1498,6 +1709,22 @@ This method is only meant to be called on configurations which allow the (non-de
         rootConfig.getAllExcludeRules() == [thirdRule] as Set
     }
 
+    def "collects exclude rules from hierarchy with provided configurations"() {
+        given:
+        def firstRule = new DefaultExcludeRule("foo", "bar")
+        def secondRule = new DefaultExcludeRule("bar", "baz")
+        def thirdRule = new DefaultExcludeRule("baz", "qux")
+
+        def rootConfig = conf().exclude(group: "baz", module: "qux")
+        def parentConfig = conf().exclude(group: "bar", module: "baz").extendsFrom(provider(rootConfig))
+        def config = conf().exclude(group: "foo", module: "bar").extendsFrom(provider(parentConfig))
+
+        expect:
+        config.getAllExcludeRules() == [firstRule, secondRule, thirdRule] as Set
+        parentConfig.getAllExcludeRules() == [secondRule, thirdRule] as Set
+        rootConfig.getAllExcludeRules() == [thirdRule] as Set
+    }
+
     void 'does not fail to map failures when settings are not available'() {
         when:
         DependencyResolutionServices resolutionServices = ProjectBuilder.builder().build().services.get(DependencyResolutionServices)
@@ -1551,18 +1778,18 @@ This method is only meant to be called on configurations which allow the (non-de
     }
 
     private ResolverResults buildDependenciesResolved() {
-        def resolutionResult = new MinimalResolutionResult(() -> Stub(ResolvedDependencyGraph), ImmutableAttributes.EMPTY)
-        def visitedGraphResults = new DefaultVisitedGraphResults(resolutionResult, [] as Set)
+        def graph = new ResolvedDependencyGraph(ImmutableAttributes.EMPTY, () -> emptyGraph(), null)
+        def visitedGraphResults = new DefaultVisitedGraphResults(graph, [] as Set)
         DefaultResolverResults.buildDependenciesResolved(visitedGraphResults, visitedArtifacts([] as Set), Mock(ResolverResults.LegacyResolverResults))
     }
 
     private ResolverResults graphResolved(ResolveException failure) {
-        def resolutionResult = new MinimalResolutionResult(() -> Stub(ResolvedDependencyGraph), ImmutableAttributes.EMPTY)
+        def graph = new ResolvedDependencyGraph(ImmutableAttributes.EMPTY, () -> emptyGraph(), null)
         def unresolved = Mock(UnresolvedDependency) {
             getProblem() >> failure
         }
 
-        def visitedGraphResults = new DefaultVisitedGraphResults(resolutionResult, [unresolved] as Set)
+        def visitedGraphResults = new DefaultVisitedGraphResults(graph, [unresolved] as Set)
 
         def visitedArtifactSet = Stub(VisitedArtifactSet) {
             select(_) >> selectedArtifacts(failure)
@@ -1578,8 +1805,8 @@ This method is only meant to be called on configurations which allow the (non-de
     }
 
     private ResolverResults graphResolved(Set<File> files = []) {
-        def resolutionResult = new MinimalResolutionResult(() -> Stub(ResolvedDependencyGraph), ImmutableAttributes.EMPTY)
-        def visitedGraphResults = new DefaultVisitedGraphResults(resolutionResult, [] as Set)
+        def graph = new ResolvedDependencyGraph(ImmutableAttributes.EMPTY, () -> emptyGraph(), null)
+        def visitedGraphResults = new DefaultVisitedGraphResults(graph, [] as Set)
 
         def legacyResults = DefaultResolverResults.DefaultLegacyResolverResults.graphResolved(
             Mock(ResolvedConfiguration)
@@ -1631,12 +1858,27 @@ This method is only meant to be called on configurations which allow the (non-de
         }
     }
 
+    private GraphStructure emptyGraph() {
+        return GraphStructureBuilder.empty(
+            DefaultModuleVersionIdentifier.newId("a", "b", "c"),
+            DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId("a", "b"), "c"),
+            ImmutableAttributes.EMPTY,
+            ImmutableCapabilities.EMPTY,
+            "foo",
+            Stub(AttributeDesugaring)
+        )
+    }
+
     private dependency(String group, String name, String version) {
         new DefaultExternalModuleDependency(group, name, version)
     }
 
     private DefaultConfiguration conf(String confName = "conf", String projectPath = ":", String buildPath = ":", ConfigurationRole role = ConfigurationRoles.ALL) {
         return confFactory(projectPath, buildPath).create(confName, false, resolver, Factories.constant(resolutionStrategy), role)
+    }
+
+    private Provider<Configuration> provider(Configuration conf) {
+        return TestUtil.providerFactory().provider { conf }
     }
 
     private DefaultConfigurationFactory confFactory(String projectPath, String buildPath) {
@@ -1672,7 +1914,8 @@ This method is only meant to be called on configurations which allow the (non-de
             CollectionCallbackActionDecorator.NOOP,
             TestUtil.problemsService(),
             new AttributeDesugaring(attributesFactory),
-            new ResolveExceptionMapper(domainObjectContext, new DocumentationRegistry())
+            new ResolveExceptionMapper(domainObjectContext, new DocumentationRegistry()),
+            TestUtil.providerFactory()
         )
 
         new DefaultConfigurationFactory(

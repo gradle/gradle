@@ -1,12 +1,3 @@
 {
-    "acceptedApiChanges": [
-        {
-            "type": "org.gradle.plugin.management.PluginRequest",
-            "member": "Method org.gradle.plugin.management.PluginRequest.getSelector()",
-            "acceptation": "No need to incubate",
-            "changes": [
-                "Method added to interface"
-            ]
-        }
-    ]
+    "acceptedApiChanges": []
 }

@@ -33,4 +33,18 @@ class DefaultLockOptionsTest extends Specification {
         copy.mode == Shared
         copy.useCrossVersionImplementation
     }
+
+    def "ensureAcquiredLockRepresentsStateOnFileSystem is not allowed with #description"() {
+        when:
+        builder.ensureAcquiredLockRepresentsStateOnFileSystem()
+
+        then:
+        IllegalArgumentException e = thrown()
+        e.message == "Shared or cross-version locks are not supported with ensureAcquiredLockRepresentsStateOnFileSystem() option."
+
+        where:
+        description           | builder
+        "Shared lock"         | DefaultLockOptions.mode(Shared)
+        "Cross-version lock"  | DefaultLockOptions.mode(Exclusive).useCrossVersionImplementation()
+    }
 }

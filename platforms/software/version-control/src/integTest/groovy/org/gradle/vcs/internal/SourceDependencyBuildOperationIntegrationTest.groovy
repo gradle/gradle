@@ -30,7 +30,7 @@ import org.gradle.operations.lifecycle.RunRequestedWorkBuildOperationType
 import org.gradle.vcs.fixtures.GitFileRepository
 import org.junit.Rule
 
-import java.util.regex.Pattern
+import static org.gradle.integtests.fixtures.TestableBuildOperationRecord.buildOp
 
 class SourceDependencyBuildOperationIntegrationTest extends AbstractIntegrationSpec {
     @Rule
@@ -72,65 +72,54 @@ class SourceDependencyBuildOperationIntegrationTest extends AbstractIntegrationS
         then:
         def root = operations.root(RunBuildBuildOperationType)
 
-        def resolve = operations.first(ResolveConfigurationDependenciesBuildOperationType) { r -> r.details.buildPath == ":" && r.details.projectPath == ":" && r.details.configurationName == "compileClasspath" }
+        def resolve = operations.first(ResolveConfigurationDependenciesBuildOperationType) { r ->
+            r.details.buildPath == ":" && r.details.projectPath == ":" && r.details.configurationName == "compileClasspath"
+        }
         resolve
 
         def loadOps = operations.all(LoadBuildBuildOperationType)
-        loadOps.size() == 2
-        loadOps[0].displayName == "Load build"
-        loadOps[0].details.buildPath == ":"
-        loadOps[0].parentId == root.id
-        loadOps[1].displayName == "Load build (:buildB)"
-        loadOps[1].details.buildPath == ":buildB"
-        loadOps[1].parentId == resolve.id
+        loadOps == [
+            buildOp(displayName: "Load build", parent: root, details: [buildPath: ":"]),
+            buildOp(displayName: "Load build (:buildB)", parent: resolve, details: [buildPath: ":${buildName}"]),
+        ]
 
         def buildIdentifiedEvents = operations.progress(BuildIdentifiedProgressDetails)
-        buildIdentifiedEvents.size() == 2
-        buildIdentifiedEvents[0].details.buildPath == ':'
-        buildIdentifiedEvents[1].details.buildPath == ':buildB'
+        buildIdentifiedEvents*.details.buildPath == [":", ":buildB"]
 
         def configureOps = operations.all(ConfigureBuildBuildOperationType)
-        configureOps.size() == 2
-        configureOps[0].displayName == "Configure build"
-        configureOps[0].details.buildPath == ":"
-        configureOps[0].parentId == root.id
-        configureOps[1].displayName == "Configure build (:${buildName})"
-        configureOps[1].details.buildPath == ":${buildName}"
-        configureOps[1].parentId == resolve.id
+        configureOps == [
+            buildOp(displayName: "Configure build", parent: root, details: [buildPath: ":"]),
+            buildOp(displayName: "Configure build (:${buildName})", parent: resolve, details: [buildPath: ":${buildName}"]),
+        ]
 
         def treeGraphOps = operations.all(CalculateTreeTaskGraphBuildOperationType)
-        treeGraphOps.size() == 1
-        treeGraphOps[0].displayName == "Calculate build tree task graph"
-        treeGraphOps[0].parentId == root.id
+        treeGraphOps == [
+            buildOp(displayName: "Calculate build tree task graph", parent: root)
+        ]
 
         def taskGraphOps = operations.all(CalculateTaskGraphBuildOperationType)
-        taskGraphOps.size() == 2
-        taskGraphOps[0].displayName == "Calculate task graph"
-        taskGraphOps[0].details.buildPath == ":"
-        taskGraphOps[0].parentId == treeGraphOps[0].id
-        taskGraphOps[0].children.contains(resolve)
-        taskGraphOps[1].displayName == "Calculate task graph (:${buildName})"
-        taskGraphOps[1].details.buildPath == ":${buildName}"
-        taskGraphOps[1].parentId == treeGraphOps[0].id
+        taskGraphOps == [
+            buildOp(displayName: "Calculate task graph", parent: treeGraphOps[0], details: [buildPath: ":"]),
+            buildOp(displayName: "Calculate task graph (:${buildName})", parent: treeGraphOps[0], details: [buildPath: ":${buildName}"]),
+        ]
+        resolve.parentId == taskGraphOps[0].id
 
         def runMainTasks = operations.only(RunRequestedWorkBuildOperationType)
         runMainTasks.parentId == root.id
 
-        def runTasksOps = operations.all(Pattern.compile("Run tasks.*"))
+        def runTasksOps = operations.matchingRegex("Run tasks.*")
         runTasksOps.size() == 2
         // Build operations are run in parallel, so can appear in either order
-        [runTasksOps[0].displayName, runTasksOps[1].displayName].sort() == ["Run tasks", "Run tasks (:${buildName})"]
-        runTasksOps[0].parentId == runMainTasks.id
-        runTasksOps[1].parentId == runMainTasks.id
+        runTasksOps.sort { it.displayName } == [
+            buildOp(displayName: "Run tasks", parent: runMainTasks),
+            buildOp(displayName: "Run tasks (:${buildName})", parent: runMainTasks)
+        ]
 
         def graphNotifyOps = operations.all(NotifyTaskGraphWhenReadyBuildOperationType)
-        graphNotifyOps.size() == 2
-        graphNotifyOps[0].displayName == "Notify task graph whenReady listeners (:${buildName})"
-        graphNotifyOps[0].details.buildPath == ":${buildName}"
-        graphNotifyOps[0].parentId == treeGraphOps[0].id
-        graphNotifyOps[1].displayName == 'Notify task graph whenReady listeners'
-        graphNotifyOps[1].details.buildPath == ':'
-        graphNotifyOps[1].parentId == treeGraphOps[0].id
+        graphNotifyOps == [
+            buildOp(displayName: "Notify task graph whenReady listeners (:${buildName})", parent: treeGraphOps[0], details: [buildPath: ":${buildName}"]),
+            buildOp(displayName: 'Notify task graph whenReady listeners', parent: treeGraphOps[0], details: [buildPath: ':'])
+        ]
 
         where:
         settings                     | buildName | dependencyName | display

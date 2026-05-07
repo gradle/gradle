@@ -19,10 +19,11 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ScalaCoverage
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.JdkVersionTestPreconditions
+
 import org.junit.Rule
 
-@Requires(value = UnitTestPreconditions.Jdk23OrEarlier, reason = "Scala does not work with Java 24 without warnings yet")
+@Requires(value = JdkVersionTestPreconditions.Jdk23OrEarlier, reason = "Scala does not work with Java 24 without warnings yet")
 class ScalaCompileWithJavaLibraryIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule TestResources resources = new TestResources(temporaryFolder)

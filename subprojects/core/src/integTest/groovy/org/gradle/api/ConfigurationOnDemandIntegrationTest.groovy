@@ -25,7 +25,7 @@ import org.gradle.integtests.fixtures.executer.ProjectLifecycleFixture
 import org.gradle.integtests.fixtures.extensions.FluidDependenciesResolveTest
 import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import org.junit.Rule
 import spock.lang.Issue
 
@@ -40,7 +40,7 @@ class ConfigurationOnDemandIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Requires(
-        value = [IntegTestPreconditions.NotParallelExecutor, IntegTestPreconditions.NotIsolatedProjects],
+        value = [TestExecutionPreconditions.NotParallelExecutor, TestExecutionPreconditions.NotIsolatedProjects],
         reason = "these features hide incubating message"
     )
     def "presents incubating message"() {
@@ -56,7 +56,7 @@ class ConfigurationOnDemandIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Requires(
-        value = [IntegTestPreconditions.NotParallelExecutor, IntegTestPreconditions.NotIsolatedProjects],
+        value = [TestExecutionPreconditions.NotParallelExecutor, TestExecutionPreconditions.NotIsolatedProjects],
         reason = "these features hide incubating message"
     )
     def "presents incubating message with parallel mode"() {
@@ -388,6 +388,7 @@ project(':api') {
         """
 
         when:
+        executer.expectDocumentedDeprecationWarning("The buildNeeded task has been deprecated. This is scheduled to be removed in Gradle 10. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecate_build_needed_build_dependents_tasks")
         run(":b:buildNeeded")
 
         then:
@@ -408,6 +409,7 @@ project(':api') {
         """
 
         when:
+        executer.expectDocumentedDeprecationWarning("The buildDependents task has been deprecated. This is scheduled to be removed in Gradle 10. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecate_build_needed_build_dependents_tasks")
         run(":a:buildDependents")
 
         then:

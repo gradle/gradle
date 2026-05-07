@@ -78,8 +78,8 @@ class DefaultComponentMetadataProcessorTest extends Specification {
     def stringInterner = SimpleMapInterner.notThreadSafe()
     def mavenMetadataFactory = DependencyManagementTestUtil.mavenMetadataFactory()
     def ivyMetadataFactory = DependencyManagementTestUtil.ivyMetadataFactory()
-    def dependencyMetadataNotationParser = DependencyMetadataNotationParser.parser(instantiator, DirectDependencyMetadataImpl, stringInterner)
-    def dependencyConstraintMetadataNotationParser = DependencyMetadataNotationParser.parser(instantiator, DependencyConstraintMetadataImpl, stringInterner)
+    def dependencyMetadataNotationParser = DependencyMetadataNotationParser.parser(instantiator, DirectDependencyMetadataImpl, stringInterner, TestUtil.problemsService())
+    def dependencyConstraintMetadataNotationParser = DependencyMetadataNotationParser.parser(instantiator, DependencyConstraintMetadataImpl, stringInterner, TestUtil.problemsService())
     def moduleIdentifierNotationParser = NotationParserBuilder.toType(ModuleIdentifier).converter(new ModuleIdentifierNotationConverter(new DefaultImmutableModuleIdentifierFactory())).toComposite();
     def componentIdentifierNotationParser = new ComponentIdentifierParserFactory().create()
     def metadataRuleContainer = new ComponentMetadataRuleContainer()

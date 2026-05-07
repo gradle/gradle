@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -65,6 +65,20 @@ public class CrossVersionResultsStore extends AbstractWritableResultsStore<Cross
             "WHERE (CHANNEL = ? or CHANNEL= ?) AND STARTTIME > ? AND DIFFCONFIDENCE > 0.97\n" +
             "GROUP BY TESTCLASS, TESTID, TESTPROJECT";
 
+    private static final String EXECUTIONS_FOR_NAME_SQL_TEMPLATE = """
+        select h.id, h.startTime, h.endTime, h.targetVersion, h.tasks, h.args, h.gradleOpts, h.daemon,
+               h.operatingSystem, h.jvm, h.vcsBranch, h.vcsCommit, h.channel, h.host, h.cleanTasks, h.teamCityBuildId
+        from (%s) as h
+        order by h.startTime desc
+        limit ?
+        """;
+
+    private static final String OPERATIONS_FOR_EXECUTION_SQL_TEMPLATE = """
+        select version, testExecution, totalTime
+        from testOperation
+        join (select t.id from (%s) as t group by t.id order by max(t.startTime) desc limit ?) as executionIds
+          on executionIds.id = testOperation.testExecution
+        """;
 
     // Only the flakiness detection results within 90 days will be considered.
     private static final int FLAKINESS_DETECTION_DAYS = 90;
@@ -91,35 +105,50 @@ public class CrossVersionResultsStore extends AbstractWritableResultsStore<Cross
     }
 
     private void insertExecutionExperiment(Connection connection, CrossVersionPerformanceResults results) throws SQLException {
-        try (PreparedStatement statement = connection.prepareStatement("insert into testExecutionExperiment(testId, testProject, testClass) values (?, ?, ?)")) {
+        String sql = "insert into testExecutionExperiment(testId, testProject, testClass) values (?, ?, ?)";
+        long startTime = System.currentTimeMillis();
+        Boolean result = null;
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setString(1, results.getTestId());
             statement.setString(2, results.getTestProject());
             statement.setString(3, results.getTestClass());
-            statement.execute();
+            result = statement.execute();
         } catch (SQLIntegrityConstraintViolationException ignore) {
             // This is expected, ignore.
+        } finally {
+            PerformanceDatabase.logProfilingWithCallStack(SQLProfilingData.create("insertExecutionExperiment", sql, List.of(results.getTestId(), results.getTestProject(), results.getTestClass()), result, startTime).toJson());
         }
     }
 
     private void updatePreviousTestId(Connection connection, CrossVersionPerformanceResults results) throws SQLException {
+        String sql = "update testExecution set testId = ? where testId = ? and testProject = ? and testClass = ?";
         for (String previousId : results.getPreviousTestIds()) {
-            try (PreparedStatement statement = connection.prepareStatement("update testExecution set testId = ? where testId = ? and testProject = ? and testClass = ?")) {
+            long startTime = System.currentTimeMillis();
+            Boolean result = null;
+            try (PreparedStatement statement = connection.prepareStatement(sql)) {
                 statement.setString(1, results.getTestId());
                 statement.setString(2, previousId);
                 statement.setString(3, results.getTestProject());
                 statement.setString(4, results.getTestClass());
-                statement.execute();
+                result = statement.execute();
+            } finally {
+                PerformanceDatabase.logProfilingWithCallStack(SQLProfilingData.create("updatePreviousTestId", sql, List.of(results.getTestId(), previousId, results.getTestProject(), results.getTestClass()), result, startTime).toJson());
             }
         }
     }
 
     private void batchInsertOperation(Connection connection, CrossVersionPerformanceResults results, long testId) throws SQLException {
-        try (PreparedStatement statement = connection.prepareStatement(insertStatement("testOperation", "testExecution", "version", "totalTime"))) {
+        String sql = insertStatement("testOperation", "testExecution", "version", "totalTime");
+        long startTime = System.currentTimeMillis();
+        int[] result = null;
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
             addOperations(statement, testId, null, results.getCurrent());
             for (BaselineVersion baselineVersion : results.getBaselineVersions()) {
                 addOperations(statement, testId, baselineVersion.getVersion(), baselineVersion.getResults());
             }
-            statement.executeBatch();
+            result = statement.executeBatch();
+        } finally {
+            PerformanceDatabase.logProfilingWithCallStack(SQLProfilingData.create("batchInsertOperation", sql, List.of(String.valueOf(results.getTeamCityBuildId())), result, startTime).toJson());
         }
     }
 
@@ -128,7 +157,8 @@ public class CrossVersionResultsStore extends AbstractWritableResultsStore<Cross
             "testClass", "testId", "startTime", "endTime", "targetVersion", "testProject", "tasks", "args", "gradleOpts", "daemon", "operatingSystem",
             "jvm", "vcsBranch", "vcsCommit", "channel", "host", "cleanTasks", "teamCityBuildId", "currentMedian", "baselineMedian", "diffConfidence");
 
-
+        long startTime = System.currentTimeMillis();
+        Boolean result = null;
         try (PreparedStatement statement = connection.prepareStatement(insertStatement, Statement.RETURN_GENERATED_KEYS)) {
             statement.setString(1, results.getTestClass());
             statement.setString(2, results.getTestId());
@@ -166,11 +196,13 @@ public class CrossVersionResultsStore extends AbstractWritableResultsStore<Cross
                 statement.setBigDecimal(21, null);
             }
 
-            statement.execute();
+            result = statement.execute();
             try (ResultSet keys = statement.getGeneratedKeys()) {
                 keys.next();
                 return keys.getLong(1);
             }
+        } finally {
+            PerformanceDatabase.logProfilingWithCallStack(SQLProfilingData.create("insertExecution", insertStatement, List.of(results.getTeamCityBuildId()), result, startTime).toJson());
         }
     }
 
@@ -191,14 +223,14 @@ public class CrossVersionResultsStore extends AbstractWritableResultsStore<Cross
     @Override
     public List<PerformanceExperiment> getPerformanceExperiments() {
         return withConnection("load test history", connection -> {
+            String sql = "select testClass, testId, testProject from testExecutionExperiment order by testClass, testId, testProject";
+            long startTime = System.currentTimeMillis();
+            ResultSet rs = null;
             try (
                 Statement statement = connection.createStatement();
-                ResultSet testExecutions = statement.executeQuery(
-                    "select testClass, testId, testProject" +
-                        "   from testExecutionExperiment" +
-                        "  order by testClass, testId, testProject"
-                )
+                ResultSet testExecutions = statement.executeQuery(sql)
             ) {
+                rs = testExecutions;
                 List<PerformanceExperiment> testNames = new ArrayList<>();
                 while (testExecutions.next()) {
                     String testClass = testExecutions.getString(1);
@@ -207,6 +239,8 @@ public class CrossVersionResultsStore extends AbstractWritableResultsStore<Cross
                     testNames.add(new PerformanceExperiment(testProject, new PerformanceScenario(testClass, testId)));
                 }
                 return testNames;
+            } finally {
+                PerformanceDatabase.logProfilingWithCallStack(SQLProfilingData.create("getPerformanceExperiments", sql, List.of(), rs, startTime).toJson());
             }
         });
     }
@@ -220,36 +254,36 @@ public class CrossVersionResultsStore extends AbstractWritableResultsStore<Cross
         List<String> teamcityBuildIds
     ) {
         return withConnection("load results", connection -> {
-            String buildIdQuery = teamcityBuildIdQueryFor(teamcityBuildIds);
-            String channelPatternQuery = channelPatternQueryFor(channelPatterns);
+            List<String> distinctChannelPatterns = distinctValues(channelPatterns);
+            List<String> distinctTeamcityBuildIds = distinctValues(teamcityBuildIds);
+            String historyProjection = "id, startTime, endTime, targetVersion, tasks, args, gradleOpts, daemon, operatingSystem, jvm, vcsBranch, vcsCommit, channel, host, cleanTasks, teamCityBuildId";
+            String baseHistorySql = createHistoryFilterUnionSql(historyProjection, distinctChannelPatterns, distinctTeamcityBuildIds);
+            String executionsForNameSql = EXECUTIONS_FOR_NAME_SQL_TEMPLATE.formatted(baseHistorySql);
+            String operationExecutionIdsSql = createHistoryFilterUnionSql("id, startTime", distinctChannelPatterns, distinctTeamcityBuildIds);
+            String operationsForExecutionSql = OPERATIONS_FOR_EXECUTION_SQL_TEMPLATE.formatted(operationExecutionIdsSql);
             try (
-                PreparedStatement executionsForName = connection.prepareStatement("select id, startTime, endTime, targetVersion, tasks, args, gradleOpts, daemon, operatingSystem, jvm, vcsBranch, vcsCommit, channel, host, cleanTasks, teamCityBuildId from testExecution where testClass = ? and testId = ? and testProject = ? and startTime >= ? and (" + channelPatternQuery + buildIdQuery + ") order by startTime desc limit ?");
-                PreparedStatement operationsForExecution = connection.prepareStatement("select version, testExecution, totalTime from testOperation "
-                    + "where testExecution in (select t.* from ( select id from testExecution where testClass = ? and testId = ? and testProject = ? and startTime >= ? and (" + channelPatternQuery + buildIdQuery + ") order by startTime desc limit ?) as t)")
+                PreparedStatement executionsForName = connection.prepareStatement(executionsForNameSql);
+                PreparedStatement operationsForExecution = connection.prepareStatement(operationsForExecutionSql);
             ) {
                 Map<Long, CrossVersionPerformanceResults> results = new LinkedHashMap<>();
                 Set<String> allVersions = new TreeSet<>(Comparator.comparing(this::resolveGradleVersion));
                 Set<String> allBranches = new TreeSet<>();
 
-                int idx = 0;
                 executionsForName.setFetchSize(mostRecentN);
-                executionsForName.setString(++idx, experiment.getScenario().getClassName());
-                executionsForName.setString(++idx, experiment.getScenario().getTestName());
-                executionsForName.setString(++idx, experiment.getTestProject());
-
                 Timestamp minDate = Timestamp.valueOf(LocalDate.now().minusDays(maxDaysOld).atStartOfDay());
-                executionsForName.setTimestamp(++idx, minDate);
-                for (String channelPattern : channelPatterns) {
-                    executionsForName.setString(++idx, channelPattern);
-                }
-                for (String teamcityBuildId : teamcityBuildIds) {
-                    executionsForName.setString(++idx, teamcityBuildId);
-                }
-                executionsForName.setInt(++idx, mostRecentN);
+                bindHistoryQueryParams(executionsForName, experiment, minDate, distinctChannelPatterns, distinctTeamcityBuildIds, mostRecentN);
+                List<Object> executionsForNameParams = createHistoryQueryParams(experiment, minDate, distinctChannelPatterns, distinctTeamcityBuildIds, mostRecentN);
+                String primaryChannelPattern = distinctChannelPatterns.isEmpty() ? "" : distinctChannelPatterns.get(0);
 
+                long executionsForNameStartTime = System.currentTimeMillis();
+                ResultSet executionsForNameRs = null;
                 try (ResultSet testExecutions = executionsForName.executeQuery()) {
+                    executionsForNameRs = testExecutions;
                     while (testExecutions.next()) {
                         long id = testExecutions.getLong(1);
+                        if (results.containsKey(id)) {
+                            continue;
+                        }
                         CrossVersionPerformanceResults performanceResults = new CrossVersionPerformanceResults();
                         performanceResults.setTestClass(experiment.getScenario().getClassName());
                         performanceResults.setTestId(experiment.getScenario().getTestName());
@@ -260,10 +294,10 @@ public class CrossVersionResultsStore extends AbstractWritableResultsStore<Cross
                         performanceResults.setTasks(ResultsStoreHelper.toList(testExecutions.getObject(5)));
                         performanceResults.setArgs(ResultsStoreHelper.toList(testExecutions.getObject(6)));
                         performanceResults.setGradleOpts(ResultsStoreHelper.toList(testExecutions.getObject(7)));
-                        performanceResults.setDaemon((Boolean) testExecutions.getObject(8));
+                        performanceResults.setDaemon(toNullableBoolean(testExecutions.getObject(8)));
                         performanceResults.setOperatingSystem(testExecutions.getString(9));
                         performanceResults.setJvm(testExecutions.getString(10));
-                        performanceResults.setVcsBranch(mapVcsBranch(channelPatterns.get(0), testExecutions.getString(11).trim()));
+                        performanceResults.setVcsBranch(mapVcsBranch(primaryChannelPattern, testExecutions.getString(11).trim()));
                         performanceResults.setVcsCommits(ResultsStoreHelper.split(testExecutions.getString(12)));
                         performanceResults.setChannel(testExecutions.getString(13));
                         performanceResults.setHost(testExecutions.getString(14));
@@ -273,23 +307,18 @@ public class CrossVersionResultsStore extends AbstractWritableResultsStore<Cross
                         results.put(id, performanceResults);
                         allBranches.add(performanceResults.getVcsBranch());
                     }
+                } finally {
+                    PerformanceDatabase.logProfilingWithCallStack(SQLProfilingData.create("executionsForName", executionsForNameSql, executionsForNameParams, executionsForNameRs, executionsForNameStartTime).toJson());
                 }
 
                 operationsForExecution.setFetchSize(10 * results.size());
-                idx = 0;
-                operationsForExecution.setString(++idx, experiment.getScenario().getClassName());
-                operationsForExecution.setString(++idx, experiment.getScenario().getTestName());
-                operationsForExecution.setString(++idx, experiment.getTestProject());
-                operationsForExecution.setTimestamp(++idx, minDate);
-                for (String channelPattern : channelPatterns) {
-                    operationsForExecution.setString(++idx, channelPattern);
-                }
-                for (String teamcityBuildId : teamcityBuildIds) {
-                    operationsForExecution.setString(++idx, teamcityBuildId);
-                }
-                operationsForExecution.setInt(++idx, mostRecentN);
+                bindHistoryQueryParams(operationsForExecution, experiment, minDate, distinctChannelPatterns, distinctTeamcityBuildIds, mostRecentN);
+                List<Object> operationsForExecutionParams = createHistoryQueryParams(experiment, minDate, distinctChannelPatterns, distinctTeamcityBuildIds, mostRecentN);
 
+                long operationsForExecutionStartTime = System.currentTimeMillis();
+                ResultSet operationsForExecutionRs = null;
                 try (ResultSet operations = operationsForExecution.executeQuery()) {
+                    operationsForExecutionRs = operations;
                     while (operations.next()) {
                         CrossVersionPerformanceResults result = results.get(operations.getLong(2));
                         if (result == null) {
@@ -307,6 +336,8 @@ public class CrossVersionResultsStore extends AbstractWritableResultsStore<Cross
                             allVersions.add(version);
                         }
                     }
+                } finally {
+                    PerformanceDatabase.logProfilingWithCallStack(SQLProfilingData.create("operationsForExecution", operationsForExecutionSql, operationsForExecutionParams, operationsForExecutionRs, operationsForExecutionStartTime).toJson());
                 }
                 return new CrossVersionPerformanceTestHistory(experiment, new ArrayList<>(allVersions), new ArrayList<>(allBranches), Lists.newArrayList(results.values()));
             }

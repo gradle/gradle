@@ -29,6 +29,7 @@ import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.api.internal.provider.Providers
 import org.gradle.execution.ProjectConfigurer
 import org.gradle.internal.Describables
+import org.gradle.test.fixtures.ExpectDeprecation
 import org.gradle.util.Path
 import org.gradle.util.internal.TextUtil
 import spock.lang.Specification
@@ -56,6 +57,7 @@ class DefaultProjectDependencyPublicationResolverTest extends Specification {
 
     def "resolving component configures project"() {
         when:
+        registry.register(project.identityPath,  pub("mock", "pub-group", "pub-name", "pub-version"))
         resolver.resolveComponent(ModuleVersionIdentifier, project.identityPath)
 
         then:
@@ -64,12 +66,14 @@ class DefaultProjectDependencyPublicationResolverTest extends Specification {
 
     def "resolving variant configures project"() {
         when:
+        registry.register(project.identityPath,  pub("mock", "pub-group", "pub-name", "pub-version"))
         resolver.resolveVariant(ModuleVersionIdentifier, project.identityPath, "variant-name")
 
         then:
         1 * projectConfigurer.configureFully(project.owner)
     }
 
+    @ExpectDeprecation("Declaring a dependency on an unpublished project has been deprecated.")
     def "uses project coordinates when dependent project has no publications"() {
         when:
         project.group >> "dep-group"

@@ -125,7 +125,7 @@ Required by:
         fails(":assemble")
 
         then:
-        failure.assertHasDescription("Execution failed for task ':${buildName}:classes'.")
+        failure.assertHasDescription("Execution failed for task ':${buildName}:classes' (registered by plugin class 'org.gradle.api.plugins.JavaBasePlugin').")
         failure.assertHasCause("broken")
 
         where:
@@ -174,7 +174,7 @@ Required by:
                 assert selectors.size() == 3
                 assert selectors[0].displayName == 'org.test:buildB:1.2'
                 assert selectors[1].displayName == 'org.test:${dependencyName}:1.2'
-                assert selectors[2].displayName == 'project :${buildName}:a'
+                assert selectors[2].displayName == 'project \\':${buildName}:a\\''
                 assert selectors[2].buildPath == ':${buildName}'
                 assert selectors[2].projectPath == ':a'
             }

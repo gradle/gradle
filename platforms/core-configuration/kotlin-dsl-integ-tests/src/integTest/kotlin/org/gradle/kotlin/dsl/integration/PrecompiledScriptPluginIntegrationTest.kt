@@ -6,9 +6,10 @@ import org.gradle.api.Project
 import org.gradle.api.tasks.TaskAction
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.gradle.kotlin.dsl.fixtures.classEntriesFor
+import org.gradle.kotlin.dsl.support.expectedKotlinDslPluginsVersion
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import org.gradle.util.internal.TextUtil.normaliseFileSeparators
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.CoreMatchers.equalTo
@@ -82,7 +83,7 @@ class PrecompiledScriptPluginIntegrationTest : AbstractKotlinIntegrationTest() {
         )
 
         build("help").run {
-            assertThat(output, containsString("my-plugin settings plugin applied"))
+            assertOutputContains("my-plugin settings plugin applied")
         }
     }
 
@@ -130,8 +131,8 @@ class PrecompiledScriptPluginIntegrationTest : AbstractKotlinIntegrationTest() {
         )
 
         build("help").run {
-            assertThat(output, containsString("base-plugin settings plugin applied"))
-            assertThat(output, containsString("my-plugin settings plugin applied"))
+            assertOutputContains("base-plugin settings plugin applied")
+            assertOutputContains("my-plugin settings plugin applied")
         }
     }
 
@@ -216,13 +217,13 @@ class PrecompiledScriptPluginIntegrationTest : AbstractKotlinIntegrationTest() {
         build(file("external-plugin"), "publish")
 
         build("help").run {
-            assertThat(output, containsString("base-plugin settings plugin applied"))
-            assertThat(output, containsString("my-plugin settings plugin applied"))
+            assertOutputContains("base-plugin settings plugin applied")
+            assertOutputContains("my-plugin settings plugin applied")
         }
     }
 
     @Test
-    @Requires(IntegTestPreconditions.NotEmbeddedExecutor::class)
+    @Requires(TestExecutionPreconditions.NotEmbeddedExecutor::class)
     fun `should compile correctly with Kotlin explicit api mode`() {
         withBuildScript(
             """
@@ -248,7 +249,7 @@ class PrecompiledScriptPluginIntegrationTest : AbstractKotlinIntegrationTest() {
     }
 
     @Test
-    @Requires(IntegTestPreconditions.NotEmbeddedExecutor::class)
+    @Requires(TestExecutionPreconditions.NotEmbeddedExecutor::class)
     fun `can compile precompiled scripts with compileOnly dependency`() {
 
         fun withPluginJar(fileName: String, versionString: String): File =
@@ -338,6 +339,104 @@ class PrecompiledScriptPluginIntegrationTest : AbstractKotlinIntegrationTest() {
             assertOutputContains("foo")
         }
     }
+
+    @Issue("https://github.com/gradle/gradle/issues/22428")
+    @Test
+    fun `can apply kotlin-dsl plugin in precompiled script plugin applied in another precompiled script plugin`() {
+        withBuildScript(
+            """
+                plugins {
+                    id("apply-java")
+                }
+            """
+        )
+
+        withSettings(
+            """
+                pluginManagement.includeBuild("build-logic")
+            """
+        )
+
+        withFolders {
+            "build-logic" {
+                withFile(
+                    "settings.gradle.kts",
+                    """
+                        rootProject.name = "my-repro-project-build-logic"
+
+                        pluginManagement.includeBuild("meta")
+                        dependencyResolutionManagement.repositories.gradlePluginPortal()
+                    """
+                )
+
+                withFile(
+                    "build.gradle.kts",
+                    """
+                        plugins {
+                            id("my.kotlin-dsl")
+                        }
+                    """
+                )
+
+                withFile(
+                    "src/main/kotlin/apply-java.gradle.kts",
+                    """
+                        plugins {
+                            `java-library`
+                        }
+                    """
+                )
+
+                "meta" {
+                    withFile(
+                        "settings.gradle.kts",
+                        """
+                            rootProject.name = "my-repro-project-build-logic-meta"
+
+                            dependencyResolutionManagement.repositories {
+                                $testRepositories
+                                gradlePluginPortal()
+                            }
+                        """
+                    )
+
+                    withFile(
+                        "build.gradle.kts",
+                        """
+                            plugins {
+                                `kotlin-dsl`
+                            }
+
+                            dependencies {
+                                implementation("org.gradle.kotlin.kotlin-dsl:org.gradle.kotlin.kotlin-dsl.gradle.plugin:$futureKotlinDslPluginVersion")
+                            }
+                        """
+                    )
+
+                    withFile(
+                        "src/main/kotlin/my.kotlin-dsl.gradle.kts",
+                        """
+                            plugins {
+                                `kotlin-dsl`
+                            }
+                        """
+                    )
+                }
+            }
+        }
+
+        buildAndFail(":build").apply {
+            assertThatDescription(
+                containsString(
+                    "Invalid plugin request [id: 'org.gradle.kotlin.kotlin-dsl', version: '${expectedKotlinDslPluginsVersion}']. " +
+                            "Plugin requests from precompiled scripts must not include a version number. " +
+                            "If you have been using the `kotlin-dsl` helper function, then simply replace it by 'id(\"org.gradle.kotlin.kotlin-dsl\")'. " +
+                            "Make sure the module containing the requested plugin 'org.gradle.kotlin.kotlin-dsl' is an implementation dependency of project ':build-logic:meta'."
+                )
+            )
+        }
+    }
+
 }
 
 

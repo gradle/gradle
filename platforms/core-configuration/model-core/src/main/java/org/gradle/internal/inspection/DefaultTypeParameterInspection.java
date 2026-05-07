@@ -49,8 +49,8 @@ public class DefaultTypeParameterInspection<INTERFACE, PARAMS> implements TypePa
      */
     @Override
     @Nullable
-    public <T extends INTERFACE, P extends PARAMS> Class<P> parameterTypeFor(Class<T> implementationType) {
-        return parameterTypeFor(implementationType, 0);
+    public <T extends INTERFACE, P extends PARAMS> Class<P> parameterTypeForOrNull(Class<T> implementationType) {
+        return parameterTypeForOrNull(implementationType, 0);
     }
 
     /**
@@ -60,10 +60,24 @@ public class DefaultTypeParameterInspection<INTERFACE, PARAMS> implements TypePa
      */
     @Override
     @Nullable
-    public <T extends INTERFACE, P extends PARAMS> Class<P> parameterTypeFor(Class<T> implementationType, int typeArgumentIndex) {
+    public <T extends INTERFACE, P extends PARAMS> Class<P> parameterTypeForOrNull(Class<T> implementationType, int typeArgumentIndex) {
         if (implementationType == interfaceType) {
             return null;
         }
+        Class<P> parametersType = parameterTypeFor(implementationType, typeArgumentIndex);
+        if (parametersType == noParamsType) {
+            return null;
+        }
+        return parametersType;
+    }
+
+    @Override
+    public <T extends INTERFACE, P extends PARAMS> Class<P> parameterTypeFor(Class<T> implementationType) {
+        return parameterTypeFor(implementationType, 0);
+    }
+
+    @Override
+    public <T extends INTERFACE, P extends PARAMS> Class<P> parameterTypeFor(Class<T> implementationType, int typeArgumentIndex) {
         Class<P> parametersType = inferParameterType(implementationType, typeArgumentIndex);
         if (parametersType == paramsType) {
             TreeFormatter formatter = new TreeFormatter();
@@ -75,9 +89,6 @@ public class DefaultTypeParameterInspection<INTERFACE, PARAMS> implements TypePa
             formatter.appendType(noParamsType);
             formatter.append(" as the parameters type for implementations that do not take parameters.");
             throw new IllegalArgumentException(formatter.toString());
-        }
-        if (parametersType == noParamsType) {
-            return null;
         }
         return parametersType;
     }

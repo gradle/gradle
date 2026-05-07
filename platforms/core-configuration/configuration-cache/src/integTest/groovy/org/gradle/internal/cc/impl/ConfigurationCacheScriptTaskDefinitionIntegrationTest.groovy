@@ -257,7 +257,7 @@ class ConfigurationCacheScriptTaskDefinitionIntegrationTest extends AbstractConf
             withUniqueProblems(
                 "Task `:some` of type `org.gradle.api.DefaultTask`: cannot serialize Gradle script object references as these are not supported with the configuration cache."
             )
-            withProblemsWithStackTraceCount(0)
+            problemsWithStackTraceCount = 0
         }
     }
 

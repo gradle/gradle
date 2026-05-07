@@ -19,9 +19,9 @@ package org.gradle.language.swift.plugins;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.internal.attributes.AttributesFactory;
-import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.language.internal.NativeComponentFactory;
@@ -44,7 +44,7 @@ import org.gradle.nativeplatform.OperatingSystemFamily;
 import org.gradle.nativeplatform.TargetMachineFactory;
 import org.gradle.nativeplatform.platform.internal.Architectures;
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform;
-import org.gradle.util.internal.GUtil;
+import org.gradle.util.internal.TextUtil;
 
 import javax.inject.Inject;
 import java.util.concurrent.Callable;
@@ -84,7 +84,6 @@ public abstract class SwiftLibraryPlugin implements Plugin<Project> {
         project.getPluginManager().apply(SwiftBasePlugin.class);
 
         final ConfigurationContainer configurations = project.getConfigurations();
-        final ObjectFactory objectFactory = project.getObjects();
         final ProviderFactory providers = project.getProviders();
 
         final DefaultSwiftLibrary library = componentFactory.newInstance(SwiftLibrary.class, DefaultSwiftLibrary.class, "main");
@@ -93,12 +92,12 @@ public abstract class SwiftLibraryPlugin implements Plugin<Project> {
 
         // Setup component
         final Property<String> module = library.getModule();
-        module.set(GUtil.toCamelCase(project.getName()));
+        module.set(TextUtil.toCamelCase(project.getName()));
 
         library.getTargetMachines().convention(useHostAsDefaultTargetMachine(targetMachineFactory));
         library.getDevelopmentBinary().convention(project.provider(new Callable<SwiftBinary>() {
             @Override
-            public SwiftBinary call() throws Exception {
+            public SwiftBinary call() {
                 return getDebugSharedHostStream().findFirst().orElseGet(
                         () -> getDebugStaticHostStream().findFirst().orElseGet(
                                 () -> getDebugSharedStream().findFirst().orElseGet(
@@ -128,7 +127,7 @@ public abstract class SwiftLibraryPlugin implements Plugin<Project> {
 
         project.afterEvaluate(p -> {
             // TODO: make build type configurable for components
-            Dimensions.libraryVariants(library.getModule(), library.getLinkage(), library.getTargetMachines(), objectFactory, attributesFactory,
+            Dimensions.libraryVariants(library.getModule(), library.getLinkage(), library.getTargetMachines(), attributesFactory,
                     providers.provider(() -> project.getGroup().toString()), providers.provider(() -> project.getVersion().toString()),
                     variantIdentity -> {
                         if (tryToBuildOnHost(variantIdentity)) {
@@ -150,11 +149,12 @@ public abstract class SwiftLibraryPlugin implements Plugin<Project> {
                     // requires all dependencies to be treated like api dependencies (with transitivity) we just
                     // use the implementation dependencies here.  See https://bugs.swift.org/browse/SR-1393.
                     apiElements.extendsFrom(((DefaultSwiftSharedLibrary) sharedLibrary).getImplementationDependencies());
-                    apiElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.SWIFT_API));
-                    apiElements.getAttributes().attribute(LINKAGE_ATTRIBUTE, Linkage.SHARED);
-                    apiElements.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, sharedLibrary.isDebuggable());
-                    apiElements.getAttributes().attribute(OPTIMIZED_ATTRIBUTE, sharedLibrary.isOptimized());
-                    apiElements.getAttributes().attribute(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, sharedLibrary.getTargetMachine().getOperatingSystemFamily());
+                    AttributeContainer attrs = apiElements.getAttributes();
+                    attrs.attribute(Usage.USAGE_ATTRIBUTE, attrs.named(Usage.class, Usage.SWIFT_API));
+                    attrs.attribute(LINKAGE_ATTRIBUTE, Linkage.SHARED);
+                    attrs.attribute(DEBUGGABLE_ATTRIBUTE, sharedLibrary.isDebuggable());
+                    attrs.attribute(OPTIMIZED_ATTRIBUTE, sharedLibrary.isOptimized());
+                    attrs.attribute(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, sharedLibrary.getTargetMachine().getOperatingSystemFamily());
                     apiElements.getOutgoing().artifact(sharedLibrary.getModuleFile());
                 });
             });
@@ -166,11 +166,12 @@ public abstract class SwiftLibraryPlugin implements Plugin<Project> {
                     // requires all dependencies to be treated like api dependencies (with transitivity) we just
                     // use the implementation dependencies here.  See https://bugs.swift.org/browse/SR-1393.
                     apiElements.extendsFrom(((DefaultSwiftStaticLibrary) staticLibrary).getImplementationDependencies());
-                    apiElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.SWIFT_API));
-                    apiElements.getAttributes().attribute(LINKAGE_ATTRIBUTE, Linkage.STATIC);
-                    apiElements.getAttributes().attribute(DEBUGGABLE_ATTRIBUTE, staticLibrary.isDebuggable());
-                    apiElements.getAttributes().attribute(OPTIMIZED_ATTRIBUTE, staticLibrary.isOptimized());
-                    apiElements.getAttributes().attribute(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, staticLibrary.getTargetMachine().getOperatingSystemFamily());
+                    AttributeContainer attrs = apiElements.getAttributes();
+                    attrs.attribute(Usage.USAGE_ATTRIBUTE, attrs.named(Usage.class, Usage.SWIFT_API));
+                    attrs.attribute(LINKAGE_ATTRIBUTE, Linkage.STATIC);
+                    attrs.attribute(DEBUGGABLE_ATTRIBUTE, staticLibrary.isDebuggable());
+                    attrs.attribute(OPTIMIZED_ATTRIBUTE, staticLibrary.isOptimized());
+                    attrs.attribute(OperatingSystemFamily.OPERATING_SYSTEM_ATTRIBUTE, staticLibrary.getTargetMachine().getOperatingSystemFamily());
                     apiElements.getOutgoing().artifact(staticLibrary.getModuleFile());
                 });
             });

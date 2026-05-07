@@ -24,9 +24,8 @@ import org.gradle.api.internal.project.taskfactory.TaskIdentity
 import org.gradle.api.logging.Logging
 import org.gradle.api.problems.ProblemGroup
 import org.gradle.api.problems.ProblemSpec
-import org.gradle.api.problems.Severity
 import org.gradle.api.problems.internal.GradleCoreProblemGroup
-import org.gradle.api.problems.internal.InternalProblems
+import org.gradle.api.problems.internal.ProblemsInternal
 import org.gradle.api.problems.internal.PropertyTraceDataSpec
 import org.gradle.initialization.RootBuildLifecycleListener
 import org.gradle.internal.cc.base.exceptions.ConfigurationCacheError
@@ -44,6 +43,7 @@ import org.gradle.internal.cc.impl.TooManyConfigurationCacheProblemsException
 import org.gradle.internal.cc.impl.initialization.ConfigurationCacheStartParameter
 import org.gradle.internal.configuration.problems.CommonReport
 import org.gradle.internal.configuration.problems.DocumentationSection
+import org.gradle.internal.configuration.problems.IsolatedProjectsProblemsListener
 import org.gradle.internal.configuration.problems.ProblemFactory
 import org.gradle.internal.configuration.problems.ProblemReportDetails
 import org.gradle.internal.configuration.problems.ProblemReportDetailsJsonSource
@@ -82,7 +82,7 @@ class ConfigurationCacheProblems(
     val listenerManager: ListenerManager,
 
     private
-    val problemsService: InternalProblems,
+    val problemsService: ProblemsInternal,
 
     private
     val problemFactory: ProblemFactory,
@@ -95,7 +95,7 @@ class ConfigurationCacheProblems(
 
     private
     val degradationController: DefaultConfigurationCacheDegradationController
-) : AbstractProblemsListener(), ProblemReporter, AutoCloseable {
+) : AbstractProblemsListener(), IsolatedProjectsProblemsListener, ProblemReporter, AutoCloseable {
 
     private
     val summarizer = ConfigurationCacheProblemsSummary()
@@ -239,14 +239,19 @@ class ConfigurationCacheProblems(
 
     private
     fun reportDegradingFeature(feature: String) {
+        // we report degrading features as problems
         val problem = problemFactory
             .problem {
                 // for now, we don't expect interesting information from degrading features, so only the feature name is displayed
                 text("Feature '$feature' is incompatible with the configuration cache.")
             }
             .build()
+        summarizer.onIncompatibleFeature(problem)
         report.onProblem(problem)
-        summarizer.onIncompatibleFeature()
+    }
+
+    override fun onIsolatedProjectsProblem(problem: PropertyProblem) {
+        onProblem(problem, ProblemSeverity.Deferred)
     }
 
     override fun onProblem(problem: PropertyProblem) {
@@ -270,7 +275,7 @@ class ConfigurationCacheProblems(
     val configCacheValidation: ProblemGroup = ProblemGroup.create("configuration-cache", "configuration cache validation", GradleCoreProblemGroup.validation().thisGroup())
 
     private
-    fun InternalProblems.onProblem(problem: PropertyProblem, severity: ProblemSeverity) {
+    fun ProblemsInternal.onProblem(problem: PropertyProblem, severity: ProblemSeverity) {
         val message = problem.message.render()
         internalReporter.internalCreate {
             id(
@@ -281,11 +286,16 @@ class ConfigurationCacheProblems(
             contextualLabel(message)
             documentOfProblem(problem)
             locationOfProblem(problem)
-            severity(severity.toProblemSeverity())
             additionalDataInternal(PropertyTraceDataSpec::class.java) {
                 trace(problem.trace.containingUserCode)
             }
-        }.also { internalReporter.report(it) }
+        }.also {
+            if (severity == ProblemSeverity.Interrupting || (severity == ProblemSeverity.Deferred && !isWarningMode)) {
+                internalReporter.reportError(it)
+            } else {
+                internalReporter.report(it)
+            }
+        }
     }
 
     private
@@ -305,15 +315,6 @@ class ConfigurationCacheProblems(
 
     private
     fun PropertyTrace.buildLogic() = sequence.filterIsInstance<PropertyTrace.BuildLogic>().firstOrNull()
-
-    private
-    fun ProblemSeverity.toProblemSeverity() = when {
-        this == ProblemSeverity.Suppressed ||
-            this == ProblemSeverity.SuppressedSilently -> Severity.ADVICE
-
-        isWarningMode -> Severity.WARNING
-        else -> Severity.ERROR
-    }
 
     override fun getId(): String {
         return "configuration-cache"
@@ -344,7 +345,7 @@ class ConfigurationCacheProblems(
         addNotReportedDegradingTasks()
         addDegradingFeatures()
         val summary = summarizer.get()
-        val hasNoProblemsForConsole = summary.reportableProblemCount == 0
+        val hasNoProblemsForConsole = summary.consoleProblemCount == 0
         val outputDirectory = outputDirectoryFor(reportDir)
         val details = detailsFor(summary)
         val htmlReportFile = report.writeReportFileTo(outputDirectory, ProblemReportDetailsJsonSource(details))
@@ -392,7 +393,15 @@ class ConfigurationCacheProblems(
     fun detailsFor(summary: Summary): ProblemReportDetails {
         val cacheActionText = cacheAction.summaryText()
         val requestedTasks = startParameter.requestedTasksOrDefault()
-        return ProblemReportDetails(buildNameProvider.buildName(), cacheActionText, cacheActionDescription, requestedTasks, summary.totalProblemCount)
+        return ProblemReportDetails(
+            buildDisplayName = buildNameProvider.buildName(),
+            cacheAction = cacheActionText,
+            cacheActionDescription = cacheActionDescription,
+            requestedTasks = requestedTasks,
+            totalProblemCount = summary.totalProblemCount,
+            uniqueProblemCount = summary.reportUniqueProblemCount,
+            overflownProblemCount = summary.overflownProblemCount
+        )
     }
 
     private
@@ -421,12 +430,12 @@ class ConfigurationCacheProblems(
         @Suppress("CyclomaticComplexMethod")
         override fun beforeComplete(failure: Throwable?) {
             val summary = summarizer.get()
-            val reportableProblemCount = summary.reportableProblemCount
+            val consoleProblemCount = summary.consoleProblemCount
             val deferredProblemCount = summary.deferredProblemCount
-            val hasProblems = reportableProblemCount > 0
+            val hasProblems = consoleProblemCount > 0
             val discardStateDueToProblems = discardStateDueToProblems(summary)
             val hasTooManyProblems = hasTooManyProblems(summary)
-            val problemCountString = reportableProblemCount.counter("problem")
+            val problemCountString = consoleProblemCount.counter("problem")
             val reusedProjectsString = reusedProjects.counter("project")
             val updatedProjectsString = updatedProjects.counter("project")
             when {
@@ -487,7 +496,7 @@ class ConfigurationCacheProblems(
     private
     fun discardStateDueToProblems(summary: Summary) =
         incompatibleTasks.isNotEmpty() || shouldDegradeGracefully() ||
-            summary.reportableProblemCount > 0 && !isWarningMode
+            summary.consoleProblemCount > 0 && !isWarningMode
 
     private
     fun hasTooManyProblems(summary: Summary) =

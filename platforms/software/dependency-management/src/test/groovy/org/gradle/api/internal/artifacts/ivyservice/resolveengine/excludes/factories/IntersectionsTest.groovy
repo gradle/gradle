@@ -89,8 +89,8 @@ class IntersectionsTest extends Specification implements ExcludeTestSupport {
         anyOf(group("G1"), module("M1"), group("G2"))                                                                  | anyOf(group("G1"), module("M2"))                                                                                      | anyOf(group("G1"), allOf(anyOf(module("M1"), group("G2")), module("M2")))
 
         anyOf(group("foo"), group("bar"))                                                                              | group("baz")                                                                                                          | nothing()
-        anyOf(moduleIdSet(["G:A"], ["G2:P"]), groupSet("G3", "G4"))                                                    | moduleIdSet(["G5", "A"], ["G6", "B"])                                                                                 | nothing()
-        anyOf(moduleIdSet(["G:A"], ["G2:P"]), groupSet("G3", "G4"))                                                    | groupSet("G3", "G4")                                                                                                  | groupSet("G3", "G4")
+        anyOf(moduleIdSet(["G", "A"], ["G2", "P"]), groupSet("G3", "G4"))                                              | moduleIdSet(["G5", "A"], ["G6", "B"])                                                                                 | nothing()
+        anyOf(moduleIdSet(["G", "A"], ["G2", "P"]), groupSet("G3", "G4"))                                              | groupSet("G3", "G4")                                                                                                  | groupSet("G3", "G4")
 
         // should not cause stack overflow because components cannot be reduced
         anyOf(ivy("org", "mod", artifact("mod"), "exact"), ivy("org", "mod2", artifact("mod"), "exact"))               | group("org")                                                                                                          | null

@@ -25,6 +25,7 @@ import org.gradle.internal.fingerprint.impl.IgnoredPathFingerprintingStrategy;
 import org.gradle.internal.fingerprint.impl.NameOnlyFingerprintingStrategy;
 import org.gradle.internal.fingerprint.impl.RelativePathFingerprintingStrategy;
 
+import java.util.Objects;
 import java.util.SortedMap;
 
 public abstract class AbstractFingerprintChanges implements ChangeContainer {
@@ -70,6 +71,7 @@ public abstract class AbstractFingerprintChanges implements ChangeContainer {
     }
 
     protected FingerprintCompareStrategy determineCompareStrategy(CurrentFileCollectionFingerprint currentFingerprint) {
-        return COMPARE_STRATEGY_MAPPING.get(currentFingerprint.getStrategyIdentifier());
+        FingerprintCompareStrategy strategy = COMPARE_STRATEGY_MAPPING.get(currentFingerprint.getStrategyIdentifier());
+        return Objects.requireNonNull(strategy);
     }
 }

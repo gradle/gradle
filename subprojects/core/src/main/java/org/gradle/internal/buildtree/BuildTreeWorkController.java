@@ -16,11 +16,14 @@
 
 package org.gradle.internal.buildtree;
 
+import com.google.common.base.Preconditions;
 import org.gradle.execution.EntryTaskSelector;
 import org.gradle.internal.build.ExecutionResult;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.jspecify.annotations.Nullable;
+
+import java.util.Optional;
 
 @ServiceScope(Scope.BuildTree.class)
 public interface BuildTreeWorkController {
@@ -28,5 +31,46 @@ public interface BuildTreeWorkController {
     /**
      * Schedules and runs requested tasks based on the provided {@code taskSelector}.
      */
-    ExecutionResult<Void> scheduleAndRunRequestedTasks(@Nullable EntryTaskSelector taskSelector);
+    TaskRunResult scheduleAndRunRequestedTasks(@Nullable EntryTaskSelector taskSelector);
+
+    class TaskRunResult {
+        private final ExecutionResult<Void> scheduleResult;
+        @Nullable
+        private final ExecutionResult<Void> executionResult;
+
+        private TaskRunResult(ExecutionResult<Void> scheduleResult, @Nullable ExecutionResult<Void> executionResult) {
+            this.scheduleResult = scheduleResult;
+            this.executionResult = executionResult;
+        }
+
+        /**
+         * Returns the result of task configuration and schedule.
+         */
+        public ExecutionResult<Void> getScheduleResult() {
+            return scheduleResult;
+        }
+
+        /**
+         * Returns the result of task execution. If task execution result is not present, it means task configuration and schedule failed and this will throw an exception.
+         */
+        public ExecutionResult<Void> getExecutionResultOrThrow() {
+            scheduleResult.rethrow();
+            return Preconditions.checkNotNull(executionResult);
+        }
+
+        /**
+         * Returns the result of a task execution. If task configuration and schedule failed, this will return an empty result.
+         */
+        public Optional<ExecutionResult<Void>> getExecutionResult() {
+            return Optional.ofNullable(executionResult);
+        }
+
+        public static TaskRunResult ofExecutionResult(ExecutionResult<Void> executionResult) {
+            return new TaskRunResult(ExecutionResult.succeeded(), executionResult);
+        }
+
+        public static TaskRunResult ofScheduleFailure(Throwable scheduleResult) {
+            return new TaskRunResult(ExecutionResult.failed(scheduleResult), null);
+        }
+    }
 }

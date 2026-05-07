@@ -17,6 +17,7 @@
 package org.gradle.cache.internal.scopes;
 
 import org.gradle.cache.CacheBuilder;
+import org.gradle.cache.FineGrainedCacheBuilder;
 import org.gradle.cache.UnscopedCacheBuilderFactory;
 import org.gradle.cache.internal.CacheScopeMapping;
 import org.gradle.cache.internal.VersionStrategy;
@@ -51,6 +52,11 @@ public abstract class AbstractScopedCacheBuilderFactory implements ScopedCacheBu
     @Override
     public CacheBuilder createCacheBuilder(String key) {
         return unscopedCacheBuilderFactory.cache(baseDirForCache(key));
+    }
+
+    @Override
+    public FineGrainedCacheBuilder createFineGrainedCacheBuilder(String key) {
+        return unscopedCacheBuilderFactory.fineGrainedCache(baseDirForCache(key));
     }
 
     @Override

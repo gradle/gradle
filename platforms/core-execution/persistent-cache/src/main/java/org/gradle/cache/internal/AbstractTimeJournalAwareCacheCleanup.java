@@ -29,7 +29,7 @@ public abstract class AbstractTimeJournalAwareCacheCleanup extends AbstractCache
     }
 
     @Override
-    protected void handleDeletion(File file) {
+    protected void doAfterDeletion(File file) {
         journal.deleteLastAccessTime(file);
     }
 

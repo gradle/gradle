@@ -16,8 +16,9 @@
 package org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.DependencyState;
-import org.gradle.internal.component.model.DependencyMetadata;
+import org.gradle.api.artifacts.component.ComponentSelector;
+import org.gradle.internal.Try;
+import org.gradle.internal.component.model.IvyArtifactName;
 import org.jspecify.annotations.NullMarked;
 
 /**
@@ -31,13 +32,13 @@ public interface DependencySubstitutionApplicator {
     /**
      * A substitution applicator that does not perform any substitutions.
      */
-    DependencySubstitutionApplicator NO_OP = metadata -> new DependencyState(metadata, metadata.getSelector(), ImmutableList.of(), null);
+    DependencySubstitutionApplicator NO_OP = (selector, artifacts) -> Try.successful(DefaultDependencySubstitutionApplicator.DefaultSubstitutionResult.NO_OP);
 
     /**
-     * Execute any dependency substitution rules that apply to the given dependency metadata.
+     * Execute any dependency substitution rules that apply to the given dependency sector and artifacts.
      *
-     * @return a dependency state representing the result of applying any substitution rules.
+     * @return the result of applying any substitution rules.
      */
-    DependencyState applySubstitutions(DependencyMetadata metadata);
+    Try<SubstitutionResult> applySubstitutions(ComponentSelector selector, ImmutableList<IvyArtifactName> artifacts);
 
 }

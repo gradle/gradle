@@ -16,14 +16,17 @@
 
 package org.gradle.plugin.devel.tasks
 
-
+import groovy.transform.SelfType
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.internal.TextUtil
 
 import static org.gradle.util.internal.TextUtil.getPluralEnding
 import static org.hamcrest.Matchers.containsString
 
-trait ValidatePluginsTrait implements CommonPluginValidationTrait {
+@SelfType(AbstractIntegrationSpec)
+trait ValidatePluginsTrait implements CommonPluginValidationTrait, ValidationMessageChecker {
 
     def setup() {
         enableProblemsApiCheck()
@@ -68,7 +71,7 @@ trait ValidatePluginsTrait implements CommonPluginValidationTrait {
         failure.assertHasCause "Plugin validation failed with ${messages.size()} problem${getPluralEnding(messages)}"
         messages.forEach { problem ->
             String indentedMessage = problem.message.replaceAll('\n', '\n    ').trim()
-            failure.assertThatCause(containsString("$problem.severity: $indentedMessage"))
+            failure.assertThatCause(containsString("${problem.severity.capitalize()}: $indentedMessage"))
         }
 
         // TODO (donat) do probably don't want to have this, as the explicit problem assertions are preferred

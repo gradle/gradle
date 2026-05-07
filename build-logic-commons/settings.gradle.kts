@@ -14,25 +14,19 @@
  * limitations under the License.
  */
 
+pluginManagement {
+    includeBuild("../build-logic-settings")
+}
+
 dependencyResolutionManagement {
     repositories {
         gradlePluginPortal()
-
-        maven {
-            url = uri("https://repo.gradle.org/gradle/enterprise-libs-release-candidates")
-            content {
-                val rcAndMilestonesPattern = "\\d{1,2}?\\.\\d{1,2}?(\\.\\d{1,2}?)?-((rc-\\d{1,2}?)|(milestone-\\d{1,2}?))"
-                // GE plugin marker artifact
-                includeVersionByRegex("com.gradle.develocity", "com.gradle.develocity.gradle.plugin", rcAndMilestonesPattern)
-                // GE plugin jar
-                includeVersionByRegex("com.gradle", "develocity-gradle-plugin", rcAndMilestonesPattern)
-            }
-        }
     }
 }
 
 plugins {
-    id("org.gradle.toolchains.foojay-resolver-convention").version("1.0.0")
+    id("gradlebuild.version-catalogs")
+    id("gradlebuild.default-settings-plugins")
 }
 
 includeBuild("../build-logic-settings")
@@ -42,6 +36,9 @@ include("basics")
 
 // Platform: defines shared dependency versions
 include("build-platform")
+
+// Plugin that applies the build-platform constraints
+include("build-platform-plugin")
 
 // Compute the identity/version we are building and related details (like current git commit)
 include("module-identity")

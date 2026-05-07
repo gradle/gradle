@@ -47,6 +47,7 @@ import org.gradle.launcher.daemon.server.api.HandleReportStatus;
 import org.gradle.launcher.daemon.server.api.HandleStop;
 import org.gradle.launcher.daemon.server.exec.CleanUpVirtualFileSystemAfterBuild;
 import org.gradle.launcher.daemon.server.exec.DaemonCommandExecuter;
+import org.gradle.launcher.daemon.server.exec.ApplyClientEnvironmentVariables;
 import org.gradle.launcher.daemon.server.exec.EstablishBuildEnvironment;
 import org.gradle.launcher.daemon.server.exec.ExecuteBuild;
 import org.gradle.launcher.daemon.server.exec.ForwardClientInput;
@@ -69,9 +70,9 @@ import org.gradle.launcher.exec.BuildExecutor;
 import org.gradle.tooling.internal.provider.action.BuildActionSerializer;
 
 import java.io.File;
-import java.util.UUID;
 
 import static org.gradle.internal.FileUtils.canonicalize;
+import static org.gradle.launcher.daemon.server.DaemonLogFile.getDaemonLogFileName;
 
 /**
  * Takes care of instantiating and wiring together the services required by the daemon server.
@@ -106,8 +107,7 @@ public class DaemonServices implements ServiceRegistrationProvider {
     @Provides
     protected DaemonLogFile createDaemonLogFile(DaemonContext daemonContext, DaemonDir daemonDir) {
         final Long pid = daemonContext.getPid();
-        String fileName = "daemon-" + (pid == null ? UUID.randomUUID() : pid) + ".out.log";
-        return new DaemonLogFile(new File(daemonDir.getVersionedDir(), fileName));
+        return new DaemonLogFile(new File(daemonDir.getVersionedDir(), getDaemonLogFileName(pid)));
     }
 
     @Provides
@@ -171,6 +171,7 @@ public class DaemonServices implements ServiceRegistrationProvider {
             new StartBuildOrRespondWithBusy(daemonDiagnostics), // from this point down, the daemon is 'busy'
             new EstablishBuildEnvironment(processEnvironment),
             new LogToClient(loggingManager, daemonDiagnostics), // from this point down, logging is sent back to the client
+            new ApplyClientEnvironmentVariables(processEnvironment),
             new LogAndCheckHealth(healthStats, healthCheck, runningStats),
             new ForwardClientInput(inputReader, eventDispatch),
             new RequestStopIfSingleUsedDaemon(),

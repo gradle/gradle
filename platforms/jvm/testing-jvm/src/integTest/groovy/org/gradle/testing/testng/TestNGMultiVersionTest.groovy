@@ -16,6 +16,7 @@
 
 package org.gradle.testing.testng
 
+
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.testing.fixture.AbstractTestingMultiVersionIntegrationTest
 import org.gradle.testing.fixture.TestNGCoverage

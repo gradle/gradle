@@ -16,7 +16,9 @@
 
 package org.gradle.integtests.fixtures.executer;
 
+import org.gradle.integtests.fixtures.AvailableJavaHomes;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.jvm.Jvm;
 import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.util.GradleVersion;
 
@@ -91,6 +93,11 @@ public class GradleBackedArtifactBuilder implements ArtifactBuilder {
         } catch (FileNotFoundException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
+
+        if (!executer.getDistribution().daemonWorksWith(Jvm.current().getJavaVersionMajor())) {
+            executer.withJavaHome(AvailableJavaHomes.getAvailableJdk(jdk -> executer.getDistribution().daemonWorksWith(jdk.getJavaMajorVersion())).getJavaHome().getAbsolutePath());
+        }
+
         executer.inDirectory(rootDir).withTasks("clean", "jar", "--stacktrace").run();
     }
 

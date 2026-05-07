@@ -29,7 +29,7 @@ public class IsolatedParametersActionExecutionSpec<T extends WorkParameters> {
     private final Isolatable<T> isolatedParams;
     private final ClassLoaderStructure classLoaderStructure;
     private final File baseDir;
-    private final Set<Class<?>> additionalWhitelistedServices;
+    private final Set<Class<?>> additionalAllowedServices;
     private final String displayName;
     private final File projectCacheDir;
 
@@ -41,7 +41,7 @@ public class IsolatedParametersActionExecutionSpec<T extends WorkParameters> {
         ClassLoaderStructure classLoaderStructure,
         File baseDir,
         File projectCacheDir,
-        Set<Class<?>> additionalWhitelistedServices
+        Set<Class<?>> additionalAllowedServices
     ) {
         this.implementationClass = implementationClass;
         this.displayName = displayName;
@@ -50,7 +50,7 @@ public class IsolatedParametersActionExecutionSpec<T extends WorkParameters> {
         this.classLoaderStructure = classLoaderStructure;
         this.baseDir = baseDir;
         this.projectCacheDir = projectCacheDir;
-        this.additionalWhitelistedServices = additionalWhitelistedServices;
+        this.additionalAllowedServices = additionalAllowedServices;
     }
 
     public String getDisplayName() {
@@ -79,8 +79,8 @@ public class IsolatedParametersActionExecutionSpec<T extends WorkParameters> {
         return actionImplementationClassName;
     }
 
-    public Set<Class<?>> getAdditionalWhitelistedServices() {
-        return additionalWhitelistedServices;
+    public Set<Class<?>> getAdditionalAllowedServices() {
+        return additionalAllowedServices;
     }
 
     public Isolatable<T> getIsolatedParams() {

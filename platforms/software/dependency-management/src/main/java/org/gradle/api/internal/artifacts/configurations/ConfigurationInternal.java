@@ -125,6 +125,7 @@ public interface ConfigurationInternal extends DeprecatableConfiguration, Config
      *
      * @return {@code true} if so; {@code false} otherwise
      */
+    @SuppressWarnings("AmbiguousMethodReference") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
     default boolean isDeclarableByExtension() {
         return isDeclarableByExtension(this);
     }
@@ -142,6 +143,7 @@ public interface ConfigurationInternal extends DeprecatableConfiguration, Config
      * @param configuration the configuration to test
      * @return {@code true} if so; {@code false} otherwise
      */
+    @SuppressWarnings("AmbiguousMethodReference") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
     static boolean isDeclarableByExtension(ConfigurationInternal configuration) {
         if (configuration.isCanBeDeclared()) {
             return true;

@@ -18,7 +18,7 @@ package org.gradle.api
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import spock.lang.Issue
 
 import static org.hamcrest.CoreMatchers.containsString
@@ -104,7 +104,7 @@ include 'child'
     }
 
     @Requires(
-        value = IntegTestPreconditions.NotIsolatedProjects,
+        value = TestExecutionPreconditions.NotIsolatedProjects,
         reason = "Exercises IP incompatible behavior: Groovy method inheritance"
     )
     def "produces reasonable error message from a method inherited from a script containing only methods"() {

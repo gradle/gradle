@@ -20,8 +20,12 @@ import org.gradle.internal.Factory
 import org.gradle.internal.resources.ResourceLock
 import org.gradle.internal.work.Synchronizer
 import org.gradle.internal.work.WorkerLeaseService
+import org.gradle.internal.work.WorkerThreadPool
 import org.gradle.util.Path
+import org.jspecify.annotations.NullMarked
+import org.jspecify.annotations.Nullable
 
+@NullMarked
 class TestWorkerLeaseService implements WorkerLeaseService {
     @Override
     ResourceLock getProjectLock(Path buildIdentityPath, Path projectPath) {
@@ -112,6 +116,10 @@ class TestWorkerLeaseService implements WorkerLeaseService {
     }
 
     @Override
+    void setOwningThreadPool(@Nullable WorkerThreadPool threadPool) {
+    }
+
+    @Override
     void runAsIsolatedTask(Runnable runnable) {
         runnable.run()
     }
@@ -164,6 +172,11 @@ class TestWorkerLeaseService implements WorkerLeaseService {
     @Override
     void blocking(Runnable action) {
         action.run()
+    }
+
+    @Override
+    <T> T blocking(Factory<T> action) {
+        return action.create()
     }
 
     @Override

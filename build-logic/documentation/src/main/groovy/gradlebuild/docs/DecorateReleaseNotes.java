@@ -18,14 +18,12 @@ package gradlebuild.docs;
 
 import org.apache.tools.ant.filters.ReplaceTokens;
 import org.gradle.api.DefaultTask;
-import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileSystemOperations;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.provider.MapProperty;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFile;
-import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
@@ -56,14 +54,7 @@ public abstract class DecorateReleaseNotes extends DefaultTask {
     public abstract RegularFileProperty getDestinationFile();
 
     /**
-     * JQuery used by the added decoration
-     */
-    @InputFiles
-    @PathSensitive(PathSensitivity.NONE)
-    public abstract ConfigurableFileCollection getJquery();
-
-    /**
-     * The release notes javascript to embed in the HTML
+     * The release notes JavaScript to embed in the HTML
      */
     @InputFile
     @PathSensitive(PathSensitivity.NONE)
@@ -112,7 +103,6 @@ public abstract class DecorateReleaseNotes extends DefaultTask {
             parameters.put("baseCss", getBaseCssFile().get().getAsFile());
             parameters.put("releaseNotesCss", getReleaseNotesCssFile().get().getAsFile());
             parameters.put("releaseNotesJavascript", getReleaseNotesJavascriptFile().get().getAsFile());
-            parameters.put("jqueryFiles", getJquery().getFiles());
 
             copySpec.filter(parameters, ReleaseNotesTransformer.class);
             copySpec.filter(Collections.singletonMap("tokens", getReplacementTokens().get()), ReplaceTokens.class);

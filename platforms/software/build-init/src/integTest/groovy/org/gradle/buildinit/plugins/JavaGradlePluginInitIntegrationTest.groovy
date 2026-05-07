@@ -18,7 +18,7 @@ package org.gradle.buildinit.plugins
 
 import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import spock.lang.Issue
 
 import static org.gradle.buildinit.plugins.GroovyGradlePluginInitIntegrationTest.NOT_RUNNING_ON_EMBEDDED_EXECUTER_REASON
@@ -38,7 +38,7 @@ class JavaGradlePluginInitIntegrationTest extends AbstractInitIntegrationSpec {
         dslFixtureFor(KOTLIN).assertGradleFilesGenerated()
     }
 
-    @Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = NOT_RUNNING_ON_EMBEDDED_EXECUTER_REASON)
+    @Requires(value = TestExecutionPreconditions.NotEmbeddedExecutor, reason = NOT_RUNNING_ON_EMBEDDED_EXECUTER_REASON)
     def "creates sample source if no source present with #scriptDsl build scripts"() {
         when:
         run('init', '--type', 'java-gradle-plugin', '--dsl', scriptDsl.id)
@@ -62,7 +62,7 @@ class JavaGradlePluginInitIntegrationTest extends AbstractInitIntegrationSpec {
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
-    @Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = NOT_RUNNING_ON_EMBEDDED_EXECUTER_REASON)
+    @Requires(value = TestExecutionPreconditions.NotEmbeddedExecutor, reason = NOT_RUNNING_ON_EMBEDDED_EXECUTER_REASON)
     def "creates build using test suites with #scriptDsl build scripts when using --incubating"() {
         def dslFixture = dslFixtureFor(scriptDsl)
 
@@ -90,7 +90,7 @@ class JavaGradlePluginInitIntegrationTest extends AbstractInitIntegrationSpec {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/18206")
-    @Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = NOT_RUNNING_ON_EMBEDDED_EXECUTER_REASON)
+    @Requires(value = TestExecutionPreconditions.NotEmbeddedExecutor, reason = NOT_RUNNING_ON_EMBEDDED_EXECUTER_REASON)
     def "re-running check succeeds"() {
         given:
         run('init', '--type', 'java-gradle-plugin', '--dsl', scriptDsl.id)

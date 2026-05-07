@@ -26,20 +26,20 @@ import org.gradle.initialization.BuildEventConsumer;
 public class ClientBuildRequestContext {
     private final GradleLauncherMetaData client;
     private final long startTime;
-    private final boolean interactive;
+    private final boolean interactiveConsole;
     private final BuildCancellationToken cancellationToken;
     private final BuildEventConsumer eventConsumer;
 
     public ClientBuildRequestContext(
         GradleLauncherMetaData client,
         long startTime,
-        boolean interactive,
+        boolean interactiveConsole,
         BuildCancellationToken cancellationToken,
         BuildEventConsumer eventConsumer
     ) {
         this.client = client;
         this.startTime = startTime;
-        this.interactive = interactive;
+        this.interactiveConsole = interactiveConsole;
         this.cancellationToken = cancellationToken;
         this.eventConsumer = eventConsumer;
     }
@@ -52,8 +52,8 @@ public class ClientBuildRequestContext {
         return startTime;
     }
 
-    public boolean isInteractive() {
-        return interactive;
+    public boolean isInteractiveConsole() {
+        return interactiveConsole;
     }
 
     public BuildCancellationToken getCancellationToken() {

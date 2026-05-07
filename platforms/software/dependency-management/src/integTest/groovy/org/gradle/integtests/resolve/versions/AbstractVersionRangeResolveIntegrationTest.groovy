@@ -17,16 +17,15 @@
 package org.gradle.integtests.resolve.versions
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
-import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.resolve.scenarios.VersionRangeResolveTestScenarios
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 
 /**
  * A comprehensive test of dependency resolution of a single module version, given a set of input selectors.
  * This integration test validates all scenarios in {@link VersionRangeResolveTestScenarios}, as well as some adhoc scenarios.
  */
-@Requires(value = IntegTestPreconditions.IsEmbeddedExecutor, reason = ONLY_RUN_ON_EMBEDDED_REASON)
+@Requires(value = TestExecutionPreconditions.IsEmbeddedExecutor, reason = ONLY_RUN_ON_EMBEDDED_REASON)
 abstract class AbstractVersionRangeResolveIntegrationTest extends AbstractDependencyResolutionTest {
 
     public static final String ONLY_RUN_ON_EMBEDDED_REASON = """
@@ -36,14 +35,16 @@ embedded mode
 """
     def baseBuild
     def baseSettings
-    def resolve = new ResolveTestFixture(buildFile, "conf").expectDefaultConfiguration("runtime")
 
     def setup() {
         (9..13).each {
             mavenRepo.module("org", "foo", "${it}").publish()
         }
 
-        settingsFile << "rootProject.name = 'test'"
+        settingsFile << """
+            rootProject.name = 'test'
+        """
+
         buildFile << """
             repositories {
                 maven { url = '${mavenRepo.uri}' }
@@ -51,8 +52,8 @@ embedded mode
             configurations {
                 conf
             }
-"""
-        resolve.prepare()
+        """
+
         baseBuild = buildFile.text
         baseSettings = settingsFile.text
     }

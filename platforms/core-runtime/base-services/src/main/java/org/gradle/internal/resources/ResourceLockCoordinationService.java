@@ -58,7 +58,7 @@ public interface ResourceLockCoordinationService {
     /**
      * A convenience for using {@link #withStateLock(Function)}.
      */
-    <T> T withStateLock(Supplier<T> action);
+    <T extends @Nullable Object> T withStateLock(Supplier<T> action);
 
     /**
      * Notify other threads about changes to resource locks.

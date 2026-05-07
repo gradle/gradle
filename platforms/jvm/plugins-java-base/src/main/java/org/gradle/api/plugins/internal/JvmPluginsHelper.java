@@ -123,12 +123,11 @@ public class JvmPluginsHelper {
         return project.getConfigurations().consumable(variantName, variant -> {
             variant.setDescription(docsType + " elements for " + (featureName == null ? "main" : featureName) + ".");
 
-            ObjectFactory objectFactory = project.getObjects();
             AttributeContainer attributes = variant.getAttributes();
-            attributes.attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.JAVA_RUNTIME));
-            attributes.attribute(Category.CATEGORY_ATTRIBUTE, objectFactory.named(Category.class, Category.DOCUMENTATION));
-            attributes.attribute(Bundling.BUNDLING_ATTRIBUTE, objectFactory.named(Bundling.class, Bundling.EXTERNAL));
-            attributes.attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objectFactory.named(DocsType.class, docsType));
+            attributes.attribute(Usage.USAGE_ATTRIBUTE, attributes.named(Usage.class, Usage.JAVA_RUNTIME));
+            attributes.attribute(Category.CATEGORY_ATTRIBUTE, attributes.named(Category.class, Category.DOCUMENTATION));
+            attributes.attribute(Bundling.BUNDLING_ATTRIBUTE, attributes.named(Bundling.class, Bundling.EXTERNAL));
+            attributes.attribute(DocsType.DOCS_TYPE_ATTRIBUTE, attributes.named(DocsType.class, docsType));
             capabilities.forEach(variant.getOutgoing()::capability);
 
             variant.getOutgoing().artifact(new LazyPublishArtifact(jar, project.getFileResolver(), project.getTaskDependencyFactory()));

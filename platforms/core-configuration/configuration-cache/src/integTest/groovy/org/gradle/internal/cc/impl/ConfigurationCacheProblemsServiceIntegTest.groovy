@@ -42,10 +42,10 @@ class ConfigurationCacheProblemsServiceIntegTest extends AbstractConfigurationCa
 
         then:
         problems.assertResultHasProblems(result) {
-            withTotalProblemsCount(1)
+            totalProblemsCount = 1
             withUniqueProblems(
                 "Build file 'build.gradle': line 2: registration of listener on 'Gradle.buildFinished' is unsupported")
-            withProblemsWithStackTraceCount(1)
+            problemsWithStackTraceCount = 1
         }
 
         and:
@@ -97,7 +97,7 @@ class ConfigurationCacheProblemsServiceIntegTest extends AbstractConfigurationCa
         }
     }
 
-    def "notCompatibleWithConfigurationCache task problems are reported as Advice"() {
+    def "notCompatibleWithConfigurationCache task problems are reported as Warning"() {
         given:
         buildFile """
             task run {
@@ -115,7 +115,7 @@ class ConfigurationCacheProblemsServiceIntegTest extends AbstractConfigurationCa
         verifyAll(receivedProblem) {
             fqid == 'validation:configuration-cache:invocation-of-task-project-at-execution-time-is-unsupported-with-the-configuration-cache'
             contextualLabel == "invocation of 'Task.project' at execution time is unsupported with the configuration cache."
-            definition.severity == Severity.ADVICE
+            definition.severity == Severity.WARNING
         }
     }
 }

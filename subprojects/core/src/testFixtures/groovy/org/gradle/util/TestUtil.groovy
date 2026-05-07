@@ -23,7 +23,6 @@ import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.FeaturePreviews
 import org.gradle.api.internal.MutationGuard
 import org.gradle.api.internal.MutationGuards
-import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.internal.collections.DefaultDomainObjectCollectionFactory
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory
 import org.gradle.api.internal.file.DefaultFilePropertyFactory
@@ -48,12 +47,12 @@ import org.gradle.api.problems.ProblemReporter
 import org.gradle.api.problems.internal.DefaultProblems
 import org.gradle.api.problems.internal.DeprecationData
 import org.gradle.api.problems.internal.ExceptionProblemRegistry
-import org.gradle.api.problems.internal.InternalProblem
-import org.gradle.api.problems.internal.InternalProblemBuilder
-import org.gradle.api.problems.internal.InternalProblemReporter
-import org.gradle.api.problems.internal.InternalProblems
+import org.gradle.api.problems.internal.ProblemBuilderInternal
+import org.gradle.api.problems.internal.ProblemInternal
+import org.gradle.api.problems.internal.ProblemReporterInternal
 import org.gradle.api.problems.internal.ProblemSummarizer
 import org.gradle.api.problems.internal.ProblemsInfrastructure
+import org.gradle.api.problems.internal.ProblemsInternal
 import org.gradle.api.provider.ProviderFactory
 import org.gradle.api.reflect.ObjectInstantiationException
 import org.gradle.api.tasks.util.internal.PatternSets
@@ -69,8 +68,8 @@ import org.gradle.internal.instantiation.managed.ManagedObjectRegistry
 import org.gradle.internal.model.CalculatedValueContainerFactory
 import org.gradle.internal.model.InMemoryCacheFactory
 import org.gradle.internal.model.StateTransitionControllerFactory
+import org.gradle.internal.operations.BuildOperationsParameters
 import org.gradle.internal.operations.CurrentBuildOperationRef
-import org.gradle.internal.operations.DefaultBuildOperationsParameters
 import org.gradle.internal.operations.OperationIdentifier
 import org.gradle.internal.operations.TestBuildOperationRunner
 import org.gradle.internal.reflect.Instantiator
@@ -79,7 +78,6 @@ import org.gradle.internal.service.Provides
 import org.gradle.internal.service.ServiceRegistration
 import org.gradle.internal.service.ServiceRegistrationProvider
 import org.gradle.internal.service.ServiceRegistry
-import org.gradle.internal.service.scopes.CrossBuildSessionParameters
 import org.gradle.internal.state.ManagedFactoryRegistry
 import org.gradle.internal.work.DefaultWorkerLimits
 import org.gradle.test.fixtures.file.TestDirectoryProvider
@@ -157,7 +155,7 @@ class TestUtil {
     }
 
     static TestProblems problemsService() {
-        return services().get(TestProblems)
+        return new TestProblems()
     }
 
     static ObjectFactory objectFactory(TestFile baseDir) {
@@ -173,8 +171,7 @@ class TestUtil {
         return new InMemoryCacheFactory(new DefaultWorkerLimits(Runtime.getRuntime().availableProcessors()), calculatedValueContainerFactory())
     }
 
-    static StateTransitionControllerFactory stateTransitionControllerFactory() {
-        def buildOperationsParameters = new DefaultBuildOperationsParameters(new CrossBuildSessionParameters(new StartParameterInternal()))
+    static StateTransitionControllerFactory stateTransitionControllerFactory(BuildOperationsParameters buildOperationsParameters) {
         return new StateTransitionControllerFactory(new TestWorkerLeaseService(), buildOperationsParameters, new TestBuildOperationRunner())
     }
 
@@ -222,11 +219,6 @@ class TestUtil {
                         fileCollectionFactory,
                         filePropertyFactory,
                         filePropertyFactory)
-                }
-
-                @Provides
-                TestProblems createProblemsService() {
-                    new TestProblems()
                 }
 
                 @Provides
@@ -406,9 +398,9 @@ class MockInstantiator implements Instantiator {
     }
 }
 
-class TestProblems implements InternalProblems {
+class TestProblems implements ProblemsInternal {
     private final TestProblemSummarizer summarizer
-    private final InternalProblems delegate
+    private final ProblemsInternal delegate
 
     TestProblems() {
         this.summarizer = new TestProblemSummarizer()
@@ -431,7 +423,7 @@ class TestProblems implements InternalProblems {
     }
 
     @Override
-    InternalProblemReporter getInternalReporter() {
+    ProblemReporterInternal getInternalReporter() {
         delegate.internalReporter
     }
 
@@ -441,7 +433,7 @@ class TestProblems implements InternalProblems {
     }
 
     @Override
-    InternalProblemBuilder getProblemBuilder() {
+    ProblemBuilderInternal getProblemBuilder() {
         delegate.getProblemBuilder()
     }
 
@@ -457,12 +449,24 @@ class TestProblems implements InternalProblems {
         }
     }
 
+    void assertNoProblemsEmitted() {
+        assert summarizer.emitted.isEmpty()
+    }
+
+    List<Problem> getEmitted() {
+        summarizer.emitted
+    }
+
     void assertHasDeprecation(String expectedMessage) {
-        def deprecationMessages = summarizer.emitted
-            .findAll { it.additionalData instanceof DeprecationData }
-            .collect { it.contextualLabel }
+        def deprecationMessages = getDeprecationMessages()
         assert deprecationMessages.size() > 0
         assert deprecationMessages.find { it.contains(expectedMessage) } != null
+    }
+
+    List<String> getDeprecationMessages() {
+        summarizer.emitted
+            .findAll { it.additionalData instanceof DeprecationData }
+            .collect { it.contextualLabel.toString() }
     }
 
     void recordEmittedProblems() {
@@ -478,7 +482,7 @@ class TestProblemSummarizer implements ProblemSummarizer {
     List emitted = []
 
     @Override
-    void emit(InternalProblem problem, @Nullable OperationIdentifier id) {
+    void emit(ProblemInternal problem, @Nullable OperationIdentifier id) {
         emitted.add(problem)
     }
 

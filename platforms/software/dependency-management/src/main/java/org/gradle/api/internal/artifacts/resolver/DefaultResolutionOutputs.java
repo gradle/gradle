@@ -20,8 +20,7 @@ import com.google.common.annotations.VisibleForTesting;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.ArtifactView;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.artifacts.result.ResolvedComponentResult;
-import org.gradle.api.artifacts.result.ResolvedVariantResult;
+import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.ResolverResults;
 import org.gradle.api.internal.artifacts.configurations.ArtifactCollectionInternal;
@@ -29,16 +28,14 @@ import org.gradle.api.internal.artifacts.configurations.DefaultArtifactCollectio
 import org.gradle.api.internal.artifacts.configurations.ResolutionResultProviderBackedSelectedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSelectionSpec;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.SelectedArtifactSet;
-import org.gradle.api.internal.artifacts.result.MinimalResolutionResult;
+import org.gradle.api.internal.artifacts.result.DefaultResolutionResult;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.file.FileCollectionInternal;
-import org.gradle.api.internal.provider.DefaultProvider;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.internal.Actions;
@@ -84,17 +81,8 @@ public class DefaultResolutionOutputs implements ResolutionOutputsInternal {
     }
 
     @Override
-    public Provider<ResolvedVariantResult> getRootVariant() {
-        return new DefaultProvider<>(() -> getResolutionResult().getGraphSource().get().getRootVariant());
-    }
-
-    @Override
-    public Provider<ResolvedComponentResult> getRootComponent() {
-        return new DefaultProvider<>(() -> getResolutionResult().getGraphSource().get().getRootComponent());
-    }
-
-    private MinimalResolutionResult getResolutionResult() {
-        return resolutionAccess.getResults().getValue().getVisitedGraph().getResolutionResult();
+    public ResolutionResult getResolutionResult() {
+        return new DefaultResolutionResult(resolutionAccess, attributeDesugaring);
     }
 
     @Override

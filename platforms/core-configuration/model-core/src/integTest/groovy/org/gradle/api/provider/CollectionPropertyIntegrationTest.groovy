@@ -17,8 +17,7 @@
 package org.gradle.api.provider
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 
 class CollectionPropertyIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
@@ -161,7 +160,7 @@ afterEvaluate {
         fails("thing")
 
         then:
-        failure.assertHasDescription("Execution failed for task ':thing'.")
+        failure.assertHasDescription("Execution failed for task ':thing' (registered in build file 'build.gradle').")
         failure.assertHasCause("The value for task ':thing' property 'prop' is final and cannot be changed any further.")
     }
 
@@ -205,7 +204,6 @@ afterEvaluate {
         outputContains("value: value 1, value 2, value 3")
     }
 
-    @Requires(value = IntegTestPreconditions.NotConfigCached, reason = "https://github.com/gradle/gradle/issues/25516")
     def "task ad hoc input property is implicitly finalized when task starts execution"() {
         given:
         buildFile """
@@ -226,7 +224,7 @@ task thing {
         fails("thing")
 
         then:
-        failure.assertHasDescription("Execution failed for task ':thing'.")
+        failure.assertHasDescription("Execution failed for task ':thing' (registered in build file 'build.gradle').")
         failure.assertHasCause("The value for this property is final and cannot be changed any further.")
     }
 
@@ -269,7 +267,6 @@ task thing {
         "providers.provider { [ 'a', 'b', 'c' ] }" | _
     }
 
-    @Requires(value = IntegTestPreconditions.NotConfigCached, reason = "https://github.com/gradle/gradle/issues/27528")
     def "can set value for string list property using GString values"() {
         buildFile """
             def str = "aBc"
@@ -303,7 +300,6 @@ task thing {
         succeeds("verify")
     }
 
-    @Requires(value = IntegTestPreconditions.NotConfigCached, reason = "https://github.com/gradle/gradle/issues/27528")
     def "can add element to string list property using GString value"() {
         buildFile << """
             def str = "aBc"
@@ -322,7 +318,6 @@ task thing {
         'providers.provider { "${str.toLowerCase().substring(1, 2)}" }' | _
     }
 
-    @Requires(value = IntegTestPreconditions.NotConfigCached, reason = "https://github.com/gradle/gradle/issues/27528")
     def "can add elements to string list property using GString value"() {
         buildFile << """
             def str = "aBc"
@@ -353,7 +348,7 @@ task wrongValueTypeDsl(type: MyTask) {
 
 task wrongRuntimeElementType(type: MyTask) {
     doLast {
-        prop = [123]
+        prop = [new Object()]
         prop.get()
     }
 }
@@ -391,42 +386,42 @@ task wrongPropertyElementTypeApi(type: MyTask) {
         fails("wrongValueTypeDsl")
 
         then:
-        failure.assertHasDescription("Execution failed for task ':wrongValueTypeDsl'.")
+        failure.assertHasDescription("Execution failed for task ':wrongValueTypeDsl' (registered in build file 'build.gradle').")
         failure.assertHasCause("Cannot set the value of a property of type java.util.List using an instance of type java.lang.Integer.")
 
         when:
         fails("wrongRuntimeElementType")
 
         then:
-        failure.assertHasDescription("Execution failed for task ':wrongRuntimeElementType'.")
-        failure.assertHasCause("Cannot get the value of a property of type java.util.List with element type java.lang.String as the source value contains an element of type java.lang.Integer.")
+        failure.assertHasDescription("Execution failed for task ':wrongRuntimeElementType' (registered in build file 'build.gradle').")
+        failure.assertHasCause("Cannot get the value of a property of type java.util.List with element type java.lang.String as the source value contains an element of type java.lang.Object.")
 
         when:
         fails("wrongPropertyTypeDsl")
 
         then:
-        failure.assertHasDescription("Execution failed for task ':wrongPropertyTypeDsl'.")
+        failure.assertHasDescription("Execution failed for task ':wrongPropertyTypeDsl' (registered in build file 'build.gradle').")
         failure.assertHasCause("Cannot set the value of a property of type java.util.List using a provider of type java.lang.Integer.")
 
         when:
         fails("wrongPropertyTypeApi")
 
         then:
-        failure.assertHasDescription("Execution failed for task ':wrongPropertyTypeApi'.")
+        failure.assertHasDescription("Execution failed for task ':wrongPropertyTypeApi' (registered in build file 'build.gradle').")
         failure.assertHasCause("Cannot set the value of a property of type java.util.List using a provider of type java.lang.Integer.")
 
         when:
         fails("wrongPropertyElementTypeDsl")
 
         then:
-        failure.assertHasDescription("Execution failed for task ':wrongPropertyElementTypeDsl'.")
+        failure.assertHasDescription("Execution failed for task ':wrongPropertyElementTypeDsl' (registered in build file 'build.gradle').")
         failure.assertHasCause("Cannot set the value of a property of type java.util.List with element type java.lang.String using a provider with element type java.lang.Integer.")
 
         when:
         fails("wrongPropertyElementTypeApi")
 
         then:
-        failure.assertHasDescription("Execution failed for task ':wrongPropertyElementTypeApi'.")
+        failure.assertHasDescription("Execution failed for task ':wrongPropertyElementTypeApi' (registered in build file 'build.gradle').")
         failure.assertHasCause("Cannot set the value of a property of type java.util.List with element type java.lang.String using a provider with element type java.lang.Integer.")
     }
 
@@ -526,7 +521,7 @@ task wrongPropertyElementTypeApi(type: MyTask) {
         fails("thing")
 
         then:
-        failure.assertHasDescription("Execution failed for task ':thing'.")
+        failure.assertHasDescription("Execution failed for task ':thing' (registered in build file 'build.gradle').")
         failure.assertHasCause("Cannot query the value of task ':thing' property 'prop' because it has no value available.")
     }
 
@@ -549,6 +544,51 @@ task wrongPropertyElementTypeApi(type: MyTask) {
         collection | initializer
         "list" | "listProperty"
         "set" | "setProperty"
+    }
+
+    def "#collectionProperty has separate identity per task with CC only"() {
+        given:
+        buildFile.delete()
+        buildKotlinFile """
+            tasks {
+                val sharedProp = objects.${collectionProperty}<String>()
+                register("foo") {
+                    val taskProp = objects.${collectionProperty}<String>()
+                    doFirst {
+                        taskProp.add("A")
+                        sharedProp.add("A")
+                    }
+                    doLast {
+                        taskProp.add("B")
+                        sharedProp.add("B")
+                        println("taskProp = \${taskProp.get()}")
+                        println("FOO: sharedProp = \${sharedProp.get()}")
+                    }
+                }
+                register("bar") {
+                    dependsOn("foo")
+                    doFirst {
+                        sharedProp.add("C")
+                        println("BAR: sharedProp = \${sharedProp.get()}")
+                    }
+                }
+            }
+        """
+
+        when:
+        succeeds("bar")
+
+        then:
+        outputContains("taskProp = [A, B]")
+        outputContains("FOO: sharedProp = [A, B]")
+        if (GradleContextualExecuter.configCache) {
+            outputContains("BAR: sharedProp = [C]")
+        } else {
+            outputContains("BAR: sharedProp = [A, B, C]")
+        }
+
+        where:
+        collectionProperty << ["listProperty", "setProperty"]
     }
 
     /**

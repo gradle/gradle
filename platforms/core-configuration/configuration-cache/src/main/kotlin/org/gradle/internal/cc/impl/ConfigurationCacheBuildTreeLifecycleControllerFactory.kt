@@ -52,7 +52,6 @@ class ConfigurationCacheBuildTreeLifecycleControllerFactory internal constructor
         taskGraph,
         buildOperationExecutor,
         stateTransitionControllerFactory,
-        startParameter,
         parameterCarrierFactory,
         buildStateRegistry,
         buildOperationRunner
@@ -94,6 +93,6 @@ class ConfigurationCacheBuildTreeLifecycleControllerFactory internal constructor
 
         val finisher = ConfigurationCacheAwareFinishExecutor(finishExecutor, cache)
 
-        return DefaultBuildTreeLifecycleController(targetBuild, workController, modelCreator, finisher, stateTransitionControllerFactory, startParameter, buildModelParameters)
+        return DefaultBuildTreeLifecycleController(targetBuild, workController, modelCreator, finisher, stateTransitionControllerFactory)
     }
 }

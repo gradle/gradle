@@ -188,6 +188,8 @@ abstract class TaskContainerDelegate : TaskContainer {
     override fun whenObjectRemoved(action: Closure<Any>) =
         delegate.whenObjectRemoved(action)
 
+    @Suppress("DEPRECATION")
+    @Deprecated("Deprecated Groovy-only API")
     override fun findAll(spec: Closure<Any>): MutableSet<Task> =
         delegate.findAll(spec)
 

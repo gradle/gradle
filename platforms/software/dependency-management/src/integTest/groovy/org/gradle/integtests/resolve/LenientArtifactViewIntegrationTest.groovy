@@ -240,11 +240,13 @@ class LenientArtifactViewIntegrationTest extends AbstractHttpDependencyResolutio
         expect:
         module.pom.expectGet()
         module.artifact.expectGetMissing()
+        executer.expectDocumentedDeprecationWarning("The MavenArtifactRepository.artifactUrls(Object...) method has been deprecated. This is scheduled to be removed in Gradle 10. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_maven_artifact_urls")
         fails("resolve")
         failure.assertHasErrorOutput("does-not-exist.invalid") // Cannot check whole message, as it differs between OS
 
         and:
         module.artifact.expectGetMissing()
+        executer.expectDocumentedDeprecationWarning("The MavenArtifactRepository.artifactUrls(Object...) method has been deprecated. This is scheduled to be removed in Gradle 10. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_maven_artifact_urls")
         succeeds("resolveLenient")
         outputContains("[]")
     }

@@ -71,7 +71,7 @@ allprojects {
         ${builder.producerConfigOverrides}
     }
     artifacts {
-        implementation producer.output
+        implementation tasks.producer.output
     }
 
     task resolve(type: ShowFileCollection) {

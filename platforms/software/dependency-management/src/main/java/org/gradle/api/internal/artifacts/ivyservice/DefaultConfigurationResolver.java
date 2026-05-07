@@ -126,6 +126,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         return resolutionExecutor.resolveGraph(legacyParams, params, filteredRepositories);
     }
 
+    @SuppressWarnings("NonCanonicalType") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
     private LocalVariantGraphResolveState asRootVariant(ConfigurationInternal configuration, ComponentIdentifier componentId) {
         return variantStateBuilder.createRootVariantState(
             configuration,

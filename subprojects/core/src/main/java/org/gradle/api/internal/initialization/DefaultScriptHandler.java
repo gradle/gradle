@@ -87,7 +87,13 @@ public class DefaultScriptHandler implements ScriptHandler, ScriptHandlerInterna
 
     @Override
     public void dependencies(Closure configureClosure) {
-        ConfigureUtil.configure(configureClosure, getDependencies());
+        dependencies(ConfigureUtil.configureUsing(configureClosure));
+    }
+
+    // TODO: This cannot be made part of the public API for ScriptHandler yet
+    // because Kotlin DSL relies on creating a DependencyHandlerScope to back dependencies {}
+    public void dependencies(Action<? super DependencyHandler> action) {
+        action.execute(getDependencies());
     }
 
     @Override
@@ -134,7 +140,12 @@ public class DefaultScriptHandler implements ScriptHandler, ScriptHandlerInterna
 
     @Override
     public void repositories(Closure configureClosure) {
-        ConfigureUtil.configure(configureClosure, getRepositories());
+        repositories(ConfigureUtil.configureUsing(configureClosure));
+    }
+
+    @Override
+    public void repositories(Action<? super RepositoryHandler> action) {
+        action.execute(getRepositories());
     }
 
     @Override
@@ -144,8 +155,8 @@ public class DefaultScriptHandler implements ScriptHandler, ScriptHandlerInterna
     }
 
     @Override
-    public void configurations(Action<? super ConfigurationContainer> configureClosure) {
-        configureClosure.execute(getConfigurations());
+    public void configurations(Action<? super ConfigurationContainer> action) {
+        action.execute(getConfigurations());
     }
 
     @SuppressWarnings("deprecation")
@@ -172,7 +183,12 @@ public class DefaultScriptHandler implements ScriptHandler, ScriptHandlerInterna
 
     @Override
     public void dependencyLocking(Closure configureClosure) {
-        ConfigureUtil.configure(configureClosure, getDependencyLocking());
+        dependencyLocking(ConfigureUtil.configureUsing(configureClosure));
+    }
+
+    @Override
+    public void dependencyLocking(Action<? super DependencyLockingHandler> action) {
+        action.execute(getDependencyLocking());
     }
 
     @Override

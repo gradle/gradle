@@ -133,7 +133,7 @@ class MavenPublishIdentifierValidationIntegTest extends AbstractMavenPublishInte
         fails 'publish'
 
         then:
-        failure.assertHasDescription "Execution failed for task ':publishMavenPublicationToMavenRepository'."
+        failure.assertHasDescription "Execution failed for task ':publishMavenPublicationToMavenRepository' (registered by plugin 'org.gradle.maven-publish')."
         failure.assertHasCause "Failed to publish publication 'maven' to repository 'maven'"
         failure.assertHasCause "Invalid publication 'maven': groupId cannot be empty"
     }

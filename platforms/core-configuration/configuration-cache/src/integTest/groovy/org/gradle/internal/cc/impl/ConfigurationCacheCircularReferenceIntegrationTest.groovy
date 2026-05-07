@@ -69,7 +69,7 @@ class ConfigurationCacheCircularReferenceIntegrationTest extends AbstractConfigu
         then:
         configurationCache.assertStateStored()
         problems.assertResultHasProblems(result) {
-            withTotalProblemsCount(0)
+            totalProblemsCount = 0
         }
 
         when:
@@ -149,8 +149,8 @@ class ConfigurationCacheCircularReferenceIntegrationTest extends AbstractConfigu
         configurationCache.assertStateStored()
         problems.assertResultHasProblems(result) {
             withUniqueProblems("Task `:circular` of type `org.gradle.api.DefaultTask`: Circular references can lead to undefined behavior upon deserialization.")
-            withTotalProblemsCount(2)
-            withProblemsWithStackTraceCount(0)
+            totalProblemsCount = 2
+            problemsWithStackTraceCount = 0
         }
 
         when:

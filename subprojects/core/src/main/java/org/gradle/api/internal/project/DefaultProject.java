@@ -82,11 +82,16 @@ import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.configuration.internal.ListenerBuildOperationDecorator;
 import org.gradle.configuration.project.ProjectConfigurationActionContainer;
 import org.gradle.configuration.project.ProjectEvaluator;
+import org.gradle.features.internal.binding.ProjectFeatureApplicator;
+import org.gradle.features.internal.binding.ProjectFeatureDeclarations;
+import org.gradle.features.internal.binding.ProjectFeatureSupportInternal;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factories;
 import org.gradle.internal.Factory;
+import org.gradle.internal.buildoption.InternalOption;
+import org.gradle.internal.buildoption.InternalOptions;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.extensibility.ExtensibleDynamicObject;
@@ -96,7 +101,9 @@ import org.gradle.internal.instantiation.generator.AsmBackedClassGenerator;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.StandardOutputCapture;
 import org.gradle.internal.metaobject.BeanDynamicObject;
+import org.gradle.internal.metaobject.DynamicInvokeResult;
 import org.gradle.internal.metaobject.DynamicObject;
+import org.gradle.internal.metaobject.HierarchicalDynamicObject;
 import org.gradle.internal.model.ModelContainer;
 import org.gradle.internal.model.RuleBasedPluginListener;
 import org.gradle.internal.reflect.Instantiator;
@@ -122,14 +129,10 @@ import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.normalization.InputNormalizationHandler;
 import org.gradle.normalization.internal.InputNormalizationHandlerInternal;
-import org.gradle.plugin.software.internal.ProjectFeatureApplicator;
-import org.gradle.plugin.software.internal.ProjectFeatureDeclarations;
-import org.gradle.plugin.software.internal.ProjectFeatureSupportInternal;
 import org.gradle.util.Configurable;
 import org.gradle.util.Path;
 import org.gradle.util.internal.ClosureBackedAction;
 import org.gradle.util.internal.ConfigureUtil;
-import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
 import javax.inject.Inject;
@@ -159,6 +162,18 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     private static final ModelType<ExtensionContainer> EXTENSION_CONTAINER_MODEL_TYPE = ModelType.of(ExtensionContainer.class);
     private static final Logger BUILD_LOGGER = Logging.getLogger(Project.class);
 
+    /**
+     * Internal flag that, when set, makes any property or method that resolves through the
+     * parent-project chain throw {@link org.gradle.api.InvalidUserCodeException} at the lookup
+     * site. Used as a CI-side enforcement / pre-flight-check mechanism for the eventual
+     * Gradle 10 behavior in which parent-project lookup is removed entirely.
+     *
+     * <p>Wired into {@link ExtensibleDynamicObject#setFailOnParentAccess(boolean)} on every
+     * Project that has a parent.
+     */
+    public static final InternalOption<Boolean> FAIL_ON_PARENT_PROPERTY_LOOKUP =
+        InternalOptions.ofBoolean("org.gradle.internal.fail-on-parent-property-lookup", false);
+
     private final ProjectState owner;
     private final ClassLoaderScope classLoaderScope;
     private final ClassLoaderScope baseClassLoaderScope;
@@ -179,18 +194,23 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     private final String name;
 
-    private @Nullable Object group;
+    @Nullable
+    private Object group;
 
+    @Nullable
     private Object version;
 
+    @Nullable
     private Property<Object> status;
 
     private List<String> defaultTasks = new ArrayList<>();
 
     private final ProjectStateInternal state;
 
+    @Nullable
     private AntBuilderFactory antBuilderFactory;
 
+    @Nullable
     private AntBuilder ant;
 
     private final TaskContainerInternal taskContainer;
@@ -201,8 +221,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     private final ExtensibleDynamicObject extensibleDynamicObject;
 
-    private final DynamicLookupRoutine dynamicLookupRoutine;
-
+    @Nullable
     private String description;
 
     private boolean preparedForRuleBasedPlugins;
@@ -225,7 +244,8 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
         this.owner = owner;
         this.classLoaderScope = selfClassLoaderScope;
         this.baseClassLoaderScope = baseClassLoaderScope;
-        this.rootProject = parent != null ? parent.getRootProject() : this;
+        // TODO:isolated mutable model of the current project should NOT keep a direct link to the mutable model of root and parent projects
+        this.rootProject = parent != null ? owner.getOwner().getRootProject().getMutableModel() : this;
         this.projectDir = projectDir;
         this.buildFile = buildFile;
         this.parent = parent;
@@ -238,9 +258,10 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
         taskContainer = services.get(TaskContainerInternal.class);
         extensibleDynamicObject = new ExtensibleDynamicObject(this, Project.class, services.get(InstantiatorFactory.class).decorateLenient(services));
 
-        @Nullable DynamicObject parentInherited = services.get(CrossProjectModelAccess.class).parentProjectDynamicInheritedScope(this);
+        @Nullable HierarchicalDynamicObject parentInherited = services.get(CrossProjectModelAccess.class).parentProjectDynamicInheritedScope(this);
         if (parentInherited != null) {
             extensibleDynamicObject.setParent(parentInherited);
+            extensibleDynamicObject.setFailOnParentAccess(services.get(InternalOptions.class).getBoolean(FAIL_ON_PARENT_PROPERTY_LOOKUP));
         }
         extensibleDynamicObject.addObject(taskContainer.getTasksAsDynamicObject(), ExtensibleDynamicObject.Location.AfterConvention);
 
@@ -249,8 +270,6 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
         evaluationListener.add(gradle.getProjectEvaluationBroadcaster());
 
         ruleBasedPluginListenerBroadcast.add((RuleBasedPluginListener) project -> populateModelRegistry(services.get(ModelRegistry.class)));
-
-        dynamicLookupRoutine = services.get(DynamicLookupRoutine.class);
     }
 
     @SuppressWarnings("unused")
@@ -398,7 +417,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     @Override
     public File getRootDir() {
-        return rootProject.getProjectDir();
+        return owner.getOwner().getRootProject().getProjectDir();
     }
 
     @Override
@@ -428,7 +447,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     }
 
     @Override
-    public DynamicObject getInheritedScope() {
+    public HierarchicalDynamicObject getInheritedScope() {
         return extensibleDynamicObject.getInheritable();
     }
 
@@ -468,8 +487,9 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
             return "";
         }
 
+        String rootProjectName = owner.getOwner().getRootProject().getName();
         return Stream.concat(
-            Stream.of(rootProject.getName()),
+            Stream.of(rootProjectName),
             parent.getProjectIdentity().getProjectPath().segments().stream()
         ).collect(Collectors.joining("."));
     }
@@ -601,7 +621,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     }
 
     @Override
-    public final boolean equals(Object obj) {
+    public final boolean equals(@Nullable Object obj) {
         if (!(obj instanceof ProjectInternal)) {
             return false;
         }
@@ -629,7 +649,6 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
         return owner.getProjectPath();
     }
 
-    @NonNull
     @Override
     public ProjectIdentity getProjectIdentity() {
         return owner.getIdentity();
@@ -782,7 +801,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     @Override
     public IsolatedProject getIsolated() {
-        return new DefaultIsolatedProject(this, rootProject);
+        return owner.getIsolated();
     }
 
     @Override
@@ -875,9 +894,12 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
         return projectToEvaluate;
     }
 
+    /**
+     * Returns the display name of this project in a human-readable format.
+     */
     @Override
     public String getDisplayName() {
-        return owner.getDisplayName().getDisplayName();
+        return getProjectIdentity().getDisplayName();
     }
 
     @Override
@@ -1117,10 +1139,9 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     }
 
     /**
-     * This is an implementation of the {@link groovy.lang.GroovyObject}'s corresponding method.
-     * The interface itself is mixed-in at runtime, but we want to keep this implementation as it
-     * properly handles the dynamicLookupRoutine.
-     *
+     * @implNote This is an implementation of the {@link groovy.lang.GroovyObject}'s corresponding method.
+     * The interface itself is mixed-in at runtime, but we want to keep this implementation
+     * to dispatch through the extensible dynamic object.
      * @see AsmBackedClassGenerator.ClassBuilderImpl#addDynamicMethods
      */
     @SuppressWarnings("JavadocReference")
@@ -1130,10 +1151,9 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     }
 
     /**
-     * This is an implementation of the {@link groovy.lang.GroovyObject}'s corresponding method.
-     * The interface itself is mixed-in at runtime, but we want to keep this implementation as it
-     * properly handles the dynamicLookupRoutine.
-     *
+     * @implNote This is an implementation of the {@link groovy.lang.GroovyObject}'s corresponding method.
+     * The interface itself is mixed-in at runtime, but we want to keep this implementation
+     * to dispatch through the extensible dynamic object.
      * @see AsmBackedClassGenerator.ClassBuilderImpl#addDynamicMethods
      */
     @SuppressWarnings("JavadocReference")
@@ -1141,35 +1161,43 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     public Object invokeMethod(String name, Object args) {
         if (args instanceof Object[]) {
             // Spread the 'args' array as varargs:
-            return dynamicLookupRoutine.invokeMethod(extensibleDynamicObject, name, (Object[]) args);
+            return extensibleDynamicObject.invokeMethod(name, (Object[]) args);
         } else {
-            return dynamicLookupRoutine.invokeMethod(extensibleDynamicObject, name, args);
+            return extensibleDynamicObject.invokeMethod(name, args);
         }
     }
 
     @Override
+    @Nullable
     public Object property(String propertyName) throws MissingPropertyException {
-        return dynamicLookupRoutine.property(extensibleDynamicObject, propertyName);
+        return extensibleDynamicObject.getProperty(propertyName);
     }
 
     @Override
+    @Nullable
     public Object findProperty(String propertyName) {
-        return dynamicLookupRoutine.findProperty(extensibleDynamicObject, propertyName);
+        DynamicInvokeResult result = extensibleDynamicObject.tryGetProperty(propertyName);
+        return result.isFound() ? result.getValue() : null;
     }
 
     @Override
-    public void setProperty(String name, Object value) {
-        dynamicLookupRoutine.setProperty(extensibleDynamicObject, name, value);
+    public void setProperty(String name, @Nullable Object value) {
+        extensibleDynamicObject.setProperty(name, value);
     }
 
     @Override
     public boolean hasProperty(String propertyName) {
-        return dynamicLookupRoutine.hasProperty(extensibleDynamicObject, propertyName);
+        return extensibleDynamicObject.hasProperty(propertyName);
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     public Map<String, ? extends @Nullable Object> getProperties() {
-        return dynamicLookupRoutine.getProperties(extensibleDynamicObject);
+        DeprecationLogger.deprecateMethod(Project.class, "getProperties")
+            .willBecomeAnErrorInGradle10()
+            .withUpgradeGuideSection(9, "deprecated_get_properties")
+            .nagUser();
+        return extensibleDynamicObject.getProperties();
     }
 
     @Override
@@ -1493,6 +1521,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     }
 
     @Override
+    @Nullable
     public ProjectEvaluationListener stepEvaluationListener(ProjectEvaluationListener listener, Action<ProjectEvaluationListener> step) {
         ListenerBroadcast<ProjectEvaluationListener> original = this.evaluationListener;
         ListenerBroadcast<ProjectEvaluationListener> nextBatch = newProjectEvaluationListenerBroadcast();

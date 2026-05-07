@@ -155,7 +155,7 @@ ant.importBuild('build.xml')
 ant.importBuild('build.xml')
 """
         ExecutionFailure failure = inTestDirectory().withTasks('target1').runWithFailure()
-        failure.assertHasDescription('Execution failed for task \':target1\'.')
+        failure.assertHasDescription('Execution failed for task \':target1\' (registered in build file \'build.gradle\').')
         failure.assertHasCause('broken')
     }
 

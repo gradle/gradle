@@ -16,10 +16,12 @@
 
 package org.gradle.testing.junit.junit4
 
+import org.gradle.api.internal.tasks.testing.report.generic.GenericHtmlTestExecutionResult
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.JdkVersionTestPreconditions
+
 import org.gradle.util.internal.VersionNumber
 import org.junit.Assume
 import spock.lang.Issue
@@ -63,7 +65,8 @@ class JUnit4CategoriesOrTagsCoverageIntegrationTest extends AbstractJUnit4Catego
         def result = new DefaultTestExecutionResult(testDirectory)
         result.assertTestClassesNotExecuted('SomeTestClass')
 
-        failure.assertThatCause(matchesRegexp(/Could not start Gradle Test Executor \d+: Can't load category class \[org\.gradle\.CategoryA\]\./))
+        failure.assertThatCause(matchesRegexp(~/Could not start Gradle Test Executor \d+\./))
+        failure.assertHasCause("Can't load category class [org.gradle.CategoryA].")
 
         where:
         type << ['includeCategories', 'excludeCategories']
@@ -127,14 +130,12 @@ class JUnit4CategoriesOrTagsCoverageIntegrationTest extends AbstractJUnit4Catego
 
         then:
         executedAndNotSkipped(":test")
-        DefaultTestExecutionResult result = new DefaultTestExecutionResult(testDirectory)
-        def testClass = result.testClass("Not a real class name")
-        testClass.assertTestCount(1, 0, 0)
-        testClass.assertTestPassed("someTest")
+        GenericHtmlTestExecutionResult result = resultsFor()
+        result.assertTestPathsExecuted(':DescriptionWithNullClassTest:someTest')
     }
 
     @Issue('https://github.com/gradle/gradle/issues/3189')
-    @Requires(UnitTestPreconditions.Jdk8OrEarlier)
+    @Requires(JdkVersionTestPreconditions.Jdk8OrEarlier)
     def "can work with PowerMock"() {
         given:
         file('src/test/java/FastTest.java') << '''

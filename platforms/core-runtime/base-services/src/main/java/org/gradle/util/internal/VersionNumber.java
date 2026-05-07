@@ -43,7 +43,7 @@ public class VersionNumber implements Comparable<VersionNumber> {
     private final int minor;
     private final int micro;
     private final int patch;
-    private final String qualifier;
+    private final @Nullable String qualifier;
     private final AbstractScheme scheme;
 
     public VersionNumber(int major, int minor, int micro, @Nullable String qualifier) {
@@ -102,7 +102,9 @@ public class VersionNumber implements Comparable<VersionNumber> {
         if (patch != other.patch) {
             return patch - other.patch;
         }
-        return Ordering.natural().nullsLast().compare(toLowerCase(qualifier), toLowerCase(other.qualifier));
+        @SuppressWarnings("NullAway") // NullAway cannot infer nullability of the comparator type.
+        int result = Ordering.natural().nullsLast().compare(toLowerCase(qualifier), toLowerCase(other.qualifier));
+        return result;
     }
 
     @Override

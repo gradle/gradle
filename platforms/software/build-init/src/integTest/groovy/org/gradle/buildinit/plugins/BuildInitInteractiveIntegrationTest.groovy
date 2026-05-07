@@ -118,7 +118,7 @@ class BuildInitInteractiveIntegrationTest extends AbstractInteractiveInitIntegra
         def result = handle.waitForFailure()
 
         then:
-        result.assertHasDescription("Execution failed for task ':init'")
+        result.assertHasDescription("Execution failed for task ':init' (registered by plugin 'org.gradle.build-init').")
         assertBuildAborted(handle)
         assertSuggestedResolutionsToExistingFilesProblem(handle)
     }
@@ -171,7 +171,7 @@ class BuildInitInteractiveIntegrationTest extends AbstractInteractiveInitIntegra
         def result = handle.waitForFailure()
 
         then:
-        result.assertHasDescription("Execution failed for task ':init'")
+        result.assertHasDescription("Execution failed for task ':init' (registered by plugin 'org.gradle.build-init').")
         assertPromptedToOverwriteExistingFiles(handle)
         assertSuggestedResolutionsToExistingFilesProblem(handle)
 
@@ -304,7 +304,7 @@ class BuildInitInteractiveIntegrationTest extends AbstractInteractiveInitIntegra
         def result = handle.waitForFailure()
 
         then:
-        result.assertHasDescription("Execution failed for task ':init'.")
+        result.assertHasDescription("Execution failed for task ':init' (registered by plugin 'org.gradle.build-init').")
         result.assertHasCause("Build cancelled.")
 
         and:
@@ -335,7 +335,7 @@ class BuildInitInteractiveIntegrationTest extends AbstractInteractiveInitIntegra
         def result = handle.waitForFailure()
 
         then:
-        result.assertHasDescription("Execution failed for task ':init'.")
+        result.assertHasDescription("Execution failed for task ':init' (registered by plugin 'org.gradle.build-init').")
         result.assertHasCause("Build cancelled.")
 
         and:
@@ -473,5 +473,47 @@ class BuildInitInteractiveIntegrationTest extends AbstractInteractiveInitIntegra
 
         then:
         ScriptDslFixture.of(BuildInitDsl.KOTLIN, targetDir, null).assertGradleFilesGenerated("app")
+    }
+
+    def "use defaults when run from an interactive session with --non-interactive and no options"() {
+        when:
+        closeInteractiveExecutor(
+            startInteractiveExecutorWithTasks("--non-interactive", "init")
+        )
+
+        then:
+        ScriptDslFixture.of(BuildInitDsl.KOTLIN, targetDir, null).assertGradleFilesGenerated()
+    }
+
+    def "use defaults when run from an interactive session with --non-interactive and not enough options"() {
+        when:
+        closeInteractiveExecutor(
+            startInteractiveExecutorWithTasks(
+                "--non-interactive",
+                "init",
+                "--type", "basic",
+                "--dsl", "kotlin",
+            )
+        )
+
+        then:
+        ScriptDslFixture.of(BuildInitDsl.KOTLIN, targetDir, null).assertGradleFilesGenerated()
+    }
+
+    def "use defaults when run from an interactive session with --non-interactive and all options"() {
+        when:
+        closeInteractiveExecutor(
+            startInteractiveExecutorWithTasks(
+                "--non-interactive",
+                "init",
+                "--type", "basic",
+                "--dsl", "kotlin",
+                "--incubating",
+                "--project-name", defaultProjectName,
+            )
+        )
+
+        then:
+        ScriptDslFixture.of(BuildInitDsl.KOTLIN, targetDir, null).assertGradleFilesGenerated()
     }
 }

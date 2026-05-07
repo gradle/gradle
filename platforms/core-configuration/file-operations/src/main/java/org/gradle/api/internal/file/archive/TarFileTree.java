@@ -218,6 +218,7 @@ public class TarFileTree extends AbstractArchiveFileTree {
         }
 
         @Override
+        @SuppressWarnings("ReferenceEquality") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
         public InputStream open() {
             if (read) {
                 getFile();

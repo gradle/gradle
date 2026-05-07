@@ -16,6 +16,7 @@
 
 package org.gradle.smoketests
 
+import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.util.GradleVersion
 
@@ -23,25 +24,32 @@ import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
 class GradleVersionsPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
 
+    @ToBeFixedForIsolatedProjects(because = "Plugin has IP incompatible logic")
     def 'can check for updated versions'() {
         given:
         buildFile << """
             plugins {
                 id "com.github.ben-manes.versions" version "$TestedVersions.gradleVersions"
             }
-
-            subprojects {
-                apply plugin: 'java'
-
-                ${mavenCentralRepository()}
-            }
         """
         file("sub1/build.gradle") << """
+            plugins {
+                id("java-library")
+            }
+
+            ${mavenCentralRepository()}
+
             dependencies {
                 implementation("log4j:log4j:1.2.14")
             }
         """
         file("sub2/build.gradle") << """
+            plugins {
+                id("java-library")
+            }
+
+            ${mavenCentralRepository()}
+
             dependencies {
                 implementation("junit:junit:4.10")
             }
@@ -52,8 +60,6 @@ class GradleVersionsPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
 
         when:
         def runner = runner('dependencyUpdates', '-DoutputFormatter=txt')
-            // TODO: com.github.benmanes.gradle.versions.updates.DependencyUpdates plugin triggers dependency resolution at execution time
-            .withJvmArguments("-Dorg.gradle.configuration-cache.internal.task-execution-access-pre-stable=true")
 
         runner
 

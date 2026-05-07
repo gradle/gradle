@@ -22,7 +22,7 @@ import org.gradle.internal.fingerprint.DirectorySensitivity
 
 abstract class AbstractDirectorySensitivityIntegrationSpec extends AbstractIntegrationSpec {
 
-    public static final String TRANSFORM_EXECUTED = 'Transform bar.zip (project :bar) with AugmentTransform'
+    public static final String TRANSFORM_EXECUTED = "Transform bar.zip (project ':bar') with AugmentTransform"
 
     abstract void execute(String... tasks)
 

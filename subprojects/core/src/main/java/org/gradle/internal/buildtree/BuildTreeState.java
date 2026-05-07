@@ -21,23 +21,27 @@ import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.internal.service.scopes.Scope;
-import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.io.Closeable;
 
 /**
  * Encapsulates the state for a particular build tree.
  */
-@ServiceScope(Scope.BuildTree.class)
 public class BuildTreeState implements Closeable {
+
     private final ServiceRegistry services;
 
-    public BuildTreeState(BuildInvocationScopeId buildInvocationScopeId, ServiceRegistry parent, BuildTreeModelControllerServices.Supplier modelServices) {
+    public BuildTreeState(
+        ServiceRegistry buildSessionServices,
+        BuildActionModelRequirements buildActionRequirements,
+        BuildModelParameters buildModelParameters,
+        BuildInvocationScopeId buildInvocationScopeId
+    ) {
         services = ServiceRegistryBuilder.builder()
             .scopeStrictly(Scope.BuildTree.class)
             .displayName("build tree services")
-            .parent(parent)
-            .provider(new BuildTreeScopeServices(buildInvocationScopeId, this, modelServices))
+            .parent(buildSessionServices)
+            .provider(new BuildTreeScopeServices(buildActionRequirements, buildModelParameters, buildInvocationScopeId))
             .build();
     }
 

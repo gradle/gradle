@@ -1,8 +1,8 @@
 # ADR-0001 - Use Architectural Decision Records
 
-## Date
+## Status
 
-2023-12-01
+- ACCEPTED on 2023-12-01
 
 ## Context
 
@@ -36,9 +36,13 @@ The format for ADR should follow this template:
 ```markdown
 # ADR-000X - Title
 
-## Date
+## Status
 
-20YY-MM-DD
+- REPLACED by ADR-000X on 20YY-MM-DD
+- DEPRECATED on 20YY-MM-DD
+- ACCEPTED on 20YY-MM-DD
+- REJECTED on 20YY-MM-DD
+- PROPOSED on 20YY-MM-DD
 
 ## Context
 
@@ -54,20 +58,12 @@ aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi 
 Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint
 occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
 
-## Status
-
-[PROPOSED, ACCEPTED, REJECTED, DEPRECATED, REPLACED]
-
 ## Consequences
 
 * X
 * Y
 * Z
 ```
-
-## Status
-
-ACCEPTED
 
 ## Consequences
 

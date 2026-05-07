@@ -46,7 +46,7 @@ class DefaultTestFilterTest extends Specification {
         spec.includeTest("acme.FooTest", "bar")
         spec.includeTest("acme.BarTest", null)
 
-        then: spec.includePatterns == ["acme.FooTest.bar", "acme.BarTest.*"] as Set
+        then: spec.includePatterns == ["acme.FooTest.bar", "acme.BarTest"] as Set
     }
 
     def "prevents empty names"() {

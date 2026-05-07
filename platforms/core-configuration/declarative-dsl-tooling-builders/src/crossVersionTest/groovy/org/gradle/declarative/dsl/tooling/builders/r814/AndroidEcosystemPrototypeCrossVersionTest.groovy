@@ -22,10 +22,13 @@ import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.internal.declarativedsl.evaluator.main.SimpleAnalysisEvaluator
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
-import org.gradle.tooling.events.ProgressListener
+import org.gradle.test.preconditions.JdkVersionTestPreconditions
 
-@TargetGradleVersion(">=8.14")
+import org.gradle.tooling.events.ProgressListener
+import spock.lang.Ignore
+
+@Ignore("Until a version of the Android Ecosystem plugin that is compatible with Gradle 9.3+ is released.")
+@TargetGradleVersion(">=8.14 <9.3")
 @ToolingApiVersion('>=8.14')
 class AndroidEcosystemPrototypeCrossVersionTest extends AbstractDeclarativeDslToolingModelsCrossVersionTest {
 
@@ -35,7 +38,7 @@ class AndroidEcosystemPrototypeCrossVersionTest extends AbstractDeclarativeDslTo
         settingsFile.delete() //we are using a declarative settings file
     }
 
-    @Requires(UnitTestPreconditions.Jdk17OrLater)
+    @Requires(JdkVersionTestPreconditions.Jdk17OrLater)
     def 'model can be used for evaluation'() {
         given:
         file("settings.gradle.dcl") <<

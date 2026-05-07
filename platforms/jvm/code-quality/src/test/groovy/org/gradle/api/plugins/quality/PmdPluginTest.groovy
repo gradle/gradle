@@ -104,29 +104,6 @@ class PmdPluginTest extends AbstractProjectBuilderSpec {
         configuresPmdTask("pmdOther", project.sourceSets.other)
     }
 
-    def "configures pmd targetjdk based on sourcecompatibilityLevel"() {
-        project.pluginManager.apply(JavaBasePlugin)
-        when:
-        project.java.setSourceCompatibility(sourceCompatibility)
-        project.java.sourceSets {
-            main
-        }
-        then:
-        project.tasks.getByName("pmdMain").targetJdk == targetJdk
-
-        where:
-        sourceCompatibility | targetJdk
-        1.3                 | TargetJdk.VERSION_1_3
-        1.4                 | TargetJdk.VERSION_1_4
-        1.5                 | TargetJdk.VERSION_1_5
-        1.6                 | TargetJdk.VERSION_1_6
-        1.7                 | TargetJdk.VERSION_1_7
-        // 1.4 is the default in the pmd plugin so we use it as a default too
-        1.8                 | TargetJdk.VERSION_1_4
-        1.1                 | TargetJdk.VERSION_1_4
-        1.2                 | TargetJdk.VERSION_1_4
-    }
-
     private void configuresPmdTask(String taskName, SourceSet sourceSet) {
         def task = project.tasks.findByName(taskName)
         assert task instanceof Pmd
@@ -252,6 +229,36 @@ class PmdPluginTest extends AbstractProjectBuilderSpec {
         task.maxFailures.get() == 5
         task.rulesMinimumPriority.get() == 3
         task.threads.get() == 2
+    }
+
+    def "can enable PMD CSV report via extension"() {
+        def task = project.tasks.create("pmdCustom", Pmd)
+        task.reports {
+            csv.required = true
+        }
+
+        expect:
+        task.reports.csv.required.get() == true
+    }
+
+    def "can enable PMD code climate report via extension"() {
+        def task = project.tasks.create("pmdCustom", Pmd)
+        task.reports {
+            codeClimate.required = true
+        }
+
+        expect:
+        task.reports.codeClimate.required.get() == true
+    }
+
+    def "can enable PMD sarif report via extension"() {
+        def task = project.tasks.create("pmdCustom", Pmd)
+        task.reports {
+            sarif.required = true
+        }
+
+        expect:
+        task.reports.sarif.required.get() == true
     }
 
     def "configures pmd classpath based on sourcesets"() {

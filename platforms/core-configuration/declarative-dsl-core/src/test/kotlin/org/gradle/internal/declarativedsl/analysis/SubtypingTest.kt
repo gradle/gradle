@@ -17,7 +17,6 @@
 package org.gradle.internal.declarativedsl.analysis
 
 import org.gradle.declarative.dsl.model.annotations.Adding
-import org.gradle.declarative.dsl.model.annotations.Restricted
 import org.gradle.declarative.dsl.schema.DataClass
 import org.gradle.internal.declarativedsl.assertIs
 import org.gradle.internal.declarativedsl.demo.resolve
@@ -117,10 +116,8 @@ class SubtypingTest {
 
 private
 abstract class TopLevelForSubtyping {
-    @get:Restricted
     abstract var superClassProp: SuperClass
 
-    @get:Restricted
     abstract var superInterfaceProp: SuperInterface
 
     @Adding
@@ -129,10 +126,8 @@ abstract class TopLevelForSubtyping {
     @Adding
     abstract fun addSuperInterface(superclass: SuperInterface)
 
-    @Restricted
     abstract fun sub(): Subtype
 
-    @Restricted
     abstract fun notASub(): NotASubtype
 }
 

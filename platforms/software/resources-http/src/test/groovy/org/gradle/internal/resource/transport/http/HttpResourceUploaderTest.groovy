@@ -18,26 +18,30 @@ package org.gradle.internal.resource.transport.http
 
 import org.gradle.internal.resource.ExternalResourceName
 import org.gradle.internal.resource.ReadableContent
+import spock.lang.Specification
 
-class HttpResourceUploaderTest extends AbstractHttpClientTest {
+class HttpResourceUploaderTest extends Specification {
 
     def 'uploader closes the request'() {
         given:
-        HttpClientHelper client = Mock()
-        ReadableContent resource = Mock()
-        MockedHttpResponse mockedHttpResponse = mockedHttpResponse()
         def uri = new URI("http://somewhere.org/somehow")
         def name = new ExternalResourceName(uri)
+        def response = Mock(HttpClient.Response) {
+            getEffectiveUri() >> uri
+            getStatusCode() >> 500
+        }
+        def client = Mock(HttpClient) {
+            performRawPut(_, _) >> response
+        }
 
         when:
-        new HttpResourceUploader(client).upload(resource, name)
+        new HttpResourceUploader(client).upload(Mock(ReadableContent), name)
 
         then:
-        interaction {
-            1 * client.performHttpRequest(_) >> new HttpClientResponse("PUT", uri, mockedHttpResponse.response)
-            assertIsClosedCorrectly(mockedHttpResponse)
-        }
         HttpErrorStatusCodeException exception = thrown()
-        exception.message.contains('Could not PUT')
+        exception.message.contains(uri.toString())
+        exception.message.contains("Received status code 500 from server")
+        1 * response.close()
     }
+
 }

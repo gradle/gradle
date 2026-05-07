@@ -30,10 +30,12 @@ public class LockStateAccess {
     private static final int REGION_START = 0;
     private static final int STATE_CONTENT_START = 1;
     private final int stateRegionSize;
+    private final Runnable onFirstFileLockAccessAction;
 
-    public LockStateAccess(LockStateSerializer protocol) {
+    public LockStateAccess(LockStateSerializer protocol, Runnable onFirstFileLockAccessAction) {
         this.protocol = protocol;
         stateRegionSize = STATE_CONTENT_START + protocol.getSize();
+        this.onFirstFileLockAccessAction = onFirstFileLockAccessAction;
     }
 
     public LockState ensureLockState(RandomAccessFile lockFileAccess) throws IOException {
@@ -41,6 +43,7 @@ public class LockStateAccess {
             // File did not exist before locking, use some initial state
             LockState state = protocol.createInitialState();
             writeState(lockFileAccess, state);
+            onFirstFileLockAccessAction.run();
             return state;
         } else {
             return readState(lockFileAccess);

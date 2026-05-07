@@ -19,6 +19,7 @@ package org.gradle.internal.logging.services;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.api.logging.configuration.ConsoleOutput;
+import org.gradle.api.logging.configuration.ConsoleUnicodeSupport;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.logging.LoggingManagerInternal;
@@ -212,8 +213,8 @@ public class DefaultLoggingManager implements LoggingManagerInternal, Closeable 
     }
 
     @Override
-    public void attachProcessConsole(ConsoleOutput consoleOutput) {
-        loggingRouter.attachProcessConsole(consoleOutput);
+    public void attachProcessConsole(ConsoleOutput consoleOutput, ConsoleUnicodeSupport consoleUnicodeSupport) {
+        loggingRouter.attachProcessConsole(consoleOutput, consoleUnicodeSupport);
     }
 
     @Override
@@ -256,7 +257,7 @@ public class DefaultLoggingManager implements LoggingManagerInternal, Closeable 
             }
         }
 
-        private void addConsoleAttachement(Runnable consoleAttachment) {
+        private void addConsoleAttachment(Runnable consoleAttachment) {
             if (consoleAttachment.equals(this.consoleAttachment)) {
                 return;
             }
@@ -271,12 +272,12 @@ public class DefaultLoggingManager implements LoggingManagerInternal, Closeable 
             this.consoleAttachment = consoleAttachment;
         }
 
-        void attachProcessConsole(ConsoleOutput consoleOutput) {
-            addConsoleAttachement(new ProcessConsoleAttachment(loggingRouter, consoleOutput));
+        void attachProcessConsole(ConsoleOutput consoleOutput, ConsoleUnicodeSupport consoleUnicodeSupport) {
+            addConsoleAttachment(new ProcessConsoleAttachment(loggingRouter, consoleOutput, consoleUnicodeSupport));
         }
 
         void attachConsole(OutputStream outputStream, OutputStream errorStream, ConsoleOutput consoleOutput, ConsoleMetaData consoleMetadata) {
-            addConsoleAttachement(new ConsoleAttachment(loggingRouter, outputStream, errorStream, consoleOutput, consoleMetadata));
+            addConsoleAttachment(new ConsoleAttachment(loggingRouter, outputStream, errorStream, consoleOutput, consoleMetadata));
         }
 
         public void setLevel(LogLevel logLevel) {
@@ -380,15 +381,17 @@ public class DefaultLoggingManager implements LoggingManagerInternal, Closeable 
     private static class ProcessConsoleAttachment implements Runnable {
         private final LoggingRouter loggingRouter;
         private final ConsoleOutput consoleOutput;
+        private final ConsoleUnicodeSupport consoleUnicodeSupport;
 
-        ProcessConsoleAttachment(LoggingRouter loggingRouter, ConsoleOutput consoleOutput) {
+        ProcessConsoleAttachment(LoggingRouter loggingRouter, ConsoleOutput consoleOutput, ConsoleUnicodeSupport consoleUnicodeSupport) {
             this.loggingRouter = loggingRouter;
             this.consoleOutput = consoleOutput;
+            this.consoleUnicodeSupport = consoleUnicodeSupport;
         }
 
         @Override
         public void run() {
-            loggingRouter.attachProcessConsole(consoleOutput);
+            loggingRouter.attachProcessConsole(consoleOutput, consoleUnicodeSupport);
         }
 
         @Override

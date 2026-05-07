@@ -35,10 +35,10 @@ public class VersionParser implements Transformer<Version, String> {
 
     @Override
     public Version transform(String original) {
-        return cache.computeIfAbsent(original, this::parse);
+        return cache.computeIfAbsent(original, VersionParser::parse);
     }
 
-    private Version parse(String original) {
+    private static Version parse(String original) {
         List<String> parts = new ArrayList<>();
         boolean digit = false;
         int startPart = 0;
@@ -126,6 +126,7 @@ public class VersionParser implements Transformer<Version, String> {
         }
 
         @Override
+        @SuppressWarnings("ReferenceEquality") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
         public boolean isQualified() {
             return baseVersion != this;
         }

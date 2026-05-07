@@ -17,7 +17,6 @@
 package org.gradle.composite.internal;
 
 import org.gradle.api.capabilities.Capability;
-import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParserFactory;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.ComponentSelectorNotationConverter;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.BuildTreeLocalComponentProvider;
@@ -26,16 +25,12 @@ import org.gradle.api.internal.composite.CompositeBuildContext;
 import org.gradle.api.internal.project.HoldsProjectState;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.composite.internal.plugins.CompositeBuildPluginResolverContributor;
-import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.IncludedBuildFactory;
 import org.gradle.internal.buildtree.BuildModelParameters;
 import org.gradle.internal.buildtree.GlobalDependencySubstitutionRegistry;
 import org.gradle.internal.composite.BuildIncludeListener;
 import org.gradle.internal.event.ListenerManager;
-import org.gradle.internal.exceptions.LocationAwareException;
-import org.gradle.internal.problems.failure.Failure;
-import org.gradle.internal.problems.failure.FailureFactory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistration;
@@ -44,8 +39,6 @@ import org.gradle.internal.service.scopes.AbstractGradleModuleServices;
 import org.gradle.internal.service.scopes.BrokenBuildsCapturingListener;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.plugin.use.resolve.internal.PluginResolverContributor;
-
-import java.util.Map;
 
 public class CompositeBuildServices extends AbstractGradleModuleServices {
 
@@ -69,12 +62,8 @@ public class CompositeBuildServices extends AbstractGradleModuleServices {
         }
 
         @Provides
-        BuildIncludeListener createBuildIncludeListener(BuildModelParameters buildModelParameters, FailureFactory failureFactory) {
-            if (buildModelParameters.isResilientModelBuilding()) {
-                return new BrokenBuildsCapturingListener(failureFactory);
-            }
-            //ignored in non-resilient model building
-            return new NoOpBuildIncludeListener();
+        BuildIncludeListener createBuildIncludeListener() {
+            return new BrokenBuildsCapturingListener();
         }
 
         @Provides
@@ -108,27 +97,5 @@ public class CompositeBuildServices extends AbstractGradleModuleServices {
         public CompositeBuildContext createCompositeBuildContext() {
             return new DefaultBuildableCompositeBuildContext();
         }
-
-        private static class NoOpBuildIncludeListener implements BuildIncludeListener {
-            @Override
-            public void buildInclusionFailed(BuildState buildState, Exception exception) {
-                // No-op in non-resilient model building
-            }
-
-            @Override
-            public Map<BuildState, Failure> getBrokenBuilds() {
-                throw new UnsupportedOperationException("getBrokenBuilds() should not be called in non-resilient model building");
-            }
-
-            @Override
-            public void settingsScriptFailed(SettingsInternal settingsScript, LocationAwareException e) {
-                // No-op in non-resilient model building
-            }
-
-            @Override
-            public Map<SettingsInternal, Failure> getBrokenSettings() {
-                throw new UnsupportedOperationException("getBrokenSettings() should not be called in non-resilient model building");
-            }
         }
-    }
 }

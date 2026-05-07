@@ -3,17 +3,22 @@ import gradlebuild.basics.FlakyTestStrategy
 import gradlebuild.basics.buildCommitId
 import gradlebuild.basics.flakyTestStrategy
 import gradlebuild.integrationtests.addDependenciesAndConfigurations
+import gradlebuild.integrationtests.androidhomewarmup.SdkVersion
+import gradlebuild.integrationtests.configureTestSourceSetInIde
 import gradlebuild.integrationtests.tasks.SmokeTest
 import gradlebuild.performance.generator.tasks.RemoteProject
 
 plugins {
     id("gradlebuild.internal.java")
+    id("gradlebuild.android-home-warmup")
 }
 
 val smokeTestSourceSet = sourceSets.create("smokeTest") {
     compileClasspath += sourceSets.main.get().output
     runtimeClasspath += sourceSets.main.get().output
 }
+
+configureTestSourceSetInIde(smokeTestSourceSet)
 
 jvmCompile {
     addCompilationFrom(smokeTestSourceSet)
@@ -27,8 +32,10 @@ dependencyAnalysis {
 
 addDependenciesAndConfigurations("smoke")
 
-val smokeTestImplementation: Configuration by configurations
-val smokeTestDistributionRuntimeOnly: Configuration by configurations
+val smokeTestImplementation = configurations.getByName("smokeTestImplementation")
+val smokeTestDistributionRuntimeOnly = configurations.getByName("smokeTestDistributionRuntimeOnly")
+val smokeTestBinDistribution = configurations.getByName("smokeTestBinDistribution")
+val smokeTestSrcDistribution = configurations.getByName("smokeTestSrcDistribution")
 
 dependencies {
     testFixturesImplementation(projects.internalIntegTesting)
@@ -38,6 +45,8 @@ dependencies {
     smokeTestImplementation(projects.testKit)
     smokeTestImplementation(projects.launcher)
     smokeTestImplementation(projects.persistentCache)
+    smokeTestImplementation(projects.internalIntegTesting)
+    smokeTestImplementation(projects.internalTesting)
     smokeTestImplementation(projects.jvmServices)
     smokeTestImplementation(projects.buildOption)
     smokeTestImplementation(projects.processServices)
@@ -45,41 +54,53 @@ dependencies {
     smokeTestImplementation(libs.groovyJson)
     smokeTestImplementation(libs.commonsHttpclient)
     smokeTestImplementation(libs.jgit)
-    smokeTestImplementation(libs.spock)
-    smokeTestImplementation(libs.junitPlatform)
+    smokeTestImplementation(testLibs.spock)
+    smokeTestImplementation(testLibs.junitPlatform)
     smokeTestImplementation(libs.jacksonDatabind)
 
     smokeTestImplementation(testFixtures(projects.buildProcessServices))
     smokeTestImplementation(testFixtures(projects.core))
     smokeTestImplementation(testFixtures(projects.modelReflect))
     smokeTestImplementation(testFixtures(projects.pluginDevelopment))
+    smokeTestImplementation(testFixtures(projects.testingBase))
+    smokeTestImplementation(testFixtures(projects.kotlinDslToolingBuilders))
+    smokeTestImplementation(testFixtures(projects.toolingApi))
     smokeTestImplementation(testFixtures(projects.versionControl))
 
     smokeTestDistributionRuntimeOnly(projects.distributionsFull)
+    // These will make the bin and src distribution available through `IntegrationTestBuildContext`
+    smokeTestBinDistribution(projects.distributionsFull)
+    smokeTestSrcDistribution(projects.distributionsFull)
+}
+
+androidHomeWarmup {
+    rootProjectDir = project.layout.projectDirectory.dir("../..")
+    sdkVersions.set(
+        listOf(
+            SdkVersion(compileSdk = 36, buildTools = "36.0.0", agpVersion = "9.0.1"),
+        ),
+    )
 }
 
 tasks {
 
     /**
-     * Santa Tracker git URI.
+     * Android project git URI and commit.
+     * Configured via gradle property: androidSmokeTestProjectRef=https://github.com/gradle/nowinandroid.git#<commitId>
      *
-     * Note that you can change it to `file:///path/to/your/santa-tracker-clone/.git`
-     * if you need to iterate quickly on changes to Santa Tracker.
+     * Note that you can change it to `file:///path/to/your/nowinandroid-clone/.git#<commitId>`
+     * if you need to iterate quickly on changes to it.
      */
-    val santaGitUri = "https://github.com/gradle/santa-tracker-android.git"
-
-    val santaTracker by registering(RemoteProject::class) {
-        remoteUri = santaGitUri
-        // Pinned from branch main
-        ref = "3f5f79b06da263670c77a734ec2db6220dcf311c"
+    val androidProject = register<RemoteProject>("androidProject") {
+        setRemoteUriAndRefFromGradleProperty("androidSmokeTestProjectRef")
     }
 
-    val gradleBuildCurrent by registering(RemoteProject::class) {
+    val gradleBuildCurrent = register<RemoteProject>("gradleBuildCurrent") {
         remoteUri = rootDir.absolutePath
         ref = buildCommitId
     }
 
-    val remoteProjects = arrayOf(santaTracker, gradleBuildCurrent)
+    val remoteProjects = arrayOf(androidProject, gradleBuildCurrent)
 
     if (BuildEnvironment.isCiServer) {
         remoteProjects.forEach { remoteProject ->
@@ -123,17 +144,27 @@ tasks {
 
     val gradleBuildTestPattern = "org.gradle.smoketests.GradleBuild*SmokeTest"
 
-    val santaTrackerTestPattern = "org.gradle.smoketests.AndroidSantaTracker*SmokeTest"
+    val androidProjectTestPattern = "org.gradle.smoketests.AndroidProject*SmokeTest"
 
     register<SmokeTest>("smokeTest") {
         description = "Runs Smoke tests"
-        configureForSmokeTest(excludes = listOf(gradleBuildTestPattern, santaTrackerTestPattern))
+        configureForSmokeTest(excludes = listOf(gradleBuildTestPattern, androidProjectTestPattern))
     }
 
     register<SmokeTest>("configCacheSmokeTest") {
         description = "Runs Smoke tests with the configuration cache"
         systemProperty("org.gradle.integtest.executer", "configCache")
-        configureForSmokeTest(excludes = listOf(gradleBuildTestPattern, santaTrackerTestPattern))
+        configureForSmokeTest(excludes = listOf(gradleBuildTestPattern, androidProjectTestPattern))
+
+        dependsOn("androidHomeWarmup")
+    }
+
+    register<SmokeTest>("isolatedProjectsSmokeTest") {
+        description = "Runs Smoke tests with Isolated Projects"
+        systemProperty("org.gradle.integtest.executer", "isolatedProjects")
+        configureForSmokeTest(excludes = listOf(gradleBuildTestPattern, androidProjectTestPattern))
+
+        dependsOn("androidHomeWarmup")
     }
 
     register<SmokeTest>("gradleBuildSmokeTest") {
@@ -149,29 +180,33 @@ tasks {
         }, includes = listOf(gradleBuildTestPattern))
     }
 
-    register<SmokeTest>("santaTrackerSmokeTest") {
-        description = "Runs Santa Tracker Smoke tests"
-        configureForSmokeTest(santaTracker, includes = listOf(santaTrackerTestPattern))
+    register<SmokeTest>("androidProjectSmokeTest") {
+        description = "Runs Android project Smoke tests"
+        configureForSmokeTest(androidProject, includes = listOf(androidProjectTestPattern))
         maxParallelForks = 1 // those tests are pretty expensive, we shouldn't execute them concurrently
+        jvmArgs("-Xmx700m")
+
+        dependsOn("androidHomeWarmup")
     }
 
-    register<SmokeTest>("configCacheSantaTrackerSmokeTest") {
-        description = "Runs Santa Tracker Smoke tests with the configuration cache"
-        configureForSmokeTest(santaTracker, includes = listOf(santaTrackerTestPattern))
+    register<SmokeTest>("configCacheAndroidProjectSmokeTest") {
+        description = "Runs Android project Smoke tests with the configuration cache"
+        configureForSmokeTest(androidProject, includes = listOf(androidProjectTestPattern))
         maxParallelForks = 1 // those tests are pretty expensive, we shouldn't execute them concurrently
         jvmArgs("-Xmx700m")
         systemProperty("org.gradle.integtest.executer", "configCache")
-    }
-}
 
-plugins.withType<IdeaPlugin>().configureEach {
-    val smokeTestCompileClasspath: Configuration by configurations
-    val smokeTestRuntimeClasspath: Configuration by configurations
-    model.module {
-        testSources.from(smokeTestSourceSet.java.srcDirs, smokeTestSourceSet.groovy.srcDirs)
-        testResources.from(smokeTestSourceSet.resources.srcDirs)
-        scopes["TEST"]!!["plus"]!!.add(smokeTestCompileClasspath)
-        scopes["TEST"]!!["plus"]!!.add(smokeTestRuntimeClasspath)
+        dependsOn("androidHomeWarmup")
+    }
+
+    register<SmokeTest>("isolatedProjectsAndroidProjectSmokeTest") {
+        description = "Runs Android project Smoke tests with IsolatedProjects"
+        configureForSmokeTest(androidProject, includes = listOf(androidProjectTestPattern))
+        maxParallelForks = 1 // those tests are pretty expensive, we shouldn't execute them concurrently
+        jvmArgs("-Xmx700m")
+        systemProperty("org.gradle.integtest.executer", "isolatedProjects")
+
+        dependsOn("androidHomeWarmup")
     }
 }
 

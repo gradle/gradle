@@ -27,7 +27,6 @@ import org.gradle.api.internal.IConventionAware
 import org.gradle.api.internal.tasks.properties.DefaultPropertyTypeResolver
 import org.gradle.api.model.ReplacedBy
 import org.gradle.api.plugins.ExtensionAware
-import org.gradle.api.problems.Severity
 import org.gradle.api.problems.internal.GradleCoreProblemGroup
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Classpath
@@ -107,7 +106,7 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
         groovyClassLoader = new GroovyClassLoader(getClass().classLoader)
     }
 
-    static class TaskWithCustomAnnotation extends DefaultTask {
+    static abstract class TaskWithCustomAnnotation extends DefaultTask {
         @SearchPath
         FileCollection searchPath
 
@@ -156,12 +155,11 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
         _ * propertyAnnotationHandler.propertyRelevant >> true
         _ * propertyAnnotationHandler.annotationType >> SearchPath
         _ * propertyAnnotationHandler.validatePropertyMetadata(_, _) >> { PropertyMetadata metadata, TypeValidationContext context ->
-            context.visitPropertyProblem {
+            context.visitPropertyWarning {
                 it
                     .forProperty(metadata.propertyName)
                     .id("test-problem", "is broken", GradleCoreProblemGroup.validation().thisGroup())
                     .documentedAt(userManual("id", "section"))
-                    .severity(Severity.WARNING)
                     .details("Test")
             }
         }
@@ -169,12 +167,11 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
         def methodAnnotationHandler = Stub(FunctionAnnotationHandler)
         _ * methodAnnotationHandler.annotationType >> SearchMethod
         _ * methodAnnotationHandler.validateFunctionMetadata(_, _) >> { FunctionMetadata metadata, TypeValidationContext context ->
-            context.visitTypeProblem {
+            context.visitTypeWarning {
                 it
                     .forFunction(metadata.getMethodName())
                     .id("test-problem", "is broken", GradleCoreProblemGroup.validation().thisGroup())
                     .documentedAt(userManual("id", "section"))
-                    .severity(Severity.WARNING)
                     .details("Test")
             }
         }
@@ -208,24 +205,22 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
         _ * propertyAnnotationHandler.propertyRelevant >> false
         _ * propertyAnnotationHandler.annotationType >> SearchPath
         _ * propertyAnnotationHandler.validatePropertyMetadata(_, _) >> { PropertyMetadata metadata, TypeValidationContext context ->
-            context.visitPropertyProblem {
+            context.visitPropertyWarning {
                 it
                     .forProperty(metadata.propertyName)
                     .id("test-problem", "is broken", GradleCoreProblemGroup.validation().thisGroup())
                     .documentedAt(userManual("id", "section"))
-                    .severity(Severity.WARNING)
                     .details("Test")
             }
         }
         def methodAnnotationHandler = Stub(FunctionAnnotationHandler)
         _ * methodAnnotationHandler.annotationType >> SearchMethod
         _ * methodAnnotationHandler.validateFunctionMetadata(_, _) >> { FunctionMetadata metadata, TypeValidationContext context ->
-            context.visitTypeProblem {
+            context.visitTypeWarning {
                 it
                     .forFunction(metadata.getMethodName())
                     .id("test-problem", "is broken", GradleCoreProblemGroup.validation().thisGroup())
                     .documentedAt(userManual("id", "section"))
-                    .severity(Severity.WARNING)
                     .details("Test")
             }
         }
@@ -248,12 +243,11 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
         def typeAnnotationHandler = Stub(TypeAnnotationHandler)
         _ * typeAnnotationHandler.annotationType >> CustomCacheable
         _ * typeAnnotationHandler.validateTypeMetadata(_, _) >> { Class type, TypeValidationContext context ->
-            context.visitTypeProblem {
+            context.visitTypeWarning {
                 it
                     .withAnnotationType(type)
                     .id("test-problem", "type is broken", GradleCoreProblemGroup.validation().thisGroup())
                     .documentedAt(userManual("id", "section"))
-                    .severity(Severity.WARNING)
                     .details("Test")
             }
         }
@@ -358,7 +352,7 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
         [processedAnnotation, unprocessedAnnotation] << [PROCESSED_PROPERTY_TYPE_ANNOTATIONS, UNPROCESSED_PROPERTY_TYPE_ANNOTATIONS].combinations()*.flatten()
     }
 
-    class ClasspathPropertyTask extends DefaultTask {
+    abstract class ClasspathPropertyTask extends DefaultTask {
         @Classpath
         FileCollection classpathOnly
         @Classpath
@@ -369,7 +363,7 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
         FileCollection inputFilesClasspath
     }
 
-    class CompileClasspathPropertyTask extends DefaultTask {
+    abstract class CompileClasspathPropertyTask extends DefaultTask {
         @CompileClasspath
         FileCollection classpathOnly
         @CompileClasspath
@@ -415,7 +409,7 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
     }
 
     @SuppressWarnings("GrDeprecatedAPIUsage")
-    static class SimpleTask extends DefaultTask {
+    static abstract class SimpleTask extends DefaultTask {
         @Input
         String inputString
         @InputFile
@@ -461,7 +455,7 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
         methods.methodName.sort() == ["doSomething"]
     }
 
-    static class TypeWithUnannotatedProperties extends DefaultTask {
+    static abstract class TypeWithUnannotatedProperties extends DefaultTask {
         String bad1
         File bad2
         @Input
@@ -481,7 +475,7 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
         ]
     }
 
-    static class TypeWithUnannotatedMethods extends DefaultTask {
+    static abstract class TypeWithUnannotatedMethods extends DefaultTask {
         void bad1() { }
         void bad2() { }
         @TaskAction
@@ -497,7 +491,7 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
         metadata.functionMetadata.methodName == ['good']
     }
 
-    static class TypeWithNonRelevantProperties extends DefaultTask {
+    static abstract class TypeWithNonRelevantProperties extends DefaultTask {
         @ReplacedBy("notUseful2")
         String notUseful1
         @Console
@@ -516,7 +510,7 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
     }
 
     @SuppressWarnings("GroovyUnusedDeclaration")
-    private static class IsGetterTask extends DefaultTask {
+    private abstract static class IsGetterTask extends DefaultTask {
         @Input
         private boolean feature1
         private boolean feature2
@@ -541,7 +535,7 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
     private List<String> collectProblems(TypeMetadata metadata) {
         def validationContext = DefaultTypeValidationContext.withoutRootType(false, TestUtil.problemsService())
         metadata.visitValidationFailures(null, validationContext)
-        return validationContext.problems.collect { normaliseLineSeparators(renderMinimalInformationAbout(it)) }
+        return validationContext.warnings.collect { normaliseLineSeparators(renderMinimalInformationAbout(it)) } + validationContext.errors.collect { normaliseLineSeparators(renderMinimalInformationAbout(it)) }
     }
 
     private static boolean isOfType(PropertyMetadata metadata, Class<? extends Annotation> type) {

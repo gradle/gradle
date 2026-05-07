@@ -1,8 +1,8 @@
 # ADR-0003 - Avoid introducing Groovy types to public API
 
-## Date
+## Status
 
-2024-01-12
+- ACCEPTED on 2024-01-12
 
 ## Context
 
@@ -27,10 +27,6 @@ Doing this provides the following specific benefits:
 
 We do not introduce new public API methods that include Groovy types in their signatures.
 Existing Groovy methods will not be removed immediately.
-
-## Status
-
-ACCEPTED
 
 ## Consequences
 

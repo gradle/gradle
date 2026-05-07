@@ -18,6 +18,7 @@ package org.gradle.jvm.application.tasks;
 
 import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
+import org.gradle.api.Incubating;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.plugins.AppEntryPoint;
@@ -37,6 +38,7 @@ import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.internal.jvm.DefaultModularitySpec;
 import org.gradle.internal.jvm.JavaModuleDetector;
@@ -98,6 +100,7 @@ import java.util.stream.Collectors;
  * to parse the template, with the following variables available:
  * <ul>
  * <li>{@code applicationName} - See {@link JavaAppStartScriptGenerationDetails#getApplicationName()}.</li>
+ * <li>{@code gitRef} - See {@link JavaAppStartScriptGenerationDetails#getGitRef()}.</li>
  * <li>{@code optsEnvironmentVar} - See {@link JavaAppStartScriptGenerationDetails#getOptsEnvironmentVar()}.</li>
  * <li>{@code exitEnvironmentVar} - See {@link JavaAppStartScriptGenerationDetails#getExitEnvironmentVar()}.</li>
  * <li>{@code moduleEntryPoint} - The module entry point, or {@code null} if none. Will also include the main class name if present, in the form {@code [moduleName]/[className]}.</li>
@@ -127,8 +130,6 @@ public abstract class CreateStartScripts extends ConventionTask {
 
     private File outputDir;
     private String executableDir = "bin";
-    private final Property<String> mainModule;
-    private final Property<String> mainClass;
     private Iterable<String> defaultJvmOpts = new LinkedList<>();
     private String applicationName;
     private String optsEnvironmentVar;
@@ -139,8 +140,7 @@ public abstract class CreateStartScripts extends ConventionTask {
     private ScriptGenerator windowsStartScriptGenerator = new WindowsStartScriptGenerator();
 
     public CreateStartScripts() {
-        this.mainModule = getObjectFactory().property(String.class);
-        this.mainClass = getObjectFactory().property(String.class);
+        getGitRef().convention("HEAD");
         this.modularity = getObjectFactory().newInstance(DefaultModularitySpec.class);
     }
 
@@ -171,12 +171,23 @@ public abstract class CreateStartScripts extends ConventionTask {
 
     /**
      * The environment variable to use to control exit value (Windows only).
+     *
+     * @deprecated No longer used in the default start script templates. Will be removed in Gradle 10.
      */
     @Nullable
     @Optional
     @Input
-    @ToBeReplacedByLazyProperty
+    @Deprecated
     public String getExitEnvironmentVar() {
+        DeprecationLogger.deprecateMethod(CreateStartScripts.class, "getExitEnvironmentVar()")
+            .willBeRemovedInGradle10()
+            .withUpgradeGuideSection(9, "deprecate_exit_environment_var")
+            .nagUser();
+        return computeExitEnvironmentVar();
+    }
+
+    @Nullable
+    private String computeExitEnvironmentVar() {
         if (GUtil.isTrue(exitEnvironmentVar)) {
             return exitEnvironmentVar;
         }
@@ -247,9 +258,7 @@ public abstract class CreateStartScripts extends ConventionTask {
      */
     @Optional
     @Input
-    public Property<String> getMainModule() {
-        return mainModule;
-    }
+    public abstract Property<String> getMainModule();
 
     /**
      * The main class name used to start the Java application.
@@ -258,9 +267,7 @@ public abstract class CreateStartScripts extends ConventionTask {
      */
     @Optional
     @Input
-    public Property<String> getMainClass() {
-        return mainClass;
-    }
+    public abstract Property<String> getMainClass();
 
     /**
      * The application's default JVM options. Defaults to an empty list.
@@ -291,11 +298,26 @@ public abstract class CreateStartScripts extends ConventionTask {
         this.applicationName = applicationName;
     }
 
+    /**
+     * The Git revision or tag.
+     *
+     * @since 9.4.0
+     */
+    @Incubating
+    @Optional
+    @Input
+    public abstract Property<String> getGitRef();
+
     public void setOptsEnvironmentVar(@Nullable String optsEnvironmentVar) {
         this.optsEnvironmentVar = optsEnvironmentVar;
     }
 
+    @Deprecated
     public void setExitEnvironmentVar(@Nullable String exitEnvironmentVar) {
+        DeprecationLogger.deprecateMethod(CreateStartScripts.class, "setExitEnvironmentVar(String)")
+            .willBeRemovedInGradle10()
+            .withUpgradeGuideSection(9, "deprecate_exit_environment_var")
+            .nagUser();
         this.exitEnvironmentVar = exitEnvironmentVar;
     }
 
@@ -357,12 +379,14 @@ public abstract class CreateStartScripts extends ConventionTask {
         StartScriptGenerator generator = new StartScriptGenerator(unixStartScriptGenerator, windowsStartScriptGenerator);
         JavaModuleDetector javaModuleDetector = getJavaModuleDetector();
         generator.setApplicationName(getApplicationName());
+        generator.setGitRef(getGitRef().get());
         generator.setEntryPoint(getEntryPoint());
         generator.setDefaultJvmOpts(getDefaultJvmOpts());
         generator.setOptsEnvironmentVar(getOptsEnvironmentVar());
-        generator.setExitEnvironmentVar(getExitEnvironmentVar());
-        generator.setClasspath(getRelativePath(javaModuleDetector.inferClasspath(mainModule.isPresent(), getClasspath())));
-        generator.setModulePath(getRelativePath(javaModuleDetector.inferModulePath(mainModule.isPresent(), getClasspath())));
+        // Skipping use of getExitEnvironmentVar() to avoid deprecation warning
+        generator.setExitEnvironmentVar(computeExitEnvironmentVar());
+        generator.setClasspath(getRelativePath(javaModuleDetector.inferClasspath(getMainModule().isPresent(), getClasspath())));
+        generator.setModulePath(getRelativePath(javaModuleDetector.inferModulePath(getMainModule().isPresent(), getClasspath())));
         if (StringUtils.isEmpty(getExecutableDir())) {
             generator.setScriptRelPath(getUnixScript().getName());
         } else {
@@ -373,10 +397,10 @@ public abstract class CreateStartScripts extends ConventionTask {
     }
 
     private AppEntryPoint getEntryPoint() {
-        if (mainModule.isPresent()) {
-            return new MainModule(mainModule.get(), mainClass.getOrNull());
+        if (getMainModule().isPresent()) {
+            return new MainModule(getMainModule().get(), getMainClass().getOrNull());
         }
-        return new MainClass(mainClass.getOrElse(""));
+        return new MainClass(getMainClass().getOrElse(""));
     }
 
     @Input

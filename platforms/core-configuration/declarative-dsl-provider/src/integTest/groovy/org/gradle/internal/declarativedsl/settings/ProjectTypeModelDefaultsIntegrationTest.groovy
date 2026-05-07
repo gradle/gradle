@@ -16,7 +16,8 @@
 
 package org.gradle.internal.declarativedsl.settings
 
-import groovy.test.NotYetImplemented
+import org.gradle.features.internal.TestScenarioFixture
+import org.gradle.features.internal.builders.TypeShape
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.integtests.fixtures.polyglot.PolyglotDslTest
@@ -24,9 +25,13 @@ import org.gradle.integtests.fixtures.polyglot.SkipDsl
 import org.gradle.integtests.fixtures.polyglot.PolyglotTestFixture
 import org.gradle.internal.declarativedsl.DeclarativeTestUtils
 import org.gradle.test.fixtures.dsl.GradleDsl
+import org.gradle.test.fixtures.plugin.PluginBuilder
+
+import spock.lang.Issue
 
 @PolyglotDslTest
-class ProjectTypeModelDefaultsIntegrationTest extends AbstractIntegrationSpec implements ProjectTypeFixture, PolyglotTestFixture {
+@SkipDsl(dsl = GradleDsl.GROOVY, because = "Groovy DSL is not supported for declarative configuration")
+class ProjectTypeModelDefaultsIntegrationTest extends AbstractIntegrationSpec implements TestScenarioFixture, PolyglotTestFixture {
 
     def setup() {
         file("gradle.properties") << """
@@ -36,7 +41,7 @@ class ProjectTypeModelDefaultsIntegrationTest extends AbstractIntegrationSpec im
 
     def "can configure build-level defaults for property objects in a project type (#testCase)"() {
         given:
-        withProjectTypePlugins().prepareToExecute()
+        withStandardProjectType().prepareToExecute()
 
         settingsFile() << getDeclarativeSettingsScriptThatSetsDefaults(modelDefault)
 
@@ -46,24 +51,23 @@ class ProjectTypeModelDefaultsIntegrationTest extends AbstractIntegrationSpec im
         run(":printTestProjectTypeDefinitionConfiguration")
 
         then:
-        outputContains(expectedConfiguration)
+        expectedValues.each { String value -> outputContains(value) }
 
         where:
-        testCase                                           | modelDefault                 | buildConfiguration    | expectedConfiguration
-        "top-level property has default and is set"        | setId("default")             | setId("test")         | """id = test\nbar = bar"""
-        "top-level property has default, nested is set"    | setId("default")             | setFooBar("baz")      | """id = default\nbar = baz"""
-        "nested property has default and is set"           | setFooBar("default")         | setFooBar("baz")      | """id = <no id>\nbar = baz"""
-        "nested property has default, top-level is set"    | setFooBar("default")         | setId("test")         | """id = test\nbar = default"""
-        "no defaults, top-level property is set"           | ""                           | setId("test")         | """id = test\nbar = bar"""
-        "everything has default and nothing set"           | setAll("default", "default") | ""                    | """id = default\nbar = default"""
-        "everything has default and is set"                | setAll("default", "default") | setAll("test", "baz") | """id = test\nbar = baz"""
+        testCase                                           | modelDefault                 | buildConfiguration    | expectedValues
+        "top-level property has default and is set"        | setId("default")             | setId("test")         | expected("id":"test", "foo.bar":"null")
+        "top-level property has default, nested is set"    | setId("default")             | setFooBar("baz")      | expected("id":"default", "foo.bar":"baz")
+        "nested property has default and is set"           | setFooBar("default")         | setFooBar("baz")      | expected("id":"null", "foo.bar":"baz")
+        "nested property has default, top-level is set"    | setFooBar("default")         | setId("test")         | expected("id":"test", "foo.bar":"default")
+        "no defaults, top-level property is set"           | ""                           | setId("test")         | expected("id":"test", "foo.bar":"null")
+        "everything has default and nothing set"           | setAll("default", "default") | ""                    | expected("id":"default", "foo.bar":"default")
+        "everything has default and is set"                | setAll("default", "default") | setAll("test", "baz") | expected("id":"test", "foo.bar":"baz")
     }
 
     @SkipDsl(dsl = GradleDsl.KOTLIN, because = "Kotlin DSL does accept re-assigning values")
-    @SkipDsl(dsl = GradleDsl.GROOVY, because = "Groovy DSL does accept re-assigning values")
     def "sensible error when defaults are set more than once (#testCase)"() {
         given:
-        withProjectTypePlugins().prepareToExecute()
+        withStandardProjectType().prepareToExecute()
 
         settingsFile() << getDeclarativeSettingsScriptThatSetsDefaults(modelDefault)
 
@@ -78,14 +82,14 @@ class ProjectTypeModelDefaultsIntegrationTest extends AbstractIntegrationSpec im
         where:
         testCase                                   | modelDefault
         "id has default set twice"                 | setId("default") + setId("again")
-        "bar has default set twice"                | setFoo(setBar("default") + setBar("again"))
+        "bar has default set twice"                | configureFoo(setBar("default") + setBar("again"))
         // TODO - doesn't work
         //"bar has default set in multiple blocks" | setFooBar("default") + setFooBar("again")
     }
 
     def "can configure build-level defaults for adding functions in a project type (#testCase)"() {
         given:
-        withProjectTypePluginThatExposesExtensionWithDependencies().prepareToExecute()
+        withDependenciesProjectType().prepareToExecute()
 
         settingsFile() << getDeclarativeSettingsScriptThatSetsDefaults(modelDefault)
 
@@ -95,25 +99,25 @@ class ProjectTypeModelDefaultsIntegrationTest extends AbstractIntegrationSpec im
         """) << DeclarativeTestUtils.nonDeclarativeSuffixForKotlinDsl
 
         when:
-        run(":printTestProjectTypeDefinitionWithDependenciesConfiguration")
+        run(":printTestProjectTypeDefinitionConfiguration")
 
         then:
-        expectedConfigurations.each { outputContains(it) }
+        expectedValues.each { String value -> outputContains(value) }
 
         where:
-        testCase                                          | modelDefault     | buildConfiguration | expectedConfigurations
-        "top-level adder has a default and is called"     | addToList("foo") | addToList("bar")   | "list = foo, bar"
-        "top-level adder has a default and is not called" | addToList("foo") | ""                 | "list = foo"
-        "nested adder has a default and is called"        | addToBaz("foo")  | addToBaz("bar")    | "baz = foo, bar"
-        "nested adder has a default and is not called"    | addToBaz("foo")  | ""                 | "baz = foo"
-        "everything has defaults and nothing is called"   | addToAll("foo")  | ""                 | ["list = foo", "baz = foo"]
-        "everything has defaults and all are called"      | addToAll("foo")  | addToAll("bar")    | ["list = foo, bar", "baz = foo, bar"]
+        testCase                                          | modelDefault     | buildConfiguration | expectedValues
+        "top-level adder has a default and is called"     | addToList("foo") | addToList("bar")   | expected("list":"foo, bar")
+        "top-level adder has a default and is not called" | addToList("foo") | ""                 | expected("list":"foo")
+        "nested adder has a default and is called"        | addToBaz("foo")  | addToBaz("bar")    | expected("bar.baz": "foo, bar")
+        "nested adder has a default and is not called"    | addToBaz("foo")  | ""                 | expected("bar.baz":"foo")
+        "everything has defaults and nothing is called"   | addToAll("foo")  | ""                 | expected("list":"foo", "bar.baz":"foo")
+        "everything has defaults and all are called"      | addToAll("foo")  | addToAll("bar")    | expected("list":"foo, bar", "bar.baz":"foo, bar")
     }
 
     @UnsupportedWithConfigurationCache
     def "can configure build-level defaults for dependencies objects in a project type (#testCase)"() {
         given:
-        withProjectTypePluginThatExposesExtensionWithDependencies().prepareToExecute()
+        withDependenciesProjectType().prepareToExecute()
 
         file("foo").createDir()
         settingsFile() << getDeclarativeSettingsScriptThatSetsDefaults(dependencies(modelDefault)) + """
@@ -126,7 +130,7 @@ class ProjectTypeModelDefaultsIntegrationTest extends AbstractIntegrationSpec im
         """) << DeclarativeTestUtils.nonDeclarativeSuffixForKotlinDsl
 
         when:
-        run(":printTestProjectTypeDefinitionWithDependenciesConfiguration")
+        run(":printTestProjectTypeDefinitionConfiguration")
 
         then:
         expectedConfigurations.each { outputContains(it) }
@@ -218,7 +222,7 @@ class ProjectTypeModelDefaultsIntegrationTest extends AbstractIntegrationSpec im
     @UnsupportedWithConfigurationCache
     def "can configure build-level defaults for project types in a multi-project build"() {
         given:
-        withProjectTypePluginThatExposesExtensionWithDependencies().prepareToExecute()
+        withDependenciesProjectType().prepareToExecute()
 
         file("foo").createDir()
         file("bar").createDir()
@@ -243,29 +247,59 @@ class ProjectTypeModelDefaultsIntegrationTest extends AbstractIntegrationSpec im
         """) << DeclarativeTestUtils.nonDeclarativeSuffixForKotlinDsl
 
         when:
-        run(":foo:printTestProjectTypeDefinitionWithDependenciesConfiguration")
+        run(":foo:printTestProjectTypeDefinitionConfiguration")
 
         then:
-        outputContains("id = foo\nbar = fooBar")
-        outputContains("baz = default, foo")
-        outputContains("implementation = ${externalDependency('foo', 'bar', '1.0')}")
+        outputContains("definition id = foo")
+        outputContains("definition foo.bar = fooBar")
+        outputContains("definition bar.baz = default, foo")
+        outputContains("definition implementation = ${externalDependency('foo', 'bar', '1.0')}")
 
         when:
-        run(":bar:printTestProjectTypeDefinitionWithDependenciesConfiguration")
+        run(":bar:printTestProjectTypeDefinitionConfiguration")
 
         then:
-        outputContains("id = bar\nbar = barBar")
-        outputContains("baz = default")
-        outputContains("implementation = ${externalDependency('foo', 'bar', '1.0')}, ${externalDependency('bar', 'foo', '2.0')}")
+        outputContains("definition id = bar")
+        outputContains("definition foo.bar = barBar")
+        outputContains("definition bar.baz = default")
+        outputContains("definition implementation = ${externalDependency('foo', 'bar', '1.0')}, ${externalDependency('bar', 'foo', '2.0')}")
     }
 
     def "can trigger object configuration for nested objects used in defaults"() {
-        given:
-        withProjectTypePluginThatExposesExtensionWithDependencies().prepareToExecute()
+        given: 'a project type that opts in to maybe<X>Configured() scaffolding'
+        testScenario {
+            projectType("testProjectType") {
+                definition {
+                    shape TypeShape.ABSTRACT_CLASS
+                    showConfigureInvocations()
+                    property "id", String
+                    buildModel {
+                        property "id", String
+                    }
+                    nested("foo", "Foo") {
+                        property "bar", String
+                    }
+                    listProperty "list", String
+                    nested("bar", "Bar") {
+                        listProperty "baz", String
+                    }
+                    dependencies {
+                        dependencyCollector 'api'
+                        dependencyCollector 'implementation'
+                        dependencyCollector 'runtimeOnly'
+                        dependencyCollector 'compileOnly'
+                    }
+                }
+                plugin {
+                    unsafeDefinition()
+                    unsafeApplyAction()
+                }
+            }
+        }.prepareToExecute()
 
         and: 'a default that only accesses a nested object but does not apply any configuration to it'
         settingsFile() << getDeclarativeSettingsScriptThatSetsDefaults("""
-            ${setFoo("")}
+            ${configureBar("")}
         """)
         settingsFile() << """
             include("foo")
@@ -275,85 +309,79 @@ class ProjectTypeModelDefaultsIntegrationTest extends AbstractIntegrationSpec im
         buildFileForProject("foo") << getDeclarativeScriptThatConfiguresOnlyTestProjectType() << DeclarativeTestUtils.nonDeclarativeSuffixForKotlinDsl
 
         when:
-        run(":foo:printTestProjectTypeDefinitionWithDependenciesConfiguration")
+        run(":foo:printTestProjectTypeDefinitionConfiguration")
 
         then: 'the side effect of the configuring function used in the default should get applied to the project model'
-        outputContains("(foo is configured)")
+        outputContains("(bar is configured)")
     }
 
     @SkipDsl(dsl = GradleDsl.KOTLIN, because = "Test is written with build files for specific DSLs in mind")
-    @SkipDsl(dsl = GradleDsl.GROOVY, because = "Test is written with build files for specific DSLs in mind")
-    def "can configure build-level defaults in a non-declarative settings file and apply in a declarative project file (#type settings script)"() {
+    def "can configure build-level defaults in a non-declarative settings file and apply in a declarative project file (kotlin settings script)"() {
         given:
-        withProjectTypePlugins().prepareToExecute()
+        withStandardProjectType().prepareToExecute()
 
-        file("settings.gradle${extension}") << getDeclarativeSettingsScriptThatSetsDefaults(setAll("default", "default")) + """
+        file("settings.gradle.kts") << getDeclarativeSettingsScriptThatSetsDefaults(setAll("default", "default")) + """
             include("declarative")
             include("non-declarative")
         """
 
         file("declarative/build.gradle.dcl") << getDeclarativeScriptThatConfiguresOnlyTestProjectType(setId("foo"))
 
-        file("non-declarative/build.gradle${extension}") << getDeclarativeScriptThatConfiguresOnlyTestProjectType(setFooBar("bar"))
+        file("non-declarative/build.gradle.kts") << getDeclarativeScriptThatConfiguresOnlyTestProjectType(setFooBar("bar"))
 
         when:
         run(":declarative:printTestProjectTypeDefinitionConfiguration")
 
         then:
-        outputContains("""id = foo\nbar = default""")
+        outputContains("definition id = foo")
+        outputContains("definition foo.bar = default")
 
         when:
         run(":non-declarative:printTestProjectTypeDefinitionConfiguration")
 
         then:
-        outputContains("""id = default\nbar = bar""")
-
-        where:
-        type     | extension
-        "groovy" | ""
-        "kotlin" | ".kts"
+        outputContains("definition id = default")
+        outputContains("definition foo.bar = bar")
     }
 
     @SkipDsl(dsl = GradleDsl.KOTLIN, because = "Test is written with build files for specific DSLs in mind")
-    @SkipDsl(dsl = GradleDsl.GROOVY, because = "Test is written with build files for specific DSLs in mind")
-    def "can configure build-level defaults in a declarative settings file and apply in a non-declarative project file (#type build script)"() {
+    def "can configure build-level defaults in a declarative settings file and apply in a non-declarative project file (kotlin build script)"() {
         given:
-        withProjectTypePlugins().prepareToExecute()
+        withStandardProjectType().prepareToExecute()
 
         file("settings.gradle.dcl") << getDeclarativeSettingsScriptThatSetsDefaults(setAll("default", "default")) + """
             include("non-declarative")
             include("declarative")
         """
 
-        file("non-declarative/build.gradle${extension}") << getDeclarativeScriptThatConfiguresOnlyTestProjectType(setFooBar("bar"))
+        file("non-declarative/build.gradle.kts") << getDeclarativeScriptThatConfiguresOnlyTestProjectType(setFooBar("bar"))
         file("declarative/build.gradle.dcl") << getDeclarativeScriptThatConfiguresOnlyTestProjectType(setId("bar"))
 
         when:
         run(":non-declarative:printTestProjectTypeDefinitionConfiguration")
 
         then:
-        outputContains("""id = default\nbar = bar""")
+        outputContains("definition id = default")
+        outputContains("definition foo.bar = bar")
 
         when:
         run(":declarative:printTestProjectTypeDefinitionConfiguration")
 
         then:
-        outputContains("""id = bar\nbar = default""")
-
-        where:
-        type     | extension
-        "groovy" | ""
-        "kotlin" | ".kts"
+        outputContains("definition id = bar")
+        outputContains("definition foo.bar = default")
     }
 
-    @SkipDsl(dsl = GradleDsl.GROOVY, because = "Neither the foo() method is available in Groovy, nor can the x or y values remain undefined")
     def "can configure defaults for named domain object container elements"() {
         given:
-        withProjectTypePluginWithNdoc().prepareToExecute()
+        withNdocProjectType().prepareToExecute()
 
         settingsFile() << getDeclarativeSettingsScriptThatSetsDefaultsForNdoc()
 
-        buildFile() << getDeclarativeScriptThatConfiguresOnlyTestProjectType(fooNdocYValues())
+        buildFile() << getDeclarativeScriptThatConfiguresOnlyTestProjectType("""
+            id = "test"
+            ${fooNdocYValues()}
+        """)
 
         when:
         run(":printTestProjectTypeDefinitionConfiguration")
@@ -363,10 +391,9 @@ class ProjectTypeModelDefaultsIntegrationTest extends AbstractIntegrationSpec im
         outputContains("Foo(name = two, x = 2, y = 22)")
     }
 
-    @NotYetImplemented
     def "can configure build-level defaults in a settings plugin"() {
         given:
-        withSettingsPluginThatConfiguresModelDefaults().prepareToExecute()
+        withSettingsDefaultsProjectType().prepareToExecute()
 
         settingsFile() << getDeclarativeSettingsScriptThatSetsDefaults()
 
@@ -376,7 +403,188 @@ class ProjectTypeModelDefaultsIntegrationTest extends AbstractIntegrationSpec im
         run(":printTestProjectTypeDefinitionConfiguration")
 
         then:
-        outputContains("""id = test\nbar = plugin""")
+        outputContains("definition id = test")
+        outputContains("definition foo.bar = settings")
+    }
+
+    def "can configure build-level defaults that applies features to a project type (#testCase)"() {
+        given:
+        withProjectTypeAndFeature().prepareToExecute()
+
+        settingsFile() << getDeclarativeSettingsScriptThatSetsDefaults(modelDefault)
+
+        buildFile() << getDeclarativeScriptThatConfiguresOnlyTestProjectType(buildConfiguration) << DeclarativeTestUtils.nonDeclarativeSuffixForKotlinDsl
+
+        when:
+        run(":printFeatureDefinitionConfiguration")
+
+        then:
+        expectedValues.each { String value -> outputContains(value) }
+
+        where:
+        testCase                                           | modelDefault                 | buildConfiguration      | expectedValues
+        "feature is set in default and build script"       | setFeatureText("default")    | setFeatureText("test")  | expected("text":"test")
+        "feature is set in default but not build script"   | setFeatureText("default")    | ""                      | expected("text":"default")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/37377")
+    def "configuring build-level defaults applies features in the correct order"() {
+        given:
+        withProjectTypeAndFeature().prepareToExecute()
+
+        settingsFile() << getDeclarativeSettingsScriptThatSetsDefaults(setFeatureText("default"))
+
+        buildFile() << declarativeScriptThatConfiguresOnlyTestProjectType << DeclarativeTestUtils.nonDeclarativeSuffixForKotlinDsl
+
+        when:
+        run(":printFeatureDefinitionConfiguration")
+
+        then:
+        outputContains("Binding TestProjectTypeDefinition")
+        outputContains("Binding FeatureDefinition")
+        outputContains("definition text = default")
+
+        and:
+        output.indexOf("Binding TestProjectTypeDefinition") < output.indexOf("Binding FeatureDefinition")
+    }
+
+    // --- Fixture helpers ---
+
+    private PluginBuilder withStandardProjectType() {
+        return testScenario {
+            projectType("testProjectType") {
+                definition {
+                    buildModel {
+                        property "id", String
+                    }
+                    property "id", String
+                    nested("foo", "Foo") {
+                        property "bar", String
+                    }
+                }
+            }
+        }
+    }
+
+    private PluginBuilder withDependenciesProjectType() {
+        return testScenario {
+            projectType("testProjectType") {
+                definition {
+                    shape TypeShape.ABSTRACT_CLASS
+                    property "id", String
+                    buildModel {
+                        property "id", String
+                    }
+                    nested("foo", "Foo") {
+                        property "bar", String
+                    }
+                    listProperty "list", String
+                    nested("bar", "Bar") {
+                        listProperty "baz", String
+                    }
+                    dependencies {
+                        dependencyCollector 'api'
+                        dependencyCollector 'implementation'
+                        dependencyCollector 'runtimeOnly'
+                        dependencyCollector 'compileOnly'
+                    }
+                }
+                plugin {
+                    unsafeDefinition()
+                    unsafeApplyAction()
+                }
+            }
+        }
+    }
+
+    private PluginBuilder withNdocProjectType() {
+        return testScenario {
+            projectType("testProjectType") {
+                definition {
+                    shape TypeShape.ABSTRACT_CLASS
+                    buildModel {
+                        property "id", String
+                    }
+                    property "id", String
+                    ndoc("foos", "Foo") {
+                        property "x", Integer
+                        property "y", Integer
+                    }
+                }
+                plugin {
+                    unsafeDefinition()
+                }
+            }
+        }
+    }
+
+    private PluginBuilder withSettingsDefaultsProjectType() {
+        return testScenario {
+            def type = projectType("testProjectType") {
+                definition {
+                    buildModel {
+                        property "id", String
+                    }
+                    property "id", String
+                    nested("foo", "Foo") {
+                        property "bar", String
+                    }
+                }
+            }
+            settings {
+                defaultFor(type) {
+                    property "id", "settings"
+                    property "foo.bar", "settings"
+                }
+            }
+        }
+    }
+
+    private PluginBuilder withProjectTypeAndFeature() {
+        return testScenario {
+            def type = projectType("testProjectType") {
+                definition {
+                    buildModel {
+                        property "id", String
+                    }
+                    property "id", String
+                    nested("foo", "Foo") {
+                        property "bar", String
+                    }
+                }
+            }
+            projectFeature("feature") {
+                definition {
+                    buildModel {
+                        property "text", String
+                    }
+                    property "text", String
+                    nested("fizz", "Fizz") {
+                        property "buzz", String
+                    }
+                }
+                plugin {
+                    bindsFeatureTo(type)
+                }
+            }
+        }
+    }
+
+    // --- DSL content helpers ---
+
+    private static String[] expected(Map<String, String> expectations) {
+        return expectations.collect { k, v -> "definition ${k} = ${v}" }
+    }
+
+    static String setFeatureText(String text) {
+        return """
+            feature {
+                text = "${text}"
+                fizz {
+                    buzz = ""
+                }
+            }
+        """
     }
 
     static String setId(String id) {
@@ -384,15 +592,19 @@ class ProjectTypeModelDefaultsIntegrationTest extends AbstractIntegrationSpec im
     }
 
     static String setFooBar(String bar) {
-        return setFoo(setBar(bar))
+        return configureFoo(setBar(bar))
     }
 
     static String setBar(String bar) {
         return "bar = \"${bar}\"\n"
     }
 
-    static String setFoo(String contents) {
+    static String configureFoo(String contents) {
         return "foo {\n${contents}\n}"
+    }
+
+    static String configureBar(String contents) {
+        return "bar {\n${contents}\n}"
     }
 
     static String setAll(String id, String bar) {

@@ -19,23 +19,25 @@ package org.gradle.launcher
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.jvm.JDWPUtil
+import org.gradle.launcher.daemon.logging.DaemonMessages
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.Flaky
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
+import org.gradle.test.preconditions.JdkVersionTestPreconditions
+
 import org.junit.Assume
 import spock.lang.Issue
 import spock.lang.Timeout
 
-@Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "explicitly requests a daemon")
+@Requires(value = TestExecutionPreconditions.NotEmbeddedExecutor, reason = "explicitly requests a daemon")
 class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
 
     def setup() {
         executer.requireDaemon().requireIsolatedDaemons()  // otherwise exception gets thrown in testing infrastructure
     }
 
-    @Requires(IntegTestPreconditions.NotParallelExecutor)
+    @Requires(TestExecutionPreconditions.NotParallelExecutor)
     def "reasonable failure message when --max-workers=#value"() {
         when:
         executer.withArgument("--max-workers=$value")
@@ -64,7 +66,8 @@ class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
         value << ["-1", "0", "foo", " 1"]
     }
 
-    @Requires(IntegTestPreconditions.NotEmbeddedExecutor)
+    @Issue("https://github.com/gradle/gradle/issues/21695")
+    @Requires(TestExecutionPreconditions.NotEmbeddedExecutor)
     def "can debug with org.gradle.debug=true"() {
         given:
         Assume.assumeTrue(debugPortIsFree())
@@ -78,11 +81,14 @@ class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
             // Connect, resume threads, and disconnect from VM
             jdwpClient.connect().dispose()
         }
-        gradle.waitForFinish()
+        def output = gradle.waitForFinish().getOutput();
+
+        expect:
+        output.contains(DaemonMessages.WAITING_FOR_DEBUGGER)
     }
 
     @Issue('https://github.com/gradle/gradle/issues/18084')
-    @Requires(IntegTestPreconditions.NotEmbeddedExecutor)
+    @Requires(TestExecutionPreconditions.NotEmbeddedExecutor)
     @Flaky(because = "https://github.com/gradle/gradle-private/issues/3636")
     def "can debug on selected port with org.gradle.debug.port"() {
         given:
@@ -105,6 +111,7 @@ class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
         jdwpClient.close()
     }
 
+    @Flaky(because = "https://github.com/gradle/gradle-private/issues/3636")
     def "can debug via host"() {
         given:
         JDWPUtil jdwpClient = new JDWPUtil()
@@ -140,7 +147,7 @@ class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
     }
 
     @Flaky(because = "https://github.com/gradle/gradle-private/issues/3636")
-    @Requires(UnitTestPreconditions.Jdk9OrLater)
+    @Requires(JdkVersionTestPreconditions.Jdk9OrLater)
     def "can debug on explicitly any host"() {
         given:
         JDWPUtil jdwpClient = new JDWPUtil()
@@ -191,7 +198,7 @@ class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
 
     @Flaky(because = "Sometimes it hangs for hours")
     @Issue('https://github.com/gradle/gradle/issues/18084')
-    @Requires(IntegTestPreconditions.NotEmbeddedExecutor)
+    @Requires(TestExecutionPreconditions.NotEmbeddedExecutor)
     @Timeout(30)
     def "can debug with org.gradle.debug.server=false"() {
         given:
@@ -214,7 +221,7 @@ class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
     }
 
     @Issue('https://github.com/gradle/gradle/issues/18084')
-    @Requires(IntegTestPreconditions.NotEmbeddedExecutor)
+    @Requires(TestExecutionPreconditions.NotEmbeddedExecutor)
     @Timeout(30)
     def "can debug with org.gradle.debug.suspend=false"() {
         given:

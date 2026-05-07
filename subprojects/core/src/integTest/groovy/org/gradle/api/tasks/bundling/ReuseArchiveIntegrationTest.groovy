@@ -17,12 +17,10 @@
 package org.gradle.api.tasks.bundling
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.hash.DefaultFileHasher
 import org.gradle.internal.hash.DefaultStreamHasher
 import org.gradle.internal.hash.FileHasher
-
-import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache.Skip.INVESTIGATE
 
 class ReuseArchiveIntegrationTest  extends AbstractIntegrationSpec {
 
@@ -31,16 +29,16 @@ class ReuseArchiveIntegrationTest  extends AbstractIntegrationSpec {
      * happens to contain content with the same name as content you're trying to cache?  The content used
      * by the cache no longer agrees with the content coming from the zip itself.
      */
-    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def "pre-existing content in cache dir with same hash is okay"() {
         file("contents/hello.txt") << "hello"
         file("contents").zipTo(file("hello.zip"))
         FileHasher hasher = new DefaultFileHasher(new DefaultStreamHasher())
         def hash = hasher.hash(file("hello.zip"))
-        def cachedFile = file("build/tmp/.cache/expanded/zip_${hash}/hello.txt")
-        def otherFile = file("build/tmp/.cache/expanded/zip_${hash}/other.txt")
+        def cacheDir = GradleContextualExecuter.isConfigCache() ? executer.gradleUserHomeDir.file(".tmp/.cache/expanded") : file("build/tmp/.cache/expanded")
+        def cachedFile = cacheDir.file("zip_${hash}/hello.txt")
+        def otherFile = cacheDir.file("zip_${hash}/other.txt")
 
-        buildFile << """
+        buildFile """
             abstract class CopyAndList extends DefaultTask {
                 @Inject
                 abstract FileSystemOperations getFileSystemOperations()
@@ -62,7 +60,7 @@ class ReuseArchiveIntegrationTest  extends AbstractIntegrationSpec {
                     }
                 }
             }
-            task extract2(type: CopyAndList) {
+            task extract(type: CopyAndList) {
                 unzipped.from(zipTree(file("hello.zip")))
             }
         """

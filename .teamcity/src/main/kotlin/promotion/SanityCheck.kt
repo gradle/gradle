@@ -20,14 +20,13 @@ object SanityCheck : BuildType({
         gradleWrapper {
             tasks = "tasks"
             gradleParams = ""
-            param("org.jfrog.artifactory.selectedDeployableServer.defaultModuleVersionConfiguration", "GLOBAL")
         }
     }
 
     triggers {
         vcs {
             branchFilter = ""
-            enabled = VersionedSettingsBranch.fromDslContext().enableVcsTriggers
+            enabled = VersionedSettingsBranch.fromDslContext().isMainBranch
         }
     }
 

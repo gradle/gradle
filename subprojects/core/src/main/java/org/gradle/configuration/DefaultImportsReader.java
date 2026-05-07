@@ -56,7 +56,7 @@ public class DefaultImportsReader implements ImportsReader {
     }
 
     /**
-     * @implNote Logic is duplicated in {@link gradlebuild.integrationtests.action.AnnotationGeneratorWorkAction}.
+     * @implNote Logic is duplicated in {@link gradlebuild.integrationtests.tasks.GenerateLanguageAnnotations}.
      * Please keep this code in sync.
      */
     private static String[] generateImportPackages(URL url) throws IOException {

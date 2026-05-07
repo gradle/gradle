@@ -32,6 +32,7 @@ import org.gradle.internal.snapshot.SnapshotVisitResult;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Map;
+import java.util.Objects;
 
 import static org.gradle.internal.snapshot.SnapshotUtil.getRootHashes;
 
@@ -42,7 +43,7 @@ public class DefaultOverlappingOutputDetector implements OverlappingOutputDetect
         for (Map.Entry<String, FileSystemSnapshot> entry : current.entrySet()) {
             String propertyName = entry.getKey();
             FileSystemSnapshot currentSnapshot = entry.getValue();
-            FileSystemSnapshot previousSnapshot = previous.getOrDefault(propertyName, FileSystemSnapshot.EMPTY);
+            FileSystemSnapshot previousSnapshot = Objects.requireNonNull(previous.getOrDefault(propertyName, FileSystemSnapshot.EMPTY));
             // If the root hashes are the same there are no overlapping outputs
             if (getRootHashes(previousSnapshot).equals(getRootHashes(currentSnapshot))) {
                 continue;
@@ -66,6 +67,7 @@ public class DefaultOverlappingOutputDetector implements OverlappingOutputDetect
 
     private static class OverlappingOutputsDetectingVisitor implements RelativePathTrackingFileSystemSnapshotHierarchyVisitor {
         private final Map<String, FileSystemLocationSnapshot> previousSnapshots;
+        @Nullable
         private String overlappingPath;
 
         public OverlappingOutputsDetectingVisitor(Map<String, FileSystemLocationSnapshot> previousSnapshots) {

@@ -18,7 +18,7 @@ package org.gradle.problems.internal.emitters;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.problems.internal.DefaultProblemProgressDetails;
-import org.gradle.api.problems.internal.InternalProblem;
+import org.gradle.api.problems.internal.ProblemInternal;
 import org.gradle.api.problems.internal.ProblemEmitter;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.internal.operations.OperationIdentifier;
@@ -39,7 +39,7 @@ public class BuildOperationBasedProblemEmitter implements ProblemEmitter {
     }
 
     @Override
-    public void emit(InternalProblem problem, @Nullable OperationIdentifier id) {
+    public void emit(ProblemInternal problem, @Nullable OperationIdentifier id) {
         eventEmitter.emitNow(id, new DefaultProblemProgressDetails(problem));
     }
 }

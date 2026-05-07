@@ -24,22 +24,17 @@ import org.hamcrest.Matcher
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers
 import org.intellij.lang.annotations.Language
-import org.junit.Assert.assertFalse
-import org.junit.Assert.assertTrue
-import org.junit.Rule
-import org.junit.rules.TemporaryFolder
+import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.io.TempDir
 import java.io.File
 import java.nio.file.Files
 
 
 abstract class AbstractBinaryCompatibilityTest {
 
-    @get:Rule
-    val tmpDir = TemporaryFolder()
-
-    private
-    val rootDir: File
-        get() = tmpDir.root
+    @TempDir
+    lateinit var rootDir: File
 
     internal
     fun checkBinaryCompatibleKotlin(@Language("kotlin") v1: String = "", @Language("kotlin") v2: String, block: CheckResult.() -> Unit = {}): CheckResult =
@@ -91,12 +86,12 @@ abstract class AbstractBinaryCompatibilityTest {
 
     private
     fun CheckResult.assertBinaryCompatible() {
-        assertTrue(richReport.toAssertionMessage("Expected to be compatible but the check failed"), isBinaryCompatible)
+        assertTrue(isBinaryCompatible, richReport.toAssertionMessage("Expected to be compatible but the check failed"))
     }
 
     private
     fun CheckResult.assertNotBinaryCompatible() {
-        assertFalse(richReport.toAssertionMessage("Expected to be breaking but the check passed"), isBinaryCompatible)
+        assertFalse(isBinaryCompatible, richReport.toAssertionMessage("Expected to be breaking but the check passed"))
     }
 
     private
@@ -194,7 +189,7 @@ abstract class AbstractBinaryCompatibilityTest {
         println(buildResult.output)
 
         val richReportFile = inputBuildDir.resolve("binary-compatibility/build/japi/japi.html").apply {
-            assertTrue("Rich report file doesn't exist", isFile)
+            assertTrue(isFile, "Rich report file doesn't exist")
         }
 
         return CheckResult(failure, scrapeRichReport(richReportFile), buildResult).apply {
@@ -233,11 +228,11 @@ abstract class AbstractBinaryCompatibilityTest {
         println(buildResult.output)
 
         inputBuildDir.resolve("binary-compatibility/build/japi/japi.html").apply {
-            assertFalse("Rich report file exists", isFile)
+            assertFalse(isFile, "Rich report file exists")
         }
 
         return buildResult.apply {
-            assertTrue("Build result is not a failure", failure != null)
+            assertTrue(failure != null, "Build result is not a failure")
             println(failure?.message)
             block()
         }
@@ -248,7 +243,13 @@ abstract class AbstractBinaryCompatibilityTest {
         rootDir.withFile("version.txt", "9.0.0")
 
         return rootDir.withUniqueDirectory("input-build").apply {
-
+            withFile(
+                "gradle/libs.versions.toml",
+                """
+                    [libraries]
+                    kotlinCompilerEmbeddable = { group = "org.jetbrains.kotlin", name = "kotlin-compiler-embeddable", version = "$embeddedKotlinVersion" }
+                """
+            )
             withSettings("""include("v1", "v2", "binary-compatibility")""")
             withBuildScript(
                 """
@@ -308,7 +309,7 @@ abstract class AbstractBinaryCompatibilityTest {
                         baselineUpgradedProperties = oldUpgradedPropertiesFile
                     }
 
-                    tasks.register<JapicmpTask>("checkBinaryCompatibility") {
+                    tasks.register<JapicmpTaskWithKotlin>("checkBinaryCompatibility") {
 
                         dependsOn(":v1:jar", ":v2:jar")
                         inputs.files(extractGradleApiInfo)
@@ -324,26 +325,26 @@ abstract class AbstractBinaryCompatibilityTest {
 
                         txtOutputFile.set(file("build/japi-report.txt"))
 
-                        richReport {
-
-                            title.set("Gradle Binary Compatibility Check")
-                            destinationDir.set(file("build/japi"))
-                            reportName.set("japi.html")
-
-                            includedClasses.set(listOf(".*"))
-                            excludedClasses.set(emptyList())
-
-                        }
-
                         BinaryCompatibilityHelper.setupJApiCmpRichReportRules(
                             this,
-                            AcceptedApiChanges.parse(listOf("{acceptedApiChanges:[]}")),
+                            project,
+                            layout.buildDirectory.dir("empty-dir").get(),
                             rootProject.files("$sourceRoots"),
                             "2.0",
                             file("test-api-changes.json"),
                             rootProject.layout.projectDirectory,
                             newUpgradedPropertiesFile.get().asFile,
-                            oldUpgradedPropertiesFile.get().asFile
+                            oldUpgradedPropertiesFile.get().asFile,
+                            object : Action<me.champeau.gradle.japicmp.report.RichReport> {
+                                override fun execute(report: me.champeau.gradle.japicmp.report.RichReport) {
+                                    report.title.set("Gradle Binary Compatibility Check")
+                                    report.destinationDir.set(file("build/japi"))
+                                    report.reportName.set("japi.html")
+
+                                    report.includedClasses.set(listOf(".*"))
+                                    report.excludedClasses.set(emptyList())
+                                }
+                            }
                         )
                     }
                     """
@@ -368,15 +369,15 @@ abstract class AbstractBinaryCompatibilityTest {
         }
 
         fun assertHasNoError() {
-            assertTrue("Has no error (${richReport.errors})", richReport.errors.isEmpty())
+            assertTrue(richReport.errors.isEmpty(), "Has no error (${richReport.errors})")
         }
 
         fun assertHasNoWarning() {
-            assertTrue("Has no warning (${richReport.warnings})", richReport.warnings.isEmpty())
+            assertTrue(richReport.warnings.isEmpty(), "Has no warning (${richReport.warnings})")
         }
 
         fun assertHasNoInformation() {
-            assertTrue("Has no information (${richReport.information})", richReport.information.isEmpty())
+            assertTrue(richReport.information.isEmpty(), "Has no information (${richReport.information})")
         }
 
         fun assertHasErrors(vararg errors: String) {
@@ -441,7 +442,7 @@ abstract class AbstractBinaryCompatibilityTest {
     }
 
     fun BuildResult.assertOutputContains(text: String) =
-        assertTrue("Output should contain text:\n'$text',\nbut given text was not matched.\n", output.contains(text))
+        assertTrue(output.contains(text), "Output should contain text:\n'$text',\nbut given text was not matched.\n")
 
     protected
     fun File.withFile(path: String, text: String = ""): File =
@@ -473,10 +474,10 @@ abstract class AbstractBinaryCompatibilityTest {
         }
 
     private
-    fun File.withSettings(text: String = ""): File =
+    fun File.withSettings(@Language("kotlin") text: String = ""): File =
         withFile("settings.gradle.kts", text)
 
     private
-    fun File.withBuildScript(text: String = ""): File =
+    fun File.withBuildScript(@Language("kotlin") text: String = ""): File =
         withFile("build.gradle.kts", text)
 }

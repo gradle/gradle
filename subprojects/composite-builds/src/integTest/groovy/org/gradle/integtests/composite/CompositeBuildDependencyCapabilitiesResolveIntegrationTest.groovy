@@ -57,8 +57,13 @@ class CompositeBuildDependencyCapabilitiesResolveIntegrationTest extends Abstrac
             }
         """
 
+        def resolve = new ResolveTestFixture(testDirectory)
         buildFile << """
-            apply plugin: 'java-library'
+            plugins {
+                id("java-library")
+            }
+
+            ${resolve.configureProject("compileClasspath")}
 
             dependencies {
                 api("com.acme.external:external:1.0") {
@@ -68,8 +73,6 @@ class CompositeBuildDependencyCapabilitiesResolveIntegrationTest extends Abstrac
                 }
             }
         """
-        def resolve = new ResolveTestFixture(buildFile, "compileClasspath")
-        resolve.prepare()
 
         when:
         run ':checkDeps'

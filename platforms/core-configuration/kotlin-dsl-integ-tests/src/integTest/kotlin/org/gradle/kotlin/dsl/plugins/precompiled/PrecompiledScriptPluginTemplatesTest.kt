@@ -457,7 +457,7 @@ class PrecompiledScriptPluginTemplatesTest : AbstractPrecompiledScriptPluginTest
         executer.noDeprecationChecks()
         buildAndFail("classes").run {
             assertHasDescription(
-                "Execution failed for task ':compileKotlin'."
+                "Execution failed for task ':compileKotlin' (registered by plugin class 'org.jetbrains.kotlin.gradle.plugin.KotlinPluginWrapper')."
             )
             assertHasErrorOutput(
                 """my-project-plugin.gradle.kts:3:17 'fun Project.plugins(block: PluginDependenciesSpec.() -> Unit): Nothing' is deprecated. The plugins {} block must not be used here. If you need to apply a plugin imperatively, please use apply<PluginType>() or apply(plugin = "id") instead."""

@@ -27,32 +27,60 @@ class SettingsSchemaAccessorsIntegrationTest : AbstractKotlinIntegrationTest() {
 
     @Before
     fun withSettingsPluginFromIncludedBuild() {
-        // given: a Settings plugin from an included build
-        withDefaultSettingsIn("plugins")
-        withBuildScriptIn(
-            "plugins",
-            """
-                plugins { `kotlin-dsl` }
-                $repositoriesBlock
-            """
-        )
-        withPluginSourceFile(
+        // given: a Settings plugin from an included build depending on base settings plugin
+        withBasePluginSourceFile(
             "my/MySettingsExtension.kt",
             """
                 package my
+
                 import org.gradle.api.provider.*
+
                 interface MySettingsExtension {
                     val myProperty: Property<Int>
                 }
             """
         )
+        withBasePluginSourceFile(
+            "my-base-settings-plugin.settings.gradle.kts",
+            """
+                extensions.create<my.MySettingsExtension>("mySettingsExtension")
+            """
+        )
+        withBuildScriptIn(
+            "plugins/base-plugins",
+            """
+                plugins.apply(KotlinDslPlugin::class)
+                $repositoriesBlock
+            """
+        )
+
+        withDefaultSettingsIn("plugins").appendText(
+            """
+                include(":base-plugins")
+            """.trimIndent()
+        )
+        withBuildScriptIn(
+            "plugins",
+            """
+                plugins { `kotlin-dsl` }
+                $repositoriesBlock
+                
+                dependencies {
+                  implementation(project(":base-plugins"))
+                }
+            """
+        )
+
         withPluginSourceFile(
             "my-settings-plugin.settings.gradle.kts",
             """
-                val ext = extensions.create<my.MySettingsExtension>("mySettingsExtension")
+                plugins {
+                  id("my-base-settings-plugin")
+                }
                 gradle.rootProject {
                     tasks.register("ok") {
-                        val myProperty = ext.myProperty
+                        // mySettingsExtension is a generated accessor
+                        val myProperty = mySettingsExtension.myProperty
                         doLast { println("It's ${'$'}{myProperty.get()}!") }
                     }
                 }
@@ -83,6 +111,11 @@ class SettingsSchemaAccessorsIntegrationTest : AbstractKotlinIntegrationTest() {
     private
     fun withPluginSourceFile(fileName: String, text: String) {
         withFile("plugins/src/main/kotlin/$fileName", text)
+    }
+
+    private
+    fun withBasePluginSourceFile(fileName: String, text: String) {
+        withFile("plugins/base-plugins/src/main/kotlin/$fileName", text)
     }
 
     @Test

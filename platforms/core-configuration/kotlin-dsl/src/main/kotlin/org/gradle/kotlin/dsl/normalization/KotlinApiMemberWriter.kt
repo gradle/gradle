@@ -145,8 +145,8 @@ class KotlinApiMemberWriter private constructor(apiMemberAdapter: ClassVisitor) 
 
                 is ArrayAnnotationValue ->
                     when (it.name) {
-                        "d1" -> data1 = it.value.map { arrayItem -> arrayItem.value as String }.toTypedArray()
-                        "d2" -> data2 = it.value.map { arrayItem -> arrayItem.value as String }.toTypedArray()
+                        "d1" -> data1 = Array(it.value.size) { i -> it.value[i].value as String }
+                        "d2" -> data2 = Array(it.value.size) { i -> it.value[i].value as String }
                     }
             }
         }

@@ -16,8 +16,8 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result
 
+import com.google.common.collect.ImmutableSet
 import org.gradle.api.artifacts.result.ComponentSelectionCause
-import org.gradle.api.artifacts.result.ComponentSelectionReason
 import org.gradle.internal.Describables
 import spock.lang.Specification
 
@@ -40,11 +40,13 @@ class DefaultComponentSelectionReasonTest extends Specification {
     }
 
     def "requested with other selection reason is not expected"() {
-        given:
-        def reason = ComponentSelectionReasons.requested()
-
         when:
-        addCause(reason, ComponentSelectionCause.CONFLICT_RESOLUTION, "test")
+        def reason = ComponentSelectionReasons.of(
+            ImmutableSet.<ComponentSelectionDescriptorInternal>builder()
+                .addAll(ComponentSelectionReasons.requested().getDescriptions())
+                .add(new DefaultComponentSelectionDescriptor(ComponentSelectionCause.CONFLICT_RESOLUTION, Describables.of("test")))
+                .build()
+        )
 
         then:
         !reason.isExpected()
@@ -52,13 +54,13 @@ class DefaultComponentSelectionReasonTest extends Specification {
 
     def "other selection reason and requested is not expected"() {
         when:
-        def reason = ComponentSelectionReasons.of(new DefaultComponentSelectionDescriptor(ComponentSelectionCause.REQUESTED), new DefaultComponentSelectionDescriptor(ComponentSelectionCause.FORCED))
+        def reason = ComponentSelectionReasons.of(ImmutableSet.of(
+            new DefaultComponentSelectionDescriptor(ComponentSelectionCause.REQUESTED),
+            new DefaultComponentSelectionDescriptor(ComponentSelectionCause.FORCED)
+        ))
 
         then:
         !reason.isExpected()
     }
 
-    def addCause(ComponentSelectionReason reason, ComponentSelectionCause cause, String description) {
-        ((ComponentSelectionReasonInternal) reason).addCause(cause, Describables.of(description))
-    }
 }

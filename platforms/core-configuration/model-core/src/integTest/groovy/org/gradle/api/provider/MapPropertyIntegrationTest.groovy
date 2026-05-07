@@ -17,8 +17,8 @@
 package org.gradle.api.provider
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import spock.lang.Issue
 
 class MapPropertyIntegrationTest extends AbstractIntegrationSpec {
@@ -191,7 +191,7 @@ class MapPropertyIntegrationTest extends AbstractIntegrationSpec {
         fails('thing')
 
         then:
-        failure.assertHasDescription("Execution failed for task ':thing'.")
+        failure.assertHasDescription("Execution failed for task ':thing' (registered in build file 'build.gradle').")
         failure.assertHasCause("The value for task ':thing' property 'prop' is final and cannot be changed any further.")
     }
 
@@ -235,7 +235,6 @@ class MapPropertyIntegrationTest extends AbstractIntegrationSpec {
         outputContains("value: [key1:value1, key2:value2, key3:value3]")
     }
 
-    @Requires(value = IntegTestPreconditions.NotConfigCached, reason = "https://github.com/gradle/gradle/issues/25516")
     def "task ad hoc input property is implicitly finalized and changes ignored when task starts execution"() {
         given:
         buildFile << '''
@@ -255,7 +254,7 @@ class MapPropertyIntegrationTest extends AbstractIntegrationSpec {
         fails('thing')
 
         then:
-        failure.assertHasDescription("Execution failed for task ':thing'.")
+        failure.assertHasDescription("Execution failed for task ':thing' (registered in build file 'build.gradle').")
         failure.assertHasCause("The value for this property is final and cannot be changed any further.")
     }
 
@@ -439,7 +438,7 @@ task thing {
         task wrongRuntimeKeyType {
             def myExt = project.extensions.getByType(MyExtension)
             doLast {
-                myExt.prop = [123: 'value']
+                myExt.prop = [(new Object()): 'value']
                 myExt.prop.get()
             }
         }
@@ -447,7 +446,7 @@ task thing {
         task wrongRuntimeValueType {
             def myExt = project.extensions.getByType(MyExtension)
             doLast {
-                myExt.prop = ['key': 123]
+                myExt.prop = ['key': new Object()]
                 myExt.prop.get()
             }
         }
@@ -504,103 +503,81 @@ task thing {
         when:
         fails('wrongValueTypeDsl')
         then:
-        failure.assertHasDescription("Execution failed for task ':wrongValueTypeDsl'.")
+        failure.assertHasDescription("Execution failed for task ':wrongValueTypeDsl' (registered in build file 'build.gradle').")
         failure.assertHasCause('Cannot set the value of a property of type java.util.Map using an instance of type java.lang.Integer.')
 
         when:
         fails('wrongRuntimeKeyType')
         then:
-        failure.assertHasDescription("Execution failed for task ':wrongRuntimeKeyType'.")
-        failure.assertHasCause('Cannot get the value of a property of type java.util.Map with key type java.lang.String as the source contains a key of type java.lang.Integer.')
+        failure.assertHasDescription("Execution failed for task ':wrongRuntimeKeyType' (registered in build file 'build.gradle').")
+        failure.assertHasCause('Cannot get the value of a property of type java.util.Map with key type java.lang.String as the source contains a key of type java.lang.Object.')
         when:
         fails('wrongRuntimeValueType')
         then:
-        failure.assertHasDescription("Execution failed for task ':wrongRuntimeValueType'.")
-        failure.assertHasCause('Cannot get the value of a property of type java.util.Map with value type java.lang.String as the source contains a value of type java.lang.Integer.')
+        failure.assertHasDescription("Execution failed for task ':wrongRuntimeValueType' (registered in build file 'build.gradle').")
+        failure.assertHasCause('Cannot get the value of a property of type java.util.Map with value type java.lang.String as the source contains a value of type java.lang.Object.')
 
         when:
         fails('wrongPropertyTypeDsl')
         then:
-        failure.assertHasDescription("Execution failed for task ':wrongPropertyTypeDsl'.")
+        failure.assertHasDescription("Execution failed for task ':wrongPropertyTypeDsl' (registered in build file 'build.gradle').")
         failure.assertHasCause('Cannot set the value of a property of type java.util.Map using a provider of type java.lang.Integer.')
 
         when:
         fails('wrongPropertyTypeApi')
         then:
-        failure.assertHasDescription("Execution failed for task ':wrongPropertyTypeApi'.")
+        failure.assertHasDescription("Execution failed for task ':wrongPropertyTypeApi' (registered in build file 'build.gradle').")
         failure.assertHasCause('Cannot set the value of a property of type java.util.Map using a provider of type java.lang.Integer.')
 
         when:
         fails('wrongRuntimeKeyTypeDsl')
         then:
-        failure.assertHasDescription("Execution failed for task ':wrongRuntimeKeyTypeDsl'.")
+        failure.assertHasDescription("Execution failed for task ':wrongRuntimeKeyTypeDsl' (registered in build file 'build.gradle').")
         failure.assertHasCause('Cannot set the value of a property of type java.util.Map with key type java.lang.String and value type java.lang.String using a provider with key type java.lang.Integer and value type java.lang.String.')
 
         when:
         fails('wrongRuntimeValueTypeDsl')
         then:
-        failure.assertHasDescription("Execution failed for task ':wrongRuntimeValueTypeDsl'.")
+        failure.assertHasDescription("Execution failed for task ':wrongRuntimeValueTypeDsl' (registered in build file 'build.gradle').")
         failure.assertHasCause('Cannot set the value of a property of type java.util.Map with key type java.lang.String and value type java.lang.String using a provider with key type java.lang.String and value type java.lang.Integer.')
 
         when:
         fails('wrongRuntimeKeyTypeApi')
         then:
-        failure.assertHasDescription("Execution failed for task ':wrongRuntimeKeyTypeApi'.")
+        failure.assertHasDescription("Execution failed for task ':wrongRuntimeKeyTypeApi' (registered in build file 'build.gradle').")
         failure.assertHasCause('Cannot set the value of a property of type java.util.Map with key type java.lang.String and value type java.lang.String using a provider with key type java.lang.Integer and value type java.lang.String.')
 
         when:
         fails('wrongRuntimeValueTypeApi')
         then:
-        failure.assertHasDescription("Execution failed for task ':wrongRuntimeValueTypeApi'.")
+        failure.assertHasDescription("Execution failed for task ':wrongRuntimeValueTypeApi' (registered in build file 'build.gradle').")
         failure.assertHasCause('Cannot set the value of a property of type java.util.Map with key type java.lang.String and value type java.lang.String using a provider with key type java.lang.String and value type java.lang.Integer.')
     }
 
-    @Requires(
-        value = IntegTestPreconditions.NotConfigCached,
-        reason = "Test relies on modifying properties at execution time, but CC finalizes them before execution"
-    )
+    @UnsupportedWithConfigurationCache(because = "Changing property values at execution time for another task is not supported with configuration cache.")
     def "later entries replace earlier entries"() {
         given:
-        buildFile << '''
+        buildFile """
             verify.prop = ['key': 'value']
 
-            task replacingPut {
+            tasks.register("replacing") {
                 doLast {
-                    verify.prop.put('key', 'newValue')
-                    verify.expected = ['key': 'newValue']
+                    verify.prop.$updateAction
+                    verify.expected = $expectedValues
                 }
             }
-
-            task replacingPutWithProvider {
-                doLast {
-                    verify.prop.put('key', provider { 'newValue' })
-                    verify.expected = ['key': 'newValue']
-                }
-            }
-
-            task replacingPutAll {
-                doLast {
-                    verify.prop.putAll(['key': 'newValue', 'otherKey': 'otherValue'])
-                    verify.expected = ['key': 'newValue', 'otherKey': 'otherValue']
-                }
-            }
-
-            task replacingPutAllWithProvider {
-                doLast {
-                    verify.prop.putAll(provider { ['key': 'newValue', 'otherKey': 'otherValue'] })
-                    verify.expected = ['key': 'newValue', 'otherKey': 'otherValue']
-                }
-            }
-        '''.stripIndent()
+        """
 
         expect:
-        succeeds('replacingPut', 'verify')
-        and:
-        succeeds('replacingPutWithProvider', 'verify')
-        and:
-        succeeds('replacingPutAll', 'verify')
-        and:
-        succeeds('replacingPutAllWithProvider', 'verify')
+        succeeds('replacing', 'verify')
+
+        where:
+        updateAction                                                         | expectedValues
+        "put('key', 'newValue')"                                             | "['key': 'newValue']"
+        "put('key', provider { 'newValue' })"                                | "['key': 'newValue']"
+        "putAll(['key': 'newValue', 'otherKey': 'otherValue'])"              | "['key': 'newValue', 'otherKey': 'otherValue']"
+        "putAll(provider { ['key': 'newValue', 'otherKey': 'otherValue'] })" | "['key': 'newValue', 'otherKey': 'otherValue']"
+
     }
 
     def "puts to non-defined property do nothing"() {
@@ -713,7 +690,7 @@ task thing {
         fails("thing")
 
         then:
-        failure.assertHasDescription("Execution failed for task ':thing'.")
+        failure.assertHasDescription("Execution failed for task ':thing' (registered in build file 'build.gradle').")
         failure.assertHasCause("Cannot query the value of task ':thing' property 'prop' because it has no value available.")
     }
 
@@ -834,5 +811,47 @@ task thing {
         "entry provider"  | 'getting("42")'                       | false       | [":bar", ":baz", ":foo"] | "Entry is bar"
         "keySet provider" | 'keySet().map { it.sort().join(",")}' | true        | [":foo"]                 | "Entry is 1,42"
         "keySet provider" | 'keySet().map { it.sort().join(",")}' | false       | [":bar", ":baz", ":foo"] | "Entry is 1,42"
+    }
+
+    def "map property has separate identity per task with CC only"() {
+        given:
+        buildFile.delete()
+        buildKotlinFile '''
+            tasks {
+                val sharedMapProp = objects.mapProperty<String, String>()
+                register("foo") {
+                    val mapProp = objects.mapProperty<String, String>()
+                    doFirst {
+                        mapProp.put("k1", "A")
+                        sharedMapProp.put("k1", "A")
+                    }
+                    doLast {
+                        mapProp.put("k2", "B")
+                        sharedMapProp.put("k2", "B")
+                        println("mapProp = ${mapProp.get()}")
+                        println("FOO: sharedMapProp = ${sharedMapProp.get()}")
+                    }
+                }
+                register("bar") {
+                    dependsOn("foo")
+                    doFirst {
+                        sharedMapProp.put("k3", "C")
+                        println("BAR: sharedMapProp = ${sharedMapProp.get()}")
+                    }
+                }
+            }
+        '''
+
+        when:
+        succeeds("bar")
+
+        then:
+        outputContains("mapProp = {k1=A, k2=B}")
+        outputContains("FOO: sharedMapProp = {k1=A, k2=B}")
+        if (GradleContextualExecuter.configCache) {
+            outputContains("BAR: sharedMapProp = {k3=C}")
+        } else {
+            outputContains("BAR: sharedMapProp = {k1=A, k2=B, k3=C}")
+        }
     }
 }

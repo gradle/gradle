@@ -2,6 +2,7 @@ package org.gradle.kotlin.dsl.integration
 
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 
+import org.gradle.util.GradleVersion
 import org.hamcrest.CoreMatchers.containsString
 
 import org.hamcrest.MatcherAssert.assertThat
@@ -13,14 +14,32 @@ import org.junit.Test
  */
 class DelegatedGradlePropertiesIntegrationTest : AbstractKotlinIntegrationTest() {
 
+    private
+    fun expectDeprecation(feature: String, advice: String) {
+        executer.expectDocumentedDeprecationWarning(
+            "$feature has been deprecated. " +
+                "This is scheduled to be removed in Gradle 10. " +
+                "$advice " +
+                "Consult the upgrading guide for further information: " +
+                "https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_9.html#kotlin_dsl_delegated_properties"
+        )
+    }
+
     @Test
     fun `non-nullable delegated property access of non-existing gradle property throws`() {
 
         withSettings(
             """
+            @file:Suppress("DEPRECATION")
+
             val nonExisting: String by settings
             println(nonExisting)
             """
+        )
+
+        expectDeprecation(
+            "The 'val name: Type by settings' property delegate syntax",
+            "Use 'val property = providers.gradleProperty(name).get()' for Gradle properties or 'val property = extra[name] as Type' for extra properties instead."
         )
 
         assertThat(
@@ -31,9 +50,16 @@ class DelegatedGradlePropertiesIntegrationTest : AbstractKotlinIntegrationTest()
         withSettings("")
         withBuildScript(
             """
+            @file:Suppress("DEPRECATION")
+
             val nonExisting: String by project
             println(nonExisting)
             """
+        )
+
+        expectDeprecation(
+            "The 'val name: Type by project' property delegate syntax",
+            "Use 'val property = project.property(name)' instead."
         )
 
         assertThat(
@@ -89,16 +115,19 @@ class DelegatedGradlePropertiesIntegrationTest : AbstractKotlinIntegrationTest()
         )
 
         // when: both settings and project scripts asserting on delegated properties
-        withSettings(requirePropertiesFromSettings())
-        withBuildScript(requirePropertiesFromProject())
+        withSettings("@file:Suppress(\"DEPRECATION\")\n" + requirePropertiesFromSettings())
+        withBuildScript("@file:Suppress(\"DEPRECATION\")\n" + requirePropertiesFromProject())
 
         // then:
+        executer.noDeprecationChecks()
         build(*buildArguments)
 
         // when: project script buildscript block asserting on delegated properties
         withSettings("")
         withBuildScript(
             """
+            @file:Suppress("DEPRECATION")
+
             buildscript {
                 ${requirePropertiesFromProject()}
             }
@@ -106,6 +135,7 @@ class DelegatedGradlePropertiesIntegrationTest : AbstractKotlinIntegrationTest()
         )
 
         // then:
+        executer.noDeprecationChecks()
         build(*buildArguments)
     }
 

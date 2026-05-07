@@ -76,6 +76,11 @@ atlassian-ide-plugin.xml
 # ------------
 *.sublime-*
 
+# Draw.io
+# -------
+*.bkp
+*.dtmp
+
 # jEnv
 # ----
 .java-version
@@ -111,3 +116,10 @@ atlassian-ide-plugin.xml
 
 # Ignore local configuration files for asdf, allowing the JDK to be configured for project (https://asdf-vm.com)
 .tool-versions
+
+# AI 
+# ---
+.claude/CLAUDE.local.md
+.claude/settings.local.json
+.claude/worktrees
+

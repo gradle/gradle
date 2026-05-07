@@ -70,6 +70,8 @@ class ConfigurationCacheKey(
         putBoolean(startParameter.isOffline)
         putBoolean(startParameter.isIsolatedProjects)
         putBuildScan()
+        putDevelocityUrl()
+        putDevelocityPluginVersion()
         putBoolean(encryptionConfiguration.isEncrypting)
         putHash(encryptionConfiguration.encryptionKeyHashCode)
         putBoolean(startParameter.isDeduplicatingStrings)
@@ -89,6 +91,22 @@ class ConfigurationCacheKey(
                 }
             }
         )
+    }
+
+    private
+    fun Hasher.putDevelocityUrl() {
+        val develocityUrl = startParameter.develocityUrl
+        if (develocityUrl != null) {
+            putString(develocityUrl)
+        }
+    }
+
+    private
+    fun Hasher.putDevelocityPluginVersion() {
+        val develocityPluginVersion = startParameter.develocityPluginVersion
+        if (develocityPluginVersion != null) {
+            putString(develocityPluginVersion)
+        }
     }
 
     private

@@ -18,6 +18,7 @@ package org.gradle.internal.execution.steps
 
 import org.gradle.api.file.FileCollection
 import org.gradle.internal.execution.OutputChangeListener
+import org.gradle.internal.execution.OutputVisitor
 import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.file.TreeType
 
@@ -28,6 +29,7 @@ class BroadcastChangingOutputsStepTest extends StepSpec<InputChangesContext> {
     def step = new BroadcastChangingOutputsStep<>(outputChangeListener, delegate)
 
     def "notifies listener about specific outputs changing"() {
+        def work = Spy(UnitOfWork)
         def outputDir = file("output-dir")
         def localStateDir = file("local-state-dir")
         def destroyableDir = file("destroyable-dir")
@@ -41,8 +43,9 @@ class BroadcastChangingOutputsStepTest extends StepSpec<InputChangesContext> {
         step.execute(work, context)
 
         then:
-        _ * work.visitOutputs(_ as File, _ as UnitOfWork.OutputVisitor) >> { File workspace, UnitOfWork.OutputVisitor visitor ->
-            visitor.visitOutputProperty("output", TreeType.DIRECTORY, UnitOfWork.OutputFileValueSupplier.fromStatic(outputDir, Mock(FileCollection)))
+        _ * work.getAllOutputLocationsForInvalidation(_ as File)
+        _ * work.visitOutputs(_ as File, _ as OutputVisitor) >> { File workspace, OutputVisitor visitor ->
+            visitor.visitOutputProperty("output", TreeType.DIRECTORY, OutputVisitor.OutputFileValueSupplier.fromStatic(outputDir, Mock(FileCollection)))
             visitor.visitDestroyable(destroyableDir)
             visitor.visitLocalState(localStateDir)
         }
@@ -51,11 +54,10 @@ class BroadcastChangingOutputsStepTest extends StepSpec<InputChangesContext> {
         1 * outputChangeListener.invalidateCachesFor(changingOutputs)
 
         then:
-        1 * delegate.execute(work, _ as ChangingOutputsContext) >> delegateResult
+        1 * delegate.execute(work, _ as InputChangesContext) >> delegateResult
         then:
         1 * outputChangeListener.invalidateCachesFor(changingOutputs)
         then:
         0 * _
     }
-
 }

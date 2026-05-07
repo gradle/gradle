@@ -17,7 +17,6 @@
 package org.gradle.integtests.composite
 
 import org.gradle.integtests.fixtures.build.BuildTestFile
-import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
@@ -30,21 +29,19 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
     List arguments = []
 
     def setup() {
-        new ResolveTestFixture(buildA.buildFile).prepare()
-
         buildA.buildFile << """
             task resolve(type: Copy) {
                 from configurations.runtimeClasspath
                 into 'libs'
             }
-"""
+        """
 
         buildB = multiProjectBuild("buildB", ['b1', 'b2']) {
             buildFile << """
                 allprojects {
                     apply plugin: 'java'
                 }
-"""
+            """
         }
         includedBuilds << buildB
     }
@@ -615,7 +612,7 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
 
         then:
         failure
-            .assertHasDescription("Execution failed for task ':buildB:jar'")
+            .assertHasDescription("Execution failed for task ':buildB:jar' (registered by plugin 'org.gradle.java').")
             .assertHasCause("jar task failed")
     }
 
@@ -643,7 +640,7 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
 
         then:
         failure
-            .assertHasDescription("Execution failed for task ':buildC:jar'")
+            .assertHasDescription("Execution failed for task ':buildC:jar' (registered by plugin 'org.gradle.java').")
             .assertHasCause("jar task failed")
     }
 
@@ -683,7 +680,7 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
 
         then:
         failure.assertHasFailures(1)
-        failure.assertHasDescription("Execution failed for task ':buildB:b2:jar'.")
+        failure.assertHasDescription("Execution failed for task ':buildB:b2:jar' (registered by plugin 'org.gradle.java').")
         executed(":buildB:b1:jar", ":resolve", ":buildB:b2:jar")
         notExecuted(":resolveCompile")
     }

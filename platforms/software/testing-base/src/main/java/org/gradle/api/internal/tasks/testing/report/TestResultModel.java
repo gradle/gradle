@@ -18,6 +18,10 @@ package org.gradle.api.internal.tasks.testing.report;
 import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.internal.time.TimeFormatting;
 
+/**
+ * @deprecated Only present for compatibility with cashapp/paparazzi. No replacement.
+ */
+@Deprecated
 public abstract class TestResultModel {
 
     public abstract TestResult.ResultType getResultType();

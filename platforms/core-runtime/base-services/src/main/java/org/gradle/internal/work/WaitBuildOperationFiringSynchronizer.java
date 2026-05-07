@@ -59,13 +59,12 @@ public class WaitBuildOperationFiringSynchronizer implements Synchronizer {
     }
 
     @Override
-    public <T> T withLock(final Factory<T> action) {
+    public <T extends @Nullable Object> T withLock(final Factory<T> action) {
         final AtomicBoolean successfulWait = new AtomicBoolean(false);
         final BuildOperationContext buildOperationContext = startWaitingOperation();
 
         try {
             return delegate.withLock(new Factory<T>() {
-                @Nullable
                 @Override
                 public T create() {
                     successfulWait.set(true);

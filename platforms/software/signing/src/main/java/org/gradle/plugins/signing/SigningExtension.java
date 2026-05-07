@@ -192,6 +192,17 @@ public abstract class SigningExtension {
     }
 
     /**
+     * Configures the signatory provider with the given action.
+     *
+     * @param action the configuration action
+     * @since 9.3.0
+     */
+    @Incubating
+    public void signatories(Action<? super SignatoryProvider<?>> action) {
+        action.execute(getSignatories());
+    }
+
+    /**
      * The signatory that will be used for signing when an explicit signatory has not been specified.
      *
      * <p>Delegates to the signatory provider's default signatory.</p>
@@ -256,7 +267,7 @@ public abstract class SigningExtension {
      */
     @SuppressWarnings("unused")
     public void useInMemoryPgpKeys(@Nullable String defaultSecretKey, @Nullable String defaultPassword) {
-        setSignatories(new InMemoryPgpSignatoryProvider(defaultSecretKey, defaultPassword));
+        setSignatories(new InMemoryPgpSignatoryProvider(project, defaultSecretKey, defaultPassword));
     }
 
     /**
@@ -277,7 +288,7 @@ public abstract class SigningExtension {
      */
     @SuppressWarnings("unused")
     public void useInMemoryPgpKeys(@Nullable String defaultKeyId, @Nullable String defaultSecretKey, @Nullable String defaultPassword) {
-        setSignatories(new InMemoryPgpSignatoryProvider(defaultKeyId, defaultSecretKey, defaultPassword));
+        setSignatories(new InMemoryPgpSignatoryProvider(project, defaultKeyId, defaultSecretKey, defaultPassword));
     }
 
     /**

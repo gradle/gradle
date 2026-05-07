@@ -27,8 +27,11 @@ import org.gradle.internal.jvm.inspection.JvmInstallationMetadata
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
+import org.gradle.test.preconditions.InstalledJdkTestPreconditions
+import org.gradle.test.preconditions.OsTestPreconditions
+import org.gradle.test.preconditions.JdkVersionTestPreconditions
+
 import org.gradle.util.internal.TextUtil
 import spock.lang.Issue
 
@@ -266,6 +269,7 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
         assertToolchainUsages(events2, jdkMetadata2, "JavaLauncher")
     }
 
+    @Requires(InstalledJdkTestPreconditions.DifferentJdkAvailable)
     def "emits toolchain usages for compilation that configures #option via fork options"() {
         JvmInstallationMetadata curJdk = AvailableJavaHomes.getJvmInstallationMetadata(Jvm.current())
         JvmInstallationMetadata jdkMetadata = AvailableJavaHomes.getJvmInstallationMetadata(AvailableJavaHomes.differentJdk)
@@ -352,7 +356,7 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
         assertToolchainUsages(events, jdkMetadata, "JavaLauncher")
     }
 
-    @Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
+    @Requires(InstalledJdkTestPreconditions.JavaHomeWithDifferentVersionAvailable)
     def "emits toolchain usages for test that configures executable path overriding toolchain java extension"() {
         JvmInstallationMetadata jdkMetadata1 = AvailableJavaHomes.getJvmInstallationMetadata(Jvm.current())
         JvmInstallationMetadata jdkMetadata2 = AvailableJavaHomes.getJvmInstallationMetadata(AvailableJavaHomes.differentVersion)
@@ -397,12 +401,12 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
     }
 
     @Issue("https://github.com/gradle/gradle/issues/21368")
-    @Requires([IntegTestPreconditions.NotEmbeddedExecutor, UnitTestPreconditions.KotlinSupportedJdk])
+    @Requires([TestExecutionPreconditions.NotEmbeddedExecutor, JdkVersionTestPreconditions.KotlinSupportedJdk])
     def "emits toolchain usages when configuring toolchains for #kotlinPlugin Kotlin plugin '#kotlinPluginVersion'"() {
         // Kotlin doesn't support the latest JDK, see KotlinCompiler.toKotlinJvmTarget()
         // This must be synced with the older version listed in this test, so we can't reuse KotlinSupportedJdk's value here.
         JvmInstallationMetadata jdkMetadata = AvailableJavaHomes.getJvmInstallationMetadata(AvailableJavaHomes.getDifferentVersion({
-            it.javaMajorVersion <= 21
+            it.javaMajorVersion <= 24
         }))
 
         given:
@@ -460,7 +464,7 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
 
         where:
         kotlinPlugin | _
-        "2.0"        | _
+        "2.2"        | _
         "latest"     | _
 
         kotlinPluginVersion = kotlinPlugin == "latest" ? kgpLatestVersions.last() : latestStableKotlinPluginVersion(kotlinPlugin)
@@ -481,7 +485,7 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
         withInstallations(jdkMetadata).fails(task)
         def events = toolchainEvents(task)
         then:
-        failureDescriptionStartsWith("Execution failed for task '${task}'.")
+        failureDescriptionStartsWith("Execution failed for task '${task}' (registered by plugin class 'org.gradle.api.plugins.JavaBasePlugin').")
         failureHasCause("Compilation failed; see the compiler output below.")
         result.assertHasErrorOutput("Foo.java:2: error: cannot find symbol")
         assertToolchainUsages(events, jdkMetadata, "JavaCompiler")
@@ -505,7 +509,7 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
         withInstallations(jdkMetadata).fails(task)
         def events = toolchainEvents(task)
         then:
-        failureDescriptionStartsWith("Execution failed for task '${task}'.")
+        failureDescriptionStartsWith("Execution failed for task '$task'.")
         failureHasCause("There were failing tests.")
         assertToolchainUsages(events, jdkMetadata, "JavaLauncher")
     }
@@ -528,7 +532,7 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
         withInstallations(jdkMetadata).fails(task)
         def events = toolchainEvents(task)
         then:
-        failureDescriptionStartsWith("Execution failed for task '${task}'.")
+        failureDescriptionStartsWith("Execution failed for task '${task}' (registered by plugin 'org.gradle.java').")
         failureCauseContains("Javadoc generation failed")
         assertToolchainUsages(events, jdkMetadata, "JavadocTool")
     }
@@ -554,6 +558,83 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
         then:
         events.size() == 0
         output.contains(jdkMetadata.javaHome.toString())
+    }
+
+    @Requires(OsTestPreconditions.Unix)
+    def "emits toolchain usages for JavaExec task with configured executable that cannot be probed"() {
+        Jvm otherJvm = AvailableJavaHomes.differentVersion
+        JvmInstallationMetadata jdkMetadata = AvailableJavaHomes.getJvmInstallationMetadata(otherJvm)
+
+        def javaWrapper = JavaExecToolchainFixture.writeJavaWrapperThatCannotBeProbed(testDirectory, otherJvm.javaExecutable)
+
+        buildFile << """
+            compileJava {
+                javaCompiler = javaToolchains.compilerFor {
+                    languageVersion = JavaLanguageVersion.of(${jdkMetadata.languageVersion.majorVersion})
+                }
+            }
+
+            task run(type: JavaExec) {
+                classpath = sourceSets.main.runtimeClasspath
+                mainClass = 'Foo'
+                executable = '${TextUtil.normaliseFileSeparators(javaWrapper.absolutePath)}'
+            }
+        """
+        file("src/main/java/Foo.java") << """
+            public class Foo {
+                public static void main(String[] args) {
+                    System.out.println("Bar!");
+                }
+            }
+        """
+
+        def task = ":run"
+
+        when:
+        withInstallations(jdkMetadata).run(task)
+        def events = toolchainEvents(task)
+        then:
+        executedAndNotSkipped(task)
+        assertToolchainUsages(events, UNKNOWN_TOOLCHAIN, "JavaLauncher")
+    }
+
+    def "emits toolchain usages for JavaExec task with configured executable from a valid toolchain"() {
+        Jvm otherJvm = AvailableJavaHomes.differentVersion
+        JvmInstallationMetadata jdkMetadata = AvailableJavaHomes.getJvmInstallationMetadata(otherJvm)
+
+        buildFile << """
+            compileJava {
+                javaCompiler = javaToolchains.compilerFor {
+                    languageVersion = JavaLanguageVersion.of(${jdkMetadata.languageVersion.majorVersion})
+                }
+            }
+
+            def javaExecutable = javaToolchains.launcherFor {
+                languageVersion = JavaLanguageVersion.of(${jdkMetadata.languageVersion.majorVersion})
+            }.get().executablePath
+
+            task run(type: JavaExec) {
+                classpath = sourceSets.main.runtimeClasspath
+                mainClass = 'Foo'
+                executable = javaExecutable
+            }
+        """
+        file("src/main/java/Foo.java") << """
+            public class Foo {
+                public static void main(String[] args) {
+                    System.out.println("Bar!");
+                }
+            }
+        """
+
+        def task = ":run"
+
+        when:
+        withInstallations(jdkMetadata).run(task)
+        def events = toolchainEvents(task)
+        then:
+        executedAndNotSkipped(task)
+        assertToolchainUsages(events, jdkMetadata, "JavaLauncher")
     }
 
     private TestFile configureToolchainPerTask(JvmInstallationMetadata jdkMetadata) {
@@ -596,4 +677,15 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
         println(stable)
         return stable.last()
     }
+
+    private static final UNKNOWN_TOOLCHAIN = [
+        javaVersion: "unknown",
+        javaVendor: "unknown",
+        runtimeName: "unknown",
+        runtimeVersion: "unknown",
+        jvmName: "unknown",
+        jvmVersion: "unknown",
+        jvmVendor: "unknown",
+        architecture: "unknown",
+    ]
 }

@@ -27,14 +27,18 @@ import org.gradle.performance.results.DataReporter
 import org.gradle.performance.results.ResultsStoreHelper
 import org.gradle.profiler.BuildMutator
 import org.gradle.profiler.InvocationSettings
+import org.gradle.profiler.buildops.BuildOperationMeasurement
+import org.gradle.profiler.buildops.BuildOperationMeasurementKind
 import org.junit.Assume
 
 import java.util.function.Function
 
 @CompileStatic
-abstract class AbstractCrossBuildPerformanceTestRunner<R extends CrossBuildPerformanceResults> {
+abstract class AbstractCrossBuildPerformanceTestRunner<R extends CrossBuildPerformanceResults> implements PerformanceTestRunner<R> {
+
+    private final List<ExecutionInterceptor> interceptors = []
     private final List<Function<InvocationSettings, BuildMutator>> buildMutators = []
-    private final List<String> measuredBuildOperations = []
+    private final List<BuildOperationMeasurement> measuredBuildOperations = []
 
     final IntegrationTestBuildContext buildContext
     final GradleDistribution gradleDistribution
@@ -69,24 +73,55 @@ abstract class AbstractCrossBuildPerformanceTestRunner<R extends CrossBuildPerfo
         configureAndAddSpec(builder, configureAction)
     }
 
+    @Override
+    void addInterceptor(ExecutionInterceptor interceptor) {
+        assert specs.isEmpty() : "Must add interceptors before adding specs"
+        interceptors.add(interceptor)
+    }
+
+    @Override
     void addBuildMutator(Function<InvocationSettings, BuildMutator> buildMutator) {
+        assert specs.isEmpty() : "Must add build mutators before adding specs"
         buildMutators.add(buildMutator)
     }
 
-    void measureBuildOperation(String operation) {
-        measuredBuildOperations << operation
+    /**
+     * Requests a build operation to be measured by a given metric.
+     * <p>
+     * The {@code buildOperationType} is a FQCN of a class that has a direct nested {@code .Details} class,
+     * instance of which is attached to the operation descriptor ({@link org.gradle.internal.operations.BuildOperationDescriptor.Builder#details}).
+     * <p>
+     * Examples: {@code ConfigureBuildBuildOperationType}, {@code RunRootBuildWorkBuildOperationType}
+     * <p>
+     * Gradle Profiler will use an init script to wire the measurements.
+     * For instance, for {@code SomeOperation}, the build operations considered for this measurement
+     * will be filtered by an equivalent of the following:
+     * <pre>
+     * Class.forName("SomeOperation$Details")
+     *     .isAssignableFrom(buildOperationDescriptor.getDetails())
+     * </pre>
+     *
+     * @param buildOperationType FQCN of the type, whose {@code .Details} instances will be attached to the operation
+     * @param kind
+     *
+     * @see org.gradle.internal.operations.BuildOperationType
+     */
+    void measureBuildOperation(String buildOperationType, BuildOperationMeasurementKind kind) {
+        measuredBuildOperations << new BuildOperationMeasurement(buildOperationType, kind)
     }
 
     protected void configureGradleSpec(GradleBuildExperimentSpec.GradleBuilder builder) {
-        builder.measuredBuildOperations.addAll(measuredBuildOperations)
+        builder.buildOperationMeasurements.addAll(measuredBuildOperations)
         builder.measureGarbageCollection(measureGarbageCollection)
         builder.invocation.distribution(gradleDistribution)
     }
 
-    protected void configureAndAddSpec(BuildExperimentSpec.Builder builder, Closure<?> configureAction) {
+    protected void configureAndAddSpec(GradleBuildExperimentSpec.GradleBuilder builder, Closure<?> configureAction) {
         defaultSpec(builder)
         builder.with(configureAction as Closure<Object>)
         finalizeSpec(builder)
+
+        interceptors.each { it.intercept(builder) }
         def specification = builder.build()
 
         if (specs.any { it.displayName == specification.displayName }) {
@@ -120,6 +155,7 @@ abstract class AbstractCrossBuildPerformanceTestRunner<R extends CrossBuildPerfo
 
     abstract R newResult()
 
+    @Override
     R run() {
         assert !specs.empty
         assert testId
@@ -143,9 +179,14 @@ abstract class AbstractCrossBuildPerformanceTestRunner<R extends CrossBuildPerfo
     }
 
     void runAllSpecifications(R results) {
-        specs.each {
-            def operations = results.buildResult(it.displayInfo)
-            experimentRunner.run(testId, it, operations)
+        specs.each { spec ->
+            def operations = results.buildResult(spec.displayInfo)
+            try {
+                experimentRunner.run(testId, spec, operations)
+            } catch (Exception e) {
+                interceptors.each { it.handleFailure(e, spec) }
+                throw e
+            }
         }
     }
 

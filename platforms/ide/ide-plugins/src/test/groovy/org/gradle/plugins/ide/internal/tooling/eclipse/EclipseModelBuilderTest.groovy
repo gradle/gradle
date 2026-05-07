@@ -30,6 +30,7 @@ import org.gradle.plugins.ear.EarPlugin
 import org.gradle.plugins.ide.eclipse.EclipsePlugin
 import org.gradle.plugins.ide.eclipse.EclipseWtpPlugin
 import org.gradle.plugins.ide.eclipse.model.BuildCommand
+import org.gradle.plugins.ide.eclipse.model.EclipseModel
 import org.gradle.plugins.ide.eclipse.model.Link
 import org.gradle.plugins.ide.internal.configurer.EclipseModelAwareUniqueProjectNameProvider
 import org.gradle.plugins.ide.internal.tooling.EclipseModelBuilder
@@ -281,6 +282,39 @@ class EclipseModelBuilderTest extends AbstractProjectBuilderSpec {
         []           | ['i']
         ['e']        | ['i']
         ['e1', 'e2'] | ['i1', 'i2']
+    }
+
+    def "returns project dependencies in the order provided"() {
+        setup:
+        def modelBuilder = createEclipseModelBuilder()
+        Project child3 = ProjectBuilder.builder().withName("child3").withParent(project).build()
+        Project child4 = ProjectBuilder.builder().withName("child4").withParent(project).build()
+        Project child5 = ProjectBuilder.builder().withName("child5").withParent(project).build()
+        Project child6 = ProjectBuilder.builder().withName("child6").withParent(project).build()
+        [project, child1, child2, child3, child4, child5, child6].each {
+            it.plugins.apply(JavaPlugin)
+            it.plugins.apply(EclipsePlugin)
+        }
+        project.dependencies {
+            implementation project(path: ":child1")
+            implementation project(path: ":child2")
+            implementation project(path: ":child3")
+            implementation project(path: ":child4")
+            implementation project(path: ":child5")
+            implementation project(path: ":child6")
+        }
+        EclipseModel eclipseModel = project.getExtensions().getByType(EclipseModel.class)
+
+        when:
+        def elements = EclipseModelBuilder.gatherClasspathElements([:], eclipseModel.getClasspath(), true)
+
+        then:
+        elements.getProjectDependencies().get(0).path == 'child1'
+        elements.getProjectDependencies().get(1).path == 'child2'
+        elements.getProjectDependencies().get(2).path == 'child3'
+        elements.getProjectDependencies().get(3).path == 'child4'
+        elements.getProjectDependencies().get(4).path == 'child5'
+        elements.getProjectDependencies().get(5).path == 'child6'
     }
 
     def "can modify project attributes in before/when merged"() {

@@ -25,6 +25,7 @@ import java.util.Objects;
 public final class DefaultJavaAppStartScriptGenerationDetails implements JavaAppStartScriptGenerationDetails {
 
     private final String applicationName;
+    private final String gitRef;
     private final String optsEnvironmentVar;
     private final String exitEnvironmentVar;
     private final AppEntryPoint entryPoint;
@@ -34,9 +35,10 @@ public final class DefaultJavaAppStartScriptGenerationDetails implements JavaApp
     private final String scriptRelPath;
     private final String appNameSystemProperty;
 
-    public DefaultJavaAppStartScriptGenerationDetails(String applicationName, String optsEnvironmentVar, String exitEnvironmentVar, AppEntryPoint entryPoint,
+    public DefaultJavaAppStartScriptGenerationDetails(String applicationName, String gitRef, String optsEnvironmentVar, String exitEnvironmentVar, AppEntryPoint entryPoint,
                                                       List<String> defaultJvmOpts, List<String> classpath, List<String> modulePath, String scriptRelPath, @Nullable String appNameSystemProperty) {
         this.applicationName = applicationName;
+        this.gitRef = gitRef;
         this.optsEnvironmentVar = optsEnvironmentVar;
         this.exitEnvironmentVar = exitEnvironmentVar;
         this.entryPoint = entryPoint;
@@ -50,6 +52,11 @@ public final class DefaultJavaAppStartScriptGenerationDetails implements JavaApp
     @Override
     public String getApplicationName() {
         return applicationName;
+    }
+
+    @Override
+    public String getGitRef() {
+        return gitRef;
     }
 
     @Override
@@ -118,6 +125,9 @@ public final class DefaultJavaAppStartScriptGenerationDetails implements JavaApp
         if (!Objects.equals(applicationName, that.applicationName)) {
             return false;
         }
+        if (!Objects.equals(gitRef, that.gitRef)) {
+            return false;
+        }
         if (!Objects.equals(classpath, that.classpath)) {
             return false;
         }
@@ -146,6 +156,7 @@ public final class DefaultJavaAppStartScriptGenerationDetails implements JavaApp
     @Override
     public int hashCode() {
         int result = applicationName != null ? applicationName.hashCode() : 0;
+        result = 31 * result + (gitRef != null ? gitRef.hashCode() : 0);
         result = 31 * result + (optsEnvironmentVar != null ? optsEnvironmentVar.hashCode() : 0);
         result = 31 * result + (exitEnvironmentVar != null ? exitEnvironmentVar.hashCode() : 0);
         result = 31 * result + (entryPoint != null ? entryPoint.hashCode() : 0);

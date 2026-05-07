@@ -191,7 +191,7 @@ gradle.rootProject { task a }
 
         then:
         failure.assertHasFailures(2)
-        failure.assertHasDescription("Execution failed for task ':broken'.")
+        failure.assertHasDescription("Execution failed for task ':broken' (registered in build file 'build.gradle').")
                 .assertHasCause("broken task")
                 .assertHasFileName("Build file '$buildFile'")
                 .assertHasLineNumber(6)

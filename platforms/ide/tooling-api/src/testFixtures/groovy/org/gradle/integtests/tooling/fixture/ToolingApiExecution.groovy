@@ -16,7 +16,6 @@
 
 package org.gradle.integtests.tooling.fixture
 
-import org.gradle.api.internal.jvm.JavaVersionParser
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.extensions.AbstractMultiTestInterceptor
 import org.gradle.util.GradleVersion
@@ -24,6 +23,7 @@ import org.spockframework.runtime.extension.IMethodInvocation
 
 import java.util.function.Predicate
 import java.util.stream.Collectors
+import java.util.stream.Stream
 
 class ToolingApiExecution extends AbstractMultiTestInterceptor.Execution {
 
@@ -85,42 +85,45 @@ class ToolingApiExecution extends AbstractMultiTestInterceptor.Execution {
 
     @Override
     boolean isTestEnabled(AbstractMultiTestInterceptor.TestDetails testDetails) {
-        // We cannot use JavaVersionParser.parseCurrentMajorVersion, since that method
-        // is new and the target distribution version of the class sometimes shadows the
-        // version of this class that has the new method.
-        int currentJavaVersion = JavaVersionParser.parseMajorVersion(System.getProperty("java.version"))
-        return toolingApiSupported(testDetails, currentJavaVersion) && daemonSupported(testDetails, currentJavaVersion)
+        return toolingApiSupported(testDetails) && daemonSupported(testDetails)
     }
 
-    private boolean daemonSupported(AbstractMultiTestInterceptor.TestDetails testDetails, int jvmVersion) {
+    private boolean daemonSupported(AbstractMultiTestInterceptor.TestDetails testDetails) {
         List<TargetGradleVersion> gradleVersionAnnotations = testDetails.getAnnotations(TargetGradleVersion)
-        return toVersionPredicate(gradleVersionAnnotations).test(this.gradleVersion) && gradle.daemonWorksWith(jvmVersion)
+        return toVersionPredicate(gradleVersionAnnotations).test(this.gradleVersion)
     }
 
-    private boolean toolingApiSupported(AbstractMultiTestInterceptor.TestDetails testDetails, int jvmVersion) {
+    private boolean toolingApiSupported(AbstractMultiTestInterceptor.TestDetails testDetails) {
         List<ToolingApiVersion> toolingVersionAnnotations = testDetails.getAnnotations(ToolingApiVersion)
-        return toVersionPredicate(toolingVersionAnnotations).test(this.toolingApiVersion) && toolingApi.clientWorksWith(jvmVersion)
+        return toVersionPredicate(toolingVersionAnnotations).test(this.toolingApiVersion)
     }
 
     private static Predicate<GradleVersion> toVersionPredicate(List<?> annotations) {
         if (annotations.isEmpty()) {
             return (v) -> true;
         }
-        List<Predicate<GradleVersion>> predicates = annotations.stream().map { annotation ->
-            GRADLE_VERSION_PREDICATE.toPredicate(constraintFor(annotation))
-        }.collect(Collectors.toList())
+        List<Predicate<GradleVersion>> predicates = annotations.stream()
+                .flatMap { annotation -> constraintsFor(annotation) }
+                .map(constraint -> GRADLE_VERSION_PREDICATE.toPredicate(constraint))
+                .collect(Collectors.toList())
         return (v) -> predicates.stream().allMatch { it.test(v) }
     }
 
-    private static String constraintFor(annotation) {
-        if(annotation.value() == "current"){
-            return "=${INSTALLATION_GRADLE_VERSION.baseVersion.version}"
-        }
-        return annotation.value()
+    private static Stream<String> constraintsFor(annotation) {
+        def patterns = annotation.value().split(/\s+/)*.trim()
+        return patterns.stream().map(
+                pattern -> {
+                    if ("current".equals(pattern)) {
+                        return "=${INSTALLATION_GRADLE_VERSION.baseVersion.version}" // special handling, needs an extra equals prefix
+                    } else {
+                        pattern.replaceAll("current", "${INSTALLATION_GRADLE_VERSION.baseVersion.version}")
+                    }
+                }
+        )
     }
 
     @Override
     protected void before(IMethodInvocation invocation) {
-        ((ToolingApiSpecification) invocation.getInstance()).setTargetDist(gradle)
+        ((ToolingApiSpecification) invocation.getInstance()).setTargetDistAndToolingApiVersion(gradle, toolingApiVersion)
     }
 }

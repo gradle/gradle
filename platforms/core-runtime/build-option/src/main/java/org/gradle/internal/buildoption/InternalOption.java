@@ -19,14 +19,48 @@ package org.gradle.internal.buildoption;
 import org.jspecify.annotations.Nullable;
 
 /**
- * An internal Gradle option, that can be set using a system property.
+ * An internal Gradle option that can be defined in (first one wins):
+ * <ol>
+ *     <li>A system property ({@code -Dorg.gradle.internal.…})</li>
+ *     <li>Gradle User Home {@code gradle.properties}</li>
+ *     <li>Build root {@code gradle.properties}</li>
+ *     <li>Gradle installation (GRADLE_HOME) {@code gradle.properties}</li>
+ * </ol>
  *
- * @param <T> The value of the option.
+ * Values are scoped to the build tree and are not overridden by included builds.
+ *
+ * @param <T> the type of the option value
+ * @see InternalOptions
  */
-public interface InternalOption<T extends @Nullable Object> extends Option {
-    T getDefaultValue();
+public abstract class InternalOption<T extends @Nullable Object> implements Option {
 
-    String getSystemPropertyName();
+    private final static String INTERNAL_PROPERTY_PREFIX = "org.gradle.internal.";
 
-    T convert(String value);
+    private final String propertyName;
+
+    public InternalOption(String propertyName) {
+        if (!isInternalOption(propertyName)) {
+            throw new IllegalArgumentException("Internal property name must start with '" + INTERNAL_PROPERTY_PREFIX + "', got '" + propertyName + "'");
+        }
+
+        this.propertyName = propertyName;
+    }
+
+    public String getPropertyName() {
+        return propertyName;
+    }
+
+    public abstract T getDefaultValue();
+
+    public abstract T convert(String value);
+
+    @Override
+    public String toString() {
+        return "InternalOption('" + getPropertyName() + "', default=" + getDefaultValue() + ")";
+    }
+
+    public static boolean isInternalOption(String name) {
+        return name.startsWith(INTERNAL_PROPERTY_PREFIX) ||
+            name.equals("org.gradle.unsafe.suppress-gradle-api"); // TODO: remove this exception, once the property is either removed or becomes public
+    }
 }

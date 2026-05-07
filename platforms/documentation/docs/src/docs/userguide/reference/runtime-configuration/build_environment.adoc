@@ -20,6 +20,7 @@ Configuring the build environment is a powerful way to customize the build proce
 There are many mechanisms available.
 By leveraging these mechanisms, you can make your Gradle builds more flexible and adaptable to different environments and requirements.
 
+[[sec:available_mechanisms]]
 == Available mechanisms
 
 Gradle provides multiple mechanisms for configuring the behavior of Gradle itself and specific projects:
@@ -49,6 +50,7 @@ Gradle provides multiple mechanisms for configuring the behavior of Gradle itsel
 |`JAVA_HOME`
 |===
 
+[[sec:priority_for_configurations]]
 == Priority for configurations
 
 When configuring Gradle behavior, you can use these methods, but you must consider their priority.
@@ -104,6 +106,7 @@ org.gradle.java.home=/path/to/your/java/home
 $ export JAVA_HOME=/path/to/your/java/home
 ----
 
+[[sec:the_gradle_properties_file]]
 == The `gradle.properties` file
 
 Gradle properties, system properties, and project properties can be found in the `gradle.properties` file:
@@ -131,6 +134,11 @@ You can place the `gradle.properties` file in the root directory of your project
 
 When resolving properties, Gradle first looks in the user-level `gradle.properties` file located in `GRADLE_USER_HOME`, then in the project-level `gradle.properties` file, and finally in the `gradle.properties` file located in `GRADLE_HOME`, with user-level properties taking precedence over project-level and installation-level properties.
 
+[NOTE]
+====
+See <<best_practices_general.adoc#do_not_use_gradle_properties_in_subprojects,our Best Practice recommendation>> on where to locate `gradle.properties` for further guidance.
+====
+
 [[sec:project_properties]]
 == Project properties
 
@@ -138,6 +146,7 @@ Project properties are specific to your Gradle project, they can be used to cust
 Project properties can be accessed in your build files and get passed in from an external source when your build is executed.
 Project properties can be retrieved in build scripts <<glossary.adoc#sub:terminology_lazy,lazily>> using `providers.gradleProperty()`.
 
+[[setting_a_project_property]]
 === Setting a project property
 
 You have four options to add project properties, listed in order of priority:
@@ -180,26 +189,48 @@ $ export ORG_GRADLE_PROJECT_myProperty='Hi, world'
 +
 This is typically the preferred method for supplying project properties, especially secrets, to unattended builds like those running on CI servers.
 
+[[accessing_a_project_property]]
+=== Accessing a project property
+
+The recommended way to access a project property is through the <<lazy_configuration.adoc#lazy_properties,Provider API>>:
+
+[source,kotlin]
+----
+val myProperty: Provider<String> = providers.gradleProperty("myProperty")
+----
+
+The returned `Provider` is lazy and compatible with the <<configuration_cache_requirements.adoc#config_cache:requirements:reading_sys_props_and_env_vars,Configuration Cache>>.
+The provider resolves the property from the build-level sources listed above: command-line `-P` arguments, `org.gradle.project.pass:[*]` system properties, `ORG_GRADLE_PROJECT_pass:[*]` environment variables, and `gradle.properties` files in the Gradle User Home, build root, and Gradle installation directories.
+
+[NOTE]
+====
+`providers.gradleProperty()` does not include properties from `gradle.properties` files in subproject directories, nor extra properties or other properties set dynamically on individual `Project` instances.
+To access those, use `project.findProperty("name")` or extra properties directly.
+====
+
+For other ways to access properties, see the following methods on the link:{groovyDslPath}/org.gradle.api.Project.html[Project] object:
+
+- `findProperty("name")` — returns the value or `null`, checking dynamically configured containers, like extra properties, and parent projects as well.
+- `property("name")` — returns the value or throws if the property is missing
+- `hasProperty("name")` — checks if the property exists
+
 It is possible to change the behavior of a task based on project properties specified at invocation time.
 Suppose you’d like to ensure release builds are only triggered by CI.
 A simple way to handle this is through an `isCI` project property:
 
-++++
-<div style="text-align: right;">
-  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/tutorial/configureTaskUsingProjectProperty">
-    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
-  </a>
-</div>
-++++
-
 ====
-include::sample[dir="snippets/tutorial/configureTaskUsingProjectProperty/kotlin",files="build.gradle.kts[]"]
-include::sample[dir="snippets/tutorial/configureTaskUsingProjectProperty/groovy",files="build.gradle[]"]
+include::sample[dir="snippets/reference/runtime-configuration/configureTaskUsingProjectProperty/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="snippets/reference/runtime-configuration/configureTaskUsingProjectProperty/groovy",files="build.gradle[]"]
+====
+
+[source,bash]
 ----
 $ ./gradlew performRelease -PisCI=true --quiet
-include::{snippetsPath}/tutorial/configureTaskUsingProjectProperty/tests/configureTaskUsingProjectProperty.out[]
 ----
-====
+[source,text]
+----
+include::{snippetsPath}/reference/runtime-configuration/configureTaskUsingProjectProperty/tests/configureTaskUsingProjectProperty.out[]
+----
 
 Note that running `./gradlew performRelease` yields the same results as long as your `gradle.properties` file includes `isCI=true`:
 
@@ -212,7 +243,10 @@ isCI=true
 [source,bash]
 ----
 $ ./gradlew performRelease --quiet
-include::{snippetsPath}/tutorial/configureTaskUsingProjectProperty/tests/configureTaskUsingProjectProperty.out[]
+----
+[source,text]
+----
+include::{snippetsPath}/reference/runtime-configuration/configureTaskUsingProjectProperty/tests/configureTaskUsingProjectProperty.out[]
 ----
 
 [[sec:gradle_command_line_flags]]
@@ -226,6 +260,7 @@ The command line interface and the available flags are described in <<command_li
 System properties are variables set at the JVM level and accessible to the Gradle build process.
 System properties can be retrieved in build scripts <<glossary.adoc#sub:terminology_lazy,lazily>> using `providers.systemProperty()`.
 
+[[setting_a_system_property]]
 === Setting a system property
 
 You have two options to add system properties listed in order of priority:
@@ -245,6 +280,7 @@ $ ./gradlew build -Dgradle.wrapperUser=myuser
 systemProp.gradle.wrapperUser=myuser
 ----
 
+[[system_properties_reference]]
 === System properties reference
 
 For a quick reference, the following are _common_ system properties:
@@ -265,6 +301,7 @@ Only the root project's `gradle.properties` file will be checked for properties 
 Gradle properties configure Gradle itself and usually have the name `org.gradle.*`.
 Gradle properties should not be used in build logic, their values should not be read/retrieved in build scripts.
 
+[[setting_a_gradle_property]]
 === Setting a Gradle property
 
 You have two options to add Gradle properties listed in order of priority:
@@ -314,6 +351,7 @@ If an option is configured in multiple locations, the _first one_ found in any o
 
 NOTE: The location of the `GRADLE_USER_HOME` may have been changed beforehand via the `-Dgradle.user.home` system property passed on the command line.
 
+[[gradle_properties_reference]]
 === Gradle properties reference
 
 For reference, the following properties are common Gradle properties:
@@ -432,6 +470,13 @@ _Default is `.gradle`._
 Enable (`true`) or disable (`false`) the generation of `build/reports/problems-report.html`. `true` is the default.
 The report is generated with problems provided to the <<reporting_problems.adoc#sec:reporting_problems,Problems API>>.
 
+`org.gradle.tooling.parallel=(true,false)` since-gradle-label:9.4.0[]::
+
+Allows running <<service_injection.adoc#toolingmodelbuilderregistry,Tooling Model Builders>> in parallel, which can improve IDE Sync times.
+An explicit value will override `org.gradle.parallel` in this context.
++
+_Default is the value of `org.gradle.parallel`._
+
 `org.gradle.unsafe.isolated-projects=(true,false)`::
 Enables project isolation, which enables configuration caching.
 +
@@ -453,6 +498,7 @@ When set to `all`, `summary`, or `none`, Gradle will use <<command_line_interfac
 +
 _Default is `summary`._
 
+[[sec:property:workers_max]]
 `org.gradle.workers.max=(max # of worker processes)`::
 When configured, Gradle will use a maximum of the <<command_line_interface.adoc#sec:command_line_performance,given number of workers>>.
 +
@@ -464,6 +510,7 @@ _Default is the number of CPU processors._
 Gradle provides a number of environment variables, which are listed below.
 Environment variables can be retrieved in build scripts <<glossary.adoc#sub:terminology_lazy,lazily>> using `providers.environmentVariable()`.
 
+[[setting_environment_variables]]
 === Setting environment variables
 
 Let's take an example that sets the $JAVA_HOME environment variable:
@@ -486,6 +533,7 @@ task printEnvVariables {
 
 ----
 
+[[environment_variables_reference]]
 === Environment variables reference
 
 The following environment variables are available for the `gradle` command:
@@ -515,6 +563,19 @@ Specifies the `GRADLE_USER_HOME` directory for Gradle to store its global config
 +
 Defaults to `USER_HOME/.gradle` if not set.
 
+`GRADLE_DAEMON_BIND_ADDRESS`::
+Specifies the IP address or hostname that Gradle uses to bind the local socket for client-daemon and cross-daemon communication.
++
+By default, Gradle automatically selects the loopback address (or wildcard address as a fallback) for this socket.
+This may not work correctly in environments with specific network configurations, such as multiple network interfaces, multiple TCP/IP stacks etc.
++
+Setting this variable skips auto-detection and uses the provided address directly:
++
+[source,text]
+----
+GRADLE_DAEMON_BIND_ADDRESS=192.168.1.10 ./gradlew build
+----
+
 `JAVA_HOME`::
 Specifies the JDK installation directory to use for the client VM.
 +
@@ -526,3 +587,10 @@ Overrides for the default Gradle library repository.
 Can be used to specify a default Gradle repository URL in `org.gradle.plugins.ide.internal.resolver`.
 +
 Useful override to specify an internally hosted repository if your company uses a firewall/proxy.
+
+`NO_COLOR`::
+When present and non-empty, disables color output while preserving other styling (bold, underline) and rich features (progress bars, animations).
++
+Follows the link:https://no-color.org/[no-color.org] convention.
+See <<command_line_interface.adoc#sec:command_line_customizing_log_format,Customizing log format>> for more options.
+

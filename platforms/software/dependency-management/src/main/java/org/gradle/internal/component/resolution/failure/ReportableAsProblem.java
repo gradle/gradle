@@ -17,7 +17,7 @@
 package org.gradle.internal.component.resolution.failure;
 
 import org.gradle.api.problems.Problem;
-import org.gradle.api.problems.internal.InternalProblems;
+import org.gradle.api.problems.internal.ProblemsInternal;
 
 /**
  * Represents a {@link Throwable} that can be reported as a {@link Problem} to
@@ -32,7 +32,7 @@ import org.gradle.api.problems.internal.InternalProblems;
  */
 public interface ReportableAsProblem {
     /**
-     * Reports this exception as a problem to the given {@link InternalProblems} service.
+     * Reports this exception as a problem to the given {@link ProblemsInternal} service.
      * <p>
      * This method returns the exception itself, so that it can be thrown immediately after the problem is reported.
      *
@@ -40,5 +40,5 @@ public interface ReportableAsProblem {
      * @return the exception to report (should be {@code this})
      */
     @SuppressWarnings("UnusedReturnValue")
-    Throwable reportAsProblem(InternalProblems problemsService);
+    Throwable reportAsProblem(ProblemsInternal problemsService);
 }

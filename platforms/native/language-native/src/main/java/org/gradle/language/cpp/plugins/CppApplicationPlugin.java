@@ -19,7 +19,6 @@ package org.gradle.language.cpp.plugins;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.internal.attributes.AttributesFactory;
-import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.language.cpp.CppApplication;
 import org.gradle.language.cpp.CppExecutable;
@@ -65,7 +64,6 @@ public abstract class CppApplicationPlugin implements Plugin<Project> {
     public void apply(final Project project) {
         project.getPluginManager().apply(CppBasePlugin.class);
 
-        final ObjectFactory objectFactory = project.getObjects();
         final ProviderFactory providers = project.getProviders();
 
         // Add the application and extension
@@ -98,7 +96,7 @@ public abstract class CppApplicationPlugin implements Plugin<Project> {
 
         project.afterEvaluate(p -> {
             // TODO: make build type configurable for components
-            Dimensions.applicationVariants(application.getBaseName(), application.getTargetMachines(), objectFactory, attributesFactory,
+            Dimensions.applicationVariants(application.getBaseName(), application.getTargetMachines(), attributesFactory,
                     providers.provider(() -> project.getGroup().toString()), providers.provider(() -> project.getVersion().toString()),
                     variantIdentity -> {
                         if (tryToBuildOnHost(variantIdentity)) {

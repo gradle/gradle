@@ -17,15 +17,16 @@
 package org.gradle.testkit.runner
 
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
+import org.gradle.test.preconditions.JdkVersionTestPreconditions
+
 import org.gradle.testkit.runner.fixtures.NonCrossVersion
 import org.gradle.util.GradleVersion
 import org.gradle.util.internal.TextUtil
 
 @NonCrossVersion
 @Requires(
-    value = [IntegTestPreconditions.NotEmbeddedExecutor, UnitTestPreconditions.Jdk15OrEarlier],
+    value = [TestExecutionPreconditions.NotEmbeddedExecutor, JdkVersionTestPreconditions.Jdk15OrEarlier],
     reason = "Gradle 6.8.3 uses Groovy 2 and this does not support JDK16+"
 )
 class GradleRunnerCrossGroovyVersionIntegrationTest extends BaseGradleRunnerIntegrationTest {
@@ -89,7 +90,7 @@ class BuildLogicFunctionalTest extends Specification {
             .withProjectDir(testProjectDir.getRoot())
             .withArguments('testGroovyVersion', '--stacktrace', '--info')
             .withGradleInstallation(new File("${TextUtil.normaliseFileSeparators(buildContext.gradleHomeDir.absolutePath)}"))
-            .withDebug($debug)
+            .withDebug($embedded)
             .build()
 
         then:

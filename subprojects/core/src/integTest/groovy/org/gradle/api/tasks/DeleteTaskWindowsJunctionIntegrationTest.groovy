@@ -18,11 +18,12 @@ package org.gradle.api.tasks
 
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.OsTestPreconditions
+
 
 import static org.gradle.util.WindowsSymbolicLinkUtil.createWindowsJunction
 
-@Requires(UnitTestPreconditions.Windows)
+@Requires(OsTestPreconditions.Windows)
 class DeleteTaskWindowsJunctionIntegrationTest extends DeleteIntegrationTest {
     @Override
     protected void createSymbolicLink(TestFile link, TestFile target) {

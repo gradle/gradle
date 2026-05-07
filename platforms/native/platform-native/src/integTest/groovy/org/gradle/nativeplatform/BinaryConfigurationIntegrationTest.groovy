@@ -22,8 +22,9 @@ import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
+import org.gradle.test.preconditions.TestEnvironmentPreconditions
+
 import org.hamcrest.CoreMatchers
 import spock.lang.Issue
 
@@ -108,7 +109,7 @@ model {
         // TODO - need to verify that the debug info ended up in the binary
     }
 
-    @Requires(UnitTestPreconditions.CanInstallExecutable)
+    @Requires(TestEnvironmentPreconditions.CanInstallExecutable)
     def "can configure the binaries of a C++ library"() {
         given:
         buildFile << """
@@ -211,7 +212,7 @@ model {
     }
 
     @Issue("GRADLE-2973")
-    @Requires(IntegTestPreconditions.IsParallelExecutor)
+    @Requires(TestExecutionPreconditions.IsParallelExecutor)
     def "releases cache lock when compilation fails with --parallel"() {
         def helloWorldApp = new CppHelloWorldApp()
         given:
@@ -282,7 +283,7 @@ model {
 
     @Issue("https://github.com/gradle/gradle-native/issues/368")
     @RequiresInstalledToolChain(VISUALCPP)
-    @Requires(UnitTestPreconditions.CanInstallExecutable)
+    @Requires(TestEnvironmentPreconditions.CanInstallExecutable)
     def "can configure output file for shared library on MSVC"() {
         given:
         def app = new CppHelloWorldApp()
@@ -321,7 +322,7 @@ model {
         file("build/libs/hello/shared/runtime/new_output/_hello.dll").assertExists()
     }
 
-    @Requires(UnitTestPreconditions.CanInstallExecutable)
+    @Requires(TestEnvironmentPreconditions.CanInstallExecutable)
     def "can link to #linkage library binary with custom output file"() {
         given:
         def app = new CppHelloWorldApp()

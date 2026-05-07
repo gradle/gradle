@@ -19,7 +19,8 @@ package org.gradle.language
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.HelloWorldApp
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.TestEnvironmentPreconditions
+
 
 abstract class AbstractNativeLanguageIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
 
@@ -104,7 +105,7 @@ abstract class AbstractNativeLanguageIntegrationTest extends AbstractInstalledTo
         mainExecutable.exec().out == helloWorldApp.frenchOutput
     }
 
-    @Requires(UnitTestPreconditions.CanInstallExecutable)
+    @Requires(TestEnvironmentPreconditions.CanInstallExecutable)
     def "install and run executable with dependencies"() {
         given:
         buildFile << """
@@ -137,7 +138,7 @@ abstract class AbstractNativeLanguageIntegrationTest extends AbstractInstalledTo
         install.exec().out == helloWorldApp.englishOutput
     }
 
-    @Requires(UnitTestPreconditions.CanInstallExecutable)
+    @Requires(TestEnvironmentPreconditions.CanInstallExecutable)
     def "install and run executable with dependencies and customized installation"() {
         given:
         buildFile << """
@@ -170,7 +171,7 @@ abstract class AbstractNativeLanguageIntegrationTest extends AbstractInstalledTo
         install.exec().out == helloWorldApp.englishOutput
     }
 
-    @Requires(UnitTestPreconditions.CanInstallExecutable)
+    @Requires(TestEnvironmentPreconditions.CanInstallExecutable)
     def "build shared library and link into executable"() {
         given:
         buildFile << """
@@ -203,7 +204,7 @@ abstract class AbstractNativeLanguageIntegrationTest extends AbstractInstalledTo
         install.exec().out == helloWorldApp.englishOutput
     }
 
-    @Requires(UnitTestPreconditions.CanInstallExecutable)
+    @Requires(TestEnvironmentPreconditions.CanInstallExecutable)
     def "build static library and link into executable"() {
         given:
         buildFile << """

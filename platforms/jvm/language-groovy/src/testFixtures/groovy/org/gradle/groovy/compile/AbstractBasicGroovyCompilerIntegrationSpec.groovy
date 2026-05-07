@@ -26,7 +26,10 @@ import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.OsTestPreconditions
+import org.gradle.test.preconditions.JdkVersionTestPreconditions
+import org.gradle.test.preconditions.TestEnvironmentPreconditions
+
 import org.gradle.testing.fixture.GroovyCoverage
 import org.junit.Assume
 import org.junit.Rule
@@ -443,8 +446,8 @@ abstract class AbstractBasicGroovyCompilerIntegrationSpec extends MultiVersionIn
     // JavaFx was removed in JDK 10
     // We don't have Oracle Java 8 on Windows any more
     @Requires([
-        UnitTestPreconditions.Jdk9OrEarlier,
-        UnitTestPreconditions.NotWindows
+        JdkVersionTestPreconditions.Jdk9OrEarlier,
+        OsTestPreconditions.NotWindows
     ])
     def "compileJavaFx8Code"() {
         Assume.assumeFalse("Setup invalid with toolchains", getClass().name.contains('Toolchain') && !getClass().name.contains('SameToolchain'))
@@ -473,7 +476,7 @@ abstract class AbstractBasicGroovyCompilerIntegrationSpec extends MultiVersionIn
 
     @Ignore
     @Issue("https://issues.gradle.org/browse/GRADLE-3377")
-    @Requires(UnitTestPreconditions.Online)
+    @Requires(TestEnvironmentPreconditions.Online)
     def "can compile with Groovy library resolved by classifier"() {
         def gradleBaseServicesClass = Action
         buildFile """

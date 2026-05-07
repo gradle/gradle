@@ -21,9 +21,9 @@ import org.gradle.integtests.fixtures.GroovyBuildScriptLanguage
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 
-@Requires(IntegTestPreconditions.IsEmbeddedExecutor)
+@Requires(TestExecutionPreconditions.IsEmbeddedExecutor)
 // this test only works in embedded mode because of the use of validation test fixtures
 class TaskFromPluginValidationIntegrationTest extends AbstractIntegrationSpec implements ValidationMessageChecker {
 
@@ -124,8 +124,6 @@ class TaskFromPluginValidationIntegrationTest extends AbstractIntegrationSpec im
         file("my-plugin/src/main/groovy/org/gradle/integtests/fixtures/validation/ValidationProblem.groovy") << """
 package org.gradle.integtests.fixtures.validation;
 
-import org.gradle.api.problems.Severity;
-
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -138,7 +136,7 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target([ElementType.METHOD, ElementType.FIELD])
 public @interface ValidationProblem {
-    Severity value() default Severity.WARNING;
+    boolean fatal() default false;
 }
         """
     }
@@ -154,10 +152,9 @@ public @interface ValidationProblem {
     private void writeTaskInto(@GroovyBuildScriptLanguage String header = "", TestFile testFile) {
         testFile << """$header
             import org.gradle.integtests.fixtures.validation.ValidationProblem
-            import org.gradle.api.problems.Severity
 
             abstract class SomeTask extends DefaultTask {
-                @ValidationProblem(value=Severity.ERROR)
+                @ValidationProblem(fatal=true)
                 abstract Property<String> getInput()
 
                 @OutputFile

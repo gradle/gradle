@@ -1,0 +1,968 @@
+// Copyright (C) 2025 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[best_practices_general]]
+= General Gradle Best Practices
+
+[[use_kotlin_dsl]]
+== Use Kotlin DSL
+
+Prefer the Kotlin DSL (`build.gradle.kts`) over the Groovy DSL (`build.gradle`) when authoring new builds or creating new subprojects in existing builds.
+
+=== Explanation
+
+The Kotlin DSL offers several advantages over the Groovy DSL:
+
+* *Strict typing*: IDEs provide better auto-completion and navigation with the Kotlin DSL.
+* *Improved readability*: Code written in Kotlin is often easier to follow and understand.
+* *Single-language stack*: Projects that already use Kotlin for production and test code don’t need to introduce Groovy just for the build.
+
+Since Gradle 8.0, link:https://blog.gradle.org/kotlin-dsl-is-now-the-default-for-new-gradle-builds[Kotlin DSL is the default] for new builds created with `gradle init`.
+Android Studio also link:https://developer.android.com/build/migrate-to-kotlin-dsl#timeline[defaults to Kotlin DSL].
+
+=== References
+
+- <<kotlin_dsl.adoc#kotdsl:kotlin_dsl,Kotlin DSL Primer>>
+
+=== Tags
+
+<<tags_reference.adoc#tag:kotlin-dsl,`#kotlin-dsl`>>
+
+[[use_latest_minor_versions]]
+== Use the Latest Minor Version of Gradle
+
+Stay on the latest minor version of the major Gradle release you're using, and regularly update your plugins to the latest compatible versions.
+
+=== Explanation
+
+Gradle follows a fairly predictable, time-based release cadence.
+Only the latest minor version of the current and previous major release is actively supported.
+
+We recommend the following strategy:
+
+* Try upgrading directly to the latest minor version of your current major Gradle release.
+* If that fails, upgrade one minor version at a time to isolate regressions or compatibility issues.
+
+Each new minor version includes:
+
+* Performance and stability improvements.
+* Deprecation warnings that help you prepare for the next major release.
+* Fixes for known bugs and security vulnerabilities.
+
+Use the `wrapper` task to update your project:
+
+[source, bash]
+----
+./gradlew wrapper --gradle-version <version>
+----
+
+You can also install the latest Gradle versions easily using tools like link:https://sdkman.io/[SDKMAN!] or link:https://brew.sh/[Homebrew], depending on your platform.
+
+=== Plugin Compatibility
+
+Always use the latest compatible version of each plugin:
+
+* Upgrade Gradle before plugins.
+* Test plugin compatibility using link:https://slack.engineering/shadow-jobs/[shadow jobs].
+* Consult changelogs when updating.
+
+Subscribe to the Gradle link:https://newsletter.gradle.org/[newsletter] to stay informed about new Gradle releases, features, and plugins.
+
+=== References
+
+- <<upgrading_version_9.adoc#upgrading_version_9,Upgrade Guide>>
+
+=== Tags
+
+<<tags_reference.adoc#tag:plugins,`#plugins`>>
+
+[[use_the_plugins_block]]
+== Apply Plugins Using the `plugins` Block
+
+You should always use the `plugins` block to <<plugin_basics.adoc#applying_plugins,apply plugins>> in your build scripts.
+
+=== Explanation
+
+The `plugins` block is the preferred way to apply plugins in Gradle.
+The plugins API allows Gradle to better manage the loading of plugins and it is both more concise and less error-prone than adding dependencies to the buildscript's classpath explicitly in order to use the `apply` method.
+
+It allows Gradle to optimize the loading and reuse of plugin classes and helps inform tools about the potential properties and values in extensions the plugins will add to the build script.
+It is constrained to be idempotent (produce the same result every time) and side effect-free (safe for Gradle to execute at any time).
+
+=== Example
+
+==== Don't Do This
+
+====
+include::sample[dir="snippets/best-practices/usePluginsBlock-avoid/kotlin",files="build.gradle.kts[tags=avoid-this]"]
+include::sample[dir="snippets/best-practices/usePluginsBlock-avoid/groovy",files="build.gradle[tags=avoid-this]"]
+====
+
+<1> *Declare a Repository*: To use the legacy plugin application syntax, you need to explicitly tell Gradle where to find a plugin.
+<2> *Declare a Plugin Dependency*: To use the legacy plugin application syntax with third-party plugins, you need to explicitly tell Gradle the full coordinates of the plugin.
+<3> *Apply a Core Plugin*: This is very similar using either method.
+<4> *Apply a Third-Party Plugin*: The syntax is the same as for core Gradle plugins, but the version is not present at the point of application in your buildscript.
+
+==== Do This Instead
+
+++++
+<div style="text-align: right;">
+  <a class="download-project-link"
+     data-base-path="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/best-practices/usePluginsBlock-do/"
+     href="https://download-directory.github.io/?url=https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/best-practices/usePluginsBlock-do/kotlin">
+    <img src="https://img.shields.io/badge/Download%20Project-GitHub-blue?logo=github&style=flat" alt="Download"/>
+  </a>
+</div>
+++++
+
+====
+include::sample[dir="snippets/best-practices/usePluginsBlock-do/kotlin",files="build.gradle.kts[tags=do-this]"]
+include::sample[dir="snippets/best-practices/usePluginsBlock-do/groovy",files="build.gradle[tags=do-this]"]
+====
+
+<1> *Apply a Core Plugin*: This is very similar using either method.
+<2> *Apply a Third-Party Plugin*: You specify the version using method chaining in the `plugins` block itself.
+
+=== References
+
+- <<plugins_intermediate.adoc#using_plugins,Using Plugins>>
+
+=== Tags
+
+`<<tags_reference.adoc#tag:structuring-builds,#structuring-builds>>`
+
+[[dont_assume_plugin_order]]
+== Don’t Assume your Plugin is Applied after Another
+
+Gradle's plugin application is deterministic but opaque.
+It is difficult to reason about, especially across multiple build scripts, projects, convention plugins, or included builds.
+
+As a result, you should not write build logic or plugins that depend on a specific plugin application order.
+
+=== Explanation
+
+In a single `build.gradle(.kts)` file, plugins appear to be applied sequentially:
+
+====
+[.multi-language-sample]
+=====
+[source, kotlin]
+.build.gradle.kts
+----
+plugins {
+    id("pluginA")
+    id("pluginB")
+}
+----
+=====
+[.multi-language-sample]
+=====
+[source, groovy]
+.build.gradle
+----
+plugins {
+    id("pluginA")
+    id("pluginB")
+}
+----
+=====
+====
+
+However, in <<multi_project_builds.adoc#multi_project_builds,multi-project builds>>, with multiple `build.gradle(.kts)` files or a <<plugins.adoc#sec:convention_plugins,convention plugin>>, plugin application can be hard to determine:
+
+====
+[.multi-language-sample]
+=====
+[source, kotlin]
+.app/build.gradle.kts
+----
+plugins {
+    id("pluginA")
+    id("pluginB")
+}
+----
+[source, kotlin]
+.lib/build.gradle.kts
+----
+plugins {
+    id("pluginC")
+    id("pluginD")
+}
+----
+=====
+[.multi-language-sample]
+=====
+[source, groovy]
+.app/build.gradle
+----
+plugins {
+    id("pluginA")
+    id("pluginB")
+}
+----
+[source, groovy]
+.lib/build.gradle
+----
+plugins {
+    id("pluginC")
+    id("pluginD")
+}
+----
+=====
+====
+
+You cannot assume whether `pluginA`, `pluginB`, `pluginC`, or `pluginD` will be applied first because `pluginA` could apply `pluginD`.
+
+==== Build Engineers
+
+Writing build logic that assumes plugin ordering can lead to brittle behavior and fragile builds that break when project structure changes.
+
+Don't rely on blocks like `allprojects {}`, `subprojects {}`, or `afterEvaluate {}` that are highly dependent on project structure and file layout.
+They can be difficult to decipher and may depend on configuration details that are hard to understand completely without running the build.
+
+Avoid build logic that assumes ordering between different projects, included builds, or applied scripts.
+While the application order is deterministic, minor structural changes (such as adding a new project or renaming an include) can easily result in an unexpected change to that plugin application order.
+
+==== Plugin Developers
+
+Users should be able to apply your plugin in either order and have it behave correctly:
+
+====
+[.multi-language-sample]
+=====
+[source, kotlin]
+.build.gradle.kts
+----
+plugins {
+  id("my-plugin")
+  id("plugin-i-depend-on")
+}
+----
+=====
+[.multi-language-sample]
+=====
+[source, groovy]
+.build.gradle
+----
+plugins {
+  id("my-plugin")
+  id("plugin-i-depend-on")
+}
+----
+=====
+====
+
+or
+
+====
+[.multi-language-sample]
+=====
+[source, kotlin]
+.build.gradle.kts
+----
+plugins {
+  id("plugin-i-depend-on")
+  id("my-plugin")
+}
+----
+=====
+[.multi-language-sample]
+=====
+[source, groovy]
+.build.gradle
+----
+plugins {
+  id("plugin-i-depend-on")
+  id("my-plugin")
+}
+----
+=====
+====
+
+If your plugin only works in one of these cases, it’s relying on plugin order and will be fragile in real builds.
+
+If your plugin cannot function without another plugin, apply it explicitly at the start of `Plugin.apply`:
+
+====
+[.multi-language-sample]
+=====
+[source, kotlin]
+.MyPlugin.kt
+----
+// Ensure required plugin is applied
+project.pluginManager.apply("com.example.required-plugin")
+----
+=====
+[.multi-language-sample]
+=====
+[source, groovy]
+.MyPlugin.groovy
+----
+// Ensure required plugin is applied
+project.pluginManager.apply('com.example.required-plugin')
+----
+=====
+====
+
+If your plugin only needs to integrate with another plugin when it’s present, react to its application using link:{javadocPath}/org/gradle/api/plugins/PluginManager.html#withPlugin(java.lang.String,org.gradle.api.Action)[`pluginManager.withPlugin()`] or link:{javadocPath}/org/gradle/api/DomainObjectCollection.html#configureEach(org.gradle.api.Action)[`plugins.configureEach {}`]:
+
+====
+[.multi-language-sample]
+=====
+[source, kotlin]
+.MyPlugin.kt
+----
+// Configure behavior that depends on required-plugin using the plugin id (preferred)
+project.pluginManager.withPlugin("com.example.required-plugin") {  }
+
+// Configure behavior that depends on RequiredPlugin using the plugin class (if no id is available)
+project.plugins.configureEach { plugin ->
+    when (plugin) { is com.example.RequiredPlugin -> {  } }
+}
+----
+=====
+[.multi-language-sample]
+=====
+[source, groovy]
+.MyPlugin.groovy
+----
+// Configure behavior that depends on required-plugin using the plugin id (preferred)
+project.pluginManager.withPlugin('com.example.required-plugin') {  }
+
+// Configure behavior that depends on RequiredPlugin using the plugin class (if no id is available)
+project.plugins.configureEach { plugin ->
+    if (plugin instanceof com.example.RequiredPlugin) {  }
+}
+----
+=====
+====
+
+This is order-independent and safe.
+
+=== Example
+
+Given the following project layout:
+
+====
+[.multi-language-sample]
+=====
+[source, kotlin]
+----
+.
+├── app/
+│   └── build.gradle.kts
+├── buildSrc/
+│   ├── build.gradle.kts
+│   └── src/main/kotlin/MyPlugin.kt
+├── settings.gradle.kts
+└── build.gradle.kts
+----
+=====
+[.multi-language-sample]
+=====
+[source, groovy]
+----
+.
+├── app/
+│   └── build.gradle
+├── buildSrc/
+│   ├── build.gradle
+│   └── src/main/groovy/MyPlugin.groovy
+├── settings.gradle
+└── build.gradle
+----
+=====
+====
+
+==== Don't Do This
+
+This setup makes several assumptions about the `java` plugin.
+
+In the root build, `subprojects {}` and `afterEvaluate {}` obscure when a plugin is applied and attempt to force ordering:
+
+====
+include::sample[dir="snippets/best-practices/dontAssumePluginOrder-avoid/kotlin",files="build.gradle.kts[tags=avoid-this]"]
+include::sample[dir="snippets/best-practices/dontAssumePluginOrder-avoid/groovy",files="build.gradle[tags=avoid-this]"]
+====
+
+In the `app` subproject, the build file uses `extensions.getByType(...)` which assumes `java` has already been applied:
+
+====
+include::sample[dir="snippets/best-practices/dontAssumePluginOrder-avoid/kotlin",files="app/build.gradle.kts[tags=avoid-this]"]
+include::sample[dir="snippets/best-practices/dontAssumePluginOrder-avoid/groovy",files="app/build.gradle[tags=avoid-this]"]
+====
+
+In the plugin implementation, `MyPlugin.kt` or `MyPlugin.groovy` also assumes `java` is already applied:
+
+====
+include::sample[dir="snippets/best-practices/dontAssumePluginOrder-avoid/kotlin",files="buildSrc/src/main/kotlin/MyPlugin.kt[tags=avoid-this]"]
+include::sample[dir="snippets/best-practices/dontAssumePluginOrder-avoid/groovy",files="buildSrc/src/main/groovy/MyPlugin.groovy[tags=avoid-this]"]
+====
+
+==== Do This Instead
+
+The fixed version removes `afterEvaluate` and avoids assumptions about when or where the `java` plugin is applied.
+
+The root build file has been deleted as there is no longer a need to use `subprojects {}`.
+
+In the `app` subproject, the build file uses `plugins.withPlugin("java") {}` to safely configure tasks once `java` is applied:
+
+====
+include::sample[dir="snippets/best-practices/dontAssumePluginOrder-do/kotlin",files="app/build.gradle.kts[tags=do-this]"]
+include::sample[dir="snippets/best-practices/dontAssumePluginOrder-do/groovy",files="app/build.gradle[tags=do-this]"]
+====
+
+In the plugin implementation, `MyPlugin.kt` or `MyPlugin.groovy` explicitly applies the `java` plugin:
+
+====
+include::sample[dir="snippets/best-practices/dontAssumePluginOrder-do/kotlin",files="buildSrc/src/main/kotlin/MyPlugin.kt[tags=do-this]"]
+include::sample[dir="snippets/best-practices/dontAssumePluginOrder-do/groovy",files="buildSrc/src/main/groovy/MyPlugin.groovy[tags=do-this]"]
+====
+
+=== References
+
+- <<plugins_intermediate.adoc#sec:using_plugins,Using Plugins>>
+
+=== Tags
+
+<<tags_reference.adoc#tag:structuring-builds,`#structuring-builds`>>, <<tags_reference.adoc#tag:plugins,`#plugins`>>
+
+[[do_not_use_internal_apis]]
+== Do Not Use Internal APIs
+
+Do not use APIs from a package where any segment of the package is `internal`, or types that have `Internal` or `Impl` as a suffix in the name.
+
+=== Explanation
+
+Using internal APIs is inherently risky and can cause significant problems during upgrades.
+Gradle and many plugins (such as Android Gradle Plugin and Kotlin Gradle Plugin) treat these internal APIs as subject to unannounced breaking changes during any new Gradle release, even during minor releases.
+There have been numerous cases where even highly experienced plugin developers have been bitten by their usage of such APIs leading to unexpected breakages for their users.
+
+If you require specific functionality that is missing, it’s best to submit a feature request.
+As a temporary workaround consider copying the necessary code into your own codebase and extending a Gradle public type with your own custom implementation using the copied code.
+
+=== Example
+
+==== Don't Do This
+
+====
+include::sample[dir="snippets/best-practices/avoidInternal-avoid/kotlin",files="build.gradle.kts[tags=avoid-this]"]
+include::sample[dir="snippets/best-practices/avoidInternal-avoid/groovy",files="build.gradle[tags=avoid-this]"]
+====
+
+<1> Casting to `AttributeContainerInternal` and using `toMap()` should be avoided as it relies on an internal API.
+
+==== Do This Instead
+
+++++
+<div style="text-align: right;">
+  <a class="download-project-link"
+     data-base-path="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/best-practices/avoidInternal-do/"
+     href="https://download-directory.github.io/?url=https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/best-practices/avoidInternal-do/kotlin">
+    <img src="https://img.shields.io/badge/Download%20Project-GitHub-blue?logo=github&style=flat" alt="Download"/>
+  </a>
+</div>
+++++
+
+====
+include::sample[dir="snippets/best-practices/avoidInternal-do/kotlin",files="build.gradle.kts[tags=do-this]"]
+include::sample[dir="snippets/best-practices/avoidInternal-do/groovy",files="build.gradle[tags=do-this]"]
+====
+
+<1> Implementing your own version of `toMap()` that only uses public APIs is a lot more robust.
+
+=== References
+
+- link:https://docs.gradle.org/current/javadoc/[Gradle API]
+
+=== Tags
+
+<<tags_reference.adoc#tag:upgrades,`#upgrades`>>
+
+[[use_the_gradle_properties_file]]
+== Set Build Flags in `gradle.properties`
+
+Set Gradle build property flags in the `gradle.properties` file.
+
+=== Explanation
+
+Instead of using command-line options or environment variables, set build flags in the root project's `gradle.properties` file.
+
+Gradle comes with a long list of <<build_environment.adoc#sec:gradle_configuration_properties,Gradle properties>>, which have names that begin with `org.gradle` and can be used to configure the behavior of the build tool.
+These properties can have a **major impact** on build performance, so it’s important to understand how they work.
+
+You should not rely on supplying these properties via the command-line for every Gradle invocation.
+Providing these properties via the command line is intended for short-term testing and debugging purposes, but it’s prone to being forgotten or inconsistently applied across environments.
+A permanent, idiomatic location to set and share these properties is in the `gradle.properties` file located in the root project directory.
+This file should be added to source control in order to share these properties across different machines and between developers.
+
+You should understand the default values of the properties your build uses and avoid explicitly setting properties to those defaults.
+Any change to a property's default value in Gradle will follow the standard <<feature_lifecycle.adoc#backwards_compatibility,deprecation cycle>>, and users will be properly notified.
+
+NOTE: Properties set this way are not inherited across build boundaries when using <<composite_builds.adoc#composite_builds,composite builds>>.
+
+=== Example
+
+==== Don't Do This
+
+[.multi-language-sample]
+=====
+[source, kotlin]
+----
+├── build.gradle.kts
+└── settings.gradle.kts
+----
+=====
+[.multi-language-sample]
+=====
+[source, groovy]
+----
+├── build.gradle
+└── settings.gradle
+----
+=====
+
+====
+include::sample[dir="snippets/best-practices/useTheGradlePropertiesFile-avoid/kotlin",files="build.gradle.kts[tags=avoid-this]"]
+include::sample[dir="snippets/best-practices/useTheGradlePropertiesFile-avoid/groovy",files="build.gradle[tags=avoid-this]"]
+====
+
+This build is run with `gradle run -Dorg.gradle.continue=true`, so that the failure of the `first` task does **not** prevent the `second` task from executing.
+
+This relies on person running the build to remember to set this property, which is error prone and not portable across different machines and environments.
+
+==== Do This Instead
+
+[.multi-language-sample]
+=====
+[source, kotlin]
+----
+├── build.gradle.kts
+└── gradle.properties
+└── settings.gradle.kts
+----
+=====
+[.multi-language-sample]
+=====
+[source, groovy]
+----
+├── build.gradle
+└── gradle.properties
+└── settings.gradle
+----
+=====
+
+.gradle.properties
+[source,properties]
+----
+include::{snippetsPath}/best-practices/useTheGradlePropertiesFile-do/common/gradle.properties[tag=do-this]
+----
+
+This build sets the `org.gradle.continue` property in the `gradle.properties` file.
+
+Now it can be executed using only `gradle run`, and the continue property will always be set automatically across all environments.
+
+=== References
+
+- <<build_environment.adoc#sec:gradle_configuration_properties,Gradle properties>>
+
+=== Tags
+
+<<tags_reference.adoc#tag:properties,`#properties`>>
+
+
+[[name_your_root_project]]
+== Name Your Root Project
+
+Always name your root project in the `settings.gradle(.kts)` file.
+
+=== Explanation
+
+While an empty `settings.gradle(.kts)` file is enough to create a multi-project build, you should always set the `rootProject.name` property.
+
+By default, the root project’s name is taken from the directory containing the build.
+This can be problematic if the directory name contains spaces, Gradle logical path separators, or other special characters.
+It also makes task paths dependent on the directory name, rather than being reliably defined.
+
+Explicitly setting the root project's name ensures consistency across environments.
+Project names appear in error messages, logs, and reports, and builds often run on different machines, such as CI servers.
+Builds may execute on a variety of machines or environments, such as CI servers, and should report the same root project name anywhere to make the project more comprehensible.
+
+=== Example
+
+==== Don't Do This
+
+====
+include::sample[dir="snippets/best-practices/nameYourRootProject-avoid/kotlin",files="settings.gradle.kts[]"]
+include::sample[dir="snippets/best-practices/nameYourRootProject-avoid/groovy",files="settings.gradle[]"]
+====
+
+In this build, the settings file is empty and the root project has no explicit name.
+Running the `projects` report shows that Gradle assigns an implicit name to the root project, derived from the build’s current directory.
+
+Unfortunately that name varies based on where the project currently lives.
+For example, if the project is checked out into a directory named `some-directory-name`, the output of `./gradlew projects` will look like this:
+
+[source,text]
+----
+> Task :projects
+
+Projects:
+
+------------------------------------------------------------
+Root project 'some-directory-name'
+------------------------------------------------------------
+----
+
+==== Do This Instead
+
+====
+include::sample[dir="snippets/best-practices/nameYourRootProject-do/kotlin",files="settings.gradle.kts[]"]
+include::sample[dir="snippets/best-practices/nameYourRootProject-do/groovy",files="settings.gradle[]"]
+====
+
+In this build, the root project is explicitly named.
+The explicit name `my-example-project` will be used in all reports, logs, and error messages.
+Regardless of where the project lives, the output of `./gradlew projects` will look like this:
+
+====
+include::sample[dir="snippets/best-practices/nameYourRootProject-do/tests",files="nameYourRootProject-do.out[]"]
+====
+
+=== References
+
+- <<multi_project_builds.adoc#sec:naming_recommendations,Naming recommendations>>
+
+=== Tags
+
+<<tags_reference.adoc#tag:settings,`#settings`>>
+
+[[do_not_use_gradle_properties_in_subprojects]]
+== Do not use `gradle.properties` in subprojects
+
+Do not place a `gradle.properties` file inside subprojects to configure your build.
+
+=== Explanation
+
+Gradle allows `gradle.properties` files in both the root project and subprojects, but support for subproject properties is inconsistent.
+Gradle itself and many popular plugins (such as the Android Gradle Plugin and Kotlin Gradle Plugin) do not reliably handle this pattern.
+
+Using subproject `gradle.properties` files also makes it harder to understand and debug your build.
+Property values may be scattered across multiple locations, overridden in unexpected ways, or difficult to trace back to their source.
+
+If you need to set properties for a *single subproject*, define them directly in that subproject’s `build.gradle(.kts)`.
+If you need to apply properties across *multiple subprojects*, extract the configuration into a <<plugins.adoc#sec:convention_plugins,convention plugin>>.
+
+=== Example
+
+==== Don't Do This
+
+[.multi-language-sample]
+=====
+[source, kotlin]
+----
+├── app
+│   ├── ⋮
+│   ├── build.gradle.kts
+│   └── gradle.properties
+├── utilities
+│   ├── ⋮
+│   ├── build.gradle.kts
+│   └── gradle.properties
+└── settings.gradle.kts
+----
+=====
+[.multi-language-sample]
+=====
+[source, groovy]
+----
+├── app
+│   ├── ⋮
+│   ├── build.gradle
+│   └── gradle.properties
+├── utilities
+│   ├── ⋮
+│   ├── build.gradle
+│   └── gradle.properties
+└── settings.gradle
+----
+=====
+
+====
+include::sample[dir="snippets/best-practices/avoidGradlePropertiesInSubProjects-avoid/common/app",files="gradle.properties[]"]
+====
+
+====
+include::sample[dir="snippets/best-practices/avoidGradlePropertiesInSubProjects-avoid/kotlin/app",files="build.gradle.kts[]"]
+include::sample[dir="snippets/best-practices/avoidGradlePropertiesInSubProjects-avoid/groovy/app",files="build.gradle[]"]
+====
+
+====
+include::sample[dir="snippets/best-practices/avoidGradlePropertiesInSubProjects-avoid/common/util",files="gradle.properties[]"]
+====
+
+====
+include::sample[dir="snippets/best-practices/avoidGradlePropertiesInSubProjects-avoid/kotlin/util",files="build.gradle.kts[]"]
+include::sample[dir="snippets/best-practices/avoidGradlePropertiesInSubProjects-avoid/groovy/util",files="build.gradle[]"]
+====
+
+<1> Register a task that uses the value of properties in each subproject.
+<2> The task reads properties, which are supplied by the project-local `app/gradle.properties` file.  `propertyA` does *not* vary between subprojects.
+<3> 'util`'s print task reads the properties which are supplied by `util/gradle.properties`.  `propertyB` *varies* between subprojects.
+
+This structure requires duplicating properties that are shared between subprojects and is not guaranteed to remain supported.
+
+==== Do This Instead
+
+++++
+<div style="text-align: right;">
+  <a class="download-project-link"
+     data-base-path="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/best-practices/avoidGradlePropertiesInSubProjects-do/"
+     href="https://download-directory.github.io/?url=https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/best-practices/avoidGradlePropertiesInSubProjects-do/kotlin">
+    <img src="https://img.shields.io/badge/Download%20Project-GitHub-blue?logo=github&style=flat" alt="Download"/>
+  </a>
+</div>
+++++
+
+[.multi-language-sample]
+=====
+[source, kotlin]
+----
+├── buildSrc
+│   └──  ⋮
+├── app
+│   ├── ⋮
+│   └── build.gradle.kts
+├── utilities
+│   ├── ⋮
+│   └── build.gradle.kts
+├── settings.gradle.kts
+└── gradle.properties
+----
+=====
+[.multi-language-sample]
+=====
+[source, groovy]
+----
+├── buildSrc
+│   └──  ⋮
+├── app
+│   ├── ⋮
+│   └──  build.gradle
+├── utilities
+│   ├── ⋮
+│   └── build.gradle
+├── settings.gradle
+└── gradle.properties
+----
+=====
+
+====
+include::sample[dir="snippets/best-practices/avoidGradlePropertiesInSubProjects-do/common",files="gradle.properties[]"]
+====
+
+====
+include::sample[dir="snippets/best-practices/avoidGradlePropertiesInSubProjects-do/kotlin/buildSrc/src/main/kotlin",files="ProjectProperties.kt[]"]
+include::sample[dir="snippets/best-practices/avoidGradlePropertiesInSubProjects-do/groovy/buildSrc/src/main/groovy",files="ProjectProperties.groovy[]"]
+====
+
+====
+include::sample[dir="snippets/best-practices/avoidGradlePropertiesInSubProjects-do/kotlin/buildSrc/src/main/kotlin",files="project-properties.gradle.kts[]"]
+include::sample[dir="snippets/best-practices/avoidGradlePropertiesInSubProjects-do/groovy/buildSrc/src/main/groovy",files="project-properties.gradle[]"]
+====
+
+====
+include::sample[dir="snippets/best-practices/avoidGradlePropertiesInSubProjects-do/kotlin/app",files="build.gradle.kts[]"]
+include::sample[dir="snippets/best-practices/avoidGradlePropertiesInSubProjects-do/groovy/app",files="build.gradle[]"]
+====
+
+====
+include::sample[dir="snippets/best-practices/avoidGradlePropertiesInSubProjects-do/kotlin/util",files="build.gradle.kts[]"]
+include::sample[dir="snippets/best-practices/avoidGradlePropertiesInSubProjects-do/groovy/util",files="build.gradle[]"]
+====
+
+<1> Define a simple extension type in `buildSrc` to hold property values.
+<2> Register that property in a convention plugin.
+<3> Register tasks using property values in the convention plugin.
+<4> Apply the convention plugin in each subproject.
+<5> Set the extension's property values in each subproject's build script.  This uses the values defined in the root `gradle.properties` file.  The task reads values from the extension, not directly from the project properties.
+<6> When values need to vary between subprojects, they can be set directly on the extension.
+
+This structure uses an extension type to hold values, allowing properties to be strongly typed, and for property values and operations on properties to be defined in a single location.  Overriding values per subproject remains straightforward.
+
+=== References
+
+- <<build_environment.adoc#sec:gradle_configuration_properties,Gradle properties>>
+
+=== Tags
+
+<<tags_reference.adoc#tag:properties,`#properties`>>
+
+[[avoid_after_evaluate]]
+== Avoid `afterEvaluate`
+
+Do not use link:{javadocPath}/org/gradle/api/Project.html#afterEvaluate(org.gradle.api.Action)[`project.afterEvaluate {}`] to configure tasks, wire properties, or react to plugin application.
+Use <<properties_providers.adoc#properties_and_providers,lazy properties>> and link:{javadocPath}/org/gradle/api/plugins/PluginManager.html#withPlugin(java.lang.String,org.gradle.api.Action)[`pluginManager.withPlugin()`] instead.
+
+=== Explanation
+
+`afterEvaluate` registers a callback that runs after Gradle finishes evaluating and configuring a project.
+It was historically used to "delay" reading a value until configuration was complete — for example, reading an extension property that users set at the bottom of their build script, or checking whether another plugin was applied.
+
+This pattern is outdated, and problematic for several reasons:
+
+* *Ordering is fragile.*
+Multiple `afterEvaluate` callbacks execute in registration order.
+If two plugins or scripts both use `afterEvaluate`, one may see stale or incomplete configuration depending on which was registered first.
+This creates subtle bugs that are extremely difficult to diagnose.
+* *It defeats task configuration avoidance.*
+Tasks registered or configured inside `afterEvaluate` are touched eagerly during configuration, even if they will never execute.
+This may cause unnecessary work and slow down the configuration phase of the build.
+* *It is incompatible with the <<configuration_cache.adoc#config_cache,Configuration Cache>>.*
+`afterEvaluate` callbacks capture mutable project state that cannot be serialized reliably.
+
+Gradle's lazy `Property` and `Provider` types solve the same underlying problem — deferring value resolution — without any of these drawbacks.
+A `Property<T>` can be wired at configuration time but its value is resolved only when needed, typically during task execution.
+This makes configuration order-independent and fully compatible with the configuration cache.
+
+Similarly, `pluginManager.withPlugin()` reacts to plugin application safely and immediately, regardless of when the plugin is actually applied — no callback ordering to worry about.
+
+==== When `afterEvaluate` may still be appropriate
+
+There are narrow use cases where `afterEvaluate` remains the only available hook:
+
+* *Fail-fast validation* — verifying that required project configuration has been set and failing the build early with a clear error message.
+* *Logging or reporting* — printing diagnostic information about the project's final configuration state.
+
+Even in these cases, exercise caution: your `afterEvaluate` must be the last (or only) one registered to see the final configuration state.
+If another plugin registers an `afterEvaluate` after yours, your callback may see incomplete configuration.
+
+If you find yourself reaching for `afterEvaluate` because Gradle's lazy APIs do not cover your use case, consider link:https://github.com/gradle/gradle/issues[filing a bug].
+`afterEvaluate` should be a last resort, not a first choice.
+
+=== Example
+
+Given the following project layout:
+
+====
+[.multi-language-sample]
+=====
+[source, kotlin]
+----
+.
+├── build.gradle.kts
+├── buildSrc/
+│   ├── build.gradle.kts
+│   └── src/main/kotlin/
+│       └── AppInfoPlugin.kt
+└── settings.gradle.kts
+----
+=====
+[.multi-language-sample]
+=====
+[source, groovy]
+----
+.
+├── build.gradle
+├── buildSrc/
+│   ├── build.gradle
+│   └── src/main/groovy/
+│       └── AppInfoPlugin.groovy
+└── settings.gradle
+----
+=====
+====
+
+==== Don't Do This
+
+The plugin uses `afterEvaluate` to delay reading the extension value and to check whether `java-library` was applied:
+
+====
+include::sample[dir="snippets/best-practices/avoidAfterEvaluate-avoid/kotlin",files="buildSrc/src/main/kotlin/AppInfoPlugin.kt[tags=avoid-this]"]
+include::sample[dir="snippets/best-practices/avoidAfterEvaluate-avoid/groovy",files="buildSrc/src/main/groovy/AppInfoPlugin.groovy[tags=avoid-this]"]
+====
+
+<1> The plugin's `afterEvaluate` runs before any `afterEvaluate` registered later in the build script — ordering depends on registration order.
+<2> `getOrElse` reads the property's current value immediately. If the value is set in a later `afterEvaluate`, this will never see it.
+<3> Registering a task inside `afterEvaluate` defeats <<task_configuration_avoidance.adoc#task_configuration_avoidance,task configuration avoidance>>.
+<4> Checking plugin presence inside `afterEvaluate` assumes all plugins have been applied before this callback runs.
+
+The build script applies the plugin and sets the extension value in its own `afterEvaluate`:
+
+====
+include::sample[dir="snippets/best-practices/avoidAfterEvaluate-avoid/kotlin",files="build.gradle.kts[tags=avoid-this]"]
+include::sample[dir="snippets/best-practices/avoidAfterEvaluate-avoid/groovy",files="build.gradle[tags=avoid-this]"]
+====
+
+<1> This `afterEvaluate` runs after the plugin's — by the time it sets the name, the plugin has already captured the default value.
+
+Running `printAppInfo` outputs `unnamed` — *not* `my-app` as the user intended:
+
+[source,text]
+----
+include::{snippetsPath}/best-practices/avoidAfterEvaluate-avoid/tests/avoidAfterEvaluate.bad.out[]
+----
+
+The plugin's `afterEvaluate` callback was registered first (during `Plugin.apply()`) and ran first, reading the property before the build script's `afterEvaluate` had a chance to set it.
+
+==== Do This Instead
+
+++++
+<div style="text-align: right;">
+  <a class="download-project-link"
+     data-base-path="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/best-practices/avoidAfterEvaluate-do/"
+     href="https://download-directory.github.io/?url=https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/best-practices/avoidAfterEvaluate-do/kotlin">
+    <img src="https://img.shields.io/badge/Download%20Project-GitHub-blue?logo=github&style=flat" alt="Download"/>
+  </a>
+</div>
+++++
+
+The proper way to write this plugin uses lazy `Property` types and `pluginManager.withPlugin()`:
+
+====
+include::sample[dir="snippets/best-practices/avoidAfterEvaluate-do/kotlin",files="buildSrc/src/main/kotlin/AppInfoPlugin.kt[tags=do-this]"]
+include::sample[dir="snippets/best-practices/avoidAfterEvaluate-do/groovy",files="buildSrc/src/main/groovy/AppInfoPlugin.groovy[tags=do-this]"]
+====
+
+<1> `convention()` provides a default value that is used only if no explicit value is set via `set()`.
+<2> The value is resolved at execution time via `get()` — configuration order does not matter.
+<3> `pluginManager.withPlugin()` fires when the plugin is applied, regardless of order. If the plugin is never applied, the callback is never invoked.
+
+The build script is nearly identical — the change is in the plugin, not the consumer:
+
+====
+include::sample[dir="snippets/best-practices/avoidAfterEvaluate-do/kotlin",files="build.gradle.kts[tags=do-this]"]
+include::sample[dir="snippets/best-practices/avoidAfterEvaluate-do/groovy",files="build.gradle[tags=do-this]"]
+====
+
+<1> The value is set during normal configuration. Because the plugin wires the `Property` lazily, it is only read at execution time.
+
+Running `printAppInfo` now correctly outputs `my-app`:
+
+[source,text]
+----
+$ gradlew printAppInfo
+include::{snippetsPath}/best-practices/avoidAfterEvaluate-do/tests/avoidAfterEvaluate.good.out[]
+----
+
+=== References
+
+- <<properties_providers.adoc#properties_and_providers,Properties and Providers>>
+- <<lazy_configuration.adoc#lazy_configuration,Lazy Configuration>>
+- <<task_configuration_avoidance.adoc#task_configuration_avoidance,Task Configuration Avoidance>>
+- <<best_practices_general.adoc#dont_assume_plugin_order,Don't Assume your Plugin is Applied after Another>>
+
+=== Tags
+
+<<tags_reference.adoc#tag:task-configuration-avoidance,`#task-configuration-avoidance`>>, <<tags_reference.adoc#tag:plugins,`#plugins`>>, <<tags_reference.adoc#tag:structuring-builds,`#structuring-builds`>>

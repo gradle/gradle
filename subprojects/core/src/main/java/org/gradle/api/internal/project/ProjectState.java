@@ -19,9 +19,11 @@ package org.gradle.api.internal.project;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
+import org.gradle.api.project.IsolatedProject;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.model.ModelContainer;
+import org.gradle.internal.project.ImmutableProjectDescriptor;
 import org.gradle.internal.resources.ResourceLock;
 import org.gradle.util.Path;
 import org.jspecify.annotations.Nullable;
@@ -37,12 +39,81 @@ import java.util.function.Function;
  */
 @ThreadSafe
 public interface ProjectState extends ModelContainer<ProjectInternal> {
-    DisplayName getDisplayName();
 
     /**
      * Returns the containing build of this project.
      */
     BuildState getOwner();
+
+    // region About this project
+
+    /**
+     * Gets the identity of this project, containing the identity within the build tree and the owning build.
+     */
+    ProjectIdentity getIdentity();
+
+    /**
+     * Returns an identifying path for this project in the build tree.
+     */
+    default Path getIdentityPath() {
+        return getIdentity().getBuildTreePath();
+    }
+
+    /**
+     * Returns a path for this project within its containing build. These are not unique within a build tree. Use instead {@link #getIdentityPath()} to uniquely this project.
+     */
+    default Path getProjectPath() {
+        return getIdentity().getProjectPath();
+    }
+
+    /**
+     * Returns the name of this project (which may not necessarily be unique).
+     */
+    default String getName() {
+        return getIdentity().getProjectName();
+    }
+
+    /**
+     * Returns the nesting level of a project in a multi-project hierarchy.
+     * <p>
+     * Returns 0 for the root project, 1 for its direct children, etc.
+     * <p>
+     * The depth is computed independently for each build in the build tree.
+     */
+    default int getDepth() {
+        return getProjectPath().segmentCount();
+    }
+
+    default DisplayName getDisplayName() {
+        return getIdentity();
+    }
+
+    /**
+     * Returns the project directory.
+     */
+    File getProjectDir();
+
+    /**
+     * Returns the identifier of the default component produced by this project.
+     */
+    ProjectComponentIdentifier getComponentIdentifier();
+
+    /**
+     * Returns the descriptor for this project.
+     * <p>
+     * Prefer the direct methods on this class, such as {@link #getIdentity()}, {@link #getParent()}, {@link #getChildProjects()}, etc.
+     */
+    ImmutableProjectDescriptor getDescriptor();
+
+    IsolatedProject getIsolated();
+
+    // endregion
+
+    // region Project hierarchy
+
+    default boolean isRootProject() {
+        return getParent() == null;
+    }
 
     /**
      * Returns the parent of this project, as per {@link Project#getParent()}.
@@ -69,44 +140,9 @@ public interface ProjectState extends ModelContainer<ProjectInternal> {
      */
     boolean hasChildren();
 
-    /**
-     * Returns the name of this project (which may not necessarily be unique).
-     */
-    String getName();
+    // endregion
 
-    /**
-     * Returns an identifying path for this project in the build tree.
-     */
-    Path getIdentityPath();
-
-    /**
-     * Gets the identity of this project, containing the identity within the build tree and the owning build.
-     */
-    ProjectIdentity getIdentity();
-
-    /**
-     * Returns a path for this project within its containing build. These are not unique within a build tree. Use instead {@link #getIdentityPath()} to uniquely this project.
-     */
-    Path getProjectPath();
-
-    /**
-     * Returns the project directory.
-     */
-    File getProjectDir();
-
-    /**
-     * Returns the nesting level of a project in a multi-project hierarchy.
-     * <p>
-     * Returns 0 for the root project, 1 for its direct children, etc.
-     * <p>
-     * The depth is computed independently for each build in the build tree.
-     */
-    int getDepth();
-
-    /**
-     * Returns the identifier of the default component produced by this project.
-     */
-    ProjectComponentIdentifier getComponentIdentifier();
+    // region Lifecycle management
 
     /**
      * Is the mutable model for this project available?
@@ -137,8 +173,12 @@ public interface ProjectState extends ModelContainer<ProjectInternal> {
      */
     void ensureTasksDiscovered();
 
+    // endregion
+
     /**
      * Returns the mutable model for this project. This should not be used directly. This property is here to help with migration away from direct usage.
+     * If you are using the mutable state of many projects, consider using one of the methods from {@link org.gradle.internal.build.BuildProjectRegistry}
+     * that provide {@link org.gradle.internal.build.AllProjectsAccess} instead, which checks the lock state.
      */
     ProjectInternal getMutableModel();
 

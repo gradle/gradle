@@ -36,12 +36,18 @@ plugins {
 }
 
 val gradleModule = extensions.create<GradleModuleExtension>(GradleModuleExtension.NAME).apply {
-    targetRuntimes {
-        // By default, assume a library targets only the daemon
-        // TODO: Eventually, all projects should explicitly declare their target platform(s)
-        usedInWorkers = false
-        usedInClient = false
-        usedInDaemon = true
+    published = false
+
+    requiredRuntimes {
+        client = false
+        daemon = false
+        worker = false
+    }
+
+    computedRuntimes {
+        client = false
+        daemon = false
+        worker = false
     }
 
     // TODO: Most of these properties are the same across projects. We should
@@ -74,8 +80,12 @@ val gradleModule = extensions.create<GradleModuleExtension>(GradleModuleExtensio
     }
 }
 
+class LazyProjectVersion(private val version: Provider<String>) {
+    override fun toString(): String = version.get()
+}
+
 group = "org.gradle"
-version = gradleModule.identity.version.get().version
+version = LazyProjectVersion(gradleModule.identity.version.map { it.version })
 
 /**
  * Returns the trimmed contents of the file at the given [path] after

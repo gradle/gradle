@@ -16,21 +16,28 @@
 
 package org.gradle.internal.tools.api.impl;
 
+
+import org.jspecify.annotations.Nullable;
+
 public class InnerClassMember extends AccessibleMember implements Comparable<InnerClassMember> {
 
+    @Nullable
     private final String outerName;
+    @Nullable
     private final String innerName;
 
-    public InnerClassMember(int access, String name, String outerName, String innerName) {
+    public InnerClassMember(int access, String name, @Nullable String outerName, @Nullable String innerName) {
         super(access, name);
         this.outerName = outerName;
         this.innerName = innerName;
     }
 
+    @Nullable
     public String getInnerName() {
         return innerName;
     }
 
+    @Nullable
     public String getOuterName() {
         return outerName;
     }

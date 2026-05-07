@@ -18,23 +18,35 @@ package org.gradle.tooling.events.test;
 
 import org.gradle.api.Incubating;
 import org.gradle.tooling.events.ProgressEvent;
-
-import java.util.Map;
+import org.jspecify.annotations.NullMarked;
 
 /**
- * An event that informs about a test capturing metadata while running.
+ * An event emitted by tests that contain additional data about the test.
  * <p>
- * A new test metadata event instance is created for each metadata reporting event, which
- * might involve multiple values.
+ * To access data from the event:
+ * <pre>
+ *         TestLauncher launcher = ...;
+ *         launcher.addProgressListener(new ProgressListener() {
+ *             void statusChanged(ProgressEvent event) {
+ *                 if (event instanceof TestMetadataEvent) {
+ *                     if (event instanceof TestFileAttachmentMetadataEvent) {
+ *                         // Do something with file attachment
+ *                     } else if (event instanceof TestKeyValueMetadataEvent) {
+ *                         // Do something with key-values
+ *                     } else {
+ *                         // ignore unrecognized events
+ *                     }
+ *                 }
+ *             }
+ *         });
+ * </pre>
  *
+ * @see TestKeyValueMetadataEvent
+ * @see TestFileAttachmentMetadataEvent
  * @since 8.13
  */
 @Incubating
+@NullMarked
 public interface TestMetadataEvent extends ProgressEvent {
-    /**
-     * Returns the metadata itself.
-     *
-     * @since 8.13
-     */
-    Map<String, Object> getValues();
+
 }

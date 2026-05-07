@@ -19,12 +19,12 @@ package org.gradle.integtests.resolve.platforms
 import org.gradle.api.JavaVersion
 import org.gradle.api.attributes.Category
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import spock.lang.Issue
 
 class PlatformResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
-    ResolveTestFixture resolve
+
+    ResolveTestFixture resolve = new ResolveTestFixture(testDirectory)
 
     def setup() {
         settingsFile << "rootProject.name = 'test'"
@@ -52,8 +52,9 @@ class PlatformResolveIntegrationTest extends AbstractHttpDependencyResolutionTes
                 api enforcedPlatform("org:platform:1.0")
                 api "org:foo:1.1"
             }
+
+            ${resolve.configureProject("compileClasspath")}
         """
-        checkConfiguration("compileClasspath")
 
         when:
         platform.pom.expectGet()
@@ -108,8 +109,9 @@ class PlatformResolveIntegrationTest extends AbstractHttpDependencyResolutionTes
                 }
                 api platform("org:platform") // no version, will select the "platform" component
             }
+
+            ${resolve.configureProject("compileClasspath")}
         """
-        checkConfiguration("compileClasspath")
 
         run ":checkDeps"
 
@@ -154,6 +156,8 @@ class PlatformResolveIntegrationTest extends AbstractHttpDependencyResolutionTes
                 id("java-library")
             }
 
+            ${resolve.configureProject("compileClasspath")}
+
             ${mavenHttpRepo()}
 
             dependencies {
@@ -175,8 +179,6 @@ class PlatformResolveIntegrationTest extends AbstractHttpDependencyResolutionTes
                 }
             }
         """
-
-        checkConfiguration("compileClasspath")
 
         run ":checkDeps"
 
@@ -229,8 +231,9 @@ class PlatformResolveIntegrationTest extends AbstractHttpDependencyResolutionTes
             dependencies {
                 api enforcedPlatform("org:top:1.0")
             }
+
+            ${resolve.configureProject("compileClasspath")}
         """
-        checkConfiguration("compileClasspath")
 
         top.pom.expectGet()
         run ":checkDeps"
@@ -267,8 +270,9 @@ class PlatformResolveIntegrationTest extends AbstractHttpDependencyResolutionTes
             dependencies {
                 conf "org:platform:1.0"
             }
+
+            ${resolve.configureProject("conf")}
         """
-        checkConfiguration("conf")
 
         platform.pom.expectGet()
         platform.moduleMetadata.expectGet()
@@ -289,7 +293,7 @@ class PlatformResolveIntegrationTest extends AbstractHttpDependencyResolutionTes
     }
 
     @Issue("gradle/gradle#11091")
-    def "can enforce a platform that is already on the dependency graph on the #classpath classpath"() {
+    def "can enforce a platform that is already on the dependency graph on the #conf configuration"() {
         def platform = mavenHttpRepo.module("org", "platform", "1.0").asGradlePlatform().publish()
 
         when:
@@ -304,8 +308,9 @@ class PlatformResolveIntegrationTest extends AbstractHttpDependencyResolutionTes
                 api platform("org:platform:1.0")
                 api enforcedPlatform("org:platform:1.0")
             }
+
+            ${resolve.configureProject(conf)}
         """
-        checkConfiguration("${classpath}Classpath")
 
         platform.pom.expectGet()
         platform.moduleMetadata.expectGet()
@@ -335,9 +340,9 @@ class PlatformResolveIntegrationTest extends AbstractHttpDependencyResolutionTes
         }
 
         where:
-        classpath | usage
-        'compile' | 'api'
-        'runtime' | 'runtime'
+        conf | usage
+        'compileClasspath' | 'api'
+        'runtimeClasspath' | 'runtime'
     }
 
     def 'platform deselection / reselection does not cause orphan edges'() {
@@ -381,8 +386,9 @@ class PlatformResolveIntegrationTest extends AbstractHttpDependencyResolutionTes
                 conf 'org.test:depB:1.0'
                 conf 'org.test:depD:1.0'
             }
-"""
-        checkConfiguration("conf")
+
+            ${resolve.configureProject("conf")}
+        """
 
         when:
         succeeds 'checkDeps'
@@ -473,9 +479,9 @@ class PlatformResolveIntegrationTest extends AbstractHttpDependencyResolutionTes
                 conf platform('org.test:otherPlatform:1.0')
                 conf 'org.test:depC:1.0'
             }
-        """
 
-        checkConfiguration("conf")
+            ${resolve.configureProject("conf")}
+        """
 
         expect:
         succeeds 'checkDeps'
@@ -529,9 +535,9 @@ class PlatformResolveIntegrationTest extends AbstractHttpDependencyResolutionTes
                 conf 'org.test:depA:1.0'
                 conf 'org.test:depB:1.1'
             }
-        """
 
-        checkConfiguration("conf")
+            ${resolve.configureProject("conf")}
+        """
 
         expect:
         succeeds 'checkDeps'
@@ -617,8 +623,9 @@ class PlatformResolveIntegrationTest extends AbstractHttpDependencyResolutionTes
                 conf(platform('org.test:deps:1.0'))
                 conf(platform('org.test:platform:1.0'))
             }
-"""
-        checkConfiguration("conf")
+
+            ${resolve.configureProject("conf")}
+        """
 
         expect:
         succeeds 'checkDeps'
@@ -626,7 +633,6 @@ class PlatformResolveIntegrationTest extends AbstractHttpDependencyResolutionTes
     }
 
     @Issue("https://github.com/gradle/gradle/issues/20684")
-    @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
     def "multiple platform deselection - reselection does not leave pending constraints in graph - different issue"() {
         given:
         def depJackDb20 = mavenHttpRepo.module('jack', 'db', '2.0').withModuleMetadata()
@@ -696,10 +702,9 @@ class PlatformResolveIntegrationTest extends AbstractHttpDependencyResolutionTes
             }
 
             tasks.register('resolve') {
-                def conf = configurations.conf
+                def component = configurations.conf.incoming.resolutionResult.rootComponent
                 doLast {
-                    // Need a specific path for restoring serialized version, other paths work
-                    println conf.resolvedConfiguration.lenientConfiguration.allModuleDependencies
+                    println component.get().getDependencies()
                 }
             }
 """
@@ -707,11 +712,6 @@ class PlatformResolveIntegrationTest extends AbstractHttpDependencyResolutionTes
         expect:
         succeeds 'resolve'
         //Shape of the graph is not checked as bug was failing resolution altogether
-    }
-
-    private void checkConfiguration(String configuration) {
-        resolve = new ResolveTestFixture(buildFile, configuration)
-        resolve.prepare()
     }
 
     String mavenHttpRepo() {

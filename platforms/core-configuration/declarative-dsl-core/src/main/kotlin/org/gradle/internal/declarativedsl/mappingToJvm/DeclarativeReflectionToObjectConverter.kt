@@ -1,5 +1,6 @@
 package org.gradle.internal.declarativedsl.mappingToJvm
 
+import org.gradle.declarative.dsl.schema.CustomAccessorIdentifier
 import org.gradle.declarative.dsl.schema.DataBuilderFunction
 import org.gradle.declarative.dsl.schema.DataProperty
 import org.gradle.declarative.dsl.schema.DataType
@@ -8,11 +9,13 @@ import org.gradle.declarative.dsl.schema.ParameterSemantics
 import org.gradle.declarative.dsl.schema.SchemaFunction
 import org.gradle.internal.declarativedsl.InstanceAndPublicType
 import org.gradle.internal.declarativedsl.analysis.AssignmentMethod
+import org.gradle.internal.declarativedsl.analysis.AssignmentRecord
+import org.gradle.internal.declarativedsl.analysis.DataAdditionRecord
 import org.gradle.internal.declarativedsl.analysis.DeclarativeDslInterpretationException
+import org.gradle.internal.declarativedsl.analysis.NestedObjectAccessRecord
 import org.gradle.internal.declarativedsl.analysis.ObjectOrigin
 import org.gradle.internal.declarativedsl.analysis.OperationId
-import org.gradle.internal.declarativedsl.objectGraph.ObjectReflection
-import org.gradle.internal.declarativedsl.objectGraph.PropertyValueReflection
+import org.gradle.internal.declarativedsl.analysis.ResolutionResult
 import kotlin.reflect.KClass
 
 
@@ -25,31 +28,27 @@ class DeclarativeReflectionToObjectConverter(
     private val getScopeClassLoader: () -> ClassLoader
 ) : ReflectionToObjectConverter {
 
-    override fun apply(objectReflection: ObjectReflection, conversionFilter: ReflectionToObjectConverter.ConversionFilter) {
-        if (objectReflection is ObjectReflection.DataObjectReflection) {
-            conversionFilter.filterProperties(objectReflection).forEach { property ->
-                val assigned = objectReflection.properties.getValue(property)
-                applyPropertyValue(objectReflection.objectOrigin, property, assigned)
-                apply(assigned.value, conversionFilter)
-                // TODO: record properties assigned in function calls or constructors, so that
-                //       we can check that all properties were assigned
-            }
+    override fun applyConversion(resolutionResults: ResolutionResult) {
+        val allOperations = buildList {
+            addAll(resolutionResults.assignmentsFromDefaults)
+            addAll(resolutionResults.additionsFromDefaults)
+            addAll(resolutionResults.nestedObjectAccessFromDefaults)
+            addAll(resolutionResults.assignments)
+            addAll(resolutionResults.additions)
+            addAll(resolutionResults.nestedObjectAccess)
+        }.sortedBy { it.operationId }
 
-            objectReflection.addedObjects.forEach { addedObject ->
-                // We need the side effect of invoking the function producing the object, if it was there
-                getObjectByResolvedOrigin(addedObject.objectOrigin)
-                apply(addedObject, conversionFilter)
-                // TODO: maybe add the "containers" to the schema, so that added objects can be better expressed in this interpretation step
-            }
-
-            objectReflection.customAccessorObjects.forEach { customAccessor ->
-                getObjectByResolvedOrigin(customAccessor.objectOrigin).validate { "could not get object by custom accessor ${customAccessor.objectOrigin}" }.first
-                apply(customAccessor, conversionFilter)
-            }
-
-            objectReflection.lambdaAccessedObjects.forEach { lambdaAccessedObject ->
-                getObjectByResolvedOrigin(lambdaAccessedObject.objectOrigin).validate { "could not get object from lambda passed to ${lambdaAccessedObject.objectOrigin}" }.first
-                apply(lambdaAccessedObject, conversionFilter)
+        allOperations.forEach { operation ->
+            when (operation) {
+                is AssignmentRecord -> applyPropertyValue(operation.lhs.receiverObject, operation.lhs.property, operation.assignmentMethod, operation.rhs)
+                is DataAdditionRecord -> {
+                    getObjectByResolvedOrigin(operation.container)
+                    getObjectByResolvedOrigin(operation.dataObject)
+                }
+                is NestedObjectAccessRecord -> {
+                    getObjectByResolvedOrigin(operation.container)
+                    getObjectByResolvedOrigin(operation.dataObject)
+                }
             }
         }
     }
@@ -74,11 +73,10 @@ class DeclarativeReflectionToObjectConverter(
         }
     }
 
-    private
-    fun applyPropertyValue(receiver: ObjectOrigin, property: DataProperty, assigned: PropertyValueReflection) {
-        when (assigned.assignmentMethod) {
-            is AssignmentMethod.Property, is AssignmentMethod.Augmentation -> setPropertyValue(receiver, property, getObjectByResolvedOrigin(assigned.value.objectOrigin).instance)
-            is AssignmentMethod.BuilderFunction -> invokeBuilderFunction(receiver, assigned.assignmentMethod.function, assigned.value.objectOrigin)
+    private fun applyPropertyValue(receiver: ObjectOrigin, property: DataProperty, assignmentMethod: AssignmentMethod, assigned: ObjectOrigin) {
+        when (assignmentMethod) {
+            is AssignmentMethod.Property, is AssignmentMethod.Augmentation -> setPropertyValue(receiver, property, getObjectByResolvedOrigin(assigned).instance)
+            is AssignmentMethod.BuilderFunction -> invokeBuilderFunction(receiver, assignmentMethod.function, assigned)
             is AssignmentMethod.AsConstructed -> Unit // the value should have already been passed to the constructor or the factory function
         }
     }
@@ -140,7 +138,7 @@ class DeclarativeReflectionToObjectConverter(
     private
     sealed interface ObjectAccessKey {
         data class Identity(val id: OperationId) : ObjectAccessKey
-        data class CustomAccessor(val owner: ObjectOrigin, val accessorId: String) : ObjectAccessKey
+        data class CustomAccessor(val owner: ObjectOrigin, val accessorId: CustomAccessorIdentifier) : ObjectAccessKey
         data class ConfiguringLambda(val owner: ObjectOrigin, val function: SchemaFunction, val identityValues: List<Any?>) : ObjectAccessKey
     }
 
@@ -194,7 +192,7 @@ class DeclarativeReflectionToObjectConverter(
     private
     fun objectFromCustomAccessor(
         origin: ObjectOrigin.CustomConfigureAccessor
-    ): InstanceAndPublicType = objectByIdentity(ObjectAccessKey.CustomAccessor(origin.receiver, origin.accessor.customAccessorIdentifier)) {
+    ): InstanceAndPublicType = objectByIdentity(ObjectAccessKey.CustomAccessor(origin.receiver, origin.accessor.accessorIdentifier)) {
         val instanceAndPublicType = getObjectByResolvedOrigin(origin.receiver).validate { "receiver for custom accessor is null" }
         customAccessors.getObjectFromCustomAccessor(instanceAndPublicType.first, origin.accessor)
     }

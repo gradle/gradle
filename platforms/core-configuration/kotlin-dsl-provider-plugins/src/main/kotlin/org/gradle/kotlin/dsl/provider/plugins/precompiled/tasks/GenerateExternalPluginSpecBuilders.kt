@@ -27,8 +27,10 @@ import org.gradle.api.tasks.TaskAction
 import org.gradle.kotlin.dsl.accessors.pluginEntriesFrom
 import org.gradle.kotlin.dsl.accessors.pluginTreesFrom
 import org.gradle.kotlin.dsl.accessors.writeSourceCodeForPluginSpecBuildersFor
+import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.PluginEntryCache
 import org.gradle.kotlin.dsl.provider.PrecompiledScriptsEnvironment.EnvironmentProperties.kotlinDslPluginSpecBuildersImplicitImports
 import java.io.File
+import javax.inject.Inject
 
 
 @CacheableTask
@@ -37,9 +39,14 @@ abstract class GenerateExternalPluginSpecBuilders : DefaultTask() {
     @get:Internal
     abstract val classPathFiles: ConfigurableFileCollection
 
+    @get:Inject
+    internal abstract val pluginEntryCache: PluginEntryCache
+
     @Suppress("LeakingThis")
     @get:Input
-    val pluginEntries = classPathFiles.elements.map { elements -> pluginEntriesFrom(elements.map { it.asFile }) }
+    val pluginEntries = classPathFiles.elements.map { elements ->
+        pluginEntriesFrom(elements.map { it.asFile }, pluginEntryCache)
+    }
 
     @get:OutputDirectory
     abstract val sourceCodeOutputDir: DirectoryProperty

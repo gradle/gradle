@@ -303,7 +303,7 @@ dependencies {
             }
 
             def rules1 = provider { rulesInvoked }
-            resolve.doLast {
+            tasks.resolve.doLast {
                 assert rules1.get() == [ '1.0', '1.0', '1.0', '1.0', '1.0' ]
                 assert VerifyingRule.ruleInvoked
             }
@@ -385,7 +385,7 @@ dependencies {
 
             def rules1 = provider { rulesInvoked }
             def rules2 = provider { rulesUninvoked }
-            resolve.doLast {
+            tasks.resolve.doLast {
                 assert rules1.get().sort() == [ 1, 2, 3 ]
                 assert rules2.get().empty
                 assert InvokedRule.ruleInvoked
@@ -460,7 +460,7 @@ dependencies {
     }
 }
 
-resolve.doLast {
+tasks.resolve.doLast {
     assert plainRuleInvoked
     assert mavenRuleInvoked
     assert !ivyRuleInvoked
@@ -690,7 +690,7 @@ task downloadRules {
     }
 }
 
-resolve.dependsOn(downloadRules)
+tasks.resolve.dependsOn(tasks.downloadRules)
 
 """
 

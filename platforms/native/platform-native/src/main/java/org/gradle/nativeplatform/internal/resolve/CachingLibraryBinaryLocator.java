@@ -29,6 +29,7 @@ public class CachingLibraryBinaryLocator implements LibraryBinaryLocator {
     private final LibraryBinaryLocator delegate;
     private final Map<LibraryIdentifier, DomainObjectSet<NativeLibraryBinary>> libraries = new HashMap<LibraryIdentifier, DomainObjectSet<NativeLibraryBinary>>();
 
+    @SuppressWarnings("StaticAssignmentInConstructor") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
     public CachingLibraryBinaryLocator(LibraryBinaryLocator delegate, DomainObjectCollectionFactory domainObjectCollectionFactory) {
         this.delegate = delegate;
         if (nullResult == null) {

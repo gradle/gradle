@@ -154,7 +154,7 @@ public class DaemonClient implements BuildActionExecutor<BuildActionParameters, 
             }
             // Compatible daemon was found, try it
             try {
-                Build build = new Build(buildId, connection.getDaemon().getToken(), action, requestContext.getClient(), requestContext.getStartTime(), requestContext.isInteractive(), parameters);
+                Build build = new Build(buildId, connection.getDaemon().getToken(), action, requestContext.getClient(), requestContext.getStartTime(), requestContext.isInteractiveConsole(), parameters);
                 return executeBuild(build, connection, requestContext.getCancellationToken(), requestContext.getEventConsumer());
             } catch (DaemonInitialConnectException e) {
                 // this exception means that we want to try again.
@@ -168,7 +168,7 @@ public class DaemonClient implements BuildActionExecutor<BuildActionParameters, 
         // No existing daemon was usable, so start a new one and try it once
         final DaemonClientConnection connection = connector.startDaemon(compatibilitySpec);
         try {
-            Build build = new Build(buildId, connection.getDaemon().getToken(), action, requestContext.getClient(), requestContext.getStartTime(), requestContext.isInteractive(), parameters);
+            Build build = new Build(buildId, connection.getDaemon().getToken(), action, requestContext.getClient(), requestContext.getStartTime(), requestContext.isInteractiveConsole(), parameters);
             return executeBuild(build, connection, requestContext.getCancellationToken(), requestContext.getEventConsumer());
         } catch (DaemonInitialConnectException e) {
             // This means we could not connect to the daemon we just started.  fail and don't try again

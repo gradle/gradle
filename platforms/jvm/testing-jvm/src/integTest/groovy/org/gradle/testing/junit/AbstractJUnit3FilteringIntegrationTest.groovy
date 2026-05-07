@@ -17,6 +17,7 @@
 
 package org.gradle.testing.junit
 
+
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.testing.fixture.AbstractTestingMultiVersionIntegrationTest
 

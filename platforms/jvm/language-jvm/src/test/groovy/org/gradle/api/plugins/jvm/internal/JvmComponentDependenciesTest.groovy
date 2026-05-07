@@ -98,7 +98,7 @@ class JvmComponentDependenciesTest extends Specification {
             implementation project()
         }
         then:
-        1 * dependencyFactory.create(currentProject) >> currentProjectDependency
+        1 * dependencyFactory.createProjectDependency() >> currentProjectDependency
 
         dependencies.getImplementation().getDependencies().get() == [currentProjectDependency] as Set
     }
@@ -115,8 +115,7 @@ class JvmComponentDependenciesTest extends Specification {
         }
 
         then:
-        1 * currentProject.project(":path:to:somewhere") >> otherProject
-        1 * dependencyFactory.create(otherProject) >> otherProjectDependency
+        1 * dependencyFactory.createProjectDependency(":path:to:somewhere") >> otherProjectDependency
 
         dependencies.getImplementation().getDependencies().get() == [otherProjectDependency] as Set
     }

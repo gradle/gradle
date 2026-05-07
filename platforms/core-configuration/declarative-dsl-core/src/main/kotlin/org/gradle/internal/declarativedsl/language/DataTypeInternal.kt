@@ -20,6 +20,7 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import org.gradle.declarative.dsl.schema.DataType
 import org.gradle.declarative.dsl.schema.FqName
+import org.gradle.declarative.dsl.schema.SchemaItemMetadata
 
 object DataTypeInternal {
 
@@ -114,6 +115,9 @@ object DataTypeInternal {
         }
 
         override fun toString() = "${typeSignature.name.simpleName}<${typeArguments.joinToString()}>"
+
+        override val metadata: List<SchemaItemMetadata>
+            get() = emptyList()
     }
 
     @Serializable

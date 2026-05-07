@@ -20,9 +20,12 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.internal.jvm.Jvm
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.InstalledJdkTestPreconditions
 
 class JavaToolchainUpToDateIntegrationTest extends AbstractIntegrationSpec {
 
+    @Requires(InstalledJdkTestPreconditions.DifferentJdkAvailable)
     def "compile and test reacting to toolchains are up-to-date without changes"() {
         def someJdk = AvailableJavaHomes.differentJdk
         buildscriptWithToolchain(someJdk)

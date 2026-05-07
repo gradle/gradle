@@ -24,7 +24,7 @@ import org.gradle.internal.declarativedsl.evaluator.schema.InterpretationSchemaB
 import org.gradle.internal.declarativedsl.evaluator.schema.InterpretationSchemaBuildingResult.SchemaNotBuilt
 import org.gradle.internal.declarativedsl.project.projectInterpretationSequence
 import org.gradle.internal.declarativedsl.settings.settingsInterpretationSequence
-import org.gradle.plugin.software.internal.ProjectFeatureDeclarations
+import org.gradle.features.internal.binding.ProjectFeatureDeclarations
 
 
 class GradleProcessInterpretationSchemaBuilder(

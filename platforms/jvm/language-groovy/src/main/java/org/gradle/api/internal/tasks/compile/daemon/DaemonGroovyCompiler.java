@@ -20,16 +20,15 @@ import com.google.common.collect.Iterables;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.tasks.compile.ApiCompilerResult;
 import org.gradle.api.internal.tasks.compile.BaseForkOptionsConverter;
-import org.gradle.api.internal.tasks.compile.GroovyCompilerFactory;
+import org.gradle.api.internal.tasks.compile.DaemonSideCompiler;
 import org.gradle.api.internal.tasks.compile.GroovyJavaJointCompileSpec;
 import org.gradle.api.internal.tasks.compile.MinimalGroovyCompilerDaemonForkOptions;
 import org.gradle.api.internal.tasks.compile.MinimalJavaCompilerDaemonForkOptions;
 import org.gradle.api.internal.tasks.compile.incremental.compilerapi.constants.ConstantsAnalysisResult;
 import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessingResult;
 import org.gradle.api.problems.ProblemId;
-import org.gradle.api.problems.Severity;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
-import org.gradle.api.problems.internal.InternalProblemReporter;
+import org.gradle.api.problems.internal.ProblemReporterInternal;
 import org.gradle.initialization.ClassLoaderRegistry;
 import org.gradle.internal.classloader.FilteringClassLoader;
 import org.gradle.internal.classloader.VisitableURLClassLoader;
@@ -59,7 +58,7 @@ public class DaemonGroovyCompiler extends AbstractDaemonCompiler<GroovyJavaJoint
     private final JavaForkOptionsFactory forkOptionsFactory;
     private final File daemonWorkingDir;
     private final JvmVersionDetector jvmVersionDetector;
-    private final InternalProblemReporter problemReporter;
+    private final ProblemReporterInternal problemReporter;
 
     public DaemonGroovyCompiler(
         File daemonWorkingDir,
@@ -68,7 +67,7 @@ public class DaemonGroovyCompiler extends AbstractDaemonCompiler<GroovyJavaJoint
         ClassLoaderRegistry classLoaderRegistry,
         JavaForkOptionsFactory forkOptionsFactory,
         JvmVersionDetector jvmVersionDetector,
-        InternalProblemReporter problemReporter
+        ProblemReporterInternal problemReporter
     ) {
         super(compilerWorkerExecutor);
         this.classPathRegistry = classPathRegistry;
@@ -80,8 +79,8 @@ public class DaemonGroovyCompiler extends AbstractDaemonCompiler<GroovyJavaJoint
     }
 
     @Override
-    protected CompilerWorkerExecutor.CompilerParameters getCompilerParameters(GroovyJavaJointCompileSpec spec) {
-        return new GroovyCompilerParameters(GroovyCompilerFactory.DaemonSideCompiler.class.getName(), new Object[]{classPathRegistry.getClassPath("JAVA-COMPILER-PLUGIN").getAsFiles()}, spec);
+    protected CompilerParameters getCompilerParameters(GroovyJavaJointCompileSpec spec) {
+        return new GroovyCompilerParameters(DaemonSideCompiler.class.getName(), new Object[]{classPathRegistry.getClassPath("JAVA-COMPILER-PLUGIN").getAsFiles()}, spec);
     }
 
     @Override
@@ -112,7 +111,7 @@ public class DaemonGroovyCompiler extends AbstractDaemonCompiler<GroovyJavaJoint
         javaForkOptions.setWorkingDir(daemonWorkingDir);
         javaForkOptions.setExecutable(javaOptions.getExecutable());
         int javaVersionMajor = jvmVersionDetector.getJavaVersionMajor(javaOptions.getExecutable());
-        javaForkOptions.jvmArgs(JpmsConfiguration.forGroovyProcesses(javaVersionMajor));
+        javaForkOptions.jvmArgs(JpmsConfiguration.forGroovyCompilerWorker(javaVersionMajor));
         if (javaVersionMajor <= 8) {
             // In JDK 8 and below, we need to attach the 'tools.jar' to the classpath.
             File javaExecutable = new File(javaForkOptions.getExecutable());
@@ -124,7 +123,6 @@ public class DaemonGroovyCompiler extends AbstractDaemonCompiler<GroovyJavaJoint
                 throw problemReporter.throwing(new IllegalStateException(contextualMessage), problemId, problemSpec -> problemSpec
                     .contextualLabel(contextualMessage)
                     .solution("Check if the installation is not a JRE but a JDK.")
-                    .severity(Severity.ERROR)
                 );
             } else {
                 languageGroovyClasspath = languageGroovyClasspath.plus(Collections.singletonList(toolsJar));
@@ -182,17 +180,4 @@ public class DaemonGroovyCompiler extends AbstractDaemonCompiler<GroovyJavaJoint
         return gradleFilterSpec;
     }
 
-    public static class GroovyCompilerParameters extends CompilerWorkerExecutor.CompilerParameters {
-        private final GroovyJavaJointCompileSpec compileSpec;
-
-        public GroovyCompilerParameters(String compilerClassName, Object[] compilerInstanceParameters, GroovyJavaJointCompileSpec compileSpec) {
-            super(compilerClassName, compilerInstanceParameters);
-            this.compileSpec = compileSpec;
-        }
-
-        @Override
-        public GroovyJavaJointCompileSpec getCompileSpec() {
-            return compileSpec;
-        }
-    }
 }

@@ -17,14 +17,16 @@
 package org.gradle.smoketests
 
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
+import org.gradle.util.GradleVersion
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.JdkVersionTestPreconditions
+
 
 /**
  * https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-dependencies
  */
-@Requires(UnitTestPreconditions.Jdk17OrLater)
+@Requires(JdkVersionTestPreconditions.Jdk17OrLater)
 class BomSupportPluginsSmokeTest extends AbstractSmokeTest {
     static bomVersion = "3.4.4"
     static bom = "'org.springframework.boot:spring-boot-dependencies:${bomVersion}'"
@@ -35,6 +37,7 @@ class BomSupportPluginsSmokeTest extends AbstractSmokeTest {
         given:
         def springVersion = springVersion
         def bomVersion = bomVersion
+        def resolve = new ResolveTestFixture(new TestFile(testProjectDir))
 
         settingsFile << """
             rootProject.name = 'springbootproject'
@@ -48,6 +51,8 @@ class BomSupportPluginsSmokeTest extends AbstractSmokeTest {
 
             ${bomDeclaration}
 
+            ${resolve.configureProject("testCompileClasspath")}
+
             dependencies {
                 implementation "org.springframework.boot:spring-boot"
                 implementation "org.springframework.boot:spring-boot-autoconfigure"
@@ -58,11 +63,10 @@ class BomSupportPluginsSmokeTest extends AbstractSmokeTest {
                 testImplementation "org.springframework.boot:spring-boot-test-autoconfigure"
             }
         """
-        def resolve = new ResolveTestFixture(new TestFile(buildFile), 'testCompileClasspath')
-        resolve.prepare()
 
         when:
         def runner = runner('checkDep')
+        runner.maybeExpectLegacyDeprecationWarning("The Project.getProperties method has been deprecated. This will fail with an error in Gradle 10. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_9.html#deprecated_get_properties")
         runner.build()
 
         then:
@@ -142,7 +146,6 @@ class BomSupportPluginsSmokeTest extends AbstractSmokeTest {
             module("org.springframework.boot:spring-boot:$bomVersion")
         }
 
-        resolve.expectDefaultConfiguration('compile')
         resolve.expectGraph {
             root(':', ':springbootproject:') {
                 if (directBomDependency) {

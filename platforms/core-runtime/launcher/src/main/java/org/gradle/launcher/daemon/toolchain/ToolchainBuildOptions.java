@@ -17,9 +17,12 @@
 package org.gradle.launcher.daemon.toolchain;
 
 import org.gradle.StartParameter;
+import org.gradle.cli.OptionCategory;
+import org.gradle.internal.buildoption.AbstractBuildOption;
 import org.gradle.internal.buildoption.BooleanBuildOption;
 import org.gradle.internal.buildoption.BuildOption;
 import org.gradle.internal.buildoption.BuildOptionSet;
+import org.gradle.internal.buildoption.CommandLineOptionConfiguration;
 import org.gradle.internal.buildoption.Origin;
 import org.gradle.internal.buildoption.StringBuildOption;
 import org.gradle.jvm.toolchain.internal.AutoInstalledInstallationSupplier;
@@ -81,31 +84,31 @@ public class ToolchainBuildOptions {
                 new JavaInstallationPathsOption<StartParameter>() {
                     @Override
                     public void applyTo(String value, StartParameter settings, Origin origin) {
-                        settings.getProjectProperties().putIfAbsent(getProperty(), value);
+                        putProjectPropertyIfAbsent(settings, this, value);
                     }
                 },
                 new JavaInstallationEnvironmentPathsOption<StartParameter>() {
                     @Override
                     public void applyTo(String value, StartParameter settings, Origin origin) {
-                        settings.getProjectProperties().putIfAbsent(getProperty(), value);
+                        putProjectPropertyIfAbsent(settings, this, value);
                     }
                 },
                 new AutoDetectionOption<StartParameter>() {
                     @Override
                     public void applyTo(boolean value, StartParameter settings, Origin origin) {
-                        settings.getProjectProperties().putIfAbsent(getProperty(), Boolean.toString(value));
+                        putProjectPropertyIfAbsent(settings, this, Boolean.toString(value));
                     }
                 },
                 new AutoDownloadOption<StartParameter>() {
                     @Override
                     public void applyTo(boolean value, StartParameter settings, Origin origin) {
-                        settings.getProjectProperties().putIfAbsent(getProperty(), Boolean.toString(value));
+                        putProjectPropertyIfAbsent(settings, this, Boolean.toString(value));
                     }
                 },
                 new IntellijJdkBuildOption<StartParameter>() {
                     @Override
                     public void applyTo(String value, StartParameter settings, Origin origin) {
-                        settings.getProjectProperties().putIfAbsent(getProperty(), value);
+                        putProjectPropertyIfAbsent(settings, this, value);
                     }
                 }
             );
@@ -117,11 +120,26 @@ public class ToolchainBuildOptions {
         };
     }
 
+    private static <K, V extends CommandLineOptionConfiguration> void putProjectPropertyIfAbsent(
+        StartParameter settings,
+        AbstractBuildOption<K, V> option,
+        String value
+    ) {
+        String property = option.getProperty();
+        assert property != null;
+        settings.getProjectProperties().putIfAbsent(property, value);
+    }
+
     private abstract static class JavaInstallationPathsOption<T> extends StringBuildOption<T> {
         private static final String GRADLE_PROPERTY = LocationListInstallationSupplier.JAVA_INSTALLATIONS_PATHS_PROPERTY;
 
         public JavaInstallationPathsOption() {
             super(GRADLE_PROPERTY);
+        }
+
+        @Override
+        protected OptionCategory getCategory() {
+            return OptionCategory.CONFIGURATION;
         }
     }
 
@@ -131,6 +149,11 @@ public class ToolchainBuildOptions {
         public JavaInstallationEnvironmentPathsOption() {
             super(GRADLE_PROPERTY);
         }
+
+        @Override
+        protected OptionCategory getCategory() {
+            return OptionCategory.CONFIGURATION;
+        }
     }
 
     private abstract static class AutoDetectionOption<T> extends BooleanBuildOption<T> {
@@ -139,12 +162,23 @@ public class ToolchainBuildOptions {
         public AutoDetectionOption() {
             super(GRADLE_PROPERTY);
         }
+
+        @Override
+        protected OptionCategory getCategory() {
+            return OptionCategory.CONFIGURATION;
+        }
     }
+
     private abstract static class AutoDownloadOption<T> extends BooleanBuildOption<T> {
         private static final String GRADLE_PROPERTY = AutoInstalledInstallationSupplier.AUTO_DOWNLOAD;
 
         public AutoDownloadOption() {
             super(GRADLE_PROPERTY);
+        }
+
+        @Override
+        protected OptionCategory getCategory() {
+            return OptionCategory.CONFIGURATION;
         }
     }
 
@@ -153,6 +187,11 @@ public class ToolchainBuildOptions {
 
         public IntellijJdkBuildOption() {
             super(GRADLE_PROPERTY);
+        }
+
+        @Override
+        protected OptionCategory getCategory() {
+            return OptionCategory.CONFIGURATION;
         }
     }
 }

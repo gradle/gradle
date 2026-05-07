@@ -18,6 +18,7 @@ package org.gradle.kotlin.dsl.accessors
 import org.gradle.api.Action
 import org.gradle.api.Incubating
 import org.gradle.api.Project
+import org.gradle.api.initialization.SharedModelDefaults
 import org.gradle.api.internal.DynamicObjectAware
 import org.gradle.api.reflect.TypeOf
 import org.gradle.internal.deprecation.ConfigurationDeprecationType
@@ -76,10 +77,11 @@ fun fragmentsFor(accessor: Accessor): Fragments = when (accessor) {
     is Accessor.ForModelDefault -> fragmentsForModelDefault(accessor)
     is Accessor.ForProjectType -> fragmentsForProjectType(accessor)
     is Accessor.ForContainerElementFactory -> fragmentsForContainerElementFactory(accessor)
+    is Accessor.ForDeclarativeNestedModel -> fragmentsForDeclarativeNestedModel(accessor)
 }
 
 private fun fragmentsForProjectType(accessor: Accessor.ForProjectType): Fragments = accessor.run {
-    val className = "${accessor.spec.projectFeatureName.original.uppercaseFirstChar()}ContainerElementFactoriesKt"
+    val className = internalNameForAccessorClassOf(accessor.spec)
     val functionName = spec.projectFeatureName.original
     val (kotlinModelType, _) = accessibleTypesFor(accessor.spec.modelType)
     val (kotlinTargetType, jvmTargetType) = accessibleTypesFor(accessor.spec.targetType)
@@ -92,6 +94,8 @@ private fun fragmentsForProjectType(accessor: Accessor.ForProjectType): Fragment
         else -> "project feature"
     }
 
+    val calledMethod = "applyProjectFeature"
+
     className to sequenceOf(
         AccessorFragment(
             source = """
@@ -100,7 +104,7 @@ private fun fragmentsForProjectType(accessor: Accessor.ForProjectType): Fragment
             |         */
             |        @Incubating
             |        ${annotations}fun $targetTypeKotlinString.`${functionName}`(configure: Action<in ${spec.modelType.type.kotlinString}>) {
-            |            applyProjectType(this, "$functionName", configure)
+            |            $calledMethod(this, "$functionName", configure)
             |        }
             """.trimMargin(),
             signature = JvmMethodSignature(
@@ -116,7 +120,7 @@ private fun fragmentsForProjectType(accessor: Accessor.ForProjectType): Fragment
                     CHECKCAST(DynamicObjectAware::class.internalName)
                     LDC(functionName)
                     ALOAD(1)
-                    invokeRuntime("applyProjectFeature", "(L${DynamicObjectAware::class.internalName};L${String::class.internalName};L${Action::class.internalName};)V")
+                    invokeRuntime(calledMethod, "(L${DynamicObjectAware::class.internalName};L${String::class.internalName};L${Action::class.internalName};)V")
                     RETURN()
                 }
             },
@@ -952,6 +956,57 @@ fun fragmentsForExtension(accessor: Accessor.ForExtension): Fragments {
     )
 }
 
+private
+fun fragmentsForDeclarativeNestedModel(accessor: Accessor.ForDeclarativeNestedModel): Fragments {
+    val accessorSpec = accessor.spec
+    val className = internalNameForAccessorClassOf(accessorSpec)
+    val (accessibleReceiverType, name, extensionType) = accessorSpec
+    val propertyName = name.kotlinIdentifier
+    val receiverType = accessibleReceiverType.type.kmType
+    val receiverTypeName = accessibleReceiverType.internalName()
+    val (kotlinNestedModelType, _) = accessibleTypesFor(extensionType)
+    val deprecation = accessorSpec.type.deprecation()
+    val optInRequirement = accessorSpec.type.requiredOptIns()
+
+    return className to sequenceOf(
+        AccessorFragment(
+            source = nestedModelAccessor(accessorSpec),
+            signature = JvmMethodSignature(
+                propertyName,
+                "(L$receiverTypeName;Lorg/gradle/api/Action;)V"
+            ),
+            bytecode = {
+                publicStaticMethod(signature) {
+                    maybeWithDeprecation(deprecation)
+                    maybeWithOptInRequirement(optInRequirement)
+                    ALOAD(0)
+                    LDC(propertyName)
+                    ALOAD(1)
+                    invokeRuntime("configureNestedModel", "(L${Any::class.internalName};L${String::class.internalName};L${Action::class.internalName};)V")
+                    RETURN()
+                }
+            },
+            metadata = {
+                kmPackage.functions += newFunctionOf(
+                    functionAttributes = maybeFunctionHasAnnotations {
+                        publicFunctionAttributes()
+                        hasAnnotationsIfDeprecated(deprecation)
+                        hasAnnotationsIfRequiresOptIn(optInRequirement)
+                    },
+                    receiverType = receiverType,
+                    returnType = KotlinType.unit,
+                    name = propertyName,
+                    valueParameters = listOf(
+                        newValueParameterOf("configure", actionTypeOf(kotlinNestedModelType))
+                    ),
+                    signature = signature
+                )
+            }
+        )
+    )
+}
+
+
 private fun KmFunction.hasAnnotationsIfDeprecated(deprecation: Deprecated?) {
     if (deprecation != null) {
         hasAnnotationsInBytecode = true
@@ -1060,10 +1115,12 @@ fun fragmentsForModelDefault(
     val className = internalNameForAccessorClassOf(accessorSpec)
     val (accessibleReceiverType, name, modelType) = accessorSpec
     val projectFeatureName = name.kotlinIdentifier
-    val receiverType = accessibleReceiverType.type.kmType
+    val (kotlinReceiverType, jvmReceiverType) = accessibleTypesFor(accessibleReceiverType)
     val (kotlinPublicType, jvmPublicType) = accessibleTypesFor(modelType)
     val deprecation = accessor.spec.type.deprecation()
     val optIns = accessor.spec.type.requiredOptIns()
+
+    val isTopLevelReceiver = accessibleReceiverType.type.value.concreteClass == SharedModelDefaults::class.java
 
     return className to sequenceOf(
         AccessorFragment(
@@ -1072,17 +1129,29 @@ fun fragmentsForModelDefault(
                 publicStaticMethod(signature) {
                     maybeWithDeprecation(deprecation)
                     maybeWithOptInRequirement(optIns)
-                    ALOAD(0)
-                    LDC(projectFeatureName)
-                    LDC(jvmPublicType)
-                    ALOAD(1)
-                    INVOKEINTERFACE(GradleTypeName.modeDefaults, "add", "(Ljava/lang/String;Ljava/lang/Class;Lorg/gradle/api/Action;)V")
-                    RETURN()
+                    if (isTopLevelReceiver) {
+                        ALOAD(0)
+                        LDC(projectFeatureName)
+                        LDC(jvmPublicType)
+                        ALOAD(1)
+                        INVOKEINTERFACE(GradleTypeName.modeDefaults, "add", "(Ljava/lang/String;Ljava/lang/Class;Lorg/gradle/api/Action;)V")
+                        RETURN()
+                    } else {
+                        ALOAD(0)
+                        CHECKCAST(DynamicObjectAware::class.internalName)
+                        LDC(projectFeatureName)
+                        ALOAD(1)
+                        invokeRuntime(
+                            "applyProjectFeature",
+                            "(L${DynamicObjectAware::class.internalName};L${String::class.internalName};L${Action::class.internalName};)V"
+                        )
+                        RETURN()
+                    }
                 }
             },
             metadata = {
                 kmPackage.functions += newFunctionOf(
-                    receiverType = receiverType,
+                    receiverType = kotlinReceiverType,
                     returnType = KotlinType.unit,
                     name = projectFeatureName,
                     valueParameters = listOf(
@@ -1098,7 +1167,7 @@ fun fragmentsForModelDefault(
             },
             signature = JvmMethodSignature(
                 name.kotlinIdentifier,
-                "(Lorg/gradle/api/initialization/SharedModelDefaults;Lorg/gradle/api/Action;)V"
+                "(L$jvmReceiverType;Lorg/gradle/api/Action;)V"
             )
         )
     )
@@ -1118,7 +1187,7 @@ fun MethodVisitor.invokeRuntime(function: String, desc: String) {
 
 
 private
-fun hashOf(accessorSpec: TypedAccessorSpec) =
+fun hashOf(accessorSpec: Any) =
     hashString(accessorSpec.toString()).toCompactString()
 
 
@@ -1228,6 +1297,9 @@ private
 fun internalNameForAccessorClassOf(accessorSpec: TypedAccessorSpec): String =
     "Accessors${hashOf(accessorSpec)}Kt"
 
+private
+fun internalNameForAccessorClassOf(accessorSpec: TypedProjectFeatureEntry): String =
+    "Accessors${hashOf(accessorSpec)}Kt"
 
 internal
 fun accessorDescriptorFor(receiverType: InternalName, returnType: InternalName) =

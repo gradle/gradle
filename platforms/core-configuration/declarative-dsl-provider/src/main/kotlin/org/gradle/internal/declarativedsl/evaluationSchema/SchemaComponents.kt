@@ -22,13 +22,14 @@ import org.gradle.declarative.dsl.evaluation.OperationGenerationId
 import org.gradle.declarative.dsl.schema.AnalysisSchema
 import org.gradle.internal.declarativedsl.analysis.DefaultOperationGenerationId
 import org.gradle.internal.declarativedsl.evaluator.conversion.ConversionSchema
-import org.gradle.internal.declarativedsl.evaluator.schema.DefaultEvaluationSchema
 import org.gradle.internal.declarativedsl.evaluator.conversion.DefaultEvaluationAndConversionSchema
 import org.gradle.internal.declarativedsl.evaluator.conversion.EvaluationAndConversionSchema
+import org.gradle.internal.declarativedsl.evaluator.schema.DefaultEvaluationSchema
 import org.gradle.internal.declarativedsl.mappingToJvm.RuntimeCustomAccessors
 import org.gradle.internal.declarativedsl.mappingToJvm.RuntimeFunctionResolver
 import org.gradle.internal.declarativedsl.mappingToJvm.RuntimePropertyResolver
 import org.gradle.internal.declarativedsl.schemaBuilder.AugmentationsProvider
+import org.gradle.internal.declarativedsl.schemaBuilder.CollectingSchemaFailureReporter
 import org.gradle.internal.declarativedsl.schemaBuilder.CompositeAugmentationsProvider
 import org.gradle.internal.declarativedsl.schemaBuilder.CompositeDefaultImportsProvider
 import org.gradle.internal.declarativedsl.schemaBuilder.CompositeFunctionExtractor
@@ -36,11 +37,14 @@ import org.gradle.internal.declarativedsl.schemaBuilder.CompositePropertyExtract
 import org.gradle.internal.declarativedsl.schemaBuilder.CompositeTopLevelFunctionDiscovery
 import org.gradle.internal.declarativedsl.schemaBuilder.CompositeTypeDiscovery
 import org.gradle.internal.declarativedsl.schemaBuilder.DefaultImportsProvider
+import org.gradle.internal.declarativedsl.schemaBuilder.FilteringTypeDiscovery
 import org.gradle.internal.declarativedsl.schemaBuilder.FunctionExtractor
 import org.gradle.internal.declarativedsl.schemaBuilder.PropertyExtractor
+import org.gradle.internal.declarativedsl.schemaBuilder.SchemaFailureReporter
 import org.gradle.internal.declarativedsl.schemaBuilder.TopLevelFunctionDiscovery
 import org.gradle.internal.declarativedsl.schemaBuilder.TypeDiscovery
 import org.gradle.internal.declarativedsl.schemaBuilder.schemaFromTypes
+import java.nio.CharBuffer
 import kotlin.reflect.KClass
 
 
@@ -102,11 +106,16 @@ fun buildEvaluationSchema(
     analysisStatementFilter: AnalysisStatementFilter,
     operationGenerationId: OperationGenerationId = DefaultOperationGenerationId.finalEvaluation,
     schemaComponents: EvaluationSchemaBuilder.() -> Unit
-): EvaluationSchema = DefaultEvaluationSchema(
-    analysisSchema(topLevelReceiverType, DefaultEvaluationSchemaBuilder().apply(schemaComponents)),
-    analysisStatementFilter,
-    operationGenerationId
-)
+): EvaluationSchema {
+    val failureCollector = CollectingSchemaFailureReporter()
+    val analysisSchema = analysisSchema(topLevelReceiverType, DefaultEvaluationSchemaBuilder().apply(schemaComponents), failureCollector)
+    return DefaultEvaluationSchema(
+        analysisSchema,
+        failureCollector.failures,
+        analysisStatementFilter,
+        operationGenerationId
+    )
+}
 
 
 internal
@@ -117,14 +126,16 @@ fun buildEvaluationAndConversionSchema(
     schemaComponents: EvaluationSchemaBuilder.() -> Unit,
 ): EvaluationAndConversionSchema {
     val builder = DefaultEvaluationAndConversionSchemaBuilder().apply(schemaComponents)
-    val analysisSchema = analysisSchema(topLevelReceiverType, builder)
+    val failureCollector = CollectingSchemaFailureReporter()
+    val analysisSchema = analysisSchema(topLevelReceiverType, builder, failureCollector)
 
     return DefaultEvaluationAndConversionSchema(
         analysisSchema,
+        failureCollector.failures,
         analysisStatementFilter,
         operationGenerationId,
         builder.conversionComponentFactories.map { fn ->
-            return@map { scriptTarget ->
+            { scriptTarget ->
                 val resultComponent = fn(scriptTarget)
                 // Re-wrap the services into the "public" schema type
                 object : ConversionSchema {
@@ -164,7 +175,8 @@ interface ObjectConversionComponent {
 private
 fun analysisSchema(
     topLevelReceiverType: KClass<*>,
-    builder: EvaluationSchemaBuilderResult
+    builder: EvaluationSchemaBuilderResult,
+    failureReporter: SchemaFailureReporter
 ): AnalysisSchema {
     val analysisSchema = schemaFromTypes(
         topLevelReceiverType,
@@ -173,11 +185,19 @@ fun analysisSchema(
         configureLambdas = gradleConfigureLambdas,
         propertyExtractor = CompositePropertyExtractor(builder.propertyExtractors),
         functionExtractor = CompositeFunctionExtractor(builder.functionExtractors),
-        typeDiscovery = CompositeTypeDiscovery(builder.typeDiscoveries),
+        typeDiscovery = FilteringTypeDiscovery(CompositeTypeDiscovery(builder.typeDiscoveries), ::isValidTypeForDiscovery),
         defaultImports = CompositeDefaultImportsProvider(builder.defaultImportsProviders).defaultImports(),
-        augmentationsProvider = CompositeAugmentationsProvider(builder.augmentationsProviders)
+        augmentationsProvider = CompositeAugmentationsProvider(builder.augmentationsProviders),
+        failureReporter = failureReporter
     )
     return analysisSchema
+}
+
+// FIXME: adjust or remove once the proper type-based opt-out is implemented
+private fun isValidTypeForDiscovery(kClass: KClass<*>): Boolean = when (kClass) {
+    CharBuffer::class -> false // Kotlin reflection fails to inspect this type
+
+    else -> true
 }
 
 

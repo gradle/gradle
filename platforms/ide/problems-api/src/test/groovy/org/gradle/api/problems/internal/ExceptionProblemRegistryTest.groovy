@@ -26,7 +26,7 @@ class ExceptionProblemRegistryTest extends ConcurrentSpec {
     def "can store and retrieve problems"() {
         setup:
         def exception = new RuntimeException("Boom")
-        def problem = Mock(InternalProblem)
+        def problem = Mock(ProblemInternal)
         def registry = new ExceptionProblemRegistry()
         registry.onProblem(exception, problem)
 
@@ -43,7 +43,7 @@ class ExceptionProblemRegistryTest extends ConcurrentSpec {
         async {
             10.times {
                 start {
-                    def problem = Mock(InternalProblem)
+                    def problem = Mock(ProblemInternal)
                     barrier.await()
                     registry.onProblem(exception, problem)
                 }
@@ -64,7 +64,7 @@ class ExceptionProblemRegistryTest extends ConcurrentSpec {
             10.times {i ->
                 start {
                     def exception = exceptions[i]
-                    def problem = Mock(InternalProblem)
+                    def problem = Mock(ProblemInternal)
                     barrier.await()
                     registry.onProblem(exception, problem)
                 }
@@ -90,7 +90,7 @@ class ExceptionProblemRegistryTest extends ConcurrentSpec {
                     registry.getProblemLocator().findAll(exception)
                 }
                 start {
-                    def problem = Mock(InternalProblem)
+                    def problem = Mock(ProblemInternal)
                     barrier.await()
                     registry.onProblem(exception, problem)
                 }

@@ -24,7 +24,7 @@ import static org.gradle.internal.cc.impl.inputs.undeclared.FileUtils.testFileNa
 import static org.gradle.internal.cc.impl.inputs.undeclared.FileUtils.testFilePath
 
 abstract class AbstractUndeclaredBuildInputsIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
-    
+
     private static String sysProp = 'BUILD_MOJO' // using something unlikely to be used by libraries, to avoid conflicts
 
     abstract void buildLogicApplication(BuildInputRead read)
@@ -44,7 +44,6 @@ abstract class AbstractUndeclaredBuildInputsIntegrationTest extends AbstractConf
 
         then:
         configurationCache.assertStateStored()
-        // TODO - use problems configurationCache, need to be able to ignore problems from the Kotlin plugin
         problems.assertResultHasProblems(result) {
             withInput("$location: system property '$sysProp'")
             ignoringUnexpectedInputs()
@@ -57,7 +56,6 @@ abstract class AbstractUndeclaredBuildInputsIntegrationTest extends AbstractConf
 
         then:
         configurationCache.assertStateLoaded()
-        problems.assertResultHasProblems(result)
         outputDoesNotContain("apply =")
         outputContains("task = $value")
 
@@ -66,7 +64,6 @@ abstract class AbstractUndeclaredBuildInputsIntegrationTest extends AbstractConf
 
         then: 'undeclared properties are considered build inputs'
         configurationCache.assertStateStored()
-        problems.assertResultHasProblems(result)
         outputContains("apply = $newValue")
         outputContains("task = $newValue")
 
@@ -130,7 +127,6 @@ abstract class AbstractUndeclaredBuildInputsIntegrationTest extends AbstractConf
 
         then:
         configurationCache.assertStateLoaded()
-        problems.assertResultHasProblems(result)
         outputDoesNotContain("apply =")
         outputContains("task = $value")
 
@@ -140,7 +136,6 @@ abstract class AbstractUndeclaredBuildInputsIntegrationTest extends AbstractConf
 
         then: 'undeclared properties are considered build inputs'
         configurationCache.assertStateStored()
-        problems.assertResultHasProblems(result)
         outputContains("apply = $newValue")
         outputContains("task = $newValue")
 
@@ -307,6 +302,14 @@ abstract class AbstractUndeclaredBuildInputsIntegrationTest extends AbstractConf
         "constructing a byte channel"                   | (TestFile it) -> { UndeclaredFileAccess.filesNewByteChannel(testFilePath(it)) }
         "constructing a byte channel with open options" | (TestFile it) -> { UndeclaredFileAccess.filesNewByteChannelWithOpenOptions(testFilePath(it)) }
         "reading lines from a file"                     | (TestFile it) -> { UndeclaredFileAccess.fileReadLines(testFilePath(it)) }
+        "reading path as text with default encoding"    | (TestFile it) -> { UndeclaredFileAccess.pathText(testFilePath(it)) }
+        "reading path as text with customized encoding" | (TestFile it) -> { UndeclaredFileAccess.pathTextWithEncoding(testFilePath(it)) }
+        "reading lines from a path"                     | (TestFile it) -> { UndeclaredFileAccess.pathReadLines(testFilePath(it)) }
+        "reading bytes from a path"                     | (TestFile it) -> { UndeclaredFileAccess.pathReadBytes(testFilePath(it)) }
+        "opening a path reader"                         | (TestFile it) -> { UndeclaredFileAccess.pathReader(testFilePath(it)) }
+        "opening a path buffered reader"                | (TestFile it) -> { UndeclaredFileAccess.pathBufferedReader(testFilePath(it)) }
+        "opening a path input stream"                   | (TestFile it) -> { UndeclaredFileAccess.pathInputStream(testFilePath(it)) }
+        "using lines from a path"                       | (TestFile it) -> { UndeclaredFileAccess.pathUseLines(testFilePath(it)) }
     }
 }
 

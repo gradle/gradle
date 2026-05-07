@@ -22,8 +22,9 @@ import org.gradle.caching.internal.controller.BuildCacheController
 import org.gradle.caching.internal.controller.service.BuildCacheLoadResult
 import org.gradle.caching.internal.origin.OriginMetadata
 import org.gradle.internal.Try
+import org.gradle.internal.execution.Execution
 import org.gradle.internal.execution.OutputChangeListener
-import org.gradle.internal.execution.UnitOfWork
+import org.gradle.internal.execution.OutputVisitor
 import org.gradle.internal.execution.caching.CachingDisabledReason
 import org.gradle.internal.execution.caching.CachingDisabledReasonCategory
 import org.gradle.internal.execution.caching.CachingState
@@ -36,8 +37,7 @@ import org.gradle.internal.vfs.FileSystemAccess
 import java.time.Duration
 import java.time.temporal.ChronoUnit
 
-import static org.gradle.internal.execution.ExecutionEngine.Execution
-import static org.gradle.internal.execution.ExecutionEngine.ExecutionOutcome.FROM_CACHE
+import static org.gradle.internal.execution.Execution.ExecutionOutcome.FROM_CACHE
 
 class BuildCacheStepTest extends StepSpec<TestCachingContext> implements SnapshotterFixture {
     def buildCacheController = Mock(BuildCacheController)
@@ -75,10 +75,11 @@ class BuildCacheStepTest extends StepSpec<TestCachingContext> implements Snapsho
 
         then:
         _ * work.allowedToLoadFromCache >> true
+        1 * fileSystemAccess.invalidate(_)
         1 * buildCacheController.load(cacheKey, _) >> Optional.of(loadMetadata)
 
         then:
-        _ * work.visitOutputs(_ as File, _ as UnitOfWork.OutputVisitor) >> { File workspace, UnitOfWork.OutputVisitor visitor ->
+        _ * work.visitOutputs(_ as File, _ as OutputVisitor) >> { File workspace, OutputVisitor visitor ->
             visitor.visitLocalState(localStateFile)
         }
         1 * outputChangeListener.invalidateCachesFor([localStateFile.getAbsolutePath()])
@@ -108,6 +109,7 @@ class BuildCacheStepTest extends StepSpec<TestCachingContext> implements Snapsho
 
         then:
         _ * work.allowedToLoadFromCache >> true
+        1 * fileSystemAccess.invalidate(_)
         1 * buildCacheController.load(cacheKey, _) >> Optional.empty()
 
         then:
@@ -137,6 +139,7 @@ class BuildCacheStepTest extends StepSpec<TestCachingContext> implements Snapsho
 
         then:
         _ * work.allowedToLoadFromCache >> true
+        1 * fileSystemAccess.invalidate(_)
         1 * buildCacheController.load(cacheKey, _) >> { BuildCacheKey key, CacheableEntity entity ->
             loadedOutputFile << "output"
             loadedOutputDir.mkdirs()
@@ -162,6 +165,7 @@ class BuildCacheStepTest extends StepSpec<TestCachingContext> implements Snapsho
 
         then:
         _ * work.allowedToLoadFromCache >> true
+        1 * fileSystemAccess.invalidate(_)
         1 * buildCacheController.load(cacheKey, _) >> Optional.empty()
 
         then:
@@ -186,6 +190,7 @@ class BuildCacheStepTest extends StepSpec<TestCachingContext> implements Snapsho
 
         then:
         _ * work.allowedToLoadFromCache >> true
+        1 * fileSystemAccess.invalidate(_)
         1 * buildCacheController.load(cacheKey, _) >> Optional.empty()
 
         then:

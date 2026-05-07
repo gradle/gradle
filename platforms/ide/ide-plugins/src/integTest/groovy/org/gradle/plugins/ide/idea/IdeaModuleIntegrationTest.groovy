@@ -412,7 +412,7 @@ apply plugin: 'java'
 apply plugin: 'idea'
 
 repositories {
-  flatDir dirs: 'repo'
+  flatDir { dirs 'repo' }
 }
 
 dependencies {

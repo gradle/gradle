@@ -77,7 +77,7 @@ public abstract class Actions {
             return doNothing();
         }
         if (actions.size() == 1) {
-            return Cast.uncheckedCast(actions.get(0));
+            return Cast.uncheckedNonnullCast(actions.get(0));
         }
         return new CompositeAction<T>(actions);
     }

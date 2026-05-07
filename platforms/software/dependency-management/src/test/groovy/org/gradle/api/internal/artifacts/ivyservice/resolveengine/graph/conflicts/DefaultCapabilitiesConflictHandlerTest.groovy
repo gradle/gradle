@@ -52,39 +52,42 @@ class DefaultCapabilitiesConflictHandlerTest extends Specification {
 
     DefaultCapabilitiesConflictHandler handler = new DefaultCapabilitiesConflictHandler(ImmutableList.of(), resolveState)
 
-    private long id
-
     @Issue("gradle/gradle#5920")
     def "order of components should be preserved"() {
         CapabilityInternal capability = capability()
         ComponentState cs1 = component("g", "m1")
         ComponentState cs2 = component("g", "m2")
-
-        def conflictingModules = [cs1, cs2].collect { it.module }
+        def node1 = node(cs1, capability)
+        def node2 = node(cs2, capability)
+        // use a reasonably high number so that the test becomes at best flaky if we break the contract
+        def extraNodes = (1..50).collect {
+            ComponentState cs = component("group", "m_${it}")
+            this.node(cs, capability)
+        }
+        def conflictingNodes = [node1, node2] + extraNodes
 
         when:
-        boolean hasConflict = handler.registerCandidate(node(cs1, capability))
+        boolean hasConflict = handler.registerCandidate(node1)
 
         then:
         !hasConflict
 
         when:
-        hasConflict = handler.registerCandidate(node(cs2, capability))
+        hasConflict = handler.registerCandidate(node2)
 
         then:
         hasConflict
+        1 * node1.markInCapabilityConflict()
+        1 * node2.markInCapabilityConflict()
 
         when:
-        // use a reasonably high number so that the test becomes at best flaky if we break the contract
-        50.times {
-            ComponentState cs = component("group", "m_${it}")
-            conflictingModules << cs.module
-            hasConflict = handler.registerCandidate(node(cs, capability))
+        extraNodes.each {
+            handler.registerCandidate(it)
         }
 
         then:
-        conflictingModules.each {
-            (1.._) * it.clearSelection()
+        extraNodes.each {
+            1 * it.markInCapabilityConflict()
         }
     }
 
@@ -95,9 +98,8 @@ class DefaultCapabilitiesConflictHandlerTest extends Specification {
         Mock(ComponentState) {
             getId() >> mvi
             getComponentId() >> DefaultModuleComponentIdentifier.newId(mvi)
-            isCandidateForConflictResolution() >> true
+            isNotEvicted() >> true
             getModule() >> module
-            isSelected() >> true
             getImplicitCapability() >> capability(group, name)
         }
     }
@@ -112,11 +114,11 @@ class DefaultCapabilitiesConflictHandlerTest extends Specification {
                 getCapabilities() >> ImmutableCapabilities.of(capability)
             }
         }
-        def node = new NodeState(id++, cs, resolveState, state, true) {
-            @Override
-            boolean isSelected() {
-                return true
-            }
+        def node = Mock(NodeState) {
+            isSelected() >> true
+            getComponent() >> cs
+            getResolveState() >> state
+            getMetadata() >> state.metadata
         }
         cs.addNode(node)
         return node

@@ -20,8 +20,13 @@ import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 
 import javax.sql.DataSource;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.List;
 
@@ -29,9 +34,28 @@ public class PerformanceDatabase {
     // This value specifies that a DB connection will stay at pool for at most 30 seconds
     private static final int MAX_LIFETIME_MS = 30 * 1000;
     private static final String PERFORMANCE_DB_URL_PROPERTY_NAME = "org.gradle.performance.db.url";
+    private static final DateTimeFormatter PROFILING_TIMESTAMP_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS");
+    private static final String PROFILING_OUTPUT_PROPERTY = "org.gradle.performance.db.profiling.output";
     private final String databaseName;
     private final List<ConnectionAction<Void>> databaseInitializers;
     private HikariDataSource dataSource;
+
+    static void logProfilingWithCallStack(String jsonPayload) {
+        // Capture stack at call site. We'll still include this method in the trace, but skip it when printing.
+        StackTraceElement[] stackTrace = new Exception("Call stack for profiling log").getStackTrace();
+        String ts = LocalDateTime.now().format(PROFILING_TIMESTAMP_FORMATTER);
+        String profilingOutputPath = System.getProperty(PROFILING_OUTPUT_PROPERTY);
+        if (profilingOutputPath != null) {
+            try (PrintWriter pw = new PrintWriter(new FileWriter(profilingOutputPath, true))) {
+                pw.println(ts + " " + jsonPayload);
+                for (int i = 1; i < stackTrace.length; i++) {
+                    pw.println("\tat " + stackTrace[i]);
+                }
+            } catch (IOException e) {
+                System.err.println("Failed to write profiling output to " + profilingOutputPath + ": " + e.getMessage());
+            }
+        }
+    }
 
     @SafeVarargs
     public PerformanceDatabase(String databaseName, ConnectionAction<Void>... schemaInitializers) {
@@ -41,6 +65,7 @@ public class PerformanceDatabase {
 
     private Connection getConnection() throws SQLException {
         if (dataSource == null) {
+            long startTime = System.currentTimeMillis();
             HikariConfig config = new HikariConfig();
             config.setJdbcUrl(getUrl());
             config.setUsername(getUserName());
@@ -50,6 +75,13 @@ public class PerformanceDatabase {
             dataSource = new HikariDataSource(config);
 
             executeInitializers(dataSource);
+            logProfilingWithCallStack(SQLProfilingData.create(
+                "openDataSource",
+                getUrl(),
+                List.of("databaseName=" + databaseName),
+                "poolSize=1,maxLifetimeMs=" + MAX_LIFETIME_MS,
+                startTime
+            ).toJson());
         }
         return dataSource.getConnection();
     }
@@ -76,17 +108,51 @@ public class PerformanceDatabase {
 
     public void close() {
         if (dataSource != null) {
+            long startTime = System.currentTimeMillis();
             try {
                 dataSource.close();
             } finally {
                 dataSource = null;
+                logProfilingWithCallStack(SQLProfilingData.create(
+                    "closeDataSource",
+                    getUrl(),
+                    List.of("databaseName=" + databaseName),
+                    true,
+                    startTime
+                ).toJson());
             }
         }
     }
 
     public <T> T withConnection(ConnectionAction<T> action) throws SQLException {
-        try (Connection connection = getConnection()) {
+        long openStartTime = System.currentTimeMillis();
+        Connection connection = getConnection();
+        int connectionId = System.identityHashCode(connection);
+        logProfilingWithCallStack(SQLProfilingData.create(
+            "openConnection",
+            getUrl(),
+            List.of("databaseName=" + databaseName, "connectionId=" + connectionId),
+            true,
+            openStartTime
+        ).toJson());
+
+        try {
             return action.execute(connection);
+        } finally {
+            long closeStartTime = System.currentTimeMillis();
+            boolean closed = false;
+            try {
+                connection.close();
+                closed = true;
+            } finally {
+                logProfilingWithCallStack(SQLProfilingData.create(
+                    "closeConnection",
+                    getUrl(),
+                    List.of("databaseName=" + databaseName, "connectionId=" + connectionId),
+                    closed,
+                    closeStartTime
+                ).toJson());
+            }
         }
     }
 

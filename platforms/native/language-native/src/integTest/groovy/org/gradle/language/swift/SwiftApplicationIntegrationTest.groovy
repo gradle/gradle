@@ -488,8 +488,8 @@ class SwiftApplicationIntegrationTest extends AbstractSwiftIntegrationTest imple
         fails ":app:assemble"
 
         and:
-        failure.assertHasCause("Could not resolve project :greeter.")
-        failure.assertHasCause("No matching variant of project :greeter was found. The consumer was configured to find attribute 'org.gradle.native.architecture' with value '${currentHostArchName}', attribute 'org.gradle.native.debuggable' with value 'true', attribute 'org.gradle.native.operatingSystem' with value '${currentHostOperatingSystemName}', attribute 'org.gradle.native.optimized' with value 'false', attribute 'org.gradle.usage' with value 'native-runtime' but:\n" +
+        failure.assertHasCause("Could not resolve project ':greeter'.")
+        failure.assertHasCause("No matching variant of project ':greeter' was found. The consumer was configured to find attribute 'org.gradle.native.architecture' with value '${currentHostArchName}', attribute 'org.gradle.native.debuggable' with value 'true', attribute 'org.gradle.native.operatingSystem' with value '${currentHostOperatingSystemName}', attribute 'org.gradle.native.optimized' with value 'false', attribute 'org.gradle.usage' with value 'native-runtime' but:\n" +
                                "  - No variants exist.")
     }
 

@@ -1,8 +1,8 @@
 # ADR-0008 - Use NullAway for null checking
 
-## Date
+## Status
 
-2025-08-06
+- ACCEPTED on 2025-08-06
 
 ## Context
 
@@ -43,15 +43,14 @@ Prefer either:
       [`Cast.cast`](https://github.com/gradle/gradle/blob/674b8430b024f03cae24f1e4dd6dbaa78b557dae/platforms/core-runtime/stdlib-java-extensions/src/main/java/org/gradle/internal/Cast.java#L37)
       and
       [`Cast.castNullable`](https://github.com/gradle/gradle/blob/674b8430b024f03cae24f1e4dd6dbaa78b557dae/platforms/core-runtime/stdlib-java-extensions/src/main/java/org/gradle/internal/Cast.java#L62).
-  * When annotating existing code, use `@org.jetbrains.annotations.Contract`.
+  * When annotating existing internal code, use `org.jetbrains.annotations.Contract`, e.g. `@Contract(null -> null; !null -> !null)`.
+      When doing so, still annotate nullable parameters and the return type as `@Nullable`.
+  * Do not use `@Contract` for public APIs.
+  * For polynull public APIs, the solution has to be decided on a case-by-case basis.
 
 Do not remove `null` checks on public API boundaries, even if the annotations (or rather lack of them) suggest this.
 Not all client code is compiled with NullAway.
 Do not make a parameter `@Nullable` just to check and throw a `NullPointerException` when it is `null`. 
-
-## Status
-
-PROPOSED
 
 ## Consequences
 

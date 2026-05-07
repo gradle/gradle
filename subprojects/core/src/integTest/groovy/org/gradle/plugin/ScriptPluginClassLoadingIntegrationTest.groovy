@@ -20,7 +20,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import spock.lang.Issue
 
 import static org.gradle.util.Matchers.containsText
@@ -140,7 +140,7 @@ class ScriptPluginClassLoadingIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Requires(
-        value = IntegTestPreconditions.NotIsolatedProjects,
+        value = TestExecutionPreconditions.NotIsolatedProjects,
         reason = "Exercises IP incompatible behavior"
     )
     def "methods defined in a build script are visible to scripts applied to sub projects"() {

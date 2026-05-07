@@ -81,6 +81,7 @@ public class DefaultGradleConnector extends GradleConnector implements ProjectCo
             }
             connections.clear();
         }
+        ConnectorServices.connectorDisconnected();
     }
 
     @Override
@@ -98,11 +99,6 @@ public class DefaultGradleConnector extends GradleConnector implements ProjectCo
     @Override
     public GradleConnector useDistribution(URI gradleDistribution) {
         distribution = distributionFactory.getDistribution(gradleDistribution);
-        return this;
-    }
-
-    public GradleConnector useClasspathDistribution() {
-        distribution = distributionFactory.getClasspathDistribution();
         return this;
     }
 

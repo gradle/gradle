@@ -19,11 +19,12 @@ import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.OsTestPreconditions
+
 
 @Requires([
-    UnitTestPreconditions.NotWindows,
-    UnitTestPreconditions.NotMacOs
+    OsTestPreconditions.NotWindows,
+    OsTestPreconditions.NotMacOs
 ])
 class SharedLibrarySoNameIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     def "setup"() {

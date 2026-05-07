@@ -16,8 +16,13 @@
 
 package org.gradle.internal.declarativedsl.project
 
-import org.gradle.api.internal.plugins.software.RegistersSoftwareTypes
-import org.gradle.api.internal.plugins.software.SoftwareType
+import org.gradle.features.annotations.BindsProjectType
+import org.gradle.features.annotations.RegistersProjectFeatures
+import org.gradle.features.binding.ProjectFeatureApplicationContext
+import org.gradle.features.binding.ProjectTypeApplyAction
+import org.gradle.features.binding.ProjectTypeBinding
+import org.gradle.features.binding.ProjectTypeBindingBuilder
+import org.gradle.features.registration.TaskRegistrar
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.intellij.lang.annotations.Language
 
@@ -57,18 +62,21 @@ class DeclarativeDslProjectBuildFileIntegrationSpec extends AbstractIntegrationS
                 primaryAccess {
                     read = false
                     write = false
+                    exec = listOf(USER)
                 }
 
                 secondaryAccess {
                     name = "two"
                     read = true
                     write = false
+                    exec = listOf(GROUP, USER)
                 }
 
                 secondaryAccess {
                     name = "three"
                     read = true
                     write = true
+                    exec = listOf(USER, GROUP, ALL)
                 }
             }
         """
@@ -82,9 +90,9 @@ referencePoint = (1, 2)
 arguments = [one, two]
 flags = []
 mapProperty = {}
-primaryAccess = { primary, false, false}
-secondaryAccess { two, true, false}
-secondaryAccess { three, true, true}"""
+primaryAccess = { primary, false, false, [USER] }
+secondaryAccess { two, true, false, [GROUP, USER] }
+secondaryAccess { three, true, true, [USER, GROUP, ALL] }"""
         )
 
         where:
@@ -115,7 +123,7 @@ secondaryAccess { three, true, true}"""
         """
 
         when:
-        run(":printConfiguration")
+        run(":printConfiguration", "--stacktrace")
 
         then:
         outputContains("arguments = [one, two, three]")
@@ -190,37 +198,60 @@ secondaryAccess { three, true, true}"""
             import org.gradle.api.Project;
             import org.gradle.api.provider.ListProperty;
             import org.gradle.api.provider.Property;
-            import ${SoftwareType.class.name};
+            import ${BindsProjectType.class.name};
+            import ${ProjectTypeBinding.class.name};
+            import ${ProjectTypeBindingBuilder.class.name};
+            import ${ProjectTypeApplyAction.class.name};
+            import ${ProjectFeatureApplicationContext.class.name};
 
+            @${BindsProjectType.class.simpleName}(RestrictedPlugin.Binding.class)
             public abstract class RestrictedPlugin implements Plugin<Project> {
-                @SoftwareType(name = "restricted", modelPublicType = Extension.class)
-                public abstract Extension getRestricted();
+                static class Binding implements ${ProjectTypeBinding.class.simpleName} {
+                    public void bind(${ProjectTypeBindingBuilder.class.simpleName} builder) {
+                        builder.bindProjectType("restricted",  Extension.class, ApplyAction.class)
+                            .withUnsafeDefinition();
+                    }
+
+                }
+
+                static abstract class ApplyAction implements ${ProjectTypeApplyAction.class.simpleName}<Extension, Extension.Model> {
+                    @javax.inject.Inject
+                    public ApplyAction() { }
+
+                    @javax.inject.Inject
+                    abstract protected ${TaskRegistrar.class.name} getTaskRegistrar();
+
+                    @Override
+                    public void apply(${ProjectFeatureApplicationContext.class.simpleName} context, Extension definition, Extension.Model model) {
+                        getTaskRegistrar().register("printConfiguration", DefaultTask.class, task -> {
+                            Property<Extension.Point> referencePoint = definition.getReferencePoint();
+                            Extension.Access acc = definition.getPrimaryAccess();
+                            ListProperty<Extension.Access> secondaryAccess = definition.getSecondaryAccess();
+
+                            task.doLast("print restricted extension content", t -> {
+                                System.out.println("id = " + definition.getId().get());
+                                Extension.Point point = referencePoint.getOrElse(definition.point(-1, -1));
+                                System.out.println("referencePoint = (" + point.getX() + ", " + point.getY() + ")");
+                                System.out.println("arguments = " + definition.getArguments().get());
+                                System.out.println("flags = " + definition.getFlags());
+                                System.out.println("mapProperty = " + definition.getMapProperty().get());
+                                System.out.println("primaryAccess = { " +
+                                        acc.getName().get() + ", " + acc.getRead().get() + ", " + acc.getWrite().get() + ", " + acc.getExec().get() + " }"
+                                    );
+                                    secondaryAccess.get().forEach(it -> {
+                                        System.out.println("secondaryAccess { " +
+                                                it.getName().get() + ", " + it.getRead().get() + ", " + it.getWrite().get() + ", " + it.getExec().get() + " }"
+                                        );
+                                    });
+                                });
+                            });
+
+                    }
+                }
 
                 @Override
                 public void apply(Project target) {
-                    target.getTasks().register("printConfiguration", DefaultTask.class, task -> {
-                        Property<Extension.Point> referencePoint = getRestricted().getReferencePoint();
-                        Extension.Access acc = getRestricted().getPrimaryAccess();
-                        ListProperty<Extension.Access> secondaryAccess = getRestricted().getSecondaryAccess();
 
-                        task.doLast("print restricted extension content", t -> {
-                            System.out.println("id = " + getRestricted().getId().get());
-                            Extension.Point point = referencePoint.getOrElse(getRestricted().point(-1, -1));
-                            System.out.println("referencePoint = (" + point.getX() + ", " + point.getY() + ")");
-                            System.out.println("arguments = " + getRestricted().getArguments().get());
-                            System.out.println("flags = " + getRestricted().getFlags());
-                            System.out.println("mapProperty = " + getRestricted().getMapProperty().get());
-                            System.out.println("primaryAccess = { " +
-                                    acc.getName().get() + ", " + acc.getRead().get() + ", " + acc.getWrite().get() + "}"
-                            );
-                            secondaryAccess.get().forEach(it -> {
-                                System.out.println("secondaryAccess { " +
-                                        it.getName().get() + ", " + it.getRead().get() + ", " + it.getWrite().get() +
-                                        "}"
-                                );
-                            });
-                        });
-                    });
                 }
             }
         """
@@ -258,18 +289,18 @@ secondaryAccess { three, true, true}"""
         import java.util.ArrayList;
         import java.util.List;
         import org.gradle.declarative.dsl.model.annotations.Adding;
-        import org.gradle.declarative.dsl.model.annotations.Configuring;
-        import org.gradle.declarative.dsl.model.annotations.Restricted;
+        import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition;
         import org.gradle.api.Action;
         import org.gradle.api.model.ObjectFactory;
         import org.gradle.api.provider.ListProperty;
         import org.gradle.api.provider.MapProperty;
         import org.gradle.api.provider.Property;
+        import org.gradle.features.binding.Definition;
+        import org.gradle.features.binding.BuildModel;
 
         import javax.inject.Inject;
 
-        @Restricted
-        public abstract class Extension {
+        public abstract class Extension implements Definition<Extension.Model>{
             private final Access primaryAccess;
             public abstract ListProperty<Access> getSecondaryAccess();
             private final ObjectFactory objects;
@@ -288,32 +319,22 @@ secondaryAccess { three, true, true}"""
                 getReferencePoint().convention(point(-1, -1));
             }
 
-            @Restricted
             public abstract Property<String> getId();
 
-            @Restricted
             public abstract Property<Point> getReferencePoint();
 
-            @Restricted
             public abstract ListProperty<String> getArguments();
 
-            @Restricted
             public abstract MapProperty<String, Integer> getMapProperty();
 
             private List<Integer> flags = new ArrayList<>();
 
-            @Restricted
             public List<Integer> getFlags() {
                 return flags;
             }
 
             public void setFlags(List<Integer> flags) {
                 this.flags = flags;
-            }
-
-            @Configuring
-            public void primaryAccess(Action<? super Access> configure) {
-                configure.execute(primaryAccess);
             }
 
             @Adding
@@ -325,7 +346,6 @@ secondaryAccess { three, true, true}"""
                 return newAccess;
             }
 
-            @Restricted
             public Point point(int x, int y) {
                 return new Point(x, y);
             }
@@ -337,14 +357,17 @@ secondaryAccess { three, true, true}"""
                     getWrite().convention(false);
                 }
 
-                @Restricted
                 public abstract Property<String> getName();
 
-                @Restricted
                 public abstract Property<Boolean> getRead();
 
-                @Restricted
                 public abstract Property<Boolean> getWrite();
+
+                public abstract ListProperty<ExecutionAccess> getExec();
+
+                public enum ExecutionAccess {
+                    USER, GROUP, ALL
+                }
             }
 
             public static class Point {
@@ -364,6 +387,8 @@ secondaryAccess { three, true, true}"""
                     return yCoord;
                 }
             }
+
+            interface Model extends BuildModel { }
         }
     """.stripIndent()
 
@@ -376,12 +401,11 @@ secondaryAccess { three, true, true}"""
         import org.gradle.api.provider.MapProperty
         import org.gradle.api.provider.Property
         import org.gradle.declarative.dsl.model.annotations.Adding
-        import org.gradle.declarative.dsl.model.annotations.Configuring
-        import org.gradle.declarative.dsl.model.annotations.Restricted
         import javax.inject.Inject
+        import org.gradle.features.binding.Definition
+        import org.gradle.features.binding.BuildModel
 
-        @Restricted
-        abstract class Extension @Inject constructor(private val objects: ObjectFactory) {
+        abstract class Extension @Inject constructor(private val objects: ObjectFactory) : Definition<Extension.Model> {
             val primaryAccess: Access
             abstract val secondaryAccess: ListProperty<Access>
 
@@ -393,25 +417,15 @@ secondaryAccess { three, true, true}"""
                 referencePoint.convention(point(-1, -1))
             }
 
-            @get:Restricted
             abstract val id: Property<String>
 
-            @get:Restricted
             abstract val referencePoint: Property<Point>
 
-            @get:Restricted
             abstract val arguments: ListProperty<String>
 
-            @get:Restricted
             abstract val mapProperty: MapProperty<String, Int>
 
-            @get:Restricted
             var flags: List<Int> = emptyList()
-
-            @Configuring
-            fun primaryAccess(configure: Access.() -> Unit) {
-                configure(primaryAccess)
-            }
 
             @Adding
             fun secondaryAccess(configure: Access.() -> Unit): Access {
@@ -422,7 +436,6 @@ secondaryAccess { three, true, true}"""
                 return newAccess
             }
 
-            @Restricted
             fun point(x: Int, y: Int): Point {
                 return Point(x, y)
             }
@@ -434,17 +447,22 @@ secondaryAccess { three, true, true}"""
                     write.convention(false)
                 }
 
-                @get:Restricted
                 abstract val name: Property<String>
 
-                @get:Restricted
                 abstract val read: Property<Boolean>
 
-                @get:Restricted
                 abstract val write: Property<Boolean>
+
+                abstract val exec: ListProperty<ExecutionAccess>
+
+                enum class ExecutionAccess {
+                    USER, GROUP, ALL
+                }
             }
 
             class Point(val x: Int, val y: Int)
+
+            interface Model : BuildModel
         }
     """
 
@@ -473,9 +491,9 @@ secondaryAccess { three, true, true}"""
         import org.gradle.api.Plugin;
         import org.gradle.api.initialization.Settings;
         import org.gradle.api.internal.SettingsInternal;
-        import ${RegistersSoftwareTypes.class.name};
+        import ${RegistersProjectFeatures.class.name};
 
-        @RegistersSoftwareTypes({ RestrictedPlugin.class })
+        @${RegistersProjectFeatures.class.simpleName}({ RestrictedPlugin.class })
         abstract public class SoftwareTypeRegistrationPlugin implements Plugin<Settings> {
             @Override
             public void apply(Settings target) {

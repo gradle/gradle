@@ -56,6 +56,9 @@ fun Project.currentGitBranchViaFileSystemQuery(): Provider<String> = getBuildEnv
 fun Project.currentGitCommitViaFileSystemQuery(): Provider<String> = getBuildEnvironmentExtensionOrNull()?.gitCommitId ?: objects.property(String::class.java)
 
 
+fun Project.scriptTemplateCommitIdViaFileSystemQuery(): Provider<String> = getBuildEnvironmentExtensionOrNull()?.scriptTemplateCommitId ?: objects.property(String::class.java)
+
+
 // gh-readonly-queue/master/pr-1234-5678abcdef -> master
 fun toMergeQueueBaseBranch(actualBranch: String): String = when {
     actualBranch.startsWith("gh-readonly-queue/") -> actualBranch.substringAfter("/").substringBefore("/")

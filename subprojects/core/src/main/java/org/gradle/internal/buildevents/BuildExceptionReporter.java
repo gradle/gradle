@@ -22,7 +22,9 @@ import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.api.logging.configuration.ShowStacktrace;
-import org.gradle.api.problems.internal.InternalProblem;
+import org.gradle.api.problems.ProblemGroup;
+import org.gradle.api.problems.internal.GradleCoreProblemGroup;
+import org.gradle.api.problems.internal.ProblemInternal;
 import org.gradle.initialization.BuildClientMetaData;
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager;
 import org.gradle.internal.exceptions.CompilationFailedIndicator;
@@ -32,21 +34,20 @@ import org.gradle.internal.exceptions.NonGradleCause;
 import org.gradle.internal.exceptions.NonGradleCauseExceptionsHolder;
 import org.gradle.internal.exceptions.ResolutionProvider;
 import org.gradle.internal.exceptions.StyledException;
+import org.gradle.internal.exceptions.WorkTypeAware;
 import org.gradle.internal.logging.text.BufferingStyledTextOutput;
 import org.gradle.internal.logging.text.LinePrefixingStyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.problems.failure.Failure;
 import org.gradle.internal.problems.failure.FailureFactory;
-import org.gradle.problems.internal.rendering.ProblemRenderer;
+import org.gradle.problems.internal.rendering.ProblemWriter;
 import org.gradle.util.internal.GUtil;
-import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
 import java.io.StringWriter;
 import java.util.ArrayDeque;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Deque;
 import java.util.HashSet;
@@ -78,6 +79,8 @@ public class BuildExceptionReporter implements Action<Throwable> {
 
     public static final String RESOLUTION_LINE_PREFIX = "> ";
     public static final String LINE_PREFIX_LENGTH_SPACES = repeat(" ", RESOLUTION_LINE_PREFIX.length());
+
+    private static final int MAX_WORK_TYPE_SEARCH_DEPTH = 3;
 
     @NullMarked
     private enum ExceptionStyle {
@@ -127,12 +130,12 @@ public class BuildExceptionReporter implements Action<Throwable> {
     }
 
     @Override
-    public void execute(@NonNull Throwable throwable) {
+    public void execute(Throwable throwable) {
         Failure failure = failureFactory.create(throwable);
         renderFailure(failure);
     }
 
-    private void renderFailure(@NonNull Failure failure) {
+    private void renderFailure(Failure failure) {
         List<Failure> causes = failure.getCauses();
         if (causes.size() > 1) {
             renderMultipleBuildExceptions(failure);
@@ -151,7 +154,7 @@ public class BuildExceptionReporter implements Action<Throwable> {
 
         for (int i = 0; i < flattenedFailures.size(); i++) {
             Failure cause = flattenedFailures.get(i);
-            FailureDetails details = constructFailureDetails("Task", cause);
+            FailureDetails details = constructFailureDetails(extractWorkType(cause), cause);
 
             output.println();
             output.withStyle(Failure).format("%s: ", i + 1);
@@ -163,6 +166,20 @@ public class BuildExceptionReporter implements Action<Throwable> {
 
             output.println("==============================================================================");
         }
+    }
+
+    private static String extractWorkType(Failure failure) {
+        int depth = 0;
+        Throwable cause = failure.getOriginal();
+        String workType = null;
+        while (cause != null && depth++ < MAX_WORK_TYPE_SEARCH_DEPTH) {
+            if (cause instanceof WorkTypeAware) {
+                workType = ((WorkTypeAware) cause).getWorkType();
+                break;
+            }
+            cause = cause.getCause();
+        }
+        return workType != null ? workType : "Task";
     }
 
     private void renderSingleBuildException(Failure failure) {
@@ -404,9 +421,15 @@ public class BuildExceptionReporter implements Action<Throwable> {
             resolutions.addAll(((ResolutionProvider) failure.getOriginal()).getResolutions());
         }
 
-        Collection<InternalProblem> all = failure.getProblems();
-        for (InternalProblem problem : all) {
-            resolutions.addAll(problem.getSolutions());
+        Collection<ProblemInternal> all = failure.getProblems();
+        for (ProblemInternal problem : all) {
+            // Java compilation problems are rendered by JavaCompilationWriter which emits only the details,
+            // so their solutions still need to reach the user via the resolution section.
+            // All other problem writers render solutions and doc links inline.
+            ProblemGroup group = problem.getDefinition().getId().getGroup();
+            if (GradleCoreProblemGroup.compilation().java().equals(group)) {
+                resolutions.addAll(problem.getSolutions());
+            }
         }
 
         for (Failure cause : failure.getCauses()) {
@@ -417,7 +440,7 @@ public class BuildExceptionReporter implements Action<Throwable> {
     }
 
     private void addBuildScanMessage(ContextImpl context) {
-        context.appendResolution(output -> runWithOption(output, LONG_OPTION, " to generate a Build Scan (powered by Develocity)."));
+        context.appendResolution(output -> runWithOption(output, LONG_OPTION, " to get full insights from a Build Scan (powered by Develocity)."));
     }
 
     private boolean isGradleEnterprisePluginApplied() {
@@ -434,7 +457,7 @@ public class BuildExceptionReporter implements Action<Throwable> {
         try {
             String msg = failure.getMessage();
             StringBuilder builder = new StringBuilder();
-            Collection<InternalProblem> problems = failure.getProblems();
+            Collection<ProblemInternal> problems = failure.getProblems();
             if (!problems.isEmpty()) {
                 // Skip the exception message unless it is a compilation error
                 if (failure.getOriginal() instanceof CompilationFailedIndicator) {
@@ -442,7 +465,7 @@ public class BuildExceptionReporter implements Action<Throwable> {
                     builder.append(System.lineSeparator());
                 }
                 StringWriter problemWriter = new StringWriter();
-                new ProblemRenderer(problemWriter).render(new ArrayList<>(problems));
+                ProblemWriter.grouping().write(problems, problemWriter);
                 builder.append(problemWriter);
 
                 // Workaround to keep the original behavior for Java compilation. We should render counters for all problems in the future.

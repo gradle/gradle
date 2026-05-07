@@ -31,8 +31,9 @@ import java.util.concurrent.atomic.AtomicInteger
  * A Proxy Server used for testing that proxies are correctly supported.
  */
 class TestProxyServer extends ExternalResource {
+    int port
+
     private HttpProxyServer proxyServer
-    private int port
     private AtomicInteger requestCountInternal = new AtomicInteger()
 
     @Override
@@ -53,6 +54,14 @@ class TestProxyServer extends ExternalResource {
             HttpFilters filterRequest(HttpRequest originalRequest, ChannelHandlerContext ctx) {
                 requestCountInternal.incrementAndGet()
                 return super.filterRequest(originalRequest, ctx)
+            }
+
+            @Override
+            int getMaximumRequestBufferSizeInBytes() {
+                // Enable request buffering via HttpObjectAggregator so the proxy can handle
+                // HTTP/1.1 Expect: 100-Continue requests (used for PUT/POST through authenticated proxies).
+                // Without this, the proxy cannot relay the 100 Continue interim response properly.
+                return 10 * 1024 * 1024
             }
         }
 

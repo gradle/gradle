@@ -1,0 +1,15 @@
+rootProject.name = "catalogs-duplicate-and-verify"
+
+dependencyResolutionManagement {
+    repositories {
+        mavenCentral()
+    }
+    versionCatalogs {
+        distributionLibs {
+            from(files("gradle/distribution.versions.toml"))
+        }
+        testLibs {
+            from(files("gradle/test.versions.toml"))
+        }
+    }
+}

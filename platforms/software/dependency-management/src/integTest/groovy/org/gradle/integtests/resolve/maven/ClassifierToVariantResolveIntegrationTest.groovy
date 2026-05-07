@@ -21,22 +21,24 @@ import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 
 class ClassifierToVariantResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
-    ResolveTestFixture resolve = new ResolveTestFixture(buildFile, "compileClasspath")
+    ResolveTestFixture resolve = new ResolveTestFixture(testDirectory)
 
     def setup() {
         settingsFile << """
             rootProject.name = 'test'
         """
         buildFile << """
-            apply plugin: 'java-library'
+            plugins {
+                id("java-library")
+            }
+
+            ${resolve.configureProject("compileClasspath")}
 
             repositories {
                 maven { url = "${mavenHttpRepo.uri}" }
             }
 
         """
-        resolve.expectDefaultConfiguration('compile')
-        resolve.prepare()
     }
 
     /**

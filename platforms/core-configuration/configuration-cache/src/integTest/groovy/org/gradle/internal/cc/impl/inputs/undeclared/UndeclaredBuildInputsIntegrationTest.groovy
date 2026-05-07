@@ -22,8 +22,9 @@ import org.gradle.api.Project
 import org.gradle.api.tasks.TaskAction
 import org.gradle.internal.cc.impl.AbstractConfigurationCacheIntegrationTest
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
+import org.gradle.test.preconditions.JdkVersionTestPreconditions
+
 import org.gradle.util.JarUtils
 import org.gradle.util.internal.TextUtil
 import spock.lang.Issue
@@ -402,7 +403,7 @@ class UndeclaredBuildInputsIntegrationTest extends AbstractConfigurationCacheInt
         outputContains("some.removed.property = null")
     }
 
-    @Requires(value = IntegTestPreconditions.NotNoDaemonExecutor, reason = """
+    @Requires(value = TestExecutionPreconditions.NotNoDaemonExecutor, reason = """
 Running with --no-daemon causes the test to fail when changing the command line because the
 internal property sun.java.command changes.
 """)
@@ -603,7 +604,7 @@ internal property sun.java.command changes.
     }
 
     @Issue("https://github.com/gradle/gradle/issues/25044")
-    @Requires(UnitTestPreconditions.Jdk11OrLater)
+    @Requires(JdkVersionTestPreconditions.Jdk11OrLater)
     def "plugin can read file within jar"() {
         def testFile = JarUtils.jar(testDir.file("thing.jar")) {
             manifest {}
@@ -868,7 +869,7 @@ internal property sun.java.command changes.
         outputContains("Configuration: some.property.1 = 1")
         outputDoesNotContain("Configuration: some.property.2 = 2")
         problems.assertResultHasProblems(result) {
-            withInput("Gradle runtime: Gradle property 'some.property.*'")
+            withInput("Project ':': Gradle property 'some.property.*'")
         }
 
         when:
@@ -886,7 +887,7 @@ internal property sun.java.command changes.
         outputContains("Configuration: some.property.1 = 1")
         outputContains("Configuration: some.property.2 = 2")
         problems.assertResultHasProblems(result) {
-            withInput("Gradle runtime: Gradle property 'some.property.*'")
+            withInput("Project ':': Gradle property 'some.property.*'")
         }
     }
 
@@ -952,6 +953,38 @@ internal property sun.java.command changes.
         then:
         configurationCache.assertStateLoaded()
         outputContains("Execution: build-logic-value")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/30990")
+    def "listening to system properties is reentrant"() {
+        buildFile """
+            class CustomSerializable implements Serializable {
+                private void writeObject(ObjectOutputStream stream) throws IOException {
+                    // Trigger reading a system property while we're writing a system property.
+                    // Not reading 'foo' is important to reproduce the issue, because interceptor may take shortcuts when reading the modified property.
+                    println("bar in writeObject = \${System.properties["bar"]}")
+                    stream.defaultWriteObject()
+                }
+
+                private void readObject(ObjectInputStream stream) throws IOException {
+                    stream.defaultReadObject()
+                }
+            }
+
+            tasks.register("run") {
+                System.properties["foo"] = new CustomSerializable()
+                doLast {
+                    println("foo in doLast = \${System.properties["foo"]}")
+                }
+            }
+        """
+
+        when:
+        configurationCacheRun("run")
+
+        then:
+        outputContains("bar in writeObject = null")
+        outputContains("foo in doLast = CustomSerializable@")
     }
 
     def "reports build logic reading files in #title"() {

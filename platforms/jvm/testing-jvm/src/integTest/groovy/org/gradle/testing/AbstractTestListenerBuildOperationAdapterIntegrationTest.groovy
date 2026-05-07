@@ -24,7 +24,6 @@ import org.gradle.testing.fixture.AbstractTestingMultiVersionIntegrationTest
 abstract class AbstractTestListenerBuildOperationAdapterIntegrationTest extends AbstractTestingMultiVersionIntegrationTest {
     def operations = new BuildOperationsFixture(executer, temporaryFolder)
 
-    abstract boolean isEmitsTestClassOperations()
     abstract void writeTestSources()
 
     def "emits build operations for junit tests"() {
@@ -61,14 +60,12 @@ abstract class AbstractTestListenerBuildOperationAdapterIntegrationTest extends 
             details.testDescriptor.composite == true
         }
         checkForSuiteOperations(iterator, "org.gradle.ASuite")
-        if (emitsTestClassOperations) {
-            checkForTestClassOperations(iterator, "org.gradle.OkTest")
-        }
+
+        checkForTestClassOperations(iterator, "org.gradle.OkTest")
         checkForTestOperations(iterator, "org.gradle.OkTest", "anotherOk")
         checkForTestOperations(iterator, "org.gradle.OkTest", "ok")
-        if (emitsTestClassOperations) {
-            checkForTestClassOperations(iterator, "org.gradle.OtherTest")
-        }
+
+        checkForTestClassOperations(iterator, "org.gradle.OtherTest")
         checkForTestOperations(iterator, "org.gradle.OtherTest", "ok")
 
         !iterator.hasNext()

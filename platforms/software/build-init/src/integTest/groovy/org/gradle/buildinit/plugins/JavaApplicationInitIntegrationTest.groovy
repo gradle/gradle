@@ -18,9 +18,10 @@ package org.gradle.buildinit.plugins
 
 import org.gradle.api.JavaVersion
 import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
+import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import spock.lang.Issue
 
 import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl.KOTLIN
@@ -189,7 +190,7 @@ class JavaApplicationInitIntegrationTest extends AbstractJvmLibraryInitIntegrati
         subprojectDir.file("src/test/java").assertHasDescendants("my/app/AppTest.java")
 
         and:
-        commonJvmFilesGenerated(scriptDsl)
+        commonJvmFilesGenerated(scriptDsl as BuildInitDsl)
 
         when:
         run("build")
@@ -271,7 +272,7 @@ class JavaApplicationInitIntegrationTest extends AbstractJvmLibraryInitIntegrati
 
 
     @Issue("https://github.com/gradle/gradle/issues/17383")
-    @Requires(IntegTestPreconditions.NotEmbeddedExecutor)
+    @Requires(TestExecutionPreconditions.NotEmbeddedExecutor)
     def "command line works with different locale"() {
         setup:
         executer.withCommandLineGradleOpts('-Duser.language=tr', '-Duser.country=TR')

@@ -1,0 +1,60 @@
+/*
+ * Copyright 2025 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.gradle.api.internal.tasks.testing.junitplatform.filters;
+
+import org.gradle.api.internal.tasks.testing.filter.TestSelectionMatcher;
+import org.junit.platform.engine.FilterResult;
+import org.junit.platform.engine.TestDescriptor;
+import org.junit.platform.engine.TestSource;
+import org.junit.platform.engine.support.descriptor.DirectorySource;
+import org.junit.platform.engine.support.descriptor.FileSource;
+import org.junit.platform.engine.support.descriptor.FileSystemSource;
+import org.junit.platform.launcher.PostDiscoveryFilter;
+
+import java.io.File;
+
+/**
+ * A JUnit Platform {@link PostDiscoveryFilter} filter that includes or excludes
+ * file or directory based tests based on their relative path to the
+ * directory that they were selected from.
+ *
+ * src/test/definitions/sub/foo.test has a relative path of sub/foo.test
+ * relative to the directory src/test/definitions.
+ *
+ * @see org.gradle.api.internal.tasks.testing.filter.TestSelectionMatcher#matchesFile(File)
+ */
+public final class FilePathFilter implements PostDiscoveryFilter {
+    private final TestSelectionMatcher matcher;
+
+    public FilePathFilter(TestSelectionMatcher matcher) {
+        this.matcher = matcher;
+    }
+
+    @Override
+    public FilterResult apply(TestDescriptor descriptor) {
+        return FilterResult.includedIf(shouldRun(descriptor), () -> "File match", () -> "File mismatch");
+    }
+
+    private boolean shouldRun(TestDescriptor descriptor) {
+        TestSource testSource = descriptor.getSource().orElseThrow(() -> new IllegalArgumentException("No test source found for " + descriptor));
+        if (testSource instanceof FileSource || testSource instanceof DirectorySource) {
+            return matcher.matchesFile(((FileSystemSource) testSource).getFile());
+        }
+
+        return false;
+    }
+}

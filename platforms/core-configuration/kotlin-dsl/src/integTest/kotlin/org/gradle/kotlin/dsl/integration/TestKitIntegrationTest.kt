@@ -20,14 +20,14 @@ import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.gradle.kotlin.dsl.fixtures.normalisedPath
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import org.junit.Test
 
 
 class TestKitIntegrationTest : AbstractKotlinIntegrationTest() {
 
     @Test
-    @Requires(IntegTestPreconditions.NotEmbeddedExecutor::class)
+    @Requires(TestExecutionPreconditions.NotEmbeddedExecutor::class)
     @LeaksFileHandles("Kotlin Compiler Daemon working directory")
     fun `withPluginClasspath works`() {
 
@@ -141,7 +141,7 @@ class TestKitIntegrationTest : AbstractKotlinIntegrationTest() {
     }
 
     @Test
-    @Requires(IntegTestPreconditions.NotEmbeddedExecutor::class)
+    @Requires(TestExecutionPreconditions.NotEmbeddedExecutor::class)
     @LeaksFileHandles("Kotlin Compiler Daemon working directory")
     fun `generated accessors work in the debug mode`() {
 

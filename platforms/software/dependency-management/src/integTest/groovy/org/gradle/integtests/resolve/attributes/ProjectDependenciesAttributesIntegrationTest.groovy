@@ -21,7 +21,7 @@ import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 
 class ProjectDependenciesAttributesIntegrationTest extends AbstractIntegrationSpec {
 
-    ResolveTestFixture resolve = new ResolveTestFixture(buildFile, 'res')
+    ResolveTestFixture resolve = new ResolveTestFixture(testDirectory)
 
     def setup() {
         buildFile << """
@@ -31,11 +31,12 @@ class ProjectDependenciesAttributesIntegrationTest extends AbstractIntegrationSp
                     extendsFrom(conf)
                 }
             }
+
+            ${resolve.configureProject("res")}
         """
         settingsFile << """
             rootProject.name = 'test'
         """
-        resolve.prepare()
     }
 
     def "uses dependency attributes to select the right configuration on the target project (color=#color)"() {
@@ -87,7 +88,7 @@ class ProjectDependenciesAttributesIntegrationTest extends AbstractIntegrationSp
         fails ':checkDeps'
 
         then:
-        failure.assertHasCause("""No matching variant of project :dep was found. The consumer was configured to find attribute 'color' with value 'green' but:
+        failure.assertHasCause("""No matching variant of project ':dep' was found. The consumer was configured to find attribute 'color' with value 'green' but:
   - Variant 'blueVariant':
       - Incompatible because this component declares attribute 'color' with value 'blue' and the consumer needed attribute 'color' with value 'green'
   - Variant 'redVariant':

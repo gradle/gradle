@@ -20,7 +20,8 @@ import org.gradle.integtests.fixtures.AbstractIntegrationTest
 import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.FileSystemTestPreconditions
+
 import org.junit.Assert
 import org.junit.Test
 
@@ -53,7 +54,7 @@ The following types/formats are supported:
     }
 
     @Test
-    @Requires(UnitTestPreconditions.Symlinks)
+    @Requires(FileSystemTestPreconditions.Symlinks)
     void reportsSymLinkWhichPointsToNothing() {
         TestFile link = testFile('src/file')
         link.createLink(testFile('missing'))
@@ -70,12 +71,12 @@ The following types/formats are supported:
         '''
 
         ExecutionFailure failure = inTestDirectory().withTasks('copy').runWithFailure()
-        failure.assertHasDescription("Execution failed for task ':copy'.")
+        failure.assertHasDescription("Execution failed for task ':copy' (registered in build file 'build.gradle').")
         failure.assertHasCause("Couldn't follow symbolic link '${link}'.")
     }
 
     @Test
-    @Requires(UnitTestPreconditions.FilePermissions)
+    @Requires(FileSystemTestPreconditions.FilePermissions)
     void reportsUnreadableSourceDir() {
         TestFile dir = testFile('src').createDir()
         def oldPermissions = dir.permissions
@@ -95,7 +96,7 @@ The following types/formats are supported:
     '''
 
             ExecutionFailure failure = inTestDirectory().withTasks('copy').runWithFailure()
-            failure.assertHasDescription("Execution failed for task ':copy'.")
+            failure.assertHasDescription("Execution failed for task ':copy' (registered in build file 'build.gradle').")
             failure.assertHasDocumentedCause("Cannot access input property 'rootSpec\$1' of task ':copy'. " +
                 "Accessing unreadable inputs or outputs is not supported. " +
                 "Declare the task as untracked by using Task.doNotTrackState(). " +

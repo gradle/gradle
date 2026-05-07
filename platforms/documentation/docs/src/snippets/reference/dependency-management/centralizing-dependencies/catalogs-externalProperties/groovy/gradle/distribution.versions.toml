@@ -1,0 +1,9 @@
+# tag::catalog[]
+# The "errorProne" and "kotlin" versions are injected
+# programmatically in settings.gradle.kts — do not
+# declare them here.
+
+[libraries]
+errorProne-core = { module = "com.google.errorprone:error_prone_core", version.ref = "errorProne" }
+kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "kotlin" }
+# end::catalog[]

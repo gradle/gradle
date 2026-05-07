@@ -24,35 +24,37 @@ import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.StartParameterInternal;
-import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.temp.DefaultTemporaryFileProvider;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
+import org.gradle.api.internal.project.ProjectIdentity;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.internal.project.ProjectStateRegistry;
+import org.gradle.api.internal.properties.GradlePropertiesController;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.logging.configuration.WarningMode;
+import org.gradle.api.problems.Problems;
 import org.gradle.initialization.BuildRequestMetaData;
 import org.gradle.initialization.DefaultBuildCancellationToken;
 import org.gradle.initialization.DefaultBuildRequestMetaData;
-import org.gradle.initialization.DefaultProjectDescriptor;
 import org.gradle.initialization.LegacyTypesSupport;
 import org.gradle.initialization.NoOpBuildEventConsumer;
-import org.gradle.initialization.ProjectDescriptorInternal;
-import org.gradle.initialization.ProjectDescriptorRegistry;
+import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.Pair;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.build.AbstractBuildState;
-import org.gradle.internal.build.BuildModelControllerServices;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.RootBuildState;
+import org.gradle.internal.buildoption.InternalOptions;
 import org.gradle.internal.buildprocess.BuildProcessScopeServices;
+import org.gradle.internal.buildtree.BuildModelParameters;
+import org.gradle.internal.buildtree.BuildModelParametersFactory;
 import org.gradle.internal.buildtree.BuildTreeLifecycleController;
-import org.gradle.internal.buildtree.BuildTreeModelControllerServices;
+import org.gradle.internal.buildtree.BuildTreeServices;
 import org.gradle.internal.buildtree.BuildTreeState;
 import org.gradle.internal.buildtree.RunTasksRequirements;
 import org.gradle.internal.classpath.ClassPath;
@@ -66,11 +68,14 @@ import org.gradle.internal.logging.services.LoggingServiceRegistry;
 import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.internal.nativeintegration.services.NativeServices.NativeServicesMode;
 import org.gradle.internal.problems.NoOpProblemDiagnosticsFactory;
+import org.gradle.internal.project.ImmutableProjectDescriptor;
 import org.gradle.internal.resources.DefaultResourceLockCoordinationService;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
+import org.gradle.internal.scripts.ScriptFileResolver;
+import org.gradle.internal.scripts.ScriptFileUtil;
+import org.gradle.internal.scripts.ScriptResolutionResultReporter;
 import org.gradle.internal.service.CloseableServiceRegistry;
-import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry;
@@ -86,26 +91,27 @@ import org.jspecify.annotations.Nullable;
 
 import java.io.File;
 import java.util.Collections;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 
 import static org.gradle.internal.concurrent.CompositeStoppable.stoppable;
 
 public class ProjectBuilderImpl {
-    private static ServiceRegistry globalServices;
+    private static @Nullable ServiceRegistry globalServices;
 
     private static final Logger LOGGER = Logging.getLogger(ProjectBuilderImpl.class);
 
-    public Project createChildProject(String name, Project parent, @Nullable File projectDir) {
+    public Project createChildProject(String name, Project parent, @Nullable File inputProjectDir) {
         ProjectInternal parentProject = (ProjectInternal) parent;
-        ProjectDescriptorRegistry descriptorRegistry = parentProject.getServices().get(ProjectDescriptorRegistry.class);
-        ProjectDescriptorInternal parentDescriptor = descriptorRegistry.getProject(parentProject.getPath());
+        File projectDir = (inputProjectDir != null) ? inputProjectDir.getAbsoluteFile() : new File(parentProject.getProjectDir(), name);
 
-        projectDir = (projectDir != null) ? projectDir.getAbsoluteFile() : new File(parentProject.getProjectDir(), name);
-        // Descriptor is added to registry as a side effect
-        ProjectDescriptorInternal projectDescriptor = new DefaultProjectDescriptor(parentDescriptor, name, projectDir, descriptorRegistry, parentProject.getServices().get(FileResolver.class));
+        ProjectBuilderProjectDescriptor descriptor = descriptorForSubproject(parentProject, projectDir, name);
+        ProjectBuilderProjectDescriptor parentDescriptor = (ProjectBuilderProjectDescriptor) parentProject.getOwner().getDescriptor();
+        // Side effect, required due to projects being created one by one, instead of all together
+        parentDescriptor.addChild(descriptor.getIdentity());
 
-        ProjectState projectState = parentProject.getServices().get(ProjectStateRegistry.class).registerProject(parentProject.getServices().get(BuildState.class), projectDescriptor);
+        ProjectState projectState = parentProject.getServices().get(ProjectStateRegistry.class).registerProject(parentProject.getServices().get(BuildState.class), descriptor);
         projectState.createMutableModel(parentProject.getClassLoaderScope().createChild("project-" + name, null), parentProject.getBaseClassLoaderScope());
         ProjectInternal project = projectState.getMutableModel();
 
@@ -116,7 +122,7 @@ public class ProjectBuilderImpl {
         return project;
     }
 
-    public ProjectInternal createProject(String name, File inputProjectDir, @Nullable File gradleUserHomeDir) {
+    public ProjectInternal createProject(String name, @Nullable File inputProjectDir, @Nullable File gradleUserHomeDir) {
         // ProjectBuilder uses daemon classes, so it has the same JVM compatibility.
         UnsupportedJavaRuntimeException.assertCurrentProcessSupportsDaemonJavaVersion();
 
@@ -126,10 +132,10 @@ public class ProjectBuilderImpl {
 
             // We do not use a DeprecationLogger here since the logger is not initialized when using the ProjectBuilder.
             LOGGER.warn("Executing Gradle on JVM versions {} and lower has been deprecated. " +
-                "This will fail with an error in Gradle {}. " +
-                "Use JVM {} or greater to execute Gradle. " +
-                "Projects can continue to use older JVM versions via toolchains. " +
-                "Consult the upgrading guide for further information: {}",
+                    "This will fail with an error in Gradle {}. " +
+                    "Use JVM {} or greater to execute Gradle. " +
+                    "Projects can continue to use older JVM versions via toolchains. " +
+                    "Consult the upgrading guide for further information: {}",
                 SupportedJavaVersions.FUTURE_MINIMUM_DAEMON_JAVA_VERSION - 1,
                 currentMajorGradleVersion + 1,
                 SupportedJavaVersions.FUTURE_MINIMUM_DAEMON_JAVA_VERSION,
@@ -141,6 +147,8 @@ public class ProjectBuilderImpl {
         File userHomeDir = gradleUserHomeDir == null ? new File(projectDir, "userHome") : FileUtils.canonicalize(gradleUserHomeDir);
         StartParameterInternal startParameter = new StartParameterInternal();
         startParameter.setGradleUserHomeDir(userHomeDir);
+        startParameter.setCurrentDir(projectDir);
+        startParameter.doNotSearchUpwards();
 
         // ProjectBuilder tests are more lightweight and native services shouldn't be required, so we disable them by default.
         // Additionally, when they are enabled they are put in the projectDir by default and that can cause issues with test cleanup on Windows.
@@ -154,13 +162,18 @@ public class ProjectBuilderImpl {
         final ServiceRegistry globalServices = getGlobalServices();
 
         BuildRequestMetaData buildRequestMetaData = new DefaultBuildRequestMetaData(Time.currentTimeMillis());
-        CrossBuildSessionState crossBuildSessionState = new CrossBuildSessionState(globalServices, startParameter);
+        File userActionRootDir = globalServices.get(BuildLayoutFactory.class).getLayoutFor(startParameter.toBuildLayoutConfiguration()).getRootDirectory();
+        CrossBuildSessionState crossBuildSessionState = new CrossBuildSessionState(globalServices, startParameter, userActionRootDir);
         GradleUserHomeScopeServiceRegistry userHomeServices = userHomeServicesOf(globalServices);
         BuildSessionState buildSessionState = new BuildSessionState(userHomeServices, crossBuildSessionState, startParameter, buildRequestMetaData, ClassPath.EMPTY, new DefaultBuildCancellationToken(), buildRequestMetaData.getClient(), new NoOpBuildEventConsumer());
-        BuildTreeModelControllerServices.Supplier modelServices = buildSessionState.getServices().get(BuildTreeModelControllerServices.class).servicesForBuildTree(new RunTasksRequirements(startParameter));
+        RunTasksRequirements buildActionRequirements = new RunTasksRequirements(startParameter);
+        InternalOptions internalOptions = crossBuildSessionState.getServices().get(InternalOptions.class);
+        ServiceRegistry buildSessionServices = buildSessionState.getServices();
+        BuildModelParameters buildModelParameters = buildSessionServices.get(BuildModelParametersFactory.class).parametersForRootBuildTree(buildActionRequirements, internalOptions);
         BuildInvocationScopeId buildInvocationScopeId = new BuildInvocationScopeId(UniqueId.generate());
-        BuildTreeState buildTreeState = new BuildTreeState(buildInvocationScopeId, buildSessionState.getServices(), modelServices);
-        TestRootBuild build = new TestRootBuild(projectDir, startParameter, buildTreeState);
+        BuildTreeState buildTreeState = new BuildTreeState(buildSessionServices, buildActionRequirements, buildModelParameters, buildInvocationScopeId);
+        BuildTreeServices buildTreeServices = buildTreeState.getServices().get(BuildTreeServices.class);
+        TestRootBuild build = new TestRootBuild(projectDir, startParameter, buildTreeServices);
 
         CloseableServiceRegistry buildServices = build.getBuildServices();
         buildServices.get(BuildStateRegistry.class).attachRootBuild(build);
@@ -178,41 +191,66 @@ public class ProjectBuilderImpl {
         GradleInternal gradle = build.getMutableModel();
         gradle.setIncludedBuilds(Collections.emptyList());
 
-        ProjectDescriptorRegistry projectDescriptorRegistry = buildServices.get(ProjectDescriptorRegistry.class);
-        // Registers project as a side effect
-        ProjectDescriptorInternal projectDescriptor = new DefaultProjectDescriptor(null, name, projectDir, projectDescriptorRegistry, buildServices.get(FileResolver.class));
+        GradlePropertiesController gradlePropertiesController = buildServices.get(GradlePropertiesController.class);
+        gradlePropertiesController.loadGradleProperties(build.getBuildIdentifier(), build.getBuildRootDir(), false);
 
         ClassLoaderScope baseScope = gradle.getClassLoaderScope();
         ClassLoaderScope rootProjectScope = baseScope.createChild("root-project", null);
 
         ProjectStateRegistry projectStateRegistry = buildServices.get(ProjectStateRegistry.class);
-        ProjectState projectState = projectStateRegistry.registerProject(build, projectDescriptor);
+        ImmutableProjectDescriptor rootProjectDescriptor = descriptorForRootProject(build.getIdentityPath(), projectDir, name, buildServices);
+        ProjectState projectState = projectStateRegistry.registerProject(build, rootProjectDescriptor);
         projectState.createMutableModel(rootProjectScope, baseScope);
         ProjectInternal project = projectState.getMutableModel();
 
-        gradle.setRootProject(project);
-        gradle.setDefaultProject(project);
+        gradle.setDefaultProjectState(projectState);
 
         // Lock root project; this won't ever be released as ProjectBuilder has no lifecycle
         coordinationService.withStateLock(DefaultResourceLockCoordinationService.lock(project.getOwner().getAccessLock()));
 
-        project.getExtensions().getExtraProperties().set(
-            "ProjectBuilder.stoppable",
-            stoppable(
-                (Stoppable) workerLeaseService::runAsIsolatedTask,
-                (Stoppable) workerLease::leaseFinish,
-                buildServices,
-                buildTreeState,
-                buildSessionState,
-                crossBuildSessionState
-            )
+        Stoppable tearDown = stoppable(
+            (Stoppable) workerLeaseService::runAsIsolatedTask,
+            (Stoppable) workerLease::leaseFinish,
+            buildServices,
+            buildTreeState,
+            buildSessionState,
+            crossBuildSessionState
         );
+
+        RootProjectContext.attach(project, new RootProjectContext(tearDown));
 
         return project;
     }
 
+    private static ImmutableProjectDescriptor descriptorForRootProject(
+        Path buildPath,
+        File projectDir,
+        String projectName,
+        ServiceRegistry buildServices
+    ) {
+        ProjectIdentity identity = ProjectIdentity.forRootProject(buildPath, projectName);
+        ScriptFileResolver scriptFileResolver = buildServices.get(ScriptFileResolver.class);
+        ScriptResolutionResultReporter reporter = new ScriptResolutionResultReporter(buildServices.get(Problems.class).getReporter());
+        File buildFile = ScriptFileUtil.resolveBuildFile(projectDir, scriptFileResolver, reporter::reportResolutionProblemsOf);
+        return new ProjectBuilderProjectDescriptor(identity, projectDir, buildFile, null);
+    }
+
+    private static ProjectBuilderProjectDescriptor descriptorForSubproject(
+        ProjectInternal parent,
+        File projectDir,
+        String projectName
+    ) {
+        ProjectIdentity parentIdentity = parent.getProjectIdentity();
+        Path projectPath = parentIdentity.getProjectPath().child(projectName);
+        ProjectIdentity identity = ProjectIdentity.forSubproject(parentIdentity.getBuildPath(), projectPath);
+        ScriptFileResolver scriptFileResolver = parent.getServices().get(ScriptFileResolver.class);
+        ScriptResolutionResultReporter reporter = new ScriptResolutionResultReporter(parent.getServices().get(Problems.class).getReporter());
+        File buildFile = ScriptFileUtil.resolveBuildFile(projectDir, scriptFileResolver, reporter::reportResolutionProblemsOf);
+        return new ProjectBuilderProjectDescriptor(identity, projectDir, buildFile, parentIdentity);
+    }
+
     public static void stop(Project rootProject) {
-        ((Stoppable) rootProject.getExtensions().getExtraProperties().get("ProjectBuilder.stoppable")).stop();
+        RootProjectContext.obtain(rootProject).tearDown.stop();
     }
 
     private GradleUserHomeScopeServiceRegistry userHomeServicesOf(ServiceRegistry globalServices) {
@@ -265,18 +303,9 @@ public class ProjectBuilderImpl {
     }
 
     private static class TestRootBuild extends AbstractBuildState implements RootBuildState {
-        private final GradleInternal gradle;
-        final CloseableServiceRegistry buildServices;
 
-        public TestRootBuild(File rootProjectDir, StartParameterInternal startParameter, BuildTreeState buildTreeState) {
-            super(buildTreeState, BuildDefinition.fromStartParameter(startParameter, rootProjectDir, null), null);
-            this.buildServices = getBuildServices();
-            this.gradle = buildServices.get(GradleInternal.class);
-        }
-
-        @Override
-        protected ServiceRegistrationProvider prepareServicesProvider(BuildDefinition buildDefinition, BuildModelControllerServices.Supplier supplier) {
-            return new TestBuildScopeServices(supplier);
+        public TestRootBuild(File rootProjectDir, StartParameterInternal startParameter, BuildTreeServices buildTreeServices) {
+            super(buildTreeServices, BuildDefinition.fromStartParameter(startParameter, rootProjectDir, null), null);
         }
 
         @Override
@@ -321,15 +350,30 @@ public class ProjectBuilderImpl {
         public Set<Pair<ModuleVersionIdentifier, ProjectComponentIdentifier>> getAvailableModules() {
             throw new UnsupportedOperationException();
         }
+    }
 
-        @Override
-        public File getBuildRootDir() {
-            return getBuildServices().get(BuildDefinition.class).getBuildRootDir();
+    /**
+     * ProjectBuilder has its own simplified lifecycle that compresses all operational service scopes
+     * into a single operation. It also skips the Settings phase entirely, so settings-specific
+     * services must be created and managed manually.
+     */
+    private record RootProjectContext(
+        Stoppable tearDown
+    ) {
+
+        // The context is stored in the ProjectBuilder-created root project's extra properties.
+        // We have to store it in the root project state because the API gives out the full instances of the `Project` to the user.
+        // That becomes the only state used for further interactions, such as creating new subprojects and the teardown at the end.
+        private static final String EXT = "ProjectBuilder.context";
+
+        static void attach(Project rootProject, RootProjectContext context) {
+            assert rootProject.getParent() == null;
+            rootProject.getExtensions().getExtraProperties().set(EXT, context);
         }
 
-        @Override
-        public GradleInternal getMutableModel() {
-            return gradle;
+        static RootProjectContext obtain(Project rootProject) {
+            assert rootProject.getParent() == null;
+            return (RootProjectContext) Objects.requireNonNull(rootProject.getExtensions().getExtraProperties().get(EXT));
         }
     }
 }

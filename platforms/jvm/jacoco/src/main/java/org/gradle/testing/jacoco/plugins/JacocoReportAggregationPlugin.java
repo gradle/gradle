@@ -23,6 +23,7 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.DependencyScopeConfiguration;
+import org.gradle.api.artifacts.dsl.DependencyFactory;
 import org.gradle.api.artifacts.ResolvableConfiguration;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
@@ -32,7 +33,6 @@ import org.gradle.api.attributes.LibraryElements;
 import org.gradle.api.attributes.TestSuiteName;
 import org.gradle.api.attributes.VerificationType;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.JavaBasePlugin;
 import org.gradle.api.plugins.jvm.JvmTestSuite;
 import org.gradle.api.plugins.jvm.internal.JvmPluginServices;
@@ -60,6 +60,9 @@ public abstract class JacocoReportAggregationPlugin implements Plugin<Project> {
     public static final String JACOCO_AGGREGATION_CONFIGURATION_NAME = "jacocoAggregation";
 
     @Inject
+    protected abstract DependencyFactory getDependencyFactory();
+
+    @Inject
     protected abstract JvmPluginServices getEcosystemUtilities();
 
     @Override
@@ -82,8 +85,6 @@ public abstract class JacocoReportAggregationPlugin implements Plugin<Project> {
             });
         });
 
-        ObjectFactory objects = project.getObjects();
-
         Provider<FileCollection> sourceDirectories = codeCoverageResultsConf.map(conf ->
             conf.getIncoming().artifactView(view -> {
                 view.withVariantReselection();
@@ -96,7 +97,7 @@ public abstract class JacocoReportAggregationPlugin implements Plugin<Project> {
             conf.getIncoming().artifactView(view -> {
                 view.componentFilter(projectComponent());
                 view.attributes(attributes -> {
-                    attributes.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements.class, LibraryElements.CLASSES));
+                    attributes.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, attributes.named(LibraryElements.class, LibraryElements.CLASSES));
                 });
             }).getFiles()
         );
@@ -114,9 +115,9 @@ public abstract class JacocoReportAggregationPlugin implements Plugin<Project> {
                         view.withVariantReselection();
                         view.componentFilter(projectComponent());
                         view.attributes(attributes -> {
-                            attributes.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.class, Category.VERIFICATION));
-                            attributes.attributeProvider(TestSuiteName.TEST_SUITE_NAME_ATTRIBUTE, report.getTestSuiteName().map(tt -> objects.named(TestSuiteName.class, tt)));
-                            attributes.attribute(VerificationType.VERIFICATION_TYPE_ATTRIBUTE, objects.named(VerificationType.class, VerificationType.JACOCO_RESULTS));
+                            attributes.attribute(Category.CATEGORY_ATTRIBUTE, attributes.named(Category.class, Category.VERIFICATION));
+                            attributes.attributeProvider(TestSuiteName.TEST_SUITE_NAME_ATTRIBUTE, report.getTestSuiteName().map(tt -> attributes.named(TestSuiteName.class, tt)));
+                            attributes.attribute(VerificationType.VERIFICATION_TYPE_ATTRIBUTE, attributes.named(VerificationType.class, VerificationType.JACOCO_RESULTS));
                             attributes.attribute(ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE, ArtifactTypeDefinition.BINARY_DATA_TYPE);
                         });
                     }).getFiles()
@@ -129,7 +130,7 @@ public abstract class JacocoReportAggregationPlugin implements Plugin<Project> {
         project.getPlugins().withId("jvm-test-suite", plugin -> {
             // Depend on this project for aggregation
             jacocoAggregation.configure(conf -> {
-                conf.getDependencies().add(project.getDependencyFactory().create(project));
+                conf.getDependencies().add(getDependencyFactory().createProjectDependency());
             });
 
             TestingExtension testing = project.getExtensions().getByType(TestingExtension.class);

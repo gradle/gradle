@@ -32,6 +32,7 @@ import org.gradle.api.internal.tasks.TaskResolver
 import org.gradle.api.specs.Spec
 import org.gradle.util.Path
 import org.spockframework.lang.Wildcard
+import spock.lang.Issue
 
 import java.util.concurrent.Callable
 import java.util.function.Consumer
@@ -2046,5 +2047,30 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
         ["src2"]        | _             | _                 | "from() before convention prevents it"        | { it.from("src2"); it.convention("src1") }
         ["src1", "src2"]| _             | ["src1"]          | "from() commits convention"                   | { it.from("src2"); it.unsetConvention() }
         ["src1"]        | _             | ["src1"]          | "from() does not modify convention"           | { it.from("src2"); it.unset() }
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/8755#issuecomment-2075260802")
+    def "self-referencing using minus operator leads to StackOverflowError"() {
+        given:
+        def file1 = new File("1")
+        def file2 = new File("2")
+        _ * fileResolver.resolve(file1) >> file1
+        _ * fileResolver.resolve(file2) >> file2
+        collection.from(file1, file2)
+        def child1 = containing(file1)
+
+        when:
+        collection.setFrom(child1 - collection)
+        collection.files
+
+        then:
+        thrown StackOverflowError
+
+        when:
+        collection.setFrom(collection - child1)
+        collection.files
+
+        then:
+        thrown StackOverflowError
     }
 }

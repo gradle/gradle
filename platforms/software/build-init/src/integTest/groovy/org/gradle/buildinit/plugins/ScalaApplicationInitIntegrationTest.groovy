@@ -19,9 +19,10 @@ package org.gradle.buildinit.plugins
 import org.gradle.api.JavaVersion
 import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.JdkVersionTestPreconditions
 
-@Requires(value = UnitTestPreconditions.Jdk23OrEarlier, reason = "Scala cannot compile on Java 24 yet")
+
+@Requires(value = JdkVersionTestPreconditions.Jdk23OrEarlier, reason = "Scala cannot compile on Java 24 yet")
 class ScalaApplicationInitIntegrationTest extends AbstractJvmLibraryInitIntegrationSpec {
 
     public static final String SAMPLE_APP_CLASS = "org/example/App.scala"

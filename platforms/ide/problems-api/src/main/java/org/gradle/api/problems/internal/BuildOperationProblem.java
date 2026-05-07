@@ -32,9 +32,9 @@ import org.jspecify.annotations.Nullable;
 import java.util.List;
 
 public class BuildOperationProblem implements Problem {
-    private final InternalProblem problem;
+    private final ProblemInternal problem;
 
-    public BuildOperationProblem(InternalProblem problem) {
+    public BuildOperationProblem(ProblemInternal problem) {
         this.problem = problem;
     }
 
@@ -147,7 +147,7 @@ public class BuildOperationProblem implements Problem {
         @Nullable
         @Override
         public DocumentationLink getDocumentationLink() {
-            InternalDocLink documentationLink = (InternalDocLink) definition.getDocumentationLink();
+            DocLinkInternal documentationLink = (DocLinkInternal) definition.getDocumentationLink();
             return documentationLink == null ? null : new BuildOperationDocumentationLink(documentationLink);
         }
 
@@ -177,9 +177,9 @@ public class BuildOperationProblem implements Problem {
         }
 
         private static class BuildOperationDocumentationLink implements DocumentationLink {
-            private final InternalDocLink documentationLink;
+            private final DocLinkInternal documentationLink;
 
-            public BuildOperationDocumentationLink(InternalDocLink documentationLink) {
+            public BuildOperationDocumentationLink(DocLinkInternal documentationLink) {
                 this.documentationLink = documentationLink;
             }
 

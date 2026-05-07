@@ -17,6 +17,7 @@ package org.gradle.initialization
 
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.TestFiles
+import org.gradle.api.problems.ProblemReporter
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Path
 import spock.lang.Specification
@@ -109,7 +110,7 @@ class DefaultProjectDescriptorRegistryTest extends Specification {
 
     private ProjectDescriptorInternal descriptor(String name, ProjectDescriptorInternal parent = null, TestFile projectDir = TEST_DIR.file(name)) {
         // Project is added to the registry as a side effect (yuck)
-        return new DefaultProjectDescriptor(parent, name, projectDir, registry, FILE_RESOLVER)
+        return new DefaultProjectDescriptor(parent, name, projectDir, registry, FILE_RESOLVER, Stub(ProblemReporter))
     }
 
 }

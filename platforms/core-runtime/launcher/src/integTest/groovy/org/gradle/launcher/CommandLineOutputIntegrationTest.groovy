@@ -21,12 +21,12 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.buildconfiguration.fixture.DaemonJvmPropertiesFixture
 import org.gradle.internal.jvm.Jvm
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 
 /**
  * Assertions over the output of certain command line invocations.
  */
-@Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "explicitly requests a daemon")
+@Requires(value = TestExecutionPreconditions.NotEmbeddedExecutor, reason = "explicitly requests a daemon")
 class CommandLineOutputIntegrationTest extends AbstractIntegrationSpec implements DaemonJvmPropertiesFixture {
     def setup() {
         // forces the tests to fork and not run in-process
@@ -38,7 +38,7 @@ class CommandLineOutputIntegrationTest extends AbstractIntegrationSpec implement
         succeeds("--version")
 
         then:
-        outputContains("Daemon JVM:    ${Jvm.current().javaHome.absolutePath} (no JDK specified, using current Java home)")
+        outputContains("Daemon JVM:    ${Jvm.current().javaHome.absolutePath} (no Daemon JVM specified, using current Java home)")
     }
 
     def "displays version message appropriately for daemon JVM requested by org.gradle.java.home"() {

@@ -16,8 +16,6 @@
 
 package org.gradle.internal.declarativedsl.dom.mutation
 
-import org.gradle.declarative.dsl.model.annotations.Configuring
-import org.gradle.declarative.dsl.model.annotations.Restricted
 import org.gradle.internal.declarativedsl.dom.resolution.documentWithResolution
 import org.gradle.internal.declarativedsl.parsing.ParseTestUtil
 import org.gradle.internal.declarativedsl.schemaBuilder.schemaFromTypes
@@ -132,36 +130,29 @@ val schema = schemaFromTypes(SchemaWithSubtypes::class, listOf(SchemaWithSubtype
 
 internal
 interface SchemaWithSubtypes {
-    @Configuring
     fun configureSuper(configure: NestedSuper.() -> Unit)
 
-    @Configuring
     fun configureSub(configure: NestedSub.() -> Unit)
 
-    @Configuring
     fun configureNotInHierarchy(configure: NotInHierarchy.() -> Unit)
 }
 
 
 internal
 interface NestedSuper {
-    @get:Restricted
     var x: Int
 
-    @Configuring
     fun nestedNotInHierarchy(configure: NotInHierarchy.() -> Unit)
 }
 
 
 internal
 interface NestedSub : NestedSuper {
-    @Configuring
     override fun nestedNotInHierarchy(configure: NotInHierarchy.() -> Unit)
 }
 
 
 internal
 interface NotInHierarchy {
-    @get:Restricted
     var x: Int
 }

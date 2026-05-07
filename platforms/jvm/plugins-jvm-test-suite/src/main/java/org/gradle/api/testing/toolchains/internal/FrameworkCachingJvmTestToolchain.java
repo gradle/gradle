@@ -59,6 +59,7 @@ public class FrameworkCachingJvmTestToolchain<T extends JvmTestToolchainParamete
     }
 
     @Override
+    @SuppressWarnings("OverridesJavaxInjectableMethod") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
     public T getParameters() {
         return delegate.getParameters();
     }

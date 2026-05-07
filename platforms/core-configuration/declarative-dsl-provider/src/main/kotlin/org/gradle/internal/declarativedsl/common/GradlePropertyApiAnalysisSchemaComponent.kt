@@ -22,27 +22,30 @@ import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.MapProperty
 import org.gradle.api.provider.Property
 import org.gradle.declarative.dsl.model.annotations.AccessFromCurrentReceiverOnly
-import org.gradle.declarative.dsl.model.annotations.HiddenInDeclarativeDsl
+import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition
+import org.gradle.declarative.dsl.schema.DataProperty
 import org.gradle.internal.declarativedsl.analysis.DefaultDataProperty
 import org.gradle.internal.declarativedsl.evaluationSchema.AnalysisSchemaComponent
-import org.gradle.internal.declarativedsl.schemaBuilder.CollectedPropertyInformation
-import org.gradle.internal.declarativedsl.schemaBuilder.MemberFilter
+import org.gradle.internal.declarativedsl.schemaBuilder.ExtractionResult
+import org.gradle.internal.declarativedsl.schemaBuilder.MemberKind
+import org.gradle.internal.declarativedsl.schemaBuilder.PropertyExtractionMetadata
+import org.gradle.internal.declarativedsl.schemaBuilder.PropertyExtractionResult
 import org.gradle.internal.declarativedsl.schemaBuilder.PropertyExtractor
 import org.gradle.internal.declarativedsl.schemaBuilder.SchemaBuildingHost
+import org.gradle.internal.declarativedsl.schemaBuilder.SchemaResult
+import org.gradle.internal.declarativedsl.schemaBuilder.SupportedTypeProjection
 import org.gradle.internal.declarativedsl.schemaBuilder.TypeDiscovery
+import org.gradle.internal.declarativedsl.schemaBuilder.TypeDiscovery.DiscoveredClass.DiscoveryTag.PropertyType
 import org.gradle.internal.declarativedsl.schemaBuilder.annotationsWithGetters
+import org.gradle.internal.declarativedsl.schemaBuilder.asSupported
 import org.gradle.internal.declarativedsl.schemaBuilder.inContextOfModelMember
-import org.gradle.internal.declarativedsl.schemaBuilder.isPublicAndRestricted
-import org.gradle.internal.declarativedsl.schemaBuilder.returnTypeToRefOrError
+import org.gradle.internal.declarativedsl.schemaBuilder.orFailWith
+import org.gradle.internal.declarativedsl.schemaBuilder.returnTypeRef
+import org.gradle.internal.declarativedsl.schemaBuilder.schemaResult
 import java.util.Locale
 import kotlin.reflect.KClass
-import kotlin.reflect.KType
-import kotlin.reflect.KVisibility
-import kotlin.reflect.full.createType
-import kotlin.reflect.full.instanceParameter
-import kotlin.reflect.full.memberFunctions
-import kotlin.reflect.full.memberProperties
-import kotlin.reflect.full.primaryConstructor
+import kotlin.reflect.KClassifier
+import kotlin.reflect.full.allSupertypes
 
 
 /**
@@ -51,82 +54,100 @@ import kotlin.reflect.full.primaryConstructor
  */
 internal
 class GradlePropertyApiAnalysisSchemaComponent : AnalysisSchemaComponent {
-    private
-    val propertyExtractor = GradlePropertyApiPropertyExtractor(isPublicAndRestricted)
 
-    override fun propertyExtractors(): List<PropertyExtractor> = listOf(propertyExtractor)
+    override fun propertyExtractors(): List<PropertyExtractor> = listOf(GradlePropertyApiPropertyExtractor())
 
     override fun typeDiscovery(): List<TypeDiscovery> = listOf(PropertyReturnTypeDiscovery())
 }
 
 
 private
-class GradlePropertyApiPropertyExtractor(
-    private val includeMemberFilter: MemberFilter
-) : PropertyExtractor {
-    override fun extractProperties(host: SchemaBuildingHost, kClass: KClass<*>, propertyNamePredicate: (String) -> Boolean): Iterable<CollectedPropertyInformation> =
+class GradlePropertyApiPropertyExtractor : PropertyExtractor {
+    override fun extractProperties(host: SchemaBuildingHost, kClass: KClass<*>, propertyNamePredicate: (String) -> Boolean): Iterable<PropertyExtractionResult> =
         propertiesFromGettersOf(host, kClass, propertyNamePredicate) + memberPropertiesOf(host, kClass, propertyNamePredicate)
 
     private
-    fun memberPropertiesOf(host: SchemaBuildingHost, kClass: KClass<*>, propertyNamePredicate: (String) -> Boolean): List<CollectedPropertyInformation> = kClass.memberProperties
-        .filter { property ->
-            (includeMemberFilter.shouldIncludeMember(property) ||
-                kClass.primaryConstructor?.parameters.orEmpty().any { it.name == property.name && it.type == property.returnType }) &&
-                property.visibility == KVisibility.PUBLIC &&
-                isGradlePropertyType(property.returnType)
-        }.map { property ->
-            host.inContextOfModelMember(property) {
-                val isHidden = property.annotationsWithGetters.any { it is HiddenInDeclarativeDsl }
-                val isDirectAccessOnly = property.annotationsWithGetters.any { it is AccessFromCurrentReceiverOnly }
-                CollectedPropertyInformation(
-                    property.name,
-                    property.returnType,
-                    property.returnTypeToRefOrError(host) { propertyValueType(property.returnType) },
-                    DefaultDataProperty.DefaultPropertyMode.DefaultWriteOnly,
-                    hasDefaultValue = true,
-                    isHiddenInDeclarativeDsl = isHidden,
-                    isDirectAccessOnly = isDirectAccessOnly,
-                    claimedFunctions = emptyList()
-                )
+    fun memberPropertiesOf(host: SchemaBuildingHost, kClass: KClass<*>, propertyNamePredicate: (String) -> Boolean): List<PropertyExtractionResult> =
+        host.classMembers(kClass).declarativeMembers
+            .filter { member -> member.kind == MemberKind.READ_ONLY_PROPERTY && isGradlePropertyType(member.returnType.classifier) }
+            .mapNotNull { property ->
+                if (!propertyNamePredicate(property.name))
+                    return@mapNotNull null
+
+                host.inContextOfModelMember(property.kCallable) {
+                    val isDirectAccessOnly = property.kCallable.annotationsWithGetters.any { it is AccessFromCurrentReceiverOnly }
+                    val meta = PropertyExtractionMetadata(listOf(property), property.returnType)
+                    ExtractionResult.Extracted(
+                        DefaultDataProperty(
+                            property.name,
+                            property.returnTypeRef(host) { propertyValueType(host, property.returnType) }
+                                .orFailWith { return@mapNotNull ExtractionResult.of(it, meta) },
+                            DefaultDataProperty.DefaultPropertyMode.DefaultWriteOnly,
+                            hasDefaultValue = true,
+                            isDirectAccessOnly = isDirectAccessOnly,
+                        ),
+                        metadata = meta
+                    )
+                }
             }
-        }.filter { propertyNamePredicate(it.name) }
 
     private
-    fun propertiesFromGettersOf(host: SchemaBuildingHost, kClass: KClass<*>, propertyNamePredicate: (String) -> Boolean): List<CollectedPropertyInformation> {
-        val functionsByName = kClass.memberFunctions.groupBy { it.name }
+    fun propertiesFromGettersOf(host: SchemaBuildingHost, kClass: KClass<*>, propertyNamePredicate: (String) -> Boolean): List<PropertyExtractionResult> {
+        val functionsByName = host.classMembers(kClass).declarativeMembers
+            .filter { it.kind == MemberKind.FUNCTION }
+            .groupBy { it.name }
+
         val getters = functionsByName
             .filterKeys { it.startsWith("get") && it.substringAfter("get").firstOrNull()?.isUpperCase() == true }
-            .mapValues { (_, functions) -> functions.singleOrNull { fn -> fn.parameters.all { it == fn.instanceParameter } } }
-            .filterValues { it != null && includeMemberFilter.shouldIncludeMember(it) && isGradlePropertyType(it.returnType) }
-        return getters.map { (name, getter) ->
+            .mapValues { (_, functions) -> functions.singleOrNull { fn -> fn.parameters.none() } }
+            .filterValues { it != null && isGradlePropertyType(it.returnType.classifier) }
+
+        return getters.mapNotNull { (name, getter) ->
             checkNotNull(getter)
-            host.inContextOfModelMember(getter) {
+            host.inContextOfModelMember(getter.kCallable) {
                 val nameAfterGet = name.substringAfter("get")
                 val propertyName = nameAfterGet.replaceFirstChar { it.lowercase(Locale.getDefault()) }
-                val type = getter.returnTypeToRefOrError(host) { propertyValueType(getter.returnType) }
-                val isHidden = getter.annotations.any { it is HiddenInDeclarativeDsl }
-                val isDirectAccessOnly = getter.annotations.any { it is AccessFromCurrentReceiverOnly }
-                CollectedPropertyInformation(
-                    propertyName,
-                    getter.returnType,
-                    type,
-                    DefaultDataProperty.DefaultPropertyMode.DefaultWriteOnly,
-                    hasDefaultValue = true,
-                    isHidden,
-                    isDirectAccessOnly,
-                    claimedFunctions = listOf(getter)
+
+                if (!propertyNamePredicate(propertyName)) {
+                    return@mapNotNull null
+                }
+
+                val meta = PropertyExtractionMetadata(listOf(getter), getter.returnType)
+
+                val type = getter.returnTypeRef(host) { propertyValueType(host, getter.returnType) }
+                    .orFailWith { return@mapNotNull ExtractionResult.of(it, meta) }
+                val isHidden = getter.kCallable.annotations.any { it is HiddenInDefinition }
+                val isDirectAccessOnly = getter.kCallable.annotations.any { it is AccessFromCurrentReceiverOnly }
+                ExtractionResult.Extracted(
+                    DefaultDataProperty(
+                        propertyName,
+                        type,
+                        DefaultDataProperty.DefaultPropertyMode.DefaultWriteOnly,
+                        hasDefaultValue = true,
+                        isHidden,
+                        isDirectAccessOnly,
+                    ),
+                    metadata = PropertyExtractionMetadata(listOf(getter), getter.returnType)
                 )
             }
-        }.filter { propertyNamePredicate(it.name) }
+        }
     }
 }
 
 
 private
 class PropertyReturnTypeDiscovery : TypeDiscovery {
-    override fun getClassesToVisitFrom(typeDiscoveryServices: TypeDiscovery.TypeDiscoveryServices, kClass: KClass<*>): Iterable<KClass<*>> =
-        typeDiscoveryServices.propertyExtractor.extractProperties(typeDiscoveryServices.host, kClass).mapNotNullTo(mutableSetOf()) {
-            propertyValueType(it.originalReturnType).classifier as? KClass<*>
+    override fun getClassesToVisitFrom(typeDiscoveryServices: TypeDiscovery.TypeDiscoveryServices, kClass: KClass<*>): Iterable<SchemaResult<TypeDiscovery.DiscoveredClass>> =
+        typeDiscoveryServices.propertyExtractor.extractProperties(typeDiscoveryServices.host, kClass).flatMap { extractionResult ->
+            when (extractionResult) {
+                is ExtractionResult.Extracted<DataProperty, PropertyExtractionMetadata> ->
+                    extractionResult.metadata.originalType?.let { originalType ->
+                        propertyValueType(typeDiscoveryServices.host, originalType)
+                            .let { propertyValueType -> TypeDiscovery.DiscoveredClass.classesOf(propertyValueType, PropertyType(kClass, extractionResult.result.name)).map(::schemaResult) }
+                    } ?: emptyList()
+
+                is ExtractionResult.Failure -> emptyList()
+            }
         }
 }
 
@@ -136,27 +157,31 @@ val handledPropertyTypes = setOf(Property::class, DirectoryProperty::class, Regu
 
 
 private
-fun isGradlePropertyType(type: KType): Boolean = type.classifier in handledPropertyTypes
+fun isGradlePropertyType(type: KClassifier): Boolean = type in handledPropertyTypes
 
 
 private
-fun propertyValueType(type: KType): KType {
+fun propertyValueType(host: SchemaBuildingHost, type: SupportedTypeProjection.SupportedType): SupportedTypeProjection.SupportedType {
     if (type.classifier == ListProperty::class) {
-        return List::class.createType(type.arguments)
+        return SupportedTypeProjection.SupportedType(List::class, isMarkedNullable = false, type.arguments)
     }
 
     if (type.classifier == MapProperty::class) {
-        return Map::class.createType(type.arguments)
+        return SupportedTypeProjection.SupportedType(Map::class, isMarkedNullable = false, type.arguments)
     }
 
-    fun searchClassHierarchyForPropertyType(type: KType): KType? {
+    fun searchClassHierarchyForPropertyType(type: SupportedTypeProjection.SupportedType): SupportedTypeProjection.SupportedType? {
         return when (val classifier = type.classifier) {
             Property::class -> type
-            is KClass<*> -> classifier.supertypes.firstOrNull { superType -> searchClassHierarchyForPropertyType(superType) != null }
+            is KClass<*> -> classifier.allSupertypes.find { it.classifier == Property::class }?.asSupported(host)
+                ?.orFailWith { return null }
             else -> null
         }
     }
 
-    val propertyType = searchClassHierarchyForPropertyType(type)
-    return propertyType?.arguments?.get(0)?.type ?: type
+    return when (val propertyType = searchClassHierarchyForPropertyType(type)) {
+        is SupportedTypeProjection.SupportedType ->
+            propertyType.arguments.getOrNull(0) as? SupportedTypeProjection.SupportedType ?: type
+        else -> type
+    }
 }

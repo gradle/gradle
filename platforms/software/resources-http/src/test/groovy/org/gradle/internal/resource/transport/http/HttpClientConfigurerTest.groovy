@@ -149,12 +149,37 @@ class HttpClientConfigurerTest extends Specification {
 
         then:
         1 * httpSettings.authenticationSettings >> []
-        1 * httpSettings.proxySettings >> proxySettings
+        2 * httpSettings.proxySettings >> proxySettings
+        2 * httpSettings.secureProxySettings >> secureProxySettings
         1 * httpSettings.sslContextFactory >> sslContextFactory
         1 * timeoutSettings.connectionTimeoutMs >> 10000
         2 * timeoutSettings.socketTimeoutMs >> 30000
         httpClientBuilder.defaultRequestConfig.connectTimeout == 10000
         httpClientBuilder.defaultRequestConfig.socketTimeout == 30000
         httpClientBuilder.defaultSocketConfig.soKeepAlive
+    }
+
+    def "enables expect-continue when proxy credentials are configured"() {
+        httpSettings.authenticationSettings >> []
+        httpSettings.sslContextFactory >> sslContextFactory
+        proxySettings.proxy >> new HttpProxySettings.HttpProxy(PROXY_HOST, SOME_PORT, "proxyUser", "proxyPass")
+
+        when:
+        configurer.configure(httpClientBuilder)
+
+        then:
+        httpClientBuilder.defaultRequestConfig.expectContinueEnabled
+    }
+
+    def "does not enable expect-continue when proxy has no credentials"() {
+        httpSettings.authenticationSettings >> []
+        httpSettings.sslContextFactory >> sslContextFactory
+        proxySettings.proxy >> new HttpProxySettings.HttpProxy(PROXY_HOST, SOME_PORT, "", "")
+
+        when:
+        configurer.configure(httpClientBuilder)
+
+        then:
+        !httpClientBuilder.defaultRequestConfig.expectContinueEnabled
     }
 }

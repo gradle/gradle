@@ -78,7 +78,8 @@ class DefaultConfigurationContainerSpec extends Specification {
         CollectionCallbackActionDecorator.NOOP,
         TestUtil.problemsService(),
         new AttributeDesugaring(AttributeTestUtil.attributesFactory()),
-        new ResolveExceptionMapper(domainObjectContext, new DocumentationRegistry())
+        new ResolveExceptionMapper(domainObjectContext, new DocumentationRegistry()),
+        TestUtil.providerFactory()
     )
 
     private DefaultConfigurationFactory configurationFactory = new DefaultConfigurationFactory(
@@ -123,8 +124,6 @@ class DefaultConfigurationContainerSpec extends Specification {
         //finds configurations
         configurationContainer.findByName("compile") == compile
         configurationContainer.findByName("foo") == null
-        configurationContainer.findAll { it.name == "compile" } as Set == [compile] as Set
-        configurationContainer.findAll { it.name == "foo" } as Set == [] as Set
 
         configurationContainer as List == [compile] as List
 

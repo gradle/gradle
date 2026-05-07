@@ -20,7 +20,6 @@ import com.google.common.collect.Interner;
 import com.google.common.collect.Interners;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
-import org.jspecify.annotations.Nullable;
 
 @ServiceScope(Scope.Global.class)
 public class StringInterner implements Interner<String> {
@@ -31,7 +30,8 @@ public class StringInterner implements Interner<String> {
     }
 
     @Override
-    public String intern(@Nullable String sample) {
+    @SuppressWarnings("NullAway") // For legacy reasons, while unmarked code exists.
+    public String intern(String sample) {
         if (sample == null) {
             return null;
         }

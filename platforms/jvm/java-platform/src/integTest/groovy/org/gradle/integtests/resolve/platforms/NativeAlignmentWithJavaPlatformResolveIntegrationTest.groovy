@@ -20,7 +20,6 @@ import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
 import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
-import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 
 import static org.gradle.util.internal.TextUtil.escapeString
@@ -160,9 +159,9 @@ class NativeAlignmentWithJavaPlatformResolveIntegrationTest extends AbstractModu
                 implementation("com.acme.foo:core:1.0")
                 implementation("com.acme.foo:lib:1.1")
             }
+
+            ${resolve.configureProject("compileClasspath")}
         """
-        resolve = new ResolveTestFixture(buildFile, "compileClasspath")
-        resolve.prepare()
 
         repositoryInteractions {
             'com.acme.foo' {

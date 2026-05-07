@@ -198,9 +198,10 @@ public class DefaultDependencyLockingProvider implements DependencyLockingProvid
     ) {
         if (writeLocks) {
             List<String> modulesOrdered = getModulesOrdered(resolvedModules);
-            if (!changingResolvedModules.isEmpty()) {
+            List<String> changingModulesOrdered = getModulesOrdered(changingResolvedModules);
+            if (!changingModulesOrdered.isEmpty()) {
                 LOGGER.warn("Dependency lock state for {} contains changing modules: {}. This means that dependencies content may still change over time. {}",
-                    lockOwner, getModulesOrdered(changingResolvedModules), DOC_REG.getDocumentationRecommendationFor("details", "dependency_locking"));
+                    lockOwner, changingModulesOrdered, DOC_REG.getDocumentationRecommendationFor("details", "dependency_locking"));
             }
             allLockState.put(lockId, modulesOrdered);
         }

@@ -16,20 +16,12 @@
 
 package org.gradle.internal.declarativedsl.mappingToJvm
 
-import org.gradle.declarative.dsl.schema.DataProperty
-import org.gradle.internal.declarativedsl.objectGraph.ObjectReflection
+import org.gradle.internal.declarativedsl.analysis.ResolutionResult
 
 
 /**
  * Takes a given {@link ObjectReflection} and applies its operations to the underlying object graph.
  */
 interface ReflectionToObjectConverter {
-    fun apply(objectReflection: ObjectReflection, conversionFilter: ConversionFilter = ConversionFilter.none)
-    fun interface ConversionFilter {
-        fun filterProperties(dataObjectReflection: ObjectReflection.DataObjectReflection): Iterable<DataProperty>
-
-        companion object {
-            val none = ConversionFilter { dataObjectReflection -> dataObjectReflection.properties.keys }
-        }
-    }
+    fun applyConversion(resolutionResults: ResolutionResult)
 }

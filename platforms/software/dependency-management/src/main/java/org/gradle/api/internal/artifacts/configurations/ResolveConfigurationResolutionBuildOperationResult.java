@@ -22,8 +22,9 @@ import org.gradle.api.Named;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ResolvedDependencyGraph;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.GraphStructure;
 import org.gradle.api.internal.artifacts.result.ResolvedComponentResultInternal;
+import org.gradle.api.internal.artifacts.result.ResolvedGraphResult;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
@@ -41,21 +42,24 @@ import java.util.function.Supplier;
 import static org.gradle.api.internal.artifacts.result.DefaultResolvedComponentResult.eachElement;
 
 class ResolveConfigurationResolutionBuildOperationResult implements ResolveConfigurationDependenciesBuildOperationType.Result, CustomOperationTraceSerialization {
-    private final Supplier<ResolvedDependencyGraph> graphSource;
+
+    private final Supplier<ResolvedGraphResult> graphSource;
     private final Lazy<AttributeContainer> lazyDesugaredAttributes;
 
     public ResolveConfigurationResolutionBuildOperationResult(
-        Supplier<ResolvedDependencyGraph> graphSource,
+        Supplier<ResolvedGraphResult> graphSource,
         ImmutableAttributes requestedAttributes,
         AttributesFactory attributesFactory
     ) {
         this.graphSource = graphSource;
-        this.lazyDesugaredAttributes = Lazy.unsafe().of(() -> desugarAttributes(attributesFactory, requestedAttributes));
+        this.lazyDesugaredAttributes = Lazy.locking().of(() -> desugarAttributes(attributesFactory, requestedAttributes));
     }
 
     @Override
     public ResolvedComponentResult getRootComponent() {
-        return graphSource.get().getRootComponent();
+        ResolvedGraphResult graph = graphSource.get();
+        GraphStructure.Nodes nodes = graph.structure().nodes();
+        return graph.getComponent(nodes.owner(nodes.root()));
     }
 
     @Override

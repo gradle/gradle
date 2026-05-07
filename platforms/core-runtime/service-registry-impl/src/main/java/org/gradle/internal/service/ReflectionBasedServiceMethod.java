@@ -30,6 +30,7 @@ class ReflectionBasedServiceMethod extends AbstractServiceMethod {
     }
 
     @Override
+    @SuppressWarnings("NullAway")
     public Object invoke(Object target, @Nullable Object... args) {
         try {
             return javaMethod.invoke(target, args);

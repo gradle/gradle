@@ -23,7 +23,7 @@ import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.jvm.inspection.JvmInstallationMetadata
 import org.gradle.jvm.toolchain.internal.install.DefaultJdkCacheDirectory
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.InstalledJdkTestPreconditions
 import spock.lang.Ignore
 
 import static org.gradle.integtests.fixtures.AvailableJavaHomes.getJvmInstallationMetadata
@@ -31,7 +31,7 @@ import static org.gradle.jvm.toolchain.JavaToolchainDownloadUtil.applyToolchainR
 import static org.gradle.jvm.toolchain.JavaToolchainDownloadUtil.multiUrlResolverCode
 import static org.gradle.jvm.toolchain.JavaToolchainDownloadUtil.singleUrlResolverCode
 
-@Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
+@Requires(InstalledJdkTestPreconditions.JavaHomeWithDifferentVersionAvailable)
 class JavaToolchainDownloadComplexProjectSoakTest extends AbstractIntegrationSpec {
     static final JavaVersion JAVA_VERSION = AvailableJavaHomes.differentVersion.javaVersion
 
@@ -84,7 +84,7 @@ class JavaToolchainDownloadComplexProjectSoakTest extends AbstractIntegrationSpe
         !result.plainTextOutput.matches("(?s).*The existing installation will be replaced by the new download.*")
     }
 
-    @Requires(IntegTestPreconditions.DifferentJdksFromMultipleVendors)
+    @Requires(InstalledJdkTestPreconditions.DifferentJdksFromMultipleVendors)
     def "multiple subprojects with different toolchain definitions"() {
         given:
         def otherJdk = getJdkWithDifferentVendor()

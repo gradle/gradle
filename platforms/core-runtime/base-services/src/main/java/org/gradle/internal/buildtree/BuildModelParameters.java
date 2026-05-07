@@ -18,6 +18,7 @@ package org.gradle.internal.buildtree;
 
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Map;
 
@@ -25,23 +26,51 @@ import java.util.Map;
 public interface BuildModelParameters {
 
     /**
-     * True when the build action requires to build Tooling Models.
-     * <p>
-     * When true, Gradle's "build model" such Gradle and Project state cannot be discarded
-     * even after the tasks have been executed, because the Tooling Model Builders can run after tasks.
+     * Vintage mode is when neither CC nor IP are enabled.
      */
-    boolean isRequiresToolingModels();
+    default boolean isVintage() {
+        return !isConfigurationCache() && !isIsolatedProjects();
+    }
 
+    /**
+     * Whether project-scoped work should use project-lock or build-lock to synchronize,
+     * allowing work from different projects to run in parallel when set to true.
+     * <p>
+     * Most notably, this allows parallel execution of tasks from different projects.
+     * <p>
+     * Note that this does not synchronize work from different builds.
+     * <ul>
+     * <li>Vintage: controlled by {@code --parallel} (or its property)
+     * <li>CC: controlled by {@code --parallel} (or its property)
+     * <li>IP: always enabled
+     * </ul>
+     */
     boolean isParallelProjectExecution();
 
     boolean isConfigureOnDemand();
 
+    /**
+     * Whether Configuration Cache is enabled.
+     * <p>
+     * Also true if Isolated Projects is enabled.
+     */
     boolean isConfigurationCache();
+
+    /**
+     * User-friendly reason explaining why CC is disabled based on requested build options.
+     * <p>
+     * A common reason is the request for Gradle features incompatible with CC, such as {@code --export-keys}.
+     */
+    @Nullable
+    String getConfigurationCacheDisabledReason();
 
     boolean isConfigurationCacheParallelStore();
 
     boolean isConfigurationCacheParallelLoad();
 
+    /**
+     * Whether Isolated Projects is enabled.
+     */
     boolean isIsolatedProjects();
 
     /**
@@ -51,17 +80,6 @@ public interface BuildModelParameters {
      * is not making us skip eager project configuration.
      */
     boolean isParallelProjectConfiguration();
-
-    /**
-     * When {@link  #isIsolatedProjects()} is true, should intermediate tooling models be cached?
-     * This is currently true when fetching a tooling model, otherwise false.
-     */
-    boolean isIntermediateModelCache();
-
-    /**
-     * When {@link #isParallelProjectExecution()} is true, should Tooling API actions run in parallel?
-     */
-    boolean isParallelToolingApiActions();
 
     /**
      * When {@link  #isIsolatedProjects()} is true, should project state be invalidated when a project it is coupled with changes?
@@ -77,6 +95,34 @@ public interface BuildModelParameters {
     boolean isModelAsProjectDependency();
 
     /**
+     * True when the build action requires to build Tooling Models.
+     * <p>
+     * When true, Gradle's "build model" such Gradle and Project state cannot be discarded
+     * even after the tasks have been executed, because the Tooling Model Builders can run after tasks.
+     */
+    boolean isModelBuilding();
+
+    /**
+     * Determines whether nested build actions provided in {@code BuildController.run(actions)} can run in parallel.
+     * <ul>
+     * <li>Vintage: controlled by {@code --parallel}
+     * <li>CC: not applicable, since CC is always disabled for model building invocations
+     * <li>IP: always enabled
+     * </ul>
+     */
+    boolean isParallelModelBuilding();
+
+    /**
+     * Determines whether models produced by tooling model builders are individually cached.
+     * <p>
+     * With IP, we can assume that for project-scoped models, their effective inputs are a subset of the Project state.
+     * If the Project is up to date, we can serve its models from a cache instead of recomputing them on subsequent runs.
+     * <p>
+     * Always false for Vintage and CC.
+     */
+    boolean isCachingModelBuilding();
+
+    /**
      * Returns true if the model building is resilient so some failures in model building.
      *
      * @return true if the model building is resilient, false otherwise
@@ -86,5 +132,5 @@ public interface BuildModelParameters {
     /**
      * Collects all properties and their values in a map for logging and testing purposes.
      */
-    Map<String, Boolean> toDisplayMap();
+    Map<String, ? extends @Nullable Object> toDisplayMap();
 }

@@ -152,7 +152,7 @@ abstract class AbstractProjectDependencyConflictResolutionIntegrationSpec extend
                         it.requested.matchesStrictly(declared)
                 }
 
-                assert projectDependency && projectDependency.selected.componentId == expected
+                assert projectDependency && projectDependency.selected.id == expected
             }
         }
 """

@@ -18,9 +18,9 @@ package org.gradle.integtests.resolve
 
 import groovy.test.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.JdkVersionTestPreconditions
+
 import spock.lang.Ignore
 import spock.lang.Issue
 
@@ -138,24 +138,18 @@ class ResolutionIssuesIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Ignore("Original reproducer. Minified version below")
-    @Requires(UnitTestPreconditions.Jdk17OrLater)
+    @Requires(JdkVersionTestPreconditions.Jdk17OrLater)
     @Issue("https://github.com/gradle/gradle/issues/22326#issuecomment-1617422240")
     def "guava issue"() {
         settingsFile << """
             pluginManagement {
                 ${mavenCentralRepository()}
-                repositories {
-                    google()
-                    maven { url = 'https://jitpack.io' }
-                }
+                ${googleRepository()}
             }
 
             dependencyResolutionManagement {
                 ${mavenCentralRepository()}
-                repositories {
-                    google()
-                    maven { url = 'https://jitpack.io' }
-                }
+                ${googleRepository()}
             }
         """
 
@@ -167,7 +161,7 @@ class ResolutionIssuesIntegrationTest extends AbstractIntegrationSpec {
 
         buildFile << '''
             plugins {
-                id("com.android.application") version "8.2.2"
+                id("com.android.application") version "9.0.1"
             }
 
             android {
@@ -210,9 +204,7 @@ class ResolutionIssuesIntegrationTest extends AbstractIntegrationSpec {
             dependencyResolutionManagement {
                 ${mavenTestRepository()}
                 ${mavenCentralRepository()}
-                repositories {
-                    google()
-                }
+                ${googleRepository()}
             }
         """
 
@@ -238,162 +230,6 @@ class ResolutionIssuesIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         succeeds("checkDebugDuplicateClasses")
-    }
-
-    @NotYetImplemented
-    @UnsupportedWithConfigurationCache(because = "Uses allDependencies")
-    @Issue("https://github.com/gradle/gradle/pull/26016#issuecomment-1795491970")
-    def "conflict between two nodes in the same component causes edge without target node"() {
-        settingsFile << "include 'producer'"
-        file("producer/build.gradle") << """
-            configurations {
-                consumable("one") {
-                    outgoing {
-                        capability('o:n:e')
-                    }
-                    attributes {
-                        attribute(Usage.USAGE_ATTRIBUTE, named(Usage.class, "foo"))
-                    }
-                }
-                consumable("one-preferred") {
-                    outgoing {
-                        capability('o:n:e')
-                        capability('g:one-preferred:v')
-                    }
-                    attributes {
-                        attribute(Usage.USAGE_ATTRIBUTE, named(Usage.class, "foo"))
-                    }
-                }
-            }
-        """
-        buildFile << """
-            configurations {
-                dependencyScope("implementation")
-                resolvable("classpath") {
-                    extendsFrom(implementation)
-                    attributes {
-                        attribute(Usage.USAGE_ATTRIBUTE, named(Usage.class, "foo"))
-                    }
-                }
-            }
-
-            configurations.classpath {
-                resolutionStrategy.capabilitiesResolution.all { details ->
-                    def selection =
-                        details.candidates.find { it.variantName.endsWith('preferred') }
-                    println("Selecting \$selection from \${details.candidates}")
-                    details.select(selection)
-                }
-            }
-
-            dependencies {
-                implementation(project(':producer')) {
-                    capabilities {
-                        requireCapability('o:n:e')
-                    }
-                }
-                implementation(project(':producer')) {
-                    capabilities {
-                        requireCapability('o:n:e')
-                        requireCapability('g:one-preferred:v')
-                    }
-                }
-            }
-
-            task resolve {
-                def result = configurations.classpath.incoming.resolutionResult
-                doLast {
-                    result.allDependencies {
-                        assert it.selectedVariant != null
-                    }
-                }
-            }
-        """
-
-        expect:
-        succeeds("resolve")
-    }
-
-    @NotYetImplemented
-    def "can select unrelated variant from component with variant that loses capability conflict"() {
-        settingsFile << """
-            include("producer1")
-            include("producer2")
-        """
-        buildFile << """
-            plugins {
-                id("java-library")
-            }
-
-            dependencies {
-                implementation(project(":producer2")) {
-                    capabilities {
-                        requireCapability("org:bar:1.0")
-                    }
-                }
-                implementation(project(":producer1")) {
-                    capabilities {
-                        requireCapability("org:foo:2.0")
-                    }
-                }
-                implementation(project(":producer2")) {
-                    capabilities {
-                        requireCapability("org:foo:1.0")
-                    }
-                }
-            }
-
-            task resolve {
-                def files = configurations.runtimeClasspath.incoming.files
-                doLast {
-                    println(files*.name)
-                }
-            }
-
-            configurations.runtimeClasspath {
-                resolutionStrategy {
-                    capabilitiesResolution {
-                        withCapability("org:foo") {
-                            selectHighestVersion()
-                        }
-                    }
-                }
-            }
-        """
-
-        file("producer1/build.gradle") << """
-            configurations {
-                consumable("foo") {
-                    outgoing.capability("org:foo:2.0")
-                    outgoing.artifact(file("producer1-foo"))
-                    attributes {
-                        attribute(Category.CATEGORY_ATTRIBUTE, named(Category, Category.LIBRARY))
-                    }
-                }
-            }
-        """
-        file("producer2/build.gradle") << """
-            configurations {
-                consumable("foo") {
-                    outgoing.capability("org:foo:1.0")
-                    outgoing.artifact(file("producer2-foo"))
-                    attributes {
-                        attribute(Category.CATEGORY_ATTRIBUTE, named(Category, Category.LIBRARY))
-                    }
-                }
-                consumable("bar") {
-                    outgoing.capability("org:bar:1.0")
-                    outgoing.artifact(file("producer2-bar"))
-                    attributes {
-                        attribute(Category.CATEGORY_ATTRIBUTE, named(Category, Category.LIBRARY))
-                    }
-                }
-            }
-        """
-
-        expect:
-        succeeds(":resolve")
-        outputContains("[producer2-bar, producer1-foo]")
     }
 
     def "depending on a bom of one version and another dependency that upgrades that bom causes unstable graph"() {

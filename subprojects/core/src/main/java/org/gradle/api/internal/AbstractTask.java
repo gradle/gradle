@@ -54,6 +54,7 @@ import org.gradle.api.logging.Logging;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.provider.SetProperty;
 import org.gradle.api.services.BuildService;
 import org.gradle.api.services.internal.BuildServiceProvider;
 import org.gradle.api.services.internal.BuildServiceRegistryInternal;
@@ -93,6 +94,7 @@ import java.io.File;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -143,7 +145,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     private DescribingAndSpec<Task> onlyIfSpec = createNewOnlyIfSpec();
 
-    private String reasonNotToTrackState;
+    private SetProperty<String> reasonsNotToTrackState;
 
     private String reasonIncompatibleWithConfigurationCache;
 
@@ -205,6 +207,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         taskExecutionAccessChecker = services.get(TaskExecutionAccessChecker.class);
 
         this.timeout = project.getObjects().property(Duration.class);
+        this.reasonsNotToTrackState = project.getObjects().setProperty(String.class);
     }
 
     private void assertDynamicObject() {
@@ -273,6 +276,11 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
             actions = new ArrayList<InputChangesAwareTaskAction>(3);
         }
         return actions;
+    }
+
+    @Override
+    public void restoreTaskActions(List<InputChangesAwareTaskAction> taskActions) {
+        actions = taskActions;
     }
 
     @Override
@@ -398,18 +406,40 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     }
 
     @Override
+    public void restoreOnlyIf(Spec<? super TaskInternal> onlyIf) {
+        onlyIfSpec = Cast.uncheckedCast(onlyIf);
+    }
+
+    @Override
     public void doNotTrackState(String reasonNotToTrackState) {
         if (reasonNotToTrackState == null) {
             throw new InvalidUserDataException("notTrackingReason must not be null!");
         }
         taskMutator.mutate("Task.doNotTrackState(String)",
-            () -> this.reasonNotToTrackState = reasonNotToTrackState
+            () -> this.reasonsNotToTrackState.add(reasonNotToTrackState)
         );
     }
 
     @Override
     public Optional<String> getReasonNotToTrackState() {
-        return Optional.ofNullable(reasonNotToTrackState);
+        return reasonsNotToTrackState.<Optional<String>>map(strings ->
+            strings.isEmpty() ? Optional.empty() : Optional.of(String.join("; ", strings))
+        ).getOrElse(Optional.empty());
+    }
+
+    @Override
+    public Set<String> getReasonsNotToTrackState() {
+        return reasonsNotToTrackState.getOrElse(Collections.emptySet());
+    }
+
+    @Override
+    public void doNotTrackStateIf(String reason, Spec<? super TaskInternal> spec) {
+        taskMutator.mutate("Task.doNotTrackStateIf(String, Spec)", () -> reasonsNotToTrackState.add(project.provider(() -> {
+            if (spec.isSatisfiedBy(AbstractTask.this)) {
+                return reason;
+            }
+            return null;
+        })));
     }
 
     @Override

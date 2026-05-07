@@ -16,8 +16,10 @@
 
 package org.gradle.internal.resources;
 
+import org.jspecify.annotations.Nullable;
+
 public class ExclusiveAccessResourceLock extends AbstractTrackedResourceLock {
-    private Thread owner;
+    private @Nullable Thread owner;
 
     public ExclusiveAccessResourceLock(String displayName, ResourceLockCoordinationService coordinationService, ResourceLockContainer owner) {
         super(displayName, coordinationService, owner);

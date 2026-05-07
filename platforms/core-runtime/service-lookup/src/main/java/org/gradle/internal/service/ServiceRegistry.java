@@ -18,9 +18,7 @@ package org.gradle.internal.service;
 import org.gradle.internal.scan.UsedByScanPlugin;
 import org.jspecify.annotations.Nullable;
 
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -69,34 +67,4 @@ public interface ServiceRegistry extends ServiceLookup {
     @Override
     @Nullable Object find(Type serviceType) throws ServiceLookupException;
 
-    ServiceRegistry EMPTY = new ServiceRegistry() {
-        @Override
-        public <T> T get(Class<T> serviceType) throws UnknownServiceException, ServiceLookupException {
-            throw emptyServiceRegistryException(serviceType);
-        }
-
-        @Override
-        public <T> List<T> getAll(Class<T> serviceType) throws ServiceLookupException {
-            return Collections.emptyList();
-        }
-
-        @Override
-        public Object get(Type serviceType) throws UnknownServiceException, ServiceLookupException {
-            throw emptyServiceRegistryException(serviceType);
-        }
-
-        @Override
-        public @Nullable Object find(Type serviceType) throws ServiceLookupException {
-            return null;
-        }
-
-        private UnknownServiceException emptyServiceRegistryException(Type type) {
-            return new UnknownServiceException(type, "Nothing is available in the empty service registry.");
-        }
-
-        @Override
-        public Object get(Type serviceType, Class<? extends Annotation> annotatedWith) throws UnknownServiceException, ServiceLookupException {
-            throw emptyServiceRegistryException(serviceType);
-        }
-    };
 }

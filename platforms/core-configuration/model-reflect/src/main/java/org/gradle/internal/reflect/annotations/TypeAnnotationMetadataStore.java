@@ -54,6 +54,7 @@ import org.gradle.internal.service.scopes.ServiceScope;
  * </p>
  */
 @ServiceScope(Scope.Global.class)
+// TODO TypeAnnotationStore
 public interface TypeAnnotationMetadataStore {
     TypeAnnotationMetadata getTypeAnnotationMetadata(Class<?> type);
 }

@@ -22,9 +22,12 @@ import org.gradle.api.Action;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.tasks.userinput.UserInputReader;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
 import org.gradle.configuration.GradleLauncherMetaData;
+import org.gradle.initialization.layout.BuildLayoutConfiguration;
 import org.gradle.internal.Actions;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.buildprocess.BuildProcessState;
@@ -64,19 +67,26 @@ import org.gradle.tooling.internal.provider.ForwardStdInToThisProcess;
 import org.gradle.tooling.internal.provider.RunInProcess;
 
 import java.lang.management.ManagementFactory;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.UUID;
 
 class BuildActionsFactory implements CommandLineActionCreator {
+    private static final Logger LOGGER = Logging.getLogger(BuildActionsFactory.class);
+    private static final String CAN_USE_CURRENT_PROCESS_MESSAGE = "The current JVM process isn't compatible with build requirement. {}";
+
     private final ServiceRegistry loggingServices;
     private final FileCollectionFactory fileCollectionFactory;
     private final ServiceRegistry basicServices;
+    private final CurrentGradleInstallation currentGradleInstallation;
 
-    public BuildActionsFactory(ServiceRegistry loggingServices, ServiceRegistry basicServices) {
+    public BuildActionsFactory(ServiceRegistry loggingServices, ServiceRegistry basicServices, CurrentGradleInstallation currentGradleInstallation) {
         this.basicServices = basicServices;
         this.loggingServices = loggingServices;
         this.fileCollectionFactory = basicServices.get(FileCollectionFactory.class);
+        this.currentGradleInstallation = currentGradleInstallation;
     }
 
     @Override
@@ -87,6 +97,7 @@ class BuildActionsFactory implements CommandLineActionCreator {
     public Action<? super ExecutionListener> createAction(CommandLineParser parser, ParsedCommandLine commandLine, Parameters parameters) {
         StartParameterInternal startParameter = parameters.getStartParameter();
         DaemonParameters daemonParameters = parameters.getDaemonParameters();
+        BuildLayoutConfiguration buildLayoutConfiguration = parameters.getBuildLayout().toLayoutConfiguration();
 
         if (daemonParameters.isStop()) {
             return Actions.toAction(stopAllDaemons(daemonParameters));
@@ -107,13 +118,13 @@ class BuildActionsFactory implements CommandLineActionCreator {
         }
 
         if (daemonParameters.isEnabled()) {
-            return Actions.toAction(runBuildWithDaemon(startParameter, daemonParameters, requestContext));
+            return Actions.toAction(runBuildWithDaemon(startParameter, daemonParameters, requestContext, buildLayoutConfiguration));
         }
         if (canUseCurrentProcess(daemonParameters, requestContext)) {
             return Actions.toAction(runBuildInProcess(startParameter, daemonParameters));
         }
 
-        return Actions.toAction(runBuildInSingleUseDaemon(startParameter, daemonParameters, requestContext));
+        return Actions.toAction(runBuildInSingleUseDaemon(startParameter, daemonParameters, requestContext, buildLayoutConfiguration));
     }
 
     private Runnable stopAllDaemons(DaemonParameters daemonParameters) {
@@ -130,10 +141,10 @@ class BuildActionsFactory implements CommandLineActionCreator {
         return new ReportDaemonStatusAction(statusClient);
     }
 
-    private Runnable runBuildWithDaemon(StartParameterInternal startParameter, DaemonParameters daemonParameters, DaemonRequestContext requestContext) {
+    private Runnable runBuildWithDaemon(StartParameterInternal startParameter, DaemonParameters daemonParameters, DaemonRequestContext requestContext, BuildLayoutConfiguration buildLayoutConfiguration) {
         // Create a client that will match based on the daemon startup parameters.
         ServiceRegistry clientSharedServices = createGlobalClientServices();
-        ServiceRegistry clientServices = clientSharedServices.get(DaemonClientFactory.class).createBuildClientServices(loggingServices, daemonParameters, requestContext, System.in, Optional.empty());
+        ServiceRegistry clientServices = clientSharedServices.get(DaemonClientFactory.class).createBuildClientServices(loggingServices, daemonParameters, requestContext, buildLayoutConfiguration, System.in, Optional.empty());
         DaemonClient client = clientServices.get(DaemonClient.class);
         return runBuildAndCloseServices(startParameter, daemonParameters, client, clientSharedServices, clientServices);
     }
@@ -144,10 +155,15 @@ class BuildActionsFactory implements CommandLineActionCreator {
         DaemonContext contextForCurrentProcess = buildDaemonContextForCurrentProcess(requestContext, currentProcess);
 
         DaemonCompatibilitySpec comparison = new DaemonCompatibilitySpec(requestContext);
-        if (!currentProcess.isLowMemoryProcess()) {
-            return comparison.isSatisfiedBy(contextForCurrentProcess);
+        if (currentProcess.isLowMemoryProcess()) {
+            LOGGER.info(CAN_USE_CURRENT_PROCESS_MESSAGE, "The maximum heap size is insufficient.\n");
+            return false;
         }
-        return false;
+        String whyUnsatisfied = comparison.whyUnsatisfied(contextForCurrentProcess);
+        if (whyUnsatisfied != null) {
+            LOGGER.info(CAN_USE_CURRENT_PROCESS_MESSAGE, whyUnsatisfied);
+        }
+        return whyUnsatisfied == null;
     }
 
     @VisibleForTesting
@@ -173,12 +189,16 @@ class BuildActionsFactory implements CommandLineActionCreator {
         properties.putAll(daemonParameters.getEffectiveSystemProperties());
         System.setProperties(properties);
 
-        BuildProcessState buildProcessState = new BuildProcessState(startParameter.isContinuous(),
+        BuildProcessState buildProcessState = new BuildProcessState(
+            startParameter.isContinuous(),
             AgentStatus.of(daemonParameters.shouldApplyInstrumentationAgent()),
-            ClassPath.EMPTY,
-            CurrentGradleInstallation.locate(),
-            loggingServices,
-            NativeServices.getInstance());
+            currentGradleInstallation,
+            Collections.emptySet(),
+            Arrays.asList(
+                loggingServices,
+                NativeServices.getInstance()
+            )
+        );
 
         ServiceRegistry globalServices = buildProcessState.getServices();
         globalServices.get(AgentInitializer.class).maybeConfigureInstrumentationAgent();
@@ -195,7 +215,7 @@ class BuildActionsFactory implements CommandLineActionCreator {
         return runBuildAndCloseServices(startParameter, daemonParameters, executor, buildProcessState.getServices(), buildProcessState);
     }
 
-    private Runnable runBuildInSingleUseDaemon(StartParameterInternal startParameter, DaemonParameters daemonParameters, DaemonRequestContext requestContext) {
+    private Runnable runBuildInSingleUseDaemon(StartParameterInternal startParameter, DaemonParameters daemonParameters, DaemonRequestContext requestContext, BuildLayoutConfiguration buildLayoutConfiguration) {
         //(SF) this is a workaround until this story is completed. I'm hardcoding setting the idle timeout to be max X mins.
         //this way we avoid potential runaway daemons that steal resources on linux and break builds on windows.
         //We might leave that in if we decide it's a good idea for an extra safety net.
@@ -207,7 +227,7 @@ class BuildActionsFactory implements CommandLineActionCreator {
 
         // Create a client that will not match any existing daemons, so it will always start a new one
         ServiceRegistry clientSharedServices = createGlobalClientServices();
-        ServiceRegistry clientServices = clientSharedServices.get(DaemonClientFactory.class).createSingleUseDaemonClientServices(clientSharedServices, daemonParameters, requestContext, System.in);
+        ServiceRegistry clientServices = clientSharedServices.get(DaemonClientFactory.class).createSingleUseDaemonClientServices(clientSharedServices, daemonParameters, requestContext, buildLayoutConfiguration, System.in);
         DaemonClient client = clientServices.get(DaemonClient.class);
         return runBuildAndCloseServices(startParameter, daemonParameters, client, clientSharedServices, clientServices);
     }

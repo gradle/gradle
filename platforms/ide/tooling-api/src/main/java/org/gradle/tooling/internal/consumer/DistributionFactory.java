@@ -15,7 +15,6 @@
  */
 package org.gradle.tooling.internal.consumer;
 
-import org.gradle.api.internal.classpath.DefaultModuleRegistry;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.layout.BuildLayout;
 import org.gradle.initialization.layout.BuildLayoutFactory;
@@ -81,13 +80,6 @@ public class DistributionFactory {
         WrapperConfiguration configuration = new WrapperConfiguration();
         configuration.setDistribution(gradleDistribution);
         return new ZippedDistribution(configuration, clock);
-    }
-
-    /**
-     * Uses the classpath to locate the distribution.
-     */
-    public Distribution getClasspathDistribution() {
-        return new ClasspathDistribution();
     }
 
     private Distribution getDownloadedDistribution(String gradleVersion) {
@@ -160,6 +152,9 @@ public class DistributionFactory {
             if (!gradleHomeDir.isDirectory()) {
                 throw new IllegalArgumentException(String.format("The specified %s is not a directory.", locationDisplayName));
             }
+            // The lib directory implements a cross-gradle-version contract, where the
+            // TAPI consumer will load the TAPI provider classpath from the
+            // `lib` directory of the target gradle distribution.
             File libDir = new File(gradleHomeDir, "lib");
             if (!libDir.isDirectory()) {
                 throw new IllegalArgumentException(String.format("The specified %s does not appear to contain a Gradle distribution.", locationDisplayName));
@@ -176,16 +171,4 @@ public class DistributionFactory {
         }
     }
 
-    private static class ClasspathDistribution implements Distribution {
-        @Override
-        public String getDisplayName() {
-            return "Gradle classpath distribution";
-        }
-
-        @Override
-        public ClassPath getToolingImplementationClasspath(ProgressLoggerFactory progressLoggerFactory, InternalBuildProgressListener progressListener, ConnectionParameters connectionParameters, BuildCancellationToken cancellationToken) {
-            DefaultModuleRegistry registry = new DefaultModuleRegistry(null);
-            return registry.getModule("gradle-tooling-api-provider").getAllRequiredModulesClasspath();
-        }
-    }
 }

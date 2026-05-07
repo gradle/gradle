@@ -66,7 +66,6 @@ object StartReleaseCycle : BasePromotionBuildType() {
                         "%gitUserName%",
                         "%gitUserEmail%",
                     )
-                param("org.jfrog.artifactory.selectedDeployableServer.defaultModuleVersionConfiguration", "GLOBAL")
             }
         }
 

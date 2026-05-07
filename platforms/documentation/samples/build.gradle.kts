@@ -13,11 +13,12 @@ dependencies {
     integTestImplementation(libs.slf4jApi)
     integTestImplementation(libs.guava)
     integTestImplementation(libs.ant)
-    integTestImplementation(libs.samplesCheck) {
+    integTestImplementation(testLibs.samplesCheck) {
         exclude(group = "org.codehaus.groovy", module = "groovy-all")
     }
     integTestImplementation(testFixtures(projects.core))
     integTestImplementation(testFixtures(projects.modelCore))
+    integTestImplementation(testFixtures(projects.testingBase))
 
     integTestDistributionRuntimeOnly(projects.distributionsFull)
 }

@@ -18,10 +18,13 @@ package org.gradle.api.internal.tasks.testing.junit;
 import org.gradle.model.internal.asm.AsmConstants;
 import org.gradle.api.internal.tasks.testing.detection.TestClassVisitor;
 import org.gradle.api.internal.tasks.testing.detection.TestFrameworkDetector;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.MethodVisitor;
 
-class JUnitTestClassDetector extends TestClassVisitor {
+@NullMarked
+public class JUnitTestClassDetector extends TestClassVisitor {
     JUnitTestClassDetector(final TestFrameworkDetector detector) {
         super(detector);
     }
@@ -32,6 +35,7 @@ class JUnitTestClassDetector extends TestClassVisitor {
     }
 
     @Override
+    @Nullable
     public AnnotationVisitor visitAnnotation(String desc, boolean visible) {
         if ("Lorg/junit/runner/RunWith;".equals(desc)) {
             setTest(true);
@@ -41,6 +45,7 @@ class JUnitTestClassDetector extends TestClassVisitor {
     }
 
     @Override
+    @Nullable
     public MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
         if (!isTest()) {
             return new MethodVisitor(AsmConstants.ASM_LEVEL) {
@@ -56,6 +61,4 @@ class JUnitTestClassDetector extends TestClassVisitor {
             return null;
         }
     }
-
-
 }

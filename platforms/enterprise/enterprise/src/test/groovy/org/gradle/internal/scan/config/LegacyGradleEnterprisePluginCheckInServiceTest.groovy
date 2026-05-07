@@ -16,9 +16,9 @@
 
 package org.gradle.internal.scan.config
 
-import org.gradle.api.internal.BuildType
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.StartParameterInternal
+import org.gradle.internal.buildtree.BuildActionModelRequirements
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager
 import org.gradle.internal.enterprise.impl.legacy.LegacyGradleEnterprisePluginCheckInService
 import org.gradle.internal.enterprise.impl.legacy.UnsupportedBuildScanPluginVersionException
@@ -64,7 +64,7 @@ class LegacyGradleEnterprisePluginCheckInServiceTest extends Specification {
         new LegacyGradleEnterprisePluginCheckInService(
             gradle,
             new GradleEnterprisePluginManager(),
-            BuildType.TASKS
+            Stub(BuildActionModelRequirements)
         )
     }
 }

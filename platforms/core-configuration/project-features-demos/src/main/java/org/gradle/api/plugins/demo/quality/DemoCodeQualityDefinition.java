@@ -16,13 +16,11 @@
 
 package org.gradle.api.plugins.demo.quality;
 
-import org.gradle.api.internal.plugins.Definition;
+import org.gradle.features.binding.Definition;
 import org.gradle.api.provider.Property;
-import org.gradle.declarative.dsl.model.annotations.Restricted;
 import org.jspecify.annotations.NullMarked;
 
 @NullMarked
 public interface DemoCodeQualityDefinition extends Definition<DemoCodeQualityModel> {
-    @Restricted
     Property<Boolean> getIgnoreFailures();
 }

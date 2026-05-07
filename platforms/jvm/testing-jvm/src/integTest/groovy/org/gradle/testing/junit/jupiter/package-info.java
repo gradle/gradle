@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2026 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,5 +16,7 @@
 
 /**
  * This package contains tests that should be specific to the JUnit Jupiter engine.
+ * <p>
+ * Jupiter began with JUnit 5.  These should continue to run against JUnit >= 5.
  */
 package org.gradle.testing.junit.jupiter;

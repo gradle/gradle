@@ -19,13 +19,12 @@ package org.gradle.api.tasks.testing;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
-import org.gradle.api.internal.tasks.testing.LegacyHtmlTestReportGenerator;
 import org.gradle.api.internal.tasks.testing.report.generic.GenericHtmlTestReportGenerator;
 import org.gradle.api.internal.tasks.testing.report.generic.MetadataRendererRegistry;
-import org.gradle.api.internal.tasks.testing.results.serializable.SerializableTestResultStore;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.IgnoreEmptyDirectories;
 import org.gradle.api.tasks.InputFiles;
+import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
@@ -44,7 +43,6 @@ import java.io.File;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 import static org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor.AccessorType.GETTER;
 import static org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor.AccessorType.SETTER;
@@ -58,20 +56,25 @@ public abstract class TestReport extends DefaultTask {
     @Inject
     protected abstract ObjectFactory getObjectFactory();
 
-    // Method kept for binary compatibility.
+    // Method kept for binary compatibility remove in Gradle 10
     @SuppressWarnings("unused")
     @Inject
+    @Deprecated
     protected abstract BuildOperationRunner getBuildOperationRunner();
 
-    // Method kept for binary compatibility.
+    // Method kept for binary compatibility remove in Gradle 10
     @SuppressWarnings("unused")
     @Inject
+    @Deprecated
     protected abstract BuildOperationExecutor getBuildOperationExecutor();
 
-    // Method kept for binary compatibility.
+    // Method kept for binary compatibility remove in Gradle 10
     @SuppressWarnings("unused")
-    @Inject
-    protected abstract MetadataRendererRegistry getMetadataRendererRegistry();
+    @Deprecated
+    @Internal
+    protected MetadataRendererRegistry getMetadataRendererRegistry() {
+        return new MetadataRendererRegistry();
+    }
 
     /**
      * Returns the directory to write the HTML report to.
@@ -103,30 +106,18 @@ public abstract class TestReport extends DefaultTask {
     void generateReport() {
         try {
             List<Path> resultDirsAsPaths = new ArrayList<>(getTestResults().getFiles().size());
-            boolean isGenericImplementation = isGenericImplementation(resultDirsAsPaths);
+            for (File resultDir : getTestResults().getFiles()) {
+                if (!resultDir.exists()) {
+                    continue;
+                }
+                resultDirsAsPaths.add(resultDir.toPath());
+            }
 
             Path reportsDir = getDestinationDirectory().get().getAsFile().toPath();
-            getObjectFactory().newInstance(
-                isGenericImplementation ? GenericHtmlTestReportGenerator.class : LegacyHtmlTestReportGenerator.class,
-                reportsDir
-            ).generate(resultDirsAsPaths);
+            getObjectFactory().newInstance(GenericHtmlTestReportGenerator.class, reportsDir).generate(resultDirsAsPaths);
         } catch (Exception e) {
             throw new RuntimeException("Could not write test report for results in " + getTestResults().getFiles(), e);
         }
-    }
-
-    private boolean isGenericImplementation(List<Path> resultDirsAsPaths) {
-        Boolean isGenericImplementation = null;
-        for (File resultDir : getTestResults().getFiles()) {
-            boolean resultDirIsGenericImplementation = SerializableTestResultStore.isGenericTestResults(resultDir);
-            if (isGenericImplementation == null) {
-                isGenericImplementation = resultDirIsGenericImplementation;
-            } else if (isGenericImplementation != resultDirIsGenericImplementation) {
-                throw new IllegalStateException("Cannot mix generic and non-generic test results in the same report.");
-            }
-            resultDirsAsPaths.add(resultDir.toPath());
-        }
-        return Objects.requireNonNull(isGenericImplementation, "@SkipWhenEmpty should prevent this from being null");
     }
 
 }

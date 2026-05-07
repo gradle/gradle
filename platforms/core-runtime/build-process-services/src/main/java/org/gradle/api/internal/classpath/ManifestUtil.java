@@ -18,6 +18,7 @@ package org.gradle.api.internal.classpath;
 
 import org.gradle.internal.UncheckedException;
 import org.gradle.util.internal.CollectionUtils;
+import org.jspecify.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
@@ -83,7 +84,7 @@ public class ManifestUtil {
     /*
      * The manifest if this is a jar file and has a manifest, null otherwise.
      */
-    private static Manifest findManifest(File possibleJarFile) throws IOException {
+    private static @Nullable Manifest findManifest(File possibleJarFile) throws IOException {
         if (!possibleJarFile.exists() || !possibleJarFile.isFile()) {
             return null;
         }

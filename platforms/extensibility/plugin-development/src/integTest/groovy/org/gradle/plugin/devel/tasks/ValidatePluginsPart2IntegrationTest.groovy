@@ -20,11 +20,13 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.jvm.SupportedJavaVersions
-import org.gradle.internal.reflect.validation.ValidationMessageChecker
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.JdkVersionTestPreconditions
+
 import org.junit.Assume
 import spock.lang.Issue
 
-class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implements ValidationMessageChecker, ValidatePluginsTrait {
+class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implements ValidatePluginsTrait {
     @Issue("https://github.com/gradle/gradle/issues/24979")
     def "cannot annotate type 'java.net.URL' with @Input"() {
         given:
@@ -440,7 +442,7 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
         verifyAll(receivedProblem(0)) {
             fqid == 'validation:property-validation:missing-annotation'
             contextualLabel == 'Type \'MyTask\' property \'doubleIterableOptions.*.*.notAnnotated\' is missing an input or output annotation'
-            details == 'A property without annotation isn\'t considered during up-to-date checking'
+            details == 'Properties must be annotated so that Gradle knows how to handle them during up-to-date checking'
             solutions == [
                 'Add an input or output annotation',
                 'Mark it as @Internal',
@@ -454,7 +456,7 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
         verifyAll(receivedProblem(1)) {
             fqid == 'validation:property-validation:missing-annotation'
             contextualLabel == 'Type \'MyTask\' property \'iterableMappedOptions.*.<key>.*.notAnnotated\' is missing an input or output annotation'
-            details == 'A property without annotation isn\'t considered during up-to-date checking'
+            details == 'Properties must be annotated so that Gradle knows how to handle them during up-to-date checking'
             solutions == [
                 'Add an input or output annotation',
                 'Mark it as @Internal',
@@ -468,7 +470,7 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
         verifyAll(receivedProblem(2)) {
             fqid == 'validation:property-validation:missing-annotation'
             contextualLabel == 'Type \'MyTask\' property \'iterableOptions.*.notAnnotated\' is missing an input or output annotation'
-            details == 'A property without annotation isn\'t considered during up-to-date checking'
+            details == 'Properties must be annotated so that Gradle knows how to handle them during up-to-date checking'
             solutions == [
                 'Add an input or output annotation',
                 'Mark it as @Internal',
@@ -482,7 +484,7 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
         verifyAll(receivedProblem(3)) {
             fqid == 'validation:property-validation:missing-annotation'
             contextualLabel == 'Type \'MyTask\' property \'mappedOptions.<key>.notAnnotated\' is missing an input or output annotation'
-            details == 'A property without annotation isn\'t considered during up-to-date checking'
+            details == 'Properties must be annotated so that Gradle knows how to handle them during up-to-date checking'
             solutions == [
                 'Add an input or output annotation',
                 'Mark it as @Internal',
@@ -496,7 +498,7 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
         verifyAll(receivedProblem(4)) {
             fqid == 'validation:property-validation:missing-annotation'
             contextualLabel == 'Type \'MyTask\' property \'namedIterable.<name>.notAnnotated\' is missing an input or output annotation'
-            details == 'A property without annotation isn\'t considered during up-to-date checking'
+            details == 'Properties must be annotated so that Gradle knows how to handle them during up-to-date checking'
             solutions == [
                 'Add an input or output annotation',
                 'Mark it as @Internal',
@@ -510,7 +512,7 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
         verifyAll(receivedProblem(5)) {
             fqid == 'validation:property-validation:missing-annotation'
             contextualLabel == 'Type \'MyTask\' property \'options.notAnnotated\' is missing an input or output annotation'
-            details == 'A property without annotation isn\'t considered during up-to-date checking'
+            details == 'Properties must be annotated so that Gradle knows how to handle them during up-to-date checking'
             solutions == [
                 'Add an input or output annotation',
                 'Mark it as @Internal',
@@ -524,7 +526,7 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
         verifyAll(receivedProblem(6)) {
             fqid == 'validation:property-validation:missing-annotation'
             contextualLabel == 'Type \'MyTask\' property \'optionsList.*.notAnnotated\' is missing an input or output annotation'
-            details == 'A property without annotation isn\'t considered during up-to-date checking'
+            details == 'Properties must be annotated so that Gradle knows how to handle them during up-to-date checking'
             solutions == [
                 'Add an input or output annotation',
                 'Mark it as @Internal',
@@ -538,7 +540,7 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
         verifyAll(receivedProblem(7)) {
             fqid == 'validation:property-validation:missing-annotation'
             contextualLabel == 'Type \'MyTask\' property \'providedOptions.notAnnotated\' is missing an input or output annotation'
-            details == 'A property without annotation isn\'t considered during up-to-date checking'
+            details == 'Properties must be annotated so that Gradle knows how to handle them during up-to-date checking'
             solutions == [
                 'Add an input or output annotation',
                 'Mark it as @Internal',
@@ -764,6 +766,7 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
     }
 
     @Issue("https://github.com/gradle/gradle/issues/23049")
+    @Requires(value = JdkVersionTestPreconditions.KotlinSupportedJdk.class)
     def "nested Kotlin #typeName is validated with warning"() {
         kotlinTaskSource << """
             import org.gradle.api.*;

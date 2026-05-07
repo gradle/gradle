@@ -17,7 +17,7 @@
 package org.gradle.api.tasks
 
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import spock.lang.Issue
 
 class DeferredTaskConfigurationIntegrationTest extends AbstractDeferredTaskDefinitionIntegrationTest {
@@ -253,7 +253,7 @@ class DeferredTaskConfigurationIntegrationTest extends AbstractDeferredTaskDefin
     }
 
     @Requires(
-        value = IntegTestPreconditions.NotIsolatedProjects,
+        value = TestExecutionPreconditions.NotIsolatedProjects,
         reason = "Exercises IP incompatible behavior"
     )
     def "can execute #description on another project during task creation action execution"() {
@@ -378,7 +378,7 @@ class DeferredTaskConfigurationIntegrationTest extends AbstractDeferredTaskDefin
     }
 
     @Requires(
-        value = IntegTestPreconditions.NotIsolatedProjects,
+        value = TestExecutionPreconditions.NotIsolatedProjects,
         reason = "Exercises IP incompatible behavior"
     )
     def "can execute #description on another project during task configuration action execution"() {
@@ -417,7 +417,7 @@ class DeferredTaskConfigurationIntegrationTest extends AbstractDeferredTaskDefin
 
     @Issue("https://github.com/gradle/gradle/issues/6319")
     @Requires(
-        value = IntegTestPreconditions.NotIsolatedProjects,
+        value = TestExecutionPreconditions.NotIsolatedProjects,
         reason = "getTasksByName is not IP compatible"
     )
     def "can use getTasksByName from a lazy configuration action"() {

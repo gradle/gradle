@@ -185,7 +185,7 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
                 task tool(type: FileProducer) {
                     output = file("build/tool-\${project.name}.jar")
                 }
-                ext.inputFiles = files(tool.output)
+                ext.inputFiles = files(tasks.tool.output)
             }
 
             project(':a') {
@@ -281,7 +281,7 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
                 task producer(type: Producer) {
                     outputFile = file("build/\${project.name}.jar")
                 }
-                artifacts."default" producer.outputFile
+                artifacts."default" tasks.producer.outputFile
             }
 
             class Producer extends DefaultTask {
@@ -337,7 +337,7 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
                 task tool(type: FileProducer) {
                     output = file("build/tool-\${project.name}.jar")
                 }
-                ext.inputFile = tool.output
+                ext.inputFile = tasks.tool.output
             }
         """
         setupBuildWithColorTransform {
@@ -390,7 +390,7 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
                 task tool(type: DirProducer) {
                     output = file("build/tool-\${project.name}-dir")
                 }
-                ext.inputDir = tool.output
+                ext.inputDir = tasks.tool.output
             }
         """
         setupBuildWithColorTransform {
@@ -445,7 +445,7 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
                     output = file("build/tool-\${project.name}.jar")
                     doLast { throw new RuntimeException('broken') }
                 }
-                ext.inputFiles = files(tool.output)
+                ext.inputFiles = files(tasks.tool.output)
             }
 
             project(':a') {
@@ -463,7 +463,7 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
         then:
         result.assertTasksScheduled(":a:tool", ":b:producer", ":c:producer")
         outputDoesNotContain("processing")
-        failure.assertHasDescription("Execution failed for task ':a:tool'.")
+        failure.assertHasDescription("Execution failed for task ':a:tool' (registered in build file 'build.gradle').")
         failure.assertHasFailures(1)
         failure.assertHasCause("broken")
     }
@@ -523,7 +523,7 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
         PathSensitivity.ABSOLUTE  | [['first/input', 'foo'], ['first/input', 'foo'], ['third/input', 'foo']]
     }
 
-    @ToBeFixedForConfigurationCache(because = "classpath normalization configuration is not serialized")
+    @ToBeFixedForConfigurationCache(because = "classpath normalization configuration is not serialized, https://github.com/gradle/gradle/issues/37156")
     def "can use classpath normalization for parameter object"() {
         createDirs("a", "b", "c")
         settingsFile << """

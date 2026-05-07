@@ -19,10 +19,10 @@ package org.gradle.testkit.runner.enduser
 
 import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import org.gradle.testkit.runner.fixtures.PluginUnderTest
 
-@Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = NOT_EMBEDDED_REASON)
+@Requires(value = TestExecutionPreconditions.NotEmbeddedExecutor, reason = NOT_EMBEDDED_REASON)
 class GradleRunnerPluginClasspathInjectionEndUserIntegrationTest extends BaseTestKitEndUserIntegrationTest {
 
     def plugin = new PluginUnderTest(testDirectory)
@@ -100,7 +100,7 @@ class GradleRunnerPluginClasspathInjectionEndUserIntegrationTest extends BaseTes
                     def result = GradleRunner.create()
                         .withProjectDir(testProjectDir)
                         .withArguments('helloWorld')
-                        .withDebug($debug)
+                        .withDebug($embedded)
                         .build()
 
                     then:
@@ -145,7 +145,7 @@ class GradleRunnerPluginClasspathInjectionEndUserIntegrationTest extends BaseTes
                         .withProjectDir(testProjectDir)
                         .withArguments('helloWorld')
                         .withPluginClasspath(pluginClasspath)
-                        .withDebug($debug)
+                        .withDebug($embedded)
                         .build()
 
                     then:

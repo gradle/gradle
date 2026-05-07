@@ -30,7 +30,7 @@ class GitVersionSelectionIntegrationTest extends AbstractIntegrationSpec {
     GitHttpRepository repo = new GitHttpRepository(httpServer, 'dep', temporaryFolder.getTestDirectory())
 
     TestFile repoSettingsFile
-    def fixture = new ResolveTestFixture(buildFile, "compile")
+    def resolve = new ResolveTestFixture(testDirectory)
 
     def setup() {
         httpServer.start()
@@ -50,6 +50,10 @@ class GitVersionSelectionIntegrationTest extends AbstractIntegrationSpec {
             }
         """
 
+        buildFile << """
+            ${resolve.configureProject("compile")}
+        """
+
         repoSettingsFile = repo.file("settings.gradle")
         repoSettingsFile << '''
             rootProject.name = 'test'
@@ -65,7 +69,6 @@ class GitVersionSelectionIntegrationTest extends AbstractIntegrationSpec {
                 configurations['default'].outgoing.artifact(jar)
             }
         '''
-        fixture.prepare()
     }
 
     def "selects and builds from master for latest.integration selector"() {
@@ -83,7 +86,7 @@ class GitVersionSelectionIntegrationTest extends AbstractIntegrationSpec {
         run('checkDeps')
 
         then:
-        fixture.expectGraph {
+        resolve.expectGraph {
             root(":", "test:consumer:1.2") {
                 edge("test:test:latest.integration", ":dep", "test:test:2.0") {
                 }
@@ -99,7 +102,7 @@ class GitVersionSelectionIntegrationTest extends AbstractIntegrationSpec {
         run('checkDeps')
 
         then:
-        fixture.expectGraph {
+        resolve.expectGraph {
             root(":", "test:consumer:1.2") {
                 edge("test:test:latest.integration", ":dep", "test:test:3.0") {
                 }
@@ -117,7 +120,7 @@ class GitVersionSelectionIntegrationTest extends AbstractIntegrationSpec {
         run('checkDeps')
 
         then:
-        fixture.expectGraph {
+        resolve.expectGraph {
             root(":", "test:consumer:1.2") {
                 edge("test:test:latest.integration", ":dep", "test:test:3.0") {
                 }
@@ -146,7 +149,7 @@ class GitVersionSelectionIntegrationTest extends AbstractIntegrationSpec {
         run('checkDeps')
 
         then:
-        fixture.expectGraph {
+        resolve.expectGraph {
             root(":", "test:consumer:1.2") {
                 edge("test:test:2.0", ":dep", "test:test:2.0") {
                 }
@@ -159,7 +162,7 @@ class GitVersionSelectionIntegrationTest extends AbstractIntegrationSpec {
         run('checkDeps')
 
         then:
-        fixture.expectGraph {
+        resolve.expectGraph {
             root(":", "test:consumer:1.2") {
                 edge("test:test:2.0", ":dep", "test:test:2.0") {
                 }
@@ -200,7 +203,7 @@ Required by:
         run('checkDeps')
 
         then:
-        fixture.expectGraph {
+        resolve.expectGraph {
             root(":", "test:consumer:1.2") {
                 edge("test:test:2.0", ":dep", "test:test:2.0") {
                 }
@@ -213,7 +216,7 @@ Required by:
         run('checkDeps')
 
         then:
-        fixture.expectGraph {
+        resolve.expectGraph {
             root(":", "test:consumer:1.2") {
                 edge("test:test:2.0", ":dep", "test:test:2.0") {
                 }
@@ -242,7 +245,7 @@ Required by:
         run('checkDeps')
 
         then:
-        fixture.expectGraph {
+        resolve.expectGraph {
             root(":", "test:consumer:1.2") {
                 edge("test:test:${selector}", ":dep", "test:test:1.1") {
                 }
@@ -259,7 +262,7 @@ Required by:
         run('checkDeps')
 
         then:
-        fixture.expectGraph {
+        resolve.expectGraph {
             root(":", "test:consumer:1.2") {
                 edge("test:test:${selector}", ":dep", "test:test:1.2") {
                 }
@@ -304,7 +307,7 @@ Required by:
         run('checkDeps')
 
         then:
-        fixture.expectGraph {
+        resolve.expectGraph {
             root(":", "test:consumer:1.2") {
                 edge("test:test:${selector}", ":dep", "test:test:1.1") {
                 }
@@ -317,7 +320,7 @@ Required by:
         run('checkDeps')
 
         then:
-        fixture.expectGraph {
+        resolve.expectGraph {
             root(":", "test:consumer:1.2") {
                 edge("test:test:${selector}", ":dep", "test:test:1.1") {
                 }
@@ -379,7 +382,7 @@ Required by:
         run('checkDeps')
 
         then:
-        fixture.expectGraph {
+        resolve.expectGraph {
             root(":", "test:consumer:1.2") {
                 edge("test:test:{branch release}", ":dep", "test:test:2.0") {
                 }
@@ -395,7 +398,7 @@ Required by:
         run('checkDeps')
 
         then:
-        fixture.expectGraph {
+        resolve.expectGraph {
             root(":", "test:consumer:1.2") {
                 edge("test:test:{branch release}", ":dep", "test:test:3.0") {
                 }
@@ -408,7 +411,7 @@ Required by:
         run('checkDeps')
 
         then:
-        fixture.expectGraph {
+        resolve.expectGraph {
             root(":", "test:consumer:1.2") {
                 edge("test:test:{branch release}", ":dep", "test:test:3.0") {
                 }
@@ -450,7 +453,7 @@ Required by:
         run('checkDeps')
 
         then:
-        fixture.expectGraph {
+        resolve.expectGraph {
             root(":", "test:consumer:1.2") {
                 edge("test:test:{branch release}", ":dep", "test:test:2.0") {
                 }
@@ -463,7 +466,7 @@ Required by:
         run('checkDeps')
 
         then:
-        fixture.expectGraph {
+        resolve.expectGraph {
             root(":", "test:consumer:1.2") {
                 edge("test:test:{branch release}", ":dep", "test:test:2.0") {
                 }

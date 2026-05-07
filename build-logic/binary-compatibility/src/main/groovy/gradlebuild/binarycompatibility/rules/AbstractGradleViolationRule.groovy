@@ -20,6 +20,7 @@ import com.google.gson.Gson
 import com.google.gson.stream.JsonWriter
 import gradlebuild.binarycompatibility.AcceptedApiChange
 import gradlebuild.binarycompatibility.AcceptedApiChanges
+import gradlebuild.binarycompatibility.AcceptedViolationsProvider
 import gradlebuild.binarycompatibility.ApiChange
 import gradlebuild.binarycompatibility.BinaryCompatibilityRepository
 import gradlebuild.binarycompatibility.BinaryCompatibilityRepositorySetupRule
@@ -50,8 +51,8 @@ abstract class AbstractGradleViolationRule extends AbstractContextAwareViolation
     private final File projectRootDir
 
     AbstractGradleViolationRule(Map<String, Object> params) {
-        Map<String, String> acceptedApiChanges = (Map<String, String>)params.get("acceptedApiChanges")
-        this.acceptedApiChanges = acceptedApiChanges ? AcceptedApiChanges.fromAcceptedChangesMap(acceptedApiChanges) : [:]
+        AcceptedViolationsProvider acceptedApiChanges = ((AcceptedViolationsProvider) params.get("acceptedApiChanges"))
+        this.acceptedApiChanges = acceptedApiChanges ? AcceptedApiChanges.fromAcceptedChangesMap(acceptedApiChanges.get()) : [:]
 
         // Tests will not supply these
         this.mainApiChangesJsonFile = params.get("mainApiChangesJsonFile") ? new File(params.get("mainApiChangesJsonFile") as String) : null
@@ -130,7 +131,7 @@ abstract class AbstractGradleViolationRule extends AbstractContextAwareViolation
     }
 
     Violation acceptOrReject(JApiCompatibility member, Violation rejection) {
-        List<String> changes = member.compatibilityChanges.collect { Violation.describe(it) }
+        List<String> changes = member.compatibilityChanges.collect { Violation.describe(it.getType()) }
         return acceptOrReject(member, changes, rejection)
     }
 
@@ -160,42 +161,40 @@ abstract class AbstractGradleViolationRule extends AbstractContextAwareViolation
             change.changes
         )
 
-        def changeId = (change.type + change.member).replaceAll('[^a-zA-Z0-9]', '_')
         Violation violation = Violation.error(
             member,
             rejection.getHumanExplanation() + """.
-                <br>
-                <p>
-                If you did this intentionally, please accept the change and provide an explanation:
-                <a class="btn btn-info" role="button" data-toggle="collapse" href="#accept-${changeId}" aria-expanded="false" aria-controls="collapseExample">Accept this change</a>
-                <div class="collapse" id="accept-${changeId}">
+                <details>
+                  <summary>
+                    If you did this intentionally, please accept the change and provide an explanation:
+                    <span class="btn btn-info" role="button">Accept this change</span>
+                  </summary>
                   <div class="well">
-                      In order to accept this change add the following to <code>${relativePathToMainApiChanges()}</code>:
+                    In order to accept this change add the following to <code>${relativePathToMainApiChanges()}</code>:
                     <pre>${prettyPrintJson(acceptanceJson)}</pre>
                   </div>
-                </div>
-                </p>
-                <p>
-                If change was made on the `release` branch but hasn't yet been published to the baseline version, update the baseline version:
-                <a class="btn btn-info" role="button" data-toggle="collapse" href="#update-baseline-${changeId}" aria-expanded="false" aria-controls="collapseExample">Update baseline</a>
-                <div class="collapse" id="update-baseline-${changeId}">
+                </details>
+                <details>
+                  <summary>
+                    If change was made on the `release` branch but hasn't yet been published to the baseline version, update the baseline version:
+                    <span class="btn btn-info" role="button">Update baseline</span>
+                  </summary>
                   <div class="well">
-                      Sometimes, the change was made on the `release` branch but hasn't yet been published to the baseline version.
-                      In that case, you can publish a new snapshot from the release branch. This will update `released-versions.json` on `master`.
-                      See <a href="https://bt-internal-docs.grdev.net/gbt/how-to/release/release-troubleshooting/#binary-compatibility-check-failed-">the documentation</a> for more details.
+                    Sometimes, the change was made on the `release` branch but hasn't yet been published to the baseline version.
+                    In that case, you can publish a new snapshot from the release branch. This will update `released-versions.json` on `master`.
+                    See <a href="https://bt-internal-docs.grdev.net/gbt/how-to/release/release-troubleshooting/#binary-compatibility-check-failed-">the documentation</a> for more details.
                   </div>
-                </div>
-                </p>
-                <p>
-                If change was made on the `release` branch but hasn't yet been merged to `master`, merge `release` to `master`:
-                <a class="btn btn-info" role="button" data-toggle="collapse" href="#merge-release-${changeId}" aria-expanded="false" aria-controls="collapseExample">Merge release to master</a>
-                <div class="collapse" id="merge-release-${changeId}">
+                </details>
+                <details>
+                  <summary>
+                    If change was made on the `release` branch but hasn't yet been merged to `master`, merge `release` to `master`:
+                    <span class="btn btn-info" role="button">Merge release to master</span>
+                  </summary>
                   <div class="well">
-                      Merging `release` back to `master` is a regular operation you’re free to do, at any time. Usually, you will see conflicts in `notes.md` or `accepted-public-api-changes.json`.
-                      On `master` branch, these two files are usually reset (cleaned up), unless you have special reasons not to do so.
+                    Merging `release` back to `master` is a regular operation you’re free to do, at any time. Usually, you will see conflicts in `notes.md` or `accepted-public-api-changes.json`.
+                    On `master` branch, these two files are usually reset (cleaned up), unless you have special reasons not to do so.
                   </div>
-                </div>
-                </p>
+                </details>
                 """.stripIndent()
         )
         return violation

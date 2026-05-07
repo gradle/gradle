@@ -17,6 +17,7 @@
 package org.gradle.internal;
 
 import com.google.common.collect.Lists;
+import org.apache.commons.io.FileSystem;
 import org.apache.commons.io.FilenameUtils;
 
 import java.io.File;
@@ -58,6 +59,26 @@ public class FileUtils {
             return len1 - len2;
         }
     };
+
+    /**
+     * The character used to replace illegal characters in file names.
+     */
+    private static final char ILLEGAL_CHAR_REPLACEMENT = '-';
+
+    /**
+     * Left for backwards compatibility with <a href="https://github.com/cashapp/paparazzi/issues/2182">Paparazzi</a>
+     */
+    @Deprecated
+    public static String toSafeFileName(String name) {
+        // Use Windows filesystem rules for cross-platform compatibility
+        String result = FileSystem.WINDOWS.toLegalFileName(name, ILLEGAL_CHAR_REPLACEMENT);
+
+        // Replace additional characters that may cause issues in web/HTML contexts
+        return result.replace(' ', ILLEGAL_CHAR_REPLACEMENT)
+            .replace('\t', ILLEGAL_CHAR_REPLACEMENT)
+            .replace('\n', ILLEGAL_CHAR_REPLACEMENT)
+            .replace('\r', ILLEGAL_CHAR_REPLACEMENT);
+    }
 
     /**
      * Returns the outer most files that encompass the given files inclusively.
@@ -143,22 +164,10 @@ public class FileUtils {
         if (filePath.toLowerCase(Locale.ROOT).endsWith(extension)) {
             return filePath;
         }
-        return removeExtension(filePath) + extension;
-    }
-
-    /**
-     * Removes the extension (if any) from the file path.  If the file path has no extension, then it returns the same string.
-     *
-     * @return the file path without an extension
-     */
-    public static String removeExtension(String filePath) {
-        int fileNameStart = Math.max(filePath.lastIndexOf('/'), filePath.lastIndexOf('\\'));
-        int extensionPos = filePath.lastIndexOf('.');
-
-        if (extensionPos > fileNameStart) {
-            return filePath.substring(0, extensionPos);
-        }
-        return filePath;
+        int lastFileSeparator = Math.max(filePath.lastIndexOf('/'), filePath.lastIndexOf('\\'));
+        int lastDot = filePath.lastIndexOf('.');
+        String base = lastDot > lastFileSeparator ? filePath.substring(0, lastDot) : filePath;
+        return base + extension;
     }
 
     /**

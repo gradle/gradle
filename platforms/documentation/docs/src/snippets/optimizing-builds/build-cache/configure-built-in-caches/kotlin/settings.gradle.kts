@@ -1,0 +1,24 @@
+rootProject.name = "configure-built-in-caches"
+// tag::configure-directory-build-cache[]
+buildCache {
+    local {
+        directory = File(rootDir, "build-cache")
+        // Enable reading from the local build cache
+        enabled = false
+        // Disable writing outputs to the local build cache
+        push = false
+    }
+}
+// end::configure-directory-build-cache[]
+
+// tag::configure-http-build-cache[]
+buildCache {
+    remote<HttpBuildCache> {
+        url = uri("https://example.com:8123/cache/")
+        credentials {
+            username = "build-cache-user"
+            password = "some-complicated-password"
+        }
+    }
+}
+// end::configure-http-build-cache[]

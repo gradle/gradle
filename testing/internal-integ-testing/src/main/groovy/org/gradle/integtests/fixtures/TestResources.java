@@ -46,6 +46,12 @@ public class TestResources implements MethodRule {
         resources = new Resources(testDirectoryProvider);
     }
 
+    public TestResources(TestDirectoryProvider testDirectoryProvider, Class<?> declaringTestClass, Class<?> runningTestClass, String... extraResources) {
+        testWorkDirProvider = testDirectoryProvider;
+        this.extraResources = Arrays.asList(extraResources);
+        resources = new Resources(testDirectoryProvider, declaringTestClass, runningTestClass);
+    }
+
     public TestFile getDir() {
         return testWorkDirProvider.getTestDirectory();
     }
@@ -69,8 +75,10 @@ public class TestResources implements MethodRule {
 
     /**
      * Copies the given resource to the test directory.
+     *
+     * @return {@code true} if the resource was found and copied; {@code false} otherwise.
      */
-    public void maybeCopy(String resource) {
+    public boolean maybeCopy(String resource) {
         // Multi version tests append to the method name, making it miss the resources
         // Below is a dirty way to strip the added content
         if (resource.contains(" ")) {
@@ -80,8 +88,10 @@ public class TestResources implements MethodRule {
         if (dir != null) {
             logger.debug("Copying test resource '{}' from {} to test directory.", resource, dir);
             dir.copyTo(getDir());
+            return true;
         } else {
             logger.debug("Test resource '{}' not found, skipping.", resource);
+            return false;
         }
     }
 }

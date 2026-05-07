@@ -26,6 +26,7 @@ Build services are configuration cacheable.
 Gradle manages the service lifecycle, creating the service instance only when required and cleaning it up when no longer needed.
 Gradle can also coordinate access to the build service, ensuring that no more than a specified number of tasks use the service concurrently.
 
+[[sec:implementing_a_build_service]]
 == Implementing a build service
 
 To implement a build service, create an abstract class that implements link:{javadocPath}/org/gradle/api/services/BuildService.html[BuildService].
@@ -60,13 +61,11 @@ This happens sometime between the completion of the last task that uses the buil
 
 Here is an example of a service that takes parameters and is closeable:
 
-====
-[source.multi-language-sample,java]
+[source,java]
 .WebServer.java
 ----
-include::{snippetsPath}/plugins/buildService/groovy/buildSrc/src/main/java/WebServer.java[]
+include::{snippetsPath}/reference/task-development/buildService/common/buildSrc/src/main/java/WebServer.java[]
 ----
-====
 
 Note that you should *not* implement the link:{javadocPath}/org/gradle/api/services/BuildService.html#getParameters--[BuildService.getParameters()] method, as Gradle will provide an implementation of this.
 
@@ -89,25 +88,21 @@ You can access the registry of shared build services via `Project.getGradle().ge
 
 Here is an example of a plugin that registers the previous service when the task property consuming the service is annotated with `@ServiceReference`:
 
-====
-[source.multi-language-sample,java]
+[source,java]
 .DownloadPlugin.java
 ----
-include::{snippetsPath}/plugins/buildServiceUsingServiceReference/groovy/buildSrc/src/main/java/DownloadPlugin.java[]
+include::{snippetsPath}/reference/plugin-development/buildServiceUsingServiceReference/groovy/buildSrc/src/main/java/DownloadPlugin.java[]
 ----
-====
 
 As you can see, there is no need to assign the build service provider returned by `registerIfAbsent()` to the task, the service is automatically injected into all matching properties that were annotated with `@ServiceReference`.
 
 Here is an example of a task that consumes the previous service via a property annotated with `@ServiceReference`:
 
-====
-[source.multi-language-sample,java]
+[source,java]
 .Download.java
 ----
-include::{snippetsPath}/plugins/buildServiceUsingServiceReference/groovy/buildSrc/src/main/java/Download.java[]
+include::{snippetsPath}/reference/plugin-development/buildServiceUsingServiceReference/groovy/buildSrc/src/main/java/Download.java[]
 ----
-====
 
 Automatic matching of registered build services with service reference properties is done by type and (optionally) by name (for properties that declare the name of the service they expect).
 In case multiple services would match the requested service type (i.e. multiple services were registered for the same type, and a service name was not provided in the `@ServiceReference` annotation),
@@ -115,15 +110,14 @@ you will need also to assign the shared build service provider manually to the t
 
 Read on to compare that to when the task property consuming the service is instead annotated with `@Internal`.
 
+[[registering_a_build_service_via_internal_task_properties]]
 === Registering a build service to be consumed via `@Internal` task properties
 
-====
-[source.multi-language-sample,java]
+[source,java]
 .DownloadPlugin.java
 ----
-include::{snippetsPath}/plugins/buildService/groovy/buildSrc/src/main/java/DownloadPlugin.java[]
+include::{snippetsPath}/reference/task-development/buildService/common/buildSrc/src/main/java/DownloadPlugin.java[]
 ----
-====
 
 In this case, the plugin registers the service and receives a `Provider<WebService>` back.
 This provider can be connected to task properties to pass the service to the task.
@@ -132,22 +126,22 @@ None of that is needed when the task property consuming the service is annotated
 
 Here is an example of a task that consumes the previous service via a property annotated with `@Internal`:
 
-====
-[source.multi-language-sample,java]
+[source,java]
 .Download.java
 ----
-include::{snippetsPath}/plugins/buildService/groovy/buildSrc/src/main/java/Download.java[]
+include::{snippetsPath}/reference/task-development/buildService/common/buildSrc/src/main/java/Download.java[]
 ----
-====
 
 Note that using a service with any annotation other than `@ServiceReference` or `@Internal` is currently not supported.
 For example, it is currently impossible to mark a service as an input to a task.
 
+[[using_shared_build_services_from_configuration_actions]]
 === Using shared build services from configuration actions
 
 Generally, build services are intended to be used by tasks, and as they usually represent some potentially expensive state to create, you should avoid using them at configuration time. However, sometimes, using the service at configuration time can make sense.
 This is possible; call `get()` on the provider.
 
+[[sec:using_a_build_service_with_the_worker_api]]
 == Using a build service with the Worker API
 
 In addition to using a build service from a task, you can use a build service from a <<worker_api.adoc#converting_to_worker_api,Worker API action>>, an <<artifact_transforms.adoc#sec:implementing-artifact-transforms,artifact transform>> or another build service.
@@ -155,16 +149,15 @@ To do this, pass the build service `Provider` as a parameter of the consuming ac
 
 For example, to pass a `MyServiceType` service to Worker API action, you might add a property of type `Property<MyServiceType>` to the action's parameters object and then connect the `Provider<MyServiceType>` that you receive when registering the service to this property:
 
-====
-[source.multi-language-sample,java]
+[source,java]
 .Download.java
 ----
-include::{snippetsPath}/plugins/buildServiceFromWorkAction/groovy/buildSrc/src/main/java/Download.java[]
+include::{snippetsPath}/reference/task-development/buildServiceFromWorkAction/common/buildSrc/src/main/java/Download.java[]
 ----
-====
 
 Currently, it is impossible to use a build service with a worker API action that uses ClassLoader or process isolation modes.
 
+[[sec:accessing_the_build_service_concurrently]]
 == Accessing the build service concurrently
 
 You can constrain concurrent execution when you register the service, by using the `Property` object returned from link:{javadocPath}/org/gradle/api/services/BuildServiceSpec.html#getMaxParallelUsages--[BuildServiceSpec.getMaxParallelUsages()].
@@ -182,25 +175,21 @@ or invoking link:{groovyDslPath}/org.gradle.api.Task.html#org.gradle.api.Task:us
 A build service can be used to receive events as tasks are executed.
 To do this, create and register a build service that implements link:{javadocPath}/org/gradle/tooling/events/OperationCompletionListener.html[OperationCompletionListener]:
 
-====
-[source.multi-language-sample,java]
+[source,java]
 .TaskEventsService.java
 ----
-include::{snippetsPath}/plugins/buildServiceListener/groovy/buildSrc/src/main/java/TaskEventsService.java[tags=build-service]
+include::{snippetsPath}/reference/plugin-development/buildServiceListener/groovy/buildSrc/src/main/java/TaskEventsService.java[tags=build-service]
 ----
-====
 <1> Implement the `OperationCompletionListener` interface and the `BuildService` interface.
 <2> Check if the finish event is a link:{javadocPath}/org/gradle/tooling/events/task/TaskFinishEvent.html[TaskFinishEvent].
 
 Then, in the plugin, you can use the methods on the link:{javadocPath}/org/gradle/build/event/BuildEventsListenerRegistry.html[BuildEventsListenerRegistry] service to start receiving events:
 
-====
-[source.multi-language-sample,java]
+[source,java]
 .TaskEventsPlugin.java
 ----
-include::{snippetsPath}/plugins/buildServiceListener/groovy/buildSrc/src/main/java/TaskEventsPlugin.java[]
+include::{snippetsPath}/reference/plugin-development/buildServiceListener/groovy/buildSrc/src/main/java/TaskEventsPlugin.java[]
 ----
-====
 <1> Use <<service_injection.adoc#service_injection,service injection>> to obtain an instance of the `BuildEventsListenerRegistry`.
 <2> Register the build service as usual.
 <3> Use the service `Provider` to subscribe to the build service to build events.

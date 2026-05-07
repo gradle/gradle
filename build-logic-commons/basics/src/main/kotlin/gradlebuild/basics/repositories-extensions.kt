@@ -30,5 +30,9 @@ fun RepositoryHandler.googleApisJs() {
         metadataSources {
             artifact()
         }
+        content {
+            includeGroup("jquery")
+            includeGroup("flot")
+        }
     }
 }

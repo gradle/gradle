@@ -39,10 +39,12 @@ import org.gradle.profiler.gradle.GradleBuildInvoker;
 import org.gradle.profiler.gradle.GradleScenarioDefinition;
 import org.gradle.profiler.gradle.GradleScenarioInvoker;
 import org.gradle.profiler.gradle.RunTasksAction;
+import org.gradle.profiler.ide.IdeConfiguration;
+import org.gradle.profiler.ide.IdeType;
+import org.gradle.profiler.ide.invoker.IdeGradleScenarioDefinition;
+import org.gradle.profiler.ide.invoker.IdeGradleScenarioInvoker;
 import org.gradle.profiler.instrument.PidInstrumentation;
 import org.gradle.profiler.result.BuildInvocationResult;
-import org.gradle.profiler.studio.invoker.StudioGradleScenarioDefinition;
-import org.gradle.profiler.studio.invoker.StudioGradleScenarioInvoker;
 import org.gradle.tooling.GradleConnector;
 import org.gradle.tooling.ProjectConnection;
 import org.gradle.tooling.internal.consumer.ConnectorServices;
@@ -71,7 +73,7 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
  */
 @CompileStatic
 public class GradleBuildExperimentRunner extends AbstractBuildExperimentRunner {
-    private static final String GRADLE_USER_HOME_NAME = "gradleUserHome";
+
     private final PidInstrumentation pidInstrumentation;
     private final IntegrationTestBuildContext context = new IntegrationTestBuildContext();
 
@@ -89,11 +91,10 @@ public class GradleBuildExperimentRunner extends AbstractBuildExperimentRunner {
         InvocationSpec invocationSpec = experiment.getInvocation();
         File workingDirectory = invocationSpec.getWorkingDirectory();
 
-        if (!(invocationSpec instanceof GradleInvocationSpec)) {
+        if (!(invocationSpec instanceof GradleInvocationSpec invocation)) {
             throw new IllegalArgumentException("Can only run Gradle invocations with Gradle profiler");
         }
 
-        GradleInvocationSpec invocation = (GradleInvocationSpec) invocationSpec;
         List<String> additionalJvmOpts = new ArrayList<>();
         List<String> additionalArgs = new ArrayList<>();
         additionalArgs.add("-PbuildExperimentDisplayName=" + experiment.getDisplayName());
@@ -108,12 +109,13 @@ public class GradleBuildExperimentRunner extends AbstractBuildExperimentRunner {
             GradleScenarioInvoker scenarioInvoker = createScenarioInvoker(invocationSettings.getGradleUserHome());
             Logging.setupLogging(workingDirectory);
             if (buildSpec.isUseAndroidStudio()) {
-                StudioGradleScenarioDefinition studioScenarioDefinition = new StudioGradleScenarioDefinition(
+                IdeGradleScenarioDefinition studioScenarioDefinition = new IdeGradleScenarioDefinition(
                     scenarioDefinition,
+                    IdeType.ANDROID_STUDIO,
                     buildSpec.getStudioJvmArgs(),
                     buildSpec.getStudioIdeaProperties()
                 );
-                StudioGradleScenarioInvoker studioScenarioInvoker = new StudioGradleScenarioInvoker(scenarioInvoker);
+                IdeGradleScenarioInvoker studioScenarioInvoker = new IdeGradleScenarioInvoker(scenarioInvoker);
                 doRunScenario(studioScenarioDefinition, studioScenarioInvoker, invocationSettings, results);
             } else {
                 if (gradleExperiment.getInvocation().isUseToolingApi()) {
@@ -151,7 +153,7 @@ public class GradleBuildExperimentRunner extends AbstractBuildExperimentRunner {
     private void initializeNativeServicesForTapiClient(GradleInvocationSpec buildSpec, GradleScenarioDefinition scenarioDefinition) {
         GradleConnector connector = GradleConnector.newConnector();
         try {
-            connector.forProjectDirectory(buildSpec.getWorkingDirectory());
+            connector.forProjectDirectory(buildSpec.getProjectCheckoutDirectory());
             connector.useInstallation(scenarioDefinition.getBuildConfiguration().getGradleHome());
             // First initialize the Gradle instance using the default user home dir
             // This sets some static state that uses files from the user home dir, such as DLLs
@@ -172,7 +174,7 @@ public class GradleBuildExperimentRunner extends AbstractBuildExperimentRunner {
     private InvocationSettings createInvocationSettings(String testId, GradleInvocationSpec invocationSpec, GradleBuildExperimentSpec experiment) {
         GradleBuildInvoker invoker;
         if (invocationSpec.isUseAndroidStudio()) {
-            invoker = GradleBuildInvoker.AndroidStudio;
+            invoker = GradleBuildInvoker.Ide;
         } else if (invocationSpec.isUseToolingApi()) {
             invoker = invocationSpec.isUseDaemon()
                 ? GradleBuildInvoker.ToolingApi
@@ -193,18 +195,15 @@ public class GradleBuildExperimentRunner extends AbstractBuildExperimentRunner {
             .setTargets(invocationSpec.getTasksToRun())
             .setGradleUserHome(determineGradleUserHome(invocationSpec))
             .setMeasureConfigTime(false)
-            .setMeasuredBuildOperations(experiment.getMeasuredBuildOperations())
+            .setBuildOperationMeasurements(experiment.getBuildOperationMeasurements())
             .setMeasureGarbageCollection(measureGarbageCollection)
             .setBuildLog(invocationSpec.getBuildLog())
-            .setStudioInstallDir(invocationSpec.getStudioInstallDir())
-            .setStudioSandboxDir(invocationSpec.getStudioSandboxDir())
+            .setStudioConfiguration(new IdeConfiguration(invocationSpec.getStudioInstallDir(), invocationSpec.getStudioSandboxDir()))
             .build();
     }
 
     private static File determineGradleUserHome(GradleInvocationSpec invocationSpec) {
-        File projectDirectory = invocationSpec.getWorkingDirectory();
-        // do not add the Gradle user home in the project directory, so it is not watched
-        return new File(projectDirectory.getParent(), projectDirectory.getName() + "-" + GRADLE_USER_HOME_NAME);
+        return new File(invocationSpec.getWorkingDirectory(), "gradle-user-home");
     }
 
     private static GradleScenarioDefinition createScenarioDefinition(GradleBuildExperimentSpec experimentSpec, InvocationSettings invocationSettings, GradleInvocationSpec invocationSpec) {
@@ -226,7 +225,7 @@ public class GradleBuildExperimentRunner extends AbstractBuildExperimentRunner {
             OutputDirSelectorUtil.fileSafeNameFor(experimentSpec.getDisplayName()),
             experimentSpec.getDisplayName(),
             (GradleBuildInvoker) invocationSettings.getInvoker(),
-            new GradleBuildConfiguration(gradleDistribution.getVersion(), gradleDistribution.getGradleHomeDir(), Jvm.current().getJavaHome(), actualJvmArgs, false, invocationSpec.getClientJvmArguments()),
+            new GradleBuildConfiguration(gradleDistribution.getVersion(), gradleDistribution.getGradleHomeDir(), Jvm.current().getJavaHome(), actualJvmArgs, false, false, invocationSpec.getClientJvmArguments()),
             experimentSpec.getInvocation().getBuildAction(),
             cleanTasks.isEmpty()
                 ? BuildAction.NO_OP
@@ -238,7 +237,8 @@ public class GradleBuildExperimentRunner extends AbstractBuildExperimentRunner {
             invocationSettings.getBuildCount(),
             invocationSettings.getOutputDir(),
             actualJvmArgs,
-            invocationSettings.getMeasuredBuildOperations()
+            invocationSettings.getBuildOperationMeasurements(),
+            invocationSettings.isBuildOperationsTrace()
         );
     }
 

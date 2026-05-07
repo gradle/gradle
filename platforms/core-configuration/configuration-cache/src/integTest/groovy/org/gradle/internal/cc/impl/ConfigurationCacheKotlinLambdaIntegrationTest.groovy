@@ -18,16 +18,17 @@ package org.gradle.internal.cc.impl
 
 import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.JdkVersionTestPreconditions
+
 
 class ConfigurationCacheKotlinLambdaIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
 
-    @Requires(UnitTestPreconditions.KotlinSupportedJdk)
+    @Requires(JdkVersionTestPreconditions.KotlinSupportedJdk)
     def "defers evaluation of #description objects"() {
         given:
         file("buildSrc/settings.gradle.kts").text = ""
         file("buildSrc/build.gradle.kts").text = """
-            plugins { `embedded-kotlin` }
+            plugins { `kotlin-dsl` }
             ${mavenCentralRepository(GradleDsl.KOTLIN)}
         """
         file("buildSrc/src/main/kotlin/my/LambdaTask.kt").tap {

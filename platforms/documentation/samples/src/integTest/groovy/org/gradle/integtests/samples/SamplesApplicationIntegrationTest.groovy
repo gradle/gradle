@@ -20,13 +20,14 @@ import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.ScriptExecuter
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.JdkVersionTestPreconditions
+
 import org.junit.Rule
 
-@Requires(UnitTestPreconditions.Jdk9OrLater)
+@Requires(JdkVersionTestPreconditions.Jdk9OrLater)
 class SamplesApplicationIntegrationTest extends AbstractIntegrationSpec {
 
-    @Rule Sample sample = new Sample(temporaryFolder, 'java/application')
+    @Rule Sample sample = new Sample(temporaryFolder, 'integration-tests/java/application')
 
     def setup() {
         executer.withRepositoryMirrors()

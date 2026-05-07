@@ -21,11 +21,12 @@ import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
+import org.gradle.test.preconditions.OsTestPreconditions
+import org.gradle.test.preconditions.FileSystemTestPreconditions
+
 import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import org.gradle.util.internal.GFileUtils
-import spock.lang.Issue
 
 @SuppressWarnings('IntegrationTestFixtures')
 class CommandLineIntegrationTest extends AbstractIntegrationSpec {
@@ -66,7 +67,7 @@ class CommandLineIntegrationTest extends AbstractIntegrationSpec {
         """
     }
 
-    @Requires(IntegTestPreconditions.NotEmbeddedExecutor)
+    @Requires(TestExecutionPreconditions.NotEmbeddedExecutor)
     def "can define java home using environment variable"() {
         setup:
         createProject()
@@ -93,7 +94,7 @@ class CommandLineIntegrationTest extends AbstractIntegrationSpec {
         executer.withJavaHome(javaHome.replace(File.separator, '/')).withArguments(expectedJavaHome).withTasks('checkJavaHome').run()
     }
 
-    @Requires(IntegTestPreconditions.NotEmbeddedExecutor)
+    @Requires(TestExecutionPreconditions.NotEmbeddedExecutor)
     def "uses java command from path when java home not specified"() {
         setup:
         createProject()
@@ -107,7 +108,7 @@ class CommandLineIntegrationTest extends AbstractIntegrationSpec {
         executer.withEnvironmentVars('PATH': path).withJavaHome('').withArguments(expectedJavaHome).withTasks('checkJavaHome').run()
     }
 
-    @Requires(IntegTestPreconditions.NotEmbeddedExecutor)
+    @Requires(TestExecutionPreconditions.NotEmbeddedExecutor)
     def "fails when java home does not point to a java installation"() {
         when:
         def failure = executer.withJavaHome(testDirectory.absolutePath).withTasks('checkJavaHome').runWithFailure()
@@ -116,7 +117,7 @@ class CommandLineIntegrationTest extends AbstractIntegrationSpec {
         failure.error.contains('ERROR: JAVA_HOME is set to an invalid directory')
     }
 
-    @Requires([UnitTestPreconditions.Symlinks, IntegTestPreconditions.NotEmbeddedExecutor])
+    @Requires([FileSystemTestPreconditions.Symlinks, TestExecutionPreconditions.NotEmbeddedExecutor])
     def "fails when java home not set and path does not contain java"() {
         when:
         def links = ['basename', 'dirname', 'uname', 'which', 'sed', 'sh', 'bash']
@@ -175,8 +176,7 @@ class CommandLineIntegrationTest extends AbstractIntegrationSpec {
             .run()
     }
 
-    @Requires([UnitTestPreconditions.NotEC2Agent, IntegTestPreconditions.NotEmbeddedExecutor])
-    @Issue('https://github.com/gradle/gradle-private/issues/2876')
+    @Requires(TestExecutionPreconditions.NotEmbeddedExecutor)
     def "check default gradle user home"() {
         given:
         buildFile """
@@ -210,7 +210,7 @@ class CommandLineIntegrationTest extends AbstractIntegrationSpec {
         executer.withTasks("checkSystemProperty").withArguments('-DcustomProp1=custom-value', '-DcustomProp2=custom value').run();
     }
 
-    @Requires(IntegTestPreconditions.NotEmbeddedExecutor)
+    @Requires(TestExecutionPreconditions.NotEmbeddedExecutor)
     def "can specify system properties using GRADLE_OPTS environment variable"() {
         when:
         createProject()
@@ -220,7 +220,7 @@ class CommandLineIntegrationTest extends AbstractIntegrationSpec {
         executer.withTasks("checkSystemProperty").withEnvironmentVars("GRADLE_OPTS": '-DcustomProp1=custom-value "-DcustomProp2=custom value"').run();
     }
 
-    @Requires([UnitTestPreconditions.Unix, IntegTestPreconditions.NotEmbeddedExecutor])
+    @Requires([OsTestPreconditions.Unix, TestExecutionPreconditions.NotEmbeddedExecutor])
     def "can specify system properties using gradle opts environment variable with line breaks"() {
         when:
         createProject()
@@ -233,7 +233,7 @@ class CommandLineIntegrationTest extends AbstractIntegrationSpec {
         """).run();
     }
 
-    @Requires(IntegTestPreconditions.NotEmbeddedExecutor)
+    @Requires(TestExecutionPreconditions.NotEmbeddedExecutor)
     def "can specify system properties using JAVA_OPTS environment variable"() {
         when:
         createProject()
@@ -294,7 +294,7 @@ class CommandLineIntegrationTest extends AbstractIntegrationSpec {
             .run()
     }
 
-    @Requires([UnitTestPreconditions.Symlinks, IntegTestPreconditions.NotEmbeddedExecutor])
+    @Requires([FileSystemTestPreconditions.Symlinks, TestExecutionPreconditions.NotEmbeddedExecutor])
     def "resolves links when determining home directory"() {
         when:
         def script = file('bin/my app')
@@ -310,7 +310,7 @@ class CommandLineIntegrationTest extends AbstractIntegrationSpec {
         testDirectory.usingNativeTools().deleteDir()
     }
 
-    @Requires(IntegTestPreconditions.NotEmbeddedExecutor)
+    @Requires(TestExecutionPreconditions.NotEmbeddedExecutor)
     def "uses script basename as application name for use in log messages"() {
         when:
         def binDir = distribution.gradleHomeDir.file('bin')

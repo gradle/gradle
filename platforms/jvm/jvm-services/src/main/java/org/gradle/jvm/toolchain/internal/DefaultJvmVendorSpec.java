@@ -17,7 +17,7 @@
 package org.gradle.jvm.toolchain.internal;
 
 import com.google.common.base.Objects;
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.gradle.internal.jvm.inspection.JvmInstallationMetadata;
 import org.gradle.internal.jvm.inspection.JvmVendor;
 import org.gradle.jvm.toolchain.JvmVendorSpec;
@@ -52,7 +52,7 @@ public class DefaultJvmVendorSpec extends JvmVendorSpec implements Predicate<Jvm
     private DefaultJvmVendorSpec(String match, String description) {
         this.match = match;
         this.matchingVendor = null;
-        this.matcher = vendor -> StringUtils.containsIgnoreCase(vendor.getRawVendor(), match);
+        this.matcher = vendor -> Strings.CI.contains(vendor.getRawVendor(), match);
         this.description = description;
     }
 
@@ -121,7 +121,7 @@ public class DefaultJvmVendorSpec extends JvmVendorSpec implements Predicate<Jvm
     private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
         in.defaultReadObject();
         if (match != null) {
-            matcher = vendor -> StringUtils.containsIgnoreCase(vendor.getRawVendor(), match);
+            matcher = vendor -> Strings.CI.contains(vendor.getRawVendor(), match);
         } else if (matchingVendor != null) {
             matcher = vendor -> vendor.getKnownVendor() == matchingVendor;
         } else {

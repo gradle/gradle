@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.testing;
 
+import org.gradle.api.tasks.testing.source.TestSource;
 import org.gradle.internal.scan.UsedByScanPlugin;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
@@ -43,6 +44,11 @@ public class DecoratingTestDescriptor implements TestDescriptorInternal {
     @Override
     public TestDescriptorInternal getParent() {
         return parent;
+    }
+
+    @Override
+    public TestSource getSource() {
+        return descriptor.getSource();
     }
 
     @Override

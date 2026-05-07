@@ -18,6 +18,7 @@ package org.gradle.smoketests
 
 import org.apache.commons.io.FileUtils
 import org.gradle.api.JavaVersion
+import org.gradle.initialization.StartParameterBuildOptions
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheMaxProblemsOption
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheOption
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheProblemsOption
@@ -72,7 +73,7 @@ abstract class AbstractSmokeTest extends Specification {
         static springDependencyManagement = SMOKE_TESTED_PLUGINS.get("io.spring.dependency-management")
         static springBoot = SMOKE_TESTED_PLUGINS.get("org.springframework.boot")
         static gretty = [
-            [version: SMOKE_TESTED_PLUGINS.get("org.gretty"), servletContainer: "jetty11", javaMinVersion: JavaVersion.VERSION_11]
+            [version: SMOKE_TESTED_PLUGINS.get("org.gretty"), servletContainer: "jetty12", javaMinVersion: JavaVersion.VERSION_17]
         ]
         static gradleVersions = SMOKE_TESTED_PLUGINS.get("com.github.ben-manes.versions")
         static playframework = SMOKE_TESTED_PLUGINS.get("org.gradle.playframework")
@@ -121,10 +122,15 @@ abstract class AbstractSmokeTest extends Specification {
 
     @TempDir
     File testProjectDir
-    File buildFile
-    File settingsFile
+
+    @TempDir
+    File freshGradleUserHomeDir
+
     @TempDir
     File buildCacheDir
+
+    File buildFile
+    File settingsFile
 
     def setup() {
         buildFile = new File(testProjectDir, defaultBuildFileName)
@@ -152,8 +158,8 @@ abstract class AbstractSmokeTest extends Specification {
             outputParameters() +
             repoMirrorParameters() +
             configurationCacheParameters() +
-            toolchainParameters() +
-            kotlinDslParameters()
+            isolatedProjectsParameters() +
+            toolchainParameters()
 
         def jvmArgs = ["-Xmx8g", "-XX:MaxMetaspaceSize=1024m", "-XX:+HeapDumpOnOutOfMemoryError"]
 
@@ -163,6 +169,17 @@ abstract class AbstractSmokeTest extends Specification {
             jvmArgs,
             testProjectDir
         )
+    }
+
+    protected SmokeTestGradleRunner runnerWithGradleUserHome(File gradleUserHomeDir, String... tasks) {
+        List<String> args = tasks.toList()
+        args.add("-g")
+        args.add(gradleUserHomeDir.absolutePath)
+        runner(*args)
+    }
+
+    protected SmokeTestGradleRunner runnerWithFreshGradleUserHome(String... tasks) {
+        runnerWithGradleUserHome(freshGradleUserHomeDir, *tasks)
     }
 
     private List<String> configurationCacheParameters() {
@@ -178,6 +195,13 @@ abstract class AbstractSmokeTest extends Specification {
             }
         }
         return parameters
+    }
+
+    private List<String> isolatedProjectsParameters() {
+        if (GradleContextualExecuter.isIsolatedProjects()) {
+            return [ "-D${StartParameterBuildOptions.IsolatedProjectsOption.PROPERTY_NAME}=true".toString() ]
+        }
+        return  []
     }
 
     private static List<String> outputParameters() {
@@ -205,14 +229,6 @@ abstract class AbstractSmokeTest extends Specification {
             "-Dorg.gradle.java.installations.paths=${AvailableJavaHomes.getAvailableJvms().collect { it.javaHome.absolutePath }.join(",")}" as String,
             '-Dorg.gradle.java.installations.auto-detect=false',
             '-Dorg.gradle.java.installations.auto-download=false',
-        ]
-    }
-
-    private static List<String> kotlinDslParameters() {
-        return [
-            // Having this unset is now deprecated, will default to `false` in Gradle 9.0
-            // TODO remove - see https://github.com/gradle/gradle/issues/26810
-            '-Dorg.gradle.kotlin.dsl.skipMetadataVersionCheck=false',
         ]
     }
 

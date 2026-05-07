@@ -60,6 +60,7 @@ class BuildToStore(
     // Does this build have a child build with work scheduled?
     val hasChildren: Boolean
 ) : ValueObject {
+    val hasNoWork = !hasWork && !hasChildren
     fun hasChildren() = BuildToStore(build, hasWork, true)
 }
 
@@ -104,7 +105,7 @@ internal
 class BuildWithNoWork(
     identityPath: Path,
     rootProjectName: String,
-    projects: List<ProjectWithNoWork>
+    projects: List<CachedProjectState>
 ) : BuildWithProjects(identityPath, rootProjectName, projects)
 
 

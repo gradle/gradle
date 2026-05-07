@@ -1,0 +1,16 @@
+// tag::lazy-properties[]
+abstract class MyTask extends DefaultTask {
+    // Avoid Java Bean properties
+    @Input
+    String myEagerProperty = "default value"
+
+    // Use Gradle managed properties instead
+    @Input
+    abstract Property<String> getMyLazyProperty()
+
+    @TaskAction
+    void myAction() {
+        println("Use ${myLazyProperty.get()} and do NOT use $myEagerProperty")
+    }
+}
+// end::lazy-properties[]

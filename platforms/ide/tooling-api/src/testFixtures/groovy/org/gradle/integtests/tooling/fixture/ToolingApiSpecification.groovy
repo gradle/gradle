@@ -18,6 +18,9 @@ package org.gradle.integtests.tooling.fixture
 
 import groovy.transform.stc.ClosureParams
 import groovy.transform.stc.SimpleType
+import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.integtests.fixtures.CommonTestFilesFixture
+import org.gradle.integtests.fixtures.LanguageSpecificTestFileFixture
 import org.gradle.integtests.fixtures.ProjectDirectoryCreator
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.build.BuildTestFile
@@ -54,6 +57,7 @@ import spock.lang.Specification
 import java.util.function.Supplier
 
 import static org.gradle.integtests.fixtures.RetryConditions.onIssueWithReleasedGradleVersion
+import static org.junit.Assume.assumeNotNull
 import static spock.lang.Retry.Mode.SETUP_FEATURE_CLEANUP
 
 /**
@@ -74,9 +78,10 @@ import static spock.lang.Retry.Mode.SETUP_FEATURE_CLEANUP
 @ToolingApiTest
 @CleanupTestDirectory
 @ToolingApiVersion('>=8.0')
-@TargetGradleVersion('>=4.0')
+// TODO: Gradle 10: remove comments, see https://github.com/gradle/gradle-private/issues/5096 for more information, TL;DR: StackTraceElement can't be serialized across Java 8 & Java 9+
+@TargetGradleVersion('>=5.0') // technically this should be 4.0, and we could get this with reasonable effort to be 4.3 but that would require an unsupported JVM (9), sticking to supported JVMs means Gradle 5 is as low as we can get
 @Retry(condition = { onIssueWithReleasedGradleVersion(instance, failure) }, mode = SETUP_FEATURE_CLEANUP, count = 2)
-abstract class ToolingApiSpecification extends Specification implements KotlinDslTestProjectInitiation, ProjectDirectoryCreator {
+abstract class ToolingApiSpecification extends Specification implements CommonTestFilesFixture, LanguageSpecificTestFileFixture, KotlinDslTestProjectInitiation, ProjectDirectoryCreator {
     /**
      * See https://github.com/gradle/gradle-private/issues/3216
      * To avoid flakiness when reusing daemons between CLI and TAPI
@@ -106,6 +111,7 @@ abstract class ToolingApiSpecification extends Specification implements KotlinDs
 
     private List<String> expectedDeprecations = []
     private boolean stackTraceChecksOn = true
+    private boolean checkJdkWarnings = true
 
     private ExecutionResult result
     private ExecutionFailure failure
@@ -116,9 +122,10 @@ abstract class ToolingApiSpecification extends Specification implements KotlinDs
     }
 
     // reflectively invoked by ToolingApiExecution
-    void setTargetDist(GradleDistribution targetDist) {
-        targetGradleDistribution = targetDist
-        toolingApi.setDist(targetGradleDistribution)
+    void setTargetDistAndToolingApiVersion(GradleDistribution targetDist, GradleVersion toolingApiVersion) {
+        this.targetGradleDistribution = targetDist
+        this.toolingApi.setDist(targetGradleDistribution)
+        this.toolingApi.setToolingApiVersion(toolingApiVersion)
     }
 
     GradleDistribution getTargetDist() {
@@ -129,6 +136,7 @@ abstract class ToolingApiSpecification extends Specification implements KotlinDs
     }
 
     def setup() {
+        AvailableJavaHomes.getAvailableJdk { it -> true } // Load info into the test worker about available JDKs before it is discarded below
         // These properties are set on CI. Reset them to allow tests to configure toolchains explicitly.
         System.setProperty("org.gradle.java.installations.auto-download", "false")
         System.setProperty("org.gradle.java.installations.auto-detect", "false")
@@ -136,7 +144,7 @@ abstract class ToolingApiSpecification extends Specification implements KotlinDs
 
         // this is to avoid the working directory to be the Gradle directory itself
         // which causes isolation problems for tests. This one is for _embedded_ mode
-        System.setProperty("user.dir", temporaryFolder.testDirectory.absolutePath)
+        System.setProperty("user.dir", projectDir.absolutePath)
 
         // Enable deprecation logging for all tests
         System.setProperty("org.gradle.warning.mode", "all")
@@ -150,6 +158,11 @@ abstract class ToolingApiSpecification extends Specification implements KotlinDs
 
     TestFile getProjectDir() {
         temporaryFolder.testDirectory
+    }
+
+    @Override
+    TestFile getUserActionRootDir() {
+        projectDir
     }
 
     @Override
@@ -464,11 +477,24 @@ abstract class ToolingApiSpecification extends Specification implements KotlinDs
         validateOutput(getFailure())
     }
 
+    /**
+     * Gets a JVM different from the one running the tests that is compatible with the target Gradle distribution,
+     * then checks it is not null via {@link org.junit.Assume#assumeNotNull(Object, String)}.
+     *
+     * @return the JVM with a different version that can run the target Gradle distribution
+     */
+    Jvm requireDifferentVersionJvmCompatibleWithTargetDist() {
+        def otherJvm = AvailableJavaHomes.getDifferentDaemonVersionFor(targetDist)
+        assumeNotNull(otherJvm, "No suitable alternative JVM found that can run Gradle ${targetDist}.")
+        return otherJvm
+    }
+
     private void reset() {
         stdout.reset()
         stderr.reset()
         expectedDeprecations.clear()
         stackTraceChecksOn = true
+        checkJdkWarnings = true
     }
 
     def shouldCheckForDeprecationWarnings() {
@@ -511,9 +537,10 @@ abstract class ToolingApiSpecification extends Specification implements KotlinDs
         new ResultAssertion(
                 expectedDeprecations.collect { ExpectedDeprecationWarning.withMessage(it) },
             maybeExpectedDeprecations.collect { ExpectedDeprecationWarning.withMessage(it) },
+            Collections.emptyList(),
             !stackTraceChecksOn,
             shouldCheckForDeprecationWarnings(),
-            true
+            checkJdkWarnings
         ).execute(result)
     }
 
@@ -527,6 +554,10 @@ abstract class ToolingApiSpecification extends Specification implements KotlinDs
 
     boolean withStackTraceChecksDisabled() {
         stackTraceChecksOn = false
+    }
+
+    boolean withJdkWarningsCheckDisabled() {
+        checkJdkWarnings = false
     }
 
     void expectDocumentedDeprecationWarning(String message) {

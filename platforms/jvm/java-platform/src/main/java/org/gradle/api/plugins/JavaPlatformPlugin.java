@@ -21,6 +21,7 @@ import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationPublications;
 import org.gradle.api.artifacts.ConsumableConfiguration;
+import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.Category;
 import org.gradle.api.attributes.LibraryElements;
 import org.gradle.api.attributes.Usage;
@@ -30,7 +31,6 @@ import org.gradle.api.component.SoftwareComponentFactory;
 import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
 import org.gradle.api.internal.java.DefaultJavaPlatformExtension;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.internal.JavaConfigurationVariantMapping;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.publish.PublishingExtension;
@@ -121,9 +121,8 @@ public abstract class JavaPlatformPlugin implements Plugin<Project> {
         configurations.resolvableLocked(CLASSPATH_CONFIGURATION_NAME, conf -> {
             conf.extendsFrom(runtime);
 
-            ObjectFactory objectFactory = project.getObjects();
-            declareConfigurationUsage(objectFactory, conf, Usage.JAVA_RUNTIME);
-            declareConfigurationLibraryElements(conf, objectFactory, LibraryElements.JAR);
+            declareConfigurationUsage(conf, Usage.JAVA_RUNTIME);
+            declareConfigurationLibraryElements(conf, LibraryElements.JAR);
         });
 
         createSoftwareComponent(project, apiElements, runtimeElements);
@@ -133,8 +132,8 @@ public abstract class JavaPlatformPlugin implements Plugin<Project> {
         return project.getConfigurations().consumable(name, runtimeElements -> {
             runtimeElements.extendsFrom(runtime);
 
-            declareConfigurationUsage(project.getObjects(), runtimeElements, Usage.JAVA_RUNTIME);
-            declareConfigurationCategory(project.getObjects(), runtimeElements, platformKind);
+            declareConfigurationUsage(runtimeElements, Usage.JAVA_RUNTIME);
+            declareConfigurationCategory(runtimeElements, platformKind);
 
             ConfigurationPublications outgoing = runtimeElements.getOutgoing();
             capabilities.forEach(outgoing::capability);
@@ -145,24 +144,27 @@ public abstract class JavaPlatformPlugin implements Plugin<Project> {
         return project.getConfigurations().consumable(name, apiElements -> {
             apiElements.extendsFrom(api);
 
-            declareConfigurationUsage(project.getObjects(), apiElements, Usage.JAVA_API);
-            declareConfigurationCategory(project.getObjects(), apiElements, platformKind);
+            declareConfigurationUsage(apiElements, Usage.JAVA_API);
+            declareConfigurationCategory(apiElements, platformKind);
 
             ConfigurationPublications outgoing = apiElements.getOutgoing();
             capabilities.forEach(outgoing::capability);
         });
     }
 
-    private void declareConfigurationCategory(ObjectFactory objectFactory, Configuration configuration, String value) {
-        configuration.getAttributes().attribute(Category.CATEGORY_ATTRIBUTE, objectFactory.named(Category.class, value));
+    private void declareConfigurationCategory(Configuration configuration, String value) {
+        AttributeContainer attributes = configuration.getAttributes();
+        attributes.attribute(Category.CATEGORY_ATTRIBUTE, attributes.named(Category.class, value));
     }
 
-    private void declareConfigurationLibraryElements(Configuration configuration, ObjectFactory objectFactory, String libraryContents) {
-        configuration.getAttributes().attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objectFactory.named(LibraryElements.class, libraryContents));
+    private void declareConfigurationLibraryElements(Configuration configuration, String libraryContents) {
+        AttributeContainer attributes = configuration.getAttributes();
+        attributes.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, attributes.named(LibraryElements.class, libraryContents));
     }
 
-    private void declareConfigurationUsage(ObjectFactory objectFactory, Configuration configuration, String usage) {
-        configuration.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, usage));
+    private void declareConfigurationUsage(Configuration configuration, String usage) {
+        AttributeContainer attributes = configuration.getAttributes();
+        attributes.attribute(Usage.USAGE_ATTRIBUTE, attributes.named(Usage.class, usage));
     }
 
     private void configureExtension(Project project) {

@@ -18,7 +18,8 @@ package org.gradle.initialization
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
-import org.gradle.internal.operations.trace.BuildOperationRecord
+
+import static org.gradle.integtests.fixtures.TestableBuildOperationRecord.buildOp
 
 class EvaluateSettingsBuildOperationIntegrationTest extends AbstractIntegrationSpec {
 
@@ -31,8 +32,11 @@ class EvaluateSettingsBuildOperationIntegrationTest extends AbstractIntegrationS
         succeeds('help')
 
         then:
-        verifySettings(operation(), settingsFile)
-        operation().details.buildPath == ":"
+        def loadOps = buildOperations.all(LoadBuildBuildOperationType)
+        def evaluationOps = buildOperations.all(EvaluateSettingsBuildOperationType)
+        evaluationOps == [
+            buildOp(details: [settingsDir: settingsFile.parentFile.absolutePath, settingsFile: settingsFile.absolutePath, buildPath: ":"], displayName: "Evaluate settings", parent: loadOps[0])
+        ]
     }
 
     def "composite participants expose their settings details"() {
@@ -59,11 +63,12 @@ class EvaluateSettingsBuildOperationIntegrationTest extends AbstractIntegrationS
         succeeds('help')
 
         then:
-        operations().size() == 2
-        verifySettings(operations()[0], settingsFile)
-        operations()[0].details.buildPath == ":"
-        verifySettings(operations()[1], nestedSettingsFile)
-        operations()[1].details.buildPath == ":nested"
+        def loadOps = buildOperations.all(LoadBuildBuildOperationType)
+        def evaluationOps = buildOperations.all(EvaluateSettingsBuildOperationType)
+        evaluationOps == [
+            buildOp(details: [settingsDir: settingsFile.parentFile.absolutePath, settingsFile: settingsFile.absolutePath, buildPath: ":"], displayName: "Evaluate settings", parent: loadOps[0]),
+            buildOp(details: [settingsDir: nestedSettingsFile.parentFile.absolutePath, settingsFile: nestedSettingsFile.absolutePath, buildPath: ":nested"], displayName: "Evaluate settings (:nested)", parent: loadOps[1])
+        ]
     }
 
     def 'can configure feature preview in settings'() {
@@ -90,20 +95,6 @@ enableFeaturePreview('GROOVY_COMPILATION_AVOIDANCE')
         '''
         expect:
         succeeds(':has-no-dir:help')
-    }
-
-    private List<BuildOperationRecord> operations() {
-        buildOperations.all(EvaluateSettingsBuildOperationType)
-    }
-
-    private BuildOperationRecord operation() {
-        assert operations().size() == 1
-        operations()[0]
-    }
-
-    private void verifySettings(BuildOperationRecord operation, File settingsFile) {
-        assert operation.details.settingsDir == settingsFile.parentFile.absolutePath
-        assert operation.details.settingsFile == settingsFile.absolutePath
     }
 
 }

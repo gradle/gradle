@@ -16,11 +16,11 @@
 
 package org.gradle.internal.cc.impl
 
-import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
+import org.gradle.test.preconditions.OsTestPreconditions
+
 import org.gradle.testing.jacoco.plugins.fixtures.JacocoReportXmlFixture
 import org.gradle.testkit.runner.GradleRunner
 import org.gradle.util.internal.TextUtil
@@ -29,7 +29,7 @@ import spock.lang.TempDir
 
 import static org.gradle.integtests.fixtures.logging.ConfigurationCacheOutputNormalizer.PROMO_PREFIX
 
-@Requires(UnitTestPreconditions.NotWindows)
+@Requires(OsTestPreconditions.NotWindows)
 class ConfigurationCacheTestKitIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
 
     @TempDir
@@ -54,9 +54,7 @@ class ConfigurationCacheTestKitIntegrationTest extends AbstractConfigurationCach
         when:
         def runner = GradleRunner.create()
         runner.withJvmArguments("-javaagent:${agentJar}")
-        if (!IntegrationTestBuildContext.embedded) {
-            runner.withGradleInstallation(buildContext.gradleHomeDir)
-        }
+        runner.withGradleInstallation(buildContext.gradleHomeDir)
         runner.withArguments("--configuration-cache")
         runner.forwardOutput()
         runner.withProjectDir(testDirectory)
@@ -70,9 +68,7 @@ class ConfigurationCacheTestKitIntegrationTest extends AbstractConfigurationCach
         when:
         runner = GradleRunner.create()
         runner.withJvmArguments("-javaagent:${agentJar}")
-        if (!IntegrationTestBuildContext.embedded) {
-            runner.withGradleInstallation(buildContext.gradleHomeDir)
-        }
+        runner.withGradleInstallation(buildContext.gradleHomeDir)
         runner.forwardOutput()
         runner.withProjectDir(testDirectory)
         runner.withPluginClasspath([new File("some-dir")])
@@ -117,9 +113,7 @@ class ConfigurationCacheTestKitIntegrationTest extends AbstractConfigurationCach
             .withArguments("--configuration-cache", "-Dmy.property=my.value", "-i")
             .forwardOutput()
             .withProjectDir(testDirectory)
-        if (!IntegrationTestBuildContext.embedded) {
-            runner.withGradleInstallation(buildContext.gradleHomeDir)
-        }
+            .withGradleInstallation(buildContext.gradleHomeDir)
         def result = runner.build()
 
         then:
@@ -138,7 +132,7 @@ class ConfigurationCacheTestKitIntegrationTest extends AbstractConfigurationCach
      * But we broke --no-configuration-cache case already twice in the past, so it's worth testing it.
      */
     @Issue(["https://github.com/gradle/gradle/issues/13614", "https://github.com/gradle/gradle/issues/28729"])
-    @Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "Testing build using a TestKit")
+    @Requires(value = TestExecutionPreconditions.NotEmbeddedExecutor, reason = "Testing build using a TestKit")
     def "running a test that applies Jacoco with TestKit should generate a test report when running without configuration cache"() {
         given:
         // Setting Jacoco destination dir to non-ascii location causes some problems,

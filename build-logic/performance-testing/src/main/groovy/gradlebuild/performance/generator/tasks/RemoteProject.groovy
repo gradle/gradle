@@ -70,6 +70,27 @@ abstract class RemoteProject extends DefaultTask {
     abstract Property<String> getSubdirectory()
 
     /**
+     * Convenience method to set both remoteUri and ref from a gradle property.
+     *
+     * The property value should be in the format: <repository-url>#<commit-sha>
+     * Example: "https://github.com/user/repo.git#abc123def456"
+     *
+     * @param propertyName The name of the gradle property containing both URI and ref separated by '#'
+     */
+    void setRemoteUriAndRefFromGradleProperty(String propertyName) {
+        def provider = project.providers.gradleProperty(propertyName)
+        def parsed = provider.map { String value ->
+            String[] parts = value.split("#", 2)
+            if (parts.length != 2) {
+                throw new IllegalArgumentException("$propertyName must be in format: <repository-url>#<commit-sha>, got: $value")
+            }
+            return parts
+        }
+        remoteUri.set(parsed.map { parts -> parts[0] })
+        ref.set(parsed.map { parts -> parts[1] })
+    }
+
+    /**
      * Directory where the project template should be copied.
      */
     @OutputDirectory
@@ -80,6 +101,7 @@ abstract class RemoteProject extends DefaultTask {
         outputDirectory.deleteDir()
         File checkoutDir = checkout(fsOps, execOps, remoteUri.get(), ref.get(), temporaryDir)
         moveToOutputDir(checkoutDir, outputDirectory, subdirectory.getOrNull())
+        ensureGitRepo(outputDirectory, execOps)
     }
 
     private static File cleanTemporaryDir(FileSystemOperations fsOps, File tmpDir) {
@@ -104,6 +126,33 @@ abstract class RemoteProject extends DefaultTask {
             errorOutput = System.out
         }
         return checkoutDir
+    }
+
+    /**
+     * Ensure the output directory contains a git repository.
+     * <p>
+     * When a subdirectory of the original repo is used as the project template, the .git directory
+     * is not present. This initializes an empty repo so that IDEs (e.g. Android Studio) don't treat
+     * the project-under-test as part of the enclosing gradle/gradle repository and don't index unnecessary files.
+     */
+    @TypeChecked(TypeCheckingMode.SKIP)
+    private static void ensureGitRepo(File projectDir, ExecOperations execOps) {
+        File gitDir = new File(projectDir, ".git")
+        if (gitDir.exists()) {
+            return
+        }
+
+        // In case of no repo, even if there was a .gitignore,
+        // we don't want IDEs to care about a potentially large unstaged/uncommitted set of files
+        File gitignore = new File(projectDir, ".gitignore")
+        gitignore.text = "*\n"
+
+        // Initialize an empty git repo
+        execOps.exec {
+            commandLine = ["git", "init"]
+            workingDir = projectDir
+            errorOutput = System.out
+        }
     }
 
     private static void moveToOutputDir(File tmpDir, File outputDirectory, String subdirectory) {

@@ -23,13 +23,13 @@ abstract class PluginPublishExtension(
     private val gradlePlugin: GradlePluginDevelopmentExtension
 ) {
 
-    fun bundledGradlePlugin(name: String, shortDescription: String, pluginId: String, pluginClass: String) {
+    fun bundledGradlePlugin(name: String, displayName: String, description: String, pluginId: String, pluginClass: String) {
         gradlePlugin.plugins {
             register(name) {
-                id = pluginId
-                displayName = shortDescription
-                description = shortDescription
-                implementationClass = pluginClass
+                this.id = pluginId
+                this.displayName = displayName
+                this.description = description
+                this.implementationClass = pluginClass
             }
         }
     }

@@ -72,6 +72,7 @@ ul.tabLinks li {
     border-bottom: none;
     margin-right: 6px;
     background-color: #f0f0f0;
+    cursor: pointer;
 }
 
 ul.tabLinks li.deselected > a {
@@ -148,9 +149,10 @@ div.tab td.numeric, div.tab th.numeric {
 }
 
 span.code {
-    display: inline-block;
+    display: block;
     margin-top: 0;
     margin-bottom: 1em;
+    position: relative;
 }
 
 span.code pre {
@@ -161,6 +163,7 @@ span.code pre {
     border: solid 1px #d0d0d0;
     min-width: 700px;
     width: auto;
+    overflow: auto;
 }
 
 span.wrapped pre {
@@ -171,4 +174,24 @@ span.wrapped pre {
 
 label.hidden {
     display: none;
+}
+
+th.sortable-header {
+    cursor: pointer;
+    user-select: none;
+}
+
+th.sortable-header::after {
+    content: " \2195";
+    color: #b0b0b0;
+}
+
+th.sortable-header[data-sort-dir="asc"]::after {
+    content: " \25B2";
+    color: inherit;
+}
+
+th.sortable-header[data-sort-dir="desc"]::after {
+    content: " \25BC";
+    color: inherit;
 }

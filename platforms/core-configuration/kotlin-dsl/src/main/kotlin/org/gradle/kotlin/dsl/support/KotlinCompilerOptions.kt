@@ -24,21 +24,22 @@ import java.io.Serializable
 data class KotlinCompilerOptions(
     val jvmTarget: JavaVersion = JavaVersion.current(),
     val allWarningsAsErrors: Boolean = false,
-    val skipMetadataVersionCheck: Boolean = true,
-) : Serializable
+    val explicitSkipMetadataVersionCheck: Boolean? = null,
+) : Serializable {
+    val skipMetadataVersionCheck: Boolean
+        get() = explicitSkipMetadataVersionCheck ?: true
+}
 
 
 fun kotlinCompilerOptions(gradleProperties: GradleProperties): KotlinCompilerOptions =
     KotlinCompilerOptions(
         allWarningsAsErrors = getBooleanKotlinDslOption(gradleProperties, ALL_WARNINGS_AS_ERRORS_PROPERTY_NAME, false),
-        skipMetadataVersionCheck = getBooleanKotlinDslOption(gradleProperties, SKIP_METADATA_VERSION_CHECK_PROPERTY_NAME, true)
+        explicitSkipMetadataVersionCheck = getNullableBooleanKotlinDslOption(gradleProperties, SKIP_METADATA_VERSION_CHECK_PROPERTY_NAME)
     )
 
 
-private
 const val ALL_WARNINGS_AS_ERRORS_PROPERTY_NAME = "org.gradle.kotlin.dsl.allWarningsAsErrors"
 
 
-private
 const val SKIP_METADATA_VERSION_CHECK_PROPERTY_NAME = "org.gradle.kotlin.dsl.skipMetadataVersionCheck"
 

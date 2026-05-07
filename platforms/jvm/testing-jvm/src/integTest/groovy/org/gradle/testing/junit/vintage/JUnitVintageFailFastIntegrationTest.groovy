@@ -16,6 +16,7 @@
 
 package org.gradle.testing.junit.vintage
 
+
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.testing.AbstractJvmFailFastIntegrationSpec
 

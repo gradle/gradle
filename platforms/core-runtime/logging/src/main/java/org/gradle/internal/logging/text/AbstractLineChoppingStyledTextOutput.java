@@ -31,7 +31,11 @@ public abstract class AbstractLineChoppingStyledTextOutput extends AbstractStyle
     private State currentState = INITIAL_STATE;
 
     protected AbstractLineChoppingStyledTextOutput() {
-        eol = SystemProperties.getInstance().getLineSeparator();
+        this(SystemProperties.getInstance().getLineSeparator());
+    }
+
+    protected AbstractLineChoppingStyledTextOutput(String eol) {
+        this.eol = eol;
         eolChars = eol.toCharArray();
         seenFromEol = new SeenFromEol(eolChars);
     }

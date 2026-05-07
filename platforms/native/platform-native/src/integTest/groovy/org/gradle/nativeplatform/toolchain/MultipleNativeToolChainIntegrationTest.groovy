@@ -23,7 +23,8 @@ import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.CppCompilerDetectingTestApp
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.TestEnvironmentPreconditions
+
 import org.junit.Assume
 
 @RequiresInstalledToolChain
@@ -38,7 +39,7 @@ plugins { id 'cpp' }
         helloWorld.writeSources(file("src/main"))
     }
 
-    @Requires(UnitTestPreconditions.CanInstallExecutable)
+    @Requires(TestEnvironmentPreconditions.CanInstallExecutable)
     @RequiresInstalledToolChain(ToolChainRequirement.GCC)
     def "can build with multiple tool chains"() {
         AvailableToolChains.InstalledToolChain x86ToolChain = OperatingSystem.current().isWindows() ?
@@ -46,7 +47,7 @@ plugins { id 'cpp' }
                 AvailableToolChains.getToolChain(ToolChainRequirement.CLANG)
         AvailableToolChains.InstalledToolChain sparcToolChain = AvailableToolChains.getToolChain(ToolChainRequirement.GCC)
 
-        // This is a Junit class, but works in Spock too.
+        // This is a JUnit class, but works in Spock too.
         Assume.assumeNotNull(x86ToolChain?.buildScriptConfig, sparcToolChain?.buildScriptConfig)
 
         when:

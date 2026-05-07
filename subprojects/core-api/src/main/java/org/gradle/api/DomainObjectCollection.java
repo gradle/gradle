@@ -191,7 +191,6 @@ public interface DomainObjectCollection<T> extends Collection<T> {
      */
     void configureEach(Action<? super T> action);
 
-    // note: this is here to override the default Groovy Collection.findAll { } method.
     /**
      * Returns a collection which contains the objects in this collection which meet the given closure specification.
      * <p>
@@ -200,6 +199,32 @@ public interface DomainObjectCollection<T> extends Collection<T> {
      * @param spec The specification to use. The closure gets a collection element as an argument.
      * @return The collection of matching objects. Returns an empty collection if there are no such objects in this
      *         collection.
+     * @deprecated Use {@link #matching(Spec)} or Collection APIs from the JDK.
      */
+    @Deprecated
     Collection<T> findAll(Closure spec);
+
+    /**
+     * Disallows further structural modifications to this collection.
+     *
+     * <p>After this method is called, any attempt to add or remove elements — including
+     * via {@link #add}, {@link #addLater}, {@link #addAllLater}, {@link #remove},
+     * {@link #clear}, etc. — will throw {@link IllegalStateException}.</p>
+     *
+     * <p>This method does <em>not</em> force the realization of any pending (lazy) elements.
+     * Pending elements registered via {@link #addLater} or {@link NamedDomainObjectContainer#register}
+     * remain lazy; they will still be realized when first accessed. This method only
+     * prevents new elements from being added or existing elements from being removed.</p>
+     *
+     * <p>Calling this method more than once has no effect.</p>
+     *
+     * @throws IllegalStateException if called from within a lazy configuration action
+     *         (e.g., inside a {@link #configureEach} callback)
+     *
+     * @since 9.5.0
+     */
+    @Incubating
+    default void disallowChanges() {
+        throw new UnsupportedOperationException("disallowChanges() is not supported by this collection");
+    }
 }

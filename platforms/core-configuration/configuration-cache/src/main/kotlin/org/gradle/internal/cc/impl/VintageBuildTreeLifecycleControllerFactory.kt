@@ -16,7 +16,6 @@
 
 package org.gradle.internal.cc.impl
 
-import org.gradle.StartParameter
 import org.gradle.composite.internal.BuildTreeWorkGraphController
 import org.gradle.internal.build.BuildLifecycleController
 import org.gradle.internal.build.BuildStateRegistry
@@ -42,7 +41,6 @@ open class VintageBuildTreeLifecycleControllerFactory(
     private val taskGraph: BuildTreeWorkGraphController,
     private val buildOperationExecutor: BuildOperationExecutor,
     private val stateTransitionControllerFactory: StateTransitionControllerFactory,
-    private val startParameter: StartParameter,
     private val parameterCarrierFactory: ToolingModelParameterCarrier.Factory,
     private val buildStateRegistry: BuildStateRegistry,
     private val buildOperationRunner: BuildOperationRunner
@@ -66,7 +64,7 @@ open class VintageBuildTreeLifecycleControllerFactory(
         finishExecutor: BuildTreeFinishExecutor
     ): DefaultBuildTreeLifecycleController {
         val workController = VintageBuildTreeWorkController(workPreparer, workExecutor, taskGraph)
-        return DefaultBuildTreeLifecycleController(targetBuild, workController, modelCreator, finishExecutor, stateTransitionControllerFactory, startParameter, buildModelParameters)
+        return DefaultBuildTreeLifecycleController(targetBuild, workController, modelCreator, finishExecutor, stateTransitionControllerFactory)
     }
 
     internal

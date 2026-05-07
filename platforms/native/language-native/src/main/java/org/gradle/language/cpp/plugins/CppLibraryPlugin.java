@@ -21,7 +21,6 @@ import org.gradle.api.Project;
 import org.gradle.api.internal.artifacts.dsl.LazyPublishArtifact;
 import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.TaskContainer;
@@ -84,7 +83,6 @@ public abstract class CppLibraryPlugin implements Plugin<Project> {
         project.getPluginManager().apply(CppBasePlugin.class);
 
         final TaskContainer tasks = project.getTasks();
-        final ObjectFactory objectFactory = project.getObjects();
         final ProviderFactory providers = project.getProviders();
 
         // Add the library and extension
@@ -131,7 +129,7 @@ public abstract class CppLibraryPlugin implements Plugin<Project> {
 
         project.afterEvaluate(p -> {
             // TODO: make build type configurable for components
-            Dimensions.libraryVariants(library.getBaseName(), library.getLinkage(), library.getTargetMachines(), objectFactory, attributesFactory,
+            Dimensions.libraryVariants(library.getBaseName(), library.getLinkage(), library.getTargetMachines(), attributesFactory,
                     providers.provider(() -> project.getGroup().toString()), providers.provider(() -> project.getVersion().toString()),
                     variantIdentity -> {
                         if (tryToBuildOnHost(variantIdentity)) {

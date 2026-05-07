@@ -19,7 +19,7 @@ package org.gradle.internal.isolated;
 import org.gradle.api.file.ArchiveOperations;
 import org.gradle.api.file.FileSystemOperations;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.problems.internal.InternalProblems;
+import org.gradle.api.problems.internal.ProblemsInternal;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.services.BuildServiceRegistry;
 import org.gradle.internal.Cast;
@@ -40,11 +40,13 @@ import java.util.Collection;
 public class IsolationScheme<INTERFACE, PARAMS> implements TypeParameterInspection<INTERFACE, PARAMS> {
     private final Class<INTERFACE> interfaceType;
     private final Class<? extends PARAMS> noParamsType;
+    private final PARAMS noParamsInstance;
     private final TypeParameterInspection<INTERFACE, PARAMS> typeParameterInspection;
 
-    public IsolationScheme(Class<INTERFACE> interfaceType, Class<PARAMS> paramsType, Class<? extends PARAMS> noParamsType) {
+    public IsolationScheme(Class<INTERFACE> interfaceType, Class<PARAMS> paramsType, Class<? extends PARAMS> noParamsType, PARAMS noParamsInstance) {
         this.interfaceType = interfaceType;
         this.noParamsType = noParamsType;
+        this.noParamsInstance = noParamsInstance;
         this.typeParameterInspection = new DefaultTypeParameterInspection<>(interfaceType, paramsType, noParamsType);
     }
 
@@ -55,8 +57,8 @@ public class IsolationScheme<INTERFACE, PARAMS> implements TypeParameterInspecti
      */
     @Override
     @Nullable
-    public <T extends INTERFACE, P extends PARAMS> Class<P> parameterTypeFor(Class<T> implementationType) {
-        return typeParameterInspection.parameterTypeFor(implementationType);
+    public <T extends INTERFACE, P extends PARAMS> Class<P> parameterTypeForOrNull(Class<T> implementationType) {
+        return typeParameterInspection.parameterTypeForOrNull(implementationType);
     }
 
     /**
@@ -66,6 +68,16 @@ public class IsolationScheme<INTERFACE, PARAMS> implements TypeParameterInspecti
      */
     @Override
     @Nullable
+    public <T extends INTERFACE, P extends PARAMS> Class<P> parameterTypeForOrNull(Class<T> implementationType, int typeArgumentIndex) {
+        return typeParameterInspection.parameterTypeForOrNull(implementationType, typeArgumentIndex);
+    }
+
+    @Override
+    public <T extends INTERFACE, P extends PARAMS> Class<P> parameterTypeFor(Class<T> implementationType) {
+        return typeParameterInspection.parameterTypeFor(implementationType);
+    }
+
+    @Override
     public <T extends INTERFACE, P extends PARAMS> Class<P> parameterTypeFor(Class<T> implementationType, int typeArgumentIndex) {
         return typeParameterInspection.parameterTypeFor(implementationType, typeArgumentIndex);
     }
@@ -76,28 +88,31 @@ public class IsolationScheme<INTERFACE, PARAMS> implements TypeParameterInspecti
     public ServiceLookup servicesForImplementation(
         @Nullable PARAMS params,
         ServiceLookup allServices,
-        Collection<? extends Class<?>> additionalWhiteListedServices
+        Collection<? extends Class<?>> additionalAllowedServices
     ) {
-        return new ServicesForIsolatedObject(interfaceType, noParamsType, params, allServices, additionalWhiteListedServices);
+        return new ServicesForIsolatedObject(interfaceType, noParamsType, noParamsInstance, params, allServices, additionalAllowedServices);
     }
 
     private static class ServicesForIsolatedObject implements ServiceLookup {
         private final Class<?> interfaceType;
         private final Class<?> noParamsType;
-        private final Collection<? extends Class<?>> additionalWhiteListedServices;
+        private final Object noParamsInstance;
+        private final Collection<? extends Class<?>> additionalAllowedServices;
         private final ServiceLookup allServices;
         private final @Nullable Object params;
 
         public ServicesForIsolatedObject(
             Class<?> interfaceType,
             Class<?> noParamsType,
+            Object noParamsInstance,
             @Nullable Object params,
             ServiceLookup allServices,
-            Collection<? extends Class<?>> additionalWhiteListedServices
+            Collection<? extends Class<?>> additionalAllowedServices
         ) {
             this.interfaceType = interfaceType;
             this.noParamsType = noParamsType;
-            this.additionalWhiteListedServices = additionalWhiteListedServices;
+            this.noParamsInstance = noParamsInstance;
+            this.additionalAllowedServices = additionalAllowedServices;
             this.allServices = allServices;
             this.params = params;
         }
@@ -111,7 +126,7 @@ public class IsolationScheme<INTERFACE, PARAMS> implements TypeParameterInspecti
                     return params;
                 }
                 if (serviceClass.isAssignableFrom(noParamsType)) {
-                    throw new ServiceLookupException(String.format("Cannot query the parameters of an instance of %s that takes no parameters.", interfaceType.getSimpleName()));
+                    return noParamsInstance;
                 }
                 if (serviceClass.isAssignableFrom(ExecOperations.class)) {
                     return allServices.find(ExecOperations.class);
@@ -131,15 +146,15 @@ public class IsolationScheme<INTERFACE, PARAMS> implements TypeParameterInspecti
                 if (serviceClass.isAssignableFrom(BuildServiceRegistry.class)) {
                     return allServices.find(BuildServiceRegistry.class);
                 }
-                if (serviceClass.isAssignableFrom(InternalProblems.class)) {
-                    return allServices.find(InternalProblems.class);
+                if (serviceClass.isAssignableFrom(ProblemsInternal.class)) {
+                    return allServices.find(ProblemsInternal.class);
                 }
                 if (serviceClass.isAssignableFrom(ManagedObjectRegistry.class)) {
                     return allServices.find(ManagedObjectRegistry.class);
                 }
-                for (Class<?> whiteListedService : additionalWhiteListedServices) {
-                    if (serviceClass.isAssignableFrom(whiteListedService)) {
-                        return allServices.find(whiteListedService);
+                for (Class<?> allowedService : additionalAllowedServices) {
+                    if (serviceClass.isAssignableFrom(allowedService)) {
+                        return allServices.find(allowedService);
                     }
                 }
             }

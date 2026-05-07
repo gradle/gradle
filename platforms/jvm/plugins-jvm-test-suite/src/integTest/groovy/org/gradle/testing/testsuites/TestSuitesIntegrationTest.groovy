@@ -593,7 +593,7 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
             }
         """
 
-        and: "containing a test which uses Junit 4"
+        and: "containing a test which uses JUnit 4"
         file("src/test/java/org/test/MyTest.java") << """
             package org.test;
 
@@ -996,10 +996,11 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
 
             include("app")
         """
-        executer.noDeprecationChecks()
 
         expect: "should be able to reference the project without failing"
+        executer.expectDocumentedDeprecationWarning("Depending on the resolving project's module coordinates has been deprecated. This will fail with an error in Gradle 10. Use a project dependency instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#module_identity_for_root_component")
         succeeds ':app:assemble', ':app:integrationTest'
+
         def unitTestResults = new JUnitXmlTestExecutionResult(testDirectory, 'app/build/test-results/integrationTest')
         unitTestResults.assertTestClassesExecuted('org.example.app.ExampleTest')
     }
@@ -1039,9 +1040,10 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
         fails("assertCopyCanBeResolved")
         failureDescriptionContains("A problem occurred evaluating root project '${buildFile.parentFile.name}'.")
         failureHasCause("""Method call not allowed
-  Calling configuration method 'copy()' is not allowed for configuration 'testImplementation', which has permitted usage(s):
-  \tDeclarable - this configuration can have dependencies added to it
-  This method is only meant to be called on configurations which allow the (non-deprecated) usage(s): 'Resolvable'.""")
+  Calling configuration method 'copy()' is not allowed for configuration 'testImplementation'
+    'testImplementation' has the following permitted usage(s):
+    \tDeclarable - this configuration can have dependencies added to it
+    This method is only meant to be called on configurations which allow the (non-deprecated) usage(s): 'Resolvable'.""")
     }
 
     def "configuring different test suites with different framework versions is allowed"() {
@@ -1084,5 +1086,34 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         succeeds("test", "anotherTest")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/36428")
+    def "cross-project dependency manipulation with allDependencies.configureEach does not break test suite creation"() {
+        given: "a multi-project build with cross-project configuration accessing allDependencies"
+        settingsFile << """
+            include 'sub'
+        """
+
+        buildFile << """
+            subprojects {
+                configurations.configureEach {
+                    allDependencies.configureEach {
+                        // This is bad practice but should not cause a failure
+                    }
+                }
+            }
+        """
+
+        file('sub/build.gradle') << """
+            plugins {
+                id 'java-library'
+            }
+
+            ${mavenCentralRepository()}
+        """
+
+        expect: "the build should succeed without errors about finalized properties"
+        succeeds(":sub:dependencies")
     }
 }

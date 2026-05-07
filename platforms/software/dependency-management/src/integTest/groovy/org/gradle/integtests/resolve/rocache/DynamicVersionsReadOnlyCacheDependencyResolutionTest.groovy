@@ -46,7 +46,7 @@ class DynamicVersionsReadOnlyCacheDependencyResolutionTest extends AbstractReadO
             executer.withArgument("--refresh-dependencies")
         }
 
-        succeeds ':checkDeps'
+        succeeds ':checkDeps', ":resolveArtifacts"
 
         then:
         resolve.expectGraph {

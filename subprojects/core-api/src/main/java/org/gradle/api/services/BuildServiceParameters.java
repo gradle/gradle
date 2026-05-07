@@ -16,6 +16,8 @@
 
 package org.gradle.api.services;
 
+import org.gradle.api.Incubating;
+
 /**
  * A set of parameters to be injected into a {@link BuildService} implementation.
  *
@@ -28,6 +30,14 @@ public interface BuildServiceParameters {
      * @since 6.1
      */
     final class None implements BuildServiceParameters {
+        /**
+         * Singleton instance of {@link None}.
+         *
+         * @since 9.6.0
+         */
+        @Incubating
+        public static final None INSTANCE = new None();
+
         private None() {
         }
     }

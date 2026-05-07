@@ -14,27 +14,20 @@
  * limitations under the License.
  */
 
-
 package org.gradle.testing.testng
 
-import org.gradle.integtests.fixtures.DefaultTestExecutionResult
+import org.gradle.api.tasks.testing.TestResult
 import org.gradle.integtests.fixtures.TargetCoverage
-import org.gradle.integtests.fixtures.TestOutcome
 import org.gradle.testing.DryRunFilteringTest
 import org.gradle.testing.fixture.TestNGCoverage
-import org.hamcrest.text.IsEmptyString
 import org.gradle.util.Matchers
+import org.hamcrest.text.IsEmptyString
 
 @TargetCoverage({ TestNGCoverage.SUPPORTS_DRY_RUN })
 class TestNGDryRunFilteringIntegrationTest extends AbstractTestNGFilteringIntegrationTest implements DryRunFilteringTest {
-    @Override
-    TestOutcome getPassedTestOutcome() {
-        return TestOutcome.PASSED
-    }
-
-    @Override
-    TestOutcome getFailedTestOutcome() {
-        return TestOutcome.PASSED
+    // TestNG reports dry-run tests as successes
+    TestResult.ResultType getPassedTestOutcome() {
+        return TestResult.ResultType.SUCCESS
     }
 
     def "dry-run property is not preserved across invocations"() {
@@ -94,12 +87,17 @@ class TestNGDryRunFilteringIntegrationTest extends AbstractTestNGFilteringIntegr
         """
 
         when:
-        def testResult = new DefaultTestExecutionResult(testDirectory)
-        def dryRunTestResult = new DefaultTestExecutionResult(testDirectory, 'build', '', '', 'dryRunTest')
         run "dryRunTest", "test"
 
         then:
-        testResult.testClass("FooTest").assertStderr(Matchers.containsText("Run foo!"))
-        dryRunTestResult.testClass("BarTest").assertStderr(IsEmptyString.emptyString())
+        def testResult = resultsFor()
+        testResult.assertAtLeastTestPathsExecuted("FooTest")
+        testResult.testPath("FooTest").onlyRoot().assertChildCount(1, 0)
+        testResult.testPath("FooTest:foo").onlyRoot().assertStderr(Matchers.containsText("Run foo!"))
+
+        def dryRunTestResult = resultsFor("tests/dryRunTest")
+        dryRunTestResult.assertAtLeastTestPathsExecuted("BarTest")
+        dryRunTestResult.testPath("BarTest").onlyRoot().assertChildCount(1, 0)
+        dryRunTestResult.testPath("BarTest:bar").onlyRoot().assertStderr(IsEmptyString.emptyString())
     }
 }

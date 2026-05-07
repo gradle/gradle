@@ -35,7 +35,7 @@ public class PgpSignatoryProvider extends BasePgpSignatoryProvider implements Co
                 String keyId = args[0].toString();
                 File keyRing = project.file(args[1].toString());
                 String password = args[2].toString();
-                createSignatory(name, keyId, keyRing, password);
+                createSignatory(project, name, keyId, keyRing, password);
                 break;
             case 0:
                 createSignatory(project, name, true);

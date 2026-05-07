@@ -66,7 +66,7 @@ public class DefaultTestFilter implements TestFilter {
     private TestFilter addToFilteringSet(Set<String> filter, String className, String methodName) {
         validateName(className);
         if (methodName == null || methodName.trim().isEmpty()) {
-            filter.add(className + ".*");
+            filter.add(className);
         } else {
             filter.add(className + "." + methodName);
         }
@@ -133,5 +133,12 @@ public class DefaultTestFilter implements TestFilter {
 
     public TestFilterSpec toSpec() {
         return new TestFilterSpec(getIncludePatterns(), getExcludePatterns(), getCommandLineIncludePatterns());
+    }
+
+    /**
+     * Are there any include or exclude filters at all?
+     */
+    public boolean hasPatterns() {
+        return !commandLineIncludeTestNames.isEmpty() || !includeTestNames.isEmpty() || !excludeTestNames.isEmpty();
     }
 }

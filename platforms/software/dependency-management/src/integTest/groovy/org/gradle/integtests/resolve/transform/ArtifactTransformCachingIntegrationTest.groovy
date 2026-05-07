@@ -20,7 +20,7 @@ import com.google.common.collect.Streams
 import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
 import org.gradle.cache.internal.GradleUserHomeCleanupFixture
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.integtests.fixtures.cache.FileAccessTimeJournalFixture
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
@@ -30,12 +30,11 @@ import org.gradle.test.fixtures.Flaky
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
-import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
 import org.junit.Rule
 import spock.lang.Issue
 
 import java.nio.file.Path
+import java.util.concurrent.TimeUnit
 import java.util.regex.Pattern
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS
@@ -44,7 +43,6 @@ import static org.gradle.api.internal.cache.CacheConfigurationsInternal.DEFAULT_
 import static org.gradle.internal.service.scopes.DefaultGradleUserHomeScopeServiceRegistry.REUSE_USER_HOME_SERVICES
 import static org.gradle.test.fixtures.ConcurrentTestUtil.poll
 import static org.hamcrest.Matchers.containsString
-import static org.hamcrest.Matchers.matchesPattern
 
 class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyResolutionTest implements FileAccessTimeJournalFixture, ValidationMessageChecker, GradleUserHomeCleanupFixture {
     static final int HALF_DEFAULT_MAX_AGE_IN_DAYS = Math.max(1, DEFAULT_MAX_AGE_IN_DAYS_FOR_CREATED_CACHE_ENTRIES / 2 as int)
@@ -81,8 +79,8 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
 
         then:
         output.count("files: [lib1.jar.txt, lib2.jar.txt, lib3.jar.txt, lib4-1.0.jar.txt]") == 2
-        output.count("artifacts: [lib1.jar.txt (project :lib), lib2.jar.txt (project :lib), lib3.jar.txt (lib3.jar), lib4-1.0.jar.txt (org.test.foo:lib4:1.0)]") == 2
-        output.count("components: [project :lib, project :lib, lib3.jar, org.test.foo:lib4:1.0]") == 2
+        output.count("artifacts: [lib1.jar.txt (project ':lib'), lib2.jar.txt (project ':lib'), lib3.jar.txt (lib3.jar), lib4-1.0.jar.txt (org.test.foo:lib4:1.0)]") == 2
+        output.count("components: [project ':lib', project ':lib', lib3.jar, org.test.foo:lib4:1.0]") == 2
 
         output.count("Transformed") == 4
         isTransformed("lib1.jar", "lib1.jar.txt")
@@ -240,8 +238,8 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         when:
         succeeds ":util:resolve"
 
-        def transformationPosition1 = output.indexOf("> Transform lib1.jar (project :lib) with FileSizer")
-        def transformationPosition2 = output.indexOf("> Transform lib2.jar (project :lib) with FileSizer")
+        def transformationPosition1 = output.indexOf("> Transform lib1.jar (project ':lib') with FileSizer")
+        def transformationPosition2 = output.indexOf("> Transform lib2.jar (project ':lib') with FileSizer")
         def taskPosition = output.indexOf("> Task :util:resolve")
 
         then:
@@ -271,8 +269,8 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         succeeds ":util:resolve", ":util2:resolve"
 
         then:
-        output.count("> Transform lib1.jar (project :lib) with FileSizer") == 1
-        output.count("> Transform lib2.jar (project :lib) with FileSizer") == 1
+        output.count("> Transform lib1.jar (project ':lib') with FileSizer") == 1
+        output.count("> Transform lib2.jar (project ':lib') with FileSizer") == 1
     }
 
     def "scheduled chained transformation is only invoked once per subject"() {
@@ -371,12 +369,12 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         run ":app1:resolveRed", ":app2:resolveYellow"
 
         then:
-        output.count("> Transform lib1.jar (project :lib) with MakeBlueToGreenThings") == 1
-        output.count("> Transform lib2.jar (project :lib) with MakeBlueToGreenThings") == 1
-        output.count("> Transform lib1.jar (project :lib) with MakeGreenToYellowThings") == 1
-        output.count("> Transform lib2.jar (project :lib) with MakeGreenToYellowThings") == 1
-        output.count("> Transform lib1.jar (project :lib) with MakeGreenToRedThings") == 1
-        output.count("> Transform lib2.jar (project :lib) with MakeGreenToRedThings") == 1
+        output.count("> Transform lib1.jar (project ':lib') with MakeBlueToGreenThings") == 1
+        output.count("> Transform lib2.jar (project ':lib') with MakeBlueToGreenThings") == 1
+        output.count("> Transform lib1.jar (project ':lib') with MakeGreenToYellowThings") == 1
+        output.count("> Transform lib2.jar (project ':lib') with MakeGreenToYellowThings") == 1
+        output.count("> Transform lib1.jar (project ':lib') with MakeGreenToRedThings") == 1
+        output.count("> Transform lib2.jar (project ':lib') with MakeGreenToRedThings") == 1
     }
 
     // This shows current behaviour, where the transform is executed even though the input artifact has not been created yet
@@ -543,7 +541,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
                     identifier = "2"
                 }
                 task resolve {
-                    dependsOn(resolveHash, resolveSize)
+                    dependsOn(tasks.resolveHash, tasks.resolveSize)
                 }
             }
 
@@ -565,11 +563,11 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
 
         then:
         output.count("files 1: [lib1.jar.size, lib2.jar.size, lib3.jar.size, lib4-1.0.jar.size]") == 2
-        output.count("artifacts 1: [lib1.jar.size (project :lib), lib2.jar.size (project :lib), lib3.jar.size (lib3.jar), lib4-1.0.jar.size (org.test.foo:lib4:1.0)]") == 2
-        output.count("components 1: [project :lib, project :lib, lib3.jar, org.test.foo:lib4:1.0]") == 2
+        output.count("artifacts 1: [lib1.jar.size (project ':lib'), lib2.jar.size (project ':lib'), lib3.jar.size (lib3.jar), lib4-1.0.jar.size (org.test.foo:lib4:1.0)]") == 2
+        output.count("components 1: [project ':lib', project ':lib', lib3.jar, org.test.foo:lib4:1.0]") == 2
         output.count("files 2: [lib1.jar.hash, lib2.jar.hash, lib3.jar.hash, lib4-1.0.jar.hash]") == 2
-        output.count("artifacts 2: [lib1.jar.hash (project :lib), lib2.jar.hash (project :lib), lib3.jar.hash (lib3.jar), lib4-1.0.jar.hash (org.test.foo:lib4:1.0)]") == 2
-        output.count("components 2: [project :lib, project :lib, lib3.jar, org.test.foo:lib4:1.0]") == 2
+        output.count("artifacts 2: [lib1.jar.hash (project ':lib'), lib2.jar.hash (project ':lib'), lib3.jar.hash (lib3.jar), lib4-1.0.jar.hash (org.test.foo:lib4:1.0)]") == 2
+        output.count("components 2: [project ':lib', project ':lib', lib3.jar, org.test.foo:lib4:1.0]") == 2
 
         output.count("Transformed") == 8
         isTransformed("lib1.jar", "lib1.jar.size")
@@ -653,7 +651,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
                     identifier = "2"
                 }
                 task resolve {
-                    dependsOn(resolveSize, resolveHash)
+                    dependsOn(tasks.resolveSize, tasks.resolveHash)
                 }
             }
 
@@ -732,13 +730,13 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
                 task resolve2(type: Resolve) {
                     identifier = "2"
                 }
-                configure([resolve1, resolve2]) {
+                configure([tasks.resolve1, tasks.resolve2]) {
                     artifacts = configurations.compile.incoming.artifactView {
                         attributes { it.attribute(artifactType, 'value') }
                     }.artifacts
                 }
                 task resolve {
-                    dependsOn(resolve1, resolve2)
+                    dependsOn(tasks.resolve1, tasks.resolve2)
                 }
             }
 
@@ -853,7 +851,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
                     identifier = "2"
                 }
                 task resolve {
-                    dependsOn(resolveSize, resolveHash)
+                    dependsOn(tasks.resolveSize, tasks.resolveHash)
                 }
             }
 
@@ -875,11 +873,11 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
 
         then:
         output.count("files 1: [lib1.jar.size, lib2.jar.size, lib3.jar.size, lib4-1.0.jar.size]") == 2
-        output.count("artifacts 1: [lib1.jar.size (project :lib), lib2.jar.size (project :lib), lib3.jar.size (lib3.jar), lib4-1.0.jar.size (org.test.foo:lib4:1.0)]") == 2
-        output.count("components 1: [project :lib, project :lib, lib3.jar, org.test.foo:lib4:1.0]") == 2
+        output.count("artifacts 1: [lib1.jar.size (project ':lib'), lib2.jar.size (project ':lib'), lib3.jar.size (lib3.jar), lib4-1.0.jar.size (org.test.foo:lib4:1.0)]") == 2
+        output.count("components 1: [project ':lib', project ':lib', lib3.jar, org.test.foo:lib4:1.0]") == 2
         output.count("files 2: [lib1.jar.hash, lib2.jar.hash, lib3.jar.hash, lib4-1.0.jar.hash]") == 2
-        output.count("artifacts 2: [lib1.jar.hash (project :lib), lib2.jar.hash (project :lib), lib3.jar.hash (lib3.jar), lib4-1.0.jar.hash (org.test.foo:lib4:1.0)]") == 2
-        output.count("components 2: [project :lib, project :lib, lib3.jar, org.test.foo:lib4:1.0]") == 2
+        output.count("artifacts 2: [lib1.jar.hash (project ':lib'), lib2.jar.hash (project ':lib'), lib3.jar.hash (lib3.jar), lib4-1.0.jar.hash (org.test.foo:lib4:1.0)]") == 2
+        output.count("components 2: [project ':lib', project ':lib', lib3.jar, org.test.foo:lib4:1.0]") == 2
 
         output.count("Transformed") == 8
         isTransformed("lib1.jar", "lib1.jar.size")
@@ -900,50 +898,6 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         output.count("Transformed") == 0
     }
 
-    @Requires(UnitTestPreconditions.NotWindows)
-    def "lock-free transform is run again and old output is removed after it failed in previous build"() {
-        given:
-        buildFile << declareAttributes() << multiProjectWithJarSizeTransform() << withJarTasks() << withFileLibDependency("lib3.jar") << withExternalLibDependency("lib4")
-
-        when:
-        executer.withArgument("-Dbroken=true")
-        fails ":app:resolve"
-
-        then:
-        failure.assertHasCause("Could not resolve all files for configuration ':app:compile'.")
-        failure.assertHasCause("Failed to transform lib1.jar (project :lib) to match attributes {artifactType=size, usage=api}")
-        failure.assertHasCause("Failed to transform lib2.jar (project :lib) to match attributes {artifactType=size, usage=api}")
-        def outputDir1 = gradleUserHomeOutputDir("lib1.jar", "lib1.jar.txt")
-        def outputDir2 = gradleUserHomeOutputDir("lib2.jar", "lib2.jar.txt")
-        def outputDir3 = gradleUserHomeOutputDir("lib3.jar", "lib3.jar.txt")
-        def outputDir4 = gradleUserHomeOutputDir("lib4-1.0.jar", "lib4-1.0.jar.txt")
-
-        when:
-        succeeds ":app:resolve"
-
-        then:
-        output.count("files: [lib1.jar.txt, lib2.jar.txt, lib3.jar.txt, lib4-1.0.jar.txt]") == 1
-
-        output.count("Transformed") == 4
-        isTransformed("lib1.jar", "lib1.jar.txt")
-        isTransformed("lib2.jar", "lib2.jar.txt")
-        isTransformed("lib3.jar", "lib3.jar.txt")
-        isTransformed("lib4-1.0.jar", "lib4-1.0.jar.txt")
-        gradleUserHomeOutputDir("lib1.jar", "lib1.jar.txt") != outputDir1
-        gradleUserHomeOutputDir("lib2.jar", "lib2.jar.txt") != outputDir2
-        gradleUserHomeOutputDir("lib3.jar", "lib3.jar.txt") != outputDir3
-        gradleUserHomeOutputDir("lib4-1.0.jar", "lib4-1.0.jar.txt") != outputDir4
-
-        when:
-        succeeds ":app:resolve"
-
-        then:
-        output.count("files: [lib1.jar.txt, lib2.jar.txt, lib3.jar.txt, lib4-1.0.jar.txt]") == 1
-
-        output.count("Transformed") == 0
-    }
-
-    @Requires(UnitTestPreconditions.Windows)
     def "workspace-locking transform is run again and deletes stale files after it failed in previous build"() {
         given:
         buildFile << declareAttributes() << multiProjectWithJarSizeTransform() << withJarTasks() << withFileLibDependency("lib3.jar") << withExternalLibDependency("lib4")
@@ -954,8 +908,8 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
 
         then:
         failure.assertHasCause("Could not resolve all files for configuration ':app:compile'.")
-        failure.assertHasCause("Failed to transform lib1.jar (project :lib) to match attributes {artifactType=size, usage=api}")
-        failure.assertHasCause("Failed to transform lib2.jar (project :lib) to match attributes {artifactType=size, usage=api}")
+        failure.assertHasCause("Failed to transform lib1.jar (project ':lib') to match attributes {artifactType=size, usage=api}")
+        failure.assertHasCause("Failed to transform lib2.jar (project ':lib') to match attributes {artifactType=size, usage=api}")
         def outputDir1 = gradleUserHomeOutputDir("lib1.jar", "lib1.jar.txt")
         def outputDir2 = gradleUserHomeOutputDir("lib2.jar", "lib2.jar.txt")
         def outputDir3 = gradleUserHomeOutputDir("lib3.jar", "lib3.jar.txt")
@@ -1046,7 +1000,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         (outputDirs.parentFile.name as Set).size() == 2
     }
 
-    @ToBeFixedForConfigurationCache(because = "project :lib-project:producer not found.")
+    @UnsupportedWithConfigurationCache(because = "Under CC, project references from included builds are not found when transforms are resolved from the configuration cache entry")
     def "workspace id of project transforms is unique per build with included builds"() {
         // The setup here is in a way that the project path of the project dependency in the same build
         // is the same as the buildTreePath of the substituted project dependency in the included build.
@@ -1325,7 +1279,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
                     destinationDirectory = buildDir
                 }
                 artifacts {
-                    compile jar1
+                    compile tasks.jar1
                 }
             }
 
@@ -1362,8 +1316,50 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         succeeds ":util:resolve"
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/28974")
+    def "non-incremental transform can recover if metadata is #description"() {
+        given:
+        buildFile << declareAttributes() << multiProjectWithJarSizeTransform() << withJarTasks() << withFileLibDependency("lib3.jar") << withExternalLibDependency("lib4")
+
+        when:
+        succeeds ":app:resolve"
+
+        then:
+        output.count("Transformed") == 4
+        output.count("files: [lib1.jar.txt, lib2.jar.txt, lib3.jar.txt, lib4-1.0.jar.txt]") == 1
+        def outputDir1 = gradleUserHomeOutputDir("lib1.jar", "lib1.jar.txt")
+        def output1Metadata = new File(outputDir1.listFiles { dir, name -> name == "lib1.jar.txt" }[0].parentFile.parentFile, "metadata.bin")
+        output1Metadata.exists()
+
+        when:
+        breakMetadataAction(output1Metadata)
+        succeeds ":app:resolve"
+
+        then:
+        output.count("files: [lib1.jar.txt, lib2.jar.txt, lib3.jar.txt, lib4-1.0.jar.txt]") == 1
+        output.count("Transformed") == 1
+        output.contains("Transformed lib1.jar to lib1.jar.txt")
+        isTransformed("lib1.jar", "lib1.jar.txt")
+
+        when:
+        succeeds ":app:resolve"
+
+        then:
+        output.count("Transformed") == 0
+
+        where:
+        description | breakMetadataAction
+        "broken"    | { File metadataFile -> metadataFile.text = "broken" }
+        "deleted"   | { File metadataFile -> assert metadataFile.delete() }
+    }
+
+    /**
+     * Note this always required a fresh daemon since we use cached snapshots for content. It just happens that if you run build twice with the same daemon new content is not cached yet.
+     *
+     * We can recover from metadata.bin corruption though, see the test "non-incremental transform succeeds even when workspace has been tampered with a new daemon and prints warning".
+     */
     @Issue("https://github.com/gradle/gradle/issues/28475")
-    def "non-incremental transform succeeds even when workspace has been tampered with"() {
+    def "non-incremental transform succeeds even when workspace has been tampered with a new daemon and prints warning"() {
         given:
         buildFile << declareAttributes() << duplicatorTransform() << """
             project(':lib') {
@@ -1372,7 +1368,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
                     destinationDirectory = buildDir
                 }
                 artifacts {
-                    compile jar1
+                    compile tasks.jar1
                 }
             }
 
@@ -1410,10 +1406,11 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         when:
         def outputDir = immutableOutputDir("lib1.jar", "0/lib1-green.jar")
         outputDir.file("tamper-tamper.txt").text = "Making a mess"
-        fails "util:resolve"
+        executer.requireIsolatedDaemons()
+        succeeds "util:resolve"
 
         then:
-        failure.assertThatCause(matchesPattern("""(?s)The contents of the immutable workspace '.*' have been modified\\. These workspace directories are not supposed to be modified once they are created\\. The modification might have been caused by an external process, or could be the result of disk corruption\\.
+        output.matches("""(?s).*The contents of the immutable workspace '.*' have been modified\\. These workspace directories are not supposed to be modified once they are created\\. The modification might have been caused by an external process, or could be the result of disk corruption\\.
 outputDirectory:
  - transformed \\(Directory, [0-9a-f]+\\)
    - 0 \\(Directory, [0-9a-f]+\\)
@@ -1421,7 +1418,7 @@ outputDirectory:
    - tamper-tamper.txt \\(RegularFile, [0-9a-f]+\\)
 
 resultsFile:
- - results.bin \\(RegularFile, [0-9a-f]+\\).*"""))
+ - results.bin \\(RegularFile, [0-9a-f]+\\).*""")
     }
 
     def "long transformation chain works"() {
@@ -1563,14 +1560,13 @@ resultsFile:
         fails ":app:resolve"
 
         then:
-        failure.assertHasDescription("Execution failed for task ':app:resolve'.")
+        failure.assertHasDescription("Execution failed for task ':app:resolve' (registered in build file 'build.gradle').")
         failure.assertResolutionFailure(":app:compile")
 
         where:
         failingTransform << (1..4)
     }
 
-    @ToBeFixedForConfigurationCache(because = "resolves external dependency when writing cache entry, rather than when running consuming task, so exception chain is different")
     def "failure in resolution propagates to chain (scheduled: #scheduled)"() {
         given:
         def module = mavenHttpRepo.module("test", "test", "1.3").publish()
@@ -1640,8 +1636,15 @@ resultsFile:
         fails ":app:resolve"
 
         then:
-        failure.assertHasDescription("Execution failed for task ':app:resolve'.")
-        failure.assertResolutionFailure(":app:compile")
+        if (GradleContextualExecuter.configCache) {
+            // Under CC, the broken artifact download happens during configuration cache entry writing,
+            // so the error is reported as a cache serialization failure
+            failure.assertHasDescription("Configuration cache state could not be cached: field `artifacts` of task `:app:resolve` of type `Resolve`: error writing value of type 'org.gradle.api.internal.provider.DefaultProperty'")
+            failure.assertHasCause("Could not download test-1.3.jar (test:test:1.3)")
+        } else {
+            failure.assertHasDescription("Execution failed for task ':app:resolve' (registered in build file 'build.gradle').")
+            failure.assertResolutionFailure(":app:compile")
+        }
         failure.hasErrorOutput("Received status code 500 from server: broken")
 
         where:
@@ -2027,7 +2030,7 @@ resultsFile:
                     }.artifacts
                 }
                 task resolve {
-                    dependsOn(resolveGreen, resolveBlue)
+                    dependsOn(tasks.resolveGreen, tasks.resolveBlue)
                 }
             }
         """
@@ -2062,18 +2065,18 @@ resultsFile:
 
         when:
         executer.requireIsolatedDaemons() // needs to stop daemon
-        requireOwnGradleUserHomeDir() // needs its own journal
+        requireOwnGradleUserHomeDir("needs its own journal")
         succeeds ":app:resolve"
 
         then:
-        def outputDir1 = immutableOutputDir("lib1-1.0.jar", "lib1-1.0.jar.txt").assertExists()
-        def outputDir2 = immutableOutputDir("lib2-1.0.jar", "lib2-1.0.jar.txt").assertExists()
+        def workspace1 = getWorkspaceRoot(immutableOutputDir("lib1-1.0.jar", "lib1-1.0.jar.txt").assertExists())
+        def workspace2 = getWorkspaceRoot(immutableOutputDir("lib2-1.0.jar", "lib2-1.0.jar.txt").assertExists())
         journal.assertExists()
 
         when:
         run '--stop' // ensure daemon does not cache file access times in memory
-        def beforeCleanup = MILLISECONDS.toSeconds(System.currentTimeMillis())
-        writeLastTransformationAccessTimeToJournal(getWorkspaceRoot(outputDir1), daysAgo(DEFAULT_MAX_AGE_IN_DAYS_FOR_CREATED_CACHE_ENTRIES + 1))
+        def beforeSoftCleanup = MILLISECONDS.toSeconds(System.currentTimeMillis())
+        writeLastTransformationAccessTimeToJournal(workspace1, daysAgo(DEFAULT_MAX_AGE_IN_DAYS_FOR_CREATED_CACHE_ENTRIES + 1))
         gcFile.lastModified = daysAgo(2)
 
         and:
@@ -2081,9 +2084,27 @@ resultsFile:
         executer.withTasks("help").start().waitForFinish()
 
         then:
-        outputDir1.assertDoesNotExist()
-        outputDir2.assertExists()
-        gcFile.lastModified() >= SECONDS.toMillis(beforeCleanup)
+        workspace1.assertExists()
+        workspace2.assertExists()
+        isSoftDeleted(workspace1.name)
+        locksAndSoftDeletionFilesExist(workspace1.name)
+        !isSoftDeleted(workspace2.name)
+        gcFile.lastModified() >= SECONDS.toMillis(beforeSoftCleanup)
+
+        when:
+        // Simulate passage of time beyond soft deletion window and trigger cleanup again
+        def beforeHardCleanup = MILLISECONDS.toSeconds(System.currentTimeMillis())
+        def sevenHoursAgo = System.currentTimeMillis() - TimeUnit.HOURS.toMillis(7)
+        setSoftDeletedTime(workspace1.name, sevenHoursAgo)
+        gcFile.lastModified = daysAgo(2)
+        // Run another Gradle invocation to perform the next cleanup pass (which should hard delete)
+        executer.withTasks("help").start().waitForFinish()
+
+        then:
+        workspace1.assertDoesNotExist()
+        locksAndSoftDeletionFilesAreDeleted(workspace1.name)
+        workspace2.assertExists()
+        gcFile.lastModified() >= SECONDS.toMillis(beforeHardCleanup)
     }
 
     def "cleans up cache when retention is configured less than the default"() {
@@ -2096,18 +2117,18 @@ resultsFile:
 
         when:
         executer.requireIsolatedDaemons() // needs to stop daemon
-        requireOwnGradleUserHomeDir() // needs its own journal
+        requireOwnGradleUserHomeDir("needs its own journal")
         succeeds ":app:resolve"
 
         then:
-        def outputDir1 = immutableOutputDir("lib1-1.0.jar", "lib1-1.0.jar.txt").assertExists()
-        def outputDir2 = immutableOutputDir("lib2-1.0.jar", "lib2-1.0.jar.txt").assertExists()
+        def workspace1 = getWorkspaceRoot(immutableOutputDir("lib1-1.0.jar", "lib1-1.0.jar.txt").assertExists())
+        def workspace2 = getWorkspaceRoot(immutableOutputDir("lib2-1.0.jar", "lib2-1.0.jar.txt").assertExists())
         journal.assertExists()
 
         when:
         run '--stop' // ensure daemon does not cache file access times in memory
         def beforeCleanup = MILLISECONDS.toSeconds(System.currentTimeMillis())
-        writeLastTransformationAccessTimeToJournal(getWorkspaceRoot(outputDir1), daysAgo(HALF_DEFAULT_MAX_AGE_IN_DAYS + 1))
+        writeLastTransformationAccessTimeToJournal(workspace1, daysAgo(HALF_DEFAULT_MAX_AGE_IN_DAYS + 1))
         gcFile.lastModified = daysAgo(2)
 
         and:
@@ -2115,9 +2136,27 @@ resultsFile:
         executer.withTasks("help").start().waitForFinish()
 
         then:
-        outputDir1.assertDoesNotExist()
-        outputDir2.assertExists()
+        // Entry should be soft-deleted (kept with markers)
+        workspace1.assertExists()
+        workspace2.assertExists()
+        isSoftDeleted(workspace1.name)
+        !isSoftDeleted(workspace2.name)
         gcFile.lastModified() >= SECONDS.toMillis(beforeCleanup)
+
+        when:
+        // Simulate passage of time beyond soft deletion window and trigger cleanup again
+        def beforeHardCleanupRetention = MILLISECONDS.toSeconds(System.currentTimeMillis())
+        def sevenHoursAgoRetention = System.currentTimeMillis() - TimeUnit.HOURS.toMillis(7)
+        setSoftDeletedTime(workspace1.name, sevenHoursAgoRetention)
+        gcFile.lastModified = daysAgo(2)
+        executer.withTasks("help").start().waitForFinish()
+
+        then:
+        // The previously soft-deleted entry should now be hard deleted
+        workspace1.assertDoesNotExist()
+        locksAndSoftDeletionFilesAreDeleted(workspace1. name)
+        workspace2.assertExists()
+        gcFile.lastModified() >= SECONDS.toMillis(beforeHardCleanupRetention)
     }
 
     def "always cleans up cache when configured"() {
@@ -2135,8 +2174,8 @@ resultsFile:
         succeeds ":app:resolve"
 
         then:
-        def outputDir1 = immutableOutputDir("lib1-1.0.jar", "lib1-1.0.jar.txt").assertExists()
-        def outputDir2 = immutableOutputDir("lib2-1.0.jar", "lib2-1.0.jar.txt").assertExists()
+        def workspace1 = getWorkspaceRoot(immutableOutputDir("lib1-1.0.jar", "lib1-1.0.jar.txt").assertExists())
+        def workspace2 = getWorkspaceRoot(immutableOutputDir("lib2-1.0.jar", "lib2-1.0.jar.txt").assertExists())
         journal.assertExists()
 
         when:
@@ -2146,7 +2185,7 @@ resultsFile:
         gcFile.assertExists()
 
         when:
-        writeLastTransformationAccessTimeToJournal(getWorkspaceRoot(outputDir1), daysAgo(HALF_DEFAULT_MAX_AGE_IN_DAYS + 1))
+        writeLastTransformationAccessTimeToJournal(workspace1, daysAgo(HALF_DEFAULT_MAX_AGE_IN_DAYS + 1))
 
         and:
         executer.beforeExecute {
@@ -2158,8 +2197,23 @@ resultsFile:
         executer.withTasks("help").start().waitForFinish()
 
         then:
-        outputDir1.assertDoesNotExist()
-        outputDir2.assertExists()
+        // Even with always cleanup, first step is soft delete, not immediate removal
+        workspace1.assertExists()
+        workspace2.assertExists()
+        isSoftDeleted(workspace1.name)
+        !isSoftDeleted(workspace2.name)
+
+        when:
+        // Simulate passage of time beyond soft deletion window and trigger cleanup again
+        def sevenHoursAgoAlways = System.currentTimeMillis() - TimeUnit.HOURS.toMillis(7)
+        setSoftDeletedTime(workspace1.name, sevenHoursAgoAlways)
+        executer.withTasks("help").start().waitForFinish()
+
+        then:
+        // The previously soft-deleted entry should now be hard deleted
+        workspace1.assertDoesNotExist()
+        locksAndSoftDeletionFilesAreDeleted(workspace1.name)
+        workspace2.assertExists()
     }
 
     def "does not clean up cache when retention is configured greater than the default"() {
@@ -2176,14 +2230,14 @@ resultsFile:
         succeeds ":app:resolve"
 
         then:
-        def outputDir1 = immutableOutputDir("lib1-1.0.jar", "lib1-1.0.jar.txt").assertExists()
-        def outputDir2 = immutableOutputDir("lib2-1.0.jar", "lib2-1.0.jar.txt").assertExists()
+        def workspace1 = getWorkspaceRoot(immutableOutputDir("lib1-1.0.jar", "lib1-1.0.jar.txt").assertExists())
+        def workspace2 = getWorkspaceRoot(immutableOutputDir("lib2-1.0.jar", "lib2-1.0.jar.txt").assertExists())
         journal.assertExists()
 
         when:
         run '--stop' // ensure daemon does not cache file access times in memory
         def beforeCleanup = MILLISECONDS.toSeconds(System.currentTimeMillis())
-        writeLastTransformationAccessTimeToJournal(getWorkspaceRoot(outputDir1), daysAgo(DEFAULT_MAX_AGE_IN_DAYS_FOR_CREATED_CACHE_ENTRIES + 1))
+        writeLastTransformationAccessTimeToJournal(workspace1, daysAgo(DEFAULT_MAX_AGE_IN_DAYS_FOR_CREATED_CACHE_ENTRIES + 1))
         gcFile.lastModified = daysAgo(2)
 
         and:
@@ -2191,14 +2245,16 @@ resultsFile:
         executer.withTasks("help").start().waitForFinish()
 
         then:
-        outputDir1.assertExists()
-        outputDir2.assertExists()
+        workspace1.assertExists()
+        workspace2.assertExists()
+        !isSoftDeleted(workspace1.name)
+        !isSoftDeleted(workspace2.name)
         gcFile.lastModified() >= SECONDS.toMillis(beforeCleanup)
     }
 
     def "cache cleanup does not delete entries that are currently being created"() {
         given:
-        requireOwnGradleUserHomeDir() // needs its own journal
+        requireOwnGradleUserHomeDir("needs its own journal")
         blockingHttpServer.start()
 
         and:
@@ -2275,6 +2331,7 @@ resultsFile:
         then: 'cleanup runs and preserves the cached transform'
         gcFile.lastModified() >= SECONDS.toMillis(beforeCleanup)
         cachedTransform.assertExists()
+        !isSoftDeleted(getWorkspaceRoot(cachedTransform).name)
 
         when: 'transforming build is allowed to finish'
         transformBarrier.releaseAll()
@@ -2297,15 +2354,14 @@ resultsFile:
         succeeds ":app:resolve"
 
         then:
-        def outputDir1 = immutableOutputDir("lib1-1.0.jar", "lib1-1.0.jar.txt").assertExists()
-        def outputDir2 = immutableOutputDir("lib2-1.0.jar", "lib2-1.0.jar.txt").assertExists()
+        def workspace1 = getWorkspaceRoot(immutableOutputDir("lib1-1.0.jar", "lib1-1.0.jar.txt").assertExists())
+        def workspace2 = getWorkspaceRoot(immutableOutputDir("lib2-1.0.jar", "lib2-1.0.jar.txt").assertExists())
         journal.assertExists()
 
         when:
-        executer.noDeprecationChecks()
         run '--stop' // ensure daemon does not cache file access times in memory
         def beforeCleanup = MILLISECONDS.toSeconds(System.currentTimeMillis())
-        writeLastTransformationAccessTimeToJournal(getWorkspaceRoot(outputDir1), daysAgo(DEFAULT_MAX_AGE_IN_DAYS_FOR_CREATED_CACHE_ENTRIES + 1))
+        writeLastTransformationAccessTimeToJournal(workspace1, daysAgo(DEFAULT_MAX_AGE_IN_DAYS_FOR_CREATED_CACHE_ENTRIES + 1))
         gcFile.lastModified = daysAgo(2)
 
         and:
@@ -2313,8 +2369,10 @@ resultsFile:
         executer.withTasks("help").start().waitForFinish()
 
         then:
-        outputDir1.assertExists()
-        outputDir2.assertExists()
+        workspace1.assertExists()
+        workspace2.assertExists()
+        !isSoftDeleted(workspace1.name)
+        !isSoftDeleted(workspace2.name)
     }
 
     String getResolveTask() {
@@ -2455,8 +2513,8 @@ resultsFile:
                     destinationDirectory = buildDir
                 }
                 artifacts {
-                    compile jar1
-                    compile jar2
+                    compile tasks.jar1
+                    compile tasks.jar2
                 }
             }
         """
@@ -2585,6 +2643,35 @@ resultsFile:
         return new TestFile(workspaceRoot.absolutePath)
     }
 
+    /**
+     * Returns true when both soft-delete markers exist for the given cache entry key.
+     */
+    boolean isSoftDeleted(String key) {
+        return new TestFile(cacheDir, ".internal/gc/${key}/soft.deleted").exists()
+            && new TestFile(cacheDir, ".internal/gc/${key}/gc.properties").exists()
+    }
+
+    /**
+     * Sets the lastModified time for the soft-delete marker files of the given key.
+     */
+    void setSoftDeletedTime(String key, long millis) {
+        def keyGcDir = new TestFile(cacheDir, ".internal/gc/${key}")
+        def softDeleted = keyGcDir.file("soft.deleted")
+        def softGc = keyGcDir.file("gc.properties")
+        softDeleted.lastModified = millis
+        softGc.lastModified = millis
+    }
+
+    boolean locksAndSoftDeletionFilesExist(String key) {
+        return new TestFile(cacheDir, ".internal/locks/${key}.lock").exists()
+            && new TestFile(cacheDir, ".internal/gc/${key}").exists()
+    }
+
+    boolean locksAndSoftDeletionFilesAreDeleted(String key) {
+        return !new TestFile(cacheDir, ".internal/locks/${key}.lock").exists()
+            && !new TestFile(cacheDir, ".internal/gc/${key}").exists()
+    }
+
     private final quotedFileSeparator = Pattern.quote(File.separator)
 
     Set<TestFile> outputDirs(String from, String to, String outputDirPattern, Closure<String> stream = { output }) {
@@ -2600,7 +2687,7 @@ resultsFile:
     }
 
     TestFile getGcFile() {
-        return cacheDir.file("gc.properties")
+        return cacheDir.file(".internal/gc.properties")
     }
 
     TestFile getCacheDir() {

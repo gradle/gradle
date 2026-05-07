@@ -5,6 +5,10 @@ import kotlinx.serialization.Serializable
 import org.gradle.declarative.dsl.schema.AnalysisSchema
 import org.gradle.declarative.dsl.schema.AssignmentAugmentation
 import org.gradle.declarative.dsl.schema.ConfigureAccessor
+import org.gradle.declarative.dsl.schema.ConfigureAccessor.ProjectFeature.BindingTargetStrategy
+import org.gradle.declarative.dsl.schema.CustomAccessorIdentifier.ContainerAccessorIdentifier
+import org.gradle.declarative.dsl.schema.CustomAccessorIdentifier.ExtensionAccessorIdentifier
+import org.gradle.declarative.dsl.schema.CustomAccessorIdentifier.ProjectFeatureIdentifier
 import org.gradle.declarative.dsl.schema.ContainerElementFactory
 import org.gradle.declarative.dsl.schema.DataBuilderFunction
 import org.gradle.declarative.dsl.schema.DataClass
@@ -27,13 +31,21 @@ import org.gradle.declarative.dsl.schema.FunctionSemantics.AddAndConfigure
 import org.gradle.declarative.dsl.schema.FunctionSemantics.Builder
 import org.gradle.declarative.dsl.schema.FunctionSemantics.ConfigureSemantics.ConfigureBlockRequirement
 import org.gradle.declarative.dsl.schema.FunctionSemantics.Pure
+import org.gradle.declarative.dsl.schema.ConfigureFromGetterOrigin
+import org.gradle.declarative.dsl.schema.CustomAccessorIdentifier.CustomAccessorType
 import org.gradle.declarative.dsl.schema.ParameterSemantics
 import org.gradle.declarative.dsl.schema.SchemaItemMetadata
 import org.gradle.declarative.dsl.schema.SchemaMemberFunction
 import org.gradle.declarative.dsl.schema.ProjectFeatureOrigin
+import org.gradle.declarative.dsl.schema.UnsafeBecauseHasHiddenMembers
+import org.gradle.declarative.dsl.schema.UnsafeBecauseHasNonPublicMembers
+import org.gradle.declarative.dsl.schema.UnsafeNonPureFunction
+import org.gradle.declarative.dsl.schema.UnsafeInjectProperty
+import org.gradle.declarative.dsl.schema.UnsafeJavaBeanProperty
+import org.gradle.declarative.dsl.schema.UnsafeNonAbstractMember
+import org.gradle.declarative.dsl.schema.UnsafeNonInterfaceType
 import org.gradle.declarative.dsl.schema.VarargParameter
 import org.gradle.internal.declarativedsl.language.DataTypeInternal
-
 
 @Serializable
 @SerialName("analysisSchema")
@@ -58,7 +70,8 @@ data class DefaultDataClass(
     override val supertypes: Set<FqName>,
     override val properties: List<DataProperty>,
     override val memberFunctions: List<SchemaMemberFunction>,
-    override val constructors: List<DataConstructor>
+    override val constructors: List<DataConstructor>, // TODO: remove this property
+    override val metadata: List<SchemaItemMetadata>
 ) : DataClass {
     override fun toString(): String = name.simpleName
 }
@@ -69,7 +82,8 @@ data class DefaultDataClass(
 data class DefaultEnumClass(
     override val name: FqName,
     override val javaTypeName: String,
-    override val entryNames: List<String>
+    override val entryNames: List<String>,
+    override val metadata: List<SchemaItemMetadata>
 ) : EnumClass {
     override fun toString(): String = name.simpleName
 }
@@ -83,9 +97,17 @@ data class DefaultDataProperty(
     override val mode: PropertyMode,
     override val hasDefaultValue: Boolean,
     override val isHiddenInDsl: Boolean = false,
-    override val isDirectAccessOnly: Boolean = false
+    override val isDirectAccessOnly: Boolean = false,
+    override val metadata: List<SchemaItemMetadata> = emptyList()
 ) : DataProperty {
     data object DefaultPropertyMode {
+        fun of(canRead: Boolean, canWrite: Boolean): PropertyMode = when {
+            canRead && canWrite -> DefaultReadWrite
+            canRead -> DefaultReadOnly
+            canWrite -> DefaultWriteOnly
+            else -> error("unexpected property mode combination: canRead=false, canWrite=false")
+        }
+
         @Serializable
         data object DefaultReadWrite : PropertyMode.ReadWrite {
             @Suppress("unused")
@@ -222,7 +244,8 @@ object FunctionSemanticsInternal {
     data class DefaultAccessAndConfigure(
         override val accessor: ConfigureAccessor,
         override val returnType: ReturnType,
-        override val configureBlockRequirement: ConfigureBlockRequirement
+        override val configuredType: DataTypeRef,
+        override val configureBlockRequirement: ConfigureBlockRequirement,
     ) : AccessAndConfigure {
         override val returnValueType: DataTypeRef
             get() = when (returnType) {
@@ -302,8 +325,16 @@ object ConfigureAccessorInternal {
     data class DefaultProperty(override val dataProperty: DataProperty) : ConfigureAccessor.Property
 
     @Serializable
-    @SerialName("custom")
-    data class DefaultCustom(override val objectType: DataTypeRef, override val customAccessorIdentifier: String) : ConfigureAccessor.Custom
+    @SerialName("extension")
+    data class DefaultExtension(override val objectType: DataTypeRef, override val accessorIdentifier: ExtensionAccessorIdentifier) : ConfigureAccessor.Custom
+
+    @Serializable
+    @SerialName("container")
+    data class DefaultContainer(override val objectType: DataTypeRef, override val accessorIdentifier: ContainerAccessorIdentifier) : ConfigureAccessor.Custom
+
+    @Serializable
+    @SerialName("projectFeature")
+    data class DefaultProjectFeature(override val objectType: DataTypeRef, override val accessorIdentifier: ProjectFeatureIdentifier, override val bindingTargetStrategy: BindingTargetStrategy) : ConfigureAccessor.ProjectFeature
 
     @Serializable
     @SerialName("configuringLambdaArgument")
@@ -311,6 +342,106 @@ object ConfigureAccessorInternal {
 
     // TODO: configure all elements by addition key?
     // TODO: Do we want to support configuring external objects?
+}
+
+
+object BindingTargetStrategyInternal {
+    @Serializable
+    @SerialName("toDefinition")
+    data object ToDefinition : BindingTargetStrategy.ToDefinition {
+        @Suppress("unused")
+        private
+        fun readResolve(): Any = ToDefinition
+    }
+
+    @Serializable
+    @SerialName("toBuildModel")
+    data object ToBuildModel : BindingTargetStrategy.ToBuildModel {
+        @Suppress("unused")
+        private
+        fun readResolve(): Any = ToBuildModel
+    }
+}
+
+
+@Serializable
+@SerialName("settingsExtensionIdentifier")
+data class DefaultSettingsExtensionAccessorIdentifier(
+    override val name: String
+) : ExtensionAccessorIdentifier {
+    @SerialName("accessorType")
+    override val type = SettingsAccessorType
+
+    override fun toString(): String {
+        return "${type}:${name}"
+    }
+
+    @Serializable
+    data object SettingsAccessorType : CustomAccessorType.Extension {
+        override fun toString(): String {
+            return "settingsExtension"
+        }
+
+        @Suppress("unused")
+        private
+        fun readResolve(): Any = SettingsAccessorType
+
+    }
+
+}
+
+
+@Serializable
+@SerialName("containerAccessorIdentifier")
+data class DefaultContainerAccessorIdentifier(
+    override val name: String,
+    override val elementTypeClassName: String
+) : ContainerAccessorIdentifier {
+    @SerialName("accessorType")
+    override val type = ContainerAccessorType
+
+    override fun toString(): String {
+        return "${type}:${elementTypeClassName}:${name}"
+    }
+
+    @Serializable
+    data object ContainerAccessorType : CustomAccessorType.Container {
+        override fun toString(): String {
+            return "container"
+        }
+
+        @Suppress("unused")
+        private
+        fun readResolve(): Any = ContainerAccessorType
+    }
+
+}
+
+
+@Serializable
+@SerialName("projectFeatureAccessorIdentifier")
+data class DefaultProjectFeatureAccessorIdentifier(
+    override val name: String,
+    override val targetTypeClassName: String
+) : ProjectFeatureIdentifier {
+    @SerialName("accessorType")
+    override val type = ProjectFeatureAccessorType
+
+    override fun toString(): String {
+        return "${type}:${name}:${targetTypeClassName}"
+    }
+
+    @Serializable
+    data object ProjectFeatureAccessorType : CustomAccessorType.ProjectFeature {
+        override fun toString(): String {
+            return "projectFeature"
+        }
+
+        @Suppress("unused")
+        private
+        fun readResolve(): Any = ProjectFeatureAccessorType
+    }
+
 }
 
 
@@ -388,8 +519,61 @@ object SchemaItemMetadataInternal {
             override val ecosystemPluginClassName: String,
             override val ecosystemPluginId: String?,
             override val targetDefinitionClassName: String?,
-            override val targetBuildModelClassName: String?
+            override val targetBuildModelClassName: String?,
+            override val isSafeDefinition: Boolean
         ) : ProjectFeatureOrigin
+
+        @Serializable
+        @SerialName("configureFromGetterOrigin")
+        data class DefaultConfigureFromGetterOrigin(
+            override val javaClassName: String,
+            override val memberName: String
+        ) : ConfigureFromGetterOrigin
+    }
+
+    object UnsafeSchemaItemInternal {
+        @Serializable
+        @SerialName("unsafeNonInterfaceType")
+        data object DefaultUnsafeNonInterfaceType : UnsafeNonInterfaceType {
+            @Suppress("unused")
+            private fun readResolve(): Any = DefaultUnsafeNonInterfaceType
+        }
+
+        @Serializable
+        @SerialName("unsafeNonAbstractMember")
+        data object DefaultUnsafeNonAbstractMember : UnsafeNonAbstractMember {
+            @Suppress("unused")
+            private fun readResolve(): Any = DefaultUnsafeNonAbstractMember
+        }
+
+        @Serializable
+        @SerialName("unsafeInjectProperty")
+        data object DefaultUnsafeInjectProperty : UnsafeInjectProperty {
+            @Suppress("unused")
+            private fun readResolve(): Any = DefaultUnsafeInjectProperty
+        }
+
+        @Serializable
+        @SerialName("unsafeJavaBeanProperty")
+        data object DefaultUnsafeJavaBeanProperty : UnsafeJavaBeanProperty {
+            @Suppress("unused")
+            private fun readResolve(): Any = DefaultUnsafeJavaBeanProperty
+        }
+
+        @Serializable
+        @SerialName("unsafeFunction")
+        data object DefaultUnsafeNonPureFunction : UnsafeNonPureFunction {
+            @Suppress("unused")
+            private fun readResolve(): Any = DefaultUnsafeNonPureFunction
+        }
+
+        @Serializable
+        @SerialName("unsafeBecauseHasHiddenMembers")
+        data class DefaultUnsafeBecauseHasHiddenMembers(override val memberNames: List<String>) : UnsafeBecauseHasHiddenMembers
+
+        @Serializable
+        @SerialName("unsafeBecauseHasNonPublicMembers")
+        data class DefaultUnsafeBecauseHasNonPublicMembers(override val memberNames: List<String>) : UnsafeBecauseHasNonPublicMembers
     }
 }
 

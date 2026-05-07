@@ -21,16 +21,9 @@ import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 
 class DependencyResolveRulesDisableGlobalDependencySubstitutionIntegrationTest extends AbstractIntegrationSpec {
 
-    ResolveTestFixture resolveLocal
-    ResolveTestFixture resolvePublished
+    ResolveTestFixture resolve = new ResolveTestFixture(testDirectory)
 
     def setup() {
-        resolveLocal = new ResolveTestFixture(buildFile, 'localPath')
-        resolveLocal.expectDefaultConfiguration('runtime')
-        resolvePublished = new ResolveTestFixture(buildFile, 'publishedPath')
-        resolvePublished.expectDefaultConfiguration('runtime')
-        resolveLocal.addJavaEcosystem()
-
         mavenRepo.module("org.test", "m2", "1.0").dependsOn("org.test", "m3", "1.0").withModuleMetadata().publish()
         mavenRepo.module("org.test", "m3", '1.0').withModuleMetadata().publish()
 
@@ -60,7 +53,13 @@ class DependencyResolveRulesDisableGlobalDependencySubstitutionIntegrationTest e
         """
 
         file("m1/build.gradle") << """
+            plugins {
+                id("jvm-ecosystem")
+            }
+
             $common
+
+            ${resolve.configureProject("localPath", "publishedPath")}
 
             configurations.create('localPath') {
                 extendsFrom(configurations.conf)
@@ -91,18 +90,8 @@ class DependencyResolveRulesDisableGlobalDependencySubstitutionIntegrationTest e
         file("m3/build.gradle") << common
     }
 
-    def resolveLocalPath() {
-        resolveLocal.prepare()
-        resolveLocal
-    }
-
-    def resolvePublishedPath() {
-        resolvePublished.prepare()
-        resolvePublished
-    }
-
-    def static expectResolvedToLocal(ResolveTestFixture resolve) {
-        resolve.expectGraph {
+    void expectResolvedToLocal() {
+        resolve.expectGraph(":m1") {
             root(":m1", "org.test:m1:0.9") {
                 edge("org.test:m2:1.0", ":m2", "org.test:m2:0.9") {
                     compositeSubstitute()
@@ -114,34 +103,30 @@ class DependencyResolveRulesDisableGlobalDependencySubstitutionIntegrationTest e
                 }
             }
         }
-        true
     }
 
-    def static expectResolveToPublished(ResolveTestFixture resolve) {
-        resolve.expectGraph {
+    void expectResolveToPublished() {
+        resolve.expectGraph(":m1") {
             root(":m1", "org.test:m1:0.9") {
                 edge("org.test:m2:1.0", "org.test:m2:1.0") {
                     edge("org.test:m3:1.0", "org.test:m3:1.0") { }
                 }
             }
         }
-        true
     }
 
     def "global dependency substitution is only disabled for the configuration that it is configured for"() {
         when:
-        resolveLocalPath()
-        run ':m1:checkDeps'
+        run ':m1:checkLocalPath'
 
         then:
-        expectResolvedToLocal(resolveLocal)
+        expectResolvedToLocal()
 
         when:
-        resolvePublishedPath()
-        run ':m1:checkDeps'
+        run ':m1:checkPublishedPath'
 
         then:
-        expectResolveToPublished(resolvePublished)
+        expectResolveToPublished()
     }
 
     def "global dependency substitution can be re-enabled"() {
@@ -151,11 +136,10 @@ class DependencyResolveRulesDisableGlobalDependencySubstitutionIntegrationTest e
         """
 
         when:
-        resolvePublishedPath()
-        run ':m1:checkDeps'
+        run ':m1:checkPublishedPath'
 
         then:
-        expectResolvedToLocal(resolvePublished)
+        expectResolvedToLocal()
     }
 
 
@@ -168,18 +152,16 @@ class DependencyResolveRulesDisableGlobalDependencySubstitutionIntegrationTest e
         """
 
         when:
-        resolveLocalPath()
-        run ':m1:checkDeps'
+        run ':m1:checkLocalPath'
 
         then:
-        expectResolveToPublished(resolveLocal)
+        expectResolveToPublished()
 
         when:
-        resolvePublishedPath()
-        run ':m1:checkDeps'
+        run ':m1:checkPublishedPath'
 
         then:
-        expectResolveToPublished(resolvePublished)
+        expectResolveToPublished()
     }
 
 }

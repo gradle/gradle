@@ -16,66 +16,40 @@
 
 package org.gradle.kotlin.dsl.plugins.precompiled
 
-import org.jetbrains.kotlin.K1Deprecation
-import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSourceLocation
-import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
-import org.jetbrains.kotlin.cli.common.messages.MessageCollector
-
-import org.jetbrains.kotlin.cli.jvm.compiler.EnvironmentConfigFiles
-import org.jetbrains.kotlin.cli.jvm.compiler.KotlinCoreEnvironment
-
-import org.jetbrains.kotlin.com.intellij.openapi.project.Project
+import org.jetbrains.kotlin.cli.jvm.compiler.IdeaStandaloneExecutionSetup
+import org.jetbrains.kotlin.cli.jvm.compiler.KotlinCoreApplicationEnvironment
+import org.jetbrains.kotlin.cli.jvm.compiler.KotlinCoreApplicationEnvironmentMode
+import org.jetbrains.kotlin.cli.jvm.compiler.KotlinCoreProjectEnvironment
 import org.jetbrains.kotlin.com.intellij.openapi.util.Disposer
 import org.jetbrains.kotlin.com.intellij.psi.PsiManager
 import org.jetbrains.kotlin.com.intellij.testFramework.LightVirtualFile
-
-import org.jetbrains.kotlin.config.CommonConfigurationKeys
-import org.jetbrains.kotlin.config.CompilerConfiguration
-
 import org.jetbrains.kotlin.idea.KotlinFileType
-
+import org.jetbrains.kotlin.parsing.KotlinParserDefinition
 import org.jetbrains.kotlin.psi.KtFile
 
 
 object KotlinParser {
 
     fun <T> map(code: String, f: KtFile.() -> T): T =
-        withProject { f(parse("code.kt", code)) }
+        withPsiManager { f(parse("code.kt", code)) }
 
-    fun Project.parse(name: String, code: String): KtFile =
-        psiManager.findFile(virtualFile(name, code)) as KtFile
+    fun PsiManager.parse(name: String, code: String): KtFile =
+        findFile(virtualFile(name, code)) as KtFile
 
     fun virtualFile(name: String, code: String) =
         LightVirtualFile(name, KotlinFileType.INSTANCE, code)
 
-    val Project.psiManager
-        get() = PsiManager.getInstance(this)
-
-    @OptIn(K1Deprecation::class)
-    fun <T> withProject(f: Project.() -> T): T {
-        val parentDisposable = Disposer.newDisposable()
+    fun <T> withPsiManager(f: PsiManager.() -> T): T {
+        val disposable = Disposer.newDisposable()
         try {
-            val project =
-                KotlinCoreEnvironment.createForProduction(
-                    parentDisposable,
-                    CompilerConfiguration().apply {
-                        put(CommonConfigurationKeys.MESSAGE_COLLECTOR_KEY, TestMessageCollector)
-                    },
-                    EnvironmentConfigFiles.JVM_CONFIG_FILES
-                ).project
-
-            return f(project)
+            IdeaStandaloneExecutionSetup.doSetup()
+            val applicationEnvironment = KotlinCoreApplicationEnvironment.create(disposable, KotlinCoreApplicationEnvironmentMode.UnitTest)
+            applicationEnvironment.registerParserDefinition(KotlinParserDefinition())
+            val projectEnvironment = KotlinCoreProjectEnvironment(disposable, applicationEnvironment)
+            val manager = PsiManager.getInstance(projectEnvironment.project)
+            return f(manager)
         } finally {
-            parentDisposable.dispose()
-        }
-    }
-
-    private
-    object TestMessageCollector : MessageCollector {
-        override fun clear() = Unit
-        override fun hasErrors(): Boolean = false
-        override fun report(severity: CompilerMessageSeverity, message: String, location: CompilerMessageSourceLocation?) {
-            println("$severity: $message")
+            disposable.dispose()
         }
     }
 }

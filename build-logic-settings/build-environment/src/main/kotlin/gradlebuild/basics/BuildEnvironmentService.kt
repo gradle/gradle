@@ -37,6 +37,7 @@ abstract class BuildEnvironmentService : BuildService<BuildEnvironmentService.Pa
 
     val gitCommitId = git("rev-parse", "HEAD")
     val gitBranch = git("rev-parse", "--abbrev-ref", "HEAD")
+    val scriptTemplateCommitId = git("log", "-1", "--format=%H", "--", "platforms/jvm/plugins-application/src/main/resources/org/gradle/api/internal/plugins/unixStartScript.txt")
 
     @Suppress("UnstableApiUsage")
     private

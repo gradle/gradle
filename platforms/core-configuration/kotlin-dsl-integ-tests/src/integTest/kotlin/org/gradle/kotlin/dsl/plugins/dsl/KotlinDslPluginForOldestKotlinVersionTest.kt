@@ -18,7 +18,7 @@ package org.gradle.kotlin.dsl.plugins.dsl
 
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
@@ -28,11 +28,11 @@ import org.junit.Test
  */
 class KotlinDslPluginForOldestKotlinVersionTest : AbstractKotlinIntegrationTest() {
 
-    private val oldestKotlinLanguageVersion = "1.8"
+    private val oldestKotlinLanguageVersion = "1.9"
 
     @Test
     @Requires(
-        IntegTestPreconditions.NotEmbeddedExecutor::class,
+        TestExecutionPreconditions.NotEmbeddedExecutor::class,
         reason = "Kotlin version leaks on the classpath when running embedded"
     )
     fun `can build plugin for oldest supported Kotlin language version using last published plugin`() {
@@ -42,7 +42,7 @@ class KotlinDslPluginForOldestKotlinVersionTest : AbstractKotlinIntegrationTest(
 
     @Test
     @Requires(
-        IntegTestPreconditions.NotEmbeddedExecutor::class,
+        TestExecutionPreconditions.NotEmbeddedExecutor::class,
         reason = "Kotlin version leaks on the classpath when running embedded"
     )
     fun `can build plugin for oldest supported Kotlin language version using locally built plugin`() {
@@ -72,7 +72,7 @@ class KotlinDslPluginForOldestKotlinVersionTest : AbstractKotlinIntegrationTest(
         withBuildScript("""plugins { id("some") }""")
 
         repeat(2) {
-            executer.expectExternalDeprecatedMessage("w: Language version $oldestKotlinLanguageVersion is deprecated and its support will be removed in a future version of Kotlin")
+            executer.expectExternalDeprecatedMessage("w: Language version $oldestKotlinLanguageVersion is deprecated in JVM and its support will be removed in a future version of Kotlin. Update the version to 2.1.")
         }
 
         build("help").apply {

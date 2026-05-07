@@ -338,8 +338,8 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         fails(":a:resolve")
 
         then:
-        failure.assertHasDescription("Execution failed for task ':a:resolve'.")
-        failure.assertHasCause("Failed to transform b.jar (project :b) to match attributes {artifactType=jar, color=green}.")
+        failure.assertHasDescription("Execution failed for task ':a:resolve' (registered in build file 'build.gradle').")
+        failure.assertHasCause("Failed to transform b.jar (project ':b') to match attributes {artifactType=jar, color=green}.")
         failure.assertHasCause("No service of type interface ${serviceType} available.")
 
         where:
@@ -428,9 +428,9 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         fails(":a:resolve")
 
         then:
-        failure.assertHasDescription("Execution failed for task ':a:resolve'.")
+        failure.assertHasDescription("Execution failed for task ':a:resolve' (registered in build file 'build.gradle').")
         failure.assertHasCause("Could not resolve all files for configuration ':a:resolver'.")
-        failure.assertHasCause("Failed to transform b.jar (project :b) to match attributes {artifactType=jar, color=green}.")
+        failure.assertHasCause("Failed to transform b.jar (project ':b') to match attributes {artifactType=jar, color=green}.")
         failure.assertThatCause(matchesRegexp('Could not isolate parameters MakeGreen\\$Parameters_Decorated@.* of artifact transform MakeGreen'))
         failure.assertHasCause('Some problems were found with the configuration of the artifact transform parameter MakeGreen.Parameters.')
         assertPropertyValidationErrors(
@@ -455,7 +455,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         )
     }
 
-    def "cannot query parameters for transform without parameters"() {
+    def "can query parameters for transform with None parameters"() {
         createDirs("a", "b", "c")
         settingsFile << """
             include 'a', 'b', 'c'
@@ -471,17 +471,14 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
 
             abstract class MakeGreen implements TransformAction<TransformParameters.None> {
                 void transform(TransformOutputs outputs) {
-                    println getParameters()
+                    println("Parameters: " + getParameters())
                 }
             }
         """
 
-        when:
-        fails(":a:resolve")
-
-        then:
-        failure.assertResolutionFailure(':a:resolver')
-        failure.assertHasCause("Cannot query the parameters of an instance of TransformAction that takes no parameters.")
+        expect:
+        succeeds(":a:resolve")
+        outputContains("Parameters: org.gradle.api.artifacts.transform.TransformParameters\$None@")
     }
 
     def "transform parameters type cannot use caching annotations"() {
@@ -519,9 +516,9 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         fails(":a:resolve")
 
         then:
-        failure.assertHasDescription("Execution failed for task ':a:resolve'.")
+        failure.assertHasDescription("Execution failed for task ':a:resolve' (registered in build file 'build.gradle').")
         failure.assertHasCause("Could not resolve all files for configuration ':a:resolver'.")
-        failure.assertHasCause("Failed to transform b.jar (project :b) to match attributes {artifactType=jar, color=green}.")
+        failure.assertHasCause("Failed to transform b.jar (project ':b') to match attributes {artifactType=jar, color=green}.")
         failure.assertThatCause(matchesRegexp('Could not isolate parameters MakeGreen\\$Parameters_Decorated@.* of artifact transform MakeGreen'))
         failure.assertHasCause('Some problems were found with the configuration of the artifact transform parameter MakeGreen.Parameters.')
         failure.assertHasCause(invalidUseOfCacheableAnnotation {
@@ -569,9 +566,9 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         fails(":a:resolve")
 
         then:
-        failure.assertHasDescription("Execution failed for task ':a:resolve'.")
+        failure.assertHasDescription("Execution failed for task ':a:resolve' (registered in build file 'build.gradle').")
         failure.assertHasCause("Could not resolve all files for configuration ':a:resolver'.")
-        failure.assertHasCause("Failed to transform b.jar (project :b) to match attributes {artifactType=jar, color=green}.")
+        failure.assertHasCause("Failed to transform b.jar (project ':b') to match attributes {artifactType=jar, color=green}.")
         failure.assertThatCause(matchesRegexp('Could not isolate parameters MakeGreen\\$Parameters_Decorated@.* of artifact transform MakeGreen'))
         failure.assertHasCause('A problem was found with the configuration of the artifact transform parameter MakeGreen.Parameters.')
         assertPropertyValidationErrors(bad: annotationInvalidInContext { annotation(ann.simpleName) })
@@ -972,7 +969,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
 
         then:
         // Documents existing behaviour. Should fail eagerly and with a better error message
-        failure.assertHasDescription("Execution failed for task ':a:resolve'.")
+        failure.assertHasDescription("Execution failed for task ':a:resolve' (registered in build file 'build.gradle').")
         failure.assertHasCause("Execution failed for MakeGreen: ${file('b/build/b.jar')}.")
         failure.assertHasCause("No service of type class ${File.name} available.")
     }

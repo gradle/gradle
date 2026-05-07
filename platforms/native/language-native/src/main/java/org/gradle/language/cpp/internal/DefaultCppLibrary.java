@@ -60,18 +60,22 @@ public abstract class DefaultCppLibrary extends DefaultCppComponent implements C
 
         dependencies = getObjectFactory().newInstance(DefaultLibraryDependencies.class, getNames().withSuffix("implementation"), getNames().withSuffix("api"));
 
-        Usage apiUsage = getObjectFactory().named(Usage.class, Usage.C_PLUS_PLUS_API);
-
         this.apiElements = configurations.consumable(getNames().withSuffix("cppApiElements"), conf -> {
             conf.extendsFrom(dependencies.getApiDependencies());
-            conf.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, apiUsage);
-            conf.getAttributes().attribute(ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE, ArtifactTypeDefinition.DIRECTORY_TYPE);
+            AttributeContainer attrs = conf.getAttributes();
+            setApiUsage(attrs);
+
+            attrs.attribute(ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE, ArtifactTypeDefinition.DIRECTORY_TYPE);
         });
 
         AttributeContainer publicationAttributes = attributesFactory.mutable();
-        publicationAttributes.attribute(Usage.USAGE_ATTRIBUTE, apiUsage);
+        setApiUsage(publicationAttributes);
         publicationAttributes.attribute(ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE, ArtifactTypeDefinition.ZIP_TYPE);
         mainVariant = new MainLibraryVariant("api", apiElements, publicationAttributes, getObjectFactory());
+    }
+
+    private static void setApiUsage(AttributeContainer attrs) {
+        attrs.attribute(Usage.USAGE_ATTRIBUTE, attrs.named(Usage.class, Usage.C_PLUS_PLUS_API));
     }
 
     public DefaultCppSharedLibrary addSharedLibrary(NativeVariantIdentity identity, CppPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider) {

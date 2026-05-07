@@ -53,7 +53,7 @@ public class ProcessBootstrap {
             ClassPathRegistry classPathRegistry = new DefaultClassPathRegistry(new DefaultClassPathProvider(moduleRegistry));
             ClassLoaderFactory classLoaderFactory = new DefaultClassLoaderFactory();
             ClassPath antClasspath = classPathRegistry.getClassPath("ANT");
-            ClassPath runtimeClasspath = moduleRegistry.getModule(moduleName).getAllRequiredModulesClasspath();
+            ClassPath runtimeClasspath = moduleRegistry.getRuntimeClasspath(moduleName);
             antClassLoader = classLoaderFactory.createIsolatedClassLoader("ant-loader", antClasspath);
             runtimeClassLoader = VisitableURLClassLoader.fromClassPath("ant-and-gradle-loader", antClassLoader, runtimeClasspath);
         } catch (NoClassDefFoundError e) {

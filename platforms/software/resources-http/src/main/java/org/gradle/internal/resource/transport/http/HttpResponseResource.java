@@ -34,17 +34,17 @@ public class HttpResponseResource implements ExternalResourceReadResponse {
 
     private final String method;
     private final URI source;
-    private final HttpClientResponse response;
+    private final HttpClient.Response response;
     private final ExternalResourceMetaData metaData;
     private boolean wasOpened;
 
-    public HttpResponseResource(String method, URI source, HttpClientResponse response) {
+    public HttpResponseResource(String method, URI source, HttpClient.Response response) {
         this.method = method;
         this.source = source;
         this.response = response;
 
         String etag = getEtag(response);
-        this.metaData = new DefaultExternalResourceMetaData(source, getLastModified(), getContentLength(), getContentType(), etag, getSha1(response, etag), getFilename(), response.wasMissing());
+        this.metaData = new DefaultExternalResourceMetaData(source, getLastModified(), getContentLength(), getContentType(), etag, getSha1(response, etag), getFilename(), response.isMissing());
     }
 
     public URI getURI() {
@@ -62,7 +62,7 @@ public class HttpResponseResource implements ExternalResourceReadResponse {
     }
 
     public int getStatusCode() {
-        return response.getStatusLine().getStatusCode();
+        return response.getStatusCode();
     }
 
     public Date getLastModified() {
@@ -147,11 +147,11 @@ public class HttpResponseResource implements ExternalResourceReadResponse {
         response.close();
     }
 
-    private static String getEtag(HttpClientResponse response) {
+    private static String getEtag(HttpClient.Response response) {
         return response.getHeader(HttpHeaders.ETAG);
     }
 
-    private static HashCode getSha1(HttpClientResponse response, String etag) {
+    private static HashCode getSha1(HttpClient.Response response, String etag) {
         String sha1Header = response.getHeader("X-Checksum-Sha1");
         if (sha1Header != null) {
             return HashCode.fromString(sha1Header);

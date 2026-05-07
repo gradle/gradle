@@ -33,7 +33,10 @@ public class PmdReportsImpl extends DelegatingReportContainer<SingleFileReport> 
     public PmdReportsImpl(Describable owner, ObjectFactory objectFactory) {
         super(DefaultReportContainer.create(objectFactory, SingleFileReport.class, factory -> ImmutableList.of(
             factory.instantiateReport(DefaultSingleFileReport.class, "html", owner),
-            factory.instantiateReport(DefaultSingleFileReport.class, "xml", owner)
+            factory.instantiateReport(DefaultSingleFileReport.class, "xml", owner),
+            factory.instantiateReport(DefaultSingleFileReport.class, "csv", owner),
+            factory.instantiateReport(DefaultSingleFileReport.class, "codeClimate", owner),
+            factory.instantiateReport(DefaultSingleFileReport.class, "sarif", owner)
         )));
     }
 
@@ -45,5 +48,20 @@ public class PmdReportsImpl extends DelegatingReportContainer<SingleFileReport> 
     @Override
     public SingleFileReport getXml() {
         return getByName("xml");
+    }
+
+    @Override
+    public SingleFileReport getCsv() {
+        return getByName("csv");
+    }
+
+    @Override
+    public SingleFileReport getCodeClimate() {
+        return getByName("codeClimate");
+    }
+
+    @Override
+    public SingleFileReport getSarif() {
+        return getByName("sarif");
     }
 }

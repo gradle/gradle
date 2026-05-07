@@ -16,12 +16,13 @@
 
 package org.gradle.smoketests
 
+import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager
 import org.gradle.plugin.management.internal.autoapply.AutoAppliedDevelocityPlugin
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.TaskOutcome
 import org.gradle.util.GradleVersion
@@ -37,12 +38,12 @@ class DevelocityPluginSmokeTest extends AbstractSmokeTest {
     enum CI {
         // https://github.com/jenkinsci/gradle-plugin/releases
         JENKINS(
-            "2.16.1149.v711b_998b_0532",
+            "2.18.1203.v2c96b_1243c72",
             "https://raw.githubusercontent.com/jenkinsci/gradle-plugin/refs/tags/%s/plugin/src/main/resources/hudson/plugins/gradle/injection/init-script.gradle"
         ),
         // https://github.com/gradle/develocity-bamboo-plugin/releases
         BAMBOO(
-            "develocity-bamboo-plugin-3.0.2",
+            "develocity-bamboo-plugin-3.0.4",
             "https://raw.githubusercontent.com/gradle/develocity-bamboo-plugin/refs/tags/%s/src/main/resources/develocity/gradle/develocity-init-script.gradle"
         );
 
@@ -159,7 +160,12 @@ class DevelocityPluginSmokeTest extends AbstractSmokeTest {
         "4.1.1",
         "4.2",
         "4.2.1",
-        "4.2.2"
+        "4.2.2",
+        "4.3",
+        "4.3.1",
+        "4.3.2",
+        "4.4.0",
+        "4.4.1"
     ]
 
     // Current injection scripts support Develocity plugin 3.6.4 and above
@@ -171,6 +177,10 @@ class DevelocityPluginSmokeTest extends AbstractSmokeTest {
     private static final VersionNumber FIRST_VERSION_SUPPORTING_SAFE_MODE = VersionNumber.parse("3.15")
     private static final VersionNumber FIRST_VERSION_UNDER_DEVELOCITY_BRAND = VersionNumber.parse("3.17")
     private static final VersionNumber FIRST_VERSION_WITH_IMPORT_JUNIT_XML_REPORTS = VersionNumber.parse("3.17")
+    private static final VersionNumber FIRST_VERSION_WITHOUT_CROSS_PROJECT_IMPORT_JUNIT_XML_REPORTS = VersionNumber.parse("4.4")
+    private static final VersionNumber FIRST_VERSION_WITHOUT_PARENT_PROPERTY_LOOKUP = VersionNumber.parse("4.0")
+
+    private String currentPluginVersion
 
     def "coverage at least up to auto-applied version"() {
         expect:
@@ -186,7 +196,11 @@ class DevelocityPluginSmokeTest extends AbstractSmokeTest {
             .build().output.contains("Build scan written to")
 
         where:
-        version << SUPPORTED
+        version << (
+            GradleContextualExecuter.isolatedProjects
+                ? SUPPORTED.findAll { FIRST_VERSION_SUPPORTING_ISOLATED_PROJECTS <= VersionNumber.parse(it) }
+                : SUPPORTED
+        )
     }
 
     @Issue("https://github.com/gradle/gradle/issues/34252")
@@ -258,21 +272,7 @@ public class MyFlakyTest {
         version << SUPPORTED.grep { String version -> VersionNumber.parse(version) >= FIRST_VERSION_UNDER_DEVELOCITY_BRAND }
     }
 
-    @Requires(value = IntegTestPreconditions.NotConfigCached, reason = "Isolated projects implies config cache")
-    def "can use plugin #version with isolated projects"() {
-        when:
-        usePluginVersion version
-
-        then:
-        scanRunner("-Dorg.gradle.unsafe.isolated-projects=true")
-            .build().output.contains("Build scan written to")
-
-        where:
-        version << SUPPORTED
-            .findAll { FIRST_VERSION_SUPPORTING_ISOLATED_PROJECTS <= VersionNumber.parse(it) }
-    }
-
-    @Requires(value = IntegTestPreconditions.NotConfigCached, reason = "Isolated projects implies config cache")
+    @Requires(value = TestExecutionPreconditions.NotConfigCached, reason = "Isolated projects implies config cache")
     def "can use plugin #version with isolated projects and test acceleration features"() {
         when:
         usePluginVersion version
@@ -336,7 +336,7 @@ public class MyFlakyTest {
             .findAll { VersionNumber.parse(it) >= FIRST_VERSION_SUPPORTING_ISOLATED_PROJECTS_FOR_TEST_ACCELERATION }
     }
 
-    @Requires(value = IntegTestPreconditions.NotConfigCached, reason = "Isolated projects implies config cache")
+    @Requires(value = TestExecutionPreconditions.NotConfigCached, reason = "Isolated projects implies config cache")
     def "cannot use plugin #version with isolated projects"() {
         when:
         usePluginVersion version
@@ -394,8 +394,9 @@ public class MyFlakyTest {
         version << UNSUPPORTED
     }
 
-    @Requires(IntegTestPreconditions.NotConfigCached)
+    @Requires(TestExecutionPreconditions.NotConfigCached)
     def "can inject plugin #pluginVersion in #ci using '#ciScriptVersion' script version"() {
+        currentPluginVersion = pluginVersion
         def versionNumber = VersionNumber.parse(pluginVersion)
         def initScript = "init-script.gradle"
         file(initScript) << getCiInjectionScriptContent(ci)
@@ -461,12 +462,13 @@ public class MyFlakyTest {
         ciScriptVersion = ci.gitRef
     }
 
-    def "can use ImportJUnitXmlReports"() {
+    @ToBeFixedForIsolatedProjects(because = "Test specifically verifies IP unsafe behavior")
+    def "can use ImportJUnitXmlReports across projects"() {
         when:
         usePluginVersion version
 
         and:
-        settingsFile < < """
+        settingsFile << """
             include('sub')
         """
         buildFile << """
@@ -483,7 +485,47 @@ public class MyFlakyTest {
             ImportJUnitXmlReports.register(tasks, testTask, JUnitXmlDialect.ANDROID_CONNECTED)
         """
 
-        file("androidTest-results/TEST-Pixel_5_API_30(AVD) - 11-app-.xml").text = """<?xml version='1.0' encoding='UTF-8' ?>
+        file("androidTest-results/TEST-Pixel_5_API_30(AVD) - 11-app-.xml").text = sampleAndroidJUnitXmlResults()
+
+        then:
+        def result = build(":fakeTest")
+        result.task(":sub:fakeTestImportJUnitXmlReports").outcome == TaskOutcome.SUCCESS
+
+        where:
+        version << SUPPORTED.findAll {
+            def v = VersionNumber.parse(it)
+            v >= FIRST_VERSION_WITH_IMPORT_JUNIT_XML_REPORTS && v < FIRST_VERSION_WITHOUT_CROSS_PROJECT_IMPORT_JUNIT_XML_REPORTS
+        }
+    }
+
+    def "can use ImportJUnitXmlReports in same project"() {
+        when:
+        usePluginVersion version
+
+        and:
+        buildFile << """
+            import com.gradle.develocity.agent.gradle.test.ImportJUnitXmlReports
+            import com.gradle.develocity.agent.gradle.test.JUnitXmlDialect
+
+            tasks.register('fakeTest', Copy) {
+                from("androidTest-results/TEST-Pixel_5_API_30(AVD) - 11-app-.xml")
+                into(layout.buildDirectory.dir("result"))
+            }
+            ImportJUnitXmlReports.register(tasks, tasks.named('fakeTest'), JUnitXmlDialect.ANDROID_CONNECTED)
+        """
+
+        file("androidTest-results/TEST-Pixel_5_API_30(AVD) - 11-app-.xml").text = sampleAndroidJUnitXmlResults()
+
+        then:
+        def result = build(":fakeTest")
+        result.task(":fakeTestImportJUnitXmlReports").outcome == TaskOutcome.SUCCESS
+
+        where:
+        version << SUPPORTED.findAll { VersionNumber.parse(it) >= FIRST_VERSION_WITHOUT_CROSS_PROJECT_IMPORT_JUNIT_XML_REPORTS }
+    }
+
+    private static String sampleAndroidJUnitXmlResults() {
+        """<?xml version='1.0' encoding='UTF-8' ?>
 <testsuite name="com.example.ClassName" tests="1" failures="1" errors="0" skipped="0" time="1.419" timestamp="2021-08-26T09:42:57" hostname="localhost">
   <properties>
     <property name="device" value="Pixel_5_API_30(AVD) - 11" />
@@ -494,13 +536,6 @@ public class MyFlakyTest {
     <failure>foo</failure>
   </testcase>
 </testsuite>"""
-
-        then:
-        def result = build(":fakeTest")
-        result.task(":sub:fakeTestImportJUnitXmlReports").outcome == TaskOutcome.SUCCESS
-
-        where:
-        version << SUPPORTED.findAll { VersionNumber.parse(it) >= FIRST_VERSION_WITH_IMPORT_JUNIT_XML_REPORTS }
     }
 
     private static boolean supportsSafeMode(VersionNumber pluginVersion) {
@@ -513,10 +548,23 @@ public class MyFlakyTest {
 
     SmokeTestGradleRunner scanRunner(String... args) {
         // Run with --build-cache to test also build cache events
-        runner("build", "-Dscan.dump", "--build-cache", *args)
+        def runner = runner("build", "-Dscan.dump", "--build-cache", *args)
+        if (currentPluginVersion != null && VersionNumber.parse(currentPluginVersion) < FIRST_VERSION_WITHOUT_PARENT_PROPERTY_LOOKUP) {
+            // Plugin check-in only deprecates once per daemon, so multiple builds in the same test
+            // would only see the warning on the first run.
+            runner.maybeExpectLegacyDeprecationWarning(
+                "Usage of the Develocity plugin ${currentPluginVersion} has been deprecated. " +
+                    "This will fail with an error in Gradle 10. " +
+                    "The plugin application will be ignored. " +
+                    "Upgrade to version 4.0 or later of the Develocity plugin. " +
+                    "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_9.html#deprecated_develocity_plugin_pre_4_0"
+            )
+        }
+        runner
     }
 
     void usePluginVersion(String version) {
+        currentPluginVersion = version
         def develocityPlugin = VersionNumber.parse(version) >= VersionNumber.parse("3.17")
         def gradleEnterprisePlugin = VersionNumber.parse(version) >= VersionNumber.parse("3.0")
         if (develocityPlugin) {

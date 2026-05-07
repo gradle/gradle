@@ -17,7 +17,7 @@
 package org.gradle.testkit.runner.enduser
 
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import org.gradle.testkit.runner.BaseGradleRunnerIntegrationTest
 import org.gradle.testkit.runner.fixtures.NonCrossVersion
 import org.gradle.util.UsesNativeServices
@@ -25,7 +25,7 @@ import org.gradle.util.internal.TextUtil
 
 @NonCrossVersion
 @UsesNativeServices
-@Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = BaseTestKitEndUserIntegrationTest.NOT_EMBEDDED_REASON)
+@Requires(value = TestExecutionPreconditions.NotEmbeddedExecutor, reason = BaseTestKitEndUserIntegrationTest.NOT_EMBEDDED_REASON)
 class GradleRunnerDefaultTestKitDirIntegrationTest extends BaseGradleRunnerIntegrationTest implements TestKitDependencyBlock {
 
     def setup() {
@@ -79,7 +79,7 @@ class GradleRunnerDefaultTestKitDirIntegrationTest extends BaseGradleRunnerInteg
             class Test extends Specification {
                 def "default test kit provider value is derived from system property"() {
                     when:
-                    def runner = GradleRunner.create() as DefaultGradleRunner
+                    def runner = GradleRunner.create().withDebug($embedded) as DefaultGradleRunner
                     def dir = runner.testKitDirProvider.dir
                     then:
                     dir.toPath().startsWith("${TextUtil.normaliseFileSeparators(workerTmpDir.absolutePath)}")
@@ -116,7 +116,7 @@ class GradleRunnerDefaultTestKitDirIntegrationTest extends BaseGradleRunnerInteg
 
                 def "default test kit provider value is derived from system property"() {
                     when:
-                    def runner = GradleRunner.create() as DefaultGradleRunner
+                    def runner = GradleRunner.create().withDebug($embedded) as DefaultGradleRunner
                     def dir = runner.testKitDirProvider.dir
                     then:
                     dir == new File("${TextUtil.normaliseFileSeparators(customTestKitDir.absolutePath)}")

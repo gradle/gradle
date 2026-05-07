@@ -19,11 +19,12 @@ package org.gradle.integtests
 
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
+import org.gradle.test.preconditions.OsTestPreconditions
+
 import spock.lang.Issue
 
-@Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = NOT_EMBEDDED_REASON)
+@Requires(value = TestExecutionPreconditions.NotEmbeddedExecutor, reason = NOT_EMBEDDED_REASON)
 class WrapperLoggingIntegrationTest extends AbstractWrapperIntegrationSpec {
 
     def setup() {
@@ -35,7 +36,7 @@ class WrapperLoggingIntegrationTest extends AbstractWrapperIntegrationSpec {
 
     def "wrapper does not render welcome message when executed in quiet mode"() {
         given:
-        prepareWrapper()
+        prepareWrapper().run()
 
         when:
         args '-q'
@@ -47,7 +48,7 @@ class WrapperLoggingIntegrationTest extends AbstractWrapperIntegrationSpec {
 
     def "wrapper renders welcome message when executed the first time"() {
         given:
-        prepareWrapper()
+        prepareWrapper().run()
 
         when:
         result = wrapperExecuter.withTasks("emptyTask").run()
@@ -64,7 +65,7 @@ class WrapperLoggingIntegrationTest extends AbstractWrapperIntegrationSpec {
 
     def "wrapper renders welcome message when executed the first time after being executed in quiet mode"() {
         given:
-        prepareWrapper()
+        prepareWrapper().run()
 
         when:
         args '-q'
@@ -80,7 +81,7 @@ class WrapperLoggingIntegrationTest extends AbstractWrapperIntegrationSpec {
         outputContains("Welcome to Gradle $wrapperExecuter.distribution.version.version!")
     }
 
-    @Requires(UnitTestPreconditions.NotWindows)
+    @Requires(OsTestPreconditions.NotWindows)
     def "wrapper logs and continues when there is a problem setting permissions"() {
         given: "malformed distribution"
         // Repackage distribution with bin/gradle removed so permissions cannot be set
@@ -90,7 +91,7 @@ class WrapperLoggingIntegrationTest extends AbstractWrapperIntegrationSpec {
         TestFile tempZipDir = temporaryFolder.createDir("temp-zip-foo")
         TestFile malformedDistZip = new TestFile(tempZipDir, "gradle-${distribution.version.version}-bin.zip")
         tempUnzipDir.zipTo(malformedDistZip)
-        prepareWrapper(malformedDistZip.toURI())
+        prepareWrapper(malformedDistZip.toURI()).run()
 
         when:
         result = wrapperExecuter
@@ -105,7 +106,7 @@ class WrapperLoggingIntegrationTest extends AbstractWrapperIntegrationSpec {
         given: "empty distribution"
         TestFile tempUnzipDir = temporaryFolder.createDir("empty-distribution")
         TestFile malformedDistZip = new TestFile(tempUnzipDir, "gradle-${distribution.version.version}-bin.zip") << ""
-        prepareWrapper(malformedDistZip.toURI())
+        prepareWrapper(malformedDistZip.toURI()).run()
 
         when:
         failure = wrapperExecuter
@@ -120,7 +121,7 @@ class WrapperLoggingIntegrationTest extends AbstractWrapperIntegrationSpec {
 
     def "wrapper prints progress which contains all tenths of percentages except zero"() {
         given:
-        prepareWrapper()
+        prepareWrapper().run()
 
         when:
         result = wrapperExecuter.run()
@@ -132,7 +133,7 @@ class WrapperLoggingIntegrationTest extends AbstractWrapperIntegrationSpec {
     @Issue("https://github.com/gradle/gradle/issues/19585")
     def "Can configure log level with command-line Gradle property on Turkish Locale"() {
         setup:
-        prepareWrapper()
+        prepareWrapper().run()
 
         expect:
         wrapperExecuter

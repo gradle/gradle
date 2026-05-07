@@ -17,7 +17,6 @@
 package org.gradle.smoketests
 
 import groovy.transform.SelfType
-import org.gradle.api.problems.Severity
 import org.gradle.plugin.devel.tasks.TaskValidationReportFixture
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testkit.runner.TaskOutcome
@@ -72,12 +71,6 @@ trait WithPluginValidation {
             spec()
         }
 
-        void onPlugins(List<String> someIds, @DelegatesTo(value = PluginValidation, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
-            someIds.each {
-                onPlugin(it, spec)
-            }
-        }
-
         protected void performValidation(List<String> extraParameters = []) {
             owner.file("validate-external-gradle-plugin.gradle.kts") << getClass().getResource("validate-external-gradle-plugin.gradle.kts").text
 
@@ -104,7 +97,7 @@ trait WithPluginValidation {
                     !(it.outcome in [
                         TaskOutcome.NO_SOURCE,
                         TaskOutcome.SKIPPED
-                    ]) && it.path.contains(taskPattern) && !it.path.startsWith(':plugins:') // ignore plugins project from previous version, it doesn't exist anymore (TODO: remove this check)
+                    ]) && it.path.contains(taskPattern)
                 }
                 .collect {
                     def idx = it.path.indexOf(taskPattern)
@@ -145,7 +138,7 @@ trait WithPluginValidation {
         private final String pluginId
         private final File reportFile
 
-        private Map<String, Severity> messages = [:]
+        private Map<String, String> messages = [:]
 
         boolean skipped
         boolean tested
@@ -183,12 +176,8 @@ trait WithPluginValidation {
             messages = [:]
         }
 
-        void failsWith(Map<String, Severity> messages) {
+        void failsWith(Map<String, String> messages) {
             this.messages = messages
-        }
-
-        void failsWith(String singleMessage, Severity severity) {
-            failsWith([(singleMessage): severity])
         }
     }
 

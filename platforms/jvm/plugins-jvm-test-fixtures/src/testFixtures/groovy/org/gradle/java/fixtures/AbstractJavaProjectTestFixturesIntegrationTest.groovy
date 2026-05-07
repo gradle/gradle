@@ -362,6 +362,8 @@ hamcrest-core-1.3.jar
     }
 
     def "can consume test fixtures of an external module"() {
+        def resolve = new ResolveTestFixture(testDirectory)
+
         mavenRepo.module("com.acme", "external-module", "1.3")
                 .variant("testFixturesApiElements", ['org.gradle.usage': 'java-api', 'org.gradle.libraryelements': 'jar']) {
                     capability('com.acme', 'external-module-test-fixtures', '1.3')
@@ -385,11 +387,12 @@ hamcrest-core-1.3.jar
                     url = "${mavenRepo.uri}"
                 }
             }
+
+            ${resolve.configureProject("testCompileClasspath", "testRuntimeClasspath")}
         """
+
         when:
-        def resolve = new ResolveTestFixture(buildFile, "testCompileClasspath")
-        resolve.prepare()
-        succeeds ':checkdeps'
+        succeeds ':checkTestCompileClasspath'
 
         then:
         resolve.expectGraph {
@@ -413,9 +416,7 @@ hamcrest-core-1.3.jar
         }
 
         when:
-        resolve = new ResolveTestFixture(buildFile, "testRuntimeClasspath")
-        resolve.prepare()
-        succeeds ':checkdeps'
+        succeeds ':checkTestRuntimeClasspath'
 
         then:
         resolve.expectGraph {

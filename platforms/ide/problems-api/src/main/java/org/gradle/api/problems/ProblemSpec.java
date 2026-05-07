@@ -29,6 +29,8 @@ import org.gradle.api.Incubating;
 public interface ProblemSpec {
     /**
      * Declares a short, but context-dependent message for this problem.
+     * <p>
+     * The label is expected to span a single line. Any newline characters will be removed.
      *
      * @param contextualLabel the short message
      * @return this
@@ -174,6 +176,8 @@ public interface ProblemSpec {
      * @param severity the severity
      * @return this
      * @since 8.6
+     * @deprecated Severity is now determined automatically: use {@link ProblemReporter#report} for warnings and {@link ProblemReporter#throwing} for errors.
      */
+    @Deprecated
     ProblemSpec severity(Severity severity);
 }

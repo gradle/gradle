@@ -101,6 +101,7 @@ class ClassTypeWrapper implements TypeWrapper {
         return representation.toString();
     }
 
+    @SuppressWarnings("NonApiType") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
     private ArrayList<Class<?>> getEnclosingClassChain() {
         ArrayList<Class<?>> classChain = new ArrayList<Class<?>>();
         Class<?> clazz = unwrap();

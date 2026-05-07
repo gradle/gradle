@@ -16,14 +16,14 @@
 
 package org.gradle.testing.testng
 
+import org.gradle.api.internal.tasks.testing.report.VerifiesGenericTestReportResults
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.testing.fixture.TestNGCoverage
 import org.gradle.util.internal.VersionNumber
 
 @TargetCoverage({ TestNGCoverage.SUPPORTED_BY_JDK })
-class AbstractTestNGVersionIntegrationTest extends MultiVersionIntegrationSpec {
-
+class AbstractTestNGVersionIntegrationTest extends MultiVersionIntegrationSpec implements VerifiesGenericTestReportResults {
     static boolean supportConfigFailurePolicy() {
         return versionNumber >= VersionNumber.parse('5.13')
     }

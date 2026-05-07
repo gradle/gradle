@@ -29,26 +29,28 @@ class IvyDynamicRevisionMultiRepoResolveIntegrationTest extends AbstractDependen
         given:
         def repo1 = ivyRepo("ivyRepo1")
         def repo2 = ivyRepo("ivyRepo2")
+        def resolve = new ResolveTestFixture(testDirectory)
 
-        and:
         buildFile << """
-  repositories {
-      ivy {
-          url = "${repo1.uri}"
-      }
-      ivy {
-          url = "${repo2.uri}"
-      }
+            repositories {
+                ivy {
+                    url = "${repo1.uri}"
+                }
+                ivy {
+                    url = "${repo2.uri}"
+                }
+            }
 
-  }
-  configurations { compile }
-  dependencies {
-      compile 'org.test:projectA:latest.milestone'
-  }
-  """
-        and:
-        def resolve = new ResolveTestFixture(buildFile, "compile")
-        resolve.prepare()
+            configurations {
+                compile
+            }
+
+            ${resolve.configureProject("compile")}
+
+            dependencies {
+                compile 'org.test:projectA:latest.milestone'
+            }
+        """
 
         when:
         repo1.module('org.test', 'projectA', '1.1').withStatus("milestone").publish()

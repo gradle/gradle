@@ -37,6 +37,7 @@ import org.gradle.internal.snapshot.SnapshotVisitResult;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.BiPredicate;
 
@@ -70,7 +71,6 @@ public class OutputSnapshotUtil {
                     if (previous == null) {
                         return FileSystemSnapshot.EMPTY;
                     }
-                    //noinspection ConstantConditions
                     return findOutputPropertyStillPresentSincePreviousExecution(previous, unfilteredBeforeExecution);
                 }
             )
@@ -108,12 +108,9 @@ public class OutputSnapshotUtil {
         return copyOfSorted(transformEntries(
             unfilteredAfterExecutionSnapshots,
             (propertyName, unfilteredAfterExecution) -> {
-                // This can never be null as it comes from an ImmutableMap's value
-                assert unfilteredAfterExecution != null;
-
                 FileSystemSnapshot previous = previousSnapshots.get(propertyName);
                 FileSystemSnapshot unfilteredBeforeExecution = unfilteredBeforeExecutionSnapshots.get(propertyName);
-                return filterOutputAfterExecution(previous, unfilteredBeforeExecution, unfilteredAfterExecution);
+                return filterOutputAfterExecution(previous, Objects.requireNonNull(unfilteredBeforeExecution), unfilteredAfterExecution);
             }
         ));
     }
@@ -169,8 +166,10 @@ public class OutputSnapshotUtil {
         private final ImmutableList.Builder<FileSystemSnapshot> newRootsBuilder = ImmutableList.builder();
 
         private boolean hasBeenFiltered;
+        @Nullable
         private DirectorySnapshotBuilder directorySnapshotBuilder;
         private boolean currentRootFiltered;
+        @Nullable
         private DirectorySnapshot currentRoot;
 
         public SnapshotFilteringVisitor(BiPredicate<FileSystemLocationSnapshot, Boolean> predicate) {
@@ -183,6 +182,9 @@ public class OutputSnapshotUtil {
             EmptyDirectoryHandlingStrategy emptyDirectoryHandlingStrategy = isOutputDir
                 ? INCLUDE_EMPTY_DIRS
                 : EXCLUDE_EMPTY_DIRS;
+            if (directorySnapshotBuilder == null) {
+                throw new IllegalStateException("DirectorySnapshot builder has not been set");
+            }
             directorySnapshotBuilder.enterDirectory(directorySnapshot, emptyDirectoryHandlingStrategy);
         }
 
@@ -228,6 +230,9 @@ public class OutputSnapshotUtil {
 
         @Override
         public void leaveDirectory(DirectorySnapshot directorySnapshot, boolean isRoot) {
+            if (directorySnapshotBuilder == null) {
+                throw new  IllegalStateException("DirectorySnapshot builder has not been set");
+            }
             boolean excludedDir = directorySnapshotBuilder.leaveDirectory() == null;
             if (excludedDir) {
                 currentRootFiltered = true;
@@ -236,7 +241,7 @@ public class OutputSnapshotUtil {
             if (isRoot) {
                 FileSystemLocationSnapshot result = directorySnapshotBuilder.getResult();
                 if (result != null) {
-                    newRootsBuilder.add(currentRootFiltered ? result : currentRoot);
+                    newRootsBuilder.add(currentRootFiltered ? result : Objects.requireNonNull(currentRoot));
                 }
                 directorySnapshotBuilder = null;
                 currentRoot = null;

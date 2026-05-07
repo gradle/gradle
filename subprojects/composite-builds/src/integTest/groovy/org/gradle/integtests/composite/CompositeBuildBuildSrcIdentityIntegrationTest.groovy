@@ -78,8 +78,8 @@ class CompositeBuildBuildSrcIdentityIntegrationTest extends AbstractCompositeBui
         then:
         outputContains("""
 runtimeClasspath - Runtime classpath of source set 'main'.
-\\--- project :buildB:buildSrc:b1
-     \\--- project :buildB:buildSrc:b2
+\\--- project ':buildB:buildSrc:b1'
+     \\--- project ':buildB:buildSrc:b2'
 """)
 
         where:
@@ -125,7 +125,7 @@ Required by:
         fails(buildA, ":assemble")
 
         then:
-        failure.assertHasDescription("Execution failed for task ':buildB:buildSrc:classes'.")
+        failure.assertHasDescription("Execution failed for task ':buildB:buildSrc:classes' (registered by plugin class 'org.gradle.api.plugins.JavaBasePlugin').")
         failure.assertHasCause("broken")
 
         where:
@@ -163,7 +163,7 @@ Required by:
 
                 def selectors = configurations.runtimeClasspath.incoming.resolutionResult.allDependencies.requested
                 assert selectors.size() == 1
-                assert selectors[0].displayName == 'project :buildB:buildSrc:a'
+                assert selectors[0].displayName == 'project \\':buildB:buildSrc:a\\''
                 assert selectors[0].buildPath == ':buildB:buildSrc'
                 assert selectors[0].projectPath == ':a'
             }
@@ -178,5 +178,3 @@ Required by:
         "rootProject.name='someLib'" | "someLib"       | "configured root project name"
     }
 }
-
-

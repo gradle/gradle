@@ -17,8 +17,6 @@
 package org.gradle.internal.declarativedsl.mappingToJvm
 
 import org.gradle.declarative.dsl.model.annotations.Adding
-import org.gradle.declarative.dsl.model.annotations.Configuring
-import org.gradle.declarative.dsl.model.annotations.Restricted
 import org.gradle.internal.declarativedsl.demo.resolve
 import org.gradle.internal.declarativedsl.schemaBuilder.kotlinFunctionAsConfigureLambda
 import org.gradle.internal.declarativedsl.schemaBuilder.schemaFromTypes
@@ -36,7 +34,7 @@ class EmptyBlocksTest {
             """.trimIndent()
         )
 
-        val result = runtimeInstanceFromResult(schema, resolution, kotlinFunctionAsConfigureLambda, RuntimeCustomAccessors.none, ::TopLevel)
+        val result = runtimeInstanceFromResult(resolution, kotlinFunctionAsConfigureLambda, RuntimeCustomAccessors.none, ::TopLevel)
 
         assertTrue { result.configuredLazy.isInitialized() }
     }
@@ -49,7 +47,7 @@ class EmptyBlocksTest {
             """.trimIndent()
         )
 
-        val result = runtimeInstanceFromResult(schema, resolution, kotlinFunctionAsConfigureLambda, RuntimeCustomAccessors.none, ::TopLevel)
+        val result = runtimeInstanceFromResult(resolution, kotlinFunctionAsConfigureLambda, RuntimeCustomAccessors.none, ::TopLevel)
 
         assertTrue { result.configuredLazy.isInitialized() }
     }
@@ -66,7 +64,7 @@ class EmptyBlocksTest {
             """.trimIndent()
         )
 
-        val result = runtimeInstanceFromResult(schema, resolution, kotlinFunctionAsConfigureLambda, RuntimeCustomAccessors.none, ::TopLevel)
+        val result = runtimeInstanceFromResult(resolution, kotlinFunctionAsConfigureLambda, RuntimeCustomAccessors.none, ::TopLevel)
 
         assertEquals(listOf(0, 0, 2, 3, 4), result.added.map { it.x })
     }
@@ -81,7 +79,6 @@ class EmptyBlocksTest {
         val added = mutableListOf<Inner>()
 
         @Suppress("unused")
-        @Configuring
         fun configuring(block: Inner.() -> Unit = { }) {
             configuredLazy.value.block()
         }
@@ -97,7 +94,6 @@ class EmptyBlocksTest {
     }
 
     class Inner {
-        @get:Restricted
         var x: Int = 0
     }
 }

@@ -21,26 +21,26 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 
-import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache.Skip.*
 
 class CachedTaskActionIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture {
 
-    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def "ad hoc tasks with different actions don't share results"() {
         buildFile << """
             task first {
-                outputs.file file("first.txt")
+                def outputFile = file("first.txt")
+                outputs.file(outputFile)
                 outputs.cacheIf { true }
                 doFirst {
-                    file("first.txt").text = "Hello from the first task"
+                    outputFile.text = "Hello from the first task"
                 }
             }
 
             task second {
-                outputs.file file("second.txt")
+                def secondOutputFile = file("second.txt")
+                outputs.file(secondOutputFile)
                 outputs.cacheIf { true }
                 doFirst {
-                    file("second.txt").text = "Hello from the second task"
+                    secondOutputFile.text = "Hello from the second task"
                 }
             }
         """
@@ -53,7 +53,7 @@ class CachedTaskActionIntegrationTest extends AbstractIntegrationSpec implements
         file("second.txt").text == "Hello from the second task"
     }
 
-    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
+    @ToBeFixedForConfigurationCache(because = "build cache is not shared, https://github.com/gradle/gradle/issues/37247")
     def "ad hoc tasks with the same action share results"() {
         file("input.txt").text = "data"
         buildFile << """

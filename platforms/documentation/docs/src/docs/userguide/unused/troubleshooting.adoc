@@ -27,9 +27,12 @@ If you installed Gradle outside of just invoking the <<gradle_wrapper.adoc#gradl
 
 You should see something like this:
 
+[source,bash]
 ----
-❯ gradle --version
-
+$ ./gradlew --version
+----
+[source,text]
+----
 ------------------------------------------------------------
 Gradle {gradleVersion}
 ------------------------------------------------------------
@@ -55,15 +58,20 @@ If you get "command not found: gradle", you must ensure that Gradle is correctly
 
 If you get an error like:
 
+[source,text]
 ----
 ERROR: JAVA_HOME is set to an invalid directory
 ----
 
 Set the JAVA_HOME variable in your environment to match the location of your Java installation:
 
+[source,bash]
 ----
 $ export JAVA_HOME=/Users/user/Library/Java/JavaVirtualMachines/corretto-22.0.1/Contents/Home
 $ echo $JAVA_HOME
+----
+[source,text]
+----
 /Users/user/Library/Java/JavaVirtualMachines/corretto-22.0.1/Contents/Home
 ----
 
@@ -109,8 +117,9 @@ You can change the port number by setting the `org.gradle.debug.port` property t
 
 To attach the debugger remotely via the network, you must set the `org.gradle.debug.host` property to the machine's IP address or `*` (listen on all interfaces).
 
+[source,bash]
 ----
-❯ gradle help -Dorg.gradle.debug=true
+$ ./gradlew help -Dorg.gradle.debug=true
 ----
 
 Using the Kotlin DSL, you can debug the build scripts themselves.
@@ -167,16 +176,19 @@ image::troubleshooting-refresh-eclipse.png[]
 If your Gradle build fails before running any tasks, you may be encountering network configuration problems.
 When Gradle is unable to communicate with the Gradle daemon process, the build will immediately fail with a message similar to this:
 
-```
-$ gradle help
-
+[source,bash]
+----
+$ ./gradlew help
+----
+[source,text]
+----
 Starting a Gradle Daemon, 1 stopped Daemon could not be reused, use --status for details
 
 FAILURE: Build failed with an exception.
 
 * What went wrong:
 A new daemon was started but could not be connected to: pid=DaemonInfo{pid=55913, address=[7fb34c82-1907-4c32-afda-888c9b6e2279 port:42751, addresses:[/127.0.0.1]], state=Busy, ...
-```
+----
 
 This can occur when network address translation (NAT) masquerade is used.
 When NAT masquerade is enabled, connections that should be considered local to the machine are masked to appear from external IP addresses.
@@ -186,7 +198,8 @@ The solution to this problem is to adjust your network configuration such that l
 
 You can monitor the detected network setup and the connection requests in the daemon log file (`$<<directory_layout.adoc#dir:gradle_user_home,GRADLE_USER_HOME>>/daemon/<Gradle version>/daemon-<PID>.out.log`).
 
-```
+[source,text]
+----
 2021-08-12T12:01:50.755+0200 [DEBUG] [org.gradle.internal.remote.internal.inet.InetAddresses] Adding IP addresses for network interface enp0s3
 2021-08-12T12:01:50.759+0200 [DEBUG] [org.gradle.internal.remote.internal.inet.InetAddresses] Is this a loopback interface? false
 2021-08-12T12:01:50.769+0200 [DEBUG] [org.gradle.internal.remote.internal.inet.InetAddresses] Adding remote address /fe80:0:0:0:85ba:3f3e:1b88:c0e1%enp0s3
@@ -200,7 +213,7 @@ You can monitor the detected network setup and the connection requests in the da
 2021-08-12T12:01:50.797+0200 [INFO] [org.gradle.launcher.daemon.server.DaemonRegistryUpdater] Advertising the daemon address to the clients: [7fb34c82-1907-4c32-afda-888c9b6e2279 port:42751, addresses:[localhost/127.0.0.1]]
 ...
 2021-08-12T12:01:50.923+0200 [ERROR] [org.gradle.internal.remote.internal.inet.TcpIncomingConnector] Cannot accept connection from remote address /10.0.2.15.
-```
+----
 
 == Getting additional help
 

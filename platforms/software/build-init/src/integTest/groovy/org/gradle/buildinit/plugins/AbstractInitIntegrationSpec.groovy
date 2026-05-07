@@ -16,10 +16,12 @@
 
 package org.gradle.buildinit.plugins
 
+import org.gradle.api.internal.tasks.testing.report.generic.GenericHtmlTestExecutionResult
+import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
+import org.gradle.api.tasks.testing.TestResult
 import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.test.fixtures.file.TestFile
 
@@ -63,15 +65,13 @@ abstract class AbstractInitIntegrationSpec extends AbstractIntegrationSpec {
     }
 
     protected void assertTestPassed(String className, String name) {
-        def result = new DefaultTestExecutionResult(subprojectDir)
-        result.assertTestClassesExecuted(className)
-        result.testClass(className).assertTestPassed(name)
+        GenericTestExecutionResult testResults = new GenericHtmlTestExecutionResult(subprojectDir, "build/reports/tests/test")
+        testResults.testPath(className, name).onlyRoot().assertHasResult(TestResult.ResultType.SUCCESS)
     }
 
     protected void assertFunctionalTestPassed(String className, String name) {
-        def result = new DefaultTestExecutionResult(subprojectDir, 'build', '', '', 'functionalTest')
-        result.assertTestClassesExecuted(className)
-        result.testClass(className).assertTestPassed(name)
+        GenericTestExecutionResult testResults = new GenericHtmlTestExecutionResult(subprojectDir, "build/reports/tests/functionalTest")
+        testResults.testPath(className, name).onlyRoot().assertHasResult(TestResult.ResultType.SUCCESS)
     }
 
     protected void assertWrapperGenerated() {

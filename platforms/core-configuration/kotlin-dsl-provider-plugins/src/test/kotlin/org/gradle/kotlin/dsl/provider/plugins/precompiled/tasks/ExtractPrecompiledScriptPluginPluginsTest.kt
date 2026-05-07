@@ -19,6 +19,7 @@ package org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks
 import org.gradle.kotlin.dsl.fixtures.TestWithTempFiles
 
 import org.gradle.kotlin.dsl.provider.plugins.precompiled.PrecompiledScriptPlugin
+import org.gradle.kotlin.dsl.provider.plugins.precompiled.PrecompiledScriptPluginFactory
 
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.Description
@@ -56,6 +57,34 @@ class ExtractPrecompiledScriptPluginPluginsTest : TestWithTempFiles() {
 
         assertThat(
             outputFile("plugins-only.gradle.kts").readText(),
+            equalTo(
+                """
+                ${"// this comment will be removed".replacedBySpaces()}
+                plugins {
+                    java
+                }"""
+            )
+        )
+    }
+
+    @Test
+    fun `can extract plugins block from settings script with only plugins`() {
+
+        extractPluginsFrom(
+            scriptPlugin(
+                "plugins-only.settings.gradle.kts",
+                """
+                // this comment will be removed
+                plugins {
+                    java
+                }
+                // and so will the rest of the script
+                """
+            )
+        )
+
+        assertThat(
+            outputFile("plugins-only.settings.gradle.kts").readText(),
             equalTo(
                 """
                 ${"// this comment will be removed".replacedBySpaces()}
@@ -134,7 +163,8 @@ class ExtractPrecompiledScriptPluginPluginsTest : TestWithTempFiles() {
     fun outputFile(fileName: String) = outputDir.resolve(fileName)
 
     private
-    fun scriptPlugin(fileName: String, text: String) = PrecompiledScriptPlugin(newFile(fileName, text))
+    fun scriptPlugin(fileName: String, text: String) =
+        PrecompiledScriptPluginFactory().create(newFile(fileName, text))
 
     private
     fun String.replacedBySpaces() = repeat(' ', length)

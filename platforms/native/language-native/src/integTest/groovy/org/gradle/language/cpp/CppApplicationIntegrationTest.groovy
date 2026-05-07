@@ -87,7 +87,7 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
 
         expect:
         fails "assemble"
-        failure.assertHasDescription("Execution failed for task ':compileDebugCpp'.")
+        failure.assertHasDescription("Execution failed for task ':compileDebugCpp' (registered by plugin class 'org.gradle.language.cpp.plugins.CppBasePlugin').")
         failure.assertHasCause("A build operation failed.")
         failure.assertThatCause(containsText("C++ compiler failed while compiling broken.cpp"))
     }
@@ -374,8 +374,10 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
         buildFile << """
             project(':app') {
                 apply plugin: 'cpp-application'
-                dependencies {
-                    implementation project(':hello')
+                application {
+                    dependencies {
+                        implementation project(':hello')
+                    }
                 }
             }
             project(':hello') {
@@ -407,9 +409,9 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
                 apply plugin: 'cpp-application'
                 application {
                     targetMachines = [machines.${currentHostOperatingSystemFamilyDsl}, machines.os('host-family')]
-                }
-                dependencies {
-                    implementation project(':hello')
+                    dependencies {
+                        implementation project(':hello')
+                    }
                 }
             }
             project(':hello') {
@@ -463,8 +465,8 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
         fails ":app:assemble"
 
         and:
-        failure.assertHasCause("Could not resolve project :greeter")
-        failure.assertHasCause("No matching variant of project :greeter was found. The consumer was configured to find attribute 'org.gradle.native.architecture' with value '${currentArchitecture}', attribute 'org.gradle.native.debuggable' with value 'true', attribute 'org.gradle.native.operatingSystem' with value '${currentOsFamilyName.toLowerCase()}', attribute 'org.gradle.native.optimized' with value 'false', attribute 'org.gradle.usage' with value 'native-runtime' but:")
+        failure.assertHasCause("Could not resolve project ':greeter'")
+        failure.assertHasCause("No matching variant of project ':greeter' was found. The consumer was configured to find attribute 'org.gradle.native.architecture' with value '${currentArchitecture}', attribute 'org.gradle.native.debuggable' with value 'true', attribute 'org.gradle.native.operatingSystem' with value '${currentOsFamilyName.toLowerCase()}', attribute 'org.gradle.native.optimized' with value 'false', attribute 'org.gradle.usage' with value 'native-runtime' but:")
     }
 
     def "fails when dependency library does not specify the same target architecture"() {
@@ -498,7 +500,7 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
         fails ":app:assemble"
 
         and:
-        failure.assertHasCause("Could not resolve project :greeter")
+        failure.assertHasCause("Could not resolve project ':greeter'")
         failure.assertHasErrorOutput("Incompatible because this component declares attribute 'org.gradle.native.architecture' with value 'foo', attribute 'org.gradle.usage' with value 'native-link' and the consumer needed attribute 'org.gradle.native.architecture' with value '${currentArchitecture}', attribute 'org.gradle.usage' with value 'native-runtime'")
     }
 
@@ -611,7 +613,7 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
         expect:
         fails ":app:assemble"
 
-        failure.assertHasCause """No matching variant of project :hello was found. The consumer was configured to find attribute 'org.gradle.native.architecture' with value '${currentArchitecture}', attribute 'org.gradle.native.debuggable' with value 'true', attribute 'org.gradle.native.operatingSystem' with value '${currentOsFamilyName}', attribute 'org.gradle.native.optimized' with value 'false', attribute 'org.gradle.usage' with value 'native-runtime' but:
+        failure.assertHasCause """No matching variant of project ':hello' was found. The consumer was configured to find attribute 'org.gradle.native.architecture' with value '${currentArchitecture}', attribute 'org.gradle.native.debuggable' with value 'true', attribute 'org.gradle.native.operatingSystem' with value '${currentOsFamilyName}', attribute 'org.gradle.native.optimized' with value 'false', attribute 'org.gradle.usage' with value 'native-runtime' but:
   - Variant 'cppApiElements':
       - Incompatible because this component declares attribute 'org.gradle.usage' with value 'cplusplus-api' and the consumer needed attribute 'org.gradle.usage' with value 'native-runtime'
       - Other compatible attributes:
@@ -630,8 +632,10 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
         buildFile << """
             project(':app') {
                 apply plugin: 'cpp-application'
-                dependencies {
-                    implementation project(':hello')
+                application {
+                    dependencies {
+                        implementation project(':hello')
+                    }
                 }
             }
             project(':hello') {
@@ -663,8 +667,10 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
         buildFile << """
             project(':app') {
                 apply plugin: 'cpp-application'
-                dependencies {
-                    implementation project(':hello')
+                application {
+                    dependencies {
+                        implementation project(':hello')
+                    }
                 }
             }
             project(':hello') {
@@ -696,8 +702,10 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
         buildFile << """
             project(':app') {
                 apply plugin: 'cpp-application'
-                dependencies {
-                    implementation project(':hello')
+                application {
+                    dependencies {
+                        implementation project(':hello')
+                    }
                 }
                 application.binaries.get { it.optimized }.configure {
                     compileTask.get().setMacros(WITH_FEATURE: "true")
@@ -743,15 +751,19 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
         buildFile << """
             project(':app') {
                 apply plugin: 'cpp-application'
-                dependencies {
-                    implementation project(':deck')
+                application {
+                    dependencies {
+                        implementation project(':deck')
+                    }
                 }
             }
             project(':deck') {
                 apply plugin: 'cpp-library'
-                dependencies {
-                    api project(':card')
-                    implementation project(':shuffle')
+                library {
+                    dependencies {
+                        api project(':card')
+                        implementation project(':shuffle')
+                    }
                 }
             }
             project(':card') {
@@ -788,16 +800,20 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
         buildFile << """
             project(':app') {
                 apply plugin: 'cpp-application'
-                dependencies {
-                    implementation project(':deck')
+                application {
+                    dependencies {
+                        implementation project(':deck')
+                    }
                 }
             }
             project(':deck') {
                 apply plugin: 'cpp-library'
-                library.linkage = [Linkage.STATIC]
-                dependencies {
-                    api project(':card')
-                    implementation project(':shuffle')
+                library {
+                    linkage = [Linkage.STATIC]
+                    dependencies {
+                        api project(':card')
+                        implementation project(':shuffle')
+                    }
                 }
             }
             project(':card') {
@@ -836,14 +852,18 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
         buildFile << """
             project(':app') {
                 apply plugin: 'cpp-application'
-                dependencies {
-                    implementation project(':lib1')
+                application {
+                    dependencies {
+                        implementation project(':lib1')
+                    }
                 }
             }
             project(':lib1') {
                 apply plugin: 'cpp-library'
-                dependencies {
-                    implementation project(':lib2')
+                library {
+                    dependencies {
+                        implementation project(':lib2')
+                    }
                 }
             }
             project(':lib2') {
@@ -878,14 +898,18 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
         buildFile << """
             project(':app') {
                 apply plugin: 'cpp-application'
-                dependencies {
-                    implementation project(':lib1')
+                application {
+                    dependencies {
+                        implementation project(':lib1')
+                    }
                 }
             }
             project(':lib1') {
                 apply plugin: 'cpp-library'
-                dependencies {
-                    implementation project(':lib2')
+                library {
+                    dependencies {
+                        implementation project(':lib2')
+                    }
                 }
             }
             project(':lib2') {
@@ -926,16 +950,18 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
         buildFile << """
             project(':app') {
                 apply plugin: 'cpp-application'
-                dependencies {
-                    implementation project(':lib1')
+                application {
+                    dependencies {
+                        implementation project(':lib1')
+                    }
                 }
             }
             project(':lib1') {
                 apply plugin: 'cpp-library'
-                dependencies {
-                    implementation project(':lib2')
-                }
                 library {
+                    dependencies {
+                        implementation project(':lib2')
+                    }
                     publicHeaders.from('include')
                 }
             }
@@ -975,19 +1001,19 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
         buildFile << """
             project(':app') {
                 apply plugin: 'cpp-application'
-                dependencies {
-                    implementation project(':greeter')
-                }
                 application {
+                    dependencies {
+                        implementation project(':greeter')
+                    }
                     source.from '../Sources/main.cpp'
                 }
             }
             project(':greeter') {
                 apply plugin: 'cpp-library'
-                dependencies {
-                    implementation project(':logger')
-                }
                 library {
+                    dependencies {
+                        implementation project(':logger')
+                    }
                     source.from '../Sources/greeter.cpp'
                 }
             }

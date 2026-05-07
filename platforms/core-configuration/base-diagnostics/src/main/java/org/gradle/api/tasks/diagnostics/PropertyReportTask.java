@@ -26,6 +26,7 @@ import org.gradle.api.tasks.diagnostics.internal.PropertyReportRenderer;
 import org.gradle.api.tasks.diagnostics.internal.ReportRenderer;
 import org.gradle.api.tasks.options.Option;
 import org.gradle.internal.Pair;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.internal.scan.UsedByScanPlugin;
 import org.gradle.work.DisableCachingByDefault;
@@ -45,7 +46,6 @@ import java.util.TreeMap;
 public abstract class PropertyReportTask extends AbstractProjectBasedReportTask<PropertyReportTask.PropertyReportModel> {
 
     private PropertyReportRenderer renderer = new PropertyReportRenderer();
-    private final Property<String> property = getProject().getObjects().property(String.class);
 
     /**
      * Defines a specific property to report. If not set then all properties will appear in the report.
@@ -56,9 +56,7 @@ public abstract class PropertyReportTask extends AbstractProjectBasedReportTask<
     @Input
     @Optional
     @Option(option = "property", description = "A specific property to output")
-    public Property<String> getProperty() {
-        return property;
-    }
+    public abstract Property<String> getProperty();
 
     @Internal
     @Override
@@ -76,11 +74,12 @@ public abstract class PropertyReportTask extends AbstractProjectBasedReportTask<
         return computePropertyReportModel(project);
     }
 
+    @SuppressWarnings("deprecation")
     private PropertyReportTask.PropertyReportModel computePropertyReportModel(Project project) {
         PropertyReportModel model = new PropertyReportModel();
-        Map<String, ?> projectProperties = project.getProperties();
-        if (property.isPresent()) {
-            String propertyName = property.get();
+        Map<String, ?> projectProperties = DeprecationLogger.whileDisabled(project::getProperties);
+        if (getProperty().isPresent()) {
+            String propertyName = getProperty().get();
             if ("properties".equals(propertyName)) {
                 model.putProperty(propertyName, "{...}");
             } else {

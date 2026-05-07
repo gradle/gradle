@@ -19,17 +19,19 @@ package org.gradle.wrapper;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
 import org.gradle.cli.SystemPropertiesCommandLineConverter;
+import org.jspecify.annotations.NullMarked;
 
 import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.Paths;
 import java.util.HashMap;
-import java.util.Properties;
+import java.util.Map;
 
 import static org.gradle.wrapper.Download.UNKNOWN_VERSION;
 
 public class GradleWrapperMain {
+
     public static final String GRADLE_USER_HOME_OPTION = "g";
     public static final String GRADLE_USER_HOME_DETAILED_OPTION = "gradle-user-home";
     public static final String GRADLE_QUIET_OPTION = "q";
@@ -37,6 +39,10 @@ public class GradleWrapperMain {
 
     public static void main(String[] args) throws Exception {
         File wrapperJar = wrapperJar();
+        prepareWrapper(args, wrapperJar).execute();
+    }
+
+    private static Action prepareWrapper(String[] args, File wrapperJar) throws Exception {
         File propertiesFile = wrapperProperties(wrapperJar);
         File rootDir = rootDir(wrapperJar);
 
@@ -47,32 +53,56 @@ public class GradleWrapperMain {
 
         SystemPropertiesCommandLineConverter converter = new SystemPropertiesCommandLineConverter();
         converter.configure(parser);
-
         ParsedCommandLine options = parser.parse(args);
 
-        Properties systemProperties = System.getProperties();
-        systemProperties.putAll(converter.convert(options, new HashMap<String, String>()));
-
+        Map<String, String> commandLineSystemProperties = converter.convert(options, new HashMap<String, String>());
+        Map<String, String> projectSystemProperties = PropertiesFileHandler.getSystemProperties(new File(rootDir, "gradle.properties"));
+        /// If the Gradle system properties may define a custom Gradle home, which needs to be set before loading user gradle.properties
+        maybeAddGradleUserHomeSystemProperty(projectSystemProperties, commandLineSystemProperties);
         File gradleUserHome = gradleUserHome(options);
-
-        addSystemProperties(systemProperties, gradleUserHome, rootDir);
+        File userGradleProperties = new File(gradleUserHome, "gradle.properties");
+        Map<String, String> userSystemProperties = new HashMap<>(PropertiesFileHandler.getSystemProperties(userGradleProperties));
+        // Inception: Gradle user home cannot be changed with configuration from the Gradle user home
+        boolean invalidGradleUserHome = userSystemProperties.remove(GradleUserHomeLookup.GRADLE_USER_HOME_PROPERTY_KEY) != null;
+        // Set all system properties from all Gradle sources with correct precedence: project (lowest) < user < cli (highest)
+        addSystemProperties(projectSystemProperties, userSystemProperties, commandLineSystemProperties);
 
         Logger logger = logger(options);
+
+        if (invalidGradleUserHome) {
+            logger.log("WARNING Ignored custom Gradle user home location configured in Gradle user home: " + userGradleProperties.getAbsolutePath());
+        }
 
         WrapperExecutor wrapperExecutor = WrapperExecutor.forWrapperPropertiesFile(propertiesFile);
         WrapperConfiguration configuration = wrapperExecutor.getConfiguration();
         IDownload download = new Download(logger, "gradlew", UNKNOWN_VERSION, configuration.getNetworkTimeout());
 
-        wrapperExecutor.execute(
+        return () -> {
+            wrapperExecutor.execute(
                 args,
                 new Install(logger, download, new PathAssembler(gradleUserHome, rootDir)),
                 new BootstrapMainStarter());
+        };
     }
 
-    private static void addSystemProperties(Properties systemProperties, File gradleUserHome, File rootDir) {
-        // The location with highest priority needs to come last here, as it overwrites any previous entries.
-        systemProperties.putAll(PropertiesFileHandler.getSystemProperties(new File(rootDir, "gradle.properties")));
-        systemProperties.putAll(PropertiesFileHandler.getSystemProperties(new File(gradleUserHome, "gradle.properties")));
+    private static void addSystemProperties(Map<String, String> projectSystemProperties, Map<String, String> userSystemProperties, Map<String, String> commandLineSystemProperties) {
+        Map<String, String> gradleSystemProperties = merge(merge(projectSystemProperties, userSystemProperties), commandLineSystemProperties);
+        System.getProperties().putAll(gradleSystemProperties);
+    }
+
+    private static void maybeAddGradleUserHomeSystemProperty(Map<String, String> projectSystemProperties, Map<String, String> commandLineSystemProperties) {
+        Map<String, String> gradleSystemProperties = merge(projectSystemProperties, commandLineSystemProperties);
+        String property = gradleSystemProperties.get(GradleUserHomeLookup.GRADLE_USER_HOME_PROPERTY_KEY);
+        if (property != null) {
+            System.setProperty(GradleUserHomeLookup.GRADLE_USER_HOME_PROPERTY_KEY, property);
+        }
+    }
+
+    private static Map<String, String> merge(Map<String, String> p1, Map<String, String> p2) {
+        // If there are duplicate keys, the values from p2 take precedence.
+        Map<String, String> result = new HashMap<>(p1);
+        result.putAll(p2);
+        return result;
     }
 
     private static File rootDir(File wrapperJar) {
@@ -109,5 +139,11 @@ public class GradleWrapperMain {
 
     private static Logger logger(ParsedCommandLine options) {
         return new Logger(options.hasOption(GRADLE_QUIET_OPTION));
+    }
+
+    @NullMarked
+    @FunctionalInterface
+    private interface Action {
+        void execute() throws Exception;
     }
 }

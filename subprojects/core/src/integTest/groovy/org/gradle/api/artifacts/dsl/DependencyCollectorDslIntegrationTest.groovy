@@ -92,7 +92,7 @@ abstract class DependencyCollectorDslIntegrationTest extends AbstractIntegration
     }
 
     String providerOf(String expression) {
-        return "project.provider { $expression }"
+        return "provider { $expression }"
     }
 
     def setup() {
@@ -481,6 +481,7 @@ class DependencyCollectorKotlinDslIntegrationTest extends DependencyCollectorDsl
 
         then:
         result.assertHasErrorOutput("""None of the following candidates is applicable:
+
 fun DependencyCollector.invoke""") // Don't care what the other options are, just that it's the right name
     }
 }

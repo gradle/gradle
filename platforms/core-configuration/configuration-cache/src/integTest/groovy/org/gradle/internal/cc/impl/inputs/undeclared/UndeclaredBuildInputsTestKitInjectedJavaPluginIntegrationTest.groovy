@@ -29,13 +29,14 @@ import org.gradle.internal.nativeintegration.services.NativeServices
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.OsTestPreconditions
+
 import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.internal.ToolingApiGradleExecutor
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 
-@Requires(UnitTestPreconditions.NotWindows)
+@Requires(OsTestPreconditions.NotWindows)
 class UndeclaredBuildInputsTestKitInjectedJavaPluginIntegrationTest extends AbstractUndeclaredBuildInputsIntegrationTest implements JavaPluginImplementation {
     TestFile jar
     TestFile testKitDir
@@ -105,9 +106,7 @@ implementation-class: SneakyPlugin
 
         private GradleRunner createRunner() {
             def runner = GradleRunner.create()
-            if (!IntegrationTestBuildContext.embedded) {
-                runner.withGradleInstallation(buildContext.gradleHomeDir)
-            }
+            runner.withGradleInstallation(buildContext.gradleHomeDir)
             runner.withTestKitDir(testKitDir)
             runner.withProjectDir(workingDir)
             def args = allArgs

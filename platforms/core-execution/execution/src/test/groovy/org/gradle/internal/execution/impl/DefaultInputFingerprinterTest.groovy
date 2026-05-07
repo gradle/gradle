@@ -27,8 +27,8 @@ import org.gradle.internal.execution.FileCollectionSnapshotter
 import org.gradle.internal.execution.FileNormalizationSpec
 import org.gradle.internal.execution.InputFingerprinter
 import org.gradle.internal.execution.InputFingerprinter.Result
-import org.gradle.internal.execution.UnitOfWork.InputFileValueSupplier
-import org.gradle.internal.execution.UnitOfWork.InputVisitor
+import org.gradle.internal.execution.InputVisitor
+import org.gradle.internal.execution.InputVisitor.InputFileValueSupplier
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.fingerprint.DirectorySensitivity
 import org.gradle.internal.fingerprint.FileCollectionFingerprint

@@ -16,15 +16,12 @@
 
 package org.gradle.testing.junit
 
-import org.gradle.integtests.fixtures.DefaultTestExecutionResult
-import org.gradle.integtests.fixtures.TestClassExecutionResult
+import org.gradle.api.tasks.testing.TestResult
 import org.gradle.testing.fixture.AbstractTestingMultiVersionIntegrationTest
 
 import static org.hamcrest.CoreMatchers.containsString
 
 abstract class AbstractJUnitSmokeMultiVersionIntegrationTest extends AbstractTestingMultiVersionIntegrationTest {
-    abstract void assertTestSkippedOrPassed(TestClassExecutionResult testClassResult, String testName)
-
     def "can run tests using JUnit"() {
         given:
         file('src/test/java/org/gradle/Junit3Test.java') << """
@@ -81,16 +78,18 @@ abstract class AbstractJUnitSmokeMultiVersionIntegrationTest extends AbstractTes
         fails('test')
 
         then:
-        def result = new DefaultTestExecutionResult(testDirectory)
-        result.assertTestClassesExecuted('org.gradle.Junit3Test', 'org.gradle.Junit4Test')
-        def junit3TestClass = result.testClass('org.gradle.Junit3Test')
-            .assertTestCount(2, 1, 0)
-            .assertTestFailed('a test that renames itself', containsString("epic"))
-        assertTestSkippedOrPassed(junit3TestClass, 'testRenamesItself')
-        result.testClass('org.gradle.Junit4Test')
-                .assertTestCount(2, 0, 0)
-                .assertTestsExecuted('ok')
-                .assertTestPassed('ok')
-                .assertTestsSkipped('broken')
+        def results = resultsFor(testDirectory)
+        results.assertAtLeastTestPathsExecuted('org.gradle.Junit3Test', 'org.gradle.Junit4Test')
+        results.testPath('org.gradle.Junit3Test').onlyRoot()
+            .assertChildCount(2, 1) // One test fails, the other succeeds or is skipped
+        results.testPath('org.gradle.Junit3Test', 'a test that renames itself').onlyRoot()
+            .assertHasResult(TestResult.ResultType.FAILURE)
+            .assertFailureMessages(containsString("epic"))
+        results.testPath('org.gradle.Junit4Test').onlyRoot()
+                .assertChildCount(2, 0)
+        results.testPath('org.gradle.Junit4Test', 'ok').onlyRoot()
+                .assertHasResult(TestResult.ResultType.SUCCESS)
+        results.testPath('org.gradle.Junit4Test', 'broken').onlyRoot()
+            .assertHasResult(TestResult.ResultType.SKIPPED)
     }
 }

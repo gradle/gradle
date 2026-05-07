@@ -56,7 +56,7 @@ import org.gradle.api.internal.initialization.loadercache.DummyClassLoaderCache
 import org.gradle.api.internal.model.DefaultObjectFactory
 import org.gradle.api.internal.model.NamedObjectInstantiator
 import org.gradle.api.internal.plugins.PluginManagerInternal
-import org.gradle.api.internal.project.ant.AntLoggingAdapter
+import org.gradle.api.internal.project.ant.BasicAntBuilder
 import org.gradle.api.internal.project.taskfactory.ITaskFactory
 import org.gradle.api.internal.provider.DefaultPropertyFactory
 import org.gradle.api.internal.provider.PropertyHost
@@ -82,6 +82,8 @@ import org.gradle.initialization.ClassLoaderScopeRegistryListener
 import org.gradle.internal.Actions
 import org.gradle.internal.Describables
 import org.gradle.internal.build.BuildState
+import org.gradle.internal.buildoption.DefaultInternalOptions
+import org.gradle.internal.buildoption.InternalOptions
 import org.gradle.internal.deprecation.DeprecationLogger
 import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.internal.logging.LoggingManagerInternal
@@ -101,9 +103,9 @@ import org.gradle.model.internal.manage.instance.ManagedProxyFactory
 import org.gradle.model.internal.manage.schema.ModelSchemaStore
 import org.gradle.model.internal.registry.ModelRegistry
 import org.gradle.normalization.internal.InputNormalizationHandlerInternal
-import org.gradle.plugin.software.internal.ProjectFeatureApplicator
-import org.gradle.plugin.software.internal.ProjectFeatureDeclarations
-import org.gradle.plugin.software.internal.ProjectFeaturesDynamicObject
+import org.gradle.features.internal.binding.ProjectFeatureApplicator
+import org.gradle.features.internal.binding.ProjectFeatureDeclarations
+import org.gradle.features.internal.binding.ProjectFeaturesDynamicObject
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Path
 import org.gradle.util.TestClosure
@@ -114,6 +116,7 @@ import spock.lang.Specification
 
 import java.lang.reflect.Type
 import java.util.function.Consumer
+import java.util.function.Function
 
 class DefaultProjectTest extends Specification {
 
@@ -170,7 +173,6 @@ class DefaultProjectTest extends Specification {
     PluginManagerInternal pluginManager = Stub(PluginManagerInternal)
     PluginContainer pluginContainer = Stub(PluginContainer)
     ManagedProxyFactory managedProxyFactory = Stub(ManagedProxyFactory)
-    AntLoggingAdapter antLoggingAdapter = Stub(AntLoggingAdapter)
     AttributesSchema attributesSchema = Stub(AttributesSchema)
     TextFileResourceLoader textResourceLoader = Stub(TextFileResourceLoader)
     ApiTextResourceAdapter.Factory textResourceAdapterFactory = Stub(ApiTextResourceAdapter.Factory)
@@ -187,7 +189,7 @@ class DefaultProjectTest extends Specification {
         rootDir = new File("/path/root").absoluteFile
         buildFile = new File(rootDir, TEST_BUILD_FILE_NAME)
 
-        testAntBuilder = new DefaultAntBuilder(null, antLoggingAdapter)
+        testAntBuilder = new BasicAntBuilder()
 
         antBuilderFactoryMock.createAntBuilder() >> testAntBuilder
         script.getDisplayName() >> '[build file]'
@@ -218,7 +220,6 @@ class DefaultProjectTest extends Specification {
         serviceRegistryMock.get((Type) SoftwareComponentContainer) >> softwareComponentsMock
         serviceRegistryMock.get((Type) InputNormalizationHandlerInternal) >> inputNormalizationHandler
         serviceRegistryMock.get(ProjectEvaluator) >> projectEvaluator
-        serviceRegistryMock.get(DynamicLookupRoutine) >> new DefaultDynamicLookupRoutine()
         serviceRegistryMock.get(AntBuilderFactory) >> antBuilderFactoryMock
         serviceRegistryMock.get((Type) ScriptHandlerInternal) >> scriptHandlerMock
         serviceRegistryMock.get((Type) LoggingManagerInternal) >> loggingManagerMock
@@ -274,23 +275,34 @@ class DefaultProjectTest extends Specification {
         serviceRegistryMock.get((Type) ObjectFactory) >> Stub(ObjectFactory)
         serviceRegistryMock.get((Type) DependencyLockingHandler) >> Stub(DependencyLockingHandler)
         serviceRegistryMock.get((Type) DynamicCallContextTracker) >> Stub(DynamicCallContextTracker)
+        serviceRegistryMock.get(InternalOptions) >> new DefaultInternalOptions([:])
 
         projectState = Mock(ProjectState)
         projectState.name >> 'root'
         projectState.displayName >> Describables.of("displayname")
         projectState.owner >> buildState
+        projectState.fromMutableState(_) >> { Function f -> f.apply(project) }
         project = defaultProject('root', projectState, null, rootDir, rootProjectClassLoaderScope)
+        projectState.mutableModel >> project
+        projectState.projectDir >> rootDir
+        buildState.getRootProject() >> projectState
         def child1ClassLoaderScope = rootProjectClassLoaderScope.createChild("project-child1", null)
         child1State = Mock(ProjectState)
         child1State.owner >> buildState
+        child1State.displayName >> Describables.of("project ':child1'")
+        child1State.fromMutableState(_) >> { Function f -> f.apply(child1) }
         child1 = defaultProject("child1", child1State, project, new File("child1"), child1ClassLoaderScope)
         child1State.mutableModel >> child1
         child1State.name >> "child1"
         chilchildState = Mock(ProjectState)
         chilchildState.owner >> buildState
+        chilchildState.displayName >> Describables.of("project ':child1:childchild'")
+        chilchildState.fromMutableState(_) >> { Function f -> f.apply(childchild) }
         childchild = defaultProject("childchild", chilchildState, child1, new File("childchild"), child1ClassLoaderScope.createChild("project-childchild", null))
         child2State = Mock(ProjectState)
         child2State.owner >> buildState
+        child2State.displayName >> Describables.of("project ':child2'")
+        child2State.fromMutableState(_) >> { Function f -> f.apply(child2) }
         child2 = defaultProject("child2", child2State, project, new File("child2"), rootProjectClassLoaderScope.createChild("project-child2", null))
         child2State.mutableModel >> child2
         child2State.name >> "child2"
@@ -594,7 +606,7 @@ class DefaultProjectTest extends Specification {
         project.project(Project.PATH_SEPARATOR + "unknownchild")
         then:
         def e = thrown(UnknownProjectException)
-        e.message == "Project with path ':unknownchild' could not be found in displayname."
+        e.message == "Project with path ':unknownchild' could not be found in root project 'root'."
     }
 
     def getProjectWithUnknownRelativePath() {
@@ -602,7 +614,7 @@ class DefaultProjectTest extends Specification {
         project.project("unknownchild")
         then:
         def e = thrown(UnknownProjectException)
-        e.message == "Project with path 'unknownchild' could not be found in displayname."
+        e.message == "Project with path 'unknownchild' could not be found in root project 'root'."
     }
 
     def getProjectWithEmptyPath() {
@@ -896,7 +908,7 @@ def scriptMethod(Closure closure) {
         project.name = "someNewName"
         then:
         def e = thrown(GroovyRuntimeException)
-        e.message == "Cannot set the value of read-only property 'name' for displayname of type ${Project.name}."
+        e.message == "Cannot set the value of read-only property 'name' for root project 'root' of type ${Project.name}."
     }
 
     def convertsAbsolutePathToAbsolutePath() {

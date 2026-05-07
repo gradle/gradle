@@ -110,12 +110,21 @@ public class BuildOperationFiringBuildWorkPreparer implements BuildWorkPreparer 
         public BuildOperationDescriptor.@NonNull Builder description() {
             //noinspection Convert2Lambda
             return BuildOperationDescriptor.displayName(gradle.contextualize("Calculate task graph"))
+                .progressDisplayName(buildingTaskGraphDisplayName(gradle))
                 .details(new Details() {
                     @Override
                     public String getBuildPath() {
                         return gradle.getIdentityPath().asString();
                     }
                 });
+        }
+
+        private static String buildingTaskGraphDisplayName(GradleInternal gradle) {
+            if (gradle.isRootBuild()) {
+                return "Building task graph of root build";
+            } else {
+                return "Building task graph of build '" + gradle.getIdentityPath().asString() + "'";
+            }
         }
 
         private PlannedNodeGraph computePlannedNodeGraph(QueryableExecutionPlan.ScheduledNodes scheduledWork) {

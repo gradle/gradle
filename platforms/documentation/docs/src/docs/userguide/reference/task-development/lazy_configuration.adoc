@@ -57,8 +57,8 @@ This typically happens during the <<build_lifecycle.adoc#build_phases,execution 
 The following demonstrates a task with a configurable `greeting` property and a read-only `message` property:
 
 ====
-include::sample[dir="snippets/providers/propertyAndProvider/kotlin",files="build.gradle.kts[]"]
-include::sample[dir="snippets/providers/propertyAndProvider/groovy",files="build.gradle[]"]
+include::sample[dir="snippets/reference/task-development/propertyAndProvider/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="snippets/reference/task-development/propertyAndProvider/groovy",files="build.gradle[]"]
 ====
 <1> A task that displays a greeting
 <2> A configurable greeting
@@ -66,9 +66,13 @@ include::sample[dir="snippets/providers/propertyAndProvider/groovy",files="build
 <4> Configure the greeting
 <5> Alternative notation to calling Property.set()
 
+[source,bash]
 ----
-$ gradle greeting
-include::{snippetsPath}/providers/propertyAndProvider/tests/usePropertyAndProvider.out[]
+$ ./gradlew greeting
+----
+[source,text]
+----
+include::{snippetsPath}/reference/task-development/propertyAndProvider/tests/usePropertyAndProvider.out[]
 ----
 
 The `Greeting` task has a property of type `Property<String>` to represent the configurable greeting and a property of type `Provider<String>` to represent the calculated, read-only, message.
@@ -107,13 +111,17 @@ An important feature of lazy properties is that they can be connected together s
 Here is an example where the property of a task is connected to a property of a project extension:
 
 ====
-include::sample[dir="snippets/providers/connectProperties/kotlin",files="build.gradle.kts[]"]
-include::sample[dir="snippets/providers/connectProperties/groovy",files="build.gradle[]"]
+include::sample[dir="snippets/reference/task-development/connectProperties/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="snippets/reference/task-development/connectProperties/groovy",files="build.gradle[]"]
 ====
 
+[source,bash]
 ----
-$ gradle greeting
-include::{snippetsPath}/providers/connectProperties/tests/connectProperties.out[]
+$ ./gradlew greeting
+----
+[source,text]
+----
+include::{snippetsPath}/reference/task-development/connectProperties/tests/connectProperties.out[]
 ----
 
 This example calls the link:{javadocPath}/org/gradle/api/provider/Property.html#set-org.gradle.api.provider.Provider-[Property.set(Provider)] method to attach a `Provider` to a `Property` to supply the value of the property.
@@ -151,20 +159,34 @@ These methods create providers whose values are calculated relative to the locat
 The values returned from these providers will reflect changes to the `DirectoryProperty`.
 
 ====
-include::sample[dir="snippets/providers/fileAndDirectoryProperty/kotlin",files="build.gradle.kts[]"]
-include::sample[dir="snippets/providers/fileAndDirectoryProperty/groovy",files="build.gradle[]"]
+include::sample[dir="snippets/reference/task-development/fileAndDirectoryProperty/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="snippets/reference/task-development/fileAndDirectoryProperty/groovy",files="build.gradle[]"]
 ====
 
-[.multi-language-text.lang-groovy]
-----
-$ gradle generate
-include::{snippetsPath}/providers/fileAndDirectoryProperty/tests/workingWithFilesGroovy.out[]
-----
+====
 [.multi-language-text.lang-kotlin]
+=====
+[source,bash]
 ----
 $ gradle generate
-include::{snippetsPath}/providers/fileAndDirectoryProperty/tests/workingWithFilesKotlin.out[]
 ----
+[source,text]
+----
+include::{snippetsPath}/reference/task-development/fileAndDirectoryProperty/tests/workingWithFilesKotlin.out[]
+----
+=====
+[.multi-language-text.lang-groovy]
+=====
+[source,bash]
+----
+$ gradle generate
+----
+[source,text]
+----
+include::{snippetsPath}/reference/task-development/fileAndDirectoryProperty/tests/workingWithFilesGroovy.out[]
+----
+=====
+====
 
 This example creates providers that represent locations in the project and build directories through link:{javadocPath}/org/gradle/api/Project.html#getLayout--[Project.getLayout()] with link:{javadocPath}/org/gradle/api/file/ProjectLayout.html#getBuildDirectory--[ProjectLayout.getBuildDirectory()] and link:{javadocPath}/org/gradle/api/file/ProjectLayout.html#getProjectDirectory--[ProjectLayout.getProjectDirectory()].
 
@@ -185,20 +207,34 @@ The `Property` API makes this easier by keeping track of the value of a property
 As an example, consider the following plugin with a producer and consumer task which are wired together:
 
 ====
-include::sample[dir="snippets/providers/implicitTaskInputFileDependency/kotlin",files="build.gradle.kts[]"]
-include::sample[dir="snippets/providers/implicitTaskInputFileDependency/groovy",files="build.gradle[]"]
+include::sample[dir="snippets/reference/task-development/implicitTaskInputFileDependency/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="snippets/reference/task-development/implicitTaskInputFileDependency/groovy",files="build.gradle[]"]
 ====
 
-[.multi-language-text.lang-groovy]
-----
-$ gradle consumer
-include::{snippetsPath}/providers/implicitTaskInputFileDependency/tests/implicitTaskInputFileDependencyGroovy.out[]
-----
+====
 [.multi-language-text.lang-kotlin]
+=====
+[source,bash]
 ----
-$ gradle consumer
-include::{snippetsPath}/providers/implicitTaskInputFileDependency/tests/implicitTaskInputFileDependencyKotlin.out[]
+$ ./gradlew consumer
 ----
+[source,text]
+----
+include::{snippetsPath}/reference/task-development/implicitTaskInputFileDependency/tests/implicitTaskInputFileDependencyKotlin.out[]
+----
+=====
+[.multi-language-text.lang-groovy]
+=====
+[source,bash]
+----
+$ ./gradlew consumer
+----
+[source,text]
+----
+include::{snippetsPath}/reference/task-development/implicitTaskInputFileDependency/tests/implicitTaskInputFileDependencyGroovy.out[]
+----
+=====
+====
 
 In the example above, the task outputs and inputs are connected before any location is defined.
 The setters can be called at any time before the task is executed, and the change will automatically affect all related input and output properties.
@@ -209,20 +245,34 @@ Task outputs represented using `Providers` keep track of which task produces the
 Implicit task dependencies also work for input properties that are not files:
 
 ====
-include::sample[dir="snippets/providers/implicitTaskInputDependency/kotlin",files="build.gradle.kts[]"]
-include::sample[dir="snippets/providers/implicitTaskInputDependency/groovy",files="build.gradle[]"]
+include::sample[dir="snippets/reference/task-development/implicitTaskInputDependency/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="snippets/reference/task-development/implicitTaskInputDependency/groovy",files="build.gradle[]"]
 ====
 
-[.multi-language-text.lang-groovy]
-----
-$ gradle consumer
-include::{snippetsPath}/providers/implicitTaskInputDependency/tests/implicitTaskInputDependencyGroovy.out[]
-----
+====
 [.multi-language-text.lang-kotlin]
+=====
+[source,bash]
 ----
-$ gradle consumer
-include::{snippetsPath}/providers/implicitTaskInputDependency/tests/implicitTaskInputDependencyKotlin.out[]
+$ ./gradlew consumer
 ----
+[source,text]
+----
+include::{snippetsPath}/reference/task-development/implicitTaskInputDependency/tests/implicitTaskInputDependencyKotlin.out[]
+----
+=====
+[.multi-language-text.lang-groovy]
+=====
+[source,bash]
+----
+$ ./gradlew consumer
+----
+[source,text]
+----
+include::{snippetsPath}/reference/task-development/implicitTaskInputDependency/tests/implicitTaskInputDependencyGroovy.out[]
+----
+=====
+====
 
 [[working_with_collections]]
 == Working with collections
@@ -245,20 +295,34 @@ This type of property allows you to overwrite the entire collection value with l
 Just like every `Provider`, the collection is calculated when link:{javadocPath}/org/gradle/api/provider/Provider.html#get--[Provider.get()] is called. The following example shows the link:{javadocPath}/org/gradle/api/provider/ListProperty.html[ListProperty] in action:
 
 ====
-include::sample[dir="snippets/providers/listProperty/kotlin",files="build.gradle.kts[]"]
-include::sample[dir="snippets/providers/listProperty/groovy",files="build.gradle[]"]
+include::sample[dir="snippets/reference/task-development/listProperty/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="snippets/reference/task-development/listProperty/groovy",files="build.gradle[]"]
 ====
 
-[.multi-language-text.lang-groovy]
-----
-$ gradle consumer
-include::{snippetsPath}/providers/listProperty/tests/listPropertyGroovy.out[]
-----
+====
 [.multi-language-text.lang-kotlin]
+=====
+[source,bash]
 ----
-$ gradle consumer
-include::{snippetsPath}/providers/listProperty/tests/listPropertyKotlin.out[]
+$ ./gradlew consumer
 ----
+[source,text]
+----
+include::{snippetsPath}/reference/task-development/listProperty/tests/listPropertyKotlin.out[]
+----
+=====
+[.multi-language-text.lang-groovy]
+=====
+[source,bash]
+----
+$ ./gradlew consumer
+----
+[source,text]
+----
+include::{snippetsPath}/reference/task-development/listProperty/tests/listPropertyGroovy.out[]
+----
+=====
+====
 
 [[working_with_maps]]
 == Working with maps
@@ -270,13 +334,17 @@ Similar to other property types, a `MapProperty` has a link:{javadocPath}/org/gr
 Some additional methods allow entries with lazy values to be added to the map.
 
 ====
-include::sample[dir="snippets/providers/mapProperty/kotlin",files="build.gradle.kts[]"]
-include::sample[dir="snippets/providers/mapProperty/groovy",files="build.gradle[]"]
+include::sample[dir="snippets/reference/task-development/mapProperty/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="snippets/reference/task-development/mapProperty/groovy",files="build.gradle[]"]
 ====
 
+[source,bash]
 ----
-$ gradle generate
-include::{snippetsPath}/providers/mapProperty/tests/mapProperty.out[]
+$ ./gradlew generate
+----
+[source,text]
+----
+include::{snippetsPath}/reference/task-development/mapProperty/tests/mapProperty.out[]
 ----
 
 [[applying_conventions]]
@@ -287,66 +355,74 @@ You can use the `convention()` method for this.
 This method accepts either a value or a `Provider`, and this will be used as the value until some other value is configured.
 
 ====
-include::sample[dir="snippets/providers/propertyConvention/kotlin",files="build.gradle.kts[tags=conventions]"]
-include::sample[dir="snippets/providers/propertyConvention/groovy",files="build.gradle[tags=conventions]"]
+include::sample[dir="snippets/reference/task-development/propertyConvention/kotlin",files="build.gradle.kts[tags=conventions]"]
+include::sample[dir="snippets/reference/task-development/propertyConvention/groovy",files="build.gradle[tags=conventions]"]
 ====
 
+[source,bash]
 ----
-$ gradle show
-include::{snippetsPath}/providers/propertyConvention/tests/propertyConvention.out[]
+$ ./gradlew show
+----
+[source,text]
+----
+include::{snippetsPath}/reference/task-development/propertyConvention/tests/propertyConvention.out[]
 ----
 
+[[where_to_apply_conventions_from]]
 === Where to apply conventions from?
 
 There are several appropriate locations for setting a convention on a property at configuration time (i.e., before execution).
 
 ====
-include::sample[dir="snippets/providers/propertyConventionCallsites/kotlin",files="build.gradle.kts[tags=convention-callsites]"]
-include::sample[dir="snippets/providers/propertyConventionCallsites/groovy",files="build.gradle[tags=convention-callsites]"]
+include::sample[dir="snippets/reference/task-development/propertyConventionCallsites/kotlin",files="build.gradle.kts[tags=convention-callsites]"]
+include::sample[dir="snippets/reference/task-development/propertyConventionCallsites/groovy",files="build.gradle[tags=convention-callsites]"]
 ====
 
+[[from_a_plugins_apply_method]]
 ==== From a plugin's `apply()` method
 
 Plugin authors may configure a convention on a lazy property from a plugin's `apply()` method, while performing preliminary configuration of the task or extension defining the property.
 This works well for regular plugins (meant to be distributed and used in the wild), and internal <<sharing_build_logic_between_subprojects.adoc#sec:sharing_logic_via_convention_plugins,convention plugins>> (which often configure properties defined by third party plugins in a uniform way for the entire build).
 
 ====
-include::sample[dir="snippets/providers/propertyConventionCallsites/kotlin",files="build.gradle.kts[tags=convention-callsites-from-plugin]"]
-include::sample[dir="snippets/providers/propertyConventionCallsites/groovy",files="build.gradle[tags=convention-callsites-from-plugin]"]
+include::sample[dir="snippets/reference/task-development/propertyConventionCallsites/kotlin",files="build.gradle.kts[tags=convention-callsites-from-plugin]"]
+include::sample[dir="snippets/reference/task-development/propertyConventionCallsites/groovy",files="build.gradle[tags=convention-callsites-from-plugin]"]
 ====
 
+[[from_a_build_script]]
 ==== From a build script
 
 Build engineers may configure a convention on a lazy property from shared build logic that is configuring tasks (for instance, from third-party plugins) in a standard way for the entire build.
 
 ====
-include::sample[dir="snippets/providers/propertyConventionCallsites/kotlin",files="build.gradle.kts[tags=convention-callsites-from-buildscript]"]
-include::sample[dir="snippets/providers/propertyConventionCallsites/groovy",files="build.gradle[tags=convention-callsites-from-buildscript]"]
+include::sample[dir="snippets/reference/task-development/propertyConventionCallsites/kotlin",files="build.gradle.kts[tags=convention-callsites-from-buildscript]"]
+include::sample[dir="snippets/reference/task-development/propertyConventionCallsites/groovy",files="build.gradle[tags=convention-callsites-from-buildscript]"]
 ====
 
 Note that for project-specific values, instead of conventions, you should prefer setting explicit values (using `Property.set(...)` or `ConfigurableFileCollection.setFrom(...)`, for instance),
 as conventions are only meant to define defaults.
 
+[[from_the_task_initialization]]
 ==== From the task initialization
 
 A task author may configure a convention on a lazy property from the task constructor or (if in Kotlin) initializer block.
 This approach works for properties with trivial defaults, but it is not appropriate if additional context (external to the task implementation) is required in order to set a suitable default.
 
 ====
-include::sample[dir="snippets/providers/propertyConventionCallsites/kotlin",files="build.gradle.kts[tags=convention-callsites-from-constructor]"]
-include::sample[dir="snippets/providers/propertyConventionCallsites/groovy",files="build.gradle[tags=convention-callsites-from-constructor]"]
+include::sample[dir="snippets/reference/task-development/propertyConventionCallsites/kotlin",files="build.gradle.kts[tags=convention-callsites-from-constructor]"]
+include::sample[dir="snippets/reference/task-development/propertyConventionCallsites/groovy",files="build.gradle[tags=convention-callsites-from-constructor]"]
 ====
 
+[[next_to_the_property_declaration]]
 ==== Next to the property declaration
 
 You may configure a convention on a lazy property next to the place where the property is declared.
 Note this option is not available for <<properties_providers.adoc#managed_properties,managed properties>>, and has the same caveats as configuring a convention from the task constructor.
 
 ====
-include::sample[dir="snippets/providers/propertyConventionCallsites/kotlin",files="build.gradle.kts[tags=convention-callsites-from-declaration]"]
-include::sample[dir="snippets/providers/propertyConventionCallsites/groovy",files="build.gradle[tags=convention-callsites-from-declaration]"]
+include::sample[dir="snippets/reference/task-development/propertyConventionCallsites/kotlin",files="build.gradle.kts[tags=convention-callsites-from-declaration]"]
+include::sample[dir="snippets/reference/task-development/propertyConventionCallsites/groovy",files="build.gradle[tags=convention-callsites-from-declaration]"]
 ====
-
 
 [[unmodifiable_property]]
 == Making a property unmodifiable
@@ -361,9 +437,10 @@ This way we avoid errors that result from different consumers, such as the task 
 Lazy properties provide several methods that you can use to disallow changes to their value once the value has been configured.
 The link:{javadocPath}/org/gradle/api/provider/Property.html#finalizeValue--[finalizeValue()] method calculates the _final_ value for the property and prevents further changes to the property.
 
-```
+[source,text]
+----
 libVersioning.version.finalizeValue()
-```
+----
 
 When the property's value comes from a `Provider`, the provider is queried for its current value, and the result becomes the final value for the property.
 This final value replaces the provider and the property no longer tracks the value of the provider.
@@ -372,9 +449,10 @@ Gradle automatically makes the properties of a task final when the task starts e
 
 The link:{javadocPath}/org/gradle/api/provider/HasConfigurableValue.html#finalizeValueOnRead--[finalizeValueOnRead()] method is similar, except that the property's final value is not calculated until the value of the property is queried.
 
-```
+[source,text]
+----
 modifiedFiles.finalizeValueOnRead()
-```
+----
 
 In other words, this method calculates the final value lazily as required, whereas `finalizeValue()` calculates the final value eagerly.
 This method can be used when the value may be expensive to calculate or may not have been configured yet.
@@ -426,6 +504,7 @@ Factories;;
 * link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:fileTree(java.lang.Object)[Project.fileTree(Object)] will produce a link:{javadocPath}/org/gradle/api/file/ConfigurableFileTree.html[ConfigurableFileTree], or you can use link:{javadocPath}/org/gradle/api/Project.html#zipTree-java.lang.Object-[Project.zipTree(Object)] and link:{javadocPath}/org/gradle/api/Project.html#tarTree-java.lang.Object-[Project.tarTree(Object)]
 * link:{javadocPath}/org/gradle/api/file/DirectoryProperty.html#getAsFileTree--[DirectoryProperty.getAsFileTree()]
 
+[[property_files_api_reference]]
 === Property Files API Reference
 
 Use these types for _mutable_ values:
@@ -450,6 +529,7 @@ link:{javadocPath}/org/gradle/api/file/SourceDirectorySet.html[SourceDirectorySe
 Factories;;
 * link:{javadocPath}/org/gradle/api/model/ObjectFactory.html#sourceDirectorySet-java.lang.String-java.lang.String-[ObjectFactory.sourceDirectorySet(String, String)]
 
+[[lazy_collections_api_reference]]
 === Lazy Collections API Reference
 
 Use these types for _mutable_ values:
@@ -462,6 +542,7 @@ link:{javadocPath}/org/gradle/api/provider/SetProperty.html[SetProperty<T>]:: a 
 Factories;;
 * link:{javadocPath}/org/gradle/api/model/ObjectFactory.html#setProperty-java.lang.Class-[ObjectFactory.setProperty(Class)]
 
+[[lazy_objects_api_reference]]
 === Lazy Objects API Reference
 
 Use these types for _read only_ values:

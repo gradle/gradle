@@ -37,10 +37,9 @@ import org.gradle.work.DisableCachingByDefault;
 
 import javax.inject.Inject;
 import java.io.File;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeMap;
-import java.util.TreeSet;
 
 import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.DEPENDENCY_ANALYSIS_FILE_NAME;
 import static org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.MERGE_OUTPUT_DIR;
@@ -115,11 +114,11 @@ public abstract class MergeInstrumentationAnalysisTransform implements Transform
         InstrumentationTypeRegistry registry = getInstrumentationTypeRegistry();
 
         InstrumentationDependencyAnalysis data = serializer.readDependencyAnalysis(input);
-        Map<String, Set<String>> dependenciesSuperTypes = new TreeMap<>();
+        Map<String, Set<String>> dependenciesSuperTypes = new HashMap<>();
         for (String className : data.getDependencies().keySet()) {
             Set<String> superTypes = registry.getSuperTypes(className);
             if (!superTypes.isEmpty()) {
-                dependenciesSuperTypes.put(className, new TreeSet<>(superTypes));
+                dependenciesSuperTypes.put(className, superTypes);
             }
         }
 

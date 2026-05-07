@@ -48,7 +48,7 @@ class TaskFactoryTest extends AbstractProjectBuilderSpec {
 
     void injectsProjectAndNameIntoTask() {
         when:
-        Task task = taskFactory.create(new TaskIdentity(DefaultTask, 'task', projectId, 12))
+        Task task = taskFactory.create(new TaskIdentity(DefaultTask, 'task', projectId, 12, null))
 
         then:
         task.project == project
@@ -57,7 +57,7 @@ class TaskFactoryTest extends AbstractProjectBuilderSpec {
 
     void testCreateTaskOfTypeWithNoArgsConstructor() {
         when:
-        Task task = taskFactory.create(new TaskIdentity(TestDefaultTask, 'task', projectId, 12))
+        Task task = taskFactory.create(new TaskIdentity(TestDefaultTask, 'task', projectId, 12, null))
 
         then:
         task instanceof TestDefaultTask
@@ -65,7 +65,7 @@ class TaskFactoryTest extends AbstractProjectBuilderSpec {
 
     void testCreateTaskWhereSuperTypeOfDefaultImplementationRequested() {
         when:
-        Task task = taskFactory.create(new TaskIdentity(type, 'task', projectId, 12))
+        Task task = taskFactory.create(new TaskIdentity(type, 'task', projectId, 12, null))
 
         then:
         task instanceof DefaultTask
@@ -76,7 +76,7 @@ class TaskFactoryTest extends AbstractProjectBuilderSpec {
 
     void testCreateTaskForDeserialization() {
         when:
-        Task task = taskFactory.create(new TaskIdentity(TestDefaultTask, 'task', projectId, 12), (Object[]) null)
+        Task task = taskFactory.create(new TaskIdentity(TestDefaultTask, 'task', projectId, 12, null), (Object[]) null)
 
         then:
         1 * deserializeInstantiator.newInstance(TestDefaultTask, AbstractTask) >> { new TestDefaultTask() }
@@ -85,7 +85,7 @@ class TaskFactoryTest extends AbstractProjectBuilderSpec {
 
     void testCreateTaskForTypeWhichDoesNotImplementTask() {
         when:
-        taskFactory.create(new TaskIdentity(NotATask, 'task', projectId, 12))
+        taskFactory.create(new TaskIdentity(NotATask, 'task', projectId, 12, null))
 
         then:
         InvalidUserDataException e = thrown()
@@ -94,7 +94,7 @@ class TaskFactoryTest extends AbstractProjectBuilderSpec {
 
     void testCreateTaskForUnsupportedType() {
         when:
-        taskFactory.create(new TaskIdentity(taskType, 'task', projectId, 12))
+        taskFactory.create(new TaskIdentity(taskType, 'task', projectId, 12, null))
 
         then:
         InvalidUserDataException e = thrown()
@@ -106,7 +106,7 @@ class TaskFactoryTest extends AbstractProjectBuilderSpec {
 
     void testCreateTaskForTypeDirectlyExtendingAbstractTask() {
         when:
-        taskFactory.create(new TaskIdentity(ExtendsAbstractTask, 'task', projectId, 12))
+        taskFactory.create(new TaskIdentity(ExtendsAbstractTask, 'task', projectId, 12, null))
 
         then:
         InvalidUserDataException e = thrown()
@@ -117,7 +117,7 @@ class TaskFactoryTest extends AbstractProjectBuilderSpec {
         def failure = new RuntimeException()
 
         when:
-        taskFactory.create(new TaskIdentity(TestDefaultTask, 'task', projectId, 12))
+        taskFactory.create(new TaskIdentity(TestDefaultTask, 'task', projectId, 12, null))
 
         then:
         TaskInstantiationException e = thrown()

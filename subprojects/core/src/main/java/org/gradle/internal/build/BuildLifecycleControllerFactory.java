@@ -21,9 +21,7 @@ import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 /**
- * <p>Responsible for creating a {@link BuildLifecycleController} instance for a build.
- *
- * Caller must call {@link BuildLifecycleController#stop()} when finished with the launcher.
+ * Responsible for creating a {@link BuildLifecycleController} instance for a build.
  */
 @ServiceScope(Scope.BuildTree.class)
 public interface BuildLifecycleControllerFactory {

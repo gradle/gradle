@@ -15,12 +15,11 @@
  */
 package org.gradle.api.tasks.diagnostics
 
-import org.gradle.api.internal.plugins.software.RegistersSoftwareTypes
-import org.gradle.api.internal.plugins.software.SoftwareType
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
-import org.gradle.internal.declarativedsl.settings.ProjectTypeFixture
+import org.gradle.features.internal.TestScenarioFixture
 import org.gradle.util.internal.TextUtil
+import spock.lang.Issue
 
 /**
  * Integration tests for the `:projects` task, which reports the project structure and project types.
@@ -34,7 +33,7 @@ import org.gradle.util.internal.TextUtil
  *   <li>Project types registered via declarative DSL</li>
  * </ul>
  */
-class ProjectReportTaskIntegrationTest extends AbstractIntegrationSpec implements ProjectTypeFixture {
+class ProjectReportTaskIntegrationTest extends AbstractIntegrationSpec implements TestScenarioFixture {
     def "reports project structure with single composite"() {
         given:
         createDirs("p1", "p2", "p2/p22", "another")
@@ -222,127 +221,36 @@ Root project 'my-root-project'
     @ToBeFixedForIsolatedProjects(because = "Accesses project.description for another project")
     def "project project structure and project types for multi-project build using declarative dcl"() {
         given: "a build-logic build registering an ecosystem plugin defining several project types via several plugins"
-        file("build-logic/src/main/java/com/example/restricted/LibraryExtension.java") << """
-            package com.example.restricted;
-
-            import org.gradle.api.provider.Property;
-            import org.gradle.declarative.dsl.model.annotations.Restricted;
-
-            @Restricted
-            public abstract interface LibraryExtension {
-                @Restricted
-                Property<String> getName();
-            }
-        """
-        file("build-logic/src/main/java/com/example/restricted/ApplicationExtension.java") << """
-            package com.example.restricted;
-
-            import org.gradle.api.provider.Property;
-            import org.gradle.declarative.dsl.model.annotations.Restricted;
-
-            @Restricted
-            public abstract interface ApplicationExtension {
-                @Restricted
-                Property<String> getName();
-            }
-        """
-        file("build-logic/src/main/java/com/example/restricted/UtilityExtension.java") << """
-            package com.example.restricted;
-
-            import org.gradle.api.provider.Property;
-            import org.gradle.declarative.dsl.model.annotations.Restricted;
-
-            @Restricted
-            public abstract interface UtilityExtension {
-                @Restricted
-                Property<String> getName();
-            }
-        """
-        file("build-logic/src/main/java/com/example/restricted/LibraryPlugin.java") << """
-            package com.example.restricted;
-
-            import org.gradle.api.Plugin;
-            import org.gradle.api.Project;
-            import ${SoftwareType.class.name};
-
-            public abstract class LibraryPlugin implements Plugin<Project> {
-                @SoftwareType(name = "library", modelPublicType = LibraryExtension.class)
-                public abstract LibraryExtension getLibrary();
-
-                @Override
-                public void apply(Project project) { }
-            }
-        """
-        file("build-logic/src/main/java/com/example/restricted/ApplicationPlugin.java") << """
-            package com.example.restricted;
-
-            import org.gradle.api.Plugin;
-            import org.gradle.api.Project;
-            import ${SoftwareType.class.name};
-
-            public abstract class ApplicationPlugin implements Plugin<Project> {
-                @SoftwareType(name = "application", modelPublicType = ApplicationExtension.class)
-                public abstract ApplicationExtension getApplication();
-
-                @Override
-                public void apply(Project project) { }
-            }
-        """
-        file("build-logic/src/main/java/com/example/restricted/UtilityPlugin.java") << """
-            package com.example.restricted;
-
-            import org.gradle.api.Plugin;
-            import org.gradle.api.Project;
-            import ${SoftwareType.class.name};
-
-            public abstract class UtilityPlugin implements Plugin<Project> {
-                @SoftwareType(name = "utility", modelPublicType = UtilityExtension.class)
-                public abstract UtilityExtension getUtility();
-
-                @Override
-                public void apply(Project project) { }
-            }
-        """
-        file("build-logic/src/main/java/com/example/restricted/SoftwareTypeRegistrationPlugin.java") << """
-            package com.example.restricted;
-
-            import org.gradle.api.Plugin;
-            import org.gradle.api.initialization.Settings;
-            import org.gradle.plugin.software.internal.SoftwareTypeRegistry;
-            import ${ RegistersSoftwareTypes.class.name};
-
-            @RegistersSoftwareTypes({ LibraryPlugin.class, ApplicationPlugin.class, UtilityPlugin.class })
-            abstract public class SoftwareTypeRegistrationPlugin implements Plugin<Settings> {
-                @Override
-                public void apply(Settings target) {}
-            }
-        """
-        file("build-logic/build.gradle") << """
-            plugins {
-                id("java-gradle-plugin")
-            }
-
-            ${mavenCentralRepository()}
-
-            gradlePlugin {
-                plugins {
-                    create("softwareTypeRegistrator") {
-                        id = "com.example.restricted.ecosystem"
-                        implementationClass = "com.example.restricted.SoftwareTypeRegistrationPlugin"
+        testScenario {
+            projectType("library") {
+                definition {
+                    property("name", String)
+                    buildModel {
+                        property("name", String)
                     }
                 }
             }
-        """
+            projectType("application") {
+                definition {
+                    property("name", String)
+                    buildModel {
+                        property("name", String)
+                    }
+                }
+            }
+            projectType("utility") {
+                definition {
+                    property("name", String)
+                    buildModel {
+                        property("name", String)
+                    }
+                }
+            }
+        }.prepareToExecute()
 
         and: "a build that applies that ecosystem plugin to a multi-project build, with each project using a different project type"
         settingsFile << """
-            pluginManagement {
-                includeBuild("build-logic")
-            }
-
-            plugins {
-                id("com.example.restricted.ecosystem")
-            }
+            ${pluginsFromIncludedBuild}
 
             rootProject.name = 'example'
 
@@ -385,15 +293,15 @@ Root project 'my-root-project'
 
 Available project types:
 
-application (com.example.restricted.ApplicationExtension)
-        Defined in: com.example.restricted.ApplicationPlugin
-        Registered by: com.example.restricted.SoftwareTypeRegistrationPlugin
-library (com.example.restricted.LibraryExtension)
-        Defined in: com.example.restricted.LibraryPlugin
-        Registered by: com.example.restricted.SoftwareTypeRegistrationPlugin
-utility (com.example.restricted.UtilityExtension)
-        Defined in: com.example.restricted.UtilityPlugin
-        Registered by: com.example.restricted.SoftwareTypeRegistrationPlugin
+application (org.gradle.test.ApplicationDefinition)
+        Defined in: org.gradle.test.ApplicationImplPlugin
+        Registered by: org.gradle.test.ProjectTypeRegistrationPlugin
+library (org.gradle.test.LibraryDefinition)
+        Defined in: org.gradle.test.LibraryImplPlugin
+        Registered by: org.gradle.test.ProjectTypeRegistrationPlugin
+utility (org.gradle.test.UtilityDefinition)
+        Defined in: org.gradle.test.UtilityImplPlugin
+        Registered by: org.gradle.test.ProjectTypeRegistrationPlugin
 
 Projects:
 
@@ -491,5 +399,15 @@ For example, try running gradle :common:tasks
 To see a list of the tasks of a project, run gradle <project-path>:tasks
 For example, try running gradle :tasks
 """
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/37045")
+    def "reports projects when root project has no imperative statements"() {
+        buildFile << """
+            void foo() { }
+        """
+
+        expect:
+        succeeds "projects"
     }
 }

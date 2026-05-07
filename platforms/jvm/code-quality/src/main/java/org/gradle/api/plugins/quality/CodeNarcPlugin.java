@@ -45,7 +45,7 @@ import static org.gradle.api.internal.lambdas.SerializableLambdas.action;
  */
 public abstract class CodeNarcPlugin extends AbstractCodeQualityPlugin<CodeNarc> {
 
-    public static final String DEFAULT_CODENARC_VERSION = "3.6.0-groovy-4.0";
+    public static final String DEFAULT_CODENARC_VERSION = "3.7.0-groovy-4.0";
     private static final String DEFAULT_CONFIG_FILE_PATH = "config/codenarc/codenarc.xml";
 
     private CodeNarcExtension extension;
@@ -143,5 +143,6 @@ public abstract class CodeNarcPlugin extends AbstractCodeQualityPlugin<CodeNarc>
         task.setDescription("Run CodeNarc analysis for " + sourceSet.getName() + " classes");
         SourceDirectorySet groovySourceSet =  sourceSet.getExtensions().getByType(GroovySourceDirectorySet.class);
         task.setSource(groovySourceSet.matching(filter -> filter.include("**/*.groovy")));
+        task.getConventionMapping().map("compilationClasspath", sourceSet::getCompileClasspath);
     }
 }

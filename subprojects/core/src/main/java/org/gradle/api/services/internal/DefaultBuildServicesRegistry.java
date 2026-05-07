@@ -69,7 +69,7 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
     private final IsolatableFactory isolatableFactory;
     private final SharedResourceLeaseRegistry leaseRegistry;
     private final IsolationScheme<BuildService<?>, BuildServiceParameters> isolationScheme = new IsolationScheme<>(
-        Cast.uncheckedCast(BuildService.class), BuildServiceParameters.class, BuildServiceParameters.None.class);
+        Cast.uncheckedCast(BuildService.class), BuildServiceParameters.class, BuildServiceParameters.None.class, BuildServiceParameters.None.INSTANCE);
     private final Instantiator paramsInstantiator;
     private final Instantiator specInstantiator;
     private final BuildServiceProvider.Listener listener;
@@ -220,7 +220,7 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
 
     @Nullable
     private <T extends BuildService<P>, P extends BuildServiceParameters> P instantiateParametersOf(Class<T> implementationType) {
-        Class<P> parameterType = isolationScheme.parameterTypeFor(implementationType);
+        Class<P> parameterType = isolationScheme.parameterTypeForOrNull(implementationType);
         return parameterType != null
             ? paramsInstantiator.newInstance(parameterType)
             : null;

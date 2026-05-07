@@ -18,6 +18,7 @@ package org.gradle.performance
 
 import org.gradle.performance.fixture.AbstractBuildExperimentRunner
 import org.gradle.performance.fixture.PerformanceTestDirectoryProvider
+import org.gradle.performance.fixture.PerformanceTestRunner
 import org.gradle.performance.results.DataReporter
 import org.gradle.performance.results.DefaultOutputDirSelector
 import org.gradle.performance.results.GradleProfilerReporter
@@ -50,7 +51,7 @@ abstract class AbstractPerformanceTest extends Specification {
         this.dataReporter = gradleProfilerReporter.reportAlso(new DataReporter<PerformanceTestResult>() {
             @Override
             void report(PerformanceTestResult results) {
-                if (AbstractBuildExperimentRunner.isProfilingActive()) {
+                if (AbstractBuildExperimentRunner.isProfilingActive() && Boolean.parseBoolean(System.getProperty("org.gradle.performance.execution.generateDiffs", "true"))) {
                     def stacks = differentialStacksGenerator.generateDifferentialStacks(outputDirSelector.outputDirFor(results.testId))
                     flameGraphGenerator.generateDifferentialGraphs(stacks)
                 }
@@ -61,4 +62,7 @@ abstract class AbstractPerformanceTest extends Specification {
             }
         })
     }
+
+    abstract PerformanceTestRunner getRunner()
+
 }

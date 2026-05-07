@@ -16,6 +16,7 @@
 
 package org.gradle.internal.component.model;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema;
@@ -50,12 +51,12 @@ public abstract class DelegatingDependencyMetadata implements DependencyMetadata
     }
 
     @Override
-    public List<ExcludeMetadata> getExcludes() {
+    public ImmutableList<ExcludeMetadata> getExcludes() {
         return delegate.getExcludes();
     }
 
     @Override
-    public List<IvyArtifactName> getArtifacts() {
+    public ImmutableList<IvyArtifactName> getArtifacts() {
         return delegate.getArtifacts();
     }
 
@@ -65,7 +66,7 @@ public abstract class DelegatingDependencyMetadata implements DependencyMetadata
     }
 
     @Override
-    public DependencyMetadata withTargetAndArtifacts(ComponentSelector target, List<IvyArtifactName> artifacts) {
+    public DependencyMetadata withTargetAndArtifacts(ComponentSelector target, ImmutableList<IvyArtifactName> artifacts) {
         return delegate.withTargetAndArtifacts(target, artifacts);
     }
 

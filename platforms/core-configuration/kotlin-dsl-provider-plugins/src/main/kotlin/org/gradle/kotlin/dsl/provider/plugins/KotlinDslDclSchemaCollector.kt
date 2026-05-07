@@ -16,33 +16,38 @@
 
 package org.gradle.kotlin.dsl.provider.plugins
 
+import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.Project
 import org.gradle.api.initialization.Settings
 import org.gradle.api.internal.SettingsInternal
 import org.gradle.api.internal.initialization.ClassLoaderScope
-import org.gradle.api.internal.plugins.Definition
-import org.gradle.api.internal.plugins.TargetTypeInformation
+import org.gradle.features.binding.Definition
+import org.gradle.features.binding.TargetTypeInformation
 import org.gradle.api.reflect.TypeOf
 import org.gradle.declarative.dsl.evaluation.InterpretationSequence
+import org.gradle.declarative.dsl.schema.ConfigureFromGetterOrigin
 import org.gradle.declarative.dsl.schema.ContainerElementFactory
 import org.gradle.declarative.dsl.schema.DataClass
+import org.gradle.declarative.dsl.schema.FunctionSemantics
 import org.gradle.internal.declarativedsl.analysis.SchemaTypeRefContext
 import org.gradle.internal.declarativedsl.analysis.dataOfTypeOrNull
-import org.gradle.internal.declarativedsl.evaluator.schema.DeclarativeScriptContext
 import org.gradle.internal.declarativedsl.evaluationSchema.InterpretationSchemaBuilder
+import org.gradle.internal.declarativedsl.evaluator.schema.DeclarativeScriptContext
 import org.gradle.internal.declarativedsl.evaluator.schema.InterpretationSchemaBuildingResult
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
 import org.gradle.kotlin.dsl.accessors.ContainerElementFactoryEntry
+import org.gradle.kotlin.dsl.accessors.NestedModelEntry
 import org.gradle.kotlin.dsl.accessors.ProjectFeatureEntry
+import org.gradle.kotlin.dsl.provider.plugins.schema.TypeProjection
+import org.gradle.kotlin.dsl.provider.plugins.schema.TypeProjectionKind
+import org.gradle.kotlin.dsl.provider.plugins.schema.parameterizedTypeOfRawGenericClass
 import org.gradle.kotlin.dsl.support.serviceOf
-import org.gradle.plugin.software.internal.ProjectFeatureDeclarations
-import java.lang.reflect.ParameterizedType
-import java.lang.reflect.Type
-import java.lang.reflect.WildcardType
+import org.gradle.features.internal.binding.ProjectFeatureDeclarations
 
 data class KotlinDslDclSchema(
     val containerElementFactories: List<ContainerElementFactoryEntry<TypeOf<*>>>,
+    val nestedModels: List<NestedModelEntry<TypeOf<*>>>,
     val projectFeatures: List<ProjectFeatureEntry<TypeOf<*>>>
 )
 
@@ -72,14 +77,18 @@ internal fun KotlinDslDclSchemaCollector.collectDclSchemaForKotlinDslTarget(targ
     } ?: return null
 
     val projectTypes = projectTypeRegistryOf(target)?.let(::collectProjectTypes) ?: return null
+    val nestedModels = dclInterpretationSequenceFor(target)?.let { interpretationSequence ->
+        collectNestedModels(interpretationSequence, targetScope)
+    } ?: return null
 
-    return KotlinDslDclSchema(containerElementFactories, projectTypes)
+    return KotlinDslDclSchema(containerElementFactories, nestedModels, projectTypes)
 }
 
 
 @ServiceScope(Scope.UserHome::class)
 internal interface KotlinDslDclSchemaCollector {
     fun collectContainerFactories(interpretationSequence: InterpretationSequence, classLoaderScope: ClassLoaderScope): List<ContainerElementFactoryEntry<TypeOf<*>>>
+    fun collectNestedModels(interpretationSequence: InterpretationSequence, classLoaderScope: ClassLoaderScope): NestedModels
     fun collectProjectTypes(projectFeatureDeclarations: ProjectFeatureDeclarations): List<ProjectFeatureEntry<TypeOf<*>>>
 }
 
@@ -90,8 +99,14 @@ internal class CachedKotlinDslDclSchemaCollector(
     override fun collectContainerFactories(interpretationSequence: InterpretationSequence, classLoaderScope: ClassLoaderScope): List<ContainerElementFactoryEntry<TypeOf<*>>> =
         cache.getOrPutContainerElementFactories(interpretationSequence, classLoaderScope) { delegate.collectContainerFactories(interpretationSequence, classLoaderScope) }
 
+    override fun collectNestedModels(
+        interpretationSequence: InterpretationSequence,
+        classLoaderScope: ClassLoaderScope
+    ): NestedModels =
+        cache.getOrPutNestedModels(interpretationSequence, classLoaderScope) { delegate.collectNestedModels(interpretationSequence, classLoaderScope) }
+
     override fun collectProjectTypes(projectFeatureDeclarations: ProjectFeatureDeclarations): List<ProjectFeatureEntry<TypeOf<*>>> =
-        cache.getOrPutContainerElementProjectTypes(projectFeatureDeclarations) { delegate.collectProjectTypes(projectFeatureDeclarations) }
+        cache.getOrPutProjectTypes(projectFeatureDeclarations) { delegate.collectProjectTypes(projectFeatureDeclarations) }
 }
 
 internal class DefaultKotlinDslDclSchemaCollector : KotlinDslDclSchemaCollector {
@@ -105,17 +120,43 @@ internal class DefaultKotlinDslDclSchemaCollector : KotlinDslDclSchemaCollector 
             types.flatMap { type ->
                 type.memberFunctions.mapNotNull { function ->
                     function.metadata.dataOfTypeOrNull<ContainerElementFactory>()?.let { factory ->
-                        val containerType = typeOf(type, classLoader)
-                            ?: return@let null
                         val elementDclType = typeRefContext.resolveRef(factory.elementType) as? DataClass
                             ?: return@let null
                         val elementType = typeOf(elementDclType, classLoader)
                             ?: return@let null
-                        ContainerElementFactoryEntry<TypeOf<*>>(function.simpleName, containerType, elementType)
+                        // Since the invoke operator for NDOCs has just `NDOC<T>` as the receiver (but not the more concrete type), we should generalize the accessor to NDOC<T> even if the
+                        // container type is more specific. It's OK since the accessor name is based on the element type and there should not be different accessors for one element type.
+                        val containerType = parameterizedTypeOfRawGenericClass(listOf(TypeProjection(elementType.concreteClass, TypeProjectionKind.NONE)), NamedDomainObjectContainer::class.java)
+                        ContainerElementFactoryEntry(function.simpleName, containerType, elementType)
                     }
                 }
             }
         }
+    }
+
+    override fun collectNestedModels(
+        interpretationSequence: InterpretationSequence,
+        classLoaderScope: ClassLoaderScope
+    ): NestedModels {
+        val classLoader = classLoaderScope.localClassLoader
+
+        return interpretationSequence.steps.flatMap { step ->
+            val analysisSchema = step.evaluationSchemaForStep.analysisSchema
+            val typeRefContext = SchemaTypeRefContext(analysisSchema)
+
+            analysisSchema.dataClassTypesByFqName.values.flatMap { type ->
+                when (type) {
+                    is DataClass -> type.memberFunctions.filter { it.metadata.any { item -> item is ConfigureFromGetterOrigin } }.mapNotNull { function ->
+                        val nestedModelType = (function.semantics as? FunctionSemantics.ConfigureSemantics)?.configuredType?.let(typeRefContext::resolveRef)
+                            as? DataClass ?: return@mapNotNull null
+                        val ownerClass = typeOf(type, classLoader) ?: return@mapNotNull null
+                        val nestedModelClass = typeOf(nestedModelType, classLoader) ?: return@mapNotNull null
+                        NestedModelEntry(function.simpleName, ownerClass, nestedModelClass)
+                    }
+                    else -> emptyList()
+                }
+            }
+        }.distinct()
     }
 
     private fun typeOf(dclDataClass: DataClass, classLoader: ClassLoader): TypeOf<*>? {
@@ -140,46 +181,17 @@ internal class DefaultKotlinDslDclSchemaCollector : KotlinDslDclSchemaCollector 
     }
 
     override fun collectProjectTypes(projectFeatureDeclarations: ProjectFeatureDeclarations): List<ProjectFeatureEntry<TypeOf<*>>> =
-        projectFeatureDeclarations.projectFeatureImplementations.entries.map { (name, implementation) ->
-            val targetType = when (val target = implementation.targetDefinitionType) {
-                is TargetTypeInformation.DefinitionTargetTypeInformation ->  TypeOf.typeOf(target.definitionType)
-                is TargetTypeInformation.BuildModelTargetTypeInformation<*> ->
-                    parameterizedTypeOfRawGenericClass(listOf(TypeProjection(target.buildModelType, TypeProjectionKind.OUT)), Definition::class.java)
-                else -> error("Unexpected target type $target")
-            }
-            ProjectFeatureEntry(name, TypeOf.typeOf(implementation.definitionPublicType), targetType)
-        }
+        projectFeatureDeclarations.projectFeatureImplementations.entries.map { (name, implementations) ->
+            implementations.map { implementation ->
+                val targetType = when (val target = implementation.targetDefinitionType) {
+                    is TargetTypeInformation.DefinitionTargetTypeInformation -> TypeOf.typeOf(target.definitionType)
+                    is TargetTypeInformation.BuildModelTargetTypeInformation<*> ->
+                        parameterizedTypeOfRawGenericClass(listOf(TypeProjection(target.buildModelType, TypeProjectionKind.OUT)), Definition::class.java)
 
-    /**
-     * Workaround: The [TypeOf] infrastructure handles parameterized types specially.
-     * Passing the raw [Class] obtained from the class loader to [TypeOf.parameterizedTypeOf] would not work.
-     * We need to provide a [ParameterizedType] instance.
-     */
-    private fun parameterizedTypeOfRawGenericClass(typeArgs: List<TypeProjection>, loadedClass: Class<*>): TypeOf<Any> =
-        TypeOf.typeOf(object : ParameterizedType {
-            override fun getActualTypeArguments(): Array<Type> = typeArgs.map { (clazz, projection) ->
-                when (projection) {
-                    TypeProjectionKind.NONE -> clazz
-                    TypeProjectionKind.OUT -> object : WildcardType {
-                        override fun getUpperBounds(): Array<out Type> = arrayOf(clazz)
-                        override fun getLowerBounds() = emptyArray<Type>()
-                    }
-                    TypeProjectionKind.IN -> object : WildcardType {
-                        override fun getUpperBounds(): Array<out Type> = emptyArray()
-                        override fun getLowerBounds() = arrayOf(clazz)
-                    }
+                    else -> error("Unexpected target type $target")
                 }
-            }.toTypedArray<Type>()
-            override fun getRawType(): Type = loadedClass
+                ProjectFeatureEntry(name, TypeOf.typeOf(implementation.definitionPublicType), targetType)
+            }
+        }.flatten()
 
-            /** [Class.getNestHost] is @since 11, cannot use it; but we are fine with no owner type here. */
-            /** [Class.getNestHost] is @since 11, cannot use it; but we are fine with no owner type here. */
-            override fun getOwnerType() = null
-        })
-
-    private data class TypeProjection(val clazz: Class<*>, val projection: TypeProjectionKind = TypeProjectionKind.NONE)
-
-    private enum class TypeProjectionKind {
-        NONE, OUT, IN
-    }
 }

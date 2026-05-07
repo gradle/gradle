@@ -33,6 +33,8 @@ import java.io.File;
 import java.nio.file.Paths;
 import java.util.List;
 
+import static org.gradle.docs.samples.SamplesTestEngine.getNormalizedSampleId;
+
 @NullMarked
 class IntegrationTestSamplesRunner extends SamplesRunner {
     private static final String SAMPLES_DIR_PROPERTY = "integTest.samplesdir";
@@ -95,7 +97,7 @@ class IntegrationTestSamplesRunner extends SamplesRunner {
                 "Sample test run failed.\nTo understand how docsTest works, See:\n" +
                     "  https://github.com/gradle/gradle/blob/master/platforms/documentation/docs/README.md#testing-docs\n" +
                     "To reproduce this failure, run:\n" +
-                    "  ./gradlew docs:docsTest --tests '*" + sample.getId() + "*' " + extraParameter, e);
+                    "  ./gradlew docs:docsTest --tests '*" + getNormalizedSampleId(sample) + "*' " + extraParameter, e);
         }
     }
 }

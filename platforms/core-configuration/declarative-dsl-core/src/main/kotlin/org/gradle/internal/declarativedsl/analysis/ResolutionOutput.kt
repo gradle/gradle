@@ -33,10 +33,10 @@ data class PropertyReferenceResolution(
 data class AssignmentRecord(
     val lhs: PropertyReferenceResolution,
     val rhs: ObjectOrigin,
-    val operationId: OperationId,
+    override val operationId: OperationId,
     val assignmentMethod: AssignmentMethod,
     val originElement: LanguageTreeElement
-)
+) : IdentifiedOperation
 
 
 sealed interface AssignmentMethod {
@@ -194,7 +194,7 @@ sealed interface ObjectOrigin {
         val accessor: ConfigureAccessor.Custom,
         override val originElement: LanguageTreeElement
     ) : ObjectOrigin, HasReceiver {
-        override fun toString(): String = "$receiver${'.'}${accessor.customAccessorIdentifier}"
+        override fun toString(): String = "$receiver${'.'}${accessor.accessorIdentifier}"
         val accessedType: DataTypeRef
             get() = accessor.objectType
     }

@@ -364,11 +364,6 @@ public abstract class AbstractMutableModuleComponentResolveMetadata implements M
         }
 
         @Override
-        public void setAttributes(ImmutableAttributes updatedAttributes) {
-            this.attributes = updatedAttributes;
-        }
-
-        @Override
         public MutableComponentVariant copy(String variantName, ImmutableAttributes attributes, Capability capability) {
             MutableVariantImpl copy = new MutableVariantImpl(variantName, attributes);
             copy.dependencies.addAll(this.dependencies);

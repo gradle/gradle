@@ -16,6 +16,7 @@
 
 package org.gradle.api.artifacts.dsl;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.NonExtensible;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Dependency;
@@ -90,8 +91,31 @@ public interface DependencyFactory {
      *
      * @param project the project
      * @return the new dependency
+     * @deprecated Use {@link #createProjectDependency(String)} instead. This method will be removed in Gradle 10.0.
      */
+    @Deprecated
     ProjectDependency create(Project project);
+
+    /**
+     * Create a {@link ProjectDependency} from a {@link Project} path.
+     *
+     * @param projectPath the project
+     * @return the new dependency
+     *
+     * @since 9.5.0
+     */
+    @Incubating
+    ProjectDependency createProjectDependency(String projectPath);
+
+    /**
+     * Create a {@link ProjectDependency} for the current project.
+     *
+     * @return the new dependency
+     *
+     * @since 9.5.0
+     */
+    @Incubating
+    ProjectDependency createProjectDependency();
 
     /**
      * Creates a dependency on the API of the current version of Gradle.

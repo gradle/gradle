@@ -19,6 +19,12 @@ package org.gradle.test.preconditions
 import org.gradle.test.GradleBuildJvmSpec
 import org.gradle.test.precondition.TestPrecondition
 
+/**
+ * Preconditions for smoke tests.
+ * Checks whether the Gradle build JVM spec required by smoke tests is available.
+ *
+ * @see org.gradle.test.precondition
+ */
 class SmokeTestPreconditions {
 
     static class GradleBuildJvmSpecAvailable implements TestPrecondition {

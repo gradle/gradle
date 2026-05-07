@@ -35,23 +35,28 @@ import static org.hamcrest.MatcherAssert.assertThat
 abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
 
     protected static final NATIVE_PLATFORM_BINARIES = 16
-    protected static final THIRD_PARTY_LIB_COUNT = 113
+    protected static final THIRD_PARTY_LIB_COUNT = 114
 
     @Shared
     String baseVersion = GradleVersion.current().baseVersion.version
 
     def coreLibsModules = [
+        "ant",
+        "ant-api",
         "base-asm",
         "base-diagnostics",
         "base-services",
         "base-services-groovy",
         "build-cache",
         "build-cache-base",
+        "build-cache-core",
         "build-cache-local",
         "build-cache-packaging",
         "build-cache-spi",
         "build-configuration",
-        "build-events",
+        "build-discovery",
+        "build-discovery-impl",
+        "build-discovery-reporting",
         "build-init-specs",
         "build-init-specs-api",
         "build-operations",
@@ -60,24 +65,30 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         "build-process-services",
         "build-state",
         "classloaders",
+        "classpath",
         "cli",
         "client-services",
+        "collections",
         "concurrent",
         "configuration-problems-base",
         "core",
         "core-api",
         "core-flow-services-api",
         "core-kotlin-extensions",
+        "credentials",
+        "credentials-api",
+        "daemon-logging",
         "daemon-main",
+        "daemon-messaging",
         "daemon-protocol",
         "daemon-server",
         "daemon-services",
         "declarative-dsl-api",
         "declarative-dsl-core",
         "declarative-dsl-evaluator",
-        "declarative-dsl-internal-utils",
         "declarative-dsl-provider",
         "declarative-dsl-tooling-models",
+        "domain-object-collections",
         "enterprise-logging",
         "enterprise-operations",
         "enterprise-workers",
@@ -92,6 +103,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         "gradle-cli-main",
         "groovy-loader",
         "hashing",
+        "hashing-services",
         "input-tracking",
         "installation-beacon",
         "instrumentation-agent-services",
@@ -108,6 +120,8 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         "model-groovy",
         "model-reflect",
         "native",
+        "normalization",
+        "normalization-api",
         "normalization-java",
         "persistent-cache",
         "problems",
@@ -115,6 +129,8 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         "problems-rendering",
         "process-memory-services",
         "process-services",
+        "process-services-api",
+        "process-services-base",
         "project-features",
         "project-features-api",
         "report-rendering",
@@ -129,6 +145,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         "service-registry-builder",
         "service-registry-impl",
         "snapshots",
+        "start-parameter",
         "stdlib-java-extensions",
         "stdlib-kotlin-extensions",
         "time",
@@ -137,6 +154,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         "tooling-api-provider",
         "versioned-cache",
         "worker-main",
+        "worker-process-services",
         "wrapper-shared",
     ]
 
@@ -168,7 +186,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
      * Change this whenever you add or remove subprojects for distribution-packaged plugins (lib/plugins).
      */
     int getPackagedPluginsJarCount() {
-        80
+        94
     }
 
     /**
@@ -213,12 +231,30 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         dupesWithCount.isEmpty()
     }
 
-    def "all files under lib directory are jars"() {
+    def "all files under lib directory are jars and properties files"() {
+        given:
+        def entries = libZipEntries
+
         when:
-        def nonJarLibEntries = libZipEntries.findAll { !it.name.endsWith(".jar") }
+        def unexpectedEntries = entries.findAll { !it.name.endsWith(".jar") && !it.name.endsWith(".properties") }
+        def jarNames = entries.collect { it.name }.findAll { it.endsWith(".jar") }
+        def propertiesNames = entries.collect { it.name }.findAll { it.endsWith(".properties") }
+
+        and:
+        def jarsWithoutProperties = new HashSet<>(jarNames)
+        for (String propertiesFile : propertiesNames) {
+            String moduleName = propertiesFile - ".properties"
+            String jarName = jarNames.findAll { it.startsWith(moduleName) }.min { it.size() }
+            if (jarName != null) {
+                // Some properties files don't have a corresponding jar, like those representing
+                // platforms/BOMs, or those representing parent components of KMP multi-platform components.
+                jarsWithoutProperties.remove(jarName)
+            }
+        }
 
         then:
-        nonJarLibEntries.isEmpty()
+        unexpectedEntries.isEmpty()
+        jarsWithoutProperties.isEmpty()
     }
 
     def "no additional jars are added to the distribution"() {
@@ -311,6 +347,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
                 && !it.name.startsWith("gradle-api-metadata")
                 && !it.name.startsWith("gradle-kotlin-dsl")
                 && !it.name.startsWith("gradle-fileevents")
+                && it.name.endsWith(".jar")
         }
 
         def prefixedCoreLibNames = coreLibsModules.collect { "gradle-$it" }
@@ -330,7 +367,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
 
         def toolingApiJar = contentsDir.file("lib/gradle-tooling-api-${baseVersion}.jar")
         toolingApiJar.assertIsFile()
-        assert toolingApiJar.length() < 518 * 1024 // tooling api jar is the small plain tooling api jar version and not the fat jar.
+        assert toolingApiJar.length() < 600 * 1024 // tooling api jar is the small plain tooling api jar version and not the fat jar.
 
         // Kotlin DSL
         assertIsGradleJar(contentsDir.file("lib/gradle-kotlin-dsl-${baseVersion}.jar"))
@@ -358,6 +395,8 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         assertIsGradleJar(contentsDir.file("lib/plugins/gradle-language-java-${baseVersion}.jar"))
         assertIsGradleJar(contentsDir.file("lib/plugins/gradle-language-groovy-${baseVersion}.jar"))
         assertIsGradleJar(contentsDir.file("lib/plugins/gradle-enterprise-${baseVersion}.jar"))
+        assertIsGradleJar(contentsDir.file("lib/plugins/gradle-ant-impl-${baseVersion}.jar"))
+        assertIsGradleJar(contentsDir.file("lib/plugins/gradle-ant-worker-${baseVersion}.jar"))
 
         // Agents
         assertIsGradleJar(contentsDir.file("lib/agents/gradle-instrumentation-agent-${baseVersion}.jar"))

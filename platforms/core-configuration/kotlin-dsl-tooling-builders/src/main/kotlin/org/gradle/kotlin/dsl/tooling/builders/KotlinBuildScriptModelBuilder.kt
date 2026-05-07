@@ -43,22 +43,18 @@ import org.gradle.kotlin.dsl.execution.EvalOption
 import org.gradle.kotlin.dsl.provider.ClassPathModeExceptionCollector
 import org.gradle.kotlin.dsl.provider.KotlinScriptClassPathProvider
 import org.gradle.kotlin.dsl.provider.KotlinScriptEvaluator
-import org.gradle.kotlin.dsl.provider.PrecompiledScriptsEnvironment.EnvironmentProperties.kotlinDslPluginSpecBuildersImplicitImports
 import org.gradle.kotlin.dsl.provider.runCatching
 import org.gradle.kotlin.dsl.resolver.EditorReports
 import org.gradle.kotlin.dsl.resolver.SourceDistributionResolver
 import org.gradle.kotlin.dsl.resolver.SourcePathProvider
 import org.gradle.kotlin.dsl.support.ImplicitImports
-import org.gradle.kotlin.dsl.support.KotlinScriptHashing
 import org.gradle.kotlin.dsl.support.KotlinScriptType
 import org.gradle.kotlin.dsl.support.kotlinScriptTypeFor
 import org.gradle.kotlin.dsl.support.serviceOf
-import org.gradle.kotlin.dsl.tooling.models.EditorReport
 import org.gradle.kotlin.dsl.tooling.models.KotlinBuildScriptModel
 import org.gradle.tooling.provider.model.ToolingModelBuilder
 import java.io.File
 import java.io.PrintWriter
-import java.io.Serializable
 import java.io.StringWriter
 import java.util.EnumSet
 
@@ -68,31 +64,6 @@ data class KotlinBuildScriptModelParameter(
     val scriptFile: File?,
     val correlationId: String?
 )
-
-
-internal
-data class StandardKotlinBuildScriptModel(
-    private val classPath: List<File>,
-    private val sourcePath: List<File>,
-    private val implicitImports: List<String>,
-    private val editorReports: List<EditorReport>,
-    private val exceptions: List<String>,
-    private val enclosingScriptProjectDir: File?
-) : KotlinBuildScriptModel, Serializable {
-
-    override fun getClassPath() = classPath
-
-    override fun getSourcePath() = sourcePath
-
-    override fun getImplicitImports() = implicitImports
-
-    override fun getEditorReports() = editorReports
-
-    override fun getExceptions() = exceptions
-
-    override fun getEnclosingScriptProjectDir() = enclosingScriptProjectDir
-}
-
 
 internal
 object KotlinBuildScriptModelBuilder : ToolingModelBuilder {
@@ -198,10 +169,9 @@ fun Project.findSourceSetOf(file: File): EnclosingSourceSet? =
     }
 
 
-private
+internal
 val Project.sourceSets
     get() = extensions.findByType(typeOf<SourceSetContainer>())
-
 
 private
 fun precompiledScriptPluginModelBuilder(
@@ -214,35 +184,11 @@ fun precompiledScriptPluginModelBuilder(
     scriptClassPath = DefaultClassPath.of(enclosingSourceSet.sourceSet.compileClasspath),
     enclosingScriptProjectDir = enclosingSourceSet.project.projectDir,
     additionalImports = {
-        enclosingSourceSet.project.precompiledScriptPluginsMetadataDir.run {
-            implicitImportsFrom(
-                resolve("accessors").resolve(hashOf(scriptFile))
-            ) + implicitImportsFrom(
-                resolve("plugin-spec-builders").resolve(kotlinDslPluginSpecBuildersImplicitImports)
-            ) + implicitImportsFrom(
-                // Gradle <= 8.12 was using this other name with a dash but this was incompatible with moving to kotlin-scripting-host API
-                // Keeping it for compatibility with previous Gradle versions
-                resolve("plugin-spec-builders").resolve("implicit-imports")
-            )
+        PrecompiledScriptPluginsMetadataDir.of(enclosingSourceSet.project).run {
+            implicitAccessorsImports(scriptFile) + implicitPluginSpecBuildersImports
         }
     }
 )
-
-
-private
-val Project.precompiledScriptPluginsMetadataDir: File
-    get() = layout.buildDirectory.dir("kotlin-dsl/precompiled-script-plugins-metadata").get().asFile
-
-
-private
-fun implicitImportsFrom(file: File): List<String> =
-    file.takeIf { it.isFile }?.readLines() ?: emptyList()
-
-
-private
-fun hashOf(scriptFile: File) =
-    KotlinScriptHashing.hashOf(scriptFile.readText())
-
 
 private
 fun projectScriptModelBuilder(

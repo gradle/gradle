@@ -22,12 +22,13 @@ import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.test.fixtures.server.http.MavenHttpModule
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
+import org.gradle.test.preconditions.TestEnvironmentPreconditions
+
 import org.gradle.testdistribution.LocalOnly
 
 @Requires(
-    value = [UnitTestPreconditions.HasDocker, IntegTestPreconditions.NotEmbeddedExecutor],
+    value = [TestEnvironmentPreconditions.HasDocker, TestExecutionPreconditions.NotEmbeddedExecutor],
     reason = "needs real Gradle distribution to run in container"
 )
 @LocalOnly

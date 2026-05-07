@@ -160,6 +160,20 @@ trait ValidationMessageChecker {
             .solution("Remove the @${config.ignoringAnnotation} annotation")
     }
 
+    String ignoredAnnotatedWithOptionalMessage(@DelegatesTo(value = IgnoredAnnotationPropertyMessage, strategy = Closure.DELEGATE_FIRST) Closure<?> spec = {}) {
+        ignoredAnnotatedWithOptionalConfig(spec).render()
+    }
+
+    IgnoredAnnotationPropertyMessage ignoredAnnotatedWithOptionalConfig(@DelegatesTo(value = IgnoredAnnotationPropertyMessage, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
+        def config = display(IgnoredAnnotationPropertyMessage, 'ignored_property_must_not_be_annotated', spec)
+        // @Optional-specific variant: hardcodes "@Optional" rather than using config.alsoAnnotatedWith,
+        // since the message and reason are tailored to the @Optional case
+        config.description("annotated with @${config.ignoringAnnotation} should not be also annotated with @Optional")
+            .reason("@${config.ignoringAnnotation} properties are excluded from up-to-date checks; @Optional is redundant and not allowed here")
+            .solution("Remove the @Optional annotation")
+            .solution("Remove the @${config.ignoringAnnotation} annotation and add an input or output annotation")
+    }
+
     String conflictingAnnotationsMessage(@DelegatesTo(value = ConflictingAnnotation, strategy = Closure.DELEGATE_FIRST) Closure<?> spec = {}) {
         ConflictingAnnotation config = conflictingAnnotationsConfig(spec)
         config.render()
@@ -212,9 +226,21 @@ trait ValidationMessageChecker {
     MissingAnnotation missingAnnotationConfig(@DelegatesTo(value = MissingAnnotation, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
         def config = display(MissingAnnotation, 'missing_annotation', spec)
         config.description("is missing ${config.kind}")
-            .reason("A property without annotation isn't considered during up-to-date checking")
+            .reason("Properties must be annotated so that Gradle knows how to handle them during up-to-date checking")
             .solution("Add ${config.kind}")
             .solution("Mark it as @Internal")
+    }
+
+    String missingAnnotationWithOptionalMessage(@DelegatesTo(value = MissingAnnotation, strategy = Closure.DELEGATE_FIRST) Closure<?> spec = {}) {
+        missingAnnotationWithOptionalConfig(spec).render()
+    }
+
+    MissingAnnotation missingAnnotationWithOptionalConfig(@DelegatesTo(value = MissingAnnotation, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
+        def config = display(MissingAnnotation, 'missing_annotation', spec)
+        config.description("is missing ${config.kind}")
+            .reason("@Optional is a modifier annotation and has no effect without an input or output annotation")
+            .solution("Add an input or output annotation")
+            .solution("Replace @Optional with @Internal for ignoring this property")
     }
 
     String ignoredAnnotationOnField(@DelegatesTo(value = IgnoredAnnotationOnField, strategy = Closure.DELEGATE_FIRST) Closure<?> spec = {}) {

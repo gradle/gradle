@@ -23,14 +23,13 @@ import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.plugins.JavaPluginExtension;
-import org.gradle.api.problems.Problem;
 import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.ProblemReporter;
 import org.gradle.api.problems.Problems;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
-import org.gradle.api.problems.internal.InternalProblem;
-import org.gradle.api.problems.internal.InternalProblemReporter;
-import org.gradle.api.problems.internal.InternalProblems;
+import org.gradle.api.problems.internal.ProblemInternal;
+import org.gradle.api.problems.internal.ProblemReporterInternal;
+import org.gradle.api.problems.internal.ProblemsInternal;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
@@ -62,7 +61,6 @@ import static com.google.common.collect.ImmutableList.toImmutableList;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.nio.file.Files.readAllBytes;
 import static java.util.stream.Collectors.joining;
-import static org.gradle.api.problems.Severity.ERROR;
 
 /**
  * Validates plugins by checking property annotations on work items like tasks and artifact transforms.
@@ -150,7 +148,8 @@ public abstract class ValidatePlugins extends DefaultTask {
                         })
                     );
                 }
-                spec.getClasspath().setFrom(getClasses(), getClasspath());
+                // The classpath includes both the plugin classes and the dependencies:
+                spec.getClasspath().setFrom(getClasspath());
             })
             .submit(ValidateAction.class, params -> {
                 params.getClasses().setFrom(getClasses());
@@ -159,19 +158,29 @@ public abstract class ValidatePlugins extends DefaultTask {
             });
         getWorkerExecutor().await();
 
-        List<? extends InternalProblem> problems = ValidationProblemSerialization.parseMessageList(new String(readAllBytes(getOutputFile().get().getAsFile().toPath()), UTF_8));
+        ValidationProblemSerialization.SerializationResult parsedProblems = ValidationProblemSerialization.deserialize(new String(readAllBytes(getOutputFile().get().getAsFile().toPath()), UTF_8));
+        List<? extends ProblemInternal> warnings = parsedProblems.getWarnings();
+        List<? extends ProblemInternal> errors = parsedProblems.getErrors();
 
-        Stream<String> messages = ValidationProblemSerialization.toPlainMessage(problems).sorted();
-        if (problems.isEmpty()) {
+        Stream<String> messages = Stream.concat(
+            ValidationProblemSerialization.toPlainWarning(warnings).sorted(),
+            ValidationProblemSerialization.toPlainError(errors).sorted()
+        );
+
+        if (errors.isEmpty() && warnings.isEmpty()) {
             getLogger().info("Plugin validation finished without warnings.");
         } else {
-            if (getFailOnWarning().get() || problems.stream().anyMatch(problem -> problem.getDefinition().getSeverity() == ERROR)) {
+            if (getFailOnWarning().get() || !errors.isEmpty()) {
                 if (getIgnoreFailures().get()) {
                     getLogger().warn("Plugin validation finished with errors. {} {}",
                         annotateTaskPropertiesDoc(),
                         messages.collect(joining()));
                 } else {
-                    reportProblems(problems);
+
+                    ProblemReporterInternal reporter = getServices().get(ProblemsInternal.class)
+                        .getInternalReporter();
+                    reporter.report(warnings);
+                    reporter.reportError(errors);
                     throw WorkValidationException.forProblems(messages.collect(toImmutableList()))
                         .withSummaryForPlugin()
                         .getWithExplanation(annotateTaskPropertiesDoc());
@@ -181,11 +190,6 @@ public abstract class ValidatePlugins extends DefaultTask {
                     messages.collect(joining()));
             }
         }
-    }
-
-    private void reportProblems(List<? extends Problem> problems) {
-        InternalProblemReporter reporter = getServices().get(InternalProblems.class).getInternalReporter();
-        problems.forEach(reporter::report);
     }
 
     private String annotateTaskPropertiesDoc() {
@@ -203,6 +207,8 @@ public abstract class ValidatePlugins extends DefaultTask {
 
     /**
      * The classpath used to load the classes under validation.
+     * <p>
+     * Includes the classes under validation and both the runtime-scoped dependencies and the compile-scoped ones.
      */
     @Classpath
     public abstract ConfigurableFileCollection getClasspath();

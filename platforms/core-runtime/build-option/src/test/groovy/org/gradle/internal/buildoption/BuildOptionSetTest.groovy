@@ -48,6 +48,17 @@ class BuildOptionSetTest extends Specification {
         bean.prop == "abc"
     }
 
+    def "can convert environment variables"() {
+        def converter = set.envVarConverter()
+
+        when:
+        def bean = converter.convert(["SOME_OPTION": "abc", "SOME_FLAG": "true"], new Bean())
+
+        then:
+        bean.flag
+        bean.prop == "abc"
+    }
+
     private class Bean {
         boolean flag
         String prop
@@ -61,6 +72,8 @@ class BuildOptionSetTest extends Specification {
     }
 
     private class TestOption extends StringBuildOption<Bean> {
+        static final String ENV_VAR = "SOME_OPTION"
+
         TestOption() {
             super("some.option", CommandLineOptionConfiguration.create("some-option", "an option"))
         }
@@ -69,9 +82,19 @@ class BuildOptionSetTest extends Specification {
         void applyTo(String value, Bean settings, Origin origin) {
             settings.prop = value
         }
+
+        @Override
+        void applyFromEnvVar(Map<String, String> envVars, Bean settings) {
+            def envVarValue = envVars.get(ENV_VAR)
+            if (envVarValue != null) {
+                settings.prop = envVarValue
+            }
+        }
     }
 
     private class TestFlag extends BooleanBuildOption<Bean> {
+        static final String ENV_VAR = "SOME_FLAG"
+
         TestFlag() {
             super("some.flag", BooleanCommandLineOptionConfiguration.create("some-flag", "thing is on", "this is off"))
         }
@@ -79,6 +102,14 @@ class BuildOptionSetTest extends Specification {
         @Override
         void applyTo(boolean value, Bean settings, Origin origin) {
             settings.flag = value
+        }
+
+        @Override
+        void applyFromEnvVar(Map<String, String> envVars, Bean settings) {
+            def envVarValue = envVars.get(ENV_VAR)
+            if (envVarValue != null) {
+                settings.flag = BooleanOptionUtil.isTrue(envVarValue)
+            }
         }
     }
 }

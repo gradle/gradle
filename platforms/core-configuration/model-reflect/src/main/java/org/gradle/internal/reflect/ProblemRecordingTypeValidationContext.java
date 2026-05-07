@@ -17,8 +17,8 @@
 package org.gradle.internal.reflect;
 
 import org.gradle.api.Action;
-import org.gradle.api.problems.internal.InternalProblem;
-import org.gradle.api.problems.internal.InternalProblems;
+import org.gradle.api.problems.internal.ProblemInternal;
+import org.gradle.api.problems.internal.ProblemsInternal;
 import org.gradle.api.problems.internal.TypeValidationDataSpec;
 import org.gradle.internal.reflect.validation.DefaultTypeAwareProblemBuilder;
 import org.gradle.internal.reflect.validation.TypeAwareProblemBuilder;
@@ -33,12 +33,12 @@ import java.util.function.Supplier;
 abstract public class ProblemRecordingTypeValidationContext implements TypeValidationContext {
     private final Class<?> rootType;
     private final Supplier<Optional<PluginId>> pluginId;
-    private final InternalProblems problems;
+    private final ProblemsInternal problems;
 
     public ProblemRecordingTypeValidationContext(
         @Nullable Class<?> rootType,
         Supplier<Optional<PluginId>> pluginId,
-        InternalProblems problems
+        ProblemsInternal problems
     ) {
         this.rootType = rootType;
         this.pluginId = pluginId;
@@ -46,8 +46,13 @@ abstract public class ProblemRecordingTypeValidationContext implements TypeValid
     }
 
     @Override
-    public void visitTypeProblem(Action<? super TypeAwareProblemBuilder> problemSpec) {
-        recordProblem(getDefaultTypeAwareProblemBuilder(problemSpec).build());
+    public void visitTypeError(Action<? super TypeAwareProblemBuilder> problemSpec) {
+        recordError(getDefaultTypeAwareProblemBuilder(problemSpec).build());
+    }
+
+    @Override
+    public void visitTypeWarning(Action<? super TypeAwareProblemBuilder> problemSpec) {
+        recordWarning(getDefaultTypeAwareProblemBuilder(problemSpec).build());
     }
 
     private Optional<PluginId> pluginId() {
@@ -55,13 +60,15 @@ abstract public class ProblemRecordingTypeValidationContext implements TypeValid
     }
 
     @Override
-    public void visitPropertyProblem(Action<? super TypeAwareProblemBuilder> problemSpec) {
-        DefaultTypeAwareProblemBuilder problemBuilder = getDefaultTypeAwareProblemBuilder(problemSpec);
-        problemBuilder.withAnnotationType(rootType);
-        pluginId()
-            .map(PluginId::getId)
-            .ifPresent(id -> problemBuilder.additionalDataInternal(TypeValidationDataSpec.class, data -> data.pluginId(id)));
-        recordProblem(problemBuilder.build());
+    public void visitPropertyError(Action<? super TypeAwareProblemBuilder> problemSpec) {
+        DefaultTypeAwareProblemBuilder problemBuilder = withAnnotationTypeAndPluginId(getDefaultTypeAwareProblemBuilder(problemSpec));
+        recordError(problemBuilder.build());
+    }
+
+    @Override
+    public void visitPropertyWarning(Action<? super TypeAwareProblemBuilder> problemSpec) {
+        DefaultTypeAwareProblemBuilder problemBuilder = withAnnotationTypeAndPluginId(getDefaultTypeAwareProblemBuilder(problemSpec));
+        recordWarning(problemBuilder.build());
     }
 
     private @NonNull DefaultTypeAwareProblemBuilder getDefaultTypeAwareProblemBuilder(Action<? super TypeAwareProblemBuilder> problemSpec) {
@@ -70,5 +77,15 @@ abstract public class ProblemRecordingTypeValidationContext implements TypeValid
         return problemBuilder;
     }
 
-    abstract protected void recordProblem(InternalProblem problem);
+    private DefaultTypeAwareProblemBuilder withAnnotationTypeAndPluginId(DefaultTypeAwareProblemBuilder problemBuilder) {
+        problemBuilder.withAnnotationType(rootType);
+        pluginId()
+            .map(PluginId::getId)
+            .ifPresent(id -> problemBuilder.additionalDataInternal(TypeValidationDataSpec.class, data -> data.pluginId(id)));
+        return problemBuilder;
+    }
+
+    abstract protected void recordError(ProblemInternal problem);
+
+    abstract protected void recordWarning(ProblemInternal problem);
 }

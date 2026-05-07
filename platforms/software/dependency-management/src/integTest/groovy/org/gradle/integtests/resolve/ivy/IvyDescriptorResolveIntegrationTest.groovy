@@ -19,11 +19,17 @@ import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 
 class IvyDescriptorResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
-    ResolveTestFixture resolve = new ResolveTestFixture(buildFile, "compile")
+    ResolveTestFixture resolve = new ResolveTestFixture(testDirectory)
 
     def setup() {
         settingsFile """
             rootProject.name = 'test'
+        """
+        buildFile << """
+            configurations {
+                compile
+            }
+            ${resolve.configureProject("compile")}
         """
     }
 
@@ -38,7 +44,6 @@ class IvyDescriptorResolveIntegrationTest extends AbstractHttpDependencyResoluti
         and:
         buildFile << """
 repositories { ivy { url = "${ivyRepo.uri}" } }
-configurations { compile }
 dependencies {
     compile "org.gradle:test:1.45"
 }
@@ -56,7 +61,6 @@ task check {
     }
 }
 """
-        resolve.prepare()
 
         when:
         executer.withArgument("-Dsys_prop=111")
@@ -84,7 +88,6 @@ task check {
 
         buildFile << """
 repositories { ivy { url = "${ivyHttpRepo.uri}" } }
-configurations { compile }
 dependencies {
     compile "org.gradle:test:1.45"
 }
@@ -95,7 +98,6 @@ task check {
     }
 }
 """
-        resolve.prepare()
 
         and:
         dep.ivy.expectGet()
@@ -142,7 +144,6 @@ task check {
 
         buildFile << """
 repositories { ivy { url = "${ivyHttpRepo.uri}" } }
-configurations { compile }
 dependencies {
     compile "org.gradle:test:1.45"
 }
@@ -153,7 +154,6 @@ task check {
     }
 }
 """
-        resolve.prepare()
 
         and:
         dep.ivy.expectGet()

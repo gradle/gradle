@@ -21,6 +21,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileSystemOperations;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.tasks.GroovydocAntAction;
+import org.gradle.api.internal.tasks.GroovydocParameters;
 import org.gradle.api.provider.Property;
 import org.gradle.api.resources.TextResource;
 import org.gradle.api.tasks.CacheableTask;
@@ -50,6 +51,7 @@ import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * <p>Generates HTML API documentation for Groovy source, and optionally, Java source.
@@ -117,7 +119,11 @@ public abstract class Groovydoc extends SourceTask {
             parameters.getFooter().convention(getFooter());
             parameters.getOverview().convention(getPathToOverview());
             parameters.getAccess().convention(getAccess());
-            parameters.getLinks().convention(getLinks());
+            parameters.getLinks().convention(
+                getLinks().stream()
+                    .map(link -> new GroovydocParameters.Link(link.getPackages(), link.getUrl()))
+                    .collect(Collectors.toList())
+            );
             parameters.getTmpDir().fileValue(getTemporaryDir());
             parameters.getIncludeAuthor().convention(getIncludeAuthor());
             parameters.getProcessScripts().convention(getProcessScripts());

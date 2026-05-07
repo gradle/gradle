@@ -16,6 +16,10 @@
 
 package org.gradle.tooling.events.test;
 
+import org.gradle.api.Incubating;
+import org.gradle.tooling.events.test.source.NoSource;
+import org.gradle.tooling.events.test.source.OtherSource;
+import org.gradle.tooling.events.test.source.TestSource;
 import org.jspecify.annotations.Nullable;
 
 /**
@@ -57,4 +61,19 @@ public interface JvmTestOperationDescriptor extends TestOperationDescriptor {
     @Nullable
     String getMethodName();
 
+    /**
+     * Returns information about the source of the test.
+     * <p>
+     * The known source types are modeled as TestSource subtypes.
+     * <p>
+     * If the test execution explicitly declares that no test source information is available then the method returns {@link NoSource}.
+     * If Gradle fails to determine the test source information, the method returns {@link OtherSource}.
+     *<p>
+     * For older Gradle versions, the implementation will attempt to provide a valid result based on the state of the source object using {@link NoSource} as a default value.
+     *
+     * @return the test source
+     * @since 9.4.0
+     */
+    @Incubating
+    TestSource getSource();
 }

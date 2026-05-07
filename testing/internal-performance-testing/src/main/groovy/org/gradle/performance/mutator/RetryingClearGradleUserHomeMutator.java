@@ -87,7 +87,7 @@ public class RetryingClearGradleUserHomeMutator extends AbstractScheduledMutator
             paths
                 // Don't delete the wrapper dir, since this is where the Gradle distribution we are going to run is located
                 .filter(path -> !path.getFileName().toString().equals("wrapper"))
-                .forEach(path -> delete(path.toFile()));
+                .forEach(path -> deleteFileOrDirectory(path.toFile()));
         }
     }
 }

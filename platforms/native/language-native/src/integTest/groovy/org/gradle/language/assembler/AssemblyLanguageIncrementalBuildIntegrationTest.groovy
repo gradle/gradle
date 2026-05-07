@@ -25,7 +25,9 @@ import org.gradle.nativeplatform.fixtures.app.HelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.MixedLanguageHelloWorldApp
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.OsTestPreconditions
+import org.gradle.test.preconditions.TestEnvironmentPreconditions
+
 
 @RequiresInstalledToolChain(ToolChainRequirement.SUPPORTS_32_AND_64)
 @UnsupportedWithConfigurationCache(because = "setup fails")
@@ -76,7 +78,7 @@ class AssemblyLanguageIncrementalBuildIntegrationTest extends AbstractInstalledT
         allSkipped()
     }
 
-    @Requires(UnitTestPreconditions.CanInstallExecutable)
+    @Requires(TestEnvironmentPreconditions.CanInstallExecutable)
     def "reassembles binary with assembler option change"() {
         when:
         buildFile << """
@@ -105,8 +107,8 @@ class AssemblyLanguageIncrementalBuildIntegrationTest extends AbstractInstalledT
     }
 
     @Requires([
-        UnitTestPreconditions.CanInstallExecutable,
-        UnitTestPreconditions.NotWindows
+        TestEnvironmentPreconditions.CanInstallExecutable,
+        OsTestPreconditions.NotWindows
     ])
     def "reassembles binary with target platform change"() {
         when:

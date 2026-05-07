@@ -15,6 +15,8 @@
  */
 package org.gradle.api.artifacts;
 
+import org.gradle.declarative.dsl.model.annotations.Adding;
+import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition;
 import org.jspecify.annotations.Nullable;
 
 /**
@@ -31,6 +33,7 @@ public interface Dependency {
      * repository. For example, the group name corresponds to a directory name in a Maven like repository. Might return
      * null.
      */
+    @HiddenInDefinition
     @Nullable
     String getGroup();
 
@@ -38,6 +41,7 @@ public interface Dependency {
      * Returns the name of this dependency. The name is almost always required to find the artifacts of a dependency in
      * a repository. Never returns null.
      */
+    @HiddenInDefinition
     String getName();
 
     /**
@@ -46,6 +50,7 @@ public interface Dependency {
      * null.
      *
      */
+    @HiddenInDefinition
     @Nullable
     String getVersion();
 
@@ -54,6 +59,7 @@ public interface Dependency {
      *
      * @return The copy. Never returns null.
      */
+    @HiddenInDefinition
     Dependency copy();
 
     /**
@@ -64,6 +70,7 @@ public interface Dependency {
      *
      * @since 4.6
      */
+    @HiddenInDefinition
     @Nullable
     String getReason();
 
@@ -72,5 +79,6 @@ public interface Dependency {
      *
      * @since 4.6
      */
+    @Adding
     void because(@Nullable String reason);
 }

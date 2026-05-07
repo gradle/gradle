@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.tooling.r25
 
+import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.WithOldConfigurationsSupport
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
@@ -29,10 +30,11 @@ class TestProgressDaemonErrorsCrossVersionSpec extends ToolingApiSpecification i
     @Rule BlockingHttpServer server = new BlockingHttpServer()
     boolean killed = false
 
-    void setup() {
+    def setup() {
         toolingApi.requireIsolatedDaemons()
     }
 
+    @TargetGradleVersion(">=6.0.0") // https://github.com/gradle/gradle-private/issues/1626
     def "should received failed event when daemon disappears unexpectedly with TAPI higher 2.4"() {
         given:
         goodCode()

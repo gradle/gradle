@@ -39,6 +39,7 @@ import org.gradle.api.tasks.TaskContainer
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.internal.deprecation.Documentation
 import org.gradle.kotlin.dsl.*
+import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.PluginEntryCache
 import org.gradle.kotlin.dsl.precompile.v1.PrecompiledInitScript
 import org.gradle.kotlin.dsl.precompile.v1.PrecompiledProjectScript
 import org.gradle.kotlin.dsl.precompile.v1.PrecompiledSettingsScript
@@ -152,7 +153,8 @@ class DefaultPrecompiledScriptPluginsSupport : PrecompiledScriptPluginsSupport {
             return false
         }
 
-        val scriptPlugins = scriptPluginFiles.map(::PrecompiledScriptPlugin)
+        val scriptPluginsFactory = PrecompiledScriptPluginFactory()
+        val scriptPlugins = scriptPluginFiles.map { scriptPluginsFactory.create(it) }
         enableScriptCompilationOf(
             scriptPlugins,
             target.kotlinSourceDirectorySet
@@ -190,9 +192,9 @@ fun Project.enableScriptCompilationOf(
 
     tasks {
 
-        val extractPrecompiledScriptPluginPlugins by registering(ExtractPrecompiledScriptPluginPlugins::class) {
-            plugins.value(scriptPlugins)
-            outputDir.set(extractedPluginsBlocks)
+        val extractPrecompiledScriptPluginPlugins = register("extractPrecompiledScriptPluginPlugins", ExtractPrecompiledScriptPluginPlugins::class.java) {
+            it.plugins.value(scriptPlugins)
+            it.outputDir.set(extractedPluginsBlocks)
         }
 
         val (generateExternalPluginSpecBuilders, externalPluginSpecBuilders) =
@@ -257,18 +259,19 @@ fun Project.enableScriptCompilationOf(
         configureKotlinCompilerArguments(
             objects,
             serviceOf(),
+            serviceOf(),
             compileClasspath,
             generatePrecompiledScriptPluginAccessors.flatMap { it.metadataOutputDir }
         )
 
         if (inClassPathMode()) {
 
-            val configurePrecompiledScriptDependenciesResolver by registering(ConfigurePrecompiledScriptDependenciesResolver::class) {
-                dependsOn(generatePrecompiledScriptPluginAccessors)
-                metadataDir.set(generatePrecompiledScriptPluginAccessors.flatMap { it.metadataOutputDir })
-                classPathFiles.from(compileClasspath)
+            val configurePrecompiledScriptDependenciesResolver = register("configurePrecompiledScriptDependenciesResolver", ConfigurePrecompiledScriptDependenciesResolver::class.java) {
+                it.dependsOn(generatePrecompiledScriptPluginAccessors)
+                it.metadataDir.set(generatePrecompiledScriptPluginAccessors.flatMap { it.metadataOutputDir })
+                it.classPathFiles.from(compileClasspath)
                 val objects = objects
-                onConfigure { resolverEnvironment ->
+                it.onConfigure { resolverEnvironment ->
                     configureKotlinCompilerArguments(objects, resolverEnvironment)
                 }
             }
@@ -302,6 +305,7 @@ private fun Project.registerCompilePluginsBlocksTask(
         task.configureKotlinCompilerArgumentsLazily(
             resolverEnvironmentStringFor(
                 project.serviceOf(),
+                project.serviceOf(),
                 compileClasspath,
                 externalPluginSpecBuildersTask.flatMap { it.metadataOutputDir },
             )
@@ -316,6 +320,7 @@ private
 fun configureKotlinCompilerArguments(
     objects: ObjectFactory,
     implicitImports: ImplicitImports,
+    pluginEntryCache: PluginEntryCache,
     compileClasspath: FileCollection,
     accessorsMetadata: Provider<Directory>
 ) {
@@ -323,6 +328,7 @@ fun configureKotlinCompilerArguments(
         objects,
         resolverEnvironmentStringFor(
             implicitImports,
+            pluginEntryCache,
             compileClasspath,
             accessorsMetadata
         )

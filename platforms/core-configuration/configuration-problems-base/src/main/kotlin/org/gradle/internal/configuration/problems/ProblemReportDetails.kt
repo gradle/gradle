@@ -26,7 +26,9 @@ data class ProblemReportDetails(
     val cacheAction: String,
     val cacheActionDescription: StructuredMessage,
     val requestedTasks: String?,
-    val totalProblemCount: Int
+    val totalProblemCount: Int,
+    val uniqueProblemCount: Int,
+    val overflownProblemCount: Int
 )
 
 
@@ -34,6 +36,8 @@ class ProblemReportDetailsJsonSource(private val details: ProblemReportDetails) 
     override fun writeToJson(jsonWriter: JsonWriter) {
         with(jsonWriter) {
             property("totalProblemCount", details.totalProblemCount)
+            property("uniqueProblemCount", details.uniqueProblemCount)
+            property("overflownProblemCount", details.overflownProblemCount)
             details.buildDisplayName?.let { property("buildName", it) }
             details.requestedTasks?.let {
                 property("requestedTasks", it)

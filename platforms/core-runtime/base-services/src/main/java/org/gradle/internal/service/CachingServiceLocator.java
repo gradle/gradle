@@ -19,6 +19,7 @@ package org.gradle.internal.service;
 import org.gradle.internal.Cast;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
+import org.jspecify.annotations.Nullable;
 
 import java.util.HashMap;
 import java.util.List;
@@ -27,9 +28,9 @@ import java.util.Map;
 @ServiceScope(Scope.Global.class)
 public class CachingServiceLocator implements ServiceLocator {
     private final ServiceLocator delegate;
-    private final Map<Class<?>, DefaultServiceLocator.ServiceFactory<?>> serviceFactories = new HashMap<Class<?>, DefaultServiceLocator.ServiceFactory<?>>();
-    private final Map<Class<?>, Object> services = new HashMap<Class<?>, Object>();
-    private final Map<Class<?>, List<?>> allServices = new HashMap<Class<?>, List<?>>();
+    private final Map<Class<?>, DefaultServiceLocator.@Nullable ServiceFactory<?>> serviceFactories = new HashMap<>();
+    private final Map<Class<?>, Object> services = new HashMap<>();
+    private final Map<Class<?>, List<?>> allServices = new HashMap<>();
 
     public static CachingServiceLocator of(ServiceLocator other) {
         return new CachingServiceLocator(other);
@@ -40,33 +41,18 @@ public class CachingServiceLocator implements ServiceLocator {
     }
 
     @Override
-    public synchronized <T> DefaultServiceLocator.ServiceFactory<T> findFactory(Class<T> serviceType) {
-        if (serviceFactories.containsKey(serviceType)) {
-            return Cast.uncheckedCast(serviceFactories.get(serviceType));
-        }
-        DefaultServiceLocator.ServiceFactory<T> factory = delegate.findFactory(serviceType);
-        serviceFactories.put(serviceType, factory);
-        return factory;
+    public synchronized <T> DefaultServiceLocator.@Nullable ServiceFactory<T> findFactory(Class<T> serviceType) {
+        return Cast.uncheckedCast(serviceFactories.computeIfAbsent(serviceType, delegate::findFactory));
     }
 
     @Override
     public synchronized <T> T get(Class<T> serviceType) throws UnknownServiceException {
-        if (services.containsKey(serviceType)) {
-            return Cast.uncheckedNonnullCast(services.get(serviceType));
-        }
-        T t = delegate.get(serviceType);
-        services.put(serviceType, t);
-        return t;
+        return Cast.uncheckedNonnullCast(services.computeIfAbsent(serviceType, delegate::get));
     }
 
     @Override
     public synchronized <T> List<T> getAll(Class<T> serviceType) throws UnknownServiceException {
-        if (allServices.containsKey(serviceType)) {
-            return Cast.uncheckedNonnullCast(allServices.get(serviceType));
-        }
-        List<T> all = delegate.getAll(serviceType);
-        allServices.put(serviceType, all);
-        return all;
+        return Cast.uncheckedNonnullCast(allServices.computeIfAbsent(serviceType, delegate::getAll));
     }
 
     @Override

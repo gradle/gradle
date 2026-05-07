@@ -83,6 +83,14 @@ public abstract class AbstractResourceLockRegistry<K, T extends ResourceLock> im
         lockDetails.locks.add(Cast.<T>uncheckedCast(resourceLock));
     }
 
+    /**
+     * {@return all locks currently cached} Locks are removed from the cache when they are no longer referenced,
+     * so this can only be relied upon to return locks that are currently held, but it may also include locks that are not currently held.
+     */
+    protected Iterable<T> getCachedResourceLocks() {
+        return resourceLocks.values();
+    }
+
     public boolean holdsLock() {
         ThreadLockDetails<T> details = detailsForCurrentThread();
         return !details.locks.isEmpty();
@@ -101,7 +109,7 @@ public abstract class AbstractResourceLockRegistry<K, T extends ResourceLock> im
     @Override
     public void lockReleased(ResourceLock resourceLock) {
         ThreadLockDetails<T> lockDetails = threadLocks.get(Thread.currentThread().getId());
-        if (!lockDetails.mayChange) {
+        if (lockDetails == null || !lockDetails.mayChange) {
             throw new IllegalStateException("This thread may not release any locks.");
         }
         lockDetails.locks.remove(resourceLock);

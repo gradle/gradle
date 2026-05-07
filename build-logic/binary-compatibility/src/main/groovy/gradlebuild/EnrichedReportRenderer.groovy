@@ -16,8 +16,8 @@
 
 package gradlebuild
 
-import me.champeau.gradle.japicmp.report.GroovyReportRenderer
 import me.champeau.gradle.japicmp.JApiCmpWorkerAction
+import me.champeau.gradle.japicmp.report.GroovyReportRenderer
 import me.champeau.gradle.japicmp.report.RichReportData
 
 class EnrichedReportRenderer extends GroovyReportRenderer {
@@ -57,25 +57,25 @@ class EnrichedReportRenderer extends GroovyReportRenderer {
         return """
             <script type="text/javascript">
                 function getAllErrorCorrections() {
-                    var changeElements = \$(".well pre");
+                    var changeElements = document.querySelectorAll(".well pre");
                     var result = [];
-                    changeElements.each((idx, val) => result.push(JSON.parse(val.textContent)));
+                    changeElements.forEach((val, idx) => result.push(JSON.parse(val.textContent)));
                     return result;
                 }
 
                 function appendErrorCorrections(reason) {
-                    var result = JSON.parse('${currentApiChanges.replace('\n', '')}'); // JSON string from report uses double quotes, contain it within single quotes
+                    var result = ${currentApiChanges};
                     getAllErrorCorrections().forEach((correction) => {
                         correction.acceptation = reason;
                         result.acceptedApiChanges.push(correction);
                     });
                     // Sort the array in place by type, then member
-                    // Note that Firefox is fine with a sort function returning any positive or negative number, but Chrome 
+                    // Note that Firefox is fine with a sort function returning any positive or negative number, but Chrome
                     // requires 1 or -1 specifically and ignores higher or lower values.  This sort ought to remain consistent
                     // with the sort used by AbstractAcceptedApiChangesMaintenanceTask.
-                    result.acceptedApiChanges.sort((a, b) => { 
+                    result.acceptedApiChanges.sort((a, b) => {
                         if ((a.type +'#' + a.member) > (b.type + '#' + b.member)) {
-                            return 1; 
+                            return 1;
                         } else {
                             return -1;
                         }
@@ -113,33 +113,30 @@ class EnrichedReportRenderer extends GroovyReportRenderer {
         """
     }
 
-    /**
-     * Since jQuery isn't included until the bottom of this report, we need to delay until the DOM is ready using vanilla
-     * javascript before doing anything.  Then we need to add a function to run on ready, which will run after the report's
-     * own javascript based filtering logic is attached with jQuery.
-     */
     private static String buildAutoSelectSeverityFilter() {
         // language=javascript
         return """
             <script type="text/javascript">
                 document.addEventListener("DOMContentLoaded", function(event) {
-                    \$(document).ready(function () {
-                        const level = \$("#filter-preset")[0].value;
-                        \$("a[role='menuitem']").each (function() {
-                            if (this.text === level) {
-                                this.click();
+                    // run after the report's own JavaScript based filtering logic
+                    setTimeout(function() {
+                        const level = document.querySelectorAll("#filter-preset")[0].value;
+                        document.querySelectorAll("a[role='menuitem']").forEach(function(a) {
+                            if (a.text === level) {
+                                a.click();
                             }
                         });
 
-                        var divider = \$("<hr>");
-                        divider.css({ margin: "5px" });
-                        var tip = \$("<small>").text("Use the 'bin.cmp.report.severity.filter' property to set the default severity filter");
-                        tip.css({ padding: "20px" });
-                        var menu = \$("ul .dropdown-menu");
-                        menu.css({ width: "480px" });
-                        menu.append(divider);
-                        menu.append(tip);
-                    });
+                        var divider = document.createElement("hr");
+                        divider.style.margin = "5px";
+                        var tip = document.createElement("small");
+                        tip.textContent = "Use the 'bin.cmp.report.severity.filter' property to set the default severity filter";
+                        tip.style.padding = "20px";
+                        var menu = document.querySelectorAll("ul .dropdown-menu")[0];
+                        menu.style.width = "480px";
+                        menu.appendChild(divider);
+                        menu.appendChild(tip);
+                    }, 0);
                 });
             </script>
         """

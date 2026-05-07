@@ -99,7 +99,7 @@ A project path has the following pattern: it starts with an optional colon, whic
 The root project, `:`, is the only project in a path not specified by its name.
 The rest of a project path is a colon-separated sequence of project names, where the next project is a subproject of the previous project:
 
-[source,bash]
+[source,text]
 ----
 :sub-project-1
 ----
@@ -144,6 +144,7 @@ This ensures that only `sub-project-1`'s `build` task is executed, rather than r
 You can use this pattern for any task.
 For example, to list all tasks available in `sub-project-3`, run `./gradlew :sub-project-3:tasks`.
 
+[[sec:multi_project_buildsrc]]
 == Multi-Project Builds using `buildSrc`
 
 Multi-project builds allow you to organize projects with many modules, wire dependencies between those modules, and easily share common build logic amongst them.
@@ -166,7 +167,7 @@ For example, if the project above had common build logic between `sub-project-1`
 └── sub-project-3
     └── build.gradle(.kts)              // <3>
 ----
-<1> Gradle recognized buildSrc folder
+<1> Gradle recognized `buildSrc` folder
 <2> Contains common build logic from `sub-project-1`, `sub-project-2` and `sub-project-3`
 <3> Applies `shared-build-conventions.gradle(.kts)`
 
@@ -177,6 +178,7 @@ It is a good place to define and maintain shared configuration or imperative bui
 
 Consult the <<sharing_build_logic_between_subprojects.adoc#sharing_build_logic_between_subprojects,Sharing Build Logic using `buildSrc`>> chapter to learn more.
 
+[[sec:composite_builds_build_logic]]
 == Composite Builds including `build-logic`
 
 Composite Builds, also referred to as _included builds_, are best for sharing logic between builds (_not subprojects_) or isolating access to shared build logic.

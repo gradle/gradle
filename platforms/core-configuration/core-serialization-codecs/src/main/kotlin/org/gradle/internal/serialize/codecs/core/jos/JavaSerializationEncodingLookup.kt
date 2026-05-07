@@ -78,7 +78,7 @@ class JavaSerializationEncodingLookup {
         candidates.firstAccessibleMatchingMethodOrNull {
             !Modifier.isStatic(modifiers)
                 && parameterCount == 0
-                && returnType == java.lang.Object::class.java
+                && returnType == Any::class.java
                 && name == "writeReplace"
         }
 

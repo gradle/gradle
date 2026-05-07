@@ -56,9 +56,9 @@ class PerformanceReporter {
         boolean debugReportGeneration
     ) {
         fileOperations.delete {
-           it.delete(reportDir)
+            it.delete(reportDir)
         }
-        ByteArrayOutputStream output = new ByteArrayOutputStream()
+        reportDir.mkdirs()
 
         ExecResult result = execOperations.javaexec(new Action<JavaExecSpec>() {
             void execute(JavaExecSpec spec) {
@@ -71,6 +71,7 @@ class PerformanceReporter {
                 spec.systemProperty("org.gradle.performance.execution.channel.patterns", channelPatterns.join(","))
                 spec.systemProperty("org.gradle.performance.execution.branch", branchName)
                 spec.systemProperty("org.gradle.performance.dependencyBuildIds", dependencyBuildIds)
+                spec.systemProperty("org.gradle.performance.db.profiling.output", new File(reportDir, "profiling.txt").absolutePath)
 
                 // For org.gradle.performance.util.Git
                 spec.systemProperty("gradleBuildBranch", branchName)
@@ -79,23 +80,11 @@ class PerformanceReporter {
                 spec.setClasspath(classpath)
 
                 spec.ignoreExitValue = true
-                spec.setErrorOutput(output)
-                spec.setStandardOutput(output)
             }
         })
 
-        String message = output.toString().readLines().findAll { line ->
-            ! [
-                // WARNING: All illegal access operations will be denied in a future release
-                "WARNING",
-                // SLF4J: Class path contains multiple SLF4J bindings.
-                "SLF4J"
-            ].any { line.contains(it) }
-        }.join("\n")
-
-        println(message)
         if (result.exitValue != 0) {
-            throw new GradleException("Performance test failed: " + message)
+            throw new GradleException("Performance test failed")
         }
     }
 }

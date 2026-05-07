@@ -257,7 +257,10 @@ public class CustomRunnerWithRunMethodThatBreaksAfterRunningSomeTests extends Ru
     }
 
     Description getDescription() {
-        return Description.createSuiteDescription(type)
+        def desc = Description.createSuiteDescription(type)
+        desc.addChild(Description.createTestDescription(type, "ok1"))
+        desc.addChild(Description.createTestDescription(type, "broken"))
+        return desc
     }
 
     void run(RunNotifier notifier) {

@@ -7,5 +7,5 @@ description = "Provides a plugin to define entry point lifecycle tasks used for 
 dependencies {
     implementation("gradlebuild:basics")
 
-    implementation("com.google.code.gson:gson")
+    implementation(buildLibs.gson)
 }

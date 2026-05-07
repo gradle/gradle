@@ -25,15 +25,20 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.metaobject.DynamicInvokeResult;
 import org.gradle.internal.metaobject.MethodAccess;
 import org.gradle.internal.metaobject.MethodMixIn;
-import org.gradle.plugin.software.internal.ProjectFeatureImplementation;
-import org.gradle.plugin.software.internal.ProjectFeatureDeclarations;
+import org.gradle.features.internal.binding.ProjectFeatureImplementation;
+import org.gradle.features.internal.binding.ProjectFeatureDeclarations;
 import org.gradle.util.internal.ClosureBackedAction;
 
 import javax.inject.Inject;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 
 public class DefaultSharedModelDefaults implements SharedModelDefaultsInternal, MethodMixIn {
     private final ProjectFeatureDeclarations projectFeatureDeclarations;
     private final DynamicMethods dynamicMethods = new DynamicMethods();
+    private final List<ModelDefaultRegistration<?>> registrations = new ArrayList<>();
+    boolean processed = false;
 
     @SuppressWarnings("ThreadLocalUsage")
     private final ThreadLocal<ProjectLayout> projectLayout = new ThreadLocal<>();
@@ -63,17 +68,42 @@ public class DefaultSharedModelDefaults implements SharedModelDefaultsInternal, 
     }
 
     @Override
-    public <T> void add(String name, Class<T> publicType, Action<? super T> configureAction) {
-        if (projectFeatureDeclarations.getProjectFeatureImplementations().containsKey(name)) {
-            ProjectFeatureImplementation<?, ?> projectFeature = projectFeatureDeclarations.getProjectFeatureImplementations().get(name);
-            if (projectFeature.getDefinitionPublicType().isAssignableFrom(publicType)) {
-                projectFeature.addModelDefault(new ActionBasedDefault<>(configureAction));
-            } else {
-                throw new IllegalArgumentException(String.format("Cannot add convention for project type '%s' with public type '%s'. Expected public type to be assignable from '%s'.", name, publicType, projectFeature.getDefinitionPublicType()));
-            }
-        } else {
-            throw new IllegalArgumentException(String.format("Cannot add convention for unknown project type '%s'.", name));
+    public void processRegistrations() {
+        if (processed) {
+            return;
         }
+
+        registrations.forEach(registration -> {
+            if (projectFeatureDeclarations.getProjectFeatureImplementations().containsKey(registration.name)) {
+                Set<ProjectFeatureImplementation<?, ?>> implementations = projectFeatureDeclarations.getProjectFeatureImplementations().get(registration.name);
+                if (implementations.isEmpty()) {
+                    throw new IllegalArgumentException(String.format("Cannot add default for project type '%s' because it has no implementations.", registration.name));
+                }
+                // TODO - this works for now because we only have one implementation per project type, but we need to revisit this when we support defaults
+                // for features where we could have multiple implementations binding to different target types
+                if (implementations.size() > 1) {
+                    throw new IllegalArgumentException(String.format("Cannot add default for project feature '%s' because it has multiple registered implementations.", registration.name));
+                }
+                ProjectFeatureImplementation<?, ?> projectFeature = implementations.iterator().next();
+                if (projectFeature.getDefinitionPublicType().isAssignableFrom(registration.publicType)) {
+                    projectFeature.addModelDefault(new ActionBasedDefault<>(registration.action));
+                } else {
+                    throw new IllegalArgumentException(String.format("Cannot add default for project type '%s' with public type '%s'. Expected public type to be assignable from '%s'.", registration.name, registration.publicType, projectFeature.getDefinitionPublicType()));
+                }
+            } else {
+                throw new IllegalArgumentException(String.format("Cannot add default for unknown project type '%s'.", registration.name));
+            }
+        });
+
+        processed = true;
+    }
+
+    @Override
+    public <T> void add(String name, Class<T> publicType, Action<? super T> configureAction) {
+        if (processed) {
+            throw new IllegalStateException("Cannot add shared model defaults after processing.");
+        }
+        registrations.add(new ModelDefaultRegistration<>(name, publicType, configureAction));
     }
 
     @Override
@@ -92,12 +122,20 @@ public class DefaultSharedModelDefaults implements SharedModelDefaultsInternal, 
         @Override
         public DynamicInvokeResult tryInvokeMethod(String name, Object... arguments) {
             if (hasMethod(name, arguments)) {
-                ProjectFeatureImplementation<?, ?> projectFeature = projectFeatureDeclarations.getProjectFeatureImplementations().get(name);
-                add(name, projectFeature.getDefinitionPublicType(), Cast.uncheckedNonnullCast(toAction(arguments[0])));
+                Set<ProjectFeatureImplementation<?, ?>> implementations = projectFeatureDeclarations.getProjectFeatureImplementations().get(name);
+                if (implementations.isEmpty()) {
+                    throw new IllegalArgumentException(String.format("Cannot resolve default for project type '%s' because it has no implementations.", name));
+                }
+
+                if (implementations.size() > 1) {
+                    throw new IllegalArgumentException(String.format("Cannot resolve default for project feature '%s' because it has multiple registered implementations.", name));
+                }
+                ProjectFeatureImplementation<?, ?> implementation = implementations.iterator().next();
+                add(name, implementation.getDefinitionPublicType(), Cast.uncheckedNonnullCast(toAction(arguments[0])));
                 return DynamicInvokeResult.found();
-            } else {
-                return DynamicInvokeResult.notFound();
             }
+
+            return DynamicInvokeResult.notFound();
         }
 
         private Action<?> toAction(Object argument) {
@@ -108,6 +146,18 @@ public class DefaultSharedModelDefaults implements SharedModelDefaultsInternal, 
             } else {
                 throw new IllegalArgumentException("Expected an Action or Closure, but received: " + argument);
             }
+        }
+    }
+
+    static class ModelDefaultRegistration<T> {
+        final String name;
+        final Class<T> publicType;
+        final Action<? super T> action;
+
+        public ModelDefaultRegistration(String name, Class<T> publicType, Action<? super T> action) {
+            this.name = name;
+            this.publicType = publicType;
+            this.action = action;
         }
     }
 }

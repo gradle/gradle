@@ -20,8 +20,9 @@ import org.gradle.api.Action
 import org.gradle.integtests.fixtures.daemon.DaemonsFixture
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.TestKitPreconditions
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.TestKitTestPreconditions
+import org.gradle.test.preconditions.TestEnvironmentPreconditions
+
 import org.gradle.testkit.runner.fixtures.NonCrossVersion
 import org.gradle.util.GradleVersion
 import org.gradle.util.internal.DistributionLocator
@@ -32,8 +33,8 @@ import static org.gradle.integtests.fixtures.RetryConditions.onIssueWithReleased
 
 @NonCrossVersion
 @Requires([
-    UnitTestPreconditions.Online,
-    TestKitPreconditions.LowestMajorGradleIsAvailable
+    TestEnvironmentPreconditions.Online,
+    TestKitTestPreconditions.LowestMajorGradleIsAvailable
 ])
 @Retry(condition = { onIssueWithReleasedGradleVersion(instance, failure) }, count = 2)
 class GradleRunnerGradleVersionIntegrationTest extends BaseGradleRunnerIntegrationTest {
@@ -113,7 +114,7 @@ class GradleRunnerGradleVersionIntegrationTest extends BaseGradleRunnerIntegrati
     }
 
     private void killDaemons(String version) {
-        if (!debug) {
+        if (!embedded) {
             testKitDaemons(GradleVersion.version(version)).killAll()
         }
     }

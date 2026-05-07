@@ -19,27 +19,21 @@ package org.gradle.internal.buildoption;
 /**
  * A boolean internal option.
  */
-public class InternalFlag implements InternalOption<Boolean> {
-    private final String systemPropertyName;
+class InternalFlag extends InternalOption<Boolean> {
     private final boolean defaultValue;
 
-    public InternalFlag(String systemPropertyName) {
-        this(systemPropertyName, false);
+    public InternalFlag(String propertyName) {
+        this(propertyName, false);
     }
 
-    public InternalFlag(String systemPropertyName, boolean defaultValue) {
-        this.systemPropertyName = systemPropertyName;
+    public InternalFlag(String propertyName, boolean defaultValue) {
+        super(propertyName);
         this.defaultValue = defaultValue;
     }
 
     @Override
     public Boolean getDefaultValue() {
         return defaultValue;
-    }
-
-    @Override
-    public String getSystemPropertyName() {
-        return systemPropertyName;
     }
 
     @Override

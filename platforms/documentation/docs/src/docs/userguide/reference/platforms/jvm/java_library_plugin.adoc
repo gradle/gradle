@@ -19,18 +19,15 @@ The Java Library plugin expands the capabilities of the <<java_plugin.adoc#java_
 In particular, a Java library exposes an API to consumers (i.e., other projects using the Java or the Java Library plugin).
 All the source sets, tasks and configurations exposed by the Java plugin are implicitly available when using this plugin.
 
-
 [[sec:java_library_usage]]
 == Usage
 
 To use the Java Library plugin, include the following in your build script:
 
-.Using the Java Library plugin
 ====
-include::sample[dir="snippets/java-library/quickstart/kotlin",files="build.gradle.kts[tags=use-plugin]"]
-include::sample[dir="snippets/java-library/quickstart/groovy",files="build.gradle[tags=use-plugin]"]
+include::sample[dir="snippets/reference/platforms/jvm/quickstart/kotlin",files="build.gradle.kts[tags=use-plugin]"]
+include::sample[dir="snippets/reference/platforms/jvm/quickstart/groovy",files="build.gradle[tags=use-plugin]"]
 ====
-
 
 [[sec:java_library_separation]]
 == API and implementation separation
@@ -40,12 +37,10 @@ The key difference between the standard Java plugin and the Java Library plugin 
 The plugin exposes two <<dependency_configurations.adoc#sub:what-are-dependency-configurations,configurations>> that can be used to declare dependencies: `api` and `implementation`.
 The `api` configuration should be used to declare dependencies which are exported by the library API, whereas the `implementation` configuration should be used to declare dependencies which are internal to the component.
 
-.Declaring API and implementation dependencies
 ====
-include::sample[dir="snippets/java-library/quickstart/kotlin",files="build.gradle.kts[tags=dependencies]"]
-include::sample[dir="snippets/java-library/quickstart/groovy",files="build.gradle[tags=dependencies]"]
+include::sample[dir="snippets/reference/platforms/jvm/quickstart/kotlin",files="build.gradle.kts[tags=dependencies]"]
+include::sample[dir="snippets/reference/platforms/jvm/quickstart/groovy",files="build.gradle[tags=dependencies]"]
 ====
-
 
 Dependencies appearing in the `api` configurations will be transitively exposed to consumers of the library, and as such will appear on the compile classpath of consumers. Dependencies found in the `implementation` configuration will, on the other hand, not be exposed to consumers, and therefore not leak into the consumers' compile classpath. This comes with several benefits:
 
@@ -95,12 +90,13 @@ By contrast, any type that is used in the following list is irrelevant to the AB
 
 The following class makes use of a couple of third-party libraries, one of which is exposed in the class's public API and the other is only used internally. The import statements don't help us determine which is which, so we have to look at the fields, constructors and methods instead:
 
+[[sec:example_making_the_difference_between_api_and_implementation]]
 === Example: Making the difference between API and implementation
 
-[source.multi-language-sample,java]
+[source,java]
 .src/main/java/org/gradle/HttpClientWrapper.java
 ----
-include::{snippetsPath}/java-library/quickstart/groovy/src/main/java/org/gradle/HttpClientWrapper.java[tag=sample]
+include::{snippetsPath}/reference/dependency-management/publishing/javaLibrary/common/src/main/java/org/gradle/HttpClientWrapper.java[tag=sample]
 ----
 
 The _public_ constructor of `HttpClientWrapper` uses `HttpClient` as a parameter, so it is exposed to consumers and therefore belongs to the API. Note that `HttpGet` and `HttpEntity` are used in the signature of a _private_ method, and so they don't count towards making HttpClient an API dependency.
@@ -109,137 +105,113 @@ On the other hand, the `ExceptionUtils` type, coming from the `commons-lang` lib
 
 Therefore, we can deduce that `httpclient` is an API dependency, whereas `commons-lang` is an implementation dependency. This conclusion translates into the following declaration in the build script:
 
-.Declaring API and implementation dependencies
 ====
-include::sample[dir="snippets/java-library/quickstart/kotlin",files="build.gradle.kts[tags=dependencies]"]
-include::sample[dir="snippets/java-library/quickstart/groovy",files="build.gradle[tags=dependencies]"]
+include::sample[dir="snippets/reference/platforms/jvm/quickstart/kotlin",files="build.gradle.kts[tags=dependencies]"]
+include::sample[dir="snippets/reference/platforms/jvm/quickstart/groovy",files="build.gradle[tags=dependencies]"]
 ====
-
 
 [[sec:java_library_configurations_graph]]
-== The Java Library plugin configurations
+== Dependency configurations
+
+The role of each configuration is described in the following tables.
+
+[[sec:java_library_declarable_configurations]]
+=== Declarable (Bucket) Configurations
+
+[%header%autowidth,compact]
+|===
+| Configuration name | Role | Description
+
+| `annotationProcessor`
+| Declarable
+| This configuration is used to declare annotation processors, ensuring they are available during the compile phase for code generation.
+
+| `api`
+| Declarable
+| This is where you declare dependencies which are transitively exported to consumers, for compile time and runtime.
+
+| `implementation`
+| Declarable
+| This is where you declare dependencies which are purely internal and not meant to be exposed to consumers (they are still exposed to consumers at runtime).
+
+| `compileOnly`
+| Declarable
+| This is where you declare dependencies which are required at compile time, but not at runtime. This typically includes dependencies which are shaded when found at runtime.
+
+| `compileOnlyApi`
+| Declarable
+| This is where you declare dependencies which are required at compile time by your module and consumers, but not at runtime. This typically includes dependencies which are shaded when found at runtime.
+
+| `runtimeOnly`
+| Declarable
+| This is where you declare dependencies which are only required at runtime, and not at compile time.
+
+| `testImplementation`
+| Declarable
+| This is where you declare dependencies which are used to compile tests.
+
+| `testCompileOnly`
+| Declarable
+| This is where you declare dependencies which are only required at test compile time, but should not leak into the runtime. This typically includes dependencies which are shaded when found at runtime.
+
+| `testRuntimeOnly`
+| Declarable
+| This is where you declare dependencies which are only required at test runtime, and not at test compile time.
+|===
+
+[[sec:java_library_consumable_configurations]]
+=== Consumable Configurations
+
+[%header%autowidth,compact]
+|===
+| Configuration name | Role | Description
+
+| `apiElements`
+| Consumable
+| This configuration is meant to be used by consumers to retrieve all the elements necessary to compile against this library.
+
+| `runtimeElements`
+| Consumable
+| This configuration is meant to be used by consumers to retrieve all the elements necessary to run this library.
+|===
+
+[[sec:java_library_resolvable_configurations]]
+=== Resolvable Configurations
+
+[%header%autowidth,compact]
+|===
+| Configuration name | Role | Description
+
+| `compileClasspath`
+| Resolvable
+| This configuration contains the compile classpath of this library and is therefore used when invoking the Java compiler to compile it.
+
+| `runtimeClasspath`
+| Resolvable
+| This configuration contains the runtime classpath of this library.
+
+| `testCompileClasspath`
+| Resolvable
+| This configuration contains the test compile classpath of this library.
+
+| `testRuntimeClasspath`
+| Resolvable
+| This configuration contains the test runtime classpath of this library.
+|===
 
 The following graph describes how configurations are setup when the Java Library plugin is in use.
+You can use this legend to interpret the colors:
+
+* The configurations in _blue_ are the ones a user should use to declare dependencies.
+* The configurations in _purple_ are the ones used when a component compiles, or runs against the library.
+* The configurations in _green_ are internal to the component, for its own use.
+* The tasks in _grey_.
 
 image::java-library-ignore-deprecated-main.png[]
-
-* The configurations in _green_ are the ones a user should use to declare dependencies
-* The configurations in _pink_ are the ones used when a component compiles, or runs against the library
-* The configurations in _blue_ are internal to the component, for its own use
 
 And the next graph describes the test configurations setup:
 
 image::java-library-ignore-deprecated-test.png[]
-
-The role of each configuration is described in the following tables:
-
-.Java Library plugin - configurations used to declare dependencies
-[%header%autowidth,compact]
-|===
-| Configuration name | Role | Consumable? | Resolvable? | Description
-
-| `annotationProcessor`
-| Declaring annotation processors
-| no
-| yes
-| This configuration is used to declare annotation processors, ensuring they are available during the compile phase for code generation.
-
-| `api`
-| Declaring API dependencies
-| no
-| no
-| This is where you declare dependencies which are transitively exported to consumers, for compile time and runtime.
-
-| `implementation`
-| Declaring implementation dependencies
-| no
-| no
-| This is where you declare dependencies which are purely internal and not meant to be exposed to consumers (they are still exposed to consumers at runtime).
-
-| `compileOnly`
-| Declaring compile only dependencies
-| no
-| no
-| This is where you declare dependencies which are required at compile time, but not at runtime. This typically includes dependencies which are shaded when found at runtime.
-
-| `compileOnlyApi`
-| Declaring compile only API dependencies
-| no
-| no
-| This is where you declare dependencies which are required at compile time by your module and consumers, but not at runtime. This typically includes dependencies which are shaded when found at runtime.
-
-| `runtimeOnly`
-| Declaring runtime dependencies
-| no
-| no
-| This is where you declare dependencies which are only required at runtime, and not at compile time.
-
-| `testImplementation`
-| Test dependencies
-| no
-| no
-| This is where you declare dependencies which are used to compile tests.
-
-| `testCompileOnly`
-| Declaring test compile only dependencies
-| no
-| no
-| This is where you declare dependencies which are only required at test compile time, but should not leak into the runtime. This typically includes dependencies which are shaded when found at runtime.
-
-| `testRuntimeOnly`
-| Declaring test runtime dependencies
-| no
-| no
-| This is where you declare dependencies which are only required at test runtime, and not at test compile time.
-|===
-
-.Java Library plugin — configurations used by consumers
-[%header%autowidth,compact]
-|===
-| Configuration name | Role | Consumable? | Resolvable? | Description
-
-| `apiElements`
-| For compiling against this library
-| yes
-| no
-| This configuration is meant to be used by consumers, to retrieve all the elements necessary to compile against this library.
-
-| `runtimeElements`
-| For executing this library
-| yes
-| no
-| This configuration is meant to be used by consumers, to retrieve all the elements necessary to run against this library.
-|===
-
-.Java Library plugin - configurations used by the library itself
-[%header%autowidth,compact]
-|===
-| Configuration name | Role | Consumable? | Resolvable? | Description
-
-| compileClasspath
-| For compiling this library
-| no
-| yes
-| This configuration contains the compile classpath of this library, and is therefore used when invoking the java compiler to compile it.
-
-| runtimeClasspath
-| For executing this library
-| no
-| yes
-| This configuration contains the runtime classpath of this library
-
-| testCompileClasspath
-| For compiling the tests of this library
-| no
-| yes
-| This configuration contains the test compile classpath of this library.
-
-| testRuntimeClasspath
-| For executing tests of this library
-| no
-| yes
-| This configuration contains the test runtime classpath of this library
-|===
 
 [[sec:java_library_modular]]
 == Building Modules for the Java Module System
@@ -247,19 +219,19 @@ The role of each configuration is described in the following tables:
 Since Java 9, Java itself offers a https://www.oracle.com/corporate/features/understanding-java-9-modules.html[module system] that allows for strict encapsulation during compile and runtime.
 You can turn a Java library into a _Java Module_ by creating a `module-info.java` file in the `main/java` source folder.
 
-```
+[source,text]
+----
 src
 └── main
     └── java
         └── module-info.java
-```
+----
 
 In the module info file, you declare a _module name_, which packages of your module you want to _export_ and which other modules you _require_.
 
 [source,java,indent=0]
-.module-info.java file
 ----
-include::{snippetsPath}/java-library/module/groovy/src/main/java/module-info.java[]
+include::{snippetsPath}/reference/platforms/jvm/module/groovy/src/main/java/module-info.java[]
 ----
 
 To tell the Java compiler that a Jar is a module, as opposed to a traditional Java library, Gradle needs to place it on the so called _module path_.
@@ -272,9 +244,7 @@ Gradle will automatically put a Jar of your dependencies on the module path, ins
 * The Jar our module depends on is itself a module, which Gradles decides based on the presence of a `module-info.class` -- the compiled version of the module descriptor -- in the Jar.
   (Or, alternatively, the presence of an `Automatic-Module-Name` attribute the Jar manifest)
 
-In the following, some more details about defining Java modules and how that interacts with Gradle's dependency management are described.
-You can also look at a link:../samples/sample_java_modules_multi_project.html[ready made example] to try out the Java Module support directly.
-
+[[sec:declaring_module_dependencies]]
 === Declaring module dependencies
 
 There is a direct relationship to the dependencies you declare in the build file and the module dependencies you declare in the `module-info.java` file.
@@ -307,6 +277,7 @@ This may be added in future versions.
 
 For more details on declaring module dependencies, please refer to https://www.oracle.com/corporate/features/understanding-java-9-modules.html[documentation on the Java Module System].
 
+[[sec:declaring_package_visibility_and_services]]
 === Declaring package visibility and services
 
 The Java module system supports additional more fine granular encapsulation concepts than Gradle itself currently does.
@@ -314,17 +285,18 @@ For example, you explicitly need to declare which packages are part of your API 
 Some of these capabilities might be added to Gradle itself in future versions.
 For now, please refer to https://www.oracle.com/corporate/features/understanding-java-9-modules.html[documentation on the Java Module System] to learn how to use these features in Java Modules.
 
+[[sec:declaring_module_versions]]
 === Declaring module versions
 
 Java Modules also have a version that is encoded as part of the module identity in the `module-info.class` file.
 This version can be inspected when a module is running.
 
-.Declare the module version in the build script or directly as compile task option
 ====
-include::sample[dir="snippets/java-library/module/kotlin",files="build.gradle.kts[tags=declareVersion]"]
-include::sample[dir="snippets/java-library/module/groovy",files="build.gradle[tags=declareVersion]"]
+include::sample[dir="snippets/reference/platforms/jvm/module/kotlin",files="build.gradle.kts[tags=declareVersion]"]
+include::sample[dir="snippets/reference/platforms/jvm/module/groovy",files="build.gradle[tags=declareVersion]"]
 ====
 
+[[sec:using_libraries_that_are_not_modules]]
 === Using libraries that are not modules
 
 You probably want to use external libraries, like OSS libraries from Maven Central, in your modular Java project.
@@ -338,16 +310,14 @@ A third case are traditional libraries that provide no module information at all
 Gradle puts such libraries on the classpath instead of the module path.
 The classpath is then treated as one module (the so called _unnamed_ module) by Java.
 
-.Dependencies to modules and libraries declared in build file
 ====
-include::sample[dir="snippets/java-library/module/kotlin",files="build.gradle.kts[tags=dependencies]"]
-include::sample[dir="snippets/java-library/module/groovy",files="build.gradle[tags=dependencies]"]
+include::sample[dir="snippets/reference/platforms/jvm/module/kotlin",files="build.gradle.kts[tags=dependencies]"]
+include::sample[dir="snippets/reference/platforms/jvm/module/groovy",files="build.gradle[tags=dependencies]"]
 ====
 
 [source,java,indent=0]
-.Module dependencies declared in module-info.java file
 ----
-include::{snippetsPath}/java-library/module/kotlin/src/main/java/module-info.java[]
+include::{snippetsPath}/reference/platforms/jvm/module/kotlin/src/main/java/module-info.java[]
 ----
 
 While a real module cannot directly depend on the unnamed module (only by adding command line flags), automatic modules can also see the unnamed module.
@@ -355,9 +325,8 @@ Thus, if you cannot avoid to rely on a library without module information, you c
 How you do that is described in the next section.
 
 Another way to deal with non-modules is to enrich existing Jars with module descriptors yourself using <<artifact_transforms.adoc#sec:abm-artifact-transforms,artifact transforms>>.
-link:../samples/sample_java_modules_with_transform.html[This sample] contains a small _buildSrc_ plugin registering such a transform which you may use and adjust to your needs.
-This can be interesting if you want to build a fully <<application_plugin.adoc#sec:application_modular,modular application>> and want the java runtime to treat everything as a real module.
 
+[[sec:disabling_java_module_support]]
 === Disabling Java Module support
 
 In rare cases, you might want to disable the built-in Java Module support and define the module path by other means.
@@ -367,10 +336,9 @@ This corresponds to the behaviour of Gradle versions <7.0.
 
 To make this work, you need to set `modularity.inferModulePath = false` on the Java extension (for all tasks) or on individual tasks.
 
-.Disable Gradle's module path inference
 ====
-include::sample[dir="snippets/java-library/module-disabled/kotlin",files="build.gradle.kts[tags=disableModulePath]"]
-include::sample[dir="snippets/java-library/module-disabled/groovy",files="build.gradle[tags=disableModulePath]"]
+include::sample[dir="snippets/reference/platforms/jvm/module-disabled/kotlin",files="build.gradle.kts[tags=disableModulePath]"]
+include::sample[dir="snippets/reference/platforms/jvm/module-disabled/groovy",files="build.gradle[tags=disableModulePath]"]
 ====
 
 [[sec:java_library_modular_auto]]
@@ -385,10 +353,9 @@ Still, there are a few cases where you might consider to (initally) only provide
 
 To turn a normal Java project into an _automatic module_, just add the manifest entry with the module name:
 
-.Declare an automatic module name as Jar manifest attribute
 ====
-include::sample[dir="snippets/java-library/module/kotlin",files="build.gradle.kts[tags=automaticModuleName]"]
-include::sample[dir="snippets/java-library/module/groovy",files="build.gradle[tags=automaticModuleName]"]
+include::sample[dir="snippets/reference/platforms/jvm/module/kotlin",files="build.gradle.kts[tags=automaticModuleName]"]
+include::sample[dir="snippets/reference/platforms/jvm/module/groovy",files="build.gradle[tags=automaticModuleName]"]
 ====
 
 [NOTE]

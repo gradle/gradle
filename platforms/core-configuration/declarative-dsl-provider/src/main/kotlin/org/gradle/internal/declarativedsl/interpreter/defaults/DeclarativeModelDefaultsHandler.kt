@@ -18,7 +18,9 @@ package org.gradle.internal.declarativedsl.interpreter.defaults
 
 import org.gradle.api.Plugin
 import org.gradle.declarative.dsl.evaluation.EvaluationSchema
+import org.gradle.declarative.dsl.schema.CustomAccessorIdentifier.ProjectFeatureIdentifier
 import org.gradle.internal.declarativedsl.analysis.AssignmentRecord
+import org.gradle.internal.declarativedsl.analysis.DefaultProjectFeatureAccessorIdentifier
 import org.gradle.internal.declarativedsl.analysis.ObjectOrigin
 import org.gradle.internal.declarativedsl.analysis.ResolutionResult
 import org.gradle.internal.declarativedsl.analysis.ResolutionTrace
@@ -43,9 +45,9 @@ import org.gradle.internal.declarativedsl.language.Expr
 import org.gradle.internal.declarativedsl.language.LanguageTreeResult
 import org.gradle.internal.declarativedsl.language.SyntheticallyProduced
 import org.gradle.internal.declarativedsl.project.PROJECT_INTERPRETATION_SEQUENCE_STEP_KEY
-import org.gradle.plugin.software.internal.ModelDefaultsApplicator.ClassLoaderContext
-import org.gradle.plugin.software.internal.ModelDefaultsHandler
-import org.gradle.plugin.software.internal.ProjectFeatureDeclarations
+import org.gradle.features.internal.binding.ModelDefaultsApplicator.ClassLoaderContext
+import org.gradle.features.internal.binding.ModelDefaultsHandler
+import org.gradle.features.internal.binding.ProjectFeatureDeclarations
 import javax.inject.Inject
 
 
@@ -53,7 +55,7 @@ import javax.inject.Inject
  * A {@link ConventionHandler} for applying declarative conventions.
  */
 abstract class DeclarativeModelDefaultsHandler @Inject constructor(
-    projectFeatureDeclarations: ProjectFeatureDeclarations,
+    val projectFeatureDeclarations: ProjectFeatureDeclarations,
     interpretationSchemaBuilder: InterpretationSchemaBuilder
 ) : ModelDefaultsHandler {
     private
@@ -66,10 +68,14 @@ abstract class DeclarativeModelDefaultsHandler @Inject constructor(
     val modelDefaultsRepository = projectFeatureRegistryBasedModelDefaultsRepository(projectFeatureDeclarations)
 
     override fun apply(target: Any, definition: Any, classLoaderContext: ClassLoaderContext, projectFeatureName: String, plugin: Plugin<*>) {
+        // TODO - this works because there should only be one implementation for each project type.  We'll need to revisit this
+        // when we support defaults for project features which can have multiple implementations.
+        val projectFeature = projectFeatureDeclarations.projectFeatureImplementations.getValue(projectFeatureName).first()
+
         val analysisStepRunner = ApplyDefaultsOnlyAnalysisStepRunner()
         val analysisStepContext = AnalysisStepContext(
             emptySet(),
-            setOf(SingleProjectTypeApplyModelDefaultsHandler(modelDefaultsRepository, projectFeatureName))
+            setOf(SingleProjectTypeApplyModelDefaultsHandler(modelDefaultsRepository, DefaultProjectFeatureAccessorIdentifier(projectFeature.featureName, projectFeature.targetDefinitionType.targetClassName)))
         )
 
         val result = AnalysisAndConversionStepRunner(analysisStepRunner)
@@ -77,7 +83,13 @@ abstract class DeclarativeModelDefaultsHandler @Inject constructor(
                 "<none>",
                 "",
                 step,
-                ConversionStepContext(target, { classLoaderContext.classLoader }, { classLoaderContext.parentClassLoader }, analysisStepContext)
+                ConversionStepContext(
+                    target,
+                    { classLoaderContext.classLoader },
+                    { classLoaderContext.parentClassLoader },
+                    analysisStepContext,
+                    false
+                )
             )
 
         when (result) {
@@ -128,8 +140,8 @@ fun emptyResolutionResultForReceiver(receiver: ObjectOrigin.TopLevelReceiver) = 
 
 
 private
-class SingleProjectTypeApplyModelDefaultsHandler(val modelDefaultsRepository: ModelDefaultsRepository, val projectTypeName: String) : ApplyModelDefaultsHandler {
+class SingleProjectTypeApplyModelDefaultsHandler(val modelDefaultsRepository: ModelDefaultsRepository, val projectTypeId: ProjectFeatureIdentifier) : ApplyModelDefaultsHandler {
     override fun getDefaultsResolutionResults(resolutionResult: ResolutionResult): List<ModelDefaultsResolutionResults> {
-        return listOf(modelDefaultsRepository.findDefaults(projectTypeName)).requireNoNulls()
+        return listOf(modelDefaultsRepository.findDefaults(projectTypeId)).requireNoNulls()
     }
 }

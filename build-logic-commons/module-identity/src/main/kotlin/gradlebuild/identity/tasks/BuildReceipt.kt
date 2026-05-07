@@ -67,6 +67,10 @@ abstract class BuildReceipt : DefaultTask() {
     abstract val commitId: Property<String>
 
     @get:Input
+    @get:Optional
+    abstract val scriptTemplateCommitId: Property<String>
+
+    @get:Input
     abstract val snapshot: Property<Boolean>
 
     @get:Input
@@ -94,6 +98,7 @@ abstract class BuildReceipt : DefaultTask() {
         ReproduciblePropertiesWriter.store(
             Properties().apply {
                 put("commitId", commitId.getOrElse("HEAD"))
+                put("scriptTemplateCommitId", scriptTemplateCommitId.getOrElse("HEAD"))
                 put("versionNumber", version.get())
                 put("baseVersion", baseVersion.get())
                 put("isSnapshot", snapshot.get().toString())

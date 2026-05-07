@@ -23,10 +23,10 @@ import org.gradle.integtests.fixtures.KotlinDslTestUtil
 import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheFixture
 import org.gradle.plugin.management.internal.autoapply.AutoAppliedDevelocityPlugin
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import spock.lang.Issue
 
-@Requires(value = IntegTestPreconditions.NotConfigCached, reason = "handles CC explicitly")
+@Requires(value = TestExecutionPreconditions.NotConfigCached, reason = "handles CC explicitly")
 class ConfigurationCacheDevelocityPluginIntegrationTest extends AbstractIntegrationSpec {
 
     def configurationCache = new ConfigurationCacheFixture(this)
@@ -98,7 +98,7 @@ class ConfigurationCacheDevelocityPluginIntegrationTest extends AbstractIntegrat
         configurationCache.assertStateStored()
         configurationCache.problems.assertResultHasProblems(result) {
             // TODO:configuration-cache check problem details
-            withTotalProblemsCount(1)
+            totalProblemsCount = 1
         }
         postBuildOutputContains 'Build scan written to'
     }
@@ -131,7 +131,7 @@ class ConfigurationCacheDevelocityPluginIntegrationTest extends AbstractIntegrat
         then:
         configurationCache.assertStateStored()
         configurationCache.problems.assertResultHasProblems(result) {
-            withTotalProblemsCount(0)
+            totalProblemsCount = 0
         }
         postBuildOutputContains 'Build scan written to'
 

@@ -65,6 +65,7 @@ It also tells Gradle what new set of "to" attributes will describe the format or
 Instead, Gradle first *automatically* searches all registered transforms to see if it can construct a chain of transformations that will ultimately produce a match.
 If Gradle finds such a chain, it then runs each transform in sequence, and delivers the transformed artifacts as a result.
 
+[[sec:implement_a_transform]]
 === 1. Implement a Transform
 
 A transform is typically written as an abstract class that implements the link:{javadocPath}/org/gradle/api/artifacts/transform/TransformAction.html[`TransformAction`] interface.
@@ -80,10 +81,11 @@ The method has a link:{javadocPath}/org/gradle/api/artifacts/transform/Transform
 Here, `MyTransform` is the custom transform action that converts a `jar` artifact to a `transformed-jar` artifact:
 
 ====
-include::sample[dir="snippets/dependencyManagement/artifactTransforms-simple/kotlin",files="build.gradle.kts[tags=artifact-transform-imp]"]
-include::sample[dir="snippets/dependencyManagement/artifactTransforms-simple/groovy",files="build.gradle[tags=artifact-transform-imp]"]
+include::sample[dir="snippets/reference/dependency-management/controlling-dependency-resolution/artifactTransforms-simple/kotlin",files="build.gradle.kts[tags=artifact-transform-imp]"]
+include::sample[dir="snippets/reference/dependency-management/controlling-dependency-resolution/artifactTransforms-simple/groovy",files="build.gradle[tags=artifact-transform-imp]"]
 ====
 
+[[sec:declare_request_attributes]]
 === 2. Declare request Attributes
 
 Attributes specify the required properties of a dependency.
@@ -91,10 +93,11 @@ Attributes specify the required properties of a dependency.
 Here we specify that we need the `transformed-jar` format for the `runtimeClasspath` configuration:
 
 ====
-include::sample[dir="snippets/dependencyManagement/artifactTransforms-simple/kotlin",files="build.gradle.kts[tags=artifact-transform-use]"]
-include::sample[dir="snippets/dependencyManagement/artifactTransforms-simple/groovy",files="build.gradle[tags=artifact-transform-use]"]
+include::sample[dir="snippets/reference/dependency-management/controlling-dependency-resolution/artifactTransforms-simple/kotlin",files="build.gradle.kts[tags=artifact-transform-use]"]
+include::sample[dir="snippets/reference/dependency-management/controlling-dependency-resolution/artifactTransforms-simple/groovy",files="build.gradle[tags=artifact-transform-use]"]
 ====
 
+[[sec:register_a_transform]]
 === 3. Register a Transform
 
 A transform must be registered using the link:{javadocPath}/org/gradle/api/artifacts/dsl/DependencyHandler.html#registerTransform(java.lang.Class,org.gradle.api.Action)[`dependencies.registerTransform()`] method.
@@ -102,12 +105,13 @@ A transform must be registered using the link:{javadocPath}/org/gradle/api/artif
 Here, our transform is registered with the link:{javadocPath}/org/gradle/api/Project.html#dependencies(groovy.lang.Closure)[`dependencies`] block:
 
 ====
-include::sample[dir="snippets/dependencyManagement/artifactTransforms-simple/kotlin",files="build.gradle.kts[tags=artifact-transform-registration]"]
-include::sample[dir="snippets/dependencyManagement/artifactTransforms-simple/groovy",files="build.gradle[tags=artifact-transform-registration]"]
+include::sample[dir="snippets/reference/dependency-management/controlling-dependency-resolution/artifactTransforms-simple/kotlin",files="build.gradle.kts[tags=artifact-transform-registration]"]
+include::sample[dir="snippets/reference/dependency-management/controlling-dependency-resolution/artifactTransforms-simple/groovy",files="build.gradle[tags=artifact-transform-registration]"]
 ====
 
 "To" attributes are used to describe the format or type of the artifacts that this transform can use as an input, and "from" attributes to describe the format or type of the artifacts that it produces as an output.
 
+[[sec:use_the_transform]]
 === 4. Use the Transform
 
 During a build, Gradle *automatically* runs registered transforms to satisfy a resolution request if a match is not directly available.
@@ -181,6 +185,7 @@ For example, if the requested variant is `java-api,classes`, but the dependency 
 
 TIP: Gradle applies transformations to artifacts, not variants.
 
+[[sec:executing_artifact_transforms_overview]]
 == Executing Artifact Transforms
 
 Gradle automatically selects Artifact Transforms as needed to satisfy resolution requests.
@@ -193,8 +198,8 @@ Gradle will run these transformations on the original artifacts found in a varia
 In the example below, the `TestTransform` class defines a transformation that is registered to process artifacts of type "jar" into artifacts of type "stub":
 
 ====
-include::sample[dir="snippets/dependencyManagement/artifactTransforms-view/kotlin",files="build.gradle.kts[tags=artifact-views-with-custom-attribute]"]
-include::sample[dir="snippets/dependencyManagement/artifactTransforms-view/groovy",files="build.gradle[tags=artifact-views-with-custom-attribute]"]
+include::sample[dir="snippets/reference/dependency-management/controlling-dependency-resolution/artifactTransforms-view/kotlin",files="build.gradle.kts[tags=artifact-views-with-custom-attribute]"]
+include::sample[dir="snippets/reference/dependency-management/controlling-dependency-resolution/artifactTransforms-view/groovy",files="build.gradle[tags=artifact-views-with-custom-attribute]"]
 ====
 
 The `testArtifact` task resolves artifacts of type "stub" using the `runtimeClasspath` configuration.
@@ -208,6 +213,7 @@ This process is called **Artifact Transform selection**:
 
 image::artifact-transform-5.png[]
 
+[[sec:the_artifact_transform_selection_process]]
 === The Artifact Transform Selection Process:
 
 1. **Start with requested Attributes**:
@@ -233,6 +239,7 @@ But a result may contain other attributes as well, that were not requested, and 
 
 For example: if attributes `A=a` and `B=b` are requested, and variant `V1` contains attributes `A=a`, `B=b`, and `C=c`, and variant `V2` contains attributes `A=a`, `B=b`, and `D=d`, then since all the values of `A` and `B` are identical (or compatible) either `V1` or `V2` would satisfy the request.
 
+[[sec:a_full_example]]
 === A Full Example
 
 Let's continue exploring the `minified` example begun above: a configuration requests `org.gradle.usage=java-runtime, org.gradle.libraryelements=jar, minified=true`.
@@ -267,8 +274,8 @@ To set up the `minified` attribute so that the above works you must add the attr
 You should also register the attribute in the attributes schema.
 
 ====
-include::sample[dir="snippets/dependencyManagement/artifactTransforms-minify/kotlin",files="build.gradle.kts[tags=artifact-transform-attribute-setup]"]
-include::sample[dir="snippets/dependencyManagement/artifactTransforms-minify/groovy",files="build.gradle[tags=artifact-transform-attribute-setup]"]
+include::sample[dir="snippets/reference/dependency-management/controlling-dependency-resolution/artifactTransforms-minify/kotlin",files="build.gradle.kts[tags=artifact-transform-attribute-setup]"]
+include::sample[dir="snippets/reference/dependency-management/controlling-dependency-resolution/artifactTransforms-minify/groovy",files="build.gradle[tags=artifact-transform-attribute-setup]"]
 ====
 <1> Add the attribute to the schema
 <2> All JAR files are not minified
@@ -280,9 +287,13 @@ You can now see what happens when we run the `resolveRuntimeClasspath` task, whi
 Gradle transforms the project dependency before the `resolveRuntimeClasspath` task starts.
 Gradle transforms the binary dependencies when it executes the `resolveRuntimeClasspath` task:
 
+[source,bash]
 ----
-$ gradle resolveRuntimeClasspath
-include::{snippetsPath}/dependencyManagement/artifactTransforms-minify/tests/artifactTransformMinify.out[]
+$ ./gradlew resolveRuntimeClasspath
+----
+[source,text]
+----
+include::{snippetsPath}/reference/dependency-management/controlling-dependency-resolution/artifactTransforms-minify/tests/artifactTransformMinify.out[]
 ----
 
 [[sec:implementing-artifact-transforms]]
@@ -291,6 +302,7 @@ include::{snippetsPath}/dependencyManagement/artifactTransforms-minify/tests/art
 Similar to task types, an artifact transform consists of an action and some optional parameters.
 The major difference from custom task types is that the action and the parameters are implemented as two separate classes.
 
+[[sec:artifact_transforms_without_parameters]]
 === Artifact Transforms without Parameters
 
 An artifact transform action is provided by a class implementing link:{groovyDslPath}/org.gradle.api.artifacts.transform.TransformAction.html[TransformAction].
@@ -320,8 +332,8 @@ Here is the implementation of an `Unzip` transform, which unzips a JAR file into
 The `Unzip` transform does not require any parameters:
 
 ====
-include::sample[dir="snippets/dependencyManagement/artifactTransforms-unzip/kotlin",files="build.gradle.kts[tags=artifact-transform-unzip]"]
-include::sample[dir="snippets/dependencyManagement/artifactTransforms-unzip/groovy",files="build.gradle[tags=artifact-transform-unzip]"]
+include::sample[dir="snippets/reference/dependency-management/controlling-dependency-resolution/artifactTransforms-unzip/kotlin",files="build.gradle.kts[tags=artifact-transform-unzip]"]
+include::sample[dir="snippets/reference/dependency-management/controlling-dependency-resolution/artifactTransforms-unzip/groovy",files="build.gradle[tags=artifact-transform-unzip]"]
 ====
 <1> Use `TransformParameters.None` if the transform does not use parameters
 <2> Inject the input artifact
@@ -331,6 +343,7 @@ include::sample[dir="snippets/dependencyManagement/artifactTransforms-unzip/groo
 Note how the implementation uses `@InputArtifact` to inject an artifact to transform into the action class, so that it can be accessed within the `transform` method.
 This method requests a directory for the unzipped classes by using `TransformOutputs.dir()` and then unzips the JAR file into this directory.
 
+[[sec:artifact_transforms_with_parameters]]
 === Artifact Transforms with Parameters
 
 An artifact transform may require parameters, such as a `String` for filtering or a file collection used to support the transformation of the input artifact.
@@ -345,8 +358,8 @@ Here is the implementation of a `Minify` transform that makes JARs smaller by on
 The `Minify` transform requires knowledge of the classes to keep within each JAR, which is provided as an `Map` property within its parameters:
 
 ====
-include::sample[dir="snippets/dependencyManagement/artifactTransforms-minify/kotlin",files="build.gradle.kts[tags=artifact-transform-minify]"]
-include::sample[dir="snippets/dependencyManagement/artifactTransforms-minify/groovy",files="build.gradle[tags=artifact-transform-minify]"]
+include::sample[dir="snippets/reference/dependency-management/controlling-dependency-resolution/artifactTransforms-minify/kotlin",files="build.gradle.kts[tags=artifact-transform-minify]"]
+include::sample[dir="snippets/reference/dependency-management/controlling-dependency-resolution/artifactTransforms-minify/groovy",files="build.gradle[tags=artifact-transform-minify]"]
 ====
 <1> Declare the parameter type
 <2> Interface for the transform parameters
@@ -376,8 +389,8 @@ The following example demonstrates a more complex transform that relocates speci
 This process involves rewriting the bytecode of both the relocated classes and any classes that reference them (class relocation):
 
 ====
-include::sample[dir="snippets/dependencyManagement/artifactTransforms-relocate/kotlin",files="build.gradle.kts[tags=artifact-transform-relocate]"]
-include::sample[dir="snippets/dependencyManagement/artifactTransforms-relocate/groovy",files="build.gradle[tags=artifact-transform-relocate]"]
+include::sample[dir="snippets/reference/dependency-management/controlling-dependency-resolution/artifactTransforms-relocate/kotlin",files="build.gradle.kts[tags=artifact-transform-relocate]"]
+include::sample[dir="snippets/reference/dependency-management/controlling-dependency-resolution/artifactTransforms-relocate/groovy",files="build.gradle[tags=artifact-transform-relocate]"]
 ====
 <1> Declare the transform cacheable
 <2> Interface for the transform parameters
@@ -389,6 +402,7 @@ include::sample[dir="snippets/dependencyManagement/artifactTransforms-relocate/g
 Note the classes to be relocated are determined by examining the packages of the input artifact and its dependencies.
 Additionally, the transform ensures that packages contained in JAR files on an external classpath are not relocated.
 
+[[sec:incremental_artifact_transforms]]
 === Incremental Artifact Transforms
 
 Similar to <<custom_tasks#incremental_tasks,incremental tasks>>, Artifact Transforms can avoid some work by only processing files that have changed since the last execution.
@@ -402,8 +416,8 @@ For more information on how to use link:{groovyDslPath}/org.gradle.work.InputCha
 Here is an example of an incremental transform that counts the lines of code in Java source files:
 
 ====
-include::sample[dir="snippets/dependencyManagement/artifactTransforms-incremental/kotlin",files="build.gradle.kts[tags=artifact-transform-countloc]"]
-include::sample[dir="snippets/dependencyManagement/artifactTransforms-incremental/groovy",files="build.gradle[tags=artifact-transform-countloc]"]
+include::sample[dir="snippets/reference/dependency-management/controlling-dependency-resolution/artifactTransforms-incremental/kotlin",files="build.gradle.kts[tags=artifact-transform-countloc]"]
+include::sample[dir="snippets/reference/dependency-management/controlling-dependency-resolution/artifactTransforms-incremental/groovy",files="build.gradle[tags=artifact-transform-countloc]"]
 ====
 <1> Inject `InputChanges`
 <2> Query for changes in the input artifact
@@ -430,16 +444,16 @@ For example, imagine you want to unpack some dependencies and put the unpacked d
 You can do so by registering an artifact transform action of type `Unzip`, as shown here:
 
 ====
-include::sample[dir="snippets/dependencyManagement/artifactTransforms-unzip/kotlin",files="build.gradle.kts[tags=artifact-transform-registration]"]
-include::sample[dir="snippets/dependencyManagement/artifactTransforms-unzip/groovy",files="build.gradle[tags=artifact-transform-registration]"]
+include::sample[dir="snippets/reference/dependency-management/controlling-dependency-resolution/artifactTransforms-unzip/kotlin",files="build.gradle.kts[tags=artifact-transform-registration]"]
+include::sample[dir="snippets/reference/dependency-management/controlling-dependency-resolution/artifactTransforms-unzip/groovy",files="build.gradle[tags=artifact-transform-registration]"]
 ====
 
 Another example is that you want to minify JARs by only keeping some `class` files from them.
 Note the use of the `parameters {}` block to provide the classes to keep in the minified JARs to the `Minify` transform:
 
 ====
-include::sample[dir="snippets/dependencyManagement/artifactTransforms-minify/kotlin",files="build.gradle.kts[tags=artifact-transform-registration]"]
-include::sample[dir="snippets/dependencyManagement/artifactTransforms-minify/groovy",files="build.gradle[tags=artifact-transform-registration]"]
+include::sample[dir="snippets/reference/dependency-management/controlling-dependency-resolution/artifactTransforms-minify/kotlin",files="build.gradle.kts[tags=artifact-transform-registration]"]
+include::sample[dir="snippets/reference/dependency-management/controlling-dependency-resolution/artifactTransforms-minify/groovy",files="build.gradle[tags=artifact-transform-registration]"]
 ====
 
 [[sec:executing-artifact-transforms]]
@@ -495,10 +509,12 @@ If you run it on a subproject, it will report the transforms registered only in 
 
 For example, to view the artifact transforms in the `app` subproject, you would run:
 
-[source, text]
+[source, bash]
 ----
 $ ./gradlew :app:artifactTransforms
-
+----
+[source, text]
+----
 > Task :app:artifactTransforms
 
 --------------------------------------------------
@@ -536,10 +552,12 @@ Some artifact transforms are not cacheable.  This can have negative performance 
 
 Because the task only inspects the current project, running it on the root project, where no transforms are registered, will produce empty output:
 
-[source, text]
+[source, bash]
 ----
 $ ./gradlew artifactTransforms
-
+----
+[source, text]
+----
 > Task :artifactTransforms
 
 There are no transforms registered in root project 'gradle'.

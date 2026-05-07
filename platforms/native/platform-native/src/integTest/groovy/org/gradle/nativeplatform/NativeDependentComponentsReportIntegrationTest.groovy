@@ -19,7 +19,7 @@ package org.gradle.nativeplatform
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 
 class NativeDependentComponentsReportIntegrationTest extends AbstractIntegrationSpec {
 
@@ -210,7 +210,7 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
         run 'libraries:dependentComponents', '--component', 'foo'
 
         then:
-        output.contains '''
+        removeIrrelevantOutput(output).contains '''
             ------------------------------------------------------------
             Project ':libraries'
             ------------------------------------------------------------
@@ -225,7 +225,17 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
             '''.stripIndent()
     }
 
-    @Requires(IntegTestPreconditions.NotParallelExecutor)
+    String removeIrrelevantOutput(String output) {
+        // Strip entire "Problem found: ... For more information, ..." blocks that bleed into this
+        // report from configuration-cache problem rendering. The "For more information" line ends
+        // with either a URL, a URL + ".", or "... in the Gradle documentation." depending on the
+        // DocLink implementation, so match greedily to end-of-line.
+        String stripped = output.replaceAll(/(?s)Problem found:.*?For more information, please refer to [^\n]*/, '')
+        // Collapse runs of blank lines (left behind by the stripped blocks) down to one.
+        return stripped.replaceAll(/\n\s*\n(\s*\n)+/, '\n\n')
+    }
+
+    @Requires(TestExecutionPreconditions.NotParallelExecutor)
     def "can show dependent components in parallel"() {
         given: 'a multiproject build'
         settingsFile.text = multiProjectSettings()
@@ -361,7 +371,7 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
         fails 'dependentComponents'
 
         then:
-        failure.assertHasDescription "Execution failed for task ':dependentComponents'."
+        failure.assertHasDescription "Execution failed for task ':dependentComponents' (registered by plugin 'org.gradle.component-reporting-tasks')."
         failure.assertHasCause '''
             Circular dependency between the following binaries:
             lib:sharedLibrary
@@ -396,7 +406,7 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
         fails 'dependentComponents'
 
         then:
-        failure.assertHasDescription "Execution failed for task ':dependentComponents'."
+        failure.assertHasDescription "Execution failed for task ':dependentComponents' (registered by plugin 'org.gradle.component-reporting-tasks')."
         failure.assertHasCause '''
             Circular dependency between the following binaries:
             another:sharedLibrary
@@ -431,7 +441,7 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
         fails 'api:dependentComponents'
 
         then:
-        failure.assertHasDescription "Execution failed for task ':api:dependentComponents'."
+        failure.assertHasDescription "Execution failed for task ':api:dependentComponents' (registered by plugin 'org.gradle.component-reporting-tasks')."
         failure.assertHasCause '''
             Circular dependency between the following binaries:
             :api:api:sharedLibrary

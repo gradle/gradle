@@ -15,19 +15,11 @@
 [[gradle_optimizations]]
 = Incremental Builds and Build Caching Basic
 
-++++
-<div class="badge-wrapper">
-    <a class="badge" href="https://dpeuniversity.gradle.com/app/courses/ec69d0b8-9171-4969-ac3e-82dea16f87b0/" target="_blank">
-        <span class="badge-type button--blue">LEARN</span>
-        <span class="badge-text">Incremental Builds and Build Caching with Gradle&nbsp;&nbsp;&nbsp;&gt;</span>
-    </a>
-</div>
-++++
-
 Gradle uses two main features to reduce build time: *incremental builds* and *build caching*.
 
 image::gradle-basic-8.png[]
 
+[[sec:task_outcome_labels]]
 == Task Outcome Labels
 
 When you run a Gradle build with verbose mode turned on, each task prints a short outcome label that describes what happened during execution.
@@ -59,6 +51,7 @@ These labels help you understand Gradle’s behavior and performance optimizatio
 | `FAILED`             | The task ran but encountered an error.
 |===
 
+[[sec:incremental_builds_basics]]
 == Incremental Builds
 
 An *incremental build* is a build that avoids running tasks whose inputs have not changed since the previous build.
@@ -72,10 +65,12 @@ Otherwise, it will skip execution.
 Incremental builds are always enabled, and the best way to see them in action is to turn on _verbose mode_.
 With verbose mode, each task state is labeled during a build:
 
-[source,text]
+[source,bash]
 ----
 $ ./gradlew compileJava --console=verbose
-
+----
+[source,text]
+----
 > Task :buildSrc:generateExternalPluginSpecBuilders UP-TO-DATE
 > Task :buildSrc:extractPrecompiledScriptPluginPlugins UP-TO-DATE
 > Task :buildSrc:compilePluginsBlocks UP-TO-DATE
@@ -100,6 +95,7 @@ When you run a task that has been previously executed and hasn't changed, then `
 
 TIP: To permanently enable verbose mode, add `org.gradle.console=verbose` to your `gradle.properties` file.
 
+[[sec:build_caching_basics]]
 == Build Caching
 
 Incremental Builds are a great optimization that helps avoid work already done.
@@ -115,10 +111,12 @@ It prevents the redundant work and cost of executing time-consuming and expensiv
 
 When the build cache has been used to repopulate the local directory, the tasks are marked as `FROM-CACHE`:
 
-[source,text]
+[source,bash]
 ----
 $ ./gradlew compileJava --build-cache
-
+----
+[source,text]
+----
 > Task :buildSrc:generateExternalPluginSpecBuilders UP-TO-DATE
 > Task :buildSrc:extractPrecompiledScriptPluginPlugins UP-TO-DATE
 > Task :buildSrc:compilePluginsBlocks UP-TO-DATE

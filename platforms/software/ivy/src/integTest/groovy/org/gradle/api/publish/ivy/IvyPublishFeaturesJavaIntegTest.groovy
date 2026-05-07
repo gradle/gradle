@@ -32,7 +32,8 @@ class IvyPublishFeaturesJavaIntegTest extends AbstractIvyPublishFeaturesJavaInte
                     canBeResolved = false
                     assert canBeConsumed
                     attributes {
-                        attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, org.gradle.api.internal.artifacts.JavaEcosystemSupport.DEPRECATED_JAVA_RUNTIME_JARS))
+                        attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, Usage.JAVA_RUNTIME))
+                        attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, project.objects.named(LibraryElements, LibraryElements.JAR))
                     }
                     outgoing.capability("org:optional-feature:\${version}")
                 }
@@ -98,7 +99,8 @@ class IvyPublishFeaturesJavaIntegTest extends AbstractIvyPublishFeaturesJavaInte
                     canBeResolved = false
                     assert canBeConsumed
                     attributes {
-                        attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, org.gradle.api.internal.artifacts.JavaEcosystemSupport.DEPRECATED_JAVA_RUNTIME_JARS))
+                        attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, Usage.JAVA_RUNTIME))
+                        attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, project.objects.named(LibraryElements, LibraryElements.JAR))
                     }
                     outgoing.capability("org:optional-feature1:\${version}")
                 }
@@ -110,7 +112,8 @@ class IvyPublishFeaturesJavaIntegTest extends AbstractIvyPublishFeaturesJavaInte
                     canBeResolved = false
                     assert canBeConsumed
                     attributes {
-                        attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, org.gradle.api.internal.artifacts.JavaEcosystemSupport.DEPRECATED_JAVA_RUNTIME_JARS))
+                        attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, Usage.JAVA_RUNTIME))
+                        attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, project.objects.named(LibraryElements, LibraryElements.JAR))
                     }
                     outgoing.capability("org:optional-feature2:\${version}")
                 }
@@ -176,7 +179,8 @@ class IvyPublishFeaturesJavaIntegTest extends AbstractIvyPublishFeaturesJavaInte
                     canBeResolved = false
                     assert canBeConsumed
                     attributes {
-                        attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, org.gradle.api.internal.artifacts.JavaEcosystemSupport.DEPRECATED_JAVA_RUNTIME_JARS))
+                        attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, Usage.JAVA_RUNTIME))
+                        attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, project.objects.named(LibraryElements, LibraryElements.JAR))
                     }
                     outgoing.capability("org:optional-feature:\${version}")
                 }
@@ -276,7 +280,8 @@ class IvyPublishFeaturesJavaIntegTest extends AbstractIvyPublishFeaturesJavaInte
                     canBeResolved = false
                     assert canBeConsumed
                     attributes {
-                        attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, org.gradle.api.internal.artifacts.JavaEcosystemSupport.DEPRECATED_JAVA_RUNTIME_JARS))
+                        attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, Usage.JAVA_RUNTIME))
+                        attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, project.objects.named(LibraryElements, LibraryElements.JAR))
                     }
                     outgoing.capability("org:optional-feature:\${version}")
                 }

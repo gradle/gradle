@@ -36,6 +36,7 @@ import org.gradle.api.tasks.TaskInputs;
 import org.gradle.api.tasks.TaskLocalState;
 import org.gradle.api.tasks.TaskOutputs;
 import org.gradle.api.tasks.TaskState;
+import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition;
 import org.jspecify.annotations.Nullable;
 
 import java.io.File;
@@ -113,7 +114,7 @@ import java.util.Set;
  * <li>A {@code Callable}. The {@code call()} method may return any of the types listed here. Its return value is
  * recursively converted to tasks. A {@code null} return value is treated as an empty collection.</li>
  *
- * <li>A Groovy {@code Closure} or Kotlin function. The closure may take a {@code Task} as parameter.
+ * <li>A Groovy {@code Closure} or Kotlin function.
  * The closure or function may return any of the types listed here. Its return value is
  * recursively converted to tasks. A {@code null} return value is treated as an empty collection.</li>
  *
@@ -151,6 +152,7 @@ import java.util.Set;
  * Parallel execution can be enabled by the <code>--parallel</code> flag when the build is initiated.
  * In parallel mode, the tasks of different projects (i.e. in a multi project build) are able to be executed in parallel.
  */
+@HiddenInDefinition
 public interface Task extends Comparable<Task>, ExtensionAware, Named {
     String TASK_NAME = "name";
 

@@ -18,7 +18,7 @@ package org.gradle.testkit.runner.enduser
 
 import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import org.gradle.util.internal.TextUtil
 
 import static org.gradle.integtests.fixtures.BuildScanUserInputFixture.DUMMY_TASK_NAME
@@ -27,7 +27,7 @@ import static org.gradle.integtests.fixtures.BuildScanUserInputFixture.answerOut
 import static org.gradle.integtests.fixtures.BuildScanUserInputFixture.buildScanPlugin
 import static org.gradle.integtests.fixtures.BuildScanUserInputFixture.buildScanPluginApplication
 
-@Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = NOT_EMBEDDED_REASON)
+@Requires(value = TestExecutionPreconditions.NotEmbeddedExecutor, reason = NOT_EMBEDDED_REASON)
 class GradleRunnerConsoleInputEndUserIntegrationTest extends BaseTestKitEndUserIntegrationTest {
 
     def setup() {
@@ -79,7 +79,7 @@ class GradleRunnerConsoleInputEndUserIntegrationTest extends BaseTestKitEndUserI
             def result = GradleRunner.create()
                 .withProjectDir(testProjectDir)
                 .withArguments('$DUMMY_TASK_NAME')
-                .withDebug($debug)
+                .withDebug($embedded)
                 .withStandardInput(stdin)
                 .forwardStdOutput(stdout)
                 .build()
@@ -102,7 +102,7 @@ class GradleRunnerConsoleInputEndUserIntegrationTest extends BaseTestKitEndUserI
             def result = GradleRunner.create()
                 .withProjectDir(testProjectDir)
                 .withArguments('$DUMMY_TASK_NAME')
-                .withDebug($debug)
+                .withDebug($embedded)
                 .build()
 
             then:

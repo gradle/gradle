@@ -27,7 +27,6 @@ import java.nio.file.attribute.PosixFileAttributes;
 import static org.gradle.internal.file.nio.PosixFilePermissionConverter.convertToInt;
 import static org.gradle.internal.file.nio.PosixFilePermissionConverter.convertToPermissionsSet;
 
-@SuppressWarnings("Since15")
 public class PosixJdk7FilePermissionHandler implements FilePermissionHandler {
 
     @Override

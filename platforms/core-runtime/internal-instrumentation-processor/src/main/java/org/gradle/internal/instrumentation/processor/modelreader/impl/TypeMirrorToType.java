@@ -20,6 +20,7 @@ import org.objectweb.asm.Type;
 
 import javax.lang.model.element.Element;
 import javax.lang.model.element.PackageElement;
+import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.ArrayType;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.ErrorType;
@@ -89,7 +90,8 @@ public class TypeMirrorToType extends AbstractTypeVisitor8<Type, Void> {
     public Type visitDeclared(DeclaredType t, Void unused) {
         List<Element> typeNesting = new ArrayList<>();
         Element current = t.asElement();
-        while (current != null) {
+        // In Java 9+, we also get `ModuleElement`s here, which do not contribute to the type name.
+        while (current instanceof TypeElement || current instanceof PackageElement) {
             typeNesting.add(current);
             current = current.getEnclosingElement();
         }

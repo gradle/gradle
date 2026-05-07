@@ -38,12 +38,14 @@ class EventFiringTaskExecuterTest extends Specification {
     def taskExecutionListener = Mock(TaskExecutionListener)
     def taskListener = Mock(TaskListenerInternal)
     def delegate = Mock(TaskExecuter)
-    def task = Mock(TaskInternal)
     def projectId = ProjectIdentity.forRootProject(
         Path.ROOT,
         "root",
     )
-    def taskIdentity = new TaskIdentity(DefaultTask, "foo", projectId, 0)
+    def taskIdentity = new TaskIdentity(DefaultTask, "foo", projectId, 0, null)
+    def task = Mock(TaskInternal) {
+        getTaskIdentity() >> taskIdentity
+    }
     def state = new TaskStateInternal()
     def executionContext = Mock(TaskExecutionContext)
 
@@ -85,7 +87,7 @@ class EventFiringTaskExecuterTest extends Specification {
 
         then:
         _ * task.getIdentityPath() >> Path.path(":a")
-        1 * task.getTaskIdentity() >> taskIdentity
+        _ * task.getTaskIdentity() >> taskIdentity
         1 * taskListener.beforeExecute(taskIdentity)
         1 * taskExecutionListener.beforeExecute(task) >> { throw failure }
         0 * delegate._

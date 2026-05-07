@@ -18,5 +18,9 @@ open class OsAwareBaseGradleBuildType(
     val os: Os,
     override val stage: Stage? = null,
     override val failStage: Boolean = true,
-    init: BaseGradleBuildType.() -> Unit = {},
-) : BaseGradleBuildType(stage, failStage, init)
+    init: OsAwareBaseGradleBuildType.() -> Unit = {},
+) : BaseGradleBuildType(stage, failStage) {
+    init {
+        this.init()
+    }
+}

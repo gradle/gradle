@@ -39,7 +39,6 @@ import org.gradle.api.internal.initialization.transform.services.CacheInstrument
 import org.gradle.api.internal.initialization.transform.services.CacheInstrumentationDataBuildService.ResolutionScope;
 import org.gradle.api.internal.initialization.transform.utils.InstrumentationClasspathMerger;
 import org.gradle.api.internal.initialization.transform.utils.InstrumentationClasspathMerger.FileType;
-import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.TransformedClassPath;
@@ -93,17 +92,14 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
 
     public static final Attribute<String> INSTRUMENTED_ATTRIBUTE = Attribute.of("org.gradle.internal.instrumented", String.class);
 
-    private final NamedObjectInstantiator instantiator;
     private final InstrumentationTransformRegisterer instrumentationTransformRegisterer;
     private final PropertyUpgradeReportConfig propertyUpgradeReportConfig;
 
     public DefaultScriptClassPathResolver(
-        NamedObjectInstantiator instantiator,
         AgentStatus agentStatus,
         Gradle gradle,
         PropertyUpgradeReportConfig propertyUpgradeReportConfig
     ) {
-        this.instantiator = instantiator;
         // Shared services must be provided lazily, otherwise they are instantiated too early and some cases can fail
         this.instrumentationTransformRegisterer = new InstrumentationTransformRegisterer(
             agentStatus,
@@ -127,12 +123,12 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
         // should ideally reuse the `JvmPluginServices` but this code is too low level
         // and this service is therefore not available!
         AttributeContainer attributes = configuration.getAttributes();
-        attributes.attribute(Usage.USAGE_ATTRIBUTE, instantiator.named(Usage.class, Usage.JAVA_RUNTIME));
-        attributes.attribute(Category.CATEGORY_ATTRIBUTE, instantiator.named(Category.class, Category.LIBRARY));
-        attributes.attribute(LIBRARY_ELEMENTS_ATTRIBUTE, instantiator.named(LibraryElements.class, LibraryElements.JAR));
-        attributes.attribute(Bundling.BUNDLING_ATTRIBUTE, instantiator.named(Bundling.class, Bundling.EXTERNAL));
+        attributes.attribute(Usage.USAGE_ATTRIBUTE, attributes.named(Usage.class, Usage.JAVA_RUNTIME));
+        attributes.attribute(Category.CATEGORY_ATTRIBUTE, attributes.named(Category.class, Category.LIBRARY));
+        attributes.attribute(LIBRARY_ELEMENTS_ATTRIBUTE, attributes.named(LibraryElements.class, LibraryElements.JAR));
+        attributes.attribute(Bundling.BUNDLING_ATTRIBUTE, attributes.named(Bundling.class, Bundling.EXTERNAL));
         attributes.attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, Integer.parseInt(JavaVersion.current().getMajorVersion()));
-        attributes.attribute(GradlePluginApiVersion.GRADLE_PLUGIN_API_VERSION_ATTRIBUTE, instantiator.named(GradlePluginApiVersion.class, GradleVersion.current().getVersion()));
+        attributes.attribute(GradlePluginApiVersion.GRADLE_PLUGIN_API_VERSION_ATTRIBUTE, attributes.named(GradlePluginApiVersion.class, GradleVersion.current().getVersion()));
 
         DependencyHandler dependencyHandler = resolutionContext.getDependencyHandler();
         configuration.getDependencyConstraints().add(dependencyHandler.getConstraints().create(Log4jBannedVersion.LOG4J2_CORE_COORDINATES, constraint -> constraint.version(version -> {
@@ -168,7 +164,7 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
         return classpathConfiguration.getIncoming().artifactView((Action<? super ArtifactView.ViewConfiguration>) config -> {
             config.attributes(attributes -> {
                 attributes.attribute(INSTRUMENTED_ATTRIBUTE, ANALYZED_ARTIFACT.value);
-                attributes.attribute(LIBRARY_ELEMENTS_ATTRIBUTE, instantiator.named(LibraryElements.class, LibraryElements.CLASSES));
+                attributes.attribute(LIBRARY_ELEMENTS_ATTRIBUTE, attributes.named(LibraryElements.class, LibraryElements.CLASSES));
             });
             // We have to analyze external and project dependencies to get full hierarchies, since
             // for example user could use dependency substitution to replace external dependency with project dependency.

@@ -17,7 +17,6 @@ package org.gradle.execution;
 
 import org.gradle.StartParameter;
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.configuration.project.BuiltInCommand;
 import org.gradle.execution.plan.ExecutionPlan;
 import org.gradle.internal.RunDefaultTasksExecutionRequest;
@@ -50,13 +49,12 @@ public class DefaultTasksBuildTaskScheduler implements BuildTaskScheduler {
 
         if (startParameter.getTaskRequests().size() == 1 && startParameter.getTaskRequests().get(0) instanceof RunDefaultTasksExecutionRequest) {
             // Gather the default tasks from this first group project
-            ProjectInternal project = gradle.getDefaultProject();
-
-            //so that we don't miss out default tasks
-            projectConfigurer.configure(project);
-
-            List<String> defaultTasks = project.getDefaultTasks();
-            if (defaultTasks.size() == 0) {
+            List<String> defaultTasks = gradle.getDefaultProjectState().fromMutableState(project -> {
+                //so that we don't miss out default tasks
+                projectConfigurer.configure(project);
+                return project.getDefaultTasks();
+            });
+            if (defaultTasks.isEmpty()) {
                 defaultTasks = new ArrayList<>();
                 for (BuiltInCommand command : builtInCommands) {
                     defaultTasks.addAll(command.asDefaultTask());

@@ -28,7 +28,6 @@ import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
 
-@SuppressWarnings("Since15")
 public class NioFileMetadataAccessor implements FileMetadataAccessor {
     @Override
     public FileMetadata stat(File file) {

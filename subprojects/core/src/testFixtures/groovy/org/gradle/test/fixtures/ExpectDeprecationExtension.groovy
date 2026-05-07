@@ -38,7 +38,7 @@ import java.lang.reflect.Field
 @Target(ElementType.METHOD)
 @ExtensionAnnotation(ExpectDeprecationExtension.class)
 @interface ExpectDeprecation {
-    String value()
+    String value() default ""
 }
 
 class ExpectDeprecationExtension implements IAnnotationDrivenExtension<ExpectDeprecation> {
@@ -48,8 +48,6 @@ class ExpectDeprecationExtension implements IAnnotationDrivenExtension<ExpectDep
     }
 
     static void intercept(String expectedMessage, ThrowingRunnable proceed) {
-        assert expectedMessage != null && expectedMessage.size() > 10: "Please provide the expected deprecation message"
-
         def problems = TestUtil.problemsService()
         DeprecationLogger.init(WarningMode.All, null, problems, NoOpProblemDiagnosticsFactory.EMPTY_STREAM)
 
@@ -59,6 +57,7 @@ class ExpectDeprecationExtension implements IAnnotationDrivenExtension<ExpectDep
             INIT_FIELD.set(DeprecationLogger, false)
         }
 
+        assert expectedMessage != null && !expectedMessage.isEmpty(): "Please provide the expected deprecation message. Found messages: " + problems.getDeprecationMessages()
         problems.assertHasDeprecation(expectedMessage)
     }
 

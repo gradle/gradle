@@ -17,6 +17,7 @@ package org.gradle.integtests.resolve.maven
 
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 import org.gradle.test.fixtures.maven.MavenModule
 import org.gradle.test.fixtures.maven.MavenRepository
@@ -56,7 +57,6 @@ dependencies {
         run 'checkDeps'
 
         then:
-        resolve.expectDefaultConfiguration("runtime")
         resolve.expectGraph {
             root(":", ":test:") {
                 snapshot("org:unique:1.0-SNAPSHOT", uniqueVersionModule.uniqueSnapshotVersion)
@@ -165,6 +165,7 @@ task retrieve(type: Sync) {
         repo2ProjectB.artifact.expectGet()
 
         and: "We resolve dependencies"
+        executer.expectDocumentedDeprecationWarning("The MavenArtifactRepository.artifactUrls(Object...) method has been deprecated. This is scheduled to be removed in Gradle 10. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_maven_artifact_urls")
         runRetrieveTask()
 
         then: "Snapshots are downloaded"
@@ -174,6 +175,10 @@ task retrieve(type: Sync) {
 
         when: "We resolve with snapshots cached: no server requests"
         server.resetExpectations()
+        if (!GradleContextualExecuter.configCache) {
+            // With CC, the configuration is reused and the build script is not re-evaluated, so the deprecation does not re-fire
+            executer.expectDocumentedDeprecationWarning("The MavenArtifactRepository.artifactUrls(Object...) method has been deprecated. This is scheduled to be removed in Gradle 10. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_maven_artifact_urls")
+        }
         def result = run('retrieve')
 
         then: "Everything is up to date"
@@ -523,12 +528,12 @@ task retrieve(type: Sync) {
             $common
 
             //imposing an artificial order so that the parallel build retrieves sequentially, GRADLE-2788
-            retrieve.dependsOn ":a:retrieve"
+            tasks.retrieve.dependsOn ":a:retrieve"
         """
 
         file("a/build.gradle") << """
             $common
-            tasks.getByName("retrieve").dependsOn ":b:retrieve"
+            tasks.retrieve.dependsOn ":b:retrieve"
         """
 
         file("b/build.gradle") << common
@@ -1084,7 +1089,6 @@ class CheckIsChangingRule implements ComponentMetadataRule {
         run 'checkDeps'
 
         then:
-        resolve.expectDefaultConfiguration("runtime")
         resolve.expectGraph {
             root(":", ":test:") {
                 snapshot("org.gradle.integtests.resolve:unique:1.0-SNAPSHOT", uniqueVersionModule.uniqueSnapshotVersion)

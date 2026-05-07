@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
 import org.gradle.internal.jvm.Jvm
 import org.gradle.quality.integtest.fixtures.PmdCoverage
+import org.gradle.test.fixtures.Flaky
 import org.gradle.util.internal.VersionNumber
 import org.junit.Assume
 
@@ -33,6 +34,7 @@ class PmdPluginToolchainsIntegrationTest extends AbstractPmdPluginVersionIntegra
         executer.withArgument("--info")
     }
 
+    @Flaky(because = "https://github.com/gradle/gradle-private/issues/4688")
     def "uses jdk from toolchains set through java plugin"() {
         Assume.assumeTrue(fileLockingIssuesSolved())
         Assume.assumeTrue(PmdCoverage.supportsJdkVersion(versionNumber, jdk.javaVersionMajor))
@@ -113,6 +115,7 @@ class PmdPluginToolchainsIntegrationTest extends AbstractPmdPluginVersionIntegra
                 ruleSetFiles = files()
                 ruleSets = ["category/java/errorprone.xml"]
                 rulesMinimumPriority = 5
+                // Required because the plugin is not applied; deprecation warning is expected.
                 targetJdk = TargetJdk.VERSION_1_4
                 threads = 1
                 incrementalAnalysis = false
@@ -120,6 +123,12 @@ class PmdPluginToolchainsIntegrationTest extends AbstractPmdPluginVersionIntegra
         """
 
         when:
+        executer.expectDocumentedDeprecationWarning("The Pmd.setTargetJdk(TargetJdk) method has been deprecated. " +
+            "This is scheduled to be removed in Gradle 10. " +
+            "This property has no effect for PMD 5.0 and later, which infer the language version from the rule sets. " +
+            "Remove the targetJdk configuration from your build. " +
+            "Consult the upgrading guide for further information: " +
+            "https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_pmd_target_jdk")
         succeeds("myPmd")
 
         then:

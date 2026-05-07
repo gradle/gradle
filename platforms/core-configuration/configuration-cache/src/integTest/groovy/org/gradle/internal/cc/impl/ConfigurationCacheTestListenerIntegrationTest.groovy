@@ -56,6 +56,7 @@ class ConfigurationCacheTestListenerIntegrationTest extends AbstractConfiguratio
         '''
 
         when:
+        executer.expectDocumentedDeprecationWarning("The AbstractTestTask.onOutput(Closure) method has been deprecated. This is scheduled to be removed in Gradle 10. Please use the addTestOutputListener(TestOutputListener) method instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_test_methods")
         configurationCacheRun 'test'
 
         then:

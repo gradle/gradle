@@ -20,7 +20,7 @@ import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.quality.integtest.fixtures.CheckstyleCoverage
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import org.gradle.util.Matchers
 import org.gradle.util.internal.Resources
 import org.gradle.util.internal.ToBeImplemented
@@ -39,7 +39,7 @@ import static org.hamcrest.CoreMatchers.startsWith
 @TargetCoverage({ CheckstyleCoverage.getSupportedVersionsByJdk() })
 class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec {
     @Rule
-    public final Resources resources = new Resources()
+    public final Resources resources = new Resources(null)
 
     def setup() {
         writeBuildFile()
@@ -107,7 +107,7 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
 
     @ToBeImplemented
     @Issue("GRADLE-3432")
-    @Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "explicit language")
+    @Requires(value = TestExecutionPreconditions.NotEmbeddedExecutor, reason = "explicit language")
     def "analyze bad resources"() {
         defaultLanguage('en')
         writeConfigFileForResources()
@@ -122,14 +122,14 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
         // file("build/reports/checkstyle/main.html").assertContents(containsLine(containsString("bad.properties")))
     }
 
-    @Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "explicit language")
+    @Requires(value = TestExecutionPreconditions.NotEmbeddedExecutor, reason = "explicit language")
     def "analyze bad code"() {
         defaultLanguage('en')
         badCode()
 
         expect:
         fails("check")
-        failure.assertHasDescription("Execution failed for task ':checkstyleMain'.")
+        failure.assertHasDescription("Execution failed for task ':checkstyleMain' (registered by plugin 'org.gradle.checkstyle').")
         failure.assertThatCause(startsWith("Checkstyle rule violations were found. See the report at:"))
         failure.assertHasErrorOutput("Name 'class1' must match pattern")
         file("build/reports/checkstyle/main.sarif").assertDoesNotExist()
@@ -152,7 +152,7 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
         file("build/reports/checkstyle/main.xml").assertContents(containsClass("org.gradle.Class1"))
     }
 
-    @Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "explicit language")
+    @Requires(value = TestExecutionPreconditions.NotEmbeddedExecutor, reason = "explicit language")
     def "can suppress console output"() {
         def message = "Name 'class1' must match pattern"
 
@@ -167,7 +167,7 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
         fails("check")
 
         then:
-        failure.assertHasDescription("Execution failed for task ':checkstyleMain'.")
+        failure.assertHasDescription("Execution failed for task ':checkstyleMain' (registered by plugin 'org.gradle.checkstyle').")
         failure.assertThatCause(startsWith("Checkstyle rule violations were found. See the report at:"))
         failure.assertNotOutput(message)
         file("build/reports/checkstyle/main.xml").assertContents(containsClass("org.gradle.class1"))
@@ -236,7 +236,7 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
 
         then:
         fails("check")
-        failure.assertHasDescription("Execution failed for task ':checkstyleMain'.")
+        failure.assertHasDescription("Execution failed for task ':checkstyleMain' (registered by plugin 'org.gradle.checkstyle').")
         failure.assertThatCause(startsWith("Checkstyle rule violations were found. See the report at:"))
         failure.assertThatCause(Matchers.containsText("Checkstyle files with violations: 2"))
         failure.assertThatCause(Matchers.containsText("Checkstyle violations by severity: [warning:2]"))
@@ -247,7 +247,7 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
         file("build/reports/checkstyle/main.html").assertContents(containsClass("org.gradle.class2"))
     }
 
-    @Requires(IntegTestPreconditions.NotParallelExecutor)
+    @Requires(TestExecutionPreconditions.NotParallelExecutor)
     def "is incremental"() {
         given:
         goodCode()
@@ -455,7 +455,7 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
     }
 
     @Issue("https://github.com/gradle/gradle/issues/2326")
-    @Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "explicit language")
+    @Requires(value = TestExecutionPreconditions.NotEmbeddedExecutor, reason = "explicit language")
     def "check task should not be up-to-date after clean if it only outputs to console"() {
         given:
         defaultLanguage('en')

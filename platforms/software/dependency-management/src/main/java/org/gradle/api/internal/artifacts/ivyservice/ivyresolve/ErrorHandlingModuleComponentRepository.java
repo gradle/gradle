@@ -57,12 +57,14 @@ public class ErrorHandlingModuleComponentRepository implements ModuleComponentRe
 
     private final ModuleComponentRepository<ExternalModuleComponentGraphResolveState> delegate;
     private final ErrorHandlingModuleComponentRepositoryAccess local;
+    private final RepositoryDisabler remoteRepositoryDisabler;
     private final ErrorHandlingModuleComponentRepositoryAccess remote;
 
     public ErrorHandlingModuleComponentRepository(ModuleComponentRepository<ExternalModuleComponentGraphResolveState> delegate, RepositoryDisabler remoteRepositoryDisabler) {
         this.delegate = delegate;
-        local = new ErrorHandlingModuleComponentRepositoryAccess(delegate.getLocalAccess(), getId(), RepositoryDisabler.NoOpDisabler.INSTANCE, getName());
-        remote = new ErrorHandlingModuleComponentRepositoryAccess(delegate.getRemoteAccess(), getId(), remoteRepositoryDisabler, getName());
+        this.remoteRepositoryDisabler = remoteRepositoryDisabler;
+        this.local = new ErrorHandlingModuleComponentRepositoryAccess(delegate.getLocalAccess(), getId(), RepositoryDisabler.NoOpDisabler.INSTANCE, getName(), false);
+        this.remote = new ErrorHandlingModuleComponentRepositoryAccess(delegate.getRemoteAccess(), getId(), remoteRepositoryDisabler, getName(), isContinueOnConnectionFailure());
     }
 
     @Override
@@ -100,6 +102,16 @@ public class ErrorHandlingModuleComponentRepository implements ModuleComponentRe
         return delegate.getComponentMetadataSupplier();
     }
 
+    @Override
+    public boolean isContinueOnConnectionFailure() {
+        return delegate.isContinueOnConnectionFailure();
+    }
+
+    @Override
+    public boolean isRepositoryDisabled() {
+        return remoteRepositoryDisabler.isDisabled(getId()) || delegate.isRepositoryDisabled();
+    }
+
     private static final class ErrorHandlingModuleComponentRepositoryAccess implements ModuleComponentRepositoryAccess<ExternalModuleComponentGraphResolveState> {
         private static final Logger LOGGER = Logging.getLogger(ErrorHandlingModuleComponentRepositoryAccess.class);
         private final static String MAX_TENTATIVES_BEFORE_DISABLING = "org.gradle.internal.repository.max.tentatives";
@@ -111,12 +123,13 @@ public class ErrorHandlingModuleComponentRepository implements ModuleComponentRe
         private final int maxTentativesCount;
         private final int initialBackOff;
         private final String repositoryName;
+        private final boolean continueOnConnectionFailure;
 
-        private ErrorHandlingModuleComponentRepositoryAccess(ModuleComponentRepositoryAccess<ExternalModuleComponentGraphResolveState> delegate, String repositoryId, RepositoryDisabler repositoryDisabler, String repositoryName) {
-            this(delegate, repositoryId, repositoryDisabler, Integer.getInteger(MAX_TENTATIVES_BEFORE_DISABLING, 3), Integer.getInteger(INITIAL_BACKOFF_MS, 1000), repositoryName);
+        private ErrorHandlingModuleComponentRepositoryAccess(ModuleComponentRepositoryAccess<ExternalModuleComponentGraphResolveState> delegate, String repositoryId, RepositoryDisabler repositoryDisabler, String repositoryName, boolean continueOnConnectionFailure) {
+            this(delegate, repositoryId, repositoryDisabler, Integer.getInteger(MAX_TENTATIVES_BEFORE_DISABLING, 3), Integer.getInteger(INITIAL_BACKOFF_MS, 1000), repositoryName, continueOnConnectionFailure);
         }
 
-        private ErrorHandlingModuleComponentRepositoryAccess(ModuleComponentRepositoryAccess<ExternalModuleComponentGraphResolveState> delegate, String repositoryId, RepositoryDisabler repositoryDisabler, int maxTentativesCount, int initialBackOff, String repositoryName) {
+        private ErrorHandlingModuleComponentRepositoryAccess(ModuleComponentRepositoryAccess<ExternalModuleComponentGraphResolveState> delegate, String repositoryId, RepositoryDisabler repositoryDisabler, int maxTentativesCount, int initialBackOff, String repositoryName, boolean continueOnConnectionFailure) {
             this.repositoryName = repositoryName;
             assert maxTentativesCount > 0 : "Max tentatives must be > 0";
             assert initialBackOff >= 0 : "Initial backoff must be >= 0";
@@ -125,6 +138,7 @@ public class ErrorHandlingModuleComponentRepository implements ModuleComponentRe
             this.repositoryDisabler = repositoryDisabler;
             this.maxTentativesCount = maxTentativesCount;
             this.initialBackOff = initialBackOff;
+            this.continueOnConnectionFailure = continueOnConnectionFailure;
         }
 
         @Override
@@ -201,7 +215,11 @@ public class ErrorHandlingModuleComponentRepository implements ModuleComponentRe
         }
 
         private <E extends Throwable, R extends ErroringResolveResult<E>> boolean checkToHandleDisabledRepository(R result, Transformer<E, Throwable> onDisabled) {
-            if (repositoryDisabler.isDisabled(repositoryId)) {
+            // Artifact can only be resolved from the same repository as the metadata
+            // So continue does not make sense here
+            boolean disabledIsFatal = !continueOnConnectionFailure || result instanceof BuildableArtifactFileResolveResult;
+
+            if (disabledIsFatal && repositoryDisabler.isDisabled(repositoryId)) {
                 Throwable reason = repositoryDisabler.getDisabledReason(repositoryId).get();
                 E failure = onDisabled.transform(reason);
                 result.failed(failure);
@@ -241,10 +259,13 @@ public class ErrorHandlingModuleComponentRepository implements ModuleComponentRe
                     unexpectedFailure = throwable;
                     failure = onError.transform(throwable);
                 }
-                boolean doNotRetry = NetworkingIssueVerifier.isLikelyPermanentNetworkIssue(failure) || !NetworkingIssueVerifier.isLikelyTransientNetworkingIssue(failure);
+                boolean transientNetworkingIssue = NetworkingIssueVerifier.isLikelyTransientNetworkingIssue(failure);
+                boolean doNotRetry = NetworkingIssueVerifier.isLikelyPermanentNetworkIssue(failure) || !transientNetworkingIssue;
                 if (doNotRetry || retries == maxTentativesCount) {
                     if (unexpectedFailure != null) {
-                        repositoryDisabler.tryDisableRepository(repositoryId, failure);
+                        // TODO Think about disabling on failed retries but also have an option to allow to continue despite disabled repositories
+                        // Use case: I have my internal Central mirror in project setup, but outside of the company network it is not reachable. And thus I want to continue build with just Maven Central.
+                        repositoryDisabler.tryDisableRepository(repositoryId, failure, transientNetworkingIssue && retries == maxTentativesCount);
                     }
                     result.failed(failure);
                     break;

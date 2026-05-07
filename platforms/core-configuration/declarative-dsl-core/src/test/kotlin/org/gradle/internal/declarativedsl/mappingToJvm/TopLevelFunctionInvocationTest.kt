@@ -16,7 +16,6 @@
 
 package org.gradle.internal.declarativedsl.mappingToJvm
 
-import org.gradle.declarative.dsl.model.annotations.Restricted
 import org.gradle.internal.declarativedsl.analysis.DefaultFqName
 import org.gradle.internal.declarativedsl.analysis.ResolutionResult
 import org.gradle.internal.declarativedsl.demo.resolve
@@ -64,7 +63,7 @@ class TopLevelFunctionInvocationTest {
     }
 
     private fun evaluateRuntimeInstance(resolution: ResolutionResult): TopLevel = runtimeInstanceFromResult(
-        schema, resolution, kotlinFunctionAsConfigureLambda, RuntimeCustomAccessors.none, { TopLevel() }, runtimeFunctionResolver =
+        resolution, kotlinFunctionAsConfigureLambda, RuntimeCustomAccessors.none, { TopLevel() }, runtimeFunctionResolver =
             CompositeFunctionResolver(
                 listOf(
                     DefaultRuntimeFunctionResolver(kotlinFunctionAsConfigureLambda, IntrinsicRuntimeFunctionCandidatesProvider(listOf(gradleRuntimeIntrinsicsKClass))),
@@ -91,13 +90,10 @@ class TopLevelFunctionInvocationTest {
 
     class TopLevel {
         @Suppress("unused")
-        @get:Restricted
         var myStrings: List<String> = emptyList()
     }
 }
 
-@Restricted
 internal fun testStrings(x: Int): List<String> = listOf("foo-$x", "bar-$x")
 
-@Restricted
 internal fun testStringsByFqn(): List<String> = listOf("one", "two", "three")

@@ -184,7 +184,7 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
             task jars
 
             dependencies {
-                compile files([a, b]) { builtBy jars }
+                compile files([a, b]) { builtBy tasks.jars }
             }
 
             ${configurationAndTransform('FileSizer')}
@@ -235,7 +235,7 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
                 }
 
                 artifacts {
-                    compile jar1, jar2
+                    compile tasks.jar1, tasks.jar2
                 }
             }
 
@@ -259,8 +259,8 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
         outputContains("variants: [{artifactType=size, usage=api}, {artifactType=size, usage=api}]")
         outputContains("capabilities: [[capability group='root', name='lib', version='unspecified'], [capability group='root', name='lib', version='unspecified']]")
         // transformed outputs should belong to same component as original
-        outputContains("artifacts: [lib1.jar.txt (project :lib), lib2.jar.txt (project :lib)]")
-        outputContains("components: [project :lib, project :lib]")
+        outputContains("artifacts: [lib1.jar.txt (project ':lib'), lib2.jar.txt (project ':lib')]")
+        outputContains("components: [project ':lib', project ':lib']")
         file("app/build/libs").assertHasDescendants("lib1.jar.txt", "lib2.jar.txt")
         file("app/build/libs/lib1.jar.txt").text == file("lib/build/lib1.jar").length() as String
 
@@ -296,7 +296,7 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
                 }
 
                 artifacts {
-                    compile blueThing.output
+                    compile tasks.blueThing.output
                 }
             }
 
@@ -356,14 +356,14 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
         and:
         def appOutput = result.groupedOutput.task(':app:resolve')
         appOutput.assertOutputContains("variants = [{artifactType=blue, contents=size, usage=api}]")
-        appOutput.assertOutputContains("components = [project :lib]")
-        appOutput.assertOutputContains("artifacts = [lib.blue (project :lib)]")
+        appOutput.assertOutputContains("components = [project ':lib']")
+        appOutput.assertOutputContains("artifacts = [lib.blue (project ':lib')]")
         appOutput.assertOutputContains("files = [lib.blue]")
 
         def app2Output = result.groupedOutput.task(':app2:resolve')
         app2Output.assertOutputContains("variants = [{artifactType=blue, contents=size, usage=api}]")
-        app2Output.assertOutputContains("components = [project :lib]")
-        app2Output.assertOutputContains("artifacts = [lib.blue.txt (project :lib)]")
+        app2Output.assertOutputContains("components = [project ':lib']")
+        app2Output.assertOutputContains("artifacts = [lib.blue.txt (project ':lib')]")
         app2Output.assertOutputContains("files = [lib.blue.txt]")
 
         and:
@@ -404,7 +404,7 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
                     archiveFileName = 'common.jar'
                 }
                 artifacts {
-                    compile jar
+                    compile tasks.jar
                     compile file("common-file.jar")
                 }
             }
@@ -426,7 +426,7 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
                 }
 
                 artifacts {
-                    compile jar1, jar2
+                    compile tasks.jar1, tasks.jar2
                 }
             }
 
@@ -452,8 +452,8 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
         outputContains("variants: [{artifactType=size, usage=api}, {artifactType=size, usage=api}, {artifactType=size}, {artifactType=size, org.gradle.status=release}, {artifactType=size, usage=api}, {artifactType=size, usage=api}, {artifactType=size, org.gradle.status=release}]")
         outputContains("capabilities: [[capability group='root', name='lib', version='unspecified'], [capability group='root', name='lib', version='unspecified'], [], [capability group='test', name='test', version='1.3'], [capability group='root', name='common', version='unspecified'], [capability group='root', name='common', version='unspecified'], [capability group='test', name='test-dependency', version='1.3']]")
         // transformed outputs should belong to same component as original
-        outputContains("artifacts: [lib1.jar.txt (project :lib), lib2.jar.txt (project :lib), file1.jar.txt (file1.jar), test-1.3.jar.txt (test:test:1.3), common.jar.txt (project :common), common-file.jar.txt (project :common), test-dependency-1.3.jar.txt (test:test-dependency:1.3)]")
-        outputContains("components: [project :lib, project :lib, file1.jar, test:test:1.3, project :common, project :common, test:test-dependency:1.3]")
+        outputContains("artifacts: [lib1.jar.txt (project ':lib'), lib2.jar.txt (project ':lib'), file1.jar.txt (file1.jar), test-1.3.jar.txt (test:test:1.3), common.jar.txt (project ':common'), common-file.jar.txt (project ':common'), test-dependency-1.3.jar.txt (test:test-dependency:1.3)]")
+        outputContains("components: [project ':lib', project ':lib', file1.jar, test:test:1.3, project ':common', project ':common', test:test-dependency:1.3]")
         file("app/build/libs").assertHasDescendants("common.jar.txt", "common-file.jar.txt", "file1.jar.txt", "lib1.jar.txt", "lib2.jar.txt", "test-1.3.jar.txt", "test-dependency-1.3.jar.txt")
         file("app/build/libs/lib1.jar.txt").text == file("lib/build/lib1.jar").length() as String
 
@@ -478,8 +478,8 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
                     compile.outgoing.variants {
                         files {
                             attributes.attribute(Attribute.of('artifactType', String), 'jar')
-                            artifact jar1
-                            artifact zip1
+                            artifact tasks.jar1
+                            artifact tasks.zip1
                         }
                     }
                 }
@@ -551,8 +551,8 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
 
         then:
         outputContains("variants: [{artifactType=size, usage=api}, {artifactType=size}, {artifactType=size}]")
-        outputContains("artifacts: [lib2.size (project :lib), lib1.size (lib1.size), lib1.jar.txt (lib1.jar)]")
-        outputContains("components: [project :lib, lib1.size, lib1.jar]")
+        outputContains("artifacts: [lib2.size (project ':lib'), lib1.size (lib1.size), lib1.jar.txt (lib1.jar)]")
+        outputContains("components: [project ':lib', lib1.size, lib1.jar]")
         file("app/build/libs").assertHasDescendants("lib1.jar.txt", "lib1.size", "lib2.size")
         file("app/build/libs/lib1.jar.txt").text == "9"
         file("app/build/libs/lib1.size").text == "some text"
@@ -584,8 +584,8 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
                     compile.outgoing.variants {
                         files {
                             attributes.attribute(Attribute.of('artifactType', String), 'size')
-                            artifact jar1
-                            artifact jar2
+                            artifact tasks.jar1
+                            artifact tasks.jar2
                         }
                     }
                 }
@@ -609,8 +609,8 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
 
         and:
         outputContains("variants: [{artifactType=size, usage=api}, {artifactType=size, usage=api}]")
-        outputContains("artifacts: [lib1.jar (project :lib), lib2.zip (project :lib)]")
-        outputContains("components: [project :lib, project :lib]")
+        outputContains("artifacts: [lib1.jar (project ':lib'), lib2.zip (project ':lib')]")
+        outputContains("components: [project ':lib', project ':lib']")
         file("app/build/libs").assertHasDescendants("lib1.jar", "lib2.zip")
 
         and:
@@ -644,12 +644,12 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
                         java7 {
                             attributes.attribute(Attribute.of('javaVersion', String), '7')
                             attributes.attribute(Attribute.of('color', String), 'green')
-                            artifact jar1
+                            artifact tasks.jar1
                         }
                         java8 {
                             attributes.attribute(Attribute.of('javaVersion', String), '8')
                             attributes.attribute(Attribute.of('color', String), 'red')
-                            artifact jar2
+                            artifact tasks.jar2
                         }
                     }
                 }
@@ -748,12 +748,12 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
                         java7 {
                             attributes.attribute(Attribute.of('javaVersion', String), '7')
                             attributes.attribute(Attribute.of('color', String), 'green')
-                            artifact jar1
+                            artifact tasks.jar1
                         }
                         java8 {
                             attributes.attribute(Attribute.of('javaVersion', String), '8')
                             attributes.attribute(Attribute.of('color', String), 'red')
-                            artifact jar2
+                            artifact tasks.jar2
                         }
                     }
                 }
@@ -831,11 +831,11 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
 
         and:
         // The identifier's original filename should reference the filename from the source variant, not simply the prior transformed variant in the chain
-        outputContains("ids: [lib1.jar -> lib1.jar.blue.red (project :lib)]")
+        outputContains("ids: [lib1.jar -> lib1.jar.blue.red (project ':lib')]")
         outputContains("variants: [{artifactType=jar, color=red, javaVersion=7, usage=api}]")
         // Should belong to same component as the originals
-        outputContains("artifacts: [lib1.jar.blue.red (project :lib)]")
-        outputContains("components: [project :lib]")
+        outputContains("artifacts: [lib1.jar.blue.red (project ':lib')]")
+        outputContains("components: [project ':lib']")
         file("app/build/libs").assertHasDescendants("lib1.jar.blue.red")
 
         and:
@@ -898,8 +898,8 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
         then:
         outputContains("variants: [{artifactType=size}, {artifactType=size, usage=api}]")
         // transformed outputs should belong to same component as original
-        outputContains("artifacts: [lib.jar.txt (lib.jar), lib.jar.txt (project :lib)]")
-        outputContains("components: [lib.jar, project :lib]")
+        outputContains("artifacts: [lib.jar.txt (lib.jar), lib.jar.txt (project ':lib')]")
+        outputContains("components: [lib.jar, project ':lib']")
         outputContains("files: [lib.jar.txt, lib.jar.txt]")
         outputContains("content: [4, 3]")
 
@@ -1016,8 +1016,8 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
             }
 
             dependencies {
-                api1 files(producer1)
-                api2 files(producer2)
+                api1 files(tasks.producer1)
+                api2 files(tasks.producer2)
             }
         """)
 
@@ -1068,13 +1068,13 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
                             attribute(artifactType, "jar")
                             attribute(extraAttribute, "preferred")
                         }
-                        artifact jar
+                        artifact tasks.jar
                     }
                     secondary {
                         attributes {
                             attribute(artifactType, "intermediate")
                         }
-                        artifact jar
+                        artifact tasks.jar
                     }
                 }
             }
@@ -1245,7 +1245,7 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
                 }
 
                 artifacts {
-                    compile(jar1)
+                    compile(tasks.jar1)
                 }
             }
 
@@ -1289,7 +1289,7 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
         fails "resolve"
 
         then:
-        failure.assertHasCause """Found multiple transformation chains that produce a variant of 'project :lib' with requested attributes:
+        failure.assertHasCause """Found multiple transformation chains that produce a variant of 'project ':lib'' with requested attributes:
   - artifactType 'transformed'
   - usage 'api'
 Found the following transformation chains:
@@ -1337,17 +1337,17 @@ Found the following transformation chains:
                         variant1 {
                             attributes.attribute(buildType, 'release')
                             attributes.attribute(flavor, 'free')
-                            artifact jar1
+                            artifact tasks.jar1
                         }
                         variant2 {
                             attributes.attribute(buildType, 'release')
                             attributes.attribute(flavor, 'paid')
-                            artifact jar1
+                            artifact tasks.jar1
                         }
                         variant3 {
                             attributes.attribute(buildType, 'debug')
                             attributes.attribute(flavor, 'free')
-                            artifact jar1
+                            artifact tasks.jar1
                         }
                     }
                 }
@@ -1393,7 +1393,7 @@ Found the following transformation chains:
         fails "resolve"
 
         then:
-        failure.assertHasCause """Found multiple transformation chains that produce a variant of 'project :lib' with requested attributes:
+        failure.assertHasCause """Found multiple transformation chains that produce a variant of 'project ':lib'' with requested attributes:
   - artifactType 'transformed'
   - usage 'api'
 Found the following transformation chains:
@@ -1442,9 +1442,12 @@ Found the following transformation chains:
     }
 
     def "result is applied for all query methods"() {
-        def fixture = new ResolveTestFixture(buildFile, "compile")
+        def resolve = new ResolveTestFixture(testDirectory)
 
         given:
+        settingsFile << """
+            ${resolve.configureSettings("compile")}
+        """
         buildFile << """
             project(':lib') {
                 projectDir.mkdirs()
@@ -1471,12 +1474,12 @@ Found the following transformation chains:
                 }
             }
         """
-        fixture.expectDefaultConfiguration("compile")
-        fixture.prepare()
 
-        expect:
+        when:
         succeeds ":app:checkDeps"
-        fixture.expectGraph {
+
+        then:
+        resolve.expectGraph(":app") {
             root(":app", "root:app:") {
                 project(":lib", "root:lib:") {
                     artifact(name: "lib.jar", type: "txt")
@@ -1566,7 +1569,7 @@ Found the following transformation chains:
         output.count("Transforming") == 0
     }
 
-    @ToBeFixedForConfigurationCache(because = "task that uses file collection containing transforms but does not declare this as an input may be encoded before the transform nodes it references")
+    @ToBeFixedForConfigurationCache(because = "task that uses file collection containing transforms but does not declare this as an input may be encoded before the transform nodes it references, https://github.com/gradle/gradle/issues/24273")
     def "transforms are created as required and a new instance created for each file"() {
         given:
         buildFile << """
@@ -1577,7 +1580,7 @@ Found the following transformation chains:
                 task jar1(type: Jar) { archiveFileName = 'jar1.jar' }
                 task jar2(type: Jar) { archiveFileName = 'jar2.jar' }
                 tasks.withType(Jar) { destinationDirectory = buildDir }
-                artifacts { compile jar1, jar2 }
+                artifacts { compile tasks.jar1, tasks.jar2 }
             }
 
             abstract class Hasher implements TransformAction<TransformParameters.None> {
@@ -1686,7 +1689,7 @@ Found the following transformation chains:
         fails "resolve"
 
         then:
-        failure.assertHasDescription("Execution failed for task ':resolve'.")
+        failure.assertHasDescription("Execution failed for task ':resolve' (registered in build file 'build.gradle').")
         failure.assertHasCause("Could not resolve all files for configuration ':compile'.")
         failure.assertHasCause("Failed to transform a.jar to match attributes {artifactType=size}")
         failure.assertHasCause("broken")
@@ -1702,7 +1705,7 @@ Found the following transformation chains:
         outputContains("files: [b.jar]")
     }
 
-    @ToBeFixedForConfigurationCache(because = "treating file collection visit failures as a configuration cache problem adds an additional failure to the build summary; exception chain is different when transform input cannot be resolved")
+    @ToBeFixedForConfigurationCache(because = "Resolution happens during configuration time, so the transform is not triggered. Also, lenient is not respected https://github.com/gradle/gradle/issues/37420")
     def "user gets a reasonable error message when a transform input cannot be downloaded and proceeds with other inputs"() {
         def m1 = ivyHttpRepo.module("test", "test", "1.3")
             .artifact(type: 'jar', name: 'test-api')
@@ -1737,7 +1740,7 @@ Found the following transformation chains:
         fails "resolve"
 
         then:
-        failure.assertHasDescription("Execution failed for task ':resolve'.")
+        failure.assertHasDescription("Execution failed for task ':resolve' (registered in build file 'build.gradle').")
         failure.assertHasCause("Could not resolve all files for configuration ':compile'.")
         failure.assertHasCause("Could not download test-impl-1.3.jar (test:test:1.3)")
 
@@ -1756,7 +1759,7 @@ Found the following transformation chains:
         outputContains("files: [test-api-1.3.jar.txt, test-impl2-1.3.jar.txt, test-2-0.1.jar.txt]")
     }
 
-    @ToBeFixedForConfigurationCache(because = "treating file collection visit failures as a configuration cache problem adds an additional failure to the build summary; exception chain is different when transform input cannot be resolved")
+    @ToBeFixedForConfigurationCache(because = "the CC error is not descriptive, https://github.com/gradle/gradle/issues/16179")
     def "user gets a reasonable error message when file dependency cannot be listed and continues with other inputs"() {
         given:
         buildFile << """
@@ -1776,7 +1779,7 @@ Found the following transformation chains:
         fails "resolve"
 
         then:
-        failure.assertHasDescription("Execution failed for task ':resolve'.")
+        failure.assertHasDescription("Execution failed for task ':resolve' (registered in build file 'build.gradle').")
         failure.assertHasCause("Could not resolve all files for configuration ':compile'.")
         failure.assertHasCause("broken")
 
@@ -1814,7 +1817,7 @@ Found the following transformation chains:
         fails "resolve"
 
         then:
-        failure.assertHasDescription("Execution failed for task ':resolve'.")
+        failure.assertHasDescription("Execution failed for task ':resolve' (registered in build file 'build.gradle').")
         failure.assertHasCause("Could not resolve all files for configuration ':compile'.")
         failure.assertHasCause("Failed to transform a.jar to match attributes {artifactType=size}")
         failure.assertHasCause("Execution failed for ToNullTransform: ${file("a.jar").absolutePath}.")
@@ -1846,7 +1849,7 @@ Found the following transformation chains:
         fails "resolve"
 
         then:
-        failure.assertHasDescription("Execution failed for task ':resolve'.")
+        failure.assertHasDescription("Execution failed for task ':resolve' (registered in build file 'build.gradle').")
         failure.assertHasCause("Could not resolve all files for configuration ':compile'.")
         failure.assertHasCause("Failed to transform a.jar to match attributes {artifactType=size}")
         failure.assertHasCause("Transform output this_file_does_not.exist must exist.")
@@ -1909,7 +1912,7 @@ Found the following transformation chains:
         fails "resolve"
 
         then:
-        failure.assertHasDescription("Execution failed for task ':resolve'.")
+        failure.assertHasDescription("Execution failed for task ':resolve' (registered in build file 'build.gradle').")
         failure.assertHasCause("Could not resolve all files for configuration ':compile'.")
         failure.assertHasCause("Failed to transform a.jar to match attributes {artifactType=size}")
         failure.assertThatCause(matchesRegexp("Transform ${failureMessage}."))
@@ -2036,7 +2039,7 @@ Found the following transformation chains:
         fails "resolve"
 
         then:
-        failure.assertHasDescription("Execution failed for task ':resolve'.")
+        failure.assertHasDescription("Execution failed for task ':resolve' (registered in build file 'build.gradle').")
         failure.assertHasCause("Could not resolve all files for configuration ':compile'.")
         failure.assertHasCause("Failed to transform a.jar to match attributes {artifactType=size}")
         failure.assertHasCause("Transform output ${testDirectory.file('other.jar')} must be a part of the input artifact or refer to a relative path.")
@@ -2076,7 +2079,7 @@ Found the following transformation chains:
         fails "resolve"
 
         then:
-        failure.assertHasDescription("Execution failed for task ':resolve'.")
+        failure.assertHasDescription("Execution failed for task ':resolve' (registered in build file 'build.gradle').")
         failure.assertHasCause("Could not resolve all files for configuration ':compile'.")
         failure.assertHasCause("Failed to transform a.jar to match attributes {artifactType=size}")
         failure.assertHasCause("Transform output ${testDirectory.file('other.jar')} must be a part of the input artifact or refer to a relative path.")
@@ -2107,14 +2110,14 @@ Found the following transformation chains:
         fails "resolve"
 
         then:
-        failure.assertHasDescription("Execution failed for task ':resolve'.")
+        failure.assertHasDescription("Execution failed for task ':resolve' (registered in build file 'build.gradle').")
         failure.assertHasCause("Could not resolve all files for configuration ':compile'.")
         failure.assertHasCause("Failed to transform a.jar to match attributes {artifactType=size}")
         failure.assertHasCause("Could not create an instance of type BrokenTransform.")
         failure.assertHasCause("broken")
     }
 
-    @ToBeFixedForConfigurationCache(because = "treating file collection visit failures as a configuration cache problem adds an additional failure to the build summary; exception chain is different when transform input cannot be resolved")
+    @ToBeFixedForConfigurationCache(because = "Resolution happens during configuration time, so the transform is not triggered, Also, lenient is not respected https://github.com/gradle/gradle/issues/37420")
     def "collects multiple failures"() {
         def m1 = mavenHttpRepo.module("test", "a", "1.3").publish()
         def m2 = mavenHttpRepo.module("test", "broken", "2.0").publish()
@@ -2167,7 +2170,7 @@ Found the following transformation chains:
         fails "resolve"
 
         then:
-        failure.assertHasDescription("Execution failed for task ':resolve'.")
+        failure.assertHasDescription("Execution failed for task ':resolve' (registered in build file 'build.gradle').")
         failure.assertHasCause("Could not resolve all files for configuration ':compile'.")
         failure.assertHasCause("Failed to transform broken.jar to match attributes {artifactType=size}")
         failure.assertHasCause("broken: broken.jar")
@@ -2218,7 +2221,7 @@ Found the following transformation chains:
                     archiveFileName = 'lib.jar'
                 }
                 artifacts {
-                    compile jar
+                    compile tasks.jar
                 }
             }
 
@@ -2268,7 +2271,7 @@ Found the following transformation chains:
         fails "resolve"
         then:
         Matcher<String> matchesCannotIsolate = matchesRegexp("Could not isolate parameters Custom\\\$Parameters_Decorated@.* of artifact transform Custom")
-        failure.assertHasDescription("Execution failed for task ':resolve'.")
+        failure.assertHasDescription("Execution failed for task ':resolve' (registered in build file 'build.gradle').")
         failure.assertThatCause(matchesCannotIsolate)
         failure.assertHasCause("Could not serialize value of type CustomType")
 
@@ -2543,7 +2546,7 @@ Found the following transformation chains:
                 }
 
                 dependencies {
-                    compile files(lib1)
+                    compile files(tasks.lib1)
                 }
                 artifacts {
                     compile file1
@@ -2646,7 +2649,7 @@ Found the following transformation chains:
                     destinationDirectory = buildDir
                 }
                 artifacts {
-                    compile jar
+                    compile tasks.jar
                 }
             }
 
@@ -2662,16 +2665,16 @@ Found the following transformation chains:
         run "app:resolve"
 
         then:
-        outputContains("Before transformer FileSizer on lib.jar (project :lib)")
-        outputContains("After transformer FileSizer on lib.jar (project :lib)")
+        outputContains("Before transformer FileSizer on lib.jar (project ':lib')")
+        outputContains("After transformer FileSizer on lib.jar (project ':lib')")
 
         and:
         def executeTransformationOp = buildOperations.only(ExecutePlannedTransformStepBuildOperationType)
         executeTransformationOp.failure == null
-        executeTransformationOp.displayName == "Transform lib.jar (project :lib) with FileSizer"
+        executeTransformationOp.displayName == "Transform lib.jar (project ':lib') with FileSizer"
         with(executeTransformationOp.details) {
             transformerName == "FileSizer"
-            subjectName == "lib.jar (project :lib)"
+            subjectName == "lib.jar (project ':lib')"
             this.with(plannedTransformStepIdentity) {
                 nodeType == "TRANSFORM_STEP"
                 consumerBuildPath == ":"
@@ -2713,7 +2716,7 @@ Found the following transformation chains:
                     destinationDirectory = buildDir
                 }
                 artifacts {
-                    compile jar
+                    compile tasks.jar
                 }
             }
 
@@ -2735,16 +2738,16 @@ Found the following transformation chains:
         fails "app:resolve"
 
         then:
-        outputContains("Before transformer BrokenTransform on lib.jar (project :lib)")
-        outputContains("After transformer BrokenTransform on lib.jar (project :lib)")
+        outputContains("Before transformer BrokenTransform on lib.jar (project ':lib')")
+        outputContains("After transformer BrokenTransform on lib.jar (project ':lib')")
 
         and:
         def executeTransformationOp = buildOperations.only(ExecutePlannedTransformStepBuildOperationType)
         executeTransformationOp.failure != null
-        executeTransformationOp.displayName == "Transform lib.jar (project :lib) with BrokenTransform"
+        executeTransformationOp.displayName == "Transform lib.jar (project ':lib') with BrokenTransform"
         with(executeTransformationOp.details) {
             transformerName == "BrokenTransform"
-            subjectName == "lib.jar (project :lib)"
+            subjectName == "lib.jar (project ':lib')"
             this.with(plannedTransformStepIdentity) {
                 nodeType == "TRANSFORM_STEP"
                 consumerBuildPath == ":"
@@ -2771,7 +2774,7 @@ Found the following transformation chains:
                 }
 
                 artifacts {
-                    compile jar
+                    compile tasks.jar
                 }
             }
 
@@ -2784,7 +2787,7 @@ Found the following transformation chains:
                 ${configurationAndTransform()}
 
                 task dependent {
-                    dependsOn resolve
+                    dependsOn tasks.resolve
                 }
             }
 
@@ -2803,7 +2806,7 @@ Found the following transformation chains:
         then:
         output.count("> Dependency:") == 1
         output.contains("> Dependency: task ':app:dependent' -> task ':app:resolve'")
-        output.contains("> Transform lib1.jar (project :lib) with FileSizer")
+        output.contains("> Transform lib1.jar (project ':lib') with FileSizer")
         output.contains("> Task :app:resolve")
     }
 
@@ -2855,7 +2858,7 @@ Found the following transformation chains:
                 }
             }
             def deps = configurations.dependencyScope("deps") {
-                dependencies.add(dependencyFactory.create(project))
+                dependencies.add(dependencyFactory.createProjectDependency())
             }
             def resolvable = configurations.resolvable("res") {
                 attributes.attribute(direct, "direct")
@@ -2872,7 +2875,7 @@ Found the following transformation chains:
 
         then:
         // Previously, this test would fail with an OOM.
-        failure.assertHasCause("No variants of root project : match the consumer attributes")
+        failure.assertHasCause("No variants of root project 'root' match the consumer attributes")
     }
 
     def declareTransform(String transformImplementation) {

@@ -22,7 +22,8 @@ import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationS
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.TestEnvironmentPreconditions
+
 import org.junit.Rule
 
 import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.GCC_COMPATIBLE
@@ -30,7 +31,7 @@ import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.SUPPORTS_3
 import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.SUPPORTS_32_AND_64
 import static org.junit.Assume.assumeTrue
 
-@Requires(UnitTestPreconditions.CanInstallExecutable)
+@Requires(TestEnvironmentPreconditions.CanInstallExecutable)
 class NativePlatformSamplesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     @Rule public final Sample cppLib = sample(testDirectoryProvider, 'cpp-lib')
     @Rule public final Sample cppExe = sample(testDirectoryProvider, 'cpp-exe')
@@ -44,7 +45,7 @@ class NativePlatformSamplesIntegrationTest extends AbstractInstalledToolChainInt
     @Rule public final Sample customCheck = sample(testDirectoryProvider, "custom-check")
 
     private static Sample sample(TestDirectoryProvider testDirectoryProvider, String name) {
-        return new Sample(testDirectoryProvider, "native-binaries/${name}/groovy", name)
+        return new Sample(testDirectoryProvider, "integration-tests/native-binaries/${name}/groovy", name)
     }
 
     @ToBeFixedForConfigurationCache

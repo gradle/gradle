@@ -19,10 +19,10 @@ package org.gradle.integtests.resolve.caching
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import org.junit.Rule
 
-@Requires(IntegTestPreconditions.NotParallelExecutor)
+@Requires(TestExecutionPreconditions.NotParallelExecutor)
 // no point, always runs in parallel
 class ParallelDependencyResolutionIntegrationTest extends AbstractHttpDependencyResolutionTest {
     @Rule BlockingHttpServer blockingServer = new BlockingHttpServer()
@@ -165,13 +165,13 @@ class ParallelDependencyResolutionIntegrationTest extends AbstractHttpDependency
                 output.set(file("out"))
             }
             task longRunning {
-                dependsOn producer
+                dependsOn tasks.producer
                 doLast {
                     ${blockingServer.callFromBuild("longRunning")}
                 }
             }
             artifacts {
-                "default"(producer.output)
+                "default"(tasks.producer.output)
             }
         """
 
@@ -186,7 +186,7 @@ class ParallelDependencyResolutionIntegrationTest extends AbstractHttpDependency
             task consumer {
                 inputs.files configurations.default
                 outputs.file file("out")
-                dependsOn guard
+                dependsOn tasks.guard
                 doLast {
                     ${blockingServer.callFromBuild("consumer")}
                 }

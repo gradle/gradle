@@ -21,6 +21,7 @@ import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.UntrackedTask
+import org.gradle.util.internal.VersionNumber
 import org.jetbrains.annotations.VisibleForTesting
 
 /**
@@ -52,13 +53,13 @@ abstract class UpdateKotlinVersions : AbstractVersionsUpdateTask() {
 
     private
     fun fetchLatestKotlinVersions() =
-        fetchFirstAndLatestsOfEachMinor(
+        fetchAndSelectKotlinVersions(
             minimumSupported.get(),
             "https://repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-stdlib/maven-metadata.xml"
         )
 
     private
-    fun fetchFirstAndLatestsOfEachMinor(minimumSupported: String, mavenMetadataUrl: String): List<String> {
+    fun fetchAndSelectKotlinVersions(minimumSupported: String, mavenMetadataUrl: String): List<String> {
         return selectVersionsFrom(minimumSupported, fetchVersionsFromMavenMetadata(mavenMetadataUrl))
     }
 
@@ -66,39 +67,46 @@ abstract class UpdateKotlinVersions : AbstractVersionsUpdateTask() {
         @VisibleForTesting
         @JvmStatic
         fun selectVersionsFrom(minimumSupported: String, allVersions: List<String>): List<String> {
+            require(minimumSupported in allVersions) {
+                "Minimum supported '$minimumSupported' was not found in available versions: $allVersions"
+            }
+
+            val minimumSupportedVersion = VersionNumber.parse(minimumSupported)
             val versionsByMinor = allVersions
-                .groupBy { it.take(3) } // e.g. 1.9
-                .toSortedMap()
-            val latests = buildList {
-                versionsByMinor.entries.forEachIndexed { idx, entry ->
-                    // Earliest stable of the minor
-                    val versionsOfMinor = entry.value
-                    add(versionsOfMinor.lastOrNull { !it.contains("-") })
-                    if (idx < versionsByMinor.size - 1) {
-                        // Latest of the previous minor
-                        add(versionsOfMinor.first())
-                    } else {
-                        // Current minor
+                .map { VersionNumber.parse(it) }
+                .filter { it >= minimumSupportedVersion }
+                .sortedDescending()
+                .groupBy { it.major to it.minor }
+                .toSortedMap(compareBy({ it.first }, { it.second }))
+            val currentMinor = versionsByMinor.lastKey()
+
+            return buildList {
+                versionsByMinor.forEach { (minor, versionsOfMinor) ->
+                    if (minor == currentMinor) {
+                        // Current minor: from the newest patch down, emit the best version per patch.
+                        // VersionNumber's natural ordering covers it: stable (null) > RC3 > RC2 > RC > Beta5 > ... > Beta1 > Beta.
                         val versionsByPatch = versionsOfMinor
-                            .groupBy { it.take(5) } // e.g. 1.9.2(x)
+                            .groupBy { it.micro }
                             .toSortedMap()
-                        for (key in versionsByPatch.keys.reversed()) {
-                            val versionsOfPatch = versionsByPatch.getValue(key)
-                            if (versionsOfPatch.any { !it.contains("-") }) {
-                                add(versionsOfPatch.first { !it.contains("-") })
-                                break
-                            }
-                            if (versionsOfPatch.any { it.contains("-RC") }) {
-                                add(versionsOfPatch.firstOrNull { it.contains("-RC") })
-                            } else if (versionsOfPatch.any { it.contains("-Beta") }) {
-                                add(versionsOfPatch.firstOrNull { it.contains("-Beta") })
+                        for (patch in versionsByPatch.keys.reversed()) {
+                            val best = versionsByPatch.getValue(patch).first()
+                            add(best)
+                            if (best.qualifier == null) break
+                        }
+                    } else {
+                        // Not current minor: just take the latest stable and (if exists) the latest RC/Beta if it's newer than the stable.
+                        val latestStable = versionsOfMinor.firstOrNull { it.qualifier == null }
+                        if (latestStable != null) {
+                            add(latestStable)
+                            val latest = versionsOfMinor.first()
+                            if (latest != latestStable) {
+                                add(latest)
                             }
                         }
                     }
                 }
-                add(minimumSupported)
-            }.filterNotNull().distinct().sorted()
-            return latests.subList(latests.indexOf(minimumSupported), latests.size)
+                add(minimumSupportedVersion)
+            }.distinct().sorted().map { it.toString() }
         }
     }
 }

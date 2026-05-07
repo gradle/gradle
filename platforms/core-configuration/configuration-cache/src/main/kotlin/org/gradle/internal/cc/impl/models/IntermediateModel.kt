@@ -21,17 +21,13 @@ import org.gradle.tooling.provider.model.UnknownModelException
 
 
 sealed class IntermediateModel {
-    abstract fun <T> result(): T?
+    abstract fun <T> result(): T
 
     class NoModel(val message: String) : IntermediateModel() {
         override fun <T> result() = throw UnknownModelException(message)
     }
 
-    object NullModel : IntermediateModel() {
-        override fun <T> result(): T? = null
-    }
-
     class Model(val value: Any) : IntermediateModel() {
-        override fun <T> result(): T? = value.uncheckedCast()
+        override fun <T> result(): T = value.uncheckedCast()
     }
 }

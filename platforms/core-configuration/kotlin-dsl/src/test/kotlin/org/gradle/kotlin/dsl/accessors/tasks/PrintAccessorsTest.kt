@@ -60,7 +60,8 @@ class PrintAccessorsTest {
                     entry<SharedModelDefaults, TestProjectType>("projectType")
                 ),
                 projectFeatureEntries = emptyList(),
-                containerElementFactories = listOf()
+                containerElementFactories = listOf(),
+                nestedModelEntries = listOf()
             ),
             ::accessible
         ).withoutTrailingWhitespace()
@@ -84,7 +85,8 @@ class PrintAccessorsTest {
                     containerElements = listOf(),
                     modelDefaults = listOf(),
                     projectFeatureEntries = emptyList(),
-                    containerElementFactories = listOf()
+                    containerElementFactories = listOf(),
+                    nestedModelEntries = listOf()
                 ),
                 ::accessible
             )

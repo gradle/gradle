@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks.testing;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.tasks.testing.TestDescriptor;
+import org.gradle.api.tasks.testing.source.TestSource;
 import org.gradle.internal.scan.UsedByScanPlugin;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
@@ -27,10 +28,12 @@ import org.jspecify.annotations.Nullable;
 public abstract class AbstractTestDescriptor implements TestDescriptorInternal {
     private final Object id;
     private final String name;
+    private final TestSource source;
 
-    public AbstractTestDescriptor(Object id, String name) {
+    public AbstractTestDescriptor(Object id, String name, TestSource source) {
         this.id = id;
         this.name = name;
+        this.source = source;
     }
 
     @Override
@@ -46,6 +49,11 @@ public abstract class AbstractTestDescriptor implements TestDescriptorInternal {
     @Override
     public String getClassName() {
         return null;
+    }
+
+    @Override
+    public TestSource getSource() {
+        return source;
     }
 
     /**

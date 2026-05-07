@@ -98,6 +98,7 @@ import org.gradle.nativeplatform.tasks.LinkSharedLibrary;
 import org.gradle.nativeplatform.tasks.PrefixHeaderFileGenerateTask;
 import org.gradle.nativeplatform.toolchain.NativeToolChainRegistry;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainRegistryInternal;
+import org.gradle.nativeplatform.toolchain.internal.plugins.StandardToolChainsPlugin;
 import org.gradle.platform.base.BinaryContainer;
 import org.gradle.platform.base.BinaryTasks;
 import org.gradle.platform.base.ComponentSpecContainer;
@@ -128,6 +129,7 @@ public abstract class NativeComponentModelPlugin implements Plugin<Project> {
     public void apply(final Project project) {
         project.getPluginManager().apply(ComponentModelBasePlugin.class);
         project.getPluginManager().apply(NativeComponentPlugin.class);
+        project.getPluginManager().apply(StandardToolChainsPlugin.class);
         project.getExtensions().create(BuildTypeContainer.class, "buildTypes", DefaultBuildTypeContainer.class);
         project.getExtensions().create(FlavorContainer.class, "flavors", DefaultFlavorContainer.class);
     }

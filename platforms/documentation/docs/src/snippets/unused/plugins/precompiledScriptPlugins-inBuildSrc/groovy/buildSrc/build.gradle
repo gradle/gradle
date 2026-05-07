@@ -1,0 +1,5 @@
+// tag::apply[]
+plugins {
+    id 'groovy-gradle-plugin'
+}
+// end::apply[]

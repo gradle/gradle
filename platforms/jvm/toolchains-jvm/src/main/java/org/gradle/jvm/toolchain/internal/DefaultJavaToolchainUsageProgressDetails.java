@@ -40,48 +40,97 @@ public class DefaultJavaToolchainUsageProgressDetails implements JavaToolchainUs
 
     @Override
     public JavaToolchain getToolchain() {
-        JvmInstallationMetadata metadata = toolchainMetadata;
-        return new JavaToolchain() {
-            @Override
-            public String getJavaVersion() {
-                return metadata.getJavaVersion();
-            }
+        return toolchainMetadata.isValidInstallation() ? new ToolchainFromMetadata(toolchainMetadata) : UNKNOWN_TOOLCHAIN;
+    }
 
-            @Override
-            public String getJavaVendor() {
-                return metadata.getVendor().getDisplayName();
-            }
+    private static final JavaToolchain UNKNOWN_TOOLCHAIN = new JavaToolchain() {
+        @Override
+        public String getJavaVersion() {
+            return "unknown";
+        }
 
-            @Override
-            public String getRuntimeName() {
-                return metadata.getRuntimeName();
-            }
+        @Override
+        public String getJavaVendor() {
+            return "unknown";
+        }
 
-            @Override
-            public String getRuntimeVersion() {
-                return metadata.getRuntimeVersion();
-            }
+        @Override
+        public String getRuntimeName() {
+            return "unknown";
+        }
 
-            @Override
-            public String getJvmName() {
-                return metadata.getJvmName();
-            }
+        @Override
+        public String getRuntimeVersion() {
+            return "unknown";
+        }
 
-            @Override
-            public String getJvmVersion() {
-                return metadata.getJvmVersion();
-            }
+        @Override
+        public String getJvmName() {
+            return "unknown";
+        }
 
-            @Override
-            public String getJvmVendor() {
-                return metadata.getJvmVendor();
-            }
+        @Override
+        public String getJvmVersion() {
+            return "unknown";
+        }
 
-            @Override
-            public String getArchitecture() {
-                return metadata.getArchitecture();
-            }
-        };
+        @Override
+        public String getJvmVendor() {
+            return "unknown";
+        }
+
+        @Override
+        public String getArchitecture() {
+            return "unknown";
+        }
+    };
+
+    private static class ToolchainFromMetadata implements JavaToolchain {
+        private final JvmInstallationMetadata metadata;
+
+        public ToolchainFromMetadata(JvmInstallationMetadata metadata) {
+            this.metadata = metadata;
+        }
+
+        @Override
+        public String getJavaVersion() {
+            return metadata.getJavaVersion();
+        }
+
+        @Override
+        public String getJavaVendor() {
+            return metadata.getVendor().getDisplayName();
+        }
+
+        @Override
+        public String getRuntimeName() {
+            return metadata.getRuntimeName();
+        }
+
+        @Override
+        public String getRuntimeVersion() {
+            return metadata.getRuntimeVersion();
+        }
+
+        @Override
+        public String getJvmName() {
+            return metadata.getJvmName();
+        }
+
+        @Override
+        public String getJvmVersion() {
+            return metadata.getJvmVersion();
+        }
+
+        @Override
+        public String getJvmVendor() {
+            return metadata.getJvmVendor();
+        }
+
+        @Override
+        public String getArchitecture() {
+            return metadata.getArchitecture();
+        }
     }
 
     public enum JavaTool {

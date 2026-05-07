@@ -60,6 +60,7 @@ public class DefaultUserInputHandler extends AbstractUserInputHandler {
     private class InteractiveUserQuestions implements UserInteraction {
         private boolean hasPrompted;
 
+        @Nullable
         @Override
         public Boolean askYesNoQuestion(String question) {
             YesNoQuestionPromptEvent prompt = new YesNoQuestionPromptEvent(clock.getCurrentTime(), question);
@@ -110,6 +111,9 @@ public class DefaultUserInputHandler extends AbstractUserInputHandler {
             return result;
         }
 
+        /**
+         * @return the result of the prompt, or null if interrupted
+         */
         @Nullable
         private <T> T prompt(PromptOutputEvent prompt, Transformer<T, String> parser) {
             if (interrupted.get()) {

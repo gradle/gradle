@@ -18,10 +18,10 @@ package org.gradle.integtests.resolve
 
 import org.gradle.api.internal.artifacts.configurations.ResolveConfigurationDependenciesBuildOperationType
 import org.gradle.api.internal.initialization.DefaultScriptHandler
+import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheRecreateOption
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.BuildOperationNotificationsFixture
 import org.gradle.integtests.fixtures.BuildOperationsFixture
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.resolve.ResolveFailureTestFixture
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.test.fixtures.server.http.AuthScheme
@@ -458,7 +458,6 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
         op.result.resolvedDependenciesCount == 1
     }
 
-    @ToBeFixedForConfigurationCache(because = "Runtime classpath for CompileJava task is resolved even though the task will not run")
     def "resolved components contain their source repository name, even when taken from the cache"() {
         setup:
         def secondMavenHttpRepo = new MavenHttpRepository(server, '/repo-2', new MavenFileRepository(file('maven-repo-2')))
@@ -484,17 +483,6 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
                 id("java-library")
             }
 
-            repositories {
-                maven {
-                    name = 'maven1'
-                    url = "${mavenHttpRepo.uri}"
-                }
-                maven {
-                    name = 'maven2'
-                    url = "${secondMavenHttpRepo.uri}"
-                }
-            }
-
             dependencies {
                 implementation 'org.foo:direct1:1.0'
                 implementation 'org.foo:direct2:1.0'
@@ -507,7 +495,23 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
             }
         """
 
-        settingsFile << "include 'child'"
+        settingsFile << """
+            rootProject.name = 'test'
+            dependencyResolutionManagement {
+                repositories {
+                    maven {
+                        name = 'maven1'
+                        url = "${mavenHttpRepo.uri}"
+                    }
+                    maven {
+                        name = 'maven2'
+                        url = "${secondMavenHttpRepo.uri}"
+                    }
+                }
+            }
+
+            include 'child'
+        """
 
         file("child/build.gradle") << """
             plugins {
@@ -521,7 +525,9 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
 
 
         def verifyExpectedOperation = {
-            def ops = operations.all(ResolveConfigurationDependenciesBuildOperationType)
+            def ops = operations.all(ResolveConfigurationDependenciesBuildOperationType){
+                it.details.configurationName == "runtimeClasspath"
+            }
             assert ops.size() == 1
             def op = ops[0]
             def maven1Id = repoId('maven1', op.details)
@@ -529,12 +535,12 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
             assert op.result.resolvedDependenciesCount == 3
             def resolvedComponents = op.result.components
             assert resolvedComponents.size() == 8
-            assert resolvedComponents.'root project :'.repoId == null
+            assert resolvedComponents."root project 'test'".repoId == null
             assert resolvedComponents.'org.foo:direct1:1.0'.repoId == maven1Id
             assert resolvedComponents.'org.foo:direct2:1.0'.repoId == maven2Id
             assert resolvedComponents.'org.foo:transitive1:1.0'.repoId == maven1Id
             assert resolvedComponents.'org.foo:transitive2:1.0'.repoId == maven2Id
-            assert resolvedComponents.'project :child'.repoId == null
+            assert resolvedComponents."project ':child'".repoId == null
             assert resolvedComponents.'org.foo:child-transitive1:1.0'.repoId == maven1Id
             assert resolvedComponents.'org.foo:child-transitive2:1.0'.repoId == maven2Id
             return true
@@ -548,7 +554,7 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
 
         when:
         server.resetExpectations()
-        succeeds 'resolve'
+        succeeds "resolve", "-D${ConfigurationCacheRecreateOption.PROPERTY_NAME}=true"
 
         then:
         verifyExpectedOperation()
@@ -578,7 +584,10 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
             }
         """
 
-        settingsFile << "include 'child'"
+        settingsFile << """
+            rootProject.name = 'test'
+            include 'child'
+        """
 
         file("child/build.gradle") << """
             plugins {
@@ -605,13 +614,12 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
         def repoId = repoId('maven1', op.details)
         def resolvedComponents = op.result.components
         resolvedComponents.size() == 4
-        resolvedComponents.'root project :'.repoId == null
-        resolvedComponents.'project :child'.repoId == null
+        resolvedComponents."root project 'test'".repoId == null
+        resolvedComponents."project ':child'".repoId == null
         resolvedComponents.'org.foo:direct1:1.0'.repoId == repoId
         resolvedComponents.'org.foo:transitive1:1.0'.repoId == repoId
     }
 
-    @ToBeFixedForConfigurationCache(because = "Dependency resolution does not run for a from-cache build")
     def "resolved components contain their source repository id, even when they are structurally identical"() {
         setup:
         buildFile << """
@@ -660,7 +668,7 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
 
         when:
         server.resetExpectations()
-        succeeds 'resolve'
+        succeeds "resolve", "-D${ConfigurationCacheRecreateOption.PROPERTY_NAME}=true"
 
         then:
         // This demonstrates a bug in Gradle, where we ignore the requirement for credentials when retrieving from the cache

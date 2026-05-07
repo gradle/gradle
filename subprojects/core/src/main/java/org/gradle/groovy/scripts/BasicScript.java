@@ -20,13 +20,13 @@ import groovy.lang.Binding;
 import groovy.lang.MissingMethodException;
 import groovy.lang.MissingPropertyException;
 import org.gradle.api.internal.DynamicObjectAware;
-import org.gradle.api.internal.project.DynamicLookupRoutine;
 import org.gradle.internal.logging.StandardOutputCapture;
 import org.gradle.internal.metaobject.AbstractDynamicObject;
 import org.gradle.internal.metaobject.BeanDynamicObject;
 import org.gradle.internal.metaobject.DynamicInvokeResult;
 import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.internal.metaobject.DynamicObjectUtil;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.scripts.GradleScript;
 import org.gradle.internal.service.ServiceRegistry;
 import org.jspecify.annotations.Nullable;
@@ -38,12 +38,10 @@ public abstract class BasicScript extends org.gradle.groovy.scripts.Script imple
     private StandardOutputCapture standardOutputCapture;
     private Object target;
     private final ScriptDynamicObject dynamicObject = new ScriptDynamicObject(this);
-    private DynamicLookupRoutine dynamicLookupRoutine;
 
     @Override
     public void init(Object target, ServiceRegistry services) {
         standardOutputCapture = services.get(StandardOutputCapture.class);
-        dynamicLookupRoutine = services.get(DynamicLookupRoutine.class);
         setScriptTarget(target);
     }
 
@@ -67,25 +65,30 @@ public abstract class BasicScript extends org.gradle.groovy.scripts.Script imple
 
     @Override
     public Object getProperty(String property) {
-        return dynamicLookupRoutine.property(dynamicObject, property);
+        return dynamicObject.getProperty(property);
     }
 
     @Override
     public void setProperty(String property, Object newValue) {
-        dynamicLookupRoutine.setProperty(dynamicObject, property, newValue);
+        dynamicObject.setProperty(property, newValue);
     }
 
+    @Deprecated
     public Map<String, ? extends @Nullable Object> getProperties() {
-        return dynamicLookupRoutine.getProperties(dynamicObject);
+        DeprecationLogger.deprecateAction("Dynamically calling getProperties() on a script")
+            .willBecomeAnErrorInGradle10()
+            .withUpgradeGuideSection(9, "deprecated_get_properties")
+            .nagUser();
+        return dynamicObject.getProperties();
     }
 
     public boolean hasProperty(String property) {
-        return dynamicLookupRoutine.hasProperty(dynamicObject, property);
+        return dynamicObject.hasProperty(property);
     }
 
     @Override
     public Object invokeMethod(String name, Object args) {
-        return dynamicLookupRoutine.invokeMethod(dynamicObject, name, (Object[]) args);
+        return dynamicObject.invokeMethod(name, (Object[]) args);
     }
 
     @Override
@@ -115,6 +118,7 @@ public abstract class BasicScript extends org.gradle.groovy.scripts.Script imple
             dynamicTarget = DynamicObjectUtil.asDynamicObject(target);
         }
 
+        @Deprecated
         @Override
         public Map<String, ? extends @Nullable Object> getProperties() {
             return dynamicTarget.getProperties();

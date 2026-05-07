@@ -339,35 +339,43 @@ task retrieve(type: Sync) {
         file("libs/test-1.45.jar").assertIsCopyOf(moduleWithMetaData.jarFile)
     }
 
-    def "removes redundant configurations from resolution result"() {
+    def "resolution result declares multiple edges when conf mapping targets multiple configurations"() {
         given:
-        settingsFile << "rootProject.name = 'test'"
+        def resolve = new ResolveTestFixture(testDirectory)
+        settingsFile << """
+            rootProject.name = 'test'
+        """
 
-        def resolve = new ResolveTestFixture(buildFile, "compile")
         buildFile << """
-    group = 'org.test'
-    version = '1.0'
-    configurations {
-        compile
-    }
-    repositories {
-        ivy { url = "${ivyRepo.uri}" }
-    }
-    dependencies {
-        compile("ivy.configuration:projectA:1.2") {
-            targetConfiguration = "a"
-        }
-    }
-    task retrieve(type: Sync) {
-      from configurations.compile
-      into 'libs'
-    }
-    """
-        resolve.prepare()
+            group = 'org.test'
+            version = '1.0'
+            configurations {
+                compile
+            }
+
+            ${resolve.configureProject("compile")}
+
+            repositories {
+                ivy {
+                    url = "${ivyRepo.uri}"
+                }
+            }
+
+            dependencies {
+                compile("ivy.configuration:projectA:1.2") {
+                    targetConfiguration = "a"
+                }
+            }
+
+            task retrieve(type: Sync) {
+                from configurations.compile
+                into 'libs'
+            }
+        """
 
         ivyRepo.module('ivy.configuration', 'projectA', '1.2')
             .configuration("a")
-            .dependsOn(organisation: 'ivy.configuration', module: 'projectB', revision: '1.5', conf: "a->parent,a,b,c")
+            .dependsOn(organisation: 'ivy.configuration', module: 'projectB', revision: '1.5', conf: "a->a,b")
             .publish()
 
         ivyRepo.module('ivy.configuration', 'projectB', '1.5')
@@ -386,8 +394,10 @@ task retrieve(type: Sync) {
                 module("ivy.configuration:projectA:1.2") {
                     configuration("a")
                     module("ivy.configuration:projectB:1.5") {
-                        variant('a', ['org.gradle.status': 'integration']) // b, parent are redundant
-                        variant('c', ['org.gradle.status': 'integration']) // b, parent are redundant
+                        variant('a', ['org.gradle.status': 'integration'])
+                    }
+                    module("ivy.configuration:projectB:1.5") {
+                        variant('b', ['org.gradle.status': 'integration'])
                     }
                 }
             }

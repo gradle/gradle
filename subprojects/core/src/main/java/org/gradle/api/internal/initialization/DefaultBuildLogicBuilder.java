@@ -25,6 +25,10 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.composite.internal.TaskIdentifier;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.classpath.ClassPath;
+import org.gradle.internal.operations.BuildOperationContext;
+import org.gradle.internal.operations.BuildOperationDescriptor;
+import org.gradle.internal.operations.BuildOperationRunner;
+import org.gradle.internal.operations.CallableBuildOperation;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -35,15 +39,18 @@ public class DefaultBuildLogicBuilder implements BuildLogicBuilder {
     private final BuildState currentBuild;
     private final ScriptClassPathResolver scriptClassPathResolver;
     private final BuildLogicBuildQueue buildQueue;
+    private final BuildOperationRunner buildOperationRunner;
 
     public DefaultBuildLogicBuilder(
         BuildState currentBuild,
         ScriptClassPathResolver scriptClassPathResolver,
-        BuildLogicBuildQueue buildQueue
+        BuildLogicBuildQueue buildQueue,
+        BuildOperationRunner buildOperationRunner
     ) {
         this.currentBuild = currentBuild;
         this.scriptClassPathResolver = scriptClassPathResolver;
         this.buildQueue = buildQueue;
+        this.buildOperationRunner = buildOperationRunner;
     }
 
     @Override
@@ -58,11 +65,21 @@ public class DefaultBuildLogicBuilder implements BuildLogicBuilder {
 
     @Override
     public ClassPath resolveClassPath(Configuration classpathConfiguration, ScriptClassPathResolutionContext resolutionContext) {
-        return buildQueue.build(
-            currentBuild,
-            taskIdentifiersForBuildDependenciesOf(classpathConfiguration),
-            () -> scriptClassPathResolver.resolveClassPath(classpathConfiguration, resolutionContext)
-        );
+        return buildOperationRunner.call(new CallableBuildOperation<ClassPath>() {
+            @Override
+            public ClassPath call(BuildOperationContext context) {
+                return buildQueue.build(
+                    currentBuild,
+                    taskIdentifiersForBuildDependenciesOf(classpathConfiguration),
+                    () -> scriptClassPathResolver.resolveClassPath(classpathConfiguration, resolutionContext)
+                );
+            }
+
+            @Override
+            public BuildOperationDescriptor.Builder description() {
+                return BuildOperationDescriptor.displayName("Resolve buildscript classpath for " + classpathConfiguration);
+            }
+        });
     }
 
     private List<TaskIdentifier.TaskBasedTaskIdentifier> taskIdentifiersForBuildDependenciesOf(Configuration classpath) {

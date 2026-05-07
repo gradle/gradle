@@ -20,7 +20,8 @@ import org.gradle.api.PathValidation
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.test.precondition.PreconditionVerifier
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.OsTestPreconditions
+
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -208,7 +209,7 @@ class BaseDirFileResolverTest {
         assertEquals(absoluteFile, baseDirConverter.resolve(absoluteFile.toURI().toURL()))
     }
 
-    @Requires(UnitTestPreconditions.NotWindows) // NTFS does not support colons in file names
+    @Requires(OsTestPreconditions.NotWindows) // NTFS does not support colons in file names
     @Test public void testCanResolveNonFileURI() {
         // this can be a valid path
         // % mkdir https:
@@ -254,16 +255,16 @@ class BaseDirFileResolverTest {
     }
 
     @Test public void testResolveUriStringToUri() {
-        assertEquals(new URI("http://www.gradle.org"), baseDirConverter.resolveUri("http://www.gradle.org"))
+        assertEquals(new URI("https://www.gradle.org"), baseDirConverter.resolveUri("https://www.gradle.org"))
     }
 
     @Test public void testResolveUriObjectToUri() {
-        URI uri = new URI("http://www.gradle.org")
+        URI uri = new URI("https://www.gradle.org")
         assertEquals(uri, baseDirConverter.resolveUri(uri))
     }
 
     @Test public void testResolveUrlObjectToUri() {
-        assertEquals(new URI("http://www.gradle.org"), baseDirConverter.resolveUri(new URL("http://www.gradle.org")))
+        assertEquals(new URI("https://www.gradle.org"), baseDirConverter.resolveUri(new URL("https://www.gradle.org")))
     }
 
     @Test public void testResolveAbsolutePathWithReservedCharsToUri() {
@@ -272,7 +273,7 @@ class BaseDirFileResolverTest {
     }
 
     @Test public void testResolveUriStringWithEncodedCharsToUri() {
-        assertEquals(new URI("http://www.gradle.org/white%20space"), baseDirConverter.resolveUri("http://www.gradle.org/white%20space"))
+        assertEquals(new URI("https://www.gradle.org/white%20space"), baseDirConverter.resolveUri("https://www.gradle.org/white%20space"))
     }
 
     @Test public void testResolveRelativePathToRelativePath() {

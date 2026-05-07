@@ -18,12 +18,8 @@ package org.gradle.api.plugins.checkstyle;
 
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.provider.Property;
-import org.gradle.declarative.dsl.model.annotations.Restricted;
 
-@Restricted
 public interface CheckstyleDefinition {
-    @Restricted
     Property<Boolean> getIgnoreFailures();
-    @Restricted
     RegularFileProperty getConfigFile();
 }

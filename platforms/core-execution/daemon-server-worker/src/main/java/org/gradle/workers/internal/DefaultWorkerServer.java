@@ -33,18 +33,18 @@ public class DefaultWorkerServer implements Worker {
     private final ServiceRegistry internalServices;
     private final InstantiatorFactory instantiatorFactory;
     private final IsolationScheme<WorkAction<?>, WorkParameters> isolationScheme;
-    private final Collection<? extends Class<?>> additionalWhitelistedServices;
+    private final Collection<? extends Class<?>> additionalAllowedServices;
 
     public DefaultWorkerServer(
         ServiceRegistry internalServices,
         InstantiatorFactory instantiatorFactory,
         IsolationScheme<WorkAction<?>, WorkParameters> isolationScheme,
-        Collection<? extends Class<?>> additionalWhitelistedServices
+        Collection<? extends Class<?>> additionalAllowedServices
     ) {
         this.internalServices = internalServices;
         this.instantiatorFactory = instantiatorFactory;
         this.isolationScheme = isolationScheme;
-        this.additionalWhitelistedServices = additionalWhitelistedServices;
+        this.additionalAllowedServices = additionalAllowedServices;
     }
 
     @Override
@@ -52,12 +52,12 @@ public class DefaultWorkerServer implements Worker {
         try {
             Class<? extends WorkAction<?>> implementationClass = Cast.uncheckedCast(spec.getImplementationClass());
 
-            Set<Class<?>> allAdditionalWhitelistedServices = ImmutableSet.<Class<?>>builder()
-                .addAll(additionalWhitelistedServices)
-                .addAll(spec.getAdditionalWhitelistedServices())
+            Set<Class<?>> allAdditionalAllowedServices = ImmutableSet.<Class<?>>builder()
+                .addAll(additionalAllowedServices)
+                .addAll(spec.getAdditionalAllowedServices())
                 .build();
 
-            ServiceLookup instantiationServices = isolationScheme.servicesForImplementation(spec.getParameters(), internalServices, allAdditionalWhitelistedServices);
+            ServiceLookup instantiationServices = isolationScheme.servicesForImplementation(spec.getParameters(), internalServices, allAdditionalAllowedServices);
             Instantiator instantiator = instantiatorFactory.inject(instantiationServices);
             WorkAction<?> execution;
             if (ProvidesWorkResult.class.isAssignableFrom(implementationClass)) {

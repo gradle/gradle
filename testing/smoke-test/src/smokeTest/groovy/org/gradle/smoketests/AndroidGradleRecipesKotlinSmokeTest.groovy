@@ -17,7 +17,6 @@
 package org.gradle.smoketests
 
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.fixtures.versions.KotlinGradlePluginVersions
 import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.testdistribution.LocalOnly
@@ -44,12 +43,10 @@ class AndroidGradleRecipesKotlinSmokeTest extends AbstractSmokeTest implements R
                 $repositoriesBlock
                 dependencies {
                     classpath("com.android.tools.build:gradle:$agpVersion")
-                    classpath(kotlin("gradle-plugin", version = "$kotlinVersionNumber"))
                 }
             }
-            allprojects {
-                $repositoriesBlock
-            }
+
+            $repositoriesBlock
         """
 
         file('app/build.gradle.kts') << """
@@ -58,7 +55,6 @@ class AndroidGradleRecipesKotlinSmokeTest extends AbstractSmokeTest implements R
 
             plugins {
                 id("com.android.application")
-                kotlin("android")
             }
 
             abstract class CustomFieldValueProvider : DefaultTask() {
@@ -81,9 +77,8 @@ class AndroidGradleRecipesKotlinSmokeTest extends AbstractSmokeTest implements R
             android {
                 namespace = "org.gradle.smoketests.androidrecipes"
                 compileSdk = 29
-                buildToolsVersion("${AGP_VERSIONS.buildToolsVersion()}")
+                buildToolsVersion("${AGP_VERSIONS.getBuildToolsVersionFor(agpVersion)}")
                 buildFeatures { buildConfig = true }
-                kotlinOptions { jvmTarget = "1.8" }
             }
 
             androidComponents {
@@ -96,6 +91,8 @@ class AndroidGradleRecipesKotlinSmokeTest extends AbstractSmokeTest implements R
                     )
                 }
             }
+
+            $repositoriesBlock
         """
 
         file('app/src/main/kotlin/org/gradle/smoketests/androidrecipes/MainActivity.kt') << '''
@@ -130,17 +127,14 @@ class AndroidGradleRecipesKotlinSmokeTest extends AbstractSmokeTest implements R
             </manifest>'''.stripIndent()
 
         and:
-        def runner = mixedRunner(false, agpVersion, kotlinVersionNumber, taskName)
+        def runner = mixedRunner(agpVersion, kotlinVersionNumber, taskName)
             .deprecations(AndroidDeprecations) {
                 expectMultiStringNotationDeprecation(agpVersion)
-                maybeExpectIsPropertyDeprecationWarnings(agpVersion)
+                expectProjectDependencyNotationDeprecation()
             }
 
         when: 'running the build for the 1st time'
-        beforeAndroidBuild(runner)
-        def result = runner.deprecations(AndroidDeprecations) {
-            maybeExpectIsPropertyDeprecationWarnings(agpVersion)
-        }.build()
+        def result = runner.build()
 
         then:
         result.task(":app:$taskName").outcome == TaskOutcome.SUCCESS
@@ -153,7 +147,7 @@ class AndroidGradleRecipesKotlinSmokeTest extends AbstractSmokeTest implements R
         when: 'running the build for the 2nd time'
         result = runner.deprecations(AndroidDeprecations) {
             expectMultiStringNotationDeprecationIf(agpVersion, GradleContextualExecuter.isNotConfigCache())
-            maybeExpectIsPropertyDeprecationWarnings(agpVersion)
+            expectProjectDependencyNotationDeprecationIf(GradleContextualExecuter.isNotConfigCache())
         }.build()
 
         then:
@@ -161,7 +155,9 @@ class AndroidGradleRecipesKotlinSmokeTest extends AbstractSmokeTest implements R
 
         and:
         if (GradleContextualExecuter.isConfigCache()) {
-            result.assertConfigurationCacheStateLoaded()
+            if (!AGP_VERSIONS.isOld(agpVersion)) {
+                result.assertConfigurationCacheStateLoaded()
+            }
         }
 
         where:
@@ -194,12 +190,5 @@ class AndroidGradleRecipesKotlinSmokeTest extends AbstractSmokeTest implements R
                 ${mavenCentralRepository(GradleDsl.KOTLIN)}
             }
         """
-    }
-
-    private beforeAndroidBuild(SmokeTestGradleRunner runner) {
-        SantaTrackerConfigurationCacheWorkaround.beforeBuild(
-            runner.projectDir,
-            IntegrationTestBuildContext.INSTANCE.gradleUserHomeDir
-        )
     }
 }

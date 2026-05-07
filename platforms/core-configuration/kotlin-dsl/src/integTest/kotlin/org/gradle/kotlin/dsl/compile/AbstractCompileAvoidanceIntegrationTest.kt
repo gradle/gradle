@@ -132,6 +132,13 @@ abstract class AbstractCompileAvoidanceIntegrationTest : AbstractKotlinIntegrati
     }
 
     protected
+    fun configureProject(vararg tasks: String, scriptFileName: String): BuildOperationsAssertions {
+        val buildOperations = BuildOperationsFixture(executer, testDirectoryProvider)
+        val output = executer.withTasks(*tasks).run().normalizedOutput
+        return BuildOperationsAssertions(buildOperations, output, scriptFileName = scriptFileName)
+    }
+
+    protected
     fun configureProjectAndExpectCompileFailure(@Suppress("SameParameterValue") expectedFailure: String) {
         val error = executer.runWithFailure().error
         MatcherAssert.assertThat(error, CoreMatchers.containsString(expectedFailure))

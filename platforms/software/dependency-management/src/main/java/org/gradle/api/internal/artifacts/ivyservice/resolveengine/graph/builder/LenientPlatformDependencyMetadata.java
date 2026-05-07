@@ -15,48 +15,46 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
-import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
-import org.gradle.api.internal.attributes.ImmutableAttributes;
-import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema;
 import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
-import org.gradle.internal.component.model.ComponentGraphResolveState;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.ForcingDependencyMetadata;
-import org.gradle.internal.component.model.GraphVariantSelector;
 import org.gradle.internal.component.model.IvyArtifactName;
-import org.gradle.internal.component.model.VariantGraphResolveState;
-import org.jspecify.annotations.Nullable;
 
-import java.util.Collections;
-import java.util.List;
-
+/**
+ * Dependency metadata for edges involving a virtual platform. Used in two cases:
+ * <ol>
+ *     <li>A hard edge from a node to its owning virtual platform.</li>
+ *     <li>A constraint edge from a virtual platform to a node of a participating module.</li>
+ * </ol>
+ */
 class LenientPlatformDependencyMetadata implements ModuleDependencyMetadata, ForcingDependencyMetadata {
-    private final ResolveState resolveState;
-    private final NodeState from;
-    private final ModuleComponentSelector cs;
-    private final ModuleComponentIdentifier componentId;
+
+    private final ModuleComponentSelector selector;
     private final ComponentIdentifier platformId; // just for reporting
     private final boolean force;
-    private final boolean transitive;
+    private final boolean constraint;
 
-    LenientPlatformDependencyMetadata(ResolveState resolveState, NodeState from, ModuleComponentSelector cs, ModuleComponentIdentifier componentId, @Nullable ComponentIdentifier platformId, boolean force, boolean transitive) {
-        this.resolveState = resolveState;
-        this.from = from;
-        this.cs = cs;
-        this.componentId = componentId;
+    LenientPlatformDependencyMetadata(
+        ModuleComponentSelector selector,
+        ComponentIdentifier platformId,
+        boolean force,
+        boolean constraint
+    ) {
+        this.selector = selector;
         this.platformId = platformId;
         this.force = force;
-        this.transitive = transitive;
+        this.constraint = constraint;
     }
 
     @Override
     public ModuleComponentSelector getSelector() {
-        return cs;
+        return selector;
     }
 
     @Override
@@ -75,29 +73,13 @@ class LenientPlatformDependencyMetadata implements ModuleDependencyMetadata, For
     }
 
     @Override
-    public @Nullable List<? extends VariantGraphResolveState> overrideVariantSelection(
-        GraphVariantSelector variantSelector,
-        ImmutableAttributes consumerAttributes,
-        ComponentGraphResolveState targetComponentState,
-        ImmutableAttributesSchema consumerSchema
-    ) {
-        if (targetComponentState instanceof LenientPlatformGraphResolveState) {
-            LenientPlatformGraphResolveState lenientPlatform = (LenientPlatformGraphResolveState) targetComponentState;
-            VariantGraphResolveState variant = lenientPlatform.getCandidatesForGraphVariantSelection().getVariantForSourceNode(from, platformId);
-            return Collections.singletonList(variant);
-        }
-
-        return null;
+    public ImmutableList<ExcludeMetadata> getExcludes() {
+        return ImmutableList.of();
     }
 
     @Override
-    public List<ExcludeMetadata> getExcludes() {
-        return Collections.emptyList();
-    }
-
-    @Override
-    public List<IvyArtifactName> getArtifacts() {
-        return Collections.emptyList();
+    public ImmutableList<IvyArtifactName> getArtifacts() {
+        return ImmutableList.of();
     }
 
     @Override
@@ -108,7 +90,7 @@ class LenientPlatformDependencyMetadata implements ModuleDependencyMetadata, For
     }
 
     @Override
-    public DependencyMetadata withTargetAndArtifacts(ComponentSelector target, List<IvyArtifactName> artifacts) {
+    public DependencyMetadata withTargetAndArtifacts(ComponentSelector target, ImmutableList<IvyArtifactName> artifacts) {
         // TODO: This gets called when performing substitutions.
         //       We probably shouldn't ignore this.
         return this;
@@ -121,12 +103,12 @@ class LenientPlatformDependencyMetadata implements ModuleDependencyMetadata, For
 
     @Override
     public boolean isTransitive() {
-        return transitive;
+        return !constraint;
     }
 
     @Override
     public boolean isConstraint() {
-        return true;
+        return constraint;
     }
 
     @Override
@@ -141,7 +123,7 @@ class LenientPlatformDependencyMetadata implements ModuleDependencyMetadata, For
 
     @Override
     public String toString() {
-        return componentId.getDisplayName();
+        return selector.getDisplayName();
     }
 
     @Override
@@ -151,6 +133,7 @@ class LenientPlatformDependencyMetadata implements ModuleDependencyMetadata, For
 
     @Override
     public ForcingDependencyMetadata forced() {
-        return new LenientPlatformDependencyMetadata(resolveState, from, cs, componentId, platformId, true, transitive);
+        return new LenientPlatformDependencyMetadata(selector, platformId, true, constraint);
     }
+
 }

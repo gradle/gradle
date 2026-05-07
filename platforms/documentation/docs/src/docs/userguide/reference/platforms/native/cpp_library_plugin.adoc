@@ -21,10 +21,9 @@ In particular, a {cpp} library provides functionality that can be used by consum
 [[sec:cpp_library_usage]]
 == Usage
 
-.Applying the {cpp} Library Plugin
 ====
-include::sample[dir="snippets/cpp/cppLibrary/kotlin",files="build.gradle.kts[tags=apply-plugin]"]
-include::sample[dir="snippets/cpp/cppLibrary/groovy",files="build.gradle[tags=apply-plugin]"]
+include::sample[dir="snippets/reference/platforms/native/cppLibrary/kotlin",files="build.gradle.kts[tags=apply-plugin]"]
+include::sample[dir="snippets/reference/platforms/native/cppLibrary/groovy",files="build.gradle[tags=apply-plugin]"]
 ====
 
 [[sec:cpp_library_build_variants]]
@@ -43,10 +42,9 @@ The linkage expresses whether a shared library or static library should be creat
 
 The linkage can be configured as follows:
 
-.Configure library linkages
 ====
-include::sample[dir="snippets/cpp/cppLibrary/kotlin",files="build.gradle.kts[tags=configure-linkages]"]
-include::sample[dir="snippets/cpp/cppLibrary/groovy",files="build.gradle[tags=configure-linkages]"]
+include::sample[dir="snippets/reference/platforms/native/cppLibrary/kotlin",files="build.gradle.kts[tags=configure-linkages]"]
+include::sample[dir="snippets/reference/platforms/native/cppLibrary/groovy",files="build.gradle[tags=configure-linkages]"]
 ====
 
 Target machines - defaults to the build host::
@@ -56,10 +54,9 @@ Gradle uses the target machine to decide which tool chain to choose based on ava
 
 The target machine can be configured as follows:
 
-.Configure library target machines
 ====
-include::sample[dir="snippets/cpp/cppLibrary/kotlin",files="build.gradle.kts[tags=configure-target-machines]"]
-include::sample[dir="snippets/cpp/cppLibrary/groovy",files="build.gradle[tags=configure-target-machines]"]
+include::sample[dir="snippets/reference/platforms/native/cppLibrary/kotlin",files="build.gradle.kts[tags=configure-target-machines]"]
+include::sample[dir="snippets/reference/platforms/native/cppLibrary/groovy",files="build.gradle[tags=configure-target-machines]"]
 ====
 
 [[sec:cpp_library_tasks]]
@@ -161,7 +158,6 @@ This is where you should declare dependencies which are purely internal and not 
 Used for declaring implementation dependencies for a specific variant of the main component (see <<sec:cpp_library_api_vs_implementation,API vs implementation section>>).
 This is where you should declare dependencies which are purely internal and not meant to be exposed to consumers of this specific variant.
 
-
 The following configurations are used by consumers:
 
 `cppApiElements` extends `main__Variant__Implementation`::
@@ -196,10 +192,9 @@ This configuration contains the runtime libraries of the library.
 The plugin exposes two configurations that can be used to declare dependencies: `api` and `implementation`.
 The `api` configuration should be used to declare dependencies which are exported by the library API, whereas the `implementation` configuration should be used to declare dependencies which are internal to the component.
 
-.Adding dependencies
 ====
-include::sample[dir="snippets/cpp/cppLibrary/kotlin",files="build.gradle.kts[tags=dependency-management]"]
-include::sample[dir="snippets/cpp/cppLibrary/groovy",files="build.gradle[tags=dependency-management]"]
+include::sample[dir="snippets/reference/platforms/native/cppLibrary/kotlin",files="build.gradle.kts[tags=dependency-management]"]
+include::sample[dir="snippets/reference/platforms/native/cppLibrary/groovy",files="build.gradle[tags=dependency-management]"]
 ====
 
 Dependencies appearing in the `api` configurations will be transitively exposed to consumers of the library, and as such will appear on the compile include root and link libraries of consumers.

@@ -16,6 +16,8 @@
 package org.gradle.api.internal.tasks.testing.logging
 
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal
+import org.gradle.api.internal.tasks.testing.source.DefaultOtherSource
+import org.gradle.api.tasks.testing.source.TestSource
 
 class SimpleTestDescriptor implements TestDescriptorInternal {
     String name = "testName"
@@ -27,5 +29,10 @@ class SimpleTestDescriptor implements TestDescriptorInternal {
     TestDescriptorInternal parent = null
     Object getId() {
         "${parent?.id}$className$name" as String
+    }
+
+    @Override
+    TestSource getSource() {
+        return DefaultOtherSource.getInstance()
     }
 }

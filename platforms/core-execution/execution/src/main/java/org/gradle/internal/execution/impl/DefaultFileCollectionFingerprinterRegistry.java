@@ -34,7 +34,7 @@ public class DefaultFileCollectionFingerprinterRegistry implements FileCollectio
         this.fingerprinters = ImmutableMap.copyOf(entriesFrom(registrations));
     }
 
-    private List<Map.Entry<FileNormalizationSpec, FileCollectionFingerprinter>> entriesFrom(Collection<FingerprinterRegistration> registrations) {
+    private static List<Map.Entry<FileNormalizationSpec, FileCollectionFingerprinter>> entriesFrom(Collection<FingerprinterRegistration> registrations) {
         return registrations.stream().map(registration -> Maps.immutableEntry(registration.getSpec(), registration.getFingerprinter())).collect(ImmutableList.toImmutableList());
     }
 

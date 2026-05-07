@@ -45,7 +45,7 @@ public class UriNotationConverter implements NotationConverter<Object, URI> {
     @Override
     public void describe(DiagnosticsVisitor visitor) {
         visitor.candidate("A URI or URL instance.");
-        visitor.candidate("A String or CharSequence URI").example("\"http://www.gradle.org\"");
+        visitor.candidate("A String or CharSequence URI").example("\"https://www.gradle.org\"");
     }
 
     @Override

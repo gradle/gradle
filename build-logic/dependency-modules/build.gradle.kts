@@ -6,5 +6,5 @@ description = "Provides a plugin to minify and correct metadata for dependencies
 
 dependencies {
     implementation("gradlebuild:basics")
-    implementation("com.google.code.gson:gson")
+    implementation(buildLibs.gson)
 }

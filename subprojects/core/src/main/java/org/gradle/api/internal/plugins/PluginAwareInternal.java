@@ -18,10 +18,13 @@ package org.gradle.api.internal.plugins;
 
 import org.gradle.api.plugins.PluginAware;
 import org.gradle.configuration.ConfigurationTargetIdentifier;
+import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition;
 
 public interface PluginAwareInternal extends PluginAware {
     @Override
+    @HiddenInDefinition
     PluginManagerInternal getPluginManager();
 
+    @HiddenInDefinition
     ConfigurationTargetIdentifier getConfigurationTargetIdentifier();
 }

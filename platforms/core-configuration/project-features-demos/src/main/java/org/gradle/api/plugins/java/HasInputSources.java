@@ -17,7 +17,7 @@
 package org.gradle.api.plugins.java;
 
 import org.gradle.api.file.SourceDirectorySet;
-import org.gradle.api.internal.plugins.BuildModel;
+import org.gradle.features.binding.BuildModel;
 
 public interface HasInputSources extends BuildModel {
     SourceDirectorySet getInputSources();

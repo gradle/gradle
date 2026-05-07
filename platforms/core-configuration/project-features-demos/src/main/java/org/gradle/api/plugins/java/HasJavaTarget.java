@@ -17,10 +17,7 @@
 package org.gradle.api.plugins.java;
 
 import org.gradle.api.provider.Property;
-import org.gradle.declarative.dsl.model.annotations.Restricted;
 
-@Restricted
 public interface HasJavaTarget {
-    @Restricted
     Property<Integer> getJavaVersion();
 }

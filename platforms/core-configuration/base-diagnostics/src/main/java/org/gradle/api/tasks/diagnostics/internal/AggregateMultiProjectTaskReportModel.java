@@ -66,7 +66,8 @@ public class AggregateMultiProjectTaskReportModel implements TaskReportModel {
         return TaskDetails.of(
             Path.path(task.getPath().getName()),
             task.getTypeName(),
-            task.getDescription()
+            task.getDescription(),
+            task.getProvenance()
         );
     }
 

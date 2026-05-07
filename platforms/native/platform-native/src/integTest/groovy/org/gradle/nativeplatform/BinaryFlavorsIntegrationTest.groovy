@@ -20,9 +20,10 @@ import org.gradle.nativeplatform.fixtures.NativePlatformsTestFixture
 import org.gradle.nativeplatform.fixtures.app.ExeWithLibraryUsingLibraryHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.HelloWorldApp
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.TestEnvironmentPreconditions
 
-@Requires(UnitTestPreconditions.CanInstallExecutable)
+
+@Requires(TestEnvironmentPreconditions.CanInstallExecutable)
 class BinaryFlavorsIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     static final DEFAULT = HelloWorldApp.HELLO_WORLD
     static final FRENCH = HelloWorldApp.HELLO_WORLD_FRENCH

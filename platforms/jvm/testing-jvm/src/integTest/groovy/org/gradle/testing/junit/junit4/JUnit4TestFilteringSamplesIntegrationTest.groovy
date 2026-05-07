@@ -16,6 +16,7 @@
 
 package org.gradle.testing.junit.junit4
 
+
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.Sample
@@ -23,7 +24,7 @@ import org.junit.Rule
 
 class JUnit4TestFilteringSamplesIntegrationTest extends AbstractIntegrationSpec {
 
-    @Rule Sample sample = new Sample(temporaryFolder, 'testing/filtering/groovy')
+    @Rule Sample sample = new Sample(temporaryFolder, 'integration-tests/testing/filtering/groovy')
 
     def setup() {
         executer.withRepositoryMirrors()

@@ -31,6 +31,9 @@ import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.model.RuleSource;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import javax.annotation.concurrent.ThreadSafe;
 import java.lang.ref.Reference;
 import java.lang.ref.WeakReference;
@@ -44,56 +47,47 @@ import java.util.concurrent.ExecutionException;
 @ServiceScope(Scope.Global.class)
 public class ModelRuleSourceDetector {
 
-    private static final Comparator<Class<?>> COMPARE_BY_CLASS_NAME = new Comparator<Class<?>>() {
-        @Override
-        public int compare(Class<?> left, Class<?> right) {
-            return left.getName().compareTo(right.getName());
-        }
-    };
+    private static final Logger LOGGER = LoggerFactory.getLogger(ModelRuleSourceDetector.class);
+
+    private static final Comparator<Class<?>> COMPARE_BY_CLASS_NAME = Comparator.comparing(Class::getName);
 
     final LoadingCache<Class<?>, Collection<Reference<Class<? extends RuleSource>>>> cache = CacheBuilder.newBuilder()
-            .weakKeys()
-            .build(new CacheLoader<Class<?>, Collection<Reference<Class<? extends RuleSource>>>>() {
-                @Override
-                public Collection<Reference<Class<? extends RuleSource>>> load(@SuppressWarnings("NullableProblems") Class<?> container) throws Exception {
-                    if (isRuleSource(container)) {
-                        Class<? extends RuleSource> castClass = Cast.uncheckedCast(container);
-                        return ImmutableSet.<Reference<Class<? extends RuleSource>>>of(new WeakReference<Class<? extends RuleSource>>(castClass));
-                    }
+        .weakKeys()
+        .build(new CacheLoader<Class<?>, Collection<Reference<Class<? extends RuleSource>>>>() {
+            @Override
+            public Collection<Reference<Class<? extends RuleSource>>> load(@SuppressWarnings("NullableProblems") Class<?> container) {
+                if (isRuleSource(container)) {
+                    Class<? extends RuleSource> castClass = Cast.uncheckedCast(container);
+                    return ImmutableSet.of(new WeakReference<>(castClass));
+                }
 
-                    Class<?>[] declaredClasses = container.getDeclaredClasses();
+                Class<?>[] declaredClasses = declaredClassesOf(container);
+                if (declaredClasses.length == 0) {
+                    return Collections.emptySet();
+                }
 
-                    if (declaredClasses.length == 0) {
-                        return Collections.emptySet();
-                    } else {
-                        Class<?>[] sortedDeclaredClasses = new Class<?>[declaredClasses.length];
-                        System.arraycopy(declaredClasses, 0, sortedDeclaredClasses, 0, declaredClasses.length);
-                        Arrays.sort(sortedDeclaredClasses, COMPARE_BY_CLASS_NAME);
+                Class<?>[] sortedDeclaredClasses = new Class<?>[declaredClasses.length];
+                System.arraycopy(declaredClasses, 0, sortedDeclaredClasses, 0, declaredClasses.length);
+                Arrays.sort(sortedDeclaredClasses, COMPARE_BY_CLASS_NAME);
 
-                        ImmutableList.Builder<Reference<Class<? extends RuleSource>>> found = ImmutableList.builder();
-                        for (Class<?> declaredClass : sortedDeclaredClasses) {
-                            if (isRuleSource(declaredClass)) {
-                                Class<? extends RuleSource> castClass = Cast.uncheckedCast(declaredClass);
-                                found.add(new WeakReference<Class<? extends RuleSource>>(castClass));
-                            }
-                        }
-
-                        return found.build();
+                ImmutableList.Builder<Reference<Class<? extends RuleSource>>> found = ImmutableList.builder();
+                for (Class<?> declaredClass : sortedDeclaredClasses) {
+                    if (isRuleSource(declaredClass)) {
+                        Class<? extends RuleSource> castClass = Cast.uncheckedCast(declaredClass);
+                        found.add(new WeakReference<>(castClass));
                     }
                 }
-            });
+
+                return found.build();
+            }
+        });
 
     // TODO return a richer data structure that provides meta data about how the source was found, for use is diagnostics
     public Iterable<Class<? extends RuleSource>> getDeclaredSources(Class<?> container) {
         try {
             return FluentIterable.from(cache.get(container))
-                    .transform(new Function<Reference<Class<? extends RuleSource>>, Class<? extends RuleSource>>() {
-                        @Override
-                        public Class<? extends RuleSource> apply(Reference<Class<? extends RuleSource>> input) {
-                            return input.get();
-                        }
-                    })
-                    .filter(Predicates.notNull());
+                .transform((Function<Reference<Class<? extends RuleSource>>, Class<? extends RuleSource>>) Reference::get)
+                .filter(Predicates.notNull());
         } catch (ExecutionException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
@@ -103,7 +97,21 @@ public class ModelRuleSourceDetector {
         return !Iterables.isEmpty(getDeclaredSources(container));
     }
 
-    private boolean isRuleSource(Class<?> clazz) {
-        return RuleSource.class.isAssignableFrom(clazz);
+    private static boolean isRuleSource(Class<?> clazz) {
+        try {
+            return RuleSource.class.isAssignableFrom(clazz);
+        } catch (LinkageError e) {
+            LOGGER.debug("Could not inspect class {}, skipping rule source detection", clazz.getName(), e);
+            return false;
+        }
+    }
+
+    private static Class<?>[] declaredClassesOf(Class<?> clazz) {
+        try {
+            return clazz.getDeclaredClasses();
+        } catch (LinkageError e) {
+            LOGGER.debug("Could not load declared classes of {}, skipping rule source detection", clazz.getName(), e);
+            return new Class<?>[0];
+        }
     }
 }

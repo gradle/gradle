@@ -15,15 +15,6 @@
 [[part5_gradle_inc_builds]]
 = Part 5: Exploring Incremental Builds
 
-++++
-<div class="badge-wrapper">
-    <a class="badge" href="https://dpeuniversity.gradle.com/app/courses/ec69d0b8-9171-4969-ac3e-82dea16f87b0/" target="_blank">
-        <span class="badge-type button--blue">LEARN</span>
-        <span class="badge-text">Incremental Builds and Build Caching with Gradle&nbsp;&nbsp;&nbsp;&gt;</span>
-    </a>
-</div>
-++++
-
 Learn the basics of Gradle's incremental builds.
 
 ****
@@ -42,6 +33,7 @@ Learn the basics of Gradle's incremental builds.
 3. You learned about dependency management in <<part3_gradle_dep_man#part3_begin,part 3>>.
 4. You applied a plugin to your app in <<part4_gradle_plugins#part4_begin,part 4>>.
 
+[[rb_part5_step1]]
 == Step 1. Understanding Incremental Builds
 
 It's important to know that Gradle optimizes your build in a variety of ways.
@@ -51,6 +43,7 @@ An _incremental build_ is a build that avoids running tasks whose inputs did not
 
 For incremental builds to work, tasks must define their inputs and outputs. At build time, Gradle will determine whether the input or outputs have changed. If they have changed, Gradle will execute the task. Otherwise, it will skip execution.
 
+[[rb_part5_step2]]
 == Step 2. Updating Gradle Properties
 
 To better see incremental builds in action, we are going to switch the console output to verbose.
@@ -70,14 +63,17 @@ Add `org.gradle.console=verbose` so the contents of the file look like this:
 org.gradle.console=verbose
 ----
 
+[[rb_part5_step3]]
 == Step 3. Analyzing Incremental Builds
 
 Run the clean task and then the build task using the `./gradlew :app:clean :app:build` command:
 
-[source,text]
+[source,bash]
 ----
 $ ./gradlew :app:clean :app:build
-
+----
+[source,text]
+----
 > Task :app:clean
 > Task :app:compileJava
 > Task :app:processResources NO-SOURCE
@@ -103,10 +99,12 @@ This was done successfully.
 
 Run the build again to view the _incremental build_ optimization in action:
 
-[source,text]
+[source,bash]
 ----
 $ ./gradlew :app:build
-
+----
+[source,text]
+----
 > Task :app:compileJava UP-TO-DATE
 > Task :app:processResources NO-SOURCE
 > Task :app:classes UP-TO-DATE
@@ -129,6 +127,7 @@ BUILD SUCCESSFUL in 409ms
 Most tasks now have the `UP-TO-DATE` label.
 This is how Gradle lets us know that inputs and outputs have not changed and therefore some tasks did not re-run.
 
+[[rb_part5_step4]]
 == Step 4. Understanding Outcome Labels
 
 There are four labels that developers can use to view task outcomes when verbose mode is turned on:

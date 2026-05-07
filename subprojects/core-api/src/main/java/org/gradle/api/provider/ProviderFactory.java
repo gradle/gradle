@@ -150,6 +150,23 @@ public interface ProviderFactory {
 
     /**
      * Creates a {@link Provider} whose value is fetched from the Gradle property of the given name.
+     * <p>
+     * The property value is resolved from the following sources, in order of priority:
+     * <ol>
+     * <li>Command-line project properties ({@code -P} arguments)</li>
+     * <li>System properties with the {@code org.gradle.project.} prefix</li>
+     * <li>Environment variables with the {@code ORG_GRADLE_PROJECT_} prefix</li>
+     * <li>{@code gradle.properties} in the Gradle User Home directory</li>
+     * <li>{@code gradle.properties} in the build root directory</li>
+     * <li>{@code gradle.properties} in the Gradle installation directory</li>
+     * </ol>
+     * <p>
+     * Note that this method resolves properties at the <strong>build level</strong>.
+     * It does not include properties from {@code gradle.properties} files in subproject directories,
+     * nor does it include extra properties or other properties set dynamically on individual
+     * {@link org.gradle.api.Project} instances.
+     * <p>
+     * <a href="https://docs.gradle.org/current/userguide/build_environment.html#sec:project_properties">More information on project properties.</a>
      *
      * @param propertyName the name of the Gradle property
      * @return the provider for the Gradle property, never returns null
@@ -159,6 +176,23 @@ public interface ProviderFactory {
 
     /**
      * Creates a {@link Provider} whose value is fetched from the Gradle property of the given name.
+     * <p>
+     * The property value is resolved from the following sources, in order of priority:
+     * <ol>
+     * <li>Command-line project properties ({@code -P} arguments)</li>
+     * <li>System properties with the {@code org.gradle.project.} prefix</li>
+     * <li>Environment variables with the {@code ORG_GRADLE_PROJECT_} prefix</li>
+     * <li>{@code gradle.properties} in the Gradle User Home directory</li>
+     * <li>{@code gradle.properties} in the build root directory</li>
+     * <li>{@code gradle.properties} in the Gradle installation directory</li>
+     * </ol>
+     * <p>
+     * Note that this method resolves properties at the <strong>build level</strong>.
+     * It does not include properties from {@code gradle.properties} files in subproject directories,
+     * nor does it include extra properties or other properties set dynamically on individual
+     * {@link org.gradle.api.Project} instances.
+     * <p>
+     * <a href="https://docs.gradle.org/current/userguide/build_environment.html#sec:project_properties">More information on project properties.</a>
      *
      * @param propertyName the name of the Gradle property
      * @return the provider for the Gradle property, never returns null
@@ -169,6 +203,10 @@ public interface ProviderFactory {
     /**
      * Creates a {@link Provider} whose value is a name-to-value map of the Gradle properties with the names starting with the given prefix.
      * The prefix comparison is case-sensitive. The returned map is immutable.
+     * <p>
+     * Properties are resolved at the <strong>build level</strong> from the same sources as {@link #gradleProperty(String)}.
+     * <p>
+     * <a href="https://docs.gradle.org/current/userguide/build_environment.html#sec:project_properties">More information on project properties.</a>
      *
      * @param propertyNamePrefix The prefix of the Gradle property names
      * @return The provider. Never returns null.
@@ -179,6 +217,10 @@ public interface ProviderFactory {
     /**
      * Creates a {@link Provider} whose value is a name-to-value map of the Gradle properties with the names starting with the given prefix.
      * The prefix comparison is case-sensitive. The returned map is immutable.
+     * <p>
+     * Properties are resolved at the <strong>build level</strong> from the same sources as {@link #gradleProperty(String)}.
+     * <p>
+     * <a href="https://docs.gradle.org/current/userguide/build_environment.html#sec:project_properties">More information on project properties.</a>
      *
      * @param propertyNamePrefix The prefix of the Gradle property names
      * @return The provider. Never returns null.

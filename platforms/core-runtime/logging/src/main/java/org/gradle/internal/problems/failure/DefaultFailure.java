@@ -16,8 +16,9 @@
 
 package org.gradle.internal.problems.failure;
 
+import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
-import org.gradle.api.problems.internal.InternalProblem;
+import org.gradle.api.problems.internal.ProblemInternal;
 import org.gradle.internal.exceptions.CompilationFailedIndicator;
 
 import java.util.Collections;
@@ -30,7 +31,7 @@ class DefaultFailure implements Failure {
     private final List<StackTraceRelevance> frameRelevance;
     private final List<Failure> suppressed;
     private final List<Failure> causes;
-    private final List<InternalProblem> problems;
+    private final List<ProblemInternal> problems;
 
     public DefaultFailure(
         Throwable original,
@@ -38,7 +39,7 @@ class DefaultFailure implements Failure {
         List<StackTraceRelevance> frameRelevance,
         List<Failure> suppressed,
         List<Failure> causes,
-        List<InternalProblem> problems
+        List<ProblemInternal> problems
     ) {
         if (stackTrace.size() != frameRelevance.size()) {
             throw new IllegalArgumentException("stackTrace and frameRelevance must have the same size.");
@@ -89,7 +90,7 @@ class DefaultFailure implements Failure {
     }
 
     @Override
-    public List<InternalProblem> getProblems() {
+    public List<ProblemInternal> getProblems() {
         return problems;
     }
 
@@ -131,5 +132,24 @@ class DefaultFailure implements Failure {
             ", causes=" + causes +
             ", problems=" + problems +
             '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (!(o instanceof DefaultFailure)) {
+            return false;
+        }
+        DefaultFailure that = (DefaultFailure) o;
+        return Objects.equal(original, that.original) &&
+            Objects.equal(stackTrace, that.stackTrace) &&
+            Objects.equal(frameRelevance, that.frameRelevance) &&
+            Objects.equal(suppressed, that.suppressed) &&
+            Objects.equal(causes, that.causes) &&
+            Objects.equal(problems, that.problems);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(original, stackTrace, frameRelevance, suppressed, causes, problems);
     }
 }

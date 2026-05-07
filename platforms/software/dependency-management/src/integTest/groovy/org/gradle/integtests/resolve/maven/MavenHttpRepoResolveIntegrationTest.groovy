@@ -310,6 +310,7 @@ task retrieve(type: Sync) {
         projectBArtifacts.artifact.expectGet()
 
         then:
+        executer.expectDocumentedDeprecationWarning("The MavenArtifactRepository.artifactUrls(Object...) method has been deprecated. This is scheduled to be removed in Gradle 10. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_maven_artifact_urls")
         succeeds 'retrieve'
         file('libs').assertHasDescendants('projectA-1.0.jar', 'projectB-1.0.jar')
     }
@@ -392,7 +393,7 @@ task retrieve(type: Sync) {
         fails 'retrieve'
 
         then:
-        GradleContextualExecuter.configCache || failure.assertHasDescription("Execution failed for task ':retrieve'.")
+        GradleContextualExecuter.configCache || failure.assertHasDescription("Execution failed for task ':retrieve' (registered in build file 'build.gradle').")
         failure.assertHasCause("Could not resolve all files for configuration ':compile'.")
         failure.assertHasCause("Could not resolve org.group.name:projectA:1.2.")
         failure.assertHasCause("Credentials must be an instance of: ${PasswordCredentials.canonicalName}")

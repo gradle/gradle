@@ -32,6 +32,8 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Artif
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.SelectedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results.VisitedGraphResults;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.GraphStructure;
+import org.gradle.api.internal.artifacts.result.ResolvedGraphResult;
 import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.file.FileCollectionFactory;
@@ -241,7 +243,9 @@ public class DefaultTransformUpstreamDependenciesResolver implements TransformUp
     }
 
     private static Set<ComponentIdentifier> computeDependencies(ComponentIdentifier componentId, VisitedGraphResults visitedGraph) {
-        ResolvedComponentResult root = visitedGraph.getResolutionResult().getGraphSource().get().getRootComponent();
+        ResolvedGraphResult graph = visitedGraph.getResolvedGraphResultSource().get();
+        GraphStructure.Nodes nodes = graph.structure().nodes();
+        ResolvedComponentResult root = graph.getComponent(nodes.owner(nodes.root()));
         ResolvedComponentResult targetComponent = findComponent(root, componentId);
 
         if (targetComponent == null) {

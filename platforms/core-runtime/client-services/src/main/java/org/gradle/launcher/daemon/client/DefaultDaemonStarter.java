@@ -16,6 +16,7 @@
 package org.gradle.launcher.daemon.client;
 
 import org.gradle.api.GradleException;
+import org.gradle.api.internal.file.DefaultFileLookup;
 import org.gradle.api.internal.classpath.DefaultModuleRegistry;
 import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.provider.PropertyFactory;
@@ -24,9 +25,10 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.classpath.ClassPath;
+import org.gradle.initialization.DefaultBuildCancellationToken;
 import org.gradle.internal.concurrent.CompositeStoppable;
+import org.gradle.internal.concurrent.DefaultExecutorFactory;
 import org.gradle.internal.installation.CurrentGradleInstallation;
-import org.gradle.internal.installation.GradleInstallation;
 import org.gradle.internal.instrumentation.agent.AgentUtils;
 import org.gradle.internal.io.StreamByteBuffer;
 import org.gradle.internal.jvm.JavaInfo;
@@ -123,21 +125,9 @@ public class DefaultDaemonStarter implements DaemonStarter {
             throw new IllegalStateException("Unknown DaemonJvmCriteria type: " + criteria.getClass().getName());
         }
 
-        GradleInstallation gradleInstallation = CurrentGradleInstallation.get();
-        ModuleRegistry registry = new DefaultModuleRegistry(gradleInstallation);
-        ClassPath classpath;
-        List<File> searchClassPath;
-
-        if (gradleInstallation == null) {
-            // When not running from a Gradle distro, need the daemon main jar and the daemon server implementation plus the search path to look for other modules
-            classpath = registry.getModule("gradle-daemon-server").getAllRequiredModulesClasspath();
-            classpath = classpath.plus(registry.getModule("gradle-daemon-main").getImplementationClasspath());
-            searchClassPath = registry.getAdditionalClassPath().getAsFiles();
-        } else {
-            // When running from a Gradle distro, only need the daemon main jar. The daemon can find everything from there.
-            classpath = registry.getModule("gradle-daemon-main").getImplementationClasspath();
-            searchClassPath = Collections.emptyList();
-        }
+        // We only need the daemon main jar for initial startup. The daemon is responsible for loading everything else.
+        ModuleRegistry registry = new DefaultModuleRegistry(CurrentGradleInstallation.get());
+        ClassPath classpath = registry.getModule("gradle-daemon-main").getImplementationClasspath();
         if (classpath.isEmpty()) {
             throw new IllegalStateException("Unable to construct a bootstrap classpath when starting the daemon");
         }
@@ -198,10 +188,6 @@ public class DefaultDaemonStarter implements DaemonStarter {
             for (String daemonOpt : daemonOpts) {
                 encoder.writeString(daemonOpt);
             }
-            encoder.writeSmallInt(searchClassPath.size());
-            for (File file : searchClassPath) {
-                encoder.writeString(file.getAbsolutePath());
-            }
             encoder.flush();
         } catch (IOException e) {
             throw UncheckedException.throwAsUncheckedException(e);
@@ -211,7 +197,6 @@ public class DefaultDaemonStarter implements DaemonStarter {
         return startProcess(
             daemonArgs,
             daemonDir.getVersionedDir(),
-            daemonParameters.getGradleUserHomeDir().getAbsoluteFile(),
             stdInput
         );
     }
@@ -242,7 +227,7 @@ public class DefaultDaemonStarter implements DaemonStarter {
         }
     }
 
-    private DaemonStartupInfo startProcess(List<String> args, File workingDir, File gradleUserHome, InputStream stdInput) {
+    private DaemonStartupInfo startProcess(List<String> args, File workingDir, InputStream stdInput) {
         LOGGER.debug("Starting daemon process: workingDir = {}, daemonArgs: {}", workingDir, args);
         Timer clock = Time.startTimer();
         try {
@@ -251,7 +236,11 @@ public class DefaultDaemonStarter implements DaemonStarter {
             DaemonOutputConsumer outputConsumer = new DaemonOutputConsumer();
 
             // This factory should be injected but leaves non-daemon threads running when used from the tooling API client
-            RootClientExecHandleBuilderFactory execActionFactory = RootClientExecHandleBuilderFactory.of(gradleUserHome);
+            RootClientExecHandleBuilderFactory execActionFactory = RootClientExecHandleBuilderFactory.of(
+                new DefaultFileLookup().getFileResolver(),
+                new DefaultExecutorFactory(),
+                new DefaultBuildCancellationToken()
+            );
             try {
                 ExecHandle handle = new DaemonExecHandleBuilder().build(args, workingDir, outputConsumer, stdInput, execActionFactory.newExecHandleBuilder());
 

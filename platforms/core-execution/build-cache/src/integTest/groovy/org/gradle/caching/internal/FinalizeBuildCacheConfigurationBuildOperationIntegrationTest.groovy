@@ -261,7 +261,7 @@ class FinalizeBuildCacheConfigurationBuildOperationIntegrationTest extends Abstr
     }
 
     Map<String, ?> result() {
-        buildOperations.result("Finalize build cache configuration")
+        buildOperations.first("Finalize build cache configuration").result
     }
 
 }

@@ -18,9 +18,9 @@ package org.gradle.api.plugins.instrumentation
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 
-@Requires(IntegTestPreconditions.IsEmbeddedExecutor)
+@Requires(TestExecutionPreconditions.IsEmbeddedExecutor)
 class InstrumentClassesProjectFeatureIntegrationTest extends AbstractIntegrationSpec {
     def "can apply the InstrumentClassesProjectFeaturePlugin"() {
         given:

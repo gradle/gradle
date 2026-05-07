@@ -16,11 +16,9 @@
 
 package org.gradle.smoketests
 
-import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+
 import spock.lang.Issue
 
-@Requires(value = UnitTestPreconditions.Jdk17OrLater, reason = "AspectJ requires JVM 17+")
 class FreefairAspectJPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
     @Issue('https://plugins.gradle.org/plugin/io.freefair.aspectj')
     def 'freefair aspectj plugin'() {
@@ -35,7 +33,7 @@ class FreefairAspectJPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
 
             dependencies {
                 inpath "org.apache.httpcomponents:httpcore-nio:4.4.11"
-                implementation "org.aspectj:aspectjrt:1.9.24"
+                implementation "org.aspectj:aspectjrt:1.9.25"
 
                 testImplementation "junit:junit:4.13"
             }

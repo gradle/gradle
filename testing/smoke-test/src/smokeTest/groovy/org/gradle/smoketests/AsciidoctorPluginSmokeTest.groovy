@@ -17,13 +17,14 @@
 package org.gradle.smoketests
 
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.util.internal.VersionNumber
 
 import static org.gradle.api.internal.DocumentationRegistry.BASE_URL
 
 class AsciidoctorPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
-    @ToBeFixedForConfigurationCache(because = "Task.getProject() during execution")
+    // CC will be supported in plugin 5.x+
+    @UnsupportedWithConfigurationCache(because = "https://github.com/asciidoctor/asciidoctor-gradle-plugin/issues/564")
     def 'asciidoctor plugin #version'() {
         given:
         buildFile << """
@@ -91,6 +92,8 @@ class AsciidoctorPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
                     "Consult the upgrading guide for further information: ${BASE_URL}/userguide/upgrading_version_8.html#deprecated_startparameter_is_configuration_cache_requested",
                 "https://github.com/asciidoctor/asciidoctor-gradle-plugin/issues/751"
             )
+            // Asciidoc plugin currently triggers an --enable-native-access warning on Java 24+
+            runner.withJdkWarningChecksDisabled()
         }
     }
 }

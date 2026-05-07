@@ -16,8 +16,7 @@
 
 package org.gradle.internal.service.scopes;
 
-import org.gradle.internal.event.AnonymousListenerBroadcast;
-import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.WorkInputListener;
 import org.gradle.internal.execution.WorkInputListeners;
@@ -26,10 +25,10 @@ import org.gradle.internal.properties.InputBehavior;
 import java.util.EnumSet;
 
 public class DefaultWorkInputListeners implements WorkInputListeners {
-    private final AnonymousListenerBroadcast<WorkInputListener> broadcaster;
+    private final ListenerBroadcast<WorkInputListener> broadcaster;
 
-    public DefaultWorkInputListeners(ListenerManager listenerManager) {
-        broadcaster = listenerManager.createAnonymousBroadcaster(WorkInputListener.class);
+    public DefaultWorkInputListeners() {
+        broadcaster = new ListenerBroadcast<>(WorkInputListener.class);
     }
 
     @Override

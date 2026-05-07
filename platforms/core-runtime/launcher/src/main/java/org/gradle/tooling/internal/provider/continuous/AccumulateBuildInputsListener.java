@@ -21,9 +21,8 @@ import org.gradle.api.internal.file.FileCollectionStructureVisitor;
 import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.file.collections.FileSystemMirroringFileTree;
 import org.gradle.api.tasks.util.PatternSet;
+import org.gradle.internal.execution.InputVisitor;
 import org.gradle.internal.execution.UnitOfWork;
-import org.gradle.internal.execution.UnitOfWork.InputFileValueSupplier;
-import org.gradle.internal.execution.UnitOfWork.InputVisitor;
 import org.gradle.internal.execution.WorkInputListener;
 import org.gradle.internal.properties.InputBehavior;
 
@@ -45,7 +44,7 @@ public class AccumulateBuildInputsListener implements WorkInputListener {
     public void onExecute(UnitOfWork work, EnumSet<InputBehavior> relevantBehaviors) {
         Set<String> taskInputs = new LinkedHashSet<>();
         Set<FilteredTree> filteredFileTreeTaskInputs = new LinkedHashSet<>();
-        work.visitRegularInputs(new InputVisitor() {
+        work.visitMutableInputs(new InputVisitor() {
             @Override
             public void visitInputFileProperty(String propertyName, InputBehavior behavior, InputFileValueSupplier value) {
                 if (relevantBehaviors.contains(behavior)) {

@@ -30,7 +30,8 @@ import org.jspecify.annotations.Nullable;
 import java.util.Set;
 import java.util.function.Supplier;
 
-class TasksFromProjectDependencies implements TaskDependencyContainerInternal {
+@Deprecated
+public class TasksFromProjectDependencies implements TaskDependencyContainerInternal {
     private final TaskDependencyContainerInternal taskDependencyDelegate;
 
     public TasksFromProjectDependencies(

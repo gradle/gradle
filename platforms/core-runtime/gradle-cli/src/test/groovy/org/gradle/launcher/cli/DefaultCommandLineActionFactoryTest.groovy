@@ -19,6 +19,7 @@ import org.apache.tools.ant.Main
 import org.gradle.api.Action
 import org.gradle.cli.CommandLineArgumentException
 import org.gradle.cli.CommandLineParser
+import org.gradle.initialization.layout.BuildLayoutFactory
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.logging.LoggingManagerFactory
 import org.gradle.internal.logging.LoggingManagerInternal
@@ -34,6 +35,7 @@ import org.gradle.launcher.bootstrap.ExecutionListener
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.SetSystemProperties
 import org.gradle.util.internal.DefaultGradleVersion
+import org.gradle.util.internal.KotlinDslVersion
 import org.gradle.util.internal.RedirectStdOutAndErr
 import org.junit.Rule
 import spock.lang.Specification
@@ -80,6 +82,8 @@ class DefaultCommandLineActionFactoryTest extends Specification {
         _ * loggingServices.get(StyledTextOutputFactory) >> textOutputFactory
         StyledTextOutput textOutput = new StreamingStyledTextOutput(outputs.stdErrPrintStream)
         _ * textOutputFactory.create(_, _) >> textOutput
+        BuildLayoutFactory buildLayoutFactory = new BuildLayoutFactory()
+        _ * basicServices.get(BuildLayoutFactory) >> buildLayoutFactory
 
         tmpDir.file("settings.gradle").touch() // To prevent layout from detecting files from gradle/gradle build
     }
@@ -273,7 +277,7 @@ class DefaultCommandLineActionFactoryTest extends Specification {
             "Groovy:        $GroovySystem.version",
             "Ant:           $Main.antVersion",
             "Launcher JVM:  ${Jvm.current()}",
-            "Daemon JVM:    ${Jvm.current().javaHome.absolutePath} (no JDK specified, using current Java home)",
+            "Daemon JVM:    ${Jvm.current().javaHome.absolutePath} (no Daemon JVM specified, using current Java home)",
             "OS:            ${OperatingSystem.current()}",
             ""
         ].join(System.lineSeparator())

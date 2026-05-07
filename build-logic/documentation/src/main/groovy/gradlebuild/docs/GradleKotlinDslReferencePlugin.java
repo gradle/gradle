@@ -16,7 +16,6 @@
 
 package gradlebuild.docs;
 
-import gradlebuild.basics.BuildEnvironmentKt;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
@@ -36,6 +35,8 @@ import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Locale;
+
+import static gradlebuild.basics.BuildParamsKt.getBuildCommitId;
 
 public class GradleKotlinDslReferencePlugin implements Plugin<Project> {
 
@@ -117,7 +118,7 @@ public class GradleKotlinDslReferencePlugin implements Plugin<Project> {
     }
 
     private static void configureSourceLinks(Project project, GradleDocumentationExtension extension, DokkaSourceSetSpec spec) {
-        String commitId = BuildEnvironmentKt.getBuildEnvironmentExtension(project).getGitCommitId().get();
+        String commitId = getBuildCommitId(project).get();
         if (commitId.isBlank() || commitId.toLowerCase(Locale.ROOT).contains("unknown")) {
             // we can't figure out the commit ID (probably this is a source distribution build), let's skip adding source links
             return;

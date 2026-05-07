@@ -17,6 +17,13 @@
 package org.gradle.tooling.internal.adapter
 
 import spock.lang.Specification
+import spock.lang.Timeout
+
+import java.util.concurrent.ConcurrentLinkedQueue
+import java.util.concurrent.CyclicBarrier
+import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicInteger
 
 
 class WeakIdentityHashMapTest extends Specification {
@@ -125,6 +132,110 @@ class WeakIdentityHashMapTest extends Specification {
 
         expect:
         weakKey.hashCode() == System.identityHashCode(thing)
+    }
+
+    @Timeout(value = 15, unit = TimeUnit.SECONDS)
+    def "weakKeys are removed when reference is null"() {
+        WeakIdentityHashMap<Object, String> map = new WeakIdentityHashMap<>()
+        Thing thing1 = new Thing("thing")
+        map.put(thing1, "Foo")
+
+        when:
+        thing1 = null
+
+        then:
+        waitForConditionAfterGC { map.keySet().size() == 0 }
+    }
+
+    @Timeout(value = 15, unit = TimeUnit.SECONDS)
+    def "equals() of two different dereferenced WeakKeys returns false"() {
+        WeakIdentityHashMap<Thing, String> map = new WeakIdentityHashMap<>()
+        Thing thing1 = new Thing("thing1")
+        Thing thing2 = new Thing("thing2")
+
+        map.put(thing1, "value1")
+        map.put(thing2, "value2")
+
+        WeakIdentityHashMap.WeakKey<Thing> weakKey1 = null
+        WeakIdentityHashMap.WeakKey<Thing> weakKey2 = null
+        for (WeakIdentityHashMap.WeakKey<Thing> key : map.keySet()) {
+            if (key.get() == thing1) {
+                weakKey1 = key
+            }
+            if (key.get() == thing2) {
+                weakKey2 = key
+            }
+        }
+
+        when:
+        thing1 = null
+        thing2 = null
+
+        then:
+        waitForConditionAfterGC { !weakKey1.equals(weakKey2) }
+    }
+
+    @Timeout(value = 15, unit = TimeUnit.SECONDS)
+    def "computeIfAbsent is thread-safe (provider executed once, all threads observe same value)"() {
+        given:
+        int threads = Math.max(8, Runtime.runtime.availableProcessors() * 2)
+        int attempts = 200
+
+        when:
+        for (int a = 0; a < attempts; a++) {
+            def map = new WeakIdentityHashMap<Object, Object>()
+            def key = new Object()
+
+            def computedCount = new AtomicInteger(0)
+            def results = new ConcurrentLinkedQueue<Object>()
+
+            def barrier = new CyclicBarrier(threads)
+            def pool = Executors.newFixedThreadPool(threads)
+            try {
+                (0..<threads).each {
+                    pool.submit {
+                        barrier.await() // start all threads together
+
+                        Object v = map.computeIfAbsent(key, new WeakIdentityHashMap.AbsentValueProvider<Object>() {
+                            @Override
+                            Object provide() {
+                                computedCount.incrementAndGet()
+
+                                // widen the race window a bit
+                                Thread.yield()
+                                try {
+                                    Thread.sleep(2)
+                                } catch (InterruptedException ignored) {
+                                    Thread.currentThread().interrupt()
+                                }
+
+                                // unique object identity -> easy to detect multiple computations
+                                return new Object()
+                            }
+                        })
+
+                        results.add(v)
+                        return null
+                    }
+                }
+
+                pool.shutdown()
+                assert pool.awaitTermination(10, TimeUnit.SECONDS)
+            } finally {
+                pool.shutdownNow()
+            }
+
+            // If computeIfAbsent is thread-safe, provider runs once and everyone gets same instance
+            assert computedCount.get() == 1 : "Race detected on attempt=$a: provider executed ${computedCount.get()} times"
+
+            Object first = results.peek()
+            assert first != null
+            boolean allSameInstance = results.every { it.is(first) }
+            assert allSameInstance : "Race detected on attempt=$a: not all threads observed the same value instance"
+        }
+
+        then:
+        noExceptionThrown()
     }
 
     class Thing {

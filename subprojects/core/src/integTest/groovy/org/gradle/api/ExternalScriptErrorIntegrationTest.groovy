@@ -80,10 +80,9 @@ task doStuff {
         fails 'doStuff'
 
         then:
-        failure.assertHasDescription('Execution failed for task \':doStuff\'.')
+        failure.assertHasDescription('Execution failed for task \':doStuff\' (registered in script \'other.gradle\').')
                 .assertHasCause('fail')
                 .assertHasFileName("Script '${externalScript}'")
                 .assertHasLineNumber(4)
     }
 }
-

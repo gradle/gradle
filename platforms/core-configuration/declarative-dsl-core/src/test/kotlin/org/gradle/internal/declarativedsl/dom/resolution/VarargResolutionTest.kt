@@ -17,7 +17,6 @@
 package org.gradle.internal.declarativedsl.dom.resolution
 
 import org.gradle.declarative.dsl.model.annotations.Adding
-import org.gradle.declarative.dsl.model.annotations.Restricted
 import org.gradle.declarative.dsl.schema.VarargParameter
 import org.gradle.internal.declarativedsl.analysis.ErrorReason
 import org.gradle.internal.declarativedsl.analysis.ObjectOrigin
@@ -113,23 +112,18 @@ class VarargResolutionTest {
         fun acceptsListOfStringVarargs(vararg strings: List<String>): String
 
         @Suppress("unused")
-        @Restricted
         fun <T> myListOf(vararg items: T): List<T>
 
         @Suppress("unused")
-        @Restricted
         fun ambiguous(vararg items: String): String
 
         @Suppress("unused")
-        @Restricted
         fun ambiguous(string: String, vararg others: Int): String
 
         @Suppress("unused")
-        @get:Restricted
         var listStringProperty: List<String>
 
         @Suppress("unused")
-        @get:Restricted
         var listIntProperty: List<Int>
     }
 }

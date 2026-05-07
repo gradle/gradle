@@ -19,13 +19,17 @@ package org.gradle.api.plugins.checkstyle
 import org.apache.commons.lang3.StringUtils
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.internal.plugins.BindsProjectFeature
-import org.gradle.api.internal.plugins.ProjectFeatureBindingBuilder
-import org.gradle.api.internal.plugins.ProjectFeatureBindingRegistration
-import org.gradle.api.internal.plugins.features.dsl.bindProjectFeatureToDefinition
+import org.gradle.features.annotations.BindsProjectFeature
+import org.gradle.features.binding.ProjectFeatureBindingBuilder
+import org.gradle.features.binding.ProjectFeatureBinding
+import org.gradle.features.binding.ProjectFeatureApplicationContext
+import org.gradle.features.binding.ProjectFeatureApplyAction
+import org.gradle.features.dsl.bindProjectFeatureToDefinition
 import org.gradle.api.plugins.java.HasJavaSources
 import org.gradle.api.plugins.quality.Checkstyle
+import org.gradle.features.registration.TaskRegistrar
 import org.gradle.language.base.plugins.LifecycleBasePlugin
+import javax.inject.Inject
 
 @BindsProjectFeature(CheckstyleProjectFeaturePlugin.Binding::class)
 class CheckstyleProjectFeaturePlugin : Plugin<Project> {
@@ -39,17 +43,30 @@ class CheckstyleProjectFeaturePlugin : Plugin<Project> {
      *     }
      * }
      */
-    class Binding : ProjectFeatureBindingRegistration {
-        override fun register(builder: ProjectFeatureBindingBuilder) {
+    class Binding : ProjectFeatureBinding {
+        override fun bind(builder: ProjectFeatureBindingBuilder) {
             builder.bindProjectFeatureToDefinition(
                 "checkstyle",
                 CheckstyleSourceSetDefinition::class,
-                HasJavaSources.JavaSources::class
-            ) { definition, buildModel, target ->
-                val checkstyleTask = project.tasks.register("check" + StringUtils.capitalize(target.name) + "Checkstyle", Checkstyle::class.java) { task ->
+                HasJavaSources.JavaSources::class,
+                ApplyAction::class
+            )
+        }
+
+        abstract class ApplyAction : ProjectFeatureApplyAction<CheckstyleSourceSetDefinition, CheckstyleModel, HasJavaSources.JavaSources> {
+            @get:Inject
+            abstract val taskRegistrar: TaskRegistrar
+
+            override fun apply(
+                context: ProjectFeatureApplicationContext,
+                definition: CheckstyleSourceSetDefinition,
+                buildModel: CheckstyleModel,
+                parentDefinition: HasJavaSources.JavaSources
+            ) {
+                val checkstyleTask = taskRegistrar.register("check" + StringUtils.capitalize(parentDefinition.name) + "Checkstyle", Checkstyle::class.java) { task ->
                     task.group = LifecycleBasePlugin.VERIFICATION_GROUP
-                    task.description = "Runs Checkstyle on the ${target.name} source set."
-                    task.source(getBuildModel(target).inputSources)
+                    task.description = "Runs Checkstyle on the ${parentDefinition.name} source set."
+                    task.source(context.getBuildModel(parentDefinition).inputSources)
                     task.configFile = definition.configFile.asFile.get()
                 }
 

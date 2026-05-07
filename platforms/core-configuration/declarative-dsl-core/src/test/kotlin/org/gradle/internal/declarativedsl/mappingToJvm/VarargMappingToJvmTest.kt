@@ -16,7 +16,6 @@
 
 package org.gradle.internal.declarativedsl.mappingToJvm
 
-import org.gradle.declarative.dsl.model.annotations.Restricted
 import org.gradle.internal.declarativedsl.demo.resolve
 import org.gradle.internal.declarativedsl.schemaBuilder.kotlinFunctionAsConfigureLambda
 import org.gradle.internal.declarativedsl.schemaBuilder.schemaFromTypes
@@ -33,7 +32,7 @@ class VarargMappingToJvmTest {
             booleans = myBooleans(true, false, true)
         """.trimIndent()
 
-        val receiver = runtimeInstanceFromResult(schema, schema.resolve(code), kotlinFunctionAsConfigureLambda, RuntimeCustomAccessors.none, ::MyTypeWithVarargs)
+        val receiver = runtimeInstanceFromResult(schema.resolve(code), kotlinFunctionAsConfigureLambda, RuntimeCustomAccessors.none, ::MyTypeWithVarargs)
         assertEquals(listOf(1, 2, 3), receiver.ints)
         assertEquals(listOf(1, 2, 3, 4), receiver.moreInts)
         assertEquals(listOf(1L, 2L, 3L), receiver.longs)
@@ -44,7 +43,7 @@ class VarargMappingToJvmTest {
     fun `varargs with concrete types get properly converted`() {
         val code = """strings = myStrings("one", "two", "three")""".trimIndent()
 
-        val receiver = runtimeInstanceFromResult(schema, schema.resolve(code), kotlinFunctionAsConfigureLambda, RuntimeCustomAccessors.none, ::MyTypeWithVarargs)
+        val receiver = runtimeInstanceFromResult(schema.resolve(code), kotlinFunctionAsConfigureLambda, RuntimeCustomAccessors.none, ::MyTypeWithVarargs)
         assertEquals(listOf("one", "two", "three"), receiver.strings)
     }
 
@@ -52,7 +51,7 @@ class VarargMappingToJvmTest {
     fun `varargs with type argument get properly converted`() {
         val code = """strings = myListOf("one", "two", "three")""".trimIndent()
 
-        val receiver = runtimeInstanceFromResult(schema, schema.resolve(code), kotlinFunctionAsConfigureLambda, RuntimeCustomAccessors.none, ::MyTypeWithVarargs)
+        val receiver = runtimeInstanceFromResult(schema.resolve(code), kotlinFunctionAsConfigureLambda, RuntimeCustomAccessors.none, ::MyTypeWithVarargs)
         assertEquals(listOf("one", "two", "three"), receiver.strings)
     }
 
@@ -60,42 +59,31 @@ class VarargMappingToJvmTest {
 
     class MyTypeWithVarargs {
         @Suppress("unused")
-        @Restricted
         fun <T> myListOf(vararg items: T): List<T> = items.toList()
 
         @Suppress("unused")
-        @Restricted
         fun myStrings(vararg strings: String): List<String> = strings.toList()
 
         @Suppress("unused")
-        @Restricted
         fun myInts(vararg ints: Int): List<Int> = ints.toList()
 
         @Suppress("unused")
-        @Restricted
         fun myLongs(vararg longs: Long): List<Long> = longs.toList()
 
         @Suppress("unused")
-        @Restricted
         fun myBooleans(vararg booleans: Boolean): List<Boolean> = booleans.toList()
 
         @Suppress("unused")
-        @Restricted
         fun <T> myGenericValues(vararg values: T): List<T> = values.toList()
 
-        @get:Restricted
         var strings: List<String> = emptyList()
 
-        @get:Restricted
         var ints: List<Int> = emptyList()
 
-        @get:Restricted
         var moreInts: List<Int> = emptyList()
 
-        @get:Restricted
         var longs: List<Long> = emptyList()
 
-        @get:Restricted
         var booleans: List<Boolean> = emptyList()
     }
 }

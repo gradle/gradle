@@ -20,10 +20,10 @@ import org.apache.commons.io.IOUtils
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import org.gradle.util.GradleVersion
 
-@Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "explicitly requests a daemon")
+@Requires(value = TestExecutionPreconditions.NotEmbeddedExecutor, reason = "explicitly requests a daemon")
 class NotificationsIntegrationTest extends AbstractIntegrationSpec {
     def customGradleUserHomeDir = testDirectoryProvider.getTestDirectory().file('user-home')
     def markerFile

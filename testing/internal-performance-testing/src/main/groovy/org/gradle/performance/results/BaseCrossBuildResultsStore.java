@@ -33,6 +33,7 @@ import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -42,6 +43,14 @@ import static org.gradle.performance.results.ResultsStoreHelper.toArray;
 import static org.gradle.performance.results.ResultsStoreHelper.toList;
 
 public class BaseCrossBuildResultsStore<R extends CrossBuildPerformanceResults> extends AbstractWritableResultsStore<R> {
+
+    private static final String EXECUTIONS_FOR_NAME_SQL_TEMPLATE = """
+        select h.id, h.startTime, h.endTime, h.versionUnderTest, h.operatingSystem, h.jvm, h.vcsBranch,
+               h.vcsCommit, h.testGroup, h.channel, h.host, h.teamCityBuildId
+        from (%s) as h
+        order by h.startTime desc
+        limit ?
+        """;
 
     private final String resultType;
 
@@ -61,16 +70,24 @@ public class BaseCrossBuildResultsStore<R extends CrossBuildPerformanceResults> 
     }
 
     private void batchInsertOperation(Connection connection, R results, long executionId) throws SQLException {
-        try (PreparedStatement statement = connection.prepareStatement("insert into testOperation(testExecution, displayName, tasks, args, gradleOpts, daemon, totalTime, cleanTasks) values (?, ?, ?, ?, ?, ?, ?, ?)")) {
+        String sql = "insert into testOperation(testExecution, displayName, tasks, args, gradleOpts, daemon, totalTime, cleanTasks) values (?, ?, ?, ?, ?, ?, ?, ?)";
+        long startTime = System.currentTimeMillis();
+        int[] batchResult = null;
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
             for (BuildDisplayInfo displayInfo : results.getBuilds()) {
                 addOperations(statement, executionId, displayInfo, results.buildResult(displayInfo));
             }
-            statement.executeBatch();
+            batchResult = statement.executeBatch();
+        } finally {
+            PerformanceDatabase.logProfilingWithCallStack(SQLProfilingData.create("batchInsertOperation", sql, results.getBuilds().stream().toList(), batchResult, startTime).toJson());
         }
     }
 
     private long insertExecution(Connection connection, R results) throws SQLException {
-        try (PreparedStatement statement = connection.prepareStatement("insert into testExecution(testClass, testId, testProject, startTime, endTime, versionUnderTest, operatingSystem, jvm, vcsBranch, vcsCommit, testGroup, resultType, channel, host, teamCityBuildId) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS)) {
+        String sql = "insert into testExecution(testClass, testId, testProject, startTime, endTime, versionUnderTest, operatingSystem, jvm, vcsBranch, vcsCommit, testGroup, resultType, channel, host, teamCityBuildId) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        long startTime = System.currentTimeMillis();
+        Boolean executeResult = null;
+        try (PreparedStatement statement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             statement.setString(1, results.getTestClass());
             statement.setString(2, results.getTestId());
             statement.setString(3, results.getTestProject());
@@ -86,22 +103,30 @@ public class BaseCrossBuildResultsStore<R extends CrossBuildPerformanceResults> 
             statement.setString(13, results.getChannel());
             statement.setString(14, results.getHost());
             statement.setString(15, results.getTeamCityBuildId());
-            statement.execute();
-            ResultSet keys = statement.getGeneratedKeys();
-            keys.next();
-            return keys.getLong(1);
+            executeResult = statement.execute();
+            try (ResultSet keys = statement.getGeneratedKeys()) {
+                keys.next();
+                return keys.getLong(1);
+            }
+        } finally {
+            PerformanceDatabase.logProfilingWithCallStack(SQLProfilingData.create("insertExecution", sql, List.of(results.getTeamCityBuildId()), executeResult, startTime).toJson());
         }
     }
 
     private void insertExecutionExperiment(Connection connection, R results) throws SQLException {
-        try (PreparedStatement statement = connection.prepareStatement("insert into testExecutionExperiment(testId, testProject, testClass, resultType) values (?, ?, ?, ?)")) {
+        String sql = "insert into testExecutionExperiment(testId, testProject, testClass, resultType) values (?, ?, ?, ?)";
+        long startTime = System.currentTimeMillis();
+        Boolean executeResult = null;
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setString(1, results.getTestId());
             statement.setString(2, results.getTestProject());
             statement.setString(3, results.getTestClass());
             statement.setString(4, resultType);
-            statement.execute();
+            executeResult = statement.execute();
         } catch (SQLIntegrityConstraintViolationException ignore) {
             // This is expected, ignore.
+        } finally {
+            PerformanceDatabase.logProfilingWithCallStack(SQLProfilingData.create("insertExecutionExperiment", sql, List.of(results.getTestId(), results.getTestProject(), results.getTestClass()), executeResult, startTime).toJson());
         }
     }
 
@@ -122,15 +147,15 @@ public class BaseCrossBuildResultsStore<R extends CrossBuildPerformanceResults> 
     @Override
     public List<PerformanceExperiment> getPerformanceExperiments() {
         return withConnection("load test history", connection -> {
+            String sql = "select testClass, testId, testProject from testExecutionExperiment where resultType = ? order by testClass, testId, testProject";
+            long startTime = System.currentTimeMillis();
+            ResultSet rs = null;
+
             Set<PerformanceExperiment> testNames = new LinkedHashSet<>();
-            try (PreparedStatement testIdsStatement = connection.prepareStatement(
-                "select testClass, testId, testProject" +
-                    "   from testExecutionExperiment" +
-                    "  where resultType = ?" +
-                    "  order by testClass, testId, testProject")
-            ) {
+            try (PreparedStatement testIdsStatement = connection.prepareStatement(sql)) {
                 testIdsStatement.setString(1, resultType);
                 try (ResultSet testExecutions = testIdsStatement.executeQuery()) {
+                    rs = testExecutions;
                     while (testExecutions.next()) {
                         String testClass = testExecutions.getString(1);
                         String testName = testExecutions.getString(2);
@@ -141,6 +166,8 @@ public class BaseCrossBuildResultsStore<R extends CrossBuildPerformanceResults> 
                     }
                     return Lists.newArrayList(testNames);
                 }
+            } finally {
+                PerformanceDatabase.logProfilingWithCallStack(SQLProfilingData.create("getPerformanceExperiments", sql, List.of(resultType), rs, startTime).toJson());
             }
         });
     }
@@ -148,30 +175,31 @@ public class BaseCrossBuildResultsStore<R extends CrossBuildPerformanceResults> 
     @Override
     public CrossBuildPerformanceTestHistory getTestResults(final PerformanceExperiment experiment, final int mostRecentN, final int maxDaysOld, final List<String> channelPatterns, List<String> teamcityBuildIds) {
         return withConnection("load results", connection -> {
-            String buildIdQuery = teamcityBuildIdQueryFor(teamcityBuildIds);
-            String channelPatternQuery = channelPatternQueryFor(channelPatterns);
+            List<String> distinctChannelPatterns = distinctValues(channelPatterns);
+            List<String> distinctTeamcityBuildIds = distinctValues(teamcityBuildIds);
+            String historyProjection = "id, startTime, endTime, versionUnderTest, operatingSystem, jvm, vcsBranch, vcsCommit, testGroup, channel, host, teamCityBuildId";
+            String baseHistorySql = createHistoryFilterUnionSql(historyProjection, distinctChannelPatterns, distinctTeamcityBuildIds);
+            String executionsForNameSql = EXECUTIONS_FOR_NAME_SQL_TEMPLATE.formatted(baseHistorySql);
+            String operationsForExecutionSql = "select displayName, tasks, args, gradleOpts, daemon, totalTime, cleanTasks from testOperation where testExecution = ?";
             try (
-                PreparedStatement executionsForName = connection.prepareStatement("select id, startTime, endTime, versionUnderTest, operatingSystem, jvm, vcsBranch, vcsCommit, testGroup, channel, host, teamCityBuildId from testExecution where testClass = ? and testId = ? and testProject = ? and startTime >= ? and (" + channelPatternQuery + buildIdQuery + ") order by startTime desc limit ?");
-                PreparedStatement operationsForExecution = connection.prepareStatement("select displayName, tasks, args, gradleOpts, daemon, totalTime, cleanTasks from testOperation where testExecution = ?")
+                PreparedStatement executionsForName = connection.prepareStatement(executionsForNameSql);
+                PreparedStatement operationsForExecution = connection.prepareStatement(operationsForExecutionSql);
             ) {
-                int idx = 0;
-                executionsForName.setString(++idx, experiment.getScenario().getClassName());
-                executionsForName.setString(++idx, experiment.getScenario().getTestName());
-                executionsForName.setString(++idx, experiment.getTestProject());
                 Timestamp minDate = Timestamp.valueOf(LocalDate.now().minusDays(maxDaysOld).atStartOfDay());
-                executionsForName.setTimestamp(++idx, minDate);
-                for (String channelPattern : channelPatterns) {
-                    executionsForName.setString(++idx, channelPattern);
-                }
-                for (String teamcityBuildId : teamcityBuildIds) {
-                    executionsForName.setString(++idx, teamcityBuildId);
-                }
-                executionsForName.setInt(++idx, mostRecentN);
+                bindHistoryQueryParams(executionsForName, experiment, minDate, distinctChannelPatterns, distinctTeamcityBuildIds, mostRecentN);
+                List<Object> executionsForNameParams = createHistoryQueryParams(experiment, minDate, distinctChannelPatterns, distinctTeamcityBuildIds, mostRecentN);
+                long executionsForNameStartTime = System.currentTimeMillis();
+                ResultSet executionsForNameRs = null;
                 try (ResultSet testExecutions = executionsForName.executeQuery()) {
+                    executionsForNameRs = testExecutions;
                     List<CrossBuildPerformanceResults> results = new ArrayList<>();
+                    Set<Long> seenExecutionIds = new HashSet<>();
                     Set<BuildDisplayInfo> builds = Sets.newTreeSet(Comparator.comparing(BuildDisplayInfo::getDisplayName));
                     while (testExecutions.next()) {
                         long id = testExecutions.getLong(1);
+                        if (!seenExecutionIds.add(id)) {
+                            continue;
+                        }
                         CrossBuildPerformanceResults performanceResults = new CrossBuildPerformanceResults();
                         performanceResults.setTestClass(experiment.getScenario().getClassName());
                         performanceResults.setTestId(experiment.getScenario().getTestName());
@@ -195,14 +223,17 @@ public class BaseCrossBuildResultsStore<R extends CrossBuildPerformanceResults> 
                         results.add(performanceResults);
 
                         operationsForExecution.setLong(1, id);
+                        long operationsForExecutionStartTime = System.currentTimeMillis();
+                        ResultSet operationsForExecutionRs = null;
                         try (ResultSet resultSet = operationsForExecution.executeQuery()) {
+                            operationsForExecutionRs = resultSet;
                             while (resultSet.next()) {
                                 String displayName = resultSet.getString(1);
                                 List<String> tasksToRun = toList(resultSet.getObject(2));
                                 List<String> cleanTasks = toList(resultSet.getObject(7));
                                 List<String> args = toList(resultSet.getObject(3));
                                 List<String> gradleOpts = toList(resultSet.getObject(4));
-                                Boolean daemon = (Boolean) resultSet.getObject(5);
+                                Boolean daemon = toNullableBoolean(resultSet.getObject(5));
                                 BuildDisplayInfo displayInfo = new BuildDisplayInfo(experiment.getTestProject(), displayName, tasksToRun, cleanTasks, args, gradleOpts, daemon);
 
                                 MeasuredOperation operation = new MeasuredOperation();
@@ -210,9 +241,13 @@ public class BaseCrossBuildResultsStore<R extends CrossBuildPerformanceResults> 
                                 performanceResults.buildResult(displayInfo).add(operation);
                                 builds.add(displayInfo);
                             }
+                        } finally {
+                            PerformanceDatabase.logProfilingWithCallStack(SQLProfilingData.create("operationsForExecution", operationsForExecutionSql, List.of(id), operationsForExecutionRs, operationsForExecutionStartTime).toJson());
                         }
                     }
                     return new CrossBuildPerformanceTestHistory(experiment, ImmutableList.copyOf(builds), results);
+                } finally {
+                    PerformanceDatabase.logProfilingWithCallStack(SQLProfilingData.create("executionsForName", executionsForNameSql, executionsForNameParams, executionsForNameRs, executionsForNameStartTime).toJson());
                 }
             }
         });

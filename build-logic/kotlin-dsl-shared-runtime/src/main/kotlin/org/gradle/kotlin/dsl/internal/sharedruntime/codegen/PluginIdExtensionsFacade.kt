@@ -87,12 +87,24 @@ data class PluginExtension(
 
 private
 fun pluginExtensionsFrom(jars: Iterable<File>): Sequence<PluginExtension> =
-    jars.asSequence().flatMap(::pluginExtensionsFrom)
-
+    LocalPluginEntryCache().let { cache ->
+        jars.asSequence().flatMap { pluginExtensionsFrom(it, cache) }
+    }
 
 private
-fun pluginExtensionsFrom(file: File): Sequence<PluginExtension> =
-    pluginEntriesFrom(file)
+class LocalPluginEntryCache : PluginEntryCache {
+    private val cache: MutableMap<String, List<PluginEntry>> = HashMap()
+    override fun computeIfAbsent(
+        jar: File,
+        producer: (File) -> List<PluginEntry>
+    ): List<PluginEntry> = cache.computeIfAbsent(jar.canonicalPath) {
+        producer(jar)
+    }
+}
+
+private
+fun pluginExtensionsFrom(file: File, pluginEntryCache: PluginEntryCache): Sequence<PluginExtension> =
+    pluginEntriesFrom(file, pluginEntryCache)
         .asSequence()
         .map { (id, implementationClass) ->
             val simpleId = id.substringAfter("org.gradle.")

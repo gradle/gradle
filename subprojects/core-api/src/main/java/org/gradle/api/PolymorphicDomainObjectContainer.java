@@ -16,6 +16,7 @@
 package org.gradle.api;
 
 import org.gradle.api.provider.Provider;
+import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition;
 import org.gradle.internal.HasInternalProtocol;
 
 /**
@@ -24,6 +25,7 @@ import org.gradle.internal.HasInternalProtocol;
  * @param <T> the (base) type of objects in the container
  */
 @HasInternalProtocol
+@HiddenInDefinition
 public interface PolymorphicDomainObjectContainer<T> extends NamedDomainObjectContainer<T> {
     /**
      * Creates a domain object with the specified name and type, and adds it to the container.

@@ -24,6 +24,7 @@ import com.google.common.hash.Hashing;
 import com.google.common.io.BaseEncoding;
 import org.apache.commons.io.FileSystem;
 import org.gradle.api.GradleException;
+import org.jspecify.annotations.Nullable;
 
 import java.io.File;
 import java.nio.ByteBuffer;
@@ -33,28 +34,39 @@ import java.nio.charset.CharsetEncoder;
 import java.nio.charset.CoderResult;
 import java.nio.charset.CodingErrorAction;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.List;
+import java.util.function.Function;
 import java.util.stream.IntStream;
 
 /**
  * Sibling class to {@link FileUtils}, focused on obtaining safe file locations and names.
  */
 public final class SafeFileLocationUtils {
+    /**
+     * The Windows path limit if not using UNC paths.
+     * The JDK will automatically use UNC paths, so this is only needed for validating paths
+     * used in native code that doesn't handle UNC paths.
+     */
     public static final int WINDOWS_PATH_LIMIT = 260;
 
-    // SipHash-2-4 provides decent collision resistance of 64 bits while being fast to compute
-    private static final HashFunction HASHER = Hashing.sipHash24();
-    private static final BaseEncoding BASE_ENCODING = BaseEncoding.base32Hex().omitPadding();
-
     /**
-     * A short, distinctive prefix to indicate that a file name has been truncated.
-     *
-     * <p>
-     * Uses underscores as they are likely valid characters on all filesystems,
-     * and visually distinctive. Uses "cut" instead of "truncated" to keep it short.
-     * </p>
+     * The shortest max path length across all known filesystems, used to limit the length of
+     * emitted paths to ensure they can be used on all filesystems.
      */
-    private static final byte[] TRUNCATED_PREFIX_BYTES = "_cut_".getBytes(StandardCharsets.UTF_8);
+    @VisibleForTesting
+    static final int MAX_PATH_LENGTH =
+        Arrays.stream(FileSystem.values())
+            .mapToInt(FileSystem::getMaxPathLength)
+            .min()
+            .orElseThrow(() -> new AssertionError("No filesystems found"));
+
+    // Fingerprint hash provides the best collision resistance, though not cryptographically secure,
+    // and is the fastest as manually tested with org.gradle.internal.reflect.HashingAlgorithmsBenchmark
+    // We don't need secure hashes here as we don't expect malicious file names.
+    private static final HashFunction HASHER = Hashing.farmHashFingerprint64();
+    private static final BaseEncoding BASE_ENCODING = BaseEncoding.base32Hex().omitPadding();
 
     /**
      * The maximum file name length in bytes for most filesystems (e.g. ext4, NTFS).
@@ -63,7 +75,7 @@ public final class SafeFileLocationUtils {
      * We use a smaller limit on input, but emit this size for outputs with hashes.
      * </p>
      */
-    private static final int MAX_FILE_NAME_LENGTH_IN_BYTES = 255;
+    private static final int MAX_FILE_NAME_LENGTH_IN_BYTES = 120;
 
     /**
      * The maximum safe file name length in bytes to avoid exceeding filesystem limits after adding a hash suffix.
@@ -74,7 +86,7 @@ public final class SafeFileLocationUtils {
      * </p>
      */
     @VisibleForTesting
-    static final int MAX_SAFE_FILE_NAME_LENGTH_IN_BYTES = MAX_FILE_NAME_LENGTH_IN_BYTES - TRUNCATED_PREFIX_BYTES.length - 1 - (HASHER.bits() + 4) / 5;
+    static final int MAX_SAFE_FILE_NAME_LENGTH_IN_BYTES = MAX_FILE_NAME_LENGTH_IN_BYTES - 1 - (HASHER.bits() + 4) / 5;
 
     /**
      * The character used to replace illegal characters in file names.
@@ -133,24 +145,63 @@ public final class SafeFileLocationUtils {
      * <p>
      * Long strings will also be hashed to avoid issues with file name length limitations.
      * </p>
+     *
+     * @param name the original name
+     * @param forDirectory whether the name is intended for a directory
+     * @return a safe file name derived from the original name
      */
-    public static String toSafeFileName(String name) {
+    public static String toSafeFileName(String name, boolean forDirectory) {
+        return toSafeFileName("", name, forDirectory);
+    }
+
+    /**
+     * Converts a string into a string that is safe to use as a file name.
+     * The result will preserve Unicode characters while replacing filesystem-illegal
+     * and web-problematic characters with "-".
+     *
+     * <p>
+     * Long strings will also be hashed to avoid issues with file name length limitations.
+     * </p>
+     *
+     * @param prefix A prefix to add to the name that must be preserved (i.e. it cannot be truncated during file name shortening)
+     * @param name the original name
+     * @param forDirectory whether the name is intended for a directory
+     * @return a safe file name derived from the original name
+     */
+    public static String toSafeFileName(String prefix, String name, boolean forDirectory) {
         Utf8EncodingResult nameResult;
+        Utf8EncodingResult prefixResult;
         try {
             nameResult = encodeIntoUtf8WithReplacement(name);
+            prefixResult = encodeIntoUtf8WithReplacement(prefix);
         } catch (CharacterCodingException e) {
             throw new AssertionError("Unexpected encoding error, should have filtered invalid input", e);
         }
-        if (nameResult.cleanBytes.length <= MAX_SAFE_FILE_NAME_LENGTH_IN_BYTES) {
-            return nameResult.getCleanString();
+        if (nameResult.cleanBytes.length + prefixResult.cleanBytes.length <= MAX_SAFE_FILE_NAME_LENGTH_IN_BYTES) {
+            return prefixResult.getCleanString() + removeInvalidStrings(forDirectory, nameResult.getCleanString());
         }
 
+        String shortName = shortenNameAndAddHash(nameResult.cleanBytes, hashName(name), prefixResult.cleanBytes.length);
+        return prefixResult.getCleanString() + removeInvalidStrings(forDirectory, shortName);
+    }
+
+    private static String hashName(String name) {
         // We use hashUnencodedChars to ensure we hash the original name without any replacements
         // This ensures that different original names that map to the same cleaned name still get different hashes
         byte[] hashBytes = HASHER.hashUnencodedChars(name).asBytes();
-        String encoded = BASE_ENCODING.encode(hashBytes);
+        return BASE_ENCODING.encode(hashBytes);
+    }
 
-        return shortenNameAndAddHash(nameResult.cleanBytes, encoded);
+    private static String removeInvalidStrings(boolean forDirectory, String name) {
+        if (forDirectory) {
+            // Remove any trailing dots for compatibility with win32 APIs
+            int lastIndexOfNonDot = name.length() - 1;
+            while (lastIndexOfNonDot >= 0 && name.charAt(lastIndexOfNonDot) == '.') {
+                lastIndexOfNonDot--;
+            }
+            return name.substring(0, lastIndexOfNonDot + 1);
+        }
+        return name;
     }
 
     private static final class Utf8EncodingResult {
@@ -249,22 +300,32 @@ public final class SafeFileLocationUtils {
      *
      * @param rawName the original name in UTF-8 bytes
      * @param encoded the encoded hash string
+     * @param lengthOfPrefix the number of bytes to reserve for a fixed prefix before the name
      * @return the shortened name with hash inserted
      */
-    private static String shortenNameAndAddHash(byte[] rawName, String encoded) {
+    private static String shortenNameAndAddHash(byte[] rawName, String encoded, int lengthOfPrefix) {
+        if (lengthOfPrefix > MAX_SAFE_FILE_NAME_LENGTH_IN_BYTES) {
+            throw new IllegalArgumentException("Prefix length exceeds maximum safe file name length");
+        }
+
         ByteBuffer result = ByteBuffer.allocate(MAX_FILE_NAME_LENGTH_IN_BYTES);
+        int maxLengthWithPrefix = MAX_SAFE_FILE_NAME_LENGTH_IN_BYTES - lengthOfPrefix;
         // Insert before any potential file extensions
         byte[] extensions = null;
         int safeLength;
-        int firstDot = findStartOfExtension(rawName);
+        // Finds the position that indicates the start of extension segment(s) that can fit within the limit
+        int firstDot = findStartOfExtension(rawName, lengthOfPrefix);
         if (firstDot > 0) {
+            // If found, then it means we can preserve the extension either in its entirety or as a subset of the extension segments
             extensions = Arrays.copyOfRange(rawName, firstDot, rawName.length);
-            safeLength = getSafeLength(rawName, MAX_SAFE_FILE_NAME_LENGTH_IN_BYTES - extensions.length);
+            int maxNameLengthWithPrefixAndExtensions = maxLengthWithPrefix - extensions.length;
+            // Return the length of the name before the extension that still allows the selected extensions to fit
+            safeLength = getSafeLength(rawName, maxNameLengthWithPrefixAndExtensions);
         } else {
-            safeLength = getSafeLength(rawName, MAX_SAFE_FILE_NAME_LENGTH_IN_BYTES);
+            // Either there is no extension, or there is, but no segment can fit - just truncate the name in its entirety
+            safeLength = getSafeLength(rawName, maxLengthWithPrefix);
         }
-        // Copy truncated prefix
-        result.put(TRUNCATED_PREFIX_BYTES);
+
         // Copy safe length of original name
         result.put(rawName, 0, safeLength);
         // Copy hyphen
@@ -285,13 +346,14 @@ public final class SafeFileLocationUtils {
      * but only if the extension(s) can fit within {@code MAX_SAFE_FILE_NAME_LENGTH_IN_BYTES} from the end.
      *
      * @param rawName the original name in UTF-8 bytes
+     * @param lengthOfPrefix the number of bytes to reserve for a fixed prefix before the name
      * @return the index of the first dot indicating the start of extension(s), or {@code -1} if none found
      */
-    private static int findStartOfExtension(byte[] rawName) {
-        // We look for the first dot that is within (MAX_SAFE_FILE_NAME_LENGTH_IN_BYTES - 1) from the end
-        // This ensures that the extension can fit even after adding the hyphen and hash
+    private static int findStartOfExtension(byte[] rawName, int lengthOfPrefix) {
+        // We look for the first dot that is within (MAX_SAFE_FILE_NAME_LENGTH_IN_BYTES - lengthOfPrefix - 1) from the end
+        // This ensures that the extension can fit even after adding the hyphen, hash, and prefix
         // Also start at minimum 1 to avoid treating a leading dot as an extension
-        int start = Math.max(1, rawName.length - (MAX_SAFE_FILE_NAME_LENGTH_IN_BYTES - 1));
+        int start = Math.max(1, rawName.length - (MAX_SAFE_FILE_NAME_LENGTH_IN_BYTES - lengthOfPrefix - 1));
         // Search only until the second last character to avoid treating a trailing dot as an extension
         for (int i = start; i < rawName.length - 1; i++) {
             // Doing a raw byte comparison for '.' is safe as UTF-8 ensures that no other character will encode to contain it
@@ -319,6 +381,7 @@ public final class SafeFileLocationUtils {
         while (startOfCodePoint > 0 && (rawName[startOfCodePoint] & 0b1100_0000) == 0b1000_0000) {
             startOfCodePoint--;
         }
+
         // Now verify that the code point between startOfCodePoint and maxBytes is valid
         if (Utf8.isWellFormed(rawName, startOfCodePoint, maxBytes - startOfCodePoint)) {
             // It is, so the valid length is maxBytes
@@ -326,6 +389,161 @@ public final class SafeFileLocationUtils {
         }
         // Otherwise, the valid length is up to before the start of the code point
         return startOfCodePoint;
+    }
+
+    /**
+     * A segment of a file path.
+     */
+    public static final class Segment {
+        public static Segment directory(String name) {
+            return new Segment(name, true);
+        }
+
+        public static Segment file(String name) {
+            return new Segment(name, false);
+        }
+
+        private final String original;
+        private final boolean isDirectory;
+        @Nullable
+        private String cachedSafeName;
+
+        private Segment(String original, boolean isDirectory) {
+            this.original = original;
+            this.isDirectory = isDirectory;
+        }
+
+        String getSafeName() {
+            if (cachedSafeName == null) {
+                cachedSafeName = toSafeFileName(original, isDirectory);
+            }
+            return cachedSafeName;
+        }
+
+        @Override
+        public String toString() {
+            return original + (isDirectory ? "/" : "");
+        }
+    }
+
+    /**
+     * Result of checking whether a path would exceed the filesystem path length limit.
+     */
+    public enum PathLimitCheckResult {
+        /** The path fits within the limit without shrinking. */
+        WITHIN_LIMIT,
+        /** The path exceeds the limit but can be shrunk to fit by hashing segments. */
+        EXCEEDS_LIMIT,
+        /** The path exceeds the limit and cannot be shrunk enough even by hashing all segments. */
+        UNSHRINKABLE,
+    }
+
+    /**
+     * Checks against a given base path whether adding segments can fit within filesystem limits.
+     * This class holds cached information about the base path to allow checking multiple sets of segments
+     * against the same base path efficiently.
+     */
+    public static final class PathLimitChecker {
+        private final int basePathByteLength;
+
+        public PathLimitChecker(String basePath) {
+            if (!Paths.get(basePath).isAbsolute()) {
+                throw new IllegalArgumentException("Base path must be absolute.");
+            }
+            int basePathByteLength = Utf8.encodedLength(basePath);
+            // +1 for the separator between base path and first segment,
+            // which we assume will be added when joining them together
+            if (!basePath.endsWith(File.separator)) {
+                basePathByteLength += 1;
+            }
+            this.basePathByteLength = basePathByteLength;
+        }
+
+        /**
+         * Check whether the given segments, when joined with the base path, would exceed the maximum path length
+         * after safe file name conversion. This can be used to pre-compute whether shrinking (hashing) is needed.
+         *
+         * @param segments the relative path segments
+         * @return a {@link PathLimitCheckResult} indicating whether the path fits, needs shrinking, or cannot be shrunk enough
+         */
+        public PathLimitCheckResult check(List<Segment> segments) {
+            if (basePathByteLength > MAX_PATH_LENGTH) {
+                // If the base path already exceeds the limit, then we are already over and shrinking won't help
+                return PathLimitCheckResult.UNSHRINKABLE;
+            }
+            return checkPathLimit(basePathByteLength, segments);
+        }
+    }
+
+    private static PathLimitCheckResult checkPathLimit(int basePathByteLength, List<Segment> segments) {
+        int safeByteLength = getPathByteLength(segments, Segment::getSafeName);
+        if (basePathByteLength + safeByteLength <= MAX_PATH_LENGTH) {
+            return PathLimitCheckResult.WITHIN_LIMIT;
+        }
+
+        int shrunkByteLength = getPathByteLength(segments, SafeFileLocationUtils::minimumSafeName);
+        boolean canFitWithShrinking = basePathByteLength + shrunkByteLength <= MAX_PATH_LENGTH;
+        return canFitWithShrinking ? PathLimitCheckResult.EXCEEDS_LIMIT : PathLimitCheckResult.UNSHRINKABLE;
+    }
+
+    /**
+     * Convert segments to a safe file path by applying safe file name conversion to each segment.
+     *
+     * @param segments the relative path segments
+     * @return a safe file path derived from the original segments
+     */
+    public static String toSafeFilePath(List<Segment> segments) {
+        return buildPath(segments, Segment::getSafeName);
+    }
+
+    /**
+     * Convert segments to a safe file path, hashing each segment where doing so reduces its length.
+     * This produces the shortest possible safe path for the given segments.
+     *
+     * @param segments the relative path segments
+     * @return a minimal safe file path derived from the original segments
+     */
+    public static String toMinimumSafeFilePath(List<Segment> segments) {
+        return buildPath(segments, SafeFileLocationUtils::minimumSafeName);
+    }
+
+    private static int getPathByteLength(List<Segment> segments, Function<Segment, String> segmentNameGenerator) {
+        int length = 0;
+        for (Segment segment : segments) {
+            length += Utf8.encodedLength(segmentNameGenerator.apply(segment));
+            if (segment.isDirectory) {
+                length += 1; // "/"
+            }
+        }
+        return length;
+    }
+
+    private static String buildPath(List<Segment> segments, Function<Segment, String> segmentNameGenerator) {
+        StringBuilder result = new StringBuilder();
+        for (Segment segment : segments) {
+            result.append(segmentNameGenerator.apply(segment));
+            if (segment.isDirectory) {
+                result.append('/');
+            }
+        }
+        return result.toString();
+    }
+
+    /**
+     * Resolve a segment to its shortest safe representation: the shorter of the safe name or hashed name.
+     * For file segments, the last extension is preserved in the hashed form.
+     */
+    private static String minimumSafeName(Segment segment) {
+        String safe = segment.getSafeName();
+        String hashed = hashName(segment.original);
+        // Preserve the last extension from the safe name for file segments
+        if (!segment.isDirectory) {
+            int lastDot = safe.lastIndexOf('.');
+            if (lastDot > 0) {
+                hashed = hashed + safe.substring(lastDot);
+            }
+        }
+        return Utf8.encodedLength(hashed) < Utf8.encodedLength(safe) ? hashed : safe;
     }
 
     public static File assertInWindowsPathLengthLimitation(File file) {

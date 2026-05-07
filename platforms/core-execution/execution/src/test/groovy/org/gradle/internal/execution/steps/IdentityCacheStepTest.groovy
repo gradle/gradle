@@ -20,13 +20,13 @@ import org.gradle.cache.Cache
 import org.gradle.cache.ManualEvictionInMemoryCache
 import org.gradle.caching.internal.origin.OriginMetadata
 import org.gradle.internal.Try
-import org.gradle.internal.execution.ExecutionEngine
-import org.gradle.internal.execution.UnitOfWork
+import org.gradle.internal.execution.DeferredResult
+import org.gradle.internal.execution.Identity
 import org.gradle.internal.execution.history.ExecutionOutputState
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter
 
 class IdentityCacheStepTest extends StepSpec<IdentityContext> {
-    Cache<UnitOfWork.Identity, ExecutionEngine.IdentityCacheResult<Object>> cache = new ManualEvictionInMemoryCache<>()
+    Cache<Identity, DeferredResult<Object>> cache = new ManualEvictionInMemoryCache<>()
     def progressEventEmitter = Mock(BuildOperationProgressEventEmitter)
 
     def step = new IdentityCacheStep<>(progressEventEmitter, delegate)
@@ -107,7 +107,7 @@ class IdentityCacheStepTest extends StepSpec<IdentityContext> {
         def returnedOriginMetadata = Stub(OriginMetadata) {
             buildInvocationId >> "12345"
         }
-        def identityCacheResult = Stub(ExecutionEngine.IdentityCacheResult) {
+        def identityCacheResult = Stub(DeferredResult) {
             result >> cachedResult
             originMetadata >> Optional.of(returnedOriginMetadata)
         }

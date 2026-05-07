@@ -17,10 +17,11 @@
 package org.gradle.internal.buildtree;
 
 import com.google.common.collect.ImmutableList;
+import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.invocation.Gradle;
-import org.gradle.initialization.layout.BuildTreeLocations;
 import org.gradle.internal.InternalBuildAdapter;
 import org.gradle.internal.exception.ExceptionAnalyser;
+import org.gradle.internal.initialization.layout.BuildTreeLocations;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.problems.buildtree.ProblemReporter;
 import org.gradle.problems.buildtree.ProblemReporter.ProblemConsumer;
@@ -92,7 +93,10 @@ public class ProblemReportingBuildActionRunner implements BuildActionRunner {
 
         @Override
         public void projectsEvaluated(Gradle gradle) {
-            rootProjectBuildDir = gradle.getRootProject().getLayout().getBuildDirectory().getAsFile().get();
+            GradleInternal gradleInternal = (GradleInternal) gradle;
+            rootProjectBuildDir = gradleInternal.getOwner().getRootProject().fromMutableState(rootProject ->
+                rootProject.getLayout().getBuildDirectory().getAsFile().get()
+            );
         }
     }
 }

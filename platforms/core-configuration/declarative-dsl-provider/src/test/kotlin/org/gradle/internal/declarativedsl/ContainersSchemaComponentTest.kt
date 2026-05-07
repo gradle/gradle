@@ -18,12 +18,12 @@ package org.gradle.internal.declarativedsl
 
 import org.gradle.api.Named
 import org.gradle.api.NamedDomainObjectContainer
+import org.gradle.api.Namer
 import org.gradle.api.internal.AbstractNamedDomainObjectContainer
 import org.gradle.api.internal.CollectionCallbackActionDecorator
-import org.gradle.api.tasks.Internal
-import org.gradle.declarative.dsl.model.annotations.Configuring
+import org.gradle.declarative.dsl.evaluation.SchemaBuildingFailure
 import org.gradle.declarative.dsl.model.annotations.ElementFactoryName
-import org.gradle.declarative.dsl.model.annotations.Restricted
+import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition
 import org.gradle.declarative.dsl.schema.DataClass
 import org.gradle.declarative.dsl.schema.FunctionSemantics
 import org.gradle.internal.declarativedsl.analysis.SchemaTypeRefContext
@@ -35,6 +35,13 @@ import org.gradle.internal.declarativedsl.evaluator.conversion.AnalysisAndConver
 import org.gradle.internal.declarativedsl.evaluator.conversion.ConversionStepContext
 import org.gradle.internal.declarativedsl.evaluator.runner.AnalysisStepContext
 import org.gradle.internal.declarativedsl.evaluator.runner.AnalysisStepRunner
+import org.gradle.internal.declarativedsl.ndoc.ContainersSchemaComponent
+import org.gradle.internal.declarativedsl.schemaBuilder.CompositeTypeDiscovery
+import org.gradle.internal.declarativedsl.schemaBuilder.DeclarativeDslSchemaBuildingException
+import org.gradle.internal.declarativedsl.schemaBuilder.SchemaBuildingIssue
+import org.gradle.internal.declarativedsl.schemaBuilder.basicTypeDiscovery
+import org.gradle.internal.declarativedsl.schemaBuilder.kotlinFunctionAsConfigureLambda
+import org.gradle.internal.declarativedsl.schemaBuilder.schemaFromTypes
 import org.gradle.internal.declarativedsl.schemaUtils.findType
 import org.gradle.internal.declarativedsl.schemaUtils.hasFunctionNamed
 import org.gradle.internal.declarativedsl.schemaUtils.singleFunctionNamed
@@ -44,6 +51,8 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import org.junit.jupiter.api.assertInstanceOf
+import org.junit.jupiter.api.assertThrows
 import org.mockito.kotlin.any
 import org.mockito.kotlin.mock
 
@@ -62,11 +71,6 @@ class ContainersSchemaComponentTest {
     }
 
     @Test
-    fun `ignores container members annotated as @Internal`() {
-        assertFalse(schema.analysisSchema.typeFor<TopLevel>().hasFunctionNamed("internalContainer"))
-    }
-
-    @Test
     fun `discovers types used as container elements`() {
         assertTrue(schema.analysisSchema.dataClassTypesByFqName.keys.map { it.qualifiedName }.containsAll(listOf(One::class.qualifiedName, Two::class.qualifiedName, Three::class.qualifiedName)))
     }
@@ -78,6 +82,29 @@ class ContainersSchemaComponentTest {
         val configuredType = SchemaTypeRefContext(schema.analysisSchema).resolveRef(configuredTypeRef) as DataClass
         assertTrue(configuredType.hasFunctionNamed("one"))
         assertFalse(configuredType.hasFunctionNamed("two"))
+    }
+
+    @Test
+    fun `detects illegal hidden type usages in container elements`() {
+        assertThrows<DeclarativeDslSchemaBuildingException> {
+            schemaFromTypes(
+                UsesHiddenContainerElement::class,
+                typeDiscovery = CompositeTypeDiscovery(
+                    listOf(basicTypeDiscovery(kotlinFunctionAsConfigureLambda)) + ContainersSchemaComponent().typeDiscovery()
+                )
+            )
+        }.run {
+            assertEquals(
+                """
+                |Type 'org.gradle.internal.declarativedsl.Hidden' is a hidden type and cannot be directly used.
+                |  Appears as hidden:
+                |    - type 'org.gradle.internal.declarativedsl.Hidden' is annotated as hidden
+                |  Illegal usages:
+                |    - referenced from member 'val org.gradle.internal.declarativedsl.UsesHiddenContainerElement.container: org.gradle.api.NamedDomainObjectContainer<org.gradle.internal.declarativedsl.Hidden>'
+                """.trimMargin(),
+                message
+            )
+        }
     }
 
     @Test
@@ -118,7 +145,7 @@ class ContainersSchemaComponentTest {
                     }
                 """.trimIndent(),
                 SimpleInterpretationSequenceStepWithConversion("test", emptySet()) { schema },
-                ConversionStepContext(receiver, { javaClass.classLoader }, { javaClass.classLoader }, AnalysisStepContext(emptyList(), emptyList()))
+                ConversionStepContext(receiver, { javaClass.classLoader }, { javaClass.classLoader }, AnalysisStepContext(emptyList(), emptyList()), true)
             )
 
         receiver.containerOne.single().run {
@@ -142,7 +169,41 @@ class ContainersSchemaComponentTest {
         }
     }
 
-    private val schema = buildEvaluationAndConversionSchema(TopLevel::class, analyzeEverything) { gradleDslGeneralSchema() }
+    @Test
+    fun `can import out-projected type argument for container element type`() {
+        val schema = buildEvaluationAndConversionSchema(UsesOutProjectedElementType::class, analyzeEverything) { gradleDslGeneralSchema() }.analysisSchema
+        val typeRefContext = SchemaTypeRefContext(schema)
+        val topLevelType = schema.typeFor<UsesOutProjectedElementType>()
+        topLevelType.singleFunctionNamed("container").function.run {
+            val containerType = typeRefContext.resolveRef((semantics as FunctionSemantics.ConfigureSemantics).configuredType) as DataClass
+            val elementFactory = containerType.singleFunctionNamed("charSequence").function
+            val elementType = typeRefContext.resolveRef((elementFactory.semantics as FunctionSemantics.ConfigureSemantics).configuredType) as DataClass
+            assertEquals(CharSequence::class.qualifiedName, elementType.name.qualifiedName)
+        }
+        assertTrue(topLevelType.properties.none { it.name == "container" })
+    }
+
+    @Test
+    fun `reports an error on an in-projected NDOC`() {
+        val schema = buildEvaluationAndConversionSchema(UsesInProjectedElementType::class, analyzeEverything) { gradleDslGeneralSchema() }
+        schema.analysisSchemaBuildingFailures.single().run {
+            assertInstanceOf<SchemaBuildingIssue.IllegalVarianceInParameterizedTypeUsage>(issue)
+            assertTrue(context.any { it is SchemaBuildingFailure.FailureContext.ClassContext && it.qualifiedName == UsesInProjectedElementType::class.qualifiedName })
+            assertTrue(context.any { it is SchemaBuildingFailure.FailureContext.MemberContext && it.memberSignature == "container" })
+        }
+    }
+
+    @Test
+    fun `reports an error on an star-projected NDOC`() {
+        val schema = buildEvaluationAndConversionSchema(UsesStarProjectedElementType::class, analyzeEverything) { gradleDslGeneralSchema() }
+        schema.analysisSchemaBuildingFailures.single().run {
+            assertInstanceOf<SchemaBuildingIssue.IllegalVarianceInParameterizedTypeUsage>(issue)
+            assertTrue(context.any { it is SchemaBuildingFailure.FailureContext.ClassContext && it.qualifiedName == UsesStarProjectedElementType::class.qualifiedName })
+            assertTrue(context.any { it is SchemaBuildingFailure.FailureContext.MemberContext && it.memberSignature == "container" })
+        }
+    }
+
+    private val schema by lazy { buildEvaluationAndConversionSchema(TopLevel::class, analyzeEverything) { gradleDslGeneralSchema() } }
 
     class TopLevel {
         val containerOne: NamedDomainObjectContainer<One> = container(One::class.java)
@@ -150,14 +211,9 @@ class ContainersSchemaComponentTest {
         fun getContainerTwo(): NamedDomainObjectContainer<Two> = containerTwo
 
         private val containerTwo = container(Two::class.java)
-
-        @Suppress("unused")
-        @get:Internal
-        val internalContainer: NamedDomainObjectContainer<One> = container(One::class.java)
     }
 
     class One(private val name: String) : Named {
-        @get:Restricted
         var x: Int = 0
 
         override fun getName(): String = name
@@ -166,31 +222,39 @@ class ContainersSchemaComponentTest {
     class Two(private val name: String) : Named {
         val containerThree: NamedDomainObjectContainer<Three> = container(Three::class.java)
 
-        val containerSubtype: NdocSubtype = NdocSubtype(container(Three::class.java))
+        val containerSubtype: NdocSubtype = NdocSubtype()
 
-        @get:Restricted
         var y: Int = 0
 
+        @HiddenInDefinition
         override fun getName(): String = name
     }
 
     @ElementFactoryName("customFactoryName")
     class Three(private val name: String) : Named {
-        @get:Restricted
         var z: Int = 0
 
         override fun getName(): String = name
     }
 
-    class NdocSubtype(container: NamedDomainObjectContainer<Three>) : NamedDomainObjectContainer<Three> by container {
-        @get:Restricted
+    class NdocSubtype : AbstractNamedDomainObjectContainer<Three>(
+        Three::class.java,
+        object : Instantiator {
+            @Suppress("UNCHECKED_CAST")
+            override fun <T : Any> newInstance(type: Class<out T>, vararg parameters: Any?): T =
+                type.constructors.single().newInstance(*parameters) as T
+        },
+        Namer(Three::getName),
+        CollectionCallbackActionDecorator.NOOP
+    ) {
         var w: Int = 0
 
         @Suppress("unused")
-        @Configuring
         fun configuringInSubtype(configure: Three.() -> Unit) {
             maybeCreate("configuringInSubtype").let(configure)
         }
+
+        override fun doCreate(name: String): Three = Three(name)
     }
 }
 
@@ -204,4 +268,27 @@ private fun <T : Any> container(type: Class<T>): NamedDomainObjectContainer<T> =
     CollectionCallbackActionDecorator.NOOP
 ) {
     override fun doCreate(name: String): T = instantiator.newInstance(type, name)
+}
+
+@HiddenInDefinition
+private class Hidden
+
+private interface UsesHiddenContainerElement {
+    @Suppress("unused")
+    val container: NamedDomainObjectContainer<Hidden>
+}
+
+private interface UsesOutProjectedElementType {
+    @Suppress("unused")
+    val container: NamedDomainObjectContainer<out CharSequence>
+}
+
+private interface UsesInProjectedElementType {
+    @Suppress("unused")
+    val container: NamedDomainObjectContainer<in CharSequence>
+}
+
+private interface UsesStarProjectedElementType {
+    @Suppress("unused")
+    val container: NamedDomainObjectContainer<*>
 }

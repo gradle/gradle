@@ -24,10 +24,11 @@ import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
 import org.gradle.internal.component.resolution.failure.exception.VariantSelectionByAttributesException
 import org.gradle.internal.jvm.Jvm
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
+import org.gradle.test.preconditions.InstalledJdkTestPreconditions
 
 class TargetJVMVersionOnPluginTooNewFailureDescriberIntegrationTest extends AbstractIntegrationSpec implements JavaToolchainFixture {
-    @Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "must run with specific JDK that may differ from the current test JDK")
+    @Requires(value = [ TestExecutionPreconditions.NotEmbeddedExecutor, InstalledJdkTestPreconditions.JavaHomeWithDifferentVersionAvailable ], reason = "must run with specific JDK that may differ from the current test JDK")
     def 'JVM version too low uses custom error message for plugin'() {
         given:
         def currentJdk = Jvm.current()
@@ -192,7 +193,7 @@ class TargetJVMVersionOnPluginTooNewFailureDescriberIntegrationTest extends Abst
         failure.assertHasResolution("Run this build using a Java $tooHighJava or newer JVM.")
     }
 
-    @Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "must run with specific JDK that may differ from the current test JDK")
+    @Requires(value = [ TestExecutionPreconditions.NotEmbeddedExecutor, InstalledJdkTestPreconditions.JavaHomeWithDifferentVersionAvailable ], reason = "must run with specific JDK that may differ from the current test JDK")
     def 'JVM version too low uses custom error message for plugin when using composite build'() {
         given:
         def currentJdk = Jvm.current()
@@ -260,7 +261,7 @@ class TargetJVMVersionOnPluginTooNewFailureDescriberIntegrationTest extends Abst
 
         then:
         failure.assertHasErrorOutput("""> Could not resolve all dependencies for configuration 'classpath'.
-   > Could not resolve project :producer.
+   > Could not resolve project ':producer'.
      Required by:
          buildscript of root project 'consumer'
       > Dependency requires at least JVM runtime version ${higherVersion.javaVersion.majorVersion}. This build uses a Java ${lowerVersion.javaVersion.majorVersion} JVM.""")

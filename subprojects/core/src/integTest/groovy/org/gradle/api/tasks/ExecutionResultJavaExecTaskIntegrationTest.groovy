@@ -28,7 +28,7 @@ class ExecutionResultJavaExecTaskIntegrationTest extends AbstractExecutionResult
                 id("java")
             }
 
-            task run(type: JavaExec) {
+            def run = tasks.register("run", JavaExec) {
                 classpath = project.layout.files(compileJava)
                 mainClass = "driver.Driver"
                 args "1"
@@ -61,11 +61,6 @@ class ExecutionResultJavaExecTaskIntegrationTest extends AbstractExecutionResult
         """)
     }
 
-    @Override
-    protected String getTaskNameUnderTest() {
-        return "run"
-    }
-
     private static String mainClass(String body) {
         return """
             package driver;
@@ -79,10 +74,5 @@ class ExecutionResultJavaExecTaskIntegrationTest extends AbstractExecutionResult
                 }
             }
         """
-    }
-
-    @Override
-    protected String getExecResultDsl() {
-        return "${taskUnderTestDsl}.executionResult.getOrNull()"
     }
 }

@@ -16,13 +16,13 @@
 
 package org.gradle.testing.testng
 
+import org.gradle.api.internal.tasks.testing.report.VerifiesGenericTestReportResults
+import org.gradle.api.tasks.testing.TestResult
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 
-import static org.hamcrest.CoreMatchers.containsString
+import static org.hamcrest.Matchers.containsString
 
-class TestNGPreserveOrderNotSupportedIntegrationTest extends AbstractIntegrationSpec {
-
+class TestNGPreserveOrderNotSupportedIntegrationTest extends AbstractIntegrationSpec implements VerifiesGenericTestReportResults {
     def "run tests using TestNG version not supporting preserveOrder"() {
         given:
         buildFile << """
@@ -46,8 +46,12 @@ class TestNGPreserveOrderNotSupportedIntegrationTest extends AbstractIntegration
         fails "test"
 
         then:
-        def result = new DefaultTestExecutionResult(testDirectory)
-        result.testClassStartsWith('Gradle Test Executor').assertExecutionFailedWithCause(
-            containsString("Preserving the order of tests is not supported by this version of TestNG."))
+        def result = resultsFor()
+        result.assertTestPathsExecuted(":")
+        result.testPath(':').onlyRoot()
+            .assertHasResult(TestResult.ResultType.FAILURE)
+            .assertFailureMessages(containsString(
+                "Preserving the order of tests is not supported by this version of TestNG."
+            ))
     }
 }

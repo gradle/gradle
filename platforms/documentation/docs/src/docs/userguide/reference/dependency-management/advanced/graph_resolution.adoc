@@ -17,6 +17,7 @@
 
 During the _graph resolution_ phase, Gradle constructs a *resolved dependency graph*, which models the relationships between different components and their variants.
 
+[[sec:modules]]
 == Modules
 
 Graph resolution begins with *dependencies* declared in the build script:
@@ -40,6 +41,7 @@ Each version of a *module* is referred to as a *component*.
 
 In the example above for the link:https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-databind/2.17.2[`com.fasterxml.jackson.core:jackson-databind:2.17.2`] *module*, `2.17.2` is the version.
 
+[[sec:metadata]]
 == Metadata
 
 A *component* is detailed by *metadata*, which is available in the repository where the *component* is hosted as a `ivy`, `pom`, or link:https://repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-databind/2.17.2/jackson-databind-2.17.2.module[`GMM`] metadata.
@@ -91,6 +93,7 @@ Here’s a condensed sample of the *metadata* for link:https://repo1.maven.org/m
 Some items in the file should be familiar to you such as "files", "dependencies", "components", "module" and "version".
 Let's focus on the *variants* provided in the *metadata*.
 
+[[sec:variants]]
 == Variants
 
 A *variant* is a specific variation of a *component* tailored for a particular use case or environment.
@@ -126,6 +129,7 @@ Each *variant* consists of a set of *artifacts* and defines a set of *dependenci
 
 To differentiate between the `apiElements` and `runtimeElements` variants, Gradle uses *attributes*.
 
+[[sec:attributes]]
 == Attributes
 
 To differentiate between *variants*, Gradle uses *attributes*.
@@ -155,6 +159,7 @@ In the *metadata* for Jackson Databind, we see that the `runtimeElements` *varia
 
 Now that we understand the building blocks for dependency management, let's look into graph resolution.
 
+[[sec:dependency_graph]]
 == Dependency Graph
 
 Gradle builds a dependency graph that represents a configuration's *dependencies* and their relationships.
@@ -166,12 +171,13 @@ The edges indicate how one *variant* relies on another.
 
 The `dependencies` task can be used to _partially_ visualize the structure of a dependency graph:
 
-[source,text]
+[source,bash]
 ----
 $ ./gradlew app:dependencies
-
-[...]
-
+----
+[source,text]
+----
+...
 runtimeClasspath - Runtime classpath of source set 'main'.
 \--- com.fasterxml.jackson.core:jackson-databind:2.17.2
      +--- com.fasterxml.jackson.core:jackson-annotations:2.17.2
@@ -193,6 +199,7 @@ In the example above, the resolvable configuration, `compileClasspath` could res
 
 So how does Gradle build the dependency graph?
 
+[[sec:graph_resolution_flow]]
 == Graph Resolution Flow
 
 Graph resolution operates on a _node-by-node_ (i.e., *variant*-by-*variant*) basis.
@@ -349,20 +356,22 @@ A. **Determining existing versions for dynamic dependencies**: When a dynamic ve
 
 B. **Resolving module dependencies for a specific version**: Gradle retrieves the dependencies associated with a module based on the specified version, ensuring the correct transitive dependencies are included in the build.
 
+[[sec:determining_existing_versions_for_dynamic_dependencies]]
 === A. Determining existing versions for dynamic dependencies
 
-When faced with a dynamic version, Gradle must identify the available concrete versions through the following steps:
+When faced with a dynamic version, Gradle must identify the available concrete versions.
+To do that, Gradle checks each defined repository in the order they were added.
+It doesn't stop at the first one that returns metadata but continues through all available repositories.
 
-1. **Inspecting repositories**: Gradle checks each defined repository in the order they were added. It doesn't stop at the first one that returns metadata but continues through all available repositories.
+For **Maven repositories**, Gradle retrieves version information from the `maven-metadata.xml` file, which lists available versions.
 
-2. **Maven repositories**: Gradle retrieves version information from the `maven-metadata.xml` file, which lists available versions.
-
-3. **Ivy repositories**: Gradle resorts to a directory listing to gather available versions.
+For **Ivy repositories**, Gradle resorts to a directory listing to gather available versions.
 
 The result is a list of candidate versions that Gradle evaluates and matches to the dynamic version.
 Gradle <<dependency_caching.adoc#sec:controlling-dynamic-version-caching,caches>> this information to optimize future resolution.
 At this point, <<#sec:resolution-strategy,version conflict resolution>> is resumed.
 
+[[sec:resolving_module_dependencies_for_a_specific_version]]
 === B. Resolving module dependencies for a specific version
 
 When Gradle tries to resolve a required dependency with a specific version, it follows this process:
@@ -384,11 +393,20 @@ The point above highlights a potential issue with integrating <<supported_reposi
 [[sec:repository-disabling]]
 === Repository disabling
 
-When Gradle fails to retrieve information from a repository, it disables the repository for the remainder of the build and fails all dependency resolution.
+When Gradle fails to retrieve information from a repository after multiple retries or specific fatal errors, the repository will no longer be checked for the remainder of the build.
+This will usually fail dependency resolution because Gradle will not continue to the next repository in the list unless told otherwise.
 
 This behavior ensures reproducibility.
 
 If the build were to continue while ignoring the faulty repository, subsequent builds could produce different results once the repository is back online.
+
+Reasons for disabling a repository include:
+
+* https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/net/UnknownHostException.html[Unknown host] errors
+* Reaching max retry attempts on transient connection failures, https://hc.apache.org/httpclient-legacy/exception-handling.html#org_apache_commons_httpclient_NoHttpResponseException[like a server failing to respond]
+* Getting https://en.wikipedia.org/wiki/List_of_HTTP_status_codes#5xx_server_error[HTTP 5xx responses] from the server
+
+If your build setup relies on a repository that may be temporarily unavailable, see link:{javadocPath}/org/gradle/api/artifacts/repositories/UrlArtifactRepository.html#getAllowInsecureContinueWhenDisabled()[`UrlArtifactRepository.getAllowInsecureContinueWhenDisabled()`] to allow Gradle to continue using other repositories even when that one encounters issues.
 
 [[sub:http-retries]]
 ==== HTTP Retries
@@ -428,8 +446,8 @@ Callbacks are notified for each node and edge in the graph.
 This function can be used as a base for any use case that requires traversing a dependency graph:
 
 ====
-include::sample[dir="snippets/dependencyManagement/performingResolution-resolutionResult/kotlin",files="build.gradle.kts[tags=graph-traversal-function]"]
-include::sample[dir="snippets/dependencyManagement/performingResolution-resolutionResult/groovy",files="build.gradle[tags=graph-traversal-function]"]
+include::sample[dir="snippets/reference/dependency-management/advanced/performingResolution-resolutionResult/kotlin",files="build.gradle.kts[tags=graph-traversal-function]"]
+include::sample[dir="snippets/reference/dependency-management/advanced/performingResolution-resolutionResult/groovy",files="build.gradle[tags=graph-traversal-function]"]
 ====
 
 This function starts at the root variant, and performs a breadth-first traversal of the graph.
@@ -439,8 +457,8 @@ With this function, the node callback is always called before the edge callback 
 Below, we leverage the above traversal function to transform a dependency graph into a `.dot` file for visualization:
 
 ====
-include::sample[dir="snippets/dependencyManagement/performingResolution-resolutionResult/kotlin",files="build.gradle.kts[tags=define-graph-traversal-task]"]
-include::sample[dir="snippets/dependencyManagement/performingResolution-resolutionResult/groovy",files="build.gradle[tags=define-graph-traversal-task]"]
+include::sample[dir="snippets/reference/dependency-management/advanced/performingResolution-resolutionResult/kotlin",files="build.gradle.kts[tags=define-graph-traversal-task]"]
+include::sample[dir="snippets/reference/dependency-management/advanced/performingResolution-resolutionResult/groovy",files="build.gradle[tags=define-graph-traversal-task]"]
 ====
 
 NOTE: A proper implementation would not use `println` but would write to an output file. For more details on declaring task inputs and outputs, see the <<writing_tasks_intermediate.adoc#writing_tasks,Writing Tasks>> section.
@@ -448,24 +466,26 @@ NOTE: A proper implementation would not use `println` but would write to an outp
 When we register the task, we use the `ResolutionResult` API to access the root component and root variant of the `runtimeClasspath` configuration:
 
 ====
-include::sample[dir="snippets/dependencyManagement/performingResolution-resolutionResult/kotlin",files="build.gradle.kts[tags=register-graph-traversal-task]"]
-include::sample[dir="snippets/dependencyManagement/performingResolution-resolutionResult/groovy",files="build.gradle[tags=register-graph-traversal-task]"]
+include::sample[dir="snippets/reference/dependency-management/advanced/performingResolution-resolutionResult/kotlin",files="build.gradle.kts[tags=register-graph-traversal-task]"]
+include::sample[dir="snippets/reference/dependency-management/advanced/performingResolution-resolutionResult/groovy",files="build.gradle[tags=register-graph-traversal-task]"]
 ====
 
 NOTE: This example uses incubating APIs.
 
 Running this task, we get the following output:
 
+[source,text]
 ----
-include::{snippetsPath}/dependencyManagement/performingResolution-resolutionResult/tests/dot.out[]
+include::{snippetsPath}/reference/dependency-management/advanced/performingResolution-resolutionResult/tests/dot.out[]
 ----
 
 image::dep-man-adv-3.png[]
 
 Compare this to the output of the `dependencies` task:
 
+[source,text]
 ----
-include::{snippetsPath}/dependencyManagement/performingResolution-resolutionResult/tests/dependencies.out[]
+include::{snippetsPath}/reference/dependency-management/advanced/performingResolution-resolutionResult/tests/dependencies.out[]
 ----
 
 Notice how the graph is the same for both representations, the only difference it the chosen *variant* information available in the dot graph.

@@ -19,12 +19,10 @@ package org.gradle.integtests.resolve.api
 import org.gradle.api.internal.artifacts.configurations.ConfigurationRoles
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ConfigurationUsageChangingFixture
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import spock.lang.Issue
 
 class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec implements ConfigurationUsageChangingFixture {
     // region Roleless (Implicit LEGACY Role) Configurations
-    @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
     def "default usage for roleless configuration is to allow anything"() {
         given:
         buildFile << """
@@ -32,20 +30,16 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
                 custom
             }
 
-            tasks.register('checkConfUsage') {
-                doLast {
-                    assert configurations.custom.canBeConsumed
-                    assert configurations.custom.canBeResolved
-                    assert configurations.custom.canBeDeclared
-                    assert !configurations.custom.deprecatedForConsumption
-                    assert !configurations.custom.deprecatedForResolution
-                    assert !configurations.custom.deprecatedForDeclarationAgainst
-                }
-            }
+            assert configurations.custom.canBeConsumed
+            assert configurations.custom.canBeResolved
+            assert configurations.custom.canBeDeclared
+            assert !configurations.custom.deprecatedForConsumption
+            assert !configurations.custom.deprecatedForResolution
+            assert !configurations.custom.deprecatedForDeclarationAgainst
         """
 
         expect:
-        succeeds('checkConfUsage')
+        succeeds('help')
     }
 
     def "can create configuration named #configuration with same legacy behavior"() {
@@ -282,7 +276,6 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
         """
 
         expect:
-        executer.noDeprecationChecks() // These are checked in the other tests, and there would be many of them here
         succeeds 'help'
     }
 
@@ -455,9 +448,9 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
         """
 
         when: "the build fails"
-        // archives is now deprecated for all usages, so the error contains the word "deprecated", so we disable deprecation checks to avoid
-        // a post-execution error that a deprecation warning may appear in the output
-        executer.noDeprecationChecks()
+        if (configuration == "archives") {
+            executer.noDeprecationChecks() // False positive since failure message contains "deprecated"
+        }
         fails 'help'
 
         then:
@@ -489,9 +482,9 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
         """
 
         when: "the build fails because the configuration is not allowed to change"
-        // archives is now deprecated for all usages, so the error contains the word "deprecated", so we disable deprecation checks to avoid
-        // a post-execution error that a deprecation warning may appear in the output
-        executer.noDeprecationChecks()
+        if (configuration == "archives") {
+            executer.noDeprecationChecks() // False positive since failure message contains "deprecated"
+        }
         fails 'help'
 
         then:
@@ -601,7 +594,6 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
                 canBeResolved = !canBeResolved
             }
         """
-        executer.noDeprecationChecks()
 
         expect:
         fails 'help'

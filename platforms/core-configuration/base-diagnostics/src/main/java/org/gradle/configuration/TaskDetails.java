@@ -20,6 +20,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
+import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.internal.tasks.TaskProvenanceUtil;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.tasks.TaskOptionsGenerator;
 import org.gradle.api.internal.tasks.options.OptionDescriptor;
@@ -85,15 +87,20 @@ class TaskDetails {
 
     private final String shortTypeName;
 
+    @Nullable
     private final String description;
 
+    @Nullable
     private final String group;
 
     private final int projectDepth;
 
     private final List<OptionDetails> options;
 
-    private TaskDetails(String path, String taskType, String shortTypeName, @Nullable String description, @Nullable String group, int projectDepth, List<OptionDetails> options) {
+    @Nullable
+    private final String provenance;
+
+    private TaskDetails(String path, String taskType, String shortTypeName, @Nullable String description, @Nullable String group, int projectDepth, List<OptionDetails> options, @Nullable String provenance) {
         this.path = path;
         this.taskType = taskType;
         this.shortTypeName = shortTypeName;
@@ -101,6 +108,7 @@ class TaskDetails {
         this.group = group;
         this.projectDepth = projectDepth;
         this.options = options;
+        this.provenance = provenance;
     }
 
     /**
@@ -136,6 +144,11 @@ class TaskDetails {
         return options;
     }
 
+    @Nullable
+    public String getProvenance() {
+        return provenance;
+    }
+
     public static TaskDetails from(Task task, OptionReader optionReader) {
         String path = task.getPath();
         int projectDepth = StringUtils.countMatches(path, Project.PATH_SEPARATOR);
@@ -143,7 +156,7 @@ class TaskDetails {
         Class<?> declaredTaskType = getDeclaredTaskType(task);
         String taskType = declaredTaskType.getName();
         String shortTypeName = declaredTaskType.getSimpleName();
-        return new TaskDetails(path, taskType, shortTypeName, task.getDescription(), task.getGroup(), projectDepth, options);
+        return new TaskDetails(path, taskType, shortTypeName, task.getDescription(), task.getGroup(), projectDepth, options, TaskProvenanceUtil.getProvenance((TaskInternal) task).orElse(null));
     }
 
     private static Class<?> getDeclaredTaskType(Task original) {

@@ -28,7 +28,7 @@ import org.gradle.nativeplatform.fixtures.app.SwiftLibWithCppDepXCTest
 import org.gradle.test.fixtures.file.DoesNotSupportNonAsciiPaths
 import org.gradle.test.precondition.Requires
 
-import static org.gradle.test.preconditions.UnitTestPreconditions.HasXCTest
+import static org.gradle.test.preconditions.TestEnvironmentPreconditions.HasXCTest
 
 @DoesNotSupportNonAsciiPaths(reason = "Swift sometimes fails when executed from non-ASCII directory")
 @Requires(HasXCTest)

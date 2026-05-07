@@ -25,6 +25,7 @@ import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.project.IProjectFactory
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectState
+import org.gradle.api.problems.ProblemReporter
 import org.gradle.internal.build.BuildProjectRegistry
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.service.DefaultServiceRegistry
@@ -101,11 +102,9 @@ class InstantiatingBuildLoaderTest extends Specification {
 
         then:
         1 * rootProjectState.createMutableModel(rootProjectClassLoaderScope, baseProjectClassLoaderScope)
-        _ * rootProjectState.mutableModel >> rootProject
 
         and:
-        1 * gradle.setRootProject(rootProject)
-        1 * gradle.setDefaultProject(rootProject)
+        1 * gradle.setDefaultProjectState(rootProjectState)
     }
 
     def createsBuildWithMultipleProjectsAndNotRootDefaultProject() {
@@ -113,28 +112,25 @@ class InstantiatingBuildLoaderTest extends Specification {
         def childProjectState = Mock(ProjectState)
         def childProjectClassLoaderScope = Mock(ClassLoaderScope)
         settingsInternal.defaultProject >> childDescriptor
-        buildProjectRegistry.getProject(_) >> childProjectState
-        childProjectState.mutableModel >> childProject
+        buildProjectRegistry.getProject(Path.path(':child')) >> childProjectState
 
         when:
         buildLoader.load(settingsInternal, gradle)
 
         then:
         1 * rootProjectClassLoaderScope.createChild(_, _) >> childProjectClassLoaderScope
-        1 * rootProjectState.mutableModel >> rootProject
         1 * rootProjectState.createMutableModel(rootProjectClassLoaderScope, baseProjectClassLoaderScope)
         1 * childProjectState.createMutableModel(childProjectClassLoaderScope, baseProjectClassLoaderScope)
 
         and:
-        1 * gradle.setRootProject(rootProject)
-        1 * gradle.setDefaultProject(childProject)
+        1 * gradle.setDefaultProjectState(childProjectState)
 
         and:
         rootProject.childProjects['child'] == childProject
     }
 
     ProjectDescriptorInternal descriptor(String name, ProjectDescriptorInternal parent, File projectDir) {
-        new DefaultProjectDescriptor(parent, name, projectDir, projectDescriptorRegistry, TestFiles.resolver(rootProjectDir))
+        new DefaultProjectDescriptor(parent, name, projectDir, projectDescriptorRegistry, TestFiles.resolver(rootProjectDir), Stub(ProblemReporter))
     }
 
     ProjectInternal project(ProjectDescriptor descriptor, ProjectInternal parent) {

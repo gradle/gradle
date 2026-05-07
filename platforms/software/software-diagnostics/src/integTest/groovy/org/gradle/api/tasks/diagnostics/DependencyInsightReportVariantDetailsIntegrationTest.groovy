@@ -22,7 +22,6 @@ import org.gradle.api.JavaVersion
 import org.gradle.api.tasks.diagnostics.internal.text.StyledTable
 import org.gradle.api.tasks.diagnostics.internal.text.StyledTableUtil
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.internal.logging.text.StyledTextOutput
 
 import static org.gradle.api.tasks.diagnostics.DependencyInsightReportVariantDetailsIntegrationTest.AttributeValueTuple.of
@@ -33,7 +32,11 @@ class DependencyInsightReportVariantDetailsIntegrationTest extends AbstractInteg
 
         // detector confuses attributes with stack traces
         executer.withStackTraceChecksDisabled()
-        new ResolveTestFixture(buildFile).addDefaultVariantDerivationStrategy()
+        settingsFile << """
+            gradle.lifecycle.beforeProject { project ->
+                project.pluginManager.apply('org.gradle.jvm-ecosystem')
+            }
+        """
     }
 
     def "shows compileClasspath details"() {
@@ -57,7 +60,7 @@ class DependencyInsightReportVariantDetailsIntegrationTest extends AbstractInteg
         run "a:dependencyInsight", "--dependency", ":b", "--configuration", "compileClasspath"
 
         then:
-        outputContains """project :b
+        outputContains """project ':b'
 ${variantOf("apiElements", [
             "org.gradle.category": of("library", "library"),
             "org.gradle.dependency.bundling": of("external", "external"),
@@ -67,7 +70,7 @@ ${variantOf("apiElements", [
             "org.gradle.jvm.environment": of("", "standard-jvm"),
         ])}
 
-project :b
+project ':b'
 \\--- compileClasspath"""
     }
 
@@ -92,7 +95,7 @@ project :b
         run "a:dependencyInsight", "--dependency", ":c", "--configuration", "runtimeClasspath"
 
         then:
-        outputContains """project :c
+        outputContains """project ':c'
 ${variantOf("runtimeElements", [
             "org.gradle.category": of("library", "library"),
             "org.gradle.dependency.bundling": of("external", "external"),
@@ -102,7 +105,7 @@ ${variantOf("runtimeElements", [
             "org.gradle.jvm.environment": of("", "standard-jvm"),
         ])}
 
-project :c
+project ':c'
 \\--- runtimeClasspath"""
     }
 
@@ -134,7 +137,7 @@ project :c
 
         then:
         ['b', 'c'].each { expectedProject ->
-            result.groupedOutput.task(":a:insight").assertOutputContains """project :$expectedProject
+            result.groupedOutput.task(":a:insight").assertOutputContains """project ':$expectedProject'
 -------------------
 Selected Variant(s)
 -------------------
@@ -211,7 +214,7 @@ ${variantOf('testResultsElementsForTest', [
             ])}
 
 
-project :$expectedProject
+project ':$expectedProject'
 \\--- compileClasspath
 """
         }
@@ -245,7 +248,7 @@ project :$expectedProject
 
         then:
         ['b', 'c'].each { expectedProject ->
-            result.groupedOutput.task(":a:insight").assertOutputContains """project :$expectedProject
+            result.groupedOutput.task(":a:insight").assertOutputContains """project ':$expectedProject'
 -------------------
 Selected Variant(s)
 -------------------
@@ -322,7 +325,7 @@ ${variantOf('testResultsElementsForTest', [
             ])}
 
 
-project :$expectedProject
+project ':$expectedProject'
 \\--- runtimeClasspath
 """
         }

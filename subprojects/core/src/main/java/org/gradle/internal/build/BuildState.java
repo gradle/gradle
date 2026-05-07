@@ -98,6 +98,16 @@ public interface BuildState {
     BuildProjectRegistry getProjects();
 
     /**
+     * {@return the root project of this build}
+     *
+     * <p>
+     * This is a convenience method for {@link #getProjects()}{@code .}{@link BuildProjectRegistry#getRootProject() getRootProject()}.
+     */
+    default ProjectState getRootProject() {
+        return getProjects().getRootProject();
+    }
+
+    /**
      * Asserts that the given build can be included by this build.
      */
     void assertCanAdd(IncludedBuildSpec includedBuildSpec);
@@ -120,7 +130,7 @@ public interface BuildState {
     /**
      * Runs an action against the tooling model creators of this build. May configure the build as required.
      */
-    <T> T withToolingModels(Function<? super BuildToolingModelController, T> action);
+    <T> T withToolingModels(boolean inResilientContext, Function<? super BuildToolingModelController, T> action);
 
     /**
      * Runs whatever work is required prior to discarding the model for this build. Called prior to {@link #resetModel()}.

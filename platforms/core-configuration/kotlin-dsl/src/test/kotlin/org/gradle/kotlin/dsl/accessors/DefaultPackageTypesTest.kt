@@ -28,7 +28,7 @@ class DefaultPackageTypesTest : TestWithClassPath() {
     fun `#defaultPackageTypesIn (generic type)`() {
 
         assertThat(
-            defaultPackageTypesIn(listOf("java.util.Map<Key, Value>")),
+            defaultPackageTypesIn(listOf("java.util.Map<Key, Value>"), ClassNamesFromTypeStrings()),
             equalTo(listOf("Key", "Value"))
         )
     }
@@ -37,7 +37,7 @@ class DefaultPackageTypesTest : TestWithClassPath() {
     fun `#defaultPackageTypesIn (duplicate types)`() {
 
         assertThat(
-            defaultPackageTypesIn(listOf("java.util.Map<Value, Value>")),
+            defaultPackageTypesIn(listOf("java.util.Map<Value, Value>"), ClassNamesFromTypeStrings()),
             equalTo(listOf("Value"))
         )
     }

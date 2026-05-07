@@ -76,12 +76,27 @@ public abstract class TransformingClassLoader extends VisitableURLClassLoader {
         }
 
         String packageName = StringUtils.substringBeforeLast(name, ".");
-        @SuppressWarnings("deprecation")
         Package p = getPackage(packageName);
         if (p == null) {
-            definePackage(packageName, null, null, null, null, null, null, null);
+            try {
+                definePackage(packageName, null, null, null, null, null, null, null);
+            } catch (IllegalArgumentException iae) {
+                // Another thread has beaten us while trying to register this package.
+                // All do it with the same parameters so we can just keep going.
+                // Let's still check that the package is there, just in case.
+                if (getPackage(packageName) == null) {
+                    // This should never happen.
+                    throw new AssertionError("Package '" + packageName + "' cannot be defined but is not registered either in " + this, iae);
+                }
+            }
         }
         return defineClass(name, bytes, 0, bytes.length, codeSource);
+    }
+
+    @Override
+    @SuppressWarnings("deprecation") // We still need to support Java 8 where non-deprecated version is not available.
+    protected @Nullable Package getPackage(String name) {
+        return super.getPackage(name);
     }
 
     protected byte @Nullable [] generateMissingClass(String name) {

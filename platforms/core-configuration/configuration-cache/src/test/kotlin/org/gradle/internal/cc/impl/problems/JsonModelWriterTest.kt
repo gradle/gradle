@@ -57,7 +57,7 @@ class JsonModelWriterTest {
                 ).writeToJson(this.modelWriter)
                 endModel(
                     ProblemReportDetailsJsonSource(
-                        ProblemReportDetails("", "", StructuredMessage.forText(""), "", 0)
+                        ProblemReportDetails("", "", StructuredMessage.forText(""), "", 0, 0, 0)
                     )
                 )
             },

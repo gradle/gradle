@@ -30,19 +30,21 @@ import static org.gradle.integtests.fixtures.SuggestionsMessages.STACKTRACE_MESS
  * should not be required.
  */
 class DependencyConstraintsAndResolutionStrategiesIntegrationTest extends AbstractIntegrationSpec {
-    private final ResolveTestFixture resolve = new ResolveTestFixture(buildFile, "conf").expectDefaultConfiguration("runtime")
+    private final ResolveTestFixture resolve = new ResolveTestFixture(testDirectory)
 
     def setup() {
         settingsFile << "rootProject.name = 'test'"
-        resolve.prepare()
-        resolve.addDefaultVariantDerivationStrategy()
         buildFile << """
+            plugins {
+                id("jvm-ecosystem")
+            }
             repositories {
                 maven { url = "${mavenRepo.uri}" }
             }
             configurations {
                 conf
             }
+            ${resolve.configureProject("conf")}
         """
         def foo11 = mavenRepo.module("org", "foo", '1.0').publish()
         mavenRepo.module("org", "foo", '1.1').publish()

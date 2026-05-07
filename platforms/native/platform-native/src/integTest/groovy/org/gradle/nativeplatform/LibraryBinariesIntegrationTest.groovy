@@ -18,10 +18,11 @@ package org.gradle.nativeplatform
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.TestEnvironmentPreconditions
+
 import spock.lang.Issue
 
-@Requires(UnitTestPreconditions.CanInstallExecutable)
+@Requires(TestEnvironmentPreconditions.CanInstallExecutable)
 class LibraryBinariesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     def "setup"() {
         settingsFile << "rootProject.name = 'test'"

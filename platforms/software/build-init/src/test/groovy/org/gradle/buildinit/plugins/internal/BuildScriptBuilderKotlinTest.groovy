@@ -17,6 +17,7 @@ package org.gradle.buildinit.plugins.internal
 
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.util.GradleVersion
 
 import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl.KOTLIN
 
@@ -157,7 +158,7 @@ repositories {
     def "can add compile dependencies"() {
         when:
         builder.implementationDependency("Use slf4j", BuildInitDependency.of("org.slf4j:slf4j-api", "2.7"), BuildInitDependency.of("org.slf4j:slf4j-simple", "2.7"))
-        builder.implementationDependency(null, BuildInitDependency.of("a:b", "1.2"), BuildInitDependency.of("a:c", "4.5"))
+        builder.implementationDependency(null, BuildInitDependency.of("a:b", "1.2"), BuildInitDependency.of("a", "c", "4.5", [new BuildInitDependency.DependencyExclusion("a", "e")]))
         builder.implementationDependency(null, BuildInitDependency.of("a:d", "4.5"))
         builder.implementationDependency("Use Scala to compile", BuildInitDependency.of("org.scala-lang:scala-library", "2.10"))
         builder.create(target).generate()
@@ -173,7 +174,10 @@ dependencies {
     implementation("org.slf4j:slf4j-simple:2.7")
 
     implementation("a:b:1.2")
-    implementation("a:c:4.5")
+    implementation("a:c:4.5") {
+        // TODO: This exclude was sourced from a POM exclusion and is NOT exactly equivalent, see: https://docs.gradle.org/${GradleVersion.current().version}/userguide/build_init_plugin.html#sec:pom_maven_conversion
+        exclude(mapOf("group" to "a", "module" to "e"))
+    }
     implementation("a:d:4.5")
 
     // Use Scala to compile
@@ -357,7 +361,7 @@ other {
  */
 
 // Add some thing
-val e1 by foo.bar.creating {
+val e1 = foo.bar.create("e1") {
 }
 
 val someElement = foo.bar.create("e2") {
@@ -393,15 +397,15 @@ prop2 = someElement.outputDir
 // Add some thing
 foo {
     // Element 1
-    val one by bar.creating {
+    val one = bar.create("one") {
         value = "bazar"
 
-        val oneNested by nested.creating {
+        val oneNested = nested.create("oneNested") {
         }
     }
 
     // Element 2
-    val two by bar.creating {
+    val two = bar.create("two") {
     }
 
     // Use value

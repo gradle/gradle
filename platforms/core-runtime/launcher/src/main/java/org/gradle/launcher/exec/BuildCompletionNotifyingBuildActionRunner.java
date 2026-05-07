@@ -22,6 +22,11 @@ import org.gradle.internal.buildtree.BuildActionRunner;
 import org.gradle.internal.buildtree.BuildTreeLifecycleController;
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager;
 import org.gradle.internal.invocation.BuildAction;
+import org.gradle.internal.operations.BuildOperationContext;
+import org.gradle.internal.operations.BuildOperationDescriptor;
+import org.gradle.internal.operations.BuildOperationRunner;
+import org.gradle.internal.operations.BuildOperationType;
+import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.problems.failure.Failure;
 import org.gradle.internal.problems.failure.FailureFactory;
 import org.jspecify.annotations.Nullable;
@@ -29,10 +34,13 @@ import org.jspecify.annotations.Nullable;
 import java.util.Collections;
 import java.util.List;
 
+import static org.gradle.launcher.exec.BuildCompletionNotifyingBuildActionRunner.DevelocityPluginBuildFinishedBuildOperationType.DETAILS;
+
 /**
  * An {@link BuildActionRunner} that notifies the GE plugin manager that the build has completed.
  */
 public class BuildCompletionNotifyingBuildActionRunner implements BuildActionRunner {
+    private final BuildOperationRunner buildOperationRunner;
     private final BuildActionRunner delegate;
     private final GradleEnterprisePluginManager gradleEnterprisePluginManager;
     private final FailureFactory failureFactory;
@@ -40,10 +48,12 @@ public class BuildCompletionNotifyingBuildActionRunner implements BuildActionRun
     public BuildCompletionNotifyingBuildActionRunner(
         GradleEnterprisePluginManager gradleEnterprisePluginManager,
         FailureFactory failureFactory,
+        BuildOperationRunner buildOperationRunner,
         BuildActionRunner delegate
     ) {
         this.gradleEnterprisePluginManager = gradleEnterprisePluginManager;
         this.failureFactory = failureFactory;
+        this.buildOperationRunner = buildOperationRunner;
         this.delegate = delegate;
     }
 
@@ -68,7 +78,18 @@ public class BuildCompletionNotifyingBuildActionRunner implements BuildActionRun
         assert result.getBuildFailure() == null || result.getRichBuildFailure() != null
             : "Rich build failure must not be null when build failure is present. Build failure: " + result.getBuildFailure();
         List<Failure> unwrappedBuildFailure = unwrapBuildFailure(result.getRichBuildFailure());
-        gradleEnterprisePluginManager.buildFinished(result.getBuildFailure(), unwrappedBuildFailure);
+        buildOperationRunner.run(new RunnableBuildOperation() {
+            @Override
+            public void run(BuildOperationContext context) {
+                gradleEnterprisePluginManager.buildFinished(result.getBuildFailure(), unwrappedBuildFailure);
+            }
+
+            @Override
+            public BuildOperationDescriptor.Builder description() {
+                return BuildOperationDescriptor.displayName("Develocity plugin build finished")
+                    .details(DETAILS);
+            }
+        });
     }
 
     @Nullable
@@ -81,4 +102,21 @@ public class BuildCompletionNotifyingBuildActionRunner implements BuildActionRun
             ? richBuildFailure.getCauses()
             : Collections.singletonList(richBuildFailure);
     }
+
+    /**
+     * This build operation is for making the Develocity build finished callback visible in build operation traces.
+     *
+     * Note that currently you cannot measure this build operation in Gradle profiler, since the
+     * BuildService responsible for measuring it has already been closed when the build operation fires.
+     */
+    public interface DevelocityPluginBuildFinishedBuildOperationType extends BuildOperationType<DevelocityPluginBuildFinishedBuildOperationType.Details, DevelocityPluginBuildFinishedBuildOperationType.Result> {
+        Details DETAILS = new Details() {};
+
+        interface Details {
+        }
+
+        interface Result {
+        }
+    }
+
 }

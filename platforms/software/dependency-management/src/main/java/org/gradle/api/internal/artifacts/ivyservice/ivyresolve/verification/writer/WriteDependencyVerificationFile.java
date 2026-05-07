@@ -22,7 +22,6 @@ import org.bouncycastle.bcpg.ArmoredOutputStream;
 import org.bouncycastle.openpgp.PGPPublicKey;
 import org.bouncycastle.openpgp.PGPPublicKeyRing;
 import org.gradle.api.Action;
-import org.gradle.api.Project;
 import org.gradle.api.artifacts.ArtifactView;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
@@ -44,8 +43,7 @@ import org.gradle.api.internal.artifacts.verification.signatures.SignatureVerifi
 import org.gradle.api.internal.artifacts.verification.verifier.DependencyVerificationConfiguration;
 import org.gradle.api.internal.artifacts.verification.verifier.DependencyVerifier;
 import org.gradle.api.internal.artifacts.verification.verifier.DependencyVerifierBuilder;
-import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.invocation.Gradle;
+import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.Factory;
@@ -385,19 +383,19 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
         return !isTrustedArtifact(entry.id);
     }
 
-    private void resolveAllConfigurationsConcurrently(Gradle gradle) {
+    private void resolveAllConfigurationsConcurrently(GradleInternal gradle) {
         buildOperationExecutor.runAllWithAccessToProjectState(queue -> {
-            Set<Project> allprojects = gradle.getRootProject().getAllprojects();
-            for (Project project : allprojects) {
+            Set<? extends ProjectState> allProjects = gradle.getOwner().getProjects().getAllProjects();
+            for (ProjectState projectState : allProjects) {
                 queue.add(new RunnableBuildOperation() {
                     @Override
                     public void run(BuildOperationContext context) {
-                        resolveAllConfigurationsAndForceDownload(project);
+                        resolveAllConfigurationsAndForceDownload(projectState);
                     }
 
                     @Override
                     public BuildOperationDescriptor.Builder description() {
-                        String displayName = "Resolving configurations of " + project.getDisplayName();
+                        String displayName = "Resolving configurations of " + projectState.getDisplayName();
                         return BuildOperationDescriptor.displayName(displayName)
                             .progressDisplayName(displayName);
                     }
@@ -513,8 +511,8 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
         }
     }
 
-    private static void resolveAllConfigurationsAndForceDownload(Project project) {
-        ((ProjectInternal) project).getOwner().applyToMutableState(p ->
+    private static void resolveAllConfigurationsAndForceDownload(ProjectState projectState) {
+        projectState.applyToMutableState(p ->
             p.getConfigurations().all(cnf -> {
                 if (((DeprecatableConfiguration) cnf).canSafelyBeResolved()) {
                     try {
@@ -603,7 +601,9 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
                     List<String> userIDs = PGPUtils.getUserIDs(pk);
                     for(String uid : userIDs) {
                         hasUid = true;
-                        out.write(("uid    " + uid + "\n").getBytes(StandardCharsets.US_ASCII));
+                        // We can store UTF-8 text despite being an ASCII-armored file,
+                        // as ArmoredInputStream only cares about finding armor headers and does not otherwise care about encoding
+                        out.write(("uid    " + uid + "\n").getBytes(StandardCharsets.UTF_8));
                     }
                     if (hasUid) {
                         out.write('\n');

@@ -35,9 +35,10 @@ import org.gradle.api.internal.plugins.PluginTarget;
 import org.gradle.api.internal.plugins.PluginTargetType;
 import org.gradle.api.internal.plugins.ProjectFeatureDeclarationPluginTarget;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.problems.internal.InternalProblems;
+import org.gradle.api.problems.internal.ProblemsInternal;
 import org.gradle.configuration.ConfigurationTargetIdentifier;
 import org.gradle.initialization.DefaultProjectDescriptorRegistry;
+import org.gradle.initialization.ProjectDescriptorRegistry;
 import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.operations.BuildOperationRunner;
@@ -49,7 +50,7 @@ import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.plugin.internal.PluginScheme;
-import org.gradle.plugin.software.internal.ProjectFeatureDeclarations;
+import org.gradle.features.internal.binding.ProjectFeatureDeclarations;
 
 import java.util.List;
 
@@ -75,7 +76,7 @@ public class SettingsScopeServices implements ServiceRegistrationProvider {
         for (GradleModuleServices services : gradleModuleServiceProviders) {
             services.registerSettingsServices(registration);
         }
-        registration.add(DefaultProjectDescriptorRegistry.class);
+        registration.add(ProjectDescriptorRegistry.class, DefaultProjectDescriptorRegistry.class);
     }
 
     @Provides
@@ -104,12 +105,12 @@ public class SettingsScopeServices implements ServiceRegistrationProvider {
         CollectionCallbackActionDecorator decorator,
         DomainObjectCollectionFactory domainObjectCollectionFactory,
         PluginScheme pluginScheme,
-        ProjectFeatureDeclarations projectFeatureDeclarations,
-        InternalProblems problems
+        ProjectFeatureDeclarations projectFeatureRegistry,
+        ProblemsInternal problems
     ) {
         PluginTarget target = new ProjectFeatureDeclarationPluginTarget(
             new ImperativeOnlyPluginTarget<>(PluginTargetType.SETTINGS, settings, problems),
-            projectFeatureDeclarations,
+            projectFeatureRegistry,
             pluginScheme.getInspectionScheme(),
             problems
         );

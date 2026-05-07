@@ -209,7 +209,7 @@ public class ResolveState implements ComponentStateFactory<ComponentState> {
     }
 
     private ModuleResolveState getModule(ModuleIdentifier id, boolean rootModule) {
-        return modules.computeIfAbsent(id, mid -> new ModuleResolveState(idGenerator, id, metaDataResolver, attributesFactory, versionComparator, versionParser, selectorStateResolver, resolveOptimizations, rootModule, conflictResolution));
+        return modules.computeIfAbsent(id, mid -> new ModuleResolveState(this, id, metaDataResolver, attributesFactory, versionComparator, versionParser, selectorStateResolver, resolveOptimizations, rootModule, conflictResolution));
     }
 
     @Override
@@ -306,10 +306,6 @@ public class ResolveState implements ComponentStateFactory<ComponentState> {
         return dependencySubstitutionApplicator;
     }
 
-    PendingDependenciesVisitor newPendingDependenciesVisitor() {
-        return new DefaultPendingDependenciesVisitor(this);
-    }
-
     @Nullable
     ResolvedVersionConstraint resolveVersionConstraint(ComponentSelector selector) {
         if (selector instanceof ModuleComponentSelector) {
@@ -400,5 +396,10 @@ public class ResolveState implements ComponentStateFactory<ComponentState> {
         //  Are they up-to-date? We should be able to test if these values are still optimal.
         int estimate = (int) (512 * Math.log(numDependencies));
         return Math.max(10, estimate);
+    }
+
+    @Override
+    public String toString() {
+        return root.getDisplayName() + " resolve state";
     }
 }

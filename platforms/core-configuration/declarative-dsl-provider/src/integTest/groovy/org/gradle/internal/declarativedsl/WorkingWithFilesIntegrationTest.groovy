@@ -16,17 +16,23 @@
 
 package org.gradle.internal.declarativedsl
 
-import org.gradle.api.internal.plugins.BuildModel
-import org.gradle.api.internal.plugins.Definition
+import org.gradle.api.file.Directory
+import org.gradle.api.file.DirectoryProperty
+import org.gradle.api.file.RegularFile
+import org.gradle.api.file.RegularFileProperty
+import org.gradle.features.internal.TestScenarioFixture
+import org.gradle.features.internal.builders.JavaBeanStyle
+import org.gradle.features.internal.builders.TypeShape
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.polyglot.PolyglotDslTest
 import org.gradle.integtests.fixtures.polyglot.PolyglotTestFixture
 import org.gradle.integtests.fixtures.polyglot.SkipDsl
-import org.gradle.internal.declarativedsl.settings.ProjectTypeFixture
 import org.gradle.test.fixtures.dsl.GradleDsl
+import org.gradle.test.fixtures.plugin.PluginBuilder
 
 @PolyglotDslTest
-class WorkingWithFilesIntegrationTest extends AbstractIntegrationSpec implements ProjectTypeFixture, PolyglotTestFixture {
+@SkipDsl(dsl = GradleDsl.GROOVY, because = "Groovy DSL is not supported for declarative configuration")
+class WorkingWithFilesIntegrationTest extends AbstractIntegrationSpec implements TestScenarioFixture, PolyglotTestFixture {
 
     def setup() {
         file("gradle.properties") << """
@@ -36,15 +42,7 @@ class WorkingWithFilesIntegrationTest extends AbstractIntegrationSpec implements
 
     def 'set single value: #name (set defaults: #setDefaults) (set values: #setValues)'() {
         given:
-        def projectType = new ProjectTypePluginClassBuilder().withoutConventions()
-        def settingsBuilder = new SettingsPluginClassBuilder()
-            .registersProjectType(projectType.projectTypePluginClassName)
-
-        withProjectTypePlugins(
-            definition as ProjectTypeDefinitionClassBuilder,
-            projectType,
-            settingsBuilder
-        ).prepareToExecute()
+        scenario.buildScenario(this).prepareToExecute()
 
         def defaultsConfig = """
             defaults {
@@ -63,39 +61,36 @@ class WorkingWithFilesIntegrationTest extends AbstractIntegrationSpec implements
         buildFileForProject("a") << getProjectFileContent(setValues ? projectTypeConfig : "") << DeclarativeTestUtils.nonDeclarativeSuffixForKotlinDsl
         buildFileForProject("b") << getProjectFileContent(setValues ? projectTypeConfig : "") << DeclarativeTestUtils.nonDeclarativeSuffixForKotlinDsl
 
+        def expectedNamePrefix = setValues ? "some" : "default"
+
         when:
-        run("printTestProjectTypeDefinitionConfiguration")
+        run("a:printTestProjectTypeDefinitionConfiguration")
 
         then:
-        def expectedNamePrefix = setValues ? "some" : "default"
         assertThatDeclaredValuesAreSetProperly("a", expectedNamePrefix)
+
+        when:
+        run("b:printTestProjectTypeDefinitionConfiguration")
+
+        then:
         assertThatDeclaredValuesAreSetProperly("b", expectedNamePrefix)
 
         where:
-        definition                                                  | name                                             | setDefaults | setValues
-        new DefinitionWithFileSystemLocationProperties()            | "DirectoryProperty & RegularFileProperty"        | false       | true
-        new DefinitionWithFileSystemLocationProperties()            | "DirectoryProperty & RegularFileProperty"        | true        | false
-        new DefinitionWithFileSystemLocationProperties()            | "DirectoryProperty & RegularFileProperty"        | true        | true
-        new DefinitionWithPropertiesOfFileSystemLocations()         | "Property<Directory> & Property<RegularFile>"    | false       | true
-        new DefinitionWithPropertiesOfFileSystemLocations()         | "Property<Directory> & Property<RegularFile>"    | true        | false
-        new DefinitionWithPropertiesOfFileSystemLocations()         | "Property<Directory> & Property<RegularFile>"    | true        | true
-        new DefinitionWithJavaBeanPropertiesOfFileSystemLocations() | "Directory and RegularFile Java Bean properties" | false       | true
-        new DefinitionWithJavaBeanPropertiesOfFileSystemLocations() | "Directory and RegularFile Java Bean properties" | true        | false
-        new DefinitionWithJavaBeanPropertiesOfFileSystemLocations() | "Directory and RegularFile Java Bean properties" | true        | true
+        scenario                           | name                                             | setDefaults | setValues
+        fileSystemLocationProperties()     | "DirectoryProperty & RegularFileProperty"        | false       | true
+        fileSystemLocationProperties()     | "DirectoryProperty & RegularFileProperty"        | true        | false
+        fileSystemLocationProperties()     | "DirectoryProperty & RegularFileProperty"        | true        | true
+        propertiesOfFileSystemLocations()  | "Property<Directory> & Property<RegularFile>"    | false       | true
+        propertiesOfFileSystemLocations()  | "Property<Directory> & Property<RegularFile>"    | true        | false
+        propertiesOfFileSystemLocations()  | "Property<Directory> & Property<RegularFile>"    | true        | true
+        javaBeanFileSystemLocations()      | "Directory and RegularFile Java Bean properties" | false       | true
+        javaBeanFileSystemLocations()      | "Directory and RegularFile Java Bean properties" | true        | false
+        javaBeanFileSystemLocations()      | "Directory and RegularFile Java Bean properties" | true        | true
     }
 
-    @SkipDsl(dsl = GradleDsl.GROOVY, because = "Groovy doesn't have the `listOf(...)` function")
     def 'set multi value: #name (set defaults: #setDefaults) (set values: #setValues)'() {
         given:
-        def projectType = new ProjectTypePluginClassBuilder().withoutConventions()
-        def settingsBuilder = new SettingsPluginClassBuilder()
-            .registersProjectType(projectType.projectTypePluginClassName)
-
-        withProjectTypePlugins(
-            definition as ProjectTypeDefinitionClassBuilder,
-            projectType,
-            settingsBuilder
-        ).prepareToExecute()
+        fileSystemLocationListProperties().buildScenario(this).prepareToExecute()
 
         def defaultsConfig = """
             defaults {
@@ -114,34 +109,31 @@ class WorkingWithFilesIntegrationTest extends AbstractIntegrationSpec implements
         buildFileForProject("a") << getProjectFileContent(setValues ? projectTypeConfig : "") << DeclarativeTestUtils.nonDeclarativeSuffixForKotlinDsl
         buildFileForProject("b") << getProjectFileContent(setValues ? projectTypeConfig : "") << DeclarativeTestUtils.nonDeclarativeSuffixForKotlinDsl
 
+        def expectedNamePrefix = setValues ? "some" : "default"
+
         when:
-        run("printTestProjectTypeDefinitionConfiguration")
+        run("a:printTestProjectTypeDefinitionConfiguration")
 
         then:
-        def expectedNamePrefix = setValues ? "some" : "default"
         assertThatDeclaredListValuesAreSetProperly("a", expectedNamePrefix)
+
+        when:
+        run("b:printTestProjectTypeDefinitionConfiguration")
+
+        then:
         assertThatDeclaredListValuesAreSetProperly("b", expectedNamePrefix)
 
         where:
-        definition                                           | name                                                  | setDefaults | setValues
-        new DefinitionWithFileSystemLocationListProperties() | "ListProperty<Directory> & ListProperty<RegularFile>" | false       | true
-        new DefinitionWithFileSystemLocationListProperties() | "ListProperty<Directory> & ListProperty<RegularFile>" | true        | false
-        new DefinitionWithFileSystemLocationListProperties() | "ListProperty<Directory> & ListProperty<RegularFile>" | true        | true
+        name                                                  | setDefaults | setValues
+        "ListProperty<Directory> & ListProperty<RegularFile>" | false       | true
+        "ListProperty<Directory> & ListProperty<RegularFile>" | true        | false
+        "ListProperty<Directory> & ListProperty<RegularFile>" | true        | true
     }
 
     @SkipDsl(dsl = GradleDsl.KOTLIN, because = "Test is specific to the Declarative DSL")
-    @SkipDsl(dsl = GradleDsl.GROOVY, because = "Test is specific to the Declarative DSL")
     def "using a read-only property by mistake gives a helpful error message for #name (set defaults: #setDefaults)"() {
         given:
-        def projectType = new ProjectTypePluginClassBuilder().withoutConventions()
-        def settingsBuilder = new SettingsPluginClassBuilder()
-            .registersProjectType(projectType.projectTypePluginClassName)
-
-        withProjectTypePlugins(
-            definition as ProjectTypeDefinitionClassBuilder,
-            projectType,
-            settingsBuilder
-        ).prepareToExecute()
+        scenario.buildScenario(this).prepareToExecute()
 
         def defaultsConfig = """
             defaults {
@@ -169,11 +161,11 @@ class WorkingWithFilesIntegrationTest extends AbstractIntegrationSpec implements
         failureCauseContains("assignment to property '$propName' with read-only type '$name'")
 
         where:
-        definition                                      | name          | propName | setDefaults
-        new DefinitionWithReadOnlyProperties()          | "Directory"   | "dir"    | true
-        new DefinitionWithReadOnlyProperties()          | "Directory"   | "dir"    | false
-        new DefinitionWithReadOnlyRegularFileProperty() | "RegularFile" | "file"   | true
-        new DefinitionWithReadOnlyRegularFileProperty() | "RegularFile" | "file"   | false
+        scenario                       | name          | propName | setDefaults
+        readOnlyDirectoryProperty()    | "Directory"   | "dir"    | true
+        readOnlyDirectoryProperty()    | "Directory"   | "dir"    | false
+        readOnlyRegularFileProperty()  | "RegularFile" | "file"   | true
+        readOnlyRegularFileProperty()  | "RegularFile" | "file"   | false
     }
 
     @SkipDsl(dsl = GradleDsl.DECLARATIVE, because = "The situation is prohibited in Declarative DSL via other means")
@@ -198,254 +190,161 @@ class WorkingWithFilesIntegrationTest extends AbstractIntegrationSpec implements
         }
     }
 
-    private static class DefinitionWithFileSystemLocationProperties extends ProjectTypeDefinitionClassBuilder {
-        @Override
-        String getClassContent() {
-            return """
-                package org.gradle.test;
+    // --- Scenario callbacks ---
 
-                import org.gradle.declarative.dsl.model.annotations.Restricted;
+    /**
+     * A callback that builds a test scenario given a {@link TestScenarioFixture}.
+     * Used in {@code where:} blocks to defer scenario construction until each iteration is executing in a non-static context.
+     */
+    private interface TestScenarioCallback {
+        PluginBuilder buildScenario(TestScenarioFixture fixture)
+    }
 
-                import org.gradle.api.file.DirectoryProperty;
-                import org.gradle.api.file.RegularFileProperty;
-                import ${Definition.class.name};
-                import ${BuildModel.class.name};
-
-                @Restricted
-                public abstract class ${implementationTypeClassName} implements ${Definition.class.simpleName}<${implementationTypeClassName}.ModelType> {
-                    @Restricted
-                    public abstract DirectoryProperty getDir();
-
-                    @Restricted
-                    public abstract RegularFileProperty getFile();
-
-                    @Override
-                    public String toString() {
-                        return "dir = " + getDir().getOrNull() + ", file = " + getFile().getOrNull();
+    private static TestScenarioCallback fileSystemLocationProperties() {
+        return { TestScenarioFixture fixture ->
+            fixture.testScenario {
+                projectType("testProjectType") {
+                    definition {
+                        property "dir", DirectoryProperty
+                        property "file", RegularFileProperty
+                        buildModel {
+                            property "dir", DirectoryProperty
+                            property "file", RegularFileProperty
+                            mapping """
+                                model.getDir().set(definition.getDir());
+                                model.getFile().set(definition.getFile());
+                            """
+                        }
                     }
-
-                    public interface ModelType extends BuildModel {
-                        DirectoryProperty getDir();
-                        RegularFileProperty getFile();
+                    plugin {
+                        unsafeDefinition()
                     }
                 }
-            """
+            }
         }
     }
 
-    private static class DefinitionWithFileSystemLocationListProperties extends ProjectTypeDefinitionClassBuilder {
-        @Override
-        String getClassContent() {
-            return """
-                package org.gradle.test;
-
-                import org.gradle.declarative.dsl.model.annotations.Restricted;
-
-                import org.gradle.api.provider.ListProperty;
-                import org.gradle.api.file.Directory;
-                import org.gradle.api.file.RegularFile;
-                import ${Definition.class.name};
-                import ${BuildModel.class.name};
-
-                @Restricted
-                public abstract class ${implementationTypeClassName} implements ${Definition.class.simpleName}<${implementationTypeClassName}.ModelType> {
-                    @Restricted
-                    public abstract ListProperty<Directory> getDirs();
-
-                    @Restricted
-                    public abstract ListProperty<RegularFile> getFiles();
-
-                    @Override
-                    public String toString() {
-                        return "dirs = " + getDirs().getOrNull() + ", files = " + getFiles().getOrNull();
+    private static TestScenarioCallback propertiesOfFileSystemLocations() {
+        return { TestScenarioFixture fixture ->
+            fixture.testScenario {
+                projectType("testProjectType") {
+                    definition {
+                        shape TypeShape.ABSTRACT_CLASS
+                        property "dir", Directory
+                        property "file", RegularFile
+                        buildModel {
+                            property "dir", DirectoryProperty
+                            property "file", RegularFileProperty
+                            mapping """
+                                model.getDir().set(definition.getDir());
+                                model.getFile().set(definition.getFile());
+                            """
+                        }
                     }
-
-                    public interface ModelType extends BuildModel {
-                        ListProperty<Directory> getDirs();
-                        ListProperty<RegularFile> getFiles();
+                    plugin {
+                        unsafeDefinition()
                     }
                 }
-            """
+            }
         }
     }
 
-    private static class DefinitionWithReadOnlyProperties extends ProjectTypeDefinitionClassBuilder {
-        @Override
-        String getClassContent() {
-            return """
-                package org.gradle.test;
-
-                import org.gradle.declarative.dsl.model.annotations.Restricted;
-
-                import org.gradle.api.file.Directory;
-                import org.gradle.api.file.RegularFileProperty;
-                import org.gradle.api.provider.Property;
-                import ${Definition.class.name};
-                import ${BuildModel.class.name};
-
-                @Restricted
-                public interface ${implementationTypeClassName} extends ${Definition.class.simpleName}<${implementationTypeClassName}.ModelType> {
-                    @Restricted
-                    Directory getDir();
-
-                    @Restricted
-                    RegularFileProperty getFile();
-
-                    public interface ModelType extends BuildModel {
-                        Directory getDir();
-                        RegularFileProperty getFile();
+    private static TestScenarioCallback javaBeanFileSystemLocations() {
+        return { TestScenarioFixture fixture ->
+            fixture.testScenario {
+                projectType("testProjectType") {
+                    definition {
+                        shape TypeShape.ABSTRACT_CLASS
+                        javaBeanProperty("dir", Directory) {
+                            shape JavaBeanStyle.CONCRETE
+                        }
+                        javaBeanProperty("file", RegularFile) {
+                            shape JavaBeanStyle.CONCRETE
+                        }
+                        buildModel {
+                            property "dir", DirectoryProperty
+                            property "file", RegularFileProperty
+                            mapping """
+                                model.getDir().set(definition.getDir());
+                                model.getFile().set(definition.getFile());
+                            """
+                        }
+                    }
+                    plugin {
+                        unsafeDefinition()
                     }
                 }
-            """
+            }
         }
     }
 
-    private static class DefinitionWithReadOnlyRegularFileProperty extends ProjectTypeDefinitionClassBuilder {
-        @Override
-        String getClassContent() {
-            return """
-                package org.gradle.test;
-
-                import org.gradle.declarative.dsl.model.annotations.Restricted;
-
-                import org.gradle.api.file.DirectoryProperty;
-                import org.gradle.api.file.RegularFile;
-                import org.gradle.api.provider.Property;
-                import ${Definition.class.name};
-                import ${BuildModel.class.name};
-
-                @Restricted
-                public interface ${implementationTypeClassName} extends ${Definition.class.simpleName}<${implementationTypeClassName}.ModelType> {
-                    @Restricted
-                    DirectoryProperty getDir();
-
-                    @Restricted
-                    RegularFile getFile();
-
-                    public interface ModelType extends BuildModel {
-                        DirectoryProperty getDir();
-                        RegularFile getFile();
+    private static TestScenarioCallback readOnlyDirectoryProperty() {
+        return { TestScenarioFixture fixture ->
+            fixture.testScenario {
+                projectType("testProjectType") {
+                    definition {
+                        readOnlyProperty "dir", Directory
+                        property "file", RegularFileProperty
+                        buildModel {
+                            property "dir", DirectoryProperty
+                            property "file", RegularFileProperty
+                            mapping """
+                                model.getDir().set(definition.getDir());
+                                model.getFile().set(definition.getFile());
+                            """
+                        }
                     }
                 }
-            """
+            }
         }
     }
 
-    private static class DefinitionWithPropertiesOfFileSystemLocations extends ProjectTypeDefinitionClassBuilder {
-        @Override
-        String getClassContent() {
-            return """
-                package org.gradle.test;
-
-                import org.gradle.declarative.dsl.model.annotations.Restricted;
-
-                import org.gradle.api.file.Directory;
-                import org.gradle.api.file.RegularFile;
-                import org.gradle.api.file.DirectoryProperty;
-                import org.gradle.api.file.RegularFileProperty;
-                import org.gradle.api.model.ObjectFactory;
-                import org.gradle.api.provider.Property;
-                import ${Definition.class.name};
-                import ${BuildModel.class.name};
-
-                import javax.inject.Inject;
-
-                @Restricted
-                public abstract class ${implementationTypeClassName} implements ${Definition.class.simpleName}<${implementationTypeClassName}.ModelType> {
-
-                    private final Property<Directory> dir;
-                    private final Property<RegularFile> file;
-
-                    @Inject
-                    public ${implementationTypeClassName}(ObjectFactory objects) {
-                        dir = objects.directoryProperty();
-                        file = objects.fileProperty();
-                    }
-
-                    @Restricted
-                    public Property<Directory> getDir() {
-                        return dir;
-                    }
-
-                    @Restricted
-                    public Property<RegularFile> getFile() {
-                        return file;
-                    }
-
-                    @Override
-                    public String toString() {
-                        return "dir = " + getDir().getOrNull() + ", file = " + getFile().getOrNull();
-                    }
-
-                    public interface ModelType extends BuildModel {
-                        DirectoryProperty getDir();
-                        RegularFileProperty getFile();
+    private static TestScenarioCallback readOnlyRegularFileProperty() {
+        return { TestScenarioFixture fixture ->
+            fixture.testScenario {
+                projectType("testProjectType") {
+                    definition {
+                        property "dir", DirectoryProperty
+                        readOnlyProperty "file", RegularFile
+                        buildModel {
+                            property "dir", DirectoryProperty
+                            property "file", RegularFileProperty
+                            mapping """
+                                model.getDir().set(definition.getDir());
+                                model.getFile().set(definition.getFile());
+                            """
+                        }
                     }
                 }
-            """
+            }
         }
     }
 
-    private static class DefinitionWithJavaBeanPropertiesOfFileSystemLocations extends ProjectTypeDefinitionClassBuilder {
-        @Override
-        String getClassContent() {
-            return """
-                package org.gradle.test;
-
-                import org.gradle.declarative.dsl.model.annotations.Restricted;
-
-                import org.gradle.api.file.Directory;
-                import org.gradle.api.file.RegularFile;
-                import org.gradle.api.file.DirectoryProperty;
-                import org.gradle.api.file.RegularFileProperty;
-                import ${Definition.class.name};
-                import ${BuildModel.class.name};
-
-                import javax.inject.Inject;
-
-                @Restricted
-                public abstract class ${implementationTypeClassName} implements ${Definition.class.simpleName}<${implementationTypeClassName}.ModelType> {
-
-                    private Directory dir;
-                    private RegularFile file;
-
-                    @Inject
-                    public ${implementationTypeClassName}() {
+    private static TestScenarioCallback fileSystemLocationListProperties() {
+        return { TestScenarioFixture fixture ->
+            fixture.testScenario {
+                projectType("testProjectType") {
+                    definition {
+                        listProperty "dirs", Directory
+                        listProperty "files", RegularFile
+                        buildModel {
+                            listProperty "dirs", Directory
+                            listProperty "files", RegularFile
+                            mapping """
+                                model.getDirs().set(definition.getDirs());
+                                model.getFiles().set(definition.getFiles());
+                            """
+                        }
                     }
-
-                    @Restricted
-                    public Directory getDir() {
-                        return dir;
-                    }
-
-                    @Restricted
-                    public void setDir(Directory dir) {
-                        this.dir = dir;
-                    }
-
-                    @Restricted
-                    public RegularFile getFile() {
-                        return file;
-                    }
-
-                    @Restricted
-                    public void setFile(RegularFile file) {
-                        this.file = file;
-                    }
-
-                    @Override
-                    public String toString() {
-                        return "dir = " + dir + ", file = " + file;
-                    }
-
-                    public interface ModelType extends BuildModel {
-                        DirectoryProperty getDir();
-                        RegularFileProperty getFile();
+                    plugin {
+                        unsafeDefinition()
                     }
                 }
-            """
+            }
         }
     }
+
+    // --- Script content helpers ---
 
     private static String getSettingsFileContent(String defaultsConfig) {
         return """
@@ -469,15 +368,19 @@ class WorkingWithFilesIntegrationTest extends AbstractIntegrationSpec implements
         """.stripIndent()
     }
 
+    // --- Assertion helpers ---
+
     private void assertThatDeclaredValuesAreSetProperly(String project, String namePrefix) {
         def dirPrefix = testDirectory.file("$project/${namePrefix}").path
         def filePrefix = testDirectory.file("${namePrefix}").path
-        outputContains("$project: dir = ${dirPrefix}Dir, file = ${filePrefix}File")
+        outputContains("definition dir = ${dirPrefix}Dir")
+        outputContains("definition file = ${filePrefix}File")
     }
 
     private void assertThatDeclaredListValuesAreSetProperly(String project, String namePrefix) {
         def dirPrefix = testDirectory.file("$project/${namePrefix}").path
         def filePrefix = testDirectory.file("${namePrefix}").path
-        outputContains("$project: dirs = [${dirPrefix}Dir1, ${dirPrefix}Dir2], files = [${filePrefix}File1, ${filePrefix}File2]")
+        outputContains("definition dirs = [${dirPrefix}Dir1, ${dirPrefix}Dir2]")
+        outputContains("definition files = [${filePrefix}File1, ${filePrefix}File2]")
     }
 }

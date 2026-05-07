@@ -373,14 +373,14 @@ class CommandLineParserTest extends Specification {
         def outstr = new StringWriter()
 
         expect:
-        parser.printUsage(outstr)
+        parser.printUsage(outstr, 160)
         outstr.toString().readLines() == [
-            '-a, --long-option                    this is option a',
-            '--another-long-option                this is a long option',
-            '-B',
-            '-b',
-            '-y, -z, --end-option, --last-option  this is the last option',
-            '--                                   Signals the end of built-in options. Gradle parses subsequent parameters as only tasks or task options.'
+            '--                                     Signals the end of built-in options. Parses subsequent parameters as tasks or task options only.',
+            '  --another-long-option                this is a long option',
+            '  -B',
+            '  -b',
+            '  --end-option, --last-option, -y, -z  this is the last option',
+            '  --long-option, -a                    this is option a'
         ]
     }
 
@@ -392,13 +392,13 @@ class CommandLineParserTest extends Specification {
         def outstr = new StringWriter()
 
         expect:
-        parser.printUsage(outstr)
+        parser.printUsage(outstr, 160)
         outstr.toString().readLines() == [
-            '-a, --long-option  this is option a [deprecated]',
-            '-b                 [deprecated]',
-            '-c                 option c [incubating]',
-            '-d                 [incubating]',
-            '--                 Signals the end of built-in options. Gradle parses subsequent parameters as only tasks or task options.'
+            '--                   Signals the end of built-in options. Parses subsequent parameters as tasks or task options only.',
+            '  -b                 [deprecated]',
+            '  -c                 option c [incubating]',
+            '  -d                 [incubating]',
+            '  --long-option, -a  this is option a [deprecated]'
         ]
     }
 
@@ -699,14 +699,104 @@ class CommandLineParserTest extends Specification {
         def outstr = new StringWriter()
 
         expect:
-        parser.printUsage(outstr)
+        parser.printUsage(outstr, 160)
         outstr.toString().readLines() == [
-            '--a-option        this is option --a-option',
-            '--no-a-option     Disables option --a-option',
-            '--a-option-other  this is option --a-option-other',
-            '--c-option',
-            '--no-c-option',
-            '--                Signals the end of built-in options. Gradle parses subsequent parameters as only tasks or task options.'
+            '--                  Signals the end of built-in options. Parses subsequent parameters as tasks or task options only.',
+            '  --a-option        this is option --a-option',
+            '  --no-a-option     Disables option --a-option',
+            '  --a-option-other  this is option --a-option-other',
+            '  --c-option',
+            '  --no-c-option'
         ]
     }
+
+    def "usage output contains aliases and descriptions"() {
+        parser.option('a', 'long-option').hasDescription('this is option a')
+        parser.option('b')
+        parser.option('another-long-option').hasDescription('this is a long option')
+        parser.option('z', 'y', 'last-option', 'end-option').hasDescription('this is the last option')
+        parser.option('B')
+        def outstr = new StringWriter()
+
+        expect:
+        parser.printUsage(outstr, 160)
+        def usage = outstr.toString()
+        usage.contains('--long-option, -a')
+        usage.contains('--another-long-option')
+        usage.contains('-y') || usage.contains('-z')
+        usage.contains('this is option a')
+        usage.contains('this is a long option')
+    }
+
+    def "groups options by category"() {
+        parser.option('exec1', 'e1').hasDescription('exec option 1').hasCategory(OptionCategory.EXECUTION)
+        parser.option('exec2').hasDescription('exec option 2').hasCategory(OptionCategory.EXECUTION)
+        parser.option('log1').hasDescription('log option 1').hasCategory(OptionCategory.LOGGING)
+        def outstr = new StringWriter()
+
+        expect:
+        parser.printUsage(outstr, 160)
+        def usage = outstr.toString()
+        usage.contains('Execution')
+        usage.contains('Logging')
+        // Execution section should come after Logging section
+        usage.indexOf('Logging') < usage.indexOf('Execution')
+        // options exist in output
+        usage.contains('--exec1') || usage.contains('--e1')
+        usage.contains('--exec2')
+        usage.contains('--log1')
+    }
+
+    def "options within same category are ordered alphabetically"() {
+        parser.option('b-option').hasDescription('b').hasCategory(OptionCategory.EXECUTION)
+        parser.option('a-option').hasDescription('a').hasCategory(OptionCategory.EXECUTION)
+        def outstr = new StringWriter()
+
+        expect:
+        parser.printUsage(outstr, 160)
+        def lines = outstr.toString().readLines()
+        int idxA = lines.findIndexOf { it.contains('--a-option') }
+        int idxB = lines.findIndexOf { it.contains('--b-option') }
+        // both present and a-option appears immediately before b-option in the same section
+        idxA >= 0
+        idxB >= 0
+        idxB == idxA + 1
+    }
+
+    def "opposite boolean options are adjacent within their category"() {
+        parser.option('a-option').hasDescription('this is option --a-option').hasCategory(OptionCategory.CONFIGURATION)
+        parser.option('no-a-option').hasDescription('Disables option --a-option').hasCategory(OptionCategory.CONFIGURATION)
+        parser.option('log1').hasDescription('log option 1').hasCategory(OptionCategory.LOGGING)
+        def outstr = new StringWriter()
+
+        expect:
+        parser.printUsage(outstr, 160)
+        def lines = outstr.toString().readLines()
+        int idxOn = lines.findIndexOf { it.contains('--a-option') }
+        int idxOff = lines.findIndexOf { it.contains('--no-a-option') }
+        idxOn >= 0
+        idxOff >= 0
+        // ensure they are adjacent (no other option between them)
+        idxOff == idxOn + 1
+    }
+
+    def "Can print long description to narrow console"() {
+        parser.option('a-option').hasDescription('Option A has a very long description that should be wrapped when printed to a narrow console.')
+        def outstr = new StringWriter()
+
+        expect:
+        parser.printUsage(outstr, 20)
+        outstr.toString().readLines() == [
+           '--            Signals the end of built-in',
+           '              options. Parses subsequent',
+           '              parameters as tasks or task',
+           '              options only.',
+           '  --a-option  Option A has a very long',
+           '              description that should be',
+           '              wrapped when printed to a',
+           '              narrow console.',
+        ]
+    }
+
 }
+

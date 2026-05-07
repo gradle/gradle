@@ -19,6 +19,7 @@ import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.service.CachingServiceLocator;
 import org.gradle.internal.service.DefaultServiceLocator;
 import org.gradle.internal.service.ServiceLocator;
+import org.jspecify.annotations.Nullable;
 
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -64,7 +65,7 @@ public class DefaultClassLoaderFactory implements ClassLoaderFactory {
         return doCreateClassLoader(name, getIsolatedSystemClassLoader(), classPath);
     }
 
-    private ClassPath addToClassPath(ClassPath classPath, File file) {
+    private ClassPath addToClassPath(ClassPath classPath, @Nullable File file) {
         if (file != null) {
             return classPath.plus(Collections.singletonList(file));
         }

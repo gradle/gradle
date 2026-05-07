@@ -35,6 +35,7 @@ class IvyS3RepoResolveIntegrationTest extends AbstractIvyRemoteRepoResolveIntegr
     protected ExecutionResult succeeds(String... tasks) {
         executer.withArgument("-Dorg.gradle.s3.endpoint=${server.uri}")
         executer.withArgument("-Dorg.gradle.s3.maxErrorRetry=0")
+        executer.withArgument("-Daws.java.v1.disableDeprecationAnnouncement=true")
         result = executer.withTasks(*tasks).run()
     }
 

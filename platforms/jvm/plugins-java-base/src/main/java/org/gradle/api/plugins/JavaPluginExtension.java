@@ -202,8 +202,17 @@ public interface JavaPluginExtension {
     /**
      * Configures the source sets of this project.
      *
-     * <p>The given closure is executed to configure the {@link SourceSetContainer}. The {@link SourceSetContainer}
-     * is passed to the closure as its delegate.
+     * @param closure The closure to execute.
+     * @return NamedDomainObjectContainer&lt;org.gradle.api.tasks.SourceSet&gt;
+     * @since 7.1
+     * @see #sourceSets(Action)
+     */
+    Object sourceSets(@SuppressWarnings("rawtypes") Closure closure);
+
+    /**
+     Configures the source sets of this project.
+     *
+     * <p>The given action is executed to configure the {@link SourceSetContainer}.
      * <p>
      * See the example below how {@link org.gradle.api.tasks.SourceSet} 'main' is accessed and how the {@link org.gradle.api.file.SourceDirectorySet} 'java'
      * is configured to exclude some package from compilation.
@@ -222,11 +231,11 @@ public interface JavaPluginExtension {
      * }
      * </pre>
      *
-     * @param closure The closure to execute.
-     * @return NamedDomainObjectContainer&lt;org.gradle.api.tasks.SourceSet&gt;
-     * @since 7.1
+     * @param action the configuration action
+     * @since 9.3.0
      */
-    Object sourceSets(@SuppressWarnings("rawtypes") Closure closure);
+    @Incubating
+    void sourceSets(Action<? super SourceSetContainer> action);
 
     /**
      * Returns a file pointing to the root directory supposed to be used for all docs.

@@ -17,7 +17,7 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.keystore.TestKeyStore
 import org.gradle.test.fixtures.maven.MavenFileRepository
@@ -133,7 +133,6 @@ class DependencyUnresolvedModuleIntegrationTest extends AbstractHttpDependencyRe
         protocol << ['http', 'https']
     }
 
-    @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
     def "prevents using repository in later resolution within the same build on HTTP timeout"() {
         given:
         MavenHttpModule moduleB = publishMavenModule(mavenHttpRepo, 'b')
@@ -155,11 +154,11 @@ class DependencyUnresolvedModuleIntegrationTest extends AbstractHttpDependencyRe
             }
 
             task resolve {
+                def filesA = configurations.first.incoming.artifactView { lenient = true }.files
+                def filesB = configurations.second.incoming.artifactView { lenient = true }.files
+                def filesC = configurations.third.incoming.artifactView { lenient = true }.files
                 doLast {
-                    def filesA = configurations.first.incoming.artifactView { lenient = true }.files.files*.name
-                    def filesB = configurations.second.incoming.artifactView { lenient = true }.files.files*.name
-                    def filesC = configurations.third.incoming.artifactView { lenient = true }.files.files*.name
-                    println "Resolved: \${filesA} \${filesB} \${filesC}"
+                    println "Resolved: \${filesA*.name} \${filesB*.name} \${filesC*.name}"
                 }
             }
         """
@@ -229,7 +228,7 @@ class DependencyUnresolvedModuleIntegrationTest extends AbstractHttpDependencyRe
         !downloadedLibsDir.isDirectory()
     }
 
-    @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
+    @UnsupportedWithConfigurationCache(because = "can't wrap a resolution and catch the exception to swallow it with CC")
     def "when repository timeout resolving a configuration is swallowed, trying to re-resolve that configuration still prints the original cause"() {
         given:
         MavenHttpModule moduleB = publishMavenModule(mavenHttpRepo, 'b')
@@ -269,7 +268,7 @@ class DependencyUnresolvedModuleIntegrationTest extends AbstractHttpDependencyRe
         assertDependencyMetaDataReadTimeout(moduleA)
     }
 
-    @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
+    @UnsupportedWithConfigurationCache(because = "can't wrap a resolution and catch the exception to swallow it with CC")
     def "when repository timeout resolving a configuration is swallowed, trying to resolve another configuration using the same repository still prints original cause"() {
         given:
         MavenHttpModule moduleB = publishMavenModule(mavenHttpRepo, 'b')

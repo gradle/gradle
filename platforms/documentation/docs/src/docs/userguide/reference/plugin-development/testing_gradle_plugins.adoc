@@ -12,11 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+[[testing_plugins]]
 = Testing Plugins
 
 Testing plays a crucial role in the development process by ensuring reliable and high-quality software.
 This principle applies to build code, including Gradle plugins.
 
+[[the_sample_project]]
 == The sample project
 
 This section revolves around a sample project called the "URL verifier plugin".
@@ -26,17 +28,9 @@ The end user can provide the URL via an extension named `verification`.
 The following build script assumes that the plugin JAR file has been published to a binary repository.
 The script demonstrates how to apply the plugin to the project and configure its exposed extension:
 
-++++
-<div style="text-align: right;">
-  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/developingPlugins/testingPlugins">
-    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
-  </a>
-</div>
-++++
-
 ====
-include::sample[dir="snippets/developingPlugins/testingPlugins/kotlin/include-plugin-build",files="build.gradle.kts[]"]
-include::sample[dir="snippets/developingPlugins/testingPlugins/groovy/include-plugin-build",files="build.gradle[]"]
+include::sample[dir="snippets/reference/plugin-development/testingPlugins/kotlin/include-plugin-build",files="build.gradle.kts[]"]
+include::sample[dir="snippets/reference/plugin-development/testingPlugins/groovy/include-plugin-build",files="build.gradle[]"]
 ====
 <1> Applies the plugin to the project
 <2> Configures the URL to be verified through the exposed extension
@@ -44,15 +38,18 @@ include::sample[dir="snippets/developingPlugins/testingPlugins/groovy/include-pl
 Executing the `verifyUrl` task renders a success message if the HTTP GET call to the configured URL returns with a 200 response code:
 
 [[verify-url-cmd-output]]
-[source,shell]
+[source,bash]
 ----
-$ gradle verifyUrl
-
-include::{snippetsPath}/developingPlugins/testingPlugins/tests/verifyUrl.out[]
+$ ./gradlew verifyUrl
+----
+[source,text]
+----
+include::{snippetsPath}/reference/plugin-development/testingPlugins/tests/verifyUrl.out[]
 ----
 
 Before diving into the code, let's first revisit the different types of tests and the tooling that supports implementing them.
 
+[[the_importance_of_testing]]
 == The importance of testing
 
 Testing is a crucial part of the software development life cycle, ensuring that software functions correctly and meets quality standards before release.
@@ -73,6 +70,7 @@ image::testing-pyramid.png[]
 2. *Integration Testing:* Validates that multiple units or components work together, often with external systems like file I/O or HTTP.
 3. *Functional Testing:* Tests the system from the end user's perspective, ensuring correct functionality. End-to-end tests for Gradle plugins simulate a build, apply the plugin, and execute specific tasks to verify functionality.
 
+[[tooling_support]]
 === Tooling support
 
 Testing Gradle plugins, both manually and automatically, is simplified with the appropriate tools.
@@ -117,28 +115,22 @@ There are two ways to include a plugin project in a consuming project:
 
 The following code snippet demonstrates the use of the settings file:
 
-++++
-<div style="text-align: right;">
-  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/developingPlugins/testingPlugins">
-    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
-  </a>
-</div>
-++++
-
 ====
-include::sample[dir="snippets/developingPlugins/testingPlugins/kotlin/include-plugin-build",files="settings.gradle.kts[tags=include-build]"]
-include::sample[dir="snippets/developingPlugins/testingPlugins/groovy/include-plugin-build",files="settings.gradle[tags=include-build]"]
+include::sample[dir="snippets/reference/plugin-development/testingPlugins/kotlin/include-plugin-build",files="settings.gradle.kts[tags=include-build]"]
+include::sample[dir="snippets/reference/plugin-development/testingPlugins/groovy/include-plugin-build",files="settings.gradle[tags=include-build]"]
 ====
 
 The command line output of the `verifyUrl` task from the project `include-plugin-build` <<verify-url-cmd-output,looks exactly the same as shown in the introduction>>, except that it now executes as part of a composite build.
 
 Manual testing has its place in the development process, but it is not a replacement for automated testing.
 
+[[setting_up_automated_tests]]
 == Setting up automated tests
 
 Setting up a suite of tests early on is crucial to the success of your plugin.
 Automated tests become an invaluable safety net when upgrading the plugin to a new Gradle version or enhancing/refactoring the code.
 
+[[organizing_test_source_code]]
 === Organizing test source code
 
 We recommend implementing a good distribution of unit, integration, and functional tests to cover the most important use cases.
@@ -174,6 +166,7 @@ You can configure the source directories for compilation and test execution.
 The <<jvm_test_suite_plugin.adoc#jvm_test_suite_plugin,Test Suite plugin>> provides a DSL and API to model multiple groups of automated tests into test suites in JVM-based projects.
 You can also rely on third-party plugins for convenience, such as the link:https://github.com/nebula-plugins/nebula-project-plugin#nebula-facet-plugin[Nebula Facet plugin] or the link:https://github.com/unbroken-dome/gradle-testsets-plugin[TestSets plugin].
 
+[[modeling_test_types]]
 === Modeling test types
 
 In Gradle, source code directories are represented using the concept of <<java_plugin.adoc#source_sets,source sets>>.
@@ -183,35 +176,16 @@ When you define a source set, Gradle automatically sets up compilation tasks for
 A pre-configured source set can be created with one line of build script code.
 The source set automatically registers configurations to define dependencies for the sources of the source set:
 
-[source,groovy]
-----
-// Define a source set named 'test' for test sources
-sourceSets {
-    test {
-        java {
-            srcDirs = ['src/test/java']
-        }
-    }
-}
-// Specify a test implementation dependency on JUnit
-dependencies {
-    testImplementation 'junit:junit:4.12'
-}
-----
+====
+include::sample[dir="snippets/reference/plugin-development/testingPlugins-sourceSetExample/kotlin",files="build.gradle.kts[tags=source-set-example]"]
+include::sample[dir="snippets/reference/plugin-development/testingPlugins-sourceSetExample/groovy",files="build.gradle[tags=source-set-example]"]
+====
 
 We use that to define an `integrationTestImplementation` dependency to the project itself, which represents the "main" variant of our project (i.e., the compiled plugin code):
 
-++++
-<div style="text-align: right;">
-  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/developingPlugins/testingPlugins">
-    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
-  </a>
-</div>
-++++
-
 ====
-include::sample[dir="snippets/developingPlugins/testingPlugins/kotlin/url-verifier-plugin",files="build.gradle.kts[tags=test-source-set]"]
-include::sample[dir="snippets/developingPlugins/testingPlugins/groovy/url-verifier-plugin",files="build.gradle[tags=test-source-set]"]
+include::sample[dir="snippets/reference/plugin-development/testingPlugins/kotlin/url-verifier-plugin",files="build.gradle.kts[tags=test-source-set]"]
+include::sample[dir="snippets/reference/plugin-development/testingPlugins/groovy/url-verifier-plugin",files="build.gradle[tags=test-source-set]"]
 ====
 
 Source sets are responsible for compiling source code, but they do not deal with executing the bytecode.
@@ -219,10 +193,11 @@ For test execution, a corresponding task of type link:{javadocPath}/org/gradle/a
 The following setup shows the execution of integration tests, referencing the classes and runtime classpath of the integration test source set:
 
 ====
-include::sample[dir="snippets/developingPlugins/testingPlugins/kotlin/url-verifier-plugin",files="build.gradle.kts[tags=test-task]"]
-include::sample[dir="snippets/developingPlugins/testingPlugins/groovy/url-verifier-plugin",files="build.gradle[tags=test-task]"]
+include::sample[dir="snippets/reference/plugin-development/testingPlugins/kotlin/url-verifier-plugin",files="build.gradle.kts[tags=test-task]"]
+include::sample[dir="snippets/reference/plugin-development/testingPlugins/groovy/url-verifier-plugin",files="build.gradle[tags=test-task]"]
 ====
 
+[[configuring_a_test_framework]]
 === Configuring a test framework
 
 Gradle does not dictate the use of a specific test framework. Popular choices include link:https://junit.org/[JUnit], link:https://testng.org/[TestNG] and link:http://spockframework.org/[Spock].
@@ -231,13 +206,14 @@ Once you choose an option, you have to add its dependency to the compile classpa
 The following code snippet shows how to use Spock for implementing tests:
 
 ====
-include::sample[dir="snippets/developingPlugins/testingPlugins/kotlin/url-verifier-plugin",files="build.gradle.kts[tags=test-framework]"]
-include::sample[dir="snippets/developingPlugins/testingPlugins/groovy/url-verifier-plugin",files="build.gradle[tags=test-framework]"]
+include::sample[dir="snippets/reference/plugin-development/testingPlugins/kotlin/url-verifier-plugin",files="build.gradle.kts[tags=test-framework]"]
+include::sample[dir="snippets/reference/plugin-development/testingPlugins/groovy/url-verifier-plugin",files="build.gradle[tags=test-framework]"]
 ====
 
 NOTE: Spock is a Groovy-based BDD test framework that even includes APIs for creating Stubs and Mocks.
 The Gradle team prefers Spock over other options for its expressiveness and conciseness.
 
+[[implementing_automated_tests]]
 == Implementing automated tests
 
 This section discusses representative implementation examples for unit, integration, and functional tests.
@@ -251,7 +227,7 @@ The method `DefaultHttpCaller.get(String)` is responsible for calling a given UR
 .HttpResponse.java
 [source,java]
 ----
-include::{snippetsPath}/developingPlugins/testingPlugins/groovy/url-verifier-plugin/src/main/java/org/myorg/http/HttpResponse.java[]
+include::{snippetsPath}/reference/plugin-development/testingPlugins/common/url-verifier-plugin/src/main/java/org/myorg/http/HttpResponse.java[]
 ----
 
 The class `HttpResponse` represents a good candidate for a unit test.
@@ -260,7 +236,7 @@ It does not reach out to any other classes nor does it use the Gradle API.
 .HttpResponseTest.groovy
 [source,groovy]
 ----
-include::{snippetsPath}/developingPlugins/testingPlugins/groovy/url-verifier-plugin/src/test/groovy/org/myorg/http/HttpResponseTest.groovy[]
+include::{snippetsPath}/reference/plugin-development/testingPlugins/common/url-verifier-plugin/src/test/groovy/org/myorg/http/HttpResponseTest.groovy[]
 ----
 
 IMPORTANT: When writing unit tests, it's important to test boundary conditions and various forms of invalid input.
@@ -277,7 +253,7 @@ Here is a simple example:
 [source.multi-language-sample,java]
 .src/test/java/org/example/GreetingPluginTest.java
 ----
-include::{snippetsPath}/plugins/customPlugin/groovy/java-gradle-plugin/src/test/java/org/example/GreetingPluginTest.java[tag=test-plugin]
+include::{snippetsPath}/reference/plugin-development/customPlugin/groovy/java-gradle-plugin/src/test/java/org/example/GreetingPluginTest.java[tag=test-plugin]
 ----
 
 [[integration-tests]]
@@ -289,7 +265,7 @@ At the time of executing a test for the class `DefaultHttpCaller`, the runtime e
 .DefaultHttpCaller.java
 [source,java]
 ----
-include::{snippetsPath}/developingPlugins/testingPlugins/groovy/url-verifier-plugin/src/main/java/org/myorg/http/DefaultHttpCaller.java[]
+include::{snippetsPath}/reference/plugin-development/testingPlugins/common/url-verifier-plugin/src/main/java/org/myorg/http/DefaultHttpCaller.java[]
 ----
 
 Implementing an integration test for `DefaultHttpCaller` doesn't look much different from the unit test shown in the previous section:
@@ -297,7 +273,7 @@ Implementing an integration test for `DefaultHttpCaller` doesn't look much diffe
 .DefaultHttpCallerIntegrationTest.groovy
 [source,groovy]
 ----
-include::{snippetsPath}/developingPlugins/testingPlugins/groovy/url-verifier-plugin/src/integrationTest/groovy/org/myorg/http/DefaultHttpCallerIntegrationTest.groovy[]
+include::{snippetsPath}/reference/plugin-development/testingPlugins/common/url-verifier-plugin/src/integrationTest/groovy/org/myorg/http/DefaultHttpCallerIntegrationTest.groovy[]
 ----
 
 [[functional-tests]]
@@ -310,7 +286,7 @@ The `UrlVerifierPlugin` class exposes an extension and a task instance that uses
 .UrlVerifierPlugin.java
 [source,java]
 ----
-include::{snippetsPath}/developingPlugins/testingPlugins/groovy/url-verifier-plugin/src/main/java/org/myorg/UrlVerifierPlugin.java[]
+include::{snippetsPath}/reference/plugin-development/testingPlugins/common/url-verifier-plugin/src/main/java/org/myorg/UrlVerifierPlugin.java[]
 ----
 
 Every Gradle plugin project should apply the <<java_gradle_plugin.adoc#java_gradle_plugin,plugin development plugin>> to reduce boilerplate code.
@@ -318,8 +294,8 @@ By applying the plugin development plugin, the test source set is preconfigured 
 If we want to use a custom source set for functional tests and leave the default test source set for only unit tests, we can configure the plugin development plugin to look for TestKit tests elsewhere.
 
 ====
-include::sample[dir="snippets/developingPlugins/testingPlugins/kotlin/url-verifier-plugin",files="build.gradle.kts[tags=source-set-config]"]
-include::sample[dir="snippets/developingPlugins/testingPlugins/groovy/url-verifier-plugin",files="build.gradle[tags=source-set-config]"]
+include::sample[dir="snippets/reference/plugin-development/testingPlugins/kotlin/url-verifier-plugin",files="build.gradle.kts[tags=source-set-config]"]
+include::sample[dir="snippets/reference/plugin-development/testingPlugins/groovy/url-verifier-plugin",files="build.gradle[tags=source-set-config]"]
 ====
 
 Functional tests for Gradle plugins use an instance of `GradleRunner` to execute the build under test.
@@ -334,44 +310,31 @@ Please see the <<test_kit.adoc#test_kit,TestKit documentation>> to get more fami
 .UrlVerifierPluginFunctionalTest.groovy
 [source,groovy]
 ----
-include::{snippetsPath}/developingPlugins/testingPlugins/groovy/url-verifier-plugin/src/functionalTest/groovy/org/myorg/UrlVerifierPluginFunctionalTest.groovy[]
+include::{snippetsPath}/reference/plugin-development/testingPlugins/common/url-verifier-plugin/src/functionalTest/groovy/org/myorg/UrlVerifierPluginFunctionalTest.groovy[]
 ----
 
+[[ide_integration_testing]]
 ==== IDE integration
 
 TestKit determines the plugin classpath by running a specific Gradle task.
 You will need to execute the `assemble` task to initially generate the plugin classpath or to reflect changes to it even when running TestKit-based functional tests from the IDE.
 
+[[example_of_a_unit_test]]
 == Example of a unit test
 
 The following is an example of a unit test of the `Greeting` plugin from <<implementing_gradle_plugins_binary.adoc#implementing_binary_plugins, Binary Plugins>>:
 
-++++
-<div style="text-align: right;">
-  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/plugins/plugin-binary">
-    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
-  </a>
-</div>
-++++
-
 ====
-include::sample[dir="snippets/plugins/plugin-binary/kotlin",files="plugin/src/test/kotlin/org/example/GreetingPluginTest.kt[]"]
-include::sample[dir="snippets/plugins/plugin-binary/groovy",files="plugin/src/test/groovy/org/example/GreetingPluginTest.groovy[]"]
+include::sample[dir="snippets/reference/plugin-development/plugin-binary/kotlin",files="plugin/src/test/kotlin/org/example/GreetingPluginTest.kt[]"]
+include::sample[dir="snippets/reference/plugin-development/plugin-binary/groovy",files="plugin/src/test/groovy/org/example/GreetingPluginTest.groovy[]"]
 ====
 
+[[example_of_a_functional_test]]
 == Example of a functional test
 
 The following is an example of a functional test of the `Greeting` plugin from <<implementing_gradle_plugins_binary.adoc#implementing_binary_plugins, Binary Plugins>>:
 
-++++
-<div style="text-align: right;">
-  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/plugins/plugin-binary">
-    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
-  </a>
-</div>
-++++
-
 ====
-include::sample[dir="snippets/plugins/plugin-binary/kotlin",files="plugin/src/functionalTest/kotlin/org/example/GreetingPluginFunctionalTest.kt[]"]
-include::sample[dir="snippets/plugins/plugin-binary/groovy",files="plugin/src/functionalTest/groovy/org/example/GreetingPluginFunctionalTest.groovy[]"]
+include::sample[dir="snippets/reference/plugin-development/plugin-binary/kotlin",files="plugin/src/functionalTest/kotlin/org/example/GreetingPluginFunctionalTest.kt[]"]
+include::sample[dir="snippets/reference/plugin-development/plugin-binary/groovy",files="plugin/src/functionalTest/groovy/org/example/GreetingPluginFunctionalTest.groovy[]"]
 ====

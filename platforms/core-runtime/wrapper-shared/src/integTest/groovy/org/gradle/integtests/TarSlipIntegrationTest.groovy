@@ -66,7 +66,7 @@ class TarSlipIntegrationTest extends AbstractIntegrationSpec {
         fails 'copyEvilTar'
 
         then:
-        failureDescriptionContains "Execution failed for task ':copyEvilTar'"
+        failureDescriptionContains "Execution failed for task ':copyEvilTar' (registered in build file 'build.gradle')."
         failure.assertHasErrorOutput "'../../tmp/evil.sh' is not a safe archive entry or path name"
     }
 }

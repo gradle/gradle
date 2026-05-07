@@ -16,8 +16,6 @@
 
 package org.gradle.internal.declarativedsl.mappingToJvm
 
-import org.gradle.declarative.dsl.model.annotations.Configuring
-import org.gradle.declarative.dsl.model.annotations.Restricted
 import org.gradle.internal.declarativedsl.analysis.ResolutionResult
 import org.gradle.internal.declarativedsl.demo.resolve
 import org.gradle.internal.declarativedsl.schemaBuilder.kotlinFunctionAsConfigureLambda
@@ -48,7 +46,7 @@ class ConfiguringFunctionWithIdentityTest {
     }
 
     private fun objectFrom(resolution: ResolutionResult) =
-        runtimeInstanceFromResult(schema, resolution, kotlinFunctionAsConfigureLambda, RuntimeCustomAccessors.none, ::TopLevel)
+        runtimeInstanceFromResult(resolution, kotlinFunctionAsConfigureLambda, RuntimeCustomAccessors.none, ::TopLevel)
 
     val schema = schemaFromTypes(
         TopLevel::class,
@@ -58,12 +56,11 @@ class ConfiguringFunctionWithIdentityTest {
     class TopLevel {
         val items: MutableList<Item> = mutableListOf()
 
-        @Configuring
         @Suppress("unused")
         fun itemByName(name: String, configure: Item.() -> Unit) {
             Item(name).also(items::add).also(configure)
         }
     }
 
-    data class Item(val name: String, @get:Restricted var x: Int = 0, @get:Restricted var y: Int = 0)
+    data class Item(val name: String, var x: Int = 0, var y: Int = 0)
 }

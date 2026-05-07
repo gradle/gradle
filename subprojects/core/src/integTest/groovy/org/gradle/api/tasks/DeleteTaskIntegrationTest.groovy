@@ -17,10 +17,8 @@
 package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 
-import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache.Skip.INVESTIGATE
 import static org.gradle.integtests.fixtures.executer.TaskOrderSpecs.any
 import static org.gradle.integtests.fixtures.executer.TaskOrderSpecs.exact
 
@@ -51,12 +49,13 @@ class DeleteTaskIntegrationTest extends AbstractIntegrationSpec {
         !file('baz').exists()
     }
 
-    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def "deleted files show up in task destroys"() {
-        buildFile << """
+        buildFile """
             import org.gradle.internal.properties.PropertyVisitor
             import org.gradle.internal.properties.bean.PropertyWalker
             import org.gradle.api.internal.tasks.TaskPropertyUtils
+
+            def objects = services.get(ObjectFactory)
 
             task clean(type: Delete) {
                 delete 'foo'
@@ -73,19 +72,21 @@ class DeleteTaskIntegrationTest extends AbstractIntegrationSpec {
                             destroyablePaths << value
                         }
                     })
-                    def destroyableFiles = files(destroyablePaths).files
-                    assert destroyableFiles.size() == 3 &&
-                        destroyableFiles.containsAll([
-                            file('foo'),
-                            file('bar'),
-                            file('baz')
-                        ])
+                    def destroyableFiles = objects.fileCollection().from(destroyablePaths).files
+                    println("Destroyables size: \${destroyableFiles.size()}.")
+                    destroyableFiles.each {
+                        println("Destroyable file: \${it.absolutePath}")
+                    }
                 }
              }
         """
 
         expect:
         succeeds "clean"
+        outputContains("Destroyables size: 3.")
+        outputContains("Destroyable file: ${file('foo').absolutePath}")
+        outputContains("Destroyable file: ${file('bar').absolutePath}")
+        outputContains("Destroyable file: ${file('baz').absolutePath}")
     }
 
     @ToBeFixedForIsolatedProjects(because = "subprojects, configure projects from root")

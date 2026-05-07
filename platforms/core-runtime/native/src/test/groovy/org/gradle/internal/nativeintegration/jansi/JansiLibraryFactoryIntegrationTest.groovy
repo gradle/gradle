@@ -17,47 +17,39 @@
 package org.gradle.internal.nativeintegration.jansi
 
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.OsTestPreconditions
+
 import spock.lang.Specification
 
-import static org.gradle.internal.nativeintegration.jansi.JansiLibraryFactory.LINUX_LIB_FILENAME
-import static org.gradle.internal.nativeintegration.jansi.JansiLibraryFactory.MAC_OSX_LIB_FILENAME
-import static org.gradle.internal.nativeintegration.jansi.JansiLibraryFactory.WINDOWS_LIB_FILENAME
-
 class JansiLibraryFactoryIntegrationTest extends Specification {
+    public static final String JANSI_NATIVE_PACKAGE_PATH = "/org/fusesource/jansi/internal/native/"
 
     def factory = new JansiLibraryFactory()
 
-    @Requires(UnitTestPreconditions.MacOs)
+    @Requires(OsTestPreconditions.MacOs)
     def "jansi library can be created for MacOSX"() {
         when:
         JansiLibrary jansiLibrary = factory.create()
 
         then:
-        jansiLibrary.platform == JansiOperatingSystemSupport.MAC_OS_X.identifier
-        jansiLibrary.filename == MAC_OSX_LIB_FILENAME
-        jansiLibrary.resourcePath ==  "/META-INF/native/" + jansiLibrary.path
+        jansiLibrary.resourcePath ==  JANSI_NATIVE_PACKAGE_PATH + jansiLibrary.path
     }
 
-    @Requires(UnitTestPreconditions.Linux)
+    @Requires(OsTestPreconditions.Linux)
     def "jansi library can be created for Linux"() {
         when:
         JansiLibrary jansiLibrary = factory.create()
 
         then:
-        jansiLibrary.platform.startsWith(JansiOperatingSystemSupport.LINUX.identifier)
-        jansiLibrary.filename == LINUX_LIB_FILENAME
-        jansiLibrary.resourcePath ==  "/META-INF/native/" + jansiLibrary.path
+        jansiLibrary.resourcePath ==  JANSI_NATIVE_PACKAGE_PATH + jansiLibrary.path
     }
 
-    @Requires(UnitTestPreconditions.Windows)
+    @Requires(OsTestPreconditions.Windows)
     def "jansi library can be created for Windows"() {
         when:
         JansiLibrary jansiLibrary = factory.create()
 
         then:
-        jansiLibrary.platform.startsWith(JansiOperatingSystemSupport.WINDOWS.identifier)
-        jansiLibrary.filename == WINDOWS_LIB_FILENAME
-        jansiLibrary.resourcePath ==  "/META-INF/native/" + jansiLibrary.path
+        jansiLibrary.resourcePath ==  JANSI_NATIVE_PACKAGE_PATH + jansiLibrary.path
     }
 }

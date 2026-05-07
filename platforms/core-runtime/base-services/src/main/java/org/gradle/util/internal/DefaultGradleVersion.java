@@ -20,12 +20,14 @@ package org.gradle.util.internal;
 import org.gradle.api.GradleException;
 import org.gradle.internal.UncheckedException;
 import org.gradle.util.GradleVersion;
+import org.jspecify.annotations.Nullable;
 
 import java.io.InputStream;
 import java.net.URL;
 import java.net.URLConnection;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Objects;
 import java.util.Properties;
 import java.util.TimeZone;
 import java.util.regex.Matcher;
@@ -35,7 +37,7 @@ import static java.lang.String.format;
 import static org.gradle.internal.IoActions.uncheckedClose;
 
 public final class DefaultGradleVersion extends GradleVersion {
-    private static final Pattern VERSION_PATTERN = Pattern.compile("((\\d+)(\\.\\d+)+)(-(\\p{Alpha}+)-(\\w+))?(-(SNAPSHOT|\\d{14}([-+]\\d{4})?))?");
+    public static final Pattern VERSION_PATTERN = Pattern.compile("((\\d+)(\\.\\d+)+)(-(\\p{Alpha}+)-(\\w+))?(-(SNAPSHOT|\\d{14}([-+]\\d{4})?))?");
     private static final int STAGE_MILESTONE = 0;
     private static final int STAGE_UNKNOWN = 1;
     private static final int STAGE_PREVIEW = 2;
@@ -43,11 +45,12 @@ public final class DefaultGradleVersion extends GradleVersion {
 
     private final String version;
     private final int majorPart;
-    private final String buildTime;
-    private final String commitId;
-    private final Long snapshot;
+    private final @Nullable String buildTime;
+    private final @Nullable String commitId;
+    private final @Nullable String scriptTemplateCommitId;
+    private final @Nullable Long snapshot;
     private final String versionPart;
-    private final Stage stage;
+    private final @Nullable Stage stage;
     private static final DefaultGradleVersion CURRENT;
 
     public static final String RESOURCE_NAME = "/org/gradle/build-receipt.properties";
@@ -68,7 +71,7 @@ public final class DefaultGradleVersion extends GradleVersion {
             Properties properties = new Properties();
             properties.load(inputStream);
 
-            String version = properties.get(VERSION_NUMBER_PROPERTY).toString();
+            String version = Objects.requireNonNull(properties.get(VERSION_NUMBER_PROPERTY), "Cannot find version number in build receipt").toString();
 
             // We allow the gradle version to be overridden for tests that are sensitive
             // to the version and need to test with various different version patterns.
@@ -79,10 +82,11 @@ public final class DefaultGradleVersion extends GradleVersion {
                 version = overrideVersion;
             }
 
-            String buildTimestamp = properties.get("buildTimestampIso").toString();
-            String commitId = properties.get("commitId").toString();
+            String buildTimestamp = Objects.requireNonNull(properties.get("buildTimestampIso"), "Cannot find build timestamp in build receipt").toString();
+            String commitId = Objects.requireNonNull(properties.get("commitId"), "Cannot find commit id in build receipt").toString();
+            String scriptTemplateCommitId = Objects.requireNonNull(properties.get("scriptTemplateCommitId"), "Cannot find script template commit id in build receipt").toString();
 
-            CURRENT = new DefaultGradleVersion(version, "unknown".equals(buildTimestamp) ? null : buildTimestamp, commitId);
+            CURRENT = new DefaultGradleVersion(version, "unknown".equals(buildTimestamp) ? null : buildTimestamp, commitId, scriptTemplateCommitId);
         } catch (Exception e) {
             throw new GradleException(format("Could not load version details from resource '%s'.", resource), e);
         } finally {
@@ -102,12 +106,13 @@ public final class DefaultGradleVersion extends GradleVersion {
      * @throws IllegalArgumentException On unrecognized version string.
      */
     public static DefaultGradleVersion version(String version) throws IllegalArgumentException {
-        return new DefaultGradleVersion(version, null, null);
+        return new DefaultGradleVersion(version, null, null, null);
     }
 
-    private DefaultGradleVersion(String version, String buildTime, String commitId) {
+    private DefaultGradleVersion(String version, @Nullable String buildTime, @Nullable String commitId, @Nullable String scriptTemplateCommitId) {
         this.version = version;
         this.buildTime = buildTime;
+        this.scriptTemplateCommitId = scriptTemplateCommitId;
         Matcher matcher = VERSION_PATTERN.matcher(version);
         if (!matcher.matches()) {
             throw new IllegalArgumentException(format("'%s' is not a valid Gradle version string (examples: '9.0.0', '9.1.0-rc-1')", version));
@@ -121,7 +126,7 @@ public final class DefaultGradleVersion extends GradleVersion {
         this.snapshot = parseSnapshot(matcher);
     }
 
-    private Long parseSnapshot(Matcher matcher) {
+    private @Nullable Long parseSnapshot(Matcher matcher) {
         if ("snapshot".equals(matcher.group(5)) || isCommitVersion(matcher)) {
             return 0L;
         } else if (matcher.group(8) == null) {
@@ -143,7 +148,7 @@ public final class DefaultGradleVersion extends GradleVersion {
         }
     }
 
-    private Stage parseStage(Matcher matcher) {
+    private @Nullable Stage parseStage(Matcher matcher) {
         if (matcher.group(4) == null || isCommitVersion(matcher)) {
             return null;
         } else if (isStage("milestone", matcher)) {
@@ -165,7 +170,7 @@ public final class DefaultGradleVersion extends GradleVersion {
         return stage.equals(matcher.group(5));
     }
 
-    private String setOrParseCommitId(String commitId, Matcher matcher) {
+    private @Nullable String setOrParseCommitId(@Nullable String commitId, Matcher matcher) {
         if (commitId != null || !isCommitVersion(matcher)) {
             return commitId;
         } else {
@@ -188,12 +193,16 @@ public final class DefaultGradleVersion extends GradleVersion {
         return majorPart;
     }
 
-    public String getBuildTimestamp() {
+    public @Nullable String getBuildTimestamp() {
         return buildTime;
     }
 
-    public String getGitRevision() {
+    public @Nullable String getGitRevision() {
         return commitId;
+    }
+
+    public @Nullable String getScriptTemplateGitRevision() {
+        return scriptTemplateCommitId;
     }
 
     @Override
@@ -302,7 +311,7 @@ public final class DefaultGradleVersion extends GradleVersion {
             this.patchNo = patchNo;
         }
 
-        static Stage from(int stage, String stageString) {
+        static @Nullable Stage from(int stage, String stageString) {
             Matcher m = Pattern.compile("(\\d+)([a-z])?").matcher(stageString);
             int number;
             if (m.matches()) {

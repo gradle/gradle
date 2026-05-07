@@ -29,6 +29,8 @@ public class CommandLineOption {
     private final Set<CommandLineOption> groupWith = new HashSet<CommandLineOption>();
     private boolean deprecated;
 
+    private OptionCategory category = OptionCategory.OTHER;
+
     public CommandLineOption(Iterable<String> options) {
         for (String option : options) {
             this.options.add(option);
@@ -113,5 +115,14 @@ public class CommandLineOption {
     void groupWith(Set<CommandLineOption> options) {
         this.groupWith.addAll(options);
         this.groupWith.remove(this);
+    }
+
+    public CommandLineOption hasCategory(OptionCategory category) {
+        this.category = category == null ? OptionCategory.OTHER : category;
+        return this;
+    }
+
+    public OptionCategory getCategory() {
+        return category == null ? OptionCategory.OTHER : category;
     }
 }

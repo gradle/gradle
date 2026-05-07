@@ -17,9 +17,10 @@ package org.gradle.connectivity
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.TestEnvironmentPreconditions
 
-@Requires(UnitTestPreconditions.Online)
+
+@Requires(TestEnvironmentPreconditions.Online)
 class MavenCentralDependencyResolveIntegrationTest extends AbstractIntegrationSpec {
     def "resolves a minimal dependency from Maven Central"() {
         given:

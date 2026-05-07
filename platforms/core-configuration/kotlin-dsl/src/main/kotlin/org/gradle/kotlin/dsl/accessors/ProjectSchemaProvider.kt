@@ -54,6 +54,7 @@ data class ProjectSchema<out T>(
     val modelDefaults: List<ProjectSchemaEntry<T>>,
     val containerElementFactories: List<ContainerElementFactoryEntry<T>>,
     val projectFeatureEntries: List<ProjectFeatureEntry<T>>,
+    val nestedModelEntries: List<NestedModelEntry<T>>,
     val scriptTarget: Any? = null
 ) {
 
@@ -65,6 +66,7 @@ data class ProjectSchema<out T>(
         modelDefaults.map { it.map(f) },
         containerElementFactories.map { it.map(f) },
         projectFeatureEntries.map { it.map(f) },
+        nestedModelEntries.map { it.map(f) },
         scriptTarget
     )
 
@@ -109,6 +111,16 @@ data class ContainerElementFactoryEntry<out T>(
 
     fun <U> map(f: (T) -> U) =
         ContainerElementFactoryEntry(factoryName, f(containerReceiverType), f(publicType))
+}
+
+data class NestedModelEntry<out T>(
+    val nestedModelPropertyName: String,
+    val ownerType: T,
+    val nestedModelType: T
+) : Serializable {
+
+    fun <U> map(f: (T) -> U) =
+        NestedModelEntry(nestedModelPropertyName, f(ownerType), f(nestedModelType))
 }
 
 data class ProjectFeatureEntry<out T>(

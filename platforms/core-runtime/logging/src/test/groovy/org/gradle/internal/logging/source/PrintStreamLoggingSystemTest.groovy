@@ -36,13 +36,14 @@ class PrintStreamLoggingSystemTest extends Specification {
     private PrintStream stream = originalStream
     private final OutputEventListener listener = Mock()
     private final Clock timeProvider = FixedClock.createAt(NOW)
+
     private final PrintStreamLoggingSystem loggingSystem = new PrintStreamLoggingSystem(listener, 'category', timeProvider) {
         protected PrintStream get() {
             stream
         }
 
         protected void set(PrintStream printStream) {
-            stream = printStream
+            PrintStreamLoggingSystemTest.this.stream = printStream
         }
     }
 

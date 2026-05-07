@@ -18,11 +18,11 @@ package org.gradle.integtests
 
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import org.junit.Rule
 import spock.lang.Issue
 
-@Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = NOT_EMBEDDED_REASON)
+@Requires(value = TestExecutionPreconditions.NotEmbeddedExecutor, reason = NOT_EMBEDDED_REASON)
 class WrapperConcurrentDownloadTest extends AbstractWrapperIntegrationSpec {
     @Rule BlockingHttpServer server = new BlockingHttpServer()
 
@@ -35,7 +35,7 @@ class WrapperConcurrentDownloadTest extends AbstractWrapperIntegrationSpec {
     @Issue("https://issues.gradle.org/browse/GRADLE-2699")
     def "concurrent downloads do not stomp over each other"() {
         given:
-        prepareWrapper(server.uri("gradle-bin.zip"))
+        prepareWrapper(server.uri("gradle-bin.zip")).run()
 
         when:
         def results = [1..4].collect { wrapperExecuter.start() }*.waitForFinish()

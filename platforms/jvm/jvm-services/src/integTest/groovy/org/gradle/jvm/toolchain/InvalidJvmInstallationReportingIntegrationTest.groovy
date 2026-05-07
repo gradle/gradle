@@ -18,16 +18,19 @@ package org.gradle.jvm.toolchain
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
+import org.gradle.test.preconditions.InstalledJdkTestPreconditions
 import spock.lang.TempDir
 
 import java.util.regex.Pattern
 
 class InvalidJvmInstallationReportingIntegrationTest extends AbstractIntegrationSpec {
 
-    @Requires([IntegTestPreconditions.NotNoDaemonExecutor, IntegTestPreconditions.NotConfigCached, IntegTestPreconditions.DifferentJdkAvailable])
+    @Requires([TestExecutionPreconditions.NotNoDaemonExecutor, InstalledJdkTestPreconditions.DifferentJdkAvailable])
+    @ToBeFixedForConfigurationCache(because = "With CC enabled, toolchain detection is not re-triggered on cache hit, so the warning is not emitted on the second build")
     def "invalid JDK is cached only for current build if in daemon"() {
         // Require a different JDK to be able to find the logs of its probing for system properties
         def existingJdk = AvailableJavaHomes.differentJdk
@@ -72,7 +75,9 @@ class InvalidJvmInstallationReportingIntegrationTest extends AbstractIntegration
         results.every { result ->
             def expectedErrorMessages = [invalidJdkHome1, invalidJdkHome2].collect {
                 "Invalid Java installation found at '${it.canonicalPath}' (Gradle property 'org.gradle.java.installations.paths'). " +
-                    "It will be re-checked in the next build. This might have performance impact if it keeps failing. " +
+                    "It will be re-checked in the next build. " +
+                    "If the configuration cache is enabled, the re-check will happen only after the cache is invalidated. " +
+                    "This might have performance impact if it keeps failing. " +
                     "Run the 'javaToolchains' task for more details."
             }
             expectedErrorMessages.every { countMatches(it, result.plainTextOutput) == 1 }

@@ -545,7 +545,7 @@ val ApiTypeUsage.isKotlinCollection
 
 private
 fun isCandidateForExtension(function: ApiFunction): Boolean = function.run {
-    name !in functionNameBlackList &&
+    name !in excludedFunctionNames &&
         isPublic &&
         !isStatic &&
         parameters.none { it.type.isGroovyClosure }
@@ -553,4 +553,4 @@ fun isCandidateForExtension(function: ApiFunction): Boolean = function.run {
 
 
 private
-val functionNameBlackList = listOf("<init>")
+val excludedFunctionNames = listOf("<init>")

@@ -22,12 +22,15 @@ import org.gradle.api.file.ProjectLayout
 import org.gradle.api.initialization.internal.SharedModelDefaultsInternal
 import org.gradle.api.internal.DynamicObjectAware
 import org.gradle.api.internal.initialization.ActionBasedDefault
+import org.gradle.features.binding.BuildModel
+import org.gradle.features.binding.Definition
 import org.gradle.internal.Cast
-import org.gradle.plugin.software.internal.ModelDefault
-import org.gradle.plugin.software.internal.ModelDefaultsApplicator.ClassLoaderContext
-import org.gradle.plugin.software.internal.ModelDefaultsHandler
-import org.gradle.plugin.software.internal.ProjectFeatureImplementation
-import org.gradle.plugin.software.internal.ProjectFeatureDeclarations
+import org.gradle.features.internal.binding.ModelDefault
+import org.gradle.features.internal.binding.ModelDefaultsApplicator.ClassLoaderContext
+import org.gradle.features.internal.binding.ModelDefaultsHandler
+import org.gradle.features.internal.binding.ProjectFeatureImplementation
+import org.gradle.features.internal.binding.ProjectFeatureDeclarations
+import org.gradle.features.internal.binding.TargetTypeInformationChecks
 
 class ActionBasedModelDefaultsHandler(
     private val sharedModelDefaults: SharedModelDefaultsInternal,
@@ -36,9 +39,13 @@ class ActionBasedModelDefaultsHandler(
 ) : ModelDefaultsHandler {
 
     override fun apply(target: Any, definition: Any, classLoaderContext: ClassLoaderContext, projectFeatureName: String, plugin: Plugin<*>) {
-        val projectFeatureImplementation: ProjectFeatureImplementation<*, *> = projectFeatureDeclarations.getProjectFeatureImplementations()[projectFeatureName]!!
+        val projectFeatureImplementations: Set<ProjectFeatureImplementation<*, *>> = projectFeatureDeclarations.getProjectFeatureImplementations()[projectFeatureName]!!
 
-        if (target is DynamicObjectAware) {
+        val projectFeatureImplementation: ProjectFeatureImplementation<*, *>? = projectFeatureImplementations.find {
+            TargetTypeInformationChecks.isValidBindingType(it.targetDefinitionType, target.javaClass)
+        }
+
+        if (target is DynamicObjectAware && projectFeatureImplementation != null) {
             sharedModelDefaults.setProjectLayout(projectLayout)
             try {
                 projectFeatureImplementation.visitModelDefaults(
@@ -54,7 +61,7 @@ class ActionBasedModelDefaultsHandler(
         }
     }
 
-    private fun <T : Any, V : Any> executeActionVisitor(
+    private fun <T : Definition<V>, V : BuildModel> executeActionVisitor(
         projectFeatureImplementation: ProjectFeatureImplementation<T, V>,
         modelObject: Any?
     ): ModelDefault.Visitor<Action<in T>> {

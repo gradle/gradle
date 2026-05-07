@@ -66,7 +66,6 @@ import static java.util.Collections.emptyList;
 public abstract class TaskReportTask extends ConventionReportTask {
 
     private boolean detail;
-    private final Property<Boolean> showTypes = getProject().getObjects().property(Boolean.class);
     private String group;
     private List<String> groups;
     private final Cached<ComputedTaskReportModel> model = Cached.of(this::computeTaskReportModel);
@@ -163,9 +162,19 @@ public abstract class TaskReportTask extends ConventionReportTask {
      */
     @Console
     @Option(option = "types", description = "Show task class types")
-    public Property<Boolean> getShowTypes() {
-        return showTypes;
-    }
+    public abstract Property<Boolean> getShowTypes();
+
+    /**
+     * Whether to show where tasks were registered next to their names in the output.
+     *
+     * This property can be set via command-line option '--provenance'.
+     *
+     * @since 9.5.0
+     */
+    @Console
+    @Option(option = "provenance", description = "Show task provenance information")
+    @Incubating
+    public abstract Property<Boolean> getShowProvenance();
 
     @TaskAction
     void generate() {
@@ -230,6 +239,7 @@ public abstract class TaskReportTask extends ConventionReportTask {
     private void render(ProjectReportModel reportModel) {
         renderer.showDetail(isDetail());
         renderer.showTypes(getShowTypes().get());
+        renderer.showProvenance(getShowProvenance().get());
         renderer.addDefaultTasks(reportModel.defaultTasks);
 
         DefaultGroupTaskReportModel model = reportModel.tasks;

@@ -17,8 +17,7 @@
 package org.gradle.internal.declarativedsl.dom.mutation
 
 import org.gradle.declarative.dsl.evaluation.EvaluationSchema
-import org.gradle.declarative.dsl.model.annotations.Configuring
-import org.gradle.declarative.dsl.model.annotations.Restricted
+import org.gradle.declarative.dsl.evaluation.SchemaBuildingFailure
 import org.gradle.declarative.dsl.schema.AnalysisSchema
 import org.gradle.internal.declarativedsl.analysis.DefaultOperationGenerationId
 import org.gradle.internal.declarativedsl.analysis.analyzeEverything
@@ -224,6 +223,7 @@ val nestedTwoNestedThreeMutationDefinition = object : MutationDefinition {
 private
 val schema = object : EvaluationSchema {
     override val analysisSchema = schemaFromTypes(TopLevelReceiverForMutations::class, listOf(TopLevelReceiverForMutations::class, NestedOne::class, NestedTwo::class))
+    override val analysisSchemaBuildingFailures: List<SchemaBuildingFailure> = emptyList()
     override val operationGenerationId = DefaultOperationGenerationId.finalEvaluation
     override val analysisStatementFilter = analyzeEverything
 }
@@ -231,36 +231,29 @@ val schema = object : EvaluationSchema {
 
 internal
 interface TopLevelReceiverForMutations {
-    @Configuring
     fun nestedOne(configure: NestedOne.() -> Unit)
 
-    @Configuring
     fun nestedAnotherOne(configure: NestedOne.() -> Unit)
 }
 
 
 internal
 interface NestedOne {
-    @get:Restricted
     var x: Int
 
-    @Configuring
     fun nestedTwo(configure: NestedTwo.() -> Unit)
 }
 
 
 internal
 interface NestedTwo {
-    @get:Restricted
     var y: Int
 
-    @Configuring
     fun nestedThree(configure: NestedTwo.() -> Unit)
 }
 
 
 internal
 interface NestedThree {
-    @get:Restricted
     var z: Int
 }

@@ -24,11 +24,13 @@ import org.gradle.api.artifacts.MutableVersionConstraint;
 import org.gradle.api.internal.artifacts.dsl.ParsedModuleStringNotation;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ModuleFactoryHelper;
 import org.gradle.api.internal.catalog.parser.StrictVersionParser;
+import org.gradle.api.problems.Problems;
 import org.gradle.internal.exceptions.DiagnosticsVisitor;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationConvertResult;
 import org.gradle.internal.typeconversion.NotationConverter;
 import org.gradle.internal.typeconversion.TypeConversionException;
+import org.jspecify.annotations.Nullable;
 
 public class DependencyStringNotationConverter<T> implements NotationConverter<String, T> {
     private final Instantiator instantiator;
@@ -36,11 +38,11 @@ public class DependencyStringNotationConverter<T> implements NotationConverter<S
     private final Interner<String> stringInterner;
     private final StrictVersionParser strictVersionParser;
 
-    public DependencyStringNotationConverter(Instantiator instantiator, Class<T> wantedType, Interner<String> stringInterner) {
+    public DependencyStringNotationConverter(Instantiator instantiator, Class<T> wantedType, Interner<String> stringInterner, Problems problems) {
         this.instantiator = instantiator;
         this.wantedType = wantedType;
         this.stringInterner = stringInterner;
-        this.strictVersionParser = new StrictVersionParser(stringInterner);
+        this.strictVersionParser = new StrictVersionParser(stringInterner, problems);
     }
 
     @Override
@@ -57,14 +59,20 @@ public class DependencyStringNotationConverter<T> implements NotationConverter<S
 
         ParsedModuleStringNotation parsedNotation = splitModuleFromExtension(notation);
         StrictVersionParser.RichVersion version = strictVersionParser.parse(parsedNotation.getVersion());
-        T moduleDependency = instantiator.newInstance(wantedType,
-            stringInterner.intern(parsedNotation.getGroup()), stringInterner.intern(parsedNotation.getName()), stringInterner.intern(version.require));
+        T moduleDependency = instantiator.newInstance(wantedType, intern(parsedNotation.getGroup()), intern(parsedNotation.getName()), intern(version.require));
         maybeEnrichVersion(version, moduleDependency);
         if (moduleDependency instanceof ExternalDependency) {
             ModuleFactoryHelper.addExplicitArtifactsIfDefined((ExternalDependency) moduleDependency, parsedNotation.getArtifactType(), parsedNotation.getClassifier());
         }
 
         return moduleDependency;
+    }
+
+    private @Nullable String intern(@Nullable String sample) {
+        if (sample == null) {
+            return null;
+        }
+        return stringInterner.intern(sample);
     }
 
     private void maybeEnrichVersion(StrictVersionParser.RichVersion version, T moduleDependency) {

@@ -68,7 +68,7 @@ class ConfigurationCacheCustomClassLoaderErrorIntegrationTest extends AbstractCo
 
         then:
         problems.assertFailureHasProblems(failure) {
-            withProblemsWithStackTraceCount 0
+            problemsWithStackTraceCount = 0
             withProblem "Task `:fail` of type `org.gradle.api.DefaultTask`: Class 'Foo' cannot be encoded because class loader 'java.net.URLClassLoader"
         }
     }

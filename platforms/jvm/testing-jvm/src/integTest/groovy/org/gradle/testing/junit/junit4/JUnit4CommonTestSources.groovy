@@ -16,9 +16,10 @@
 
 package org.gradle.testing.junit.junit4
 
+
 import org.gradle.testing.fixture.AbstractTestingMultiVersionIntegrationTest
 
-import static org.gradle.util.internal.VersionNumber.*
+import static org.gradle.util.internal.VersionNumber.parse
 
 trait JUnit4CommonTestSources {
     static class JUnit4TestSourceConfiguration implements AbstractTestingMultiVersionIntegrationTest.TestSourceConfiguration {

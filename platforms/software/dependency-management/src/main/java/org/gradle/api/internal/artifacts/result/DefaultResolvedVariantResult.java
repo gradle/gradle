@@ -21,8 +21,8 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ResolvedVariantResult;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.capabilities.Capability;
+import org.gradle.internal.Cast;
 import org.gradle.internal.DisplayName;
-import org.gradle.internal.component.external.model.ImmutableCapabilities;
 import org.jspecify.annotations.Nullable;
 
 import java.util.List;
@@ -33,14 +33,14 @@ public class DefaultResolvedVariantResult implements ResolvedVariantResult {
     private final ComponentIdentifier owner;
     private final DisplayName displayName;
     private final AttributeContainer attributes;
-    private final ImmutableCapabilities capabilities;
+    private final ImmutableList<? extends Capability> capabilities;
     private final ResolvedVariantResult externalVariant;
     private final int hashCode;
 
     public DefaultResolvedVariantResult(ComponentIdentifier owner,
                                         DisplayName displayName,
                                         AttributeContainer attributes,
-                                        ImmutableCapabilities capabilities,
+                                        ImmutableList<? extends Capability> capabilities,
                                         @Nullable ResolvedVariantResult externalVariant) {
         this.owner = owner;
         this.displayName = displayName;
@@ -67,7 +67,7 @@ public class DefaultResolvedVariantResult implements ResolvedVariantResult {
 
     @Override
     public List<Capability> getCapabilities() {
-        return ImmutableList.copyOf(capabilities.asSet());
+        return Cast.uncheckedCast(capabilities);
     }
 
     @Override

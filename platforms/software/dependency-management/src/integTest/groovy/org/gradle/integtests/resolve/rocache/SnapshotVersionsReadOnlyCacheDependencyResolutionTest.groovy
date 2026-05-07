@@ -52,7 +52,7 @@ class SnapshotVersionsReadOnlyCacheDependencyResolutionTest extends AbstractRead
         latest.artifact.sha1.expectGet()
         latest.artifact.expectGet()
 
-        succeeds ':checkDeps', '--refresh-dependencies'
+        succeeds ':checkDeps', ":resolveArtifacts", '--refresh-dependencies'
 
         then:
         resolve.expectGraph {

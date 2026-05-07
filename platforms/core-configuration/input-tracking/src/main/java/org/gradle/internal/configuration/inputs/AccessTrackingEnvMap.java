@@ -21,6 +21,7 @@ import com.google.common.collect.ForwardingMap;
 import org.jspecify.annotations.Nullable;
 
 import java.io.Serializable;
+import java.util.Collection;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -76,6 +77,12 @@ public class AccessTrackingEnvMap extends ForwardingMap<String, String> implemen
         // The delegate will throw if something that isn't a string is used there. Do call delegate.get() first so the exception is thrown form the JDK code to avoid extra blame.
         onAccess.accept((String) key, result);
         return result;
+    }
+
+    @Override
+    public Collection<String> values() {
+        reportAggregatingAccess();
+        return delegate.values();
     }
 
     @Override

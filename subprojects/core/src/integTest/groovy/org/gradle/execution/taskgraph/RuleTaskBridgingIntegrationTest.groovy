@@ -18,11 +18,9 @@ package org.gradle.execution.taskgraph
 
 import groovy.test.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 import org.gradle.util.internal.TextUtil
 
-import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache.Skip.INVESTIGATE
 import static org.gradle.integtests.fixtures.executer.TaskOrderSpecs.any
 
 class RuleTaskBridgingIntegrationTest extends AbstractIntegrationSpec implements WithRuleBasedTasks {
@@ -250,29 +248,41 @@ class RuleTaskBridgingIntegrationTest extends AbstractIntegrationSpec implements
         output.contains "foo: task foo message"
     }
 
-    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def "task created in afterEvaluate() is visible to rules"() {
         when:
         buildFile << '''
             class MyPlugin extends RuleSource {
                 @Mutate
                 void fromAfterEvaluateTaskAvailable(ModelMap<Task> tasks) {
-                    tasks.fromAfterEvaluate.value += " and from container rule"
+                    tasks.fromAfterEvaluate.value2 = tasks.fromAfterEvaluate.value.map { it + " and from container rule" }
                 }
                 @Mutate
                 void fromAfterEvaluateTaskAvailable(@Path("tasks.fromAfterEvaluate") Task task) {
-                    task.value += " and from rule"
+                    task.value3 = task.value.map { it + " and from rule" }
                 }
             }
 
             apply type: MyPlugin
 
+            abstract class AfterEvaluateTask extends DefaultTask {
+                @Input
+                abstract Property<String> getValue()
+                @Input
+                @Optional
+                abstract Property<String> getValue2()
+                @Input
+                @Optional
+                abstract Property<String> getValue3()
+
+                @TaskAction
+                void action() {
+                    println "values: '${value.get()}' '${value2.getOrNull()}' '${value3.getOrNull()}'"
+                }
+            }
+
             project.afterEvaluate {
-                project.tasks.create("fromAfterEvaluate") {
-                    ext.value = "from after evaluate"
-                    doLast {
-                        println "value: $value"
-                    }
+                project.tasks.register("fromAfterEvaluate", AfterEvaluateTask) {
+                    value = "from after evaluate"
                 }
             }
         '''
@@ -281,7 +291,7 @@ class RuleTaskBridgingIntegrationTest extends AbstractIntegrationSpec implements
         succeeds "fromAfterEvaluate"
 
         and:
-        output.contains "value: from after evaluate and from container rule and from rule"
+        output.contains "values: 'from after evaluate' 'from after evaluate and from container rule' 'from after evaluate and from rule'"
     }
 
     def "registering a creation rule for a task that is already defined using legacy DSL"() {

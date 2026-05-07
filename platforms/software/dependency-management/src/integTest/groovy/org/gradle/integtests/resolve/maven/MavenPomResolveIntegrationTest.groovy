@@ -17,12 +17,11 @@
 package org.gradle.integtests.resolve.maven
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import spock.lang.Issue
 
 class MavenPomResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
-    ResolveTestFixture resolve = new ResolveTestFixture(buildFile, "compile")
+    ResolveTestFixture resolve = new ResolveTestFixture(testDirectory)
 
     def setup() {
         settingsFile """
@@ -51,11 +50,22 @@ class MavenPomResolveIntegrationTest extends AbstractHttpDependencyResolutionTes
 
         and:
         buildFile << """
-repositories { maven { url = '${mavenHttpRepo.uri}' } }
-configurations { compile }
-dependencies { compile 'groupA:projectA:1.2' }
-"""
-        resolve.prepare()
+            repositories {
+                maven {
+                    url = '${mavenHttpRepo.uri}'
+                }
+            }
+
+            configurations {
+                compile
+            }
+
+            ${resolve.configureProject("compile")}
+
+            dependencies {
+                compile 'groupA:projectA:1.2'
+            }
+        """
 
         and:
         original.pom.expectGet()
@@ -98,14 +108,21 @@ dependencies { compile 'groupA:projectA:1.2' }
         and:
         buildFile << """
             repositories {
-                maven { url = "${mavenHttpRepo.uri}" }
+                maven {
+                    url = "${mavenHttpRepo.uri}"
+                }
             }
-            configurations { compile }
+
+            configurations {
+                compile
+            }
+
+            ${resolve.configureProject("compile")}
+
             dependencies {
                 compile "group:artifact:1.0"
             }
         """
-        resolve.prepare()
 
         and:
         parent.pom.expectGet()
@@ -152,26 +169,32 @@ dependencies { compile 'groupA:projectA:1.2' }
 
         and:
         buildFile << """
-repositories { maven { url = '${mavenHttpRepo.uri}' } }
-configurations {
-    first
-    second
-}
-dependencies {
-    first 'groupA:artifactA:1.0'
-    second 'groupA:artifactA:2.0@pom'
-}
+            repositories {
+                maven {
+                    url = '${mavenHttpRepo.uri}'
+                }
+            }
 
-task retrieve {
-    def files = configurations.first
-    doLast {
-        // populates cache for POM artifact in memory
-        files*.name
-    }
-}
+            configurations {
+                first
+                second
+            }
 
-"""
-        resolve.prepare("second")
+            ${resolve.configureProject("second")}
+
+            dependencies {
+                first 'groupA:artifactA:1.0'
+                second 'groupA:artifactA:2.0@pom'
+            }
+
+            task retrieve {
+                def files = configurations.first
+                doLast {
+                    // populates cache for POM artifact in memory
+                    files*.name
+                }
+            }
+        """
 
         and:
         original.pom.expectGet()
@@ -189,35 +212,41 @@ task retrieve {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/22279")
-    @ToBeFixedForConfigurationCache(because = "task uses Artifact Query API")
     def "can resolve POM as an artifact after it was resolved via ARQ"() {
         given:
         def original = mavenHttpRepo.module('groupA', 'artifactA', '1.0').publishPom()
 
         and:
         buildFile << """
-repositories { maven { url = '${mavenHttpRepo.uri}' } }
-configurations {
-    conf
-}
-dependencies {
-    conf 'groupA:artifactA:1.0@pom'
-}
+            repositories {
+                maven {
+                    url = '${mavenHttpRepo.uri}'
+                }
+            }
 
-task retrieve {
-    doLast {
-        // populates cache for POM artifact in memory
-        def result = dependencies.createArtifactResolutionQuery()
-                                    .forModule("groupA", "artifactA", "1.0")
-                                    .withArtifacts(MavenModule, MavenPomArtifact)
-                                    .execute()
-        for (component in result.resolvedComponents) {
-            component.getArtifacts(MavenPomArtifact).each { println "POM for " + component }
-        }
-    }
-}
-"""
-        resolve.prepare("conf")
+            configurations {
+                conf
+            }
+
+            ${resolve.configureProject("conf")}
+
+            dependencies {
+                conf 'groupA:artifactA:1.0@pom'
+            }
+
+            task retrieve {
+                // populates cache for POM artifact in memory
+                def result = dependencies.createArtifactResolutionQuery()
+                                            .forModule("groupA", "artifactA", "1.0")
+                                            .withArtifacts(MavenModule, MavenPomArtifact)
+                                            .execute()
+                doLast {
+                    for (component in result.resolvedComponents) {
+                        component.getArtifacts(MavenPomArtifact).each { println "POM for " + component }
+                    }
+                }
+            }
+            """
 
         and:
         original.pom.expectGet()

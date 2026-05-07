@@ -16,10 +16,13 @@
 
 package org.gradle.smoketests
 
+import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheProblemsFixture
+
 class GradleBuildIsolatedProjectsSmokeTest extends AbstractGradleBuildIsolatedProjectsSmokeTest {
 
     def "can run Gradle build tasks with isolated projects enabled"() {
         given:
+        def fixture = new ConfigurationCacheProblemsFixture(testProjectDir)
         def tasks = [
             "build",
             "sanityCheck",
@@ -33,16 +36,61 @@ class GradleBuildIsolatedProjectsSmokeTest extends AbstractGradleBuildIsolatedPr
         ]
 
         when:
-        maxIsolatedProjectProblems = 13
+        maxIsolatedProjectProblems = 0
         isolatedProjectsRun(tasks)
 
         then:
         result.assertConfigurationCacheStateStoreDiscarded()
-        result.output.contains "13 problems were found storing the configuration cache, 5 of which seem unique."
-        result.output.contains "- Plugin 'org.jetbrains.kotlin.jvm': Project ':declarative-dsl-core' cannot dynamically look up a property in the parent project ':'"
-        result.output.contains "- Plugin 'org.jetbrains.kotlin.jvm': Project ':declarative-dsl-evaluator' cannot dynamically look up a property in the parent project ':'"
-        result.output.contains "- Plugin 'org.jetbrains.kotlin.jvm': Project ':declarative-dsl-tooling-models' cannot dynamically look up a property in the parent project ':'"
-        result.output.contains "- Plugin 'org.jetbrains.kotlin.jvm': Project ':kotlin-dsl-plugins' cannot dynamically look up a property in the parent project ':'"
-        result.output.contains "- Unknown location: Project ':docs' cannot dynamically look up a property in the parent project ':'"
+
+        // Prevents the power assert from dumping all the output if the check below fails.
+        def report = fixture.htmlReport(result.output)
+        report.assertHasNoProblems()
+    }
+
+    def "can schedule all Gradle build tasks with isolated projects enabled"() {
+        def scheduleAllTasksScript = "schedule-all-tasks.gradle"
+
+        File scheduleAllTasksScriptFile = new File(testProjectDir, scheduleAllTasksScript)
+        scheduleAllTasksScriptFile << getClass().getResource(scheduleAllTasksScript).text
+        def fixture = new ConfigurationCacheProblemsFixture(testProjectDir)
+
+        given:
+        // sets properties that are required by tasks being realized
+        def requiredGradleProperties = [
+            "-Pgradle_installPath=/dev/null",
+            "-PartifactoryUserName=foo",
+            "-PartifactoryUserPassword=bar",
+            "-PtoolingApiShadedJarInstallPath=/tmp",
+            "-PpromotionCommitId=1234567"
+        ]
+        def requiredEnvironmentVars = [
+            "GRADLE_INTERNAL_REPO_URL": "file:///bogus-repository",
+            "BUILD_COMMIT_ID": "1234567",
+            "BUILD_BRANCH": "master",
+        ]
+        def tasks = [
+            "--init-script",
+            scheduleAllTasksScriptFile.absolutePath,
+            "scheduleAll",
+            // see https://github.com/gradle/gradle-org-conventions-plugin/blob/185ed5cd4923c061a1c70d77c27758df4c80c6d9/src/main/java/io/github/gradle/conventions/customvalueprovider/GitInformationCustomValueProvider.java#L24
+            "--no-scan",
+            // avoid hitting Develocity features that require further configuration
+            "--no-build-cache"
+        ] + requiredGradleProperties
+
+        when:
+        maxIsolatedProjectProblems = 200000
+        run(isolatedProjectsRunner(tasks, 1).withEnvironment(requiredEnvironmentVars))
+
+        then:
+        fixture.htmlReport(result.output).assertContents {
+            withUniqueProblems(
+                "Project ':' cannot access 'Project.plugins' functionality on subprojects via 'allprojects'",
+                "Project ':' cannot access 'Project.extensions' functionality on subprojects via 'allprojects'",
+            )
+            // checking total problem count is too brittle, as that number changes whenever projects are added or removed
+            enforceTotalProblemCount = false
+        }
+        result.assertNoConfigurationCache()
     }
 }

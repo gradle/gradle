@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2026 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,18 +16,20 @@
 
 package org.gradle.testing.junit.jupiter
 
+import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetCoverage
+import org.gradle.testing.fixture.JUnitCoverage
 import org.gradle.testing.junit.AbstractJUnitConsoleLoggingIntegrationTest
 import org.gradle.util.internal.VersionNumber
 import org.junit.Assume
 
 import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_JUPITER
 
-@TargetCoverage({ JUNIT_JUPITER })
+@TargetCoverage({ JUnitCoverage.JUNIT_JUPITER })
 class JUnitJupiterConsoleLoggingIntegrationTest extends AbstractJUnitConsoleLoggingIntegrationTest implements JUnitJupiterMultiVersionTest {
 
     def "failure during JUnit platform initialization is written to console when granularity is set"() {
-        Assume.assumeTrue("Non-existent test engine is only an error after 5.9.0", VersionNumber.parse(version) >= VersionNumber.parse("5.9.0"))
+        Assume.assumeTrue("Non-existent test engine is only an error after 5.9.0", VersionNumber.parse(MultiVersionIntegrationSpec.version) >= VersionNumber.parse("5.9.0"))
 
         buildFile.text = """
             apply plugin: "groovy"

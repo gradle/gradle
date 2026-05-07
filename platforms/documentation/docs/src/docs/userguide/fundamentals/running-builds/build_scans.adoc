@@ -15,19 +15,11 @@
 [[build_scans]]
 = Build Scan Basics
 
-++++
-<div class="badge-wrapper">
-    <a class="badge" href="https://dpeuniversity.gradle.com/app/learning_paths/f633b8eb-2979-449e-a434-b94787fe5f32" target="_blank">
-        <span class="badge-type button--blue">LEARN</span>
-        <span class="badge-text">How to Use Build Scan&nbsp;&nbsp;&nbsp;&gt;</span>
-    </a>
-</div>
-++++
-
 A Build Scan is a *representation of metadata captured* as you run your build.
 
 image::gradle-basic-1.png[]
 
+[[sec:about_build_scan]]
 == About Build Scan
 
 Gradle <<#sec:captured-information,captures your build metadata>> and sends it to the link:https://scans.gradle.com/[Build Scan Service].
@@ -42,23 +34,37 @@ Instead, copy the link to your latest Build Scan.
 
 image::build-scan-2.png[]
 
+[[sec:enable_build_scan]]
 == Enable Build Scan
 
 To enable a Build Scan on a Gradle command, add `--scan` to the command line option:
 
-[source,text]
+[source,bash]
 ----
- ./gradlew build --scan
+$ ./gradlew build --scan
 ----
 
 You may be prompted to agree to the terms to use Build Scan.
 
-Visit the link:https://scans.gradle.com/[Build Scan page] to learn more.
+Visit link:https://scans.gradle.com/[Develocity at gradle.com] to learn more.
+
+=== Publishing to a specific Develocity server
+
+If you have a Develocity server, you can publish your Build Scan reports to that server instead of link:https://scans.gradle.com/[Develocity at gradle.com].
+
+You enable this with the `--develocity-url` command line option:
+
+[source,text]
+----
+ ./gradlew build --develocity-url=https://develocity.example.com
+----
+
+Check the https://docs.gradle.com/develocity/gradle/current/gradle-plugin/#publish_no_modify[Develocity Gradle plugin documentation] for more details.
 
 [[sec:captured-information]]
 == Captured Information
 
-To see what data is captured and sent in a Build Scan, refer to the link:https://docs.gradle.com/develocity/gradle-plugin/current/#captured_information)[Captured Information] section in the Gradle Develocity Plugin documentation.
+To see what data is captured and sent in a Build Scan, refer to the link:https://docs.gradle.com/develocity/gradle-plugin/current/#captured_information[Captured Information] section in the Gradle Develocity Plugin documentation.
 
 Ready to build something? Start with the <<part1_gradle_init.adoc#part1_gradle_init,Beginner Tutorial>>.
 

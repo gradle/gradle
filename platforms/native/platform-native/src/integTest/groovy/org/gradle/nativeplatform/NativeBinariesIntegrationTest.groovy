@@ -22,7 +22,8 @@ import org.gradle.nativeplatform.fixtures.NativePlatformsTestFixture
 import org.gradle.nativeplatform.fixtures.app.CHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.CppCallingCHelloWorldApp
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.TestEnvironmentPreconditions
+
 
 import static org.gradle.util.Matchers.containsText
 
@@ -119,7 +120,7 @@ model {
         fails "assemble"
 
         then:
-        failureDescriptionContains("Execution failed for task ':assemble'.")
+        failureDescriptionContains("Execution failed for task ':assemble' (registered by plugin class 'org.gradle.language.base.plugins.LifecycleBasePlugin').")
         failure.assertHasCause("""No buildable binaries found:
   - shared library 'another:sharedLibrary': Disabled by user
   - static library 'another:staticLibrary': Disabled by user
@@ -304,7 +305,7 @@ model {
         failure.assertThatCause(containsText("Static library archiver failed while archiving ${libName}"))
     }
 
-    @Requires(UnitTestPreconditions.CanInstallExecutable)
+    @Requires(TestEnvironmentPreconditions.CanInstallExecutable)
     def "installed executable receives command-line parameters"() {
         buildFile << """
 apply plugin: 'c'

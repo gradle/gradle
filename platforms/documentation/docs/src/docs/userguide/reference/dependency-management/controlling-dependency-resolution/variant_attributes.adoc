@@ -21,37 +21,25 @@
 For example, a library may have an `api` and an `implementation` variant.
 Here, the consumer wants an external `implementation` variant:
 
-[source,kotlin]
-----
-configurations {
-    implementation {
-        attributes {
-            attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named(Bundling.EXTERNAL))
-        }
-    }
-}
-----
+====
+include::sample[dir="snippets/reference/dependency-management/controlling-dependency-resolution/variantAttributes-intro/kotlin",files="build.gradle.kts[tags=bundling-attribute]"]
+include::sample[dir="snippets/reference/dependency-management/controlling-dependency-resolution/variantAttributes-intro/groovy",files="build.gradle[tags=bundling-attribute]"]
+====
 
 For example, a build might have `debug` and `release` variants.
 This selects the `debug` variant based on the attribute.
 
-[source,kotlin]
-----
-configurations {
-    compileClasspath {
-        attributes {
-            attribute(TargetConfiguration.TARGET_ATTRIBUTE, objects.named("debug"))
-        }
-    }
-}
-----
+====
+include::sample[dir="snippets/reference/dependency-management/controlling-dependency-resolution/variantAttributes-intro/kotlin",files="build.gradle.kts[tags=target-attribute]"]
+include::sample[dir="snippets/reference/dependency-management/controlling-dependency-resolution/variantAttributes-intro/groovy",files="build.gradle[tags=target-attribute]"]
+====
 
 **Attributes** help Gradle match the right **variant** by comparing the requested attributes with what's available:
 
-[source,kotlin]
-----
-attribute(TargetConfiguration.TARGET_ATTRIBUTE, objects.named("debug"))
-----
+====
+include::sample[dir="snippets/reference/dependency-management/controlling-dependency-resolution/variantAttributes-intro/kotlin",files="build.gradle.kts[tags=target-attribute-single]"]
+include::sample[dir="snippets/reference/dependency-management/controlling-dependency-resolution/variantAttributes-intro/groovy",files="build.gradle[tags=target-attribute-single]"]
+====
 
 This sets the `TargetConfiguration.TARGET_ATTRIBUTE` to `"debug"`, meaning Gradle will attempt to resolve dependencies that have a "debug" variant, instead of other available variants (like "release").
 
@@ -63,6 +51,7 @@ But it might be useful to understand the _standard attributes_ defined by Gradle
 
 As a plugin author, these attributes, and the way they are defined, can serve as a basis for <<#sec:declaring-attributes,building your own set of attributes>> in your ecosystem plugin.
 
+[[sec:ecosystem_independent_standard_attributes]]
 === Ecosystem-independent standard attributes
 
 [%header%autowidth,compact]
@@ -154,6 +143,7 @@ In addition to the ecosystem independent attributes defined above, the JVM ecosy
 The JVM ecosystem also contains a number of compatibility and disambiguation rules over the different attributes.
 The reader willing to know more can take a look at the code for `org.gradle.api.internal.artifacts.JavaEcosystemSupport`.
 
+[[sec:native_ecosystem_specific_attributes]]
 === Native ecosystem specific attributes
 
 In addition to the ecosystem independent attributes defined above, the native ecosystem adds the following attributes:
@@ -205,15 +195,15 @@ A Gradle plugin variant can specify compatibility with a Gradle API version thro
 For this example, let’s assume you are creating a library with different variants for different JVM versions.
 
 ====
-include::sample[dir="snippets/dependencyManagement/customizingResolution-attributeSimple/kotlin",files="lib/build.gradle.kts[tags=attributes]"]
-include::sample[dir="snippets/dependencyManagement/customizingResolution-attributeSimple/groovy",files="lib/build.gradle[tags=attributes]"]
+include::sample[dir="snippets/reference/dependency-management/controlling-dependency-resolution/customizingResolution-attributeSimple/kotlin",files="lib/build.gradle.kts[tags=attributes]"]
+include::sample[dir="snippets/reference/dependency-management/controlling-dependency-resolution/customizingResolution-attributeSimple/groovy",files="lib/build.gradle[tags=attributes]"]
 ====
 
 In the consumer project (that uses the library), you can specify the JVM version attribute when declaring dependencies.
 
 ====
-include::sample[dir="snippets/dependencyManagement/customizingResolution-attributeSimple/kotlin",files="consumer/build.gradle.kts[tags=attributes]"]
-include::sample[dir="snippets/dependencyManagement/customizingResolution-attributeSimple/groovy",files="consumer/build.gradle[tags=attributes]"]
+include::sample[dir="snippets/reference/dependency-management/controlling-dependency-resolution/customizingResolution-attributeSimple/kotlin",files="consumer/build.gradle.kts[tags=attributes]"]
+include::sample[dir="snippets/reference/dependency-management/controlling-dependency-resolution/customizingResolution-attributeSimple/groovy",files="consumer/build.gradle[tags=attributes]"]
 ====
 
 By defining and using the JVM version attribute, you ensure that your library and its consumers are compatible with the specified JVM version.
@@ -227,7 +217,9 @@ The `dependencyInsight` task is useful for inspecting specific dependencies and 
 [source,bash]
 ----
 $ ./gradlew dependencyInsight --configuration compileClasspath --dependency com.example:your-library
-
+----
+[source,text]
+----
 > Task :dependencyInsight
 
 com.example:your-library:1.0 (compileClasspath)
@@ -266,8 +258,8 @@ Published attributes must remain supported or have a <<#sec:abm-compatibility-ru
 Here’s an example of declaring and using custom attributes in a Gradle plugin:
 
 ====
-include::sample[dir="snippets/dependencyManagement/customizingResolution-attributeSimple/kotlin",files="lib/build.gradle.kts[tags=custom-attributes]"]
-include::sample[dir="snippets/dependencyManagement/customizingResolution-attributeSimple/groovy",files="lib/build.gradle[tags=custom-attributes]"]
+include::sample[dir="snippets/reference/dependency-management/controlling-dependency-resolution/customizingResolution-attributeSimple/kotlin",files="lib/build.gradle.kts[tags=custom-attributes]"]
+include::sample[dir="snippets/reference/dependency-management/controlling-dependency-resolution/customizingResolution-attributeSimple/groovy",files="lib/build.gradle[tags=custom-attributes]"]
 ====
 
 In this example:
@@ -284,8 +276,8 @@ Attributes are _typed_.
 An attribute can be created via the `Attribute<T>.of` method:
 
 ====
-include::sample[dir="snippets/dependencyManagement/attributeMatching/kotlin",files="build.gradle.kts[tags=define_attribute]"]
-include::sample[dir="snippets/dependencyManagement/attributeMatching/groovy",files="build.gradle[tags=define_attribute]"]
+include::sample[dir="snippets/reference/dependency-management/controlling-dependency-resolution/attributeMatching/kotlin",files="build.gradle.kts[tags=define_attribute]"]
+include::sample[dir="snippets/reference/dependency-management/controlling-dependency-resolution/attributeMatching/groovy",files="build.gradle[tags=define_attribute]"]
 ====
 
 Attribute types support most Java primitive classes; such as `String` and `Integer`.
@@ -294,8 +286,8 @@ Or anything extending `org.gradle.api.Named`.
 Attributes should always be declared in the _attribute schema_ found on the `dependencies` handler:
 
 ====
-include::sample[dir="snippets/dependencyManagement/attributeMatching/kotlin",files="build.gradle.kts[tags=register-attributes]"]
-include::sample[dir="snippets/dependencyManagement/attributeMatching/groovy",files="build.gradle[tags=register-attributes]"]
+include::sample[dir="snippets/reference/dependency-management/controlling-dependency-resolution/attributeMatching/kotlin",files="build.gradle.kts[tags=register-attributes]"]
+include::sample[dir="snippets/reference/dependency-management/controlling-dependency-resolution/attributeMatching/groovy",files="build.gradle[tags=register-attributes]"]
 ====
 
 Registering an attribute with the schema is required in order to use Compatibility and Disambiguation rules that can resolve ambiguity between multiple selectable variants during <<#sec:attribute-matching,Attribute Matching>>.
@@ -303,15 +295,15 @@ Registering an attribute with the schema is required in order to use Compatibili
 Each configuration has a container of attributes.  Attributes can be configured to set values:
 
 ====
-include::sample[dir="snippets/dependencyManagement/attributeMatching/kotlin",files="build.gradle.kts[tags=attributes-on-configurations]"]
-include::sample[dir="snippets/dependencyManagement/attributeMatching/groovy",files="build.gradle[tags=attributes-on-configurations]"]
+include::sample[dir="snippets/reference/dependency-management/controlling-dependency-resolution/attributeMatching/kotlin",files="build.gradle.kts[tags=attributes-on-configurations]"]
+include::sample[dir="snippets/reference/dependency-management/controlling-dependency-resolution/attributeMatching/groovy",files="build.gradle[tags=attributes-on-configurations]"]
 ====
 
 For attributes which type extends `Named`, the value of the attribute **must** be created via the _object factory_:
 
 ====
-include::sample[dir="snippets/dependencyManagement/attributeMatching/kotlin",files="build.gradle.kts[tags=named-attributes]"]
-include::sample[dir="snippets/dependencyManagement/attributeMatching/groovy",files="build.gradle[tags=named-attributes]"]
+include::sample[dir="snippets/reference/dependency-management/controlling-dependency-resolution/attributeMatching/kotlin",files="build.gradle.kts[tags=named-attributes]"]
+include::sample[dir="snippets/reference/dependency-management/controlling-dependency-resolution/attributeMatching/groovy",files="build.gradle[tags=named-attributes]"]
 ====
 
 [[sec:attribute-matching]]
@@ -331,8 +323,8 @@ There are cases where a producer may not have _exactly_ what the consumer reques
 This example defines and registers a custom compatibility rule to ensure that dependencies are selected based on their compatibility with specific Java versions:
 
 ====
-include::sample[dir="snippets/dependencyManagement/customizingResolution-attributeSimple/kotlin",files="lib/build.gradle.kts[tags=attribute-compatibility]"]
-include::sample[dir="snippets/dependencyManagement/customizingResolution-attributeSimple/groovy",files="lib/build.gradle[tags=attribute-compatibility]"]
+include::sample[dir="snippets/reference/dependency-management/controlling-dependency-resolution/customizingResolution-attributeSimple/kotlin",files="lib/build.gradle.kts[tags=attribute-compatibility]"]
+include::sample[dir="snippets/reference/dependency-management/controlling-dependency-resolution/customizingResolution-attributeSimple/groovy",files="lib/build.gradle[tags=attribute-compatibility]"]
 ====
 
 Gradle provides link:{javadocPath}/org/gradle/api/attributes/AttributeCompatibilityRule.html[attribute compatibility rules] that can be defined for each attribute.
@@ -354,8 +346,8 @@ You can define disambiguation rules to guide Gradle in selecting the most suitab
 This is done by implementing an link:{javadocPath}/org/gradle/api/attributes/AttributeDisambiguationRule.html[AttributeDisambiguationRule] and registering it via the link:{javadocPath}/org/gradle/api/attributes/AttributesSchema.html[attributes schema] within the `dependencies` block:
 
 ====
-include::sample[dir="snippets/dependencyManagement/customizingResolution-disambiguationRule/kotlin",files="consumer/build.gradle.kts[tags=disambiguation_rule]"]
-include::sample[dir="snippets/dependencyManagement/customizingResolution-disambiguationRule/groovy",files="consumer/build.gradle[tags=disambiguation_rule]"]
+include::sample[dir="snippets/reference/dependency-management/controlling-dependency-resolution/customizingResolution-disambiguationRule/kotlin",files="consumer/build.gradle.kts[tags=disambiguation_rule]"]
+include::sample[dir="snippets/reference/dependency-management/controlling-dependency-resolution/customizingResolution-disambiguationRule/groovy",files="consumer/build.gradle[tags=disambiguation_rule]"]
 ====
 
 1. **Attribute Selection**: Specify the attribute to disambiguate (e.g., `Usage.USAGE_ATTRIBUTE`, a built-in Gradle attribute).
@@ -424,8 +416,8 @@ If you know that all the Ivy modules your are consuming have been published with
 
 .Deriving compile and runtime variants for Ivy metadata
 ====
-include::sample[dir="snippets/dependencyManagement/customizingResolution-ivyMetadataRule/kotlin",files="build.gradle.kts[tags=ivy-component-metadata-rule]"]
-include::sample[dir="snippets/dependencyManagement/customizingResolution-ivyMetadataRule/groovy",files="build.gradle[tags=ivy-component-metadata-rule]"]
+include::sample[dir="snippets/reference/dependency-management/controlling-dependency-resolution/customizingResolution-ivyMetadataRule/kotlin",files="build.gradle.kts[tags=ivy-component-metadata-rule]"]
+include::sample[dir="snippets/reference/dependency-management/controlling-dependency-resolution/customizingResolution-ivyMetadataRule/groovy",files="build.gradle[tags=ivy-component-metadata-rule]"]
 ====
 
 The rule creates an `apiElements` variant based on the `compile` configuration and a `runtimeElements` variant based on the `default` configuration of each ivy module.

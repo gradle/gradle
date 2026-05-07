@@ -22,6 +22,7 @@ Let's create a binary plugin that offers both.
 When you write a plugin in Gradle, if you want to share it between multiple projects then the best option is to create the plugin in a separate repository.
 This way, you can publish it to a private or public Maven repository, and then apply it in whatever project you need.
 
+[[sec:components_of_a_plugin]]
 == Components of a Plugin
 
 First, let's review the three components of a plugin:
@@ -44,6 +45,15 @@ image::plugin-1.png[]
 |Behavior
 |Implements logic that is executed when the task is run. The plugin will typically register a task and wire it up with values from the extension.
 |===
+
+++++
+<p>
+  <div style="position:relative;padding-top:56.25%;">
+    <iframe src="https://www.youtube-nocookie.com/embed/pB_ks2ShQEA?si=KOB1SkFD4zrSAiaX&rel=0" frameborder="0" allowfullscreen
+      style="position:absolute;top:0;left:0;width:100%;height:100%;"></iframe>
+  </div>
+</p>
+++++
 
 Our simple plugin compares the size of two files.
 It is called `FileSizeDiff`.
@@ -87,13 +97,14 @@ Here's the suggested directory structure:
 This `build.gradle(.kts)` for this `filesizediff` plugin looks as follows:
 
 ====
-include::sample[dir="snippets/plugins/fileSizeDiffBinaryPlugin/kotlin", files="plugin/build.gradle.kts[tags=simple]"]
-include::sample[dir="snippets/plugins/fileSizeDiffBinaryPlugin/groovy", files="plugin/build.gradle[tags=simple]"]
+include::sample[dir="snippets/fundamentals/developing-plugins/fileSizeDiffBinaryPlugin/kotlin", files="plugin/build.gradle.kts[tags=simple]"]
+include::sample[dir="snippets/fundamentals/developing-plugins/fileSizeDiffBinaryPlugin/groovy", files="plugin/build.gradle[tags=simple]"]
 ====
 <1> `java-gradle-plugin` - Sets up various configurations you need to do plugin development in Java
 <2> `junit` testing framework - A popular Java testing framework
 <3> Plugin configuration - Sets an id of `org.example.filesizediff` which we can use to reference the plugin
 
+[[sec:extension]]
 == 1. Extension
 
 The extension defines the plugin’s configurable inputs, two file properties in this case:
@@ -101,11 +112,21 @@ The extension defines the plugin’s configurable inputs, two file properties in
 .src/main/java/org/example/FileSizeDiffExtension.java
 [source,java]
 ----
-include::{snippetsPath}/plugins/fileSizeDiffBinaryPlugin/common/plugin/src/main/java/org/example/FileSizeDiffExtension.java[]
+include::{snippetsPath}/fundamentals/developing-plugins/fileSizeDiffBinaryPlugin/common/plugin/src/main/java/org/example/FileSizeDiffExtension.java[]
 ----
 
 The two properties representing the input files are of the `RegularFileProperty` type which extends `Property` and are therefore <<lazy_eager_evaluation.adoc#lazy_evaluation,lazy>>.
 
+++++
+<p>
+  <div style="position:relative;padding-top:56.25%;">
+    <iframe src="https://www.youtube-nocookie.com/embed/zE98oR1ccH4?si=AkFw1wpiPctK_mz6&rel=0" frameborder="0" allowfullscreen
+      style="position:absolute;top:0;left:0;width:100%;height:100%;"></iframe>
+  </div>
+</p>
+++++
+
+[[sec:task]]
 == 2. Task
 
 The task does the bulk of the work:
@@ -113,7 +134,7 @@ The task does the bulk of the work:
 .src/main/java/org/example/FileSizeDiffTask.java
 [source,java]
 ----
-include::{snippetsPath}/plugins/fileSizeDiffBinaryPlugin/common/plugin/src/main/java/org/example/FileSizeDiffTask.java[]
+include::{snippetsPath}/fundamentals/developing-plugins/fileSizeDiffBinaryPlugin/common/plugin/src/main/java/org/example/FileSizeDiffTask.java[]
 ----
 
 The task defines two input file properties and one output file property:
@@ -131,6 +152,16 @@ The task logic is implemented in a method annotated with `@TaskAction`, which:
 * Generates a descriptive text result.
 * Writes that result to the output file and prints it to standard output.
 
+++++
+<p>
+  <div style="position:relative;padding-top:56.25%;">
+    <iframe src="https://www.youtube-nocookie.com/embed/obM3bBklU9c?si=iLzhwLVsR4BYJDCu&rel=0" frameborder="0" allowfullscreen
+      style="position:absolute;top:0;left:0;width:100%;height:100%;"></iframe>
+  </div>
+</p>
+++++
+
+[[sec:plugin]]
 == 3. Plugin
 
 This class wires up the extension and task when the plugin is applied:
@@ -138,7 +169,7 @@ This class wires up the extension and task when the plugin is applied:
 .src/main/java/org/example/FileSizeDiffPlugin.java
 [source,java]
 ----
-include::{snippetsPath}/plugins/fileSizeDiffBinaryPlugin/common/plugin/src/main/java/org/example/FileSizeDiffPlugin.java[]
+include::{snippetsPath}/fundamentals/developing-plugins/fileSizeDiffBinaryPlugin/common/plugin/src/main/java/org/example/FileSizeDiffPlugin.java[]
 ----
 
 In the plugin class, we override the `apply` method, which is invoked when the plugin is applied to a project via `build.gradle(.kts)`.
@@ -156,8 +187,8 @@ This ensures the task uses the values provided by the user in their build script
 This enables the following usage in a `build.gradle(.kts)` file:
 
 ====
-include::sample[dir="snippets/plugins/fileSizeDiffBinaryPlugin/kotlin", files="build.gradle.kts"]
-include::sample[dir="snippets/plugins/fileSizeDiffBinaryPlugin/groovy", files="build.gradle"]
+include::sample[dir="snippets/fundamentals/developing-plugins/fileSizeDiffBinaryPlugin/kotlin", files="build.gradle.kts"]
+include::sample[dir="snippets/fundamentals/developing-plugins/fileSizeDiffBinaryPlugin/groovy", files="build.gradle"]
 ====
 
 [.text-right]

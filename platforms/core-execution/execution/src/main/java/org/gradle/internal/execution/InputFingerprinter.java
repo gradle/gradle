@@ -19,7 +19,6 @@ package org.gradle.internal.execution;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.internal.file.FileCollectionStructureVisitor;
-import org.gradle.internal.execution.UnitOfWork.InputVisitor;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.service.scopes.Scope;

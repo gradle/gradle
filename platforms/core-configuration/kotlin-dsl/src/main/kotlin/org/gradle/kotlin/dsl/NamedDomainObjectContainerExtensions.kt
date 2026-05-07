@@ -21,6 +21,8 @@ import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.NamedDomainObjectProvider
 import org.gradle.api.PolymorphicDomainObjectContainer
 
+import org.gradle.internal.Factory
+import org.gradle.internal.deprecation.DeprecationLogger
 import org.gradle.kotlin.dsl.support.delegates.NamedDomainObjectContainerDelegate
 
 import kotlin.reflect.KClass
@@ -49,8 +51,19 @@ inline operator fun <T : Any, C : NamedDomainObjectContainer<T>> C.invoke(
  * @param T the domain object type
  * @param C the concrete container type
  */
+@Suppress("DEPRECATION")
+@Deprecated("Use 'val element = register(name)' instead. See the Gradle 9.6 upgrading guide.")
 inline val <T : Any, C : NamedDomainObjectContainer<T>> C.registering: RegisteringDomainObjectDelegateProvider<out C>
-    get() = RegisteringDomainObjectDelegateProvider.of(this)
+    get() {
+        DeprecationLogger.deprecate("The 'val name by registering' property delegate syntax")
+            .withAdvice("Use 'val element = register(name)' instead.")
+            .willBeRemovedInGradle10()
+            .withUpgradeGuideSection(9, "kotlin_dsl_delegated_properties")
+            .nagUser()
+        return DeprecationLogger.whileDisabled(Factory {
+            RegisteringDomainObjectDelegateProvider.of(this)
+        })!!
+    }
 
 
 /**
@@ -68,8 +81,18 @@ inline val <T : Any, C : NamedDomainObjectContainer<T>> C.registering: Registeri
  * @param C the concrete container type
  * @param action the configuration action
  */
-fun <T : Any, C : NamedDomainObjectContainer<T>> C.registering(action: T.() -> Unit): RegisteringDomainObjectDelegateProviderWithAction<out C, T> =
-    RegisteringDomainObjectDelegateProviderWithAction.of(this, action)
+@Suppress("DEPRECATION")
+@Deprecated("Use 'val element = register(name) { }' instead. See the Gradle 9.6 upgrading guide.")
+fun <T : Any, C : NamedDomainObjectContainer<T>> C.registering(action: T.() -> Unit): RegisteringDomainObjectDelegateProviderWithAction<out C, T> {
+    DeprecationLogger.deprecate("The 'val name by registering { }' property delegate syntax")
+        .withAdvice("Use 'val element = register(name) { }' instead.")
+        .willBeRemovedInGradle10()
+        .withUpgradeGuideSection(9, "kotlin_dsl_delegated_properties")
+        .nagUser()
+    return DeprecationLogger.whileDisabled(Factory {
+        RegisteringDomainObjectDelegateProviderWithAction.of(this, action)
+    })!!
+}
 
 
 /**
@@ -81,8 +104,18 @@ fun <T : Any, C : NamedDomainObjectContainer<T>> C.registering(action: T.() -> U
  * @param C the concrete container type
  * @param type the domain object type
  */
-fun <T : Any, C : PolymorphicDomainObjectContainer<T>, U : T> C.registering(type: KClass<U>): RegisteringDomainObjectDelegateProviderWithType<out C, U> =
-    RegisteringDomainObjectDelegateProviderWithType.of(this, type)
+@Suppress("DEPRECATION")
+@Deprecated("Use 'val element = register<Type>(name)' instead. See the Gradle 9.6 upgrading guide.")
+fun <T : Any, C : PolymorphicDomainObjectContainer<T>, U : T> C.registering(type: KClass<U>): RegisteringDomainObjectDelegateProviderWithType<out C, U> {
+    DeprecationLogger.deprecate("The 'val name by registering(Type::class)' property delegate syntax")
+        .withAdvice("Use 'val element = register<Type>(name)' instead.")
+        .willBeRemovedInGradle10()
+        .withUpgradeGuideSection(9, "kotlin_dsl_delegated_properties")
+        .nagUser()
+    return DeprecationLogger.whileDisabled(Factory {
+        RegisteringDomainObjectDelegateProviderWithType.of(this, type)
+    })!!
+}
 
 
 /**
@@ -96,55 +129,81 @@ fun <T : Any, C : PolymorphicDomainObjectContainer<T>, U : T> C.registering(type
  * @param type the domain object type
  * @param action the configuration action
  */
+@Suppress("DEPRECATION")
+@Deprecated("Use 'val element = register<Type>(name) { }' instead. See the Gradle 9.6 upgrading guide.")
 fun <T : Any, C : PolymorphicDomainObjectContainer<T>, U : T> C.registering(
     type: KClass<U>,
     action: U.() -> Unit
-): RegisteringDomainObjectDelegateProviderWithTypeAndAction<out C, U> =
-    RegisteringDomainObjectDelegateProviderWithTypeAndAction.of(this, type, action)
+): RegisteringDomainObjectDelegateProviderWithTypeAndAction<out C, U> {
+    DeprecationLogger.deprecate("The 'val name by registering(Type::class) { }' property delegate syntax")
+        .withAdvice("Use 'val element = register<Type>(name) { }' instead.")
+        .willBeRemovedInGradle10()
+        .withUpgradeGuideSection(9, "kotlin_dsl_delegated_properties")
+        .nagUser()
+    return DeprecationLogger.whileDisabled(Factory {
+        RegisteringDomainObjectDelegateProviderWithTypeAndAction.of(this, type, action)
+    })!!
+}
 
 
 /**
  * Registers an element and provides a delegate with the resulting [NamedDomainObjectProvider].
  */
+@Suppress("DEPRECATION")
+@Deprecated("Use 'val element = register(name)' instead. See the Gradle 9.6 upgrading guide.")
 operator fun <T : Any, C : NamedDomainObjectContainer<T>> RegisteringDomainObjectDelegateProvider<C>.provideDelegate(
     receiver: Any?,
     property: KProperty<*>
-) = ExistingDomainObjectDelegate.of(
-    delegateProvider.register(property.name)
-)
+) = DeprecationLogger.whileDisabled(Factory {
+    ExistingDomainObjectDelegate.of(
+        delegateProvider.register(property.name)
+    )
+})!!
 
 
 /**
  * Registers an element and provides a delegate with the resulting [NamedDomainObjectProvider].
  */
+@Suppress("DEPRECATION")
+@Deprecated("Use 'val element = register(name) { }' instead. See the Gradle 9.6 upgrading guide.")
 operator fun <T : Any, C : NamedDomainObjectContainer<T>> RegisteringDomainObjectDelegateProviderWithAction<C, T>.provideDelegate(
     receiver: Any?,
     property: KProperty<*>
-) = ExistingDomainObjectDelegate.of(
-    delegateProvider.register(property.name, action)
-)
+) = DeprecationLogger.whileDisabled(Factory {
+    ExistingDomainObjectDelegate.of(
+        delegateProvider.register(property.name, action)
+    )
+})!!
 
 
 /**
  * Registers an element and provides a delegate with the resulting [NamedDomainObjectProvider].
  */
+@Suppress("DEPRECATION")
+@Deprecated("Use 'val element = register<Type>(name)' instead. See the Gradle 9.6 upgrading guide.")
 operator fun <T : Any, C : PolymorphicDomainObjectContainer<T>, U : T> RegisteringDomainObjectDelegateProviderWithType<C, U>.provideDelegate(
     receiver: Any?,
     property: KProperty<*>
-) = ExistingDomainObjectDelegate.of(
-    delegateProvider.register(property.name, type.java)
-)
+) = DeprecationLogger.whileDisabled(Factory {
+    ExistingDomainObjectDelegate.of(
+        delegateProvider.register(property.name, type.java)
+    )
+})!!
 
 
 /**
  * Registers an element and provides a delegate with the resulting [NamedDomainObjectProvider].
  */
+@Suppress("DEPRECATION")
+@Deprecated("Use 'val element = register<Type>(name) { }' instead. See the Gradle 9.6 upgrading guide.")
 operator fun <T : Any, C : PolymorphicDomainObjectContainer<T>, U : T> RegisteringDomainObjectDelegateProviderWithTypeAndAction<C, U>.provideDelegate(
     receiver: Any?,
     property: KProperty<*>
-) = ExistingDomainObjectDelegate.of(
-    delegateProvider.register(property.name, type.java, action)
-)
+) = DeprecationLogger.whileDisabled(Factory {
+    ExistingDomainObjectDelegate.of(
+        delegateProvider.register(property.name, type.java, action)
+    )
+})!!
 
 
 /**
@@ -152,13 +211,20 @@ operator fun <T : Any, C : PolymorphicDomainObjectContainer<T>, U : T> Registeri
  * the purpose of providing specialized implementations for the `provideDelegate` operator
  * based on the static type of the provider.
  */
+@Deprecated("Use 'val element = register(name)' instead. See the Gradle 9.6 upgrading guide.")
 class RegisteringDomainObjectDelegateProvider<T>
 private constructor(
     internal val delegateProvider: T
 ) {
     companion object {
+        @Suppress("DEPRECATION")
         fun <T> of(delegateProvider: T) =
-            RegisteringDomainObjectDelegateProvider(delegateProvider)
+            RegisteringDomainObjectDelegateProvider(delegateProvider).also {
+                DeprecationLogger.deprecateType(RegisteringDomainObjectDelegateProvider::class.java)
+                    .willBeRemovedInGradle10()
+                    .withUpgradeGuideSection(9, "kotlin_dsl_delegated_properties")
+                    .nagUser()
+            }
     }
 }
 
@@ -168,14 +234,21 @@ private constructor(
  * the purpose of providing specialized implementations for the `provideDelegate` operator
  * based on the static type of the provider.
  */
+@Deprecated("Use 'val element = register(name) { }' instead. See the Gradle 9.6 upgrading guide.")
 class RegisteringDomainObjectDelegateProviderWithAction<C, T>
 private constructor(
     internal val delegateProvider: C,
     internal val action: T.() -> Unit
 ) {
     companion object {
+        @Suppress("DEPRECATION")
         fun <C, T> of(delegateProvider: C, action: T.() -> Unit) =
-            RegisteringDomainObjectDelegateProviderWithAction(delegateProvider, action)
+            RegisteringDomainObjectDelegateProviderWithAction(delegateProvider, action).also {
+                DeprecationLogger.deprecateType(RegisteringDomainObjectDelegateProviderWithAction::class.java)
+                    .willBeRemovedInGradle10()
+                    .withUpgradeGuideSection(9, "kotlin_dsl_delegated_properties")
+                    .nagUser()
+            }
     }
 }
 
@@ -185,14 +258,21 @@ private constructor(
  * the purpose of providing specialized implementations for the `provideDelegate` operator
  * based on the static type of the provider.
  */
+@Deprecated("Use 'val element = register<Type>(name)' instead. See the Gradle 9.6 upgrading guide.")
 class RegisteringDomainObjectDelegateProviderWithType<T, U : Any>
 private constructor(
     internal val delegateProvider: T,
     internal val type: KClass<U>
 ) {
     companion object {
+        @Suppress("DEPRECATION")
         fun <T, U : Any> of(delegateProvider: T, type: KClass<U>) =
-            RegisteringDomainObjectDelegateProviderWithType(delegateProvider, type)
+            RegisteringDomainObjectDelegateProviderWithType(delegateProvider, type).also {
+                DeprecationLogger.deprecateType(RegisteringDomainObjectDelegateProviderWithType::class.java)
+                    .willBeRemovedInGradle10()
+                    .withUpgradeGuideSection(9, "kotlin_dsl_delegated_properties")
+                    .nagUser()
+            }
     }
 }
 
@@ -202,6 +282,7 @@ private constructor(
  * the purpose of providing specialized implementations for the `provideDelegate` operator
  * based on the static type of the provider.
  */
+@Deprecated("Use 'val element = register<Type>(name) { }' instead. See the Gradle 9.6 upgrading guide.")
 class RegisteringDomainObjectDelegateProviderWithTypeAndAction<T, U : Any>
 private constructor(
     internal val delegateProvider: T,
@@ -209,8 +290,14 @@ private constructor(
     internal val action: U.() -> Unit
 ) {
     companion object {
+        @Suppress("DEPRECATION")
         fun <T, U : Any> of(delegateProvider: T, type: KClass<U>, action: U.() -> Unit) =
-            RegisteringDomainObjectDelegateProviderWithTypeAndAction(delegateProvider, type, action)
+            RegisteringDomainObjectDelegateProviderWithTypeAndAction(delegateProvider, type, action).also {
+                DeprecationLogger.deprecateType(RegisteringDomainObjectDelegateProviderWithTypeAndAction::class.java)
+                    .willBeRemovedInGradle10()
+                    .withUpgradeGuideSection(9, "kotlin_dsl_delegated_properties")
+                    .nagUser()
+            }
     }
 }
 
@@ -291,8 +378,16 @@ internal constructor(
 /**
  * Provides a property delegate that creates elements of the default collection type.
  */
+@Suppress("DEPRECATION")
+@Deprecated("Use 'val element = create(name)' instead. See the Gradle 9.6 upgrading guide.")
 val <T : Any> NamedDomainObjectContainer<T>.creating
-    get() = NamedDomainObjectContainerCreatingDelegateProvider.of(this)
+    get() = DeprecationLogger.whileDisabled(Factory { NamedDomainObjectContainerCreatingDelegateProvider.of(this) })!!.also {
+        DeprecationLogger.deprecate("The 'val name by creating' property delegate syntax")
+            .withAdvice("Use 'val element = create(name)' instead.")
+            .willBeRemovedInGradle10()
+            .withUpgradeGuideSection(9, "kotlin_dsl_delegated_properties")
+            .nagUser()
+    }
 
 
 /**
@@ -300,8 +395,16 @@ val <T : Any> NamedDomainObjectContainer<T>.creating
  *
  * `val myElement by myContainer.creating { myProperty = 42 }`
  */
+@Suppress("DEPRECATION")
+@Deprecated("Use 'val element = create(name) { }' instead. See the Gradle 9.6 upgrading guide.")
 fun <T : Any> NamedDomainObjectContainer<T>.creating(configuration: T.() -> Unit) =
-    NamedDomainObjectContainerCreatingDelegateProvider.of(this, configuration)
+    DeprecationLogger.whileDisabled(Factory { NamedDomainObjectContainerCreatingDelegateProvider.of(this, configuration) })!!.also {
+        DeprecationLogger.deprecate("The 'val name by creating { }' property delegate syntax")
+            .withAdvice("Use 'val element = create(name) { }' instead.")
+            .willBeRemovedInGradle10()
+            .withUpgradeGuideSection(9, "kotlin_dsl_delegated_properties")
+            .nagUser()
+    }
 
 
 /**
@@ -309,35 +412,59 @@ fun <T : Any> NamedDomainObjectContainer<T>.creating(configuration: T.() -> Unit
  *
  * See [creating]
  */
+@Deprecated("Use 'val element = create(name)' instead. See the Gradle 9.6 upgrading guide.")
 class NamedDomainObjectContainerCreatingDelegateProvider<T : Any>
 private constructor(
     internal val container: NamedDomainObjectContainer<T>,
     internal val configuration: (T.() -> Unit)? = null
 ) {
     companion object {
+        @Suppress("DEPRECATION")
         fun <T : Any> of(container: NamedDomainObjectContainer<T>, configuration: (T.() -> Unit)? = null) =
-            NamedDomainObjectContainerCreatingDelegateProvider(container, configuration)
+            NamedDomainObjectContainerCreatingDelegateProvider(container, configuration).also {
+                DeprecationLogger.deprecateType(NamedDomainObjectContainerCreatingDelegateProvider::class.java)
+                    .willBeRemovedInGradle10()
+                    .withUpgradeGuideSection(9, "kotlin_dsl_delegated_properties")
+                    .nagUser()
+            }
     }
 
-    operator fun provideDelegate(thisRef: Any?, property: KProperty<*>) = ExistingDomainObjectDelegate.of(
-        when (configuration) {
-            null -> container.create(property.name)
-            else -> container.create(property.name, configuration)
-        }
-    )
+    @Suppress("DEPRECATION")
+    @Deprecated("Use 'val element = create(name)' instead. See the Gradle 9.6 upgrading guide.")
+    operator fun provideDelegate(thisRef: Any?, property: KProperty<*>) =
+        DeprecationLogger.whileDisabled(Factory {
+            ExistingDomainObjectDelegate.of(
+                when (configuration) {
+                    null -> container.create(property.name)
+                    else -> container.create(property.name, configuration)
+                }
+            )
+        })!!
 }
 
 
 /**
  * Provides a property delegate that creates elements of the given [type].
  */
+@Suppress("DEPRECATION")
+@Deprecated("Use 'val element = create<Type>(name)' instead. See the Gradle 9.6 upgrading guide.")
 fun <T : Any, U : T> PolymorphicDomainObjectContainer<T>.creating(type: KClass<U>) =
-    PolymorphicDomainObjectContainerCreatingDelegateProvider.of(this, type.java)
+    DeprecationLogger.whileDisabled(Factory {
+        PolymorphicDomainObjectContainerCreatingDelegateProvider.of(this, type.java)
+    })!!.also {
+        DeprecationLogger.deprecate("The 'val name by creating(Type::class)' property delegate syntax")
+            .withAdvice("Use 'val element = create<Type>(name)' instead.")
+            .willBeRemovedInGradle10()
+            .withUpgradeGuideSection(9, "kotlin_dsl_delegated_properties")
+            .nagUser()
+    }
 
 
 /**
  * Provides a property delegate that creates elements of the given [type] with the given [configuration].
  */
+@Suppress("DEPRECATION")
+@Deprecated("Use 'val element = create<Type>(name) { }' instead. See the Gradle 9.6 upgrading guide.")
 fun <T : Any, U : T> PolymorphicDomainObjectContainer<T>.creating(type: KClass<U>, configuration: U.() -> Unit) =
     creating(type.java, configuration)
 
@@ -346,13 +473,24 @@ fun <T : Any, U : T> PolymorphicDomainObjectContainer<T>.creating(type: KClass<U
  * Provides a property delegate that creates elements of the given [type] expressed as a [java.lang.Class]
  * with the given [configuration].
  */
+@Suppress("DEPRECATION")
+@Deprecated("Use 'val element = create<Type>(name) { }' instead. See the Gradle 9.6 upgrading guide.")
 fun <T : Any, U : T> PolymorphicDomainObjectContainer<T>.creating(type: Class<U>, configuration: U.() -> Unit) =
-    PolymorphicDomainObjectContainerCreatingDelegateProvider.of(this, type, configuration)
+    DeprecationLogger.whileDisabled(Factory {
+        PolymorphicDomainObjectContainerCreatingDelegateProvider.of(this, type, configuration)
+    })!!.also {
+        DeprecationLogger.deprecate("The 'val name by creating(Type::class) { }' property delegate syntax")
+            .withAdvice("Use 'val element = create<Type>(name) { }' instead.")
+            .willBeRemovedInGradle10()
+            .withUpgradeGuideSection(9, "kotlin_dsl_delegated_properties")
+            .nagUser()
+    }
 
 
 /**
  * A property delegate that creates elements of the given [type] with the given [configuration] in the given [container].
  */
+@Deprecated("Use 'val element = create<Type>(name)' instead. See the Gradle 9.6 upgrading guide.")
 class PolymorphicDomainObjectContainerCreatingDelegateProvider<T : Any, U : T>
 private constructor(
     internal val container: PolymorphicDomainObjectContainer<T>,
@@ -360,37 +498,69 @@ private constructor(
     internal val configuration: (U.() -> Unit)? = null
 ) {
     companion object {
+        @Suppress("DEPRECATION")
         fun <T : Any, U : T> of(container: PolymorphicDomainObjectContainer<T>, type: Class<U>, configuration: (U.() -> Unit)? = null) =
-            PolymorphicDomainObjectContainerCreatingDelegateProvider(container, type, configuration)
+            PolymorphicDomainObjectContainerCreatingDelegateProvider(container, type, configuration).also {
+                DeprecationLogger.deprecateType(PolymorphicDomainObjectContainerCreatingDelegateProvider::class.java)
+                    .willBeRemovedInGradle10()
+                    .withUpgradeGuideSection(9, "kotlin_dsl_delegated_properties")
+                    .nagUser()
+            }
     }
 
-    operator fun provideDelegate(thisRef: Any?, property: KProperty<*>) = ExistingDomainObjectDelegate.of(
-        when (configuration) {
-            null -> container.create(property.name, type)
-            else -> container.create(property.name, type, configuration)
-        }
-    )
+    @Suppress("DEPRECATION")
+    @Deprecated("Use 'val element = create<Type>(name)' instead. See the Gradle 9.6 upgrading guide.")
+    operator fun provideDelegate(thisRef: Any?, property: KProperty<*>) =
+        DeprecationLogger.whileDisabled(Factory {
+            ExistingDomainObjectDelegate.of(
+                when (configuration) {
+                    null -> container.create(property.name, type)
+                    else -> container.create(property.name, type, configuration)
+                }
+            )
+        })!!
 }
 
 
 /**
  * Provides a property delegate that gets elements of the given [type] and applies the given [configuration].
  */
+@Suppress("DEPRECATION")
+@Deprecated("Use 'val element = getByName<Type>(name) { }' instead. See the Gradle 9.6 upgrading guide.")
 fun <T : Any, U : T> NamedDomainObjectContainer<T>.getting(type: KClass<U>, configuration: U.() -> Unit) =
-    PolymorphicDomainObjectContainerGettingDelegateProvider.of(this, type, configuration)
+    DeprecationLogger.whileDisabled(Factory {
+        PolymorphicDomainObjectContainerGettingDelegateProvider.of(this, type, configuration)
+    })!!.also {
+        DeprecationLogger.deprecate("The 'val name by getting(Type::class) { }' property delegate syntax")
+            .withAdvice("Use 'val element = getByName<Type>(name) { }' instead.")
+            .willBeRemovedInGradle10()
+            .withUpgradeGuideSection(9, "kotlin_dsl_delegated_properties")
+            .nagUser()
+    }
 
 
 /**
  * Provides a property delegate that gets elements of the given [type].
  */
+@Suppress("DEPRECATION")
+@Deprecated("Use 'val element = getByName<Type>(name)' instead. See the Gradle 9.6 upgrading guide.")
 fun <T : Any, U : T> NamedDomainObjectContainer<T>.getting(type: KClass<U>) =
-    PolymorphicDomainObjectContainerGettingDelegateProvider.of(this, type)
+    DeprecationLogger.whileDisabled(Factory {
+        PolymorphicDomainObjectContainerGettingDelegateProvider.of(this, type)
+    })!!.also {
+        DeprecationLogger.deprecate("The 'val name by getting(Type::class)' property delegate syntax")
+            .withAdvice("Use 'val element = getByName<Type>(name)' instead.")
+            .willBeRemovedInGradle10()
+            .withUpgradeGuideSection(9, "kotlin_dsl_delegated_properties")
+            .nagUser()
+    }
 
 
 /**
  * A property delegate that gets elements of the given [type] from the given [container]
  * and applies the given [configuration].
  */
+@Deprecated("Use 'val element = getByName<Type>(name)' instead. See the Gradle 9.6 upgrading guide.")
 class PolymorphicDomainObjectContainerGettingDelegateProvider<T : Any, U : T>
 private constructor(
     internal val container: NamedDomainObjectContainer<T>,
@@ -398,14 +568,25 @@ private constructor(
     internal val configuration: (U.() -> Unit)? = null
 ) {
     companion object {
+        @Suppress("DEPRECATION")
         fun <T : Any, U : T> of(container: NamedDomainObjectContainer<T>, type: KClass<U>, configuration: (U.() -> Unit)? = null) =
-            PolymorphicDomainObjectContainerGettingDelegateProvider(container, type, configuration)
+            PolymorphicDomainObjectContainerGettingDelegateProvider(container, type, configuration).also {
+                DeprecationLogger.deprecateType(PolymorphicDomainObjectContainerGettingDelegateProvider::class.java)
+                    .willBeRemovedInGradle10()
+                    .withUpgradeGuideSection(9, "kotlin_dsl_delegated_properties")
+                    .nagUser()
+            }
     }
 
-    operator fun provideDelegate(thisRef: Any?, property: KProperty<*>) = ExistingDomainObjectDelegate.of(
-        when (configuration) {
-            null -> container.getByName(property.name, type)
-            else -> container.getByName(property.name, type, configuration)
-        }
-    )
+    @Suppress("DEPRECATION")
+    @Deprecated("Use 'val element = getByName<Type>(name)' instead. See the Gradle 9.6 upgrading guide.")
+    operator fun provideDelegate(thisRef: Any?, property: KProperty<*>) =
+        DeprecationLogger.whileDisabled(Factory {
+            ExistingDomainObjectDelegate.of(
+                when (configuration) {
+                    null -> container.getByName(property.name, type)
+                    else -> container.getByName(property.name, type, configuration)
+                }
+            )
+        })!!
 }

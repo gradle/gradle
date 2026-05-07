@@ -19,29 +19,22 @@ package org.gradle.api.internal.catalog
 import com.google.common.collect.Interners
 import groovy.transform.Canonical
 import org.gradle.api.InvalidUserDataException
-import org.gradle.api.internal.ClassPathRegistry
-import org.gradle.api.internal.DefaultClassPathProvider
-import org.gradle.api.internal.DefaultClassPathRegistry
 import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParser
 import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParserFactory
 import org.gradle.api.internal.attributes.AttributesFactory
-import org.gradle.api.internal.catalog.problems.VersionCatalogErrorMessages
 import org.gradle.api.internal.catalog.problems.VersionCatalogProblemId
 import org.gradle.api.internal.catalog.problems.VersionCatalogProblemTestFor
-import org.gradle.api.internal.classpath.DefaultModuleRegistry
-import org.gradle.api.internal.classpath.ModuleRegistry
+import org.gradle.api.internal.classpath.EffectiveClassPath
 import org.gradle.api.internal.properties.GradleProperties
 import org.gradle.api.internal.provider.DefaultProviderFactory
 import org.gradle.api.internal.provider.DefaultValueSourceProviderFactory
+import org.gradle.api.internal.provider.ValueSourceProviderFactory
 import org.gradle.api.model.ObjectFactory
-import org.gradle.api.problems.internal.InternalProblems
+import org.gradle.api.problems.internal.ProblemsInternal
 import org.gradle.api.provider.ProviderFactory
-import org.gradle.internal.classpath.ClassPath
-import org.gradle.internal.event.DefaultListenerManager
-import org.gradle.internal.installation.CurrentGradleInstallation
+import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.internal.isolation.TestIsolatableFactory
 import org.gradle.internal.management.VersionCatalogBuilderInternal
-import org.gradle.internal.service.scopes.Scope
 import org.gradle.process.ExecOperations
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.AttributeTestUtil
@@ -53,11 +46,7 @@ import java.util.function.Supplier
 
 import static org.gradle.api.internal.catalog.AbstractSourceGenerator.toJavaName
 
-class LibrariesSourceGeneratorTest extends AbstractVersionCatalogTest implements VersionCatalogErrorMessages {
-
-    private final ModuleRegistry moduleRegistry = new DefaultModuleRegistry(CurrentGradleInstallation.get())
-    private final ClassPathRegistry classPathRegistry = new DefaultClassPathRegistry(new DefaultClassPathProvider(moduleRegistry))
-    private final ClassPath classPath = classPathRegistry.getClassPath("DEPENDENCIES-EXTENSION-COMPILER")
+class LibrariesSourceGeneratorTest extends AbstractVersionCatalogTest {
 
     @Rule
     private final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
@@ -68,7 +57,8 @@ class LibrariesSourceGeneratorTest extends AbstractVersionCatalogTest implements
     final CapabilityNotationParser capabilityNotationParser = new CapabilityNotationParserFactory(false).create()
     final ProviderFactory providerFactory = new DefaultProviderFactory(
         new DefaultValueSourceProviderFactory(
-            new DefaultListenerManager(Scope.Build),
+            Stub(ValueSourceProviderFactory.ValueListener),
+            Stub(ValueSourceProviderFactory.ComputationListener),
             TestUtil.instantiatorFactory(),
             new TestIsolatableFactory(),
             Stub(GradleProperties),
@@ -188,11 +178,15 @@ class LibrariesSourceGeneratorTest extends AbstractVersionCatalogTest implements
         }
 
         then:
-        InvalidUserDataException ex = thrown()
-        verify ex.message, nameClash {
-            inConflict('groovy.json', 'groovyJson')
-            getterName('getGroovyJson')
+        thrown(InvalidUserDataException)
+        problems.assertProblemEmittedOnce {
+            it.definition.id.displayName == 'Accessor name clash'
+            it.contextualLabel == "In version catalog lib, dependencies groovy.json and groovyJson are mapped to the same accessor name getGroovyJson()"
+            it.details == "A name clash was detected"
+            it.solutions == ["Use a different alias for groovy.json and groovyJson"]
+            it.definition.documentationLink.url.endsWith('userguide/version_catalog_problems.html#accessor_name_clash')
         }
+        problems.resetRecordedProblems()
 
         when:
         generate {
@@ -205,11 +199,17 @@ class LibrariesSourceGeneratorTest extends AbstractVersionCatalogTest implements
         }
 
         then:
-        ex = thrown()
-        verify(ex.message, """Cannot generate dependency accessors:
-${nameClash { noIntro().inConflict('groovy.json', 'groovyJson').getterName('getGroovyJson') }}
-${nameClash { noIntro().inConflict('tada.one', 'tadaOne').getterName('getTadaOne') }}
-""")
+        thrown(InvalidUserDataException)
+        def emitted = problems.emitted
+        emitted.size() == 2
+        verifyAll {
+            emitted.every { it.definition.id.displayName == 'Accessor name clash' }
+            emitted.every { it.details == 'A name clash was detected' }
+            emitted*.contextualLabel.toSet().containsAll([
+                "In version catalog lib, library aliases groovy.json and groovyJson are mapped to the same accessor name getGroovyJson()",
+                "In version catalog lib, library aliases tada.one and tadaOne are mapped to the same accessor name getTadaOne()",
+            ])
+        }
     }
 
     @VersionCatalogProblemTestFor(
@@ -225,31 +225,14 @@ ${nameClash { noIntro().inConflict('tada.one', 'tadaOne').getterName('getTadaOne
         }
 
         then:
-        InvalidUserDataException ex = thrown()
-        verify(ex.message, nameClash {
-            kind('dependency bundles')
-            inConflict('one.cool', 'oneCool')
-            getterName('getOneCoolBundle')
+        thrown(InvalidUserDataException)
+        problems.assertProblemEmittedOnce({
+            it.definition.id.displayName == 'Accessor name clash'
+            it.contextualLabel == "In version catalog lib, dependency bundles one.cool and oneCool are mapped to the same accessor name getOneCoolBundle()"
+            it.details == "A name clash was detected"
+            it.solutions == ["Use a different alias for one.cool and oneCool"]
+            it.definition.documentationLink.url.endsWith('userguide/version_catalog_problems.html#accessor_name_clash')
         })
-
-        when:
-        generate {
-            library('foo', 'g:a:v')
-            library('bar', 'g:a:v')
-            bundle('one.cool', ['foo', 'bar'])
-            bundle('oneCool', ['foo', 'bar'])
-
-            bundle("other.cool", ['foo'])
-            bundle("other_cool", ['bar'])
-            bundle("otherCool", ['bar'])
-        }
-
-        then:
-        ex = thrown()
-        verify(ex.message, """Cannot generate dependency accessors:
-${nameClash { noIntro().kind('dependency bundles').inConflict('other.cool', 'otherCool').getterName('getOtherCoolBundle') }}
-${nameClash { noIntro().kind('dependency bundles').inConflict('one.cool', 'oneCool').getterName('getOneCoolBundle') }}
-""")
     }
 
     def "generated sources can be compiled"() {
@@ -291,11 +274,14 @@ ${nameClash { noIntro().kind('dependency bundles').inConflict('one.cool', 'oneCo
         }
 
         then:
-        InvalidUserDataException ex = thrown()
-        verify ex.message, reservedAlias {
-            alias(reservedName).shouldNotBeEqualTo(prefix)
-            reservedAliasPrefix('bundles', 'plugins', 'versions')
-        }
+        thrown(InvalidUserDataException)
+        problems.assertProblemEmittedOnce({
+            it.definition.id.displayName == 'Reserved alias name'
+            it.contextualLabel == "In version catalog lib, alias '${reservedName}' is a reserved alias"
+            it.details == "Prefix for dependency shouldn't be equal to '${prefix}'"
+            it.solutions == ["Use a different alias which prefix is not equal to 'bundles', 'plugins', or 'versions'"]
+            it.definition.documentationLink.url.endsWith('userguide/version_catalog_problems.html#reserved_alias_name')
+        })
 
         where:
         reservedName | prefix
@@ -317,10 +303,14 @@ ${nameClash { noIntro().kind('dependency bundles').inConflict('one.cool', 'oneCo
         }
 
         then:
-        InvalidUserDataException ex = thrown()
-        verify ex.message, tooManyEntries {
-            entryCount(32000)
-        }
+        thrown(InvalidUserDataException)
+        problems.assertProblemEmittedOnce({
+            it.definition.id.displayName == 'Too many entries'
+            it.contextualLabel == "In version catalog lib, version catalog model contains too many entries (32000)"
+            it.details == "The maximum number of aliases in a catalog is 30000"
+            it.solutions == ["Reduce the number of aliases defined in this catalog", "Split the catalog into multiple catalogs"]
+            it.definition.documentationLink.url.endsWith('userguide/version_catalog_problems.html#too_many_entries')
+        })
     }
 
     def "outputs context in javadocs"() {
@@ -386,7 +376,6 @@ ${nameClash { noIntro().kind('dependency bundles').inConflict('one.cool', 'oneCo
     }
 
     private void generate(String className = 'Generated', @DelegatesTo(strategy = Closure.DELEGATE_FIRST, value = VersionCatalogBuilderInternal) Closure<Void> spec) {
-        def problems = TestUtil.problemsService()
         DefaultVersionCatalogBuilder builder = new DefaultVersionCatalogBuilder(
             "lib",
             Interners.newStrongInterner(),
@@ -394,7 +383,7 @@ ${nameClash { noIntro().kind('dependency bundles').inConflict('one.cool', 'oneCo
             TestUtil.objectFactory(),
             Stub(Supplier)) {
                 @Override
-                protected InternalProblems getProblemsService() {
+                protected ProblemsInternal getProblemsService() {
                     problems
                 }
         }
@@ -474,7 +463,8 @@ ${nameClash { noIntro().kind('dependency bundles').inConflict('one.cool', 'oneCo
         Object compile() {
             def srcDir = tmpDir.createDir("src")
             def dstDir = tmpDir.createDir("dst")
-            SimpleGeneratedJavaClassCompiler.compile(srcDir, dstDir, [new TestClassSource(className, source)], classPath)
+            def testClasspath = DefaultClassPath.of(new EffectiveClassPath(getClass().getClassLoader()).getAsFiles())
+            SimpleGeneratedJavaClassCompiler.compile(srcDir, dstDir, [new TestClassSource(className, source)], testClasspath)
             def cl = new URLClassLoader([dstDir.toURI().toURL()] as URL[], this.class.classLoader)
             factory = cl.loadClass("org.test.$className")
             assert factory
