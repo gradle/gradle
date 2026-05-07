@@ -392,12 +392,20 @@ public interface Gradle extends PluginAware, ExtensionAware {
     /**
      * Returns the included builds for this build.
      *
+     * <p>The {@code buildSrc} build, if present, is not included in the returned collection,
+     * even though it can be looked up by name via {@link #includedBuild(String)}.</p>
+     *
      * @since 3.1
      */
     Collection<IncludedBuild> getIncludedBuilds();
 
     /**
      * Returns the included build with the specified name for this build.
+     *
+     * <p>If this build has a {@code buildSrc} build, it can be looked up by passing
+     * {@code "buildSrc"} as the name, even though it does not appear in
+     * {@link #getIncludedBuilds()}. This allows referencing tasks in {@code buildSrc} via
+     * {@link IncludedBuild#task(String)} the same way as for any other included build.</p>
      *
      * @throws UnknownDomainObjectException when there is no build with the given name
      * @since 3.1
