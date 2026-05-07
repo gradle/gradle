@@ -27,16 +27,17 @@ dependencies {
 
     api(libs.jspecify)
     api(libs.inject)
+    api(libs.guava)
+
+    api(projects.logging)
 
     implementation(projects.baseCompilerWorker)
     implementation(projects.daemonServerWorker)
-    implementation(projects.logging)
     implementation(projects.modelReflect)
     implementation(projects.publish)
     implementation(projects.testingNative)
 
     implementation(libs.commonsLang)
-    implementation(libs.guava)
 
     runtimeOnly(projects.dependencyManagement)
 
@@ -46,11 +47,17 @@ dependencies {
     testImplementation(testFixtures(projects.platformBase))
     testImplementation(testFixtures(projects.platformNative))
 
+    testFixturesImplementation(projects.modelCore)
+    testFixturesImplementation(testFixtures(projects.modelCore))
+    testFixturesImplementation(testFixtures(projects.core))
+    testFixturesImplementation(testFixtures(projects.coreApi))
+
     testRuntimeOnly(projects.distributionsCore) {
         because("ProjectBuilder tests load services from a Gradle distribution.")
     }
 
     integTestImplementation(testFixtures(projects.ideNative))
+    integTestImplementation(testFixtures(projects.languageNative))
     integTestImplementation(testFixtures(projects.platformNative))
 
     integTestDistributionRuntimeOnly(projects.distributionsFull) {

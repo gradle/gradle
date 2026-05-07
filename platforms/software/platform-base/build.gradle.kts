@@ -4,9 +4,7 @@ plugins {
 
 dependencies {
     api(projects.stdlibJavaExtensions)
-    api(projects.serviceLookup)
     api(projects.baseServices)
-    api(projects.core)
     api(projects.coreApi)
     api(projects.domainObjectCollections)
     api(projects.files)
@@ -18,8 +16,11 @@ dependencies {
     api(libs.jspecify)
     api(libs.jsr305)
 
-    implementation(projects.dependencyManagement)
+    implementation(projects.core)
+    implementation(projects.serviceLookup)
     implementation(projects.execution)
+
+    runtimeOnly(projects.dependencyManagement)
 
     implementation(libs.commonsLang)
 
