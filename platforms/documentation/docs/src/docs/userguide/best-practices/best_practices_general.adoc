@@ -64,7 +64,7 @@ Use the `wrapper` task to update your project:
 
 [source, bash]
 ----
-./gradlew wrapper --gradle-version <version>
+./gradlew :wrapper --gradle-version <version>
 ----
 
 You can also install the latest Gradle versions easily using tools like link:https://sdkman.io/[SDKMAN!] or link:https://brew.sh/[Homebrew], depending on your platform.

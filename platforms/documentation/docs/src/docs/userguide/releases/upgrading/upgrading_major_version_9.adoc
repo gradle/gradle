@@ -33,7 +33,7 @@ Alternatively, you can run `gradle help --warning-mode=all` to see the deprecati
 Some plugins may break with a new major version of Gradle, as these releases can remove public APIs.
 Using the latest version of a plugin increases the likelihood that it is already compatible with the new major Gradle version.
 +
-. Run `gradle wrapper --gradle-version {gradleVersion90}` to update the project to {gradleVersion90}.
+. Run `gradle :wrapper --gradle-version {gradleVersion90}` to update the project to {gradleVersion90}.
 . Try to run the project and debug any errors using the <<troubleshooting.adoc#troubleshooting, Troubleshooting Guide>>.
 
 [[changes_major_9]]
