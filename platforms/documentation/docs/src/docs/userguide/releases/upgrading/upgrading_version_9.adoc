@@ -63,6 +63,14 @@ If your build requires shared, synchronized state, use <<build_services.adoc#bui
 
 For a complete list of types that are incompatible with the Configuration Cache, see the <<configuration_cache_requirements.adoc#config_cache:requirements:disallowed_types, documentation>>.
 
+[[sync_runs_when_source_is_empty]]
+==== `Sync` task is no longer skipped when its source files are empty
+
+Previously, a link:{javadocPath}/org/gradle/api/tasks/Sync.html[`Sync`] task with no source files was reported as `NO-SOURCE` and skipped, leaving stale files in its destination directory.
+The task now runs even when its sources are empty, ensuring stale outputs are deleted as `Sync` is documented to do.
+
+If you previously relied on the skip behavior, configure your task to short-circuit explicitly with `onlyIf { ... }`.
+
 [[v9_upgrade_to_kotlin_2_3_21]]
 ==== Upgrade to Kotlin 2.3.21
 

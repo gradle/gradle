@@ -86,11 +86,13 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
             CopySpecResolver resolver = spec.buildResolverRelativeToParent(parentResolver);
             String specPropertyName = specPropertyNameBuilder.toString();
 
-            getInputs().files((Callable<FileTree>) resolver::getSource)
+            TaskInputFilePropertyBuilder source = getInputs().files((Callable<FileTree>) resolver::getSource)
                 .withPropertyName(specPropertyName)
                 .withPathSensitivity(PathSensitivity.RELATIVE)
-                .ignoreEmptyDirectories(false)
-                .skipWhenEmpty();
+                .ignoreEmptyDirectories(false);
+            if (skipWhenSourceIsEmpty()) {
+                source.skipWhenEmpty();
+            }
 
             getInputs().property(specPropertyName + ".destPath", (Callable<String>) () -> resolver.getDestPath().getPathString());
             getInputs().property(specPropertyName + ".caseSensitive", (Callable<Boolean>) spec::isCaseSensitive);
@@ -114,6 +116,16 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
     }
 
     protected abstract CopyAction createCopyAction();
+
+    /**
+     * Whether this task should be skipped with NO-SOURCE when its source files are empty.
+     * {@link Sync} overrides this to always run, since deleting stale outputs is part of its contract.
+     *
+     * @since 9.7.0
+     */
+    protected boolean skipWhenSourceIsEmpty() {
+        return true;
+    }
 
     @Inject
     protected abstract Instantiator getInstantiator();
