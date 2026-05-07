@@ -106,28 +106,15 @@ public abstract class AbstractLazyModuleComponentResolveMetadata extends Abstrac
         for (ComponentVariant variant : variants) {
             configurations.add(new LazyVariantBackedConfigurationMetadata(getId(), variant, getAttributes(), getAttributesFactory(), variantMetadataRules));
         }
-        // When explicit variants exist (e.g. from Gradle Module Metadata) but don't include
-        // a POM variant, synthesize one if the module supports it (e.g. Maven modules always have a POM).
-        if (!hasVariantNamed(variants, "pom")) {
-            Optional<List<? extends ExternalModuleVariantGraphResolveMetadata>> supplemental = maybeDeriveSupplementalVariants();
-            supplemental.ifPresent(list -> configurations.addAll(list));
-        }
+        Optional<List<? extends ExternalModuleVariantGraphResolveMetadata>> supplemental = maybeDeriveSupplementalVariants();
+        supplemental.ifPresent(list -> configurations.addAll(list));
         return addVariantsByRule(Optional.of(configurations.build()));
 
     }
 
-    private static boolean hasVariantNamed(ImmutableList<? extends ComponentVariant> variants, String name) {
-        for (ComponentVariant variant : variants) {
-            if (name.equals(variant.getName())) {
-                return true;
-            }
-        }
-        return false;
-    }
-
     /**
-     * Returns supplemental variants to add when explicit variants (e.g. from GMM) are present
-     * but missing certain always-available variants. For example, Maven modules always have a POM file.
+     * Returns supplemental variants to add alongside the explicit variants (e.g. from GMM).
+     * For example, Maven modules always have a POM file that can be exposed as a metadata variant.
      * By default returns empty. Subclasses can override.
      */
     protected Optional<List<? extends ExternalModuleVariantGraphResolveMetadata>> maybeDeriveSupplementalVariants() {
