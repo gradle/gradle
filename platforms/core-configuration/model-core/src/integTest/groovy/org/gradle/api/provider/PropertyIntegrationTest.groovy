@@ -16,6 +16,7 @@
 
 package org.gradle.api.provider
 
+import org.gradle.api.problems.Severity
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
@@ -999,20 +1000,23 @@ assert custom.prop.get() == "value 4"
         when:
         fails('myTask', "-Pmy=trash")
         then:
-        failureDescriptionContains("Type 'MyTask' property 'strings' doesn't have a configured value.")
+        failure.assertHasErrorOutput("Type 'MyTask' property 'strings' doesn't have a configured value")
 
         when:
         fails('myTask')
         then:
-        failureDescriptionContains("Type 'MyTask' property 'strings' doesn't have a configured value.")
+        failure.assertHasErrorOutput("Type 'MyTask' property 'strings' doesn't have a configured value")
 
         verifyAll(receivedProblem) {
+            severity == Severity.ERROR
             fqid == 'validation:property-validation:value-not-set'
-            contextualLabel == 'Type \'MyTask\' property \'strings\' doesn\'t have a configured value'
-            details == 'This property isn\'t marked as optional and no value has been configured'
+            definition.id.displayName == 'Value not set'
+            contextualLabel == "Type 'MyTask' property 'strings' doesn't have a configured value"
+            details == "This property isn't marked as optional and no value has been configured"
+            definition.documentationLink.url == "https://docs.gradle.org/${distribution.version.version}/userguide/validation_problems.html#value_not_set"
             solutions == [
-                'Assign a value to \'strings\'',
-                'Mark property \'strings\' as optional',
+                "Assign a value to 'strings'",
+                "Mark property 'strings' as optional",
             ]
             additionalData.asMap == [
                 'typeName' : 'MyTask',

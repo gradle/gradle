@@ -16,6 +16,8 @@
 
 package org.gradle.integtests.composite
 
+import org.gradle.api.problems.LineInFileLocation
+import org.gradle.api.problems.Severity
 import org.gradle.execution.MultipleBuildFailures
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.integtests.fixtures.build.BuildTestFile
@@ -254,6 +256,7 @@ class CompositeBuildEventsIntegrationTest extends AbstractCompositeBuildIntegrat
     @UnsupportedWithConfigurationCache(iterationMatchers = [".*CallbackType: BUILD_.*"], because = "gradle.buildFinished or BuildListener")
     def "fires build finished events for all builds when settings script for child build cannot be compiled"() {
         given:
+        enableProblemsApiCheck()
         setupInitScript(buildFinishedCallbackType)
 
         buildA.settingsFile << """
@@ -280,11 +283,19 @@ class CompositeBuildEventsIntegrationTest extends AbstractCompositeBuildIntegrat
         loggedOncePerBuild("buildFinished failure=org.gradle.groovy.scripts.ScriptCompilationException: Could not compile settings file '${buildB.settingsFile}'.", [":", ":buildB"])
 
         failure.assertHasFailures(2)
-        failure.assertHasDescription("Could not compile settings file")
-            .assertHasFileName("Settings file '${buildB.settingsFile}'")
+        failureDescriptionContains("Could not compile settings file")
+        failure.assertHasFileName("Settings file '${buildB.settingsFile}'")
 
-        failure.assertHasDescription("build A broken")
-            .assertHasFileName("Settings file '${buildA.settingsFile}'")
+        failureDescriptionContains("build A broken")
+        failure.assertHasFileName("Settings file '${buildA.settingsFile}'")
+
+        verifyAll(receivedProblem) {
+            severity == Severity.ERROR
+            fqid == 'compilation:groovy-dsl:compilation-failed'
+            definition.id.displayName == 'Groovy DSL script compilation problem'
+            contextualLabel == "Could not compile settings file '${buildB.settingsFile}'."
+            oneLocation(LineInFileLocation).path == buildB.settingsFile.absolutePath
+        }
 
         where:
         buildFinishedCallbackType << buildFinishCallbackTypes()

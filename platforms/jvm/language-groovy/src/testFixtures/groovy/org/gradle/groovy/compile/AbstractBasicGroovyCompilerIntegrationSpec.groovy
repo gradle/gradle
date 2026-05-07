@@ -15,6 +15,7 @@
  */
 package org.gradle.groovy.compile
 
+import org.gradle.api.problems.Severity
 import com.google.common.collect.Ordering
 import org.gradle.api.Action
 import org.gradle.integtests.fixtures.FeaturePreviewsFixture
@@ -424,16 +425,19 @@ abstract class AbstractBasicGroovyCompilerIntegrationSpec extends MultiVersionIn
     def "failsBecauseOfMissingConfigFile"() {
         Assume.assumeFalse(versionLowerThan("2.1"))
         expectReindentedValidationMessage()
+        enableProblemsApiCheck()
 
-        expect:
+        when:
         def configFile = file('groovycompilerconfig.groovy')
         fails("compileGroovy")
-        failureDescriptionContains(inputDoesNotExist {
-            type('org.gradle.api.tasks.compile.GroovyCompile')
-                .property('groovyOptions.configurationScript')
-                .file(configFile)
-                .includeLink()
-        })
+
+        then:
+        verifyAll(receivedProblem) {
+            severity == Severity.ERROR
+            fqid == 'validation:property-validation:input-file-does-not-exist'
+            definition.id.displayName == 'Input file does not exist'
+            definition.documentationLink.url == "https://docs.gradle.org/${distribution.version.version}/userguide/validation_problems.html#input_file_does_not_exist"
+        }
     }
 
     def "failsBecauseOfInvalidConfigFile"() {

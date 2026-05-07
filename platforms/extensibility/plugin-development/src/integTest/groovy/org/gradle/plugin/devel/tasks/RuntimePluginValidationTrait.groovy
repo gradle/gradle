@@ -18,9 +18,10 @@ package org.gradle.plugin.devel.tasks
 
 import org.gradle.test.fixtures.file.TestFile
 
-trait RuntimePluginValidationTrait implements CommonPluginValidationTrait{
+trait RuntimePluginValidationTrait implements CommonPluginValidationTrait {
     @Override
     def setup() {
+        enableProblemsApiCheck()
         expectReindentedValidationMessage()
         buildFile << """
             tasks.register("run", MyTask)
@@ -45,33 +46,12 @@ trait RuntimePluginValidationTrait implements CommonPluginValidationTrait{
         result.assertTaskExecuted(":run")
     }
 
-    void assertValidationFailsWith(List<AbstractPluginValidationIntegrationSpec.DocumentedProblem> messages) {
-        def expectedDeprecations = messages
-            .findAll { problem -> problem.severity == "warning" }
-        def expectedFailures = messages
-            .findAll { problem -> problem.severity == "error" }
-
-        expectedDeprecations.forEach { warning ->
-            expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer, warning.message, warning.id, warning.section)
-        }
-        if (expectedFailures) {
-            fails "run"
+    void assertValidationFailsWith(int errorCount) {
+        fails "run"
+        if (errorCount == 1) {
+            failure.assertHasDescription("A problem was found with the configuration of task ':run' (type 'MyTask').")
         } else {
-            succeeds "run"
-        }
-
-        switch (expectedFailures.size()) {
-            case 0:
-                break
-            case 1:
-                failure.assertHasDescription("A problem was found with the configuration of task ':run' (type 'MyTask').")
-                break
-            default:
-                failure.assertHasDescription("Some problems were found with the configuration of task ':run' (type 'MyTask').")
-                break
-        }
-        expectedFailures.forEach { error ->
-            failureDescriptionContains(error.message)
+            failure.assertHasDescription("Some problems were found with the configuration of task ':run' (type 'MyTask').")
         }
     }
 
