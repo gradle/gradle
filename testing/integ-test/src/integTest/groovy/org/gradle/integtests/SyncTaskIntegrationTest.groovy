@@ -28,6 +28,35 @@ import spock.lang.Issue
 
 class SyncTaskIntegrationTest extends AbstractIntegrationSpec implements StableConfigurationCacheDeprecations {
 
+    @Issue("https://github.com/gradle/gradle/issues/37597")
+    def 'deletes stale outputs when source becomes empty'() {
+        given:
+        file('source/foo.txt').text = 'foo'
+
+        buildFile """
+            task sync(type: Sync) {
+                from 'source'
+                into 'dest'
+            }
+        """
+
+        when:
+        run 'sync'
+
+        then:
+        executedAndNotSkipped ':sync'
+        file('dest/foo.txt').exists()
+
+        when:
+        file('source/foo.txt').delete()
+        run 'sync'
+
+        then:
+        executedAndNotSkipped ':sync'
+        !file('dest/foo.txt').exists()
+        file('dest').directory
+    }
+
     def 'copies files and removes extra files from destDir'() {
         given:
         defaultSourceFileTree()
