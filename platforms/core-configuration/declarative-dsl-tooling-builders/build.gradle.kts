@@ -16,6 +16,7 @@ dependencies {
     implementation(projects.declarativeDslEvaluator)
     implementation(projects.declarativeDslProvider)
     implementation(projects.declarativeDslToolingModels)
+    implementation(projects.loggingApi)
     implementation(projects.stdlibJavaExtensions)
 
     crossVersionTestImplementation(projects.declarativeDslCore)

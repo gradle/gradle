@@ -17,10 +17,13 @@
 package org.gradle.declarative.dsl.tooling.builders
 
 import org.gradle.api.GradleException
+import org.gradle.api.logging.Logger
+import org.gradle.api.logging.Logging
 import org.gradle.declarative.dsl.evaluation.InterpretationSequence
 import org.gradle.declarative.dsl.schema.AnalysisSchema
 import org.gradle.declarative.dsl.tooling.models.DeclarativeSchemaModel
 import org.gradle.internal.build.BuildState
+import org.gradle.internal.declarativedsl.documentation.loadAndGraftDocumentation
 import org.gradle.internal.declarativedsl.evaluationSchema.DefaultInterpretationSequence
 import org.gradle.internal.declarativedsl.evaluationSchema.SimpleInterpretationSequenceStep
 import org.gradle.internal.declarativedsl.interpreter.GradleProcessInterpretationSchemaBuilder
@@ -36,17 +39,21 @@ class DeclarativeSchemaModelBuilder(
     private val projectFeatureDeclarations: ProjectFeatureDeclarations
 ) : BuildScopeModelBuilder {
 
+    private
+    val logger: Logger = Logging.getLogger(DeclarativeSchemaModelBuilder::class.java)
+
     override fun create(target: BuildState): Any {
         // Make sure the project tree has been loaded and can be queried (but not necessarily configured)
         target.ensureProjectsLoaded()
 
         val schemaBuilder = GradleProcessInterpretationSchemaBuilder({ target.mutableModel.settings }, projectFeatureDeclarations)
+        val classLoader = target.mutableModel.settings.classLoaderScope.localClassLoader
 
         val settingsSequence = schemaBuilder.getEvaluationSchemaForScript(DeclarativeScriptContext.SettingsScript)
-            .sequenceOrError().analysisOnly()
+            .sequenceOrError().analysisOnly(classLoader)
 
         val projectSequence = schemaBuilder.getEvaluationSchemaForScript(DeclarativeScriptContext.ProjectScript)
-            .sequenceOrError().analysisOnly()
+            .sequenceOrError().analysisOnly(classLoader)
 
         return DefaultDeclarativeSchemaModel(settingsSequence, projectSequence)
     }
@@ -59,11 +66,12 @@ class DeclarativeSchemaModelBuilder(
     }
 
     private
-    fun InterpretationSequence.analysisOnly(): InterpretationSequence = DefaultInterpretationSequence(
+    fun InterpretationSequence.analysisOnly(classLoader: ClassLoader): InterpretationSequence = DefaultInterpretationSequence(
         steps.map { step ->
             val evaluationSchema = step.evaluationSchemaForStep
+            val grafted = loadAndGraftDocumentation(evaluationSchema.analysisSchema, classLoader, logger)
             val analysisOnlySchema = DefaultEvaluationSchema(
-                evaluationSchema.analysisSchema,
+                grafted,
                 evaluationSchema.analysisSchemaBuildingFailures,
                 evaluationSchema.analysisStatementFilter
             )
