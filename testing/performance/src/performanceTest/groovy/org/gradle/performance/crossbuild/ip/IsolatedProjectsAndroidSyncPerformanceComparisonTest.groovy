@@ -59,6 +59,9 @@ class IsolatedProjectsAndroidSyncPerformanceComparisonTest extends AbstractCross
             displayName("moderne")
             invocation {
                 args(
+                    // ensure IP is disabled for sensible comparison for projects that already enabled it
+                    "-Dorg.gradle.unsafe.isolated-projects=false",
+
                     "-Dorg.gradle.parallel=true",
                     "-Dorg.gradle.configuration-cache=true",
                     "-Dorg.gradle.configuration-cache.parallel=true",
