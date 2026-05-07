@@ -25,6 +25,7 @@ import java.io.Serializable
         ContainerElementFactory::class,
         ProjectFeatureOrigin::class,
         ConfigureFromGetterOrigin::class,
+        SchemaDocumentation::class,
         UnsafeSchemaItem::class,
         UnsafeNonInterfaceType::class,
         UnsafeNonAbstractMember::class,
@@ -89,4 +90,13 @@ interface UnsafeBecauseHasHiddenMembers : UnsafeSchemaItem {
 }
 interface UnsafeBecauseHasNonPublicMembers : UnsafeSchemaItem {
     val memberNames: List<String>
+}
+
+/**
+ * User-facing documentation attached to a schema item. `text` is the doc for the item itself; `parts`
+ * holds named sub-docs (e.g. parameter docs by name, enum entry docs by name).
+ */
+interface SchemaDocumentation : SchemaItemMetadata {
+    val text: String?
+    val parts: Map<String, String>
 }

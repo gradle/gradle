@@ -34,6 +34,7 @@ import org.gradle.declarative.dsl.schema.FunctionSemantics.Pure
 import org.gradle.declarative.dsl.schema.ConfigureFromGetterOrigin
 import org.gradle.declarative.dsl.schema.CustomAccessorIdentifier.CustomAccessorType
 import org.gradle.declarative.dsl.schema.ParameterSemantics
+import org.gradle.declarative.dsl.schema.SchemaDocumentation
 import org.gradle.declarative.dsl.schema.SchemaItemMetadata
 import org.gradle.declarative.dsl.schema.SchemaMemberFunction
 import org.gradle.declarative.dsl.schema.ProjectFeatureOrigin
@@ -506,6 +507,13 @@ object TypeArgumentInternal {
 
 
 object SchemaItemMetadataInternal {
+    @Serializable
+    @SerialName("schemaDocumentation")
+    data class DefaultSchemaDocumentation(
+        override val text: String? = null,
+        override val parts: Map<String, String> = emptyMap()
+    ) : SchemaDocumentation
+
     object SchemaMemberOriginInternal {
         @Serializable
         @SerialName("containerElementFactory")

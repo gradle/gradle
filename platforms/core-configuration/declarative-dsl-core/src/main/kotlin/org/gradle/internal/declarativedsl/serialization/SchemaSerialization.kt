@@ -201,6 +201,7 @@ object SchemaSerialization {
                 subclass(SchemaItemMetadataInternal.SchemaMemberOriginInternal.DefaultContainerElementFactory::class)
                 subclass(SchemaItemMetadataInternal.SchemaMemberOriginInternal.DefaultProjectFeatureOrigin::class)
                 subclass(SchemaItemMetadataInternal.SchemaMemberOriginInternal.DefaultConfigureFromGetterOrigin::class)
+                subclass(SchemaItemMetadataInternal.DefaultSchemaDocumentation::class)
                 subclass(SchemaItemMetadataInternal.UnsafeSchemaItemInternal.DefaultUnsafeNonInterfaceType::class)
                 subclass(SchemaItemMetadataInternal.UnsafeSchemaItemInternal.DefaultUnsafeNonAbstractMember::class)
                 subclass(SchemaItemMetadataInternal.UnsafeSchemaItemInternal.DefaultUnsafeInjectProperty::class)
