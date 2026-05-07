@@ -555,11 +555,11 @@ The default version of CodeNarc has been updated from 3.6.0 to link:https://gith
 Ant has been updated to link:https://github.com/apache/ant/blob/rel/1.10.17/WHATSNEW[1.10.17].
 Since the previous version was 1.10.15, the link:https://github.com/apache/ant/blob/rel/1.10.16/WHATSNEW[1.10.16] changes are also included.
 
-[[v9_upgrade_to_groovy_4_0_31]]
-==== Upgrade to Groovy 4.0.31
+[[v9_upgrade_to_groovy_4_0_32]]
+==== Upgrade to Groovy 4.0.32
 
-Groovy has been updated to link:https://groovy-lang.org/changelogs/changelog-4.0.31.html[4.0.31].
-Since the previous version was 4.0.29, the link:https://groovy-lang.org/changelogs/changelog-4.0.30.html[4.0.30] changes are also included.
+Groovy has been updated to link:https://groovy-lang.org/changelogs/changelog-4.0.32.html[4.0.32].
+Since the previous version was 4.0.29, the link:https://groovy-lang.org/changelogs/changelog-4.0.30.html[4.0.30] and link:https://groovy-lang.org/changelogs/changelog-4.0.31.html[4.0.31] changes are also included.
 
 [[changes_9.5.0]]
 == Upgrading from 9.4.0 and earlier
