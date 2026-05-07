@@ -24,7 +24,6 @@ import org.gradle.internal.execution.Identity;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.WorkValidationContext;
 import org.gradle.internal.execution.WorkValidationException;
-import org.gradle.internal.execution.WorkValidationUtils;
 import org.gradle.internal.execution.steps.ValidateStep;
 import org.gradle.internal.vfs.VirtualFileSystem;
 import org.slf4j.Logger;
@@ -68,9 +67,8 @@ public class DefaultExecutionProblemHandler implements ExecutionProblemHandler {
     }
 
     private static void throwValidationException(UnitOfWork work, WorkValidationContext validationContext, List<ProblemInternal> validationErrors) {
-        List<ProblemInternal> uniqueErrors = WorkValidationUtils.deduplicateAndTruncate(validationErrors);
-        WorkValidationException workValidationException = WorkValidationException.withSummaryForContext(work.getDisplayName(), validationContext, uniqueErrors.size());
+        WorkValidationException workValidationException = WorkValidationException.withSummaryForContext(work.getDisplayName(), validationContext, validationErrors.size());
         ProblemReporter reporter = validationContext.getProblemsService().getReporter();
-        throw reporter.throwing(workValidationException, uniqueErrors);
+        throw reporter.throwing(workValidationException, validationErrors);
     }
 }

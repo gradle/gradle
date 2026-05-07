@@ -30,8 +30,20 @@ public interface WorkValidationContext {
 
     ProblemsInternal getProblemsService();
 
+    /**
+     * Returns the warnings detected while inspecting the inputs and outputs of a unit of work.
+     *
+     * The returned list is deduplicated by problem identity and truncated at the configurable
+     * problem cap.
+     */
     List<ProblemInternal> getWarnings();
 
+    /**
+     * Returns the errors detected while inspecting the inputs and outputs of a unit of work.
+     *
+     * The returned list is deduplicated by problem identity and truncated at the configurable
+     * problem cap.
+     */
     List<ProblemInternal> getErrors();
 
     ImmutableSet<Class<?>> getValidatedTypes();

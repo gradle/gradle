@@ -35,6 +35,11 @@ public class WorkValidationUtils {
     private WorkValidationUtils() {
     }
 
+    /**
+     * Deduplicates the given problems by {@code (id, contextual label, details, solutions, locations)}
+     * and truncates the result at the cap configured via the
+     * {@code org.gradle.internal.max.validation.errors} system property (default 5).
+     */
     public static List<ProblemInternal> deduplicateAndTruncate(List<? extends ProblemInternal> problems) {
         return truncate(deduplicateByProperties(problems));
     }
