@@ -28,8 +28,8 @@ import org.gradle.api.problems.internal.ProblemSummarizer;
 import org.gradle.api.problems.internal.ProblemTaskIdentityTracker;
 import org.gradle.api.problems.internal.ProblemsInternal;
 import org.gradle.api.problems.internal.TaskIdentity;
+import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.buildoption.InternalOptions;
-import org.gradle.internal.cc.impl.problems.BuildNameProvider;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.exception.ExceptionAnalyser;
@@ -116,10 +116,10 @@ public class ProblemsBuildTreeServices implements ServiceRegistrationProvider {
         StartParameterInternal startParameter,
         ListenerManager listenerManager,
         FailureFactory failureFactory,
-        BuildNameProvider buildNameProvider
+        BuildStateRegistry buildStateRegistry
     ) {
         if (startParameter.isProblemReportGenerationEnabled()) {
-            return new DefaultProblemsReportCreator(executorFactory, temporaryFileProvider, internalOptions, startParameter, failureFactory, buildNameProvider);
+            return new DefaultProblemsReportCreator(executorFactory, temporaryFileProvider, internalOptions, startParameter, failureFactory, buildStateRegistry);
         }
         return new NoOpProblemReportCreator();
     }

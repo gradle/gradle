@@ -28,6 +28,7 @@ import org.gradle.api.problems.internal.GradleCoreProblemGroup
 import org.gradle.api.problems.internal.ProblemsInternal
 import org.gradle.api.problems.internal.PropertyTraceDataSpec
 import org.gradle.initialization.RootBuildLifecycleListener
+import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.cc.base.exceptions.ConfigurationCacheError
 import org.gradle.internal.cc.base.exceptions.ConfigurationCacheThrowable
 import org.gradle.internal.cc.base.problems.AbstractProblemsListener
@@ -91,7 +92,7 @@ class ConfigurationCacheProblems(
     val failureFactory: FailureFactory,
 
     private
-    val buildNameProvider: BuildNameProvider,
+    val buildStateRegistry: BuildStateRegistry,
 
     private
     val degradationController: DefaultConfigurationCacheDegradationController
@@ -394,7 +395,7 @@ class ConfigurationCacheProblems(
         val cacheActionText = cacheAction.summaryText()
         val requestedTasks = startParameter.requestedTasksOrDefault()
         return ProblemReportDetails(
-            buildDisplayName = buildNameProvider.buildName(),
+            buildDisplayName = buildStateRegistry.rootBuild.displayName.displayName,
             cacheAction = cacheActionText,
             cacheActionDescription = cacheActionDescription,
             requestedTasks = requestedTasks,
