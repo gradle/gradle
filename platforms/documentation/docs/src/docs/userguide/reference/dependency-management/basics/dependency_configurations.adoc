@@ -62,7 +62,7 @@ The plugin adds many dependency configurations.
 These configurations represent the various classpaths needed for source code compilation, executing tests, and more.
 The configurations below are used to declare dependencies for different purposes:
 
-[cols="~,~,~"]
+[cols="~,~"]
 |===
 |Configuration Name |Description
 
