@@ -20,6 +20,7 @@ import org.gradle.api.ActionConfiguration;
 import org.gradle.api.artifacts.ComponentMetadataSupplier;
 import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
+import org.jspecify.annotations.Nullable;
 
 import java.net.URI;
 
@@ -49,10 +50,11 @@ public interface IvyArtifactRepository extends ArtifactRepository, UrlArtifactRe
     /**
      * The base URL of this repository.
      *
-     * @return The URL.
+     * @return The URL, or {@code null} if no URL has been set.
      */
     @Override
     @ToBeReplacedByLazyProperty
+    @Nullable
     URI getUrl();
 
     /**

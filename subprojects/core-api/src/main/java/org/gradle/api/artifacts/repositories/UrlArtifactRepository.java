@@ -18,6 +18,7 @@ package org.gradle.api.artifacts.repositories;
 
 import org.gradle.api.provider.Property;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
+import org.jspecify.annotations.Nullable;
 
 import java.net.URI;
 
@@ -31,9 +32,10 @@ public interface UrlArtifactRepository {
     /**
      * The base URL of this repository.
      *
-     * @return The URL.
+     * @return The URL, or {@code null} if no URL has been set.
      */
     @ToBeReplacedByLazyProperty
+    @Nullable
     URI getUrl();
 
     /**

@@ -1,3 +1,28 @@
 {
-    "acceptedApiChanges": []
+    "acceptedApiChanges": [
+        {
+            "type": "org.gradle.api.artifacts.repositories.IvyArtifactRepository",
+            "member": "Method org.gradle.api.artifacts.repositories.IvyArtifactRepository.getUrl()",
+            "acceptation": "Aligning the nullability annotation with the documented runtime behavior: getUrl() returns null when no URL has been configured (#37612).",
+            "changes": [
+                "From non-null returning to null returning breaking change."
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.repositories.MavenArtifactRepository",
+            "member": "Method org.gradle.api.artifacts.repositories.MavenArtifactRepository.getUrl()",
+            "acceptation": "Aligning the nullability annotation with the documented runtime behavior: getUrl() returns null when no URL has been configured (#37612).",
+            "changes": [
+                "From non-null returning to null returning breaking change."
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.repositories.UrlArtifactRepository",
+            "member": "Method org.gradle.api.artifacts.repositories.UrlArtifactRepository.getUrl()",
+            "acceptation": "Aligning the nullability annotation with the documented runtime behavior: getUrl() returns null when no URL has been configured (#37612).",
+            "changes": [
+                "From non-null returning to null returning breaking change."
+            ]
+        }
+    ]
 }

@@ -71,6 +71,7 @@ import org.gradle.internal.resource.local.FileResourceRepository;
 import org.gradle.internal.resource.local.FileStore;
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
 import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
 import javax.inject.Inject;
 import java.net.URI;
@@ -144,6 +145,7 @@ public abstract class DefaultMavenArtifactRepository extends AbstractAuthenticat
     }
 
     @Override
+    @Nullable
     public URI getUrl() {
         return urlArtifactRepository.getUrl();
     }
