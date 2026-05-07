@@ -334,26 +334,8 @@ include::sample[dir="snippets/structuring-builds/composite-builds-hierarchical-m
 A `buildSrc` build can also be referenced by name through `Gradle.includedBuild("buildSrc")`, which lets the consuming build depend on tasks declared in `buildSrc`. For example, to make the root build's `check` task also run `buildSrc`'s `check`:
 
 ====
-[.multi-language-sample]
-=====
-.build.gradle.kts
-[source,kotlin]
-----
-tasks.named("check") {
-    dependsOn(gradle.includedBuild("buildSrc").task(":check"))
-}
-----
-=====
-[.multi-language-sample]
-=====
-.build.gradle
-[source,groovy]
-----
-tasks.named("check") {
-    dependsOn gradle.includedBuild("buildSrc").task(":check")
-}
-----
-=====
+include::sample[dir="snippets/structuring-builds/composite-builds-buildsrc-tasks/kotlin",files="build.gradle.kts[tags=check-buildsrc]"]
+include::sample[dir="snippets/structuring-builds/composite-builds-buildsrc-tasks/groovy",files="build.gradle[tags=check-buildsrc]"]
 ====
 
 The task path must be qualified (start with `:`). For a multi-project `buildSrc`, depend on each subproject's task explicitly (e.g. `gradle.includedBuild("buildSrc").task(":sub:check")`); there is no implicit aggregation across `buildSrc` subprojects from the consuming build.
