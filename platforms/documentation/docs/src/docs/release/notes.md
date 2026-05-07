@@ -14,7 +14,8 @@ Gradle @version@ is the fifth patch release for Gradle 8.14 (released [@releaseD
 
 It fixes the following issues:
 
-* TODO
+* [#37048](https://github.com/gradle/gradle/issues/37048) [8.14 backport] TransformedClassLoader is not thread-safe
+* [#37486](https://github.com/gradle/gradle/issues/37486) [Backport] Excluding dependencies from included builds doesn't work
 
 Issues fixed in the fourth patch release:
 
