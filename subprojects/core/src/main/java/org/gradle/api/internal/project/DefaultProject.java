@@ -604,7 +604,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     @Override
     public int getDepth() {
-        return owner.getDepth();
+        return getProjectIdentity().getProjectDepth();
     }
 
     @Inject

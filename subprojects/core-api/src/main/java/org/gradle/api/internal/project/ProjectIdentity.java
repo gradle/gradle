@@ -153,6 +153,14 @@ public final class ProjectIdentity implements DisplayName {
     }
 
     /**
+     * {@return the nesting level of a project in a multi-project hierarchy}
+     * Does not include the build path, so it is 0 for the root project of each build, 1 for its direct children, etc.
+     */
+    public int getProjectDepth() {
+        return projectPath.segmentCount();
+    }
+
+    /**
      * Given a potentially relative path to a project, resolve it to an absolute path within the build,
      * using this project as the base for resolving relative paths. This is purely a project path operation,
      * and does not use the build path in any way.
