@@ -16,9 +16,11 @@
 
 package org.gradle.kotlin.dsl.integration
 
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.classloader.DefaultClassLoaderFactory
 import org.gradle.kotlin.dsl.fixtures.TestModuleRegistry
 import org.gradle.kotlin.dsl.fixtures.TestWithTempFiles
+import org.gradle.kotlin.dsl.fixtures.sharedTestIncrementalCompilationCache
 import org.gradle.kotlin.dsl.fixtures.testRuntimeClassPath
 import org.gradle.kotlin.dsl.fixtures.withClassLoaderFor
 import org.gradle.kotlin.dsl.integration.KotlinScriptCompilerTest.TheImplicitReceiver
@@ -110,7 +112,9 @@ class KotlinScriptCompilerTest : TestWithTempFiles() {
             template,
             testRuntimeClassPath.asFiles,
             mock(),
-            mock()
-        )
+            TestFiles.fileSystemAccess(),
+            sharedTestIncrementalCompilationCache,
+            scriptIdentity = "script.kts"
+        ) { it }
     }
 }

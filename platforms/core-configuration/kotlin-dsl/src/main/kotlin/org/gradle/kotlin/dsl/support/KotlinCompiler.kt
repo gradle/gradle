@@ -27,12 +27,18 @@ import org.gradle.internal.classloader.ClassLoaderFactory
 import org.gradle.internal.classloader.FilteringClassLoader
 import org.gradle.internal.classloader.VisitableURLClassLoader
 import org.gradle.internal.classpath.ClassPath
+import org.gradle.internal.hash.HashCode
+import org.gradle.internal.hash.Hashing
 import org.gradle.internal.io.NullOutputStream
 import org.gradle.internal.logging.ConsoleRenderer
+import org.gradle.internal.vfs.FileSystemAccess
+import org.gradle.kotlin.dsl.cache.KotlinDslIncrementalCompilationCache
 import org.gradle.kotlin.dsl.provider.PrecompiledScriptsEnvironment.EnvironmentProperties.kotlinDslImplicitImports
 import org.jetbrains.kotlin.assignment.plugin.AssignmentPluginNames
 import org.jetbrains.kotlin.buildtools.api.BaseCompilationOperation
 import org.jetbrains.kotlin.buildtools.api.BaseCompilationOperation.Companion.COMPILER_MESSAGE_RENDERER
+import org.jetbrains.kotlin.buildtools.api.BaseIncrementalCompilationConfiguration.Companion.BACKUP_CLASSES
+import org.jetbrains.kotlin.buildtools.api.BaseIncrementalCompilationConfiguration.Companion.KEEP_IC_CACHES_IN_MEMORY
 import org.jetbrains.kotlin.buildtools.api.CompilerMessageRenderer
 import org.jetbrains.kotlin.buildtools.api.CompilerMessageRenderer.Severity
 import org.jetbrains.kotlin.buildtools.api.CompilerMessageRenderer.SourceLocation
@@ -40,6 +46,7 @@ import org.jetbrains.kotlin.buildtools.api.DelicateBuildToolsApi
 import org.jetbrains.kotlin.buildtools.api.ExecutionPolicy
 import org.jetbrains.kotlin.buildtools.api.ExperimentalBuildToolsApi
 import org.jetbrains.kotlin.buildtools.api.KotlinToolchains
+import org.jetbrains.kotlin.buildtools.api.SourcesChanges
 import org.jetbrains.kotlin.buildtools.api.arguments.CommonCompilerArguments.Companion.API_VERSION
 import org.jetbrains.kotlin.buildtools.api.arguments.CommonCompilerArguments.Companion.COMPILER_PLUGINS
 import org.jetbrains.kotlin.buildtools.api.arguments.CommonCompilerArguments.Companion.LANGUAGE_VERSION
@@ -65,7 +72,15 @@ import org.jetbrains.kotlin.buildtools.api.arguments.JvmCompilerArguments.Compan
 import org.jetbrains.kotlin.buildtools.api.arguments.enums.JvmDefaultMode
 import org.jetbrains.kotlin.buildtools.api.arguments.enums.SamConversionsMode
 import org.jetbrains.kotlin.buildtools.api.daemonExecutionPolicy
+import org.jetbrains.kotlin.buildtools.api.jvm.AccessibleClassSnapshot
+import org.jetbrains.kotlin.buildtools.api.jvm.ClassSnapshot
+import org.jetbrains.kotlin.buildtools.api.jvm.ClassSnapshotGranularity
 import org.jetbrains.kotlin.buildtools.api.jvm.JvmPlatformToolchain.Companion.jvm
+import org.jetbrains.kotlin.buildtools.api.jvm.JvmSnapshotBasedIncrementalCompilationConfiguration.Companion.PRECISE_JAVA_TRACKING
+import org.jetbrains.kotlin.buildtools.api.jvm.operations.JvmClasspathSnapshottingOperation.Companion.GRANULARITY
+import org.jetbrains.kotlin.buildtools.api.jvm.operations.JvmClasspathSnapshottingOperation.Companion.PARSE_INLINED_LOCAL_CLASSES
+import org.jetbrains.kotlin.buildtools.api.jvm.operations.JvmCompilationOperation
+import org.jetbrains.kotlin.buildtools.api.jvm.operations.JvmCompilationOperation.Companion.INCREMENTAL_COMPILATION
 import org.jetbrains.kotlin.buildtools.api.jvm.operations.JvmCompilationOperation.CompilerArgumentsLogLevel
 import org.jetbrains.kotlin.cli.common.CompilerSystemProperties.KOTLIN_COMPILER_ENVIRONMENT_KEEPALIVE_PROPERTY
 import org.jetbrains.kotlin.config.JvmTarget
@@ -79,8 +94,10 @@ import java.io.File
 import java.io.OutputStream
 import java.io.PrintStream
 import java.net.URLClassLoader
+import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
+import java.nio.file.StandardCopyOption.REPLACE_EXISTING
 import kotlin.io.path.Path
 import kotlin.jvm.java
 import kotlin.reflect.KClass
@@ -130,6 +147,13 @@ internal fun cleanupKotlinCompilers() {
 }
 
 internal interface KotlinCompiler {
+    /**
+     * @param scriptIdentity stable, unique identifier for this compilation unit; used to key the incremental
+     *     compilation working state under [KotlinDslIncrementalCompilationCache.scriptsCacheDirectory]. Two
+     *     calls that share a [scriptIdentity] will share BTA's IC working directory and therefore must
+     *     describe the same source set + classpath. For two-stage script compilation (`buildscript`-block vs
+     *     body), include the stage descriptor in the identity to avoid clobbering BTA's state across stages.
+     */
     fun compileKotlinScriptToDirectory(
         outputDirectory: File,
         compilerOptions: KotlinCompilerOptions,
@@ -138,6 +162,9 @@ internal interface KotlinCompiler {
         template: KClass<out Any>,
         classPath: List<File>,
         logger: Logger,
+        fileSystemAccess: FileSystemAccess,
+        incrementalCompilationCache: KotlinDslIncrementalCompilationCache,
+        scriptIdentity: String,
         pathTranslation: (String) -> String
     ): String
 
@@ -158,6 +185,9 @@ class KotlinCompilerImpl(val moduleRegistry: ModuleRegistry, val classLoader: Cl
         template: KClass<out Any>,
         classPath: List<File>,
         logger: Logger,
+        fileSystemAccess: FileSystemAccess,
+        incrementalCompilationCache: KotlinDslIncrementalCompilationCache,
+        scriptIdentity: String,
         pathTranslation: (String) -> String
     ): String {
         compileKotlinScriptToDirectory(
@@ -167,7 +197,10 @@ class KotlinCompilerImpl(val moduleRegistry: ModuleRegistry, val classLoader: Cl
             implicitImports,
             template,
             classPath,
-            messageCollectorFor(logger, compilerOptions.allWarningsAsErrors, pathTranslation)
+            messageCollectorFor(logger, compilerOptions.allWarningsAsErrors, pathTranslation),
+            fileSystemAccess,
+            incrementalCompilationCache,
+            scriptIdentity
         )
 
         return NameUtils.getScriptNameForFile(scriptFile.name).asString()
@@ -194,7 +227,10 @@ class KotlinCompilerImpl(val moduleRegistry: ModuleRegistry, val classLoader: Cl
         implicitImports: List<String>,
         template: KClass<out Any>,
         classPath: List<File>,
-        messageRenderer: LoggingMessageRenderer
+        messageRenderer: LoggingMessageRenderer,
+        fileSystemAccess: FileSystemAccess,
+        incrementalCompilationCache: KotlinDslIncrementalCompilationCache,
+        scriptIdentity: String
     ) {
         Output.withRedirecting(messageRenderer.log) {
             btaCompiler.compile(
@@ -204,7 +240,10 @@ class KotlinCompilerImpl(val moduleRegistry: ModuleRegistry, val classLoader: Cl
                 classPath,
                 template,
                 implicitImports,
-                messageRenderer
+                messageRenderer,
+                fileSystemAccess,
+                incrementalCompilationCache,
+                scriptIdentity
             )
             if (messageRenderer.errors.isNotEmpty()) {
                 throw ScriptCompilationException(messageRenderer.errors)
@@ -453,6 +492,7 @@ private
 fun clickableFileUrlFor(path: String): String =
     ConsoleRenderer().asClickableFileUrl(File(path))
 
+
 private
 inline fun <reified T : PropertiesCollection> scriptConfigInstance(kclass: KClass<out T>): T? =
     kclass.objectInstance ?: run {
@@ -497,8 +537,6 @@ private class BTACompiler(val moduleRegistry: ModuleRegistry, classLoader: Class
 
     private val plugins: List<CompilerPlugin> = createPlugins()
 
-
-
     @OptIn(ExperimentalCompilerArgument::class)
     fun compile(
         sources: List<Path>,
@@ -507,14 +545,23 @@ private class BTACompiler(val moduleRegistry: ModuleRegistry, classLoader: Class
         classPath: List<File>,
         template: KClass<out Any>,
         implicitImports: List<String>,
-        messageRenderer: LoggingMessageRenderer
+        messageRenderer: LoggingMessageRenderer,
+        fileSystemAccess: FileSystemAccess,
+        incrementalCompilationCache: KotlinDslIncrementalCompilationCache,
+        scriptIdentity: String
     ) {
         SystemProperties.getInstance().withSystemProperties(systemProperties) {
-            val operationBuilder = toolchains.jvm.jvmCompilationOperationBuilder(sources, destinationDirectory)
+            // Route BTA at a stable per-scriptIdentity output dir, then copy into the workspace
+            // [destinationDirectory] after the compile. BTA's IC tracks emitted classes and skips
+            // emit when the source is unchanged; the kotlin-dsl workspace cache one layer up
+            // invalidates its destination on every cache-key miss, so handing BTA a fresh empty
+            // dir while its source-snapshot says "no work" would leave us with no class outputs.
+            // With a stable BTA destination, prior outputs persist across cache-key changes; the
+            // copy step transfers them under the current key's directory.
+            val btaOutputDir = incrementalCompilationCache.scriptOutputsDirectory(scriptIdentity)
+            val operationBuilder = toolchains.jvm.jvmCompilationOperationBuilder(sources, btaOutputDir)
 
-            // compilation operation config
             operationBuilder[BaseCompilationOperation.COMPILER_ARGUMENTS_LOG_LEVEL] = CompilerArgumentsLogLevel.DEBUG
-            // TODO: incremental compilation should make explicit fingerprint checking obsolete
 
             operationBuilder.compilerArguments.let {
                 it.configureScriptEnvironment(classPath, template, implicitImports)
@@ -524,12 +571,31 @@ private class BTACompiler(val moduleRegistry: ModuleRegistry, classLoader: Class
 
             operationBuilder[COMPILER_MESSAGE_RENDERER] = messageRenderer
 
+            operationBuilder.configureIncrementalCompilation(scriptIdentity, classPath, fileSystemAccess, incrementalCompilationCache)
+
             val executionPolicy = createExecutionPolicy()
 
             // TODO: what JDK does the Daemon run on? KotlinBuildScriptIntegrationTest has failing tests when running on the console, which points to this area
 
             val operation = operationBuilder.build()
             buildSession.executeOperation(operation, executionPolicy)
+
+            copyOutputs(btaOutputDir, destinationDirectory)
+        }
+    }
+
+    private fun copyOutputs(src: Path, dst: Path) {
+        Files.walk(src).use { stream ->
+            stream.forEach { srcPath ->
+                if (srcPath == src) return@forEach
+                val target = dst.resolve(src.relativize(srcPath))
+                if (Files.isDirectory(srcPath)) {
+                    Files.createDirectories(target)
+                } else {
+                    Files.createDirectories(target.parent)
+                    Files.copy(srcPath, target, REPLACE_EXISTING)
+                }
+            }
         }
     }
 
@@ -571,6 +637,93 @@ private class BTACompiler(val moduleRegistry: ModuleRegistry, classLoader: Class
         this[X_SAM_CONVERSIONS] = SamConversionsMode.CLASS
 
         this[JvmCompilerArguments.MODULE_NAME] = MODULE_NAME
+    }
+
+    /**
+     * Wires snapshot-based incremental compilation into [this] operation builder.
+     *
+     * The IC working directory is keyed by [scriptIdentity] so IC state persists across edits to
+     * the same script. Paired with the stable per-[scriptIdentity] BTA output directory (see
+     * [compile]); the kotlin-dsl workspace cache's content-addressed destination one layer up
+     * gets populated by copy.
+     */
+    private fun JvmCompilationOperation.Builder.configureIncrementalCompilation(
+        scriptIdentity: String,
+        classPath: List<File>,
+        fileSystemAccess: FileSystemAccess,
+        cache: KotlinDslIncrementalCompilationCache,
+    ) {
+        val icWorkingDirectory = scriptIcRootFor(scriptIdentity, cache)
+        val dependencySnapshots = classPath.map { snapshotClasspathEntry(it.toPath(), fileSystemAccess, cache) }
+
+        val icConfig = snapshotBasedIcConfigurationBuilder(
+            workingDirectory = icWorkingDirectory,
+            sourcesChanges = SourcesChanges.ToBeCalculated,
+            dependenciesSnapshotFiles = dependencySnapshots,
+        ).apply {
+            // kotlin-dsl never compiles Java sources.
+            this[PRECISE_JAVA_TRACKING] = false
+
+            // The flag selects a per-compile transactional backup inside BTA — when true,
+            // IncrementalCompilerRunner.createTransaction uses Files.createTempDirectory("kotlin-backups")
+            // and a RecoverableCompilationTransaction so a failed compile can roll back partial
+            // outputs from BTA's destinationDirectory. Off here because the workspace cache catches
+            // the failure at a coarser grain: a thrown compile causes the unit of work to fail, our
+            // copy step never runs, the workspace dir is never published as a cache hit, and the
+            // next build retries.
+            //
+            // TODO: with a stable BTA output dir, a crash mid-emit can leave that dir in a mixed
+            //  state (some classes new, some old, one possibly torn). A retry where the source
+            //  content matches the last *committed* compile will land BTA in "no work" mode and
+            //  the copy step then propagates mixed state into the workspace. Worth flipping to
+            //  true once we add a regression test that covers this.
+            this[BACKUP_CLASSES] = false
+
+            // Flush IC state on compile success — saves per-key disk writes during the compile.
+            // Caveat: crash-recovery with REUSE_BUILD_SESSION = true depends on whether BTA flushes
+            // per-op or only on session close; worth a recompile-after-kill test. // TODO
+            this[KEEP_IC_CACHES_IN_MEMORY] = true
+        }.build()
+
+        this[INCREMENTAL_COMPILATION] = icConfig
+    }
+
+    private fun snapshotClasspathEntry(entry: Path, fileSystemAccess: FileSystemAccess, cache: KotlinDslIncrementalCompilationCache): Path {
+        // Key by the entry's content hash (covers both jar files and class directories), so identical
+        // bytes share one snapshot file and in-place rewrites invalidate the cached snapshot correctly.
+        val contentHash = fileSystemAccess.read(entry.toAbsolutePath().toString()).hash
+        return cache.snapshotAndAbiHashFor(contentHash) { path ->
+            val operation = toolchains.jvm.classpathSnapshottingOperationBuilder(entry).apply {
+                this[GRANULARITY] = ClassSnapshotGranularity.CLASS_LEVEL
+                // Track inline-emitted classes so an ABI change inside an inline body invalidates
+                // dependents. Mirrors the compile-avoidance fingerprinter so both layers compute
+                // the same snapshot bytes (cache files are shared by content hash, so the option
+                // must match across consumers).
+                this[PARSE_INLINED_LOCAL_CLASSES] = true
+            }.build()
+            val snapshot = buildSession.executeOperation(operation)
+            snapshot.saveSnapshot(path)
+            // Project the per-class ABI hashes into a single rollup. Used as the workspace cache
+            // key component by the compile-avoidance fingerprinter; unused here but cheap to
+            // compute and stored alongside the snapshot file for the fingerprinter's later hits.
+            rollupAbiHash(snapshot.classSnapshots)
+        }.snapshotFile
+    }
+
+    private fun scriptIcRootFor(scriptIdentity: String, cache: KotlinDslIncrementalCompilationCache): Path =
+        cache.scriptCacheDirectory(scriptIdentity)
+
+    private fun rollupAbiHash(classSnapshots: Map<String, ClassSnapshot>): HashCode {
+        // Duplicated, by design, in KotlinCompileClasspathFingerprinter — both compute the same
+        // projection of BTA snapshots, but the snapshot files they share by content hash are
+        // populated by whichever layer asks first, so a single shared helper would create a
+        // dependency cycle between the cache module and the BTA-using modules. The projection is
+        // small; keep the two copies in sync.
+        val hasher = Hashing.newHasher()
+        classSnapshots.values
+            .filterIsInstance<AccessibleClassSnapshot>()
+            .forEach { hasher.putLong(it.classAbiHash) }
+        return hasher.hash()
     }
 
     private fun createPlugins(): List<CompilerPlugin> {

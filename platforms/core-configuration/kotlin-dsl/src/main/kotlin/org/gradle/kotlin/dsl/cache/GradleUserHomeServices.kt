@@ -16,6 +16,12 @@
 
 package org.gradle.kotlin.dsl.cache
 
+import org.gradle.cache.IndexedCacheParameters
+import org.gradle.cache.internal.InMemoryCacheDecoratorFactory
+import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory
+import org.gradle.internal.hash.HashCode
+import org.gradle.internal.serialize.HashCodeSerializer
+import org.gradle.internal.service.PrivateService
 import org.gradle.internal.service.Provides
 import org.gradle.internal.service.ServiceRegistration
 import org.gradle.internal.service.ServiceRegistrationProvider
@@ -27,5 +33,31 @@ object GradleUserHomeServices : ServiceRegistrationProvider {
     @Provides
     fun configure(registration: ServiceRegistration) {
         registration.add(KotlinDslWorkspaceProvider::class.java)
+    }
+
+    @Provides
+    @PrivateService
+    fun createKotlinDslIncrementalCompilationStore(
+        cacheBuilderFactory: GlobalScopedCacheBuilderFactory,
+        inMemoryCacheDecoratorFactory: InMemoryCacheDecoratorFactory,
+    ): KotlinDslIncrementalCompilationStore =
+        KotlinDslIncrementalCompilationStore(cacheBuilderFactory, inMemoryCacheDecoratorFactory)
+
+    @Provides
+    fun createKotlinDslIncrementalCompilationCache(
+        store: KotlinDslIncrementalCompilationStore,
+    ): KotlinDslIncrementalCompilationCache {
+        val maxEntriesToKeep = 10_000
+        return KotlinDslIncrementalCompilationCache(
+            store.scriptsCacheDirectory,
+            store.scriptSourcesCacheDirectory,
+            store.scriptOutputsCacheDirectory,
+            store.snapshotsCacheDirectory,
+            store.createIndexedCache(
+                IndexedCacheParameters.of("kotlinDslClasspathSnapshotIndex", HashCode::class.java, HashCodeSerializer()),
+                maxEntriesToKeep,
+                true
+            )
+        )
     }
 }

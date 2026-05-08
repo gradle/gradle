@@ -17,6 +17,7 @@
 package org.gradle.kotlin.dsl.execution
 
 import org.gradle.api.initialization.Settings
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.temp.GradleUserHomeTemporaryFileProvider
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.groovy.scripts.ScriptSource
@@ -34,6 +35,7 @@ import org.gradle.kotlin.dsl.fixtures.TestModuleRegistry
 import org.gradle.kotlin.dsl.fixtures.TestWithTempFiles
 import org.gradle.kotlin.dsl.fixtures.assertStandardOutputOf
 import org.gradle.kotlin.dsl.fixtures.classLoaderFor
+import org.gradle.kotlin.dsl.fixtures.sharedTestIncrementalCompilationCache
 import org.gradle.kotlin.dsl.fixtures.testRuntimeClassPath
 import org.gradle.kotlin.dsl.support.KotlinCompilerOptions
 import org.gradle.kotlin.dsl.support.KotlinScriptHost
@@ -189,7 +191,7 @@ class InterpreterTest : TestWithTempFiles() {
         try {
 
             val target = mock<Settings>()
-            val subject = Interpreter(host, buildOperationRunner, TestModuleRegistry(), DefaultClassLoaderFactory())
+            val subject = Interpreter(host, buildOperationRunner, TestModuleRegistry(), DefaultClassLoaderFactory(), TestFiles.fileSystemAccess(), sharedTestIncrementalCompilationCache)
             assertStandardOutputOf("stage 1\nstage 2\n") {
                 subject.eval(
                     target,
@@ -289,7 +291,7 @@ class InterpreterTest : TestWithTempFiles() {
         val buildOperationRunner = TestBuildOperationRunner()
         val cachingHost = createCachingHostMock(DummyCompiledScript(TestProgram1::class.java))
 
-        val interpreter = Interpreter(cachingHost.host, buildOperationRunner, TestModuleRegistry(), DefaultClassLoaderFactory())
+        val interpreter = Interpreter(cachingHost.host, buildOperationRunner, TestModuleRegistry(), DefaultClassLoaderFactory(), TestFiles.fileSystemAccess(), sharedTestIncrementalCompilationCache)
         val target = mock<Settings>()
 
         // When we eval the same script twice
@@ -324,7 +326,7 @@ class InterpreterTest : TestWithTempFiles() {
         val buildOperationRunner = TestBuildOperationRunner()
         val cachingHost = createCachingHostMock(compiledProgram1, compiledProgram2)
 
-        val interpreter = Interpreter(cachingHost.host, buildOperationRunner, TestModuleRegistry(), DefaultClassLoaderFactory())
+        val interpreter = Interpreter(cachingHost.host, buildOperationRunner, TestModuleRegistry(), DefaultClassLoaderFactory(), TestFiles.fileSystemAccess(), sharedTestIncrementalCompilationCache)
         val target = mock<Settings>()
 
         // When we eval the first script with the first filename
@@ -371,7 +373,7 @@ class InterpreterTest : TestWithTempFiles() {
         val buildOperationRunner = TestBuildOperationRunner()
         val cachingHost = createCachingHostMock(compiledProgram1, compiledProgram2)
 
-        val interpreter = Interpreter(cachingHost.host, buildOperationRunner, TestModuleRegistry(), DefaultClassLoaderFactory())
+        val interpreter = Interpreter(cachingHost.host, buildOperationRunner, TestModuleRegistry(), DefaultClassLoaderFactory(), TestFiles.fileSystemAccess(), sharedTestIncrementalCompilationCache)
         val target = mock<Settings>()
 
         // When we eval the first script with the first content
