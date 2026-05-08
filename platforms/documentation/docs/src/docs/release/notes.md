@@ -14,7 +14,9 @@ Gradle @version@ is the first patch release for Gradle 9.5.0. (released [@releas
 
 The following issues were resolved:
 
-* TODO
+- [OOM upgrading from 9.4.1 to 9.5.0](https://github.com/gradle/gradle/issues/37753)
+- [Tooling API can't be used with a relative project directory in 9.5.0](https://github.com/gradle/gradle/issues/37797)
+- [Missing docs for CreateMD5.java](https://github.com/gradle/gradle/issues/37812)
 
 We recommend upgrading to Gradle @version@.
 
