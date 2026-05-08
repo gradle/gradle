@@ -137,7 +137,9 @@ public abstract class BaseFilePropertyVisitState implements FilePropertyVisitor.
         this.path = snapshot.getAbsolutePath();
         this.name = snapshot.getName();
         this.hash = fingerprint.getNormalizedContentHash();
-        this.length = getFileSnapshotLength(snapshot);
+        this.length = snapshot instanceof RegularFileSnapshot
+            ? ((RegularFileSnapshot) snapshot).getMetadata().getLength()
+            : 0;
 
         boolean isRoot = depth == 0;
         if (isRoot) {
@@ -150,19 +152,6 @@ public abstract class BaseFilePropertyVisitState implements FilePropertyVisitor.
             postRoot();
         }
         return SnapshotVisitResult.CONTINUE;
-    }
-
-    private static long getFileSnapshotLength(FileSystemLocationSnapshot snapshot) {
-        switch (snapshot.getType()) {
-            case RegularFile:
-                return ((RegularFileSnapshot) snapshot).getMetadata().getLength();
-
-            case Missing:
-                return 0;
-
-            default:
-                throw new UnsupportedOperationException("Cannot determine snapshot length for the type " + snapshot.getType());
-        }
     }
 
     @Override
