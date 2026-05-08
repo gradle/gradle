@@ -46,29 +46,13 @@ public interface CrossProjectModelAccess {
     @Nullable ProjectInternal findProject(ProjectIdentity referrer, Path path);
 
     /**
-     * Wrap the given project to ensure mutable state access is correctly handled across project boundaries,
-     * according to the current cross-project model access policy.
-     *
-     * <p>
-     * If possible, callers should prefer {@link #accessFromState(ProjectIdentity, ProjectState)},
-     * as it does not require a reference to the mutable state of the project.
-     * </p>
+     * Wrap the project identified by {@code target} to ensure mutable state access is correctly handled
+     * across project boundaries, according to the current cross-project model access policy.
      *
      * @param referrer The project from which the return value will be used.
+     * @param target The identity of the project to access.
      */
-    ProjectInternal access(ProjectIdentity referrer, ProjectInternal project);
-
-    /**
-     * Variant of {@link #access(ProjectIdentity, ProjectInternal)} that takes a {@link ProjectState},
-     * to avoid needing to have a reference to the mutable state of the project in the caller.
-     *
-     * <p>
-     * This should be preferred over {@code access(ProjectIdentity, ProjectInternal)} where possible.
-     * </p>
-     *
-     * @param referrer The project from which the return value will be used.
-     */
-    ProjectInternal accessFromState(ProjectIdentity referrer, ProjectState projectState);
+    ProjectInternal access(ProjectIdentity referrer, ProjectIdentity target);
 
     /**
      * @param referrer The project from which the return value will be used.

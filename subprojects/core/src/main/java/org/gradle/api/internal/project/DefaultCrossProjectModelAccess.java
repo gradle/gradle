@@ -33,30 +33,29 @@ import java.util.stream.Collectors;
 
 public class DefaultCrossProjectModelAccess implements CrossProjectModelAccess {
 
+    private final ProjectStateLookup projectStateLookup;
     private final ProjectRegistry projectRegistry;
     private final Instantiator instantiator;
     private final GradleLifecycleActionExecutor gradleLifecycleActionExecutor;
 
     public DefaultCrossProjectModelAccess(
+        ProjectStateLookup projectStateLookup,
         ProjectRegistry projectRegistry,
         Instantiator instantiator,
         GradleLifecycleActionExecutor gradleLifecycleActionExecutor
     ) {
+        this.projectStateLookup = projectStateLookup;
         this.projectRegistry = projectRegistry;
         this.instantiator = instantiator;
         this.gradleLifecycleActionExecutor = gradleLifecycleActionExecutor;
     }
 
     @Override
-    public ProjectInternal access(ProjectIdentity referrer, ProjectInternal project) {
-        return LifecycleAwareProject.wrap(project, referrer, instantiator, gradleLifecycleActionExecutor);
-    }
-
-    @Override
-    public ProjectInternal accessFromState(ProjectIdentity referrer, ProjectState projectState) {
+    public ProjectInternal access(ProjectIdentity referrer, ProjectIdentity target) {
+        ProjectState projectState = projectStateLookup.stateFor(target.getBuildTreePath());
+        // We purposefully leak mutable state here, as we're not in IP so it's safe.
         return projectState.fromMutableState(project ->
-            // We purposefully leak mutable state here, as we're not in IP so it's safe.
-            access(referrer, project)
+            LifecycleAwareProject.wrap(project, referrer, instantiator, gradleLifecycleActionExecutor)
         );
     }
 

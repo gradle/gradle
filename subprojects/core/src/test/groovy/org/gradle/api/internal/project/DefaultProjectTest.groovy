@@ -136,6 +136,7 @@ class DefaultProjectTest extends Specification {
     ProjectEvaluator projectEvaluator = Mock(ProjectEvaluator)
 
     ProjectRegistry projectRegistry
+    Map<Path, ProjectState> projectStateRegistryByIdentityPath = [:]
 
     File rootDir
     File buildFile
@@ -245,7 +246,10 @@ class DefaultProjectTest extends Specification {
         serviceRegistryMock.get((Type) CrossProjectConfigurator) >> crossProjectConfigurator
         serviceRegistryMock.get(DependencyResolutionManagementInternal) >> dependencyResolutionManagement
         serviceRegistryMock.get(DomainObjectCollectionFactory) >> TestUtil.domainObjectCollectionFactory()
-        serviceRegistryMock.get(CrossProjectModelAccess) >> new DefaultCrossProjectModelAccess(projectRegistry, instantiatorMock, gradleLifecycleActionExecutor)
+        ProjectStateLookup projectStateLookup = Stub(ProjectStateLookup) {
+            stateFor(_ as Path) >> { Path identityPath -> projectStateRegistryByIdentityPath[identityPath] }
+        }
+        serviceRegistryMock.get(CrossProjectModelAccess) >> new DefaultCrossProjectModelAccess(projectStateLookup, projectRegistry, instantiatorMock, gradleLifecycleActionExecutor)
         serviceRegistryMock.get(IsolatedProjectsProblemsReporter) >> new NoOpIsolatedProjectsProblemsReporter()
         serviceRegistryMock.get(GradleLifecycleActionExecutor) >> gradleLifecycleActionExecutor
         serviceRegistryMock.get(ObjectFactory) >> objectFactory
@@ -339,6 +343,8 @@ class DefaultProjectTest extends Specification {
         _ * owner.identityPath >> identity.buildTreePath
         _ * owner.projectPath >> identity.projectPath
         _ * owner.depth >> owner.projectPath.segmentCount()
+
+        projectStateRegistryByIdentityPath[identity.buildTreePath] = owner
 
         def project = TestUtil.instantiatorFactory().decorateLenient().newInstance(
             DefaultProject,

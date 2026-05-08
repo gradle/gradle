@@ -25,7 +25,6 @@ import org.gradle.internal.build.BuildState;
 import org.gradle.internal.project.ImmutableProjectDescriptor;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
-import org.gradle.util.Path;
 import org.jspecify.annotations.Nullable;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -38,18 +37,17 @@ import javax.annotation.concurrent.ThreadSafe;
 public interface ProjectStateRegistry extends ProjectStateLookup {
     /**
      * Locates the state object that owns the given public project model. Can use {@link ProjectInternal#getOwner()} instead.
+     *
+     * @throws IllegalArgumentException if no state is registered for the given project.
      */
     ProjectState stateFor(Project project) throws IllegalArgumentException;
 
     /**
      * Locates the state object that owns the project with the given identifier.
+     *
+     * @throws IllegalArgumentException if no project with the given identifier is registered.
      */
     ProjectState stateFor(ProjectComponentIdentifier identifier) throws IllegalArgumentException;
-
-    /**
-     * Locates the state object that owns the project with the identity path.
-     */
-    ProjectState stateFor(Path identityPath) throws IllegalArgumentException;
 
     /**
      * Locates the state objects for all projects of the given build.

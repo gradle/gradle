@@ -94,7 +94,7 @@ class ProblemReportingCrossProjectModelAccess(
     gradleLifecycleActionExecutor: GradleLifecycleActionExecutor
 ) : CrossProjectModelAccess {
 
-    private val delegate = DefaultCrossProjectModelAccess(projectRegistry, instantiator, gradleLifecycleActionExecutor)
+    private val delegate = DefaultCrossProjectModelAccess(projectStateLookup, projectRegistry, instantiator, gradleLifecycleActionExecutor)
 
     override fun findProject(referrer: ProjectIdentity, path: Path): ProjectInternal? {
         return delegate.findProject(referrer, path)?.let {
@@ -102,15 +102,11 @@ class ProblemReportingCrossProjectModelAccess(
         }
     }
 
-    override fun access(referrer: ProjectIdentity, project: ProjectInternal): ProjectInternal {
+    override fun access(referrer: ProjectIdentity, target: ProjectIdentity): ProjectInternal {
         // We purposefully leak mutable state here, as we wrap all mutable access with immediate failures in the case of cross-project access,
         // so there's no risk of race conditions.
-        return project.wrap(referrer, CrossProjectModelAccessInstance(DIRECT, project.projectIdentity))
-    }
-
-    override fun accessFromState(referrer: ProjectIdentity, projectState: ProjectState): ProjectInternal {
-        return projectState.fromMutableState { project ->
-            access(referrer, project)
+        return projectStateLookup.stateFor(target.buildTreePath).fromMutableState { project ->
+            project.wrap(referrer, CrossProjectModelAccessInstance(DIRECT, target))
         }
     }
 

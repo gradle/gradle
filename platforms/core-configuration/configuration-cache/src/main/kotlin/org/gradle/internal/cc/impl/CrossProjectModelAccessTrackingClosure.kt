@@ -56,7 +56,7 @@ class CrossProjectModelAccessTrackingClosure<T>(
         private
         fun trackingProjectAccess(crossProjectModelAccess: CrossProjectModelAccess, referrerProject: ProjectIdentity, modelObject: Any): Any =
             when (modelObject) {
-                is ProjectInternal -> crossProjectModelAccess.access(referrerProject, modelObject)
+                is ProjectInternal -> crossProjectModelAccess.access(referrerProject, modelObject.projectIdentity)
                 is GradleInternal -> crossProjectModelAccess.gradleInstanceForProject(referrerProject, modelObject)
                 is TaskExecutionGraphInternal -> crossProjectModelAccess.taskGraphForProject(referrerProject, modelObject)
                 else -> modelObject

@@ -41,4 +41,11 @@ public interface ProjectStateLookup {
     @Nullable
     ProjectState findProject(Path identityPath);
 
+    /**
+     * Locates the state object that owns the project with the given identity path.
+     *
+     * @throws IllegalArgumentException if no project with the given identity path is registered.
+     */
+    ProjectState stateFor(Path identityPath) throws IllegalArgumentException;
+
 }

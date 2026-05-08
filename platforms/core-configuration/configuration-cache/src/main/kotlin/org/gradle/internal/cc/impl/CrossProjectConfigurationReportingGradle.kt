@@ -88,7 +88,7 @@ class CrossProjectConfigurationReportingGradle(
 
     // Split out so it's clear we're not calling the @ForExternalUse method.
     private fun getCrossProjectRootProject(): ProjectInternal =
-        crossProjectModelAccess.accessFromState(referrerProject, delegate.owner.rootProject)
+        crossProjectModelAccess.access(referrerProject, delegate.owner.rootProject.identity)
 
     override fun rootProject(action: Action<in Project>) {
         delegate.rootProject(action.withCrossProjectModelAccessCheck())
@@ -185,7 +185,7 @@ class CrossProjectConfigurationReportingGradle(
         return Action<Project> {
             val originalProject = this@Action
             check(originalProject is ProjectInternal) { "Expected the projects in the model to be ProjectInternal" }
-            originalAction.execute(crossProjectModelAccess.access(referrerProject, originalProject))
+            originalAction.execute(crossProjectModelAccess.access(referrerProject, originalProject.projectIdentity))
         }
     }
 
@@ -206,11 +206,11 @@ class CrossProjectConfigurationReportingGradle(
         private val crossProjectModelAccess: CrossProjectModelAccess
     ) : ProjectEvaluationListener {
         override fun beforeEvaluate(project: Project) {
-            delegate.beforeEvaluate(crossProjectModelAccess.access(referrerProject, project as ProjectInternal))
+            delegate.beforeEvaluate(crossProjectModelAccess.access(referrerProject, (project as ProjectInternal).projectIdentity))
         }
 
         override fun afterEvaluate(project: Project, state: ProjectState) {
-            delegate.afterEvaluate(crossProjectModelAccess.access(referrerProject, project as ProjectInternal), state)
+            delegate.afterEvaluate(crossProjectModelAccess.access(referrerProject, (project as ProjectInternal).projectIdentity), state)
         }
 
         override fun equals(other: Any?): Boolean =
