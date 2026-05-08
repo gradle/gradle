@@ -49,13 +49,18 @@ public class DefaultSharedModelDefaults implements SharedModelDefaultsInternal, 
     }
 
     @Override
-    public void setProjectLayout(ProjectLayout projectLayout) {
+    public void withProjectLayout(ProjectLayout projectLayout, Runnable action) {
+        ProjectLayout previous = this.projectLayout.get();
         this.projectLayout.set(projectLayout);
-    }
-
-    @Override
-    public void clearProjectLayout() {
-        projectLayout.remove();
+        try {
+            action.run();
+        } finally {
+            if (previous == null) {
+                this.projectLayout.remove();
+            } else {
+                this.projectLayout.set(previous);
+            }
+        }
     }
 
     @Override
