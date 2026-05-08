@@ -22,7 +22,6 @@ import org.gradle.api.Project
 import org.gradle.api.initialization.Settings
 import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.internal.classpath.ModuleRegistry
-import org.gradle.api.internal.file.temp.TemporaryFileProvider
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.invocation.Gradle
@@ -37,6 +36,8 @@ import org.gradle.internal.operations.BuildOperationDescriptor
 import org.gradle.internal.operations.BuildOperationRunner
 import org.gradle.internal.operations.RunnableBuildOperation
 import org.gradle.internal.service.ServiceRegistry
+import org.gradle.internal.vfs.FileSystemAccess
+import org.gradle.kotlin.dsl.cache.KotlinDslIncrementalCompilationCache
 import org.gradle.kotlin.dsl.support.KotlinCompilerOptions
 import org.gradle.kotlin.dsl.support.KotlinScriptHost
 import org.gradle.kotlin.dsl.support.ScriptCompilationException
@@ -79,7 +80,9 @@ class Interpreter(
     val host: Host,
     val buildOperationRunner: BuildOperationRunner,
     val moduleRegistry: ModuleRegistry,
-    val classLoaderFactory: ClassLoaderFactory
+    val classLoaderFactory: ClassLoaderFactory,
+    val fileSystemAccess: FileSystemAccess,
+    val incrementalCompilationCache: KotlinDslIncrementalCompilationCache
 ) {
 
     interface Host {
@@ -289,7 +292,6 @@ class Interpreter(
             programTarget,
             host.compilationClassPathOf(targetScope.parent),
             stage1BlocksAccessorsClassPath,
-            scriptHost.temporaryFileProvider,
             scriptHost.metadataCompatibilityChecker
         )
 
@@ -314,7 +316,6 @@ class Interpreter(
         programTarget: ProgramTarget,
         compilationClassPath: ClassPath,
         stage1BlocksAccessorsClassPath: ClassPath,
-        temporaryFileProvider: TemporaryFileProvider,
         metadataCompatibilityChecker: KotlinMetadataCompatibilityChecker
     ): File = host.cachedDirFor(
         scriptHost,
@@ -348,13 +349,14 @@ class Interpreter(
                     programTarget = programTarget,
                     implicitImports = host.implicitImports,
                     logger = interpreterLogger,
-                    temporaryFileProvider = temporaryFileProvider,
                     metadataCompatibilityChecker = metadataCompatibilityChecker,
                     compileBuildOperationRunner = host::runCompileBuildOperation,
                     stage1BlocksAccessorsClassPath = stage1BlocksAccessorsClassPath,
                     packageName = residualProgram.packageName,
                     moduleRegistry = moduleRegistry,
                     classLoaderFactory = classLoaderFactory,
+                    fileSystemAccess = fileSystemAccess,
+                    incrementalCompilationCache = incrementalCompilationCache,
                 ).compile(residualProgram.document)
             }
         }
@@ -499,27 +501,25 @@ class Interpreter(
 
                         scriptSource.withLocationAwareExceptionHandling {
 
-                            scriptHost.temporaryFileProvider.withTemporaryScriptFileFor(originalScriptPath, program.secondStageScriptText) { scriptFile ->
-
-                                ResidualProgramCompiler(
-                                    outputDir,
-                                    host.compilerOptions,
-                                    compilationClassPath,
-                                    sourceHash,
-                                    programKind,
-                                    programTarget,
-                                    host.implicitImports,
-                                    interpreterLogger,
-                                    scriptHost.temporaryFileProvider,
-                                    moduleRegistry,
-                                    classLoaderFactory,
-                                    scriptHost.metadataCompatibilityChecker,
-                                    host::runCompileBuildOperation
-                                ).emitStage2ProgramFor(
-                                    scriptFile,
-                                    originalScriptPath
-                                )
-                            }
+                            ResidualProgramCompiler(
+                                outputDir,
+                                host.compilerOptions,
+                                compilationClassPath,
+                                sourceHash,
+                                programKind,
+                                programTarget,
+                                host.implicitImports,
+                                interpreterLogger,
+                                moduleRegistry,
+                                classLoaderFactory,
+                                scriptHost.metadataCompatibilityChecker,
+                                fileSystemAccess,
+                                incrementalCompilationCache,
+                                host::runCompileBuildOperation
+                            ).emitStage2ProgramFor(
+                                program.secondStageScriptText,
+                                originalScriptPath
+                            )
                         }
                     }
                 }

@@ -44,6 +44,5 @@ class KotlinScriptServices : AbstractGradleModuleServices() {
         registration.addProvider(org.gradle.kotlin.dsl.execution.GradleUserHomeServices)
         registration.addProvider(org.gradle.kotlin.dsl.support.GradleUserHomeServices)
         registration.addProvider(org.gradle.kotlin.dsl.provider.GradleUserHomeServices)
-        registration.addProvider(org.gradle.kotlin.dsl.normalization.GradleUserHomeServices)
     }
 }
