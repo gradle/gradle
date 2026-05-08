@@ -29,6 +29,7 @@ dependencies {
     api(projects.cli)
     api(projects.collections)
     api(projects.concurrent)
+    api(projects.configurationProblemsBase)
     api(projects.coreApi)
     api(projects.credentialsApi)
     api(projects.daemonMessaging)

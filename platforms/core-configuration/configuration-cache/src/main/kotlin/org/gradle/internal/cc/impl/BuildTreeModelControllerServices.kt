@@ -58,8 +58,10 @@ import org.gradle.internal.cc.impl.services.DefaultEnvironment
 import org.gradle.internal.cc.impl.services.RemoteScriptUpToDateChecker
 import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.internal.configuration.problems.CommonReport
+import org.gradle.internal.configuration.problems.DefaultIsolatedProjectsProblemsReporter
 import org.gradle.internal.configuration.problems.DefaultProblemFactory
 import org.gradle.internal.configuration.problems.IsolatedProjectsProblemsReporter
+import org.gradle.internal.configuration.problems.NoOpIsolatedProjectsProblemsReporter
 import org.gradle.internal.configuration.problems.ProblemFactory
 import org.gradle.internal.configuration.problems.ProblemsListener
 import org.gradle.internal.nativeintegration.filesystem.FileSystem
@@ -96,6 +98,14 @@ object BuildTreeModelControllerServices : ServiceRegistrationProvider {
         add(InputTrackingState::class.java)
         add(InstrumentedExecutionAccessListener::class.java)
         add(ConfigurationCacheProblemsListener::class.java, DefaultConfigurationCacheProblemsListener::class.java)
+        if (modelParameters.isIsolatedProjects) {
+            add(IsolatedProjectsProblemsReporter::class.java, DefaultIsolatedProjectsProblemsReporter::class.java)
+        } else {
+            // Reporter is registered unconditionally so call sites in :core can invoke it without
+            // gating on BuildModelParameters.isIsolatedProjects(). Outside IP, the no-op variant
+            // discards problems and runs the action directly.
+            add(IsolatedProjectsProblemsReporter::class.java, NoOpIsolatedProjectsProblemsReporter::class.java)
+        }
         // TODO: do these services have to be registered in all modes?
         add(DefaultConfigurationCacheDegradationController::class.java)
         add(ConfigurationCacheFingerprintEventHandler::class.java)
@@ -157,7 +167,6 @@ object BuildTreeModelControllerServices : ServiceRegistrationProvider {
 
             if (modelParameters.isIsolatedProjects) {
                 add(ClassLoaderScopesFingerprintController::class.java, IsolatedProjectsClassLoaderScopesFingerprintController::class.java)
-                add(IsolatedProjectsProblemsReporter::class.java)
             } else {
                 add(ClassLoaderScopesFingerprintController::class.java, ConfigurationCacheClassLoaderScopesFingerprintController::class.java)
             }

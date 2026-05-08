@@ -43,6 +43,8 @@ import org.gradle.configuration.internal.ListenerBuildOperationDecorator
 import org.gradle.internal.Describables
 import org.gradle.internal.buildoption.DefaultInternalOptions
 import org.gradle.internal.buildoption.InternalOptions
+import org.gradle.internal.configuration.problems.IsolatedProjectsProblemsReporter
+import org.gradle.internal.configuration.problems.NoOpIsolatedProjectsProblemsReporter
 import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.internal.management.DependencyResolutionManagementInternal
 import org.gradle.internal.project.ImmutableProjectDescriptor
@@ -256,6 +258,7 @@ class DefaultProjectSpec extends Specification {
         serviceRegistry.add(AttributesSchema, Stub(AttributesSchema))
         serviceRegistry.add(ModelRegistry, Stub(ModelRegistry))
         serviceRegistry.add(CrossProjectModelAccess, Stub(CrossProjectModelAccess))
+        serviceRegistry.add(IsolatedProjectsProblemsReporter, new NoOpIsolatedProjectsProblemsReporter())
         serviceRegistry.add(DependencyResolutionManagementInternal, Stub(DependencyResolutionManagementInternal))
         serviceRegistry.add(SoftwareComponentContainer, Mock(SoftwareComponentContainer))
         serviceRegistry.add(CrossProjectConfigurator, Mock(CrossProjectConfigurator) {
