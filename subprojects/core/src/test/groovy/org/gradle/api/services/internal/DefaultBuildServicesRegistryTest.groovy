@@ -36,6 +36,8 @@ import org.gradle.internal.configuration.problems.DefaultIsolatedProjectsProblem
 import org.gradle.internal.configuration.problems.IsolatedProjectsProblemsListener
 import org.gradle.internal.configuration.problems.ProblemFactory
 import org.gradle.internal.event.DefaultListenerManager
+import org.gradle.internal.hash.ClassLoaderHierarchyHasher
+import org.gradle.internal.hash.TestHashCodes
 import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.internal.resources.SharedResourceLeaseRegistry
 import org.gradle.internal.service.Provides
@@ -49,7 +51,10 @@ import java.util.function.Consumer
 
 class DefaultBuildServicesRegistryTest extends Specification {
     def listenerManager = new DefaultListenerManager(Scope.Build)
-    def isolatableFactory = new DefaultIsolatableFactory(null, TestUtil.managedFactoryRegistry())
+    def classLoaderHasher = Stub(ClassLoaderHierarchyHasher) {
+        getClassLoaderHash(_) >> TestHashCodes.hashCodeFrom(123)
+    }
+    def isolatableFactory = new DefaultIsolatableFactory(classLoaderHasher, TestUtil.managedFactoryRegistry())
     def leaseRegistry = Stub(SharedResourceLeaseRegistry)
     def buildIdentifier = Mock(BuildIdentifier)
     def ipProblemsReporter = new DefaultIsolatedProjectsProblemsReporter(

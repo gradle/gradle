@@ -17,6 +17,7 @@
 package org.gradle.internal.isolated
 
 import org.gradle.api.file.FileSystemOperations
+import org.gradle.api.internal.parameters.NoneParameters
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.ProviderFactory
 import org.gradle.internal.reflect.Instantiator
@@ -82,7 +83,7 @@ class IsolationSchemeTest extends Specification {
         def result = scheme.instantiateParameters(Nothing) { type -> throw new AssertionError("should not call instantiator") }
 
         then:
-        result.is(Nothing.INSTANCE)
+        result.is(NoneParameters.singletonOf(Nothing))
     }
 
     def "exposes authorized service"() {
@@ -175,19 +176,19 @@ class IsolationSchemeTest extends Specification {
     def "exposes None singleton as parameters service"() {
         def allServices = Mock(ServiceLookup)
 
-        def injectedServices = scheme.servicesForImplementation(Nothing.INSTANCE, allServices, [])
+        def injectedServices = scheme.servicesForImplementation(NoneParameters.singletonOf(Nothing), allServices, [])
 
         when:
         def result = injectedServices.find(SomeParams)
 
         then:
-        result.is(Nothing.INSTANCE)
+        result.is(NoneParameters.singletonOf(Nothing))
 
         when:
         def result2 = injectedServices.get(SomeParams)
 
         then:
-        result2.is(Nothing.INSTANCE)
+        result2.is(NoneParameters.singletonOf(Nothing))
         result2.is(result)
     }
 }
@@ -195,8 +196,8 @@ class IsolationSchemeTest extends Specification {
 interface SomeParams {
 }
 
-enum Nothing implements SomeParams {
-    INSTANCE
+final class Nothing extends NoneParameters implements SomeParams {
+    private Nothing() {}
 }
 
 interface SomeAction<P extends SomeParams> {

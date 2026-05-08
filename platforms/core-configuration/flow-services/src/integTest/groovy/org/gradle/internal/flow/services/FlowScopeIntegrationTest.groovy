@@ -287,6 +287,21 @@ class FlowScopeIntegrationTest extends AbstractIntegrationSpec {
         outputContains 'Execute parameters: FlowParameters.None'
     }
 
+    def 'FlowParameters.None cannot be extended'() {
+        given:
+        buildFile '''
+            import org.gradle.api.flow.*
+
+            class CustomNone extends FlowParameters.None {}
+        '''
+
+        when:
+        fails 'help'
+
+        then:
+        failureCauseContains("You are not allowed to extend the final class 'org.gradle.api.flow.FlowParameters\$None'")
+    }
+
     def "value source with build work result provider cannot be obtained at configuration time"() {
         given:
         buildFile '''

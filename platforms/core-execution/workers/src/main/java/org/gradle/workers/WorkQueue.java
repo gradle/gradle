@@ -36,7 +36,7 @@ public interface WorkQueue {
      * will be thrown from {@link #await()} or from the surrounding task action if {@link #await()} is not used.
      *
      * <p>The {@code parameterAction} is invoked even when the work action declares {@link WorkParameters.None} as its
-     * parameters type; in that case it receives the {@link WorkParameters.None#INSTANCE singleton}.</p>
+     * parameters type; in that case it receives the {@link WorkParameters.None} singleton.</p>
      */
     <T extends WorkParameters> void submit(Class<? extends WorkAction<T>> workActionClass, Action<? super T> parameterAction);
 

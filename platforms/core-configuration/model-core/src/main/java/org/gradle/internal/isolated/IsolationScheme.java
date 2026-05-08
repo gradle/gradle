@@ -18,6 +18,7 @@ package org.gradle.internal.isolated;
 
 import org.gradle.api.file.ArchiveOperations;
 import org.gradle.api.file.FileSystemOperations;
+import org.gradle.api.internal.parameters.NoneParameters;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.problems.internal.ProblemsInternal;
 import org.gradle.api.provider.ProviderFactory;
@@ -60,7 +61,7 @@ public class IsolationScheme<INTERFACE, PARAMS> implements TypeParameterInspecti
 
     public <P extends PARAMS> P instantiateParameters(Class<P> parametersType, Function<Class<P>, P> instantiator) {
         if (parametersType == noParamsType) {
-            return parametersType.getEnumConstants()[0];
+            return Cast.uncheckedNonnullCast(NoneParameters.singletonOf(Cast.uncheckedNonnullCast(parametersType)));
         }
         return instantiator.apply(parametersType);
     }

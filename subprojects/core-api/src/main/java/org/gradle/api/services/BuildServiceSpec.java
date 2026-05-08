@@ -31,7 +31,7 @@ public interface BuildServiceSpec<P extends BuildServiceParameters> {
      * Returns the parameters to will be used to create the service instance.
      *
      * <p>When the service declares {@link BuildServiceParameters.None} as its parameters type,
-     * this returns the {@link BuildServiceParameters.None#INSTANCE singleton}.</p>
+     * this returns the {@link BuildServiceParameters.None} singleton.</p>
      */
     P getParameters();
 
@@ -39,7 +39,7 @@ public interface BuildServiceSpec<P extends BuildServiceParameters> {
      * Runs the given action to configure the parameters.
      *
      * <p>The action is invoked even when the service declares {@link BuildServiceParameters.None} as its
-     * parameters type; in that case it receives the {@link BuildServiceParameters.None#INSTANCE singleton}.</p>
+     * parameters type; in that case it receives the {@link BuildServiceParameters.None} singleton.</p>
      */
     void parameters(Action<? super P> configureAction);
 

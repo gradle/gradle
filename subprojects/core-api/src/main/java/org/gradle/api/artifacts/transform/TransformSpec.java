@@ -45,7 +45,7 @@ public interface TransformSpec<T extends TransformParameters> {
      * The parameters for the transform action.
      *
      * <p>When the transform action declares {@link TransformParameters.None} as its parameters type,
-     * this returns the {@link TransformParameters.None#INSTANCE singleton}.</p>
+     * this returns the {@link TransformParameters.None} singleton.</p>
      *
      * @see org.gradle.api.artifacts.dsl.DependencyHandler#registerTransform(Class, Action)
      */
@@ -55,7 +55,7 @@ public interface TransformSpec<T extends TransformParameters> {
      * Configure the parameters for the transform action.
      *
      * <p>The action is invoked even when the transform action declares {@link TransformParameters.None} as its
-     * parameters type; in that case it receives the {@link TransformParameters.None#INSTANCE singleton}.</p>
+     * parameters type; in that case it receives the {@link TransformParameters.None} singleton.</p>
      *
      * @see org.gradle.api.artifacts.dsl.DependencyHandler#registerTransform(Class, Action)
      */

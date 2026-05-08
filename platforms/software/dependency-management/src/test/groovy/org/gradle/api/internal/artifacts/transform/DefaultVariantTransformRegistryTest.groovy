@@ -29,6 +29,7 @@ import org.gradle.api.internal.DynamicObjectAware
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.FileLookup
 import org.gradle.api.internal.initialization.StandaloneDomainObjectContext
+import org.gradle.api.internal.parameters.NoneParameters
 import org.gradle.api.internal.tasks.properties.InspectionScheme
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.api.problems.internal.ProblemsInternal
@@ -131,7 +132,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
         registration.from.getAttribute(TEST_ATTRIBUTE) == "FROM"
         registration.to.getAttribute(TEST_ATTRIBUTE) == "TO"
         registration.transformStep.transform.implementationClass == ParameterlessTestTransform
-        registration.transformStep.transform.isolatedParameters.supplier.parameterObject.is(TransformParameters.None.INSTANCE)
+        registration.transformStep.transform.isolatedParameters.supplier.parameterObject.is(NoneParameters.singletonOf(TransformParameters.None))
     }
 
     def "cannot use TransformParameters as parameter type"() {
@@ -160,7 +161,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
         }
 
         then:
-        observed.is(TransformParameters.None.INSTANCE)
+        observed.is(NoneParameters.singletonOf(TransformParameters.None))
     }
 
     def "query parameters object for parameterless action returns None.INSTANCE"() {
@@ -174,7 +175,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
         }
 
         then:
-        observed.is(TransformParameters.None.INSTANCE)
+        observed.is(NoneParameters.singletonOf(TransformParameters.None))
     }
 
     def "delegates are DSL decorated but not extensible when registering with config object"() {
