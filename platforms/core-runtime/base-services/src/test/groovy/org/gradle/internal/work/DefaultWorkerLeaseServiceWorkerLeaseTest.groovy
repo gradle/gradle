@@ -588,16 +588,22 @@ class DefaultWorkerLeaseServiceWorkerLeaseTest extends AbstractWorkerLeaseServic
         registry?.stop()
     }
 
-    def "try run as worker thread returns empty when the action returns null"() {
+    def "try run as worker thread throws when the action returns null and releases the lease"() {
         def registry = workerLeaseService(1)
 
         when:
-        def result = registry.tryRunAsWorkerThread({ null } as Factory)
+        registry.tryRunAsWorkerThread({ null } as Factory)
 
         then:
-        !result.isPresent()
+        thrown(NullPointerException)
+
+        when:
         // Lease still released — verify by running another action.
-        registry.tryRunAsWorkerThread({ "after" } as Factory).get() == "after"
+        def result = registry.tryRunAsWorkerThread({ "after" } as Factory)
+
+        then:
+        result.isPresent()
+        result.get() == "after"
 
         cleanup:
         registry?.stop()
