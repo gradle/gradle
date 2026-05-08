@@ -28,6 +28,7 @@ import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.TestHashCodes
 import org.gradle.kotlin.dsl.fixtures.TestModuleRegistry
 import org.gradle.kotlin.dsl.fixtures.TestWithTempFiles
+import org.gradle.kotlin.dsl.fixtures.sharedTestIncrementalCompilationCache
 import org.gradle.kotlin.dsl.fixtures.testRuntimeClassPath
 import org.gradle.kotlin.dsl.fixtures.withClassLoaderFor
 import org.gradle.kotlin.dsl.support.KotlinCompilerOptions
@@ -82,12 +83,13 @@ abstract class TestWithCompiler : TestWithTempFiles() {
             sourceHash,
             programKind,
             programTarget,
-            temporaryFileProvider = TestFiles.tmpDirTemporaryFileProvider(tmpDir.testDirectory),
             metadataCompatibilityChecker = object : KotlinMetadataCompatibilityChecker {
                 override fun incompatibleClasspathElements(classPath: ClassPath): List<File> = listOf()
             },
             moduleRegistry = TestModuleRegistry(),
             classLoaderFactory = DefaultClassLoaderFactory(),
+            fileSystemAccess = TestFiles.fileSystemAccess(),
+            incrementalCompilationCache = sharedTestIncrementalCompilationCache,
         ).compile(program)
     }
 

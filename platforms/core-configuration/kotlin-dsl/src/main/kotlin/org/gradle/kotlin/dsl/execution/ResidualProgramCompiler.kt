@@ -19,11 +19,12 @@ package org.gradle.kotlin.dsl.execution
 import checkAllMetadataInClasspath
 import org.gradle.api.Project
 import org.gradle.api.internal.classpath.ModuleRegistry
-import org.gradle.api.internal.file.temp.TemporaryFileProvider
 import org.gradle.internal.classloader.ClassLoaderFactory
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.Hashing
+import org.gradle.internal.vfs.FileSystemAccess
+import org.gradle.kotlin.dsl.cache.KotlinDslIncrementalCompilationCache
 import org.gradle.kotlin.dsl.execution.ResidualProgram.Dynamic
 import org.gradle.kotlin.dsl.execution.ResidualProgram.Instruction
 import org.gradle.kotlin.dsl.execution.ResidualProgram.Static
@@ -92,10 +93,11 @@ class ResidualProgramCompiler(
     private val programTarget: ProgramTarget,
     @Suppress("unused") private val implicitImports: List<String> = emptyList(), // TODO: would be good to use in the templates
     private val logger: Logger = interpreterLogger,
-    private val temporaryFileProvider: TemporaryFileProvider,
     private val moduleRegistry: ModuleRegistry,
     private val classLoaderFactory: ClassLoaderFactory,
     private val metadataCompatibilityChecker: KotlinMetadataCompatibilityChecker,
+    private val fileSystemAccess: FileSystemAccess,
+    private val incrementalCompilationCache: KotlinDslIncrementalCompilationCache,
     private val compileBuildOperationRunner: CompileBuildOperationRunner = { _, _, action -> action() },
     private val stage1BlocksAccessorsClassPath: ClassPath = ClassPath.EMPTY,
     private val packageName: String? = null,
@@ -362,11 +364,11 @@ class ResidualProgramCompiler(
         invokeApplyPluginsTo()
     }
 
-    fun emitStage2ProgramFor(scriptFile: File, originalPath: String) {
+    fun emitStage2ProgramFor(scriptText: String, originalPath: String) {
 
         val scriptTemplate = stage2ScriptTemplate
         val compiledScriptClass = compileScript(
-            scriptFile,
+            scriptText,
             originalPath,
             scriptTemplate,
             StableDisplayNameFor.stage2
@@ -694,47 +696,58 @@ class ResidualProgramCompiler(
         scriptTemplate: KClass<out Any>,
         compileClassPath: ClassPath = classPath
     ): InternalName =
-        temporaryFileProvider.withTemporaryScriptFileFor(source.path, source.text) { scriptFile ->
-            val originalScriptPath = source.path
-            compileScript(
-                scriptFile,
-                originalScriptPath,
-                scriptTemplate,
-                StableDisplayNameFor.stage1,
-                compileClassPath
-            )
-        }
+        compileScript(source.text, source.path, scriptTemplate, StableDisplayNameFor.stage1, compileClassPath)
 
     @OptIn(ExperimentalCompilerArgument::class)
     private
     fun compileScript(
-        scriptFile: File,
+        scriptText: String,
         originalPath: String,
         scriptTemplate: KClass<out Any>,
         stage: String,
         compileClassPath: ClassPath = classPath
     ): InternalName {
-        return InternalName.from(
-            compileBuildOperationRunner(originalPath, stage) {
-                checkAllMetadataInClasspath(compilerOptions, compileClassPath, metadataCompatibilityChecker)
-                kotlinCompiler(moduleRegistry, classLoaderFactory).compileKotlinScriptToDirectory(
-                    outputDir,
-                    compilerOptions,
-                    scriptFile,
-                    implicitImports,
-                    scriptTemplate,
-                    compileClassPath.asFiles,
-                    logger
-                ) { path ->
-                    if (path == scriptFile.path) originalPath
-                    else path
+        // The identity must vary with everything that affects what bytecode this compile would
+        // emit and what would cause it to fail. If any of these change while the source text
+        // does not, BTA's IC concludes "no work needed", the copy step propagates the previous
+        // compile's outputs into the workspace, and a build that should recompile (or fail)
+        // silently succeeds:
+        //  - stage descriptor: stage-1 (buildscript block) and stage-2 (body) compile different
+        //    sources against different classpaths.
+        //  - [programTarget] and [programKind]: the same script applied to Project vs Settings
+        //    vs Init produces a different constructor signature (`(KotlinScriptHost, Target)`),
+        //    so reusing outputs across targets breaks with NoSuchMethodError at load time.
+        //  - [compilerOptions]: when these change (e.g. `allWarningsAsErrors` flips), warnings
+        //    that should be errors would be hidden behind the prior cache hit.
+        // Identity decides BTA's IC working dir, the stable source file (see
+        // [withStableScriptFileFor]), and the stable output dir we copy from.
+        val scriptIdentity = "$originalPath#$stage#$programTarget#$programKind#${compilerOptions.hashCode()}"
+        return incrementalCompilationCache.withStableScriptFileFor(scriptIdentity, originalPath, scriptText) { scriptFile ->
+            InternalName.from(
+                compileBuildOperationRunner(originalPath, stage) {
+                    checkAllMetadataInClasspath(compilerOptions, compileClassPath, metadataCompatibilityChecker)
+                    kotlinCompiler(moduleRegistry, classLoaderFactory).compileKotlinScriptToDirectory(
+                        outputDir,
+                        compilerOptions,
+                        scriptFile,
+                        implicitImports,
+                        scriptTemplate,
+                        compileClassPath.asFiles,
+                        logger,
+                        fileSystemAccess,
+                        incrementalCompilationCache,
+                        scriptIdentity
+                    ) { path ->
+                        if (path == scriptFile.path) originalPath
+                        else path
+                    }
+                }.let { compiledScriptClassName ->
+                    packageName
+                        ?.let { "$it.$compiledScriptClassName" }
+                        ?: compiledScriptClassName
                 }
-            }.let { compiledScriptClassName ->
-                packageName
-                    ?.let { "$it.$compiledScriptClassName" }
-                    ?: compiledScriptClassName
-            }
-        )
+            )
+        }
     }
 
     /**
