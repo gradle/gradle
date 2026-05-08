@@ -261,7 +261,7 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
             lock.lock();
             try {
                 while (true) {
-                    if (shouldExit()) {
+                    if (shouldExitWithExtraWorkerInvalidation()) {
                         return false;
                     }
                     if (!helper.isQueueEmpty()) {
@@ -278,8 +278,13 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
             }
         }
 
+        /**
+         * Returns {@code true} if this worker should exit, and as a side effect invalidates the
+         * worker token in the extra-worker case so that the worker count drops immediately rather
+         * than waiting for {@link #runOperations()} to complete.
+         */
         @GuardedBy("lock")
-        private boolean shouldExit() {
+        private boolean shouldExitWithExtraWorkerInvalidation() {
             if (token != null && !token.isValid()) {
                 return true;
             }
@@ -311,7 +316,7 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
 
         private int runBatchWithLeaseRetry() {
             try {
-                // Retry acquiring the lease forever, or until we `shouldExit()`.
+                // Retry acquiring the lease forever, or until we `shouldExitWithExtraWorkerInvalidation()`.
                 return ExponentialBackoff.of(Integer.MAX_VALUE, TimeUnit.MILLISECONDS).retryUntil(() -> {
                     Optional<Integer> result = workerLeases.tryRunAsWorkerThread(this::executePendingWork);
                     if (result.isPresent()) {
@@ -319,7 +324,7 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
                     }
                     lock.lock();
                     try {
-                        if (shouldExit()) {
+                        if (shouldExitWithExtraWorkerInvalidation()) {
                             return ExponentialBackoff.Result.successful(0);
                         }
                     } finally {

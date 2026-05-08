@@ -284,7 +284,7 @@ class DefaultBuildOperationQueueTest extends Specification {
         given:
         // Slightly modified from setupQueue to allow certain injection points.
         def mainThread = Thread.currentThread()
-        def workerAboutToBlockForLease = new CountDownLatch(1)
+        def workerStartedRetrying = new CountDownLatch(1)
         def executedByMain = new AtomicInteger()
         def executedByOther = new AtomicInteger()
         def recordingWorker = { TestBuildOperation op ->
@@ -302,7 +302,7 @@ class DefaultBuildOperationQueueTest extends Specification {
             <T> Optional<T> tryRunAsWorkerThread(Factory<T> action) {
                 // Called repeatedly from the retry loop; CountDownLatch tolerates extra countDown() calls.
                 if (Thread.currentThread() !== mainThread) {
-                    workerAboutToBlockForLease.countDown()
+                    workerStartedRetrying.countDown()
                 }
                 return super.tryRunAsWorkerThread(action)
             }
@@ -323,7 +323,7 @@ class DefaultBuildOperationQueueTest extends Specification {
         and:
         // Wait until the worker has tried and failed to acquire a lease.
         // This ensures that the main thread will be needed to progress the queue.
-        assert workerAboutToBlockForLease.await(10, TimeUnit.SECONDS)
+        assert workerStartedRetrying.await(10, TimeUnit.SECONDS)
 
         and:
         operationQueue.waitForCompletion()
@@ -334,7 +334,7 @@ class DefaultBuildOperationQueueTest extends Specification {
     }
 
     @Timeout(value = 30, unit = TimeUnit.SECONDS)
-    def "starved worker exits via shouldExit when the queue is cancelled"() {
+    def "starved worker exits via shouldExitWithExtraWorkerInvalidation when the queue is cancelled"() {
         given:
         def mainThread = Thread.currentThread()
         def workerStartedRetrying = new CountDownLatch(1)

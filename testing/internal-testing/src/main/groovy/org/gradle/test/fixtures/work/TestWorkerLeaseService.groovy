@@ -92,7 +92,7 @@ class TestWorkerLeaseService implements WorkerLeaseService {
 
     @Override
     <T> Optional<T> tryRunAsWorkerThread(Factory<T> action) {
-        return Optional.ofNullable(action.create())
+        return Optional.of(action.create())
     }
 
     @Override

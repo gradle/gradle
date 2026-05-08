@@ -79,6 +79,9 @@ public class ExponentialBackoff<S extends ExponentialBackoff.Signal> {
     }
 
     long backoffPeriodFor(int iteration) {
+        // The +1 ensures every retry waits at least one slot. Without it, iteration 1 would
+        // produce a 0ms backoff (since nextInt(1) is always 0), turning the first retry into a
+        // tight loop. Standard exponential-backoff guidance is to always sleep at least one slot.
         return (random.nextInt(Math.min(iteration, CAP_FACTOR)) + 1) * slotTime;
     }
 
