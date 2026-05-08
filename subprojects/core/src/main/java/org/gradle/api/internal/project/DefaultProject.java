@@ -181,8 +181,6 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     private final ClassLoaderScope baseClassLoaderScope;
     private final ServiceRegistry services;
 
-    private final ProjectInternal rootProject;
-
     private final GradleInternal gradle;
 
     private final ScriptSource buildScriptSource;
@@ -246,8 +244,6 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
         this.owner = owner;
         this.classLoaderScope = selfClassLoaderScope;
         this.baseClassLoaderScope = baseClassLoaderScope;
-        // TODO:isolated mutable model of the current project should NOT keep a direct link to the mutable model of root and parent projects
-        this.rootProject = parent != null ? owner.getOwner().getRootProject().getMutableModel() : this;
         this.projectDir = projectDir;
         this.buildFile = buildFile;
         this.parent = parent;
@@ -386,7 +382,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     @Override
     public ProjectInternal getRootProject(ProjectIdentity referrer) {
-        return getCrossProjectModelAccess().access(referrer, rootProject.getProjectIdentity());
+        return getCrossProjectModelAccess().access(referrer, owner.getOwner().getRootProject().getIdentity());
     }
 
     @Override
