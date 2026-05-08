@@ -38,6 +38,7 @@ class VisualStudioSoftwareModelMultiProjectIntegrationTest extends AbstractVisua
         buildFile << """
             allprojects {
                 apply plugin: 'visual-studio'
+                apply plugin: 'component-model-base'
             }
             subprojects {
                 apply plugin: 'cpp'
@@ -131,6 +132,7 @@ class VisualStudioSoftwareModelMultiProjectIntegrationTest extends AbstractVisua
             allprojects {
                 if (name != 'other') {
                     apply plugin: 'visual-studio'
+                    apply plugin: 'component-model-base'
                 }
             }
             subprojects {

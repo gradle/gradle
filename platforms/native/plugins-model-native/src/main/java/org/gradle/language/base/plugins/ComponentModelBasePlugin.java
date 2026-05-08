@@ -24,6 +24,9 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.publish.internal.plugins.PublishingPluginRules;
+import org.gradle.ide.visualstudio.internal.plugins.VisualStudioPluginRules.VisualStudioExtensionRules;
+import org.gradle.ide.visualstudio.internal.plugins.VisualStudioPluginRules.VisualStudioPluginProjectRules;
+import org.gradle.ide.visualstudio.internal.plugins.VisualStudioPluginRules.VisualStudioPluginRootRules;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectIdentifier;
@@ -102,6 +105,14 @@ public abstract class ComponentModelBasePlugin implements Plugin<Project> {
 
         project.getPluginManager().withPlugin("org.gradle.publishing", appliedPlugin -> {
             project.getPluginManager().apply(PublishingPluginRules.class);
+        });
+
+        project.getPluginManager().withPlugin("org.gradle.visual-studio", appliedPlugin -> {
+            project.getPluginManager().apply(VisualStudioExtensionRules.class);
+            if (project == project.getRootProject()) {
+                project.getPluginManager().apply(VisualStudioPluginRootRules.class);
+            }
+            project.getPluginManager().apply(VisualStudioPluginProjectRules.class);
         });
     }
 
