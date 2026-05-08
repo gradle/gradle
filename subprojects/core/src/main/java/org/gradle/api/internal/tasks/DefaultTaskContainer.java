@@ -538,7 +538,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
 
         // Otherwise, the user is requesting a task from another project. This is IP incompatible.
         // Obtain a wrapped Project instance that emits IP violations and use it to get the requested task.
-        ProjectInternal targetProject = crossProjectModelAccess.findProject(this.project, projectPath);
+        ProjectInternal targetProject = crossProjectModelAccess.findProject(this.project.getProjectIdentity(), projectPath);
         if (targetProject == null) {
             return null;
         }

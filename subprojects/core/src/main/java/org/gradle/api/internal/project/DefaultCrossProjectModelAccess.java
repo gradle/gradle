@@ -23,8 +23,8 @@ import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
 import org.gradle.internal.metaobject.HierarchicalDynamicObject;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.invocation.GradleLifecycleActionExecutor;
-import org.jspecify.annotations.Nullable;
 import org.gradle.util.Path;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Map;
 import java.util.Set;
@@ -48,21 +48,21 @@ public class DefaultCrossProjectModelAccess implements CrossProjectModelAccess {
     }
 
     @Override
-    public ProjectInternal access(ProjectInternal referrer, ProjectInternal project) {
+    public ProjectInternal access(ProjectIdentity referrer, ProjectInternal project) {
         return LifecycleAwareProject.wrap(project, referrer, instantiator, gradleLifecycleActionExecutor);
     }
 
     @Override
-    public ProjectInternal accessFromState(ProjectInternal referrer, ProjectState projectState) {
+    public ProjectInternal accessFromState(ProjectIdentity referrer, ProjectState projectState) {
         return projectState.fromMutableState(project ->
-            // We purposefully leak mutable state here, as we're not in IP here so it's safe.
+            // We purposefully leak mutable state here, as we're not in IP so it's safe.
             access(referrer, project)
         );
     }
 
     @Override
     @Nullable
-    public ProjectInternal findProject(ProjectInternal referrer, Path path) {
+    public ProjectInternal findProject(ProjectIdentity referrer, Path path) {
         if (!path.isAbsolute()) {
             throw new IllegalArgumentException("Project path must be absolute");
         }
@@ -72,8 +72,8 @@ public class DefaultCrossProjectModelAccess implements CrossProjectModelAccess {
     }
 
     @Override
-    public Map<String, Project> getChildProjects(ProjectInternal referrer, ProjectInternal target) {
-        return target.getOwner().getChildProjects().stream().collect(
+    public Map<String, Project> getChildProjects(ProjectIdentity referrer, ProjectState target) {
+        return target.getChildProjects().stream().collect(
             Collectors.toMap(
                 ProjectState::getName,
                 projectState -> LifecycleAwareProject.wrap(projectState.getMutableModel(), referrer, instantiator, gradleLifecycleActionExecutor)
@@ -82,40 +82,40 @@ public class DefaultCrossProjectModelAccess implements CrossProjectModelAccess {
     }
 
     @Override
-    public Set<? extends ProjectInternal> getSubprojects(ProjectInternal referrer, ProjectInternal target) {
-        return projectRegistry.getSubProjects(target.getPath()).stream()
+    public Set<? extends ProjectInternal> getSubprojects(ProjectIdentity referrer, ProjectIdentity target) {
+        return projectRegistry.getSubProjects(target.getProjectPath().asString()).stream()
             .map(project -> LifecycleAwareProject.wrap(project, referrer, instantiator, gradleLifecycleActionExecutor))
             .collect(Collectors.toCollection(TreeSet::new));
     }
 
     @Override
-    public Set<? extends ProjectInternal> getAllprojects(ProjectInternal referrer, ProjectInternal target) {
-        return projectRegistry.getAllProjects(target.getPath()).stream()
+    public Set<? extends ProjectInternal> getAllprojects(ProjectIdentity referrer, ProjectIdentity target) {
+        return projectRegistry.getAllProjects(target.getProjectPath().asString()).stream()
             .map(project -> LifecycleAwareProject.wrap(project, referrer, instantiator, gradleLifecycleActionExecutor))
             .collect(Collectors.toCollection(TreeSet::new));
     }
 
     @Override
-    public GradleInternal gradleInstanceForProject(ProjectInternal referrerProject, GradleInternal gradle) {
+    public GradleInternal gradleInstanceForProject(ProjectIdentity referrer, GradleInternal gradle) {
         return gradle;
     }
 
     @Override
     @Nullable
-    public TaskDependencyUsageTracker taskDependencyUsageTracker(ProjectInternal referrerProject) {
+    public TaskDependencyUsageTracker taskDependencyUsageTracker(ProjectIdentity referrer) {
         return null;
     }
 
     @Override
-    public TaskExecutionGraphInternal taskGraphForProject(ProjectInternal referrerProject, TaskExecutionGraphInternal taskGraph) {
+    public TaskExecutionGraphInternal taskGraphForProject(ProjectIdentity referrer, TaskExecutionGraphInternal taskGraph) {
         return taskGraph;
     }
 
     @Override
     @Nullable
-    public HierarchicalDynamicObject parentProjectDynamicInheritedScope(ProjectInternal referrerProject) {
-        ProjectInternal parent = referrerProject.getParent();
-        return parent != null ? parent.getInheritedScope() : null;
+    public HierarchicalDynamicObject parentProjectDynamicInheritedScope(ProjectState referrer) {
+        ProjectState parent = referrer.getParent();
+        // We purposefully leak mutable state here, as we're not in IP so it's safe.
+        return parent != null ? parent.fromMutableState(ProjectInternal::getInheritedScope) : null;
     }
-
 }

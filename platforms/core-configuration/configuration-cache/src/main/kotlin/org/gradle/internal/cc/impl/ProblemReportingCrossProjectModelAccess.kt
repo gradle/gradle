@@ -40,9 +40,12 @@ import org.gradle.api.internal.project.CrossProjectModelAccess
 import org.gradle.api.internal.project.DefaultCrossProjectModelAccess
 import org.gradle.api.internal.project.MutableStateAccessAwareProject
 import org.gradle.api.internal.project.ProjectIdentifier
+import org.gradle.api.internal.project.ProjectIdentity
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.internal.project.ProjectOrderingUtil
 import org.gradle.api.internal.project.ProjectRegistry
 import org.gradle.api.internal.project.ProjectState
+import org.gradle.api.internal.project.ProjectStateLookup
 import org.gradle.api.internal.tasks.TaskDependencyFactory
 import org.gradle.api.internal.tasks.TaskDependencyUsageTracker
 import org.gradle.api.logging.Logger
@@ -86,72 +89,72 @@ class ProblemReportingCrossProjectModelAccess(
     private val coupledProjectsListener: CoupledProjectsListener,
     private val buildModelParameters: BuildModelParameters,
     private val instantiator: Instantiator,
+    private val projectStateLookup: ProjectStateLookup,
     projectRegistry: ProjectRegistry,
     gradleLifecycleActionExecutor: GradleLifecycleActionExecutor
 ) : CrossProjectModelAccess {
 
     private val delegate = DefaultCrossProjectModelAccess(projectRegistry, instantiator, gradleLifecycleActionExecutor)
 
-    override fun findProject(referrer: ProjectInternal, path: Path): ProjectInternal? {
+    override fun findProject(referrer: ProjectIdentity, path: Path): ProjectInternal? {
         return delegate.findProject(referrer, path)?.let {
-            it.wrap(referrer, CrossProjectModelAccessInstance(DIRECT, it), instantiator)
+            it.wrap(referrer, CrossProjectModelAccessInstance(DIRECT, it.projectIdentity))
         }
     }
 
-    override fun access(referrer: ProjectInternal, project: ProjectInternal): ProjectInternal {
+    override fun access(referrer: ProjectIdentity, project: ProjectInternal): ProjectInternal {
         // We purposefully leak mutable state here, as we wrap all mutable access with immediate failures in the case of cross-project access,
         // so there's no risk of race conditions.
-        return project.wrap(referrer, CrossProjectModelAccessInstance(DIRECT, project), instantiator)
+        return project.wrap(referrer, CrossProjectModelAccessInstance(DIRECT, project.projectIdentity))
     }
 
-    override fun accessFromState(referrer: ProjectInternal, projectState: ProjectState): ProjectInternal {
+    override fun accessFromState(referrer: ProjectIdentity, projectState: ProjectState): ProjectInternal {
         return projectState.fromMutableState { project ->
             access(referrer, project)
         }
     }
 
-    override fun getChildProjects(referrer: ProjectInternal, target: ProjectInternal): MutableMap<String, Project> {
+    override fun getChildProjects(referrer: ProjectIdentity, target: ProjectState): MutableMap<String, Project> {
         return delegate.getChildProjects(referrer, target).mapValuesTo(LinkedHashMap()) {
-            (it.value as ProjectInternal).wrap(referrer, CrossProjectModelAccessInstance(CHILD, target), instantiator)
+            (it.value as ProjectInternal).wrap(referrer, CrossProjectModelAccessInstance(CHILD, target.identity))
         }
     }
 
-    override fun getSubprojects(referrer: ProjectInternal, target: ProjectInternal): MutableSet<out ProjectInternal> {
+    override fun getSubprojects(referrer: ProjectIdentity, target: ProjectIdentity): MutableSet<out ProjectInternal> {
         return delegate.getSubprojects(referrer, target).mapTo(LinkedHashSet()) {
-            it.wrap(referrer, CrossProjectModelAccessInstance(SUBPROJECT, target), instantiator)
+            it.wrap(referrer, CrossProjectModelAccessInstance(SUBPROJECT, target))
         }
     }
 
-    override fun getAllprojects(referrer: ProjectInternal, target: ProjectInternal): MutableSet<out ProjectInternal> {
+    override fun getAllprojects(referrer: ProjectIdentity, target: ProjectIdentity): MutableSet<out ProjectInternal> {
         return delegate.getAllprojects(referrer, target).mapTo(LinkedHashSet()) {
-            it.wrap(referrer, CrossProjectModelAccessInstance(ALLPROJECTS, target), instantiator)
+            it.wrap(referrer, CrossProjectModelAccessInstance(ALLPROJECTS, target))
         }
     }
 
-    override fun gradleInstanceForProject(referrerProject: ProjectInternal, gradle: GradleInternal): GradleInternal {
-        return CrossProjectConfigurationReportingGradle(gradle, referrerProject)
+    override fun gradleInstanceForProject(referrer: ProjectIdentity, gradle: GradleInternal): GradleInternal {
+        return CrossProjectConfigurationReportingGradle(gradle, referrer)
     }
 
-    override fun taskDependencyUsageTracker(referrerProject: ProjectInternal): TaskDependencyUsageTracker {
-        return ReportingTaskDependencyUsageTracker(referrerProject, coupledProjectsListener, ipProblems)
+    override fun taskDependencyUsageTracker(referrer: ProjectIdentity): TaskDependencyUsageTracker {
+        return ReportingTaskDependencyUsageTracker(referrer, coupledProjectsListener, ipProblems)
     }
 
-    override fun taskGraphForProject(referrerProject: ProjectInternal, taskGraph: TaskExecutionGraphInternal): TaskExecutionGraphInternal {
-        return CrossProjectConfigurationReportingTaskExecutionGraph(taskGraph, referrerProject, ipProblems, this, coupledProjectsListener)
+    override fun taskGraphForProject(referrer: ProjectIdentity, taskGraph: TaskExecutionGraphInternal): TaskExecutionGraphInternal {
+        return CrossProjectConfigurationReportingTaskExecutionGraph(taskGraph, referrer, ipProblems, this, coupledProjectsListener, projectStateLookup)
     }
 
-    override fun parentProjectDynamicInheritedScope(referrerProject: ProjectInternal): HierarchicalDynamicObject? {
-        val parent = referrerProject.parent ?: return null
+    override fun parentProjectDynamicInheritedScope(referrer: ProjectState): HierarchicalDynamicObject? {
+        val parent = referrer.parent ?: return null
         return CrossProjectModelAccessTrackingParentDynamicObject(
-            parent, parent.inheritedScope, referrerProject, ipProblems, coupledProjectsListener
+            parent, referrer.identity, ipProblems, coupledProjectsListener
         )
     }
 
     private
     fun ProjectInternal.wrap(
-        referrer: ProjectInternal,
-        access: CrossProjectModelAccessInstance,
-        instantiator: Instantiator
+        referrer: ProjectIdentity,
+        access: CrossProjectModelAccessInstance
     ): ProjectInternal = MutableStateAccessAwareProject.wrap(this, referrer) {
         instantiator.newInstance(
             ProblemReportingProject::class.java,
@@ -167,7 +170,7 @@ class ProblemReportingCrossProjectModelAccess(
     @Suppress("LargeClass")
     open class ProblemReportingProject(
         delegate: ProjectInternal,
-        referrer: ProjectInternal,
+        referrer: ProjectIdentity,
         private val access: CrossProjectModelAccessInstance,
         private val ipProblems: IsolatedProjectsProblemsReporter,
         private val coupledProjectsListener: CoupledProjectsListener,
@@ -566,7 +569,7 @@ class ProblemReportingCrossProjectModelAccess(
                 // Referent is not configured and wasn't invalidated
                 // This can be a case in an incremental sync scenario, when referrer script was changed and since re-configured,
                 // but referent wasn't changed and since wasn't configured.
-                delegate < referrer && delegate.state.isUnconfigured && !buildModelParameters.isInvalidateCoupledProjects -> {
+                isDelegateBeforeReferrer() && delegate.state.isUnconfigured && !buildModelParameters.isInvalidateCoupledProjects -> {
                     reportCrossProjectAccessProblem(accessRef, memberKind) { missedReferentConfigurationMessage() }
                     null
                 }
@@ -580,12 +583,18 @@ class ProblemReportingCrossProjectModelAccess(
 
         private
         fun onProjectsCoupled() {
-            coupledProjectsListener.onProjectReference(referrer.owner, delegate.owner)
+            coupledProjectsListener.onProjectReference(referrer, delegate.projectIdentity)
             // Configure the target project, if it would normally be configured before the referring project
-            if (delegate < referrer && delegate.parent != null && buildModelParameters.isInvalidateCoupledProjects) {
+            if (isDelegateBeforeReferrer() && delegate.parent != null && buildModelParameters.isInvalidateCoupledProjects) {
                 delegate.owner.ensureConfigured()
             }
         }
+
+        /**
+         * Based on vintage configuration order, would the delegate project be configured before the referrer project?
+         */
+        private
+        fun isDelegateBeforeReferrer(): Boolean = ProjectOrderingUtil.compare(delegate.projectIdentity, referrer) < 0
 
         @Suppress("ThrowingExceptionsWithoutMessageOrCause")
         private
@@ -624,7 +633,7 @@ class ProblemReportingCrossProjectModelAccess(
             when (access.pattern) {
                 DIRECT -> {
                     text("another project ")
-                    reference(delegate)
+                    reference(delegate.projectIdentity)
                 }
 
                 CHILD -> {
@@ -657,6 +666,6 @@ class ProblemReportingCrossProjectModelAccess(
         }
 
         private
-        fun StructuredMessage.Builder.reference(project: ProjectInternal) = reference(project.identityPath.toString())
+        fun StructuredMessage.Builder.reference(identity: ProjectIdentity) = reference(identity.buildTreePath)
     }
 }

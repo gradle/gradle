@@ -291,6 +291,7 @@ class DefaultProjectTest extends Specification {
         child1State.owner >> buildState
         child1State.displayName >> Describables.of("project ':child1'")
         child1State.fromMutableState(_) >> { Function f -> f.apply(child1) }
+        child1State.parent >> projectState
         child1 = defaultProject("child1", child1State, project, new File("child1"), child1ClassLoaderScope)
         child1State.mutableModel >> child1
         child1State.name >> "child1"
@@ -298,11 +299,13 @@ class DefaultProjectTest extends Specification {
         chilchildState.owner >> buildState
         chilchildState.displayName >> Describables.of("project ':child1:childchild'")
         chilchildState.fromMutableState(_) >> { Function f -> f.apply(childchild) }
+        chilchildState.parent >> child1State
         childchild = defaultProject("childchild", chilchildState, child1, new File("childchild"), child1ClassLoaderScope.createChild("project-childchild", null))
         child2State = Mock(ProjectState)
         child2State.owner >> buildState
         child2State.displayName >> Describables.of("project ':child2'")
         child2State.fromMutableState(_) >> { Function f -> f.apply(child2) }
+        child2State.parent >> projectState
         child2 = defaultProject("child2", child2State, project, new File("child2"), rootProjectClassLoaderScope.createChild("project-child2", null))
         child2State.mutableModel >> child2
         child2State.name >> "child2"
@@ -992,8 +995,8 @@ def scriptMethod(Closure closure) {
 
     def equalsContractForWrappers() {
         when:
-        Project wrapped = LifecycleAwareProject.wrap(project, child1, instantiatorMock, gradleLifecycleActionExecutor)
-        Project overwrapped = LifecycleAwareProject.wrap(wrapped, child1, instantiatorMock, gradleLifecycleActionExecutor)
+        Project wrapped = LifecycleAwareProject.wrap(project, child1.projectIdentity, instantiatorMock, gradleLifecycleActionExecutor)
+        Project overwrapped = LifecycleAwareProject.wrap(wrapped, child1.projectIdentity, instantiatorMock, gradleLifecycleActionExecutor)
         then:
         project == wrapped
         wrapped == project
@@ -1005,7 +1008,7 @@ def scriptMethod(Closure closure) {
 
     def mapUsageForWrappers() {
         given:
-        Project wrapped = LifecycleAwareProject.wrap(project, child1, instantiatorMock, gradleLifecycleActionExecutor)
+        Project wrapped = LifecycleAwareProject.wrap(project, child1.projectIdentity, instantiatorMock, gradleLifecycleActionExecutor)
         def map = [:]
         when:
         map[project] = "foo"
@@ -1024,7 +1027,7 @@ def scriptMethod(Closure closure) {
     }
 
     static boolean assertLifecycleAwareWithReferrer(Project project, Project referrer) {
-        project instanceof LifecycleAwareProject && project.referrer == referrer
+        project instanceof LifecycleAwareProject && project.referrer == ((ProjectInternal) referrer).projectIdentity
     }
 }
 

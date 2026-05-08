@@ -73,17 +73,6 @@ public interface ProjectState extends ModelContainer<ProjectInternal> {
         return getIdentity().getProjectName();
     }
 
-    /**
-     * Returns the nesting level of a project in a multi-project hierarchy.
-     * <p>
-     * Returns 0 for the root project, 1 for its direct children, etc.
-     * <p>
-     * The depth is computed independently for each build in the build tree.
-     */
-    default int getDepth() {
-        return getProjectPath().segmentCount();
-    }
-
     default DisplayName getDisplayName() {
         return getIdentity();
     }

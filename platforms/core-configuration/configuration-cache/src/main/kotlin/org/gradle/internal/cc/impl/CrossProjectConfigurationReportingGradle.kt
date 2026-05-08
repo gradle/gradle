@@ -32,6 +32,7 @@ import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.plugins.PluginManagerInternal
 import org.gradle.api.internal.project.CrossProjectConfigurator
 import org.gradle.api.internal.project.CrossProjectModelAccess
+import org.gradle.api.internal.project.ProjectIdentity
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectRegistry
 import org.gradle.api.internal.project.ProjectState as InternalProjectState
@@ -58,7 +59,7 @@ import java.util.function.Supplier
 
 class CrossProjectConfigurationReportingGradle(
     gradle: GradleInternal,
-    private val referrerProject: ProjectInternal,
+    private val referrerProject: ProjectIdentity,
 ) : GradleInternal {
 
     private
@@ -98,7 +99,7 @@ class CrossProjectConfigurationReportingGradle(
         delegate.rootProject {
             // Instead of the rootProject's `allProjects`, collect the projects while still tracking the current referrer project
             val root = this@CrossProjectConfigurationReportingGradle.getCrossProjectRootProject()
-            projectConfigurator.allprojects(crossProjectModelAccess.getAllprojects(referrerProject, root), action)
+            projectConfigurator.allprojects(crossProjectModelAccess.getAllprojects(referrerProject, root.projectIdentity), action)
         }
     }
 
@@ -201,7 +202,7 @@ class CrossProjectConfigurationReportingGradle(
     private
     class CrossProjectModelAccessProjectEvaluationListener(
         private val delegate: ProjectEvaluationListener,
-        private val referrerProject: ProjectInternal,
+        private val referrerProject: ProjectIdentity,
         private val crossProjectModelAccess: CrossProjectModelAccess
     ) : ProjectEvaluationListener {
         override fun beforeEvaluate(project: Project) {
