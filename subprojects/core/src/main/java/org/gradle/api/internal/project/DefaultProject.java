@@ -436,12 +436,6 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
         return getCrossProjectModelAccess().access(referrer, parent.getProjectIdentity());
     }
 
-    @Nullable
-    @Override
-    public ProjectIdentifier getParentIdentifier() {
-        return parent;
-    }
-
     @Override
     public DynamicObject getAsDynamicObject() {
         return extensibleDynamicObject;

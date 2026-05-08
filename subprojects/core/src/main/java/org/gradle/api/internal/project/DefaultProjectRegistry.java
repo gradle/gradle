@@ -53,10 +53,10 @@ public class DefaultProjectRegistry implements ProjectRegistry, HoldsProjectStat
     }
 
     private void addProjectToParentSubProjects(ProjectInternal project) {
-        ProjectIdentifier loopProject = project.getParentIdentifier();
-        while (loopProject != null) {
-            subProjects.get(loopProject.getPath()).add(project);
-            loopProject = loopProject.getParentIdentifier();
+        ProjectState ancestor = project.getOwner().getParent();
+        while (ancestor != null) {
+            subProjects.get(ancestor.getProjectPath().asString()).add(project);
+            ancestor = ancestor.getParent();
         }
     }
 
