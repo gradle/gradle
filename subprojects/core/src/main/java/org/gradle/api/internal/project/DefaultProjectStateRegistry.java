@@ -47,15 +47,21 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
 public class DefaultProjectStateRegistry implements ProjectStateRegistry, Closeable {
-    private final WorkerLeaseService workerLeaseService;
-    private final Object lock = new Object();
+
+    private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
+    @GuardedBy("lock")
     private final Map<Path, ProjectState> projectsByPath = new LinkedHashMap<>();
+    @GuardedBy("lock")
     private final Map<ProjectComponentIdentifier, ProjectState> projectsById = new HashMap<>();
+    @GuardedBy("lock")
     private final Map<BuildIdentifier, DefaultBuildProjectRegistry> projectsByBuild = new HashMap<>();
+
+    private final WorkerLeaseService workerLeaseService;
 
     public DefaultProjectStateRegistry(WorkerLeaseService workerLeaseService) {
         this.workerLeaseService = workerLeaseService;
@@ -63,7 +69,8 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry, Closea
 
     @Override
     public void registerProjects(BuildState owner, ProjectDescriptorRegistry projectRegistry) {
-        synchronized (lock) {
+        lock.writeLock().lock();
+        try {
             DefaultBuildProjectRegistry buildProjectRegistry = getBuildProjectRegistry(owner);
             if (!buildProjectRegistry.projectsByPath.isEmpty()) {
                 throw new IllegalStateException("Projects for " + owner.getDisplayName() + " have already been registered.");
@@ -74,6 +81,8 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry, Closea
                 throw new IllegalStateException("No root project found for " + owner.getDisplayName());
             }
             registerAllProjectsRecursively(owner, buildProjectRegistry, null, rootProject);
+        } finally {
+            lock.writeLock().unlock();
         }
     }
 
@@ -127,9 +136,12 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry, Closea
 
     @Override
     public ProjectState registerProject(BuildState owner, ImmutableProjectDescriptor projectDescriptor) {
-        synchronized (lock) {
+        lock.writeLock().lock();
+        try {
             DefaultBuildProjectRegistry buildProjectRegistry = getBuildProjectRegistry(owner);
             return addProject(owner, buildProjectRegistry, projectDescriptor);
+        } finally {
+            lock.writeLock().unlock();
         }
     }
 
@@ -160,8 +172,11 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry, Closea
 
     @Override
     public Collection<ProjectState> getAllProjects() {
-        synchronized (lock) {
+        lock.readLock().lock();
+        try {
             return projectsByPath.values();
+        } finally {
+            lock.readLock().unlock();
         }
     }
 
@@ -173,49 +188,64 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry, Closea
 
     @Override
     public ProjectState stateFor(ProjectComponentIdentifier identifier) {
-        synchronized (lock) {
+        lock.readLock().lock();
+        try {
             ProjectState projectState = projectsById.get(identifier);
             if (projectState == null) {
                 throw new IllegalArgumentException(identifier.getDisplayName() + " not found.");
             }
             return projectState;
+        } finally {
+            lock.readLock().unlock();
         }
     }
 
     @Override
     public ProjectState stateFor(Path identityPath) {
-        synchronized (lock) {
+        lock.readLock().lock();
+        try {
             ProjectState projectState = projectsByPath.get(identityPath);
             if (projectState == null) {
                 throw new IllegalArgumentException(identityPath.asString() + " not found.");
             }
             return projectState;
+        } finally {
+            lock.readLock().unlock();
         }
     }
 
     @Override
     public @Nullable ProjectState findProject(Path identityPath) {
-        synchronized (lock) {
+        lock.readLock().lock();
+        try {
             return projectsByPath.get(identityPath);
+        } finally {
+            lock.readLock().unlock();
         }
     }
 
     @Override
     public BuildProjectRegistry projectsFor(BuildIdentifier buildIdentifier) throws IllegalArgumentException {
-        synchronized (lock) {
+        lock.readLock().lock();
+        try {
             BuildProjectRegistry registry = projectsByBuild.get(buildIdentifier);
             if (registry == null) {
                 throw new IllegalArgumentException("Projects for " + buildIdentifier + " have not been registered yet.");
             }
             return registry;
+        } finally {
+            lock.readLock().unlock();
         }
     }
 
     @Nullable
     @Override
     public BuildProjectRegistry findProjectsFor(BuildIdentifier buildIdentifier) {
-        synchronized (lock) {
+        lock.readLock().lock();
+        try {
             return projectsByBuild.get(buildIdentifier);
+        } finally {
+            lock.readLock().unlock();
         }
     }
 
