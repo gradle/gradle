@@ -24,7 +24,6 @@ import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.snapshot.DirectorySnapshot;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshotHierarchyVisitor;
-import org.gradle.internal.snapshot.RegularFileSnapshot;
 import org.gradle.internal.snapshot.SnapshotVisitResult;
 import org.gradle.operations.execution.FilePropertyVisitor;
 import org.jspecify.annotations.NullMarked;
@@ -46,7 +45,6 @@ public abstract class BaseFilePropertyVisitState implements FilePropertyVisitor.
     String path;
     HashCode hash;
     int depth;
-    long length;
 
     protected BaseFilePropertyVisitState(Map<String, InputFilePropertySpec> propertySpecsByName) {
         this.propertySpecsByName = propertySpecsByName;
@@ -95,16 +93,10 @@ public abstract class BaseFilePropertyVisitState implements FilePropertyVisitor.
     }
 
     @Override
-    public long getLength() {
-        return length;
-    }
-
-    @Override
     public void enterDirectory(DirectorySnapshot physicalSnapshot) {
         this.path = physicalSnapshot.getAbsolutePath();
         this.name = physicalSnapshot.getName();
         this.hash = null;
-        this.length = 0;
 
         if (depth++ == 0) {
             preRoot();
@@ -137,9 +129,6 @@ public abstract class BaseFilePropertyVisitState implements FilePropertyVisitor.
         this.path = snapshot.getAbsolutePath();
         this.name = snapshot.getName();
         this.hash = fingerprint.getNormalizedContentHash();
-        this.length = snapshot instanceof RegularFileSnapshot
-            ? ((RegularFileSnapshot) snapshot).getMetadata().getLength()
-            : 0;
 
         boolean isRoot = depth == 0;
         if (isRoot) {
@@ -203,11 +192,6 @@ public abstract class BaseFilePropertyVisitState implements FilePropertyVisitor.
         @Override
         public byte[] getHashBytes() {
             throw new UnsupportedOperationException("Cannot query hash for directories");
-        }
-
-        @Override
-        public long getLength() {
-            throw new UnsupportedOperationException("Cannot query length for directories");
         }
 
         @Override
