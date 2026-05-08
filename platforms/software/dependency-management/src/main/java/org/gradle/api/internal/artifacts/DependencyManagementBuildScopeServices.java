@@ -66,6 +66,7 @@ import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.catalog.DefaultDependenciesAccessors;
 import org.gradle.api.internal.catalog.DependenciesAccessorsWorkspaceProvider;
 import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.api.internal.notations.DependencyConstraintNotationParser;
@@ -263,8 +264,8 @@ class DependencyManagementBuildScopeServices implements ServiceRegistrationProvi
     }
 
     @Provides
-    LocalMavenRepositoryLocator createLocalMavenRepositoryLocator(MavenSettingsProvider mavenSettingsProvider) {
-        return new DefaultLocalMavenRepositoryLocator(mavenSettingsProvider);
+    LocalMavenRepositoryLocator createLocalMavenRepositoryLocator(MavenSettingsProvider mavenSettingsProvider, FileResolver fileResolver) {
+        return new DefaultLocalMavenRepositoryLocator(mavenSettingsProvider, fileResolver);
     }
 
     @Provides

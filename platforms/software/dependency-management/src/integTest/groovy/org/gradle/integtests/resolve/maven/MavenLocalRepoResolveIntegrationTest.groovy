@@ -103,6 +103,21 @@ class MavenLocalRepoResolveIntegrationTest extends AbstractDependencyResolutionT
         hasArtifact(moduleA)
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/37492")
+    def "relative system-property local repository resolves against the root project directory"() {
+        given:
+        def relativeName = "relativeRepo"
+        def artifactRepo = mavenLocal(relativeName)
+        def moduleA = artifactRepo.module('group', 'projectA', '1.2').publish()
+
+        when:
+        executer.withArgument("-Dmaven.repo.local=${relativeName}")
+        runRetrieveTask()
+
+        then:
+        hasArtifact(moduleA)
+    }
+
     def "local repository in user settings take precedence over the local repository global settings"() {
         given:
         def globalRepo = mavenLocal("globalArtifactRepo")
