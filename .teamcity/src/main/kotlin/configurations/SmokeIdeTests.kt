@@ -42,6 +42,8 @@ class SmokeIdeTests(
                     stage.getBuildScanCustomValueParam(),
                     buildScanTagParam("SmokeIdeTests"),
                     "-PflakyTests=$flakyTestStrategy",
+                    "-PautoDownloadIde=true",
+                    "-PrunIdeInHeadlessMode=true",
                 ).joinToString(" "),
         )
     }) {
