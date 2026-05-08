@@ -112,6 +112,9 @@ object BuildTreeModelControllerServices : ServiceRegistrationProvider {
             else -> add(ProblemsListener::class.java, IgnoringProblemsListener)
         }
 
+        add(InstrumentedExecutionAccessListenerRegistry::class.java)
+        add(ExecutionAccessChecker::class.java, ConfigurationTimeBarrierBasedExecutionAccessChecker::class.java)
+
         if (modelParameters.isVintage) {
             // region ALL MODES
             add(Environment::class.java, DefaultEnvironment::class.java)
@@ -121,7 +124,6 @@ object BuildTreeModelControllerServices : ServiceRegistrationProvider {
             add(ProjectScopedScriptResolution::class.java, ProjectScopedScriptResolution.NO_OP)
             add(ConfigurationCacheInputsListener::class.java, PromoInputsListener::class.java)
             add(BuildTreeModelSideEffectExecutor::class.java, DefaultBuildTreeModelSideEffectExecutor::class.java)
-            add(ExecutionAccessChecker::class.java, DefaultExecutionAccessChecker::class.java)
             // endregion
 
             // region VT-only
@@ -140,7 +142,6 @@ object BuildTreeModelControllerServices : ServiceRegistrationProvider {
                 ConfigurationCacheBuildTreeModelSideEffectExecutor::class.java,
                 ConfigurationCacheBuildTreeModelSideEffectExecutor::class.java
             )
-            add(ExecutionAccessChecker::class.java, ConfigurationTimeBarrierBasedExecutionAccessChecker::class.java)
             // endregion
 
             // region CC and IP
@@ -148,7 +149,6 @@ object BuildTreeModelControllerServices : ServiceRegistrationProvider {
             add(ConfigurationCacheKey::class.java)
             add(ConfigurationCacheClassLoaderScopeRegistryListener::class.java)
             add(BuildTreeConfigurationCache::class.java, DefaultConfigurationCache::class.java)
-            add(InstrumentedExecutionAccessListenerRegistry::class.java)
             add(DefaultDeferredRootBuildGradle::class.java)
             add(
                 ConfigurationCacheInputFileChecker.Host::class.java,

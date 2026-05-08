@@ -17,11 +17,12 @@
 package org.gradle.language.base
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.StableConfigurationCacheDeprecations
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.internal.logging.text.DiagnosticsVisitor
 
 @UnsupportedWithConfigurationCache(because = "software model")
-class BinariesLifecycleTaskIntegrationTest extends AbstractIntegrationSpec {
+class BinariesLifecycleTaskIntegrationTest extends AbstractIntegrationSpec implements StableConfigurationCacheDeprecations {
     def setup() {
         settingsFile << """rootProject.name = 'assemble-binary'"""
         buildFile << """
@@ -66,6 +67,7 @@ class BinariesLifecycleTaskIntegrationTest extends AbstractIntegrationSpec {
         withStandaloneBinaries("ignoreMe")
 
         when:
+        expectTaskGetTaskDependenciesDeprecations()
         fails "assemble"
 
         then:
@@ -101,6 +103,7 @@ class BinariesLifecycleTaskIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
+        expectTaskGetTaskDependenciesDeprecations()
         run "assemble"
 
         then:

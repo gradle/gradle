@@ -35,4 +35,26 @@ trait StableConfigurationCacheDeprecations {
             }
         }
     }
+
+    void expectTaskGetTaskDependenciesDeprecations(int count = 1) {
+        if (GradleContextualExecuter.notConfigCache) {
+            count.times {
+                executer.expectDocumentedDeprecationWarning("Invocation of Task.taskDependencies at execution time has been deprecated. " +
+                        "This will fail with an error in Gradle 10. " +
+                        "This API is incompatible with the configuration cache, which will become the only mode supported by Gradle in a future release. " +
+                        "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#task_dependencies")
+            }
+        }
+    }
+
+    void expectTaskGetExtensionsDeprecations(int count = 1) {
+        if (GradleContextualExecuter.notConfigCache) {
+            count.times {
+                executer.expectDocumentedDeprecationWarning("Invocation of Task.extensions at execution time has been deprecated. " +
+                        "This will fail with an error in Gradle 10. " +
+                        "This API is incompatible with the configuration cache, which will become the only mode supported by Gradle in a future release. " +
+                        "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#task_extensions")
+            }
+        }
+    }
 }
