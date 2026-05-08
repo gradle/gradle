@@ -391,9 +391,9 @@ final class DefaultMutableAttributeContainerTest extends BaseAttributeContainerT
         container.attribute(Attribute.of("test", String), "b")
 
         then:
-        container.asMap().with {
-            assert it.size() == 1
-            assert it[Attribute.of("test", String)] == "b" // Second attribute to be added remains
+        verifyAll(container.asMap()) {
+            size() == 1
+            it[Attribute.of("test", String)] == "b" // Second attribute to be added remains
         }
     }
 
