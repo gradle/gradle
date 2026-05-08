@@ -57,7 +57,9 @@ import org.gradle.internal.scripts.CompileScriptBuildOperationType.Result
 import org.gradle.internal.scripts.ScriptExecutionListener
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
+import org.gradle.internal.vfs.FileSystemAccess
 import org.gradle.kotlin.dsl.accessors.Stage1BlocksAccessorClassPathGenerator
+import org.gradle.kotlin.dsl.cache.KotlinDslIncrementalCompilationCache
 import org.gradle.kotlin.dsl.cache.KotlinDslWorkspaceProvider
 import org.gradle.kotlin.dsl.execution.CompiledScript
 import org.gradle.kotlin.dsl.execution.EvalOption
@@ -121,7 +123,9 @@ class StandardKotlinScriptEvaluator(
     private val buildTreeRootDir: Path,
     private val transformFactoryForLegacy: ClasspathElementTransformFactoryForLegacy,
     private val gradleCoreTypeRegistry: GradleCoreInstrumentationTypeRegistry,
-    private val propertyUpgradeReportConfig: PropertyUpgradeReportConfig
+    private val propertyUpgradeReportConfig: PropertyUpgradeReportConfig,
+    private val fileSystemAccess: FileSystemAccess,
+    private val incrementalCompilationCache: KotlinDslIncrementalCompilationCache
 ) : KotlinScriptEvaluator {
 
     override fun evaluate(
@@ -166,8 +170,8 @@ class StandardKotlinScriptEvaluator(
     private
     val interpreter by lazy {
         when (propertyUpgradeReportConfig.isEnabled) {
-            true -> Interpreter(InterpreterHostWithoutInMemoryCache(gradleProperties, buildTreeRootDir), buildOperationRunner, moduleRegistry, classLoaderFactory)
-            false -> Interpreter(InterpreterHost(gradleProperties, buildTreeRootDir), buildOperationRunner, moduleRegistry, classLoaderFactory)
+            true -> Interpreter(InterpreterHostWithoutInMemoryCache(gradleProperties, buildTreeRootDir), buildOperationRunner, moduleRegistry, classLoaderFactory, fileSystemAccess, incrementalCompilationCache)
+            false -> Interpreter(InterpreterHost(gradleProperties, buildTreeRootDir), buildOperationRunner, moduleRegistry, classLoaderFactory, fileSystemAccess, incrementalCompilationCache)
         }
     }
 

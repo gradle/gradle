@@ -160,8 +160,10 @@ dependencies {
     testFixturesImplementation(projects.unitTestFixtures)
     testFixturesImplementation(projects.serviceRegistryImpl)
 
+    testFixturesImplementation(testFixtures(projects.core))
     testFixturesImplementation(testFixtures(projects.hashing))
     testFixturesImplementation(testFixtures(projects.buildOperations))
+    testFixturesImplementation(testFixtures(projects.persistentCache))
 
     testFixturesImplementation(libs.kotlinCompilerEmbeddable)
 

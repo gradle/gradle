@@ -33,6 +33,7 @@ import org.gradle.internal.snapshot.FileSystemSnapshot
 import org.gradle.internal.snapshot.MissingFileSnapshot
 import org.gradle.internal.snapshot.RegularFileSnapshot
 import org.gradle.internal.snapshot.SnapshotVisitResult
+import org.gradle.kotlin.dsl.cache.KotlinDslIncrementalCompilationCache
 import org.jetbrains.kotlin.buildtools.api.ExperimentalBuildToolsApi
 import org.jetbrains.kotlin.buildtools.api.KotlinToolchains
 import org.jetbrains.kotlin.buildtools.api.jvm.AccessibleClassSnapshot
@@ -41,11 +42,12 @@ import org.jetbrains.kotlin.buildtools.api.jvm.ClassSnapshotGranularity
 import org.jetbrains.kotlin.buildtools.api.jvm.JvmPlatformToolchain
 import org.jetbrains.kotlin.buildtools.api.jvm.operations.JvmClasspathSnapshottingOperation
 import java.io.File
+import java.nio.file.Path
 
 
 internal
 class KotlinCompileClasspathFingerprinter(
-    private val classpathSnapshotHashesCache: KotlinDslCompileAvoidanceClasspathHashCache
+    private val cache: KotlinDslIncrementalCompilationCache
 ) : FileCollectionFingerprinter {
 
     private val snapshotter by lazy { Snapshotter() }
@@ -68,10 +70,14 @@ class KotlinCompileClasspathFingerprinter(
                 return@accept SnapshotVisitResult.CONTINUE
             }
 
-            val fingerprint = classpathSnapshotHashesCache.getHash(snapshot.hash) {
-                computeHashForFile(File(snapshot.absolutePath))
-            }
-            fingerprints[snapshot.absolutePath] = fingerprint
+            // Shared with BTA incremental compilation via the content-addressed snapshot store:
+            // whichever layer asks first generates the BTA snapshot, the other gets a cache hit.
+            // On hit, only the rollup HashCode is read from the in-memory index — the snapshot
+            // file itself is not deserialized here.
+            val abiHash = cache.snapshotAndAbiHashFor(snapshot.hash) { snapshotPath ->
+                snapshotter.snapshotAndSave(File(snapshot.absolutePath), snapshotPath)
+            }.abiHash
+            fingerprints[snapshot.absolutePath] = abiHash
 
             // if it's a directory, we don't visit its content (i.e. we want to snapshot only top level directories)
             SnapshotVisitResult.SKIP_SUBTREE
@@ -81,24 +87,6 @@ class KotlinCompileClasspathFingerprinter(
             fingerprints.isEmpty() -> EmptyCurrentFileCollectionFingerprint(COMPILE_CLASSPATH_IDENTIFIER)
             else -> CurrentFileCollectionFingerprintImpl(fingerprints)
         }
-    }
-
-    private
-    fun computeHashForFile(file: File): HashCode {
-        val snapshots = snapshotter.snapshot(file)
-        return hash(snapshots)
-    }
-
-    private
-    fun hash(snapshots: Map<String, ClassSnapshot>): HashCode {
-        val hasher = Hashing.newHasher()
-        snapshots.entries.stream()
-            .filter { it.value is AccessibleClassSnapshot }
-            .map { (it.value as AccessibleClassSnapshot).classAbiHash }
-            .forEach {
-                hasher.putLong(it)
-            }
-        return hasher.hash()
     }
 
     override fun empty(): CurrentFileCollectionFingerprint {
@@ -148,6 +136,7 @@ class CurrentFileCollectionFingerprintImpl(private val fingerprints: Map<String,
     }
 }
 
+
 private class Snapshotter {
 
     private val toolchains = KotlinToolchains.loadImplementation(this::class.java.classLoader)
@@ -156,12 +145,31 @@ private class Snapshotter {
 
     private val jvmToolchains = toolchains.getToolchain(JvmPlatformToolchain::class.java)
 
-    fun snapshot(file: File): Map<String, ClassSnapshot> {
-        val snapshotOperation = jvmToolchains.classpathSnapshottingOperationBuilder(file.toPath())
+    /**
+     * Computes the BTA classpath snapshot for [file], writes it to [snapshotPath], and returns
+     * the ABI-rollup hash derived from the same in-memory snapshot. Single BTA invocation
+     * produces both outputs that the cache requires.
+     */
+    fun snapshotAndSave(file: File, snapshotPath: Path): HashCode {
+        val operation = jvmToolchains.classpathSnapshottingOperationBuilder(file.toPath())
             .apply {
                 this[JvmClasspathSnapshottingOperation.GRANULARITY] = ClassSnapshotGranularity.CLASS_LEVEL
+                // Must match the option used by BTA incremental compilation in KotlinCompiler —
+                // the snapshot file is shared by content hash, so a mismatch would mean the two
+                // layers compute different snapshot bytes for the same input.
                 this[JvmClasspathSnapshottingOperation.PARSE_INLINED_LOCAL_CLASSES] = true
             }.build()
-        return buildSession.executeOperation(snapshotOperation).classSnapshots
+        val snapshot = buildSession.executeOperation(operation)
+        snapshot.saveSnapshot(snapshotPath)
+        return rollupAbiHash(snapshot.classSnapshots)
+    }
+
+    // Duplicated, by design, in BTACompiler in KotlinCompiler.kt — see the comment there.
+    private fun rollupAbiHash(classSnapshots: Map<String, ClassSnapshot>): HashCode {
+        val hasher = Hashing.newHasher()
+        classSnapshots.values
+            .filterIsInstance<AccessibleClassSnapshot>()
+            .forEach { hasher.putLong(it.classAbiHash) }
+        return hasher.hash()
     }
 }
