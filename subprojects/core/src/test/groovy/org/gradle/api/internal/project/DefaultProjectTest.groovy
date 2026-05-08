@@ -349,7 +349,6 @@ class DefaultProjectTest extends Specification {
         def project = TestUtil.instantiatorFactory().decorateLenient().newInstance(
             DefaultProject,
             name,
-            parent,
             rootDir,
             new File(rootDir, 'build.gradle'),
             script,

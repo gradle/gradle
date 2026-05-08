@@ -190,7 +190,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     private final File buildFile;
 
     @Nullable
-    private final ProjectInternal parent;
+    private final ProjectIdentity parentIdentity;
 
     private final String name;
 
@@ -231,7 +231,6 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     public DefaultProject(
         String name,
-        @Nullable ProjectInternal parent,
         File projectDir,
         File buildFile,
         ScriptSource buildScriptSource,
@@ -246,7 +245,8 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
         this.baseClassLoaderScope = baseClassLoaderScope;
         this.projectDir = projectDir;
         this.buildFile = buildFile;
-        this.parent = parent;
+        ProjectState parent = owner.getParent();
+        this.parentIdentity = parent != null ? parent.getIdentity() : null;
         this.name = name;
         this.state = new ProjectStateInternal();
         this.buildScriptSource = buildScriptSource;
@@ -430,10 +430,10 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     @Nullable
     @Override
     public ProjectInternal getParent(ProjectIdentity referrer) {
-        if (parent == null) {
+        if (parentIdentity == null) {
             return null;
         }
-        return getCrossProjectModelAccess().access(referrer, parent.getProjectIdentity());
+        return getCrossProjectModelAccess().access(referrer, parentIdentity);
     }
 
     @Override

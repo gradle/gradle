@@ -339,7 +339,7 @@ class DefaultProjectSpec extends Specification {
 
         def instantiator = TestUtil.instantiatorFactory().decorateLenient(serviceRegistry)
         def factory = new ProjectFactory(instantiator, new DefaultTextFileResourceLoader(null), scriptResolution)
-        def project = factory.createProject(build, descriptor, container, parent, serviceRegistryFactory, Stub(ClassLoaderScope), Stub(ClassLoaderScope))
+        def project = factory.createProject(build, descriptor, container, serviceRegistryFactory, Stub(ClassLoaderScope), Stub(ClassLoaderScope))
         _ * container.mutableModel >> project
         return project
     }

@@ -30,7 +30,6 @@ import org.gradle.internal.resource.TextResource;
 import org.gradle.internal.scripts.ProjectScopedScriptResolution;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.util.internal.NameValidator;
-import org.jspecify.annotations.Nullable;
 
 import java.io.File;
 
@@ -50,7 +49,6 @@ public class ProjectFactory implements IProjectFactory {
         GradleInternal gradle,
         ImmutableProjectDescriptor projectDescriptor,
         ProjectState owner,
-        @Nullable ProjectInternal parent,
         ServiceRegistryFactory serviceRegistryFactory,
         ClassLoaderScope selfClassLoaderScope,
         ClassLoaderScope baseClassLoaderScope
@@ -61,7 +59,6 @@ public class ProjectFactory implements IProjectFactory {
         ScriptSource source = new TextResourceScriptSource(resource);
         DefaultProject project = instantiator.newInstance(DefaultProject.class,
             projectDescriptor.getIdentity().getProjectName(),
-            parent,
             projectDescriptor.getProjectDir(),
             buildFile,
             source,
