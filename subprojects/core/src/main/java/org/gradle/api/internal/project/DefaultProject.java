@@ -260,7 +260,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
         taskContainer = services.get(TaskContainerInternal.class);
         extensibleDynamicObject = new ExtensibleDynamicObject(this, Project.class, services.get(InstantiatorFactory.class).decorateLenient(services));
 
-        @Nullable HierarchicalDynamicObject parentInherited = services.get(CrossProjectModelAccess.class).parentProjectDynamicInheritedScope(owner);
+        @Nullable HierarchicalDynamicObject parentInherited = services.get(CrossProjectModelAccess.class).parentProjectDynamicInheritedScope(owner.getIdentity());
         if (parentInherited != null) {
             extensibleDynamicObject.setParent(parentInherited);
             extensibleDynamicObject.setFailOnParentAccess(services.get(InternalOptions.class).getBoolean(FAIL_ON_PARENT_PROPERTY_LOOKUP));
@@ -539,7 +539,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     @Override
     public Map<String, Project> getChildProjects(ProjectIdentity referrer) {
-        return getCrossProjectModelAccess().getChildProjects(referrer, getOwner());
+        return getCrossProjectModelAccess().getChildProjects(referrer, getProjectIdentity());
     }
 
     @Override

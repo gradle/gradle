@@ -31,6 +31,11 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
 
+/**
+ * @implNote This implementation purposefully leaks mutable state across project boundaries.
+ * That is safe because it is only used outside of Isolated Projects mode, where unrestricted
+ * cross-project access is allowed.
+ */
 public class DefaultCrossProjectModelAccess implements CrossProjectModelAccess {
 
     private final ProjectStateLookup projectStateLookup;
@@ -53,10 +58,7 @@ public class DefaultCrossProjectModelAccess implements CrossProjectModelAccess {
     @Override
     public ProjectInternal access(ProjectIdentity referrer, ProjectIdentity target) {
         ProjectState projectState = projectStateLookup.stateFor(target.getBuildTreePath());
-        // We purposefully leak mutable state here, as we're not in IP so it's safe.
-        return projectState.fromMutableState(project ->
-            LifecycleAwareProject.wrap(project, referrer, instantiator, gradleLifecycleActionExecutor)
-        );
+        return LifecycleAwareProject.wrap(projectState.getMutableModel(), referrer, instantiator, gradleLifecycleActionExecutor);
     }
 
     @Override
@@ -71,8 +73,9 @@ public class DefaultCrossProjectModelAccess implements CrossProjectModelAccess {
     }
 
     @Override
-    public Map<String, Project> getChildProjects(ProjectIdentity referrer, ProjectState target) {
-        return target.getChildProjects().stream().collect(
+    public Map<String, Project> getChildProjects(ProjectIdentity referrer, ProjectIdentity target) {
+        ProjectState targetState = projectStateLookup.stateFor(target.getBuildTreePath());
+        return targetState.getChildProjects().stream().collect(
             Collectors.toMap(
                 ProjectState::getName,
                 projectState -> LifecycleAwareProject.wrap(projectState.getMutableModel(), referrer, instantiator, gradleLifecycleActionExecutor)
@@ -112,9 +115,8 @@ public class DefaultCrossProjectModelAccess implements CrossProjectModelAccess {
 
     @Override
     @Nullable
-    public HierarchicalDynamicObject parentProjectDynamicInheritedScope(ProjectState referrer) {
-        ProjectState parent = referrer.getParent();
-        // We purposefully leak mutable state here, as we're not in IP so it's safe.
+    public HierarchicalDynamicObject parentProjectDynamicInheritedScope(ProjectIdentity referrer) {
+        ProjectState parent = projectStateLookup.stateFor(referrer.getBuildTreePath()).getParent();
         return parent != null ? parent.fromMutableState(ProjectInternal::getInheritedScope) : null;
     }
 }

@@ -58,7 +58,7 @@ public interface CrossProjectModelAccess {
      * @param referrer The project from which the return value will be used.
      * @param target The project to get the children of.
      */
-    Map<String, Project> getChildProjects(ProjectIdentity referrer, ProjectState target);
+    Map<String, Project> getChildProjects(ProjectIdentity referrer, ProjectIdentity target);
 
     /**
      * @param referrer The project from which the return value will be used.
@@ -109,5 +109,5 @@ public interface CrossProjectModelAccess {
      * The returned object handles cross-project model access according to the current policy.
      */
     @Nullable
-    HierarchicalDynamicObject parentProjectDynamicInheritedScope(ProjectState referrer);
+    HierarchicalDynamicObject parentProjectDynamicInheritedScope(ProjectIdentity referrer);
 }

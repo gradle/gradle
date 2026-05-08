@@ -110,9 +110,9 @@ class ProblemReportingCrossProjectModelAccess(
         }
     }
 
-    override fun getChildProjects(referrer: ProjectIdentity, target: ProjectState): MutableMap<String, Project> {
+    override fun getChildProjects(referrer: ProjectIdentity, target: ProjectIdentity): MutableMap<String, Project> {
         return delegate.getChildProjects(referrer, target).mapValuesTo(LinkedHashMap()) {
-            (it.value as ProjectInternal).wrap(referrer, CrossProjectModelAccessInstance(CHILD, target.identity))
+            (it.value as ProjectInternal).wrap(referrer, CrossProjectModelAccessInstance(CHILD, target))
         }
     }
 
@@ -140,10 +140,10 @@ class ProblemReportingCrossProjectModelAccess(
         return CrossProjectConfigurationReportingTaskExecutionGraph(taskGraph, referrer, ipProblems, this, coupledProjectsListener, projectStateLookup)
     }
 
-    override fun parentProjectDynamicInheritedScope(referrer: ProjectState): HierarchicalDynamicObject? {
-        val parent = referrer.parent ?: return null
+    override fun parentProjectDynamicInheritedScope(referrer: ProjectIdentity): HierarchicalDynamicObject? {
+        val parent = projectStateLookup.stateFor(referrer.buildTreePath).parent ?: return null
         return CrossProjectModelAccessTrackingParentDynamicObject(
-            parent, referrer.identity, ipProblems, coupledProjectsListener
+            parent, referrer, ipProblems, coupledProjectsListener
         )
     }
 
