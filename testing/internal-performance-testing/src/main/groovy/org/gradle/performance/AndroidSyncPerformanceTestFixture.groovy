@@ -47,7 +47,7 @@ class AndroidSyncPerformanceTestFixture {
      * <h3>Android Studio installation</h3>
      * <p>The Studio home is resolved by {@code AndroidStudioFinder} in the following order:</p>
      * <ol>
-     *     <li>{@code -PautoDownloadAndroidStudio=true} &mdash; the build automatically downloads
+     *     <li>{@code -PautoDownloadIde=true} &mdash; the build automatically downloads
      *         and unpacks Android Studio; no local installation is needed.
      *     <li>{@code STUDIO_PROFILER_HOME} environment variable or {@code -PstudioHome} property
      *         &mdash; explicit path to an existing Android Studio installation.
@@ -56,7 +56,7 @@ class AndroidSyncPerformanceTestFixture {
      *
      * <h3>Options</h3>
      * <ul>
-     *     <li>{@code -PrunAndroidStudioInHeadlessMode=true} &mdash; run Android Studio in headless mode.
+     *     <li>{@code -PrunIdeInHeadlessMode=true} &mdash; run Android Studio in headless mode.
      * </ul>
      *
      * <h3>Parameter passing</h3>
@@ -70,6 +70,8 @@ class AndroidSyncPerformanceTestFixture {
         runner.addInterceptor(new StudioExecutionInterceptor())
         assert System.getenv("ANDROID_SDK_ROOT") != null
         String androidSdkRootPath = System.getenv("ANDROID_SDK_ROOT")
+
+        // TODO use it?
         runner.addBuildMutator { invocation -> new LocalPropertiesMutator(invocation, FilenameUtils.separatorsToUnix(androidSdkRootPath)) }
     }
 

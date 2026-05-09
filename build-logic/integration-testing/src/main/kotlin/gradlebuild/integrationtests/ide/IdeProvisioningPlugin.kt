@@ -31,7 +31,6 @@ import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.kotlin.dsl.*
-import org.gradle.process.CommandLineArgumentProvider
 import org.gradle.work.DisableCachingByDefault
 import org.jetbrains.intellij.platform.gradle.Constants.Configurations.Attributes.ArtifactType
 import org.jetbrains.intellij.platform.gradle.IntelliJPlatformType
@@ -45,6 +44,7 @@ import java.util.Properties
 
 abstract class IdeProvisioningExtension {
     abstract val androidStudioInstallPath: DirectoryProperty
+    abstract val intellijIdeaInstallPath: DirectoryProperty
 }
 
 class IdeProvisioningPlugin : Plugin<Project> {
@@ -55,11 +55,6 @@ class IdeProvisioningPlugin : Plugin<Project> {
         private const val INTELLIJ_IDEA_VERSION_KEY = "intellij.idea"
         private const val ANDROID_STUDIO_ARCHIVE_CONFIGURATION = "androidStudioArchive"
         private const val INTELLIJ_IDEA_ARCHIVE_CONFIGURATION = "intellijIdeaArchive"
-
-        fun ideArchivesProvider(project: Project): IdeArchivesProvider = project.objects.newInstance<IdeArchivesProvider>().apply {
-            androidStudioArchive.from(project.configurations.named(ANDROID_STUDIO_ARCHIVE_CONFIGURATION))
-            intellijIdeaArchive.from(project.configurations.named(INTELLIJ_IDEA_ARCHIVE_CONFIGURATION))
-        }
 
         private fun loadProperties(file: File): Properties {
             require(file.exists()) { "IDE versions file not found: $file" }
@@ -97,8 +92,15 @@ class IdeProvisioningPlugin : Plugin<Project> {
                 targetDir.set(layout.buildDirectory.dir("android-studio"))
             }
 
+            val extractIntellijIdea = tasks.register<ExtractIde>("extractIntellijIdea") {
+                service.set(extractor)
+                archive.from(intellijIdeaArchive)
+                targetDir.set(layout.buildDirectory.dir("intellij-idea"))
+            }
+
             extensions.create<IdeProvisioningExtension>("ideProvisioning").apply {
                 androidStudioInstallPath.set(extractAndroidStudio.flatMap { it.targetDir })
+                intellijIdeaInstallPath.set(extractIntellijIdea.flatMap { it.targetDir })
             }
         }
     }
@@ -157,22 +159,11 @@ abstract class ExtractIde : DefaultTask() {
     fun run() {
         val target = targetDir.get().asFile.toPath()
         target.toFile().deleteRecursively()
-        Files.createDirectories(target)
-        service.get().extract(archive.singleFile.toPath(), target)
+        // On macOS, ExtractorService strips the .app/Contents/ layers from DMG bundles.
+        // Extract into a Contents/ subdirectory so the native macOS launcher (Contents/MacOS/studio)
+        // can resolve its resources correctly via NSBundle.
+        val extractionTarget = if (OperatingSystem.current().isMacOsX) target.resolve("Contents") else target
+        Files.createDirectories(extractionTarget)
+        service.get().extract(archive.singleFile.toPath(), extractionTarget)
     }
-}
-
-abstract class IdeArchivesProvider : CommandLineArgumentProvider {
-    @get: InputFiles
-    @get: PathSensitive(PathSensitivity.NONE)
-    abstract val androidStudioArchive: ConfigurableFileCollection
-
-    @get: InputFiles
-    @get: PathSensitive(PathSensitivity.NONE)
-    abstract val intellijIdeaArchive: ConfigurableFileCollection
-
-    override fun asArguments(): Iterable<String> = listOf(
-        "-Dandroid.studio.archive=${androidStudioArchive.singleFile.absolutePath}",
-        "-Dintellij.idea.archive=${intellijIdeaArchive.singleFile.absolutePath}"
-    )
 }
