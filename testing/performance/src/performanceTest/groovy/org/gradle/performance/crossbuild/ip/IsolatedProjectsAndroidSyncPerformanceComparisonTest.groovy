@@ -22,6 +22,7 @@ import org.gradle.performance.annotations.RunFor
 import org.gradle.performance.annotations.Scenario
 import org.gradle.performance.fixture.GradleBuildExperimentSpec
 import org.gradle.performance.results.CrossBuildPerformanceResults
+import org.gradle.performance.results.SpeedupAssertions
 import org.gradle.profiler.mutations.ApplyAbiChangeToSourceFileMutator
 
 import static org.gradle.performance.annotations.ScenarioType.PER_DAY
@@ -86,10 +87,18 @@ class IsolatedProjectsAndroidSyncPerformanceComparisonTest extends AbstractCross
         def moderne = buildBaselineResults(result, "moderne")
         def ip = result.buildResult("ip")
 
-        // TODO:isolated assert that IP is not just faster, but faster with a scaling factor
-        // TODO:isolated assert an upper bound of faster to visibly lock-in performance improvements
         println(moderne.getSpeedStatsAgainst("ip", ip))
-        !moderne.significantlyFasterThan(ip)
+
+        // Speedup of IP over moderne expected on this scenario.
+        // The ceiling sits +0.10 above the floor: any improvement that pushes the speedup past it
+        // fails the build, prompting us to ratchet both ends in the same PR rather than letting the
+        // win silently erode later. Each check has its own ±5% noise band, so the practical pass
+        // zone is roughly [floor − 5%, ceiling + 5%]. Do not delete the assertions when they fire.
+        double minSpeedup = 2.4
+        double maxSpeedup = minSpeedup + 0.10
+        def location = "${this.class.simpleName}[testProject=${runner.testProject}, baseline=moderne]"
+        SpeedupAssertions.assertSpeedupAtLeast(moderne.results, ip, minSpeedup, location)
+        SpeedupAssertions.assertSpeedupAtMost(moderne.results, ip, maxSpeedup, location)
     }
 
     @Override
