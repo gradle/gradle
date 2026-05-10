@@ -303,7 +303,7 @@ public final class JUnitPlatformTestDefinitionProcessor extends AbstractJUnitTes
         }
 
         private void dryRun(TestIdentifier testIdentifier, TestPlan testPlan, TestExecutionListener listener) {
-            if (testIdentifier.isTest()) {
+            if (testIdentifier.isTest() || isDynamicTestContainer(testIdentifier, testPlan)) {
                 listener.executionSkipped(testIdentifier, "Gradle test execution dry run");
             } else {
                 listener.executionStarted(testIdentifier);
@@ -313,6 +313,12 @@ public final class JUnitPlatformTestDefinitionProcessor extends AbstractJUnitTes
                 }
                 listener.executionFinished(testIdentifier, TestExecutionResult.successful());
             }
+        }
+
+        private static boolean isDynamicTestContainer(TestIdentifier testIdentifier, TestPlan testPlan) {
+            return testIdentifier.getParentId().isPresent()
+                && testIdentifier.getSource().filter(s -> s instanceof MethodSource).isPresent()
+                && testPlan.getChildren(testIdentifier).isEmpty();
         }
 
         private boolean isNotEmpty(TestFilterSpec filter) {
