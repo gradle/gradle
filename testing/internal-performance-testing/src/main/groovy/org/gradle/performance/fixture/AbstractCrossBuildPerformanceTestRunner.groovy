@@ -106,8 +106,10 @@ abstract class AbstractCrossBuildPerformanceTestRunner<R extends CrossBuildPerfo
      *
      * @see org.gradle.internal.operations.BuildOperationType
      */
-    void measureBuildOperation(String buildOperationType, BuildOperationMeasurementKind kind) {
-        measuredBuildOperations << new BuildOperationMeasurement(buildOperationType, kind)
+    BuildOperationMeasurement measureBuildOperation(String buildOperationType, BuildOperationMeasurementKind kind) {
+        def measurement = new BuildOperationMeasurement(buildOperationType, kind)
+        measuredBuildOperations << measurement
+        return measurement
     }
 
     protected void configureGradleSpec(GradleBuildExperimentSpec.GradleBuilder builder) {

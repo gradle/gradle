@@ -23,6 +23,7 @@ import org.gradle.performance.annotations.Scenario
 import org.gradle.performance.fixture.GradleBuildExperimentSpec
 import org.gradle.performance.results.CrossBuildPerformanceResults
 import org.gradle.performance.results.SpeedupAssertions
+import org.gradle.profiler.buildops.BuildOperationMeasurementKind
 import org.gradle.profiler.mutations.ApplyAbiChangeToSourceFileMutator
 
 import static org.gradle.performance.annotations.ScenarioType.PER_DAY
@@ -63,6 +64,8 @@ class IsolatedProjectsAndroidSyncPerformanceComparisonTest extends AbstractCross
             new ApplyAbiChangeToSourceFileMutator(new File(settings.projectDir, abiChangeSource))
         }
 
+        def configureBuild = runner.measureBuildOperation("org.gradle.initialization.ConfigureBuildBuildOperationType", BuildOperationMeasurementKind.TIME_TO_LAST_INCLUSIVE)
+
         // 'Moderne' configuration that is used by performance aware teams
         runner.baseline {
             displayName("moderne")
@@ -96,6 +99,12 @@ class IsolatedProjectsAndroidSyncPerformanceComparisonTest extends AbstractCross
         def ip = result.buildResult("ip")
 
         println(moderne.getSpeedStatsAgainst("ip", ip))
+        def moderneConfigureMedian = moderne.results.getBuildOperationTime(configureBuild).median
+        def ipConfigureMedian = ip.getBuildOperationTime(configureBuild).median
+        def configureSpeedup = (moderneConfigureMedian != null && ipConfigureMedian != null)
+            ? String.format('%.2f', moderneConfigureMedian / ipConfigureMedian)
+            : "n/a"
+        println("ConfigureBuild median:  moderne=${moderneConfigureMedian?.format()}  ip=${ipConfigureMedian?.format()}  speedup=${configureSpeedup}x")
 
         // Speedup of IP over moderne expected on this scenario.
         // The ceiling sits +0.10 above the floor: any improvement that pushes the speedup past it

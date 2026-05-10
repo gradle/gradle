@@ -136,8 +136,10 @@ class CrossVersionPerformanceTestRunner implements PerformanceTestRunner<CrossVe
      *
      * @see org.gradle.internal.operations.BuildOperationType
      */
-    void measureBuildOperation(String operationType, BuildOperationMeasurementKind kind) {
-        measuredBuildOperations << new BuildOperationMeasurement(operationType, kind)
+    BuildOperationMeasurement measureBuildOperation(String operationType, BuildOperationMeasurementKind kind) {
+        def measurement = new BuildOperationMeasurement(operationType, kind)
+        measuredBuildOperations << measurement
+        return measurement
     }
 
     @Override
