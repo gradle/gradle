@@ -19,6 +19,7 @@ package org.gradle.internal.cc.impl.isolated
 import org.gradle.api.tasks.TasksWithInputsAndOutputs
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.internal.ToBeImplemented
+import spock.lang.Issue
 
 class IsolatedProjectsIntegrationTest extends AbstractIsolatedProjectsIntegrationTest implements TasksWithInputsAndOutputs {
     def "option also enables configuration cache"() {
@@ -112,6 +113,60 @@ class IsolatedProjectsIntegrationTest extends AbstractIsolatedProjectsIntegratio
         then:
         result.assertTasksScheduled(":a:producer", ":b:producer", ":c:producer")
         fixture.assertStateLoaded()
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/31947")
+    def "build service parameters are safely finalized when the service is instantiated"() {
+        given:
+        createDirs("a", "b", "c")
+        settingsFile << """
+            include 'a', 'b', 'c'
+        """
+
+        // Define the service and plugin in a shared script that each subproject applies.
+        // Each subproject independently registers-if-absent and mutates the shared ListProperty parameter.
+        // With Isolated Projects, subprojects are configured in parallel,
+        // leading to concurrent mutation of the shared service parameters.
+        file("collector.gradle") << """
+            abstract class CollectorService implements BuildService<CollectorService.Params> {
+                interface Params extends BuildServiceParameters {
+                    ListProperty<String> getItems()
+                }
+
+                List<String> getItems() {
+                    return parameters.items.get()
+                }
+            }
+
+            def collector = gradle.sharedServices.registerIfAbsent("collector", CollectorService) {
+                gradle.projectsEvaluated {}
+                parameters.items.set(["i"])
+            }
+
+            gradle.sharedServices.registrations.named("collector").configure {
+                parameters.items.add(project.name)
+            }
+
+            tasks.register("printItems") {
+                usesService(collector)
+                doLast {
+                    println("items: " + collector.get().items.toList().sort().join(", "))
+                }
+            }
+        """
+
+        file("a/build.gradle") << "apply from: '../collector.gradle'"
+        file("b/build.gradle") << "apply from: '../collector.gradle'"
+        file("c/build.gradle") << "apply from: '../collector.gradle'"
+
+        when:
+        isolatedProjectsRun("printItems", "-S")
+
+        then:
+        fixture.assertStateStored {
+            projectsConfigured(":", ":a", ":b", ":c")
+        }
+        outputContains("items: a, b, c")
     }
 
     TestFile customType(TestFile dir) {
