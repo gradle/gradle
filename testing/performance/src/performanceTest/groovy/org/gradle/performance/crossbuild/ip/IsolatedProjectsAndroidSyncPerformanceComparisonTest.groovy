@@ -29,7 +29,7 @@ import static org.gradle.performance.annotations.ScenarioType.PER_DAY
 import static org.gradle.performance.results.OperatingSystem.LINUX
 
 @RunFor(
-    @Scenario(type = PER_DAY, operatingSystems = [LINUX], testProjects = ["android100Kts"])
+    @Scenario(type = PER_DAY, operatingSystems = [LINUX], testProjects = ["android100Kts", "android100Groovy", "nowInAndroidBuild"])
 )
 class IsolatedProjectsAndroidSyncPerformanceComparisonTest extends AbstractCrossBuildPerformanceTest {
 
@@ -51,8 +51,16 @@ class IsolatedProjectsAndroidSyncPerformanceComparisonTest extends AbstractCross
         studioSetup()
         def runner = getRunner() // otherwise, IDEA thinks it's PerformanceTestRunner despite the override
 
+        def testProject = runner.testProject
+        def abiChangeSource = [
+            "android100Kts"    : "build-logic/convention/src/main/java/org/example/awesome/AwesomeStringUtils.java",
+            "android100Groovy" : "build-logic/convention/src/main/java/org/example/awesome/AwesomeStringUtils.java",
+            "nowInAndroidBuild": "build-logic/convention/src/main/kotlin/com/google/samples/apps/nowinandroid/AndroidCompose.kt",
+        ][testProject]
+        assert abiChangeSource != null: "No build-logic ABI change source configured for test project '$testProject'"
+
         runner.addBuildMutator { settings ->
-            new ApplyAbiChangeToSourceFileMutator(new File(settings.projectDir, "build-logic/convention/src/main/java/org/example/awesome/AwesomeStringUtils.java"))
+            new ApplyAbiChangeToSourceFileMutator(new File(settings.projectDir, abiChangeSource))
         }
 
         // 'Moderne' configuration that is used by performance aware teams
