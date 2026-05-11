@@ -19,10 +19,11 @@ package org.gradle.initialization.buildsrc;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.internal.initialization.ScriptClassPathResolver;
 import org.gradle.api.internal.initialization.ScriptClassPathResolutionContext;
+import org.gradle.api.internal.initialization.ScriptClassPathResolver;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectState;
+import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.execution.EntryTaskSelector;
 import org.gradle.execution.plan.ExecutionPlan;
@@ -32,8 +33,6 @@ import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.util.Collections;
-
-import static org.gradle.api.internal.tasks.TaskDependencyUtil.getDependenciesForInternalUse;
 
 @ServiceScope(Scope.Build.class)
 public class BuildSrcBuildListenerFactory {
@@ -54,6 +53,7 @@ public class BuildSrcBuildListenerFactory {
      * On build completion, makes the runtime classpath of the main `buildSrc` component available.
      */
     public static class Listener extends InternalBuildAdapter implements EntryTaskSelector {
+
         private Configuration classpathConfiguration;
         private ProjectState rootProjectState;
         private ScriptClassPathResolutionContext resolutionContext;
@@ -82,12 +82,15 @@ public class BuildSrcBuildListenerFactory {
                 classpathConfiguration = rootProject.getConfigurations().resolvableDependencyScopeLocked("buildScriptClasspath");
                 resolver.prepareClassPath(classpathConfiguration, resolutionContext);
                 classpathConfiguration.getDependencies().add(rootProject.getDependencyFactory().createProjectDependency());
-                plan.addEntryTasks(getDependenciesForInternalUse(classpathConfiguration));
+                TaskDependencyContainer configurationTaskDependencies = (TaskDependencyContainer) classpathConfiguration;
+                plan.addEntryDependencies(configurationTaskDependencies);
             });
         }
 
         public ClassPath getRuntimeClasspath() {
             return rootProjectState.fromMutableState(project -> resolver.resolveClassPath(classpathConfiguration, resolutionContext));
         }
+
     }
+
 }

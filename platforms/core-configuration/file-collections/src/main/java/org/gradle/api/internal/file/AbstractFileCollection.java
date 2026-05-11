@@ -26,7 +26,6 @@ import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.api.internal.file.collections.FileBackedDirectoryFileTree;
 import org.gradle.api.internal.file.collections.FileSystemMirroringFileTree;
 import org.gradle.api.internal.provider.BuildableBackedProvider;
-import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.internal.tasks.DefaultTaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
@@ -55,6 +54,7 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 public abstract class AbstractFileCollection implements FileCollectionInternal {
+
     protected final TaskDependencyFactory taskDependencyFactory;
     protected final PatternSetFactory patternSetFactory;
 
@@ -96,9 +96,7 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
     @Override
     public final TaskDependency getBuildDependencies() {
         assertCanCarryBuildDependencies();
-        DefaultTaskDependency result = taskDependencyFactory.visitingDependencies(context -> context.add(AbstractFileCollection.this));
-        result.setToStringProvider(() -> "Dependencies of " + getDisplayName());
-        return result;
+        return taskDependencyFactory.visitingDependencies(context -> context.add(AbstractFileCollection.this));
     }
 
     protected void assertCanCarryBuildDependencies() {
@@ -365,4 +363,5 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
     protected void visitContents(FileCollectionStructureVisitor visitor) {
         visitor.visitCollection(OTHER, this);
     }
+
 }

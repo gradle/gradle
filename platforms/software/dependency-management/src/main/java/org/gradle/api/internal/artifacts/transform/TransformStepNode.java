@@ -22,7 +22,6 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Resol
 import org.gradle.api.internal.project.ProjectIdentity;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.NodeExecutionContext;
-import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.execution.plan.CreationOrderedNode;
 import org.gradle.execution.plan.Node;
@@ -198,7 +197,7 @@ public abstract class TransformStepNode extends CreationOrderedNode implements S
 
     @Override
     public void resolveDependencies(TaskDependencyResolver dependencyResolver) {
-        processDependencies(dependencyResolver.resolveDependenciesFor(null, (TaskDependencyContainer) context -> getTransformedArtifacts().visitDependencies(context)));
+        processDependencies(dependencyResolver.resolveDependenciesFor(null, getTransformedArtifacts()::visitDependencies));
     }
 
     protected void processDependencies(Set<Node> dependencies) {

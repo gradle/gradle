@@ -18,6 +18,7 @@ package org.gradle.composite.internal
 
 import org.gradle.api.Action
 import org.gradle.api.DefaultTask
+import org.gradle.api.Task
 import org.gradle.api.artifacts.component.BuildIdentifier
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.SettingsInternal
@@ -31,12 +32,14 @@ import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectState
 import org.gradle.api.internal.project.taskfactory.TestTaskIdentities
 import org.gradle.api.internal.tasks.NodeExecutionContext
+import org.gradle.api.internal.tasks.TaskDependencyInternal
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.api.internal.tasks.TaskDestroyablesInternal
 import org.gradle.api.internal.tasks.TaskLocalStateInternal
-import org.gradle.api.tasks.TaskDependency
 import org.gradle.execution.plan.BuildWorkPlan
 import org.gradle.execution.plan.DefaultExecutionPlan
 import org.gradle.execution.plan.DefaultPlanExecutor
+import org.gradle.execution.plan.DependencyResolver
 import org.gradle.execution.plan.ExecutionNodeAccessHierarchies
 import org.gradle.execution.plan.ExecutionPlan
 import org.gradle.execution.plan.FinalizedExecutionPlan
@@ -278,8 +281,8 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
             getProjectIdentity() >> projectId
         }
         def task = Stub(TaskInternal)
-        def dependencies = Stub(TaskDependency)
-        _ * dependencies.getDependencies(_) >> [dependsOn].toSet()
+        def dependencies = Stub(TaskDependencyInternal)
+        _ * dependencies.visitDependencies(_) >> { TaskDependencyResolveContext context -> context.add(dependsOn) }
         _ * task.taskDependencies >> dependencies
         _ * task.project >> project
         _ * task.identityPath >> projectId.buildTreePath.child("task")
@@ -303,14 +306,13 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
         def builder = Mock(BuildLifecycleController.WorkGraphBuilder)
         def nodeFactory = new TaskNodeFactory(services.gradle, Stub(BuildTreeWorkGraphController), Stub(NodeValidator), new TestBuildOperationRunner(), new ExecutionNodeAccessHierarchies(CaseSensitivity.CASE_INSENSITIVE, Stub(Stat)), TestUtil.problemsService())
         def hierarchies = new ExecutionNodeAccessHierarchies(CaseSensitivity.CASE_SENSITIVE, TestFiles.fileSystem())
-        def dependencyResolver = Stub(TaskDependencyResolver)
-        _ * dependencyResolver.resolveDependenciesFor(_, _) >> { TaskInternal task, Object dependencies ->
-            if (dependencies instanceof TaskDependency) {
-                dependencies.getDependencies(task)
-            } else {
-                []
+        def dependencyResolver = new TaskDependencyResolver([new DependencyResolver() {
+            @Override
+            boolean resolve(Task t, Object node, Action<? super Node> resolveAction) {
+                resolveAction.execute((Node) node)
+                return true
             }
-        }
+        }])
         def plan = new DefaultExecutionPlan(displayName, nodeFactory, new OrdinalGroupFactory(), dependencyResolver, hierarchies.outputHierarchy, hierarchies.destroyableHierarchy, services.services.coordinationService)
         def workPlan = Stub(BuildWorkPlan) {
             _ * stop() >> { plan.close() }

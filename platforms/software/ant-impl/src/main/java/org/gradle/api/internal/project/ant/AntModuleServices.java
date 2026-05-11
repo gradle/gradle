@@ -23,6 +23,7 @@ import org.gradle.api.internal.project.AntBuilderFactory;
 import org.gradle.api.internal.project.DefaultAntBuilderFactory;
 import org.gradle.api.internal.project.IsolatedAntBuilder;
 import org.gradle.api.internal.project.antbuilder.DefaultIsolatedAntBuilder;
+import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.internal.classloader.ClassLoaderFactory;
 import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistration;
@@ -52,8 +53,8 @@ public class AntModuleServices extends AbstractGradleModuleServices {
 
     private static class AntProjectScopeServices implements ServiceRegistrationProvider {
         @Provides
-        AntBuilderFactory createAntBuilderFactory(Project project) {
-            return new DefaultAntBuilderFactory(project, new DefaultAntLoggingAdapterFactory());
+        AntBuilderFactory createAntBuilderFactory(Project project, TaskDependencyFactory taskDependencyFactory) {
+            return new DefaultAntBuilderFactory(project, new DefaultAntLoggingAdapterFactory(), taskDependencyFactory);
         }
     }
 }
