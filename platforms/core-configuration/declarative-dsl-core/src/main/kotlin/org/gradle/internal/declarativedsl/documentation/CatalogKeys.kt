@@ -57,7 +57,7 @@ private fun primitiveFragment(type: DataType.PrimitiveType): String = when (type
     is DataType.BooleanDataType -> "boolean"
     is DataType.StringDataType -> "java.lang.String"
     is DataType.UnitType -> "void"
-    is DataType.TypeVariableUsage -> "T" // TODO: preserve the real name or erasure
+    is DataType.TypeVariableUsage -> "<type-variable#${type.variableId}>" // TODO: preserve the real name or erasure
     is DataType.NullType -> error("Unsupported primitive type for catalog key fragment: $type")
 }
 
