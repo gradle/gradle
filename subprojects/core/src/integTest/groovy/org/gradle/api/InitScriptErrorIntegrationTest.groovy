@@ -38,7 +38,7 @@ public class InitScriptErrorIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         failure.assertHasDescription("A problem occurred evaluating initialization script.")
-                .assertHasCause("Could not find method createTakk() for arguments [do-stuff] on build of type ${DefaultGradle.name}.")
+                .assertHasCause("Could not find method createTakk() for arguments [do-stuff] on build ':' of type ${DefaultGradle.name}.")
                 .assertHasFileName("Initialization script '$initScript'")
                 .assertHasLineNumber(2)
     }

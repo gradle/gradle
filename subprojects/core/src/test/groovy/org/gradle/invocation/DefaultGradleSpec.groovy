@@ -28,6 +28,7 @@ import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.MutationGuard
 import org.gradle.api.internal.SettingsInternal
 import org.gradle.api.internal.StartParameterInternal
+import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.project.CrossProjectConfigurator
 import org.gradle.api.internal.project.CrossBuildModelAccess
@@ -41,6 +42,7 @@ import org.gradle.configuration.internal.TestListenerBuildOperationDecorator
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal
 import org.gradle.initialization.ClassLoaderScopeRegistry
 import org.gradle.initialization.SettingsState
+import org.gradle.internal.Describables
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.build.DefaultPublicBuildPath
 import org.gradle.internal.build.PublicBuildPath
@@ -330,6 +332,10 @@ class DefaultGradleSpec extends Specification {
     }
 
     def "get settings throws exception when settings is not available"() {
+        given:
+        // Allow toString() to work
+        _ * build.getDisplayName() >> Describables.of(new DefaultBuildIdentifier(Path.ROOT))
+
         when:
         gradle.settings
 
@@ -446,19 +452,13 @@ class DefaultGradleSpec extends Specification {
 
     def "has toString()"() {
         given:
-        def projectsLoaded = false
-        def rootProjectState = projectState('rootProject')
-        _ * build.isProjectsLoaded() >> { projectsLoaded }
-        _ * build.getRootProject() >> rootProjectState
+        _ * build.getDisplayName() >> Describables.of(new DefaultBuildIdentifier(identityPath))
 
         expect:
-        gradle.toString() == 'build'
+        gradle.toString() == "build '$identityPath'"
 
-        when:
-        projectsLoaded = true
-
-        then:
-        gradle.toString() == "build 'rootProject'"
+        where:
+        identityPath << [Path.ROOT, Path.path(":buildB")]
     }
 
     @SuppressWarnings("deprecation")

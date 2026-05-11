@@ -171,7 +171,7 @@ class PluginApplicationBuildProgressCrossVersionSpec extends AbstractProgressCro
         events.assertIsABuild()
 
         def applyInitScript = events.operation(applyInitScript(initScript))
-        def examplePlugin = events.operation("Apply plugin ExamplePlugin to build")
+        def examplePlugin = events.operation("Apply plugin ExamplePlugin to ${buildToString()}")
 
         examplePlugin.parent == applyInitScript
     }

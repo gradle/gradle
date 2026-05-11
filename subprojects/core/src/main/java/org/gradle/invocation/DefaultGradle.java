@@ -138,11 +138,7 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
 
     @Override
     public String toString() {
-        if (!buildState.isProjectsLoaded()) {
-            return "build";
-        }
-        // Does the rootProject name really make sense here? Wouldn't it be better to use the build identity path?
-        return "build '" + buildState.getRootProject().getName() + "'";
+        return getOwner().getDisplayName().getDisplayName();
     }
 
     @Override
