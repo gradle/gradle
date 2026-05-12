@@ -6,7 +6,6 @@ description = "Plugins, tasks and compiler infrastructure for compiling/linking 
 
 dependencies {
     api(projects.baseCompilerWorker)
-    api(projects.baseDiagnostics)
     api(projects.baseServices)
     api(projects.buildOperations)
     api(projects.core)
@@ -16,26 +15,26 @@ dependencies {
     api(projects.files)
     api(projects.hashing)
     api(projects.logging)
-    api(projects.modelCore)
     api(projects.native)
     api(projects.platformBase)
     api(projects.serviceProvider)
-    api(projects.softwareDiagnostics)
     api(projects.stdlibJavaExtensions)
     api(projects.processServices)
-    api(projects.workers)
 
     api(libs.jspecify)
     api(libs.inject)
     api(libs.nativePlatform)
     api(libs.slf4jApi)
 
-    implementation(projects.daemonServerWorker)
-    implementation(projects.enterpriseLogging)
     implementation(projects.io)
     implementation(projects.loggingApi)
+    implementation(projects.modelCore)
     implementation(projects.processServicesApi)
     implementation(projects.serviceLookup)
+
+    runtimeOnly(projects.baseDiagnostics)
+    runtimeOnly(projects.softwareDiagnostics)
+    runtimeOnly(projects.workers)
 
     implementation(libs.commonsLang)
     implementation(libs.commonsIo)

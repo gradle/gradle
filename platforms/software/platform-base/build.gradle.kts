@@ -4,12 +4,8 @@ plugins {
 
 dependencies {
     api(projects.stdlibJavaExtensions)
-    api(projects.serviceLookup)
-    api(projects.serviceProvider)
     api(projects.baseServices)
-    api(projects.core)
     api(projects.coreApi)
-    api(projects.domainObjectCollections)
     api(projects.files)
     api(projects.logging)
     api(projects.modelCore)
@@ -19,9 +15,12 @@ dependencies {
     api(libs.jspecify)
     api(libs.jsr305)
 
-    implementation(projects.dependencyManagement)
+    implementation(projects.core)
+    implementation(projects.domainObjectCollections)
+    implementation(projects.serviceLookup)
     implementation(projects.execution)
-    implementation(projects.modelReflect)
+
+    runtimeOnly(projects.dependencyManagement)
 
     implementation(libs.commonsLang)
 
@@ -30,6 +29,7 @@ dependencies {
     testImplementation(projects.native)
     testImplementation(projects.snapshots)
     testImplementation(projects.processServices)
+    testImplementation(projects.softwareDiagnostics)
 
     testFixturesApi(projects.fileCollections)
     testFixturesApi(testFixtures(projects.modelCore))

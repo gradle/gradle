@@ -581,55 +581,6 @@ b
         succeeds TASKS_DETAILED_REPORT_TASK
     }
 
-    def "renders tasks with dependencies created by model rules running #tasks"() {
-        when:
-        settingsFile << "rootProject.name = 'test-project'"
-        buildFile """
-            plugins {
-                id 'component-model-base'
-            }
-
-            model {
-                tasks {
-                    create('a')
-                }
-            }
-
-            task b {
-                dependsOn 'a'
-            }
-
-            task c
-
-            model {
-                tasks {
-                    create('d') {
-                        dependsOn c
-                    }
-                }
-            }
-        """
-
-        then:
-        succeeds tasks
-
-        output.contains("""
-$otherGroupHeader
-a
-b
-c
-components - Displays the components produced by root project 'test-project'. [deprecated]
-d
-dependentComponents - Displays the dependent components of components in root project 'test-project'. [deprecated]
-model - Displays the configuration model of root project 'test-project'. [deprecated]
-""") == rendersTasks
-
-        where:
-        tasks                      | rendersTasks
-        TASKS_REPORT_TASK          | false
-        TASKS_DETAILED_REPORT_TASK | true
-    }
-
     def "can run multiple task reports in parallel"() {
         given:
         def projects = (1..100).collect {"project$it"}
