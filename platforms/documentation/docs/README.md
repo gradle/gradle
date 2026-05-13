@@ -24,6 +24,59 @@ All file paths in this guide are relative to the `docs` project directory unless
 
 Follow the instructions in [notes.md](https://github.com/gradle/gradle/blob/master/platforms/documentation/docs/src/docs/release/notes.md).
 
+Release notes are one of the main ways Gradle conveys information about improvements to users.
+We expect that users will upgrade Gradle more readily if they can understand the benefits of said upgrade.
+
+### "New features and usability improvements" content
+
+We want the "New features and usability improvements" to be more than just a change log.
+It is a copyedited description of the main benefits of a given release, and it does not aim for completeness.
+
+### What should be in the "New features" section
+
+For a change to make it to the "New features and usability improvements" section, it should be a feature or improvement in either:
+
+- The Gradle distribution
+- Another component maintained by the Gradle team tied directly to the given Gradle release
+
+Major features or efforts should be introduced through release notes:
+
+- When they are ready for early adopters
+- When they are stable
+
+And it should fall into one of the following categories:
+
+- A new feature, incubating or not, that we expect users to try, give feedback, and/or adopt
+- A bug fix with an important impact on users, such as:
+  - A highly voted issue
+  - An issue with a high potential impact
+
+> **Note:** Users are anyone matching one of our proto personas.
+
+### How a release note entry should be presented
+
+Each entry should have the following characteristics:
+
+- **Sets the context** — what are we even talking about (don't assume too much about what the user already knows)
+- **Expresses the problem or use case** in the given context
+- **Explains how the new release addresses** that problem or use case
+- **Has backing documentation** in the user manual, DSL doc, javadoc, or the upgrade guide. The "New features and usability improvements" section highlights the feature but should never be the only documentation.
+- **Links to that documentation**
+- **Contains example(s):**
+  - Code snippet
+  - After/before output
+  - After/before behavior
+- **Optional:** Video/screencast for major changes. If possible, include them in the release changelog for better promotion of new features. The same video can be included in the integrated release video later.
+
+### What should not be in the "New features" section
+
+The following changes are not intended to be in the "New features and usability improvements":
+
+- **Internal features.** They are mainly defined by things users should either never use or not yet use.
+- **Behavior changes that might break users.** These go to the upgrade guide or a potential new section.
+- **Promoted features**, aside from major efforts. These go to their dedicated section. We assume they were release noted before being promoted.
+- **Very early experimental features** intended for invite-only audiences (possibly hidden behind an internal flag).
+
 ### Generating Release Notes
 
 ```bash
