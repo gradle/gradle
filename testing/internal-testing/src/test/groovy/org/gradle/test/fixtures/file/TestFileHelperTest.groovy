@@ -151,6 +151,28 @@ class TestFileHelperTest extends Specification {
         target.file("sub/b.txt").text == "bravo"
     }
 
+    def "archive-creation methods create parent directories that don't yet exist"() {
+        given:
+        TestFile src = temp.testDirectory.file("src")
+        src.file("a.txt") << "alpha"
+        TestFile input = temp.testDirectory.file("input.txt")
+        input << "payload"
+
+        when:
+        new TestFileHelper(src).zipTo(temp.testDirectory.file("nested/zip/out.zip"), false, false)
+        new TestFileHelper(src).tarTo(temp.testDirectory.file("nested/tar/out.tar"), false, false)
+        new TestFileHelper(src).tgzTo(temp.testDirectory.file("nested/tgz/out.tgz"), false)
+        new TestFileHelper(src).tbzTo(temp.testDirectory.file("nested/tbz/out.tbz2"), false)
+        new TestFileHelper(input).bzip2To(temp.testDirectory.file("nested/bz2/out.txt.bz2"))
+
+        then:
+        temp.testDirectory.file("nested/zip/out.zip").exists()
+        temp.testDirectory.file("nested/tar/out.tar").exists()
+        temp.testDirectory.file("nested/tgz/out.tgz").exists()
+        temp.testDirectory.file("nested/tbz/out.tbz2").exists()
+        temp.testDirectory.file("nested/bz2/out.txt.bz2").exists()
+    }
+
     def "bzip2To compresses a single file that can be decompressed back to the original bytes"() {
         given:
         TestFile input = temp.testDirectory.file("input.txt")

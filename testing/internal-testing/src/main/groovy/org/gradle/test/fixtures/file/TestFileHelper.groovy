@@ -221,6 +221,7 @@ class TestFileHelper {
     }
 
     void zipTo(TestFile zipFile, boolean nativeTools, boolean readOnly) {
+        ensureParentDir(zipFile)
         if (nativeTools && !isWindows()) {
             def process = ['zip', zipFile.absolutePath, "-r", file.name].execute(null, file.parentFile)
             process.consumeProcessOutput(System.out, System.err)
@@ -237,6 +238,7 @@ class TestFileHelper {
     void tarTo(TestFile tarFile, boolean nativeTools, boolean readOnly) {
         //TODO: there is an inconsistency here; when using native tools the root folder is put into the TAR, but only its content is packaged by the other branch
         // for example if we put an empty folder into the TAR, then native tools will insert an entry with an empty directory, while the other branch will insert no entries
+        ensureParentDir(tarFile)
         if (nativeTools && !isWindows()) {
             def process = ['tar', "-cf", tarFile.absolutePath, file.name].execute(null, file.parentFile)
             process.consumeProcessOutput(System.out, System.err)
@@ -249,6 +251,7 @@ class TestFileHelper {
     }
 
     void tgzTo(TestFile tarFile, boolean readOnly) {
+        ensureParentDir(tarFile)
         tarFile.withOutputStream { os ->
             new GzipCompressorOutputStream(os).withCloseable { gz ->
                 writeTar(gz, readOnly)
@@ -257,6 +260,7 @@ class TestFileHelper {
     }
 
     void tbzTo(TestFile tarFile, boolean readOnly) {
+        ensureParentDir(tarFile)
         tarFile.withOutputStream { os ->
             new BZip2CompressorOutputStream(os).withCloseable { bz ->
                 writeTar(bz, readOnly)
@@ -265,10 +269,18 @@ class TestFileHelper {
     }
 
     void bzip2To(TestFile compressedFile) {
+        ensureParentDir(compressedFile)
         compressedFile.withOutputStream { os ->
             new BZip2CompressorOutputStream(os).withCloseable { bz ->
                 file.withInputStream { is -> bz << is }
             }
+        }
+    }
+
+    private static void ensureParentDir(File output) {
+        File parent = output.parentFile
+        if (parent != null) {
+            parent.mkdirs()
         }
     }
 
