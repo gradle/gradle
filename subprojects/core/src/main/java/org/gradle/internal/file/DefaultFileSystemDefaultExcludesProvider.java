@@ -24,13 +24,14 @@ import org.gradle.initialization.RootBuildLifecycleListener;
 import org.gradle.internal.event.AnonymousListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.file.excludes.FileSystemDefaultExcludesListener;
+import org.gradle.internal.file.excludes.GradleDefaultExcludes;
 
 import java.util.List;
 import java.util.Set;
 
 public class DefaultFileSystemDefaultExcludesProvider implements FileSystemDefaultExcludesProvider {
 
-    private ImmutableList<String> currentDefaultExcludes = ImmutableList.copyOf(DirectoryScanner.getDefaultExcludes());
+    private ImmutableList<String> currentDefaultExcludes = GradleDefaultExcludes.DEFAULT_EXCLUDES;
 
     private final AnonymousListenerBroadcast<FileSystemDefaultExcludesListener> broadcast;
 
@@ -41,7 +42,7 @@ public class DefaultFileSystemDefaultExcludesProvider implements FileSystemDefau
             @Override
             public void afterStart() {
                 DirectoryScanner.resetDefaultExcludes();
-                currentDefaultExcludes = ImmutableList.copyOf(DirectoryScanner.getDefaultExcludes());
+                currentDefaultExcludes = GradleDefaultExcludes.DEFAULT_EXCLUDES;
                 broadcast.getSource().onDefaultExcludesChanged(currentDefaultExcludes);
             }
         });
