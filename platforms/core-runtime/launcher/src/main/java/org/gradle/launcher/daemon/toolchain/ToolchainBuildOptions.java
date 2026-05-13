@@ -16,13 +16,11 @@
 
 package org.gradle.launcher.daemon.toolchain;
 
-import org.gradle.StartParameter;
 import org.gradle.cli.OptionCategory;
 import org.gradle.internal.buildoption.AbstractBuildOption;
 import org.gradle.internal.buildoption.BooleanBuildOption;
 import org.gradle.internal.buildoption.BuildOption;
 import org.gradle.internal.buildoption.BuildOptionSet;
-import org.gradle.internal.buildoption.CommandLineOptionConfiguration;
 import org.gradle.internal.buildoption.Origin;
 import org.gradle.internal.buildoption.StringBuildOption;
 import org.gradle.jvm.toolchain.internal.AutoInstalledInstallationSupplier;
@@ -34,6 +32,7 @@ import org.gradle.jvm.toolchain.internal.ToolchainConfiguration;
 import java.io.File;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 public class ToolchainBuildOptions {
     public static BuildOptionSet<ToolchainConfiguration> forToolChainConfiguration() {
@@ -78,56 +77,52 @@ public class ToolchainBuildOptions {
         };
     }
 
-    public static BuildOptionSet<StartParameter> forStartParameter() {
-        return new BuildOptionSet<StartParameter>() {
-            private final List<? extends BuildOption<? super StartParameter>> options = Arrays.asList(
-                new JavaInstallationPathsOption<StartParameter>() {
+    public static BuildOptionSet<Map<String, String>> forProjectProperties() {
+        return new BuildOptionSet<Map<String, String>>() {
+            private final List<? extends BuildOption<? super Map<String, String>>> options = Arrays.asList(
+                new JavaInstallationPathsOption<Map<String, String>>() {
                     @Override
-                    public void applyTo(String value, StartParameter settings, Origin origin) {
-                        putProjectPropertyIfAbsent(settings, this, value);
+                    public void applyTo(String value, Map<String, String> properties, Origin origin) {
+                        properties.putIfAbsent(getPropertyName(this), value);
                     }
                 },
-                new JavaInstallationEnvironmentPathsOption<StartParameter>() {
+                new JavaInstallationEnvironmentPathsOption<Map<String, String>>() {
                     @Override
-                    public void applyTo(String value, StartParameter settings, Origin origin) {
-                        putProjectPropertyIfAbsent(settings, this, value);
+                    public void applyTo(String value, Map<String, String> properties, Origin origin) {
+                        properties.putIfAbsent(getPropertyName(this), value);
                     }
                 },
-                new AutoDetectionOption<StartParameter>() {
+                new AutoDetectionOption<Map<String, String>>() {
                     @Override
-                    public void applyTo(boolean value, StartParameter settings, Origin origin) {
-                        putProjectPropertyIfAbsent(settings, this, Boolean.toString(value));
+                    public void applyTo(boolean value, Map<String, String> properties, Origin origin) {
+                        properties.putIfAbsent(getPropertyName(this), Boolean.toString(value));
                     }
                 },
-                new AutoDownloadOption<StartParameter>() {
+                new AutoDownloadOption<Map<String, String>>() {
                     @Override
-                    public void applyTo(boolean value, StartParameter settings, Origin origin) {
-                        putProjectPropertyIfAbsent(settings, this, Boolean.toString(value));
+                    public void applyTo(boolean value, Map<String, String> properties, Origin origin) {
+                        properties.putIfAbsent(getPropertyName(this), Boolean.toString(value));
                     }
                 },
-                new IntellijJdkBuildOption<StartParameter>() {
+                new IntellijJdkBuildOption<Map<String, String>>() {
                     @Override
-                    public void applyTo(String value, StartParameter settings, Origin origin) {
-                        putProjectPropertyIfAbsent(settings, this, value);
+                    public void applyTo(String value, Map<String, String> properties, Origin origin) {
+                        properties.putIfAbsent(getPropertyName(this), value);
                     }
                 }
             );
 
             @Override
-            public List<? extends BuildOption<? super StartParameter>> getAllOptions() {
+            public List<? extends BuildOption<? super Map<String, String>>> getAllOptions() {
                 return options;
             }
         };
     }
 
-    private static <K, V extends CommandLineOptionConfiguration> void putProjectPropertyIfAbsent(
-        StartParameter settings,
-        AbstractBuildOption<K, V> option,
-        String value
-    ) {
+    private static String getPropertyName(AbstractBuildOption<?, ?> option) {
         String property = option.getProperty();
-        assert property != null;
-        settings.getProjectProperties().putIfAbsent(property, value);
+        assert property != null : "Toolchain build option must have a property name";
+        return property;
     }
 
     private abstract static class JavaInstallationPathsOption<T> extends StringBuildOption<T> {
