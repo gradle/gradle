@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.file;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.file.collections.DefaultDirectoryFileTreeFactory;
@@ -217,7 +218,8 @@ public class TestFiles {
             fileSystem()::stat,
             virtualFileSystem,
             locations -> {},
-            new DirectorySnapshotterStatistics.Collector()
+            new DirectorySnapshotterStatistics.Collector(),
+            ImmutableList.of()
         );
     }
 

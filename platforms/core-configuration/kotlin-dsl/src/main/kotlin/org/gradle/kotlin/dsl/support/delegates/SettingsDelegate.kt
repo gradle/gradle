@@ -33,6 +33,7 @@ import org.gradle.api.plugins.ObjectConfigurationAction
 import org.gradle.api.plugins.PluginContainer
 import org.gradle.api.plugins.PluginManager
 import org.gradle.api.provider.ProviderFactory
+import org.gradle.api.provider.SetProperty
 import org.gradle.api.toolchain.management.ToolchainManagement
 import org.gradle.caching.configuration.BuildCacheConfiguration
 import org.gradle.internal.deprecation.DeprecationLogger
@@ -177,4 +178,7 @@ abstract class SettingsDelegate : Settings {
     override fun defaults(action: Action<in SharedModelDefaults>) {
         delegate.defaults(action)
     }
+
+    override fun getFileSystemDefaultExcludes(): SetProperty<String> =
+        delegate.fileSystemDefaultExcludes
 }

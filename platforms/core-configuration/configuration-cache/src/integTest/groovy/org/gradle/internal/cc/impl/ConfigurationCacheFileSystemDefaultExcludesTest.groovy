@@ -69,7 +69,7 @@ class ConfigurationCacheFileSystemDefaultExcludesTest extends AbstractConfigurat
         def excludedByBuildScriptFileCopy = file("build/output/${excludedByBuildScriptFileName}")
         excludedByBuildScriptFile.text = "input"
 
-        getBuildFile(dsl) << DefaultExcludesFixture.DefaultExcludesLocation.addDefaultExclude(excludedByBuildScriptFileName)
+        getBuildFile(dsl) << DefaultExcludesFixture.DefaultExcludesLocation.addDefaultExcludeForBuildScript(excludedByBuildScriptFileName)
 
         when:
         configurationCacheRun spec.copyTask

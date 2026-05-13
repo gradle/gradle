@@ -29,6 +29,7 @@ import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.plugins.PluginAware;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
+import org.gradle.api.provider.SetProperty;
 import org.gradle.api.toolchain.management.ToolchainManagement;
 import org.gradle.caching.configuration.BuildCacheConfiguration;
 import org.gradle.declarative.dsl.model.annotations.Adding;
@@ -466,4 +467,21 @@ public interface Settings extends PluginAware, ExtensionAware {
     @Incubating
     @HiddenInDefinition
     void defaults(Action<? super SharedModelDefaults> action);
+
+    /**
+     * Returns the default exclude patterns used when scanning the file system for file collections
+     * (copy, archive, file collections, etc.).
+     *
+     * <p>The set is initialized with Gradle's built-in defaults (entries for common version-control
+     * directories such as <code>**&#47;.git</code> and OS metadata such as <code>**&#47;.DS_Store</code>).
+     * Modify the property in the settings script to customize the patterns for this build.</p>
+     *
+     * <p>Changes after settings evaluation are not honored.</p>
+     *
+     * @return the property controlling the default exclude patterns
+     * @since 9.6.0
+     */
+    @Incubating
+    @HiddenInDefinition
+    SetProperty<String> getFileSystemDefaultExcludes();
 }
