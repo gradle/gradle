@@ -22,10 +22,12 @@ import org.apache.tools.ant.DirectoryScanner;
 import org.gradle.BuildAdapter;
 import org.gradle.api.initialization.Settings;
 import org.gradle.initialization.RootBuildLifecycleListener;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.event.AnonymousListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.file.excludes.FileSystemDefaultExcludesListener;
 import org.gradle.internal.file.excludes.GradleDefaultExcludes;
+import org.jspecify.annotations.NonNull;
 
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -39,6 +41,12 @@ public class DefaultFileSystemDefaultExcludesProvider implements FileSystemDefau
      * The DirectoryScanner state we last observed or wrote ourselves. Used to detect user-side
      * mutations to {@link DirectoryScanner} (the deprecated legacy path) without false-positives
      * from the mirror writes this class performs in {@link #syncDirectoryScanner(Set)}.
+     *
+     * <p>Initialized to {@link DirectoryScanner#getDefaultExcludes()} immediately after
+     * {@link DirectoryScanner#resetDefaultExcludes()} in {@code afterStart}, so the user-mutation
+     * diff stays correct even if Ant's {@code DEFAULTEXCLUDES} ever drifts from
+     * {@link GradleDefaultExcludes#DEFAULT_EXCLUDES_SET} (the parity test would catch the drift,
+     * but we shouldn't emit false-positive deprecation warnings if it slips through).</p>
      */
     private ImmutableSet<String> lastObservedDirectoryScannerState = GradleDefaultExcludes.DEFAULT_EXCLUDES_SET;
 
@@ -62,7 +70,11 @@ public class DefaultFileSystemDefaultExcludesProvider implements FileSystemDefau
             public void afterStart() {
                 DirectoryScanner.resetDefaultExcludes();
                 currentDefaultExcludes = GradleDefaultExcludes.DEFAULT_EXCLUDES;
-                lastObservedDirectoryScannerState = GradleDefaultExcludes.DEFAULT_EXCLUDES_SET;
+                // Snapshot the freshly-reset DirectoryScanner state rather than assuming it
+                // matches GradleDefaultExcludes.DEFAULT_EXCLUDES_SET. If Ant's DEFAULTEXCLUDES
+                // ever drifts from our port, the user-mutation diff still works correctly and
+                // we don't emit false-positive deprecations.
+                lastObservedDirectoryScannerState = ImmutableSet.copyOf(DirectoryScanner.getDefaultExcludes());
                 accumulatedAdditions.clear();
                 accumulatedRemovals.clear();
                 broadcast.getSource().onDefaultExcludesChanged(currentDefaultExcludes);
@@ -72,12 +84,11 @@ public class DefaultFileSystemDefaultExcludesProvider implements FileSystemDefau
         listenerManager.addListener(new BuildAdapter() {
 
             @Override
-            public void settingsEvaluated(Settings settings) {
-                ImmutableSet<String> baseline = GradleDefaultExcludes.DEFAULT_EXCLUDES_SET;
+            public void settingsEvaluated(@NonNull Settings settings) {
                 Set<String> fromSettings = settings.getFileSystemDefaultExcludes().get();
                 ImmutableSet<String> fromAnt = ImmutableSet.copyOf(DirectoryScanner.getDefaultExcludes());
 
-                boolean settingsCustomized = !fromSettings.equals(baseline);
+                boolean settingsCustomized = !fromSettings.equals(GradleDefaultExcludes.DEFAULT_EXCLUDES_SET);
                 // Compare against what we last wrote/observed, not against the original baseline:
                 // otherwise our own mirror writes from a previous settings.gradle would look like
                 // user-side Ant mutations and trigger false-positive deprecations.
@@ -87,7 +98,7 @@ public class DefaultFileSystemDefaultExcludesProvider implements FileSystemDefau
                     if (antMutatedByUser) {
                         warnAntMutationIgnored();
                     }
-                    accumulateDelta(baseline, fromSettings);
+                    accumulateDelta(GradleDefaultExcludes.DEFAULT_EXCLUDES_SET, fromSettings);
                 } else if (antMutatedByUser) {
                     warnAntMutationDeprecated();
                     accumulateDelta(lastObservedDirectoryScannerState, fromAnt);
@@ -129,16 +140,26 @@ public class DefaultFileSystemDefaultExcludesProvider implements FileSystemDefau
 
     /**
      * Records the diff between {@code before} and {@code after} into the running accumulators.
+     * A pattern explicitly re-included by a later script is removed from {@code accumulatedRemovals}
+     * so a later script can reverse an earlier script's removal; symmetrically, a pattern explicitly
+     * dropped by a later script is removed from {@code accumulatedAdditions}.
      */
     private void accumulateDelta(Set<String> before, Set<String> after) {
         for (String e : after) {
             if (!before.contains(e)) {
                 accumulatedAdditions.add(e);
+            } else {
+                // A baseline pattern present in `after` means this script wants it kept;
+                // cancel any earlier removal.
+                accumulatedRemovals.remove(e);
             }
         }
         for (String e : before) {
             if (!after.contains(e)) {
                 accumulatedRemovals.add(e);
+                // A baseline pattern absent from `after` means this script wants it gone;
+                // cancel any earlier explicit addition (defensive — additions are non-baseline).
+                accumulatedAdditions.remove(e);
             }
         }
     }
@@ -152,8 +173,24 @@ public class DefaultFileSystemDefaultExcludesProvider implements FileSystemDefau
         for (String exclude : excludes) {
             DirectoryScanner.addDefaultExclude(exclude);
         }
+    }
 
-        currentDefaultExcludes = ImmutableList.copyOf(excludes);
-        broadcast.getSource().onDefaultExcludesChanged(currentDefaultExcludes);
+    private static void warnAntMutationDeprecated() {
+        DeprecationLogger.deprecateAction("Mutating org.apache.tools.ant.DirectoryScanner default excludes")
+            .withAdvice("Use settings.fileSystemDefaultExcludes in settings.gradle(.kts) instead. " +
+                "For example: fileSystemDefaultExcludes.add(\"**/node_modules\").")
+            .willBeRemovedInGradle10()
+            .withUpgradeGuideSection(9, "directoryscanner_default_excludes_deprecation")
+            .nagUser();
+    }
+
+    private static void warnAntMutationIgnored() {
+        DeprecationLogger.deprecateAction("Configuring file-system default excludes via both " +
+                "org.apache.tools.ant.DirectoryScanner and settings.fileSystemDefaultExcludes")
+            .withAdvice("settings.fileSystemDefaultExcludes takes precedence; the DirectoryScanner mutation is ignored. " +
+                "Remove the DirectoryScanner calls from your settings script.")
+            .willBeRemovedInGradle10()
+            .withUpgradeGuideSection(9, "directoryscanner_default_excludes_deprecation")
+            .nagUser();
     }
 }
