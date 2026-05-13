@@ -15,14 +15,12 @@
  */
 package org.gradle.api.internal.plugins;
 
-import org.apache.tools.ant.taskdefs.Chmod;
 import org.gradle.api.Action;
 import org.gradle.internal.IoActions;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.jvm.application.scripts.JavaAppStartScriptGenerationDetails;
 import org.gradle.jvm.application.scripts.ScriptGenerator;
-import org.gradle.util.internal.AntUtil;
 import org.gradle.util.internal.CollectionUtils;
 
 import java.io.BufferedWriter;
@@ -150,21 +148,10 @@ public class StartScriptGenerator {
         @Override
         public void createExecutablePermission(File file) {
             if (OperatingSystem.current().isWindows()) {
-                createWindowsExecutablePermission(file);
-            } else {
-                createPosixExecutablePermission(file);
+                // Windows has no POSIX permissions. Matches the previous Ant Chmod behavior, which also skipped on non-Unix:
+                // https://github.com/apache/ant/blob/5db231018603fbb23a66f43304003cb1451f20cc/src/main/org/apache/tools/ant/taskdefs/Chmod.java#L265-L269
+                return;
             }
-        }
-
-        private void createWindowsExecutablePermission(File file) {
-            Chmod chmod = new Chmod();
-            chmod.setFile(file);
-            chmod.setPerm("ugo+rx");
-            chmod.setProject(AntUtil.createProject());
-            chmod.execute();
-        }
-
-        private void createPosixExecutablePermission(File file) {
             Path path = file.toPath();
             try {
                 Set<PosixFilePermission> permissions = Files.getPosixFilePermissions(path);
