@@ -16,15 +16,15 @@
 
 package org.gradle.tooling.internal.provider
 
-import org.gradle.api.internal.StartParameterInternal
 import org.gradle.internal.build.event.BuildEventSubscriptions
+import org.gradle.internal.invocation.BuildParameters
 import org.gradle.tooling.internal.provider.action.TestExecutionRequestAction
 import org.gradle.tooling.internal.provider.test.ProviderInternalTestExecutionRequest
 import spock.lang.Specification
 
 class TestExecutionRequestActionTest extends Specification {
 
-    StartParameterInternal startParameter = Stub()
+    BuildParameters buildParameters = Stub()
     BuildEventSubscriptions buildClientSubscriptions = Mock()
     ProviderInternalTestExecutionRequest executionRequest = Mock()
 
@@ -41,7 +41,7 @@ class TestExecutionRequestActionTest extends Specification {
         def classNames = executionRequest.getTestClassNames() as Set
         def executionRequestAction = new TestExecutionRequestAction(
             buildClientSubscriptions,
-            startParameter,
+            buildParameters,
             executionRequest.getTestExecutionDescriptors() as Set,
             classNames,
             TestExecutionRequestAction.getInternalJvmTestRequests(executionRequest, classNames),

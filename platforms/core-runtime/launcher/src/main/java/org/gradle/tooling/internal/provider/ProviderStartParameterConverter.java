@@ -16,11 +16,11 @@
 package org.gradle.tooling.internal.provider;
 
 import org.gradle.TaskExecutionRequest;
-import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.cli.CommandLineArgumentException;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
 import org.gradle.internal.DefaultTaskExecutionRequest;
+import org.gradle.internal.invocation.BuildParameters;
 import org.gradle.launcher.configuration.AllProperties;
 import org.gradle.launcher.cli.converter.BuildLayoutConverter;
 import org.gradle.launcher.configuration.BuildLayoutResult;
@@ -58,7 +58,7 @@ class ProviderStartParameterConverter {
         return requests;
     }
 
-    public StartParameterInternal toStartParameter(ProviderOperationParameters parameters, BuildLayoutResult buildLayout, AllProperties properties, Map<String, String> environmentVariables, @Nullable Collection<? extends TaskExecutionRequest> taskExecutionRequests) {
+    public BuildParameters toBuildParameters(ProviderOperationParameters parameters, BuildLayoutResult buildLayout, AllProperties properties, Map<String, String> environmentVariables, @Nullable Collection<? extends TaskExecutionRequest> taskExecutionRequests) {
         Collection<? extends TaskExecutionRequest> taskRequests = null;
         List<InternalLaunchable> launchables = parameters.getLaunchables();
         if (taskExecutionRequests != null) {

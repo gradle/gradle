@@ -16,8 +16,8 @@
 
 package org.gradle.launcher.cli.converter
 
-import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.logging.LogLevel
+import org.gradle.internal.invocation.BuildParameters
 import org.gradle.cli.CommandLineParser
 import org.gradle.initialization.layout.BuildLayoutFactory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -92,20 +92,20 @@ class StartParameterConverterTest extends Specification {
     def "can provide start parameter option as command-line option"() {
         expect:
         def parameter = convert("--configuration-cache")
-        parameter.getConfigurationCache().get()
+        parameter.getConfigurationCache() == true
     }
 
     def "can provide start parameter option as system property on command-line"() {
         expect:
         def parameter = convert("-Dorg.gradle.configuration-cache=true")
-        parameter.getConfigurationCache().get()
+        parameter.getConfigurationCache() == true
     }
 
     def "can provide start parameter option as persistent property"() {
         expect:
         userHome.file("gradle.properties") << "org.gradle.configuration-cache=true"
         def parameter = convert()
-        parameter.getConfigurationCache().get()
+        parameter.getConfigurationCache() == true
     }
 
     def "system property on command-line has precedence over persistent property"() {
@@ -126,7 +126,7 @@ class StartParameterConverterTest extends Specification {
         parameters2.maxWorkerCount == 789
     }
 
-    StartParameterInternal convert(String... args) {
+    BuildParameters convert(String... args) {
         def converter = new StartParameterConverter()
         def initialPropertiesConverter = new InitialPropertiesConverter()
         def buildLayoutConverter = new BuildLayoutConverter()

@@ -20,7 +20,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.TaskExecutionRequest;
-import org.gradle.api.internal.StartParameterInternal;
+import org.gradle.internal.invocation.BuildParameters;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.tasks.userinput.UserInputReader;
 import org.gradle.api.logging.LogLevel;
@@ -186,7 +186,7 @@ public class ProviderConnection {
         }
 
         ProgressListenerConfiguration listenerConfig = ProgressListenerConfiguration.from(providerParameters, consumerVersion, payloadSerializer, isolatableSerializerRegistry);
-        BuildAction action = new BuildModelAction(params.startParameter, modelName, tasks != null, listenerConfig.clientSubscriptions);
+        BuildAction action = new BuildModelAction(params.buildParameters, modelName, tasks != null, listenerConfig.clientSubscriptions);
         return run(action, cancellationToken, listenerConfig, listenerConfig.buildEventConsumer, providerParameters, params);
     }
 
@@ -221,9 +221,9 @@ public class ProviderConnection {
         List<String> tasks = providerParameters.getTasks();
         SerializedPayload serializedAction = payloadSerializer.serialize(clientAction);
         Parameters params = initParams(providerParameters);
-        StartParameterInternal startParameter = new ProviderStartParameterConverter().toStartParameter(providerParameters, params.buildLayout, params.properties, params.tapiEnvironmentVariables, null);
+        BuildParameters buildParameters = new ProviderStartParameterConverter().toBuildParameters(providerParameters, params.buildLayout, params.properties, params.tapiEnvironmentVariables, null);
         ProgressListenerConfiguration listenerConfig = ProgressListenerConfiguration.from(providerParameters, consumerVersion, payloadSerializer, isolatableSerializerRegistry);
-        BuildAction action = new ClientProvidedBuildAction(startParameter, serializedAction, tasks != null, listenerConfig.clientSubscriptions);
+        BuildAction action = new ClientProvidedBuildAction(buildParameters, serializedAction, tasks != null, listenerConfig.clientSubscriptions);
         return run(action, cancellationToken, listenerConfig, listenerConfig.buildEventConsumer, providerParameters, params);
     }
 
@@ -236,10 +236,10 @@ public class ProviderConnection {
         List<String> tasks = providerParameters.getTasks();
         SerializedPayload serializedAction = payloadSerializer.serialize(clientPhasedAction);
         Parameters params = initParams(providerParameters);
-        StartParameterInternal startParameter = new ProviderStartParameterConverter().toStartParameter(providerParameters, params.buildLayout, params.properties, params.tapiEnvironmentVariables, null);
+        BuildParameters buildParameters = new ProviderStartParameterConverter().toBuildParameters(providerParameters, params.buildLayout, params.properties, params.tapiEnvironmentVariables, null);
         FailsafePhasedActionResultListener failsafePhasedActionResultListener = new FailsafePhasedActionResultListener(resultListener);
         ProgressListenerConfiguration listenerConfig = ProgressListenerConfiguration.from(providerParameters, consumerVersion, payloadSerializer, isolatableSerializerRegistry);
-        BuildAction action = new ClientProvidedPhasedAction(startParameter, serializedAction, tasks != null, listenerConfig.clientSubscriptions);
+        BuildAction action = new ClientProvidedPhasedAction(buildParameters, serializedAction, tasks != null, listenerConfig.clientSubscriptions);
         try {
             return run(action, cancellationToken, listenerConfig, new PhasedActionEventConsumer(failsafePhasedActionResultListener, payloadSerializer, listenerConfig.buildEventConsumer),
                 providerParameters, params);
@@ -254,7 +254,7 @@ public class ProviderConnection {
         boolean runDefaultTasks = testExecutionRequest.isRunDefaultTasks(false);
         Collection<? extends TaskExecutionRequest> taskRequests = TestExecutionRequestAction.getTaskRequests(taskSpecs, runDefaultTasks);
 
-        StartParameterInternal startParameter = new ProviderStartParameterConverter().toStartParameter(
+        BuildParameters buildParameters = new ProviderStartParameterConverter().toBuildParameters(
             providerParameters,
             params.buildLayout,
             params.properties,
@@ -267,7 +267,7 @@ public class ProviderConnection {
 
         TestExecutionRequestAction action = new TestExecutionRequestAction(
             listenerConfig.clientSubscriptions,
-            startParameter,
+            buildParameters,
             ImmutableSet.copyOf(testExecutionRequest.getTestExecutionDescriptors()),
             classNames,
             TestExecutionRequestAction.getInternalJvmTestRequests(testExecutionRequest, classNames),
@@ -444,14 +444,14 @@ public class ProviderConnection {
             GUtil.addToMap(effectiveSystemProperties, System.getProperties());
             effectiveSystemProperties.putAll(daemonParams.getMutableAndImmutableSystemProperties());
         }
-        StartParameterInternal startParameter = new ProviderStartParameterConverter().toStartParameter(operationParameters, buildLayoutResult, properties, environmentVariables, null);
+        BuildParameters buildParameters = new ProviderStartParameterConverter().toBuildParameters(operationParameters, buildLayoutResult, properties, environmentVariables, null);
 
         Map<String, String> gradlePropertiesAsSeenByToolchains = new HashMap<>();
         gradlePropertiesAsSeenByToolchains.putAll(properties.getProperties());
-        gradlePropertiesAsSeenByToolchains.putAll(startParameter.getProjectProperties());
+        gradlePropertiesAsSeenByToolchains.putAll(buildParameters.getProjectProperties());
         new BuildOptionBackedConverter<>(ToolchainBuildOptions.forToolChainConfiguration()).convert(parsedCommandLine, gradlePropertiesAsSeenByToolchains, environmentVariables, daemonParams.getToolchainConfiguration());
 
-        return new Parameters(daemonParams, buildLayoutResult, properties, effectiveSystemProperties, environmentVariables, startParameter, requestContext);
+        return new Parameters(daemonParams, buildLayoutResult, properties, effectiveSystemProperties, environmentVariables, buildParameters, requestContext);
     }
 
     private static class Parameters {
@@ -460,16 +460,16 @@ public class ProviderConnection {
         final AllProperties properties;
         final Map<String, String> tapiSystemProperties;
         final Map<String, String> tapiEnvironmentVariables;
-        final StartParameterInternal startParameter;
+        final BuildParameters buildParameters;
         final DaemonRequestContext requestContext;
 
-        public Parameters(DaemonParameters daemonParams, BuildLayoutResult buildLayout, AllProperties properties, Map<String, String> tapiSystemProperties, Map<String, String> tapiEnvironmentVariables, StartParameterInternal startParameter, DaemonRequestContext requestContext) {
+        public Parameters(DaemonParameters daemonParams, BuildLayoutResult buildLayout, AllProperties properties, Map<String, String> tapiSystemProperties, Map<String, String> tapiEnvironmentVariables, BuildParameters buildParameters, DaemonRequestContext requestContext) {
             this.daemonParams = daemonParams;
             this.buildLayout = buildLayout;
             this.properties = properties;
             this.tapiSystemProperties = tapiSystemProperties;
             this.tapiEnvironmentVariables = tapiEnvironmentVariables;
-            this.startParameter = startParameter;
+            this.buildParameters = buildParameters;
             this.requestContext = requestContext;
         }
     }

@@ -16,7 +16,6 @@
 
 package org.gradle.launcher.cli.converter;
 
-import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.cli.CommandLineConverter;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
@@ -76,17 +75,6 @@ public class BuildLayoutConverter {
         }
 
         @Override
-        @SuppressWarnings("deprecation") // StartParameter.setSettingsFile()
-        public void applyTo(StartParameterInternal startParameter) {
-            // Note that order is important here, as the setters have some side effects
-            if (buildLayout.getProjectDir() != null) {
-                startParameter.setProjectDir(buildLayout.getProjectDir());
-            }
-            startParameter.setCurrentDir(buildLayout.getCurrentDir());
-            startParameter.setGradleUserHomeDir(buildLayout.getGradleUserHomeDir());
-        }
-
-        @Override
         public BuildLayoutConfiguration toLayoutConfiguration() {
             return new BuildLayoutConfiguration(buildLayout);
         }
@@ -99,6 +87,16 @@ public class BuildLayoutConverter {
         @Override
         public File getGradleUserHomeDir() {
             return buildLayout.getGradleUserHomeDir();
+        }
+
+        @Override
+        public File getCurrentDir() {
+            return buildLayout.getCurrentDir();
+        }
+
+        @Override
+        public @Nullable File getProjectDir() {
+            return buildLayout.getProjectDir();
         }
     }
 }

@@ -20,10 +20,10 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.TaskExecutionRequest;
-import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.internal.DefaultTaskExecutionRequest;
 import org.gradle.internal.RunDefaultTasksExecutionRequest;
 import org.gradle.internal.build.event.BuildEventSubscriptions;
+import org.gradle.internal.invocation.BuildParameters;
 import org.gradle.tooling.events.test.internal.DefaultDebugOptions;
 import org.gradle.tooling.internal.protocol.events.InternalTestDescriptor;
 import org.gradle.tooling.internal.protocol.test.InternalDebugOptions;
@@ -41,7 +41,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 public class TestExecutionRequestAction extends SubscribableBuildAction {
-    private final StartParameterInternal startParameter;
+    private final BuildParameters buildParameters;
     private final Set<InternalTestDescriptor> testDescriptors;
     private final Set<String> classNames;
     private final Set<InternalJvmTestRequest> internalJvmTestRequests;
@@ -51,7 +51,7 @@ public class TestExecutionRequestAction extends SubscribableBuildAction {
     private final List<InternalTaskSpec> taskSpecs;
 
     public TestExecutionRequestAction(BuildEventSubscriptions clientSubscriptions,
-                                      StartParameterInternal startParameter,
+                                      BuildParameters buildParameters,
                                       Set<InternalTestDescriptor> testDescriptors,
                                       Set<String> providerClassNames,
                                       Set<InternalJvmTestRequest> internalJvmTestRequests,
@@ -60,7 +60,7 @@ public class TestExecutionRequestAction extends SubscribableBuildAction {
                                       List<InternalTaskSpec> taskSpecs
     ) {
         super(clientSubscriptions);
-        this.startParameter = startParameter;
+        this.buildParameters = buildParameters;
         this.testDescriptors = testDescriptors;
         this.classNames = providerClassNames;
         this.internalJvmTestRequests = internalJvmTestRequests;
@@ -115,8 +115,8 @@ public class TestExecutionRequestAction extends SubscribableBuildAction {
     }
 
     @Override
-    public StartParameterInternal getStartParameter() {
-        return startParameter;
+    public BuildParameters getBuildParameters() {
+        return buildParameters;
     }
 
     @Override

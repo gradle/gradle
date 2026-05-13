@@ -15,8 +15,8 @@
  */
 package org.gradle.launcher.cli;
 
-import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.configuration.GradleLauncherMetaData;
+import org.gradle.internal.invocation.BuildParameters;
 import org.gradle.initialization.DefaultBuildCancellationToken;
 import org.gradle.initialization.NoOpBuildEventConsumer;
 import org.gradle.initialization.ReportedException;
@@ -31,7 +31,7 @@ import org.gradle.tooling.internal.provider.action.ExecuteBuildAction;
 
 public class RunBuildAction implements Runnable {
     private final BuildActionExecutor<BuildActionParameters, ClientBuildRequestContext> executor;
-    private final StartParameterInternal startParameter;
+    private final BuildParameters buildParameters;
     private final GradleLauncherMetaData clientMetaData;
     private final long startTime;
     private final BuildActionParameters buildActionParameters;
@@ -39,10 +39,10 @@ public class RunBuildAction implements Runnable {
     private final Stoppable stoppable;
 
     public RunBuildAction(
-        BuildActionExecutor<BuildActionParameters, ClientBuildRequestContext> executor, StartParameterInternal startParameter, GradleLauncherMetaData clientMetaData, long startTime,
+        BuildActionExecutor<BuildActionParameters, ClientBuildRequestContext> executor, BuildParameters buildParameters, GradleLauncherMetaData clientMetaData, long startTime,
         BuildActionParameters buildActionParameters, ServiceRegistry sharedServices, Stoppable stoppable) {
         this.executor = executor;
-        this.startParameter = startParameter;
+        this.buildParameters = buildParameters;
         this.clientMetaData = clientMetaData;
         this.startTime = startTime;
         this.buildActionParameters = buildActionParameters;
@@ -54,7 +54,7 @@ public class RunBuildAction implements Runnable {
     public void run() {
         try {
             BuildActionResult result = executor.execute(
-                new ExecuteBuildAction(startParameter),
+                new ExecuteBuildAction(buildParameters),
                 buildActionParameters,
                 new ClientBuildRequestContext(clientMetaData, startTime, sharedServices.get(ConsoleDetector.class).isInteractiveConsole(), new DefaultBuildCancellationToken(), new NoOpBuildEventConsumer())
             );

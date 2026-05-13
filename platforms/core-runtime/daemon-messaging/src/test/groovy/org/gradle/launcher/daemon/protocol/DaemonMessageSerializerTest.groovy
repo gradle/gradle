@@ -16,7 +16,7 @@
 
 package org.gradle.launcher.daemon.protocol
 
-import org.gradle.api.internal.StartParameterInternal
+import org.gradle.internal.invocation.BuildParameters
 import org.gradle.api.logging.LogLevel
 import org.gradle.configuration.GradleLauncherMetaData
 import org.gradle.internal.classpath.ClassPath
@@ -315,7 +315,7 @@ class DaemonMessageSerializerTest extends SerializerSpec {
 
     private static class TestAction implements BuildAction, Serializable {
         @Override
-        StartParameterInternal getStartParameter() {
+        BuildParameters getBuildParameters() {
             return null
         }
 

@@ -16,8 +16,8 @@
 
 package org.gradle.launcher.cli;
 
-import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.internal.invocation.BuildParameters;
 import org.gradle.cli.CommandLineArgumentException;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
@@ -82,7 +82,7 @@ public class BuildEnvironmentConfigurationConverter {
         InitialProperties initialProperties = initialPropertiesConverter.convert(args);
         BuildLayoutResult buildLayout = buildLayoutConverter.convert(initialProperties, args, currentDir);
         AllProperties properties = layoutToPropertiesConverter.convert(initialProperties, buildLayout);
-        StartParameterInternal startParameter = startParameterConverter.build(args, buildLayout, properties, environmentVariables, null, null);
+        BuildParameters buildParameters = startParameterConverter.build(args, buildLayout, properties, environmentVariables, null, null);
 
         DaemonParameters daemonParameters = new DaemonParameters(buildLayout.getGradleUserHomeDir(), fileCollectionFactory, properties.getRequestedSystemProperties(), environmentVariables);
         daemonParametersConverter.convert(args, properties.getProperties(), environmentVariables, daemonParameters);
@@ -91,11 +91,11 @@ public class BuildEnvironmentConfigurationConverter {
         // toolchain-specific properties to be specified with -P instead of -D
         Map<String, String> gradlePropertiesAsSeenByToolchains = new HashMap<>();
         gradlePropertiesAsSeenByToolchains.putAll(properties.getProperties());
-        gradlePropertiesAsSeenByToolchains.putAll(startParameter.getProjectPropertiesUntracked());
+        gradlePropertiesAsSeenByToolchains.putAll(buildParameters.getProjectProperties());
         toolchainConfigurationBuildOptionBackedConverter.convert(args, gradlePropertiesAsSeenByToolchains, environmentVariables, daemonParameters.getToolchainConfiguration());
         daemonParameters.setRequestedJvmCriteriaFromMap(properties.getDaemonJvmProperties());
 
-        return new Parameters(startParameter, daemonParameters, buildLayout, properties);
+        return new Parameters(buildParameters, daemonParameters, buildLayout, properties);
     }
 
     public void configure(CommandLineParser parser) {

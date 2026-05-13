@@ -16,25 +16,25 @@
 
 package org.gradle.tooling.internal.provider.action;
 
-import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.internal.build.event.BuildEventSubscriptions;
+import org.gradle.internal.invocation.BuildParameters;
 import org.gradle.tooling.internal.provider.serialization.SerializedPayload;
 
 public class ClientProvidedPhasedAction extends SubscribableBuildAction {
-    private final StartParameterInternal startParameter;
+    private final BuildParameters buildParameters;
     private final SerializedPayload phasedAction;
     private final boolean runTasks;
 
-    public ClientProvidedPhasedAction(StartParameterInternal startParameter, SerializedPayload phasedAction, boolean runTasks, BuildEventSubscriptions clientSubscriptions) {
+    public ClientProvidedPhasedAction(BuildParameters buildParameters, SerializedPayload phasedAction, boolean runTasks, BuildEventSubscriptions clientSubscriptions) {
         super(clientSubscriptions);
-        this.startParameter = startParameter;
+        this.buildParameters = buildParameters;
         this.phasedAction = phasedAction;
         this.runTasks = runTasks;
     }
 
     @Override
-    public StartParameterInternal getStartParameter() {
-        return startParameter;
+    public BuildParameters getBuildParameters() {
+        return buildParameters;
     }
 
     public SerializedPayload getPhasedAction() {

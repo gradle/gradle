@@ -15,19 +15,19 @@
  */
 package org.gradle.tooling.internal.provider.action;
 
-import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.internal.invocation.BuildAction;
+import org.gradle.internal.invocation.BuildParameters;
 
 public class ExecuteBuildAction implements BuildAction {
-    private final StartParameterInternal startParameter;
+    private final BuildParameters buildParameters;
 
-    public ExecuteBuildAction(StartParameterInternal startParameter) {
-        this.startParameter = startParameter;
+    public ExecuteBuildAction(BuildParameters buildParameters) {
+        this.buildParameters = buildParameters;
     }
 
     @Override
-    public StartParameterInternal getStartParameter() {
-        return startParameter;
+    public BuildParameters getBuildParameters() {
+        return buildParameters;
     }
 
     @Override
