@@ -59,10 +59,11 @@ import org.gradle.internal.time.Time;
 import org.gradle.launcher.cli.BuildEnvironmentConfigurationConverter;
 import org.gradle.launcher.cli.Parameters;
 import org.gradle.launcher.daemon.configuration.DaemonBuildOptions;
-import org.gradle.launcher.exec.BuildActionExecutor;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.BuildActionResult;
+import org.gradle.launcher.exec.BuildExecutor;
 import org.gradle.launcher.exec.DefaultBuildActionParameters;
+import org.gradle.launcher.exec.StartParameterHelper;
 import org.gradle.test.fixtures.file.TestDirectoryProvider;
 import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.testfixtures.internal.NativeServicesTestFixture;
@@ -324,8 +325,7 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
         buildEnvironmentConfigurationConverter.configure(parser);
         Parameters parameters = buildEnvironmentConfigurationConverter.convertParameters(parser.parse(getAllArgs()), getWorkingDir());
 
-        // TODO: ???
-        BuildActionExecutor<BuildActionParameters, BuildRequestContext> actionExecuter = GLOBAL_SERVICES.get(BuildActionExecutor.class);
+        BuildExecutor actionExecuter = GLOBAL_SERVICES.get(BuildExecutor.class);
 
         ListenerManager listenerManager = GLOBAL_SERVICES.get(ListenerManager.class);
         listenerManager.addListener(listener);
@@ -343,7 +343,8 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
             try {
                 startMeasurement();
                 try {
-                    BuildActionResult result = actionExecuter.execute(action, buildActionParameters, buildRequestContext);
+                    BuildActionResult result = actionExecuter.execute(action, StartParameterHelper.toStartParameter(buildParameters),
+                        buildActionParameters, buildRequestContext);
                     if (result.getException() != null) {
                         return new BuildResult(null, result.getException());
                     }
