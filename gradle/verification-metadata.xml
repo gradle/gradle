@@ -712,6 +712,14 @@
             <pgp value="3C7C956B0ADCE8A006F392201E516D29843497DC"/>
          </artifact>
       </component>
+      <component group="com.typesafe" name="config" version="1.4.6">
+         <artifact name="config-1.4.6.jar">
+            <sha256 value="dd6b9fb5da5bc49d31b581703f57050e1e7d403814f62f3832181a7226b36256" reason="Bypassing PGP key resolution; transitive of gradle-profiler scenario-definition"/>
+         </artifact>
+         <artifact name="config-1.4.6.pom">
+            <sha256 value="016d516595afe1f8d8951ce6c6bc32dd0ca8ee13ce443c8793fb2917fbae6d21" reason="Bypassing PGP key resolution; transitive of gradle-profiler scenario-definition"/>
+         </artifact>
+      </component>
       <component group="com.uwyn" name="jhighlight" version="1.0">
          <artifact name="jhighlight-1.0.jar">
             <sha256 value="ede52343fc4a8f080a1801bb735be1b895a5055d61cef55e2b5c6ac7dd4e5c8c" origin="Verified" reason="Artifact is not signed"/>
