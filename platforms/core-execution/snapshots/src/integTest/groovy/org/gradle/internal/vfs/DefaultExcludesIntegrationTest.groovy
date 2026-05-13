@@ -93,6 +93,7 @@ class DefaultExcludesIntegrationTest extends AbstractIntegrationSpec{
 
         when:
         excludedFile.text = "changed"
+        executer.expectDocumentedDeprecationWarning(DIRECTORY_SCANNER_DEPRECATION)
         run "copyTask"
         then:
         skipped(":copyTask")
@@ -162,6 +163,62 @@ class DefaultExcludesIntegrationTest extends AbstractIntegrationSpec{
         run "copyTask"
         then:
         executedAndNotSkipped(":copyTask")
+    }
+
+    def "default excludes defined via settings.fileSystemDefaultExcludes are used"() {
+        settingsFile << """
+            fileSystemDefaultExcludes.add('**/${EXCLUDED_FILE_NAME}')
+        """
+
+        when:
+        run "copyTask"
+        then:
+        executedAndNotSkipped(":copyTask")
+        !copyOfExcludedFile.exists()
+
+        when:
+        excludedFile.text = "changed"
+        run "copyTask"
+        then:
+        skipped(":copyTask")
+    }
+
+    def "settings.fileSystemDefaultExcludes can remove a built-in default exclude"() {
+        def defaultExclude = '.gitignore'
+        def defaultExcludeFile = file("input/$defaultExclude")
+        defaultExcludeFile << "some content"
+
+        settingsFile << """
+            fileSystemDefaultExcludes.set(fileSystemDefaultExcludes.get() - '**/${defaultExclude}')
+        """
+
+        when:
+        run "copyTask"
+        then:
+        executedAndNotSkipped(":copyTask")
+        file("build/output/$defaultExclude").exists()
+
+        when:
+        defaultExcludeFile.text = "changed"
+        run "copyTask"
+        then:
+        executedAndNotSkipped(":copyTask")
+    }
+
+    def "settings.fileSystemDefaultExcludes wins when both APIs configure the defaults"() {
+        // The new Settings API takes precedence; mutations to the legacy DirectoryScanner static state are ignored.
+        settingsFile << """
+            ${DirectoryScanner.name}.addDefaultExclude('**/legacy-excluded.txt')
+            fileSystemDefaultExcludes.add('**/${EXCLUDED_FILE_NAME}')
+        """
+        file('input/legacy-excluded.txt').text = "from legacy API"
+
+        when:
+        run "copyTask"
+        then:
+        executedAndNotSkipped(":copyTask")
+        !copyOfExcludedFile.exists() // new API exclude applied
+        outputDir.file('legacy-excluded.txt').exists() // legacy mutation ignored
     }
 
     private static String addDefaultExclude(String excludedFileName = EXCLUDED_FILE_NAME) {

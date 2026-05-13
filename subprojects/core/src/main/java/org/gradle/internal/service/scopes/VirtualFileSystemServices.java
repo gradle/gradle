@@ -254,7 +254,7 @@ public class VirtualFileSystemServices extends AbstractGradleModuleServices {
                 virtualFileSystem,
                 writeListener,
                 statisticsCollector,
-                GradleDefaultExcludes.DEFAULT_EXCLUDES.toArray(new String[0])
+                GradleDefaultExcludes.DEFAULT_EXCLUDES
             );
             listenerManager.addListener(defaultFileSystemAccess);
 
@@ -369,7 +369,7 @@ public class VirtualFileSystemServices extends AbstractGradleModuleServices {
                 root,
                 writeListener,
                 statisticsCollector,
-                GradleDefaultExcludes.DEFAULT_EXCLUDES.toArray(new String[0])
+                GradleDefaultExcludes.DEFAULT_EXCLUDES
             );
 
             listenerManager.addListener(buildSessionsScopedVirtualFileSystem);
