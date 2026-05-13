@@ -15,11 +15,13 @@
  */
 package org.gradle.launcher.cli.converter;
 
+import org.gradle.TaskExecutionRequest;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.file.BasicFileResolver;
 import org.gradle.api.launcher.cli.WelcomeMessageConfiguration;
 import org.gradle.api.launcher.cli.WelcomeMessageDisplayMode;
+import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.cli.CommandLineArgumentException;
 import org.gradle.cli.CommandLineParser;
@@ -35,8 +37,10 @@ import org.gradle.internal.logging.LoggingConfigurationBuildOptions;
 import org.gradle.launcher.configuration.AllProperties;
 import org.gradle.launcher.configuration.BuildLayoutResult;
 import org.gradle.launcher.daemon.toolchain.ToolchainBuildOptions;
+import org.jspecify.annotations.Nullable;
 
 import java.io.File;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -59,7 +63,20 @@ public class StartParameterConverter {
         buildOptionsConverter.configure(parser);
     }
 
-    public StartParameterInternal convert(ParsedCommandLine parsedCommandLine, BuildLayoutResult buildLayout, AllProperties properties, Map<String, String> environmentVariables, StartParameterInternal startParameter) throws CommandLineArgumentException {
+    public StartParameterInternal build(
+        ParsedCommandLine parsedCommandLine,
+        BuildLayoutResult buildLayout,
+        AllProperties properties,
+        Map<String, String> environmentVariables,
+        @Nullable Collection<? extends TaskExecutionRequest> taskRequests,
+        @Nullable LogLevel logLevelOverride
+    ) throws CommandLineArgumentException {
+        StartParameterInternal startParameter = new StartParameterInternal();
+
+        if (taskRequests != null) {
+            startParameter.setTaskRequests(taskRequests);
+        }
+
         buildLayout.applyTo(startParameter);
 
         WelcomeMessageConfiguration welcomeMessage = new WelcomeMessageConfiguration(WelcomeMessageDisplayMode.ONCE);
@@ -92,11 +109,15 @@ public class StartParameterConverter {
             mergedProjectProperties.putIfAbsent(entry.getKey(), entry.getValue());
         }
 
-        if (!parsedCommandLine.getExtraArguments().isEmpty()) {
+        if (taskRequests == null && !parsedCommandLine.getExtraArguments().isEmpty()) {
             startParameter.setTaskNames(parsedCommandLine.getExtraArguments());
         }
 
         applyParsedOptions(parsedOptions, startParameter);
+
+        if (logLevelOverride != null) {
+            startParameter.setLogLevel(logLevelOverride);
+        }
 
         return startParameter;
     }

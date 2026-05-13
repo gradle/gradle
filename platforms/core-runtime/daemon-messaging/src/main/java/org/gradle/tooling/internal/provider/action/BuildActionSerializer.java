@@ -170,7 +170,6 @@ public class BuildActionSerializer {
             encoder.writeBoolean(startParameter.isPropertyUpgradeReportEnabled());
             encoder.writeBoolean(startParameter.isProblemReportGenerationEnabled());
             encoder.writeBoolean(startParameter.isTaskGraph());
-            encoder.writeBoolean(startParameter.isDaemonJvmCriteriaConfigured());
             valueSerializer.write(encoder, startParameter.getParallelToolingModelBuilding());
             encoder.writeNullableString(startParameter.getDevelocityUrl());
             encoder.writeNullableString(startParameter.getDevelocityPluginVersion());
@@ -273,7 +272,6 @@ public class BuildActionSerializer {
             startParameter.setPropertyUpgradeReportEnabled(decoder.readBoolean());
             startParameter.enableProblemReportGeneration(decoder.readBoolean());
             startParameter.setTaskGraph(decoder.readBoolean());
-            startParameter.setDaemonJvmCriteriaConfigured(decoder.readBoolean());
             startParameter.setParallelToolingModelBuilding(valueSerializer.read(decoder));
             startParameter.setDevelocityUrl(decoder.readNullableString());
             startParameter.setDevelocityPluginVersion(decoder.readNullableString());

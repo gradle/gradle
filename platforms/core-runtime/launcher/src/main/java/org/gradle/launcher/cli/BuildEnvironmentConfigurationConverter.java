@@ -82,8 +82,7 @@ public class BuildEnvironmentConfigurationConverter {
         InitialProperties initialProperties = initialPropertiesConverter.convert(args);
         BuildLayoutResult buildLayout = buildLayoutConverter.convert(initialProperties, args, currentDir);
         AllProperties properties = layoutToPropertiesConverter.convert(initialProperties, buildLayout);
-        StartParameterInternal startParameter = new StartParameterInternal();
-        startParameterConverter.convert(args, buildLayout, properties, environmentVariables, startParameter);
+        StartParameterInternal startParameter = startParameterConverter.build(args, buildLayout, properties, environmentVariables, null, null);
 
         DaemonParameters daemonParameters = new DaemonParameters(buildLayout.getGradleUserHomeDir(), fileCollectionFactory, properties.getRequestedSystemProperties(), environmentVariables);
         daemonParametersConverter.convert(args, properties.getProperties(), environmentVariables, daemonParameters);

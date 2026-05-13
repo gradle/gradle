@@ -70,17 +70,15 @@ public class DefaultJvmToolchainsConfigurationValidator implements JvmToolchains
     }
 
     /**
-     * If daemon JVM criteria are configured, validate that all properties related to toolchain discovery are set as Gradle properties.
+     * Validate that all properties related to toolchain discovery are set as Gradle properties.
      */
     @Override
     public void validateAllPropertiesConfigurationsForDaemonJvmToolchains() {
-        if (startParameter.isDaemonJvmCriteriaConfigured()) {
-            validatePropertyConfiguration(EnvironmentVariableListInstallationSupplier.JAVA_INSTALLATIONS_FROM_ENV_PROPERTY);
-            validatePropertyConfiguration(LocationListInstallationSupplier.JAVA_INSTALLATIONS_PATHS_PROPERTY);
-            validatePropertyConfiguration(ToolchainConfiguration.AUTO_DETECT);
-            validatePropertyConfiguration(AutoInstalledInstallationSupplier.AUTO_DOWNLOAD);
-            validatePropertyConfiguration(IntellijInstallationSupplier.INTELLIJ_JDK_DIR_PROPERTY);
-        }
+        validatePropertyConfiguration(EnvironmentVariableListInstallationSupplier.JAVA_INSTALLATIONS_FROM_ENV_PROPERTY);
+        validatePropertyConfiguration(LocationListInstallationSupplier.JAVA_INSTALLATIONS_PATHS_PROPERTY);
+        validatePropertyConfiguration(ToolchainConfiguration.AUTO_DETECT);
+        validatePropertyConfiguration(AutoInstalledInstallationSupplier.AUTO_DOWNLOAD);
+        validatePropertyConfiguration(IntellijInstallationSupplier.INTELLIJ_JDK_DIR_PROPERTY);
     }
 
     private static void emitDeprecatedWarning(String propertyName, String value) {

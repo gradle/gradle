@@ -57,7 +57,6 @@ import org.gradle.launcher.daemon.context.DaemonCompatibilitySpec;
 import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.launcher.daemon.context.DaemonRequestContext;
 import org.gradle.launcher.daemon.context.DefaultDaemonContext;
-import org.gradle.launcher.daemon.toolchain.DaemonJvmCriteria;
 import org.gradle.launcher.exec.BuildActionExecutor;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.BuildExecutor;
@@ -113,9 +112,6 @@ class BuildActionsFactory implements CommandLineActionCreator {
         }
 
         DaemonRequestContext requestContext = daemonParameters.toRequestContext();
-        if (daemonParameters.getRequestedJvmCriteria() instanceof DaemonJvmCriteria.Spec) {
-            startParameter.setDaemonJvmCriteriaConfigured(true);
-        }
 
         if (daemonParameters.isEnabled()) {
             return Actions.toAction(runBuildWithDaemon(startParameter, daemonParameters, requestContext, buildLayoutConfiguration));

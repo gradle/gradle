@@ -19,6 +19,7 @@ package org.gradle.tooling.internal.provider.action;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import org.gradle.TaskExecutionRequest;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.internal.DefaultTaskExecutionRequest;
 import org.gradle.internal.RunDefaultTasksExecutionRequest;
@@ -69,30 +70,7 @@ public class TestExecutionRequestAction extends SubscribableBuildAction {
         this.taskSpecs = taskSpecs;
     }
 
-    // Unpacks the request to serialize across to the daemon and creates instance of
-    // TestExecutionRequestAction
-    public static TestExecutionRequestAction create(BuildEventSubscriptions clientSubscriptions, StartParameterInternal startParameter, ProviderInternalTestExecutionRequest testExecutionRequest) {
-        ImmutableSet<String> classNames = ImmutableSet.copyOf(testExecutionRequest.getTestClassNames());
-        List<InternalTaskSpec> taskSpecs = testExecutionRequest.getTaskSpecs(Collections.emptyList());
-        boolean runDefaultTasks = testExecutionRequest.isRunDefaultTasks(false);
-
-        return new TestExecutionRequestAction(
-            clientSubscriptions,
-            configureStartParameter(startParameter, taskSpecs, runDefaultTasks),
-            ImmutableSet.copyOf(testExecutionRequest.getTestExecutionDescriptors()),
-            classNames,
-            getInternalJvmTestRequests(testExecutionRequest, classNames),
-            getDebugOptions(testExecutionRequest),
-            getTaskAndTests(testExecutionRequest),
-            runDefaultTasks,
-            taskSpecs);
-    }
-
-    private static StartParameterInternal configureStartParameter(StartParameterInternal startParameter, List<InternalTaskSpec> taskSpecs, boolean runDefaultTasks) {
-        Preconditions.checkArgument(
-            startParameter.getTaskNames().isEmpty(),
-            "Cannot pass task requests with start parameter here, got %s",
-            startParameter.getTaskNames());
+    public static Collection<? extends TaskExecutionRequest> getTaskRequests(List<InternalTaskSpec> taskSpecs, boolean runDefaultTasks) {
         if (!taskSpecs.isEmpty()) {
             List<String> taskPaths = taskSpecs.stream().map(InternalTaskSpec::getTaskPath).collect(Collectors.toList());
 
@@ -101,26 +79,24 @@ public class TestExecutionRequestAction extends SubscribableBuildAction {
                 "Cannot run default tasks when task specs %s are provided",
                 taskPaths);
 
-            startParameter.setTaskRequests(Collections.singletonList(new DefaultTaskExecutionRequest(taskPaths)));
+            return Collections.singletonList(new DefaultTaskExecutionRequest(taskPaths));
         } else if (runDefaultTasks) {
-            startParameter.setTaskRequests(Collections.singletonList(new RunDefaultTasksExecutionRequest()));
+            return Collections.singletonList(new RunDefaultTasksExecutionRequest());
         } else {
-            startParameter.setTaskRequests(Collections.emptyList());
+            return Collections.emptyList();
         }
-
-        return startParameter;
     }
 
-    private static Set<InternalJvmTestRequest> getInternalJvmTestRequests(ProviderInternalTestExecutionRequest testExecutionRequest, Set<String> classNames) {
+    public static Set<InternalJvmTestRequest> getInternalJvmTestRequests(ProviderInternalTestExecutionRequest testExecutionRequest, Set<String> classNames) {
         final Collection<InternalJvmTestRequest> internalJvmTestRequests = testExecutionRequest.getInternalJvmTestRequests(Collections.<InternalJvmTestRequest>emptyList());
         return ImmutableSet.copyOf(toProviderInternalJvmTestRequest(internalJvmTestRequests, classNames));
     }
 
-    private static InternalDebugOptions getDebugOptions(ProviderInternalTestExecutionRequest testExecutionRequest) {
+    public static InternalDebugOptions getDebugOptions(ProviderInternalTestExecutionRequest testExecutionRequest) {
         return testExecutionRequest.getDebugOptions(new DefaultDebugOptions());
     }
 
-    private static Map<String, List<InternalJvmTestRequest>> getTaskAndTests(ProviderInternalTestExecutionRequest testExecutionRequest) {
+    public static Map<String, List<InternalJvmTestRequest>> getTaskAndTests(ProviderInternalTestExecutionRequest testExecutionRequest) {
         Map<String, List<InternalJvmTestRequest>> taskAndTests = testExecutionRequest.getTaskAndTests(Collections.emptyMap());
         ImmutableMap.Builder<String, List<InternalJvmTestRequest>> builder = ImmutableMap.builder();
         for (Map.Entry<String, List<InternalJvmTestRequest>> entry : taskAndTests.entrySet()) {

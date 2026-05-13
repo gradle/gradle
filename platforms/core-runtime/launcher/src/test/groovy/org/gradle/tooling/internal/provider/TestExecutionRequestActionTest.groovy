@@ -38,10 +38,21 @@ class TestExecutionRequestActionTest extends Specification {
         1 * executionRequest.isRunDefaultTasks(_) >> false
 
         when:
-        def executionRequestAction = TestExecutionRequestAction.create(buildClientSubscriptions, startParameter, executionRequest);
+        def classNames = executionRequest.getTestClassNames() as Set
+        def executionRequestAction = new TestExecutionRequestAction(
+            buildClientSubscriptions,
+            startParameter,
+            executionRequest.getTestExecutionDescriptors() as Set,
+            classNames,
+            TestExecutionRequestAction.getInternalJvmTestRequests(executionRequest, classNames),
+            TestExecutionRequestAction.getDebugOptions(executionRequest),
+            TestExecutionRequestAction.getTaskAndTests(executionRequest),
+            executionRequest.isRunDefaultTasks(false),
+            executionRequest.getTaskSpecs([])
+        )
+
         then:
         executionRequestAction.getTestClassNames() == ["org.acme.Foo"] as Set
         executionRequestAction.getInternalJvmTestRequests().collect { [clazz:it.className, method:it.methodName]} == [[clazz:"org.acme.Foo", method:null]]
-
     }
 }

@@ -56,7 +56,6 @@ public class StartParameterInternal extends StartParameter {
     private Duration continuousBuildQuietPeriod = Duration.ofMillis(250);
     private boolean propertyUpgradeReportEnabled;
     private boolean enableProblemReportGeneration = true;
-    private boolean daemonJvmCriteriaConfigured = false;
     private Option.Value<Boolean> parallelToolingModelBuilding = Option.Value.defaultValue(false);
     private @Nullable String develocityUrl;
     private @Nullable String develocityPluginVersion;
@@ -101,7 +100,6 @@ public class StartParameterInternal extends StartParameter {
         p.searchUpwards = searchUpwards;
         p.useEmptySettings = useEmptySettings;
         p.enableProblemReportGeneration = enableProblemReportGeneration;
-        p.daemonJvmCriteriaConfigured = daemonJvmCriteriaConfigured;
         p.parallelToolingModelBuilding = parallelToolingModelBuilding;
         return p;
     }
@@ -326,14 +324,6 @@ public class StartParameterInternal extends StartParameter {
 
     public boolean isProblemReportGenerationEnabled() {
         return this.enableProblemReportGeneration;
-    }
-
-    public boolean isDaemonJvmCriteriaConfigured() {
-        return daemonJvmCriteriaConfigured;
-    }
-
-    public void setDaemonJvmCriteriaConfigured(boolean daemonJvmCriteriaConfigured) {
-        this.daemonJvmCriteriaConfigured = daemonJvmCriteriaConfigured;
     }
 
     public Option.Value<Boolean> getParallelToolingModelBuilding() {
