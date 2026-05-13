@@ -29,6 +29,7 @@ import org.gradle.initialization.ParallelismBuildOptions;
 import org.gradle.initialization.StartParameterBuildOptions;
 import org.gradle.initialization.StartParameterBuildOptions.ParsedOptions;
 import org.gradle.internal.DefaultTaskExecutionRequest;
+import org.gradle.internal.RunDefaultTasksExecutionRequest;
 import org.gradle.internal.concurrent.DefaultParallelismConfiguration;
 import org.gradle.internal.invocation.BuildParameters;
 import org.gradle.internal.logging.DefaultLoggingConfiguration;
@@ -104,7 +105,7 @@ public class StartParameterConverter {
         } else if (!parsedCommandLine.getExtraArguments().isEmpty()) {
             resolvedTaskRequests = Collections.singletonList(DefaultTaskExecutionRequest.of(parsedCommandLine.getExtraArguments()));
         } else {
-            resolvedTaskRequests = Collections.emptyList();
+            resolvedTaskRequests = Collections.singletonList(new RunDefaultTasksExecutionRequest());
         }
 
         return new BuildParameters(
