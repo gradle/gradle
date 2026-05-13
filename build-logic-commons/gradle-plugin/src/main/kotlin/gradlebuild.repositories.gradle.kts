@@ -15,11 +15,6 @@
  */
 
 repositories {
-    mavenLocal {
-        content {
-            includeGroup("org.gradle.profiler")
-        }
-    }
     maven {
         name = "Gradle public repository"
         url = uri("https://repo.gradle.org/gradle/public")
