@@ -220,11 +220,11 @@ class ProcessCrashHandlingIntegrationTest extends DaemonIntegrationSpec {
     }
 
     String getSid(Long pid) {
-        return file("getSid/build/install/getSid/lib/getSid").exec(pid as String).out.trim()
+        return file("getSid/build/install/main/debug/lib/getSid").exec(pid as String).out.trim()
     }
 
     String getConsole(Long pid) {
-        return file("attachConsole/build/install/attachConsole/attachConsole.bat").exec(pid as String).out.trim()
+        return file("attachConsole/build/install/main/debug/attachConsole.bat").exec(pid as String).out.trim()
     }
 
     void withAttachConsoleProject() {
@@ -322,15 +322,12 @@ class ProcessCrashHandlingIntegrationTest extends DaemonIntegrationSpec {
     }
 
     void withProject(exeName, source) {
-        file("${exeName}/src/${exeName}/c/${exeName}.c") << source
+        file("${exeName}/src/main/cpp/${exeName}.cpp") << source
         file("${exeName}/build.gradle") << """
-            apply plugin: 'org.gradle.c'
+            apply plugin: 'cpp-application'
 
-            model {
-                components {
-                    ${exeName}(NativeExecutableSpec) {
-                    }
-                }
+            application {
+                baseName = '${exeName}'
             }
         """
         file('settings.gradle') << """
