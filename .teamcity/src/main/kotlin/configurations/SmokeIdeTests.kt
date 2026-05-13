@@ -16,6 +16,7 @@
 
 package configurations
 
+import common.Arch
 import common.FlakyTestStrategy
 import common.Os
 import common.buildScanTagParam
@@ -27,16 +28,18 @@ class SmokeIdeTests(
     model: CIBuildModel,
     stage: Stage,
     flakyTestStrategy: FlakyTestStrategy,
-) : OsAwareBaseGradleBuildType(os = Os.LINUX, stage = stage, init = {
+) : OsAwareBaseGradleBuildType(os = Os.MACOS, stage = stage, init = {
         val suffix = if (flakyTestStrategy == FlakyTestStrategy.ONLY)"_FlakyTestQuarantine" else ""
         id(buildTypeId(model) + suffix)
-        name = "Smoke Ide Tests$suffix"
+        name = "Smoke IDE Tests$suffix"
         description = "Tests against IDE sync process"
 
         applyTestDefaults(
             model = model,
             buildType = this,
             gradleTasks = ":smoke-ide-test:smokeIdeTest",
+            os = Os.MACOS,
+            arch = Arch.AARCH64,
             extraParameters =
                 listOf(
                     stage.getBuildScanCustomValueParam(),
