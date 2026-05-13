@@ -324,18 +324,20 @@ final class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractInteg
                 dependencies {
                     api("com.google.guava:guava:30.1.1-jre")
                     implementation("org.apache.commons:commons-lang3:3.12.0")
+                    implementation(project())
                 }
             }
         """
         file("settings.gradle") << defineSettings()
 
-        expect: "a dependency has been added to the something configuration"
+        expect: "a dependency has been added to the api configuration"
         succeeds("dependencies", "--configuration", "api")
         outputContains("com.google.guava:guava:30.1.1-jre")
 
-        and: "a dependency has been added to the somethingElse configuration"
+        and: "a dependency has been added to the implementation configuration"
         succeeds("dependencies", "--configuration", "implementation")
         outputContains("org.apache.commons:commons-lang3:3.12.0")
+        outputContains("\\--- project example (n)")
     }
 
     def 'can configure an extension using DependencyCollector in declarative DSL using project() from the Dependencies class to add dependencies'() {
