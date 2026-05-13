@@ -272,11 +272,10 @@ include::sample[dir="snippets/reference/gradle-types/fileTrees/groovy",files="bu
 
 You can see more examples of supported patterns in the API docs for link:{javadocPath}/org/gradle/api/tasks/util/PatternFilterable.html[PatternFilterable].
 
-By default, `fileTree()` returns a `FileTree` instance that applies some default exclude patterns for convenience — the same defaults as Ant.
-For the complete default exclude list, see http://ant.apache.org/manual/dirtasks.html#defaultexcludes[the Ant manual].
+By default, `fileTree()` returns a `FileTree` instance that applies some default exclude patterns for convenience — version-control directories such as `**&#47;.git` and OS metadata such as `**&#47;.DS_Store`.
 
 [[sec:change_default_excludes]]
-If those default excludes prove problematic, you can work around the issue by changing the default excludes in the settings script:
+If those default excludes prove problematic, you can change them in the settings script via the link:{javadocPath}/org/gradle/api/initialization/Settings.html#getFileSystemDefaultExcludes--[`fileSystemDefaultExcludes`] property:
 
 ====
 include::sample[dir="snippets/reference/gradle-types/copy/kotlin",files="settings.gradle.kts[tags=change-default-exclusions]"]
