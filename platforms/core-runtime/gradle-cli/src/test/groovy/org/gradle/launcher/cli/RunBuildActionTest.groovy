@@ -50,7 +50,7 @@ class RunBuildActionTest extends Specification {
         startParameter.logLevel >> LogLevel.ERROR
         1 * sharedServices.get(ConsoleDetector) >> Stub(ConsoleDetector)
         1 * client.execute({ !null }, { !null }, { !null }) >> { ExecuteBuildAction action, BuildActionParameters build, ClientBuildRequestContext context ->
-            assert action.startParameter == startParameter
+            assert action.startParameter == startParameter //
             assert context.cancellationToken instanceof DefaultBuildCancellationToken
             assert context.client == clientMetaData
             assert context.startTime == startTime

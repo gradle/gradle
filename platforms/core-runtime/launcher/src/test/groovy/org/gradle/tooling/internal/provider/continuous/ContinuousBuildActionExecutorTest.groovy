@@ -66,7 +66,7 @@ class ContinuousBuildActionExecutorTest extends ConcurrentSpec {
     def requestContext = new DefaultBuildRequestContext(requestMetadata, cancellationToken, new NoOpBuildEventConsumer())
     def startParameter = new StartParameterInternal()
     def action = Stub(BuildAction) {
-        getStartParameter() >> startParameter
+        getStartParameter() >> startParameter //
     }
     def globalListenerManager = new DefaultListenerManager(Scope.Global)
     def userHomeListenerManager = globalListenerManager.createChild(Scope.UserHome)
@@ -97,7 +97,7 @@ class ContinuousBuildActionExecutorTest extends ConcurrentSpec {
     PollingConditions conditions = new PollingConditions(timeout: 60, initialDelay: 0, factor: 1.25)
 
     def setup() {
-        action.startParameter >> startParameter
+        action.startParameter >> startParameter //
     }
 
     def cleanup() {

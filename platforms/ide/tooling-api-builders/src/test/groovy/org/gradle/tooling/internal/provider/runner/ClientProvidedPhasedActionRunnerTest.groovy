@@ -71,7 +71,7 @@ class ClientProvidedPhasedActionRunnerTest extends Specification {
         payloadSerializer.serialize(result2) >> serializedResult2
 
         when:
-        def result = runner.run(clientProvidedPhasedAction, buildController)
+        def result = runner.run(clientProvidedPhasedAction, buildController, startParameter)
 
         then:
         result.hasResult()
@@ -104,7 +104,7 @@ class ClientProvidedPhasedActionRunnerTest extends Specification {
         given:
 
         when:
-        def result = runner.run(clientProvidedPhasedAction, buildController)
+        def result = runner.run(clientProvidedPhasedAction, buildController, startParameter)
 
         then:
         result.clientResult == null
@@ -128,7 +128,7 @@ class ClientProvidedPhasedActionRunnerTest extends Specification {
         def failure = new RuntimeException()
 
         when:
-        def result = runner.run(clientProvidedPhasedAction, buildController)
+        def result = runner.run(clientProvidedPhasedAction, buildController, startParameter)
 
         then:
         result.buildFailure == failure
@@ -138,7 +138,7 @@ class ClientProvidedPhasedActionRunnerTest extends Specification {
 
     def "action not run if null"() {
         when:
-        def result = runner.run(clientProvidedPhasedAction, buildController)
+        def result = runner.run(clientProvidedPhasedAction, buildController, startParameter)
 
         then:
         result.clientResult == null
@@ -157,7 +157,7 @@ class ClientProvidedPhasedActionRunnerTest extends Specification {
 
     def "run tasks if defined"() {
         when:
-        runner.run(new ClientProvidedPhasedAction(startParameter, serializedAction, true, clientSubscriptions), buildController)
+        runner.run(new ClientProvidedPhasedAction(startParameter, serializedAction, true, clientSubscriptions), buildController, startParameter)
 
         then:
         1 * buildController.fromBuildModel(true, _) >> { Boolean b, BuildTreeModelAction modelAction ->

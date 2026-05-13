@@ -53,7 +53,7 @@ class ClientProvidedBuildActionRunnerTest extends Specification {
         def internalAction = Mock(InternalBuildAction)
 
         when:
-        def result = runner.run(clientProvidedBuildAction, buildController)
+        def result = runner.run(clientProvidedBuildAction, buildController, startParameter)
 
         then:
         result.clientResult == serialized
@@ -73,7 +73,7 @@ class ClientProvidedBuildActionRunnerTest extends Specification {
         def internalAction = Mock(InternalBuildAction)
 
         when:
-        def result = runner.run(clientProvidedBuildAction, buildController)
+        def result = runner.run(clientProvidedBuildAction, buildController, startParameter)
 
         then:
         result.clientResult == null
@@ -94,7 +94,7 @@ class ClientProvidedBuildActionRunnerTest extends Specification {
         def internalAction = Mock(InternalBuildAction)
 
         when:
-        def result = runner.run(clientProvidedBuildAction, buildController)
+        def result = runner.run(clientProvidedBuildAction, buildController, startParameter)
 
         then:
         result.clientResult == null
@@ -112,7 +112,7 @@ class ClientProvidedBuildActionRunnerTest extends Specification {
         def clientProvidedBuildActionRunTasks = new ClientProvidedBuildAction(startParameter, action, true /* isRunTasks */, clientSubscriptions)
 
         when:
-        runner.run(clientProvidedBuildActionRunTasks, buildController)
+        runner.run(clientProvidedBuildActionRunTasks, buildController, startParameter)
 
         then:
         1 * buildController.fromBuildModel(true, _) >> { Boolean b, Function function -> function.apply(gradle) }
@@ -125,7 +125,7 @@ class ClientProvidedBuildActionRunnerTest extends Specification {
         def serializedResult = Stub(SerializedPayload)
 
         when:
-        def result = runner.run(clientProvidedBuildAction, buildController)
+        def result = runner.run(clientProvidedBuildAction, buildController, startParameter)
 
         then:
         result.clientResult == serializedResult

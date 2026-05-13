@@ -62,7 +62,7 @@ class FileSystemWatchingBuildActionRunnerTest extends Specification {
 
     def setup() {
         _ * startParameter.getSystemPropertiesArgs() >> [:]
-        _ * buildAction.startParameter >> startParameter
+        _ * buildAction.startParameter >> startParameter //
     }
 
     def "watching virtual file system is informed about watching the file system being #watchMode.description (VFS logging: #vfsLogging)"() {
@@ -71,7 +71,7 @@ class FileSystemWatchingBuildActionRunnerTest extends Specification {
         _ * startParameter.isVfsVerboseLogging() >> (vfsLogging == VfsLogging.VERBOSE)
 
         when:
-        runner.run(buildAction, buildController)
+        runner.run(buildAction, buildController, startParameter)
 
         then:
         1 * watchingHandler.afterBuildStarted(watchMode, vfsLogging, buildOperationRunner) >> actuallyEnabled
@@ -80,7 +80,7 @@ class FileSystemWatchingBuildActionRunnerTest extends Specification {
         1 * buildOperationProgressEventEmitter.emitNowForCurrent({ FileSystemWatchingSettingsFinalizedProgressDetails details -> details.enabled == actuallyEnabled })
 
         then:
-        1 * delegate.run(buildAction, buildController)
+        1 * delegate.run(buildAction, buildController, startParameter)
 
         then:
         1 * watchingHandler.beforeBuildFinished(watchMode, vfsLogging, buildOperationRunner, _)
@@ -102,7 +102,7 @@ class FileSystemWatchingBuildActionRunnerTest extends Specification {
         _ * startParameter.projectCacheDir >> Mock(File)
 
         when:
-        runner.run(buildAction, buildController)
+        runner.run(buildAction, buildController, startParameter)
 
         then:
         1 * watchingHandler.afterBuildStarted(WatchMode.DISABLED, _, buildOperationRunner)
@@ -111,7 +111,7 @@ class FileSystemWatchingBuildActionRunnerTest extends Specification {
         1 * buildOperationProgressEventEmitter.emitNowForCurrent({ FileSystemWatchingSettingsFinalizedProgressDetails details -> !details.enabled })
 
         then:
-        1 * delegate.run(buildAction, buildController)
+        1 * delegate.run(buildAction, buildController, startParameter)
 
         then:
         1 * watchingHandler.beforeBuildFinished(WatchMode.DISABLED, _, buildOperationRunner, _)
@@ -125,7 +125,7 @@ class FileSystemWatchingBuildActionRunnerTest extends Specification {
         _ * startParameter.projectCacheDir >> Mock(File)
 
         when:
-        runner.run(buildAction, buildController)
+        runner.run(buildAction, buildController, startParameter)
 
         then:
         def ex = thrown IllegalStateException
@@ -141,7 +141,7 @@ class FileSystemWatchingBuildActionRunnerTest extends Specification {
         }
 
         when:
-        runner.run(buildAction, buildController)
+        runner.run(buildAction, buildController, startParameter)
 
         then:
         1 * watchingHandler.afterBuildStarted(WatchMode.ENABLED, _, buildOperationRunner) >> true
@@ -150,7 +150,7 @@ class FileSystemWatchingBuildActionRunnerTest extends Specification {
         1 * buildOperationProgressEventEmitter.emitNowForCurrent({ FileSystemWatchingSettingsFinalizedProgressDetails details -> details.enabled })
 
         then:
-        1 * delegate.run(buildAction, buildController)
+        1 * delegate.run(buildAction, buildController, startParameter)
 
         then:
         1 * watchingHandler.beforeBuildFinished(WatchMode.ENABLED, _, buildOperationRunner, _)
@@ -173,7 +173,7 @@ class FileSystemWatchingBuildActionRunnerTest extends Specification {
         }
 
         when:
-        runner.run(buildAction, buildController)
+        runner.run(buildAction, buildController, startParameter)
 
         then:
         def e = thrown(IllegalStateException)

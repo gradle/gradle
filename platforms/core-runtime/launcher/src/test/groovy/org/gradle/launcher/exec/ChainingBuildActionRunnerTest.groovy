@@ -32,11 +32,11 @@ class ChainingBuildActionRunnerTest extends Specification {
         def controller = Mock(BuildTreeLifecycleController)
 
         when:
-        runner.run(action, controller)
+        runner.run(action, controller, startParameter)
 
         then:
-        1 * runner1.run(action, controller) >> BuildActionRunner.Result.nothing()
-        1 * runner2.run(action, controller) >> BuildActionRunner.Result.of("thing")
+        1 * runner1.run(action, controller, startParameter) >> BuildActionRunner.Result.nothing()
+        1 * runner2.run(action, controller, startParameter) >> BuildActionRunner.Result.of("thing")
         0 * _
     }
 
@@ -45,11 +45,11 @@ class ChainingBuildActionRunnerTest extends Specification {
         def controller = Mock(BuildTreeLifecycleController)
 
         when:
-        runner.run(action, controller)
+        runner.run(action, controller, startParameter)
 
         then:
-        1 * runner1.run(action, controller) >> BuildActionRunner.Result.nothing()
-        1 * runner2.run(action, controller) >> BuildActionRunner.Result.failed(new RuntimeException("broken"))
+        1 * runner1.run(action, controller, startParameter) >> BuildActionRunner.Result.nothing()
+        1 * runner2.run(action, controller, startParameter) >> BuildActionRunner.Result.failed(new RuntimeException("broken"))
         0 * _
     }
 }

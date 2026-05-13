@@ -29,7 +29,7 @@ class TestExecutionRequestActionRunnerTest extends Specification {
         BuildAction buildAction = Mock(BuildAction)
         BuildTreeLifecycleController buildController= Mock(BuildTreeLifecycleController)
         when:
-        runner.run(buildAction, buildController)
+        runner.run(buildAction, buildController, startParameter)
         then:
         0 * buildController._
         0 * buildAction._
