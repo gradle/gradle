@@ -18,11 +18,27 @@ package org.gradle.internal.vfs
 
 import org.apache.tools.ant.DirectoryScanner
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import spock.lang.Issue
 
 class DefaultExcludesIntegrationTest extends AbstractIntegrationSpec{
 
     private static final EXCLUDED_FILE_NAME = "my-excluded-file.txt"
+    private static final DIRECTORY_SCANNER_DEPRECATION =
+        "Mutating org.apache.tools.ant.DirectoryScanner default excludes has been deprecated. " +
+        "This is scheduled to be removed in Gradle 10. " +
+        "Use settings.fileSystemDefaultExcludes in settings.gradle(.kts) instead. " +
+        "For example: fileSystemDefaultExcludes.add(\"**/node_modules\"). " +
+        "Consult the upgrading guide for further information: " +
+        "https://docs.gradle.org/current/userguide/upgrading_version_9.html#directoryscanner_default_excludes_deprecation"
+    private static final DIRECTORY_SCANNER_AND_SETTINGS_DEPRECATION =
+        "Configuring file-system default excludes via both " +
+        "org.apache.tools.ant.DirectoryScanner and settings.fileSystemDefaultExcludes has been deprecated. " +
+        "This is scheduled to be removed in Gradle 10. " +
+        "settings.fileSystemDefaultExcludes takes precedence; the DirectoryScanner mutation is ignored. " +
+        "Remove the DirectoryScanner calls from your settings script. " +
+        "Consult the upgrading guide for further information: " +
+        "https://docs.gradle.org/current/userguide/upgrading_version_9.html#directoryscanner_default_excludes_deprecation"
     private static final DEFAULT_EXCLUDES = [
         "**/%*%",
         "**/.#*",
@@ -86,6 +102,7 @@ class DefaultExcludesIntegrationTest extends AbstractIntegrationSpec{
         def copyOfExcludedFile = outputDir.file(EXCLUDED_FILE_NAME)
 
         when:
+        executer.expectDocumentedDeprecationWarning(DIRECTORY_SCANNER_DEPRECATION)
         run "copyTask"
         then:
         executedAndNotSkipped(":copyTask")
@@ -93,7 +110,11 @@ class DefaultExcludesIntegrationTest extends AbstractIntegrationSpec{
 
         when:
         excludedFile.text = "changed"
-        executer.expectDocumentedDeprecationWarning(DIRECTORY_SCANNER_DEPRECATION)
+        if (!GradleContextualExecuter.configCache) {
+            // settingsEvaluated re-runs on every non-CC build, so the deprecation re-fires.
+            // On a CC hit, settings come from cache and the user's DirectoryScanner mutation is not re-executed.
+            executer.expectDocumentedDeprecationWarning(DIRECTORY_SCANNER_DEPRECATION)
+        }
         run "copyTask"
         then:
         skipped(":copyTask")
@@ -103,6 +124,7 @@ class DefaultExcludesIntegrationTest extends AbstractIntegrationSpec{
         settingsFile << addDefaultExclude(EXCLUDED_FILE_NAME)
 
         when:
+        executer.expectDocumentedDeprecationWarning(DIRECTORY_SCANNER_DEPRECATION)
         run "copyTask"
         then:
         executedAndNotSkipped(":copyTask")
@@ -110,6 +132,9 @@ class DefaultExcludesIntegrationTest extends AbstractIntegrationSpec{
 
         when:
         excludedFile.text = "changed"
+        if (!GradleContextualExecuter.configCache) {
+            executer.expectDocumentedDeprecationWarning(DIRECTORY_SCANNER_DEPRECATION)
+        }
         run "copyTask"
         then:
         skipped(":copyTask")
@@ -138,6 +163,7 @@ class DefaultExcludesIntegrationTest extends AbstractIntegrationSpec{
         List<String> defaultExcludesInTask = DEFAULT_EXCLUDES.toSorted()
 
         when:
+        executer.expectDocumentedDeprecationWarning(DIRECTORY_SCANNER_DEPRECATION)
         fails "copyTask"
 
         then:
@@ -153,6 +179,7 @@ class DefaultExcludesIntegrationTest extends AbstractIntegrationSpec{
         settingsFile << removeDefaultExclude(defaultExclude)
 
         when:
+        executer.expectDocumentedDeprecationWarning(DIRECTORY_SCANNER_DEPRECATION)
         run "copyTask"
         then:
         executedAndNotSkipped(":copyTask")
@@ -160,6 +187,9 @@ class DefaultExcludesIntegrationTest extends AbstractIntegrationSpec{
 
         when:
         defaultExcludeFile.text = "changed"
+        if (!GradleContextualExecuter.configCache) {
+            executer.expectDocumentedDeprecationWarning(DIRECTORY_SCANNER_DEPRECATION)
+        }
         run "copyTask"
         then:
         executedAndNotSkipped(":copyTask")
@@ -214,6 +244,7 @@ class DefaultExcludesIntegrationTest extends AbstractIntegrationSpec{
         file('input/legacy-excluded.txt').text = "from legacy API"
 
         when:
+        executer.expectDocumentedDeprecationWarning(DIRECTORY_SCANNER_AND_SETTINGS_DEPRECATION)
         run "copyTask"
         then:
         executedAndNotSkipped(":copyTask")

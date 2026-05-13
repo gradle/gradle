@@ -93,6 +93,30 @@ Since the previous version was 4.0.29, the link:https://groovy-lang.org/changelo
 [[v9_deprecations_9_6]]
 === Deprecations
 
+[[directoryscanner_default_excludes_deprecation]]
+==== Deprecation of configuring default file-system excludes via Ant's `DirectoryScanner`
+
+Configuring Gradle's default file-system exclude patterns by mutating `org.apache.tools.ant.DirectoryScanner` (for example, calling `DirectoryScanner.addDefaultExclude(...)` or `DirectoryScanner.removeDefaultExclude(...)` from `settings.gradle(.kts)`) is now deprecated.
+This direct dependency on Ant's static mutable state has been a long-standing source of fragility (see issues link:https://github.com/gradle/gradle/issues/11176[#11176], link:https://github.com/gradle/gradle/issues/11177[#11177]) and prevents Gradle from removing Ant from its runtime classpath.
+
+Use the new `Settings.fileSystemDefaultExcludes` property instead:
+
+[source,kotlin]
+----
+// settings.gradle.kts
+fileSystemDefaultExcludes.add("**/node_modules")
+fileSystemDefaultExcludes.set(fileSystemDefaultExcludes.get() - "**/.gitignore")
+----
+
+[source,groovy]
+----
+// settings.gradle
+fileSystemDefaultExcludes.add("**/node_modules")
+fileSystemDefaultExcludes.set(fileSystemDefaultExcludes.get() - "**/.gitignore")
+----
+
+If both APIs are used in the same build, the `Settings.fileSystemDefaultExcludes` property takes precedence and the `DirectoryScanner` mutation is ignored.
+
 [[deprecated_implicit_project_hierarchy_lookup]]
 ==== Deprecation of implicit lookup of properties and methods in the project hierarchy
 
