@@ -471,6 +471,7 @@
          </trusted-key>
          <trusted-key id="E85AED155021AF8A6C6B7A4A7C7D8456294423BA" group="org.objenesis" name="objenesis"/>
          <trusted-key id="E870FB6BE4BA46C81520FD6936B9CF3BEB52D771" group="com.openhtmltopdf"/>
+         <trusted-key id="DFD60A08EC2B0CECED24A01F36A22209606109DC" group="com.typesafe" name="config"/>
          <trusted-key id="E88BF2559874BA889D34357C0555B3BA1CA4ECF9" group="com.typesafe" name="config"/>
          <trusted-key id="EA022560A81E5BD48DB3D18B54AC8E2D98CFEAC6" group="org.ysb33r.gradle"/>
          <trusted-key id="EA0B70B5050192C98CFA7E4F3F36885C24DF4B75" group="org.mozilla" name="rhino"/>
