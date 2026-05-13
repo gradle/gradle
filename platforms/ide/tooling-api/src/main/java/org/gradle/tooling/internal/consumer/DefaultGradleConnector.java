@@ -18,6 +18,8 @@ package org.gradle.tooling.internal.consumer;
 import org.gradle.tooling.GradleConnectionException;
 import org.gradle.tooling.GradleConnector;
 import org.gradle.tooling.ProjectConnection;
+import org.gradle.tooling.daemon.DaemonManagement;
+import org.gradle.tooling.internal.consumer.daemon.DefaultDaemonManagement;
 import org.gradle.util.GradleVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -152,6 +154,12 @@ public class DefaultGradleConnector extends GradleConnector implements ProjectCo
     public DefaultGradleConnector setVerboseLogging(boolean verboseLogging) {
         connectionParamsBuilder.setVerboseLogging(verboseLogging);
         return this;
+    }
+
+    @Override
+    public DaemonManagement newDaemonManagement() {
+        ConnectionParameters params = connectionParamsBuilder.build();
+        return new DefaultDaemonManagement(params.getGradleUserHomeDir());
     }
 
     @Override

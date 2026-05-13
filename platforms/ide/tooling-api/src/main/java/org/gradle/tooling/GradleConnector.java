@@ -15,6 +15,8 @@
  */
 package org.gradle.tooling;
 
+import org.gradle.api.Incubating;
+import org.gradle.tooling.daemon.DaemonManagement;
 import org.gradle.tooling.internal.consumer.ConnectorServices;
 
 import java.io.File;
@@ -180,4 +182,18 @@ public abstract class GradleConnector {
      * @since 6.5
      */
     public abstract void disconnect();
+
+    /**
+     * Returns an entry point for listing and stopping Gradle daemons under the configured Gradle user
+     * home directory. Unlike {@link #connect()}, this does not require a project directory: it operates
+     * against the user's per-machine daemon registries, spanning every Gradle version that has run on
+     * the machine (5.0 and later).
+     *
+     * <p>If {@link #useGradleUserHomeDir(File)} has been called, that directory is used; otherwise the
+     * default location is used ({@code $GRADLE_USER_HOME} or {@code ~/.gradle}).
+     *
+     * @since 9.6
+     */
+    @Incubating
+    public abstract DaemonManagement newDaemonManagement();
 }

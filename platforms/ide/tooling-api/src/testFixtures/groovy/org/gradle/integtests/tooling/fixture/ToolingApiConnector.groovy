@@ -18,6 +18,7 @@ package org.gradle.integtests.tooling.fixture
 
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ProjectConnection
+import org.gradle.tooling.daemon.DaemonManagement
 import org.gradle.tooling.internal.consumer.DefaultGradleConnector
 import org.gradle.tooling.internal.consumer.Distribution
 
@@ -91,5 +92,10 @@ class ToolingApiConnector extends GradleConnector {
     GradleConnector useGradleUserHomeDir(File gradleUserHomeDir) {
         connector.useGradleUserHomeDir(gradleUserHomeDir)
         this
+    }
+
+    @Override
+    DaemonManagement newDaemonManagement() {
+        connector.newDaemonManagement()
     }
 }

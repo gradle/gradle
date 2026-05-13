@@ -68,6 +68,7 @@ dependencies {
     }
 
     testImplementation(projects.daemonMessaging)
+    testImplementation(projects.daemonProtocol)
 
     testImplementation(testFixtures(projects.core))
     testImplementation(testFixtures(projects.logging))
