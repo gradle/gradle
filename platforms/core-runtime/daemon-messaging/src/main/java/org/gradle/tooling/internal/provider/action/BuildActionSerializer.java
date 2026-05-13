@@ -18,8 +18,6 @@ package org.gradle.tooling.internal.provider.action;
 
 import org.gradle.TaskExecutionRequest;
 import org.gradle.api.artifacts.verification.DependencyVerificationMode;
-import org.gradle.api.internal.StartParameterInternal;
-import org.gradle.api.launcher.cli.WelcomeMessageConfiguration;
 import org.gradle.api.launcher.cli.WelcomeMessageDisplayMode;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.configuration.ConsoleOutput;
@@ -30,8 +28,8 @@ import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCachePr
 import org.gradle.internal.DefaultTaskExecutionRequest;
 import org.gradle.internal.RunDefaultTasksExecutionRequest;
 import org.gradle.internal.build.event.BuildEventSubscriptions;
-import org.gradle.internal.buildoption.Option;
 import org.gradle.internal.invocation.BuildAction;
+import org.gradle.internal.invocation.BuildParameters;
 import org.gradle.internal.serialize.BaseSerializerFactory;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.DefaultSerializer;
@@ -41,6 +39,7 @@ import org.gradle.internal.serialize.ListSerializer;
 import org.gradle.internal.serialize.Serializer;
 import org.gradle.internal.serialize.SetSerializer;
 import org.gradle.internal.watch.registry.WatchMode;
+import org.jspecify.annotations.Nullable;
 import org.gradle.tooling.events.OperationType;
 import org.gradle.tooling.internal.consumer.DefaultTaskSpec;
 import org.gradle.tooling.internal.consumer.DefaultTestSpec;
@@ -53,6 +52,7 @@ import org.gradle.tooling.internal.provider.serialization.SerializedPayload;
 import org.gradle.tooling.internal.provider.serialization.SerializedPayloadSerializer;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.Serializable;
 import java.time.Duration;
 import java.util.ArrayList;
@@ -76,104 +76,242 @@ public class BuildActionSerializer {
         return registry.build(BuildAction.class);
     }
 
-    private static class StartParameterSerializer implements Serializer<StartParameterInternal> {
-        private final Serializer<LogLevel> logLevelSerializer;
-        private final Serializer<ShowStacktrace> showStacktraceSerializer;
-        private final Serializer<ConsoleOutput> consoleOutputSerializer;
-        private final Serializer<ConsoleUnicodeSupport> consoleUnicodeSupportSerializer;
-        private final Serializer<WarningMode> warningModeSerializer;
+    private static class BuildParametersSerializer implements Serializer<BuildParameters> {
+        private static final byte NULLABLE_BOOLEAN_NULL = (byte) 0;
+        private static final byte NULLABLE_BOOLEAN_FALSE = (byte) 1;
+        private static final byte NULLABLE_BOOLEAN_TRUE = (byte) 2;
+
+        private final BaseSerializerFactory serializerFactory = new BaseSerializerFactory();
+        private final Serializer<LogLevel> logLevelSerializer = serializerFactory.getSerializerFor(LogLevel.class);
+        private final Serializer<ShowStacktrace> showStacktraceSerializer = serializerFactory.getSerializerFor(ShowStacktrace.class);
+        private final Serializer<ConsoleOutput> consoleOutputSerializer = serializerFactory.getSerializerFor(ConsoleOutput.class);
+        private final Serializer<ConsoleUnicodeSupport> consoleUnicodeSupportSerializer = serializerFactory.getSerializerFor(ConsoleUnicodeSupport.class);
+        private final Serializer<WarningMode> warningModeSerializer = serializerFactory.getSerializerFor(WarningMode.class);
         private final Serializer<File> nullableFileSerializer = new NullableFileSerializer();
         private final Serializer<List<String>> stringListSerializer = new ListSerializer<>(BaseSerializerFactory.STRING_SERIALIZER);
-        private final Serializer<List<File>> fileListSerializer = new ListSerializer<>(BaseSerializerFactory.FILE_SERIALIZER);
-        private final Serializer<Set<String>> stringSetSerializer = new SetSerializer<>(BaseSerializerFactory.STRING_SERIALIZER);
-        private final Serializer<Option.Value<Boolean>> valueSerializer = new ValueSerializer();
 
-        StartParameterSerializer() {
-            BaseSerializerFactory serializerFactory = new BaseSerializerFactory();
-            logLevelSerializer = serializerFactory.getSerializerFor(LogLevel.class);
-            showStacktraceSerializer = serializerFactory.getSerializerFor(ShowStacktrace.class);
-            consoleOutputSerializer = serializerFactory.getSerializerFor(ConsoleOutput.class);
-            consoleUnicodeSupportSerializer = serializerFactory.getSerializerFor(ConsoleUnicodeSupport.class);
-            warningModeSerializer = serializerFactory.getSerializerFor(WarningMode.class);
+        @Override
+        public void write(Encoder encoder, BuildParameters params) throws Exception {
+            // From DefaultLoggingConfiguration (non-null)
+            logLevelSerializer.write(encoder, params.getLogLevel());
+            showStacktraceSerializer.write(encoder, params.getShowStacktrace());
+            consoleOutputSerializer.write(encoder, params.getConsoleOutput());
+            consoleUnicodeSupportSerializer.write(encoder, params.getConsoleUnicodeSupport());
+            warningModeSerializer.write(encoder, params.getWarningMode());
+            encoder.writeBoolean(params.isNonInteractive());
+
+            // From DefaultParallelismConfiguration (non-null)
+            encoder.writeBoolean(params.isParallelProjectExecutionEnabled());
+            encoder.writeSmallInt(params.getMaxWorkerCount());
+
+            // From WelcomeMessageConfiguration (non-null)
+            encoder.writeString(params.getWelcomeMessageDisplayMode().name());
+
+            // TAPI override (nullable)
+            writeNullableEnum(encoder, params.getLogLevelOverride());
+
+            // Tasks
+            writeTaskRequests(encoder, params.getTaskRequests());
+
+            // Layout
+            nullableFileSerializer.write(encoder, params.getProjectDir());
+            FILE_SERIALIZER.write(encoder, params.getCurrentDir());
+            FILE_SERIALIZER.write(encoder, params.getGradleUserHomeDir());
+            nullableFileSerializer.write(encoder, params.getGradleHomeDir());
+
+            // Always-present collections
+            NO_NULL_STRING_MAP_SERIALIZER.write(encoder, params.getProjectProperties());
+            NO_NULL_STRING_MAP_SERIALIZER.write(encoder, params.getSystemPropertiesArgs());
+
+            // From ParsedOptions (all nullable)
+            encoder.writeNullableString(params.getProjectCacheDir());
+            writeNullableStringList(encoder, params.getInitScripts());
+            writeNullableStringList(encoder, params.getExcludedTaskNames());
+            writeNullableStringList(encoder, params.getIncludedBuilds());
+            writeNullableBoolean(encoder, params.getBuildProjectDependencies());
+            writeNullableBoolean(encoder, params.getDryRun());
+            writeNullableBoolean(encoder, params.getRerunTasks());
+            writeNullableBoolean(encoder, params.getProfile());
+            writeNullableBoolean(encoder, params.getContinueOnFailure());
+            writeNullableBoolean(encoder, params.getOffline());
+            writeNullableBoolean(encoder, params.getRefreshDependencies());
+            writeNullableBoolean(encoder, params.getBuildCacheEnabled());
+            writeNullableBoolean(encoder, params.getBuildCacheDebugLogging());
+            writeNullableEnum(encoder, params.getWatchFileSystemMode());
+            writeNullableBoolean(encoder, params.getVfsVerboseLogging());
+            writeNullableBoolean(encoder, params.getConfigurationCache());
+            writeNullableBoolean(encoder, params.getIsolatedProjects());
+            writeNullableEnum(encoder, params.getConfigurationCacheProblems());
+            writeNullableBoolean(encoder, params.getConfigurationCacheIgnoreInputsDuringStore());
+            writeNullableBoolean(encoder, params.getConfigurationCacheIgnoreUnsupportedBuildEventsListeners());
+            encoder.writeNullableSmallInt(params.getConfigurationCacheMaxProblems());
+            encoder.writeNullableString(params.getConfigurationCacheIgnoredFileSystemCheckInputs());
+            writeNullableBoolean(encoder, params.getConfigurationCacheDebug());
+            writeNullableBoolean(encoder, params.getConfigurationCacheRecreateCache());
+            writeNullableBoolean(encoder, params.getConfigurationCacheParallel());
+            writeNullableBoolean(encoder, params.getConfigurationCacheReadOnly());
+            writeNullableBoolean(encoder, params.getConfigurationCacheQuiet());
+            writeNullableBoolean(encoder, params.getConfigurationCacheIntegrityCheckEnabled());
+            encoder.writeNullableSmallInt(params.getConfigurationCacheEntriesPerKey());
+            encoder.writeNullableString(params.getConfigurationCacheHeapDumpDir());
+            writeNullableBoolean(encoder, params.getConfigurationCacheFineGrainedPropertyTracking());
+            writeNullableBoolean(encoder, params.getConfigureOnDemand());
+            writeNullableBoolean(encoder, params.getContinuous());
+            writeNullableLong(encoder, params.getContinuousBuildQuietPeriod() != null ? params.getContinuousBuildQuietPeriod().toMillis() : null);
+            writeNullableBoolean(encoder, params.getBuildScan());
+            writeNullableBoolean(encoder, params.getWriteDependencyLocks());
+            writeNullableStringList(encoder, params.getWriteDependencyVerifications());
+            writeNullableEnum(encoder, params.getDependencyVerificationMode());
+            writeNullableStringList(encoder, params.getLockedDependenciesToUpdate());
+            writeNullableBoolean(encoder, params.getRefreshKeys());
+            writeNullableBoolean(encoder, params.getExportKeys());
+            writeNullableBoolean(encoder, params.getPropertyUpgradeReportEnabled());
+            writeNullableBoolean(encoder, params.getProblemReportGenerationEnabled());
+            writeNullableBoolean(encoder, params.getTaskGraph());
+            writeNullableBoolean(encoder, params.getParallelToolingModelBuilding());
+            encoder.writeNullableString(params.getDevelocityUrl());
+            encoder.writeNullableString(params.getDevelocityPluginVersion());
         }
 
         @Override
-        public void write(Encoder encoder, StartParameterInternal startParameter) throws Exception {
-            // Log configuration
-            logLevelSerializer.write(encoder, startParameter.getLogLevel());
-            showStacktraceSerializer.write(encoder, startParameter.getShowStacktrace());
-            consoleOutputSerializer.write(encoder, startParameter.getConsoleOutput());
-            consoleUnicodeSupportSerializer.write(encoder, startParameter.getConsoleUnicodeSupport());
-            warningModeSerializer.write(encoder, startParameter.getWarningMode());
+        public BuildParameters read(Decoder decoder) throws Exception {
+            return new BuildParameters(
+                // From DefaultLoggingConfiguration (non-null)
+                logLevelSerializer.read(decoder),
+                showStacktraceSerializer.read(decoder),
+                consoleOutputSerializer.read(decoder),
+                consoleUnicodeSupportSerializer.read(decoder),
+                warningModeSerializer.read(decoder),
+                decoder.readBoolean(),
+                // From DefaultParallelismConfiguration (non-null)
+                decoder.readBoolean(),
+                decoder.readSmallInt(),
+                // From WelcomeMessageConfiguration (non-null)
+                WelcomeMessageDisplayMode.valueOf(decoder.readString()),
+                // TAPI override (nullable)
+                readNullableEnum(decoder, LogLevel.class),
+                // Tasks
+                readTaskRequests(decoder),
+                // Layout
+                nullableFileSerializer.read(decoder),
+                FILE_SERIALIZER.read(decoder),
+                FILE_SERIALIZER.read(decoder),
+                nullableFileSerializer.read(decoder),
+                // Always-present collections
+                NO_NULL_STRING_MAP_SERIALIZER.read(decoder),
+                NO_NULL_STRING_MAP_SERIALIZER.read(decoder),
+                // From ParsedOptions (all nullable)
+                decoder.readNullableString(),
+                readNullableStringList(decoder),
+                readNullableStringList(decoder),
+                readNullableStringList(decoder),
+                readNullableBoolean(decoder),
+                readNullableBoolean(decoder),
+                readNullableBoolean(decoder),
+                readNullableBoolean(decoder),
+                readNullableBoolean(decoder),
+                readNullableBoolean(decoder),
+                readNullableBoolean(decoder),
+                readNullableBoolean(decoder),
+                readNullableBoolean(decoder),
+                readNullableEnum(decoder, WatchMode.class),
+                readNullableBoolean(decoder),
+                readNullableBoolean(decoder),
+                readNullableBoolean(decoder),
+                readNullableEnum(decoder, ConfigurationCacheProblemsOption.Value.class),
+                readNullableBoolean(decoder),
+                readNullableBoolean(decoder),
+                decoder.readNullableSmallInt(),
+                decoder.readNullableString(),
+                readNullableBoolean(decoder),
+                readNullableBoolean(decoder),
+                readNullableBoolean(decoder),
+                readNullableBoolean(decoder),
+                readNullableBoolean(decoder),
+                readNullableBoolean(decoder),
+                decoder.readNullableSmallInt(),
+                decoder.readNullableString(),
+                readNullableBoolean(decoder),
+                readNullableBoolean(decoder),
+                readNullableBoolean(decoder),
+                readNullableDuration(decoder),
+                readNullableBoolean(decoder),
+                readNullableBoolean(decoder),
+                readNullableStringList(decoder),
+                readNullableEnum(decoder, DependencyVerificationMode.class),
+                readNullableStringList(decoder),
+                readNullableBoolean(decoder),
+                readNullableBoolean(decoder),
+                readNullableBoolean(decoder),
+                readNullableBoolean(decoder),
+                readNullableBoolean(decoder),
+                readNullableBoolean(decoder),
+                decoder.readNullableString(),
+                decoder.readNullableString()
+            );
+        }
 
-            // Parallel configuration
-            encoder.writeBoolean(startParameter.isParallelProjectExecutionEnabled());
-            encoder.writeSmallInt(startParameter.getMaxWorkerCount());
+        // Nullable boolean: 0=null, 1=false, 2=true
+        private static void writeNullableBoolean(Encoder encoder, @Nullable Boolean value) throws IOException {
+            if (value == null) {
+                encoder.writeByte(NULLABLE_BOOLEAN_NULL);
+            } else if (value) {
+                encoder.writeByte(NULLABLE_BOOLEAN_TRUE);
+            } else {
+                encoder.writeByte(NULLABLE_BOOLEAN_FALSE);
+            }
+        }
 
-            // Tasks
-            writeTaskRequests(encoder, startParameter.getTaskRequests());
-            stringSetSerializer.write(encoder, startParameter.getExcludedTaskNames());
+        private static @Nullable Boolean readNullableBoolean(Decoder decoder) throws IOException {
+            byte b = decoder.readByte();
+            if (b == NULLABLE_BOOLEAN_NULL) {
+                return null;
+            } else if (b == NULLABLE_BOOLEAN_TRUE) {
+                return Boolean.TRUE;
+            } else {
+                return Boolean.FALSE;
+            }
+        }
 
-            // Layout
-            nullableFileSerializer.write(encoder, startParameter.getProjectDir());
-            FILE_SERIALIZER.write(encoder, startParameter.getCurrentDir());
-            FILE_SERIALIZER.write(encoder, startParameter.getGradleUserHomeDir());
-            nullableFileSerializer.write(encoder, startParameter.getGradleHomeDir());
-            nullableFileSerializer.write(encoder, startParameter.getProjectCacheDir());
-            fileListSerializer.write(encoder, startParameter.getIncludedBuilds());
+        private static <E extends Enum<E>> void writeNullableEnum(Encoder encoder, @Nullable Enum<E> value) throws IOException {
+            encoder.writeNullableString(value != null ? value.name() : null);
+        }
 
-            // Other stuff
-            NO_NULL_STRING_MAP_SERIALIZER.write(encoder, startParameter.getProjectPropertiesUntracked());
-            NO_NULL_STRING_MAP_SERIALIZER.write(encoder, startParameter.getSystemPropertiesArgs());
-            fileListSerializer.write(encoder, startParameter.getInitScripts());
-            stringListSerializer.write(encoder, startParameter.getLockedDependenciesToUpdate());
+        private static <E extends Enum<E>> @Nullable E readNullableEnum(Decoder decoder, Class<E> enumType) throws IOException {
+            String name = decoder.readNullableString();
+            return name != null ? Enum.valueOf(enumType, name) : null;
+        }
 
-            // Flags
-            encoder.writeBoolean(startParameter.isBuildProjectDependencies());
-            encoder.writeBoolean(startParameter.isDryRun());
-            encoder.writeBoolean(startParameter.isRerunTasks());
-            encoder.writeBoolean(startParameter.isProfile());
-            encoder.writeBoolean(startParameter.isContinueOnFailure());
-            encoder.writeBoolean(startParameter.isOffline());
-            encoder.writeBoolean(startParameter.isRefreshDependencies());
-            encoder.writeBoolean(startParameter.isBuildCacheEnabled());
-            encoder.writeBoolean(startParameter.isBuildCacheDebugLogging());
-            encoder.writeString(startParameter.getWatchFileSystemMode().name());
-            encoder.writeBoolean(startParameter.isVfsVerboseLogging());
-            valueSerializer.write(encoder, startParameter.getConfigurationCache());
-            valueSerializer.write(encoder, startParameter.getIsolatedProjects());
-            encoder.writeString(startParameter.getConfigurationCacheProblems().name());
-            encoder.writeBoolean(startParameter.isConfigurationCacheIgnoreInputsDuringStore());
-            encoder.writeBoolean(startParameter.isConfigurationCacheIgnoreUnsupportedBuildEventsListeners());
-            encoder.writeSmallInt(startParameter.getConfigurationCacheMaxProblems());
-            encoder.writeNullableString(startParameter.getConfigurationCacheIgnoredFileSystemCheckInputs());
-            encoder.writeBoolean(startParameter.isConfigurationCacheDebug());
-            encoder.writeBoolean(startParameter.isConfigurationCacheRecreateCache());
-            encoder.writeBoolean(startParameter.isConfigurationCacheParallel());
-            encoder.writeBoolean(startParameter.isConfigurationCacheReadOnly());
-            encoder.writeBoolean(startParameter.isConfigurationCacheQuiet());
-            encoder.writeBoolean(startParameter.isConfigurationCacheIntegrityCheckEnabled());
-            encoder.writeSmallInt(startParameter.getConfigurationCacheEntriesPerKey());
-            encoder.writeNullableString(startParameter.getConfigurationCacheHeapDumpDir());
-            encoder.writeBoolean(startParameter.isConfigurationCacheFineGrainedPropertyTracking());
-            encoder.writeBoolean(startParameter.isConfigureOnDemand());
-            encoder.writeBoolean(startParameter.isContinuous());
-            encoder.writeLong(startParameter.getContinuousBuildQuietPeriod().toMillis());
-            encoder.writeBoolean(startParameter.isBuildScan());
-            encoder.writeBoolean(startParameter.isNoBuildScan());
-            encoder.writeBoolean(startParameter.isWriteDependencyLocks());
-            stringListSerializer.write(encoder, startParameter.getWriteDependencyVerifications());
-            encoder.writeString(startParameter.getDependencyVerificationMode().name());
-            encoder.writeBoolean(startParameter.isRefreshKeys());
-            encoder.writeBoolean(startParameter.isExportKeys());
-            encoder.writeString(startParameter.getWelcomeMessageConfiguration().getWelcomeMessageDisplayMode().name());
-            encoder.writeBoolean(startParameter.isPropertyUpgradeReportEnabled());
-            encoder.writeBoolean(startParameter.isProblemReportGenerationEnabled());
-            encoder.writeBoolean(startParameter.isTaskGraph());
-            valueSerializer.write(encoder, startParameter.getParallelToolingModelBuilding());
-            encoder.writeNullableString(startParameter.getDevelocityUrl());
-            encoder.writeNullableString(startParameter.getDevelocityPluginVersion());
-            encoder.writeBoolean(startParameter.isNonInteractive());
+        private void writeNullableStringList(Encoder encoder, @Nullable List<String> value) throws Exception {
+            if (value == null) {
+                encoder.writeBoolean(false);
+            } else {
+                encoder.writeBoolean(true);
+                stringListSerializer.write(encoder, value);
+            }
+        }
+
+        private @Nullable List<String> readNullableStringList(Decoder decoder) throws Exception {
+            if (decoder.readBoolean()) {
+                return stringListSerializer.read(decoder);
+            }
+            return null;
+        }
+
+        private static void writeNullableLong(Encoder encoder, @Nullable Long value) throws IOException {
+            if (value == null) {
+                encoder.writeBoolean(false);
+            } else {
+                encoder.writeBoolean(true);
+                encoder.writeLong(value);
+            }
+        }
+
+        private static @Nullable Duration readNullableDuration(Decoder decoder) throws IOException {
+            if (decoder.readBoolean()) {
+                return Duration.ofMillis(decoder.readLong());
+            }
+            return null;
         }
 
         private void writeTaskRequests(Encoder encoder, List<TaskExecutionRequest> taskRequests) throws Exception {
@@ -191,93 +329,6 @@ public class BuildActionSerializer {
                     throw new UnsupportedOperationException();
                 }
             }
-        }
-
-        @SuppressWarnings("deprecation") // StartParameter.setBuildFile and StartParameter.setSettingsFile
-        @Override
-        public StartParameterInternal read(Decoder decoder) throws Exception {
-            StartParameterInternal startParameter = new StartParameterInternal();
-
-            // Logging configuration
-            startParameter.setLogLevel(logLevelSerializer.read(decoder));
-            startParameter.setShowStacktrace(showStacktraceSerializer.read(decoder));
-            startParameter.setConsoleOutput(consoleOutputSerializer.read(decoder));
-            startParameter.setConsoleUnicodeSupport(consoleUnicodeSupportSerializer.read(decoder));
-            startParameter.setWarningMode(warningModeSerializer.read(decoder));
-
-            // Parallel configuration
-            startParameter.setParallelProjectExecutionEnabled(decoder.readBoolean());
-            startParameter.setMaxWorkerCount(decoder.readSmallInt());
-
-            // Tasks
-            startParameter.setTaskRequests(readTaskRequests(decoder));
-            startParameter.setExcludedTaskNames(stringSetSerializer.read(decoder));
-
-            // Layout
-            startParameter.setProjectDir(nullableFileSerializer.read(decoder));
-            startParameter.setCurrentDir(FILE_SERIALIZER.read(decoder));
-            startParameter.setGradleUserHomeDir(FILE_SERIALIZER.read(decoder));
-            startParameter.setGradleHomeDir(nullableFileSerializer.read(decoder));
-            startParameter.setProjectCacheDir(nullableFileSerializer.read(decoder));
-            startParameter.setIncludedBuilds(fileListSerializer.read(decoder));
-
-            // Other stuff
-            startParameter.setProjectProperties(NO_NULL_STRING_MAP_SERIALIZER.read(decoder));
-            startParameter.setSystemPropertiesArgs(NO_NULL_STRING_MAP_SERIALIZER.read(decoder));
-            startParameter.setInitScripts(fileListSerializer.read(decoder));
-            startParameter.setLockedDependenciesToUpdate(stringListSerializer.read(decoder));
-
-            // Flags
-            startParameter.setBuildProjectDependencies(decoder.readBoolean());
-            startParameter.setDryRun(decoder.readBoolean());
-            startParameter.setRerunTasks(decoder.readBoolean());
-            startParameter.setProfile(decoder.readBoolean());
-            startParameter.setContinueOnFailure(decoder.readBoolean());
-            startParameter.setOffline(decoder.readBoolean());
-            startParameter.setRefreshDependencies(decoder.readBoolean());
-            startParameter.setBuildCacheEnabled(decoder.readBoolean());
-            startParameter.setBuildCacheDebugLogging(decoder.readBoolean());
-            startParameter.setWatchFileSystemMode(WatchMode.valueOf(decoder.readString()));
-            startParameter.setVfsVerboseLogging(decoder.readBoolean());
-            startParameter.setConfigurationCache(valueSerializer.read(decoder));
-            startParameter.setIsolatedProjects(valueSerializer.read(decoder));
-            startParameter.setConfigurationCacheProblems(ConfigurationCacheProblemsOption.Value.valueOf(decoder.readString()));
-            startParameter.setConfigurationCacheIgnoreInputsDuringStore(decoder.readBoolean());
-            startParameter.setConfigurationCacheIgnoreUnsupportedBuildEventsListeners(decoder.readBoolean());
-            startParameter.setConfigurationCacheMaxProblems(decoder.readSmallInt());
-            startParameter.setConfigurationCacheIgnoredFileSystemCheckInputs(decoder.readNullableString());
-            startParameter.setConfigurationCacheDebug(decoder.readBoolean());
-            startParameter.setConfigurationCacheRecreateCache(decoder.readBoolean());
-            startParameter.setConfigurationCacheParallel(decoder.readBoolean());
-            startParameter.setConfigurationCacheReadOnly(decoder.readBoolean());
-            startParameter.setConfigurationCacheQuiet(decoder.readBoolean());
-            startParameter.setConfigurationCacheIntegrityCheckEnabled(decoder.readBoolean());
-            startParameter.setConfigurationCacheEntriesPerKey(decoder.readSmallInt());
-            startParameter.setConfigurationCacheHeapDumpDir(decoder.readNullableString());
-            startParameter.setConfigurationCacheFineGrainedPropertyTracking(decoder.readBoolean());
-            startParameter.setConfigureOnDemand(decoder.readBoolean());
-            startParameter.setContinuous(decoder.readBoolean());
-            startParameter.setContinuousBuildQuietPeriod(Duration.ofMillis(decoder.readLong()));
-            startParameter.setBuildScan(decoder.readBoolean());
-            startParameter.setNoBuildScan(decoder.readBoolean());
-            startParameter.setWriteDependencyLocks(decoder.readBoolean());
-            List<String> checksums = stringListSerializer.read(decoder);
-            if (!checksums.isEmpty()) {
-                startParameter.setWriteDependencyVerifications(checksums);
-            }
-            startParameter.setDependencyVerificationMode(DependencyVerificationMode.valueOf(decoder.readString()));
-            startParameter.setRefreshKeys(decoder.readBoolean());
-            startParameter.setExportKeys(decoder.readBoolean());
-            startParameter.setWelcomeMessageConfiguration(new WelcomeMessageConfiguration(WelcomeMessageDisplayMode.valueOf(decoder.readString())));
-            startParameter.setPropertyUpgradeReportEnabled(decoder.readBoolean());
-            startParameter.enableProblemReportGeneration(decoder.readBoolean());
-            startParameter.setTaskGraph(decoder.readBoolean());
-            startParameter.setParallelToolingModelBuilding(valueSerializer.read(decoder));
-            startParameter.setDevelocityUrl(decoder.readNullableString());
-            startParameter.setDevelocityPluginVersion(decoder.readNullableString());
-            startParameter.setNonInteractive(decoder.readBoolean());
-
-            return startParameter;
         }
 
         private List<TaskExecutionRequest> readTaskRequests(Decoder decoder) throws Exception {
@@ -301,28 +352,27 @@ public class BuildActionSerializer {
     }
 
     private static class ExecuteBuildActionSerializer implements Serializer<ExecuteBuildAction> {
-        private final Serializer<StartParameterInternal> startParameterSerializer = new StartParameterSerializer();
+        private final Serializer<BuildParameters> buildParametersSerializer = new BuildParametersSerializer();
 
         @Override
         public void write(Encoder encoder, ExecuteBuildAction action) throws Exception {
-            StartParameterInternal startParameter = action.getStartParameter();
-            startParameterSerializer.write(encoder, startParameter);
+            buildParametersSerializer.write(encoder, action.getBuildParameters());
         }
 
         @Override
         public ExecuteBuildAction read(Decoder decoder) throws Exception {
-            StartParameterInternal startParameter = startParameterSerializer.read(decoder);
-            return new ExecuteBuildAction(startParameter);
+            BuildParameters buildParameters = buildParametersSerializer.read(decoder);
+            return new ExecuteBuildAction(buildParameters);
         }
     }
 
     private static class BuildModelActionSerializer implements Serializer<BuildModelAction> {
-        private final Serializer<StartParameterInternal> startParameterSerializer = new StartParameterSerializer();
+        private final Serializer<BuildParameters> buildParametersSerializer = new BuildParametersSerializer();
         private final Serializer<BuildEventSubscriptions> buildEventSubscriptionsSerializer = new BuildEventSubscriptionsSerializer();
 
         @Override
         public void write(Encoder encoder, BuildModelAction value) throws Exception {
-            startParameterSerializer.write(encoder, value.getStartParameter());
+            buildParametersSerializer.write(encoder, value.getBuildParameters());
             encoder.writeString(value.getModelName());
             encoder.writeBoolean(value.isRunTasks());
             buildEventSubscriptionsSerializer.write(encoder, value.getClientSubscriptions());
@@ -330,22 +380,22 @@ public class BuildActionSerializer {
 
         @Override
         public BuildModelAction read(Decoder decoder) throws Exception {
-            StartParameterInternal startParameter = startParameterSerializer.read(decoder);
+            BuildParameters buildParameters = buildParametersSerializer.read(decoder);
             String modelName = decoder.readString();
             boolean runTasks = decoder.readBoolean();
             BuildEventSubscriptions buildEventSubscriptions = buildEventSubscriptionsSerializer.read(decoder);
-            return new BuildModelAction(startParameter, modelName, runTasks, buildEventSubscriptions);
+            return new BuildModelAction(buildParameters, modelName, runTasks, buildEventSubscriptions);
         }
     }
 
     private static class ClientProvidedBuildActionSerializer implements Serializer<ClientProvidedBuildAction> {
-        private final Serializer<StartParameterInternal> startParameterSerializer = new StartParameterSerializer();
+        private final Serializer<BuildParameters> buildParametersSerializer = new BuildParametersSerializer();
         private final Serializer<SerializedPayload> payloadSerializer = new SerializedPayloadSerializer();
         private final Serializer<BuildEventSubscriptions> buildEventSubscriptionsSerializer = new BuildEventSubscriptionsSerializer();
 
         @Override
         public void write(Encoder encoder, ClientProvidedBuildAction value) throws Exception {
-            startParameterSerializer.write(encoder, value.getStartParameter());
+            buildParametersSerializer.write(encoder, value.getBuildParameters());
             payloadSerializer.write(encoder, value.getAction());
             encoder.writeBoolean(value.isRunTasks());
             buildEventSubscriptionsSerializer.write(encoder, value.getClientSubscriptions());
@@ -353,22 +403,22 @@ public class BuildActionSerializer {
 
         @Override
         public ClientProvidedBuildAction read(Decoder decoder) throws Exception {
-            StartParameterInternal startParameter = startParameterSerializer.read(decoder);
+            BuildParameters buildParameters = buildParametersSerializer.read(decoder);
             SerializedPayload action = payloadSerializer.read(decoder);
             boolean runTasks = decoder.readBoolean();
             BuildEventSubscriptions buildEventSubscriptions = buildEventSubscriptionsSerializer.read(decoder);
-            return new ClientProvidedBuildAction(startParameter, action, runTasks, buildEventSubscriptions);
+            return new ClientProvidedBuildAction(buildParameters, action, runTasks, buildEventSubscriptions);
         }
     }
 
     private static class ClientProvidedPhasedActionSerializer implements Serializer<ClientProvidedPhasedAction> {
-        private final Serializer<StartParameterInternal> startParameterSerializer = new StartParameterSerializer();
+        private final Serializer<BuildParameters> buildParametersSerializer = new BuildParametersSerializer();
         private final Serializer<SerializedPayload> payloadSerializer = new SerializedPayloadSerializer();
         private final Serializer<BuildEventSubscriptions> buildEventSubscriptionsSerializer = new BuildEventSubscriptionsSerializer();
 
         @Override
         public void write(Encoder encoder, ClientProvidedPhasedAction value) throws Exception {
-            startParameterSerializer.write(encoder, value.getStartParameter());
+            buildParametersSerializer.write(encoder, value.getBuildParameters());
             payloadSerializer.write(encoder, value.getPhasedAction());
             encoder.writeBoolean(value.isRunTasks());
             buildEventSubscriptionsSerializer.write(encoder, value.getClientSubscriptions());
@@ -376,11 +426,11 @@ public class BuildActionSerializer {
 
         @Override
         public ClientProvidedPhasedAction read(Decoder decoder) throws Exception {
-            StartParameterInternal startParameter = startParameterSerializer.read(decoder);
+            BuildParameters buildParameters = buildParametersSerializer.read(decoder);
             SerializedPayload action = payloadSerializer.read(decoder);
             boolean runTasks = decoder.readBoolean();
             BuildEventSubscriptions buildEventSubscriptions = buildEventSubscriptionsSerializer.read(decoder);
-            return new ClientProvidedPhasedAction(startParameter, action, runTasks, buildEventSubscriptions);
+            return new ClientProvidedPhasedAction(buildParameters, action, runTasks, buildEventSubscriptions);
         }
     }
 
@@ -403,14 +453,14 @@ public class BuildActionSerializer {
     }
 
     private static class TestExecutionRequestActionSerializer implements Serializer<TestExecutionRequestAction> {
-        private final Serializer<StartParameterInternal> startParameterSerializer = new StartParameterSerializer();
+        private final Serializer<BuildParameters> buildParametersSerializer = new BuildParametersSerializer();
         private final Serializer<BuildEventSubscriptions> buildEventSubscriptionsSerializer = new BuildEventSubscriptionsSerializer();
         private final Serializer<TestExecutionRequestPayload> payloadSerializer = new DefaultSerializer<>();
         private final Serializer<InternalTaskSpec> taskSpecSerializer = new InternalTaskSpecSerializer();
 
         @Override
         public void write(Encoder encoder, TestExecutionRequestAction value) throws Exception {
-            startParameterSerializer.write(encoder, value.getStartParameter());
+            buildParametersSerializer.write(encoder, value.getBuildParameters());
             buildEventSubscriptionsSerializer.write(encoder, value.getClientSubscriptions());
             payloadSerializer.write(encoder, new TestExecutionRequestPayload(
                 value.getTestExecutionDescriptors(),
@@ -429,7 +479,7 @@ public class BuildActionSerializer {
 
         @Override
         public TestExecutionRequestAction read(Decoder decoder) throws Exception {
-            StartParameterInternal startParameter = startParameterSerializer.read(decoder);
+            BuildParameters buildParameters = buildParametersSerializer.read(decoder);
             BuildEventSubscriptions buildEventSubscriptions = buildEventSubscriptionsSerializer.read(decoder);
             TestExecutionRequestPayload payload = payloadSerializer.read(decoder);
             int numOfPatterns = decoder.readSmallInt();
@@ -437,7 +487,7 @@ public class BuildActionSerializer {
             for (int i = 0; i < numOfPatterns; i++) {
                 taskSpecs.add(i, taskSpecSerializer.read(decoder));
             }
-            return new TestExecutionRequestAction(buildEventSubscriptions, startParameter, payload.testDescriptors, payload.classNames, payload.internalJvmTestRequests, payload.debugOptions, payload.taskAndTests, payload.isRunDefaultTasks, taskSpecs);
+            return new TestExecutionRequestAction(buildEventSubscriptions, buildParameters, payload.testDescriptors, payload.classNames, payload.internalJvmTestRequests, payload.debugOptions, payload.taskAndTests, payload.isRunDefaultTasks, taskSpecs);
         }
     }
 
@@ -507,42 +557,6 @@ public class BuildActionSerializer {
         @Override
         public BuildEventSubscriptions read(Decoder decoder) throws Exception {
             return new BuildEventSubscriptions(setSerializer.read(decoder));
-        }
-    }
-
-    private static class ValueSerializer implements Serializer<Option.Value<Boolean>> {
-        private static final byte EXPLICIT_TRUE = (byte) 1;
-        private static final byte EXPLICIT_FALSE = (byte) 2;
-        public static final byte IMPLICIT_TRUE = (byte) 3;
-        public static final byte IMPLICIT_FALSE = (byte) 4;
-
-        @Override
-        public Option.Value<Boolean> read(Decoder decoder) throws Exception {
-            switch (decoder.readByte()) {
-                case EXPLICIT_TRUE:
-                    return Option.Value.value(true);
-                case EXPLICIT_FALSE:
-                    return Option.Value.value(false);
-                case IMPLICIT_TRUE:
-                    return Option.Value.defaultValue(true);
-                case IMPLICIT_FALSE:
-                    return Option.Value.defaultValue(false);
-                default:
-                    throw new IllegalStateException();
-            }
-        }
-
-        @Override
-        public void write(Encoder encoder, Option.Value<Boolean> value) throws Exception {
-            if (value.isExplicit() && value.get()) {
-                encoder.writeByte(EXPLICIT_TRUE);
-            } else if (value.isExplicit()) {
-                encoder.writeByte(EXPLICIT_FALSE);
-            } else if (value.get()) {
-                encoder.writeByte(IMPLICIT_TRUE);
-            } else {
-                encoder.writeByte(IMPLICIT_FALSE);
-            }
         }
     }
 
