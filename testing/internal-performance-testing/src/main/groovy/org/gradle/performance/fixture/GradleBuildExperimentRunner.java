@@ -174,6 +174,15 @@ public class GradleBuildExperimentRunner extends AbstractBuildExperimentRunner {
         BuildExperimentSpec baselineExperiment = baselineExperiments.get(0);
         MeasuredOperationList baselineResultsList = baselineResults.get(baselineExperiment);
 
+        // Android Studio scenarios need the IdeGradleScenarioDefinition / IdeGradleScenarioInvoker wrapping
+        // that GradleBuildExperimentRunner.doRun() performs. The interleaved invoker does not currently
+        // implement that wrapping, so fall back to the original sequential execution for these scenarios.
+        if (usesAndroidStudio(currentExperiment) || usesAndroidStudio(baselineExperiment)) {
+            run(testId, currentExperiment, currentResults);
+            run(testId, baselineExperiment, baselineResultsList);
+            return;
+        }
+
         prepareWorkingDirectory(currentExperiment);
         prepareWorkingDirectory(baselineExperiment);
 
@@ -209,6 +218,10 @@ public class GradleBuildExperimentRunner extends AbstractBuildExperimentRunner {
             }
             ConnectorServices.reset();
         }
+    }
+
+    private static boolean usesAndroidStudio(BuildExperimentSpec experiment) {
+        return experiment.getInvocation() instanceof GradleInvocationSpec gradleSpec && gradleSpec.isUseAndroidStudio();
     }
 
     private ScenarioBundle prepareScenario(String testId, BuildExperimentSpec experiment) {
