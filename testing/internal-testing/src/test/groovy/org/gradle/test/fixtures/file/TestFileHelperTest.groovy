@@ -15,7 +15,11 @@
  */
 package org.gradle.test.fixtures.file
 
+import org.apache.commons.compress.archivers.tar.TarArchiveEntry
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream
+import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream
+import org.apache.commons.compress.archivers.zip.ZipArchiveEntry
+import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream
 import org.apache.commons.compress.archivers.zip.ZipFile
 import org.apache.commons.compress.compressors.bzip2.BZip2CompressorInputStream
 import org.junit.Rule
@@ -196,6 +200,47 @@ class TestFileHelperTest extends Specification {
 
         then:
         decompressed == payload
+    }
+
+    def "unzipTo rejects zip entries that escape the target directory (zip slip)"() {
+        given:
+        TestFile zipFile = temp.testDirectory.file("evil.zip")
+        zipFile.withOutputStream { os ->
+            new ZipArchiveOutputStream(os).withCloseable { zos ->
+                def entry = new ZipArchiveEntry("../escaped.txt")
+                zos.putArchiveEntry(entry)
+                zos.write("pwned".bytes)
+                zos.closeArchiveEntry()
+            }
+        }
+
+        when:
+        new TestFileHelper(zipFile).unzipTo(temp.testDirectory.file("target"), false, false)
+
+        then:
+        def e = thrown(IOException)
+        e.message.contains("resolves outside")
+    }
+
+    def "untarTo rejects tar entries that escape the target directory (tar slip)"() {
+        given:
+        TestFile tarFile = temp.testDirectory.file("evil.tar")
+        tarFile.withOutputStream { os ->
+            new TarArchiveOutputStream(os).withCloseable { tos ->
+                def entry = new TarArchiveEntry("../escaped.txt")
+                entry.setSize(5)
+                tos.putArchiveEntry(entry)
+                tos.write("pwned".bytes)
+                tos.closeArchiveEntry()
+            }
+        }
+
+        when:
+        new TestFileHelper(tarFile).untarTo(temp.testDirectory.file("target"), false)
+
+        then:
+        def e = thrown(IOException)
+        e.message.contains("resolves outside")
     }
 
     private static Map<String, Integer> readZipUnixModes(File zipFile) {

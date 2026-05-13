@@ -29,6 +29,7 @@ import org.apache.commons.io.FileUtils
 import org.apache.commons.lang3.StringUtils
 
 import java.nio.file.Files
+import java.nio.file.Path
 import java.nio.file.attribute.PosixFilePermissions
 import java.util.zip.GZIPOutputStream
 import java.util.zip.ZipInputStream
@@ -76,7 +77,7 @@ class TestFileHelper {
             new ZipInputStream(instr).withCloseable { ZipInputStream zipStr ->
                 def entry
                 while (entry = zipStr.nextEntry) {
-                    def outFile = new File(target, entry.name)
+                    def outFile = safeChild(target, entry.name)
                     if (entry.directory) {
                         outFile.mkdirs()
                     } else {
@@ -105,7 +106,7 @@ class TestFileHelper {
             new TarArchiveInputStream(stream).withCloseable { TarArchiveInputStream tarIn ->
                 TarArchiveEntry entry
                 while ((entry = tarIn.nextEntry) != null) {
-                    def outFile = new File(target, entry.name)
+                    def outFile = safeChild(target, entry.name)
                     if (entry.directory) {
                         outFile.mkdirs()
                     } else {
@@ -115,6 +116,19 @@ class TestFileHelper {
                 }
             }
         }
+    }
+
+    /**
+     * Resolves an archive entry name against the target directory and verifies the result stays
+     * within it. Defends against zip/tar slip when extracting maliciously crafted archives.
+     */
+    private static File safeChild(File target, String entryName) {
+        Path targetPath = target.toPath().toAbsolutePath().normalize()
+        Path resolved = targetPath.resolve(entryName).normalize()
+        if (!resolved.startsWith(targetPath)) {
+            throw new IOException("Archive entry '${entryName}' resolves outside of the target directory: ${target.absolutePath}")
+        }
+        return resolved.toFile()
     }
 
     private InputStream getInputStreamForFile(InputStream instr) {

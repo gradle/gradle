@@ -162,6 +162,13 @@ public class StartScriptGenerator {
                 permissions.add(PosixFilePermission.OTHERS_READ);
                 permissions.add(PosixFilePermission.OTHERS_EXECUTE);
                 Files.setPosixFilePermissions(path, permissions);
+            } catch (UnsupportedOperationException e) {
+                // Filesystem does not support POSIX permissions (rare on non-Windows, but possible on some
+                // network mounts and exotic filesystems). Fall back to File.setExecutable so the script is
+                // still runnable; group/other bits are silently dropped.
+                if (!file.setExecutable(true, false)) {
+                    throw new RuntimeException("Could not make " + file + " executable on a filesystem without POSIX support.");
+                }
             } catch (IOException e) {
                 throw UncheckedException.throwAsUncheckedException(e);
             }
