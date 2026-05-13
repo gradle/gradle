@@ -34,7 +34,9 @@ import org.gradle.profiler.InvocationSettings;
 import org.gradle.profiler.Logging;
 import org.gradle.profiler.ScenarioDefinition;
 import org.gradle.profiler.ScenarioInvoker;
+import org.gradle.profiler.gradle.CrossVersionGradleScenarioInvoker;
 import org.gradle.profiler.gradle.DaemonControl;
+import org.gradle.profiler.gradle.GradleBuildInvocationResult;
 import org.gradle.profiler.gradle.GradleBuildInvoker;
 import org.gradle.profiler.gradle.GradleScenarioDefinition;
 import org.gradle.profiler.gradle.GradleScenarioInvoker;
@@ -148,6 +150,96 @@ public class GradleBuildExperimentRunner extends AbstractBuildExperimentRunner {
         );
         Consumer<R> resultConsumer = consumerFor(scenarioDefinition, results, scenarioReporter);
         scenarioInvoker.run(scenarioDefinition, invocationSettings, resultConsumer);
+    }
+
+    /**
+     * Runs the current spec and one or more baseline specs as a single interleaved cross-version benchmark,
+     * keeping both Gradle daemons alive throughout so each measure on A is immediately followed by a measure on B.
+     *
+     * <p>For pilot scope, this supports only the standard {@link GradleScenarioInvoker} path: no Android Studio,
+     * and all specs must declare equal warmup/invocation counts.
+     */
+    public void runInterleavedCrossVersion(
+        String testId,
+        BuildExperimentSpec currentExperiment, MeasuredOperationList currentResults,
+        List<? extends BuildExperimentSpec> baselineExperiments, java.util.Map<? extends BuildExperimentSpec, MeasuredOperationList> baselineResults
+    ) {
+        if (baselineExperiments.isEmpty()) {
+            throw new IllegalArgumentException("Interleaved cross-version run requires at least one baseline");
+        }
+        if (baselineExperiments.size() > 1) {
+            // For the pilot, support exactly one baseline. Multiple baselines would need n-way interleaving.
+            throw new IllegalArgumentException("Interleaved cross-version run currently supports a single baseline; got " + baselineExperiments.size());
+        }
+        BuildExperimentSpec baselineExperiment = baselineExperiments.get(0);
+        MeasuredOperationList baselineResultsList = baselineResults.get(baselineExperiment);
+
+        prepareWorkingDirectory(currentExperiment);
+        prepareWorkingDirectory(baselineExperiment);
+
+        ScenarioBundle current = prepareScenario(testId, currentExperiment);
+        ScenarioBundle baseline = prepareScenario(testId, baselineExperiment);
+
+        File workingDirectory = currentExperiment.getInvocation().getWorkingDirectory();
+        try {
+            Logging.setupLogging(workingDirectory);
+            if (currentExperiment.getInvocation() instanceof GradleInvocationSpec gradleSpec && gradleSpec.isUseToolingApi()) {
+                initializeNativeServicesForTapiClient(gradleSpec, current.scenarioDefinition);
+            }
+
+            Consumer<GradleBuildInvocationResult> currentReporter = getResultCollector().scenario(current.scenarioDefinition, current.invoker.samplesFor(current.invocationSettings, current.scenarioDefinition));
+            Consumer<GradleBuildInvocationResult> baselineReporter = getResultCollector().scenario(baseline.scenarioDefinition, baseline.invoker.samplesFor(baseline.invocationSettings, baseline.scenarioDefinition));
+
+            Consumer<GradleBuildInvocationResult> currentConsumer = consumerFor(current.scenarioDefinition, currentResults, currentReporter);
+            Consumer<GradleBuildInvocationResult> baselineConsumer = consumerFor(baseline.scenarioDefinition, baselineResultsList, baselineReporter);
+
+            CrossVersionGradleScenarioInvoker interleavedInvoker = new CrossVersionGradleScenarioInvoker(
+                new DaemonControl(current.invocationSettings.getGradleUserHome()),
+                pidInstrumentation
+            );
+            interleavedInvoker.run(
+                current.scenarioDefinition, current.invocationSettings, currentConsumer,
+                baseline.scenarioDefinition, baseline.invocationSettings, baselineConsumer
+            );
+        } catch (IOException | InterruptedException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        } finally {
+            try {
+                Logging.resetLogging();
+            } catch (IOException e) {
+                //noinspection CallToPrintStackTrace
+                e.printStackTrace();
+            }
+            ConnectorServices.reset();
+        }
+    }
+
+    private ScenarioBundle prepareScenario(String testId, BuildExperimentSpec experiment) {
+        InvocationSpec invocationSpec = experiment.getInvocation();
+        if (!(invocationSpec instanceof GradleInvocationSpec invocation)) {
+            throw new IllegalArgumentException("Interleaved cross-version only supports Gradle invocations");
+        }
+        List<String> additionalJvmOpts = new ArrayList<>();
+        List<String> additionalArgs = new ArrayList<>();
+        additionalArgs.add("-PbuildExperimentDisplayName=" + experiment.getDisplayName());
+        GradleInvocationSpec buildSpec = invocation.withAdditionalJvmOpts(additionalJvmOpts).withAdditionalArgs(additionalArgs);
+        GradleBuildExperimentSpec gradleExperiment = (GradleBuildExperimentSpec) experiment;
+        InvocationSettings invocationSettings = createInvocationSettings(testId, buildSpec, gradleExperiment);
+        GradleScenarioDefinition scenarioDefinition = createScenarioDefinition(gradleExperiment, invocationSettings, invocation);
+        GradleScenarioInvoker invoker = createScenarioInvoker(invocationSettings.getGradleUserHome());
+        return new ScenarioBundle(invocationSettings, scenarioDefinition, invoker);
+    }
+
+    private static class ScenarioBundle {
+        final InvocationSettings invocationSettings;
+        final GradleScenarioDefinition scenarioDefinition;
+        final GradleScenarioInvoker invoker;
+
+        ScenarioBundle(InvocationSettings invocationSettings, GradleScenarioDefinition scenarioDefinition, GradleScenarioInvoker invoker) {
+            this.invocationSettings = invocationSettings;
+            this.scenarioDefinition = scenarioDefinition;
+            this.invoker = invoker;
+        }
     }
 
     private void initializeNativeServicesForTapiClient(GradleInvocationSpec buildSpec, GradleScenarioDefinition scenarioDefinition) {

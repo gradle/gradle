@@ -102,6 +102,12 @@ public abstract class AbstractBuildExperimentRunner implements BuildExperimentRu
 
     protected abstract void doRun(String testId, BuildExperimentSpec experiment, MeasuredOperationList results);
 
+    protected static void prepareWorkingDirectory(BuildExperimentSpec experiment) {
+        File projectCheckoutDir = experiment.getInvocation().getProjectCheckoutDirectory();
+        projectCheckoutDir.mkdirs();
+        copyTemplateTo(experiment, projectCheckoutDir);
+    }
+
     private static void copyTemplateTo(BuildExperimentSpec experiment, File workingDir) {
         try {
             File templateDir = TestProjectLocator.findProjectDir(experiment.getProjectName());

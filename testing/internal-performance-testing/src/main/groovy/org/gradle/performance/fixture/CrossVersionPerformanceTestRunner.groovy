@@ -168,11 +168,21 @@ class CrossVersionPerformanceTestRunner implements PerformanceTestRunner<CrossVe
         def baselineVersions = toBaselineVersions(releases, targetVersions, minimumBaseVersion).collect { results.baseline(it) }
         try {
             int runIndex = 0
-            runVersion(testId, current, perVersionWorkingDirectory(runIndex++), results.current)
-
+            File currentWorkingDir = perVersionWorkingDirectory(runIndex++)
+            List<GradleBuildExperimentSpec> baselineSpecs = []
+            Map<Object, MeasuredOperationList> baselineResults = [:]
             baselineVersions.each { baselineVersion ->
-                runVersion(testId, buildContext.distribution(baselineVersion.version), perVersionWorkingDirectory(runIndex++), baselineVersion.results)
+                File baselineWorkingDir = perVersionWorkingDirectory(runIndex++)
+                baselineSpecs.add(buildSpec(testId, buildContext.distribution(baselineVersion.version), baselineWorkingDir))
+                baselineResults[baselineSpecs.last()] = baselineVersion.results
             }
+            GradleBuildExperimentSpec currentSpec = buildSpec(testId, current, currentWorkingDir)
+
+            ((GradleBuildExperimentRunner) experimentRunner).runInterleavedCrossVersion(
+                testId,
+                currentSpec, results.current,
+                baselineSpecs, baselineResults
+            )
         } catch (Exception e) {
             // Print the exception here, so it is reported even when the reporting fails
             e.printStackTrace()
@@ -220,7 +230,7 @@ class CrossVersionPerformanceTestRunner implements PerformanceTestRunner<CrossVe
         return minimumBaseVersion == null || GradleVersion.version(targetVersion).baseVersion >= GradleVersion.version(minimumBaseVersion)
     }
 
-    private void runVersion(String displayName, GradleDistribution dist, File workingDir, MeasuredOperationList results) {
+    private GradleBuildExperimentSpec buildSpec(String displayName, GradleDistribution dist, File workingDir) {
         def gradleOptsInUse = resolveGradleOpts()
         def builder = GradleBuildExperimentSpec.builder()
             .projectName(testProject)
@@ -250,14 +260,7 @@ class CrossVersionPerformanceTestRunner implements PerformanceTestRunner<CrossVe
         builder.workingDirectory = workingDir
 
         interceptors.each { it.intercept(builder) }
-        def spec = builder.build()
-
-        try {
-            experimentRunner.run(testId, spec, results)
-        } catch (Exception e) {
-            interceptors.each { it.handleFailure(e, spec) }
-            throw e
-        }
+        return builder.build()
     }
 
     private List<String> resolveGradleOpts() {
