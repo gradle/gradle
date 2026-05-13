@@ -500,7 +500,7 @@ $ echo " gradle-wrapper.jar" >> gradle-wrapper.jar.sha256
 ----
 [source,bash]
 ----
-$ shasum --check gradle-wrapper.jar.sha256
+$ sha256sum --check gradle-wrapper.jar.sha256
 ----
 [source,text]
 ----
@@ -547,7 +547,7 @@ Generating the actual checksum of the Wrapper JAR on macOS:
 
 [source,bash]
 ----
-$ shasum --algorithm=256 gradle/wrapper/gradle-wrapper.jar
+$ sha256sum gradle/wrapper/gradle-wrapper.jar
 d81e0f23ade952b35e55333dd5f1821585e887c6d24305aeea2fbc8dad564b95 gradle/wrapper/gradle-wrapper.jar
 ----
 
