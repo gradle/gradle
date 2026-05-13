@@ -181,7 +181,10 @@ class PropertiesFileAwareClasspathResourceHasherTest extends Specification {
         hash1 == hash2
 
         where:
-        [context, fooPattern] << [SnapshotContext.values(), ['**/foo.properties', '**/f*.properties', 'some/**/f*.properties', 'some/path/to/foo.properties']].combinations()*.flatten()
+        context << SnapshotContext.values()
+
+        combined:
+        fooPattern << ['**/foo.properties', '**/f*.properties', 'some/**/f*.properties', 'some/path/to/foo.properties']
     }
 
     def "can filter multiple files selectively based on pattern (pattern: #fPattern, context: #context)"() {
@@ -212,7 +215,10 @@ class PropertiesFileAwareClasspathResourceHasherTest extends Specification {
         hash4 == hash6
 
         where:
-        [context, fPattern] << [SnapshotContext.values(), ['**/f*.properties', 'some/**/f*.properties']].combinations()*.flatten()
+        context << SnapshotContext.values()
+
+        combined:
+        fPattern << ['**/f*.properties', 'some/**/f*.properties']
     }
 
     def "multiple filters can be applied to the same file (context: #context)"() {
