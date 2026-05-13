@@ -193,10 +193,7 @@ public class GradleBuildExperimentRunner extends AbstractBuildExperimentRunner {
             Consumer<GradleBuildInvocationResult> currentConsumer = consumerFor(current.scenarioDefinition, currentResults, currentReporter);
             Consumer<GradleBuildInvocationResult> baselineConsumer = consumerFor(baseline.scenarioDefinition, baselineResultsList, baselineReporter);
 
-            CrossVersionGradleScenarioInvoker interleavedInvoker = new CrossVersionGradleScenarioInvoker(
-                new DaemonControl(current.invocationSettings.getGradleUserHome()),
-                pidInstrumentation
-            );
+            CrossVersionGradleScenarioInvoker interleavedInvoker = new CrossVersionGradleScenarioInvoker(pidInstrumentation);
             interleavedInvoker.run(
                 current.scenarioDefinition, current.invocationSettings, currentConsumer,
                 baseline.scenarioDefinition, baseline.invocationSettings, baselineConsumer
