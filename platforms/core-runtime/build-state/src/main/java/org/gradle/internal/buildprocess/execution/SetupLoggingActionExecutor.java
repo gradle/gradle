@@ -16,11 +16,10 @@
 
 package org.gradle.internal.buildprocess.execution;
 
-import org.gradle.StartParameter;
+import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.initialization.BuildRequestContext;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.logging.LoggingManagerInternal;
-import org.gradle.launcher.exec.BuildActionExecutor;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.BuildActionResult;
 import org.gradle.launcher.exec.BuildExecutor;
@@ -29,22 +28,21 @@ import org.gradle.launcher.exec.BuildExecutor;
  * Sets up logging around a session.
  */
 public class SetupLoggingActionExecutor implements BuildExecutor {
-    private final BuildActionExecutor<BuildActionParameters, BuildRequestContext> delegate;
+    private final BuildExecutor delegate;
     private final LoggingManagerInternal loggingManager;
 
-    public SetupLoggingActionExecutor(LoggingManagerInternal loggingManager, BuildActionExecutor<BuildActionParameters, BuildRequestContext> delegate) {
+    public SetupLoggingActionExecutor(LoggingManagerInternal loggingManager, BuildExecutor delegate) {
         this.loggingManager = loggingManager;
         this.delegate = delegate;
     }
 
     @Override
-    public BuildActionResult execute(BuildAction action, BuildActionParameters actionParameters, BuildRequestContext requestContext) {
-        StartParameter startParameter = action.getStartParameter();
+    public BuildActionResult execute(BuildAction action, StartParameterInternal startParameter, BuildActionParameters actionParameters, BuildRequestContext requestContext) {
         loggingManager.setLevelInternal(startParameter.getLogLevel());
         loggingManager.enableUserStandardOutputListeners();
         loggingManager.start();
         try {
-            return delegate.execute(action, actionParameters, requestContext);
+            return delegate.execute(action, startParameter, actionParameters, requestContext);
         } finally {
             loggingManager.stop();
         }

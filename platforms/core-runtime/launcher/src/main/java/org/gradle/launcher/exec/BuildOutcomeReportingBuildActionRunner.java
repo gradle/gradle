@@ -16,8 +16,8 @@
 
 package org.gradle.launcher.exec;
 
-import org.gradle.StartParameter;
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.tasks.execution.statistics.TaskExecutionStatisticsEventAdapter;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.problems.internal.ExceptionProblemRegistry;
@@ -66,8 +66,7 @@ public class BuildOutcomeReportingBuildActionRunner implements BuildActionRunner
     }
 
     @Override
-    public Result run(BuildAction action, BuildTreeLifecycleController buildController) {
-        StartParameter startParameter = action.getStartParameter();
+    public Result run(BuildAction action, BuildTreeLifecycleController buildController, StartParameterInternal startParameter) {
         TaskExecutionStatisticsEventAdapter taskStatisticsCollector = new TaskExecutionStatisticsEventAdapter();
         listenerManager.addListener(taskStatisticsCollector);
 
@@ -80,7 +79,7 @@ public class BuildOutcomeReportingBuildActionRunner implements BuildActionRunner
         // Register as a 'logger' to support this being replaced by build logic.
         buildController.beforeBuild(gradle -> callUseLogger(gradle, buildLogger));
 
-        Result result = delegate.run(action, buildController);
+        Result result = delegate.run(action, buildController, startParameter);
 
         ProblemLocator problemLocator = registry.getProblemLocator();
         Throwable buildFailure = result.getBuildFailure();

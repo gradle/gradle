@@ -18,6 +18,7 @@ package org.gradle.launcher.cli;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.gradle.api.Action;
+import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.tasks.userinput.UserInputReader;
 import org.gradle.api.logging.Logger;
@@ -25,6 +26,7 @@ import org.gradle.api.logging.Logging;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
 import org.gradle.configuration.GradleLauncherMetaData;
+import org.gradle.initialization.BuildRequestContext;
 import org.gradle.initialization.layout.BuildLayoutConfiguration;
 import org.gradle.internal.Actions;
 import org.gradle.internal.SystemProperties;
@@ -60,6 +62,7 @@ import org.gradle.launcher.exec.BuildActionExecutor;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.BuildExecutor;
 import org.gradle.launcher.exec.DefaultBuildActionParameters;
+import org.gradle.launcher.exec.StartParameterHelper;
 import org.gradle.process.internal.CurrentProcess;
 import org.gradle.tooling.internal.provider.ForwardStdInToThisProcess;
 import org.gradle.tooling.internal.provider.RunInProcess;
@@ -197,13 +200,17 @@ class BuildActionsFactory implements CommandLineActionCreator {
 
         ServiceRegistry globalServices = buildProcessState.getServices();
         globalServices.get(AgentInitializer.class).maybeConfigureInstrumentationAgent();
-
+        BuildActionExecutor<BuildActionParameters, BuildRequestContext> actionExecutor = (action, actionParameters, buildRequestContext) -> {
+            BuildExecutor buildExecutor = globalServices.get(BuildExecutor.class);
+            StartParameterInternal startParameterInternal = StartParameterHelper.toStartParameter(buildParameters);
+            return buildExecutor.execute(action, startParameterInternal, actionParameters, buildRequestContext);
+        };
         BuildActionExecutor<BuildActionParameters, ClientBuildRequestContext> executor = new RunInProcess(
             new ForwardStdInToThisProcess(
                 globalServices.get(GlobalUserInputReceiver.class),
                 globalServices.get(UserInputReader.class),
                 System.in,
-                globalServices.get(BuildExecutor.class)
+                actionExecutor
             ));
 
         // Force the user home services to be stopped first, the dependencies between the user home services and the global services are not preserved currently

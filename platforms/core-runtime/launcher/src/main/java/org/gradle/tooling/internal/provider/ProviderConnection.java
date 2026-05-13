@@ -20,7 +20,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.TaskExecutionRequest;
-import org.gradle.internal.invocation.BuildParameters;
+import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.tasks.userinput.UserInputReader;
 import org.gradle.api.logging.LogLevel;
@@ -29,12 +29,14 @@ import org.gradle.cli.ParsedCommandLine;
 import org.gradle.configuration.GradleLauncherMetaData;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.BuildEventConsumer;
+import org.gradle.initialization.BuildRequestContext;
 import org.gradle.initialization.NoOpBuildEventConsumer;
 import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.internal.build.event.BuildEventSubscriptions;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.daemon.client.execution.ClientBuildRequestContext;
 import org.gradle.internal.invocation.BuildAction;
+import org.gradle.internal.invocation.BuildParameters;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.logging.LoggingManagerFactory;
 import org.gradle.internal.logging.LoggingManagerInternal;
@@ -65,6 +67,7 @@ import org.gradle.launcher.exec.BuildActionExecutor;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.BuildActionResult;
 import org.gradle.launcher.exec.BuildExecutor;
+import org.gradle.launcher.exec.StartParameterHelper;
 import org.gradle.process.internal.streams.SafeStreams;
 import org.gradle.tooling.events.OperationType;
 import org.gradle.tooling.internal.build.DefaultBuildEnvironment;
@@ -346,11 +349,16 @@ public class ProviderConnection {
         if (Boolean.TRUE.equals(operationParameters.isEmbedded())) {
             loggingManager = sharedServices.get(LoggingManagerFactory.class).createLoggingManager();
             loggingManager.captureSystemSources();
+            BuildActionExecutor<BuildActionParameters, BuildRequestContext> actionExecutor = (action, actionParameters, buildRequestContext) -> {
+                BuildExecutor buildExecutor = sharedServices.get(BuildExecutor.class);
+                StartParameterInternal startParameterInternal = StartParameterHelper.toStartParameter(action.getBuildParameters());
+                return buildExecutor.execute(action, startParameterInternal, actionParameters, buildRequestContext);
+            };
             executor = new RunInProcess(new SystemPropertySetterExecuter(new ForwardStdInToThisProcess(
                 sharedServices.get(GlobalUserInputReceiver.class),
                 sharedServices.get(UserInputReader.class),
                 standardInput,
-                sharedServices.get(BuildExecutor.class)
+                actionExecutor
             )));
         } else {
             ServiceRegistry requestSpecificLogging = LoggingServiceRegistry.newNestedLogging();

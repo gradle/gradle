@@ -16,14 +16,23 @@
 
 package org.gradle.launcher.exec;
 
+import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.initialization.BuildRequestContext;
+import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 /**
- * Marker interface that can be used to obtain the action executor responsible for actually running builds.
+ * Runs a build. Actually.
  */
 @ServiceScope(Scope.Global.class)
-public interface BuildExecutor extends BuildActionExecutor<BuildActionParameters, BuildRequestContext> {
+public interface BuildExecutor {
+
+    BuildActionResult execute(
+        BuildAction action,
+        StartParameterInternal startParameter,
+        BuildActionParameters actionParameters,
+        BuildRequestContext context
+    );
 
 }

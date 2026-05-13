@@ -18,11 +18,9 @@ package org.gradle.integtests.fixtures.executer;
 
 import org.apache.commons.io.output.TeeOutputStream;
 import org.gradle.BuildResult;
-import org.gradle.StartParameter;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.Task;
 import org.gradle.api.execution.TaskExecutionListener;
-import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.TestFiles;
@@ -50,6 +48,7 @@ import org.gradle.internal.installation.GradleInstallation;
 import org.gradle.internal.instrumentation.agent.AgentInitializer;
 import org.gradle.internal.instrumentation.agent.AgentStatus;
 import org.gradle.internal.invocation.BuildAction;
+import org.gradle.internal.invocation.BuildParameters;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.logging.LoggingManagerFactory;
 import org.gradle.internal.logging.LoggingManagerInternal;
@@ -297,11 +296,11 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
         }
     }
 
-    private LoggingManagerInternal createLoggingManager(StartParameter startParameter, OutputStream outputStream, OutputStream errorStream) {
+    private LoggingManagerInternal createLoggingManager(BuildParameters buildParameters, OutputStream outputStream, OutputStream errorStream) {
         LoggingManagerInternal loggingManager = GLOBAL_SERVICES.get(LoggingManagerFactory.class).createLoggingManager();
         loggingManager.captureSystemSources();
 
-        ConsoleOutput consoleOutput = startParameter.getConsoleOutput();
+        ConsoleOutput consoleOutput = buildParameters.getConsoleOutput();
         loggingManager.attachConsole(new TeeOutputStream(System.out, outputStream), new TeeOutputStream(System.err, errorStream), consoleOutput, consoleAttachment.getConsoleMetaData());
 
         return loggingManager;
@@ -332,12 +331,12 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
 
         try {
             // TODO: Reuse more of BuildActionsFactory
-            StartParameterInternal startParameter = parameters.getStartParameter();
-            BuildAction action = new ExecuteBuildAction(startParameter);
-            BuildActionParameters buildActionParameters = createBuildActionParameters(startParameter);
+            BuildParameters buildParameters = parameters.getBuildParameters();
+            BuildAction action = new ExecuteBuildAction(buildParameters);
+            BuildActionParameters buildActionParameters = createBuildActionParameters(buildParameters);
             BuildRequestContext buildRequestContext = createBuildRequestContext();
 
-            LoggingManagerInternal loggingManager = createLoggingManager(startParameter, outputStream, errorStream);
+            LoggingManagerInternal loggingManager = createLoggingManager(buildParameters, outputStream, errorStream);
             loggingManager.start();
 
             try {
@@ -363,12 +362,12 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
         }
     }
 
-    private BuildActionParameters createBuildActionParameters(StartParameter startParameter) {
+    private BuildActionParameters createBuildActionParameters(BuildParameters buildParameters) {
         return new DefaultBuildActionParameters(
             System.getProperties(),
             System.getenv(),
             SystemProperties.getInstance().getCurrentDir(),
-            startParameter.getLogLevel(),
+            buildParameters.getLogLevel(),
             false,
             ClassPath.EMPTY
         );

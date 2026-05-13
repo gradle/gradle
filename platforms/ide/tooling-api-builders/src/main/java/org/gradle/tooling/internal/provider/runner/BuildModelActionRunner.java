@@ -16,6 +16,7 @@
 
 package org.gradle.tooling.internal.provider.runner;
 
+import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.internal.buildtree.BuildActionRunner;
 import org.gradle.internal.buildtree.BuildTreeLifecycleController;
 import org.gradle.internal.buildtree.BuildTreeModelAction;
@@ -39,7 +40,7 @@ public class BuildModelActionRunner implements BuildActionRunner {
     }
 
     @Override
-    public Result run(BuildAction action, final BuildTreeLifecycleController buildController) {
+    public Result run(BuildAction action, final BuildTreeLifecycleController buildController, StartParameterInternal startParameter) {
         if (!(action instanceof BuildModelAction)) {
             return Result.nothing();
         }

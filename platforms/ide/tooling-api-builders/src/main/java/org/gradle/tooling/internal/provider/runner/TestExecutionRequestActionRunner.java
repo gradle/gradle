@@ -16,6 +16,7 @@
 
 package org.gradle.tooling.internal.provider.runner;
 
+import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.tasks.testing.TestExecutionException;
 import org.gradle.internal.buildtree.BuildActionRunner;
 import org.gradle.internal.buildtree.BuildTreeLifecycleController;
@@ -38,7 +39,7 @@ public class TestExecutionRequestActionRunner implements BuildActionRunner {
     }
 
     @Override
-    public Result run(BuildAction action, BuildTreeLifecycleController buildController) {
+    public Result run(BuildAction action, BuildTreeLifecycleController buildController, StartParameterInternal startParameter) {
         if (!(action instanceof TestExecutionRequestAction)) {
             return Result.nothing();
         }

@@ -16,6 +16,7 @@
 
 package org.gradle.launcher.exec;
 
+import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.buildtree.BuildActionRunner;
 import org.gradle.internal.buildtree.BuildTreeLifecycleController;
@@ -30,9 +31,9 @@ public class ChainingBuildActionRunner implements BuildActionRunner {
     }
 
     @Override
-    public Result run(BuildAction action, BuildTreeLifecycleController buildController) {
+    public Result run(BuildAction action, BuildTreeLifecycleController buildController, StartParameterInternal startParameter) {
         for (BuildActionRunner runner : runners) {
-            Result result = runner.run(action, buildController);
+            Result result = runner.run(action, buildController, startParameter);
             if (result.hasResult()) {
                 return result;
             }

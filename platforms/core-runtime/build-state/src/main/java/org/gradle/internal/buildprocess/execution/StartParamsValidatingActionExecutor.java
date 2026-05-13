@@ -16,32 +16,31 @@
 
 package org.gradle.internal.buildprocess.execution;
 
-import org.gradle.StartParameter;
+import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.initialization.BuildRequestContext;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.jvm.UnsupportedJavaRuntimeException;
-import org.gradle.launcher.exec.BuildActionExecutor;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.BuildActionResult;
+import org.gradle.launcher.exec.BuildExecutor;
 
 import java.io.File;
 
 /**
  * Validates certain aspects of the start parameters, prior to starting a session using the parameters.
  */
-public class StartParamsValidatingActionExecutor implements BuildActionExecutor<BuildActionParameters, BuildRequestContext> {
-    private final BuildActionExecutor<BuildActionParameters, BuildRequestContext> delegate;
+public class StartParamsValidatingActionExecutor implements BuildExecutor {
+    private final BuildExecutor delegate;
 
-    public StartParamsValidatingActionExecutor(BuildActionExecutor<BuildActionParameters, BuildRequestContext> delegate) {
+    public StartParamsValidatingActionExecutor(BuildExecutor delegate) {
         this.delegate = delegate;
     }
 
     @Override
-    public BuildActionResult execute(BuildAction action, BuildActionParameters actionParameters, BuildRequestContext requestContext) {
+    public BuildActionResult execute(BuildAction action, StartParameterInternal startParameter, BuildActionParameters actionParameters, BuildRequestContext requestContext) {
         // The client verifies the JVM compatibility of the daemon, but check in the daemon just in case.
         UnsupportedJavaRuntimeException.assertCurrentProcessSupportsDaemonJavaVersion();
 
-        StartParameter startParameter = action.getStartParameter();
         if (startParameter.getProjectDir() != null) {
             if (!startParameter.getProjectDir().isDirectory()) {
                 if (!startParameter.getProjectDir().exists()) {
@@ -54,7 +53,7 @@ public class StartParamsValidatingActionExecutor implements BuildActionExecutor<
             validateIsFileAndExists(initScript, "initialization script");
         }
 
-        return delegate.execute(action, actionParameters, requestContext);
+        return delegate.execute(action, startParameter, actionParameters, requestContext);
     }
 
     private static void validateIsFileAndExists(File file, String fileType) {

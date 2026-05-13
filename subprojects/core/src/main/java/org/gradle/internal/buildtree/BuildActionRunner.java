@@ -16,6 +16,7 @@
 
 package org.gradle.internal.buildtree;
 
+import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.execution.MultipleBuildFailures;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.problems.failure.Failure;
@@ -37,7 +38,7 @@ public interface BuildActionRunner {
      *
      * <p>Build failures should be packaged in the returned result, rather than thrown.
      */
-    Result run(BuildAction action, BuildTreeLifecycleController buildController);
+    Result run(BuildAction action, BuildTreeLifecycleController buildController, StartParameterInternal startParameter);
 
     /**
      * Packages up the result of a {@link BuildAction}, either success plus an optional result object, or failure.

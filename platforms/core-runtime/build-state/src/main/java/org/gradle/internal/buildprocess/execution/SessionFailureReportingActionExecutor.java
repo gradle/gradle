@@ -17,6 +17,7 @@
 package org.gradle.internal.buildprocess.execution;
 
 import org.gradle.BuildResult;
+import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.logging.configuration.ShowStacktrace;
 import org.gradle.initialization.BuildRequestContext;
@@ -29,37 +30,37 @@ import org.gradle.internal.buildevents.BuildStartedTime;
 import org.gradle.internal.exception.ExceptionAnalyser;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.problems.NoOpProblemDiagnosticsFactory;
-import org.gradle.launcher.exec.BuildActionExecutor;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.BuildActionResult;
+import org.gradle.launcher.exec.BuildExecutor;
 
 /**
  * Reports any unreported failure that causes the session to finish.
  */
-public class SessionFailureReportingActionExecutor implements BuildActionExecutor<BuildActionParameters, BuildRequestContext> {
-    private final BuildActionExecutor<BuildActionParameters, BuildRequestContext> delegate;
+public class SessionFailureReportingActionExecutor implements BuildExecutor {
+    private final BuildExecutor delegate;
     private final BuildLoggerFactory buildLoggerFactory;
 
-    public SessionFailureReportingActionExecutor(BuildLoggerFactory buildLoggerFactory, BuildActionExecutor<BuildActionParameters, BuildRequestContext> delegate) {
+    public SessionFailureReportingActionExecutor(BuildLoggerFactory buildLoggerFactory, BuildExecutor delegate) {
         this.delegate = delegate;
         this.buildLoggerFactory = buildLoggerFactory;
     }
 
     @Override
-    public BuildActionResult execute(BuildAction action, BuildActionParameters actionParameters, BuildRequestContext requestContext) {
+    public BuildActionResult execute(BuildAction action, StartParameterInternal startParameter, BuildActionParameters actionParameters, BuildRequestContext requestContext) {
         try {
-            return delegate.execute(action, actionParameters, requestContext);
+            return delegate.execute(action, startParameter, actionParameters, requestContext);
         } catch (Throwable e) {
             // TODO - wire this stuff in properly
 
             // Sanitise the exception and report it
             ExceptionAnalyser exceptionAnalyser = new MultipleBuildFailuresExceptionAnalyser(new DefaultExceptionAnalyser(new NoOpProblemDiagnosticsFactory()));
-            if (action.getStartParameter().getShowStacktrace() != ShowStacktrace.ALWAYS_FULL) {
+            if (startParameter.getShowStacktrace() != ShowStacktrace.ALWAYS_FULL) {
                 exceptionAnalyser = new StackTraceSanitizingExceptionAnalyser(exceptionAnalyser);
             }
             RuntimeException failure = exceptionAnalyser.transform(e);
             BuildStartedTime buildStartedTime = BuildStartedTime.startingAt(requestContext.getStartTime());
-            BuildLogger buildLogger = buildLoggerFactory.create(Logging.getLogger(SessionFailureReportingActionExecutor.class), action.getStartParameter(), buildStartedTime, requestContext);
+            BuildLogger buildLogger = buildLoggerFactory.create(Logging.getLogger(SessionFailureReportingActionExecutor.class), startParameter, buildStartedTime, requestContext);
             buildLogger.buildFinished(new BuildResult(null, failure));
             buildLogger.logResult(failure);
             return BuildActionResult.failed(failure);

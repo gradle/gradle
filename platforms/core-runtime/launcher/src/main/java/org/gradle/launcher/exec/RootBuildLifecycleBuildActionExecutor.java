@@ -19,6 +19,7 @@ package org.gradle.launcher.exec;
 import org.gradle.StartParameter;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.BuildDefinition;
+import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.logging.configuration.ShowStacktrace;
 import org.gradle.api.problems.internal.ProblemsInternal;
 import org.gradle.api.problems.internal.ProblemsProgressEventEmitterHolder;
@@ -84,7 +85,7 @@ public class RootBuildLifecycleBuildActionExecutor {
      * <p>
      * When this method returns, all user code will have been completed, including 'build finished' hooks.
      */
-    public BuildActionRunner.Result execute(BuildAction action) {
+    public BuildActionRunner.Result execute(BuildAction action, StartParameterInternal startParameter) {
         if (executed) {
             throw new IllegalStateException("Cannot execute a root build action more than once per build tree.");
         }
@@ -97,8 +98,8 @@ public class RootBuildLifecycleBuildActionExecutor {
                 ProblemsProgressEventEmitterHolder.init(problemsService);
                 initDeprecationLogging();
                 maybeNagOnDeprecatedJavaRuntimeVersion();
-                RootBuildState rootBuild = buildStateRegistry.createRootBuild(BuildDefinition.fromStartParameter(action.getStartParameter(), null));
-                return rootBuild.run(buildController -> buildActionRunner.run(action, buildController));
+                RootBuildState rootBuild = buildStateRegistry.createRootBuild(BuildDefinition.fromStartParameter(startParameter, null));
+                return rootBuild.run(buildController -> buildActionRunner.run(action, buildController, startParameter));
             } finally {
                 ProblemsProgressEventEmitterHolder.clear();
                 lifecycleListener.beforeStop();

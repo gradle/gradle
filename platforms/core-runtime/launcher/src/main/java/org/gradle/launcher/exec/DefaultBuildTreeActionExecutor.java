@@ -16,6 +16,7 @@
 
 package org.gradle.launcher.exec;
 
+import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.build.BuildLayoutValidator;
 import org.gradle.internal.buildoption.InternalOptions;
@@ -116,14 +117,15 @@ public class DefaultBuildTreeActionExecutor implements BuildTreeActionExecutor {
     private BuildActionRunner.Result runBuildTreeLifecycle(BuildAction action, ServiceRegistry buildSessionServices) {
         BuildActionRunner.Result result = null;
         try {
-            buildLayoutValidator.validate(action.getStartParameter());
+            StartParameterInternal startParameter = buildSessionServices.get(StartParameterInternal.class);
+            buildLayoutValidator.validate(startParameter);
 
-            BuildActionModelRequirements actionRequirements = buildActionModelRequirementsFor(action);
+            BuildActionModelRequirements actionRequirements = buildActionModelRequirementsFor(action, startParameter);
             BuildModelParameters buildModelParameters = buildModelParametersFactory.parametersForRootBuildTree(actionRequirements, options);
             BuildInvocationScopeId buildInvocationScopeId = new BuildInvocationScopeId(UniqueId.generate());
             try (BuildTreeState buildTree = new BuildTreeState(buildSessionServices, actionRequirements, buildModelParameters, buildInvocationScopeId)) {
                 // assign instead of return to allow combining build failures with cleanup failures below
-                result = buildTree.getServices().get(RootBuildLifecycleBuildActionExecutor.class).execute(action);
+                result = buildTree.getServices().get(RootBuildLifecycleBuildActionExecutor.class).execute(action, startParameter);
             }
         } catch (Throwable t) {
             // If cleanup has failed, combine the cleanup failure with other failures that may be packed in the result
@@ -135,19 +137,19 @@ public class DefaultBuildTreeActionExecutor implements BuildTreeActionExecutor {
         return result;
     }
 
-    private BuildActionModelRequirements buildActionModelRequirementsFor(BuildAction action) {
+    private BuildActionModelRequirements buildActionModelRequirementsFor(BuildAction action, StartParameterInternal startParameter) {
         if (action instanceof BuildModelAction && action.isCreateModel()) {
             BuildModelAction buildModelAction = (BuildModelAction) action;
             Object payload = buildModelAction.getModelName();
-            return new QueryModelRequirements(action.getStartParameter(), action.isRunTasks(), payloadHashProvider(payload));
+            return new QueryModelRequirements(startParameter, action.isRunTasks(), payloadHashProvider(payload));
         } else if (action instanceof ClientProvidedBuildAction) {
             SerializedPayload payload = ((ClientProvidedBuildAction) action).getAction();
-            return new RunActionRequirements(action.getStartParameter(), action.isRunTasks(), payloadHashProvider(payload));
+            return new RunActionRequirements(startParameter, action.isRunTasks(), payloadHashProvider(payload));
         } else if (action instanceof ClientProvidedPhasedAction) {
             SerializedPayload payload = ((ClientProvidedPhasedAction) action).getPhasedAction();
-            return new RunPhasedActionRequirements(action.getStartParameter(), action.isRunTasks(), payloadHashProvider(payload));
+            return new RunPhasedActionRequirements(startParameter, action.isRunTasks(), payloadHashProvider(payload));
         } else {
-            return new RunTasksRequirements(action.getStartParameter());
+            return new RunTasksRequirements(startParameter);
         }
     }
 

@@ -29,7 +29,6 @@ import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry;
 import org.gradle.internal.session.BuildSessionContext;
 import org.gradle.internal.session.BuildSessionState;
 import org.gradle.internal.session.CrossBuildSessionState;
-import org.gradle.launcher.exec.BuildActionExecutor;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.BuildActionResult;
 import org.gradle.launcher.exec.BuildExecutor;
@@ -42,7 +41,7 @@ import java.util.function.Function;
 /**
  * A {@link BuildExecutor} responsible for establishing the {@link BuildSessionState} to execute a {@link BuildAction} within.
  */
-public class BuildSessionLifecycleBuildActionExecutor implements BuildActionExecutor<BuildActionParameters, BuildRequestContext> {
+public class BuildSessionLifecycleBuildActionExecutor implements BuildExecutor {
     private final ServiceRegistry globalServices;
     private final GradleUserHomeScopeServiceRegistry userHomeServiceRegistry;
 
@@ -52,8 +51,7 @@ public class BuildSessionLifecycleBuildActionExecutor implements BuildActionExec
     }
 
     @Override
-    public BuildActionResult execute(BuildAction action, BuildActionParameters actionParameters, BuildRequestContext requestContext) {
-        StartParameterInternal startParameter = action.getStartParameter();
+    public BuildActionResult execute(BuildAction action, StartParameterInternal startParameter, BuildActionParameters actionParameters, BuildRequestContext requestContext) {
         if (action.isCreateModel()) {
             // When creating a model, do not use continuous mode
             startParameter.setContinuous(false);

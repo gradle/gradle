@@ -16,6 +16,7 @@
 
 package org.gradle.tooling.internal.provider.continuous;
 
+import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.deployment.internal.ContinuousExecutionGate;
 import org.gradle.deployment.internal.DefaultContinuousExecutionGate;
@@ -102,7 +103,8 @@ public class ContinuousBuildActionExecutor implements BuildSessionActionExecutor
 
     @Override
     public BuildActionRunner.Result execute(BuildAction action, BuildSessionContext buildSession) {
-        if (action.getStartParameter().isContinuous()) {
+        StartParameterInternal startParameter = buildSession.getServices().get(StartParameterInternal.class);
+        if (startParameter.isContinuous()) {
             DefaultContinuousExecutionGate alwaysOpenExecutionGate = new DefaultContinuousExecutionGate();
             final CancellableOperationManager cancellableOperationManager = createCancellableOperationManager(requestMetaData, cancellationToken);
             return executeMultipleBuilds(action, requestMetaData, buildSession, cancellationToken, cancellableOperationManager, alwaysOpenExecutionGate);
@@ -160,12 +162,13 @@ public class ContinuousBuildActionExecutor implements BuildSessionActionExecutor
     ) {
         BuildActionRunner.Result lastResult;
         PendingChangesListener pendingChangesListener = listenerManager.getBroadcaster(PendingChangesListener.class);
+        StartParameterInternal startParameter = buildSession.getServices().get(StartParameterInternal.class);
         while (true) {
             BuildInputHierarchy buildInputs = new BuildInputHierarchy(caseSensitivity, stat);
             ContinuousBuildTriggerHandler continuousBuildTriggerHandler = new ContinuousBuildTriggerHandler(
                 cancellationToken,
                 continuousExecutionGate,
-                action.getStartParameter().getContinuousBuildQuietPeriod()
+                startParameter.getContinuousBuildQuietPeriod()
             );
             SingleFirePendingChangesListener singleFirePendingChangesListener = new SingleFirePendingChangesListener(pendingChangesListener);
             FileEventCollector fileEventCollector = new FileEventCollector(buildInputs, () -> {

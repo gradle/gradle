@@ -16,6 +16,7 @@
 
 package org.gradle.launcher.exec;
 
+import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.execution.MultipleBuildFailures;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.buildtree.BuildActionRunner;
@@ -58,10 +59,10 @@ public class BuildCompletionNotifyingBuildActionRunner implements BuildActionRun
     }
 
     @Override
-    public Result run(final BuildAction action, BuildTreeLifecycleController buildController) {
+    public Result run(final BuildAction action, BuildTreeLifecycleController buildController, StartParameterInternal startParameter) {
         Result result;
         try {
-            result = delegate.run(action, buildController);
+            result = delegate.run(action, buildController, startParameter);
         } catch (Throwable t) {
             // Note: throw the failure rather than returning a result object containing the failure, as console failure logging based on the _result_ happens down in the root build scope
             // whereas console failure logging based on the _thrown exception_ happens up outside session scope. It would be better to refactor so that a result can be returned from here

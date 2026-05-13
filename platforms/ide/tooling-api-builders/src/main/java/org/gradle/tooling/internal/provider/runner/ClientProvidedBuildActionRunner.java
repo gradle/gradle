@@ -16,6 +16,7 @@
 
 package org.gradle.tooling.internal.provider.runner;
 
+import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.internal.buildtree.BuildActionRunner;
 import org.gradle.internal.buildtree.BuildTreeLifecycleController;
 import org.gradle.internal.invocation.BuildAction;
@@ -35,7 +36,7 @@ public class ClientProvidedBuildActionRunner extends AbstractClientProvidedBuild
     }
 
     @Override
-    public Result run(BuildAction action, BuildTreeLifecycleController buildController) {
+    public Result run(BuildAction action, BuildTreeLifecycleController buildController, StartParameterInternal startParameter) {
         if (!(action instanceof ClientProvidedBuildAction)) {
             return Result.nothing();
         }

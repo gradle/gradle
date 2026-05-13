@@ -15,6 +15,7 @@
  */
 package org.gradle.launcher.daemon.server.exec;
 
+import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.configuration.DefaultBuildClientMetaData;
@@ -27,9 +28,9 @@ import org.gradle.launcher.daemon.logging.DaemonMessages;
 import org.gradle.launcher.daemon.protocol.Build;
 import org.gradle.launcher.daemon.server.api.DaemonCommandExecution;
 import org.gradle.launcher.daemon.server.stats.DaemonRunningStats;
-import org.gradle.launcher.exec.BuildActionExecutor;
-import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.BuildActionResult;
+import org.gradle.launcher.exec.BuildExecutor;
+import org.gradle.launcher.exec.StartParameterHelper;
 
 /**
  * Actually executes the build.
@@ -40,10 +41,10 @@ public class ExecuteBuild extends BuildCommandOnly {
 
     private static final Logger LOGGER = Logging.getLogger(ExecuteBuild.class);
 
-    final private BuildActionExecutor<BuildActionParameters, BuildRequestContext> actionExecuter;
+    final private BuildExecutor actionExecuter;
     private final DaemonRunningStats runningStats;
 
-    public ExecuteBuild(BuildActionExecutor<BuildActionParameters, BuildRequestContext> actionExecuter, DaemonRunningStats runningStats) {
+    public ExecuteBuild(BuildExecutor actionExecuter, DaemonRunningStats runningStats) {
         this.actionExecuter = actionExecuter;
         this.runningStats = runningStats;
     }
@@ -59,7 +60,10 @@ public class ExecuteBuild extends BuildCommandOnly {
             DefaultBuildClientMetaData clientMetaData = new DefaultBuildClientMetaData(build.getBuildClientMetaData());
             BuildRequestMetaData buildRequestMetaData = new DefaultBuildRequestMetaData(clientMetaData, build.getStartTime(), build.isInteractiveConsole());
             BuildRequestContext buildRequestContext = new DefaultBuildRequestContext(buildRequestMetaData, cancellationToken, buildEventConsumer);
-            if (!build.getAction().getStartParameter().isContinuous()) {
+
+            StartParameterInternal startParameter = StartParameterHelper.toStartParameter(build.getAction().getBuildParameters());
+
+            if (!startParameter.isContinuous()) {
                 buildRequestContext.getCancellationToken().addCallback(new Runnable() {
                     @Override
                     public void run() {
@@ -67,7 +71,7 @@ public class ExecuteBuild extends BuildCommandOnly {
                     }
                 });
             }
-            BuildActionResult result = actionExecuter.execute(build.getAction(), build.getParameters(), buildRequestContext);
+            BuildActionResult result = actionExecuter.execute(build.getAction(), startParameter, build.getParameters(), buildRequestContext);
             execution.setResult(result);
         } finally {
             buildEventConsumer.waitForFinish();

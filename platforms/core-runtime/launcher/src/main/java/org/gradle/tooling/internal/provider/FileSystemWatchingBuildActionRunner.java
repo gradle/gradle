@@ -72,9 +72,7 @@ public class FileSystemWatchingBuildActionRunner implements BuildActionRunner {
     }
 
     @Override
-    public Result run(BuildAction action, BuildTreeLifecycleController buildController) {
-        StartParameterInternal startParameter = action.getStartParameter();
-
+    public Result run(BuildAction action, BuildTreeLifecycleController buildController, StartParameterInternal startParameter) {
         WatchMode watchFileSystemMode = startParameter.getWatchFileSystemMode();
         VfsLogging verboseVfsLogging = startParameter.isVfsVerboseLogging()
             ? VfsLogging.VERBOSE
@@ -95,7 +93,7 @@ public class FileSystemWatchingBuildActionRunner implements BuildActionRunner {
             logVfsStatistics("since last build", statStatisticsCollector, fileHasherStatisticsCollector, directorySnapshotterStatisticsCollector);
         }
 
-        if (action.getStartParameter().getProjectCacheDir() != null) {
+        if (startParameter.getProjectCacheDir() != null) {
             // We'd like to create the probe in the `.gradle` directory under the build root,
             // but if project cache is somewhere else, then we don't want to put trash in there
             // See https://github.com/gradle/gradle/issues/17262
@@ -132,7 +130,7 @@ public class FileSystemWatchingBuildActionRunner implements BuildActionRunner {
         }
 
         try {
-            return delegate.run(action, buildController);
+            return delegate.run(action, buildController, startParameter);
         } finally {
             int maximumNumberOfWatchedHierarchies = VirtualFileSystemServices.getMaximumNumberOfWatchedHierarchies(options);
             virtualFileSystem.beforeBuildFinished(

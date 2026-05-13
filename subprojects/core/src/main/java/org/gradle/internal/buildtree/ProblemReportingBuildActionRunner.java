@@ -18,6 +18,7 @@ package org.gradle.internal.buildtree;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.internal.InternalBuildAdapter;
 import org.gradle.internal.exception.ExceptionAnalyser;
@@ -50,9 +51,9 @@ public class ProblemReportingBuildActionRunner implements BuildActionRunner {
     }
 
     @Override
-    public Result run(BuildAction action, BuildTreeLifecycleController buildController) {
+    public Result run(BuildAction action, BuildTreeLifecycleController buildController, StartParameterInternal startParameter) {
         RootProjectBuildDirCollectingListener rootProjectBuildDirListener = getRootProjectBuildDirCollectingListener(buildController);
-        Result result = delegate.run(action, buildController);
+        Result result = delegate.run(action, buildController, startParameter);
 
         File rootProjectBuildDir = rootProjectBuildDirListener.rootProjectBuildDir;
         List<Throwable> failures = reportProblems(rootProjectBuildDir);
