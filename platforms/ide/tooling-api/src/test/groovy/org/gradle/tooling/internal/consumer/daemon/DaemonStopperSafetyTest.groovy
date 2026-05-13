@@ -19,89 +19,60 @@ import org.gradle.tooling.daemon.StopResult
 import spock.lang.Specification
 
 import java.net.InetAddress
-import java.net.ServerSocket
 
 /**
  * Direct tests for the safety checks {@link DaemonStopper} performs before
- * calling {@code ProcessHandle.destroy(pid)}.
+ * calling {@code ProcessHandle.destroy(pid)}. All checks go through
+ * {@link DaemonAlivenessProbe} in STRICT mode.
  */
 class DaemonStopperSafetyTest extends Specification {
 
-    def "isPortBound returns true when a listener is on the port"() {
-        given:
-        def server = new ServerSocket(0, 1, InetAddress.getByName("127.0.0.1"))
-
-        expect:
-        DaemonStopper.isPortBound("127.0.0.1", server.localPort)
-
-        cleanup:
-        server?.close()
-    }
-
-    def "isPortBound returns false when the port is unbound"() {
-        given:
-        // Bind+release to get a port number that is reliably free right now.
-        def probe = new ServerSocket(0, 1, InetAddress.getByName("127.0.0.1"))
-        def freePort = probe.localPort
-        probe.close()
-
-        expect:
-        !DaemonStopper.isPortBound("127.0.0.1", freePort)
-    }
-
     def "stop returns NOT_FOUND when context has no pid"() {
-        given:
-        def daemon = makeInfo(null, "127.0.0.1", 1)
-
         expect:
-        new DaemonStopper().stop(daemon) == StopResult.NOT_FOUND
+        new DaemonStopper().stop(makeInfo(null)) == StopResult.NOT_FOUND
     }
 
     def "stop returns NOT_FOUND for a non-existent pid"() {
-        given:
-        def daemon = makeInfo(999_999_999L, "127.0.0.1", 1)
-
         expect:
-        new DaemonStopper().stop(daemon) == StopResult.NOT_FOUND
+        new DaemonStopper().stop(makeInfo(999_999_999L)) == StopResult.NOT_FOUND
     }
 
-    def "stop returns NOT_FOUND when the registered port is unbound — even if pid is alive"() {
+    def "stop returns NOT_FOUND when pid is alive but is not a Gradle daemon"() {
         given:
-        // Use the current JVM's pid: alive, but does NOT look like a Gradle daemon
-        // and its registered (fictional) port is unbound. We expect the port-bound
-        // check (or the process-info check) to abort the kill.
+        // Use the current JVM's pid: alive, has command-line info (we're a JVM
+        // running tests, not a daemon). The main-class identity check must reject
+        // it and NOT signal this JVM.
         def myPid = ProcessHandle.current().pid()
-        def probe = new ServerSocket(0, 1, InetAddress.getByName("127.0.0.1"))
-        def freePort = probe.localPort
-        probe.close()
-        def daemon = makeInfo(myPid, "127.0.0.1", freePort)
 
-        expect:
-        new DaemonStopper().stop(daemon) == StopResult.NOT_FOUND
+        when:
+        def result = new DaemonStopper().stop(makeInfo(myPid))
 
-        and: "this JVM is still alive"
+        then:
+        result == StopResult.NOT_FOUND
+
+        and: "this JVM is still alive after the stop attempt"
         ProcessHandle.current().isAlive()
     }
 
-    def "stop returns NOT_FOUND when the process does not look like a Gradle daemon"() {
+    def "DaemonAlivenessProbe in STRICT mode returns null for non-daemon PID"() {
         given:
-        // Run a server on a real port, but the JVM at this pid is the test runner,
-        // not a Gradle daemon. The process-info check should reject it.
-        def server = new ServerSocket(0, 1, InetAddress.getByName("127.0.0.1"))
         def myPid = ProcessHandle.current().pid()
-        def daemon = makeInfo(myPid, "127.0.0.1", server.localPort)
 
         expect:
-        new DaemonStopper().stop(daemon) == StopResult.NOT_FOUND
-
-        and: "this JVM is still alive"
-        ProcessHandle.current().isAlive()
-
-        cleanup:
-        server?.close()
+        DaemonAlivenessProbe.verifiedHandle(makeInfo(myPid), DaemonAlivenessProbe.Mode.STRICT) == null
+        !DaemonAlivenessProbe.isAlive(makeInfo(myPid), DaemonAlivenessProbe.Mode.STRICT)
     }
 
-    private static DaemonInfoView makeInfo(Long pid, String host, int port) {
+    def "DaemonAlivenessProbe returns null for dead pid in both modes"() {
+        given:
+        def info = makeInfo(999_999_999L)
+
+        expect:
+        DaemonAlivenessProbe.verifiedHandle(info, DaemonAlivenessProbe.Mode.STRICT) == null
+        DaemonAlivenessProbe.verifiedHandle(info, DaemonAlivenessProbe.Mode.LENIENT) == null
+    }
+
+    private static DaemonInfoView makeInfo(Long pid) {
         def ctx = new DaemonContextView(
             "test-uid",
             new File("/jdk"),
@@ -111,7 +82,7 @@ class DaemonStopperSafetyTest extends Specification {
             120_000,
             ["-Xmx512m"]
         )
-        def address = new AddressView(InetAddress.getByName(host), port)
+        def address = new AddressView(InetAddress.getByName("127.0.0.1"), 1)
         return new DaemonInfoView(address, [0] as byte[], DaemonStateView.IDLE, 0L, ctx)
     }
 }

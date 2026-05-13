@@ -50,7 +50,9 @@ public final class DefaultDaemonManagement implements DaemonManagement {
     public List<GradleDaemon> listDaemons() {
         List<GradleDaemon> result = new ArrayList<>();
         for (DaemonEntry entry : listEntries()) {
-            result.add(new DefaultGradleDaemon(entry.info, entry.gradleVersion));
+            if (DaemonAlivenessProbe.isAlive(entry.info, DaemonAlivenessProbe.Mode.LENIENT)) {
+                result.add(new DefaultGradleDaemon(entry.info, entry.gradleVersion));
+            }
         }
         return result;
     }
@@ -61,7 +63,9 @@ public final class DefaultDaemonManagement implements DaemonManagement {
         GradleVersionDaemonRegistries.Entry entry = registries.findForVersion(gradleVersion);
         if (entry != null) {
             for (DaemonInfoView info : registryReader.read(entry.registryFile, entry.gradleVersion)) {
-                result.add(new DefaultGradleDaemon(info, entry.gradleVersion));
+                if (DaemonAlivenessProbe.isAlive(info, DaemonAlivenessProbe.Mode.LENIENT)) {
+                    result.add(new DefaultGradleDaemon(info, entry.gradleVersion));
+                }
             }
         }
         return result;
@@ -99,7 +103,12 @@ public final class DefaultDaemonManagement implements DaemonManagement {
         return StopResult.NOT_FOUND;
     }
 
-    private List<DaemonEntry> listEntries() {
+    /**
+     * Every registry entry across every version directory, without any liveness
+     * filtering. Package-private for tests that need to verify registry reading
+     * without spawning real daemon processes.
+     */
+    List<DaemonEntry> listEntries() {
         List<DaemonEntry> result = new ArrayList<>();
         for (GradleVersionDaemonRegistries.Entry entry : registries.findAll()) {
             for (DaemonInfoView info : registryReader.read(entry.registryFile, entry.gradleVersion)) {
@@ -109,13 +118,17 @@ public final class DefaultDaemonManagement implements DaemonManagement {
         return result;
     }
 
-    private static final class DaemonEntry {
+    static final class DaemonEntry {
         final DaemonInfoView info;
         final String gradleVersion;
 
         DaemonEntry(DaemonInfoView info, String gradleVersion) {
             this.info = info;
             this.gradleVersion = gradleVersion;
+        }
+
+        GradleDaemon toPublic() {
+            return new DefaultGradleDaemon(info, gradleVersion);
         }
     }
 }

@@ -35,50 +35,48 @@ class DefaultDaemonManagementMultiVersionTest extends Specification {
     @Rule
     TemporaryFolder tmp = new TemporaryFolder()
 
-    def "listDaemons returns daemons across multiple version directories"() {
+    def "listEntries reads daemon entries across multiple version directories"() {
         given:
         def userHome = tmp.newFolder("gradle-user-home")
         writeV1Registry(new File(userHome, "daemon/5.0"), "5-uid", 5005L, "/jdk8", "127.0.0.1", 9001)
         writeV4Registry(new File(userHome, "daemon/9.5.0"), "9-uid", 9009L, "/jdk21", "Adoptium", 21, "127.0.0.1", 9002)
 
         when:
-        def daemons = new DefaultDaemonManagement(userHome).listDaemons()
+        def entries = new DefaultDaemonManagement(userHome).listEntries()
 
         then:
-        daemons.size() == 2
-        def byVersion = daemons.collectEntries { [(it.gradleVersion): it] }
-        byVersion["5.0"].pid == 5005L
-        byVersion["5.0"].javaHome == new File("/jdk8")
-        byVersion["5.0"].javaMajorVersion == null
-        byVersion["5.0"].javaVendor == null
-        byVersion["9.5.0"].pid == 9009L
-        byVersion["9.5.0"].javaHome == new File("/jdk21")
-        byVersion["9.5.0"].javaMajorVersion == 21
-        byVersion["9.5.0"].javaVendor == "Adoptium"
+        entries.size() == 2
+        def byVersion = entries.collectEntries { [(it.gradleVersion): it] }
+        byVersion["5.0"].info.context.pid == 5005L
+        byVersion["5.0"].info.context.javaHome == new File("/jdk8")
+        byVersion["5.0"].info.context.javaMajorVersion == null
+        byVersion["5.0"].info.context.javaVendor == null
+        byVersion["9.5.0"].info.context.pid == 9009L
+        byVersion["9.5.0"].info.context.javaHome == new File("/jdk21")
+        byVersion["9.5.0"].info.context.javaMajorVersion == 21
+        byVersion["9.5.0"].info.context.javaVendor == "Adoptium"
     }
 
-    def "listDaemons(version) filters to the requested version"() {
+    def "listDaemons filters out stale entries whose PIDs are dead"() {
         given:
+        // Synthetic PIDs that don't exist on any real system — these are stale entries.
         def userHome = tmp.newFolder("gradle-user-home")
-        writeV1Registry(new File(userHome, "daemon/5.0"), "5-uid", 1L, "/jdk", "127.0.0.1", 9001)
-        writeV4Registry(new File(userHome, "daemon/9.5.0"), "9-uid", 2L, "/jdk", "V", 21, "127.0.0.1", 9002)
+        writeV1Registry(new File(userHome, "daemon/5.0"), "5-uid", 999_999_990L, "/jdk", "127.0.0.1", 9001)
+        writeV4Registry(new File(userHome, "daemon/9.5.0"), "9-uid", 999_999_991L, "/jdk", "V", 21, "127.0.0.1", 9002)
 
         expect:
-        def management = new DefaultDaemonManagement(userHome)
-        management.listDaemons("5.0").collect { it.uid } == ["5-uid"]
-        management.listDaemons("9.5.0").collect { it.uid } == ["9-uid"]
-        management.listDaemons("8.0.0").empty
+        new DefaultDaemonManagement(userHome).listDaemons().empty
     }
 
     def "ignores directories whose names are not Gradle versions"() {
         given:
         def userHome = tmp.newFolder("gradle-user-home")
-        writeV4Registry(new File(userHome, "daemon/9.5.0"), "v-uid", 1L, "/jdk", "V", 21, "127.0.0.1", 9000)
+        writeV4Registry(new File(userHome, "daemon/9.5.0"), "v-uid", 999_999_992L, "/jdk", "V", 21, "127.0.0.1", 9000)
         new File(userHome, "daemon/notes").mkdirs()
         new File(userHome, "daemon/notes/registry.bin").bytes = new byte[]{0x00}
 
         expect:
-        new DefaultDaemonManagement(userHome).listDaemons().collect { it.gradleVersion } == ["9.5.0"]
+        new DefaultDaemonManagement(userHome).listEntries().collect { it.gradleVersion } == ["9.5.0"]
     }
 
     def "swallows corrupted registry files"() {
@@ -90,6 +88,7 @@ class DefaultDaemonManagementMultiVersionTest extends Specification {
 
         expect:
         new DefaultDaemonManagement(userHome).listDaemons().empty
+        new DefaultDaemonManagement(userHome).listEntries().empty
     }
 
     // --- Helpers ---
