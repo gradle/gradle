@@ -12,7 +12,7 @@ dependencyResolutionManagement {
         create("libs") {
             from(files("gradle/catalog.versions.toml"))
             // Single source of truth for the Kotlin version
-            version("kotlin", "2.4.0-Beta2")
+            version("kotlin", "2.4.0-RC")
         }
     }
 }
