@@ -14,19 +14,24 @@
  * limitations under the License.
  */
 
-plugins {
-    `java-gradle-plugin`
-}
+package gradlebuild.basics;
 
-description = "Provides plugins for Configuration Cache usage adjustments"
+/**
+ * Attribute values for the different types of architecture data.
+ * Used with {@link org.gradle.api.attributes.Category}.
+ */
+public final class ArchitectureDataType {
 
-group = "gradlebuild"
-
-gradlePlugin {
-    plugins {
-        register("configurationCacheCompatibility") {
-            id = "gradlebuild.configuration-cache-compatibility"
-            implementationClass = "gradlebuild.ConfigurationCacheCompatibilityPlugin"
-        }
+    private ArchitectureDataType() {
     }
+
+    /**
+     * JSON containing platforms data. See root settings file for more information.
+     */
+    public static final String PLATFORMS = "platforms";
+
+    /**
+     * JSON containing package-info data. See root settings file for more information.
+     */
+    public static final String PACKAGE_INFO = "package-info";
 }

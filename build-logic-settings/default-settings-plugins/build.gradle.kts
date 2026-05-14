@@ -15,7 +15,7 @@
  */
 
 plugins {
-    `kotlin-dsl`
+    `java-gradle-plugin`
 }
 
 description = "Provides plugin for configuring default settings plugins"
@@ -26,5 +26,14 @@ dependencies {
     implementation(buildLibs.develocityPlugin)
     implementation(buildLibs.develocityConventions)
     implementation(buildLibs.foojayConventions)
+}
+
+gradlePlugin {
+    plugins {
+        register("defaultSettingsPlugins") {
+            id = "gradlebuild.default-settings-plugins"
+            implementationClass = "gradlebuild.DefaultSettingsPlugins"
+        }
+    }
 }
 

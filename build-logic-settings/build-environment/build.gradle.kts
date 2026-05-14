@@ -15,9 +15,18 @@
  */
 
 plugins {
-    `kotlin-dsl`
+    `java-gradle-plugin`
 }
 
 description = "Provides plugins for configuring build environment"
 
 group = "gradlebuild"
+
+gradlePlugin {
+    plugins {
+        register("buildEnvironment") {
+            id = "gradlebuild.build-environment"
+            implementationClass = "gradlebuild.basics.BuildEnvironmentPlugin"
+        }
+    }
+}

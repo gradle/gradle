@@ -15,9 +15,18 @@
  */
 
 plugins {
-    `kotlin-dsl`
+    `java-gradle-plugin`
 }
 
 description = "Provides plugin for configuring version catalogs"
 
 group = "gradlebuild"
+
+gradlePlugin {
+    plugins {
+        register("versionCatalogs") {
+            id = "gradlebuild.version-catalogs"
+            implementationClass = "gradlebuild.VersionCatalogsPlugin"
+        }
+    }
+}

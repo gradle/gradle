@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,20 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package gradlebuild.basics
 
-/**
- * Attribute values for the different types of architecture data.
- * Used with [org.gradle.api.attributes.Category].
- */
-object ArchitectureDataType {
-    /**
-     * JSON containing platforms data. See root settings file for more information.
-     */
-    val PLATFORMS = "platforms"
+package gradlebuild.basics;
 
-    /**
-     * JSON containing package-info data. See root settings file for more information.
-     */
-    val PACKAGE_INFO = "package-info"
+import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.provider.Property;
+
+public interface BuildEnvironmentExtension {
+    Property<String> getGitCommitId();
+
+    Property<String> getGitBranch();
+
+    Property<String> getScriptTemplateCommitId();
+
+    DirectoryProperty getRepoRoot();
+
+    DirectoryProperty getRootProjectBuildDir();
 }
