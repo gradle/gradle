@@ -30,6 +30,7 @@ import org.gradle.internal.buildoption.IntegerBuildOption;
 import org.gradle.internal.buildoption.ListBuildOption;
 import org.gradle.internal.buildoption.Origin;
 import org.gradle.internal.buildoption.StringBuildOption;
+import org.gradle.internal.invocation.parameters.ConfigurationCacheProblemsMode;
 import org.gradle.internal.watch.registry.WatchMode;
 import org.jspecify.annotations.Nullable;
 
@@ -672,20 +673,16 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterBui
         }
     }
 
-    public static class ConfigurationCacheProblemsOption extends EnumBuildOption<ConfigurationCacheProblemsOption.Value, ParsedOptions> {
+    public static class ConfigurationCacheProblemsOption extends EnumBuildOption<ConfigurationCacheProblemsMode, ParsedOptions> {
         public static final String PROPERTY_NAME = "org.gradle.configuration-cache.problems";
         public static final String DEPRECATED_PROPERTY_NAME = "org.gradle.unsafe.configuration-cache-problems";
         public static final String LONG_OPTION = "configuration-cache-problems";
 
-        public enum Value {
-            FAIL, WARN
-        }
-
         public ConfigurationCacheProblemsOption() {
             super(
                 LONG_OPTION,
-                Value.class,
-                Value.values(),
+                ConfigurationCacheProblemsMode.class,
+                ConfigurationCacheProblemsMode.values(),
                 PROPERTY_NAME,
                 DEPRECATED_PROPERTY_NAME,
                 CommandLineOptionConfiguration.create(
@@ -696,7 +693,7 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterBui
         }
 
         @Override
-        public void applyTo(Value value, ParsedOptions settings, Origin origin) {
+        public void applyTo(ConfigurationCacheProblemsMode value, ParsedOptions settings, Origin origin) {
             settings.setConfigurationCacheProblems(value);
         }
 
@@ -1014,7 +1011,7 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterBui
         private @Nullable List<String> lockedDependenciesToUpdate;
         private @Nullable Boolean refreshKeys;
         private @Nullable Boolean exportKeys;
-        private ConfigurationCacheProblemsOption.@Nullable Value configurationCacheProblems;
+        private @Nullable ConfigurationCacheProblemsMode configurationCacheProblems;
         private @Nullable Boolean configurationCache;
         private @Nullable Boolean configurationCacheIgnoreInputsDuringStore;
         private @Nullable Boolean configurationCacheIgnoreUnsupportedBuildEventsListeners;
@@ -1251,11 +1248,11 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterBui
             this.exportKeys = exportKeys;
         }
 
-        public ConfigurationCacheProblemsOption.@Nullable Value getConfigurationCacheProblems() {
+        public @Nullable ConfigurationCacheProblemsMode getConfigurationCacheProblems() {
             return configurationCacheProblems;
         }
 
-        public void setConfigurationCacheProblems(ConfigurationCacheProblemsOption.@Nullable Value configurationCacheProblems) {
+        public void setConfigurationCacheProblems(@Nullable ConfigurationCacheProblemsMode configurationCacheProblems) {
             this.configurationCacheProblems = configurationCacheProblems;
         }
 

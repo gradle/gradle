@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.internal.invocation;
+package org.gradle.internal.invocation.parameters;
 
 import org.gradle.TaskExecutionRequest;
 import org.gradle.api.artifacts.verification.DependencyVerificationMode;
@@ -23,7 +23,6 @@ import org.gradle.api.logging.configuration.ConsoleOutput;
 import org.gradle.api.logging.configuration.ConsoleUnicodeSupport;
 import org.gradle.api.logging.configuration.ShowStacktrace;
 import org.gradle.api.logging.configuration.WarningMode;
-import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheProblemsOption;
 import org.gradle.internal.watch.registry.WatchMode;
 import org.jspecify.annotations.Nullable;
 
@@ -88,7 +87,7 @@ public final class BuildParameters {
     private final @Nullable Boolean vfsVerboseLogging;
     private final @Nullable Boolean configurationCache;
     private final @Nullable Boolean isolatedProjects;
-    private final ConfigurationCacheProblemsOption.@Nullable Value configurationCacheProblems;
+    private final @Nullable ConfigurationCacheProblemsMode configurationCacheProblems;
     private final @Nullable Boolean configurationCacheIgnoreInputsDuringStore;
     private final @Nullable Boolean configurationCacheIgnoreUnsupportedBuildEventsListeners;
     private final @Nullable Integer configurationCacheMaxProblems;
@@ -163,7 +162,7 @@ public final class BuildParameters {
         @Nullable Boolean vfsVerboseLogging,
         @Nullable Boolean configurationCache,
         @Nullable Boolean isolatedProjects,
-        ConfigurationCacheProblemsOption.@Nullable Value configurationCacheProblems,
+        @Nullable ConfigurationCacheProblemsMode configurationCacheProblems,
         @Nullable Boolean configurationCacheIgnoreInputsDuringStore,
         @Nullable Boolean configurationCacheIgnoreUnsupportedBuildEventsListeners,
         @Nullable Integer configurationCacheMaxProblems,
@@ -396,7 +395,7 @@ public final class BuildParameters {
         return isolatedProjects;
     }
 
-    public ConfigurationCacheProblemsOption.@Nullable Value getConfigurationCacheProblems() {
+    public @Nullable ConfigurationCacheProblemsMode getConfigurationCacheProblems() {
         return configurationCacheProblems;
     }
 

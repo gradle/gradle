@@ -48,7 +48,7 @@ import org.gradle.internal.installation.GradleInstallation;
 import org.gradle.internal.instrumentation.agent.AgentInitializer;
 import org.gradle.internal.instrumentation.agent.AgentStatus;
 import org.gradle.internal.invocation.BuildAction;
-import org.gradle.internal.invocation.BuildParameters;
+import org.gradle.internal.invocation.parameters.BuildParameters;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.logging.LoggingManagerFactory;
 import org.gradle.internal.logging.LoggingManagerInternal;

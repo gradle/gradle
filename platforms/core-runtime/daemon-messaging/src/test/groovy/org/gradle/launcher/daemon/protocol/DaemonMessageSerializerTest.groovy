@@ -16,7 +16,7 @@
 
 package org.gradle.launcher.daemon.protocol
 
-import org.gradle.internal.invocation.BuildParameters
+import org.gradle.internal.invocation.parameters.BuildParameters
 import org.gradle.api.logging.LogLevel
 import org.gradle.configuration.GradleLauncherMetaData
 import org.gradle.internal.classpath.ClassPath

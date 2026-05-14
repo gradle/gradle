@@ -16,7 +16,7 @@
 package org.gradle.tooling.internal.provider.action;
 
 import org.gradle.internal.invocation.BuildAction;
-import org.gradle.internal.invocation.BuildParameters;
+import org.gradle.internal.invocation.parameters.BuildParameters;
 
 public class ExecuteBuildAction implements BuildAction {
     private final BuildParameters buildParameters;

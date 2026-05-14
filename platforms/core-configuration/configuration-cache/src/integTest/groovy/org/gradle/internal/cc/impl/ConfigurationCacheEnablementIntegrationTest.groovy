@@ -19,7 +19,7 @@ package org.gradle.internal.cc.impl
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheOption
 import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheFixture
 
-import static org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheProblemsOption.Value.WARN
+import static org.gradle.internal.invocation.parameters.ConfigurationCacheProblemsMode.WARN
 
 
 class ConfigurationCacheEnablementIntegrationTest extends AbstractConfigurationCacheIntegrationTest {

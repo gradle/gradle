@@ -31,7 +31,7 @@ import org.gradle.initialization.StartParameterBuildOptions.ParsedOptions;
 import org.gradle.internal.DefaultTaskExecutionRequest;
 import org.gradle.internal.RunDefaultTasksExecutionRequest;
 import org.gradle.internal.concurrent.DefaultParallelismConfiguration;
-import org.gradle.internal.invocation.BuildParameters;
+import org.gradle.internal.invocation.parameters.BuildParameters;
 import org.gradle.internal.logging.DefaultLoggingConfiguration;
 import org.gradle.internal.logging.LoggingConfigurationBuildOptions;
 import org.gradle.launcher.configuration.AllProperties;

@@ -19,7 +19,7 @@ package org.gradle.internal.cc.impl.initialization
 import org.gradle.StartParameter
 import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.logging.LogLevel
-import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheProblemsOption
+import org.gradle.internal.invocation.parameters.ConfigurationCacheProblemsMode
 import org.gradle.internal.buildoption.InternalOptions
 import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.cc.impl.Workarounds
@@ -100,7 +100,7 @@ class ConfigurationCacheStartParameter internal constructor(
         get() = startParameter.isConfigurationCacheDebug
 
     val isWarningMode: Boolean
-        get() = startParameter.configurationCacheProblems == ConfigurationCacheProblemsOption.Value.WARN
+        get() = startParameter.configurationCacheProblems == ConfigurationCacheProblemsMode.WARN
 
     val recreateCache: Boolean
         get() = startParameter.isConfigurationCacheRecreateCache

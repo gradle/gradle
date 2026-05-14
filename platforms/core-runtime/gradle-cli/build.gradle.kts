@@ -31,7 +31,6 @@ dependencies {
     api(projects.logging)
     api(projects.loggingApi)
     api(projects.serviceLookup)
-    api(projects.startParameter)
 
     // The client is able to run builds, so uses core and other projects
     implementation(projects.core)
@@ -55,6 +54,7 @@ dependencies {
     implementation(projects.problemsApi)
     implementation(projects.serviceProvider)
     implementation(projects.serviceRegistryBuilder)
+    implementation(projects.startParameter)
     implementation(projects.stdlibJavaExtensions)
 
     runtimeOnly(libs.groovy)

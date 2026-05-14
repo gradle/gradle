@@ -23,7 +23,7 @@ import org.gradle.TaskExecutionRequest;
 import org.gradle.internal.DefaultTaskExecutionRequest;
 import org.gradle.internal.RunDefaultTasksExecutionRequest;
 import org.gradle.internal.build.event.BuildEventSubscriptions;
-import org.gradle.internal.invocation.BuildParameters;
+import org.gradle.internal.invocation.parameters.BuildParameters;
 import org.gradle.tooling.events.test.internal.DefaultDebugOptions;
 import org.gradle.tooling.internal.protocol.events.InternalTestDescriptor;
 import org.gradle.tooling.internal.protocol.test.InternalDebugOptions;

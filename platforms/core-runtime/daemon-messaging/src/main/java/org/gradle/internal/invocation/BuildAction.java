@@ -15,6 +15,8 @@
  */
 package org.gradle.internal.invocation;
 
+import org.gradle.internal.invocation.parameters.BuildParameters;
+
 /**
  * An object that describes the top level build action to perform, e.g. run some tasks, build a tooling model, run some tests, etc.
  */

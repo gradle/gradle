@@ -17,7 +17,7 @@
 package org.gradle.launcher.cli.converter
 
 import org.gradle.api.logging.LogLevel
-import org.gradle.internal.invocation.BuildParameters
+import org.gradle.internal.invocation.parameters.BuildParameters
 import org.gradle.cli.CommandLineParser
 import org.gradle.initialization.layout.BuildLayoutFactory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider

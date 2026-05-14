@@ -23,6 +23,7 @@ dependencies {
     api(projects.coreApi)
     api(projects.credentialsApi)
     api(projects.credentials)
+    api(projects.daemonMessaging)
     api(projects.domainObjectCollections)
     api(projects.enterpriseLogging)
     api(projects.enterpriseOperations)

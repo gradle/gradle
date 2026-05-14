@@ -16,7 +16,7 @@
 
 package org.gradle.launcher.cli;
 
-import org.gradle.internal.invocation.BuildParameters;
+import org.gradle.internal.invocation.parameters.BuildParameters;
 import org.gradle.launcher.configuration.AllProperties;
 import org.gradle.launcher.configuration.BuildLayoutResult;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;

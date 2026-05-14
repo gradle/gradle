@@ -17,7 +17,7 @@
 package org.gradle.launcher.cli;
 
 import org.gradle.api.internal.file.FileCollectionFactory;
-import org.gradle.internal.invocation.BuildParameters;
+import org.gradle.internal.invocation.parameters.BuildParameters;
 import org.gradle.cli.CommandLineArgumentException;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;

@@ -21,7 +21,7 @@ import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.file.BasicFileResolver;
 import org.gradle.api.launcher.cli.WelcomeMessageConfiguration;
 import org.gradle.internal.buildoption.Option;
-import org.gradle.internal.invocation.BuildParameters;
+import org.gradle.internal.invocation.parameters.BuildParameters;
 
 import java.io.File;
 

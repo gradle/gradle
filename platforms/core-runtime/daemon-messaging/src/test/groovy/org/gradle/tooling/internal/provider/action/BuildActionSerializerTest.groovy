@@ -24,7 +24,7 @@ import org.gradle.api.logging.configuration.ShowStacktrace
 import org.gradle.api.logging.configuration.WarningMode
 import org.gradle.internal.DefaultTaskExecutionRequest
 import org.gradle.internal.build.event.BuildEventSubscriptions
-import org.gradle.internal.invocation.BuildParameters
+import org.gradle.internal.invocation.parameters.BuildParameters
 import org.gradle.internal.serialize.SerializerSpec
 import org.gradle.tooling.events.OperationType
 import org.gradle.tooling.events.test.internal.DefaultDebugOptions

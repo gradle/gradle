@@ -36,7 +36,7 @@ import org.gradle.internal.build.event.BuildEventSubscriptions;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.daemon.client.execution.ClientBuildRequestContext;
 import org.gradle.internal.invocation.BuildAction;
-import org.gradle.internal.invocation.BuildParameters;
+import org.gradle.internal.invocation.parameters.BuildParameters;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.logging.LoggingManagerFactory;
 import org.gradle.internal.logging.LoggingManagerInternal;

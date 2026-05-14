@@ -24,12 +24,12 @@ import org.gradle.api.logging.configuration.ConsoleOutput;
 import org.gradle.api.logging.configuration.ConsoleUnicodeSupport;
 import org.gradle.api.logging.configuration.ShowStacktrace;
 import org.gradle.api.logging.configuration.WarningMode;
-import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheProblemsOption;
+import org.gradle.internal.invocation.parameters.ConfigurationCacheProblemsMode;
 import org.gradle.internal.DefaultTaskExecutionRequest;
 import org.gradle.internal.RunDefaultTasksExecutionRequest;
 import org.gradle.internal.build.event.BuildEventSubscriptions;
 import org.gradle.internal.invocation.BuildAction;
-import org.gradle.internal.invocation.BuildParameters;
+import org.gradle.internal.invocation.parameters.BuildParameters;
 import org.gradle.internal.serialize.BaseSerializerFactory;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.DefaultSerializer;
@@ -218,7 +218,7 @@ public class BuildActionSerializer {
                 readNullableBoolean(decoder),
                 readNullableBoolean(decoder),
                 readNullableBoolean(decoder),
-                readNullableEnum(decoder, ConfigurationCacheProblemsOption.Value.class),
+                readNullableEnum(decoder, ConfigurationCacheProblemsMode.class),
                 readNullableBoolean(decoder),
                 readNullableBoolean(decoder),
                 decoder.readNullableSmallInt(),

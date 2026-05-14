@@ -27,6 +27,7 @@ dependencies {
     api(projects.enterpriseOperations)
     api(projects.serialization)
     api(projects.serviceProvider)
+    api(projects.startParameter)
     api(projects.stdlibJavaExtensions)
     api(projects.toolingApi)
 

@@ -16,7 +16,7 @@
 package org.gradle.tooling.internal.provider.action;
 
 import org.gradle.internal.build.event.BuildEventSubscriptions;
-import org.gradle.internal.invocation.BuildParameters;
+import org.gradle.internal.invocation.parameters.BuildParameters;
 import org.gradle.tooling.internal.protocol.ModelIdentifier;
 
 public class BuildModelAction extends SubscribableBuildAction {

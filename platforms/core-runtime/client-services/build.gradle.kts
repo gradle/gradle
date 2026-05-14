@@ -45,7 +45,6 @@ dependencies {
     api(projects.serialization)
     api(projects.serviceLookup)
     api(projects.serviceProvider)
-    api(projects.startParameter)
     api(projects.stdlibJavaExtensions)
     api(projects.time)
     api(projects.toolchainsJvmShared)

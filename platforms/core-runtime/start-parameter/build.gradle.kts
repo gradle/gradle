@@ -13,6 +13,7 @@ dependencies {
     api(projects.buildDiscoveryImpl)
     api(projects.buildOption)
     api(projects.cli)
+    api(projects.daemonMessaging)
     api(projects.fileWatching)
     api(projects.loggingApi)
     api(projects.stdlibJavaExtensions)

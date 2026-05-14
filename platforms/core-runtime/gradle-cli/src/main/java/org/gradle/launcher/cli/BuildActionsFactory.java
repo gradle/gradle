@@ -38,7 +38,7 @@ import org.gradle.internal.daemon.client.execution.ClientBuildRequestContext;
 import org.gradle.internal.installation.CurrentGradleInstallation;
 import org.gradle.internal.instrumentation.agent.AgentInitializer;
 import org.gradle.internal.instrumentation.agent.AgentStatus;
-import org.gradle.internal.invocation.BuildParameters;
+import org.gradle.internal.invocation.parameters.BuildParameters;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.logging.console.GlobalUserInputReceiver;
 import org.gradle.internal.nativeintegration.services.NativeServices;

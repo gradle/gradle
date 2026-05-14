@@ -18,12 +18,12 @@ package org.gradle.api.internal;
 
 import org.gradle.StartParameter;
 import org.gradle.initialization.BuildLayoutParameters;
-import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheProblemsOption;
 import org.gradle.initialization.layout.BuildLayoutConfiguration;
 import org.gradle.internal.buildoption.Option;
 import org.gradle.internal.buildtree.BuildModelParameters;
 import org.gradle.internal.configuration.inputs.InstrumentedInputs;
 import org.gradle.internal.deprecation.StartParameterDeprecations;
+import org.gradle.internal.invocation.parameters.ConfigurationCacheProblemsMode;
 import org.gradle.internal.watch.registry.WatchMode;
 import org.jspecify.annotations.Nullable;
 
@@ -37,7 +37,7 @@ public class StartParameterInternal extends StartParameter {
 
     private Option.Value<Boolean> configurationCache = Option.Value.defaultValue(false);
     private Option.Value<Boolean> isolatedProjects = Option.Value.defaultValue(false);
-    private ConfigurationCacheProblemsOption.Value configurationCacheProblems = ConfigurationCacheProblemsOption.Value.FAIL;
+    private ConfigurationCacheProblemsMode configurationCacheProblems = ConfigurationCacheProblemsMode.FAIL;
     private boolean configurationCacheDebug;
     private boolean configurationCacheIgnoreInputsDuringStore = false;
     private boolean configurationCacheIgnoreUnsupportedBuildEventsListeners = false;
@@ -189,11 +189,11 @@ public class StartParameterInternal extends StartParameter {
         this.isolatedProjects = isolatedProjects;
     }
 
-    public ConfigurationCacheProblemsOption.Value getConfigurationCacheProblems() {
+    public ConfigurationCacheProblemsMode getConfigurationCacheProblems() {
         return configurationCacheProblems;
     }
 
-    public void setConfigurationCacheProblems(ConfigurationCacheProblemsOption.Value configurationCacheProblems) {
+    public void setConfigurationCacheProblems(ConfigurationCacheProblemsMode configurationCacheProblems) {
         this.configurationCacheProblems = configurationCacheProblems;
     }
 

@@ -8,21 +8,18 @@ description = """
 """
 
 dependencies {
+    api(projects.baseServices)
     api(projects.buildOperations)
     api(projects.classloaders)
+    api(projects.fileWatching)
     api(projects.logging)
     api(projects.loggingApi)
     api(projects.problemsApi)
     api(projects.serialization)
-    api(projects.startParameter)
+    api(projects.stdlibJavaExtensions)
     api(projects.toolingApi)
 
     api(libs.jspecify)
-
-    implementation(projects.baseServices)
-    implementation(projects.buildOption)
-    implementation(projects.fileWatching)
-    implementation(projects.stdlibJavaExtensions)
 
     implementation(libs.guava)
 

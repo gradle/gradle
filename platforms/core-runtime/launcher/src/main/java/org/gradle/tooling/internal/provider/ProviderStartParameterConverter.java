@@ -20,7 +20,7 @@ import org.gradle.cli.CommandLineArgumentException;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
 import org.gradle.internal.DefaultTaskExecutionRequest;
-import org.gradle.internal.invocation.BuildParameters;
+import org.gradle.internal.invocation.parameters.BuildParameters;
 import org.gradle.launcher.configuration.AllProperties;
 import org.gradle.launcher.cli.converter.BuildLayoutConverter;
 import org.gradle.launcher.configuration.BuildLayoutResult;

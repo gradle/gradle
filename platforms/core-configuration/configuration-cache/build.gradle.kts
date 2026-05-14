@@ -54,6 +54,7 @@ dependencies {
     implementation(projects.classloaders)
     implementation(projects.coreFlowServicesApi)
     implementation(projects.coreKotlinExtensions)
+    implementation(projects.daemonMessaging)
     implementation(projects.dependencyManagementSerializationCodecs)
     implementation(projects.encryptionServices)
     implementation(projects.enterpriseOperations)
