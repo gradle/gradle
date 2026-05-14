@@ -14,11 +14,24 @@
  * limitations under the License.
  */
 
-package gradlebuild
+package gradlebuild;
 
-import java.io.File
+import java.io.Serializable;
 
-abstract class ProjectStructure {
-    val architectureElements = mutableListOf<ArchitectureElementBuilder>()
-    val projectBaseDirs = mutableListOf<File>()
+public class ElementId implements Serializable {
+
+    private final String id;
+
+    public ElementId(String id) {
+        this.id = id;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    @Override
+    public String toString() {
+        return id;
+    }
 }

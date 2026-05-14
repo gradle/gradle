@@ -14,24 +14,25 @@
  * limitations under the License.
  */
 
-plugins {
-    `java-gradle-plugin`
-}
+package gradlebuild;
 
-description = "Provides plugin for generating architecture documentation"
+public abstract class ArchitectureElementBuilder {
 
-group = "gradlebuild"
+    private final String name;
+    private final ElementId id;
 
-dependencies {
-    implementation(project(":build-environment"))
-    implementation(buildLibs.gson)
-}
-
-gradlePlugin {
-    plugins {
-        register("architectureDocs") {
-            id = "gradlebuild.architecture-docs"
-            implementationClass = "gradlebuild.ArchitectureDocsPlugin"
-        }
+    protected ArchitectureElementBuilder(String name) {
+        this.name = name;
+        this.id = new ElementId(name.replace("-", "_"));
     }
+
+    public String getName() {
+        return name;
+    }
+
+    public ElementId getId() {
+        return id;
+    }
+
+    public abstract ArchitectureElement build();
 }
