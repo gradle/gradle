@@ -30,6 +30,7 @@ dependencies {
 
     implementation(libs.commonsIo)
     implementation(libs.commonsLang)
+    implementation(libs.jctools)
     implementation(libs.jsr305)
     implementation(libs.slf4jApi)
 

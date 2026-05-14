@@ -31,6 +31,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
+import java.util.function.BooleanSupplier;
 import java.util.function.Function;
 
 public class DefaultResourceLockCoordinationService implements ResourceLockCoordinationService, Closeable {
@@ -244,7 +245,7 @@ public class DefaultResourceLockCoordinationService implements ResourceLockCoord
      * Attempts an atomic, blocking lock on the provided resource locks.
      */
     public static Function<ResourceLockState, ResourceLockState.Disposition> lock(Iterable<? extends ResourceLock> resourceLocks) {
-        return new AcquireLocks(resourceLocks, true);
+        return new AcquireLocks(resourceLocks, () -> true);
     }
 
     /**
@@ -255,10 +256,26 @@ public class DefaultResourceLockCoordinationService implements ResourceLockCoord
     }
 
     /**
+     * Attempts an atomic, blocking lock on the provided resource locks.
+     * Retries as long as {@code continueBlocking} returns {@code true}, otherwise fails.
+     */
+    public static Function<ResourceLockState, ResourceLockState.Disposition> tryLockWhile(BooleanSupplier continueBlocking, Iterable<? extends ResourceLock> resourceLocks) {
+        return new AcquireLocks(resourceLocks, continueBlocking);
+    }
+
+    /**
+     * Attempts an atomic, blocking lock on the provided resource locks.
+     * Retries as long as {@code continueBlocking} returns {@code true}, otherwise fails.
+     */
+    public static Function<ResourceLockState, ResourceLockState.Disposition> tryLockWhile(BooleanSupplier continueBlocking, ResourceLock... resourceLocks) {
+        return tryLockWhile(continueBlocking, Arrays.asList(resourceLocks));
+    }
+
+    /**
      * Attempts an atomic, non-blocking lock on the provided resource locks.
      */
     public static Function<ResourceLockState, ResourceLockState.Disposition> tryLock(Iterable<? extends ResourceLock> resourceLocks) {
-        return new AcquireLocks(resourceLocks, false);
+        return new AcquireLocks(resourceLocks, () -> false);
     }
 
     /**
@@ -284,18 +301,18 @@ public class DefaultResourceLockCoordinationService implements ResourceLockCoord
 
     private static class AcquireLocks implements Function<ResourceLockState, ResourceLockState.Disposition> {
         private final Iterable<? extends ResourceLock> resourceLocks;
-        private final boolean blocking;
+        private final BooleanSupplier continueBlocking;
 
-        AcquireLocks(Iterable<? extends ResourceLock> resourceLocks, boolean blocking) {
+        AcquireLocks(Iterable<? extends ResourceLock> resourceLocks, BooleanSupplier continueBlocking) {
             this.resourceLocks = resourceLocks;
-            this.blocking = blocking;
+            this.continueBlocking = continueBlocking;
         }
 
         @Override
         public ResourceLockState.Disposition apply(ResourceLockState resourceLockState) {
             for (ResourceLock resourceLock : resourceLocks) {
                 if (!resourceLock.tryLock()) {
-                    return blocking ? ResourceLockState.Disposition.RETRY : ResourceLockState.Disposition.FAILED;
+                    return continueBlocking.getAsBoolean() ? ResourceLockState.Disposition.RETRY : ResourceLockState.Disposition.FAILED;
                 }
             }
             return ResourceLockState.Disposition.FINISHED;

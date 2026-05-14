@@ -78,6 +78,7 @@ public class CoreCrossBuildSessionServices implements ServiceRegistrationProvide
     BuildOperationExecutor createBuildOperationExecutor(
         BuildOperationRunner buildOperationRunner,
         CurrentBuildOperationRef currentBuildOperationRef,
+        ResourceLockCoordinationService coordinationService,
         WorkerLeaseService workerLeaseService,
         ExecutorFactory executorFactory,
         WorkerLimits workerLimits
@@ -87,6 +88,8 @@ public class CoreCrossBuildSessionServices implements ServiceRegistrationProvide
             currentBuildOperationRef,
             new DefaultBuildOperationQueueFactory(workerLeaseService),
             executorFactory,
+            coordinationService,
+            workerLeaseService,
             workerLimits
         );
     }

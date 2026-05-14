@@ -18,6 +18,7 @@ package org.gradle.internal.operations;
 
 import org.gradle.internal.concurrent.DefaultExecutorFactory;
 import org.gradle.internal.concurrent.ExecutorFactory;
+import org.gradle.internal.resources.DefaultResourceLockCoordinationService;
 import org.gradle.internal.time.Clock;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.work.DefaultWorkerLimits;
@@ -94,6 +95,8 @@ public class BuildOperationExecutorSupport {
                 CurrentBuildOperationRef.instance(),
                 queueFactory,
                 executorFactory,
+                new DefaultResourceLockCoordinationService(),
+                workerLeaseService,
                 workerLimits);
         }
 

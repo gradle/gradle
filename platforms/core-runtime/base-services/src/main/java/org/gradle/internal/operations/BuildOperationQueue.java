@@ -37,13 +37,13 @@ public interface BuildOperationQueue<T extends BuildOperation> {
 
     /**
      * Cancels all queued operations in this queue.  Any operations that have started will be allowed to complete.
+     *
+     * @throws IllegalStateException if someone is waiting for completion of this queue
      */
     void cancel();
 
     /**
-     * Waits for all previously added operations to complete.
-     * <p>
-     * On failure, some effort is made to cancel any operations that have not started.
+     * Waits for all previously added operations to complete, or for the queue to finish after cancellation.
      *
      * @throws MultipleBuildOperationFailures if <em>any</em> operation failed
      */

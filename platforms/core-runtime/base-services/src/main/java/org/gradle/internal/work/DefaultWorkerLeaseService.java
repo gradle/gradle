@@ -42,11 +42,11 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.gradle.internal.resources.DefaultResourceLockCoordinationService.lock;
 import static org.gradle.internal.resources.DefaultResourceLockCoordinationService.tryLock;
+import static org.gradle.internal.resources.DefaultResourceLockCoordinationService.tryLockWhile;
 import static org.gradle.internal.resources.DefaultResourceLockCoordinationService.unlock;
 
 public class DefaultWorkerLeaseService implements WorkerLeaseService, ProjectParallelExecutionController, Stoppable {
@@ -136,27 +136,37 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, ProjectPar
     }
 
     @Override
-    public <T> Optional<T> tryRunAsWorkerThread(Factory<T> action) {
-        Collection<? extends ResourceLock> locks = workerLeaseLockRegistry.getResourceLocksByCurrentThread();
-        if (!locks.isEmpty()) {
-            // Already a worker
-            return Optional.of(action.create());
-        }
-        DefaultWorkerLease lease = newWorkerLease();
-        boolean acquired = coordinationService.withStateLock(tryLock(lease));
-        if (!acquired) {
-            return Optional.empty();
-        }
-        return Optional.of(runAndReleaseLocks(Collections.singletonList(lease), action));
-    }
-
-    @Override
     public void runAsUnmanagedWorkerThread(Runnable action) {
         Collection<? extends ResourceLock> locks = workerLeaseLockRegistry.getResourceLocksByCurrentThread();
         if (!locks.isEmpty()) {
             action.run();
         } else {
             withLocks(Collections.singletonList(workerLeaseLockRegistry.newUnmanagedLease()), action);
+        }
+    }
+
+    @Override
+    public void runWorkerLoop(WorkerLoop workerLoop) {
+        Collection<? extends ResourceLock> locks = workerLeaseLockRegistry.getResourceLocksByCurrentThread();
+        if (!locks.isEmpty()) {
+            runWorkerLoopWithAcquiredLease(workerLoop);
+            return;
+        }
+        locks = Collections.singletonList(newWorkerLease());
+        if (!coordinationService.withStateLock(tryLockWhile(workerLoop::shouldContinue, locks))) {
+            // The worker loop requested that we exit before the lock was acquired.
+            return;
+        }
+        Factory<@Nullable Void> action = () -> {
+            runWorkerLoopWithAcquiredLease(workerLoop);
+            return null;
+        };
+        runAndReleaseLocks(locks, action);
+    }
+
+    private static void runWorkerLoopWithAcquiredLease(WorkerLoop workerLoop) {
+        while (workerLoop.shouldContinue()) {
+            workerLoop.runOnce();
         }
     }
 
@@ -294,7 +304,7 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, ProjectPar
         return runAndReleaseLocks(locksToAcquire, factory);
     }
 
-    private <T> T runAndReleaseLocks(Collection<? extends ResourceLock> locksHeld, Factory<T> factory) {
+    private <T extends @Nullable Object> T runAndReleaseLocks(Collection<? extends ResourceLock> locksHeld, Factory<T> factory) {
         return resourceLockStatistics.measure("Acquired", locksHeld, () -> {
             try {
                 return factory.create();
