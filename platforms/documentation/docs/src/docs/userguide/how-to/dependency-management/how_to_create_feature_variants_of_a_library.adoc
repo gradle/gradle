@@ -116,8 +116,8 @@ In the example, the feature called "mongodbSupport" automatically creates these 
 
 Additionally, Gradle exposes two variant-specific configurations for external consumption:
 
-* `mongodbSupportRuntimeElements` - used by consumers to fetch the artifacts and API dependencies of this feature
-* `mongodbSupportApiElements` - used by consumers to fetch the artifacts and runtime dependencies of this feature
+* `mongodbSupportApiElements` - used by consumers to fetch the artifacts and API dependencies of this feature
+* `mongodbSupportRuntimeElements` - used by consumers to fetch the artifacts and runtime dependencies of this feature
 
 A feature variant should have a corresponding _source set_ named identically.
 
