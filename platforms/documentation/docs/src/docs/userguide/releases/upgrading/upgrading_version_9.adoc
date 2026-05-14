@@ -543,9 +543,6 @@ processResources {
 ----
 |===
 
-[[changes_9.6.0]]
-== Upgrading from 9.5.0 and earlier
-
 === Potential breaking changes
 
 ==== Upgrade to Kotlin 2.3.21

@@ -376,7 +376,9 @@ Only the first registration succeeds, and any later registrations return the pre
 However, the parameters of the build service can become shared mutable state.
 Any mutation of the build service parameters outside of `registerIfAbsent(...) { parameters { ... } }` should be avoided.
 
-Accessing the set of build service registrations at `gradle.sharedServices.registrations` is unsafe.
+Accessing the set of build service registrations at `gradle.sharedServices.registrations` is restricted with Isolated Projects.
+Only `findByName(String)` is permitted on the returned set; all other methods emit IP violations.
+Use `registerIfAbsent(String, Class)` to obtain a service provider instead of querying the registrations set directly.
 
 [[sec:cross_build_access]]
 === Cross-build access constraints
