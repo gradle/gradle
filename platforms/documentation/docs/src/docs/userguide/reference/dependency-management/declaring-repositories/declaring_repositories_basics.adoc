@@ -155,3 +155,5 @@ However, some plugins may be hosted in other repositories (public or private).
 To include these plugins, you need to specify additional repositories in your build script so Gradle knows where to search.
 
 Since declaring repositories depends on how the plugin is applied, refer to the <<plugins_intermediate.adoc#sec:custom_plugin_repositories,Custom Plugin Repositories>> for more details on configuring repositories for plugins from different sources.
+
+TIP: Use the `repositories` task to identify duplicate repository declarations across your build that could be consolidated into settings. See <<command_line_interface.adoc#sec:listing-repositories, Listing repositories>>.

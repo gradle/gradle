@@ -19,6 +19,8 @@ Instead of declaring repositories in every subproject of your build or via an `a
 
 NOTE: Central declaration of repositories is an incubating feature.
 
+TIP: Use the `repositories` task to identify duplicate repository declarations across your build that could be consolidated into settings. See <<command_line_interface.adoc#sec:listing-repositories, Listing repositories>>.
+
 You can declare repositories that will be used by convention in every subproject in the `settings.gradle(.kts)` file:
 
 ====

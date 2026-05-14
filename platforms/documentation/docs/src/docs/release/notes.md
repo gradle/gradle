@@ -92,6 +92,63 @@ When `NO_COLOR` is set and non-empty, Gradle suppresses color output while prese
 
 See the [Environment variables](userguide/build_environment.html#sec:gradle_environment_variables) section in the Gradle User Manual for more information.
 
+#### Repositories report
+
+Gradle now provides a built-in `repositories` diagnostic task that shows a unified view of all [repository declarations](userguide/declaring_repositories_basics.html) across settings and projects.
+The report identifies where each repository is defined, what dependency types it serves, and flags duplicate declarations that could be centralized.
+It also performs lightweight reachability probes against remote URLs to detect unreachable or unauthorized repositories.
+
+Run `./gradlew repositories` to generate the report, or use `./gradlew repositories --project :app` to filter to a specific project:
+
+```text
+$ ./gradlew repositories
+
+--------------------------------------------------------
+All Repositories
+--------------------------------------------------------
+
+MavenRepo (1) *
+    Location:   https://repo.maven.apache.org/maven2/
+    Type:       MAVEN
+    Roles:      PROJECT_DEPENDENCIES
+    Defined in: project ':' > repositories
+
+MavenRepo (2) *
+    Location:   https://repo.maven.apache.org/maven2/
+    Type:       MAVEN
+    Roles:      PROJECT_DEPENDENCIES
+    Defined in: project ':app' > repositories
+
+maven (3)
+    Location:   https://my.internal.repo/releases/ (ur)
+    Type:       MAVEN
+    Roles:      PROJECT_DEPENDENCIES
+    Defined in: project ':app' > repositories
+
+--------------------------------------------------------
+Repositories by Location
+--------------------------------------------------------
+
+project ':' uses
+    - MavenRepo (1)
+
+project ':app' uses
+    - MavenRepo (2)
+    - maven (3)
+
+--------------------------------------------------------
+Legend
+--------------------------------------------------------
+
+(*) Identical repository declaration found in multiple locations.
+    Consider consolidating to settings.dependencyResolutionManagement.repositories
+    or settings.pluginManagement.repositories.
+    See https://docs.gradle.org/current/userguide/centralizing_repositories.html
+(ur) Unreachable — the URL could not be contacted.
+```
+
+See the [Declaring Repositories](userguide/declaring_repositories_basics.html#sec:listing-repositories) section in the Gradle User Manual for more information.
+
 ### Build authoring improvements
 Gradle provides [rich APIs](userguide/getting_started_dev.html) for build engineers and plugin authors, enabling the creation of custom, reusable build logic and better maintainability.
 

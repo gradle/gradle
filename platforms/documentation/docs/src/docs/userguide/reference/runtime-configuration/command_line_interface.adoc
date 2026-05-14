@@ -522,6 +522,93 @@ $ ./gradlew dependencyInsight --dependency [...] --configuration [...]
 
 The `--configuration` parameter restricts the report to a particular configuration such as `compileClasspath`.
 
+[[sec:listing-repositories]]
+=== Listing project repositories
+
+Gradle provides the built-in `repositories` task to display a unified view of all repository declarations across your build.
+The report covers repositories declared in settings (`pluginManagement`, `dependencyResolutionManagement`, `buildscript`) and in each project (`buildscript`, `repositories`):
+
+[source,bash]
+----
+$ ./gradlew repositories
+----
+[source,text]
+----
+--------------------------------------------------------
+All Repositories
+--------------------------------------------------------
+
+MavenRepo (1) *
+    Location:   https://repo.maven.apache.org/maven2/
+    Type:       MAVEN
+    Roles:      PROJECT_DEPENDENCIES
+    Defined in: project ':' > repositories
+
+maven (2)
+    Location:   https://my.internal.repo/releases/ (ur)
+    Type:       MAVEN
+    Roles:      PROJECT_DEPENDENCIES
+    Defined in: project ':app' > repositories
+
+--------------------------------------------------------
+Repositories by Location
+--------------------------------------------------------
+
+project ':' uses
+    - MavenRepo (1)
+
+project ':app' uses
+    - MavenRepo (2)
+    - maven (3)
+
+--------------------------------------------------------
+Legend
+--------------------------------------------------------
+----
+
+The report includes three sections:
+
+*All Repositories*::
+A globally-numbered list of every repository in the build, showing each repository's name, location URL, type (Maven, Ivy, flat directory), roles (what kinds of dependencies it serves), and where it was declared.
+
+*Repositories by Location*::
+Groups repositories by the settings or project that uses them, showing which repositories are available to each project during resolution.
+
+*Legend*::
+Explains any markers that appear in the report.
+
+==== Understanding output markers
+
+The report annotates repositories with the following markers:
+
+[cols="1,3"]
+|===
+| Marker | Meaning
+
+| `*`
+| Identical repository declaration found in multiple locations. Consider consolidating to `settings.dependencyResolutionManagement.repositories` or `settings.pluginManagement.repositories`.
+
+| `(ur)`
+| Unreachable — the URL could not be contacted (connection refused, DNS failure, timeout, or HTTP error).
+
+| `(ua)`
+| Unauthorized — the URL returned HTTP 401 or 403.
+
+| `(o)`
+| Displayed on the report heading when Gradle runs in `--offline` mode. No reachability checks are performed.
+|===
+
+==== Filtering to a specific project
+
+Use the `--project` option to narrow the report to repositories relevant to a single project:
+
+[source,bash]
+----
+$ ./gradlew repositories --project :app
+----
+
+This filters *All Repositories* to only the entries relevant to `:app` (plugin repositories, dependency resolution management repositories, and the project's own declarations) and shows only that project's block in *Repositories by Location*.
+
 [[sec:listing_properties]]
 === Listing project properties
 
