@@ -21,6 +21,7 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.buildprocess.BuildProcessState;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.installation.CurrentGradleInstallation;
+import org.gradle.internal.instrumentation.agent.AgentInitializer;
 import org.gradle.internal.instrumentation.agent.AgentStatus;
 import org.gradle.internal.logging.services.LoggingServiceRegistry;
 import org.gradle.internal.nativeintegration.services.NativeServices;
@@ -263,7 +264,7 @@ public class DefaultConnection implements ConnectionVersion4,
             if (embeddedDaemonState == null) {
                 embeddedDaemonState = new BuildProcessState(
                     true,
-                    AgentStatus.disabled(),
+                    AgentStatus.allowed(),
                     CurrentGradleInstallation.locate(),
                     Collections.singleton(new ConnectionScopeServices()),
                     Arrays.asList(
@@ -272,6 +273,7 @@ public class DefaultConnection implements ConnectionVersion4,
                     )
                 );
                 configureServices(embeddedDaemonState.getServices());
+                embeddedDaemonState.getServices().get(AgentInitializer.class).ensureInstrumentationAgentConfigured();
             }
             return embeddedDaemonState.getServices();
         } else {
