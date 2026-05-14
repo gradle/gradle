@@ -20,6 +20,7 @@ import org.gradle.internal.Factory
 import org.gradle.internal.resources.ResourceLock
 import org.gradle.internal.work.Synchronizer
 import org.gradle.internal.work.WorkerLeaseService
+import org.gradle.internal.work.WorkerLoop
 import org.gradle.internal.work.WorkerThreadPool
 import org.gradle.util.Path
 import org.jspecify.annotations.NullMarked
@@ -91,13 +92,15 @@ class TestWorkerLeaseService implements WorkerLeaseService {
     }
 
     @Override
-    <T> Optional<T> tryRunAsWorkerThread(Factory<T> action) {
-        return Optional.of(action.create())
+    void runAsUnmanagedWorkerThread(Runnable action) {
+        action.run()
     }
 
     @Override
-    void runAsUnmanagedWorkerThread(Runnable action) {
-        action.run()
+    void runWorkerLoop(WorkerLoop loop) {
+        while (loop.shouldContinue()) {
+            loop.runOnce()
+        }
     }
 
     @Override

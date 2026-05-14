@@ -16,6 +16,7 @@
 
 package org.gradle.internal.operations;
 
+import org.gradle.internal.work.SubmissionQueue;
 import org.gradle.internal.work.WorkerLeaseService;
 import org.jspecify.annotations.Nullable;
 
@@ -29,14 +30,14 @@ public class DefaultBuildOperationQueueFactory implements BuildOperationQueueFac
 
     @Override
     public <T extends BuildOperation> BuildOperationQueue<T> create(
-        BuildOperationExecutionContext context,
+        SubmissionQueue submissionQueue,
         boolean allowAccessToProjectState,
         BuildOperationQueue.QueueWorker<T> worker,
         @Nullable BuildOperationRef parent
     ) {
         // Assert that the current thread is a worker
         workerLeaseService.getCurrentWorkerLease();
-        return new DefaultBuildOperationQueue<>(allowAccessToProjectState, workerLeaseService, context, worker, parent);
+        return new DefaultBuildOperationQueue<>(allowAccessToProjectState, workerLeaseService, submissionQueue, worker, parent);
     }
 
 }

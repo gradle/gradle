@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2026 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,16 +14,23 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.operations;
+package org.gradle.internal.work;
 
-import org.gradle.internal.work.SubmissionQueue;
-import org.jspecify.annotations.Nullable;
+/**
+ * A loop that owns a worker lease until the given stopping condition.
+ */
+public interface WorkerLoop {
+    /**
+     * {@return {@code true} if the loop should continue, or {@code false} if the loop should stop}
+     * The worker lease will be dropped if it was acquired.
+     *
+     * <p>
+     * This should be cheap as it will be called under the state lock.
+     */
+    boolean shouldContinue();
 
-public interface BuildOperationQueueFactory {
-    <T extends BuildOperation> BuildOperationQueue<T> create(
-        SubmissionQueue submissionQueue,
-        boolean allowAccessToProjectState,
-        BuildOperationQueue.QueueWorker<T> worker,
-        @Nullable BuildOperationRef parent
-    );
+    /**
+     * Execute the body of the loop once.
+     */
+    void runOnce();
 }
