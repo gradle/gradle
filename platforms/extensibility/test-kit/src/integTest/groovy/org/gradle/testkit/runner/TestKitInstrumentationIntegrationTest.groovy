@@ -17,13 +17,22 @@
 package org.gradle.testkit.runner
 
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.TestExecutionPreconditions
 import org.gradle.testkit.runner.enduser.BaseTestKitEndUserIntegrationTest
 
-@Requires(value = TestExecutionPreconditions.NotEmbeddedExecutor, reason = BaseTestKitEndUserIntegrationTest.NOT_EMBEDDED_REASON)
+import static org.gradle.test.preconditions.TestExecutionPreconditions.NotEmbeddedExecutor
+
+/**
+ * Verifies that an embedded TestKit build ({@code withDebug(true)}) sees the
+ * instrumentation agent active, and that the
+ * {@code org.gradle.internal.instrumentation.agent} property is ignored on
+ * this path. See {@code DefaultConnection.getServices()} for the rationale:
+ * in embedded mode no daemon is launched, so the property (which only gates
+ * daemon-launch wiring) cannot influence whether the agent is on the JVM.
+ */
+@Requires(value = NotEmbeddedExecutor, reason = NOT_EMBEDDED_REASON)
 class TestKitInstrumentationIntegrationTest extends BaseTestKitEndUserIntegrationTest {
 
-    def "agent is applied inside an embedded TestKit build run from a java-gradle-plugin project"() {
+    def "embedded TestKit build enables instrumentation agent and ignores the agent property when it is #description"() {
         given:
         buildFile << """
             plugins {
@@ -60,17 +69,17 @@ class TestKitInstrumentationIntegrationTest extends BaseTestKitEndUserIntegratio
             }
         """
 
-        file("src/test/groovy/AgentTest.groovy") << '''
+        file("src/test/groovy/AgentTest.groovy") << """
             import org.gradle.testkit.runner.GradleRunner
             import spock.lang.Specification
             import java.nio.file.Files
 
             class AgentTest extends Specification {
-                def "agent is active in embedded build"() {
+                def "agent is active"() {
                     given:
                     def projectDir = Files.createTempDirectory("inner").toFile()
                     new File(projectDir, "settings.gradle").text = "rootProject.name = 'inner'"
-                    new File(projectDir, "build.gradle").text = """
+                    new File(projectDir, "build.gradle").text = '''
                         import org.gradle.internal.instrumentation.agent.AgentStatus
                         tasks.register("checkAgent") {
                             doLast {
@@ -78,12 +87,12 @@ class TestKitInstrumentationIntegrationTest extends BaseTestKitEndUserIntegratio
                                 println "agent applied = " + applied
                             }
                         }
-                    """
+                    '''
 
                     when:
                     def result = GradleRunner.create()
                         .withProjectDir(projectDir)
-                        .withArguments("checkAgent")
+                        .withArguments($args)
                         .withDebug(true)
                         .forwardOutput()
                         .build()
@@ -92,9 +101,15 @@ class TestKitInstrumentationIntegrationTest extends BaseTestKitEndUserIntegratio
                     result.output.contains("agent applied = true")
                 }
             }
-        '''
+        """
 
         expect:
         succeeds('test')
+
+        where:
+        description    | args
+        "absent"       | '"checkAgent"'
+        "set to true"  | '"checkAgent", "-Dorg.gradle.internal.instrumentation.agent=true"'
+        "set to false" | '"checkAgent", "-Dorg.gradle.internal.instrumentation.agent=false"'
     }
 }

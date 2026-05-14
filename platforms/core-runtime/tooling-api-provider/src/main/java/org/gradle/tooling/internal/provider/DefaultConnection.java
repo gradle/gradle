@@ -262,6 +262,11 @@ public class DefaultConnection implements ConnectionVersion4,
     private ServiceRegistry getServices(ProviderOperationParameters providerParameters) {
         if (Boolean.TRUE.equals(providerParameters.isEmbedded())) {
             if (embeddedDaemonState == null) {
+                // In embedded mode there is no daemon to launch, so the
+                // `org.gradle.internal.instrumentation.agent` property is not
+                // consulted: the agent is used iff `Agent.premain()` already
+                // ran on this JVM (i.e. -javaagent was passed at startup), and
+                // that fact cannot be changed at build time.
                 embeddedDaemonState = new BuildProcessState(
                     true,
                     AgentStatus.allowed(),
