@@ -79,7 +79,9 @@ main() {
     echo "PR_RESPONSE: $PR_RESPONSE"
 
     PR_NUMBER=$(echo "$PR_RESPONSE" | jq -r '.number' 2>/dev/null)
-    
+
+    echo "##teamcity[buildStatus text='{build.status.text}, PR: https://github.com/gradle/gradle/pull/$PR_NUMBER']"
+
     post "/issues/$PR_NUMBER/comments" '{
         "body": "@bot-gradle test and merge"
     }'
