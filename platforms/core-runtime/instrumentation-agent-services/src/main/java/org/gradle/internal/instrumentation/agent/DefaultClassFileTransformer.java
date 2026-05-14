@@ -55,4 +55,11 @@ class DefaultClassFileTransformer implements ClassFileTransformer {
         }
         return AgentControl.installTransformer(new DefaultClassFileTransformer());
     }
+
+    static void ensureInstalled() {
+        if (!INSTALLED.compareAndSet(false, true)) {
+            return;
+        }
+        AgentControl.installTransformer(new DefaultClassFileTransformer());
+    }
 }

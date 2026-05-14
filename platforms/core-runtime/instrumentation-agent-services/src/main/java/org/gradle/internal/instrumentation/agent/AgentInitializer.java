@@ -32,10 +32,21 @@ public class AgentInitializer {
 
     /**
      * Sets up the agent-based instrumentation if it is enabled for the process.
+     * Throws {@link IllegalStateException} if called more than once in the same classloader.
      */
     public void maybeConfigureInstrumentationAgent() {
         if (agentStatus.isAgentInstrumentationEnabled()) {
             DefaultClassFileTransformer.tryInstall();
+        }
+    }
+
+    /**
+     * Sets up the agent-based instrumentation if it is enabled for the process.
+     * Safe to call repeatedly; subsequent calls after the transformer is installed are a no-op.
+     */
+    public void ensureInstrumentationAgentConfigured() {
+        if (agentStatus.isAgentInstrumentationEnabled()) {
+            DefaultClassFileTransformer.ensureInstalled();
         }
     }
 }
