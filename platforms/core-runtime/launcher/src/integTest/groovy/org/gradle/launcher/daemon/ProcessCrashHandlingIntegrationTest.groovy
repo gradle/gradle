@@ -95,7 +95,7 @@ class ProcessCrashHandlingIntegrationTest extends DaemonIntegrationSpec {
     def "session id of daemon is different from daemon client"() {
         given:
         withGetSidProject()
-        succeeds(":getSid:install")
+        succeeds(":getSid:installDebug")
         buildFile << """
             task block {
                 doLast {
@@ -132,7 +132,7 @@ class ProcessCrashHandlingIntegrationTest extends DaemonIntegrationSpec {
     def "daemon is not attached to a console"() {
         given:
         withAttachConsoleProject()
-        succeeds(":attachConsole:install")
+        succeeds(":attachConsole:installDebug")
         buildFile << """
             task block {
                 doLast {
