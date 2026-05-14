@@ -52,6 +52,7 @@ import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransp
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ProviderFactory;
+import org.gradle.authentication.Authentication;
 import org.gradle.internal.Cast;
 import org.gradle.internal.action.InstantiatingAction;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
@@ -223,7 +224,10 @@ public abstract class DefaultMavenArtifactRepository extends AbstractAuthenticat
 
     @Override
     protected MavenRepositoryDescriptor createDescriptor() {
-        URI rootUri = validateUrl();
+        return buildDescriptor(validateUrl());
+    }
+
+    private MavenRepositoryDescriptor buildDescriptor(URI rootUri) {
         return new MavenRepositoryDescriptor.Builder(getName(), rootUri)
             .setAuthenticated(usesCredentials())
             .setAuthenticationSchemes(getAuthenticationSchemes())
@@ -252,17 +256,27 @@ public abstract class DefaultMavenArtifactRepository extends AbstractAuthenticat
     @Override
     public ConfiguredModuleComponentRepository createResolver() {
         URI rootUrl = validateUrl();
-        return createResolver(rootUrl);
+        return createResolver(rootUrl, getConfiguredAuthentication(), getDescriptor());
     }
 
-    private MavenResolver createResolver(URI rootUri) {
-        RepositoryTransport transport = getTransport(rootUri.getScheme());
+    /**
+     * Creates a resolver pointed at a mirror URL with mirror credentials, preserving all
+     * other configuration (metadata sources, content filters, etc.). The mirror's URL fully
+     * replaces this repository's URL: a fresh descriptor is built so that the resolver's
+     * resource patterns reference the mirror.
+     */
+    public ConfiguredModuleComponentRepository createMirroredResolver(URI mirrorUrl, Collection<Authentication> mirrorAuthentication) {
+        return createResolver(mirrorUrl, mirrorAuthentication, buildDescriptor(mirrorUrl));
+    }
+
+    private MavenResolver createResolver(URI rootUri, Collection<Authentication> authentications, MavenRepositoryDescriptor descriptor) {
+        RepositoryTransport transport = transportFactory.createTransport(rootUri.getScheme(), getName(), authentications, urlArtifactRepository.createRedirectVerifier());
         MavenMetadataLoader mavenMetadataLoader = new MavenMetadataLoader(transport.getResourceAccessor(), resourcesFileStore);
         ImmutableMetadataSources metadataSources = createMetadataSources(mavenMetadataLoader);
-        Instantiator injector = createInjectorForMetadataSuppliers(transport, instantiatorFactory, getUrl(), resourcesFileStore);
+        Instantiator injector = createInjectorForMetadataSuppliers(transport, instantiatorFactory, rootUri, resourcesFileStore);
         InstantiatingAction<ComponentMetadataSupplierDetails> supplier = createComponentMetadataSupplierFactory(injector, isolatableFactory);
         InstantiatingAction<ComponentMetadataListerDetails> lister = createComponentMetadataVersionLister(injector, isolatableFactory);
-        return new MavenResolver(getDescriptor(), rootUri, transport, locallyAvailableResourceFinder, artifactFileStore, metadataSources, MavenMetadataArtifactProvider.INSTANCE, mavenMetadataLoader, supplier, lister, injector, checksumService, getAllowInsecureContinueWhenDisabled().get());
+        return new MavenResolver(descriptor, rootUri, transport, locallyAvailableResourceFinder, artifactFileStore, metadataSources, MavenMetadataArtifactProvider.INSTANCE, mavenMetadataLoader, supplier, lister, injector, checksumService, getAllowInsecureContinueWhenDisabled().get());
     }
 
     @Override

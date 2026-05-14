@@ -34,6 +34,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultCo
 import org.gradle.api.internal.artifacts.repositories.ArtifactResolutionDetails;
 import org.gradle.api.internal.artifacts.repositories.ContentFilteringRepository;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
+import org.gradle.api.internal.artifacts.repositories.mirror.RepositoryMirrorService;
 import org.gradle.api.internal.artifacts.result.DefaultResolvedArtifactResult;
 import org.gradle.api.internal.attributes.AttributeSchemaServices;
 import org.gradle.api.internal.attributes.AttributesFactory;
@@ -90,6 +91,7 @@ public class ExternalModuleComponentResolverFactory {
 
     private final DependencyVerificationOverride dependencyVerificationOverride;
     private final ChangingValueDependencyResolutionListener listener;
+    private final RepositoryMirrorService mirrorService;
 
     @Inject
     public ExternalModuleComponentResolverFactory(
@@ -106,7 +108,8 @@ public class ExternalModuleComponentResolverFactory {
         CalculatedValueFactory calculatedValueFactory,
         AttributesFactory attributesFactory,
         AttributeSchemaServices attributeSchemaServices,
-        ComponentMetadataSupplierRuleExecutor componentMetadataSupplierRuleExecutor
+        ComponentMetadataSupplierRuleExecutor componentMetadataSupplierRuleExecutor,
+        RepositoryMirrorService mirrorService
     ) {
         this.cacheProvider = cacheProvider;
         this.startParameterResolutionOverride = startParameterResolutionOverride;
@@ -122,6 +125,7 @@ public class ExternalModuleComponentResolverFactory {
         this.attributesFactory = attributesFactory;
         this.attributeSchemaServices = attributeSchemaServices;
         this.componentMetadataSupplierRuleExecutor = componentMetadataSupplierRuleExecutor;
+        this.mirrorService = mirrorService;
     }
 
     /**
@@ -139,10 +143,18 @@ public class ExternalModuleComponentResolverFactory {
             return new NoRepositoriesResolver();
         }
 
+        // Rewrite the repository list so any repository whose URL matches a mirror in
+        // $GRADLE_USER_HOME/mirrors.toml is redirected to the mirror. The user's declared
+        // repository instances are not mutated.
+        //
+        // TODO(v1.2): emit a Develocity build operation for each rewrite recording
+        // originalUrl, mirrorName, mirrorUrl, and the matcher pattern.
+        Collection<? extends ResolutionAwareRepository> effectiveRepositories = mirrorService.rewrite(repositories);
+
         UserResolverChain moduleResolver = new UserResolverChain(versionComparator, componentSelectionRules, versionParser, consumerSchema, attributesFactory, attributeSchemaServices, metadataProcessor, componentMetadataSupplierRuleExecutor, calculatedValueFactory, cacheExpirationControl);
         ParentModuleLookupResolver parentModuleResolver = new ParentModuleLookupResolver(versionComparator, moduleIdentifierFactory, versionParser, consumerSchema, attributesFactory, attributeSchemaServices, metadataProcessor, componentMetadataSupplierRuleExecutor, calculatedValueFactory, cacheExpirationControl);
 
-        for (ResolutionAwareRepository repository : repositories) {
+        for (ResolutionAwareRepository repository : effectiveRepositories) {
             ConfiguredModuleComponentRepository baseRepository = repository.createResolver();
 
             baseRepository.setComponentResolvers(parentModuleResolver);

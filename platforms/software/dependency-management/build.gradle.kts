@@ -76,6 +76,10 @@ dependencies {
     implementation(libs.commonsLang)
     implementation(libs.gson)
     implementation(libs.httpcore)
+    implementation(libs.tomlj) {
+        // Used for its nullability annotations, not needed at runtime
+        exclude("org.checkerframework", "checker-qual")
+    }
 
     testImplementation(projects.buildCachePackaging)
     testImplementation(projects.softwareDiagnostics)

@@ -55,6 +55,7 @@ import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransp
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ProviderFactory;
+import org.gradle.authentication.Authentication;
 import org.gradle.internal.action.InstantiatingAction;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
@@ -72,6 +73,7 @@ import javax.inject.Inject;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -161,12 +163,28 @@ public abstract class DefaultIvyArtifactRepository extends AbstractAuthenticatio
         return createRealResolver();
     }
 
+    /**
+     * Creates a resolver pointed at a mirror URL with mirror credentials, preserving all
+     * other configuration (metadata sources, content filters, layout, etc.). The mirror
+     * URL fully replaces this repository's URL: a fresh descriptor is built so that the
+     * resolver's resource patterns reference the mirror.
+     */
+    public ConfiguredModuleComponentRepository createMirroredResolver(URI mirrorUrl, Collection<Authentication> mirrorAuthentication) {
+        Set<String> mirrorSchemes = Collections.singleton(mirrorUrl.getScheme());
+        validate(mirrorSchemes);
+        RepositoryTransport transport = transportFactory.createTransport(mirrorSchemes, getName(), mirrorAuthentication, urlArtifactRepository.createRedirectVerifier());
+        IvyRepositoryDescriptor descriptor = buildDescriptor(mirrorUrl);
+        return createResolverWithDescriptor(transport, mirrorUrl, descriptor);
+    }
+
     @Override
     protected IvyRepositoryDescriptor createDescriptor() {
         Set<String> schemes = getSchemes();
         validate(schemes);
+        return buildDescriptor(urlArtifactRepository.getUrl());
+    }
 
-        URI url = urlArtifactRepository.getUrl();
+    private IvyRepositoryDescriptor buildDescriptor(URI url) {
         IvyRepositoryDescriptor.Builder builder = new IvyRepositoryDescriptor.Builder(getName(), url)
             .setAuthenticated(usesCredentials())
             .setAuthenticationSchemes(getAuthenticationSchemes())
@@ -183,7 +201,8 @@ public abstract class DefaultIvyArtifactRepository extends AbstractAuthenticatio
     }
 
     private IvyResolver createResolver(Set<String> schemes) {
-        return createResolver(transportFactory.createTransport(schemes, getName(), getConfiguredAuthentication(), urlArtifactRepository.createRedirectVerifier()));
+        RepositoryTransport transport = transportFactory.createTransport(schemes, getName(), getConfiguredAuthentication(), urlArtifactRepository.createRedirectVerifier());
+        return createResolverWithDescriptor(transport, getUrl(), getDescriptor());
     }
 
     private void validate(Set<String> schemes) {
@@ -206,11 +225,11 @@ public abstract class DefaultIvyArtifactRepository extends AbstractAuthenticatio
         return schemes;
     }
 
-    private IvyResolver createResolver(RepositoryTransport transport) {
-        Instantiator injector = createInjectorForMetadataSuppliers(transport, instantiatorFactory, getUrl(), externalResourcesFileStore);
+    private IvyResolver createResolverWithDescriptor(RepositoryTransport transport, URI rootUri, IvyRepositoryDescriptor descriptor) {
+        Instantiator injector = createInjectorForMetadataSuppliers(transport, instantiatorFactory, rootUri, externalResourcesFileStore);
         InstantiatingAction<ComponentMetadataSupplierDetails> supplierFactory = createComponentMetadataSupplierFactory(injector, isolatableFactory);
         InstantiatingAction<ComponentMetadataListerDetails> listerFactory = createComponentMetadataVersionLister(injector, isolatableFactory);
-        return new IvyResolver(getDescriptor(), transport, locallyAvailableResourceFinder, metaDataProvider.dynamicResolve, artifactFileStore, supplierFactory, listerFactory, createMetadataSources(), IvyMetadataArtifactProvider.INSTANCE, injector, checksumService, getAllowInsecureContinueWhenDisabled().get());
+        return new IvyResolver(descriptor, transport, locallyAvailableResourceFinder, metaDataProvider.dynamicResolve, artifactFileStore, supplierFactory, listerFactory, createMetadataSources(), IvyMetadataArtifactProvider.INSTANCE, injector, checksumService, getAllowInsecureContinueWhenDisabled().get());
     }
 
     @Override

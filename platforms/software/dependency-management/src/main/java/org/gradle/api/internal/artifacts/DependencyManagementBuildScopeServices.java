@@ -134,6 +134,7 @@ class DependencyManagementBuildScopeServices implements ServiceRegistrationProvi
         registration.add(ResolverProviderFactories.class);
         registration.add(DependencyManagementManagedTypesFactory.class);
         registration.add(RuntimeShadedJarFactory.class);
+        registration.add(org.gradle.api.internal.artifacts.repositories.mirror.RepositoryMirrorService.class);
     }
 
     @Provides
