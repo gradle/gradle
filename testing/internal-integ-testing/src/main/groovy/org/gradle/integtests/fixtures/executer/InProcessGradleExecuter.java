@@ -21,6 +21,7 @@ import org.gradle.BuildResult;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.Task;
 import org.gradle.api.execution.TaskExecutionListener;
+import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.TestFiles;
@@ -63,7 +64,6 @@ import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.BuildActionResult;
 import org.gradle.launcher.exec.BuildExecutor;
 import org.gradle.launcher.exec.DefaultBuildActionParameters;
-import org.gradle.launcher.exec.StartParameterHelper;
 import org.gradle.test.fixtures.file.TestDirectoryProvider;
 import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.testfixtures.internal.NativeServicesTestFixture;
@@ -343,7 +343,7 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
             try {
                 startMeasurement();
                 try {
-                    BuildActionResult result = actionExecuter.execute(action, StartParameterHelper.toStartParameter(buildParameters),
+                    BuildActionResult result = actionExecuter.execute(action, StartParameterInternal.fromBuildParameters(buildParameters),
                         buildActionParameters, buildRequestContext);
                     if (result.getException() != null) {
                         return new BuildResult(null, result.getException());

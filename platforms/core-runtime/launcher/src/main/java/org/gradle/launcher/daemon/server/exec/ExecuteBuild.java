@@ -30,7 +30,6 @@ import org.gradle.launcher.daemon.server.api.DaemonCommandExecution;
 import org.gradle.launcher.daemon.server.stats.DaemonRunningStats;
 import org.gradle.launcher.exec.BuildActionResult;
 import org.gradle.launcher.exec.BuildExecutor;
-import org.gradle.launcher.exec.StartParameterHelper;
 
 /**
  * Actually executes the build.
@@ -61,7 +60,7 @@ public class ExecuteBuild extends BuildCommandOnly {
             BuildRequestMetaData buildRequestMetaData = new DefaultBuildRequestMetaData(clientMetaData, build.getStartTime(), build.isInteractiveConsole());
             BuildRequestContext buildRequestContext = new DefaultBuildRequestContext(buildRequestMetaData, cancellationToken, buildEventConsumer);
 
-            StartParameterInternal startParameter = StartParameterHelper.toStartParameter(build.getAction().getBuildParameters());
+            StartParameterInternal startParameter = StartParameterInternal.fromBuildParameters(build.getAction().getBuildParameters());
 
             if (!startParameter.isContinuous()) {
                 buildRequestContext.getCancellationToken().addCallback(new Runnable() {

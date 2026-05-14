@@ -62,7 +62,6 @@ import org.gradle.launcher.exec.BuildActionExecutor;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.BuildExecutor;
 import org.gradle.launcher.exec.DefaultBuildActionParameters;
-import org.gradle.launcher.exec.StartParameterHelper;
 import org.gradle.process.internal.CurrentProcess;
 import org.gradle.tooling.internal.provider.ForwardStdInToThisProcess;
 import org.gradle.tooling.internal.provider.RunInProcess;
@@ -202,7 +201,7 @@ class BuildActionsFactory implements CommandLineActionCreator {
         globalServices.get(AgentInitializer.class).maybeConfigureInstrumentationAgent();
         BuildActionExecutor<BuildActionParameters, BuildRequestContext> actionExecutor = (action, actionParameters, buildRequestContext) -> {
             BuildExecutor buildExecutor = globalServices.get(BuildExecutor.class);
-            StartParameterInternal startParameterInternal = StartParameterHelper.toStartParameter(buildParameters);
+            StartParameterInternal startParameterInternal = StartParameterInternal.fromBuildParameters(buildParameters);
             return buildExecutor.execute(action, startParameterInternal, actionParameters, buildRequestContext);
         };
         BuildActionExecutor<BuildActionParameters, ClientBuildRequestContext> executor = new RunInProcess(

@@ -67,7 +67,6 @@ import org.gradle.launcher.exec.BuildActionExecutor;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.BuildActionResult;
 import org.gradle.launcher.exec.BuildExecutor;
-import org.gradle.launcher.exec.StartParameterHelper;
 import org.gradle.process.internal.streams.SafeStreams;
 import org.gradle.tooling.events.OperationType;
 import org.gradle.tooling.internal.build.DefaultBuildEnvironment;
@@ -351,7 +350,7 @@ public class ProviderConnection {
             loggingManager.captureSystemSources();
             BuildActionExecutor<BuildActionParameters, BuildRequestContext> actionExecutor = (action, actionParameters, buildRequestContext) -> {
                 BuildExecutor buildExecutor = sharedServices.get(BuildExecutor.class);
-                StartParameterInternal startParameterInternal = StartParameterHelper.toStartParameter(action.getBuildParameters());
+                StartParameterInternal startParameterInternal = StartParameterInternal.fromBuildParameters(action.getBuildParameters());
                 return buildExecutor.execute(action, startParameterInternal, actionParameters, buildRequestContext);
             };
             executor = new RunInProcess(new SystemPropertySetterExecuter(new ForwardStdInToThisProcess(
