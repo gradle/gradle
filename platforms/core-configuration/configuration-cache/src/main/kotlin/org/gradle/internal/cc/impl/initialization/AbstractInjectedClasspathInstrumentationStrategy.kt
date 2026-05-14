@@ -24,6 +24,7 @@ import org.gradle.internal.configuration.problems.StructuredMessage
 import org.gradle.internal.instrumentation.agent.AgentUtils
 import org.gradle.plugin.use.resolve.service.internal.InjectedClasspathInstrumentationStrategy
 import org.gradle.plugin.use.resolve.service.internal.InjectedClasspathInstrumentationStrategy.TransformMode
+import org.slf4j.LoggerFactory
 import java.lang.management.ManagementFactory
 
 
@@ -31,7 +32,9 @@ abstract class AbstractInjectedClasspathInstrumentationStrategy(
     private val problems: ProblemsListener
 ) : InjectedClasspathInstrumentationStrategy {
     override fun getTransform(): TransformMode {
-        val isThirdPartyAgentPresent = ManagementFactory.getRuntimeMXBean().inputArguments.find { AgentUtils.isThirdPartyJavaAgentSwitch(it) } != null
+        val isThirdPartyAgentPresent = ManagementFactory.getRuntimeMXBean().inputArguments.any { arg ->
+            AgentUtils.isThirdPartyJavaAgentSwitch(arg) && !isAllowlistedAgent(arg)
+        }
         return if (isThirdPartyAgentPresent) {
             reportThirdPartyAgentPresent()
             // Currently, the build logic instrumentation can interfere with Java agents, such as Jacoco
@@ -42,15 +45,67 @@ abstract class AbstractInjectedClasspathInstrumentationStrategy(
         }
     }
 
+    private fun isAllowlistedAgent(jvmArg: String): Boolean {
+        val basename = agentBasenameOf(jvmArg) ?: return false
+        val matched = effectiveAllowlist().any { it.equals(basename, ignoreCase = true) }
+        if (matched) {
+            logger.debug("Third-party Java agent '{}' is on the configuration-cache allowlist; skipping the CC problem.", basename)
+        }
+        return matched
+    }
+
+    private fun effectiveAllowlist(): Set<String> {
+        val override = System.getProperty(ALLOWLIST_PROPERTY) ?: return BUILT_IN_ALLOWLIST
+        return override.splitToSequence(',')
+            .map { it.trim() }
+            .filter { it.isNotEmpty() }
+            .toSet()
+    }
+
     private fun reportThirdPartyAgentPresent() {
         problems.onProblem(
             PropertyProblem(
                 PropertyTrace.Gradle,
-                StructuredMessage.build { text("support for using a Java agent with TestKit builds is not yet implemented with the configuration cache.") },
+                StructuredMessage.build {
+                    text("support for using a Java agent with TestKit builds is not yet implemented with the configuration cache.")
+                    text(" If you are confident the agent does not transform classes, list its file name in the ")
+                    reference(ALLOWLIST_PROPERTY)
+                    text(" system property (e.g. via ")
+                    reference("org.gradle.jvmargs")
+                    text(" in ")
+                    reference("gradle.properties")
+                    text(").")
+                },
                 documentationSection = DocumentationSection.NotYetImplementedTestKitJavaAgent
             )
         )
     }
 
     abstract fun whenThirdPartyAgentPresent(): TransformMode
+
+    companion object {
+        private val logger = LoggerFactory.getLogger(AbstractInjectedClasspathInstrumentationStrategy::class.java)
+
+        const val ALLOWLIST_PROPERTY = "org.gradle.internal.configuration-cache.java-agent-allowlist"
+
+        /**
+         * Known-inert (or sufficiently inert) Java agents that should not trigger
+         * the configuration-cache problem for TestKit + agent. The list is
+         * deliberately small and IntelliJ-flavoured; users can extend it via the
+         * [ALLOWLIST_PROPERTY] system property (which replaces the built-ins).
+         */
+        val BUILT_IN_ALLOWLIST: Set<String> = setOf(
+            "idea_rt.jar",
+            "debugger-agent.jar",
+            "captureAgent.jar"
+        )
+
+        private fun agentBasenameOf(jvmArg: String): String? {
+            if (!AgentUtils.isJavaAgentSwitch(jvmArg)) return null
+            val withoutPrefix = jvmArg.removePrefix("-javaagent:")
+            val path = withoutPrefix.substringBefore('=')
+            if (path.isEmpty()) return null
+            return path.substringAfterLast('/').substringAfterLast('\\')
+        }
+    }
 }

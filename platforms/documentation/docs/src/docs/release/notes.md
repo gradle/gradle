@@ -70,6 +70,27 @@ vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 ### Configuration Cache improvements
 Gradle provides a [Configuration Cache](userguide/configuration_cache.html) that improves build time by caching the result of the configuration phase and reusing it for subsequent builds.
 
+#### TestKit Java-agent allowlist
+
+Gradle no longer reports a configuration cache problem when running TestKit builds with the IntelliJ instrumentation jars (`idea_rt.jar`, `debugger-agent.jar`, `captureAgent.jar`) attached as Java agents.
+This unblocks running TestKit-based plugin tests with the configuration cache enabled from IntelliJ IDEA, which attaches these jars for command-line plumbing rather than for bytecode instrumentation.
+
+Users who attach other agents that do not transform classes can extend coverage by setting the `org.gradle.internal.configuration-cache.java-agent-allowlist` system property to a comma-separated list of jar file names.
+The property is read by the TestKit daemon JVM, so set it via JVM args — either through `org.gradle.jvmargs` in `gradle.properties`:
+
+```
+org.gradle.jvmargs=-Dorg.gradle.internal.configuration-cache.java-agent-allowlist=my-agent.jar,another-agent.jar
+```
+
+or directly on the `GradleRunner`:
+
+```java
+runner.withJvmArguments("-Dorg.gradle.internal.configuration-cache.java-agent-allowlist=my-agent.jar");
+```
+
+Note that the user-supplied list replaces the built-in defaults — re-list the IntelliJ jars if you want to keep them allowed alongside your custom entries.
+This is an internal opt-in and may change once Gradle detects non-instrumenting agents automatically.
+
 ### Test reporting and execution
 Gradle provides a [set of features and abstractions](userguide/java_testing.html) for testing JVM code, along with test reports to display results.
 

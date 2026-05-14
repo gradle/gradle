@@ -80,6 +80,92 @@ class ConfigurationCacheTestKitIntegrationTest extends AbstractConfigurationCach
         !output.contains(PROMO_PREFIX)
     }
 
+    @Issue(["https://github.com/gradle/gradle/issues/25979", "https://github.com/gradle/gradle/issues/25929"])
+    def "agent named #agentJarName is on the built-in allowlist and does not trip the CC check"() {
+        given:
+        def agentJar = buildInertAgentJar(agentJarName)
+        buildFile << ""
+        settingsFile << ""
+
+        when:
+        def runner = GradleRunner.create()
+        runner.withJvmArguments("-javaagent:${agentJar}")
+        runner.withGradleInstallation(buildContext.gradleHomeDir)
+        runner.withArguments("--configuration-cache")
+        runner.forwardOutput()
+        runner.withProjectDir(testDirectory)
+        runner.withPluginClasspath([new File("some-dir")])
+        def result = runner.build()
+        def output = result.output
+
+        then:
+        !output.contains("support for using a Java agent with TestKit builds is not yet implemented with the configuration cache.")
+        output.contains("Configuration cache entry stored.")
+
+        where:
+        agentJarName << ["idea_rt.jar", "debugger-agent.jar", "captureAgent.jar"]
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/25979")
+    def "user-supplied allowlist via system property accepts a custom agent name"() {
+        given:
+        def agentJar = buildInertAgentJar("my-agent.jar")
+        buildFile << ""
+        settingsFile << ""
+
+        when:
+        def runner = GradleRunner.create()
+        runner.withJvmArguments("-javaagent:${agentJar}", "-Dorg.gradle.internal.configuration-cache.java-agent-allowlist=my-agent.jar")
+        runner.withGradleInstallation(buildContext.gradleHomeDir)
+        runner.withArguments("--configuration-cache")
+        runner.forwardOutput()
+        runner.withProjectDir(testDirectory)
+        runner.withPluginClasspath([new File("some-dir")])
+        def result = runner.build()
+        def output = result.output
+
+        then:
+        !output.contains("support for using a Java agent with TestKit builds is not yet implemented with the configuration cache.")
+        output.contains("Configuration cache entry stored.")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/25979")
+    def "user-supplied allowlist replaces the built-in entries"() {
+        given:
+        def agentJar = buildInertAgentJar("idea_rt.jar")
+        buildFile << ""
+        settingsFile << ""
+
+        when:
+        // Override replaces built-ins — idea_rt.jar is no longer covered, so the build must fail.
+        def runner = GradleRunner.create()
+        runner.withJvmArguments("-javaagent:${agentJar}", "-Dorg.gradle.internal.configuration-cache.java-agent-allowlist=some-other.jar")
+        runner.withGradleInstallation(buildContext.gradleHomeDir)
+        runner.withArguments("--configuration-cache")
+        runner.forwardOutput()
+        runner.withProjectDir(testDirectory)
+        runner.withPluginClasspath([new File("some-dir")])
+        def result = runner.buildAndFail()
+        def output = result.output
+
+        then:
+        output.contains("- Gradle runtime: support for using a Java agent with TestKit builds is not yet implemented with the configuration cache.")
+    }
+
+    private File buildInertAgentJar(String jarName) {
+        def builder = artifactBuilder()
+        builder.sourceFile("TestAgent.java") << """
+            public class TestAgent {
+                public static void premain(String p1, java.lang.instrument.Instrumentation p2) {
+                }
+            }
+        """
+        builder.manifestAttributes("Premain-Class": "TestAgent")
+        def agentJar = file(jarName)
+        builder.buildJar(agentJar)
+        return agentJar
+    }
+
     @Issue("https://github.com/gradle/gradle/issues/27956")
     def "dependencies of builds tested with TestKit in debug mode are instrumented and violations are reported"() {
         given:
