@@ -35,6 +35,28 @@ class JavaGradlePluginPluginTestKitSetupIntegrationTest extends AbstractIntegrat
         """
     }
 
+    def "configures instrumentation agent JVM argument for test tasks"() {
+        buildFile << """
+            tasks.register("printTestAgentArg") {
+                def providers = tasks.test.jvmArgumentProviders
+                doLast {
+                    providers.each { provider ->
+                        provider.asArguments().each { arg ->
+                            println "JVM_ARG: " + arg
+                        }
+                    }
+                }
+            }
+        """
+
+        when:
+        succeeds("printTestAgentArg")
+
+        then:
+        outputContains("JVM_ARG: -javaagent:")
+        outputContains("gradle-instrumentation-agent")
+    }
+
     def "has default conventions"() {
         buildFile << """
             task assertHasTestKit() {

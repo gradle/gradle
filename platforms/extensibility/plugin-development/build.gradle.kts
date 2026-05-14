@@ -31,6 +31,7 @@ dependencies {
 
     implementation(projects.buildProcessServices)
     implementation(projects.classloaders)
+    implementation(projects.instrumentationAgentServices)
     implementation(projects.serviceLookup)
     implementation(projects.serviceProvider)
     implementation(projects.serviceRegistryBuilder)

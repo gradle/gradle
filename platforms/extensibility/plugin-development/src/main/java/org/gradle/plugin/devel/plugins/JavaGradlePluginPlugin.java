@@ -24,6 +24,7 @@ import org.gradle.api.artifacts.ArtifactView;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
+import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileCopyDetails;
@@ -457,6 +458,7 @@ public abstract class JavaGradlePluginPlugin implements Plugin<Project> {
             project.getNormalization().getRuntimeClasspath().ignore(PluginUnderTestMetadata.METADATA_FILE_NAME);
 
             GradleInstallation gradleInstallation = ((ProjectInternal) project).getServices().get(CurrentGradleInstallation.class).getInstallation();
+            ModuleRegistry moduleRegistry = ((ProjectInternal) project).getServices().get(ModuleRegistry.class);
             project.getTasks().withType(Test.class).configureEach(test -> {
                 test.getInputs()
                     .files(pluginClasspathTask.map(PluginUnderTestMetadata::getPluginClasspath))
@@ -464,6 +466,7 @@ public abstract class JavaGradlePluginPlugin implements Plugin<Project> {
                     .withNormalizer(ClasspathNormalizer.class);
 
                 test.getJvmArgumentProviders().add(new GradleJvmCommandLineArgumentProvider(test));
+                test.getJvmArgumentProviders().add(new InstrumentationAgentCommandLineArgumentProvider(moduleRegistry));
                 if (gradleInstallation != null) {
                     test.getInputs()
                         .dir(gradleInstallation.getGradleHome())
