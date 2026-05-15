@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.recomp;
 
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -34,7 +33,7 @@ public class DefaultSourceFileClassNameConverter implements SourceFileClassNameC
 
     private Map<String, Set<String>> constructReverseMapping(Map<String, Set<String>> sourceClassesMapping) {
         Map<String, Set<String>> reverse = new HashMap<>();
-        for (Map.Entry<String, ? extends Collection<String>> entry : sourceClassesMapping.entrySet()) {
+        for (Map.Entry<String, Set<String>> entry : sourceClassesMapping.entrySet()) {
             for (String cls : entry.getValue()) {
                 reverse.computeIfAbsent(cls, key -> new HashSet<>()).add(entry.getKey());
             }
