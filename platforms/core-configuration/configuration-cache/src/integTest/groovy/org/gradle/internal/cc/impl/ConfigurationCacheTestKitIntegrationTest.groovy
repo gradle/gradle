@@ -80,10 +80,46 @@ class ConfigurationCacheTestKitIntegrationTest extends AbstractConfigurationCach
         !output.contains(PROMO_PREFIX)
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/23817")
     @Issue("https://github.com/gradle/gradle/issues/27956")
-    def "dependencies of builds tested with TestKit in debug mode are instrumented and violations are reported"() {
+    def "configuration cache tracks agent-instrumented plugin input with debug=#debug and pluginClasspath=#pluginClasspath"() {
         given:
-        file("included/src/main/java/MyPlugin.java") << """
+        settingsFile.text = "rootProject.name = 'plugin-under-test'"
+        buildFile << """
+            plugins {
+                id 'groovy'
+                id 'java-gradle-plugin'
+            }
+
+            ${mavenCentralRepository()}
+
+            testing {
+                suites {
+                    test {
+                        useSpock()
+                    }
+                }
+            }
+
+            gradlePlugin {
+                plugins {
+                    register('myPlugin') {
+                        id = 'org.example.my'
+                        implementationClass = 'MyPlugin'
+                    }
+                }
+            }
+
+            tasks.jar {
+                archiveBaseName = 'plugin'
+                archiveVersion = '1.0'
+            }
+
+            tasks.named('test') {
+                dependsOn(tasks.named('jar'))
+            }
+        """
+        file("src/main/java/MyPlugin.java") << """
             import org.gradle.api.*;
 
             public class MyPlugin implements Plugin<Project> {
@@ -94,35 +130,62 @@ class ConfigurationCacheTestKitIntegrationTest extends AbstractConfigurationCach
                 }
             }
         """
-        file("included/build.gradle") << """plugins { id("java-gradle-plugin") }"""
-        file("included/settings.gradle") << "rootProject.name = 'included'"
-        buildFile.text = """
-            buildscript {
-                dependencies {
-                    classpath(files("./included/build/libs/included.jar"))
+
+        def pluginJarPath = testDirectory.file("build/libs/plugin-1.0.jar").absolutePath
+        def innerBuildFileBody = pluginClasspath
+            ? "plugins { id 'org.example.my' }"
+            : "buildscript { dependencies { classpath(files('${pluginJarPath}')) } }\napply plugin: MyPlugin"
+        def maybeWithPluginClasspath = pluginClasspath ? "runner = runner.withPluginClasspath()" : ""
+
+        file("src/test/groovy/InnerInstrumentationTest.groovy") << """
+            import org.gradle.testkit.runner.GradleRunner
+            import spock.lang.Specification
+            import java.nio.file.Files
+
+            class InnerInstrumentationTest extends Specification {
+                def "agent-instrumented input is recorded in the CC report"() {
+                    given:
+                    def projectDir = Files.createTempDirectory('inner').toFile()
+                    new File(projectDir, 'settings.gradle').text = "rootProject.name = 'inner'"
+                    new File(projectDir, 'build.gradle').text = '''${innerBuildFileBody}'''
+
+                    when:
+                    def runner = GradleRunner.create()
+                        .withProjectDir(projectDir)
+                        .withArguments('--configuration-cache', '-Dmy.property=my.value', 'help')
+                        .withDebug(${debug})
+                        .forwardOutput()
+                    ${maybeWithPluginClasspath}
+                    def result = runner.build()
+
+                    then:
+                    result.output.contains('returned = my.value')
+                    result.output.contains('Configuration cache entry stored.')
+
+                    and: 'the CC report records the system property as an input attributed to the plugin'
+                    def reportHtml = new File(projectDir, 'build/reports/configuration-cache')
+                        .listFiles().toList()
+                        .collectMany { it.listFiles().toList() }
+                        .collect { new File(it, 'configuration-cache-report.html') }
+                        .find { it.exists() }
+                    reportHtml != null
+                    def report = reportHtml.text
+                    report.contains('"name":"my.property"')
+                    // buildscript {} || plugins {}
+                    report.contains("plugin class 'MyPlugin'") || report.contains("plugin 'org.example.my'")
                 }
             }
-            apply plugin: MyPlugin
         """
-        settingsFile << """rootProject.name = 'root'"""
 
-        when:
-        executer.inDirectory(file("included")).withTasks("jar").run()
-        def runner = GradleRunner.create()
-            .withDebug(true)
-            .withArguments("--configuration-cache", "-Dmy.property=my.value", "-i")
-            .forwardOutput()
-            .withProjectDir(testDirectory)
-            .withGradleInstallation(buildContext.gradleHomeDir)
-        def result = runner.build()
+        expect:
+        succeeds('test')
 
-        then:
-        def output = result.output
-        problems.assertResultHasProblems(OutputScrapingExecutionResult.from(output, "")) {
-            withInput("Plugin class 'MyPlugin': system property 'my.property'")
-            ignoringUnexpectedInputs()
-        }
-        output.contains("Configuration cache entry stored.")
+        where:
+        debug | pluginClasspath
+        true  | false
+        true  | true
+        false | false
+        false | true
     }
 
     /**
