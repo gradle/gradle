@@ -40,6 +40,7 @@ import spock.lang.Timeout
 
 import java.util.concurrent.Callable
 import java.util.concurrent.Executor
+import java.util.concurrent.RejectedExecutionException
 
 @UsesNativeServices
 @Timeout(60)
@@ -265,6 +266,38 @@ class DefaultExecHandleSpec extends ConcurrentSpec {
 
         and:
         execHandle.waitForFinish().exitValue != 0
+    }
+
+    void "does not hang when the executor rejects the post-exit completion"() {
+        given:
+        def rejecting = new RejectingExecutor(executor)
+        def execHandle = handle(rejecting).args(args(ShortApp.class)).build()
+
+        when:
+        execHandle.start()
+        rejecting.process = execHandle.execHandleRunner.process
+        execHandle.waitForFinish()
+
+        then:
+        // The executor is gone, so the completion can't run: the handle fails rather than hanging
+        // (the class @Timeout guards against a regression to an indefinite block).
+        thrown(ProcessExecutionException)
+        execHandle.state == ExecHandleState.FAILED
+    }
+
+    void "does not hang when aborting and the executor rejects the post-exit completion"() {
+        given:
+        def rejecting = new RejectingExecutor(executor)
+        def execHandle = handle(rejecting).args(args(SlowApp.class)).build()
+        execHandle.start()
+        rejecting.process = execHandle.execHandleRunner.process
+
+        when:
+        execHandle.abort()
+
+        then:
+        thrown(ProcessExecutionException)
+        execHandle.state == ExecHandleState.FAILED
     }
 
     void "clients can listen to notifications"() {
@@ -529,7 +562,11 @@ class DefaultExecHandleSpec extends ConcurrentSpec {
     }
 
     private ClientExecHandleBuilder handle() {
-        new DefaultClientExecHandleBuilder(TestFiles.pathToFileResolver(), executor, buildCancellationToken)
+        handle(executor)
+    }
+
+    private ClientExecHandleBuilder handle(Executor exec) {
+        new DefaultClientExecHandleBuilder(TestFiles.pathToFileResolver(), exec, buildCancellationToken)
             .setExecutable(Jvm.current().getJavaExecutable().getAbsolutePath())
             .setTimeout(20000) //sanity timeout
             .setWorkingDir(tmpDir.getTestDirectory())
@@ -563,6 +600,36 @@ class DefaultExecHandleSpec extends ConcurrentSpec {
     public static class SlowApp {
         public static void main(String[] args) throws InterruptedException {
             Thread.sleep(10000L)
+        }
+    }
+
+    public static class ShortApp {
+        public static void main(String[] args) throws InterruptedException {
+            Thread.sleep(500L)
+        }
+    }
+
+    /**
+     * Simulates an executor that was stopped while a process was still running: rejects any
+     * submission made once {@link #process} has exited. Startup submissions (the runner and the
+     * stream pumps) happen while the process is alive and are delegated; only the post-exit
+     * completion submission is rejected.
+     */
+    static class RejectingExecutor implements Executor {
+        private final Executor delegate
+        volatile Process process
+
+        RejectingExecutor(Executor delegate) {
+            this.delegate = delegate
+        }
+
+        @Override
+        void execute(Runnable command) {
+            def p = process
+            if (p != null && !p.isAlive()) {
+                throw new RejectedExecutionException("executor stopped (test)")
+            }
+            delegate.execute(command)
         }
     }
 

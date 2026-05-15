@@ -22,15 +22,21 @@ import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.operations.BuildOperationRef;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.process.internal.streams.StreamsHandler;
+import org.jspecify.annotations.Nullable;
 
 import java.io.InputStreamReader;
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Iterator;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -47,8 +53,8 @@ public class ExecHandleRunner implements Runnable {
     private final ProcessLauncher processLauncher;
     private final Executor executor;
 
-    private Process process;
-    private boolean aborted;
+    private volatile Process process;
+    private volatile boolean aborted;
     private final StreamsHandler streamsHandler;
     private volatile BuildOperationRef associatedBuildOperation;
 
@@ -153,35 +159,101 @@ public class ExecHandleRunner implements Runnable {
     }
 
     @Override
+    // the onExit() chain is fire-and-forget; failures are routed to execHandle
+    @SuppressWarnings("FutureReturnValueIgnored")
     public void run() {
-        // Split the `with` operation so that the `associatedBuildOperation` can be discarded when we wait in `process.waitFor()`
-        try {
-            CurrentBuildOperationRef.instance().with(this.associatedBuildOperation, () -> {
+        CurrentBuildOperationRef.instance().with(this.associatedBuildOperation, () -> {
+            try {
                 startProcess();
 
                 execHandle.started();
 
                 LOGGER.debug("waiting until streams are handled...");
                 streamsHandler.start();
-            });
 
-            if (execHandle.isDaemon()) {
-                CurrentBuildOperationRef.instance().with(this.associatedBuildOperation, () -> {
+                if (execHandle.isDaemon()) {
                     streamsHandler.stop();
                     detached();
-                });
-            } else {
-                int exitValue = process.waitFor();
-                CurrentBuildOperationRef.instance().with(this.associatedBuildOperation, () -> {
-                    streamsHandler.stop();
-                    completed(exitValue);
-                });
-            }
-        } catch (Throwable t) {
-            CurrentBuildOperationRef.instance().with(this.associatedBuildOperation, () -> {
+                } else {
+                    // onExit() completes on the ForkJoinPool common pool (the Java 8 fallback on its own
+                    // waiter thread), we want to complete on our threads so we don't accidentally block
+                    // too much. FJP compensation is limited.
+                    onExit(process)
+                        .thenAcceptAsync(p -> completeAfterExit(p.exitValue()), executor)
+                        .whenComplete((unused, ex) -> {
+                            if (ex != null) {
+                                CurrentBuildOperationRef.instance().with(this.associatedBuildOperation, () ->
+                                    execHandle.failed(ex)
+                                );
+                            }
+                        });
+                }
+            } catch (Throwable t) {
                 execHandle.failed(t);
-            });
+            }
+        });
+    }
+
+    private void completeAfterExit(int exitValue) {
+        CurrentBuildOperationRef.instance().with(this.associatedBuildOperation, () -> {
+            try {
+                streamsHandler.stop();
+                completed(exitValue);
+            } catch (Throwable t) {
+                execHandle.failed(t);
+            }
+        });
+    }
+
+    @Nullable
+    private static final MethodHandle ON_EXIT_METHOD_HANDLE;
+
+    static {
+        MethodHandle result;
+        try {
+            result = MethodHandles.lookup().findVirtual(
+                Process.class, "onExit",
+                MethodType.methodType(CompletableFuture.class)
+            );
+        } catch (NoSuchMethodException ignored) {
+            // We'll use the fallback
+            result = null;
+        } catch (IllegalAccessException e) {
+            throw new AssertionError("Unexpectedly cannot access Process.onExit method", e);
         }
+        ON_EXIT_METHOD_HANDLE = result;
+    }
+
+    @SuppressWarnings("unchecked")
+    private CompletableFuture<Process> onExit(Process process) {
+        if (ON_EXIT_METHOD_HANDLE == null) {
+            return onExitFallback(process);
+        }
+        try {
+            return (CompletableFuture<Process>) ON_EXIT_METHOD_HANDLE.invoke(process);
+        } catch (Throwable t) {
+            throw UncheckedException.throwAsUncheckedException(t);
+        }
+    }
+
+    private CompletableFuture<Process> onExitFallback(Process process) {
+        return CompletableFuture.supplyAsync(() -> {
+            // Mirroring Java 9+ onExit behavior, we ensure waitFor exits first,
+            // then we re-interrupt the thread and return the process so the future completes.
+            boolean interrupted = false;
+            while (true) {
+                try {
+                    process.waitFor();
+                    break;
+                } catch (InterruptedException e) {
+                    interrupted = true;
+                }
+            }
+            if (interrupted) {
+                Thread.currentThread().interrupt();
+            }
+            return process;
+        }, executor);
     }
 
     /**
