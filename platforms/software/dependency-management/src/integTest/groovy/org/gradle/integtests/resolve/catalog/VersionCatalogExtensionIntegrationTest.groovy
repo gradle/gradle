@@ -124,6 +124,7 @@ class VersionCatalogExtensionIntegrationTest extends AbstractVersionCatalogInteg
 
         then:
         verifyAll(receivedProblem) {
+            severity == Severity.ERROR
             fqid == 'dependency-version-catalog:alias-not-finished'
             definition.id.displayName == 'Alias builder not finished'
             contextualLabel == 'In version catalog libs, dependency alias builder \'my.great.lib\' was not finished'
@@ -1952,6 +1953,7 @@ Second: 1.1"""
 
         then:
         verifyAll(receivedProblem) {
+            severity == Severity.ERROR
             fqid == 'dependency-version-catalog:reserved-alias-name'
             definition.id.displayName == 'Reserved alias name'
             contextualLabel == "In version catalog libs, alias '$reserved' is a reserved alias"
@@ -1988,6 +1990,7 @@ Second: 1.1"""
 
         then:
         verifyAll(receivedProblem) {
+            severity == Severity.ERROR
             fqid == 'dependency-version-catalog:reserved-alias-name'
             definition.id.displayName == 'Reserved alias name'
             contextualLabel == "In version catalog libs, alias '$reserved' is a reserved alias"
@@ -2024,6 +2027,7 @@ Second: 1.1"""
 
         then:
         verifyAll(receivedProblem) {
+            severity == Severity.ERROR
             fqid == 'dependency-version-catalog:reserved-alias-name'
             definition.id.displayName == 'Reserved alias name'
             contextualLabel == "In version catalog libs, alias '$reservedName' is a reserved alias"

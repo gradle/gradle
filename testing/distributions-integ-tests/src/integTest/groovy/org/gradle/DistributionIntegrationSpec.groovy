@@ -88,6 +88,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         "declarative-dsl-evaluator",
         "declarative-dsl-provider",
         "declarative-dsl-tooling-models",
+        "domain-object-collections",
         "enterprise-logging",
         "enterprise-operations",
         "enterprise-workers",
@@ -185,7 +186,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
      * Change this whenever you add or remove subprojects for distribution-packaged plugins (lib/plugins).
      */
     int getPackagedPluginsJarCount() {
-        94
+        95
     }
 
     /**

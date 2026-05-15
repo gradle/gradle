@@ -45,8 +45,7 @@ import org.gradle.initialization.SettingsState
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.build.PublicBuildPath
 import org.gradle.internal.composite.IncludedBuildInternal
-import org.gradle.internal.configuration.problems.IsolatedProjectsProblemsListener
-import org.gradle.internal.configuration.problems.ProblemFactory
+import org.gradle.internal.configuration.problems.IsolatedProjectsProblemsReporter
 import org.gradle.internal.extensions.stdlib.capitalized
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.util.Path
@@ -57,21 +56,20 @@ internal
 class CrossBuildConfigurationReportingGradle(
     gradle: GradleInternal,
     private val referrer: GradleInternal,
-    private val ipProblems: IsolatedProjectsProblemsListener,
-    private val problemFactory: ProblemFactory,
+    private val ipProblems: IsolatedProjectsProblemsReporter
 ) : GradleInternal {
 
     private fun onBuildMutableStateAccess(what: String) {
-        val problem = problemFactory.problem {
-            text("Build ")
-            reference(referrer.identityPath.asString())
-            text(" cannot access Gradle.$what on build ")
-            reference(identityPath.asString())
+        ipProblems.report {
+            problem {
+                text("Build ")
+                reference(referrer.identityPath.asString())
+                text(" cannot access Gradle.$what on build ")
+                reference(identityPath.asString())
+            }
+                .exception { message -> message.capitalized() }
+                .build()
         }
-            .exception { message -> message.capitalized() }
-            .build()
-
-        ipProblems.onIsolatedProjectsProblem(problem)
     }
 
     private fun shouldNotBeUsed(): Nothing {
@@ -87,13 +85,13 @@ class CrossBuildConfigurationReportingGradle(
 
     override fun getParent(): GradleInternal? =
         delegate.parent?.let { delegateParent ->
-            CrossBuildConfigurationReportingGradle(delegateParent, referrer, ipProblems, problemFactory)
+            CrossBuildConfigurationReportingGradle(delegateParent, referrer, ipProblems)
         }
 
     override fun getRoot(): GradleInternal =
         when (val root = delegate.root) {
             delegate -> this
-            else -> CrossBuildConfigurationReportingGradle(root, referrer, ipProblems, problemFactory)
+            else -> CrossBuildConfigurationReportingGradle(root, referrer, ipProblems)
         }
 
     override fun isRootBuild(): Boolean = delegate.isRootBuild

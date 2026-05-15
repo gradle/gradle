@@ -324,7 +324,7 @@ public class ProjectScopeServices implements ServiceRegistrationProvider {
 
     @Provides
     protected TaskDependencyFactory createTaskDependencyFactory(BuildState build, CrossProjectModelAccess crossProjectModelAccess) {
-        @Nullable TaskDependencyUsageTracker tracker = crossProjectModelAccess.taskDependencyUsageTracker(project);
+        @Nullable TaskDependencyUsageTracker tracker = crossProjectModelAccess.taskDependencyUsageTracker(project.getProjectIdentity());
         TaskResolver taskResolver = new ProjectScopedTaskResolver(
             new BuildScopedTaskResolver(build),
             project.getProjectIdentity(),

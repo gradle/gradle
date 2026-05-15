@@ -1,6 +1,6 @@
 # some versions are in shared-versions.properties
 [versions]
-ant = "1.10.15!!"
+ant = "1.10.17!!"
 awsS3 = "1.12.780!!"
 bouncycastle = "1.84!!"
 commonsCodec = "1.18.0!!"

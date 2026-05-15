@@ -21,6 +21,7 @@ import com.google.common.collect.ImmutableSortedSet;
 import org.gradle.api.problems.internal.ProblemInternal;
 import org.gradle.api.problems.internal.ProblemsInternal;
 import org.gradle.internal.execution.WorkValidationContext;
+import org.gradle.internal.execution.WorkValidationUtils;
 import org.gradle.internal.reflect.DefaultTypeValidationContext;
 import org.gradle.internal.reflect.ProblemRecordingTypeValidationContext;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
@@ -72,12 +73,12 @@ public class DefaultWorkValidationContext implements WorkValidationContext {
 
     @Override
     public List<ProblemInternal> getErrors() {
-        return errors.build();
+        return WorkValidationUtils.deduplicateAndTruncate(errors.build());
     }
 
     @Override
     public List<ProblemInternal> getWarnings() {
-        return warnings.build();
+        return WorkValidationUtils.deduplicateAndTruncate(warnings.build());
     }
 
     @Override

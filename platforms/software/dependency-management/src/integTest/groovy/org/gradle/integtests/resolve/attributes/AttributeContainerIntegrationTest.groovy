@@ -160,4 +160,34 @@ class AttributeContainerIntegrationTest extends AbstractIntegrationSpec {
         JavaEcosystemSupport.DEPRECATED_JAVA_RUNTIME_CLASSES   | Usage.JAVA_RUNTIME | LibraryElements.CLASSES
         JavaEcosystemSupport.DEPRECATED_JAVA_RUNTIME_RESOURCES | Usage.JAVA_RUNTIME | LibraryElements.RESOURCES
     }
+
+    def "attribute container hash codes are stable across invocations (#description)"() {
+        buildFile << """
+            def color = Attribute.of("color", String)
+            def shape = Attribute.of("shape", String)
+
+            def attrs = configurations.create("foo").attributes
+            ${attributeSetup}
+            println("Hash: \${attrs.asImmutable().hashCode()}")
+            println(System.getProperty("foo")) // To invalidate CC
+        """
+
+        when:
+        succeeds("help", '--no-daemon', '-Dfoo=1')
+        def hash1 = (output =~ /Hash: (-?\d+)/)[0][1]
+
+        and:
+        succeeds("help", '--no-daemon', "-Dfoo=2")
+        def hash2 = (output =~ /Hash: (-?\d+)/)[0][1]
+
+        then:
+        hash1 == hash2
+
+        where:
+        description         | attributeSetup
+        "no attributes"     | ""
+        "single attribute"  | 'attrs.attribute(color, "green")'
+        "two attributes"    | 'attrs.attribute(color, "green"); attrs.attribute(shape, "square")'
+    }
+
 }

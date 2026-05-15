@@ -52,7 +52,7 @@ class WrapperProjectIntegrationTest extends AbstractWrapperIntegrationSpec {
         def failure = wrapperExecuter.withTasks('unknown').runWithFailure()
 
         then:
-        failure.assertThatDescription(CoreMatchers.startsWith("Task 'unknown' not found in root project"))
+        failure.assertThatDescription(CoreMatchers.containsString("Task 'unknown' not found in root project"))
     }
 
     @Issue("https://github.com/gradle/gradle/issues/16055")

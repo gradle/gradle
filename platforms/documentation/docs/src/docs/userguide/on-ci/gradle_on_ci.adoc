@@ -1,0 +1,33 @@
+// Copyright (C) 2024 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[gradle_on_ci]]
+= Gradle on CI / CD Systems
+
+Gradle integrates with many Continuous Integration (CI) and Continuous Delivery (CD) systems.
+
+The pages in this section provide recipes and best practices for configuring popular CI platforms to build Gradle projects efficiently.
+
+[[gradle_on_ci_recipes]]
+== Recipes
+
+The following recipes walk through configuring Gradle for specific CI systems:
+
+* <<github-actions.adoc#github_actions,GitHub Actions>>
+* <<gitlab-ci.adoc#gitlab_ci,GitLab CI>>
+* <<jenkins.adoc#jenkins,Jenkins>>
+* <<teamcity.adoc#teamcity,TeamCity>>
+* <<circleci.adoc#circleci,CircleCI>>
+* <<travis-ci.adoc#travis_ci,Travis CI>>
+* <<docker.adoc#docker,Docker Images>>

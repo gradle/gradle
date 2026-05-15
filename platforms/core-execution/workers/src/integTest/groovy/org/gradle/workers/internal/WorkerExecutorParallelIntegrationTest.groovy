@@ -101,13 +101,10 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
         succeeds("parallelWorkTask")
 
         where:
-        isolationMode           | waitForResults
-        'noIsolation'           | true
-        'noIsolation'           | false
-        'processIsolation'      | true
-        'processIsolation'      | false
-        'classLoaderIsolation'  | true
-        'classLoaderIsolation'  | false
+        isolationMode << ['noIsolation', 'processIsolation', 'classLoaderIsolation']
+
+        combined:
+        waitForResults << [true, false]
     }
 
     def "multiple work items with different requirements can be executed in parallel in #isolationMode"() {

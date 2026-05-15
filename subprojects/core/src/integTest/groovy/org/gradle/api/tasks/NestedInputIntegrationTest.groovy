@@ -16,6 +16,7 @@
 
 package org.gradle.api.tasks
 
+import org.gradle.api.problems.Severity
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
@@ -490,11 +491,19 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
                 outputFile = file('build/output.txt')
             }
         """
+        enableProblemsApiCheck()
 
-        expect:
+        when:
         fails "myTask"
+
+        then:
         failure.assertHasDescription("A problem was found with the configuration of task ':myTask' (type 'TaskWithAbsentNestedInput').")
-        failureDescriptionContains(missingValueMessage { type('TaskWithAbsentNestedInput').property('nested') })
+        verifyAll(receivedProblem) {
+            severity == Severity.ERROR
+            fqid == 'validation:property-validation:value-not-set'
+            definition.id.displayName == 'Value not set'
+            definition.documentationLink.url == "https://docs.gradle.org/${distribution.version.version}/userguide/validation_problems.html#value_not_set"
+        }
 
         where:
         description               | property
@@ -851,13 +860,19 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
                 outputFile = file("output.txt")
             }
         """
+        enableProblemsApiCheck()
 
         when:
         fails("customTask")
 
         then:
         failureDescriptionContains("A problem was found with the configuration of task ':customTask' (type 'CustomTask').")
-        failureDescriptionContains(nestedMapUnsupportedKeyType { type('CustomTask').property('unsupportedEagerMap').keyType(Boolean.class.name) })
+        verifyAll(receivedProblem) {
+            severity == Severity.ERROR
+            fqid == 'validation:property-validation:nested-map-unsupported-key-type'
+            definition.id.displayName == 'Unsupported nested map key'
+            definition.documentationLink.url == "https://docs.gradle.org/${distribution.version.version}/userguide/validation_problems.html#unsupported_key_type_of_nested_map"
+        }
         !file("output.txt").exists()
     }
 
@@ -876,11 +891,19 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
 
             tasks.register("customTask", CustomTask) { }
         """
+        enableProblemsApiCheck()
 
-        expect:
+        when:
         fails("customTask")
+
+        then:
         failureDescriptionContains("A problem was found with the configuration of task ':customTask' (type 'CustomTask').")
-        failureDescriptionContains(nestedTypeUnsupported { annotatedType(className).property("my$type").type('CustomTask').reason(reason) })
+        verifyAll(receivedProblem) {
+            severity == Severity.ERROR
+            fqid == 'validation:property-validation:nested-type-unsupported'
+            definition.id.displayName == 'Nested type unsupported'
+            definition.documentationLink.url == "https://docs.gradle.org/${distribution.version.version}/userguide/validation_problems.html#unsupported_nested_type"
+        }
 
         where:
         type       | parameterType      | producer                                         | className               | reason
@@ -906,11 +929,19 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
 
             tasks.register("customTask", CustomTask) { }
         """
+        enableProblemsApiCheck()
 
-        expect:
+        when:
         fails("customTask")
+
+        then:
         failureDescriptionContains("A problem was found with the configuration of task ':customTask' (type 'CustomTask').")
-        failureDescriptionContains(nestedTypeUnsupported { annotatedType(Boolean.class.name).property("myProvider").type('CustomTask').reason("Type is in 'java.*' or 'javax.*' package that are reserved for standard Java API types.") })
+        verifyAll(receivedProblem) {
+            severity == Severity.ERROR
+            fqid == 'validation:property-validation:nested-type-unsupported'
+            definition.id.displayName == 'Nested type unsupported'
+            definition.documentationLink.url == "https://docs.gradle.org/${distribution.version.version}/userguide/validation_problems.html#unsupported_nested_type"
+        }
     }
 
     @Issue("https://github.com/gradle/gradle/issues/23049")
@@ -975,11 +1006,19 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
 
             tasks.register<CustomTask>("customTask") { }
         """
+        enableProblemsApiCheck()
 
-        expect:
+        when:
         fails("customTask")
+
+        then:
         failureDescriptionContains("A problem was found with the configuration of task ':customTask' (type 'Build_gradle.CustomTask').")
-        failureDescriptionContains(nestedTypeUnsupported { annotatedType(className).property("my$type").type('Build_gradle.CustomTask').reason(reason) })
+        verifyAll(receivedProblem) {
+            severity == Severity.ERROR
+            fqid == 'validation:property-validation:nested-type-unsupported'
+            definition.id.displayName == 'Nested type unsupported'
+            definition.documentationLink.url == "https://docs.gradle.org/${distribution.version.version}/userguide/validation_problems.html#unsupported_nested_type"
+        }
 
         where:
         type               | producer                   | className                 | reason
@@ -1018,6 +1057,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
     }
 
     def "task with nested bean loaded with custom classloader disables execution optimizations"() {
+        enableProblemsApiCheck()
         file("input.txt").text = "data"
         buildFile << taskWithNestedBeanFromCustomClassLoader()
 
@@ -1026,14 +1066,27 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
         then:
         executedAndNotSkipped ":customTask"
         failureDescriptionStartsWith("A problem was found with the configuration of task ':customTask' (type 'TaskWithNestedProperty').")
-        failureDescriptionContains(implementationUnknown {
-            nestedProperty('bean')
-            unknownClassloader('NestedBean')
-        })
+        // Under CC, an extra class-encoding problem is reported with a message-derived fqid that is not yet stable; only its prefix is asserted.
         if (GradleContextualExecuter.isConfigCache()) {
             failureDescriptionStartsWith("Configuration cache problems found in this build")
-            failureDescriptionContains("Task `:customTask` of type `TaskWithNestedProperty`: Class 'NestedBean' cannot be encoded because class loader")
-            failureDescriptionContains("of type 'groovy.lang.GroovyClassLoader\$InnerLoader' could not be encoded and the class is not available through the default class loader.\nThese are the known class loaders:")
+            verifyAll(receivedProblem(0)) {
+                severity == Severity.ERROR
+                fqid.startsWith('validation:configuration-cache:class-nestedbean-cannot-be-encoded')
+                originLocations == []
+            }
+            verifyAll(receivedProblem(1)) {
+                severity == Severity.ERROR
+                fqid == 'validation:property-validation:unknown-implementation-nested'
+                definition.id.displayName == 'Unknown property implementation'
+                definition.documentationLink.url == "https://docs.gradle.org/${distribution.version.version}/userguide/validation_problems.html#implementation_unknown"
+            }
+        } else {
+            verifyAll(receivedProblem) {
+                severity == Severity.ERROR
+                fqid == 'validation:property-validation:unknown-implementation-nested'
+                definition.id.displayName == 'Unknown property implementation'
+                definition.documentationLink.url == "https://docs.gradle.org/${distribution.version.version}/userguide/validation_problems.html#implementation_unknown"
+            }
         }
     }
 

@@ -27,6 +27,7 @@ dependencies {
 
     implementation(projects.normalizationApi)
     implementation(projects.processServicesApi)
+    implementation(projects.problemsRendering)
 
     implementation(projects.buildProcessServices)
     implementation(projects.classloaders)

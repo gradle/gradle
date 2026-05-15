@@ -993,6 +993,47 @@ class CapabilitiesConflictResolutionIssuesIntegrationTest extends AbstractIntegr
         }
     }
 
+    def "can have constraint on node failing conflict"() {
+        def foo = mavenRepo.module("org", "foo", "1.0").publish()
+        mavenRepo.module("org", "bar", "1.0")
+            .dependencyConstraint(foo)
+            .withModuleMetadata()
+            .publish()
+
+        given:
+        buildFile << """
+            $common
+
+            dependencies {
+                implementation("org:foo:1.0")
+                implementation("org:bar:1.0")
+            }
+        """
+
+        capability("org", "cap") {
+            forModule("org:foo")
+            forModule("org:bar")
+            selectModule("org", "bar")
+        }
+
+        when:
+        succeeds(':checkDeps')
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module("org:bar:1.0") {
+                    constraint("org:foo:1.0", "org:bar:1.0") {
+                        byConstraint()
+                    }
+                }
+                edge("org:foo:1.0", "org:bar:1.0") {
+                    byConflictResolution("Explicit selection of org:bar:1.0 variant runtime")
+                }
+            }
+        }
+    }
+
     // region test fixtures
 
     class CapabilityClosure {

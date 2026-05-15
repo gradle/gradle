@@ -20,7 +20,7 @@ import org.gradle.performance.AbstractCrossVersionPerformanceTest
 import org.gradle.performance.AndroidSyncPerformanceTestFixture
 import org.gradle.performance.annotations.RunFor
 import org.gradle.performance.annotations.Scenario
-import org.gradle.profiler.mutations.ApplyAbiChangeToKotlinSourceFileMutator
+import org.gradle.profiler.mutations.ApplyAbiChangeToSourceFileMutator
 
 import static org.gradle.performance.annotations.ScenarioType.PER_DAY
 import static org.gradle.performance.results.OperatingSystem.LINUX
@@ -43,15 +43,15 @@ class IsolatedProjectsAndroidSyncPerformanceRegressionTest extends AbstractCross
     }
 
     @RunFor([
-        @Scenario(type = PER_DAY, operatingSystems = [LINUX], testProjects = ["android500Kts"])
+        @Scenario(type = PER_DAY, operatingSystems = [LINUX], testProjects = ["android100Kts"])
     ])
-    def "sync Studio after included build logic refactoring with #daemon daemon"() {
+    def "sync Studio after build logic ABI change with #daemon daemon"() {
         studioSetup()
         def runner = getRunner() // otherwise, IDEA thinks it's PerformanceTestRunner despite the override
         runner.useDaemon = daemon == warm
         // Use multiple warm-ups for cold scenario to warm-up Android Studio itself
         runner.warmUpRuns = 5
-        runner.runs = 20
+        runner.runs = 10
 
         runner.args.addAll([
             // realistic defaults
@@ -63,7 +63,7 @@ class IsolatedProjectsAndroidSyncPerformanceRegressionTest extends AbstractCross
         ])
 
         runner.addBuildMutator { settings ->
-            new ApplyAbiChangeToKotlinSourceFileMutator(new File(settings.projectDir, "build-logic/convention/src/main/kotlin/org/example/awesome/utils.kt"))
+            new ApplyAbiChangeToSourceFileMutator(new File(settings.projectDir, "build-logic/convention/src/main/java/org/example/awesome/AwesomeStringUtils.java"))
         }
 
         when:

@@ -19,6 +19,7 @@ package org.gradle.api.internal.project;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
+import org.gradle.api.project.IsolatedProject;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.model.ModelContainer;
@@ -72,17 +73,6 @@ public interface ProjectState extends ModelContainer<ProjectInternal> {
         return getIdentity().getProjectName();
     }
 
-    /**
-     * Returns the nesting level of a project in a multi-project hierarchy.
-     * <p>
-     * Returns 0 for the root project, 1 for its direct children, etc.
-     * <p>
-     * The depth is computed independently for each build in the build tree.
-     */
-    default int getDepth() {
-        return getProjectPath().segmentCount();
-    }
-
     default DisplayName getDisplayName() {
         return getIdentity();
     }
@@ -104,9 +94,15 @@ public interface ProjectState extends ModelContainer<ProjectInternal> {
      */
     ImmutableProjectDescriptor getDescriptor();
 
+    IsolatedProject getIsolated();
+
     // endregion
 
     // region Project hierarchy
+
+    default boolean isRootProject() {
+        return getParent() == null;
+    }
 
     /**
      * Returns the parent of this project, as per {@link Project#getParent()}.

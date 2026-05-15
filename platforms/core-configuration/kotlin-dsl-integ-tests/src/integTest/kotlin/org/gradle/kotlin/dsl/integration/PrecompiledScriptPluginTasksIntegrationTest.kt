@@ -129,11 +129,6 @@ class PrecompiledScriptPluginTasksIntegrationTest : AbstractKotlinIntegrationTes
         )
         val downstreamKotlinCompileTask = ":compileKotlin"
 
-        // TODO: the Kotlin compile tasks check for cacheability using Task.getProject
-        executer.beforeExecute {
-            it.withBuildJvmOpts("-Dorg.gradle.internal.configuration-cache.task-execution-access-pre-stable=true")
-        }
-
         build(firstDir, "classes", "--build-cache").apply {
             cachedTasks.forEach { assertTaskScheduled(it) }
             assertTaskScheduled(downstreamKotlinCompileTask)

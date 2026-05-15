@@ -20,6 +20,11 @@ import org.gradle.api.provider.Property
 import org.gradle.util.internal.ToBeImplemented
 import spock.lang.Issue
 
+/**
+ * Cross-project access tests specific to Groovy DSL.
+ * <p>
+ * For DSL-agnostic tests prefer {@link IsolatedProjectsAccessIntegrationTest}.
+ */
 class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolatedProjectsIntegrationTest {
     def "reports problem when build script uses #block block to apply plugins to another project"() {
         createDirs("a", "b")
@@ -518,12 +523,6 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         """
 
         when:
-        if (expr == "properties") {
-            executer.expectDocumentedDeprecationWarning("Dynamically calling getProperties() on a script has been deprecated. " +
-                "This will fail with an error in Gradle 10. " +
-                "Consult the upgrading guide for further information: " +
-                "https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_get_properties")
-        }
         isolatedProjectsFails(":a:help")
 
         then:
@@ -539,8 +538,33 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         "property" | "ext.foo = 1"   | "property('foo')"
         "property" | "ext.foo = 1"   | "findProperty('foo')"
         "property" | "ext.foo = 1"   | "getProperty('foo')"
-        "property" | "ext.foo = 1"   | "properties"
         "method"   | "def foo() { }" | "foo()"
+    }
+
+    def "reports problem when build script uses #expr on its own project"() {
+        file("build.gradle") << """
+            println($expr)
+        """
+
+        when:
+
+        executer.expectDocumentedDeprecationWarning(deprecation +
+            "This will fail with an error in Gradle 10. " +
+            "Consult the upgrading guide for further information: " +
+            "https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_get_properties")
+
+        isolatedProjectsFails("help")
+
+        then:
+        fixture.assertStateStoredAndDiscarded {
+            projectsConfigured(":")
+            problem("Build file 'build.gradle': line 2: use of 'Project.getProperties()' is not allowed with Isolated Projects")
+        }
+
+        where:
+        expr                 | deprecation
+        "properties"         | "Dynamically calling getProperties() on a script has been deprecated. "
+        "project.properties" | "The Project.getProperties method has been deprecated. "
     }
 
     def 'no duplicate problems reported for dynamic property lookup in transitive parents'() {
@@ -633,10 +657,9 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         then:
         outputContains("My property: hello")
 
-        // an additional subproject demonstrates that the problems are duplicated as the property lookup traverses up the project hierarchy
+        // an additional subproject demonstrates that the problems are not duplicated as the property lookup traverses up the project hierarchy
         fixture.assertStateStoredAndDiscarded {
             projectsConfigured(":", ":a", ":a:aa")
-            problem("Script 'a/aa/myscript.gradle': line 4: Project ':a' cannot dynamically look up a property in the parent project ':'")
             problem("Script 'a/aa/myscript.gradle': line 4: Project ':a:aa' cannot dynamically look up a property in the parent project ':a'")
         }
     }
@@ -770,23 +793,23 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         }
 
         where:
-        expr                                                       | setup
-        "files()"                                                  | ""
-        "files() + files()"                                        | ""
-        "fileTree(buildDir)"                                       | ""
-        "fileTree(buildDir) + fileTree(rootDir)"                   | ""
-        "resources.text.fromFile('1.txt', 'UTF-8')"                | ""
-        "fromTask"                                                 | "def fromTask = new Object() { def buildDependencies = tasks.help.taskDependencies }"
-        "artifacts.add('default', new File('a.txt'))"              | "configurations.create('default')"
-        "configurations.compileClasspath"                          | "plugins { id('java') }"
-        "configurations.compileClasspath.dependencies"             | "plugins { id('java') }"
-        "sourceSets.main.java"                                     | "plugins { id('java') }"
-        "sourceSets.main.output"                                   | "plugins { id('java') }"
-        "configurations.apiElements.allArtifacts"                  | "plugins { id('java') }"
-        "configurations.apiElements.allArtifacts.toList()[0]"      | "plugins { id('java') }"
-        "testing.suites.test"                                      | "plugins { id('java'); id('jvm-test-suite') }"
-        "testing.suites.test.targets.toList()[0]"                  | "plugins { id('java'); id('jvm-test-suite') }"
-        "publishing.publications.maven.artifacts.toList()[0]"      | "plugins { id('java'); id('maven-publish') }; publishing.publications.create('maven', MavenPublication) { from(components['java']) }"
+        expr                                                  | setup
+        "files()"                                             | ""
+        "files() + files()"                                   | ""
+        "fileTree(buildDir)"                                  | ""
+        "fileTree(buildDir) + fileTree(rootDir)"              | ""
+        "resources.text.fromFile('1.txt', 'UTF-8')"           | ""
+        "fromTask"                                            | "def fromTask = new Object() { def buildDependencies = tasks.help.taskDependencies }"
+        "artifacts.add('default', new File('a.txt'))"         | "configurations.create('default')"
+        "configurations.compileClasspath"                     | "plugins { id('java') }"
+        "configurations.compileClasspath.dependencies"        | "plugins { id('java') }"
+        "sourceSets.main.java"                                | "plugins { id('java') }"
+        "sourceSets.main.output"                              | "plugins { id('java') }"
+        "configurations.apiElements.allArtifacts"             | "plugins { id('java') }"
+        "configurations.apiElements.allArtifacts.toList()[0]" | "plugins { id('java') }"
+        "testing.suites.test"                                 | "plugins { id('java'); id('jvm-test-suite') }"
+        "testing.suites.test.targets.toList()[0]"             | "plugins { id('java'); id('jvm-test-suite') }"
+        "publishing.publications.maven.artifacts.toList()[0]" | "plugins { id('java'); id('maven-publish') }; publishing.publications.create('maven', MavenPublication) { from(components['java']) }"
     }
 
     def "mentions the specific project and build file in getDependencies(...) problems"() {

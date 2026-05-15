@@ -70,7 +70,7 @@ class ValidationProblemPropertyAnnotationHandler extends AbstractPropertyAnnotat
             TypeAwareProblemBuilder builder = problem.forProperty(propertyName);
             builder.id("test-problem", "test problem", ProblemGroup.create("root", "root"))
                 .documentedAt(Documentation.userManual("id", "section"))
-                .details("this is a test");
+                .details("This is a test.");
         }
     }
 }

@@ -40,6 +40,7 @@ groovyJson = "org.groovy:json:2.0"
 
         then:
         verifyAll(receivedProblem) {
+            severity == Severity.ERROR
             fqid == 'dependency-version-catalog:accessor-name-clash'
             definition.id.displayName == 'Accessor name clash'
             contextualLabel == 'In version catalog libs, library aliases groovy.json and groovyJson are mapped to the same accessor name getGroovyJson()'
@@ -67,6 +68,7 @@ oneCool = ["foo", "bar"]
 
         then:
         verifyAll(receivedProblem) {
+            severity == Severity.ERROR
             fqid == 'dependency-version-catalog:accessor-name-clash'
             definition.id.displayName == 'Accessor name clash'
             contextualLabel == 'In version catalog libs, dependency bundles one.cool and oneCool are mapped to the same accessor name getOneCoolBundle()'

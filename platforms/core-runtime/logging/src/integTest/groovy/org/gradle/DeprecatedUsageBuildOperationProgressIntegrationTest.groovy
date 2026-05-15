@@ -89,7 +89,7 @@ class DeprecatedUsageBuildOperationProgressIntegrationTest extends AbstractInteg
         succeeds 't', 't2', '-I', 'init.gradle'
 
         then:
-        def initDeprecation = operations.only("Apply initialization script 'init.gradle' to build").progress.find { it.hasDetailsOfType(DeprecatedUsageProgressDetails) }.each {}
+        def initDeprecation = operations.only("Apply initialization script 'init.gradle' to build ':'").progress.find { it.hasDetailsOfType(DeprecatedUsageProgressDetails) }.each {}
         Map<String, Object> initDeprecationDetails = initDeprecation.details['deprecation'] as Map<String, Object>
         initDeprecationDetails.summary == 'Init script has been deprecated.'
         initDeprecationDetails.removalDetails.startsWith('This is scheduled to be removed in Gradle ')

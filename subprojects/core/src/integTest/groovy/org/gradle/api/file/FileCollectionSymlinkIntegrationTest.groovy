@@ -15,6 +15,7 @@
  */
 package org.gradle.api.file
 
+import org.gradle.api.problems.Severity
 import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.CompileClasspath
 import org.gradle.api.tasks.InputDirectory
@@ -387,20 +388,15 @@ class FileCollectionSymlinkIntegrationTest extends AbstractIntegrationSpec imple
         fails 'brokenInput'
 
         then:
-        failureDescriptionContains(inputDoesNotExist {
-            type('CustomTask')
-            property('brokenInputFile')
-            kind(inputName)
-            missing(brokenInputFile)
-            includeLink()
-        })
 
         verifyAll(receivedProblem(0)) {
+            severity == Severity.ERROR
             fqid == 'validation:property-validation:input-file-does-not-exist'
-
             def inputNameLc = inputName.toLowerCase()
+            definition.id.displayName == 'Input file does not exist'
             contextualLabel == "Type \'CustomTask\' property \'brokenInputFile\' specifies ${inputNameLc} \'$brokenInputFile\' which doesn\'t exist"
             details == 'An input file was expected to be present but it doesn\'t exist'
+            definition.documentationLink.url == "https://docs.gradle.org/${distribution.version.version}/userguide/validation_problems.html#input_file_does_not_exist"
             solutions == [
                 "Make sure the ${inputNameLc} exists before the task is called",
                 "Make sure that the task which produces the $inputNameLc is declared as an input",

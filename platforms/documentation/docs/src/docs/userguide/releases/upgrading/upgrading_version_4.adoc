@@ -42,7 +42,7 @@ Some plugins will break with this new version of Gradle, for example because the
 The previous step will help you identify potential problems by issuing deprecation warnings when a plugin does try to use a deprecated part of the API.
 +
 In particular, you will need to use at least a 2.x version of the https://plugins.gradle.org/plugin/com.gradleup.shadow[*Shadow Plugin*].
-. Run `gradle wrapper --gradle-version 5.0` to update the project to 5.0
+. Run `gradle :wrapper --gradle-version 5.0` to update the project to 5.0
 . Move to Java 8 or higher if you haven't already. Whereas Gradle 4.x requires Java 7, Gradle 5 requires Java 8 to run.
 . Read the <<#changes_5.0, Upgrading from 4.10>> section and make any necessary changes.
 . Try to run the project and debug any errors using the <<troubleshooting.adoc#troubleshooting, Troubleshooting Guide>>.

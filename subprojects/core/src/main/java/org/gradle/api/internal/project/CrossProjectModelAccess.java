@@ -43,87 +43,87 @@ public interface CrossProjectModelAccess {
      *
      * @throws IllegalArgumentException If {@code path} is not absolute.
      */
-    @Nullable ProjectInternal findProject(ProjectInternal referrer, Path path);
+    @Nullable ProjectInternal findProject(ProjectIdentity referrer, Path path);
 
     /**
      * Wrap the given project to ensure mutable state access is correctly handled across project boundaries,
      * according to the current cross-project model access policy.
      *
      * <p>
-     * If possible, callers should prefer {@link #accessFromState(ProjectInternal, ProjectState)},
+     * If possible, callers should prefer {@link #accessFromState(ProjectIdentity, ProjectState)},
      * as it does not require a reference to the mutable state of the project.
      * </p>
      *
      * @param referrer The project from which the return value will be used.
      */
-    ProjectInternal access(ProjectInternal referrer, ProjectInternal project);
+    ProjectInternal access(ProjectIdentity referrer, ProjectInternal project);
 
     /**
-     * Variant of {@link #access(ProjectInternal, ProjectInternal)} that takes a {@link ProjectState},
+     * Variant of {@link #access(ProjectIdentity, ProjectInternal)} that takes a {@link ProjectState},
      * to avoid needing to have a reference to the mutable state of the project in the caller.
      *
      * <p>
-     * This should be preferred over {@code access(ProjectInternal, ProjectInternal)} where possible.
+     * This should be preferred over {@code access(ProjectIdentity, ProjectInternal)} where possible.
      * </p>
      *
      * @param referrer The project from which the return value will be used.
      */
-    ProjectInternal accessFromState(ProjectInternal referrer, ProjectState projectState);
+    ProjectInternal accessFromState(ProjectIdentity referrer, ProjectState projectState);
 
     /**
      * @param referrer The project from which the return value will be used.
      * @param target The project to get the children of.
      */
-    Map<String, Project> getChildProjects(ProjectInternal referrer, ProjectInternal target);
+    Map<String, Project> getChildProjects(ProjectIdentity referrer, ProjectState target);
 
     /**
      * @param referrer The project from which the return value will be used.
      * @param target The project to get the subprojects of.
      */
-    Set<? extends ProjectInternal> getSubprojects(ProjectInternal referrer, ProjectInternal target);
+    Set<? extends ProjectInternal> getSubprojects(ProjectIdentity referrer, ProjectIdentity target);
 
     /**
      * @param referrer The project from which the return value will be used.
      * @param target The project to get all projects of.
      */
-    Set<? extends ProjectInternal> getAllprojects(ProjectInternal referrer, ProjectInternal target);
+    Set<? extends ProjectInternal> getAllprojects(ProjectIdentity referrer, ProjectIdentity target);
 
     /**
-     * Given the request from the referrerProject to access the specified Gradle instance, returns
+     * Given the request from the referrer to access the specified Gradle instance, returns
      * an instance that behaves correctly regarding cross project model access.
      *
-     * @param referrerProject The project that is going to use the Gradle instance
+     * @param referrer The project that is going to use the Gradle instance.
      * @param gradle The Gradle instance that the project has direct access to.
      * @return A Gradle instance that implements correct cross-project model access.
      */
-    GradleInternal gradleInstanceForProject(ProjectInternal referrerProject, GradleInternal gradle);
+    GradleInternal gradleInstanceForProject(ProjectIdentity referrer, GradleInternal gradle);
 
     /**
      * Provides an implementation of a tracker that handles the usages of TaskDependency API in the context
      * of the current project. The tracker checks that the usages for possible violation of cross-project model access restriction.
      *
-     * @param referrerProject The project providing the context.
+     * @param referrer The project providing the context.
      */
     @Nullable
-    TaskDependencyUsageTracker taskDependencyUsageTracker(ProjectInternal referrerProject);
+    TaskDependencyUsageTracker taskDependencyUsageTracker(ProjectIdentity referrer);
 
     /**
      * Provides an implementation of {@code TaskExecutionGraph} such that it handles access to the
      * tasks in the other projects according to the current cross-project model access policy.
      *
-     * @param referrerProject The project that views the task graph.
+     * @param referrer The project that views the task graph.
      * @return A task graph instance that implements correct cross-project model access.
      */
-    TaskExecutionGraphInternal taskGraphForProject(ProjectInternal referrerProject, TaskExecutionGraphInternal taskGraph);
+    TaskExecutionGraphInternal taskGraphForProject(ProjectIdentity referrer, TaskExecutionGraphInternal taskGraph);
 
     /**
      * Produces a {@code DynamicObject} for the inherited scope from the parent project of the specified project, behaving correctly
      * regarding cross-project model access.
      *
-     * @param referrerProject The project that needs to get an inherited scope dynamic object from its parent.
-     * @return Returns a {@code DynamicObject} for the {@code referrerProject}'s parent project, or null if there is no parent project.
+     * @param referrer The project that needs to get an inherited scope dynamic object from its parent.
+     * @return A {@code DynamicObject} for the {@code referrer}'s parent project, or null if there is no parent project.
      * The returned object handles cross-project model access according to the current policy.
      */
     @Nullable
-    HierarchicalDynamicObject parentProjectDynamicInheritedScope(ProjectInternal referrerProject);
+    HierarchicalDynamicObject parentProjectDynamicInheritedScope(ProjectState referrer);
 }

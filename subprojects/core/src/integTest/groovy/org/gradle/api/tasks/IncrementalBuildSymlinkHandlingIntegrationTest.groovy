@@ -137,19 +137,23 @@ task work {
     }
 
     def "symlink may not reference missing input file"() {
+        enableProblemsApiCheck()
         file("in-dir").createDir()
         def link = file("in.txt")
         link.createLink("other")
         assert !link.exists()
 
-        expect:
+        when:
         fails("work")
+
+        then:
         failure.assertHasDescription("A problem was found with the configuration of task ':work' (type 'DefaultTask').")
-        failureDescriptionContains(inputDoesNotExist {
-            property('$1')
-                .file(link)
-                .includeLink()
-        })
+        verifyAll(receivedProblem) {
+            severity == Severity.ERROR
+            fqid == 'validation:property-validation:input-file-does-not-exist'
+            definition.id.displayName == 'Input file does not exist'
+            definition.documentationLink.url == "https://docs.gradle.org/${distribution.version.version}/userguide/validation_problems.html#input_file_does_not_exist"
+        }
     }
 
     def "can replace input file with symlink to file with same content"() {

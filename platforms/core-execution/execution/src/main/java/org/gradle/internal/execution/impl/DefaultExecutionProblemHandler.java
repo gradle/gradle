@@ -16,8 +16,8 @@
 
 package org.gradle.internal.execution.impl;
 
+import org.gradle.api.problems.ProblemReporter;
 import org.gradle.api.problems.internal.ProblemInternal;
-import org.gradle.api.problems.internal.ProblemReporterInternal;
 import org.gradle.api.problems.internal.ProblemsInternal;
 import org.gradle.internal.execution.ExecutionProblemHandler;
 import org.gradle.internal.execution.Identity;
@@ -25,16 +25,11 @@ import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.WorkValidationContext;
 import org.gradle.internal.execution.WorkValidationException;
 import org.gradle.internal.execution.steps.ValidateStep;
-import org.gradle.internal.reflect.validation.TypeValidationProblemRenderer;
 import org.gradle.internal.vfs.VirtualFileSystem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Collection;
 import java.util.List;
-import java.util.Set;
-
-import static com.google.common.collect.ImmutableSet.toImmutableSet;
 
 public class DefaultExecutionProblemHandler implements ExecutionProblemHandler {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultExecutionProblemHandler.class);
@@ -52,14 +47,12 @@ public class DefaultExecutionProblemHandler implements ExecutionProblemHandler {
     @Override
     public void handleReportedProblems(Identity identity, UnitOfWork work, WorkValidationContext validationContext) {
         ProblemsInternal problemsService = validationContext.getProblemsService();
-        ProblemReporterInternal reporter = problemsService.getInternalReporter();
+        ProblemReporter reporter = problemsService.getReporter();
         List<ProblemInternal> errors = validationContext.getErrors();
         List<ProblemInternal> warnings = validationContext.getWarnings();
 
         if (!warnings.isEmpty()) {
-            for (ProblemInternal warning : warnings) {
-                reporter.report(warning);
-            }
+            reporter.report(warnings);
             warningReporter.recordValidationWarnings(identity, work, warnings);
         }
 
@@ -73,14 +66,9 @@ public class DefaultExecutionProblemHandler implements ExecutionProblemHandler {
         }
     }
 
-    private static void throwValidationException(UnitOfWork work, WorkValidationContext validationContext, Collection<? extends ProblemInternal> validationErrors) {
-        Set<String> uniqueErrors = validationErrors.stream()
-            .map(TypeValidationProblemRenderer::renderMinimalInformationAbout)
-            .collect(toImmutableSet());
-        WorkValidationException workValidationException = WorkValidationException.forProblems(uniqueErrors)
-            .withSummaryForContext(work.getDisplayName(), validationContext)
-            .get();
-        ProblemReporterInternal reporter = validationContext.getProblemsService().getInternalReporter();
+    private static void throwValidationException(UnitOfWork work, WorkValidationContext validationContext, List<ProblemInternal> validationErrors) {
+        WorkValidationException workValidationException = WorkValidationException.withSummaryForContext(work.getDisplayName(), validationContext, validationErrors.size());
+        ProblemReporter reporter = validationContext.getProblemsService().getReporter();
         throw reporter.throwing(workValidationException, validationErrors);
     }
 }

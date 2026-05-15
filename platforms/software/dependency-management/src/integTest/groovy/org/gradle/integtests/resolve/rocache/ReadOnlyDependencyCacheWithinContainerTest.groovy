@@ -83,7 +83,7 @@ class ReadOnlyDependencyCacheWithinContainerTest extends AbstractReadOnlyCacheDe
             .succeeds("resolve")
 
         then:
-        result.with {
+        verifyAll(result) {
             assertOutputContains("/gradle-home/caches/modules-2/files-2.1/org.readonly/core/1.0/")
             assertOutputContains("/gradle-home/caches/modules-2/files-2.1/org.readonly/util/1.0/")
         }
@@ -126,7 +126,7 @@ class ReadOnlyDependencyCacheWithinContainerTest extends AbstractReadOnlyCacheDe
 
         then:
         results.each { result ->
-            result.with {
+            verifyAll(result) {
                 assertOutputContains("/gradle-home/caches/modules-2/files-2.1/org.readonly/core/1.0/")
                 assertOutputContains("/gradle-home/caches/modules-2/files-2.1/org.readonly/util/1.0/")
             }
@@ -143,7 +143,7 @@ class ReadOnlyDependencyCacheWithinContainerTest extends AbstractReadOnlyCacheDe
 
         then: "for next resolve, HEAD requests are redundant"
         results.each { result ->
-            result.with {
+            verifyAll(result) {
                 assertOutputContains("/gradle-home/caches/modules-2/files-2.1/org.readonly/core/1.0/")
                 assertOutputContains("/gradle-home/caches/modules-2/files-2.1/org.readonly/util/1.0/")
             }

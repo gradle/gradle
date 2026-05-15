@@ -69,7 +69,7 @@ class RuleSourceApplicationTest extends Specification {
         then:
         PluginApplicationException e = thrown()
         e.cause instanceof UnsupportedOperationException
-        e.cause.message == "Cannot apply model rules of plugin '${CustomRuleSource.name}' as the target 'build 'test'' is not model rule aware"
+        e.cause.message == "Cannot apply model rules of plugin '${CustomRuleSource.name}' as the target 'build ':'' is not model rule aware"
     }
 
     def "useful message is presented when applying rule source only type as a plugin"() {

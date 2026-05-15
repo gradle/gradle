@@ -158,4 +158,8 @@ public class ResolvedGraphResult {
         return availableVariantsByComponent.get(componentIndex);
     }
 
+    public @Nullable List<List<ResolvedVariantResult>> availableVariantsByComponent() {
+        return availableVariantsByComponent;
+    }
+
 }

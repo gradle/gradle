@@ -120,6 +120,7 @@ val core = platform("core") {
         subproject("declarative-dsl-tooling-models")
         subproject("declarative-dsl-tooling-builders")
         subproject("dependency-management-serialization-codecs")
+        subproject("domain-object-collections")
         subproject("encryption-services")
         subproject("file-collections")
         subproject("file-operations")
@@ -296,6 +297,7 @@ platform("native") {
     subproject("tooling-native")
     subproject("tooling-native-model-impls")
     subproject("testing-native")
+    subproject("plugins-model-native")
 }
 
 

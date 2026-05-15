@@ -15,6 +15,7 @@
  */
 package org.gradle.integtests.tooling
 
+import org.gradle.api.JavaVersion
 import org.gradle.api.logging.LogLevel
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
@@ -25,7 +26,9 @@ import org.gradle.integtests.tooling.fixture.ToolingApi
 import org.gradle.internal.time.CountdownTimer
 import org.gradle.internal.time.Time
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ProjectConnection
+import org.gradle.tooling.internal.consumer.DefaultGradleConnector
 import org.gradle.tooling.model.GradleProject
 import org.gradle.util.GradleVersion
 import spock.lang.Issue
@@ -361,5 +364,33 @@ class ToolingApiIntegrationTest extends AbstractIntegrationSpec implements Other
 
         where:
         withColor << [true, false]
+    }
+
+    def "can connect with a relative project directory when daemon toolchain criteria are configured"() {
+        given:
+        file("gradle/gradle-daemon-jvm.properties").writeProperties(
+            "toolchainVersion": JavaVersion.current().majorVersion,
+        )
+
+        // Compute a relative path from the OS working directory to the test project
+        def osCwd = new File("").getAbsoluteFile()
+        def relativeProjectDir = osCwd.toPath().relativize(projectDir.toPath()).toFile()
+
+        when:
+        DefaultGradleConnector connector = GradleConnector.newConnector() as DefaultGradleConnector
+        connector.forProjectDirectory(relativeProjectDir)
+        connector.useInstallation(distribution.gradleHomeDir)
+        connector.daemonBaseDir(toolingApi.daemonBaseDir)
+        connector.embedded(false)
+        connector.daemonMaxIdleTime(120, java.util.concurrent.TimeUnit.SECONDS)
+        def connection = connector.connect()
+        try {
+            connection.newBuild().forTasks("help").run()
+        } finally {
+            connection.close()
+        }
+
+        then:
+        noExceptionThrown()
     }
 }

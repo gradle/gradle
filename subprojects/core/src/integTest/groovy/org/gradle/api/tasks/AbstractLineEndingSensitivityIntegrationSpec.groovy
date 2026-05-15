@@ -76,7 +76,10 @@ abstract class AbstractLineEndingSensitivityIntegrationSpec extends AbstractInte
         executedAndNotSkipped(":taskWithInputs")
 
         where:
-        [api, pathsensitivity] << [Api.values(), PathSensitivity.values()].combinations()
+        api << Api.values()
+
+        combined:
+        pathsensitivity << PathSensitivity.values()
     }
 
     def "input files properties can ignore line endings when specified (#api, #pathsensitivity)"() {
@@ -114,7 +117,10 @@ abstract class AbstractLineEndingSensitivityIntegrationSpec extends AbstractInte
         executedAndNotSkipped(":taskWithInputs")
 
         where:
-        [api, pathsensitivity] << [Api.values(), PathSensitivity.values()].combinations()
+        api << Api.values()
+
+        combined:
+        pathsensitivity << PathSensitivity.values()
     }
 
     def "runtime classpath properties are sensitive to line endings by default (#api)"() {

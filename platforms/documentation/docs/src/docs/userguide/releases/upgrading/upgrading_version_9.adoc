@@ -33,7 +33,7 @@ Alternatively, you can run `gradle help --warning-mode=all` to see the deprecati
 Some plugins will break with this new version of Gradle because they use internal APIs that have been removed or changed.
 The previous step will help you identify potential problems by issuing deprecation warnings when a plugin tries to use a deprecated part of the API.
 +
-. Run `gradle wrapper --gradle-version {gradleVersion}` to update the project to {gradleVersion}.
+. Run `gradle :wrapper --gradle-version {gradleVersion}` to update the project to {gradleVersion}.
 . Try to run the project and debug any errors using the <<troubleshooting.adoc#troubleshooting, Troubleshooting Guide>>.
 
 [[changes_9.6.0]]
@@ -41,6 +41,33 @@ The previous step will help you identify potential problems by issuing deprecati
 
 [[v9_deprecations_9_6]]
 === Deprecations
+
+[[deprecated_develocity_plugin_pre_4_0]]
+==== Develocity plugin versions before 4.0 are no longer supported in Gradle 10
+
+Gradle 10 requires Develocity plugin 4.0 or later.
+Earlier versions rely on Gradle's implicit parent-project property lookup, which will be removed in Gradle 10 and silently ignored if applied.
+
+Upgrade to the link:https://plugins.gradle.org/plugin/com.gradle.develocity[latest Develocity plugin] from the Gradle Plugin Portal.
+See the link:https://gradle.com/help/gradle-plugin-compatibility/[Develocity plugin compatibility matrix] for details.
+
+[[deprecated_pmd_target_jdk]]
+==== Deprecation of `targetJdk` on the PMD plugin
+
+The `targetJdk` property on link:{javadocPath}/org/gradle/api/plugins/quality/Pmd.html[`Pmd`] and link:{javadocPath}/org/gradle/api/plugins/quality/PmdExtension.html[`PmdExtension`], along with the link:{javadocPath}/org/gradle/api/plugins/quality/TargetJdk.html[`TargetJdk`] enum, are deprecated and will be removed in Gradle 10.
+
+This includes:
+
+- `Pmd.getTargetJdk()` / `Pmd.setTargetJdk(TargetJdk)`
+- `PmdExtension.getTargetJdk()` / `PmdExtension.setTargetJdk(TargetJdk)` / `PmdExtension.setTargetJdk(Object)`
+- The `TargetJdk` enum and its `toVersion(Object)` static method
+- `PmdPlugin.getDefaultTargetJdk(JavaVersion)`
+
+These were used by PMD versions older than 5.0 to select the target Java language level via Ant's `targetjdk` attribute.
+PMD 5.0 and later infer the language version from the configured rule sets, so this property has been a no-op for all supported PMD versions.  Gradle does not support PMD versions earlier than PMD 5.1.0.
+
+There is no replacement.
+Remove any `targetJdk` configuration from your build.
 
 [[deprecated_maven_artifact_urls]]
 ==== Deprecation of `artifactUrls` on Maven repositories
@@ -169,6 +196,126 @@ Configuration implementation = project.getConfigurations().getByName("implementa
 ProjectDependency dependency = project.getDependencyFactory().createProjectDependency(":some-project");
 implementation.getDependencies().add(dependency);
 ----
+
+[[task_dependencies]]
+==== Accessing task dependency relationships from a task action
+
+Calling the following methods from a task action at execution time is now deprecated and will become an error in Gradle 10:
+
+- link:{javadocPath}/org/gradle/api/Task.html#getTaskDependencies--[`Task.getTaskDependencies()`]
+- link:{javadocPath}/org/gradle/api/Task.html#getDependsOn--[`Task.getDependsOn()`]
+- link:{javadocPath}/org/gradle/api/Task.html#getMustRunAfter--[`Task.getMustRunAfter()`]
+- link:{javadocPath}/org/gradle/api/Task.html#getFinalizedBy--[`Task.getFinalizedBy()`]
+- link:{javadocPath}/org/gradle/api/Task.html#getShouldRunAfter--[`Task.getShouldRunAfter()`]
+
+These methods can still be used during configuration time.
+
+The deprecation is only issued if the Configuration Cache is **not** enabled.
+When the Configuration Cache is enabled, calls to these methods are reported as Configuration Cache problems instead.
+This is another step towards moving users away from idioms that are incompatible with the Configuration Cache, which will become the only mode supported by Gradle in a future release.
+For example:
+
+[source,kotlin]
+----
+// Deprecated: inspecting dependencies from within the task action
+tasks.register("report") {
+    dependsOn("compileJava")
+    doLast {
+        taskDependencies.getDependencies(this).forEach { println(it.name) }
+    }
+}
+
+// Recommended: capture what you need at configuration time
+tasks.register("report") {
+    dependsOn("compileJava")
+    val dependencyNames = dependsOn.filterIsInstance<Task>().map { it.name }
+    doLast {
+        dependencyNames.forEach { println(it) }
+    }
+}
+----
+
+Please refer to the <<configuration_cache_requirements.adoc#config_cache:requirements:use_project_during_execution, Configuration Cache documentation>> for alternatives that are compatible with the Configuration Cache.
+
+[[task_extensions]]
+==== Accessing extensions from a task action
+
+Calling link:{javadocPath}/org/gradle/api/Task.html#getExtensions--[`Task.getExtensions()`] from a task action at execution time is now deprecated and will become an error in Gradle 10.
+
+This method can still be used during configuration time.
+
+The deprecation is only issued if the Configuration Cache is **not** enabled.
+When the Configuration Cache is enabled, calls to this method are reported as Configuration Cache problems instead.
+This is another step towards moving users away from idioms that are incompatible with the Configuration Cache, which will become the only mode supported by Gradle in a future release.
+
+For example:
+[source,kotlin]
+----
+// Deprecated: reading the extension from within the task action
+tasks.register("greet") {
+    doLast {
+        val ext = extensions.getByType<GreetingExtension>()
+        println(ext.message.get())
+    }
+}
+
+// Recommended: capture the value at configuration time
+tasks.register("greet") {
+    val message = extensions.getByType<GreetingExtension>().message
+    doLast {
+        println(message.get())
+    }
+}
+----
+
+Please refer to the <<configuration_cache_requirements.adoc#config_cache:requirements:use_project_during_execution, Configuration Cache documentation>> for alternatives that are compatible with the configuration cache.
+
+[[injected_service_types_at_execution]]
+==== Accessing injected `Project` or `Gradle` services from a task action
+
+Reading an injected service of type link:{javadocPath}/org/gradle/api/Project.html[`Project`] or link:{javadocPath}/org/gradle/api/invocation/Gradle.html[`Gradle`] from a task action at execution time is now deprecated and will become an error in Gradle 10.
+
+These services can still be read during configuration time.
+
+The deprecation is only issued if the Configuration Cache is **not** enabled.
+When the Configuration Cache is enabled, such accesses are reported as Configuration Cache problems instead.
+This is another step towards moving users away from idioms that are incompatible with the Configuration Cache, which will become the only mode supported by Gradle in a future release.
+
+For example:
+
+[source,kotlin]
+----
+// Deprecated: reading from the injected Project at execution time
+abstract class PrintVersionTask : DefaultTask() {
+    @get:Inject
+    abstract val project: Project
+
+    @TaskAction
+    fun run() {
+        println("Building ${project.name} version ${project.version}")
+    }
+}
+
+// Recommended: declare the values you need as task inputs
+abstract class PrintVersionTask : DefaultTask() {
+    @get:Input
+    abstract val projectName: Property<String>
+
+    @get:Input
+    abstract val projectVersion: Property<String>
+
+    @TaskAction
+    fun run() {
+        println("Building ${projectName.get()} version ${projectVersion.get()}")
+    }
+}
+
+tasks.register<PrintVersionTask>("printVersion") {
+    projectName.set(project.name)
+    projectVersion.set(project.version.toString())
+}
+----
+Please refer to the <<configuration_cache_requirements.adoc#config_cache:requirements:use_project_during_execution, Configuration Cache documentation>> for alternatives that are compatible with the Configuration Cache.
 
 [[deprecate_build_needed_build_dependents_tasks]]
 ==== Deprecation of `buildNeeded` and `buildDependents` tasks
@@ -511,6 +658,28 @@ Several internal classes used by Android Gradle Plugin (AGP) 8.x have been chang
 Since AGP 8.x relied on these internal classes directly, it is no longer compatible with Gradle 9.6 and later.
 
 To resolve this, upgrade to AGP 9.x, which only uses the public Gradle API and fully supports Gradle 9.6.
+
+[[v9_upgrade_to_pmd_7_24_0]]
+==== Upgrade to PMD 7.24.0
+
+The default version of PMD has been updated from 7.13.0 to link:https://github.com/pmd/pmd/releases/tag/pmd_releases%2F7.24.0[7.24.0].
+
+[[v9_upgrade_to_codenarc_3_7_0]]
+==== Upgrade to CodeNarc 3.7.0
+
+The default version of CodeNarc has been updated from 3.6.0 to link:https://github.com/CodeNarc/CodeNarc/blob/v3.7.0/CHANGELOG.md[3.7.0].
+
+[[v9_upgrade_to_ant_1_10_17]]
+==== Upgrade to Ant 1.10.17
+
+Ant has been updated to link:https://github.com/apache/ant/blob/rel/1.10.17/WHATSNEW[1.10.17].
+Since the previous version was 1.10.15, the link:https://github.com/apache/ant/blob/rel/1.10.16/WHATSNEW[1.10.16] changes are also included.
+
+[[v9_upgrade_to_groovy_4_0_32]]
+==== Upgrade to Groovy 4.0.32
+
+Groovy has been updated to link:https://groovy-lang.org/changelogs/changelog-4.0.32.html[4.0.32].
+Since the previous version was 4.0.29, the link:https://groovy-lang.org/changelogs/changelog-4.0.30.html[4.0.30] and link:https://groovy-lang.org/changelogs/changelog-4.0.31.html[4.0.31] changes are also included.
 
 [[changes_9.5.0]]
 == Upgrading from 9.4.0 and earlier

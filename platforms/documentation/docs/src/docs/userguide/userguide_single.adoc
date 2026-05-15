@@ -82,6 +82,19 @@ include::developing_binary_plugin_advanced.adoc[leveloffset=+2]
 include::testing_binary_plugin_advanced.adoc[leveloffset=+2]
 include::publishing_binary_plugin_advanced.adoc[leveloffset=+2]
 
+[[part:best_practices]]
+== BEST PRACTICES
+
+include::best_practices.adoc[leveloffset=+2]
+include::best_practices_index.adoc[leveloffset=+2]
+include::best_practices_general.adoc[leveloffset=+2]
+include::best_practices_structuring_builds.adoc[leveloffset=+2]
+include::best_practices_dependencies.adoc[leveloffset=+2]
+include::best_practices_tasks.adoc[leveloffset=+2]
+include::best_practices_performance.adoc[leveloffset=+2]
+include::best_practices_security.adoc[leveloffset=+2]
+include::best_practices_testing.adoc[leveloffset=+2]
+
 [[part:reference]]
 == RUNTIME AND CONFIGURATION
 
@@ -271,17 +284,15 @@ include::native_software.adoc[leveloffset=+2]
 include::building_swift_projects.adoc[leveloffset=+2]
 include::swift_testing.adoc[leveloffset=+2]
 
-== BEST PRACTICES
+[[part:gradle_on_ci]]
+== GRADLE ON CI
 
-include::best_practices.adoc[leveloffset=+2]
-include::best_practices_index.adoc[leveloffset=+2]
-include::best_practices_general.adoc[leveloffset=+2]
-include::best_practices_structuring_builds.adoc[leveloffset=+2]
-include::best_practices_dependencies.adoc[leveloffset=+2]
-include::best_practices_tasks.adoc[leveloffset=+2]
-include::best_practices_performance.adoc[leveloffset=+2]
-include::best_practices_security.adoc[leveloffset=+2]
-include::best_practices_testing.adoc[leveloffset=+2]
+include::gradle_on_ci.adoc[leveloffset=+2]
+include::github-actions.adoc[leveloffset=+2]
+include::gitlab-ci.adoc[leveloffset=+2]
+include::jenkins.adoc[leveloffset=+2]
+include::teamcity.adoc[leveloffset=+2]
+include::travis-ci.adoc[leveloffset=+2]
 
 == STRUCTURING BUILDS
 

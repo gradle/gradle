@@ -16,7 +16,7 @@
 
 package gradlebuild.basics
 
-import gradlebuild.basics.BuildParams.AUTO_DOWNLOAD_ANDROID_STUDIO
+import gradlebuild.basics.BuildParams.AUTO_DOWNLOAD_IDE
 import gradlebuild.basics.BuildParams.BUILD_BRANCH
 import gradlebuild.basics.BuildParams.BUILD_COMMIT_DISTRIBUTION
 import gradlebuild.basics.BuildParams.BUILD_COMMIT_ID
@@ -38,6 +38,7 @@ import gradlebuild.basics.BuildParams.DEFAULT_RFR_PERFORMANCE_BASELINES
 import gradlebuild.basics.BuildParams.ENABLE_CONFIGURATION_CACHE_FOR_DOCS_TESTS
 import gradlebuild.basics.BuildParams.FLAKY_TEST
 import gradlebuild.basics.BuildParams.GRADLE_INSTALL_PATH
+import gradlebuild.basics.BuildParams.IDEA_HOME
 import gradlebuild.basics.BuildParams.INCLUDE_PERFORMANCE_TEST_SCENARIOS
 import gradlebuild.basics.BuildParams.MAX_PARALLEL_FORKS
 import gradlebuild.basics.BuildParams.MAX_TEST_DISTRIBUTION_LOCAL_EXECUTORS
@@ -54,8 +55,8 @@ import gradlebuild.basics.BuildParams.PERFORMANCE_STAGE_ENV
 import gradlebuild.basics.BuildParams.PERFORMANCE_TEST_VERBOSE
 import gradlebuild.basics.BuildParams.PREDICTIVE_TEST_SELECTION_ENABLED
 import gradlebuild.basics.BuildParams.RERUN_ALL_TESTS
-import gradlebuild.basics.BuildParams.RUN_ANDROID_STUDIO_IN_HEADLESS_MODE
 import gradlebuild.basics.BuildParams.RUN_BROKEN_CONFIGURATION_CACHE_DOCS_TESTS
+import gradlebuild.basics.BuildParams.RUN_IDE_IN_HEADLESS_MODE
 import gradlebuild.basics.BuildParams.STUDIO_HOME
 import gradlebuild.basics.BuildParams.TEST_DISTRIBUTION_DOGFOODING_TAG
 import gradlebuild.basics.BuildParams.TEST_DISTRIBUTION_ENABLED
@@ -135,9 +136,10 @@ object BuildParams {
     const val TEST_SPLIT_ONLY_TEST_GRADLE_VERSION = "onlyTestGradleVersion"
     const val TEST_JAVA_VENDOR = "testJavaVendor"
     const val TEST_JAVA_VERSION = "testJavaVersion"
-    const val AUTO_DOWNLOAD_ANDROID_STUDIO = "autoDownloadAndroidStudio"
-    const val RUN_ANDROID_STUDIO_IN_HEADLESS_MODE = "runAndroidStudioInHeadlessMode"
+    const val AUTO_DOWNLOAD_IDE = "autoDownloadIde"
+    const val RUN_IDE_IN_HEADLESS_MODE = "runIdeInHeadlessMode"
     const val STUDIO_HOME = "studioHome"
+    const val IDEA_HOME = "ideaHome"
     const val BUNDLE_GROOVY_MAJOR = "bundleGroovyMajor"
     const val DEBUG_DAEMON = "debugDaemon"
     const val DEBUG_LAUNCHER = "debugLauncher"
@@ -419,14 +421,14 @@ val Project.maxTestDistributionPartitionSecond: Long?
 val Project.maxParallelForks: Int
     get() = gradleProperty(MAX_PARALLEL_FORKS).getOrElse("4").toInt()
 
+val Project.autoDownloadIde: Provider<Boolean>
+    get() = propertyFromAnySource(AUTO_DOWNLOAD_IDE).asBooleanOrFalse()
 
-val Project.autoDownloadAndroidStudio: Provider<Boolean>
-    get() = propertyFromAnySource(AUTO_DOWNLOAD_ANDROID_STUDIO).asBooleanOrFalse()
+val Project.runIdeInHeadlessMode: Provider<Boolean>
+    get() = propertyFromAnySource(RUN_IDE_IN_HEADLESS_MODE).asBooleanOrFalse()
 
-
-val Project.runAndroidStudioInHeadlessMode: Provider<Boolean>
-    get() = propertyFromAnySource(RUN_ANDROID_STUDIO_IN_HEADLESS_MODE).asBooleanOrFalse()
-
+val Project.ideaHome: Provider<String>
+    get() = propertyFromAnySource(IDEA_HOME)
 
 val Project.androidStudioHome: Provider<String>
     get() = propertyFromAnySource(STUDIO_HOME)

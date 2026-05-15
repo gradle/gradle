@@ -21,7 +21,6 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.api.problems.internal.ProblemInternal;
 import org.gradle.internal.exceptions.CompilationFailedIndicator;
 
-import java.util.Collections;
 import java.util.List;
 
 class DefaultFailure implements Failure {
@@ -108,18 +107,6 @@ class DefaultFailure implements Failure {
             }
         }
         return -1;
-    }
-
-    @Override
-    public Failure withoutProblems() {
-        return new DefaultFailure(
-            original,
-            stackTrace,
-            frameRelevance,
-            suppressed,
-            causes,
-            Collections.emptyList()
-        );
     }
 
     @Override

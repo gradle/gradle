@@ -30,7 +30,7 @@ import java.util.concurrent.locks.ReentrantLock;
 /**
  * A queueing mechanism that only executes items once certain conditions are reached.
  */
-// TODO This class, DefaultBuildOperationQueue and ExecutionPlan have many of the same
+// TODO This class, DefaultBuildOperationQueue and DefaultPlanExecutor have many of the same
 // behavior and concerns - we should look for a way to generalize this pattern.
 public class DefaultConditionalExecutionQueue<T> implements WorkerThreadPool, ConditionalExecutionQueue<T> {
     public static final int KEEP_ALIVE_TIME_MS = 2000;

@@ -16,9 +16,24 @@
 
 package org.gradle.internal.configuration.problems
 
+import org.gradle.internal.service.scopes.Scope
+import org.gradle.internal.service.scopes.ServiceScope
 
+
+/**
+ * Receives and registers Isolated Projects violation problems.
+ *
+ * NOTE: Use [IsolatedProjectsProblemsReporter] instead of this interface
+ * to ensure the mechanism of ignoring problems is honored by all reported problems.
+ *
+ * This listener unconditionally includes all registered problems in the user report.
+ */
+@ServiceScope(Scope.BuildTree::class)
 interface IsolatedProjectsProblemsListener {
 
+    /**
+     * NOTE: Use [IsolatedProjectsProblemsReporter] instead to report problems.
+     */
     fun onIsolatedProjectsProblem(problem: PropertyProblem)
 
 }

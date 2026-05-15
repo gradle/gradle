@@ -23,12 +23,14 @@ import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.util.internal.GUtil;
 import org.jspecify.annotations.Nullable;
 
+import java.io.File;
+
 public class ValueSanitizers {
     private static final ValueSanitizer<Object> STRING_VALUE_SANITIZER = new ValueSanitizer<Object>() {
         @Override
         @Nullable
         public Object sanitize(@Nullable Object value) {
-            if (value instanceof GString || value instanceof Integer || value instanceof Long) {
+            if (value instanceof GString || value instanceof Integer || value instanceof Long || value instanceof File) {
                 return value.toString();
             } else {
                 return value;

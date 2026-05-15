@@ -31,6 +31,11 @@ public interface ResolvedComponentResultInternal extends ResolvedComponentResult
     int index();
 
     /**
+     * The underlying resolved graph this component belongs to.
+     */
+    ResolvedGraphResult graph();
+
+    /**
      * Used by the Android plugin. Do not use this method.
      */
     @Deprecated

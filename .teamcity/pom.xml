@@ -5,7 +5,7 @@
     <properties>
         <mockk.version>1.14.9</mockk.version>
         <bytebuddy.version>1.18.8</bytebuddy.version>
-        <jackson.version>2.21.2</jackson.version>
+        <jackson.version>2.21.3</jackson.version>
         <junit.version>6.0.3</junit.version>
         <dslContextParameter.branch>master</dslContextParameter.branch>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -194,7 +194,7 @@
         <dependency>
             <groupId>com.google.code.gson</groupId>
             <artifactId>gson</artifactId>
-            <version>2.13.2</version>
+            <version>2.14.0</version>
         </dependency>
     </dependencies>
 </project>

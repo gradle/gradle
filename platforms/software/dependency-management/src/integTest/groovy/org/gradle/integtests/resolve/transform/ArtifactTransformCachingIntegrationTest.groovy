@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.resolve.transform
 
+import org.gradle.api.problems.Severity
 import com.google.common.collect.Streams
 import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
 import org.gradle.cache.internal.GradleUserHomeCleanupFixture
@@ -42,7 +43,6 @@ import static java.util.concurrent.TimeUnit.SECONDS
 import static org.gradle.api.internal.cache.CacheConfigurationsInternal.DEFAULT_MAX_AGE_IN_DAYS_FOR_CREATED_CACHE_ENTRIES
 import static org.gradle.internal.service.scopes.DefaultGradleUserHomeScopeServiceRegistry.REUSE_USER_HOME_SERVICES
 import static org.gradle.test.fixtures.ConcurrentTestUtil.poll
-import static org.hamcrest.Matchers.containsString
 
 class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyResolutionTest implements FileAccessTimeJournalFixture, ValidationMessageChecker, GradleUserHomeCleanupFixture {
     static final int HALF_DEFAULT_MAX_AGE_IN_DAYS = Math.max(1, DEFAULT_MAX_AGE_IN_DAYS_FOR_CREATED_CACHE_ENTRIES / 2 as int)
@@ -213,15 +213,13 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
             .each { appType, index ->
                 def reserved = file("${appType}/build/${forbiddenPath}")
                 failure.assertHasDescription("A problem was found with the configuration of task ':${appType}:badTask' (type 'DefaultTask').")
-                failure.assertThatDescription(containsString(cannotWriteToReservedLocation {
-                    property('output')
-                        .forbiddenAt(reserved)
-                        .includeLink()
-                }))
                 verifyAll(receivedProblem(index as Integer)) {
+                    severity == Severity.ERROR
                     fqid == 'validation:property-validation:cannot-write-to-reserved-location'
+                    definition.id.displayName == 'Cannot write to reserved location'
                     contextualLabel == "Property \'output\' points to \'${reserved.absolutePath}\' which is managed by Gradle"
                     details == 'Trying to write an output to a read-only location which is for Gradle internal use only'
+                    definition.documentationLink.url == "https://docs.gradle.org/${distribution.version.version}/userguide/validation_problems.html#cannot_write_to_reserved_location"
                     solutions == ['Select a different output location']
                     additionalData.asMap == [
                         'typeName': 'org.gradle.api.DefaultTask',

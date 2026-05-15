@@ -100,6 +100,9 @@ class DevelocityPluginCheckInIntegrationTest extends AbstractIntegrationSpec {
         settingsFile << """
             println "present: " + services.get($GradleEnterprisePluginManager.name).present
         """
+        if (supported) {
+            plugin.expectParentPropertyLookupDeprecation(executer, pluginVersion)
+        }
 
         when:
         succeeds("t", "-Dorg.gradle.unsafe.isolated-projects=true")
@@ -118,5 +121,25 @@ class DevelocityPluginCheckInIntegrationTest extends AbstractIntegrationSpec {
         pluginVersion                    | supported
         MINIMUM_SUPPORTED_PLUGIN_VERSION | false
         '3.15'                           | true
+    }
+
+    def "emits deprecation when Develocity plugin version #pluginVersion relies on parent-property lookup"() {
+        given:
+        plugin.runtimeVersion = pluginVersion
+        plugin.artifactVersion = pluginVersion
+        applyPlugin()
+        if (deprecated) {
+            plugin.expectParentPropertyLookupDeprecation(executer, pluginVersion)
+        }
+
+        expect:
+        succeeds "t"
+
+        where:
+        pluginVersion | deprecated
+        '3.17'        | true
+        '3.19.2'      | true
+        '4.0'         | false
+        '4.4.1'       | false
     }
 }

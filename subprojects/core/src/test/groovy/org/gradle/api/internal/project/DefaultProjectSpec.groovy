@@ -43,6 +43,8 @@ import org.gradle.configuration.internal.ListenerBuildOperationDecorator
 import org.gradle.internal.Describables
 import org.gradle.internal.buildoption.DefaultInternalOptions
 import org.gradle.internal.buildoption.InternalOptions
+import org.gradle.internal.configuration.problems.IsolatedProjectsProblemsReporter
+import org.gradle.internal.configuration.problems.NoOpIsolatedProjectsProblemsReporter
 import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.internal.management.DependencyResolutionManagementInternal
 import org.gradle.internal.project.ImmutableProjectDescriptor
@@ -256,8 +258,8 @@ class DefaultProjectSpec extends Specification {
         serviceRegistry.add(AttributesSchema, Stub(AttributesSchema))
         serviceRegistry.add(ModelRegistry, Stub(ModelRegistry))
         serviceRegistry.add(CrossProjectModelAccess, Stub(CrossProjectModelAccess))
+        serviceRegistry.add(IsolatedProjectsProblemsReporter, new NoOpIsolatedProjectsProblemsReporter())
         serviceRegistry.add(DependencyResolutionManagementInternal, Stub(DependencyResolutionManagementInternal))
-        serviceRegistry.add(DynamicLookupRoutine, new DefaultDynamicLookupRoutine())
         serviceRegistry.add(SoftwareComponentContainer, Mock(SoftwareComponentContainer))
         serviceRegistry.add(CrossProjectConfigurator, Mock(CrossProjectConfigurator) {
             getLazyBehaviorGuard() >> Mock(MutationGuard)
@@ -316,11 +318,14 @@ class DefaultProjectSpec extends Specification {
         }
 
         def container = Mock(ProjectState)
+        _ * container.name >> name
         _ * container.projectPath >> identity.projectPath
         _ * container.identityPath >> identity.buildTreePath
         _ * container.owner >> build.owner
         _ * container.displayName >> Describables.of(name)
         _ * container.identity >> identity
+        _ * container.isolated >> { new DefaultIsolatedProject(container) }
+        _ * container.rootProject >> { parent == null }
 
         def descriptor = Mock(ImmutableProjectDescriptor) {
             getIdentity() >> identity
@@ -334,6 +339,8 @@ class DefaultProjectSpec extends Specification {
 
         def instantiator = TestUtil.instantiatorFactory().decorateLenient(serviceRegistry)
         def factory = new ProjectFactory(instantiator, new DefaultTextFileResourceLoader(null), scriptResolution)
-        return factory.createProject(build, descriptor, container, parent, serviceRegistryFactory, Stub(ClassLoaderScope), Stub(ClassLoaderScope))
+        def project = factory.createProject(build, descriptor, container, parent, serviceRegistryFactory, Stub(ClassLoaderScope), Stub(ClassLoaderScope))
+        _ * container.mutableModel >> project
+        return project
     }
 }

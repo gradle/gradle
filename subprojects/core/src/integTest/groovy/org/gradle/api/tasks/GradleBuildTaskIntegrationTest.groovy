@@ -261,13 +261,14 @@ class GradleBuildTaskIntegrationTest extends AbstractIntegrationSpec {
             ${barrier.callFromBuild("child-build-started")}
             ${barrier.callFromBuild("child-build-finished")}
         """
+        def assertRootIsNamedRoot = "assert gradle.parent.owner.rootProject.name == 'root'"
         file('main/build.gradle') << """
-            assert gradle.parent.rootProject.name == 'root'
+            ${assertRootIsNamedRoot}
             task log { }
         """
         file('subprojects/settings.gradle') << ""
         file('subprojects/build.gradle') << """
-            assert gradle.parent.rootProject.name == 'root'
+            ${assertRootIsNamedRoot}
             task log { }
         """
 
