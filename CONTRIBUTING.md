@@ -62,7 +62,7 @@ There is no need to ask for an assignment or for permission to work on those iss
 
 In order to make changes to Gradle, you'll need:
 
-* [Adoptium JDK](https://adoptium.net/temurin/archive/?version=17) (Java Development Kit) **version 17**. Fixed version is required to use [remote cache](#remote-build-cache).
+* [Adoptium JDK](https://adoptium.net/temurin/archive/?version=25) (Java Development Kit) **version 25**. Fixed version is required to use [remote cache](#remote-build-cache).
 * A text editor or IDE. We use and recommend [IntelliJ IDEA CE](http://www.jetbrains.com/idea/). IntelliJ Ultimate will also work. You'll need IntelliJ 2021.2.2 or newer.
 * [git](https://git-scm.com/) and a [GitHub account](https://github.com/join).
 
@@ -77,14 +77,14 @@ Gradle uses pull requests for contributions. Fork [gradle/gradle](https://github
 
 To import Gradle into IntelliJ:
 - Open the `build.gradle.kts` file in root of the project with IntelliJ and choose "Open as Project"
-- Select a Adoptium Java 17 VM as "Gradle JVM"
+- Select an Adoptium Java 25 VM as "Gradle JVM"
 - Revert the Git changes to files in the `.idea` folder
 
 NOTE: Due to the project size, the very first import can take a while and IntelliJ might become unresponsive for several seconds during this period.
 
 IntelliJ automatically hides stacktrace elements from the `org.gradle` package, which makes running/debugging tests more difficult. You can disable this behavior by changing IntelliJ Preferences under Editor -> General -> Console. In the "Fold lines that contain" section, remove the `org.gradle` entry.
 
-If you did not have a Adoptium Java 17 SDK installed before importing the project into IntelliJ and after adding Adoptium Java 17 SDK your IntelliJ still uses the wrong SDK version, you might need to invalidate IntelliJ's caches before reloading the project.
+If you did not have an Adoptium Java 25 SDK installed before importing the project into IntelliJ and after adding Adoptium Java 25 SDK your IntelliJ still uses the wrong SDK version, you might need to invalidate IntelliJ's caches before reloading the project.
 
 #### Install Develocity IntelliJ plugin
 
@@ -340,7 +340,7 @@ Gradle Technologies runs a set of remote build cache nodes to speed up local bui
 
 The build cache has anonymous read access, so you don't need to authenticate in order to use it. You can select a different edge node by following the instructions in [this doc](https://github.com/gradle/gradle-org-conventions-plugin#change-edge-node-location).
 
-If you are not getting cache hits from the build cache, you may be using the wrong version of Java. A fixed version (Java 11) is required to get remote cache hits.
+If you are not getting cache hits from the build cache, you may be using the wrong version of Java. A fixed version (Java 25) is required to get remote cache hits.
 
 ### Building a distribution from source
 

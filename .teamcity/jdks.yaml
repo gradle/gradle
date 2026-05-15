@@ -21,7 +21,6 @@ jdks:
     version: "jdk-11.0.31+11"
     sha256: "1e9de64586b519c0a981319489257cabedd9457599f3823424a87c3158fbe939"
   - params:
-      - "env.JAVA_HOME"
       - "linux.java17.openjdk.64bit"
     os: "linux"
     arch: "amd64"
@@ -36,6 +35,7 @@ jdks:
     version: "jdk-21.0.11+10"
     sha256: "4b2220e232a97997b436ca6ab15cbf70171ecff52958a46159dfa5a8c44ca4de"
   - params:
+      - "env.JAVA_HOME"
       - "linux.java25.openjdk.aarch64"
     os: "linux"
     arch: "aarch64"
@@ -43,6 +43,7 @@ jdks:
     version: "jdk-25.0.3+9"
     sha256: "3e4287cb98870ba824ed698854bdc27cff984254caf66dd12cc291e7bfdde26b"
   - params:
+      - "env.JAVA_HOME"
       - "linux.java25.openjdk.64bit"
     os: "linux"
     arch: "amd64"
@@ -79,7 +80,6 @@ jdks:
     version: "jdk-11.0.31+11"
     sha256: "257f4d39e060658fc2eb89a803ca43b3f337e64e253f2d94ebae1d85c9ef5f69"
   - params:
-      - "env.JAVA_HOME"
       - "linux.java17.openjdk.aarch64"
     os: "linux"
     arch: "aarch64"
@@ -109,7 +109,6 @@ jdks:
     version: "jdk-11.0.31+11"
     sha256: "5695bd8fed700acb74e0c13945fc6d7564441a31d345c100b82ee1aac553a6b7"
   - params:
-      - "env.JAVA_HOME"
       - "windows.java17.openjdk.64bit"
     os: "windows"
     arch: "amd64"
@@ -124,6 +123,7 @@ jdks:
     version: "jdk-21.0.11+10"
     sha256: "d3625e7cadf23787ea540229544b6e2ab494b3b54da1801879e583e1dfee0a64"
   - params:
+      - "env.JAVA_HOME"
       - "windows.java25.openjdk.64bit"
     os: "windows"
     arch: "amd64"
@@ -152,7 +152,6 @@ jdks:
     version: "jdk-11.0.31+11"
     sha256: "e541fa6c6100b6dd6ae0c92c96ae8d97ed4d94ddefb0cd2770dae4772bfc9d9e"
   - params:
-      - "env.JAVA_HOME"
       - "macos.java17.openjdk.64bit"
     os: "macos"
     arch: "amd64"
@@ -180,7 +179,6 @@ jdks:
     version: "jdk-11.0.31+11"
     sha256: "e3377bbe07f4396ba03adcfc5f3d71d151d6a7b858abdf1d0dd20ac4d8d709b0"
   - params:
-      - "env.JAVA_HOME"
       - "macos.java17.openjdk.aarch64"
     os: "macos"
     arch: "aarch64"
@@ -195,6 +193,7 @@ jdks:
     version: "jdk-21.0.11+10"
     sha256: "6ebcf221c9b41507b14c098e93c6ead6440b8d9bd154f8ec666c4c73abbdb201"
   - params:
+      - "env.JAVA_HOME"
       - "macos.java25.openjdk.64bit"
     os: "macos"
     arch: "amd64"
@@ -202,6 +201,7 @@ jdks:
     version: "jdk-25.0.3+9"
     sha256: "4c539a18b4d656960ff6766727e9ca546fc17f7a29714dba9e7b47bdcb37c447"
   - params:
+      - "env.JAVA_HOME"
       - "macos.java25.openjdk.aarch64"
     os: "macos"
     arch: "aarch64"
