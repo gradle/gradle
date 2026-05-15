@@ -26,6 +26,7 @@ import java.io.IOException;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
+import java.net.URI;
 import java.net.URL;
 import java.net.URLConnection;
 
@@ -61,7 +62,7 @@ public abstract class ClassLoaderUtils {
         // Changes to jar files won't be noticed in all cases when caching is enabled.
         // sun.net.www.protocol.jar.JarURLConnection leaves the JarFile instance open if URLConnection caching is enabled.
         try {
-            URL url = new URL("jar:file://valid_jar_url_syntax.jar!/");
+            URL url = URI.create("jar:file://valid_jar_url_syntax.jar!/").toURL();
             URLConnection urlConnection = url.openConnection();
             urlConnection.setDefaultUseCaches(false);
         } catch (IOException e) {
