@@ -207,6 +207,10 @@ A Configuration Cache entry contains:
 Anything *not* reachable from a scheduled task is excluded.
 References to types that cannot survive the configuration-to-execution boundary (`Project`, `Gradle`, `ClassLoader`, `Configuration`, and others enumerated in <<configuration_cache_requirements.adoc#config_cache:requirements, the requirements>>) are rejected with a Configuration Cache problem at store time, before they can cause a runtime failure on a later load.
 
+Because every reachable field is captured, sensitive values held in task state (such as credentials, tokens, and API keys) also land in the cache entry.
+Gradle encrypts cache entries on disk to mitigate the risk of accidental exposure.
+See <<configuration_cache_requirements.adoc#config_cache:secrets, Handling of Credentials and Secrets>> for details.
+
 The serialized task graph is stored alongside a separate **fingerprint**: the recorded list of configuration inputs the build observed (see <<config_cache:intro:build_configuration_inputs, Build Configuration Inputs>>).
 The two are distinct: the entry holds the *result* of configuration, the fingerprint holds the *evidence* that the result is still valid.
 Loading an entry on a hit uses both: Gradle replays the fingerprint to confirm validity, then deserializes the entry to reconstruct the task graph.

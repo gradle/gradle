@@ -255,3 +255,14 @@ Check the <<configuration_cache_enabling#config_cache:adoption:changes_in_behavi
 build.
 
 See link:{gradle-issues}33772[gradle/gradle#33772].
+
+[[config_cache:not_yet_implemented:secret_exclusion]]
+=== Selective Exclusion of Sensitive Values from Cache Entries
+
+The Configuration Cache currently has no API to mark a task field or property as "do not serialize."
+Sensitive values stored in a task's state, such as credentials, tokens, and API keys, are captured in the cache entry alongside the rest of the build configuration.
+
+Gradle encrypts cache entries on disk to mitigate the risk of accidental exposure, but the encryption is per-machine; entries can still be read by anything that has access to both the project's `.gradle/configuration-cache` directory and the encryption key stored in `<<directory_layout.adoc#dir:gradle_user_home,GRADLE_USER_HOME>>`.
+
+TIP: The current workaround is to store secrets in `<<directory_layout.adoc#dir:gradle_user_home,GRADLE_USER_HOME>>/gradle.properties`, whose contents are not included in cache entries; only the file's fingerprint is recorded.
+See link:{gradle-issues}22618[gradle/gradle#22618].
