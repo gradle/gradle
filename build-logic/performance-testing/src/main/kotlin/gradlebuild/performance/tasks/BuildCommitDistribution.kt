@@ -210,7 +210,6 @@ abstract class BuildCommitDistribution @Inject internal constructor(
             "-Dorg.gradle.java.installations.paths=${getJavaHomeFor(11)},${getJavaHomeFor(17)}",
             "-Porg.gradle.java.installations.paths=${getJavaHomeFor(11)},${getJavaHomeFor(17)}",
             "-PbuildCommitDistribution=true",
-            "-Dorg.gradle.ignoreBuildJavaVersionCheck=true"
         )
     }
 
