@@ -334,6 +334,30 @@ Recommended Alternatives:
 - Register a Build Service to receive <<build_services#operation_listener, task execution notifications>>.
 - Replace `buildFinished` listeners with <<dataflow_actions.adoc#dataflow_action, dataflow actions>> to manage build results.
 
+[[config_cache:requirements:build_services]]
+== Using Build Services
+
+<<build_services#build_services, Build Services>> are the Gradle-supported way to share state across tasks, replace `BuildListener`-style hooks, and observe task execution events.
+They are also the most common feature-level integration point with the Configuration Cache, and a few caveats apply.
+
+*Parameter values are part of the cache entry.*
+The parameters interface of a build service is a custom Gradle type, and its property values are serialized into the Configuration Cache entry alongside the rest of the build's configured state.
+Parameter types must be Configuration Cache-compatible: standard managed property types (`Property<T>`, `RegularFileProperty`, `ListProperty<T>`, and so on) are safe; raw `Configuration` references, live JVM state, and `Project` references are not.
+
+*The service instance is recreated on every build.*
+Only the parameters are cached.
+On a cache hit, Gradle reads the recorded parameters from the entry, instantiates the build service afresh, and injects them.
+Any work done in the service's constructor or first method invocation runs again on every build, regardless of whether the configuration phase ran.
+
+*A `BuildServiceProvider` cannot drive a `ValueSource` at configuration time.*
+Passing a provider of a `BuildService` (or anything derived from it via `map` or `flatMap`) as a `ValueSourceParameters` value that is read at configuration time is not supported.
+The supported alternatives are `@ServiceReference` for direct injection and storing the build service reference in an `@Internal`-annotated property on a task.
+See <<configuration_cache_status.adoc#config_cache:not_yet_implemented:build_services_in_fingerprint, the related not-yet-implemented entry>> for the current state.
+
+*Register as `OperationCompletionListener` to observe task execution.*
+A build service registered via link:{javadocPath}/org/gradle/build/event/BuildEventsListenerRegistry.html#onTaskCompletion(org.gradle.api.provider.Provider)[`BuildEventsListenerRegistry.onTaskCompletion`] is the supported way to survive the configuration-to-execution boundary correctly under the Configuration Cache.
+Other ways of holding a build service reference may not survive a cache hit cleanly.
+
 [[config_cache:requirements:value_source]]
 == Using External Information Sources
 

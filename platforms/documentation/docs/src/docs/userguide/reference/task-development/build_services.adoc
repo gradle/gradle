@@ -196,3 +196,10 @@ include::{snippetsPath}/reference/plugin-development/buildServiceListener/groovy
 <1> Use <<service_injection.adoc#service_injection,service injection>> to obtain an instance of the `BuildEventsListenerRegistry`.
 <2> Register the build service as usual.
 <3> Use the service `Provider` to subscribe to the build service to build events.
+
+[[sec:configuration_cache_interaction]]
+== Build Services and the Configuration Cache
+
+When the <<configuration_cache.adoc#config_cache, Configuration Cache>> is enabled, build service parameters are serialized into the cache entry, and the service instance is recreated on every build.
+Several caveats apply.
+See <<configuration_cache_requirements.adoc#config_cache:requirements:build_services, Using Build Services>> in the Configuration Cache requirements for the full treatment.
