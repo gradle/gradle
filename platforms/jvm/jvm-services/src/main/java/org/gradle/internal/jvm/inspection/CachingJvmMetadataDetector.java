@@ -31,6 +31,7 @@ public class CachingJvmMetadataDetector implements JvmMetadataDetector, Conditio
     private final Map<File, JvmInstallationMetadata> javaMetadata = Collections.synchronizedMap(new HashMap<>());
     private final JvmMetadataDetector delegate;
 
+    @SuppressWarnings("this-escape")
     public CachingJvmMetadataDetector(JvmMetadataDetector delegate) {
         this.delegate = delegate;
         getMetadata(InstallationLocation.autoDetected(Jvm.current().getJavaHome(), "current Java home"));

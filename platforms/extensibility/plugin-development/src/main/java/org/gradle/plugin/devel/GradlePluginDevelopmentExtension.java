@@ -64,6 +64,7 @@ public abstract class GradlePluginDevelopmentExtension {
     private final SourceSet pluginSourceSet;
     private boolean automatedPublishing = true;
 
+    @SuppressWarnings("this-escape")
     public GradlePluginDevelopmentExtension(Project project, SourceSet pluginSourceSet, SourceSet testSourceSet) {
         this.pluginSourceSet = pluginSourceSet;
         this.testSourceSets = project.getObjects().newInstance(DefaultSourceSetContainer.class);

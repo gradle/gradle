@@ -70,6 +70,7 @@ import static org.gradle.api.internal.lambdas.SerializableLambdas.spec;
  * <p>The task produces {@link Signature}</p> objects that are publishable artifacts and can be assigned to another configuration. <p> The signature objects are created with defaults and using this
  * tasks signatory and signature type.
  */
+@SuppressWarnings("this-escape")
 @DisableCachingByDefault(because = "Not made cacheable, yet")
 public abstract class Sign extends DefaultTask implements SignatureSpec {
 
@@ -95,6 +96,7 @@ public abstract class Sign extends DefaultTask implements SignatureSpec {
         return getSignatures().stream();
     }
 
+    @SuppressWarnings("this-escape")
     @Inject
     public Sign() {
         // If we aren't required and don't have a signatory then we just don't run

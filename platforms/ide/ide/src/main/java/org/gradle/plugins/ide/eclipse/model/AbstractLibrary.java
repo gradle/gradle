@@ -36,6 +36,7 @@ public abstract class AbstractLibrary extends AbstractClasspathEntry {
     private FileReference library;
     private ModuleVersionIdentifier moduleVersion;
 
+    @SuppressWarnings("this-escape")
     public AbstractLibrary(Node node, FileReferenceFactory fileReferenceFactory) {
         super(node);
         String javadocLocation = (String) getEntryAttributes().get(ATTRIBUTE_JAVADOC_LOCATION);

@@ -42,6 +42,7 @@ import org.gradle.internal.resolve.resolver.ResolvedVariantCache;
  * to resolve transform dependencies, and the transform dependencies resolver
  * needs to resolve artifacts. Hopefully one day we can clean up this cycle.
  */
+@SuppressWarnings("this-escape")
 public class DefaultVisitedArtifactSet implements VisitedArtifactSet {
     private final VisitedGraphResults graphResults;
     private final ResolutionHost resolutionHost;

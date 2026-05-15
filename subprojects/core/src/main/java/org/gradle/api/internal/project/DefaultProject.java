@@ -159,6 +159,7 @@ import static java.util.Collections.singletonMap;
 import static org.gradle.util.internal.ConfigureUtil.configureUsing;
 import static org.gradle.util.internal.GUtil.addMaps;
 
+@SuppressWarnings("this-escape")
 @NoConventionMapping
 public abstract class DefaultProject extends AbstractPluginAware implements ProjectInternal, DynamicObjectAware {
     private static final ModelType<ServiceRegistry> SERVICE_REGISTRY_MODEL_TYPE = ModelType.of(ServiceRegistry.class);

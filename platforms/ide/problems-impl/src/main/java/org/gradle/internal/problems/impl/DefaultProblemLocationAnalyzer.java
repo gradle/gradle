@@ -32,6 +32,7 @@ class DefaultProblemLocationAnalyzer implements ProblemLocationAnalyzer {
 
     private final RegisteredScripts registeredScripts;
 
+    @SuppressWarnings("this-escape")
     public DefaultProblemLocationAnalyzer(RegisteredScripts registeredScripts) {
         this.registeredScripts = registeredScripts;
     }

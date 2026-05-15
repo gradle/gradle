@@ -54,6 +54,7 @@ public class SpecificInstallationToolchainSpec extends DefaultToolchainSpec {
 
     private final File javaHome;
 
+    @SuppressWarnings("this-escape")
     @Inject
     public SpecificInstallationToolchainSpec(PropertyFactory propertyFactory, File javaHome) {
         super(propertyFactory);

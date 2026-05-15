@@ -74,6 +74,7 @@ import java.util.Set;
  *
  * @since 4.1
  */
+@SuppressWarnings("this-escape")
 @CacheableTask
 public abstract class SwiftCompile extends DefaultTask {
     private final CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory;

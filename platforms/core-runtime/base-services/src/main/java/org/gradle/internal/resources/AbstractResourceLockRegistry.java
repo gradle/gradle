@@ -29,6 +29,7 @@ public abstract class AbstractResourceLockRegistry<K, T extends ResourceLock> im
     private final LockCache<K, T> resourceLocks;
     private final ConcurrentMap<Long, ThreadLockDetails<T>> threadLocks = new ConcurrentHashMap<Long, ThreadLockDetails<T>>();
 
+    @SuppressWarnings("this-escape")
     public AbstractResourceLockRegistry(final ResourceLockCoordinationService coordinationService) {
         this.resourceLocks = new LockCache<K, T>(coordinationService, this);
     }

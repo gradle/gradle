@@ -37,6 +37,7 @@ import java.util.List;
 /**
  * Options for Scala platform compilation.
  */
+@SuppressWarnings("this-escape")
 public abstract class BaseScalaCompileOptions implements Serializable {
 
     private static final long serialVersionUID = 0;

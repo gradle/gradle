@@ -76,6 +76,7 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
     private final TaskDependencyFactory taskDependencyFactory;
     private final ToolchainFactory toolchainFactory;
 
+    @SuppressWarnings("this-escape")
     @Inject
     public DefaultJvmTestSuite(String name, SourceSetContainer sourceSets, ConfigurationContainer configurations, TaskDependencyFactory taskDependencyFactory) {
         this.name = name;

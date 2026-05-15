@@ -37,6 +37,7 @@ public abstract class DefaultSwiftComponent<T extends SwiftBinary> extends Defau
         this(name, SwiftBinary.class);
     }
 
+    @SuppressWarnings("this-escape")
     public DefaultSwiftComponent(String name, Class<? extends SwiftBinary> binaryType) {
         this.name = name;
         this.swiftSource = createSourceView("src/"+ name + "/swift", Collections.singletonList("swift"));

@@ -40,6 +40,7 @@ public abstract class DefaultCppTestSuite extends DefaultCppComponent implements
     private final Property<CppTestExecutable> testBinary;
     private final DefaultComponentDependencies dependencies;
 
+    @SuppressWarnings("this-escape")
     @Inject
     public DefaultCppTestSuite(String name) {
         super(name);

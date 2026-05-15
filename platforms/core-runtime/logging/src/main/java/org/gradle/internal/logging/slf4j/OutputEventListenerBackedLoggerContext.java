@@ -44,6 +44,7 @@ public class OutputEventListenerBackedLoggerContext implements ILoggerFactory {
     private final AtomicReference<OutputEventListener> outputEventListener = new AtomicReference<OutputEventListener>();
     private final Clock clock;
 
+    @SuppressWarnings("this-escape")
     public OutputEventListenerBackedLoggerContext(Clock clock) {
         this.clock = clock;
         applyDefaultLoggersConfig();

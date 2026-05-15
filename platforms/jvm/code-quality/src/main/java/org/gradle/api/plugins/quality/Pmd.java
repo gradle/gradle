@@ -72,6 +72,7 @@ public abstract class Pmd extends AbstractCodeQualityTask implements Reporting<P
     private boolean consoleOutput;
     private FileCollection classpath;
 
+    @SuppressWarnings("this-escape")
     public Pmd() {
         super();
         ObjectFactory objects = getObjectFactory();

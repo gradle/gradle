@@ -134,6 +134,7 @@ public class ExtensibleDynamicObject extends AbstractDynamicObject implements Hi
         this(delegate, dynamicDelegate, new DefaultExtensionContainer(instanceGenerator));
     }
 
+    @SuppressWarnings("this-escape")
     public ExtensibleDynamicObject(Object delegate, AbstractDynamicObject dynamicDelegate, DefaultExtensionContainer convention) {
         this.dynamicDelegate = dynamicDelegate;
         this.extensionContainer = convention;

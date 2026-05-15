@@ -38,6 +38,7 @@ import java.io.PrintStream;
 import java.util.Map;
 import java.util.function.Supplier;
 
+@SuppressWarnings("this-escape")
 public abstract class BasicScript extends org.gradle.groovy.scripts.Script implements org.gradle.api.Script, DynamicObjectAware, GradleScript {
     private StandardOutputCapture standardOutputCapture;
     private Object target;

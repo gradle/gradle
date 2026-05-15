@@ -40,6 +40,7 @@ public abstract class JacocoReport extends JacocoReportBase implements Reporting
 
     private final JacocoReportsContainer reports;
 
+    @SuppressWarnings("this-escape")
     public JacocoReport() {
         super();
         getReportProjectName().value(getProject().getName()).disallowChanges();

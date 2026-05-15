@@ -77,6 +77,7 @@ import java.util.Set;
  * are applied only once per target object and always return the same public model object for a given target/feature
  * combination.
  */
+@SuppressWarnings("this-escape")
 abstract public class DefaultProjectFeatureApplicator implements ProjectFeatureApplicator {
     private final ClassLoaderScope classLoaderScope;
     private final ObjectFactory projectObjectFactory;

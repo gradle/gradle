@@ -45,6 +45,7 @@ import java.util.Set;
  *
  * <p>The aim is to create only a single instance of this type per project and reuse that for all resolution that happens in a build tree. This isn't quite the case yet.
  */
+@SuppressWarnings("this-escape")
 public class DefaultLocalComponentGraphResolveState extends AbstractComponentGraphResolveState<LocalComponentGraphResolveMetadata> implements LocalComponentGraphResolveState {
 
     private final boolean adHoc;

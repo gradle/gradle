@@ -32,6 +32,7 @@ public abstract class AbstractIvyArtifact implements IvyArtifactInternal {
     private String classifier;
     private String conf;
 
+    @SuppressWarnings("this-escape")
     protected AbstractIvyArtifact(TaskDependencyFactory taskDependencyFactory) {
         this.additionalBuildDependencies = new DefaultTaskDependency();
         this.allBuildDependencies = taskDependencyFactory.visitingDependencies(context -> {

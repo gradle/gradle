@@ -41,6 +41,7 @@ public abstract class AbstractExternalModuleDependency extends AbstractModuleDep
     private boolean changing;
     private final MutableVersionConstraint versionConstraint;
 
+    @SuppressWarnings("this-escape")
     public AbstractExternalModuleDependency(ModuleIdentifier module, String version, @Nullable String configuration) {
         this.moduleIdentifier = module;
         this.versionConstraint = new DefaultMutableVersionConstraint(version);
@@ -49,6 +50,7 @@ public abstract class AbstractExternalModuleDependency extends AbstractModuleDep
         }
     }
 
+    @SuppressWarnings("this-escape")
     public AbstractExternalModuleDependency(ModuleIdentifier module, MutableVersionConstraint version, @Nullable String configuration) {
         this.moduleIdentifier = module;
         this.versionConstraint = version;

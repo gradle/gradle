@@ -64,6 +64,7 @@ public abstract class InstallExecutable extends DefaultTask {
      *
      * @since 4.2
      */
+    @SuppressWarnings("this-escape")
     @Inject
     public InstallExecutable(WorkerLeaseService workerLeaseService) {
         this.workerLeaseService = workerLeaseService;
