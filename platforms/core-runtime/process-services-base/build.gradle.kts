@@ -42,3 +42,9 @@ gradleModule {
         worker = true
     }
 }
+
+jvmCompile {
+    // ExecHandleRunner uses Java 9+ Process APIs via a Multi-Release JAR while the base
+    // classes remain Java 8 compatible. See org.gradle.process.internal.jvm.
+    addMultiReleaseVersion(9)
+}
