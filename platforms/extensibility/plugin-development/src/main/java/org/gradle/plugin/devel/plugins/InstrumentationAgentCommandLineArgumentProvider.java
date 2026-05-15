@@ -39,6 +39,9 @@ class InstrumentationAgentCommandLineArgumentProvider implements CommandLineArgu
 
     @Override
     public Iterable<String> asArguments() {
+        // The agent module is absent in non-distribution layouts (e.g. running tests against a
+        // development checkout without a full Gradle distribution). Degrade silently: the test
+        // task simply won't get -javaagent, mirroring how Gradle's own runtime treats this case.
         Module agent = moduleRegistry.findModule(AgentUtils.AGENT_MODULE_NAME);
         if (agent == null) {
             return Collections.emptyList();

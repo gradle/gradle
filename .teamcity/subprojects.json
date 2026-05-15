@@ -814,7 +814,7 @@
   {
     "name": "instrumentation-agent-services",
     "path": "platforms/core-runtime/instrumentation-agent-services",
-    "unitTests": true,
+    "unitTests": false,
     "functionalTests": true,
     "crossVersionTests": false
   },

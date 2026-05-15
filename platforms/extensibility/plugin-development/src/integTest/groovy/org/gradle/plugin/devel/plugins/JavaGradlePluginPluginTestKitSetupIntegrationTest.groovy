@@ -53,8 +53,7 @@ class JavaGradlePluginPluginTestKitSetupIntegrationTest extends AbstractIntegrat
         succeeds("printTestAgentArg")
 
         then:
-        outputContains("JVM_ARG: -javaagent:")
-        outputContains("gradle-instrumentation-agent")
+        output =~ /JVM_ARG: -javaagent:[^\r\n]*gradle-instrumentation-agent/
     }
 
     def "has default conventions"() {

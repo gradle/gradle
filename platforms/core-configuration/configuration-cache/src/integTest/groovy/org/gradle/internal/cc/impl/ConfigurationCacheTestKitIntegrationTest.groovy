@@ -16,7 +16,6 @@
 
 package org.gradle.internal.cc.impl
 
-import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.TestExecutionPreconditions
 import org.gradle.test.preconditions.OsTestPreconditions
@@ -82,7 +81,7 @@ class ConfigurationCacheTestKitIntegrationTest extends AbstractConfigurationCach
 
     @Issue("https://github.com/gradle/gradle/issues/23817")
     @Issue("https://github.com/gradle/gradle/issues/27956")
-    def "configuration cache tracks agent-instrumented plugin input with debug=#debug and pluginClasspath=#pluginClasspath"() {
+    def "configuration cache tracks agent-instrumented plugin input with debug=#debug applied via #applyMode"() {
         given:
         settingsFile.text = "rootProject.name = 'plugin-under-test'"
         buildFile << """
@@ -132,10 +131,11 @@ class ConfigurationCacheTestKitIntegrationTest extends AbstractConfigurationCach
         """
 
         def pluginJarPath = testDirectory.file("build/libs/plugin-1.0.jar").absolutePath
-        def innerBuildFileBody = pluginClasspath
+        def viaPluginClasspath = applyMode == 'plugins-block'
+        def innerBuildFileBody = viaPluginClasspath
             ? "plugins { id 'org.example.my' }"
             : "buildscript { dependencies { classpath(files('${pluginJarPath}')) } }\napply plugin: MyPlugin"
-        def maybeWithPluginClasspath = pluginClasspath ? "runner = runner.withPluginClasspath()" : ""
+        def maybeWithPluginClasspath = viaPluginClasspath ? "runner = runner.withPluginClasspath()" : ""
 
         file("src/test/groovy/InnerInstrumentationTest.groovy") << """
             import org.gradle.testkit.runner.GradleRunner
@@ -171,7 +171,6 @@ class ConfigurationCacheTestKitIntegrationTest extends AbstractConfigurationCach
                     reportHtml != null
                     def report = reportHtml.text
                     report.contains('"name":"my.property"')
-                    // buildscript {} || plugins {}
                     report.contains("plugin class 'MyPlugin'") || report.contains("plugin 'org.example.my'")
                 }
             }
@@ -181,11 +180,11 @@ class ConfigurationCacheTestKitIntegrationTest extends AbstractConfigurationCach
         succeeds('test')
 
         where:
-        debug | pluginClasspath
-        true  | false
-        true  | true
-        false | false
-        false | true
+        debug | applyMode
+        true  | 'buildscript-classpath'
+        true  | 'plugins-block'
+        false | 'buildscript-classpath'
+        false | 'plugins-block'
     }
 
     /**
