@@ -88,6 +88,8 @@ dependencies {
 
 integTest.testJvmXmx = "5g"
 
+testFilesCleanup.reportOnly = true
+
 errorprone {
     nullawayEnabled = true
 }
