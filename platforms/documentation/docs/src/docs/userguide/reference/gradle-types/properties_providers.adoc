@@ -118,6 +118,10 @@ Gradle's managed properties allow you to declare properties as getters (Java, Gr
 
 Gradle then automatically provides the implementation for these properties, managing their state.
 
+Method names must follow the JavaBeans getter naming convention: for a property `foo` of type `Property<String>`, declare an abstract method `Property<String> getFoo()`.
+The `get` prefix is required; methods without it are not recognized as managed properties.
+In Kotlin, abstract properties (`abstract val foo: Property<String>`) compile to the same convention automatically.
+
 A property may be _mutable_, meaning that it is of type `Property`, which has both a `get()` and a `set()` method:
 
 ====

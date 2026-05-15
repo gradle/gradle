@@ -47,6 +47,9 @@ The parameters type must implement (or extend) link:{javadocPath}/org/gradle/api
 The service implementation can access the parameters using `this.getParameters()`.
 The parameters type is also a <<properties_providers.adoc#properties_and_providers,custom Gradle type>>.
 
+This means parameter methods must follow the JavaBeans getter naming convention: declare `Property<String> getName()`, not `Property<String> name()`.
+See <<properties_providers.adoc#managed_properties, Using Gradle Managed Properties>> for the full conventions.
+
 When the build service does not require any parameters, you can use link:{javadocPath}/org/gradle/api/services/BuildServiceParameters.None.html[BuildServiceParameters.None] as the type of parameter.
 
 [source, groovy]
