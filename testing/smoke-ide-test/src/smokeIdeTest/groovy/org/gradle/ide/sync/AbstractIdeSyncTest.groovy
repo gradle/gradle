@@ -40,19 +40,28 @@ import org.gradle.profiler.ide.tools.AndroidStudioFinder
 import org.gradle.profiler.ide.tools.IntellijFinder
 import org.gradle.profiler.instrument.PidInstrumentation
 import org.gradle.profiler.report.Format
+import org.gradle.test.fixtures.file.CleanupTestDirectory
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.junit.Rule
 import spock.lang.Specification
-import spock.lang.TempDir
 
 /**
  * Tests that runs a project import to IDE, with an provisioning of the desired version.
  */
+@LeaksFileHandles
+@CleanupTestDirectory
 abstract class AbstractIdeSyncTest extends Specification {
 
-    @TempDir
-    File testDirectory
+    @Rule
+    public final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
 
     private final GradleDistribution distribution = new UnderDevelopmentGradleDistribution(getBuildContext())
+
+    TestFile getTestDirectory() {
+        temporaryFolder.testDirectory
+    }
 
     IntegrationTestBuildContext getBuildContext() {
         return IntegrationTestBuildContext.INSTANCE
@@ -152,9 +161,17 @@ abstract class AbstractIdeSyncTest extends Specification {
         Logging.setupLogging(testDirectory)
         try {
             ideInvoker.run(ideScenarioDefinition, invocationSettings, {})
+        } catch (Throwable t) {
+            printIdeLogsIfExists(ideSandboxDir, ide)
+            throw t
         } finally {
             Logging.resetLogging()
         }
+    }
+
+    private static void printIdeLogsIfExists(File ideSandboxDir, IdeType ide) {
+        def logFile = new File(ideSandboxDir, "logs/idea.log")
+        println "[${ide.displayName} LOGS] " + (logFile.exists() ? "\n${logFile.text}" : "${logFile.absolutePath} doesn't exist")
     }
 
     private static InvocationSettings.InvocationSettingsBuilder ideSyncInvocationSettingsBuilder(
