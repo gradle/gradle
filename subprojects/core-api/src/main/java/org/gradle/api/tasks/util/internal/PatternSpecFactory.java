@@ -16,8 +16,6 @@
 
 package org.gradle.api.tasks.util.internal;
 
-import org.apache.tools.ant.DirectoryScanner;
-import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.internal.file.RelativePathSpec;
 import org.gradle.api.internal.file.pattern.PatternMatcher;
@@ -26,13 +24,12 @@ import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.file.excludes.FileSystemDefaultExcludesListener;
+import org.gradle.internal.file.excludes.GradleDefaultExcludes;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.Comparator;
 import java.util.EnumMap;
 import java.util.HashSet;
 import java.util.List;
@@ -48,12 +45,16 @@ import java.util.Set;
 @ServiceScope(Scope.Global.class)
 public class PatternSpecFactory implements FileSystemDefaultExcludesListener {
     public static final PatternSpecFactory INSTANCE = new PatternSpecFactory();
-    private Set<String> previousDefaultExcludes = new HashSet<String>();
+    private Set<String> currentDefaultExcludes = new HashSet<>(GradleDefaultExcludes.DEFAULT_EXCLUDES);
     private final Map<CaseSensitivity, Spec<FileTreeElement>> defaultExcludeSpecCache = new EnumMap<>(CaseSensitivity.class);
 
     @Override
-    public void onDefaultExcludesChanged(List<String> excludes) {
-        setDefaultExcludesFromSettings(excludes.toArray(new String[0]));
+    public synchronized void onDefaultExcludesChanged(List<String> excludes) {
+        Set<String> newDefaults = new HashSet<>(excludes);
+        if (!currentDefaultExcludes.equals(newDefaults)) {
+            currentDefaultExcludes = newDefaults;
+            defaultExcludeSpecCache.clear();
+        }
     }
 
     public Spec<FileTreeElement> createSpec(PatternSet patternSet) {
@@ -90,40 +91,15 @@ public class PatternSpecFactory implements FileSystemDefaultExcludesListener {
     }
 
     private synchronized Spec<FileTreeElement> getDefaultExcludeSpec(CaseSensitivity caseSensitivity) {
-        Set<String> defaultExcludes = new HashSet<String>(Arrays.asList(DirectoryScanner.getDefaultExcludes()));
-        if (defaultExcludeSpecCache.isEmpty()) {
-            updateDefaultExcludeSpecCache(defaultExcludes);
-        } else if (invalidChangeOfExcludes(defaultExcludes)) {
-            failOnChangedDefaultExcludes(previousDefaultExcludes, defaultExcludes);
+        // Lazy population: do not call createSpec from a field initializer or constructor.
+        // CachingPatternSpecFactory overrides createSpec and relies on its own field that is
+        // not yet initialized at superclass-construction time.
+        Spec<FileTreeElement> spec = defaultExcludeSpecCache.get(caseSensitivity);
+        if (spec == null) {
+            spec = createSpec(currentDefaultExcludes, false, caseSensitivity.isCaseSensitive());
+            defaultExcludeSpecCache.put(caseSensitivity, spec);
         }
-
-        return defaultExcludeSpecCache.get(caseSensitivity);
-    }
-
-    private boolean invalidChangeOfExcludes(Set<String> defaultExcludes) {
-        return !previousDefaultExcludes.equals(defaultExcludes);
-    }
-
-    private void failOnChangedDefaultExcludes(Set<String> excludesFromSettings, Set<String> newDefaultExcludes) {
-        List<String> sortedExcludesFromSettings = new ArrayList<String>(excludesFromSettings);
-        sortedExcludesFromSettings.sort(Comparator.naturalOrder());
-        List<String> sortedNewExcludes = new ArrayList<String>(newDefaultExcludes);
-        sortedNewExcludes.sort(Comparator.naturalOrder());
-        throw new InvalidUserCodeException(String.format("Cannot change default excludes during the build. They were changed from %s to %s. Configure default excludes in the settings script instead.",  sortedExcludesFromSettings, sortedNewExcludes));
-    }
-
-    public synchronized void setDefaultExcludesFromSettings(String[] excludesFromSettings) {
-        Set<String> excludesFromSettingsSet = new HashSet<String>(Arrays.asList(excludesFromSettings));
-        if (!previousDefaultExcludes.equals(excludesFromSettingsSet)) {
-            updateDefaultExcludeSpecCache(excludesFromSettingsSet);
-        }
-    }
-
-    private void updateDefaultExcludeSpecCache(Set<String> defaultExcludes) {
-        previousDefaultExcludes = defaultExcludes;
-        for (CaseSensitivity caseSensitivity : CaseSensitivity.values()) {
-            defaultExcludeSpecCache.put(caseSensitivity, createSpec(defaultExcludes, false, caseSensitivity.isCaseSensitive()));
-        }
+        return spec;
     }
 
     protected Spec<FileTreeElement> createSpec(Collection<String> patterns, boolean include, boolean caseSensitive) {
