@@ -98,6 +98,7 @@ public abstract class AbstractResourceLockRegistry<K, T extends ResourceLock> im
     }
 
     private ThreadLockDetails<T> detailsForCurrentThread() {
+        @SuppressWarnings("deprecation") // Thread.getId() is deprecated since JDK 19, but the replacement Thread.threadId() does not exist on JDK 17 (production target).
         long id = Thread.currentThread().getId();
         ThreadLockDetails<T> lockDetails = threadLocks.get(id);
         if (lockDetails == null) {
@@ -109,6 +110,7 @@ public abstract class AbstractResourceLockRegistry<K, T extends ResourceLock> im
 
     @Override
     public void lockReleased(ResourceLock resourceLock) {
+        @SuppressWarnings("deprecation") // Thread.getId() is deprecated since JDK 19, but the replacement Thread.threadId() does not exist on JDK 17 (production target).
         ThreadLockDetails<T> lockDetails = threadLocks.get(Thread.currentThread().getId());
         if (lockDetails == null || !lockDetails.mayChange) {
             throw new IllegalStateException("This thread may not release any locks.");
