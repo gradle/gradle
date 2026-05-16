@@ -48,6 +48,6 @@ public class SupportedJavaVersions {
      * version will not require a newer minimum Java version. When you update this version,
      * be sure to add an entry to the upgrade guide.
      */
-    public static final int FUTURE_MINIMUM_DAEMON_JAVA_VERSION = 17;
+    public static final int FUTURE_MINIMUM_DAEMON_JAVA_VERSION = 21;
 
 }

@@ -431,12 +431,12 @@ class LoggingBuildOperationProgressIntegTest extends AbstractIntegrationSpec {
         """
         when:
         succeeds 'build' // ensure all deps are downloaded
-        succeeds 'build'
+        succeeds 'build', '--no-problems-report' // To avoid generating progress event for problems report when deprecations are emitted
 
         then:
         def progressOutputEvents = operations.progress(OutputEvent)
             .with { it as List<BuildOperationRecord.Progress> }
-        // Ignore deprecations, these are checked by the testing infrastructure.
+            // Ignore deprecations, these are checked by the testing infrastructure.
             .findAll { it.details.get("category") != LoggingDeprecatedFeatureHandler.class.name }
 
         assert progressOutputEvents.size() == getNumberOfExpectedEvents()

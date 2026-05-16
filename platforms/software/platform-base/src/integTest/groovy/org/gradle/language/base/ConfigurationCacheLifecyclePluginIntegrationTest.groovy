@@ -62,7 +62,7 @@ class ConfigurationCacheLifecyclePluginIntegrationTest extends AbstractIntegrati
 
         when:
         buildDir.mkdir()
-        run 'clean'
+        run 'clean', '--no-problems-report' // Otherwise build dir is not empty if deprecations are emitted
 
         then:
         configurationCache.assertStateStored()
@@ -72,7 +72,7 @@ class ConfigurationCacheLifecyclePluginIntegrationTest extends AbstractIntegrati
 
         when:
         buildDir.mkdir()
-        run 'clean'
+        run 'clean', '--no-problems-report' // Otherwise build dir is not empty if deprecations are emitted
 
         then:
         configurationCache.assertStateLoaded()
