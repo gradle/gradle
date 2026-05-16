@@ -99,49 +99,6 @@ task retrieve(type: Sync) {
         buildDir.file('projectB-9.1.jar').assertIsCopyOf(moduleB.artifactFile)
     }
 
-    void "uses artifactUrls to resolve artifacts"() {
-        given:
-        def moduleA = mavenRepo().module('group', 'projectA', '1.2')
-        def moduleB = mavenRepo().module('group', 'projectB', '9.1')
-        moduleA.publish()
-        moduleB.publish()
-
-        def artifactsRepo = mavenRepo('artifactsRepo')
-        // Create a module to get the correct module directory, but do not publish the module
-        def artifactsModuleA = artifactsRepo.module('group', 'projectA', '1.2')
-        moduleA.artifactFile.moveToDirectory(artifactsModuleA.moduleDir)
-
-        and:
-        buildFile << """
-repositories {
-    maven {
-        url = "${mavenRepo().uri}"
-        artifactUrls "${artifactsRepo.uri}"
-    }
-}
-configurations { compile }
-dependencies {
-    compile 'group:projectA:1.2'
-    compile 'group:projectB:9.1'
-}
-
-task retrieve(type: Sync) {
-    from configurations.compile
-    into 'build'
-}
-"""
-
-        when:
-        executer.expectDocumentedDeprecationWarning("The MavenArtifactRepository.artifactUrls(Object...) method has been deprecated. This is scheduled to be removed in Gradle 10. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_maven_artifact_urls")
-        runRetrieveTask()
-
-        then:
-        def buildDir = file('build')
-        buildDir.assertHasDescendants('projectA-1.2.jar', 'projectB-9.1.jar')
-        buildDir.file('projectA-1.2.jar').assertIsCopyOf(artifactsModuleA.artifactFile)
-        buildDir.file('projectB-9.1.jar').assertIsCopyOf(moduleB.artifactFile)
-    }
-
     def "cannot define authentication for local file repo"() {
         given:
         def repo = mavenRepo()

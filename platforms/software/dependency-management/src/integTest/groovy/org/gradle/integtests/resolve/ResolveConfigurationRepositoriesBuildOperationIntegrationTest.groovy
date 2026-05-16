@@ -216,7 +216,6 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
                 maven {
                     name = 'custom repo'
                     url = 'http://example.com'
-                    artifactUrls 'http://example.com/artifacts1'
                     metadataSources { gradleMetadata(); artifact() }
                     credentials {
                         username = 'user'
@@ -234,7 +233,6 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
         """
 
         when:
-        executer.expectDocumentedDeprecationWarning("The MavenArtifactRepository.artifactUrls(Object...) method has been deprecated. This is scheduled to be removed in Gradle 10. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_maven_artifact_urls")
         succeeds 'resolve'
 
         then:
@@ -246,7 +244,7 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
             type == 'MAVEN'
             properties.size() == 5
             properties.URL == 'http://example.com'
-            properties.ARTIFACT_URLS == ['http://example.com/artifacts1']
+            properties.ARTIFACT_URLS == []
             properties.METADATA_SOURCES == ['gradleMetadata', 'artifact']
             properties.AUTHENTICATED == true
             properties.'AUTHENTICATION_SCHEMES' == ['DigestAuthentication']
@@ -447,24 +445,6 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
                 AUTHENTICATED: false,
                 AUTHENTICATION_SCHEMES: [],
                 URL: null,
-            ]
-        ]
-    }
-
-    private static String mavenRepoNoUrlBlock() {
-        "repositories { maven { artifactUrls 'http://artifactUrl' } }"
-    }
-
-    private static Map expectedMavenRepoNoUrl() {
-        [
-            id: 'maven',
-            name: 'maven',
-            type: 'MAVEN',
-            properties: [
-                ARTIFACT_URLS: ['http://artifactUrl'],
-                METADATA_SOURCES: ['mavenPom'],
-                AUTHENTICATED: false,
-                AUTHENTICATION_SCHEMES: []
             ]
         ]
     }

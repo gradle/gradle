@@ -1,3 +1,76 @@
 {
-    "acceptedApiChanges": []
+    "acceptedApiChanges": [
+        {
+            "type": "org.gradle.api.artifacts.dsl.RepositoryHandler",
+            "member": "Method org.gradle.api.artifacts.dsl.RepositoryHandler.flatDir(java.util.Map)",
+            "acceptation": "Removed deprecated method (deprecated in 9.6, removed in 10.0)",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.dsl.RepositoryHandler",
+            "member": "Method org.gradle.api.artifacts.dsl.RepositoryHandler.mavenCentral(java.util.Map)",
+            "acceptation": "Removed deprecated method (deprecated in 9.6, removed in 10.0)",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.repositories.MavenArtifactRepository",
+            "member": "Method org.gradle.api.artifacts.repositories.MavenArtifactRepository.artifactUrls(java.lang.Object[])",
+            "acceptation": "Removed deprecated method (deprecated in 9.6, removed in 10.0)",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.repositories.MavenArtifactRepository",
+            "member": "Method org.gradle.api.artifacts.repositories.MavenArtifactRepository.getArtifactUrls()",
+            "acceptation": "Removed deprecated method (deprecated in 9.6, removed in 10.0)",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.repositories.MavenArtifactRepository",
+            "member": "Method org.gradle.api.artifacts.repositories.MavenArtifactRepository.setArtifactUrls(java.lang.Iterable)",
+            "acceptation": "Removed deprecated method (deprecated in 9.6, removed in 10.0)",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.repositories.MavenArtifactRepository",
+            "member": "Method org.gradle.api.artifacts.repositories.MavenArtifactRepository.setArtifactUrls(java.util.Set)",
+            "acceptation": "Removed deprecated method (deprecated in 9.6, removed in 10.0)",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_cw38m8kck8xish1af93pdblz2Kt",
+            "member": "Class org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_cw38m8kck8xish1af93pdblz2Kt",
+            "acceptation": "Auto-generated Kotlin DSL extensions class hash changed after removing deprecated flatDir(Map)/mavenCentral(Map) overloads",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_cw38m8kck8xish1af93pdblz2Kt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_cw38m8kck8xish1af93pdblz2Kt.flatDir(org.gradle.api.artifacts.dsl.RepositoryHandler,kotlin.Pair[])",
+            "acceptation": "Auto-generated Kotlin DSL extension removed alongside deprecated RepositoryHandler.flatDir(Map)",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_cw38m8kck8xish1af93pdblz2Kt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_cw38m8kck8xish1af93pdblz2Kt.mavenCentral(org.gradle.api.artifacts.dsl.RepositoryHandler,kotlin.Pair[])",
+            "acceptation": "Auto-generated Kotlin DSL extension removed alongside deprecated RepositoryHandler.mavenCentral(Map)",
+            "changes": [
+                "Method has been removed"
+            ]
+        }
+    ]
 }

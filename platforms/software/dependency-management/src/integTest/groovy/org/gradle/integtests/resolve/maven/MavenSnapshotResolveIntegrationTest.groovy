@@ -17,7 +17,6 @@ package org.gradle.integtests.resolve.maven
 
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 import org.gradle.test.fixtures.maven.MavenModule
 import org.gradle.test.fixtures.maven.MavenRepository
@@ -120,71 +119,6 @@ task retrieve(type: Sync) {
         result.assertTaskSkipped(':retrieve')
         file('libs/projectA-1.0-SNAPSHOT.jar').assertHasNotChangedSince(snapshotA);
         file('libs/nonunique-1.0-SNAPSHOT.jar').assertHasNotChangedSince(snapshotNonUnique);
-    }
-
-    def "can find and cache snapshots in Maven HTTP repository with additional artifact urls"() {
-        def repo1 = mavenHttpRepo("repo1")
-        def repo2 = mavenHttpRepo("repo2")
-
-        given:
-        buildFile << """
-repositories.clear() // Do not use default repo
-repositories {
-    maven {
-        url = "${repo1.uri}"
-        artifactUrls "${repo2.uri}"
-    }
-}
-
-dependencies {
-    compile "org.gradle.integtests.resolve:projectA:1.0-SNAPSHOT"
-    compile "org.gradle.integtests.resolve:projectB:1.0-SNAPSHOT"
-}
-
-task retrieve(type: Sync) {
-    into 'libs'
-    from configurations.compile
-}
-"""
-
-        and: "snapshot modules are published"
-        def projectA = publishModule(repo1, "org.gradle.integtests.resolve", "projectA", "1.0-SNAPSHOT")
-        def repo1ProjectB = publishModule(repo1, "org.gradle.integtests.resolve", "projectB", "1.0-SNAPSHOT")
-        def repo2ProjectB = publishModule(repo2, "org.gradle.integtests.resolve", "projectB", "1.0-SNAPSHOT")
-
-        when: "Server provides projectA from repo1"
-        expectModuleServed(projectA)
-
-        and: "Server provides projectB with artifact in repo2"
-        repo1ProjectB.metaData.expectGet()
-        repo1ProjectB.pom.expectGet()
-        if (isGradleMetadataPublished()) {
-            repo1ProjectB.moduleMetadata.expectGet()
-        }
-        repo1ProjectB.artifact.expectGetMissing()
-        repo2ProjectB.artifact.expectGet()
-
-        and: "We resolve dependencies"
-        executer.expectDocumentedDeprecationWarning("The MavenArtifactRepository.artifactUrls(Object...) method has been deprecated. This is scheduled to be removed in Gradle 10. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_maven_artifact_urls")
-        runRetrieveTask()
-
-        then: "Snapshots are downloaded"
-        file('libs').assertHasDescendants('projectA-1.0-SNAPSHOT.jar', 'projectB-1.0-SNAPSHOT.jar')
-        def snapshotA = file('libs/projectA-1.0-SNAPSHOT.jar').snapshot()
-        def snapshotB = file('libs/projectB-1.0-SNAPSHOT.jar').snapshot()
-
-        when: "We resolve with snapshots cached: no server requests"
-        server.resetExpectations()
-        if (!GradleContextualExecuter.configCache) {
-            // With CC, the configuration is reused and the build script is not re-evaluated, so the deprecation does not re-fire
-            executer.expectDocumentedDeprecationWarning("The MavenArtifactRepository.artifactUrls(Object...) method has been deprecated. This is scheduled to be removed in Gradle 10. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_maven_artifact_urls")
-        }
-        def result = run('retrieve')
-
-        then: "Everything is up to date"
-        result.assertTaskSkipped(':retrieve')
-        file('libs/projectA-1.0-SNAPSHOT.jar').assertHasNotChangedSince(snapshotA);
-        file('libs/projectB-1.0-SNAPSHOT.jar').assertHasNotChangedSince(snapshotB);
     }
 
     def "can find and cache snapshots in Maven HTTP repository with artifact classifier"() {

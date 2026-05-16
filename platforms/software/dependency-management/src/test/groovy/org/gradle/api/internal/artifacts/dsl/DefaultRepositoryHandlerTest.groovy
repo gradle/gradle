@@ -24,7 +24,6 @@ import org.gradle.api.internal.CollectionCallbackActionDecorator
 import org.gradle.api.internal.artifacts.BaseRepositoryFactory
 import org.gradle.api.internal.artifacts.DefaultArtifactRepositoryContainerTest
 import org.gradle.internal.reflect.Instantiator
-import org.gradle.test.fixtures.ExpectDeprecation
 import org.gradle.util.TestUtil
 
 class DefaultRepositoryHandlerTest extends DefaultArtifactRepositoryContainerTest {
@@ -51,16 +50,6 @@ class DefaultRepositoryHandlerTest extends DefaultArtifactRepositoryContainerTes
         handler.flatDir { name = 'libs' }.is(repository)
     }
 
-    @ExpectDeprecation("The RepositoryHandler.flatDir(Map) method has been deprecated.")
-    def testFlatDirWithMap() {
-        given:
-        def repository = Mock(TestFlatDirectoryArtifactRepository) { getName() >> "name" }
-        1 * repositoryFactory.createFlatDirRepository() >> repository
-
-        expect:
-        handler.flatDir([name: 'libs'] + [dirs: ['a', 'b']]).is(repository)
-    }
-
     public void testMavenCentralWithNoArgs() {
         when:
         MavenArtifactRepository repository = Mock(TestMavenArtifactRepository) { getName() >> "name" }
@@ -69,18 +58,6 @@ class DefaultRepositoryHandlerTest extends DefaultArtifactRepositoryContainerTes
 
         then:
         handler.mavenCentral().is(repository)
-    }
-
-    @ExpectDeprecation("The RepositoryHandler.mavenCentral(Map) method has been deprecated.")
-    public void testMavenCentralWithMap() {
-        when:
-        MavenArtifactRepository repository = Mock(TestMavenArtifactRepository) { getName() >> "name" }
-        1 * repositoryFactory.createMavenCentralRepository() >> repository
-        1 * repository.setArtifactUrls(["abc"])
-        repository.getName() >> "name"
-
-        then:
-        handler.mavenCentral(artifactUrls: ["abc"]).is(repository)
     }
 
     def testMavenLocalWithNoArgs() {

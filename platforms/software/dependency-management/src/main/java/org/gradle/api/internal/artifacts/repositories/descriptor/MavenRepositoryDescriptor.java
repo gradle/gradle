@@ -25,18 +25,18 @@ import org.gradle.api.internal.artifacts.repositories.resolver.ResourcePattern;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
 import java.net.URI;
-import java.util.Collection;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
 public class MavenRepositoryDescriptor extends UrlRepositoryDescriptor {
     @UsedByScanPlugin("doesn't link against this type, but expects these values - See ResolveConfigurationDependenciesBuildOperationType")
     private enum Property {
+        // Retained for build-scan-plugin compatibility. The value is always an empty list since the
+        // MavenArtifactRepository#artifactUrls family was removed in Gradle 10. Remove in the next major.
         ARTIFACT_URLS,
     }
 
     private final ImmutableList<ResourcePattern> metadataResources;
-    private final ImmutableList<URI> artifactUrls;
     private final ImmutableList<ResourcePattern> artifactResources;
 
     private MavenRepositoryDescriptor(
@@ -47,11 +47,9 @@ public class MavenRepositoryDescriptor extends UrlRepositoryDescriptor {
         ImmutableList<ResourcePattern> artifactResources,
         ImmutableList<String> metadataSources,
         boolean authenticated,
-        ImmutableList<String> authenticationSchemes,
-        ImmutableList<URI> artifactUrls
+        ImmutableList<String> authenticationSchemes
     ) {
         super(id, name, url, metadataSources, authenticated, authenticationSchemes);
-        this.artifactUrls = artifactUrls;
         this.metadataResources = metadataResources;
         this.artifactResources = artifactResources;
     }
@@ -74,33 +72,20 @@ public class MavenRepositoryDescriptor extends UrlRepositoryDescriptor {
     @Override
     protected void addProperties(ImmutableSortedMap.Builder<String, Object> builder) {
         super.addProperties(builder);
-        builder.put(Property.ARTIFACT_URLS.name(), artifactUrls);
+        builder.put(Property.ARTIFACT_URLS.name(), ImmutableList.<URI>of());
     }
 
     public static class Builder extends UrlRepositoryDescriptor.Builder<Builder> {
-
-        private ImmutableList<URI> artifactUrls;
 
         public Builder(String name, URI url) {
             super(name, url);
         }
 
-        public Builder setArtifactUrls(Collection<URI> artifactUrls) {
-            this.artifactUrls = ImmutableList.copyOf(artifactUrls);
-            return this;
-        }
-
         public MavenRepositoryDescriptor create() {
-            checkNotNull(artifactUrls);
             checkNotNull(metadataSources);
 
             ImmutableList<ResourcePattern> metadataResources = ImmutableList.of(new M2ResourcePattern(url, MavenPattern.M2_PATTERN));
-            ImmutableList.Builder<ResourcePattern> artifactResourcesBuilder = ImmutableList.builderWithExpectedSize(1 + artifactUrls.size());
-            artifactResourcesBuilder.add(new M2ResourcePattern(url, MavenPattern.M2_PATTERN));
-            for (URI rootUri : artifactUrls) {
-                artifactResourcesBuilder.add(new M2ResourcePattern(rootUri, MavenPattern.M2_PATTERN));
-            }
-            ImmutableList<ResourcePattern> artifactResources = artifactResourcesBuilder.build();
+            ImmutableList<ResourcePattern> artifactResources = ImmutableList.of(new M2ResourcePattern(url, MavenPattern.M2_PATTERN));
 
             String id = calculateId(MavenResolver.class, metadataResources, artifactResources, metadataSources, hasher -> {});
 
@@ -112,8 +97,7 @@ public class MavenRepositoryDescriptor extends UrlRepositoryDescriptor {
                 artifactResources,
                 metadataSources,
                 checkNotNull(authenticated),
-                checkNotNull(authenticationSchemes),
-                artifactUrls
+                checkNotNull(authenticationSchemes)
             );
         }
     }

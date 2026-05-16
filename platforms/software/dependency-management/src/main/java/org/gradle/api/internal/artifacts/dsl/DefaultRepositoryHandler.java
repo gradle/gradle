@@ -27,25 +27,19 @@ import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.artifacts.repositories.RepositoryContentDescriptor;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
-import org.gradle.api.internal.ConfigureByMapAction;
 import org.gradle.api.internal.artifacts.BaseRepositoryFactory;
 import org.gradle.api.internal.artifacts.DefaultArtifactRepositoryContainer;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.internal.ConfigureUtil;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import static org.gradle.util.internal.CollectionUtils.flattenCollections;
 
 public class DefaultRepositoryHandler extends DefaultArtifactRepositoryContainer implements RepositoryHandlerInternal {
 
@@ -78,21 +72,6 @@ public class DefaultRepositoryHandler extends DefaultArtifactRepositoryContainer
     }
 
     @Override
-    @Deprecated
-    public FlatDirectoryArtifactRepository flatDir(Map<String, ?> args) {
-        DeprecationLogger.deprecateMethod(RepositoryHandler.class, "flatDir(Map)")
-            .withAdvice("Use flatDir(Action) instead.")
-            .willBeRemovedInGradle10()
-            .withUpgradeGuideSection(9, "deprecated_repository_handler_map_overloads")
-            .nagUser();
-        Map<String, Object> modifiedArgs = new HashMap<>(args);
-        if (modifiedArgs.containsKey("dirs")) {
-            modifiedArgs.put("dirs", flattenCollections(modifiedArgs.get("dirs")));
-        }
-        return flatDir(new ConfigureByMapAction<>(modifiedArgs));
-    }
-
-    @Override
     public ArtifactRepository gradlePluginPortal() {
         return addRepository(repositoryFactory.createGradlePluginPortal(), GRADLE_PLUGIN_PORTAL_REPO_NAME);
     }
@@ -110,18 +89,6 @@ public class DefaultRepositoryHandler extends DefaultArtifactRepositoryContainer
     @Override
     public MavenArtifactRepository mavenCentral(Action<? super MavenArtifactRepository> action) {
         return addRepository(repositoryFactory.createMavenCentralRepository(), DEFAULT_MAVEN_CENTRAL_REPO_NAME, action);
-    }
-
-    @Override
-    @Deprecated
-    public MavenArtifactRepository mavenCentral(Map<String, ?> args) {
-        DeprecationLogger.deprecateMethod(RepositoryHandler.class, "mavenCentral(Map)")
-            .withAdvice("Use mavenCentral(Action) instead.")
-            .willBeRemovedInGradle10()
-            .withUpgradeGuideSection(9, "deprecated_repository_handler_map_overloads")
-            .nagUser();
-        Map<String, Object> modifiedArgs = new HashMap<>(args);
-        return addRepository(repositoryFactory.createMavenCentralRepository(), DEFAULT_MAVEN_CENTRAL_REPO_NAME, new ConfigureByMapAction<>(modifiedArgs));
     }
 
     @Override
