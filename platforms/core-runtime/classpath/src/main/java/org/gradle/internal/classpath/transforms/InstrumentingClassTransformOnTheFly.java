@@ -17,7 +17,7 @@
 package org.gradle.internal.classpath.transforms;
 
 import org.gradle.internal.UncheckedException;
-import org.gradle.internal.classloader.OnTheFlyClassTransform;
+import org.gradle.internal.classpath.OnTheFlyClassTransform;
 import org.gradle.internal.classpath.types.InstrumentationTypeRegistry;
 import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorFilter;
 

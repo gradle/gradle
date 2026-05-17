@@ -20,6 +20,7 @@ import org.apache.commons.io.IOUtils;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
 import org.gradle.internal.classpath.ClassPath;
+import org.gradle.internal.classpath.OnTheFlyClassTransform;
 import org.gradle.internal.classpath.TransformedClassPath;
 import org.jspecify.annotations.Nullable;
 

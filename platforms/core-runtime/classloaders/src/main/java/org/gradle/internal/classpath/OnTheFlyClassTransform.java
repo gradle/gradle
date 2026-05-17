@@ -14,8 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.classloader;
+package org.gradle.internal.classpath;
 
+import org.jspecify.annotations.NullMarked;
+
+@NullMarked
 public interface OnTheFlyClassTransform {
 
     byte[] transform(String className, byte[] classfileBuffer);

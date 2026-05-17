@@ -20,7 +20,6 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import org.gradle.api.specs.Spec;
-import org.gradle.internal.classloader.OnTheFlyClassTransform;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 

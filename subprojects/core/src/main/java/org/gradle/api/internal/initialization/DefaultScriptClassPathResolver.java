@@ -40,8 +40,8 @@ import org.gradle.api.internal.initialization.transform.services.CacheInstrument
 import org.gradle.api.internal.initialization.transform.utils.InstrumentationClasspathMerger;
 import org.gradle.api.internal.initialization.transform.utils.InstrumentationClasspathMerger.FileType;
 import org.gradle.api.invocation.Gradle;
-import org.gradle.internal.classloader.OnTheFlyClassTransform;
 import org.gradle.internal.classpath.ClassPath;
+import org.gradle.internal.classpath.OnTheFlyClassTransform;
 import org.gradle.internal.classpath.TransformedClassPath;
 import org.gradle.internal.classpath.transforms.InstrumentingClassTransformOnTheFly;
 import org.gradle.internal.classpath.types.InstrumentationTypeRegistry;
