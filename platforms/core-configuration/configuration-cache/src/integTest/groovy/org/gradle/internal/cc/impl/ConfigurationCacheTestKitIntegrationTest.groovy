@@ -134,6 +134,119 @@ class ConfigurationCacheTestKitIntegrationTest extends AbstractConfigurationCach
         !output.contains("Configuration cache problems found")
     }
 
+    private File buildTransformerAgentJar() {
+        def builder = artifactBuilder()
+        builder.sourceFile("TestAgent.java") << """
+            import java.lang.instrument.ClassFileTransformer;
+            import java.lang.instrument.Instrumentation;
+            import java.security.ProtectionDomain;
+
+            public class TestAgent {
+                public static void premain(String p1, Instrumentation inst) {
+                    inst.addTransformer(new ClassFileTransformer() {
+                        public byte[] transform(ClassLoader loader, String className, Class<?> classBeingRedefined,
+                                                 ProtectionDomain pd, byte[] classfileBuffer) {
+                            return null;
+                        }
+                    });
+                }
+            }
+        """
+        builder.manifestAttributes("Premain-Class": "TestAgent")
+        def agentJar = file("transformer-agent.jar")
+        builder.buildJar(agentJar)
+        agentJar
+    }
+
+    def "third-party Java agent that registers a class-file transformer does not cause a configuration-cache problem"() {
+        given:
+        def agentJar = buildTransformerAgentJar()
+        buildFile << ""
+        settingsFile << ""
+
+        when:
+        def runner = GradleRunner.create()
+        runner.withJvmArguments("-javaagent:${agentJar}")
+        runner.withGradleInstallation(buildContext.gradleHomeDir)
+        runner.withArguments("--configuration-cache")
+        runner.forwardOutput()
+        runner.withProjectDir(testDirectory)
+        runner.withPluginClasspath([new File("some-dir")])
+        def result = runner.build()
+        def output = result.output
+
+        then:
+        !output.contains("Configuration cache problems found")
+        !output.contains("third-party Java agents with inactive Gradle's instrumentation agent are not supported by the configuration cache")
+    }
+
+    def "JDWP debug agent does not cause a configuration-cache problem"() {
+        given:
+        buildFile << ""
+        settingsFile << ""
+
+        when:
+        def runner = GradleRunner.create()
+        runner.withJvmArguments("-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:0")
+        runner.withGradleInstallation(buildContext.gradleHomeDir)
+        runner.withArguments("--configuration-cache")
+        runner.forwardOutput()
+        runner.withProjectDir(testDirectory)
+        runner.withPluginClasspath([new File("some-dir")])
+        def result = runner.build()
+        def output = result.output
+
+        then:
+        !output.contains("Configuration cache problems found")
+    }
+
+    private File buildFileWritingAgentJar() {
+        def builder = artifactBuilder()
+        builder.sourceFile("TestAgent.java") << """
+            import java.io.FileWriter;
+            import java.lang.instrument.Instrumentation;
+
+            public class TestAgent {
+                public static void premain(String args, Instrumentation inst) throws Exception {
+                    String destFile = args.startsWith("destfile=") ? args.substring("destfile=".length()) : args;
+                    try (FileWriter w = new FileWriter(destFile)) {
+                        w.write("agent-ran");
+                    }
+                }
+            }
+        """
+        builder.manifestAttributes("Premain-Class": "TestAgent")
+        def agentJar = file("file-writing-agent.jar")
+        builder.buildJar(agentJar)
+        agentJar
+    }
+
+    def "third-party Java agent that writes a file from premain runs under CC"() {
+        given:
+        def agentJar = buildFileWritingAgentJar()
+        def destFile = file("agent-output.txt")
+        buildFile << """
+            tasks.register("noop")
+        """
+        settingsFile << ""
+
+        when:
+        def runner = GradleRunner.create()
+        runner.withJvmArguments("-javaagent:${agentJar}=destfile=${destFile.absolutePath}")
+        runner.withGradleInstallation(buildContext.gradleHomeDir)
+        runner.withArguments("--configuration-cache", "noop")
+        runner.forwardOutput()
+        runner.withProjectDir(testDirectory)
+        runner.withPluginClasspath([new File("some-dir")])
+        def result = runner.build()
+        def output = result.output
+
+        then:
+        !output.contains("Configuration cache problems found")
+        destFile.exists()
+        destFile.length() > 0
+    }
+
     @Issue("https://github.com/gradle/gradle/issues/27956")
     def "dependencies of builds tested with TestKit in debug mode are instrumented and violations are reported"() {
         given:
