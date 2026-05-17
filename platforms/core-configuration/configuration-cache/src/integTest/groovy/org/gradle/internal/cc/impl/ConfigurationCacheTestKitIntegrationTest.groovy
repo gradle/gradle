@@ -292,18 +292,7 @@ class ConfigurationCacheTestKitIntegrationTest extends AbstractConfigurationCach
         output.contains("Configuration cache entry stored.")
     }
 
-    /**
-     * This test check that Jacoco works with TestKit when configuration cache is DISABLED.
-     * We don't have support for that case when configuration cache is enabled yet.
-     *
-     * But we broke --no-configuration-cache case already twice in the past, so it's worth testing it.
-     */
-    @Issue(["https://github.com/gradle/gradle/issues/13614", "https://github.com/gradle/gradle/issues/28729"])
-    @Requires(value = TestExecutionPreconditions.NotEmbeddedExecutor, reason = "Testing build using a TestKit")
-    def "running a test that applies Jacoco with TestKit should generate a test report when running without configuration cache"() {
-        given:
-        // Setting Jacoco destination dir to non-ascii location causes some problems,
-        // so let's write to a temporary directory without non-ascii characters
+    private void setUpJacocoTestKitProject(String innerCcArgument) {
         def jacocoDestinationFile = TextUtil.normaliseFileSeparators("${jacocoDestinationDir.absolutePath}/jacoco.exec")
         buildFile << """
             plugins {
@@ -407,7 +396,7 @@ class ConfigurationCacheTestKitIntegrationTest extends AbstractConfigurationCach
                     when:
                     def result = GradleRunner.create()
                         .withProjectDir(testProjectDir)
-                        .withArguments("testTask", "--no-configuration-cache")
+                        .withArguments("testTask", "$innerCcArgument")
                         .withPluginClasspath()
                         .withDebug(false)
                         .forwardOutput()
@@ -418,6 +407,32 @@ class ConfigurationCacheTestKitIntegrationTest extends AbstractConfigurationCach
                 }
             }
         """
+    }
+
+    /**
+     * This test check that Jacoco works with TestKit when configuration cache is DISABLED.
+     *
+     * We broke --no-configuration-cache case already twice in the past, so it's worth testing it.
+     */
+    @Issue(["https://github.com/gradle/gradle/issues/13614", "https://github.com/gradle/gradle/issues/28729"])
+    @Requires(value = TestExecutionPreconditions.NotEmbeddedExecutor, reason = "Testing build using a TestKit")
+    def "running a test that applies Jacoco with TestKit should generate a test report when running without configuration cache"() {
+        given:
+        setUpJacocoTestKitProject("--no-configuration-cache")
+
+        when:
+        succeeds("jacocoTestCoverageVerification")
+
+        then:
+        def report = new JacocoReportXmlFixture(file("build/reports/jacoco/test/jacocoTestReport.xml"))
+        report.assertHasClassCoverage("test.gradle.MyPlugin")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/25979")
+    @Requires(value = TestExecutionPreconditions.NotEmbeddedExecutor, reason = "Testing build using a TestKit")
+    def "running a test that applies Jacoco with TestKit should generate a test report when running with configuration cache"() {
+        given:
+        setUpJacocoTestKitProject("--configuration-cache")
 
         when:
         succeeds("jacocoTestCoverageVerification")
