@@ -16,14 +16,18 @@
 
 package org.gradle.internal.cc.impl.initialization
 
+import org.gradle.internal.instrumentation.agent.AgentStatus
 import org.gradle.plugin.use.resolve.service.internal.InjectedClasspathInstrumentationStrategy.TransformMode
 
 
-class VintageInjectedClasspathInstrumentationStrategy : AbstractInjectedClasspathInstrumentationStrategy() {
+class VintageInjectedClasspathInstrumentationStrategy(
+    private val agentStatus: AgentStatus,
+) : AbstractInjectedClasspathInstrumentationStrategy() {
 
     override fun getTransform(): TransformMode =
-        when {
-            isThirdPartyAgentPresent() -> TransformMode.NONE
-            else -> TransformMode.BUILD_LOGIC
+        if (!agentStatus.isAgentInstrumentationEnabled() && isThirdPartyAgentPresent()) {
+            TransformMode.NONE
+        } else {
+            TransformMode.BUILD_LOGIC
         }
 }
