@@ -164,15 +164,21 @@ public class VisitableURLClassLoader extends URLClassLoader implements ClassLoad
 
         private final TransformReplacer replacer;
         private final TransformErrorHandler errorHandler;
+        @Nullable
+        private final OnTheFlyClassTransform onTheFly;
 
         public InstrumentingVisitableURLClassLoader(String name, ClassLoader parent, TransformedClassPath classPath) {
             super(name, parent, classPath);
             replacer = new TransformReplacer(classPath);
             errorHandler = new TransformErrorHandler(name);
+            onTheFly = classPath.getOnTheFly();
         }
 
         @Override
         public byte @Nullable [] instrumentClass(@Nullable String className, @Nullable ProtectionDomain protectionDomain, byte[] classfileBuffer) {
+            if (onTheFly != null && className != null) {
+                return onTheFly.transform(className, classfileBuffer);
+            }
             return replacer.getInstrumentedClass(className, protectionDomain);
         }
 

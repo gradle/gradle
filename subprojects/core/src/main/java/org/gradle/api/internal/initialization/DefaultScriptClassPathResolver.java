@@ -40,10 +40,15 @@ import org.gradle.api.internal.initialization.transform.services.CacheInstrument
 import org.gradle.api.internal.initialization.transform.utils.InstrumentationClasspathMerger;
 import org.gradle.api.internal.initialization.transform.utils.InstrumentationClasspathMerger.FileType;
 import org.gradle.api.invocation.Gradle;
+import org.gradle.internal.classloader.OnTheFlyClassTransform;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.TransformedClassPath;
+import org.gradle.internal.classpath.transforms.InstrumentingClassTransformOnTheFly;
+import org.gradle.internal.classpath.types.InstrumentationTypeRegistry;
 import org.gradle.internal.component.local.model.OpaqueComponentIdentifier;
 import org.gradle.internal.instrumentation.agent.AgentStatus;
+import org.gradle.internal.instrumentation.agent.ThirdPartyAgentDetection;
+import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorFilter;
 import org.gradle.internal.instrumentation.reporting.MethodInterceptionReportCollector;
 import org.gradle.internal.instrumentation.reporting.PropertyUpgradeReportConfig;
 import org.gradle.internal.lazy.Lazy;
@@ -94,6 +99,7 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
 
     private final InstrumentationTransformRegisterer instrumentationTransformRegisterer;
     private final PropertyUpgradeReportConfig propertyUpgradeReportConfig;
+    private final AgentStatus agentStatus;
 
     public DefaultScriptClassPathResolver(
         AgentStatus agentStatus,
@@ -107,6 +113,7 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
             Lazy.atomic().of(gradle::getSharedServices)
         );
         this.propertyUpgradeReportConfig = propertyUpgradeReportConfig;
+        this.agentStatus = agentStatus;
     }
 
     @Override
@@ -139,6 +146,16 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
 
     @Override
     public ClassPath resolveClassPath(Configuration classpathConfiguration, ScriptClassPathResolutionContext resolutionContext) {
+        return doResolveClassPath(classpathConfiguration, resolutionContext, false);
+    }
+
+    @Override
+    public ClassPath resolveInjectedClassPath(Configuration classpathConfiguration, ScriptClassPathResolutionContext resolutionContext) {
+        boolean composeWithThirdPartyAgent = agentStatus.isAgentInstrumentationEnabled() && ThirdPartyAgentDetection.isThirdPartyAgentPresent();
+        return doResolveClassPath(classpathConfiguration, resolutionContext, composeWithThirdPartyAgent);
+    }
+
+    private ClassPath doResolveClassPath(Configuration classpathConfiguration, ScriptClassPathResolutionContext resolutionContext, boolean composeWithThirdPartyAgent) {
         // We clear resolution scope from service after the resolution is done, so data is not reused between invocations.
         long contextId = resolutionContext.getContextId();
         CacheInstrumentationDataBuildService buildService = resolutionContext.getBuildService().get();
@@ -156,7 +173,16 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
 
             MethodInterceptionReportCollector reportCollector = propertyUpgradeReportConfig.getReportCollector();
             instrumentedClasspath.getOrDefault(INTERCEPTED_METHODS_REPORT, Collections.emptyList()).forEach(reportCollector::collect);
-            return TransformedClassPath.handleInstrumentingArtifactTransform(instrumentedClasspath.getOrDefault(ARTIFACT, Collections.emptyList()));
+            ClassPath classPath = TransformedClassPath.handleInstrumentingArtifactTransform(instrumentedClasspath.getOrDefault(ARTIFACT, Collections.emptyList()));
+            if (composeWithThirdPartyAgent && classPath instanceof TransformedClassPath) {
+                InstrumentationTypeRegistry registry = buildService.getInstrumentationTypeRegistry(contextId);
+                OnTheFlyClassTransform onTheFly = new InstrumentingClassTransformOnTheFly(
+                    BytecodeInterceptorFilter.INSTRUMENTATION_AND_BYTECODE_UPGRADE,
+                    registry
+                );
+                return ((TransformedClassPath) classPath).withOnTheFly(onTheFly);
+            }
+            return classPath;
         }
     }
 

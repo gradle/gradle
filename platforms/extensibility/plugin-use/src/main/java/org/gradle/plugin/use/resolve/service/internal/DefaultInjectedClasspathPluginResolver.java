@@ -102,7 +102,7 @@ public class DefaultInjectedClasspathPluginResolver implements ClientInjectedCla
         Configuration configuration = configurations.detachedConfiguration(injectedClasspathDependency);
         ScriptClassPathResolutionContext resolutionContext = scriptClassPathResolver.prepareDependencyHandler(dependencies);
         scriptClassPathResolver.prepareClassPath(configuration, resolutionContext);
-        ClassPath instrumentedClassPath = scriptClassPathResolver.resolveClassPath(configuration, resolutionContext);
+        ClassPath instrumentedClassPath = scriptClassPathResolver.resolveInjectedClassPath(configuration, resolutionContext);
         return newPluginRegistryOf(instrumentedClassPath);
     }
 
