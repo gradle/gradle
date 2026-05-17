@@ -426,6 +426,7 @@ class ConfigurationCacheTestKitIntegrationTest extends AbstractConfigurationCach
         then:
         def report = new JacocoReportXmlFixture(file("build/reports/jacoco/test/jacocoTestReport.xml"))
         report.assertHasClassCoverage("test.gradle.MyPlugin")
+        report.assertMethodHasLineCoverage("test.gradle.MyPlugin", "apply")
     }
 
     @Issue("https://github.com/gradle/gradle/issues/25979")
@@ -440,5 +441,6 @@ class ConfigurationCacheTestKitIntegrationTest extends AbstractConfigurationCach
         then:
         def report = new JacocoReportXmlFixture(file("build/reports/jacoco/test/jacocoTestReport.xml"))
         report.assertHasClassCoverage("test.gradle.MyPlugin")
+        report.assertMethodHasLineCoverage("test.gradle.MyPlugin", "apply")
     }
 }
