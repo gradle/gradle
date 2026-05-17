@@ -27,15 +27,15 @@ import org.gradle.util.internal.TextUtil
 import spock.lang.Issue
 import spock.lang.TempDir
 
-import static org.gradle.integtests.fixtures.logging.ConfigurationCacheOutputNormalizer.PROMO_PREFIX
-
 @Requires(OsTestPreconditions.NotWindows)
 class ConfigurationCacheTestKitIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
 
     @TempDir
     File jacocoDestinationDir
 
-    def "reports when a TestKit build runs with a Java agent and configuration caching enabled"() {
+    @Issue("https://github.com/gradle/gradle/issues/25929")
+    def "third-party Java agent without a transformer does not cause a configuration-cache problem"() {
+        given:
         def builder = artifactBuilder()
         builder.sourceFile("TestAgent.java") << """
             public class TestAgent {
@@ -59,25 +59,12 @@ class ConfigurationCacheTestKitIntegrationTest extends AbstractConfigurationCach
         runner.forwardOutput()
         runner.withProjectDir(testDirectory)
         runner.withPluginClasspath([new File("some-dir")])
-        def result = runner.buildAndFail()
+        def result = runner.build()
         def output = result.output
 
         then:
-        output.contains("- Gradle runtime: support for using a Java agent with TestKit builds is not yet implemented with the configuration cache.")
-
-        when:
-        runner = GradleRunner.create()
-        runner.withJvmArguments("-javaagent:${agentJar}")
-        runner.withGradleInstallation(buildContext.gradleHomeDir)
-        runner.forwardOutput()
-        runner.withProjectDir(testDirectory)
-        runner.withPluginClasspath([new File("some-dir")])
-        result = runner.build()
-        output = result.output
-
-        then:
-        !output.contains("configuration cache")
-        !output.contains(PROMO_PREFIX)
+        !output.contains("support for using a Java agent with TestKit builds is not yet implemented with the configuration cache")
+        !output.contains("Configuration cache problems found")
     }
 
     @Issue("https://github.com/gradle/gradle/issues/27956")

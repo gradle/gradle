@@ -16,41 +16,13 @@
 
 package org.gradle.internal.cc.impl.initialization
 
-import org.gradle.internal.configuration.problems.DocumentationSection
-import org.gradle.internal.configuration.problems.ProblemsListener
-import org.gradle.internal.configuration.problems.PropertyProblem
-import org.gradle.internal.configuration.problems.PropertyTrace
-import org.gradle.internal.configuration.problems.StructuredMessage
 import org.gradle.internal.instrumentation.agent.AgentUtils
 import org.gradle.plugin.use.resolve.service.internal.InjectedClasspathInstrumentationStrategy
-import org.gradle.plugin.use.resolve.service.internal.InjectedClasspathInstrumentationStrategy.TransformMode
 import java.lang.management.ManagementFactory
 
 
-abstract class AbstractInjectedClasspathInstrumentationStrategy(
-    private val problems: ProblemsListener
-) : InjectedClasspathInstrumentationStrategy {
-    override fun getTransform(): TransformMode {
-        val isThirdPartyAgentPresent = ManagementFactory.getRuntimeMXBean().inputArguments.find { AgentUtils.isThirdPartyJavaAgentSwitch(it) } != null
-        return if (isThirdPartyAgentPresent) {
-            reportThirdPartyAgentPresent()
-            // Currently, the build logic instrumentation can interfere with Java agents, such as Jacoco
-            // So, ignore, disable or fail or whatever based on which execution modes are enabled
-            whenThirdPartyAgentPresent()
-        } else {
-            TransformMode.BUILD_LOGIC
-        }
-    }
+abstract class AbstractInjectedClasspathInstrumentationStrategy : InjectedClasspathInstrumentationStrategy {
 
-    private fun reportThirdPartyAgentPresent() {
-        problems.onProblem(
-            PropertyProblem(
-                PropertyTrace.Gradle,
-                StructuredMessage.build { text("support for using a Java agent with TestKit builds is not yet implemented with the configuration cache.") },
-                documentationSection = DocumentationSection.NotYetImplementedTestKitJavaAgent
-            )
-        )
-    }
-
-    abstract fun whenThirdPartyAgentPresent(): TransformMode
+    protected fun isThirdPartyAgentPresent(): Boolean =
+        ManagementFactory.getRuntimeMXBean().inputArguments.any { AgentUtils.isThirdPartyJavaAgentSwitch(it) }
 }

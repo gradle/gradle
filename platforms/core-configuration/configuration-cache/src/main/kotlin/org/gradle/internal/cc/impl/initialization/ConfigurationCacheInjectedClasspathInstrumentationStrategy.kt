@@ -16,14 +16,32 @@
 
 package org.gradle.internal.cc.impl.initialization
 
+import org.gradle.internal.configuration.problems.DocumentationSection
 import org.gradle.internal.configuration.problems.ProblemsListener
+import org.gradle.internal.configuration.problems.PropertyProblem
+import org.gradle.internal.configuration.problems.PropertyTrace
+import org.gradle.internal.configuration.problems.StructuredMessage
+import org.gradle.internal.instrumentation.agent.AgentStatus
 import org.gradle.plugin.use.resolve.service.internal.InjectedClasspathInstrumentationStrategy.TransformMode
 
 class ConfigurationCacheInjectedClasspathInstrumentationStrategy(
-    problems: ProblemsListener
-) : AbstractInjectedClasspathInstrumentationStrategy(problems) {
-    override fun whenThirdPartyAgentPresent(): TransformMode {
-        // Instrument anyway, the emitted problem will cause the build to fail.
+    private val problems: ProblemsListener,
+    private val agentStatus: AgentStatus,
+) : AbstractInjectedClasspathInstrumentationStrategy() {
+
+    override fun getTransform(): TransformMode {
+        if (!agentStatus.isAgentInstrumentationEnabled() && isThirdPartyAgentPresent()) {
+            reportThirdPartyAgentPresent()
+        }
         return TransformMode.BUILD_LOGIC
     }
+
+    private fun reportThirdPartyAgentPresent() =
+        problems.onProblem(
+            PropertyProblem(
+                PropertyTrace.Gradle,
+                StructuredMessage.build { text("support for using a Java agent with TestKit builds is not yet implemented with the configuration cache.") },
+                documentationSection = DocumentationSection.NotYetImplementedTestKitJavaAgent
+            )
+        )
 }

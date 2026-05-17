@@ -16,15 +16,14 @@
 
 package org.gradle.internal.cc.impl.initialization
 
-import org.gradle.internal.configuration.problems.ProblemsListener
 import org.gradle.plugin.use.resolve.service.internal.InjectedClasspathInstrumentationStrategy.TransformMode
 
 
-class VintageInjectedClasspathInstrumentationStrategy(
-    problems: ProblemsListener
-) : AbstractInjectedClasspathInstrumentationStrategy(problems) {
-    override fun whenThirdPartyAgentPresent(): TransformMode {
-        // For now, disable the instrumentation
-        return TransformMode.NONE
-    }
+class VintageInjectedClasspathInstrumentationStrategy : AbstractInjectedClasspathInstrumentationStrategy() {
+
+    override fun getTransform(): TransformMode =
+        when {
+            isThirdPartyAgentPresent() -> TransformMode.NONE
+            else -> TransformMode.BUILD_LOGIC
+        }
 }
