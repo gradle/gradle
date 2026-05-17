@@ -63,7 +63,7 @@ class ConfigurationCacheTestKitIntegrationTest extends AbstractConfigurationCach
         def output = result.output
 
         then:
-        !output.contains("support for using a Java agent with TestKit builds is not yet implemented with the configuration cache")
+        !output.contains("third-party Java agents with inactive Gradle's instrumentation agent are not supported by the configuration cache")
         !output.contains("Configuration cache problems found")
     }
 

@@ -40,8 +40,8 @@ class ConfigurationCacheInjectedClasspathInstrumentationStrategy(
         problems.onProblem(
             PropertyProblem(
                 PropertyTrace.Gradle,
-                StructuredMessage.build { text("support for using a Java agent with TestKit builds is not yet implemented with the configuration cache.") },
-                documentationSection = DocumentationSection.NotYetImplementedTestKitJavaAgent
+                StructuredMessage.build { text("third-party Java agents with inactive Gradle's instrumentation agent are not supported by the configuration cache.") },
+                documentationSection = DocumentationSection.RequirementsJavaAgent
             )
         )
 }
