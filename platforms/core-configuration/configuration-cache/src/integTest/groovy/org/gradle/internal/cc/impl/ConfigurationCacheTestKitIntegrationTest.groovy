@@ -33,9 +33,7 @@ class ConfigurationCacheTestKitIntegrationTest extends AbstractConfigurationCach
     @TempDir
     File jacocoDestinationDir
 
-    @Issue("https://github.com/gradle/gradle/issues/25929")
-    def "third-party Java agent without a transformer does not cause a configuration-cache problem"() {
-        given:
+    private File buildStubAgentJar() {
         def builder = artifactBuilder()
         builder.sourceFile("TestAgent.java") << """
             public class TestAgent {
@@ -46,6 +44,13 @@ class ConfigurationCacheTestKitIntegrationTest extends AbstractConfigurationCach
         builder.manifestAttributes("Premain-Class": "TestAgent")
         def agentJar = file("agent.jar")
         builder.buildJar(agentJar)
+        agentJar
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/25929")
+    def "third-party Java agent without a transformer does not cause a configuration-cache problem"() {
+        given:
+        def agentJar = buildStubAgentJar()
         buildFile << """
         """
         settingsFile << """
@@ -64,6 +69,68 @@ class ConfigurationCacheTestKitIntegrationTest extends AbstractConfigurationCach
 
         then:
         !output.contains("third-party Java agents with inactive Gradle's instrumentation agent are not supported by the configuration cache")
+        !output.contains("Configuration cache problems found")
+    }
+
+    def "third-party Java agent with Gradle's instrumentation agent disabled is reported as a CC problem"() {
+        given:
+        def agentJar = buildStubAgentJar()
+        buildFile << ""
+        settingsFile << ""
+
+        when:
+        def runner = GradleRunner.create()
+        runner.withJvmArguments("-javaagent:${agentJar}")
+        runner.withGradleInstallation(buildContext.gradleHomeDir)
+        runner.withArguments("--configuration-cache", "-Dorg.gradle.internal.instrumentation.agent=false")
+        runner.forwardOutput()
+        runner.withProjectDir(testDirectory)
+        runner.withPluginClasspath([new File("some-dir")])
+        def result = runner.buildAndFail()
+        def output = result.output
+
+        then:
+        output.contains("third-party Java agents with inactive Gradle's instrumentation agent are not supported by the configuration cache")
+    }
+
+    def "third-party Java agent with Gradle's instrumentation agent disabled without CC succeeds"() {
+        given:
+        def agentJar = buildStubAgentJar()
+        buildFile << ""
+        settingsFile << ""
+
+        when:
+        def runner = GradleRunner.create()
+        runner.withJvmArguments("-javaagent:${agentJar}")
+        runner.withGradleInstallation(buildContext.gradleHomeDir)
+        runner.withArguments("-Dorg.gradle.internal.instrumentation.agent=false")
+        runner.forwardOutput()
+        runner.withProjectDir(testDirectory)
+        runner.withPluginClasspath([new File("some-dir")])
+        def result = runner.build()
+        def output = result.output
+
+        then:
+        !output.contains("third-party Java agents with inactive Gradle's instrumentation agent are not supported by the configuration cache")
+        !output.contains("Configuration cache problems found")
+    }
+
+    def "configuration cache without any Java agent succeeds without problem"() {
+        given:
+        buildFile << ""
+        settingsFile << ""
+
+        when:
+        def runner = GradleRunner.create()
+        runner.withGradleInstallation(buildContext.gradleHomeDir)
+        runner.withArguments("--configuration-cache")
+        runner.forwardOutput()
+        runner.withProjectDir(testDirectory)
+        runner.withPluginClasspath([new File("some-dir")])
+        def result = runner.build()
+        def output = result.output
+
+        then:
         !output.contains("Configuration cache problems found")
     }
 
