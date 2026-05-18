@@ -210,15 +210,14 @@ class FetchBuildActionCrossVersionSpec extends ToolingApiSpecification {
         result.failureMessages[0].contains("A problem occurred configuring root project 'root'.")
 
         where:
-        method                                                       | buildAction                                              | dsl
-        "fetch(modelType)"                                           | FetchCustomModelAction.withFetchModelCall()              | GROOVY
-        "fetch(target,modelType)"                                    | FetchCustomModelAction.withFetchTargetModelCall()        | GROOVY
-        "fetch(modelType,parameterType,parameterInitializer)"        | FetchCustomModelAction.withFetchModelParametersCall()    | GROOVY
-        "fetch(target,modelType,parameterType,parameterInitializer)" | new FetchCustomModelAction()                             | GROOVY
-        "fetch(modelType)"                                           | FetchCustomModelAction.withFetchModelCall()              | KOTLIN
-        "fetch(target,modelType)"                                    | FetchCustomModelAction.withFetchTargetModelCall()        | KOTLIN
-        "fetch(modelType,parameterType,parameterInitializer)"        | FetchCustomModelAction.withFetchModelParametersCall()    | KOTLIN
-        "fetch(target,modelType,parameterType,parameterInitializer)" | new FetchCustomModelAction()                             | KOTLIN
+        method                                                       | buildAction
+        "fetch(modelType)"                                           | FetchCustomModelAction.withFetchModelCall()
+        "fetch(target,modelType)"                                    | FetchCustomModelAction.withFetchTargetModelCall()
+        "fetch(modelType,parameterType,parameterInitializer)"        | FetchCustomModelAction.withFetchModelParametersCall()
+        "fetch(target,modelType,parameterType,parameterInitializer)" | new FetchCustomModelAction()
+
+        combined:
+        dsl << [GROOVY, KOTLIN]
 
     }
 
@@ -253,15 +252,14 @@ class FetchBuildActionCrossVersionSpec extends ToolingApiSpecification {
         result.failureMessages[0].contains(expectedFailure)
 
         where:
-        method                                                       | buildAction                                              | dsl
-        "fetch(modelType)"                                           | FetchCustomModelAction.withFetchModelCall()              | GROOVY
-        "fetch(target,modelType)"                                    | FetchCustomModelAction.withFetchTargetModelCall()        | GROOVY
-        "fetch(modelType,parameterType,parameterInitializer)"        | FetchCustomModelAction.withFetchModelParametersCall()    | GROOVY
-        "fetch(target,modelType,parameterType,parameterInitializer)" | new FetchCustomModelAction()                             | GROOVY
-        "fetch(modelType)"                                           | FetchCustomModelAction.withFetchModelCall()              | KOTLIN
-        "fetch(target,modelType)"                                    | FetchCustomModelAction.withFetchTargetModelCall()        | KOTLIN
-        "fetch(modelType,parameterType,parameterInitializer)"        | FetchCustomModelAction.withFetchModelParametersCall()    | KOTLIN
-        "fetch(target,modelType,parameterType,parameterInitializer)" | new FetchCustomModelAction()                             | KOTLIN
+        method                                                       | buildAction
+        "fetch(modelType)"                                           | FetchCustomModelAction.withFetchModelCall()
+        "fetch(target,modelType)"                                    | FetchCustomModelAction.withFetchTargetModelCall()
+        "fetch(modelType,parameterType,parameterInitializer)"        | FetchCustomModelAction.withFetchModelParametersCall()
+        "fetch(target,modelType,parameterType,parameterInitializer)" | new FetchCustomModelAction()
+
+        combined:
+        dsl << [GROOVY, KOTLIN]
     }
 
     private void writeSettingsFile(GradleDsl dsl, String s) {

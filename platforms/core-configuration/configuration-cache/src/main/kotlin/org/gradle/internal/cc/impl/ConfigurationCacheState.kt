@@ -552,9 +552,9 @@ class ConfigurationCacheState(
             readBuildOutputCleanupRegistrations(gradle)
 
             return if (workGraph == null) {
-                BuildWithNoWork(build.state.identityPath, gradle.rootProject.name, projects)
+                BuildWithNoWork(build.state.identityPath, build.state.rootProject.name, projects)
             } else {
-                BuildWithWork(build.state.identityPath, build, gradle.rootProject.name, projects, workGraph)
+                BuildWithWork(build.state.identityPath, build, build.state.rootProject.name, projects, workGraph)
             }
         } else {
             return BuildWithNoProjects(build.state.identityPath)
@@ -941,7 +941,7 @@ class ConfigurationCacheState(
 
     private
     suspend fun WriteContext.writeProjects(gradle: GradleInternal, projects: List<CachedProjectState>) {
-        writeString(gradle.rootProject.name)
+        writeString(gradle.owner.rootProject.name)
         withGradleIsolate(gradle, userTypesCodec) {
             writeCollection(projects)
         }

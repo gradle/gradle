@@ -17,6 +17,7 @@
 
 This page contains links and short descriptions for all the core plugins provided by Gradle itself.
 
+[[jvm_languages_and_frameworks]]
 == JVM languages and frameworks
 
 <<java_plugin.adoc#java_plugin,Java>>::
@@ -64,6 +65,7 @@ Provides support for building Swift libraries on Linux and macOS.
 <<xctest_plugin.adoc#xctest_plugin,XCTest>>::
 Provides support for building and running XCTest-based tests on Linux and macOS.
 
+[[packaging_and_distribution]]
 == Packaging and distribution
 
 <<application_plugin.adoc#application_plugin,Application>>::
@@ -87,6 +89,7 @@ Makes it easy to create ZIP and tarball distributions of your project.
 <<java_library_distribution_plugin.adoc#java_library_distribution_plugin,Java Library Distribution>>::
 Provides support for creating a ZIP distribution of a Java library project that includes its runtime dependencies.
 
+[[code_analysis]]
 == Code analysis
 
 <<checkstyle_plugin.adoc#checkstyle_plugin,Checkstyle>>::
@@ -104,6 +107,7 @@ Aggregates the results of multiple JaCoCo code coverage reports (potentially spa
 <<codenarc_plugin.adoc#codenarc_plugin,CodeNarc>>::
 Performs quality checks on your Groovy source files using https://codenarc.org/[CodeNarc] and generates associated reports.
 
+[[ide_integration]]
 == IDE integration
 
 <<eclipse_plugin.adoc#eclipse_plugin,Eclipse>>::
@@ -118,6 +122,7 @@ Generates Visual Studio solution and project files for build that can be opened 
 <<xcode_plugin.adoc#xcode_plugin,Xcode>>::
 Generates Xcode workspace and project files for the build that can be opened by the IDE.
 
+[[utility]]
 == Utility
 
 <<base_plugin.adoc#base_plugin,Base>>::

@@ -35,8 +35,6 @@ import org.gradle.reporting.TabsRenderer;
 import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
-import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.nio.file.Path;
 import java.time.Instant;
 import java.time.ZoneId;
@@ -297,7 +295,7 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
 
             @Override
             public void render(TestTreeModel model, SimpleHtmlWriter htmlWriter) throws IOException {
-                htmlWriter.startElement("table").attribute("class", "test-results");
+                htmlWriter.startElement("table").attribute("class", "test-results sortable");
                 htmlWriter.startElement("thead");
                 htmlWriter.startElement("tr");
 
@@ -318,10 +316,10 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
                 }
                 htmlWriter.characters("Name").endElement();
 
-                htmlWriter.startElement("th").characters("Tests").endElement();
-                htmlWriter.startElement("th").characters("Failures").endElement();
-                htmlWriter.startElement("th").characters("Skipped").endElement();
-                htmlWriter.startElement("th").characters("Duration").endElement();
+                htmlWriter.startElement("th").attribute("data-sort-default", "desc").characters("Tests").endElement();
+                htmlWriter.startElement("th").attribute("data-sort-default", "desc").characters("Failures").endElement();
+                htmlWriter.startElement("th").attribute("data-sort-default", "desc").characters("Skipped").endElement();
+                htmlWriter.startElement("th").attribute("data-sort-default", "desc").characters("Duration").endElement();
                 htmlWriter.startElement("th").characters("Success rate").endElement();
 
                 htmlWriter.endElement();
@@ -330,6 +328,7 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
                 List<ChildEntry> sortedByName = new ArrayList<>(children);
                 sortedByName.sort(CHILD_PATH_COMPARATOR);
 
+                htmlWriter.startElement("tbody");
                 for (ChildEntry pair : sortedByName) {
                     PerRootInfo perRootInfo = pair.perRootInfo;
                     String statusClass = getStatusClass(getResultType(perRootInfo));
@@ -361,13 +360,35 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
                     htmlWriter.startElement("td").characters(Integer.toString(perRootInfo.getTotalLeafCount())).endElement();
                     htmlWriter.startElement("td").characters(Integer.toString(perRootInfo.getFailedLeafCount())).endElement();
                     htmlWriter.startElement("td").characters(Integer.toString(perRootInfo.getSkippedLeafCount())).endElement();
-                    htmlWriter.startElement("td").characters(getFormattedDuration(perRootInfo)).endElement();
-                    htmlWriter.startElement("td").attribute("class", statusClass).characters(getFormattedSuccessRate(perRootInfo)).endElement();
+                    htmlWriter.startElement("td")
+                        .attribute("data-sort-value", Long.toString(getTotalDurationMillis(perRootInfo)))
+                        .characters(getFormattedDuration(perRootInfo)).endElement();
+                    htmlWriter.startElement("td")
+                        .attribute("class", statusClass)
+                        .attribute("data-sort-value", Integer.toString(getSuccessRatePercent(perRootInfo)))
+                        .characters(getFormattedSuccessRate(perRootInfo)).endElement();
 
                     htmlWriter.endElement();
                 }
+                htmlWriter.endElement(); // tbody
                 htmlWriter.endElement();
             }
+        }
+
+        private static long getTotalDurationMillis(PerRootInfo info) {
+            long total = 0;
+            for (SerializableTestResult r : info.getResults()) {
+                total += r.getDuration();
+            }
+            return total;
+        }
+
+        private static int getSuccessRatePercent(PerRootInfo info) {
+            int total = info.getTotalLeafCount();
+            if (total == 0) {
+                return -1;
+            }
+            return (total - info.getFailedLeafCount()) * 100 / total;
         }
 
         private static TestResult.ResultType getResultType(PerRootInfo info) {
@@ -404,14 +425,8 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
         }
 
         private static String getFormattedSuccessRate(PerRootInfo info) {
-            if (info.getTotalLeafCount() == 0) {
-                return "-";
-            }
-
-            BigDecimal runTests = BigDecimal.valueOf(info.getTotalLeafCount());
-            BigDecimal successful = BigDecimal.valueOf(info.getTotalLeafCount() - info.getFailedLeafCount());
-
-            return successful.divide(runTests, 2, RoundingMode.DOWN).multiply(BigDecimal.valueOf(100)).intValue() + "%";
+            int percent = getSuccessRatePercent(info);
+            return percent < 0 ? "-" : percent + "%";
         }
     }
 

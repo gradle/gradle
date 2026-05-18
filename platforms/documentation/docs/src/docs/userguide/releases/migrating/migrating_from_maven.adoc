@@ -599,6 +599,7 @@ While migrating a project from Maven, don't forget about source sets.
 These often provide a more elegant solution for handling integration tests or generated sources than Maven can provide, so you should factor them into your migration plans.
 
 
+[[migmvn:ant_goals]]
 === Ant goals
 
 Many Maven builds rely on the AntRun plugin to customize the build without the overhead of implementing a custom Maven plugin.
@@ -653,6 +654,7 @@ Also be sure to familiarize yourself with Gradle's link:{groovyDslPath}/[Groovy 
 It details the standard configuration blocks (and the objects that back them), the core types in the system (`Project`, `Task`, etc.), and the standard set of task types.
 The main entry point is the link:{groovyDslPath}/org.gradle.api.Project.html[Project] interface as that's the top-level object that backs the build scripts.
 
+[[migmvn:further_reading]]
 == Further reading
 
 This chapter has covered the major topics that are specific to migrating Maven builds to Gradle. All that remain are a few other areas that may be useful during or after a migration:

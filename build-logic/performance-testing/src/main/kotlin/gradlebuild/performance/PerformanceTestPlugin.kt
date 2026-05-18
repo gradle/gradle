@@ -39,8 +39,8 @@ import gradlebuild.basics.repoRoot
 import gradlebuild.basics.toolchainInstallationPaths
 import gradlebuild.integrationtests.addDependenciesAndConfigurations
 import gradlebuild.integrationtests.configureTestSourceSetInIde
-import gradlebuild.integrationtests.ide.AndroidStudioProvisioningPlugin
-import gradlebuild.integrationtests.ide.composeAndroidStudioSystemProperties
+import gradlebuild.integrationtests.ide.IdeProvisioningPlugin
+import gradlebuild.integrationtests.ide.androidStudioSystemProperties
 import gradlebuild.jvm.JvmCompileExtension
 import gradlebuild.performance.Config.performanceTestAndroidStudioJvmArgs
 import gradlebuild.performance.generator.tasks.AbstractProjectGeneratorTask
@@ -110,7 +110,8 @@ class PerformanceTestPlugin : Plugin<Project> {
 
     private
     fun Project.configureAndroidStudioProvisioning() {
-        pluginManager.apply(AndroidStudioProvisioningPlugin::class)
+        if (project.name == "enterprise-plugin-performance") return
+        pluginManager.apply(IdeProvisioningPlugin::class)
     }
 
     private
@@ -370,7 +371,7 @@ class PerformanceTestExtension(
         configurationAction: Action<in T>
     ): TaskProvider<T> {
         return doRegisterTestProject(testProject, testProjectGeneratorTask, configurationAction) {
-            jvmArgumentProviders.add(project.composeAndroidStudioSystemProperties(performanceTestAndroidStudioJvmArgs + additionalStudioJvmArgs))
+            jvmArgumentProviders.add(project.androidStudioSystemProperties(performanceTestAndroidStudioJvmArgs + additionalStudioJvmArgs))
             environment("JAVA_HOME", LazyEnvironmentVariable { javaLauncher.get().metadata.installationPath.asFile.absolutePath })
         }
     }

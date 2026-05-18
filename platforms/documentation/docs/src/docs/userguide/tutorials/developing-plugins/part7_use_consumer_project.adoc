@@ -35,6 +35,7 @@ Learn how to set up a dummy consumer project to test your plugin without publish
 5. You added a dataflow action to your plugin in <<part5_add_dataflow_action.adoc#part5_begin,part 5>>.
 6. You wrote a functional test in <<part6_functional_test.adoc#part6_begin,part 6>>.
 
+[[dp_part7_step1]]
 == Step 1: Create a Consumer Project
 
 We will now create a separate `consumer` project.
@@ -93,6 +94,7 @@ include::sample[dir="snippets/tutorials/developing-plugins/plugin-tutorial/groov
 
 NOTE: In a Composite Build, the `plugin` project no longer has access to the root `libs.versions.toml` file. For this tutorial, we are using direct dependency declarations.
 
+[[dp_part7_step2]]
 == Step 2: Wire the Consumer Project to the Plugin
 
 Now we'll configure the `consumer` project's settings file to apply our plugin.
@@ -106,6 +108,7 @@ include::sample[dir="snippets/tutorials/developing-plugins/plugin-tutorial/groov
 
 This tells Gradle that when it encounters a `plugins` block that references your `org.example.slack` plugin, it should look for the plugin in the `plugin` project of the composite build.
 
+[[dp_part7_step3]]
 == Step 3: Apply and Configure the Plugin in the Consumer
 
 Now, let's configure the `consumer` project's `build.gradle(.kts)` file to actually apply and configure our plugin.
@@ -117,6 +120,7 @@ include::sample[dir="snippets/tutorials/developing-plugins/plugin-tutorial/groov
 
 Notice that we don't need a `version` for the plugin! Gradle automatically resolves it from the included build.
 
+[[dp_part7_step4]]
 == Step 4: Run the Consumer Project
 
 You can now test your plugin by running a task in the `consumer` project.

@@ -366,6 +366,22 @@ public class Instrumented {
     private static final Lazy<MethodHandle> FILESKT_READ_TEXT_DEFAULT =
         lazyKotlinStaticDefaultHandle(FilesKt.class, "readText", String.class, File.class, Charset.class);
 
+    public static String kotlinIoPathsKtReadText(Path receiver, Charset charset, String consumer) throws Throwable {
+        FileUtils.tryReportFileOpened(receiver, consumer);
+        return (String) PATHSKT_READ_TEXT.get().invokeExact(receiver, charset);
+    }
+
+    public static String kotlinIoPathsKtReadTextDefault(Path receiver, Charset charset, int defaultMask, Object defaultMarker, String consumer) throws Throwable {
+        FileUtils.tryReportFileOpened(receiver, consumer);
+        return (String) PATHSKT_READ_TEXT_DEFAULT.get().invokeExact(receiver, charset, defaultMask, defaultMarker);
+    }
+
+    private static final Lazy<MethodHandle> PATHSKT_READ_TEXT =
+        Lazy.locking().of(() -> findStaticOrThrowError(kotlin.io.path.PathsKt.class, "readText", MethodType.methodType(String.class, Path.class, Charset.class)));
+
+    private static final Lazy<MethodHandle> PATHSKT_READ_TEXT_DEFAULT =
+        lazyKotlinStaticDefaultHandle(kotlin.io.path.PathsKt.class, "readText", String.class, Path.class, Charset.class);
+
     public static String filesReadString(Path file, String consumer) throws Throwable {
         FileUtils.tryReportFileOpened(file, consumer);
         return (String) FILES_READ_STRING_PATH.get().invokeExact(file);

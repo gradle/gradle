@@ -40,11 +40,13 @@ import java.util.Collection;
 public class IsolationScheme<INTERFACE, PARAMS> implements TypeParameterInspection<INTERFACE, PARAMS> {
     private final Class<INTERFACE> interfaceType;
     private final Class<? extends PARAMS> noParamsType;
+    private final PARAMS noParamsInstance;
     private final TypeParameterInspection<INTERFACE, PARAMS> typeParameterInspection;
 
-    public IsolationScheme(Class<INTERFACE> interfaceType, Class<PARAMS> paramsType, Class<? extends PARAMS> noParamsType) {
+    public IsolationScheme(Class<INTERFACE> interfaceType, Class<PARAMS> paramsType, Class<? extends PARAMS> noParamsType, PARAMS noParamsInstance) {
         this.interfaceType = interfaceType;
         this.noParamsType = noParamsType;
+        this.noParamsInstance = noParamsInstance;
         this.typeParameterInspection = new DefaultTypeParameterInspection<>(interfaceType, paramsType, noParamsType);
     }
 
@@ -88,12 +90,13 @@ public class IsolationScheme<INTERFACE, PARAMS> implements TypeParameterInspecti
         ServiceLookup allServices,
         Collection<? extends Class<?>> additionalAllowedServices
     ) {
-        return new ServicesForIsolatedObject(interfaceType, noParamsType, params, allServices, additionalAllowedServices);
+        return new ServicesForIsolatedObject(interfaceType, noParamsType, noParamsInstance, params, allServices, additionalAllowedServices);
     }
 
     private static class ServicesForIsolatedObject implements ServiceLookup {
         private final Class<?> interfaceType;
         private final Class<?> noParamsType;
+        private final Object noParamsInstance;
         private final Collection<? extends Class<?>> additionalAllowedServices;
         private final ServiceLookup allServices;
         private final @Nullable Object params;
@@ -101,12 +104,14 @@ public class IsolationScheme<INTERFACE, PARAMS> implements TypeParameterInspecti
         public ServicesForIsolatedObject(
             Class<?> interfaceType,
             Class<?> noParamsType,
+            Object noParamsInstance,
             @Nullable Object params,
             ServiceLookup allServices,
             Collection<? extends Class<?>> additionalAllowedServices
         ) {
             this.interfaceType = interfaceType;
             this.noParamsType = noParamsType;
+            this.noParamsInstance = noParamsInstance;
             this.additionalAllowedServices = additionalAllowedServices;
             this.allServices = allServices;
             this.params = params;
@@ -121,7 +126,7 @@ public class IsolationScheme<INTERFACE, PARAMS> implements TypeParameterInspecti
                     return params;
                 }
                 if (serviceClass.isAssignableFrom(noParamsType)) {
-                    throw new ServiceLookupException(String.format("Cannot query the parameters of an instance of %s that takes no parameters.", interfaceType.getSimpleName()));
+                    return noParamsInstance;
                 }
                 if (serviceClass.isAssignableFrom(ExecOperations.class)) {
                     return allServices.find(ExecOperations.class);

@@ -28,6 +28,7 @@ include::sample[dir="snippets/reference/plugin-development/problemReporting/kotl
 <3> Report a recoverable problem so the build can continue.
 <4> Add optional extra data to the problem.
 
+[[sec:problems_api_usage]]
 == Problems API Usage
 
 The following simple plugin adds a `greet` task:
@@ -52,6 +53,7 @@ How it works:
 5. **Throws structured failures** with `ProblemReporter.throwing()` when the build must stop.
 6. **Optionally attaches `AdditionalData`** to `ProblemSpec` so advanced tools can show extra info.
 
+[[injecting_the_problems_service]]
 === Injecting the `Problems` service
 
 Gradle will automatically provide the link:{javaDocPath}/org/gradle/api/problems/Problems.html[`Problems`] service when injected into the custom task type:
@@ -61,6 +63,7 @@ include::sample[dir="snippets/reference/plugin-development/reportingProblems/kot
 include::sample[dir="snippets/reference/plugin-development/reportingProblems/groovy",files="plugin/src/main/groovy/org/example/HelloProblemsPlugin.groovy[tags=problems-service]"]
 ====
 
+[[creating_a_problem_id_and_problem_group]]
 === Creating a `ProblemId` and `ProblemGroup`
 
 Problem IDs and Groups help Gradle deduplicate, summarize, and link to solutions:
@@ -70,6 +73,7 @@ include::sample[dir="snippets/reference/plugin-development/reportingProblems/kot
 include::sample[dir="snippets/reference/plugin-development/reportingProblems/groovy",files="plugin/src/main/groovy/org/example/HelloProblemsPlugin.groovy[tags=problems-id]"]
 ====
 
+[[choosing_a_reporting_mode]]
 === Choosing a reporting mode for the `ProblemReporter`
 
 Plugins can report problems in two ways:
@@ -84,6 +88,7 @@ include::sample[dir="snippets/reference/plugin-development/reportingProblems/kot
 include::sample[dir="snippets/reference/plugin-development/reportingProblems/groovy",files="plugin/src/main/groovy/org/example/HelloProblemsPlugin.groovy[tags=problems-reporter]"]
 ====
 
+[[reporting_a_recoverable_problem]]
 ==== Reporting a recoverable problem
 
 Use `problems.getReporter().report {}` to signal something went wrong but allow the build to continue:
@@ -93,6 +98,7 @@ include::sample[dir="snippets/reference/plugin-development/reportingProblems/kot
 include::sample[dir="snippets/reference/plugin-development/reportingProblems/groovy",files="plugin/src/main/groovy/org/example/HelloProblemsPlugin.groovy[tags=problems-report]"]
 ====
 
+[[reporting_a_fatal_problem]]
 ==== Reporting a fatal problem
 
 Use `problems.getReporter().throwing {}` to fail the build with a structured error:
@@ -104,6 +110,7 @@ include::sample[dir="snippets/reference/plugin-development/reportingProblems/gro
 
 This throws an exception tied to a rich problem report so Gradle clients can display meaningful failure info.
 
+[[add_data_using_problem_spec]]
 === Add data using `ProblemSpec`
 
 When reporting a problem, you can provide a wide variety of metadata such as descriptions, severity, solutions, and additional data:
@@ -115,6 +122,7 @@ include::sample[dir="snippets/reference/plugin-development/reportingProblems/gro
 
 See link:{javaDocPath}/org/gradle/api/problems/ProblemSpec.html[`ProblemSpec`] for all available fields.
 
+[[sec:problem_summarization]]
 == Problem Summarization
 
 Gradle avoids spamming users with duplicate problem messages:
@@ -122,6 +130,7 @@ Gradle avoids spamming users with duplicate problem messages:
 - The first few instances of a problem are reported individually as link:{javaDocPath}/org/gradle/tooling/events/problems/Problem.html[`Problem`] events.
 - Subsequent duplicates are summarized at the end of the build as a link:{javaDocPath}/org/gradle/tooling/events/problems/ProblemSummary.html[`ProblemSummary`], delivered with a link:{javaDocPath}/org/gradle/tooling/events/problems/ProblemSummariesEvent.html[`ProblemSummariesEvent`].
 
+[[sec:build_failures]]
 == Build Failures
 
 The standard way to fail a build is by throwing an exception.
@@ -133,6 +142,7 @@ include::sample[dir="snippets/reference/plugin-development/problems-api-usage/co
 
 This ensures build failures are clearly associated with their underlying issues and are visible across all Gradle clients (CLI, Build Scan, IDEs, Tooling API).
 
+[[command_line_interface_problems]]
 === Command-line Interface
 
 Gradle CLI output shows detailed information from the reported problem:
@@ -159,6 +169,7 @@ BUILD FAILED in 0ms  // <5>
 <4> The solutions or recommended actions.
 <5> The `AdditionalData` is not shown in CLI output.
 
+[[tooling_api_clients]]
 === Tooling API Clients
 
 Tooling API clients can access reported problems tied to failures:

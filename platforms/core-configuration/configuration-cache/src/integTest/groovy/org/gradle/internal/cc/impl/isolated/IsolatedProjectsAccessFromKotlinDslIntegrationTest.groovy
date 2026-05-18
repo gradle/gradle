@@ -19,6 +19,11 @@ package org.gradle.internal.cc.impl.isolated
 import org.gradle.util.internal.ToBeImplemented
 import spock.lang.Issue
 
+/**
+ * Cross-project access tests specific to Kotlin DSL.
+ * <p>
+ * For DSL-agnostic tests prefer {@link IsolatedProjectsAccessIntegrationTest}.
+ */
 class IsolatedProjectsAccessFromKotlinDslIntegrationTest extends AbstractIsolatedProjectsIntegrationTest {
     def "reports problem when build script uses #block block to apply plugins to another project"() {
         createDirs("a", "b")

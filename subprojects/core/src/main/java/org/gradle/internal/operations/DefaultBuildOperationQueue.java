@@ -17,6 +17,7 @@
 package org.gradle.internal.operations;
 
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.time.ExponentialBackoff;
 import org.gradle.internal.work.DefaultWorkerLimits;
 import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.internal.work.WorkerThreadPool;
@@ -24,8 +25,11 @@ import org.gradle.internal.work.WorkerThreadPoolHelper;
 import org.jspecify.annotations.Nullable;
 
 import javax.annotation.concurrent.GuardedBy;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -242,9 +246,8 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
         private void runOperations() {
             CurrentBuildOperationRef.instance().with(parent, () -> {
                 try {
-                    T operation;
-                    while ((operation = waitForNextOperation()) != null) {
-                        runBatch(operation);
+                    while (waitForNextOperation()) {
+                        runBatch();
                     }
                 } catch (Throwable t) {
                     addFailure(t);
@@ -254,20 +257,15 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
             });
         }
 
-        @Nullable
-        private T waitForNextOperation() {
+        private boolean waitForNextOperation() {
             lock.lock();
             try {
-                // If the token was already invalidated (e.g. in runBatch), exit immediately
-                // to avoid becoming a zombie thread stuck in await().
-                if (token != null && !token.isValid()) {
-                    return null;
-                }
-                while (queueState == QueueState.Working && helper.isQueueEmpty()) {
-                    if (helper.isExtraWorker()) {
-                        // We should exit, immediately invalidate our token to ensure the count goes down now.
-                        invalidateIfNeeded();
-                        return null;
+                while (true) {
+                    if (shouldExitWithExtraWorkerInvalidation()) {
+                        return false;
+                    }
+                    if (!helper.isQueueEmpty()) {
+                        return true;
                     }
                     try {
                         workAvailable.await();
@@ -275,18 +273,39 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
                         throw UncheckedException.throwAsUncheckedException(e);
                     }
                 }
-                return helper.pollWork();
             } finally {
                 lock.unlock();
             }
         }
 
-        private void runBatch(final T firstOperation) {
+        /**
+         * Returns {@code true} if this worker should exit, and as a side effect invalidates the
+         * worker token in the extra-worker case so that the worker count drops immediately rather
+         * than waiting for {@link #runOperations()} to complete.
+         */
+        @GuardedBy("lock")
+        private boolean shouldExitWithExtraWorkerInvalidation() {
+            if (token != null && !token.isValid()) {
+                return true;
+            }
+            if (queueState != QueueState.Working && helper.isQueueEmpty()) {
+                return true;
+            }
+            if (helper.isExtraWorker()) {
+                if (token != null) {
+                    token.invalidateIfNeeded();
+                }
+                return true;
+            }
+            return false;
+        }
+
+        private void runBatch() {
             int operationsExecuted;
             if (context.requiresWorkerLease()) {
-                operationsExecuted = workerLeases.runAsWorkerThread(() -> executePendingWork(firstOperation));
+                operationsExecuted = runBatchWithLeaseRetry();
             } else {
-                operationsExecuted = executePendingWork(firstOperation);
+                operationsExecuted = executePendingWork();
             }
 
             // We need to update pending count outside of withLocks() so that we don't have a race
@@ -295,9 +314,37 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
             completeOperations(operationsExecuted);
         }
 
-        private int executePendingWork(T firstOperation) {
+        private int runBatchWithLeaseRetry() {
+            try {
+                // Retry acquiring the lease forever, or until we `shouldExitWithExtraWorkerInvalidation()`.
+                return ExponentialBackoff.of(Integer.MAX_VALUE, TimeUnit.MILLISECONDS).retryUntil(() -> {
+                    Optional<Integer> result = workerLeases.tryRunAsWorkerThread(this::executePendingWork);
+                    if (result.isPresent()) {
+                        return ExponentialBackoff.Result.successful(result.get());
+                    }
+                    lock.lock();
+                    try {
+                        if (shouldExitWithExtraWorkerInvalidation()) {
+                            return ExponentialBackoff.Result.successful(0);
+                        }
+                    } finally {
+                        lock.unlock();
+                    }
+                    return ExponentialBackoff.Result.notSuccessful(0);
+                });
+            } catch (IOException e) {
+                // TODO: Redesign ExponentialBackoff to not have IOException as part of the interface
+                // This would never actually be thrown because our "query" doesn't throw it.
+                throw new AssertionError("Unexpected IOException while trying to acquire worker lease", e);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                throw UncheckedException.throwAsUncheckedException(e);
+            }
+        }
+
+        private int executePendingWork() {
             if (allowAccessToProjectState) {
-                return doRunBatch(firstOperation);
+                return doRunBatch();
             } else {
                 // Disallow this thread from making any changes to the project locks while it is running the work. This implies that this thread will not
                 // block waiting for access to some other project, which means it can proceed even if some other thread is waiting for a project lock it
@@ -309,7 +356,7 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
                 // constraint and then gradually roll this out to other worker threads, such as task action workers.
                 //
                 // See {@link ProjectLeaseRegistry#whileDisallowingProjectLockChanges} for more details
-                return workerLeases.whileDisallowingProjectLockChanges(() -> doRunBatch(firstOperation));
+                return workerLeases.whileDisallowingProjectLockChanges(this::doRunBatch);
             }
         }
 
@@ -317,18 +364,14 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
          * Run as much work as possible until the queue is empty or the queue is cancelled.
          * Then, we return and release the worker lease while we wait for more work to be added to the queue.
          */
-        private int doRunBatch(T firstOperation) {
+        private int doRunBatch() {
             int operationCount = 0;
-            T operation = firstOperation;
-            while (operation != null) {
+            while (true) {
                 if (queueState == QueueState.Cancelled) {
-                    // If an operation was pulled from the queue, but the queue was cancelled before this operation could start
-                    // (for instance, because this worker was waiting on a worker lease) discard it without running.
-                    return ++operationCount;
+                    break;
                 }
-                runOperation(operation);
-                operationCount++;
 
+                T operation;
                 lock.lock();
                 try {
                     if (helper.isExtraWorker()) {
@@ -340,6 +383,14 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
                 } finally {
                     lock.unlock();
                 }
+
+                if (operation == null) {
+                    break;
+                }
+
+                runOperation(operation);
+                operationCount++;
+
             }
             return operationCount;
         }

@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+[[caching_java_projects]]
 = Caching Java projects
 
 As of Gradle 4.0, the build tool fully supports caching plain Java projects.
@@ -49,12 +50,14 @@ If you use these dependencies, but do not leverage the features of the bundled a
 This can be done by setting the annotation processor classpath to an empty set.
 ====
 
+[[java_unit_test_execution]]
 == Unit test execution
 
 The `Test` task used for test execution for JVM languages employs <<build_cache_concepts.adoc#runtime_classpath,runtime classpath normalization>> for its classpath.
 This means that changes to order and timestamps in jars on the test classpath will not cause the task to be out-of-date or change the build cache key.
 For achieving <<build_cache_concepts.adoc#stable_task_inputs,stable task inputs>> you can also wield the power of <<build_cache_concepts.adoc#filter_runtime_classpath,filtering the runtime classpath>>.
 
+[[java_integration_test_execution]]
 == Integration test execution
 
 Unit tests are easy to cache as they normally have no external dependencies.
@@ -75,6 +78,7 @@ include::sample[dir="snippets/optimizing-builds/build-cache/integration-tests/ko
 include::sample[dir="snippets/optimizing-builds/build-cache/integration-tests/groovy",files="build.gradle[tags=integTest]"]
 ====
 
+[[archives_as_inputs]]
 === Archives as inputs
 
 It is common for the integration tests to depend on your packaged application.
@@ -83,6 +87,7 @@ This is because, as described in <<build_cache_concepts.adoc#concepts_repeatable
 You can depend on the exploded contents of the archive instead.
 See also the section on dealing with <<common_caching_problems.adoc#volatile_outputs,non-repeatable outputs>>.
 
+[[dealing_with_file_paths]]
 === Dealing with file paths
 
 You will probably pass some information from the build environment to your integration test tasks by using system properties.
@@ -105,6 +110,7 @@ include::sample[dir="snippets/optimizing-builds/build-cache/integration-tests/gr
 <3> `asArguments` needs to return the JVM arguments passing the desired system properties to the test JVM.
 <4> Add an instance of the newly created class as JVM argument provider to the integration test task.footnote:managedTypes[The `CommandLineArgumentProvider` in this example is implemented as a <<properties_providers.adoc#managed_types,managed type>>.]
 
+[[ignoring_system_properties]]
 === Ignoring system properties
 
 It may be necessary to ignore some system properties as inputs as they do not influence the outcome of the integration tests.

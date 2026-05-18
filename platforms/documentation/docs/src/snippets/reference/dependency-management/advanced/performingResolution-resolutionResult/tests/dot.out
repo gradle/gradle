@@ -1,7 +1,7 @@
 digraph {
-    "root project ::runtimeClasspath" [shape=box]
+    "root project 'example':runtimeClasspath" [shape=box]
     "com.google.guava:guava:33.2.1-jre:jreRuntimeElements" [shape=box]
-    "root project ::runtimeClasspath" -> "com.google.guava:guava:33.2.1-jre:jreRuntimeElements"
+    "root project 'example':runtimeClasspath" -> "com.google.guava:guava:33.2.1-jre:jreRuntimeElements"
     "com.google.guava:failureaccess:1.0.2:runtime" [shape=box]
     "com.google.guava:guava:33.2.1-jre:jreRuntimeElements" -> "com.google.guava:failureaccess:1.0.2:runtime"
     "com.google.guava:listenablefuture:9999.0-empty-to-avoid-conflict-with-guava:runtime" [shape=box]

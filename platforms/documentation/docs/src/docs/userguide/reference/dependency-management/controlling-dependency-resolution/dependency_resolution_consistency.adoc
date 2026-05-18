@@ -32,6 +32,7 @@ By declaring that certain configurations should resolve dependencies consistentl
 
 NOTE: Dependency resolution consistency is an incubating feature.
 
+[[sec:implementing_consistent_resolution]]
 == Implementing Consistent Resolution
 
 For example, to ensure that the `runtimeClasspath` is consistent with the `compileClasspath`, you can configure your `build.gradle(.kts)` as follows:

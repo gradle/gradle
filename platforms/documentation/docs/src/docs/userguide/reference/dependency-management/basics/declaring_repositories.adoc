@@ -179,6 +179,59 @@ You may resolve dependencies from:
 
 Here is a quick snapshot:
 
+====
+[.multi-language-sample]
+=====
+[source,kotlin]
+.build.gradle.kts
+----
+repositories {
+
+    // Ivy Repository with Custom Layout
+    ivy {
+        url = uri("https://your.ivy.repo/url")
+        patternLayout {
+            ivy("[organisation]/[module]/[revision]/[type]s/[artifact]-[revision].[ext]")
+            artifact("[organisation]/[module]/[revision]/[type]s/[artifact]-[revision].[ext]")
+        }
+    }
+
+    // Authenticated HTTPS Maven Repository
+    maven {
+        url = uri("https://your.secure.repo/url")
+        credentials {
+            username = "your-username"
+            password = "your-password"
+        }
+    }
+
+    // SFTP Repository
+    maven {
+        url = uri("sftp://your.sftp.repo/url")
+        credentials {
+            username = "your-username"
+            password = "your-password"
+        }
+    }
+
+    // AWS S3 Repository
+    maven {
+        url = uri("s3://your-bucket/repository-path")
+        credentials(AwsCredentials::class) {
+            accessKey = "your-access-key"
+            secretKey = "your-secret-key"
+        }
+    }
+
+    // Google Cloud Storage Repository
+    maven {
+        url = uri("gcs://your-bucket/repository-path")
+    }
+}
+----
+=====
+[.multi-language-sample]
+=====
 [source,groovy]
 .build.gradle
 ----
@@ -226,6 +279,8 @@ repositories {
     }
 }
 ----
+=====
+====
 
 [.text-right]
 **Next Step:** <<centralizing_dependencies.adoc#four-centralizing-dependencies,Learn about Centralizing Dependencies>> >>

@@ -17,18 +17,19 @@
 package org.gradle.api.internal.project;
 
 import org.gradle.api.internal.initialization.ClassLoaderScope;
-import org.gradle.initialization.ProjectDescriptorInternal;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.logging.LoggingManagerFactory;
 import org.gradle.internal.model.StateTransitionController;
 import org.gradle.internal.model.StateTransitionControllerFactory;
+import org.gradle.internal.project.ImmutableProjectDescriptor;
 import org.gradle.internal.service.CloseableServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.ProjectScopeServices;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.internal.service.scopes.ServiceScope;
+import org.jspecify.annotations.Nullable;
 
 import java.io.Closeable;
 
@@ -39,7 +40,9 @@ import java.io.Closeable;
 public class ProjectLifecycleController implements Closeable {
     private final ServiceRegistry buildServices;
     private final StateTransitionController<State> controller;
+    @Nullable
     private ProjectInternal project;
+    @Nullable
     private CloseableServiceRegistry projectScopeServices;
 
     private enum State implements StateTransitionController.State {
@@ -60,7 +63,7 @@ public class ProjectLifecycleController implements Closeable {
     }
 
     public void createMutableModel(
-        ProjectDescriptorInternal descriptor,
+        ImmutableProjectDescriptor descriptor,
         BuildState build,
         ProjectState owner,
         ClassLoaderScope selfClassLoaderScope,

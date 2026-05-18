@@ -28,6 +28,7 @@ import org.gradle.api.problems.internal.GradleCoreProblemGroup
 import org.gradle.api.problems.internal.ProblemsInternal
 import org.gradle.api.problems.internal.PropertyTraceDataSpec
 import org.gradle.initialization.RootBuildLifecycleListener
+import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.cc.base.exceptions.ConfigurationCacheError
 import org.gradle.internal.cc.base.exceptions.ConfigurationCacheThrowable
 import org.gradle.internal.cc.base.problems.AbstractProblemsListener
@@ -43,6 +44,7 @@ import org.gradle.internal.cc.impl.TooManyConfigurationCacheProblemsException
 import org.gradle.internal.cc.impl.initialization.ConfigurationCacheStartParameter
 import org.gradle.internal.configuration.problems.CommonReport
 import org.gradle.internal.configuration.problems.DocumentationSection
+import org.gradle.internal.configuration.problems.IsolatedProjectsProblemsListener
 import org.gradle.internal.configuration.problems.ProblemFactory
 import org.gradle.internal.configuration.problems.ProblemReportDetails
 import org.gradle.internal.configuration.problems.ProblemReportDetailsJsonSource
@@ -90,11 +92,11 @@ class ConfigurationCacheProblems(
     val failureFactory: FailureFactory,
 
     private
-    val buildNameProvider: BuildNameProvider,
+    val buildStateRegistry: BuildStateRegistry,
 
     private
     val degradationController: DefaultConfigurationCacheDegradationController
-) : AbstractProblemsListener(), ProblemReporter, AutoCloseable {
+) : AbstractProblemsListener(), IsolatedProjectsProblemsListener, ProblemReporter, AutoCloseable {
 
     private
     val summarizer = ConfigurationCacheProblemsSummary()
@@ -249,6 +251,10 @@ class ConfigurationCacheProblems(
         report.onProblem(problem)
     }
 
+    override fun onIsolatedProjectsProblem(problem: PropertyProblem) {
+        onProblem(problem, ProblemSeverity.Deferred)
+    }
+
     override fun onProblem(problem: PropertyProblem) {
         onProblem(problem, ProblemSeverity.Deferred)
     }
@@ -389,7 +395,7 @@ class ConfigurationCacheProblems(
         val cacheActionText = cacheAction.summaryText()
         val requestedTasks = startParameter.requestedTasksOrDefault()
         return ProblemReportDetails(
-            buildDisplayName = buildNameProvider.buildName(),
+            buildDisplayName = buildStateRegistry.rootBuild.displayName.displayName,
             cacheAction = cacheActionText,
             cacheActionDescription = cacheActionDescription,
             requestedTasks = requestedTasks,

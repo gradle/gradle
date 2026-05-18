@@ -17,7 +17,7 @@
 package org.gradle.api.provider
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 
 class CollectionPropertyIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
@@ -204,7 +204,6 @@ afterEvaluate {
         outputContains("value: value 1, value 2, value 3")
     }
 
-    @ToBeFixedForConfigurationCache(because = "https://github.com/gradle/gradle/issues/36664")
     def "task ad hoc input property is implicitly finalized when task starts execution"() {
         given:
         buildFile """
@@ -349,7 +348,7 @@ task wrongValueTypeDsl(type: MyTask) {
 
 task wrongRuntimeElementType(type: MyTask) {
     doLast {
-        prop = [123]
+        prop = [new Object()]
         prop.get()
     }
 }
@@ -395,7 +394,7 @@ task wrongPropertyElementTypeApi(type: MyTask) {
 
         then:
         failure.assertHasDescription("Execution failed for task ':wrongRuntimeElementType' (registered in build file 'build.gradle').")
-        failure.assertHasCause("Cannot get the value of a property of type java.util.List with element type java.lang.String as the source value contains an element of type java.lang.Integer.")
+        failure.assertHasCause("Cannot get the value of a property of type java.util.List with element type java.lang.String as the source value contains an element of type java.lang.Object.")
 
         when:
         fails("wrongPropertyTypeDsl")
@@ -545,6 +544,51 @@ task wrongPropertyElementTypeApi(type: MyTask) {
         collection | initializer
         "list" | "listProperty"
         "set" | "setProperty"
+    }
+
+    def "#collectionProperty has separate identity per task with CC only"() {
+        given:
+        buildFile.delete()
+        buildKotlinFile """
+            tasks {
+                val sharedProp = objects.${collectionProperty}<String>()
+                register("foo") {
+                    val taskProp = objects.${collectionProperty}<String>()
+                    doFirst {
+                        taskProp.add("A")
+                        sharedProp.add("A")
+                    }
+                    doLast {
+                        taskProp.add("B")
+                        sharedProp.add("B")
+                        println("taskProp = \${taskProp.get()}")
+                        println("FOO: sharedProp = \${sharedProp.get()}")
+                    }
+                }
+                register("bar") {
+                    dependsOn("foo")
+                    doFirst {
+                        sharedProp.add("C")
+                        println("BAR: sharedProp = \${sharedProp.get()}")
+                    }
+                }
+            }
+        """
+
+        when:
+        succeeds("bar")
+
+        then:
+        outputContains("taskProp = [A, B]")
+        outputContains("FOO: sharedProp = [A, B]")
+        if (GradleContextualExecuter.configCache) {
+            outputContains("BAR: sharedProp = [C]")
+        } else {
+            outputContains("BAR: sharedProp = [A, B, C]")
+        }
+
+        where:
+        collectionProperty << ["listProperty", "setProperty"]
     }
 
     /**

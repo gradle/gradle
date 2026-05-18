@@ -29,6 +29,7 @@ image::gradle-basic-10.png[]
 </p>
 ++++
 
+[[sec:build_phases]]
 == Build Phases
 
 A Gradle build has three distinct phases.
@@ -139,3 +140,9 @@ image::task-dag-examples.png[]
 
 [.text-right]
 **Next Step:** <<writing_build_scripts_intermediate.adoc#writing_build_scripts,Learn how to write Build Scripts>> >>
+
+== Hooking into the Build Lifecycle
+
+As your build logic becomes more advanced, you might need to execute custom actions during specific build phases. Gradle exposes several APIs that let you listen to or react to key events in the lifecycle.
+
+For a detailed guide on available callbacks and listeners, refer to <<build_lifecycle.adoc#sec:lifecycle_api, Lifecycle API>>.

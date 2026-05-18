@@ -153,6 +153,7 @@ You should change the IDE's Gradle JVM setting to align with the JVM used on the
 
 You should also change the IDE's Gradle JVM setting if the IDE emits a warning/error when the JVM is not set or does not match with `JAVA_HOME`.
 
+[[sec:intellij_idea]]
 ==== IntelliJ IDEA
 
 To configure the Gradle JVM:
@@ -160,6 +161,7 @@ To configure the Gradle JVM:
 1. Open *Settings (Preferences)* > *Build, Execution, Deployment* > *Gradle*.
 2. Set *Gradle JVM* to the desired JDK.
 
+[[sec:eclipse]]
 ==== Eclipse
 
 To configure the Gradle JVM:
@@ -170,6 +172,7 @@ To configure the Gradle JVM:
 NOTE: Some IDEs also allow you to configure the <<gradle_daemon.adoc#gradle_daemon,Gradle Daemon>> JVM in the same settings screen.
 Be careful not to confuse it with the toolchain or project JVM—*make sure you're selecting the correct one.*
 
+[[sec:combining_toolchains]]
 === Combining toolchains
 
 In some cases, you may want to:
@@ -180,38 +183,11 @@ In some cases, you may want to:
 For example, to compile with Java 17 but produce Java 11 bytecode:
 
 ====
-[.multi-language-sample]
-=====
-[source,kotlin]
-----
-java {
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(17)
-    }
-}
-
-tasks.withType<JavaCompile>().configureEach {
-    options.release = 11
-}
-----
-=====
-[.multi-language-sample]
-=====
-[source,groovy]
-----
-java {
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(17)
-    }
-}
-
-tasks.withType(JavaCompile).configureEach {
-    options.release = 11
-}
-----
-=====
+include::sample[dir="snippets/reference/platforms/jvm/toolchains-crossCompile/kotlin",files="build.gradle.kts[tags=cross-compile]"]
+include::sample[dir="snippets/reference/platforms/jvm/toolchains-crossCompile/groovy",files="build.gradle[tags=cross-compile]"]
 ====
 
+[[sec:comparison_table_for_setting_project_toolchains]]
 === Comparison table for setting project toolchains
 
 |===
@@ -252,6 +228,7 @@ Recommendation:
 - *Use `JAVA_HOME`* only if you need a default system-wide JDK version.
 - *Use IDE settings* if you want Gradle to match your IDE's JDK version.
 
+[[sec:toolchains_for_tasks]]
 == Toolchains for tasks
 
 In case you want to tweak which toolchain is used for a specific task, you can specify the exact tool a task is using.
@@ -283,6 +260,7 @@ Three tools are available:
 * A `JavaLauncher` which is the tool used by the link:{groovyDslPath}/org.gradle.api.tasks.JavaExec.html#org.gradle.api.tasks.JavaExec:javaLauncher[JavaExec] or link:{groovyDslPath}/org.gradle.api.tasks.testing.Test.html#org.gradle.api.tasks.testing.Test:javaLauncher[Test] tasks
 * A `JavadocTool` which is the tool used by the link:{groovyDslPath}/org.gradle.api.tasks.javadoc.Javadoc.html#org.gradle.api.tasks.javadoc.Javadoc:javadocTool[Javadoc] task
 
+[[sec:integration_with_tasks_relying_on_java_executable_or_java_home]]
 === Integration with tasks relying on a Java executable or Java home
 
 Any task that can be configured with a path to a Java executable, or a Java home location, can benefit from toolchains.
@@ -376,6 +354,7 @@ include::sample[dir="snippets/reference/platforms/jvm/toolchain-filters/groovy/"
 Leaving that value unconfigured or set to `false` will not restrict the toolchain selection based on the Native Image capability.
 That means that a Native Image capable JDK can be selected if it matches the other criteria.
 
+[[sec:selecting_toolchains_by_virtual_machine_implementation]]
 === Selecting toolchains by virtual machine implementation
 
 If your project requires a specific implementation, you can filter based on the implementation as well.

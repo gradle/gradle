@@ -163,10 +163,10 @@ class ArtifactSelectionIntegrationTest extends AbstractHttpDependencyResolutionT
                 inputs.files defaultFiles
                 doLast {
                     assert defaultFiles.collect { it.name } == ['lib.jar', 'lib-util.jar', 'ui.jar', 'some-jar-1.0.jar']
-                    assert defaultArtifacts.collect { it.id.displayName }  == ['lib.jar (project :lib)', 'lib-util.jar', 'ui.jar (project :ui)', 'some-jar-1.0.jar (org:test:1.0)']
+                    assert defaultArtifacts.collect { it.id.displayName }  == ["lib.jar (project ':lib')", 'lib-util.jar', "ui.jar (project ':ui')", 'some-jar-1.0.jar (org:test:1.0)']
 
                     assert optionalFiles.collect { it.name } == ['lib.jar', 'lib-util.jar', 'ui.jar', 'some-jar-1.0.jar']
-                    assert optionalArtifacts.collect { it.id.displayName }  == ['lib.jar (project :lib)', 'lib-util.jar', 'ui.jar (project :ui)', 'some-jar-1.0.jar (org:test:1.0)']
+                    assert optionalArtifacts.collect { it.id.displayName }  == ["lib.jar (project ':lib')", 'lib-util.jar', "ui.jar (project ':ui')", 'some-jar-1.0.jar (org:test:1.0)']
                 }
             }
         """
@@ -273,7 +273,7 @@ class ArtifactSelectionIntegrationTest extends AbstractHttpDependencyResolutionT
                 inputs.files viewFiles
                 doLast {
                     assert viewFiles.collect { it.name } == ['lib.classes', 'lib-util.classes', 'ui.classes', 'some-classes-1.0.classes']
-                    assert viewArtifacts.collect { it.id.displayName } == ['lib.classes (project :lib)', 'lib-util.classes', 'ui.classes (project :ui)', 'some-classes-1.0.classes (org:test2:1.0)']
+                    assert viewArtifacts.collect { it.id.displayName } == ["lib.classes (project ':lib')", 'lib-util.classes', "ui.classes (project ':ui')", 'some-classes-1.0.classes (org:test2:1.0)']
                 }
             }
         """
@@ -745,7 +745,7 @@ class ArtifactSelectionIntegrationTest extends AbstractHttpDependencyResolutionT
 
         then:
         outputContains("files: [test-lib.jar, transformed-a1.jar, transformed-b2.jar, test-1.0.jar]")
-        outputContains("components: [test-lib.jar, project :lib, project :ui, org:test:1.0]")
+        outputContains("components: [test-lib.jar, project ':lib', project ':ui', org:test:1.0]")
         outputContains("variants: [{artifactType=jar}, {artifactType=jar, buildType=debug, flavor=one, usage=transformed}, {artifactType=jar, usage=transformed}, {artifactType=jar, org.gradle.status=integration}]")
     }
 
@@ -975,7 +975,7 @@ class ArtifactSelectionIntegrationTest extends AbstractHttpDependencyResolutionT
         fails "resolveView"
         failure.assertHasDescription("Could not determine the dependencies of task ':app:resolveView'.")
         failure.assertHasCause("Could not resolve all dependencies for configuration ':app:compile'.")
-        failure.assertHasCause("""The consumer was configured to find attribute 'artifactType' with value 'jar', attribute 'usage' with value 'api'. However we cannot choose between the following variants of project :lib:
+        failure.assertHasCause("""The consumer was configured to find attribute 'artifactType' with value 'jar', attribute 'usage' with value 'api'. However we cannot choose between the following variants of project ':lib':
   - Configuration ':lib:compile' declares attribute 'artifactType' with value 'jar', attribute 'usage' with value 'api':
       - Unmatched attribute:
           - Provides buildType 'n/a' but the consumer didn't ask for it
@@ -1113,7 +1113,7 @@ class ArtifactSelectionIntegrationTest extends AbstractHttpDependencyResolutionT
         }
         failure.assertHasCause("Could not resolve all files for configuration ':app:compile'.")
 
-        failure.assertHasCause("""No variants of project :lib match the consumer attributes:
+        failure.assertHasCause("""No variants of project ':lib' match the consumer attributes:
   - Configuration ':lib:compile' declares attribute 'usage' with value 'api':
       - Incompatible because this component declares attribute 'artifactType' with value 'jar' and the consumer needed attribute 'artifactType' with value 'dll'
   - Configuration ':lib:compile' variant debug declares attribute 'usage' with value 'api':
@@ -1231,9 +1231,9 @@ class ArtifactSelectionIntegrationTest extends AbstractHttpDependencyResolutionT
         fails(":app:resolve")
         resolve.assertFailurePresent(failure)
         failure.assertHasCause("Could not resolve all files for configuration ':app:compile'.")
-        failure.assertHasCause("Could not select a variant of project :lib that matches the consumer attributes.")
+        failure.assertHasCause("Could not select a variant of project ':lib' that matches the consumer attributes.")
         failure.assertHasCause("Unexpected type for attribute 'attr' provided. Expected a value of type java.lang.String but found a value of type java.lang.Boolean.")
-        failure.assertHasCause("Could not select a variant of project :ui that matches the consumer attributes.")
+        failure.assertHasCause("Could not select a variant of project ':ui' that matches the consumer attributes.")
         failure.assertHasCause("Unexpected type for attribute 'attr' provided. Expected a value of type java.lang.String but found a value of type java.lang.Integer.")
     }
 }

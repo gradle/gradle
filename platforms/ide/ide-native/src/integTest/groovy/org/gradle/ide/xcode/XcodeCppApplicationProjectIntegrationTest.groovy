@@ -156,7 +156,7 @@ class XcodeCppApplicationProjectIntegrationTest extends AbstractXcodeCppProjectI
 
         then:
         resultApp.assertHasCause("Could not resolve all dependencies for configuration ':app:nativeRuntimeDebug'.")
-        resultApp.assertHasCause("Could not resolve project :greeter.")
+        resultApp.assertHasCause("Could not resolve project ':greeter'.")
 
 
         when:

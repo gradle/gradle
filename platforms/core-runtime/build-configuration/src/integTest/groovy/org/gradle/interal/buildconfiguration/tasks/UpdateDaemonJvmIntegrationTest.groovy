@@ -21,6 +21,7 @@ import org.gradle.api.JavaVersion
 import org.gradle.buildconfiguration.tasks.UpdateDaemonJvm
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.integtests.fixtures.executer.DocumentationUtils
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
 import org.gradle.internal.buildconfiguration.fixture.DaemonJvmPropertiesFixture
@@ -75,8 +76,8 @@ class UpdateDaemonJvmIntegrationTest extends AbstractIntegrationSpec implements 
         }
         failureHasCause('Invalid task configuration')
         failureCauseContains('Toolchain download repositories have not been configured.')
-        failure.assertHasResolution('Configure toolchain download repositories in your build settings.')
-        failure.assertHasResolution("For more information, see https://docs.gradle.org/current/userguide/toolchains.html#sub:download_repositories")
+        failure.error.contains('Possible solution: Configure toolchain download repositories in your build settings.')
+        failure.error.contains(DocumentationUtils.normalizeDocumentationLink('For more information, please refer to https://docs.gradle.org/current/userguide/toolchains.html#sub:download_repositories.'))
 
     }
 
@@ -333,8 +334,8 @@ tasks.named("updateDaemonJvm") {
 //        failureDescriptionContains("Execution failed for task ':updateDaemonJvm'")
         failureHasCause("Invalid task configuration")
         failureCauseContains("Toolchain resolvers did not return download URLs providing a JDK matching {languageVersion=20, vendor=vendor matching('FOO'), implementation=vendor-specific, nativeImageCapable=false} for any of the requested platforms")
-        failure.assertHasResolution('Use a toolchain download repository capable of resolving the toolchain spec for the given platforms.')
-        failure.assertHasResolution('For more information, see https://docs.gradle.org/current/userguide/gradle_daemon.html#sec:daemon_jvm_provisioning')
+        failure.error.contains('Possible solution: Use a toolchain download repository capable of resolving the toolchain spec for the given platforms.')
+        failure.error.contains(DocumentationUtils.normalizeDocumentationLink('For more information, please refer to https://docs.gradle.org/current/userguide/gradle_daemon.html#sec:daemon_jvm_provisioning.'))
     }
 
     @Requires(InstalledJdkTestPreconditions.JavaHomeWithDifferentVersionAvailable)

@@ -13,7 +13,7 @@ mysql:mysql-connector-java:8.0.14
     | org.gradle.jvm.version         |              | 11           |
 
 mysql:mysql-connector-java:8.0.14
-\--- project :producer
+\--- project ':producer'
      \--- runtimeClasspath
 
 A web-based, searchable dependency report is available by adding the --scan option.

@@ -82,20 +82,20 @@ class CheckstylePluginTest extends AbstractProjectBuilderSpec {
     private void configuresCheckstyleTask(String taskName, SourceSet sourceSet) {
         def task = project.tasks.findByName(taskName)
         assert task instanceof Checkstyle
-        task.with {
-            assert description == "Run Checkstyle analysis for ${sourceSet.name} classes".toString()
-            assert checkstyleClasspath == project.configurations.checkstyle
-            assert classpath.files == (sourceSet.output + sourceSet.compileClasspath).files
-            assert configFile == project.file("config/checkstyle/checkstyle.xml")
-            assert configDirectory.get().getAsFile() == project.file("config/checkstyle")
-            assert config.inputFiles.singleFile == project.file("config/checkstyle/checkstyle.xml")
-            assert configProperties == [:]
-            assert reports.xml.outputLocation.asFile.get() == project.file("build/reports/checkstyle/${sourceSet.name}.xml")
-            assert reports.html.outputLocation.asFile.get() == project.file("build/reports/checkstyle/${sourceSet.name}.html")
-            assert !ignoreFailures
-            assert showViolations
-            assert maxErrors == 0
-            assert maxWarnings == Integer.MAX_VALUE
+        verifyAll(task) {
+            description == "Run Checkstyle analysis for ${sourceSet.name} classes".toString()
+            checkstyleClasspath == project.configurations.checkstyle
+            classpath.files == (sourceSet.output + sourceSet.compileClasspath).files
+            configFile == project.file("config/checkstyle/checkstyle.xml")
+            configDirectory.get().getAsFile() == project.file("config/checkstyle")
+            config.inputFiles.singleFile == project.file("config/checkstyle/checkstyle.xml")
+            configProperties == [:]
+            reports.xml.outputLocation.asFile.get() == project.file("build/reports/checkstyle/${sourceSet.name}.xml")
+            reports.html.outputLocation.asFile.get() == project.file("build/reports/checkstyle/${sourceSet.name}.html")
+            !ignoreFailures
+            showViolations
+            maxErrors == 0
+            maxWarnings == Integer.MAX_VALUE
         }
     }
 
@@ -159,20 +159,20 @@ class CheckstylePluginTest extends AbstractProjectBuilderSpec {
     private void hasCustomizedSettings(String taskName, SourceSet sourceSet) {
         def task = project.tasks.findByName(taskName)
         assert task instanceof Checkstyle
-        task.with {
-            assert description == "Run Checkstyle analysis for ${sourceSet.name} classes"
-            assert source as List == sourceSet.allJava as List
-            assert checkstyleClasspath == project.configurations["checkstyle"]
-            assert configFile == project.file("checkstyle-config")
-            assert configDirectory.get().getAsFile() == project.file("custom")
-            assert config.inputFiles.singleFile == project.file("checkstyle-config")
-            assert configProperties == [foo: "foo"]
-            assert reports.xml.outputLocation.asFile.get() == project.file("checkstyle-reports/${sourceSet.name}.xml")
-            assert reports.html.outputLocation.asFile.get() == project.file("checkstyle-reports/${sourceSet.name}.html")
-            assert ignoreFailures
-            assert showViolations
-            assert maxErrors == 1
-            assert maxWarnings == 1000
+        verifyAll(task) {
+            description == "Run Checkstyle analysis for ${sourceSet.name} classes"
+            source as List == sourceSet.allJava as List
+            checkstyleClasspath == project.configurations["checkstyle"]
+            configFile == project.file("checkstyle-config")
+            configDirectory.get().getAsFile() == project.file("custom")
+            config.inputFiles.singleFile == project.file("checkstyle-config")
+            configProperties == [foo: "foo"]
+            reports.xml.outputLocation.asFile.get() == project.file("checkstyle-reports/${sourceSet.name}.xml")
+            reports.html.outputLocation.asFile.get() == project.file("checkstyle-reports/${sourceSet.name}.html")
+            ignoreFailures
+            showViolations
+            maxErrors == 1
+            maxWarnings == 1000
         }
     }
 

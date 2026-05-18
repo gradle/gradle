@@ -71,6 +71,7 @@ Some of the plugin's behaviour depends on other, related plugins also being appl
 
 Other plugins auto apply the Java Gradle Plugin, like the link:https://plugins.gradle.org/plugin/com.gradle.plugin-publish[Plugin Publishing Plugin].
 
+[[sec:gradle_plugin_dev_maven_publish]]
 === Maven Publish Plugin
 
 When the Java Gradle Plugin (`java-gradle-plugin`) detects that the Maven Publish Plugin (`maven-publish`) is also applied by the build, it will automatically configure the following link:{groovyDslPath}/org.gradle.api.publish.maven.MavenPublication.html[MavenPublications]:
@@ -80,6 +81,7 @@ When the Java Gradle Plugin (`java-gradle-plugin`) detects that the Maven Publis
 
 This automatic configuration happens in a link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:afterEvaluate(org.gradle.api.Action)[Project.afterEvaluate()] block (so at the end of the <<build_lifecycle.adoc#build_phases,build configuration phase>>), and only if these publications haven't already been defined, so it's possible to create and customise them during the earlier stages of build configuration.
 
+[[sec:gradle_plugin_dev_ivy_publish]]
 === Ivy Publish Plugin
 
 When the Java Gradle Plugin(`java-gradle-plugin`) detects that the Ivy Publish Plugin (`ivy-publish`) is also applied by the build, it will automatically configure the following link:{groovyDslPath}/org.gradle.api.publish.ivy.IvyPublication.html[IvyPublications]:
@@ -89,6 +91,7 @@ When the Java Gradle Plugin(`java-gradle-plugin`) detects that the Ivy Publish P
 
 This automatic configuration happens in a link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:afterEvaluate(org.gradle.api.Action)[Project.afterEvaluate()] block (so at the end of the <<build_lifecycle.adoc#build_phases,build configuration phase>>), and only if these publications haven't already been defined, so it's possible to create and customise them during the earlier stages of build configuration.
 
+[[sec:gradle_plugin_dev_plugin_publish]]
 === Plugin Publish Plugin
 
 Starting from link:https://plugins.gradle.org/plugin/com.gradle.plugin-publish/1.0.0[version 1.0.0, the Plugin Publish Plugin] always auto-applies the Java Gradle Plugin (`java-gradle-plugin`) and the Maven Publish Plugin (`maven-publish`).

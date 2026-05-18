@@ -158,6 +158,14 @@
         <constraint name="receiver" nameOfExprType="InternalOptions" exprTypeWithinHierarchy="true" within="" contains="" />
         <constraint name="opt" nameOfExprType="InternalOption&lt;.*Nullable String&gt;" exprTypeWithinHierarchy="true" within="" contains="" />
       </replaceConfiguration>
+      <replaceConfiguration name="Use Path.asString() instead of toString()" suppressId="use_path_asString" problemDescriptor="Use `asString()` instead of `toString()` on `org.gradle.util.Path`" text="$receiver$.toString()" recursive="false" caseInsensitive="false" type="JAVA" pattern_context="default" reformatAccordingToStyle="true" shortenFQN="true" useStaticImport="true" replacement="$receiver$.asString()">
+        <constraint name="__context__" within="" contains="" />
+        <constraint name="receiver" nameOfExprType="org\.gradle\.util\.Path" exprTypeWithinHierarchy="true" within="" contains="" />
+      </replaceConfiguration>
+      <replaceConfiguration name="Use Path.asString() instead of toString() (Kotlin)" suppressId="use_path_asString" problemDescriptor="Use `asString()` instead of `toString()` on `org.gradle.util.Path`" text="$receiver$.toString()" recursive="false" caseInsensitive="false" type="Kotlin" pattern_context="default" reformatAccordingToStyle="true" shortenFQN="true" useStaticImport="true" replacement="$receiver$.asString()">
+        <constraint name="__context__" within="" contains="" />
+        <constraint name="receiver" nameOfExprType="org\.gradle\.util\.Path" exprTypeWithinHierarchy="true" within="" contains="" />
+      </replaceConfiguration>
       <replaceConfiguration name="Use @ToBeImplemented annotation" suppressId="not_yet_implemented" problemDescriptor="Prefer '@ToBeImplemented' annotation" text="@NotYetImplemented" recursive="false" caseInsensitive="false" type="Groovy" pattern_context="File" reformatAccordingToStyle="true" shortenFQN="true" useStaticImport="true" replacement="@org.gradle.util.internal.ToBeImplemented">
         <constraint name="__context__" within="" contains="" />
       </replaceConfiguration>

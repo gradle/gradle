@@ -16,7 +16,6 @@ object UtilProject : Project({
     buildType(WarmupEc2Agent)
     buildType(DownloadGitRepoToEc2Agent)
     buildType(UpdateWrapper)
-    buildType(UpdateAgpVersions)
 
     buildType(PublishKotlinDslPlugin)
 

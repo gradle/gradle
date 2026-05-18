@@ -16,6 +16,7 @@
 
 package org.gradle.api.tasks.bundling
 
+import org.gradle.api.problems.Severity
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.archives.TestFileSystemSensitiveArchives
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
@@ -25,6 +26,7 @@ import org.gradle.util.internal.TextUtil
 @TestFileSystemSensitiveArchives
 class JarIntegrationTest extends AbstractIntegrationSpec implements ValidationMessageChecker {
     def setup() {
+        enableProblemsApiCheck()
         expectReindentedValidationMessage()
     }
 
@@ -438,7 +440,17 @@ class JarIntegrationTest extends AbstractIntegrationSpec implements ValidationMe
         //   However, because of the type of the object returned by `getArchiveFile()` is a `Property`,
         //   we assume it's mutable, even though the _return type_ is `Provider`.
         //   We will produce the correct message after https://github.com/gradle/gradle/issues/26141 is fixed.
-        failureDescriptionContains(missingValueMessage { type('org.gradle.api.tasks.bundling.Jar').property('archiveFile') })
+        verifyAll(receivedProblem) {
+            severity == Severity.ERROR
+            fqid == 'validation:property-validation:value-not-set'
+            definition.id.displayName == 'Value not set'
+            details == 'This property isn\'t marked as optional and no value has been configured'
+            definition.documentationLink.url == "https://docs.gradle.org/${distribution.version.version}/userguide/validation_problems.html#value_not_set"
+            additionalData.asMap == [
+                'typeName': 'org.gradle.api.tasks.bundling.Jar',
+                'propertyName': 'archiveFile',
+            ]
+        }
     }
 
     def "can use Provider values in manifest attribute"() {

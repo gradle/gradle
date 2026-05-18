@@ -17,8 +17,10 @@
 package org.gradle.problems.internal.rendering;
 
 import com.google.common.base.Strings;
+import org.gradle.api.problems.DocLink;
 import org.gradle.api.problems.FileLocation;
 import org.gradle.api.problems.LineInFileLocation;
+import org.gradle.api.problems.internal.DocLinkInternal;
 import org.gradle.api.problems.internal.ProblemInternal;
 import org.gradle.util.internal.TextUtil;
 import org.jspecify.annotations.Nullable;
@@ -33,50 +35,73 @@ import java.util.stream.Collectors;
  */
 class ProblemBodyWriter implements PartialProblemWriter {
 
+    private static final int LEVEL_1_INDENT = 2;
+    private static final int LEVEL_2_INDENT = 4;
+    private static final int LEVEL_3_INDENT = 6;
+
     @Override
     public void write(ProblemInternal problem, RenderOptions options, PrintWriter output) {
         // contextual message, if any
         String problemSubMessage = getContextualMessage(problem);
         if (problemSubMessage != null) {
             output.printf("%n");
-            indent(output, problemSubMessage, 2);
+            indent(output, problemSubMessage, LEVEL_1_INDENT);
         }
 
         // indent details further if there was a contextual message
         if (problem.getDetails() != null) {
             output.printf("%n");
-            indent(output, problem.getDetails(), problemSubMessage == null ? 2 : 4);
+            indent(output, problem.getDetails(), problemSubMessage == null ? LEVEL_1_INDENT : LEVEL_2_INDENT);
         }
 
-        // print solutions
-        if (options.isRenderSolutions() && !problem.getSolutions().isEmpty()) {
-            for (String solution : problem.getSolutions()) {
-                output.printf("%n");
-
-                String[] lines = solution.split("\\r?\\n");
-                indent(output, "Solution: " + lines[0], 4);
-                for (int i = 1; i < lines.length; i++) {
-                    output.printf("%n");
-                    indent(output, lines[i], 14); // 4 + "Solution: ".length()
-                }
-            }
-        }
-
-        // print documentation
-        if (options.isRenderSolutions() && problem.getDefinition().getDocumentationLink() != null) {
+        // link to documentation
+        DocLink documentationLink = problem.getDefinition().getDocumentationLink();
+        if (documentationLink != null && documentationLink.getUrl() != null) {
             output.printf("%n");
-            indent(output, "Documentation: " + problem.getDefinition().getDocumentationLink().getUrl(), 4);
+            String message = documentationLink instanceof DocLinkInternal
+                ? ((DocLinkInternal) documentationLink).getConsultDocumentationMessage()
+                : String.format("For more information, please refer to %s.", documentationLink.getUrl());
+            indent(output, message, LEVEL_2_INDENT);
         }
 
-        // print locations
+        // locations
         List<FileLocation> fileLocations = problem.getOriginLocations().stream().filter(FileLocation.class::isInstance).map(FileLocation.class::cast).collect(Collectors.toList());
         for (FileLocation location : fileLocations) {
             output.printf("%n");
-            indent(output, "Location: " + location.getPath(), 4);
+            indent(output, "Location: " + location.getPath(), LEVEL_2_INDENT);
             if (location instanceof LineInFileLocation) {
                 LineInFileLocation lineLocation = (LineInFileLocation) location;
                 output.printf(" line " + lineLocation.getLine());
             }
+        }
+
+        // solutions
+        List<String> solutions = problem.getSolutions();
+        if (!solutions.isEmpty()) {
+            output.printf("%n");
+            if (solutions.size() == 1) {
+                writePrefixedMultiline(output, "Possible solution: ", LEVEL_2_INDENT, normalize(solutions.get(0)));
+            } else {
+                indent(output, "Possible solutions:", LEVEL_2_INDENT);
+                for (int i = 0; i < solutions.size(); i++) {
+                    output.printf("%n");
+                    writePrefixedMultiline(output, (i + 1) + ". ", LEVEL_3_INDENT, normalize(solutions.get(i)));
+                }
+            }
+        }
+    }
+
+    private static String normalize(String message) {
+        return TextUtil.capitalize(TextUtil.endLineWithDot(message));
+    }
+
+    private static void writePrefixedMultiline(PrintWriter output, String firstLinePrefix, int firstLineIndent, String text) {
+        String[] lines = text.split("\\r?\\n");
+        indent(output, firstLinePrefix + lines[0], firstLineIndent);
+        int continuationIndent = firstLineIndent + firstLinePrefix.length();
+        for (int i = 1; i < lines.length; i++) {
+            output.printf("%n");
+            indent(output, lines[i], continuationIndent);
         }
     }
 

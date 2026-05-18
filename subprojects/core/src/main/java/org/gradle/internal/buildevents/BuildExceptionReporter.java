@@ -423,13 +423,12 @@ public class BuildExceptionReporter implements Action<Throwable> {
 
         Collection<ProblemInternal> all = failure.getProblems();
         for (ProblemInternal problem : all) {
-            // TODO (donat) integrate type validation failure rendering with problems-rendering and get rid of the special-casing here
+            // Java compilation problems are rendered by JavaCompilationWriter which emits only the details,
+            // so their solutions still need to reach the user via the resolution section.
+            // All other problem writers render solutions and doc links inline.
             ProblemGroup group = problem.getDefinition().getId().getGroup();
-            if (!GradleCoreProblemGroup.validation().type().equals(group) && !GradleCoreProblemGroup.validation().property().equals(group)) {
+            if (GradleCoreProblemGroup.compilation().java().equals(group)) {
                 resolutions.addAll(problem.getSolutions());
-                if (problem.getDefinition().getDocumentationLink() != null) {
-                    resolutions.add("For more information, see " + problem.getDefinition().getDocumentationLink().getUrl());
-                }
             }
         }
 
@@ -454,15 +453,30 @@ public class BuildExceptionReporter implements Action<Throwable> {
         resolution.text(".");
     }
 
+    private static boolean duplicatesAnyProblemText(String msg, Collection<ProblemInternal> problems) {
+        for (ProblemInternal problem : problems) {
+            if (msg.equals(problem.getContextualLabel()) || msg.equals(problem.getDetails())) {
+                return true;
+            }
+            // ProblemBodyWriter falls back to the exception's localized message when contextualLabel is null,
+            // so the same text would render twice if we don't skip msg here.
+            if (problem.getContextualLabel() == null
+                && problem.getException() != null
+                && msg.equals(problem.getException().getLocalizedMessage())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     private static String getMessage(Failure failure) {
         try {
             String msg = failure.getMessage();
             StringBuilder builder = new StringBuilder();
             Collection<ProblemInternal> problems = failure.getProblems();
             if (!problems.isEmpty()) {
-                // Skip the exception message unless it is a compilation error
-                if (failure.getOriginal() instanceof CompilationFailedIndicator) {
-                    builder.append(msg == null ? "" : msg);
+                if (msg != null && !msg.isEmpty() && !duplicatesAnyProblemText(msg, problems)) {
+                    builder.append(msg);
                     builder.append(System.lineSeparator());
                 }
                 StringWriter problemWriter = new StringWriter();
@@ -523,7 +537,7 @@ public class BuildExceptionReporter implements Action<Throwable> {
         }
 
         void appendDetails() {
-            renderStyledError(failure.withoutProblems(), details);
+            renderStyledError(failure, details);
         }
 
         void renderStackTrace() {

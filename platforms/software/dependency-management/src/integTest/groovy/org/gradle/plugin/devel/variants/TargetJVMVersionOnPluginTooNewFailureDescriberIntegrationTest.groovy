@@ -261,7 +261,7 @@ class TargetJVMVersionOnPluginTooNewFailureDescriberIntegrationTest extends Abst
 
         then:
         failure.assertHasErrorOutput("""> Could not resolve all dependencies for configuration 'classpath'.
-   > Could not resolve project :producer.
+   > Could not resolve project ':producer'.
      Required by:
          buildscript of root project 'consumer'
       > Dependency requires at least JVM runtime version ${higherVersion.javaVersion.majorVersion}. This build uses a Java ${lowerVersion.javaVersion.majorVersion} JVM.""")

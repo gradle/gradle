@@ -53,11 +53,11 @@ project(":c") {
         then:
         output.contains """
 compile
-\\--- project :c
-     \\--- project :a
-          +--- project :b
-          |    \\--- project :c (*)
-          \\--- project :c (*)
+\\--- project ':c'
+     \\--- project ':a'
+          +--- project ':b'
+          |    \\--- project ':c' (*)
+          \\--- project ':c' (*)
 """
         output.contains '(*) - Indicates repeated occurrences of a transitive dependency subtree. Gradle expands transitive dependency subtrees only once per project; repeat occurrences only display the root of the subtree, followed by this annotation.'
     }
@@ -88,9 +88,9 @@ compile
         then:
         output.contains """
 conf
-+--- project :A FAILED
-\\--- project :B
-     \\--- project :C FAILED
++--- project ':A' FAILED
+\\--- project ':B'
+     \\--- project ':C' FAILED
 """
     }
 
@@ -316,16 +316,16 @@ rootProject.name = 'root'
         then:
         output.contains """
 compileClasspath - Compile classpath for source set 'main'.
-+--- project :a
++--- project ':a'
 |    \\--- foo:bar:1.0 -> 3.0
 |         \\--- foo:baz:5.0
-+--- project :b
++--- project ':b'
 |    \\--- foo:bar:0.5.dont.exist -> 3.0 (*)
-+--- project :c
++--- project ':c'
 |    \\--- foo:bar:3.0 (*)
-+--- project :d
++--- project ':d'
 |    \\--- foo:bar:2.0 -> 3.0 (*)
-\\--- project :e
+\\--- project ':e'
      \\--- foo:bar:3.0 (*)
 """
     }
@@ -729,14 +729,14 @@ rootProject.name = 'root'
         then:
         output.contains """
 compileClasspath - Compile classpath for source set 'main'.
-+--- project :a
++--- project ':a'
 |    \\--- foo:bar:1.0 -> 2.0
-+--- project :b
++--- project ':b'
 |    \\--- foo:bar:0.5.dont.exist -> 2.0
-+--- project :a:c
++--- project ':a:c'
 |    \\--- foo:bar:2.0
-\\--- project :d
-     \\--- project :e
+\\--- project ':d'
+     \\--- project ':e'
           \\--- foo:bar:2.0
 """
     }
@@ -784,7 +784,7 @@ compileClasspath - Compile classpath for source set 'main'.
         then:
         output.contains """
 compile
-\\--- org.utils:api:1.3 -> project :api2
+\\--- org.utils:api:1.3 -> project ':api2'
 """
     }
 

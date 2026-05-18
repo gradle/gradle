@@ -17,7 +17,11 @@
 package org.gradle.api.internal.project
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.TestExecutionPreconditions
 
+@Requires(value = TestExecutionPreconditions.NotIsolatedProjects,
+    reason = "Project.getProperties() is a hard violation under Isolated Projects; see IsolatedProjectsAccessFromGroovyDslIntegrationTest")
 class GetPropertiesDeprecationIntegrationTest extends AbstractIntegrationSpec {
 
     private static final String PROJECT_DEPRECATION = "The Project.getProperties method has been deprecated. " +
@@ -39,10 +43,10 @@ class GetPropertiesDeprecationIntegrationTest extends AbstractIntegrationSpec {
 
         where:
         // Note: settings.gradle.kts does not expose `properties` so no Kotlin settings script test is needed
-        scriptType               | scriptFile            | expectedDeprecation
-        "Kotlin build script"    | "build.gradle.kts"    | PROJECT_DEPRECATION
-        "Groovy build script"    | "build.gradle"        | SCRIPT_DEPRECATION
-        "Groovy settings script" | "settings.gradle"     | SCRIPT_DEPRECATION
+        scriptType               | scriptFile         | expectedDeprecation
+        "Kotlin build script"    | "build.gradle.kts" | PROJECT_DEPRECATION
+        "Groovy build script"    | "build.gradle"     | SCRIPT_DEPRECATION
+        "Groovy settings script" | "settings.gradle"  | SCRIPT_DEPRECATION
     }
 
     def "accessing properties on an init script is deprecated"() {

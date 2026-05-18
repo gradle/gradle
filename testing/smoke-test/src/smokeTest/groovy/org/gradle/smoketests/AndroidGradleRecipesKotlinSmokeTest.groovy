@@ -45,9 +45,8 @@ class AndroidGradleRecipesKotlinSmokeTest extends AbstractSmokeTest implements R
                     classpath("com.android.tools.build:gradle:$agpVersion")
                 }
             }
-            allprojects {
-                $repositoriesBlock
-            }
+
+            $repositoriesBlock
         """
 
         file('app/build.gradle.kts') << """
@@ -92,6 +91,8 @@ class AndroidGradleRecipesKotlinSmokeTest extends AbstractSmokeTest implements R
                     )
                 }
             }
+
+            $repositoriesBlock
         """
 
         file('app/src/main/kotlin/org/gradle/smoketests/androidrecipes/MainActivity.kt') << '''

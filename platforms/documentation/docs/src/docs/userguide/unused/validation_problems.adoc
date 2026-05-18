@@ -191,7 +191,7 @@ To fix this, either make the method public, or annotate another new or existing 
 [[ignored_property_must_not_be_annotated]]
 == Annotations on ignored properties
 
-This error indicates that you have a property which is annotated with an annotation which tells Gradle to ignore it (for example link:{javadocPath}/org/gradle/api/model/ReplacedBy.html[`@ReplacedBy`]) but is also annotated with an input annotation (for example link:{javadocPath}/org/gradle/api/tasks/InputFile.html[`@InputFile`]).
+This error indicates that you have a property which is annotated with an annotation which tells Gradle to ignore it (for example link:{javadocPath}/org/gradle/api/model/ReplacedBy.html[`@ReplacedBy`] or link:{javadocPath}/org/gradle/api/tasks/Internal.html[`@Internal`]) but is also annotated with an input annotation (for example link:{javadocPath}/org/gradle/api/tasks/InputFile.html[`@InputFile`]).
 
 This is an error because Gradle cannot determine if the property should actually be used for up-to-date checking, that is to say if it's actually an input or not.
 
@@ -199,6 +199,10 @@ To fix this, you must either:
 
 - remove the input annotations from the property, or
 - remove the ignoring annotation from the property.
+
+A specific case of this error is combining `@Internal` and link:{javadocPath}/org/gradle/api/tasks/Optional.html[`@Optional`].
+`@Internal` properties are already excluded from all validation, so adding `@Optional` is redundant and not allowed.
+To fix this, remove the `@Optional` annotation.
 
 [[conflicting_annotations]]
 == Conflicting annotations
@@ -227,6 +231,11 @@ As a consequence, up-to-date checking and caching won't work.
 To fix this problem, you need to annotate the property with the appropriate annotation, for example `@InputDirectory` for a property representing an input directory, or `@OutputDirectory` for a property representing an output directory.
 
 Alternatively, if the property is internal, that is to say that it shouldn't participate in up-to-date checking (it's not an input or an output), then you need to annotate it with link:{javadocPath}/org/gradle/api/tasks/Internal.html[@Internal].
+
+NOTE: A common mistake is to annotate a property with only link:{javadocPath}/org/gradle/api/tasks/Optional.html[`@Optional`].
+`@Optional` is a modifier annotation that must be combined with an input or output annotation such as `@InputFile`.
+Using `@Optional` alone does not suppress validation — it results in this error.
+If your intent is to exclude the property from up-to-date checking entirely, use `@Internal` instead.
 
 [[incompatible_annotations]]
 == Annotation is incompatible with the property type

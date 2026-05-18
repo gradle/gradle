@@ -43,6 +43,7 @@ A typical Gradle plugin is composed of three cooperating parts:
 
 image::plugin_anatomy.png[]
 
+[[example_of_a_binary_plugin]]
 == Example of a binary plugin
 
 Here's a detailed look at the project structure for a simple `Greeting` plugin:
@@ -90,6 +91,7 @@ plugin/     // <1>
 =====
 ====
 
+[[the_plugin_class]]
 === The plugin class (`GreetingPlugin.kt`)
 
 The core of the plugin is the `GreetingPlugin` class.
@@ -107,6 +109,7 @@ The task's inputs are not read immediately.
 Instead, they are connected to the extension's properties, and the values are only resolved when the task actually runs.
 This is crucial for performance and correctness in Gradle builds.
 
+[[the_extension]]
 === The extension (`GreetingExtension.kt`)
 
 The extension defines the properties that a user can configure.
@@ -119,6 +122,7 @@ include::sample[dir="snippets/reference/plugin-development/plugin-binary/groovy"
 <1> `Property<T>`: This is a container for a value of type T. The actual value is not read until it's needed, which enables lazy configuration.
 <2> `RegularFileProperty`: A specific type of property for file paths. Gradle uses this to track file inputs and outputs for up-to-date checks and the build cache.
 
+[[the_custom_task]]
 === The custom task (`GreetTask.kt`)
 
 This is the class for the custom task.
@@ -135,6 +139,7 @@ include::sample[dir="snippets/reference/plugin-development/plugin-binary/groovy"
 *Up-to-Date Checks*: By properly annotating inputs and outputs, Gradle can perform up-to-date checks.
 If the task's inputs and outputs haven't changed since the last build, Gradle can skip the task entirely, which dramatically speeds up the build process.
 
+[[applying_the_plugin]]
 === Applying the plugin
 
 To use this `Greeting` plugin, you need to apply the plugin in your `build.gradle(.kts)` file.
@@ -147,6 +152,7 @@ plugins {
 }
 ----
 
+[[configuring_the_plugin]]
 === Configuring the plugin
 
 Once the plugin is applied, you can configure it using the extension you defined, which is named `greeting`.
@@ -163,6 +169,7 @@ greeting {
 }
 ----
 
+[[running_the_task]]
 === Running the task
 
 The plugin registers a task named `greet`.
@@ -255,7 +262,7 @@ $ ./gradlew -q sayGreeting
 ----
 [source,text]
 ----
-include::{snippetsPath}/tasks/customTaskWithFileProperty/tests/lazyFileProperties.out[]
+include::{snippetsPath}/reference/plugin-development/customTaskWithFileProperty/tests/lazyFileProperties.out[]
 ----
 
 In this example, we configure the `greet` task `destination` property as a closure/provider, which is evaluated with
@@ -325,6 +332,8 @@ Then, when the block is executed, the receiver of the block is the extension.
 In this example, several settings can be grouped within the `greeting` closure. The name of the closure block in the build script (`greeting`) must match the extension object name.
 Then, when the closure is executed, the fields on the extension object will be mapped to the variables within the closure based on the standard Groovy closure delegate feature.
 
+[[sec:declaring_a_dsl_configuration_container]]
+[[declaring_a_dsl_configuration_container]]
 == Declaring a DSL configuration container
 
 Using an extension object _extends_ the Gradle DSL to add a project property and DSL block for the plugin.
@@ -518,6 +527,8 @@ include::{snippetsPath}/reference/plugin-development/capabilitiesVsConventions/g
 include::{snippetsPath}/reference/plugin-development/capabilitiesVsConventions/groovy/buildSrc/src/main/java/MyPlugin.java[]
 ----
 
+[[sec:reacting_to_plugins]]
+[[reacting_to_plugins]]
 == Reacting to plugins
 
 A common pattern in Gradle plugin implementations is configuring the runtime behavior of existing plugins and tasks in a build.
@@ -553,6 +564,8 @@ The same concept applies to task types:
 include::{snippetsPath}/reference/plugin-development/reactingToPlugins/groovy/buildSrc/src/main/java/InhouseConventionWarPlugin.java[tags=snippet]
 ----
 
+[[sec:reacting_to_build_features]]
+[[reacting_to_build_features]]
 == Reacting to build features
 
 Plugins can access the status of build features in the build.
@@ -575,6 +588,7 @@ include::{snippetsPath}/reference/plugin-development/reactingToBuildFeatures/gro
 <2> Accessing the `requested` status of a feature for reporting.
 <3> Using the `active` status of a feature to disable incompatible functionality.
 
+[[build_feature_properties]]
 === Build feature properties
 
 A `BuildFeature` status properties are represented with `Provider<Boolean>` types.
@@ -607,6 +621,7 @@ A plugin can provide dependency declarations in custom blocks that allow users t
 For instance, instead of users needing to know and use the underlying `Configuration` name to add dependencies, a custom `dependencies` block lets the plugin pick a meaningful name that
 can be used consistently.
 
+[[adding_a_custom_dependencies_block]]
 === Adding a custom `dependencies` block
 
 To add a custom `dependencies` block, you need to create a new <<properties_providers.adoc#properties_and_providers,type>> that will represent the set of dependency scopes available to users.
@@ -615,6 +630,7 @@ Finally, the dependency scopes need to be wired back to underlying `Configuratio
 
 See link:{groovyDslPath}/org.gradle.api.plugins.jvm.JvmComponentDependencies.html[JvmComponentDependencies] and link:{groovyDslPath}/org.gradle.api.plugins.jvm.JvmTestSuite.html[JvmTestSuite] for an example of how this is used in a Gradle core plugin.
 
+[[create_an_interface_that_extends_dependencies]]
 ==== 1. Create an interface that extends `Dependencies`
 
 NOTE: You can also extend link:{groovyDslPath}/org.gradle.api.artifacts.dsl.GradleDependencies.html[GradleDependencies] to get access to Gradle-provided dependencies like `gradleApi()`.
@@ -623,10 +639,11 @@ NOTE: You can also extend link:{groovyDslPath}/org.gradle.api.artifacts.dsl.Grad
 [source.multi-language-sample,java]
 .ExampleDependencies.java
 ----
-include::{snippetsPath}/plugins/dependenciesBlock/common/buildSrc/src/main/java/com/example/ExampleDependencies.java[tags=custom-dependencies-type]
+include::{snippetsPath}/reference/plugin-development/dependenciesBlock/common/buildSrc/src/main/java/com/example/ExampleDependencies.java[tags=custom-dependencies-type]
 ----
 ====
 
+[[add_accessors_for_dependency_scopes]]
 ==== 2. Add accessors for dependency scopes
 
 For each dependency scope your plugin wants to support, add a getter method that returns a `DependencyCollector`.
@@ -635,10 +652,11 @@ For each dependency scope your plugin wants to support, add a getter method that
 [source.multi-language-sample,java]
 .ExampleDependencies.java
 ----
-include::{snippetsPath}/plugins/dependenciesBlock/common/buildSrc/src/main/java/com/example/ExampleDependencies.java[tags=custom-dependencies-scopes]
+include::{snippetsPath}/reference/plugin-development/dependenciesBlock/common/buildSrc/src/main/java/com/example/ExampleDependencies.java[tags=custom-dependencies-scopes]
 ----
 ====
 
+[[add_accessors_for_custom_dependencies_block]]
 ==== 3. Add accessors for custom `dependencies` block
 
 To make the custom `dependencies` block configurable, the plugin needs to add a `getDependencies` method that returns the new type from above and a configurable block method named `dependencies`.
@@ -650,10 +668,11 @@ This method could be named something else, but users would need to know that a d
 [source.multi-language-sample,java]
 .ExampleExtension.java
 ----
-include::{snippetsPath}/plugins/dependenciesBlock/common/buildSrc/src/main/java/com/example/ExampleExtension.java[tags=dependencies-accessors]
+include::{snippetsPath}/reference/plugin-development/dependenciesBlock/common/buildSrc/src/main/java/com/example/ExampleExtension.java[tags=dependencies-accessors]
 ----
 ====
 
+[[wire_dependency_scope_to_configuration]]
 ==== 4. Wire dependency scope to `Configuration`
 
 Finally, the plugin needs to wire the custom `dependencies` block to some underlying `Configuration` objects. If this is not done, none of the dependencies declared in the custom block will
@@ -663,7 +682,7 @@ be available to dependency resolution.
 [source.multi-language-sample,java]
 .ExamplePlugin.java
 ----
-include::{snippetsPath}/plugins/dependenciesBlock/common/buildSrc/src/main/java/com/example/ExamplePlugin.java[tags=wire-dependencies]
+include::{snippetsPath}/reference/plugin-development/dependenciesBlock/common/buildSrc/src/main/java/com/example/ExamplePlugin.java[tags=wire-dependencies]
 ----
 ====
 
@@ -673,16 +692,16 @@ NOTE: In this example, the name users will use to add dependencies is "implement
 [source.multi-language-sample,kotlin]
 .build.gradle.kts
 ----
-include::{snippetsPath}/plugins/dependenciesBlock/kotlin/build.gradle.kts[tags=dependencies]
+include::{snippetsPath}/reference/plugin-development/dependenciesBlock/kotlin/build.gradle.kts[tags=dependencies]
 ----
 [source.multi-language-sample,groovy]
 .build.gradle
 ----
-include::{snippetsPath}/plugins/dependenciesBlock/groovy/build.gradle[tags=dependencies]
+include::{snippetsPath}/reference/plugin-development/dependenciesBlock/groovy/build.gradle[tags=dependencies]
 ----
 ====
 
-[[sec:differences_with_top_level_dependencies]]
+[[sec:differences_with_top_level_dependencies_plugins]]
 === Differences between the custom `dependencies` and the top-level `dependencies` blocks
 
 Each dependency scope returns a link:{groovyDslPath}/org.gradle.api.artifacts.dsl.DependencyCollector.html[`DependencyCollector`] that provides strongly-typed methods to add and configure dependencies.
@@ -710,6 +729,8 @@ Keep in mind that the `dependencies` block may not provide access to the same me
 
 NOTE: Plugins should prefer adding dependencies via their own `dependencies` block.
 
+[[sec:providing_default_dependencies]]
+[[providing_default_dependencies]]
 == Providing default dependencies
 
 The implementation of a plugin sometimes requires the use of an external dependency.
@@ -750,6 +771,7 @@ You will find that this pattern works well for tasks that require an external de
 You can go further and abstract the version to be used for the external dependency by exposing an extension property (e.g.
 `toolVersion` in link:{groovyDslPath}/org.gradle.testing.jacoco.plugins.JacocoPluginExtension.html[the JaCoCo plugin]).
 
+[[minimizing_the_use_of_external_libraries]]
 === Minimizing the use of external libraries
 
 Using external libraries in your Gradle projects can bring great convenience, but be aware that they can introduce complex dependency graphs.
@@ -821,6 +843,7 @@ This will be improved in the future.
 The above snippet assumes that all variants of your plugin have the plugin class at the same location.
 That is, if your plugin class is `org.example.GreetingPlugin`, you need to create a second variant of that class in `src/gradle7/java/org/example`.
 
+[[using_version_specific_variants_of_multi_variant_plugins]]
 === Using version-specific variants of multi-variant plugins
 
 Given a dependency on a multi-variant plugin, Gradle will automatically choose its variant that best matches the current Gradle version when it resolves any of:

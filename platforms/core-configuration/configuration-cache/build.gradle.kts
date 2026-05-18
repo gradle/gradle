@@ -70,6 +70,7 @@ dependencies {
     implementation(projects.logging)
     implementation(projects.messaging)
     implementation(projects.modelCore)
+    implementation(projects.normalization)
     implementation(projects.persistentCache)
     implementation(projects.problemsApi)
     implementation(projects.scopedPersistentCache)
@@ -119,6 +120,7 @@ dependencies {
     integTestImplementation(testLibs.playwright)
 
     integTestImplementation(testFixtures(projects.toolingApi))
+    integTestImplementation(testFixtures(projects.kotlinDslToolingBuilders))
     integTestImplementation(testFixtures(projects.dependencyManagement))
     integTestImplementation(testFixtures(projects.jacoco))
     integTestImplementation(testFixtures(projects.modelReflect))

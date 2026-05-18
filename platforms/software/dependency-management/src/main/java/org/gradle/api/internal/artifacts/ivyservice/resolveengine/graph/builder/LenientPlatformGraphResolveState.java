@@ -67,7 +67,7 @@ public class LenientPlatformGraphResolveState extends AbstractComponentGraphReso
         VirtualPlatformState virtualPlatformState,
         ResolveState resolveState
     ) {
-        super(componentId, metadata, resolveState.getAttributeDesugaring());
+        super(componentId, metadata);
 
         this.variant = createVariant(variantId, virtualPlatformState, resolveState, metadata.getId());
     }

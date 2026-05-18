@@ -16,7 +16,7 @@
 
 package org.gradle.internal.cc.impl
 
-import org.gradle.api.internal.project.ProjectState
+import org.gradle.api.internal.project.ProjectIdentity
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
 
@@ -32,5 +32,5 @@ interface CoupledProjectsListener {
      * The [referrer] and [target] might represent the same project, and the listener implementation
      * should handle this specifically, probably ignoring such calls, as a project is naturally coupled with itself.
      */
-    fun onProjectReference(referrer: ProjectState, target: ProjectState)
+    fun onProjectReference(referrer: ProjectIdentity, target: ProjectIdentity)
 }

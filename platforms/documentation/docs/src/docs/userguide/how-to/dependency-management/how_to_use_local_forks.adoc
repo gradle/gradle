@@ -23,6 +23,7 @@ Using a **local fork** allows you to:
 * Work with an **unreleased** version of a library.
 * Avoid relying on the **published binary** version.
 
+[[sec:local_fork_prerequisites]]
 == Prerequisites
 
 * The module must be **built with Gradle**.
@@ -31,6 +32,7 @@ Using a **local fork** allows you to:
 
 Gradle composite builds automatically substitute external dependencies with local forks.
 
+[[sec:create_composite_build]]
 == Step 1: Create a Composite Build
 
 Assume your initial project structure looks like this:
@@ -76,6 +78,7 @@ include::sample[dir="snippets/how-to/dependency-management/dependency-management
 
 This instructs Gradle to automatically substitute the external dependency coordinates with your local build.
 
+[[sec:include_local_fork]]
 == Step 2: Include The Local Fork
 
 Composite builds allow us to use a local version of `okhttp` with minimal configuration changes.
@@ -119,6 +122,7 @@ include::sample[dir="snippets/how-to/dependency-management/dependency-management
 include::sample[dir="snippets/how-to/dependency-management/dependency-management/local-fork/groovy",files="my-fork/okhttp/build.gradle[]"]
 ====
 
+[[sec:declare_dependency_normally]]
 == Step 3: Declare the Dependency Normally
 
 In your project's `build.gradle(.kts)`, continue declaring the dependency using the same external coordinates as originally:
@@ -132,6 +136,7 @@ You don't need explicit substitution statements in the `build.gradle(.kts)` file
 
 With this setup, Gradle will automatically use your local fork instead of downloading the dependency from remote repositories.
 
+[[sec:local_fork_troubleshooting]]
 == Step 4: Troubleshooting
 
 If Gradle is still attempting to resolve your dependency externally, verify that:
@@ -139,6 +144,7 @@ If Gradle is still attempting to resolve your dependency externally, verify that
 * The local fork (`build.gradle.kts`) specifies exactly the same coordinates (`group`, `name`, and `version`) as your external dependency.
 * Your `settings.gradle.kts` correctly references your local fork with `includeBuild`.
 
+[[sec:local_fork_summary]]
 == Summary
 
 Gradle <<composite_builds.adoc#composite_builds,composite builds>> provide a straightforward and efficient method to substitute external module dependencies with local forks.

@@ -163,8 +163,8 @@ Problem found: Project is a prototype (id: sample-problems:prototype-project)
 Problem found: Project is a prototype (id: sample-problems:prototype-project)
   This is a prototype and not a guideline for modeling real-life projects
     Complex build logic like the Problems API usage should integrated into plugins
-    Solution: Look up the samples index for real-life examples
     Location: /path/to/script line 20
+    Possible solution: Look up the samples index for real-life examples.
         ''')
     }
 
@@ -189,10 +189,11 @@ Problem found: Project is a prototype (id: sample-problems:prototype-project)
 Problem found: Project is a prototype (id: sample-problems:prototype-project)
   This is a prototype and not a guideline for modeling real-life projects
     Complex build logic like the Problems API usage should integrated into plugins
-    Solution: Look up the samples index for real-life examples
-    Solution: Or read the documentation on the Gradle website
     Location: /path/to/script line 20
     Location: /path/to/alternative line 30
+    Possible solutions:
+      1. Look up the samples index for real-life examples.
+      2. Or read the documentation on the Gradle website.
         ''')
     }
 
@@ -213,8 +214,51 @@ Problem found: Project is a prototype (id: sample-problems:prototype-project)
   This is a prototype and not a guideline for modeling real-life projects
     Complex build logic like the Problems API
     usage should integrated into plugins
-    Solution: Look up the samples index for
-              real-life examples
+    Possible solution: Look up the samples index for
+                       real-life examples.
+        ''')
+    }
+
+    def "render multiline messages with multiple solutions"() {
+        def problem = createProblem { ProblemBuilderInternal spec ->
+            spec.id(createId())
+                .contextualLabel("This is a prototype and not${System.lineSeparator()}a guideline for modeling real-life projects") // API enforces a single line for contextual label
+                .details("Complex build logic like the Problems API${System.lineSeparator()}usage should integrated into plugins")
+                .solution("Look up the samples index for${System.lineSeparator()}real-life examples")
+                .solution("Another interesting${System.lineSeparator()}alternative solution")
+                .solution("3rd solution")
+                .solution("4th solution")
+                .solution("5th solution")
+                .solution("6th solution")
+                .solution("7th solution")
+                .solution("8th solution")
+                .solution("9th solution")
+                .solution("10th solution${System.lineSeparator()}with some content")
+        }
+
+        when:
+        problemWriter.write(problem, writer)
+
+        then:
+        renderedProblem == denormalizeAndStrip('''
+Problem found: Project is a prototype (id: sample-problems:prototype-project)
+  This is a prototype and not a guideline for modeling real-life projects
+    Complex build logic like the Problems API
+    usage should integrated into plugins
+    Possible solutions:
+      1. Look up the samples index for
+         real-life examples.
+      2. Another interesting
+         alternative solution.
+      3. 3rd solution.
+      4. 4th solution.
+      5. 5th solution.
+      6. 6th solution.
+      7. 7th solution.
+      8. 8th solution.
+      9. 9th solution.
+      10. 10th solution
+          with some content.
         ''')
     }
 

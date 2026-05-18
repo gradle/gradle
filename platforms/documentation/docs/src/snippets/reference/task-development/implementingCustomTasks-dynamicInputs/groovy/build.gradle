@@ -1,0 +1,8 @@
+// tag::dynamic-inputs[]
+tasks.register("printVersionDynamic") {
+    inputs.property("version", project.version)
+    doLast {
+        println("Version: ${inputs.properties["version"]}")
+    }
+}
+// end::dynamic-inputs[]

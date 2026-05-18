@@ -58,8 +58,8 @@ fun performanceTestCommandLine(
     "-PperformanceBaselines=$baselines",
     "-PtestJavaVersion=$testJavaVersion",
     "-PtestJavaVendor=$testJavaVendor",
-    "-PautoDownloadAndroidStudio=true",
-    "-PrunAndroidStudioInHeadlessMode=true",
+    "-PautoDownloadIde=true",
+    "-PrunIdeInHeadlessMode=true",
     "-Dorg.gradle.java.installations.auto-download=false",
     "-Porg.gradle.java.installations.auto-download=false",
 ) + os.javaInstallationLocations(arch) +

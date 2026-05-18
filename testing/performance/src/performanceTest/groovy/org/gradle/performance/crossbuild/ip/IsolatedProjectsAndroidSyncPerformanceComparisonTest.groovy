@@ -22,30 +22,36 @@ import org.gradle.performance.annotations.RunFor
 import org.gradle.performance.annotations.Scenario
 import org.gradle.performance.fixture.GradleBuildExperimentSpec
 import org.gradle.performance.results.CrossBuildPerformanceResults
-import org.gradle.profiler.mutations.ApplyAbiChangeToKotlinSourceFileMutator
+import org.gradle.profiler.mutations.ApplyAbiChangeToSourceFileMutator
 
 import static org.gradle.performance.annotations.ScenarioType.PER_DAY
 import static org.gradle.performance.results.OperatingSystem.LINUX
 
 @RunFor(
-    @Scenario(type = PER_DAY, operatingSystems = [LINUX], testProjects = ["android500Kts"])
+    @Scenario(type = PER_DAY, operatingSystems = [LINUX], testProjects = ["android100Kts"])
 )
 class IsolatedProjectsAndroidSyncPerformanceComparisonTest extends AbstractCrossBuildPerformanceTest {
 
     private static int maxWorkers = 8
 
-    def setup() {
+    // Invoked from feature methods rather than Spock's setup() because
+    // :performance:writeTmpPerformanceScenarioDefinitions (run by sanityCheck)
+    // executes setup() for every feature even though the bodies are skipped.
+    // configureStudio() requires ANDROID_SDK_ROOT, which would then break
+    // sanityCheck on machines without that variable set.
+    private void studioSetup() {
         // NOTE: see the javadoc for required environment and possible configuration
         AndroidSyncPerformanceTestFixture.configureStudio(runner)
     }
 
     // TODO:isolated introduce cold/warm daemon variation
-    def "sync Studio after included build logic refactoring"() {
+    def "sync Studio after build logic ABI change"() {
         given:
+        studioSetup()
         def runner = getRunner() // otherwise, IDEA thinks it's PerformanceTestRunner despite the override
 
         runner.addBuildMutator { settings ->
-            new ApplyAbiChangeToKotlinSourceFileMutator(new File(settings.projectDir, "build-logic/convention/src/main/kotlin/org/example/awesome/utils.kt"))
+            new ApplyAbiChangeToSourceFileMutator(new File(settings.projectDir, "build-logic/convention/src/main/java/org/example/awesome/AwesomeStringUtils.java"))
         }
 
         // 'Moderne' configuration that is used by performance aware teams
@@ -53,23 +59,13 @@ class IsolatedProjectsAndroidSyncPerformanceComparisonTest extends AbstractCross
             displayName("moderne")
             invocation {
                 args(
+                    // ensure IP is disabled for sensible comparison for projects that already enabled it
+                    "-Dorg.gradle.unsafe.isolated-projects=false",
+
                     "-Dorg.gradle.parallel=true",
                     "-Dorg.gradle.configuration-cache=true",
                     "-Dorg.gradle.configuration-cache.parallel=true",
                     "-Dorg.gradle.configureondemand=false",
-                )
-            }
-        }
-
-        // Moderne plus Configure-on-Demand, which is popular in Android world
-        runner.baseline {
-            displayName("moderne-cod")
-            invocation {
-                args(
-                    "-Dorg.gradle.parallel=true",
-                    "-Dorg.gradle.configuration-cache=true",
-                    "-Dorg.gradle.configuration-cache.parallel=true",
-                    "-Dorg.gradle.configureondemand=true",
                 )
             }
         }
@@ -88,16 +84,12 @@ class IsolatedProjectsAndroidSyncPerformanceComparisonTest extends AbstractCross
 
         then:
         def moderne = buildBaselineResults(result, "moderne")
-        def moderneWithConfigureOnDemand = buildBaselineResults(result, "moderne-cod")
         def ip = result.buildResult("ip")
 
         // TODO:isolated assert that IP is not just faster, but faster with a scaling factor
         // TODO:isolated assert an upper bound of faster to visibly lock-in performance improvements
         println(moderne.getSpeedStatsAgainst("ip", ip))
         !moderne.significantlyFasterThan(ip)
-
-        println(moderneWithConfigureOnDemand.getSpeedStatsAgainst("ip", ip))
-        !moderneWithConfigureOnDemand.significantlyFasterThan(ip)
     }
 
     @Override

@@ -39,11 +39,11 @@ import org.gradle.internal.service.scopes.ServiceScope
 import org.gradle.kotlin.dsl.accessors.ContainerElementFactoryEntry
 import org.gradle.kotlin.dsl.accessors.NestedModelEntry
 import org.gradle.kotlin.dsl.accessors.ProjectFeatureEntry
+import org.gradle.kotlin.dsl.provider.plugins.schema.TypeProjection
+import org.gradle.kotlin.dsl.provider.plugins.schema.TypeProjectionKind
+import org.gradle.kotlin.dsl.provider.plugins.schema.parameterizedTypeOfRawGenericClass
 import org.gradle.kotlin.dsl.support.serviceOf
 import org.gradle.features.internal.binding.ProjectFeatureDeclarations
-import java.lang.reflect.ParameterizedType
-import java.lang.reflect.Type
-import java.lang.reflect.WildcardType
 
 data class KotlinDslDclSchema(
     val containerElementFactories: List<ContainerElementFactoryEntry<TypeOf<*>>>,
@@ -194,36 +194,4 @@ internal class DefaultKotlinDslDclSchemaCollector : KotlinDslDclSchemaCollector 
             }
         }.flatten()
 
-    /**
-     * Workaround: The [TypeOf] infrastructure handles parameterized types specially.
-     * Passing the raw [Class] obtained from the class loader to [TypeOf.parameterizedTypeOf] would not work.
-     * We need to provide a [ParameterizedType] instance.
-     */
-    private fun parameterizedTypeOfRawGenericClass(typeArgs: List<TypeProjection>, loadedClass: Class<*>): TypeOf<Any> =
-        TypeOf.typeOf(object : ParameterizedType {
-            override fun getActualTypeArguments(): Array<Type> = typeArgs.map { (clazz, projection) ->
-                when (projection) {
-                    TypeProjectionKind.NONE -> clazz
-                    TypeProjectionKind.OUT -> object : WildcardType {
-                        override fun getUpperBounds(): Array<out Type> = arrayOf(clazz)
-                        override fun getLowerBounds() = emptyArray<Type>()
-                    }
-                    TypeProjectionKind.IN -> object : WildcardType {
-                        override fun getUpperBounds(): Array<out Type> = emptyArray()
-                        override fun getLowerBounds() = arrayOf(clazz)
-                    }
-                }
-            }.toTypedArray<Type>()
-            override fun getRawType(): Type = loadedClass
-
-            /** [Class.getNestHost] is @since 11, cannot use it; but we are fine with no owner type here. */
-            /** [Class.getNestHost] is @since 11, cannot use it; but we are fine with no owner type here. */
-            override fun getOwnerType() = null
-        })
-
-    private data class TypeProjection(val clazz: Class<*>, val projection: TypeProjectionKind = TypeProjectionKind.NONE)
-
-    private enum class TypeProjectionKind {
-        NONE, OUT, IN
-    }
 }

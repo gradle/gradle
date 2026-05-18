@@ -17,6 +17,7 @@
 package org.gradle.internal.operations
 
 import org.gradle.api.GradleException
+import org.gradle.internal.Factory
 import org.gradle.internal.concurrent.ExecutorPolicy
 import org.gradle.internal.concurrent.ManagedExecutor
 import org.gradle.internal.concurrent.ManagedExecutorImpl
@@ -27,7 +28,9 @@ import org.gradle.internal.work.DefaultWorkerLimits
 import org.gradle.internal.work.ResourceLockStatistics
 import org.gradle.internal.work.WorkerLeaseRegistry
 import org.gradle.internal.work.WorkerLeaseService
+import spock.lang.Issue
 import spock.lang.Specification
+import spock.lang.Timeout
 
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.Executors
@@ -273,6 +276,103 @@ class DefaultBuildOperationQueueTest extends Specification {
         5    | 1
         5    | 4
         5    | 10
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/37613")
+    @Timeout(value = 30, unit = TimeUnit.SECONDS)
+    def "workers do not pull operations without a lease, and main thread can progress the queue"() {
+        given:
+        // Slightly modified from setupQueue to allow certain injection points.
+        def mainThread = Thread.currentThread()
+        def workerStartedRetrying = new CountDownLatch(1)
+        def executedByMain = new AtomicInteger()
+        def executedByOther = new AtomicInteger()
+        def recordingWorker = { TestBuildOperation op ->
+            if (Thread.currentThread() === mainThread) {
+                executedByMain.incrementAndGet()
+            } else {
+                executedByOther.incrementAndGet()
+            }
+            op.run(null)
+        } as BuildOperationQueue.QueueWorker<TestBuildOperation>
+
+        coordinationService = new DefaultResourceLockCoordinationService()
+        workerRegistry = new DefaultWorkerLeaseService(coordinationService, new DefaultWorkerLimits(1), ResourceLockStatistics.NO_OP) {
+            @Override
+            <T> Optional<T> tryRunAsWorkerThread(Factory<T> action) {
+                // Called repeatedly from the retry loop; CountDownLatch tolerates extra countDown() calls.
+                if (Thread.currentThread() !== mainThread) {
+                    workerStartedRetrying.countDown()
+                }
+                return super.tryRunAsWorkerThread(action)
+            }
+        }
+        workerRegistry.startProjectExecution(true)
+        // Keep the lease on the main thread so the spawned worker starves on runAsWorkerThread.
+        lease = workerRegistry.startWorker()
+        def executionContext = new BuildOperationExecutionContext(
+            new ManagedExecutorImpl(Executors.newFixedThreadPool(1), new ExecutorPolicy.CatchAndRecordFailures()),
+            1,
+            true
+        )
+        operationQueue = new DefaultBuildOperationQueue(false, workerRegistry, executionContext, recordingWorker, null)
+
+        when:
+        operationQueue.add(new Success())
+
+        and:
+        // Wait until the worker has tried and failed to acquire a lease.
+        // This ensures that the main thread will be needed to progress the queue.
+        assert workerStartedRetrying.await(10, TimeUnit.SECONDS)
+
+        and:
+        operationQueue.waitForCompletion()
+
+        then:
+        executedByMain.get() + executedByOther.get() == 1
+        executedByMain.get() == 1
+    }
+
+    @Timeout(value = 30, unit = TimeUnit.SECONDS)
+    def "starved worker exits via shouldExitWithExtraWorkerInvalidation when the queue is cancelled"() {
+        given:
+        def mainThread = Thread.currentThread()
+        def workerStartedRetrying = new CountDownLatch(1)
+        coordinationService = new DefaultResourceLockCoordinationService()
+        workerRegistry = new DefaultWorkerLeaseService(coordinationService, new DefaultWorkerLimits(1), ResourceLockStatistics.NO_OP) {
+            @Override
+            <T> Optional<T> tryRunAsWorkerThread(Factory<T> action) {
+                if (Thread.currentThread() !== mainThread) {
+                    workerStartedRetrying.countDown()
+                }
+                return super.tryRunAsWorkerThread(action)
+            }
+        }
+        workerRegistry.startProjectExecution(true)
+        // Hold the only lease on the main thread so the spawned worker is starved.
+        lease = workerRegistry.startWorker()
+        def underlyingExecutor = Executors.newFixedThreadPool(1)
+        def executionContext = new BuildOperationExecutionContext(
+            new ManagedExecutorImpl(underlyingExecutor, new ExecutorPolicy.CatchAndRecordFailures()),
+            1,
+            true
+        )
+        operationQueue = new DefaultBuildOperationQueue(false, workerRegistry, executionContext, new SimpleWorker(), null)
+
+        when:
+        operationQueue.add(new Success())
+        // Wait for the spawned worker to enter its lease-retry loop.
+        assert workerStartedRetrying.await(10, TimeUnit.SECONDS)
+
+        and:
+        operationQueue.cancel()
+
+        and:
+        underlyingExecutor.shutdown()
+        def terminated = underlyingExecutor.awaitTermination(15, TimeUnit.SECONDS)
+
+        then:
+        terminated
     }
 
     static class SynchronizedBuildOperation extends TestBuildOperation {

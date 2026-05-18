@@ -57,7 +57,7 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
     private final ExecOperations execOperations;
     private final ValueListener valueListener;
     private final ComputationListener computationListener;
-    private final IsolationScheme<ValueSource, ValueSourceParameters> isolationScheme = new IsolationScheme<>(ValueSource.class, ValueSourceParameters.class, ValueSourceParameters.None.class);
+    private final IsolationScheme<ValueSource, ValueSourceParameters> isolationScheme = new IsolationScheme<>(ValueSource.class, ValueSourceParameters.class, ValueSourceParameters.None.class, ValueSourceParameters.None.INSTANCE);
     private final InstanceGenerator paramsInstantiator;
     private final InstanceGenerator specInstantiator;
 
@@ -129,6 +129,8 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
                 registration.add(ExecOperations.class, execOperations);
                 if (isolatedParameters != null) {
                     registration.add(parametersType, isolatedParameters);
+                } else {
+                    registration.add(ValueSourceParameters.None.class, ValueSourceParameters.None.INSTANCE);
                 }
             })
             .build();

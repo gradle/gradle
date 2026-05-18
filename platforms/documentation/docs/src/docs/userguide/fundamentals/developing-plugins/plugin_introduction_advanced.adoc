@@ -51,6 +51,7 @@ include::sample[dir="snippets/fundamentals/developing-plugins/fixtures/kotlin/li
 include::sample[dir="snippets/fundamentals/developing-plugins/fixtures/groovy/lib",files="build.gradle[tag=java-block]"]
 ====
 
+[[sec:plugin_types]]
 == Plugin Types
 
 Gradle supports *three types of plugins*, each applied at a different phase of the build lifecycle.
@@ -87,6 +88,7 @@ image::plugin-intro-advanced-1.png[]
 * Configure tasks, dependencies, and project-specific behavior.
 * Implement the `Plugin<Project>` interface.
 
+[[sec:plugin_scope]]
 == Plugin Scope
 
 The *scope* of a *plugin* is determined by the *interface* it implements.
@@ -117,6 +119,7 @@ Each *plugin type* is defined by the *interface* it implements and the stage of 
 | `build.gradle[.kts]`
 |===
 
+[[sec:plugin_sources]]
 == Plugin Sources
 
 Gradle *plugins* come from *three different places*, the Gradle distribution itself, external community sources, or your own internal builds.
@@ -137,6 +140,7 @@ Gradle *plugins* come from *three different places*, the Gradle distribution its
 * Custom plugins you write yourself, for your own builds.
 * Useful for sharing logic across subprojects or internal builds.
 
+[[sec:authoring_plugins]]
 == Authoring Plugins
 
 Gradle provides *two* main ways to create your own *custom plugins*.

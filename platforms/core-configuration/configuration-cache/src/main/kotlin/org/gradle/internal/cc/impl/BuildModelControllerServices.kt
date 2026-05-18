@@ -20,8 +20,6 @@ import org.gradle.api.internal.project.CrossBuildModelAccess
 import org.gradle.api.internal.project.CrossProjectModelAccess
 import org.gradle.api.internal.project.DefaultCrossBuildModelAccess
 import org.gradle.api.internal.project.DefaultCrossProjectModelAccess
-import org.gradle.api.internal.project.DefaultDynamicLookupRoutine
-import org.gradle.api.internal.project.DynamicLookupRoutine
 import org.gradle.api.internal.provider.ConfigurationTimeBarrier
 import org.gradle.api.internal.tasks.TaskExecutionAccessChecker
 import org.gradle.api.internal.tasks.execution.TaskExecutionAccessListener
@@ -40,7 +38,6 @@ import org.gradle.internal.build.BuildModelController
 import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.cc.base.services.ProjectRefResolver
 import org.gradle.internal.cc.impl.fingerprint.ConfigurationCacheFingerprintController
-import org.gradle.internal.cc.impl.initialization.ConfigurationCacheStartParameter
 import org.gradle.internal.cc.impl.serialize.ConfigurationCacheCodecs
 import org.gradle.internal.cc.impl.serialize.DefaultConfigurationCacheCodecs
 import org.gradle.internal.event.ListenerManager
@@ -65,7 +62,6 @@ internal object BuildModelControllerServices : ServiceRegistrationProvider {
             add(BuildModelController::class.java, VintageBuildModelController::class.java)
             add(CrossBuildModelAccess::class.java, DefaultCrossBuildModelAccess::class.java)
             add(CrossProjectModelAccess::class.java, DefaultCrossProjectModelAccess::class.java)
-            add(DynamicLookupRoutine::class.java, DefaultDynamicLookupRoutine::class.java)
             // endregion
         } else if (buildModelParameters.isConfigurationCache) {
             // region ALL MODES
@@ -81,11 +77,9 @@ internal object BuildModelControllerServices : ServiceRegistrationProvider {
             if (!buildModelParameters.isIsolatedProjects) {
                 add(CrossBuildModelAccess::class.java, DefaultCrossBuildModelAccess::class.java)
                 add(CrossProjectModelAccess::class.java, DefaultCrossProjectModelAccess::class.java)
-                add(DynamicLookupRoutine::class.java, DefaultDynamicLookupRoutine::class.java)
             } else { // IP
                 add(CrossBuildModelAccess::class.java, ProblemReportingCrossBuildModelAccess::class.java)
                 add(CrossProjectModelAccess::class.java, ProblemReportingCrossProjectModelAccess::class.java)
-                add(DynamicLookupRoutine::class.java, TrackingDynamicLookupRoutine::class.java)
                 add(DynamicCallContextTracker::class.java, DefaultDynamicCallContextTracker::class.java)
             }
             // endregion
@@ -97,17 +91,6 @@ internal object BuildModelControllerServices : ServiceRegistrationProvider {
             addProvider(VintageModelProvider())
         }
     }
-
-    // region IP services which are not instantiated unless IP is enabled
-
-    @Provides
-    fun createDynamicCallProjectIsolationProblemReporting(dynamicCallContextTracker: DynamicCallContextTracker): DynamicCallProblemReporting =
-        DefaultDynamicCallProblemReporting().also { reporting ->
-            dynamicCallContextTracker.onEnter(reporting::enterDynamicCall)
-            dynamicCallContextTracker.onLeave(reporting::leaveDynamicCall)
-        }
-
-    // endregion
 
     private
     class ConfigurationCacheModelProvider : ServiceRegistrationProvider {
@@ -142,15 +125,12 @@ internal object BuildModelControllerServices : ServiceRegistrationProvider {
         }
     }
 
-    // TODO:configuration-cache simplify after https://github.com/gradle/gradle/issues/37567 is addressed
     @Provides
     fun createTaskExecutionAccessChecker(
         /** In non-CC builds, [BuildTreeConfigurationCache] is not registered; accepting a list here is a way to ignore its absence. */
         configurationCache: List<BuildTreeConfigurationCache>,
         configurationTimeBarrier: ConfigurationTimeBarrier,
         modelParameters: BuildModelParameters,
-        /** In non-CC builds, [ConfigurationCacheStartParameter] is not registered; accepting a list here is a way to ignore its absence. */
-        configurationCacheStartParameter: List<ConfigurationCacheStartParameter>,
         listenerManager: ListenerManager,
         workExecutionTracker: WorkExecutionTracker,
     ): TaskExecutionAccessChecker {
@@ -158,12 +138,6 @@ internal object BuildModelControllerServices : ServiceRegistrationProvider {
         val workGraphLoadingState = workGraphLoadingStateFrom(configurationCache)
         return when {
             !modelParameters.isConfigurationCache -> TaskExecutionAccessCheckers.TaskStateBased(workGraphLoadingState, broadcast, workExecutionTracker)
-            configurationCacheStartParameter.single().taskExecutionAccessPreStable -> TaskExecutionAccessCheckers.TaskStateBased(
-                workGraphLoadingState,
-                broadcast,
-                workExecutionTracker
-            )
-
             else -> TaskExecutionAccessCheckers.ConfigurationTimeBarrierBased(configurationTimeBarrier, workGraphLoadingState, broadcast, workExecutionTracker)
         }
     }

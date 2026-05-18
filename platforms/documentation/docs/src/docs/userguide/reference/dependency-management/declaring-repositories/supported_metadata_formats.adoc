@@ -153,15 +153,10 @@ By default, Gradle will require that a dependency has associated metadata.
 
 To relax this requirement and allow Gradle to resolve artifacts without associated metadata, specify the `artifact` metadata source:
 
-[source,kotlin]
-----
-mavenCentral {
-    metadataSources {
-        mavenPom()
-        artifact()
-    }
-}
-----
+====
+include::sample[dir="snippets/reference/dependency-management/declaring-repositories/supportedMetadataFormats-metadataSources/kotlin",files="build.gradle.kts[tags=metadata-sources]"]
+include::sample[dir="snippets/reference/dependency-management/declaring-repositories/supportedMetadataFormats-metadataSources/groovy",files="build.gradle[tags=metadata-sources]"]
+====
 
 The above example instructs Gradle to first look for component metadata from a POM file, and if not present, to derive metadata from the artifact itself.
 
@@ -169,18 +164,10 @@ For example, if you declare a module dependency, Gradle looks for a module metad
 If such a module metadata file exists, it is parsed, and the artifacts of this module (e.g., `hibernate-3.0.5.jar`) as well as its dependencies (e.g., `cglib`) are downloaded.
 If no such module metadata file exists, you need to configure metadata sources definitions to look for an artifact file called `hibernate-3.0.5.jar` directly:
 
-[source,groovy]
-----
-repositories {
-    maven {
-        url "https://repo.example.com/maven"
-        metadataSources {
-            mavenPom()   // Look for a POM file
-            artifact()   // If no metadata is found, look for JARs directly
-        }
-    }
-}
-----
+====
+include::sample[dir="snippets/reference/dependency-management/declaring-repositories/supportedMetadataFormats-artifactFallback/kotlin",files="build.gradle.kts[tags=artifact-fallback]"]
+include::sample[dir="snippets/reference/dependency-management/declaring-repositories/supportedMetadataFormats-artifactFallback/groovy",files="build.gradle[tags=artifact-fallback]"]
+====
 
 When parsing metadata files (Ivy or Maven), Gradle checks for a marker that indicates the presence of a matching Gradle Module Metadata file.
 If found, Gradle will prefer the Gradle metadata.

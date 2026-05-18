@@ -56,10 +56,8 @@ import org.gradle.api.internal.artifacts.ivyservice.projectmodule.DefaultProject
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectArtifactResolver;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectPublicationRegistry;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VariantArtifactSetCache;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.AdhocHandlingComponentResultSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.AttributeContainerSerializer;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.CompleteComponentResultSerializer;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ThisBuildTreeOnlyComponentResultSerializer;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ThisBuildTreeOnlyGraphElementStore;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.store.ResolutionResultsStoreFactory;
 import org.gradle.api.internal.artifacts.repositories.metadata.DefaultMetadataFileSourceCodec;
 import org.gradle.api.internal.artifacts.repositories.metadata.IvyMutableModuleMetadataFactory;
@@ -111,9 +109,7 @@ class DependencyManagementBuildTreeScopeServices implements ServiceRegistrationP
         registration.add(LocalComponentGraphResolveStateFactory.class);
         registration.add(ModuleComponentGraphResolveStateFactory.class);
         registration.add(CapabilitySelectorSerializer.class);
-        registration.add(CompleteComponentResultSerializer.class);
-        registration.add(ThisBuildTreeOnlyComponentResultSerializer.class);
-        registration.add(AdhocHandlingComponentResultSerializer.class);
+        registration.add(ThisBuildTreeOnlyGraphElementStore.class);
         registration.add(ConnectionFailureRepositoryDisabler.class);
         registration.add(ProjectPublicationRegistry.class, HoldsProjectState.class, DefaultProjectPublicationRegistry.class);
         registration.add(LocalVariantGraphResolveStateBuilder.class, DefaultLocalVariantGraphResolveStateBuilder.class);

@@ -24,6 +24,36 @@ import spock.lang.Issue
 
 class ConfigurationCacheValueSourceIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
 
+    @Issue("https://github.com/gradle/gradle/issues/30182")
+    def "value source without parameters can access None parameters"() {
+        given:
+        def configurationCache = newConfigurationCacheFixture()
+
+        buildFile("""
+            import org.gradle.api.provider.*
+
+            abstract class GreetValueSource implements ValueSource<String, ValueSourceParameters.None> {
+                String obtain() {
+                    println("Parameters: " + getParameters())
+                    return "Hello!"
+                }
+            }
+
+            def greetValueSource = providers.of(GreetValueSource) {}
+            tasks.register("greet") {
+                doLast { println greetValueSource.get() }
+            }
+        """)
+
+        when:
+        configurationCacheRun "greet"
+
+        then:
+        configurationCache.assertStateStored()
+        output.contains("Parameters: org.gradle.api.provider.ValueSourceParameters\$None@")
+        output.contains("Hello!")
+    }
+
     def "value source without parameters can be used as task input"() {
         given:
         def configurationCache = newConfigurationCacheFixture()

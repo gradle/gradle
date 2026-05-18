@@ -17,6 +17,7 @@
 
 Dependency version alignment ensures that different modules belonging to the same logical group (a <<platforms.adoc#platforms,platform>>) use identical versions in the dependency graph.
 
+[[sec:inconsistent_module_versions]]
 == Why do Inconsistent Module Versions Happen?
 
 Gradle supports aligning versions of modules that belong to the same <<platforms.adoc#platforms,*platform*>>.
@@ -121,6 +122,7 @@ include::sample[dir="snippets/how-to/dependency-management/dependency-management
 
 This ensures all dependencies (`core`, `lib`, and `utils`) resolve consistently to version `1.1`.
 
+[[sec:version_alignment_summary]]
 == Summary
 
 Using **platforms and BOMs**, Gradle ensures **consistent dependency versions**, avoiding compatibility issues.

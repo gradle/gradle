@@ -145,7 +145,7 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractInte
         result.assertTaskSkipped(":a:producer")
         result.assertTaskSkipped(":b:producer")
         outputContains("files = [a.thing, b.thing, a.out, b.out, lib1-6500.jar]")
-        outputContains("artifacts = [a.thing (a.thing), b.thing (b.thing), a.out (project :a), b.out (project :b), lib1-6500.jar (group:lib1:6500)]")
+        outputContains("artifacts = [a.thing (a.thing), b.thing (b.thing), a.out (project ':a'), b.out (project ':b'), lib1-6500.jar (group:lib1:6500)]")
         outputContains("variants = [{artifactType=thing}, {artifactType=thing}, {artifactType=out}, {artifactType=out}, {artifactType=jar, org.gradle.status=release}]")
         outputContains("variant capabilities = [[], [], [capability group='test', name='a', version='unspecified'], [capability group='test', name='b', version='unspecified'], [capability group='group', name='lib1', version='6500']]")
 
@@ -161,7 +161,7 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractInte
         result.assertTaskExecuted(":a:producer")
         result.assertTaskSkipped(":b:producer")
         outputContains("files = [a.thing, b.thing, a.out, b.out, lib1-6500.jar]")
-        outputContains("artifacts = [a.thing (a.thing), b.thing (b.thing), a.out (project :a), b.out (project :b), lib1-6500.jar (group:lib1:6500)]")
+        outputContains("artifacts = [a.thing (a.thing), b.thing (b.thing), a.out (project ':a'), b.out (project ':b'), lib1-6500.jar (group:lib1:6500)]")
         outputContains("variants = [{artifactType=thing}, {artifactType=thing}, {artifactType=out}, {artifactType=out}, {artifactType=jar, org.gradle.status=release}]")
         outputContains("variant capabilities = [[], [], [capability group='test', name='a', version='unspecified'], [capability group='test', name='b', version='unspecified'], [capability group='group', name='lib1', version='6500']]")
     }
@@ -284,7 +284,7 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractInte
         then:
         assertTransformed("a.jar", "b.jar")
         outputContains("files = [a.jar.green, b.jar.green]")
-        outputContains("artifacts = [a.jar.green (project :a), b.jar.green (project :b)]")
+        outputContains("artifacts = [a.jar.green (project ':a'), b.jar.green (project ':b')]")
         outputContains("variants = [{artifactType=jar, color=green}, {artifactType=jar, color=green}]")
 
         when:
@@ -298,7 +298,7 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractInte
         result.assertTaskSkipped(":b:producer")
         assertTransformed()
         outputContains("files = [a.jar.green, b.jar.green]")
-        outputContains("artifacts = [a.jar.green (project :a), b.jar.green (project :b)]")
+        outputContains("artifacts = [a.jar.green (project ':a'), b.jar.green (project ':b')]")
         outputContains("variants = [{artifactType=jar, color=green}, {artifactType=jar, color=green}]")
 
         when:
@@ -312,7 +312,7 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractInte
         result.assertTaskSkipped(":b:producer")
         assertTransformed("a.jar")
         outputContains("files = [a.jar.green, b.jar.green]")
-        outputContains("artifacts = [a.jar.green (project :a), b.jar.green (project :b)]")
+        outputContains("artifacts = [a.jar.green (project ':a'), b.jar.green (project ':b')]")
         outputContains("variants = [{artifactType=jar, color=green}, {artifactType=jar, color=green}]")
     }
 
@@ -537,7 +537,7 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractInte
         then:
         assertTransformed("root.blue", "root.additional.blue", "a.additional.blue", "a.jar")
         outputContains("files = [root.additional.blue.green, root.blue.green, a.jar.green, a.additional.blue.green]")
-        outputContains("artifacts = [root.additional.blue.green (root.additional.blue), root.blue.green (root.blue), a.jar.green (project :a), a.additional.blue.green (a.additional.blue)]")
+        outputContains("artifacts = [root.additional.blue.green (root.additional.blue), root.blue.green (root.blue), a.jar.green (project ':a'), a.additional.blue.green (a.additional.blue)]")
         outputContains("variants = [{artifactType=blue, color=green}, {artifactType=blue, color=green}, {artifactType=jar, color=green}, {artifactType=blue, color=green}]")
 
         when:
@@ -550,7 +550,7 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractInte
         result.assertTaskOrder(":additionalFile", ":resolveArtifacts")
         assertTransformed()
         outputContains("files = [root.additional.blue.green, root.blue.green, a.jar.green, a.additional.blue.green]")
-        outputContains("artifacts = [root.additional.blue.green (root.additional.blue), root.blue.green (root.blue), a.jar.green (project :a), a.additional.blue.green (a.additional.blue)]")
+        outputContains("artifacts = [root.additional.blue.green (root.additional.blue), root.blue.green (root.blue), a.jar.green (project ':a'), a.additional.blue.green (a.additional.blue)]")
         outputContains("variants = [{artifactType=blue, color=green}, {artifactType=blue, color=green}, {artifactType=jar, color=green}, {artifactType=blue, color=green}]")
     }
 
@@ -1111,7 +1111,7 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractInte
         outputContains("processing a.blue")
         failure.assertHasFailure("Execution failed for task ':resolve' (registered in build file 'build.gradle').") {
             it.assertHasCause("Failed to transform root.blue to match attributes {artifactType=blue, color=green}.")
-            it.assertHasCause("Failed to transform a.jar (project :a) to match attributes {artifactType=jar, color=green}.")
+            it.assertHasCause("Failed to transform a.jar (project ':a') to match attributes {artifactType=jar, color=green}.")
             it.assertHasCause("Failed to transform a.blue to match attributes {artifactType=blue, color=green}.")
         }
         failure.assertHasFailures(1)
@@ -1127,7 +1127,7 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractInte
         outputContains("processing a.blue")
         failure.assertHasFailure("Execution failed for task ':resolve' (registered in build file 'build.gradle').") {
             it.assertHasCause("Failed to transform root.blue to match attributes {artifactType=blue, color=green}.")
-            it.assertHasCause("Failed to transform a.jar (project :a) to match attributes {artifactType=jar, color=green}.")
+            it.assertHasCause("Failed to transform a.jar (project ':a') to match attributes {artifactType=jar, color=green}.")
             it.assertHasCause("Failed to transform a.blue to match attributes {artifactType=blue, color=green}.")
         }
         failure.assertHasFailures(1)
@@ -1166,7 +1166,7 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractInte
         outputContains("processing a.jar")
         outputContains("processing b.jar")
         failure.assertHasFailure("Execution failed for task ':resolve' (registered in build file 'build.gradle').") {
-            it.assertHasCause("Failed to transform a.jar (project :a) to match attributes {artifactType=jar, color=green}.")
+            it.assertHasCause("Failed to transform a.jar (project ':a') to match attributes {artifactType=jar, color=green}.")
             // TODO - should collect all failures rather than stopping on first failure
         }
 
@@ -1179,7 +1179,7 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractInte
         outputContains("processing a.jar")
         outputContains("processing b.jar")
         failure.assertHasFailure("Execution failed for task ':resolve' (registered in build file 'build.gradle').") {
-            it.assertHasCause("Failed to transform a.jar (project :a) to match attributes {artifactType=jar, color=green}.")
+            it.assertHasCause("Failed to transform a.jar (project ':a') to match attributes {artifactType=jar, color=green}.")
             // TODO - should collect all failures rather than stopping on first failure
         }
     }

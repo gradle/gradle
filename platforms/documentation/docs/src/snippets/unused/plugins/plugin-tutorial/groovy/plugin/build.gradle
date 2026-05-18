@@ -34,7 +34,7 @@ dependencies {
     testImplementation libs.spock.core
      */
     // tag::publish[]
-    testImplementation 'org.spockframework:spock-core:2.3-groovy-4.0'
+    testImplementation 'org.spockframework:spock-core:2.4-groovy-4.0'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
     // tag::slack-api[]
     // Use the Java Slack Client APIs

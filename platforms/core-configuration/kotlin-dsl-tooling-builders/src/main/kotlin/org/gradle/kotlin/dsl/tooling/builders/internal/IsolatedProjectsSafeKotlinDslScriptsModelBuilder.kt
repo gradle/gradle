@@ -21,6 +21,8 @@ import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectState
 import org.gradle.internal.classpath.ClassPath
+import org.gradle.internal.classpath.ClassPath.EMPTY
+import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.kotlin.dsl.accessors.AccessorsClassPath
 import org.gradle.kotlin.dsl.provider.ClassPathModeExceptionCollector
 import org.gradle.kotlin.dsl.provider.KotlinScriptClassPathProvider
@@ -33,6 +35,7 @@ import org.gradle.kotlin.dsl.support.isGradleKotlinDslJar
 import org.gradle.kotlin.dsl.support.serviceOf
 import org.gradle.kotlin.dsl.tooling.builders.AbstractKotlinDslScriptsModelBuilder
 import org.gradle.kotlin.dsl.tooling.builders.KotlinDslScriptsParameter
+import org.gradle.kotlin.dsl.tooling.builders.PrecompiledScriptPluginsMetadataDir
 import org.gradle.kotlin.dsl.tooling.builders.StandardKotlinDslScriptModel
 import org.gradle.kotlin.dsl.tooling.builders.StandardKotlinDslScriptsModel
 import org.gradle.kotlin.dsl.tooling.builders.accessorsClassPathOf
@@ -49,6 +52,7 @@ import org.gradle.kotlin.dsl.tooling.builders.scriptCompilationClassPath
 import org.gradle.kotlin.dsl.tooling.builders.scriptHandlerFactoryOf
 import org.gradle.kotlin.dsl.tooling.builders.settings
 import org.gradle.kotlin.dsl.tooling.builders.sourcePathFor
+import org.gradle.kotlin.dsl.tooling.builders.sourceSets
 import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptModel
 import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptsModel
 import org.gradle.tooling.provider.model.ToolingModelBuilder
@@ -160,21 +164,30 @@ fun buildScriptModelsInHierarchy(
 
     val outputModels = mutableMapOf<File, KotlinDslScriptModel>()
 
-    fun collect(models: IsolatedScriptsModel) {
+    fun collect(models: IsolatedScriptsModel, parentSourcePath: ClassPath) {
         for (childScriptModel in models.models) {
-            outputModels[childScriptModel.scriptFile] = buildOutputModel(base, childScriptModel)
+            val classPath = childScriptModel.localClassPath
+            val gradleKotlinDslJar = classPath.filter(::isGradleKotlinDslJar)
+            val effectiveParentSourcePath = if (childScriptModel.includeParentSourcePath) parentSourcePath else EMPTY
+            val sourcePath = gradleKotlinDslJar + base.scriptPaths.src + effectiveParentSourcePath + childScriptModel.localSourcePath
+            val implicitImports = base.implicitImports + childScriptModel.localImplicitImports
+            val outputModel = buildOutputModel(childScriptModel.scriptFile, classPath, sourcePath, implicitImports, base.classPathModeExceptions)
+            outputModels[childScriptModel.scriptFile] = outputModel
         }
     }
 
-    fun visit(projectState: ProjectState) {
+    fun visitChildren(projectState: ProjectState, parentSourcePath: ClassPath) {
         val children = projectState.childProjects.toList()
         val childrenModels = intermediateModelProvider.getIsolatedModels(projectState, children)
-        childrenModels.forEach { collect(it) }
-        children.forEach { visit(it) }
+        childrenModels.zip(children).forEach { (model, child) ->
+            collect(model, parentSourcePath)
+            visitChildren(child, parentSourcePath + model.buildScriptSourcePath)
+        }
     }
 
-    collect(isolatedScriptsModelFor(rootProject))
-    visit(rootProject.owner)
+    val rootModel = isolatedScriptsModelFor(rootProject)
+    collect(rootModel, ClassPath.EMPTY)
+    visitChildren(rootProject.owner, rootModel.buildScriptSourcePath)
 
     return outputModels
 }
@@ -183,16 +196,6 @@ fun buildScriptModelsInHierarchy(
 private
 fun IntermediateToolingModelProvider.getIsolatedModels(requester: ProjectState, targets: List<ProjectState>): List<IsolatedScriptsModel> =
     getModels(requester, targets, IsolatedScriptsModel::class.java, null)
-
-
-private
-fun buildOutputModel(base: ScriptModelBase, model: IntermediateScriptModel): StandardKotlinDslScriptModel {
-    val classPath = model.localClassPath
-    val gradleKotlinDslJar = classPath.filter(::isGradleKotlinDslJar)
-    val sourcePath = gradleKotlinDslJar + base.scriptPaths.src + model.localSourcePath
-    val implicitImports = base.implicitImports + model.localImplicitImports
-    return buildOutputModel(model.scriptFile, classPath, sourcePath, implicitImports, base.classPathModeExceptions)
-}
 
 
 private
@@ -274,12 +277,14 @@ data class IntermediateScriptModel(
     val localClassPath: ClassPath,
     val localSourcePath: ClassPath,
     val localImplicitImports: List<String> = emptyList(),
+    val includeParentSourcePath: Boolean = true,
 )
 
 
 internal
 data class IsolatedScriptsModel(
-    val models: List<IntermediateScriptModel>
+    val models: List<IntermediateScriptModel>,
+    val buildScriptSourcePath: ClassPath
 )
 
 
@@ -297,11 +302,15 @@ object IsolatedScriptsModelBuilder : ToolingModelBuilder {
 
 private
 fun isolatedScriptsModelFor(project: ProjectInternal): IsolatedScriptsModel {
+    val buildScriptModel = buildScriptModelFor(project)
     val models = mutableListOf<IntermediateScriptModel>().apply {
-        addNotNull(buildScriptModelFor(project))
+        addNotNull(buildScriptModel)
         addAll(precompiledScriptModelsFor(project))
     }
-    return IsolatedScriptsModel(models)
+    val buildScriptSourcePath =
+        if (buildScriptModel != null) sourcePathFor(listOf(project.buildscript))
+        else ClassPath.EMPTY
+    return IsolatedScriptsModel(models, buildScriptSourcePath)
 }
 
 
@@ -329,12 +338,28 @@ fun buildScriptModelFor(project: ProjectInternal): IntermediateScriptModel? {
 
 private
 fun precompiledScriptModelsFor(project: ProjectInternal): List<IntermediateScriptModel> {
-    return project.discoverPrecompiledScriptPluginScripts().map {
-        // TODO:isolated support precompiled scripts
-        IntermediateScriptModel(it, ClassPath.EMPTY, ClassPath.EMPTY, emptyList())
+    val scripts = project.discoverPrecompiledScriptPluginScripts()
+    if (scripts.isEmpty()) return emptyList()
+
+    val sourceSets = project.sourceSets ?: return emptyList()
+    val metadataDir = PrecompiledScriptPluginsMetadataDir.of(project)
+
+    val classPathBySourceSet = mutableMapOf<String, ClassPath>()
+    val pluginSpecImports = metadataDir.implicitPluginSpecBuildersImports
+
+    return scripts.mapNotNull { scriptFile ->
+        val sourceSet = sourceSets.find { scriptFile in it.allSource } ?: return@mapNotNull null
+        val classPath = classPathBySourceSet.getOrPut(sourceSet.name) { DefaultClassPath.of(sourceSet.compileClasspath) }
+        val accessorImports = metadataDir.implicitAccessorsImports(scriptFile)
+        IntermediateScriptModel(
+            scriptFile,
+            classPath,
+            ClassPath.EMPTY,
+            accessorImports + pluginSpecImports,
+            includeParentSourcePath = false
+        )
     }
 }
-
 
 private
 fun buildOutputModel(scriptFile: File, classPath: ClassPath, sourcePath: ClassPath, implicitImports: List<String>, exceptions: List<Exception>) =

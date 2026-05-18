@@ -26,6 +26,7 @@ It also promotes code reuse and maintainability, as plugins can be shared across
 
 Before reading this chapter, it's recommended that you first complete the <<plugin_introduction_advanced.adoc#plugin_introduction_advanced,Advanced Tutorial and Reading>>.
 
+[[sources_for_plugins]]
 == Sources for Plugins
 
 Plugins can be sourced from Gradle or the Gradle community.
@@ -37,19 +38,23 @@ As such, we distinguish between three different sources for Gradle plugins:
 2. *Community Plugins* - plugins that come from the link:https://plugins.gradle.org/[Gradle Plugin Portal] or a public repository.
 3. *Local or Custom Plugins* - plugins that you develop yourself.
 
+[[sec:core_plugins]]
 === Core Plugins
 
 The term *core plugin* refers to a plugin that is part of the Gradle distribution such as the <<java_library_plugin.adoc#java_library_plugin,Java Library Plugin>>.
 They are always available.
 
+[[community_plugins]]
 === Community Plugins
 
 The term *community plugin* refers to a plugin published to the Gradle Plugin Portal (or another public repository) such as the link:https://plugins.gradle.org/plugin/com.diffplug.gradle.spotless[Spotless Plugin].
 
+[[local_or_custom_plugins]]
 === Local or Custom Plugins
 
 The term *local plugin* or *custom plugin* refers to a plugin you write yourself for your own build.
 
+[[types_of_plugins]]
 == Types of Plugins
 
 There are three types of *plugins* you can develop:
@@ -171,7 +176,7 @@ $ ./gradlew -q hello
 ----
 [source,text]
 ----
-include::{snippetsPath}/plugins/greetingPlugin/tests/greeting.out[]
+include::{snippetsPath}/reference/plugin-development/greetingPlugin/tests/greeting.out[]
 ----
 
 [[sec:convention_plugins]]

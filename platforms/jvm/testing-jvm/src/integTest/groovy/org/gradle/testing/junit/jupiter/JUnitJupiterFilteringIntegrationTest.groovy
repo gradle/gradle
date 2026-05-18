@@ -16,7 +16,6 @@
 
 package org.gradle.testing.junit.jupiter
 
-import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.testing.AbstractTestFilteringIntegrationTest
@@ -33,48 +32,15 @@ class JUnitJupiterFilteringIntegrationTest extends AbstractTestFilteringIntegrat
             dependencies {
                 testImplementation 'org.junit.jupiter:junit-jupiter:${MultiVersionIntegrationSpec.version}'
             }
+
+            ${testClassAndCountListener}
+
             test {
                 ${maybeConfigureFilters(withConfiguredFilters)}
             }
         """
-\
-        file("src/test/java/SampleTest.java") << """
-            import static org.junit.jupiter.api.Assertions.fail;
 
-            import org.junit.jupiter.api.Nested;
-            import org.junit.jupiter.api.Test;
-            import org.junit.jupiter.params.ParameterizedTest;
-            import org.junit.jupiter.params.provider.ValueSource;
-
-            public class SampleTest {
-                @Test
-                public void regularTest() {
-                    fail();
-                }
-
-                @Nested
-                public class NestedTestClass {
-                    @Nested
-                    public class SubNestedTestClass {
-                        @Test
-                        public void subNestedTest() {
-                            fail();
-                        }
-
-                        @ParameterizedTest
-                        @ValueSource(strings = { "racecar", "radar", "able was I ere I saw elba" })
-                        public void palindromes(String candidate) {
-                            fail();
-                        }
-                    }
-
-                    @Test
-                    public void nestedTest() {
-                      fail();
-                    }
-                }
-            }
-        """
+        file("src/test/java/SampleTest.java") << sampleClassWithNestedTests
         file("src/test/java/TestSomethingTest.java") << """
             import static org.junit.jupiter.api.Assertions.fail;
 
@@ -103,18 +69,16 @@ class JUnitJupiterFilteringIntegrationTest extends AbstractTestFilteringIntegrat
         fails "test", "--tests", commandLineFilter
 
         then:
-        def testResult = resultsFor()
-        testResult.assertAtLeastTestPathsExecuted(expectedTests as String[])
-        assertExpectedTestCounts(testResult, expectedTests)
+        assertExpectedTestsAndCounts(expectedTestsAndCounts as Map<String, Integer>)
 
         where:
-        commandLineFilter                                 | withConfiguredFilters | expectedTests
-        'SampleTest'                                      | false                 | [':SampleTest', ':SampleTest:SampleTest$NestedTestClass', ':SampleTest:SampleTest$NestedTestClass:SampleTest$NestedTestClass$SubNestedTestClass']
-        'SampleTest'                                      | true                  | [':SampleTest', ':SampleTest:SampleTest$NestedTestClass', ':SampleTest:SampleTest$NestedTestClass:SampleTest$NestedTestClass$SubNestedTestClass']
-        'SampleTest$NestedTestClass'                      | false                 | [':SampleTest:SampleTest$NestedTestClass', ':SampleTest:SampleTest$NestedTestClass:SampleTest$NestedTestClass$SubNestedTestClass']
-        'SampleTest$NestedTestClass'                      | true                  | [':SampleTest:SampleTest$NestedTestClass', ':SampleTest:SampleTest$NestedTestClass:SampleTest$NestedTestClass$SubNestedTestClass']
-        'SampleTest$NestedTestClass$SubNestedTestClass'   | false                 | [':SampleTest:SampleTest$NestedTestClass:SampleTest$NestedTestClass$SubNestedTestClass']
-        'SampleTest$NestedTestClass$SubNestedTestClass'   | true                  | [':SampleTest:SampleTest$NestedTestClass:SampleTest$NestedTestClass$SubNestedTestClass']
+        commandLineFilter                                 | withConfiguredFilters | expectedTestsAndCounts
+        'SampleTest'                                      | false                 | ['SampleTest': 1, 'SampleTest$NestedTestClass': 1, 'SampleTest$NestedTestClass$SubNestedTestClass': 4]
+        'SampleTest'                                      | true                  | ['SampleTest': 1, 'SampleTest$NestedTestClass': 1, 'SampleTest$NestedTestClass$SubNestedTestClass': 4]
+        'SampleTest$NestedTestClass'                      | false                 | ['SampleTest$NestedTestClass': 1, 'SampleTest$NestedTestClass$SubNestedTestClass': 4]
+        'SampleTest$NestedTestClass'                      | true                  | ['SampleTest$NestedTestClass': 1, 'SampleTest$NestedTestClass$SubNestedTestClass': 4]
+        'SampleTest$NestedTestClass$SubNestedTestClass'   | false                 | ['SampleTest$NestedTestClass$SubNestedTestClass': 4]
+        'SampleTest$NestedTestClass$SubNestedTestClass'   | true                  | ['SampleTest$NestedTestClass$SubNestedTestClass': 4]
     }
 
     @Issue("https://github.com/gradle/gradle/issues/31304")
@@ -124,12 +88,43 @@ class JUnitJupiterFilteringIntegrationTest extends AbstractTestFilteringIntegrat
             dependencies {
                 testImplementation 'org.junit.jupiter:junit-jupiter:${MultiVersionIntegrationSpec.version}'
             }
+
+            ${testClassAndCountListener}
+
             test {
-                filter.excludeTest("${excludeFilter}", null)
+                filter.excludeTest("${excludeFilter.replace('$', '\\$')}", null)
             }
         """
 
-        file("src/test/java/SampleTest.java") << """
+        file("src/test/java/SampleTest.java") << sampleClassWithNestedTests
+
+        when:
+        fails "test"
+
+        then:
+        result.assertTaskExecuted(":test")
+        assertExpectedTestsAndCounts(expectedTestsAndCounts as Map<String, Integer>)
+
+        where:
+        excludeFilter                                       | expectedTestsAndCounts
+        'SampleTest'                                        | ['SampleTest$NestedTestClass': 1, 'SampleTest$NestedTestClass$SubNestedTestClass': 4]
+        'SampleTest$NestedTestClass'                        | ['SampleTest': 1, 'SampleTest$NestedTestClass$SubNestedTestClass': 4]
+        'SampleTest$NestedTestClass$SubNestedTestClass'     | ['SampleTest': 1, 'SampleTest$NestedTestClass': 1]
+        'SampleTest*'                                       | [:]
+    }
+
+    private void assertExpectedTestsAndCounts(Map<String, Integer> expectedTestsAndCounts) {
+        Map<String, Integer> executedClasses = file("build/executed-classes.txt").readLines().collectEntries { it.split(' ', 2).with { [(it[0]): it[1] as Integer] } }
+        def executedClassNames = executedClasses.keySet()
+        def expectedClassNames = expectedTestsAndCounts.keySet()
+        assert executedClassNames == expectedClassNames
+        expectedTestsAndCounts.each { className, expectedCount ->
+            assert executedClasses[className] == expectedCount
+        }
+    }
+
+    private static String getSampleClassWithNestedTests() {
+        return """
             import static org.junit.jupiter.api.Assertions.fail;
 
             import org.junit.jupiter.api.Nested;
@@ -166,35 +161,60 @@ class JUnitJupiterFilteringIntegrationTest extends AbstractTestFilteringIntegrat
                 }
             }
         """
-
-        when:
-        fails "test"
-
-        then:
-        result.assertTaskExecuted(":test")
-        def testResult = resultsFor()
-        assertExpectedTestCounts(testResult, expectedTests)
-
-        where:
-        excludeFilter                                       | expectedTests
-        'SampleTest'                                        | [':SampleTest:SampleTest$NestedTestClass', ':SampleTest:SampleTest$NestedTestClass:SampleTest$NestedTestClass$SubNestedTestClass']
-        'SampleTest\\$NestedTestClass'                      | [':SampleTest', ':SampleTest$NestedTestClass:SampleTest$NestedTestClass$SubNestedTestClass']
-        'SampleTest\\$NestedTestClass\\$SubNestedTestClass' | [':SampleTest', ':SampleTest:SampleTest$NestedTestClass']
-        'SampleTest*'                                       | []
     }
 
-    void assertExpectedTestCounts(GenericTestExecutionResult testExecutionResult, List<String> expectedTests) {
-        if (expectedTests.contains('SampleTest')) {
-            testExecutionResult.testPath('SampleTest').onlyRoot().assertChildCount(1, 0)
-        }
+    private static String getTestClassAndCountListener() {
+        return """
+            abstract class TestClassCounter implements BuildService<org.gradle.api.services.BuildServiceParameters.None> {
+                def executedClasses = [:].withDefault { 0 }
 
-        if (expectedTests.contains('SampleTest$NestedTestClass')) {
-            testExecutionResult.testPath('SampleTest$NestedTestClass').onlyRoot().assertChildCount(1, 0)
-        }
+                Map<String, Integer> getExecutedClasses() {
+                    return executedClasses
+                }
+            }
 
-        if (expectedTests.contains('SampleTest$NestedTestClass$SubNestedTestClass')) {
-            testExecutionResult.testPath('SampleTest$NestedTestClass$SubNestedTestClass').onlyRoot().assertChildCount(4, 0)
-        }
+            class TestClassListener implements TestListener {
+                private Provider<TestClassCounter> testClassCounter
+
+                @Inject
+                public TestClassListener(Provider<TestClassCounter> testClassCounter) {
+                    this.testClassCounter = testClassCounter
+                }
+
+                @Override
+                void beforeSuite(TestDescriptor descriptor) { }
+
+                @Override
+                void afterSuite(TestDescriptor descriptor, TestResult result) { }
+
+                @Override
+                void beforeTest(TestDescriptor descriptor) { }
+
+                @Override
+                void afterTest(TestDescriptor descriptor, TestResult result) {
+                    if (descriptor.className) {
+                        testClassCounter.get().executedClasses[descriptor.className]++
+                    }
+                }
+            }
+
+            def testClassCounterService = project.getGradle().getSharedServices().registerIfAbsent("testClassCounter", TestClassCounter)
+
+            test {
+                usesService(testClassCounterService)
+                test.addTestListener(new TestClassListener(testClassCounterService))
+            }
+
+            def writeTestCounts = tasks.register("writeTestCounts") {
+                def outputFile = project.layout.buildDirectory.file("executed-classes.txt")
+                usesService(testClassCounterService)
+                doLast {
+                    outputFile.get().asFile.text = testClassCounterService.get().executedClasses.collect { k, v -> "\${k} \${v}" }.join("\\n")
+                }
+            }
+
+            test.finalizedBy(writeTestCounts)
+        """
     }
 
     String maybeConfigureFilters(boolean withConfiguredFilters) {

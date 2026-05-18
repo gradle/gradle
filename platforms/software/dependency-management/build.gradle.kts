@@ -23,6 +23,7 @@ dependencies {
     api(projects.coreApi)
     api(projects.credentialsApi)
     api(projects.credentials)
+    api(projects.domainObjectCollections)
     api(projects.enterpriseLogging)
     api(projects.enterpriseOperations)
     api(projects.execution)
@@ -50,6 +51,7 @@ dependencies {
     api(projects.versionedCache)
 
     api(libs.bouncycastlePgp)
+    api(libs.fastutil)
     api(libs.groovy)
     api(libs.guava)
     api(libs.inject)
@@ -73,7 +75,6 @@ dependencies {
     implementation(libs.asmCommons)
     implementation(libs.commonsIo)
     implementation(libs.commonsLang)
-    implementation(libs.fastutil)
     implementation(libs.gson)
     implementation(libs.httpcore)
 

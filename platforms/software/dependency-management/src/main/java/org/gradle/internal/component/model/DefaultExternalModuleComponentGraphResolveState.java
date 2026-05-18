@@ -21,7 +21,6 @@ import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema;
 import org.gradle.internal.component.external.model.ExternalComponentResolveMetadata;
@@ -54,8 +53,8 @@ public class DefaultExternalModuleComponentGraphResolveState<G extends ExternalM
     // The variants to use for variant selection during graph resolution
     private final Lazy<List<? extends VariantGraphResolveState>> allVariantsForGraphResolution;
 
-    public DefaultExternalModuleComponentGraphResolveState(long instanceId, G graphMetadata, A legacyMetadata, AttributeDesugaring attributeDesugaring, ComponentIdGenerator idGenerator) {
-        super(instanceId, graphMetadata, attributeDesugaring);
+    public DefaultExternalModuleComponentGraphResolveState(long instanceId, G graphMetadata, A legacyMetadata, ComponentIdGenerator idGenerator) {
+        super(instanceId, graphMetadata);
         this.legacyMetadata = legacyMetadata;
         this.allVariantsForGraphResolution = Lazy.locking().of(() ->
             graphMetadata.getVariantsForGraphTraversal().stream()

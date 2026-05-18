@@ -300,6 +300,7 @@ If either option is disabled, the element that normally contains that content wi
 
 The default for each option is `true`.
 
+[[sec:output_per_test_case]]
 ===== outputPerTestCase
 
 The `outputPerTestCase` option, when enabled, associates any output logging generated during a test case to that test case in the results.
@@ -308,6 +309,7 @@ Most modern tools that observe JUnit XML files support the "output per test case
 
 If you are using the XML files to communicate test results, it is recommended to enable this option as it provides more useful reporting.
 
+[[sec:merge_reruns]]
 ===== mergeReruns
 
 When `mergeReruns` is enabled, if a test fails but is then retried and succeeds, its failures will be recorded as `<flakyFailure>` instead of `<failure>`, within one `<testcase>`.
@@ -566,6 +568,7 @@ For information on how to determine code coverage for tests in additional source
 [[sec:java_testing_troubleshooting]]
 == Troubleshooting common problems
 
+[[sec:test_process_starts_but_test_dependencies_are_missing]]
 === Test process starts but test dependencies are missing
 
 Once the test process starts, it may fail to find its required dependencies if they are missing from the test runtime classpath.
@@ -579,6 +582,7 @@ The <<jvm_test_suite_plugin.adoc#jvm_test_suite_plugin,JVM Test Suite>> plugin a
 
 Prior to Gradle 9.0.0, Gradle <<upgrading_version_8#test_framework_implementation_dependencies,leaked internal dependencies>> into the test's runtime classpath which may have masked missing dependencies.
 
+[[sec:tests_are_not_detected_or_executed]]
 === Tests are not detected or executed
 
 If no tests are detected, Gradle will skip the `Test` task entirely.
@@ -594,6 +598,7 @@ This can occur for several reasons:
 
 Prior to Gradle 9.0.0, all `Test` tasks were <<upgrading_version_8#test_task_default_classpath,implicitly configured>> to use the `test` source set.
 
+[[sec:test_process_fails_to_start_or_stay_running]]
 === Test process fails to start or stay running
 
 The test process may fail to start if configured incorrectly.
@@ -602,6 +607,7 @@ For instance, if the Java executable does not exist or an invalid JVM argument i
 Similarly, if a test requires changes to the environment that are not compatible with Gradle's test worker process, the test process may fail to start.
 For example, tests that rely on modifying the link:{javaApi}/java/lang/SecurityManager.html[`SecurityManager`] may interfere with Gradle's internal messaging communication between the build and test worker.
 
+[[sec:test_process_fails_with_unusual_exit_code]]
 === Test process fails with unusual exit code
 
 The test process can exit with an unusual exit code (non-zero).
@@ -612,6 +618,7 @@ This can be caused by a variety of issues, such as:
  * Too many processes are running which causes the OS to kill the test process.
  * The test process runs out of memory.
 
+[[sec:output_from_before_class_and_after_class_methods]]
 === Output from `@BeforeClass` and `@AfterClass` methods are incorrectly assigned to the wrong test
 
 When using a JUnit 4 version below 4.13, output from `@BeforeClass` and `@AfterClass` methods may be incorrectly assigned to a test earlier or later in the test execution order.
@@ -627,6 +634,7 @@ However, there are some things to consider depending on whether you need module 
 In this context, the terms _whitebox testing_ (module boundaries are deactivated or relaxed) and _blackbox testing_ (module boundaries are in place) are often used.
 Whitebox testing is used/needed for unit testing and blackbox testing fits functional or integration test requirements.
 
+[[sec:whitebox_unit_test_execution_on_the_classpath]]
 === Whitebox unit test execution on the classpath
 
 The simplest setup to write unit tests for functions or classes in modules is to _not_ use module specifics during test execution.
@@ -646,6 +654,7 @@ This only concerns the test execution.
 Unit test compilation and development works fine in Eclipse.
 ====
 
+[[sec:blackbox_integration_testing]]
 === Blackbox integration testing
 
 For integration tests, you have the option to define the test set itself as additional module.
@@ -749,6 +758,7 @@ To debug the test process remotely via network,  the `host` needs to be set to t
 [[sec:java_test_fixtures]]
 == Using test fixtures
 
+[[sec:producing_and_using_test_fixtures_within_a_single_project]]
 === Producing and using test fixtures within a single project
 
 Test fixtures are commonly used to setup the code under test, or provide utilities aimed at facilitating the tests of a component.
@@ -781,6 +791,7 @@ A test fixture can be written in `src/testFixtures/java`:
 include::{snippetsPath}/reference/platforms/jvm/fixtures/groovy/lib/src/testFixtures/java/com/acme/Simpsons.java[tags=sample]
 ----
 
+[[sec:declaring_dependencies_of_test_fixtures]]
 === Declaring dependencies of test fixtures
 
 Similarly to the link:java_library_plugin.html[Java Library Plugin], test fixtures expose an API and an implementation configuration:
@@ -793,6 +804,7 @@ include::sample[dir="snippets/reference/platforms/jvm/fixtures/groovy",files="li
 It's worth noticing that if a dependency is an _implementation_ dependency of test fixtures, then _when compiling tests that depend on those test fixtures_, the implementation dependencies will _not leak_ into the compile classpath.
 This results in improved separation of concerns and better compile avoidance.
 
+[[sec:consuming_test_fixtures_of_another_project]]
 === Consuming test fixtures of another project
 
 Test fixtures are not limited to a single project.
@@ -804,6 +816,7 @@ include::sample[dir="snippets/reference/platforms/jvm/fixtures/kotlin",files="bu
 include::sample[dir="snippets/reference/platforms/jvm/fixtures/groovy",files="build.gradle[tags=consumer_dependencies]"]
 ====
 
+[[sec:publishing_test_fixtures]]
 === Publishing test fixtures
 
 One of the advantages of using the `java-test-fixtures` plugin is that test fixtures are published.
@@ -840,6 +853,7 @@ include::sample[dir="snippets/reference/platforms/jvm/fixtures/groovy/lib",files
 [[sec:non-class-based-testing]]
 == Non-class-based testing
 
+[[sec:non_class_based_testing_overview]]
 === Overview
 
 Some testing frameworks do not use classes to define tests (for instance https://cucumber.io/[Cucumber]).
@@ -856,6 +870,7 @@ The exact details of how to define these tests will depend on the specific `Test
 
 NOTE: Though possible, it is not recommended to mix class-based and non-class-based tests in the same `Test` task.  Create a separate `Test` task for each type of test instead.  Using <<jvm_test_suite_plugin.adoc#jvm_test_suite_plugin, Java Test Suites>> makes this easy to do.
 
+[[sec:non_class_based_testing_basic_example]]
 === Basic Example
 
 Here is an example project structure for a non-class-based testing setup.
@@ -966,6 +981,7 @@ When `./gradlew test --info` is run, the output contains lines that confirm that
     INFO: Executing resource-based test: Test[file=MoreTests.xml, name=baz]
 ----
 
+[[sec:non_class_based_testing_filtering]]
 === Filtering
 
 Non-class-based tests can be filtered in the same way as <<java_testing.adoc#test_filtering, class-based tests>> using the link:{javadocPath}/org/gradle/api/tasks/testing/TestFilter.html[`TestFilter`] API or `--tests` command line option.
@@ -999,6 +1015,7 @@ To run all tests within the `sub` directory:
 $ ./gradlew test --tests "sub.*"
 ----
 
+[[sec:ambiguity_with_test_selection]]
 ==== Ambiguity with test selection
 
 The goal of following the same selection rules as class-based tests is to make it easier for users to run all tests within a logical grouping without knowing if they are class-based or non-class-based.
@@ -1026,6 +1043,7 @@ All of the following file paths appear to be the same test and cannot be filtere
 
 NOTE: Filtering is only supported at a file level granularity for non-class-based tests. There is no support for filtering individual tests within a test definition file.
 
+[[sec:non_class_based_testing_parallel_execution]]
 === Parallel Execution
 
 Parallelism in non-class-based tests is controlled via the link:{javadocPath}/org/gradle/api/tasks/testing/Test.html#getMaxParallelForks--[`Test.getMaxParallelForks()`] property of the `Test` task.
@@ -1033,6 +1051,7 @@ If this property is set to a value greater than `1`, Gradle will attempt to dist
 
 Files within a single test definition directory will always be executed sequentially within the same test worker process.
 
+[[sec:non_class_based_testing_tooling_api]]
 === Tooling API
 
 Non-class-based tests can be run through the <<tooling_api.adoc#tooling_api,Tooling API>> in the same manner as class-based tests.

@@ -16,11 +16,13 @@
 
 package org.gradle.smoketests
 
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.util.GradleVersion
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.JdkVersionTestPreconditions
+import org.junit.jupiter.api.Assumptions
 
 
 /**
@@ -34,6 +36,10 @@ class BomSupportPluginsSmokeTest extends AbstractSmokeTest {
     static springVersion = "6.2.5"
 
     def 'bom support is provided by #bomSupportProvider'() {
+        if (bomSupportProvider.startsWith("nebula")) {
+            // TODO:isolated make Nebula avoid the usage of Project.getProperties()
+            Assumptions.assumeFalse(GradleContextualExecuter.isolatedProjects)
+        }
         given:
         def springVersion = springVersion
         def bomVersion = bomVersion

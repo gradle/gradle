@@ -47,6 +47,7 @@ You can do so in your `gradle.properties`:
 org.gradle.jvmargs=-Dfile.encoding=UTF-8
 ----
 
+[[sec:environment_variable_tracking]]
 == Environment variable tracking
 
 Gradle does not track changes in environment variables for tasks.
@@ -82,6 +83,7 @@ include::sample[dir="snippets/optimizing-builds/build-cache/conditional-action/g
 
 This way, the task has the same custom action on CI and on developer builds and its outputs can be re-used if the remaining inputs are the same.
 
+[[sec:line_endings]]
 == Line endings
 
 If you are building on different operating systems be aware that some version control systems convert line endings on check-out.
@@ -89,6 +91,7 @@ For example, Git on Windows uses `autocrlf=true` by default which converts all l
 As a consequence, compilation outputs can't be re-used on Windows since the input sources are different.
 If sharing the build cache across multiple operating systems is important in your environment, then setting `autocrlf=false` across your build machines is crucial for optimal build cache usage.
 
+[[sec:symbolic_links]]
 == Symbolic links
 
 When using symbolic links, Gradle does not store the link in the build cache but the actual file contents of the destination of the link.
@@ -134,6 +137,7 @@ Therefore, the choice for tracking the Java minor version is between sometimes o
 NOTE: The compiler infrastructure provided by the JVM used to run Gradle is also used by the Groovy compiler.
 Therefore, you can expect differences in the bytecode of compiled Groovy classes for the same reasons as above and the same suggestions apply.
 
+[[sec:avoid_changing_inputs_external_to_your_build]]
 == Avoid changing inputs external to your build
 
 If your build is dependent on external dependencies like binary artifacts or dynamic data from a web page you need to make sure that these inputs are consistent throughout your infrastructure.
@@ -148,6 +152,7 @@ You may want to look into <<dependency_locking.adoc#locking-versions,dependency 
 The same is true for depending on volatile external resources, for example a list of released versions.
 One way of locking the changes would be to check the volatile resource into source control whenever it changes so that the builds only depend on the state in source control and not on the volatile resource itself.
 
+[[sec:suggestions_for_authoring_your_build]]
 == Suggestions for authoring your build
 
 [[custom_actions]]
@@ -195,6 +200,7 @@ Develocity will show tasks where caching was disabled for overlapping outputs in
 [.screenshot]
 image::build-cache/overlapping-outputs-input-comparison.png[]
 
+[[sec:achieving_stable_task_inputs]]
 == Achieving stable task inputs
 
 It is crucial to have <<build_cache_concepts.adoc#stable_task_inputs,stable task inputs>> for every cacheable task.
@@ -258,6 +264,7 @@ Sometimes it is also possible to build two artifacts, one containing the volatil
 The non-volatile output would be used e.g. for testing while the volatile one would be published to an external repository.
 While this conflicts with the Continuous Delivery "build artifacts once" principle it can sometimes be the only option.
 
+[[sec:custom_and_third_party_tasks]]
 == Custom and third party tasks
 
 If your build contains custom or third party tasks, you should take special care that these don't influence the effectiveness of the build cache.

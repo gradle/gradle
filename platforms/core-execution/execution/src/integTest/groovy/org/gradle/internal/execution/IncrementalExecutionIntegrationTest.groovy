@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableList
 import com.google.common.collect.Iterables
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.problems.ProblemId
+import org.gradle.api.problems.Severity
 import org.gradle.api.problems.internal.GradleCoreProblemGroup
 import org.gradle.cache.Cache
 import org.gradle.cache.ManualEvictionInMemoryCache
@@ -124,6 +125,10 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
             virtualFileSystem,
             problems
         )
+    }
+
+    def setup() {
+        problems.resetRecordedProblems()
     }
 
     def "outputs are created"() {
@@ -576,10 +581,17 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
         execute(invalidWork)
 
         then:
-        def ex = thrown WorkValidationException
-        WorkValidationExceptionChecker.check(ex) {
-            hasProblem dummyPropertyValidationProblemWithLink('java.lang.Object', null, 'Validation error', 'Test').trim()
-        }
+        thrown WorkValidationException
+        problems.assertProblemEmittedOnce({
+            it.definition.severity == Severity.ERROR
+            it.definition.id.name == 'test-problem'
+            it.definition.id.displayName == 'Validation error'
+            it.contextualLabel == null
+            it.details == 'Test'
+            it.definition.documentationLink.url.endsWith('/userguide/id.html#section')
+            it.solutions == []
+            it.originLocations == []
+        })
     }
 
     def "results are loaded from identity cache"() {

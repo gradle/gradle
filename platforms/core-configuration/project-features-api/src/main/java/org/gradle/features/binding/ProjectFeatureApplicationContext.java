@@ -17,7 +17,6 @@
 package org.gradle.features.binding;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.model.ObjectFactory;
 
 /**
  * Represents the context in which a project feature is applied and the services
@@ -27,13 +26,6 @@ import org.gradle.api.model.ObjectFactory;
  */
 @Incubating
 public interface ProjectFeatureApplicationContext {
-
-    /**
-     * The ObjectFactory for the Project object the project feature is applied to.
-     *
-     * @since 9.5.0
-     */
-    ObjectFactory getObjectFactory();
 
     /**
      * Allows a {@link ProjectFeatureApplyAction} or {@link ProjectTypeApplyAction} to access the build model object of a given

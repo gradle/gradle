@@ -43,7 +43,7 @@ import org.gradle.api.problems.internal.ProblemsInternal;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.reflect.InjectionPointQualifier;
 import org.gradle.internal.Describables;
-import org.gradle.internal.exceptions.DefaultMultiCauseException;
+import org.gradle.internal.execution.WorkValidationException;
 import org.gradle.internal.execution.InputFingerprinter;
 import org.gradle.internal.execution.InputVisitor.InputFileValueSupplier;
 import org.gradle.internal.execution.model.InputNormalizer;
@@ -78,7 +78,6 @@ import org.gradle.internal.properties.PropertyVisitor;
 import org.gradle.internal.properties.bean.PropertyWalker;
 import org.gradle.internal.reflect.DefaultTypeValidationContext;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
-import org.gradle.internal.reflect.validation.TypeValidationProblemRenderer;
 import org.gradle.internal.service.ServiceLookup;
 import org.gradle.internal.service.ServiceLookupException;
 import org.gradle.internal.service.UnknownServiceException;
@@ -96,7 +95,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.function.Supplier;
 
-import static com.google.common.collect.ImmutableList.toImmutableList;
 import static org.gradle.api.internal.tasks.properties.AbstractValidatingProperty.reportValueNotSet;
 import static org.gradle.internal.deprecation.Documentation.userManual;
 
@@ -384,17 +382,9 @@ public class DefaultTransform implements Transform {
 
         ImmutableList<ProblemInternal> validationMessages = validationContext.getErrors();
         if (!validationMessages.isEmpty()) {
-            throw new DefaultMultiCauseException(
-                String.format(validationMessages.size() == 1
-                        ? "A problem was found with the configuration of the artifact transform parameter %s."
-                        : "Some problems were found with the configuration of the artifact transform parameter %s.",
-                    getParameterObjectDisplayName(parameterObject)),
-                validationMessages.stream()
-                    .map(TypeValidationProblemRenderer::renderMinimalInformationAbout)
-                    .sorted()
-                    .map(InvalidUserDataException::new)
-                    .collect(toImmutableList())
-            );
+            WorkValidationException exception = WorkValidationException.withSummaryForTransformParameter(
+                getParameterObjectDisplayName(parameterObject), validationMessages.size());
+            throw problems.getReporter().throwing(exception, validationMessages);
         }
 
         for (Map.Entry<String, ValueSnapshot> entry : result.getValueSnapshots().entrySet()) {
@@ -413,7 +403,7 @@ public class DefaultTransform implements Transform {
 
     private TransformAction<?> newTransformAction(Provider<FileSystemLocation> inputArtifactProvider, TransformDependencies transformDependencies, @Nullable InputChanges inputChanges) {
         TransformParameters parameters = isolatedParameters.get().getIsolatedParameterObject().isolate();
-        ServiceLookup services = new IsolationScheme<>(TransformAction.class, TransformParameters.class, TransformParameters.None.class).servicesForImplementation(parameters, internalServices, Collections.emptySet());
+        ServiceLookup services = new IsolationScheme<>(TransformAction.class, TransformParameters.class, TransformParameters.None.class, TransformParameters.None.INSTANCE).servicesForImplementation(parameters, internalServices, Collections.emptySet());
         services = new TransformServiceLookup(inputArtifactProvider, requiresDependencies ? transformDependencies : null, inputChanges, services);
         return instanceFactory.newInstance(services);
     }

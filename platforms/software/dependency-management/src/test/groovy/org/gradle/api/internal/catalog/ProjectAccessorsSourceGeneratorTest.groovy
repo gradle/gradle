@@ -52,10 +52,10 @@ class ProjectAccessorsSourceGeneratorTest extends Specification {
         generateSources project("root")
 
         then:
-        generatedCode['RootProjectAccessor'].with {
+        verifyAll(generatedCode['RootProjectAccessor']) {
             hasSubprojectAccessors(":")
         }
-        generatedCode['RootProjectDependency'].with {
+        verifyAll(generatedCode['RootProjectDependency']) {
             noSubAccessors()
         }
 
@@ -72,7 +72,7 @@ class ProjectAccessorsSourceGeneratorTest extends Specification {
         }
 
         then:
-        generatedCode['RootProjectAccessor'].with {
+        verifyAll(generatedCode['RootProjectAccessor']) {
             hasSubprojectAccessors ':core',
                 ':lib',
                 ':utils',
@@ -102,25 +102,25 @@ class ProjectAccessorsSourceGeneratorTest extends Specification {
         }
 
         then:
-        generatedCode['RootProjectAccessor'].with {
+        verifyAll(generatedCode['RootProjectAccessor']) {
             hasSubprojectAccessors ':core',
                 ':lib',
                 ':utils',
                 ':'
         }
-        generatedCode['CoreProjectDependency'].with {
+        verifyAll(generatedCode['CoreProjectDependency']) {
             noSubAccessors()
         }
-        generatedCode['LibProjectDependency'].with {
+        verifyAll(generatedCode['LibProjectDependency']) {
             hasSubprojectAccessors(':lib:sub')
         }
-        generatedCode['Lib_SubProjectDependency'].with {
+        verifyAll(generatedCode['Lib_SubProjectDependency']) {
             hasSubprojectAccessors(':lib:sub:deep')
         }
-        generatedCode['Lib_Sub_DeepProjectDependency'].with {
+        verifyAll(generatedCode['Lib_Sub_DeepProjectDependency']) {
             noSubAccessors()
         }
-        generatedCode['UtilsProjectDependency'].with {
+        verifyAll(generatedCode['UtilsProjectDependency']) {
             hasSubprojectAccessors ':utils:json',
                 ':utils:xml'
         }
@@ -146,7 +146,7 @@ class ProjectAccessorsSourceGeneratorTest extends Specification {
         }
 
         then:
-        generatedCode['RootProjectAccessor'].with {
+        verifyAll(generatedCode['RootProjectAccessor']) {
             hasSubprojectAccessors ':foo-core',
                 ':foo-lib',
                 ':foo-utils',

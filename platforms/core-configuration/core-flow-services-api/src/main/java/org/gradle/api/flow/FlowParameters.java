@@ -40,7 +40,7 @@ public interface FlowParameters {
     /**
      * Used for {@link FlowAction dataflow actions} without parameters.
      *
-     * <p>When {@link None} is used as parameters, calling {@link FlowActionSpec#getParameters()} throws an exception.</p>
+     * <p>When {@link None} is used as parameters, calling {@link FlowActionSpec#getParameters()} returns the {@link #INSTANCE singleton}.</p>
      *
      * @since 8.1
      */

@@ -27,6 +27,7 @@ They *are declared in build scripts*.
 Gradle automatically handles downloading, caching, and resolving these dependencies, saving you from managing them manually.
 It also handles version conflicts and supports flexible version declarations.
 
+[[sec:declaring_your_dependencies]]
 == Declaring Your Dependencies
 
 To add a dependency to your project, specify a dependency in the `dependencies {}` block of your `build.gradle(.kts)` file.
@@ -56,6 +57,7 @@ The Android Gradle Plugin (AGP) adds **variant-aware** configs like `debugImplem
 
 Kotlin Multiplatform (KMP) creates **source set–scoped** configs such as `commonMainImplementation`, `commonTestImplementation`, `androidMainImplementation`, `iosArm64MainImplementation`, etc.—so you depend exactly where the code runs.
 
+[[sec:viewing_project_dependencies]]
 == Viewing Project Dependencies
 
 You can inspect the dependency tree using the `dependencies` task.
@@ -97,6 +99,7 @@ runtimeClasspath - Runtime classpath of source set 'main'.
      \--- com.google.errorprone:error_prone_annotations -> 2.18.0
 ----
 
+[[sec:using_a_version_catalog]]
 == Using a Version Catalog
 
 A version catalog provides a centralized and consistent way to manage dependency coordinates and versions across your entire build.

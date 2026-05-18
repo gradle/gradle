@@ -54,6 +54,7 @@ There are 3 types of configurations that fulfil different roles:
 | `runtimeElements`
 |===
 
+[[sec:declarable_configurations]]
 === 1. Declarable configurations
 
 To declare dependencies in your project, you can use or create *declarable configurations*.
@@ -69,6 +70,7 @@ include::sample[dir="snippets/reference/dependency-management/declaring-dependen
 
 *Configurations used for declaring dependencies* define and manage the specific libraries or projects your code requires for tasks such as compilation or testing.
 
+[[sec:resolvable_configurations]]
 === 2. Resolvable configurations
 
 To control how dependencies are resolved and used within your project, you can use or create **resolvable configurations**.
@@ -88,6 +90,7 @@ include::sample[dir="snippets/reference/dependency-management/declaring-dependen
 *Resolvable configurations* are those that can be resolved to produce a set of files or artifacts.
 These configurations are used to define the classpath for different stages of a build process, such as compilation or runtime.
 
+[[sec:consumable_configurations]]
 === 3. Consumable configurations
 
 **Consumable configurations** are used to expose artifacts to other projects.
@@ -108,11 +111,13 @@ These configurations expose the necessary artifacts for other projects to consum
 
 The `canBeDeclared`, `canBeConsumed` and `canBeResolved` <<sec:configuration-flags-roles,flags>> help distinguish the roles of these configurations and are required when using older APIs.
 
+[[sec:configurations_added_by_plugins]]
 == Configurations added by Plugins
 
 Gradle plugins often create link:{groovyDslPath}/org.gradle.api.artifacts.Configuration.html[*configurations*] (like `implementation`, `api`, `testImplementation`) for you.
 Let's look at a few popular ones.
 
+[[sec:java_plugin_configurations]]
 === Java Plugin
 
 When you apply the Java or Java Library (`java`, `java-library`, `application`) plugin, Gradle adds the following configurations.
@@ -152,6 +157,7 @@ image::dependency-management-java-configurations.png[]
 ** *Consumers*: included in `runtimeElements` (so they can run you), but not in `apiElements`.
 * *Test* configurations (`testImplementation`, etc.) affect only test resolvable classpaths (`testCompileClasspath`, `testRuntimeClasspath`) and are never published to consumers.
 
+[[sec:android_gradle_plugin_configurations]]
 === Android Gradle Plugin
 
 When you apply the Android plugin (`com.android.application` or `com.android.library`), Gradle and the Android Gradle Plugin (AGP) add a richer set of configurations to handle multiple **build variants** (combinations of build types and product flavors).
@@ -193,6 +199,7 @@ There is a relationship between these configurations, similar to the Java plugin
 ** *Consumers*: included in the corresponding `runtimeElements` variant, so downstream modules can run your library.
 * Test configurations (`testImplementation`, `androidTestImplementation`, etc.) affect only their respective resolvable classpaths (`testCompileClasspath`, `androidTestCompileClasspath`, etc.) and are never published to consumers.
 
+[[sec:kotlin_multiplatform_plugin_configurations]]
 === Kotlin Multiplatform Plugin
 
 When you apply the Kotlin Multiplatform plugin (`org.jetbrains.kotlin.multiplatform`), Gradle creates configurations for each **source set** and **target**.
@@ -284,6 +291,7 @@ The following configurations are created:
 
 This setup mimics the behavior of the `implementation`, `compileClasspath`, `runtimeClasspath`, `apiElements`, and `runtimeElements` configurations in the <<java_plugin.adoc#java_plugin,Java plugin>>.
 
+[[sec:avoiding_eager_configuration]]
 == Avoiding eager configuration
 
 With lazy configuration, Gradle only initializes configurations when they’re actually needed, for example, when they’re published or consumed.
@@ -291,23 +299,10 @@ To benefit from this, make sure your build logic doesn’t force configurations 
 
 For example:
 
-.build.gradle.kts
-[source,kotlin]
-----
-// Instead of
-configurations.all {}                           // Eagerly realizes all configurations
-
-// Use
-configurations.configureEach {}                 // Only called for realized configurations
-
-// Instead of
-configurations.getByName("name").doSomething()  // Eagerly realizes the "name" configuration
-
-// Use
-configurations.named("name").configure {
-    doSomething()                               // Only called if "name" configuration is realized
-}
-----
+====
+include::sample[dir="snippets/reference/dependency-management/declaring-dependencies/declaringConfigurations-lazyConfig/kotlin",files="build.gradle.kts[tags=lazy-config]"]
+include::sample[dir="snippets/reference/dependency-management/declaring-dependencies/declaringConfigurations-lazyConfig/groovy",files="build.gradle[tags=lazy-config]"]
+====
 
 `all {}` iterates every configuration eagerly at configuration time, while `configureEach {}` registers the action but delays running it until the configuration is actually realized.
 
@@ -358,6 +353,7 @@ There are three main use cases for creating custom configurations:
 - You might create an `exposedApi` configuration to expose the API dependencies of your project for consumption by other projects. Similarly, a `runtimeElements` configuration could be created to expose the runtime dependencies or artifacts that other projects need.
 - Consumable configurations ensure that only the necessary artifacts or dependencies are exposed to consumers.
 
+[[sec:configuration_api_incubating_methods]]
 === Configuration API incubating methods
 
 Several incubating factory methods—`resolvable()`, `consumable()`, and `dependencyScope()`—within the link:{javadocPath}/org/gradle/api/artifacts/ConfigurationContainer.html[`ConfigurationContainer`] API can be used to simplify the creation of configurations with specific roles.

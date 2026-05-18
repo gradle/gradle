@@ -16,6 +16,8 @@
 
 package org.gradle.api.artifacts.transform;
 
+import org.gradle.api.Incubating;
+
 /**
  * Marker interface for parameter objects to {@link TransformAction}s.
  *
@@ -41,11 +43,19 @@ public interface TransformParameters {
     /**
      * Used for {@link TransformAction}s without parameters.
      *
-     * <p>When {@link None} is used as parameters, calling {@link TransformAction#getParameters()} throws an exception.</p>
+     * <p>When {@link None} is used as parameters, calling {@link TransformAction#getParameters()} returns the {@link #INSTANCE singleton}.</p>
      *
      * @since 5.3
      */
     final class None implements TransformParameters {
+        /**
+         * Singleton instance of {@link None}.
+         *
+         * @since 9.6.0
+         */
+        @Incubating
+        public static final None INSTANCE = new None();
+
         private None() {}
     }
 }

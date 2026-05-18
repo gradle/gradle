@@ -521,6 +521,7 @@ Once those builds have been migrated, such build logic will no longer be needed 
 
 At the end of the process you should have a Gradle build that you are confident works as it should, with much less build logic than before.
 
+[[migant:further_reading]]
 == Further reading
 
 This chapter has covered the major topics that are specific to migrating Ant builds to Gradle.

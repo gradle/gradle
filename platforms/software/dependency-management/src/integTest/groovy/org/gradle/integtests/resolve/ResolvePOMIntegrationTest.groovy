@@ -83,7 +83,7 @@ class ResolvePOMIntegrationTest extends AbstractIntegrationSpec {
         expect:
         fails "build"
         failure.assertHasCause("Could not resolve all dependencies for configuration ':app:runtimeClasspath'")
-        failure.assertHasCause("Could not find lib.pom (project :included-logging:lib)")
+        failure.assertHasCause("Could not find lib.pom (project ':included-logging:lib')")
     }
 
     def "resolving a @pom artifact from an included build replacing an external library does not fail the build with a lenient configuration"() {

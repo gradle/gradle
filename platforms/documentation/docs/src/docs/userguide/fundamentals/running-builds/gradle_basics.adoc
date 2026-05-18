@@ -19,6 +19,7 @@ Gradle *automates building, testing, and deployment of software* from informatio
 
 image::gradle-basic-1.png[]
 
+[[sec:core_concepts]]
 == Core concepts
 
 ++++
@@ -56,6 +57,7 @@ Gradle builds are defined in terms of *projects* and *tasks*, configured using *
 
 |===
 
+[[sec:gradle_project_structure]]
 == Project structure
 
 Many developers will interact with Gradle for the first time through an existing project.
@@ -84,6 +86,7 @@ project
 <4> Gradle *build scripts* of the two subprojects - `subproject-a` and `subproject-b`
 <5> *Source code* and/or additional files for the projects
 
+[[sec:invoking_gradle]]
 == Invoking Gradle
 
 === In the IDE

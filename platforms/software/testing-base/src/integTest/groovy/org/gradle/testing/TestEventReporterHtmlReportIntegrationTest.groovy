@@ -412,6 +412,35 @@ class TestEventReporterHtmlReportIntegrationTest extends AbstractIntegrationSpec
         tests.testPath(":").onlyRoot().assertOnlyChildrenExecuted(*testNames)
     }
 
+    def "HTML report renders sortable markup for test-results tables"() {
+        given:
+        buildFile << passingTask("passing")
+
+        when:
+        succeeds("passing")
+
+        then:
+        def results = aggregateResults()
+        // Table is marked sortable and its data rows live inside a <tbody>
+        results.assertHtml("table.test-results.sortable > tbody > tr") {
+            assert !it.isEmpty()
+        }
+        // Numeric columns default to descending on first click
+        results.assertHtml("table.test-results th[data-sort-default=desc]") {
+            def headers = it*.text()
+            assert headers.containsAll(["Tests", "Failures", "Skipped", "Duration"])
+            assert !headers.contains("Success rate")
+            assert !headers.contains("Child")
+        }
+        // Duration cells carry a numeric data-sort-value (parseable as a long)
+        results.assertHtml("table.test-results > tbody > tr > td[data-sort-value]") {
+            assert !it.isEmpty()
+            it.each { cell ->
+                Long.parseLong(cell.attr("data-sort-value"))
+            }
+        }
+    }
+
     def passingTask(String name, boolean print = false) {
         assert !name.toCharArray().any { it.isWhitespace() }
 

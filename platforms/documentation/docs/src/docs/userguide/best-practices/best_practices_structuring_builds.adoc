@@ -97,22 +97,11 @@ include::sample[dir="snippets/best-practices/modularizeYourBuild-avoid/groovy",f
 include::sample[dir="snippets/best-practices/modularizeYourBuild-avoid/kotlin/app",files="build.gradle.kts[tags=avoid-this]"]
 include::sample[dir="snippets/best-practices/modularizeYourBuild-avoid/groovy/app",files="build.gradle[tags=avoid-this]"]
 ====
-
 <1> This build contains only a single project (in addition to the root project) that contains all the source code.  If there is any change to any source file, Gradle will have to recompile and rebuild everything.  While incremental compilation will help (especially in this simplified example) this is still less efficient then avoidance.  Gradle also won't be able to run any tasks in parallel, since all these tasks are in the same project, so this design won't scale nicely.
 <2> As there is only a single project in this build, the `application` plugin must be applied here.  This means that the `application` plugin will affect all source files in the build, even those which have no need for it.
 <3> Likewise, the dependencies here are only needed by each particular implmentation of util.  There's no need for the implementation using Guava to have access to the Commons library, but it does because they are all in the same project.  This also means that the classpath for each subproject is much larger than it needs to be, which can lead to longer build times and other confusion.
 
 ==== Do This Instead
-
-++++
-<div style="text-align: right;">
-  <a class="download-project-link"
-     data-base-path="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/best-practices/modularizeYourBuild-do/"
-     href="https://download-directory.github.io/?url=https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/best-practices/modularizeYourBuild-do/kotlin">
-    <img src="https://img.shields.io/badge/Download%20Project-GitHub-blue?logo=github&style=flat" alt="Download"/>
-  </a>
-</div>
-++++
 
 [.multi-language-sample]
 =====
@@ -211,7 +200,6 @@ include::sample[dir="snippets/best-practices/modularizeYourBuild-do/groovy/util-
 include::sample[dir="snippets/best-practices/modularizeYourBuild-do/kotlin/util-guava",files="build.gradle.kts[tags=do-this]"]
 include::sample[dir="snippets/best-practices/modularizeYourBuild-do/groovy/util-guava",files="build.gradle[tags=do-this]"]
 ====
-
 <1> This build logically splits the source into multiple projects.  Each project can be built independently, and Gradle can run tasks in parallel.  This means that if you change a single source file in one of the projects, Gradle will only need to recompile and rebuild that project, not the entire build.
 <2> The `application` plugin is only applied to the `app` project, which is the only project that needs it.
 <3> Each project only adds the dependencies it needs.  This means that the classpath for each subproject is much smaller, which can lead to faster build times and less confusion.
@@ -284,20 +272,9 @@ Setting up your build like this from the start will also make it easier to add n
 include::sample[dir="snippets/best-practices/noSourceInRoot-avoid/kotlin",files="build.gradle.kts[tags=avoid-this]"]
 include::sample[dir="snippets/best-practices/noSourceInRoot-avoid/groovy",files="build.gradle[tags=avoid-this]"]
 ====
-
 <1> The `java-library` plugin is applied to the root project, as there are Java source files are in the root project.
 
 ==== Do This Instead
-
-++++
-<div style="text-align: right;">
-  <a class="download-project-link"
-     data-base-path="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/best-practices/noSourceInRoot-do/"
-     href="https://download-directory.github.io/?url=https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/best-practices/noSourceInRoot-do/kotlin">
-    <img src="https://img.shields.io/badge/Download%20Project-GitHub-blue?logo=github&style=flat" alt="Download"/>
-  </a>
-</div>
-++++
 
 [.multi-language-sample]
 =====
@@ -511,11 +488,13 @@ include::sample[dir="snippets/best-practices/favorCompositeBuilds-do/groovy/buil
 <2> *Structure your included build into subprojects*: This allows the main build to only depend on the necessary parts of the included build.
 
 === References
+
 - <<part3_multi_project_builds.adoc#step_3_understand_composite_builds,Composite Builds in the Multi-Project Builds Tutorial>>
 - <<composite_builds.adoc#composite_builds,Composite Builds reference documentation>>
 - link:https://github.com/gradle/gradle/issues/6045[Gradle Issue #6045: buildSrc vs. included builds]
 
 === Tags
+
 `<<tags_reference.adoc#tag:structuring-builds,#structuring-builds>>`, `<<tags_reference.adoc#tag:composite-builds,#composite-builds>>`
 
 [[avoid_empty_projects]]
@@ -545,10 +524,13 @@ This can degrade build performance.
 Additionally, invoking tasks on deeply nested projects requires using the full project path, such as `gradle :subs:features:search:build`, instead of the shorter `gradle :search:build`.
 
 To avoid these downsides when using a hierarchical project structure, you can provide a flat name when including the project and explicitly set the link:{kotlinDslPath}/gradle/org.gradle.api/-project/get-project-dir.html[Project.projectDir] property for any projects located in nested directories:
-```
+
+[source,kotlin]
+----
 include(':my-web-module')
 project(':my-web-module').projectDir = file("subs/web/my-web-module")
-```
+----
+
 This will prevent Gradle from creating empty projects for each element of the project's path.
 
 NOTE: Always use an identical _logical_ project **name** and _physical_ project **location** to avoid confusion.
@@ -571,9 +553,9 @@ If you find yourself facing ambiguity about project locations, consider simplify
 =====
 [source, kotlin]
 ----
-├── settings.gradle
+├── settings.gradle.kts
 ├── app/ // <1>
-│   ├── build.gradle
+│   ├── build.gradle.kts
 │   └── src/
 └── subs/ // <2>
     └── web/ // <3>
@@ -594,8 +576,7 @@ If you find yourself facing ambiguity about project locations, consider simplify
     └── web/ // <3>
         ├── my-web-module/ // <4>
             ├── src/
-            └── build.gradle.kts
-
+            └── build.gradle
 ----
 =====
 
@@ -608,7 +589,6 @@ If you find yourself facing ambiguity about project locations, consider simplify
 include::sample[dir="snippets/best-practices/avoidEmptyProjects-avoid/kotlin",files="settings.gradle.kts[tags=avoid-this]"]
 include::sample[dir="snippets/best-practices/avoidEmptyProjects-avoid/groovy",files="settings.gradle[tags=avoid-this]"]
 ====
-
 <1> Including the `app` project located at the root of the build requires no additional configuration
 <2> Including a project named `:subs:my-web-module` located in a nested subdirectory causes Gradle to create empty projects for each element of the path
 
@@ -620,21 +600,10 @@ The output of running the `projects` report on the above build shows that Gradle
 
 ==== Do This Instead
 
-++++
-<div style="text-align: right;">
-  <a class="download-project-link"
-     data-base-path="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/best-practices/avoidEmptyProjects-do/"
-     href="https://download-directory.github.io/?url=https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/best-practices/avoidEmptyProjects-do/kotlin">
-    <img src="https://img.shields.io/badge/Download%20Project-GitHub-blue?logo=github&style=flat" alt="Download"/>
-  </a>
-</div>
-++++
-
 ====
 include::sample[dir="snippets/best-practices/avoidEmptyProjects-do/kotlin",files="settings.gradle.kts[tags=do-this]"]
 include::sample[dir="snippets/best-practices/avoidEmptyProjects-do/groovy",files="settings.gradle[tags=do-this]"]
 ====
-
 <1> After including the `:subs:web:my-web-module` project, its `projectDir` property is set to the physical location of the project
 
 ====
@@ -646,9 +615,11 @@ The output of running the `projects` report on the above build shows that now Gr
 You can also now invoke tasks on the `my-web-module` project using the shorter name `:my-web-module` like `gradle :my-web-module:build`, instead of `gradle :subs:web:my-web-module:build`.
 
 === References
+
 - <<multi_project_builds.adoc#multi_project_builds,Multi-Project Builds>>
 
 === Tags
+
 `<<tags_reference.adoc#tag:structuring-builds,#structuring-builds>>`
 
 [[use_convention_plugins]]
@@ -684,7 +655,6 @@ As mentioned in <<#favor_composite_builds,Favor `build-logic` Composite Builds f
 include::sample[dir="snippets/best-practices/useConventionPlugins-avoid/kotlin",files="project-a/build.gradle.kts[tags=avoid-this];project-b/build.gradle.kts[tags=avoid-this]"]
 include::sample[dir="snippets/best-practices/useConventionPlugins-avoid/groovy",files="project-a/build.gradle[tags=avoid-this];project-b/build.gradle[tags=avoid-this]"]
 ====
-
 <1> Common compiler settings repeated across multiple projects.
 <2> Shared test configuration that must be maintained in multiple places.
 <3> Common dependencies that could be managed centrally.
@@ -692,23 +662,12 @@ include::sample[dir="snippets/best-practices/useConventionPlugins-avoid/groovy",
 
 ==== Do This Instead
 
-++++
-<div style="text-align: right;">
-  <a class="download-project-link"
-     data-base-path="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/best-practices/useConventionPlugins-do/"
-     href="https://download-directory.github.io/?url=https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/best-practices/useConventionPlugins-do/kotlin">
-    <img src="https://img.shields.io/badge/Download%20Project-GitHub-blue?logo=github&style=flat" alt="Download"/>
-  </a>
-</div>
-++++
-
 Create included build containing convention plugins for your build in `build-logic` and add it to your settings file:
 
 ====
 include::sample[dir="snippets/best-practices/useConventionPlugins-do/kotlin",files="settings.gradle.kts[tags=do-this];build-logic/build.gradle.kts[tags=do-this]"]
 include::sample[dir="snippets/best-practices/useConventionPlugins-do/groovy",files="settings.gradle[tags=do-this];build-logic/build.gradle[tags=do-this]"]
 ====
-
 <1> Include the `build-logic` build, which defines convention plugins.
 <2> Enable the use of Kotlin DSL in `build-logic`.
 
@@ -718,7 +677,6 @@ Create convention plugins for each type of project in `build-logic`:
 include::sample[dir="snippets/best-practices/useConventionPlugins-do/kotlin",files="build-logic/src/main/kotlin/my.base-java-library.gradle.kts[tags=do-this];build-logic/src/main/kotlin/my.java-library.gradle.kts[tags=do-this];build-logic/src/main/kotlin/my.java-use-junit5.gradle.kts[tags=do-this]"]
 include::sample[dir="snippets/best-practices/useConventionPlugins-do/groovy",files="build-logic/src/main/groovy/my.base-java-library.gradle[tags=do-this];build-logic/src/main/groovy/my.java-library.gradle[tags=do-this];build-logic/src/main/groovy/my.java-use-junit5.gradle[tags=do-this]"]
 ====
-
 <1> Default settings for a Java library plugin.
 <2> A convention plugin can apply other convention plugins.
 <3> JUnit 5 configuration moved to a convention plugin.
@@ -731,9 +689,11 @@ include::sample[dir="snippets/best-practices/useConventionPlugins-do/groovy",fil
 ====
 
 === References
+
 - <<plugins/custom_plugins.adoc#custom_plugins,Developing Custom Gradle Plugins>>
 - <<implementing_gradle_plugins_precompiled.adoc#implementing_precompiled_plugins,Implementing Pre-compiled Script Plugins>>
 - <<plugin-development/plugins.adoc#types_of_plugins,Types of Plugins>>
 
 === Tags
+
 `<<tags_reference.adoc#tag:structuring-builds,#structuring-builds>>`

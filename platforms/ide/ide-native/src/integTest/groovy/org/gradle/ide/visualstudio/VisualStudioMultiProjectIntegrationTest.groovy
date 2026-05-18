@@ -436,7 +436,7 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractVisualStudioIntegr
         then:
         resultDebug.assertNoTasksScheduled()
         resultDebug.assertHasCause("Could not resolve all dependencies for configuration ':exe:nativeRuntimeDebug'.")
-        resultDebug.assertHasCause("Could not resolve project :lib.")
+        resultDebug.assertHasCause("Could not resolve project ':lib'.")
         installation('exe/build/install/main/debug').assertNotInstalled()
     }
 

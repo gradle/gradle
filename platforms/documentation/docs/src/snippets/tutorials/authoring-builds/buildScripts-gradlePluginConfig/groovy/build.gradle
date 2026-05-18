@@ -1,0 +1,12 @@
+plugins {
+    id 'java-gradle-plugin'
+}
+
+// tag::gradle-plugin-config[]
+gradlePlugin {  // Define a custom plugin
+    plugins.create('greeting') {  // Define a plugin named greeting
+        id = 'license.greeting' // using the id
+        implementationClass = 'license.LicensePlugin' // and implementationClass
+    }
+}
+// end::gradle-plugin-config[]

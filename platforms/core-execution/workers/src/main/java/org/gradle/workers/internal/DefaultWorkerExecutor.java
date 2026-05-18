@@ -69,7 +69,7 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
     private final ClassLoaderStructureProvider classLoaderStructureProvider;
     private final ActionExecutionSpecFactory actionExecutionSpecFactory;
     private final Instantiator instantiator;
-    private final IsolationScheme<WorkAction<?>, WorkParameters> isolationScheme = new IsolationScheme<>(Cast.uncheckedCast(WorkAction.class), WorkParameters.class, WorkParameters.None.class);
+    private final IsolationScheme<WorkAction<?>, WorkParameters> isolationScheme = new IsolationScheme<>(Cast.uncheckedCast(WorkAction.class), WorkParameters.class, WorkParameters.None.class, WorkParameters.None.INSTANCE);
     private final CachedClasspathTransformer classpathTransformer;
     private final File baseDir;
     private final ProjectCacheDir projectCacheDir;

@@ -19,6 +19,7 @@ In Gradle version 7.6 and above, Gradle provides a way to define Java toolchain 
 This page explains how to author a toolchain resolver plugin.
 For details on how toolchain auto-provisioning interacts with these plugins, see <<toolchains.adoc#sub:download_repositories,Toolchains>>.
 
+[[sec:provide_a_download_uri]]
 == Provide a download URI
 
 Toolchain resolver plugins provide logic to map a link:{javadocPath}/org/gradle/jvm/toolchain/JavaToolchainRequest.html[toolchain request] to a link:{javadocPath}/org/gradle/jvm/toolchain/JavaToolchainDownload.html[download response].
@@ -37,6 +38,7 @@ include::{snippetsPath}/reference/platforms/jvm/toolchain-management/groovy/buil
 <1> This class is `abstract` because `JavaToolchainResolver` is a <<build_services.adoc#build_services,build service>>. Gradle provides dynamic implementations for certain abstract methods at runtime.
 <2> The mapping method returns a download response wrapped in an `Optional`. If the resolver implementation can't provide a matching toolchain, the enclosing `Optional` contains an empty value.
 
+[[sec:register_the_resolver_in_a_plugin]]
 == Register the resolver in a plugin
 
 Use a settings plugin (`Plugin<Settings>`) to register the `JavaToolchainResolver` implementation:

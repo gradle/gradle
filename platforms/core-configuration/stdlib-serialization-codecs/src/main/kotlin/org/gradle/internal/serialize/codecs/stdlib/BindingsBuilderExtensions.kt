@@ -89,6 +89,7 @@ fun BindingsBuilder.stdlibTypes() {
     bind(UnitCodec)
     bind(CharsetCodec)
     bind(DurationCodec)
+    bind(BitSetCodec)
 
     bind(InputStreamCodec)
     bind(OutputStreamCodec)

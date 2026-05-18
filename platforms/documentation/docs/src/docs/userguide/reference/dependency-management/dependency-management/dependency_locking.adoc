@@ -155,6 +155,7 @@ include::sample[dir="snippets/reference/dependency-management/dependency-managem
 By filtering and resolving specific configurations, you ensure that only the relevant ones are locked, tailoring the locking process to your project's needs.
 This is especially useful in environments like native builds, where not all configurations can be resolved on a single platform.
 
+[[sec:understanding_the_locking_mechanism_during_dependency_resolution]]
 == Understanding the locking mechanism during dependency resolution
 
 When using dependency locking, Gradle enforces the locked versions as if they were declared with `strictly()`.
@@ -175,11 +176,13 @@ It helps identify discrepancies in dependencies when a project is built on diffe
 
 TIP: Lockfiles should be checked in to source control.
 
+[[sec:location_of_lock_files]]
 === Location of lock files
 
 - The lock state is preserved in a file named `gradle.lockfile`, located at the root of each project or subproject directory.
 - The exception is the lockfile for the <<plugins_intermediate.adoc#sec:applying_plugins_buildscript,buildscript itself>>, which is named `buildscript-gradle.lockfile`.
 
+[[sec:structure_of_lock_files]]
 === Structure of lock files
 
 Consider the following dependency declaration:

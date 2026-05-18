@@ -155,7 +155,7 @@ class TestUtil {
     }
 
     static TestProblems problemsService() {
-        return services().get(TestProblems)
+        return new TestProblems()
     }
 
     static ObjectFactory objectFactory(TestFile baseDir) {
@@ -219,11 +219,6 @@ class TestUtil {
                         fileCollectionFactory,
                         filePropertyFactory,
                         filePropertyFactory)
-                }
-
-                @Provides
-                TestProblems createProblemsService() {
-                    new TestProblems()
                 }
 
                 @Provides
@@ -452,6 +447,14 @@ class TestProblems implements ProblemsInternal {
         } else {
             assert expectedProblem instanceof Wildcard
         }
+    }
+
+    void assertNoProblemsEmitted() {
+        assert summarizer.emitted.isEmpty()
+    }
+
+    List<Problem> getEmitted() {
+        summarizer.emitted
     }
 
     void assertHasDeprecation(String expectedMessage) {

@@ -1,0 +1,218 @@
+// Copyright (C) 2024 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[travis_ci]]
+= Gradle on Travis CI
+
+This page is a reference for integrating Gradle with link:https://www.travis-ci.com/[Travis CI].
+
+[[travis_ci_defaults]]
+== Default Gradle behavior
+
+When Travis CI detects a `build.gradle` or `build.gradle.kts` file in the repository root, it automatically applies Gradle-specific defaults for the link:https://docs.travis-ci.com/user/job-lifecycle/[build lifecycle]:
+
+[cols="1,2,2",options="header"]
+|===
+| Phase | Without Wrapper | With Wrapper (`gradlew` present)
+
+| `install`
+| `gradle assemble`
+| `./gradlew assemble`
+
+| `script`
+| `gradle check`
+| `./gradlew check`
+|===
+
+Most projects override one or both phases in `.travis.yml` to run custom tasks.
+
+[[travis_ci_minimal_config]]
+== Minimal configuration
+
+A `.travis.yml` that builds a Gradle project with the Wrapper:
+
+[source,yaml]
+----
+language: java
+
+dist: focal
+jdk: openjdk17
+
+install: skip
+
+script:
+  - ./gradlew build
+----
+
+* `language: java` activates the Java environment and JDK selection.
+* `dist: focal` selects Ubuntu 20.04 (the current default). Other options include `jammy` (22.04) and `noble` (24.04).
+* `jdk` selects the JDK. Common values: `openjdk17`, `openjdk21`. IBM Semeru builds are available as `semeru11`, `semeru17`, etc.
+* `install: skip` skips the default `gradle assemble` phase — the `build` task already includes assembly.
+* The Gradle Wrapper is detected automatically when `gradlew` exists in the repository root.
+
+[[travis_ci_jdk_matrix]]
+== Testing against multiple JDKs
+
+Use a `jdk` matrix to test across several Java versions in parallel:
+
+[source,yaml]
+----
+language: java
+dist: focal
+
+jdk:
+  - openjdk17
+  - openjdk21
+
+install: skip
+
+script:
+  - ./gradlew build
+----
+
+Travis CI creates one job per JDK entry. Combine with `os` to add cross-platform coverage:
+
+[source,yaml]
+----
+os:
+  - linux
+  - osx
+
+jdk:
+  - openjdk17
+  - openjdk21
+----
+
+[[travis_ci_caching]]
+== Caching
+
+Travis CI can persist directories between builds. For Gradle projects, cache the Wrapper distribution and the dependency cache:
+
+[source,yaml]
+----
+before_cache:
+  - rm -f  $HOME/.gradle/caches/modules-2/modules-2.lock
+  - rm -fr $HOME/.gradle/caches/*/plugin-resolution/
+
+cache:
+  directories:
+    - $HOME/.gradle/caches/
+    - $HOME/.gradle/wrapper/
+----
+
+The `before_cache` step removes lock files that should not be persisted.
+
+[CAUTION]
+====
+If you run Gradle with `sudo`, dependencies are stored under `/root/.gradle` and the cache configuration above has no effect.
+Avoid `sudo` when invoking Gradle.
+====
+
+[TIP]
+====
+For large dependency trees, the cache archive upload/download time on shared infrastructure may offset the savings.
+In that case, consider a link:https://docs.gradle.org/current/userguide/build_cache.html[Gradle Remote Build Cache] or a repository manager to proxy external dependencies.
+====
+
+[[travis_ci_build_scans]]
+== Publishing Build Scans
+
+Pass `--scan` in the `script` phase to publish a link:https://scans.gradle.com[Build Scan®] for every build:
+
+[source,yaml]
+----
+script:
+  - ./gradlew build --scan
+----
+
+To auto-accept the terms of use without the `--scan` flag, configure the Develocity plugin in `settings.gradle[.kts]`.
+Travis CI sets `CI=true` automatically, which can be used to gate publication:
+
+[source,kotlin]
+----
+plugins {
+    id("com.gradle.develocity") version "3.18.1"
+}
+
+develocity {
+    buildScan {
+        if (System.getenv("CI") != null) {
+            termsOfUseUrl = "https://gradle.com/help/legal-terms-of-use"
+            termsOfUseAgree = "yes"
+            publishing.onlyIf { true }
+        }
+    }
+}
+----
+
+[[travis_ci_environment_variables]]
+== Useful environment variables
+
+[cols="1,3",options="header"]
+|===
+| Variable | Purpose
+
+| `CI` / `TRAVIS`
+| Always `true`. Use to branch Gradle build logic for CI.
+
+| `TRAVIS_BRANCH`
+| Branch name for push builds; base branch for pull-request builds.
+
+| `TRAVIS_PULL_REQUEST`
+| Pull-request number, or `"false"` for push builds.
+
+| `TRAVIS_EVENT_TYPE`
+| Trigger type: `push`, `pull_request`, `api`, or `cron`.
+
+| `TRAVIS_TAG`
+| Git tag name if the build was triggered by a tag push; empty otherwise.
+
+| `TRAVIS_BUILD_DIR`
+| Absolute path to the checked-out repository on the worker.
+
+| `TRAVIS_COMMIT`
+| The SHA of the commit being built.
+|===
+
+See link:https://docs.travis-ci.com/user/environment-variables/#default-environment-variables[Default environment variables] for the full list.
+
+[[travis_ci_build_stages]]
+== Build stages and conditional jobs
+
+Travis CI link:https://docs.travis-ci.com/user/build-stages/[build stages] run groups of jobs sequentially, while jobs within a stage run in parallel.
+Use stages to model pipelines — for example, build first, then deploy only on tagged commits:
+
+[source,yaml]
+----
+jobs:
+  include:
+    - stage: build
+      script: ./gradlew build
+
+    - stage: publish
+      if: tag IS present
+      script: ./gradlew publish
+----
+
+[[travis_ci_secrets]]
+== Managing secrets
+
+Store credentials (publishing tokens, signing keys) as link:https://docs.travis-ci.com/user/environment-variables/#defining-encrypted-variables-in-travisyml[encrypted environment variables] in the repository settings or in `.travis.yml` via the Travis CLI:
+
+[source,shell]
+----
+travis encrypt PUBLISH_TOKEN=secret --add env.global
+----
+
+Access them in `build.gradle[.kts]` with `System.getenv("PUBLISH_TOKEN")` or `providers.environmentVariable("PUBLISH_TOKEN")`.

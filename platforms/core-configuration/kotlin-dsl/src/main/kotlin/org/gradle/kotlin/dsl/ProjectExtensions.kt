@@ -41,7 +41,6 @@ import org.gradle.kotlin.dsl.provider.fileCollectionOf
 import org.gradle.kotlin.dsl.provider.gradleKotlinDslOf
 import org.gradle.kotlin.dsl.support.ScriptHandlerScopeInternal
 import org.gradle.kotlin.dsl.support.invalidPluginsCall
-import org.gradle.kotlin.dsl.support.serviceOf
 
 import org.gradle.plugin.use.PluginDependenciesSpec
 
@@ -200,7 +199,7 @@ operator fun Project.provideDelegate(any: Any?, property: KProperty<*>): Propert
             .withUpgradeGuideSection(9, "kotlin_dsl_delegated_properties")
             .nagUser()
     }
-    return DeprecationLogger.whileDisabled(Factory { propertyDelegateFor(serviceOf(), this, property) })
+    return DeprecationLogger.whileDisabled(Factory { propertyDelegateFor(this, property) })
 }
 
 

@@ -26,7 +26,6 @@ test-splits/
 !/.idea/inspectionProfiles
 !/.idea/icon.png
 !/.idea/icon_dark.png
-!/.idea/gradle.xml
 */**/.idea
 */**/.shelf
 .shelf

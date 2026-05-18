@@ -32,8 +32,10 @@ import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.plugins.PluginManagerInternal
 import org.gradle.api.internal.project.CrossProjectConfigurator
 import org.gradle.api.internal.project.CrossProjectModelAccess
+import org.gradle.api.internal.project.ProjectIdentity
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectRegistry
+import org.gradle.api.internal.project.ProjectState as InternalProjectState
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.invocation.GradleLifecycle
 import org.gradle.api.plugins.ExtensionContainer
@@ -57,7 +59,7 @@ import java.util.function.Supplier
 
 class CrossProjectConfigurationReportingGradle(
     gradle: GradleInternal,
-    private val referrerProject: ProjectInternal,
+    private val referrerProject: ProjectIdentity,
 ) : GradleInternal {
 
     private
@@ -82,7 +84,11 @@ class CrossProjectConfigurationReportingGradle(
         }
 
     override fun getRootProject(): ProjectInternal =
-        crossProjectModelAccess.access(referrerProject, delegate.rootProject)
+        getCrossProjectRootProject()
+
+    // Split out so it's clear we're not calling the @ForExternalUse method.
+    private fun getCrossProjectRootProject(): ProjectInternal =
+        crossProjectModelAccess.accessFromState(referrerProject, delegate.owner.rootProject)
 
     override fun rootProject(action: Action<in Project>) {
         delegate.rootProject(action.withCrossProjectModelAccessCheck())
@@ -92,8 +98,8 @@ class CrossProjectConfigurationReportingGradle(
         // Use the delegate's implementation of `rootProject` to ensure that the action is only invoked once the rootProject is available
         delegate.rootProject {
             // Instead of the rootProject's `allProjects`, collect the projects while still tracking the current referrer project
-            val root = this@CrossProjectConfigurationReportingGradle.rootProject
-            projectConfigurator.allprojects(crossProjectModelAccess.getAllprojects(referrerProject, root), action)
+            val root = this@CrossProjectConfigurationReportingGradle.getCrossProjectRootProject()
+            projectConfigurator.allprojects(crossProjectModelAccess.getAllprojects(referrerProject, root.projectIdentity), action)
         }
     }
 
@@ -129,7 +135,8 @@ class CrossProjectConfigurationReportingGradle(
         delegate.afterProject(action.withCrossProjectModelAccessCheck())
     }
 
-    override fun getDefaultProject(): ProjectInternal = crossProjectModelAccess.access(referrerProject, delegate.defaultProject)
+    override fun getDefaultProjectState(): InternalProjectState =
+        delegate.defaultProjectState
 
     override fun getGradle(): Gradle = this
 
@@ -195,7 +202,7 @@ class CrossProjectConfigurationReportingGradle(
     private
     class CrossProjectModelAccessProjectEvaluationListener(
         private val delegate: ProjectEvaluationListener,
-        private val referrerProject: ProjectInternal,
+        private val referrerProject: ProjectIdentity,
         private val crossProjectModelAccess: CrossProjectModelAccess
     ) : ProjectEvaluationListener {
         override fun beforeEvaluate(project: Project) {
@@ -315,12 +322,8 @@ class CrossProjectConfigurationReportingGradle(
         delegate.attachSettings(settings)
     }
 
-    override fun setDefaultProject(defaultProject: ProjectInternal) {
-        delegate.defaultProject = defaultProject
-    }
-
-    override fun setRootProject(rootProject: ProjectInternal) {
-        delegate.rootProject = rootProject
+    override fun setDefaultProjectState(defaultProject: InternalProjectState) {
+        delegate.defaultProjectState = defaultProject
     }
 
     override fun getBuildListenerBroadcaster(): BuildListener =

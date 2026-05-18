@@ -19,6 +19,7 @@ import groovy.lang.Closure;
 import groovy.lang.MissingMethodException;
 import groovy.lang.MissingPropertyException;
 import org.codehaus.groovy.runtime.GeneratedClosure;
+import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.plugins.ExtraPropertiesExtension;
@@ -68,6 +69,7 @@ public class ExtensibleDynamicObject extends AbstractDynamicObject implements Hi
     private CompositeDynamicObject delegateObjects;
     @Nullable
     private HierarchicalDynamicObject parent;
+    private boolean failOnParentAccess;
 
     public ExtensibleDynamicObject(Object delegate, Class<?> publicType, InstanceGenerator instanceGenerator) {
         this(delegate, new BeanDynamicObject(delegate, publicType), new DefaultExtensionContainer(instanceGenerator));
@@ -132,6 +134,18 @@ public class ExtensibleDynamicObject extends AbstractDynamicObject implements Hi
         this.parent = parent;
     }
 
+    /**
+     * Enables strict mode for parent-project property/method lookup. When set, any property or
+     * method that resolves through the parent chain causes the build to fail with an
+     * {@link InvalidUserCodeException} at the lookup site. Used to opt into the eventual
+     * Gradle 10 behavior early or to enforce zero parent-walking in CI builds.
+     *
+     * @see org.gradle.api.internal.project.DefaultProject#FAIL_ON_PARENT_PROPERTY_LOOKUP
+     */
+    public void setFailOnParentAccess(boolean failOnParentAccess) {
+        this.failOnParentAccess = failOnParentAccess;
+    }
+
     public ExtensionContainer getExtensions() {
         return extensionContainer;
     }
@@ -180,6 +194,7 @@ public class ExtensibleDynamicObject extends AbstractDynamicObject implements Hi
         HierarchicalDynamicObject parent = this.parent;
         while (parent != null) {
             if (parent.hasProperty(name)) {
+                failOnParentAccessIfNeeded("property", name, parent);
                 return true;
             }
             parent = parent.getParent();
@@ -197,6 +212,7 @@ public class ExtensibleDynamicObject extends AbstractDynamicObject implements Hi
         while (parent != null) {
             result = parent.tryGetProperty(name);
             if (result.isFound()) {
+                failOnParentAccessIfNeeded("property", name, parent);
                 return result;
             }
             parent = parent.getParent();
@@ -244,6 +260,7 @@ public class ExtensibleDynamicObject extends AbstractDynamicObject implements Hi
         HierarchicalDynamicObject parent = this.parent;
         while (parent != null) {
             if (parent.hasMethod(name, arguments)) {
+                failOnParentAccessIfNeeded("method", name, parent);
                 return true;
             }
             parent = parent.getParent();
@@ -260,11 +277,25 @@ public class ExtensibleDynamicObject extends AbstractDynamicObject implements Hi
         while (parent != null) {
             result = parent.tryInvokeMethod(name, arguments);
             if (result.isFound()) {
+                failOnParentAccessIfNeeded("method", name, parent);
                 return result;
             }
             parent = parent.getParent();
         }
         return DynamicInvokeResult.notFound();
+    }
+
+    private void failOnParentAccessIfNeeded(String memberKind, String memberName, DynamicObject resolvedParent) {
+        if (!failOnParentAccess) {
+            return;
+        }
+        throw new InvalidUserCodeException(
+            "Implicit parent-project " + memberKind + " lookup is not allowed: "
+                + memberKind + " '" + memberName + "' was resolved from " + resolvedParent.getDisplayName()
+                + " for " + getDisplayName() + ". "
+                + "Define '" + memberName + "' explicitly in " + getDisplayName()
+                + ", or unset the org.gradle.internal.fail-on-parent-property-lookup system property."
+        );
     }
 
     @Override

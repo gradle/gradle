@@ -34,6 +34,7 @@ Learn the basics of project dependencies and Gradle's dependency management.
 1. You initialized your Java app in <<part1_gradle_init.adoc#part1_begin,part 1>>.
 2. You ran several tasks in <<part2_gradle_tasks#part2_begin,part 2>>.
 
+[[rb_part3_step1]]
 == Step 1. Understanding the Version Catalog
 
 In Gradle, the `dependencies {}` block in your build script is where you declare the external libraries, files, or projects your build needs to work.
@@ -45,15 +46,10 @@ Each line inside this block tells Gradle two things:
 
 For example:
 
-[source,kotlin]
-----
-dependencies {
-    implementation("com.google.guava:guava:32.1.2-jre")             // <1>
-    implementation(project(":utils"))                               // <2>
-    runtimeOnly(files("some.jar"))                                  // <3>
-    testImplementation("org.junit.jupiter:junit-jupiter:5.10.1")    // <4>
-}
-----
+====
+include::sample[dir="snippets/tutorials/running-builds/dependency-types/kotlin",files="app/build.gradle.kts[tags=dep-types]"]
+include::sample[dir="snippets/tutorials/running-builds/dependency-types/groovy",files="app/build.gradle[tags=dep-types]"]
+====
 <1> *External dependency* — Gradle resolves `com.google.guava:guava:32.1.2-jre` from your declared repositories and adds it to this project’s compile and runtime classpaths.
 <2> *Project dependency* — The project depends on the sibling project `:utils`. Gradle wires task dependencies so `:utils` is built first and puts its main outputs on this project’s compile and runtime classpaths.
 <3> *Local file dependency* — Adds a local JAR only to the runtime classpath (not available at compile time).
@@ -85,6 +81,7 @@ A version catalog provides a number of advantages over declaring dependencies di
 - Gradle generates type-safe accessors from the catalog so that you can easily add dependencies with autocompletion in the IDE.
 - It is a central place to declare a version of a dependency so that any changes apply to every subproject.
 
+[[rb_part3_step2]]
 == Step 2. Understanding Project Dependencies
 
 Gradle provides excellent support for dependency management and automation.
@@ -129,6 +126,7 @@ Let's look at `libs.guava` and `libs.junit.jupiter`:
 |`5.11.3`
 |===
 
+[[rb_part3_step3]]
 == Step 3. Understanding Transitive Dependencies
 
 A _transitive dependency_ is a dependency of a dependency.
@@ -136,6 +134,7 @@ A _transitive dependency_ is a dependency of a dependency.
 For our `guava` dependency to work, it requires a library called `failureaccess`.
 Therefore `failureaccess` is a transitive dependency of the project.
 
+[[rb_part3_step4]]
 == Step 4. Viewing Project Dependencies
 
 You can view your dependency tree in the terminal using the `./gradlew :app:dependencies` command:
@@ -202,6 +201,7 @@ testRuntimeClasspath - Runtime classpath of source set 'test'.
 
 The output clearly depicts that `com.google.guava:guava:33.3.1-jre` has a dependency on `com.google.guava:failureaccess:1.0.2`.
 
+[[rb_part3_step5]]
 == Step 5. Viewing Dependencies in a Build Scan®
 
 To view dependencies using a https://scans.gradle.com/[Build Scan], run the build task with an optional `--scan` flag.
@@ -252,6 +252,7 @@ image::tutorial/build-scan-trans-dependencies.png[]
 There are several transitive dependencies under `junit` and `guava`.
 For example, the `com.google.code.findbugs:jsr305:3.0.2` transitive dependency comes from the `com.google.guava:guava:33.3.1-jre` dependency.
 
+[[rb_part3_step6]]
 == Step 6. Updating Project Dependencies
 
 Adding and changing dependencies is done in the build file and in the version catalog.
@@ -325,6 +326,7 @@ testRuntimeClasspath - Runtime classpath of source set 'test'.
 
 It is clear the `guava` dependency has been updated to version `30.0` and the transitive dependencies have changed as well.
 
+[[rb_part3_step7]]
 == Step 7. Run the Java app
 
 Finally, make sure everything is working using the `run` task, either in your terminal or IDE:

@@ -338,7 +338,7 @@ class CapabilitiesConflictResolutionIntegrationTest extends AbstractModuleDepend
                     artifact(name: "producer1-foo")
                     byReason("conflict resolution: latest version of capability org:foo")
                 }
-                edge("project :producer2", "project :producer1", "test:producer1:unspecified")
+                edge("project ':producer2'", "project :producer1", "test:producer1:unspecified")
             }
         }
     }

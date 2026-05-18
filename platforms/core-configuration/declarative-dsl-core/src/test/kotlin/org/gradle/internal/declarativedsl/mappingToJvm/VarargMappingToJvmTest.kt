@@ -32,7 +32,7 @@ class VarargMappingToJvmTest {
             booleans = myBooleans(true, false, true)
         """.trimIndent()
 
-        val receiver = runtimeInstanceFromResult(schema, schema.resolve(code), kotlinFunctionAsConfigureLambda, RuntimeCustomAccessors.none, ::MyTypeWithVarargs)
+        val receiver = runtimeInstanceFromResult(schema.resolve(code), kotlinFunctionAsConfigureLambda, RuntimeCustomAccessors.none, ::MyTypeWithVarargs)
         assertEquals(listOf(1, 2, 3), receiver.ints)
         assertEquals(listOf(1, 2, 3, 4), receiver.moreInts)
         assertEquals(listOf(1L, 2L, 3L), receiver.longs)
@@ -43,7 +43,7 @@ class VarargMappingToJvmTest {
     fun `varargs with concrete types get properly converted`() {
         val code = """strings = myStrings("one", "two", "three")""".trimIndent()
 
-        val receiver = runtimeInstanceFromResult(schema, schema.resolve(code), kotlinFunctionAsConfigureLambda, RuntimeCustomAccessors.none, ::MyTypeWithVarargs)
+        val receiver = runtimeInstanceFromResult(schema.resolve(code), kotlinFunctionAsConfigureLambda, RuntimeCustomAccessors.none, ::MyTypeWithVarargs)
         assertEquals(listOf("one", "two", "three"), receiver.strings)
     }
 
@@ -51,7 +51,7 @@ class VarargMappingToJvmTest {
     fun `varargs with type argument get properly converted`() {
         val code = """strings = myListOf("one", "two", "three")""".trimIndent()
 
-        val receiver = runtimeInstanceFromResult(schema, schema.resolve(code), kotlinFunctionAsConfigureLambda, RuntimeCustomAccessors.none, ::MyTypeWithVarargs)
+        val receiver = runtimeInstanceFromResult(schema.resolve(code), kotlinFunctionAsConfigureLambda, RuntimeCustomAccessors.none, ::MyTypeWithVarargs)
         assertEquals(listOf("one", "two", "three"), receiver.strings)
     }
 

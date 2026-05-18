@@ -35,6 +35,7 @@ Learn the basics of authoring Gradle by first creating a Java app using Gradle i
 2. Install link:https://www.jetbrains.com/idea/download/[IntelliJ IDEA].
 The Community Edition is a free version of IntelliJ IDEA.
 
+[[ab_part1_step1]]
 == Step 1. Initializing the Project
 
 Create a new directory called `authoring-tutorial` and `cd` into it:
@@ -69,6 +70,7 @@ Select defaults for any additional prompts.
 
 NOTE: In this tutorial, all examples are macOS based.
 
+[[ab_part1_step2]]
 == Step 2. Understanding the Directory layout
 
 The *project root directory* contains all source files from your project.
@@ -145,6 +147,7 @@ While the Gradle Wrapper is local to the root project, the Gradle executable is 
 
 The `GRADLE_USER_HOME`, which defaults to `USER_HOME/.gradle`, is also where Gradle stores its global configuration properties, initialization scripts, caches, log files and more.
 
+[[ab_part1_step3]]
 == Step 3. Review the Gradle Files
 
 The `settings.gradle(.kts)` file has two interesting lines:
@@ -260,6 +263,7 @@ tasks.named('test') {
 
 The build script in the `app` subproject directory declares the dependencies the `app` code will need to be assembled and tested.
 
+[[ab_part1_step4]]
 == Step 4. Review the Code
 
 The file `app/src/main/java/authoring/tutorial/App.java` contains the main class of the project:
@@ -303,6 +307,7 @@ class AppTest {
 The generated test class has a single _JUnit Jupiter_ test.
 The test instantiates the `App` class, invokes a method on it, and checks that it returns the expected value.
 
+[[ab_part1_step5]]
 == Step 5. Run the App
 
 The Application plugin, which was automatically added by `gradle init`, facilitates creating an executable JVM application:
@@ -344,6 +349,7 @@ BUILD SUCCESSFUL in 998ms
 2 actionable tasks: 2 executed
 ----
 
+[[ab_part1_step6]]
 == Step 6. Bundle the App
 
 The `application` plugin packages the application, with all its dependencies, for you.
@@ -377,6 +383,7 @@ BUILD SUCCESSFUL in 5s
 
 If you run a full build as shown above, Gradle will have produced the archive in two formats: `app/build/distributions/app.tar` and `app/build/distributions/app.zip`.
 
+[[ab_part1_step6_build_scan]]
 == Step 6. Publish a Build Scan
 
 The best way to learn more about what your build is doing behind the scenes is to publish a link:https://scans.gradle.com[Build Scan].

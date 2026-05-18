@@ -15,6 +15,7 @@
  */
 package org.gradle.integtests
 
+import org.gradle.api.problems.Severity
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
@@ -137,12 +138,13 @@ class TaskErrorExecutionIntegrationTest extends AbstractIntegrationSpec implemen
         fails "custom"
 
         failureDescriptionContains("Some problems were found with the configuration of task ':custom' (type 'CustomTask').")
-        failureDescriptionContains(missingValueMessage { type('CustomTask').property('srcFile') })
-        failureDescriptionContains(missingValueMessage { type('CustomTask').property('destFile') })
 
         verifyAll(receivedProblem(0)) {
+            severity == Severity.ERROR
             fqid == 'validation:property-validation:value-not-set'
+            definition.id.displayName == 'Value not set'
             details == 'This property isn\'t marked as optional and no value has been configured'
+            definition.documentationLink.url == "https://docs.gradle.org/${distribution.version.version}/userguide/validation_problems.html#value_not_set"
             solutions == [
                 'Assign a value to \'destFile\'',
                 'Mark property \'destFile\' as optional',
@@ -153,8 +155,11 @@ class TaskErrorExecutionIntegrationTest extends AbstractIntegrationSpec implemen
             ]
         }
         verifyAll(receivedProblem(1)) {
+            severity == Severity.ERROR
             fqid == 'validation:property-validation:value-not-set'
+            definition.id.displayName == 'Value not set'
             details == 'This property isn\'t marked as optional and no value has been configured'
+            definition.documentationLink.url == "https://docs.gradle.org/${distribution.version.version}/userguide/validation_problems.html#value_not_set"
             solutions == [
                 'Assign a value to \'srcFile\'',
                 'Mark property \'srcFile\' as optional',
@@ -184,11 +189,12 @@ class TaskErrorExecutionIntegrationTest extends AbstractIntegrationSpec implemen
 
         then:
         verifyAll(receivedProblem) {
+            severity == Severity.ERROR
             fqid == 'task-selection:no-matches'
             contextualLabel == "Task 'someTest' not found in root project 'test' and its subprojects. Some candidates are: 'someTask', 'someTaskA', 'someTaskB'."
             additionalData.asMap == ['requestedPath' : 'someTest']
         }
-        failure.assertHasDescription("Task 'someTest' not found in root project 'test' and its subprojects. Some candidates are: 'someTask', 'someTaskA', 'someTaskB'.")
+        failureDescriptionContains("Task 'someTest' not found in root project 'test' and its subprojects. Some candidates are: 'someTask', 'someTaskA', 'someTaskB'.")
         failure.assertHasResolutions(
             GET_TASKS,
             NAME_EXPANSION,
@@ -201,11 +207,12 @@ class TaskErrorExecutionIntegrationTest extends AbstractIntegrationSpec implemen
         fails ":someTest"
         then:
         verifyAll(receivedProblem) {
+            severity == Severity.ERROR
             fqid == 'task-selection:no-matches'
             contextualLabel == "Cannot locate tasks that match ':someTest' as task 'someTest' not found in root project 'test'. Some candidates are: 'someTask'."
             additionalData.asMap == ['requestedPath' : ':someTest']
         }
-        failure.assertHasDescription("Cannot locate tasks that match ':someTest' as task 'someTest' not found in root project 'test'. Some candidates are: 'someTask'.")
+        failureDescriptionContains("Cannot locate tasks that match ':someTest' as task 'someTest' not found in root project 'test'. Some candidates are: 'someTask'.")
         failure.assertHasResolutions(
             GET_TASKS,
             NAME_EXPANSION,
@@ -218,11 +225,12 @@ class TaskErrorExecutionIntegrationTest extends AbstractIntegrationSpec implemen
         fails "a:someTest"
         then:
         verifyAll(receivedProblem) {
+            severity == Severity.ERROR
             fqid == 'task-selection:no-matches'
             contextualLabel == "Cannot locate tasks that match 'a:someTest' as task 'someTest' not found in project ':a'. Some candidates are: 'someTask', 'someTaskA'."
             additionalData.asMap == ['requestedPath' : 'a:someTest']
         }
-        failure.assertHasDescription("Cannot locate tasks that match 'a:someTest' as task 'someTest' not found in project ':a'. Some candidates are: 'someTask', 'someTaskA'.")
+        failureDescriptionContains("Cannot locate tasks that match 'a:someTest' as task 'someTest' not found in project ':a'. Some candidates are: 'someTask', 'someTaskA'.")
         failure.assertHasResolutions(
             GET_TASKS,
             NAME_EXPANSION,
@@ -248,7 +256,7 @@ class TaskErrorExecutionIntegrationTest extends AbstractIntegrationSpec implemen
         when:
         fails "soTa"
         then:
-        failure.assertHasDescription("Task 'soTa' is ambiguous in root project 'test' and its subprojects. Candidates are: 'someTaskA', 'someTaskAll', 'someTaskB'.")
+        failureDescriptionContains("Task 'soTa' is ambiguous in root project 'test' and its subprojects. Candidates are: 'someTaskA', 'someTaskAll', 'someTaskB'.")
         failure.assertHasResolutions(
             GET_TASKS,
             NAME_EXPANSION,
@@ -257,6 +265,7 @@ class TaskErrorExecutionIntegrationTest extends AbstractIntegrationSpec implemen
             GET_HELP
         )
         verifyAll(receivedProblem) {
+            severity == Severity.ERROR
             fqid == 'task-selection:ambiguous-matches'
             contextualLabel == 'Task \'soTa\' is ambiguous in root project \'test\' and its subprojects. Candidates are: \'someTaskA\', \'someTaskAll\', \'someTaskB\'.'
             additionalData.asMap == ['requestedPath' : 'soTa']
@@ -266,7 +275,7 @@ class TaskErrorExecutionIntegrationTest extends AbstractIntegrationSpec implemen
         resetProblemApiCheck()
         fails "a:soTa"
         then:
-        failure.assertHasDescription("Cannot locate tasks that match 'a:soTa' as task 'soTa' is ambiguous in project ':a'. Candidates are: 'someTaskA', 'someTaskAll'.")
+        failureDescriptionContains("Cannot locate tasks that match 'a:soTa' as task 'soTa' is ambiguous in project ':a'. Candidates are: 'someTaskA', 'someTaskAll'.")
         failure.assertHasResolutions(
             GET_TASKS,
             NAME_EXPANSION,
@@ -275,6 +284,7 @@ class TaskErrorExecutionIntegrationTest extends AbstractIntegrationSpec implemen
             GET_HELP
         )
         verifyAll(receivedProblem) {
+            severity == Severity.ERROR
             fqid == 'task-selection:ambiguous-matches'
             contextualLabel == 'Cannot locate tasks that match \'a:soTa\' as task \'soTa\' is ambiguous in project \':a\'. Candidates are: \'someTaskA\', \'someTaskAll\'.'
             additionalData.asMap == ['requestedPath' : 'a:soTa']
@@ -296,7 +306,7 @@ class TaskErrorExecutionIntegrationTest extends AbstractIntegrationSpec implemen
         fails "prog:someTask"
 
         then:
-        failure.assertHasDescription("Cannot locate tasks that match 'prog:someTask' as project 'prog' not found in root project 'test'. Some candidates are: 'projA', 'projB'.")
+        failureDescriptionContains("Cannot locate tasks that match 'prog:someTask' as project 'prog' not found in root project 'test'. Some candidates are: 'projA', 'projB'.")
         failure.assertHasResolutions(
             LIST_OF_PROJECTS,
             NAME_EXPANSION,
@@ -307,6 +317,7 @@ class TaskErrorExecutionIntegrationTest extends AbstractIntegrationSpec implemen
 
         and:
         verifyAll(receivedProblem) {
+            severity == Severity.ERROR
             fqid == 'task-selection:no-matches'
             contextualLabel == 'Cannot locate tasks that match \'prog:someTask\' as project \'prog\' not found in root project \'test\'. Some candidates are: \'projA\', \'projB\'.'
             additionalData.asMap == ['requestedPath' : 'prog:someTask']
@@ -328,7 +339,7 @@ class TaskErrorExecutionIntegrationTest extends AbstractIntegrationSpec implemen
         fails "proj:someTask"
 
         then:
-        failure.assertHasDescription("Cannot locate tasks that match 'proj:someTask' as project 'proj' is ambiguous in root project 'test'. Candidates are: 'projA', 'projB'.")
+        failureDescriptionContains("Cannot locate tasks that match 'proj:someTask' as project 'proj' is ambiguous in root project 'test'. Candidates are: 'projA', 'projB'.")
         failure.assertHasResolutions(
             LIST_OF_PROJECTS,
             NAME_EXPANSION,
@@ -339,6 +350,7 @@ class TaskErrorExecutionIntegrationTest extends AbstractIntegrationSpec implemen
 
         and:
         verifyAll(receivedProblem) {
+            severity == Severity.ERROR
             fqid == 'task-selection:ambiguous-matches'
             contextualLabel == 'Cannot locate tasks that match \'proj:someTask\' as project \'proj\' is ambiguous in root project \'test\'. Candidates are: \'projA\', \'projB\'.'
             additionalData.asMap == ['requestedPath' : 'proj:someTask']

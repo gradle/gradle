@@ -16,9 +16,9 @@
 package org.gradle.api.internal.catalog;
 
 import com.google.common.base.Splitter;
-import com.google.common.collect.ImmutableList;
 import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.GradleException;
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.ExternalModuleDependencyBundle;
 import org.gradle.api.artifacts.MinimalExternalModuleDependency;
 import org.gradle.api.artifacts.MutableVersionConstraint;
@@ -57,12 +57,11 @@ import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;
 import static org.gradle.api.internal.catalog.problems.DefaultCatalogProblemBuilder.VERSION_CATALOG_PROBLEMS;
 import static org.gradle.api.internal.catalog.problems.DefaultCatalogProblemBuilder.getProblemInVersionCatalog;
-import static org.gradle.api.internal.catalog.problems.DefaultCatalogProblemBuilder.maybeThrowError;
-import static org.gradle.api.internal.catalog.problems.DefaultCatalogProblemBuilder.throwError;
 import static org.gradle.api.internal.catalog.problems.VersionCatalogProblemId.ACCESSOR_NAME_CLASH;
 import static org.gradle.api.internal.catalog.problems.VersionCatalogProblemId.TOO_MANY_ENTRIES;
 import static org.gradle.internal.RenderingUtils.oxfordJoin;
 import static org.gradle.internal.deprecation.Documentation.userManual;
+import static org.gradle.util.internal.TextUtil.screamingSnakeToKebabCase;
 
 public class LibrariesSourceGenerator extends AbstractSourceGenerator {
 
@@ -502,7 +501,7 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
         int size = libraries.size() + bundles.size() + versions.size() + plugins.size();
         if (size > MAX_ENTRIES) {
             throw throwVersionCatalogProblemException(problemsService.getInternalReporter().internalCreate(builder ->
-                configureVersionCatalogError(builder, getProblemPrefix() + "version catalog model contains too many entries (" + size + ").", TOO_MANY_ENTRIES)
+                configureVersionCatalogError(builder, getProblemPrefix() + "version catalog model contains too many entries (" + size + ")", TOO_MANY_ENTRIES)
                     .details("The maximum number of aliases in a catalog is " + MAX_ENTRIES)
                     .solution("Reduce the number of aliases defined in this catalog")
                     .solution("Split the catalog into multiple catalogs")));
@@ -510,12 +509,13 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
     }
 
     private RuntimeException throwVersionCatalogProblemException(ProblemInternal problem) {
-        throw throwError(problemsService, ERROR_HEADER, ImmutableList.of(problem));
+        throw problemsService.getReporter().throwing(new InvalidUserDataException(), problem);
     }
 
     private static ProblemSpecInternal configureVersionCatalogError(ProblemSpecInternal spec, String message, VersionCatalogProblemId catalogProblemId) {
         return spec
-            .id(TextUtil.screamingSnakeToKebabCase(catalogProblemId.name()), message, GradleCoreProblemGroup.versionCatalog()) // TODO is message stable?
+            .id(screamingSnakeToKebabCase(catalogProblemId.name()), catalogProblemId.getDisplayName(), GradleCoreProblemGroup.versionCatalog())
+            .contextualLabel(message)
             .documentedAt(userManual(VERSION_CATALOG_PROBLEMS, catalogProblemId.name().toLowerCase(Locale.ROOT)));
     }
 
@@ -528,12 +528,14 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
             .map(e -> {
                 String errorValues = e.getValue().stream().sorted().collect(oxfordJoin("and"));
                 return this.problemsService.getInternalReporter().internalCreate(builder ->
-                    configureVersionCatalogError(builder, getProblemPrefix() + prefix + " " + errorValues + " are mapped to the same accessor name get" + e.getKey() + suffix + "().", ACCESSOR_NAME_CLASH)
+                    configureVersionCatalogError(builder, getProblemPrefix() + prefix + " " + errorValues + " are mapped to the same accessor name get" + e.getKey() + suffix + "()", ACCESSOR_NAME_CLASH)
                         .details("A name clash was detected")
                         .solution("Use a different alias for " + errorValues));
             })
             .collect(toList());
-        maybeThrowError(this.problemsService, ERROR_HEADER, errors);
+        if (!errors.isEmpty()) {
+            throw this.problemsService.getReporter().throwing(new InvalidUserDataException(), errors);
+        }
     }
 
     private String getProblemPrefix() {

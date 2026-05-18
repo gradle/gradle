@@ -39,7 +39,7 @@ public class NoIsolationWorkerFactory implements WorkerFactory {
     public NoIsolationWorkerFactory(BuildOperationRunner buildOperationRunner, InstantiatorFactory instantiatorFactory, ActionExecutionSpecFactory specFactory, ServiceRegistry internalServices) {
         this.buildOperationRunner = buildOperationRunner;
         this.specFactory = specFactory;
-        IsolationScheme<WorkAction<?>, WorkParameters> isolationScheme = new IsolationScheme<>(Cast.uncheckedNonnullCast(WorkAction.class), WorkParameters.class, WorkParameters.None.class);
+        IsolationScheme<WorkAction<?>, WorkParameters> isolationScheme = new IsolationScheme<>(Cast.uncheckedNonnullCast(WorkAction.class), WorkParameters.class, WorkParameters.None.class, WorkParameters.None.INSTANCE);
         workerServer = new DefaultWorkerServer(internalServices, instantiatorFactory, isolationScheme, Collections.singleton(WorkerExecutor.class));
     }
 

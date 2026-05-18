@@ -65,11 +65,10 @@ import org.gradle.api.internal.artifacts.ResolverResults;
 import org.gradle.api.internal.artifacts.dependencies.DependencyConstraintInternal;
 import org.gradle.api.internal.artifacts.ivyservice.ResolutionParameters;
 import org.gradle.api.internal.artifacts.ivyservice.TypedResolveException;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results.VisitedGraphResults;
 import org.gradle.api.internal.artifacts.resolver.DefaultResolutionOutputs;
 import org.gradle.api.internal.artifacts.resolver.ResolutionAccess;
 import org.gradle.api.internal.artifacts.resolver.ResolutionOutputsInternal;
-import org.gradle.api.internal.artifacts.result.DefaultResolutionResult;
-import org.gradle.api.internal.artifacts.result.MinimalResolutionResult;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.FreezableAttributeContainer;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
@@ -697,10 +696,10 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
                 // because:
                 // 1. the `failed` method will have been called with the user facing error
                 // 2. such an error may still lead to a valid dependency graph
-                MinimalResolutionResult resolutionResult = results.getVisitedGraph().getResolutionResult();
+                VisitedGraphResults visitedGraph = results.getVisitedGraph();
                 context.setResult(new ResolveConfigurationResolutionBuildOperationResult(
-                    resolutionResult.getGraphSource(),
-                    resolutionResult.getRequestedAttributes(),
+                    visitedGraph.getResolvedGraphResultSource(),
+                    visitedGraph.getRequestedAttributes(),
                     configurationServices.getAttributesFactory()
                 ));
             }
@@ -844,7 +843,14 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
      * {@inheritDoc}
      */
     @Override
+    @Deprecated
+    @SuppressWarnings("deprecation")
     public TaskDependency getTaskDependencyFromProjectDependency(final boolean useDependedOn, final String taskName) {
+        DeprecationLogger.deprecateMethod(Configuration.class, "getTaskDependencyFromProjectDependency(boolean, String)")
+            .willBeRemovedInGradle10()
+            .withUpgradeGuideSection(9, "deprecate_getTaskDependencyFromProjectDependency")
+            .nagUser();
+
         if (useDependedOn) {
             return new TasksFromProjectDependencies(taskName, () -> {
                 return getAllDependencies().withType(ProjectDependency.class);
@@ -1727,7 +1733,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         @Override
         public ResolutionResult getResolutionResult() {
             configuration.assertIsResolvable();
-            return new DefaultResolutionResult(configuration.resolutionAccess, configuration.configurationServices.getAttributeDesugaring());
+            return configuration.resolutionAccess.getPublicView().getResolutionResult();
         }
 
         @Override

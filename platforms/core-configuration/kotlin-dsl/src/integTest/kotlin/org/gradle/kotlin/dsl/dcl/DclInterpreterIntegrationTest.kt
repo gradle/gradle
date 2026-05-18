@@ -22,8 +22,11 @@ import org.gradle.features.annotations.BindsProjectType
 import org.gradle.features.annotations.RegistersProjectFeatures
 import org.gradle.features.binding.BuildModel
 import org.gradle.features.binding.Definition
+import org.gradle.features.binding.ProjectFeatureApplicationContext
+import org.gradle.features.binding.ProjectFeatureApplyAction
 import org.gradle.features.binding.ProjectFeatureBindingBuilder
 import org.gradle.features.binding.ProjectFeatureBinding
+import org.gradle.features.binding.ProjectTypeApplyAction
 import org.gradle.features.binding.ProjectTypeBindingBuilder
 import org.gradle.features.binding.ProjectTypeBinding
 import org.gradle.features.registration.TaskRegistrar
@@ -134,6 +137,9 @@ class DclInterpreterIntegrationTest : AbstractKotlinIntegrationTest() {
                 import ${ProjectTypeBindingBuilder::class.qualifiedName}
                 import ${ProjectFeatureBinding::class.qualifiedName}
                 import ${ProjectFeatureBindingBuilder::class.qualifiedName}
+                import ${ProjectFeatureApplicationContext::class.qualifiedName}
+                import ${ProjectFeatureApplyAction::class.qualifiedName}
+                import ${ProjectTypeApplyAction::class.qualifiedName}
                 import org.gradle.features.dsl.bindProjectType
                 import org.gradle.features.dsl.bindProjectFeatureToDefinition
                 import org.gradle.features.dsl.bindProjectFeatureToBuildModel
@@ -146,9 +152,15 @@ class DclInterpreterIntegrationTest : AbstractKotlinIntegrationTest() {
 
                     class Binding : ${ProjectTypeBinding::class.simpleName} {
                         override fun bind(builder: ProjectTypeBindingBuilder) {
-                            builder.bindProjectType("myProjectType") { definition: MyExtension, model ->
-                                val services = objectFactory.newInstance(Services::class.java)
-                                services.taskRegistrar.register("printNames") {
+                            builder.bindProjectType("myProjectType", TypeApplyAction::class)
+                        }
+
+                        abstract class TypeApplyAction : ${ProjectTypeApplyAction::class.simpleName}<MyExtension, MyExtensionBuildModel> {
+                            @get:Inject
+                            abstract val taskRegistrar: ${TaskRegistrar::class.qualifiedName}
+
+                            override fun apply(context: ${ProjectFeatureApplicationContext::class.simpleName}, definition: MyExtension, buildModel: MyExtensionBuildModel) {
+                                taskRegistrar.register("printNames") {
                                     val names = definition.myElements.names
                                     doFirst {
                                         println(names)
@@ -156,28 +168,33 @@ class DclInterpreterIntegrationTest : AbstractKotlinIntegrationTest() {
                                 }
                             }
                         }
-
-                        interface Services {
-                            @get:Inject
-                            val taskRegistrar: ${TaskRegistrar::class.qualifiedName}
-                        }
                     }
                     class FeatureBinding : ${ProjectFeatureBinding::class.simpleName} {
                         override fun bind(builder: ProjectFeatureBindingBuilder) {
                             builder.bindProjectFeatureToDefinition(
                                 "myFeature",
                                 MyFeatureDefinition::class,
-                                MyExtension::class
-                            ) { definition, buildModel, target ->
-                                println("apply myFeature")
-                            }
+                                MyExtension::class,
+                                FeatureApplyAction::class
+                            )
 
                             builder.bindProjectFeatureToBuildModel(
                                 "myNestedFeature",
                                 MyNestedFeatureDefinition::class,
-                                MyFeatureBuildModel::class
-                            ) { definition, buildModel, target ->
-                                println("apply myNestedFeature to ${'$'}{target::class.simpleName}")
+                                MyFeatureBuildModel::class,
+                                NestedFeatureApplyAction::class
+                            )
+                        }
+
+                        abstract class FeatureApplyAction : ${ProjectFeatureApplyAction::class.simpleName}<MyFeatureDefinition, MyFeatureBuildModel, MyExtension> {
+                            override fun apply(context: ${ProjectFeatureApplicationContext::class.simpleName}, definition: MyFeatureDefinition, buildModel: MyFeatureBuildModel, parentDefinition: MyExtension) {
+                                println("apply myFeature")
+                            }
+                        }
+
+                        abstract class NestedFeatureApplyAction : ${ProjectFeatureApplyAction::class.simpleName}<MyNestedFeatureDefinition, MyFeatureBuildModel, ${Definition::class.simpleName}<MyFeatureBuildModel>> {
+                            override fun apply(context: ${ProjectFeatureApplicationContext::class.simpleName}, definition: MyNestedFeatureDefinition, buildModel: MyFeatureBuildModel, parentDefinition: ${Definition::class.simpleName}<MyFeatureBuildModel>) {
+                                println("apply myNestedFeature to ${'$'}{parentDefinition::class.simpleName}")
                             }
                         }
                     }

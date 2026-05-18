@@ -5,6 +5,7 @@ import gradlebuild.buildutils.tasks.PreparePatchRelease
 import gradlebuild.buildutils.tasks.UpdateAgpVersions
 import gradlebuild.buildutils.tasks.UpdateKotlinVersions
 import gradlebuild.buildutils.tasks.UpdateReleasedVersions
+import gradlebuild.buildutils.tasks.UpdateSmokeTestedIdeVersions
 import gradlebuild.buildutils.tasks.UpdateSmokeTestedPluginsVersions
 
 plugins {
@@ -46,8 +47,14 @@ val updateSmokeTestedPluginsVersions = tasks.register<UpdateSmokeTestedPluginsVe
     propertiesFile = layout.projectDirectory.file("gradle/dependency-management/smoke-tested-plugins.properties")
 }
 
+val updateSmokeTestedIdeVersions = tasks.register<UpdateSmokeTestedIdeVersions>("updateSmokeTestedIdeVersions") {
+    comment = " Generated - Update by running `./gradlew updateSmokeTestedIdeVersions`"
+    propertiesFile = layout.projectDirectory.file("gradle/dependency-management/smoke-tested-ides.properties")
+    verificationMetadataFile = layout.projectDirectory.file("gradle/verification-metadata.xml")
+}
+
 tasks.register("updateSmokeTestedVersions") {
-    dependsOn(updateKotlinVersions, updateAgpVersions, updateSmokeTestedPluginsVersions)
+    dependsOn(updateKotlinVersions, updateAgpVersions, updateSmokeTestedPluginsVersions, updateSmokeTestedIdeVersions)
 }
 
 tasks.register<FixProjectHealthTask>("fixProjectHealth")

@@ -28,7 +28,6 @@ import org.gradle.features.annotations.BindsProjectFeature
 import org.gradle.features.annotations.BindsProjectType
 import org.gradle.features.binding.BuildModel
 import org.gradle.features.binding.Definition
-import org.gradle.features.binding.ProjectFeatureApplyAction
 import org.gradle.features.binding.ProjectFeatureBinding
 import org.gradle.features.binding.ProjectTypeApplyAction
 import org.gradle.features.binding.ProjectTypeBinding
@@ -38,6 +37,8 @@ import org.gradle.internal.properties.annotations.TypeMetadataStore
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.reflect.annotations.TypeAnnotationMetadata
 import spock.lang.Specification
+
+import static org.gradle.features.binding.ProjectFeatureApplyAction.*
 
 class DefaultProjectFeatureDeclarationsTest extends Specification {
     def metadataStore = Mock(TypeMetadataStore)
@@ -71,7 +72,7 @@ class DefaultProjectFeatureDeclarationsTest extends Specification {
         1 * instantiator.newInstance(Binding) >> featureBinding
         1 * featureBinding.bind(_) >> { args ->
             def builder = args[0] as ProjectFeatureBindingBuilderInternal
-            builder.bindProjectFeatureToDefinition("test", TestDefinition, ParentDefinition, Mock(ProjectFeatureApplyAction))
+            builder.bindProjectFeatureToDefinition("test", TestDefinition, ParentDefinition, None)
                 .withUnsafeDefinitionImplementationType(definitionImplementationType)
         }
 
@@ -106,7 +107,7 @@ class DefaultProjectFeatureDeclarationsTest extends Specification {
         1 * instantiator.newInstance(Binding) >> typeBinding
         1 * typeBinding.bind(_) >> { args ->
             def builder = args[0] as ProjectTypeBindingBuilder
-            builder.bindProjectType("test", TestDefinition, Mock(ProjectTypeApplyAction))
+            builder.bindProjectType("test", TestDefinition, ProjectTypeApplyAction.None)
                 .withUnsafeDefinitionImplementationType(definitionImplementationType)
         }
 
@@ -160,7 +161,7 @@ class DefaultProjectFeatureDeclarationsTest extends Specification {
         1 * instantiator.newInstance(Binding) >> featureBinding
         1 * featureBinding.bind(_) >> { args ->
             def builder = args[0] as ProjectFeatureBindingBuilderInternal
-            builder.bindProjectFeatureToDefinition("test", TestDefinition, ParentDefinition, Mock(ProjectFeatureApplyAction))
+            builder.bindProjectFeatureToDefinition("test", TestDefinition, ParentDefinition, None)
         }
 
         and:
@@ -192,9 +193,9 @@ class DefaultProjectFeatureDeclarationsTest extends Specification {
         1 * featureBinding.bind(_) >> { args ->
             def builder = args[0] as ProjectFeatureBindingBuilderInternal
             if (Definition.isAssignableFrom(alreadyRegisteredTargetType)) {
-                builder.bindProjectFeatureToDefinition("test", TestDefinition, alreadyRegisteredTargetType, Mock(ProjectFeatureApplyAction))
+                builder.bindProjectFeatureToDefinition("test", TestDefinition, alreadyRegisteredTargetType, None)
             } else {
-                builder.bindProjectFeatureToBuildModel("test", TestDefinition, alreadyRegisteredTargetType, Mock(ProjectFeatureApplyAction))
+                builder.bindProjectFeatureToBuildModel("test", TestDefinition, alreadyRegisteredTargetType, None)
             }
         }
 
@@ -205,9 +206,9 @@ class DefaultProjectFeatureDeclarationsTest extends Specification {
         1 * featureBinding.bind(_) >> { args ->
             def builder = args[0] as ProjectFeatureBindingBuilderInternal
             if (Definition.isAssignableFrom(toBeRegisteredTargetType)) {
-                builder.bindProjectFeatureToDefinition("test", TestDefinition, toBeRegisteredTargetType, Mock(ProjectFeatureApplyAction))
+                builder.bindProjectFeatureToDefinition("test", TestDefinition, toBeRegisteredTargetType, None)
             } else {
-                builder.bindProjectFeatureToBuildModel("test", TestDefinition, toBeRegisteredTargetType, Mock(ProjectFeatureApplyAction))
+                builder.bindProjectFeatureToBuildModel("test", TestDefinition, toBeRegisteredTargetType, None)
             }
         }
 
@@ -261,9 +262,9 @@ class DefaultProjectFeatureDeclarationsTest extends Specification {
         1 * featureBinding.bind(_) >> { args ->
             def builder = args[0] as ProjectFeatureBindingBuilderInternal
             if (Definition.isAssignableFrom(targetType)) {
-                builder.bindProjectFeatureToDefinition("test", TestDefinition, targetType, Mock(ProjectFeatureApplyAction))
+                builder.bindProjectFeatureToDefinition("test", TestDefinition, targetType, None)
             } else {
-                builder.bindProjectFeatureToBuildModel("test", TestDefinition, targetType, Mock(ProjectFeatureApplyAction))
+                builder.bindProjectFeatureToBuildModel("test", TestDefinition, targetType, None)
             }
         }
 
@@ -274,9 +275,9 @@ class DefaultProjectFeatureDeclarationsTest extends Specification {
         1 * featureBinding.bind(_) >> { args ->
             def builder = args[0] as ProjectFeatureBindingBuilderInternal
             if (Definition.isAssignableFrom(anotherTargetType)) {
-                builder.bindProjectFeatureToDefinition("test", TestDefinition, anotherTargetType, Mock(ProjectFeatureApplyAction))
+                builder.bindProjectFeatureToDefinition("test", TestDefinition, anotherTargetType, None)
             } else {
-                builder.bindProjectFeatureToBuildModel("test", TestDefinition, anotherTargetType, Mock(ProjectFeatureApplyAction))
+                builder.bindProjectFeatureToBuildModel("test", TestDefinition, anotherTargetType, None)
             }
         }
 

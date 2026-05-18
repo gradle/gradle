@@ -42,7 +42,7 @@ The official SHA-256 checksums can be found on the link:https://gradle.org/relea
 
 === Tags
 
-`<<tags_reference.adoc#tag:properties,#properties>>`, `<<tags_reference.adoc#tag:wrapper,#wrapper>>`
+<<tags_reference.adoc#tag:properties,`#properties`>>, <<tags_reference.adoc#tag:wrapper,`#wrapper`>>
 
 [[validate_wrapper_checksum]]
 == Validate the Gradle Wrapper on every Upgrade
@@ -70,30 +70,10 @@ Running an unverified Wrapper risks executing untrusted code before any of your 
 
 ==== Do this
 
-If you use link:https://github.com/features/actions[GitHub Actions], you can use the link:https://github.com/marketplace/actions/build-with-gradle#the-wrapper-validation-action[Gradle Wrapper validation action].
+If you use the link:https://github.com/marketplace/actions/build-with-gradle#the-setup-gradle-action[`setup-gradle` action] (version v4 or newer) for link:https://github.com/features/actions[GitHub Actions], Wrapper validation will be performed automatically.
+The action validates the checksum of every `gradle-wrapper.jar` in your repository and fails the build if it finds any unknown Wrapper JAR.
 
-This action validates the checksum of every `gradle-wrapper.jar` in your repository and fails the build if it finds any unknown JAR:
-
-[source,yaml]
-.github/workflows/gradle-wrapper-validation.yml
-----
-name: Validate Gradle Wrapper
-on:
-  pull_request:
-    paths:
-      - 'gradlew'
-      - 'gradlew.bat'
-      - 'gradle/wrapper/**'
-
-jobs:
-  wrapper-validation:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      # Recommended action (new namespace)
-      - name: Verify Gradle Wrapper
-        uses: gradle/actions/wrapper-validation@v3
-----
+If you use a different GitHub Actions setup, you can use the dedicated link:https://github.com/marketplace/actions/build-with-gradle#the-wrapper-validation-action[Gradle Wrapper validation action] instead.
 
 === References
 
@@ -102,4 +82,4 @@ jobs:
 
 === Tags
 
-`<<tags_reference.adoc#tag:wrapper,#wrapper>>`
+<<tags_reference.adoc#tag:wrapper,`#wrapper`>>

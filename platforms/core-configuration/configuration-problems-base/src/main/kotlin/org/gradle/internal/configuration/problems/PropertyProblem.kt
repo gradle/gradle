@@ -23,6 +23,7 @@ import org.gradle.internal.configuration.problems.StructuredMessage.Fragment.Ref
 import org.gradle.internal.configuration.problems.StructuredMessage.Fragment.Text
 import org.gradle.internal.problems.failure.Failure
 import org.gradle.problems.Location
+import org.gradle.util.Path
 import kotlin.reflect.KClass
 
 
@@ -119,6 +120,10 @@ data class StructuredMessage(val fragments: List<Fragment>) {
 
         fun reference(name: String): Builder = apply {
             fragments.add(Reference(name))
+        }
+
+        fun reference(path: Path): Builder = apply {
+            fragments.add(Reference(path.asString()))
         }
 
         fun reference(type: Class<*>): Builder = apply {

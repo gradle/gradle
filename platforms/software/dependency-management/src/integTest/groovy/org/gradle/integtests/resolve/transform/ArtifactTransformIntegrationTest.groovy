@@ -259,8 +259,8 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
         outputContains("variants: [{artifactType=size, usage=api}, {artifactType=size, usage=api}]")
         outputContains("capabilities: [[capability group='root', name='lib', version='unspecified'], [capability group='root', name='lib', version='unspecified']]")
         // transformed outputs should belong to same component as original
-        outputContains("artifacts: [lib1.jar.txt (project :lib), lib2.jar.txt (project :lib)]")
-        outputContains("components: [project :lib, project :lib]")
+        outputContains("artifacts: [lib1.jar.txt (project ':lib'), lib2.jar.txt (project ':lib')]")
+        outputContains("components: [project ':lib', project ':lib']")
         file("app/build/libs").assertHasDescendants("lib1.jar.txt", "lib2.jar.txt")
         file("app/build/libs/lib1.jar.txt").text == file("lib/build/lib1.jar").length() as String
 
@@ -356,14 +356,14 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
         and:
         def appOutput = result.groupedOutput.task(':app:resolve')
         appOutput.assertOutputContains("variants = [{artifactType=blue, contents=size, usage=api}]")
-        appOutput.assertOutputContains("components = [project :lib]")
-        appOutput.assertOutputContains("artifacts = [lib.blue (project :lib)]")
+        appOutput.assertOutputContains("components = [project ':lib']")
+        appOutput.assertOutputContains("artifacts = [lib.blue (project ':lib')]")
         appOutput.assertOutputContains("files = [lib.blue]")
 
         def app2Output = result.groupedOutput.task(':app2:resolve')
         app2Output.assertOutputContains("variants = [{artifactType=blue, contents=size, usage=api}]")
-        app2Output.assertOutputContains("components = [project :lib]")
-        app2Output.assertOutputContains("artifacts = [lib.blue.txt (project :lib)]")
+        app2Output.assertOutputContains("components = [project ':lib']")
+        app2Output.assertOutputContains("artifacts = [lib.blue.txt (project ':lib')]")
         app2Output.assertOutputContains("files = [lib.blue.txt]")
 
         and:
@@ -452,8 +452,8 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
         outputContains("variants: [{artifactType=size, usage=api}, {artifactType=size, usage=api}, {artifactType=size}, {artifactType=size, org.gradle.status=release}, {artifactType=size, usage=api}, {artifactType=size, usage=api}, {artifactType=size, org.gradle.status=release}]")
         outputContains("capabilities: [[capability group='root', name='lib', version='unspecified'], [capability group='root', name='lib', version='unspecified'], [], [capability group='test', name='test', version='1.3'], [capability group='root', name='common', version='unspecified'], [capability group='root', name='common', version='unspecified'], [capability group='test', name='test-dependency', version='1.3']]")
         // transformed outputs should belong to same component as original
-        outputContains("artifacts: [lib1.jar.txt (project :lib), lib2.jar.txt (project :lib), file1.jar.txt (file1.jar), test-1.3.jar.txt (test:test:1.3), common.jar.txt (project :common), common-file.jar.txt (project :common), test-dependency-1.3.jar.txt (test:test-dependency:1.3)]")
-        outputContains("components: [project :lib, project :lib, file1.jar, test:test:1.3, project :common, project :common, test:test-dependency:1.3]")
+        outputContains("artifacts: [lib1.jar.txt (project ':lib'), lib2.jar.txt (project ':lib'), file1.jar.txt (file1.jar), test-1.3.jar.txt (test:test:1.3), common.jar.txt (project ':common'), common-file.jar.txt (project ':common'), test-dependency-1.3.jar.txt (test:test-dependency:1.3)]")
+        outputContains("components: [project ':lib', project ':lib', file1.jar, test:test:1.3, project ':common', project ':common', test:test-dependency:1.3]")
         file("app/build/libs").assertHasDescendants("common.jar.txt", "common-file.jar.txt", "file1.jar.txt", "lib1.jar.txt", "lib2.jar.txt", "test-1.3.jar.txt", "test-dependency-1.3.jar.txt")
         file("app/build/libs/lib1.jar.txt").text == file("lib/build/lib1.jar").length() as String
 
@@ -551,8 +551,8 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
 
         then:
         outputContains("variants: [{artifactType=size, usage=api}, {artifactType=size}, {artifactType=size}]")
-        outputContains("artifacts: [lib2.size (project :lib), lib1.size (lib1.size), lib1.jar.txt (lib1.jar)]")
-        outputContains("components: [project :lib, lib1.size, lib1.jar]")
+        outputContains("artifacts: [lib2.size (project ':lib'), lib1.size (lib1.size), lib1.jar.txt (lib1.jar)]")
+        outputContains("components: [project ':lib', lib1.size, lib1.jar]")
         file("app/build/libs").assertHasDescendants("lib1.jar.txt", "lib1.size", "lib2.size")
         file("app/build/libs/lib1.jar.txt").text == "9"
         file("app/build/libs/lib1.size").text == "some text"
@@ -609,8 +609,8 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
 
         and:
         outputContains("variants: [{artifactType=size, usage=api}, {artifactType=size, usage=api}]")
-        outputContains("artifacts: [lib1.jar (project :lib), lib2.zip (project :lib)]")
-        outputContains("components: [project :lib, project :lib]")
+        outputContains("artifacts: [lib1.jar (project ':lib'), lib2.zip (project ':lib')]")
+        outputContains("components: [project ':lib', project ':lib']")
         file("app/build/libs").assertHasDescendants("lib1.jar", "lib2.zip")
 
         and:
@@ -831,11 +831,11 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
 
         and:
         // The identifier's original filename should reference the filename from the source variant, not simply the prior transformed variant in the chain
-        outputContains("ids: [lib1.jar -> lib1.jar.blue.red (project :lib)]")
+        outputContains("ids: [lib1.jar -> lib1.jar.blue.red (project ':lib')]")
         outputContains("variants: [{artifactType=jar, color=red, javaVersion=7, usage=api}]")
         // Should belong to same component as the originals
-        outputContains("artifacts: [lib1.jar.blue.red (project :lib)]")
-        outputContains("components: [project :lib]")
+        outputContains("artifacts: [lib1.jar.blue.red (project ':lib')]")
+        outputContains("components: [project ':lib']")
         file("app/build/libs").assertHasDescendants("lib1.jar.blue.red")
 
         and:
@@ -898,8 +898,8 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
         then:
         outputContains("variants: [{artifactType=size}, {artifactType=size, usage=api}]")
         // transformed outputs should belong to same component as original
-        outputContains("artifacts: [lib.jar.txt (lib.jar), lib.jar.txt (project :lib)]")
-        outputContains("components: [lib.jar, project :lib]")
+        outputContains("artifacts: [lib.jar.txt (lib.jar), lib.jar.txt (project ':lib')]")
+        outputContains("components: [lib.jar, project ':lib']")
         outputContains("files: [lib.jar.txt, lib.jar.txt]")
         outputContains("content: [4, 3]")
 
@@ -1289,7 +1289,7 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
         fails "resolve"
 
         then:
-        failure.assertHasCause """Found multiple transformation chains that produce a variant of 'project :lib' with requested attributes:
+        failure.assertHasCause """Found multiple transformation chains that produce a variant of 'project ':lib'' with requested attributes:
   - artifactType 'transformed'
   - usage 'api'
 Found the following transformation chains:
@@ -1393,7 +1393,7 @@ Found the following transformation chains:
         fails "resolve"
 
         then:
-        failure.assertHasCause """Found multiple transformation chains that produce a variant of 'project :lib' with requested attributes:
+        failure.assertHasCause """Found multiple transformation chains that produce a variant of 'project ':lib'' with requested attributes:
   - artifactType 'transformed'
   - usage 'api'
 Found the following transformation chains:
@@ -2665,16 +2665,16 @@ Found the following transformation chains:
         run "app:resolve"
 
         then:
-        outputContains("Before transformer FileSizer on lib.jar (project :lib)")
-        outputContains("After transformer FileSizer on lib.jar (project :lib)")
+        outputContains("Before transformer FileSizer on lib.jar (project ':lib')")
+        outputContains("After transformer FileSizer on lib.jar (project ':lib')")
 
         and:
         def executeTransformationOp = buildOperations.only(ExecutePlannedTransformStepBuildOperationType)
         executeTransformationOp.failure == null
-        executeTransformationOp.displayName == "Transform lib.jar (project :lib) with FileSizer"
+        executeTransformationOp.displayName == "Transform lib.jar (project ':lib') with FileSizer"
         with(executeTransformationOp.details) {
             transformerName == "FileSizer"
-            subjectName == "lib.jar (project :lib)"
+            subjectName == "lib.jar (project ':lib')"
             this.with(plannedTransformStepIdentity) {
                 nodeType == "TRANSFORM_STEP"
                 consumerBuildPath == ":"
@@ -2738,16 +2738,16 @@ Found the following transformation chains:
         fails "app:resolve"
 
         then:
-        outputContains("Before transformer BrokenTransform on lib.jar (project :lib)")
-        outputContains("After transformer BrokenTransform on lib.jar (project :lib)")
+        outputContains("Before transformer BrokenTransform on lib.jar (project ':lib')")
+        outputContains("After transformer BrokenTransform on lib.jar (project ':lib')")
 
         and:
         def executeTransformationOp = buildOperations.only(ExecutePlannedTransformStepBuildOperationType)
         executeTransformationOp.failure != null
-        executeTransformationOp.displayName == "Transform lib.jar (project :lib) with BrokenTransform"
+        executeTransformationOp.displayName == "Transform lib.jar (project ':lib') with BrokenTransform"
         with(executeTransformationOp.details) {
             transformerName == "BrokenTransform"
-            subjectName == "lib.jar (project :lib)"
+            subjectName == "lib.jar (project ':lib')"
             this.with(plannedTransformStepIdentity) {
                 nodeType == "TRANSFORM_STEP"
                 consumerBuildPath == ":"
@@ -2806,7 +2806,7 @@ Found the following transformation chains:
         then:
         output.count("> Dependency:") == 1
         output.contains("> Dependency: task ':app:dependent' -> task ':app:resolve'")
-        output.contains("> Transform lib1.jar (project :lib) with FileSizer")
+        output.contains("> Transform lib1.jar (project ':lib') with FileSizer")
         output.contains("> Task :app:resolve")
     }
 
@@ -2875,7 +2875,7 @@ Found the following transformation chains:
 
         then:
         // Previously, this test would fail with an OOM.
-        failure.assertHasCause("No variants of root project : match the consumer attributes")
+        failure.assertHasCause("No variants of root project 'root' match the consumer attributes")
     }
 
     def declareTransform(String transformImplementation) {

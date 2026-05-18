@@ -16,13 +16,13 @@
 
 package org.gradle.api.internal.project;
 
-import org.gradle.api.initialization.ProjectDescriptor;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.groovy.scripts.TextResourceScriptSource;
 import org.gradle.initialization.DefaultProjectDescriptor;
 import org.gradle.initialization.DependenciesAccessors;
+import org.gradle.internal.project.ImmutableProjectDescriptor;
 import org.gradle.internal.management.DependencyResolutionManagementInternal;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resource.TextFileResourceLoader;
@@ -46,13 +46,21 @@ public class ProjectFactory implements IProjectFactory {
     }
 
     @Override
-    public ProjectInternal createProject(GradleInternal gradle, ProjectDescriptor projectDescriptor, ProjectState owner, @Nullable ProjectInternal parent, ServiceRegistryFactory serviceRegistryFactory, ClassLoaderScope selfClassLoaderScope, ClassLoaderScope baseClassLoaderScope) {
+    public ProjectInternal createProject(
+        GradleInternal gradle,
+        ImmutableProjectDescriptor projectDescriptor,
+        ProjectState owner,
+        @Nullable ProjectInternal parent,
+        ServiceRegistryFactory serviceRegistryFactory,
+        ClassLoaderScope selfClassLoaderScope,
+        ClassLoaderScope baseClassLoaderScope
+    ) {
         // Need to wrap resolution of the build file to associate the build file with the correct project
         File buildFile = scriptResolution.resolveScriptsForProject(owner.getIdentity(), projectDescriptor::getBuildFile);
         TextResource resource = textFileResourceLoader.loadFile("build file", buildFile);
         ScriptSource source = new TextResourceScriptSource(resource);
         DefaultProject project = instantiator.newInstance(DefaultProject.class,
-            projectDescriptor.getName(),
+            projectDescriptor.getIdentity().getProjectName(),
             parent,
             projectDescriptor.getProjectDir(),
             buildFile,

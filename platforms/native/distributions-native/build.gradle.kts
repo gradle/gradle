@@ -20,4 +20,5 @@ dependencies {
     pluginsRuntimeOnly(projects.toolingNative)
     pluginsRuntimeOnly(projects.ideNative)
     pluginsRuntimeOnly(projects.testingNative)
+    pluginsRuntimeOnly(projects.pluginsModelNative)
 }

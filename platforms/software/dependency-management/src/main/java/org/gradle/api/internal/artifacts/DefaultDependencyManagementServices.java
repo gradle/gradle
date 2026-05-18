@@ -109,6 +109,7 @@ import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.provider.PropertyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.problems.Problems;
 import org.gradle.api.problems.internal.ProblemsInternal;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.cache.Cache;
@@ -535,9 +536,10 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             AttributesFactory attributesFactory,
             IsolatableFactory isolatableFactory,
             ComponentMetadataRuleExecutor componentMetadataRuleExecutor,
-            PlatformSupport platformSupport
+            PlatformSupport platformSupport,
+            Problems problems
         ) {
-            DefaultComponentMetadataHandler componentMetadataHandler = instantiator.newInstance(DefaultComponentMetadataHandler.class, instantiator, moduleIdentifierFactory, interner, attributesFactory, isolatableFactory, componentMetadataRuleExecutor, platformSupport);
+            DefaultComponentMetadataHandler componentMetadataHandler = instantiator.newInstance(DefaultComponentMetadataHandler.class, instantiator, moduleIdentifierFactory, interner, attributesFactory, isolatableFactory, componentMetadataRuleExecutor, platformSupport, problems);
             if (domainObjectContext.isScript()) {
                 componentMetadataHandler.setVariantDerivationStrategy(objectFactory.newInstance(JavaEcosystemVariantDerivationStrategy.class));
             }

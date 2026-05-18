@@ -5,7 +5,6 @@ plugins {
 description = "Plugins, tasks and domain objects for testing native code"
 
 dependencies {
-    api(projects.baseDiagnostics)
     api(projects.baseServices)
     api(projects.core)
     api(projects.coreApi)
@@ -13,12 +12,8 @@ dependencies {
     api(projects.languageNative)
     api(projects.modelCore)
     api(projects.native)
-    api(projects.platformBase)
     api(projects.platformNative)
     api(projects.processServicesBase)
-    api(projects.serviceLookup)
-    api(projects.serviceProvider)
-    api(projects.testSuitesBase)
     api(projects.testingBase)
     api(projects.testingBaseInfrastructure)
     api(projects.time)
@@ -29,8 +24,11 @@ dependencies {
     implementation(projects.logging)
     implementation(projects.loggingApi)
     implementation(projects.io)
+    implementation(projects.platformBase)
     implementation(projects.processServicesApi)
-    implementation(projects.softwareDiagnostics)
+
+    runtimeOnly(projects.baseDiagnostics)
+    runtimeOnly(projects.softwareDiagnostics)
 
     implementation(libs.commonsIo)
     implementation(libs.commonsLang)

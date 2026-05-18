@@ -255,7 +255,7 @@ class ConfigurationCacheJavaIntegrationTest extends AbstractIntegrationSpec {
         result.assertTasksScheduled(":compileJava", ":processResources", ":classes", ":jar", ":compileTestJava", ":processTestResources", ":testClasses", ":test", ":assemble", ":check", ":build")
         result.assertTasksExecuted(":compileJava", ":processResources", ":classes", ":jar", ":assemble", ":build")
         classFile.isFile()
-        new ZipTestFixture(jarFile).with {
+        verifyAll(new ZipTestFixture(jarFile)) {
             hasDescendants("META-INF/MANIFEST.MF", "Thing.class", "answer.txt", "META-INF/some.Service")
             assertFileContent("answer.txt", "42")
         }
@@ -268,7 +268,7 @@ class ConfigurationCacheJavaIntegrationTest extends AbstractIntegrationSpec {
         result.assertTasksScheduled(":compileJava", ":processResources", ":classes", ":jar", ":compileTestJava", ":processTestResources", ":testClasses", ":test", ":assemble", ":check", ":build")
         result.assertAllTasksSkipped() // everything should be up-to-date
         classFile.isFile()
-        new ZipTestFixture(jarFile).with {
+        verifyAll(new ZipTestFixture(jarFile)) {
             hasDescendants("META-INF/MANIFEST.MF", "Thing.class", "answer.txt", "META-INF/some.Service")
             assertFileContent("answer.txt", "42")
         }
@@ -282,7 +282,7 @@ class ConfigurationCacheJavaIntegrationTest extends AbstractIntegrationSpec {
         result.assertTasksScheduled(":compileJava", ":processResources", ":classes", ":jar", ":compileTestJava", ":processTestResources", ":testClasses", ":test", ":assemble", ":check", ":build")
         result.assertTasksExecuted(":processResources", ":classes", ":jar", ":assemble", ":build")
         classFile.isFile()
-        new ZipTestFixture(jarFile).with {
+        verifyAll(new ZipTestFixture(jarFile)) {
             hasDescendants("META-INF/MANIFEST.MF", "Thing.class", "answer.txt", "META-INF/some.Service")
             assertFileContent("answer.txt", "forty-two")
         }

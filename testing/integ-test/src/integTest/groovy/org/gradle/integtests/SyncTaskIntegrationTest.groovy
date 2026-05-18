@@ -511,10 +511,10 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec implements StableC
         succeeds('syncIt', '-Dcapitalize')
         then:
         executedAndNotSkipped ':syncIt'
-        file('build/FILE.TXT').with {
-            assert it.parentFile.list() != [].toArray()
-            assert it.assertExists()
-            assert it.canonicalFile.name == 'FILE.TXT'
+        verifyAll(file('build/FILE.TXT')) {
+            parentFile.list() != [].toArray()
+            assertExists()
+            canonicalFile.name == 'FILE.TXT'
         }
     }
 

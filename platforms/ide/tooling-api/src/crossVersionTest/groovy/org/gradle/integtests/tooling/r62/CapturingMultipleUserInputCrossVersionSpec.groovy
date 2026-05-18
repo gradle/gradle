@@ -21,7 +21,7 @@ import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.ProjectConnection
 import spock.lang.Timeout
 
-@TargetGradleVersion(">=8.7")
+@TargetGradleVersion(">=8.9")
 @Timeout(120)
 class CapturingMultipleUserInputCrossVersionSpec extends ToolingApiSpecification {
     private static final String DUMMY_TASK_NAME = 'doSomething'

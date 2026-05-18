@@ -158,7 +158,7 @@ abstract public class DefaultProjectFeatureApplicator implements ProjectFeatureA
 
         // Construct an apply action context with the feature-specific object factory
         ProjectFeatureApplicationContext applyActionContext =
-            projectObjectFactory.newInstance(DefaultProjectFeatureApplicationContextInternal.class, featureObjectFactory);
+            projectObjectFactory.newInstance(DefaultProjectFeatureApplicationContextInternal.class);
 
         // bind any nested definitions to build model instances
         bindNestedDefinitions(projectFeature.getDefinitionPublicType(), Cast.uncheckedCast(definition), buildModelRegistrar, projectFeature.getNestedBuildModelTypes());
@@ -350,18 +350,9 @@ abstract public class DefaultProjectFeatureApplicator implements ProjectFeatureA
      */
     abstract static class DefaultProjectFeatureApplicationContextInternal implements ProjectFeatureApplicationContext {
 
-        private final ObjectFactory objectFactory;
-
         @Inject
         @SuppressWarnings("Unused")
-        public DefaultProjectFeatureApplicationContextInternal(ObjectFactory objectFactory) {
-            this.objectFactory = objectFactory;
-        }
-
-        @Override
-        public ObjectFactory getObjectFactory() {
-            return objectFactory;
-        }
+        public DefaultProjectFeatureApplicationContextInternal() { }
 
         @Override
         public <T extends Definition<V>, V extends BuildModel> V getBuildModel(T definition) {

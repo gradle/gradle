@@ -31,6 +31,7 @@ import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.plugins.PluginManagerInternal
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectRegistry
+import org.gradle.api.internal.project.ProjectState
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.invocation.GradleLifecycle
 import org.gradle.api.plugins.ExtensionContainer
@@ -44,8 +45,7 @@ import org.gradle.initialization.SettingsState
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.build.PublicBuildPath
 import org.gradle.internal.composite.IncludedBuildInternal
-import org.gradle.internal.configuration.problems.ProblemFactory
-import org.gradle.internal.configuration.problems.ProblemsListener
+import org.gradle.internal.configuration.problems.IsolatedProjectsProblemsReporter
 import org.gradle.internal.extensions.stdlib.capitalized
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.util.Path
@@ -56,21 +56,20 @@ internal
 class CrossBuildConfigurationReportingGradle(
     gradle: GradleInternal,
     private val referrer: GradleInternal,
-    private val problems: ProblemsListener,
-    private val problemFactory: ProblemFactory,
+    private val ipProblems: IsolatedProjectsProblemsReporter
 ) : GradleInternal {
 
     private fun onBuildMutableStateAccess(what: String) {
-        val problem = problemFactory.problem {
-            text("Build ")
-            reference(referrer.identityPath.asString())
-            text(" cannot access Gradle.$what on build ")
-            reference(identityPath.asString())
+        ipProblems.report {
+            problem {
+                text("Build ")
+                reference(referrer.identityPath.asString())
+                text(" cannot access Gradle.$what on build ")
+                reference(identityPath.asString())
+            }
+                .exception { message -> message.capitalized() }
+                .build()
         }
-            .exception { message -> message.capitalized() }
-            .build()
-
-        problems.onProblem(problem)
     }
 
     private fun shouldNotBeUsed(): Nothing {
@@ -86,13 +85,13 @@ class CrossBuildConfigurationReportingGradle(
 
     override fun getParent(): GradleInternal? =
         delegate.parent?.let { delegateParent ->
-            CrossBuildConfigurationReportingGradle(delegateParent, referrer, problems, problemFactory)
+            CrossBuildConfigurationReportingGradle(delegateParent, referrer, ipProblems)
         }
 
     override fun getRoot(): GradleInternal =
         when (val root = delegate.root) {
             delegate -> this
-            else -> CrossBuildConfigurationReportingGradle(root, referrer, problems, problemFactory)
+            else -> CrossBuildConfigurationReportingGradle(root, referrer, ipProblems)
         }
 
     override fun isRootBuild(): Boolean = delegate.isRootBuild
@@ -119,11 +118,7 @@ class CrossBuildConfigurationReportingGradle(
     // region mutable state
     override fun getRootProject(): ProjectInternal {
         onBuildMutableStateAccess("getRootProject")
-        return delegate.getRootProject()
-    }
-
-    override fun setRootProject(rootProject: ProjectInternal) {
-        shouldNotBeUsed()
+        return delegate.owner.rootProject.mutableModel
     }
 
     override fun getOwner(): BuildState {
@@ -135,12 +130,12 @@ class CrossBuildConfigurationReportingGradle(
         return delegate.taskGraph
     }
 
-    override fun getDefaultProject(): ProjectInternal {
-        onBuildMutableStateAccess("getDefaultProject")
-        return delegate.getDefaultProject()
+    override fun getDefaultProjectState(): ProjectState {
+        onBuildMutableStateAccess("getDefaultProjectState")
+        return delegate.defaultProjectState
     }
 
-    override fun setDefaultProject(defaultProject: ProjectInternal) {
+    override fun setDefaultProjectState(defaultProject: ProjectState) {
         shouldNotBeUsed()
     }
 

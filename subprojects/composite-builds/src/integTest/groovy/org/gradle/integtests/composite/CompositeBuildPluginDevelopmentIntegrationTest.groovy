@@ -17,6 +17,8 @@
 package org.gradle.integtests.composite
 
 
+import org.gradle.api.problems.LineInFileLocation
+import org.gradle.api.problems.Severity
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
@@ -103,12 +105,14 @@ class CompositeBuildPluginDevelopmentIntegrationTest extends AbstractCompositeBu
         fails(buildA, "taskFromPluginBuild")
 
         then:
-        failure.assertHasDescription("Could not compile build file '$buildA.buildFile.canonicalPath'.")
+        failureDescriptionContains("Could not compile build file '$buildA.buildFile.canonicalPath'.")
 
         and:
         verifyAll(receivedProblem) {
+            severity == Severity.ERROR
             fqid == 'compilation:groovy-dsl:compilation-failed'
             contextualLabel == "Could not compile build file '${buildA.buildFile.absolutePath}'."
+            oneLocation(LineInFileLocation).path == buildA.buildFile.absolutePath
         }
     }
 

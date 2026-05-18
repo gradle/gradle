@@ -94,7 +94,8 @@ open class BuildFlowScope @Inject internal constructor(
         IsolationScheme(
             FlowAction::class.java,
             FlowParameters::class.java,
-            FlowParameters.None::class.java
+            FlowParameters.None::class.java,
+            FlowParameters.None.INSTANCE
         )
     }
 

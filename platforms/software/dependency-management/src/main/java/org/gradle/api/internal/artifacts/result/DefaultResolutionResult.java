@@ -23,8 +23,10 @@ import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.artifacts.result.ResolvedVariantResult;
 import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.GraphStructure;
 import org.gradle.api.internal.artifacts.resolver.ResolutionAccess;
 import org.gradle.api.internal.attributes.AttributeDesugaring;
+import org.gradle.api.internal.provider.DefaultProvider;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Actions;
 import org.gradle.util.internal.ConfigureUtil;
@@ -56,18 +58,32 @@ public class DefaultResolutionResult implements ResolutionResult {
 
     @Override
     public Provider<ResolvedComponentResult> getRootComponent() {
-        return resolutionAccess.getPublicView().getRootComponent();
+        return new DefaultProvider<>(() -> {
+            ResolvedGraphResult graph = getGraph();
+            GraphStructure.Nodes nodes = graph.structure().nodes();
+            return graph.getComponent(nodes.owner(nodes.root()));
+        });
     }
 
     @Override
     public Provider<ResolvedVariantResult> getRootVariant() {
-        return resolutionAccess.getPublicView().getRootVariant();
+        return new DefaultProvider<>(() -> {
+            ResolvedGraphResult graph = getGraph();
+            return graph.getVariant(graph.structure().nodes().root());
+        });
+    }
+
+    private ResolvedGraphResult getGraph() {
+        return resolutionAccess.getResults().getValue().getVisitedGraph().getResolvedGraphResultSource().get();
     }
 
     @Override
     public AttributeContainer getRequestedAttributes() {
         return attributeDesugaring.desugar(resolutionAccess.getAttributes());
     }
+
+    // TODO: The below methods should operate directly on a GraphStructure
+    // to avoid traversing the graph.
 
     @Override
     public Set<? extends DependencyResult> getAllDependencies() {
@@ -121,4 +137,5 @@ public class DefaultResolutionResult implements ResolutionResult {
     public int hashCode() {
         return resolutionAccess.hashCode();
     }
+
 }

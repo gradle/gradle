@@ -17,9 +17,17 @@
 package org.gradle.internal.cc.impl.serialization.codecs
 
 import org.gradle.internal.configuration.problems.PropertyTrace
+import org.gradle.internal.serialize.graph.Codec
+import org.gradle.internal.serialize.graph.ReadContext
+import org.gradle.internal.serialize.graph.WriteContext
+import org.gradle.internal.serialize.graph.codecs.Bindings
+import org.gradle.internal.serialize.graph.decodePreservingIdentity
+import org.gradle.internal.serialize.graph.encodePreservingIdentityOf
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.sameInstance
 import org.hamcrest.MatcherAssert.assertThat
+import org.hamcrest.Matchers.containsString
+import org.junit.Assert.fail
 import org.junit.Test
 
 
@@ -36,6 +44,113 @@ class UserTypesCodecTest : AbstractUserTypeCodecTest() {
             read.toInt(),
             equalTo(deepGraph.toInt())
         )
+    }
+
+    class Bar(val barString: String) {
+        var foo: Foo? = null
+    }
+
+    class Foo(val fooString: String) {
+        var bar: Bar? = null
+    }
+
+    @Test
+    fun `can handle circular bean references`() {
+        val foo = Foo("fooString")
+        val bar = Bar("barString")
+        foo.bar = bar
+        bar.foo = foo
+
+        val readFoo = configurationCacheRoundtripOf(foo)
+
+        assertThat(readFoo.fooString, equalTo("fooString"))
+        assertThat(readFoo.bar!!.barString, equalTo("barString"))
+        assertThat(readFoo.bar!!.foo, sameInstance(readFoo))
+    }
+
+    class SelfRef {
+        var inner: SelfRef? = null
+    }
+
+    @Test
+    fun `integrity check detects circular reference from a buggy codec`() {
+        // Codec that intentionally reads its inner state before calling putInstance,
+        // simulating the kind of bug the integrity check is meant to catch.
+        val brokenCodec: Codec<SelfRef> = object : Codec<SelfRef> {
+            override suspend fun WriteContext.encode(value: SelfRef) {
+                encodePreservingIdentityOf(value) {
+                    write(value.inner)
+                }
+            }
+
+            override suspend fun ReadContext.decode(): SelfRef =
+                decodePreservingIdentity { id ->
+                    val inner = read() as SelfRef?
+                    val ref = SelfRef()
+                    ref.inner = inner
+                    isolate.identities.putInstance(id, ref)
+                    ref
+                }
+        }
+        val codec = Bindings.of { bind(brokenCodec) }.build()
+
+        val self = SelfRef().also { it.inner = it }
+
+        try {
+            configurationCacheRoundtripOf(self, codec, integrityCheck = true)
+            fail("Expected exception to be thrown")
+        } catch (e: IllegalStateException) {
+            assertThat(e.message, containsString("Unresolvable circular reference detected when decoding id="))
+        }
+    }
+
+    class Item(val payload: String)
+    class TwoItems(val a: Item, val b: Item)
+
+    @Test
+    fun `integrity check detects unexpected reuse of an id from a buggy codec`() {
+        // Codec that during decode registers itself correctly but also pollutes the NEXT id slot.
+        // The next decode call will see that slot already occupied and the integrity check should fire.
+        val pollutingItemCodec: Codec<Item> = object : Codec<Item> {
+            override suspend fun WriteContext.encode(value: Item) {
+                encodePreservingIdentityOf(value) {
+                    writeString(value.payload)
+                }
+            }
+
+            override suspend fun ReadContext.decode(): Item =
+                decodePreservingIdentity { id ->
+                    val item = Item(readString())
+                    isolate.identities.putInstance(id, item)
+                    // Buggy: pollute the next id slot. A correct codec only writes its own id.
+                    isolate.identities.putInstance(id + 1, "stale")
+                    item
+                }
+        }
+
+        // Plain wrapper codec that just forwards to its children without consuming an identity slot,
+        // so the two children get assigned consecutive ids in the isolate's identities map.
+        val twoItemsCodec: Codec<TwoItems> = object : Codec<TwoItems> {
+            override suspend fun WriteContext.encode(value: TwoItems) {
+                write(value.a)
+                write(value.b)
+            }
+
+            override suspend fun ReadContext.decode(): TwoItems =
+                TwoItems(read() as Item, read() as Item)
+        }
+
+        val codec = Bindings.of {
+            bind(twoItemsCodec)
+            bind(pollutingItemCodec)
+        }.build()
+
+        try {
+            configurationCacheRoundtripOf(TwoItems(Item("a"), Item("b")), codec, integrityCheck = true)
+            fail("Expected exception to be thrown")
+        } catch (e: IllegalStateException) {
+            assertThat(e.message, containsString("Unexpected reuse of id="))
+        }
     }
 
     @Test

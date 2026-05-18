@@ -1,5 +1,233 @@
-reviews:
-  auto_review:
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+chat:
+  allow_non_org_members: true
+  art: true
+  auto_reply: true
+  integrations:
+    jira:
+      usage: auto
+    linear:
+      usage: auto
+code_generation:
+  docstrings:
+    language: en-US
+    path_instructions: []
+  unit_tests:
+    path_instructions: []
+early_access: false
+enable_free_tier: true
+inheritance: false
+issue_enrichment:
+  auto_enrich:
     enabled: false
+  labeling:
+    auto_apply_labels: false
+    labeling_instructions: []
+  planning:
+    auto_planning:
+      enabled: true
+      labels: []
+    enabled: true
+knowledge_base:
+  code_guidelines:
+    enabled: true
+    filePatterns: []
+  issues:
+    scope: auto
+  jira:
+    project_keys: []
+    usage: auto
+  learnings:
+    scope: auto
+  linear:
+    team_keys: []
+    usage: auto
+  linked_repositories: []
+  mcp:
+    disabled_servers: []
+    usage: auto
+  opt_out: false
+  pull_requests:
+    scope: auto
+  web_search:
+    enabled: true
+language: en-US
+reviews:
+  abort_on_close: true
+  assess_linked_issues: true
+  auto_apply_labels: false
+  auto_assign_reviewers: false
+  auto_review:
+    auto_incremental_review: true
+    auto_pause_after_reviewed_commits: 5
+    base_branches: []
+    description_keyword: ""
     drafts: false
+    enabled: false
+    ignore_title_keywords: []
+    ignore_usernames: []
+    labels: []
+  auto_title_instructions: ""
+  auto_title_placeholder: "@coderabbitai"
+  changed_files_summary: true
+  collapse_walkthrough: true
+  commit_status: true
+  disable_cache: false
+  enable_prompt_for_ai_agents: true
+  estimate_code_review_effort: true
+  fail_commit_status: false
+  finishing_touches:
+    custom: []
+    docstrings:
+      enabled: true
+    simplify:
+      enabled: false
+    unit_tests:
+      enabled: true
+  high_level_summary: true
+  high_level_summary_in_walkthrough: true
+  high_level_summary_instructions: ""
+  high_level_summary_placeholder: "@coderabbitai summary"
+  in_progress_fortune: true
+  labeling_instructions: []
+  path_filters: []
+  path_instructions: []
+  poem: true
+  pre_merge_checks:
+    custom_checks: []
+    description:
+      mode: warning
+    docstrings:
+      mode: warning
+      threshold: 80
+    issue_assessment:
+      mode: warning
+    override_requested_reviewers_only: false
+    title:
+      mode: warning
+      requirements: ""
+  profile: chill
+  related_issues: true
+  related_prs: true
+  request_changes_workflow: false
+  review_details: false
   review_status: false
+  sequence_diagrams: true
+  slop_detection:
+    enabled: true
+  suggested_labels: true
+  suggested_reviewers: true
+  suggested_reviewers_instructions: []
+  tools:
+    actionlint:
+      enabled: true
+    ast-grep:
+      essential_rules: true
+      packages: []
+      rule_dirs: []
+      util_dirs: []
+    biome:
+      enabled: true
+    blinter:
+      enabled: true
+    brakeman:
+      enabled: true
+    buf:
+      enabled: true
+    checkmake:
+      enabled: true
+    checkov:
+      enabled: true
+    circleci:
+      enabled: true
+    clang:
+      enabled: true
+    clippy:
+      enabled: true
+    cppcheck:
+      enabled: true
+    detekt:
+      enabled: true
+    dotenvLint:
+      enabled: true
+    emberTemplateLint:
+      enabled: true
+    eslint:
+      enabled: true
+    flake8:
+      enabled: true
+    fortitudeLint:
+      enabled: true
+    github-checks:
+      enabled: true
+      timeout_ms: 90000
+    gitleaks:
+      enabled: true
+    golangci-lint:
+      enabled: true
+    hadolint:
+      enabled: true
+    htmlhint:
+      enabled: true
+    languagetool:
+      disabled_categories: []
+      disabled_rules: []
+      enabled: true
+      enabled_categories: []
+      enabled_only: false
+      enabled_rules: []
+      level: default
+    luacheck:
+      enabled: true
+    markdownlint:
+      enabled: true
+    opengrep:
+      enabled: true
+    osvScanner:
+      enabled: true
+    oxc:
+      enabled: true
+    phpcs:
+      enabled: true
+    phpmd:
+      enabled: true
+    phpstan:
+      enabled: true
+      level: default
+    pmd:
+      enabled: true
+    prismaLint:
+      enabled: true
+    psscriptanalyzer:
+      enabled: true
+    pylint:
+      enabled: true
+    regal:
+      enabled: true
+    rubocop:
+      enabled: true
+    ruff:
+      enabled: true
+    semgrep:
+      enabled: true
+    shellcheck:
+      enabled: true
+    shopifyThemeCheck:
+      enabled: true
+    smartyLint:
+      enabled: true
+    sqlfluff:
+      enabled: true
+    stylelint:
+      enabled: true
+    swiftlint:
+      enabled: true
+    tflint:
+      enabled: true
+    trivy:
+      enabled: true
+    trufflehog:
+      enabled: true
+    yamllint:
+      enabled: true
+tone_instructions: ""

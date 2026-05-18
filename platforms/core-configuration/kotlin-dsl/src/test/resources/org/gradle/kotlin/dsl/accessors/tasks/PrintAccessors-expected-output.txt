@@ -376,8 +376,8 @@
 
 
     /**
-     * Adds model defaults for the [projectType][AccessorNameSpec(original=projectType)] project type.
+     * Adds model defaults for the [projectType][org.gradle.kotlin.dsl.accessors.tasks.PrintAccessorsTest.TestProjectType] project feature.
      */
-    fun SharedModelDefaults.`projectType`(configure: Action<org.gradle.kotlin.dsl.accessors.tasks.PrintAccessorsTest.TestProjectType>): Unit =
+    fun org.gradle.api.initialization.SharedModelDefaults.`projectType`(configure: Action<org.gradle.kotlin.dsl.accessors.tasks.PrintAccessorsTest.TestProjectType>): Unit =
         add("projectType", org.gradle.kotlin.dsl.accessors.tasks.PrintAccessorsTest.TestProjectType, configure)
 

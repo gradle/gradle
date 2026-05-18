@@ -33,6 +33,7 @@ Learn how to use Gradle's modern Dataflow API to hook into the build lifecycle a
 3. You created a custom task in <<part3_create_custom_task.adoc#part3_begin, part3>>.
 4. You wrote a unit test in <<part4_unit_test.adoc#part4_begin,part 4>>.
 
+[[dp_part5_step1]]
 == Step 1: Understanding the Dataflow API
 
 **Dataflow Actions** are Gradle's modern, recommended way to react to the build lifecycle and handle build-wide events.
@@ -46,6 +47,7 @@ The key components of the Dataflow API are:
 * **`FlowAction<T>`**: An interface you implement to define the actual logic that runs.
 * **`FlowParameters`**: A container for all the inputs to the `FlowAction`.
 
+[[dp_part5_step2]]
 == Step 2: Creating a Dataflow Action
 
 Let's create the `FlowAction` that will send a Slack message at the end of the build.
@@ -71,6 +73,7 @@ This code completes two of the three main components of our flow action:
 1.  The `SlackBuildFlowAction` class is a `FlowAction` that uses the Slack API client to send a message.
 2.  The `SlackBuildFlowAction.Params` interface defines the input parameters for the action, including the `token`, `channel`, and a `buildFailed` flag.
 
+[[dp_part5_step3]]
 == Step 3: Registering the Dataflow Action in the Plugin
 
 Now, we'll register the flow action in our plugin's `apply()` method to connect it to the build lifecycle.

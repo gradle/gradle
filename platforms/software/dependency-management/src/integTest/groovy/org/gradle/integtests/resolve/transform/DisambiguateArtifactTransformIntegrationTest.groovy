@@ -234,7 +234,7 @@ ${artifactTransform("TestTransform")}
         then:
         failure.assertHasDescription("Could not determine the dependencies of task ':app:resolve'.")
         failure.assertHasCause("Could not resolve all dependencies for configuration ':app:compileClasspath'.")
-        failure.assertHasErrorOutput("""Found multiple transformation chains that produce a variant of 'project :lib' with requested attributes:""")
+        failure.assertHasErrorOutput("""Found multiple transformation chains that produce a variant of 'project ':lib'' with requested attributes:""")
         failure.assertHasResolution("Remove one or more registered transforms, or add additional attributes to them to ensure only a single valid transformation chain exists.")
     }
 

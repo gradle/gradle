@@ -740,7 +740,7 @@ project(':common') {
         fails("app:broken")
 
         then:
-        failure.assertHasCause("The consumer was configured to find attribute 'color' with value 'blue'. However we cannot choose between the following variants of project :lib:")
+        failure.assertHasCause("The consumer was configured to find attribute 'color' with value 'blue'. However we cannot choose between the following variants of project ':lib':")
 
         when:
         run("app:resolveView")

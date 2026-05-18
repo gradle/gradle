@@ -69,8 +69,8 @@ class BuildSrcIdentityIntegrationTest extends AbstractIntegrationSpec {
         then:
         outputContains("""
 runtimeClasspath - Runtime classpath of source set 'main'.
-\\--- project :buildSrc:b1
-     \\--- project :buildSrc:b2
+\\--- project ':buildSrc:b1'
+     \\--- project ':buildSrc:b2'
 """)
 
         where:
@@ -182,7 +182,7 @@ Required by:
 
                 def selectors = configurations.runtimeClasspath.incoming.resolutionResult.allDependencies.requested
                 assert selectors.size() == 1
-                assert selectors[0].displayName == 'project :buildSrc:a'
+                assert selectors[0].displayName == "project ':buildSrc:a'"
                 assert selectors[0].buildPath == ':buildSrc'
                 assert selectors[0].projectPath == ':a'
             }

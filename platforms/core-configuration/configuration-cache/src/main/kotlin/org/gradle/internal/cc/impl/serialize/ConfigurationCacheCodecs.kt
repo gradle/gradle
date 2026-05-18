@@ -19,6 +19,7 @@ package org.gradle.internal.cc.impl.serialize
 import org.gradle.api.file.FileSystemOperations
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.GradleInternal
+import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSetToFileCollectionFactory
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.CapabilitySerializer
 import org.gradle.api.internal.artifacts.transform.TransformActionScheme
@@ -113,14 +114,18 @@ import org.gradle.internal.serialize.codecs.core.unsupportedTypes
 import org.gradle.internal.serialize.codecs.dm.ArtifactCollectionCodec
 import org.gradle.internal.serialize.codecs.dm.AttributeContainerCodec
 import org.gradle.internal.serialize.codecs.dm.DefaultComponentArtifactsResultCodec
+import org.gradle.internal.serialize.codecs.dm.DefaultGraphStructureCodec
 import org.gradle.internal.serialize.codecs.dm.DefaultResolvableArtifactCodec
 import org.gradle.internal.serialize.codecs.dm.DefaultResolvedArtifactResultCodec
 import org.gradle.internal.serialize.codecs.dm.DefaultUnresolvedComponentResultCodec
 import org.gradle.internal.serialize.codecs.dm.ImmutableAttributesCodec
 import org.gradle.internal.serialize.codecs.dm.ImmutableAttributesSchemaCodec
+import org.gradle.internal.serialize.codecs.dm.ImmutableCapabilitiesCodec
 import org.gradle.internal.serialize.codecs.dm.LocalFileDependencyBackedArtifactSetCodec
 import org.gradle.internal.serialize.codecs.dm.PublishArtifactLocalArtifactMetadataCodec
 import org.gradle.internal.serialize.codecs.dm.ResolveArtifactNodeCodec
+import org.gradle.internal.serialize.codecs.dm.ResolvedComponentResultCodec
+import org.gradle.internal.serialize.codecs.dm.ResolvedGraphResultCodec
 import org.gradle.internal.serialize.codecs.dm.transform.CalculateArtifactsCodec
 import org.gradle.internal.serialize.codecs.dm.transform.ChainedTransformStepNodeCodec
 import org.gradle.internal.serialize.codecs.dm.transform.ComponentVariantIdentifierCodec
@@ -196,6 +201,7 @@ class DefaultConfigurationCacheCodecs(
     buildStateRegistry: BuildStateRegistry,
     documentationRegistry: DocumentationRegistry,
     taskDependencyFactory: TaskDependencyFactory,
+    moduleIdentifierFactory: ImmutableModuleIdentifierFactory,
     val javaSerializationEncodingLookup: JavaSerializationEncodingLookup,
     transformStepNodeFactory: TransformStepNodeFactory,
     problems: ProblemsInternal
@@ -236,8 +242,11 @@ class DefaultConfigurationCacheCodecs(
             bind(SerializedLambdaParametersCheckingCodec)
 
             // Dependency management types
+            val immutableAttributesCodec = ImmutableAttributesCodec(attributesFactory, managedFactoryRegistry)
+            val immutableCapabilitiesCodec = ImmutableCapabilitiesCodec()
+            bind(immutableAttributesCodec)
+            bind(immutableCapabilitiesCodec)
             bind(ArtifactCollectionCodec(calculatedValueContainerFactory, artifactSetConverter, attributeDesugaring, taskDependencyFactory))
-            bind(ImmutableAttributesCodec(attributesFactory, managedFactoryRegistry))
             bind(AttributeContainerCodec(attributesFactory, managedFactoryRegistry))
             bind(ImmutableAttributesSchemaCodec(instantiatorFactory, attributeSchemaFactory))
             bind(ComponentVariantIdentifierCodec)
@@ -263,6 +272,17 @@ class DefaultConfigurationCacheCodecs(
             bind(DefaultComponentArtifactsResultCodec())
             bind(DefaultResolvedArtifactResultCodec())
             bind(DefaultUnresolvedComponentResultCodec())
+
+            val graphStructureCodec = DefaultGraphStructureCodec(
+                immutableAttributesCodec,
+                immutableCapabilitiesCodec,
+                moduleIdentifierFactory,
+            )
+            val resolvedGraphResultCodec = ResolvedGraphResultCodec(
+                graphStructureCodec
+            )
+            val resolvedComponentResultCodec = ResolvedComponentResultCodec(resolvedGraphResultCodec)
+            bind(resolvedComponentResultCodec)
 
             bind(DefaultCopySpecCodec(patternSetFactory, fileCollectionFactory, propertyFactory, instantiator, fileSystemOperations))
             bind(DestinationRootCopySpecCodec(fileResolver))

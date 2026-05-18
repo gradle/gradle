@@ -131,39 +131,6 @@ println "child: " + doSomething(11)
     }
 
     @ToBeFixedForIsolatedProjects(because = "project cannot dynamically look up a method in the parent project")
-    def "methods defined in project build script are visible to descendant projects when script contains only methods and model block"() {
-        createDirs("child1")
-        settingsFile << "include 'child1'"
-        buildFile << """
-def doSomething(def value) {
-    return value.toString()
-}
-
-model {
-    tasks {
-        hello(Task)
-    }
-}
-"""
-        file("child1/build.gradle") << """
-println "child: " + doSomething(11)
-"""
-
-        expect:
-        // Invoke twice to exercise script caching
-        succeeds("hello")
-        outputContains("child: 11")
-
-        and:
-        succeeds("hello")
-        if (GradleContextualExecuter.notConfigCache) {
-            outputContains("child: 11")
-        } else {
-            outputDoesNotContain("child:")
-        }
-    }
-
-    @ToBeFixedForIsolatedProjects(because = "project cannot dynamically look up a method in the parent project")
     def "properties defined in project build script are not visible to descendant projects"() {
         createDirs("child1")
         settingsFile << "include 'child1'"

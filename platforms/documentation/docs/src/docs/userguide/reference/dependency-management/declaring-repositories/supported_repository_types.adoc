@@ -33,19 +33,6 @@ include::sample[dir="snippets/reference/dependency-management/declaring-reposito
 include::sample[dir="snippets/reference/dependency-management/declaring-repositories/defineRepository/groovy",files="build.gradle[tags=maven-like-repo]"]
 ====
 
-[[sec:custom-maven-repo]]
-=== Composite Maven repository
-
-Sometimes, POMs are published in one location, and JARs in another.
-You can define such a repository as follows:
-
-====
-include::sample[dir="snippets/reference/dependency-management/declaring-repositories/defineRepository/kotlin",files="build.gradle.kts[tags=maven-like-repo-with-jar-repo]"]
-include::sample[dir="snippets/reference/dependency-management/declaring-repositories/defineRepository/groovy",files="build.gradle[tags=maven-like-repo-with-jar-repo]"]
-====
-
-Gradle will first look for POMs and artifacts at the base URL, and if the artifact is not found, it will check the additional `artifactUrls`.
-
 [[strict_limitation_to_declared_repositories]]
 === Strict limitation for Maven repositories
 
@@ -115,16 +102,10 @@ Despite its drawbacks, there are rare cases where `mavenLocal()` can be useful:
 
 To mitigate risks, consider restricting `mavenLocal()` to specific dependencies using a repository filter:
 
-[source,groovy]
-----
-repositories {
-    mavenLocal {
-        content {
-            includeGroup("com.example.myproject") // Only allow this group from mavenLocal
-        }
-    }
-}
-----
+====
+include::sample[dir="snippets/reference/dependency-management/declaring-repositories/supportedRepositoryTypes-mavenLocalFilter/kotlin",files="build.gradle.kts[tags=maven-local-filter]"]
+include::sample[dir="snippets/reference/dependency-management/declaring-repositories/supportedRepositoryTypes-mavenLocalFilter/groovy",files="build.gradle[tags=maven-local-filter]"]
+====
 
 This ensures that `mavenLocal()` is only used for expected dependencies and avoids unexpected resolution issues.
 

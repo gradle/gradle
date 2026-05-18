@@ -23,7 +23,6 @@ dependencies {
     api(projects.platformNative)
     api(projects.scopedPersistentCache)
     api(projects.serialization)
-    api(projects.serviceLookup)
     api(projects.serviceProvider)
     api(projects.snapshots)
 
@@ -35,6 +34,7 @@ dependencies {
     implementation(projects.maven)
     implementation(projects.processServicesApi)
     implementation(projects.publish)
+    implementation(projects.serviceLookup)
     implementation(projects.versionControl)
 
     implementation(libs.commonsLang)

@@ -30,7 +30,7 @@ import org.gradle.api.tasks.Input
 import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.internal.properties.PropertyValue
 import org.gradle.internal.properties.PropertyVisitor
-import org.gradle.internal.reflect.DefaultTypeValidationContext
+import org.gradle.internal.execution.WorkValidationException
 import org.gradle.internal.reflect.ProblemRecordingTypeValidationContext
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.scopes.Scope
@@ -86,7 +86,11 @@ class FlowParametersInstantiator(
                 }
             }
         )
-        DefaultTypeValidationContext.throwOnProblemsOf(type, errors.build())
+        val builtErrors = errors.build()
+        if (builtErrors.isNotEmpty()) {
+            val exception = WorkValidationException.withSummaryForType(type, builtErrors.size)
+            throw problemReporterInternal.throwing(exception, builtErrors)
+        }
     }
 
     private

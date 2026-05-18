@@ -21,7 +21,6 @@ import com.google.common.collect.ImmutableMap;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema;
 import org.gradle.internal.Describables;
@@ -56,12 +55,11 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
     public DefaultLocalComponentGraphResolveState(
         long instanceId,
         LocalComponentGraphResolveMetadata metadata,
-        AttributeDesugaring attributeDesugaring,
         boolean adHoc,
         LocalVariantGraphResolveStateFactory variantFactory,
         CalculatedValueContainerFactory calculatedValueContainerFactory
     ) {
-        super(instanceId, metadata, attributeDesugaring);
+        super(instanceId, metadata);
         this.adHoc = adHoc;
 
         this.graphSelectionCandidates = calculatedValueContainerFactory.create(Describables.of("variants of", getMetadata()), context ->

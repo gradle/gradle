@@ -26,7 +26,7 @@ import spock.lang.Timeout
 
 import static org.gradle.integtests.fixtures.executer.TaskOrderSpecs.any
 import static org.gradle.integtests.fixtures.executer.TaskOrderSpecs.exact
-import static org.hamcrest.CoreMatchers.startsWith
+import static org.hamcrest.CoreMatchers.containsString
 
 class TaskExecutionIntegrationTest extends AbstractIntegrationSpec implements TasksWithInputsAndOutputs, StableConfigurationCacheDeprecations {
 
@@ -236,7 +236,7 @@ class TaskExecutionIntegrationTest extends AbstractIntegrationSpec implements Ta
             // Project defaults
             executer.withArguments("-x", "b").run().assertTasksScheduled(":a", ":c", ":d", ":sub:c", ":sub:d")
             // Unknown task
-            executer.withTasks("d").withArguments("-x", "unknown").runWithFailure().assertThatDescription(startsWith("Task 'unknown' not found in root project 'root' and its subprojects."))
+            executer.withTasks("d").withArguments("-x", "unknown").runWithFailure().assertThatDescription(containsString("Task 'unknown' not found in root project 'root' and its subprojects."))
         }
     }
 
