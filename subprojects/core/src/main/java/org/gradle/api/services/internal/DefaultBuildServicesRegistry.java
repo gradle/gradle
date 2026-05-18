@@ -68,7 +68,7 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
     private final BuildIdentifier buildIdentifier;
     private final Lock registrationsLock = new ReentrantLock();
     private NamedDomainObjectSet<BuildServiceRegistration<?, ?>> internalRegistrations;
-    private final IsolatedProjectsReportingRegistrationsContainer publicRegistrations;
+    private IsolatedProjectsReportingRegistrationsContainer publicRegistrations;
     private final DomainObjectCollectionFactory collectionFactory;
     private final InstantiatorFactory instantiatorFactory;
     private final ServiceRegistry services;
@@ -79,6 +79,8 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
     private final Instantiator paramsInstantiator;
     private final Instantiator specInstantiator;
     private final BuildServiceProvider.Listener listener;
+    private final IsolatedProjectsProblemsReporter problems;
+    private final BuildModelParameters buildModelParameters;
 
     public DefaultBuildServicesRegistry(
         BuildIdentifier buildIdentifier,
@@ -94,6 +96,8 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
     ) {
         this.buildIdentifier = buildIdentifier;
         this.internalRegistrations = uncheckedCast(collectionFactory.newNamedDomainObjectSet(BuildServiceRegistration.class));
+        this.problems = problems;
+        this.buildModelParameters = buildModelParameters;
         this.publicRegistrations = createPublicRegistrations(buildModelParameters, internalRegistrations, problems, registrationsLock, instantiatorFactory);
         this.collectionFactory = collectionFactory;
         this.instantiatorFactory = instantiatorFactory;
@@ -339,7 +343,7 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
                 // Replace the entire container, rather than clear it, to discard all the service instances and because it may contain configuration actions and
                 // other state that can affect the service instances when they are registered again
                 this.internalRegistrations = uncheckedCast(collectionFactory.newNamedDomainObjectSet(BuildServiceRegistration.class));
-                this.publicRegistrations.delegate = this.internalRegistrations;
+                this.publicRegistrations = createPublicRegistrations(buildModelParameters, internalRegistrations, problems, registrationsLock, instantiatorFactory);
             }
             this.internalRegistrations.addAll(preserved);
             return null;
@@ -433,8 +437,6 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
     // package-private to permit instantiation
     static class IsolatedProjectsReportingRegistrationsContainer extends DelegatingNamedDomainObjectSet<BuildServiceRegistration<?, ?>> {
 
-        private NamedDomainObjectSet<BuildServiceRegistration<?, ?>> delegate;
-
         private final IsolatedProjectsProblemsReporter problems;
         private final BuildModelParameters buildModelParameters;
         private final FunctionRunner synchronizedRunner;
@@ -446,19 +448,10 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
             BuildModelParameters buildModelParameters,
             FunctionRunner synchronizedRunner
         ) {
-            //noinspection DataFlowIssue
-            super(null);
-
-            this.delegate = delegate;
-
+            super(delegate);
             this.problems = problems;
             this.buildModelParameters = buildModelParameters;
             this.synchronizedRunner = synchronizedRunner;
-        }
-
-        @Override
-        protected NamedDomainObjectSet<BuildServiceRegistration<?, ?>> getDelegate() {
-            return delegate;
         }
 
         @Override
