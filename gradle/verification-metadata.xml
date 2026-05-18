@@ -264,7 +264,6 @@
             <trusting group="com.google.guava"/>
             <trusting group="^com[.]google($|([.].*))" regex="true"/>
          </trusted-key>
-         <trusted-key id="697538D9F48FABC72DD60C1F2C82DBE6C780E2AF" group="org.apache.commons" name="commons-exec"/>
          <trusted-key id="6A27B2F30F3DB8BF86D519F7EC5BCE97B4DEFA96" group="^com[.]esotericsoftware($|([.].*))" regex="true"/>
          <trusted-key id="6A814B1F869C2BBEAB7CB7271A2A1C94BDE89688">
             <trusting group="org.apache.maven.wagon" name="wagon-provider-api"/>
