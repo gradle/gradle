@@ -26,7 +26,7 @@ internal
 data class IndexedVariant(
     val fullKey: String,
     val requestedTasks: List<String>,
-    val taskGraphAccessed: Boolean
+    val taskGraphAccessed: Boolean = false
 )
 
 

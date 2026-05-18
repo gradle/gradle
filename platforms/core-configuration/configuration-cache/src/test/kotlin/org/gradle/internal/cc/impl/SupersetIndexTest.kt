@@ -29,8 +29,8 @@ class SupersetIndexTest {
     @Test
     fun `exact match preferred over strict superset`() {
         val variants = listOf(
-            IndexedVariant("v1", listOf("a"), taskGraphAccessed = false),
-            IndexedVariant("v2", listOf("a", "b", "c"), taskGraphAccessed = false)
+            IndexedVariant("v1", listOf("a")),
+            IndexedVariant("v2", listOf("a", "b", "c"))
         )
         val chosen = SupersetIndex.selectBestMatch(variants, requested = listOf("a"))
         assertEquals("v1", chosen?.fullKey)
@@ -39,8 +39,8 @@ class SupersetIndexTest {
     @Test
     fun `smallest superset wins when no exact match`() {
         val variants = listOf(
-            IndexedVariant("big", listOf("a", "b", "c", "d"), taskGraphAccessed = false),
-            IndexedVariant("small", listOf("a", "b"), taskGraphAccessed = false)
+            IndexedVariant("big", listOf("a", "b", "c", "d")),
+            IndexedVariant("small", listOf("a", "b"))
         )
         val chosen = SupersetIndex.selectBestMatch(variants, requested = listOf("a"))
         assertEquals("small", chosen?.fullKey)
@@ -49,7 +49,7 @@ class SupersetIndexTest {
     @Test
     fun `non-superset variants are ignored`() {
         val variants = listOf(
-            IndexedVariant("v1", listOf("x", "y"), taskGraphAccessed = false)
+            IndexedVariant("v1", listOf("x", "y"))
         )
         assertNull(SupersetIndex.selectBestMatch(variants, requested = listOf("a")))
     }
@@ -67,7 +67,7 @@ class SupersetIndexTest {
     @Test
     fun `duplicates in request are ignored when matching as subsequence`() {
         val variants = listOf(
-            IndexedVariant("v1", listOf("c", "a", "b"), taskGraphAccessed = false)
+            IndexedVariant("v1", listOf("c", "a", "b"))
         )
         // [a, a, b] dedupes to [a, b], which is a subsequence of [c, a, b].
         val chosen = SupersetIndex.selectBestMatch(variants, requested = listOf("a", "a", "b"))
@@ -80,7 +80,7 @@ class SupersetIndexTest {
         // subsequence of the stored list, so it is neither an exact match nor a
         // (size-equal) subsequence superset — no compatible entry.
         val variants = listOf(
-            IndexedVariant("v1", listOf("a", "b"), taskGraphAccessed = false)
+            IndexedVariant("v1", listOf("a", "b"))
         )
         assertNull(SupersetIndex.selectBestMatch(variants, requested = listOf("b", "a")))
     }
@@ -88,7 +88,7 @@ class SupersetIndexTest {
     @Test
     fun `subset must appear as subsequence of stored entry`() {
         val variants = listOf(
-            IndexedVariant("v1", listOf("a", "b", "c"), taskGraphAccessed = false)
+            IndexedVariant("v1", listOf("a", "b", "c"))
         )
         // [a, c] preserves relative order from [a, b, c] — match.
         assertEquals("v1", SupersetIndex.selectBestMatch(variants, requested = listOf("a", "c"))?.fullKey)
@@ -106,7 +106,7 @@ class SupersetIndexTest {
         val tmp = java.io.File.createTempFile("supersetIndex", ".bin").also { it.deleteOnExit() }
         val file = SupersetIndexFile(tmp)
         val variants = listOf(
-            IndexedVariant("k1", listOf("a", "b"), taskGraphAccessed = false),
+            IndexedVariant("k1", listOf("a", "b")),
             IndexedVariant("k2", listOf("a"), taskGraphAccessed = true)
         )
         file.write(variants)
