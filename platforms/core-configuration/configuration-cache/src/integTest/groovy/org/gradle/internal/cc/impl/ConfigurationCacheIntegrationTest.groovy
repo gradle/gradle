@@ -440,6 +440,87 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
         configurationCache.assertStateLoaded()
     }
 
+    def "whenReady Action overload flags entry as superset-ineligible"() {
+        given:
+        def configurationCache = newConfigurationCacheFixture()
+        buildFile << """
+            import org.gradle.api.Action
+            import org.gradle.api.execution.TaskExecutionGraph
+
+            ['a', 'b', 'c'].each { name ->
+                tasks.register(name) {
+                    doLast { println name }
+                }
+            }
+            // Explicit Action<TaskExecutionGraph> — Groovy method dispatch prefers
+            // the Closure overload for a bare `{ graph -> }`, so we have to spell
+            // out the Action to exercise DefaultTaskExecutionGraph.whenReady(Action).
+            gradle.taskGraph.whenReady(new Action<TaskExecutionGraph>() {
+                @Override
+                void execute(TaskExecutionGraph graph) {}
+            })
+        """
+
+        when:
+        configurationCacheRun "a", "b", "c"
+
+        then:
+        configurationCache.assertStateStored()
+
+        when:
+        configurationCacheRun "a"
+
+        then:
+        // Flag set via the Action overload: superset reuse blocked, fresh cold store.
+        configurationCache.assertStateStored()
+
+        when:
+        configurationCacheRun "a", "b", "c"
+
+        then:
+        // Exact match still works for flagged entries.
+        configurationCache.assertStateLoaded()
+    }
+
+    def "addTaskExecutionGraphListener flags entry as superset-ineligible"() {
+        given:
+        def configurationCache = newConfigurationCacheFixture()
+        buildFile << """
+            import org.gradle.api.execution.TaskExecutionGraph
+            import org.gradle.api.execution.TaskExecutionGraphListener
+
+            ['a', 'b', 'c'].each { name ->
+                tasks.register(name) {
+                    doLast { println name }
+                }
+            }
+            gradle.taskGraph.addTaskExecutionGraphListener(new TaskExecutionGraphListener() {
+                @Override
+                void graphPopulated(TaskExecutionGraph graph) {}
+            })
+        """
+
+        when:
+        configurationCacheRun "a", "b", "c"
+
+        then:
+        configurationCache.assertStateStored()
+
+        when:
+        configurationCacheRun "a"
+
+        then:
+        // Flag set via addTaskExecutionGraphListener: superset reuse blocked.
+        configurationCache.assertStateStored()
+
+        when:
+        configurationCacheRun "a", "b", "c"
+
+        then:
+        // Exact match still works for flagged entries.
+        configurationCache.assertStateLoaded()
+    }
+
     def "direct hasTask call does not disable superset reuse"() {
         given:
         def configurationCache = newConfigurationCacheFixture()
