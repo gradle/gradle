@@ -17,7 +17,6 @@
 package org.gradle.internal.cc.base.problems
 
 import org.gradle.api.Task
-import org.gradle.internal.configuration.problems.IsolatedProjectsProblemsListener
 import org.gradle.internal.configuration.problems.ProblemsListener
 import org.gradle.internal.configuration.problems.PropertyProblem
 import org.gradle.internal.configuration.problems.PropertyTrace
@@ -26,7 +25,7 @@ import org.gradle.internal.configuration.problems.StructuredMessageBuilder
 /**
  * A stub implementation of ProblemsListener.
  */
-class IgnoringProblemsListener : ProblemsListener, IsolatedProjectsProblemsListener {
+class IgnoringProblemsListener : ProblemsListener {
     override fun onProblem(problem: PropertyProblem) = Unit
 
     override fun onError(trace: PropertyTrace, error: Exception, message: StructuredMessageBuilder) = Unit
@@ -36,6 +35,4 @@ class IgnoringProblemsListener : ProblemsListener, IsolatedProjectsProblemsListe
     override fun forTask(task: Task): ProblemsListener = this
 
     override fun onExecutionTimeProblem(problem: PropertyProblem) = Unit
-
-    override fun onIsolatedProjectsProblem(problem: PropertyProblem) = Unit
 }

@@ -59,7 +59,6 @@ import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.internal.configuration.problems.CommonReport
 import org.gradle.internal.configuration.problems.DefaultIsolatedProjectsProblemsReporter
 import org.gradle.internal.configuration.problems.DefaultProblemFactory
-import org.gradle.internal.configuration.problems.IsolatedProjectsProblemsListener
 import org.gradle.internal.configuration.problems.IsolatedProjectsProblemsReporter
 import org.gradle.internal.configuration.problems.NoOpIsolatedProjectsProblemsReporter
 import org.gradle.internal.configuration.problems.ProblemFactory
@@ -119,7 +118,7 @@ object BuildTreeModelControllerServices : ServiceRegistrationProvider {
             // Allow nudging to enable CC if it is off and there is no explicit decision. CC doesn't work for model building so do not nudge there.
             !requirements.startParameter.configurationCache.isExplicit && !requirements.isCreatesModel -> add(ConfigurationCachePromoHandler::class.java)
             // Do not nudge if CC is explicitly disabled or if models are requested.
-            else -> add(ProblemsListener::class.java, IsolatedProjectsProblemsListener::class.java, IgnoringProblemsListener::class.java)
+            else -> add(ProblemsListener::class.java, IgnoringProblemsListener::class.java)
         }
 
         add(InstrumentedExecutionAccessListenerRegistry::class.java)
