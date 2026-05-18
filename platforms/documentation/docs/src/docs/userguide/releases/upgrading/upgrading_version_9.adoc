@@ -660,12 +660,12 @@ Since AGP 8.x relied on these internal classes directly, it is no longer compati
 To resolve this, upgrade to AGP 9.x, which only uses the public Gradle API and fully supports Gradle 9.6.
 
 [[concurrency_primitives_prohibited_by_cc]]
-==== Concurrency synchronization primitives can no longer be serialized by the Configuration Cache
+==== Concurrency primitives can no longer be serialized by the Configuration Cache
 
-Configuration cache serialization now emits a proper problem when attempting to serialize most of Java's standard concurrency synchronization primitives.
+Configuration Cache serialization now reports a clear problem when attempting to serialize most of Java's standard concurrency primitives.
 This includes classes and interfaces from the `java.util.concurrent` and `java.util.concurrent.locks` packages, such as `ReentrantLock`, `CountDownLatch`, and `SynchronousQueue`.
 Because the Configuration Cache enforces isolation between tasks, these primitives cannot be used correctly for cross-task synchronization.
-Each task receives its own deserialized instance of the synchronization object (for example, its own lock), so coordination between tasks does not occur.
+Allowing serialization would silently give each task its own independent instance (for example, its own lock), so cross-task coordination would never actually occur — that is the bug this error prevents.
 
 Previously, attempts to serialize these types could fail with exceptions such as `java.lang.reflect.InaccessibleObjectException`, without clearly indicating the underlying issue.
 If your build requires shared, synchronized state, use <<build_services.adoc#build_services, shared build services>>, which are explicitly designed for safe coordination between tasks.
