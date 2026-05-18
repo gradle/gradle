@@ -242,7 +242,7 @@ class ResolutionIssuesIntegrationTest extends AbstractIntegrationSpec {
         // longer chain back to the root component.
         buildFile << """
             plugins {
-                id("java")
+                id("java-library")
             }
 
             ${mavenCentralRepository()}
@@ -253,24 +253,14 @@ class ResolutionIssuesIntegrationTest extends AbstractIntegrationSpec {
                 implementation("androidx.room:room-runtime:2.8.3")
             }
 
-            abstract class DependencyGraphPrinter extends DefaultTask {
-                @Internal
-                abstract Property<ArtifactCollection> getAc()
-
-                @TaskAction
-                void action() {
-                    println("Failures: ")
-                    ac.get().failures.each {
-                        println(it.message)
-                    }
-                }
-            }
-
-            tasks.register("dgp", DependencyGraphPrinter) {
-                def collection = configurations.compileClasspath.incoming.artifactView {
+            tasks.register("dgp") {
+                def failures = configurations.compileClasspath.incoming.artifactView {
                     lenient = true
-                }.artifacts
-                ac.set(collection)
+                }.artifacts.failures
+                doLast {
+                    println("Failures: ")
+                    failures.each { println(it.message) }
+                }
             }
         """
 

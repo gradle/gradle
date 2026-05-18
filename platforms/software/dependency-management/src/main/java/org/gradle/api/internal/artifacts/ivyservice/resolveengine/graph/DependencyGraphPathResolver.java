@@ -82,6 +82,10 @@ public class DependencyGraphPathResolver {
                 reachedRoot = true;
                 break;
             }
+            // TODO: this walks every dependents edge including constraint edges; constraints
+            //  don't "pull in" a component, so paths that traverse them aren't useful to users.
+            //  Restricting to non-constraint edges would shift many existing test expectations,
+            //  so it is deferred.
             for (DependencyGraphComponent next : current.getDependents()) {
                 if (!predecessor.containsKey(next)) {
                     predecessor.put(next, current);
@@ -93,23 +97,19 @@ public class DependencyGraphPathResolver {
             return null;
         }
 
-        // Reconstruct the start->root chain by walking predecessors back from root.
-        Deque<DependencyGraphComponent> chain = new ArrayDeque<>();
-        DependencyGraphComponent walk = root;
-        while (walk != null) {
-            chain.addFirst(walk);
-            walk = predecessor.get(walk);
+        // Walk predecessors from root back to start; this naturally produces [root, ..., start].
+        List<DependencyGraphComponent> chain = new ArrayList<>();
+        for (DependencyGraphComponent walk = root; walk != null; walk = predecessor.get(walk)) {
+            chain.add(walk);
         }
 
         // Output format expected by ModuleVersionResolveException#getMessage:
-        // [<rootDisplayName>, <intermediate componentIds...>, <directDependee componentId>]
-        // The chain holds [start, ..., root] so we walk it in reverse, emitting rootDescribable
-        // first and skipping root's componentId.
+        // [<rootDisplayName>, <intermediate componentIds...>, <directDependee componentId>].
+        // Substitute rootDescribable for root's componentId, then emit the rest in order.
         List<Describable> result = new ArrayList<>(chain.size());
         result.add(rootDescribable);
-        DependencyGraphComponent[] reversed = chain.toArray(new DependencyGraphComponent[0]);
-        for (int i = reversed.length - 2; i >= 0; i--) {
-            result.add(Describables.of(reversed[i].getComponentId().getDisplayName()));
+        for (int i = 1; i < chain.size(); i++) {
+            result.add(Describables.of(chain.get(i).getComponentId().getDisplayName()));
         }
         return result;
     }

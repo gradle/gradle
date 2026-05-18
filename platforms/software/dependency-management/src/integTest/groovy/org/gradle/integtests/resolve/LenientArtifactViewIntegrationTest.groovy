@@ -276,18 +276,13 @@ class LenientArtifactViewIntegrationTest extends AbstractHttpDependencyResolutio
             .dependsOn("org", "broken", "1.0")
             .publish()
 
-        buildFile.text = """
-            plugins {
-                id("java-library")
-            }
-            repositories {
-                maven { url = '${mavenHttpRepo.uri}' }
-            }
+        withRepo()
+        buildFile """
             dependencies {
-                implementation("org:mod-a:1.0")
+                deps("org:mod-a:1.0")
             }
             tasks.register("printFailures") {
-                def failures = configurations.runtimeClasspath.incoming.artifactView {
+                def failures = configurations.res.incoming.artifactView {
                     lenient = true
                 }.artifacts.failures
                 doLast {
@@ -296,7 +291,7 @@ class LenientArtifactViewIntegrationTest extends AbstractHttpDependencyResolutio
             }
         """
 
-        expect:
+        when:
         modA.pom.expectGet()
         modB.pom.expectGet()
         modC.pom.expectGet()
@@ -307,6 +302,8 @@ class LenientArtifactViewIntegrationTest extends AbstractHttpDependencyResolutio
         modC.artifact.expectGet()
         modD.artifact.expectGet()
         succeeds("printFailures")
+
+        then:
         outputContains("FAILURE: Could not find org:broken:1.0.")
     }
 
