@@ -22,12 +22,14 @@ import org.gradle.internal.configuration.problems.PropertyProblem
 import org.gradle.internal.configuration.problems.PropertyTrace
 import org.gradle.internal.configuration.problems.StructuredMessage
 import org.gradle.internal.instrumentation.agent.AgentStatus
+import org.gradle.internal.instrumentation.agent.ThirdPartyAgentDetection.isThirdPartyAgentPresent
+import org.gradle.plugin.use.resolve.service.internal.InjectedClasspathInstrumentationStrategy
 import org.gradle.plugin.use.resolve.service.internal.InjectedClasspathInstrumentationStrategy.TransformMode
 
 class ConfigurationCacheInjectedClasspathInstrumentationStrategy(
     private val problems: ProblemsListener,
     private val agentStatus: AgentStatus,
-) : AbstractInjectedClasspathInstrumentationStrategy() {
+) : InjectedClasspathInstrumentationStrategy {
 
     override fun getTransform(): TransformMode {
         if (!agentStatus.isAgentInstrumentationEnabled() && isThirdPartyAgentPresent()) {
