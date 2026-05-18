@@ -20,6 +20,7 @@ import org.gradle.api.GradleException
 import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.logging.Logging
 import org.gradle.initialization.StartParameterBuildOptions
+import org.gradle.initialization.StartParameterBuildOptions.IsolatedProjectsOption
 import org.gradle.internal.buildoption.InternalOption
 import org.gradle.internal.buildoption.InternalOptions
 import org.gradle.internal.buildtree.BuildActionModelRequirements
@@ -95,7 +96,7 @@ object BuildModelParametersProvider {
         return when {
             // TODO:isolated should this also disable IP?
             ccDisabledReason != null -> vintageMode(requirements, startParameter, options, ccDisabledReason)
-            startParameter.isolatedProjects.get() -> isolatedProjectsMode(requirements, startParameter, options)
+            isolatedProjectsRequested(startParameter, requirements) -> isolatedProjectsMode(requirements, startParameter, options)
             startParameter.configurationCache.get() ->
                 if (requirements.isCreatesModel) {
                     // CC by itself does not yet support caching models or caching of the work graph that runs before model building
@@ -107,6 +108,14 @@ object BuildModelParametersProvider {
             else -> vintageMode(requirements, startParameter, options)
         }
     }
+
+    private
+    fun isolatedProjectsRequested(startParameter: StartParameterInternal, requirements: BuildActionModelRequirements): Boolean =
+        when (startParameter.isolatedProjects.get()) {
+            IsolatedProjectsOption.Value.TRUE -> true
+            IsolatedProjectsOption.Value.TOOLING_MODELS -> requirements.isCreatesModel
+            IsolatedProjectsOption.Value.FALSE -> false
+        }
 
     /**
      * Compute parameters for nested build trees, which are created by the `GradleBuild` tasks.
@@ -191,7 +200,7 @@ object BuildModelParametersProvider {
         requirements: BuildActionModelRequirements,
         startParameter: StartParameterInternal,
         options: InternalOptions
-    ): GradleIsolatedProjectsMode {
+    ): BuildModelParameters {
 
         if (!startParameter.configurationCache.get() && startParameter.configurationCache.isExplicit) {
             throw GradleException("Configuration Cache cannot be disabled when Isolated Projects is enabled.")
@@ -203,32 +212,38 @@ object BuildModelParametersProvider {
         val parallelConfigurationCacheStore = parallelIsolatedProjects && options[configurationCacheParallelStore]
         val invalidateCoupledProjects = options[invalidateCoupledProjects]
 
-        return if (requirements.isCreatesModel) {
-            GradleIsolatedProjectsMode(
-                modelBuilding = true,
-                parallelProjectExecution = parallelIsolatedProjects,
-                configureOnDemand = configureOnDemand,
-                configurationCacheParallelStore = parallelConfigurationCacheStore,
-                parallelProjectConfiguration = parallelIsolatedProjects,
-                cachingModelBuilding = options[isolatedProjectsCaching].buildingModels,
-                parallelModelBuilding = parallelIsolatedProjects,
-                invalidateCoupledProjects = invalidateCoupledProjects,
-                modelAsProjectDependency = options[modelProjectDependencies],
-                resilientModelBuilding = options[resilientModelBuilding]
-            )
-        } else {
-            GradleIsolatedProjectsMode(
-                modelBuilding = false,
-                parallelProjectExecution = parallelIsolatedProjects,
-                configureOnDemand = configureOnDemand,
-                configurationCacheParallelStore = parallelConfigurationCacheStore,
-                parallelProjectConfiguration = parallelIsolatedProjects,
-                cachingModelBuilding = false,
-                parallelModelBuilding = false,
-                invalidateCoupledProjects = invalidateCoupledProjects,
-                modelAsProjectDependency = false,
-                resilientModelBuilding = false
-            )
+        return when {
+            requirements.isCreatesModel -> {
+                GradleIsolatedProjectsMode(
+                    modelBuilding = true,
+                    parallelProjectExecution = parallelIsolatedProjects,
+                    configureOnDemand = configureOnDemand,
+                    configurationCacheParallelStore = parallelConfigurationCacheStore,
+                    parallelProjectConfiguration = parallelIsolatedProjects,
+                    cachingModelBuilding = options[isolatedProjectsCaching].buildingModels,
+                    parallelModelBuilding = parallelIsolatedProjects,
+                    invalidateCoupledProjects = invalidateCoupledProjects,
+                    modelAsProjectDependency = options[modelProjectDependencies],
+                    resilientModelBuilding = options[resilientModelBuilding]
+                )
+            }
+
+            startParameter.isolatedProjects.get() == IsolatedProjectsOption.Value.TRUE -> {
+                GradleIsolatedProjectsMode(
+                    modelBuilding = false,
+                    parallelProjectExecution = parallelIsolatedProjects,
+                    configureOnDemand = configureOnDemand,
+                    configurationCacheParallelStore = parallelConfigurationCacheStore,
+                    parallelProjectConfiguration = parallelIsolatedProjects,
+                    cachingModelBuilding = false,
+                    parallelModelBuilding = false,
+                    invalidateCoupledProjects = invalidateCoupledProjects,
+                    modelAsProjectDependency = false,
+                    resilientModelBuilding = false
+                )
+            }
+
+            else -> configurationCacheTasksOnlyMode(requirements, startParameter, options)
         }
     }
 

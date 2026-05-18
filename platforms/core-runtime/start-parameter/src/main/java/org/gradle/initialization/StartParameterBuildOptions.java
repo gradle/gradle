@@ -677,16 +677,37 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         }
     }
 
-    public static class IsolatedProjectsOption extends BooleanBuildOption<StartParameterInternal> {
+    public static class IsolatedProjectsOption extends StringBuildOption<StartParameterInternal> {
         public static final String PROPERTY_NAME = "org.gradle.unsafe.isolated-projects";
+
+        public enum Value {
+            TRUE,
+            TOOLING_MODELS,
+            FALSE;
+
+            public static Value fromString(String value) {
+                switch (value.toLowerCase(java.util.Locale.ROOT)) {
+                    case "true":
+                        return TRUE;
+                    case "tooling-models":
+                        return TOOLING_MODELS;
+                    case "false":
+                        return FALSE;
+                    default:
+                        throw new IllegalArgumentException(
+                            "Option " + PROPERTY_NAME + " doesn't accept value '" + value + "'. Possible values are: true, tooling-models, false"
+                        );
+                }
+            }
+        }
 
         public IsolatedProjectsOption() {
             super(PROPERTY_NAME);
         }
 
         @Override
-        public void applyTo(boolean value, StartParameterInternal settings, Origin origin) {
-            settings.setIsolatedProjects(Option.Value.value(value));
+        public void applyTo(String value, StartParameterInternal settings, Origin origin) {
+            settings.setIsolatedProjects(IsolatedProjectsOption.Value.fromString(value));
         }
     }
 
