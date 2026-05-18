@@ -180,8 +180,16 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
         );
         // Adapt to TaskExecutionGraphListener (single-method interface) so the listener-registration
         // broadcast can use a proper instance — ClosureBackedMethodInvocationDispatch does not
-        // implement TaskExecutionGraphListener, which trips isSupportedListener checks.
-        TaskExecutionGraphListener listener = graph -> decoratedClosure.call(graph);
+        // implement TaskExecutionGraphListener, which trips isSupportedListener checks. Match the
+        // dispatch behavior of ClosureBackedMethodInvocationDispatch: a 0-arg closure (`{ -> ... }`)
+        // is called with no args; a 1+-arg closure receives the graph.
+        TaskExecutionGraphListener listener = graph -> {
+            if (decoratedClosure.getMaximumNumberOfParameters() == 0) {
+                decoratedClosure.call();
+            } else {
+                decoratedClosure.call(graph);
+            }
+        };
         notifyListenerRegistration("TaskExecutionGraph.whenReady", listener);
         graphListeners.add(listener);
     }
