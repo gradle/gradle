@@ -70,6 +70,52 @@ vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 ### Configuration Cache improvements
 Gradle provides a [Configuration Cache](userguide/configuration_cache.html) that improves build time by caching the result of the configuration phase and reusing it for subsequent builds.
 
+#### Improved hit rates for project properties set via system properties and environment variables
+
+[Project properties](userguide/build_environment.html#sec:project_properties) can be supplied not only on the command line with `-P` or in `gradle.properties` files, but also through `org.gradle.project.<name>` system properties and `ORG_GRADLE_PROJECT_<name>` environment variables.
+Previously, changing any such system property or environment variable invalidated the [Configuration Cache](userguide/configuration_cache.html), even if the affected project property was never used during the configuration phase.
+
+Consider the following Kotlin DSL example:
+
+```kotlin
+tasks.register("printValue") {
+    val value = providers.gradleProperty("value").orElse("N/A")
+    doLast {
+        println("value: ${value.get()}")
+    }
+}
+```
+
+Previous versions of Gradle were unable to reuse the cache entry when re-running with a different value passed via a system property or environment variable:
+
+```shell
+$ ./gradlew --configuration-cache printValue -Dorg.gradle.project.value=1
+
+Calculating task graph as configuration cache cannot be reused because the set of system properties prefixed by 'org.gradle.project.' has changed: 'org.gradle.project.value' was added.
+
+> Task :printValue
+value: 1
+
+...
+Configuration cache entry stored.
+```
+
+In this release, Gradle detects that the `value` property is never read during the configuration phase and reuses the existing cache entry, regardless of how the property was supplied:
+
+```shell
+$ ./gradlew --configuration-cache printValue -Dorg.gradle.project.value=2
+
+Reusing configuration cache.
+
+> Task :printValue
+value: 2
+
+...
+Configuration cache entry reused.
+```
+
+The same precise tracking now also applies to `ORG_GRADLE_PROJECT_*` environment variables, bringing parity with the improvements introduced for `-P` properties in Gradle 9.1.0 and for `gradle.properties` files in Gradle 9.4.0.
+
 ### Test reporting and execution
 Gradle provides a [set of features and abstractions](userguide/java_testing.html) for testing JVM code, along with test reports to display results.
 
