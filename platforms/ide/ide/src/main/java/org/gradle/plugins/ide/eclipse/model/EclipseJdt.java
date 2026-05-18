@@ -131,18 +131,30 @@ public abstract class EclipseJdt {
      * The name of the Java Runtime to use.
      * <p>
      * For example see docs for {@link EclipseJdt}
+     *
+     * @deprecated Will be removed in Gradle 10.
      */
+    @Deprecated
     public String getJavaRuntimeName() {
         return javaRuntimeName;
     }
 
+    /**
+     * Set Java Runtime name.
+     *
+     * @deprecated Will be removed in Gradle 10.
+     */
+    @Deprecated
     public void setJavaRuntimeName(String javaRuntimeName) {
         this.javaRuntimeName = javaRuntimeName;
     }
 
     /**
      * See {@link #file(Action) }
+     *
+     * @deprecated Will be removed in Gradle 10.
      */
+    @Deprecated
     public PropertiesFileContentMerger getFile() {
         return file;
     }
@@ -156,7 +168,10 @@ public abstract class EclipseJdt {
      * The object passed to withProperties{} closures is of type {@link java.util.Properties}
      * <p>
      * For example see docs for {@link EclipseJdt}
+     *
+     * @deprecated Will be removed in Gradle 10.
      */
+    @Deprecated
     public void file(@DelegatesTo(PropertiesFileContentMerger.class) Closure closure) {
         ConfigureUtil.configure(closure, file);
     }
@@ -172,7 +187,9 @@ public abstract class EclipseJdt {
      * For example see docs for {@link EclipseJdt}
      *
      * @since 3.5
+     * @deprecated Will be removed in Gradle 10.
      */
+    @Deprecated
     public void file(Action<? super PropertiesFileContentMerger> action) {
         action.execute(file);
     }

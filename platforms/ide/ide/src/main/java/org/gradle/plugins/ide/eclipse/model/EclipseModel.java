@@ -73,6 +73,7 @@ public abstract class EclipseModel {
 
     private EclipseJdt jdt;
 
+    @SuppressWarnings("deprecation")
     private EclipseWtp wtp;
 
     private final DefaultTaskDependency synchronizationTasks;
@@ -152,7 +153,10 @@ public abstract class EclipseModel {
      * Configures eclipse wtp information
      * <p>
      * For examples see docs for {@link EclipseWtp}
+     *
+     * @deprecated Will be removed in Gradle 10.
      */
+    @Deprecated
     public EclipseWtp getWtp() {
         if (wtp == null) {
             wtp = getObjectFactory().newInstance(EclipseWtp.class);
@@ -160,6 +164,12 @@ public abstract class EclipseModel {
         return wtp;
     }
 
+    /**
+     * Set {@link EclipseWtp}.
+     *
+     * @deprecated Will be removed in Gradle 10.
+     */
+    @Deprecated
     public void setWtp(EclipseWtp wtp) {
         this.wtp = wtp;
     }
@@ -208,7 +218,10 @@ public abstract class EclipseModel {
      * Configures eclipse wtp information
      * <p>
      * For examples see docs for {@link EclipseWtp}
+     *
+     * @deprecated Will be removed in Gradle 10.
      */
+    @Deprecated
     public void wtp(@DelegatesTo(EclipseWtp.class) Closure closure) {
         configure(closure, wtp);
     }
@@ -219,7 +232,9 @@ public abstract class EclipseModel {
      * For examples see docs for {@link EclipseWtp}
      *
      * @since 3.5
+     * @deprecated Will be removed in Gradle 10.
      */
+    @Deprecated
     public void wtp(Action<? super EclipseWtp> action) {
         action.execute(wtp);
     }

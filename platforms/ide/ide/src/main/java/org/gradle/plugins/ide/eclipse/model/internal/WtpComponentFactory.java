@@ -43,6 +43,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
+@SuppressWarnings("deprecation")
 public class WtpComponentFactory {
     private final ProjectDependencyBuilder projectDependencyBuilder;
     private final ProjectComponentIdentifier currentProjectId;

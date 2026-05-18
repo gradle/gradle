@@ -79,7 +79,10 @@ import static org.gradle.util.internal.ConfigureUtil.configure;
  * }
  *
  * </pre>
+ *
+ * @deprecated Will be removed in Gradle 10.
  */
+@Deprecated
 public abstract class EclipseWtpFacet {
 
     private final XmlFileContentMerger file;

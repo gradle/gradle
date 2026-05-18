@@ -50,6 +50,7 @@ public class WtpClasspathAttributeSupport {
     private final Set<File> rootConfigFiles;
     private final Set<File> libConfigFiles;
 
+    @SuppressWarnings("deprecation")
     public WtpClasspathAttributeSupport(Project project, EclipseModel model) {
         isUtilityProject = !project.getPlugins().hasPlugin(WarPlugin.class) && !project.getPlugins().hasPlugin(EarPlugin.class);
         EclipseWtp eclipseWtp = model.getWtp();

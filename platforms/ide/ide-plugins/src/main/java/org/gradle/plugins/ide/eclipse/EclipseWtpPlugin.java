@@ -100,6 +100,7 @@ public abstract class EclipseWtpPlugin extends IdePlugin {
         configureEclipseClasspath(project, model);
     }
 
+    @SuppressWarnings("deprecation")
     private void configureEclipseClasspath(final Project project, final EclipseModel model) {
         project.getPlugins().withType(JavaPlugin.class, new Action<JavaPlugin>() {
             @Override
