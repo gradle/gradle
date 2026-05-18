@@ -36,6 +36,39 @@ The previous step will help you identify potential problems by issuing deprecati
 . Run `gradle :wrapper --gradle-version {gradleVersion}` to update the project to {gradleVersion}.
 . Try to run the project and debug any errors using the <<troubleshooting.adoc#troubleshooting, Troubleshooting Guide>>.
 
+[[changes_9.7.0]]
+== Upgrading from 9.6.0 and earlier
+
+=== Potential breaking changes
+
+[[kotlin_dsl_impldep_compilation]]
+==== Kotlin DSL scripts can no longer reference relocated internal dependencies
+
+Kotlin DSL build scripts (`.gradle.kts`) are now compiled against a pre-built public API ABI JAR from the Gradle distribution instead of the dynamically generated Gradle API JAR.
+
+As a result, build scripts that import classes from `org.gradle.internal.impldep.*` (Gradle's relocated internal dependencies) will no longer compile.
+These classes were never part of Gradle's public API.
+
+If your build scripts reference `org.gradle.internal.impldep.*` types, replace them with the original library coordinates added as dependencies to your build logic:
+
+[source,kotlin]
+.build.gradle.kts
+----
+// Before (will no longer compile):
+// import org.gradle.internal.impldep.com.google.gson.Gson
+
+// After: add the dependency to buildscript or buildSrc
+buildscript {
+    dependencies {
+        classpath("com.google.gson:gson:2.11.0")
+    }
+}
+// Then import directly:
+// import com.google.gson.Gson
+----
+
+NOTE: This change does not affect plugin projects that depend on `gradleApi()` or `gradleKotlinDsl()`. Those continue to use the full generated Gradle API JAR as before.
+
 [[changes_9.6.0]]
 == Upgrading from 9.5.0 and earlier
 
