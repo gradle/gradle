@@ -146,16 +146,7 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
 
     @Override
     public ClassPath resolveClassPath(Configuration classpathConfiguration, ScriptClassPathResolutionContext resolutionContext) {
-        return doResolveClassPath(classpathConfiguration, resolutionContext, false);
-    }
-
-    @Override
-    public ClassPath resolveInjectedClassPath(Configuration classpathConfiguration, ScriptClassPathResolutionContext resolutionContext) {
         boolean composeWithThirdPartyAgent = agentStatus.isAgentInstrumentationEnabled() && ThirdPartyAgentDetection.isThirdPartyAgentPresent();
-        return doResolveClassPath(classpathConfiguration, resolutionContext, composeWithThirdPartyAgent);
-    }
-
-    private ClassPath doResolveClassPath(Configuration classpathConfiguration, ScriptClassPathResolutionContext resolutionContext, boolean composeWithThirdPartyAgent) {
         // We clear resolution scope from service after the resolution is done, so data is not reused between invocations.
         long contextId = resolutionContext.getContextId();
         CacheInstrumentationDataBuildService buildService = resolutionContext.getBuildService().get();

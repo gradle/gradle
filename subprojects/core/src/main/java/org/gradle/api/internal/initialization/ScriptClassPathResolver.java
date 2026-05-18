@@ -42,13 +42,9 @@ public interface ScriptClassPathResolver {
 
     /**
      * Resolves the prepared configuration to an instrumented classpath suitable for loading buildscript code.
+     * When a third-party Java agent is attached to the build JVM and Gradle's instrumentation agent is
+     * active, the returned classpath composes Gradle's buildscript-classpath instrumentation with the
+     * third-party agent's class-file transformer at class load.
      */
     ClassPath resolveClassPath(Configuration classpath, ScriptClassPathResolutionContext resolutionContext);
-
-    /**
-     * Resolves a TestKit-style injected plugin classpath. When a third-party Java agent is attached to the
-     * build JVM and Gradle's instrumentation agent is active, the returned classpath composes Gradle's
-     * buildscript-classpath instrumentation with the third-party agent's class-file transformer at class load.
-     */
-    ClassPath resolveInjectedClassPath(Configuration classpath, ScriptClassPathResolutionContext resolutionContext);
 }
