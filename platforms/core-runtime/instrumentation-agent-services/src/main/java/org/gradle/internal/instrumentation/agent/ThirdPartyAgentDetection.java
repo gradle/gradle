@@ -20,6 +20,10 @@ import org.gradle.internal.lazy.Lazy;
 
 import java.lang.management.ManagementFactory;
 
+/**
+ * Cached query that reports whether a non-Gradle {@code -javaagent:} switch was passed
+ * to the JVM at startup.
+ */
 public final class ThirdPartyAgentDetection {
 
     private static final Lazy<Boolean> PRESENT = Lazy.locking().of(() ->

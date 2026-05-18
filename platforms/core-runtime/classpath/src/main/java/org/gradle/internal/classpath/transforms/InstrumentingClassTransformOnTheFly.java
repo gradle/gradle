@@ -23,6 +23,11 @@ import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorFilter;
 
 import java.io.IOException;
 
+/**
+ * Runs {@link InstrumentingClassTransform} at class-load time against bytes supplied
+ * by the JVM, so that Gradle's instrumentation composes with any third-party
+ * {@link java.lang.instrument.ClassFileTransformer} that ran earlier.
+ */
 public final class InstrumentingClassTransformOnTheFly implements OnTheFlyClassTransform {
 
     private final ClassTransform inner;

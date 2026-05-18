@@ -18,6 +18,10 @@ package org.gradle.internal.classpath;
 
 import org.jspecify.annotations.NullMarked;
 
+/**
+ * Transforms a single class's bytecode at class-load time, layering on top of bytes
+ * produced by any earlier {@code ClassFileTransformer}.
+ */
 @NullMarked
 public interface OnTheFlyClassTransform {
 

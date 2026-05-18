@@ -19,6 +19,11 @@ package org.gradle.internal.classpath.transforms;
 import org.gradle.api.file.RelativePath;
 import org.gradle.internal.classpath.ClasspathEntryVisitor;
 
+/**
+ * Adapts a (className, bytes) pair to {@link ClasspathEntryVisitor.Entry} so that a
+ * {@link ClassTransform} can be invoked outside of a JAR-walking context, such as at
+ * class-load time.
+ */
 public final class SyntheticClassEntry implements ClasspathEntryVisitor.Entry {
 
     public static SyntheticClassEntry of(String className, byte[] content) {

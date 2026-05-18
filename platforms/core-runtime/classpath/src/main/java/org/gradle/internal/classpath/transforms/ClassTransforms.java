@@ -26,6 +26,10 @@ import org.objectweb.asm.ClassWriter;
 
 import java.io.IOException;
 
+/**
+ * Shared ASM plumbing that runs a {@link ClassTransform} against a single class entry
+ * and returns the resulting path and bytes.
+ */
 public final class ClassTransforms {
 
     private ClassTransforms() {}
