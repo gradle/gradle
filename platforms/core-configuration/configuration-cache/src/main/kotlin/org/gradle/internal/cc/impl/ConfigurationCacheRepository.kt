@@ -32,6 +32,8 @@ import org.gradle.cache.internal.streams.ValueStore
 import org.gradle.cache.scopes.BuildTreeScopedCacheBuilderFactory
 import org.gradle.internal.cc.impl.ConfigurationCacheRepository.ReadableConfigurationCacheStateFile
 import org.gradle.internal.cc.impl.ConfigurationCacheStateStore.StateFile
+import org.gradle.internal.cc.impl.SupersetIndexLookup.CompatibleEntry
+import org.gradle.internal.cc.impl.SupersetIndexLookup.IndexedVariant
 import org.gradle.internal.concurrent.Stoppable
 import org.gradle.internal.extensions.stdlib.toDefaultLowerCase
 import org.gradle.internal.extensions.stdlib.unsafeLazy
@@ -68,7 +70,7 @@ class ConfigurationCacheRepository(
      * Looks up a stored configuration cache entry compatible with [requestedTasks]
      * under [environmentKey], or returns `null` if no compatible entry exists.
      * <p>
-     * Selection is delegated to [SupersetIndex.selectBestMatch]: exact match on the
+     * Selection is delegated to [SupersetIndexLookup.selectBestMatch]: exact match on the
      * deduplicated requested-task list wins; otherwise the smallest strict-superset
      * variant whose stored task list contains the request as a subsequence
      * (relative order preserved) and whose `taskGraphAccessed` flag is `false`.
@@ -139,7 +141,7 @@ class ConfigurationCacheRepository(
      * @param requestedTasks the requested-task list the entry was stored for
      * @param taskGraphAccessed whether user code observed the task graph during
      *     the originating build; `true` excludes the entry from later strict-superset
-     *     matching (see [SupersetIndex.selectBestMatch] rule 2)
+     *     matching (see [SupersetIndexLookup.selectBestMatch] rule 2)
      */
     fun recordEntry(
         environmentKey: ConfigurationCacheEnvironmentKey,
@@ -162,7 +164,7 @@ class ConfigurationCacheRepository(
         variants: List<IndexedVariant>,
         requested: List<String>
     ): IndexedVariant? {
-        val chosen = SupersetIndex.selectBestMatch(variants, requested) ?: return null
+        val chosen = SupersetIndexLookup.selectBestMatch(variants, requested) ?: return null
         val requestedDistinct = requested.distinct()
         val isExact = chosen.requestedTasks == requestedDistinct
         if (isExact) return chosen
@@ -175,7 +177,7 @@ class ConfigurationCacheRepository(
             .filter { v ->
                 !v.taskGraphAccessed &&
                     v.requestedTasks.size == tieSize &&
-                    SupersetIndex.isSubsequence(requestedDistinct, v.requestedTasks)
+                    SupersetIndexLookup.isSubsequence(requestedDistinct, v.requestedTasks)
             }
             .maxByOrNull { fileAccessTimeJournal.getLastAccessTime(dirForEntry(it.fullKey)) }
             ?: chosen

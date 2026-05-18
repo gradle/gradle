@@ -39,7 +39,7 @@ import java.io.File
  * [ConfigurationCacheKey] identifies one specific stored entry, this class
  * identifies the group of entries that *could* superset-share — entries with
  * the same environment key but different requested-task lists are the
- * candidate variants the `SupersetIndex` filters between.
+ * candidate variants the `SupersetIndexLookup` filters between.
  * <p>
  * Excluded task names belong to the environment, not the requested-tasks
  * delta: a `-x` difference forces exact-match scope, so the index never has

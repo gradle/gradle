@@ -18,36 +18,32 @@ package org.gradle.internal.cc.impl
 
 
 /**
- * One row in the superset index: a stored configuration cache entry's full
- * key, the task list it was stored for, and whether user code observed the
- * task graph during the original build (`true` → exact-match-only at lookup).
+ * Pure selection logic for the superset index. No I/O — see [SupersetIndexFile] for persistence.
  */
 internal
-data class IndexedVariant(
-    val fullKey: String,
-    val requestedTasks: List<String>,
-    val taskGraphAccessed: Boolean = false
-)
+object SupersetIndexLookup {
 
+    /**
+     * One row in the superset index: a stored configuration cache entry's full
+     * key, the task list it was stored for, and whether user code observed the
+     * task graph during the original build (`true` → exact-match-only at lookup).
+     */
+    data class IndexedVariant(
+        val fullKey: String,
+        val requestedTasks: List<String>,
+        val taskGraphAccessed: Boolean = false
+    )
 
-/**
- * Result of a successful superset-index lookup. Carries the chosen entry's
- * full key (used to locate the entry directory) and the task list that entry
- * was originally stored for (so the caller can compute which loaded tasks
- * to prune relative to the current request).
- */
-internal
-data class CompatibleEntry(
-    val fullKey: String,
-    val storedRequestedTasks: List<String>
-)
-
-
-/**
- * Pure selection logic for the superset index. No I/O — see `SupersetIndexFile` for persistence.
- */
-internal
-object SupersetIndex {
+    /**
+     * Result of a successful superset-index lookup. Carries the chosen entry's
+     * full key (used to locate the entry directory) and the task list that entry
+     * was originally stored for (so the caller can compute which loaded tasks
+     * to prune relative to the current request).
+     */
+    data class CompatibleEntry(
+        val fullKey: String,
+        val storedRequestedTasks: List<String>
+    )
 
     /**
      * Picks the best variant for [requested], or null if no compatible variant exists.
@@ -98,7 +94,7 @@ object SupersetIndex {
 
 
 /**
- * Persistence for [IndexedVariant] lists. Binary file format:
+ * Persistence for [SupersetIndexLookup.IndexedVariant] lists. Binary file format:
  *   magic: 4 bytes ("CCSI" = Configuration Cache Superset Index)
  *   formatVersion: int
  *   count: int
@@ -113,7 +109,7 @@ object SupersetIndex {
 internal
 class SupersetIndexFile(private val file: java.io.File) {
 
-    fun read(): List<IndexedVariant> {
+    fun read(): List<SupersetIndexLookup.IndexedVariant> {
         if (!file.isFile) return emptyList()
         try {
             java.io.DataInputStream(file.inputStream().buffered()).use { input ->
@@ -127,7 +123,7 @@ class SupersetIndexFile(private val file: java.io.File) {
                     val taskCount = input.readInt()
                     val tasks = (0 until taskCount).map { input.readUTF() }
                     val accessed = input.readBoolean()
-                    IndexedVariant(fullKey, tasks, accessed)
+                    SupersetIndexLookup.IndexedVariant(fullKey, tasks, accessed)
                 }
             }
         } catch (_: java.io.IOException) {
@@ -136,7 +132,7 @@ class SupersetIndexFile(private val file: java.io.File) {
         }
     }
 
-    fun write(variants: List<IndexedVariant>) {
+    fun write(variants: List<SupersetIndexLookup.IndexedVariant>) {
         file.parentFile?.let { java.nio.file.Files.createDirectories(it.toPath()) }
         java.io.DataOutputStream(file.outputStream().buffered()).use { out ->
             out.write(MAGIC)

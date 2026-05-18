@@ -16,13 +16,14 @@
 
 package org.gradle.internal.cc.impl
 
+import org.gradle.internal.cc.impl.SupersetIndexLookup.IndexedVariant
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
 
 
 /**
- * Unit tests for [SupersetIndex] selection logic and [SupersetIndexFile] persistence.
+ * Unit tests for [SupersetIndexLookup] selection logic and [SupersetIndexFile] persistence.
  */
 class SupersetIndexTest {
 
@@ -32,7 +33,7 @@ class SupersetIndexTest {
             IndexedVariant("v1", listOf("a")),
             IndexedVariant("v2", listOf("a", "b", "c"))
         )
-        val chosen = SupersetIndex.selectBestMatch(variants, requested = listOf("a"))
+        val chosen = SupersetIndexLookup.selectBestMatch(variants, requested = listOf("a"))
         assertEquals("v1", chosen?.fullKey)
     }
 
@@ -42,7 +43,7 @@ class SupersetIndexTest {
             IndexedVariant("big", listOf("a", "b", "c", "d")),
             IndexedVariant("small", listOf("a", "b"))
         )
-        val chosen = SupersetIndex.selectBestMatch(variants, requested = listOf("a"))
+        val chosen = SupersetIndexLookup.selectBestMatch(variants, requested = listOf("a"))
         assertEquals("small", chosen?.fullKey)
     }
 
@@ -51,16 +52,16 @@ class SupersetIndexTest {
         val variants = listOf(
             IndexedVariant("v1", listOf("x", "y"))
         )
-        assertNull(SupersetIndex.selectBestMatch(variants, requested = listOf("a")))
+        assertNull(SupersetIndexLookup.selectBestMatch(variants, requested = listOf("a")))
     }
 
     @Test
     fun `flagged variant is exact-match only`() {
         val flagged = IndexedVariant("flagged", listOf("a", "b", "c"), taskGraphAccessed = true)
         // Superset request: flagged should be excluded.
-        assertNull(SupersetIndex.selectBestMatch(listOf(flagged), requested = listOf("a")))
+        assertNull(SupersetIndexLookup.selectBestMatch(listOf(flagged), requested = listOf("a")))
         // Exact request: flagged should match.
-        val chosen = SupersetIndex.selectBestMatch(listOf(flagged), requested = listOf("a", "b", "c"))
+        val chosen = SupersetIndexLookup.selectBestMatch(listOf(flagged), requested = listOf("a", "b", "c"))
         assertEquals("flagged", chosen?.fullKey)
     }
 
@@ -70,7 +71,7 @@ class SupersetIndexTest {
             IndexedVariant("v1", listOf("c", "a", "b"))
         )
         // [a, a, b] dedupes to [a, b], which is a subsequence of [c, a, b].
-        val chosen = SupersetIndex.selectBestMatch(variants, requested = listOf("a", "a", "b"))
+        val chosen = SupersetIndexLookup.selectBestMatch(variants, requested = listOf("a", "a", "b"))
         assertEquals("v1", chosen?.fullKey)
     }
 
@@ -82,7 +83,7 @@ class SupersetIndexTest {
         val variants = listOf(
             IndexedVariant("v1", listOf("a", "b"))
         )
-        assertNull(SupersetIndex.selectBestMatch(variants, requested = listOf("b", "a")))
+        assertNull(SupersetIndexLookup.selectBestMatch(variants, requested = listOf("b", "a")))
     }
 
     @Test
@@ -91,14 +92,14 @@ class SupersetIndexTest {
             IndexedVariant("v1", listOf("a", "b", "c"))
         )
         // [a, c] preserves relative order from [a, b, c] — match.
-        assertEquals("v1", SupersetIndex.selectBestMatch(variants, requested = listOf("a", "c"))?.fullKey)
+        assertEquals("v1", SupersetIndexLookup.selectBestMatch(variants, requested = listOf("a", "c"))?.fullKey)
         // [c, a] reverses order — miss.
-        assertNull(SupersetIndex.selectBestMatch(variants, requested = listOf("c", "a")))
+        assertNull(SupersetIndexLookup.selectBestMatch(variants, requested = listOf("c", "a")))
     }
 
     @Test
     fun `empty variant list returns null`() {
-        assertNull(SupersetIndex.selectBestMatch(emptyList(), requested = listOf("a")))
+        assertNull(SupersetIndexLookup.selectBestMatch(emptyList(), requested = listOf("a")))
     }
 
     @Test

@@ -46,6 +46,7 @@ import org.gradle.internal.cc.impl.ConfigurationCacheAction.Load
 import org.gradle.internal.cc.impl.ConfigurationCacheAction.SkipStore
 import org.gradle.internal.cc.impl.ConfigurationCacheAction.Store
 import org.gradle.internal.cc.impl.ConfigurationCacheAction.Update
+import org.gradle.internal.cc.impl.SupersetIndexLookup.CompatibleEntry
 import org.gradle.internal.cc.impl.extensions.withMostRecentEntry
 import org.gradle.internal.cc.impl.fingerprint.ClassLoaderScopesFingerprintController
 import org.gradle.internal.cc.impl.fingerprint.ConfigurationCacheFingerprintController
@@ -131,7 +132,7 @@ class DefaultConfigurationCache internal constructor(
     /**
      * The compatible stored cache entry chosen for this build (exact or strict-superset
      * match), or `null` if none was found and we'll cold-store at [cacheKey]. Evaluated
-     * once and reused — the [SupersetIndex] lookup acquires the cache file lock.
+     * once and reused — the [SupersetIndexLookup] acquires the cache file lock.
      */
     private
     val compatibleEntry: CompatibleEntry? by lazy {

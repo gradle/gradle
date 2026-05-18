@@ -40,7 +40,7 @@ import org.gradle.internal.service.scopes.ServiceScope
  * appends [ConfigurationCacheStartParameter.requestedTaskNames] when
  * [BuildActionModelRequirements.isRunsTasks] is true. Two builds whose
  * environment keys agree but whose `ConfigurationCacheKey`s differ are
- * candidates for superset matching (see `SupersetIndex`).
+ * candidates for superset matching (see `SupersetIndexLookup`).
  */
 @ServiceScope(Scope.BuildTree::class)
 internal
