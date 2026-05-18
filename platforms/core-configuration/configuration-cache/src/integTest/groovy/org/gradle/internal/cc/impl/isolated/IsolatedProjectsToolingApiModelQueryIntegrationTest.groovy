@@ -109,7 +109,7 @@ class IsolatedProjectsToolingApiModelQueryIntegrationTest extends AbstractIsolat
 
         and:
         fixture.assertModelStored {
-            projectConfigured(":buildSrc")
+            projectsConfigured(":buildSrc", ":", ":a", ":b")
             modelsCreated(":")
         }
         outputContains("creating model for root project 'root'")
@@ -124,6 +124,25 @@ class IsolatedProjectsToolingApiModelQueryIntegrationTest extends AbstractIsolat
         and: "the full build action result is replayed from the Configuration Cache entry"
         fixture.assertModelLoaded()
         outputDoesNotContain("creating model")
+    }
+
+    def "diagnostics mode configures all projects, ignoring configure-on-demand"() {
+        given:
+        withSomeToolingModelBuilderPluginInBuildSrc()
+        includeProjects("a", "b")
+        buildFile << """
+            plugins.apply(my.MyPlugin)
+        """
+
+        when: "configure-on-demand=tooling is set by the base fixture, but diagnostics must override it"
+        withIsolatedProjectsDiagnostics()
+        fetchModel()
+
+        then: "every project is configured even though only :'s model is fetched"
+        fixture.assertModelStored {
+            projectsConfigured(":buildSrc", ":", ":a", ":b")
+            modelsCreated(":")
+        }
     }
 
     def "diagnostics mode disables per-project model reuse"() {
@@ -143,7 +162,7 @@ class IsolatedProjectsToolingApiModelQueryIntegrationTest extends AbstractIsolat
 
         and:
         fixture.assertModelStored {
-            projectConfigured(":buildSrc")
+            projectsConfigured(":buildSrc", ":", ":a", ":b")
             modelsCreated(":")
         }
         outputContains("creating model for root project 'root'")
@@ -161,7 +180,7 @@ class IsolatedProjectsToolingApiModelQueryIntegrationTest extends AbstractIsolat
 
         and: "without diagnostics, :buildSrc model would be reused; with diagnostics it is not"
         fixture.assertModelStored {
-            projectConfigured(":buildSrc")
+            projectsConfigured(":buildSrc", ":", ":a", ":b")
             modelsCreated(":")
         }
         outputContains("creating model for root project 'root'")

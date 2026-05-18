@@ -380,6 +380,7 @@ class BuildModelParametersProviderTest extends Specification {
             setConfigurationCacheParallel(true)
             systemPropertiesArgs[BuildModelParametersProvider.isolatedProjectsParallel.propertyName] = "true"
             systemPropertiesArgs[BuildModelParametersProvider.isolatedProjectsCaching.propertyName] = "tooling"
+            systemPropertiesArgs[BuildModelParametersProvider.isolatedProjectsConfigureOnDemand.propertyName] = "true"
         }
 
         expect:
@@ -389,6 +390,7 @@ class BuildModelParametersProviderTest extends Specification {
             configurationCacheParallelStore: false,
             parallelProjectConfiguration: false,
             parallelModelBuilding: false,
+            configureOnDemand: false,
             modelBuilding: models,
             cachingModelBuilding: false,
             modelAsProjectDependency: models,

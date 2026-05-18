@@ -199,7 +199,8 @@ object BuildModelParametersProvider {
         validateIsolatedProjectsCachingOption(options)
 
         val diagnostics = startParameter.isIsolatedProjectsDiagnostics
-        val configureOnDemand = isolatedProjectsConfigureOnDemand.forInvocation(requirements, options)
+        // In Diagnostics mode, configure all projects to surface all possible violations.
+        val configureOnDemand = !diagnostics && isolatedProjectsConfigureOnDemand.forInvocation(requirements, options)
         // In Diagnostics mode, run sequentially so all violations can be collected deterministically.
         val parallelIsolatedProjects = !diagnostics && isolatedProjectsParallel.forInvocation(requirements, options)
         val parallelConfigurationCacheStore = parallelIsolatedProjects && options[configurationCacheParallelStore]

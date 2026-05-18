@@ -481,6 +481,7 @@ Compared to normal Isolated Projects, Diagnostics mode disables several optimiza
 * Project configuration runs *sequentially* instead of in parallel.
 * Configuration Cache store runs *sequentially*.
 * Per-project model reuse across builds is *disabled*, so every model is rebuilt after an input change.
+* All projects are configured, ignoring any configure-on-demand setting.
 
 These trade-offs make Diagnostics mode to be unsuitable for day-to-day operations.
 Use it only to enumerate violations, such as during the migration, or to compare against the default Isolated Projects path when investigating a discrepancy.
