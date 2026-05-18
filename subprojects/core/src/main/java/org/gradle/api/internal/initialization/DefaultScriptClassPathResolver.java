@@ -41,9 +41,9 @@ import org.gradle.api.internal.initialization.transform.utils.InstrumentationCla
 import org.gradle.api.internal.initialization.transform.utils.InstrumentationClasspathMerger.FileType;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.internal.classpath.ClassPath;
-import org.gradle.internal.classpath.OnTheFlyClassTransform;
+import org.gradle.internal.classpath.ClassLoadTimeTransform;
 import org.gradle.internal.classpath.TransformedClassPath;
-import org.gradle.internal.classpath.transforms.InstrumentingClassTransformOnTheFly;
+import org.gradle.internal.classpath.transforms.InstrumentingClassLoadTimeTransform;
 import org.gradle.internal.classpath.types.InstrumentationTypeRegistry;
 import org.gradle.internal.component.local.model.OpaqueComponentIdentifier;
 import org.gradle.internal.instrumentation.agent.AgentStatus;
@@ -176,11 +176,11 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
             ClassPath classPath = TransformedClassPath.handleInstrumentingArtifactTransform(instrumentedClasspath.getOrDefault(ARTIFACT, Collections.emptyList()));
             if (composeWithThirdPartyAgent && classPath instanceof TransformedClassPath) {
                 InstrumentationTypeRegistry registry = buildService.getInstrumentationTypeRegistry(contextId);
-                OnTheFlyClassTransform onTheFly = new InstrumentingClassTransformOnTheFly(
+                ClassLoadTimeTransform classLoadTimeTransform = new InstrumentingClassLoadTimeTransform(
                     BytecodeInterceptorFilter.INSTRUMENTATION_AND_BYTECODE_UPGRADE,
                     registry
                 );
-                return ((TransformedClassPath) classPath).withOnTheFly(onTheFly);
+                return ((TransformedClassPath) classPath).withClassLoadTimeTransform(classLoadTimeTransform);
             }
             return classPath;
         }

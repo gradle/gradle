@@ -102,13 +102,13 @@ public class TransformedClassPath implements ClassPath {
     // mapping of original -> "double"
     private final ImmutableMap<File, File> transforms;
     @Nullable
-    private final OnTheFlyClassTransform onTheFly;
+    private final ClassLoadTimeTransform classLoadTimeTransform;
 
-    private TransformedClassPath(ClassPath originalClassPath, Map<File, File> transforms, @Nullable OnTheFlyClassTransform onTheFly) {
+    private TransformedClassPath(ClassPath originalClassPath, Map<File, File> transforms, @Nullable ClassLoadTimeTransform classLoadTimeTransform) {
         assert !(originalClassPath instanceof TransformedClassPath);
         this.originalClassPath = originalClassPath;
         this.transforms = ImmutableMap.copyOf(transforms);
-        this.onTheFly = onTheFly;
+        this.classLoadTimeTransform = classLoadTimeTransform;
     }
 
     private static TransformedClassPath of(ClassPath originalClassPath, Map<File, File> transforms) {
@@ -116,22 +116,22 @@ public class TransformedClassPath implements ClassPath {
     }
 
     /**
-     * Returns the on-the-fly class transformer associated with this classpath, or {@code null} if classes loaded from
+     * Returns the class-load-time transform associated with this classpath, or {@code null} if classes loaded from
      * this classpath should be substituted with the cached pre-rewritten "doubles" instead.
      */
     @Nullable
-    public OnTheFlyClassTransform getOnTheFly() {
-        return onTheFly;
+    public ClassLoadTimeTransform getClassLoadTimeTransform() {
+        return classLoadTimeTransform;
     }
 
     /**
-     * Returns a copy of this classpath that carries the given on-the-fly class transformer.
+     * Returns a copy of this classpath that carries the given class-load-time transform.
      * Classes loaded from this classpath will be transformed at class load by composing
      * with any third-party {@link java.lang.instrument.ClassFileTransformer} registered before
      * Gradle's transformer.
      */
-    public TransformedClassPath withOnTheFly(OnTheFlyClassTransform onTheFly) {
-        return new TransformedClassPath(originalClassPath, transforms, onTheFly);
+    public TransformedClassPath withClassLoadTimeTransform(ClassLoadTimeTransform classLoadTimeTransform) {
+        return new TransformedClassPath(originalClassPath, transforms, classLoadTimeTransform);
     }
 
     @Override
@@ -226,11 +226,11 @@ public class TransformedClassPath implements ClassPath {
             }
         }
 
-        // Receiver wins on the on-the-fly transformer, matching the receiver-wins rule for the transforms map.
-        OnTheFlyClassTransform mergedOnTheFly = onTheFly != null ? onTheFly : classPath.onTheFly;
+        // Receiver wins on the class-load-time transform, matching the receiver-wins rule for the transforms map.
+        ClassLoadTimeTransform mergedClassLoadTimeTransform = classLoadTimeTransform != null ? classLoadTimeTransform : classPath.classLoadTimeTransform;
 
         // In the end, at most one instance of a transformed entry should be recorded for any given file.
-        return new TransformedClassPath(mergedOriginals, mergedTransforms.buildOrThrow(), mergedOnTheFly);
+        return new TransformedClassPath(mergedOriginals, mergedTransforms.buildOrThrow(), mergedClassLoadTimeTransform);
     }
 
     /**
@@ -240,7 +240,7 @@ public class TransformedClassPath implements ClassPath {
      */
     @Override
     public TransformedClassPath plus(Collection<File> classPath) {
-        return new TransformedClassPath(originalClassPath.plus(classPath), transforms, onTheFly);
+        return new TransformedClassPath(originalClassPath.plus(classPath), transforms, classLoadTimeTransform);
     }
 
     /**
@@ -253,7 +253,7 @@ public class TransformedClassPath implements ClassPath {
         if (classPath instanceof TransformedClassPath) {
             return plusWithTransforms((TransformedClassPath) classPath);
         }
-        return new TransformedClassPath(originalClassPath.plus(classPath), transforms, onTheFly);
+        return new TransformedClassPath(originalClassPath.plus(classPath), transforms, classLoadTimeTransform);
     }
 
     /**
@@ -271,7 +271,7 @@ public class TransformedClassPath implements ClassPath {
                 remainingTransforms.put(remainingEntry);
             }
         }
-        return new TransformedClassPath(filteredClassPath, remainingTransforms.build(), onTheFly);
+        return new TransformedClassPath(filteredClassPath, remainingTransforms.build(), classLoadTimeTransform);
     }
 
     /**
@@ -287,7 +287,7 @@ public class TransformedClassPath implements ClassPath {
 
     @Override
     public int hashCode() {
-        return originalClassPath.hashCode() + transforms.hashCode() + (onTheFly == null ? 0 : onTheFly.hashCode());
+        return originalClassPath.hashCode() + transforms.hashCode() + (classLoadTimeTransform == null ? 0 : classLoadTimeTransform.hashCode());
     }
 
     @Override
@@ -301,7 +301,7 @@ public class TransformedClassPath implements ClassPath {
         TransformedClassPath other = (TransformedClassPath) obj;
         return originalClassPath.equals(other.originalClassPath)
             && transforms.equals(other.transforms)
-            && Objects.equals(onTheFly, other.onTheFly);
+            && Objects.equals(classLoadTimeTransform, other.classLoadTimeTransform);
     }
 
     @Override

@@ -17,7 +17,7 @@
 package org.gradle.internal.classpath.transforms;
 
 import org.gradle.internal.UncheckedException;
-import org.gradle.internal.classpath.OnTheFlyClassTransform;
+import org.gradle.internal.classpath.ClassLoadTimeTransform;
 import org.gradle.internal.classpath.types.InstrumentationTypeRegistry;
 import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorFilter;
 
@@ -28,11 +28,11 @@ import java.io.IOException;
  * by the JVM, so that Gradle's instrumentation composes with any third-party
  * {@link java.lang.instrument.ClassFileTransformer} that ran earlier.
  */
-public final class InstrumentingClassTransformOnTheFly implements OnTheFlyClassTransform {
+public final class InstrumentingClassLoadTimeTransform implements ClassLoadTimeTransform {
 
     private final ClassTransform inner;
 
-    public InstrumentingClassTransformOnTheFly(BytecodeInterceptorFilter filter, InstrumentationTypeRegistry typeRegistry) {
+    public InstrumentingClassLoadTimeTransform(BytecodeInterceptorFilter filter, InstrumentationTypeRegistry typeRegistry) {
         this.inner = new InstrumentingClassTransform(filter, typeRegistry);
     }
 

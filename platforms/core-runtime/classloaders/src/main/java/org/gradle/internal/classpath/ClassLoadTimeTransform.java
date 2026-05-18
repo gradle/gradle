@@ -23,7 +23,7 @@ import org.jspecify.annotations.NullMarked;
  * produced by any earlier {@code ClassFileTransformer}.
  */
 @NullMarked
-public interface OnTheFlyClassTransform {
+public interface ClassLoadTimeTransform {
 
     byte[] transform(String className, byte[] classfileBuffer);
 }

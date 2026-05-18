@@ -20,7 +20,7 @@ import org.apache.commons.io.IOUtils;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
 import org.gradle.internal.classpath.ClassPath;
-import org.gradle.internal.classpath.OnTheFlyClassTransform;
+import org.gradle.internal.classpath.ClassLoadTimeTransform;
 import org.gradle.internal.classpath.TransformedClassPath;
 import org.jspecify.annotations.Nullable;
 
@@ -166,19 +166,19 @@ public class VisitableURLClassLoader extends URLClassLoader implements ClassLoad
         private final TransformReplacer replacer;
         private final TransformErrorHandler errorHandler;
         @Nullable
-        private final OnTheFlyClassTransform onTheFly;
+        private final ClassLoadTimeTransform classLoadTimeTransform;
 
         public InstrumentingVisitableURLClassLoader(String name, ClassLoader parent, TransformedClassPath classPath) {
             super(name, parent, classPath);
             replacer = new TransformReplacer(classPath);
             errorHandler = new TransformErrorHandler(name);
-            onTheFly = classPath.getOnTheFly();
+            classLoadTimeTransform = classPath.getClassLoadTimeTransform();
         }
 
         @Override
         public byte @Nullable [] instrumentClass(@Nullable String className, @Nullable ProtectionDomain protectionDomain, byte[] classfileBuffer) {
-            if (onTheFly != null && className != null) {
-                return onTheFly.transform(className, classfileBuffer);
+            if (classLoadTimeTransform != null && className != null) {
+                return classLoadTimeTransform.transform(className, classfileBuffer);
             }
             return replacer.getInstrumentedClass(className, protectionDomain);
         }
