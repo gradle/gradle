@@ -213,7 +213,7 @@ object BuildModelParametersProvider {
                 configureOnDemand = configureOnDemand,
                 configurationCacheParallelStore = parallelConfigurationCacheStore,
                 parallelProjectConfiguration = parallelIsolatedProjects,
-                cachingModelBuilding = options[isolatedProjectsCaching].buildingModels,
+                cachingModelBuilding = !diagnostics && options[isolatedProjectsCaching].buildingModels,
                 parallelModelBuilding = parallelIsolatedProjects,
                 invalidateCoupledProjects = invalidateCoupledProjects,
                 modelAsProjectDependency = options[modelProjectDependencies],

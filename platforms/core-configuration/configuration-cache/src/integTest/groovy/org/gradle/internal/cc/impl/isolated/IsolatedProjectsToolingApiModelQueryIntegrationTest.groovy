@@ -92,6 +92,81 @@ class IsolatedProjectsToolingApiModelQueryIntegrationTest extends AbstractIsolat
         fixture.assertModelLoaded()
     }
 
+    def "diagnostics mode still allows top-level build action caching"() {
+        given:
+        withSomeToolingModelBuilderPluginInBuildSrc()
+        includeProjects("a", "b")
+        buildFile << """
+            plugins.apply(my.MyPlugin)
+        """
+
+        when:
+        withIsolatedProjectsDiagnostics()
+        def model = fetchModel()
+
+        then:
+        model.message == "It works from project :"
+
+        and:
+        fixture.assertModelStored {
+            projectConfigured(":buildSrc")
+            modelsCreated(":")
+        }
+        outputContains("creating model for root project 'root'")
+
+        when: "repeating an identical request"
+        withIsolatedProjectsDiagnostics()
+        def model2 = fetchModel()
+
+        then:
+        model2.message == "It works from project :"
+
+        and: "the full build action result is replayed from the Configuration Cache entry"
+        fixture.assertModelLoaded()
+        outputDoesNotContain("creating model")
+    }
+
+    def "diagnostics mode disables per-project model reuse"() {
+        given:
+        withSomeToolingModelBuilderPluginInBuildSrc()
+        includeProjects("a", "b")
+        buildFile << """
+            plugins.apply(my.MyPlugin)
+        """
+
+        when:
+        withIsolatedProjectsDiagnostics()
+        def model = fetchModel()
+
+        then:
+        model.message == "It works from project :"
+
+        and:
+        fixture.assertModelStored {
+            projectConfigured(":buildSrc")
+            modelsCreated(":")
+        }
+        outputContains("creating model for root project 'root'")
+
+        when: "invalidating CC by modifying the build script"
+        buildFile << """
+            myExtension.message = 'this is the root project'
+        """
+
+        withIsolatedProjectsDiagnostics()
+        def model2 = fetchModel()
+
+        then:
+        model2.message == "this is the root project"
+
+        and: "without diagnostics, :buildSrc model would be reused; with diagnostics it is not"
+        fixture.assertModelStored {
+            projectConfigured(":buildSrc")
+            modelsCreated(":")
+        }
+        outputContains("creating model for root project 'root'")
+    }
+
     @ToBeImplemented("when Isolated Projects becomes incremental for task execution")
     def "can cache models with tasks"() {
         given:

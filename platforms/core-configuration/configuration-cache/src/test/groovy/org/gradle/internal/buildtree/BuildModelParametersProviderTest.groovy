@@ -390,7 +390,7 @@ class BuildModelParametersProviderTest extends Specification {
             parallelProjectConfiguration: false,
             parallelModelBuilding: false,
             modelBuilding: models,
-            cachingModelBuilding: models,
+            cachingModelBuilding: false,
             modelAsProjectDependency: models,
         ])
 
