@@ -136,23 +136,23 @@ class ConfigurationCacheKeyTest {
     fun cacheKeyStringFromStartParameter(configure: StartParameterInternal.() -> Unit): String {
         val startParameter = StartParameterInternal().apply(configure)
         val internalOptions = DefaultInternalOptions(mapOf())
-        return ConfigurationCacheKey(
-            ConfigurationCacheStartParameter(
-                BuildTreeLocations(BuildLayout(file("root"), null, DefaultScriptFileResolver())),
-                startParameter,
-                internalOptions,
-                BuildModelParametersProvider.parameters(RunTasksRequirements(startParameter), internalOptions),
-            ),
-            RunTasksRequirements(startParameter),
-            object : EncryptionConfiguration {
-                override val encryptionKeyHashCode: HashCode
-                    get() = Hashing.newHasher().hash()
-                override val isEncrypting: Boolean
-                    get() = false
-                override val encryptionAlgorithm: EncryptionAlgorithm
-                    get() = SupportedEncryptionAlgorithm.getDefault()
-            }
-        ).string
+        val ccStartParameter = ConfigurationCacheStartParameter(
+            BuildTreeLocations(BuildLayout(file("root"), null, DefaultScriptFileResolver())),
+            startParameter,
+            internalOptions,
+            BuildModelParametersProvider.parameters(RunTasksRequirements(startParameter), internalOptions),
+        )
+        val requirements = RunTasksRequirements(startParameter)
+        val encryptionConfiguration = object : EncryptionConfiguration {
+            override val encryptionKeyHashCode: HashCode
+                get() = Hashing.newHasher().hash()
+            override val isEncrypting: Boolean
+                get() = false
+            override val encryptionAlgorithm: EncryptionAlgorithm
+                get() = SupportedEncryptionAlgorithm.getDefault()
+        }
+        val environmentKey = ConfigurationCacheEnvironmentKey(ccStartParameter, requirements, encryptionConfiguration)
+        return ConfigurationCacheKey(environmentKey, ccStartParameter, requirements).string
     }
 
     private

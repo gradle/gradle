@@ -66,6 +66,9 @@ class ConfigurationCacheEnvironmentKey(
         }.hash().toCompactString()
     }
 
+    /** Append env-key components to [hasher]. Only [ConfigurationCacheKey] should call this; downstream consumers use [string]. */
+    internal fun appendComponents(hasher: Hasher) = hasher.putEnvironmentComponents()
+
     override fun toString() = string
 
     override fun hashCode(): Int = string.hashCode()

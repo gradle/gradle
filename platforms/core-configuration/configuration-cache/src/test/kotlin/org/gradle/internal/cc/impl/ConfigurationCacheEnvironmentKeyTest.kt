@@ -108,7 +108,8 @@ class ConfigurationCacheEnvironmentKeyTest {
     private
     fun fullKeyStringFromStartParameter(configure: StartParameterInternal.() -> Unit): String =
         keyStringFromStartParameter(configure) { sp, reqs, enc ->
-            ConfigurationCacheKey(sp, reqs, enc).string
+            val envKey = ConfigurationCacheEnvironmentKey(sp, reqs, enc)
+            ConfigurationCacheKey(envKey, sp, reqs).string
         }
 
     private
