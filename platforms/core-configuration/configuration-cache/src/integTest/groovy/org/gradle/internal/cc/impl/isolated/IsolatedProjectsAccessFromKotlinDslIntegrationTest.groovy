@@ -38,7 +38,7 @@ class IsolatedProjectsAccessFromKotlinDslIntegrationTest extends AbstractIsolate
         """
 
         when:
-        isolatedProjectsFails("assemble")
+        isolatedProjectsDiagnosticsFails("assemble")
 
         then:
         fixture.assertStateStoredAndDiscarded {
@@ -68,7 +68,7 @@ class IsolatedProjectsAccessFromKotlinDslIntegrationTest extends AbstractIsolate
         """
 
         when:
-        isolatedProjectsFails("assemble")
+        isolatedProjectsDiagnosticsFails("assemble")
 
         then:
         fixture.assertStateStoredAndDiscarded {
@@ -96,7 +96,7 @@ class IsolatedProjectsAccessFromKotlinDslIntegrationTest extends AbstractIsolate
 
         when:
         // TODO:isolated expected behavior for incremental configuration
-//        isolatedProjectsFails(":a:help")
+//        isolatedProjectsDiagnosticsFails(":a:help")
         isolatedProjectsRun(":a:help")
 
         then:
@@ -128,7 +128,7 @@ class IsolatedProjectsAccessFromKotlinDslIntegrationTest extends AbstractIsolate
         """
 
         when:
-        isolatedProjectsFails(":a:help", ":b:help")
+        isolatedProjectsDiagnosticsFails(":a:help", ":b:help")
 
         then:
         fixture.assertStateStoredAndDiscarded {

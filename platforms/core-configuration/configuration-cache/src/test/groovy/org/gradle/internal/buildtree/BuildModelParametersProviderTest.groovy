@@ -39,6 +39,7 @@ class BuildModelParametersProviderTest extends Specification {
             configurationCacheParallelLoad: false,
 
             isolatedProjects: false,
+            isolatedProjectsDiagnostics: false,
             parallelProjectConfiguration: false,
             invalidateCoupledProjects: false,
             modelAsProjectDependency: false,
@@ -365,6 +366,39 @@ class BuildModelParametersProviderTest extends Specification {
         true  | true   | "tasks"    | false
         true  | true   | "tooling"  | false
         true  | true   | "false"    | false
+
+        description = tasks && models ? "running tasks and building models" : (tasks ? 'running tasks' : 'building models')
+    }
+
+    def "parameters when isolated projects diagnostics are enabled for #description"() {
+        given:
+        def params = parameters(runsTasks: tasks, createsModel: models) {
+            isolatedProjects = Option.Value.value(true)
+            setIsolatedProjectsDiagnostics(true)
+
+            // In diagnostics mode these knobs are ignored
+            setConfigurationCacheParallel(true)
+            systemPropertiesArgs[BuildModelParametersProvider.isolatedProjectsParallel.propertyName] = "true"
+            systemPropertiesArgs[BuildModelParametersProvider.isolatedProjectsCaching.propertyName] = "tooling"
+        }
+
+        expect:
+        checkParameters(params.toDisplayMap(), isolatedProjectsDefaults() + [
+            isolatedProjectsDiagnostics: true,
+            parallelProjectExecution: false,
+            configurationCacheParallelStore: false,
+            parallelProjectConfiguration: false,
+            parallelModelBuilding: false,
+            modelBuilding: models,
+            cachingModelBuilding: models,
+            modelAsProjectDependency: models,
+        ])
+
+        where:
+        tasks | models
+        true  | false
+        false | true
+        true  | true
 
         description = tasks && models ? "running tasks and building models" : (tasks ? 'running tasks' : 'building models')
     }
