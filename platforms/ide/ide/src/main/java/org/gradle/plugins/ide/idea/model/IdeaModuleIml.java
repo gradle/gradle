@@ -24,7 +24,10 @@ import java.io.File;
  * Models the generation/parsing/merging capabilities of an IDEA module.
  * <p>
  * For examples, see docs for {@link IdeaModule}.
+ *
+ * @deprecated Will be removed in Gradle 10.
  */
+@Deprecated
 public class IdeaModuleIml extends XmlFileContentMerger {
 
     private File generateTo;

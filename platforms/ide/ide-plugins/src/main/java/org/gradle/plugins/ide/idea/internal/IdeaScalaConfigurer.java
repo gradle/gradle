@@ -70,6 +70,7 @@ public class IdeaScalaConfigurer {
         this.onScalaProjects = onScalaProjects;
     }
 
+    @SuppressWarnings("deprecation")
     public void configure() {
         rootProject.getGradle().projectsEvaluated(new Action<Gradle>() {
             @Override

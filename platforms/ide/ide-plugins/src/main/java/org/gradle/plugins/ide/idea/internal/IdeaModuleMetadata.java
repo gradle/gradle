@@ -46,6 +46,7 @@ public class IdeaModuleMetadata implements IdeProjectMetadata {
     }
 
     @Override
+    @SuppressWarnings("deprecation")
     public File getFile() {
         return ideaModule.getOutputFile();
     }

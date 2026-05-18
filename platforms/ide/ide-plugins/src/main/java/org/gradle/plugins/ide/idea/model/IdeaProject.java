@@ -165,7 +165,10 @@ public abstract class IdeaProject implements IdeWorkspace {
 
     /**
      * See {@link #ipr(Action) }
+     *
+     * @deprecated Will be removed in Gradle 10.
      */
+    @Deprecated
     public XmlFileContentMerger getIpr() {
         return ipr;
     }
@@ -175,7 +178,10 @@ public abstract class IdeaProject implements IdeWorkspace {
      * or affecting the way existing *.ipr content is merged with Gradle build information.
      * <p>
      * See the examples in the docs for {@link IdeaProject}
+     *
+     * @deprecated Will be removed in Gradle 10.
      */
+    @Deprecated
     public void ipr(@SuppressWarnings("rawtypes") @DelegatesTo(XmlFileContentMerger.class) Closure closure) {
         configure(closure, ipr);
     }
@@ -187,7 +193,9 @@ public abstract class IdeaProject implements IdeWorkspace {
      * See the examples in the docs for {@link IdeaProject}
      *
      * @since 3.5
+     * @deprecated Will be removed in Gradle 10.
      */
+    @Deprecated
     public void ipr(Action<? super XmlFileContentMerger> action) {
         action.execute(ipr);
     }
@@ -196,6 +204,7 @@ public abstract class IdeaProject implements IdeWorkspace {
      * The name of the IDEA project. It is a convenience property that returns the name of the output file (without the file extension).
      * In IDEA, the project name is driven by the name of the 'ipr' file.
      */
+    @SuppressWarnings("deprecation")
     public String getName() {
         return getOutputFile().getName().replaceFirst("\\.ipr$", "");
     }
@@ -313,11 +322,20 @@ public abstract class IdeaProject implements IdeWorkspace {
      * Output *.ipr
      * <p>
      * See the examples in the docs for {@link IdeaProject}.
+     *
+     * @deprecated Will be removed in Gradle 10.
      */
+    @Deprecated
     public File getOutputFile() {
         return outputFile.get().getAsFile();
     }
 
+    /**
+     * Sets the output *.ipr file.
+     *
+     * @deprecated Will be removed in Gradle 10.
+     */
+    @Deprecated
     public void setOutputFile(File outputFile) {
         this.outputFile.set(outputFile);
     }
@@ -333,14 +351,32 @@ public abstract class IdeaProject implements IdeWorkspace {
         this.projectLibraries = projectLibraries;
     }
 
+    /**
+     * Returns the path factory used to construct paths in the generated *.ipr file.
+     *
+     * @deprecated Will be removed in Gradle 10.
+     */
+    @Deprecated
     public PathFactory getPathFactory() {
         return pathFactory;
     }
 
+    /**
+     * Sets the path factory used to construct paths in the generated *.ipr file.
+     *
+     * @deprecated Will be removed in Gradle 10.
+     */
+    @Deprecated
     public void setPathFactory(PathFactory pathFactory) {
         this.pathFactory = pathFactory;
     }
 
+    /**
+     * Merges the existing *.ipr content with the configuration from this model.
+     *
+     * @deprecated Will be removed in Gradle 10.
+     */
+    @Deprecated
     @SuppressWarnings("unchecked")
     public void mergeXmlProject(Project xmlProject) {
         ipr.getBeforeMerged().execute(xmlProject);

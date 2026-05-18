@@ -37,6 +37,7 @@ public abstract class IdeaModel {
 
     private IdeaModule module;
     private IdeaProject project;
+    @SuppressWarnings("deprecation")
     private IdeaWorkspace workspace;
     private String targetVersion;
 
@@ -66,11 +67,20 @@ public abstract class IdeaModel {
      * Configures IDEA workspace information.
      * <p>
      * For examples see docs for {@link IdeaWorkspace}.
+     *
+     * @deprecated Will be removed in Gradle 10.
      */
+    @Deprecated
     public IdeaWorkspace getWorkspace() {
         return workspace;
     }
 
+    /**
+     * Set workspace.
+     *
+     * @deprecated Will be removed in Gradle 10.
+     */
+    @Deprecated
     public void setWorkspace(IdeaWorkspace workspace) {
         this.workspace = workspace;
     }
@@ -120,7 +130,10 @@ public abstract class IdeaModel {
 
     /**
      * Configures IDEA workspace information. <p> For examples see docs for {@link IdeaWorkspace}.
+     *
+     * @deprecated Will be removed in Gradle 10.
      */
+    @Deprecated
     public void workspace(@SuppressWarnings("rawtypes") @DelegatesTo(IdeaWorkspace.class) Closure closure) {
         configure(closure, getWorkspace());
     }
@@ -128,7 +141,9 @@ public abstract class IdeaModel {
     /**
      * Configures IDEA workspace information. <p> For examples see docs for {@link IdeaWorkspace}.
      * @since 3.5
+     * @deprecated Will be removed in Gradle 10.
      */
+    @Deprecated
     public void workspace(Action<? super IdeaWorkspace> action) {
         action.execute(getWorkspace());
     }

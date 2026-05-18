@@ -37,7 +37,10 @@ import static org.gradle.util.internal.ConfigureUtil.configure;
  *     provider.asNode().appendNode('gradleRocks', 'true')
  * }
  * </pre>
+ *
+ * @deprecated Will be removed in Gradle 10.
  */
+@Deprecated
 public abstract class IdeaWorkspace {
 
     private XmlFileContentMerger iws;

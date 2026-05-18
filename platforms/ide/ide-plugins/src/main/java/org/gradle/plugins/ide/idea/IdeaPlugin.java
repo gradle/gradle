@@ -542,6 +542,7 @@ public abstract class IdeaPlugin extends IdePlugin {
         }
     }
 
+    @SuppressWarnings("deprecation")
     private void visitAllImlArtifactsInComposite(ProjectInternal project, IdeaProject ideaProject, TaskDependencyResolveContext context) {
         ProjectComponentIdentifier thisProjectId = projectPathRegistry.stateFor(project).getComponentIdentifier();
         for (IdeArtifactRegistry.Reference<IdeaModuleMetadata> reference : artifactRegistry.getIdeProjects(IdeaModuleMetadata.class)) {

@@ -132,6 +132,7 @@ public class IdeaDependenciesProvider {
         return plusMinusConfigurations != null ? plusMinusConfigurations : Collections.<String, Collection<Configuration>>emptyMap();
     }
 
+    @SuppressWarnings("deprecation")
     private FilePath toPath(IdeaModule ideaModule, File file) {
         return file != null ? ideaModule.getPathFactory().path(file) : null;
     }

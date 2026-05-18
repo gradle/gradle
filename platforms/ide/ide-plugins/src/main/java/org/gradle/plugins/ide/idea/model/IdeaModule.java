@@ -177,6 +177,7 @@ public abstract class IdeaModule {
     private String jdkName;
     protected IdeaLanguageLevel languageLevel;
     protected JavaVersion targetBytecodeVersion;
+    @SuppressWarnings("deprecation")
     private final IdeaModuleIml iml;
     private final Project project;
     private PathFactory pathFactory;
@@ -184,6 +185,7 @@ public abstract class IdeaModule {
     private Map<String, Iterable<File>> singleEntryLibraries;
 
     @Inject
+    @SuppressWarnings("deprecation")
     public IdeaModule(Project project, IdeaModuleIml iml) {
         this.project = project;
         this.iml = iml;
@@ -464,7 +466,10 @@ public abstract class IdeaModule {
 
     /**
      * See {@link #iml(Action)}
+     *
+     * @deprecated Will be removed in Gradle 10.
      */
+    @Deprecated
     public IdeaModuleIml getIml() {
         return iml;
     }
@@ -479,10 +484,22 @@ public abstract class IdeaModule {
         return project;
     }
 
+    /**
+     * Returns the path factory used to construct paths in the generated *.iml file.
+     *
+     * @deprecated Will be removed in Gradle 10.
+     */
+    @Deprecated
     public PathFactory getPathFactory() {
         return pathFactory;
     }
 
+    /**
+     * Sets the path factory used to construct paths in the generated *.iml file.
+     *
+     * @deprecated Will be removed in Gradle 10.
+     */
+    @Deprecated
     public void setPathFactory(PathFactory pathFactory) {
         this.pathFactory = pathFactory;
     }
@@ -510,7 +527,10 @@ public abstract class IdeaModule {
      * Enables advanced configuration like tinkering with the output XML or affecting the way existing *.iml content is merged with gradle build information.
      * <p>
      * For example see docs for {@link IdeaModule}.
+     *
+     * @deprecated Will be removed in Gradle 10.
      */
+    @Deprecated
     public void iml(@SuppressWarnings("rawtypes") @DelegatesTo(IdeaModuleIml.class) Closure closure) {
         configure(closure, getIml());
     }
@@ -521,7 +541,9 @@ public abstract class IdeaModule {
      * For example see docs for {@link IdeaModule}.
      *
      * @since 3.5
+     * @deprecated Will be removed in Gradle 10.
      */
+    @Deprecated
     public void iml(Action<? super IdeaModuleIml> action) {
         action.execute(iml);
     }
@@ -533,11 +555,20 @@ public abstract class IdeaModule {
      * <p>
      * Please refer to documentation on <b>moduleName</b> property.
      * In IntelliJ IDEA the module name is the same as the name of the *.iml file.
+     *
+     * @deprecated Will be removed in Gradle 10.
      */
+    @Deprecated
     public File getOutputFile() {
         return new File(iml.getGenerateTo(), getName() + ".iml");
     }
 
+    /**
+     * Sets the output *.iml file.
+     *
+     * @deprecated Will be removed in Gradle 10.
+     */
+    @Deprecated
     public void setOutputFile(File newOutputFile) {
         setName(newOutputFile.getName().replaceFirst("\\.iml$", ""));
         getIml().setGenerateTo(newOutputFile.getParentFile());
@@ -555,6 +586,12 @@ public abstract class IdeaModule {
         return ideaDependenciesProvider.provide(this);
     }
 
+    /**
+     * Merges the existing *.iml content with the configuration from this model.
+     *
+     * @deprecated Will be removed in Gradle 10.
+     */
+    @Deprecated
     @SuppressWarnings("unchecked")
     public void mergeXmlModule(Module xmlModule) {
         iml.getBeforeMerged().execute(xmlModule);
