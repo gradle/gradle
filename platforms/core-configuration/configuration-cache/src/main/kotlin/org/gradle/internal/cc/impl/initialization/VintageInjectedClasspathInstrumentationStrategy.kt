@@ -22,12 +22,15 @@ import org.gradle.plugin.use.resolve.service.internal.InjectedClasspathInstrumen
 import org.gradle.plugin.use.resolve.service.internal.InjectedClasspathInstrumentationStrategy.TransformMode
 
 
-class VintageInjectedClasspathInstrumentationStrategy(
+internal class VintageInjectedClasspathInstrumentationStrategy internal constructor(
     private val agentStatus: AgentStatus,
 ) : InjectedClasspathInstrumentationStrategy {
 
     override fun getTransform(): TransformMode =
         if (!agentStatus.isAgentInstrumentationEnabled() && isThirdPartyAgentPresent()) {
+            // Without Gradle's instrumentation agent, the buildscript classpath is rewritten ahead of time;
+            // disable instrumentation so the third-party transformer observes the user's bytecode, not Gradle's.
+            // Loses Gradle's bytecode upgrades and CC-promo detection on this classpath in exchange.
             TransformMode.NONE
         } else {
             TransformMode.BUILD_LOGIC

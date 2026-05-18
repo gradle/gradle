@@ -589,23 +589,13 @@ $ export GRADLE_ENCRYPTION_KEY="your-generated-key-here"
 ----
 
 [[config_cache:requirements:java_agent]]
-== Third-party Java Agents Require Gradle's Instrumentation Agent
+== Third-party Java Agents with the Configuration Cache
 
-When the Configuration Cache is enabled and a third-party `-javaagent:` is attached to the build JVM (for example a coverage agent such as Jacoco, IntelliJ's `idea_rt.jar`, or a custom user agent), Gradle requires its own instrumentation agent to be active.
-Gradle composes its buildscript-classpath instrumentation with the third-party agent's class-file transformer at class load; that composition is only safe when Gradle's agent is active.
-
-Gradle's instrumentation agent is enabled by default for:
+The Configuration Cache supports third-party `-javaagent:` attachments to the build JVM (for example a coverage agent such as Jacoco, IntelliJ's `idea_rt.jar`, or a custom user agent) in:
 
 * Regular daemon builds.
 * <<test_kit#test_kit, TestKit>>'s default (daemon) mode.
-* Tooling API non-embedded clients.
+* Non-embedded Tooling API clients.
 
-Gradle's instrumentation agent is NOT active when:
-
-* The build runs in embedded mode: TestKit with `withDebug(true)`, or an embedded Tooling API client.
-* Gradle's instrumentation agent has been explicitly disabled in the build environment.
-
-In those configurations, attaching a third-party Java agent is unsupported with the Configuration Cache. Either:
-
-* Switch from embedded mode to daemon mode (drop `withDebug(true)` for TestKit; use a non-embedded Tooling API connection). Gradle's instrumentation agent is loaded automatically in daemon mode.
-* If Gradle's instrumentation agent has been explicitly disabled in the build environment, restore its default.
+It is not supported in embedded modes — TestKit with `withDebug(true)`, or an embedded Tooling API client.
+To use a third-party Java agent with the Configuration Cache from those starting points, switch to daemon mode: drop `withDebug(true)` from TestKit, or use a non-embedded Tooling API connection.

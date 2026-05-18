@@ -40,6 +40,9 @@ public interface ScriptClassPathResolver {
      */
     void prepareClassPath(Configuration configuration, ScriptClassPathResolutionContext resolutionContext);
 
+    /**
+     * Resolves the prepared configuration to an instrumented classpath suitable for loading buildscript code.
+     */
     ClassPath resolveClassPath(Configuration classpath, ScriptClassPathResolutionContext resolutionContext);
 
     /**

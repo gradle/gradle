@@ -20,7 +20,7 @@ import org.jspecify.annotations.NullMarked;
 
 /**
  * Transforms a single class's bytecode at class-load time, layering on top of bytes
- * produced by any earlier {@code ClassFileTransformer}.
+ * produced by any earlier Java agent's {@code ClassFileTransformer}.
  */
 @NullMarked
 public interface ClassLoadTimeTransform {

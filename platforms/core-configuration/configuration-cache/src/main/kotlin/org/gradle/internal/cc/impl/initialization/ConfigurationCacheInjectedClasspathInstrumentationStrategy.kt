@@ -26,13 +26,16 @@ import org.gradle.internal.instrumentation.agent.ThirdPartyAgentDetection.isThir
 import org.gradle.plugin.use.resolve.service.internal.InjectedClasspathInstrumentationStrategy
 import org.gradle.plugin.use.resolve.service.internal.InjectedClasspathInstrumentationStrategy.TransformMode
 
-class ConfigurationCacheInjectedClasspathInstrumentationStrategy(
+internal class ConfigurationCacheInjectedClasspathInstrumentationStrategy internal constructor(
     private val problems: ProblemsListener,
     private val agentStatus: AgentStatus,
 ) : InjectedClasspathInstrumentationStrategy {
 
     override fun getTransform(): TransformMode {
         if (!agentStatus.isAgentInstrumentationEnabled() && isThirdPartyAgentPresent()) {
+            // Without Gradle's instrumentation agent, the buildscript classpath is rewritten ahead of time;
+            // the third-party transformer would observe Gradle's bytecode, not the user's. Refuse the build
+            // rather than produce wrong output like miscredited coverage.
             reportThirdPartyAgentPresent()
         }
         return TransformMode.BUILD_LOGIC
