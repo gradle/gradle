@@ -87,8 +87,8 @@ link:{gradle-issues}13476[[.green]#✓#]:: <<pmd_plugin.adoc#pmd_plugin,PMD>>
 
 a|
 [horizontal]
-link:{gradle-issues}13479[[.yellow]#⚠#]:: <<eclipse_plugin.adoc#eclipse_plugin,Eclipse>>
-link:{gradle-issues}13480[[.yellow]#⚠#]:: <<idea_plugin.adoc#idea_plugin,IntelliJ IDEA>>
+link:{gradle-issues}13479[[.green]#✓#]:: <<eclipse_plugin.adoc#eclipse_plugin,Eclipse>>
+link:{gradle-issues}13480[[.green]#✓#]:: <<idea_plugin.adoc#idea_plugin,IntelliJ IDEA>>
 link:{gradle-issues}13482[[.green]#✓#]:: <<visual_studio_plugin.adoc#visual_studio_plugin,Visual Studio>>
 link:{gradle-issues}13483[[.green]#✓#]:: <<xcode_plugin.adoc#xcode_plugin,Xcode>>
 
