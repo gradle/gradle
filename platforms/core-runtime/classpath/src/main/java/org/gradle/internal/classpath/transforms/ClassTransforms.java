@@ -42,4 +42,43 @@ public final class ClassTransforms {
         reader.accept(chain.right, 0);
         return Pair.of(chain.left, writer.toByteArray());
     }
+
+    public static byte[] applyToBytes(ClassTransform transform, String className, byte[] content) {
+        try {
+            return apply(transform, new SyntheticClassEntry(className, content)).right;
+        } catch (IOException e) {
+            throw new AssertionError("SyntheticClassEntry.getContent() does not perform I/O", e);
+        }
+    }
+
+    private static final class SyntheticClassEntry implements ClasspathEntryVisitor.Entry {
+
+        private final String className;
+        private final byte[] content;
+
+        SyntheticClassEntry(String className, byte[] content) {
+            this.className = className;
+            this.content = content;
+        }
+
+        @Override
+        public String getName() {
+            return className + ".class";
+        }
+
+        @Override
+        public RelativePath getPath() {
+            return RelativePath.parse(true, className + ".class");
+        }
+
+        @Override
+        public CompressionMethod getCompressionMethod() {
+            return CompressionMethod.UNDEFINED;
+        }
+
+        @Override
+        public byte[] getContent() {
+            return content;
+        }
+    }
 }

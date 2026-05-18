@@ -66,24 +66,11 @@ class JacocoReportXmlFixture {
 
     void assertMethodHasLineCoverage(String clazz, String methodName) {
         def vmName = clazz.replace('.', '/')
-        def classNode = null
-        xml.'package'.each { pkg ->
-            pkg.'class'.each { c ->
-                if (c.@name.toString() == vmName) {
-                    classNode = c
-                }
-            }
-        }
+        def classNode = xml.'package'.'class'.find { it.@name.toString() == vmName }
         assert classNode : "class $clazz not in report"
-        def covered = false
-        classNode.method.each { m ->
-            if (m.@name.toString() != methodName) {
-                return
-            }
-            m.counter.each { ctr ->
-                if (ctr.@type.toString() == "LINE" && Integer.parseInt(ctr.@covered.toString()) > 0) {
-                    covered = true
-                }
+        def covered = classNode.method.any { m ->
+            m.@name.toString() == methodName && m.counter.any { ctr ->
+                ctr.@type.toString() == "LINE" && Integer.parseInt(ctr.@covered.toString()) > 0
             }
         }
         assert covered : "no LINE coverage on method ${clazz}.${methodName}"

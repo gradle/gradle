@@ -16,12 +16,9 @@
 
 package org.gradle.internal.classpath.transforms;
 
-import org.gradle.internal.UncheckedException;
 import org.gradle.internal.classpath.ClassLoadTimeTransform;
 import org.gradle.internal.classpath.types.InstrumentationTypeRegistry;
 import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorFilter;
-
-import java.io.IOException;
 
 /**
  * Runs {@link InstrumentingClassTransform} at class-load time against bytes supplied
@@ -38,10 +35,6 @@ public final class InstrumentingClassLoadTimeTransform implements ClassLoadTimeT
 
     @Override
     public byte[] transform(String className, byte[] classfileBuffer) {
-        try {
-            return ClassTransforms.apply(inner, SyntheticClassEntry.of(className, classfileBuffer)).right;
-        } catch (IOException e) {
-            throw UncheckedException.throwAsUncheckedException(e);
-        }
+        return ClassTransforms.applyToBytes(inner, className, classfileBuffer);
     }
 }

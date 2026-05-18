@@ -111,10 +111,6 @@ public class TransformedClassPath implements ClassPath {
         this.classLoadTimeTransform = classLoadTimeTransform;
     }
 
-    private static TransformedClassPath of(ClassPath originalClassPath, Map<File, File> transforms) {
-        return new TransformedClassPath(originalClassPath, transforms, null);
-    }
-
     /**
      * Returns the class-load-time transform associated with this classpath, or {@code null} if classes loaded from
      * this classpath should be substituted with the cached pre-rewritten "doubles" instead.
@@ -209,7 +205,7 @@ public class TransformedClassPath implements ClassPath {
         // Existing transforms for these entries have to be discarded.
         // We can think of the prepended classpath as the TransformedClassPath without actual transforms,
         // and then just append this classpath to it to achieve the desired behavior.
-        return TransformedClassPath.of(classPath, ImmutableMap.of()).plusWithTransforms(this);
+        return new TransformedClassPath(classPath, ImmutableMap.of(), null).plusWithTransforms(this);
     }
 
     private TransformedClassPath plusWithTransforms(TransformedClassPath classPath) {
@@ -466,7 +462,7 @@ public class TransformedClassPath implements ClassPath {
          */
         public TransformedClassPath build() {
             Map<File, File> transformedMap = transforms.build();
-            return TransformedClassPath.of(originals.build(), transformedMap);
+            return new TransformedClassPath(originals.build(), transformedMap, null);
         }
     }
 }
