@@ -27,198 +27,70 @@ import org.gradle.util.internal.TextUtil
 import spock.lang.Issue
 import spock.lang.TempDir
 
-@Requires(OsTestPreconditions.NotWindows)
+@Requires(
+    value = OsTestPreconditions.NotWindows,
+    reason = "TestKit tests that attach a custom -javaagent: to the inner daemon are flaky on Windows"
+)
 class ConfigurationCacheTestKitIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
+
+    private static final String JAVA_AGENT_PROBLEM_MESSAGE = "third-party Java agents with inactive Gradle's instrumentation agent are not supported by the configuration cache"
 
     @TempDir
     File jacocoDestinationDir
 
-    private File buildStubAgentJar() {
-        def builder = artifactBuilder()
-        builder.sourceFile("TestAgent.java") << """
-            public class TestAgent {
-                public static void premain(String p1, java.lang.instrument.Instrumentation p2) {
-                }
-            }
-        """
-        builder.manifestAttributes("Premain-Class": "TestAgent")
-        def agentJar = file("agent.jar")
-        builder.buildJar(agentJar)
-        agentJar
+    def "configuration cache without any Java agent succeeds without problem"() {
+        when:
+         def output = testRunner().withArguments("--configuration-cache").build().output
+
+        then:
+        !output.contains("Configuration cache problems found")
     }
 
     @Issue("https://github.com/gradle/gradle/issues/25929")
     def "third-party Java agent without a transformer does not cause a configuration-cache problem"() {
         given:
         def agentJar = buildStubAgentJar()
-        buildFile << """
-        """
-        settingsFile << """
-        """
 
         when:
-        def runner = GradleRunner.create()
-        runner.withJvmArguments("-javaagent:${agentJar}")
-        runner.withGradleInstallation(buildContext.gradleHomeDir)
-        runner.withArguments("--configuration-cache")
-        runner.forwardOutput()
-        runner.withProjectDir(testDirectory)
-        runner.withPluginClasspath([new File("some-dir")])
-        def result = runner.build()
-        def output = result.output
+        def output = testRunner()
+            .withJvmArguments("-javaagent:${agentJar}")
+            .withArguments("--configuration-cache")
+            .build()
+            .output
 
         then:
-        !output.contains("third-party Java agents with inactive Gradle's instrumentation agent are not supported by the configuration cache")
+        !output.contains(JAVA_AGENT_PROBLEM_MESSAGE)
         !output.contains("Configuration cache problems found")
-    }
-
-    def "third-party Java agent with Gradle's instrumentation agent disabled is reported as a CC problem"() {
-        given:
-        def agentJar = buildStubAgentJar()
-        buildFile << ""
-        settingsFile << ""
-
-        when:
-        def runner = GradleRunner.create()
-        runner.withJvmArguments("-javaagent:${agentJar}")
-        runner.withGradleInstallation(buildContext.gradleHomeDir)
-        runner.withArguments("--configuration-cache", "-Dorg.gradle.internal.instrumentation.agent=false")
-        runner.forwardOutput()
-        runner.withProjectDir(testDirectory)
-        runner.withPluginClasspath([new File("some-dir")])
-        def result = runner.buildAndFail()
-        def output = result.output
-
-        then:
-        output.contains("third-party Java agents with inactive Gradle's instrumentation agent are not supported by the configuration cache")
-    }
-
-    def "third-party Java agent with Gradle's instrumentation agent disabled without CC succeeds"() {
-        given:
-        def agentJar = buildStubAgentJar()
-        buildFile << ""
-        settingsFile << ""
-
-        when:
-        def runner = GradleRunner.create()
-        runner.withJvmArguments("-javaagent:${agentJar}")
-        runner.withGradleInstallation(buildContext.gradleHomeDir)
-        runner.withArguments("-Dorg.gradle.internal.instrumentation.agent=false")
-        runner.forwardOutput()
-        runner.withProjectDir(testDirectory)
-        runner.withPluginClasspath([new File("some-dir")])
-        def result = runner.build()
-        def output = result.output
-
-        then:
-        !output.contains("third-party Java agents with inactive Gradle's instrumentation agent are not supported by the configuration cache")
-        !output.contains("Configuration cache problems found")
-    }
-
-    def "configuration cache without any Java agent succeeds without problem"() {
-        given:
-        buildFile << ""
-        settingsFile << ""
-
-        when:
-        def runner = GradleRunner.create()
-        runner.withGradleInstallation(buildContext.gradleHomeDir)
-        runner.withArguments("--configuration-cache")
-        runner.forwardOutput()
-        runner.withProjectDir(testDirectory)
-        runner.withPluginClasspath([new File("some-dir")])
-        def result = runner.build()
-        def output = result.output
-
-        then:
-        !output.contains("Configuration cache problems found")
-    }
-
-    private File buildTransformerAgentJar() {
-        def builder = artifactBuilder()
-        builder.sourceFile("TestAgent.java") << """
-            import java.lang.instrument.ClassFileTransformer;
-            import java.lang.instrument.Instrumentation;
-            import java.security.ProtectionDomain;
-
-            public class TestAgent {
-                public static void premain(String p1, Instrumentation inst) {
-                    inst.addTransformer(new ClassFileTransformer() {
-                        public byte[] transform(ClassLoader loader, String className, Class<?> classBeingRedefined,
-                                                 ProtectionDomain pd, byte[] classfileBuffer) {
-                            return null;
-                        }
-                    });
-                }
-            }
-        """
-        builder.manifestAttributes("Premain-Class": "TestAgent")
-        def agentJar = file("transformer-agent.jar")
-        builder.buildJar(agentJar)
-        agentJar
     }
 
     def "third-party Java agent that registers a class-file transformer does not cause a configuration-cache problem"() {
         given:
         def agentJar = buildTransformerAgentJar()
-        buildFile << ""
-        settingsFile << ""
 
         when:
-        def runner = GradleRunner.create()
-        runner.withJvmArguments("-javaagent:${agentJar}")
-        runner.withGradleInstallation(buildContext.gradleHomeDir)
-        runner.withArguments("--configuration-cache")
-        runner.forwardOutput()
-        runner.withProjectDir(testDirectory)
-        runner.withPluginClasspath([new File("some-dir")])
-        def result = runner.build()
-        def output = result.output
+        def output = testRunner()
+            .withJvmArguments("-javaagent:${agentJar}")
+            .withArguments("--configuration-cache")
+            .build()
+            .output
 
         then:
+        !output.contains(JAVA_AGENT_PROBLEM_MESSAGE)
         !output.contains("Configuration cache problems found")
-        !output.contains("third-party Java agents with inactive Gradle's instrumentation agent are not supported by the configuration cache")
     }
 
     def "JDWP debug agent does not cause a configuration-cache problem"() {
-        given:
-        buildFile << ""
-        settingsFile << ""
-
+        // JDWP attaches via `-agentlib:`, not `-javaagent:`, so AgentUtils does not flag it as a
+        // third-party agent and the CC strategy never fires. This test pins that behavior.
         when:
-        def runner = GradleRunner.create()
-        runner.withJvmArguments("-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:0")
-        runner.withGradleInstallation(buildContext.gradleHomeDir)
-        runner.withArguments("--configuration-cache")
-        runner.forwardOutput()
-        runner.withProjectDir(testDirectory)
-        runner.withPluginClasspath([new File("some-dir")])
-        def result = runner.build()
-        def output = result.output
+        def output = testRunner()
+            .withJvmArguments("-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:0")
+            .withArguments("--configuration-cache")
+            .build()
+            .output
 
         then:
         !output.contains("Configuration cache problems found")
-    }
-
-    private File buildFileWritingAgentJar() {
-        def builder = artifactBuilder()
-        builder.sourceFile("TestAgent.java") << """
-            import java.io.FileWriter;
-            import java.lang.instrument.Instrumentation;
-
-            public class TestAgent {
-                public static void premain(String args, Instrumentation inst) throws Exception {
-                    String destFile = args.startsWith("destfile=") ? args.substring("destfile=".length()) : args;
-                    try (FileWriter w = new FileWriter(destFile)) {
-                        w.write("agent-ran");
-                    }
-                }
-            }
-        """
-        builder.manifestAttributes("Premain-Class": "TestAgent")
-        def agentJar = file("file-writing-agent.jar")
-        builder.buildJar(agentJar)
-        agentJar
     }
 
     def "third-party Java agent that writes a file from premain runs under CC"() {
@@ -228,18 +100,13 @@ class ConfigurationCacheTestKitIntegrationTest extends AbstractConfigurationCach
         buildFile << """
             tasks.register("noop")
         """
-        settingsFile << ""
 
         when:
-        def runner = GradleRunner.create()
-        runner.withJvmArguments("-javaagent:${agentJar}=destfile=${destFile.absolutePath}")
-        runner.withGradleInstallation(buildContext.gradleHomeDir)
-        runner.withArguments("--configuration-cache", "noop")
-        runner.forwardOutput()
-        runner.withProjectDir(testDirectory)
-        runner.withPluginClasspath([new File("some-dir")])
-        def result = runner.build()
-        def output = result.output
+        def output = testRunner()
+            .withJvmArguments("-javaagent:${agentJar}=destfile=${destFile.absolutePath}")
+            .withArguments("--configuration-cache", "noop")
+            .build()
+            .output
 
         then:
         !output.contains("Configuration cache problems found")
@@ -247,7 +114,42 @@ class ConfigurationCacheTestKitIntegrationTest extends AbstractConfigurationCach
         destFile.length() > 0
     }
 
+    def "third-party Java agent with Gradle's instrumentation agent disabled is reported as a CC problem"() {
+        given:
+        def agentJar = buildStubAgentJar()
+
+        when:
+        def output = testRunner()
+            .withJvmArguments("-javaagent:${agentJar}")
+            .withArguments("--configuration-cache", "-Dorg.gradle.internal.instrumentation.agent=false")
+            .buildAndFail()
+            .output
+
+        then:
+        output.contains(JAVA_AGENT_PROBLEM_MESSAGE)
+    }
+
+    def "third-party Java agent with Gradle's instrumentation agent disabled without CC succeeds"() {
+        given:
+        def agentJar = buildStubAgentJar()
+
+        when:
+        def output = testRunner()
+            .withJvmArguments("-javaagent:${agentJar}")
+            .withArguments("-Dorg.gradle.internal.instrumentation.agent=false")
+            .build()
+            .output
+
+        then:
+        !output.contains(JAVA_AGENT_PROBLEM_MESSAGE)
+        !output.contains("Configuration cache problems found")
+    }
+
     @Issue("https://github.com/gradle/gradle/issues/27956")
+    @Requires(
+        value = TestExecutionPreconditions.NotEmbeddedExecutor,
+        reason = "Uses TestKit withDebug(true), so everything run in-process, masking classloader-sensitive behavior"
+    )
     def "dependencies of builds tested with TestKit in debug mode are instrumented and violations are reported"() {
         given:
         file("included/src/main/java/MyPlugin.java") << """
@@ -290,6 +192,116 @@ class ConfigurationCacheTestKitIntegrationTest extends AbstractConfigurationCach
             ignoringUnexpectedInputs()
         }
         output.contains("Configuration cache entry stored.")
+    }
+
+    /**
+     * This test check that Jacoco works with TestKit when configuration cache is DISABLED.
+     *
+     * We broke --no-configuration-cache case already twice in the past, so it's worth testing it.
+     */
+    @Issue(["https://github.com/gradle/gradle/issues/13614", "https://github.com/gradle/gradle/issues/28729"])
+    @Requires(
+        value = TestExecutionPreconditions.NotEmbeddedExecutor,
+        reason = "The :test JVM is forked with the Jacoco agent attached"
+    )
+    def "running a test that applies Jacoco with TestKit should generate a test report when running without configuration cache"() {
+        given:
+        setUpJacocoTestKitProject("--no-configuration-cache")
+
+        when:
+        succeeds("jacocoTestCoverageVerification")
+
+        then:
+        def report = new JacocoReportXmlFixture(file("build/reports/jacoco/test/jacocoTestReport.xml"))
+        report.assertHasClassCoverage("test.gradle.MyPlugin")
+        report.assertMethodHasLineCoverage("test.gradle.MyPlugin", "apply")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/25979")
+    @Requires(
+        value = TestExecutionPreconditions.NotEmbeddedExecutor,
+        reason = "The :test JVM is forked with the Jacoco agent attached"
+    )
+    def "running a test that applies Jacoco with TestKit should generate a test report when running with configuration cache"() {
+        given:
+        setUpJacocoTestKitProject("--configuration-cache")
+
+        when:
+        succeeds("jacocoTestCoverageVerification")
+
+        then:
+        def report = new JacocoReportXmlFixture(file("build/reports/jacoco/test/jacocoTestReport.xml"))
+        report.assertHasClassCoverage("test.gradle.MyPlugin")
+        report.assertMethodHasLineCoverage("test.gradle.MyPlugin", "apply")
+    }
+
+    private GradleRunner testRunner() {
+        // Ensure the project boundary so Gradle doesn't walk up the filesystem looking for one.
+        settingsFile.touch()
+        GradleRunner.create()
+            .withGradleInstallation(buildContext.gradleHomeDir)
+            .forwardOutput()
+            .withProjectDir(testDirectory)
+            .withPluginClasspath([new File("some-dir")])
+    }
+
+    private File buildStubAgentJar() {
+        def builder = artifactBuilder()
+        builder.sourceFile("TestAgent.java") << """
+            public class TestAgent {
+                public static void premain(String p1, java.lang.instrument.Instrumentation p2) {
+                }
+            }
+        """
+        builder.manifestAttributes("Premain-Class": "TestAgent")
+        def agentJar = file("agent.jar")
+        builder.buildJar(agentJar)
+        agentJar
+    }
+
+    private File buildTransformerAgentJar() {
+        def builder = artifactBuilder()
+        builder.sourceFile("TestAgent.java") << """
+            import java.lang.instrument.ClassFileTransformer;
+            import java.lang.instrument.Instrumentation;
+            import java.security.ProtectionDomain;
+
+            public class TestAgent {
+                public static void premain(String p1, Instrumentation inst) {
+                    inst.addTransformer(new ClassFileTransformer() {
+                        public byte[] transform(ClassLoader loader, String className, Class<?> classBeingRedefined,
+                                                 ProtectionDomain pd, byte[] classfileBuffer) {
+                            return null;
+                        }
+                    });
+                }
+            }
+        """
+        builder.manifestAttributes("Premain-Class": "TestAgent")
+        def agentJar = file("transformer-agent.jar")
+        builder.buildJar(agentJar)
+        agentJar
+    }
+
+    private File buildFileWritingAgentJar() {
+        def builder = artifactBuilder()
+        builder.sourceFile("TestAgent.java") << """
+            import java.io.FileWriter;
+            import java.lang.instrument.Instrumentation;
+
+            public class TestAgent {
+                public static void premain(String args, Instrumentation inst) throws Exception {
+                    String destFile = args.startsWith("destfile=") ? args.substring("destfile=".length()) : args;
+                    try (FileWriter w = new FileWriter(destFile)) {
+                        w.write("agent-ran");
+                    }
+                }
+            }
+        """
+        builder.manifestAttributes("Premain-Class": "TestAgent")
+        def agentJar = file("file-writing-agent.jar")
+        builder.buildJar(agentJar)
+        agentJar
     }
 
     private void setUpJacocoTestKitProject(String innerCcArgument) {
@@ -407,40 +419,5 @@ class ConfigurationCacheTestKitIntegrationTest extends AbstractConfigurationCach
                 }
             }
         """
-    }
-
-    /**
-     * This test check that Jacoco works with TestKit when configuration cache is DISABLED.
-     *
-     * We broke --no-configuration-cache case already twice in the past, so it's worth testing it.
-     */
-    @Issue(["https://github.com/gradle/gradle/issues/13614", "https://github.com/gradle/gradle/issues/28729"])
-    @Requires(value = TestExecutionPreconditions.NotEmbeddedExecutor, reason = "Testing build using a TestKit")
-    def "running a test that applies Jacoco with TestKit should generate a test report when running without configuration cache"() {
-        given:
-        setUpJacocoTestKitProject("--no-configuration-cache")
-
-        when:
-        succeeds("jacocoTestCoverageVerification")
-
-        then:
-        def report = new JacocoReportXmlFixture(file("build/reports/jacoco/test/jacocoTestReport.xml"))
-        report.assertHasClassCoverage("test.gradle.MyPlugin")
-        report.assertMethodHasLineCoverage("test.gradle.MyPlugin", "apply")
-    }
-
-    @Issue("https://github.com/gradle/gradle/issues/25979")
-    @Requires(value = TestExecutionPreconditions.NotEmbeddedExecutor, reason = "Testing build using a TestKit")
-    def "running a test that applies Jacoco with TestKit should generate a test report when running with configuration cache"() {
-        given:
-        setUpJacocoTestKitProject("--configuration-cache")
-
-        when:
-        succeeds("jacocoTestCoverageVerification")
-
-        then:
-        def report = new JacocoReportXmlFixture(file("build/reports/jacoco/test/jacocoTestReport.xml"))
-        report.assertHasClassCoverage("test.gradle.MyPlugin")
-        report.assertMethodHasLineCoverage("test.gradle.MyPlugin", "apply")
     }
 }
