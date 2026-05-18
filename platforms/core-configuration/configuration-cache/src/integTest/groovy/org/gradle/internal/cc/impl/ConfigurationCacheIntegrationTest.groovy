@@ -284,6 +284,254 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
         result.assertTasksScheduled(":a")
     }
 
+    def "cache entry is keyed by requested task selection across three tasks"() {
+        given:
+        def configurationCache = newConfigurationCacheFixture()
+        buildFile << """
+            ['a', 'b', 'c'].each { name ->
+                tasks.register(name) {
+                    doLast { println name }
+                }
+            }
+        """
+
+        when:
+        configurationCacheRun "a", "b", "c"
+
+        then:
+        configurationCache.assertStateStored()
+        outputContains("a")
+        outputContains("b")
+        outputContains("c")
+        result.assertTasksExecuted(":a", ":b", ":c")
+
+        when:
+        configurationCacheRun "a", "b", "c"
+
+        then:
+        configurationCache.assertStateLoaded()
+        result.assertTasksExecuted(":a", ":b", ":c")
+
+        when:
+        configurationCacheRun "a"
+
+        then:
+        configurationCache.assertStateLoaded()
+        result.assertTasksExecuted(":a")
+        result.assertTasksNotScheduled(":b")
+        result.assertTasksNotScheduled(":c")
+    }
+
+    def "missing entry directory invalidates index row and triggers cold store"() {
+        given:
+        def configurationCache = newConfigurationCacheFixture()
+        buildFile << """
+            ['a', 'b', 'c'].each { name ->
+                tasks.register(name) {
+                    doLast { println name }
+                }
+            }
+        """
+
+        when:
+        configurationCacheRun "a", "b", "c"
+
+        then:
+        configurationCache.assertStateStored()
+
+        when:
+        // Delete every entry directory under the CC root, but keep the index/ dir.
+        def ccRoot = new File(testDirectory, ".gradle/configuration-cache")
+        ccRoot.eachDir { dir ->
+            if (dir.name != "index") {
+                dir.deleteDir()
+            }
+        }
+        configurationCacheRun "a"
+
+        then:
+        configurationCache.assertStateStored()
+    }
+
+    def "task arguments disable superset matching"() {
+        given:
+        def configurationCache = newConfigurationCacheFixture()
+        buildFile << """
+            tasks.register('printer') {
+                doLast { println 'printed' }
+            }
+            tasks.register('other') {
+                doLast { println 'other' }
+            }
+        """
+
+        when:
+        configurationCacheRun "printer", "--rerun", "other"
+
+        then:
+        configurationCache.assertStateStored()
+
+        when:
+        configurationCacheRun "printer"
+
+        then:
+        configurationCache.assertStateStored()
+    }
+
+    def "different environment keys cannot superset-match"() {
+        given:
+        def configurationCache = newConfigurationCacheFixture()
+        buildFile << """
+            ['a', 'b', 'c'].each { name ->
+                tasks.register(name) {
+                    doLast { println name }
+                }
+            }
+        """
+
+        when:
+        configurationCacheRun "a", "b", "c", "--offline"
+
+        then:
+        configurationCache.assertStateStored()
+
+        when:
+        configurationCacheRun "a"
+
+        then:
+        // Different --offline (false on the second run) means different env key.
+        configurationCache.assertStateStored()
+    }
+
+    def "whenReady listener flags entry as superset-ineligible"() {
+        given:
+        def configurationCache = newConfigurationCacheFixture()
+        buildFile << """
+            ['a', 'b', 'c'].each { name ->
+                tasks.register(name) {
+                    doLast { println name }
+                }
+            }
+            gradle.taskGraph.whenReady { graph ->
+                // Registering any user TaskExecutionGraphListener flips the flag —
+                // we don't actually need to inspect the graph here, the registration
+                // itself is what makes the entry superset-ineligible.
+            }
+        """
+
+        when:
+        configurationCacheRun "a", "b", "c"
+
+        then:
+        configurationCache.assertStateStored()
+
+        when:
+        configurationCacheRun "a"
+
+        then:
+        // Flag set: superset reuse blocked. Cold store at the new key.
+        configurationCache.assertStateStored()
+
+        when:
+        configurationCacheRun "a", "b", "c"
+
+        then:
+        // Exact match still works for flagged entries.
+        configurationCache.assertStateLoaded()
+    }
+
+    def "direct hasTask call does not disable superset reuse"() {
+        given:
+        def configurationCache = newConfigurationCacheFixture()
+        buildFile << """
+            ['a', 'b', 'c'].each { name ->
+                tasks.register(name) {
+                    doLast { println name }
+                }
+            }
+            afterEvaluate {
+                // Direct query at configuration time — empty graph, no real decision.
+                // Must NOT flag the entry.
+                println 'hasTask result: ' + gradle.taskGraph.hasTask(':b')
+            }
+        """
+
+        when:
+        configurationCacheRun "a", "b", "c"
+
+        then:
+        configurationCache.assertStateStored()
+
+        when:
+        configurationCacheRun "a"
+
+        then:
+        // Direct hasTask call did NOT trip the flag, so superset reuse works.
+        configurationCache.assertStateLoaded()
+        result.assertTasksExecuted(":a")
+        result.assertTasksNotScheduled(":b")
+        result.assertTasksNotScheduled(":c")
+    }
+
+    def "cache hit for subset selection runs task and its dependencies"() {
+        given:
+        def configurationCache = newConfigurationCacheFixture()
+        buildFile << """
+            ['a', 'b', 'c', 'd'].each { name ->
+                tasks.register(name) {
+                    doLast { println name }
+                }
+            }
+            tasks.named('a') { dependsOn 'd' }
+        """
+
+        when:
+        configurationCacheRun "a", "b", "c"
+
+        then:
+        configurationCache.assertStateStored()
+        result.assertTasksExecuted(":d", ":a", ":b", ":c")
+
+        when:
+        configurationCacheRun "a"
+
+        then:
+        configurationCache.assertStateLoaded()
+        result.assertTasksExecuted(":d", ":a")
+        result.assertTasksNotScheduled(":b")
+        result.assertTasksNotScheduled(":c")
+    }
+
+    def "cache hit for sibling selection excludes other tasks' dependencies"() {
+        given:
+        def configurationCache = newConfigurationCacheFixture()
+        buildFile << """
+            ['a', 'b', 'c', 'd'].each { name ->
+                tasks.register(name) {
+                    doLast { println name }
+                }
+            }
+            tasks.named('a') { dependsOn 'd' }
+        """
+
+        when:
+        configurationCacheRun "a", "b", "c"
+
+        then:
+        configurationCache.assertStateStored()
+        result.assertTasksExecuted(":d", ":a", ":b", ":c")
+
+        when:
+        configurationCacheRun "b"
+
+        then:
+        configurationCache.assertStateLoaded()
+        result.assertTasksExecuted(":b")
+        result.assertTasksNotScheduled(":a")
+        result.assertTasksNotScheduled(":c")
+        result.assertTasksNotScheduled(":d")
+    }
+
     def "configuration cache for multi-level projects"() {
         given:
         createDirs("a", "a/b", "a/c")

@@ -64,6 +64,127 @@ class ConfigurationCacheRepository(
         return StoreImpl(dirForEntry(cacheKey))
     }
 
+    /**
+     * Looks up a stored configuration cache entry compatible with [requestedTasks]
+     * under [environmentKey], or returns `null` if no compatible entry exists.
+     * <p>
+     * Selection is delegated to [SupersetIndex.selectBestMatch]: exact match on the
+     * deduplicated requested-task list wins; otherwise the smallest strict-superset
+     * variant whose stored task list contains the request as a subsequence
+     * (relative order preserved) and whose `taskGraphAccessed` flag is `false`.
+     * Among ties of the smallest size, the most recently accessed entry directory
+     * wins (LRU via `fileAccessTimeJournal`).
+     * <p>
+     * If any token in [requestedTasks] starts with `-` (task argument or exclusion
+     * like `-x foo`), the lookup short-circuits to `null` and the caller falls back
+     * to the exact-match path. This is the v1 scope guard.
+     * <p>
+     * Acquires the cache file lock for the duration of the lookup. If a chosen
+     * entry's directory has been removed out from under the index (e.g. by external
+     * cleanup), the stale row is dropped and the index file is rewritten before
+     * returning — the next candidate is then considered (self-heal).
+     *
+     * @param environmentKey identifies the group of entries that share the same
+     *     configuration-cache environment
+     * @param requestedTasks the current build's literal CLI task list
+     * @return the chosen entry's full key and original stored task list, or `null`
+     *     if no compatible entry exists
+     */
+    fun findCompatibleEntry(
+        environmentKey: ConfigurationCacheEnvironmentKey,
+        requestedTasks: List<String>
+    ): CompatibleEntry? {
+        // v1 args/exclusion guard: any token starting with '-' falls back to exact-match path.
+        if (requestedTasks.any { it.startsWith("-") }) return null
+
+        return withFileLockNullable {
+            val indexFile = SupersetIndexFile(indexFileFor(environmentKey))
+            val variants = indexFile.read().toMutableList()
+            if (variants.isEmpty()) return@withFileLockNullable null
+
+            var dirty = false
+            while (true) {
+                val chosen = pickWithTieBreak(variants, requestedTasks) ?: break
+                val dir = dirForEntry(chosen.fullKey)
+                if (dir.exists()) {
+                    if (dirty) indexFile.write(variants)
+                    return@withFileLockNullable CompatibleEntry(chosen.fullKey, chosen.requestedTasks)
+                }
+                variants.remove(chosen)
+                dirty = true
+            }
+            if (dirty) indexFile.write(variants)
+            null
+        }
+    }
+
+    /**
+     * Records a stored cache entry under [environmentKey] so future builds with
+     * overlapping task lists can discover it via [findCompatibleEntry].
+     * <p>
+     * Upserts by [fullKey]: an existing index row with the same `fullKey` is
+     * replaced (it would have been written by a prior store generation under the
+     * identical key — the new row supersedes it). The recorded [taskGraphAccessed]
+     * flag determines whether the entry will be eligible for strict-superset
+     * matches later — `true` makes the entry exact-match only.
+     * <p>
+     * Mirrors [findCompatibleEntry]'s args-guard: if any token in [requestedTasks]
+     * starts with `-`, the entry is not recorded (no harm — the entry just won't
+     * be findable as a superset later).
+     * <p>
+     * Acquires the cache file lock for the upsert + rewrite of the index file.
+     *
+     * @param environmentKey scope under which to record the entry
+     * @param fullKey the stored entry's full cache key (also the entry directory name)
+     * @param requestedTasks the requested-task list the entry was stored for
+     * @param taskGraphAccessed whether user code observed the task graph during
+     *     the originating build; `true` excludes the entry from later strict-superset
+     *     matching (see [SupersetIndex.selectBestMatch] rule 2)
+     */
+    fun recordEntry(
+        environmentKey: ConfigurationCacheEnvironmentKey,
+        fullKey: String,
+        requestedTasks: List<String>,
+        taskGraphAccessed: Boolean
+    ) {
+        if (requestedTasks.any { it.startsWith("-") }) return
+        cache.withFileLock(Supplier {
+            val indexFile = SupersetIndexFile(indexFileFor(environmentKey))
+            val variants = indexFile.read().toMutableList()
+            variants.removeIf { it.fullKey == fullKey }
+            variants.add(IndexedVariant(fullKey, requestedTasks, taskGraphAccessed))
+            indexFile.write(variants)
+        })
+    }
+
+    private
+    fun pickWithTieBreak(
+        variants: List<IndexedVariant>,
+        requested: List<String>
+    ): IndexedVariant? {
+        val chosen = SupersetIndex.selectBestMatch(variants, requested) ?: return null
+        val requestedDistinct = requested.distinct()
+        val isExact = chosen.requestedTasks == requestedDistinct
+        if (isExact) return chosen
+        // For tied smallest-supersets, prefer most-recently-accessed entry. Tied
+        // candidates must also host the request as a subsequence so the LRU pick
+        // doesn't drift to a same-size variant that orders the requested tasks
+        // differently.
+        val tieSize = chosen.requestedTasks.size
+        return variants
+            .filter { v ->
+                !v.taskGraphAccessed &&
+                    v.requestedTasks.size == tieSize &&
+                    SupersetIndex.isSubsequence(requestedDistinct, v.requestedTasks)
+            }
+            .maxByOrNull { fileAccessTimeJournal.getLastAccessTime(dirForEntry(it.fullKey)) }
+            ?: chosen
+    }
+
+    private
+    fun indexFileFor(environmentKey: ConfigurationCacheEnvironmentKey): File =
+        cache.baseDir.resolve(INDEX_DIR_NAME).resolve("${environmentKey.string}.bin")
+
     interface CleanupContext {
         val eligibleFilesFinder: FilesFinder
         fun dirForEntry(entry: String): File
@@ -296,8 +417,13 @@ class ConfigurationCacheRepository(
         )
 
     private
-    fun cleanupEligibleFilesFinder() =
-        SingleDepthFilesFinder(cleanupDepth)
+    fun cleanupEligibleFilesFinder(): FilesFinder {
+        val delegate = SingleDepthFilesFinder(cleanupDepth)
+        return object : FilesFinder {
+            override fun find(baseDir: File, filter: java.io.FileFilter) =
+                delegate.find(baseDir, filter).filter { it.name != INDEX_DIR_NAME }
+        }
+    }
 
     private
     val fileAccessTracker by unsafeLazy {
@@ -322,9 +448,22 @@ class ConfigurationCacheRepository(
             }
         )
 
+    @Suppress("UNCHECKED_CAST")
+    private
+    fun <T> withFileLockNullable(action: () -> T?): T? {
+        // Wrap result in an array (non-nullable) to avoid Runnable/Supplier ambiguity
+        // that occurs when Supplier<T?> is used with a nullable T.
+        val box = cache.withFileLock(Supplier { arrayOfNulls<Any>(1).also { it[0] = action() } })
+        return box[0] as T?
+    }
+
     private
     fun dirForEntry(cacheKey: String) =
         cache.baseDir.resolve(cacheKey)
+
+    private companion object {
+        private const val INDEX_DIR_NAME = "index"
+    }
 }
 
 

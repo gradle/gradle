@@ -289,7 +289,7 @@ class CredentialsProviderIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         succeeds 'finalTask'
-        def configurationCacheDirs = file('.gradle/configuration-cache/').listFiles().findAll { it.isDirectory() }
+        def configurationCacheDirs = file('.gradle/configuration-cache/').listFiles().findAll { it.isDirectory() && it.name != 'index' }
         configurationCacheDirs.size() == 2
         def configurationCacheFiles = configurationCacheDirs[0].listFiles()
         configurationCacheFiles.each {

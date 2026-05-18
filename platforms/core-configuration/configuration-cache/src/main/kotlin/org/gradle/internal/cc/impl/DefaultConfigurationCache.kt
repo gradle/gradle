@@ -89,6 +89,7 @@ import java.util.UUID
 class DefaultConfigurationCache internal constructor(
     private val startParameter: ConfigurationCacheStartParameter,
     private val cacheKey: ConfigurationCacheKey,
+    private val environmentKey: ConfigurationCacheEnvironmentKey,
     private val problems: ConfigurationCacheProblems,
     private val scopeRegistryListener: ConfigurationCacheClassLoaderScopeRegistryListener,
     private val cacheRepository: ConfigurationCacheRepository,
@@ -127,8 +128,22 @@ class DefaultConfigurationCache internal constructor(
     private
     val loadedSideEffects = mutableListOf<BuildTreeModelSideEffect>()
 
+    /**
+     * The compatible stored cache entry chosen for this build (exact or strict-superset
+     * match), or `null` if none was found and we'll cold-store at [cacheKey]. Evaluated
+     * once and reused — the [SupersetIndex] lookup acquires the cache file lock.
+     */
     private
-    val storeDelegate = lazy { cacheRepository.forKey(cacheKey.string) }
+    val compatibleEntry: CompatibleEntry? by lazy {
+        cacheRepository.findCompatibleEntry(environmentKey, startParameter.requestedTaskNames)
+    }
+
+    private
+    val effectiveStoreKey: String
+        get() = compatibleEntry?.fullKey ?: cacheKey.string
+
+    private
+    val storeDelegate = lazy { cacheRepository.forKey(effectiveStoreKey) }
 
     private
     val store by storeDelegate
@@ -141,6 +156,21 @@ class DefaultConfigurationCache internal constructor(
 
     private
     val entryStore by entryStoreDelegate
+
+    /**
+     * Did the routed-to entry's fingerprint check fail? If so, fresh-store at [cacheKey]
+     * rather than overwriting the routed-to entry's directory.
+     */
+    private
+    var supersetMissFallback = false
+
+    private
+    val storeForWriting: ConfigurationCacheStateStore
+        get() = if (supersetMissFallback) {
+            cacheRepository.forKey(cacheKey.string)
+        } else {
+            store
+        }
 
     private
     val cacheIO by lazy { host.service<ConfigurationCacheBuildTreeIO>() }
@@ -409,6 +439,12 @@ class DefaultConfigurationCache internal constructor(
             classLoaderScopes.commit(fileFor(StateType.ClassLoaderScopes))
         }
         updateMostRecentEntry(entryId)
+        cacheRepository.recordEntry(
+            environmentKey,
+            cacheKey.string,
+            startParameter.requestedTaskNames,
+            cacheFingerprintController.wasTaskGraphAccessed
+        )
     }
 
     private
@@ -478,6 +514,11 @@ class DefaultConfigurationCache internal constructor(
                         checkedFingerprint.reason.render()
                     )
                     logBootstrapSummary(description)
+                    if (effectiveStoreKey != cacheKey.string) {
+                        // We were routed to a stored entry, but its fingerprint is stale.
+                        // Don't walk to another candidate — just store fresh at cacheKey.string.
+                        supersetMissFallback = true
+                    }
                     Store.withDescription(description)
                 }
 
@@ -574,7 +615,7 @@ class DefaultConfigurationCache internal constructor(
         }
 
     private
-    fun updateCandidateEntries(update: List<CandidateEntry>.() -> List<CandidateEntry>) = store.useForStore {
+    fun updateCandidateEntries(update: List<CandidateEntry>.() -> List<CandidateEntry>) = storeForWriting.useForStore {
         val existingEntries = readCandidateEntries()
         val newEntries = update(existingEntries)
         if (existingEntries != newEntries) {
@@ -746,8 +787,12 @@ class DefaultConfigurationCache internal constructor(
         scopeRegistryListener.dispose()
 
         buildOperationRunner.withWorkGraphLoadOperation {
+            val tasksToDrop = compatibleEntry
+                ?.storedRequestedTasks
+                ?.let { stored -> stored.toSet() - startParameter.requestedTaskNames.toSet() }
+                ?: emptySet()
             val storeLoadResult = entryStore.useForStateLoad(StateType.Work) { stateFile: ConfigurationCacheStateFile ->
-                val (buildInvocationId, workGraph) = cacheIO.readRootBuildStateFrom(stateFile, loadAfterStore, graph, graphBuilder)
+                val (buildInvocationId, workGraph) = cacheIO.readRootBuildStateFrom(stateFile, loadAfterStore, graph, graphBuilder, tasksToDrop)
                 LoadResultMetadata(buildInvocationId) to workGraph
             }
             val (intermediateLoadResult, actionResult) = storeLoadResult.value

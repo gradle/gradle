@@ -29,6 +29,43 @@ import org.gradle.util.internal.GFileUtils.relativePathOf
 import java.io.File
 
 
+/**
+ * Identifies a specific configuration cache entry on disk.
+ * <p>
+ * The resulting [string] is an MD5 hex digest that doubles as the entry's
+ * directory name under the configuration cache root (one entry per unique key).
+ * Equality and `hashCode` are defined by that digest, so two instances built
+ * independently from identical start parameters compare equal — this is the
+ * contract that lets CC locate its prior entry on a re-invocation.
+ * <p>
+ * <strong>Hashed inputs:</strong>
+ * <ul>
+ *   <li>Gradle version</li>
+ *   <li>Included builds (paths relative to the build tree root)</li>
+ *   <li>[BuildActionModelRequirements] — the build-action shape (run-tasks vs. tooling-model fetch, etc.)</li>
+ *   <li><strong>Requested task names</strong> and excluded task names — only when
+ *       [BuildActionModelRequirements.isRunsTasks] is true; when any task name is
+ *       relative, also the project/current directory relative to the build tree root</li>
+ *   <li>Offline, isolated-projects, build-scan, Develocity URL/plugin-version, encryption
+ *       on/off + key hash, string deduplication, fine-grained property tracking, integrity-check</li>
+ * </ul>
+ * <p>
+ * <strong>Relation to [ConfigurationCacheEnvironmentKey]:</strong>
+ * [ConfigurationCacheEnvironmentKey] hashes the same components <em>except</em>
+ * the requested task names. It identifies the group of entries that share a
+ * configuration-cache "environment"; this class identifies one specific
+ * member of that group. Two builds whose environment keys agree but whose
+ * `ConfigurationCacheKey`s differ are candidates for superset matching (see
+ * `SupersetIndex`). Excluded task names live in the environment key because
+ * any `-x` difference forces exact-match scope — v1 superset lookup does not
+ * reason about exclusions.
+ * <p>
+ * <strong>Duplication caveat:</strong> the input list here is intentionally
+ * duplicated by [ConfigurationCacheEnvironmentKey] for v1. Any new component
+ * added here must also be added there (or be intentionally part of the
+ * requested-tasks-only delta), or different environments will silently share
+ * a superset index.
+ */
 @ServiceScope(Scope.BuildTree::class)
 internal
 class ConfigurationCacheKey(
@@ -37,6 +74,10 @@ class ConfigurationCacheKey(
     private val encryptionConfiguration: EncryptionConfiguration
 ) {
 
+    /**
+     * Stable MD5 digest of the hashed inputs. Used as the entry's directory
+     * name and as the value backing [equals] / [hashCode].
+     */
     val string: String by unsafeLazy {
         Hashing.md5().newHasher().apply {
             putCacheKeyComponents()
@@ -109,6 +150,13 @@ class ConfigurationCacheKey(
         }
     }
 
+    /**
+     * Hashes requested and excluded task names. When any task name is relative
+     * (does not start with `:`), also hashes the project/current directory
+     * relative to the build tree root, because relative names resolve against
+     * that directory — so the same `gradle foo` from two different subdirs
+     * must produce different keys.
+     */
     private
     fun Hasher.appendRequestedTasks() {
         val requestedTaskNames = startParameter.requestedTaskNames
@@ -120,9 +168,6 @@ class ConfigurationCacheKey(
         val taskNames = requestedTaskNames.asSequence() + excludedTaskNames.asSequence()
         val hasRelativeTaskName = taskNames.any { !it.startsWith(':') }
         if (hasRelativeTaskName) {
-            // Because unqualified task names are resolved relative to the selected
-            // sub-project according to either `projectDirectory` or `currentDirectory`,
-            // the relative directory information must be part of the key.
             val projectDir = startParameter.projectDirectory
             if (projectDir != null) {
                 relativePathOf(

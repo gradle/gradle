@@ -97,6 +97,15 @@ class ConfigurationCacheFingerprintController internal constructor(
     private val fingerprintEventHandler: ConfigurationCacheFingerprintEventHandler,
 ) : Stoppable, ProjectScopedScriptResolution {
 
+    private val taskGraphAccessedFlag = java.util.concurrent.atomic.AtomicBoolean(false)
+
+    fun taskGraphAccessed() {
+        taskGraphAccessedFlag.set(true)
+    }
+
+    val wasTaskGraphAccessed: Boolean
+        get() = taskGraphAccessedFlag.get()
+
     interface Host {
         val valueSourceProviderFactory: ValueSourceProviderFactory
     }

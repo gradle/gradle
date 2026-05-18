@@ -154,9 +154,9 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
 
     @Override
     public void addTaskExecutionGraphListener(TaskExecutionGraphListener listener) {
-        graphListeners.add(
-            decorateListener("TaskExecutionGraph.addTaskExecutionGraphListener", listener)
-        );
+        TaskExecutionGraphListener decorated = decorateListener("TaskExecutionGraph.addTaskExecutionGraphListener", listener);
+        notifyListenerRegistration("TaskExecutionGraph.addTaskExecutionGraphListener", decorated);
+        graphListeners.add(decorated);
     }
 
     private TaskExecutionGraphListener decorateListener(String registrationPoint, TaskExecutionGraphListener listener) {
@@ -174,22 +174,23 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
 
     @Override
     public void whenReady(final Closure closure) {
-        graphListeners.add(
-            new ClosureBackedMethodInvocationDispatch(
-                "graphPopulated",
-                listenerBuildOperationDecorator.decorate(
-                    "TaskExecutionGraph.whenReady",
-                    Cast.<Closure<?>>uncheckedCast(closure)
-                )
-            )
+        Closure<?> decoratedClosure = listenerBuildOperationDecorator.decorate(
+            "TaskExecutionGraph.whenReady",
+            Cast.<Closure<?>>uncheckedCast(closure)
         );
+        // Adapt to TaskExecutionGraphListener (single-method interface) so the listener-registration
+        // broadcast can use a proper instance — ClosureBackedMethodInvocationDispatch does not
+        // implement TaskExecutionGraphListener, which trips isSupportedListener checks.
+        TaskExecutionGraphListener listener = graph -> decoratedClosure.call(graph);
+        notifyListenerRegistration("TaskExecutionGraph.whenReady", listener);
+        graphListeners.add(listener);
     }
 
     @Override
     public void whenReady(final Action<TaskExecutionGraph> action) {
-        graphListeners.add(
-            decorateListener("TaskExecutionGraph.whenReady", action::execute)
-        );
+        TaskExecutionGraphListener decorated = decorateListener("TaskExecutionGraph.whenReady", action::execute);
+        notifyListenerRegistration("TaskExecutionGraph.whenReady", decorated);
+        graphListeners.add(decorated);
     }
 
     @Override

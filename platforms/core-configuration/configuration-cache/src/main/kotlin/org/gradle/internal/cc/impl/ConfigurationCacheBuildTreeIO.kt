@@ -62,7 +62,8 @@ interface ConfigurationCacheBuildTreeIO : ConfigurationCacheOperationIO {
         stateFile: ConfigurationCacheStateFile,
         loadAfterStore: Boolean,
         graph: BuildTreeWorkGraph,
-        graphBuilder: BuildTreeWorkGraphBuilder?
+        graphBuilder: BuildTreeWorkGraphBuilder?,
+        tasksToDrop: Set<String> = emptySet()
     ): Pair<String, BuildTreeWorkGraph.FinalizedGraph>
 
     fun writeModelTo(model: Any, stateFile: ConfigurationCacheStateFile)
