@@ -47,6 +47,10 @@ The feature will enter incubation once Gradle's core has stronger support for th
 While the feature is experimental, notable changes are documented here rather than in release notes:
 
 * Gradle 9.6.0
+** Additional APIs on `BuildServiceRegistry` are treated as incompatible:
+`getRegistrations` now only permits the `findByName(String)` method. All other methods emit IP violations.
+`registerIfAbsent` remains IP compatible.
+
 ** Introduced <<sec:diagnostics_mode,Diagnostics mode>> that runs all of configuration sequentially to surface every Isolated Projects violation in a single invocation.
 
 * Gradle 9.4.0
@@ -58,11 +62,6 @@ While the feature is experimental, notable changes are documented here rather th
 * Gradle 9.2.0
 ** Additional APIs on `TaskContainer` are treated as incompatible:
 `findByPath(String)` and `getByPath(String)` now emit violations when a task from another project is requested.
-
-* Gradle 9.6.0
-** Additional APIs on `BuildServiceRegistry` are treated as incompatible:
-`getRegistrations` now only permits the `findByName(String)` method. All other methods emit IP violations.
-`registerIfAbsent` remains IP compatible.
 
 [[sec:performance]]
 == Performance benefits and limitations
