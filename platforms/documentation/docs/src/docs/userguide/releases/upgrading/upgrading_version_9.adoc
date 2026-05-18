@@ -101,19 +101,26 @@ This direct dependency on Ant's static mutable state has been a long-standing so
 
 Use the new `Settings.fileSystemDefaultExcludes` property instead:
 
+=====
+[.multi-language-sample]
+======
+.settings.gradle.kts
 [source,kotlin]
 ----
-// settings.gradle.kts
 fileSystemDefaultExcludes.add("**/node_modules")
 fileSystemDefaultExcludes.set(fileSystemDefaultExcludes.get() - "**/.gitignore")
 ----
-
+======
+[.multi-language-sample]
+======
+.settings.gradle
 [source,groovy]
 ----
-// settings.gradle
 fileSystemDefaultExcludes.add("**/node_modules")
 fileSystemDefaultExcludes.set(fileSystemDefaultExcludes.get() - "**/.gitignore")
 ----
+======
+=====
 
 If both APIs are used in the same build, the `Settings.fileSystemDefaultExcludes` property takes precedence and the `DirectoryScanner` mutation is ignored.
 
