@@ -31,7 +31,10 @@ import javax.inject.Inject;
  * If you want to fine tune the eclipse configuration
  * <p>
  * At this moment nearly all configuration is done via {@link EclipseWtpComponent}.
+ *
+ * @deprecated Will be removed in Gradle 10.
  */
+@Deprecated
 @DisableCachingByDefault(because = "Not made cacheable, yet")
 public abstract class GenerateEclipseWtpComponent extends XmlGeneratorTask<WtpComponent> {
 

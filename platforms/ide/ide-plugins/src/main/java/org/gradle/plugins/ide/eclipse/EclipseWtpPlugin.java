@@ -131,6 +131,7 @@ public abstract class EclipseWtpPlugin extends IdePlugin {
         });
     }
 
+    @SuppressWarnings("deprecation")
     private void configureEclipseWtpComponent(final Project project, final EclipseModel model) {
         XmlTransformer xmlTransformer = new XmlTransformer();
         xmlTransformer.setIndentation("\t");
@@ -270,6 +271,7 @@ public abstract class EclipseWtpPlugin extends IdePlugin {
         });
     }
 
+    @SuppressWarnings("deprecation")
     private void configureEclipseWtpFacet(final Project project, final EclipseModel eclipseModel) {
         TaskProvider<GenerateEclipseWtpFacet> task = project.getTasks().register(ECLIPSE_WTP_FACET_TASK_NAME, GenerateEclipseWtpFacet.class, eclipseModel.getWtp().getFacet());
         task.configure(new Action<GenerateEclipseWtpFacet>() {

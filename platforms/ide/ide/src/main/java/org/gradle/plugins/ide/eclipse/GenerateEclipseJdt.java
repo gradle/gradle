@@ -30,7 +30,10 @@ import javax.inject.Inject;
  * Generates the Eclipse JDT configuration file. If you want to fine tune the eclipse configuration
  * <p>
  * At this moment nearly all configuration is done via {@link EclipseJdt}.
+ *
+ * @deprecated Will be removed in Gradle 10.
  */
+@Deprecated
 @DisableCachingByDefault(because = "Not made cacheable, yet")
 public abstract class GenerateEclipseJdt extends PropertiesGeneratorTask<Jdt> {
 

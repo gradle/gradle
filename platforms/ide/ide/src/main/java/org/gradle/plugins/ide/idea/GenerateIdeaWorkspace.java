@@ -27,7 +27,10 @@ import javax.inject.Inject;
 
 /**
  * Generates an IDEA workspace file *only* for root project. There's little you can configure about workspace generation at the moment.
+ *
+ * @deprecated Will be removed in Gradle 10.
  */
+@Deprecated
 @DisableCachingByDefault(because = "Not made cacheable, yet")
 public abstract class GenerateIdeaWorkspace extends XmlGeneratorTask<Workspace> {
 

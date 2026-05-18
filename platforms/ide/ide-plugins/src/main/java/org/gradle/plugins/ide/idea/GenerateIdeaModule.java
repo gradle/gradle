@@ -32,7 +32,10 @@ import java.io.File;
  * Please refer to interesting examples on idea configuration in {@link IdeaModule}.
  * <p>
  * At this moment nearly all configuration is done via {@link IdeaModule}.
+ *
+ * @deprecated Will be removed in Gradle 10.
  */
+@Deprecated
 @DisableCachingByDefault(because = "Not made cacheable, yet")
 public abstract class GenerateIdeaModule extends XmlGeneratorTask<Module> {
 

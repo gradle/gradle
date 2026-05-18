@@ -161,6 +161,7 @@ public abstract class IdeaPlugin extends IdePlugin {
         linkCompositeBuildDependencies((ProjectInternal) project);
     }
 
+    @SuppressWarnings("deprecation")
     private void configureIdeaWorkspace(final Project project) {
         final IdeaWorkspace workspace = getObjectFactory().newInstance(IdeaWorkspace.class);
         ideaModel.setWorkspace(workspace);
@@ -180,6 +181,7 @@ public abstract class IdeaPlugin extends IdePlugin {
         }
     }
 
+    @SuppressWarnings("deprecation")
     private void configureIdeaProject(final Project project) {
         if (isRoot()) {
             XmlFileContentMerger ipr = new XmlFileContentMerger(new XmlTransformer());
@@ -273,6 +275,7 @@ public abstract class IdeaPlugin extends IdePlugin {
         return allJavaProjects;
     }
 
+    @SuppressWarnings("deprecation")
     private void configureIdeaModule(final ProjectInternal project) {
         IdeaModuleIml iml = new IdeaModuleIml(new XmlTransformer(), project.getProjectDir());
         // Instantiating an internal subclass is required for Isolated Projects-safe model building
@@ -367,6 +370,7 @@ public abstract class IdeaPlugin extends IdePlugin {
         });
     }
 
+    @SuppressWarnings("deprecation")
     private void configureIdeaModuleForJava(final Project project) {
         JvmFeatureInternal mainFeature = JavaPluginHelper.getJavaComponent(project).getMainFeature();
         JvmTestSuite defaultTestSuite = JavaPluginHelper.getDefaultTestSuite(project);
@@ -463,6 +467,7 @@ public abstract class IdeaPlugin extends IdePlugin {
         });
     }
 
+    @SuppressWarnings("deprecation")
     private void configureIdeaModuleForWar(final Project project) {
         project.getTasks().withType(GenerateIdeaModule.class).configureEach(new Action<GenerateIdeaModule>() {
             @Override

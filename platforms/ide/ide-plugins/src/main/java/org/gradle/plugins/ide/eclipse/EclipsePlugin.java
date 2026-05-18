@@ -149,6 +149,7 @@ public abstract class EclipsePlugin extends IdePlugin {
         }
     }
 
+    @SuppressWarnings("deprecation")
     private void configureEclipseProject(final ProjectInternal project, final EclipseModel model) {
         final EclipseProject projectModel = model.getProject();
 
@@ -219,6 +220,7 @@ public abstract class EclipsePlugin extends IdePlugin {
         artifactRegistry.registerIdeProject(new EclipseProjectMetadata(model, project.getProjectDir(), task));
     }
 
+    @SuppressWarnings("deprecation")
     private void configureEclipseClasspath(final Project project, final EclipseModel model) {
         EclipseClasspath classpath = project.getObjects().newInstance(EclipseClasspath.class, project);
         classpath.getBaseSourceOutputDir().convention(project.getLayout().getProjectDirectory().dir("bin"));
@@ -273,6 +275,7 @@ public abstract class EclipsePlugin extends IdePlugin {
         });
     }
 
+    @SuppressWarnings("deprecation")
     private static void configureJavaClasspath(final Project project, final TaskProvider<GenerateEclipseClasspath> task, final EclipseModel model, Collection<SourceSet> testSourceSetsConvention, Collection<Configuration> testConfigurationsConvention) {
         project.getPlugins().withType(JavaPlugin.class, new Action<JavaPlugin>() {
             @Override
@@ -400,6 +403,7 @@ public abstract class EclipsePlugin extends IdePlugin {
         });
     }
 
+    @SuppressWarnings("deprecation")
     private void configureEclipseJdt(final Project project, final EclipseModel model) {
         project.getPlugins().withType(JavaBasePlugin.class, new Action<JavaBasePlugin>() {
             @Override
