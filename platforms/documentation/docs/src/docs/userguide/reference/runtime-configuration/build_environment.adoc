@@ -482,6 +482,12 @@ Enables project isolation, which enables configuration caching.
 +
 _Default is `false`._
 
+`org.gradle.unsafe.isolated-projects.diagnostics=(true,false)`::
+Enables <<isolated_projects.adoc#sec:diagnostics_mode,Diagnostics mode>> for Isolated Projects, which runs configuration sequentially to surface every violation in a single invocation.
+Requires `org.gradle.unsafe.isolated-projects=true`.
++
+_Default is `false`._
+
 `org.gradle.vfs.verbose=(true,false)`::
 Configures verbose logging when <<file_system_watching.adoc#sec:daemon_watch_fs,watching the file system>>.
 +

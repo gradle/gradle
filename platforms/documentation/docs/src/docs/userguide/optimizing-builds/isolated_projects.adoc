@@ -463,11 +463,10 @@ In that case the build will fail, and one or more violations will be shown in th
 [[sec:diagnostics_mode]]
 === Diagnostics mode
 
-Diagnostics mode is an opt-in mode that helps you discover Isolated Projects <<sec:constraint_violations,constraint violations>> more efficiently during migration.
-It runs all of <<sec:perf_tasks,configuration>> *sequentially*, so every violation across every project is reported in a single invocation, regardless of where it occurs.
+_Diagnostics_ mode is an *opt-in* mode that helps you discover Isolated Projects <<sec:constraint_violations,constraint violations>> more efficiently during migration.
+It runs all <<sec:perf_tasks,configuration>> *sequentially*, so every violation across every project is reported in a single invocation, regardless of where it occurs.
 
-Enable Diagnostics mode by setting `org.gradle.unsafe.isolated-projects.diagnostics=true` in `gradle.properties`,
-or by passing it on the command line alongside `-Dorg.gradle.unsafe.isolated-projects=true`:
+Enable _Diagnostics_ mode by setting `org.gradle.unsafe.isolated-projects.diagnostics=true` in `gradle.properties`, or by passing it on the command line alongside `-Dorg.gradle.unsafe.isolated-projects=true`:
 
 [source,bash]
 ----
@@ -476,29 +475,25 @@ $ ./gradlew help \
     -Dorg.gradle.unsafe.isolated-projects.diagnostics=true
 ----
 
-Compared to normal Isolated Projects, Diagnostics mode disables several optimizations to maximize the completeness of the violation report:
+Compared to normal Isolated Projects, _Diagnostics_ mode disables several optimizations to maximize the completeness of the violation report:
 
 * Project configuration runs *sequentially* instead of in parallel.
 * Configuration Cache store runs *sequentially*.
 * Per-project model reuse across builds is *disabled*, so every model is rebuilt after an input change.
 * All projects are configured, ignoring any configure-on-demand setting.
 
-These trade-offs make Diagnostics mode to be unsuitable for day-to-day operations.
+These trade-offs make _Diagnostics_ mode unsuitable for day-to-day operations.
 Use it only to enumerate violations, such as during the migration, or to compare against the default Isolated Projects path when investigating a discrepancy.
 
 [NOTE]
 ====
-Diagnostics mode does not affect top-level Configuration Cache reuse.
-If you run the same invocation twice without any input changes, the second run still reuses the cached entry and reports nothing,
-because all violations were already reported on the cache-miss run.
+_Diagnostics_ mode does not affect top-level Configuration Cache reuse.
+If you run the same invocation twice without any input changes, the second run still reuses the cached entry and reports nothing, because all violations were already reported on the cache-miss run.
 Modify a build input (for example, edit a build script) between runs to re-exercise configuration.
 ====
 
-[NOTE]
-====
-Diagnostics mode does not change which patterns count as violations.
-A build that is clean under Isolated Projects is also clean under Diagnostics mode.
-====
+_Diagnostics_ mode does not change which patterns count as violations.
+A build that is clean under Isolated Projects is also clean under _Diagnostics_ mode.
 
 [[sec:ignore_violations]]
 === Temporarily ignoring violations
