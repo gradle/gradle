@@ -105,36 +105,45 @@ class ConfigurationCacheRepository(
             if (variants.isEmpty()) return@withFileLockNullable null
 
             var dirty = false
-            while (true) {
-                val chosen = pickWithTieBreak(variants, requestedTasks) ?: break
-                val dir = dirForEntry(chosen.fullKey)
-                if (!dir.exists()) {
-                    variants.remove(chosen)
-                    dirty = true
-                    continue
-                }
-                if (SupersetIndexLookup.hasDanglingMustRunAfter(chosen.mustRunAfterEdges, chosen.requestedTasks, requestedTasks)) {
-                    // Pruning this entry down to the current request would leave a retained
-                    // task pointing at a dropped task through mustRunAfter/finalizer. Don't
-                    // remove it from the index (it remains valid for exact-match reuse);
-                    // just skip it for this lookup. The "no more candidates" exit below
-                    // returns null, and the caller cold-stores.
-                    val requestedDistinct = requestedTasks.distinct()
-                    if (chosen.requestedTasks == requestedDistinct) {
-                        // It IS an exact match — the gate doesn't apply. Use it.
-                        if (dirty) indexFile.write(variants)
-                        return@withFileLockNullable CompatibleEntry(chosen.fullKey, chosen.requestedTasks)
-                    }
-                    variants.remove(chosen)
-                    // Don't mark dirty — the entry is still valid, we just didn't pick it
-                    // for *this* request. Next request that exactly matches it will succeed.
-                    continue
-                }
-                if (dirty) indexFile.write(variants)
-                return@withFileLockNullable CompatibleEntry(chosen.fullKey, chosen.requestedTasks)
-            }
+            val chosen = pickUsableVariant(variants, requestedTasks) { dirty = true }
             if (dirty) indexFile.write(variants)
-            null
+            chosen?.let { CompatibleEntry(it.fullKey, it.requestedTasks) }
+        }
+    }
+
+    /**
+     * Repeatedly asks [pickWithTieBreak] for the next-best candidate and drops any
+     * that aren't usable for [requestedTasks], returning the first one that is.
+     * <p>
+     * A candidate is dropped when either:
+     *  - its entry directory has been removed out from under the index (stale row —
+     *    self-heal: invoke [onStaleDirRemoved] so the caller can rewrite the index);
+     *  - pruning it down to the request would leave a retained task pointing at a
+     *    dropped task through `mustRunAfter` / finalizer (see
+     *    [SupersetIndexLookup.hasDanglingMustRunAfter]). Exact-match candidates skip
+     *    the dangle gate — no pruning happens, no edge can dangle. The entry stays
+     *    in the index even when skipped here; it remains valid for exact-match
+     *    reuse by a future request.
+     * <p>
+     * Returns `null` when [pickWithTieBreak] yields no further candidate.
+     */
+    private
+    fun pickUsableVariant(
+        variants: MutableList<IndexedVariant>,
+        requestedTasks: List<String>,
+        onStaleDirRemoved: () -> Unit
+    ): IndexedVariant? {
+        val requestedDistinct = requestedTasks.distinct()
+        while (true) {
+            val chosen = pickWithTieBreak(variants, requestedTasks) ?: return null
+            val staleDir = !dirForEntry(chosen.fullKey).exists()
+            val isExactMatch = !staleDir && chosen.requestedTasks == requestedDistinct
+            val dangles = !staleDir && !isExactMatch && SupersetIndexLookup.hasDanglingMustRunAfter(
+                chosen.mustRunAfterEdges, chosen.requestedTasks, requestedTasks
+            )
+            if (!staleDir && !dangles) return chosen
+            variants.remove(chosen)
+            if (staleDir) onStaleDirRemoved()
         }
     }
 
