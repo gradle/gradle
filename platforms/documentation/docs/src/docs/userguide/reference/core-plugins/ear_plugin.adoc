@@ -90,6 +90,7 @@ You can also use customization options that the link:{groovyDslPath}/org.gradle.
 == Skinny WAR Pattern
 
 The Ear plugin supports the Skinny WAR deployment pattern, where shared libraries are placed in the EAR's `lib` directory rather than being packaged within individual WAR files.
+
 === Basic Skinny WAR Setup
 
 To implement the Skinny WAR pattern, configure your multi-module project with separate `war` and `ear` modules:
@@ -135,13 +136,13 @@ include::sample[dir="snippets/ear/skinnyWar/groovy/ear",files="build.gradle[]"]
 In the Skinny WAR pattern, shared dependencies are centralized in the EAR's `lib` directory instead of being duplicated in each WAR file. The generated EAR file structure demonstrates this dependency organization:
 
 ----
-ear-1.0-SNAPSHOT.ear
+ear.ear
 ├── META-INF/
 │   ├── MANIFEST.MF
 │   └── application.xml
 ├── lib/
 │   └── commons-lang3-3.14.0.jar
-└── war-1.0-SNAPSHOT.war (skinny WAR - no shared libraries)
+└── war.war (skinny WAR - no shared libraries)
 ----
 
 [[sec:using_custom_app_xml]]

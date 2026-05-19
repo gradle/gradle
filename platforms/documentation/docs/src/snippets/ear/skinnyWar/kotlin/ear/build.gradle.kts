@@ -2,6 +2,10 @@ plugins {
     ear
 }
 
+repositories {
+    mavenCentral()
+}
+
 dependencies {
     // Include WAR module in EAR
     deploy(project(":war", "war"))

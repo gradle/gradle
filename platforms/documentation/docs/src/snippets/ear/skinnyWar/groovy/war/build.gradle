@@ -2,6 +2,10 @@ plugins {
     id 'war'
 }
 
+repositories {
+    mavenCentral()
+}
+
 configurations {
     war {
         canBeResolved = false

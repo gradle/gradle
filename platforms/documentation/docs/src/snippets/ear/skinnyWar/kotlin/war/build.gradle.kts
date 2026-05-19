@@ -2,6 +2,10 @@ plugins {
     war
 }
 
+repositories {
+    mavenCentral()
+}
+
 configurations {
     create("war") {
         isCanBeResolved = false
@@ -10,7 +14,6 @@ configurations {
         }
     }
 }
-
 
 dependencies {
     // Shared libraries provided by parent EAR - use compileOnly to avoid packaging in WAR
