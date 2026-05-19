@@ -61,4 +61,12 @@ class MultiProjectProjectDependencyConflictResolutionIntegrationTest extends Abs
     boolean isAutoDependencySubstitution() {
         false
     }
+
+    @Override
+    String parentMethodLookupDeprecationFor(String methodName) {
+        // Modules are configured via project(':...') {} blocks in the root build script,
+        // so projectId()/moduleId() (declared by checkHelper() in the same build script)
+        // are looked up by walking up from :ProjectA to root project 'root'.
+        formatParentMethodLookupDeprecation(methodName, ':ProjectA', "root project 'root'")
+    }
 }
