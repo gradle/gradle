@@ -115,17 +115,18 @@ class ConfigurationCacheRepository(
      * Repeatedly asks [pickWithTieBreak] for the next-best candidate and drops any
      * that aren't usable for [requestedTasks], returning the first one that is.
      * <p>
-     * A candidate is dropped when either:
+     * A candidate is dropped when any of these hold (and it isn't an exact match —
+     * exact matches skip the pruning gates because no pruning happens):
      *  - its entry directory has been removed out from under the index (stale row —
      *    self-heal: invoke [onStaleDirRemoved] so the caller can rewrite the index);
-     *  - pruning it down to the request would leave a retained task pointing at a
-     *    dropped task through `mustRunAfter` / finalizer (see
-     *    [SupersetIndexLookup.hasDanglingMustRunAfter]). Exact-match candidates skip
-     *    the dangle gate — no pruning happens, no edge can dangle. The entry stays
-     *    in the index even when skipped here; it remains valid for exact-match
-     *    reuse by a future request.
+     *  - pruning would leave a retained task pointing at a dropped task through
+     *    `mustRunAfter` / finalizer (see [SupersetIndexLookup.hasDanglingMustRunAfter]);
+     *  - pruning would drop a task whose declared outputs overlap with a retained
+     *    task's outputs (see [SupersetIndexLookup.hasOverlappingDroppedOutputs]).
      * <p>
-     * Returns `null` when [pickWithTieBreak] yields no further candidate.
+     * The entry stays in the index even when skipped here; it remains valid for
+     * exact-match reuse by a future request. Returns `null` when [pickWithTieBreak]
+     * yields no further candidate.
      */
     private
     fun pickUsableVariant(
@@ -138,10 +139,14 @@ class ConfigurationCacheRepository(
             val chosen = pickWithTieBreak(variants, requestedTasks) ?: return null
             val staleDir = !dirForEntry(chosen.fullKey).exists()
             val isExactMatch = !staleDir && chosen.requestedTasks == requestedDistinct
-            val dangles = !staleDir && !isExactMatch && SupersetIndexLookup.hasDanglingMustRunAfter(
+            val needsPruningGates = !staleDir && !isExactMatch
+            val dangles = needsPruningGates && SupersetIndexLookup.hasDanglingMustRunAfter(
                 chosen.mustRunAfterEdges, chosen.requestedTasks, requestedTasks
             )
-            if (!staleDir && !dangles) return chosen
+            val overlaps = needsPruningGates && !dangles && SupersetIndexLookup.hasOverlappingDroppedOutputs(
+                chosen.outputPaths, chosen.dependencyEdges, chosen.requestedTasks, requestedTasks
+            )
+            if (!staleDir && !dangles && !overlaps) return chosen
             variants.remove(chosen)
             if (staleDir) onStaleDirRemoved()
         }
@@ -173,20 +178,31 @@ class ConfigurationCacheRepository(
      *     tasks (source identity-path → list of target identity-paths). Used by
      *     [findCompatibleEntry] to reject this entry from strict-superset matches
      *     whose pruning would dangle one of these edges
+     * @param dependencyEdges `dependencySuccessors` edges between scheduled tasks
+     *     (source identity-path → list of identity-paths the source depends on).
+     *     Used to compute the retained closure for the overlap check below
+     * @param outputPaths declared output file paths per scheduled task (identity
+     *     path → absolute paths). Used by [findCompatibleEntry] to reject this
+     *     entry from strict-superset matches whose pruning would drop a task whose
+     *     outputs overlap with a retained task's outputs
      */
     fun recordEntry(
         environmentKey: ConfigurationCacheEnvironmentKey,
         fullKey: String,
         requestedTasks: List<String>,
         taskGraphAccessed: Boolean,
-        mustRunAfterEdges: Map<String, List<String>> = emptyMap()
+        mustRunAfterEdges: Map<String, List<String>> = emptyMap(),
+        dependencyEdges: Map<String, List<String>> = emptyMap(),
+        outputPaths: Map<String, List<String>> = emptyMap()
     ) {
         if (requestedTasks.any { it.startsWith("-") }) return
         cache.withFileLock(Supplier {
             val indexFile = SupersetIndexFile(indexFileFor(environmentKey))
             val variants = indexFile.read().toMutableList()
             variants.removeIf { it.fullKey == fullKey }
-            variants.add(IndexedVariant(fullKey, requestedTasks, taskGraphAccessed, mustRunAfterEdges))
+            variants.add(IndexedVariant(
+                fullKey, requestedTasks, taskGraphAccessed, mustRunAfterEdges, dependencyEdges, outputPaths
+            ))
             indexFile.write(variants)
         })
     }

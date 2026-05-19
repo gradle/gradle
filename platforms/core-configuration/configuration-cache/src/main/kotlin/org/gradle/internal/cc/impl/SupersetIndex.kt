@@ -24,20 +24,33 @@ internal
 object SupersetIndexLookup {
 
     /**
-     * One row in the superset index: a stored configuration cache entry's full
-     * key, the task list it was stored for, whether user code observed the task
-     * graph during the original build (`true` → exact-match-only at lookup), and
-     * the mustRunAfter/finalizer edges between scheduled tasks captured at store
-     * time. Edges are used to reject a candidate at lookup time when pruning
-     * would leave a retained task referencing a dropped task through a non-
-     * dependency hard-ordering edge — the loaded plan would either deadlock or
-     * silently execute a non-requested task.
+     * One row in the superset index. Fields:
+     *
+     *  - [fullKey]: the stored configuration cache entry's full key (also its directory name).
+     *  - [requestedTasks]: identity paths of the entry tasks the build was originally requested for.
+     *  - [taskGraphAccessed]: whether user code observed the task graph during the original build
+     *    (`true` → exact-match-only at lookup; see [selectBestMatch] step 2).
+     *  - [mustRunAfterEdges]: `mustRunAfter` / finalizer edges between scheduled tasks (source
+     *    identity path → target identity paths). Used to reject a candidate at lookup time when
+     *    pruning would leave a retained task referencing a dropped task through a non-dependency
+     *    hard-ordering edge — the loaded plan would either deadlock or silently execute a
+     *    non-requested task. See [hasDanglingMustRunAfter].
+     *  - [dependencyEdges]: `dependencySuccessors` edges between scheduled tasks (source identity
+     *    path → identity paths the source depends on). Needed to compute the retained closure for
+     *    the overlap check below.
+     *  - [outputPaths]: declared output file paths for each scheduled task (identity path →
+     *    absolute paths). Used to reject a candidate when pruning would drop a task whose declared
+     *    outputs overlap with a retained task's outputs — the loaded plan would skip filesystem
+     *    side effects (e.g. a `clean*` task) that the retained tasks rely on observing. See
+     *    [hasOverlappingDroppedOutputs].
      */
     data class IndexedVariant(
         val fullKey: String,
         val requestedTasks: List<String>,
         val taskGraphAccessed: Boolean = false,
-        val mustRunAfterEdges: Map<String, List<String>> = emptyMap()
+        val mustRunAfterEdges: Map<String, List<String>> = emptyMap(),
+        val dependencyEdges: Map<String, List<String>> = emptyMap(),
+        val outputPaths: Map<String, List<String>> = emptyMap()
     )
 
     /**
@@ -105,6 +118,72 @@ object SupersetIndexLookup {
     }
 
     /**
+     * Returns true if pruning [stored] down to [requested] would leave a dropped
+     * task whose declared outputs overlap with a retained task's declared outputs.
+     * <p>
+     * Dropped tasks may have produced filesystem side effects the retained tasks
+     * observe at execution time — e.g. a `clean*` task scheduled in the original
+     * build cleared a directory before another task wrote into it. Skipping the
+     * cleanup but loading the cached pre-cleanup output state changes the
+     * effective filesystem invariant for the retained tasks (`OverlappingOutputs`
+     * detection notices the leftover content and re-executes the retained task —
+     * a behavior the loaded plan can't reproduce).
+     * <p>
+     * Retained set is computed by BFS from `requested ∩ stored` (entries that
+     * survive the request shrink) traversing [dependencyEdges] forward; anything
+     * not in the closure but listed in [outputPaths] is dropped. Returns `false`
+     * on exact match (no pruning) and when neither side has any output paths.
+     */
+    fun hasOverlappingDroppedOutputs(
+        outputPaths: Map<String, List<String>>,
+        dependencyEdges: Map<String, List<String>>,
+        stored: List<String>,
+        requested: List<String>
+    ): Boolean {
+        val requestedSet = requested.toSet()
+        val storedSet = stored.toSet()
+        if (outputPaths.isEmpty() || storedSet == requestedSet) return false
+        val retained = retainedClosure(requestedSet intersect storedSet, dependencyEdges)
+        val droppedPaths = (outputPaths.keys - retained).flatMap { outputPaths[it].orEmpty() }
+        val retainedPaths = retained.flatMap { outputPaths[it].orEmpty() }
+        // Pairwise prefix-overlap check. Small in practice — declared outputs per task
+        // are usually 1–2 paths, and only mismatched (dropped vs retained) pairs count.
+        return droppedPaths.any { d -> retainedPaths.any { r -> pathOverlaps(d, r) } }
+    }
+
+    private
+    fun retainedClosure(
+        seeds: Set<String>,
+        dependencyEdges: Map<String, List<String>>
+    ): Set<String> {
+        val visited = HashSet<String>(seeds)
+        val queue = ArrayDeque(seeds)
+        while (queue.isNotEmpty()) {
+            val next = queue.removeFirst()
+            for (dep in dependencyEdges[next].orEmpty()) {
+                if (visited.add(dep)) queue.addLast(dep)
+            }
+        }
+        return visited
+    }
+
+    /**
+     * True when [a] and [b] are equal, or one is a sub-path of the other under
+     * filesystem-style segment semantics. `/a/b` overlaps `/a/b/c.txt` but not
+     * `/a/bridge.txt`. Comparison is verbatim on the stored absolute path strings;
+     * paths captured at store time share the same OS and case-sensitivity as the
+     * paths captured for the current build.
+     */
+    private
+    fun pathOverlaps(a: String, b: String): Boolean {
+        if (a == b) return true
+        val sep = java.io.File.separator
+        val aWithSep = if (a.endsWith(sep)) a else a + sep
+        val bWithSep = if (b.endsWith(sep)) b else b + sep
+        return aWithSep.startsWith(bWithSep) || bWithSep.startsWith(aWithSep)
+    }
+
+    /**
      * Returns true if [needle] appears in [haystack] in the same relative order
      * (not necessarily contiguous).
      */
@@ -131,8 +210,12 @@ object SupersetIndexLookup {
  *     fullKey: UTF
  *     requestedTasks: int count + UTF entries
  *     taskGraphAccessed: boolean
- *     mustRunAfterEdges: int entry-count, each entry = UTF source + int target-count + UTF targets
+ *     mustRunAfterEdges: edge-map (see writeEdgeMap)
+ *     dependencyEdges: edge-map
+ *     outputPaths: edge-map
  *
+ * An edge-map is encoded as: int entry-count, each entry = UTF source + int target-count + UTF targets.
+ * <p>
  * Reads from a missing file or one with an unknown format version return an
  * empty list rather than throwing — callers fall back to "no index, cold store".
  */
@@ -153,14 +236,12 @@ class SupersetIndexFile(private val file: java.io.File) {
                     val taskCount = input.readInt()
                     val tasks = (0 until taskCount).map { input.readUTF() }
                     val accessed = input.readBoolean()
-                    val edgeCount = input.readInt()
-                    val edges = (0 until edgeCount).associate {
-                        val source = input.readUTF()
-                        val targetCount = input.readInt()
-                        val targets = (0 until targetCount).map { input.readUTF() }
-                        source to targets
-                    }
-                    SupersetIndexLookup.IndexedVariant(fullKey, tasks, accessed, edges)
+                    val mustRunAfterEdges = readEdgeMap(input)
+                    val dependencyEdges = readEdgeMap(input)
+                    val outputPaths = readEdgeMap(input)
+                    SupersetIndexLookup.IndexedVariant(
+                        fullKey, tasks, accessed, mustRunAfterEdges, dependencyEdges, outputPaths
+                    )
                 }
             }
         } catch (_: java.io.IOException) {
@@ -180,13 +261,31 @@ class SupersetIndexFile(private val file: java.io.File) {
                 out.writeInt(v.requestedTasks.size)
                 v.requestedTasks.forEach(out::writeUTF)
                 out.writeBoolean(v.taskGraphAccessed)
-                out.writeInt(v.mustRunAfterEdges.size)
-                for ((source, targets) in v.mustRunAfterEdges) {
-                    out.writeUTF(source)
-                    out.writeInt(targets.size)
-                    targets.forEach(out::writeUTF)
-                }
+                writeEdgeMap(out, v.mustRunAfterEdges)
+                writeEdgeMap(out, v.dependencyEdges)
+                writeEdgeMap(out, v.outputPaths)
             }
+        }
+    }
+
+    private
+    fun readEdgeMap(input: java.io.DataInput): Map<String, List<String>> {
+        val entryCount = input.readInt()
+        return (0 until entryCount).associate {
+            val source = input.readUTF()
+            val targetCount = input.readInt()
+            val targets = (0 until targetCount).map { input.readUTF() }
+            source to targets
+        }
+    }
+
+    private
+    fun writeEdgeMap(out: java.io.DataOutput, map: Map<String, List<String>>) {
+        out.writeInt(map.size)
+        for ((source, targets) in map) {
+            out.writeUTF(source)
+            out.writeInt(targets.size)
+            targets.forEach(out::writeUTF)
         }
     }
 
@@ -194,6 +293,7 @@ class SupersetIndexFile(private val file: java.io.File) {
         private val MAGIC = byteArrayOf('C'.code.toByte(), 'C'.code.toByte(), 'S'.code.toByte(), 'I'.code.toByte())
         // v1 = (fullKey, requestedTasks, taskGraphAccessed)
         // v2 = v1 + mustRunAfterEdges
-        private const val FORMAT_VERSION = 2
+        // v3 = v2 + dependencyEdges + outputPaths
+        private const val FORMAT_VERSION = 3
     }
 }

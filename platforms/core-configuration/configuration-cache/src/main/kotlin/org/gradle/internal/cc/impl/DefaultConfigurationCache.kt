@@ -151,29 +151,60 @@ class DefaultConfigurationCache internal constructor(
     var mustRunAfterEdges: Map<String, List<String>> = emptyMap()
 
     /**
+     * `dependencySuccessors` edges between scheduled tasks (source identity path →
+     * identity paths the source depends on). Recorded into the superset index so
+     * the overlap check can BFS the retained closure forward through dependency
+     * edges before comparing outputs.
+     */
+    private
+    var dependencyEdges: Map<String, List<String>> = emptyMap()
+
+    /**
+     * Declared output file paths for each scheduled task (identity path →
+     * absolute paths). Recorded into the superset index so a candidate entry can
+     * be rejected at lookup time when pruning would drop a task whose outputs
+     * overlap with a retained task's outputs — the loaded plan would skip
+     * filesystem side effects retained tasks rely on observing.
+     */
+    private
+    var outputPaths: Map<String, List<String>> = emptyMap()
+
+    /**
      * The compatible stored cache entry chosen for this build (exact or strict-superset
      * match), or `null` if none was found and we'll cold-store at [cacheKey]. Evaluated
      * once and reused — the [SupersetIndexLookup] acquires the cache file lock.
      */
     private
     val compatibleEntry: CompatibleEntry? by lazy {
+        // The superset lookup operates on the CLI-typed requested-task list. Two
+        // CLI shapes can't safely participate:
+        //  1. Empty requested-task list — the build will fall back to project
+        //     default tasks at planning time. We don't know what those resolve to
+        //     without running configuration, and an empty list is trivially a
+        //     subsequence of every stored entry, so the matcher would always pick
+        //     the smallest stored entry and prune everything else.
+        //  2. Any bare task name (e.g. `d` vs `:d`) — bare names resolve across all
+        //     subprojects with a matching task, absolute paths target one project.
+        //     Treating "d" the same as ":d" lets a bare-name request reuse an
+        //     entry stored for an absolute-path request whose schedule omitted the
+        //     subproject tasks (or vice versa).
+        // In either case skip the superset path; the build cold-stores at cacheKey.string.
+        val requested = startParameter.requestedTaskNames
+        if (requested.isEmpty() || requested.any { !it.startsWith(":") }) return@lazy null
         cacheRepository.findCompatibleEntry(environmentKey, canonicalRequestedTasks)
     }
 
     /**
-     * CLI-typed task names (`":foo"`, `"foo"`, `":proj:bar"`) normalized to a
-     * `:`-prefixed canonical form. Used both for index lookup and for computing
-     * `tasksToDrop` at superset load — both sides must use the same canonical
-     * form as the identity paths stored by [commitCacheEntry] so the comparison
-     * in [WorkGraphPruner.prune] (against `task.identityPath`) matches. The v1
-     * normalization is simple "prepend `:` if missing"; relative-name invocations
-     * from sub-projects are differentiated by [environmentKey] (which hashes the
-     * project/current dir), so cross-context collisions don't occur within an
-     * env-key.
+     * CLI-typed task names already filtered to the absolute-path subset by the
+     * guard in [compatibleEntry]. Used both for index lookup and for computing
+     * `tasksToDrop` at superset load — both sides must use the same form as the
+     * identity paths stored by [commitCacheEntry] so the comparison in
+     * [WorkGraphPruner.prune] (against `task.identityPath`) matches. When any
+     * token is bare, [compatibleEntry] short-circuits and this property is unused.
      */
     private
     val canonicalRequestedTasks: List<String>
-        get() = startParameter.requestedTaskNames.map { if (it.startsWith(":")) it else ":$it" }
+        get() = startParameter.requestedTaskNames
 
     private
     val effectiveStoreKey: String
@@ -485,15 +516,19 @@ class DefaultConfigurationCache internal constructor(
             cacheKey.string,
             entryTaskIdentityPaths,
             cacheFingerprintController.wasTaskGraphAccessed,
-            mustRunAfterEdges
+            mustRunAfterEdges,
+            dependencyEdges,
+            outputPaths
         )
     }
 
     /**
      * Snapshots inputs to the superset index from the finalized task graph
      * before task execution begins (the execution plan is cleared on completion).
-     * Captures both the entry-task identity paths and the mustRunAfter/finalizer
-     * edges between scheduled tasks.
+     * Captures four things per scheduled task: entry-task identity paths,
+     * mustRunAfter/finalizer edges (for the dangle check), dependencySuccessors
+     * edges (for the overlap-check BFS), and declared output paths (for the
+     * overlap check itself).
      */
     private
     fun captureSupersetIndexInputs() {
@@ -501,16 +536,20 @@ class DefaultConfigurationCache internal constructor(
         entryTaskIdentityPaths = scheduled.entryNodes
             .filterIsInstance<org.gradle.execution.plan.LocalTaskNode>()
             .map { it.task.identityPath.toString() }
-        val scheduledTaskNodes = scheduled.scheduledNodes
-            .filterIsInstance<org.gradle.execution.plan.TaskNode>()
-        val edges = mutableMapOf<String, List<String>>()
-        for (node in scheduledTaskNodes) {
-            val targets = collectOrderingTargets(node)
-            if (targets.isNotEmpty()) {
-                edges[node.task.identityPath.toString()] = targets
-            }
+        val scheduledLocalTaskNodes = scheduled.scheduledNodes
+            .filterIsInstance<org.gradle.execution.plan.LocalTaskNode>()
+        val mraEdges = mutableMapOf<String, List<String>>()
+        val depEdges = mutableMapOf<String, List<String>>()
+        val outputs = mutableMapOf<String, List<String>>()
+        for (node in scheduledLocalTaskNodes) {
+            val id = node.task.identityPath.toString()
+            collectOrderingTargets(node).takeIf { it.isNotEmpty() }?.let { mraEdges[id] = it }
+            collectDependencyTargets(node).takeIf { it.isNotEmpty() }?.let { depEdges[id] = it }
+            collectDeclaredOutputs(node).takeIf { it.isNotEmpty() }?.let { outputs[id] = it }
         }
-        mustRunAfterEdges = edges
+        mustRunAfterEdges = mraEdges
+        dependencyEdges = depEdges
+        outputPaths = outputs
     }
 
     private
@@ -522,6 +561,47 @@ class DefaultConfigurationCache internal constructor(
             .filterIsInstance<org.gradle.execution.plan.LocalTaskNode>()
             .map { it.task.identityPath.toString() }
             .toList()
+    }
+
+    private
+    fun collectDependencyTargets(node: org.gradle.execution.plan.TaskNode): List<String> =
+        node.dependencySuccessors
+            .asSequence()
+            .filterIsInstance<org.gradle.execution.plan.LocalTaskNode>()
+            .map { it.task.identityPath.toString() }
+            .toList()
+
+    /**
+     * Resolves the task's declared filesystem-footprint paths — declared outputs
+     * plus, for `Delete` tasks, the deletion targets (which Gradle exposes
+     * separately from `task.outputs` since a `Delete` produces no outputs in the
+     * input/output snapshotting sense but still touches the filesystem). The
+     * union forms the set of paths used for overlap detection.
+     * <p>
+     * Wrapped in a try/catch because file collections may contain lazy providers
+     * that throw on resolution (e.g. unresolved Configurations); on failure the
+     * task gets an empty footprint list and is treated as "footprint unknown —
+     * can't participate in the overlap check," which conservatively means the
+     * candidate is *less* likely to be rejected for overlap but still subject to
+     * the other gates.
+     */
+    private
+    fun collectDeclaredOutputs(node: org.gradle.execution.plan.LocalTaskNode): List<String> {
+        val task = node.task
+        val paths = LinkedHashSet<String>()
+        try {
+            task.outputs.files.files.forEach { paths.add(it.absolutePath) }
+        } catch (_: RuntimeException) {
+            // Skip unresolvable outputs.
+        }
+        if (task is org.gradle.api.tasks.Delete) {
+            try {
+                task.targetFiles.files.forEach { paths.add(it.absolutePath) }
+            } catch (_: RuntimeException) {
+                // Skip unresolvable deletion targets.
+            }
+        }
+        return paths.toList()
     }
 
     private

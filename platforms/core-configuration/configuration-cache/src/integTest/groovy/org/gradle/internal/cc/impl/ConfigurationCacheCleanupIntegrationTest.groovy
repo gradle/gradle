@@ -68,9 +68,9 @@ class ConfigurationCacheCleanupIntegrationTest
         cc.assertStateLoaded()
         !outdated.any { it.exists() }
 
-        and:
+        and: 'the superset-lookup index survives cleanup (metadata, not a cache entry)'
         def remaining = configurationCacheDir.list() as Set
-        def expected = (recent*.name + ['gc.properties', 'configuration-cache.lock']) as Set
+        def expected = (recent*.name + ['gc.properties', 'configuration-cache.lock', 'index']) as Set
         expected == remaining
     }
 
@@ -87,6 +87,9 @@ class ConfigurationCacheCleanupIntegrationTest
     }
 
     private static List<TestFile> subDirsOf(TestFile dir) {
-        dir.listFiles().findAll { it.directory }
+        // Exclude the superset-lookup `index` directory: it is metadata persisted across
+        // entries (one file per environment-key) and isn't a cache entry that participates
+        // in LRU cleanup. See `ConfigurationCacheRepository.cleanupEligibleFilesFinder`.
+        dir.listFiles().findAll { it.directory && it.name != 'index' }
     }
 }
