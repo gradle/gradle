@@ -93,6 +93,40 @@ class ParentProjectPropertyLookupIntegrationTest extends AbstractIntegrationSpec
         outputContains("foo: hello")
     }
 
+    def "explicit getProperty(String) on the child project is deprecated when resolved from parent"() {
+        given:
+        buildFile << """
+            ext.foo = "hello"
+        """
+        file("a/build.gradle") << """
+            println("foo: " + getProperty("foo"))
+        """
+
+        when:
+        executer.expectDocumentedDeprecationWarning(PROPERTY_DEPRECATION)
+
+        then:
+        succeeds("help")
+        outputContains("foo: hello")
+    }
+
+    def "explicit hasProperty(String) on the child project is deprecated when resolved from parent"() {
+        given:
+        buildFile << """
+            ext.foo = "hello"
+        """
+        file("a/build.gradle") << """
+            println("hasFoo: " + hasProperty("foo"))
+        """
+
+        when:
+        executer.expectDocumentedDeprecationWarning(PROPERTY_DEPRECATION)
+
+        then:
+        succeeds("help")
+        outputContains("hasFoo: true")
+    }
+
     def "implicit method invocation from a child project is deprecated"() {
         given:
         buildFile << """
