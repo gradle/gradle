@@ -605,27 +605,57 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
 
     @Issue("https://github.com/gradle/gradle/issues/22949")
     def "GroovyObject methods on DefaultProject route through DefaultProject's overrides under Isolated Projects"() {
-        // Historically this scenario produced a cross-project access violation because the
-        // GroovyObject dispatch was correctly routed to DefaultProject's wrapped overrides,
-        // which in turn walked the parent's dynamic scope. Under the new behavior, the parent
-        // walk is gone, so the very same routing now surfaces a local MissingPropertyException —
-        // confirming the dispatch still goes through the DefaultProject overrides.
+        // Historically this scenario produced a cross-project access violation because each of
+        // the four GroovyObject MOP entry points (getProperty, invokeMethod, setProperty,
+        // hasProperty) was correctly routed to DefaultProject's wrapped overrides, which then
+        // walked the parent's dynamic scope. Under the new behavior the parent walk is gone,
+        // so the same routing now surfaces a local MissingPropertyException / MissingMethodException
+        // (or returns false from hasProperty) instead. A regression that re-wires any of those
+        // four entry points to bypass the DefaultProject overrides would let the parent value
+        // resurface here.
         createDirs("a")
         settingsFile << """
             include("a")
         """
         file("build.gradle") << """
             ext.foo = 1
+            def bar() { }
         """
         file("a/build.gradle") << """
-            (project as GroovyObject).getProperty('foo')
+            ext.baz = 0
+
+            def o = project as GroovyObject
+
+            // getProperty: parent-only property -> local MissingPropertyException (no parent walk).
+            try {
+                o.getProperty('foo')
+                throw new AssertionError("expected MissingPropertyException for 'foo'")
+            } catch (groovy.lang.MissingPropertyException ignored) {
+            }
+
+            // invokeMethod: parent-only method -> local MissingMethodException (no parent walk).
+            try {
+                o.invokeMethod('bar', new Object[] {})
+                throw new AssertionError("expected MissingMethodException for 'bar'")
+            } catch (groovy.lang.MissingMethodException ignored) {
+            }
+
+            // setProperty: writing a locally declared extra property must update the local scope.
+            o.setProperty('baz', 1)
+            assert project.ext.baz == 1
+
+            // hasProperty: true for the local extra, false for a parent-only property.
+            assert o.hasProperty('baz')
+            assert !o.hasProperty('foo')
         """
 
         when:
-        isolatedProjectsDiagnosticsFails(":a:help")
+        isolatedProjectsRun(":a:help")
 
         then:
-        failureCauseContains("Could not get unknown property 'foo' for project ':a'")
+        fixture.assertStateStored {
+            projectsConfigured(":", ":a")
+        }
     }
 
     def "build script can query basic details of projects in allprojects block"() {
