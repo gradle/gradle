@@ -145,7 +145,10 @@ class ScriptPluginClassLoadingIntegrationTest extends AbstractIntegrationSpec {
     )
     def "methods defined in a build script are visible to scripts applied to sub projects"() {
         given:
-        settingsFile << "rootProject.name = 'root'\ninclude 'sub'"
+        settingsFile << """
+            rootProject.name = 'root'
+            include 'sub'
+        """
 
         buildFile """
             def someMethod() {
@@ -216,7 +219,10 @@ class ScriptPluginClassLoadingIntegrationTest extends AbstractIntegrationSpec {
         pluginBuilder.addPlugin("project.task('hello')")
         pluginBuilder.publishTo(executer, jar)
 
-        settingsFile << "rootProject.name = 'root'\ninclude 'sub'"
+        settingsFile << """
+            rootProject.name = 'root'
+            include 'sub'
+        """
 
         buildFile """
             apply from: "script.gradle"

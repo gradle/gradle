@@ -24,7 +24,10 @@ class BuildScriptVisibilityIntegrationTest extends AbstractIntegrationSpec {
     @ToBeFixedForIsolatedProjects(because = "project cannot dynamically look up a method in the parent project")
     def "methods defined in project build script are visible to descendant projects"() {
         createDirs("child1")
-        settingsFile << "rootProject.name = 'root'\ninclude 'child1'"
+        settingsFile << """
+rootProject.name = 'root'
+include 'child1'
+"""
         buildFile """
 def doSomething(def value) {
     return "{" + value + "}"
@@ -70,7 +73,10 @@ println "child: " + doSomethingElse(11)
     @ToBeFixedForIsolatedProjects(because = "project cannot dynamically look up a method in the parent project")
     def "methods defined in project build script are visible to script plugins applied to project and descendants"() {
         createDirs("child1")
-        settingsFile << "rootProject.name = 'root'\ninclude 'child1'"
+        settingsFile << """
+rootProject.name = 'root'
+include 'child1'
+"""
         buildFile << """
 def doSomething(def value) {
     return "{" + value + "}"
@@ -118,7 +124,10 @@ println project.path + " - " + doSomethingElse(12)
     @ToBeFixedForIsolatedProjects(because = "project cannot dynamically look up a method in the parent project")
     def "methods defined in project build script are visible to descendant projects when script contains only methods"() {
         createDirs("child1")
-        settingsFile << "rootProject.name = 'root'\ninclude 'child1'"
+        settingsFile << """
+rootProject.name = 'root'
+include 'child1'
+"""
         buildFile << """
 def doSomething(def value) {
     return value.toString()

@@ -41,7 +41,10 @@ class SoftwareModelTaskAndBuildScriptIntegrationTest extends AbstractIntegration
     @ToBeFixedForIsolatedProjects(because = "project cannot dynamically look up a method in the parent project")
     def "methods defined in project build script are visible to descendant projects when script contains only methods and model block"() {
         createDirs("child1")
-        settingsFile << "rootProject.name = 'root'\ninclude 'child1'"
+        settingsFile << """
+rootProject.name = 'root'
+include 'child1'
+"""
         buildFile << """
 def doSomething(def value) {
     return value.toString()
