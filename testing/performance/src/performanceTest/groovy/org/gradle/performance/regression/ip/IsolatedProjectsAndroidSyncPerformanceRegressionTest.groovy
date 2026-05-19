@@ -25,6 +25,9 @@ import org.gradle.profiler.mutations.ApplyAbiChangeToSourceFileMutator
 import static org.gradle.performance.annotations.ScenarioType.PER_DAY
 import static org.gradle.performance.results.OperatingSystem.LINUX
 
+@RunFor(
+    @Scenario(type = PER_DAY, operatingSystems = [LINUX], testProjects = ["android100Kts", "android100Groovy", "nowInAndroidBuild"])
+)
 class IsolatedProjectsAndroidSyncPerformanceRegressionTest extends AbstractCrossVersionPerformanceTest {
 
     private static String warm = "warm"
@@ -42,9 +45,6 @@ class IsolatedProjectsAndroidSyncPerformanceRegressionTest extends AbstractCross
         AndroidSyncPerformanceTestFixture.configureStudio(runner)
     }
 
-    @RunFor([
-        @Scenario(type = PER_DAY, operatingSystems = [LINUX], testProjects = ["android100Kts"])
-    ])
     def "sync Studio after build logic ABI change with #daemon daemon"() {
         studioSetup()
         def runner = getRunner() // otherwise, IDEA thinks it's PerformanceTestRunner despite the override
@@ -62,8 +62,15 @@ class IsolatedProjectsAndroidSyncPerformanceRegressionTest extends AbstractCross
             "--no-scan", // TODO:isolated benchmark with Develocity plugin as well
         ])
 
+        def testProject = runner.testProject
+        def abiChangeSource = select("source file", testProject, [
+            "android100Kts": "build-logic/convention/src/main/java/org/example/awesome/AwesomeStringUtils.java",
+            "android100Groovy": "build-logic/convention/src/main/java/org/example/awesome/AwesomeStringUtils.java",
+            "nowInAndroidBuild": "build-logic/convention/src/main/kotlin/com/google/samples/apps/nowinandroid/AndroidCompose.kt",
+        ])
+
         runner.addBuildMutator { settings ->
-            new ApplyAbiChangeToSourceFileMutator(new File(settings.projectDir, "build-logic/convention/src/main/java/org/example/awesome/AwesomeStringUtils.java"))
+            new ApplyAbiChangeToSourceFileMutator(new File(settings.projectDir, abiChangeSource))
         }
 
         when:
@@ -78,4 +85,9 @@ class IsolatedProjectsAndroidSyncPerformanceRegressionTest extends AbstractCross
         cold   | _
     }
 
+    static <T> T select(String what, String testProject, Map<String, T> values) {
+        def value = values[testProject]
+        assert value != null: "No $what provided for test project '$testProject'"
+        value
+    }
 }
