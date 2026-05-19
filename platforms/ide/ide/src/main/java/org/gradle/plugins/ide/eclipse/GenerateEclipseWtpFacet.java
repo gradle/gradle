@@ -41,8 +41,10 @@ public abstract class GenerateEclipseWtpFacet extends XmlGeneratorTask<WtpFacet>
     private EclipseWtpFacet facet;
 
     public GenerateEclipseWtpFacet() {
-        getXmlTransformer().setIndentation("\t");
-        facet = getInstantiator().newInstance(EclipseWtpFacet.class, new XmlFileContentMerger(getXmlTransformer()));
+        DeprecationLogger.whileDisabled(() -> {
+            getXmlTransformer().setIndentation("\t");
+            facet = getInstantiator().newInstance(EclipseWtpFacet.class, new XmlFileContentMerger(getXmlTransformer()));
+        });
     }
 
     @Inject

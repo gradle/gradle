@@ -47,6 +47,7 @@ import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.internal.component.external.model.TestFixturesSupport;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.xml.XmlTransformer;
 import org.gradle.plugins.ear.EarPlugin;
 import org.gradle.plugins.ide.api.PropertiesFileContentMerger;
@@ -262,7 +263,7 @@ public abstract class EclipsePlugin extends IdePlugin {
                     public void execute(Project p) {
                         // keep the ordering we had in earlier gradle versions
                         Set<String> containers = new LinkedHashSet<>();
-                        containers.add("org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/" + model.getJdt().getJavaRuntimeName() + "/");
+                        containers.add("org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/" + DeprecationLogger.whileDisabled(() -> model.getJdt().getJavaRuntimeName()) + "/");
                         containers.addAll(model.getClasspath().getContainers());
                         model.getClasspath().setContainers(containers);
                     }

@@ -27,6 +27,7 @@ import org.gradle.api.plugins.WarPlugin;
 import org.gradle.api.plugins.internal.JavaPluginHelper;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.bundling.War;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.xml.XmlTransformer;
 import org.gradle.plugins.ear.Ear;
@@ -108,10 +109,12 @@ public abstract class EclipseWtpPlugin extends IdePlugin {
                 AfterEvaluateHelper.afterEvaluateOrExecute(project, new Action<Project>() {
                     @Override
                     public void execute(Project project) {
-                        Collection<Configuration> plusConfigurations = model.getClasspath().getPlusConfigurations();
-                        EclipseWtpComponent component = model.getWtp().getComponent();
-                        plusConfigurations.addAll(component.getRootConfigurations());
-                        plusConfigurations.addAll(component.getLibConfigurations());
+                        DeprecationLogger.whileDisabled(() -> {
+                            Collection<Configuration> plusConfigurations = model.getClasspath().getPlusConfigurations();
+                            EclipseWtpComponent component = model.getWtp().getComponent();
+                            plusConfigurations.addAll(component.getRootConfigurations());
+                            plusConfigurations.addAll(component.getLibConfigurations());
+                        });
                     }
                 });
 
@@ -136,8 +139,12 @@ public abstract class EclipseWtpPlugin extends IdePlugin {
     private void configureEclipseWtpComponent(final Project project, final EclipseModel model) {
         XmlTransformer xmlTransformer = new XmlTransformer();
         xmlTransformer.setIndentation("\t");
-        final EclipseWtpComponent component = project.getObjects().newInstance(EclipseWtpComponent.class, project, new XmlFileContentMerger(xmlTransformer));
-        model.getWtp().setComponent(component);
+        final EclipseWtpComponent component = DeprecationLogger.whileDisabled(
+            () -> {
+                EclipseWtpComponent comp = project.getObjects().newInstance(EclipseWtpComponent.class, project, new XmlFileContentMerger(xmlTransformer));
+                model.getWtp().setComponent(comp);
+                return comp;
+            });
 
         TaskProvider<GenerateEclipseWtpComponent> task = project.getTasks().register(ECLIPSE_WTP_COMPONENT_TASK_NAME, GenerateEclipseWtpComponent.class, component);
         task.configure(new Action<GenerateEclipseWtpComponent>() {
@@ -274,7 +281,7 @@ public abstract class EclipseWtpPlugin extends IdePlugin {
 
     @SuppressWarnings("deprecation")
     private void configureEclipseWtpFacet(final Project project, final EclipseModel eclipseModel) {
-        TaskProvider<GenerateEclipseWtpFacet> task = project.getTasks().register(ECLIPSE_WTP_FACET_TASK_NAME, GenerateEclipseWtpFacet.class, eclipseModel.getWtp().getFacet());
+        TaskProvider<GenerateEclipseWtpFacet> task = project.getTasks().register(ECLIPSE_WTP_FACET_TASK_NAME, GenerateEclipseWtpFacet.class, DeprecationLogger.whileDisabled(() -> eclipseModel.getWtp().getFacet()));
         task.configure(new Action<GenerateEclipseWtpFacet>() {
             @Override
             public void execute(final GenerateEclipseWtpFacet task) {
@@ -292,7 +299,7 @@ public abstract class EclipseWtpPlugin extends IdePlugin {
                     return;
                 }
 
-                ((IConventionAware) eclipseModel.getWtp().getFacet()).getConventionMapping().map("facets", new Callable<List<Facet>>() {
+                ((IConventionAware) DeprecationLogger.whileDisabled(() -> eclipseModel.getWtp().getFacet())).getConventionMapping().map("facets", new Callable<List<Facet>>() {
                     @Override
                     public List<Facet> call() throws Exception {
                         List<Facet> result = new ArrayList<>(3);
@@ -308,7 +315,7 @@ public abstract class EclipseWtpPlugin extends IdePlugin {
         project.getPlugins().withType(WarPlugin.class, new Action<WarPlugin>() {
             @Override
             public void execute(WarPlugin warPlugin) {
-                ((IConventionAware) eclipseModel.getWtp().getFacet()).getConventionMapping().map("facets", new Callable<List<Facet>>() {
+                ((IConventionAware) DeprecationLogger.whileDisabled(() -> eclipseModel.getWtp().getFacet())).getConventionMapping().map("facets", new Callable<List<Facet>>() {
                     @Override
                     public List<Facet> call() throws Exception {
                         List<Facet> result = new ArrayList<>(4);
@@ -325,7 +332,7 @@ public abstract class EclipseWtpPlugin extends IdePlugin {
         project.getPlugins().withType(EarPlugin.class, new Action<EarPlugin>() {
             @Override
             public void execute(EarPlugin earPlugin) {
-                ((IConventionAware) eclipseModel.getWtp().getFacet()).getConventionMapping().map("facets", new Callable<List<Facet>>() {
+                ((IConventionAware) DeprecationLogger.whileDisabled(() -> eclipseModel.getWtp().getFacet())).getConventionMapping().map("facets", new Callable<List<Facet>>() {
                     @Override
                     public List<Facet> call() throws Exception {
                         List<Facet> result = new ArrayList<>(2);

@@ -21,6 +21,7 @@ import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.api.JavaVersion;
 import org.gradle.plugins.ide.api.PropertiesFileContentMerger;
+import org.gradle.plugins.ide.internal.IdeDeprecations;
 import org.gradle.util.internal.ConfigureUtil;
 
 import javax.inject.Inject;
@@ -28,7 +29,7 @@ import javax.inject.Inject;
 /**
  * Enables fine-tuning jdt details of the Eclipse plugin
  *
- * <pre class='autoTested'>
+ * <pre class='autoTestedWithDeprecations'>
  * plugins {
  *     id 'java'
  *     id 'eclipse'
@@ -136,6 +137,7 @@ public abstract class EclipseJdt {
      */
     @Deprecated
     public String getJavaRuntimeName() {
+        IdeDeprecations.nagDeprecatedProperty(EclipseJdt.class, "javaRuntimeName");
         return javaRuntimeName;
     }
 
@@ -146,6 +148,7 @@ public abstract class EclipseJdt {
      */
     @Deprecated
     public void setJavaRuntimeName(String javaRuntimeName) {
+        IdeDeprecations.nagDeprecatedProperty(EclipseJdt.class, "javaRuntimeName");
         this.javaRuntimeName = javaRuntimeName;
     }
 
@@ -156,6 +159,7 @@ public abstract class EclipseJdt {
      */
     @Deprecated
     public PropertiesFileContentMerger getFile() {
+        IdeDeprecations.nagDeprecatedProperty(EclipseJdt.class, "file");
         return file;
     }
 
@@ -173,6 +177,7 @@ public abstract class EclipseJdt {
      */
     @Deprecated
     public void file(@DelegatesTo(PropertiesFileContentMerger.class) Closure closure) {
+        IdeDeprecations.nagDeprecatedProperty(EclipseJdt.class, "file");
         ConfigureUtil.configure(closure, file);
     }
 
@@ -191,6 +196,7 @@ public abstract class EclipseJdt {
      */
     @Deprecated
     public void file(Action<? super PropertiesFileContentMerger> action) {
+        IdeDeprecations.nagDeprecatedProperty(EclipseJdt.class, "file");
         action.execute(file);
     }
 }

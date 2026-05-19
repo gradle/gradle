@@ -21,6 +21,7 @@ import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.plugins.ide.api.XmlFileContentMerger;
+import org.gradle.plugins.ide.internal.IdeDeprecations;
 import org.gradle.util.internal.ConfigureUtil;
 
 import javax.inject.Inject;
@@ -40,7 +41,7 @@ import static org.gradle.util.internal.ConfigureUtil.configure;
  * <p>
  * Advanced configuration closures beforeMerged and whenMerged receive {@link WtpFacet} object as parameter.
  *
- * <pre class='autoTested'>
+ * <pre class='autoTestedWithDeprecations'>
  * plugins {
  *     id 'war' // or 'ear' or 'java'
  *     id 'eclipse-wtp'
@@ -90,6 +91,7 @@ public abstract class EclipseWtpFacet {
 
     @Inject
     public EclipseWtpFacet(XmlFileContentMerger file) {
+        IdeDeprecations.nagDeprecatedType(EclipseWtpFacet.class);
         this.file = file;
     }
 

@@ -65,11 +65,13 @@ public abstract class GenerateEclipseJdt extends PropertiesGeneratorTask<Jdt> {
     @Override
     @SuppressWarnings("unchecked")
     protected void configure(Jdt jdtContent) {
-        EclipseJdt jdtModel = getJdt();
-        jdtModel.getFile().getBeforeMerged().execute(jdtContent);
-        jdtContent.setSourceCompatibility(jdtModel.getSourceCompatibility());
-        jdtContent.setTargetCompatibility(jdtModel.getTargetCompatibility());
-        jdtModel.getFile().getWhenMerged().execute(jdtContent);
+        DeprecationLogger.whileDisabled(() -> {
+            EclipseJdt jdtModel = getJdt();
+            jdtModel.getFile().getBeforeMerged().execute(jdtContent);
+            jdtContent.setSourceCompatibility(jdtModel.getSourceCompatibility());
+            jdtContent.setTargetCompatibility(jdtModel.getTargetCompatibility());
+            jdtModel.getFile().getWhenMerged().execute(jdtContent);
+        });
     }
 
     @Override
@@ -77,7 +79,7 @@ public abstract class GenerateEclipseJdt extends PropertiesGeneratorTask<Jdt> {
         if (jdt == null) {
             return super.getTransformer();
         }
-        return jdt.getFile().getTransformer();
+        return DeprecationLogger.whileDisabled(() -> jdt.getFile().getTransformer());
     }
 
     /**

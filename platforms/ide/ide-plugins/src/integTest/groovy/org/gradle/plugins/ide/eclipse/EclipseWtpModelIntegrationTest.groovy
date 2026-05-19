@@ -40,6 +40,9 @@ class EclipseWtpModelIntegrationTest extends AbstractEclipseIntegrationTest {
 
         //when
         expectTaskDeprecations("eclipse", "eclipseClasspath", "eclipseJdt", "eclipseProject", "eclipseWtp", "eclipseWtpComponent", "eclipseWtpFacet")
+        expectTaskTypeDeprecations(
+                ("org.gradle.plugins.ide.eclipse.model.EclipseWtp"): 1,
+        )
         runEclipseTask """
             apply plugin: 'java'
             apply plugin: 'war'
@@ -152,6 +155,9 @@ class EclipseWtpModelIntegrationTest extends AbstractEclipseIntegrationTest {
 
         //when
         expectTaskDeprecations("eclipse", "eclipseClasspath", "eclipseJdt", "eclipseProject", "eclipseWtp", "eclipseWtpComponent", "eclipseWtpFacet")
+        expectTaskTypeDeprecations(
+                ("org.gradle.plugins.ide.eclipse.model.EclipseWtp"): 1,
+        )
         runEclipseTask """
             apply plugin: 'java'
             apply plugin: 'war'
@@ -208,6 +214,9 @@ class EclipseWtpModelIntegrationTest extends AbstractEclipseIntegrationTest {
 
         //when
         expectTaskDeprecations("eclipse", "eclipseClasspath", "eclipseJdt", "eclipseProject", "eclipseWtp", "eclipseWtpComponent", "eclipseWtpFacet")
+        expectTaskTypeDeprecations(
+                ("org.gradle.plugins.ide.eclipse.model.EclipseWtp"): 1,
+        )
         runEclipseTask """
             import org.gradle.plugins.ide.eclipse.model.Facet
 
@@ -249,6 +258,9 @@ class EclipseWtpModelIntegrationTest extends AbstractEclipseIntegrationTest {
     void "file dependencies respect plus minus configurations"() {
         //when
         expectTaskDeprecations("eclipse", "eclipseClasspath", "eclipseJdt", "eclipseProject", "eclipseWtp", "eclipseWtpComponent", "eclipseWtpFacet")
+        expectTaskTypeDeprecations(
+                ("org.gradle.plugins.ide.eclipse.model.EclipseWtp"): 1,
+        )
         runEclipseTask """
             apply plugin: 'java'
             apply plugin: 'war'
