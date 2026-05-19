@@ -145,10 +145,7 @@ class ProblemReportingCrossProjectModelAccess(
     }
 
     override fun parentProjectDynamicInheritedScope(referrer: ProjectState): HierarchicalDynamicObject? {
-        // Under Isolated Projects, child projects do not walk the parent's dynamic scope at all:
-        // a property/method that's defined only on the parent fails with the standard
-        // MissingPropertyException/MissingMethodException. This matches the eventual Gradle 10
-        // behavior and removes the parent-walk surface entirely from IP builds.
+        // Isolated Projects: parent-walk is disabled — see CrossProjectModelAccess#parentProjectDynamicInheritedScope.
         return null
     }
 

@@ -260,11 +260,8 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
         taskContainer = services.get(TaskContainerInternal.class);
         extensibleDynamicObject = new ExtensibleDynamicObject(this, Project.class, services.get(InstantiatorFactory.class).decorateLenient(services));
 
-        // Under Isolated Projects, parentProjectDynamicInheritedScope() returns null and we skip
-        // the parent wiring entirely: a child reference to a property/method that's defined only
-        // on the parent will fail with the standard MissingPropertyException/MissingMethodException
-        // instead of falling back to the parent. This matches the eventual Gradle 10 behavior.
-        // Vintage builds still walk the parent chain, with a deprecation warning at the lookup site.
+        // See CrossProjectModelAccess#parentProjectDynamicInheritedScope for the IP-vs-Vintage contract:
+        // null means parent-walk is disabled (Isolated Projects), so we skip the parent wiring entirely.
         @Nullable HierarchicalDynamicObject parentInherited = services.get(CrossProjectModelAccess.class).parentProjectDynamicInheritedScope(owner);
         if (parentInherited != null) {
             extensibleDynamicObject.setParent(parentInherited);
