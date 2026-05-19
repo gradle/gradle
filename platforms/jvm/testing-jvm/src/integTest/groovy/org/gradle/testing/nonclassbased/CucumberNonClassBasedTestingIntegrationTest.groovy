@@ -19,6 +19,7 @@ package org.gradle.testing.nonclassbased
 import org.gradle.api.internal.tasks.testing.report.VerifiesGenericTestReportResults
 import org.gradle.api.tasks.testing.TestResult
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import spock.lang.Issue
 
 import static org.gradle.testing.nonclassbased.AbstractNonClassBasedTestingIntegrationTest.DEFAULT_DEFINITIONS_LOCATION
 
@@ -103,6 +104,48 @@ class CucumberNonClassBasedTestingIntegrationTest extends AbstractIntegrationSpe
         succeeds("test")
 
         then:
+        def result = resultsFor()
+        result.testPath(":src/test/resources/helloworld.feature:Say hello /two/three").onlyRoot().assertHasResult(TestResult.ResultType.SUCCESS)
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/37850")
+    def "Cucumber scenario class name in JUnit XML is the feature file path so it can drive test-retry filters"() {
+        given:
+        buildFile << """
+            plugins {
+                id 'java'
+            }
+
+            ${mavenCentralRepository()}
+
+            testing.suites.test {
+                useJUnitJupiter()
+
+                dependencies {
+                    implementation("io.cucumber:cucumber-java:7.15.0")
+                    runtimeOnly("io.cucumber:cucumber-junit-platform-engine:7.15.0")
+                }
+
+                targets.all {
+                    testTask.configure {
+                        testDefinitionDirs.from("src/test/resources")
+                    }
+                }
+            }
+        """
+
+        writeCucumberFeatureFiles()
+        writeCucumberStepDefinitions()
+
+        when:
+        succeeds("test")
+
+        then:
+        // Before the fix, the className on each Cucumber scenario descriptor was the
+        // empty string `JUnitPlatformSupport.NON_CLASS`, which broke Build Scan reporting ("N/A") and made
+        // `DefaultTestFilter.validateName` throw "Selected test name cannot be null or empty." when the
+        // test-retry plugin tried to rerun a failed scenario. The className must be a stable, non-empty
+        // identifier; here we assert the scenario is reachable under its feature file path.
         def result = resultsFor()
         result.testPath(":src/test/resources/helloworld.feature:Say hello /two/three").onlyRoot().assertHasResult(TestResult.ResultType.SUCCESS)
     }
