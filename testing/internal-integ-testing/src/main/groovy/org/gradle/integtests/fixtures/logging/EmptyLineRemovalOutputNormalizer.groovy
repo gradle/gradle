@@ -32,7 +32,8 @@ class EmptyLineRemovalOutputNormalizer implements OutputNormalizer {
         "incrementalTaskNoChange",
         "publishingMavenSignAndPublish",
         "configurationCacheProblemsFixed",
-        "compileTaskClasspath"
+        "compileTaskClasspath",
+        "artifactTransformMinify"
     ]
 
     @Override
