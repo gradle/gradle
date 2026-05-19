@@ -74,7 +74,8 @@ abstract class AbstractProjectDependencyConflictResolutionIntegrationSpec extend
             "https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_accessing_parent_project_properties"
     }
 
-    def "project (#projectDep) vs external (#transitiveDep) resolves to (#winner), when preferProjectModules=#preferProjectModules and depSubstitution=#depSubstitution"() {
+    def "project (#projectDep) vs external resolves to (#winner), when preferProjectModules=#preferProjectModules and depSubstitution=#depSubstitution"() {
+        def transitiveDep = "2.0"
         given:
         //required for composite builds
         buildTestFixture.withBuildInSubDir()
@@ -154,22 +155,22 @@ $includeMechanism 'ProjectA'
         succeeds('check')
 
         where:
-        projectDep | transitiveDep | winner                                | preferProjectModules | depSubstitution                                                  | winnerMethod
-//        "1.9"      | "2.0"         | 'moduleId("myorg", "ModuleC", "2.0")' | false                | ''                                                               | 'moduleId'
-//        "2.0"      | "2.0"         | 'projectId("ModuleC")'                | false                | ''                                                               | 'projectId'
-        "2.1"      | "2.0"         | 'projectId("ModuleC")'                | false                | ''                                                               | 'projectId'
-        "1.9"      | "2.0"         | 'projectId("ModuleC")'                | true                 | ''                                                               | 'projectId'
-        "2.0"      | "2.0"         | 'projectId("ModuleC")'                | true                 | ''                                                               | 'projectId'
-        "2.1"      | "2.0"         | 'projectId("ModuleC")'                | true                 | ''                                                               | 'projectId'
-        "1.9"      | "2.0"         | 'moduleId("myorg", "ModuleC", "2.0")' | false                | "substitute project(':ModuleC') using module('myorg:ModuleC:1.9')" | 'moduleId'
-        "2.0"      | "2.0"         | 'moduleId("myorg", "ModuleC", "2.0")' | false                | "substitute project(':ModuleC') using module('myorg:ModuleC:2.0')" | 'moduleId'
-        "2.1"      | "2.0"         | 'moduleId("myorg", "ModuleC", "2.1")' | false                | "substitute project(':ModuleC') using module('myorg:ModuleC:2.1')" | 'moduleId'
-        "1.9"      | "2.0"         | 'moduleId("myorg", "ModuleC", "2.0")' | true                 | "substitute project(':ModuleC') using module('myorg:ModuleC:1.9')" | 'moduleId'
-        "2.0"      | "2.0"         | 'moduleId("myorg", "ModuleC", "2.0")' | true                 | "substitute project(':ModuleC') using module('myorg:ModuleC:2.0')" | 'moduleId'
-        "2.1"      | "2.0"         | 'moduleId("myorg", "ModuleC", "2.1")' | true                 | "substitute project(':ModuleC') using module('myorg:ModuleC:2.1')" | 'moduleId'
-        "1.9"      | "2.0"         | 'projectId("ModuleC")'                | false                | "substitute module('myorg:ModuleC') using project(':ModuleC')"   | 'projectId'
-        "2.0"      | "2.0"         | 'projectId("ModuleC")'                | false                | "substitute module('myorg:ModuleC') using project(':ModuleC')"   | 'projectId'
-        "2.1"      | "2.0"         | 'projectId("ModuleC")'                | false                | "substitute module('myorg:ModuleC') using project(':ModuleC')"   | 'projectId'
+        projectDep  | winner                                | preferProjectModules | depSubstitution                                                    | winnerMethod
+//        "1.9"       | 'moduleId("myorg", "ModuleC", "2.0")' | false                | ''                                                               | 'moduleId'
+//        "2.0"       | 'projectId("ModuleC")'                | false                | ''                                                               | 'projectId'
+        "2.1"       | 'projectId("ModuleC")'                | false                | ''                                                                 | 'projectId'
+        "1.9"       | 'projectId("ModuleC")'                | true                 | ''                                                                 | 'projectId'
+        "2.0"       | 'projectId("ModuleC")'                | true                 | ''                                                                 | 'projectId'
+        "2.1"       | 'projectId("ModuleC")'                | true                 | ''                                                                 | 'projectId'
+        "1.9"       | 'moduleId("myorg", "ModuleC", "2.0")' | false                | "substitute project(':ModuleC') using module('myorg:ModuleC:1.9')" | 'moduleId'
+        "2.0"       | 'moduleId("myorg", "ModuleC", "2.0")' | false                | "substitute project(':ModuleC') using module('myorg:ModuleC:2.0')" | 'moduleId'
+        "2.1"       | 'moduleId("myorg", "ModuleC", "2.1")' | false                | "substitute project(':ModuleC') using module('myorg:ModuleC:2.1')" | 'moduleId'
+        "1.9"       | 'moduleId("myorg", "ModuleC", "2.0")' | true                 | "substitute project(':ModuleC') using module('myorg:ModuleC:1.9')" | 'moduleId'
+        "2.0"       | 'moduleId("myorg", "ModuleC", "2.0")' | true                 | "substitute project(':ModuleC') using module('myorg:ModuleC:2.0')" | 'moduleId'
+        "2.1"       | 'moduleId("myorg", "ModuleC", "2.1")' | true                 | "substitute project(':ModuleC') using module('myorg:ModuleC:2.1')" | 'moduleId'
+        "1.9"       | 'projectId("ModuleC")'                | false                | "substitute module('myorg:ModuleC') using project(':ModuleC')"     | 'projectId'
+        "2.0"       | 'projectId("ModuleC")'                | false                | "substitute module('myorg:ModuleC') using project(':ModuleC')"     | 'projectId'
+        "2.1"       | 'projectId("ModuleC")'                | false                | "substitute module('myorg:ModuleC') using project(':ModuleC')"     | 'projectId'
     }
 
     static String check(String moduleName, String declaredDependencyId, String confName, String winner) { """
