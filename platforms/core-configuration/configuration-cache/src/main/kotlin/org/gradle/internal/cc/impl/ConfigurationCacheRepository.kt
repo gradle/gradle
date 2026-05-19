@@ -88,16 +88,16 @@ class ConfigurationCacheRepository(
      *
      * @param environmentKey identifies the group of entries that share the same
      *     configuration-cache environment
-     * @param requestedTasks the current build's literal CLI task list
-     * @return the chosen entry's full key and original stored task list, or `null`
-     *     if no compatible entry exists
+     * @param requestedCliTokens the current build's literal CLI task list
+     * @return the chosen entry's full key, stored CLI tokens, and stored entry-task
+     *     identity paths, or `null` if no compatible entry exists
      */
     fun findCompatibleEntry(
         environmentKey: ConfigurationCacheEnvironmentKey,
-        requestedTasks: List<String>
+        requestedCliTokens: List<String>
     ): CompatibleEntry? {
         // v1 args/exclusion guard: any token starting with '-' falls back to exact-match path.
-        if (requestedTasks.any { it.startsWith("-") }) return null
+        if (requestedCliTokens.any { it.startsWith("-") }) return null
 
         return withFileLockNullable {
             val indexFile = SupersetIndexFile(indexFileFor(environmentKey))
@@ -105,15 +105,17 @@ class ConfigurationCacheRepository(
             if (variants.isEmpty()) return@withFileLockNullable null
 
             var dirty = false
-            val chosen = pickUsableVariant(variants, requestedTasks) { dirty = true }
+            val chosen = pickUsableVariant(variants, requestedCliTokens) { dirty = true }
             if (dirty) indexFile.write(variants)
-            chosen?.let { CompatibleEntry(it.fullKey, it.requestedTasks) }
+            chosen?.let {
+                CompatibleEntry(it.fullKey, it.cliTokens, it.entryTaskIdentityPaths)
+            }
         }
     }
 
     /**
      * Repeatedly asks [pickWithTieBreak] for the next-best candidate and drops any
-     * that aren't usable for [requestedTasks], returning the first one that is.
+     * that aren't usable for [requestedCliTokens], returning the first one that is.
      * <p>
      * A candidate is dropped when any of these hold (and it isn't an exact match —
      * exact matches skip the pruning gates because no pruning happens):
@@ -124,6 +126,11 @@ class ConfigurationCacheRepository(
      *  - pruning would drop a task whose declared outputs overlap with a retained
      *    task's outputs (see [SupersetIndexLookup.hasOverlappingDroppedOutputs]).
      * <p>
+     * The dropped identity-path set is derived from the candidate's `cliTokens`
+     * → `entryTaskIdentityPaths` positional pairing — CLI tokens not present in
+     * the request map to the identity paths to drop. Subset matches selected by
+     * [SupersetIndexLookup.selectBestMatch] are guaranteed to have a 1:1 mapping.
+     * <p>
      * The entry stays in the index even when skipped here; it remains valid for
      * exact-match reuse by a future request. Returns `null` when [pickWithTieBreak]
      * yields no further candidate.
@@ -131,26 +138,43 @@ class ConfigurationCacheRepository(
     private
     fun pickUsableVariant(
         variants: MutableList<IndexedVariant>,
-        requestedTasks: List<String>,
+        requestedCliTokens: List<String>,
         onStaleDirRemoved: () -> Unit
     ): IndexedVariant? {
-        val requestedDistinct = requestedTasks.distinct()
+        val requestedDistinct = requestedCliTokens.distinct()
         while (true) {
-            val chosen = pickWithTieBreak(variants, requestedTasks) ?: return null
+            val chosen = pickWithTieBreak(variants, requestedCliTokens) ?: return null
             val staleDir = !dirForEntry(chosen.fullKey).exists()
-            val isExactMatch = !staleDir && chosen.requestedTasks == requestedDistinct
-            val needsPruningGates = !staleDir && !isExactMatch
-            val dangles = needsPruningGates && SupersetIndexLookup.hasDanglingMustRunAfter(
-                chosen.mustRunAfterEdges, chosen.requestedTasks, requestedTasks
+            val isExactMatch = !staleDir && chosen.cliTokens == requestedDistinct
+            val dropped: Set<String> = when {
+                staleDir || isExactMatch -> emptySet()
+                else -> droppedIdentityPaths(chosen, requestedDistinct.toSet())
+            }
+            val dangles = dropped.isNotEmpty() && SupersetIndexLookup.hasDanglingMustRunAfter(
+                chosen.mustRunAfterEdges, dropped
             )
-            val overlaps = needsPruningGates && !dangles && SupersetIndexLookup.hasOverlappingDroppedOutputs(
-                chosen.outputPaths, chosen.dependencyEdges, chosen.requestedTasks, requestedTasks
+            val overlaps = dropped.isNotEmpty() && !dangles && SupersetIndexLookup.hasOverlappingDroppedOutputs(
+                chosen.outputPaths, chosen.dependencyEdges, dropped
             )
             if (!staleDir && !dangles && !overlaps) return chosen
             variants.remove(chosen)
             if (staleDir) onStaleDirRemoved()
         }
     }
+
+    /**
+     * Maps the candidate's CLI tokens that aren't in [requestedCli] to their paired
+     * identity paths. Relies on [IndexedVariant.hasOneToOneCliMapping] being true —
+     * enforced by [SupersetIndexLookup.selectBestMatch] for non-exact selections.
+     */
+    private
+    fun droppedIdentityPaths(variant: IndexedVariant, requestedCli: Set<String>): Set<String> =
+        variant.cliTokens
+            .asSequence()
+            .withIndex()
+            .filter { (_, token) -> token !in requestedCli }
+            .map { (i, _) -> variant.entryTaskIdentityPaths[i] }
+            .toSet()
 
     /**
      * Records a stored cache entry under [environmentKey] so future builds with
@@ -162,7 +186,7 @@ class ConfigurationCacheRepository(
      * flag determines whether the entry will be eligible for strict-superset
      * matches later — `true` makes the entry exact-match only.
      * <p>
-     * Mirrors [findCompatibleEntry]'s args-guard: if any token in [requestedTasks]
+     * Mirrors [findCompatibleEntry]'s args-guard: if any token in [cliTokens]
      * starts with `-`, the entry is not recorded (no harm — the entry just won't
      * be findable as a superset later).
      * <p>
@@ -170,7 +194,13 @@ class ConfigurationCacheRepository(
      *
      * @param environmentKey scope under which to record the entry
      * @param fullKey the stored entry's full cache key (also the entry directory name)
-     * @param requestedTasks the requested-task list the entry was stored for
+     * @param cliTokens the CLI request the entry was stored for, verbatim. Used as
+     *     the match key at lookup time
+     * @param entryTaskIdentityPaths identity paths of the entry tasks the original
+     *     build scheduled. Positionally paired with [cliTokens] when the sizes
+     *     match — a bare CLI token at index `i` mapped to the identity path at
+     *     index `i`. Used to derive the dropped identity-path set when this entry
+     *     is reused for a subset request
      * @param taskGraphAccessed whether user code observed the task graph during
      *     the originating build; `true` excludes the entry from later strict-superset
      *     matching (see [SupersetIndexLookup.selectBestMatch] rule 2)
@@ -189,19 +219,21 @@ class ConfigurationCacheRepository(
     fun recordEntry(
         environmentKey: ConfigurationCacheEnvironmentKey,
         fullKey: String,
-        requestedTasks: List<String>,
+        cliTokens: List<String>,
+        entryTaskIdentityPaths: List<String>,
         taskGraphAccessed: Boolean,
         mustRunAfterEdges: Map<String, List<String>> = emptyMap(),
         dependencyEdges: Map<String, List<String>> = emptyMap(),
         outputPaths: Map<String, List<String>> = emptyMap()
     ) {
-        if (requestedTasks.any { it.startsWith("-") }) return
+        if (cliTokens.any { it.startsWith("-") }) return
         cache.withFileLock(Supplier {
             val indexFile = SupersetIndexFile(indexFileFor(environmentKey))
             val variants = indexFile.read().toMutableList()
             variants.removeIf { it.fullKey == fullKey }
             variants.add(IndexedVariant(
-                fullKey, requestedTasks, taskGraphAccessed, mustRunAfterEdges, dependencyEdges, outputPaths
+                fullKey, cliTokens, entryTaskIdentityPaths, taskGraphAccessed,
+                mustRunAfterEdges, dependencyEdges, outputPaths
             ))
             indexFile.write(variants)
         })
@@ -214,18 +246,18 @@ class ConfigurationCacheRepository(
     ): IndexedVariant? {
         val chosen = SupersetIndexLookup.selectBestMatch(variants, requested) ?: return null
         val requestedDistinct = requested.distinct()
-        val isExact = chosen.requestedTasks == requestedDistinct
+        val isExact = chosen.cliTokens == requestedDistinct
         if (isExact) return chosen
         // For tied smallest-supersets, prefer most-recently-accessed entry. Tied
-        // candidates must also host the request as a subsequence so the LRU pick
-        // doesn't drift to a same-size variant that orders the requested tasks
-        // differently.
-        val tieSize = chosen.requestedTasks.size
+        // candidates must also host the request as a subsequence (and be 1:1
+        // mapped) so the LRU pick doesn't drift to an unsafe-to-prune variant.
+        val tieSize = chosen.cliTokens.size
         return variants
             .filter { v ->
                 !v.taskGraphAccessed &&
-                    v.requestedTasks.size == tieSize &&
-                    SupersetIndexLookup.isSubsequence(requestedDistinct, v.requestedTasks)
+                    v.hasOneToOneCliMapping &&
+                    v.cliTokens.size == tieSize &&
+                    SupersetIndexLookup.isSubsequence(requestedDistinct, v.cliTokens)
             }
             .maxByOrNull { fileAccessTimeJournal.getLastAccessTime(dirForEntry(it.fullKey)) }
             ?: chosen

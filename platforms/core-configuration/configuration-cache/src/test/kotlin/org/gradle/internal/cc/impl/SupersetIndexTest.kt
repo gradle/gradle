@@ -24,14 +24,27 @@ import org.junit.Test
 
 /**
  * Unit tests for [SupersetIndexLookup] selection logic and [SupersetIndexFile] persistence.
+ * <p>
+ * Most tests use single-project shapes where each CLI token resolves to a single
+ * identity path (1:1), so the helper [v] mirrors the CLI list into the
+ * entry-task identity-path list. Multi-project (non-1:1) shapes are exercised
+ * explicitly where needed.
  */
 class SupersetIndexTest {
+
+    private
+    fun v(
+        fullKey: String,
+        cliTokens: List<String>,
+        entryTaskIdentityPaths: List<String> = cliTokens,
+        taskGraphAccessed: Boolean = false
+    ) = IndexedVariant(fullKey, cliTokens, entryTaskIdentityPaths, taskGraphAccessed)
 
     @Test
     fun `exact match preferred over strict superset`() {
         val variants = listOf(
-            IndexedVariant("v1", listOf("a")),
-            IndexedVariant("v2", listOf("a", "b", "c"))
+            v("v1", listOf("a")),
+            v("v2", listOf("a", "b", "c"))
         )
         val chosen = SupersetIndexLookup.selectBestMatch(variants, requested = listOf("a"))
         assertEquals("v1", chosen?.fullKey)
@@ -40,8 +53,8 @@ class SupersetIndexTest {
     @Test
     fun `smallest superset wins when no exact match`() {
         val variants = listOf(
-            IndexedVariant("big", listOf("a", "b", "c", "d")),
-            IndexedVariant("small", listOf("a", "b"))
+            v("big", listOf("a", "b", "c", "d")),
+            v("small", listOf("a", "b"))
         )
         val chosen = SupersetIndexLookup.selectBestMatch(variants, requested = listOf("a"))
         assertEquals("small", chosen?.fullKey)
@@ -49,15 +62,13 @@ class SupersetIndexTest {
 
     @Test
     fun `non-superset variants are ignored`() {
-        val variants = listOf(
-            IndexedVariant("v1", listOf("x", "y"))
-        )
+        val variants = listOf(v("v1", listOf("x", "y")))
         assertNull(SupersetIndexLookup.selectBestMatch(variants, requested = listOf("a")))
     }
 
     @Test
     fun `flagged variant is exact-match only`() {
-        val flagged = IndexedVariant("flagged", listOf("a", "b", "c"), taskGraphAccessed = true)
+        val flagged = v("flagged", listOf("a", "b", "c"), taskGraphAccessed = true)
         // Superset request: flagged should be excluded.
         assertNull(SupersetIndexLookup.selectBestMatch(listOf(flagged), requested = listOf("a")))
         // Exact request: flagged should match.
@@ -66,10 +77,43 @@ class SupersetIndexTest {
     }
 
     @Test
-    fun `duplicates in request are ignored when matching as subsequence`() {
-        val variants = listOf(
-            IndexedVariant("v1", listOf("c", "a", "b"))
+    fun `bare and absolute CLI tokens do not collide`() {
+        // Two stored entries for the same single-token request — bare and absolute.
+        // Selection by verbatim CLI matching must keep them distinct: a bare-`d`
+        // lookup never picks the absolute-`:d` entry, and vice versa.
+        val bareStored = v("bare", listOf("d"))
+        val absoluteStored = v("absolute", listOf(":d"))
+        val variants = listOf(bareStored, absoluteStored)
+        assertEquals("bare", SupersetIndexLookup.selectBestMatch(variants, listOf("d"))?.fullKey)
+        assertEquals("absolute", SupersetIndexLookup.selectBestMatch(variants, listOf(":d"))?.fullKey)
+    }
+
+    @Test
+    fun `non-one-to-one variant is exact-match only`() {
+        // Multi-project bare name: one CLI token resolved to two identity paths.
+        // Subset matches would have an ambiguous CLI→identity mapping, so the
+        // matcher must restrict this entry to exact matches.
+        val multiProject = IndexedVariant(
+            fullKey = "mp",
+            cliTokens = listOf("d"),
+            entryTaskIdentityPaths = listOf(":d", ":sub:d")
         )
+        // Exact match still allowed.
+        assertEquals("mp", SupersetIndexLookup.selectBestMatch(listOf(multiProject), listOf("d"))?.fullKey)
+        // A request that would normally subset-match (only one token of a multi-token entry)
+        // — here we flip the setup so the multi-project entry hosts the request as a subset.
+        val biggerMultiProject = IndexedVariant(
+            fullKey = "mp2",
+            cliTokens = listOf("d", "e"),
+            entryTaskIdentityPaths = listOf(":d", ":sub:d", ":e")
+        )
+        // `d` is a subsequence of `[d, e]`, but mp2 is non-1:1 → must be excluded from supersets.
+        assertNull(SupersetIndexLookup.selectBestMatch(listOf(biggerMultiProject), requested = listOf("d")))
+    }
+
+    @Test
+    fun `duplicates in request are ignored when matching as subsequence`() {
+        val variants = listOf(v("v1", listOf("c", "a", "b")))
         // [a, a, b] dedupes to [a, b], which is a subsequence of [c, a, b].
         val chosen = SupersetIndexLookup.selectBestMatch(variants, requested = listOf("a", "a", "b"))
         assertEquals("v1", chosen?.fullKey)
@@ -78,22 +122,15 @@ class SupersetIndexTest {
     @Test
     fun `reversed same-set request does not match stored entry`() {
         // [a, b] stored. Request [b, a] is the same set but the request is not a
-        // subsequence of the stored list, so it is neither an exact match nor a
-        // (size-equal) subsequence superset — no compatible entry.
-        val variants = listOf(
-            IndexedVariant("v1", listOf("a", "b"))
-        )
+        // subsequence of the stored list, so no compatible entry.
+        val variants = listOf(v("v1", listOf("a", "b")))
         assertNull(SupersetIndexLookup.selectBestMatch(variants, requested = listOf("b", "a")))
     }
 
     @Test
     fun `subset must appear as subsequence of stored entry`() {
-        val variants = listOf(
-            IndexedVariant("v1", listOf("a", "b", "c"))
-        )
-        // [a, c] preserves relative order from [a, b, c] — match.
+        val variants = listOf(v("v1", listOf("a", "b", "c")))
         assertEquals("v1", SupersetIndexLookup.selectBestMatch(variants, requested = listOf("a", "c"))?.fullKey)
-        // [c, a] reverses order — miss.
         assertNull(SupersetIndexLookup.selectBestMatch(variants, requested = listOf("c", "a")))
     }
 
@@ -104,73 +141,60 @@ class SupersetIndexTest {
 
     @Test
     fun `hasDanglingMustRunAfter returns false when no edges`() {
-        // No edges at all: pruning is safe regardless of subset shape.
-        assert(!SupersetIndexLookup.hasDanglingMustRunAfter(emptyMap(), listOf(":a", ":b"), listOf(":a")))
+        assert(!SupersetIndexLookup.hasDanglingMustRunAfter(emptyMap(), droppedIdentityPaths = setOf(":a")))
     }
 
     @Test
-    fun `hasDanglingMustRunAfter returns false on exact match`() {
-        // No tasks dropped: edges can't dangle.
+    fun `hasDanglingMustRunAfter returns false on empty dropped set`() {
+        // Exact match — no pruning.
         val edges = mapOf(":b" to listOf(":a"))
-        assert(!SupersetIndexLookup.hasDanglingMustRunAfter(edges, listOf(":a", ":b"), listOf(":a", ":b")))
+        assert(!SupersetIndexLookup.hasDanglingMustRunAfter(edges, droppedIdentityPaths = emptySet()))
     }
 
     @Test
     fun `hasDanglingMustRunAfter returns false when edge stays within retained set`() {
-        // Stored has :a, :b, :c with `:c mustRunAfter :b`. Request is :b, :c — :a dropped.
-        // The edge's source and target are both retained.
+        // Edge `:c mustRunAfter :b`; dropped only contains `:a`. Both endpoints retained.
         val edges = mapOf(":c" to listOf(":b"))
-        assert(!SupersetIndexLookup.hasDanglingMustRunAfter(edges, listOf(":a", ":b", ":c"), listOf(":b", ":c")))
+        assert(!SupersetIndexLookup.hasDanglingMustRunAfter(edges, droppedIdentityPaths = setOf(":a")))
     }
 
     @Test
     fun `hasDanglingMustRunAfter returns true when retained task references dropped task`() {
-        // The Bucket4 pattern: stored has :originalInputs, :incrementalReverse with
-        // `:incrementalReverse mustRunAfter :originalInputs`. Request is just
-        // :incrementalReverse — :originalInputs would be dropped. Edge dangles.
+        // `:incrementalReverse mustRunAfter :originalInputs` and `:originalInputs` is dropped.
         val edges = mapOf(":incrementalReverse" to listOf(":originalInputs"))
-        assert(SupersetIndexLookup.hasDanglingMustRunAfter(
-            edges,
-            listOf(":originalInputs", ":incrementalReverse"),
-            listOf(":incrementalReverse")
-        ))
+        assert(SupersetIndexLookup.hasDanglingMustRunAfter(edges, droppedIdentityPaths = setOf(":originalInputs")))
     }
 
     @Test
     fun `hasDanglingMustRunAfter returns false when both edge endpoints are dropped`() {
-        // Stored has :a, :b, :c, :d with `:b mustRunAfter :a`. Request is :c, :d.
-        // Both source and target are dropped — no dangle from a *retained* task.
+        // `:b mustRunAfter :a`; both `:a` and `:b` are dropped — no dangle from any retained task.
         val edges = mapOf(":b" to listOf(":a"))
-        assert(!SupersetIndexLookup.hasDanglingMustRunAfter(edges, listOf(":a", ":b", ":c", ":d"), listOf(":c", ":d")))
+        assert(!SupersetIndexLookup.hasDanglingMustRunAfter(edges, droppedIdentityPaths = setOf(":a", ":b")))
     }
 
     @Test
     fun `hasOverlappingDroppedOutputs returns false when no output paths recorded`() {
-        // No outputPaths data (e.g. pre-v3 index, or all tasks had unresolvable outputs):
-        // overlap check can't fire.
         assert(!SupersetIndexLookup.hasOverlappingDroppedOutputs(
             outputPaths = emptyMap(),
             dependencyEdges = emptyMap(),
-            stored = listOf(":a", ":b"),
-            requested = listOf(":a")
+            droppedIdentityPaths = setOf(":b")
         ))
     }
 
     @Test
     fun `hasOverlappingDroppedOutputs returns false on exact match`() {
-        // No pruning happens — overlap is irrelevant.
+        // No tasks dropped → no overlap can fire.
         val outputs = mapOf(":a" to listOf("/out/a"), ":b" to listOf("/out/b"))
         assert(!SupersetIndexLookup.hasOverlappingDroppedOutputs(
             outputPaths = outputs,
             dependencyEdges = emptyMap(),
-            stored = listOf(":a", ":b"),
-            requested = listOf(":a", ":b")
+            droppedIdentityPaths = emptySet()
         ))
     }
 
     @Test
     fun `hasOverlappingDroppedOutputs returns true when dropped output equals retained output`() {
-        // The Bucket2 pattern: `:cleanSecond` writes to `/out/second.txt` (clearing it),
+        // The Bucket2 pattern: `:cleanSecond` writes to `/build/second.txt` (clearing it),
         // `:second` writes to the same path. Dropping `:cleanSecond` while retaining
         // `:second` would let the loaded cached `:second` output stand without the
         // cleanup invariant the original build relied on.
@@ -182,14 +206,12 @@ class SupersetIndexTest {
         assert(SupersetIndexLookup.hasOverlappingDroppedOutputs(
             outputPaths = outputs,
             dependencyEdges = emptyMap(),
-            stored = listOf(":first", ":cleanSecond", ":second"),
-            requested = listOf(":first", ":second")
+            droppedIdentityPaths = setOf(":cleanSecond")
         ))
     }
 
     @Test
     fun `hasOverlappingDroppedOutputs returns true when retained output is inside dropped output dir`() {
-        // Dropped `:cleanDir` writes a directory; retained `:writeFile` writes a file inside.
         val outputs = mapOf(
             ":cleanDir" to listOf("/build/out"),
             ":writeFile" to listOf("/build/out/file.txt")
@@ -197,15 +219,13 @@ class SupersetIndexTest {
         assert(SupersetIndexLookup.hasOverlappingDroppedOutputs(
             outputPaths = outputs,
             dependencyEdges = emptyMap(),
-            stored = listOf(":cleanDir", ":writeFile"),
-            requested = listOf(":writeFile")
+            droppedIdentityPaths = setOf(":cleanDir")
         ))
     }
 
     @Test
     fun `hasOverlappingDroppedOutputs returns false when outputs are sibling-unrelated`() {
-        // `/build/out` and `/build/outdoor` share a literal prefix but no path-segment
-        // ancestry — they're siblings, not parent/child.
+        // `/build/out` and `/build/outdoor` share a literal prefix but no path-segment ancestry.
         val outputs = mapOf(
             ":a" to listOf("/build/out"),
             ":b" to listOf("/build/outdoor")
@@ -213,45 +233,47 @@ class SupersetIndexTest {
         assert(!SupersetIndexLookup.hasOverlappingDroppedOutputs(
             outputPaths = outputs,
             dependencyEdges = emptyMap(),
-            stored = listOf(":a", ":b"),
-            requested = listOf(":b")
+            droppedIdentityPaths = setOf(":a")
         ))
     }
 
     @Test
     fun `hasOverlappingDroppedOutputs retains transitive deps via BFS so their outputs are not flagged dropped`() {
-        // `:entry` depends on `:dep`. Stored = [:entry], plus an entry `:other` that
-        // gets dropped from the requested set. `:dep`'s output (recorded under its own
-        // identity path) is retained by BFS through dependencyEdges and must NOT be
-        // considered as part of the dropped set when comparing against `:other`.
+        // `:entry` depends on `:dep`. `:other` is dropped from a different entry.
+        // `:dep`'s output is retained-by-BFS via `dependencyEdges` and must NOT count as dropped.
         val outputs = mapOf(
             ":entry" to listOf("/build/entry.txt"),
             ":dep" to listOf("/build/dep.txt"),
             ":other" to listOf("/build/other.txt")
         )
         val deps = mapOf(":entry" to listOf(":dep"))
-        // Request keeps `:entry`, drops `:other`. `:dep` survives via dependency BFS.
         assert(!SupersetIndexLookup.hasOverlappingDroppedOutputs(
             outputPaths = outputs,
             dependencyEdges = deps,
-            stored = listOf(":entry", ":other"),
-            requested = listOf(":entry")
+            droppedIdentityPaths = setOf(":other")
         ))
     }
 
     @Test
-    fun `round trip preserves variants including v3 fields`() {
+    fun `round trip preserves variants including v4 fields`() {
         val tmp = java.io.File.createTempFile("supersetIndex", ".bin").also { it.deleteOnExit() }
         val file = SupersetIndexFile(tmp)
         val variants = listOf(
             IndexedVariant(
                 fullKey = "k1",
-                requestedTasks = listOf(":a", ":b"),
+                cliTokens = listOf("a", "b"),
+                entryTaskIdentityPaths = listOf(":a", ":b"),
                 mustRunAfterEdges = mapOf(":b" to listOf(":a")),
                 dependencyEdges = mapOf(":b" to listOf(":a")),
                 outputPaths = mapOf(":a" to listOf("/out/a"), ":b" to listOf("/out/b"))
             ),
-            IndexedVariant("k2", listOf(":a"), taskGraphAccessed = true)
+            // Multi-project bare name: 1 token → 2 identity paths.
+            IndexedVariant(
+                fullKey = "k2",
+                cliTokens = listOf("d"),
+                entryTaskIdentityPaths = listOf(":d", ":sub:d"),
+                taskGraphAccessed = true
+            )
         )
         file.write(variants)
         assertEquals(variants, file.read())

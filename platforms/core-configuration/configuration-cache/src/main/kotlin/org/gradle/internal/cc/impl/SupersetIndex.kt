@@ -27,9 +27,18 @@ object SupersetIndexLookup {
      * One row in the superset index. Fields:
      *
      *  - [fullKey]: the stored configuration cache entry's full key (also its directory name).
-     *  - [requestedTasks]: identity paths of the entry tasks the build was originally requested for.
+     *  - [cliTokens]: the user's CLI request verbatim (`"a"`, `":foo"`, `":proj:bar"`, etc.).
+     *    Used as the match key against the current build's request — verbatim string comparison
+     *    so bare names and absolute paths cannot collide (`d` does not match `:d`).
+     *  - [entryTaskIdentityPaths]: identity paths of the entry tasks the original build scheduled.
+     *    Used to compute which loaded tasks to prune when reusing this entry for a subset request.
+     *    When `cliTokens.size == entryTaskIdentityPaths.size`, the two lists are positionally
+     *    paired (CLI token at index `i` resolved to the identity path at index `i`) and the
+     *    mapping supports safe subset pruning. When the sizes differ — a multi-project build
+     *    where one bare CLI token resolved to multiple identity paths across subprojects — the
+     *    mapping is ambiguous and the entry is treated as exact-match-only (see [selectBestMatch]).
      *  - [taskGraphAccessed]: whether user code observed the task graph during the original build
-     *    (`true` → exact-match-only at lookup; see [selectBestMatch] step 2).
+     *    (`true` → exact-match-only at lookup; see [selectBestMatch]).
      *  - [mustRunAfterEdges]: `mustRunAfter` / finalizer edges between scheduled tasks (source
      *    identity path → target identity paths). Used to reject a candidate at lookup time when
      *    pruning would leave a retained task referencing a dropped task through a non-dependency
@@ -46,74 +55,86 @@ object SupersetIndexLookup {
      */
     data class IndexedVariant(
         val fullKey: String,
-        val requestedTasks: List<String>,
+        val cliTokens: List<String>,
+        val entryTaskIdentityPaths: List<String>,
         val taskGraphAccessed: Boolean = false,
         val mustRunAfterEdges: Map<String, List<String>> = emptyMap(),
         val dependencyEdges: Map<String, List<String>> = emptyMap(),
         val outputPaths: Map<String, List<String>> = emptyMap()
-    )
+    ) {
+        /**
+         * `true` when the CLI tokens and entry identity paths are positionally paired
+         * (same length). Required for safe subset pruning.
+         */
+        val hasOneToOneCliMapping: Boolean
+            get() = cliTokens.size == entryTaskIdentityPaths.size
+    }
 
     /**
      * Result of a successful superset-index lookup. Carries the chosen entry's
-     * full key (used to locate the entry directory) and the task list that entry
-     * was originally stored for (so the caller can compute which loaded tasks
-     * to prune relative to the current request).
+     * full key (used to locate the entry directory), the CLI tokens it was stored
+     * for, and the resolved entry-task identity paths. The caller derives the
+     * dropped-identity-path set by mapping current CLI tokens through the
+     * `cliTokens → entryTaskIdentityPaths` positional pairing.
      */
     data class CompatibleEntry(
         val fullKey: String,
-        val storedRequestedTasks: List<String>
+        val storedCliTokens: List<String>,
+        val storedEntryTaskIdentityPaths: List<String>
     )
 
     /**
      * Picks the best variant for [requested], or null if no compatible variant exists.
+     * Matching operates on [IndexedVariant.cliTokens] — verbatim string comparison so
+     * bare and absolute task names don't collide.
      *
-     *  1. Exact match wins (always allowed, even when taskGraphAccessed). The requested
-     *     task list, deduplicated, must equal the stored task list — same order included.
+     *  1. Exact match wins (always allowed, even when taskGraphAccessed or no 1:1 mapping):
+     *     the deduplicated request equals the stored CLI list — same order included.
      *  2. Otherwise smallest strict superset where the deduplicated request appears as a
-     *     subsequence of the stored list (relative order preserved). Variants with
-     *     taskGraphAccessed are excluded from this branch.
+     *     subsequence of the stored CLI list (relative order preserved). Variants are
+     *     excluded from this branch if `taskGraphAccessed` is true or
+     *     [IndexedVariant.hasOneToOneCliMapping] is false (multi-project bare-name entries
+     *     can't safely derive the dropped identity-path set from the stored mapping).
      *  3. Tie-break for smallest-superset is the caller's responsibility (LRU via
      *     fileAccessTimeJournal); this function returns the first variant of the smallest size.
      */
     fun selectBestMatch(variants: List<IndexedVariant>, requested: List<String>): IndexedVariant? {
         val requestedDistinct = requested.distinct()
 
-        // Step 1: exact match — same task list (duplicates in the request are ignored).
-        variants.firstOrNull { it.requestedTasks == requestedDistinct }
+        // Step 1: exact match — same CLI list (duplicates in the request are ignored).
+        variants.firstOrNull { it.cliTokens == requestedDistinct }
             ?.let { return it }
 
         // Step 2: strict supersets — request appears as a subsequence of a strictly
-        // larger stored list. Flagged variants are excluded.
+        // larger stored list. Flagged/non-1:1 variants are excluded.
         val eligibleSupersets = variants.filter { v ->
             !v.taskGraphAccessed &&
-                v.requestedTasks.size > requestedDistinct.size &&
-                isSubsequence(requestedDistinct, v.requestedTasks)
+                v.hasOneToOneCliMapping &&
+                v.cliTokens.size > requestedDistinct.size &&
+                isSubsequence(requestedDistinct, v.cliTokens)
         }
         if (eligibleSupersets.isEmpty()) return null
 
-        return eligibleSupersets.minByOrNull { it.requestedTasks.size }
+        return eligibleSupersets.minByOrNull { it.cliTokens.size }
     }
 
     /**
-     * Returns true if pruning [stored] down to [requested] would leave a retained
-     * task pointing at a dropped task through a mustRunAfter / finalizer edge.
-     * The loaded plan can't honor such an edge safely — the dropped task isn't in
-     * the plan (deadlock) or our BFS retention pulls it back in and it runs
-     * (different semantics than a fresh subset request).
+     * Returns true if pruning the loaded plan would leave a retained task pointing
+     * at a dropped task through a mustRunAfter / finalizer edge. The loaded plan
+     * can't honor such an edge safely — the dropped task isn't in the plan
+     * (deadlock) or our BFS retention pulls it back in and it runs (different
+     * semantics than a fresh subset request).
      *
-     * Returns false when no pruning happens ([stored] == [requested] dedup'd) or
-     * when the dropped set is disjoint from every edge's targets.
+     * Returns false when [droppedIdentityPaths] is empty (exact match — no pruning)
+     * or the dropped set is disjoint from every edge's targets.
      */
     fun hasDanglingMustRunAfter(
         edges: Map<String, List<String>>,
-        stored: List<String>,
-        requested: List<String>
+        droppedIdentityPaths: Set<String>
     ): Boolean {
-        if (edges.isEmpty()) return false
-        val tasksToDrop = stored.toSet() - requested.toSet()
-        if (tasksToDrop.isEmpty()) return false
+        if (edges.isEmpty() || droppedIdentityPaths.isEmpty()) return false
         return edges.any { (source, targets) ->
-            source !in tasksToDrop && targets.any { it in tasksToDrop }
+            source !in droppedIdentityPaths && targets.any { it in droppedIdentityPaths }
         }
     }
 
@@ -129,21 +150,20 @@ object SupersetIndexLookup {
      * detection notices the leftover content and re-executes the retained task —
      * a behavior the loaded plan can't reproduce).
      * <p>
-     * Retained set is computed by BFS from `requested ∩ stored` (entries that
-     * survive the request shrink) traversing [dependencyEdges] forward; anything
-     * not in the closure but listed in [outputPaths] is dropped. Returns `false`
-     * on exact match (no pruning) and when neither side has any output paths.
+     * Retained set is computed by BFS from `(outputPaths.keys − droppedIdentityPaths)`
+     * traversing [dependencyEdges] forward (i.e. dependencies of retained tasks are
+     * also retained); anything not in the closure but listed in [outputPaths] is
+     * dropped. Returns `false` when [droppedIdentityPaths] is empty (exact match —
+     * no pruning) or there are no output paths recorded.
      */
     fun hasOverlappingDroppedOutputs(
         outputPaths: Map<String, List<String>>,
         dependencyEdges: Map<String, List<String>>,
-        stored: List<String>,
-        requested: List<String>
+        droppedIdentityPaths: Set<String>
     ): Boolean {
-        val requestedSet = requested.toSet()
-        val storedSet = stored.toSet()
-        if (outputPaths.isEmpty() || storedSet == requestedSet) return false
-        val retained = retainedClosure(requestedSet intersect storedSet, dependencyEdges)
+        if (outputPaths.isEmpty() || droppedIdentityPaths.isEmpty()) return false
+        val retainedSeeds = outputPaths.keys - droppedIdentityPaths
+        val retained = retainedClosure(retainedSeeds, dependencyEdges)
         val droppedPaths = (outputPaths.keys - retained).flatMap { outputPaths[it].orEmpty() }
         val retainedPaths = retained.flatMap { outputPaths[it].orEmpty() }
         // Pairwise prefix-overlap check. Small in practice — declared outputs per task
@@ -208,7 +228,8 @@ object SupersetIndexLookup {
  *   count: int
  *   for each variant:
  *     fullKey: UTF
- *     requestedTasks: int count + UTF entries
+ *     cliTokens: int count + UTF entries
+ *     entryTaskIdentityPaths: int count + UTF entries
  *     taskGraphAccessed: boolean
  *     mustRunAfterEdges: edge-map (see writeEdgeMap)
  *     dependencyEdges: edge-map
@@ -233,14 +254,15 @@ class SupersetIndexFile(private val file: java.io.File) {
                 val count = input.readInt()
                 return (0 until count).map {
                     val fullKey = input.readUTF()
-                    val taskCount = input.readInt()
-                    val tasks = (0 until taskCount).map { input.readUTF() }
+                    val cliTokens = readStringList(input)
+                    val entryTaskIdentityPaths = readStringList(input)
                     val accessed = input.readBoolean()
                     val mustRunAfterEdges = readEdgeMap(input)
                     val dependencyEdges = readEdgeMap(input)
                     val outputPaths = readEdgeMap(input)
                     SupersetIndexLookup.IndexedVariant(
-                        fullKey, tasks, accessed, mustRunAfterEdges, dependencyEdges, outputPaths
+                        fullKey, cliTokens, entryTaskIdentityPaths, accessed,
+                        mustRunAfterEdges, dependencyEdges, outputPaths
                     )
                 }
             }
@@ -258,14 +280,26 @@ class SupersetIndexFile(private val file: java.io.File) {
             out.writeInt(variants.size)
             for (v in variants) {
                 out.writeUTF(v.fullKey)
-                out.writeInt(v.requestedTasks.size)
-                v.requestedTasks.forEach(out::writeUTF)
+                writeStringList(out, v.cliTokens)
+                writeStringList(out, v.entryTaskIdentityPaths)
                 out.writeBoolean(v.taskGraphAccessed)
                 writeEdgeMap(out, v.mustRunAfterEdges)
                 writeEdgeMap(out, v.dependencyEdges)
                 writeEdgeMap(out, v.outputPaths)
             }
         }
+    }
+
+    private
+    fun readStringList(input: java.io.DataInput): List<String> {
+        val n = input.readInt()
+        return (0 until n).map { input.readUTF() }
+    }
+
+    private
+    fun writeStringList(out: java.io.DataOutput, list: List<String>) {
+        out.writeInt(list.size)
+        list.forEach(out::writeUTF)
     }
 
     private
@@ -294,6 +328,7 @@ class SupersetIndexFile(private val file: java.io.File) {
         // v1 = (fullKey, requestedTasks, taskGraphAccessed)
         // v2 = v1 + mustRunAfterEdges
         // v3 = v2 + dependencyEdges + outputPaths
-        private const val FORMAT_VERSION = 3
+        // v4 = v3 with requestedTasks split into separate cliTokens and entryTaskIdentityPaths
+        private const val FORMAT_VERSION = 4
     }
 }

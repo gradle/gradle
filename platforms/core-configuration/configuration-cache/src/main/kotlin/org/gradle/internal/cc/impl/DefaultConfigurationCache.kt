@@ -176,35 +176,14 @@ class DefaultConfigurationCache internal constructor(
      */
     private
     val compatibleEntry: CompatibleEntry? by lazy {
-        // The superset lookup operates on the CLI-typed requested-task list. Two
-        // CLI shapes can't safely participate:
-        //  1. Empty requested-task list — the build will fall back to project
-        //     default tasks at planning time. We don't know what those resolve to
-        //     without running configuration, and an empty list is trivially a
-        //     subsequence of every stored entry, so the matcher would always pick
-        //     the smallest stored entry and prune everything else.
-        //  2. Any bare task name (e.g. `d` vs `:d`) — bare names resolve across all
-        //     subprojects with a matching task, absolute paths target one project.
-        //     Treating "d" the same as ":d" lets a bare-name request reuse an
-        //     entry stored for an absolute-path request whose schedule omitted the
-        //     subproject tasks (or vice versa).
-        // In either case skip the superset path; the build cold-stores at cacheKey.string.
-        val requested = startParameter.requestedTaskNames
-        if (requested.isEmpty() || requested.any { !it.startsWith(":") }) return@lazy null
-        cacheRepository.findCompatibleEntry(environmentKey, canonicalRequestedTasks)
+        // Empty CLI = project defaults; without running configuration we don't know
+        // what those resolve to, and an empty list is trivially a subsequence of every
+        // stored entry. Skip the superset path; the build cold-stores at cacheKey.string.
+        // Bare-vs-absolute ambiguity is handled inside the index via verbatim CLI
+        // matching — no canonicalization needed here.
+        if (startParameter.requestedTaskNames.isEmpty()) return@lazy null
+        cacheRepository.findCompatibleEntry(environmentKey, startParameter.requestedTaskNames)
     }
-
-    /**
-     * CLI-typed task names already filtered to the absolute-path subset by the
-     * guard in [compatibleEntry]. Used both for index lookup and for computing
-     * `tasksToDrop` at superset load — both sides must use the same form as the
-     * identity paths stored by [commitCacheEntry] so the comparison in
-     * [WorkGraphPruner.prune] (against `task.identityPath`) matches. When any
-     * token is bare, [compatibleEntry] short-circuits and this property is unused.
-     */
-    private
-    val canonicalRequestedTasks: List<String>
-        get() = startParameter.requestedTaskNames
 
     private
     val effectiveStoreKey: String
@@ -514,6 +493,7 @@ class DefaultConfigurationCache internal constructor(
         cacheRepository.recordEntry(
             environmentKey,
             cacheKey.string,
+            startParameter.requestedTaskNames,
             entryTaskIdentityPaths,
             cacheFingerprintController.wasTaskGraphAccessed,
             mustRunAfterEdges,
@@ -944,10 +924,27 @@ class DefaultConfigurationCache internal constructor(
         scopeRegistryListener.dispose()
 
         buildOperationRunner.withWorkGraphLoadOperation {
-            val tasksToDrop = compatibleEntry
-                ?.storedRequestedTasks
-                ?.let { stored -> stored.toSet() - canonicalRequestedTasks.toSet() }
-                ?: emptySet()
+            // Derive the dropped identity-path set from the chosen entry's CLI ↔
+            // identity-path positional pairing: any stored CLI token not in the
+            // current request maps to the identity path at the same index, which
+            // is what `WorkGraphPruner` removes from the loaded plan. For exact
+            // matches (or no compatible entry), the set is empty and the pruner
+            // is a no-op.
+            val tasksToDrop: Set<String> = compatibleEntry?.let { entry ->
+                if (entry.storedCliTokens.size != entry.storedEntryTaskIdentityPaths.size) {
+                    // Non-1:1 CLI ↔ identity mapping (multi-project bare names).
+                    // `selectBestMatch` restricts these to exact matches, so the
+                    // dropped set is empty by construction.
+                    return@let emptySet()
+                }
+                val requestedCli = startParameter.requestedTaskNames.toSet()
+                entry.storedCliTokens
+                    .asSequence()
+                    .withIndex()
+                    .filter { (_, token) -> token !in requestedCli }
+                    .map { (i, _) -> entry.storedEntryTaskIdentityPaths[i] }
+                    .toSet()
+            } ?: emptySet()
             val storeLoadResult = entryStore.useForStateLoad(StateType.Work) { stateFile: ConfigurationCacheStateFile ->
                 val (buildInvocationId, workGraph) = cacheIO.readRootBuildStateFrom(stateFile, loadAfterStore, graph, graphBuilder, tasksToDrop)
                 LoadResultMetadata(buildInvocationId) to workGraph
