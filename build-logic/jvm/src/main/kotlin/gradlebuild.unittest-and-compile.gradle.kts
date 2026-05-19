@@ -36,7 +36,7 @@ import gradlebuild.basics.testing.excludeSpockAnnotation
 import gradlebuild.basics.testing.includeSpockAnnotation
 import gradlebuild.filterEnvironmentVariables
 import gradlebuild.identity.extension.GradleModuleExtension
-import gradlebuild.identity.extension.ModuleTargetRuntimes
+import gradlebuild.identity.extension.DEFAULT_TARGET_JVM_VERSION
 import gradlebuild.jvm.JvmCompileExtension
 import gradlebuild.jvm.argumentproviders.CiEnvironmentProvider
 import org.gradle.internal.jvm.JpmsConfiguration
@@ -62,8 +62,7 @@ val gradleModule = the<GradleModuleExtension>()
 the<JvmCompileExtension>().apply {
     compilations {
         configureEach {
-            // Everything compiles to Java 17 by default
-            targetJvmVersion = 17
+            targetJvmVersion = DEFAULT_TARGET_JVM_VERSION
         }
     }
     addCompilationFrom(sourceSets.main) {
@@ -90,25 +89,6 @@ fun configureCompileDefaults() {
         groovyOptions.encoding = "utf-8"
         configureCompileTask(options)
     }
-}
-
-/**
- * Given the declared target platforms of a given Gradle module, determine
- * the JVM version that the production code should target.
- */
-fun ModuleTargetRuntimes.computeProductionJvmTargetVersion(): Provider<Int> {
-    // Should be kept in sync with org.gradle.internal.jvm.SupportedJavaVersions
-    val targetRuntimeJavaVersions = mapOf(
-        client to 8,
-        daemon to 17,
-        worker to 8
-    )
-
-    // By default, compile to 17. This ensures projects that do not declare any target runtimes
-    // can successfully resolve their classpaths. Then, `:checkTargetRuntimes` will ensure that
-    // each project declares the proper target runtimes. Note that `:checkTargetRuntimes` cannot
-    // execute unless all project classpaths can be successfully resolved.
-    return reduceBooleanFlagValues(targetRuntimeJavaVersions, ::minOf).orElse(17)
 }
 
 fun configureSourcesVariant() {
