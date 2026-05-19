@@ -23,15 +23,15 @@ import org.gradle.test.preconditions.TestExecutionPreconditions
 @Requires(value = TestExecutionPreconditions.NotIsolatedProjects, reason = "Under Isolated Projects, parent-project lookup is disabled entirely (see IsolatedProjectsAccessFromGroovyDslIntegrationTest); no deprecation fires")
 class ParentProjectPropertyLookupIntegrationTest extends AbstractIntegrationSpec {
 
-    private static final String PROPERTY_DEPRECATION = "Accessing a property from a parent project has been deprecated. " +
+    private static final String PROPERTY_DEPRECATION = "Implicitly resolving properties in the project hierarchy has been deprecated. " +
         "This will fail with an error in Gradle 10. " +
-        "Property 'foo' was not found in project ':a' and was dynamically resolved from root project 'root'. " +
+        "Property 'foo' was not declared in project ':a' and was resolved from root project 'root'. " +
         "Consult the upgrading guide for further information: " +
         "https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_accessing_parent_project_properties"
 
-    private static final String METHOD_DEPRECATION = "Accessing a method from a parent project has been deprecated. " +
+    private static final String METHOD_DEPRECATION = "Implicitly resolving methods in the project hierarchy has been deprecated. " +
         "This will fail with an error in Gradle 10. " +
-        "Method 'someMethod' was not found in project ':a' and was dynamically resolved from root project 'root'. " +
+        "Method 'someMethod' was not declared in project ':a' and was resolved from root project 'root'. " +
         "Consult the upgrading guide for further information: " +
         "https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_accessing_parent_project_properties"
 

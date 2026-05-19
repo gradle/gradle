@@ -1056,9 +1056,9 @@ task print(type: MyTask) {
 
     private void expectParentPropertyAccessDeprecation(String propertyName, String childPath, String parentDisplayName, int repeated = 1) {
         repeated.times {
-            executer.expectDocumentedDeprecationWarning("Accessing a property from a parent project has been deprecated. " +
+            executer.expectDocumentedDeprecationWarning("Implicitly resolving properties in the project hierarchy has been deprecated. " +
                 "This will fail with an error in Gradle 10. " +
-                "Property '${propertyName}' was not found in project '${childPath}' and was dynamically resolved from ${parentDisplayName}. " +
+                "Property '${propertyName}' was not declared in project '${childPath}' and was resolved from ${parentDisplayName}. " +
                 "Consult the upgrading guide for further information: " +
                 "https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_accessing_parent_project_properties")
         }
@@ -1066,9 +1066,9 @@ task print(type: MyTask) {
 
     private void expectParentMethodAccessDeprecation(String methodName, String childPath, String parentDisplayName, int repeated = 1) {
         repeated.times {
-            executer.expectDocumentedDeprecationWarning("Accessing a method from a parent project has been deprecated. " +
+            executer.expectDocumentedDeprecationWarning("Implicitly resolving methods in the project hierarchy has been deprecated. " +
                 "This will fail with an error in Gradle 10. " +
-                "Method '${methodName}' was not found in project '${childPath}' and was dynamically resolved from ${parentDisplayName}. " +
+                "Method '${methodName}' was not declared in project '${childPath}' and was resolved from ${parentDisplayName}. " +
                 "Consult the upgrading guide for further information: " +
                 "https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_accessing_parent_project_properties")
         }

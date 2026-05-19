@@ -631,9 +631,9 @@ allprojects {
                 }
             }
         """)
-        executer.expectDocumentedDeprecationWarning("Accessing a property from a parent project has been deprecated. " +
+        executer.expectDocumentedDeprecationWarning("Implicitly resolving properties in the project hierarchy has been deprecated. " +
             "This will fail with an error in Gradle 10. " +
-            "Property 'foo' was not found in project ':a:child' and was dynamically resolved from project ':a'. " +
+            "Property 'foo' was not declared in project ':a:child' and was resolved from project ':a'. " +
             "Consult the upgrading guide for further information: " +
             "https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_accessing_parent_project_properties")
 
@@ -644,7 +644,7 @@ allprojects {
         outputContains("The Foo says Moo!!!")
         receivedProblems.size().times { i ->
             verifyAll(receivedProblem(i)) {
-                fqid == 'deprecation:accessing-a-property-from-a-parent-project'
+                fqid == 'deprecation:implicitly-resolving-properties-in-the-project-hierarchy'
             }
         }
     }
