@@ -3,6 +3,7 @@
 # ```
 # stopGradleDaemons=true
 # ```
+# When updating this file, also update the `JvmCompileExtension.AVAILABLE_JDK_VERSIONS`.
 version: "v1"
 jdks:
   - params:
