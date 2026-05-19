@@ -17,11 +17,11 @@
 package org.gradle.plugins.ide
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.plugins.ide.fixtures.ExpectedIdeDeprecations
 import org.gradle.plugins.ide.fixtures.IdeaFixtures
 import org.gradle.plugins.ide.fixtures.IdeaModuleFixture
-import org.gradle.plugins.ide.internal.tooling.eclipse.IdeDeprecations
 
-abstract class AbstractIdeIntegrationSpec extends AbstractIntegrationSpec implements IdeDeprecations {
+abstract class AbstractIdeIntegrationSpec extends AbstractIntegrationSpec implements ExpectedIdeDeprecations {
 
     protected IdeaModuleFixture parseIml(String moduleFile) {
         return IdeaFixtures.parseIml(file(moduleFile))
