@@ -75,11 +75,24 @@ class SpeedupAssertions {
     ) {
         requireResolvableFactor(minSpeedup, "minSpeedup", location)
         def speedup = requireSpeedup(baseline, current, location)
-        if (compareSpeedupToFactor(baseline, current, minSpeedup) <= 0) {
-            throw new AssertionError("""[FAIL] '${current.name}' is not ${formatThreshold(minSpeedup)}x faster than '${baseline.name}' (with at least ${(NOISE_FLOOR * 100) as int}% margin)
-  observed:  ${formatSpeedup(speedup)}x faster ${formatMedians(baseline, current)}
+        def cmp = compareSpeedupToFactor(baseline, current, minSpeedup)
+        if (cmp < 0) {
+            throw new AssertionError("""[FAIL] speedup of '${current.name}' over '${baseline.name}' is significantly below ${formatFactor(minSpeedup)}x (regression)
+  observed:  ${formatFactor(speedup)}x faster ${formatMedians(baseline, current)}
+  floor:     ${formatFactor(minSpeedup)}x (must clear by at least ${noiseFloorPercent()}% relative-median margin)
   location:  ${location}
-  → Either fix the regression in '${current.name}', or — only if the slowdown is intentional and accepted — lower the floor at this location.""" as Object)
+  → A regression landed in '${current.name}'. Investigate (re-run, inspect a build scan) before lowering the floor.""" as Object)
+        }
+        if (cmp == 0) {
+            throw new AssertionError("""[FAIL] speedup of '${current.name}' over '${baseline.name}' is within the noise band around the floor (inconclusive)
+  observed:  ${formatFactor(speedup)}x faster ${formatMedians(baseline, current)}
+  floor:     ${formatFactor(minSpeedup)}x (must clear by at least ${noiseFloorPercent()}% relative-median margin)
+  location:  ${location}
+  → The observed speedup is close to the floor but the gap is within the ${noiseFloorPercent()}% noise band, so we cannot statistically confirm it clears.
+    Options, in order of preference:
+      1. Re-run — if the median was on the low side of noise, the next run may clear the floor.
+      2. If runs consistently land here, the floor is set too tight for this scenario's noise. Lower it so the observed speedup clears by at least ${noiseFloorPercent()}%.
+      3. Treat as regression only if you have other evidence of one — the observed value is not below the floor.""" as Object)
         }
     }
 
@@ -99,8 +112,9 @@ class SpeedupAssertions {
         requireResolvableFactor(maxSpeedup, "maxSpeedup", location)
         def speedup = requireSpeedup(baseline, current, location)
         if (compareSpeedupToFactor(baseline, current, maxSpeedup) > 0) {
-            throw new AssertionError("""[FAIL] '${current.name}' is more than ${formatThreshold(maxSpeedup)}x faster than '${baseline.name}' (lock-in ceiling exceeded)
-  observed:  ${formatSpeedup(speedup)}x faster ${formatMedians(baseline, current)}
+            throw new AssertionError("""[FAIL] speedup of '${current.name}' over '${baseline.name}' is significantly above ${formatFactor(maxSpeedup)}x (lock-in ceiling exceeded)
+  observed:  ${formatFactor(speedup)}x faster ${formatMedians(baseline, current)}
+  ceiling:   ${formatFactor(maxSpeedup)}x (exceeded by more than ${noiseFloorPercent()}% relative-median margin)
   location:  ${location}
   → Looks like an improvement landed. Confirm it is real (re-run, inspect a build scan), then raise both the floor and ceiling at this location so the new range reflects the new normal.""" as Object)
         }
@@ -177,12 +191,14 @@ class SpeedupAssertions {
         return bv
     }
 
-    private static String formatSpeedup(BigDecimal speedup) {
-        String.format('%.2f', speedup)
+    private static String formatFactor(Number factor) {
+        // 3 decimals so an observed value near the floor (e.g. 1.388 vs 1.380) is
+        // visibly distinguishable; %.2f rounding would print both as "1.40".
+        String.format('%.3f', factor.doubleValue())
     }
 
-    private static String formatThreshold(double factor) {
-        String.format('%.2f', factor)
+    private static int noiseFloorPercent() {
+        (NOISE_FLOOR * 100) as int
     }
 
     private static String formatMedians(MeasuredOperationList baseline, MeasuredOperationList current) {

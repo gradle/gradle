@@ -34,7 +34,7 @@ class SpeedupAssertionsTest extends Specification {
         noExceptionThrown()
     }
 
-    def "assertSpeedupAtLeast fails with full regression message when current is too slow"() {
+    def "assertSpeedupAtLeast fails with regression message when current is significantly below the floor"() {
         given:
         def baseline = list("baseline", [1000L] * 10)
         def current = list("current", [750L] * 10) // 1.33x speedup
@@ -44,13 +44,14 @@ class SpeedupAssertionsTest extends Specification {
 
         then:
         AssertionError e = thrown()
-        e.message == """[FAIL] 'current' is not 1.55x faster than 'baseline' (with at least 5% margin)
-  observed:  1.33x faster (1 s → 750 ms median, n=10)
+        e.message == """[FAIL] speedup of 'current' over 'baseline' is significantly below 1.550x (regression)
+  observed:  1.333x faster (1 s → 750 ms median, n=10)
+  floor:     1.550x (must clear by at least 5% relative-median margin)
   location:  test/regression
-  → Either fix the regression in 'current', or — only if the slowdown is intentional and accepted — lower the floor at this location."""
+  → A regression landed in 'current'. Investigate (re-run, inspect a build scan) before lowering the floor."""
     }
 
-    def "assertSpeedupAtLeast fails on inconclusive observation near the floor"() {
+    def "assertSpeedupAtLeast fails with inconclusive message when observation lands in the noise band"() {
         given:
         def baseline = list("baseline", [1000L] * 10)
         def current = list("current", [650L] * 10) // 1.538x — 0.8% under the 1.55x floor, inside the noise band
@@ -60,7 +61,10 @@ class SpeedupAssertionsTest extends Specification {
 
         then:
         AssertionError e = thrown()
-        e.message.startsWith("[FAIL] 'current' is not 1.55x faster")
+        e.message.startsWith("[FAIL] speedup of 'current' over 'baseline' is within the noise band around the floor (inconclusive)")
+        e.message.contains("observed:  1.538x faster")
+        e.message.contains("floor:     1.550x")
+        e.message.contains("Re-run")
     }
 
     def "assertSpeedupAtLeast rejects unresolvable factors below the noise floor"() {
@@ -99,8 +103,9 @@ class SpeedupAssertionsTest extends Specification {
 
         then:
         AssertionError e = thrown()
-        e.message == """[FAIL] 'current' is more than 1.65x faster than 'baseline' (lock-in ceiling exceeded)
-  observed:  2.00x faster (1 s → 500 ms median, n=10)
+        e.message == """[FAIL] speedup of 'current' over 'baseline' is significantly above 1.650x (lock-in ceiling exceeded)
+  observed:  2.000x faster (1 s → 500 ms median, n=10)
+  ceiling:   1.650x (exceeded by more than 5% relative-median margin)
   location:  test/lockin
   → Looks like an improvement landed. Confirm it is real (re-run, inspect a build scan), then raise both the floor and ceiling at this location so the new range reflects the new normal."""
     }
