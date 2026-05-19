@@ -19,28 +19,18 @@ package org.gradle.process.internal;
 import com.google.common.io.CharStreams;
 import net.rubygrapefruit.platform.ProcessLauncher;
 import org.apache.commons.lang3.StringUtils;
-import org.gradle.api.JavaVersion;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.internal.UncheckedException;
 import org.gradle.internal.operations.BuildOperationRef;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.os.OperatingSystem;
+import org.gradle.process.internal.jvm.JvmProcessSupport;
 import org.gradle.process.internal.streams.StreamsHandler;
-import org.jspecify.annotations.Nullable;
 
 import java.io.InputStreamReader;
-import java.lang.invoke.MethodHandle;
-import java.lang.invoke.MethodHandles;
-import java.lang.invoke.MethodType;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.Iterator;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.stream.Stream;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
@@ -83,7 +73,7 @@ public class ExecHandleRunner implements Runnable {
                 throw new IllegalStateException("Cannot send signal " + signal + ": the process has not started yet");
             }
             try {
-                long pid = getProcessId(process);
+                long pid = JvmProcessSupport.pid(process);
                 String[] command = {"kill", "-" + signal, String.valueOf(pid)};
                 Process kill = new ProcessBuilder(command)
                     .redirectErrorStream(true)
@@ -101,18 +91,6 @@ public class ExecHandleRunner implements Runnable {
             }
         } finally {
             lock.unlock();
-        }
-    }
-
-    private static long getProcessId(Process process) throws Exception {
-        try {
-            // Java 9+: Process.pid()
-            return (Long) Process.class.getMethod("pid").invoke(process);
-        } catch (NoSuchMethodException e) {
-            // Java 8 fallback: UNIXProcess exposes a private 'pid' int field
-            java.lang.reflect.Field pidField = process.getClass().getDeclaredField("pid");
-            pidField.setAccessible(true);
-            return ((Number) pidField.get(process)).longValue();
         }
     }
 
@@ -138,24 +116,8 @@ public class ExecHandleRunner implements Runnable {
      * Falls back to only destroying the main process if the code runs on Java 8 or lower, which is the Gradle 8 or lower behavior.
      */
     private void destroyProcessTree() {
-        if (JavaVersion.current().isJava9Compatible()) {
-            destroyDescendants();
-        }
+        JvmProcessSupport.destroyDescendants(process);
         process.destroy();
-    }
-
-    private void destroyDescendants() {
-        try {
-            @SuppressWarnings("unchecked")
-            Stream<Object> descendants = (Stream<Object>) Process.class.getMethod("descendants").invoke(process);
-            Method destroyMethod = Class.forName("java.lang.ProcessHandle").getMethod("destroy");
-            Iterator<Object> it = descendants.iterator();
-            while (it.hasNext()) {
-                destroyMethod.invoke(it.next());
-            }
-        } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException | ClassNotFoundException e) {
-            throw new RuntimeException("Failed to destroy descendants of process: " + execHandle.getDisplayName(), e);
-        }
     }
 
     @Override
@@ -175,11 +137,8 @@ public class ExecHandleRunner implements Runnable {
                     streamsHandler.stop();
                     detached();
                 } else {
-                    // onExit() completes on the ForkJoinPool common pool (the Java 8 fallback on its own
-                    // waiter thread), we want to complete on our threads so we don't accidentally block
-                    // too much. FJP compensation is limited.
-                    onExit(process)
-                        .thenAcceptAsync(p -> completeAfterExit(p.exitValue()), executor)
+                    JvmProcessSupport.onExit(process, executor)
+                        .thenAccept(p -> completeAfterExit(p.exitValue()))
                         .whenComplete((unused, ex) -> {
                             if (ex != null) {
                                 CurrentBuildOperationRef.instance().with(this.associatedBuildOperation, () ->
@@ -203,57 +162,6 @@ public class ExecHandleRunner implements Runnable {
                 execHandle.failed(t);
             }
         });
-    }
-
-    @Nullable
-    private static final MethodHandle ON_EXIT_METHOD_HANDLE;
-
-    static {
-        MethodHandle result;
-        try {
-            result = MethodHandles.lookup().findVirtual(
-                Process.class, "onExit",
-                MethodType.methodType(CompletableFuture.class)
-            );
-        } catch (NoSuchMethodException ignored) {
-            // We'll use the fallback
-            result = null;
-        } catch (IllegalAccessException e) {
-            throw new AssertionError("Unexpectedly cannot access Process.onExit method", e);
-        }
-        ON_EXIT_METHOD_HANDLE = result;
-    }
-
-    @SuppressWarnings("unchecked")
-    private CompletableFuture<Process> onExit(Process process) {
-        if (ON_EXIT_METHOD_HANDLE == null) {
-            return onExitFallback(process);
-        }
-        try {
-            return (CompletableFuture<Process>) ON_EXIT_METHOD_HANDLE.invoke(process);
-        } catch (Throwable t) {
-            throw UncheckedException.throwAsUncheckedException(t);
-        }
-    }
-
-    private CompletableFuture<Process> onExitFallback(Process process) {
-        return CompletableFuture.supplyAsync(() -> {
-            // Mirroring Java 9+ onExit behavior, we ensure waitFor exits first,
-            // then we re-interrupt the thread and return the process so the future completes.
-            boolean interrupted = false;
-            while (true) {
-                try {
-                    process.waitFor();
-                    break;
-                } catch (InterruptedException e) {
-                    interrupted = true;
-                }
-            }
-            if (interrupted) {
-                Thread.currentThread().interrupt();
-            }
-            return process;
-        }, executor);
     }
 
     /**
