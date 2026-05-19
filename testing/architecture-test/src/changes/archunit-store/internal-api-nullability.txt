@@ -3211,6 +3211,7 @@ Class <org.gradle.plugins.ide.internal.DefaultIdeArtifactRegistry> is not annota
 Class <org.gradle.plugins.ide.internal.IdeArtifactRegistry$Reference> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (IdeArtifactRegistry.java:0)
 Class <org.gradle.plugins.ide.internal.IdeArtifactRegistry> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (IdeArtifactRegistry.java:0)
 Class <org.gradle.plugins.ide.internal.IdeArtifactStore> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (IdeArtifactStore.java:0)
+Class <org.gradle.plugins.ide.internal.IdeDeprecations> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (IdeDeprecations.java:0)
 Class <org.gradle.plugins.ide.internal.IdePlugin> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (IdePlugin.java:0)
 Class <org.gradle.plugins.ide.internal.IdeProjectMetadata> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (IdeProjectMetadata.java:0)
 Class <org.gradle.plugins.ide.internal.IdeServices> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (IdeServices.java:0)

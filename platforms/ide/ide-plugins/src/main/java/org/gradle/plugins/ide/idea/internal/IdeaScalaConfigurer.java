@@ -36,11 +36,13 @@ import org.gradle.api.plugins.scala.ScalaBasePlugin;
 import org.gradle.api.plugins.scala.ScalaPluginExtension;
 import org.gradle.api.tasks.ScalaRuntime;
 import org.gradle.internal.Cast;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.plugins.ide.idea.IdeaPlugin;
 import org.gradle.plugins.ide.idea.model.Dependency;
 import org.gradle.plugins.ide.idea.model.FilePath;
 import org.gradle.plugins.ide.idea.model.IdeaModel;
 import org.gradle.plugins.ide.idea.model.IdeaModule;
+import org.gradle.plugins.ide.idea.model.IdeaModuleIml;
 import org.gradle.plugins.ide.idea.model.ModuleLibrary;
 import org.gradle.plugins.ide.idea.model.ProjectLibrary;
 import org.gradle.util.internal.VersionNumber;
@@ -100,7 +102,8 @@ public class IdeaScalaConfigurer {
                 rootProject.configure(scalaProjects, new Action<Project>() {
                     @Override
                     public void execute(final Project project) {
-                        project.getExtensions().getByType(IdeaModel.class).getModule().getIml().withXml(new Action<XmlProvider>() {
+                        IdeaModuleIml iml = DeprecationLogger.whileDisabled(() -> project.getExtensions().getByType(IdeaModel.class).getModule().getIml());
+                        iml.withXml(new Action<XmlProvider>() {
                             @Override
                             public void execute(XmlProvider xmlProvider) {
                                 if (useScalaSdk) {

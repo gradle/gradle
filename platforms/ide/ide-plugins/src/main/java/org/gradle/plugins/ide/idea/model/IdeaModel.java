@@ -21,6 +21,7 @@ import groovy.lang.DelegatesTo;
 import groovy.transform.stc.ClosureParams;
 import groovy.transform.stc.SimpleType;
 import org.gradle.api.Action;
+import org.gradle.plugins.ide.internal.IdeDeprecations;
 
 import java.io.File;
 import java.util.Map;
@@ -72,6 +73,7 @@ public abstract class IdeaModel {
      */
     @Deprecated
     public IdeaWorkspace getWorkspace() {
+        IdeDeprecations.nagDeprecatedType(IdeaWorkspace.class);
         return workspace;
     }
 
@@ -82,6 +84,7 @@ public abstract class IdeaModel {
      */
     @Deprecated
     public void setWorkspace(IdeaWorkspace workspace) {
+        IdeDeprecations.nagDeprecatedType(IdeaWorkspace.class);
         this.workspace = workspace;
     }
 

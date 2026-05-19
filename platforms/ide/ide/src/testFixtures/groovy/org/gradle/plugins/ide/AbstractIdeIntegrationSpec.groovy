@@ -19,14 +19,9 @@ package org.gradle.plugins.ide
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.plugins.ide.fixtures.IdeaFixtures
 import org.gradle.plugins.ide.fixtures.IdeaModuleFixture
+import org.gradle.plugins.ide.internal.tooling.eclipse.IdeDeprecations
 
-abstract class AbstractIdeIntegrationSpec extends AbstractIntegrationSpec {
-
-    protected void expectTaskDeprecations(String... taskNames) {
-        for (String taskName : taskNames) {
-            executer.expectDocumentedDeprecationWarning("The $taskName task has been deprecated. This is scheduled to be removed in Gradle 10. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#ide_task_deprecation")
-        }
-    }
+abstract class AbstractIdeIntegrationSpec extends AbstractIntegrationSpec implements IdeDeprecations {
 
     protected IdeaModuleFixture parseIml(String moduleFile) {
         return IdeaFixtures.parseIml(file(moduleFile))

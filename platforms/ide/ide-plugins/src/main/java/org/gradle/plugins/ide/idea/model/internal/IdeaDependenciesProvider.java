@@ -25,6 +25,7 @@ import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.artifacts.result.UnresolvedDependencyResult;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.jvm.JavaModuleDetector;
 import org.gradle.plugins.ide.idea.model.Dependency;
 import org.gradle.plugins.ide.idea.model.FilePath;
@@ -134,7 +135,7 @@ public class IdeaDependenciesProvider {
 
     @SuppressWarnings("deprecation")
     private FilePath toPath(IdeaModule ideaModule, File file) {
-        return file != null ? ideaModule.getPathFactory().path(file) : null;
+        return file != null ? DeprecationLogger.whileDisabled(() -> ideaModule.getPathFactory().path(file)) : null;
     }
 
     private class IdeaDependenciesVisitor implements IdeDependencyVisitor {

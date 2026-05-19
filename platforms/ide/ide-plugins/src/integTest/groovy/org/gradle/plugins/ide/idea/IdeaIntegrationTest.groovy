@@ -267,6 +267,9 @@ class IdeaIntegrationTest extends AbstractIdeIntegrationTest implements StableCo
     @Test
     void triggersWithXmlConfigurationHooks() {
         expectTaskDeprecations("idea", "ideaModule", "ideaProject", "ideaWorkspace")
+        expectTaskTypeDeprecations(
+                ("org.gradle.plugins.ide.idea.model.IdeaModuleIml"): 1,
+        )
         runIdeaTask '''
             apply plugin: 'java'
             apply plugin: 'idea'

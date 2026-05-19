@@ -23,19 +23,14 @@ import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.plugins.ide.fixtures.IdeaFixtures
 import org.gradle.plugins.ide.fixtures.IdeaModuleFixture
 import org.gradle.plugins.ide.fixtures.IdeaProjectFixture
+import org.gradle.plugins.ide.internal.tooling.eclipse.IdeDeprecations
 import org.gradle.test.fixtures.file.TestFile
 import org.junit.Before
 
-abstract class AbstractIdeIntegrationTest extends AbstractIntegrationTest {
+abstract class AbstractIdeIntegrationTest extends AbstractIntegrationTest implements IdeDeprecations {
     @Before
     void setUp() {
         executer.withRepositoryMirrors()
-    }
-
-    protected void expectTaskDeprecations(String... taskNames) {
-        for (String taskName : taskNames) {
-            executer.expectDocumentedDeprecationWarning("The $taskName task has been deprecated. This is scheduled to be removed in Gradle 10. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#ide_task_deprecation")
-        }
     }
 
     protected ExecutionResult runTask(taskName, settingsScript = "rootProject.name = 'root'", buildScript) {

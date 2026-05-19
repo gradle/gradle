@@ -44,6 +44,9 @@ class IdeaModuleIntegrationTest extends AbstractIdeIntegrationTest {
 
         //when
         expectTaskDeprecations("idea", "ideaModule", "ideaProject", "ideaWorkspace")
+        expectTaskTypeDeprecations(
+                ("org.gradle.plugins.ide.idea.model.IdeaModuleIml"): 1,
+        )
         runTask 'idea', '''
             apply plugin: "java"
             apply plugin: "idea"
@@ -246,6 +249,9 @@ class IdeaModuleIntegrationTest extends AbstractIdeIntegrationTest {
 
         //when
         expectTaskDeprecations("idea", "ideaModule", "ideaProject", "ideaWorkspace")
+        expectTaskTypeDeprecations(
+                ("org.gradle.plugins.ide.idea.model.IdeaModuleIml"): 1,
+        )
         runTask(['idea'], '''
             apply plugin: "java"
             apply plugin: "idea"

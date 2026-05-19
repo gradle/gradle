@@ -29,6 +29,11 @@ class ConfigurationHooksIntegrationTest extends AbstractIdeIntegrationTest {
     void triggersBeforeAndWhenConfigurationHooks() {
         //this test is a bit peculiar as it has assertions inside the gradle script
         //couldn't find a better way of asserting on before/when configured hooks
+        expectTaskTypeDeprecations(
+                ("org.gradle.plugins.ide.idea.model.IdeaModuleIml"): 1,
+                ("org.gradle.plugins.ide.idea.model.IdeaWorkspace"): 1,
+                ("org.gradle.plugins.ide.idea.model.IdeaProject.ipr"): 1,
+        )
         expectTaskDeprecations("idea", "ideaModule", "ideaProject", "ideaWorkspace")
         runIdeaTask '''
             apply plugin: 'java'
@@ -71,6 +76,10 @@ class ConfigurationHooksIntegrationTest extends AbstractIdeIntegrationTest {
     void whenHooksApplyChangesToGeneratedFile() {
         //when
         expectTaskDeprecations("idea", "ideaModule", "ideaProject", "ideaWorkspace")
+        expectTaskTypeDeprecations(
+                ("org.gradle.plugins.ide.idea.model.IdeaModuleIml"): 1,
+                ("org.gradle.plugins.ide.idea.model.IdeaProject.ipr"): 1,
+        )
         runIdeaTask '''
             apply plugin: 'java'
             apply plugin: 'idea'

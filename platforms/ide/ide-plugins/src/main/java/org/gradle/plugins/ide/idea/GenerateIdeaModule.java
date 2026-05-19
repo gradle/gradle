@@ -59,7 +59,7 @@ public abstract class GenerateIdeaModule extends XmlGeneratorTask<Module> {
 
     @Override
     protected Module create() {
-        return new Module(getXmlTransformer(), module.getPathFactory());
+        return new Module(getXmlTransformer(), DeprecationLogger.whileDisabled(() -> module.getPathFactory()));
     }
 
     @Override
@@ -72,7 +72,7 @@ public abstract class GenerateIdeaModule extends XmlGeneratorTask<Module> {
         if (module == null) {
             return super.getXmlTransformer();
         }
-        return module.getIml().getXmlTransformer();
+        return DeprecationLogger.whileDisabled(() -> module.getIml().getXmlTransformer());
     }
 
     /**

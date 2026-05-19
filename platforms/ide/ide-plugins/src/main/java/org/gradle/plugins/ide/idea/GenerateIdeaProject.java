@@ -55,12 +55,12 @@ public abstract class GenerateIdeaProject extends XmlGeneratorTask<Project> {
 
     @Override
     protected void configure(Project xmlModule) {
-        getIdeaProject().mergeXmlProject(xmlModule);
+        DeprecationLogger.whileDisabled(() -> getIdeaProject().mergeXmlProject(xmlModule));
     }
 
     @Override
     public Project create() {
-        Project project = new Project(getXmlTransformer(), ideaProject.getPathFactory());
+        Project project = new Project(getXmlTransformer(), DeprecationLogger.whileDisabled(ideaProject::getPathFactory));
         return project;
     }
 
@@ -69,7 +69,7 @@ public abstract class GenerateIdeaProject extends XmlGeneratorTask<Project> {
         if (ideaProject == null) {
             return super.getXmlTransformer();
         }
-        return ideaProject.getIpr().getXmlTransformer();
+        return DeprecationLogger.whileDisabled(() -> ideaProject.getIpr().getXmlTransformer());
     }
 
     /**

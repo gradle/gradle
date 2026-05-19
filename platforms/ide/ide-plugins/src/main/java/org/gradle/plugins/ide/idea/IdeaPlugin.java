@@ -48,6 +48,7 @@ import org.gradle.api.plugins.jvm.internal.JvmFeatureInternal;
 import org.gradle.api.plugins.scala.ScalaBasePlugin;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.TaskProvider;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.xml.XmlTransformer;
 import org.gradle.plugins.ide.api.XmlFileContentMerger;
 import org.gradle.plugins.ide.idea.internal.IdeaModuleInternal;
@@ -163,8 +164,13 @@ public abstract class IdeaPlugin extends IdePlugin {
 
     @SuppressWarnings("deprecation")
     private void configureIdeaWorkspace(final Project project) {
-        final IdeaWorkspace workspace = getObjectFactory().newInstance(IdeaWorkspace.class);
-        ideaModel.setWorkspace(workspace);
+        final IdeaWorkspace workspace = DeprecationLogger.whileDisabled(
+            () -> {
+                IdeaWorkspace iw = getObjectFactory().newInstance(IdeaWorkspace.class);
+                ideaModel.setWorkspace(iw);
+                return iw;
+            }
+        );
 
         if (isRoot()) {
             workspace.setIws(new XmlFileContentMerger(new XmlTransformer()));
@@ -277,9 +283,10 @@ public abstract class IdeaPlugin extends IdePlugin {
 
     @SuppressWarnings("deprecation")
     private void configureIdeaModule(final ProjectInternal project) {
-        IdeaModuleIml iml = new IdeaModuleIml(new XmlTransformer(), project.getProjectDir());
         // Instantiating an internal subclass is required for Isolated Projects-safe model building
-        final IdeaModule module = getObjectFactory().newInstance(IdeaModuleInternal.class, project, iml);
+        final IdeaModule module = DeprecationLogger.whileDisabled(() ->
+            getObjectFactory().newInstance(IdeaModuleInternal.class, project, new IdeaModuleIml(new XmlTransformer(), project.getProjectDir()))
+        );
 
         final TaskProvider<GenerateIdeaModule> task = project.getTasks().register(IDEA_MODULE_TASK_NAME, GenerateIdeaModule.class, module);
         task.configure(new Action<GenerateIdeaModule>() {

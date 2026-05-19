@@ -25,8 +25,10 @@ import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.plugins.ide.idea.model.internal.IdeaDependenciesProvider;
 import org.gradle.plugins.ide.internal.IdeArtifactRegistry;
+import org.gradle.plugins.ide.internal.IdeDeprecations;
 import org.gradle.plugins.ide.internal.resolver.DefaultGradleApiSourcesResolver;
 
 import javax.inject.Inject;
@@ -46,7 +48,7 @@ import static org.gradle.util.internal.ConfigureUtil.configure;
  * Example of use with a blend of most possible properties.
  * Typically you don't have to configure this model directly because Gradle configures it for you.
  *
- * <pre class='autoTested'>
+ * <pre class='autoTestedWithDeprecations'>
  * plugins {
  *     id 'java'
  *     id 'idea'
@@ -120,7 +122,7 @@ import static org.gradle.util.internal.ConfigureUtil.configure;
  * <p>
  * Examples of advanced configuration:
  *
- * <pre class='autoTested'>
+ * <pre class='autoTestedWithDeprecations'>
  * plugins {
  *     id 'java'
  *     id 'idea'
@@ -256,7 +258,7 @@ public abstract class IdeaModule {
      * plus configurations are added minus the files from the minus configurations. See example below...
      * <p>
      * Example how to use scopes property to enable 'performanceTestCompile' dependencies in the output *.iml file:
-     * <pre class='autoTested'>
+     * <pre class='autoTestedWithDeprecations'>
      * plugins {
      *     id 'java'
      *     id 'idea'
@@ -471,6 +473,7 @@ public abstract class IdeaModule {
      */
     @Deprecated
     public IdeaModuleIml getIml() {
+        IdeDeprecations.nagDeprecatedType(IdeaModuleIml.class);
         return iml;
     }
 
@@ -491,6 +494,7 @@ public abstract class IdeaModule {
      */
     @Deprecated
     public PathFactory getPathFactory() {
+        IdeDeprecations.nagDeprecatedProperty(IdeaModule.class, "pathFactory");
         return pathFactory;
     }
 
@@ -501,6 +505,7 @@ public abstract class IdeaModule {
      */
     @Deprecated
     public void setPathFactory(PathFactory pathFactory) {
+        IdeDeprecations.nagDeprecatedProperty(IdeaModule.class, "pathFactory");
         this.pathFactory = pathFactory;
     }
 
@@ -545,6 +550,7 @@ public abstract class IdeaModule {
      */
     @Deprecated
     public void iml(Action<? super IdeaModuleIml> action) {
+        IdeDeprecations.nagDeprecatedType(IdeaModuleIml.class);
         action.execute(iml);
     }
 
@@ -555,20 +561,11 @@ public abstract class IdeaModule {
      * <p>
      * Please refer to documentation on <b>moduleName</b> property.
      * In IntelliJ IDEA the module name is the same as the name of the *.iml file.
-     *
-     * @deprecated Will be removed in Gradle 10.
      */
-    @Deprecated
     public File getOutputFile() {
         return new File(iml.getGenerateTo(), getName() + ".iml");
     }
 
-    /**
-     * Sets the output *.iml file.
-     *
-     * @deprecated Will be removed in Gradle 10.
-     */
-    @Deprecated
     public void setOutputFile(File newOutputFile) {
         setName(newOutputFile.getName().replaceFirst("\\.iml$", ""));
         getIml().setGenerateTo(newOutputFile.getParentFile());
@@ -594,32 +591,34 @@ public abstract class IdeaModule {
     @Deprecated
     @SuppressWarnings("unchecked")
     public void mergeXmlModule(Module xmlModule) {
-        iml.getBeforeMerged().execute(xmlModule);
+        DeprecationLogger.whileDisabled(() -> {
+            iml.getBeforeMerged().execute(xmlModule);
 
-        Path contentRoot = getPathFactory().path(getContentRoot());
-        Set<Path> sourceFolders = pathsOf(existing(getSourceDirs()));
-        Set<Path> generatedSourceFolders = pathsOf(existing(getGeneratedSourceDirs()));
-        Set<Path> testSourceFolders = pathsOf(existing(getTestSources().getFiles()));
-        Set<Path> resourceFolders = pathsOf(existing(getResourceDirs()));
-        Set<Path> testResourceFolders = pathsOf(existing(getTestResources().getFiles()));
-        Set<Path> excludeFolders = pathsOf(getExcludeDirs());
-        Path outputDir = getOutputDir() != null ? getPathFactory().path(getOutputDir()) : null;
-        Path testOutputDir = getTestOutputDir() != null ? getPathFactory().path(getTestOutputDir()) : null;
-        Set<Dependency> dependencies = resolveDependencies();
-        String level = getLanguageLevel() != null ? getLanguageLevel().getLevel() : null;
+            Path contentRoot = getPathFactory().path(getContentRoot());
+            Set<Path> sourceFolders = pathsOf(existing(getSourceDirs()));
+            Set<Path> generatedSourceFolders = pathsOf(existing(getGeneratedSourceDirs()));
+            Set<Path> testSourceFolders = pathsOf(existing(getTestSources().getFiles()));
+            Set<Path> resourceFolders = pathsOf(existing(getResourceDirs()));
+            Set<Path> testResourceFolders = pathsOf(existing(getTestResources().getFiles()));
+            Set<Path> excludeFolders = pathsOf(getExcludeDirs());
+            Path outputDir = getOutputDir() != null ? getPathFactory().path(getOutputDir()) : null;
+            Path testOutputDir = getTestOutputDir() != null ? getPathFactory().path(getTestOutputDir()) : null;
+            Set<Dependency> dependencies = resolveDependencies();
+            String level = getLanguageLevel() != null ? getLanguageLevel().getLevel() : null;
 
-        xmlModule.configure(
-            contentRoot,
-            sourceFolders, testSourceFolders,
-            resourceFolders, testResourceFolders,
-            generatedSourceFolders,
-            excludeFolders,
-            getInheritOutputDirs(), outputDir, testOutputDir,
-            dependencies,
-            getJdkName(), level
-        );
+            xmlModule.configure(
+                contentRoot,
+                sourceFolders, testSourceFolders,
+                resourceFolders, testResourceFolders,
+                generatedSourceFolders,
+                excludeFolders,
+                getInheritOutputDirs(), outputDir, testOutputDir,
+                dependencies,
+                getJdkName(), level
+            );
 
-        iml.getWhenMerged().execute(xmlModule);
+            iml.getWhenMerged().execute(xmlModule);
+        });
     }
 
     private Set<File> existing(Set<File> files) {

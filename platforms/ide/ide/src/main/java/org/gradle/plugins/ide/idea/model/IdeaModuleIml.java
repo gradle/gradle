@@ -17,6 +17,7 @@ package org.gradle.plugins.ide.idea.model;
 
 import org.gradle.internal.xml.XmlTransformer;
 import org.gradle.plugins.ide.api.XmlFileContentMerger;
+import org.gradle.plugins.ide.internal.IdeDeprecations;
 
 import java.io.File;
 
@@ -34,6 +35,7 @@ public class IdeaModuleIml extends XmlFileContentMerger {
 
     public IdeaModuleIml(XmlTransformer xmlTransformer, File generateTo) {
         super(xmlTransformer);
+        IdeDeprecations.nagDeprecatedType(IdeaModuleIml.class);
         this.generateTo = generateTo;
     }
 

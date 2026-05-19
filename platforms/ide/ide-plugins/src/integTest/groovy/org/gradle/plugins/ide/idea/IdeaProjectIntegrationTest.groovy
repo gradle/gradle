@@ -49,6 +49,9 @@ class IdeaProjectIntegrationTest extends AbstractIdeIntegrationTest {
         //when
         createDirs("someProjectThatWillBeExcluded", "api")
         expectTaskDeprecations("ideaModule", "ideaProject", "ideaWorkspace", "idea")
+        expectTaskTypeDeprecations(
+                ("org.gradle.plugins.ide.idea.model.IdeaProject.ipr"): 1,
+        )
         def result = runTask ':idea', 'include "someProjectThatWillBeExcluded", "api"', '''
             allprojects {
                 apply plugin: "java"
@@ -118,6 +121,9 @@ class IdeaProjectIntegrationTest extends AbstractIdeIntegrationTest {
 
         //when
         expectTaskDeprecations("ideaModule", "ideaProject", "ideaWorkspace", "idea")
+        expectTaskTypeDeprecations(
+                ("org.gradle.plugins.ide.idea.model.IdeaProject.ipr"): 1,
+        )
         runTask 'idea', '''
             apply plugin: "java"
             apply plugin: "idea"

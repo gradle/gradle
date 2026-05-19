@@ -25,6 +25,9 @@ class IdeaWorkspaceIntegrationTest extends AbstractIdeIntegrationTest {
     void enablesCustomizationOfIws() {
         //when
         expectTaskDeprecations("ideaModule", "ideaProject", "ideaWorkspace", "idea")
+        expectTaskTypeDeprecations(
+                ("org.gradle.plugins.ide.idea.model.IdeaWorkspace"): 2,
+        )
         runIdeaTask '''
             apply plugin: "java"
             apply plugin: "idea"

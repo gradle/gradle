@@ -28,6 +28,8 @@ abstract class AbstractIdeProjectIntegrationTest extends AbstractIdeIntegrationS
 
     protected abstract String[] getDeprecatedCleanTaskNames()
 
+    protected abstract Map<String, Integer> getDeprecatedTaskTypes() // TODO: is it needed?
+
     protected abstract String getConfiguredModule()
 
     String getLifeCycleTaskName() {

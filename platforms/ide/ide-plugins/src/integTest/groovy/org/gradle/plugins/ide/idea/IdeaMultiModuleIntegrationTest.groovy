@@ -353,6 +353,9 @@ class IdeaMultiModuleIntegrationTest extends AbstractIdeIntegrationTest {
 
         //when
         expectTaskDeprecations("idea", "ideaModule", "ideaProject", "ideaWorkspace")
+        expectTaskTypeDeprecations(
+                ("org.gradle.plugins.ide.idea.model.IdeaModuleIml"): 1,
+        )
         executer.withTasks("idea").run()
 
         //then
