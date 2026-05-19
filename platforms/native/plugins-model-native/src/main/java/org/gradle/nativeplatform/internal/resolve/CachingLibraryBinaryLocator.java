@@ -18,29 +18,29 @@ package org.gradle.nativeplatform.internal.resolve;
 
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
-import org.gradle.nativeplatform.NativeLibraryBinary;
 import org.jspecify.annotations.Nullable;
 
 import java.util.HashMap;
 import java.util.Map;
 
+@SuppressWarnings("deprecation")
 public class CachingLibraryBinaryLocator implements LibraryBinaryLocator {
-    private static DomainObjectSet<NativeLibraryBinary> nullResult;
+    private static DomainObjectSet<org.gradle.nativeplatform.NativeLibraryBinary> nullResult;
     private final LibraryBinaryLocator delegate;
-    private final Map<LibraryIdentifier, DomainObjectSet<NativeLibraryBinary>> libraries = new HashMap<LibraryIdentifier, DomainObjectSet<NativeLibraryBinary>>();
+    private final Map<LibraryIdentifier, DomainObjectSet<org.gradle.nativeplatform.NativeLibraryBinary>> libraries = new HashMap<LibraryIdentifier, DomainObjectSet<org.gradle.nativeplatform.NativeLibraryBinary>>();
 
     @SuppressWarnings("StaticAssignmentInConstructor") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
     public CachingLibraryBinaryLocator(LibraryBinaryLocator delegate, DomainObjectCollectionFactory domainObjectCollectionFactory) {
         this.delegate = delegate;
         if (nullResult == null) {
-            nullResult = domainObjectCollectionFactory.newDomainObjectSet(NativeLibraryBinary.class);
+            nullResult = domainObjectCollectionFactory.newDomainObjectSet(org.gradle.nativeplatform.NativeLibraryBinary.class);
         }
     }
 
     @Nullable
     @Override
-    public DomainObjectSet<NativeLibraryBinary> getBinaries(LibraryIdentifier library) {
-        DomainObjectSet<NativeLibraryBinary> libraryBinaries = libraries.get(library);
+    public DomainObjectSet<org.gradle.nativeplatform.NativeLibraryBinary> getBinaries(LibraryIdentifier library) {
+        DomainObjectSet<org.gradle.nativeplatform.NativeLibraryBinary> libraryBinaries = libraries.get(library);
         if (libraryBinaries == null) {
             libraryBinaries = delegate.getBinaries(library);
             if (libraryBinaries == null) {

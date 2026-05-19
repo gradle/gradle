@@ -28,13 +28,8 @@ import org.gradle.internal.graph.DirectedGraph;
 import org.gradle.internal.graph.DirectedGraphRenderer;
 import org.gradle.internal.graph.GraphNodeRenderer;
 import org.gradle.internal.logging.text.StyledTextOutput;
-import org.gradle.language.base.plugins.ComponentModelBasePlugin;
-import org.gradle.model.ModelMap;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.type.ModelTypes;
-import org.gradle.nativeplatform.NativeComponentSpec;
-import org.gradle.nativeplatform.NativeLibraryBinary;
-import org.gradle.platform.base.VariantComponentSpec;
 import org.gradle.platform.base.internal.BinarySpecInternal;
 import org.gradle.platform.base.internal.dependents.AbstractDependentBinariesResolutionStrategy;
 import org.gradle.platform.base.internal.dependents.DefaultDependentBinariesResolvedResult;
@@ -58,6 +53,7 @@ import java.util.concurrent.TimeUnit;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+@SuppressWarnings("deprecation")
 public class NativeDependentBinariesResolutionStrategy extends AbstractDependentBinariesResolutionStrategy {
 
     public interface TestSupport {
@@ -156,15 +152,15 @@ public class NativeDependentBinariesResolutionStrategy extends AbstractDependent
         projectRegistry.applyToMutableStateOfAllProjects(access -> {
             List<? extends ProjectState> orderedProjects = Ordering.usingToString().sortedCopy(projectRegistry.getAllProjects());
             for (ProjectState projectState : orderedProjects) {
-                if (access.getMutableModel(projectState).getPlugins().hasPlugin(ComponentModelBasePlugin.class)) {
+                if (access.getMutableModel(projectState).getPlugins().hasPlugin(org.gradle.language.base.plugins.ComponentModelBasePlugin.class)) {
                     ModelRegistry modelRegistry = projectModelResolver.resolveProjectModel(projectState.getProjectPath().toString());
-                    ModelMap<NativeComponentSpec> components = modelRegistry.realize("components", ModelTypes.modelMap(NativeComponentSpec.class));
-                    for (NativeBinarySpecInternal binary : allBinariesOf(components.withType(VariantComponentSpec.class))) {
+                    org.gradle.model.ModelMap<org.gradle.nativeplatform.NativeComponentSpec> components = modelRegistry.realize("components", ModelTypes.modelMap(org.gradle.nativeplatform.NativeComponentSpec.class));
+                    for (NativeBinarySpecInternal binary : allBinariesOf(components.withType(org.gradle.platform.base.VariantComponentSpec.class))) {
                         state.registerBinary(binary);
                     }
-                    ModelMap<Object> testSuites = modelRegistry.find("testSuites", ModelTypes.modelMap(Object.class));
+                    org.gradle.model.ModelMap<Object> testSuites = modelRegistry.find("testSuites", ModelTypes.modelMap(Object.class));
                     if (testSuites != null) {
-                        for (NativeBinarySpecInternal binary : allBinariesOf(testSuites.withType(NativeComponentSpec.class).withType(VariantComponentSpec.class))) {
+                        for (NativeBinarySpecInternal binary : allBinariesOf(testSuites.withType(org.gradle.nativeplatform.NativeComponentSpec.class).withType(org.gradle.platform.base.VariantComponentSpec.class))) {
                             state.registerBinary(binary);
                         }
                     }
@@ -173,7 +169,7 @@ public class NativeDependentBinariesResolutionStrategy extends AbstractDependent
         });
 
         for (NativeBinarySpecInternal nativeBinary : state.dependencies.keySet()) {
-            for (NativeLibraryBinary libraryBinary : nativeBinary.getDependentBinaries()) {
+            for (org.gradle.nativeplatform.NativeLibraryBinary libraryBinary : nativeBinary.getDependentBinaries()) {
                 // Skip prebuilt libraries
                 if (libraryBinary instanceof NativeBinarySpecInternal) {
                     // Unfortunate cast! see LibraryBinaryLocator
@@ -193,9 +189,9 @@ public class NativeDependentBinariesResolutionStrategy extends AbstractDependent
         return testSupport != null && testSupport.isTestSuite(target);
     }
 
-    private List<NativeBinarySpecInternal> allBinariesOf(ModelMap<VariantComponentSpec> components) {
+    private List<NativeBinarySpecInternal> allBinariesOf(org.gradle.model.ModelMap<org.gradle.platform.base.VariantComponentSpec> components) {
         List<NativeBinarySpecInternal> binaries = new ArrayList<>();
-        for (VariantComponentSpec nativeComponent : components) {
+        for (org.gradle.platform.base.VariantComponentSpec nativeComponent : components) {
             for (NativeBinarySpecInternal nativeBinary : nativeComponent.getBinaries().withType(NativeBinarySpecInternal.class)) {
                 binaries.add(nativeBinary);
             }

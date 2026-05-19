@@ -17,6 +17,7 @@
 package org.gradle.model.internal.manage.projection
 import org.gradle.model.Managed
 
+@SuppressWarnings("deprecation")
 class ListModelProjectionTest extends AbstractCollectionModelProjectionTest<String, List<String>> {
 
     @Managed

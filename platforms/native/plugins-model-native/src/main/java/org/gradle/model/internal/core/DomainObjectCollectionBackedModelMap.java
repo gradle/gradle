@@ -27,8 +27,6 @@ import org.gradle.api.specs.Spec;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Specs;
-import org.gradle.model.ModelMap;
-import org.gradle.model.RuleSource;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Collection;
@@ -37,6 +35,7 @@ import java.util.Set;
 
 import static org.gradle.internal.Cast.uncheckedCast;
 
+@SuppressWarnings("deprecation")
 public class DomainObjectCollectionBackedModelMap<T> extends ModelMapGroovyView<T> {
 
     private final String name;
@@ -65,7 +64,7 @@ public class DomainObjectCollectionBackedModelMap<T> extends ModelMapGroovyView<
         return collection.toString();
     }
 
-    private <S> ModelMap<S> toNonSubtypeMap(Class<S> type) {
+    private <S> org.gradle.model.ModelMap<S> toNonSubtypeMap(Class<S> type) {
         DomainObjectCollection<S> cast = toNonSubtype(type);
         org.gradle.api.Namer<S> castNamer = Cast.uncheckedCast(namer);
         return DomainObjectCollectionBackedModelMap.wrap(name, type, cast, NamedEntityInstantiators.nonSubtype(type, elementType), castNamer, Actions.doNothing());
@@ -75,7 +74,7 @@ public class DomainObjectCollectionBackedModelMap<T> extends ModelMapGroovyView<
         return uncheckedCast(collection.matching(Specs.isInstance(type)));
     }
 
-    private <S extends T> ModelMap<S> toSubtypeMap(Class<S> itemSubtype) {
+    private <S extends T> org.gradle.model.ModelMap<S> toSubtypeMap(Class<S> itemSubtype) {
         NamedEntityInstantiator<S> instantiator = uncheckedCast(this.instantiator);
         return DomainObjectCollectionBackedModelMap.wrap(name, itemSubtype, collection.withType(itemSubtype), instantiator, namer, onCreateAction);
     }
@@ -187,7 +186,7 @@ public class DomainObjectCollectionBackedModelMap<T> extends ModelMapGroovyView<
     }
 
     @Override
-    public void named(String name, Class<? extends RuleSource> ruleSource) {
+    public void named(String name, Class<? extends org.gradle.model.RuleSource> ruleSource) {
         throw new UnsupportedOperationException();
     }
 
@@ -202,7 +201,7 @@ public class DomainObjectCollectionBackedModelMap<T> extends ModelMapGroovyView<
     }
 
     @Override
-    public <S> void withType(Class<S> type, Class<? extends RuleSource> rules) {
+    public <S> void withType(Class<S> type, Class<? extends org.gradle.model.RuleSource> rules) {
         throw new UnsupportedOperationException();
     }
 
@@ -242,14 +241,14 @@ public class DomainObjectCollectionBackedModelMap<T> extends ModelMapGroovyView<
     }
 
     @Override
-    public <S> ModelMap<S> withType(final Class<S> type) {
+    public <S> org.gradle.model.ModelMap<S> withType(final Class<S> type) {
         if (type.equals(elementType)) {
             return uncheckedCast(this);
         }
 
         if (elementType.isAssignableFrom(type)) {
             Class<? extends T> castType = uncheckedCast(type);
-            ModelMap<? extends T> subType = toSubtypeMap(castType);
+            org.gradle.model.ModelMap<? extends T> subType = toSubtypeMap(castType);
             return uncheckedCast(subType);
         }
 

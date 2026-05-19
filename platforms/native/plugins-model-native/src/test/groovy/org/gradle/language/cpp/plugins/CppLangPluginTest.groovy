@@ -18,6 +18,7 @@ package org.gradle.language.cpp.plugins
 import org.gradle.language.cpp.CppSourceSet
 import org.gradle.test.fixtures.plugin.AbstractLanguagePluginSpec
 
+@SuppressWarnings("deprecation")
 class CppLangPluginTest extends AbstractLanguagePluginSpec {
 
     @Override

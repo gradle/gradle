@@ -16,14 +16,12 @@
 
 package org.gradle.platform.base.internal;
 
-import org.gradle.platform.base.SourceComponentSpec;
-import org.gradle.platform.base.TransformationFileType;
-
 import java.util.Set;
 
-public interface HasIntermediateOutputsComponentSpec extends SourceComponentSpec {
+@SuppressWarnings("deprecation")
+public interface HasIntermediateOutputsComponentSpec extends org.gradle.platform.base.SourceComponentSpec {
     /**
      * Returns the set of intermediate file types that this component is built from.
      */
-    Set<? extends Class<? extends TransformationFileType>> getIntermediateTypes();
+    Set<? extends Class<? extends org.gradle.platform.base.TransformationFileType>> getIntermediateTypes();
 }

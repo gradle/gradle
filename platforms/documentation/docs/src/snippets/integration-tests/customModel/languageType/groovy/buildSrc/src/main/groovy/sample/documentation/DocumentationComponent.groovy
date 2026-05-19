@@ -5,5 +5,6 @@ import org.gradle.platform.base.GeneralComponentSpec
 
 // tag::component-declaration[]
 @Managed
+@SuppressWarnings("deprecation")
 interface DocumentationComponent extends GeneralComponentSpec {}
 // end::component-declaration[]

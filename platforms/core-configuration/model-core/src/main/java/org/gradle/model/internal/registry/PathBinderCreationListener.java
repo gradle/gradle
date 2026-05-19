@@ -17,12 +17,11 @@
 package org.gradle.model.internal.registry;
 
 import org.gradle.api.Action;
-import org.gradle.model.InvalidModelRuleException;
-import org.gradle.model.ModelRuleBindingException;
 import org.gradle.model.internal.core.ModelNode;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.report.IncompatibleTypeReferenceReporter;
 
+@SuppressWarnings("deprecation")
 class PathBinderCreationListener extends ModelBinding {
     private final Action<ModelBinding> bindAction;
 
@@ -42,7 +41,7 @@ class PathBinderCreationListener extends ModelBinding {
             boundTo = node;
             bindAction.execute(this);
         } else {
-            throw new InvalidModelRuleException(referrer, new ModelRuleBindingException(
+            throw new org.gradle.model.InvalidModelRuleException(referrer, new org.gradle.model.ModelRuleBindingException(
                 IncompatibleTypeReferenceReporter.of(node, predicate.getReference().getType(), predicate.getReference().getDescription(), writable).asString()
             ));
         }

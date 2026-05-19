@@ -17,9 +17,9 @@
 package org.gradle.language.objectivec.internal;
 
 import org.gradle.language.nativeplatform.internal.AbstractHeaderExportingDependentSourceSet;
-import org.gradle.language.objectivec.ObjectiveCSourceSet;
 
-public class DefaultObjectiveCSourceSet extends AbstractHeaderExportingDependentSourceSet implements ObjectiveCSourceSet {
+@SuppressWarnings("deprecation")
+public class DefaultObjectiveCSourceSet extends AbstractHeaderExportingDependentSourceSet implements org.gradle.language.objectivec.ObjectiveCSourceSet {
     @Override
     protected String getLanguageName() {
         return "Objective-C";

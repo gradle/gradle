@@ -18,22 +18,11 @@ package org.gradle.nativeplatform.test.internal;
 
 import org.gradle.api.Action;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.model.ModelMap;
-import org.gradle.nativeplatform.NativeBinarySpec;
-import org.gradle.nativeplatform.NativeComponentSpec;
-import org.gradle.nativeplatform.NativeExecutableFileSpec;
-import org.gradle.nativeplatform.NativeInstallationSpec;
-import org.gradle.nativeplatform.SharedLibraryBinary;
 import org.gradle.nativeplatform.internal.NativeBinarySpecInternal;
 import org.gradle.nativeplatform.internal.NativeComponents;
 import org.gradle.nativeplatform.internal.resolve.NativeDependencyResolver;
-import org.gradle.nativeplatform.test.NativeTestSuiteBinarySpec;
-import org.gradle.nativeplatform.test.NativeTestSuiteSpec;
 import org.gradle.nativeplatform.test.tasks.RunTestExecutable;
-import org.gradle.platform.base.InvalidModelException;
-import org.gradle.platform.base.VariantComponentSpec;
 import org.gradle.platform.base.internal.BinaryNamingScheme;
-import org.gradle.testing.base.TestSuiteContainer;
 
 import java.io.File;
 import java.util.Collection;
@@ -44,14 +33,15 @@ import static org.gradle.nativeplatform.internal.configure.NativeBinaryRules.ins
 /**
  * Functions for creation and configuration of native test suites.
  */
+@SuppressWarnings("deprecation")
 public class NativeTestSuites {
 
-    public static <S extends NativeTestSuiteBinarySpec> void createNativeTestSuiteBinaries(ModelMap<S> binaries,
-                                                     NativeTestSuiteSpec testSuite,
+    public static <S extends org.gradle.nativeplatform.test.NativeTestSuiteBinarySpec> void createNativeTestSuiteBinaries(org.gradle.model.ModelMap<S> binaries,
+                                                     org.gradle.nativeplatform.test.NativeTestSuiteSpec testSuite,
                                                      final Class<S> testSuiteBinaryClass,
                                                      final String typeString, final File buildDir, final ServiceRegistry serviceRegistry) {
-        for (final NativeBinarySpec testedBinary : testedBinariesOf(testSuite)) {
-            if (testedBinary instanceof SharedLibraryBinary) {
+        for (final org.gradle.nativeplatform.NativeBinarySpec testedBinary : testedBinariesOf(testSuite)) {
+            if (testedBinary instanceof org.gradle.nativeplatform.SharedLibraryBinary) {
                 // For now, we only create test suites for static library variants
                 continue;
             }
@@ -59,11 +49,11 @@ public class NativeTestSuites {
         }
     }
 
-    private static <S extends NativeTestSuiteBinarySpec> void createNativeTestSuiteBinary(ModelMap<S> binaries,
-                                                    NativeTestSuiteSpec testSuite,
+    private static <S extends org.gradle.nativeplatform.test.NativeTestSuiteBinarySpec> void createNativeTestSuiteBinary(org.gradle.model.ModelMap<S> binaries,
+                                                    org.gradle.nativeplatform.test.NativeTestSuiteSpec testSuite,
                                                     Class<S> testSuiteBinaryClass,
                                                     String typeString,
-                                                    final NativeBinarySpec testedBinary,
+                                                    final org.gradle.nativeplatform.NativeBinarySpec testedBinary,
                                                     final File buildDir, ServiceRegistry serviceRegistry) {
 
         final BinaryNamingScheme namingScheme = namingSchemeFor(testSuite, (NativeBinarySpecInternal) testedBinary, typeString);
@@ -77,8 +67,8 @@ public class NativeTestSuites {
                 testBinary.setNamingScheme(namingScheme);
                 testBinary.setResolver(resolver);
                 testBinary.setToolChain(testedBinary.getToolChain());
-                NativeExecutableFileSpec executable = testBinary.getExecutable();
-                NativeInstallationSpec installation = testBinary.getInstallation();
+                org.gradle.nativeplatform.NativeExecutableFileSpec executable = testBinary.getExecutable();
+                org.gradle.nativeplatform.NativeInstallationSpec installation = testBinary.getInstallation();
                 executable.setToolChain(testedBinary.getToolChain());
                 executable.setFile(executableFileFor(testBinary, buildDir));
                 installation.setDirectory(installationDirFor(testBinary, buildDir));
@@ -98,27 +88,27 @@ public class NativeTestSuites {
             }
         });
     }
-    public static Collection<NativeBinarySpec> testedBinariesOf(NativeTestSuiteSpec testSuite) {
-        return testedBinariesWithType(NativeBinarySpec.class, testSuite);
+    public static Collection<org.gradle.nativeplatform.NativeBinarySpec> testedBinariesOf(org.gradle.nativeplatform.test.NativeTestSuiteSpec testSuite) {
+        return testedBinariesWithType(org.gradle.nativeplatform.NativeBinarySpec.class, testSuite);
     }
 
-    public static <S> Collection<S> testedBinariesWithType(Class<S> type, NativeTestSuiteSpec testSuite) {
-        VariantComponentSpec spec = (VariantComponentSpec) testSuite.getTestedComponent();
+    public static <S> Collection<S> testedBinariesWithType(Class<S> type, org.gradle.nativeplatform.test.NativeTestSuiteSpec testSuite) {
+        org.gradle.platform.base.VariantComponentSpec spec = (org.gradle.platform.base.VariantComponentSpec) testSuite.getTestedComponent();
         if (spec == null) {
-            throw new InvalidModelException(String.format("Test suite '%s' doesn't declare component under test. Please specify it with `testing $.components.myComponent`.", testSuite.getName()));
+            throw new org.gradle.platform.base.InvalidModelException(String.format("Test suite '%s' doesn't declare component under test. Please specify it with `testing $.components.myComponent`.", testSuite.getName()));
         }
         return spec.getBinaries().withType(type).values();
     }
 
-    private static BinaryNamingScheme namingSchemeFor(NativeTestSuiteSpec testSuite, NativeBinarySpecInternal testedBinary, String typeString) {
+    private static BinaryNamingScheme namingSchemeFor(org.gradle.nativeplatform.test.NativeTestSuiteSpec testSuite, NativeBinarySpecInternal testedBinary, String typeString) {
         return testedBinary.getNamingScheme()
             .withComponentName(testSuite.getBaseName())
             .withBinaryType(typeString)
             .withRole("executable", true);
     }
 
-    public static <S extends NativeTestSuiteSpec> void createConventionalTestSuites(TestSuiteContainer testSuites, ModelMap<NativeComponentSpec> components, Class<S> testSuiteSpecClass) {
-        for (final NativeComponentSpec component : components.values()) {
+    public static <S extends org.gradle.nativeplatform.test.NativeTestSuiteSpec> void createConventionalTestSuites(org.gradle.testing.base.TestSuiteContainer testSuites, org.gradle.model.ModelMap<org.gradle.nativeplatform.NativeComponentSpec> components, Class<S> testSuiteSpecClass) {
+        for (final org.gradle.nativeplatform.NativeComponentSpec component : components.values()) {
             final String suiteName = component.getName() + "Test";
             testSuites.create(suiteName, testSuiteSpecClass, new Action<S>() {
                 @Override

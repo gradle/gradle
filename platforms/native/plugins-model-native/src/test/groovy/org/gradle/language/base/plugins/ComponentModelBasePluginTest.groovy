@@ -22,6 +22,7 @@ import org.gradle.platform.base.*
 import org.gradle.platform.base.plugins.BinaryBasePlugin
 import org.gradle.platform.base.plugins.ComponentBasePlugin
 
+@SuppressWarnings("deprecation")
 class ComponentModelBasePluginTest extends PlatformBaseSpecification {
     def "applies language and binary base plugins"() {
         when:

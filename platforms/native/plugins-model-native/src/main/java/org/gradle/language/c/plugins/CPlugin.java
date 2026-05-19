@@ -29,8 +29,11 @@ import org.gradle.nativeplatform.plugins.NativeComponentModelPlugin;
  * <ul>
  * <li>Creates a {@link org.gradle.language.c.tasks.CCompile} task for each {@link org.gradle.language.c.CSourceSet} to compile the C sources.</li>
  * </ul>
+ *
+ * @deprecated The Gradle software model is deprecated and will be removed in Gradle 10. Use the new component model (e.g. {@code cpp-application}, {@code cpp-library}, {@code swift-application}, {@code swift-library}, {@code xctest}) instead.
  */
 @Incubating
+@Deprecated
 public abstract class CPlugin implements Plugin<Project> {
     @Override
     public void apply(Project project) {

@@ -15,41 +15,35 @@
  */
 package org.gradle.nativeplatform.test.internal;
 
-import org.gradle.nativeplatform.NativeBinarySpec;
-import org.gradle.nativeplatform.NativeExecutableFileSpec;
-import org.gradle.nativeplatform.NativeInstallationSpec;
 import org.gradle.nativeplatform.internal.AbstractNativeBinarySpec;
 import org.gradle.nativeplatform.internal.NativeBinarySpecInternal;
 import org.gradle.nativeplatform.tasks.InstallExecutable;
 import org.gradle.nativeplatform.tasks.LinkExecutable;
 import org.gradle.nativeplatform.tasks.ObjectFilesToBinary;
-import org.gradle.nativeplatform.test.NativeTestSuiteBinarySpec;
-import org.gradle.nativeplatform.test.NativeTestSuiteSpec;
 import org.gradle.nativeplatform.test.tasks.RunTestExecutable;
-import org.gradle.platform.base.BinaryTasksCollection;
 import org.gradle.platform.base.internal.BinaryTasksCollectionWrapper;
 
 import java.io.File;
 
-@SuppressWarnings("this-escape")
+@SuppressWarnings({"this-escape", "deprecation"})
 public class DefaultNativeTestSuiteBinarySpec extends AbstractNativeBinarySpec implements NativeTestSuiteBinarySpecInternal {
     private final DefaultTasksCollection tasks = new DefaultTasksCollection(super.getTasks());
     private NativeBinarySpecInternal testedBinary;
-    private NativeInstallationSpec installation = new NativeInstallationSpec();
-    private NativeExecutableFileSpec executable = new NativeExecutableFileSpec();
+    private org.gradle.nativeplatform.NativeInstallationSpec installation = new org.gradle.nativeplatform.NativeInstallationSpec();
+    private org.gradle.nativeplatform.NativeExecutableFileSpec executable = new org.gradle.nativeplatform.NativeExecutableFileSpec();
 
     @Override
-    public NativeTestSuiteSpec getComponent() {
-        return getComponentAs(NativeTestSuiteSpec.class);
+    public org.gradle.nativeplatform.test.NativeTestSuiteSpec getComponent() {
+        return getComponentAs(org.gradle.nativeplatform.test.NativeTestSuiteSpec.class);
     }
 
     @Override
-    public NativeTestSuiteSpec getTestSuite() {
+    public org.gradle.nativeplatform.test.NativeTestSuiteSpec getTestSuite() {
         return getComponent();
     }
 
     @Override
-    public NativeBinarySpec getTestedBinary() {
+    public org.gradle.nativeplatform.NativeBinarySpec getTestedBinary() {
         return testedBinary;
     }
 
@@ -69,12 +63,12 @@ public class DefaultNativeTestSuiteBinarySpec extends AbstractNativeBinarySpec i
     }
 
     @Override
-    public NativeInstallationSpec getInstallation() {
+    public org.gradle.nativeplatform.NativeInstallationSpec getInstallation() {
         return installation;
     }
 
     @Override
-    public NativeExecutableFileSpec getExecutable() {
+    public org.gradle.nativeplatform.NativeExecutableFileSpec getExecutable() {
         return executable;
     }
 
@@ -89,12 +83,12 @@ public class DefaultNativeTestSuiteBinarySpec extends AbstractNativeBinarySpec i
     }
 
     @Override
-    public NativeTestSuiteBinarySpec.TasksCollection getTasks() {
+    public org.gradle.nativeplatform.test.NativeTestSuiteBinarySpec.TasksCollection getTasks() {
         return tasks;
     }
 
-    private static class DefaultTasksCollection extends BinaryTasksCollectionWrapper implements NativeTestSuiteBinarySpec.TasksCollection {
-        public DefaultTasksCollection(BinaryTasksCollection delegate) {
+    private static class DefaultTasksCollection extends BinaryTasksCollectionWrapper implements org.gradle.nativeplatform.test.NativeTestSuiteBinarySpec.TasksCollection {
+        public DefaultTasksCollection(org.gradle.platform.base.BinaryTasksCollection delegate) {
             super(delegate);
         }
 

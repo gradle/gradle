@@ -20,6 +20,9 @@ import org.gradle.model.ModelMap;
 
 /**
  * A container for project binaries, which represent physical artifacts that can run on a particular platform or runtime.
+ *
+ * @deprecated The Gradle software model is deprecated and will be removed in Gradle 10. Use the new component model (e.g. {@code cpp-application}, {@code cpp-library}, {@code swift-application}, {@code swift-library}, {@code xctest}) instead.
  */
 @Incubating
+@Deprecated
 public interface BinaryContainer extends ModelMap<BinarySpec> {}

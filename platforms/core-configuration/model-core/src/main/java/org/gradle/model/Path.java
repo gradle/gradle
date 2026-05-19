@@ -25,10 +25,13 @@ import java.lang.annotation.Target;
 
 /**
  * Specifies a model path on a parameter
+ *
+ * @deprecated The Gradle software model is deprecated and will be removed in Gradle 10. Use the new component model (e.g. {@code cpp-application}, {@code cpp-library}, {@code swift-application}, {@code swift-library}, {@code xctest}) instead.
  */
 @Target({ElementType.PARAMETER})
 @Retention(RetentionPolicy.RUNTIME)
 @Incubating
+@Deprecated
 public @interface Path {
     String value();
 }

@@ -35,6 +35,7 @@ import org.junit.runner.Description
 import org.junit.runners.model.Statement
 import spock.lang.Specification
 
+@SuppressWarnings("deprecation")
 class IvyPublishPluginTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider testDir = new TestNameTestDirectoryProvider(getClass())

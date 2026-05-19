@@ -17,16 +17,14 @@ package org.gradle.platform.base.internal;
 
 import com.google.common.base.Joiner;
 import org.gradle.api.IllegalDependencyNotation;
-import org.gradle.platform.base.DependencySpec;
-import org.gradle.platform.base.ProjectDependencySpec;
-import org.gradle.platform.base.ProjectDependencySpecBuilder;
 import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-public class DefaultProjectDependencySpec implements ProjectDependencySpec {
+@SuppressWarnings("deprecation")
+public class DefaultProjectDependencySpec implements org.gradle.platform.base.ProjectDependencySpec {
 
     private final String projectPath;
     private final String libraryName;
@@ -62,19 +60,19 @@ public class DefaultProjectDependencySpec implements ProjectDependencySpec {
         return Joiner.on(' ').join(parts);
     }
 
-    public static class Builder implements ProjectDependencySpecBuilder {
+    public static class Builder implements org.gradle.platform.base.ProjectDependencySpecBuilder {
         private String projectPath;
         private String libraryName;
 
         @Override
-        public ProjectDependencySpecBuilder project(String path) {
+        public org.gradle.platform.base.ProjectDependencySpecBuilder project(String path) {
             checkNotSet("project", projectPath);
             projectPath = path;
             return this;
         }
 
         @Override
-        public ProjectDependencySpecBuilder library(String name) {
+        public org.gradle.platform.base.ProjectDependencySpecBuilder library(String name) {
             checkNotSet("library", libraryName);
             libraryName = name;
             return this;
@@ -87,7 +85,7 @@ public class DefaultProjectDependencySpec implements ProjectDependencySpec {
         }
 
         @Override
-        public DependencySpec build() {
+        public org.gradle.platform.base.DependencySpec build() {
             validate();
             return new DefaultProjectDependencySpec(libraryName, projectPath);
         }

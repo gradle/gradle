@@ -17,8 +17,6 @@
 package org.gradle.nativeplatform.internal.configure;
 
 import org.gradle.language.base.internal.ProjectLayout;
-import org.gradle.model.Defaults;
-import org.gradle.model.RuleSource;
 import org.gradle.nativeplatform.*;
 import org.gradle.nativeplatform.internal.NativeBinarySpecInternal;
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
@@ -28,8 +26,9 @@ import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 
 import java.io.File;
 
-public class NativeBinaryRules extends RuleSource {
-    @Defaults
+@SuppressWarnings("deprecation")
+public class NativeBinaryRules extends org.gradle.model.RuleSource {
+    @org.gradle.model.Defaults
     public static void assignTools(NativeBinarySpec nativeBinarySpec, NativeToolChainRegistryInternal toolChains, ProjectLayout projectLayout) {
         assignTools(nativeBinarySpec, toolChains, projectLayout.getBuildDir());
     }

@@ -35,6 +35,7 @@ import org.gradle.testing.base.TestingExtension;
  * @since 7.3
  */
 @Incubating
+@SuppressWarnings("deprecation")
 public abstract class TestSuiteBasePlugin implements Plugin<Project> {
 
     @Override

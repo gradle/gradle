@@ -26,6 +26,7 @@ import org.gradle.model.internal.core.ModelTypeInitializationException
 import org.gradle.model.internal.fixture.ProjectRegistrySpec
 import org.gradle.model.internal.type.ModelType
 
+@SuppressWarnings("deprecation")
 class NonTransformedModelDslBackingTest extends ProjectRegistrySpec {
 
     def modelDsl

@@ -20,6 +20,7 @@ import org.gradle.api.tasks.diagnostics.internal.text.TextReportBuilder
 import org.gradle.platform.base.BinarySpec
 import spock.lang.Specification
 
+@SuppressWarnings("deprecation")
 class TypeAwareBinaryRendererTest extends Specification {
     def "delegates to renderer for type"() {
         def binary = Stub(SomeBinary)

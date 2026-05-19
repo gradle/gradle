@@ -21,30 +21,27 @@ import org.gradle.api.internal.file.collections.MinimalFileSet;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.internal.tasks.TaskDependencyInternal;
 import org.gradle.api.tasks.TaskDependency;
-import org.gradle.language.base.LanguageSourceSet;
-import org.gradle.language.nativeplatform.HeaderExportingSourceSet;
-import org.gradle.nativeplatform.NativeLibrarySpec;
-import org.gradle.platform.base.LibraryBinarySpec;
 
 import java.io.File;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-public abstract class AbstractNativeLibraryBinarySpec extends AbstractNativeBinarySpec implements LibraryBinarySpec {
+@SuppressWarnings("deprecation")
+public abstract class AbstractNativeLibraryBinarySpec extends AbstractNativeBinarySpec implements org.gradle.platform.base.LibraryBinarySpec {
 
     @Override
-    public NativeLibrarySpec getComponent() {
-        return getComponentAs(NativeLibrarySpec.class);
+    public org.gradle.nativeplatform.NativeLibrarySpec getComponent() {
+        return getComponentAs(org.gradle.nativeplatform.NativeLibrarySpec.class);
     }
 
     @Override
-    public NativeLibrarySpec getLibrary() {
-        return getComponentAs(NativeLibrarySpec.class);
+    public org.gradle.nativeplatform.NativeLibrarySpec getLibrary() {
+        return getComponentAs(org.gradle.nativeplatform.NativeLibrarySpec.class);
     }
 
     protected boolean hasSources() {
-        for (LanguageSourceSet sourceSet : getInputs()) {
+        for (org.gradle.language.base.LanguageSourceSet sourceSet : getInputs()) {
             if (!sourceSet.getSource().isEmpty()) {
                 return true;
             }
@@ -90,7 +87,7 @@ public abstract class AbstractNativeLibraryBinarySpec extends AbstractNativeBina
         @Override
         public Set<File> getFiles() {
             Set<File> headerDirs = new LinkedHashSet<File>();
-            for (HeaderExportingSourceSet sourceSet : getInputs().withType(HeaderExportingSourceSet.class)) {
+            for (org.gradle.language.nativeplatform.HeaderExportingSourceSet sourceSet : getInputs().withType(org.gradle.language.nativeplatform.HeaderExportingSourceSet.class)) {
                 headerDirs.addAll(sourceSet.getExportedHeaders().getSrcDirs());
             }
             return headerDirs;
@@ -99,7 +96,7 @@ public abstract class AbstractNativeLibraryBinarySpec extends AbstractNativeBina
         @Override
         public TaskDependency getBuildDependencies() {
             DefaultTaskDependency dependency = new DefaultTaskDependency();
-            for (HeaderExportingSourceSet sourceSet : getInputs().withType(HeaderExportingSourceSet.class)) {
+            for (org.gradle.language.nativeplatform.HeaderExportingSourceSet sourceSet : getInputs().withType(org.gradle.language.nativeplatform.HeaderExportingSourceSet.class)) {
                 dependency.add(sourceSet.getBuildDependencies());
             }
             return dependency;

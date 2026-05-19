@@ -26,8 +26,6 @@ import org.gradle.internal.Actions;
 import org.gradle.internal.BiAction;
 import org.gradle.internal.Factories;
 import org.gradle.internal.Factory;
-import org.gradle.model.ModelMap;
-import org.gradle.model.RuleSource;
 import org.gradle.model.internal.core.ChildNodeInitializerStrategyAccessors;
 import org.gradle.model.internal.core.ModelAction;
 import org.gradle.model.internal.core.ModelActionRole;
@@ -61,6 +59,7 @@ import static org.gradle.model.internal.core.NodeInitializerContext.forType;
  *
  * Allows unsafe use of the model registry by allow registering of rules that can close over external, unmanaged, state.
  */
+@SuppressWarnings("deprecation")
 public class ModelRegistryHelperExtension {
     // ModelRegistry methods
 
@@ -134,7 +133,7 @@ public class ModelRegistryHelperExtension {
         });
     }
 
-    public static <I> ModelRegistry mutateModelMap(ModelRegistry modelRegistry, final String path, final Class<I> itemType, final Action<? super ModelMap<I>> action) {
+    public static <I> ModelRegistry mutateModelMap(ModelRegistry modelRegistry, final String path, final Class<I> itemType, final Action<? super org.gradle.model.ModelMap<I>> action) {
         return mutate(modelRegistry, new Transformer<ModelAction, ModelActionBuilder<Object>>() {
             @Override
             public ModelAction transform(ModelActionBuilder<Object> builder) {
@@ -184,7 +183,7 @@ public class ModelRegistryHelperExtension {
         });
     }
 
-    public static ModelRegistry apply(ModelRegistry modelRegistry, String path, final Class<? extends RuleSource> rules) {
+    public static ModelRegistry apply(ModelRegistry modelRegistry, String path, final Class<? extends org.gradle.model.RuleSource> rules) {
         return mutate(modelRegistry, path, new Action<MutableModelNode>() {
             @Override
             public void execute(MutableModelNode mutableModelNode) {

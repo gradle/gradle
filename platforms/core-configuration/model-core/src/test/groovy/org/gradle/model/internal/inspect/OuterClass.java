@@ -16,14 +16,12 @@
 
 package org.gradle.model.internal.inspect;
 
-import org.gradle.model.RuleSource;
-
-@SuppressWarnings("UnusedDeclaration")
+@SuppressWarnings({"UnusedDeclaration", "deprecation"})
 public class OuterClass {
     public static interface AnInterface {
     }
 
-    public class InnerInstanceClass extends RuleSource {
+    public class InnerInstanceClass extends org.gradle.model.RuleSource {
     }
 
     private class PrivateInnerStaticClass {
@@ -35,7 +33,7 @@ public class OuterClass {
     public static class DoesNotExtendRuleSource {
     }
 
-    public static class HasTwoConstructors extends RuleSource {
+    public static class HasTwoConstructors extends org.gradle.model.RuleSource {
         public HasTwoConstructors() {
         }
 
@@ -43,27 +41,27 @@ public class OuterClass {
         }
     }
 
-    public static class HasInstanceVar extends RuleSource {
+    public static class HasInstanceVar extends org.gradle.model.RuleSource {
         private String foo;
     }
 
-    public static class HasFinalInstanceVar extends RuleSource {
+    public static class HasFinalInstanceVar extends org.gradle.model.RuleSource {
         private final String foo = null;
     }
 
-    public static class HasNonFinalStaticVar extends RuleSource {
+    public static class HasNonFinalStaticVar extends org.gradle.model.RuleSource {
         private static String foo;
     }
 
-    public static class InnerPublicStaticClass extends RuleSource {
+    public static class InnerPublicStaticClass extends org.gradle.model.RuleSource {
     }
 
-    public static class HasExplicitDefaultConstructor extends RuleSource {
+    public static class HasExplicitDefaultConstructor extends org.gradle.model.RuleSource {
         public HasExplicitDefaultConstructor() {
         }
     }
 
-    public static class HasStaticFinalField extends RuleSource {
+    public static class HasStaticFinalField extends org.gradle.model.RuleSource {
         private static final Object VALUE = null;
     }
 }

@@ -16,11 +16,9 @@
 
 package org.gradle.model.internal.inspect;
 
-import org.gradle.model.Managed;
-import org.gradle.model.ModelMap;
-
-@Managed
+@org.gradle.model.Managed
+@SuppressWarnings("deprecation")
 public interface ManagedWithReferenceOfInvalidManagedType {
-    ModelMap<?> getInvalidManaged();
-    void setInvalidManaged(ModelMap<?> invalidManaged);
+    org.gradle.model.ModelMap<?> getInvalidManaged();
+    void setInvalidManaged(org.gradle.model.ModelMap<?> invalidManaged);
 }

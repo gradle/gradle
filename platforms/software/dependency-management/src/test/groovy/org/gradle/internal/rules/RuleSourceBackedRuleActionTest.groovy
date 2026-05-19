@@ -23,6 +23,7 @@ import spock.lang.Specification
 
 import static org.gradle.model.ModelTypeTesting.fullyQualifiedNameOf
 
+@SuppressWarnings("deprecation")
 class RuleSourceBackedRuleActionTest extends Specification {
     private ModelType<List<String>> listType = new ModelType<List<String>>() {}
     private action

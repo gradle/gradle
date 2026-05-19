@@ -27,8 +27,11 @@ import java.util.Collection;
 
 /**
  * Represents a binary artifact that is the result of building a native component.
+ *
+ * @deprecated The Gradle software model is deprecated and will be removed in Gradle 10. Use the new component model (e.g. {@code cpp-application}, {@code cpp-library}, {@code swift-application}, {@code swift-library}, {@code xctest}) instead.
  */
 @Incubating @HasInternalProtocol
+@Deprecated
 public interface NativeBinarySpec extends BinarySpec {
     /**
      * The component that this binary was built from.

@@ -18,23 +18,23 @@ package org.gradle.nativeplatform.internal;
 
 import org.gradle.api.tasks.diagnostics.internal.text.TextReportBuilder;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
-import org.gradle.nativeplatform.SharedLibraryBinarySpec;
 
 import javax.inject.Inject;
 
-public class SharedLibraryBinaryRenderer extends AbstractNativeBinaryRenderer<SharedLibraryBinarySpec> {
+@SuppressWarnings("deprecation")
+public class SharedLibraryBinaryRenderer extends AbstractNativeBinaryRenderer<org.gradle.nativeplatform.SharedLibraryBinarySpec> {
     @Inject
     public SharedLibraryBinaryRenderer(ModelSchemaStore schemaStore) {
         super(schemaStore);
     }
 
     @Override
-    public Class<SharedLibraryBinarySpec> getTargetType() {
-        return SharedLibraryBinarySpec.class;
+    public Class<org.gradle.nativeplatform.SharedLibraryBinarySpec> getTargetType() {
+        return org.gradle.nativeplatform.SharedLibraryBinarySpec.class;
     }
 
     @Override
-    protected void renderOutputs(SharedLibraryBinarySpec binary, TextReportBuilder builder) {
+    protected void renderOutputs(org.gradle.nativeplatform.SharedLibraryBinarySpec binary, TextReportBuilder builder) {
         builder.item("shared library file", binary.getSharedLibraryFile());
     }
 }

@@ -16,7 +16,6 @@
 
 package org.gradle.platform.base.internal.registry;
 
-import org.gradle.model.ModelMap;
 import org.gradle.model.internal.core.ModelReference;
 import org.gradle.model.internal.inspect.AbstractAnnotationDrivenModelRuleExtractor;
 import org.gradle.model.internal.inspect.MethodRuleDefinition;
@@ -27,6 +26,7 @@ import java.lang.annotation.Annotation;
 import java.util.HashMap;
 import java.util.List;
 
+@SuppressWarnings("deprecation")
 public abstract class AbstractAnnotationDrivenComponentModelRuleExtractor<T extends Annotation> extends AbstractAnnotationDrivenModelRuleExtractor<T> {
     protected <V> void visitSubject(RuleMethodDataCollector dataCollector, MethodRuleDefinition<?, ?> ruleDefinition, ModelType<V> typeParameter, RuleSourceValidationProblemCollector problems) {
         if (ruleDefinition.getReferences().size() == 0) {
@@ -36,13 +36,13 @@ public abstract class AbstractAnnotationDrivenComponentModelRuleExtractor<T exte
 
         ModelType<?> subjectType = ruleDefinition.getSubjectReference().getType();
         if (!isModelMap(subjectType)) {
-            problems.add(ruleDefinition, String.format("The first parameter of a method %s must be of type %s.", getDescription(), ModelMap.class.getName()));
+            problems.add(ruleDefinition, String.format("The first parameter of a method %s must be of type %s.", getDescription(), org.gradle.model.ModelMap.class.getName()));
             return;
         }
 
         List<ModelType<?>> typeVariables = subjectType.getTypeVariables();
         if (typeVariables.size() != 1) {
-            problems.add(ruleDefinition, String.format("Parameter of type %s must declare a type parameter extending %s.", ModelMap.class.getSimpleName(), typeParameter.getDisplayName()));
+            problems.add(ruleDefinition, String.format("Parameter of type %s must declare a type parameter extending %s.", org.gradle.model.ModelMap.class.getSimpleName(), typeParameter.getDisplayName()));
             return;
         }
 
@@ -55,7 +55,7 @@ public abstract class AbstractAnnotationDrivenComponentModelRuleExtractor<T exte
     }
 
     private boolean isModelMap(ModelType<?> modelType) {
-        return ModelType.of(ModelMap.class).isAssignableFrom(modelType);
+        return ModelType.of(org.gradle.model.ModelMap.class).isAssignableFrom(modelType);
     }
 
     protected static class RuleMethodDataCollector {

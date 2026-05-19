@@ -28,7 +28,7 @@ import spock.lang.Specification
 
 import java.beans.Introspector
 
-@SuppressWarnings("GroovyPointlessBoolean")
+@SuppressWarnings(["GroovyPointlessBoolean", "deprecation"])
 class DefaultModelSchemaExtractorTest extends Specification {
     def store = new DefaultModelSchemaStore(DefaultModelSchemaExtractor.withDefaultStrategies())
     def classLoader = new GroovyClassLoader(getClass().classLoader)

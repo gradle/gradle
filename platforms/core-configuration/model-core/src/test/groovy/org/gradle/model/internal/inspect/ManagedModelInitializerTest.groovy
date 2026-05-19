@@ -33,6 +33,7 @@ import java.util.concurrent.atomic.AtomicInteger
 
 import static org.gradle.model.ModelTypeTesting.fullyQualifiedNameOf
 
+@SuppressWarnings("deprecation")
 class ManagedModelInitializerTest extends ProjectRegistrySpec {
 
     def classLoader = new GroovyClassLoader(getClass().classLoader)

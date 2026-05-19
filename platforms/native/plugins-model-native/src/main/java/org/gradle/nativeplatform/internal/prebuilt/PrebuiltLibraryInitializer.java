@@ -19,10 +19,6 @@ package org.gradle.nativeplatform.internal.prebuilt;
 import org.gradle.api.Action;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.nativeplatform.BuildType;
-import org.gradle.nativeplatform.Flavor;
-import org.gradle.nativeplatform.NativeLibraryBinary;
-import org.gradle.nativeplatform.PrebuiltLibrary;
 import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.nativeplatform.platform.internal.NativePlatforms;
 import org.gradle.platform.base.internal.BinaryNamingScheme;
@@ -32,19 +28,20 @@ import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-public class PrebuiltLibraryInitializer implements Action<PrebuiltLibrary> {
+@SuppressWarnings("deprecation")
+public class PrebuiltLibraryInitializer implements Action<org.gradle.nativeplatform.PrebuiltLibrary> {
     private final Instantiator instantiator;
     private final FileCollectionFactory fileCollectionFactory;
     private final Set<NativePlatform> allPlatforms = new LinkedHashSet<NativePlatform>();
-    private final Set<BuildType> allBuildTypes = new LinkedHashSet<BuildType>();
-    private final Set<Flavor> allFlavors = new LinkedHashSet<Flavor>();
+    private final Set<org.gradle.nativeplatform.BuildType> allBuildTypes = new LinkedHashSet<org.gradle.nativeplatform.BuildType>();
+    private final Set<org.gradle.nativeplatform.Flavor> allFlavors = new LinkedHashSet<org.gradle.nativeplatform.Flavor>();
 
     public PrebuiltLibraryInitializer(Instantiator instantiator,
                                       FileCollectionFactory fileCollectionFactory,
                                       NativePlatforms nativePlatforms,
                                       Collection<? extends NativePlatform> allPlatforms,
-                                      Collection<? extends BuildType> allBuildTypes,
-                                      Collection<? extends Flavor> allFlavors) {
+                                      Collection<? extends org.gradle.nativeplatform.BuildType> allBuildTypes,
+                                      Collection<? extends org.gradle.nativeplatform.Flavor> allFlavors) {
         this.instantiator = instantiator;
         this.fileCollectionFactory = fileCollectionFactory;
         this.allPlatforms.addAll(allPlatforms);
@@ -54,28 +51,28 @@ public class PrebuiltLibraryInitializer implements Action<PrebuiltLibrary> {
     }
 
     @Override
-    public void execute(PrebuiltLibrary prebuiltLibrary) {
+    public void execute(org.gradle.nativeplatform.PrebuiltLibrary prebuiltLibrary) {
         for (NativePlatform platform : allPlatforms) {
-            for (BuildType buildType : allBuildTypes) {
-                for (Flavor flavor : allFlavors) {
+            for (org.gradle.nativeplatform.BuildType buildType : allBuildTypes) {
+                for (org.gradle.nativeplatform.Flavor flavor : allFlavors) {
                     createNativeBinaries(prebuiltLibrary, platform, buildType, flavor, fileCollectionFactory);
                 }
             }
         }
     }
 
-    public void createNativeBinaries(PrebuiltLibrary library, NativePlatform platform, BuildType buildType, Flavor flavor, FileCollectionFactory fileCollectionFactory) {
+    public void createNativeBinaries(org.gradle.nativeplatform.PrebuiltLibrary library, NativePlatform platform, org.gradle.nativeplatform.BuildType buildType, org.gradle.nativeplatform.Flavor flavor, FileCollectionFactory fileCollectionFactory) {
         createNativeBinary(DefaultPrebuiltSharedLibraryBinary.class, "shared", library, platform, buildType, flavor, fileCollectionFactory);
         createNativeBinary(DefaultPrebuiltStaticLibraryBinary.class, "static", library, platform, buildType, flavor, fileCollectionFactory);
     }
 
-    public <T extends NativeLibraryBinary> void createNativeBinary(Class<T> type, String typeName, PrebuiltLibrary library, NativePlatform platform, BuildType buildType, Flavor flavor, FileCollectionFactory fileCollectionFactory) {
+    public <T extends org.gradle.nativeplatform.NativeLibraryBinary> void createNativeBinary(Class<T> type, String typeName, org.gradle.nativeplatform.PrebuiltLibrary library, NativePlatform platform, org.gradle.nativeplatform.BuildType buildType, org.gradle.nativeplatform.Flavor flavor, FileCollectionFactory fileCollectionFactory) {
         String name = getName(typeName, library, platform, buildType, flavor);
         T nativeBinary = instantiator.newInstance(type, name, library, buildType, platform, flavor, fileCollectionFactory);
         library.getBinaries().add(nativeBinary);
     }
 
-    private String getName(String typeName, PrebuiltLibrary library, NativePlatform platform, BuildType buildType, Flavor flavor) {
+    private String getName(String typeName, org.gradle.nativeplatform.PrebuiltLibrary library, NativePlatform platform, org.gradle.nativeplatform.BuildType buildType, org.gradle.nativeplatform.Flavor flavor) {
         BinaryNamingScheme namingScheme = DefaultBinaryNamingScheme.component(library.getName())
                 .withBinaryType(typeName)
                 .withVariantDimension(platform.getName())

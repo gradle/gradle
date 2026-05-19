@@ -21,6 +21,7 @@ import org.gradle.platform.base.component.BaseComponentFixtures
 import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier
 import spock.lang.Specification
 
+@SuppressWarnings("deprecation")
 class DefaultNativeComponentTest extends Specification {
     def id = new DefaultComponentSpecIdentifier("project", "name")
     def component

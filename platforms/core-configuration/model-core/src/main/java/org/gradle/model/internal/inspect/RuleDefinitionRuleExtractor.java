@@ -16,8 +16,6 @@
 
 package org.gradle.model.internal.inspect;
 
-import org.gradle.model.RuleSource;
-import org.gradle.model.Rules;
 import org.gradle.model.internal.core.ModelActionRole;
 import org.gradle.model.internal.core.ModelReference;
 import org.gradle.model.internal.core.ModelView;
@@ -29,8 +27,9 @@ import org.jspecify.annotations.Nullable;
 import java.util.Collections;
 import java.util.List;
 
-public class RuleDefinitionRuleExtractor extends AbstractAnnotationDrivenModelRuleExtractor<Rules> {
-    private static final ModelType<RuleSource> RULE_SOURCE_MODEL_TYPE = ModelType.of(RuleSource.class);
+@SuppressWarnings("deprecation")
+public class RuleDefinitionRuleExtractor extends AbstractAnnotationDrivenModelRuleExtractor<org.gradle.model.Rules> {
+    private static final ModelType<org.gradle.model.RuleSource> RULE_SOURCE_MODEL_TYPE = ModelType.of(org.gradle.model.RuleSource.class);
 
     @Nullable
     @Override
@@ -43,23 +42,23 @@ public class RuleDefinitionRuleExtractor extends AbstractAnnotationDrivenModelRu
 
         ModelType<?> ruleType = ruleDefinition.getReferences().get(0).getType();
         if (!RULE_SOURCE_MODEL_TYPE.isAssignableFrom(ruleType)) {
-            context.add(ruleDefinition, "The first parameter of a method " + getDescription() + " must be a subtype of " + RuleSource.class.getName());
+            context.add(ruleDefinition, "The first parameter of a method " + getDescription() + " must be a subtype of " + org.gradle.model.RuleSource.class.getName());
         }
         if (context.hasProblems()) {
             return null;
         }
 
-        ModelType<? extends RuleSource> ruleSourceType = ruleType.asSubtype(RULE_SOURCE_MODEL_TYPE);
+        ModelType<? extends org.gradle.model.RuleSource> ruleSourceType = ruleType.asSubtype(RULE_SOURCE_MODEL_TYPE);
         RuleApplicationScope ruleApplicationScope = RuleApplicationScope.fromRuleDefinition(context, ruleDefinition, 1);
         return new ExtractedRuleSourceDefinitionRule(ruleDefinition, ruleSourceType, context.getRuleExtractor(), ruleApplicationScope);
     }
 
     private static class ExtractedRuleSourceDefinitionRule  extends AbstractExtractedModelRule {
-        private final ModelType<? extends RuleSource> ruleSourceType;
+        private final ModelType<? extends org.gradle.model.RuleSource> ruleSourceType;
         private final ModelRuleExtractor ruleExtractor;
         private final RuleApplicationScope ruleApplicationScope;
 
-        public ExtractedRuleSourceDefinitionRule(MethodRuleDefinition<?, ?> ruleDefinition, ModelType<? extends RuleSource> ruleSourceType, ModelRuleExtractor ruleExtractor, RuleApplicationScope ruleApplicationScope) {
+        public ExtractedRuleSourceDefinitionRule(MethodRuleDefinition<?, ?> ruleDefinition, ModelType<? extends org.gradle.model.RuleSource> ruleSourceType, ModelRuleExtractor ruleExtractor, RuleApplicationScope ruleApplicationScope) {
             super(ruleDefinition);
             this.ruleSourceType = ruleSourceType;
             this.ruleExtractor = ruleExtractor;
@@ -85,10 +84,10 @@ public class RuleDefinitionRuleExtractor extends AbstractAnnotationDrivenModelRu
         private final ModelReference<?> targetReference;
         private final ModelRuleDescriptor descriptor;
         private final List<ModelReference<?>> inputs;
-        private final ModelType<? extends RuleSource> ruleSourceType;
+        private final ModelType<? extends org.gradle.model.RuleSource> ruleSourceType;
         private final ModelRuleExtractor ruleExtractor;
 
-        public RuleSourceApplicationAction(ModelReference<?> targetReference, ModelRuleDescriptor descriptor, List<ModelReference<?>> inputs, ModelType<? extends RuleSource> ruleSourceType, ModelRuleExtractor ruleExtractor) {
+        public RuleSourceApplicationAction(ModelReference<?> targetReference, ModelRuleDescriptor descriptor, List<ModelReference<?>> inputs, ModelType<? extends org.gradle.model.RuleSource> ruleSourceType, ModelRuleExtractor ruleExtractor) {
             this.targetReference = targetReference;
             this.descriptor = descriptor;
             this.inputs = inputs;

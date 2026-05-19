@@ -5,5 +5,6 @@ import org.gradle.model.Managed
 
 // tag::text-lang-declaration[]
 @Managed
+@SuppressWarnings("deprecation")
 interface TextSourceSet extends LanguageSourceSet {}
 // end::text-lang-declaration[]

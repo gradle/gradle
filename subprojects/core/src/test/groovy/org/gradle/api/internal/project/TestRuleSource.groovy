@@ -18,5 +18,6 @@ package org.gradle.api.internal.project
 
 import org.gradle.model.RuleSource
 
+@SuppressWarnings("deprecation")
 class TestRuleSource extends RuleSource {
 }

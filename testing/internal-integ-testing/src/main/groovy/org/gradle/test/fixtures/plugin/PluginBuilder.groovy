@@ -34,6 +34,7 @@ import org.gradle.test.fixtures.maven.MavenRepository
 import org.gradle.test.fixtures.server.http.MavenHttpPluginRepository
 import org.gradle.util.internal.TextUtil
 
+@SuppressWarnings("deprecation")
 class PluginBuilder {
     static final String PLUGIN_MARKER_SUFFIX = ".gradle.plugin"
 

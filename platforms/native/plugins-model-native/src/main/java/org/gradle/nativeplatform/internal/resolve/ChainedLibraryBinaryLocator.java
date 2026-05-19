@@ -17,12 +17,12 @@
 package org.gradle.nativeplatform.internal.resolve;
 
 import org.gradle.api.DomainObjectSet;
-import org.gradle.nativeplatform.NativeLibraryBinary;
 import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
 
+@SuppressWarnings("deprecation")
 public class ChainedLibraryBinaryLocator implements LibraryBinaryLocator {
     private final List<LibraryBinaryLocator> locators = new ArrayList<LibraryBinaryLocator>();
 
@@ -32,9 +32,9 @@ public class ChainedLibraryBinaryLocator implements LibraryBinaryLocator {
 
     @Nullable
     @Override
-    public DomainObjectSet<NativeLibraryBinary> getBinaries(LibraryIdentifier library) {
+    public DomainObjectSet<org.gradle.nativeplatform.NativeLibraryBinary> getBinaries(LibraryIdentifier library) {
         for (LibraryBinaryLocator locator : locators) {
-            DomainObjectSet<NativeLibraryBinary> binaries = locator.getBinaries(library);
+            DomainObjectSet<org.gradle.nativeplatform.NativeLibraryBinary> binaries = locator.getBinaries(library);
             if (binaries != null) {
                 return binaries;
             }

@@ -21,7 +21,6 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import org.gradle.api.Action;
 import org.gradle.internal.UncheckedException;
-import org.gradle.model.ModelMap;
 import org.gradle.model.internal.core.NodeBackedModelMap;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.manage.schema.SpecializedMapSchema;
@@ -34,6 +33,7 @@ import java.util.concurrent.ExecutionException;
 /**
  * Currently only handles interfaces with no type parameters that directly extend ModelMap.
  */
+@SuppressWarnings("deprecation")
 public class SpecializedMapStrategy implements ModelSchemaExtractionStrategy {
     private final ManagedCollectionProxyClassGenerator generator = new ManagedCollectionProxyClassGenerator();
     private final LoadingCache<ModelType<?>, Class<?>> generatedImplementationTypes = CacheBuilder.newBuilder()
@@ -63,7 +63,7 @@ public class SpecializedMapStrategy implements ModelSchemaExtractionStrategy {
             return;
         }
         ParameterizedType parameterizedSuperType = (ParameterizedType) superType;
-        if (!parameterizedSuperType.getRawType().equals(ModelMap.class)) {
+        if (!parameterizedSuperType.getRawType().equals(org.gradle.model.ModelMap.class)) {
             return;
         }
         ModelType<?> elementType = ModelType.of(parameterizedSuperType.getActualTypeArguments()[0]);

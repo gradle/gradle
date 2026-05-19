@@ -19,9 +19,9 @@ package org.gradle.nativeplatform.internal;
 import org.gradle.api.reporting.components.internal.AbstractBinaryRenderer;
 import org.gradle.api.tasks.diagnostics.internal.text.TextReportBuilder;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
-import org.gradle.nativeplatform.NativeBinarySpec;
 
-public abstract class AbstractNativeBinaryRenderer<T extends NativeBinarySpec> extends AbstractBinaryRenderer<T> {
+@SuppressWarnings("deprecation")
+public abstract class AbstractNativeBinaryRenderer<T extends org.gradle.nativeplatform.NativeBinarySpec> extends AbstractBinaryRenderer<T> {
     protected AbstractNativeBinaryRenderer(ModelSchemaStore schemaStore) {
         super(schemaStore);
     }

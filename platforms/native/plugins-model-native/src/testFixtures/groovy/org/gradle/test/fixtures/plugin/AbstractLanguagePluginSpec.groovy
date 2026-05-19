@@ -18,6 +18,7 @@ package org.gradle.test.fixtures.plugin
 
 import org.gradle.platform.base.PlatformBaseSpecification
 
+@SuppressWarnings("deprecation")
 abstract class AbstractLanguagePluginSpec extends PlatformBaseSpecification {
     abstract Class getPluginClass()
 

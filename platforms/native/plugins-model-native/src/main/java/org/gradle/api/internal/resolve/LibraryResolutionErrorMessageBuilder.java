@@ -16,11 +16,10 @@
 
 package org.gradle.api.internal.resolve;
 
-import org.gradle.platform.base.Binary;
-
+@SuppressWarnings("deprecation")
 public interface LibraryResolutionErrorMessageBuilder {
-    String multipleCompatibleVariantsErrorMessage(String libraryName, Iterable<? extends Binary> binaries);
+    String multipleCompatibleVariantsErrorMessage(String libraryName, Iterable<? extends org.gradle.platform.base.Binary> binaries);
 
-    String noCompatibleVariantErrorMessage(String libraryName, Iterable<? extends Binary> allBinaries);
+    String noCompatibleVariantErrorMessage(String libraryName, Iterable<? extends org.gradle.platform.base.Binary> allBinaries);
 
 }

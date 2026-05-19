@@ -15,9 +15,8 @@
  */
 package org.gradle.nativeplatform.internal;
 
-import org.gradle.nativeplatform.NativeExecutableSpec;
-
-public class DefaultNativeExecutableSpec extends AbstractTargetedNativeComponentSpec implements NativeExecutableSpec {
+@SuppressWarnings("deprecation")
+public class DefaultNativeExecutableSpec extends AbstractTargetedNativeComponentSpec implements org.gradle.nativeplatform.NativeExecutableSpec {
     @Override
     protected String getTypeName() {
         return "native executable";

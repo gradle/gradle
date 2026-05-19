@@ -29,6 +29,7 @@ import spock.lang.Specification
 
 import static org.gradle.model.ModelTypeTesting.fullyQualifiedNameOf
 
+@SuppressWarnings("deprecation")
 class DefaultStructBindingsStoreTest extends Specification {
     def schemaStore = new DefaultModelSchemaStore(DefaultModelSchemaExtractor.withDefaultStrategies())
     def bindingStore = new DefaultStructBindingsStore(schemaStore)

@@ -20,8 +20,11 @@ import org.gradle.api.Incubating;
 
 /**
  * A physical binary artifact, which can run on a particular platform or runtime.
+ *
+ * @deprecated The Gradle software model is deprecated and will be removed in Gradle 10. Use the new component model (e.g. {@code cpp-application}, {@code cpp-library}, {@code swift-application}, {@code swift-library}, {@code xctest}) instead.
  */
 @Incubating
+@Deprecated
 public interface Binary {
     /**
      * Returns a human-consumable display name for this binary.

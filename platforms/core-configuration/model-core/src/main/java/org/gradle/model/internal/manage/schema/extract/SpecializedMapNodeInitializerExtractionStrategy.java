@@ -17,15 +17,15 @@
 package org.gradle.model.internal.manage.schema.extract;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.model.ModelMap;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.manage.schema.CollectionSchema;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.manage.schema.SpecializedMapSchema;
 import org.gradle.model.internal.type.ModelType;
 
+@SuppressWarnings("deprecation")
 public class SpecializedMapNodeInitializerExtractionStrategy extends ModelMapNodeInitializerExtractionStrategy {
-    private static final ModelType<ModelMap<?>> MODEL_MAP_MODEL_TYPE = new ModelType<ModelMap<?>>() {
+    private static final ModelType<org.gradle.model.ModelMap<?>> MODEL_MAP_MODEL_TYPE = new ModelType<org.gradle.model.ModelMap<?>>() {
     };
 
     @Override

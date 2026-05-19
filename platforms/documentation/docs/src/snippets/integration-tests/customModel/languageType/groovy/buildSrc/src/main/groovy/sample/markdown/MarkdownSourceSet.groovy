@@ -5,6 +5,7 @@ import org.gradle.model.Managed
 
 // tag::markdown-lang-declaration[]
 @Managed
+@SuppressWarnings("deprecation")
 interface MarkdownSourceSet extends LanguageSourceSet {
     boolean isGenerateIndex()
     void setGenerateIndex(boolean generateIndex)

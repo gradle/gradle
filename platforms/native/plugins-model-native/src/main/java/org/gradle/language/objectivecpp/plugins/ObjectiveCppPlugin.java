@@ -29,8 +29,11 @@ import org.gradle.nativeplatform.plugins.NativeComponentModelPlugin;
  * <ul>
  * <li>Creates a {@link org.gradle.language.objectivecpp.tasks.ObjectiveCppCompile} task for each {@link org.gradle.language.objectivecpp.ObjectiveCppSourceSet} to compile the Objective-C++ sources.</li>
  * </ul>
+ *
+ * @deprecated The Gradle software model is deprecated and will be removed in Gradle 10. Use the new component model (e.g. {@code cpp-application}, {@code cpp-library}, {@code swift-application}, {@code swift-library}, {@code xctest}) instead.
  */
 @Incubating
+@Deprecated
 public abstract class ObjectiveCppPlugin implements Plugin<Project> {
     @Override
     public void apply(Project project) {

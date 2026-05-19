@@ -22,6 +22,7 @@ import org.gradle.language.base.LanguageSourceSet
 import org.gradle.platform.base.PlatformBaseSpecification
 import org.gradle.platform.base.plugins.ComponentBasePlugin
 
+@SuppressWarnings("deprecation")
 class LanguageBasePluginTest extends PlatformBaseSpecification {
     def "applies component base plugin only"() {
         when:

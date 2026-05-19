@@ -24,24 +24,21 @@ import org.gradle.api.internal.file.collections.MinimalFileSet;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.LanguageSourceSetInternal;
 import org.gradle.language.base.internal.SourceTransformTaskConfig;
-import org.gradle.language.rc.WindowsResourceSet;
 import org.gradle.language.rc.tasks.WindowsResourceCompile;
-import org.gradle.nativeplatform.PreprocessingTool;
 import org.gradle.nativeplatform.internal.NativeBinarySpecInternal;
 import org.gradle.nativeplatform.internal.StaticLibraryBinarySpecInternal;
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 import org.gradle.nativeplatform.toolchain.internal.ToolType;
-import org.gradle.platform.base.BinarySpec;
 
 import java.io.File;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
+@SuppressWarnings("deprecation")
 public class WindowsResourcesCompileTaskConfig implements SourceTransformTaskConfig {
     @Override
     public String getTaskPrefix() {
@@ -54,11 +51,11 @@ public class WindowsResourcesCompileTaskConfig implements SourceTransformTaskCon
     }
 
     @Override
-    public void configureTask(Task task, BinarySpec binary, LanguageSourceSet sourceSet, ServiceRegistry serviceRegistry) {
-        configureResourceCompileTask((WindowsResourceCompile) task, (NativeBinarySpecInternal) binary, (WindowsResourceSet) sourceSet);
+    public void configureTask(Task task, org.gradle.platform.base.BinarySpec binary, org.gradle.language.base.LanguageSourceSet sourceSet, ServiceRegistry serviceRegistry) {
+        configureResourceCompileTask((WindowsResourceCompile) task, (NativeBinarySpecInternal) binary, (org.gradle.language.rc.WindowsResourceSet) sourceSet);
     }
 
-    private void configureResourceCompileTask(WindowsResourceCompile task, final NativeBinarySpecInternal binary, final WindowsResourceSet sourceSet) {
+    private void configureResourceCompileTask(WindowsResourceCompile task, final NativeBinarySpecInternal binary, final org.gradle.language.rc.WindowsResourceSet sourceSet) {
         task.setDescription("Compiles resources of the " + sourceSet + " of " + binary);
 
         task.getToolChain().set(binary.getToolChain());
@@ -86,7 +83,7 @@ public class WindowsResourcesCompileTaskConfig implements SourceTransformTaskCon
 
         task.setOutputDir(project.getLayout().getBuildDirectory().getAsFile().map(it -> new File(binary.getNamingScheme().getOutputDirectory(it, "objs"), ((LanguageSourceSetInternal) sourceSet).getProjectScopedName())).get());
 
-        PreprocessingTool rcCompiler = (PreprocessingTool) binary.getToolByName("rcCompiler");
+        org.gradle.nativeplatform.PreprocessingTool rcCompiler = (org.gradle.nativeplatform.PreprocessingTool) binary.getToolByName("rcCompiler");
         task.setMacros(rcCompiler.getMacros());
         task.getCompilerArgs().set(rcCompiler.getArgs());
 

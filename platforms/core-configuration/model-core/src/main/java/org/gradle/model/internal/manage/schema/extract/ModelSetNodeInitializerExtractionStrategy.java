@@ -21,7 +21,6 @@ import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.collect.Multimap;
 import org.gradle.internal.BiAction;
 import org.gradle.internal.Cast;
-import org.gradle.model.ModelSet;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.inspect.ManagedChildNodeCreatorStrategy;
@@ -29,8 +28,9 @@ import org.gradle.model.internal.manage.schema.CollectionSchema;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.model.internal.type.ModelTypes;
 
+@SuppressWarnings("deprecation")
 public class ModelSetNodeInitializerExtractionStrategy extends CollectionNodeInitializerExtractionSupport {
-    private static final ModelType<ModelSet<?>> MODEL_SET_MODEL_TYPE = new ModelType<ModelSet<?>>() {
+    private static final ModelType<org.gradle.model.ModelSet<?>> MODEL_SET_MODEL_TYPE = new ModelType<org.gradle.model.ModelSet<?>>() {
     };
 
     @Override
@@ -46,7 +46,7 @@ public class ModelSetNodeInitializerExtractionStrategy extends CollectionNodeIni
         return ImmutableList.<ModelType<?>>of(MODEL_SET_MODEL_TYPE);
     }
 
-    private static class ModelSetModelViewFactory<T> implements ModelViewFactory<ModelSet<T>> {
+    private static class ModelSetModelViewFactory<T> implements ModelViewFactory<org.gradle.model.ModelSet<T>> {
         private final ModelType<T> elementType;
 
         public ModelSetModelViewFactory(ModelType<T> elementType) {
@@ -54,8 +54,8 @@ public class ModelSetNodeInitializerExtractionStrategy extends CollectionNodeIni
         }
 
         @Override
-        public ModelView<ModelSet<T>> toView(MutableModelNode modelNode, ModelRuleDescriptor ruleDescriptor, boolean mutable) {
-            ModelType<ModelSet<T>> setType = ModelTypes.modelSet(elementType);
+        public ModelView<org.gradle.model.ModelSet<T>> toView(MutableModelNode modelNode, ModelRuleDescriptor ruleDescriptor, boolean mutable) {
+            ModelType<org.gradle.model.ModelSet<T>> setType = ModelTypes.modelSet(elementType);
             DefaultModelViewState state = new DefaultModelViewState(modelNode.getPath(), setType, ruleDescriptor, mutable, !mutable);
             ChildNodeInitializerStrategy<T> childStrategy = Cast.uncheckedCast(modelNode.getPrivateData(ChildNodeInitializerStrategy.class));
             NodeBackedModelSet<T> set = new NodeBackedModelSet<T>(setType, elementType, ruleDescriptor, modelNode, state, childStrategy);

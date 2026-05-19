@@ -16,11 +16,11 @@
 
 package org.gradle.platform.base.component.internal;
 
-import org.gradle.platform.base.ComponentSpec;
 import org.gradle.platform.base.internal.ComponentSpecIdentifier;
 import org.gradle.platform.base.internal.ComponentSpecInternal;
 
-public class AbstractComponentSpec implements ComponentSpec, ComponentSpecInternal {
+@SuppressWarnings("deprecation")
+public class AbstractComponentSpec implements org.gradle.platform.base.ComponentSpec, ComponentSpecInternal {
     private final ComponentSpecIdentifier identifier;
     private final Class<?> publicType;
 

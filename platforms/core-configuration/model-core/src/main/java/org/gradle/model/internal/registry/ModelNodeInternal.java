@@ -17,7 +17,6 @@
 package org.gradle.model.internal.registry;
 
 import com.google.common.base.Optional;
-import org.gradle.model.RuleSource;
 import org.gradle.model.internal.core.ChainingModelProjection;
 import org.gradle.model.internal.core.EmptyModelProjection;
 import org.gradle.model.internal.core.ModelAction;
@@ -45,6 +44,7 @@ import java.util.Set;
 import static org.gradle.model.internal.core.ModelNode.State.Discovered;
 import static org.gradle.model.internal.core.ModelNodes.withType;
 
+@SuppressWarnings("deprecation")
 abstract class ModelNodeInternal implements MutableModelNode {
     protected final ModelRegistryInternal modelRegistry;
     private final ModelPath path;
@@ -268,7 +268,7 @@ abstract class ModelNodeInternal implements MutableModelNode {
     }
 
     @Override
-    public void applyToSelf(Class<? extends RuleSource> rulesClass) {
+    public void applyToSelf(Class<? extends org.gradle.model.RuleSource> rulesClass) {
         ExtractedRuleSource<?> rules = modelRegistry.newRuleSource(rulesClass);
         rules.assertNoPlugins();
         rules.apply(modelRegistry, this);

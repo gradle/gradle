@@ -26,8 +26,11 @@ import java.io.File;
  * Specifies how to build and where to place a native executable file.
  *
  * <p>TODO:HH resolve naming conflict with existing NativeExecutableSpec</p>
+ *
+ * @deprecated The Gradle software model is deprecated and will be removed in Gradle 10. Use the new component model (e.g. {@code cpp-application}, {@code cpp-library}, {@code swift-application}, {@code swift-library}, {@code xctest}) instead.
  */
 @Incubating @UnmanagedStruct
+@Deprecated
 public class NativeExecutableFileSpec {
 
     private File file;

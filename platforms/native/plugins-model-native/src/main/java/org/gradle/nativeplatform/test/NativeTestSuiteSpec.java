@@ -23,8 +23,11 @@ import org.gradle.testing.base.TestSuiteSpec;
  * A component representing a suite of tests that will be executed together.
  *
  * @since 4.2
+ *
+ * @deprecated The Gradle software model is deprecated and will be removed in Gradle 10. Use the new component model (e.g. {@code cpp-application}, {@code cpp-library}, {@code swift-application}, {@code swift-library}, {@code xctest}) instead.
  */
 @Incubating
+@Deprecated
 public interface NativeTestSuiteSpec extends TestSuiteSpec, NativeComponentSpec {
     @Override
     NativeComponentSpec getTestedComponent();

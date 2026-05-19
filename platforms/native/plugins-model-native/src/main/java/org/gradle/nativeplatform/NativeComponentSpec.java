@@ -20,8 +20,11 @@ import org.gradle.platform.base.ComponentSpec;
 
 /**
  * Definition of a software component that is to be built by Gradle to run a on JVM platform.
+ *
+ * @deprecated The Gradle software model is deprecated and will be removed in Gradle 10. Use the new component model (e.g. {@code cpp-application}, {@code cpp-library}, {@code swift-application}, {@code swift-library}, {@code xctest}) instead.
  */
 @Incubating
+@Deprecated
 public interface NativeComponentSpec extends ComponentSpec {
     /**
      * The name that is used to construct the output file names when building this component.

@@ -16,9 +16,8 @@
 
 package org.gradle.nativeplatform.internal;
 
-import org.gradle.nativeplatform.Flavor;
-
-public class DefaultFlavor implements Flavor {
+@SuppressWarnings("deprecation")
+public class DefaultFlavor implements org.gradle.nativeplatform.Flavor {
     public static final String DEFAULT = "default";
     private final String name;
 

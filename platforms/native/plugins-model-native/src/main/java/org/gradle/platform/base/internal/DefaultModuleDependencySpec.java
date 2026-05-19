@@ -17,16 +17,14 @@
 package org.gradle.platform.base.internal;
 
 import org.gradle.api.IllegalDependencyNotation;
-import org.gradle.platform.base.DependencySpec;
-import org.gradle.platform.base.ModuleDependencySpec;
-import org.gradle.platform.base.ModuleDependencySpecBuilder;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Objects;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
 
-public final class DefaultModuleDependencySpec implements ModuleDependencySpec {
+@SuppressWarnings("deprecation")
+public final class DefaultModuleDependencySpec implements org.gradle.platform.base.ModuleDependencySpec {
 
     /**
      * Maps an omitted version number to "+", "the latest available version".
@@ -69,13 +67,13 @@ public final class DefaultModuleDependencySpec implements ModuleDependencySpec {
         return getGroup() + ":" + getName() + ":" + effectiveVersionFor(getVersion());
     }
 
-   public static class Builder implements ModuleDependencySpecBuilder {
+   public static class Builder implements org.gradle.platform.base.ModuleDependencySpecBuilder {
         private String group;
         private String module;
         private String version;
 
         @Override
-        public ModuleDependencySpecBuilder module(String name) {
+        public org.gradle.platform.base.ModuleDependencySpecBuilder module(String name) {
             if (name != null && name.contains(":")) {
                 setValuesFromModuleId(name);
             } else {
@@ -110,21 +108,21 @@ public final class DefaultModuleDependencySpec implements ModuleDependencySpec {
        }
 
         @Override
-        public ModuleDependencySpecBuilder group(String name) {
+        public org.gradle.platform.base.ModuleDependencySpecBuilder group(String name) {
             checkNotSet("group", group);
             group = name;
             return this;
         }
 
         @Override
-        public ModuleDependencySpecBuilder version(String range) {
+        public org.gradle.platform.base.ModuleDependencySpecBuilder version(String range) {
             checkNotSet("version", version);
             version = range;
             return this;
         }
 
         @Override
-        public DependencySpec build() {
+        public org.gradle.platform.base.DependencySpec build() {
             return new DefaultModuleDependencySpec(group, module, version);
         }
     }

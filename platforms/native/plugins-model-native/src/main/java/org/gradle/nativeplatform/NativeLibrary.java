@@ -20,7 +20,10 @@ import org.gradle.platform.base.Library;
 
 /**
  * A library component that is built by a gradle project.
+ *
+ * @deprecated The Gradle software model is deprecated and will be removed in Gradle 10. Use the new component model (e.g. {@code cpp-application}, {@code cpp-library}, {@code swift-application}, {@code swift-library}, {@code xctest}) instead.
  */
 @Incubating
+@Deprecated
 public interface NativeLibrary extends Library {
 }

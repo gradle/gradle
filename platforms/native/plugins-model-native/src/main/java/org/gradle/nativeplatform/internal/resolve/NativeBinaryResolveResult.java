@@ -16,27 +16,25 @@
 
 package org.gradle.nativeplatform.internal.resolve;
 
-import org.gradle.nativeplatform.NativeBinarySpec;
-import org.gradle.nativeplatform.NativeDependencySet;
-import org.gradle.nativeplatform.NativeLibraryBinary;
 import org.gradle.util.internal.CollectionUtils;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+@SuppressWarnings("deprecation")
 public class NativeBinaryResolveResult {
-    private final NativeBinarySpec target;
+    private final org.gradle.nativeplatform.NativeBinarySpec target;
     private final List<NativeBinaryRequirementResolveResult> resolutions = new ArrayList<NativeBinaryRequirementResolveResult>();
 
-    public NativeBinaryResolveResult(NativeBinarySpec target, Collection<?> libs) {
+    public NativeBinaryResolveResult(org.gradle.nativeplatform.NativeBinarySpec target, Collection<?> libs) {
         this.target = target;
         for (Object lib : libs) {
             resolutions.add(new NativeBinaryRequirementResolveResult(lib));
         }
     }
 
-    public NativeBinarySpec getTarget() {
+    public org.gradle.nativeplatform.NativeBinarySpec getTarget() {
         return target;
     }
 
@@ -44,12 +42,12 @@ public class NativeBinaryResolveResult {
         return resolutions;
     }
 
-    public List<NativeDependencySet> getAllResults() {
+    public List<org.gradle.nativeplatform.NativeDependencySet> getAllResults() {
         return CollectionUtils.collect(getAllResolutions(), NativeBinaryRequirementResolveResult::getNativeDependencySet);
     }
 
-    public List<NativeLibraryBinary> getAllLibraryBinaries() {
-        List<NativeLibraryBinary> result = new ArrayList<NativeLibraryBinary>();
+    public List<org.gradle.nativeplatform.NativeLibraryBinary> getAllLibraryBinaries() {
+        List<org.gradle.nativeplatform.NativeLibraryBinary> result = new ArrayList<org.gradle.nativeplatform.NativeLibraryBinary>();
         for (NativeBinaryRequirementResolveResult resolution : getAllResolutions()) {
             if (resolution.getLibraryBinary() != null) {
                 result.add(resolution.getLibraryBinary());

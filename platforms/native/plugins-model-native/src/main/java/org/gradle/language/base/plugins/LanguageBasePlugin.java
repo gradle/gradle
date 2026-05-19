@@ -36,8 +36,11 @@ import org.gradle.platform.base.plugins.ComponentBasePlugin;
  *
  * - Adds a {@link ProjectSourceSet} named {@code sources} to the project.
  * - Registers the base {@link LanguageSourceSet} type.
+ *
+ * @deprecated The Gradle software model is deprecated and will be removed in Gradle 10. Use the new component model (e.g. {@code cpp-application}, {@code cpp-library}, {@code swift-application}, {@code swift-library}, {@code xctest}) instead.
  */
 @Incubating
+@Deprecated
 public abstract class LanguageBasePlugin implements Plugin<Project> {
     @Override
     public void apply(Project project) {

@@ -23,6 +23,7 @@ import org.gradle.language.base.LanguageSourceSet
 import org.gradle.language.cpp.CppSourceSet
 import org.gradle.language.cpp.tasks.CppCompile
 
+@SuppressWarnings("deprecation")
 class CppPluginTest extends AbstractNativeComponentPluginTest {
     @Override
     Class<? extends Plugin> getPluginClass() {

@@ -16,15 +16,13 @@
 package org.gradle.language.nativeplatform.internal;
 
 import org.gradle.api.file.SourceDirectorySet;
-import org.gradle.language.base.LanguageSourceSet;
-import org.gradle.language.base.sources.BaseLanguageSourceSet;
-import org.gradle.language.nativeplatform.HeaderExportingSourceSet;
 
 /**
  * A convenience base class for implementing language source sets with dependencies and exported headers.
  */
-public abstract class AbstractHeaderExportingSourceSet extends BaseLanguageSourceSet
-        implements HeaderExportingSourceSet, LanguageSourceSet {
+@SuppressWarnings("deprecation")
+public abstract class AbstractHeaderExportingSourceSet extends org.gradle.language.base.sources.BaseLanguageSourceSet
+        implements org.gradle.language.nativeplatform.HeaderExportingSourceSet, org.gradle.language.base.LanguageSourceSet {
 
     private final SourceDirectorySet exportedHeaders;
     private final SourceDirectorySet implicitHeaders;

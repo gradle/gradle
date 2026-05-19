@@ -19,8 +19,6 @@ package org.gradle.api.reporting.dependents.internal;
 import org.gradle.api.tasks.diagnostics.internal.text.TextReportBuilder;
 import org.gradle.internal.graph.GraphRenderer;
 import org.gradle.internal.logging.text.StyledTextOutput;
-import org.gradle.platform.base.ComponentSpec;
-import org.gradle.platform.base.VariantComponentSpec;
 import org.gradle.platform.base.internal.BinarySpecInternal;
 import org.gradle.platform.base.internal.ComponentSpecInternal;
 import org.gradle.platform.base.internal.dependents.DependentBinariesResolutionResult;
@@ -34,7 +32,8 @@ import static org.gradle.internal.logging.text.StyledTextOutput.Style.Descriptio
 import static org.gradle.internal.logging.text.StyledTextOutput.Style.Identifier;
 import static org.gradle.internal.logging.text.StyledTextOutput.Style.Info;
 
-public class DependentComponentsRenderer extends ReportRenderer<ComponentSpec, TextReportBuilder> {
+@SuppressWarnings("deprecation")
+public class DependentComponentsRenderer extends ReportRenderer<org.gradle.platform.base.ComponentSpec, TextReportBuilder> {
 
     private final DependentBinariesResolver resolver;
     private final boolean showNonBuildable;
@@ -51,7 +50,7 @@ public class DependentComponentsRenderer extends ReportRenderer<ComponentSpec, T
     }
 
     @Override
-    public void render(final ComponentSpec component, final TextReportBuilder builder) {
+    public void render(final org.gradle.platform.base.ComponentSpec component, final TextReportBuilder builder) {
         ComponentSpecInternal internalProtocol = (ComponentSpecInternal) component;
         DependentComponentsRenderableDependency root = getRenderableDependencyOf(component, internalProtocol);
         if (!showNonBuildable && !root.isBuildable()) {
@@ -83,9 +82,9 @@ public class DependentComponentsRenderer extends ReportRenderer<ComponentSpec, T
         }
     }
 
-    private DependentComponentsRenderableDependency getRenderableDependencyOf(final ComponentSpec componentSpec, ComponentSpecInternal internalProtocol) {
-        if (resolver != null && componentSpec instanceof VariantComponentSpec) {
-            VariantComponentSpec variantComponentSpec = (VariantComponentSpec) componentSpec;
+    private DependentComponentsRenderableDependency getRenderableDependencyOf(final org.gradle.platform.base.ComponentSpec componentSpec, ComponentSpecInternal internalProtocol) {
+        if (resolver != null && componentSpec instanceof org.gradle.platform.base.VariantComponentSpec) {
+            org.gradle.platform.base.VariantComponentSpec variantComponentSpec = (org.gradle.platform.base.VariantComponentSpec) componentSpec;
             LinkedHashSet<DependentComponentsRenderableDependency> children = new LinkedHashSet<>();
             for (BinarySpecInternal binarySpec : variantComponentSpec.getBinaries().withType(BinarySpecInternal.class)) {
                 DependentBinariesResolutionResult resolvedBinary = resolver.resolve(binarySpec);

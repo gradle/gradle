@@ -186,6 +186,27 @@ Since the previous version was 4.0.29, the link:https://groovy-lang.org/changelo
 [[v9_deprecations_9_6]]
 === Deprecations
 
+[[deprecated_software_model]]
+==== Deprecation of the software model
+
+The Gradle software model — including the `model { }` DSL, link:{javadocPath}/org/gradle/model/RuleSource.html[`RuleSource`] plugins, and the native and JVM component types built on top of them — is deprecated and will be removed in Gradle 10.
+
+This affects the following groups of public API types:
+
+- The rule-authoring API in `org.gradle.model`: `RuleSource`, `ModelMap`, `ModelSet`, `ModelElement`, and the `@Model`, `@Mutate`, `@Defaults`, `@Finalize`, `@Validate`, `@Each`, `@Path`, `@RuleInput`, `@RuleTarget`, `@Rules`, `@Managed`, and `@Unmanaged` annotations.
+- The component-model base API in `org.gradle.platform.base` and `org.gradle.language.base`: `ComponentSpec`, `BinarySpec`, `LibrarySpec`, `ApplicationSpec`, `LanguageSourceSet`, and related container, builder, and annotation types.
+- The native component plugins: `c`, `cpp`, `objective-c`, `objective-cpp`, `assembler`, `windows-resources`, and `native-component`, along with their source-set, binary-spec, build-type, flavor, and prebuilt-library types in `org.gradle.nativeplatform` and `org.gradle.language.*`.
+- The native test plugins `cunit`, `cunit-test-suite`, `google-test`, and `google-test-test-suite`, along with the rule-based `test-suite-base` infrastructure in `org.gradle.testing.base`.
+- The `componentReport` and `dependentComponents` diagnostic tasks.
+
+Replace software-model-based builds with the current component model:
+
+- For C and {cpp}, use the link:{userManualPath}/cpp_application_plugin.html[`cpp-application`] and link:{userManualPath}/cpp_library_plugin.html[`cpp-library`] plugins.
+- For Swift, use the link:{userManualPath}/swift_application_plugin.html[`swift-application`] and link:{userManualPath}/swift_library_plugin.html[`swift-library`] plugins.
+- For native testing, use the link:{userManualPath}/cpp_unit_test_plugin.html[`cpp-unit-test`] and link:{userManualPath}/xctest_plugin.html[`xctest`] plugins.
+
+The new plugins configure components through ordinary Gradle extensions (`application { }`, `library { }`, `unitTest { }`) without the `model { }` block, integrate with the configuration cache, and support Gradle's standard dependency-management features.
+
 [[deprecated_implicit_lookup_in_parent_projects]]
 ==== Deprecation of implicit lookup of properties and methods in parent projects
 

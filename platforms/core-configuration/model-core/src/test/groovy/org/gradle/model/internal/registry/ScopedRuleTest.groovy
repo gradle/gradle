@@ -25,6 +25,7 @@ import org.gradle.model.internal.fixture.ModelRegistryHelper
 import org.gradle.model.internal.fixture.ProjectRegistrySpec
 import org.gradle.model.internal.inspect.*
 
+@SuppressWarnings("deprecation")
 class ScopedRuleTest extends ProjectRegistrySpec {
     def extractors = [new DependencyAddingModelRuleExtractor()] + MethodModelRuleExtractors.coreExtractors(schemaStore)
     ModelRegistry registry = new ModelRegistryHelper(new ModelRuleExtractor(extractors, proxyFactory, schemaStore, structBindingsStore))

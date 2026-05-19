@@ -11,6 +11,7 @@ import org.gradle.platform.base.*
 // tag::binary-registration[]
 // tag::binaries-generation[]
 // tag::text-tasks-generation[]
+@SuppressWarnings("deprecation")
 class DocumentationPlugin extends RuleSource {
 // end::binary-registration[]
 // end::binaries-generation[]

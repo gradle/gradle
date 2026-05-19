@@ -28,24 +28,20 @@ import org.gradle.ide.visualstudio.internal.NativeSpecVisualStudioTargetBinary;
 import org.gradle.ide.visualstudio.internal.VisualStudioExtensionInternal;
 import org.gradle.internal.Cast;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.model.Model;
-import org.gradle.model.Mutate;
-import org.gradle.model.RuleSource;
-import org.gradle.nativeplatform.NativeBinarySpec;
-import org.gradle.platform.base.BinaryContainer;
 
 @Incubating
+@SuppressWarnings("deprecation")
 public class VisualStudioPluginRules {
-    public static class VisualStudioExtensionRules extends RuleSource {
-        @Model
+    public static class VisualStudioExtensionRules extends org.gradle.model.RuleSource {
+        @org.gradle.model.Model
         public static VisualStudioExtensionInternal visualStudio(ExtensionContainer extensionContainer) {
             return (VisualStudioExtensionInternal) extensionContainer.getByType(VisualStudioExtension.class);
         }
     }
 
-    public static class VisualStudioPluginRootRules extends RuleSource {
+    public static class VisualStudioPluginRootRules extends org.gradle.model.RuleSource {
         // This ensures that subprojects are realized and register their project and project configuration IDE artifacts
-        @Mutate
+        @org.gradle.model.Mutate
         public static void ensureSubprojectsAreRealized(TaskContainer tasks, ProjectIdentifier projectIdentifier, ServiceRegistry serviceRegistry) {
             ProjectModelResolver projectModelResolver = serviceRegistry.get(ProjectModelResolver.class);
             ProjectRegistry projectRegistry = Cast.uncheckedCast(serviceRegistry.get(ProjectRegistry.class));
@@ -56,17 +52,17 @@ public class VisualStudioPluginRules {
         }
     }
 
-    public static class VisualStudioPluginProjectRules extends RuleSource {
-        @Mutate
-        public static void createVisualStudioModelForBinaries(VisualStudioExtensionInternal visualStudioExtension, BinaryContainer binaries) {
-            for (NativeBinarySpec binary : binaries.withType(NativeBinarySpec.class)) {
+    public static class VisualStudioPluginProjectRules extends org.gradle.model.RuleSource {
+        @org.gradle.model.Mutate
+        public static void createVisualStudioModelForBinaries(VisualStudioExtensionInternal visualStudioExtension, org.gradle.platform.base.BinaryContainer binaries) {
+            for (org.gradle.nativeplatform.NativeBinarySpec binary : binaries.withType(org.gradle.nativeplatform.NativeBinarySpec.class)) {
                 if (binary.isBuildable()) {
                     visualStudioExtension.getProjectRegistry().addProjectConfiguration(new NativeSpecVisualStudioTargetBinary(binary));
                 }
             }
         }
 
-        @Mutate
+        @org.gradle.model.Mutate
         public static void realizeExtension(TaskContainer tasks, VisualStudioExtensionInternal visualStudioExtension) {
             // Dummy rule to cause the extension to be realized
         }

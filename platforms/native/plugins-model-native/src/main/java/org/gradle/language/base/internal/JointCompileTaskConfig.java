@@ -17,10 +17,10 @@
 package org.gradle.language.base.internal;
 
 import org.gradle.api.Task;
-import org.gradle.language.base.LanguageSourceSet;
 
+@SuppressWarnings("deprecation")
 public interface JointCompileTaskConfig extends SourceTransformTaskConfig {
-    boolean canTransform(LanguageSourceSet candidate);
+    boolean canTransform(org.gradle.language.base.LanguageSourceSet candidate);
 
-    void configureAdditionalTransform(Task task, LanguageSourceSet sourceSet);
+    void configureAdditionalTransform(Task task, org.gradle.language.base.LanguageSourceSet sourceSet);
 }

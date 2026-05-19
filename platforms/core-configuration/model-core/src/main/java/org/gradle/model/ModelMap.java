@@ -30,8 +30,11 @@ import java.util.Set;
  * Model maps can only contain managed types.
  *
  * @param <T> the contract type for all items
+ *
+ * @deprecated The Gradle software model is deprecated and will be removed in Gradle 10. Use the new component model (e.g. {@code cpp-application}, {@code cpp-library}, {@code swift-application}, {@code swift-library}, {@code xctest}) instead.
  */
 @Incubating
+@Deprecated
 public interface ModelMap<T> extends Iterable<T>, ModelElement {
     /**
      * Returns a collection containing the items from this collection which are of the specified type.

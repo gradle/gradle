@@ -16,7 +16,6 @@
 
 package org.gradle.model.internal.manage.schema.extract;
 
-import org.gradle.model.Managed;
 import org.gradle.model.internal.manage.schema.ManagedImplStructSchema;
 import org.gradle.model.internal.manage.schema.ModelProperty;
 import org.gradle.model.internal.manage.schema.ModelSchema;
@@ -25,6 +24,7 @@ import org.gradle.model.internal.type.ModelType;
 
 import java.util.Set;
 
+@SuppressWarnings("deprecation")
 public class ManagedImplStructStrategy extends StructSchemaExtractionStrategySupport {
 
     protected ManagedImplStructStrategy(ModelSchemaAspectExtractor aspectExtractor) {
@@ -33,7 +33,7 @@ public class ManagedImplStructStrategy extends StructSchemaExtractionStrategySup
 
     @Override
     protected boolean isTarget(ModelType<?> type) {
-        return type.isAnnotationPresent(Managed.class);
+        return type.isAnnotationPresent(org.gradle.model.Managed.class);
     }
 
     @Override

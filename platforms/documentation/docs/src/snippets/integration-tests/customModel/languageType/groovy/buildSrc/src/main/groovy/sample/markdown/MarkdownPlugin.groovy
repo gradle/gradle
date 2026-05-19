@@ -10,6 +10,7 @@ import sample.documentation.DocumentationBinary
 
 // tag::markdown-lang-registration[]
 // tag::markdown-tasks-generation[]
+@SuppressWarnings("deprecation")
 class MarkdownPlugin extends RuleSource {
 // end::markdown-tasks-generation[]
     @ComponentType

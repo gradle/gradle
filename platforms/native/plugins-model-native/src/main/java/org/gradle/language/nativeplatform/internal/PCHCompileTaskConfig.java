@@ -23,11 +23,11 @@ import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.language.base.internal.LanguageSourceSetInternal;
 import org.gradle.language.nativeplatform.tasks.AbstractNativeCompileTask;
 import org.gradle.nativeplatform.internal.NativeBinarySpecInternal;
-import org.gradle.nativeplatform.tasks.PrefixHeaderFileGenerateTask;
 import org.gradle.nativeplatform.toolchain.internal.PreCompiledHeader;
 
 import java.io.File;
 
+@SuppressWarnings("deprecation")
 public class PCHCompileTaskConfig extends CompileTaskConfig {
     public PCHCompileTaskConfig(NativeLanguageTransform<?> languageTransform, Class<? extends DefaultTask> taskType) {
         super(languageTransform, taskType);
@@ -47,12 +47,11 @@ public class PCHCompileTaskConfig extends CompileTaskConfig {
         final Project project = task.getProject();
         task.source(sourceSet.getPrefixHeaderFile());
 
-
         task.getObjectFileDir().fileProvider(project.getLayout().getBuildDirectory().getAsFile().map(it -> new File(binary.getNamingScheme().getOutputDirectory(it, "objs"), languageSourceSet.getProjectScopedName() + "PCH")));
 
-        task.dependsOn(project.getTasks().withType(PrefixHeaderFileGenerateTask.class).matching(new Spec<PrefixHeaderFileGenerateTask>() {
+        task.dependsOn(project.getTasks().withType(org.gradle.nativeplatform.tasks.PrefixHeaderFileGenerateTask.class).matching(new Spec<org.gradle.nativeplatform.tasks.PrefixHeaderFileGenerateTask>() {
             @Override
-            public boolean isSatisfiedBy(PrefixHeaderFileGenerateTask prefixHeaderFileGenerateTask) {
+            public boolean isSatisfiedBy(org.gradle.nativeplatform.tasks.PrefixHeaderFileGenerateTask prefixHeaderFileGenerateTask) {
                 return prefixHeaderFileGenerateTask.getPrefixHeaderFile().equals(sourceSet.getPrefixHeaderFile());
             }
         }));
