@@ -24,7 +24,8 @@ import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.test.fixtures.maven.MavenRepository
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.TestEnvironmentPreconditions
+
 
 @LeaksFileHandles
 class ResolvingFromSingleCustomPluginRepositorySpec extends AbstractDependencyResolutionTest {
@@ -163,7 +164,7 @@ class ResolvingFromSingleCustomPluginRepositorySpec extends AbstractDependencyRe
         repoType << [IVY, MAVEN]
     }
 
-    @Requires(UnitTestPreconditions.Online)
+    @Requires(TestEnvironmentPreconditions.Online)
     def "Fails gracefully if a plugin is not found in #repoType repo"() {
         given:
         publishTestPlugin(repoType)

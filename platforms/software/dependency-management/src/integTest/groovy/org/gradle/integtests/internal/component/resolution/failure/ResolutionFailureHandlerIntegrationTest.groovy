@@ -96,8 +96,8 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         and: "Has error output"
         assertFailureDescriptionCorrect()
         failure.assertHasCause("Could not resolve all dependencies for configuration ':resolveMe'.")
-        failure.assertHasCause("Could not resolve root project :.")
-        assertFullMessageCorrect("""      > The consumer was configured to find attribute 'color' with value 'blue'. There are several available matching variants of root project :
+        failure.assertHasCause("Could not resolve root project 'example'.")
+        assertFullMessageCorrect("""      > The consumer was configured to find attribute 'color' with value 'blue'. There are several available matching variants of root project 'example'
         The only attribute distinguishing these variants is 'shape'. Add this attribute to the consumer's configuration to resolve the ambiguity:
           - Value: 'round' selects variant: 'blueRoundElements'
           - Value: 'square' selects variant: 'blueSquareElements'
@@ -111,7 +111,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         and: "Problems are reported"
         verifyAll(receivedProblem(0)) {
             fqid == 'dependency-variant-resolution:ambiguous-variants'
-            additionalData.asMap['requestTarget'] == "root project :"
+            additionalData.asMap['requestTarget'] == "root project 'example'"
             additionalData.asMap['problemId'] == ResolutionFailureProblemId.AMBIGUOUS_VARIANTS.name()
             additionalData.asMap['problemDisplayName'] == "Multiple variants exist that would match the request"
         }
@@ -126,8 +126,8 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         and: "Has error output"
         assertFailureDescriptionCorrect()
         failure.assertHasCause("Could not resolve all dependencies for configuration ':resolveMe'.")
-        failure.assertHasCause("Could not resolve root project :.")
-        assertFullMessageCorrect("""      > The consumer was configured to find attribute 'color' with value 'blue'. However we cannot choose between the following variants of root project ::
+        failure.assertHasCause("Could not resolve root project 'example'.")
+        assertFullMessageCorrect("""      > The consumer was configured to find attribute 'color' with value 'blue'. However we cannot choose between the following variants of root project 'example':
           - blueRoundTransparentElements
           - blueSquareOpaqueElements
           - blueSquareTransparentElements
@@ -152,7 +152,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         and: "Problems are reported"
         verifyAll(receivedProblem(0)) {
             fqid == 'dependency-variant-resolution:ambiguous-variants'
-            additionalData.asMap['requestTarget'] == "root project :"
+            additionalData.asMap['requestTarget'] == "root project 'example'"
             additionalData.asMap['problemId'] == ResolutionFailureProblemId.AMBIGUOUS_VARIANTS.name()
             additionalData.asMap['problemDisplayName'] == "Multiple variants exist that would match the request"
         }
@@ -204,11 +204,11 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         and: "Has error output"
         assertFailureDescriptionCorrect()
         failure.assertHasCause("Could not resolve all dependencies for configuration ':resolveMe'.")
-        failure.assertHasCause("Could not resolve root project :.")
-        assertFullMessageCorrect("""   > Could not resolve root project :.
+        failure.assertHasCause("Could not resolve root project 'example'.")
+        assertFullMessageCorrect("""   > Could not resolve root project 'example'.
      Required by:
          root project 'example'
-      > No matching variant of root project : was found. The consumer was configured to find attribute 'color' with value 'green' but:
+      > No matching variant of root project 'example' was found. The consumer was configured to find attribute 'color' with value 'green' but:
           - Variant 'default':
               - Incompatible because this component declares attribute 'color' with value 'blue' and the consumer needed attribute 'color' with value 'green'""")
 
@@ -219,7 +219,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         and: "Problems are reported"
         verifyAll(receivedProblem(0)) {
             fqid == 'dependency-variant-resolution:no-compatible-variants'
-            additionalData.asMap['requestTarget'] == "root project :"
+            additionalData.asMap['requestTarget'] == "root project 'example'"
             additionalData.asMap['problemId'] == ResolutionFailureProblemId.NO_COMPATIBLE_VARIANTS.name()
             additionalData.asMap['problemDisplayName'] == "No variants exist that would match the request"
         }
@@ -273,10 +273,10 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         and: "Has error output"
         assertFailureDescriptionCorrect()
         failure.assertHasCause("Could not resolve all dependencies for configuration ':resolveMe'.")
-        failure.assertHasCause("Could not resolve root project :.")
+        failure.assertHasCause("Could not resolve root project 'example'.")
         assertFullMessageCorrect("""     Required by:
          root project 'example'
-      > Configuration 'mismatch' in root project : does not match the consumer attributes
+      > Configuration 'mismatch' in root project 'example' does not match the consumer attributes
         Configuration 'mismatch':
           - Incompatible because this component declares attribute 'color' with value 'blue' and the consumer needed attribute 'color' with value 'green'
 """)
@@ -303,10 +303,10 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         and: "Has error output"
         assertFailureDescriptionCorrect()
         failure.assertHasCause("Could not resolve all dependencies for configuration ':resolveMe'.")
-        failure.assertHasCause("Could not resolve project :producer.")
+        failure.assertHasCause("Could not resolve project ':producer'.")
         assertFullMessageCorrect("""     Required by:
          root project 'example'
-      > No matching variant of project :producer was found. The consumer was configured to find attribute 'color' with value 'green' but:
+      > No matching variant of project ':producer' was found. The consumer was configured to find attribute 'color' with value 'green' but:
           - No variants exist.""")
 
         and: "Helpful resolutions are provided"
@@ -316,7 +316,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         and: "Problems are reported"
         verifyAll(receivedProblem(0)) {
             fqid == 'dependency-variant-resolution:no-compatible-variants'
-            additionalData.asMap['requestTarget'] == "project :producer"
+            additionalData.asMap['requestTarget'] == "project ':producer'"
             additionalData.asMap['problemId'] == ResolutionFailureProblemId.NO_COMPATIBLE_VARIANTS.name()
             additionalData.asMap['problemDisplayName'] == "No variants exist that would match the request"
         }
@@ -331,13 +331,13 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         and: "Has error output"
         assertFailureDescriptionCorrect()
         failure.assertHasCause("Could not resolve all dependencies for configuration ':resolveMe'.")
-        failure.assertHasCause("Could not resolve root project :.")
+        failure.assertHasCause("Could not resolve root project 'example'.")
         assertFullMessageCorrect("""Required by:
          root project 'example'
-      > A dependency was declared on configuration 'absent' of 'root project :' but no variant with that configuration name exists.""")
+      > A dependency was declared on configuration 'absent' of 'root project 'example'' but no variant with that configuration name exists.""")
 
         and: "Helpful resolutions are provided"
-        failure.assertHasResolution("To determine which configurations are available in the target root project :, run :outgoingVariants.")
+        failure.assertHasResolution("To determine which configurations are available in the target root project 'example', run :outgoingVariants.")
         assertSuggestsReviewingAlgorithm()
 
         and: "Problems are reported"
@@ -363,7 +363,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         and: "Has error output"
         assertFailureDescriptionCorrect()
         failure.assertHasCause("Could not resolve all dependencies for configuration ':resolveMe'.")
-        failure.assertHasCause("Could not resolve root project :.")
+        failure.assertHasCause("Could not resolve root project 'example'.")
         assertFullMessageCorrect("""     Required by:
          root project 'example'
       > Multiple incompatible variants of org.example:example:1.0 were selected:
@@ -392,7 +392,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         and: "Has error output"
         assertFailureDescriptionCorrect()
         failure.assertHasCause("Could not resolve all dependencies for configuration ':resolveMe'.")
-        assertFullMessageCorrect("""   > No variants of root project : match the consumer attributes:
+        assertFullMessageCorrect("""   > No variants of root project 'example' match the consumer attributes:
        - Configuration ':myElements' declares attribute 'color' with value 'blue':
            - Incompatible because this component declares attribute 'artifactType' with value 'jar' and the consumer needed attribute 'artifactType' with value 'dll'
        - Configuration ':myElements' variant secondary declares attribute 'color' with value 'blue':
@@ -405,7 +405,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         and: "Problems are reported"
         verifyAll(receivedProblem(0)) {
             fqid == 'dependency-variant-resolution:no-compatible-artifact'
-            additionalData.asMap['requestTarget'] == "root project :"
+            additionalData.asMap['requestTarget'] == "root project 'example'"
             additionalData.asMap['problemId'] == ResolutionFailureProblemId.NO_COMPATIBLE_ARTIFACT.name()
             additionalData.asMap['problemDisplayName'] == "No artifacts exist that would match the request"
         }
@@ -419,7 +419,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
 
         and: "Has error output"
         failure.assertHasCause("Could not resolve all dependencies for configuration ':resolveMe'.")
-        assertFullMessageCorrect("""   > Found multiple transformation chains that produce a variant of 'root project :' with requested attributes:
+        assertFullMessageCorrect("""   > Found multiple transformation chains that produce a variant of 'root project 'example'' with requested attributes:
        - color 'red'
        - shape 'round'
      Found the following transformation chains:
@@ -454,7 +454,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         and: "Problems are reported"
         verifyAll(receivedProblem(0)) {
             fqid == 'dependency-variant-resolution:ambiguous-artifact-transform'
-            additionalData.asMap['requestTarget'] == "root project :"
+            additionalData.asMap['requestTarget'] == "root project 'example'"
             additionalData.asMap['problemId'] == ResolutionFailureProblemId.AMBIGUOUS_ARTIFACT_TRANSFORM.name()
             additionalData.asMap['problemDisplayName'] == "Multiple artifacts transforms exist that would satisfy the request"
         }
@@ -469,7 +469,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         and: "Has error output"
         assertFailureDescriptionCorrect()
         failure.assertHasCause("Could not resolve all dependencies for configuration ':resolveMe'.")
-        assertFullMessageCorrect("""   > More than one variant of root project : matches the consumer attributes:
+        assertFullMessageCorrect("""   > More than one variant of root project 'example' matches the consumer attributes:
        - Configuration ':default' variant v1
        - Configuration ':default' variant v2""")
 
@@ -480,7 +480,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         and: "Problems are reported"
         verifyAll(receivedProblem(0)) {
             fqid == 'dependency-variant-resolution:ambiguous-artifacts'
-            additionalData.asMap['requestTarget'] == "root project :"
+            additionalData.asMap['requestTarget'] == "root project 'example'"
             additionalData.asMap['problemId'] == ResolutionFailureProblemId.AMBIGUOUS_ARTIFACTS.name()
             additionalData.asMap['problemDisplayName'] == "Multiple artifacts exist that would match the request"
         }
@@ -570,7 +570,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
 
-            val forceResolution by tasks.registering {
+            tasks.register("forceResolution") {
                 inputs.files(configurations.getByName("resolveMe").incoming.artifactView {
                     lenient($lenient)
                     attributes.attribute(color, "red")
@@ -732,8 +732,8 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
                 consumable("default") {
                     outgoing {
                         variants {
-                            val v1 by creating { }
-                            val v2 by creating { }
+                            create("v1")
+                            create("v2")
                         }
                     }
                 }
@@ -801,7 +801,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
 
-            val forceResolution by tasks.registering {
+            tasks.register("forceResolution") {
                 inputs.files(configurations.getByName("resolveMe").incoming.artifactView {
                     attributes.attribute(color, "red")
                 }.artifacts.artifactFiles)
@@ -824,7 +824,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
 
                     outgoing {
                         variants {
-                            val secondary by creating {
+                            create("secondary") {
                                 // Without artifacts on the variant, we would get a AmbiguousArtifactVariantsException - need a mismatch with the derived artifact type of "jar"
                                 artifact(file("secondary.jar"))
                             }
@@ -998,7 +998,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
             val color = Attribute.of("color", String::class.java)
 
             configurations {
-                val default by getting {
+                getByName("default") {
                     attributes.attribute(color, "blue")
                 }
 
@@ -1081,7 +1081,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
             val color = Attribute.of("color", String::class.java)
 
             configurations {
-                val mismatch by configurations.creating {
+                configurations.create("mismatch") {
                     attributes.attribute(color, "blue")
                 }
 
@@ -1109,7 +1109,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
             val color = Attribute.of("color", String::class.java)
 
             // TODO: Can't use dependencyScope here yet, as it doesn't support capabilities
-            val incompatible: Configuration by configurations.creating {
+            val incompatible = configurations.create("incompatible") {
                 isCanBeDeclared = true
                 isCanBeConsumed = false
                 isCanBeResolved = false
@@ -1195,7 +1195,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
                 abstract val resolvedFiles: ConfigurableFileCollection
             }
 
-            val forceResolution by tasks.registering(ForceResolution::class) {
+            tasks.register<ForceResolution>("forceResolution") {
                 resolvedFiles.from(configurations.getByName("resolveMe"))
                 doLast {
                     resolvedFiles.forEach { println(it) }

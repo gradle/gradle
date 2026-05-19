@@ -35,6 +35,7 @@ gradle init \
 
 Gradle enters interactive mode and prompts the user when a required parameter for the selected project type is missing.
 
+[[supported_gradle_build_types]]
 == Supported Gradle build types
 
 The Build Init plugin supports generating various build _types_. These are listed below and more detail is available about each type in the following <<#sec:build_init_types,section>>.
@@ -115,6 +116,7 @@ If the `--overwrite` option is provided, Gradle will overwrite any existing file
 
 All build types also set up <<gradle_wrapper.adoc#gradle_wrapper, Gradle Wrapper>> in the build.
 
+[[sec:build_init_options]]
 === Options
 
 [cols="2,3,1"]
@@ -201,6 +203,7 @@ NOTE: Due to fundamental differences between Maven and Gradle, not all features 
 
 [[sec:allow_insecure]]
 ==== The `--insecure-protocol` option
+
 This option is used to tell the conversion process how to handle converting Maven repositories located at insecure `http` URLs.  Insecure Repositories Set the
 link:{groovyDslPath}/org.gradle.buildinit.tasks.InitBuild.html#org.gradle.buildinit.tasks.InitBuild:getInsecureProtocol[--insecure-protocol] option.  The default value is `warn`.
 
@@ -455,12 +458,7 @@ When generating a Gradle build from an existing Maven project, dependency exclus
 Because Maven and Gradle handle dependency resolution and exclusions differently, a direct translation may not always be perfectly equivalent.
 To ensure build integrity, generated exclusions include a `TODO` comment for manual verification:
 
-[source,kotlin]
-----
-dependencies {
-    implementation("some.group:some-artifact:1.0") {
-        // TODO: This exclude was sourced from a POM exclusion and is NOT exactly equivalent
-        exclude(group = "excluded.group", module = "excluded-artifact")
-    }
-}
-----
+====
+include::sample[dir="snippets/reference/core-plugins/buildInitPlugin-pomExclusion/kotlin",files="build.gradle.kts[tags=pom-exclusion]"]
+include::sample[dir="snippets/reference/core-plugins/buildInitPlugin-pomExclusion/groovy",files="build.gradle[tags=pom-exclusion]"]
+====

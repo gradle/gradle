@@ -16,27 +16,14 @@
 
 package org.gradle.api.internal.artifacts.resolver;
 
-import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.internal.artifacts.configurations.ArtifactCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionInternal;
-import org.gradle.api.provider.Provider;
 
 /**
  * Internal counterpart of {@link ResolutionOutputs} that exposes the results as
  * their internal types, as well as the raw results before conversion to user-facing types.
  */
 public interface ResolutionOutputsInternal extends ResolutionOutputs {
-
-    /**
-     * Returns the resolved dependency graph as a reference to the root component.
-     *
-     * <p>This is here to support the existing public APIs. However, it is much more useful to expose
-     * the root variant, which the public interface exposes at {@link #getRootVariant()}. Currently,
-     * in order to traverse a graph the component is required, as it holds each variant's dependency set,
-     * however we should have each variant own their outgoing dependencies as that better reflects the
-     * reality of the structure of the graph.</p>
-     */
-    Provider<ResolvedComponentResult> getRootComponent();
 
     @Override
     FileCollectionInternal getFiles();

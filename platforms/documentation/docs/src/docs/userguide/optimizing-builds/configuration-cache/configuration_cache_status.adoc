@@ -196,20 +196,20 @@ For builds scripts written in Groovy, the task fails because the method cannot b
 The following snippet uses a top-level method in the `listFiles` task:
 
 ====
-include::sample[dir="snippets/configurationCache/topLevel/groovy",files="build.gradle[tags=not-supported]"]
+include::sample[dir="snippets/optimizing-builds/configuration-cache/topLevel/groovy",files="build.gradle[tags=not-supported]"]
 ====
 
 Running the task with the Configuration Cache enabled produces the following error:
 
 [source,text]
 ----
-include::{snippetsPath}/configurationCache/topLevel/tests-groovy/notSupported.out[]
+include::{snippetsPath}/optimizing-builds/configuration-cache/topLevel/tests-groovy/notSupported.out[]
 ----
 
 To prevent the task from failing, convert the referenced top-level method to a static method within a class:
 
 ====
-include::sample[dir="snippets/configurationCache/topLevel/groovy",files="build.gradle[tags=workaround]"]
+include::sample[dir="snippets/optimizing-builds/configuration-cache/topLevel/groovy",files="build.gradle[tags=workaround]"]
 ====
 
 Build scripts written in Kotlin cannot store tasks that reference top-level methods or variables at execution time in the Configuration Cache at all.
@@ -217,13 +217,13 @@ This limitation exists because the captured script object references cannot be s
 The first run of the Kotlin version of the `listFiles` task fails with the Configuration Cache problem.
 
 ====
-include::sample[dir="snippets/configurationCache/topLevel/kotlin",files="build.gradle.kts[tags=not-supported]"]
+include::sample[dir="snippets/optimizing-builds/configuration-cache/topLevel/kotlin",files="build.gradle.kts[tags=not-supported]"]
 ====
 
 To make the Kotlin version of this task compatible with the Configuration Cache, make the following changes:
 
 ====
-include::sample[dir="snippets/configurationCache/topLevel/kotlin",files="build.gradle.kts[tags=workaround]"]
+include::sample[dir="snippets/optimizing-builds/configuration-cache/topLevel/kotlin",files="build.gradle.kts[tags=workaround]"]
 ====
 <1> Define the method inside an object.
 <2> Define the variable in a smaller scope.

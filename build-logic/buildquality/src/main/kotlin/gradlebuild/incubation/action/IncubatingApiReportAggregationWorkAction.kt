@@ -41,7 +41,7 @@ abstract class IncubatingApiReportAggregationWorkAction : WorkAction<IncubatingA
             }
         }
         generateHtmlReport(byCategory)
-        LOGGER.lifecycle("Generated incubating html report report to file://${parameters.htmlReportFile.get().asFile.absolutePath}")
+        LOGGER.lifecycle("Generated incubating html report to file://${parameters.htmlReportFile.get().asFile.absolutePath}")
 
         generateCsvReport(byCategory)
         LOGGER.lifecycle("Generated incubating csv report to file://${parameters.csvReportFile.get().asFile.absolutePath}")

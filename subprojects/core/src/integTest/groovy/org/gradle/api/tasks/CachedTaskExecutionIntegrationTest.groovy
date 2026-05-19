@@ -24,7 +24,7 @@ import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.internal.jvm.Jvm
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import org.gradle.util.internal.TextUtil
 
 class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture {
@@ -306,7 +306,7 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
         failure.assertHasCause("Could not evaluate spec for 'on CI'.")
     }
 
-    @Requires(IntegTestPreconditions.NotParallelExecutor)
+    @Requires(TestExecutionPreconditions.NotParallelExecutor)
     def "can load twice from the cache with no changes"() {
         given:
         buildFile << """

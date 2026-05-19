@@ -21,12 +21,12 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.internal.jvm.Jvm
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import org.gradle.util.internal.TextUtil
 import org.junit.Assume
 import spock.lang.Issue
 
-@Requires([IntegTestPreconditions.NotParallelExecutor])
+@Requires([TestExecutionPreconditions.NotParallelExecutor])
 class JavaCompileParallelIntegrationTest extends AbstractIntegrationSpec {
 
     @Issue("https://issues.gradle.org/browse/GRADLE-3029")

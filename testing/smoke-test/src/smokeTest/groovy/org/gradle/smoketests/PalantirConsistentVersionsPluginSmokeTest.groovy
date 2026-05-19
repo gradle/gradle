@@ -16,8 +16,11 @@
 
 package org.gradle.smoketests
 
+import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
+
 class PalantirConsistentVersionsPluginSmokeTest extends AbstractSmokeTest {
 
+    @ToBeFixedForIsolatedProjects(because = "Plugin has IP incompatible logic")
     def 'basic functionality'() {
         given:
         buildFile << """

@@ -71,7 +71,7 @@ class PredicateFileTest extends Specification {
     def "standard implementation loads CSV correctly"() {
         when:
         PredicatesFile.checkValidNameCombinations(
-            ["org.gradle.test.preconditions.UnitTestPreconditions\$Online"] as Set,
+            ["org.gradle.test.preconditions.TestEnvironmentPreconditions\$Online"] as Set,
             PredicatesFile.DEFAULT_ACCEPTED_COMBINATIONS
         )
 

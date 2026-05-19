@@ -28,7 +28,7 @@ class SamplesTroubleshootingDependencyResolutionIntegrationTest extends Abstract
     @Rule
     Sample sample = new Sample(testDirectoryProvider)
 
-    @UsesSample("dependencyManagement/troubleshooting-cache-changing")
+    @UsesSample("integration-tests/dependencyManagement/troubleshooting-cache-changing")
     def "can declare custom TTL for dependency with changing version"() {
 
         given:
@@ -45,7 +45,7 @@ class SamplesTroubleshootingDependencyResolutionIntegrationTest extends Abstract
         dsl << ['groovy', 'kotlin']
     }
 
-    @UsesSample("dependencyManagement/troubleshooting-cache-dynamic")
+    @UsesSample("integration-tests/dependencyManagement/troubleshooting-cache-dynamic")
     def "can declare custom TTL for dependency with dynamic version"() {
 
         given:

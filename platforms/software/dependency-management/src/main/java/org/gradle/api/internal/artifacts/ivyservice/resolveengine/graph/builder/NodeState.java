@@ -43,7 +43,6 @@ import org.gradle.internal.component.external.model.ImmutableCapabilities;
 import org.gradle.internal.component.external.model.VirtualComponentIdentifier;
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
 import org.gradle.internal.component.local.model.LocalVariantGraphResolveState;
-import org.gradle.internal.component.model.ComponentGraphResolveState;
 import org.gradle.internal.component.model.DelegatingDependencyMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
@@ -201,11 +200,6 @@ public class NodeState implements DependencyGraphNode {
     @Override
     public VariantIdentifier getId() {
         return variantState.getMetadata().getId();
-    }
-
-    @Override
-    public ComponentGraphResolveState getComponentResolveState() {
-        return getComponent().getResolveState();
     }
 
     @Override

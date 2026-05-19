@@ -21,13 +21,14 @@ import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
+import org.gradle.test.preconditions.JdkVersionTestPreconditions
+
 import org.junit.Rule
 
 @Requires(value = [
-    UnitTestPreconditions.Jdk9OrLater,
-    IntegTestPreconditions.NotEmbeddedExecutor,
+    JdkVersionTestPreconditions.Jdk9OrLater,
+    TestExecutionPreconditions.NotEmbeddedExecutor,
 ], reason = "explicitly requests a daemon")
 class WorkerDaemonProcessFailureIntegrationTest extends AbstractDaemonWorkerExecutorIntegrationSpec {
     private static final String ANNOTATION_PROCESSOR_PROJECT_NAME = "processor"

@@ -29,6 +29,7 @@ import java.util.Map;
  * An empty {@link DynamicObject}.
  */
 public abstract class AbstractDynamicObject implements DynamicObject {
+    @Override
     public abstract String getDisplayName();
 
     @Override

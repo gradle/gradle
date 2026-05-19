@@ -21,18 +21,19 @@ import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.caching.internal.controller.impl.LifecycleAwareBuildCacheController;
 import org.gradle.initialization.IncludedBuildSpec;
+import org.gradle.initialization.layout.BuildLayout;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
-import org.gradle.internal.buildtree.BuildTreeState;
+import org.gradle.internal.buildtree.BuildTreeServices;
 import org.gradle.internal.lazy.Lazy;
 import org.gradle.internal.service.CloseableServiceRegistry;
-import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.internal.service.scopes.BuildScopeServices;
 import org.gradle.internal.service.scopes.Scope;
 import org.jspecify.annotations.Nullable;
 
 import java.io.Closeable;
+import java.io.File;
 import java.util.function.Function;
 
 public abstract class AbstractBuildState implements BuildState, Closeable {
@@ -43,31 +44,24 @@ public abstract class AbstractBuildState implements BuildState, Closeable {
     private final Lazy<ProjectStateRegistry> projectStateRegistry;
     private final Lazy<BuildWorkGraphController> workGraphController;
 
-    public AbstractBuildState(BuildTreeState buildTree, BuildDefinition buildDefinition, @Nullable BuildState parent) {
+    public AbstractBuildState(BuildTreeServices buildTreeServices, BuildDefinition buildDefinition, @Nullable BuildState parent) {
         this.parent = parent;
 
-        buildServices = prepareServices(buildTree, buildDefinition);
+        buildServices = ServiceRegistryBuilder.builder()
+            .displayName("Build-scoped services")
+            .scopeStrictly(Scope.Build.class)
+            .parent(buildTreeServices.getServices())
+            .provider(new BuildScopeServices(buildDefinition, this))
+            .build();
+
         buildLifecycleController = Lazy.locking().of(() -> buildServices.get(BuildLifecycleController.class));
         projectStateRegistry = Lazy.locking().of(() -> buildServices.get(ProjectStateRegistry.class));
         workGraphController = Lazy.locking().of(() -> buildServices.get(BuildWorkGraphController.class));
     }
 
-    private CloseableServiceRegistry prepareServices(BuildTreeState buildTree, BuildDefinition buildDefinition) {
-        return ServiceRegistryBuilder.builder()
-            .displayName("Build-scoped services")
-            .scopeStrictly(Scope.Build.class)
-            .parent(buildTree.getServices())
-            .provider(prepareServicesProvider(buildDefinition))
-            .build();
-    }
-
     @Override
     public @Nullable BuildState getParent() {
         return parent;
-    }
-
-    protected ServiceRegistrationProvider prepareServicesProvider(BuildDefinition buildDefinition) {
-        return new BuildScopeServices(buildDefinition, this);
     }
 
     protected CloseableServiceRegistry getBuildServices() {
@@ -149,6 +143,11 @@ public abstract class AbstractBuildState implements BuildState, Closeable {
     @Override
     public void ensureProjectsConfigured() {
         getBuildController().configureProjects();
+    }
+
+    @Override
+    public File getBuildRootDir() {
+        return getBuildServices().get(BuildLayout.class).getRootDirectory();
     }
 
     @Override

@@ -27,8 +27,11 @@ import org.gradle.internal.jvm.inspection.JvmInstallationMetadata
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
+import org.gradle.test.preconditions.InstalledJdkTestPreconditions
+import org.gradle.test.preconditions.OsTestPreconditions
+import org.gradle.test.preconditions.JdkVersionTestPreconditions
+
 import org.gradle.util.internal.TextUtil
 import spock.lang.Issue
 
@@ -266,7 +269,7 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
         assertToolchainUsages(events2, jdkMetadata2, "JavaLauncher")
     }
 
-    @Requires(IntegTestPreconditions.DifferentJdkAvailable)
+    @Requires(InstalledJdkTestPreconditions.DifferentJdkAvailable)
     def "emits toolchain usages for compilation that configures #option via fork options"() {
         JvmInstallationMetadata curJdk = AvailableJavaHomes.getJvmInstallationMetadata(Jvm.current())
         JvmInstallationMetadata jdkMetadata = AvailableJavaHomes.getJvmInstallationMetadata(AvailableJavaHomes.differentJdk)
@@ -353,7 +356,7 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
         assertToolchainUsages(events, jdkMetadata, "JavaLauncher")
     }
 
-    @Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
+    @Requires(InstalledJdkTestPreconditions.JavaHomeWithDifferentVersionAvailable)
     def "emits toolchain usages for test that configures executable path overriding toolchain java extension"() {
         JvmInstallationMetadata jdkMetadata1 = AvailableJavaHomes.getJvmInstallationMetadata(Jvm.current())
         JvmInstallationMetadata jdkMetadata2 = AvailableJavaHomes.getJvmInstallationMetadata(AvailableJavaHomes.differentVersion)
@@ -398,7 +401,7 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
     }
 
     @Issue("https://github.com/gradle/gradle/issues/21368")
-    @Requires([IntegTestPreconditions.NotEmbeddedExecutor, UnitTestPreconditions.KotlinSupportedJdk])
+    @Requires([TestExecutionPreconditions.NotEmbeddedExecutor, JdkVersionTestPreconditions.KotlinSupportedJdk])
     def "emits toolchain usages when configuring toolchains for #kotlinPlugin Kotlin plugin '#kotlinPluginVersion'"() {
         // Kotlin doesn't support the latest JDK, see KotlinCompiler.toKotlinJvmTarget()
         // This must be synced with the older version listed in this test, so we can't reuse KotlinSupportedJdk's value here.
@@ -557,7 +560,7 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
         output.contains(jdkMetadata.javaHome.toString())
     }
 
-    @Requires(UnitTestPreconditions.Unix)
+    @Requires(OsTestPreconditions.Unix)
     def "emits toolchain usages for JavaExec task with configured executable that cannot be probed"() {
         Jvm otherJvm = AvailableJavaHomes.differentVersion
         JvmInstallationMetadata jdkMetadata = AvailableJavaHomes.getJvmInstallationMetadata(otherJvm)

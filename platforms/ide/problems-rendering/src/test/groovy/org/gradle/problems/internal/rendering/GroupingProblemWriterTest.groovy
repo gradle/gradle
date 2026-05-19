@@ -146,6 +146,71 @@ display-name
         ''')
     }
 
+    def "multiple problems with solutions and documentation link are properly separated"() {
+        given:
+        def problem1 = createProblemBuilder()
+            .id("id", "display-name", level1Group)
+            .contextualLabel("First context")
+            .details("First details")
+            .solution("First solution")
+            .documentedAt("https://example.com/first")
+            .build()
+        def problem2 = createProblemBuilder()
+            .id("id", "display-name", level1Group)
+            .contextualLabel("Second context")
+            .details("Second details")
+            .solution("Second solution A")
+            .solution("Second solution B")
+            .documentedAt("https://example.com/second")
+            .build()
+
+        when:
+        problemWriter.write([problem1, problem2], writer)
+
+        then:
+        renderedProblem == denormalizeAndStrip('''
+display-name
+  First context
+    First details
+    For more information, please refer to https://example.com/first.
+    Possible solution: First solution.
+display-name
+  Second context
+    Second details
+    For more information, please refer to https://example.com/second.
+    Possible solutions:
+      1. Second solution A.
+      2. Second solution B.
+        ''')
+    }
+
+    def "mixed problems with and without solutions are properly separated"() {
+        given:
+        def withSolution = createProblemBuilder()
+            .id("id", "display-name", level1Group)
+            .contextualLabel("With solution")
+            .solution("The solution")
+            .build()
+        def withoutSolution = createProblemBuilder()
+            .id("id", "display-name", level1Group)
+            .contextualLabel("Without solution")
+            .details("Just details")
+            .build()
+
+        when:
+        problemWriter.write([withSolution, withoutSolution], writer)
+
+        then:
+        renderedProblem == denormalizeAndStrip('''
+display-name
+  With solution
+    Possible solution: The solution.
+display-name
+  Without solution
+    Just details
+        ''')
+    }
+
     @Issue("https://github.com/gradle/gradle/issues/32016")
     def "java compilation reports are properly separated"() {
         given:

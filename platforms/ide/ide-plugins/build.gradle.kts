@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+import gradlebuild.integrationtests.crossVersionTestModels
+
 plugins {
     id("gradlebuild.distribution.api-java")
     id("gradlebuild.cross-version-tests")
@@ -79,11 +81,7 @@ dependencies {
         because("ProjectBuilder tests load services from a Gradle distribution.")
     }
 
-    crossVersionTestImplementation(projects.toolingApi) {
-        capabilities {
-            requireCapability("${project.group}:tooling-api-crossVersionTestModels")
-        }
-    }
+    crossVersionTestImplementation(crossVersionTestModels(projects.toolingApi))
 
     crossVersionTestDistributionRuntimeOnly(projects.distributionsJvm)
 }

@@ -28,7 +28,7 @@ import org.jspecify.annotations.NonNull;
 
 import java.util.Collection;
 
-public class DefaultProblemReporter implements InternalProblemReporter {
+public class DefaultProblemReporter implements ProblemReporterInternal {
 
     private final ProblemSummarizer problemSummarizer;
     private final ProblemsInfrastructure infrastructure;
@@ -102,7 +102,7 @@ public class DefaultProblemReporter implements InternalProblemReporter {
     }
 
     @NonNull
-    private InternalProblem addExceptionToProblem(Throwable exception, Problem problem) {
+    private ProblemInternal addExceptionToProblem(Throwable exception, Problem problem) {
         return getBuilder(problem).internalSeverity(Severity.ERROR).withException(transform(exception)).build();
     }
 
@@ -123,7 +123,7 @@ public class DefaultProblemReporter implements InternalProblemReporter {
     }
 
     @Override
-    public InternalProblem internalCreate(Action<? super InternalProblemSpec> action) {
+    public ProblemInternal internalCreate(Action<? super ProblemSpecInternal> action) {
         DefaultProblemBuilder defaultProblemBuilder = createProblemBuilder();
         action.execute(defaultProblemBuilder);
         return defaultProblemBuilder.build();
@@ -163,17 +163,17 @@ public class DefaultProblemReporter implements InternalProblemReporter {
      */
     @Override
     public void report(Problem problem, OperationIdentifier id) {
-        InternalProblem internalProblem = (InternalProblem) problem;
-        Throwable exception = internalProblem.getException();
+        ProblemInternal problemInternal = (ProblemInternal) problem;
+        Throwable exception = problemInternal.getException();
         if (exception != null) {
-            exceptionProblemRegistry.onProblem(transform(exception), internalProblem);
+            exceptionProblemRegistry.onProblem(transform(exception), problemInternal);
         }
-        problemSummarizer.emit(internalProblem, id);
+        problemSummarizer.emit(problemInternal, id);
     }
 
     @NonNull
-    private InternalProblemBuilder getBuilder(Problem problem) {
-        return ((InternalProblem) problem).toBuilder(infrastructure);
+    private ProblemBuilderInternal getBuilder(Problem problem) {
+        return ((ProblemInternal) problem).toBuilder(infrastructure);
     }
 
     private Throwable transform(Throwable failure) {

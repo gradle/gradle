@@ -26,9 +26,9 @@ import org.gradle.api.problems.internal.ExceptionProblemRegistry
 import org.gradle.api.problems.internal.GeneralData
 import org.gradle.api.problems.internal.GeneralDataSpec
 import org.gradle.api.problems.internal.GradleCoreProblemGroup
-import org.gradle.api.problems.internal.InternalDocLink
-import org.gradle.api.problems.internal.InternalProblem
-import org.gradle.api.problems.internal.InternalProblemReporter
+import org.gradle.api.problems.internal.DocLinkInternal
+import org.gradle.api.problems.internal.ProblemInternal
+import org.gradle.api.problems.internal.ProblemReporterInternal
 import org.gradle.api.problems.internal.IsolatableToBytesSerializer
 import org.gradle.api.problems.internal.ProblemSummarizer
 import org.gradle.api.problems.internal.ProblemsInfrastructure
@@ -45,7 +45,7 @@ class ValidationProblemSerializationTest extends Specification {
 
     def problemId = ProblemId.create("id", "label", GradleCoreProblemGroup.validation().type())
 
-    InternalProblemReporter problemReporter = new DefaultProblemReporter(
+    ProblemReporterInternal problemReporter = new DefaultProblemReporter(
         Stub(ProblemSummarizer),
         CurrentBuildOperationRef.instance(),
         new ExceptionProblemRegistry(),
@@ -243,7 +243,7 @@ class ValidationProblemSerializationTest extends Specification {
         asWarning << [false, true]
     }
 
-    private static InternalProblem serializeAndDeserialize(InternalProblem problem, boolean asWarning) {
+    private static ProblemInternal serializeAndDeserialize(ProblemInternal problem, boolean asWarning) {
         def json = asWarning ? ValidationProblemSerialization.serialize([problem], []) : ValidationProblemSerialization.serialize([], [problem])
         def deserialized = ValidationProblemSerialization.deserialize(json)
         def problems = asWarning ? deserialized.warnings : deserialized.errors
@@ -255,7 +255,7 @@ class ValidationProblemSerializationTest extends Specification {
      * Required to be a named, static class for serialization to work.
      * See https://google.github.io/gson/UserGuide.html#nested-classes-including-inner-classes
      */
-    class TestDocLink implements InternalDocLink {
+    class TestDocLink implements DocLinkInternal {
 
         @Override
         String getUrl() {

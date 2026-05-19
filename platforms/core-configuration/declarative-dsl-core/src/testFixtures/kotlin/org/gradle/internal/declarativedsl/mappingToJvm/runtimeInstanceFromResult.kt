@@ -16,18 +16,13 @@
 
 package org.gradle.internal.declarativedsl.mappingToJvm
 
-import org.gradle.declarative.dsl.schema.AnalysisSchema
 import org.gradle.internal.declarativedsl.analysis.ResolutionResult
-import org.gradle.internal.declarativedsl.analysis.SchemaTypeRefContext
 import org.gradle.internal.declarativedsl.objectGraph.PropertyLinkTracer
 import org.gradle.internal.declarativedsl.objectGraph.PropertyLinksResolver
-import org.gradle.internal.declarativedsl.objectGraph.ReflectionContext
-import org.gradle.internal.declarativedsl.objectGraph.reflect
 import org.gradle.internal.declarativedsl.schemaBuilder.ConfigureLambdaHandler
 import org.gradle.internal.declarativedsl.schemaBuilder.kotlinFunctionAsConfigureLambda
 
 fun <T : Any> runtimeInstanceFromResult(
-    schema: AnalysisSchema,
     resolution: ResolutionResult,
     configureLambdas: ConfigureLambdaHandler = kotlinFunctionAsConfigureLambda,
     customAccessors: RuntimeCustomAccessors = RuntimeCustomAccessors.none,
@@ -35,13 +30,11 @@ fun <T : Any> runtimeInstanceFromResult(
     runtimeFunctionResolver: RuntimeFunctionResolver = DefaultRuntimeFunctionResolver(configureLambdas, DefaultRuntimeFunctionCandidatesProvider),
 ): T {
     val trace = propertyLinkTrace(resolution)
-    val context = ReflectionContext(SchemaTypeRefContext(schema), trace.resolvedPropertyLinksResolutionResult)
-    val topLevel = reflect(resolution.topLevelReceiver, context)
 
     return createInstance().also {
         DeclarativeReflectionToObjectConverter(
             emptyMap(), it, runtimeFunctionResolver, ReflectionRuntimePropertyResolver, customAccessors
-        ) { object {}.javaClass.classLoader }.apply(topLevel)
+        ) { object {}.javaClass.classLoader }.applyConversion(trace.resolvedPropertyLinksResolutionResult)
     }
 }
 

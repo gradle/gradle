@@ -8,11 +8,17 @@ dependencies {
     compileOnly(libs.jetbrainsAnnotations)
 
     api(projects.antApi)
+    api(projects.credentialsApi)
+    api(projects.stdlibJavaExtensions)
+    api(projects.buildCacheSpi)
+    api(projects.loggingApi)
+    api(projects.normalizationApi)
     api(projects.baseServices)
     api(projects.buildCacheSpi)
     api(projects.credentialsApi)
     api(projects.declarativeDslApi)
     api(projects.files)
+    api(projects.internalInstrumentationApi)
     api(projects.loggingApi)
     api(projects.persistentCache)
     api(projects.processServicesApi)
@@ -26,8 +32,8 @@ dependencies {
     api(libs.guava)
     api(libs.inject)
 
-    implementation(projects.io)
     implementation(projects.baseServicesGroovy)
+    implementation(projects.io)
     implementation(projects.logging)
 
     implementation(libs.ant)

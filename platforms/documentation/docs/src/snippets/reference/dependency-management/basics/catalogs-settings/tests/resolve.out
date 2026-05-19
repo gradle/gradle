@@ -1,0 +1,4 @@
+compileClasspath - Compile classpath for source set 'main'.
++--- org.codehaus.groovy:groovy:3.0.5
++--- org.codehaus.groovy:groovy-json:3.0.5
+\--- org.codehaus.groovy:groovy-nio:3.0.5

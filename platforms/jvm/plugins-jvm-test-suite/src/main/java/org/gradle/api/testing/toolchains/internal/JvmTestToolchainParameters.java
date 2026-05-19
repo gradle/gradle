@@ -26,5 +26,9 @@ public interface JvmTestToolchainParameters {
     /**
      * Marker interface for {@link JvmTestToolchain} implementations that do not require any configuration.
      */
-    final class None implements JvmTestToolchainParameters {}
+    final class None implements JvmTestToolchainParameters {
+        public static final None INSTANCE = new None();
+
+        private None() {}
+    }
 }

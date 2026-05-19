@@ -36,6 +36,7 @@ internal sealed class AbstractBuildModelParameters : BuildModelParameters {
         "parallelProjectConfiguration" to isParallelProjectConfiguration,
         "parallelProjectExecution" to isParallelProjectExecution,
         "resilientModelBuilding" to isResilientModelBuilding,
+        "vintage" to isVintage,
     )
 }
 

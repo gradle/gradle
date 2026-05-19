@@ -24,10 +24,9 @@ import org.gradle.api.Project;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.internal.tasks.properties.InspectionScheme;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
-import org.gradle.api.problems.internal.InternalProblem;
-import org.gradle.api.problems.internal.InternalProblemReporter;
+import org.gradle.api.problems.internal.ProblemInternal;
+import org.gradle.api.problems.internal.ProblemReporterInternal;
 import org.gradle.api.reflect.TypeOf;
-import org.gradle.api.tasks.Nested;
 import org.gradle.features.annotations.BindsProjectFeature;
 import org.gradle.features.annotations.BindsProjectType;
 import org.gradle.features.binding.BuildModel;
@@ -43,7 +42,6 @@ import org.gradle.internal.reflect.annotations.TypeAnnotationMetadata;
 import org.gradle.internal.reflect.validation.TypeValidationProblemRenderer;
 import org.jspecify.annotations.Nullable;
 
-import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -68,9 +66,9 @@ public class DefaultProjectFeatureDeclarations implements ProjectFeatureDeclarat
     @SuppressWarnings("unused")
     private final InspectionScheme inspectionScheme;
     private final Instantiator instantiator;
-    private final InternalProblemReporter problemReporter;
+    private final ProblemReporterInternal problemReporter;
 
-    public DefaultProjectFeatureDeclarations(InspectionScheme inspectionScheme, Instantiator instantiator, InternalProblemReporter problemReporter) {
+    public DefaultProjectFeatureDeclarations(InspectionScheme inspectionScheme, Instantiator instantiator, ProblemReporterInternal problemReporter) {
         this.inspectionScheme = inspectionScheme;
         this.instantiator = instantiator;
         this.problemReporter = problemReporter;
@@ -113,7 +111,7 @@ public class DefaultProjectFeatureDeclarations implements ProjectFeatureDeclarat
         if (binding.targetDefinitionType() instanceof TargetTypeInformation.BuildModelTargetTypeInformation &&
             ((TargetTypeInformation.BuildModelTargetTypeInformation<?>) binding.targetDefinitionType()).getBuildModelType().equals(BuildModel.None.class)) {
 
-            InternalProblem bindingTypeProblem = problemReporter.internalCreate(builder -> builder
+            ProblemInternal bindingTypeProblem = problemReporter.internalCreate(builder -> builder
                 .id("bind=to-build-model-none", "Project features binds to BuildModel.None", GradleCoreProblemGroup.configurationUsage())
                 .details("A project feature cannot bind to 'BuildModel.None' as its target build model type.")
                 .contextualLabel("Project feature '" + projectFeatureName + "' is bound to 'BuildModel.None'")
@@ -136,7 +134,7 @@ public class DefaultProjectFeatureDeclarations implements ProjectFeatureDeclarat
             .collect(Collectors.toList());
 
         if (!existingPluginClasses.isEmpty()) {
-            List<InternalProblem> problems = new ArrayList<>();
+            List<ProblemInternal> problems = new ArrayList<>();
             existingPluginClasses.forEach(existingPluginClass -> {
                 problems.add(
                     problemReporter.internalCreate(builder -> builder
@@ -209,7 +207,7 @@ public class DefaultProjectFeatureDeclarations implements ProjectFeatureDeclarat
     }
 
     private void validateDefinitionSafety(ProjectFeatureBindingDeclaration<?, ?> binding) {
-        List<InternalProblem> problems = new ArrayList<>();
+        List<ProblemInternal> problems = new ArrayList<>();
         if (binding.getDefinitionImplementationType().isPresent() && !binding.getDefinitionImplementationType().get().equals(binding.getDefinitionType())) {
             problems.add(problemReporter.internalCreate(builder -> builder
                 .id("unsafe-definition-implementation-type", "Definition implementation type specified for safe definition", GradleCoreProblemGroup.configurationUsage())
@@ -220,24 +218,12 @@ public class DefaultProjectFeatureDeclarations implements ProjectFeatureDeclarat
             ));
         }
 
-        if (!binding.getDefinitionType().isInterface()) {
-            problems.add(problemReporter.internalCreate(builder -> builder
-                .id("unsafe-definition-type-not-interface", "Definition type not an interface for safe definition", GradleCoreProblemGroup.configurationUsage())
-                .details("Safe definition types must be an interface.")
-                .contextualLabel("Project feature '" + binding.getName() + "' has a definition with type '" + binding.getDefinitionType().getSimpleName() + "' which was declared safe but is not an interface")
-                .solution("Mark the definition as unsafe.")
-                .solution("Refactor the type as an interface.")
-            ));
-        }
-
-        validateDefinition(binding.getDefinitionType(), problems);
-
-        problemReporter.reportError(problems);
+        problemReporter.report(problems);
 
         throwTypeValidationException("Project feature '" + binding.getName() + "' has a definition type which was declared safe but has the following issues:", problems);
     }
 
-    private static void throwTypeValidationException(String summary, List<InternalProblem> problems) {
+    private static void throwTypeValidationException(String summary, List<ProblemInternal> problems) {
         List<String> formattedErrors = problems.stream()
             .map(TypeValidationProblemRenderer::renderMinimalInformationAbout)
             .collect(Collectors.toList());
@@ -250,25 +236,6 @@ public class DefaultProjectFeatureDeclarations implements ProjectFeatureDeclarat
             formatter.endChildren();
             throw new IllegalArgumentException(formatter.toString());
         }
-    }
-
-    private void validateDefinition(Class<?> definitionType, List<InternalProblem> problems) {
-        TypeMetadata definitionTypeMetadata = inspectionScheme.getMetadataStore().getTypeMetadata(definitionType);
-        definitionTypeMetadata.getTypeAnnotationMetadata().getPropertiesAnnotationMetadata().forEach(propertyMetadata -> {
-            if (propertyMetadata.isAnnotationPresent(Inject.class)) {
-                problems.add(problemReporter.internalCreate(builder -> builder
-                    .id("unsafe-definition-inject-property", "Property annotated with @Inject in safe definition", GradleCoreProblemGroup.configurationUsage())
-                    .details("Safe definition types cannot inject services.")
-                    .contextualLabel("The definition type has @Inject annotated property '" + propertyMetadata.getPropertyName() + "' in type '" + definitionType.getSimpleName() + "'")
-                    .solution("Mark the definition as unsafe.")
-                    .solution("Remove the @Inject annotation from the '" + propertyMetadata.getPropertyName() + "' property.")
-                ));
-            }
-
-            if (propertyMetadata.isAnnotationPresent(Nested.class)) {
-                validateDefinition(propertyMetadata.getDeclaredReturnType().getRawType(), problems);
-            }
-        });
     }
 
     @Override

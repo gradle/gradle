@@ -22,8 +22,10 @@ import org.gradle.internal.buildconfiguration.fixture.DaemonJvmPropertiesFixture
 import org.gradle.internal.jvm.Jvm
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
+import org.gradle.test.preconditions.OsTestPreconditions
+import org.gradle.test.preconditions.FileSystemTestPreconditions
+
 import spock.lang.Issue
 
 /**
@@ -33,7 +35,7 @@ import spock.lang.Issue
  */
 class SupportedBuildJvmIntegrationTest extends AbstractIntegrationSpec implements DaemonJvmPropertiesFixture, JavaToolchainFixture {
 
-    @Requires(UnitTestPreconditions.Symlinks)
+    @Requires(FileSystemTestPreconditions.Symlinks)
     def "can start Gradle with a JDK that contains symlinks"() {
         // Zulu sets their Java distribution up like this
         def installedJdk = Jvm.current().javaHome
@@ -51,8 +53,8 @@ class SupportedBuildJvmIntegrationTest extends AbstractIntegrationSpec implement
     // This is difficult to setup on Windows since you can't delete files
     // that are in use.
     @Requires(value = [
-        UnitTestPreconditions.NotWindows,
-        IntegTestPreconditions.NotEmbeddedExecutor,
+        OsTestPreconditions.NotWindows,
+        TestExecutionPreconditions.NotEmbeddedExecutor,
     ], reason = "must run with specific JDK that will be removed")
     @Issue("https://github.com/gradle/gradle/issues/16816")
     def "can successful start after a running daemon's JDK has been removed"() {

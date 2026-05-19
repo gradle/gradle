@@ -16,6 +16,7 @@
 
 package org.gradle.kotlin.dsl.accessors
 
+import org.gradle.api.initialization.SharedModelDefaults
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.kotlin.dsl.support.unsafeLazy
 import org.gradle.util.internal.TextUtil
@@ -334,36 +335,63 @@ fun inaccessibleExistingContainerElementAccessorFor(containerType: String, name:
 
 internal
 fun modelDefaultAccessor(spec: TypedAccessorSpec): String = spec.run {
+    val receiverKotlinType = receiver.type.kotlinString
+    val isTopLevelReceiver = receiver.type.value.concreteClass == SharedModelDefaults::class.java
     when (type) {
-        is TypeAccessibility.Accessible -> accessibleModelDefaultAccessorFor(name, type.type.kotlinString, type.deprecation(), type.optInRequirements)
-        is TypeAccessibility.Inaccessible -> inaccessibleModelDefaultAccessorFor(name, type)
+        is TypeAccessibility.Accessible -> accessibleModelDefaultAccessorFor(
+            receiverKotlinType,
+            isTopLevelReceiver,
+            name,
+            type.type.kotlinString,
+            type.deprecation(),
+            type.optInRequirements
+        )
+        is TypeAccessibility.Inaccessible -> inaccessibleModelDefaultAccessorFor(receiverKotlinType, isTopLevelReceiver, name, type)
     }
 }
 
 
 private
-fun accessibleModelDefaultAccessorFor(name: AccessorNameSpec, type: String, deprecation: Deprecated?, optIns: List<AnnotationRepresentation>): String = name.run {
+fun accessibleModelDefaultAccessorFor(
+    receiverType: String,
+    isTopLevelReceiver: Boolean,
+    name: AccessorNameSpec,
+    type: String,
+    deprecation: Deprecated?,
+    optIns: List<AnnotationRepresentation>
+): String = name.run {
     val annotations = """${maybeDeprecationAnnotations(deprecation)}${maybeOptInAnnotationSource(optIns)}"""
+    val body =
+        if (isTopLevelReceiver) """add("$stringLiteral", $type, configure)"""
+        else """applyProjectFeature(this, "$stringLiteral", configure)"""
     """
     |        /**
-    |         * Adds model defaults for the [$original][$name] project type.
+    |         * Adds model defaults for the [$original][$type] project feature.
     |         */
-    |        ${annotations}fun SharedModelDefaults.`$kotlinIdentifier`(configure: Action<$type>): Unit =
-    |            add("$stringLiteral", $type, configure)
+    |        ${annotations}fun $receiverType.`$kotlinIdentifier`(configure: Action<$type>): Unit =
+    |            $body
     """.trimMargin()
 }
 
 
 private
-fun inaccessibleModelDefaultAccessorFor(name: AccessorNameSpec, typeAccess: TypeAccessibility.Inaccessible): String = name.run {
+fun inaccessibleModelDefaultAccessorFor(
+    receiverType: String,
+    isTopLevelReceiver: Boolean,
+    name: AccessorNameSpec,
+    typeAccess: TypeAccessibility.Inaccessible
+): String = name.run {
+    val body =
+        if (isTopLevelReceiver) """add("$stringLiteral", KotlinType.Any, configure)"""
+        else """applyProjectFeature(this, "$stringLiteral", configure)"""
     """
         /**
-         * Adds model defaults for the `$original` project type.
+         * Adds model defaults for the `$original` project feature.
          *
          * ${documentInaccessibilityReasons(name, typeAccess)}
          */
-        fun SharedModelDefaults.`$kotlinIdentifier`(configure: Action<Any>): Unit =
-            add("$stringLiteral", KotlinType.Any, configure)
+        fun $receiverType.`$kotlinIdentifier`(configure: Action<Any>): Unit =
+            $body
 
     """
 }

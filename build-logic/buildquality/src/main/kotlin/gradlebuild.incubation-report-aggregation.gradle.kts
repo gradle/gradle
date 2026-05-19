@@ -6,7 +6,7 @@ plugins {
     id("base")
 }
 
-val reports by configurations.creating {
+val reports = configurations.create("reports") {
     isCanBeResolved = false
     isCanBeConsumed = false
     description = "Dependencies to aggregate reports from"

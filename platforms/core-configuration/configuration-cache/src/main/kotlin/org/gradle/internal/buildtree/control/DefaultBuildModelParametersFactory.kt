@@ -16,6 +16,7 @@
 
 package org.gradle.internal.buildtree.control
 
+import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.Logging
 import org.gradle.internal.buildoption.InternalOptions
 import org.gradle.internal.buildtree.BuildActionModelRequirements
@@ -25,11 +26,16 @@ import org.gradle.util.internal.IncubationLogger
 
 internal class DefaultBuildModelParametersFactory : BuildModelParametersFactory {
 
+    companion object {
+        private val verboseParameters = InternalOptions.ofBoolean("org.gradle.internal.operations.verbose.parameters", false)
+    }
+
     private val logger = Logging.getLogger(DefaultBuildModelParametersFactory::class.java)
 
     override fun parametersForRootBuildTree(requirements: BuildActionModelRequirements, internalOptions: InternalOptions): BuildModelParameters {
         val modelParameters = BuildModelParametersProvider.parameters(requirements, internalOptions)
-        logger.info("Operational build model parameters: {}", modelParameters.toDisplayMap())
+        val parametersLogLevel = if (internalOptions.getBoolean(verboseParameters)) LogLevel.QUIET else LogLevel.INFO
+        logger.log(parametersLogLevel, "Operational build model parameters: {}", modelParameters.toDisplayMap())
 
         modelParameters.configurationCacheDisabledReason?.let { reason ->
             logger.lifecycle("{} as configuration cache cannot be reused {}", requirements.actionDisplayName.capitalizedDisplayName, reason)

@@ -49,6 +49,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         "base-services-groovy",
         "build-cache",
         "build-cache-base",
+        "build-cache-core",
         "build-cache-local",
         "build-cache-packaging",
         "build-cache-spi",
@@ -64,6 +65,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         "build-process-services",
         "build-state",
         "classloaders",
+        "classpath",
         "cli",
         "client-services",
         "collections",
@@ -86,6 +88,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         "declarative-dsl-evaluator",
         "declarative-dsl-provider",
         "declarative-dsl-tooling-models",
+        "domain-object-collections",
         "enterprise-logging",
         "enterprise-operations",
         "enterprise-workers",
@@ -117,6 +120,8 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         "model-groovy",
         "model-reflect",
         "native",
+        "normalization",
+        "normalization-api",
         "normalization-java",
         "persistent-cache",
         "problems",
@@ -181,7 +186,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
      * Change this whenever you add or remove subprojects for distribution-packaged plugins (lib/plugins).
      */
     int getPackagedPluginsJarCount() {
-        94
+        95
     }
 
     /**

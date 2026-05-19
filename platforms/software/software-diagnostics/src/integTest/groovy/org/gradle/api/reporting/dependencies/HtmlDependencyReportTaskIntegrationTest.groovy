@@ -462,7 +462,7 @@ rootProject.name = 'root'
         compileClasspathConfiguration
         compileClasspathConfiguration.dependencies.size() == 4
         compileClasspathConfiguration.dependencies[0].module == null
-        compileClasspathConfiguration.dependencies[0].name == "project :a"
+        compileClasspathConfiguration.dependencies[0].name == "project ':a'"
         compileClasspathConfiguration.dependencies[0].resolvable == 'RESOLVED'
         compileClasspathConfiguration.dependencies[0].alreadyRendered == false
         compileClasspathConfiguration.dependencies[0].hasConflict == false
@@ -475,7 +475,7 @@ rootProject.name = 'root'
         compileClasspathConfiguration.dependencies[0].children[0].children.empty
 
         compileClasspathConfiguration.dependencies[1].module == null
-        compileClasspathConfiguration.dependencies[1].name == "project :b"
+        compileClasspathConfiguration.dependencies[1].name == "project ':b'"
         compileClasspathConfiguration.dependencies[1].resolvable == 'RESOLVED'
         compileClasspathConfiguration.dependencies[1].alreadyRendered == false
         compileClasspathConfiguration.dependencies[1].hasConflict == false
@@ -488,7 +488,7 @@ rootProject.name = 'root'
         compileClasspathConfiguration.dependencies[1].children[0].children.empty
 
         compileClasspathConfiguration.dependencies[2].module == null
-        compileClasspathConfiguration.dependencies[2].name == "project :a:c"
+        compileClasspathConfiguration.dependencies[2].name == "project ':a:c'"
         compileClasspathConfiguration.dependencies[2].resolvable == 'RESOLVED'
         compileClasspathConfiguration.dependencies[2].alreadyRendered == false
         compileClasspathConfiguration.dependencies[2].hasConflict == false
@@ -501,13 +501,13 @@ rootProject.name = 'root'
         compileClasspathConfiguration.dependencies[2].children[0].children.empty
 
         compileClasspathConfiguration.dependencies[3].module == null
-        compileClasspathConfiguration.dependencies[3].name == "project :d"
+        compileClasspathConfiguration.dependencies[3].name == "project ':d'"
         compileClasspathConfiguration.dependencies[3].resolvable == 'RESOLVED'
         compileClasspathConfiguration.dependencies[3].alreadyRendered == false
         compileClasspathConfiguration.dependencies[3].hasConflict == false
         compileClasspathConfiguration.dependencies[3].children.size() == 1
         compileClasspathConfiguration.dependencies[3].children[0].module == null
-        compileClasspathConfiguration.dependencies[3].children[0].name == "project :e"
+        compileClasspathConfiguration.dependencies[3].children[0].name == "project ':e'"
         compileClasspathConfiguration.dependencies[3].children[0].resolvable == 'RESOLVED'
         compileClasspathConfiguration.dependencies[3].children[0].alreadyRendered == false
         compileClasspathConfiguration.dependencies[3].children[0].hasConflict == false

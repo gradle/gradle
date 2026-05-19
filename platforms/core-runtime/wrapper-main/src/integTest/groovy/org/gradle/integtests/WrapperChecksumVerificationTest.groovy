@@ -20,7 +20,7 @@ import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import org.gradle.testdistribution.LocalOnly
 import org.gradle.wrapper.WrapperExecutor
 import org.junit.Rule
@@ -28,7 +28,7 @@ import spock.lang.Shared
 
 import static org.gradle.internal.hash.Hashing.sha256
 
-@Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = NOT_EMBEDDED_REASON)
+@Requires(value = TestExecutionPreconditions.NotEmbeddedExecutor, reason = NOT_EMBEDDED_REASON)
 @LocalOnly(because = "https://github.com/gradle/gradle-private/issues/3799")
 class WrapperChecksumVerificationTest extends AbstractWrapperIntegrationSpec {
 

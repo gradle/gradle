@@ -68,6 +68,7 @@ dependencies {
 
     implementation(projects.baseServicesGroovy)
     implementation(projects.buildCache)
+    implementation(projects.buildCacheCore)
     implementation(projects.buildDiscovery)
     implementation(projects.buildDiscoveryImpl)
     implementation(projects.buildOption)

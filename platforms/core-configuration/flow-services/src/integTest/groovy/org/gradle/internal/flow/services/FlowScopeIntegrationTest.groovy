@@ -22,14 +22,14 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.process.ExecOperations
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import org.gradle.util.internal.ToBeImplemented
 import spock.lang.Issue
 
 class FlowScopeIntegrationTest extends AbstractIntegrationSpec {
 
     @Requires(
-        value = IntegTestPreconditions.IsConfigCached,
+        value = TestExecutionPreconditions.IsConfigCached,
         reason = "Isolation provided by Configuration Cache serialization"
     )
     def 'flow actions are isolated from each other'() {
@@ -132,7 +132,7 @@ class FlowScopeIntegrationTest extends AbstractIntegrationSpec {
         fails 'producer'
 
         then:
-        failureCauseContains "Property 'text' cannot carry a dependency on task ':producer' as these are not yet supported."
+        failure.assertHasErrorOutput("Property 'text' cannot carry a dependency on task ':producer' as these are not yet supported.")
     }
 
     @ToBeImplemented()

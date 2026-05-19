@@ -51,6 +51,7 @@ val core = platform("core") {
         subproject("build-process-services")
         subproject("build-profile")
         subproject("build-state")
+        subproject("classpath")
         subproject("classloaders")
         subproject("cli")
         subproject("client-services")
@@ -119,6 +120,7 @@ val core = platform("core") {
         subproject("declarative-dsl-tooling-models")
         subproject("declarative-dsl-tooling-builders")
         subproject("dependency-management-serialization-codecs")
+        subproject("domain-object-collections")
         subproject("encryption-services")
         subproject("file-collections")
         subproject("file-operations")
@@ -150,6 +152,7 @@ val core = platform("core") {
     module("core-execution") {
         subproject("build-cache")
         subproject("build-cache-base")
+        subproject("build-cache-core")
         subproject("build-cache-example-client")
         subproject("build-cache-http")
         subproject("build-cache-local")
@@ -161,6 +164,9 @@ val core = platform("core") {
         subproject("file-watching")
         subproject("hashing")
         subproject("hashing-services")
+        subproject("normalization")
+        subproject("normalization-api")
+        subproject("normalization-java")
         subproject("persistent-cache")
         subproject("worker-process-services")
         subproject("request-handler-worker")
@@ -252,7 +258,6 @@ val jvm = platform("jvm") {
     subproject("language-groovy")
     subproject("language-java")
     subproject("language-jvm")
-    subproject("normalization-java")
     subproject("platform-jvm")
     subproject("plugins-application")
     subproject("plugins-groovy")
@@ -292,6 +297,7 @@ platform("native") {
     subproject("tooling-native")
     subproject("tooling-native-model-impls")
     subproject("testing-native")
+    subproject("plugins-model-native")
 }
 
 

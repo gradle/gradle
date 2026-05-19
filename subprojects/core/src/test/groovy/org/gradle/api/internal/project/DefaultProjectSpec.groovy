@@ -23,7 +23,6 @@ import org.gradle.api.attributes.AttributesSchema
 import org.gradle.api.component.SoftwareComponentContainer
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.ConfigurableFileTree
-import org.gradle.api.initialization.ProjectDescriptor
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.MutationGuard
 import org.gradle.api.internal.file.DefaultFilePropertyFactory
@@ -42,8 +41,13 @@ import org.gradle.api.model.ObjectFactory
 import org.gradle.api.tasks.util.internal.PatternSets
 import org.gradle.configuration.internal.ListenerBuildOperationDecorator
 import org.gradle.internal.Describables
+import org.gradle.internal.buildoption.DefaultInternalOptions
+import org.gradle.internal.buildoption.InternalOptions
+import org.gradle.internal.configuration.problems.IsolatedProjectsProblemsReporter
+import org.gradle.internal.configuration.problems.NoOpIsolatedProjectsProblemsReporter
 import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.internal.management.DependencyResolutionManagementInternal
+import org.gradle.internal.project.ImmutableProjectDescriptor
 import org.gradle.internal.resource.DefaultTextFileResourceLoader
 import org.gradle.internal.scripts.ProjectScopedScriptResolution
 import org.gradle.internal.service.DefaultServiceRegistry
@@ -152,43 +156,43 @@ class DefaultProjectSpec extends Specification {
         def nestedChild2 = project("child2", nestedChild1, nestedBuild)
 
         expect:
-        rootProject.toString() == rootProject.owner.displayName.toString()
-        rootProject.displayName == rootProject.owner.displayName.toString()
+        rootProject.toString() == "root project 'root'"
+        rootProject.displayName == "root project 'root'"
         rootProject.path == ":"
         rootProject.buildTreePath == ':'
         rootProject.identityPath == Path.ROOT
         rootProject.projectIdentity == rootProject.owner.identity
 
-        child1.toString() == child1.owner.displayName.toString()
-        child1.displayName == child1.owner.displayName.toString()
+        child1.toString() == "project ':child1'"
+        child1.displayName == "project ':child1'"
         child1.path == ":child1"
         child1.buildTreePath == ":child1"
         child1.identityPath == Path.path(":child1")
         child1.projectIdentity == child1.owner.identity
 
-        child2.toString() == child2.owner.displayName.toString()
-        child2.displayName == child2.owner.displayName.toString()
+        child2.toString() == "project ':child1:child2'"
+        child2.displayName == "project ':child1:child2'"
         child2.path == ":child1:child2"
         child2.buildTreePath == ":child1:child2"
         child2.identityPath == Path.path(":child1:child2")
         child2.projectIdentity == child2.owner.identity
 
-        nestedRootProject.toString() == nestedRootProject.owner.displayName.toString()
-        nestedRootProject.displayName == nestedRootProject.owner.displayName.toString()
+        nestedRootProject.toString() == "project ':nested'"
+        nestedRootProject.displayName == "project ':nested'"
         nestedRootProject.path == ":"
         nestedRootProject.buildTreePath == ":nested"
         nestedRootProject.identityPath == Path.path(":nested")
         nestedRootProject.projectIdentity == nestedRootProject.owner.identity
 
-        nestedChild1.toString() == nestedChild1.owner.displayName.toString()
-        nestedChild1.displayName == nestedChild1.owner.displayName.toString()
+        nestedChild1.toString() == "project ':nested:child1'"
+        nestedChild1.displayName == "project ':nested:child1'"
         nestedChild1.path == ":child1"
         nestedChild1.buildTreePath == ":nested:child1"
         nestedChild1.identityPath == Path.path(":nested:child1")
         nestedChild1.projectIdentity == nestedChild1.owner.identity
 
-        nestedChild2.toString() == nestedChild2.owner.displayName.toString()
-        nestedChild2.displayName == nestedChild2.owner.displayName.toString()
+        nestedChild2.toString() == "project ':nested:child1:child2'"
+        nestedChild2.displayName == "project ':nested:child1:child2'"
         nestedChild2.path == ":child1:child2"
         nestedChild2.buildTreePath == ":nested:child1:child2"
         nestedChild2.identityPath == Path.path(":nested:child1:child2")
@@ -254,8 +258,8 @@ class DefaultProjectSpec extends Specification {
         serviceRegistry.add(AttributesSchema, Stub(AttributesSchema))
         serviceRegistry.add(ModelRegistry, Stub(ModelRegistry))
         serviceRegistry.add(CrossProjectModelAccess, Stub(CrossProjectModelAccess))
+        serviceRegistry.add(IsolatedProjectsProblemsReporter, new NoOpIsolatedProjectsProblemsReporter())
         serviceRegistry.add(DependencyResolutionManagementInternal, Stub(DependencyResolutionManagementInternal))
-        serviceRegistry.add(DynamicLookupRoutine, new DefaultDynamicLookupRoutine())
         serviceRegistry.add(SoftwareComponentContainer, Mock(SoftwareComponentContainer))
         serviceRegistry.add(CrossProjectConfigurator, Mock(CrossProjectConfigurator) {
             getLazyBehaviorGuard() >> Mock(MutationGuard)
@@ -267,6 +271,7 @@ class DefaultProjectSpec extends Specification {
         serviceRegistry.add(GradleLifecycleActionExecutor, Stub(GradleLifecycleActionExecutor))
         serviceRegistry.add(ProjectFeatureDeclarations, Stub(ProjectFeatureDeclarations))
         serviceRegistry.add(ProjectFeatureApplicator, Stub(ProjectFeatureApplicator))
+        serviceRegistry.add(InternalOptions, new DefaultInternalOptions([:]))
 
         def antBuilder = Mock(AntBuilder)
         serviceRegistry.add(AntBuilderFactory, Mock(AntBuilderFactory) {
@@ -313,14 +318,17 @@ class DefaultProjectSpec extends Specification {
         }
 
         def container = Mock(ProjectState)
+        _ * container.name >> name
         _ * container.projectPath >> identity.projectPath
         _ * container.identityPath >> identity.buildTreePath
         _ * container.owner >> build.owner
         _ * container.displayName >> Describables.of(name)
         _ * container.identity >> identity
+        _ * container.isolated >> { new DefaultIsolatedProject(container) }
+        _ * container.rootProject >> { parent == null }
 
-        def descriptor = Mock(ProjectDescriptor) {
-            getName() >> name
+        def descriptor = Mock(ImmutableProjectDescriptor) {
+            getIdentity() >> identity
             getProjectDir() >> new File("project")
             getBuildFile() >> new File("build file")
         }
@@ -331,6 +339,8 @@ class DefaultProjectSpec extends Specification {
 
         def instantiator = TestUtil.instantiatorFactory().decorateLenient(serviceRegistry)
         def factory = new ProjectFactory(instantiator, new DefaultTextFileResourceLoader(null), scriptResolution)
-        return factory.createProject(build, descriptor, container, parent, serviceRegistryFactory, Stub(ClassLoaderScope), Stub(ClassLoaderScope))
+        def project = factory.createProject(build, descriptor, container, parent, serviceRegistryFactory, Stub(ClassLoaderScope), Stub(ClassLoaderScope))
+        _ * container.mutableModel >> project
+        return project
     }
 }

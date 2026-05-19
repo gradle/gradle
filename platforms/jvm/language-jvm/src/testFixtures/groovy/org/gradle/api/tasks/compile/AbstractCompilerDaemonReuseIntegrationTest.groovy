@@ -22,10 +22,10 @@ import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.integtests.fixtures.jvm.TestJvmComponent
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import org.junit.Assume
 
-@Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "explicitly requiring a daemon")
+@Requires(value = TestExecutionPreconditions.NotEmbeddedExecutor, reason = "explicitly requiring a daemon")
 abstract class AbstractCompilerDaemonReuseIntegrationTest extends AbstractIntegrationSpec {
     def compilerDaemonIdentityFileName = "build/compilerId"
     def compilerDaemonIdentityFile = file(compilerDaemonIdentityFileName)
@@ -65,7 +65,7 @@ abstract class AbstractCompilerDaemonReuseIntegrationTest extends AbstractIntegr
         """
     }
 
-    @Requires(IntegTestPreconditions.NotParallelExecutor)
+    @Requires(TestExecutionPreconditions.NotParallelExecutor)
     @UnsupportedWithConfigurationCache(because = "parallel by default")
     def "reuses compiler daemons within a single project build"() {
         withSingleProjectSources()
@@ -80,7 +80,7 @@ abstract class AbstractCompilerDaemonReuseIntegrationTest extends AbstractIntegr
         assertOneCompilerDaemonIsRunning()
     }
 
-    @Requires(IntegTestPreconditions.NotParallelExecutor)
+    @Requires(TestExecutionPreconditions.NotParallelExecutor)
     @UnsupportedWithConfigurationCache(because = "parallel by default")
     def "reuses compiler daemons within a multi-project build"() {
         withMultiProjectSources()
@@ -95,7 +95,7 @@ abstract class AbstractCompilerDaemonReuseIntegrationTest extends AbstractIntegr
         assertOneCompilerDaemonIsRunning()
     }
 
-    @Requires(IntegTestPreconditions.NotParallelExecutor)
+    @Requires(TestExecutionPreconditions.NotParallelExecutor)
     def "reuses compiler daemons within a composite build"() {
         Assume.assumeTrue(supportsCompositeBuilds())
 
@@ -111,7 +111,7 @@ abstract class AbstractCompilerDaemonReuseIntegrationTest extends AbstractIntegr
         assertOneCompilerDaemonIsRunning()
     }
 
-    @Requires(IntegTestPreconditions.NotParallelExecutor)
+    @Requires(TestExecutionPreconditions.NotParallelExecutor)
     // IP assumes parallel execution, so these tests shouldn't be run ideally.
     @ToBeFixedForIsolatedProjects(because = "allprojects, configure projects from root")
     def "starts a new daemon when different options are used"() {

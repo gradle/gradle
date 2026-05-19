@@ -192,9 +192,9 @@ fun Project.enableScriptCompilationOf(
 
     tasks {
 
-        val extractPrecompiledScriptPluginPlugins by registering(ExtractPrecompiledScriptPluginPlugins::class) {
-            plugins.value(scriptPlugins)
-            outputDir.set(extractedPluginsBlocks)
+        val extractPrecompiledScriptPluginPlugins = register("extractPrecompiledScriptPluginPlugins", ExtractPrecompiledScriptPluginPlugins::class.java) {
+            it.plugins.value(scriptPlugins)
+            it.outputDir.set(extractedPluginsBlocks)
         }
 
         val (generateExternalPluginSpecBuilders, externalPluginSpecBuilders) =
@@ -266,12 +266,12 @@ fun Project.enableScriptCompilationOf(
 
         if (inClassPathMode()) {
 
-            val configurePrecompiledScriptDependenciesResolver by registering(ConfigurePrecompiledScriptDependenciesResolver::class) {
-                dependsOn(generatePrecompiledScriptPluginAccessors)
-                metadataDir.set(generatePrecompiledScriptPluginAccessors.flatMap { it.metadataOutputDir })
-                classPathFiles.from(compileClasspath)
+            val configurePrecompiledScriptDependenciesResolver = register("configurePrecompiledScriptDependenciesResolver", ConfigurePrecompiledScriptDependenciesResolver::class.java) {
+                it.dependsOn(generatePrecompiledScriptPluginAccessors)
+                it.metadataDir.set(generatePrecompiledScriptPluginAccessors.flatMap { it.metadataOutputDir })
+                it.classPathFiles.from(compileClasspath)
                 val objects = objects
-                onConfigure { resolverEnvironment ->
+                it.onConfigure { resolverEnvironment ->
                     configureKotlinCompilerArguments(objects, resolverEnvironment)
                 }
             }

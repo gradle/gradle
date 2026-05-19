@@ -35,7 +35,6 @@ import org.gradle.api.internal.tasks.DefaultSourceSetContainer
 import org.gradle.internal.code.UserCodeApplicationContext
 import org.gradle.internal.id.ConfigurationCacheableIdFactory
 import org.gradle.internal.instantiation.InstantiationScheme
-import org.gradle.nativeplatform.internal.DefaultFlavorContainer
 import org.gradle.util.AttributeTestUtil
 import org.gradle.util.Path
 import org.gradle.util.TestUtil
@@ -53,7 +52,6 @@ class NameValidatorTest extends Specification {
     def domainObjectContainersWithValidation = [
         ["artifact types", new DefaultArtifactTypeContainer(TestUtil.instantiatorFactory().decorateLenient(), AttributeTestUtil.attributesFactory(), CollectionCallbackActionDecorator.NOOP)],
         ["configurations", new DefaultConfigurationContainer(TestUtil.instantiatorFactory().decorateLenient(), CollectionCallbackActionDecorator.NOOP, StandaloneDomainObjectContext.ANONYMOUS, Mock(DefaultConfigurationFactory), Mock(ResolutionStrategyFactory), TestUtil.problemsService(), Mock(ConfigurationResolver.Factory), AttributeTestUtil.mutableSchema())],
-        ["flavors", new DefaultFlavorContainer(TestUtil.instantiatorFactory().decorateLenient(), CollectionCallbackActionDecorator.NOOP)],
         ["source sets", new DefaultSourceSetContainer(TestFiles.resolver(), TestFiles.taskDependencyFactory(), null, TestUtil.instantiatorFactory().decorateLenient(), TestUtil.objectFactory(), CollectionCallbackActionDecorator.NOOP)]
     ]
 

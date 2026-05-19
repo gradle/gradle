@@ -25,7 +25,7 @@ description = """Problem SPI implementations.
 """.trimMargin()
 
 
-val problemReportReportPath by configurations.creating {
+val problemReportReportPath = configurations.create("problemReportReportPath") {
     isCanBeConsumed = false
     attributes { attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named("configuration-cache-report")) }
 }
@@ -50,7 +50,7 @@ dependencies {
     api(projects.buildOperations)
     api(projects.buildOption)
     api(projects.concurrent)
-    api(projects.configurationProblemsBase)
+    api(projects.core)
     api(projects.fileTemp)
     api(projects.loggingApi)
     api(projects.problemsApi)
@@ -62,7 +62,7 @@ dependencies {
     api(libs.kotlinStdlib)
 
     implementation(projects.baseServices)
-    implementation(projects.core)
+    implementation(projects.configurationProblemsBase)
     implementation(projects.logging)
     implementation(projects.messaging)
     implementation(projects.modelCore)

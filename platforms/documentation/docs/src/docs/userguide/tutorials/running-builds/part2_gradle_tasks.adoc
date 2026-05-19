@@ -31,6 +31,7 @@ Learn the basics of Gradle tasks by running one and looking at its output.
 
 1. You initialized your Java app in <<part1_gradle_init.adoc#part1_begin,part 1>>.
 
+[[rb_part2_step1]]
 == Step 1. Viewing available Tasks
 
 A _task_ is a basic unit of work that can be done by Gradle as part of the build.
@@ -95,6 +96,7 @@ $ ./gradlew :app:tasks --all
 
 This shows internal and lifecycle tasks that are normally hidden in the default summary.
 
+[[rb_part2_step2]]
 == Step 2. Understanding Tasks
 
 Tasks can come from several places.
@@ -102,17 +104,9 @@ Gradle includes some tasks by default, and many others are added automatically w
 
 If you remember back in <<part1_gradle_init.adoc#part1_begin,part 1>>, the build script of our Java application applies the `application` plugin:
 
-++++
-<div style="text-align: right;">
-  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/init/generated">
-    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
-  </a>
-</div>
-++++
-
 ====
-include::sample[dir="snippets/init/generated/kotlin",files="app/build.gradle.kts[tags=init-plugins]"]
-include::sample[dir="snippets/init/generated/groovy",files="app/build.gradle[tags=init-plugins]"]
+include::sample[dir="snippets/tutorials/running-builds/generated/kotlin",files="app/build.gradle.kts[tags=init-plugins]"]
+include::sample[dir="snippets/tutorials/running-builds/generated/groovy",files="app/build.gradle[tags=init-plugins]"]
 ====
 
 Applying the `application` plugin adds tasks like `run`, `build`, `compileJava`, `test`, and `jar`.
@@ -126,8 +120,8 @@ For example, the `Copy` task type is used to copy files from one location to ano
 Here's how you could register a custom task that copies all `.war` files from a source directory to a target directory:
 
 ====
-include::sample[dir="snippets/init/generated/kotlin",files="app/build.gradle.kts[tags=init-task]"]
-include::sample[dir="snippets/init/generated/groovy",files="app/build.gradle[tags=init-task]"]
+include::sample[dir="snippets/tutorials/running-builds/generated/kotlin",files="app/build.gradle.kts[tags=init-task]"]
+include::sample[dir="snippets/tutorials/running-builds/generated/groovy",files="app/build.gradle[tags=init-task]"]
 ====
 
 If this task is defined in the `build.gradle(.kts)` file for the app subproject, you can run it with:
@@ -148,6 +142,7 @@ Popular built-in tasks include:
 
 With many more documented in the Kotlin and Groovy DSLs.
 
+[[rb_part2_step3]]
 == Step 3. Understanding Dependencies Between Tasks
 
 Often, one task needs another task to run first.
@@ -164,8 +159,8 @@ There are two kinds of task dependencies:
 Here is an example of explicit task dependency:
 
 ====
-include::sample[dir="snippets/init/generated/kotlin",files="app/build.gradle.kts[tags=init-hello]"]
-include::sample[dir="snippets/init/generated/groovy",files="app/build.gradle[tags=init-hello]"]
+include::sample[dir="snippets/tutorials/running-builds/generated/kotlin",files="app/build.gradle.kts[tags=init-hello]"]
+include::sample[dir="snippets/tutorials/running-builds/generated/groovy",files="app/build.gradle[tags=init-hello]"]
 ====
 
 In this case, `hello` prints before `greet`.
@@ -174,6 +169,7 @@ The output is `Hello! How are you?`.
 Task execution order is automatically determined by Gradle, taking into account explicit and implicit task dependencies.
 If there is no dependency between tasks, Gradle enables users to request a specific execution order.
 
+[[rb_part2_step4]]
 == Step 4. Viewing Tasks in the IDE (Optional)
 
 Project tasks are also available in IntelliJ.
@@ -183,6 +179,7 @@ On the right-hand side of your window, open the `Gradle` pane to view all availa
 
 image::tutorial/intellij-idea-tasks.png[]
 
+[[rb_part2_step5]]
 == Step 5. Running Tasks in the IDE (Optional)
 
 You can run a Gradle task via IntelliJ by double-clicking that task in the pane.
@@ -200,6 +197,7 @@ BUILD SUCCESSFUL in 966ms
 3:18:24 AM: Execution finished 'build'.
 ----
 
+[[rb_part2_step6]]
 == Step 6. Running Tasks in the Terminal
 
 Run the following command in your terminal:
@@ -273,7 +271,7 @@ The `run` task executes the code in `tutorial/app/src/main/java/com.gradle.tutor
 You can take a minute and take a look at the Java code in `App.java` which simply prints "Hello World" to the screen:
 
 ====
-include::sample[dir="snippets/init/generated/groovy",files="app/src/main/java/org/example/App.java[]"]
+include::sample[dir="snippets/tutorials/running-builds/generated/groovy",files="app/src/main/java/org/example/App.java[]"]
 ====
 
 [.text-right]

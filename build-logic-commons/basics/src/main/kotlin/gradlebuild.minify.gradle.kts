@@ -57,6 +57,10 @@ val keepPatterns = mapOf(
         "it.unimi.dsi.fastutil.longs.Long2ObjectMap",
         "it.unimi.dsi.fastutil.longs.Long2ObjectMaps",
         "it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap",
+        "it.unimi.dsi.fastutil.ints.Int2IntMap",
+        "it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap",
+        "it.unimi.dsi.fastutil.ints.Int2LongMap",
+        "it.unimi.dsi.fastutil.ints.Int2LongOpenHashMap",
         // For the configuration cache module
         "it.unimi.dsi.fastutil.objects.ReferenceArrayList",
         "it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet",

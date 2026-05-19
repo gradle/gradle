@@ -27,7 +27,7 @@ class SamplesResolutionStrategyIntegrationTest extends AbstractIntegrationSpec {
     @Rule
     Sample sample = new Sample(testDirectoryProvider)
 
-    @UsesSample("dependencyManagement/customizingResolution-resolutionStrategy")
+    @UsesSample("integration-tests/dependencyManagement/customizingResolution-resolutionStrategy")
     def "can resolve dependencies in #dsl dsl"() {
         TestFile dslDir = sample.dir.file(dsl)
         executer.inDirectory(dslDir)

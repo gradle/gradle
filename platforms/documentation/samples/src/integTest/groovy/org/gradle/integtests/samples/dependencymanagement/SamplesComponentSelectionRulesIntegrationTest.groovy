@@ -25,7 +25,7 @@ class SamplesComponentSelectionRulesIntegrationTest extends AbstractSampleIntegr
     @Rule
     Sample sample = new Sample(testDirectoryProvider)
 
-    @UsesSample("dependencyManagement/customizingResolution-selectionRule")
+    @UsesSample("integration-tests/dependencyManagement/customizingResolution-selectionRule")
     def "can run resolveConfiguration sample with #dsl dsl"() {
         executer.inDirectory(sample.dir.file(dsl))
 
@@ -41,7 +41,7 @@ class SamplesComponentSelectionRulesIntegrationTest extends AbstractSampleIntegr
         dsl << ['groovy', 'kotlin']
     }
 
-    @UsesSample("dependencyManagement/customizingResolution-selectionRule")
+    @UsesSample("integration-tests/dependencyManagement/customizingResolution-selectionRule")
     def "can run reject sample with #dsl dsl"() {
         executer.inDirectory(sample.dir.file(dsl))
 
@@ -55,7 +55,7 @@ class SamplesComponentSelectionRulesIntegrationTest extends AbstractSampleIntegr
         dsl << ['groovy', 'kotlin']
     }
 
-    @UsesSample("dependencyManagement/customizingResolution-selectionRule")
+    @UsesSample("integration-tests/dependencyManagement/customizingResolution-selectionRule")
     def "can run metadata rules sample with #dsl dsl"() {
         executer.inDirectory(sample.dir.file(dsl))
 
@@ -70,7 +70,7 @@ class SamplesComponentSelectionRulesIntegrationTest extends AbstractSampleIntegr
         dsl << ['groovy', 'kotlin']
     }
 
-    @UsesSample("dependencyManagement/customizingResolution-selectionRule")
+    @UsesSample("integration-tests/dependencyManagement/customizingResolution-selectionRule")
     def "can run targeted rule sample with #dsl dsl"() {
         executer.inDirectory(sample.dir.file(dsl))
 

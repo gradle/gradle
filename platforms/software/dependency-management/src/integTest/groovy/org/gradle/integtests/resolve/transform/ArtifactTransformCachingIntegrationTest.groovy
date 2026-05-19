@@ -16,11 +16,12 @@
 
 package org.gradle.integtests.resolve.transform
 
+import org.gradle.api.problems.Severity
 import com.google.common.collect.Streams
 import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
 import org.gradle.cache.internal.GradleUserHomeCleanupFixture
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.integtests.fixtures.cache.FileAccessTimeJournalFixture
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
@@ -42,7 +43,6 @@ import static java.util.concurrent.TimeUnit.SECONDS
 import static org.gradle.api.internal.cache.CacheConfigurationsInternal.DEFAULT_MAX_AGE_IN_DAYS_FOR_CREATED_CACHE_ENTRIES
 import static org.gradle.internal.service.scopes.DefaultGradleUserHomeScopeServiceRegistry.REUSE_USER_HOME_SERVICES
 import static org.gradle.test.fixtures.ConcurrentTestUtil.poll
-import static org.hamcrest.Matchers.containsString
 
 class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyResolutionTest implements FileAccessTimeJournalFixture, ValidationMessageChecker, GradleUserHomeCleanupFixture {
     static final int HALF_DEFAULT_MAX_AGE_IN_DAYS = Math.max(1, DEFAULT_MAX_AGE_IN_DAYS_FOR_CREATED_CACHE_ENTRIES / 2 as int)
@@ -79,8 +79,8 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
 
         then:
         output.count("files: [lib1.jar.txt, lib2.jar.txt, lib3.jar.txt, lib4-1.0.jar.txt]") == 2
-        output.count("artifacts: [lib1.jar.txt (project :lib), lib2.jar.txt (project :lib), lib3.jar.txt (lib3.jar), lib4-1.0.jar.txt (org.test.foo:lib4:1.0)]") == 2
-        output.count("components: [project :lib, project :lib, lib3.jar, org.test.foo:lib4:1.0]") == 2
+        output.count("artifacts: [lib1.jar.txt (project ':lib'), lib2.jar.txt (project ':lib'), lib3.jar.txt (lib3.jar), lib4-1.0.jar.txt (org.test.foo:lib4:1.0)]") == 2
+        output.count("components: [project ':lib', project ':lib', lib3.jar, org.test.foo:lib4:1.0]") == 2
 
         output.count("Transformed") == 4
         isTransformed("lib1.jar", "lib1.jar.txt")
@@ -213,15 +213,13 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
             .each { appType, index ->
                 def reserved = file("${appType}/build/${forbiddenPath}")
                 failure.assertHasDescription("A problem was found with the configuration of task ':${appType}:badTask' (type 'DefaultTask').")
-                failure.assertThatDescription(containsString(cannotWriteToReservedLocation {
-                    property('output')
-                        .forbiddenAt(reserved)
-                        .includeLink()
-                }))
                 verifyAll(receivedProblem(index as Integer)) {
+                    severity == Severity.ERROR
                     fqid == 'validation:property-validation:cannot-write-to-reserved-location'
+                    definition.id.displayName == 'Cannot write to reserved location'
                     contextualLabel == "Property \'output\' points to \'${reserved.absolutePath}\' which is managed by Gradle"
                     details == 'Trying to write an output to a read-only location which is for Gradle internal use only'
+                    definition.documentationLink.url == "https://docs.gradle.org/${distribution.version.version}/userguide/validation_problems.html#cannot_write_to_reserved_location"
                     solutions == ['Select a different output location']
                     additionalData.asMap == [
                         'typeName': 'org.gradle.api.DefaultTask',
@@ -238,8 +236,8 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         when:
         succeeds ":util:resolve"
 
-        def transformationPosition1 = output.indexOf("> Transform lib1.jar (project :lib) with FileSizer")
-        def transformationPosition2 = output.indexOf("> Transform lib2.jar (project :lib) with FileSizer")
+        def transformationPosition1 = output.indexOf("> Transform lib1.jar (project ':lib') with FileSizer")
+        def transformationPosition2 = output.indexOf("> Transform lib2.jar (project ':lib') with FileSizer")
         def taskPosition = output.indexOf("> Task :util:resolve")
 
         then:
@@ -269,8 +267,8 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         succeeds ":util:resolve", ":util2:resolve"
 
         then:
-        output.count("> Transform lib1.jar (project :lib) with FileSizer") == 1
-        output.count("> Transform lib2.jar (project :lib) with FileSizer") == 1
+        output.count("> Transform lib1.jar (project ':lib') with FileSizer") == 1
+        output.count("> Transform lib2.jar (project ':lib') with FileSizer") == 1
     }
 
     def "scheduled chained transformation is only invoked once per subject"() {
@@ -369,12 +367,12 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         run ":app1:resolveRed", ":app2:resolveYellow"
 
         then:
-        output.count("> Transform lib1.jar (project :lib) with MakeBlueToGreenThings") == 1
-        output.count("> Transform lib2.jar (project :lib) with MakeBlueToGreenThings") == 1
-        output.count("> Transform lib1.jar (project :lib) with MakeGreenToYellowThings") == 1
-        output.count("> Transform lib2.jar (project :lib) with MakeGreenToYellowThings") == 1
-        output.count("> Transform lib1.jar (project :lib) with MakeGreenToRedThings") == 1
-        output.count("> Transform lib2.jar (project :lib) with MakeGreenToRedThings") == 1
+        output.count("> Transform lib1.jar (project ':lib') with MakeBlueToGreenThings") == 1
+        output.count("> Transform lib2.jar (project ':lib') with MakeBlueToGreenThings") == 1
+        output.count("> Transform lib1.jar (project ':lib') with MakeGreenToYellowThings") == 1
+        output.count("> Transform lib2.jar (project ':lib') with MakeGreenToYellowThings") == 1
+        output.count("> Transform lib1.jar (project ':lib') with MakeGreenToRedThings") == 1
+        output.count("> Transform lib2.jar (project ':lib') with MakeGreenToRedThings") == 1
     }
 
     // This shows current behaviour, where the transform is executed even though the input artifact has not been created yet
@@ -563,11 +561,11 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
 
         then:
         output.count("files 1: [lib1.jar.size, lib2.jar.size, lib3.jar.size, lib4-1.0.jar.size]") == 2
-        output.count("artifacts 1: [lib1.jar.size (project :lib), lib2.jar.size (project :lib), lib3.jar.size (lib3.jar), lib4-1.0.jar.size (org.test.foo:lib4:1.0)]") == 2
-        output.count("components 1: [project :lib, project :lib, lib3.jar, org.test.foo:lib4:1.0]") == 2
+        output.count("artifacts 1: [lib1.jar.size (project ':lib'), lib2.jar.size (project ':lib'), lib3.jar.size (lib3.jar), lib4-1.0.jar.size (org.test.foo:lib4:1.0)]") == 2
+        output.count("components 1: [project ':lib', project ':lib', lib3.jar, org.test.foo:lib4:1.0]") == 2
         output.count("files 2: [lib1.jar.hash, lib2.jar.hash, lib3.jar.hash, lib4-1.0.jar.hash]") == 2
-        output.count("artifacts 2: [lib1.jar.hash (project :lib), lib2.jar.hash (project :lib), lib3.jar.hash (lib3.jar), lib4-1.0.jar.hash (org.test.foo:lib4:1.0)]") == 2
-        output.count("components 2: [project :lib, project :lib, lib3.jar, org.test.foo:lib4:1.0]") == 2
+        output.count("artifacts 2: [lib1.jar.hash (project ':lib'), lib2.jar.hash (project ':lib'), lib3.jar.hash (lib3.jar), lib4-1.0.jar.hash (org.test.foo:lib4:1.0)]") == 2
+        output.count("components 2: [project ':lib', project ':lib', lib3.jar, org.test.foo:lib4:1.0]") == 2
 
         output.count("Transformed") == 8
         isTransformed("lib1.jar", "lib1.jar.size")
@@ -873,11 +871,11 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
 
         then:
         output.count("files 1: [lib1.jar.size, lib2.jar.size, lib3.jar.size, lib4-1.0.jar.size]") == 2
-        output.count("artifacts 1: [lib1.jar.size (project :lib), lib2.jar.size (project :lib), lib3.jar.size (lib3.jar), lib4-1.0.jar.size (org.test.foo:lib4:1.0)]") == 2
-        output.count("components 1: [project :lib, project :lib, lib3.jar, org.test.foo:lib4:1.0]") == 2
+        output.count("artifacts 1: [lib1.jar.size (project ':lib'), lib2.jar.size (project ':lib'), lib3.jar.size (lib3.jar), lib4-1.0.jar.size (org.test.foo:lib4:1.0)]") == 2
+        output.count("components 1: [project ':lib', project ':lib', lib3.jar, org.test.foo:lib4:1.0]") == 2
         output.count("files 2: [lib1.jar.hash, lib2.jar.hash, lib3.jar.hash, lib4-1.0.jar.hash]") == 2
-        output.count("artifacts 2: [lib1.jar.hash (project :lib), lib2.jar.hash (project :lib), lib3.jar.hash (lib3.jar), lib4-1.0.jar.hash (org.test.foo:lib4:1.0)]") == 2
-        output.count("components 2: [project :lib, project :lib, lib3.jar, org.test.foo:lib4:1.0]") == 2
+        output.count("artifacts 2: [lib1.jar.hash (project ':lib'), lib2.jar.hash (project ':lib'), lib3.jar.hash (lib3.jar), lib4-1.0.jar.hash (org.test.foo:lib4:1.0)]") == 2
+        output.count("components 2: [project ':lib', project ':lib', lib3.jar, org.test.foo:lib4:1.0]") == 2
 
         output.count("Transformed") == 8
         isTransformed("lib1.jar", "lib1.jar.size")
@@ -908,8 +906,8 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
 
         then:
         failure.assertHasCause("Could not resolve all files for configuration ':app:compile'.")
-        failure.assertHasCause("Failed to transform lib1.jar (project :lib) to match attributes {artifactType=size, usage=api}")
-        failure.assertHasCause("Failed to transform lib2.jar (project :lib) to match attributes {artifactType=size, usage=api}")
+        failure.assertHasCause("Failed to transform lib1.jar (project ':lib') to match attributes {artifactType=size, usage=api}")
+        failure.assertHasCause("Failed to transform lib2.jar (project ':lib') to match attributes {artifactType=size, usage=api}")
         def outputDir1 = gradleUserHomeOutputDir("lib1.jar", "lib1.jar.txt")
         def outputDir2 = gradleUserHomeOutputDir("lib2.jar", "lib2.jar.txt")
         def outputDir3 = gradleUserHomeOutputDir("lib3.jar", "lib3.jar.txt")
@@ -1000,6 +998,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         (outputDirs.parentFile.name as Set).size() == 2
     }
 
+    @UnsupportedWithConfigurationCache(because = "Under CC, project references from included builds are not found when transforms are resolved from the configuration cache entry")
     def "workspace id of project transforms is unique per build with included builds"() {
         // The setup here is in a way that the project path of the project dependency in the same build
         // is the same as the buildTreePath of the substituted project dependency in the included build.
@@ -1566,7 +1565,6 @@ resultsFile:
         failingTransform << (1..4)
     }
 
-    @ToBeFixedForConfigurationCache(because = "resolves external dependency when writing cache entry, rather than when running consuming task, so exception chain is different")
     def "failure in resolution propagates to chain (scheduled: #scheduled)"() {
         given:
         def module = mavenHttpRepo.module("test", "test", "1.3").publish()
@@ -1636,8 +1634,15 @@ resultsFile:
         fails ":app:resolve"
 
         then:
-        failure.assertHasDescription("Execution failed for task ':app:resolve' (registered in build file 'build.gradle').")
-        failure.assertResolutionFailure(":app:compile")
+        if (GradleContextualExecuter.configCache) {
+            // Under CC, the broken artifact download happens during configuration cache entry writing,
+            // so the error is reported as a cache serialization failure
+            failure.assertHasDescription("Configuration cache state could not be cached: field `artifacts` of task `:app:resolve` of type `Resolve`: error writing value of type 'org.gradle.api.internal.provider.DefaultProperty'")
+            failure.assertHasCause("Could not download test-1.3.jar (test:test:1.3)")
+        } else {
+            failure.assertHasDescription("Execution failed for task ':app:resolve' (registered in build file 'build.gradle').")
+            failure.assertResolutionFailure(":app:compile")
+        }
         failure.hasErrorOutput("Received status code 500 from server: broken")
 
         where:

@@ -86,11 +86,10 @@ public class DaemonJvmPropertiesConfigurator implements ProjectConfigureAction {
                             JavaToolchainResolverService resolverService = project.getServices().get(JavaToolchainResolverService.class);
                             if (!resolverService.hasConfiguredToolchainRepositories()) {
                                 UnconfiguredToolchainRepositoriesResolver exception = new UnconfiguredToolchainRepositoriesResolver();
-                                throw reporter.throwing(exception, UpdateDaemonJvm.TASK_CONFIGURATION_PROBLEM_ID,
-                                    problemSpec -> {
-                                        problemSpec.solution("Configure toolchain download repositories in your build settings.");
-                                        problemSpec.documentedAt(Documentation.userManual("toolchains", "sub:download_repositories").getUrl());
-                                });
+                                throw reporter.throwing(exception, reporter.create(UpdateDaemonJvm.TASK_CONFIGURATION_PROBLEM_ID, problemSpec -> {
+                                    problemSpec.solution("Configure toolchain download repositories in your build settings.");
+                                    problemSpec.documentedAt(Documentation.userManual("toolchains", "sub:download_repositories").getUrl());
+                                }));
                             }
                             Map<BuildPlatform, Optional<URI>> buildPlatformOptionalUriMap = platforms.stream()
                                 .collect(Collectors.toMap(platform -> platform,
@@ -99,12 +98,11 @@ public class DaemonJvmPropertiesConfigurator implements ProjectConfigureAction {
                                 .filter(e -> e.getValue().isPresent())
                                 .collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().get()));
                             if (platformToDownloadUri.isEmpty()) {
-                                throw reporter.throwing(new IllegalStateException("Toolchain resolvers did not return download URLs providing a JDK matching " + toolchainSpec + " for any of the requested platforms " + platforms),
-                                    UpdateDaemonJvm.TASK_CONFIGURATION_PROBLEM_ID,
-                                    problemSpec -> {
-                                        problemSpec.solution("Use a toolchain download repository capable of resolving the toolchain spec for the given platforms.");
-                                        problemSpec.documentedAt(Documentation.userManual("gradle_daemon", "sec:daemon_jvm_provisioning").getUrl());
-                                    });
+                                IllegalStateException exception = new IllegalStateException("Toolchain resolvers did not return download URLs providing a JDK matching " + toolchainSpec + " for any of the requested platforms " + platforms);
+                                throw reporter.throwing(exception, reporter.create(UpdateDaemonJvm.TASK_CONFIGURATION_PROBLEM_ID, problemSpec -> {
+                                    problemSpec.solution("Use a toolchain download repository capable of resolving the toolchain spec for the given platforms.");
+                                    problemSpec.documentedAt(Documentation.userManual("gradle_daemon", "sec:daemon_jvm_provisioning").getUrl());
+                                }));
                             }
                             return platformToDownloadUri;
                         }));

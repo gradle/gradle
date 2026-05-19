@@ -137,6 +137,7 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
         return nodes;
     }
 
+    @Override
     public ModuleResolveState getModule() {
         return module;
     }

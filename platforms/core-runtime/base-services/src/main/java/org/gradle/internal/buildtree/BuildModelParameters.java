@@ -26,6 +26,13 @@ import java.util.Map;
 public interface BuildModelParameters {
 
     /**
+     * Vintage mode is when neither CC nor IP are enabled.
+     */
+    default boolean isVintage() {
+        return !isConfigurationCache() && !isIsolatedProjects();
+    }
+
+    /**
      * Whether project-scoped work should use project-lock or build-lock to synchronize,
      * allowing work from different projects to run in parallel when set to true.
      * <p>
@@ -42,6 +49,11 @@ public interface BuildModelParameters {
 
     boolean isConfigureOnDemand();
 
+    /**
+     * Whether Configuration Cache is enabled.
+     * <p>
+     * Also true if Isolated Projects is enabled.
+     */
     boolean isConfigurationCache();
 
     /**
@@ -56,6 +68,9 @@ public interface BuildModelParameters {
 
     boolean isConfigurationCacheParallelLoad();
 
+    /**
+     * Whether Isolated Projects is enabled.
+     */
     boolean isIsolatedProjects();
 
     /**

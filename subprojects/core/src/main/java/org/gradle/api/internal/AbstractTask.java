@@ -618,7 +618,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     @Internal
     @Override
     public ExtensionContainer getExtensions() {
-        notifyConventionAccess("Task.extensions");
+        notifyTaskExtensionsAccess("Task.extensions");
         assertDynamicObject();
         return extensibleDynamicObject.getExtensions();
     }
@@ -1088,8 +1088,8 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         return getBuildServiceRegistry().getSharedResources(taskRequiredServices.getElements());
     }
 
-    private void notifyConventionAccess(String invocationDescription) {
-        taskExecutionAccessChecker.notifyConventionAccess(this, invocationDescription);
+    private void notifyTaskExtensionsAccess(String invocationDescription) {
+        taskExecutionAccessChecker.notifyTaskExtensionsAccess(this, invocationDescription);
     }
 
     private BuildServiceRegistryInternal getBuildServiceRegistry() {

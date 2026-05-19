@@ -18,7 +18,7 @@ package org.gradle.kotlin.dsl.plugins.dsl
 
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
@@ -32,7 +32,7 @@ class KotlinDslPluginForOldestKotlinVersionTest : AbstractKotlinIntegrationTest(
 
     @Test
     @Requires(
-        IntegTestPreconditions.NotEmbeddedExecutor::class,
+        TestExecutionPreconditions.NotEmbeddedExecutor::class,
         reason = "Kotlin version leaks on the classpath when running embedded"
     )
     fun `can build plugin for oldest supported Kotlin language version using last published plugin`() {
@@ -42,7 +42,7 @@ class KotlinDslPluginForOldestKotlinVersionTest : AbstractKotlinIntegrationTest(
 
     @Test
     @Requires(
-        IntegTestPreconditions.NotEmbeddedExecutor::class,
+        TestExecutionPreconditions.NotEmbeddedExecutor::class,
         reason = "Kotlin version leaks on the classpath when running embedded"
     )
     fun `can build plugin for oldest supported Kotlin language version using locally built plugin`() {

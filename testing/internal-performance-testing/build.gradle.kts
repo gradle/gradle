@@ -13,8 +13,8 @@ sourceSets {
     }
 }
 
-val reports by configurations.creating
-val flamegraph by configurations.creating
+val reports = configurations.create("reports")
+val flamegraph = configurations.create("flamegraph")
 configurations.compileOnly { extendsFrom(flamegraph) }
 
 repositories {

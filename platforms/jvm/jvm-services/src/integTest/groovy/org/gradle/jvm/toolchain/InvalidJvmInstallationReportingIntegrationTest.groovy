@@ -21,14 +21,15 @@ import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
+import org.gradle.test.preconditions.InstalledJdkTestPreconditions
 import spock.lang.TempDir
 
 import java.util.regex.Pattern
 
 class InvalidJvmInstallationReportingIntegrationTest extends AbstractIntegrationSpec {
 
-    @Requires([IntegTestPreconditions.NotNoDaemonExecutor, IntegTestPreconditions.DifferentJdkAvailable])
+    @Requires([TestExecutionPreconditions.NotNoDaemonExecutor, InstalledJdkTestPreconditions.DifferentJdkAvailable])
     @ToBeFixedForConfigurationCache(because = "With CC enabled, toolchain detection is not re-triggered on cache hit, so the warning is not emitted on the second build")
     def "invalid JDK is cached only for current build if in daemon"() {
         // Require a different JDK to be able to find the logs of its probing for system properties

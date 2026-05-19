@@ -131,10 +131,19 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
     public ColorMap getColourMap() {
         synchronized (lock) {
             if (colourMap == null) {
-                colourMap = new DefaultColorMap();
+                colourMap = new DefaultColorMap(isNoColorRequested());
             }
         }
         return colourMap;
+    }
+
+    /**
+     * Returns true when the NO_COLOR environment variable is present and non-empty,
+     * following the <a href="https://no-color.org/">no-color.org</a> convention.
+     */
+    private static boolean isNoColorRequested() {
+        String noColor = System.getenv("NO_COLOR");
+        return noColor != null && !noColor.isEmpty();
     }
 
     @Override

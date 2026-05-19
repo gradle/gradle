@@ -38,9 +38,11 @@ import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.plugins.DefaultObjectConfigurationAction;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.project.AbstractPluginAware;
+import org.gradle.api.internal.project.CrossBuildModelAccess;
 import org.gradle.api.internal.project.CrossProjectConfigurator;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectRegistry;
+import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.invocation.GradleLifecycle;
 import org.gradle.api.model.ObjectFactory;
@@ -85,6 +87,7 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
     private final CrossProjectConfigurator crossProjectConfigurator;
     private final IsolatedProjectEvaluationListenerProvider isolatedProjectEvaluationListenerProvider;
     private final GradleLifecycleActionExecutor gradleLifecycleActionExecutor;
+    private final CrossBuildModelAccess crossBuildModelAccess;
 
     // Mutable State
     private final ListenerBroadcast<BuildListener> buildListenerBroadcast;
@@ -95,8 +98,7 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
     private @Nullable Supplier<? extends ClassLoaderScope> classLoaderScope;
     private @Nullable ClassLoaderScope baseProjectClassLoaderScope;
     private @Nullable SettingsState settings;
-    private @Nullable ProjectInternal rootProject;
-    private @Nullable ProjectInternal defaultProject;
+    private @Nullable ProjectState defaultProject;
     private boolean projectsLoaded;
 
     public DefaultGradle(BuildState buildState, StartParameter startParameter, ServiceRegistry buildScopeServices) {
@@ -106,6 +108,7 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
         this.crossProjectConfigurator = buildScopeServices.get(CrossProjectConfigurator.class);
         this.isolatedProjectEvaluationListenerProvider = buildScopeServices.get(IsolatedProjectEvaluationListenerProvider.class);
         this.gradleLifecycleActionExecutor = buildScopeServices.get(GradleLifecycleActionExecutor.class);
+        this.crossBuildModelAccess = buildScopeServices.get(CrossBuildModelAccess.class);
 
         this.buildListenerBroadcast = getListenerManager().createAnonymousBroadcaster(BuildListener.class);
         this.projectEvaluationListenerBroadcast = getListenerManager().createAnonymousBroadcaster(ProjectEvaluationListener.class);
@@ -116,8 +119,10 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
                 ProjectEvaluationListener isolatedListener = isolatedProjectEvaluationListenerProvider.isolateFor(DefaultGradle.this);
 
                 if (!rootProjectActions.isEmpty()) {
-                    gradleLifecycleActionExecutor.executeBeforeProjectFor(rootProject);
-                    buildScopeServices.get(CrossProjectConfigurator.class).rootProject(rootProject, rootProjectActions);
+                    buildState.getRootProject().applyToMutableState(rootProjectModel -> {
+                        gradleLifecycleActionExecutor.executeBeforeProjectFor(rootProjectModel);
+                        buildScopeServices.get(CrossProjectConfigurator.class).rootProject(rootProjectModel, rootProjectActions);
+                    });
                 }
                 if (isolatedListener != null) {
                     projectEvaluationListenerBroadcast.add(isolatedListener);
@@ -133,7 +138,7 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
 
     @Override
     public String toString() {
-        return rootProject == null ? "build" : ("build '" + rootProject.getName() + "'");
+        return getOwner().getDisplayName().getDisplayName();
     }
 
     @Override
@@ -158,7 +163,9 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
     @Override
     public @Nullable GradleInternal getParent() {
         BuildState parent = buildState.getParent();
-        return parent == null ? null : parent.getMutableModel();
+        return parent != null
+            ? crossBuildModelAccess.access(this, parent.getMutableModel())
+            : null;
     }
 
     @Override
@@ -214,7 +221,6 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
     public void resetState() {
         classLoaderScope = null;
         baseProjectClassLoaderScope = null;
-        rootProject = null;
         defaultProject = null;
         projectsLoaded = false;
         includedBuilds = null;
@@ -275,15 +281,11 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
 
     @Override
     public ProjectInternal getRootProject() {
-        if (rootProject == null) {
-            throw new IllegalStateException("The root project is not yet available for " + this + ".");
-        }
-        return rootProject;
-    }
-
-    @Override
-    public void setRootProject(ProjectInternal rootProject) {
-        this.rootProject = rootProject;
+        // At the very least, verify we have the lock at the time of access.
+        // In most cases other Gradle implementations will wrap the project in mutable state checks.
+        // We should use `CrossProjectModelAccess` here too, and potentially remove alternative implementations of `Gradle.getRootProject()` in other Gradle implementations.
+        ProjectState rootProject = buildState.getRootProject();
+        return rootProject.runWithModelLock(rootProject::getMutableModel);
     }
 
     @Override
@@ -293,8 +295,7 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
 
     private void rootProject(String registrationPoint, Action<? super Project> action) {
         if (projectsLoaded) {
-            assert rootProject != null;
-            action.execute(rootProject);
+            buildState.getRootProject().applyToMutableState(action::execute);
         } else {
             // only need to decorate when this callback is delayed
             rootProjectActions.add(decorate(registrationPoint, action));
@@ -307,7 +308,7 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
     }
 
     @Override
-    public ProjectInternal getDefaultProject() {
+    public ProjectState getDefaultProjectState() {
         if (defaultProject == null) {
             throw new IllegalStateException("The default project is not yet available for " + this + ".");
         }
@@ -315,7 +316,7 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
     }
 
     @Override
-    public void setDefaultProject(ProjectInternal defaultProject) {
+    public void setDefaultProjectState(ProjectState defaultProject) {
         this.defaultProject = defaultProject;
     }
 

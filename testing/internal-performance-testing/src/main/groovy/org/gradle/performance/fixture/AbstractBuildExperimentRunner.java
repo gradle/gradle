@@ -124,7 +124,8 @@ public abstract class AbstractBuildExperimentRunner implements BuildExperimentRu
             .setSysProperties(emptyMap())
             .setWarmupCount(warmupsForExperiment(experiment))
             .setIterations(invocationsForExperiment(experiment))
-            .setCsvFormat(Format.LONG);
+            .setCsvFormat(Format.LONG)
+            .setBuildOperationsTrace(Boolean.getBoolean("org.gradle.performance.buildOperationTrace"));
     }
 
     private File outputDirFor(String testId, BuildExperimentSpec spec) {

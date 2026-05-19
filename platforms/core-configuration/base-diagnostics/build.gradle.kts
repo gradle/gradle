@@ -21,6 +21,7 @@ dependencies {
     api(projects.logging)
     api(projects.modelCore)
     api(projects.reportRendering)
+    api(projects.serviceProvider)
     api(projects.stdlibJavaExtensions)
 
     api(libs.guava)

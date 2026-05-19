@@ -19,7 +19,6 @@ package org.gradle.initialization;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.internal.build.BuildState;
 
@@ -32,7 +31,7 @@ public class InstantiatingBuildLoader implements BuildLoader {
 
     private void attachDefaultProject(GradleInternal gradle, ProjectDescriptorInternal defaultProjectDescriptor) {
         ProjectState defaultProject = gradle.getOwner().getProjects().getProject(defaultProjectDescriptor.path());
-        gradle.setDefaultProject(defaultProject.getMutableModel());
+        gradle.setDefaultProjectState(defaultProject);
     }
 
     private void createProjects(GradleInternal gradle, ProjectDescriptorInternal rootProjectDescriptor) {
@@ -41,8 +40,6 @@ public class InstantiatingBuildLoader implements BuildLoader {
 
         ProjectState projectState = gradle.getOwner().getProjects().getProject(rootProjectDescriptor.path());
         projectState.createMutableModel(rootProjectClassLoaderScope, baseProjectClassLoaderScope);
-        ProjectInternal rootProject = projectState.getMutableModel();
-        gradle.setRootProject(rootProject);
 
         createChildProjectsRecursively(gradle.getOwner(), rootProjectDescriptor, rootProjectClassLoaderScope, baseProjectClassLoaderScope);
     }

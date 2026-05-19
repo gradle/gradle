@@ -19,7 +19,7 @@ package org.gradle.api.file
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import spock.lang.Issue
 
 class RelativePathFilesIntegrationTest extends AbstractIntegrationSpec {
@@ -55,7 +55,7 @@ class RelativePathFilesIntegrationTest extends AbstractIntegrationSpec {
     }
 
     // Test implementation is not compatible with IP, but the use case will still exist, though might be more involved to set up
-    @Requires(IntegTestPreconditions.NotIsolatedProjects)
+    @Requires(TestExecutionPreconditions.NotIsolatedProjects)
     @Issue("https://github.com/gradle/gradle/issues/30052")
     def "#container supports using relative paths at execution time"() {
         given:
@@ -95,7 +95,6 @@ class RelativePathFilesIntegrationTest extends AbstractIntegrationSpec {
         "ConfigurableFileTree"       | "fileTree()"       | ["abc/subDir2/file2.txt"]
     }
 
-    // TODO: write a similar test for the RegularFileProperty
     @ToBeFixedForConfigurationCache(because = "https://github.com/gradle/gradle/issues/32591")
     def "ConfigurableFileCollection files derived from directory property via #method respect execution time directory change"() {
         settingsFile """
@@ -134,6 +133,193 @@ class RelativePathFilesIntegrationTest extends AbstractIntegrationSpec {
         "file(Provider<String>)"    | "dir.file(provider{'file.txt'})"  | ["sub/subDir2/file.txt"]
         "files(<string>)"           | "dir.files('file.txt')"           | ["sub/subDir2/file.txt"]
         "files(provider{<string>})" | "dir.files(provider{'file.txt'})" | ["sub/subDir2/file.txt"]
+    }
+
+    def "ConfigurableFileCollection files derived from regular file property respect execution time file change"() {
+        settingsFile """
+            include("sub")
+        """
+
+        buildFile "sub/build.gradle", """
+            def regularFile = project.objects.fileProperty()
+            regularFile.set(file("file1.txt"))
+
+            def files = project.objects.fileCollection()
+            files.from(regularFile)
+
+            tasks.register("foo") {
+                def otherFile = file("file2.txt")
+                doLast {
+                    regularFile.set(otherFile) // change the file to point elsewhere
+                    println("files: \${files.files.toSorted()}")
+                }
+            }
+        """
+
+        expect:
+        succeeds(":sub:foo")
+        outputContains("files: ${["sub/file2.txt"].collect { testDirectory.file(it) }.toSorted()}")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/32591")
+    def "RegularFileProperty survives cyclic CC round-trip when its provider chain transitively references the property"() {
+        given:
+        file("buildSrc/src/main/java/my/PropHoldingTransformer.java") << """
+            package my;
+            import org.gradle.api.Transformer;
+            import org.gradle.api.file.FileSystemLocation;
+            import org.gradle.api.file.RegularFileProperty;
+            import java.io.File;
+            import java.util.Set;
+
+            public class PropHoldingTransformer implements Transformer<File, Set<FileSystemLocation>> {
+                private final RegularFileProperty prop;
+                public PropHoldingTransformer(RegularFileProperty prop) { this.prop = prop; }
+                @Override
+                public File transform(Set<FileSystemLocation> locations) {
+                    return locations.iterator().next().getAsFile();
+                }
+            }
+        """
+        file("buildSrc/src/main/java/my/CyclicBean.java") << """
+            package my;
+            import org.gradle.api.Project;
+            import org.gradle.api.file.RegularFileProperty;
+            import org.gradle.api.tasks.InputFile;
+            import org.gradle.api.tasks.TaskProvider;
+
+            public abstract class CyclicBean {
+                @InputFile public abstract RegularFileProperty getProp();
+
+                public void wire(Project project, TaskProvider<?> producer) {
+                    getProp().fileProvider(
+                        project.files(producer).getElements().map(new PropHoldingTransformer(getProp()))
+                    );
+                    getProp().disallowChanges();
+                }
+            }
+        """
+        file("buildSrc/src/main/java/my/CyclicTask.java") << """
+            package my;
+            import org.gradle.api.DefaultTask;
+            import org.gradle.api.tasks.Nested;
+            import org.gradle.api.tasks.TaskAction;
+
+            public abstract class CyclicTask extends DefaultTask {
+                @Nested public abstract CyclicBean getCyclic();
+                @TaskAction public void run() {
+                    System.out.println("value: " + getCyclic().getProp().get());
+                }
+            }
+        """
+        file("buildSrc/src/main/java/my/ProducerTask.java") << """
+            package my;
+            import org.gradle.api.DefaultTask;
+            import org.gradle.api.file.RegularFileProperty;
+            import org.gradle.api.tasks.OutputFile;
+            import org.gradle.api.tasks.TaskAction;
+
+            public abstract class ProducerTask extends DefaultTask {
+                @OutputFile public abstract RegularFileProperty getOut();
+                @TaskAction public void run() throws java.io.IOException {
+                    java.nio.file.Files.writeString(getOut().get().getAsFile().toPath(), "hello");
+                }
+            }
+        """
+        buildFile """
+            def producer = tasks.register("producer", my.ProducerTask) {
+                out.set(layout.buildDirectory.file("produced.txt"))
+            }
+            tasks.register("cyclic", my.CyclicTask) { task ->
+                task.getCyclic().wire(project, producer)
+            }
+        """
+
+        expect:
+        succeeds(":cyclic")
+        and:
+        succeeds(":cyclic")
+        outputContains("value: " + file("build/produced.txt"))
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/32591")
+    def "DirectoryProperty survives cyclic CC round-trip when its provider chain transitively references the property"() {
+        given:
+        file("buildSrc/src/main/java/my/DirPropHoldingTransformer.java") << """
+            package my;
+            import org.gradle.api.Transformer;
+            import org.gradle.api.file.Directory;
+            import org.gradle.api.file.DirectoryProperty;
+
+            public class DirPropHoldingTransformer implements Transformer<Directory, Directory> {
+                private final DirectoryProperty prop;
+                public DirPropHoldingTransformer(DirectoryProperty prop) { this.prop = prop; }
+                @Override
+                public Directory transform(Directory input) {
+                    return input;
+                }
+            }
+        """
+        file("buildSrc/src/main/java/my/CyclicDirBean.java") << """
+            package my;
+            import org.gradle.api.Project;
+            import org.gradle.api.file.Directory;
+            import org.gradle.api.file.DirectoryProperty;
+            import org.gradle.api.provider.Provider;
+            import org.gradle.api.tasks.InputDirectory;
+            import org.gradle.api.tasks.TaskProvider;
+
+            public abstract class CyclicDirBean {
+                @InputDirectory public abstract DirectoryProperty getProp();
+
+                public void wire(Project project, Provider<Directory> producerOut) {
+                    Provider<Directory> asDir = producerOut.map(new DirPropHoldingTransformer(getProp()));
+                    getProp().value(asDir);
+                    getProp().disallowChanges();
+                }
+            }
+        """
+        file("buildSrc/src/main/java/my/CyclicDirTask.java") << """
+            package my;
+            import org.gradle.api.DefaultTask;
+            import org.gradle.api.tasks.Nested;
+            import org.gradle.api.tasks.TaskAction;
+
+            public abstract class CyclicDirTask extends DefaultTask {
+                @Nested public abstract CyclicDirBean getCyclic();
+                @TaskAction public void run() {
+                    System.out.println("value: " + getCyclic().getProp().get());
+                }
+            }
+        """
+        file("buildSrc/src/main/java/my/DirProducerTask.java") << """
+            package my;
+            import org.gradle.api.DefaultTask;
+            import org.gradle.api.file.DirectoryProperty;
+            import org.gradle.api.tasks.OutputDirectory;
+            import org.gradle.api.tasks.TaskAction;
+
+            public abstract class DirProducerTask extends DefaultTask {
+                @OutputDirectory public abstract DirectoryProperty getOut();
+                @TaskAction public void run() {
+                    getOut().get().getAsFile().mkdirs();
+                }
+            }
+        """
+        buildFile """
+            def producer = tasks.register("dirProducer", my.DirProducerTask) {
+                out.set(layout.buildDirectory.dir("produced"))
+            }
+            tasks.register("cyclicDir", my.CyclicDirTask) { task ->
+                task.getCyclic().wire(project, producer.flatMap { it.out })
+            }
+        """
+
+        expect:
+        succeeds(":cyclicDir")
+        and:
+        succeeds(":cyclicDir")
+        outputContains("value: " + file("build/produced"))
     }
 
     @Issue("https://github.com/gradle/gradle/issues/32992")

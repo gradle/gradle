@@ -31,6 +31,16 @@ public interface BuildLogicFiles {
     String SETTINGS_FILE_BASENAME = "settings";
 
     /**
+     * Default build file name that is assumed if no build file exists.
+     * <p>
+     * This should be preferred over {@code Project.DEFAULT_BUILD_FILE}
+     * to avoid all compile-time dependencies that {@code Project} brings.
+     *
+     * @implNote Must be kept in sync with {@code Project.DEFAULT_BUILD_FILE}
+     */
+    String DEFAULT_BUILD_FILE = "build.gradle";
+
+    /**
      * Base name for discovery of build scripts like <code>build.gradle</code> or <code>build.gradle.kts</code>.
      *
      * @see org.gradle.internal.scripts.ScriptingLanguages

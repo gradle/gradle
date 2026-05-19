@@ -22,11 +22,14 @@ data class ResolutionResult(
     val nestedObjectAccessFromDefaults: List<NestedObjectAccessRecord> = emptyList()
 )
 
+sealed interface IdentifiedOperation {
+    val operationId: OperationId
+}
 
-data class DataAdditionRecord(val container: ObjectOrigin, val dataObject: ObjectOrigin, val operationId: OperationId)
+data class DataAdditionRecord(val container: ObjectOrigin, val dataObject: ObjectOrigin, override val operationId: OperationId) : IdentifiedOperation
 
 
-data class NestedObjectAccessRecord(val container: ObjectOrigin, val dataObject: ObjectOrigin, val operationId: OperationId)
+data class NestedObjectAccessRecord(val container: ObjectOrigin, val dataObject: ObjectOrigin, override val operationId: OperationId) : IdentifiedOperation
 
 
 data class ResolutionError(

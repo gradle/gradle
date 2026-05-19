@@ -21,7 +21,7 @@ import org.gradle.api.internal.BuildDefinition;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.IncludedBuildFactory;
 import org.gradle.internal.build.IncludedBuildState;
-import org.gradle.internal.buildtree.BuildTreeState;
+import org.gradle.internal.buildtree.BuildTreeServices;
 import org.gradle.util.Path;
 
 import javax.inject.Inject;
@@ -29,13 +29,13 @@ import java.io.File;
 
 public class DefaultIncludedBuildFactory implements IncludedBuildFactory {
 
-    private final BuildTreeState buildTree;
+    private final BuildTreeServices buildTreeServices;
 
     @Inject
     public DefaultIncludedBuildFactory(
-        BuildTreeState buildTree
+        BuildTreeServices buildTreeServices
     ) {
-        this.buildTree = buildTree;
+        this.buildTreeServices = buildTreeServices;
     }
 
     private static void validateBuildDirectory(File dir) {
@@ -55,7 +55,7 @@ public class DefaultIncludedBuildFactory implements IncludedBuildFactory {
             buildDefinition,
             isImplicit,
             owner,
-            buildTree
+            buildTreeServices
         );
     }
 

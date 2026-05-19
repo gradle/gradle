@@ -17,25 +17,62 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results;
 
 import org.gradle.api.artifacts.UnresolvedDependency;
-import org.gradle.api.internal.artifacts.result.MinimalResolutionResult;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.GraphStructure;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ResolvedDependencyGraph;
+import org.gradle.api.internal.artifacts.result.ResolvedGraphResult;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.jspecify.annotations.Nullable;
 
+import java.lang.ref.SoftReference;
 import java.util.Set;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 /**
  * Default implementation of {@link VisitedGraphResults}.
  */
 public class DefaultVisitedGraphResults implements VisitedGraphResults {
 
-    private final MinimalResolutionResult resolutionResult;
+    private final ImmutableAttributes requestAttributes;
+    private final Supplier<GraphStructure> graphStructureSource;
     private final Set<UnresolvedDependency> unresolvedDependencies;
 
+    /**
+     * ResolvedGraphResult is a wrapper over the underlying GraphStructure and provides
+     * no additional context. Only hold a soft reference to it to avoid retained memory
+     * if no other references to the wrapper graph exist.
+     */
+    private @Nullable SoftReference<ResolvedGraphResult> resolvedGraphResult = null;
+    private final Supplier<ResolvedGraphResult> resolvedGraphResultSource;
+
     public DefaultVisitedGraphResults(
-        MinimalResolutionResult resolutionResult,
+        ResolvedDependencyGraph resolvedDependencyGraph,
         Set<UnresolvedDependency> unresolvedDependencies
     ) {
-        this.resolutionResult = resolutionResult;
+        this.requestAttributes = resolvedDependencyGraph.requestAttributes();
+        this.graphStructureSource = resolvedDependencyGraph.graphSource();
         this.unresolvedDependencies = unresolvedDependencies;
+
+        this.resolvedGraphResultSource = () -> {
+            if (resolvedGraphResult != null) {
+                ResolvedGraphResult value = resolvedGraphResult.get();
+                if (value != null) {
+                    return value;
+                }
+            }
+
+            ResolvedGraphResult value = new ResolvedGraphResult(
+                graphStructureSource.get(),
+                resolvedDependencyGraph.availableVariantsByComponent()
+            );
+            this.resolvedGraphResult = new SoftReference<>(value);
+            return value;
+        };
+    }
+
+    @Override
+    public ImmutableAttributes getRequestedAttributes() {
+        return requestAttributes;
     }
 
     @Override
@@ -51,13 +88,18 @@ public class DefaultVisitedGraphResults implements VisitedGraphResults {
     }
 
     @Override
-    public MinimalResolutionResult getResolutionResult() {
-        return resolutionResult;
+    public Set<UnresolvedDependency> getUnresolvedDependencies() {
+        return unresolvedDependencies;
     }
 
     @Override
-    public Set<UnresolvedDependency> getUnresolvedDependencies() {
-        return unresolvedDependencies;
+    public Supplier<GraphStructure> getGraphStructureSource() {
+        return graphStructureSource;
+    }
+
+    @Override
+    public Supplier<ResolvedGraphResult> getResolvedGraphResultSource() {
+        return resolvedGraphResultSource;
     }
 
 }

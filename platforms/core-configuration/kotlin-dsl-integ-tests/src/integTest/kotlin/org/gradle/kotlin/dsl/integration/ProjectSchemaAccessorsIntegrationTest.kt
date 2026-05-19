@@ -24,7 +24,8 @@ import org.gradle.kotlin.dsl.fixtures.containsMultiLineString
 import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.JdkVersionTestPreconditions
+
 import org.hamcrest.CoreMatchers.allOf
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.CoreMatchers.not
@@ -475,7 +476,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractKotlinIntegrationTest() {
                         """
                         import my.App
                         import my.Lib
-                        val my: String? by project
+                        val my = project.findProperty("my") as String?
                         val extensionType = if (my == "app") App::class else Lib::class
                         extensions.create("my", extensionType)
                         """
@@ -761,7 +762,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractKotlinIntegrationTest() {
                 }
             }
 
-            val adhocConfig by configurations.creating
+            val adhocConfig = configurations.create("adhocConfig")
             configurations.create("for-string-invoke")
 
             (artifacts) {
@@ -1081,7 +1082,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractKotlinIntegrationTest() {
             }
 
             tasks {
-                val myCheck by registering {
+                val myCheck = register("myCheck") {
                     dependsOn(testClasses)
                     doLast {
                         println(testClasses.get().description)
@@ -1112,7 +1113,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractKotlinIntegrationTest() {
                         srcDir("src/main/java-too")
                     }
                 }
-                val integTest by registering {
+                register("integTest") {
                     java.srcDir(file("src/integTest/java"))
                     resources.srcDir(file("src/integTest/resources"))
                     compileClasspath += sourceSets.main.get().output + configurations.testRuntimeClasspath.get()
@@ -1121,7 +1122,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractKotlinIntegrationTest() {
             }
 
             tasks {
-                val integTest by registering(Test::class) {
+                val integTest = register<Test>("integTest") {
                     description = "Runs the integration tests."
                     group = "verification"
                     testClassesDirs = sourceSets["integTest"].output.classesDirs
@@ -1233,7 +1234,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractKotlinIntegrationTest() {
     }
 
     @Test
-    @Requires(UnitTestPreconditions.Jdk11OrLater::class)
+    @Requires(JdkVersionTestPreconditions.Jdk11OrLater::class)
     fun `can access project extension of nested type compiled to Java 11`() {
 
         withFolders {

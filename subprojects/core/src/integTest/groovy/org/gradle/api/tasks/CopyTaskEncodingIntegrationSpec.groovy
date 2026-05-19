@@ -20,14 +20,14 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.test.fixtures.file.DoesNotSupportNonAsciiPaths
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import spock.lang.Issue
 
 @DoesNotSupportNonAsciiPaths(reason = "Uses non-Unicode default charset")
 class CopyTaskEncodingIntegrationSpec extends AbstractIntegrationSpec {
 
     @Issue("https://issues.gradle.org/browse/GRADLE-2181")
-    @Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "requires explicit encoding")
+    @Requires(value = TestExecutionPreconditions.NotEmbeddedExecutor, reason = "requires explicit encoding")
     @UnsupportedWithConfigurationCache(iterationMatchers = [".*using copy method"], because = "legacy Project.copy at execution time")
     def "can copy files with unicode characters in name with non-unicode platform encoding using #copyMethod method"() {
         given:

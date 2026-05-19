@@ -16,9 +16,9 @@
 package org.gradle.api.internal.catalog;
 
 import com.google.common.base.Splitter;
-import com.google.common.collect.ImmutableList;
 import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.GradleException;
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.ExternalModuleDependencyBundle;
 import org.gradle.api.artifacts.MinimalExternalModuleDependency;
 import org.gradle.api.artifacts.MutableVersionConstraint;
@@ -29,9 +29,9 @@ import org.gradle.api.internal.catalog.problems.VersionCatalogProblemId;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.problems.Problems;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
-import org.gradle.api.problems.internal.InternalProblem;
-import org.gradle.api.problems.internal.InternalProblemSpec;
-import org.gradle.api.problems.internal.InternalProblems;
+import org.gradle.api.problems.internal.ProblemInternal;
+import org.gradle.api.problems.internal.ProblemSpecInternal;
+import org.gradle.api.problems.internal.ProblemsInternal;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.internal.UncheckedException;
@@ -57,19 +57,18 @@ import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;
 import static org.gradle.api.internal.catalog.problems.DefaultCatalogProblemBuilder.VERSION_CATALOG_PROBLEMS;
 import static org.gradle.api.internal.catalog.problems.DefaultCatalogProblemBuilder.getProblemInVersionCatalog;
-import static org.gradle.api.internal.catalog.problems.DefaultCatalogProblemBuilder.maybeThrowError;
-import static org.gradle.api.internal.catalog.problems.DefaultCatalogProblemBuilder.throwError;
 import static org.gradle.api.internal.catalog.problems.VersionCatalogProblemId.ACCESSOR_NAME_CLASH;
 import static org.gradle.api.internal.catalog.problems.VersionCatalogProblemId.TOO_MANY_ENTRIES;
 import static org.gradle.internal.RenderingUtils.oxfordJoin;
 import static org.gradle.internal.deprecation.Documentation.userManual;
+import static org.gradle.util.internal.TextUtil.screamingSnakeToKebabCase;
 
 public class LibrariesSourceGenerator extends AbstractSourceGenerator {
 
     private static final int MAX_ENTRIES = 30000;
     public static final String ERROR_HEADER = "Cannot generate dependency accessors";
     private final DefaultVersionCatalog config;
-    private final InternalProblems problemsService;
+    private final ProblemsInternal problemsService;
 
     private final Map<String, Integer> classNameCounter = new HashMap<>();
     private final Map<ClassNode, String> classNameCache = new HashMap<>();
@@ -81,7 +80,7 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
     ) {
         super(writer);
         this.config = config;
-        this.problemsService = (InternalProblems) problemsService;
+        this.problemsService = (ProblemsInternal) problemsService;
     }
 
     public static void generateSource(
@@ -502,25 +501,26 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
         int size = libraries.size() + bundles.size() + versions.size() + plugins.size();
         if (size > MAX_ENTRIES) {
             throw throwVersionCatalogProblemException(problemsService.getInternalReporter().internalCreate(builder ->
-                configureVersionCatalogError(builder, getProblemPrefix() + "version catalog model contains too many entries (" + size + ").", TOO_MANY_ENTRIES)
+                configureVersionCatalogError(builder, getProblemPrefix() + "version catalog model contains too many entries (" + size + ")", TOO_MANY_ENTRIES)
                     .details("The maximum number of aliases in a catalog is " + MAX_ENTRIES)
                     .solution("Reduce the number of aliases defined in this catalog")
                     .solution("Split the catalog into multiple catalogs")));
         }
     }
 
-    private RuntimeException throwVersionCatalogProblemException(InternalProblem problem) {
-        throw throwError(problemsService, ERROR_HEADER, ImmutableList.of(problem));
+    private RuntimeException throwVersionCatalogProblemException(ProblemInternal problem) {
+        throw problemsService.getReporter().throwing(new InvalidUserDataException(), problem);
     }
 
-    private static InternalProblemSpec configureVersionCatalogError(InternalProblemSpec spec, String message, VersionCatalogProblemId catalogProblemId) {
+    private static ProblemSpecInternal configureVersionCatalogError(ProblemSpecInternal spec, String message, VersionCatalogProblemId catalogProblemId) {
         return spec
-            .id(TextUtil.screamingSnakeToKebabCase(catalogProblemId.name()), message, GradleCoreProblemGroup.versionCatalog()) // TODO is message stable?
+            .id(screamingSnakeToKebabCase(catalogProblemId.name()), catalogProblemId.getDisplayName(), GradleCoreProblemGroup.versionCatalog())
+            .contextualLabel(message)
             .documentedAt(userManual(VERSION_CATALOG_PROBLEMS, catalogProblemId.name().toLowerCase(Locale.ROOT)));
     }
 
     private void assertUnique(List<String> names, String prefix, String suffix) {
-        List<InternalProblem> errors = names.stream()
+        List<ProblemInternal> errors = names.stream()
             .collect(groupingBy(AbstractSourceGenerator::toJavaName))
             .entrySet()
             .stream()
@@ -528,12 +528,14 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
             .map(e -> {
                 String errorValues = e.getValue().stream().sorted().collect(oxfordJoin("and"));
                 return this.problemsService.getInternalReporter().internalCreate(builder ->
-                    configureVersionCatalogError(builder, getProblemPrefix() + prefix + " " + errorValues + " are mapped to the same accessor name get" + e.getKey() + suffix + "().", ACCESSOR_NAME_CLASH)
+                    configureVersionCatalogError(builder, getProblemPrefix() + prefix + " " + errorValues + " are mapped to the same accessor name get" + e.getKey() + suffix + "()", ACCESSOR_NAME_CLASH)
                         .details("A name clash was detected")
                         .solution("Use a different alias for " + errorValues));
             })
             .collect(toList());
-        maybeThrowError(this.problemsService, ERROR_HEADER, errors);
+        if (!errors.isEmpty()) {
+            throw this.problemsService.getReporter().throwing(new InvalidUserDataException(), errors);
+        }
     }
 
     private String getProblemPrefix() {

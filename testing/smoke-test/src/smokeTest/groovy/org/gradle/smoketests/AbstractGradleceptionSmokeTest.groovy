@@ -21,15 +21,16 @@ import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.test.GradleBuildJvmSpec
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import org.gradle.test.preconditions.SmokeTestPreconditions
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.JdkVersionTestPreconditions
+
 
 import java.text.SimpleDateFormat
 
 @Requires([
-    UnitTestPreconditions.Jdk9OrLater,
-    IntegTestPreconditions.NotConfigCached,
+    JdkVersionTestPreconditions.Jdk9OrLater,
+    TestExecutionPreconditions.NotConfigCached,
     SmokeTestPreconditions.GradleBuildJvmSpecAvailable
 ])
 abstract class AbstractGradleceptionSmokeTest extends AbstractSmokeTest {

@@ -107,8 +107,8 @@ abstract class AbstractJUnitTestClassDetectionIntegrationTest extends AbstractTe
         run "test"
 
         and:
-        def result = new DefaultTestExecutionResult(testDirectory, testFramework)
-        result.testClass("TestCase").with {
+        def result = new DefaultTestExecutionResult(testDirectory)
+        verifyAll(result.testClass("TestCase")) {
             assertTestCount(1, 0)
         }
     }

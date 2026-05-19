@@ -21,15 +21,15 @@ import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.problems.internal.DefaultProblems;
 import org.gradle.api.problems.internal.ExceptionProblemRegistry;
-import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.api.problems.internal.IsolatableToBytesSerializer;
 import org.gradle.api.problems.internal.ProblemEmitter;
 import org.gradle.api.problems.internal.ProblemReportCreator;
 import org.gradle.api.problems.internal.ProblemSummarizer;
 import org.gradle.api.problems.internal.ProblemTaskIdentityTracker;
+import org.gradle.api.problems.internal.ProblemsInternal;
 import org.gradle.api.problems.internal.TaskIdentity;
+import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.buildoption.InternalOptions;
-import org.gradle.internal.cc.impl.problems.BuildNameProvider;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.exception.ExceptionAnalyser;
@@ -56,7 +56,7 @@ import java.util.Collection;
 @ServiceScope(Scope.BuildTree.class)
 public class ProblemsBuildTreeServices implements ServiceRegistrationProvider {
     @Provides
-    InternalProblems createProblemsService(
+    ProblemsInternal createProblemsService(
         ProblemSummarizer problemSummarizer,
         ProblemStream problemStream,
         ExceptionProblemRegistry exceptionProblemRegistry,
@@ -116,10 +116,10 @@ public class ProblemsBuildTreeServices implements ServiceRegistrationProvider {
         StartParameterInternal startParameter,
         ListenerManager listenerManager,
         FailureFactory failureFactory,
-        BuildNameProvider buildNameProvider
+        BuildStateRegistry buildStateRegistry
     ) {
         if (startParameter.isProblemReportGenerationEnabled()) {
-            return new DefaultProblemsReportCreator(executorFactory, temporaryFileProvider, internalOptions, startParameter, failureFactory, buildNameProvider);
+            return new DefaultProblemsReportCreator(executorFactory, temporaryFileProvider, internalOptions, startParameter, failureFactory, buildStateRegistry);
         }
         return new NoOpProblemReportCreator();
     }

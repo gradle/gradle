@@ -49,7 +49,7 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
     private final InstantiationScheme parametersInstantiationScheme;
     private final TransformRegistrationFactory registrationFactory;
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private final IsolationScheme<TransformAction<?>, TransformParameters> isolationScheme = new IsolationScheme<TransformAction<?>, TransformParameters>((Class)TransformAction.class, TransformParameters.class, TransformParameters.None.class);
+    private final IsolationScheme<TransformAction<?>, TransformParameters> isolationScheme = new IsolationScheme<TransformAction<?>, TransformParameters>((Class) TransformAction.class, TransformParameters.class, TransformParameters.None.class, TransformParameters.None.INSTANCE);
     private final DocumentationRegistry documentationRegistry;
 
     public DefaultVariantTransformRegistry(

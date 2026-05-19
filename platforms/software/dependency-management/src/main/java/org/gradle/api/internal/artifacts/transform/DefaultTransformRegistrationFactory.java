@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.transform.CacheableTransform;
 import org.gradle.api.artifacts.transform.InputArtifact;
 import org.gradle.api.artifacts.transform.InputArtifactDependencies;
@@ -27,8 +28,10 @@ import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.tasks.properties.FileParameterUtils;
-import org.gradle.api.problems.internal.InternalProblems;
+import org.gradle.api.problems.internal.ProblemInternal;
+import org.gradle.api.problems.internal.ProblemsInternal;
 import org.gradle.internal.execution.InputFingerprinter;
+import org.gradle.internal.execution.WorkValidationException;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
 import org.gradle.internal.fingerprint.FileNormalizer;
 import org.gradle.internal.fingerprint.LineEndingSensitivity;
@@ -100,7 +103,7 @@ public class DefaultTransformRegistrationFactory implements TransformRegistratio
     public TransformRegistration create(ImmutableAttributes from, ImmutableAttributes to, Class<? extends TransformAction<?>> implementation, @Nullable TransformParameters parameterObject) {
         TypeMetadata actionMetadata = actionMetadataStore.getTypeMetadata(implementation);
         boolean cacheable = implementation.isAnnotationPresent(CacheableTransform.class);
-        InternalProblems problems = (InternalProblems) internalServices.get(InternalProblems.class);
+        ProblemsInternal problems = (ProblemsInternal) internalServices.get(ProblemsInternal.class);
         DefaultTypeValidationContext validationContext = DefaultTypeValidationContext.withoutRootType(cacheable, problems);
         actionMetadata.visitValidationFailures(null, validationContext);
 
@@ -129,7 +132,11 @@ public class DefaultTransformRegistrationFactory implements TransformRegistratio
                 DefaultTransform.validateInputFileNormalizer(propertyMetadata.getPropertyName(), dependenciesNormalizer, cacheable, validationContext);
             }
         }
-        DefaultTypeValidationContext.throwOnProblemsOf(implementation, validationContext.getErrors());
+        ImmutableList<ProblemInternal> errors = validationContext.getErrors();
+        if (!errors.isEmpty()) {
+            WorkValidationException exception = WorkValidationException.withSummaryForType(implementation, errors.size());
+            throw problems.getReporter().throwing(exception, errors);
+        }
         Transform transform = new DefaultTransform(
             implementation,
             parameterObject,

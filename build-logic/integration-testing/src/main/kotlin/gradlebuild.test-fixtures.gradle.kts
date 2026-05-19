@@ -46,11 +46,11 @@ sourceSets.matching { it.name.endsWith("Test") }.all {
     )
 }
 
-val testFixturesApi by configurations
-val testFixturesImplementation by configurations
-val testFixturesRuntimeOnly by configurations
-val testFixturesRuntimeElements by configurations
-val testFixturesApiElements by configurations
+val testFixturesApi = configurations.getByName("testFixturesApi")
+val testFixturesImplementation = configurations.getByName("testFixturesImplementation")
+val testFixturesRuntimeOnly = configurations.getByName("testFixturesRuntimeOnly")
+val testFixturesRuntimeElements = configurations.getByName("testFixturesRuntimeElements")
+val testFixturesApiElements = configurations.getByName("testFixturesApiElements")
 
 // Required due to: https://github.com/gradle/gradle/issues/13278
 testFixturesRuntimeElements.extendsFrom(testFixturesRuntimeOnly)

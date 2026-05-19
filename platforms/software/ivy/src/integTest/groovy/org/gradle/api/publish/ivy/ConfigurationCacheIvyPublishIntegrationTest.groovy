@@ -21,7 +21,7 @@ import org.gradle.test.fixtures.ivy.IvyRepository
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.fixtures.server.http.IvyHttpRepository
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import org.gradle.util.internal.GUtil
 import org.junit.Rule
 
@@ -31,7 +31,7 @@ import static org.gradle.test.fixtures.server.http.HttpServer.SupportedHash.SHA5
 import static org.gradle.util.internal.GFileUtils.deleteDirectory
 import static org.gradle.util.internal.GFileUtils.listFiles
 
-@Requires(value = IntegTestPreconditions.NotConfigCached, reason = "handles CC explicitly")
+@Requires(value = TestExecutionPreconditions.NotConfigCached, reason = "handles CC explicitly")
 class ConfigurationCacheIvyPublishIntegrationTest extends AbstractIntegrationSpec {
 
     def configurationCache = newConfigurationCacheFixture()

@@ -15,8 +15,8 @@ description = "Kotlin DSL Provider"
 
 dependencies {
     api(projects.antApi)
-    api(projects.buildProcessServices)
     api(projects.baseServices)
+    api(projects.buildProcessServices)
     api(projects.classloaders)
     api(projects.core)
     api(projects.coreApi)
@@ -28,6 +28,7 @@ dependencies {
     api(projects.kotlinDslToolingModels)
     api(projects.loggingApi)
     api(projects.modelCore)
+    api(projects.normalizationApi)
     api(projects.persistentCache)
     api(projects.startParameter)
     api(projects.stdlibJavaExtensions)
@@ -49,6 +50,7 @@ dependencies {
     implementation(projects.buildOperations)
     implementation(projects.buildDiscoveryImpl)
     implementation(projects.buildOption)
+    implementation(projects.classpath)
     implementation(projects.coreKotlinExtensions)
     implementation(projects.declarativeDslEvaluator)
     implementation(projects.declarativeDslProvider)
@@ -117,9 +119,6 @@ dependencies {
     testImplementation(projects.buildCacheLocal)
     testImplementation(projects.buildInit)
     testImplementation(projects.jacoco)
-    testImplementation(projects.platformNative) {
-        because("BuildType from platform-native is used in ProjectAccessorsClassPathTest")
-    }
     testImplementation(projects.platformJvm)
     testImplementation(projects.versionControl)
     testImplementation(testFixtures(projects.core))
@@ -141,7 +140,7 @@ dependencies {
     integTestImplementation(testLibs.mockitoKotlin)
 
     testRuntimeOnly(projects.distributionsNative) {
-        because("SimplifiedKotlinScriptEvaluator reads default imports from the distribution (default-imports.txt) and BuildType from platform-native is used in ProjectAccessorsClassPathTest.")
+        because("SimplifiedKotlinScriptEvaluator reads default imports from the distribution (default-imports.txt).")
     }
 
     testFixturesImplementation(projects.baseServices)

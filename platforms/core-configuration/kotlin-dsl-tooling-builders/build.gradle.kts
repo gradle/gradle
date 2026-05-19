@@ -39,6 +39,7 @@ dependencies {
 
     testFixturesImplementation(projects.kotlinDsl)
     testFixturesImplementation(projects.toolingApi)
+    testFixturesImplementation(testFixtures(projects.toolingApi))
     testFixturesImplementation(projects.internalIntegTesting)
 
     crossVersionTestImplementation(projects.internalIntegTesting)

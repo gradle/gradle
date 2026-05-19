@@ -26,13 +26,12 @@ import org.gradle.api.internal.tasks.userinput.NonInteractiveUserInputHandler;
 import org.gradle.api.internal.tasks.userinput.UserInputHandler;
 import org.gradle.api.internal.tasks.userinput.UserInputReader;
 import org.gradle.api.problems.internal.ExceptionProblemRegistry;
-import org.gradle.api.problems.internal.InternalProblems;
+import org.gradle.api.problems.internal.ProblemsInternal;
 import org.gradle.deployment.internal.DeploymentRegistryInternal;
 import org.gradle.execution.WorkValidationWarningReporter;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.BuildEventConsumer;
 import org.gradle.initialization.BuildRequestMetaData;
-import org.gradle.internal.build.BuildLayoutValidator;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.event.BuildEventListenerFactory;
 import org.gradle.internal.buildevents.BuildLoggerFactory;
@@ -40,7 +39,7 @@ import org.gradle.internal.buildevents.BuildStartedTime;
 import org.gradle.internal.buildoption.InternalOptions;
 import org.gradle.internal.buildtree.BuildActionRunner;
 import org.gradle.internal.buildtree.BuildModelParameters;
-import org.gradle.internal.buildtree.BuildModelParametersFactory;
+import org.gradle.internal.buildtree.BuildTreeActionExecutor;
 import org.gradle.internal.buildtree.BuildTreeLifecycleListener;
 import org.gradle.internal.buildtree.ProblemReportingBuildActionRunner;
 import org.gradle.internal.concurrent.ExecutorFactory;
@@ -56,8 +55,6 @@ import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.operations.BuildOperationListenerManager;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.internal.operations.BuildOperationRunner;
-import org.gradle.internal.operations.logging.LoggingBuildOperationProgressBroadcaster;
-import org.gradle.internal.operations.notify.BuildOperationNotificationValve;
 import org.gradle.internal.problems.failure.FailureFactory;
 import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistration;
@@ -65,21 +62,17 @@ import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.scopes.AbstractGradleModuleServices;
 import org.gradle.internal.session.BuildSessionActionExecutor;
 import org.gradle.internal.snapshot.CaseSensitivity;
-import org.gradle.internal.snapshot.ValueSnapshotter;
 import org.gradle.internal.snapshot.impl.DirectorySnapshotterStatistics;
 import org.gradle.internal.time.Clock;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem;
 import org.gradle.internal.watch.vfs.FileChangeListeners;
 import org.gradle.internal.work.ProjectParallelExecutionController;
-import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.launcher.exec.BuildCompletionNotifyingBuildActionRunner;
 import org.gradle.launcher.exec.BuildOutcomeReportingBuildActionRunner;
-import org.gradle.launcher.exec.BuildTreeLifecycleBuildActionExecutor;
+import org.gradle.launcher.exec.DefaultBuildTreeActionExecutor;
 import org.gradle.launcher.exec.ChainingBuildActionRunner;
 import org.gradle.launcher.exec.RootBuildLifecycleBuildActionExecutor;
-import org.gradle.launcher.exec.RunAsBuildOperationBuildActionExecutor;
-import org.gradle.launcher.exec.RunAsWorkerThreadBuildActionExecutor;
 import org.gradle.problems.buildtree.ProblemDiagnosticsFactory;
 import org.gradle.problems.buildtree.ProblemReporter;
 import org.gradle.problems.buildtree.ProblemStream;
@@ -100,6 +93,7 @@ public class LauncherServices extends AbstractGradleModuleServices {
     @Override
     public void registerBuildSessionServices(ServiceRegistration registration) {
         registration.addProvider(new ToolingBuildSessionScopeServices());
+        registration.add(BuildTreeActionExecutor.class, DefaultBuildTreeActionExecutor.class);
     }
 
     @Override
@@ -131,7 +125,6 @@ public class LauncherServices extends AbstractGradleModuleServices {
             ExecutorFactory executorFactory,
             ListenerManager listenerManager,
             BuildOperationListenerManager buildOperationListenerManager,
-            BuildOperationRunner buildOperationRunner,
             WorkInputListeners workListeners,
             FileChangeListeners fileChangeListeners,
             StyledTextOutputFactory styledTextOutputFactory,
@@ -141,15 +134,9 @@ public class LauncherServices extends AbstractGradleModuleServices {
             BuildEventConsumer eventConsumer,
             BuildStartedTime buildStartedTime,
             Clock clock,
-            LoggingBuildOperationProgressBroadcaster loggingBuildOperationProgressBroadcaster,
-            BuildOperationNotificationValve buildOperationNotificationValve,
-            BuildModelParametersFactory buildModelParametersFactory,
-            WorkerLeaseService workerLeaseService,
-            BuildLayoutValidator buildLayoutValidator,
             FileSystem fileSystem,
             BuildLifecycleAwareVirtualFileSystem virtualFileSystem,
-            ValueSnapshotter valueSnapshotter,
-            InternalOptions options
+            BuildTreeActionExecutor buildTreeActionExecutor
         ) {
             CaseSensitivity caseSensitivity = fileSystem.isCaseSensitive() ? CASE_SENSITIVE : CASE_INSENSITIVE;
             return new SubscribableBuildActionExecutor(
@@ -170,14 +157,7 @@ public class LauncherServices extends AbstractGradleModuleServices {
                     fileSystem,
                     caseSensitivity,
                     virtualFileSystem,
-                    new RunAsWorkerThreadBuildActionExecutor(
-                        workerLeaseService,
-                        new RunAsBuildOperationBuildActionExecutor(
-                            new BuildTreeLifecycleBuildActionExecutor(buildModelParametersFactory, buildLayoutValidator, valueSnapshotter, options),
-                            buildOperationRunner,
-                            loggingBuildOperationProgressBroadcaster,
-                            buildOperationNotificationValve
-                        ))));
+                    buildTreeActionExecutor));
         }
 
         @Provides
@@ -233,7 +213,7 @@ public class LauncherServices extends AbstractGradleModuleServices {
             InternalOptions options,
             StartParameter startParameter,
             FailureFactory failureFactory,
-            InternalProblems problemsService,
+            ProblemsInternal problemsService,
             ProblemStream problemStream,
             ExceptionProblemRegistry registry
         ) {

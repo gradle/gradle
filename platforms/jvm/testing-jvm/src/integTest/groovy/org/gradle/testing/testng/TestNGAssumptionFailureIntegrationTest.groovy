@@ -17,18 +17,12 @@
 package org.gradle.testing.testng
 
 import org.gradle.api.internal.tasks.testing.report.VerifiesGenericTestReportResults
-import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
 import org.gradle.api.tasks.testing.TestResult
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 import static org.hamcrest.Matchers.containsString
 
 class TestNGAssumptionFailureIntegrationTest extends AbstractIntegrationSpec implements VerifiesGenericTestReportResults {
-    @Override
-    GenericTestExecutionResult.TestFramework getTestFramework() {
-        return GenericTestExecutionResult.TestFramework.TEST_NG
-    }
-
     def "captures assumption failures"() {
         buildFile << """
             plugins {

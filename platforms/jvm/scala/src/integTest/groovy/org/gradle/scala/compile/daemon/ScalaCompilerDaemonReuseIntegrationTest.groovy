@@ -23,7 +23,7 @@ import org.gradle.integtests.fixtures.jvm.TestJvmComponent
 import org.gradle.language.scala.fixtures.TestScalaComponent
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import org.junit.Assume
 
 class ScalaCompilerDaemonReuseIntegrationTest extends AbstractCompilerDaemonReuseIntegrationTest {
@@ -50,7 +50,7 @@ class ScalaCompilerDaemonReuseIntegrationTest extends AbstractCompilerDaemonReus
         return new TestScalaComponent()
     }
 
-    @Requires(IntegTestPreconditions.NotParallelExecutor)
+    @Requires(TestExecutionPreconditions.NotParallelExecutor)
     @UnsupportedWithConfigurationCache(because = "parallel by default")
     def "reuses compiler daemons within a single project across multiple builds when enabled"() {
         withSingleProjectSources()
@@ -77,7 +77,7 @@ class ScalaCompilerDaemonReuseIntegrationTest extends AbstractCompilerDaemonReus
         assertRunningCompilerDaemonIs(firstDaemonId)
     }
 
-    @Requires(IntegTestPreconditions.NotParallelExecutor)
+    @Requires(TestExecutionPreconditions.NotParallelExecutor)
     @UnsupportedWithConfigurationCache(because = "parallel by default")
     def "reuses compiler daemons within a multi-project build across multiple builds when enabled"() {
         withMultiProjectSources()
@@ -104,7 +104,7 @@ class ScalaCompilerDaemonReuseIntegrationTest extends AbstractCompilerDaemonReus
         assertRunningCompilerDaemonIs(firstDaemonId)
     }
 
-    @Requires(IntegTestPreconditions.NotParallelExecutor)
+    @Requires(TestExecutionPreconditions.NotParallelExecutor)
     def "reuses compiler daemons within a composite build across multiple builds when enabled"() {
         Assume.assumeTrue(supportsCompositeBuilds())
 
@@ -133,7 +133,7 @@ class ScalaCompilerDaemonReuseIntegrationTest extends AbstractCompilerDaemonReus
         assertRunningCompilerDaemonIs(firstDaemonId)
     }
 
-    @Requires(IntegTestPreconditions.NotParallelExecutor)
+    @Requires(TestExecutionPreconditions.NotParallelExecutor)
     @UnsupportedWithConfigurationCache(because = "parallel by default")
     def "ignores known changing environment variable when persistent compiler daemons are enabled"() {
         withSingleProjectSources()

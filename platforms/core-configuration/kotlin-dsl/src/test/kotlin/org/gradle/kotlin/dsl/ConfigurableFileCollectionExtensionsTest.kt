@@ -1,6 +1,7 @@
 package org.gradle.kotlin.dsl
 
 import org.gradle.api.file.ConfigurableFileCollection
+import org.gradle.test.fixtures.ExpectDeprecationExtension
 
 import org.hamcrest.CoreMatchers.sameInstance
 import org.hamcrest.MatcherAssert.assertThat
@@ -14,14 +15,20 @@ class ConfigurableFileCollectionExtensionsTest {
 
     @Test
     fun `assignment to delegated property means #setFrom`() {
+        ExpectDeprecationExtension.intercept(
+            "The 'val files by configurableFileCollection; files = ...' property delegate syntax has been deprecated."
+        ) {
 
-        val fileCollection = mock<ConfigurableFileCollection>()
-        var delegatedProperty by fileCollection
+            val fileCollection = mock<ConfigurableFileCollection>()
 
-        val value = mock<ConfigurableFileCollection>()
-        delegatedProperty = value
+            @Suppress("DEPRECATION")
+            var delegatedProperty by fileCollection
 
-        verify(fileCollection).setFrom(value)
-        assertThat(delegatedProperty, sameInstance(fileCollection))
+            val value = mock<ConfigurableFileCollection>()
+            delegatedProperty = value
+
+            verify(fileCollection).setFrom(value)
+            assertThat(delegatedProperty, sameInstance(fileCollection))
+        }
     }
 }

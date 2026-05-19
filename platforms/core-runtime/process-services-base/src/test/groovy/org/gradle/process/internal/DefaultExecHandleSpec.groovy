@@ -29,7 +29,8 @@ import org.gradle.process.internal.streams.StreamsHandler
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.OsTestPreconditions
+
 import org.gradle.util.UsesNativeServices
 import org.gradle.util.internal.GUtil
 import org.gradle.util.internal.TextUtil
@@ -113,7 +114,7 @@ class DefaultExecHandleSpec extends ConcurrentSpec {
         e.message == "Process '${execHandle.displayName}' finished with non-zero exit value 72"
     }
 
-    @Requires(UnitTestPreconditions.Unix)
+    @Requires(OsTestPreconditions.Unix)
     void "provides detailed error message for processes terminated by a signal"() {
         given:
         def execHandle = handle().args(args(BrokenApp.class, exitCode.toString())).build()
@@ -138,7 +139,7 @@ class DefaultExecHandleSpec extends ConcurrentSpec {
         143      | "this value may indicate that the process was terminated with the SIGTERM signal"
     }
 
-    @Requires(UnitTestPreconditions.Windows)
+    @Requires(OsTestPreconditions.Windows)
     void "provides detailed error message for processes terminated by the OS on Windows"() {
         given:
         def execHandle = handle().args(args(BrokenApp.class, exitCode.toString())).build()

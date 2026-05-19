@@ -21,7 +21,8 @@ import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.OsTestPreconditions
+
 import org.gradle.util.GradleVersion
 import spock.lang.Issue
 
@@ -33,7 +34,7 @@ class WrapperPropertiesLoaderCrossVersionTest extends CrossVersionIntegrationSpe
 
     @Issue('https://github.com/gradle/gradle/issues/11173')
     @Requires(
-        value = UnitTestPreconditions.NotWindowsJavaBefore11,
+        value = OsTestPreconditions.NotWindowsJavaBefore11,
         reason = 'https://github.com/gradle/gradle-private/issues/3758'
     )
     void "System properties defined in gradle.properties are available in buildSrc and in included builds"() {

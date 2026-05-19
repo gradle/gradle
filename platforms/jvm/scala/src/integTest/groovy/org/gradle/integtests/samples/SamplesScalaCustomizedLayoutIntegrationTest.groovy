@@ -22,16 +22,17 @@ import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.UsesSample
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.JdkVersionTestPreconditions
+
 import org.junit.Rule
 
-@Requires(value = UnitTestPreconditions.Jdk23OrEarlier, reason = "Scala does not work with Java 24 without warnings yet")
+@Requires(value = JdkVersionTestPreconditions.Jdk23OrEarlier, reason = "Scala does not work with Java 24 without warnings yet")
 class SamplesScalaCustomizedLayoutIntegrationTest extends AbstractSampleIntegrationTest {
 
     @Rule
     Sample sample = new Sample(testDirectoryProvider)
 
-    @UsesSample("scala/customizedLayout")
+    @UsesSample("integration-tests/scala/customizedLayout")
     def "can build jar with #dsl dsl"() {
         TestFile projectDir = sample.dir.file(dsl)
 

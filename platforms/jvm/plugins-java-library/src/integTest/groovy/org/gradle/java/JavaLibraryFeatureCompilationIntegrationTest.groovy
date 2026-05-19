@@ -147,8 +147,8 @@ class JavaLibraryFeatureCompilationIntegrationTest extends AbstractIntegrationSp
                     } as Set
                 }
                 doLast {
-                    assert incomingCompileClasspath.get() == ['project :b', 'project :c', 'project :e'] as Set // only API dependencies
-                    assert incomingRuntimeClasspath.get() == ['project :b', 'project :c', 'project :d', 'project :g'] as Set // all dependencies (except compile only)
+                    assert incomingCompileClasspath.get() == ['project \\':b\\'', 'project \\':c\\'', 'project \\':e\\''] as Set // only API dependencies
+                    assert incomingRuntimeClasspath.get() == ['project \\':b\\'', 'project \\':c\\'', 'project \\':d\\'', 'project \\':g\\''] as Set // all dependencies (except compile only)
                 }
             }
         """
@@ -415,8 +415,8 @@ class JavaLibraryFeatureCompilationIntegrationTest extends AbstractIntegrationSp
                     } as Set
                 }
                 doLast {
-                    assert incomingCompileClasspath.get() == ['project :b', 'project :c'] as Set // only API dependencies
-                    assert incomingRuntimeClasspath.get() == ['project :b', 'project :c', 'project :d'] as Set // all dependencies
+                    assert incomingCompileClasspath.get() == ['project \\':b\\'', 'project \\':c\\''] as Set // only API dependencies
+                    assert incomingRuntimeClasspath.get() == ['project \\':b\\'', 'project \\':c\\'', 'project \\':d\\''] as Set // all dependencies
                     assert runtimeClasspath.files.name as Set == ['b-my-feature.jar', 'c.jar', 'd.jar'] as Set
                 }
             }

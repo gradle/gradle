@@ -132,7 +132,6 @@ class DependencyGraphBuilderTest extends Specification {
     def versionSelectorScheme = new DefaultVersionSelectorScheme(versionComparator, new VersionParser())
     def desugaring = new AttributeDesugaring(AttributeTestUtil.attributesFactory())
     def resolveStateFactory = new LocalComponentGraphResolveStateFactory(
-        desugaring,
         new ComponentIdGenerator(),
         new DefaultLocalVariantGraphResolveStateBuilder(
             new ComponentIdGenerator(),

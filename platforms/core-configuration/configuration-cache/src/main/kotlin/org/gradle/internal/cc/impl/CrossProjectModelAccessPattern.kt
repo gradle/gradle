@@ -16,7 +16,7 @@
 
 package org.gradle.internal.cc.impl
 
-import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.internal.project.ProjectIdentity
 
 
 internal
@@ -31,5 +31,5 @@ enum class CrossProjectModelAccessPattern {
 internal
 data class CrossProjectModelAccessInstance(
     val pattern: CrossProjectModelAccessPattern,
-    val relativeTo: ProjectInternal,
+    val relativeTo: ProjectIdentity,
 )

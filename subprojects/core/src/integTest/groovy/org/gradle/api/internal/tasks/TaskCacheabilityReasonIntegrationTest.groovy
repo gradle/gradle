@@ -25,7 +25,7 @@ import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 import org.gradle.operations.execution.CachingDisabledReasonCategory
 import org.gradle.test.fixtures.Flaky
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 
 import javax.annotation.Nullable
 
@@ -388,7 +388,7 @@ class TaskCacheabilityReasonIntegrationTest extends AbstractIntegrationSpec impl
     }
 
     // This test only works in embedded mode because of the use of validation test fixtures
-    @Requires(IntegTestPreconditions.IsEmbeddedExecutor)
+    @Requires(TestExecutionPreconditions.IsEmbeddedExecutor)
     def "cacheability for task with disabled optimizations is VALIDATION_FAILURE"() {
         when:
         executer.noDeprecationChecks()

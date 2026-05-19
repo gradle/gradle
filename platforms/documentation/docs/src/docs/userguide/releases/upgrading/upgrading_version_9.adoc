@@ -33,13 +33,124 @@ Alternatively, you can run `gradle help --warning-mode=all` to see the deprecati
 Some plugins will break with this new version of Gradle because they use internal APIs that have been removed or changed.
 The previous step will help you identify potential problems by issuing deprecation warnings when a plugin tries to use a deprecated part of the API.
 +
-. Run `gradle wrapper --gradle-version {gradleVersion}` to update the project to {gradleVersion}.
+. Run `gradle :wrapper --gradle-version {gradleVersion}` to update the project to {gradleVersion}.
 . Try to run the project and debug any errors using the <<troubleshooting.adoc#troubleshooting, Troubleshooting Guide>>.
 
 [[changes_9.6.0]]
 == Upgrading from 9.5.0 and earlier
 
+[[v9_deprecations_9_6]]
 === Deprecations
+
+[[deprecated_develocity_plugin_pre_4_0]]
+==== Develocity plugin versions before 4.0 are no longer supported in Gradle 10
+
+Gradle 10 requires Develocity plugin 4.0 or later.
+Earlier versions rely on Gradle's implicit parent-project property lookup, which will be removed in Gradle 10 and silently ignored if applied.
+
+Upgrade to the link:https://plugins.gradle.org/plugin/com.gradle.develocity[latest Develocity plugin] from the Gradle Plugin Portal.
+See the link:https://gradle.com/help/gradle-plugin-compatibility/[Develocity plugin compatibility matrix] for details.
+
+[[deprecated_pmd_target_jdk]]
+==== Deprecation of `targetJdk` on the PMD plugin
+
+The `targetJdk` property on link:{javadocPath}/org/gradle/api/plugins/quality/Pmd.html[`Pmd`] and link:{javadocPath}/org/gradle/api/plugins/quality/PmdExtension.html[`PmdExtension`], along with the link:{javadocPath}/org/gradle/api/plugins/quality/TargetJdk.html[`TargetJdk`] enum, are deprecated and will be removed in Gradle 10.
+
+This includes:
+
+- `Pmd.getTargetJdk()` / `Pmd.setTargetJdk(TargetJdk)`
+- `PmdExtension.getTargetJdk()` / `PmdExtension.setTargetJdk(TargetJdk)` / `PmdExtension.setTargetJdk(Object)`
+- The `TargetJdk` enum and its `toVersion(Object)` static method
+- `PmdPlugin.getDefaultTargetJdk(JavaVersion)`
+
+These were used by PMD versions older than 5.0 to select the target Java language level via Ant's `targetjdk` attribute.
+PMD 5.0 and later infer the language version from the configured rule sets, so this property has been a no-op for all supported PMD versions.  Gradle does not support PMD versions earlier than PMD 5.1.0.
+
+There is no replacement.
+Remove any `targetJdk` configuration from your build.
+
+[[deprecated_maven_artifact_urls]]
+==== Deprecation of `artifactUrls` on Maven repositories
+
+The `artifactUrls` family of methods on link:{javadocPath}/org/gradle/api/artifacts/repositories/MavenArtifactRepository.html[`MavenArtifactRepository`] is deprecated and will be removed in Gradle 10.
+
+This includes:
+
+- `MavenArtifactRepository.getArtifactUrls()`
+- `MavenArtifactRepository.artifactUrls(Object...)`
+- `MavenArtifactRepository.setArtifactUrls(Set)`
+- `MavenArtifactRepository.setArtifactUrls(Iterable)`
+
+The same deprecation applies to passing `artifactUrls` as a key in the map argument to `RepositoryHandler.mavenCentral(Map)`, since that path delegates to the methods above.
+
+These methods let a single Maven repository declaration look for POMs at the base URL while looking for artifacts (such as JARs) at one or more additional URLs.
+This is a Gradle-specific extension with no equivalent in Maven, and there is no direct replacement.
+
+[[deprecated_repository_handler_map_overloads]]
+==== Deprecation of `RepositoryHandler.flatDir(Map)` and `RepositoryHandler.mavenCentral(Map)`
+
+The map-argument overloads `RepositoryHandler.flatDir(Map)` and `RepositoryHandler.mavenCentral(Map)` are deprecated and will be removed in Gradle 10.
+Use the action-based overloads (`flatDir(Action)`, `mavenCentral(Action)`) instead — they are typed, work in both the Groovy and Kotlin DSLs, and are the canonical way to configure a repository.
+
+For `flatDir`:
+
+====
+[.multi-language-sample]
+=====
+.build.gradle
+[source,groovy]
+----
+repositories {
+    flatDir {
+        name = "libs"
+        dirs "libs1", "libs2"
+    }
+}
+----
+=====
+[.multi-language-sample]
+=====
+.build.gradle.kts
+[source,kotlin]
+----
+repositories {
+    flatDir {
+        name = "libs"
+        dirs("libs1", "libs2")
+    }
+}
+----
+=====
+====
+
+For `mavenCentral`:
+
+====
+[.multi-language-sample]
+=====
+.build.gradle
+[source,groovy]
+----
+repositories {
+    mavenCentral {
+        name = "nonDefaultName"
+    }
+}
+----
+=====
+[.multi-language-sample]
+=====
+.build.gradle.kts
+[source,kotlin]
+----
+repositories {
+    mavenCentral {
+        name = "nonDefaultName"
+    }
+}
+----
+=====
+====
 
 [[dependency_project_notation]]
 ==== Deprecation of using Project objects as dependency notation
@@ -86,6 +197,160 @@ ProjectDependency dependency = project.getDependencyFactory().createProjectDepen
 implementation.getDependencies().add(dependency);
 ----
 
+[[task_dependencies]]
+==== Accessing task dependency relationships from a task action
+
+Calling the following methods from a task action at execution time is now deprecated and will become an error in Gradle 10:
+
+- link:{javadocPath}/org/gradle/api/Task.html#getTaskDependencies--[`Task.getTaskDependencies()`]
+- link:{javadocPath}/org/gradle/api/Task.html#getDependsOn--[`Task.getDependsOn()`]
+- link:{javadocPath}/org/gradle/api/Task.html#getMustRunAfter--[`Task.getMustRunAfter()`]
+- link:{javadocPath}/org/gradle/api/Task.html#getFinalizedBy--[`Task.getFinalizedBy()`]
+- link:{javadocPath}/org/gradle/api/Task.html#getShouldRunAfter--[`Task.getShouldRunAfter()`]
+
+These methods can still be used during configuration time.
+
+The deprecation is only issued if the Configuration Cache is **not** enabled.
+When the Configuration Cache is enabled, calls to these methods are reported as Configuration Cache problems instead.
+This is another step towards moving users away from idioms that are incompatible with the Configuration Cache, which will become the only mode supported by Gradle in a future release.
+For example:
+
+[source,kotlin]
+----
+// Deprecated: inspecting dependencies from within the task action
+tasks.register("report") {
+    dependsOn("compileJava")
+    doLast {
+        taskDependencies.getDependencies(this).forEach { println(it.name) }
+    }
+}
+
+// Recommended: capture what you need at configuration time
+tasks.register("report") {
+    dependsOn("compileJava")
+    val dependencyNames = dependsOn.filterIsInstance<Task>().map { it.name }
+    doLast {
+        dependencyNames.forEach { println(it) }
+    }
+}
+----
+
+Please refer to the <<configuration_cache_requirements.adoc#config_cache:requirements:use_project_during_execution, Configuration Cache documentation>> for alternatives that are compatible with the Configuration Cache.
+
+[[task_extensions]]
+==== Accessing extensions from a task action
+
+Calling link:{javadocPath}/org/gradle/api/Task.html#getExtensions--[`Task.getExtensions()`] from a task action at execution time is now deprecated and will become an error in Gradle 10.
+
+This method can still be used during configuration time.
+
+The deprecation is only issued if the Configuration Cache is **not** enabled.
+When the Configuration Cache is enabled, calls to this method are reported as Configuration Cache problems instead.
+This is another step towards moving users away from idioms that are incompatible with the Configuration Cache, which will become the only mode supported by Gradle in a future release.
+
+For example:
+[source,kotlin]
+----
+// Deprecated: reading the extension from within the task action
+tasks.register("greet") {
+    doLast {
+        val ext = extensions.getByType<GreetingExtension>()
+        println(ext.message.get())
+    }
+}
+
+// Recommended: capture the value at configuration time
+tasks.register("greet") {
+    val message = extensions.getByType<GreetingExtension>().message
+    doLast {
+        println(message.get())
+    }
+}
+----
+
+Please refer to the <<configuration_cache_requirements.adoc#config_cache:requirements:use_project_during_execution, Configuration Cache documentation>> for alternatives that are compatible with the configuration cache.
+
+[[injected_service_types_at_execution]]
+==== Accessing injected `Project` or `Gradle` services from a task action
+
+Reading an injected service of type link:{javadocPath}/org/gradle/api/Project.html[`Project`] or link:{javadocPath}/org/gradle/api/invocation/Gradle.html[`Gradle`] from a task action at execution time is now deprecated and will become an error in Gradle 10.
+
+These services can still be read during configuration time.
+
+The deprecation is only issued if the Configuration Cache is **not** enabled.
+When the Configuration Cache is enabled, such accesses are reported as Configuration Cache problems instead.
+This is another step towards moving users away from idioms that are incompatible with the Configuration Cache, which will become the only mode supported by Gradle in a future release.
+
+For example:
+
+[source,kotlin]
+----
+// Deprecated: reading from the injected Project at execution time
+abstract class PrintVersionTask : DefaultTask() {
+    @get:Inject
+    abstract val project: Project
+
+    @TaskAction
+    fun run() {
+        println("Building ${project.name} version ${project.version}")
+    }
+}
+
+// Recommended: declare the values you need as task inputs
+abstract class PrintVersionTask : DefaultTask() {
+    @get:Input
+    abstract val projectName: Property<String>
+
+    @get:Input
+    abstract val projectVersion: Property<String>
+
+    @TaskAction
+    fun run() {
+        println("Building ${projectName.get()} version ${projectVersion.get()}")
+    }
+}
+
+tasks.register<PrintVersionTask>("printVersion") {
+    projectName.set(project.name)
+    projectVersion.set(project.version.toString())
+}
+----
+Please refer to the <<configuration_cache_requirements.adoc#config_cache:requirements:use_project_during_execution, Configuration Cache documentation>> for alternatives that are compatible with the Configuration Cache.
+
+[[deprecate_build_needed_build_dependents_tasks]]
+==== Deprecation of `buildNeeded` and `buildDependents` tasks
+
+The `buildNeeded` and `buildDependents` tasks from the Java plugins are deprecated and will be removed in Gradle 10.
+
+`buildNeeded` builds the current project along with all projects it depends on.
+`buildDependents` does the opposite: it builds the current project and all projects that depend on it.
+These tasks were introduced back in Gradle 0.8.
+Their implementation is incompatible with Configure on Demand and Isolated Projects, and the tasks themselves are too rigid to cover the range of use cases users actually need.
+Existing Gradle functionality covers these use cases, so rather than rework the tasks, we are removing them.
+
+`buildNeeded` depends on the current project's `build` task and on the `buildNeeded` task of each project that appears as a direct dependency in the `testRuntimeClasspath` configuration.
+Because those `buildNeeded` tasks depend on each other, the result is that the entire project dependency closure is built.
+
+Depending on what you were using `buildNeeded` for, one of the following may replace it:
+
+- If you only need to build or test a specific project, run that task directly (e.g., `./gradlew :proj:build`) and let Gradle resolve its task dependencies automatically.
+- For running tests across all projects the current project depends on, use <<test_report_aggregation_plugin.adoc#test_report_aggregation_plugin, test report aggregation>>.
+- For plugin authors and advanced build logic, use <<artifact_views.adoc#artifact-views, Artifact Views>> to select artifacts from projects in a dependency graph and wire their producer tasks as dependencies.
+
+There is no direct replacement for `buildDependents`.
+For most workflows, running all tasks with a given name (e.g., `./gradlew test`) combined with up-to-date checks and build caching will skip work for unaffected projects, at the cost of configuring all projects.
+
+[[deprecate_getTaskDependencyFromProjectDependency]]
+==== Deprecation of `Configuration.getTaskDependencyFromProjectDependency()`
+
+The link:{javadocPath}/org/gradle/api/artifacts/Configuration.html#getTaskDependencyFromProjectDependency(boolean,java.lang.String)[`Configuration.getTaskDependencyFromProjectDependency(boolean, String)`] method has been deprecated and will be removed in Gradle 10.
+
+It exists to support the `buildNeeded` and `buildDependents` tasks deprecated above, and has no other intended use.
+Its implementation is fundamentally incompatible with Isolated Projects and Configure on Demand.
+
+There is no direct replacement for this method.
+If you were using it to reach tasks across project boundaries, <<artifact_views.adoc#artifact-views, Artifact Views>> let you select artifacts from dependent projects and let Gradle wire the producer tasks through normal dependency resolution.
+
 [[deprecate_problem_spec_severity]]
 ==== Deprecation of `ProblemSpec.severity()`
 
@@ -93,15 +358,353 @@ Problem severity can no longer be set explicitly when creating a new instance.
 Instead, it is determined by the reporting method: `ProblemReporter.report()` produces warnings and `ProblemReporter.throwing()` produces errors.
 Calling `.severity()` on `ProblemSpec` is now a no-op and will be removed in Gradle 10.0.
 
-[[changes_9.5.0]]
-== Upgrading from 9.4.0 and earlier
+[[task_in_task_dependency_closure]]
+==== Accessing Task in `dependsOn` Closure
+
+Accessing a task provided to closures passed to the link:{javadocPath}/org/gradle/api/Task.html#dependsOn(java.lang.Object...)[`Task.dependsOn`] method has been deprecated.
+Starting in Gradle 10, Gradle will no longer provide the `Task` as an argument to closures passed to the `Task.dependsOn` method.
+
+The following code will not be permitted starting in Gradle 10:
+
+[source,groovy]
+----
+def foo = tasks.register("foo")
+
+// The below usages of dependsOn access the Task object provided as a parameter.
+// This is deprecated behavior.
+tasks.register("bar") {
+    dependsOn { task ->
+        task.getName()
+        foo
+    }
+}
+tasks.register("baz") {
+    dependsOn {
+        it.getName()
+        foo
+    }
+}
+
+// Build logic may continue to pass closures to dependsOn without accessing the provided Task.
+tasks.register("okay") {
+    dependsOn {
+        foo
+    }
+}
+----
+
+[[deprecated_get_properties]]
+==== Deprecation of `getProperties()`
+
+The following usages of `getProperties()` have been deprecated and will be removed in Gradle 10.0.0:
+
+- link:{javadocPath}/org/gradle/api/Project.html#getProperties()[`Project.getProperties()`] — calling `getProperties()` or accessing the `properties` property on a `Project` instance.
+- Calling `getProperties()` (or accessing the `properties` property) on a build script, settings script, or init script. This is a separate API on the script base class, but has the same problems.
+
+This method, which historically existed for convenience, makes build logic harder to understand and navigate due to the untyped nature of the properties and the fact that they are sourced from many different locations and containers.
+Using this method also hurts performance of builds by eagerly resolving properties from the environment, reducing the potential for more frequent Configuration Cache hits.
+The hierarchical look-up of properties through the parent projects chain creates implicit coupling of the mutable state between projects.
+This impedes the potential of scalability in the future model, where projects are <<sharing_build_logic_between_subprojects.adoc#sec:convention_plugins_vs_cross_configuration,isolated from each other>>.
+
+To access <<build_environment.adoc#sec:project_properties,project properties>>, prefer `providers.gradleProperty("name")` which returns a type-safe `Provider` and is compatible with lazy configuration.
+Note that `providers.gradleProperty()` resolves properties at the build level — it does not include properties from `gradle.properties` files in subproject directories, nor extra properties or other properties set dynamically on individual projects.
+If you need to access <<writing_build_scripts_intermediate.adoc#sec:extra_properties,extra properties>>, use `ext` properties directly.
+
+The following table shows common migration scenarios for project properties:
+
+[cols="1a,1a", options="header"]
+|===
+| Before (deprecated) | After (recommended)
+
+| Accessing a single project property:
+[source,kotlin]
+----
+val value = project.properties["myProp"]
+----
+[source,groovy]
+----
+def value = project.properties.myProp
+----
+| Wire the provider as a task property for better Configuration Cache support:
+[source,kotlin]
+----
+val myProp: Provider<String> =
+    providers.gradleProperty("myProp")
+----
+If you need the value immediately:
+[source,groovy]
+----
+def value = providers.gradleProperty("myProp")
+    .orNull
+----
+
+| Accessing a property with a default value (Kotlin, Java, or Groovy):
+[source,kotlin]
+----
+val value = project.properties
+    .getOrDefault("myProp", "default")
+----
+Accessing a property with a default value (Groovy, idiomatic):
+[source,groovy]
+----
+def value = project.properties["myProp"] ?: "default"
+----
+| Use `providers.gradleProperty()` with `getOrElse()`:
+[source,kotlin]
+----
+val value = providers
+    .gradleProperty("myProp")
+    .getOrElse("default")
+----
+[source,groovy]
+----
+def value = providers.gradleProperty("myProp")
+    .getOrElse("default")
+----
+
+| Kotlin property delegation:
+[source,kotlin]
+----
+val myProp: String by project.properties
+----
+| Get the project property directly:
+[source,kotlin]
+----
+val myProp = project.property("myProp") as String
+----
+
+| Forwarding properties as system properties:
+[source,kotlin]
+----
+test {
+    systemProperties(
+        project.properties.filter {
+            it.key.startsWith("test.")
+        }
+    )
+}
+----
+| Use `providers.gradlePropertiesPrefixedBy()`:
+[source,kotlin]
+----
+test {
+    systemProperties(
+        providers
+            .gradlePropertiesPrefixedBy("test.")
+            .get()
+    )
+}
+----
+
+| Token replacement in resource files (common in Minecraft mods, Spring Boot, etc.):
+[source,groovy]
+----
+processResources {
+    filesMatching("plugin.yml") {
+        expand project.properties
+    }
+}
+----
+| Build an explicit map of only the properties you need:
+[source,groovy]
+----
+processResources {
+    filesMatching("plugin.yml") {
+        expand(
+            "version": project.version,
+            "name": project.name
+        )
+    }
+}
+----
+|===
+
+[[changes_9.6.0]]
+== Upgrading from 9.5.0 and earlier
 
 === Potential breaking changes
 
+==== Upgrade to Kotlin 2.3.21
+
+The embedded Kotlin has been upgraded from 2.3.20 to link:https://github.com/JetBrains/kotlin/releases/tag/v2.3.21[Kotlin 2.3.21].
+
+[[kotlin_dsl_delegated_properties]]
+==== Deprecation of Kotlin DSL delegated properties
+
+All Kotlin DSL property delegate extensions have been deprecated and will be removed in Gradle 10. This includes container delegates (`by registering`, `by creating`, `by existing`, `by getting`), property delegates (`by project`, `by settings`, `by extra`), and value delegates (`Property<T>` and `ConfigurableFileCollection` getValue/setValue operators).
+
+Use the explicit API instead.
+
+The container delegates (`registering`, `creating`, `existing`, `getting`) are defined on `NamedDomainObjectContainer` and `NamedDomainObjectCollection`. They apply to any container, not just `tasks` or `configurations`.
+
+The examples below use a generic `container` placeholder; replace it with `tasks`, `configurations`, `sourceSets`, or whichever container you use.
+
+**Container delegates:**
+
+[cols="1,1"]
+|===
+|Deprecated delegate |Replacement
+
+|`val x by container.registering`
+|`val x = container.register("x")`
+
+|`val x by container.registering { }`
+|`val x = container.register("x") { }`
+
+|`val x by container.registering(Type::class)`
+|`val x = container.register<Type>("x")`
+
+|`val x by container.registering(Type::class) { }`
+|`val x = container.register<Type>("x") { }`
+
+|`val x by container.creating`
+|`val x = container.create("x")`
+
+|`val x by container.creating { }`
+|`val x = container.create("x") { }`
+
+|`val x by container.creating(Type::class)`
+|`val x = container.create<Type>("x")`
+
+|`val x by container.creating(Type::class) { }`
+|`val x = container.create<Type>("x") { }`
+
+|`val x by container.existing`
+|`val x = container.named("x")`
+
+|`val x by container.existing { }`
+|`val x = container.named("x") { }`
+
+|`val x by container.existing(Type::class)`
+|`val x = container.named<Type>("x")`
+
+|`val x by container.existing(Type::class) { }`
+|`val x = container.named<Type>("x") { }`
+
+|`val x by container.getting`
+|`val x = container.getByName("x")`
+
+|`val x by container.getting { }`
+|`val x = container.getByName("x") { }`
+
+|`val x by container.getting(Type::class)`
+|`val x = container.getByName<Type>("x")`
+
+|`val x by container.getting(Type::class) { }`
+|`val x = container.getByName<Type>("x") { }`
+
+|`val x: Type by container` (lookup)
+|`val x = container.getByName("x")`
+
+|`val x: Type by provider` (`NamedDomainObjectProvider<T>` unwrap)
+|`val x = provider.get()`
+|===
+
+**Property, extra, and value delegates:**
+
+[cols="1,1"]
+|===
+|Deprecated delegate |Replacement
+
+|`val p: String by project`
+|`val p = project.property("p")`
+
+|`val p: String? by project`
+|`val p = project.findProperty("p")`
+
+|`val p: String by settings` (Gradle property)
+|`val p = providers.gradleProperty("p").get()`
+
+|`val p: String? by settings` (Gradle property, nullable)
+|`val p = providers.gradleProperty("p").orNull`
+
+|`val p: String by settings` (extra property)
+|`val p = extra["p"] as String`
+
+|`val p: String? by settings` (extra property, nullable)
+|`val p = extra["p"] as String?`
+
+|`val v by extra("value")` or `val v by extra { value }`
+|`extra.set("v", value)`
+
+|`val v: String by extra`
+|`val v = extra["v"] as String`
+
+|`val v: String? by extra`
+|`val v = extra["v"] as String?`
+
+|`val x: String by myProperty` (`Property<T>` read)
+|`val x = myProperty.get()`
+
+|`x = "new"` via `var x: String by myProperty` (`Property<T>` write)
+|`myProperty.set("new")`
+
+|`val files by myFileCollection` (`ConfigurableFileCollection` read)
+|`val files = myFileCollection.getFiles()`
+
+|`files = ...` via `var files by myFileCollection` (`ConfigurableFileCollection` write)
+|`myFileCollection.setFrom(...)`
+
+|`val ext: Type by extensions`
+|`val ext = extensions.getByType<Type>()`
+|===
+
+Delegated properties are being removed because they create silent correctness bugs (e.g. no-op delegates, wrong extra property scope), couple entity names to variable names, diverge between build scripts and class-based plugins, and duplicate functionality already provided by explicit APIs or other DSL sugar.
+
+[[agp_8x_incompatible]]
+==== Android Gradle Plugin 8.x is no longer compatible with Gradle 9.6
+
+Several internal classes used by Android Gradle Plugin (AGP) 8.x have been changed.
+Since AGP 8.x relied on these internal classes directly, it is no longer compatible with Gradle 9.6 and later.
+
+To resolve this, upgrade to AGP 9.x, which only uses the public Gradle API and fully supports Gradle 9.6.
+
+[[concurrency_primitives_prohibited_by_cc]]
+==== Concurrency primitives can no longer be serialized by the Configuration Cache
+
+Configuration Cache serialization now reports a clear problem when attempting to serialize most of Java's standard concurrency primitives.
+This includes classes and interfaces from the `java.util.concurrent` and `java.util.concurrent.locks` packages, such as `ReentrantLock`, `CountDownLatch`, and `SynchronousQueue`.
+Because the Configuration Cache enforces isolation between tasks, these primitives cannot be used correctly for cross-task synchronization.
+Allowing serialization would silently give each task its own independent instance (for example, its own lock), so cross-task coordination would never actually occur — that is the bug this error prevents.
+
+Previously, attempts to serialize these types could fail with exceptions such as `java.lang.reflect.InaccessibleObjectException`, without clearly indicating the underlying issue.
+If your build requires shared, synchronized state, use <<build_services.adoc#build_services, shared build services>>, which are explicitly designed for safe coordination between tasks.
+For a complete list of types that are incompatible with the Configuration Cache, see the <<configuration_cache_requirements.adoc#config_cache:requirements:disallowed_types, documentation>>.
+
+[[v9_upgrade_to_pmd_7_24_0]]
+==== Upgrade to PMD 7.24.0
+
+The default version of PMD has been updated from 7.13.0 to link:https://github.com/pmd/pmd/releases/tag/pmd_releases%2F7.24.0[7.24.0].
+
+[[v9_upgrade_to_codenarc_3_7_0]]
+==== Upgrade to CodeNarc 3.7.0
+
+The default version of CodeNarc has been updated from 3.6.0 to link:https://github.com/CodeNarc/CodeNarc/blob/v3.7.0/CHANGELOG.md[3.7.0].
+
+[[v9_upgrade_to_ant_1_10_17]]
+==== Upgrade to Ant 1.10.17
+
+Ant has been updated to link:https://github.com/apache/ant/blob/rel/1.10.17/WHATSNEW[1.10.17].
+Since the previous version was 1.10.15, the link:https://github.com/apache/ant/blob/rel/1.10.16/WHATSNEW[1.10.16] changes are also included.
+
+[[v9_upgrade_to_groovy_4_0_32]]
+==== Upgrade to Groovy 4.0.32
+
+Groovy has been updated to link:https://groovy-lang.org/changelogs/changelog-4.0.32.html[4.0.32].
+Since the previous version was 4.0.29, the link:https://groovy-lang.org/changelogs/changelog-4.0.30.html[4.0.30] and link:https://groovy-lang.org/changelogs/changelog-4.0.31.html[4.0.31] changes are also included.
+
+[[changes_9.5.0]]
+== Upgrading from 9.4.0 and earlier
+
+[[v9_potential_breaking_changes_9_5]]
+=== Potential breaking changes
+
+[[v9_upgrade_to_kotlin_2_3_20]]
 ==== Upgrade to Kotlin 2.3.20
 
 The embedded Kotlin has been upgraded from 2.3.10 to link:https://github.com/JetBrains/kotlin/releases/tag/v2.3.20[Kotlin 2.3.20].
 
+[[v9_plugins_requested_by_precompiled_settings_plugins_validated]]
 ==== Plugins requested by precompiled settings plugins are now validated at compile time
 
 Gradle now validates plugin requests in precompiled settings plugins (`*.settings.gradle.kts`) during compilation, failing the build if a requested plugin cannot be resolved.
@@ -119,6 +722,7 @@ plugins {
 
 If you have precompiled settings plugins that are declared but not currently applied, check their `plugins {}` blocks and remove or fix any plugin requests that cannot be resolved from the dependencies available in the build being compiled.
 
+[[v9_windows_start_script_reworked]]
 ==== The Windows start script has been reworked to improve usability
 
 The default Windows start script template (used for `gradlew.bat` and application start scripts) has been reworked to improve usability and consistency with the Unix shell script.
@@ -135,6 +739,7 @@ The new script includes the following changes:
 Upgrading the wrapper to the new script may cause a one-time error if done before Gradle 8.14, because `cmd.exe` re-reads the script after it changes.
 To avoid this, first upgrade to Gradle 8.14 or 9.0.0, then upgrade to 9.5.0.
 
+[[v9_values_tracked_as_configuration_cache_input]]
 ==== Calling `.values()` on environment variables or system properties is now tracked as Configuration Cache input
 
 Starting with Gradle 9.5.0, calling `.values()` on the maps returned from `System.getenv()` or `System.getProperties()` now records all environment variables or system properties as Configuration Cache inputs.
@@ -143,6 +748,7 @@ This is consistent with how <<configuration_cache_requirements.adoc#config_cache
 As a result, if your build configuration uses `System.getenv().values()` or `System.getProperties().values()`, any change to any environment variable or system property will invalidate the Configuration Cache entry, not just the ones your build actually uses.
 If you experience unexpected cache invalidations after upgrading, check whether your build or any plugins call `.values()` on these maps, and consider switching to targeted property lookups instead.
 
+[[v9_dependency_lockfiles_platform_independent_line_ending]]
 ==== Dependency lockfiles are generated with a platform-independent line ending
 
 In the context of <<dependency_locking#locking-versions, Dependency Locking>>, lockfiles now use Unix line endings (LF, `\n`) instead of the system default.
@@ -150,6 +756,7 @@ Existing lockfiles using Windows line endings (CRLF, `\r\n`) can still be read, 
 
 When running a lock update with Gradle 9.5.0 or above, if your lockfiles were previously generated on Windows, all line endings will be updated to LF. This will appear as a large diff in version control even if no dependencies have changed. This is expected and only happens once.
 
+[[v9_dependency_verification_armored_key_rings_non_ascii]]
 ==== Dependency verification armored key rings now render non-ASCII characters correctly
 
 In the context of <<dependency_verification#verifying-dependencies, Dependency Verification>>, when a key has metadata that contains non-ASCII characters, it is now properly rendered in the key header.
@@ -157,6 +764,7 @@ In the context of <<dependency_verification#verifying-dependencies, Dependency V
 When running a <<dependency_verification#sec:local-keyring,dependency verification key export>> with Gradle 9.5.0 or above, if your keyring already contained keys with non-ASCII metadata, the exported armored keyring will be updated to render those characters correctly.
 This is expected to happen only once.
 
+[[v9_outgoing_variants_hide_attributeless_by_default]]
 ==== The `outgoingVariants` and `resolvableConfigurations` reports now hide variants without attributes by default
 
 The `outgoingVariants` and `resolvableConfigurations` report tasks now only show variants and configurations that have attributes defined, since only these can participate in variant-aware dependency resolution.
@@ -173,6 +781,7 @@ If you rely on seeing attributeless variants or configurations in these reports,
 ./gradlew resolvableConfigurations --all
 ----
 
+[[v9_deprecations_9_5]]
 === Deprecations
 
 [[deprecate_exit_environment_var]]
@@ -189,8 +798,10 @@ There is no replacement API, the exit environment variable concept has been remo
 [[changes_9.4.0]]
 == Upgrading from 9.3.1 and earlier
 
+[[v9_potential_breaking_changes_9_4]]
 === Potential breaking changes
 
+[[v9_project_builder_enforces_consistent_build_scoped_locations]]
 ==== `ProjectBuilder` now enforces consistent build-scoped locations
 
 link:{javadocPath}/org/gradle/testfixtures/ProjectBuilder.html[`ProjectBuilder`] allows you to configure a specific project directory for tests.
@@ -207,6 +818,7 @@ Previously, dependency management files could be "leaked" into the test from the
 
 For more details see link:https://github.com/gradle/gradle/issues/32928[the related issue].
 
+[[v9_java_gradle_plugin_compile_only_api]]
 ==== The `java-gradle-plugin` plugin now adds the `gradleApi()` dependency to the `compileOnlyApi` scope
 
 The `gradleApi()` dependency is now added to the `compileOnlyApi` scope instead of the `api` scope.
@@ -223,6 +835,7 @@ For most plugin projects, this change should be transparent as:
 If any additional test source set is used (e.g., integration tests), the `plugin` extension offers the `plugins.testSourceSet` method to register the source set for automatic management.
 If this cannot be done, a regular declaration of the `gradleApi()` dependency on the test source can be used as well.
 
+[[v9_stricter_validation_for_published_plugins]]
 ==== Stricter validation for published plugins
 
 For plugin builds that apply any of the `com.gradle.plugin-publish`, `ivy-publish`, or `maven-publish` plugins, Gradle now automatically enables stricter validation of plugin code.
@@ -238,6 +851,7 @@ tasks.validatePlugins {
 }
 ----
 
+[[v9_codenarc_compilation_classpath_set_by_default]]
 ==== CodeNarc compilation classpath is set by default
 
 The CodeNarc plugin now automatically populates the `compilationClasspath` of a `CodeNarc` task with the compile classpath of its associated source set.
@@ -267,6 +881,7 @@ tasks.withType<CodeNarc>().configureEach {
 
 If your build relies on a custom configuration for the `compilationClasspath` of a `CodeNarc` task, you will need to continue explicitly setting it to override the new default behavior.
 
+[[v9_system_property_priority_for_wrapper_execution]]
 ==== System property priority for Wrapper execution has changed
 
 The priority of <<build_environment.adoc#sec:gradle_system_properties,system properties>> passed to the <<gradle_wrapper.adoc#gradle_wrapper,Gradle Wrapper>> now correctly follows the documented order of precedence.
@@ -284,14 +899,17 @@ If a property is defined in multiple locations, Gradle now strictly honors the f
 
 For more details see the link:https://github.com/gradle/gradle/issues/36189[related issue].
 
+[[v9_upgrade_to_kotlin_2_3_0]]
 ==== Upgrade to Kotlin 2.3.0
 
 The embedded Kotlin has been upgraded from 2.2.21 to link:https://github.com/JetBrains/kotlin/releases/tag/v2.3.0[Kotlin 2.3.0].
 
+[[v9_upgrade_to_zinc_1_12_0]]
 ==== Upgrade to Zinc 1.12.0
 
 Zinc has been updated to https://github.com/sbt/zinc/releases/tag/v1.12.0[1.12.0].
 
+[[v9_deprecations_9_4]]
 === Deprecations
 
 [[findAll_removal]]
@@ -375,6 +993,7 @@ plugins {
 }
 ----
 
+[[v9_deprecation_of_dependencies_get_project]]
 ==== Deprecation of `Dependencies.getProject()` method
 
 The `getProject()` method on `Dependencies` has been deprecated and will be removed in Gradle 10.0.0.
@@ -419,8 +1038,10 @@ testing {
 [[changes_9.3.0]]
 == Upgrading from 9.2.0 and earlier
 
+[[v9_potential_breaking_changes_9_3]]
 === Potential breaking changes
 
+[[v9_referential_equality_not_guaranteed_for_project]]
 ==== Referential equality is not guaranteed for `Project` instances
 
 Instances of `Project` type representing the same logical Gradle project do not provide any guarantee of being equal by reference (`==` in Java, `===` in Kotlin).
@@ -461,6 +1082,7 @@ project.getRootProject() == project.getParent();
 In general, it is better to check project equality via `Project.getPath()` or `Project.getBuildTreePath()` for composite-build support.
 The paths are also better suited to be keys in data structures, like maps.
 
+[[v9_testng_output_may_change]]
 ==== TestNG output may change when using versions before 6.9.13.3
 
 As part of the `AbstractTestTask` refactoring, Gradle’s integration with TestNG has been updated.
@@ -473,26 +1095,32 @@ When using TestNG versions **earlier than 6.9.13.3**, this can lead to different
 
 To get correct and stable output, we recommend upgrading to **TestNG 6.9.13.3 or newer**.
 
+[[v9_upgrade_to_kotlin_2_2_21]]
 ==== Upgrade to Kotlin 2.2.21
 
 The embedded Kotlin has been upgraded from 2.2.20 to link:https://github.com/JetBrains/kotlin/releases/tag/v2.2.21[2.2.21].
 
+[[v9_upgrade_to_jansi_2_4_2]]
 ==== Upgrade to Jansi 2.4.2
 
 Jansi was upgraded from https://github.com/fusesource/jansi/blob/jansi-2.4.2/changelog.md#jansi-118-released-2019-04-02[1.18] to https://github.com/fusesource/jansi/releases/tag/jansi-2.4.2[2.4.2] to pick up support for Windows ARM64.
 
+[[v9_upgrade_to_asm_9_9]]
 ==== Upgrade to ASM 9.9
 
 ASM was upgraded from 9.8 to https://asm.ow2.io/versions.html[9.9] to ensure earlier compatibility for Java 26.
 
+[[v9_upgrade_to_groovy_4_0_29]]
 ==== Upgrade to Groovy 4.0.29
 
 Groovy has been updated to https://groovy-lang.org/changelogs/changelog-4.0.29.html[4.0.29].
 
+[[v9_upgrade_to_jacoco_0_8_14]]
 ==== Upgrade to JaCoCo 0.8.14
 
 JaCoCo has been updated to https://www.jacoco.org/jacoco/trunk/doc/changes.html[0.8.14].
 
+[[v9_deprecations_9_3]]
 === Deprecations
 
 [[deprecated_wrapper_get_available_distribution_types]]
@@ -638,6 +1266,7 @@ dependencies {
 
 [[deprecate_moduleversionselector_to_modulecomponentselector]]
 ==== Deprecation of `ModuleVersionSelector` to `ModuleComponentSelector` conversion
+
 The conversion of `ModuleVersionSelector` to `ModuleComponentSelector` (used in
 link:{javadocPath}/org/gradle/api/artifacts/ResolutionStrategy.html#force(java.lang.Object...)[`ResolutionStrategy.force(...)`],
 link:{javadocPath}/org/gradle/api/artifacts/DependencyResolveDetails.html#useTarget(java.lang.Object)[`DependencyResolveDetails.useTarget(Object)`], and
@@ -653,17 +1282,21 @@ To fix this deprecation, pass one of the supported notations (for example, a Str
 [[changes_9.2.0]]
 == Upgrading from 9.1.0 and earlier
 
+[[v9_potential_breaking_changes_9_2]]
 === Potential breaking changes
 
+[[v9_upgrade_to_kotlin_2_2_20]]
 ==== Upgrade to Kotlin 2.2.20
 
 The embedded Kotlin has been upgraded from 2.2.0 to link:https://github.com/JetBrains/kotlin/releases/tag/v2.2.20[Kotlin 2.2.20].
 
+[[v9_removed_object_factory_dependency_collector]]
 ==== Removed incubating `ObjectFactory#dependencyCollector()` method
 
 The incubating `ObjectFactory#dependencyCollector()` method has been removed.
 You can still create `DependencyCollectors` within Gradle <<properties_providers.adoc#managed_types, managed types>>.
 
+[[v9_consumable_configurations_initialized_lazily]]
 ==== Consumable configurations in bundled plugins are now initialized lazily
 
 Consumable configurations created by bundled Gradle plugins are now initialized only when needed.
@@ -732,6 +1365,7 @@ tasks.withType(ValidatePlugins).configureEach {
 
 If the specified Java version is **not** compatible with the Gradle daemon, you must update it to a <<compatibility.adoc#java_runtime,compatible version>>.
 
+[[v9_deprecations_9_2]]
 === Deprecations
 
 [[project_container_methods]]
@@ -775,16 +1409,20 @@ The following bundled plugins apply the Java plugin automatically:
 [[changes_9.1.0]]
 == Upgrading from 9.0.0 and earlier
 
+[[v9_potential_breaking_changes_9_1]]
 === Potential breaking changes
 
+[[v9_upgrade_to_asm_9_8]]
 ==== Upgrade to ASM 9.8
 
 ASM was upgraded from 9.7.1 to https://asm.ow2.io/versions.html[9.8] to ensure earlier compatibility for Java 25.
 
+[[v9_upgrade_to_groovy_4_0_28]]
 ==== Upgrade to Groovy 4.0.28
 
 Groovy has been updated to https://groovy-lang.org/changelogs/changelog-4.0.28.html[Groovy 4.0.28].
 
+[[v9_deprecations_9_1]]
 === Deprecations
 
 [[dependency_multi_string_notation]]

@@ -20,14 +20,14 @@ import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import org.gradle.testing.jacoco.plugins.JacocoPlugin
 import org.junit.Test
 
 class JacocoTestKitKotlinScriptFingerprintingIntegrationTest : AbstractKotlinIntegrationTest() {
 
     @Test
-    @Requires(IntegTestPreconditions.NotEmbeddedExecutor::class)
+    @Requires(TestExecutionPreconditions.NotEmbeddedExecutor::class)
     @LeaksFileHandles("Kotlin Compiler Daemon working directory")
     fun `running a test with TestKit that applies Jacoco won't brake KTS script fingerprinting`() {
         withSettings("""
@@ -47,7 +47,7 @@ class JacocoTestKitKotlinScriptFingerprintingIntegrationTest : AbstractKotlinInt
                 id("com.gradle.plugin-publish") version ("2.0.0")
             }
             
-            val jacocoRuntime by configurations.creating
+            val jacocoRuntime = configurations.create("jacocoRuntime")
             
             dependencies {
                 testImplementation("junit:junit:4.13")

@@ -22,7 +22,7 @@ import org.gradle.internal.fingerprint.DirectorySensitivity
 
 abstract class AbstractDirectorySensitivityIntegrationSpec extends AbstractIntegrationSpec {
 
-    public static final String TRANSFORM_EXECUTED = 'Transform bar.zip (project :bar) with AugmentTransform'
+    public static final String TRANSFORM_EXECUTED = "Transform bar.zip (project ':bar') with AugmentTransform"
 
     abstract void execute(String... tasks)
 
@@ -68,7 +68,10 @@ abstract class AbstractDirectorySensitivityIntegrationSpec extends AbstractInteg
         executedAndNotSkipped(":taskWithInputs")
 
         where:
-        [api, pathSensitivity] << [Api.values(), [PathSensitivity.RELATIVE, PathSensitivity.ABSOLUTE, PathSensitivity.NAME_ONLY]].combinations()
+        api << Api.values()
+
+        combined:
+        pathSensitivity << [PathSensitivity.RELATIVE, PathSensitivity.ABSOLUTE, PathSensitivity.NAME_ONLY]
     }
 
     def "input directories ignore empty directories by default (#api)"() {
@@ -154,7 +157,10 @@ abstract class AbstractDirectorySensitivityIntegrationSpec extends AbstractInteg
         reused(":taskWithInputs")
 
         where:
-        [api, pathSensitivity] << [Api.values(), [PathSensitivity.RELATIVE, PathSensitivity.ABSOLUTE, PathSensitivity.NAME_ONLY]].combinations()
+        api << Api.values()
+
+        combined:
+        pathSensitivity << [PathSensitivity.RELATIVE, PathSensitivity.ABSOLUTE, PathSensitivity.NAME_ONLY]
     }
 
     def "Non-empty directories are tracked when empty directories are ignored (#api, #pathSensitivity)"() {
@@ -209,7 +215,10 @@ abstract class AbstractDirectorySensitivityIntegrationSpec extends AbstractInteg
         executedAndNotSkipped(":taskWithInputs")
 
         where:
-        [api, pathSensitivity] << [Api.values(), [PathSensitivity.RELATIVE, PathSensitivity.ABSOLUTE, PathSensitivity.NAME_ONLY]].combinations()
+        api << Api.values()
+
+        combined:
+        pathSensitivity << [PathSensitivity.RELATIVE, PathSensitivity.ABSOLUTE, PathSensitivity.NAME_ONLY]
     }
 
     @ToBeFixedForIsolatedProjects(because = "allprojects, extensive cross-project access")

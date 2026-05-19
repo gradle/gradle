@@ -20,10 +20,10 @@ import org.gradle.internal.os.OperatingSystem
 // Using star import to workaround https://youtrack.jetbrains.com/issue/KTIJ-24390
 import org.gradle.kotlin.dsl.*
 import org.gradle.testfixtures.ProjectBuilder
-import org.junit.Assume
-import org.junit.Before
-import org.junit.Test
 import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Assumptions
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
 
 
 class DetermineBaselinesTest {
@@ -37,7 +37,7 @@ class DetermineBaselinesTest {
     val commandExecutor: TestCommandExecutor = TestCommandExecutor()
         .registerCommand(listOf("git", "remote", "-v"), "origin https://github.com/gradle/gradle.git (fetch)")
 
-    @Before
+    @BeforeEach
     fun setUp() {
         project.file("version.txt").writeText("1.0")
     }
@@ -83,7 +83,7 @@ class DetermineBaselinesTest {
     @Test
     fun `determines fork point commit on feature branch and empty configuration`() {
         // Windows git complains "long path" so we don't build commit distribution on Windows
-        Assume.assumeFalse(OperatingSystem.current().isWindows)
+        Assumptions.assumeFalse(OperatingSystem.current().isWindows)
         // given
         mockGitOperation(listOf("git", "fetch", "origin", "master", "release"), "")
         mockGitOperation(listOf("git", "merge-base", "origin/master", "HEAD"), "master-fork-point")

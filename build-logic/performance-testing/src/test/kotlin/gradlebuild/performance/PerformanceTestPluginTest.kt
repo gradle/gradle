@@ -1,16 +1,14 @@
 package gradlebuild.performance
 
-import org.junit.Rule
-import org.junit.Test
-import org.junit.rules.TemporaryFolder
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.io.TempDir
 import java.io.File
 
 
 class PerformanceTestPluginTest {
 
-    @JvmField
-    @Rule
-    val tempFolder = TemporaryFolder()
+    @TempDir
+    lateinit var tempFolder: File
 
     @Test
     fun `given a JUnit xml report, #allTestsWereSkipped returns true if @tests == @skipped and false otherwise`() {
@@ -26,7 +24,7 @@ class PerformanceTestPluginTest {
 
     private
     fun junitXmlWith(tests: String, skipped: String): File =
-        tempFolder.newFile("junit-$tests-$skipped.xml").apply {
+        File(tempFolder, "junit-$tests-$skipped.xml").apply {
             writeText(
                 """
                 <?xml version="1.0" encoding="UTF-8"?>

@@ -57,35 +57,35 @@ class DeprecatedFeaturesListener(
                 DeprecationLogger.deprecateMethod(Gradle::class.java, "useLogger(Object)")
                     .willBeRemovedInGradle10()
                     .withUpgradeGuideSection(8, "deprecated_use_logger")
-                    .nagUser();
+                    .nagUser()
             }
             shouldNagAbout(listener) -> {
                 nagUserAbout("Listener registration using $invocationDescription()", 7, "task_execution_events")
-            }
+            } // TODO: this is now the only call site for these "shouldNag.." methods where the ignoreStable flag is not TRUE; probably we should change this too
         }
     }
 
     override fun onProjectAccess(invocationDescription: String, task: TaskInternal, runningTask: TaskInternal?) {
-        if (shouldNagFor(task, runningTask, ignoreStable = true)) {
+        if (shouldNagFor(task, runningTask)) {
             nagUserAbout("Invocation of $invocationDescription at execution time", 7, "task_project")
         }
     }
 
     override fun onTaskDependenciesAccess(invocationDescription: String, task: TaskInternal, runningTask: TaskInternal?) {
         if (shouldNagFor(task, runningTask)) {
-            throwUnsupported("Invocation of $invocationDescription at execution time")
+            nagUserAbout("Invocation of $invocationDescription at execution time", 9, "task_dependencies")
         }
     }
 
-    override fun onConventionAccess(invocationDescription: String, task: TaskInternal, runningTask: TaskInternal?) {
+    override fun onTaskExtensionAccess(invocationDescription: String, task: TaskInternal, runningTask: TaskInternal?) {
         if (shouldNagFor(task, runningTask)) {
-            nagUserAbout("Invocation of $invocationDescription at execution time", 8, "task_convention")
+            nagUserAbout("Invocation of $invocationDescription at execution time", 9, "task_extensions")
         }
     }
 
     override fun disallowedAtExecutionInjectedServiceAccessed(injectedServiceType: Class<*>, getterName: String, consumer: String) {
         if (shouldNag()) {
-            throwUnsupported("Invocation of $injectedServiceType at execution time")
+            nagUserAbout("Reading injected service of type ${injectedServiceType.simpleName} at execution time", 9, "injected_service_types_at_execution")
         }
     }
 
@@ -99,16 +99,16 @@ class DeprecatedFeaturesListener(
     }
 
     private
-    fun shouldNagFor(task: TaskInternal, runningTask: TaskInternal?, ignoreStable: Boolean = false) =
-        shouldNag(ignoreStable) && shouldReportInContext(task, runningTask)
+    fun shouldNagFor(task: TaskInternal, runningTask: TaskInternal?) =
+        shouldNag() && shouldReportInContext(task, runningTask)
 
     private
-    fun shouldNag(ignoreStable: Boolean = false): Boolean =
-        // TODO:configuration-cache - this listener shouldn't be registered when cc is enabled
-        !buildModelParameters.isConfigurationCache && (ignoreStable || featureFlags.isEnabled(STABLE_CONFIGURATION_CACHE))
+    fun shouldNag(): Boolean =
+        !buildModelParameters.isConfigurationCache
 
     private
-    fun shouldNagAbout(listener: Any): Boolean = shouldNag() && !isSupportedListener(listener)
+    fun shouldNagAbout(listener: Any): Boolean =
+        !buildModelParameters.isConfigurationCache && featureFlags.isEnabled(STABLE_CONFIGURATION_CACHE) && !isSupportedListener(listener)
 
     /**
      * Only nag about tasks that are actually executing, but not tasks that are configured by the executing tasks.
@@ -117,10 +117,6 @@ class DeprecatedFeaturesListener(
     private
     fun shouldReportInContext(task: TaskInternal, runningTask: TaskInternal?) =
         runningTask == null || task === runningTask
-
-    private
-    fun throwUnsupported(reason: String): Nothing =
-        throw UnsupportedOperationException("$reason is unsupported with the STABLE_CONFIGURATION_CACHE feature preview.")
 }
 
 /**

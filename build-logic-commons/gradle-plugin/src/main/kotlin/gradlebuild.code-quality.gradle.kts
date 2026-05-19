@@ -134,7 +134,7 @@ project.plugins.withType<JavaBasePlugin> {
 
         project.tasks.named<JavaCompile>(this.compileJavaTaskName) {
             options.errorprone {
-                isEnabled = extension.enabled
+                enabled = extension.enabled
                 checks = errorproneExtension.disabledChecks.map {
                     it.associateWith { CheckSeverity.OFF }
                 }
@@ -169,7 +169,7 @@ tasks.check {
     dependsOn(codeQuality)
 }
 
-val rules by configurations.creating {
+val rules = configurations.create("rules") {
     isCanBeConsumed = false
 
     attributes {

@@ -19,7 +19,7 @@ package org.gradle.api
 import groovy.transform.SelfType
 import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheFixture
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import spock.lang.Issue
 
 @SelfType(AbstractDomainObjectContainerIntegrationTest)
@@ -151,7 +151,7 @@ class TaskContainerIntegrationTest extends AbstractDomainObjectContainerIntegrat
         output.contains("[null, null, foobar, foobar, foobar, foobar]")
     }
 
-    @Requires(value = IntegTestPreconditions.NotIsolatedProjects, reason = "This API is not IP compatible")
+    @Requires(value = TestExecutionPreconditions.NotIsolatedProjects, reason = "This API is not IP compatible")
     def "can access task by path from another project with IP disabled"() {
         settingsFile("""
             include 'other'
@@ -174,7 +174,7 @@ class TaskContainerIntegrationTest extends AbstractDomainObjectContainerIntegrat
         output.contains("[null, foobar, foobar]")
     }
 
-    @Requires(value = IntegTestPreconditions.IsolatedProjects, reason = "This API is not IP compatible")
+    @Requires(value = TestExecutionPreconditions.IsolatedProjects, reason = "This API is not IP compatible")
     def "cannot access task by path from another project with IP enabled"() {
         def configurationCache = new ConfigurationCacheFixture(this)
 

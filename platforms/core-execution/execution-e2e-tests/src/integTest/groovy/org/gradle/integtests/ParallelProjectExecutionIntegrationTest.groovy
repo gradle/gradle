@@ -19,10 +19,10 @@ package org.gradle.integtests
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import org.junit.Rule
 
-@Requires(IntegTestPreconditions.NotParallelExecutor) // no point, always runs in parallel
+@Requires(TestExecutionPreconditions.NotParallelExecutor) // no point, always runs in parallel
 public class ParallelProjectExecutionIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule public final BlockingHttpServer blockingServer = new BlockingHttpServer()

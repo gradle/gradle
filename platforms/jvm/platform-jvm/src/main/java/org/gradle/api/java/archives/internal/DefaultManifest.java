@@ -93,8 +93,14 @@ public class DefaultManifest implements ManifestInternal {
     }
 
     @Override
-    public @Nullable Provider<String> getContentCharset() {
+    public @Nullable Provider<String> getContentCharsetProvider() {
         return contentCharsetProvider;
+    }
+
+    @Override
+    @SuppressWarnings("deprecation")
+    public String getContentCharset() {
+        return getEffectiveContentCharset();
     }
 
     private String getEffectiveContentCharset() {

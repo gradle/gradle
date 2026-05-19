@@ -19,7 +19,9 @@ package org.gradle.launcher.continuous
 import org.gradle.integtests.fixtures.AbstractContinuousIntegrationTest
 import org.gradle.test.precondition.Requires
 import org.gradle.test.precondition.TestPrecondition
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.OsTestPreconditions
+import org.gradle.test.preconditions.TestEnvironmentPreconditions
+
 
 // NB: there's nothing specific about Java support and continuous.
 //     this spec just lays out some more practical use cases than the other targeted tests.
@@ -57,7 +59,7 @@ class SimpleJavaContinuousIntegrationTest extends AbstractContinuousIntegrationT
         executedAndNotSkipped ":compileJava", ":build"
 
         when:
-        if (TestPrecondition.satisfied(UnitTestPreconditions.Windows)) {
+        if (TestPrecondition.satisfied(OsTestPreconditions.Windows)) {
             //the main src dir might be locked, only delete children
             file("src/main/java").listFiles().each {
                 assert !it.deleteDir().exists()
@@ -174,7 +176,7 @@ class SimpleJavaContinuousIntegrationTest extends AbstractContinuousIntegrationT
     }
 
     // Just exercises the dependency management layers to shake out any weirdness
-    @Requires(UnitTestPreconditions.Online)
+    @Requires(TestEnvironmentPreconditions.Online)
     def "can resolve dependencies from remote repository"() {
         when:
         def sourceFile = file("src/main/java/Thing.java") << "class Thing {}"
@@ -262,7 +264,7 @@ class SimpleJavaContinuousIntegrationTest extends AbstractContinuousIntegrationT
         executedAndNotSkipped ":compileJava"
     }
 
-    @Requires(UnitTestPreconditions.NotLinux)
+    @Requires(OsTestPreconditions.NotLinux)
     def "creation of initial source file triggers build for hierarchical watchers"() {
         expect:
         succeeds("build")
@@ -277,7 +279,7 @@ class SimpleJavaContinuousIntegrationTest extends AbstractContinuousIntegrationT
         executedAndNotSkipped ":compileJava"
     }
 
-    @Requires(UnitTestPreconditions.Linux)
+    @Requires(OsTestPreconditions.Linux)
     def "creation of initial source file does not trigger build for non-hierarchical watchers"() {
         expect:
         succeeds("build")

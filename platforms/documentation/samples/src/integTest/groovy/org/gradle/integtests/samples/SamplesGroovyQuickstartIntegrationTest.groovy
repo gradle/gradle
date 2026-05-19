@@ -25,7 +25,7 @@ import org.junit.Rule
 class SamplesGroovyQuickstartIntegrationTest extends AbstractSampleIntegrationTest {
 
     @Rule
-    public final Sample sample = new Sample(testDirectoryProvider, 'groovy/quickstart')
+    public final Sample sample = new Sample(testDirectoryProvider, 'integration-tests/groovy/quickstart')
 
     def "groovy project quickstart sample with #dsl dsl"() {
         given:

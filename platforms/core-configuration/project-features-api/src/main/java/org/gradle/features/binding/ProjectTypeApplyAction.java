@@ -38,4 +38,31 @@ public interface ProjectTypeApplyAction<OwnDefinition extends Definition<OwnBuil
      * @since 9.5.0
      */
     void apply(ProjectFeatureApplicationContext context, OwnDefinition definition, OwnBuildModel buildModel);
+
+    /**
+     * A no-op {@link ProjectTypeApplyAction} that performs no build logic and makes
+     * no mutations to the build model. Use this when a project type binding needs an
+     * apply action class but does not have any work to perform.
+     *
+     * <p>Pass {@code ProjectTypeApplyAction.None.class} to
+     * {@code ProjectFeatureBindingBuilder#bindProjectType} or one of its overloads.
+     *
+     * @param <OwnDefinition> the type of the project type definition
+     * @param <OwnBuildModel> the type of the project type's build model
+     *
+     * @since 9.6.0
+     */
+    @Incubating
+    interface None<
+        OwnDefinition extends Definition<OwnBuildModel>,
+        OwnBuildModel extends BuildModel
+    > extends ProjectTypeApplyAction<OwnDefinition, OwnBuildModel> {
+        @Override
+        default void apply(
+            ProjectFeatureApplicationContext context,
+            OwnDefinition definition,
+            OwnBuildModel buildModel
+        ) {
+        }
+    }
 }

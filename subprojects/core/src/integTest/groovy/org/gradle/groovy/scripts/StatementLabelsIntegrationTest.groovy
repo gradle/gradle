@@ -16,47 +16,83 @@
 
 package org.gradle.groovy.scripts
 
+import org.gradle.api.problems.LineInFileLocation
+import org.gradle.api.problems.Severity
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.hamcrest.CoreMatchers
 
 class StatementLabelsIntegrationTest extends AbstractIntegrationSpec {
     def "use of statement label in build script is reported"() {
+        given:
+        enableProblemsApiCheck()
         buildFile << """
 version: '1.0'
         """
 
-        expect:
+        when:
         fails("tasks")
+
+        then:
         failure.assertHasFileName("Build file '${buildFile}'")
         failure.assertHasLineNumber(2)
-        failure.assertHasDescription("Could not compile build file '${buildFile}'.")
+        failureDescriptionContains("Could not compile build file '${buildFile}'.")
         failure.assertThatCause(CoreMatchers.containsString("build file '${buildFile}': 2: Statement labels may not be used in build scripts."))
+        verifyAll(receivedProblem(0)) {
+            severity == Severity.ERROR
+            fqid == 'compilation:groovy-dsl:compilation-failed'
+            definition.id.displayName == 'Groovy DSL script compilation problem'
+            contextualLabel == "Could not compile build file '${buildFile}'."
+            oneLocation(LineInFileLocation).path == buildFile.absolutePath
+        }
 
+        when:
         // try again to make sure that warning sticks if build script is cached
         fails("tasks")
+
+        then:
         failure.assertHasFileName("Build file '${buildFile}'")
         failure.assertHasLineNumber(2)
-        failure.assertHasDescription("Could not compile build file '${buildFile}'.")
+        failureDescriptionContains("Could not compile build file '${buildFile}'.")
         failure.assertThatCause(CoreMatchers.containsString("build file '${buildFile}': 2: Statement labels may not be used in build scripts."))
+        verifyAll(receivedProblem(0)) {
+            severity == Severity.ERROR
+            fqid == 'compilation:groovy-dsl:compilation-failed'
+            definition.id.displayName == 'Groovy DSL script compilation problem'
+            contextualLabel == "Could not compile build file '${buildFile}'."
+            oneLocation(LineInFileLocation).path == buildFile.absolutePath
+        }
     }
 
     def "all usages of statement labels are reported"() {
+        given:
+        enableProblemsApiCheck()
         buildFile << """
 version: '1.0'
 group = "foo"
 description: "bar"
         """
 
-        expect:
+        when:
         fails("tasks")
+
+        then:
         failure.assertHasFileName("Build file '${buildFile}'")
         failure.assertHasLineNumber(2)
-        failure.assertHasDescription("Could not compile build file '${buildFile}'.")
+        failureDescriptionContains("Could not compile build file '${buildFile}'.")
         failure.assertThatCause(CoreMatchers.containsString("build file '${buildFile}': 2: Statement labels may not be used in build scripts."))
         failure.assertThatCause(CoreMatchers.containsString("build file '${buildFile}': 4: Statement labels may not be used in build scripts."))
+        verifyAll(receivedProblem(0)) {
+            severity == Severity.ERROR
+            fqid == 'compilation:groovy-dsl:compilation-failed'
+            definition.id.displayName == 'Groovy DSL script compilation problem'
+            contextualLabel == "Could not compile build file '${buildFile}'."
+            oneLocation(LineInFileLocation).path == buildFile.absolutePath
+        }
     }
 
     def "nested use of statement label in build script is reported"() {
+        given:
+        enableProblemsApiCheck()
         buildFile << """
 def foo() {
     1.times {
@@ -67,12 +103,21 @@ def foo() {
 }
         """
 
-        expect:
+        when:
         fails("tasks")
+
+        then:
         failure.assertHasFileName("Build file '${buildFile}'")
         failure.assertHasLineNumber(5)
-        failure.assertHasDescription("Could not compile build file '${buildFile}'.")
+        failureDescriptionContains("Could not compile build file '${buildFile}'.")
         failure.assertThatCause(CoreMatchers.containsString("build file '${buildFile}': 5: Statement labels may not be used in build scripts."))
+        verifyAll(receivedProblem(0)) {
+            severity == Severity.ERROR
+            fqid == 'compilation:groovy-dsl:compilation-failed'
+            definition.id.displayName == 'Groovy DSL script compilation problem'
+            contextualLabel == "Could not compile build file '${buildFile}'."
+            oneLocation(LineInFileLocation).path == buildFile.absolutePath
+        }
     }
 
     def "use of statement label in class inside build script is allowed"() {

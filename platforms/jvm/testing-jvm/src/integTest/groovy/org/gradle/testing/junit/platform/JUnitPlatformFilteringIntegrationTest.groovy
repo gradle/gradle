@@ -62,7 +62,7 @@ class JUnitPlatformFilteringIntegrationTest extends JUnitPlatformIntegrationSpec
         def results = resultsFor(testDirectory)
         results.testPath("org.gradle.NestedTest").onlyRoot()
             .assertChildCount(1, 0)
-        results.testPathPreNormalized(':org.gradle.NestedTest:org.gradle.NestedTest$Inner').onlyRoot()
+        results.testPath(':org.gradle.NestedTest:org.gradle.NestedTest$Inner').onlyRoot()
             .assertOnlyChildrenExecuted("innerTest()")
     }
 
@@ -101,7 +101,7 @@ class JUnitPlatformFilteringIntegrationTest extends JUnitPlatformIntegrationSpec
         def results = resultsFor(testDirectory)
         results.testPath("EnclosingClass").onlyRoot()
             .assertChildCount(1, 0)
-        results.testPathPreNormalized(':EnclosingClass:EnclosingClass$NestedClass').onlyRoot()
+        results.testPath(':EnclosingClass:EnclosingClass$NestedClass').onlyRoot()
             .assertChildCount(1, 0)
             .assertChildrenExecuted("nestedTest()")
     }

@@ -26,7 +26,7 @@ class IsolatedProjectsJavaProjectSyncTest extends AbstractIdeSyncTest {
         simpleJavaProject()
 
         when:
-        ideaSync(IDEA_VERSION)
+        ideaSync()
 
         then:
         report.htmlReport().assertHasNoProblems()

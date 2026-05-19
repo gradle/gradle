@@ -82,10 +82,6 @@ public class PersistentModuleMetadataCache extends AbstractModuleMetadataCache {
             if (entry.isMissing()) {
                 return new DefaultCachedMetadata(entry, null, timeProvider);
             }
-
-            // TODO: `getModuleDescriptor` performs IO and blocks for a non-negligible amount of time.
-            // We should avoid holding the `useCache` lock for this duration, as we prevent others from
-            // using this cache, even for different keys.
             MutableModuleComponentResolveMetadata metadata = moduleMetadataStore.getModuleDescriptor(key);
             if (metadata == null) {
                 // Descriptor file has been deleted - ignore the entry

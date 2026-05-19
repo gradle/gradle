@@ -21,13 +21,12 @@ import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.ProviderFactory
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.service.ServiceLookup
-import org.gradle.internal.service.ServiceLookupException
 import org.gradle.internal.service.UnknownServiceException
 import org.gradle.process.ExecOperations
 import spock.lang.Specification
 
 class IsolationSchemeTest extends Specification {
-    def scheme = new IsolationScheme(SomeAction, SomeParams, Nothing)
+    def scheme = new IsolationScheme(SomeAction, SomeParams, Nothing, Nothing.INSTANCE)
 
     def "can extract parameters type"() {
         expect:
@@ -147,31 +146,32 @@ class IsolationSchemeTest extends Specification {
         result2.is(params)
     }
 
-    def "cannot query parameters when parameters are null"() {
+    def "returns None instance when parameters are null"() {
         def allServices = Mock(ServiceLookup)
 
         def injectedServices = scheme.servicesForImplementation(null, allServices, [])
 
         when:
-        injectedServices.find(SomeParams)
+        def result = injectedServices.find(SomeParams)
 
         then:
-        def e = thrown(ServiceLookupException)
-        e.message == "Cannot query the parameters of an instance of SomeAction that takes no parameters."
+        result.is(Nothing.INSTANCE)
 
         when:
-        injectedServices.get(SomeParams)
+        def result2 = injectedServices.get(SomeParams)
 
         then:
-        def e2 = thrown(ServiceLookupException)
-        e2.message == "Cannot query the parameters of an instance of SomeAction that takes no parameters."
+        result2.is(Nothing.INSTANCE)
+        result2.is(result)
     }
 }
 
 interface SomeParams {
 }
 
-interface Nothing extends SomeParams {}
+interface Nothing extends SomeParams {
+    Nothing INSTANCE = new Nothing() {}
+}
 
 interface SomeAction<P extends SomeParams> {
 }

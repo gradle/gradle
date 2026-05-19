@@ -6,10 +6,6 @@ group = "gradlebuild"
 
 description = "Provides a platform that constrains versions of external dependencies used by Gradle"
 
-// To try out newer kotlin versions
-val kotlinVersion = providers.gradleProperty("buildKotlinVersion")
-    .getOrElse(embeddedKotlinVersion)
-
 dependencies {
     constraints {
         val distributionDependencies = versionCatalogs.named("buildLibs")
@@ -18,7 +14,7 @@ dependencies {
                 if (module.group == "org.jetbrains.kotlin") {
                     module.copy().apply {
                         version {
-                            strictly(kotlinVersion)
+                            strictly(embeddedKotlinVersion)
                         }
                     }
                 } else {

@@ -77,12 +77,13 @@ class Stage1BlocksAccessorClassPathGenerator @Inject internal constructor(
 
     private
     val stage1BlocksAccessorClassPath by lazy {
-        val rootProject = buildState.projects.rootProject.mutableModel
-        val buildSrcClassLoaderScope = baseClassLoaderScopeOf(rootProject)
-        val classLoaderHash = requireNotNull(classLoaderHierarchyHasher.getClassLoaderHash(buildSrcClassLoaderScope.exportClassLoader))
-        val versionCatalogAccessors = generateVersionCatalogAccessors(rootProject, buildSrcClassLoaderScope, classLoaderHash)
-        val pluginSpecBuildersAccessors = generatePluginSpecBuildersAccessors(rootProject, buildSrcClassLoaderScope, classLoaderHash)
-        versionCatalogAccessors + pluginSpecBuildersAccessors
+        buildState.projects.rootProject.fromMutableState { rootProject ->
+            val buildSrcClassLoaderScope = rootProject.baseClassLoaderScope
+            val classLoaderHash = requireNotNull(classLoaderHierarchyHasher.getClassLoaderHash(buildSrcClassLoaderScope.exportClassLoader))
+            val versionCatalogAccessors = generateVersionCatalogAccessors(rootProject, buildSrcClassLoaderScope, classLoaderHash)
+            val pluginSpecBuildersAccessors = generatePluginSpecBuildersAccessors(rootProject, buildSrcClassLoaderScope, classLoaderHash)
+            versionCatalogAccessors + pluginSpecBuildersAccessors
+        }
     }
 
     fun stage1BlocksAccessorClassPath(project: ProjectInternal): AccessorsClassPath {
@@ -91,10 +92,6 @@ class Stage1BlocksAccessorClassPathGenerator @Inject internal constructor(
         }
         return stage1BlocksAccessorClassPath
     }
-
-    private
-    fun baseClassLoaderScopeOf(rootProject: Project) =
-        (rootProject as ProjectInternal).baseClassLoaderScope
 
     private
     fun generateVersionCatalogAccessors(

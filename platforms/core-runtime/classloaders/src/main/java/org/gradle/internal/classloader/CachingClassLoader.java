@@ -50,7 +50,7 @@ public class CachingClassLoader extends ClassLoader implements DelegatingClassLo
         if (cachedValue instanceof Class) {
             return (Class<?>) cachedValue;
         } else if (cachedValue == MISSING) {
-            throw new ClassNotFoundException(name);
+            throw new ClassNotFoundExceptionNoStackTrace(name);
         }
         Class<?> result;
         try {

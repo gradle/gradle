@@ -207,6 +207,7 @@ task verify {
     def rootId = configurations.${config}.incoming.resolutionResult.root.id
     def componentResults = runARQ(rootId).components
     def componentArtifactsResults = runARQ(rootId).resolvedComponents
+    def projName = project.name
 
     doLast {
         assert rootId instanceof ProjectComponentIdentifier
@@ -214,7 +215,7 @@ task verify {
 
         // Check generic component result
         def componentResult = componentResults.iterator().next()
-        assert componentResult.id.displayName == "root project :"
+        assert componentResult.id.displayName == "root project '\${projName}'"
         assert componentResult instanceof $expectedComponentResult.name
 """
 

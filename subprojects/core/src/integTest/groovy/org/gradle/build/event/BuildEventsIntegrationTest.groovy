@@ -17,13 +17,12 @@
 package org.gradle.build.event
 
 import org.gradle.api.internal.tasks.testing.report.VerifiesGenericTestReportResults
-import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult.TestFramework
 import org.gradle.api.services.BuildServiceParameters
 import org.gradle.api.tasks.testing.TestResult
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import org.gradle.tooling.events.FinishEvent
 import org.gradle.tooling.events.OperationCompletionListener
 import org.gradle.tooling.events.task.TaskFailureResult
@@ -36,11 +35,6 @@ import spock.lang.Issue
 import static org.hamcrest.Matchers.containsString
 
 class BuildEventsIntegrationTest extends AbstractIntegrationSpec implements VerifiesGenericTestReportResults {
-    @Override
-    TestFramework getTestFramework() {
-        return TestFramework.JUNIT4
-    }
-
     def "listener can subscribe to task completion events"() {
         loggingListener()
         buildFile << registeringPlugin()
@@ -182,7 +176,7 @@ class BuildEventsIntegrationTest extends AbstractIntegrationSpec implements Veri
         outputContains("EVENT: finish :b:thing")
     }
 
-    @Requires(value = IntegTestPreconditions.NotConfigCached, reason = "already covers CC")
+    @Requires(value = TestExecutionPreconditions.NotConfigCached, reason = "already covers CC")
     def "listener is not discarded after configuration phase when used with configuration cache"() {
         listenerReceivedConfigurationTimeData()
         buildFile << registeringPlugin()
@@ -336,7 +330,7 @@ class BuildEventsIntegrationTest extends AbstractIntegrationSpec implements Veri
         outputContains("EVENT: finish :b")
     }
 
-    @Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "Tries to resolve external (api) jars that are not available in the embedded environment")
+    @Requires(value = TestExecutionPreconditions.NotEmbeddedExecutor, reason = "Tries to resolve external (api) jars that are not available in the embedded environment")
     @Issue("https://github.com/gradle/gradle/issues/16774")
     def "can use plugin that registers build event listener with ProjectBuilder"() {
         given:
@@ -375,7 +369,7 @@ class BuildEventsIntegrationTest extends AbstractIntegrationSpec implements Veri
             .assertChildCount(1, 0)
     }
 
-    @Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "Cannot run TestKit in embedded mode")
+    @Requires(value = TestExecutionPreconditions.NotEmbeddedExecutor, reason = "Cannot run TestKit in embedded mode")
     def "can use plugin that registers build event listener with TestKit"() {
         given:
         def plugin = file('src/main/groovy/my-plugin.gradle')

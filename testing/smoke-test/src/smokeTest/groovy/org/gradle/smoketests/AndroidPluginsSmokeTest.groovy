@@ -40,17 +40,6 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
         AndroidHome.assertIsSet()
     }
 
-    @Override
-    SmokeTestGradleRunner runner(String... tasks) {
-        def runner = super.runner(tasks)
-        // TODO: AGP's ShaderCompile uses Task.project after the configuration barrier to compute inputs
-        return runner.withJvmArguments(runner.jvmArguments + [
-            // A workaround for this has been added to TaskExecutionAccessCheckers;
-            // TODO once we remove it, uncomment the flag below or upgrade AGP
-            // "-Dorg.gradle.internal.configuration-cache.task-execution-access-pre-stable=true"
-        ])
-    }
-
     def "android library and application APK assembly (agp=#agpVersion, ide=#ide)"() {
         given:
         AGP_VERSIONS.assumeCurrentJavaVersionIsSupportedBy(agpVersion)

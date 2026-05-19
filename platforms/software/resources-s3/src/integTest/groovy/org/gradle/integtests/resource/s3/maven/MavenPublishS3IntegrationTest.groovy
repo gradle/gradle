@@ -23,12 +23,13 @@ import org.gradle.integtests.resource.s3.fixtures.S3Artifact
 import org.gradle.integtests.resource.s3.fixtures.S3Server
 import org.gradle.test.precondition.Requires
 import org.gradle.test.precondition.TestPrecondition
-import org.gradle.test.preconditions.IntegTestPreconditions
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
+import org.gradle.test.preconditions.OsTestPreconditions
+
 import org.gradle.util.TestCredentialUtil
 import org.junit.Rule
 
-@Requires(IntegTestPreconditions.CanPublishToS3)
+@Requires(TestExecutionPreconditions.CanPublishToS3)
 class MavenPublishS3IntegrationTest extends AbstractMavenPublishIntegTest {
     @Rule
     public S3Server server = new S3Server(temporaryFolder)
@@ -127,7 +128,7 @@ class MavenPublishS3IntegrationTest extends AbstractMavenPublishIntegTest {
         module.rootMetaData.expectDownloadMissing()
         expectPublish(module.rootMetaData)
 
-        if (TestPrecondition.satisfied(UnitTestPreconditions.MacOsM1)) {
+        if (TestPrecondition.satisfied(OsTestPreconditions.MacOsM1)) {
             // FIXME KM M1 support might require aws-sdk-java-v2:2.17.198 and higher; see https://github.com/aws/aws-sdk-java-v2/issues/2942
             //   ...or this is just a harmless ST, see https://github.com/aws/aws-sdk-java/issues/2365
             executer.withStackTraceChecksDisabled()

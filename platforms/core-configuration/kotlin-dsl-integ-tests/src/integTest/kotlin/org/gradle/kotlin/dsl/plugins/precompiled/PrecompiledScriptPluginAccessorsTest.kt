@@ -34,7 +34,7 @@ import org.gradle.kotlin.dsl.fixtures.pluginDescriptorEntryFor
 import org.gradle.kotlin.dsl.fixtures.zipTo
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import org.gradle.util.internal.TextUtil.replaceLineSeparatorsOf
 import org.hamcrest.CoreMatchers.allOf
 import org.hamcrest.CoreMatchers.containsString
@@ -464,7 +464,7 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
 
     @Test
     @Requires(
-        IntegTestPreconditions.NotEmbeddedExecutor::class,
+        TestExecutionPreconditions.NotEmbeddedExecutor::class,
         reason = "Unknown issue with accessing the plugin portal from pre-compiled script plugin in embedded test mode"
     )
     fun `can use type-safe accessors for the Kotlin Gradle plugin extensions`() {

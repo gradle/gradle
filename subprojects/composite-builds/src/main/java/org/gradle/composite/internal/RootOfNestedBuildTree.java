@@ -22,7 +22,6 @@ import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.initialization.RunNestedBuildBuildOperationType;
-import org.gradle.initialization.layout.BuildLayout;
 import org.gradle.internal.Pair;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.build.AbstractBuildState;
@@ -33,7 +32,7 @@ import org.gradle.internal.build.NestedRootBuild;
 import org.gradle.internal.buildtree.BuildTreeFinishExecutor;
 import org.gradle.internal.buildtree.BuildTreeLifecycleController;
 import org.gradle.internal.buildtree.BuildTreeLifecycleControllerFactory;
-import org.gradle.internal.buildtree.BuildTreeState;
+import org.gradle.internal.buildtree.BuildTreeServices;
 import org.gradle.internal.buildtree.BuildTreeWorkExecutor;
 import org.gradle.internal.buildtree.DefaultBuildTreeFinishExecutor;
 import org.gradle.internal.buildtree.DefaultBuildTreeWorkExecutor;
@@ -48,7 +47,6 @@ import org.gradle.internal.service.CloseableServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.util.Path;
 
-import java.io.File;
 import java.util.Set;
 import java.util.function.Function;
 
@@ -61,9 +59,9 @@ public class RootOfNestedBuildTree extends AbstractBuildState implements NestedR
         BuildDefinition buildDefinition,
         Path identityPath,
         BuildState owner,
-        BuildTreeState buildTree
+        BuildTreeServices buildTreeServices
     ) {
-        super(buildTree, buildDefinition, owner);
+        super(buildTreeServices, buildDefinition, owner);
         this.identityPath = identityPath;
 
         CloseableServiceRegistry buildServices = getBuildServices();
@@ -98,11 +96,6 @@ public class RootOfNestedBuildTree extends AbstractBuildState implements NestedR
     @Override
     public boolean isImplicitBuild() {
         return false;
-    }
-
-    @Override
-    public File getBuildRootDir() {
-        return getBuildServices().get(BuildLayout.class).getRootDirectory();
     }
 
     @Override

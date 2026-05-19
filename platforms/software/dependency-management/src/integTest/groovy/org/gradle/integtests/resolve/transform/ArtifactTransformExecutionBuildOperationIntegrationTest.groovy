@@ -34,7 +34,7 @@ import org.gradle.operations.execution.ExecuteWorkBuildOperationType
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import org.junit.Rule
 
 import static org.gradle.internal.service.scopes.DefaultGradleUserHomeScopeServiceRegistry.REUSE_USER_HOME_SERVICES
@@ -298,7 +298,7 @@ class ArtifactTransformExecutionBuildOperationIntegrationTest extends AbstractIn
         "non-incremental" | false        | "UP-TO-DATE"        | "Cacheability was not determined"    | "UNKNOWN"
     }
 
-    @Requires(value = [IntegTestPreconditions.NotEmbeddedExecutor, IntegTestPreconditions.NotNoDaemonExecutor], reason = "Identity cache is off for embedded executor due to file locking issues")
+    @Requires(value = [TestExecutionPreconditions.NotEmbeddedExecutor, TestExecutionPreconditions.NotNoDaemonExecutor], reason = "Identity cache is off for embedded executor due to file locking issues")
     @LeaksFileHandles
     def "emits origin metadata for skipped transform executions"() {
         settingsFile << """
@@ -371,7 +371,7 @@ class ArtifactTransformExecutionBuildOperationIntegrationTest extends AbstractIn
         }
     }
 
-    @Requires(value = [IntegTestPreconditions.NotEmbeddedExecutor, IntegTestPreconditions.NotNoDaemonExecutor], reason = "Identity cache is off for embedded executor due to file locking issues")
+    @Requires(value = [TestExecutionPreconditions.NotEmbeddedExecutor, TestExecutionPreconditions.NotNoDaemonExecutor], reason = "Identity cache is off for embedded executor due to file locking issues")
     @LeaksFileHandles
     def "emits origin metadata when executed in first identity cached build"() {
         settingsFile << """
@@ -892,7 +892,7 @@ class ArtifactTransformExecutionBuildOperationIntegrationTest extends AbstractIn
 
         // Check the final component ids do not change within the chain.
         outputContains("""components = ${
-            ((['file1.jar', 'file2.jar'] + (['Local Groovy'] * 11) + ['project :producer', 'com.test:test:4.2'])).collectMany {
+            ((['file1.jar', 'file2.jar'] + (['Local Groovy'] * 11) + ["project ':producer'", 'com.test:test:4.2'])).collectMany {
                 [it] * 3 // The multiplier creates three copies of everything.
             }
         }""")

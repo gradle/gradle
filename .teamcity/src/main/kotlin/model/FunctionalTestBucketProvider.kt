@@ -61,17 +61,23 @@ class DefaultFunctionalTestBucketProvider(
         testCoverage: TestCoverage,
     ): List<FunctionalTest> =
         when {
-            testCoverage.testType == TestType.QUICK_FEEDBACK_CROSS_VERSION ->
+            testCoverage.testType == TestType.QUICK_FEEDBACK_CROSS_VERSION -> {
                 quickCrossVersionTestBucketProvider.createFunctionalTestsFor(
                     stage,
                     testCoverage,
                 )
-            testCoverage.testType == TestType.ALL_VERSIONS_CROSS_VERSION ->
+            }
+
+            testCoverage.testType == TestType.ALL_VERSIONS_CROSS_VERSION -> {
                 allCrossVersionTestBucketProvider.createFunctionalTestsFor(
                     stage,
                     testCoverage,
                 )
-            else -> functionalTestBucketProvider.createFunctionalTestsFor(stage, testCoverage)
+            }
+
+            else -> {
+                functionalTestBucketProvider.createFunctionalTestsFor(stage, testCoverage)
+            }
         }
 }
 

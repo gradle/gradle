@@ -15,10 +15,12 @@
  */
 
 package org.gradle.api
+import org.gradle.api.problems.LineInFileLocation
+import org.gradle.api.problems.Severity
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import spock.lang.Issue
 
 import static org.hamcrest.CoreMatchers.containsString
@@ -44,6 +46,8 @@ class BuildScriptErrorIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "produces reasonable error message when buildFile evaluation fails on script compilation"() {
+        given:
+        enableProblemsApiCheck()
         buildFile << """
     // a comment
     import org.gradle.unknown.Unknown
@@ -54,10 +58,21 @@ class BuildScriptErrorIntegrationTest extends AbstractIntegrationSpec {
         fails()
 
         then:
-        failure.assertHasDescription("Could not compile build file '${buildFile}'.")
-                .assertThatCause(containsString("build file '$buildFile': 3: unable to resolve class org.gradle.unknown.Unknown"))
+        failureDescriptionContains("Could not compile build file '${buildFile}'.")
+        failure.assertThatCause(containsString("build file '$buildFile': 3: unable to resolve class org.gradle.unknown.Unknown"))
                 .assertHasFileName("Build file '$buildFile'")
                 .assertHasLineNumber(3)
+        verifyAll(receivedProblem(0)) {
+            severity == Severity.ERROR
+            fqid == 'compilation:groovy-dsl:compilation-failed'
+            definition.id.displayName == 'Groovy DSL script compilation problem'
+            contextualLabel == "Could not compile build file '${buildFile}'."
+            details == null
+            definition.documentationLink == null
+            solutions == []
+            oneLocation(LineInFileLocation).path == buildFile.absolutePath
+            additionalData.asMap == [:]
+        }
     }
 
     def "produces reasonable error message when buildFile evaluation fails with exception"() {
@@ -104,7 +119,7 @@ include 'child'
     }
 
     @Requires(
-        value = IntegTestPreconditions.NotIsolatedProjects,
+        value = TestExecutionPreconditions.NotIsolatedProjects,
         reason = "Exercises IP incompatible behavior: Groovy method inheritance"
     )
     def "produces reasonable error message from a method inherited from a script containing only methods"() {

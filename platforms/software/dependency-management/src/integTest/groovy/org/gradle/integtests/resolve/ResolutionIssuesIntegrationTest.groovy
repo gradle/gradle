@@ -19,7 +19,9 @@ package org.gradle.integtests.resolve
 import groovy.test.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.JdkVersionTestPreconditions
+import org.gradle.test.preconditions.TestEnvironmentPreconditions
+
 import spock.lang.Ignore
 import spock.lang.Issue
 
@@ -137,7 +139,7 @@ class ResolutionIssuesIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Ignore("Original reproducer. Minified version below")
-    @Requires(UnitTestPreconditions.Jdk17OrLater)
+    @Requires(JdkVersionTestPreconditions.Jdk17OrLater)
     @Issue("https://github.com/gradle/gradle/issues/22326#issuecomment-1617422240")
     def "guava issue"() {
         settingsFile << """
@@ -160,7 +162,7 @@ class ResolutionIssuesIntegrationTest extends AbstractIntegrationSpec {
 
         buildFile << '''
             plugins {
-                id("com.android.application") version "8.2.2"
+                id("com.android.application") version "9.0.1"
             }
 
             android {
@@ -229,6 +231,41 @@ class ResolutionIssuesIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         succeeds("checkDebugDuplicateClasses")
+    }
+
+    @Requires(TestEnvironmentPreconditions.Online)
+    @Issue("https://github.com/gradle/gradle/issues/36284")
+    def "lenient artifact view exposes failure messages from androidx.room reproducer without NPE"() {
+        // Verbatim reproducer from issue 36284. With the bug, getMessage() throws
+        // NPE because DependencyGraphPathResolver.calculatePaths returns a list
+        // containing a null entry for a directDependee whose incoming edges no
+        // longer chain back to the root component.
+        buildFile << """
+            plugins {
+                id("java-library")
+            }
+
+            ${mavenCentralRepository()}
+            ${googleRepository()}
+
+            dependencies {
+                implementation("androidx.room:room-sqlite-wrapper:2.8.3")
+                implementation("androidx.room:room-runtime:2.8.3")
+            }
+
+            tasks.register("dgp") {
+                def failures = configurations.compileClasspath.incoming.artifactView {
+                    lenient = true
+                }.artifacts.failures
+                doLast {
+                    println("Failures: ")
+                    failures.each { println(it.message) }
+                }
+            }
+        """
+
+        expect:
+        succeeds("dgp")
     }
 
     def "depending on a bom of one version and another dependency that upgrades that bom causes unstable graph"() {

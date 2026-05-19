@@ -100,7 +100,7 @@ class LoggingBuildOperationProgressIntegTest extends AbstractIntegrationSpec {
 
         then:
 
-        def applyInitScriptProgress = operations.only("Apply initialization script 'init${File.separator}init.gradle' to build").progress
+        def applyInitScriptProgress = operations.only("Apply initialization script 'init${File.separator}init.gradle' to build ':'").progress
         applyInitScriptProgress.size() == 1
         applyInitScriptProgress[0].details.logLevel == 'WARN'
         applyInitScriptProgress[0].details.category == 'org.gradle.api.Script'

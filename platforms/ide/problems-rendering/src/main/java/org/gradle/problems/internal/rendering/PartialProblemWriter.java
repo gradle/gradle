@@ -16,7 +16,7 @@
 
 package org.gradle.problems.internal.rendering;
 
-import org.gradle.api.problems.internal.InternalProblem;
+import org.gradle.api.problems.internal.ProblemInternal;
 
 import java.io.PrintWriter;
 
@@ -25,5 +25,5 @@ import java.io.PrintWriter;
  */
 interface PartialProblemWriter {
 
-    void write(InternalProblem problem, RenderOptions options, PrintWriter output);
+    void write(ProblemInternal problem, RenderOptions options, PrintWriter output);
 }

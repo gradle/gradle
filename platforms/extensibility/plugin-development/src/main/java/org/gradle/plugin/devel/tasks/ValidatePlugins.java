@@ -27,9 +27,8 @@ import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.ProblemReporter;
 import org.gradle.api.problems.Problems;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
-import org.gradle.api.problems.internal.InternalProblem;
-import org.gradle.api.problems.internal.InternalProblemReporter;
-import org.gradle.api.problems.internal.InternalProblems;
+import org.gradle.api.problems.internal.ProblemInternal;
+import org.gradle.api.problems.internal.ProblemsInternal;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
@@ -45,22 +44,24 @@ import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.deprecation.Documentation;
 import org.gradle.internal.execution.WorkValidationException;
+import org.gradle.internal.execution.WorkValidationUtils;
 import org.gradle.internal.jvm.SupportedJavaVersions;
 import org.gradle.jvm.toolchain.JavaLauncher;
 import org.gradle.jvm.toolchain.JavaToolchainService;
 import org.gradle.plugin.devel.tasks.internal.ValidateAction;
 import org.gradle.plugin.devel.tasks.internal.ValidationProblemSerialization;
+import org.gradle.problems.internal.rendering.ProblemWriter;
 import org.gradle.workers.WorkerExecutor;
 
 import javax.inject.Inject;
 import java.io.IOException;
+import java.io.StringWriter;
 import java.util.List;
 import java.util.stream.Stream;
 
 import static com.google.common.collect.ImmutableList.toImmutableList;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.nio.file.Files.readAllBytes;
-import static java.util.stream.Collectors.joining;
 
 /**
  * Validates plugins by checking property annotations on work items like tasks and artifact transforms.
@@ -148,7 +149,8 @@ public abstract class ValidatePlugins extends DefaultTask {
                         })
                     );
                 }
-                spec.getClasspath().setFrom(getClasses(), getClasspath());
+                // The classpath includes both the plugin classes and the dependencies:
+                spec.getClasspath().setFrom(getClasspath());
             })
             .submit(ValidateAction.class, params -> {
                 params.getClasses().setFrom(getClasses());
@@ -158,37 +160,35 @@ public abstract class ValidatePlugins extends DefaultTask {
         getWorkerExecutor().await();
 
         ValidationProblemSerialization.SerializationResult parsedProblems = ValidationProblemSerialization.deserialize(new String(readAllBytes(getOutputFile().get().getAsFile().toPath()), UTF_8));
-        List<? extends InternalProblem> warnings = parsedProblems.getWarnings();
-        List<? extends InternalProblem> errors = parsedProblems.getErrors();
-
-        Stream<String> messages = Stream.concat(
-            ValidationProblemSerialization.toPlainWarning(warnings).sorted(),
-            ValidationProblemSerialization.toPlainError(errors).sorted()
-        );
+        List<? extends ProblemInternal> warnings = parsedProblems.getWarnings();
+        List<? extends ProblemInternal> errors = parsedProblems.getErrors();
 
         if (errors.isEmpty() && warnings.isEmpty()) {
             getLogger().info("Plugin validation finished without warnings.");
-        } else {
-            if (getFailOnWarning().get() || !errors.isEmpty()) {
-                if (getIgnoreFailures().get()) {
-                    getLogger().warn("Plugin validation finished with errors. {} {}",
-                        annotateTaskPropertiesDoc(),
-                        messages.collect(joining()));
-                } else {
-
-                    InternalProblemReporter reporter = getServices().get(InternalProblems.class)
-                        .getInternalReporter();
-                    reporter.report(warnings);
-                    reporter.reportError(errors);
-                    throw WorkValidationException.forProblems(messages.collect(toImmutableList()))
-                        .withSummaryForPlugin()
-                        .getWithExplanation(annotateTaskPropertiesDoc());
-                }
+        } else if (getFailOnWarning().get() || !errors.isEmpty()) {
+            if (getIgnoreFailures().get()) {
+                getLogger().warn("Plugin validation finished with errors. {}{}{}",
+                    annotateTaskPropertiesDoc(),
+                    System.lineSeparator(),
+                    renderProblems(warnings, errors));
             } else {
-                getLogger().warn("Plugin validation finished with warnings:{}",
-                    messages.collect(joining()));
+                ProblemReporter reporter = getServices().get(ProblemsInternal.class).getReporter();
+                List<ProblemInternal> reportedProblems = WorkValidationUtils.deduplicateAndTruncate(Stream.concat(warnings.stream(), errors.stream()).collect(toImmutableList()));
+                WorkValidationException exception = WorkValidationException.withSummaryForPlugin(reportedProblems.size(), List.of(annotateTaskPropertiesDoc()));
+                throw reporter.throwing(exception, reportedProblems);
             }
+        } else {
+            getLogger().warn("Plugin validation finished with warnings:{}{}",
+                System.lineSeparator(),
+                renderProblems(warnings, errors));
         }
+    }
+
+    private static String renderProblems(List<? extends ProblemInternal> warnings, List<? extends ProblemInternal> errors) {
+        List<ProblemInternal> all = Stream.concat(warnings.stream(), errors.stream()).collect(toImmutableList());
+        StringWriter writer = new StringWriter();
+        ProblemWriter.simple().write(all, writer);
+        return writer.toString();
     }
 
     private String annotateTaskPropertiesDoc() {
@@ -206,6 +206,8 @@ public abstract class ValidatePlugins extends DefaultTask {
 
     /**
      * The classpath used to load the classes under validation.
+     * <p>
+     * Includes the classes under validation and both the runtime-scoped dependencies and the compile-scoped ones.
      */
     @Classpath
     public abstract ConfigurableFileCollection getClasspath();

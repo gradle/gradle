@@ -6,7 +6,7 @@ plugins {
 description = "Kotlin DSL Gradle Plugins deployed to the Plugin Portal"
 
 group = "org.gradle.kotlin"
-version = "6.5.7"
+version = "6.6.5"
 
 base.archivesName = "plugins"
 
@@ -32,10 +32,10 @@ dependencies {
     api(libs.kotlinStdlib)
 
 
-    implementation(libs.kotlinGradlePlugin)
-    implementation(libs.kotlinGradlePluginApi)
-    implementation(libs.kotlinSamWithReceiver)
-    implementation(libs.kotlinAssignment)
+    implementation(libs.kotlinGradlePlugin.relaxRestriction())
+    implementation(libs.kotlinGradlePluginApi.relaxRestriction())
+    implementation(libs.kotlinSamWithReceiver.relaxRestriction())
+    implementation(libs.kotlinAssignment.relaxRestriction())
 
 
     testImplementation(projects.logging)
@@ -45,6 +45,15 @@ dependencies {
         because("mockito-kotlin 1.6 requires kotlin-reflect in 1.0.7, we want to overrule that")
     }
     testImplementation(testLibs.mockitoKotlin)
+}
+
+// Note: these dependencies have strict versions, but Gradle currently supports the scenario when higher version of kotlin can be used
+fun<T: ExternalModuleDependency> Provider<T>.relaxRestriction() = map {
+    it.copy().apply {
+        version {
+            require(strictVersion)
+        }
+    }
 }
 
 gradleModule {
@@ -64,38 +73,45 @@ packageCycles {
 
 testFilesCleanup.reportOnly = true
 
+val appliedKgpVersion = libs.versions.kotlin.get()
+
 pluginPublish {
     bundledGradlePlugin(
         name = "embeddedKotlin",
-        shortDescription = "Embedded Kotlin Gradle Plugin",
+        displayName = "Embedded Kotlin Gradle Plugin",
+        description = "Applies version `$appliedKgpVersion` of the `org.jetbrains.kotlin.jvm` plugin",
         pluginId = "org.gradle.kotlin.embedded-kotlin",
         pluginClass = "org.gradle.kotlin.dsl.plugins.embedded.EmbeddedKotlinPlugin"
     )
 
     bundledGradlePlugin(
         name = "kotlinDsl",
-        shortDescription = "Gradle Kotlin DSL Plugin",
+        displayName = "Gradle Kotlin DSL Plugin",
+        description = "Applies version `$appliedKgpVersion` of the `org.jetbrains.kotlin.jvm` plugin",
         pluginId = "org.gradle.kotlin.kotlin-dsl",
         pluginClass = "org.gradle.kotlin.dsl.plugins.dsl.KotlinDslPlugin"
     )
 
     bundledGradlePlugin(
         name = "kotlinDslBase",
-        shortDescription = "Gradle Kotlin DSL Base Plugin",
+        displayName = "Gradle Kotlin DSL Base Plugin",
+        description = "Applies version `$appliedKgpVersion` of the `org.jetbrains.kotlin.jvm` plugin",
         pluginId = "org.gradle.kotlin.kotlin-dsl.base",
         pluginClass = "org.gradle.kotlin.dsl.plugins.base.KotlinDslBasePlugin"
     )
 
     bundledGradlePlugin(
         name = "kotlinDslCompilerSettings",
-        shortDescription = "Gradle Kotlin DSL Compiler Settings",
+        displayName = "Gradle Kotlin DSL Compiler Settings",
+        description = "Applies version `$appliedKgpVersion` of the `org.jetbrains.kotlin.jvm` plugin",
         pluginId = "org.gradle.kotlin.kotlin-dsl.compiler-settings",
         pluginClass = "org.gradle.kotlin.dsl.plugins.dsl.KotlinDslCompilerPlugins"
     )
 
     bundledGradlePlugin(
         name = "kotlinDslPrecompiledScriptPlugins",
-        shortDescription = "Gradle Kotlin DSL Precompiled Script Plugins",
+        displayName = "Gradle Kotlin DSL Precompiled Script Plugins",
+        description = "Applies version `$appliedKgpVersion` of the `org.jetbrains.kotlin.jvm` plugin",
         pluginId = "org.gradle.kotlin.kotlin-dsl.precompiled-script-plugins",
         pluginClass = "org.gradle.kotlin.dsl.plugins.precompiled.PrecompiledScriptPlugins"
     )

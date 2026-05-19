@@ -19,11 +19,11 @@ package org.gradle.internal.logging.console
 import org.gradle.api.logging.configuration.ConsoleOutput
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.ConcurrentTestUtil
-import org.gradle.test.fixtures.Flaky
-import org.gradle.test.preconditions.IntegTestPreconditions
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
+import org.gradle.test.preconditions.OsTestPreconditions
 import org.gradle.test.precondition.Requires
 import spock.lang.Issue
+import spock.lang.Ignore
 
 /**
  * Verifies that the OSC 9;4;0 taskbar progress reset sequence is emitted when a build ends,
@@ -49,8 +49,8 @@ class TaskbarProgressResetFunctionalTest extends AbstractIntegrationSpec {
             .withConsole(ConsoleOutput.Rich)
     }
 
-    @Flaky(because = "https://github.com/gradle/gradle-private/issues/5153")
-    @Requires(value = [UnitTestPreconditions.Unix, IntegTestPreconditions.NotEmbeddedExecutor],
+    @Ignore('https://github.com/gradle/gradle-private/issues/5153')
+    @Requires(value = [OsTestPreconditions.Unix, TestExecutionPreconditions.NotEmbeddedExecutor],
         reason = "sends SIGINT to a forked process works only on Unix and with a separate process")
     def "sends OSC 9;4;0 reset sequence when build receives SIGINT"() {
         given:
@@ -83,7 +83,7 @@ class TaskbarProgressResetFunctionalTest extends AbstractIntegrationSpec {
     }
 
     @SuppressWarnings("IntegrationTestFixtures") // outputContains() strips ANSI escape characters; we need raw output to verify the OSC sequence
-    @Requires(value = IntegTestPreconditions.NotEmbeddedExecutor,
+    @Requires(value = TestExecutionPreconditions.NotEmbeddedExecutor,
         reason = "OSC taskbar progress sequences are only emitted by the forked client JVM")
     def "sends OSC 9;4;0 reset sequence after a successful build"() {
         given:
@@ -96,5 +96,41 @@ class TaskbarProgressResetFunctionalTest extends AbstractIntegrationSpec {
 
         then:
         result.output.contains(OSC_RESET)
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/37611")
+    @SuppressWarnings("IntegrationTestFixtures")
+    @Requires(value = TestExecutionPreconditions.NotEmbeddedExecutor,
+        reason = "OSC taskbar progress sequences are only emitted by the forked client JVM")
+    def "does not emit OSC 9;4 sequences when --console=plain"() {
+        given:
+        executer.withConsole(ConsoleOutput.Plain)
+        buildFile << """
+            task ok { }
+        """
+
+        when:
+        result = succeeds("ok")
+
+        then:
+        !result.output.contains(OSC_PROGRESS_PREFIX)
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/37611")
+    @SuppressWarnings("IntegrationTestFixtures")
+    @Requires(value = TestExecutionPreconditions.NotEmbeddedExecutor,
+        reason = "OSC taskbar progress sequences are only emitted by the forked client JVM")
+    def "does not emit OSC 9;4 sequences when console is Auto and stdout is not a terminal"() {
+        given:
+        executer.withConsole(ConsoleOutput.Auto)
+        buildFile << """
+            task ok { }
+        """
+
+        when:
+        result = succeeds("ok")
+
+        then:
+        !result.output.contains(OSC_PROGRESS_PREFIX)
     }
 }

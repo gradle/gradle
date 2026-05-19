@@ -21,14 +21,14 @@ import org.gradle.integtests.tooling.fixture.DaemonJvmPropertiesFixture
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.InstalledJdkTestPreconditions
 import org.gradle.tooling.GradleConnectionException
 
 // 8.8 did not support configuring the set of available Java homes or disabling auto-detection
 @TargetGradleVersion(">=8.9")
 class DaemonToolchainCrossVersionSpec extends ToolingApiSpecification implements DaemonJvmPropertiesFixture {
 
-    @Requires(IntegTestPreconditions.Java21HomeAvailable)
+    @Requires(InstalledJdkTestPreconditions.Java21HomeAvailable)
     def "Given daemon toolchain version When executing any task Then daemon jvm was set up with expected configuration"() {
         given:
         def jdk = AvailableJavaHomes.jdk21
@@ -62,7 +62,7 @@ class DaemonToolchainCrossVersionSpec extends ToolingApiSpecification implements
         assertDaemonUsedJvm(otherJvm.javaHome)
     }
 
-    @Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
+    @Requires(InstalledJdkTestPreconditions.JavaHomeWithDifferentVersionAvailable)
     def "Given installation with relative path to project and disabled auto-detection When executing any task Then daemon jvm was set up with the relative path toolchain"() {
         given:
         def otherJvm = AvailableJavaHomes.getJdk21()
@@ -82,7 +82,7 @@ class DaemonToolchainCrossVersionSpec extends ToolingApiSpecification implements
         assertDaemonUsedJvm(otherJvm.javaHome)
     }
 
-    @Requires(IntegTestPreconditions.Java21HomeAvailable)
+    @Requires(InstalledJdkTestPreconditions.Java21HomeAvailable)
     def "Given daemon toolchain criteria that doesn't match installed ones When executing any task Then fails with the expected message"() {
         given:
         def jdk = AvailableJavaHomes.jdk21

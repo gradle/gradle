@@ -20,6 +20,7 @@ import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.internal.instantiation.DeserializationInstantiator
 import org.gradle.internal.serialize.Decoder
 import org.gradle.internal.serialize.graph.ClassDecoder
+import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.ReadIdentities
 import org.gradle.internal.serialize.graph.decodePreservingIdentity
 import java.util.IdentityHashMap
@@ -45,7 +46,7 @@ class DefaultClassDecoder(
     private
     val scopeBySpec = IdentityHashMap<ClassLoaderScopeSpec, ClassLoaderScope>()
 
-    override fun Decoder.decodeClass(): Class<*> = decodePreservingIdentity(classes) { id ->
+    override fun ReadContext.decodeClass(): Class<*> = decodePreservingIdentity(classes) { id ->
         val isGenerated = readBoolean()
         val name = readString()
         val classLoader = decodeClassLoader()
@@ -55,7 +56,7 @@ class DefaultClassDecoder(
         actualType
     }
 
-    override fun Decoder.decodeClassLoader(): ClassLoader? =
+    override fun ReadContext.decodeClassLoader(): ClassLoader? =
         if (readBoolean()) {
             val scope = readScope()
             val classLoader = if (readBoolean()) {

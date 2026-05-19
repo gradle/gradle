@@ -246,14 +246,16 @@ class ToolingApi implements TestRule {
             error = new TeeOutputStream(stderr, System.err)
         }
 
+        return new ToolingApiConnector(connector, getJvmOverride(dist)?.javaHome, output, error)
+    }
 
+    public static Jvm getJvmOverride(GradleDistribution distribution) {
         Jvm jvm = null
-        if (!dist.daemonWorksWith(Jvm.current().javaVersionMajor)) {
-            jvm = AvailableJavaHomes.getAvailableJdk { dist.daemonWorksWith(it.javaMajorVersion) }
+        if (!distribution.daemonWorksWith(Jvm.current().javaVersionMajor)) {
+            jvm = AvailableJavaHomes.getAvailableJdk { distribution.daemonWorksWith(it.javaMajorVersion) }
             Assume.assumeThat("JVM compatible with the distribution daemon", jvm, IsNot.not(null));
         }
-
-        return new ToolingApiConnector(connector, jvm?.javaHome, output, error)
+        return jvm
     }
 
     /**

@@ -68,7 +68,7 @@ import org.gradle.api.internal.tasks.TaskDependencyUsageTracker;
 import org.gradle.api.internal.tasks.TaskResolver;
 import org.gradle.api.internal.tasks.TaskStatistics;
 import org.gradle.api.internal.tasks.properties.TaskScheme;
-import org.gradle.api.problems.internal.InternalProblems;
+import org.gradle.api.problems.internal.ProblemsInternal;
 import org.gradle.api.tasks.util.internal.PatternSetFactory;
 import org.gradle.configuration.ConfigurationTargetIdentifier;
 import org.gradle.configuration.project.DefaultProjectConfigurationActionContainer;
@@ -97,10 +97,6 @@ import org.gradle.model.internal.inspect.ModelRuleExtractor;
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
 import org.gradle.model.internal.registry.DefaultModelRegistry;
 import org.gradle.model.internal.registry.ModelRegistry;
-import org.gradle.normalization.internal.DefaultInputNormalizationHandler;
-import org.gradle.normalization.internal.DefaultRuntimeClasspathNormalization;
-import org.gradle.normalization.internal.InputNormalizationHandlerInternal;
-import org.gradle.normalization.internal.RuntimeClasspathNormalizationInternal;
 import org.gradle.plugin.internal.PluginScheme;
 import org.gradle.tooling.provider.model.internal.DefaultToolingModelBuilderRegistry;
 import org.gradle.tooling.provider.model.internal.ToolingModelBuilderRegistrant;
@@ -219,7 +215,7 @@ public class ProjectScopeServices implements ServiceRegistrationProvider {
         CollectionCallbackActionDecorator decorator,
         DomainObjectCollectionFactory domainObjectCollectionFactory,
         PluginScheme pluginScheme,
-        InternalProblems problems
+        ProblemsInternal problems
     ) {
 
         PluginTarget ruleBasedTarget = new RuleBasedPluginTarget(
@@ -327,18 +323,8 @@ public class ProjectScopeServices implements ServiceRegistrationProvider {
     }
 
     @Provides
-    protected RuntimeClasspathNormalizationInternal createRuntimeClasspathNormalizationStrategy(Instantiator instantiator) {
-        return instantiator.newInstance(DefaultRuntimeClasspathNormalization.class);
-    }
-
-    @Provides
-    protected InputNormalizationHandlerInternal createInputNormalizationHandler(Instantiator instantiator, RuntimeClasspathNormalizationInternal runtimeClasspathNormalizationStrategy) {
-        return instantiator.newInstance(DefaultInputNormalizationHandler.class, runtimeClasspathNormalizationStrategy);
-    }
-
-    @Provides
     protected TaskDependencyFactory createTaskDependencyFactory(BuildState build, CrossProjectModelAccess crossProjectModelAccess) {
-        @Nullable TaskDependencyUsageTracker tracker = crossProjectModelAccess.taskDependencyUsageTracker(project);
+        @Nullable TaskDependencyUsageTracker tracker = crossProjectModelAccess.taskDependencyUsageTracker(project.getProjectIdentity());
         TaskResolver taskResolver = new ProjectScopedTaskResolver(
             new BuildScopedTaskResolver(build),
             project.getProjectIdentity(),

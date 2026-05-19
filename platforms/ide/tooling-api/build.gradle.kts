@@ -54,8 +54,10 @@ dependencies {
     integTestImplementation(projects.kotlinDslToolingModels)
     integTestImplementation(testFixtures(projects.buildProcessServices))
     integTestImplementation(testFixtures(projects.launcher))
+    integTestImplementation(testFixtures(projects.toolchainsJvmShared))
 
     crossVersionTestImplementation(projects.jvmServices)
+    crossVersionTestImplementation(projects.internalIntegTesting)
     crossVersionTestImplementation(projects.internalTesting)
     crossVersionTestImplementation(testFixtures(projects.buildProcessServices))
     crossVersionTestImplementation(testFixtures(projects.problemsApi))

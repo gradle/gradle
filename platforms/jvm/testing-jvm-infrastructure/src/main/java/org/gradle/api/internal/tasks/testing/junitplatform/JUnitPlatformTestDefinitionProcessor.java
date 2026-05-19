@@ -129,6 +129,8 @@ public final class JUnitPlatformTestDefinitionProcessor extends AbstractJUnitTes
         private final JUnitPlatformSpec spec;
         private final IdGenerator<?> idGenerator;
         private final Clock clock;
+        @Nullable
+        private TestSelectionMatcher cachedMatcher;
 
         CollectThenExecuteTestDefinitionConsumer(TestResultProcessor resultProcessor, BackwardsCompatibleLauncherSession launcherSession, ClassLoader junitClassLoader, JUnitPlatformSpec spec, IdGenerator<?> idGenerator, Clock clock) {
             this.resultProcessor = resultProcessor;
@@ -155,9 +157,33 @@ public final class JUnitPlatformTestDefinitionProcessor extends AbstractJUnitTes
             if (isInnerClass(klass) || (supportsVintageTests() && isNestedClassInsideEnclosedRunner(klass))) {
                 return;
             }
+            if (isExcludedAndHasNoNestedClasses(klass)) {
+                // Class is explicitly excluded by name and has no nested classes that would
+                // need it as a discovery root. Skip registering as a selector so that
+                // engine-level test generation (e.g. ArchUnit's field-based tests) does not
+                // bypass the exclude filter. See issue #37539.
+                return;
+            }
             selectors.add(DiscoverySelectors.selectClass(klass));
         }
 
+        private boolean isExcludedAndHasNoNestedClasses(Class<?> klass) {
+            TestFilterSpec filterSpec = spec.getFilter();
+            if (filterSpec.getExcludedTests().isEmpty()) {
+                return false;
+            }
+            // Conservative: any declared class (even non-test inner classes) is treated as a
+            // potential nested test class, so we keep the selector to let JUnit Platform discover
+            // nested tests. The post-discovery filter handles any extra class that slips through.
+            return matcher().matchesExcludeClassExactly(klass.getName()) && klass.getDeclaredClasses().length == 0;
+        }
+
+        private TestSelectionMatcher matcher() {
+            if (cachedMatcher == null) {
+                cachedMatcher = new TestSelectionMatcher(spec.getFilter());
+            }
+            return cachedMatcher;
+        }
 
         private void executeDirectory(DirectoryBasedTestDefinition testDefinition) {
             selectors.add(DiscoverySelectors.selectDirectory(testDefinition.getTestDefinitionsDir()));

@@ -122,7 +122,9 @@ class DomResolutionTest {
             LiteralValueResolved -> 1
             PropertyNotAssigned(UnresolvedBase)
             LiteralValueResolved -> 123
-            ErrorResolution(IsError)
+            PropertyNotAssigned(UnresolvedBase)
+            ValueFactoryNotResolved(UnresolvedBase)
+            NamedReferenceNotResolved(UnresolvedBase)
             ElementNotResolved(UnresolvedSignature)
             LiteralValueResolved -> test2
             PropertyNotAssigned(ValueTypeMismatch)

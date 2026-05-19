@@ -35,14 +35,14 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Selec
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results.DefaultVisitedGraphResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results.VisitedGraphResults;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ResolutionResultGraphBuilder;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.GraphStructure;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.GraphStructureBuilder;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ResolvedDependencyGraph;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
-import org.gradle.api.internal.artifacts.result.MinimalResolutionResult;
 import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.specs.Specs;
-import org.gradle.internal.component.external.model.ImmutableCapabilities;
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveState;
 import org.gradle.internal.component.local.model.LocalVariantGraphResolveState;
 import org.gradle.internal.component.model.DependencyMetadata;
@@ -129,27 +129,22 @@ public class ShortCircuitingResolutionExecutor {
         LocalComponentGraphResolveState rootComponent = params.getRootComponent();
         VariantGraphResolveState rootVariant = params.getRootVariant();
 
-        MinimalResolutionResult emptyResult = ResolutionResultGraphBuilder.empty(
+        GraphStructure structure = GraphStructureBuilder.empty(
             rootComponent.getModuleVersionId(),
             rootComponent.getId(),
-            rootVariant.getAttributes(),
-            getCapabilities(rootComponent, rootVariant),
-            rootVariant.getName(),
+            rootVariant.getMetadata().getAttributes(),
+            rootVariant.getMetadata().getCapabilities(),
+            rootVariant.getMetadata().getName(),
             attributeDesugaring
         );
-        return new DefaultVisitedGraphResults(emptyResult, Collections.emptySet());
-    }
-
-    private static ImmutableCapabilities getCapabilities(
-        LocalComponentGraphResolveState rootComponent,
-        VariantGraphResolveState rootVariant
-    ) {
-        ImmutableCapabilities capabilities = rootVariant.getMetadata().getCapabilities();
-        if (capabilities.asSet().isEmpty()) {
-            return ImmutableCapabilities.of(rootComponent.getDefaultCapability());
-        } else {
-            return capabilities;
-        }
+        return new DefaultVisitedGraphResults(
+            new ResolvedDependencyGraph(
+                rootVariant.getAttributes(),
+                () -> structure,
+                null
+            ),
+            Collections.emptySet()
+        );
     }
 
     public static class EmptyResults implements VisitedArtifactSet, SelectedArtifactSet, SelectedArtifactResults {

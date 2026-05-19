@@ -18,9 +18,9 @@ package org.gradle
 
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 
-@Requires(IntegTestPreconditions.NotEmbeddedExecutor)
+@Requires(TestExecutionPreconditions.NotEmbeddedExecutor)
 class BinDistributionIntegrationSpec extends DistributionIntegrationSpec {
 
     def setup() {

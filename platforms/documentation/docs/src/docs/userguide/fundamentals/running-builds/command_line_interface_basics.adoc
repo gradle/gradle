@@ -24,6 +24,7 @@ You can use it to run tasks, inspect the build, manage dependencies, and control
 
 TIP: Use of the <<gradle_wrapper.adoc#gradle_wrapper, Gradle Wrapper>> is highly encouraged. Substitute `./gradlew` (in macOS / Linux) or `gradlew.bat` (in Windows) for `gradle` in the following examples.
 
+[[sec:running_commands]]
 == Running commands
 
 To execute Gradle commands, use the following simple structure:
@@ -54,6 +55,7 @@ To `clean` first, and then `build`:
 gradle clean build
 ----
 
+[[sec:command_line_options]]
 == Command-line options
 
 Gradle commands can include various options to adjust their behavior.

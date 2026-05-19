@@ -39,9 +39,9 @@ import java.io.IOException;
  */
 public class DefaultMetadataFileSourceCodec implements PersistentModuleSource.Codec<MetadataFileSource> {
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
-    private final ArtifactIdentifierFileStore<ModuleComponentArtifactIdentifier> fileStore;
+    private final ArtifactIdentifierFileStore fileStore;
 
-    public DefaultMetadataFileSourceCodec(ImmutableModuleIdentifierFactory moduleIdentifierFactory, ArtifactIdentifierFileStore<ModuleComponentArtifactIdentifier> fileStore) {
+    public DefaultMetadataFileSourceCodec(ImmutableModuleIdentifierFactory moduleIdentifierFactory, ArtifactIdentifierFileStore fileStore) {
         this.moduleIdentifierFactory = moduleIdentifierFactory;
         this.fileStore = fileStore;
     }
@@ -72,18 +72,10 @@ public class DefaultMetadataFileSourceCodec implements PersistentModuleSource.Co
         ModuleComponentArtifactIdentifier artifactId = createArtifactId(group, module, version, name);
         HashCode hashCode = HashCode.fromBytes(sha1);
         File metadataFile = fileStore.whereIs(artifactId, hashCode.toString());
-        if (!metadataFile.exists()) {
-            // It is possible that the backing source metadata file has been cleared from the cache,
-            // while the derived binary metadata file we are currently loading from the cache has not.
-            // Check for existence now, so that consumers of this data do not need to make the `exists`
-            // check each time they consume this source.
-            metadataFile = null;
-        }
         return new DefaultMetadataFileSource(
             artifactId,
             metadataFile,
-            hashCode
-        );
+            hashCode);
     }
 
     private ModuleComponentFileArtifactIdentifier createArtifactId(String group, String module, String version, String name) {

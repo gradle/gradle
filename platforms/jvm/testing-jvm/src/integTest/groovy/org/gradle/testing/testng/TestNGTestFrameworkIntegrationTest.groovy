@@ -16,7 +16,7 @@
 
 package org.gradle.testing.testng
 
-import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
+
 import org.gradle.api.tasks.testing.TestResult
 import org.gradle.testing.AbstractTestFrameworkIntegrationTest
 import org.gradle.testing.fixture.TestNGCoverage
@@ -25,11 +25,6 @@ import spock.lang.Issue
 class TestNGTestFrameworkIntegrationTest extends AbstractTestFrameworkIntegrationTest {
     def setup() {
         TestNGCoverage.enableTestNG(buildFile)
-    }
-
-    @Override
-    GenericTestExecutionResult.TestFramework getTestFramework() {
-        return GenericTestExecutionResult.TestFramework.TEST_NG
     }
 
     @Override

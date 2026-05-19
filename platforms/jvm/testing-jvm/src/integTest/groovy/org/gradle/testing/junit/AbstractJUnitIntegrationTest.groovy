@@ -19,8 +19,9 @@ import org.apache.commons.lang3.RandomStringUtils
 import org.gradle.api.tasks.testing.TestResult
 import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
+import org.gradle.test.preconditions.OsTestPreconditions
+
 import org.gradle.testing.fixture.AbstractTestingMultiVersionIntegrationTest
 
 /**
@@ -106,7 +107,7 @@ abstract class AbstractJUnitIntegrationTest extends AbstractTestingMultiVersionI
         results.testPath('org.gradle.SomeTest', 'ok').onlyRoot().assertHasResult(TestResult.ResultType.SUCCESS)
     }
 
-    @Requires(IntegTestPreconditions.NotParallelExecutor)
+    @Requires(TestExecutionPreconditions.NotParallelExecutor)
     def "can have multiple test task instances"() {
         given:
         file('src/test/java/org/gradle/Test1.java') << """
@@ -163,7 +164,7 @@ abstract class AbstractJUnitIntegrationTest extends AbstractTestingMultiVersionI
         test2Result.testClass('org.gradle.Test2').assertTestPassed('ok')
     }
 
-    @Requires(UnitTestPreconditions.NotWindows)
+    @Requires(OsTestPreconditions.NotWindows)
     def "can use long paths for working directory"() {
         given:
         // windows can handle a path up to 260 characters

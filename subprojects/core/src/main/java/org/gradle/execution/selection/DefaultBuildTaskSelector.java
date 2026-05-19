@@ -23,8 +23,8 @@ import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.ProblemSpec;
 import org.gradle.api.problems.internal.GeneralDataSpec;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
-import org.gradle.api.problems.internal.InternalProblemSpec;
-import org.gradle.api.problems.internal.InternalProblems;
+import org.gradle.api.problems.internal.ProblemSpecInternal;
+import org.gradle.api.problems.internal.ProblemsInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.configuration.project.BuiltInCommand;
@@ -55,10 +55,10 @@ public class DefaultBuildTaskSelector implements BuildTaskSelector {
     private final BuildStateRegistry buildRegistry;
     private final TaskSelector taskSelector;
     private final List<BuiltInCommand> commands;
-    private final InternalProblems problemsService;
+    private final ProblemsInternal problemsService;
 
     @Inject
-    public DefaultBuildTaskSelector(BuildStateRegistry buildRegistry, TaskSelector taskSelector, List<BuiltInCommand> commands, InternalProblems problemsService) {
+    public DefaultBuildTaskSelector(BuildStateRegistry buildRegistry, TaskSelector taskSelector, List<BuiltInCommand> commands, ProblemsInternal problemsService) {
         this.buildRegistry = buildRegistry;
         this.taskSelector = taskSelector;
         this.commands = commands;
@@ -116,7 +116,7 @@ public class DefaultBuildTaskSelector implements BuildTaskSelector {
     private ProjectResolutionResult resolveProject(TaskSelector.SelectionContext context, Path path, BuildState targetBuild) {
         // Just a name -> use default project + select tasks with matching name in default project and subprojects
         if (!path.isAbsolute() && path.segmentCount() == 1) {
-            return new ProjectResolutionResult(targetBuild, targetBuild.getMutableModel().getDefaultProject().getOwner(), true, path.getName());
+            return new ProjectResolutionResult(targetBuild, targetBuild.getMutableModel().getDefaultProjectState(), true, path.getName());
         }
 
         // <path>:name -> resolve <path> to a project + select task with matching name in that project
@@ -128,7 +128,7 @@ public class DefaultBuildTaskSelector implements BuildTaskSelector {
         if (projectPath.isAbsolute()) {
             matchingProject = buildRegistry.getRootBuild().getProjects().getRootProject();
         } else {
-            matchingProject = targetBuild.getMutableModel().getDefaultProject().getOwner();
+            matchingProject = targetBuild.getMutableModel().getDefaultProjectState();
         }
         while (projectPath.segmentCount() > 0) {
             String next = projectPath.segment(0);
@@ -182,7 +182,7 @@ public class DefaultBuildTaskSelector implements BuildTaskSelector {
 
     private static void configureProblem(ProblemSpec spec, String message, String requestedPath) {
         spec.contextualLabel(message);
-        ((InternalProblemSpec) spec).additionalDataInternal(GeneralDataSpec.class, data -> data.put("requestedPath", Objects.requireNonNull(requestedPath)));
+        ((ProblemSpecInternal) spec).additionalDataInternal(GeneralDataSpec.class, data -> data.put("requestedPath", Objects.requireNonNull(requestedPath)));
     }
 
     private TaskSelector.SelectionContext sanityCheckPath(String name, String type) {

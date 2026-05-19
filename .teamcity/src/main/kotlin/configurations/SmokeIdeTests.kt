@@ -28,7 +28,7 @@ class SmokeIdeTests(
     stage: Stage,
     flakyTestStrategy: FlakyTestStrategy,
 ) : OsAwareBaseGradleBuildType(os = Os.LINUX, stage = stage, init = {
-        val suffix = if (flakyTestStrategy == FlakyTestStrategy.ONLY)"_FlakyTestQuarantine" else ""
+        val suffix = if (flakyTestStrategy == FlakyTestStrategy.ONLY) "_FlakyTestQuarantine" else ""
         id(buildTypeId(model) + suffix)
         name = "Smoke Ide Tests$suffix"
         description = "Tests against IDE sync process"
@@ -42,6 +42,8 @@ class SmokeIdeTests(
                     stage.getBuildScanCustomValueParam(),
                     buildScanTagParam("SmokeIdeTests"),
                     "-PflakyTests=$flakyTestStrategy",
+                    "-PautoDownloadIde=true",
+                    "-PrunIdeInHeadlessMode=true",
                 ).joinToString(" "),
         )
     }) {

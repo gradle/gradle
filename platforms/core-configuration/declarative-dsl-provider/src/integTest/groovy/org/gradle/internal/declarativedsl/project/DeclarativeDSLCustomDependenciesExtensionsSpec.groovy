@@ -27,6 +27,8 @@ import org.gradle.features.annotations.BindsProjectType
 import org.gradle.features.annotations.RegistersProjectFeatures
 import org.gradle.features.binding.BuildModel
 import org.gradle.features.binding.Definition
+import org.gradle.features.binding.ProjectFeatureApplicationContext
+import org.gradle.features.binding.ProjectTypeApplyAction
 import org.gradle.features.binding.ProjectTypeBinding
 import org.gradle.features.binding.ProjectTypeBindingBuilder
 import org.gradle.features.registration.ConfigurationRegistrar
@@ -34,7 +36,8 @@ import org.gradle.features.registration.TaskRegistrar
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.versions.KotlinGradlePluginVersions
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.JdkVersionTestPreconditions
+
 import org.jetbrains.kotlin.config.JvmTarget
 
 final class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractIntegrationSpec {
@@ -133,29 +136,35 @@ final class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractInteg
             import ${BindsProjectType.class.name};
             import ${ProjectTypeBinding.class.name};
             import ${ProjectTypeBindingBuilder.class.name};
+            import ${ProjectTypeApplyAction.class.name};
+            import ${ProjectFeatureApplicationContext.class.name};
 
             @${BindsProjectType.class.simpleName}(RestrictedPlugin.Binding.class)
             public abstract class RestrictedPlugin implements Plugin<Project> {
                 static class Binding implements ${ProjectTypeBinding.class.simpleName} {
                     public void bind(${ProjectTypeBindingBuilder.class.simpleName} builder) {
-                        builder.bindProjectType("library",  LibraryExtension.class, (context, definition, model) -> {
-                            Services services = context.getObjectFactory().newInstance(Services.class);
-
-                            // no plugin application, must create configurations manually
-                            DependencyScopeConfiguration conf = services.getConfigurationRegistrar().dependencyScope("conf").get();
-
-                            // Add the dependency scopes to the model
-                            model.setApi(conf);
-
-                            // create and wire the custom dependencies extension's dependencies to these global configurations
-                            model.getApi().fromDependencyCollector(definition.getSub().getConf());
-                        })
-                        .withUnsafeDefinition();
+                        builder.bindProjectType("library",  LibraryExtension.class, ApplyAction.class)
+                            .withUnsafeDefinition();
                     }
+                }
 
-                    interface Services {
-                        @javax.inject.Inject
-                        ${ConfigurationRegistrar.class.name} getConfigurationRegistrar();
+                static abstract class ApplyAction implements ${ProjectTypeApplyAction.class.simpleName}<LibraryExtension, LibraryExtension.Model> {
+                    @javax.inject.Inject
+                    public ApplyAction() { }
+
+                    @javax.inject.Inject
+                    abstract protected ${ConfigurationRegistrar.class.name} getConfigurationRegistrar();
+
+                    @Override
+                    public void apply(${ProjectFeatureApplicationContext.class.simpleName} context, LibraryExtension definition, LibraryExtension.Model model) {
+                        // no plugin application, must create configurations manually
+                        DependencyScopeConfiguration conf = getConfigurationRegistrar().dependencyScope("conf").get();
+
+                        // Add the dependency scopes to the model
+                        model.setApi(conf);
+
+                        // create and wire the custom dependencies extension's dependencies to these global configurations
+                        model.getApi().fromDependencyCollector(definition.getSub().getConf());
                     }
                 }
 
@@ -211,32 +220,38 @@ final class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractInteg
             import ${BindsProjectType.class.name};
             import ${ProjectTypeBinding.class.name};
             import ${ProjectTypeBindingBuilder.class.name};
+            import ${ProjectTypeApplyAction.class.name};
+            import ${ProjectFeatureApplicationContext.class.name};
 
             @${BindsProjectType.class.simpleName}(RestrictedPlugin.Binding.class)
             public abstract class RestrictedPlugin implements Plugin<Project> {
                 static class Binding implements ${ProjectTypeBinding.class.simpleName} {
                     public void bind(${ProjectTypeBindingBuilder.class.simpleName} builder) {
-                        builder.bindProjectType("library",  LibraryExtension.class, (context, definition, model) -> {
-                            Services services = context.getObjectFactory().newInstance(Services.class);
-
-                            // no plugin application, must create configurations manually
-                            DependencyScopeConfiguration myConf = services.getConfigurationRegistrar().dependencyScope("myConf").get();
-                            DependencyScopeConfiguration myOtherConf = services.getConfigurationRegistrar().dependencyScope("myOtherConf").get();
-
-                            // Add the dependency scopes to the model
-                            model.setApi(myConf);
-                            model.setImplementation(myOtherConf);
-
-                            // create and wire the custom dependencies extension's dependencies to these global configurations
-                            model.getApi().fromDependencyCollector(definition.getDependencies().getSomething());
-                            model.getImplementation().fromDependencyCollector(definition.getDependencies().getSomethingElse());
-                        })
-                        .withUnsafeDefinition();
+                        builder.bindProjectType("library",  LibraryExtension.class, ApplyAction.class)
+                            .withUnsafeDefinition();
                     }
+                }
 
-                    interface Services {
-                        @javax.inject.Inject
-                        ${ConfigurationRegistrar.class.name} getConfigurationRegistrar();
+                static abstract class ApplyAction implements ${ProjectTypeApplyAction.class.simpleName}<LibraryExtension, LibraryExtension.Model> {
+                    @javax.inject.Inject
+                    public ApplyAction() { }
+
+                    @javax.inject.Inject
+                    abstract protected ${ConfigurationRegistrar.class.name} getConfigurationRegistrar();
+
+                    @Override
+                    public void apply(${ProjectFeatureApplicationContext.class.simpleName} context, LibraryExtension definition, LibraryExtension.Model model) {
+                        // no plugin application, must create configurations manually
+                        DependencyScopeConfiguration myConf = getConfigurationRegistrar().dependencyScope("myConf").get();
+                        DependencyScopeConfiguration myOtherConf = getConfigurationRegistrar().dependencyScope("myOtherConf").get();
+
+                        // Add the dependency scopes to the model
+                        model.setApi(myConf);
+                        model.setImplementation(myOtherConf);
+
+                        // create and wire the custom dependencies extension's dependencies to these global configurations
+                        model.getApi().fromDependencyCollector(definition.getDependencies().getSomething());
+                        model.getImplementation().fromDependencyCollector(definition.getDependencies().getSomethingElse());
                     }
                 }
 
@@ -283,7 +298,7 @@ final class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractInteg
         failure.assertHasCause("Failed to interpret the declarative DSL file '${testDirectory.file("build.gradle.dcl").path}'")
     }
 
-    @Requires(value = UnitTestPreconditions.KotlinSupportedJdk.class)
+    @Requires(value = JdkVersionTestPreconditions.KotlinSupportedJdk.class)
     def 'can configure an extension using DependencyCollector in declarative DSL that uses Kotlin properties for the getters'() {
         given: "a plugin that creates a custom extension using a DependencyCollector"
         file("build-logic/src/main/kotlin/com/example/restricted/DependenciesExtension.kt") << """
@@ -309,18 +324,20 @@ final class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractInteg
                 dependencies {
                     api("com.google.guava:guava:30.1.1-jre")
                     implementation("org.apache.commons:commons-lang3:3.12.0")
+                    implementation(project())
                 }
             }
         """
         file("settings.gradle") << defineSettings()
 
-        expect: "a dependency has been added to the something configuration"
+        expect: "a dependency has been added to the api configuration"
         succeeds("dependencies", "--configuration", "api")
         outputContains("com.google.guava:guava:30.1.1-jre")
 
-        and: "a dependency has been added to the somethingElse configuration"
+        and: "a dependency has been added to the implementation configuration"
         succeeds("dependencies", "--configuration", "implementation")
         outputContains("org.apache.commons:commons-lang3:3.12.0")
+        outputContains("\\--- project example (n)")
     }
 
     def 'can configure an extension using DependencyCollector in declarative DSL using project() from the Dependencies class to add dependencies'() {
@@ -431,7 +448,7 @@ final class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractInteg
         outputContains("commons-lang3-3.8.1.jar")
     }
 
-    @Requires(value = UnitTestPreconditions.KotlinSupportedJdk.class)
+    @Requires(value = JdkVersionTestPreconditions.KotlinSupportedJdk.class)
     def "can configure a platform using DependencyCollector in declarative DSL from a platform project with a custom DependencyModifier in Kotlin"() {
         given: "a plugin that creates a custom extension using a DependencyCollector and PlatformDependencyModifiers"
         file("build-logic/src/main/kotlin/com/example/restricted/DependenciesExtension.kt") << defineDependenciesExtensionWithCustomPlatformModifierKotlin()
@@ -472,7 +489,7 @@ final class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractInteg
         outputContains("commons-lang3-3.8.1.jar")
     }
 
-    @Requires(value = UnitTestPreconditions.KotlinSupportedJdk.class)
+    @Requires(value = JdkVersionTestPreconditions.KotlinSupportedJdk.class)
     def "can add a testFixture dependency in declarative DSL in Kotlin"() {
         given: "a plugin that creates a custom extension using a DependencyCollector and PlatformDependencyModifiers"
         file("build-logic/src/main/kotlin/com/example/restricted/DependenciesExtension.kt") << defineDependenciesExtensionWithTestFixturesModifierKotlin()
@@ -690,10 +707,10 @@ final class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractInteg
             public interface DependenciesExtension extends GradleDependencies {
                 DependencyCollector getApi();
                 DependencyCollector getImplementation();
-                
+
                 @Nested
                 CustomPlatformDependencyModifier getCustomPlatform();
-                
+
                 abstract class CustomPlatformDependencyModifier extends DependencyModifier {
                     @Override
                     protected void modifyImplementation(ModuleDependency dependency) {
@@ -720,10 +737,10 @@ final class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractInteg
             interface DependenciesExtension : GradleDependencies {
                 val api: DependencyCollector
                 val implementation: DependencyCollector
-                
+
                 @get:Nested
                 val customPlatform: CustomPlatformDependencyModifier
-                
+
                 abstract class CustomPlatformDependencyModifier : DependencyModifier() {
                     override fun modifyImplementation(dependency: ModuleDependency) {
                         dependency.endorseStrictVersions()
@@ -902,50 +919,56 @@ final class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractInteg
             import ${BindsProjectType.class.name};
             import ${ProjectTypeBinding.class.name};
             import ${ProjectTypeBindingBuilder.class.name};
+            import ${ProjectTypeApplyAction.class.name};
+            import ${ProjectFeatureApplicationContext.class.name};
 
             @${BindsProjectType.class.simpleName}(RestrictedPlugin.Binding.class)
             public abstract class RestrictedPlugin implements Plugin<Project> {
                 static class Binding implements ${ProjectTypeBinding.class.simpleName} {
                     public void bind(${ProjectTypeBindingBuilder.class.simpleName} builder) {
-                        builder.bindProjectType("library",  LibraryExtension.class, (context, definition, model) -> {
-                            Services services = context.getObjectFactory().newInstance(Services.class);
-
-                            // no plugin application, must create configurations manually
-                            DependencyScopeConfiguration api = services.getConfigurationRegistrar().dependencyScope("api").get();
-                            DependencyScopeConfiguration implementation = services.getConfigurationRegistrar().dependencyScope("implementation").get();
-
-                            // Add the dependency scopes to the model
-                            model.setApi(api);
-                            model.setImplementation(implementation);
-
-                            // create and wire the custom dependencies extension's dependencies to these global configurations
-                            model.getApi().fromDependencyCollector(definition.getDependencies().getApi());
-                            model.getImplementation().fromDependencyCollector(definition.getDependencies().getImplementation());
-
-                            // and create and wire a configuration that can resolve that one
-                            NamedDomainObjectProvider<ResolvableConfiguration> resolveApi = services.getConfigurationRegistrar().resolvable("resolveApi");
-                            resolveApi.get().extendsFrom(api);
-
-                            services.getTaskRegistrar().register("resolveApi", ResolveTask.class, task -> {
-                                task.getResolvedFiles().from(resolveApi);
-                            });
-
-                            NamedDomainObjectProvider<ResolvableConfiguration> resolveImplementation = services.getConfigurationRegistrar().resolvable("resolveImplementation");
-                            resolveImplementation.get().extendsFrom(implementation);
-
-                            services.getTaskRegistrar().register("resolveImplementation", ResolveTask.class, task -> {
-                                task.getResolvedFiles().from(resolveImplementation);
-                            });
-                        })
-                        .withUnsafeDefinition();
+                        builder.bindProjectType("library",  LibraryExtension.class, ApplyAction.class)
+                            .withUnsafeDefinition();
                     }
+                }
 
-                    interface Services {
-                        @javax.inject.Inject
-                        ${ConfigurationRegistrar.class.name} getConfigurationRegistrar();
+                static abstract class ApplyAction implements ${ProjectTypeApplyAction.class.simpleName}<LibraryExtension, LibraryExtension.Model> {
+                    @javax.inject.Inject
+                    public ApplyAction() { }
 
-                        @javax.inject.Inject
-                        ${TaskRegistrar.class.name} getTaskRegistrar();
+                    @javax.inject.Inject
+                    abstract protected ${ConfigurationRegistrar.class.name} getConfigurationRegistrar();
+
+                    @javax.inject.Inject
+                    abstract protected ${TaskRegistrar.class.name} getTaskRegistrar();
+
+                    @Override
+                    public void apply(${ProjectFeatureApplicationContext.class.simpleName} context, LibraryExtension definition, LibraryExtension.Model model) {
+                        // no plugin application, must create configurations manually
+                        DependencyScopeConfiguration api = getConfigurationRegistrar().dependencyScope("api").get();
+                        DependencyScopeConfiguration implementation = getConfigurationRegistrar().dependencyScope("implementation").get();
+
+                        // Add the dependency scopes to the model
+                        model.setApi(api);
+                        model.setImplementation(implementation);
+
+                        // create and wire the custom dependencies extension's dependencies to these global configurations
+                        model.getApi().fromDependencyCollector(definition.getDependencies().getApi());
+                        model.getImplementation().fromDependencyCollector(definition.getDependencies().getImplementation());
+
+                        // and create and wire a configuration that can resolve that one
+                        NamedDomainObjectProvider<ResolvableConfiguration> resolveApi = getConfigurationRegistrar().resolvable("resolveApi");
+                        resolveApi.get().extendsFrom(api);
+
+                        getTaskRegistrar().register("resolveApi", ResolveTask.class, task -> {
+                            task.getResolvedFiles().from(resolveApi);
+                        });
+
+                        NamedDomainObjectProvider<ResolvableConfiguration> resolveImplementation = getConfigurationRegistrar().resolvable("resolveImplementation");
+                        resolveImplementation.get().extendsFrom(implementation);
+
+                        getTaskRegistrar().register("resolveImplementation", ResolveTask.class, task -> {
+                            task.getResolvedFiles().from(resolveImplementation);
+                        });
                     }
                 }
 
@@ -966,32 +989,34 @@ final class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractInteg
             import ${BindsProjectType.class.name}
             import ${ProjectTypeBinding.class.name}
             import ${ProjectTypeBindingBuilder.class.name}
+            import ${ProjectTypeApplyAction.class.name}
+            import ${ProjectFeatureApplicationContext.class.name}
 
             @${BindsProjectType.class.simpleName}(RestrictedPlugin.Binding::class)
             class RestrictedPlugin : Plugin<Project> {
                 class Binding : ${ProjectTypeBinding.class.simpleName} {
                     override fun bind(builder: ${ProjectTypeBindingBuilder.class.simpleName}) {
-                        builder.bindProjectType("library",  LibraryExtension::class.java) { context, definition, model ->
-                            val services = context.objectFactory.newInstance(Services::class.java)
-
-                            // no plugin application, must create configurations manually
-                            val api: DependencyScopeConfiguration = services.configurationRegistrar.dependencyScope("api").get()
-                            val implementation: DependencyScopeConfiguration = services.configurationRegistrar.dependencyScope("implementation").get()
-
-                            // Add the dependency scopes to the model
-                            model.api = api
-                            model.implementation = implementation
-
-                            // create and wire the custom dependencies extension's dependencies to these global configurations
-                            model.api!!.fromDependencyCollector(definition.dependencies.api)
-                            model.implementation!!.fromDependencyCollector(definition.dependencies.implementation)
-                        }
-                        .withUnsafeDefinition()
+                        builder.bindProjectType("library",  LibraryExtension::class.java, ApplyAction::class.java)
+                            .withUnsafeDefinition()
                     }
+                }
 
-                    interface Services {
-                        @get:javax.inject.Inject
-                        val configurationRegistrar: ${ConfigurationRegistrar.class.name}
+                abstract class ApplyAction @javax.inject.Inject constructor() : ${ProjectTypeApplyAction.class.simpleName}<LibraryExtension, LibraryExtension.Model> {
+                    @get:javax.inject.Inject
+                    abstract val configurationRegistrar: ${ConfigurationRegistrar.class.name}
+
+                    override fun apply(context: ${ProjectFeatureApplicationContext.class.simpleName}, definition: LibraryExtension, buildModel: LibraryExtension.Model) {
+                        // no plugin application, must create configurations manually
+                        val api: DependencyScopeConfiguration = configurationRegistrar.dependencyScope("api").get()
+                        val implementation: DependencyScopeConfiguration = configurationRegistrar.dependencyScope("implementation").get()
+
+                        // Add the dependency scopes to the model
+                        buildModel.api = api
+                        buildModel.implementation = implementation
+
+                        // create and wire the custom dependencies extension's dependencies to these global configurations
+                        buildModel.api!!.fromDependencyCollector(definition.dependencies.api)
+                        buildModel.implementation!!.fromDependencyCollector(definition.dependencies.implementation)
                     }
                 }
 

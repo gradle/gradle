@@ -554,7 +554,7 @@ class CompositeBuildDependencyGraphIntegrationTest extends AbstractCompositeBuil
         checkDependenciesFails()
 
         then:
-        failure.assertHasCause("Module version 'org.test:b1:1.0' is not unique in composite: can be provided by [project :buildB:b1, project :buildC:b1].")
+        failure.assertHasCause("Module version 'org.test:b1:1.0' is not unique in composite: can be provided by [project ':buildB:b1', project ':buildC:b1'].")
     }
 
     def "reports failure to resolve dependencies when substitution is ambiguous within single participant"() {
@@ -582,7 +582,7 @@ class CompositeBuildDependencyGraphIntegrationTest extends AbstractCompositeBuil
         checkDependenciesFails()
 
         then:
-        failure.assertHasCause("Module version 'org.test:c1:1.0' is not unique in composite: can be provided by [project :buildC:c1, project :buildC:nested:c1].")
+        failure.assertHasCause("Module version 'org.test:c1:1.0' is not unique in composite: can be provided by [project ':buildC:c1', project ':buildC:nested:c1'].")
     }
 
     def "reports failure to resolve dependencies when transitive dependency substitution is ambiguous"() {
@@ -593,7 +593,7 @@ class CompositeBuildDependencyGraphIntegrationTest extends AbstractCompositeBuil
         checkDependenciesFails()
 
         then:
-        failure.assertHasCause("Module version 'org.test:b1:2.0' is not unique in composite: can be provided by [project :buildB:b1, project :buildC:b1].")
+        failure.assertHasCause("Module version 'org.test:b1:2.0' is not unique in composite: can be provided by [project ':buildB:b1', project ':buildC:b1'].")
     }
 
     def "resolve transitive project dependency that is ambiguous in the composite"() {
@@ -675,7 +675,7 @@ class CompositeBuildDependencyGraphIntegrationTest extends AbstractCompositeBuil
         checkDependenciesFails()
 
         then: "Build C does not have any configurations defined, and thus no variants exist"
-        failure.assertHasCause("""No matching variant of project :buildC was found. The consumer was configured to find a library for use during runtime, compatible with Java ${JavaVersion.current().majorVersion}, packaged as a jar, preferably optimized for standard JVMs, and its dependencies declared externally but:
+        failure.assertHasCause("""No matching variant of project ':buildC' was found. The consumer was configured to find a library for use during runtime, compatible with Java ${JavaVersion.current().majorVersion}, packaged as a jar, preferably optimized for standard JVMs, and its dependencies declared externally but:
   - No variants exist.""")
     }
 

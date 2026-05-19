@@ -50,6 +50,7 @@ dependencies {
 
     implementation(projects.baseDiagnostics)
     implementation(projects.credentialsImpl)
+    implementation(projects.domainObjectCollections)
     implementation(projects.fileTemp)
     implementation(projects.logging)
     implementation(projects.modelCore)

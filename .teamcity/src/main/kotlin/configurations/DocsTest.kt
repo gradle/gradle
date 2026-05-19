@@ -76,6 +76,7 @@ class DocsTest(
             features {
                 parallelTests {
                     this.numberOfBatches = parallelizationMethod.numberOfBatches
+                    groupArtifactsByBuild = true
                 }
             }
         }

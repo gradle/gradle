@@ -95,12 +95,23 @@ import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.locking.DefaultDependencyLockingHandler
 import org.gradle.invocation.DefaultGradle
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.JdkVersionTestPreconditions
+
 import spock.lang.Shared
 
 import java.util.concurrent.Executor
 import java.util.concurrent.Executors.DefaultThreadFactory
 import java.util.concurrent.ThreadFactory
+import java.util.concurrent.locks.ReentrantLock
+import java.util.concurrent.locks.ReentrantReadWriteLock
+import java.util.concurrent.locks.Lock
+import java.util.concurrent.locks.ReadWriteLock
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.CyclicBarrier
+import java.util.concurrent.Phaser
+import java.util.concurrent.Semaphore
+import java.util.concurrent.Exchanger
+import java.util.concurrent.SynchronousQueue
 
 class ConfigurationCacheUnsupportedTypesIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
 
@@ -256,6 +267,15 @@ class ConfigurationCacheUnsupportedTypesIntegrationTest extends AbstractConfigur
         Thread                                | Thread                         | "Thread.currentThread()"
         DefaultThreadFactory                  | ThreadFactory                  | "java.util.concurrent.Executors.defaultThreadFactory()"
         executorServiceTypeOnCurrentJvm()     | Executor                       | "java.util.concurrent.Executors.newSingleThreadExecutor().tap { shutdown() }"
+        // Concurrency primitives
+        ReentrantLock                         | Lock                           | "new java.util.concurrent.locks.ReentrantLock()"
+        ReentrantReadWriteLock                | ReadWriteLock                  | "new java.util.concurrent.locks.ReentrantReadWriteLock()"
+        CountDownLatch                        | CountDownLatch                 | "new java.util.concurrent.CountDownLatch(1)"
+        CyclicBarrier                         | CyclicBarrier                  | "new java.util.concurrent.CyclicBarrier(1)"
+        Phaser                                | Phaser                         | "new java.util.concurrent.Phaser()"
+        Semaphore                             | Semaphore                      | "new java.util.concurrent.Semaphore(1)"
+        Exchanger                             | Exchanger                      | "new java.util.concurrent.Exchanger()"
+        SynchronousQueue                      | SynchronousQueue               | "new java.util.concurrent.SynchronousQueue()"
         ByteArrayInputStream                  | InputStream                    | "new java.io.ByteArrayInputStream([] as byte[])"
         ByteArrayOutputStream                 | OutputStream                   | "new java.io.ByteArrayOutputStream()"
         FileDescriptor                        | FileDescriptor                 | "FileDescriptor.in"
@@ -387,7 +407,7 @@ class ConfigurationCacheUnsupportedTypesIntegrationTest extends AbstractConfigur
         DefaultSourceDirectorySet      | SourceDirectorySet | ""                                          | "project.objects.sourceDirectorySet('some', 'more')" | 'file tree'
     }
 
-    @Requires(UnitTestPreconditions.Jdk14OrLater)
+    @Requires(JdkVersionTestPreconditions.Jdk14OrLater)
     def "reports when task field references a record containing type #baseType"() {
         file("buildSrc/src/main/java/JavaRecord.java") << """
             public record JavaRecord(${baseType.name} value, int filler) {}
@@ -468,7 +488,7 @@ class ConfigurationCacheUnsupportedTypesIntegrationTest extends AbstractConfigur
         concreteTypeName = concreteType instanceof Class ? concreteType.name : concreteType
     }
 
-    @Requires(UnitTestPreconditions.Jdk14OrLater)
+    @Requires(JdkVersionTestPreconditions.Jdk14OrLater)
     def "reports when task field is declared with record containing type #baseType"() {
         file("buildSrc/src/main/java/JavaRecord.java") << """
             public record JavaRecord(${baseType.name} value, int filler) {}

@@ -12,12 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+[[build_cache_concepts]]
 = Important concepts
 
 How much of your build gets loaded from the cache depends on many factors.
 In this section you will see some of the tools that are essential for well-cached builds.
 https://gradle.com/develocity/product/build-scan[Build Scan] is part of that toolchain and will be used throughout this guide.
 
+[[build_cache_key]]
 == Build cache key
 
 Artifacts in the build cache are uniquely identified by a <<build_cache.adoc#sec:task_output_caching_details,build cache key>>.
@@ -58,8 +60,8 @@ Having a task repeatably produce the same output is not enough if its inputs kee
 Such unstable inputs can be supplied directly to the task. Consider a version number that includes a timestamp being added to the jar file's manifest:
 
 ====
-include::sample[dir="snippets/buildCache/timestamp-in-manifest/kotlin",files="build.gradle.kts[tags=timestamp]"]
-include::sample[dir="snippets/buildCache/timestamp-in-manifest/groovy",files="build.gradle[tags=timestamp]"]
+include::sample[dir="snippets/optimizing-builds/build-cache/timestamp-in-manifest/kotlin",files="build.gradle.kts[tags=timestamp]"]
+include::sample[dir="snippets/optimizing-builds/build-cache/timestamp-in-manifest/groovy",files="build.gradle[tags=timestamp]"]
 ====
 
 In the above example the inputs for the `jar` task will be different for each build execution since this timestamp will continually change.
@@ -106,6 +108,7 @@ Because of this only the normalized (relative) paths of the Java source files ar
 NOTE: The Java compiler only respects the package declaration in the Java source files, not the relative path of the sources.
 As a consequence, path sensitivity for Java sources is `NAME_ONLY` and not `RELATIVE`.
 
+[[content_normalization]]
 === Content normalization
 
 [[compile_avoidance]]
@@ -136,8 +139,8 @@ Nonetheless, this file is part of the runtime classpath for the `test` task. Sin
 To fix this you can ignore `build-info.properties` on any runtime classpath by adding the following configuration to the build script in the _consuming_ project:
 
 ====
-include::sample[dir="snippets/buildCache/normalization/kotlin",files="build.gradle.kts[tags=normalization]"]
-include::sample[dir="snippets/buildCache/normalization/groovy",files="build.gradle[tags=normalization]"]
+include::sample[dir="snippets/optimizing-builds/build-cache/normalization/kotlin",files="build.gradle.kts[tags=normalization]"]
+include::sample[dir="snippets/optimizing-builds/build-cache/normalization/groovy",files="build.gradle[tags=normalization]"]
 ====
 
 If adding such a file to your jar files is something you do for all of the projects in your build, and you want to filter this file for all consumers, you may wrap the configurations described above in an `allprojects {}` or `subprojects {}` block in the root build script.
@@ -160,6 +163,7 @@ A Build Scan shows tasks where caching was disabled due to overlapping outputs i
 [.screenshot]
 image::build-cache/overlapping-outputs-timeline.png[]
 
+[[reuse_of_outputs_between_different_tasks]]
 == Reuse of outputs between different tasks
 
 Some builds exhibit a surprising characteristic: even when executed against an empty cache, they produce tasks loaded from cache. How is this possible? Rest assured that this is completely normal.

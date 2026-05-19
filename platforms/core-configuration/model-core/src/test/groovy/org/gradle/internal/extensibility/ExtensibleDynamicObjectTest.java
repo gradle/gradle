@@ -24,6 +24,7 @@ import org.gradle.api.internal.DynamicObjectAware;
 import org.gradle.internal.metaobject.BeanDynamicObject;
 import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.internal.metaobject.DynamicObjectUtil;
+import org.gradle.internal.metaobject.HierarchicalDynamicObject;
 import org.gradle.util.TestUtil;
 import org.junit.Test;
 
@@ -188,7 +189,7 @@ public class ExtensibleDynamicObjectTest {
         Bean bean = new Bean();
         assertFalse(bean.hasProperty("parentProperty"));
 
-        bean.setParent(parent.getAsDynamicObject());
+        bean.setParent(parent.getInheritable());
         assertTrue(bean.hasProperty("parentProperty"));
     }
 
@@ -198,7 +199,7 @@ public class ExtensibleDynamicObjectTest {
         parent.defineProperty("parentProperty", "value");
 
         Bean bean = new Bean();
-        bean.setParent(parent.getAsDynamicObject());
+        bean.setParent(parent.getInheritable());
 
         assertThat(bean.getProperty("parentProperty"), equalTo((Object) "value"));
     }
@@ -208,7 +209,7 @@ public class ExtensibleDynamicObjectTest {
         Bean parent = new Bean();
 
         Bean bean = new Bean();
-        bean.setParent(parent.getAsDynamicObject());
+        bean.setParent(parent.getInheritable());
         bean.defineProperty("parentProperty", "value");
 
         assertFalse(parent.hasProperty("parentProperty"));
@@ -282,7 +283,7 @@ public class ExtensibleDynamicObjectTest {
         bean.setGroovyProperty("groovyProperty");
         ConventionBean conventionBean = new ConventionBean();
         conventionBean.setConventionProperty("conventionProperty");
-        bean.setParent(parent.getAsDynamicObject());
+        bean.setParent(parent.getInheritable());
 
         Map<String, Object> properties = bean.getProperties();
         assertThat(properties.get("properties"), sameInstance((Object) properties));
@@ -317,7 +318,7 @@ public class ExtensibleDynamicObjectTest {
             public String toString() {
                 return "<parent>";
             }
-        }.getAsDynamicObject());
+        }.getInheritable());
 
         try {
             bean.getProperty("unknown");
@@ -410,7 +411,7 @@ public class ExtensibleDynamicObjectTest {
 
         assertFalse(bean.hasMethod("parentMethod", "a", "b"));
 
-        bean.setParent(parent.getAsDynamicObject());
+        bean.setParent(parent.asHierarchicalDynamicObject());
 
         assertTrue(bean.hasMethod("parentMethod", "a", "b"));
         assertThat(bean.getAsDynamicObject().invokeMethod("parentMethod", "a", "b"), equalTo((Object) "parent:a.b"));
@@ -552,7 +553,7 @@ public class ExtensibleDynamicObjectTest {
         Bean parent = new Bean();
         parent.defineProperty("parentProperty", "value");
         Bean bean = new Bean();
-        bean.setParent(parent.getAsDynamicObject());
+        bean.setParent(parent.getInheritable());
 
         DynamicObject inherited = bean.getInheritable();
         assertTrue(inherited.hasProperty("parentProperty"));
@@ -631,13 +632,21 @@ public class ExtensibleDynamicObjectTest {
             return extensibleDynamicObject;
         }
 
+        public HierarchicalDynamicObject getInheritable() {
+            return extensibleDynamicObject.getInheritable();
+        }
+
         @Override
         public String toString() {
             return "<bean>";
         }
 
-        public void setParent(DynamicObject parent) {
+        public void setParent(HierarchicalDynamicObject parent) {
             extensibleDynamicObject.setParent(parent);
+        }
+
+        public HierarchicalDynamicObject asHierarchicalDynamicObject() {
+            return extensibleDynamicObject;
         }
 
         public String getReadOnlyProperty() {
@@ -698,10 +707,6 @@ public class ExtensibleDynamicObjectTest {
 
         public Object invokeMethod(String name, Object args) {
             return extensibleDynamicObject.invokeMethod(name, (args instanceof Object[]) ? (Object[]) args : new Object[]{args});
-        }
-
-        public DynamicObject getInheritable() {
-            return extensibleDynamicObject.getInheritable();
         }
 
         public void defineProperty(String name, Object value) {

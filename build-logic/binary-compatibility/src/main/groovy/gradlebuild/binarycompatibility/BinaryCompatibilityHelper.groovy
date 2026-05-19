@@ -19,7 +19,7 @@ package gradlebuild.binarycompatibility
 import gradlebuild.binarycompatibility.filters.AnonymousClassesFilter
 import gradlebuild.binarycompatibility.filters.BridgeForBytecodeUpgradeAdapterClassFilter
 import gradlebuild.binarycompatibility.filters.KotlinInternalFilter
-import gradlebuild.binarycompatibility.filters.KotlinInvokeDefaultBridgeFilter
+import gradlebuild.binarycompatibility.filters.KotlinBridgeMethodsFilter
 import gradlebuild.binarycompatibility.rules.AcceptedRegressionsRulePostProcess
 import gradlebuild.binarycompatibility.rules.AcceptedRegressionsRuleSetup
 import gradlebuild.binarycompatibility.rules.BinaryBreakingChangesRule
@@ -58,7 +58,7 @@ class BinaryCompatibilityHelper {
         japicmpTask.tap {
             addExcludeFilter(AnonymousClassesFilter)
             addExcludeFilter(KotlinInternalFilter)
-            addExcludeFilter(KotlinInvokeDefaultBridgeFilter)
+            addExcludeFilter(KotlinBridgeMethodsFilter)
             addExcludeFilter(BridgeForBytecodeUpgradeAdapterClassFilter)
 
             def mainApiChangesJsonFilePath = mainApiChangesJsonFile.path

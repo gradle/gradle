@@ -30,7 +30,7 @@ import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.ProblemSpec;
 import org.gradle.api.problems.Problems;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
-import org.gradle.api.problems.internal.InternalProblemReporter;
+import org.gradle.api.problems.internal.ProblemReporterInternal;
 
 import javax.tools.Diagnostic;
 import javax.tools.DiagnosticListener;
@@ -56,13 +56,13 @@ public class DiagnosticToProblemListener implements DiagnosticListener<JavaFileO
     private static final Logger LOGGER = Logging.getLogger(DiagnosticToProblemListener.class);
 
     private final Context context;
-    private final InternalProblemReporter problemReporter;
+    private final ProblemReporterInternal problemReporter;
     private final List<Problem> problemsReported = new ArrayList<>();
 
     private int errorCount = 0;
     private int warningCount = 0;
 
-    public DiagnosticToProblemListener(InternalProblemReporter problemReporter, Context context) {
+    public DiagnosticToProblemListener(ProblemReporterInternal problemReporter, Context context) {
         this.problemReporter = problemReporter;
         this.context = context;
     }

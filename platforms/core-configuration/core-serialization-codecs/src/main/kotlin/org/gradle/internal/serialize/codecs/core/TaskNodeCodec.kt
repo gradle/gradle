@@ -409,7 +409,7 @@ suspend fun WriteContext.writeRegisteredPropertiesOf(task: Task) {
     val outputProperties = collectRegisteredOutputsOf(task)
     writeCollection(outputProperties) { property ->
         property.run {
-            val finalValue = DeferredUtil.unpackOrNull(propertyValue)
+            val finalValue = DeferredUtil.unpackNestableDeferred(propertyValue)
             writeOutputProperty(propertyName, finalValue)
             writeBoolean(optional)
             writeEnum(filePropertyType)

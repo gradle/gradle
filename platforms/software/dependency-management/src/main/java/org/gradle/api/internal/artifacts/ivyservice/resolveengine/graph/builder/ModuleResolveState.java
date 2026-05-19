@@ -382,7 +382,8 @@ public class ModuleResolveState implements CandidateModule {
         return platformState;
     }
 
-    boolean isVirtualPlatform() {
+    @Override
+    public boolean isVirtualPlatform() {
         return platformState != null && !platformState.getParticipatingModules().isEmpty();
     }
 

@@ -26,15 +26,15 @@ A platform is a set of dependency constraints designed to manage the transitive 
 When you define a platform in Gradle, you're essentially specifying a set of dependencies that are meant to be used together, ensuring compatibility and simplifying dependency management:
 
 ====
-include::sample[dir="snippets/java-platform/dep-man/kotlin",files="platform/build.gradle.kts[]"]
-include::sample[dir="snippets/java-platform/dep-man/groovy",files="platform/build.gradle[]"]
+include::sample[dir="snippets/reference/dependency-management/basics/dep-man/kotlin",files="platform/build.gradle.kts[]"]
+include::sample[dir="snippets/reference/dependency-management/basics/dep-man/groovy",files="platform/build.gradle[]"]
 ====
 
 Then, you can use that platform in your project:
 
 ====
-include::sample[dir="snippets/java-platform/dep-man/kotlin",files="app/build.gradle.kts[]"]
-include::sample[dir="snippets/java-platform/dep-man/groovy",files="app/build.gradle[]"]
+include::sample[dir="snippets/reference/dependency-management/basics/dep-man/kotlin",files="app/build.gradle.kts[]"]
+include::sample[dir="snippets/reference/dependency-management/basics/dep-man/groovy",files="app/build.gradle[]"]
 ====
 
 Here, `platform` defines versions for `commons-lang3`, `guava`, and `slf4j-api`, ensuring they are compatible.
@@ -46,8 +46,8 @@ For example, a popular platform is the link:https://mvnrepository.com/artifact/o
 To use the BOM, you add it to the dependencies of your project:
 
 ====
-include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-constraintsFromBOM/kotlin",files="build.gradle.kts[tag=dependency-on-bom]"]
-include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-constraintsFromBOM/groovy",files="build.gradle[tag=dependency-on-bom]"]
+include::sample[dir="snippets/reference/dependency-management/basics/managingTransitiveDependencies-constraintsFromBOM/kotlin",files="build.gradle.kts[tag=dependency-on-bom]"]
+include::sample[dir="snippets/reference/dependency-management/basics/managingTransitiveDependencies-constraintsFromBOM/groovy",files="build.gradle[tag=dependency-on-bom]"]
 ====
 
 By including the `spring-boot-dependencies` platform dependency, you ensure that all Spring components use the versions defined in the BOM file.
@@ -62,14 +62,14 @@ First, create a `libs.versions.toml` file in the `gradle` directory of your proj
 This file will define the versions of your dependencies and plugins:
 
 ====
-include::sample[dir="snippets/dependencyManagement/catalogs-toml-simple/common",files="gradle/libs.versions.toml[]"]
+include::sample[dir="snippets/reference/dependency-management/basics/catalogs-toml-simple/common",files="gradle/libs.versions.toml[]"]
 ====
 
 Then, you can use the version catalog in you build file:
 
 ====
-include::sample[dir="snippets/dependencyManagement/catalogs-toml-simple/kotlin",files="build.gradle.kts[]"]
-include::sample[dir="snippets/dependencyManagement/catalogs-toml-simple/groovy",files="build.gradle[]"]
+include::sample[dir="snippets/reference/dependency-management/basics/catalogs-toml-simple/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="snippets/reference/dependency-management/basics/catalogs-toml-simple/groovy",files="build.gradle[]"]
 ====
 
 [.text-right]

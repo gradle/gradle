@@ -40,7 +40,7 @@ public abstract class AbstractClassLoaderWorker implements RequestHandler<Transp
         this.worker = new DefaultWorkerServer(
             workServices,
             instantiatorFactory,
-            new IsolationScheme<>(Cast.uncheckedCast(WorkAction.class), WorkParameters.class, WorkParameters.None.class),
+            new IsolationScheme<>(Cast.uncheckedCast(WorkAction.class), WorkParameters.class, WorkParameters.None.class, WorkParameters.None.INSTANCE),
             Collections.singletonList(IsolatedAntBuilder.class));
     }
 

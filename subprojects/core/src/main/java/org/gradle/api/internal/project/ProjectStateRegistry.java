@@ -18,30 +18,24 @@ package org.gradle.api.internal.project;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
-import org.gradle.initialization.ProjectDescriptorInternal;
 import org.gradle.initialization.ProjectDescriptorRegistry;
 import org.gradle.internal.Factory;
 import org.gradle.internal.build.BuildProjectRegistry;
 import org.gradle.internal.build.BuildState;
+import org.gradle.internal.project.ImmutableProjectDescriptor;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.util.Path;
 import org.jspecify.annotations.Nullable;
 
 import javax.annotation.concurrent.ThreadSafe;
-import java.util.Collection;
 
 /**
  * A registry of all projects present in a build tree.
  */
 @ThreadSafe
 @ServiceScope(Scope.BuildTree.class)
-public interface ProjectStateRegistry {
-    /**
-     * Returns all projects in the build tree.
-     */
-    Collection<? extends ProjectState> getAllProjects();
-
+public interface ProjectStateRegistry extends ProjectStateLookup {
     /**
      * Locates the state object that owns the given public project model. Can use {@link ProjectInternal#getOwner()} instead.
      */
@@ -56,11 +50,6 @@ public interface ProjectStateRegistry {
      * Locates the state object that owns the project with the identity path.
      */
     ProjectState stateFor(Path identityPath) throws IllegalArgumentException;
-
-    /**
-     * Locates the state object that owns the project with the given identity path, or null if this project is not present.
-     */
-    @Nullable ProjectState findProjectState(Path identityPath);
 
     /**
      * Locates the state objects for all projects of the given build.
@@ -81,7 +70,7 @@ public interface ProjectStateRegistry {
     /**
      * Registers a single project.
      */
-    ProjectState registerProject(BuildState owner, ProjectDescriptorInternal projectDescriptor);
+    ProjectState registerProject(BuildState owner, ImmutableProjectDescriptor projectDescriptor);
 
     /**
      * Allows the given code to access the mutable state of any project in the tree, regardless of which other threads may be accessing the project.

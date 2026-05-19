@@ -65,6 +65,27 @@ abstract class AbstractIncrementalTestIntegrationTest extends AbstractTestingMul
         succeeds('test')
     }
 
+    def "does not fail when previous binary test results are corrupted"() {
+        given:
+        file('src/test/java/Broken.java') << """
+            ${testFrameworkImports}
+            public class Broken {
+                @Test
+                public void broken() {
+                    throw new RuntimeException("broken");
+                }
+            }
+        """.stripIndent()
+        fails('test').assertTestsFailed()
+
+        when:
+        file('build/test-results/test/binary/results-generic.bin').text = 'garbage'
+        file('src/test/java/Broken.java').assertIsFile().delete()
+
+        then:
+        succeeds('test')
+    }
+
     def executesTestsWhenSourceChanges() {
         given:
         file('src/main/java/MainClass.java') << """

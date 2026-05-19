@@ -32,7 +32,7 @@ class SamplesJavaCustomizedLayoutIntegrationTest extends AbstractSampleIntegrati
         executer.withRepositoryMirrors()
     }
 
-    @UsesSample('java/customizedLayout')
+    @UsesSample('integration-tests/java/customizedLayout')
     def "can build jar with #dsl dsl"() {
         TestFile javaprojectDir = sample.dir.file(dsl)
 

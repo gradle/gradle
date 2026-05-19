@@ -16,13 +16,13 @@
 
 package org.gradle.groovy
 
-import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
+
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 
-@Requires(value = IntegTestPreconditions.NotConfigCached, reason = "handles CC explicitly")
+@Requires(value = TestExecutionPreconditions.NotConfigCached, reason = "handles CC explicitly")
 class ConfigurationCacheGroovyIntegrationTest extends AbstractIntegrationSpec {
     def configurationCache = newConfigurationCacheFixture()
 
@@ -151,7 +151,7 @@ class ConfigurationCacheGroovyIntegrationTest extends AbstractIntegrationSpec {
     }
 
     protected void assertTestsExecuted(String testClass, String... testNames) {
-        new DefaultTestExecutionResult(testDirectory, GenericTestExecutionResult.TestFramework.JUNIT4)
+        new DefaultTestExecutionResult(testDirectory)
             .testClass(testClass)
             .assertTestsExecuted(testNames)
     }

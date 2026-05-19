@@ -24,6 +24,7 @@ import org.gradle.api.artifacts.MutableVersionConstraint;
 import org.gradle.api.internal.artifacts.dsl.ParsedModuleStringNotation;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ModuleFactoryHelper;
 import org.gradle.api.internal.catalog.parser.StrictVersionParser;
+import org.gradle.api.problems.Problems;
 import org.gradle.internal.exceptions.DiagnosticsVisitor;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationConvertResult;
@@ -37,11 +38,11 @@ public class DependencyStringNotationConverter<T> implements NotationConverter<S
     private final Interner<String> stringInterner;
     private final StrictVersionParser strictVersionParser;
 
-    public DependencyStringNotationConverter(Instantiator instantiator, Class<T> wantedType, Interner<String> stringInterner) {
+    public DependencyStringNotationConverter(Instantiator instantiator, Class<T> wantedType, Interner<String> stringInterner, Problems problems) {
         this.instantiator = instantiator;
         this.wantedType = wantedType;
         this.stringInterner = stringInterner;
-        this.strictVersionParser = new StrictVersionParser(stringInterner);
+        this.strictVersionParser = new StrictVersionParser(stringInterner, problems);
     }
 
     @Override

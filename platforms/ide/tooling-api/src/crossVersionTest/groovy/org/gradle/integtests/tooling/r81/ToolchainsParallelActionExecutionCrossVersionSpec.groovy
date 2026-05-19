@@ -21,12 +21,12 @@ import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import org.gradle.tooling.BuildActionFailureException
 import org.gradle.util.GradleVersion
 
 @ToolingApiVersion(">=8.1")
-@Requires(IntegTestPreconditions.NotEmbeddedExecutor)
+@Requires(TestExecutionPreconditions.NotEmbeddedExecutor)
 class ToolchainsParallelActionExecutionCrossVersionSpec extends ToolingApiSpecification {
 
     def setup() {

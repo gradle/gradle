@@ -53,10 +53,11 @@ class CapabilitiesLocalComponentIntegrationTest extends AbstractIntegrationSpec 
 
         then:
         failure.assertHasCause("""Module 'test:b' has been rejected:
-   Cannot select module with conflict on capability 'org:capability:1.0' also provided by ['root project :' (compileClasspath)]""")
+   Cannot select module with conflict on capability 'org:capability:1.0' also provided by ['root project 'test'' (compileClasspath)]""")
     }
 
     def 'fails to resolve undeclared test fixture'() {
+        settingsFile << "rootProject.name = 'test'\n"
         buildFile << """
             apply plugin: 'java-library'
 
@@ -75,7 +76,7 @@ class CapabilitiesLocalComponentIntegrationTest extends AbstractIntegrationSpec 
         succeeds 'dependencyInsight', '--configuration', 'compileClasspath', '--dependency', ':'
 
         then:
-        outputContains("Could not resolve root project :.")
+        outputContains("Could not resolve root project 'test'.")
     }
 
     def "can lazily define and request capability"() {
@@ -157,7 +158,7 @@ class CapabilitiesLocalComponentIntegrationTest extends AbstractIntegrationSpec 
         fails("resolve")
 
         then:
-        failure.assertHasCause("Unable to find a variant of 'project :other' with the requested capabilities: ['org:capability', feature 'foo']")
+        failure.assertHasCause("Unable to find a variant of 'project ':other'' with the requested capabilities: ['org:capability', feature 'foo']")
     }
 
     @Issue("https://github.com/gradle/gradle/issues/26377")
@@ -304,7 +305,7 @@ class CapabilitiesLocalComponentIntegrationTest extends AbstractIntegrationSpec 
         fails("resolve")
 
         then:
-        failure.assertHasCause("No matching variant of project :other $description was found")
+        failure.assertHasCause("No matching variant of project ':other' $description was found")
         failure.assertHasErrorOutput("Incompatible because this component declares attribute 'org.gradle.category' with value 'foo' and the consumer needed attribute 'org.gradle.category' with value 'bar'")
 
         where:
