@@ -25,13 +25,19 @@ object SupersetIndexLookup {
 
     /**
      * One row in the superset index: a stored configuration cache entry's full
-     * key, the task list it was stored for, and whether user code observed the
-     * task graph during the original build (`true` → exact-match-only at lookup).
+     * key, the task list it was stored for, whether user code observed the task
+     * graph during the original build (`true` → exact-match-only at lookup), and
+     * the mustRunAfter/finalizer edges between scheduled tasks captured at store
+     * time. Edges are used to reject a candidate at lookup time when pruning
+     * would leave a retained task referencing a dropped task through a non-
+     * dependency hard-ordering edge — the loaded plan would either deadlock or
+     * silently execute a non-requested task.
      */
     data class IndexedVariant(
         val fullKey: String,
         val requestedTasks: List<String>,
-        val taskGraphAccessed: Boolean = false
+        val taskGraphAccessed: Boolean = false,
+        val mustRunAfterEdges: Map<String, List<String>> = emptyMap()
     )
 
     /**
@@ -76,6 +82,29 @@ object SupersetIndexLookup {
     }
 
     /**
+     * Returns true if pruning [stored] down to [requested] would leave a retained
+     * task pointing at a dropped task through a mustRunAfter / finalizer edge.
+     * The loaded plan can't honor such an edge safely — the dropped task isn't in
+     * the plan (deadlock) or our BFS retention pulls it back in and it runs
+     * (different semantics than a fresh subset request).
+     *
+     * Returns false when no pruning happens ([stored] == [requested] dedup'd) or
+     * when the dropped set is disjoint from every edge's targets.
+     */
+    fun hasDanglingMustRunAfter(
+        edges: Map<String, List<String>>,
+        stored: List<String>,
+        requested: List<String>
+    ): Boolean {
+        if (edges.isEmpty()) return false
+        val tasksToDrop = stored.toSet() - requested.toSet()
+        if (tasksToDrop.isEmpty()) return false
+        return edges.any { (source, targets) ->
+            source !in tasksToDrop && targets.any { it in tasksToDrop }
+        }
+    }
+
+    /**
      * Returns true if [needle] appears in [haystack] in the same relative order
      * (not necessarily contiguous).
      */
@@ -102,6 +131,7 @@ object SupersetIndexLookup {
  *     fullKey: UTF
  *     requestedTasks: int count + UTF entries
  *     taskGraphAccessed: boolean
+ *     mustRunAfterEdges: int entry-count, each entry = UTF source + int target-count + UTF targets
  *
  * Reads from a missing file or one with an unknown format version return an
  * empty list rather than throwing — callers fall back to "no index, cold store".
@@ -123,7 +153,14 @@ class SupersetIndexFile(private val file: java.io.File) {
                     val taskCount = input.readInt()
                     val tasks = (0 until taskCount).map { input.readUTF() }
                     val accessed = input.readBoolean()
-                    SupersetIndexLookup.IndexedVariant(fullKey, tasks, accessed)
+                    val edgeCount = input.readInt()
+                    val edges = (0 until edgeCount).associate {
+                        val source = input.readUTF()
+                        val targetCount = input.readInt()
+                        val targets = (0 until targetCount).map { input.readUTF() }
+                        source to targets
+                    }
+                    SupersetIndexLookup.IndexedVariant(fullKey, tasks, accessed, edges)
                 }
             }
         } catch (_: java.io.IOException) {
@@ -143,12 +180,20 @@ class SupersetIndexFile(private val file: java.io.File) {
                 out.writeInt(v.requestedTasks.size)
                 v.requestedTasks.forEach(out::writeUTF)
                 out.writeBoolean(v.taskGraphAccessed)
+                out.writeInt(v.mustRunAfterEdges.size)
+                for ((source, targets) in v.mustRunAfterEdges) {
+                    out.writeUTF(source)
+                    out.writeInt(targets.size)
+                    targets.forEach(out::writeUTF)
+                }
             }
         }
     }
 
     companion object {
         private val MAGIC = byteArrayOf('C'.code.toByte(), 'C'.code.toByte(), 'S'.code.toByte(), 'I'.code.toByte())
-        private const val FORMAT_VERSION = 1
+        // v1 = (fullKey, requestedTasks, taskGraphAccessed)
+        // v2 = v1 + mustRunAfterEdges
+        private const val FORMAT_VERSION = 2
     }
 }

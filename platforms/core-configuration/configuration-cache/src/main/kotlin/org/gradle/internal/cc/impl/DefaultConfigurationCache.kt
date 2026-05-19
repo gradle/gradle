@@ -130,14 +130,50 @@ class DefaultConfigurationCache internal constructor(
     val loadedSideEffects = mutableListOf<BuildTreeModelSideEffect>()
 
     /**
+     * Identity paths of the just-built work graph's entry nodes, captured at
+     * graph-finalization time so they're available at [commitCacheEntry] time
+     * (the execution plan is reset to `EMPTY` after task execution finishes).
+     * Ordered to match the build's CLI input. Recorded into the superset index
+     * so [WorkGraphPruner] can compare directly against `task.identityPath`.
+     */
+    private
+    var entryTaskIdentityPaths: List<String> = emptyList()
+
+    /**
+     * mustRunAfter and finalizer edges between scheduled tasks, captured at the
+     * same point as [entryTaskIdentityPaths]. Map source-task identity path →
+     * list of identity paths it must run after / be finalized by. Recorded into
+     * the superset index so a candidate entry can be rejected at lookup time
+     * when pruning would dangle one of these edges across the requested/dropped
+     * boundary (see `ConfigurationCacheRepository.findCompatibleEntry`).
+     */
+    private
+    var mustRunAfterEdges: Map<String, List<String>> = emptyMap()
+
+    /**
      * The compatible stored cache entry chosen for this build (exact or strict-superset
      * match), or `null` if none was found and we'll cold-store at [cacheKey]. Evaluated
      * once and reused — the [SupersetIndexLookup] acquires the cache file lock.
      */
     private
     val compatibleEntry: CompatibleEntry? by lazy {
-        cacheRepository.findCompatibleEntry(environmentKey, startParameter.requestedTaskNames)
+        cacheRepository.findCompatibleEntry(environmentKey, canonicalRequestedTasks)
     }
+
+    /**
+     * CLI-typed task names (`":foo"`, `"foo"`, `":proj:bar"`) normalized to a
+     * `:`-prefixed canonical form. Used both for index lookup and for computing
+     * `tasksToDrop` at superset load — both sides must use the same canonical
+     * form as the identity paths stored by [commitCacheEntry] so the comparison
+     * in [WorkGraphPruner.prune] (against `task.identityPath`) matches. The v1
+     * normalization is simple "prepend `:` if missing"; relative-name invocations
+     * from sub-projects are differentiated by [environmentKey] (which hashes the
+     * project/current dir), so cross-context collisions don't occur within an
+     * env-key.
+     */
+    private
+    val canonicalRequestedTasks: List<String>
+        get() = startParameter.requestedTaskNames.map { if (it.startsWith(":")) it else ":$it" }
 
     private
     val effectiveStoreKey: String
@@ -303,6 +339,10 @@ class DefaultConfigurationCache internal constructor(
             Store, is Update -> {
                 runWorkThatContributesToCacheEntry {
                     val finalizedGraph = scheduler(graph)
+                    // Capture entry-task identity paths and mustRunAfter/finalizer edges now —
+                    // the execution plan is reset to EMPTY after task execution, so this can't
+                    // be done in commitCacheEntry.
+                    captureSupersetIndexInputs()
                     val rootBuild = buildStateRegistry.rootBuild
                     degradeGracefullyOr { saveWorkGraph(rootBuild) }
                     crossConfigurationTimeBarrier()
@@ -443,9 +483,45 @@ class DefaultConfigurationCache internal constructor(
         cacheRepository.recordEntry(
             environmentKey,
             cacheKey.string,
-            startParameter.requestedTaskNames,
-            cacheFingerprintController.wasTaskGraphAccessed
+            entryTaskIdentityPaths,
+            cacheFingerprintController.wasTaskGraphAccessed,
+            mustRunAfterEdges
         )
+    }
+
+    /**
+     * Snapshots inputs to the superset index from the finalized task graph
+     * before task execution begins (the execution plan is cleared on completion).
+     * Captures both the entry-task identity paths and the mustRunAfter/finalizer
+     * edges between scheduled tasks.
+     */
+    private
+    fun captureSupersetIndexInputs() {
+        val scheduled = deferredRootBuildGradle.gradle.taskGraph.collectScheduledWork()
+        entryTaskIdentityPaths = scheduled.entryNodes
+            .filterIsInstance<org.gradle.execution.plan.LocalTaskNode>()
+            .map { it.task.identityPath.toString() }
+        val scheduledTaskNodes = scheduled.scheduledNodes
+            .filterIsInstance<org.gradle.execution.plan.TaskNode>()
+        val edges = mutableMapOf<String, List<String>>()
+        for (node in scheduledTaskNodes) {
+            val targets = collectOrderingTargets(node)
+            if (targets.isNotEmpty()) {
+                edges[node.task.identityPath.toString()] = targets
+            }
+        }
+        mustRunAfterEdges = edges
+    }
+
+    private
+    fun collectOrderingTargets(node: org.gradle.execution.plan.TaskNode): List<String> {
+        val deps = node.dependencySuccessors
+        return node.hardSuccessors
+            .asSequence()
+            .filter { it !in deps }
+            .filterIsInstance<org.gradle.execution.plan.LocalTaskNode>()
+            .map { it.task.identityPath.toString() }
+            .toList()
     }
 
     private
@@ -790,7 +866,7 @@ class DefaultConfigurationCache internal constructor(
         buildOperationRunner.withWorkGraphLoadOperation {
             val tasksToDrop = compatibleEntry
                 ?.storedRequestedTasks
-                ?.let { stored -> stored.toSet() - startParameter.requestedTaskNames.toSet() }
+                ?.let { stored -> stored.toSet() - canonicalRequestedTasks.toSet() }
                 ?: emptySet()
             val storeLoadResult = entryStore.useForStateLoad(StateType.Work) { stateFile: ConfigurationCacheStateFile ->
                 val (buildInvocationId, workGraph) = cacheIO.readRootBuildStateFrom(stateFile, loadAfterStore, graph, graphBuilder, tasksToDrop)

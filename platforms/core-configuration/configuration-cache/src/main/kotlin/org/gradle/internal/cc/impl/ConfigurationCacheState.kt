@@ -37,7 +37,6 @@ import org.gradle.api.services.internal.BuildServiceProvider
 import org.gradle.api.services.internal.RegisteredBuildServiceProvider
 import org.gradle.build.event.BuildEventsListenerRegistry
 import org.gradle.caching.configuration.BuildCache
-import org.gradle.execution.plan.LocalTaskNode
 import org.gradle.execution.plan.Node
 import org.gradle.execution.plan.ScheduledWork
 import org.gradle.initialization.BuildIdentifiedProgressDetails
@@ -269,36 +268,12 @@ class ConfigurationCacheState(
             for (build in builds) {
                 if (build is BuildWithWork) {
                     builder.withWorkGraph(build.build.state) {
-                        val filtered = filterWork(build.workGraph, tasksToDrop)
+                        val filtered = WorkGraphPruner.prune(build.workGraph, tasksToDrop)
                         it.setScheduledWork(filtered)
                     }
                 }
             }
         }
-    }
-
-    private
-    fun filterWork(initiallyScheduledDork: ScheduledWork, tasksToDrop: Set<String>): ScheduledWork {
-        if (tasksToDrop.isEmpty()) return initiallyScheduledDork
-        // Drop entry nodes whose task name is in the to-drop set.
-        val retainedEntries = initiallyScheduledDork.entryNodes.filter { node ->
-            val task = (node as? LocalTaskNode)?.task
-            task == null || task.name !in tasksToDrop
-        }.toSet()
-        if (retainedEntries.size == initiallyScheduledDork.entryNodes.size) return initiallyScheduledDork
-        // BFS forward through dependencySuccessors: retain all nodes reachable from the retained entries.
-        val retained = HashSet<Node>()
-        val queue = ArrayDeque<Node>()
-        queue.addAll(retainedEntries)
-        retained.addAll(retainedEntries)
-        while (queue.isNotEmpty()) {
-            val node = queue.removeFirst()
-            for (dep in node.dependencySuccessors) {
-                if (retained.add(dep)) queue.addLast(dep)
-            }
-        }
-        val retainedScheduled = initiallyScheduledDork.scheduledNodes.filter { it in retained }
-        return ScheduledWork(retainedScheduled, retainedEntries)
     }
 
     private

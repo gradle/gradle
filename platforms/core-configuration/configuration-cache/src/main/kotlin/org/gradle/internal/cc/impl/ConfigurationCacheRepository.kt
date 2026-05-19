@@ -108,12 +108,30 @@ class ConfigurationCacheRepository(
             while (true) {
                 val chosen = pickWithTieBreak(variants, requestedTasks) ?: break
                 val dir = dirForEntry(chosen.fullKey)
-                if (dir.exists()) {
-                    if (dirty) indexFile.write(variants)
-                    return@withFileLockNullable CompatibleEntry(chosen.fullKey, chosen.requestedTasks)
+                if (!dir.exists()) {
+                    variants.remove(chosen)
+                    dirty = true
+                    continue
                 }
-                variants.remove(chosen)
-                dirty = true
+                if (SupersetIndexLookup.hasDanglingMustRunAfter(chosen.mustRunAfterEdges, chosen.requestedTasks, requestedTasks)) {
+                    // Pruning this entry down to the current request would leave a retained
+                    // task pointing at a dropped task through mustRunAfter/finalizer. Don't
+                    // remove it from the index (it remains valid for exact-match reuse);
+                    // just skip it for this lookup. The "no more candidates" exit below
+                    // returns null, and the caller cold-stores.
+                    val requestedDistinct = requestedTasks.distinct()
+                    if (chosen.requestedTasks == requestedDistinct) {
+                        // It IS an exact match — the gate doesn't apply. Use it.
+                        if (dirty) indexFile.write(variants)
+                        return@withFileLockNullable CompatibleEntry(chosen.fullKey, chosen.requestedTasks)
+                    }
+                    variants.remove(chosen)
+                    // Don't mark dirty — the entry is still valid, we just didn't pick it
+                    // for *this* request. Next request that exactly matches it will succeed.
+                    continue
+                }
+                if (dirty) indexFile.write(variants)
+                return@withFileLockNullable CompatibleEntry(chosen.fullKey, chosen.requestedTasks)
             }
             if (dirty) indexFile.write(variants)
             null
@@ -142,19 +160,24 @@ class ConfigurationCacheRepository(
      * @param taskGraphAccessed whether user code observed the task graph during
      *     the originating build; `true` excludes the entry from later strict-superset
      *     matching (see [SupersetIndexLookup.selectBestMatch] rule 2)
+     * @param mustRunAfterEdges mustRunAfter / finalizer edges between scheduled
+     *     tasks (source identity-path → list of target identity-paths). Used by
+     *     [findCompatibleEntry] to reject this entry from strict-superset matches
+     *     whose pruning would dangle one of these edges
      */
     fun recordEntry(
         environmentKey: ConfigurationCacheEnvironmentKey,
         fullKey: String,
         requestedTasks: List<String>,
-        taskGraphAccessed: Boolean
+        taskGraphAccessed: Boolean,
+        mustRunAfterEdges: Map<String, List<String>> = emptyMap()
     ) {
         if (requestedTasks.any { it.startsWith("-") }) return
         cache.withFileLock(Supplier {
             val indexFile = SupersetIndexFile(indexFileFor(environmentKey))
             val variants = indexFile.read().toMutableList()
             variants.removeIf { it.fullKey == fullKey }
-            variants.add(IndexedVariant(fullKey, requestedTasks, taskGraphAccessed))
+            variants.add(IndexedVariant(fullKey, requestedTasks, taskGraphAccessed, mustRunAfterEdges))
             indexFile.write(variants)
         })
     }

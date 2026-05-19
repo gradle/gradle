@@ -103,6 +103,48 @@ class SupersetIndexTest {
     }
 
     @Test
+    fun `hasDanglingMustRunAfter returns false when no edges`() {
+        // No edges at all: pruning is safe regardless of subset shape.
+        assert(!SupersetIndexLookup.hasDanglingMustRunAfter(emptyMap(), listOf(":a", ":b"), listOf(":a")))
+    }
+
+    @Test
+    fun `hasDanglingMustRunAfter returns false on exact match`() {
+        // No tasks dropped: edges can't dangle.
+        val edges = mapOf(":b" to listOf(":a"))
+        assert(!SupersetIndexLookup.hasDanglingMustRunAfter(edges, listOf(":a", ":b"), listOf(":a", ":b")))
+    }
+
+    @Test
+    fun `hasDanglingMustRunAfter returns false when edge stays within retained set`() {
+        // Stored has :a, :b, :c with `:c mustRunAfter :b`. Request is :b, :c — :a dropped.
+        // The edge's source and target are both retained.
+        val edges = mapOf(":c" to listOf(":b"))
+        assert(!SupersetIndexLookup.hasDanglingMustRunAfter(edges, listOf(":a", ":b", ":c"), listOf(":b", ":c")))
+    }
+
+    @Test
+    fun `hasDanglingMustRunAfter returns true when retained task references dropped task`() {
+        // The Bucket4 pattern: stored has :originalInputs, :incrementalReverse with
+        // `:incrementalReverse mustRunAfter :originalInputs`. Request is just
+        // :incrementalReverse — :originalInputs would be dropped. Edge dangles.
+        val edges = mapOf(":incrementalReverse" to listOf(":originalInputs"))
+        assert(SupersetIndexLookup.hasDanglingMustRunAfter(
+            edges,
+            listOf(":originalInputs", ":incrementalReverse"),
+            listOf(":incrementalReverse")
+        ))
+    }
+
+    @Test
+    fun `hasDanglingMustRunAfter returns false when both edge endpoints are dropped`() {
+        // Stored has :a, :b, :c, :d with `:b mustRunAfter :a`. Request is :c, :d.
+        // Both source and target are dropped — no dangle from a *retained* task.
+        val edges = mapOf(":b" to listOf(":a"))
+        assert(!SupersetIndexLookup.hasDanglingMustRunAfter(edges, listOf(":a", ":b", ":c", ":d"), listOf(":c", ":d")))
+    }
+
+    @Test
     fun `round trip preserves variants`() {
         val tmp = java.io.File.createTempFile("supersetIndex", ".bin").also { it.deleteOnExit() }
         val file = SupersetIndexFile(tmp)
