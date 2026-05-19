@@ -366,6 +366,58 @@ class CallInterceptingMetaClassTest extends Specification {
         "metaClass"  | false
     }
 
+    def 'invokeMethod finds private methods from superclass'() {
+        given:
+        def childClass = InheritedMethodTestReceiver.B
+        def classLock = new ClassBasedLock(childClass)
+        def childOriginalMetaClass = setupMetaClass(childClass, classLock, interceptors, callTracker)
+        def child = new InheritedMethodTestReceiver.B()
+
+        when:
+        def result = child.metaClass.invokeMethod(child, "privateHello", [].toArray())
+
+        then:
+        result == "PrivateHello"
+
+        cleanup:
+        cleanupMetaClass(childClass, classLock, childOriginalMetaClass)
+    }
+
+    def 'invokeMethod finds private methods from direct parent class'() {
+        given:
+        def childClass = InheritedMethodTestReceiver.B
+        def classLock = new ClassBasedLock(childClass)
+        def childOriginalMetaClass = setupMetaClass(childClass, classLock, interceptors, callTracker)
+        def child = new InheritedMethodTestReceiver.B()
+
+        when:
+        def result = child.metaClass.invokeMethod(child, "privateHelloFromA", [].toArray())
+
+        then:
+        result == "PrivateHelloFromA"
+
+        cleanup:
+        cleanupMetaClass(childClass, classLock, childOriginalMetaClass)
+    }
+
+    def 'pickMethod does not find non-private methods from superclass via superclass walk'() {
+        given:
+        def childClass = InheritedMethodTestReceiver.B
+        def classLock = new ClassBasedLock(childClass)
+        def childOriginalMetaClass = setupMetaClass(childClass, classLock, interceptors, callTracker)
+        def child = new InheritedMethodTestReceiver.B()
+
+        when: "looking up a public inherited method"
+        def method = child.metaClass.pickMethod("sayHello", new Class[]{})
+
+        then: "it is found via the adaptee (not the superclass walk)"
+        method != null
+        method.invoke(child, [].toArray()) == "Hello"
+
+        cleanup:
+        cleanupMetaClass(childClass, classLock, childOriginalMetaClass)
+    }
+
     def 'successive calls to getMetaProperty in the scope of an entry point all return the intercepted property'() {
         List<MetaProperty> properties = []
 
