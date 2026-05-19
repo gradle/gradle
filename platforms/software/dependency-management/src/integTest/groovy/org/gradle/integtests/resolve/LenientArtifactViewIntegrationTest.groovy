@@ -286,7 +286,7 @@ class LenientArtifactViewIntegrationTest extends AbstractHttpDependencyResolutio
                     lenient = true
                 }.artifacts.failures
                 doLast {
-                    failures.each { println("FAILURE: \${it.message}") }
+                    failures.each { println(it.message) }
                 }
             }
         """
@@ -304,7 +304,7 @@ class LenientArtifactViewIntegrationTest extends AbstractHttpDependencyResolutio
         succeeds("printFailures")
 
         then:
-        outputContains("FAILURE: Could not find org:broken:1.0.")
+        outputContains("Could not find org:broken:1.0.")
     }
 
     private void withRepo() {
