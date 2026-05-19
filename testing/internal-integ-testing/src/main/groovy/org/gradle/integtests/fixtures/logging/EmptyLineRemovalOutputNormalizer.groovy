@@ -28,7 +28,11 @@ class EmptyLineRemovalOutputNormalizer implements OutputNormalizer {
         "multiproject_kotlin_listProjects",
         "multiproject_groovy_listProjects",
         "maven-migration-multi-module_kotlin_project",
-        "maven-migration-multi-module_groovy_projects"
+        "maven-migration-multi-module_groovy_projects",
+        "incrementalTaskNoChange",
+        "publishingMavenSignAndPublish",
+        "configurationCacheProblemsFixed",
+        "compileTaskClasspath"
     ]
 
     @Override
