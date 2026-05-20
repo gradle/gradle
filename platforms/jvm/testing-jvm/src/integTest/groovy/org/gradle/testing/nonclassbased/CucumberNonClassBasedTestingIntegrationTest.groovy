@@ -16,6 +16,7 @@
 
 package org.gradle.testing.nonclassbased
 
+import groovy.xml.XmlSlurper
 import org.gradle.api.internal.tasks.testing.report.VerifiesGenericTestReportResults
 import org.gradle.api.tasks.testing.TestResult
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
@@ -141,13 +142,13 @@ class CucumberNonClassBasedTestingIntegrationTest extends AbstractIntegrationSpe
         succeeds("test")
 
         then:
-        // Before the fix, the className on each Cucumber scenario descriptor was the
-        // empty string `JUnitPlatformSupport.NON_CLASS`, which broke Build Scan reporting ("N/A") and made
-        // `DefaultTestFilter.validateName` throw "Selected test name cannot be null or empty." when the
-        // test-retry plugin tried to rerun a failed scenario. The className must be a stable, non-empty
-        // identifier; here we assert the scenario is reachable under its feature file path.
-        def result = resultsFor()
-        result.testPath(":src/test/resources/helloworld.feature:Say hello /two/three").onlyRoot().assertHasResult(TestResult.ResultType.SUCCESS)
+        // Every testcase in the JUnit XML must have a non-empty `classname`
+        // attribute.  Pre-fix this was `JUnitPlatformSupport.NON_CLASS` = "", which broke Build
+        // Scan reporting and the test-retry plugin's filter contract.
+        def xml = new XmlSlurper().parse(file("build/test-results/test/TEST-helloworld.feature.xml"))
+        def classnames = xml.testcase.collect { it.@classname.text() }
+        assert !classnames.isEmpty()
+        assert classnames.every { it == "helloworld.feature" }
     }
 
     @Issue("https://github.com/gradle/gradle/issues/37850")
