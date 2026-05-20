@@ -28,7 +28,6 @@ import org.gradle.internal.Factory
 import org.gradle.internal.InternalBuildAdapter
 import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.cc.impl.DefaultConfigurationCacheDegradationController
-import org.gradle.internal.configuration.problems.IsolatedProjectsProblemsListener
 import org.gradle.internal.configuration.problems.ProblemsListener
 import org.gradle.internal.configuration.problems.PropertyProblem
 import org.gradle.internal.configuration.problems.PropertyTrace
