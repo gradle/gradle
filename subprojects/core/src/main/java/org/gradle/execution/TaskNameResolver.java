@@ -15,7 +15,6 @@
  */
 package org.gradle.execution;
 
-import org.gradle.api.Project;
 import org.gradle.api.ProjectConfigurationException;
 import org.gradle.api.Task;
 import org.gradle.api.internal.TaskInternal;
@@ -35,14 +34,13 @@ public class TaskNameResolver {
     /**
      * Non-exhaustively searches for at least one task with the given name, by not evaluating projects before searching.
      */
-    public boolean tryFindUnqualifiedTaskCheaply(String name, ProjectInternal project) {
+    public boolean tryFindUnqualifiedTaskCheaply(String name, ProjectState project) {
         // don't evaluate children, see if we know it's without validating it
-        for (Project project1 : project.getAllprojects()) {
-            if (project1.getTasks().getNames().contains(name)) {
+        for (ProjectState current : project.getAllProjects()) {
+            if (current.fromMutableState(p -> p.getTasks().getNames().contains(name))) {
                 return true;
             }
         }
-
         return false;
     }
 

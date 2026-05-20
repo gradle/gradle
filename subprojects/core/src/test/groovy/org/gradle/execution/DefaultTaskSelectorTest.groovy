@@ -92,7 +92,7 @@ class DefaultTaskSelectorTest extends AbstractProjectBuilderSpec {
 
         then:
         1 * projectConfigurer.configure(projectModel1)
-        1 * resolver.tryFindUnqualifiedTaskCheaply("b", projectModel1) >> true
+        1 * resolver.tryFindUnqualifiedTaskCheaply("b", project1) >> true
         0 * _
 
         and:
@@ -110,7 +110,7 @@ class DefaultTaskSelectorTest extends AbstractProjectBuilderSpec {
 
         then:
         1 * projectConfigurer.configure(projectModel1)
-        1 * resolver.tryFindUnqualifiedTaskCheaply("b", projectModel1) >> false
+        1 * resolver.tryFindUnqualifiedTaskCheaply("b", project1) >> false
         1 * projectConfigurer.configureHierarchy(projectModel1)
         1 * resolver.selectWithName("b", project1, true) >> selectionResult
         _ * selectionResult.collectTasks(_) >> { it[0] << excluded }
