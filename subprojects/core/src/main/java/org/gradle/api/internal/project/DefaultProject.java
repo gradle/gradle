@@ -260,8 +260,6 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
         taskContainer = services.get(TaskContainerInternal.class);
         extensibleDynamicObject = new ExtensibleDynamicObject(this, Project.class, services.get(InstantiatorFactory.class).decorateLenient(services));
 
-        // See CrossProjectModelAccess#parentProjectDynamicInheritedScope for the IP-vs-Vintage contract:
-        // null means parent-walk is disabled (Isolated Projects), so we skip the parent wiring entirely.
         @Nullable HierarchicalDynamicObject parentInherited = services.get(CrossProjectModelAccess.class).parentProjectDynamicInheritedScope(owner);
         if (parentInherited != null) {
             extensibleDynamicObject.setParent(parentInherited);
