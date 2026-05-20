@@ -48,8 +48,8 @@ While the feature is experimental, notable changes are documented here rather th
 
 * Gradle 9.6.0
 ** Additional APIs on `BuildServiceRegistry` are treated as incompatible:
-`getRegistrations` now only permits the `findByName(String)` method. All other methods emit IP violations.
-`registerIfAbsent` remains IP compatible.
+`getRegistrations` now only permits the `findByName(String)` method. All other methods emit Isolated Projects violations.
+`registerIfAbsent` remains Isolated Projects compatible.
 
 ** Introduced <<sec:diagnostics_mode,Diagnostics mode>> that runs all of configuration sequentially to surface every Isolated Projects violation in a single invocation.
 
@@ -376,7 +376,7 @@ However, the parameters of the build service can become shared mutable state.
 Any mutation of the build service parameters outside of `registerIfAbsent(...) { parameters { ... } }` should be avoided.
 
 Accessing the set of build service registrations at `gradle.sharedServices.registrations` is restricted with Isolated Projects.
-Only `findByName(String)` is permitted on the returned set; all other methods emit IP violations.
+Only `findByName(String)` is permitted on the returned set; all other methods emit Isolated Projects violations.
 Use `registerIfAbsent(String, Class)` to obtain a service provider instead of querying the registrations set directly.
 
 [[sec:cross_build_access]]

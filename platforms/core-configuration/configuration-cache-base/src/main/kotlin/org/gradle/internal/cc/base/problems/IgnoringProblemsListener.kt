@@ -25,7 +25,7 @@ import org.gradle.internal.configuration.problems.StructuredMessageBuilder
 /**
  * A stub implementation of ProblemsListener.
  */
-class IgnoringProblemsListener : ProblemsListener {
+object IgnoringProblemsListener : ProblemsListener {
     override fun onProblem(problem: PropertyProblem) = Unit
 
     override fun onError(trace: PropertyTrace, error: Exception, message: StructuredMessageBuilder) = Unit

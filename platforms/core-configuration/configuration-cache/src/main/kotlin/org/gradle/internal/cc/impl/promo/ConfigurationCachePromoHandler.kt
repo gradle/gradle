@@ -55,7 +55,7 @@ internal class ConfigurationCachePromoHandler(
     private val buildRegistry: BuildStateRegistry,
     private val degradationController: DefaultConfigurationCacheDegradationController,
     private val documentationRegistry: DocumentationRegistry
-) : RootBuildLifecycleListener, ProblemsListener, IsolatedProjectsProblemsListener {
+) : RootBuildLifecycleListener, ProblemsListener {
 
     private val problems = object {
         @Volatile
@@ -140,7 +140,4 @@ internal class ConfigurationCachePromoHandler(
     private fun TaskExecutionGraph.hasIncompatibleTasks() = allTasks.any { !(it as TaskInternal).isCompatibleWithConfigurationCache }
 
     private fun runWithoutBuildDefinition() = rootBuildLayout.isBuildDefinitionMissing
-
-    override fun onIsolatedProjectsProblem(problem: PropertyProblem) = Unit
-
 }

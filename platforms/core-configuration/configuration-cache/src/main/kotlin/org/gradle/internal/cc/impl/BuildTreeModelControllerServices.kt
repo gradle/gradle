@@ -118,7 +118,7 @@ object BuildTreeModelControllerServices : ServiceRegistrationProvider {
             // Allow nudging to enable CC if it is off and there is no explicit decision. CC doesn't work for model building so do not nudge there.
             !requirements.startParameter.configurationCache.isExplicit && !requirements.isCreatesModel -> add(ConfigurationCachePromoHandler::class.java)
             // Do not nudge if CC is explicitly disabled or if models are requested.
-            else -> add(ProblemsListener::class.java, IgnoringProblemsListener::class.java)
+            else -> add(ProblemsListener::class.java, IgnoringProblemsListener)
         }
 
         add(InstrumentedExecutionAccessListenerRegistry::class.java)
