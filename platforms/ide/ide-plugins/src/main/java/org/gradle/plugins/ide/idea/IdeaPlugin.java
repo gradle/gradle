@@ -139,6 +139,11 @@ public abstract class IdeaPlugin extends IdePlugin {
     }
 
     @Override
+    protected boolean shouldDeprecateLifecycleTask() {
+        return true;
+    }
+
+    @Override
     protected void onApply(final Project project) {
         getLifecycleTask().configure(withDescription("Generates IDEA project files (IML, IPR, IWS)"));
         getLifecycleTask().configure(IdePluginHelper.withGracefulDegradation());

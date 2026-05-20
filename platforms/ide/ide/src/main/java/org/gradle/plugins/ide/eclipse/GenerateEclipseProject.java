@@ -16,6 +16,7 @@
 package org.gradle.plugins.ide.eclipse;
 
 import org.gradle.api.tasks.Internal;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.xml.XmlTransformer;
 import org.gradle.plugins.ide.api.XmlFileContentMerger;
 import org.gradle.plugins.ide.api.XmlGeneratorTask;
@@ -43,6 +44,15 @@ public abstract class GenerateEclipseProject extends XmlGeneratorTask<Project> {
     @Inject
     public GenerateEclipseProject(EclipseProject projectModel) {
         this.projectModel = projectModel;
+    }
+
+    @Override
+    protected void generate() {
+        DeprecationLogger.deprecateTask(getName())
+            .willBeRemovedInGradle10()
+            .withUpgradeGuideSection(9, "ide_task_deprecation")
+            .nagUser();
+        super.generate();
     }
 
     @Override

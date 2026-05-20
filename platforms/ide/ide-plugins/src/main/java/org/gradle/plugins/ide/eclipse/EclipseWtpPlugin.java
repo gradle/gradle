@@ -76,6 +76,11 @@ public abstract class EclipseWtpPlugin extends IdePlugin {
     }
 
     @Override
+    protected boolean shouldDeprecateLifecycleTask() {
+        return true;
+    }
+
+    @Override
     protected void onApply(Project project) {
         project.getPluginManager().apply(EclipsePlugin.class);
 

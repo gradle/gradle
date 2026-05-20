@@ -45,6 +45,7 @@ dependencies {
     implementation(projects.fileCollections)
     implementation(projects.processServices)
     implementation(projects.languageJava)
+    implementation(projects.logging)
     implementation(projects.modelCore)
     implementation(projects.pluginsGroovy)
     implementation(projects.pluginsJava)
