@@ -83,7 +83,7 @@ class DeleteTest extends AbstractConventionTaskTest {
 
         when:
         delete.delete(link)
-        delete.followSymlinks.set(true)
+        delete.getFollowSymlinks().set(true)
         execute(delete)
 
         then:

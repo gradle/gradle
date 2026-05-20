@@ -83,11 +83,11 @@ class DependencyInsightReportTaskSpec extends AbstractProjectBuilderSpec {
         project.configurations.create("foo")
         task.configurationName = 'foo'
         task.getDependencyNotation().set('bar')
-        task.setShowSinglePathToDependency true
+        task.getShowSinglePathToDependency().set(true)
 
         then:
         task.configuration.get().name == 'foo'
-        task.showSinglePathToDependency.get() == true
+        task.getShowSinglePathToDependency().get() == true
     }
 
     def "configuration could be specified by camelCase shortcut"() {

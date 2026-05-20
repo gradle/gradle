@@ -320,13 +320,10 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
      * generate: TestNG variant of HTML results, TestNG variant of XML results in JUnit format, emailable HTML test report, XML results in TestNG format.
      */
     @Internal
-    @ReplacesEagerProperty(
-        replacedAccessors = {
+    @ReplacesEagerProperty(replacedAccessors = {
             @ReplacedAccessor(value = AccessorType.GETTER, name = "getUseDefaultListeners", originalType = boolean.class),
-            @ReplacedAccessor(value = AccessorType.GETTER, name = "isUseDefaultListeners", originalType = boolean.class),
             @ReplacedAccessor(value = AccessorType.SETTER, name = "setUseDefaultListeners", originalType = boolean.class)
-        }
-    )
+        })
     public abstract Property<Boolean> getUseDefaultListeners();
 
     @Internal
@@ -378,13 +375,10 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
      * If not present, the order will not be preserved.
      */
     @Internal
-    @ReplacesEagerProperty(
-        replacedAccessors = {
+    @ReplacesEagerProperty(replacedAccessors = {
             @ReplacedAccessor(value = AccessorType.GETTER, name = "getPreserveOrder", originalType = boolean.class),
-            @ReplacedAccessor(value = AccessorType.GETTER, name = "isPreserveOrder", originalType = boolean.class),
             @ReplacedAccessor(value = AccessorType.SETTER, name = "setPreserveOrder", originalType = boolean.class)
-        }
-    )
+        })
     public abstract Property<Boolean> getPreserveOrder();
 
     @Internal
@@ -417,13 +411,10 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
      * If not present, the tests will not be grouped by instances.
      */
     @Internal
-    @ReplacesEagerProperty(
-        replacedAccessors = {
+    @ReplacesEagerProperty(replacedAccessors = {
             @ReplacedAccessor(value = AccessorType.GETTER, name = "getGroupByInstances", originalType = boolean.class),
-            @ReplacedAccessor(value = AccessorType.GETTER, name = "isGroupByInstances", originalType = boolean.class),
             @ReplacedAccessor(value = AccessorType.SETTER, name = "setGroupByInstances", originalType = boolean.class)
-        }
-    )
+        })
     public abstract Property<Boolean> getGroupByInstances();
 
     @Internal

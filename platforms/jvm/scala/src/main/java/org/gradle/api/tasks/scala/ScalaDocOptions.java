@@ -22,6 +22,9 @@ import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
+import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor;
+import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor.AccessorType;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty.BinaryCompatibility;
 
 import javax.inject.Inject;
 import java.io.Serializable;
@@ -41,7 +44,12 @@ public abstract class ScalaDocOptions implements Serializable {
      * Tells whether to generate deprecation information.
      */
     @Input
-    @ReplacesEagerProperty(originalType = boolean.class)
+    @ReplacesEagerProperty(
+        replacedAccessors = {
+            @ReplacedAccessor(value = AccessorType.GETTER, name = "isDeprecation", originalType = boolean.class, binaryCompatibility = BinaryCompatibility.ACCESSORS_KEPT),
+            @ReplacedAccessor(value = AccessorType.SETTER, name = "setDeprecation", originalType = boolean.class)
+        }
+    )
     public abstract Property<Boolean> getDeprecation();
 
     @Internal
@@ -64,7 +72,12 @@ public abstract class ScalaDocOptions implements Serializable {
      * Tells whether to generate unchecked information.
      */
     @Input
-    @ReplacesEagerProperty(originalType = boolean.class)
+    @ReplacesEagerProperty(
+        replacedAccessors = {
+            @ReplacedAccessor(value = AccessorType.GETTER, name = "isUnchecked", originalType = boolean.class, binaryCompatibility = BinaryCompatibility.ACCESSORS_KEPT),
+            @ReplacedAccessor(value = AccessorType.SETTER, name = "setUnchecked", originalType = boolean.class)
+        }
+    )
     public abstract Property<Boolean> getUnchecked();
 
     @Internal

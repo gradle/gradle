@@ -40,16 +40,16 @@ class GroovyCompileOptionsTest {
 
     @Test
     void testCompileOptions() {
-        assertTrue(compileOptions.failOnError.get())
-        assertFalse(compileOptions.listFiles.get())
-        assertFalse(compileOptions.verbose.get())
-        assertTrue(compileOptions.fork.get())
+        assertTrue(compileOptions.getFailOnError().get())
+        assertFalse(compileOptions.getListFiles().get())
+        assertFalse(compileOptions.getVerbose().get())
+        assertTrue(compileOptions.getFork().get())
         assertEquals(['java', 'groovy'], compileOptions.fileExtensions.get())
         assertEquals('UTF-8', compileOptions.encoding.get())
         assertNotNull(compileOptions.forkOptions)
         assertNull(compileOptions.configurationScript.asFile.orNull)
-        assertFalse(compileOptions.javaAnnotationProcessing.get())
-        assertFalse(compileOptions.parameters.get())
+        assertFalse(compileOptions.getJavaAnnotationProcessing().get())
+        assertFalse(compileOptions.getParameters().get())
     }
 
     @Test

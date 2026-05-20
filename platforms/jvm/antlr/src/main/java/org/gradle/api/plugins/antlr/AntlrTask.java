@@ -47,6 +47,9 @@ import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
+import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor;
+import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor.AccessorType;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty.BinaryCompatibility;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.process.internal.JavaExecHandleBuilder;
 import org.gradle.process.internal.worker.MultiRequestClient;
@@ -84,7 +87,12 @@ public abstract class AntlrTask extends SourceTask {
      * Specifies that all rules call {@code traceIn}/{@code traceOut}.
      */
     @Input
-    @ReplacesEagerProperty(originalType = boolean.class)
+    @ReplacesEagerProperty(
+        replacedAccessors = {
+            @ReplacedAccessor(value = AccessorType.GETTER, name = "isTrace", originalType = boolean.class, binaryCompatibility = BinaryCompatibility.ACCESSORS_KEPT),
+            @ReplacedAccessor(value = AccessorType.SETTER, name = "setTrace", originalType = boolean.class)
+        }
+    )
     public abstract Property<Boolean> getTrace();
 
     @Internal
@@ -107,7 +115,12 @@ public abstract class AntlrTask extends SourceTask {
      * Specifies that all lexer rules call {@code traceIn}/{@code traceOut}.
      */
     @Input
-    @ReplacesEagerProperty(originalType = boolean.class)
+    @ReplacesEagerProperty(
+        replacedAccessors = {
+            @ReplacedAccessor(value = AccessorType.GETTER, name = "isTraceLexer", originalType = boolean.class, binaryCompatibility = BinaryCompatibility.ACCESSORS_KEPT),
+            @ReplacedAccessor(value = AccessorType.SETTER, name = "setTraceLexer", originalType = boolean.class)
+        }
+    )
     public abstract Property<Boolean> getTraceLexer();
 
     @Internal
@@ -130,7 +143,12 @@ public abstract class AntlrTask extends SourceTask {
      * Specifies that all parser rules call {@code traceIn}/{@code traceOut}.
      */
     @Input
-    @ReplacesEagerProperty(originalType = boolean.class)
+    @ReplacesEagerProperty(
+        replacedAccessors = {
+            @ReplacedAccessor(value = AccessorType.GETTER, name = "isTraceParser", originalType = boolean.class, binaryCompatibility = BinaryCompatibility.ACCESSORS_KEPT),
+            @ReplacedAccessor(value = AccessorType.SETTER, name = "setTraceParser", originalType = boolean.class)
+        }
+    )
     public abstract Property<Boolean> getTraceParser();
 
     @Internal
@@ -153,7 +171,12 @@ public abstract class AntlrTask extends SourceTask {
      * Specifies that all tree walker rules call {@code traceIn}/{@code traceOut}.
      */
     @Input
-    @ReplacesEagerProperty(originalType = boolean.class)
+    @ReplacesEagerProperty(
+        replacedAccessors = {
+            @ReplacedAccessor(value = AccessorType.GETTER, name = "isTraceTreeWalker", originalType = boolean.class, binaryCompatibility = BinaryCompatibility.ACCESSORS_KEPT),
+            @ReplacedAccessor(value = AccessorType.SETTER, name = "setTraceTreeWalker", originalType = boolean.class)
+        }
+    )
     public abstract Property<Boolean> getTraceTreeWalker();
 
     @Internal

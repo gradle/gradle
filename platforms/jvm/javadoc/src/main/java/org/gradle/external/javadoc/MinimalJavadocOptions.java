@@ -31,6 +31,9 @@ import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
+import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor;
+import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor.AccessorType;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty.BinaryCompatibility;
 import org.gradle.process.ExecSpec;
 
 import java.io.File;
@@ -129,7 +132,9 @@ public interface MinimalJavadocOptions {
     MinimalJavadocOptions verbose();
 
     @Internal
-    @ReplacesEagerProperty(originalType = boolean.class)
+    @ReplacesEagerProperty(
+        replacedAccessors = @ReplacedAccessor(value = AccessorType.GETTER, name = "isVerbose", originalType = boolean.class, binaryCompatibility = BinaryCompatibility.ACCESSORS_KEPT)
+    )
     Provider<Boolean> getVerbose();
 
     /**
@@ -141,13 +146,19 @@ public interface MinimalJavadocOptions {
     /**
      * @deprecated Use {@link #getVerbose()} instead.
      */
+    @Internal
     @Deprecated
     boolean isVerbose();
 
     MinimalJavadocOptions quiet();
 
     @Input
-    @ReplacesEagerProperty(originalType = boolean.class)
+    @ReplacesEagerProperty(
+        replacedAccessors = {
+            @ReplacedAccessor(value = AccessorType.GETTER, name = "isBreakIterator", originalType = boolean.class, binaryCompatibility = BinaryCompatibility.ACCESSORS_KEPT),
+            @ReplacedAccessor(value = AccessorType.SETTER, name = "setBreakIterator", originalType = boolean.class)
+        }
+    )
     Property<Boolean> getBreakIterator();
 
     /**
@@ -159,6 +170,7 @@ public interface MinimalJavadocOptions {
     /**
      * @deprecated Use {@link #getBreakIterator()} instead.
      */
+    @Internal
     @Deprecated
     boolean isBreakIterator();
 

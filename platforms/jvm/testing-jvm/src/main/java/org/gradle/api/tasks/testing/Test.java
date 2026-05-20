@@ -77,6 +77,9 @@ import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.instrumentation.api.annotations.BytecodeUpgrade;
 import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
+import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor;
+import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor.AccessorType;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty.BinaryCompatibility;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.internal.jvm.DefaultModularitySpec;
 import org.gradle.internal.jvm.JavaModuleDetector;
@@ -1039,7 +1042,12 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      * {@code false} the classes which match the include and exclude patterns are executed.
      */
     @Input
-    @ReplacesEagerProperty(originalType = boolean.class)
+    @ReplacesEagerProperty(
+        replacedAccessors = {
+            @ReplacedAccessor(value = AccessorType.GETTER, name = "isScanForTestClasses", originalType = boolean.class, binaryCompatibility = BinaryCompatibility.ACCESSORS_KEPT),
+            @ReplacedAccessor(value = AccessorType.SETTER, name = "setScanForTestClasses", originalType = boolean.class)
+        }
+    )
     public abstract Property<Boolean> getScanForTestClasses();
 
     /**

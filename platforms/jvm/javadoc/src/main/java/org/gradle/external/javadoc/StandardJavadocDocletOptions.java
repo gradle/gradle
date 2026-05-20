@@ -45,6 +45,9 @@ import org.gradle.external.javadoc.internal.options.PropertyKnownOption;
 import org.gradle.internal.Cast;
 import org.gradle.internal.instrumentation.api.annotations.BytecodeUpgrade;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
+import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor;
+import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor.AccessorType;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty.BinaryCompatibility;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -185,7 +188,12 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
      * then clicking on the "Use" link in the navigation bar.
      */
     @Input
-    @ReplacesEagerProperty(originalType = boolean.class)
+    @ReplacesEagerProperty(
+        replacedAccessors = {
+            @ReplacedAccessor(value = AccessorType.GETTER, name = "isUse", originalType = boolean.class, binaryCompatibility = BinaryCompatibility.ACCESSORS_KEPT),
+            @ReplacedAccessor(value = AccessorType.SETTER, name = "setUse", originalType = boolean.class)
+        }
+    )
     public abstract Property<Boolean> getUse();
 
     /**
@@ -238,7 +246,12 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
      * To tell what version of the Javadoc tool you are using, use the -J-version option.
      */
     @Input
-    @ReplacesEagerProperty(originalType = boolean.class)
+    @ReplacesEagerProperty(
+        replacedAccessors = {
+            @ReplacedAccessor(value = AccessorType.GETTER, name = "isVersion", originalType = boolean.class, binaryCompatibility = BinaryCompatibility.ACCESSORS_KEPT),
+            @ReplacedAccessor(value = AccessorType.SETTER, name = "setVersion", originalType = boolean.class)
+        }
+    )
     public abstract Property<Boolean> getVersion();
 
     /**
@@ -278,7 +291,12 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
      * Includes the @author text in the generated docs.
      */
     @Input
-    @ReplacesEagerProperty(originalType = boolean.class)
+    @ReplacesEagerProperty(
+        replacedAccessors = {
+            @ReplacedAccessor(value = AccessorType.GETTER, name = "isAuthor", originalType = boolean.class, binaryCompatibility = BinaryCompatibility.ACCESSORS_KEPT),
+            @ReplacedAccessor(value = AccessorType.SETTER, name = "setAuthor", originalType = boolean.class)
+        }
+    )
     public abstract Property<Boolean> getAuthor();
 
     /**
@@ -318,7 +336,12 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
      * plus a file for any index entries that start with non-alphabetical characters.
      */
     @Input
-    @ReplacesEagerProperty(originalType = boolean.class)
+    @ReplacesEagerProperty(
+        replacedAccessors = {
+            @ReplacedAccessor(value = AccessorType.GETTER, name = "isSplitIndex", originalType = boolean.class, binaryCompatibility = BinaryCompatibility.ACCESSORS_KEPT),
+            @ReplacedAccessor(value = AccessorType.SETTER, name = "setSplitIndex", originalType = boolean.class)
+        }
+    )
     public abstract Property<Boolean> getSplitIndex();
 
     /**
@@ -528,7 +551,12 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
      * public String getLabel()
      */
     @Input
-    @ReplacesEagerProperty(originalType = boolean.class)
+    @ReplacesEagerProperty(
+        replacedAccessors = {
+            @ReplacedAccessor(value = AccessorType.GETTER, name = "isLinkSource", originalType = boolean.class, binaryCompatibility = BinaryCompatibility.ACCESSORS_KEPT),
+            @ReplacedAccessor(value = AccessorType.SETTER, name = "setLinkSource", originalType = boolean.class)
+        }
+    )
     public abstract Property<Boolean> getLinkSource();
 
     /**
@@ -643,7 +671,12 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
      * This is useful when writing code and you don't want to be distracted by the deprecated code.
      */
     @Input
-    @ReplacesEagerProperty(originalType = boolean.class)
+    @ReplacesEagerProperty(
+        replacedAccessors = {
+            @ReplacedAccessor(value = AccessorType.GETTER, name = "isNoDeprecated", originalType = boolean.class, binaryCompatibility = BinaryCompatibility.ACCESSORS_KEPT),
+            @ReplacedAccessor(value = AccessorType.SETTER, name = "setNoDeprecated", originalType = boolean.class)
+        }
+    )
     public abstract Property<Boolean> getNoDeprecated();
 
     /**
@@ -687,7 +720,12 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
      * This is useful if your source code contains no deprecated API, and you want to make the navigation bar cleaner.
      */
     @Input
-    @ReplacesEagerProperty(originalType = boolean.class)
+    @ReplacesEagerProperty(
+        replacedAccessors = {
+            @ReplacedAccessor(value = AccessorType.GETTER, name = "isNoDeprecatedList", originalType = boolean.class, binaryCompatibility = BinaryCompatibility.ACCESSORS_KEPT),
+            @ReplacedAccessor(value = AccessorType.SETTER, name = "setNoDeprecatedList", originalType = boolean.class)
+        }
+    )
     public abstract Property<Boolean> getNoDeprecatedList();
 
     /**
@@ -729,7 +767,12 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
      * Omits from the generated docs the "Since" sections associated with the @since tags.
      */
     @Input
-    @ReplacesEagerProperty(originalType = boolean.class)
+    @ReplacesEagerProperty(
+        replacedAccessors = {
+            @ReplacedAccessor(value = AccessorType.GETTER, name = "isNoSince", originalType = boolean.class, binaryCompatibility = BinaryCompatibility.ACCESSORS_KEPT),
+            @ReplacedAccessor(value = AccessorType.SETTER, name = "setNoSince", originalType = boolean.class)
+        }
+    )
     public abstract Property<Boolean> getNoSince();
 
     /**
@@ -770,7 +813,12 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
      * The hierarchy is produced by default.
      */
     @Input
-    @ReplacesEagerProperty(originalType = boolean.class)
+    @ReplacesEagerProperty(
+        replacedAccessors = {
+            @ReplacedAccessor(value = AccessorType.GETTER, name = "isNoTree", originalType = boolean.class, binaryCompatibility = BinaryCompatibility.ACCESSORS_KEPT),
+            @ReplacedAccessor(value = AccessorType.SETTER, name = "setNoTree", originalType = boolean.class)
+        }
+    )
     public abstract Property<Boolean> getNoTree();
 
     /**
@@ -811,7 +859,12 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
      * Omits the index from the generated docs. The index is produced by default.
      */
     @Input
-    @ReplacesEagerProperty(originalType = boolean.class)
+    @ReplacesEagerProperty(
+        replacedAccessors = {
+            @ReplacedAccessor(value = AccessorType.GETTER, name = "isNoIndex", originalType = boolean.class, binaryCompatibility = BinaryCompatibility.ACCESSORS_KEPT),
+            @ReplacedAccessor(value = AccessorType.SETTER, name = "setNoIndex", originalType = boolean.class)
+        }
+    )
     public abstract Property<Boolean> getNoIndex();
 
     /**
@@ -850,7 +903,12 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
      * Omits the HELP link in the navigation bars at the top and bottom of each page of output.
      */
     @Input
-    @ReplacesEagerProperty(originalType = boolean.class)
+    @ReplacesEagerProperty(
+        replacedAccessors = {
+            @ReplacedAccessor(value = AccessorType.GETTER, name = "isNoHelp", originalType = boolean.class, binaryCompatibility = BinaryCompatibility.ACCESSORS_KEPT),
+            @ReplacedAccessor(value = AccessorType.SETTER, name = "setNoHelp", originalType = boolean.class)
+        }
+    )
     public abstract Property<Boolean> getNoHelp();
 
     /**
@@ -892,7 +950,12 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
      * such as converting the files to PostScript or PDF for print only.
      */
     @Input
-    @ReplacesEagerProperty(originalType = boolean.class)
+    @ReplacesEagerProperty(
+        replacedAccessors = {
+            @ReplacedAccessor(value = AccessorType.GETTER, name = "isNoNavBar", originalType = boolean.class, binaryCompatibility = BinaryCompatibility.ACCESSORS_KEPT),
+            @ReplacedAccessor(value = AccessorType.SETTER, name = "setNoNavBar", originalType = boolean.class)
+        }
+    )
     public abstract Property<Boolean> getNoNavBar();
 
     /**
@@ -973,7 +1036,12 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
      * which helps to properly document default serializable fields and writeExternal methods.
      */
     @Input
-    @ReplacesEagerProperty(originalType = boolean.class)
+    @ReplacesEagerProperty(
+        replacedAccessors = {
+            @ReplacedAccessor(value = AccessorType.GETTER, name = "isSerialWarn", originalType = boolean.class, binaryCompatibility = BinaryCompatibility.ACCESSORS_KEPT),
+            @ReplacedAccessor(value = AccessorType.SETTER, name = "setSerialWarn", originalType = boolean.class)
+        }
+    )
     public abstract Property<Boolean> getSerialWarn();
 
     /**
@@ -1056,7 +1124,12 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
      * -keywords.
      */
     @Input
-    @ReplacesEagerProperty(originalType = boolean.class)
+    @ReplacesEagerProperty(
+        replacedAccessors = {
+            @ReplacedAccessor(value = AccessorType.GETTER, name = "isKeyWords", originalType = boolean.class, binaryCompatibility = BinaryCompatibility.ACCESSORS_KEPT),
+            @ReplacedAccessor(value = AccessorType.SETTER, name = "setKeyWords", originalType = boolean.class)
+        }
+    )
     public abstract Property<Boolean> getKeyWords();
 
     /**
@@ -1146,7 +1219,12 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
      * -docfilessubdirs.
      */
     @Input
-    @ReplacesEagerProperty(originalType = boolean.class)
+    @ReplacesEagerProperty(
+        replacedAccessors = {
+            @ReplacedAccessor(value = AccessorType.GETTER, name = "isDocFilesSubDirs", originalType = boolean.class, binaryCompatibility = BinaryCompatibility.ACCESSORS_KEPT),
+            @ReplacedAccessor(value = AccessorType.SETTER, name = "setDocFilesSubDirs", originalType = boolean.class)
+        }
+    )
     public abstract Property<Boolean> getDocFilesSubDirs();
 
     /**
@@ -1212,7 +1290,12 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
     }
 
     @Input
-    @ReplacesEagerProperty(originalType = boolean.class)
+    @ReplacesEagerProperty(
+        replacedAccessors = {
+            @ReplacedAccessor(value = AccessorType.GETTER, name = "isNoTimestamp", originalType = boolean.class, binaryCompatibility = BinaryCompatibility.ACCESSORS_KEPT),
+            @ReplacedAccessor(value = AccessorType.SETTER, name = "setNoTimestamp", originalType = boolean.class)
+        }
+    )
     public abstract Property<Boolean> getNoTimestamp();
 
     /**
@@ -1245,7 +1328,12 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
      * -nocomment.
      */
     @Input
-    @ReplacesEagerProperty(originalType = boolean.class)
+    @ReplacesEagerProperty(
+        replacedAccessors = {
+            @ReplacedAccessor(value = AccessorType.GETTER, name = "isNoComment", originalType = boolean.class, binaryCompatibility = BinaryCompatibility.ACCESSORS_KEPT),
+            @ReplacedAccessor(value = AccessorType.SETTER, name = "setNoComment", originalType = boolean.class)
+        }
+    )
     public abstract Property<Boolean> getNoComment();
 
     /**

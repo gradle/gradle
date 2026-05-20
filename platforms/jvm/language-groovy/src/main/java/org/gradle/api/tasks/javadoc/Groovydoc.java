@@ -40,6 +40,9 @@ import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
+import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor;
+import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor.AccessorType;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty.BinaryCompatibility;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.workers.WorkerExecutor;
 import org.jspecify.annotations.Nullable;
@@ -172,7 +175,12 @@ public abstract class Groovydoc extends SourceTask {
      * Returns whether to create class and package usage pages.
      */
     @Input
-    @ReplacesEagerProperty(originalType = boolean.class)
+    @ReplacesEagerProperty(
+        replacedAccessors = {
+            @ReplacedAccessor(value = AccessorType.GETTER, name = "isUse", originalType = boolean.class, binaryCompatibility = BinaryCompatibility.ACCESSORS_KEPT),
+            @ReplacedAccessor(value = AccessorType.SETTER, name = "setUse", originalType = boolean.class)
+        }
+    )
     public abstract Property<Boolean> getUse();
 
     @Internal
@@ -195,7 +203,12 @@ public abstract class Groovydoc extends SourceTask {
      * Returns whether to include timestamp within hidden comment in generated HTML (Groovy &gt;= 2.4.6).
      */
     @Input
-    @ReplacesEagerProperty(originalType = boolean.class)
+    @ReplacesEagerProperty(
+        replacedAccessors = {
+            @ReplacedAccessor(value = AccessorType.GETTER, name = "isNoTimestamp", originalType = boolean.class, binaryCompatibility = BinaryCompatibility.ACCESSORS_KEPT),
+            @ReplacedAccessor(value = AccessorType.SETTER, name = "setNoTimestamp", originalType = boolean.class)
+        }
+    )
     public abstract Property<Boolean> getNoTimestamp();
 
     @Internal
@@ -218,7 +231,12 @@ public abstract class Groovydoc extends SourceTask {
      * Returns whether to include version stamp within hidden comment in generated HTML (Groovy &gt;= 2.4.6).
      */
     @Input
-    @ReplacesEagerProperty(originalType = boolean.class)
+    @ReplacesEagerProperty(
+        replacedAccessors = {
+            @ReplacedAccessor(value = AccessorType.GETTER, name = "isNoVersionStamp", originalType = boolean.class, binaryCompatibility = BinaryCompatibility.ACCESSORS_KEPT),
+            @ReplacedAccessor(value = AccessorType.SETTER, name = "setNoVersionStamp", originalType = boolean.class)
+        }
+    )
     public abstract Property<Boolean> getNoVersionStamp();
 
     @Internal

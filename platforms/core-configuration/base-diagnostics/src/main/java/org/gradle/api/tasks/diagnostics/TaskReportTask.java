@@ -88,7 +88,7 @@ public abstract class TaskReportTask extends ConventionReportTask {
     @Input
     @Option(option = "all", description = "Show additional tasks and detail.")
     @ReplacesEagerProperty(replacedAccessors = {
-        @ReplacedAccessor(value = ReplacedAccessor.AccessorType.GETTER, name = "isDetail", originalType = boolean.class),
+        @ReplacedAccessor(value = ReplacedAccessor.AccessorType.GETTER, name = "isDetail", originalType = boolean.class, binaryCompatibility = ReplacesEagerProperty.BinaryCompatibility.ACCESSORS_KEPT),
         @ReplacedAccessor(value = ReplacedAccessor.AccessorType.SETTER, name = "setShowDetail", originalType = boolean.class)
     })
     public abstract Property<Boolean> getShowDetail();

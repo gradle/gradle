@@ -16,6 +16,7 @@
 
 package org.gradle.internal.instrumentation.api.annotations;
 
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty.BinaryCompatibility;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty.DefaultValue;
 
 import java.lang.annotation.ElementType;
@@ -48,4 +49,11 @@ public @interface ReplacedAccessor {
      * See {@link ReplacesEagerProperty#fluentSetter()}
      */
     boolean fluentSetter() default false;
+
+    /**
+     * Per-accessor binary compatibility setting. Defaults to {@link BinaryCompatibility#ACCESSORS_REMOVED}.
+     * Use this to declare that one accessor of a pair was kept while the other was removed
+     * (e.g. boolean {@code isFoo()} was restored as a deprecated shim while {@code setFoo(boolean)} stays removed).
+     */
+    BinaryCompatibility binaryCompatibility() default BinaryCompatibility.ACCESSORS_REMOVED;
 }

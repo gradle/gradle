@@ -23,6 +23,9 @@ import org.gradle.api.resources.TextResource;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
+import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor;
+import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor.AccessorType;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty.BinaryCompatibility;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Arrays;
@@ -201,7 +204,12 @@ public abstract class PmdExtension extends CodeQualityExtension {
     /**
      * Whether or not to write PMD results to {@code System.out}.
      */
-    @ReplacesEagerProperty(originalType = boolean.class)
+    @ReplacesEagerProperty(
+        replacedAccessors = {
+            @ReplacedAccessor(value = AccessorType.GETTER, name = "isConsoleOutput", originalType = boolean.class, binaryCompatibility = BinaryCompatibility.ACCESSORS_KEPT),
+            @ReplacedAccessor(value = AccessorType.SETTER, name = "setConsoleOutput", originalType = boolean.class)
+        }
+    )
     public abstract Property<Boolean> getConsoleOutput();
 
     public Property<Boolean> getIsConsoleOutput() {

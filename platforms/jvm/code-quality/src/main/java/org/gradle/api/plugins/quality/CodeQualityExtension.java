@@ -20,6 +20,9 @@ import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
+import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor;
+import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor.AccessorType;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty.BinaryCompatibility;
 
 import java.util.Collection;
 
@@ -49,7 +52,12 @@ public abstract class CodeQualityExtension {
      *
      * Example: ignoreFailures = true
      */
-    @ReplacesEagerProperty(originalType = boolean.class)
+    @ReplacesEagerProperty(
+        replacedAccessors = {
+            @ReplacedAccessor(value = AccessorType.GETTER, name = "isIgnoreFailures", originalType = boolean.class, binaryCompatibility = BinaryCompatibility.ACCESSORS_KEPT),
+            @ReplacedAccessor(value = AccessorType.SETTER, name = "setIgnoreFailures", originalType = boolean.class)
+        }
+    )
     public abstract Property<Boolean> getIgnoreFailures();
 
     public Property<Boolean> getIsIgnoreFailures() {

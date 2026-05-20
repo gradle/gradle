@@ -76,7 +76,7 @@ public abstract class Delete extends ConventionTask implements DeleteSpec {
      **/
     @Override
     @Incubating
-    @ReplacesEagerProperty(replacedAccessors = @ReplacedAccessor(value = GETTER, name = "isFollowSymlinks", originalType = boolean.class))
+    @ReplacesEagerProperty(replacedAccessors = @ReplacedAccessor(value = GETTER, name = "isFollowSymlinks", originalType = boolean.class, binaryCompatibility = ReplacesEagerProperty.BinaryCompatibility.ACCESSORS_KEPT))
     public abstract Property<Boolean> getFollowSymlinks();
 
     @Internal

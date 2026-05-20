@@ -24,6 +24,9 @@ import org.gradle.caching.configuration.AbstractBuildCache;
 import org.jspecify.annotations.Nullable;
 import org.gradle.internal.instrumentation.api.annotations.BytecodeUpgrade;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
+import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor;
+import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor.AccessorType;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty.BinaryCompatibility;
 
 import javax.inject.Inject;
 import java.net.URI;
@@ -111,7 +114,12 @@ public abstract class HttpBuildCache extends AbstractBuildCache {
      *
      * @since 4.2
      */
-    @ReplacesEagerProperty(originalType = boolean.class)
+    @ReplacesEagerProperty(
+        replacedAccessors = {
+            @ReplacedAccessor(value = AccessorType.GETTER, name = "isAllowUntrustedServer", originalType = boolean.class, binaryCompatibility = BinaryCompatibility.ACCESSORS_KEPT),
+            @ReplacedAccessor(value = AccessorType.SETTER, name = "setAllowUntrustedServer", originalType = boolean.class)
+        }
+    )
     public abstract Property<Boolean> getAllowUntrustedServer();
 
     /**
@@ -159,7 +167,12 @@ public abstract class HttpBuildCache extends AbstractBuildCache {
      *
      * @since 6.0
      */
-    @ReplacesEagerProperty(originalType = boolean.class)
+    @ReplacesEagerProperty(
+        replacedAccessors = {
+            @ReplacedAccessor(value = AccessorType.GETTER, name = "isAllowInsecureProtocol", originalType = boolean.class, binaryCompatibility = BinaryCompatibility.ACCESSORS_KEPT),
+            @ReplacedAccessor(value = AccessorType.SETTER, name = "setAllowInsecureProtocol", originalType = boolean.class)
+        }
+    )
     public abstract Property<Boolean> getAllowInsecureProtocol();
 
     /**
@@ -207,7 +220,12 @@ public abstract class HttpBuildCache extends AbstractBuildCache {
      *
      * @since 7.2
      */
-    @ReplacesEagerProperty(originalType = boolean.class)
+    @ReplacesEagerProperty(
+        replacedAccessors = {
+            @ReplacedAccessor(value = AccessorType.GETTER, name = "isUseExpectContinue", originalType = boolean.class, binaryCompatibility = BinaryCompatibility.ACCESSORS_KEPT),
+            @ReplacedAccessor(value = AccessorType.SETTER, name = "setUseExpectContinue", originalType = boolean.class)
+        }
+    )
     public abstract Property<Boolean> getUseExpectContinue();
 
     /**

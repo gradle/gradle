@@ -24,6 +24,9 @@ import org.gradle.api.resources.TextResource;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Optional;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
+import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor;
+import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor.AccessorType;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty.BinaryCompatibility;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 
 import java.io.File;
@@ -127,7 +130,12 @@ public abstract class CheckstyleExtension extends CodeQualityExtension {
      *
      * Example: showViolations = false
      */
-    @ReplacesEagerProperty(originalType = boolean.class)
+    @ReplacesEagerProperty(
+        replacedAccessors = {
+            @ReplacedAccessor(value = AccessorType.GETTER, name = "isShowViolations", originalType = boolean.class, binaryCompatibility = BinaryCompatibility.ACCESSORS_KEPT),
+            @ReplacedAccessor(value = AccessorType.SETTER, name = "setShowViolations", originalType = boolean.class)
+        }
+    )
     public abstract Property<Boolean> getShowViolations();
 
     public Property<Boolean> getIsShowViolations() {

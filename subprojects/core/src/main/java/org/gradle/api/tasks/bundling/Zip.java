@@ -28,6 +28,9 @@ import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
+import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor;
+import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor.AccessorType;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty.BinaryCompatibility;
 import org.gradle.work.DisableCachingByDefault;
 
 import java.nio.charset.Charset;
@@ -95,7 +98,12 @@ public abstract class Zip extends AbstractArchiveTask {
      * This means you should not enable this property if you are building JARs to be used with Java 6 and earlier runtimes.
      */
     @Input
-    @ReplacesEagerProperty(originalType = boolean.class)
+    @ReplacesEagerProperty(
+        replacedAccessors = {
+            @ReplacedAccessor(value = AccessorType.GETTER, name = "isZip64", originalType = boolean.class, binaryCompatibility = BinaryCompatibility.ACCESSORS_KEPT),
+            @ReplacedAccessor(value = AccessorType.SETTER, name = "setZip64", originalType = boolean.class)
+        }
+    )
     public abstract Property<Boolean> getZip64();
 
     /**
