@@ -15,6 +15,7 @@
  */
 package org.gradle.kotlin.dsl.tooling.builders.internal
 
+import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.configuration.project.ProjectConfigureAction
 import org.gradle.internal.buildtree.BuildModelParameters

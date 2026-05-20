@@ -62,7 +62,7 @@ import java.io.File
 
 internal
 class IsolatedProjectsSafeKotlinDslScriptsModelBuilder(
-    private val intermediateModelProvider: IntermediateToolingModelProvider
+    private val intermediateModelProvider: IntermediateToolingModelProvider,
 ) : AbstractKotlinDslScriptsModelBuilder() {
 
     override fun prepareParameter(rootProject: Project): KotlinDslScriptsParameter {

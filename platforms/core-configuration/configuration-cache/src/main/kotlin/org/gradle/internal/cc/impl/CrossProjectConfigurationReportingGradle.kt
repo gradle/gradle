@@ -17,19 +17,11 @@
 package org.gradle.internal.cc.impl
 
 import groovy.lang.Closure
-import org.gradle.BuildListener
-import org.gradle.BuildResult
 import org.gradle.api.Action
 import org.gradle.api.Project
 import org.gradle.api.ProjectEvaluationListener
 import org.gradle.api.ProjectState
-import org.gradle.api.initialization.IncludedBuild
-import org.gradle.api.initialization.Settings
 import org.gradle.api.internal.GradleInternal
-import org.gradle.api.internal.SettingsInternal
-import org.gradle.api.internal.StartParameterInternal
-import org.gradle.api.internal.initialization.ClassLoaderScope
-import org.gradle.api.internal.plugins.PluginManagerInternal
 import org.gradle.api.internal.project.CrossProjectConfigurator
 import org.gradle.api.internal.project.CrossProjectModelAccess
 import org.gradle.api.internal.project.ProjectIdentity
@@ -37,52 +29,55 @@ import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectRegistry
 import org.gradle.api.internal.project.ProjectState as InternalProjectState
 import org.gradle.api.invocation.Gradle
-import org.gradle.api.invocation.GradleLifecycle
-import org.gradle.api.plugins.ExtensionContainer
-import org.gradle.api.plugins.ObjectConfigurationAction
-import org.gradle.api.plugins.PluginContainer
-import org.gradle.api.provider.ProviderFactory
 import org.gradle.api.services.BuildServiceRegistry
-import org.gradle.configuration.ConfigurationTargetIdentifier
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal
-import org.gradle.initialization.SettingsState
-import org.gradle.internal.build.BuildState
-import org.gradle.internal.build.PublicBuildPath
-import org.gradle.internal.composite.IncludedBuildInternal
+import org.gradle.internal.configuration.problems.IsolatedProjectsProblemsListener
+import org.gradle.internal.configuration.problems.ProblemFactory
 import org.gradle.internal.extensions.core.serviceOf
-import org.gradle.internal.service.ServiceRegistry
-import org.gradle.util.Path
-import java.io.File
+import org.gradle.internal.extensions.stdlib.capitalized
 import java.util.Objects
-import java.util.function.Supplier
 
 
 class CrossProjectConfigurationReportingGradle(
     gradle: GradleInternal,
     private val referrerProject: ProjectIdentity,
-) : GradleInternal {
-
-    private
-    val delegate: GradleInternal = when (gradle) {
-        // 'unwrapping' ensures that there are no chains of delegation
-        is CrossProjectConfigurationReportingGradle -> gradle.delegate
-        is CrossBuildConfigurationReportingGradle -> gradle.delegate
-        else -> gradle
-    }
+    private val ipProblems: IsolatedProjectsProblemsListener,
+    private val problemFactory: ProblemFactory,
+) : MutableStateAccessAwareGradle(gradle) {
 
     private val crossProjectModelAccess: CrossProjectModelAccess = delegate.serviceOf()
 
     private val projectConfigurator: CrossProjectConfigurator = delegate.serviceOf()
 
+    override fun onMutableStateAccess(what: String) {
+        val problem = problemFactory.problem {
+            text("Project ")
+            reference(referrerProject.identityPath.asString())
+            text(" cannot access Gradle.$what on build ")
+            reference(identityPath.asString())
+        }
+            .exception { message -> message.capitalized() }
+            .build()
+
+        ipProblems.onIsolatedProjectsProblem(problem)
+    }
+
     override fun getParent(): GradleInternal? =
-        delegate.parent?.let { delegateParent -> CrossProjectConfigurationReportingGradle(delegateParent, referrerProject) }
+        delegate.parent?.let { delegateParent ->
+            CrossProjectConfigurationReportingGradle(delegateParent, referrerProject, ipProblems, problemFactory)
+        }
 
     override fun getRoot(): GradleInternal =
         when (val root = delegate.root) {
             delegate -> this
-            else -> CrossProjectConfigurationReportingGradle(root, referrerProject)
+            else -> CrossProjectConfigurationReportingGradle(root, referrerProject, ipProblems, problemFactory)
         }
 
+    override fun getSharedServices(): BuildServiceRegistry = delegate.sharedServices
+
+    // region fine-grained cross-project model access tracking
+    // These methods override the base class mutable state defaults with
+    // cross-project-specific wrapping that serves as a fine-grained violation tracker.
     override fun getRootProject(): ProjectInternal =
         getCrossProjectRootProject()
 
@@ -163,11 +158,6 @@ class CrossProjectConfigurationReportingGradle(
 
     override fun toString(): String = "CrossProjectConfigurationReportingGradle($delegate)"
 
-    override fun resetState() {
-        // Should not be called
-        throw UnsupportedOperationException()
-    }
-
     private
     fun maybeWrapListener(listener: Any): Any = when (listener) {
         is ProjectEvaluationListener -> CrossProjectModelAccessProjectEvaluationListener(listener, referrerProject, crossProjectModelAccess)
@@ -222,150 +212,5 @@ class CrossProjectConfigurationReportingGradle(
 
         override fun toString(): String = "CrossProjectModelAccessProjectEvaluationListener($delegate)"
     }
-
-    // region delegated members
-    override fun getPlugins(): PluginContainer =
-        delegate.plugins
-
-    override fun apply(closure: Closure<*>) =
-        delegate.apply(closure)
-
-    override fun apply(action: Action<in ObjectConfigurationAction>) =
-        delegate.apply(action)
-
-    override fun apply(options: MutableMap<String, *>) =
-        delegate.apply(options)
-
-    override fun getPluginManager(): PluginManagerInternal =
-        delegate.pluginManager
-
-    override fun getExtensions(): ExtensionContainer =
-        delegate.extensions
-
-    override fun getGradleVersion(): String =
-        delegate.gradleVersion
-
-    override fun getGradleUserHomeDir(): File =
-        delegate.gradleUserHomeDir
-
-    override fun getGradleHomeDir(): File? =
-        delegate.gradleHomeDir
-
-    override fun getStartParameter(): StartParameterInternal =
-        delegate.startParameter
-
-    override fun beforeSettings(closure: Closure<*>) =
-        delegate.beforeSettings(closure)
-
-    override fun beforeSettings(action: Action<in Settings>) =
-        delegate.beforeSettings(action)
-
-    override fun settingsEvaluated(closure: Closure<*>) =
-        delegate.settingsEvaluated(closure)
-
-    override fun settingsEvaluated(action: Action<in Settings>) =
-        delegate.settingsEvaluated(action)
-
-    override fun projectsLoaded(closure: Closure<*>) =
-        delegate.projectsLoaded(closure)
-
-    override fun projectsLoaded(action: Action<in Gradle>) =
-        delegate.projectsLoaded(action)
-
-    @Suppress("OVERRIDE_DEPRECATION", "DEPRECATION")
-    override fun buildFinished(closure: Closure<*>) =
-        // already reported as configuration cache problem, no need to override
-        delegate.buildFinished(closure)
-
-    @Suppress("OVERRIDE_DEPRECATION", "DEPRECATION")
-    override fun buildFinished(action: Action<in BuildResult>) =
-        // already reported as configuration cache problem, no need to override
-        delegate.buildFinished(action)
-
-    override fun addBuildListener(buildListener: BuildListener) =
-        // already reported as configuration cache problem, no need to override
-        delegate.addBuildListener(buildListener)
-
-    @Suppress("DEPRECATION")
-    @Deprecated("Deprecated in Java")
-    override fun useLogger(logger: Any) =
-        delegate.useLogger(logger)
-
-    override fun getSharedServices(): BuildServiceRegistry =
-        delegate.sharedServices
-
-    override fun getProviders(): ProviderFactory =
-        delegate.providers
-
-    override fun getIncludedBuilds(): MutableCollection<IncludedBuild> =
-        delegate.includedBuilds
-
-    override fun includedBuild(name: String): IncludedBuild =
-        delegate.includedBuild(name)
-
-    override fun getConfigurationTargetIdentifier(): ConfigurationTargetIdentifier =
-        delegate.configurationTargetIdentifier
-
-    override fun isRootBuild(): Boolean =
-        delegate.isRootBuild
-
-    override fun getOwner(): BuildState =
-        delegate.owner
-
-    override fun getProjectEvaluationBroadcaster(): ProjectEvaluationListener =
-        delegate.projectEvaluationBroadcaster
-
-    override fun getSettings(): SettingsInternal =
-        delegate.settings
-
-    override fun attachSettings(settings: SettingsState?) {
-        delegate.attachSettings(settings)
-    }
-
-    override fun setDefaultProjectState(defaultProject: InternalProjectState) {
-        delegate.defaultProjectState = defaultProject
-    }
-
-    override fun getBuildListenerBroadcaster(): BuildListener =
-        delegate.buildListenerBroadcaster
-
-    override fun getServices(): ServiceRegistry =
-        delegate.services
-
-    override fun setClassLoaderScope(classLoaderScope: Supplier<out ClassLoaderScope>) {
-        delegate.setClassLoaderScope(classLoaderScope)
-    }
-
-    override fun getClassLoaderScope(): ClassLoaderScope =
-        delegate.classLoaderScope
-
-    override fun setIncludedBuilds(includedBuilds: MutableCollection<out IncludedBuildInternal>) {
-        delegate.setIncludedBuilds(includedBuilds)
-    }
-
-    override fun getBuildPath(): String =
-        delegate.buildPath
-
-    override fun getIdentityPath(): Path =
-        delegate.identityPath
-
-    override fun contextualize(description: String): String =
-        delegate.contextualize(description)
-
-    override fun getPublicBuildPath(): PublicBuildPath =
-        delegate.publicBuildPath
-
-    override fun baseProjectClassLoaderScope(): ClassLoaderScope =
-        delegate.baseProjectClassLoaderScope()
-
-    override fun setBaseProjectClassLoaderScope(classLoaderScope: ClassLoaderScope) {
-        delegate.setBaseProjectClassLoaderScope(classLoaderScope)
-    }
-
-    override fun getProjectRegistry(): ProjectRegistry =
-        delegate.projectRegistry
-
-    override fun includedBuilds(): MutableList<out IncludedBuildInternal> =
-        delegate.includedBuilds()
-    //endregion delegated members
+    // endregion fine-grained
 }
