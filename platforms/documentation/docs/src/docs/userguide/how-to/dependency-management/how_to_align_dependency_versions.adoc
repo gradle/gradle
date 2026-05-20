@@ -72,13 +72,14 @@ If no public BOM exists, you can create a **virtual platform**.
 
 In this case, Gradle builds the platform **dynamically** based on the modules being used.
 For this, you must define <<component_metadata_rules.adoc#component-metadata-rules,**component metadata rules**>>:
+The following example aligns Apache Kafka modules because Kafka does not publish a consumer BOM, and otherwise `kafka-streams` could remain on an older version than `kafka-clients`.
 
 ====
 include::sample[dir="snippets/how-to/dependency-management/dependency-management/aligning-versions/kotlin",files="build.gradle.kts[tags=dependency-full-platform]"]
 include::sample[dir="snippets/how-to/dependency-management/dependency-management/aligning-versions/groovy",files="build.gradle[tags=dependency-full-platform]"]
 ====
 
-This ensures that all **Jackson modules align to the same version**, even if brought in transitively.
+This ensures that all **Kafka modules align to the same version**, even if brought in transitively.
 
 Running `./gradlew dependencies --configuration runtimeClasspath` showcases the aligned dependencies:
 
