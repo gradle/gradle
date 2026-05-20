@@ -138,6 +138,12 @@ public interface MinimalJavadocOptions {
     @Internal
     Provider<Boolean> getIsVerbose();
 
+    /**
+     * @deprecated Use {@link #getVerbose()} instead.
+     */
+    @Deprecated
+    boolean isVerbose();
+
     MinimalJavadocOptions quiet();
 
     @Input
@@ -149,6 +155,12 @@ public interface MinimalJavadocOptions {
      */
     @Internal
     Property<Boolean> getIsBreakIterator();
+
+    /**
+     * @deprecated Use {@link #getBreakIterator()} instead.
+     */
+    @Deprecated
+    boolean isBreakIterator();
 
     MinimalJavadocOptions breakIterator(boolean breakIterator);
 

@@ -71,6 +71,12 @@ public abstract class AbstractExecHandleBuilder implements BaseExecSpec {
         return delegate.getIgnoreExitValue();
     }
 
+    @Override
+    @Deprecated
+    public boolean isIgnoreExitValue() {
+        return getIgnoreExitValue().get();
+    }
+
     public AbstractExecHandleBuilder setDisplayName(String displayName) {
         throw new UnsupportedOperationException("setTimeout() is not supported");
     }

@@ -71,6 +71,17 @@ public abstract class BaseScalaCompileOptions implements Serializable {
     }
 
     /**
+     * Fail the build on compilation errors.
+     *
+     * @deprecated Use {@link #getFailOnError()} instead.
+     */
+    @Internal
+    @Deprecated
+    public boolean isFailOnError() {
+        return getFailOnError().get();
+    }
+
+    /**
      * Generate deprecation information.
      */
     @Console
@@ -83,6 +94,17 @@ public abstract class BaseScalaCompileOptions implements Serializable {
     }
 
     /**
+     * Generate deprecation information.
+     *
+     * @deprecated Use {@link #getDeprecation()} instead.
+     */
+    @Internal
+    @Deprecated
+    public boolean isDeprecation() {
+        return getDeprecation().get();
+    }
+
+    /**
      * Generate unchecked information.
      */
     @Console
@@ -92,6 +114,17 @@ public abstract class BaseScalaCompileOptions implements Serializable {
     @Internal
     public Property<Boolean> getIsUnchecked() {
         return getUnchecked();
+    }
+
+    /**
+     * Generate unchecked information.
+     *
+     * @deprecated Use {@link #getUnchecked()} instead.
+     */
+    @Internal
+    @Deprecated
+    public boolean isUnchecked() {
+        return getUnchecked().get();
     }
 
     /**
@@ -113,6 +146,17 @@ public abstract class BaseScalaCompileOptions implements Serializable {
     @Internal
     public Property<Boolean> getIsOptimize() {
         return getOptimize();
+    }
+
+    /**
+     * Run optimizations.
+     *
+     * @deprecated Use {@link #getOptimize()} instead.
+     */
+    @Internal
+    @Deprecated
+    public boolean isOptimize() {
+        return getOptimize().get();
     }
 
     /**
@@ -139,6 +183,20 @@ public abstract class BaseScalaCompileOptions implements Serializable {
     }
 
     /**
+     * Whether to force the compilation of all files.
+     * Legal values:
+     * - false (only compile modified files)
+     * - true (always recompile all files)
+     *
+     * @deprecated Use {@link #getForce()} instead.
+     */
+    @Internal
+    @Deprecated
+    public boolean isForce() {
+        return getForce().get();
+    }
+
+    /**
      * Additional parameters passed to the compiler.
      * Each parameter must start with '-'.
      *
@@ -159,6 +217,17 @@ public abstract class BaseScalaCompileOptions implements Serializable {
     @Internal
     public Property<Boolean> getIsListFiles() {
         return getListFiles();
+    }
+
+    /**
+     * List files to be compiled.
+     *
+     * @deprecated Use {@link #getListFiles()} instead.
+     */
+    @Internal
+    @Deprecated
+    public boolean isListFiles() {
+        return getListFiles().get();
     }
 
     /**

@@ -209,6 +209,16 @@ public abstract class PmdExtension extends CodeQualityExtension {
     }
 
     /**
+     * Whether or not to write PMD results to {@code System.out}.
+     *
+     * @deprecated Use {@link #getConsoleOutput()} instead.
+     */
+    @Deprecated
+    public boolean isConsoleOutput() {
+        return getConsoleOutput().get();
+    }
+
+    /**
      * Controls whether to use incremental analysis or not.
      *
      * This is only supported for PMD 6.0.0 or better. See <a href="https://docs.pmd-code.org/pmd-doc-7.24.0/pmd_userdocs_incremental_analysis.html">official documentation</a> for more details.

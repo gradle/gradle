@@ -63,7 +63,8 @@ class CheckstylePluginTest extends AbstractProjectBuilderSpec {
         extension.config.inputFiles.singleFile == project.file("config/checkstyle/checkstyle.xml")
         extension.configProperties.get() == [:]
         extension.reportsDir.asFile.get() == project.file("build/reports/checkstyle")
-        !extension.ignoreFailures.get()
+        !extension.ignoreFailures
+        extension.getIgnoreFailures() instanceof org.gradle.api.provider.Provider
     }
 
     def "configures checkstyle task for each source set"() {
@@ -173,7 +174,7 @@ class CheckstylePluginTest extends AbstractProjectBuilderSpec {
             reports.xml.outputLocation.asFile.get() == project.file("checkstyle-reports/${sourceSet.name}.xml")
             reports.html.outputLocation.asFile.get() == project.file("checkstyle-reports/${sourceSet.name}.html")
             ignoreFailures
-            showViolations.get()
+            showViolations
             maxErrors.get() == 1
             maxWarnings.get() == 1000
         }

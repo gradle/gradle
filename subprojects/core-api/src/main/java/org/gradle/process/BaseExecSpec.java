@@ -43,6 +43,15 @@ public interface BaseExecSpec extends ProcessForkOptions {
     }
 
     /**
+     * Tells whether a non-zero exit value is ignored, or an exception thrown. Defaults to <code>false</code>.
+     *
+     * @return whether a non-zero exit value is ignored, or an exception thrown
+     * @deprecated Use {@link #getIgnoreExitValue()} instead.
+     */
+    @Deprecated
+    boolean isIgnoreExitValue();
+
+    /**
      * Returns the standard input stream for the process executing the command. The stream is closed after the process
      * completes. Defaults to an empty stream.
      *

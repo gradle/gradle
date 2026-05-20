@@ -44,6 +44,14 @@ public interface BuildCache {
     }
 
     /**
+     * Returns whether the build cache is enabled.
+     *
+     * @deprecated Use {@link #getEnabled()} instead.
+     */
+    @Deprecated
+    boolean isEnabled();
+
+    /**
      * Controls whether a given build can store outputs in the build cache.
      */
     @ReplacesEagerProperty(originalType = boolean.class)
@@ -58,4 +66,12 @@ public interface BuildCache {
     default Property<Boolean> getIsPush() {
         return getPush();
     }
+
+    /**
+     * Returns whether a given build can store outputs in the build cache.
+     *
+     * @deprecated Use {@link #getPush()} instead.
+     */
+    @Deprecated
+    boolean isPush();
 }

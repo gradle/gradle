@@ -333,6 +333,18 @@ public abstract class Javadoc extends SourceTask {
         return getFailOnError();
     }
 
+    /**
+     * Specifies whether this task should fail when errors are encountered during Javadoc generation. When {@code true},
+     * this task will fail on Javadoc error. When {@code false}, this task will ignore Javadoc errors.
+     *
+     * @deprecated Use {@link #getFailOnError()} instead.
+     */
+    @Internal
+    @Deprecated
+    public boolean isFailOnError() {
+        return getFailOnError().get();
+    }
+
     @Internal
     @ReplacesEagerProperty
     public Provider<RegularFile> getOptionsFile() {

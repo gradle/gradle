@@ -46,6 +46,15 @@ public interface JUnitXmlReport extends DirectoryReport {
     }
 
     /**
+     * Should the output be associated with individual test cases instead of at the suite level.
+     *
+     * @deprecated Use {@link #getOutputPerTestCase()} instead.
+     */
+    @Internal
+    @Deprecated
+    boolean isOutputPerTestCase();
+
+    /**
      * Whether reruns or retries of a test should be merged into a combined testcase.
      *
      * When enabled, the XML output will be very similar to the surefire plugin of Apache Maven™ when enabling reruns.

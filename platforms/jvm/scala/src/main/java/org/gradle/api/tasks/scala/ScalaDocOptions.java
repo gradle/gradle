@@ -50,6 +50,17 @@ public abstract class ScalaDocOptions implements Serializable {
     }
 
     /**
+     * Tells whether to generate deprecation information.
+     *
+     * @deprecated Use {@link #getDeprecation()} instead.
+     */
+    @Internal
+    @Deprecated
+    public boolean isDeprecation() {
+        return getDeprecation().get();
+    }
+
+    /**
      * Tells whether to generate unchecked information.
      */
     @Input
@@ -59,6 +70,17 @@ public abstract class ScalaDocOptions implements Serializable {
     @Internal
     public Property<Boolean> getIsUnchecked() {
         return getUnchecked();
+    }
+
+    /**
+     * Tells whether to generate unchecked information.
+     *
+     * @deprecated Use {@link #getUnchecked()} instead.
+     */
+    @Internal
+    @Deprecated
+    public boolean isUnchecked() {
+        return getUnchecked().get();
     }
 
     /**

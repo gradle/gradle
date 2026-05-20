@@ -35,6 +35,12 @@ public abstract class DefaultJUnitXmlReport extends SingleDirectoryReport implem
     public abstract Property<Boolean> getOutputPerTestCase();
 
     @Override
+    @Deprecated
+    public boolean isOutputPerTestCase() {
+        return getOutputPerTestCase().get();
+    }
+
+    @Override
     public abstract Property<Boolean> getMergeReruns();
 
     @Override

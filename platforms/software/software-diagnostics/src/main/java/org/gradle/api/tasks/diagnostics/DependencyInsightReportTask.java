@@ -275,6 +275,18 @@ public abstract class DependencyInsightReportTask extends DefaultTask {
     }
 
     /**
+     * Tells if the report should only show one path to each dependency.
+     *
+     * @since 4.9
+     * @deprecated Use {@link #getShowSinglePathToDependency()} instead.
+     */
+    @Internal
+    @Deprecated
+    public boolean isShowSinglePathToDependency() {
+        return getShowSinglePathToDependency().get();
+    }
+
+    /**
      * Show all variants of each displayed dependency.
      *
      * <p>

@@ -332,6 +332,12 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
     }
 
     @Override
+    @Deprecated
+    public boolean isVerbose() {
+        return getVerbose().get();
+    }
+
+    @Override
     public MinimalJavadocOptions quiet() {
         getOutputLevel().set(JavadocOutputLevel.QUIET);
         return this;
@@ -372,6 +378,12 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
     @Override
     public Property<Boolean> getIsBreakIterator() {
         return getBreakIterator();
+    }
+
+    @Override
+    @Deprecated
+    public boolean isBreakIterator() {
+        return getBreakIterator().get();
     }
 
     @Override

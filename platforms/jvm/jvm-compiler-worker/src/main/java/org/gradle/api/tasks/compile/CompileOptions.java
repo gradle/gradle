@@ -83,6 +83,17 @@ public abstract class CompileOptions implements Serializable {
     }
 
     /**
+     * Tells whether to fail the build when compilation fails. Defaults to {@code true}.
+     *
+     * @deprecated Use {@link #getFailOnError()} instead.
+     */
+    @Internal
+    @Deprecated
+    public boolean isFailOnError() {
+        return getFailOnError().get();
+    }
+
+    /**
      * Tells whether to produce verbose output. Defaults to {@code false}.
      */
     @Console
@@ -95,6 +106,17 @@ public abstract class CompileOptions implements Serializable {
     }
 
     /**
+     * Tells whether to produce verbose output. Defaults to {@code false}.
+     *
+     * @deprecated Use {@link #getVerbose()} instead.
+     */
+    @Internal
+    @Deprecated
+    public boolean isVerbose() {
+        return getVerbose().get();
+    }
+
+    /**
      * Tells whether to log the files to be compiled. Defaults to {@code false}.
      */
     @Console
@@ -104,6 +126,17 @@ public abstract class CompileOptions implements Serializable {
     @ReplacedBy("listFiles")
     public Property<Boolean> getIsListFiles() {
         return getListFiles();
+    }
+
+    /**
+     * Tells whether to log the files to be compiled. Defaults to {@code false}.
+     *
+     * @deprecated Use {@link #getListFiles()} instead.
+     */
+    @Internal
+    @Deprecated
+    public boolean isListFiles() {
+        return getListFiles().get();
     }
 
     /**
@@ -122,6 +155,17 @@ public abstract class CompileOptions implements Serializable {
     }
 
     /**
+     * Tells whether to log details of usage of deprecated members or classes. Defaults to {@code false}.
+     *
+     * @deprecated Use {@link #getDeprecation()} instead.
+     */
+    @Internal
+    @Deprecated
+    public boolean isDeprecation() {
+        return getDeprecation().get();
+    }
+
+    /**
      * Tells whether to log warning messages. The default is {@code true}.
      */
     @Console
@@ -134,6 +178,17 @@ public abstract class CompileOptions implements Serializable {
     @ReplacedBy("warnings")
     public Property<Boolean> getIsWarnings() {
         return getWarnings();
+    }
+
+    /**
+     * Tells whether to log warning messages. The default is {@code true}.
+     *
+     * @deprecated Use {@link #getWarnings()} instead.
+     */
+    @Internal
+    @Deprecated
+    public boolean isWarnings() {
+        return getWarnings().get();
     }
 
     /**
@@ -160,6 +215,18 @@ public abstract class CompileOptions implements Serializable {
     @ReplacedBy("debug")
     public Property<Boolean> getIsDebug() {
         return getDebug();
+    }
+
+    /**
+     * Tells whether to include debugging information in the generated class files. Defaults
+     * to {@code true}. See {@link DebugOptions#getDebugLevel()} for which debugging information will be generated.
+     *
+     * @deprecated Use {@link #getDebug()} instead.
+     */
+    @Internal
+    @Deprecated
+    public boolean isDebug() {
+        return getDebug().get();
     }
 
     /**
@@ -194,6 +261,19 @@ public abstract class CompileOptions implements Serializable {
     @ReplacedBy("fork")
     public Property<Boolean> getIsFork() {
         return getFork();
+    }
+
+    /**
+     * Tells whether to run the compiler in its own process. Note that this does
+     * not necessarily mean that a new process will be created for each compile task.
+     * Defaults to {@code false}.
+     *
+     * @deprecated Use {@link #getFork()} instead.
+     */
+    @Internal
+    @Deprecated
+    public boolean isFork() {
+        return getFork().get();
     }
 
     /**
@@ -283,6 +363,17 @@ public abstract class CompileOptions implements Serializable {
     @ReplacedBy("incremental")
     public Property<Boolean> getIsIncremental() {
         return getIncremental();
+    }
+
+    /**
+     * informs whether to use incremental compilation feature.
+     *
+     * @deprecated Use {@link #getIncremental()} instead.
+     */
+    @Internal
+    @Deprecated
+    public boolean isIncremental() {
+        return getIncremental().get();
     }
 
     /**

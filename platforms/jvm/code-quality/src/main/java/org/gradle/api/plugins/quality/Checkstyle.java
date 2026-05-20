@@ -286,6 +286,18 @@ public abstract class Checkstyle extends AbstractCodeQualityTask implements Repo
     }
 
     /**
+     * Whether rule violations are to be displayed on the console.
+     *
+     * @return true if violations should be displayed on console
+     * @deprecated Use {@link #getShowViolations()} instead.
+     */
+    @Internal
+    @Deprecated
+    public boolean isShowViolations() {
+        return getShowViolations().get();
+    }
+
+    /**
      * Enable the use of external DTD files in configuration files.
      * <strong>Disabled by default because this may be unsafe.</strong>
      * See <a href="https://checkstyle.org/config_system_properties.html#Enable_External_DTD_load">Checkstyle documentation</a> for more details.

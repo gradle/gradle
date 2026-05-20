@@ -152,4 +152,14 @@ public interface TestFilter {
     default Property<Boolean> getIsFailOnNoMatchingTests() {
         return getFailOnNoMatchingTests();
     }
+
+    /**
+     * Returns whether the task should fail if no matching tests where found.
+     * The default is true.
+     *
+     * @deprecated Use {@link #getFailOnNoMatchingTests()} instead.
+     */
+    @Internal
+    @Deprecated
+    boolean isFailOnNoMatchingTests();
 }

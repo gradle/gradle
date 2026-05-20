@@ -196,6 +196,32 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
         return getUse();
     }
 
+    /**
+     * -use
+     * <p>
+     * Includes one "Use" page for each documented class and package. The page describes what packages, classes, methods,
+     * constructors and fields use any API of the given class or package. Given class C,
+     * things that use class C would include subclasses of C, fields declared as C, methods that return C,
+     * and methods and constructors with parameters of type C.
+     * For example, let's look at what might appear on the "Use" page for String.
+     * The getName() method in the java.awt.Font class returns type String. Therefore, getName() uses String,
+     * and you will find that method on the "Use" page for String.
+     * <p>
+     * Note that this documents only uses of the API, not the implementation.
+     * If a method uses String in its implementation but does not take a string as an argument or return a string,
+     * that is not considered a "use" of String.
+     * <p>
+     * You can access the generated "Use" page by first going to the class or package,
+     * then clicking on the "Use" link in the navigation bar.
+     *
+     * @deprecated Use {@link #getUse()} instead.
+     */
+    @Internal
+    @Deprecated
+    public boolean isUse() {
+        return getUse().get();
+    }
+
     public StandardJavadocDocletOptions use(boolean use) {
         getUse().set(use);
         return this;
@@ -221,6 +247,20 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
     @Internal
     public Property<Boolean> getIsVersion() {
         return getVersion();
+    }
+
+    /**
+     * -version
+     * <p>
+     * Includes the @version text in the generated docs. This text is omitted by default.
+     * To tell what version of the Javadoc tool you are using, use the -J-version option.
+     *
+     * @deprecated Use {@link #getVersion()} instead.
+     */
+    @Internal
+    @Deprecated
+    public boolean isVersion() {
+        return getVersion().get();
     }
 
     public StandardJavadocDocletOptions version(boolean version) {
@@ -249,6 +289,19 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
         return getAuthor();
     }
 
+    /**
+     * -author
+     * <p>
+     * Includes the @author text in the generated docs.
+     *
+     * @deprecated Use {@link #getAuthor()} instead.
+     */
+    @Internal
+    @Deprecated
+    public boolean isAuthor() {
+        return getAuthor().get();
+    }
+
     public StandardJavadocDocletOptions author(boolean author) {
         getAuthor().set(author);
         return this;
@@ -274,6 +327,20 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
     @Internal
     public Property<Boolean> getIsSplitIndex() {
         return getSplitIndex();
+    }
+
+    /**
+     * -splitindex
+     * <p>
+     * Splits the index file into multiple files, alphabetically, one file per letter,
+     * plus a file for any index entries that start with non-alphabetical characters.
+     *
+     * @deprecated Use {@link #getSplitIndex()} instead.
+     */
+    @Internal
+    @Deprecated
+    public boolean isSplitIndex() {
+        return getSplitIndex().get();
     }
 
     public StandardJavadocDocletOptions splitIndex(boolean splitIndex) {
@@ -472,6 +539,28 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
         return getLinkSource();
     }
 
+    /**
+     * -linksource
+     * <p>
+     * Creates an HTML version of each source file (with line numbers) and adds links to them from the standard HTML documentation. Links are created for classes, interfaces, constructors, methods and fields whose declarations are in a source file. Otherwise, links are not created, such as for default constructors and generated classes.
+     * This option exposes all private implementation details in the included source files, including private classes, private fields, and the bodies of private methods, regardless of the -public, -package, -protected and -private options. Unless you also use the -private option, not all private classes or interfaces will necessarily be accessible via links.
+     * <p>
+     * Each link appears on the name of the identifier in its declaration. For example, the link to the source code of the Button class would be on the word "Button":
+     * <p>
+     * public class Button
+     * extends Component
+     * implements Accessible
+     * and the link to the source code of the getLabel() method in the Button class would be on the word "getLabel":
+     * public String getLabel()
+     *
+     * @deprecated Use {@link #getLinkSource()} instead.
+     */
+    @Internal
+    @Deprecated
+    public boolean isLinkSource() {
+        return getLinkSource().get();
+    }
+
     public StandardJavadocDocletOptions linkSource(boolean linkSource) {
         getLinkSource().set(linkSource);
         return this;
@@ -565,6 +654,21 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
         return getNoDeprecated();
     }
 
+    /**
+     * -nodeprecated
+     * <p>
+     * Prevents the generation of any deprecated API at all in the documentation.
+     * This does what -nodeprecatedlist does, plus it does not generate any deprecated API throughout the rest of the documentation.
+     * This is useful when writing code and you don't want to be distracted by the deprecated code.
+     *
+     * @deprecated Use {@link #getNoDeprecated()} instead.
+     */
+    @Internal
+    @Deprecated
+    public boolean isNoDeprecated() {
+        return getNoDeprecated().get();
+    }
+
     public StandardJavadocDocletOptions noDeprecated(boolean noDeprecated) {
         getNoDeprecated().set(noDeprecated);
         return this;
@@ -594,6 +698,22 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
         return getNoDeprecatedList();
     }
 
+    /**
+     * -nodeprecatedlist
+     * <p>
+     * Prevents the generation of the file containing the list of deprecated APIs (deprecated-list.html) and
+     * the link in the navigation bar to that page.
+     * (However, javadoc continues to generate the deprecated API throughout the rest of the document.)
+     * This is useful if your source code contains no deprecated API, and you want to make the navigation bar cleaner.
+     *
+     * @deprecated Use {@link #getNoDeprecatedList()} instead.
+     */
+    @Internal
+    @Deprecated
+    public boolean isNoDeprecatedList() {
+        return getNoDeprecatedList().get();
+    }
+
     public StandardJavadocDocletOptions noDeprecatedList(boolean noDeprecatedList) {
         getNoDeprecatedList().set(noDeprecatedList);
         return this;
@@ -618,6 +738,19 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
     @Internal
     public Property<Boolean> getIsNoSince() {
         return getNoSince();
+    }
+
+    /**
+     * -nosince
+     * <p>
+     * Omits from the generated docs the "Since" sections associated with the @since tags.
+     *
+     * @deprecated Use {@link #getNoSince()} instead.
+     */
+    @Internal
+    @Deprecated
+    public boolean isNoSince() {
+        return getNoSince().get();
     }
 
     public StandardJavadocDocletOptions noSince(boolean noSince) {
@@ -648,6 +781,21 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
         return getNoTree();
     }
 
+    /**
+     * -notree
+     * <p>
+     * Omits the class/interface hierarchy pages from the generated docs.
+     * These are the pages you reach using the "Tree" button in the navigation bar.
+     * The hierarchy is produced by default.
+     *
+     * @deprecated Use {@link #getNoTree()} instead.
+     */
+    @Internal
+    @Deprecated
+    public boolean isNoTree() {
+        return getNoTree().get();
+    }
+
     public StandardJavadocDocletOptions noTree(boolean noTree) {
         getNoTree().set(noTree);
         return this;
@@ -674,6 +822,19 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
         return getNoIndex();
     }
 
+    /**
+     * -noindex
+     * <p>
+     * Omits the index from the generated docs. The index is produced by default.
+     *
+     * @deprecated Use {@link #getNoIndex()} instead.
+     */
+    @Internal
+    @Deprecated
+    public boolean isNoIndex() {
+        return getNoIndex().get();
+    }
+
     public StandardJavadocDocletOptions noIndex(boolean noIndex) {
         getNoIndex().set(noIndex);
         return this;
@@ -698,6 +859,19 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
     @Internal
     public Property<Boolean> getIsNoHelp() {
         return getNoHelp();
+    }
+
+    /**
+     * -nohelp
+     * <p>
+     * Omits the HELP link in the navigation bars at the top and bottom of each page of output.
+     *
+     * @deprecated Use {@link #getNoHelp()} instead.
+     */
+    @Internal
+    @Deprecated
+    public boolean isNoHelp() {
+        return getNoHelp().get();
     }
 
     public StandardJavadocDocletOptions noHelp(boolean noHelp) {
@@ -727,6 +901,22 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
     @Internal
     public Property<Boolean> getIsNoNavBar() {
         return getNoNavBar();
+    }
+
+    /**
+     * -nonavbar
+     * <p>
+     * Prevents the generation of the navigation bar, header and footer,
+     * otherwise found at the top and bottom of the generated pages. Has no affect on the "bottom" option.
+     * The -nonavbar option is useful when you are interested only in the content and have no need for navigation,
+     * such as converting the files to PostScript or PDF for print only.
+     *
+     * @deprecated Use {@link #getNoNavBar()} instead.
+     */
+    @Internal
+    @Deprecated
+    public boolean isNoNavBar() {
+        return getNoNavBar().get();
     }
 
     public StandardJavadocDocletOptions noNavBar(boolean noNavBar) {
@@ -794,6 +984,22 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
         return getSerialWarn();
     }
 
+    /**
+     * -serialwarn
+     * <p>
+     * Generates compile-time warnings for missing @serial tags.
+     * By default, Javadoc 1.2.2 (and later versions) generates no serial warnings.
+     * (This is a reversal from earlier versions.) Use this option to display the serial warnings,
+     * which helps to properly document default serializable fields and writeExternal methods.
+     *
+     * @deprecated Use {@link #getSerialWarn()} instead.
+     */
+    @Internal
+    @Deprecated
+    public boolean isSerialWarn() {
+        return getSerialWarn().get();
+    }
+
     public StandardJavadocDocletOptions serialWarn(boolean serialWarn) {
         getSerialWarn().set(serialWarn);
         return this;
@@ -859,6 +1065,17 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
     @Internal
     public Property<Boolean> getIsKeyWords() {
         return getKeyWords();
+    }
+
+    /**
+     * -keywords.
+     *
+     * @deprecated Use {@link #getKeyWords()} instead.
+     */
+    @Internal
+    @Deprecated
+    public boolean isKeyWords() {
+        return getKeyWords().get();
     }
 
     public StandardJavadocDocletOptions keyWords(boolean keyWords) {
@@ -940,6 +1157,17 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
         return getDocFilesSubDirs();
     }
 
+    /**
+     * -docfilessubdirs.
+     *
+     * @deprecated Use {@link #getDocFilesSubDirs()} instead.
+     */
+    @Internal
+    @Deprecated
+    public boolean isDocFilesSubDirs() {
+        return getDocFilesSubDirs().get();
+    }
+
     public StandardJavadocDocletOptions docFilesSubDirs(boolean docFilesSubDirs) {
         getDocFilesSubDirs().set(docFilesSubDirs);
         return this;
@@ -995,6 +1223,15 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
         return getNoTimestamp();
     }
 
+    /**
+     * @deprecated Use {@link #getNoTimestamp()} instead.
+     */
+    @Internal
+    @Deprecated
+    public boolean isNoTimestamp() {
+        return getNoTimestamp().get();
+    }
+
     public StandardJavadocDocletOptions noTimestamp(boolean noTimestamp) {
         getNoTimestamp().set(noTimestamp);
         return this;
@@ -1017,6 +1254,17 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
     @Internal
     public Property<Boolean> getIsNoComment() {
         return getNoComment();
+    }
+
+    /**
+     * -nocomment.
+     *
+     * @deprecated Use {@link #getNoComment()} instead.
+     */
+    @Internal
+    @Deprecated
+    public boolean isNoComment() {
+        return getNoComment().get();
     }
 
     public StandardJavadocDocletOptions noComment(boolean noComment) {

@@ -85,6 +85,18 @@ public abstract class Delete extends ConventionTask implements DeleteSpec {
     }
 
     /**
+     * Returns if symlinks should be followed when doing a delete.
+     *
+     * @return true if symlinks will be followed.
+     * @deprecated Use {@link #getFollowSymlinks()} instead.
+     */
+    @Internal
+    @Deprecated
+    public boolean isFollowSymlinks() {
+        return getFollowSymlinks().get();
+    }
+
+    /**
      * Returns the set of files which will be deleted by this task.
      *
      * @return The files. Never returns null.

@@ -72,6 +72,17 @@ public abstract class GroovyCompileOptions implements Serializable {
     }
 
     /**
+     * Tells whether the compilation task should fail if compile errors occurred. Defaults to {@code true}.
+     *
+     * @deprecated Use {@link #getFailOnError()} instead.
+     */
+    @Internal
+    @Deprecated
+    public boolean isFailOnError() {
+        return getFailOnError().get();
+    }
+
+    /**
      * Tells whether to turn on verbose output. Defaults to {@code false}.
      */
     @Console
@@ -84,6 +95,17 @@ public abstract class GroovyCompileOptions implements Serializable {
     }
 
     /**
+     * Tells whether to turn on verbose output. Defaults to {@code false}.
+     *
+     * @deprecated Use {@link #getVerbose()} instead.
+     */
+    @Internal
+    @Deprecated
+    public boolean isVerbose() {
+        return getVerbose().get();
+    }
+
+    /**
      * Tells whether to print which source files are to be compiled. Defaults to {@code false}.
      */
     @Console
@@ -93,6 +115,17 @@ public abstract class GroovyCompileOptions implements Serializable {
     @Internal
     public Property<Boolean> getIsListFiles() {
         return getListFiles();
+    }
+
+    /**
+     * Tells whether to print which source files are to be compiled. Defaults to {@code false}.
+     *
+     * @deprecated Use {@link #getListFiles()} instead.
+     */
+    @Internal
+    @Deprecated
+    public boolean isListFiles() {
+        return getListFiles().get();
     }
 
     /**
@@ -112,6 +145,17 @@ public abstract class GroovyCompileOptions implements Serializable {
     @Internal
     public Property<Boolean> getIsFork() {
         return getFork();
+    }
+
+    /**
+     * Tells whether to run the Groovy compiler in a separate process. Defaults to {@code true}.
+     *
+     * @deprecated Use {@link #getFork()} instead.
+     */
+    @Internal
+    @Deprecated
+    public boolean isFork() {
+        return getFork().get();
     }
 
     /**
@@ -180,6 +224,17 @@ public abstract class GroovyCompileOptions implements Serializable {
     }
 
     /**
+     * Whether the Groovy code should be subject to Java annotation processing.
+     *
+     * @deprecated Use {@link #getJavaAnnotationProcessing()} instead.
+     */
+    @Internal
+    @Deprecated
+    public boolean isJavaAnnotationProcessing() {
+        return getJavaAnnotationProcessing().get();
+    }
+
+    /**
      * Whether the Groovy compiler generate metadata for reflection on method parameter names on JDK 8 and above.
      *
      * @since 6.1
@@ -191,6 +246,18 @@ public abstract class GroovyCompileOptions implements Serializable {
     @Internal
     public Property<Boolean> getIsParameters() {
         return getParameters();
+    }
+
+    /**
+     * Whether the Groovy compiler generate metadata for reflection on method parameter names on JDK 8 and above.
+     *
+     * @since 6.1
+     * @deprecated Use {@link #getParameters()} instead.
+     */
+    @Internal
+    @Deprecated
+    public boolean isParameters() {
+        return getParameters().get();
     }
 
     /**
@@ -267,6 +334,19 @@ public abstract class GroovyCompileOptions implements Serializable {
     @Internal
     public Property<Boolean> getIsKeepStubs() {
         return getKeepStubs();
+    }
+
+    /**
+     * Tells whether Java stubs for Groovy classes generated during Java/Groovy joint compilation
+     * should be kept after compilation has completed. Useful for joint compilation debugging purposes.
+     * Defaults to {@code false}.
+     *
+     * @deprecated Use {@link #getKeepStubs()} instead.
+     */
+    @Internal
+    @Deprecated
+    public boolean isKeepStubs() {
+        return getKeepStubs().get();
     }
 
 }

@@ -1051,6 +1051,18 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     }
 
     /**
+     * Specifies whether test classes should be detected. When {@code true} the classes which match the include and exclude patterns are scanned for test classes, and any found are executed. When
+     * {@code false} the classes which match the include and exclude patterns are executed.
+     *
+     * @deprecated Use {@link #getScanForTestClasses()} instead.
+     */
+    @Internal
+    @Deprecated
+    public boolean isScanForTestClasses() {
+        return getScanForTestClasses().get();
+    }
+
+    /**
      * Returns the maximum number of test classes to execute in a forked test process. The forked test process will be restarted when this limit is reached.
      *
      * <p>

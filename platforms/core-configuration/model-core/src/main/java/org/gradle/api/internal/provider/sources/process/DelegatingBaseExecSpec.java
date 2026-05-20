@@ -38,6 +38,12 @@ interface DelegatingBaseExecSpec extends BaseExecSpec {
     }
 
     @Override
+    @Deprecated
+    default boolean isIgnoreExitValue() {
+        return getIgnoreExitValue().get();
+    }
+
+    @Override
     default Property<InputStream> getStandardInput() {
         return getDelegate().getStandardInput();
     }

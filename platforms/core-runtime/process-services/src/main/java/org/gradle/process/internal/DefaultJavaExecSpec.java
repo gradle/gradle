@@ -81,6 +81,12 @@ public abstract class DefaultJavaExecSpec extends DefaultJavaForkOptions impleme
     }
 
     @Override
+    @Deprecated
+    public boolean isIgnoreExitValue() {
+        return getIgnoreExitValue().get();
+    }
+
+    @Override
     public Provider<List<String>> getCommandLine() {
         return getExecutable().zip(getAllJvmArgs(), (SerializableLambdas.SerializableBiFunction<String, List<String>, List<String>>) (executable, allJvmArgs) -> {
             List<String> allArgs = ExecHandleCommandLineCombiner.getAllArgs(allJvmArgs, getArgs().get(), getArgumentProviders().get());

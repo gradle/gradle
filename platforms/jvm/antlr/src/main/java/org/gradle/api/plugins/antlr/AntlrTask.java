@@ -93,6 +93,17 @@ public abstract class AntlrTask extends SourceTask {
     }
 
     /**
+     * Specifies that all rules call {@code traceIn}/{@code traceOut}.
+     *
+     * @deprecated Use {@link #getTrace()} instead.
+     */
+    @Internal
+    @Deprecated
+    public boolean isTrace() {
+        return getTrace().get();
+    }
+
+    /**
      * Specifies that all lexer rules call {@code traceIn}/{@code traceOut}.
      */
     @Input
@@ -102,6 +113,17 @@ public abstract class AntlrTask extends SourceTask {
     @Internal
     public Property<Boolean> getIsTraceLexer() {
         return getTraceLexer();
+    }
+
+    /**
+     * Specifies that all lexer rules call {@code traceIn}/{@code traceOut}.
+     *
+     * @deprecated Use {@link #getTraceLexer()} instead.
+     */
+    @Internal
+    @Deprecated
+    public boolean isTraceLexer() {
+        return getTraceLexer().get();
     }
 
     /**
@@ -117,6 +139,17 @@ public abstract class AntlrTask extends SourceTask {
     }
 
     /**
+     * Specifies that all parser rules call {@code traceIn}/{@code traceOut}.
+     *
+     * @deprecated Use {@link #getTraceParser()} instead.
+     */
+    @Internal
+    @Deprecated
+    public boolean isTraceParser() {
+        return getTraceParser().get();
+    }
+
+    /**
      * Specifies that all tree walker rules call {@code traceIn}/{@code traceOut}.
      */
     @Input
@@ -126,6 +159,17 @@ public abstract class AntlrTask extends SourceTask {
     @Internal
     public Property<Boolean> getIsTraceTreeWalker() {
         return getTraceTreeWalker();
+    }
+
+    /**
+     * Specifies that all tree walker rules call {@code traceIn}/{@code traceOut}.
+     *
+     * @deprecated Use {@link #getTraceTreeWalker()} instead.
+     */
+    @Internal
+    @Deprecated
+    public boolean isTraceTreeWalker() {
+        return getTraceTreeWalker().get();
     }
 
     /**

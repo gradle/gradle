@@ -181,6 +181,17 @@ public abstract class Groovydoc extends SourceTask {
     }
 
     /**
+     * Returns whether to create class and package usage pages.
+     *
+     * @deprecated Use {@link #getUse()} instead.
+     */
+    @Internal
+    @Deprecated
+    public boolean isUse() {
+        return getUse().get();
+    }
+
+    /**
      * Returns whether to include timestamp within hidden comment in generated HTML (Groovy &gt;= 2.4.6).
      */
     @Input
@@ -193,6 +204,17 @@ public abstract class Groovydoc extends SourceTask {
     }
 
     /**
+     * Returns whether to include timestamp within hidden comment in generated HTML (Groovy &gt;= 2.4.6).
+     *
+     * @deprecated Use {@link #getNoTimestamp()} instead.
+     */
+    @Internal
+    @Deprecated
+    public boolean isNoTimestamp() {
+        return getNoTimestamp().get();
+    }
+
+    /**
      * Returns whether to include version stamp within hidden comment in generated HTML (Groovy &gt;= 2.4.6).
      */
     @Input
@@ -202,6 +224,17 @@ public abstract class Groovydoc extends SourceTask {
     @Internal
     public Property<Boolean> getIsNoVersionStamp() {
         return getNoVersionStamp();
+    }
+
+    /**
+     * Returns whether to include version stamp within hidden comment in generated HTML (Groovy &gt;= 2.4.6).
+     *
+     * @deprecated Use {@link #getNoVersionStamp()} instead.
+     */
+    @Internal
+    @Deprecated
+    public boolean isNoVersionStamp() {
+        return getNoVersionStamp().get();
     }
 
     /**

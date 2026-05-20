@@ -71,6 +71,12 @@ public abstract class DefaultTestFilter implements TestFilter {
     public abstract Property<Boolean> getFailOnNoMatchingTests();
 
     @Override
+    @Deprecated
+    public boolean isFailOnNoMatchingTests() {
+        return getFailOnNoMatchingTests().get();
+    }
+
+    @Override
     @Input
     public abstract SetProperty<String> getIncludePatterns();
 

@@ -100,6 +100,17 @@ public abstract class JacocoTaskExtension {
     }
 
     /**
+     * Whether or not the task should generate execution data. Defaults to {@code true}.
+     *
+     * @deprecated Use {@link #getEnabled()} instead.
+     */
+    @Internal
+    @Deprecated
+    public boolean isEnabled() {
+        return getEnabled().get();
+    }
+
+    /**
      * The path for execution data to be written to.
      *
      * @return destination file for execution data output
@@ -167,6 +178,19 @@ public abstract class JacocoTaskExtension {
     }
 
     /**
+     * Whether or not classes without source location should be instrumented. Defaults to {@code false}.
+     *
+     * This property is only taken into account if the used JaCoCo version supports this option (JaCoCo version &gt;= 0.7.6)
+     *
+     * @deprecated Use {@link #getIncludeNoLocationClasses()} instead.
+     */
+    @Internal
+    @Deprecated
+    public boolean isIncludeNoLocationClasses() {
+        return getIncludeNoLocationClasses().get();
+    }
+
+    /**
      * An identifier for the session written to the execution data. Defaults to an auto-generated identifier.
      */
     @Optional
@@ -184,6 +208,17 @@ public abstract class JacocoTaskExtension {
     @Internal
     public Property<Boolean> getIsDumpOnExit() {
         return getDumpOnExit();
+    }
+
+    /**
+     * Whether or not to dump the coverage data at VM shutdown. Defaults to {@code true}.
+     *
+     * @deprecated Use {@link #getDumpOnExit()} instead.
+     */
+    @Internal
+    @Deprecated
+    public boolean isDumpOnExit() {
+        return getDumpOnExit().get();
     }
 
     /**
@@ -230,6 +265,19 @@ public abstract class JacocoTaskExtension {
     @Internal
     public Property<Boolean> getIsJmx() {
         return getJmx();
+    }
+
+    /**
+     * Whether or not to expose functionality via JMX under {@code org.jacoco:type=Runtime}. Defaults to {@code false}.
+     *
+     * The configuration of the jmx property is only taken into account if the used JaCoCo version supports this option (JaCoCo version &gt;= 0.6.2)
+     *
+     * @deprecated Use {@link #getJmx()} instead.
+     */
+    @Internal
+    @Deprecated
+    public boolean isJmx() {
+        return getJmx().get();
     }
 
     /**

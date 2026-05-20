@@ -135,6 +135,18 @@ public abstract class CheckstyleExtension extends CodeQualityExtension {
     }
 
     /**
+     * Whether rule violations are to be displayed on the console. Defaults to <code>true</code>.
+     *
+     * Example: showViolations = false
+     *
+     * @deprecated Use {@link #getShowViolations()} instead.
+     */
+    @Deprecated
+    public boolean isShowViolations() {
+        return getShowViolations().get();
+    }
+
+    /**
      * Enable the ability to use custom DTD files in config and load them from some location on all checkstyle tasks in this project.
      * <strong>Disabled by default due to security concerns.</strong>
      * See <a href="https://checkstyle.org/config_system_properties.html#Enable_External_DTD_load">Checkstyle documentation</a> for more details.

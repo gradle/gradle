@@ -162,6 +162,12 @@ public abstract class DefaultMavenArtifactRepository extends AbstractAuthenticat
 
     @Override
     @Deprecated
+    public boolean isAllowInsecureProtocol() {
+        return getAllowInsecureProtocol().get();
+    }
+
+    @Override
+    @Deprecated
     public Set<URI> getArtifactUrls() {
         nagAboutArtifactUrlsDeprecation("getArtifactUrls()");
         return getArtifactUrlsInternal();

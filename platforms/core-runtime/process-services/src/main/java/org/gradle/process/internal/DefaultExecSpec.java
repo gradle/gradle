@@ -47,6 +47,12 @@ public abstract class DefaultExecSpec extends DefaultProcessForkOptions implemen
         targetSpec.getArgumentProviders().addAll(getArgumentProviders());
     }
 
+    @Override
+    @Deprecated
+    public boolean isIgnoreExitValue() {
+        return getIgnoreExitValue().get();
+    }
+
     static void copyBaseExecSpecTo(BaseExecSpec source, BaseExecSpec target) {
         target.getIgnoreExitValue().set(source.getIgnoreExitValue());
         if (source.getStandardInput().isPresent()) {

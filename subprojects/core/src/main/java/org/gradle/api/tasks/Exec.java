@@ -70,6 +70,17 @@ public abstract class Exec extends AbstractExecTask<Exec> {
     public Property<Boolean> getIgnoreExitValue() {
         return super.getIgnoreExitValue();
     }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @Internal
+    @Deprecated
+    public boolean isIgnoreExitValue() {
+        return getIgnoreExitValue().get();
+    }
+
     /**
      * {@inheritDoc}
      */

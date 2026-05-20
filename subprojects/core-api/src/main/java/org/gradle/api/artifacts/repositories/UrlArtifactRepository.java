@@ -68,6 +68,14 @@ public interface UrlArtifactRepository {
     }
 
     /**
+     * Specifies whether it is acceptable to communicate with a repository over an insecure HTTP connection.
+     *
+     * @deprecated Use {@link #getAllowInsecureProtocol()} instead.
+     */
+    @Deprecated
+    boolean isAllowInsecureProtocol();
+
+    /**
      * Specifies whether to continue checking other repositories if this repository is disabled due to connection or communication errors.
      * <p>
      * The conventional value for this property is {@code false}, which means to not continue to check other repositories after this one.

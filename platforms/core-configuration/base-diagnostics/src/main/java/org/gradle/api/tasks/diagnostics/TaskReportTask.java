@@ -100,6 +100,17 @@ public abstract class TaskReportTask extends ConventionReportTask {
     }
 
     /**
+     * Returns whether to show "invisible" tasks without a group or dependent tasks.
+     *
+     * @deprecated Use {@link #getShowDetail()} instead.
+     */
+    @Internal
+    @Deprecated
+    public boolean isDetail() {
+        return getShowDetail().get();
+    }
+
+    /**
      * Returns the task group to be displayed.
      *
      * @since 5.1

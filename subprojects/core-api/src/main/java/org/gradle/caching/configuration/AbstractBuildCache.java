@@ -27,4 +27,22 @@ public abstract class AbstractBuildCache implements BuildCache {
         getEnabled().convention(true);
         getPush().convention(false);
     }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @Deprecated
+    public boolean isEnabled() {
+        return getEnabled().get();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @Deprecated
+    public boolean isPush() {
+        return getPush().get();
+    }
 }

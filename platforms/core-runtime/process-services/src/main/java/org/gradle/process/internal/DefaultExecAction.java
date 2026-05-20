@@ -147,6 +147,12 @@ public class DefaultExecAction implements ExecAction {
     }
 
     @Override
+    @Deprecated
+    public boolean isIgnoreExitValue() {
+        return getIgnoreExitValue().get();
+    }
+
+    @Override
     public Property<InputStream> getStandardInput() {
         return execSpec.getStandardInput();
     }

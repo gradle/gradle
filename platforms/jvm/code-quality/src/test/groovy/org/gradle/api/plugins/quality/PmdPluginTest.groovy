@@ -88,7 +88,7 @@ class PmdPluginTest extends AbstractProjectBuilderSpec {
         extension.ruleSetConfig == null
         extension.ruleSetFiles.empty
         extension.reportsDir.asFile.get() == project.file("build/reports/pmd")
-        !extension.ignoreFailures.get()
+        !extension.ignoreFailures
         extension.maxFailures.get() == 0
         extension.rulesMinimumPriority.get() == 5
         extension.threads.get() == 1

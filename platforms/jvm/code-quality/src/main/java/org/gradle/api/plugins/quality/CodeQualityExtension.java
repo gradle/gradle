@@ -57,6 +57,18 @@ public abstract class CodeQualityExtension {
     }
 
     /**
+     * Whether to allow the build to continue if there are warnings.
+     *
+     * Example: ignoreFailures = true
+     *
+     * @deprecated Use {@link #getIgnoreFailures()} instead.
+     */
+    @Deprecated
+    public boolean isIgnoreFailures() {
+        return getIgnoreFailures().get();
+    }
+
+    /**
      * The directory where reports will be generated.
      */
     @ReplacesEagerProperty

@@ -293,6 +293,12 @@ public abstract class DefaultIvyArtifactRepository extends AbstractAuthenticatio
     }
 
     @Override
+    @Deprecated
+    public boolean isAllowInsecureProtocol() {
+        return getAllowInsecureProtocol().get();
+    }
+
+    @Override
     public void artifactPattern(String pattern) {
         invalidateDescriptor();
         additionalPatternsLayout.artifactPatterns.add(pattern);

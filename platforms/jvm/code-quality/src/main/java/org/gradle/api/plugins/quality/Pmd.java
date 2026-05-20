@@ -321,6 +321,18 @@ public abstract class Pmd extends AbstractCodeQualityTask implements Reporting<P
     }
 
     /**
+     * Whether or not to write PMD results to {@code System.out}.
+     *
+     * @since 2.1
+     * @deprecated Use {@link #getConsoleOutput()} instead.
+     */
+    @Internal
+    @Deprecated
+    public boolean isConsoleOutput() {
+        return getConsoleOutput().get();
+    }
+
+    /**
      * Compile class path for the classes to be analyzed.
      *
      * The classes on this class path are used during analysis but aren't analyzed themselves.
