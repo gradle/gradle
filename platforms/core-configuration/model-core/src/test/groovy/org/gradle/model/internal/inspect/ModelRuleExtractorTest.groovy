@@ -754,23 +754,24 @@ ${fullyQualifiedNameOf(ManagedWithNonManageableParents)}
                 }
             }
         ''')
+        def sourceRef = new java.lang.ref.WeakReference<Class<?>>(source)
 
         when:
         extractor.extract(source)
 
         then:
-        extractor.cache.size() == 1
+        sourceRef.get() != null
 
         when:
         cl.clearCache()
         forcefullyClearReferences(source)
         source = null
+        cl = null
 
         then:
         ConcurrentTestUtil.poll(10) {
             System.gc()
-            extractor.cache.cleanUp()
-            extractor.cache.size() == 0
+            sourceRef.get() == null
         }
     }
 

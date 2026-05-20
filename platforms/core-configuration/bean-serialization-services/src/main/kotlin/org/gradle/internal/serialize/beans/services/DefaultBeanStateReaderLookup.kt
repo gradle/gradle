@@ -21,7 +21,6 @@ import org.gradle.internal.serialize.graph.BeanStateReaderLookup
 import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
-import java.util.concurrent.ConcurrentHashMap
 
 
 @ServiceScope(Scope.BuildTree::class)
@@ -31,8 +30,11 @@ class DefaultBeanStateReaderLookup(
 ) : BeanStateReaderLookup {
 
     private
-    val beanStateReaders = ConcurrentHashMap<Class<*>, BeanStateReader>()
+    val beanStateReaders = object : ClassValue<BeanStateReader>() {
+        override fun computeValue(type: Class<*>): BeanStateReader =
+            BeanPropertyReader(type, constructors, instantiatorFactory)
+    }
 
     override fun beanStateReaderFor(beanType: Class<*>): BeanStateReader =
-        beanStateReaders.computeIfAbsent(beanType) { type -> BeanPropertyReader(type, constructors, instantiatorFactory) }
+        beanStateReaders.get(beanType)
 }
