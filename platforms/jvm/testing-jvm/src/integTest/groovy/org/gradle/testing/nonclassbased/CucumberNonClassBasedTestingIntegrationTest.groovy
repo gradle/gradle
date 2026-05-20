@@ -200,6 +200,9 @@ class CucumberNonClassBasedTestingIntegrationTest extends AbstractIntegrationSpe
         fails("test")
 
         then:
+        def result = resultsFor()
+        result.testPath(":src/test/resources/helloworld.feature:Hello World /one").onlyRoot().assertHasResult(TestResult.ResultType.FAILURE)
+
         // The retry plugin successfully formed a className+methodName pair from the descriptor —
         // the scenario name shows up in the retry plugin's output, proving the className contract.
         failure.assertHasErrorOutput("helloworld.feature")
