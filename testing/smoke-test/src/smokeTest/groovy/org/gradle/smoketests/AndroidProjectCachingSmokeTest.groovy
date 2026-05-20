@@ -75,10 +75,6 @@ class AndroidProjectCachingSmokeTest extends AbstractAndroidProjectSmokeTest {
         def expectedResults = agpVersion.startsWith("9.0")
             ? AndroidPluginExpectations90.EXPECTED_RESULTS_9_0
             : AndroidPluginExpectations91.EXPECTED_RESULTS_9_1
-        // workaround for com.google.android.gms.oss-licenses-plugin not being compatible with configuration cache
-        if (GradleContextualExecuter.isConfigCache()) {
-            expectedResults.entrySet().removeIf { it.key.contains("Oss") }
-        }
 
         def flakyTaskOutcomes = [
             ':core:datastore-proto:syncDemoDebugLibJars': SUCCESS,
@@ -174,6 +170,8 @@ class AndroidPluginExpectations90 {
         ':app:createDemoDebugCompatibleScreenManifests': SUCCESS,
         ':app:createProdDebugApkListingFileRedirect': SUCCESS,
         ':app:createProdDebugCompatibleScreenManifests': SUCCESS,
+        ':app:demoDebugOssDependencyTask': SUCCESS,
+        ':app:demoDebugOssLicensesTask': SUCCESS,
         ':app:desugarDemoDebugFileDependencies': FROM_CACHE,
         ':app:desugarProdDebugFileDependencies': FROM_CACHE,
         ':app:dexBuilderDemoDebug': FROM_CACHE,
@@ -249,6 +247,8 @@ class AndroidPluginExpectations90 {
         ':app:processProdDebugManifestForPackage': FROM_CACHE,
         ':app:processProdDebugNavigationResources': FROM_CACHE,
         ':app:processProdDebugResources': FROM_CACHE,
+        ':app:prodDebugOssDependencyTask': SUCCESS,
+        ':app:prodDebugOssLicensesTask': SUCCESS,
         ':app:stripDemoDebugDebugSymbols': SUCCESS,
         ':app:stripProdDebugDebugSymbols': SUCCESS,
         ':app:transformDemoDebugClassesWithAsm': FROM_CACHE,
@@ -2379,6 +2379,8 @@ class AndroidPluginExpectations91 {
         ':app:createDemoDebugCompatibleScreenManifests': SUCCESS,
         ':app:createProdDebugApkListingFileRedirect': SUCCESS,
         ':app:createProdDebugCompatibleScreenManifests': SUCCESS,
+        ':app:demoDebugOssDependencyTask': SUCCESS,
+        ':app:demoDebugOssLicensesTask': SUCCESS,
         ':app:desugarDemoDebugFileDependencies': FROM_CACHE,
         ':app:desugarProdDebugFileDependencies': FROM_CACHE,
         ':app:dexBuilderDemoDebug': FROM_CACHE,
@@ -2454,6 +2456,8 @@ class AndroidPluginExpectations91 {
         ':app:processProdDebugManifestForPackage': FROM_CACHE,
         ':app:processProdDebugNavigationResources': FROM_CACHE,
         ':app:processProdDebugResources': FROM_CACHE,
+        ':app:prodDebugOssDependencyTask': SUCCESS,
+        ':app:prodDebugOssLicensesTask': SUCCESS,
         ':app:stripDemoDebugDebugSymbols': SUCCESS,
         ':app:stripProdDebugDebugSymbols': SUCCESS,
         ':app:transformDemoDebugClassesWithAsm': FROM_CACHE,
