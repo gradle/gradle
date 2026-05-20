@@ -166,6 +166,10 @@
          </trusted-key>
          <trusted-key id="2E3A1AFFE42B5F53AF19F780BCF4173966770193" group="org.jetbrains" name="annotations"/>
          <trusted-key id="2E92113263FC31C74CCBAAB20E91C2DE43B72BB1" group="org.ec4j.core" name="ec4j-core"/>
+         <trusted-key id="2FC53E6B1F681184F4CCD637F5C81DE10A0B8ECC">
+            <trusting group="org.snakeyaml" name="snakeyaml-engine"/>
+            <trusting group="org.yaml" name="snakeyaml"/>
+         </trusted-key>
          <trusted-key id="314FE82E5A4C5377BCA2EDEC5208812E1E4A6DB0">
             <trusting group="net.rubygrapefruit"/>
             <trusting group="^com[.]gradle($|([.].*))" regex="true"/>
