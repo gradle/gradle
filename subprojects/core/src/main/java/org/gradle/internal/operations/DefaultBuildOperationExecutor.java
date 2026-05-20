@@ -22,7 +22,6 @@ import org.gradle.internal.SystemProperties;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.ManagedExecutor;
-import org.gradle.internal.concurrent.ManagedThreadPoolExecutor;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
@@ -34,7 +33,6 @@ import org.jspecify.annotations.NullMarked;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 import java.util.function.BooleanSupplier;
 import java.util.stream.Collectors;
 
@@ -46,7 +44,7 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
     private final CurrentBuildOperationRef currentBuildOperationRef;
 
     private final WorkerLeaseQueueExecutor maxWorkersExecutor;
-    private final ManagedThreadPoolExecutor maxWorkersBackingExecutor;
+    private final ManagedExecutor maxWorkersBackingExecutor;
     private final ManagedExecutor unconstrainedExecutor;
 
     public DefaultBuildOperationExecutor(
@@ -66,18 +64,16 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
         // Floor at 1 so single-worker builds still have at least one backing thread; WorkerCounter would refuse to spawn
         // any worker if core==0, which would force every op onto the submitter's drain pass.
         int maxWorkersWithoutCurrentThread = Math.max(1, workerLimits.getMaxWorkerCount() - 1);
-        int maxUnconstrainedWorkersWithoutCurrentThread = Math.max(1, workerLimits.getMaxUnconstrainedWorkerCount() - 1);
-        this.maxWorkersBackingExecutor = executorFactory.createThreadPool(
+        this.maxWorkersBackingExecutor = executorFactory.create(
             "Build operations",
-            maxWorkersWithoutCurrentThread,
-            1, TimeUnit.SECONDS
+            workerLimits.getMaxWorkerCount()
         );
         this.maxWorkersExecutor = new WorkerLeaseQueueExecutor(
             coordinationService,
             workerLeaseService,
             maxWorkersBackingExecutor,
             maxWorkersWithoutCurrentThread,
-            maxUnconstrainedWorkersWithoutCurrentThread
+            workerLimits.getMaxUnconstrainedWorkerCount()
         );
         this.unconstrainedExecutor = executorFactory.create(
             "Unconstrained build operations",

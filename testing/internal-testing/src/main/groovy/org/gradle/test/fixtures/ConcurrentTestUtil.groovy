@@ -126,7 +126,7 @@ class ConcurrentTestUtil extends ExternalResource {
             }
 
             @Override
-            ManagedThreadPoolExecutor createThreadPool(String displayName, int corePoolSize, long keepAliveTime, TimeUnit timeUnit) {
+            ManagedThreadPoolExecutor createThreadPool(String displayName, int corePoolSize, int maximumPoolSize, long keepAliveTime, TimeUnit timeUnit) {
                 throw new UnsupportedOperationException()
             }
 
