@@ -106,11 +106,32 @@ class ConfigurationCacheTestKitIntegrationTest extends AbstractConfigurationCach
     }
 
     def "JDWP debug agent does not cause a configuration-cache problem [#mode]"() {
-        // JDWP attaches via `-agentlib:`, not `-javaagent:`, so AgentUtils does not flag it as a
-        // third-party agent and the CC strategy never fires. This test pins that behavior.
+        // JDWP attaches via `-agentlib:`, which the detection flags conservatively as a third-party agent
+        // (any JVMTI agent can subscribe to ClassFileLoadHook and transform bytecode). JDWP itself does
+        // not register a transformer, so the build proceeds cleanly via the compose path.
         when:
         def output = testRunner(mode)
             .withJvmArguments("-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:0")
+            .withArguments("--configuration-cache")
+            .build()
+            .output
+
+        then:
+        !output.contains("Configuration cache problems found")
+
+        where:
+        mode << PluginResolutionMode.values()
+    }
+
+    def "native JVMTI agent attached via -agentpath: does not cause a configuration-cache problem [#mode]"() {
+        // Use the JDK-shipped JDWP shared library so we exercise the -agentpath: codepath without
+        // requiring a custom native artifact in the test fixtures.
+        given:
+        def jdwpLibrary = jdwpAgentLibraryPath()
+
+        when:
+        def output = testRunner(mode)
+            .withJvmArguments("-agentpath:${jdwpLibrary}=transport=dt_socket,server=y,suspend=n,address=*:0")
             .withArguments("--configuration-cache")
             .build()
             .output
@@ -357,6 +378,19 @@ class ConfigurationCacheTestKitIntegrationTest extends AbstractConfigurationCach
 
         where:
         mode << PluginResolutionMode.values()
+    }
+
+    private static String jdwpAgentLibraryPath() {
+        def javaHome = new File(System.getProperty("java.home"))
+        def libDir = new File(javaHome, "lib")
+        def candidates = ["libjdwp.dylib", "libjdwp.so"]
+        for (name in candidates) {
+            def candidate = new File(libDir, name)
+            if (candidate.exists()) {
+                return TextUtil.normaliseFileSeparators(candidate.absolutePath)
+            }
+        }
+        throw new IllegalStateException("Could not locate libjdwp under ${libDir}")
     }
 
     private GradleRunner testRunner(PluginResolutionMode mode) {

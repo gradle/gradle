@@ -21,14 +21,15 @@ import org.gradle.internal.lazy.Lazy;
 import java.lang.management.ManagementFactory;
 
 /**
- * Cached query that reports whether a non-Gradle {@code -javaagent:} switch was passed
- * to the JVM at startup.
+ * Cached query that reports whether a non-Gradle agent switch was passed to the JVM at startup.
+ * Covers both Java agents ({@code -javaagent:}) and native JVMTI agents
+ * ({@code -agentlib:}, {@code -agentpath:}).
  */
 public final class ThirdPartyAgentDetection {
 
     private static final Lazy<Boolean> PRESENT = Lazy.locking().of(() ->
         ManagementFactory.getRuntimeMXBean().getInputArguments().stream()
-            .anyMatch(AgentUtils::isThirdPartyJavaAgentSwitch)
+            .anyMatch(AgentUtils::isThirdPartyAgentSwitch)
     );
 
     private ThirdPartyAgentDetection() {}
