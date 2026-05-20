@@ -24,6 +24,10 @@ import java.lang.management.ManagementFactory;
  * Cached query that reports whether a non-Gradle agent switch was passed to the JVM at startup.
  * Covers both Java agents ({@code -javaagent:}) and native JVMTI agents
  * ({@code -agentlib:}, {@code -agentpath:}).
+ *
+ * <p>The result is computed on first call from the JVM's startup arguments and cached.
+ * Agents attached at runtime via the Attach API are not detected and are not supported by
+ * Gradle's buildscript instrumentation.
  */
 public final class ThirdPartyAgentDetection {
 
