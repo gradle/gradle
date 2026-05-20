@@ -248,7 +248,8 @@ The current implementation of Isolated Projects has a number of limitations that
 * The configuration phase might require more memory to process more work in parallel.
 * Changes to included builds invalidate all cached results, even unrelated ones.
 * Tooling model caching is local only: no sharing across checkouts or remote caching.
-* `gradle.lifecycle.beforeProject` callbacks registered in `settings.gradle(.kts)` cannot directly apply convention plugins from a build registered via `pluginManagement.includeBuild(...)`, even though the same plugins are usable from a `plugins {}` block in the same settings script. See <<sec:lifecycle_callbacks_with_included_plugin_builds>> for working patterns.
+* `gradle.lifecycle.beforeProject` callbacks registered in `settings.gradle(.kts)` cannot directly apply convention plugins from a build registered via `pluginManagement.includeBuild(...)`, even though the same plugins are usable from a `plugins {}` block in the same settings script.
+See <<sec:lifecycle_callbacks_with_included_plugin_builds>> for working patterns.
 
 [[sec:constraints]]
 == Isolated Projects constraints
@@ -715,7 +716,8 @@ Applying a convention plugin from a build registered via `pluginManagement.inclu
 There is a current asymmetry to be aware of when build logic is provided by a build registered via `pluginManagement.includeBuild(...)`:
 
 * A convention plugin from such a build *is* usable from a `plugins {}` block in `settings.gradle(.kts)` or in any project script.
-* The same plugin id *is not* usable directly from inside a `gradle.lifecycle.beforeProject` (or `afterProject`) callback registered in the settings script. The callback fails with `Plugin with id '...' not found.`
+* The same plugin id *is not* usable directly from inside a `gradle.lifecycle.beforeProject` (or `afterProject`) callback registered in the settings script.
+The callback fails with `Plugin with id '...' not found.`
 
 The reason is that plugins from `pluginManagement.includeBuild` are resolved lazily: only a `plugins {}` block triggers resolution and exports the resulting classpath into the surrounding script's classloader scope.
 A `gradle.lifecycle.beforeProject { apply(plugin = "...") }` callback does not trigger resolution, so the plugin is invisible to it.
@@ -737,20 +739,8 @@ gradle.lifecycle.beforeProject {
 }
 ----
 
-[source,kotlin]
-.settings.gradle.kts
-----
-pluginManagement {
-    includeBuild("build-logic")
-}
-
-plugins {
-    id("my.lifecycle")
-}
-
-include("sub1")
-include("sub2")
-----
+include::sample[dir="snippets/isolatedProjects/lifecycleSettingsPlugin/kotlin",files="settings.gradle.kts[tags=settings-file]"]
+include::sample[dir="snippets/isolatedProjects/lifecycleSettingsPlugin/groovy",files="settings.gradle[tags=settings-file]"]
 
 [[sec:lifecycle_via_apply_false]]
 ====== Alternative: pre-resolve via the settings `plugins {}` block
@@ -758,26 +748,8 @@ include("sub2")
 For simple cases where adding a settings plugin to your included build is unwarranted, declare the project convention plugin in the settings `plugins {}` block with `apply false`.
 This forces resolution at settings evaluation time and exports the classpath into the settings classloader scope, the parent of every project's scope, so the `beforeProject` callback can find the plugin:
 
-[source,kotlin]
-.settings.gradle.kts
-----
-pluginManagement {
-    includeBuild("build-logic")
-}
-
-plugins {
-    // Resolves `my.convention` against the included plugin build and
-    // exports its classpath to all projects, without applying it here.
-    id("my.convention") apply false
-}
-
-include("sub1")
-include("sub2")
-
-gradle.lifecycle.beforeProject {
-    apply(plugin = "my.convention")
-}
-----
+include::sample[dir="snippets/isolatedProjects/lifecycleApplyFalse/kotlin",files="settings.gradle.kts[tags=settings-file]"]
+include::sample[dir="snippets/isolatedProjects/lifecycleApplyFalse/groovy",files="settings.gradle[tags=settings-file]"]
 
 [NOTE]
 ====
