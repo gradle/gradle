@@ -74,8 +74,8 @@ class IsolatedProjectsIntegrationTest extends AbstractIsolatedProjectsIntegratio
 
         then:
         problems.assertFailureHasProblems(failure) {
-            withProblem("Build file 'sub/build.gradle': line 2: Project ':sub' cannot access 'Project.tasks' functionality on another project ':'")
-            withProblem("Build file 'sub/build.gradle': line 4: Project ':sub' cannot access 'Project.configurations' functionality on another project ':'")
+            withProblem("Build file '${relativePath('sub/build.gradle')}': line 2: Project ':sub' cannot access 'Project.tasks' functionality on another project ':'")
+            withProblem("Build file '${relativePath('sub/build.gradle')}': line 4: Project ':sub' cannot access 'Project.configurations' functionality on another project ':'")
             totalProblemsCount = 2
             problemsWithStackTraceCount = 2
         }
