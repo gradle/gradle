@@ -456,6 +456,12 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
             // If the parent is a Class, it should be safe to use its name here.
             String result = nameGetter.apply(parentDescriptor);
             return result != null ? result : JUnitPlatformSupport.UNKNOWN;
+        } else if (parentDescriptor != null) {
+            // Non-class-based test (e.g. Cucumber FileSource). Use the parent container's name
+            // (typically the relative path to the source file produced by extractClassOrResourceName)
+            // so that Build Scans and the test-retry filter receive a stable, non-empty identifier.
+            String result = nameGetter.apply(parentDescriptor);
+            return result != null && !result.isEmpty() ? result : JUnitPlatformSupport.NON_CLASS;
         } else {
             return JUnitPlatformSupport.NON_CLASS;
         }
