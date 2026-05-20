@@ -226,7 +226,7 @@ Upgrade to the link:https://plugins.gradle.org/plugin/com.gradle.develocity[late
 See the link:https://gradle.com/help/gradle-plugin-compatibility/[Develocity plugin compatibility matrix] for details.
 
 [[deprecated_accessing_parent_project_properties]]
-==== Accessing properties and methods from a parent project
+==== Implicit lookup of properties and methods in the project hierarchy
 
 In Gradle's Groovy and Kotlin DSLs, when a child project's build script references a property or method that isn't defined locally, the resolution mechanism walks up the project hierarchy looking for a match:
 
@@ -241,7 +241,7 @@ ext.foo = "hello"
 .child/build.gradle
 [source,groovy]
 ----
-println(foo) // Resolved from parent — now deprecated
+println(foo) // Resolved through hierarchy — now deprecated
 ----
 =====
 [.multi-language-sample]
@@ -255,44 +255,32 @@ extra["foo"] = "hello"
 [source,kotlin]
 ----
 val foo: String? by project
-println(foo) // Resolved from parent — now deprecated
+println(foo) // Resolved through hierarchy — now deprecated
 ----
 =====
 ====
 
 This implicit inheritance is deprecated and will be removed in Gradle 10.
-Both implicit dynamic resolution (e.g. a bare `foo` reference in a Groovy build script, or `val foo by project` in a Kotlin build script) and the explicit API (`project.findProperty("foo")`, `project.property("foo")`, `project.hasProperty("foo")`) emit the deprecation warning when they resolve through the parent.
+Both an implicit reference (e.g. a bare `foo` in a Groovy build script, or `val foo by project` in a Kotlin build script) and the explicit API (`project.findProperty("foo")`, `project.property("foo")`, `project.hasProperty("foo")`) emit the deprecation warning when they resolve through the hierarchy.
 
-Implicit parent lookup creates hidden coupling between projects, makes builds harder to reason about (a typo silently resolves to a parent definition instead of failing), and is fundamentally incompatible with <<isolated_projects.adoc#isolated_projects, Isolated Projects>>.
+Implicit hierarchy lookup creates hidden coupling between projects, makes builds harder to reason about (a typo silently resolves to an ancestor's definition instead of failing), and is fundamentally incompatible with <<isolated_projects.adoc#isolated_projects, Isolated Projects>>.
 
-Under Isolated Projects, the parent-project lookup is fully disabled.
-A reference that would have resolved through the parent instead throws `MissingPropertyException` / `MissingMethodException`; the same behavior Gradle 10 will apply to all builds.
+Under Isolated Projects, the implicit hierarchy lookup is fully disabled.
+A reference that would have resolved through the hierarchy instead throws `MissingPropertyException` / `MissingMethodException`; the same behavior Gradle 10 will apply to all builds.
 The migration paths below apply equally to standard builds (to silence the deprecation) and Isolated Projects builds (to restore the value).
 
 To migrate, choose the approach that best fits your use case:
 
 - **Build-wide configuration values** — declare them in `gradle.properties` at the root, and read them in subprojects via `providers.gradleProperty("name")`. They become typed `Provider<String>` values and are available everywhere without any walking.
 - **Plugin defaults / shared logic** — extract into a <<sharing_build_logic_between_subprojects.adoc#sharing_build_logic_between_subprojects, convention plugin>> applied to each subproject. Each subproject gets its own configuration; nothing crosses project boundaries.
-- **Explicit reference to the parent's value** — write `rootProject.ext.foo` (or `parent.ext.foo`) in the child build script. This is a transitional fix: it preserves the cross-project coupling and is therefore not Isolated Projects compatible, but it removes the deprecation warning and makes the dependency explicit. A user-defined helper such as
-+
-[source,groovy]
-----
-def findExtraInHierarchy(Project project, String name) {
-    for (def p = project; p != null; p = p.parent) {
-        if (p.ext.has(name)) {
-            return p.ext.get(name)
-        }
-    }
-    return null
-}
-----
-+
-can be added to a build script or convention plugin to mimic the original walking semantics where strictly needed.
+- **Explicit reference to an ancestor's value** — write `rootProject.ext.foo` (or `parent.ext.foo`) in the child build script. This is a transitional fix: it preserves the cross-project coupling and is therefore not Isolated Projects compatible, but it removes the deprecation warning and makes the dependency explicit.
 
-For the Kotlin DSL specifically, the `val name: Type by project` delegate syntax — already deprecated in its own right (see link:#kotlin_dsl_delegated_properties[Removing Kotlin DSL property delegates]) — is equivalent to the explicit API:
+If you need to keep the original walking semantics, the following helper can be added to a build script or convention plugin:
 
-- `val foo: String? by project` corresponds to `project.findProperty("foo") as String?` and will silently return `null` for parent-only properties once the parent lookup is removed in Gradle 10. Audit usages with `grep -rn "by project" --include="*.kts"` before relying on the value.
-- `val foo: String by project` corresponds to `project.getProperty("foo")` and throws `InvalidUserCodeException` for parent-only properties — loud and easy to locate.
+====
+include::sample[dir="snippets/releases/upgrading/findExtraInHierarchy/kotlin",files="child/build.gradle.kts[tags=helper]"]
+include::sample[dir="snippets/releases/upgrading/findExtraInHierarchy/groovy",files="child/build.gradle[tags=helper]"]
+====
 
 [[deprecated_pmd_target_jdk]]
 ==== Deprecation of `targetJdk` on the PMD plugin

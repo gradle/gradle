@@ -1,0 +1,19 @@
+// tag::helper[]
+def findExtraInHierarchy(Project project, String name) {
+    for (def p = project; p != null; p = p.parent) {
+        if (p.ext.has(name)) {
+            return p.ext.get(name)
+        }
+    }
+    return null
+}
+// end::helper[]
+
+tasks.register('printFoo') {
+    def fromRoot = findExtraInHierarchy(project, 'foo')
+    def missing = findExtraInHierarchy(project, 'missing')
+    doLast {
+        println("foo = $fromRoot")
+        println("missing = $missing")
+    }
+}
