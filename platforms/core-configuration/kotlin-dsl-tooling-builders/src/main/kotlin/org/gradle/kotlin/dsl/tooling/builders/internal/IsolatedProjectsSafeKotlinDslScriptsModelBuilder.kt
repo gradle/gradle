@@ -45,7 +45,7 @@ import org.gradle.kotlin.dsl.tooling.builders.createStandardKotlinDslScriptsMode
 import org.gradle.kotlin.dsl.tooling.builders.discoverBuildScript
 import org.gradle.kotlin.dsl.tooling.builders.discoverInitScripts
 import org.gradle.kotlin.dsl.tooling.builders.discoverPrecompiledScriptPluginScripts
-import org.gradle.kotlin.dsl.tooling.builders.discoverSettingScript
+import org.gradle.kotlin.dsl.tooling.builders.isKotlinDslFile
 import org.gradle.kotlin.dsl.tooling.builders.resolveCorrelationIdParameter
 import org.gradle.kotlin.dsl.tooling.builders.runtimeFailuresLocatedIn
 import org.gradle.kotlin.dsl.tooling.builders.scriptCompilationClassPath
@@ -63,6 +63,7 @@ import java.io.File
 internal
 class IsolatedProjectsSafeKotlinDslScriptsModelBuilder(
     private val intermediateModelProvider: IntermediateToolingModelProvider,
+    private val gradle: GradleInternal,
 ) : AbstractKotlinDslScriptsModelBuilder() {
 
     override fun prepareParameter(rootProject: Project): KotlinDslScriptsParameter {
@@ -79,8 +80,8 @@ class IsolatedProjectsSafeKotlinDslScriptsModelBuilder(
 
     private
     fun buildFor(rootProject: ProjectInternal): StandardKotlinDslScriptsModel {
-        val base = ScriptModelBase(rootProject)
-        val nonProjectScriptModels = buildNonProjectScriptModels(rootProject, base)
+        val base = ScriptModelBase(gradle)
+        val nonProjectScriptModels = buildNonProjectScriptModels(gradle, base)
         val projectHierarchyScriptModels = buildScriptModelsInHierarchy(rootProject, base, intermediateModelProvider)
         return createStandardKotlinDslScriptsModel(nonProjectScriptModels + projectHierarchyScriptModels)
     }
@@ -88,13 +89,13 @@ class IsolatedProjectsSafeKotlinDslScriptsModelBuilder(
 
 
 internal
-class ScriptModelBase(
-    private val rootProject: ProjectInternal
-) {
+class ScriptModelBase(gradle: GradleInternal) {
+
+    private val rootProject = gradle.rootProject
 
     private
     val scriptClassPath: ClassPath by unsafeLazy {
-        rootProject.gradle.baseScriptClassPath()
+        gradle.baseScriptClassPath()
     }
 
     private
@@ -137,13 +138,13 @@ data class ScriptClassPath(val bin: ClassPath, val src: ClassPath)
 
 private
 fun buildNonProjectScriptModels(
-    rootProject: ProjectInternal,
+    gradle: GradleInternal,
     base: ScriptModelBase
 ): Map<File, StandardKotlinDslScriptModel> {
 
     val intermediateModels = buildList {
-        addAll(initScriptModels(rootProject))
-        addNotNull(settingsScriptModel(rootProject))
+        addAll(initScriptModels(gradle.rootProject))
+        addNotNull(settingsScriptModel(gradle))
     }
 
     return intermediateModels.associateBy({ it.scriptFile }) {
@@ -219,12 +220,16 @@ fun initScriptModels(rootProject: ProjectInternal): List<NonProjectScriptModel> 
 
 
 private
-fun settingsScriptModel(rootProject: ProjectInternal): NonProjectScriptModel? {
-    return rootProject.discoverSettingScript()?.let {
-        buildSettingsScriptModel(it, rootProject)
+fun settingsScriptModel(gradle: GradleInternal): NonProjectScriptModel? {
+    return discoverSettingScript(gradle)?.let {
+        buildSettingsScriptModel(it, gradle.rootProject)
     }
 }
 
+private
+fun discoverSettingScript(gradle: GradleInternal): File? =
+    File(gradle.settings.settingsScript.fileName)
+        .takeIf { it.isKotlinDslFile }
 
 private
 fun buildInitScriptModel(initScript: File, rootProject: ProjectInternal): NonProjectScriptModel {

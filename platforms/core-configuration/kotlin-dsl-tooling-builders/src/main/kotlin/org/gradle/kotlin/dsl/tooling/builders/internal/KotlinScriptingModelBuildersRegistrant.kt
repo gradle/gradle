@@ -32,7 +32,8 @@ import org.gradle.tooling.provider.model.internal.ToolingModelBuilderRegistrant
  */
 class KotlinScriptingModelBuildersRegistrant(
     private val modelParameters: BuildModelParameters,
-    private val intermediateModelProvider: IntermediateToolingModelProvider
+    private val intermediateModelProvider: IntermediateToolingModelProvider,
+    private val gradle: GradleInternal,
 ) : ToolingModelBuilderRegistrant {
 
     override fun registerForProject(registry: ToolingModelBuilderRegistry, isRootProject: Boolean) {
@@ -41,7 +42,7 @@ class KotlinScriptingModelBuildersRegistrant(
 
         if (isRootProject) {
             val builder = when {
-                modelParameters.isIsolatedProjects -> IsolatedProjectsSafeKotlinDslScriptsModelBuilder(intermediateModelProvider)
+                modelParameters.isIsolatedProjects -> IsolatedProjectsSafeKotlinDslScriptsModelBuilder(intermediateModelProvider, gradle)
                 else -> KotlinDslScriptsModelBuilder
             }
             registry.register(builder)

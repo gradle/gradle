@@ -179,7 +179,7 @@ fun Project.discoverInitScripts(): List<File> =
         .filter { it.isKotlinDslFile }
 
 
-internal
+private
 fun Project.discoverSettingScript(): File? =
     File((this as ProjectInternal).gradle.settings.settingsScript.fileName)
         .takeIf { it.isKotlinDslFile }
