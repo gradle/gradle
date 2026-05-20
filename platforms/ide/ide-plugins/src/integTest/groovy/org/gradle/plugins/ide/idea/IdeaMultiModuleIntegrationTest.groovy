@@ -65,6 +65,7 @@ class IdeaMultiModuleIntegrationTest extends AbstractIdeIntegrationTest {
         """
 
         //when
+        expectTaskDeprecations("ideaModule")
         executer.withTasks("ideaModule").run()
 
         //then
@@ -85,9 +86,9 @@ class IdeaMultiModuleIntegrationTest extends AbstractIdeIntegrationTest {
         file("settings.gradle") << """
             rootProject.name = 'root-project-1'
             include 'api'
-                    """
+        """
 
-                    file("build.gradle") << """
+        file("build.gradle") << """
             allprojects {
                 apply plugin: 'java'
                 apply plugin: 'idea'
@@ -101,6 +102,7 @@ class IdeaMultiModuleIntegrationTest extends AbstractIdeIntegrationTest {
         """
 
         //when
+        expectTaskDeprecations("ideaModule")
         executer.withTasks("ideaModule").run()
 
         //then
@@ -147,6 +149,7 @@ class IdeaMultiModuleIntegrationTest extends AbstractIdeIntegrationTest {
         """
 
         //when
+        expectTaskDeprecations("ideaModule")
         executer.withTasks("ideaModule").run()
 
         //then
@@ -202,6 +205,7 @@ class IdeaMultiModuleIntegrationTest extends AbstractIdeIntegrationTest {
         """
 
         //when
+        expectTaskDeprecations("ideaModule")
         executer.withTasks("ideaModule").run()
 
         //then
@@ -277,6 +281,7 @@ class IdeaMultiModuleIntegrationTest extends AbstractIdeIntegrationTest {
         """
 
         //when
+        expectTaskDeprecations("idea", "ideaModule", "ideaProject", "ideaWorkspace")
         executer.withTasks("idea").run()
 
         //then
@@ -347,6 +352,10 @@ class IdeaMultiModuleIntegrationTest extends AbstractIdeIntegrationTest {
         """
 
         //when
+        expectTaskDeprecations("idea", "ideaModule", "ideaProject", "ideaWorkspace")
+        expectTaskTypeDeprecations(
+                ("org.gradle.plugins.ide.idea.model.IdeaModuleIml"): 1,
+        )
         executer.withTasks("idea").run()
 
         //then
@@ -396,6 +405,7 @@ class IdeaMultiModuleIntegrationTest extends AbstractIdeIntegrationTest {
         """
 
         //when
+        expectTaskDeprecations("idea", "ideaModule", "ideaProject", "ideaWorkspace")
         executer.withTasks("idea").run()
 
         //then
@@ -459,6 +469,7 @@ class IdeaMultiModuleIntegrationTest extends AbstractIdeIntegrationTest {
         """
 
         //when
+        expectTaskDeprecations("idea", "ideaModule", "ideaProject", "ideaWorkspace")
         executer.withTasks("idea").run()
 
         //then
@@ -469,6 +480,7 @@ class IdeaMultiModuleIntegrationTest extends AbstractIdeIntegrationTest {
         dependencies = parseIml("two/two.iml").dependencies
         assert dependencies.libraries*.jarName as Set == [someLib2Jar.name] as Set
 
+        expectTaskDeprecations("idea", "ideaModule", "ideaProject", "ideaWorkspace")
         executer.withArgument("-PstrictDeps=true").withTasks("idea").run()
 
         //then
@@ -504,11 +516,13 @@ class IdeaMultiModuleIntegrationTest extends AbstractIdeIntegrationTest {
             }
         """
 
+        expectTaskDeprecations("idea", "ideaModule", "ideaProject", "ideaWorkspace")
         executer.withTasks("idea").run()
         assert getFile(project: 'shared/api', "shared-api.iml").exists()
         assert getFile(project: 'contrib', "cool-contrib.iml").exists()
 
         //when
+        expectTaskDeprecations("cleanIdea", "cleanIdeaModule", "cleanIdeaProject")
         executer.withTasks("cleanIdea").run()
 
         //then
@@ -541,6 +555,7 @@ class IdeaMultiModuleIntegrationTest extends AbstractIdeIntegrationTest {
         """
 
         //when
+        expectTaskDeprecations("idea", "ideaModule")
         executer.withTasks("idea").run()
 
         //then
@@ -565,7 +580,10 @@ class IdeaMultiModuleIntegrationTest extends AbstractIdeIntegrationTest {
         """
 
         //when
-        2.times { executer.withTasks("ideaProject").run() }
+        2.times {
+            expectTaskDeprecations("ideaProject")
+            executer.withTasks("ideaProject").run()
+        }
 
         //then
         String content = getFile(project: '.', 'master.ipr').text
@@ -606,6 +624,7 @@ class IdeaMultiModuleIntegrationTest extends AbstractIdeIntegrationTest {
         """
 
         //when
+        expectTaskDeprecations("ideaModule")
         executer.withTasks("ideaModule").run()
 
         //then

@@ -152,6 +152,30 @@ repositories {
 =====
 ====
 
+[[ide_task_deprecation]]
+==== Deprecation of file generation tasks of IDE plugins
+
+The <<idea_plugin.adoc#idea_plugin,`idea`>> and <<eclipse_plugin.adoc#eclipse_plugin,`eclipse`>> plugins contribute tasks for generating IDE specific files on disk.
+These tasks were originally the primary way to set up a project for an IDE.
+However, all modern IDEs now have built-in Gradle integration (IntelliJ IDEA's Gradle import, Eclipse Buildship, etc.) and can import Gradle projects directly without needing these generated files.
+
+We are deprecating these file generation tasks:
+
+* `idea` / `ideaProject` / `ideaModule` / `ideaWorkspace` (generate `.ipr`, `.iml`, `.iws` files)
+* `eclipse` / `eclipseProject` / `eclipseClasspath` / `eclipseJdt` / `eclipseWtpComponent` / `eclipseWtpFacet` (generate `.project`, `.classpath`, `.settings/` files)
+* `openIdea` (generates files and opens IDEA)
+* associated `clean*` tasks
+
+In addition to the tasks, certain model properties that only affect the generated files are also deprecated.
+These include `idea.module.iml { ... }`, `idea.project.ipr { ... }`, `idea.workspace { ... }`, `eclipse.wtp { ... }`, and the `file { ... }` merging hooks on `EclipseJdt`.
+
+The model properties that affect how IDEs understand your project (source directories, language levels, dependency scopes, etc.) are _not_ deprecated.
+When you apply the plugins and configure the `idea { ... }` or `eclipse { ... }` blocks in your build scripts, you can customize how your IDE understands your project.
+These customizations are picked up automatically by the Gradle integration built into IDEs.
+This functionality will continue to work unchanged.
+
+NOTE: Not all the functionality of the plugins is being deprecated, *only* the tasks and some model properties strictly related to them.
+
 [[dependency_project_notation]]
 ==== Deprecation of using Project objects as dependency notation
 

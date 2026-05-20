@@ -19,6 +19,10 @@ package org.gradle.plugins.ide
 
 abstract class AbstractIdeDeduplicationIntegrationTest extends AbstractIdeProjectIntegrationTest {
 
+    protected String[] getDeprecatedTaskNamesWhenRootHasNoIdePlugin() {
+        return deprecatedTaskNames
+    }
+
     def "unique project names are not deduplicated"() {
         given:
         project("root") {
@@ -31,6 +35,7 @@ abstract class AbstractIdeDeduplicationIntegrationTest extends AbstractIdeProjec
         }
 
         when:
+        expectTaskDeprecations(deprecatedTaskNames)
         run ideName
 
         then:
@@ -53,6 +58,7 @@ abstract class AbstractIdeDeduplicationIntegrationTest extends AbstractIdeProjec
         }
 
         when:
+        expectTaskDeprecations(deprecatedTaskNames)
         run ideName
 
         then:
@@ -72,6 +78,7 @@ abstract class AbstractIdeDeduplicationIntegrationTest extends AbstractIdeProjec
         }
 
         when:
+        expectTaskDeprecations(deprecatedTaskNames)
         run ideName
 
         then:
@@ -95,6 +102,7 @@ abstract class AbstractIdeDeduplicationIntegrationTest extends AbstractIdeProjec
         }
 
         when:
+        expectTaskDeprecations(deprecatedTaskNames)
         run ideName
 
         then:
@@ -118,6 +126,7 @@ abstract class AbstractIdeDeduplicationIntegrationTest extends AbstractIdeProjec
         }
 
         when:
+        expectTaskDeprecations(deprecatedTaskNames)
         run ideName
 
         then:
@@ -135,6 +144,7 @@ abstract class AbstractIdeDeduplicationIntegrationTest extends AbstractIdeProjec
         }
 
         when:
+        expectTaskDeprecations(deprecatedTaskNames)
         run ideName
 
         then:
@@ -158,6 +168,7 @@ abstract class AbstractIdeDeduplicationIntegrationTest extends AbstractIdeProjec
         }
 
         when:
+        expectTaskDeprecations(deprecatedTaskNames)
         run ideName
 
         then:
@@ -184,6 +195,7 @@ abstract class AbstractIdeDeduplicationIntegrationTest extends AbstractIdeProjec
         }
 
         when:
+        expectTaskDeprecations(deprecatedTaskNames)
         run ideName
 
         then:
@@ -206,6 +218,7 @@ abstract class AbstractIdeDeduplicationIntegrationTest extends AbstractIdeProjec
         }
 
         when:
+        expectTaskDeprecations(deprecatedTaskNamesWhenRootHasNoIdePlugin)
         run ideName
 
         then:
@@ -236,6 +249,7 @@ abstract class AbstractIdeDeduplicationIntegrationTest extends AbstractIdeProjec
         }
 
         when:
+        expectTaskDeprecations(deprecatedTaskNames)
         run ideName
 
         then:
@@ -265,6 +279,7 @@ abstract class AbstractIdeDeduplicationIntegrationTest extends AbstractIdeProjec
         }
 
         when:
+        expectTaskDeprecations(deprecatedTaskNames)
         run ideName
 
         then:
@@ -288,6 +303,7 @@ abstract class AbstractIdeDeduplicationIntegrationTest extends AbstractIdeProjec
         }
 
         when:
+        expectTaskDeprecations(deprecatedTaskNames)
         run ideName
 
         then:

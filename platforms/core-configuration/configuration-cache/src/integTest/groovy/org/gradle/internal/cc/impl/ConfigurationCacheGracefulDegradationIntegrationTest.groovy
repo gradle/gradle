@@ -17,10 +17,11 @@
 package org.gradle.internal.cc.impl
 
 import org.gradle.api.internal.ConfigurationCacheDegradationController
+import org.gradle.integtests.fixtures.StableConfigurationCacheDeprecations
 
 import javax.inject.Inject
 
-class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
+class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfigurationCacheIntegrationTest implements StableConfigurationCacheDeprecations {
     public static final String CONFIGURATION_CACHE_INCOMPATIBLE_TASKS_OR_FEATURES_FOOTER = "Some tasks or features in this build are not compatible with the configuration cache."
     public static final String CONFIGURATION_CACHE_DISABLED_REASON = "Configuration cache disabled because incompatible"
     public static final String CONFIGURATION_CACHE_DISABLED_READ_ONLY_REASON = "Configuration cache disabled as cache is in read-only mode."
@@ -511,7 +512,7 @@ class ConfigurationCacheGracefulDegradationIntegrationTest extends AbstractConfi
                 }
             }
         """
-        executer.expectDocumentedDeprecationWarning("Invocation of Task.project at execution time has been deprecated. This will fail with an error in Gradle 10. This API is incompatible with the configuration cache, which will become the only mode supported by Gradle in a future release. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#task_project")
+        expectTaskGetProjectDeprecations()
 
         when:
         run ":foo"
