@@ -29,23 +29,23 @@ class IsolatedProjectsToolingApiInvocationValidationIntegrationTest extends Abst
         """
 
         when:
-        withIsolatedProjects()
+        withIsolatedProjectsDiagnostics()
         fetchModelFails()
 
         then:
         fixture.assertModelStoredAndDiscarded {
-            projectConfigured(":buildSrc")
+            projectsConfigured(":buildSrc", ":a", ":b")
             modelsCreated(":")
             problem("Build file 'build.gradle': line 3: Project ':' cannot access 'Project.plugins' functionality on subprojects via 'allprojects'", 2)
         }
 
         when:
-        withIsolatedProjects()
+        withIsolatedProjectsDiagnostics()
         fetchModelFails()
 
         then:
         fixture.assertModelStoredAndDiscarded {
-            projectConfigured(":buildSrc")
+            projectsConfigured(":buildSrc", ":a", ":b")
             modelsCreated(":")
             problem("Build file 'build.gradle': line 3: Project ':' cannot access 'Project.plugins' functionality on subprojects via 'allprojects'", 2)
         }
@@ -62,23 +62,23 @@ class IsolatedProjectsToolingApiInvocationValidationIntegrationTest extends Abst
         """
 
         when:
-        withIsolatedProjects()
+        withIsolatedProjectsDiagnostics()
         fetchModelFails()
 
         then:
         fixture.assertModelStoredAndDiscarded {
-            projectConfigured(":buildSrc")
+            projectsConfigured(":buildSrc", ":a", ":b")
             modelsCreated(":")
             problem("Plugin class 'my.MyPlugin': Project ':' cannot access 'Project.extensions' functionality on subprojects", 2)
         }
 
         when:
-        withIsolatedProjects()
+        withIsolatedProjectsDiagnostics()
         fetchModelFails()
 
         then:
         fixture.assertModelStoredAndDiscarded {
-            projectConfigured(":buildSrc")
+            projectsConfigured(":buildSrc", ":a", ":b")
             modelsCreated(":")
             problem("Plugin class 'my.MyPlugin': Project ':' cannot access 'Project.extensions' functionality on subprojects", 2)
         }
