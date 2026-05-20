@@ -222,7 +222,7 @@ public class TransformedClassPath implements ClassPath {
             }
         }
 
-        // Receiver wins on the class-load-time transform, matching the receiver-wins rule for the transforms map.
+        // Receiver's class-load-time transform if it has one, otherwise the argument's.
         ClassLoadTimeTransform mergedClassLoadTimeTransform = classLoadTimeTransform != null ? classLoadTimeTransform : classPath.classLoadTimeTransform;
 
         // In the end, at most one instance of a transformed entry should be recorded for any given file.
