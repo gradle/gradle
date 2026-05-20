@@ -108,6 +108,9 @@ class ConfigurationCacheProblems(
     val isWarningMode: Boolean = startParameter.isWarningMode
 
     private
+    val isIsolatedProjectsDiagnostics: Boolean = startParameter.isIsolatedProjectsDiagnostics
+
+    private
     var seenSerializationErrorOnStore = false
 
     private
@@ -252,7 +255,16 @@ class ConfigurationCacheProblems(
     }
 
     override fun onIsolatedProjectsProblem(problem: PropertyProblem) {
-        onProblem(problem, ProblemSeverity.Deferred)
+        val severity = when {
+            // TODO:isolated untie IP behavior from the CC flag
+            // Warning mode explicitly asks the build to keep going and surface all problems at the end.
+            isWarningMode -> ProblemSeverity.Deferred
+            // Diagnostics mode runs project configuration sequentially to collect every violation deterministically.
+            isIsolatedProjectsDiagnostics -> ProblemSeverity.Deferred
+            // Default (optimistic-parallel) mode: fail fast so user code does not run against unreliable state.
+            else -> ProblemSeverity.Interrupting
+        }
+        onProblem(problem, severity)
     }
 
     override fun onProblem(problem: PropertyProblem) {
