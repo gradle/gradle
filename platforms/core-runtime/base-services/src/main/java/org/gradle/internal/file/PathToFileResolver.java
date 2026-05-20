@@ -16,11 +16,13 @@
 
 package org.gradle.internal.file;
 
+import com.google.errorprone.annotations.ThreadSafe;
 import java.io.File;
 
 /**
  * Resolves some path object to a `File`. May or may not be able to resolve relative paths.
  */
+@ThreadSafe
 public interface PathToFileResolver {
     /**
      * Resolves the given path to a file.

@@ -15,6 +15,7 @@
  */
 package org.gradle.initialization.layout;
 
+import com.google.errorprone.annotations.ThreadSafe;
 import org.gradle.initialization.SettingsLocation;
 import org.gradle.internal.initialization.BuildLogicFiles;
 import org.gradle.internal.scripts.ScriptFileResolver;
@@ -26,6 +27,7 @@ import org.jspecify.annotations.Nullable;
 import java.io.File;
 
 @ServiceScope(Scope.Build.class)
+@ThreadSafe
 public class BuildLayout extends SettingsLocation {
     private final ScriptFileResolver scriptFileResolver;
 

@@ -84,6 +84,7 @@ dependencies {
     implementation(libs.kryo)
     implementation(libs.slf4jApi)
 
+    compileOnly(libs.errorProneAnnotations)
     compileOnly(libs.jspecify)
 
     runtimeOnly(projects.beanSerializationServices)

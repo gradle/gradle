@@ -16,6 +16,7 @@
 
 package org.gradle.internal.cc.impl
 
+import com.google.errorprone.annotations.ThreadSafe
 import org.gradle.cache.internal.streams.BlockAddress
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.build.BuildStateRegistry
@@ -41,6 +42,7 @@ import java.io.OutputStream
 
 @ServiceScope(Scope.Build::class)
 internal
+@ThreadSafe
 interface ConfigurationCacheBuildTreeIO : ConfigurationCacheOperationIO {
 
     fun writeCacheEntryDetailsTo(

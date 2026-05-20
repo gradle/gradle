@@ -16,6 +16,7 @@
 
 package org.gradle.internal.build.event;
 
+import com.google.errorprone.annotations.ThreadSafe;
 import org.gradle.api.provider.Provider;
 import org.gradle.build.event.BuildEventsListenerRegistry;
 import org.gradle.internal.code.UserCodeSource;
@@ -28,6 +29,7 @@ import org.jspecify.annotations.Nullable;
 import java.util.List;
 
 @ServiceScope(Scope.BuildSession.class)
+@ThreadSafe
 public interface BuildEventListenerRegistryInternal extends BuildEventsListenerRegistry {
     @NullMarked
     final class Subscription {

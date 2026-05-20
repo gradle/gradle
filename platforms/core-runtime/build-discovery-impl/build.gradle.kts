@@ -24,6 +24,8 @@ dependencies {
     api(projects.buildDiscovery)
     api(projects.stdlibJavaExtensions)
 
+    compileOnly(libs.errorProneAnnotations)
+
     implementation(projects.baseServices)
 
     api(libs.inject)

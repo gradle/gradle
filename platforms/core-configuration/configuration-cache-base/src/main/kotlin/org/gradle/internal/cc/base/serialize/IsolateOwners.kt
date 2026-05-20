@@ -16,6 +16,7 @@
 
 package org.gradle.internal.cc.base.serialize
 
+import com.google.errorprone.annotations.ThreadSafe
 import org.gradle.api.Task
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.project.ProjectInternal
@@ -23,6 +24,7 @@ import org.gradle.api.invocation.Gradle
 import org.gradle.internal.serialize.graph.IsolateOwner
 
 
+@ThreadSafe
 interface HostServiceProvider {
     fun <T : Any> service(serviceType: Class<T>): T
 }

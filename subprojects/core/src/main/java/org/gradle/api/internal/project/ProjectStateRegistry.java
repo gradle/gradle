@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.project;
 
+import com.google.errorprone.annotations.ThreadSafe;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
@@ -27,8 +28,6 @@ import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.util.Path;
 import org.jspecify.annotations.Nullable;
-
-import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * A registry of all projects present in a build tree.

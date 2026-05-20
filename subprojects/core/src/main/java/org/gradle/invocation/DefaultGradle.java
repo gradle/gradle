@@ -18,6 +18,7 @@ package org.gradle.invocation;
 
 import com.google.common.collect.ImmutableList;
 import groovy.lang.Closure;
+import kotlin.Unit;
 import org.gradle.BuildListener;
 import org.gradle.BuildResult;
 import org.gradle.StartParameter;
@@ -60,6 +61,7 @@ import org.gradle.internal.MutableActionSet;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.PublicBuildPath;
 import org.gradle.internal.composite.IncludedBuildInternal;
+import org.gradle.internal.configuration.problems.IsolatedProjectsProblemsReporter;
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
@@ -67,6 +69,7 @@ import org.gradle.internal.installation.CurrentGradleInstallation;
 import org.gradle.internal.installation.GradleInstallation;
 import org.gradle.internal.resource.TextUriResourceLoader;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
 import org.gradle.util.GradleVersion;
 import org.gradle.util.Path;
@@ -84,6 +87,7 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
     private final BuildState buildState;
     private final StartParameter startParameter;
     private final ServiceRegistry buildScopeServices;
+    private final ServiceRegistry checkedServices;
     private final CrossProjectConfigurator crossProjectConfigurator;
     private final IsolatedProjectEvaluationListenerProvider isolatedProjectEvaluationListenerProvider;
     private final GradleLifecycleActionExecutor gradleLifecycleActionExecutor;
@@ -105,6 +109,7 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
         this.buildState = buildState;
         this.startParameter = startParameter;
         this.buildScopeServices = buildScopeServices;
+        this.checkedServices = createCheckedServices(buildScopeServices);
         this.crossProjectConfigurator = buildScopeServices.get(CrossProjectConfigurator.class);
         this.isolatedProjectEvaluationListenerProvider = buildScopeServices.get(IsolatedProjectEvaluationListenerProvider.class);
         this.gradleLifecycleActionExecutor = buildScopeServices.get(GradleLifecycleActionExecutor.class);
@@ -544,7 +549,31 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
 
     @Override
     public ServiceRegistry getServices() {
-        return buildScopeServices;
+        return checkedServices;
+    }
+
+    private static ServiceRegistry createCheckedServices(ServiceRegistry buildScopeServices) {
+        // Wrap the build-scope registry in a child registry that reports unsafe service
+        // accesses to the IP problems reporter. Lookups via this child registry fire the
+        // listener; lookups made directly against buildScopeServices (e.g. by Gradle's
+        // internal services via direct injection) do not.
+        IsolatedProjectsProblemsReporter ipProblems = buildScopeServices.get(IsolatedProjectsProblemsReporter.class);
+        return ServiceRegistryBuilder.builder()
+            .displayName("thread-safety-checked")
+            .parent(buildScopeServices)
+            .unsafeServiceAccessListener(serviceType -> ipProblems.report(factory ->
+                factory.problem(
+                    null,
+                    builder -> {
+                        builder
+                            .text("Service of type ")
+                            .reference(serviceType)
+                            .text(" was requested through GradleInternal.getServices() but is not annotated with ErrorProne @ThreadSafe.");
+                        return Unit.INSTANCE;
+                    }
+                ).build()
+            ))
+            .build();
     }
 
     @Override

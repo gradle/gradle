@@ -15,6 +15,7 @@
  */
 package org.gradle.internal.reflect;
 
+import com.google.errorprone.annotations.ThreadSafe;
 import org.gradle.api.reflect.ObjectInstantiationException;
 import org.gradle.internal.scan.UsedByScanPlugin;
 import org.jspecify.annotations.Nullable;
@@ -37,6 +38,7 @@ import org.jspecify.annotations.Nullable;
  * <p>A service of this type is available in all scopes. However, the recommended way to receive an {@code Instantiator} is via a {@link org.gradle.internal.instantiation.InstantiatorFactory}.</p>
  */
 @UsedByScanPlugin("test-retry")
+@ThreadSafe
 public interface Instantiator {
 
     /**

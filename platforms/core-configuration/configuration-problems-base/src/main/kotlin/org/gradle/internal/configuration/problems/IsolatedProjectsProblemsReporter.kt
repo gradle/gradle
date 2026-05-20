@@ -16,6 +16,7 @@
 
 package org.gradle.internal.configuration.problems
 
+import com.google.errorprone.annotations.ThreadSafe
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
 
@@ -28,6 +29,7 @@ import org.gradle.internal.service.scopes.ServiceScope
  * The service is registered in all build modes; outside Isolated Projects the wired implementation is a
  * no-op so that callers can invoke [report] and [runIgnoringProblemsOnCurrentThread] unconditionally.
  */
+@ThreadSafe
 @ServiceScope(Scope.BuildTree::class)
 interface IsolatedProjectsProblemsReporter {
     /**

@@ -22,6 +22,7 @@ dependencies {
     api(projects.native)
     api(projects.problemsApi)
 
+    api(libs.errorProneAnnotations)
     api(libs.jansi)
     api(libs.jspecify)
     api(libs.jsr305)
@@ -34,7 +35,6 @@ dependencies {
     implementation(projects.wrapperShared)
 
     implementation(libs.commonsLang)
-    implementation(libs.errorProneAnnotations)
     implementation(libs.guava)
     implementation(libs.julToSlf4j)
 

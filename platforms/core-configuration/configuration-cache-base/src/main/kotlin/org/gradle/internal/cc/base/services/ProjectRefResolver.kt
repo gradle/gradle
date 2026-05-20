@@ -16,6 +16,7 @@
 
 package org.gradle.internal.cc.base.services
 
+import com.google.errorprone.annotations.ThreadSafe
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.service.scopes.Scope
@@ -38,6 +39,7 @@ import kotlin.jvm.Throws
  * This class is thread-safe.
  */
 @ServiceScope(Scope.Build::class)
+@ThreadSafe
 class ProjectRefResolver @Inject constructor(
     private val buildState: BuildState
 ) {

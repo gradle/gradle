@@ -16,6 +16,7 @@
 
 package org.gradle.internal.buildoption;
 
+import com.google.errorprone.annotations.ThreadSafe;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
@@ -23,6 +24,7 @@ import org.gradle.internal.service.scopes.ServiceScope;
  * A service that determines whether a feature flag is enabled or not.
  */
 @ServiceScope(Scope.BuildTree.class)
+@ThreadSafe
 public interface FeatureFlags {
     boolean isEnabled(FeatureFlag flag);
 

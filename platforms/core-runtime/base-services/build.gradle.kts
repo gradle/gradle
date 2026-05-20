@@ -23,6 +23,7 @@ dependencies {
     api(libs.jspecify)
     api(libs.guava)
 
+    compileOnly(libs.errorProneAnnotations)
     compileOnly(libs.jetbrainsAnnotations)
 
     implementation(projects.time)

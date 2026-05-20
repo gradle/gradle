@@ -14,6 +14,7 @@ dependencies {
     implementation(projects.concurrent)
     implementation(projects.stdlibJavaExtensions)
 
+    implementation(libs.errorProneAnnotations)
     implementation(libs.inject)
 }
 

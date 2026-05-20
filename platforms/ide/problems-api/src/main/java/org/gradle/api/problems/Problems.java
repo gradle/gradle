@@ -16,6 +16,7 @@
 
 package org.gradle.api.problems;
 
+import com.google.errorprone.annotations.ThreadSafe;
 import org.gradle.api.Incubating;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
@@ -33,6 +34,7 @@ import org.gradle.internal.service.scopes.ServiceScope;
  */
 @Incubating
 @ServiceScope(Scope.BuildTree.class)
+@ThreadSafe
 public interface Problems {
 
     /**

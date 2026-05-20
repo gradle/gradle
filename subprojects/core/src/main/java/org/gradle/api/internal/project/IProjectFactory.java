@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.project;
 
+import com.google.errorprone.annotations.ThreadSafe;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.internal.project.ImmutableProjectDescriptor;
@@ -27,6 +28,7 @@ import org.jspecify.annotations.Nullable;
  * Creates a {@link ProjectInternal} implementation.
  */
 @ServiceScope(Scope.Build.class)
+@ThreadSafe
 public interface IProjectFactory {
     ProjectInternal createProject(
         GradleInternal gradle,

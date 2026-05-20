@@ -15,6 +15,7 @@
  */
 package org.gradle.execution;
 
+import com.google.errorprone.annotations.ThreadSafe;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.execution.plan.FinalizedExecutionPlan;
 import org.gradle.internal.build.ExecutionResult;
@@ -25,6 +26,7 @@ import org.gradle.internal.service.scopes.ServiceScope;
  * Executes the work scheduled for a build. Prior to execution, the work will be prepared by a {@link org.gradle.initialization.TaskExecutionPreparer}.
  */
 @ServiceScope(Scope.Build.class)
+@ThreadSafe
 public interface BuildWorkExecutor {
     /**
      * Executes the given work and returns the failures.

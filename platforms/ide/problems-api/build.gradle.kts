@@ -40,6 +40,8 @@ dependencies {
     api(libs.jspecify)
     api(projects.serialization)
 
+    compileOnly(libs.errorProneAnnotations)
+
     implementation(libs.jsr305)
 
     testImplementation(projects.logging)

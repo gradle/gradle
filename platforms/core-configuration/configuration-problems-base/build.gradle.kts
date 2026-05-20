@@ -50,6 +50,7 @@ dependencies {
     api(projects.problemsApi)
     api(projects.stdlibJavaExtensions)
 
+    api(libs.errorProneAnnotations)
     api(libs.kotlinStdlib)
 
     implementation(libs.guava)

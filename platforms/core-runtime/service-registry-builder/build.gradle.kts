@@ -9,6 +9,8 @@ dependencies {
     api(projects.serviceProvider)
     api(projects.stdlibJavaExtensions)
 
+    api(libs.jspecify)
+
     implementation(projects.serviceRegistryImpl)
 }
 

@@ -79,6 +79,7 @@ dependencies {
 
     api(libs.asm)
     api(libs.asmTree)
+    api(libs.errorProneAnnotations)
     api(libs.groovy)
     api(libs.guava)
     api(libs.inject)
@@ -104,7 +105,6 @@ dependencies {
     implementation(libs.commonsCompress)
     implementation(libs.commonsIo)
     implementation(libs.commonsLang)
-    implementation(libs.errorProneAnnotations)
     implementation(libs.fastutil)
     implementation(libs.groovyJson)
     implementation(libs.groovyXml)

@@ -16,6 +16,7 @@
 
 package org.gradle.internal.model;
 
+import com.google.errorprone.annotations.ThreadSafe;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.BuildOperationsParameters;
@@ -26,6 +27,7 @@ import org.gradle.internal.work.WaitBuildOperationFiringSynchronizer;
 import org.gradle.internal.work.WorkerLeaseService;
 
 @ServiceScope(Scope.BuildSession.class)
+@ThreadSafe
 public class StateTransitionControllerFactory {
 
     private final WorkerLeaseService workerLeaseService;

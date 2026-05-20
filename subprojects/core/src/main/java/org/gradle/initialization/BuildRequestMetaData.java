@@ -15,6 +15,7 @@
  */
 package org.gradle.initialization;
 
+import com.google.errorprone.annotations.ThreadSafe;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
@@ -22,6 +23,7 @@ import org.gradle.internal.service.scopes.ServiceScope;
  * A bunch of information about the request that launched the current build.
  */
 @ServiceScope(Scope.BuildSession.class)
+@ThreadSafe
 public interface BuildRequestMetaData {
 
     /**

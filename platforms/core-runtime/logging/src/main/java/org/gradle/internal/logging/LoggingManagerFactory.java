@@ -16,9 +16,11 @@
 
 package org.gradle.internal.logging;
 
+import com.google.errorprone.annotations.ThreadSafe;
 import org.jspecify.annotations.NullMarked;
 
 @NullMarked
+@ThreadSafe
 public interface LoggingManagerFactory {
 
     LoggingManagerInternal getRoot();

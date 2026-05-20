@@ -17,6 +17,7 @@
 package org.gradle.internal.cc.impl
 
 import com.google.common.collect.Sets.newConcurrentHashSet
+import com.google.errorprone.annotations.ThreadSafe
 import org.gradle.api.internal.artifacts.configurations.ProjectComponentObservationListener
 import org.gradle.api.internal.project.ProjectState
 import org.gradle.api.internal.project.ProjectStateRegistry
@@ -30,6 +31,7 @@ import org.gradle.util.Path
 
 @ParallelListener
 @ServiceScope(Scope.Build::class)
+@ThreadSafe
 class RelevantProjectsRegistry(
     private val build: BuildState,
     private val projectStateRegistry: ProjectStateRegistry

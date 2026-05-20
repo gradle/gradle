@@ -16,6 +16,7 @@
 
 package org.gradle.internal.event;
 
+import com.google.errorprone.annotations.ThreadSafe;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
@@ -29,6 +30,7 @@ import org.gradle.internal.service.scopes.ServiceScope;
  * of a given type receive events in the same order. Listeners can be added and removed at any time.
  */
 @ServiceScope(Scope.Global.class)
+@ThreadSafe
 public interface ListenerManager {
     /**
      * Adds a listener.  A single object can implement multiple interfaces, and all interfaces are registered by a

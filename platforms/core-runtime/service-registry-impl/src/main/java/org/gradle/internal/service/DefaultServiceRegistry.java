@@ -15,6 +15,7 @@
  */
 package org.gradle.internal.service;
 
+import com.google.errorprone.annotations.ThreadSafe;
 import org.gradle.internal.collect.PersistentArray;
 import org.gradle.internal.collect.PersistentList;
 import org.gradle.internal.collect.PersistentMap;
@@ -30,6 +31,7 @@ import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.lang.reflect.WildcardType;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -72,6 +74,30 @@ public class DefaultServiceRegistry extends AbstractServiceRegistry implements C
     private final static Service[] NO_DEPENDENTS = new Service[0];
     private final static Object[] NO_PARAMS = new Object[0];
 
+    private static final ClassValue<Boolean> CLASS_IS_THREAD_SAFE = new ClassValue<Boolean>() {
+        @Override
+        protected Boolean computeValue(Class<?> type) {
+            return type.isAnnotationPresent(ThreadSafe.class) || hasThreadSafeSuperInterface(type);
+        }
+
+        private boolean hasThreadSafeSuperInterface(Class<?> type) {
+            Set<Class<?>> seen = new HashSet<>();
+            Queue<Class<?>> queue = new ArrayDeque<>();
+            Collections.addAll(queue, type.getInterfaces());
+            while (!queue.isEmpty()) {
+                Class<?> iface = queue.poll();
+                if (!seen.add(iface)) {
+                    continue;
+                }
+                if (get(iface)) {
+                    return true;
+                }
+                Collections.addAll(queue, iface.getInterfaces());
+            }
+            return false;
+        }
+    };
+
     // Simulation of a sealed class with public constructors in Java 8
     private static void assertAllowedImplementation(Class<? extends DefaultServiceRegistry> impl) {
         if (impl != ScopedServiceRegistry.class && impl != DefaultServiceRegistry.class) {
@@ -91,22 +117,29 @@ public class DefaultServiceRegistry extends AbstractServiceRegistry implements C
 
     private final AtomicReference<State> state = new AtomicReference<State>(State.INIT);
 
+    private final @Nullable UnsafeServiceAccessListener unsafeServiceAccessListener;
+
     public DefaultServiceRegistry() {
-        this(null, NO_PARENTS);
+        this(null, null, NO_PARENTS);
     }
 
     public DefaultServiceRegistry(String displayName) {
-        this(displayName, NO_PARENTS);
+        this(displayName, null, NO_PARENTS);
     }
 
     public DefaultServiceRegistry(ServiceRegistry... parents) {
-        this(null, parents);
+        this(null, null, parents);
     }
 
     public DefaultServiceRegistry(@Nullable String displayName, ServiceRegistry... parents) {
+        this(displayName, null, parents);
+    }
+
+    public DefaultServiceRegistry(@Nullable String displayName, @Nullable UnsafeServiceAccessListener unsafeServiceAccessListener, ServiceRegistry... parents) {
         assertAllowedImplementation(getClass());
 
         this.displayName = displayName;
+        this.unsafeServiceAccessListener = unsafeServiceAccessListener;
         this.ownServices = new OwnServices();
         if (parents.length == 0) {
             this.parentServices = null;
@@ -335,12 +368,14 @@ public class DefaultServiceRegistry extends AbstractServiceRegistry implements C
 
     @Override
     public Object get(Type serviceType, Class<? extends Annotation> annotatedWith) throws UnknownServiceException, ServiceLookupException {
+        notifyIfUnsafe(serviceType);
         throw new UnknownServiceException(serviceType, String.format("No service of type %s annotated with @%s available in %s.", format(serviceType), annotatedWith.getSimpleName(), getDisplayName()));
     }
 
     @Override
     public @Nullable Object find(Type serviceType) throws ServiceLookupException {
         assertValidServiceType(unwrap(serviceType));
+        notifyIfUnsafe(serviceType);
         Service provider = getService(serviceType);
         return provider == null ? null : provider.get();
     }
@@ -354,6 +389,7 @@ public class DefaultServiceRegistry extends AbstractServiceRegistry implements C
     @Override
     public <T> List<T> getAll(Class<T> serviceType) throws ServiceLookupException {
         assertValidServiceType(serviceType);
+        notifyIfUnsafe(serviceType);
         List<T> services = new ArrayList<T>();
         serviceRequested();
         allServices.getAll(serviceType, null, new InstanceUnpackingVisitor<T>(serviceType, services));
@@ -1279,6 +1315,21 @@ public class DefaultServiceRegistry extends AbstractServiceRegistry implements C
         if (serviceClass == Object.class) {
             throw new ServiceValidationException("Locating services with type Object is not supported.");
         }
+    }
+
+    private void notifyIfUnsafe(Type serviceType) {
+        UnsafeServiceAccessListener listener = unsafeServiceAccessListener;
+        if (listener == null) {
+            return;
+        }
+        Class<?> raw = unwrap(serviceType);
+        if (raw == null || raw == ServiceRegistry.class) {
+            return;
+        }
+        if (CLASS_IS_THREAD_SAFE.get(raw)) {
+            return;
+        }
+        listener.onUnsafeAccess(raw);
     }
 
     private static String format(Type type) {

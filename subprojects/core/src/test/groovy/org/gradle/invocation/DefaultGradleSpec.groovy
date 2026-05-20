@@ -46,9 +46,12 @@ import org.gradle.internal.Describables
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.build.DefaultPublicBuildPath
 import org.gradle.internal.build.PublicBuildPath
+import org.gradle.internal.configuration.problems.IsolatedProjectsProblemsReporter
+import org.gradle.internal.configuration.problems.NoOpIsolatedProjectsProblemsReporter
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager
 import org.gradle.internal.event.DefaultListenerManager
 import org.gradle.internal.event.ListenerManager
+import org.gradle.internal.event.ScopedListenerManager
 import org.gradle.internal.installation.CurrentGradleInstallation
 import org.gradle.internal.installation.GradleInstallation
 import org.gradle.internal.instantiation.InstantiatorFactory
@@ -56,7 +59,7 @@ import org.gradle.internal.management.DependencyResolutionManagementInternal
 import org.gradle.internal.operations.BuildOperationRunner
 import org.gradle.internal.operations.TestBuildOperationRunner
 import org.gradle.internal.reflect.Instantiator
-import org.gradle.internal.service.ServiceRegistry
+import org.gradle.internal.service.ServiceRegistryBuilder
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.model.internal.registry.ModelRegistry
 import org.gradle.util.GradleVersion
@@ -80,32 +83,41 @@ class DefaultGradleSpec extends Specification {
     GradleInternal gradle
 
     def setup() {
-        def serviceRegistry = Stub(ServiceRegistry)
-        _ * serviceRegistry.get(ClassLoaderScopeRegistry) >> Mock(ClassLoaderScopeRegistry)
-        _ * serviceRegistry.get(FileResolver) >> Mock(FileResolver)
-        _ * serviceRegistry.get(ScriptHandler) >> Mock(ScriptHandler)
-        _ * serviceRegistry.get(TaskExecutionGraphInternal) >> Mock(TaskExecutionGraphInternal)
-        _ * serviceRegistry.get(TaskContainerInternal) >> Mock(TaskContainerInternal)
-        _ * serviceRegistry.get(ModelRegistry) >> Stub(ModelRegistry)
-        _ * serviceRegistry.get(InstantiatorFactory) >> Mock(InstantiatorFactory)
-        _ * serviceRegistry.get(ListenerManager) >> listenerManager
-        _ * serviceRegistry.get(CurrentGradleInstallation) >> currentGradleInstallation
-        _ * serviceRegistry.get(BuildOperationRunner) >> buildOperationRunner
-        _ * serviceRegistry.get(ListenerBuildOperationDecorator) >> listenerBuildOperationDecorator
-        _ * serviceRegistry.get(CrossProjectConfigurator) >> crossProjectConfigurator
-        _ * serviceRegistry.get(CrossProjectModelAccess) >> Stub(CrossProjectModelAccess)
-        _ * serviceRegistry.get(CrossBuildModelAccess) >> Stub(CrossBuildModelAccess)
-        _ * serviceRegistry.get(PublicBuildPath) >> new DefaultPublicBuildPath(Path.ROOT)
-        _ * serviceRegistry.get(DependencyResolutionManagementInternal) >> Stub(DependencyResolutionManagementInternal)
-        _ * serviceRegistry.get(GradleEnterprisePluginManager) >> new GradleEnterprisePluginManager()
-        _ * serviceRegistry.get(IsolatedProjectEvaluationListenerProvider) >> Stub(TestIsolatedProjectEvaluationListenerProvider)
-        _ * serviceRegistry.get(GradleLifecycleActionExecutor) >> gradleLifecycleActionExecutor
-        _ * serviceRegistry.get(Instantiator) >> Stub(Instantiator) {
+        def instantiatorStub = Stub(Instantiator) {
             newInstance(LifecycleAwareProject, _, _, _) >> { args ->
                 def params = args[1]
                 new LifecycleAwareProject(params[0], params[1], gradleLifecycleActionExecutor)
             }
         }
+        def serviceRegistry = ServiceRegistryBuilder.builder()
+            .displayName("default-gradle-spec")
+            .provider { reg ->
+                reg.add(ClassLoaderScopeRegistry, Mock(ClassLoaderScopeRegistry))
+                reg.add(FileResolver, Mock(FileResolver))
+                reg.add(ScriptHandler, Mock(ScriptHandler))
+                reg.add(TaskExecutionGraphInternal, Mock(TaskExecutionGraphInternal))
+                reg.add(TaskContainerInternal, Mock(TaskContainerInternal))
+                reg.add(ModelRegistry, Stub(ModelRegistry))
+                reg.add(InstantiatorFactory, Mock(InstantiatorFactory))
+                // Registered as ScopedListenerManager so the registry's validator
+                // accepts the DefaultListenerManager-based instance, which implements
+                // both ListenerManager and AnnotatedServiceLifecycleHandler.
+                reg.add(ScopedListenerManager, listenerManager as ScopedListenerManager)
+                reg.add(CurrentGradleInstallation, currentGradleInstallation)
+                reg.add(BuildOperationRunner, buildOperationRunner)
+                reg.add(ListenerBuildOperationDecorator, listenerBuildOperationDecorator)
+                reg.add(CrossProjectConfigurator, crossProjectConfigurator)
+                reg.add(CrossProjectModelAccess, Stub(CrossProjectModelAccess))
+                reg.add(CrossBuildModelAccess, Stub(CrossBuildModelAccess))
+                reg.add(PublicBuildPath, new DefaultPublicBuildPath(Path.ROOT))
+                reg.add(DependencyResolutionManagementInternal, Stub(DependencyResolutionManagementInternal))
+                reg.add(GradleEnterprisePluginManager, new GradleEnterprisePluginManager())
+                reg.add(IsolatedProjectsProblemsReporter, new NoOpIsolatedProjectsProblemsReporter())
+                reg.add(IsolatedProjectEvaluationListenerProvider, Stub(TestIsolatedProjectEvaluationListenerProvider))
+                reg.add(GradleLifecycleActionExecutor, gradleLifecycleActionExecutor)
+                reg.add(Instantiator, instantiatorStub)
+            }
+            .build()
 
         gradle = TestUtil.instantiatorFactory().decorateLenient().newInstance(DefaultGradle.class, build, parameter, serviceRegistry)
     }

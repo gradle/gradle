@@ -31,6 +31,8 @@ dependencies {
     api(libs.kotlinStdlib)
     api(libs.inject)
 
+    compileOnly(libs.errorProneAnnotations)
+
     implementation(projects.baseServices)
     implementation(projects.serviceLookup)
 }

@@ -16,12 +16,11 @@
 
 package org.gradle.internal.operations;
 
+import com.google.errorprone.annotations.ThreadSafe;
 import org.gradle.api.Action;
 import org.gradle.internal.Factory;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
-
-import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Executes build operations via a {@link BuildOperationQueue}.

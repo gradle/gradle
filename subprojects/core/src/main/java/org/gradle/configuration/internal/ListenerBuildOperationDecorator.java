@@ -16,6 +16,7 @@
 
 package org.gradle.configuration.internal;
 
+import com.google.errorprone.annotations.ThreadSafe;
 import groovy.lang.Closure;
 import org.gradle.BuildListener;
 import org.gradle.api.Action;
@@ -34,6 +35,7 @@ import org.gradle.internal.service.scopes.ServiceScope;
  * This allows tracking the listener back to the plugin or script that <i>registered</i> it.
  */
 @ServiceScope(Scope.CrossBuildSession.class)
+@ThreadSafe
 public interface ListenerBuildOperationDecorator {
 
     /**

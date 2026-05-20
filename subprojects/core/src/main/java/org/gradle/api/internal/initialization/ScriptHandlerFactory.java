@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.initialization;
 
+import com.google.errorprone.annotations.ThreadSafe;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileResolver;
@@ -24,6 +25,7 @@ import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 @ServiceScope(Scope.Build.class)
+@ThreadSafe
 public interface ScriptHandlerFactory {
 
     /**

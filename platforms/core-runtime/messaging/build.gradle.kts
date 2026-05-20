@@ -14,6 +14,8 @@ dependencies {
     api(libs.jspecify)
     api(libs.slf4jApi)
 
+    compileOnly(libs.errorProneAnnotations)
+
     implementation(projects.classloaders)
     implementation(projects.io)
     implementation(projects.buildOperations)

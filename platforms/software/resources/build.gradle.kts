@@ -14,6 +14,8 @@ dependencies {
 
     api(libs.jspecify)
 
+    compileOnly(libs.errorProneAnnotations)
+
     implementation(projects.files)
 
     implementation(libs.guava)

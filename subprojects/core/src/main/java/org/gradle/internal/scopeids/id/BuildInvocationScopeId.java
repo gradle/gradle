@@ -16,6 +16,7 @@
 
 package org.gradle.internal.scopeids.id;
 
+import com.google.errorprone.annotations.ThreadSafe;
 import org.gradle.internal.id.UniqueId;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
@@ -31,6 +32,7 @@ import org.gradle.internal.service.scopes.ServiceScope;
  * This ID is, by definition, not persistent.
  */
 @ServiceScope(Scope.BuildTree.class)
+@ThreadSafe
 public final class BuildInvocationScopeId extends ScopeId {
 
     public BuildInvocationScopeId(UniqueId id) {

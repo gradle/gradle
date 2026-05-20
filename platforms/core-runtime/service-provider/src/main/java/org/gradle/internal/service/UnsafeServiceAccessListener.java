@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2026 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,17 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.internal.resource;
 
-import com.google.errorprone.annotations.ThreadSafe;
-import org.gradle.internal.service.scopes.Scope;
-import org.gradle.internal.service.scopes.ServiceScope;
-import org.jspecify.annotations.Nullable;
+package org.gradle.internal.service;
 
-import java.io.File;
+/**
+ * Receives notifications from a service registry when a service is looked up by a type that
+ * is not annotated with {@link com.google.errorprone.annotations.ThreadSafe}.
+ */
+public interface UnsafeServiceAccessListener {
 
-@ServiceScope(Scope.Build.class)
-@ThreadSafe
-public interface TextFileResourceLoader {
-    TextResource loadFile(String description, @Nullable File sourceFile);
+    /**
+     * Invoked when {@code serviceType} is looked up through a registry configured with this
+     * listener and the type is not marked thread-safe.
+     */
+    void onUnsafeAccess(Class<?> serviceType);
 }

@@ -16,11 +16,13 @@
 
 package org.gradle.initialization;
 
+import com.google.errorprone.annotations.ThreadSafe;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 @ServiceScope(Scope.UserHome.class)
+@ThreadSafe
 public interface ClassLoaderScopeRegistry {
 
     ClassLoaderScope getCoreAndPluginsScope();

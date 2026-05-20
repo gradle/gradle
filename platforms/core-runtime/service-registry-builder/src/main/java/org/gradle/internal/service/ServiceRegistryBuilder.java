@@ -17,6 +17,7 @@
 package org.gradle.internal.service;
 
 import org.gradle.internal.service.scopes.Scope;
+import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -54,6 +55,7 @@ public class ServiceRegistryBuilder {
     private String displayName;
     private Class<? extends Scope> scope;
     private boolean strict;
+    private @Nullable UnsafeServiceAccessListener unsafeServiceAccessListener;
 
     private ServiceRegistryBuilder() {
     }
@@ -156,6 +158,18 @@ public class ServiceRegistryBuilder {
     }
 
     /**
+     * Installs a listener on the built registry that is notified whenever a service is looked up
+     * by a type that lacks {@link com.google.errorprone.annotations.ThreadSafe @ThreadSafe}.
+     *
+     * <p>The listener is advisory: the lookup still proceeds and returns the service. Pass
+     * {@code null} to leave the registry without a listener.
+     */
+    public ServiceRegistryBuilder unsafeServiceAccessListener(@Nullable UnsafeServiceAccessListener listener) {
+        this.unsafeServiceAccessListener = listener;
+        return this;
+    }
+
+    /**
      * Creates a service registry with the provided configuration.
      * <p>
      * The registry <b>should be {@link CloseableServiceRegistry#close() closed}</b> when it is no longer required
@@ -167,8 +181,8 @@ public class ServiceRegistryBuilder {
         ServiceRegistry[] parents = this.parents.toArray(new ServiceRegistry[0]);
 
         DefaultServiceRegistry registry = scope != null
-            ? new ScopedServiceRegistry(scope, strict, displayName, parents)
-            : new DefaultServiceRegistry(displayName, parents);
+            ? new ScopedServiceRegistry(scope, strict, displayName, unsafeServiceAccessListener, parents)
+            : new DefaultServiceRegistry(displayName, unsafeServiceAccessListener, parents);
 
         for (ServiceRegistrationProvider provider : providers) {
             registry.addProvider(provider);

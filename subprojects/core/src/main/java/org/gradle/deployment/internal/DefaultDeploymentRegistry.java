@@ -16,6 +16,7 @@
 
 package org.gradle.deployment.internal;
 
+import com.google.errorprone.annotations.ThreadSafe;
 import org.gradle.BuildResult;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -39,6 +40,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 @ServiceScope(Scope.BuildSession.class)
+@ThreadSafe
 public class DefaultDeploymentRegistry implements DeploymentRegistryInternal, PendingChangesListener, Stoppable {
     private static final Logger LOGGER = Logging.getLogger(DefaultDeploymentRegistry.class);
 
