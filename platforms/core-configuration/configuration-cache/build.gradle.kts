@@ -35,10 +35,8 @@ dependencies {
     api(projects.native)
     api(projects.pluginUse)
     api(projects.resources)
-    api(projects.serviceLookup)
     api(projects.serviceProvider)
     api(projects.snapshots)
-    api(projects.startParameter)
     api(projects.stdlibJavaExtensions)
 
     api(libs.groovy)
@@ -47,6 +45,8 @@ dependencies {
 
     // TODO - it might be good to allow projects to contribute state to save and restore, rather than have this project know about everything
     implementation(projects.buildCacheCore)
+    implementation(projects.serviceLookup)
+    implementation(projects.startParameter)
     implementation(projects.buildDiscovery)
     implementation(projects.buildDiscoveryImpl)
     implementation(projects.buildProcessServices)
