@@ -107,6 +107,8 @@ class WorkGraphPrunerTest {
         return mock<LocalTaskNode> {
             on { getTask() } doReturn task
             on { dependencySuccessors } doReturn dependencies.toMutableSet()
+            // Mutable set so the pruner's stale-predecessor cleanup (removeAll) doesn't NPE.
+            on { dependencyPredecessors } doReturn mutableSetOf()
         }
     }
 }

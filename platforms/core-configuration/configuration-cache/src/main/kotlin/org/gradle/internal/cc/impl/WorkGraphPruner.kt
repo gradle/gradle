@@ -72,6 +72,17 @@ object WorkGraphPruner {
             }
         }
         val retainedScheduled = initiallyScheduled.scheduledNodes.filter { it in retained }
+        // Clean up stale incoming edges: the loaded graph's retained nodes still
+        // reference DROPPED nodes via `dependencyPredecessors` (e.g. `:duplicate`
+        // retains a predecessor edge from a dropped `:a:compileJava` because
+        // `:a:compileJava` originally depended on `:duplicate`). Without this
+        // cleanup, `DefaultFinalizedExecutionPlan.maybeWaitingForNewNode` sees
+        // non-empty predecessors and doesn't add the retained entry to
+        // `waitingToStartNodes` — the executor then reports "no more work to
+        // start" and the build finishes without executing the retained tasks.
+        for (node in retained) {
+            node.dependencyPredecessors.removeAll { it !in retained }
+        }
         // Entry-node set must include any *original* entry node that BFS retained as a
         // transitive dep — without this, the loaded plan's ordinal-group bookkeeping
         // ends up with phantom groups (the dropped entry's group still has destroyer-
