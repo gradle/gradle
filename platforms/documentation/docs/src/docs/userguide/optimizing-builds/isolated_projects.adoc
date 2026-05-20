@@ -457,6 +457,34 @@ org.gradle.unsafe.isolated-projects=true
 If you have never enabled the feature in the build before, it's likely that the build is not compatible and contains Isolated Projects <<sec:constraint_violations,constraint violations>>.
 In that case the build will fail, and one or more violations will be shown in the error message.
 
+[[sec:ip_for_tooling_models]]
+=== Enabling Isolated Projects for IDE sync only
+
+If your build is not yet fully compatible with Isolated Projects, you can still benefit from the feature during IDE sync (<<sec:ip_perf_models,model building>>) while keeping regular task execution unaffected.
+
+This is achieved by setting `org.gradle.unsafe.isolated-projects` to `tooling-models`.
+With this value, Isolated Projects is only enabled for model building operations (including IDE sync), while task execution falls back to Configuration Cache mode.
+
+[source,properties]
+.gradle.properties
+----
+org.gradle.unsafe.isolated-projects=tooling-models
+----
+
+With this configuration:
+
+- **Building models** (including IDE sync) enables Isolated Projects, providing parallel project configuration and caching benefits.
+- **Running tasks** (e.g., `./gradlew build`) uses Configuration Cache mode only, without Isolated Projects constraints and benefits.
+
+It's often the case that IDE sync also runs tasks as part of the process.
+When tasks are requested by IDE sync (or in general for model building), Isolated Projects is enabled regardless of the `tooling-models` setting.
+
+The `org.gradle.unsafe.isolated-projects` property accepts the following values:
+
+- `true` -- Isolated Projects is enabled for all invocations (task execution and model building).
+- `tooling-models` -- Isolated Projects is enabled only for model building; task execution uses Configuration Cache mode.
+- `false` (default) -- Isolated Projects is disabled.
+
 [[sec:ignore_violations]]
 === Temporarily ignoring violations
 

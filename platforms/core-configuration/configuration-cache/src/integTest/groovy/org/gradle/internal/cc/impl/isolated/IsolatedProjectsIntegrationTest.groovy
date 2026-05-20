@@ -17,10 +17,15 @@
 package org.gradle.internal.cc.impl.isolated
 
 import org.gradle.api.tasks.TasksWithInputsAndOutputs
+import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheFixture
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.internal.ToBeImplemented
 
+import static org.gradle.initialization.StartParameterBuildOptions.IsolatedProjectsOption.PROPERTY_NAME
+
 class IsolatedProjectsIntegrationTest extends AbstractIsolatedProjectsIntegrationTest implements TasksWithInputsAndOutputs {
+
+    static final String TOOLING_MODELS_CLI = "-D${PROPERTY_NAME}=tooling-models"
     def "option also enables configuration cache"() {
         settingsFile << """
             println "configuring settings"
@@ -112,6 +117,48 @@ class IsolatedProjectsIntegrationTest extends AbstractIsolatedProjectsIntegratio
         then:
         result.assertTasksScheduled(":a:producer", ":b:producer", ":c:producer")
         fixture.assertStateLoaded()
+    }
+
+    def "task execution falls back to CC mode when set to tooling-models"() {
+        buildFile """
+            println "configuring root project"
+            task thing { }
+        """
+
+        when:
+        run(TOOLING_MODELS_CLI, "thing")
+
+        then:
+        outputDoesNotContain(ConfigurationCacheFixture.ISOLATED_PROJECTS_MESSAGE)
+        postBuildOutputContains("Configuration cache entry stored.")
+    }
+
+    def "cannot disable configuration cache when set to tooling-models"() {
+        buildFile """
+            println "configuring project"
+            task thing { }
+        """
+
+        when:
+        fails(TOOLING_MODELS_CLI, "--no-configuration-cache", "thing")
+
+        then:
+        failure.assertHasDescription("Configuration Cache cannot be disabled when Isolated Projects is enabled.")
+    }
+
+    def "task execution uses IP when set to true"() {
+        buildFile """
+            println "configuring root project"
+            task thing { }
+        """
+
+        when:
+        isolatedProjectsRun("thing")
+
+        then:
+        fixture.assertStateStored {
+            projectConfigured(":")
+        }
     }
 
     TestFile customType(TestFile dir) {

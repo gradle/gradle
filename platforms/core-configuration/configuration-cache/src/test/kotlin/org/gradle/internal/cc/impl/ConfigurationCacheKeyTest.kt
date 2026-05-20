@@ -17,6 +17,7 @@
 package org.gradle.internal.cc.impl
 
 import org.gradle.api.internal.StartParameterInternal
+import org.gradle.initialization.StartParameterBuildOptions.IsolatedProjectsOption
 import org.gradle.initialization.layout.BuildLayout
 import org.gradle.internal.buildoption.DefaultInternalOptions
 import org.gradle.internal.buildoption.Option
@@ -96,29 +97,29 @@ class ConfigurationCacheKeyTest {
     fun `cache key honours isolated projects option`() {
         assertThat(
             cacheKeyStringFromStartParameter {
-                isolatedProjects = Option.Value.value(true)
+                setIsolatedProjects(IsolatedProjectsOption.Value.TRUE)
             },
             equalTo(cacheKeyStringFromStartParameter {
-                isolatedProjects = Option.Value.value(true)
+                setIsolatedProjects(IsolatedProjectsOption.Value.TRUE)
             })
         )
         assertThat(
             cacheKeyStringFromStartParameter {
-                isolatedProjects = Option.Value.value(true)
+                setIsolatedProjects(IsolatedProjectsOption.Value.TRUE)
             },
             not(equalTo(cacheKeyStringFromStartParameter {
-                isolatedProjects = Option.Value.value(false)
+                setIsolatedProjects(IsolatedProjectsOption.Value.FALSE)
             }))
         )
         assertThat(
             cacheKeyStringFromStartParameter {
-                isolatedProjects = Option.Value.defaultValue(false)
+                isolatedProjects = Option.Value.defaultValue(IsolatedProjectsOption.Value.FALSE)
             },
             equalTo(cacheKeyStringFromStartParameter { })
         )
         assertThat(
             cacheKeyStringFromStartParameter {
-                isolatedProjects = Option.Value.value(false)
+                setIsolatedProjects(IsolatedProjectsOption.Value.FALSE)
             },
             equalTo(cacheKeyStringFromStartParameter { })
         )
