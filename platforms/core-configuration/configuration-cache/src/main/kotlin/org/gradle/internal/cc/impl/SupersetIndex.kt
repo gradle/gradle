@@ -45,13 +45,19 @@ object SupersetIndexLookup {
      *    hard-ordering edge — the loaded plan would either deadlock or silently execute a
      *    non-requested task. See [hasDanglingMustRunAfter].
      *  - [dependencyEdges]: `dependencySuccessors` edges between scheduled tasks (source identity
-     *    path → identity paths the source depends on). Needed to compute the retained closure for
-     *    the overlap check below.
-     *  - [outputPaths]: declared output file paths for each scheduled task (identity path →
-     *    absolute paths). Used to reject a candidate when pruning would drop a task whose declared
-     *    outputs overlap with a retained task's outputs — the loaded plan would skip filesystem
-     *    side effects (e.g. a `clean*` task) that the retained tasks rely on observing. See
-     *    [hasOverlappingDroppedOutputs].
+     *    path → identity paths the source depends on). Retained for forward-compat / diagnostics
+     *    and used by the retained-closure BFS in [hasDanglingMustRunAfter] when needed.
+     *  - [sideEffectingTaskIdentityPaths]: identity paths of scheduled tasks whose execution
+     *    has filesystem side effects beyond the snapshotted-output set — specifically, instances
+     *    of `org.gradle.api.tasks.Delete` (auto-registered `clean*` tasks, user-defined deletes,
+     *    etc.). Used to reject a candidate when subset pruning would drop one of these tasks:
+     *    skipping the deletion but loading the cached pre-deletion output state breaks the
+     *    filesystem invariant retained tasks rely on. See [hasSideEffectingDroppedTask].
+     *    A set rather than a per-task path map because querying `Delete.targetFiles` doesn't
+     *    re-invoke user `@OutputFile` / `@Nested` getters (the path computation is owned by
+     *    the `Delete` task itself), while resolving regular task outputs through the property
+     *    walker does — capturing only the identity-path *set* preserves the gate's correctness
+     *    on the `clean*` overlap cases without the per-task footprint walk.
      */
     data class IndexedVariant(
         val fullKey: String,
@@ -60,7 +66,7 @@ object SupersetIndexLookup {
         val taskGraphAccessed: Boolean = false,
         val mustRunAfterEdges: Map<String, List<String>> = emptyMap(),
         val dependencyEdges: Map<String, List<String>> = emptyMap(),
-        val outputPaths: Map<String, List<String>> = emptyMap()
+        val sideEffectingTaskIdentityPaths: Set<String> = emptySet()
     ) {
         /**
          * `true` when the CLI tokens and entry identity paths are positionally paired
@@ -139,68 +145,30 @@ object SupersetIndexLookup {
     }
 
     /**
-     * Returns true if pruning [stored] down to [requested] would leave a dropped
-     * task whose declared outputs overlap with a retained task's declared outputs.
+     * Returns true if any of the to-be-dropped tasks has side effects beyond its
+     * snapshotted outputs (specifically, instances of `org.gradle.api.tasks.Delete`).
+     * Skipping such a task while loading the cached pre-deletion output state leaves
+     * filesystem invariants the retained tasks rely on broken — e.g. a `clean*` task
+     * that would have cleared a directory before another task wrote into it.
      * <p>
-     * Dropped tasks may have produced filesystem side effects the retained tasks
-     * observe at execution time — e.g. a `clean*` task scheduled in the original
-     * build cleared a directory before another task wrote into it. Skipping the
-     * cleanup but loading the cached pre-cleanup output state changes the
-     * effective filesystem invariant for the retained tasks (`OverlappingOutputs`
-     * detection notices the leftover content and re-executes the retained task —
-     * a behavior the loaded plan can't reproduce).
+     * This is the practical heuristic that replaces a more precise pairwise output-path
+     * overlap check: capturing per-task output paths through the property walker would
+     * re-invoke user `@OutputFile` / `@Nested` getters at store time, which is
+     * observable as an extra invocation count in tests like
+     * `TaskParametersIntegrationTest."input and output properties are not evaluated too often"`.
+     * `Delete.targetFiles` doesn't go through user getters, so checking Delete-task
+     * membership in the dropped set is free of that side effect while still catching
+     * the cleanX overlap scenarios that motivated the gate.
      * <p>
-     * Retained set is computed by BFS from `(outputPaths.keys − droppedIdentityPaths)`
-     * traversing [dependencyEdges] forward (i.e. dependencies of retained tasks are
-     * also retained); anything not in the closure but listed in [outputPaths] is
-     * dropped. Returns `false` when [droppedIdentityPaths] is empty (exact match —
-     * no pruning) or there are no output paths recorded.
+     * Returns `false` when [droppedIdentityPaths] is empty (exact match — no pruning)
+     * or the candidate has no recorded side-effecting tasks.
      */
-    fun hasOverlappingDroppedOutputs(
-        outputPaths: Map<String, List<String>>,
-        dependencyEdges: Map<String, List<String>>,
+    fun hasSideEffectingDroppedTask(
+        sideEffectingTaskIdentityPaths: Set<String>,
         droppedIdentityPaths: Set<String>
     ): Boolean {
-        if (outputPaths.isEmpty() || droppedIdentityPaths.isEmpty()) return false
-        val retainedSeeds = outputPaths.keys - droppedIdentityPaths
-        val retained = retainedClosure(retainedSeeds, dependencyEdges)
-        val droppedPaths = (outputPaths.keys - retained).flatMap { outputPaths[it].orEmpty() }
-        val retainedPaths = retained.flatMap { outputPaths[it].orEmpty() }
-        // Pairwise prefix-overlap check. Small in practice — declared outputs per task
-        // are usually 1–2 paths, and only mismatched (dropped vs retained) pairs count.
-        return droppedPaths.any { d -> retainedPaths.any { r -> pathOverlaps(d, r) } }
-    }
-
-    private
-    fun retainedClosure(
-        seeds: Set<String>,
-        dependencyEdges: Map<String, List<String>>
-    ): Set<String> {
-        val visited = HashSet<String>(seeds)
-        val queue = ArrayDeque(seeds)
-        while (queue.isNotEmpty()) {
-            val next = queue.removeFirst()
-            for (dep in dependencyEdges[next].orEmpty()) {
-                if (visited.add(dep)) queue.addLast(dep)
-            }
-        }
-        return visited
-    }
-
-    /**
-     * True when [a] and [b] are equal, or one is a sub-path of the other under
-     * filesystem-style segment semantics. `/a/b` overlaps `/a/b/c.txt` but not
-     * `/a/bridge.txt`. Comparison is verbatim on the stored absolute path strings;
-     * paths captured at store time share the same OS and case-sensitivity as the
-     * paths captured for the current build.
-     */
-    private
-    fun pathOverlaps(a: String, b: String): Boolean {
-        if (a == b) return true
-        val sep = java.io.File.separator
-        val aWithSep = if (a.endsWith(sep)) a else a + sep
-        val bWithSep = if (b.endsWith(sep)) b else b + sep
-        return aWithSep.startsWith(bWithSep) || bWithSep.startsWith(aWithSep)
+        if (sideEffectingTaskIdentityPaths.isEmpty() || droppedIdentityPaths.isEmpty()) return false
+        return droppedIdentityPaths.any { it in sideEffectingTaskIdentityPaths }
     }
 
     /**
@@ -233,7 +201,7 @@ object SupersetIndexLookup {
  *     taskGraphAccessed: boolean
  *     mustRunAfterEdges: edge-map (see writeEdgeMap)
  *     dependencyEdges: edge-map
- *     outputPaths: edge-map
+ *     sideEffectingTaskIdentityPaths: int count + UTF entries
  *
  * An edge-map is encoded as: int entry-count, each entry = UTF source + int target-count + UTF targets.
  * <p>
@@ -259,10 +227,10 @@ class SupersetIndexFile(private val file: java.io.File) {
                     val accessed = input.readBoolean()
                     val mustRunAfterEdges = readEdgeMap(input)
                     val dependencyEdges = readEdgeMap(input)
-                    val outputPaths = readEdgeMap(input)
+                    val sideEffecting = readStringList(input).toSet()
                     SupersetIndexLookup.IndexedVariant(
                         fullKey, cliTokens, entryTaskIdentityPaths, accessed,
-                        mustRunAfterEdges, dependencyEdges, outputPaths
+                        mustRunAfterEdges, dependencyEdges, sideEffecting
                     )
                 }
             }
@@ -285,7 +253,7 @@ class SupersetIndexFile(private val file: java.io.File) {
                 out.writeBoolean(v.taskGraphAccessed)
                 writeEdgeMap(out, v.mustRunAfterEdges)
                 writeEdgeMap(out, v.dependencyEdges)
-                writeEdgeMap(out, v.outputPaths)
+                writeStringList(out, v.sideEffectingTaskIdentityPaths.toList())
             }
         }
     }
@@ -329,6 +297,7 @@ class SupersetIndexFile(private val file: java.io.File) {
         // v2 = v1 + mustRunAfterEdges
         // v3 = v2 + dependencyEdges + outputPaths
         // v4 = v3 with requestedTasks split into separate cliTokens and entryTaskIdentityPaths
-        private const val FORMAT_VERSION = 4
+        // v5 = v4 with outputPaths replaced by sideEffectingTaskIdentityPaths (Delete-task gate)
+        private const val FORMAT_VERSION = 5
     }
 }

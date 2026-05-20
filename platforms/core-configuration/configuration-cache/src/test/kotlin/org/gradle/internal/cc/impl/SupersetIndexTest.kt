@@ -173,89 +173,44 @@ class SupersetIndexTest {
     }
 
     @Test
-    fun `hasOverlappingDroppedOutputs returns false when no output paths recorded`() {
-        assert(!SupersetIndexLookup.hasOverlappingDroppedOutputs(
-            outputPaths = emptyMap(),
-            dependencyEdges = emptyMap(),
+    fun `hasSideEffectingDroppedTask returns false when no side-effecting tasks recorded`() {
+        assert(!SupersetIndexLookup.hasSideEffectingDroppedTask(
+            sideEffectingTaskIdentityPaths = emptySet(),
             droppedIdentityPaths = setOf(":b")
         ))
     }
 
     @Test
-    fun `hasOverlappingDroppedOutputs returns false on exact match`() {
-        // No tasks dropped → no overlap can fire.
-        val outputs = mapOf(":a" to listOf("/out/a"), ":b" to listOf("/out/b"))
-        assert(!SupersetIndexLookup.hasOverlappingDroppedOutputs(
-            outputPaths = outputs,
-            dependencyEdges = emptyMap(),
+    fun `hasSideEffectingDroppedTask returns false on empty dropped set`() {
+        // No tasks dropped → no side-effecting task can be dropped.
+        assert(!SupersetIndexLookup.hasSideEffectingDroppedTask(
+            sideEffectingTaskIdentityPaths = setOf(":cleanSecond"),
             droppedIdentityPaths = emptySet()
         ))
     }
 
     @Test
-    fun `hasOverlappingDroppedOutputs returns true when dropped output equals retained output`() {
-        // The Bucket2 pattern: `:cleanSecond` writes to `/build/second.txt` (clearing it),
-        // `:second` writes to the same path. Dropping `:cleanSecond` while retaining
-        // `:second` would let the loaded cached `:second` output stand without the
-        // cleanup invariant the original build relied on.
-        val outputs = mapOf(
-            ":first" to listOf("/build/first.txt"),
-            ":cleanSecond" to listOf("/build/second.txt"),
-            ":second" to listOf("/build/second.txt")
-        )
-        assert(SupersetIndexLookup.hasOverlappingDroppedOutputs(
-            outputPaths = outputs,
-            dependencyEdges = emptyMap(),
+    fun `hasSideEffectingDroppedTask returns true when a recorded Delete task is in the dropped set`() {
+        // The Bucket2 pattern: `:cleanSecond` is a Delete task scheduled before `:second`.
+        // A subset request that drops `:cleanSecond` but retains `:second` would let the
+        // loaded cached `:second` output stand without the cleanup; refuse the candidate.
+        assert(SupersetIndexLookup.hasSideEffectingDroppedTask(
+            sideEffectingTaskIdentityPaths = setOf(":cleanSecond"),
             droppedIdentityPaths = setOf(":cleanSecond")
         ))
     }
 
     @Test
-    fun `hasOverlappingDroppedOutputs returns true when retained output is inside dropped output dir`() {
-        val outputs = mapOf(
-            ":cleanDir" to listOf("/build/out"),
-            ":writeFile" to listOf("/build/out/file.txt")
-        )
-        assert(SupersetIndexLookup.hasOverlappingDroppedOutputs(
-            outputPaths = outputs,
-            dependencyEdges = emptyMap(),
-            droppedIdentityPaths = setOf(":cleanDir")
+    fun `hasSideEffectingDroppedTask returns false when the only Delete task is retained`() {
+        // `:cleanSecond` recorded as side-effecting; dropped set is `:third` (not a Delete).
+        assert(!SupersetIndexLookup.hasSideEffectingDroppedTask(
+            sideEffectingTaskIdentityPaths = setOf(":cleanSecond"),
+            droppedIdentityPaths = setOf(":third")
         ))
     }
 
     @Test
-    fun `hasOverlappingDroppedOutputs returns false when outputs are sibling-unrelated`() {
-        // `/build/out` and `/build/outdoor` share a literal prefix but no path-segment ancestry.
-        val outputs = mapOf(
-            ":a" to listOf("/build/out"),
-            ":b" to listOf("/build/outdoor")
-        )
-        assert(!SupersetIndexLookup.hasOverlappingDroppedOutputs(
-            outputPaths = outputs,
-            dependencyEdges = emptyMap(),
-            droppedIdentityPaths = setOf(":a")
-        ))
-    }
-
-    @Test
-    fun `hasOverlappingDroppedOutputs retains transitive deps via BFS so their outputs are not flagged dropped`() {
-        // `:entry` depends on `:dep`. `:other` is dropped from a different entry.
-        // `:dep`'s output is retained-by-BFS via `dependencyEdges` and must NOT count as dropped.
-        val outputs = mapOf(
-            ":entry" to listOf("/build/entry.txt"),
-            ":dep" to listOf("/build/dep.txt"),
-            ":other" to listOf("/build/other.txt")
-        )
-        val deps = mapOf(":entry" to listOf(":dep"))
-        assert(!SupersetIndexLookup.hasOverlappingDroppedOutputs(
-            outputPaths = outputs,
-            dependencyEdges = deps,
-            droppedIdentityPaths = setOf(":other")
-        ))
-    }
-
-    @Test
-    fun `round trip preserves variants including v4 fields`() {
+    fun `round trip preserves variants including v5 fields`() {
         val tmp = java.io.File.createTempFile("supersetIndex", ".bin").also { it.deleteOnExit() }
         val file = SupersetIndexFile(tmp)
         val variants = listOf(
@@ -265,7 +220,7 @@ class SupersetIndexTest {
                 entryTaskIdentityPaths = listOf(":a", ":b"),
                 mustRunAfterEdges = mapOf(":b" to listOf(":a")),
                 dependencyEdges = mapOf(":b" to listOf(":a")),
-                outputPaths = mapOf(":a" to listOf("/out/a"), ":b" to listOf("/out/b"))
+                sideEffectingTaskIdentityPaths = setOf(":a")
             ),
             // Multi-project bare name: 1 token → 2 identity paths.
             IndexedVariant(

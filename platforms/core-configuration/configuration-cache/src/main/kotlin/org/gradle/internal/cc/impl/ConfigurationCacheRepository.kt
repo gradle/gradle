@@ -123,8 +123,9 @@ class ConfigurationCacheRepository(
      *    self-heal: invoke [onStaleDirRemoved] so the caller can rewrite the index);
      *  - pruning would leave a retained task pointing at a dropped task through
      *    `mustRunAfter` / finalizer (see [SupersetIndexLookup.hasDanglingMustRunAfter]);
-     *  - pruning would drop a task whose declared outputs overlap with a retained
-     *    task's outputs (see [SupersetIndexLookup.hasOverlappingDroppedOutputs]).
+     *  - pruning would drop a task whose execution has filesystem side effects beyond
+     *    its snapshotted outputs (currently: any `Delete` task — see
+     *    [SupersetIndexLookup.hasSideEffectingDroppedTask]).
      * <p>
      * The dropped identity-path set is derived from the candidate's `cliTokens`
      * → `entryTaskIdentityPaths` positional pairing — CLI tokens not present in
@@ -153,10 +154,10 @@ class ConfigurationCacheRepository(
             val dangles = dropped.isNotEmpty() && SupersetIndexLookup.hasDanglingMustRunAfter(
                 chosen.mustRunAfterEdges, dropped
             )
-            val overlaps = dropped.isNotEmpty() && !dangles && SupersetIndexLookup.hasOverlappingDroppedOutputs(
-                chosen.outputPaths, chosen.dependencyEdges, dropped
+            val sideEffects = dropped.isNotEmpty() && !dangles && SupersetIndexLookup.hasSideEffectingDroppedTask(
+                chosen.sideEffectingTaskIdentityPaths, dropped
             )
-            if (!staleDir && !dangles && !overlaps) return chosen
+            if (!staleDir && !dangles && !sideEffects) return chosen
             variants.remove(chosen)
             if (staleDir) onStaleDirRemoved()
         }
@@ -210,11 +211,12 @@ class ConfigurationCacheRepository(
      *     whose pruning would dangle one of these edges
      * @param dependencyEdges `dependencySuccessors` edges between scheduled tasks
      *     (source identity-path → list of identity-paths the source depends on).
-     *     Used to compute the retained closure for the overlap check below
-     * @param outputPaths declared output file paths per scheduled task (identity
-     *     path → absolute paths). Used by [findCompatibleEntry] to reject this
-     *     entry from strict-superset matches whose pruning would drop a task whose
-     *     outputs overlap with a retained task's outputs
+     *     Retained for diagnostics and forward-compat
+     * @param sideEffectingTaskIdentityPaths identity paths of scheduled tasks whose
+     *     execution has filesystem side effects beyond their snapshotted outputs —
+     *     currently, instances of `org.gradle.api.tasks.Delete`. Used by
+     *     [findCompatibleEntry] to reject this entry from strict-superset matches
+     *     whose pruning would drop one of these tasks
      */
     fun recordEntry(
         environmentKey: ConfigurationCacheEnvironmentKey,
@@ -224,7 +226,7 @@ class ConfigurationCacheRepository(
         taskGraphAccessed: Boolean,
         mustRunAfterEdges: Map<String, List<String>> = emptyMap(),
         dependencyEdges: Map<String, List<String>> = emptyMap(),
-        outputPaths: Map<String, List<String>> = emptyMap()
+        sideEffectingTaskIdentityPaths: Set<String> = emptySet()
     ) {
         if (cliTokens.any { it.startsWith("-") }) return
         cache.withFileLock(Supplier {
@@ -233,7 +235,7 @@ class ConfigurationCacheRepository(
             variants.removeIf { it.fullKey == fullKey }
             variants.add(IndexedVariant(
                 fullKey, cliTokens, entryTaskIdentityPaths, taskGraphAccessed,
-                mustRunAfterEdges, dependencyEdges, outputPaths
+                mustRunAfterEdges, dependencyEdges, sideEffectingTaskIdentityPaths
             ))
             indexFile.write(variants)
         })

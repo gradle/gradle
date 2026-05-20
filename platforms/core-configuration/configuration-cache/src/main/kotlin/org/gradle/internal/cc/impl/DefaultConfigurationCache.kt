@@ -160,14 +160,16 @@ class DefaultConfigurationCache internal constructor(
     var dependencyEdges: Map<String, List<String>> = emptyMap()
 
     /**
-     * Declared output file paths for each scheduled task (identity path →
-     * absolute paths). Recorded into the superset index so a candidate entry can
-     * be rejected at lookup time when pruning would drop a task whose outputs
-     * overlap with a retained task's outputs — the loaded plan would skip
-     * filesystem side effects retained tasks rely on observing.
+     * The scheduled `LocalTaskNode`s captured at finalization time. Held so the
+     * output-path capture at [commitCacheEntry] can walk them after Gradle's
+     * normal execution path has already invoked
+     * [org.gradle.execution.plan.LocalTaskNode.getTaskProperties] for each node —
+     * resolving outputs through the cached `TaskProperties` avoids re-invoking
+     * user-defined `@OutputFile` / `@Nested` getters (see [collectDeclaredOutputs]).
      */
     private
-    var outputPaths: Map<String, List<String>> = emptyMap()
+    var scheduledLocalTaskNodes: List<org.gradle.execution.plan.LocalTaskNode> = emptyList()
+
 
     /**
      * The compatible stored cache entry chosen for this build (exact or strict-superset
@@ -498,17 +500,19 @@ class DefaultConfigurationCache internal constructor(
             cacheFingerprintController.wasTaskGraphAccessed,
             mustRunAfterEdges,
             dependencyEdges,
-            outputPaths
+            collectSideEffectingTaskIdentityPaths()
         )
     }
 
     /**
-     * Snapshots inputs to the superset index from the finalized task graph
-     * before task execution begins (the execution plan is cleared on completion).
-     * Captures four things per scheduled task: entry-task identity paths,
-     * mustRunAfter/finalizer edges (for the dangle check), dependencySuccessors
-     * edges (for the overlap-check BFS), and declared output paths (for the
-     * overlap check itself).
+     * Snapshots structural inputs to the superset index from the finalized task
+     * graph before task execution begins (the execution plan is cleared on
+     * completion). Captures three things per scheduled task: entry-task identity
+     * paths, mustRunAfter/finalizer edges (for the dangle check), and
+     * dependencySuccessors edges (for the overlap-check BFS). Declared output
+     * paths — the fourth piece of index data — are captured later via
+     * [captureOutputPathsAfterExecution] so the property walk reuses cached
+     * `TaskProperties` and doesn't re-invoke user-defined getters.
      */
     private
     fun captureSupersetIndexInputs() {
@@ -516,21 +520,38 @@ class DefaultConfigurationCache internal constructor(
         entryTaskIdentityPaths = scheduled.entryNodes
             .filterIsInstance<org.gradle.execution.plan.LocalTaskNode>()
             .map { it.task.identityPath.toString() }
-        val scheduledLocalTaskNodes = scheduled.scheduledNodes
+        scheduledLocalTaskNodes = scheduled.scheduledNodes
             .filterIsInstance<org.gradle.execution.plan.LocalTaskNode>()
         val mraEdges = mutableMapOf<String, List<String>>()
         val depEdges = mutableMapOf<String, List<String>>()
-        val outputs = mutableMapOf<String, List<String>>()
         for (node in scheduledLocalTaskNodes) {
             val id = node.task.identityPath.toString()
             collectOrderingTargets(node).takeIf { it.isNotEmpty() }?.let { mraEdges[id] = it }
             collectDependencyTargets(node).takeIf { it.isNotEmpty() }?.let { depEdges[id] = it }
-            collectDeclaredOutputs(node).takeIf { it.isNotEmpty() }?.let { outputs[id] = it }
         }
         mustRunAfterEdges = mraEdges
         dependencyEdges = depEdges
-        outputPaths = outputs
+        // Output paths are captured later, at commitCacheEntry, so the iteration
+        // hits already-cached TaskProperties (populated by Gradle's normal execution
+        // path) and does NOT re-trigger user-defined `@OutputFile` / `@Nested`
+        // getters. See [collectDeclaredOutputs].
     }
+
+    /**
+     * Identity paths of scheduled tasks whose execution has filesystem side
+     * effects beyond their snapshotted outputs — specifically, instances of
+     * `org.gradle.api.tasks.Delete` (the base plugin's auto-registered `clean*`
+     * tasks plus any user-defined `Delete` tasks). Computed by an instance-check
+     * over the saved scheduled-node list — no property walk, no `@OutputFile` /
+     * `@Nested` getter invocation.
+     */
+    private
+    fun collectSideEffectingTaskIdentityPaths(): Set<String> =
+        scheduledLocalTaskNodes
+            .asSequence()
+            .filter { it.task is org.gradle.api.tasks.Delete }
+            .map { it.task.identityPath.toString() }
+            .toSet()
 
     private
     fun collectOrderingTargets(node: org.gradle.execution.plan.TaskNode): List<String> {
@@ -551,38 +572,6 @@ class DefaultConfigurationCache internal constructor(
             .map { it.task.identityPath.toString() }
             .toList()
 
-    /**
-     * Resolves the task's declared filesystem-footprint paths — declared outputs
-     * plus, for `Delete` tasks, the deletion targets (which Gradle exposes
-     * separately from `task.outputs` since a `Delete` produces no outputs in the
-     * input/output snapshotting sense but still touches the filesystem). The
-     * union forms the set of paths used for overlap detection.
-     * <p>
-     * Wrapped in a try/catch because file collections may contain lazy providers
-     * that throw on resolution (e.g. unresolved Configurations); on failure the
-     * task gets an empty footprint list and is treated as "footprint unknown —
-     * can't participate in the overlap check," which conservatively means the
-     * candidate is *less* likely to be rejected for overlap but still subject to
-     * the other gates.
-     */
-    private
-    fun collectDeclaredOutputs(node: org.gradle.execution.plan.LocalTaskNode): List<String> {
-        val task = node.task
-        val paths = LinkedHashSet<String>()
-        try {
-            task.outputs.files.files.forEach { paths.add(it.absolutePath) }
-        } catch (_: RuntimeException) {
-            // Skip unresolvable outputs.
-        }
-        if (task is org.gradle.api.tasks.Delete) {
-            try {
-                task.targetFiles.files.forEach { paths.add(it.absolutePath) }
-            } catch (_: RuntimeException) {
-                // Skip unresolvable deletion targets.
-            }
-        }
-        return paths.toList()
-    }
 
     private
     fun determineCacheAction(): DescribedAction {
