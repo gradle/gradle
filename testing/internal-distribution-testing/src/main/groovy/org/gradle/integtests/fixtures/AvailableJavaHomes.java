@@ -141,10 +141,38 @@ public abstract class AvailableJavaHomes {
     }
 
     /**
+     * Get a JDK for each major Java version that is not able to run the Gradle client, if available.
+     */
+    public static List<Jvm> getUnsupportedClientJdks() {
+        return getJdksInRange(Range.lessThan(SupportedJavaVersions.MINIMUM_CLIENT_JAVA_VERSION));
+    }
+
+    /**
+     * Get a JDK for each major Java version that can run the Gradle client,
+     * but will not be able to in the next major version.
+     */
+    public static List<Jvm> getDeprecatedClientJdks() {
+        return getJdksInRange(
+            Range.closedOpen(
+                SupportedJavaVersions.MINIMUM_CLIENT_JAVA_VERSION,
+                SupportedJavaVersions.FUTURE_MINIMUM_CLIENT_JAVA_VERSION
+            )
+        );
+    }
+
+    /**
      * Get a JDK for each major Java version that is able to run a Gradle client, if available.
      */
     public static List<Jvm> getSupportedClientJdks() {
         return getJdksInRange(Range.atLeast(SupportedJavaVersions.MINIMUM_CLIENT_JAVA_VERSION));
+    }
+
+    /**
+     * Get a JDK for each major Java version that can run the Gradle client,
+     * and will continue to be able to in the next major version.
+     */
+    public static List<Jvm> getNonDeprecatedClientJdks() {
+        return getJdksInRange(Range.atLeast(SupportedJavaVersions.FUTURE_MINIMUM_CLIENT_JAVA_VERSION));
     }
 
     /**

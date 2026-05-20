@@ -49,7 +49,7 @@ import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.internal.scripts.ScriptFileUtil;
 import org.gradle.jvm.toolchain.internal.AutoInstalledInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.ToolchainConfiguration;
-import org.gradle.launcher.cli.WelcomeMessageAction;
+import org.gradle.launcher.cli.StartupLoggingAction;
 import org.gradle.launcher.daemon.configuration.DaemonBuildOptions;
 import org.gradle.process.internal.DefaultClientExecHandleBuilderFactory;
 import org.gradle.process.internal.streams.SafeStreams;
@@ -1232,7 +1232,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
             properties.put(TestOverrideConsoleDetector.INTERACTIVE_CONSOLE_TOGGLE, "true");
         }
 
-        properties.put(WelcomeMessageAction.WELCOME_MESSAGE_ENABLED_SYSTEM_PROPERTY, Boolean.toString(renderWelcomeMessage));
+        properties.put(StartupLoggingAction.WELCOME_MESSAGE_ENABLED_SYSTEM_PROPERTY, Boolean.toString(renderWelcomeMessage));
 
         return properties;
     }

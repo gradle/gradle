@@ -24,6 +24,28 @@ import org.gradle.util.GradleVersion
  */
 class SupportedJavaVersionsExpectations {
 
+    static String getExpectedClientDeprecationWarning(String clientType) {
+        getExpectedClientDeprecationWarning(clientType, GradleVersion.current())
+    }
+
+    static String getExpectedClientDeprecationWarning(String clientType, GradleVersion gradleVersion) {
+        getExpectedClientDeprecationWarning(
+            clientType,
+            gradleVersion,
+            SupportedJavaVersions.FUTURE_MINIMUM_CLIENT_JAVA_VERSION
+        )
+    }
+
+    static String getExpectedClientDeprecationWarning(String clientType, GradleVersion gradleVersion, int futureMinimumClientJavaVersion) {
+        int currentMajorGradleVersion = gradleVersion.getMajorVersion()
+
+        "Executing the Gradle ${clientType} Client on JVM versions ${futureMinimumClientJavaVersion - 1} and lower has been deprecated. " +
+            "This will fail with an error in Gradle ${currentMajorGradleVersion + 1}. " +
+            "Use JVM ${futureMinimumClientJavaVersion} or greater to execute the Gradle ${clientType} Client. " +
+            "Consult the upgrading guide for further information: " +
+            "https://docs.gradle.org/${gradleVersion.version}/userguide/upgrading_version_${currentMajorGradleVersion}.html#minimum_client_jvm_version"
+    }
+
     static String getExpectedDaemonDeprecationWarning() {
         getExpectedDaemonDeprecationWarning(GradleVersion.current())
     }
