@@ -191,10 +191,6 @@ class LanguageTreeToDomContext {
                 errors += UnsupportedSyntax(UnsupportedSyntaxCause.ValueFactoryArgumentFormat)
             }
 
-            if (expr.args.any { it is FunctionArgument.SingleValueArgument && it.expr is NamedReference }) {
-                errors += UnsupportedSyntax(UnsupportedSyntaxCause.ValueFactoryCallWithNamedReference)
-            }
-
             val values = expr.args.filterIsInstance<FunctionArgument.Positional>().map { exprToValue(it.expr) }
             errors += values.filterIsInstance<ExprConversion.Failed>().flatMap { it.errors }
             if (errors.isEmpty()) {

@@ -17,11 +17,9 @@
 package org.gradle.internal.cc.impl.isolated
 
 import org.gradle.integtests.fixtures.build.KotlinDslTestProjectInitiation
-import org.gradle.tooling.model.kotlin.dsl.EditorReport
-import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptModel
 import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptsModel
 
-import static org.gradle.integtests.tooling.fixture.ToolingApiModelChecker.checkModel
+import static org.gradle.kotlin.dsl.tooling.fixtures.KotlinDslModelChecker.checkKotlinDslScriptsModel
 
 class IsolatedProjectsToolingApiKotlinDslIntegrationTest extends AbstractIsolatedProjectsToolingApiIntegrationTest implements KotlinDslTestProjectInitiation {
 
@@ -41,7 +39,6 @@ class IsolatedProjectsToolingApiKotlinDslIntegrationTest extends AbstractIsolate
         then:
         fixture.assertNoConfigurationCache()
 
-
         when:
         withIsolatedProjects()
         def model = fetchModel(KotlinDslScriptsModel)
@@ -51,9 +48,7 @@ class IsolatedProjectsToolingApiKotlinDslIntegrationTest extends AbstractIsolate
             modelsCreated(":", KotlinDslScriptsModel)
             modelsCreated(":a", [isolatedScriptsModel])
         }
-
         checkKotlinDslScriptsModel(model, originalModel)
-
 
         when:
         withIsolatedProjects()
@@ -63,40 +58,40 @@ class IsolatedProjectsToolingApiKotlinDslIntegrationTest extends AbstractIsolate
         fixture.assertModelLoaded()
     }
 
-    static void checkKotlinDslScriptsModel(actual, expected) {
-        assert expected instanceof KotlinDslScriptsModel
-        assert actual instanceof KotlinDslScriptsModel
+    def "can fetch KotlinDslScripts model for build with third party buildscript dependency"() {
+        withSettings("""
+            rootProject.name = "root"
+            include("a")
+            include("a:b")
+        """)
+        withBuildScript()
 
-        checkModel(actual, expected, [
-            [{ it.scriptModels }, { a, e -> checkKotlinDslScriptModel(a, e) }]
-        ])
-    }
+        // We exercise source path of the hierarchy.
+        // :a declares a buildscript dependency which sources must be visible in :a:b
+        withBuildScriptIn("a", """
+            buildscript {
+                $repositoriesBlock
+                dependencies { classpath("commons-io:commons-io:2.18.0") }
+            }
+        """)
+        withBuildScriptIn("a/b")
 
-    static void checkKotlinDslScriptModel(actual, expected) {
-        assert expected instanceof KotlinDslScriptModel
-        assert actual instanceof KotlinDslScriptModel
+        when:
+        def originalModel = fetchModel(KotlinDslScriptsModel)
 
-        checkModel(actual, expected, [
-            { it.classPath },
-            { it.sourcePath },
-            { it.implicitImports },
-            // TODO:isolated support editor reports
-//            [{ it.editorReports }, { a, e -> checkEditorReport(a, e) }],
-            { it.exceptions },
-        ])
-    }
+        then:
+        fixture.assertNoConfigurationCache()
 
-    static void checkEditorReport(actual, expected) {
-        assert expected instanceof EditorReport
-        assert actual instanceof EditorReport
+        when:
+        withIsolatedProjects()
+        def model = fetchModel(KotlinDslScriptsModel)
 
-        checkModel(actual, expected, [
-            { it.severity },
-            { it.message },
-            [{ it.position }, [
-                { it.line },
-                { it.column },
-            ]]
-        ])
+        then:
+        fixture.assertModelStored {
+            modelsCreated(":", KotlinDslScriptsModel)
+            modelsCreated(":a", [isolatedScriptsModel])
+            modelsCreated(":a:b", [isolatedScriptsModel])
+        }
+        checkKotlinDslScriptsModel(model, originalModel)
     }
 }

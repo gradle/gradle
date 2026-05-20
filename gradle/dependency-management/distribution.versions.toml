@@ -1,6 +1,6 @@
 # some versions are in shared-versions.properties
 [versions]
-ant = "1.10.15!!"
+ant = "1.10.17!!"
 awsS3 = "1.12.780!!"
 bouncycastle = "1.84!!"
 commonsCodec = "1.18.0!!"
@@ -35,8 +35,8 @@ jsch = "0.2.16!!"
 jsoup = "1.15.3!!"
 jspecify = "1.0.0!!"
 jsr305 = "3.0.2!!"
-kotlin = "2.3.20!!"
-kotlinxSerialization = "1.9.0!!"
+kotlin = "2.3.21!!"
+kotlinxSerialization = "1.11.0!!"
 kryo = "2.24.0!!"
 minlog = "1.2!!"
 nativePlatform = "0.22-milestone-29!!"
@@ -124,7 +124,6 @@ kotlinBuildToolsImpl = { group = "org.jetbrains.kotlin", name = "kotlin-build-to
 kotlinCompilerEmbeddable = { group = "org.jetbrains.kotlin", name = "kotlin-compiler-embeddable", version.ref = "kotlin" }
 kotlinGradlePlugin = { group = "org.jetbrains.kotlin", name = "kotlin-gradle-plugin", version.ref = "kotlin" }
 kotlinGradlePluginApi = { group = "org.jetbrains.kotlin", name = "kotlin-gradle-plugin-api", version.ref = "kotlin" }
-kotlinJvmAbiGenEmbeddable = { group = "org.jetbrains.kotlin", name = "jvm-abi-gen-embeddable", version.ref = "kotlin" }
 kotlinMetadataJvm = { group = "org.jetbrains.kotlin", name = "kotlin-metadata-jvm", version.ref = "kotlin" }
 kotlinReflect = { group = "org.jetbrains.kotlin", name = "kotlin-reflect", version.ref = "kotlin" }
 kotlinSamWithReceiver = { group = "org.jetbrains.kotlin", name = "kotlin-sam-with-receiver", version.ref = "kotlin" }

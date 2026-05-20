@@ -25,7 +25,8 @@ import org.gradle.api.model.ObjectFactory
 import org.gradle.internal.event.ListenerManager
 import org.gradle.process.ExecOperations
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.JdkVersionTestPreconditions
+
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
 import org.gradle.workers.WorkerExecutor
 import org.slf4j.Logger
@@ -549,7 +550,7 @@ class ConfigurationCacheSupportedTypesIntegrationTest extends AbstractConfigurat
         outputContains 'The answer is 42'
     }
 
-    @Requires(UnitTestPreconditions.Jdk14OrLater)
+    @Requires(JdkVersionTestPreconditions.Jdk14OrLater)
     @Issue("https://github.com/gradle/gradle/issues/26926")
     def "restores task fields whose value is instance of #type java record"() {
         file("buildSrc/src/main/java/SingleField.java") << """
@@ -586,7 +587,6 @@ class ConfigurationCacheSupportedTypesIntegrationTest extends AbstractConfigurat
         file("buildSrc/src/main/java/WithAlternativeTypes.java") << """
             public record WithAlternativeTypes(Integer number, Boolean a, boolean b, java.util.TreeSet<String> ts) {}
         """
-
         file("buildSrc/build.gradle.kts") << """
             plugins {
                 `java-library`
@@ -633,6 +633,41 @@ class ConfigurationCacheSupportedTypesIntegrationTest extends AbstractConfigurat
         "WithExtraDeclaredFields" | "new WithExtraDeclaredFields('str', 42)"                                                         | "WithExtraDeclaredFields[str=str, number=42]"
         "WithExtraConstructors"   | "new WithExtraConstructors('str', 42)"                                                           | "WithExtraConstructors[str=str, number=42]"
         "WithAlternativeTypes"    | "new WithAlternativeTypes(42, true, false as boolean, new TreeSet(['a', 'b', 'c']))"             | "WithAlternativeTypes[number=42, a=true, b=false, ts=[a, b, c]]"
+    }
+
+    @Requires(JdkVersionTestPreconditions.Jdk14OrLater)
+    @Issue("https://github.com/gradle/gradle/issues/35594")
+    def "restores task fields whose value is instance of a package-private java record"() {
+        javaFile("buildSrc/src/main/java/my/PackagePrivateRecord.java", """
+            package my;
+            record PackagePrivateRecord(String value, int number) {}
+        """)
+        javaFile("buildSrc/src/main/java/my/SomeTask.java", """
+            package my;
+            import org.gradle.api.DefaultTask;
+            import org.gradle.api.tasks.TaskAction;
+            public class SomeTask extends DefaultTask {
+                private final PackagePrivateRecord value = new PackagePrivateRecord("str", 42);
+                @TaskAction
+                void run() {
+                    System.out.println("this.value = " + value);
+                }
+            }
+        """)
+        file("buildSrc/build.gradle.kts") << """
+            plugins {
+                `java-library`
+            }
+        """
+        buildFile """
+            tasks.register("ok", my.SomeTask)
+        """
+
+        when:
+        configurationCacheRun "ok"
+
+        then:
+        outputContains("this.value = PackagePrivateRecord[value=str, number=42]")
     }
 
     def "task actions support capturing project extra properties"() {

@@ -9,7 +9,7 @@ description = """Reports related to the dependency management functionality used
 in the Gradle builds of software projects.  Any reports or reporting tasks related to or dependent upon
 dependency management types should be included here."""
 
-val implementationResources: Configuration by configurations.creating
+val implementationResources = configurations.create("implementationResources")
 
 repositories {
     googleApisJs()
@@ -21,16 +21,14 @@ dependencies {
     api(projects.core)
     api(projects.coreApi)
     api(projects.dependencyManagement)
+    api(projects.domainObjectCollections)
     api(projects.enterpriseLogging)
     api(projects.fileCollections)
     api(projects.internalInstrumentationApi)
     api(projects.jvmServices)
     api(projects.logging)
-    api(projects.modelCore)
-    api(projects.platformBase)
     api(projects.reporting)
     api(projects.reportRendering)
-    api(projects.serviceProvider)
     api(projects.stdlibJavaExtensions)
 
     api(libs.groovy)
@@ -39,6 +37,8 @@ dependencies {
 
     implementation(projects.functional)
     implementation(projects.loggingApi)
+    implementation(projects.modelCore)
+    implementation(projects.startParameter)
 
     implementation(libs.commonsLang)
     implementation(libs.guava)

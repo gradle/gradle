@@ -19,80 +19,84 @@ package org.gradle.api.tasks
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 
-import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache.Skip.INVESTIGATE
-
 abstract class AbstractExecutionResultExecTaskIntegrationTest extends AbstractIntegrationSpec {
     protected abstract void makeExecProject()
     protected abstract void writeSucceedingExec()
     protected abstract void writeFailingExec()
 
-    protected String getTaskUnderTestDsl() {
-        return "tasks.${taskNameUnderTest}"
-    }
-
-    protected abstract String getTaskNameUnderTest()
-
-    protected abstract String getExecResultDsl()
-
-    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def "returns null ExecResult when task haven't executed"() {
         makeExecProject()
         writeSucceedingExec()
-        buildFile << """
-            task verify {
-                doLast {
-                    assert ${execResultDsl} == null
-                }
-            }
-        """
+        buildFile << verificationTask(false)
 
         when:
         succeeds('verify')
 
         then:
         result.assertTasksExecuted(':verify')
+        outputContains("Exit value: null")
     }
 
-    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
+    @ToBeFixedForConfigurationCache(because = "accessing execResult, https://github.com/gradle/gradle/issues/11492")
     def "returns ExecResult when is executed"() {
         makeExecProject()
         writeSucceedingExec()
-        buildFile << """
-            task verify {
-                dependsOn(${taskNameUnderTest})
-                doLast {
-                    assert ${execResultDsl} != null
-                    assert ${execResultDsl}.exitValue == 0
-                }
-            }
-        """
+        buildFile << verificationTask(true)
 
         when:
         succeeds('verify')
 
         then:
-        result.assertTasksExecuted(':compileJava', ":$taskNameUnderTest", ':verify')
+        result.assertTasksExecuted(':compileJava', ":run", ':verify')
+        outputContains("Exit value: 0")
     }
 
-    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
+    def "execute with non-zero exit value should throw exception"() {
+        makeExecProject()
+        writeFailingExec()
+        buildFile << verificationTask(true)
+
+        when:
+        fails('verify')
+
+        then:
+        failureHasCause(~/Process '.*' finished with non-zero exit value 42/)
+    }
+
+    @ToBeFixedForConfigurationCache(because = "accessing execResult, https://github.com/gradle/gradle/issues/11492")
     def "execute with non-zero exit value and ignore exit value should not throw exception"() {
         makeExecProject()
         writeFailingExec()
         buildFile << """
-            ${taskUnderTestDsl}.ignoreExitValue = true
-
-            task verify {
-                dependsOn(${taskNameUnderTest})
-                doLast {
-                    assert ${execResultDsl} != null
-                    assert ${execResultDsl}.exitValue == 42
-                }
-            }
+            tasks.run.ignoreExitValue = true
         """
+        buildFile << verificationTask(true)
+
         when:
-        succeeds('verify')
+        succeeds('verify', "--rerun-tasks")
 
         then:
-        result.assertTasksExecuted(':compileJava', ":$taskNameUnderTest", ':verify')
+        result.assertTasksExecuted(':compileJava', ":run", ':verify')
+        outputContains("Exit value: 42")
+    }
+
+    private static String verificationTask(boolean dependsOn) {
+        return """
+            abstract class VerifyTask extends DefaultTask {
+                @Input
+                @Optional
+                abstract Property<Integer> getExitValue()
+
+                @TaskAction
+                void verify() {
+                    println("Exit value: " + exitValue.getOrNull())
+                }
+            }
+
+            tasks.register("verify", VerifyTask) {
+                ${dependsOn ? "dependsOn(run)" : ""}
+                exitValue.set(run.flatMap { task -> task.executionResult.map { it.exitValue } })
+            }
+        """
     }
 }

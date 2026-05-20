@@ -16,11 +16,12 @@
 
 package org.gradle.api.provider
 
+import org.gradle.api.problems.Severity
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import spock.lang.Issue
 
 class PropertyIntegrationTest extends AbstractIntegrationSpec {
@@ -408,6 +409,67 @@ assert custom.prop.get() == "value 4"
         succeeds()
     }
 
+    def "can set String property value using a number"() {
+        given:
+        buildFile """
+            interface SomeExtension {
+                Property<String> getProp()
+            }
+
+            extensions.create('custom', SomeExtension)
+            custom.prop = 1
+            assert custom.prop.get() == "1"
+
+            custom.prop = 2L
+            assert custom.prop.get() == "2"
+
+            custom.prop = providers.provider { 3 }
+            assert custom.prop.get() == "3"
+
+            custom.prop = providers.provider { 4L }
+            assert custom.prop.get() == "4"
+
+            custom.prop = null
+            custom.prop.convention(5)
+            assert custom.prop.get() == "5"
+
+            custom.prop.convention(providers.provider { 6L })
+            assert custom.prop.get() == "6"
+        """
+
+        expect:
+        succeeds()
+    }
+
+    def "can set String property value using a File"() {
+        given:
+        buildFile """
+            interface SomeExtension {
+                Property<String> getProp()
+            }
+
+            extensions.create('custom', SomeExtension)
+            custom.prop = file('a.txt')
+            assert custom.prop.get() == file('a.txt').toString()
+
+            custom.prop = providers.provider { file('b.txt') }
+            assert custom.prop.get() == file('b.txt').toString()
+
+            custom.prop = null
+            custom.prop.convention(file('c.txt'))
+            assert custom.prop.get() == file('c.txt').toString()
+
+            custom.prop.convention(providers.provider { file('d.txt') })
+            assert custom.prop.get() == file('d.txt').toString()
+
+            custom.prop = file('e.txt').absoluteFile
+            assert custom.prop.get() == file('e.txt').absoluteFile.toString()
+        """
+
+        expect:
+        succeeds()
+    }
+
     def "can set Enum property value using an string"() {
         given:
         buildFile """
@@ -475,15 +537,15 @@ assert custom.prop.get() == "value 4"
         failure.assertHasCause(expectedCause)
 
         where:
-        errorType                             | setter                                                          | typeDescription
-        "wrong type, dsl"                     | "prop = 123"                                                    | "using an instance of type java.lang.Integer."
-        "wrong type, api"                     | "prop.set(123)"                                                 | "using an instance of type java.lang.Integer."
-        "wrong Property type, dsl"            | "prop = objectFactory.property(Integer)"                        | "using a provider of type java.lang.Integer."
-        "wrong Property type, api"            | "prop.set(objectFactory.property(Integer))"                     | "using a provider of type java.lang.Integer."
-        "wrong runtime type"                  | "prop = providerFactory.provider { 123 }; prop.get()"           | "as the provider associated with this property returned a value of type java.lang.Integer."
-        "wrong convention value type"         | "prop.convention(123)"                                          | "using an instance of type java.lang.Integer."
-        "wrong convention Property type"      | "prop.convention(objectFactory.property(Integer))"              | "using a provider of type java.lang.Integer."
-        "wrong convention runtime value type" | "prop.convention(providerFactory.provider { 123 }); prop.get()" | "as the provider associated with this property returned a value of type java.lang.Integer."
+        errorType                             | setter                                                           | typeDescription
+        "wrong type, dsl"                     | "prop = true"                                                    | "using an instance of type java.lang.Boolean."
+        "wrong type, api"                     | "prop.set(true)"                                                 | "using an instance of type java.lang.Boolean."
+        "wrong Property type, dsl"            | "prop = objectFactory.property(Integer)"                         | "using a provider of type java.lang.Integer."
+        "wrong Property type, api"            | "prop.set(objectFactory.property(Integer))"                      | "using a provider of type java.lang.Integer."
+        "wrong runtime type"                  | "prop = providerFactory.provider { true }; prop.get()"           | "as the provider associated with this property returned a value of type java.lang.Boolean."
+        "wrong convention value type"         | "prop.convention(true)"                                          | "using an instance of type java.lang.Boolean."
+        "wrong convention Property type"      | "prop.convention(objectFactory.property(Integer))"               | "using a provider of type java.lang.Integer."
+        "wrong convention runtime value type" | "prop.convention(providerFactory.provider { true }); prop.get()" | "as the provider associated with this property returned a value of type java.lang.Boolean."
     }
 
     def "fails when specialized factory method is not used"() {
@@ -531,7 +593,7 @@ assert custom.prop.get() == "value 4"
     }
 
     @Requires(
-        value = IntegTestPreconditions.NotParallelExecutor,
+        value = TestExecutionPreconditions.NotParallelExecutor,
         reason = "--parallel is specified explicitly, no need to run with multiple executor types"
     )
     @Issue("https://github.com/gradle/gradle/issues/12811")
@@ -568,7 +630,7 @@ assert custom.prop.get() == "value 4"
                 def m = extensions.create('model', Model)
                 m.prop.finalizeValueOnRead()
                 def c = configurations.create("incoming")
-                dependencies.incoming(project(":producer"))
+                dependencies.incoming(dependencies.project(":producer"))
                 m.prop = c.elements.map { files -> files*.asFile*.text.join(",") }
                 task consumer1(type: SomeTask) {
                     prop = m.prop
@@ -590,7 +652,7 @@ assert custom.prop.get() == "value 4"
     }
 
     @Requires(
-        value = IntegTestPreconditions.NotParallelExecutor,
+        value = TestExecutionPreconditions.NotParallelExecutor,
         reason = "--parallel is specified explicitly, no need to run with multiple executor types"
     )
     @Issue("https://github.com/gradle/gradle/issues/12969")
@@ -627,7 +689,7 @@ assert custom.prop.get() == "value 4"
                 def m = extensions.create('model', Model)
                 m.prop.finalizeValueOnRead()
                 def c = configurations.create("incoming")
-                dependencies.incoming(project(":producer"))
+                dependencies.incoming(dependencies.project(":producer"))
                 m.prop = c.elements.map { files -> files*.asFile*.text.join(",") }
                 task consumer1 {
                     inputs.files(c)
@@ -938,20 +1000,23 @@ assert custom.prop.get() == "value 4"
         when:
         fails('myTask', "-Pmy=trash")
         then:
-        failureDescriptionContains("Type 'MyTask' property 'strings' doesn't have a configured value.")
+        failure.assertHasErrorOutput("Type 'MyTask' property 'strings' doesn't have a configured value")
 
         when:
         fails('myTask')
         then:
-        failureDescriptionContains("Type 'MyTask' property 'strings' doesn't have a configured value.")
+        failure.assertHasErrorOutput("Type 'MyTask' property 'strings' doesn't have a configured value")
 
         verifyAll(receivedProblem) {
+            severity == Severity.ERROR
             fqid == 'validation:property-validation:value-not-set'
-            contextualLabel == 'Type \'MyTask\' property \'strings\' doesn\'t have a configured value'
-            details == 'This property isn\'t marked as optional and no value has been configured'
+            definition.id.displayName == 'Value not set'
+            contextualLabel == "Type 'MyTask' property 'strings' doesn't have a configured value"
+            details == "This property isn't marked as optional and no value has been configured"
+            definition.documentationLink.url == "https://docs.gradle.org/${distribution.version.version}/userguide/validation_problems.html#value_not_set"
             solutions == [
-                'Assign a value to \'strings\'',
-                'Mark property \'strings\' as optional',
+                "Assign a value to 'strings'",
+                "Mark property 'strings' as optional",
             ]
             additionalData.asMap == [
                 'typeName' : 'MyTask',

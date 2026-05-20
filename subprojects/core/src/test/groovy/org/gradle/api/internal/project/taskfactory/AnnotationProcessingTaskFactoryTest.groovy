@@ -32,9 +32,7 @@ import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.SkipWhenEmpty
 import org.gradle.api.tasks.TaskPropertyTestUtils
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
-import org.gradle.internal.code.UserCodeSource
 import org.gradle.internal.execution.WorkValidationException
-import org.gradle.internal.execution.WorkValidationExceptionChecker
 import org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory
 import org.gradle.internal.properties.annotations.DefaultTypeMetadataStore
 import org.gradle.internal.properties.annotations.FunctionAnnotationHandler
@@ -128,7 +126,6 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec imp
     def typeMetadataStore = new DefaultTypeMetadataStore([], propertyHandlers, [Optional, SkipWhenEmpty], functionHandlers, [], typeAnnotationMetadataStore, TestPropertyTypeResolver.INSTANCE, cacheFactory, MissingPropertyAnnotationHandler.DO_NOTHING)
     def taskClassInfoStore = new DefaultTaskClassInfoStore(new TestCrossBuildInMemoryCacheFactory(), typeMetadataStore)
     def propertyWalker = new DefaultPropertyWalker(typeMetadataStore, new TestImplementationResolver(), propertyHandlers)
-    def userCodeContext = UserCodeSource.UNKNOWN
 
     @SuppressWarnings("GroovyUnusedDeclaration")
     private String inputValue = "value"
@@ -570,7 +567,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec imp
 
         then:
         def e = thrown WorkValidationException
-        validateException(task, false, e,
+        validateException(task, e,
             missingValueMessage { type(TaskWithNestedBeanWithPrivateClass.canonicalName).property('bean.inputFile').includeLink() },
             ignoredAnnotationOnField { type(Bean2.canonicalName).property('inputFile2').annotatedWith('InputFile').includeLink() })
     }
@@ -922,7 +919,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec imp
     private <T extends TaskInternal> T expectTaskCreated(String name, final Class<T> type, T task) {
         // We cannot just stub here as we want to return a different task each time.
         def projectId = ProjectIdentity.forRootProject(Path.ROOT, "root")
-        def id = new TaskIdentity(type, name, projectId, 12, userCodeContext)
+        def id = new TaskIdentity(type, name, projectId, 12, null)
         1 * delegate.create(id) >> task
         def createdTask = factory.create(id)
         assert createdTask.is(task)
@@ -930,17 +927,8 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec imp
     }
 
     private static void validateException(TaskInternal task, WorkValidationException exception, String... causes) {
-        validateException(task, true, exception, causes)
-    }
-
-    private static void validateException(TaskInternal task, boolean ignoreType, WorkValidationException exception, String... causes) {
         def expectedMessage = causes.length > 1 ? "Some problems were found with the configuration of $task" : "A problem was found with the configuration of $task"
-        WorkValidationExceptionChecker.check(exception, ignoreType) {
-            messageContains(expectedMessage)
-            causes.each { cause ->
-                hasProblem(cause)
-            }
-        }
+        exception.message.contains(expectedMessage)
     }
 
     private Map<String, Object> inputProperties(TaskInternal task) {

@@ -61,7 +61,7 @@ publishing.publications.withType<MavenPublication>().configureEach {
 // See AbstractPluginTest
 val localRepository = layout.buildDirectory.dir("repository")
 
-val publishPluginsToTestRepository by tasks.registering {
+val publishPluginsToTestRepository = tasks.register("publishPluginsToTestRepository") {
     dependsOn("publishPluginMavenPublicationToTestRepository")
     val repoDir = localRepository // Prevent capturing the Gradle script instance for configuration cache compatibility
     // This should be unified with publish-public-libraries if possible
@@ -83,7 +83,7 @@ val publishPluginsToTestRepository by tasks.registering {
 }
 
 val futurePluginVersionsPropertiesFile = layout.buildDirectory.file("generated-resources/future-plugin-versions/future-plugin-versions.properties")
-val writeFuturePluginVersions by tasks.registering(WriteProperties::class) {
+val writeFuturePluginVersions = tasks.register<WriteProperties>("writeFuturePluginVersions") {
     destinationFile = futurePluginVersionsPropertiesFile
 }
 val futurePluginVersionsDestDir = futurePluginVersionsPropertiesFile.map { it.asFile.parentFile }

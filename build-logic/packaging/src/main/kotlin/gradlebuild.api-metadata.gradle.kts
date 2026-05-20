@@ -28,7 +28,7 @@ plugins {
 
 val apiDeclarationPropertiesFile = generatedPropertiesFileFor("gradle-api-declaration")
 
-val apiDeclaration by tasks.registering(WriteProperties::class) {
+val apiDeclaration = tasks.register<WriteProperties>("apiDeclaration") {
     property("includes", PublicApi.includes.joinToString(":"))
     property("excludes", PublicApi.excludes.joinToString(":"))
     destinationFile = apiDeclarationPropertiesFile

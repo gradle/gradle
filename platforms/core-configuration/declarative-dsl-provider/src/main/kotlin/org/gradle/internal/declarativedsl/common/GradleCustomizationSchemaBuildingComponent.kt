@@ -51,8 +51,6 @@ fun EvaluationSchemaBuilder.gradleDslGeneralSchema() {
 
     registerAnalysisSchemaComponent(MinimalSchemaBuildingComponent())
 
-    registerAnalysisSchemaComponent(TypeDiscoveryFromRestrictedFunctions())
-
     registerAnalysisSchemaComponent(SupertypeTypeDiscovery())
 
     ifConversionSupported {

@@ -449,7 +449,7 @@ data class ScriptCompilationException(private val scriptCompilationErrors: List<
 
     private
     fun indentedErrorMessages() =
-        errors.asSequence().map(::errorMessage).map(::prependIndent).toList()
+        errors.map { prependIndent(errorMessage(it)) }
 
     private
     fun errorMessage(error: ScriptCompilationError): String =

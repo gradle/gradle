@@ -63,42 +63,8 @@ Let's imagine that the `app` subproject depends on the subproject called `some-l
 We add this dependency in the `app` build script:
 
 ====
-[.multi-language-sample]
-=====
-.app/build.gradle.kts
-[source,kotlin]
-----
-plugins {
-    id("application")                       // app is now a java application
-}
-
-application {
-    mainClass.set("hello.HelloWorld")       // main class name required by the application plugin
-}
-
-dependencies {
-    implementation(project(":some-logic"))  // dependency on some-logic
-}
-----
-=====
-[.multi-language-sample]
-=====
-.app/build.gradle
-[source,groovy]
-----
-plugins {
-    id('application')                       // app is now a java application
-}
-
-application {
-    mainClass = 'hello.HelloWorld'          // main class name required by the application plugin
-}
-
-dependencies {
-    implementation(project(':some-logic'))  // dependency on some-logic
-}
-----
-=====
+include::sample[dir="snippets/reference/task-development/taskDependencies/kotlin",files="app/build.gradle.kts[tags=app-build-script]"]
+include::sample[dir="snippets/reference/task-development/taskDependencies/groovy",files="app/build.gradle[tags=app-build-script]"]
 ====
 
 If we run `:app:build` again, we see the Java code of `some-logic` is also compiled by Gradle automatically:
@@ -168,7 +134,7 @@ $ ./gradlew -q taskX
 ----
 [source,text]
 ----
-include::{snippetsPath}/tasks/addDependencyUsingPath/tests/addDependencyUsingPath.out[]
+include::{snippetsPath}/reference/task-development/addDependencyUsingPath/tests/addDependencyUsingPath.out[]
 ----
 
 For more information about task dependencies, see the link:{javadocPath}/org/gradle/api/Task.html[Task] API.
@@ -197,8 +163,8 @@ So if you only run `taskY` with `mustRunAfter`, you won't cause `taskX` to run.
 This is expressed as `taskY.mustRunAfter(taskX)`.
 
 ====
-include::sample[dir="snippets/tasks/mustRunAfter/kotlin",files="build.gradle.kts[]"]
-include::sample[dir="snippets/tasks/mustRunAfter/groovy",files="build.gradle[]"]
+include::sample[dir="snippets/reference/task-development/mustRunAfter/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="snippets/reference/task-development/mustRunAfter/groovy",files="build.gradle[]"]
 ====
 
 [source,bash]
@@ -207,7 +173,7 @@ $ ./gradlew -q taskY taskX
 ----
 [source,text]
 ----
-include::{snippetsPath}/tasks/mustRunAfter/tests/mustRunAfter.out[]
+include::{snippetsPath}/reference/task-development/mustRunAfter/tests/mustRunAfter.out[]
 ----
 
 The "should run after" ordering rule is similar but less strict, as it will be ignored in two situations:
@@ -218,8 +184,8 @@ The "should run after" ordering rule is similar but less strict, as it will be i
 You should use "should run after" where the ordering is helpful but not strictly required:
 
 ====
-include::sample[dir="snippets/tasks/shouldRunAfter/kotlin",files="build.gradle.kts[]"]
-include::sample[dir="snippets/tasks/shouldRunAfter/groovy",files="build.gradle[]"]
+include::sample[dir="snippets/reference/task-development/shouldRunAfter/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="snippets/reference/task-development/shouldRunAfter/groovy",files="build.gradle[]"]
 ====
 
 [source,bash]
@@ -228,7 +194,7 @@ $ ./gradlew -q taskY taskX
 ----
 [source,text]
 ----
-include::{snippetsPath}/tasks/shouldRunAfter/tests/shouldRunAfter.out[]
+include::{snippetsPath}/reference/task-development/shouldRunAfter/tests/shouldRunAfter.out[]
 ----
 
 In the examples above, it is still possible to execute `taskY` without causing `taskX` to run:
@@ -239,14 +205,14 @@ $ ./gradlew -q taskY
 ----
 [source,text]
 ----
-include::{snippetsPath}/tasks/mustRunAfter/tests/mustRunAfterSingleTask.out[]
+include::{snippetsPath}/reference/task-development/mustRunAfter/tests/mustRunAfterSingleTask.out[]
 ----
 
 The "should run after" ordering rule will be ignored if it introduces an ordering cycle:
 
 ====
-include::sample[dir="snippets/tasks/shouldRunAfterWithCycle/kotlin",files="build.gradle.kts[]"]
-include::sample[dir="snippets/tasks/shouldRunAfterWithCycle/groovy",files="build.gradle[]"]
+include::sample[dir="snippets/reference/task-development/shouldRunAfterWithCycle/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="snippets/reference/task-development/shouldRunAfterWithCycle/groovy",files="build.gradle[]"]
 ====
 
 [source,bash]
@@ -255,7 +221,7 @@ $ ./gradlew -q taskX
 ----
 [source,text]
 ----
-include::{snippetsPath}/tasks/shouldRunAfterWithCycle/tests/shouldRunAfterWithCycle.out[]
+include::{snippetsPath}/reference/task-development/shouldRunAfterWithCycle/tests/shouldRunAfterWithCycle.out[]
 ----
 
 Note that `taskY.mustRunAfter(taskX)` or `taskY.shouldRunAfter(taskX)` does not imply any execution dependency between the tasks:
@@ -275,8 +241,8 @@ To specify a finalizer task, you use the link:{javadocPath}/org/gradle/api/Task.
 This method accepts a task instance, a task name, or any other input accepted by link:{javadocPath}/org/gradle/api/Task.html#dependsOn-java.lang.Object...-[Task.dependsOn(java.lang.Object...)]:
 
 ====
-include::sample[dir="snippets/tasks/finalizers/kotlin",files="build.gradle.kts[]"]
-include::sample[dir="snippets/tasks/finalizers/groovy",files="build.gradle[]"]
+include::sample[dir="snippets/reference/task-development/finalizers/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="snippets/reference/task-development/finalizers/groovy",files="build.gradle[]"]
 ====
 
 [source,bash]
@@ -285,14 +251,14 @@ $ ./gradlew -q taskX
 ----
 [source,text]
 ----
-include::{snippetsPath}/tasks/finalizers/tests/taskFinalizers.out[]
+include::{snippetsPath}/reference/task-development/finalizers/tests/taskFinalizers.out[]
 ----
 
 Finalizer tasks are executed even if the finalized task fails or if the finalized task is considered `UP-TO-DATE`:
 
 ====
-include::sample[dir="snippets/tasks/finalizersWithFailure/kotlin",files="build.gradle.kts[]"]
-include::sample[dir="snippets/tasks/finalizersWithFailure/groovy",files="build.gradle[]"]
+include::sample[dir="snippets/reference/task-development/finalizersWithFailure/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="snippets/reference/task-development/finalizersWithFailure/groovy",files="build.gradle[]"]
 ====
 
 [source,bash]
@@ -301,7 +267,7 @@ $ ./gradlew -q taskX
 ----
 [source,text]
 ----
-include::{snippetsPath}/tasks/finalizersWithFailure/tests-groovy/taskFinalizersWithFailureGroovy.out[]
+include::{snippetsPath}/reference/task-development/finalizersWithFailure/tests-groovy/taskFinalizersWithFailureGroovy.out[]
 ----
 
 [[sec:skipping_tasks]]
@@ -321,8 +287,8 @@ The predicate is evaluated just before the task is executed.
 Passing an optional reason string to `onlyIf()` is useful for explaining why the task is skipped:
 
 ====
-include::sample[dir="snippets/tutorial/taskOnlyIf/kotlin",files="build.gradle.kts[]"]
-include::sample[dir="snippets/tutorial/taskOnlyIf/groovy",files="build.gradle[]"]
+include::sample[dir="snippets/reference/task-development/taskOnlyIf/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="snippets/reference/task-development/taskOnlyIf/groovy",files="build.gradle[]"]
 ====
 
 [source,bash]
@@ -331,7 +297,7 @@ $ ./gradlew hello -PskipHello
 ----
 [source,text]
 ----
-include::{snippetsPath}/tutorial/taskOnlyIf/tests/taskOnlyIf.out[]
+include::{snippetsPath}/reference/task-development/taskOnlyIf/tests/taskOnlyIf.out[]
 ----
 
 To find why a task was skipped, run the build with the `--info` logging level.
@@ -342,7 +308,7 @@ $ ./gradlew hello -PskipHello --info
 ----
 [source,text]
 ----
-include::{snippetsPath}/tutorial/taskOnlyIf/tests/taskOnlyIf-info.out[]
+include::{snippetsPath}/reference/task-development/taskOnlyIf/tests/taskOnlyIf-info.out[]
 ----
 
 [[sec:using_stopexecutionexception]]
@@ -354,8 +320,8 @@ If this exception is thrown by an action, the task action as well as the executi
 The build continues by executing the next task:
 
 ====
-include::sample[dir="snippets/tutorial/stopExecutionException/kotlin",files="build.gradle.kts[]"]
-include::sample[dir="snippets/tutorial/stopExecutionException/groovy",files="build.gradle[]"]
+include::sample[dir="snippets/reference/task-development/stopExecutionException/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="snippets/reference/task-development/stopExecutionException/groovy",files="build.gradle[]"]
 ====
 
 [source,bash]
@@ -364,7 +330,7 @@ $ ./gradlew -q myTask
 ----
 [source,text]
 ----
-include::{snippetsPath}/tutorial/stopExecutionException/tests/stopExecutionException.out[]
+include::{snippetsPath}/reference/task-development/stopExecutionException/tests/stopExecutionException.out[]
 ----
 
 This feature is helpful if you work with tasks provided by Gradle.
@@ -379,8 +345,8 @@ Setting it to `false` prevents executing the task's actions.
 A disabled task will be labeled `SKIPPED`:
 
 ====
-include::sample[dir="snippets/tutorial/disableTask/kotlin",files="build.gradle.kts[]"]
-include::sample[dir="snippets/tutorial/disableTask/groovy",files="build.gradle[]"]
+include::sample[dir="snippets/reference/task-development/disableTask/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="snippets/reference/task-development/disableTask/groovy",files="build.gradle[]"]
 ====
 
 [source,bash]
@@ -389,7 +355,7 @@ $ ./gradlew disableMe
 ----
 [source,text]
 ----
-include::{snippetsPath}/tutorial/disableTask/tests/disableTask.out[]
+include::{snippetsPath}/reference/task-development/disableTask/tests/disableTask.out[]
 ----
 
 [[sec:task_timeouts]]
@@ -406,8 +372,8 @@ Tasks that don't respond to interrupts can't be timed out.
 All of Gradle's built-in tasks respond to timeouts.
 
 ====
-include::sample[dir="snippets/tasks/timeout/kotlin",files="build.gradle.kts[tags=without-import]"]
-include::sample[dir="snippets/tasks/timeout/groovy",files="build.gradle[]"]
+include::sample[dir="snippets/reference/task-development/timeout/kotlin",files="build.gradle.kts[tags=without-import]"]
+include::sample[dir="snippets/reference/task-development/timeout/groovy",files="build.gradle[]"]
 ====
 
 [[sec:task_rules]]
@@ -417,8 +383,8 @@ Sometimes you want to have a task whose behavior depends on a large or infinite 
 A very nice and expressive way to provide such tasks are task rules:
 
 ====
-include::sample[dir="snippets/tasks/addRules/kotlin",files="build.gradle.kts[tags=task-rule]"]
-include::sample[dir="snippets/tasks/addRules/groovy",files="build.gradle[tags=task-rule]"]
+include::sample[dir="snippets/reference/task-development/addRules/kotlin",files="build.gradle.kts[tags=task-rule]"]
+include::sample[dir="snippets/reference/task-development/addRules/groovy",files="build.gradle[tags=task-rule]"]
 ====
 
 [source,bash]
@@ -427,7 +393,7 @@ $ ./gradlew -q pingServer1
 ----
 [source,text]
 ----
-include::{snippetsPath}/tasks/addRules/tests/taskRule.out[]
+include::{snippetsPath}/reference/task-development/addRules/tests/taskRule.out[]
 ----
 
 The `String` parameter is used as a description for the rule, which is shown with `./gradlew tasks`.
@@ -436,8 +402,8 @@ Rules are not only used when calling tasks from the command line.
 You can also create `dependsOn` relations on rule based tasks:
 
 ====
-include::sample[dir="snippets/tasks/addRules/kotlin",files="build.gradle.kts[tags=all]"]
-include::sample[dir="snippets/tasks/addRules/groovy",files="build.gradle[tags=all]"]
+include::sample[dir="snippets/reference/task-development/addRules/kotlin",files="build.gradle.kts[tags=all]"]
+include::sample[dir="snippets/reference/task-development/addRules/groovy",files="build.gradle[tags=all]"]
 ====
 
 [source,bash]
@@ -446,7 +412,7 @@ $ ./gradlew -q groupPing
 ----
 [source,text]
 ----
-include::{snippetsPath}/tasks/addRules/tests/taskRuleDependsOn.out[]
+include::{snippetsPath}/reference/task-development/addRules/tests/taskRuleDependsOn.out[]
 ----
 
 If you run `./gradlew -q tasks`, you won't find a task named `pingServer1` or `pingServer2`, but this script is executing logic based on the request to run those tasks.

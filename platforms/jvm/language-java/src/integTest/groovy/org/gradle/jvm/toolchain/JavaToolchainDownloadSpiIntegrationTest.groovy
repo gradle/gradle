@@ -23,8 +23,9 @@ import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.InstalledJdkTestPreconditions
+import org.gradle.test.preconditions.OsTestPreconditions
+
 import org.junit.Assume
 import spock.lang.Issue
 
@@ -493,7 +494,7 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractIntegrationSpec {
                    GET_HELP)
     }
 
-    @Requires(IntegTestPreconditions.Java11HomeAvailable)
+    @Requires(InstalledJdkTestPreconditions.Java11HomeAvailable)
     def "logs informative warning message if some repositories fail to resolve the toolchain spec #logLevel"(String logLevel, Closure<ExecutionResult> test) {
         given:
         Assume.assumeFalse(JavaVersion.current() == JavaVersion.VERSION_11)
@@ -565,7 +566,7 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractIntegrationSpec {
     }
 
     // We can create directories and files that exceed Windows max path, but Java cannot execute processes from them https://bugs.openjdk.org/browse/JDK-8315405
-    @Requires(UnitTestPreconditions.NotWindows)
+    @Requires(OsTestPreconditions.NotWindows)
     def "downloaded archive filename is truncated to meet generic file-system limits"() {
         def jvm = AvailableJavaHomes.getDifferentVersion()
         given:

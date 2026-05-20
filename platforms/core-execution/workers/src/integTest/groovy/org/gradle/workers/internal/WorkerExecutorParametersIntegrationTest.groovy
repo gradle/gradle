@@ -498,6 +498,26 @@ class WorkerExecutorParametersIntegrationTest extends AbstractIntegrationSpec {
         isolationMode << ISOLATION_MODES
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/30182")
+    def "can access None parameters in a work action with isolation mode #isolationMode"() {
+        buildFile << """
+            ${noneParameterWorkAction('println "parameters: " + getParameters()')}
+
+            tasks.register("runWork", ParameterTask) {
+                isolationMode = ${isolationMode}
+            }
+        """
+
+        when:
+        succeeds("runWork")
+
+        then:
+        outputContains("parameters: org.gradle.workers.WorkParameters\$None@")
+
+        where:
+        isolationMode << ISOLATION_MODES
+    }
+
     String parameterWorkAction(String type, String action, boolean requiresSetter = false) {
         return """
             import org.gradle.workers.WorkAction

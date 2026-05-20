@@ -15,26 +15,30 @@
  */
 package org.gradle.launcher.daemon.server.exec;
 
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
-import org.gradle.internal.nativeintegration.EnvironmentModificationResult;
 import org.gradle.launcher.daemon.protocol.Build;
 import org.gradle.launcher.daemon.server.api.DaemonCommandExecution;
 
 import java.io.File;
-import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
 
 /**
- * Aims to make the local environment the same as the client's environment.
+ * Applies the system properties and process directory specified by the client to the daemon JVM,
+ * and restores the previous values when the build finishes.
+ *
+ * <p>This action is intentionally placed before {@link LogToClient} in the daemon command chain so
+ * that system properties such as {@link LogToClient#DISABLE_OUTPUT} are visible to {@code LogToClient}
+ * when it decides whether to forward output to the client.</p>
+ *
+ * <p>Applying client-supplied environment variables is the responsibility of {@link ApplyClientEnvironmentVariables},
+ * which runs <em>after</em> {@code LogToClient} so that any warning emitted on environment-modification
+ * failure (e.g. when the native integration is unavailable on a {@code noexec} filesystem) reaches the client.</p>
  */
 public class EstablishBuildEnvironment extends BuildCommandOnly {
-    private final static Logger LOGGER = Logging.getLogger(EstablishBuildEnvironment.class);
 
     private final ProcessEnvironment processEnvironment;
 
@@ -46,7 +50,6 @@ public class EstablishBuildEnvironment extends BuildCommandOnly {
     protected void doBuild(DaemonCommandExecution execution, Build build) {
         Properties originalSystemProperties = new Properties();
         originalSystemProperties.putAll(System.getProperties());
-        Map<String, String> originalEnv = new HashMap<String, String>(System.getenv());
         File originalProcessDir = FileUtils.canonicalize(new File("."));
 
         for (Map.Entry<String, String> entry : build.getParameters().getSystemProperties().entrySet()) {
@@ -62,19 +65,6 @@ public class EstablishBuildEnvironment extends BuildCommandOnly {
             System.setProperty(entry.getKey(), entry.getValue());
         }
 
-        // Log only the variable names and not their values. Environment variables often contain sensitive data that should not be leaked to log files.
-        LOGGER.debug("Configuring env variables: {}", build.getParameters().getEnvVariables().keySet());
-
-        EnvironmentModificationResult setEnvironmentResult = processEnvironment.maybeSetEnvironment(build.getParameters().getEnvVariables());
-        if(!setEnvironmentResult.isSuccess()) {
-            LOGGER.warn("Warning: Unable able to set daemon's environment variables to match the client because: "
-                + System.getProperty("line.separator") + "  "
-                + setEnvironmentResult
-                + System.getProperty("line.separator") + "  "
-                + "If the daemon was started with a significantly different environment from the client, and your build "
-                + System.getProperty("line.separator") + "  "
-                + "relies on environment variables, you may experience unexpected behavior.");
-        }
         processEnvironment.maybeSetProcessDir(build.getParameters().getCurrentDir());
 
         // Capture and restore this in case the build code calls Locale.setDefault()
@@ -84,7 +74,6 @@ public class EstablishBuildEnvironment extends BuildCommandOnly {
             execution.proceed();
         } finally {
             System.setProperties(originalSystemProperties);
-            processEnvironment.maybeSetEnvironment(originalEnv);
             processEnvironment.maybeSetProcessDir(originalProcessDir);
             Locale.setDefault(locale);
         }

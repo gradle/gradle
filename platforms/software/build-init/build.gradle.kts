@@ -37,6 +37,7 @@ dependencies {
     }
     implementation(projects.pluginsJvmTestSuite)
     implementation(projects.serviceLookup)
+    implementation(projects.startParameter)
     implementation(projects.wrapperShared)
     implementation(projects.resources)
 

@@ -20,7 +20,8 @@ package org.gradle.api.internal.file
 import org.gradle.internal.typeconversion.UnsupportedNotationException
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.OsTestPreconditions
+
 import org.junit.Rule
 import spock.lang.Issue
 import spock.lang.Specification
@@ -126,7 +127,7 @@ class UriNotationConverterTest extends Specification {
         showsProperMessage(e, 12)
     }
 
-    @Requires(UnitTestPreconditions.Windows)
+    @Requires(OsTestPreconditions.Windows)
     def "windows-like paths are treated as non-uris for #hint"() {
         when:
         parse(path)

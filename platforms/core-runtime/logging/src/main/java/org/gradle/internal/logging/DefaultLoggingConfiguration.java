@@ -31,7 +31,8 @@ public class DefaultLoggingConfiguration implements Serializable, LoggingConfigu
     private ShowStacktrace showStacktrace = ShowStacktrace.INTERNAL_EXCEPTIONS;
     private ConsoleOutput consoleOutput = ConsoleOutput.Auto;
     private ConsoleUnicodeSupport consoleUnicodeSupport = ConsoleUnicodeSupport.Auto;
-    private WarningMode warningMode =  WarningMode.Summary;
+    private boolean isNonInteractive;
+    private WarningMode warningMode = WarningMode.Summary;
 
     @Override
     public boolean equals(Object obj) {
@@ -71,6 +72,16 @@ public class DefaultLoggingConfiguration implements Serializable, LoggingConfigu
     @Override
     public void setConsoleUnicodeSupport(ConsoleUnicodeSupport consoleUnicodeSupport) {
         this.consoleUnicodeSupport = consoleUnicodeSupport;
+    }
+
+    @Override
+    public boolean isNonInteractive() {
+        return isNonInteractive;
+    }
+
+    @Override
+    public void setNonInteractive(boolean nonInteractive) {
+        isNonInteractive = nonInteractive;
     }
 
     @Override

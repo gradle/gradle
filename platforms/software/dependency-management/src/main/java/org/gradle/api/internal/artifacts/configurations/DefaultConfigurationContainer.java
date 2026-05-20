@@ -36,9 +36,8 @@ import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.artifacts.ConfigurationResolver;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.problems.ProblemId;
-import org.gradle.api.problems.Severity;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
-import org.gradle.api.problems.internal.InternalProblems;
+import org.gradle.api.problems.internal.ProblemsInternal;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
@@ -62,7 +61,7 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
     private final DomainObjectContext owner;
     private final DefaultConfigurationFactory defaultConfigurationFactory;
     private final ResolutionStrategyFactory resolutionStrategyFactory;
-    private final InternalProblems problemsService;
+    private final ProblemsInternal problemsService;
 
     private final ConfigurationResolver resolver;
 
@@ -75,7 +74,7 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
         DomainObjectContext owner,
         DefaultConfigurationFactory defaultConfigurationFactory,
         ResolutionStrategyFactory resolutionStrategyFactory,
-        InternalProblems problemsService,
+        ProblemsInternal problemsService,
         ConfigurationResolver.Factory resolverFactory,
         AttributesSchemaInternal schema
     ) {
@@ -155,7 +154,6 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
         ProblemId id = ProblemId.create("method-not-allowed", "Method call not allowed", GradleCoreProblemGroup.configurationUsage());
         throw problemsService.getInternalReporter().throwing(ex, id, spec -> {
             spec.contextualLabel(ex.getMessage());
-            spec.severity(Severity.ERROR);
         });
     }
 
@@ -320,7 +318,6 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
         ProblemId id = ProblemId.create("unexpected configuration usage", "Unexpected configuration usage", GradleCoreProblemGroup.configurationUsage());
         throw problemsService.getInternalReporter().throwing(ex, id, spec -> {
             spec.contextualLabel(ex.getMessage());
-            spec.severity(Severity.ERROR);
         });
     }
 
@@ -370,7 +367,6 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
             ProblemId id = ProblemId.create("name-not-allowed", "Configuration name not allowed", GradleCoreProblemGroup.configurationUsage());
             throw problemsService.getInternalReporter().throwing(ex, id, spec -> {
                 spec.contextualLabel(ex.getMessage());
-                spec.severity(Severity.ERROR);
             });
         }
     }

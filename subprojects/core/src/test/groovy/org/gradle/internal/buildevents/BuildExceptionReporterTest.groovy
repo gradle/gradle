@@ -17,9 +17,13 @@
 package org.gradle.internal.buildevents
 
 import org.gradle.StartParameter
+import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.artifacts.ivyservice.TypedResolveException
+import org.gradle.api.internal.project.ProjectIdentity
+import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.internal.project.taskfactory.TestTaskIdentities
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.configuration.LoggingConfiguration
@@ -37,6 +41,7 @@ import org.gradle.internal.logging.text.StyledTextOutputFactory
 import org.gradle.internal.logging.text.TestStyledTextOutput
 import org.gradle.internal.problems.failure.DefaultFailureFactory
 import org.gradle.internal.problems.failure.FailureFactory
+import org.gradle.util.Path
 import spock.lang.Specification
 
 import java.lang.reflect.Field
@@ -316,8 +321,17 @@ Caused by: org.gradle.api.GradleException: $FAILURE
     }
 
     def "report multiple failures and skip help link for NonGradleCauseException"() {
-        def task1 = Mock(TaskInternal) { toString() >> "task ':testTask1'" }
-        def task2 = Mock(TaskInternal) { toString() >> "task ':testTask2'" }
+        def project = Mock(ProjectInternal) {
+            getProjectIdentity() >> ProjectIdentity.forRootProject(Path.ROOT, "name")
+        }
+        def task1 = Mock(TaskInternal) {
+            toString() >> "task ':testTask1'"
+            getTaskIdentity() >> TestTaskIdentities.create("testTask1", DefaultTask.class, project, )
+        }
+        def task2 = Mock(TaskInternal) {
+            toString() >> "task ':testTask2'"
+            getTaskIdentity() >> TestTaskIdentities.create("testTask2", DefaultTask.class, project, )
+        }
         def failure1 = new LocationAwareException(new TaskExecutionException(task1, new TestNonGradleCauseException()), LOCATION, 42)
         def failure2 = new LocationAwareException(new TaskExecutionException(task2, new TestCompilationFailureException()), LOCATION, 42)
         def failure3 = new RuntimeException("<error>")

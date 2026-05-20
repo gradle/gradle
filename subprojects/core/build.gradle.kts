@@ -9,29 +9,6 @@ configurations {
     register("reports")
 }
 
-// Instrumentation interceptors for tests
-// Separated from the test source set since we don't support incremental annotation processor with Java/Groovy joint compilation
-val testInterceptors = sourceSets.create("testInterceptors") {
-    compileClasspath += sourceSets.main.get().output
-    runtimeClasspath += sourceSets.main.get().output
-}
-sourceSets.test {
-    compileClasspath += testInterceptors.output
-    runtimeClasspath += testInterceptors.output
-}
-dependencyAnalysis {
-    issues {
-        ignoreSourceSet(testInterceptors.name)
-    }
-}
-jvmCompile {
-    addCompilationFrom(testInterceptors)
-}
-
-val testInterceptorsImplementation: Configuration by configurations.getting {
-    extendsFrom(configurations.implementation.get())
-}
-
 dependencies {
     api(projects.ant)
     api(projects.antApi)
@@ -40,22 +17,24 @@ dependencies {
     api(projects.baseServicesGroovy)
     api(projects.buildCache)
     api(projects.buildCacheBase)
-    api(projects.buildCacheLocal)
-    api(projects.buildCachePackaging)
-    api(projects.buildCacheSpi)
+    api(projects.buildCacheCore)
     api(projects.buildDiscovery)
     api(projects.buildDiscoveryImpl)
     api(projects.buildInitSpecs)
     api(projects.buildOperations)
     api(projects.buildOption)
     api(projects.buildProcessServices)
+    api(projects.classpath)
     api(projects.classloaders)
     api(projects.cli)
     api(projects.collections)
     api(projects.concurrent)
+    api(projects.configurationProblemsBase)
     api(projects.coreApi)
     api(projects.credentialsApi)
+    api(projects.daemonMessaging)
     api(projects.declarativeDslApi)
+    api(projects.domainObjectCollections)
     api(projects.enterpriseLogging)
     api(projects.enterpriseOperations)
     api(projects.execution)
@@ -66,6 +45,7 @@ dependencies {
     api(projects.files)
     api(projects.functional)
     api(projects.hashing)
+    api(projects.hashingServices)
     api(projects.instrumentationAgentServices)
     api(projects.instrumentationReporting)
     api(projects.internalInstrumentationApi)
@@ -76,11 +56,14 @@ dependencies {
     api(projects.modelCore)
     api(projects.modelReflect)
     api(projects.native)
+    api(projects.normalization)
+    api(projects.normalizationApi)
     api(projects.normalizationJava)
     api(projects.persistentCache)
     api(projects.problemsApi)
     api(projects.processServices)
     api(projects.processServicesApi)
+    api(projects.processServicesBase)
     api(projects.resources)
     api(projects.scopedPersistentCache)
     api(projects.serialization)
@@ -88,8 +71,10 @@ dependencies {
     api(projects.serviceProvider)
     api(projects.snapshots)
     api(projects.projectFeatures)
+    api(projects.startParameter)
     api(projects.stdlibJavaExtensions)
     api(projects.time)
+    api(projects.toolingApi)
     api(projects.versionedCache)
 
     api(libs.asm)
@@ -100,10 +85,11 @@ dependencies {
     api(libs.jspecify)
     api(libs.jsr305)
 
+    implementation(projects.buildCachePackaging)
+    implementation(projects.buildCacheSpi)
     implementation(projects.buildDiscoveryReporting)
     implementation(projects.buildOperationsTrace)
     implementation(projects.daemonLogging)
-    implementation(projects.inputTracking)
     implementation(projects.modelGroovy)
     implementation(projects.problemsRendering)
     implementation(projects.processMemoryServices)
@@ -115,7 +101,6 @@ dependencies {
     implementation(projects.workerProcessServices)
 
     implementation(libs.ant)
-    implementation(libs.asmCommons)
     implementation(libs.commonsCompress)
     implementation(libs.commonsIo)
     implementation(libs.commonsLang)
@@ -237,6 +222,7 @@ dependencies {
 
     testImplementation(projects.dependencyManagement)
 
+    testImplementation(testFixtures(projects.domainObjectCollections))
     testImplementation(testFixtures(projects.serialization))
     testImplementation(testFixtures(projects.coreApi))
     testImplementation(testFixtures(projects.messaging))
@@ -263,9 +249,11 @@ dependencies {
     integTestImplementation(libs.jetbrainsAnnotations)
     integTestImplementation(testLibs.jetty)
     integTestImplementation(testLibs.littleproxy)
+    integTestImplementation(testFixtures(projects.domainObjectCollections))
     integTestImplementation(testFixtures(projects.native))
     integTestImplementation(testFixtures(projects.fileTemp))
     integTestImplementation(testFixtures(projects.launcher))
+    integTestImplementation(testFixtures(projects.testingBase))
 
     integTestDistributionRuntimeOnly(projects.distributionsJvm) {
         because("Some tests utilise the 'java-gradle-plugin' and with that TestKit, some also use the 'war' plugin")
@@ -281,10 +269,6 @@ dependencies {
     annotationProcessor(projects.internalInstrumentationProcessor)
     annotationProcessor(platform(projects.distributionsDependencies))
 
-    testInterceptorsImplementation(platform(projects.distributionsDependencies))
-    testInterceptorsImplementation(testFixtures(projects.core))
-    "testInterceptorsAnnotationProcessor"(projects.internalInstrumentationProcessor)
-    "testInterceptorsAnnotationProcessor"(platform(projects.distributionsDependencies))
 }
 
 gradleModule {

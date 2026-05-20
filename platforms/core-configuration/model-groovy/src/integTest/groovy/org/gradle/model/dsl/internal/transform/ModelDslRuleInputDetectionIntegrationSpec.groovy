@@ -16,6 +16,8 @@
 
 package org.gradle.model.dsl.internal.transform
 
+import org.gradle.api.problems.LineInFileLocation
+import org.gradle.api.problems.Severity
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 
@@ -173,6 +175,9 @@ tasks configured
     }
 
     def "dollar var must be followed by property expression - #code"() {
+        given:
+        enableProblemsApiCheck()
+
         when:
         buildFile """
         model {
@@ -186,8 +191,19 @@ tasks configured
         fails "tasks"
         failure.assertHasLineNumber 4
         failure.assertHasFileName("Build file '${buildFile}'")
-        failure.assertHasDescription("Could not compile build file '${buildFile}'")
+        failureDescriptionContains("Could not compile build file '${buildFile}'")
         failure.assertThatCause(containsString('Invalid variable name. Must include a letter but only found: $'))
+        verifyAll(receivedProblem(0)) {
+            severity == Severity.ERROR
+            fqid == 'compilation:groovy-dsl:compilation-failed'
+            definition.id.displayName == 'Groovy DSL script compilation problem'
+            contextualLabel == "Could not compile build file '${buildFile}'."
+            details == null
+            definition.documentationLink == null
+            solutions == []
+            oneLocation(LineInFileLocation).path == buildFile.absolutePath
+            additionalData.asMap == [:]
+        }
 
         where:
         code << [

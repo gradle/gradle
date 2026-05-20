@@ -16,14 +16,14 @@
 
 package org.gradle.plugins.ide.idea
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.plugins.ide.AbstractIdeIntegrationSpec
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import org.junit.Rule
 
-@Requires(IntegTestPreconditions.NotParallelExecutor)
-class CompositeBuildParallelIntegrationTest extends AbstractIntegrationSpec {
+@Requires(TestExecutionPreconditions.NotParallelExecutor)
+class CompositeBuildParallelIntegrationTest extends AbstractIdeIntegrationSpec {
     @Rule BlockingHttpServer server = new BlockingHttpServer()
 
     def "builds IDE metadata artifacts in parallel"() {
@@ -64,6 +64,7 @@ class CompositeBuildParallelIntegrationTest extends AbstractIntegrationSpec {
         expect:
         executer.withArguments("--max-workers=4")
         executer.inDirectory(buildA)
+        expectTaskDeprecations("idea", "ideaModule", "ideaProject", "ideaWorkspace")
         succeeds(":idea")
     }
 }

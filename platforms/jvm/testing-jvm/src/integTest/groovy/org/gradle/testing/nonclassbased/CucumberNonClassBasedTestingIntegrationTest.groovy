@@ -17,7 +17,6 @@
 package org.gradle.testing.nonclassbased
 
 import org.gradle.api.internal.tasks.testing.report.VerifiesGenericTestReportResults
-import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
 import org.gradle.api.tasks.testing.TestResult
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
@@ -28,11 +27,6 @@ import static org.gradle.testing.nonclassbased.AbstractNonClassBasedTestingInteg
  * without using non-class-based testing support via {@code @RunWith} or other JUnit annotations.
  */
 class CucumberNonClassBasedTestingIntegrationTest extends AbstractIntegrationSpec implements VerifiesGenericTestReportResults {
-    @Override
-    GenericTestExecutionResult.TestFramework getTestFramework() {
-        return GenericTestExecutionResult.TestFramework.CUCUMBER
-    }
-
     def "can run Cucumber JVM feature files without using non-class-based testing (features in: #testLocation)"() {
         given:
         buildFile << """
@@ -66,7 +60,7 @@ class CucumberNonClassBasedTestingIntegrationTest extends AbstractIntegrationSpe
 
         then:
         def result = resultsFor()
-        result.testPathPreNormalized(":helloworld.feature:Say hello /two/three").onlyRoot().assertHasResult(TestResult.ResultType.SUCCESS)
+        result.testPath(":$testLocation/helloworld.feature:Say hello /two/three").onlyRoot().assertHasResult(TestResult.ResultType.SUCCESS)
 
         where:
         testLocation << ["src/test/resources", DEFAULT_DEFINITIONS_LOCATION]
@@ -110,7 +104,7 @@ class CucumberNonClassBasedTestingIntegrationTest extends AbstractIntegrationSpe
 
         then:
         def result = resultsFor()
-        result.testPathPreNormalized(":helloworld.feature:Say hello /two/three").onlyRoot().assertHasResult(TestResult.ResultType.SUCCESS)
+        result.testPath(":src/test/resources/helloworld.feature:Say hello /two/three").onlyRoot().assertHasResult(TestResult.ResultType.SUCCESS)
     }
 
     private writeCucumberStepDefinitions(String path = "src/test/java") {

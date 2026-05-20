@@ -25,11 +25,13 @@ dependencies {
     api(projects.buildProcessServices)
     api(projects.classloaders)
     api(projects.core)
+    api(projects.daemonMessaging)
     api(projects.daemonProtocol)
     api(projects.instrumentationAgentServices)
     api(projects.logging)
     api(projects.serviceLookup)
     api(projects.serviceProvider)
+    api(projects.startParameter)
     api(projects.stdlibJavaExtensions)
 
     implementation(projects.buildDiscoveryImpl)

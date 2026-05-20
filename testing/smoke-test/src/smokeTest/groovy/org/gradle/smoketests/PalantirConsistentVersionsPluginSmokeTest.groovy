@@ -16,8 +16,11 @@
 
 package org.gradle.smoketests
 
+import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
+
 class PalantirConsistentVersionsPluginSmokeTest extends AbstractSmokeTest {
 
+    @ToBeFixedForIsolatedProjects(because = "Plugin has IP incompatible logic")
     def 'basic functionality'() {
         given:
         buildFile << """
@@ -53,5 +56,14 @@ class PalantirConsistentVersionsPluginSmokeTest extends AbstractSmokeTest {
 
         then:
         result.output.contains("com.google.guava:guava -> 17.0")
+    }
+
+    @Override
+    SmokeTestGradleRunner runner(String... tasks) {
+        return super.runner(tasks)
+            .expectDeprecationWarning(
+                "Using a Project object as a dependency notation has been deprecated. This will fail with an error in Gradle 10. Please use the project(String) method on DependencyHandler or the createProjectDependency(String) method on DependencyFactory instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#dependency_project_notation",
+                "https://github.com/palantir/gradle-consistent-versions/issues/1637"
+            )
     }
 }

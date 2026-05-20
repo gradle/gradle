@@ -19,14 +19,16 @@ package org.gradle.java.environment
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
+import org.gradle.test.preconditions.InstalledJdkTestPreconditions
+import org.gradle.test.preconditions.OsTestPreconditions
+
 
 class JreJavaHomeJavaIntegrationTest extends AbstractIntegrationSpec {
 
     @Requires(value = [
-        IntegTestPreconditions.BestJreAvailable,
-        IntegTestPreconditions.NotEmbeddedExecutor,
+        InstalledJdkTestPreconditions.BestJreAvailable,
+        TestExecutionPreconditions.NotEmbeddedExecutor,
     ], reason = "must run with a JRE")
     def "java compilation works in forking mode = #forkMode when JAVA_HOME is set to JRE"() {
         given:
@@ -48,7 +50,7 @@ class JreJavaHomeJavaIntegrationTest extends AbstractIntegrationSpec {
         forkMode << [true, false]
     }
 
-    @Requires(UnitTestPreconditions.Windows)
+    @Requires(OsTestPreconditions.Windows)
     def "java compilation works in forking mode = #forkMode when gradle is started with no JAVA_HOME defined"() {
         given:
         writeJavaTestSource("src/main/java");

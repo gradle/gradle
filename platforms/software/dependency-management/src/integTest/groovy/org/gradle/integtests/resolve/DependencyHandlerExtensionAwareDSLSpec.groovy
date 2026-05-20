@@ -41,14 +41,12 @@ class DependencyHandlerExtensionAwareDSLSpec extends AbstractIntegrationSpec imp
     def "can type-safely use DependencyHandler ExtensionAware with the Kotlin DSL"() {
         buildKotlinFile << """
             dependencies {
-                val theAnswer: () -> Int by extra {
-                    { 42 }
-                }
+                extra["theAnswer"] = { 42 }
             }
 
             tasks {
                 register("assertValue") {
-                    val theAnswer: () -> Int by project.dependencies.extra
+                    val theAnswer = project.dependencies.extra["theAnswer"] as () -> Int
                     doLast {
                         assert(theAnswer() == 42)
                     }

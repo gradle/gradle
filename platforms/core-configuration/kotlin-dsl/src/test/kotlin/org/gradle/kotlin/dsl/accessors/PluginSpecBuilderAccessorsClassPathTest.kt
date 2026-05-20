@@ -25,7 +25,7 @@ import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.PluginEntry
 import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.PluginEntryCache
 import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.pluginEntriesFrom
 import org.gradle.kotlin.dsl.support.useToRun
-import org.gradle.kotlin.dsl.support.zipTo
+import org.gradle.kotlin.dsl.fixtures.zipTo
 import org.gradle.plugin.use.PluginDependenciesSpec
 import org.gradle.plugin.use.PluginDependencySpec
 import org.hamcrest.CoreMatchers.allOf

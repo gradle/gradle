@@ -20,6 +20,7 @@ import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.RepositoryAwareVerificationFailure;
 import org.gradle.api.internal.artifacts.verification.verifier.ChecksumVerificationFailure;
 import org.gradle.api.internal.artifacts.verification.verifier.DeletedArtifact;
+import org.gradle.api.internal.artifacts.verification.verifier.InvalidSignatureFile;
 import org.gradle.api.internal.artifacts.verification.verifier.MissingChecksums;
 import org.gradle.api.internal.artifacts.verification.verifier.MissingSignature;
 import org.gradle.api.internal.artifacts.verification.verifier.OnlyIgnoredKeys;
@@ -257,6 +258,10 @@ class HtmlDependencyVerificationReportRenderer implements DependencyVerification
             "        <p>The signature file for this artifact wasn't found.</p>",
             "        <p>Usually it indicates that the signature doesn't exist in the repository the artifact was downloaded from.</p>",
             "        <p>In general this is not a problem but you should then declare at least one checksum for verification to pass.</p>");
+        registerModal("signature-file-corrupt", "Corrupt signature file",
+            "        <p>The signature file (.asc) for this artifact <b>could not be parsed</b>.</p>",
+            "        <p>This usually means the file is malformed (invalid ASCII armor or corrupt PGP packets), the upstream repository serves a broken signature, the file was truncated during download or the repository is misconfigured.</p>",
+            "        <p>Because the signature cannot be read, Gradle cannot decide whether the artifact is trustworthy. <b>Carefully review this problem</b>: fetch the signature from a trusted source, or contact the upstream maintainers to fix the published signature.</p>");
     }
 
     private void copyReportResource(File outputDirectory, String dirName, String fileName) {
@@ -372,6 +377,10 @@ class HtmlDependencyVerificationReportRenderer implements DependencyVerification
     private void reportSignatureProblems(VerificationFailure vf) {
         if (vf instanceof MissingSignature) {
             reportItem("Signature file is missing", "signature-file-missing", "info");
+        } else if (vf instanceof InvalidSignatureFile) {
+            InvalidSignatureFile isf = (InvalidSignatureFile) vf;
+            String reason = actual("Signature file is corrupt: " + isf.getCauseDescription());
+            reportItem(reason, "signature-file-corrupt", "warning");
         } else if (vf instanceof SignatureVerificationFailure) {
             SignatureVerificationFailure svf = (SignatureVerificationFailure) vf;
             Map<String, SignatureVerificationFailure.SignatureError> errors = svf.getErrors();

@@ -275,7 +275,7 @@ ${validationMessage("annotation_invalid_in_context")}
         outputEquals """
 Type 'Task' property 'prop' is missing something cool.
 
-Reason: A property without annotation isn't considered during up-to-date checking.
+Reason: Properties must be annotated so that Gradle knows how to handle them during up-to-date checking.
 
 Possible solutions:
   1. Add something cool.

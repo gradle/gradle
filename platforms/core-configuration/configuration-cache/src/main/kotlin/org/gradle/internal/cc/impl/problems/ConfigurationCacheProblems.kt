@@ -24,11 +24,11 @@ import org.gradle.api.internal.project.taskfactory.TaskIdentity
 import org.gradle.api.logging.Logging
 import org.gradle.api.problems.ProblemGroup
 import org.gradle.api.problems.ProblemSpec
-import org.gradle.api.problems.Severity
 import org.gradle.api.problems.internal.GradleCoreProblemGroup
-import org.gradle.api.problems.internal.InternalProblems
+import org.gradle.api.problems.internal.ProblemsInternal
 import org.gradle.api.problems.internal.PropertyTraceDataSpec
 import org.gradle.initialization.RootBuildLifecycleListener
+import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.cc.base.exceptions.ConfigurationCacheError
 import org.gradle.internal.cc.base.exceptions.ConfigurationCacheThrowable
 import org.gradle.internal.cc.base.problems.AbstractProblemsListener
@@ -44,6 +44,7 @@ import org.gradle.internal.cc.impl.TooManyConfigurationCacheProblemsException
 import org.gradle.internal.cc.impl.initialization.ConfigurationCacheStartParameter
 import org.gradle.internal.configuration.problems.CommonReport
 import org.gradle.internal.configuration.problems.DocumentationSection
+import org.gradle.internal.configuration.problems.IsolatedProjectsProblemsListener
 import org.gradle.internal.configuration.problems.ProblemFactory
 import org.gradle.internal.configuration.problems.ProblemReportDetails
 import org.gradle.internal.configuration.problems.ProblemReportDetailsJsonSource
@@ -82,7 +83,7 @@ class ConfigurationCacheProblems(
     val listenerManager: ListenerManager,
 
     private
-    val problemsService: InternalProblems,
+    val problemsService: ProblemsInternal,
 
     private
     val problemFactory: ProblemFactory,
@@ -91,11 +92,11 @@ class ConfigurationCacheProblems(
     val failureFactory: FailureFactory,
 
     private
-    val buildNameProvider: BuildNameProvider,
+    val buildStateRegistry: BuildStateRegistry,
 
     private
     val degradationController: DefaultConfigurationCacheDegradationController
-) : AbstractProblemsListener(), ProblemReporter, AutoCloseable {
+) : AbstractProblemsListener(), IsolatedProjectsProblemsListener, ProblemReporter, AutoCloseable {
 
     private
     val summarizer = ConfigurationCacheProblemsSummary()
@@ -250,6 +251,10 @@ class ConfigurationCacheProblems(
         report.onProblem(problem)
     }
 
+    override fun onIsolatedProjectsProblem(problem: PropertyProblem) {
+        onProblem(problem, ProblemSeverity.Deferred)
+    }
+
     override fun onProblem(problem: PropertyProblem) {
         onProblem(problem, ProblemSeverity.Deferred)
     }
@@ -271,7 +276,7 @@ class ConfigurationCacheProblems(
     val configCacheValidation: ProblemGroup = ProblemGroup.create("configuration-cache", "configuration cache validation", GradleCoreProblemGroup.validation().thisGroup())
 
     private
-    fun InternalProblems.onProblem(problem: PropertyProblem, severity: ProblemSeverity) {
+    fun ProblemsInternal.onProblem(problem: PropertyProblem, severity: ProblemSeverity) {
         val message = problem.message.render()
         internalReporter.internalCreate {
             id(
@@ -282,11 +287,16 @@ class ConfigurationCacheProblems(
             contextualLabel(message)
             documentOfProblem(problem)
             locationOfProblem(problem)
-            severity(severity.toProblemSeverity())
             additionalDataInternal(PropertyTraceDataSpec::class.java) {
                 trace(problem.trace.containingUserCode)
             }
-        }.also { internalReporter.report(it) }
+        }.also {
+            if (severity == ProblemSeverity.Interrupting || (severity == ProblemSeverity.Deferred && !isWarningMode)) {
+                internalReporter.reportError(it)
+            } else {
+                internalReporter.report(it)
+            }
+        }
     }
 
     private
@@ -306,15 +316,6 @@ class ConfigurationCacheProblems(
 
     private
     fun PropertyTrace.buildLogic() = sequence.filterIsInstance<PropertyTrace.BuildLogic>().firstOrNull()
-
-    private
-    fun ProblemSeverity.toProblemSeverity() = when {
-        this == ProblemSeverity.Suppressed ||
-            this == ProblemSeverity.SuppressedSilently -> Severity.ADVICE
-
-        isWarningMode -> Severity.WARNING
-        else -> Severity.ERROR
-    }
 
     override fun getId(): String {
         return "configuration-cache"
@@ -394,7 +395,7 @@ class ConfigurationCacheProblems(
         val cacheActionText = cacheAction.summaryText()
         val requestedTasks = startParameter.requestedTasksOrDefault()
         return ProblemReportDetails(
-            buildDisplayName = buildNameProvider.buildName(),
+            buildDisplayName = buildStateRegistry.rootBuild.displayName.displayName,
             cacheAction = cacheActionText,
             cacheActionDescription = cacheActionDescription,
             requestedTasks = requestedTasks,

@@ -21,6 +21,12 @@ import org.gradle.nativeplatform.fixtures.AvailableToolChains
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.test.precondition.TestPrecondition
 
+/**
+ * Preconditions for native toolchain availability.
+ * Checks whether required native tool chains (e.g. Visual C++ 2015) are present on this machine.
+ *
+ * @see org.gradle.test.precondition
+ */
 @CompileStatic
 class NativeTestPreconditions {
 
@@ -30,7 +36,7 @@ class NativeTestPreconditions {
     static final class NotWindowsOrVisualCpp2015 implements TestPrecondition {
         @Override
         boolean isSatisfied() throws Exception {
-            return TestPrecondition.satisfied(UnitTestPreconditions.NotWindows)
+            return TestPrecondition.satisfied(OsTestPreconditions.NotWindows)
                 || AvailableToolChains.getToolChain(ToolChainRequirement.VISUALCPP_2015) != null
         }
     }

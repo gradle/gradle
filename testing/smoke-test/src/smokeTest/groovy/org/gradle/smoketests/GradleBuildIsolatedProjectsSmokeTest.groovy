@@ -22,6 +22,7 @@ class GradleBuildIsolatedProjectsSmokeTest extends AbstractGradleBuildIsolatedPr
 
     def "can run Gradle build tasks with isolated projects enabled"() {
         given:
+        def fixture = new ConfigurationCacheProblemsFixture(testProjectDir)
         def tasks = [
             "build",
             "sanityCheck",
@@ -40,6 +41,10 @@ class GradleBuildIsolatedProjectsSmokeTest extends AbstractGradleBuildIsolatedPr
 
         then:
         result.assertConfigurationCacheStateStoreDiscarded()
+
+        // Prevents the power assert from dumping all the output if the check below fails.
+        def report = fixture.htmlReport(result.output)
+        report.assertHasNoProblems()
     }
 
     def "can schedule all Gradle build tasks with isolated projects enabled"() {
@@ -55,10 +60,13 @@ class GradleBuildIsolatedProjectsSmokeTest extends AbstractGradleBuildIsolatedPr
             "-Pgradle_installPath=/dev/null",
             "-PartifactoryUserName=foo",
             "-PartifactoryUserPassword=bar",
-            "-PtoolingApiShadedJarInstallPath=/tmp"
+            "-PtoolingApiShadedJarInstallPath=/tmp",
+            "-PpromotionCommitId=1234567"
         ]
         def requiredEnvironmentVars = [
             "GRADLE_INTERNAL_REPO_URL": "file:///bogus-repository",
+            "BUILD_COMMIT_ID": "1234567",
+            "BUILD_BRANCH": "master",
         ]
         def tasks = [
             "--init-script",
@@ -72,7 +80,7 @@ class GradleBuildIsolatedProjectsSmokeTest extends AbstractGradleBuildIsolatedPr
 
         when:
         maxIsolatedProjectProblems = 200000
-        run(isolatedProjectsRunner(tasks).withEnvironment(requiredEnvironmentVars))
+        run(isolatedProjectsRunner(tasks, 1).withEnvironment(requiredEnvironmentVars))
 
         then:
         fixture.htmlReport(result.output).assertContents {

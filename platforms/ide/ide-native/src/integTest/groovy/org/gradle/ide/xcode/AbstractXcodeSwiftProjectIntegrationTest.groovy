@@ -17,7 +17,6 @@
 package org.gradle.ide.xcode
 
 import org.gradle.ide.xcode.fixtures.ProjectFile
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.language.swift.SwiftVersion
 import org.gradle.nativeplatform.fixtures.app.Swift3
 import org.gradle.nativeplatform.fixtures.app.Swift4
@@ -30,7 +29,6 @@ abstract class AbstractXcodeSwiftProjectIntegrationTest extends AbstractXcodeNat
         requireSwiftToolChain()
     }
 
-    @ToBeFixedForConfigurationCache
     def "detect Swift source compatibility from selected Swift #sourceCompatibility compiler"() {
         assumeSwiftCompilerVersion(sourceCompatibility)
 
@@ -55,7 +53,6 @@ abstract class AbstractXcodeSwiftProjectIntegrationTest extends AbstractXcodeNat
         swift6Component | SwiftVersion.SWIFT6
     }
 
-    @ToBeFixedForConfigurationCache
     def "take specified Swift source compatibility (#sourceCompatibility) regardless of the selected Swift compiler"() {
         given:
         assumeSwiftCompilerSupportsLanguageVersion(sourceCompatibility)

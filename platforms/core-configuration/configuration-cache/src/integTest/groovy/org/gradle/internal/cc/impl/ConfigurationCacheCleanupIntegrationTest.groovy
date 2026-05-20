@@ -19,12 +19,12 @@ package org.gradle.internal.cc.impl
 import org.gradle.integtests.fixtures.cache.FileAccessTimeJournalFixture
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import spock.lang.Issue
 
 
 @Requires(
-    value = IntegTestPreconditions.NotEmbeddedExecutor,
+    value = TestExecutionPreconditions.NotEmbeddedExecutor,
     reason = "FileAccessTimeJournal is never closed in embedded mode"
 )
 class ConfigurationCacheCleanupIntegrationTest

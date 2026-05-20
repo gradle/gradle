@@ -135,7 +135,7 @@ abstract class AbstractJUnit4CategoriesOrTagsCoverageIntegrationTest extends Abs
         run('test')
 
         then:
-        DefaultTestExecutionResult result = new DefaultTestExecutionResult(testDirectory, testFramework)
+        DefaultTestExecutionResult result = new DefaultTestExecutionResult(testDirectory)
         result.assertTestClassesExecuted('CategoryATests', 'CategoryBTests', 'CategoryADTests', 'MixedTests')
         result.testClass("CategoryATests").assertTestCount(4, 0)
         result.testClass("CategoryATests").assertTestsExecuted('catAOk1', 'catAOk2', 'catAOk3', 'catAOk4')
@@ -412,7 +412,7 @@ abstract class AbstractJUnit4CategoriesOrTagsCoverageIntegrationTest extends Abs
         if (supportsCategoryOnNestedClass()) {
             expectedTestClasses << 'NestedTestsWithCategories$TagOnClass'
         }
-        DefaultTestExecutionResult result = new DefaultTestExecutionResult(testDirectory, testFramework)
+        DefaultTestExecutionResult result = new DefaultTestExecutionResult(testDirectory)
         result.assertTestClassesExecuted(expectedTestClasses as String[])
         expectedTestClasses.each {
             result.testClass(it).assertTestCount(1, 0)

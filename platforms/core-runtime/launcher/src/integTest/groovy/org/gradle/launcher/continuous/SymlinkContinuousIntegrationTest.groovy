@@ -18,12 +18,13 @@ package org.gradle.launcher.continuous
 
 import org.gradle.integtests.fixtures.AbstractContinuousIntegrationTest
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.OsTestPreconditions
+
 
 import java.nio.file.Files
 import java.nio.file.Paths
 
-@Requires(UnitTestPreconditions.NotWindows)
+@Requires(OsTestPreconditions.NotWindows)
 class SymlinkContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
     def "can use symlink for input"() {
         given:

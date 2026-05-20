@@ -18,6 +18,7 @@ package org.gradle.kotlin.dsl
 
 import org.gradle.api.UnknownDomainObjectException
 import org.gradle.api.plugins.ExtensionContainer
+import org.gradle.internal.deprecation.DeprecationLogger
 
 import kotlin.reflect.KProperty
 
@@ -59,8 +60,15 @@ inline fun <reified T : Any> ExtensionContainer.getByName(name: String) =
 /**
  * Delegated property getter that locates extensions.
  */
-inline operator fun <reified T : Any> ExtensionContainer.getValue(thisRef: Any?, property: KProperty<*>): T =
-    getByName<T>(property.name)
+@Deprecated("Use 'val extension = extensions.getByType<Type>()' instead. See the Gradle 9.6 upgrading guide.")
+inline operator fun <reified T : Any> ExtensionContainer.getValue(thisRef: Any?, property: KProperty<*>): T {
+    DeprecationLogger.deprecate("The 'val name: Type by extensions' property delegate syntax")
+        .withAdvice("Use 'val extension = extensions.getByType<Type>()' instead.")
+        .willBeRemovedInGradle10()
+        .withUpgradeGuideSection(9, "kotlin_dsl_delegated_properties")
+        .nagUser()
+    return getByName<T>(property.name)
+}
 
 
 /**

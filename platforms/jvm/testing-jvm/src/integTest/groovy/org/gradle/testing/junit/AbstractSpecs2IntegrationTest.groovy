@@ -18,12 +18,13 @@ package org.gradle.testing.junit
 
 import org.gradle.api.tasks.testing.TestResult
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.JdkVersionTestPreconditions
+
 import org.gradle.testing.fixture.AbstractTestingMultiVersionIntegrationTest
 
 abstract class AbstractSpecs2IntegrationTest extends AbstractTestingMultiVersionIntegrationTest {
 
-    @Requires(value = UnitTestPreconditions.Jdk23OrEarlier, reason = "2.11.12 is required for specs2 3.x, which is not compatible with running on JDK 24.")
+    @Requires(value = JdkVersionTestPreconditions.Jdk23OrEarlier, reason = "2.11.12 is required for specs2 3.x, which is not compatible with running on JDK 24.")
     def 'can run Specs2 tests'() {
         given:
         buildFile << """

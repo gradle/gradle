@@ -31,11 +31,12 @@ import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.TestEnvironmentPreconditions
+
 
 import static org.junit.Assume.assumeTrue
 
-@Requires(UnitTestPreconditions.HasXCode)
+@Requires(TestEnvironmentPreconditions.HasXCode)
 class AbstractXcodeIntegrationSpec extends AbstractIntegrationSpec implements HostPlatform {
     AvailableToolChains.InstalledToolChain toolChain = null
 

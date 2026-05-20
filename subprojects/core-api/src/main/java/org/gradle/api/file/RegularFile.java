@@ -16,6 +16,7 @@
 
 package org.gradle.api.file;
 
+import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition;
 import org.gradle.declarative.dsl.model.annotations.ValueFactories;
 
 import java.io.File;
@@ -34,5 +35,6 @@ public interface RegularFile extends FileSystemLocation {
      */
     @Override
     @ValueFactories
+    @HiddenInDefinition
     File getAsFile();
 }

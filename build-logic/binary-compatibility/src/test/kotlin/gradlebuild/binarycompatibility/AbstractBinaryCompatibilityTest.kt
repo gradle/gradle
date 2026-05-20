@@ -24,22 +24,17 @@ import org.hamcrest.Matcher
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers
 import org.intellij.lang.annotations.Language
-import org.junit.Assert.assertFalse
-import org.junit.Assert.assertTrue
-import org.junit.Rule
-import org.junit.rules.TemporaryFolder
+import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.io.TempDir
 import java.io.File
 import java.nio.file.Files
 
 
 abstract class AbstractBinaryCompatibilityTest {
 
-    @get:Rule
-    val tmpDir = TemporaryFolder()
-
-    private
-    val rootDir: File
-        get() = tmpDir.root
+    @TempDir
+    lateinit var rootDir: File
 
     internal
     fun checkBinaryCompatibleKotlin(@Language("kotlin") v1: String = "", @Language("kotlin") v2: String, block: CheckResult.() -> Unit = {}): CheckResult =
@@ -91,12 +86,12 @@ abstract class AbstractBinaryCompatibilityTest {
 
     private
     fun CheckResult.assertBinaryCompatible() {
-        assertTrue(richReport.toAssertionMessage("Expected to be compatible but the check failed"), isBinaryCompatible)
+        assertTrue(isBinaryCompatible, richReport.toAssertionMessage("Expected to be compatible but the check failed"))
     }
 
     private
     fun CheckResult.assertNotBinaryCompatible() {
-        assertFalse(richReport.toAssertionMessage("Expected to be breaking but the check passed"), isBinaryCompatible)
+        assertFalse(isBinaryCompatible, richReport.toAssertionMessage("Expected to be breaking but the check passed"))
     }
 
     private
@@ -194,7 +189,7 @@ abstract class AbstractBinaryCompatibilityTest {
         println(buildResult.output)
 
         val richReportFile = inputBuildDir.resolve("binary-compatibility/build/japi/japi.html").apply {
-            assertTrue("Rich report file doesn't exist", isFile)
+            assertTrue(isFile, "Rich report file doesn't exist")
         }
 
         return CheckResult(failure, scrapeRichReport(richReportFile), buildResult).apply {
@@ -233,11 +228,11 @@ abstract class AbstractBinaryCompatibilityTest {
         println(buildResult.output)
 
         inputBuildDir.resolve("binary-compatibility/build/japi/japi.html").apply {
-            assertFalse("Rich report file exists", isFile)
+            assertFalse(isFile, "Rich report file exists")
         }
 
         return buildResult.apply {
-            assertTrue("Build result is not a failure", failure != null)
+            assertTrue(failure != null, "Build result is not a failure")
             println(failure?.message)
             block()
         }
@@ -374,15 +369,15 @@ abstract class AbstractBinaryCompatibilityTest {
         }
 
         fun assertHasNoError() {
-            assertTrue("Has no error (${richReport.errors})", richReport.errors.isEmpty())
+            assertTrue(richReport.errors.isEmpty(), "Has no error (${richReport.errors})")
         }
 
         fun assertHasNoWarning() {
-            assertTrue("Has no warning (${richReport.warnings})", richReport.warnings.isEmpty())
+            assertTrue(richReport.warnings.isEmpty(), "Has no warning (${richReport.warnings})")
         }
 
         fun assertHasNoInformation() {
-            assertTrue("Has no information (${richReport.information})", richReport.information.isEmpty())
+            assertTrue(richReport.information.isEmpty(), "Has no information (${richReport.information})")
         }
 
         fun assertHasErrors(vararg errors: String) {
@@ -447,7 +442,7 @@ abstract class AbstractBinaryCompatibilityTest {
     }
 
     fun BuildResult.assertOutputContains(text: String) =
-        assertTrue("Output should contain text:\n'$text',\nbut given text was not matched.\n", output.contains(text))
+        assertTrue(output.contains(text), "Output should contain text:\n'$text',\nbut given text was not matched.\n")
 
     protected
     fun File.withFile(path: String, text: String = ""): File =

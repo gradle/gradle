@@ -23,7 +23,7 @@ import org.gradle.integtests.fixtures.versions.KotlinGradlePluginVersions
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import spock.lang.Issue
 
 @LeaksFileHandles
@@ -100,43 +100,7 @@ class NestedInputKotlinImplementationTrackingIntegrationTest extends AbstractInt
         output.contains "Implementation of input property 'action' has changed for task ':myTask'"
     }
 
-    @Issue("https://github.com/gradle/gradle/issues/11703")
-    def "nested bean from closure can be used with the build cache"() {
-        def project1 = file("project1").createDir()
-        def project2 = file("project2").createDir()
-        [project1, project2].each { projectDir ->
-            def buildFile = projectDir.file("build.gradle.kts")
-            setupTaskWithNestedAction('(File) -> Unit', '', projectDir)
-            buildFile << """
-                apply(plugin = "base")
-
-                tasks.create<TaskWithNestedAction>("myTask") {
-                    outputs.cacheIf { true }
-                    action = { it.writeText("hello") }
-                }
-                """
-            buildFile.makeOlder()
-            projectDir.file("settings.gradle") << localCacheConfiguration()
-        }
-
-        when:
-        executer.inDirectory(project1)
-        withBuildCache().run 'myTask'
-
-        then:
-        executedAndNotSkipped(':myTask')
-        project1.file('build/tmp/myTask/output.txt').text == "hello"
-
-        when:
-        executer.inDirectory(project2)
-        withBuildCache().run 'myTask'
-
-        then:
-        skipped(':myTask')
-        project2.file('build/tmp/myTask/output.txt').text == "hello"
-    }
-
-    @Requires(IntegTestPreconditions.NotEmbeddedExecutor)
+    @Requires(TestExecutionPreconditions.NotEmbeddedExecutor)
     def "task action defined in latest Kotlin can be tracked when using language version #kotlinLanguageVersion"() {
         file("buildSrc/build.gradle.kts") << """
             plugins {
@@ -191,8 +155,14 @@ class NestedInputKotlinImplementationTrackingIntegrationTest extends AbstractInt
         """
 
         when:
-        if (['2.0'].contains(kotlinLanguageVersion)) {
-            executer.expectExternalDeprecatedMessage("w: Language version $kotlinLanguageVersion is deprecated and its support will be removed in a future version of Kotlin. Update the version to 2.1.")
+        if (['2.0', '2.1'].contains(kotlinLanguageVersion)) {
+            executer.expectExternalDeprecatedMessage("w: Language version $kotlinLanguageVersion is deprecated and its support will be removed in a future version of Kotlin. Update the version to 2.2.")
+            executer.expectExternalDeprecatedMessage("    Language version $kotlinLanguageVersion is deprecated and its support will be removed in a future version of Kotlin. Update the version to 2.2.")
+            // TODO: there is an ugly, multi line deprecation here now, which also duplicates the content
+            //  w: Language version 2.1 is deprecated and its support will be removed in a future version of Kotlin. Update the version to 2.2.
+            //  Problem found: Kotlin compiler warning (id: kotlin:compiler:warning:compiler-warning)
+            //    Kotlin compiler warning
+            //      Language version 2.1 is deprecated and its support will be removed in a future version of Kotlin. Update the version to 2.2.
         }
         run "myTask"
 
@@ -201,6 +171,42 @@ class NestedInputKotlinImplementationTrackingIntegrationTest extends AbstractInt
 
         where:
         kotlinLanguageVersion << new KotlinGradlePluginVersions().languageVersionsSupportedByLatestStableOrRc()
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/11703")
+    def "nested bean from closure can be used with the build cache"() {
+        def project1 = file("project1").createDir()
+        def project2 = file("project2").createDir()
+        [project1, project2].each { projectDir ->
+            def buildFile = projectDir.file("build.gradle.kts")
+            setupTaskWithNestedAction('(File) -> Unit', '', projectDir)
+            buildFile << """
+                apply(plugin = "base")
+
+                tasks.create<TaskWithNestedAction>("myTask") {
+                    outputs.cacheIf { true }
+                    action = { it.writeText("hello") }
+                }
+                """
+            buildFile.makeOlder()
+            projectDir.file("settings.gradle") << localCacheConfiguration()
+        }
+
+        when:
+        executer.inDirectory(project1)
+        withBuildCache().run 'myTask'
+
+        then:
+        executedAndNotSkipped(':myTask')
+        project1.file('build/tmp/myTask/output.txt').text == "hello"
+
+        when:
+        executer.inDirectory(project2)
+        withBuildCache().run 'myTask'
+
+        then:
+        skipped(':myTask')
+        project2.file('build/tmp/myTask/output.txt').text == "hello"
     }
 
     private void setupTaskWithNestedAction(String actionType, String actionInvocation, TestFile projectDir = temporaryFolder.testDirectory) {

@@ -32,9 +32,9 @@ import org.gradle.api.internal.project.taskfactory.TaskFactory
 import org.gradle.api.internal.project.taskfactory.TaskIdentityFactory
 import org.gradle.api.internal.project.taskfactory.TaskInstantiator
 import org.gradle.api.internal.tasks.DefaultSourceSetContainer
+import org.gradle.internal.code.UserCodeApplicationContext
 import org.gradle.internal.id.ConfigurationCacheableIdFactory
 import org.gradle.internal.instantiation.InstantiationScheme
-import org.gradle.nativeplatform.internal.DefaultFlavorContainer
 import org.gradle.util.AttributeTestUtil
 import org.gradle.util.Path
 import org.gradle.util.TestUtil
@@ -52,7 +52,6 @@ class NameValidatorTest extends Specification {
     def domainObjectContainersWithValidation = [
         ["artifact types", new DefaultArtifactTypeContainer(TestUtil.instantiatorFactory().decorateLenient(), AttributeTestUtil.attributesFactory(), CollectionCallbackActionDecorator.NOOP)],
         ["configurations", new DefaultConfigurationContainer(TestUtil.instantiatorFactory().decorateLenient(), CollectionCallbackActionDecorator.NOOP, StandaloneDomainObjectContext.ANONYMOUS, Mock(DefaultConfigurationFactory), Mock(ResolutionStrategyFactory), TestUtil.problemsService(), Mock(ConfigurationResolver.Factory), AttributeTestUtil.mutableSchema())],
-        ["flavors", new DefaultFlavorContainer(TestUtil.instantiatorFactory().decorateLenient(), CollectionCallbackActionDecorator.NOOP)],
         ["source sets", new DefaultSourceSetContainer(TestFiles.resolver(), TestFiles.taskDependencyFactory(), null, TestUtil.instantiatorFactory().decorateLenient(), TestUtil.objectFactory(), CollectionCallbackActionDecorator.NOOP)]
     ]
 
@@ -71,7 +70,7 @@ class NameValidatorTest extends Specification {
                 getIdentityPath() >> Path.path(":build:foo:bar")
             }
         }
-        new TaskInstantiator(new TaskIdentityFactory(new ConfigurationCacheableIdFactory()), new TaskFactory(project, Mock(InstantiationScheme)), project).create(name, DefaultTask)
+        new TaskInstantiator(new TaskIdentityFactory(new ConfigurationCacheableIdFactory()), new TaskFactory(project, Mock(InstantiationScheme)), project, Mock(UserCodeApplicationContext)).create(name, DefaultTask)
 
         then:
         def exception = thrown(InvalidUserDataException)

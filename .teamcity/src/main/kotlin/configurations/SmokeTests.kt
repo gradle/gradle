@@ -18,7 +18,7 @@ class SmokeTests(
     splitNumber: Int = 1,
     flakyTestStrategy: FlakyTestStrategy,
 ) : OsAwareBaseGradleBuildType(os = Os.LINUX, stage = stage, init = {
-        val suffix = if (flakyTestStrategy == FlakyTestStrategy.ONLY)"_FlakyTestQuarantine" else ""
+        val suffix = if (flakyTestStrategy == FlakyTestStrategy.ONLY) "_FlakyTestQuarantine" else ""
         id("${model.projectId}_SmokeTest_$id$suffix")
         name = "Smoke Tests with 3rd Party Plugins ($task) - ${testJava.version.toCapitalized()} Linux$suffix"
         description = "Smoke tests against third party plugins to see if they still work with the current Gradle version"

@@ -13,11 +13,11 @@ dependencies {
     api(projects.toolingApi)
 
     api(libs.jspecify)
-
-    implementation(projects.core)
-    implementation(projects.fileTemp)
     api(libs.guava)
+
+    implementation(projects.fileTemp)
     implementation(projects.logging)
+    implementation(projects.startParameter)
     implementation(projects.wrapperShared)
     implementation(projects.buildProcessServices)
 
@@ -64,7 +64,7 @@ gradleModule {
 // TODO Find a way to not register this and the task instead
 configurations.remove(configurations.apiStubElements.get())
 
-val generateTestKitPackageList by tasks.registering(PackageListGenerator::class) {
+val generateTestKitPackageList = tasks.register<PackageListGenerator>("generateTestKitPackageList") {
     classpath.from(sourceSets.main.map { it.runtimeClasspath })
     outputFile = layout.buildDirectory.file("runtime-api-info/test-kit-relocated.txt")
 }

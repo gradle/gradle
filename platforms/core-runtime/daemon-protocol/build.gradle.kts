@@ -23,27 +23,26 @@ description = "The messages and types sent between client and daemon"
 dependencies {
     api(libs.jspecify)
     api(projects.baseServices)
-    api(projects.classloaders)
-    api(projects.loggingApi)
-    api(projects.serialization)
-    api(projects.logging)
-    api(projects.stdlibJavaExtensions)
+    api(projects.daemonMessaging)
+    api(projects.files)
     api(projects.jvmServices)
     api(projects.messaging)
     api(projects.native)
-    api(projects.toolchainsJvmShared)
-    api(projects.files)
     api(projects.persistentCache)
+    api(projects.serialization)
     api(projects.serviceProvider)
+    api(projects.stdlibJavaExtensions)
+    api(projects.toolchainsJvmShared)
 
     // The client should not depend on core or core-api, but core still contains some types that are shared between the client and daemon
     api(projects.core)
 
+    implementation(projects.daemonLogging)
+    implementation(projects.loggingApi)
+    implementation(projects.time)
+
     implementation(libs.guava)
     implementation(libs.jsr305)
-    implementation(projects.enterpriseLogging)
-    implementation(projects.daemonLogging)
-    implementation(projects.time)
 
     testImplementation(testFixtures(projects.serialization))
     testImplementation(testFixtures(projects.core))

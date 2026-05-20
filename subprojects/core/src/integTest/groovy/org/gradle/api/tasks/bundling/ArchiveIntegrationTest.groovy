@@ -26,7 +26,8 @@ import org.gradle.test.fixtures.archive.TarTestFixture
 import org.gradle.test.fixtures.archive.ZipTestFixture
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.FileSystemTestPreconditions
+
 import org.gradle.util.internal.Resources
 import org.hamcrest.CoreMatchers
 import org.junit.Rule
@@ -431,7 +432,7 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         file('build/test.zip').assertDoesNotExist()
     }
 
-    @Requires(UnitTestPreconditions.Symlinks)
+    @Requires(FileSystemTestPreconditions.Symlinks)
     def "does not create empty #type array on exception"() {
         given:
         def output = "test.${type.toLowerCase()}"

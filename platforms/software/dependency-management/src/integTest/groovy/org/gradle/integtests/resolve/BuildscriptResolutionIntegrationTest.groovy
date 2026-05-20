@@ -57,6 +57,11 @@ class BuildscriptResolutionIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
+        executer.expectDocumentedDeprecationWarning(
+            "Using a Project object as a dependency notation has been deprecated. This will fail with an error in Gradle 10. " +
+            "Please use the project(String) method on DependencyHandler or the createProjectDependency(String) method on DependencyFactory instead. " +
+            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#dependency_project_notation"
+        )
         fails("help")
 
         then:
@@ -108,6 +113,11 @@ class BuildscriptResolutionIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
+        executer.expectDocumentedDeprecationWarning(
+            "Using a Project object as a dependency notation has been deprecated. This will fail with an error in Gradle 10. " +
+            "Please use the project(String) method on DependencyHandler or the createProjectDependency(String) method on DependencyFactory instead. " +
+            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#dependency_project_notation"
+        )
         succeeds("help")
     }
 
@@ -141,6 +151,11 @@ class BuildscriptResolutionIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
+        executer.expectDocumentedDeprecationWarning(
+            "Using a Project object as a dependency notation has been deprecated. This will fail with an error in Gradle 10. " +
+            "Please use the project(String) method on DependencyHandler or the createProjectDependency(String) method on DependencyFactory instead. " +
+            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#dependency_project_notation"
+        )
         fails("help")
         failure.assertHasCause("Script classpath dependencies must reside in a separate build from the script itself.")
     }
@@ -543,7 +558,7 @@ class BuildscriptResolutionIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             task resolve {
                 def conf = buildscript.configurations.detachedConfiguration(
-                    buildscript.dependencies.create(project(":other"))
+                    buildscript.dependencies.create(dependencies.project(":other"))
                 )
                 conf.attributes {
                     attribute(Category.CATEGORY_ATTRIBUTE, named(Category, "foo"))
@@ -581,7 +596,7 @@ class BuildscriptResolutionIntegrationTest extends AbstractIntegrationSpec {
                 ${mavenTestRepository()}
             }
             def files = buildscript.configurations.detachedConfiguration(
-                buildscript.dependencies.create(project(":other"))
+                buildscript.dependencies.create(dependencies.project(":other"))
             ).incoming.files
             assert files.files*.name == ["foo.txt"]
         """

@@ -19,6 +19,7 @@ dependencies {
     api(projects.processMemoryServices)
     api(projects.processServices)
     api(projects.processServicesApi)
+    api(projects.processServicesBase)
     api(projects.requestHandlerWorker)
     api(projects.scopedPersistentCache)
     api(projects.serialization)

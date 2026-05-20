@@ -25,7 +25,7 @@ jobs:
           role-to-assume: arn:aws:iam::992382829881:role/GHASecrets_gradle_all
           aws-region: "eu-central-1"
       - name: get secrets
-        uses: aws-actions/aws-secretsmanager-get-secrets@v2
+        uses: aws-actions/aws-secretsmanager-get-secrets@v3
         with:
           secret-ids: |
             BOT_GRADLE_GITHUB_TOKEN, gha/gradle/_all/BOT_GRADLE_GITHUB_TOKEN

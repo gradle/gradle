@@ -17,7 +17,6 @@
 package org.gradle.testing.nonclassbased
 
 import org.gradle.api.internal.tasks.testing.report.VerifiesGenericTestReportResults
-import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult.TestFramework
 
 import static org.gradle.util.Matchers.containsLine
 import static org.gradle.util.Matchers.matchesRegexp
@@ -30,11 +29,6 @@ class NonClassBasedTestingIntegrationTest extends AbstractNonClassBasedTestingIn
     @Override
     List<TestEngines> getEnginesToSetup() {
         return [TestEngines.BASIC_RESOURCE_BASED]
-    }
-
-    @Override
-    TestFramework getTestFramework() {
-        return TestFramework.JUNIT_JUPITER
     }
 
     def "resource-based test engine detects and executes test definitions (excluding jupiter engine = #excludingJupiter)"() {
@@ -546,7 +540,7 @@ class NonClassBasedTestingIntegrationTest extends AbstractNonClassBasedTestingIn
         succeeds("test", "--tests", pattern)
 
         then:
-        resultsFor().assertTestPathsExecuted(":example.SampleTest", ":example.SampleTest:foo()", ":SampleTest.rbt - foo")
+        resultsFor().assertTestPathsExecuted(":example.SampleTest:foo()", ":SampleTest.rbt - foo")
 
         where:
         pattern << ["example.SampleTest.*", "*SampleTest.*"]

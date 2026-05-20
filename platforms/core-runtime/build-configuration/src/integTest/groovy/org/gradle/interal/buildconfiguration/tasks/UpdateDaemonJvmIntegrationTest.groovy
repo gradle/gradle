@@ -21,6 +21,7 @@ import org.gradle.api.JavaVersion
 import org.gradle.buildconfiguration.tasks.UpdateDaemonJvm
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.integtests.fixtures.executer.DocumentationUtils
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
 import org.gradle.internal.buildconfiguration.fixture.DaemonJvmPropertiesFixture
@@ -28,7 +29,8 @@ import org.gradle.internal.jvm.Jvm
 import org.gradle.platform.Architecture
 import org.gradle.platform.OperatingSystem
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
+import org.gradle.test.preconditions.InstalledJdkTestPreconditions
 
 import java.util.stream.Stream
 
@@ -37,7 +39,7 @@ import static org.gradle.jvm.toolchain.JavaToolchainDownloadUtil.applyToolchainR
 import static org.gradle.jvm.toolchain.JavaToolchainDownloadUtil.constantUrlResolverCode
 import static org.gradle.jvm.toolchain.JavaToolchainDownloadUtil.noUrlResolverCode
 
-@Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "explicitly requests a daemon")
+@Requires(value = TestExecutionPreconditions.NotEmbeddedExecutor, reason = "explicitly requests a daemon")
 class UpdateDaemonJvmIntegrationTest extends AbstractIntegrationSpec implements DaemonJvmPropertiesFixture, JavaToolchainFixture {
 
     def setup() {
@@ -74,8 +76,8 @@ class UpdateDaemonJvmIntegrationTest extends AbstractIntegrationSpec implements 
         }
         failureHasCause('Invalid task configuration')
         failureCauseContains('Toolchain download repositories have not been configured.')
-        failure.assertHasResolution('Configure toolchain download repositories in your build settings.')
-        failure.assertHasResolution("For more information, see https://docs.gradle.org/current/userguide/toolchains.html#sub:download_repositories")
+        failure.error.contains('Possible solution: Configure toolchain download repositories in your build settings.')
+        failure.error.contains(DocumentationUtils.normalizeDocumentationLink('For more information, please refer to https://docs.gradle.org/current/userguide/toolchains.html#sub:download_repositories.'))
 
     }
 
@@ -258,7 +260,7 @@ tasks.named("updateDaemonJvm") {
         assertJvmCriteria(otherJvm.javaVersion)
     }
 
-    @Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
+    @Requires(InstalledJdkTestPreconditions.JavaHomeWithDifferentVersionAvailable)
     def "Given defined valid criteria matching with local toolchain When execute updateDaemonJvm with different criteria Then criteria get modified using the expected local toolchain"() {
         given:
         def otherJvm = AvailableJavaHomes.differentVersion
@@ -332,11 +334,11 @@ tasks.named("updateDaemonJvm") {
 //        failureDescriptionContains("Execution failed for task ':updateDaemonJvm'")
         failureHasCause("Invalid task configuration")
         failureCauseContains("Toolchain resolvers did not return download URLs providing a JDK matching {languageVersion=20, vendor=vendor matching('FOO'), implementation=vendor-specific, nativeImageCapable=false} for any of the requested platforms")
-        failure.assertHasResolution('Use a toolchain download repository capable of resolving the toolchain spec for the given platforms.')
-        failure.assertHasResolution('For more information, see https://docs.gradle.org/current/userguide/gradle_daemon.html#sec:daemon_jvm_provisioning')
+        failure.error.contains('Possible solution: Use a toolchain download repository capable of resolving the toolchain spec for the given platforms.')
+        failure.error.contains(DocumentationUtils.normalizeDocumentationLink('For more information, please refer to https://docs.gradle.org/current/userguide/gradle_daemon.html#sec:daemon_jvm_provisioning.'))
     }
 
-    @Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
+    @Requires(InstalledJdkTestPreconditions.JavaHomeWithDifferentVersionAvailable)
     def "configuring the languageVersion will use that value for the generate properties file"() {
         given:
         buildFile("""

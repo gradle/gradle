@@ -109,7 +109,8 @@ import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.provider.PropertyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.problems.internal.InternalProblems;
+import org.gradle.api.problems.Problems;
+import org.gradle.api.problems.internal.ProblemsInternal;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.cache.Cache;
 import org.gradle.cache.ManualEvictionInMemoryCache;
@@ -430,7 +431,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             DomainObjectContext domainObjectContext,
             DefaultConfigurationFactory defaultConfigurationFactory,
             ResolutionStrategyFactory resolutionStrategyFactory,
-            InternalProblems problemsService,
+            ProblemsInternal problemsService,
             ConfigurationResolver.Factory resolverFactory,
             AttributesSchemaInternal attributesSchema
         ) {
@@ -535,9 +536,10 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             AttributesFactory attributesFactory,
             IsolatableFactory isolatableFactory,
             ComponentMetadataRuleExecutor componentMetadataRuleExecutor,
-            PlatformSupport platformSupport
+            PlatformSupport platformSupport,
+            Problems problems
         ) {
-            DefaultComponentMetadataHandler componentMetadataHandler = instantiator.newInstance(DefaultComponentMetadataHandler.class, instantiator, moduleIdentifierFactory, interner, attributesFactory, isolatableFactory, componentMetadataRuleExecutor, platformSupport);
+            DefaultComponentMetadataHandler componentMetadataHandler = instantiator.newInstance(DefaultComponentMetadataHandler.class, instantiator, moduleIdentifierFactory, interner, attributesFactory, isolatableFactory, componentMetadataRuleExecutor, platformSupport, problems);
             if (domainObjectContext.isScript()) {
                 componentMetadataHandler.setVariantDerivationStrategy(objectFactory.newInstance(JavaEcosystemVariantDerivationStrategy.class));
             }
@@ -563,7 +565,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         }
 
         @Provides
-        ResolutionFailureHandler createResolutionFailureHandler(InstantiatorFactory instantiatorFactory, ServiceRegistry serviceRegistry, InternalProblems problemsService, TransformedVariantConverter transformedVariantConverter) {
+        ResolutionFailureHandler createResolutionFailureHandler(InstantiatorFactory instantiatorFactory, ServiceRegistry serviceRegistry, ProblemsInternal problemsService, TransformedVariantConverter transformedVariantConverter) {
             InstanceGenerator instanceGenerator = instantiatorFactory.inject(serviceRegistry);
 
             ResolutionFailureHandler handler = new ResolutionFailureHandler(instanceGenerator, problemsService, transformedVariantConverter);
@@ -611,7 +613,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                                                                       DomainObjectCollectionFactory domainObjectCollectionFactory,
                                                                       CalculatedValueContainerFactory calculatedValueContainerFactory,
                                                                       TaskDependencyFactory taskDependencyFactory,
-                                                                      InternalProblems problems,
+                                                                      ProblemsInternal problems,
                                                                       AttributeDesugaring attributeDesugaring,
                                                                       ResolveExceptionMapper exceptionMapper,
                                                                       ProviderFactory providerFactory) {

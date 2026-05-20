@@ -23,7 +23,7 @@ import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import spock.lang.Issue
 
 import static org.gradle.api.tasks.LocalStateFixture.defineTaskWithLocalState
@@ -786,7 +786,7 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         api = useRuntimeApi ? "runtime" : "annotation"
     }
 
-    @Requires(IntegTestPreconditions.NotParallelExecutor)
+    @Requires(TestExecutionPreconditions.NotParallelExecutor)
     @Issue("https://github.com/gradle/gradle/issues/3537")
     @ToBeFixedForIsolatedProjects(because = "subprojects")
     def "concurrent access to local cache works"() {
@@ -818,7 +818,7 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         noExceptionThrown()
     }
 
-    @Requires(IntegTestPreconditions.IsEmbeddedExecutor)
+    @Requires(TestExecutionPreconditions.IsEmbeddedExecutor)
     // this test only works in embedded mode because of the use of validation test fixtures
     def "invalid tasks are not cached"() {
         buildFile << """

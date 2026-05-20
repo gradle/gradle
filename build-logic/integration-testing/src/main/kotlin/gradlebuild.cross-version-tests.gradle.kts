@@ -19,7 +19,7 @@ import gradlebuild.basics.testing.TestType
 import gradlebuild.identity.extension.ReleasedVersionsDetails
 import gradlebuild.integrationtests.CROSSVERSION_TEST_MODELS
 import gradlebuild.integrationtests.addDependenciesAndConfigurations
-import gradlebuild.integrationtests.configureIde
+import gradlebuild.integrationtests.configureTestSourceSetInIde
 import gradlebuild.integrationtests.createTestTask
 import gradlebuild.integrationtests.crossVersionTestModels
 import gradlebuild.integrationtests.setSystemPropertiesOfTestJVM
@@ -49,8 +49,8 @@ jvmCompile {
 addDependenciesAndConfigurations(TestType.CROSSVERSION.prefix)
 createQuickFeedbackTasks(crossVersionTestSourceSet, releasedVersions)
 createAggregateTasks(crossVersionTestSourceSet, releasedVersions)
-configureIde(crossVersionTestModelsSourceSet)
-configureIde(crossVersionTestSourceSet)
+configureTestSourceSetInIde(crossVersionTestModelsSourceSet)
+configureTestSourceSetInIde(crossVersionTestSourceSet)
 configureCrossVersionTestModelsVariant(crossVersionTestModelsSourceSet)
 configureDependenciesForCrossVersionTests(crossVersionTestSourceSet, crossVersionTestModelsSourceSet)
 

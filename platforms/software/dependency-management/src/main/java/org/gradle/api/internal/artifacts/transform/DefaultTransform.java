@@ -38,12 +38,12 @@ import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.internal.tasks.properties.FileParameterUtils;
 import org.gradle.api.internal.tasks.properties.InputParameterUtils;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
-import org.gradle.api.problems.internal.InternalProblem;
-import org.gradle.api.problems.internal.InternalProblems;
+import org.gradle.api.problems.internal.ProblemInternal;
+import org.gradle.api.problems.internal.ProblemsInternal;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.reflect.InjectionPointQualifier;
 import org.gradle.internal.Describables;
-import org.gradle.internal.exceptions.DefaultMultiCauseException;
+import org.gradle.internal.execution.WorkValidationException;
 import org.gradle.internal.execution.InputFingerprinter;
 import org.gradle.internal.execution.InputVisitor.InputFileValueSupplier;
 import org.gradle.internal.execution.model.InputNormalizer;
@@ -78,7 +78,6 @@ import org.gradle.internal.properties.PropertyVisitor;
 import org.gradle.internal.properties.bean.PropertyWalker;
 import org.gradle.internal.reflect.DefaultTypeValidationContext;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
-import org.gradle.internal.reflect.validation.TypeValidationProblemRenderer;
 import org.gradle.internal.service.ServiceLookup;
 import org.gradle.internal.service.ServiceLookupException;
 import org.gradle.internal.service.UnknownServiceException;
@@ -96,9 +95,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.function.Supplier;
 
-import static com.google.common.collect.ImmutableList.toImmutableList;
 import static org.gradle.api.internal.tasks.properties.AbstractValidatingProperty.reportValueNotSet;
-import static org.gradle.api.problems.Severity.ERROR;
 import static org.gradle.internal.deprecation.Documentation.userManual;
 
 public class DefaultTransform implements Transform {
@@ -163,7 +160,7 @@ public class DefaultTransform implements Transform {
             new IsolateTransformParameters(
                 parameterObject, implementationClass, cacheable, owner, parameterPropertyWalker,
                 isolatableFactory, buildOperationRunner, classLoaderHierarchyHasher, fileCollectionFactory,
-                (InternalProblems) internalServices.get(InternalProblems.class),
+                (ProblemsInternal) internalServices.get(ProblemsInternal.class),
                 (DocumentationRegistry) internalServices.get(DocumentationRegistry.class)));
     }
 
@@ -209,13 +206,12 @@ public class DefaultTransform implements Transform {
     public static void validateInputFileNormalizer(String propertyName, @Nullable FileNormalizer normalizer, boolean cacheable, TypeValidationContext validationContext) {
         if (cacheable) {
             if (normalizer == InputNormalizer.ABSOLUTE_PATH) {
-                validationContext.visitPropertyProblem(problem ->
+                validationContext.visitPropertyError(problem ->
                     problem
                         .forProperty(propertyName)
                         .id(TextUtil.screamingSnakeToKebabCase(CACHEABLE_TRANSFORM_CANT_USE_ABSOLUTE_SENSITIVITY), "Property declared to be sensitive to absolute paths", GradleCoreProblemGroup.validation().property()) // TODO (donat) missing test coverage
                         .documentedAt(userManual("validation_problems", "cacheable_transform_cant_use_absolute_sensitivity"))
                         .contextualLabel("is declared to be sensitive to absolute paths")
-                        .severity(ERROR)
                         .details("This is not allowed for cacheable transforms")
                         .solution("Use a different normalization strategy via @PathSensitive, @Classpath or @CompileClasspath"));
             }
@@ -305,7 +301,7 @@ public class DefaultTransform implements Transform {
         Hasher hasher,
         Object parameterObject,
         boolean cacheable,
-        InternalProblems problems
+        ProblemsInternal problems
     ) {
         DefaultTypeValidationContext validationContext = DefaultTypeValidationContext.withoutRootType(cacheable, problems);
         InputFingerprinter.Result result = inputFingerprinter.fingerprintInputProperties(
@@ -369,13 +365,12 @@ public class DefaultTransform implements Transform {
                     PropertyValue value,
                     OutputFilePropertyType filePropertyType
                 ) {
-                    validationContext.visitPropertyProblem(problem ->
+                    validationContext.visitPropertyError(problem ->
                         problem
                             .forProperty(propertyName)
                             .id(TextUtil.screamingSnakeToKebabCase(ARTIFACT_TRANSFORM_SHOULD_NOT_DECLARE_OUTPUT), "Artifact transform should not declare output", GradleCoreProblemGroup.validation().property()) // TODO (donat) missing test coverage
                             .contextualLabel("declares an output")
                             .documentedAt(userManual("validation_problems", ARTIFACT_TRANSFORM_SHOULD_NOT_DECLARE_OUTPUT.toLowerCase(Locale.ROOT)))
-                            .severity(ERROR)
                             .details("is annotated with an output annotation")
                             .solution("Remove the output property and use the TransformOutputs parameter from transform(TransformOutputs) instead")
                     );
@@ -385,19 +380,11 @@ public class DefaultTransform implements Transform {
             FileCollectionStructureVisitor.NO_OP
         );
 
-        ImmutableList<InternalProblem> validationMessages = validationContext.getProblems();
+        ImmutableList<ProblemInternal> validationMessages = validationContext.getErrors();
         if (!validationMessages.isEmpty()) {
-            throw new DefaultMultiCauseException(
-                String.format(validationMessages.size() == 1
-                        ? "A problem was found with the configuration of the artifact transform parameter %s."
-                        : "Some problems were found with the configuration of the artifact transform parameter %s.",
-                    getParameterObjectDisplayName(parameterObject)),
-                validationMessages.stream()
-                    .map(TypeValidationProblemRenderer::renderMinimalInformationAbout)
-                    .sorted()
-                    .map(InvalidUserDataException::new)
-                    .collect(toImmutableList())
-            );
+            WorkValidationException exception = WorkValidationException.withSummaryForTransformParameter(
+                getParameterObjectDisplayName(parameterObject), validationMessages.size());
+            throw problems.getReporter().throwing(exception, validationMessages);
         }
 
         for (Map.Entry<String, ValueSnapshot> entry : result.getValueSnapshots().entrySet()) {
@@ -416,7 +403,7 @@ public class DefaultTransform implements Transform {
 
     private TransformAction<?> newTransformAction(Provider<FileSystemLocation> inputArtifactProvider, TransformDependencies transformDependencies, @Nullable InputChanges inputChanges) {
         TransformParameters parameters = isolatedParameters.get().getIsolatedParameterObject().isolate();
-        ServiceLookup services = new IsolationScheme<>(TransformAction.class, TransformParameters.class, TransformParameters.None.class).servicesForImplementation(parameters, internalServices, Collections.emptySet());
+        ServiceLookup services = new IsolationScheme<>(TransformAction.class, TransformParameters.class, TransformParameters.None.class, TransformParameters.None.INSTANCE).servicesForImplementation(parameters, internalServices, Collections.emptySet());
         services = new TransformServiceLookup(inputArtifactProvider, requiresDependencies ? transformDependencies : null, inputChanges, services);
         return instanceFactory.newInstance(services);
     }
@@ -578,7 +565,7 @@ public class DefaultTransform implements Transform {
         private final FileCollectionFactory fileCollectionFactory;
         private final boolean cacheable;
         private final Class<?> implementationClass;
-        private final InternalProblems problems;
+        private final ProblemsInternal problems;
         private final DocumentationRegistry documentationRegistry;
 
         public IsolateTransformParameters(
@@ -591,7 +578,7 @@ public class DefaultTransform implements Transform {
             BuildOperationRunner buildOperationRunner,
             ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
             FileCollectionFactory fileCollectionFactory,
-            InternalProblems problems,
+            ProblemsInternal problems,
             DocumentationRegistry documentationRegistry
         ) {
             this.parameterObject = parameterObject;

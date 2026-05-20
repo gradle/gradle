@@ -231,7 +231,7 @@ public static class SetSourceCompatibilityCallInterceptor extends CallIntercepto
 These two classes are then used when we replace bytecode for Java and when we intercept calls at runtime for dynamic Groovy.
 
 For configuration cache instrumentation we use only manual interceptor declaration, while for property upgrades using manual interceptors should be an exception. 
-Some examples for configuration cache instrumentation can be found in **org.gradle.internal.classpath.declarations** package, e.g. [FileInterceptorsDeclaration.java](../../subprojects/core/src/main/java/org/gradle/internal/classpath/declarations/FileInterceptorsDeclaration.java).
+Some examples for configuration cache instrumentation can be found in **org.gradle.internal.classpath.declarations** package, e.g. [FileInterceptorsDeclaration.java](classpath/src/main/java/org/gradle/internal/classpath/declarations/FileInterceptorsDeclaration.java).
 
 
 ##### Property bytecode upgrades declaration
@@ -460,8 +460,8 @@ Due to that interception happens in two stages:
 2. Runtime interception
 
 Bytecode transformation is done in the same way as for Java, but we intercept special call like `CallSiteArray.$createCallSiteArray` or `IndyInterface.bootstrap()`.
-Additionally, to that we also transform `ScriptBytecodeAdapter`, see [GroovyDynamicDispatchInterceptors.java](../../subprojects/core/src/main/java/org/gradle/internal/classpath/declarations/GroovyDynamicDispatchInterceptors.java),
-and all `doCall` methods, see [CallInterceptionClosureInstrumentingClassVisitor.java](../../subprojects/core/src/main/java/org/gradle/internal/classpath/CallInterceptionClosureInstrumentingClassVisitor.java) where we intercept code in closures.
+Additionally, to that we also transform `ScriptBytecodeAdapter`, see [GroovyDynamicDispatchInterceptors.java](classpath/src/main/java/org/gradle/internal/classpath/declarations/GroovyDynamicDispatchInterceptors.java),
+and all `doCall` methods, see [CallInterceptionClosureInstrumentingClassVisitor.java](classpath/src/main/java/org/gradle/internal/classpath/CallInterceptionClosureInstrumentingClassVisitor.java) where we intercept code in closures.
 
 These methods are then decorated and modified in a way that our generated dynamic Groovy interceptors are then correctly called for appropriate methods/properties at runtime.
 Interceptor that are called at runtime then check for the correct type and based on that invoke decorated method or fallback to original.

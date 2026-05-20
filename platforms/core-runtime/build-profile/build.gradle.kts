@@ -12,14 +12,13 @@ dependencies {
     api(projects.core)
     api(projects.coreApi)
     api(projects.enterpriseLogging)
+    api(projects.startParameter)
 
     api(libs.jspecify)
-
 
     implementation(projects.logging)
     implementation(projects.loggingApi)
     implementation(projects.reportRendering)
-    implementation(projects.serviceLookup)
 
     implementation(libs.guava)
 

@@ -7,6 +7,7 @@ import org.gradle.kotlin.dsl.fixtures.classLoaderFor
 import org.gradle.kotlin.dsl.support.useToRun
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
+import org.jetbrains.kotlin.lexer.KotlinLexer
 import org.junit.Assert.assertNull
 import org.junit.Test
 import org.junit.jupiter.api.assertAll
@@ -40,7 +41,7 @@ class ProjectSchemaTest : TestWithClassPath() {
                 "'foo'bar'",
                 "foo${'$'}${'$'}bar",
             ).map { name ->
-                { assertEquals(name, AccessorNameSpec.createOrNull(name)?.original) }
+                { assertEquals(name, AccessorNameSpec.createOrNull(KotlinLexer(), name)?.original) }
             }
         )
     }
@@ -55,7 +56,7 @@ class ProjectSchemaTest : TestWithClassPath() {
                 "foo/bar",
                 "foo\\bar",
             ).map { name ->
-                { assertNull(AccessorNameSpec.createOrNull(name)) }
+                { assertNull(AccessorNameSpec.createOrNull(KotlinLexer(), name)) }
             }
         )
     }
@@ -64,7 +65,7 @@ class ProjectSchemaTest : TestWithClassPath() {
     fun `accessor name spec escapes string template dollar signs`() {
 
         val original = "foo${'$'}${'$'}bar"
-        val spec = AccessorNameSpec.createOrNull(original)
+        val spec = AccessorNameSpec.createOrNull(KotlinLexer(), original)
 
         assertNotNull(spec)
         assertThat(spec.original, equalTo(original))

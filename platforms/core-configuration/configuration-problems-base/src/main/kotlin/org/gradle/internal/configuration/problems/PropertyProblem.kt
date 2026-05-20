@@ -16,13 +16,14 @@
 
 package org.gradle.internal.configuration.problems
 
-import org.gradle.internal.DisplayName
+import org.gradle.api.Describable
 import org.gradle.internal.cc.impl.problems.JsonWriter
 import org.gradle.internal.code.UserCodeSource
 import org.gradle.internal.configuration.problems.StructuredMessage.Fragment.Reference
 import org.gradle.internal.configuration.problems.StructuredMessage.Fragment.Text
 import org.gradle.internal.problems.failure.Failure
 import org.gradle.problems.Location
+import org.gradle.util.Path
 import kotlin.reflect.KClass
 
 
@@ -121,6 +122,10 @@ data class StructuredMessage(val fragments: List<Fragment>) {
             fragments.add(Reference(name))
         }
 
+        fun reference(path: Path): Builder = apply {
+            fragments.add(Reference(path.asString()))
+        }
+
         fun reference(type: Class<*>): Builder = apply {
             reference(type.name)
         }
@@ -179,7 +184,7 @@ sealed class PropertyTrace {
 
     @ConsistentCopyVisibility
     data class BuildLogic private constructor(
-        val source: DisplayName,
+        val source: Describable,
         val lineNumber: Int? = null
     ) : PropertyTrace() {
         constructor(location: Location) : this(location.sourceShortDisplayName, location.lineNumber)

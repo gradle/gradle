@@ -1,11 +1,15 @@
 import gradlebuild.basics.BuildEnvironment
 import gradlebuild.basics.buildCommitId
 import gradlebuild.integrationtests.addDependenciesAndConfigurations
+import gradlebuild.integrationtests.configureTestSourceSetInIde
+import gradlebuild.integrationtests.ide.androidStudioSystemProperties
+import gradlebuild.integrationtests.ide.ideaSystemProperties
 import gradlebuild.integrationtests.tasks.SmokeIdeTest
 import gradlebuild.performance.generator.tasks.RemoteProject
 
 plugins {
     id("gradlebuild.internal.java")
+    id("gradlebuild.ide-provisioning")
 }
 
 description = "Tests are checking Gradle behavior during IDE synchronization process"
@@ -14,6 +18,8 @@ val smokeIdeTestSourceSet = sourceSets.create("smokeIdeTest") {
     compileClasspath += sourceSets.main.get().output
     runtimeClasspath += sourceSets.main.get().output
 }
+
+configureTestSourceSetInIde(smokeIdeTestSourceSet)
 
 jvmCompile {
     addCompilationFrom(smokeIdeTestSourceSet)
@@ -27,43 +33,16 @@ dependencyAnalysis {
 
 addDependenciesAndConfigurations("smokeIde")
 
-val smokeIdeTestImplementation: Configuration by configurations
-val smokeIdeTestDistributionRuntimeOnly: Configuration by configurations
-val ideStarter by configurations.creating {
-    isCanBeConsumed = false
-}
-val ideStarterBuildDir = layout.buildDirectory.dir("ideStarter")
-
-plugins.withType<IdeaPlugin> {
-    with(model) {
-        module {
-            testSources.from(smokeIdeTestSourceSet.java.srcDirs, smokeIdeTestSourceSet.groovy.srcDirs)
-            testResources.from(smokeIdeTestSourceSet.resources.srcDirs)
-        }
-    }
-}
-
-abstract class IdeStarterPathProvider : CommandLineArgumentProvider {
-    @get: InputDirectory
-    @get: PathSensitive(PathSensitivity.RELATIVE)
-    abstract val ideStarterDir : DirectoryProperty
-
-    override fun asArguments(): Iterable<String> =
-        listOf("-Dide.starter.path=${ideStarterDir.get().asFile.absolutePath}")
-}
+val smokeIdeTestImplementation = configurations.getByName("smokeIdeTestImplementation")
+val smokeIdeTestDistributionRuntimeOnly = configurations.getByName("smokeIdeTestDistributionRuntimeOnly")
 
 tasks {
-    val unzipIdeStarter by registering(Sync::class) {
-        from(zipTree(ideStarter.elements.map { it.single() }))
-        into(ideStarterBuildDir)
-    }
-
-    val fetchGradle by registering(RemoteProject::class) {
+    val fetchGradle = register<RemoteProject>("fetchGradle") {
         remoteUri = rootDir.absolutePath
         ref = buildCommitId
     }
 
-    val shrinkGradle by registering(Sync::class) {
+    val shrinkGradle = register<Sync>("shrinkGradle") {
         from(fetchGradle.map { it.outputDirectory }) {
             exclude("subprojects/*/*/src/**")
             exclude("testing/*/*/src/**")
@@ -87,27 +66,23 @@ tasks {
     }
 
     register<SmokeIdeTest>("smokeIdeTest") {
-        dependsOn(unzipIdeStarter, shrinkGradle)
+        dependsOn(shrinkGradle)
         group = "Verification"
         maxParallelForks = 1
         systemProperties["org.gradle.integtest.executer"] = "forking"
         testClassesDirs = smokeIdeTestSourceSet.output.classesDirs
         classpath = smokeIdeTestSourceSet.runtimeClasspath
-        jvmArgumentProviders.add(
-            objects.newInstance<IdeStarterPathProvider>().apply {
-                ideStarterDir = ideStarterBuildDir
-            }
-        )
+        jvmArgumentProviders.add(ideaSystemProperties())
+        jvmArgumentProviders.add(androidStudioSystemProperties())
     }
 }
 
 dependencies {
-    ideStarter(testLibs.gradleIdeStarter)
     smokeIdeTestDistributionRuntimeOnly(projects.distributionsFull) {
         because("Tests starts an IDE with using current Gradle distribution")
     }
     smokeIdeTestImplementation(projects.internalIntegTesting)
-    smokeIdeTestImplementation(testLibs.gradleIdeStarterScenarios)
+    smokeIdeTestImplementation(testLibs.gradleProfiler)
     smokeIdeTestImplementation(testFixtures(projects.core))
 }
 

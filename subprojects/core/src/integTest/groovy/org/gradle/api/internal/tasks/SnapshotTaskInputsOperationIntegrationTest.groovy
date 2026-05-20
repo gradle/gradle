@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks
 
+import org.gradle.api.problems.Severity
 import org.gradle.api.Action
 import org.gradle.api.DefaultTask
 import org.gradle.api.internal.tasks.execution.ExecuteTaskBuildOperationType
@@ -31,14 +32,13 @@ import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginAdapter
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 
 import static com.google.common.base.CaseFormat.UPPER_CAMEL
 import static com.google.common.base.CaseFormat.UPPER_UNDERSCORE
-import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache.Skip.INVESTIGATE
 
 class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec implements ValidationMessageChecker {
 
@@ -146,7 +146,7 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
         !operations.hasOperation(SnapshotTaskInputsBuildOperationType)
     }
 
-    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
+    @UnsupportedWithConfigurationCache(because = "Custom classloader, https://github.com/gradle/gradle/issues/11510")
     def "handles invalid implementation classloader"() {
         given:
         buildFile """
@@ -163,14 +163,6 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
 
         then:
         failureDescriptionStartsWith("Some problems were found with the configuration of task ':customTask' (type 'CustomTask').")
-        failureDescriptionContains(implementationUnknown {
-            implementationOfTask(':customTask')
-            unknownClassloader('CustomTask_Decorated')
-        })
-        failureDescriptionContains(implementationUnknown {
-            additionalTaskAction(':customTask')
-            unknownClassloader('CustomTask_Decorated')
-        })
         def result = operations.first(SnapshotTaskInputsBuildOperationType).result
         result.hash == null
         result.classLoaderHash == null
@@ -181,18 +173,24 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
 
         and:
         verifyAll(receivedProblem(0)) {
+            severity == Severity.ERROR
             fqid == 'validation:property-validation:unknown-implementation'
+            definition.id.displayName == 'Unknown property implementation'
             contextualLabel == 'Additional action of task \':customTask\' was loaded with an unknown classloader (class \'CustomTask_Decorated\').'
             details == 'Gradle cannot track the implementation for classes loaded with an unknown classloader.'
+            definition.documentationLink.url == "https://docs.gradle.org/${distribution.version.version}/userguide/validation_problems.html#implementation_unknown"
             solutions == [ 'Load your class by using one of Gradle\'s built-in ways.' ]
             additionalData.asMap == [
                 'typeName' : 'CustomTask'
             ]
         }
         verifyAll(receivedProblem(1)) {
+            severity == Severity.ERROR
             fqid == 'validation:property-validation:unknown-implementation'
+            definition.id.displayName == 'Unknown property implementation'
             contextualLabel == 'Implementation of task \':customTask\' was loaded with an unknown classloader (class \'CustomTask_Decorated\').'
             details == 'Gradle cannot track the implementation for classes loaded with an unknown classloader.'
+            definition.documentationLink.url == "https://docs.gradle.org/${distribution.version.version}/userguide/validation_problems.html#implementation_unknown"
             solutions == [ 'Load your class by using one of Gradle\'s built-in ways.' ]
             additionalData.asMap == [
                 'typeName' : 'CustomTask'
@@ -200,7 +198,7 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
         }
     }
 
-    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
+    @UnsupportedWithConfigurationCache(because = "Custom classloader, https://github.com/gradle/gradle/issues/11510")
     def "handles invalid action classloader"() {
         given:
         buildFile """
@@ -219,10 +217,6 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
 
         then:
         failureDescriptionStartsWith("A problem was found with the configuration of task ':customTask' (type 'CustomTask').")
-        failureDescriptionContains(implementationUnknown {
-            additionalTaskAction(':customTask')
-            unknownClassloader('A')
-        })
         def result = operations.first(SnapshotTaskInputsBuildOperationType).result
         result.hash == null
         result.classLoaderHash == null
@@ -233,9 +227,12 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
 
         and:
         verifyAll(receivedProblem) {
+            severity == Severity.ERROR
             fqid == 'validation:property-validation:unknown-implementation'
+            definition.id.displayName == 'Unknown property implementation'
             contextualLabel == 'Additional action of task \':customTask\' was loaded with an unknown classloader (class \'A\').'
             details == 'Gradle cannot track the implementation for classes loaded with an unknown classloader.'
+            definition.documentationLink.url == "https://docs.gradle.org/${distribution.version.version}/userguide/validation_problems.html#implementation_unknown"
             solutions == [ 'Load your class by using one of Gradle\'s built-in ways.' ]
             additionalData.asMap == [
                 'typeName' : 'CustomTask',
@@ -404,7 +401,6 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
         }
     }
 
-    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
     def "exposes file inputs, not ignoring empty directories"() {
         given:
         withBuildCache()
@@ -413,9 +409,10 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
             file("build.gradle") << """
                 task foo {
                     inputs.dir('src').ignoreEmptyDirectories(false).withPropertyName('src')
-                    outputs.file('output.txt')
+                    def outputFile = file('output.txt')
+                    outputs.file(outputFile)
                     doLast {
-                        file('output.txt') << 'do stuff'
+                        outputFile << 'do stuff'
                     }
                 }
             """
@@ -513,7 +510,7 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
         }
     }
 
-    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
+    @UnsupportedWithConfigurationCache(because = "Custom classloader, https://github.com/gradle/gradle/issues/11510")
     def "handles invalid nested bean classloader"() {
         given:
         buildFile """
@@ -533,10 +530,6 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
 
         then:
         failureDescriptionStartsWith("A problem was found with the configuration of task ':customTask' (type 'CustomTask').")
-        failureDescriptionContains(implementationUnknown {
-            nestedProperty('bean')
-            unknownClassloader('A')
-        })
         def result = operations.first(SnapshotTaskInputsBuildOperationType).result
         result.hash == null
         result.classLoaderHash == null
@@ -547,9 +540,12 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
 
         and:
         verifyAll(receivedProblem(0)) {
+            severity == Severity.ERROR
             fqid == 'validation:property-validation:unknown-implementation-nested'
+            definition.id.displayName == 'Unknown property implementation'
             contextualLabel == "Property 'bean' was loaded with an unknown classloader (class 'A')."
             details == 'Gradle cannot track the implementation for classes loaded with an unknown classloader.'
+            definition.documentationLink.url == "https://docs.gradle.org/${distribution.version.version}/userguide/validation_problems.html#implementation_unknown"
             solutions == [ 'Load your class by using one of Gradle\'s built-in ways.' ]
             additionalData.asMap == [
                 'typeName' : 'CustomTask',

@@ -289,7 +289,7 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, ProjectPar
     /**
      * Perform the given action while holding the specified locks, blocking until the locks are acquired.
      */
-    private <T> T withLocksAcquired(Collection<? extends ResourceLock> locksToAcquire, Factory<T> factory) {
+    private <T extends @Nullable Object> T withLocksAcquired(Collection<? extends ResourceLock> locksToAcquire, Factory<T> factory) {
         acquireLocksWithoutWorkerLeaseWhileBlocked(locksToAcquire);
         return runAndReleaseLocks(locksToAcquire, factory);
     }
@@ -440,7 +440,7 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, ProjectPar
     }
 
     @Override
-    public <T> T withReplacedLocks(Collection<? extends ResourceLock> currentLocks, ResourceLock newLock, Factory<T> factory) {
+    public <T extends @Nullable Object> T withReplacedLocks(Collection<? extends ResourceLock> currentLocks, ResourceLock newLock, Factory<T> factory) {
         if (currentLocks.contains(newLock)) {
             // Already holds the lock
             return factory.create();

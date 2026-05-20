@@ -16,13 +16,18 @@
 
 package org.gradle.api.plugins.quality;
 
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Locale;
 
 /**
- * Represents the PMD targetjdk property available for PMD &lt; 5.0
+ * Represents the PMD targetjdk property available for PMD &lt; 5.0.
+ *
+ * @deprecated This type is only used by the deprecated {@code targetJdk} property on the PMD plugin.
+ *     It will be removed in Gradle 10. PMD 5.0 and later infer the Java language version from the rule sets.
  */
+@Deprecated
 public enum TargetJdk {
     VERSION_1_3,
     VERSION_1_4,
@@ -40,6 +45,10 @@ public enum TargetJdk {
      */
     @Nullable
     public static TargetJdk toVersion(@Nullable Object value) throws IllegalArgumentException {
+        DeprecationLogger.deprecateType(TargetJdk.class)
+            .willBeRemovedInGradle10()
+            .withUpgradeGuideSection(9, "deprecated_pmd_target_jdk")
+            .nagUser();
         if (value == null) {
             return null;
         }

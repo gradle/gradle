@@ -16,7 +16,7 @@
 package org.gradle.api
 
 import org.gradle.api.resources.TextResourceFactory
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.deprecation.Documentation
 import org.gradle.util.internal.GUtil
 import spock.lang.Issue
@@ -158,7 +158,6 @@ class HttpScriptPluginIntegrationSpec extends AbstractHttpScriptPluginIntegratio
         succeeds()
     }
 
-    @ToBeFixedForConfigurationCache(because = "remote scripts skipped")
     def "does not cache URIs with query parts"() {
         when:
         def queryString = 'p=foo;a=blob_plain;f=bar;hb=foo/bar/foo'
@@ -181,6 +180,10 @@ class HttpScriptPluginIntegrationSpec extends AbstractHttpScriptPluginIntegratio
 
         when:
         server.expectGetWithQueryString('/external.gradle', queryString, script)
+        if (GradleContextualExecuter.configCache) {
+            server.expectHeadWithQueryString('/external.gradle', queryString, script)
+            server.expectGetWithQueryString('/external.gradle', queryString, script)
+        }
         then:
         succeeds()
 
@@ -240,7 +243,6 @@ class HttpScriptPluginIntegrationSpec extends AbstractHttpScriptPluginIntegratio
         "initscript"  | "init.gradle"
     }
 
-    @ToBeFixedForConfigurationCache(because = "remote scripts skipped")
     def "can recover from failure to download cached #source resource by running with --offline"() {
         given:
         def scriptFile = file("script.gradle")
@@ -270,7 +272,12 @@ class HttpScriptPluginIntegrationSpec extends AbstractHttpScriptPluginIntegratio
         then:
         args('-I', 'init.gradle')
         fails 'check'
-        failure.assertHasCause("Could not get resource '${scriptUri}'")
+        def expectedMessage = "Could not get resource '${scriptUri}'"
+        if (GradleContextualExecuter.configCache) {
+            failure.assertHasDescription(expectedMessage)
+        } else {
+            failure.assertHasCause(expectedMessage) // with Vintage, it's wrapped in "A problem occurred evaluating root project 'project'."
+        }
 
         when:
         args('--offline', '-I', 'init.gradle')
@@ -285,7 +292,6 @@ class HttpScriptPluginIntegrationSpec extends AbstractHttpScriptPluginIntegratio
         "initscript"  | "init.gradle"     | "init-script-plugin.gradle"
     }
 
-    @ToBeFixedForConfigurationCache(because = "test expects script evaluation")
     def "will only request resource once for build invocation"() {
         given:
         def scriptName = "script-once.gradle"
@@ -318,7 +324,7 @@ class HttpScriptPluginIntegrationSpec extends AbstractHttpScriptPluginIntegratio
 
         then:
         succeeds 'help'
-        output.count('loaded external script') == 4
+        output.count('loaded external script') == (GradleContextualExecuter.notConfigCache ? 4 : 0)
     }
 
     def "will refresh cached value on subsequent build invocation"() {

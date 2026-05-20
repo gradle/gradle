@@ -19,8 +19,8 @@ package org.gradle.internal.logging.console
 import org.gradle.api.logging.configuration.ConsoleOutput
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.ConcurrentTestUtil
-import org.gradle.test.preconditions.IntegTestPreconditions
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
+import org.gradle.test.preconditions.OsTestPreconditions
 import org.gradle.test.precondition.Requires
 import spock.lang.Issue
 import spock.lang.Ignore
@@ -50,11 +50,10 @@ class TaskbarProgressResetFunctionalTest extends AbstractIntegrationSpec {
     }
 
     @Ignore('https://github.com/gradle/gradle-private/issues/5153')
-    @Requires(value = [UnitTestPreconditions.Unix, IntegTestPreconditions.NotEmbeddedExecutor],
+    @Requires(value = [OsTestPreconditions.Unix, TestExecutionPreconditions.NotEmbeddedExecutor],
         reason = "sends SIGINT to a forked process works only on Unix and with a separate process")
     def "sends OSC 9;4;0 reset sequence when build receives SIGINT"() {
         given:
-        def timeoutS = 60
         // The task creates a marker file once it's running, then sleeps.
         // We wait for the marker before sending SIGINT to avoid racing
         // against JVM signal-handler setup on slow CI machines.
@@ -64,7 +63,7 @@ class TaskbarProgressResetFunctionalTest extends AbstractIntegrationSpec {
                 def marker = file("${readyFile.name}")
                 doFirst {
                     marker.createNewFile()
-                    Thread.sleep(${timeoutS}_000)
+                    Thread.sleep(600_000)
                 }
             }
         """
@@ -72,7 +71,7 @@ class TaskbarProgressResetFunctionalTest extends AbstractIntegrationSpec {
         when:
         def gradle = executer.withTasks("block").start()
 
-        ConcurrentTestUtil.poll(timeoutS) {
+        ConcurrentTestUtil.poll {
             assert readyFile.exists()
         }
 
@@ -84,7 +83,7 @@ class TaskbarProgressResetFunctionalTest extends AbstractIntegrationSpec {
     }
 
     @SuppressWarnings("IntegrationTestFixtures") // outputContains() strips ANSI escape characters; we need raw output to verify the OSC sequence
-    @Requires(value = IntegTestPreconditions.NotEmbeddedExecutor,
+    @Requires(value = TestExecutionPreconditions.NotEmbeddedExecutor,
         reason = "OSC taskbar progress sequences are only emitted by the forked client JVM")
     def "sends OSC 9;4;0 reset sequence after a successful build"() {
         given:
@@ -101,7 +100,7 @@ class TaskbarProgressResetFunctionalTest extends AbstractIntegrationSpec {
 
     @Issue("https://github.com/gradle/gradle/issues/37611")
     @SuppressWarnings("IntegrationTestFixtures")
-    @Requires(value = IntegTestPreconditions.NotEmbeddedExecutor,
+    @Requires(value = TestExecutionPreconditions.NotEmbeddedExecutor,
         reason = "OSC taskbar progress sequences are only emitted by the forked client JVM")
     def "does not emit OSC 9;4 sequences when --console=plain"() {
         given:
@@ -119,7 +118,7 @@ class TaskbarProgressResetFunctionalTest extends AbstractIntegrationSpec {
 
     @Issue("https://github.com/gradle/gradle/issues/37611")
     @SuppressWarnings("IntegrationTestFixtures")
-    @Requires(value = IntegTestPreconditions.NotEmbeddedExecutor,
+    @Requires(value = TestExecutionPreconditions.NotEmbeddedExecutor,
         reason = "OSC taskbar progress sequences are only emitted by the forked client JVM")
     def "does not emit OSC 9;4 sequences when console is Auto and stdout is not a terminal"() {
         given:

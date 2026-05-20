@@ -27,41 +27,40 @@ import org.gradle.api.artifacts.dsl.DependencyFactory;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.internal.AbstractNamedDomainObjectContainer;
 import org.gradle.api.internal.DynamicObjectAware;
-import org.gradle.api.provider.Property;
-import org.gradle.api.tasks.Nested;
-import org.gradle.features.binding.ProjectFeatureApplyAction;
-import org.gradle.features.internal.file.DefaultProjectFeatureLayout;
-import org.gradle.features.file.ProjectFeatureLayout;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.model.ObjectFactoryFactory;
-import org.gradle.features.binding.BuildModel;
-import org.gradle.features.binding.Definition;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
-import org.gradle.features.binding.ProjectFeatureApplicationContext;
-import org.gradle.features.registration.ConfigurationRegistrar;
-import org.gradle.features.internal.registration.DefaultConfigurationRegistrar;
-import org.gradle.features.internal.registration.DefaultTaskRegistrar;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.features.registration.TaskRegistrar;
-import org.gradle.api.problems.Severity;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
-import org.gradle.api.problems.internal.InternalProblem;
-import org.gradle.api.problems.internal.InternalProblemReporter;
+import org.gradle.api.problems.internal.ProblemInternal;
+import org.gradle.api.problems.internal.ProblemReporterInternal;
+import org.gradle.api.provider.Property;
 import org.gradle.api.provider.ProviderFactory;
+import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.TaskContainer;
+import org.gradle.features.binding.BuildModel;
+import org.gradle.features.binding.BuildModelRegistrar;
+import org.gradle.features.binding.Definition;
+import org.gradle.features.binding.ProjectFeatureApplicationContext;
+import org.gradle.features.binding.ProjectFeatureApplyAction;
+import org.gradle.features.file.ProjectFeatureLayout;
+import org.gradle.features.internal.binding.ProjectFeatureSupportInternal.ProjectFeatureDefinitionContext;
+import org.gradle.features.internal.file.DefaultProjectFeatureLayout;
+import org.gradle.features.internal.registration.DefaultConfigurationRegistrar;
+import org.gradle.features.internal.registration.DefaultTaskRegistrar;
+import org.gradle.features.registration.ConfigurationRegistrar;
+import org.gradle.features.registration.TaskRegistrar;
 import org.gradle.internal.Cast;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.instantiation.managed.ManagedObjectRegistry;
 import org.gradle.internal.logging.text.TreeFormatter;
-
 import org.gradle.internal.reflect.annotations.PropertyAnnotationMetadata;
 import org.gradle.internal.reflect.annotations.TypeAnnotationMetadataStore;
 import org.gradle.internal.reflect.validation.TypeValidationProblemRenderer;
 import org.gradle.internal.service.ServiceLookup;
 import org.gradle.internal.service.ServiceLookupException;
 import org.gradle.internal.service.UnknownServiceException;
-import org.gradle.features.internal.binding.ProjectFeatureSupportInternal.ProjectFeatureDefinitionContext;
 import org.jspecify.annotations.Nullable;
 
 import javax.inject.Inject;
@@ -81,7 +80,7 @@ import java.util.Set;
 abstract public class DefaultProjectFeatureApplicator implements ProjectFeatureApplicator {
     private final ClassLoaderScope classLoaderScope;
     private final ObjectFactory projectObjectFactory;
-    private final InternalProblemReporter problemReporter;
+    private final ProblemReporterInternal problemReporter;
     private final ServiceLookup allServices;
     private final PropertyWalker propertyWalker = new DefaultPropertyWalker(getTypeAnnotationMetadataStore());
     private final List<FeatureApplication<?, ?>> pendingFeatureApplications = new ArrayList<>();
@@ -90,7 +89,7 @@ abstract public class DefaultProjectFeatureApplicator implements ProjectFeatureA
     public DefaultProjectFeatureApplicator(
         ClassLoaderScope classLoaderScope,
         ObjectFactory projectObjectFactory,
-        InternalProblemReporter problemReporter,
+        ProblemReporterInternal problemReporter,
         ServiceLookup allServices
     ) {
         this.classLoaderScope = classLoaderScope;
@@ -118,9 +117,9 @@ abstract public class DefaultProjectFeatureApplicator implements ProjectFeatureA
         ProjectFeatureDefinitionContext.ChildDefinitionAdditionResult<OwnDefinition, OwnBuildModel> result = instantiateDefinition(parentDefinition, projectFeature, parentDefinitionContext);
 
         if (result.isNew) {
+            pendingFeatureApplications.add(result.featureApplication);
             Plugin<Project> plugin = getPluginManager().getPluginContainer().getPlugin(projectFeature.getPluginClass());
             getModelDefaultsApplicator().applyDefaultsTo(parentDefinition, result.featureApplication.getDefinitionInstance(), new ClassLoaderContextFromScope(classLoaderScope), plugin, projectFeature);
-            pendingFeatureApplications.add(result.featureApplication);
         }
 
         return result.featureApplication;
@@ -145,8 +144,12 @@ abstract public class DefaultProjectFeatureApplicator implements ProjectFeatureA
 
     private <OwnDefinition extends Definition<OwnBuildModel>, OwnBuildModel extends BuildModel> FeatureApplication<OwnDefinition, OwnBuildModel> instantiateBoundFeatureObjects(Object parentDefinition, ProjectFeatureImplementation<OwnDefinition, OwnBuildModel> projectFeature) {
         // Context-specific services for this feature binding
-        ServiceLookup featureServices = getContextSpecificServiceLookup(projectFeature);
+        ServicesForApplyAction featureServices = getContextSpecificServiceLookup(projectFeature);
         ObjectFactory featureObjectFactory = getObjectFactoryFactory().createObjectFactory(featureServices);
+        BuildModelRegistrarInternal buildModelRegistrar = new DefaultBuildModelRegistrar(featureObjectFactory, this, getProjectFeatureDeclarations());
+        if (featureServices instanceof UnsafeServicesForApplyAction) {
+            ((UnsafeServicesForApplyAction) featureServices).setBuildModelRegistrar(buildModelRegistrar);
+        }
 
         // Instantiate the definition and build model objects with the feature-specific object factory
         OwnDefinition definition = featureObjectFactory.newInstance(projectFeature.getDefinitionImplementationType());
@@ -154,11 +157,11 @@ abstract public class DefaultProjectFeatureApplicator implements ProjectFeatureA
         ProjectFeatureSupportInternal.attachDefinitionContext(definition, buildModelInstance, this, getProjectFeatureDeclarations(), featureObjectFactory);
 
         // Construct an apply action context with the feature-specific object factory
-        ProjectFeatureApplicationContextInternal applyActionContext =
-            projectObjectFactory.newInstance(DefaultProjectFeatureApplicationContextInternal.class, featureObjectFactory);
+        ProjectFeatureApplicationContext applyActionContext =
+            projectObjectFactory.newInstance(DefaultProjectFeatureApplicationContextInternal.class);
 
         // bind any nested definitions to build model instances
-        bindNestedDefinitions(projectFeature.getDefinitionPublicType(), Cast.uncheckedCast(definition), applyActionContext, projectFeature.getNestedBuildModelTypes());
+        bindNestedDefinitions(projectFeature.getDefinitionPublicType(), Cast.uncheckedCast(definition), buildModelRegistrar, projectFeature.getNestedBuildModelTypes());
 
         return new DefaultFeatureApplication<>(
             projectFeature.getDefinitionImplementationType(),
@@ -171,13 +174,13 @@ abstract public class DefaultProjectFeatureApplicator implements ProjectFeatureA
         );
     }
 
-    private void bindNestedDefinitions(Class<?> publicType, DynamicObjectAware parent, ProjectFeatureApplicationContextInternal applyActionContext, Map<Class<?>, Class<?>> buildModelImplementationTypes) {
+    private void bindNestedDefinitions(Class<?> publicType, DynamicObjectAware parent, BuildModelRegistrarInternal buildModelRegistrar, Map<Class<?>, Class<?>> buildModelImplementationTypes) {
         // Must use an anonymous class for config cache compatibility
         propertyWalker.walkProperties(publicType, parent, new PropertyWalker.Visitor() {
             @Override
             public void visit(PropertyAnnotationMetadata propertyMetadata, Object propertyValue) {
                 if (Definition.class.isAssignableFrom(propertyMetadata.getDeclaredReturnType().getRawType())) {
-                    bindNestedDefinition(propertyValue, applyActionContext, buildModelImplementationTypes);
+                    bindNestedDefinition(propertyValue, buildModelRegistrar, buildModelImplementationTypes);
                 }
                 if (NamedDomainObjectContainer.class.isAssignableFrom(propertyMetadata.getDeclaredReturnType().getRawType())) {
                     NamedDomainObjectContainer<?> ndoc = Cast.uncheckedCast(propertyValue);
@@ -187,7 +190,7 @@ abstract public class DefaultProjectFeatureApplicator implements ProjectFeatureA
                         ndoc.all(new Action<Object>() {
                             @Override
                             public void execute(Object element) {
-                                bindNestedDefinition(element, applyActionContext, buildModelImplementationTypes);
+                                bindNestedDefinition(element, buildModelRegistrar, buildModelImplementationTypes);
                             }
                         });
                     }
@@ -196,12 +199,12 @@ abstract public class DefaultProjectFeatureApplicator implements ProjectFeatureA
         });
     }
 
-    private static void bindNestedDefinition(Object propertyValue, ProjectFeatureApplicationContextInternal applyActionContext, Map<Class<?>, Class<?>> buildModelImplementationTypes) {
+    private static void bindNestedDefinition(Object propertyValue, BuildModelRegistrarInternal buildModelRegistrar, Map<Class<?>, Class<?>> buildModelImplementationTypes) {
         Definition<?> nestedDefinition = Cast.uncheckedCast(propertyValue);
-        applyActionContext.registerBuildModel(nestedDefinition, buildModelImplementationTypes);
+        buildModelRegistrar.registerBuildModel(nestedDefinition, buildModelImplementationTypes);
     }
 
-    private <OwnDefinition extends Definition<OwnBuildModel>, OwnBuildModel extends BuildModel> ServiceLookup getContextSpecificServiceLookup(ProjectFeatureImplementation<OwnDefinition, OwnBuildModel> projectFeature) {
+    private <OwnDefinition extends Definition<OwnBuildModel>, OwnBuildModel extends BuildModel> ServicesForApplyAction getContextSpecificServiceLookup(ProjectFeatureImplementation<OwnDefinition, OwnBuildModel> projectFeature) {
         TaskRegistrar taskRegistrar = new DefaultTaskRegistrar(getTaskContainer());
         ProjectFeatureLayout projectFeatureLayout = new DefaultProjectFeatureLayout(getProjectLayout());
         ConfigurationRegistrar configurationRegistrar = new DefaultConfigurationRegistrar(getConfigurationContainer());
@@ -345,18 +348,15 @@ abstract public class DefaultProjectFeatureApplicator implements ProjectFeatureA
      * The internal implementation of the context passed to project feature apply actions, exposing an object factory
      * appropriate for the configured safety of the apply action.
      */
-    abstract static class DefaultProjectFeatureApplicationContextInternal implements org.gradle.features.internal.binding.ProjectFeatureApplicationContextInternal {
-        private final ObjectFactory objectFactory;
+    abstract static class DefaultProjectFeatureApplicationContextInternal implements ProjectFeatureApplicationContext {
 
         @Inject
         @SuppressWarnings("Unused")
-        public DefaultProjectFeatureApplicationContextInternal(ObjectFactory objectFactory) {
-            this.objectFactory = objectFactory;
-        }
+        public DefaultProjectFeatureApplicationContextInternal() { }
 
         @Override
-        public ObjectFactory getObjectFactory() {
-            return objectFactory;
+        public <T extends Definition<V>, V extends BuildModel> V getBuildModel(T definition) {
+            return Cast.uncheckedNonnullCast(ProjectFeatureSupportInternal.getContext((DynamicObjectAware) definition).getBuildModel());
         }
     }
 
@@ -466,12 +466,17 @@ abstract public class DefaultProjectFeatureApplicator implements ProjectFeatureA
      */
     private static class UnsafeServicesForApplyAction extends ServicesForApplyAction {
         private final String featureName;
-        private final InternalProblemReporter problemReporter; // Not used in this class
+        private final ProblemReporterInternal problemReporter; // Not used in this class
+        private BuildModelRegistrarInternal buildModelRegistrar; // set after construction to share ObjectFactory created with this instance
 
-        public UnsafeServicesForApplyAction(ServiceLookup allServices, TaskRegistrar taskRegistrar, ProjectFeatureLayout projectFeatureLayout, ConfigurationRegistrar configurationRegistrar, String featureName, InternalProblemReporter problemReporter) {
+        public UnsafeServicesForApplyAction(ServiceLookup allServices, TaskRegistrar taskRegistrar, ProjectFeatureLayout projectFeatureLayout, ConfigurationRegistrar configurationRegistrar, String featureName, ProblemReporterInternal problemReporter) {
             super(allServices, taskRegistrar, projectFeatureLayout, configurationRegistrar);
             this.featureName = featureName;
             this.problemReporter = problemReporter;
+        }
+
+        void setBuildModelRegistrar(BuildModelRegistrarInternal buildModelRegistrar) {
+            this.buildModelRegistrar = buildModelRegistrar;
         }
 
         @Override
@@ -481,20 +486,27 @@ abstract public class DefaultProjectFeatureApplicator implements ProjectFeatureA
                 return found;
             }
 
+            // Context-specific service for build model registration, only available in unsafe apply actions
+            if (serviceType instanceof Class) {
+                Class<?> serviceClass = Cast.uncheckedNonnullCast(serviceType);
+                if (serviceClass.isAssignableFrom(BuildModelRegistrar.class)) {
+                    return buildModelRegistrar;
+                }
+            }
+
             // If not found in the safe/limited set, allow lookup from all services
             return allServices.find(serviceType);
         }
 
         @Override
         protected Object notFound(Type serviceType) {
-            InternalProblem problem = problemReporter.internalCreate(builder -> builder
+            ProblemInternal problem = problemReporter.internalCreate(builder -> builder
                 .id("unsafe-apply-action-uses-unknown-service", "An unsafe apply action is attempting to use an unknown service", GradleCoreProblemGroup.configurationUsage())
                 .contextualLabel("Project feature '" + featureName + "' has an apply action that attempts to inject an unknown service with type '" + serviceType.getTypeName() + "'.")
                 .details("Services of type " + serviceType.getTypeName() + " are not available for injection into project feature apply actions.")
                 .solution("Remove the '" + serviceType.getTypeName() + "' injection from the apply action.")
-                .severity(Severity.ERROR)
             );
-            problemReporter.report(problem);
+            problemReporter.reportError(problem);
             throw new UnknownServiceException(serviceType, TypeValidationProblemRenderer.renderMinimalInformationAbout(problem));
         }
     }
@@ -504,9 +516,9 @@ abstract public class DefaultProjectFeatureApplicator implements ProjectFeatureA
      */
     private static class SafeServicesForApplyAction extends ServicesForApplyAction {
         private final String featureName;
-        private final InternalProblemReporter problemReporter;
+        private final ProblemReporterInternal problemReporter;
 
-        public SafeServicesForApplyAction(ServiceLookup allServices, TaskRegistrar taskRegistrar, ProjectFeatureLayout projectFeatureLayout, ConfigurationRegistrar configurationRegistrar, String featureName, InternalProblemReporter problemReporter) {
+        public SafeServicesForApplyAction(ServiceLookup allServices, TaskRegistrar taskRegistrar, ProjectFeatureLayout projectFeatureLayout, ConfigurationRegistrar configurationRegistrar, String featureName, ProblemReporterInternal problemReporter) {
             super(allServices, taskRegistrar, projectFeatureLayout, configurationRegistrar);
             this.featureName = featureName;
             this.problemReporter = problemReporter;
@@ -543,15 +555,14 @@ abstract public class DefaultProjectFeatureApplicator implements ProjectFeatureA
 
         @Override
         protected Object notFound(Type serviceType) {
-            InternalProblem problem = problemReporter.internalCreate(builder -> builder
+            ProblemInternal problem = problemReporter.internalCreate(builder -> builder
                 .id("safe-apply-action-uses-unsafe-service", "A safe apply action is attempting to use an unsafe service", GradleCoreProblemGroup.configurationUsage())
                 .contextualLabel("Project feature '" + featureName + "' has a safe apply action that attempts to inject an unsafe service with type '" + serviceType.getTypeName() + "'.")
                 .details(getSafeServicesListExplanation())
                 .solution("Mark the apply action as unsafe.")
                 .solution("Remove the '" + serviceType.getTypeName() + "' injection from the apply action.")
-                .severity(Severity.ERROR)
             );
-            problemReporter.report(problem);
+            problemReporter.reportError(problem);
             throw new UnknownServiceException(serviceType, TypeValidationProblemRenderer.renderMinimalInformationAbout(problem));
         }
     }

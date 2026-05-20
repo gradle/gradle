@@ -22,7 +22,8 @@ import org.gradle.internal.file.FileType
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.FileSystemTestPreconditions
+
 import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import org.junit.Rule
 import spock.lang.Specification
@@ -58,7 +59,7 @@ class CommonFileSystemTest extends Specification {
         e.message == "Could not set file mode 644 on '$file'."
     }
 
-    @Requires(UnitTestPreconditions.FilePermissions)
+    @Requires(FileSystemTestPreconditions.FilePermissions)
     def "unix permissions on files can be changed and read"() {
         def f = tmpDir.createFile("someFile\u03B1.txt")
 
@@ -73,7 +74,7 @@ class CommonFileSystemTest extends Specification {
         mode << [0644, 0600, 0751]
     }
 
-    @Requires(UnitTestPreconditions.FilePermissions)
+    @Requires(FileSystemTestPreconditions.FilePermissions)
     def "unix permissions on directories can be changed and read"() {
         def d = tmpDir.createDir("someDir\u03B1")
 
@@ -88,20 +89,20 @@ class CommonFileSystemTest extends Specification {
         mode << [0755, 0700, 0722]
     }
 
-    @Requires(UnitTestPreconditions.NoFilePermissions)
+    @Requires(FileSystemTestPreconditions.NoFilePermissions)
     def "unix permissions have default values on unsupported platforms"() {
         expect:
         fs.getUnixMode(tmpDir.createFile("someFile")) == FileSystem.DEFAULT_FILE_MODE
         fs.getUnixMode(tmpDir.createDir("someDir")) == FileSystem.DEFAULT_DIR_MODE
     }
 
-    @Requires(UnitTestPreconditions.NoFilePermissions)
+    @Requires(FileSystemTestPreconditions.NoFilePermissions)
     def "setting unix permissions does nothing on unsupported platforms"() {
         expect:
         fs.chmod(tmpDir.createFile("someFile"), 0644)
     }
 
-    @Requires(UnitTestPreconditions.Symlinks)
+    @Requires(FileSystemTestPreconditions.Symlinks)
     def "can create symlink on platforms that support symlinks"() {
         def target = tmpDir.createFile("target.txt")
         def link = tmpDir.file("link.txt")
@@ -114,7 +115,7 @@ class CommonFileSystemTest extends Specification {
         link.readLink() == target.absolutePath
     }
 
-    @Requires(UnitTestPreconditions.NoSymlinks)
+    @Requires(FileSystemTestPreconditions.NoSymlinks)
     def "cannot create symlinks on platforms that do not support symlinks"() {
         def target = tmpDir.createFile("target.txt")
         def link = tmpDir.file("link.txt")
@@ -157,7 +158,7 @@ class CommonFileSystemTest extends Specification {
         stat.length == 0
     }
 
-    @Requires(UnitTestPreconditions.Symlinks)
+    @Requires(FileSystemTestPreconditions.Symlinks)
     def "stats symlink"() {
         def file = tmpDir.file("file")
         file.text = "123"

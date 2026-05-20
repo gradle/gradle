@@ -25,7 +25,8 @@ import org.gradle.process.ProcessExecutionException
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.OsTestPreconditions
+
 import org.gradle.util.TestUtil
 import org.junit.Rule
 
@@ -82,7 +83,7 @@ class DefaultExecActionFactoryTest extends ConcurrentSpec {
         result.exitValue != 0
     }
 
-    @Requires(UnitTestPreconditions.NotWindows)
+    @Requires(OsTestPreconditions.NotWindows)
     def exec() {
         File testFile = tmpDir.file("someFile")
 
@@ -98,7 +99,7 @@ class DefaultExecActionFactoryTest extends ConcurrentSpec {
         result.exitValue == 0
     }
 
-    @Requires(UnitTestPreconditions.NotWindows)
+    @Requires(OsTestPreconditions.NotWindows)
     def execWithNonZeroExitValueShouldThrowException() {
         when:
         factory.exec { spec ->
@@ -111,7 +112,7 @@ class DefaultExecActionFactoryTest extends ConcurrentSpec {
         thrown(ProcessExecutionException)
     }
 
-    @Requires(UnitTestPreconditions.NotWindows)
+    @Requires(OsTestPreconditions.NotWindows)
     def execWithNonZeroExitValueAndIgnoreExitValueShouldNotThrowException() {
         when:
         ExecResult result = factory.exec { spec ->

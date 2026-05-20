@@ -41,6 +41,7 @@ dependencies {
     implementation(projects.problemsApi)
     implementation(projects.resources)
     implementation(projects.serviceLookup)
+    implementation(projects.startParameter)
     implementation(libs.guava)
     implementation(libs.kotlinReflect)
     implementation(libs.jspecify)
@@ -48,6 +49,8 @@ dependencies {
     testImplementation(testLibs.mockitoKotlin)
     testImplementation(testFixtures(projects.declarativeDslCore))
     testImplementation(testFixtures(projects.declarativeDslEvaluator))
+    testImplementation(projects.internalIntegTesting)
+    testImplementation(testFixtures(projects.declarativeDslProvider))
 
     integTestImplementation(projects.internalTesting)
     integTestImplementation(projects.logging)

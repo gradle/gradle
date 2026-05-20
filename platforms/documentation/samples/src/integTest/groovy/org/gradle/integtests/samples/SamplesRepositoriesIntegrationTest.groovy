@@ -32,7 +32,7 @@ class SamplesRepositoriesIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @LeaksFileHandles
-    @UsesSample("artifacts/defineRepository")
+    @UsesSample("integration-tests/artifacts/defineRepository")
     def "can use repositories notation with #dsl dsl"() {
         // This test is not very strong. Its main purpose is to the for the correct syntax as we use many
         // code snippets from this build script in the user's guide.

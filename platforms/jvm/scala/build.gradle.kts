@@ -24,6 +24,7 @@ dependencies {
     api(projects.stdlibJavaExtensions)
     api(projects.toolchainsJvm)
     api(projects.toolchainsJvmShared)
+    api(projects.classpath)
     api(projects.workers)
 
     api(libs.inject)

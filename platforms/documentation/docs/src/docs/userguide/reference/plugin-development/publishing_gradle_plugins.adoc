@@ -25,6 +25,7 @@ While you can publish to private repositories to restrict access, publishing to 
 
 image::plugin-portal-page.png[]
 
+[[account_setup]]
 == Account setup
 
 Before publishing, create a {portal} account and generate an API key:
@@ -44,8 +45,8 @@ Provide the credentials as Gradle properties (`gradle.publish.key` and `gradle.p
 Add the `com.gradle.plugin-publish` plugin to your build:
 
 ====
-include::sample[dir="snippets/developingPlugins/publishingPlugins/kotlin",files="build.gradle.kts[tags=plugins_block]"]
-include::sample[dir="snippets/developingPlugins/publishingPlugins/groovy",files="build.gradle[tags=plugins_block]"]
+include::sample[dir="snippets/reference/plugin-development/publishingPlugins/kotlin",files="build.gradle.kts[tags=plugins_block]"]
+include::sample[dir="snippets/reference/plugin-development/publishingPlugins/groovy",files="build.gradle[tags=plugins_block]"]
 ====
 
 The latest version is listed on the link:https://plugins.gradle.org/plugin/com.gradle.plugin-publish[{portal}].
@@ -61,8 +62,8 @@ Older versions required applying these plugins manually.
 Configure the plugin in `build.gradle(.kts)`:
 
 ====
-include::sample[dir="snippets/developingPlugins/publishingPlugins/kotlin",files="build.gradle.kts[tags=global_config]"]
-include::sample[dir="snippets/developingPlugins/publishingPlugins/groovy",files="build.gradle[tags=global_config]"]
+include::sample[dir="snippets/reference/plugin-development/publishingPlugins/kotlin",files="build.gradle.kts[tags=global_config]"]
+include::sample[dir="snippets/reference/plugin-development/publishingPlugins/groovy",files="build.gradle[tags=global_config]"]
 ====
 <1> Set `group` to identify your published artifacts.
 <2> Set `version` for the plugin release.
@@ -76,8 +77,8 @@ WARNING: The group and artifact must reasonably represent the organization, pers
 Define plugin-specific properties inside the `gradlePlugin {}` block:
 
 ====
-include::sample[dir="snippets/developingPlugins/publishingPlugins/kotlin",files="build.gradle.kts[tags=per_plugin_config]"]
-include::sample[dir="snippets/developingPlugins/publishingPlugins/groovy",files="build.gradle[tags=per_plugin_config]"]
+include::sample[dir="snippets/reference/plugin-development/publishingPlugins/kotlin",files="build.gradle.kts[tags=per_plugin_config]"]
+include::sample[dir="snippets/reference/plugin-development/publishingPlugins/groovy",files="build.gradle[tags=per_plugin_config]"]
 ====
 <1> Plugin specific configuration also goes into the `gradlePlugin` block.
 <2> This is where we previously added global properties.
@@ -91,20 +92,23 @@ include::sample[dir="snippets/developingPlugins/publishingPlugins/groovy",files=
 For example, take a look at the configuration for the https://plugins.gradle.org/plugin/org.ysb33r.gradletest[GradleTest plugin]:
 
 ====
-include::sample[dir="snippets/developingPlugins/publishingPlugins/kotlin",files="build.gradle.kts[tags=plugin_example]"]
-include::sample[dir="snippets/developingPlugins/publishingPlugins/groovy",files="build.gradle[tags=plugin_example]"]
+include::sample[dir="snippets/reference/plugin-development/publishingPlugins/kotlin",files="build.gradle.kts[tags=plugin_example]"]
+include::sample[dir="snippets/reference/plugin-development/publishingPlugins/groovy",files="build.gradle[tags=plugin_example]"]
 ====
 
 image::plugin-portal-plugin-page.png[]
 
+[[sources_and_javadoc]]
 === Sources and Javadoc
 
 The Plugin Publish Plugin automatically creates and publishes <<building_java_projects.adoc#sec:java_packaging,Javadoc and sources JARs>>.
 
+[[signing_artifacts]]
 === Signing artifacts
 
 From version 1.0.0, applying the <<signing_plugin.adoc#signing_plugin,`signing`>> plugin automatically signs plugin artifacts.
 
+[[shadow_dependencies]]
 === Shadow dependencies
 
 From version 1.0.0, applying https://github.com/GradleUp/shadow[`com.gradleup.shadow`] automatically creates fat JARs for plugins.
@@ -138,6 +142,7 @@ This process can take a few days.
 
 After approval, your plugin appears on the Portal and is available for anyone to use.
 
+[[plugins_published_without_portal]]
 == Plugins published without {portal}
 
 If you published a plugin without using the <<java_gradle_plugin.adoc#java_gradle_plugin,Java Gradle Plugin Development Plugin>>, the publication will lack the <<plugins_intermediate.adoc#sec:plugin_markers,Plugin Marker Artifact>> required by the plugins DSL.
@@ -145,6 +150,6 @@ If you published a plugin without using the <<java_gradle_plugin.adoc#java_gradl
 To use such a plugin, add a `resolutionStrategy` block inside `pluginManagement {}` in the consuming project’s `settings.gradle(.kts)`:
 
 ====
-include::sample[dir="snippets/plugins/customPlugin/kotlin/consumer",files="settings.gradle.kts[tags=use-legacy-plugin]"]
-include::sample[dir="snippets/plugins/customPlugin/groovy/consumer",files="settings.gradle[tags=use-legacy-plugin]"]
+include::sample[dir="snippets/reference/plugin-development/customPlugin/kotlin/consumer",files="settings.gradle.kts[tags=use-legacy-plugin]"]
+include::sample[dir="snippets/reference/plugin-development/customPlugin/groovy/consumer",files="settings.gradle[tags=use-legacy-plugin]"]
 ====

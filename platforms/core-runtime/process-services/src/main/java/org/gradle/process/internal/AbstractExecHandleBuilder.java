@@ -16,6 +16,7 @@
 package org.gradle.process.internal;
 
 import org.gradle.process.BaseExecSpec;
+import org.gradle.process.internal.streams.StreamsHandler;
 
 import java.io.InputStream;
 import java.io.OutputStream;

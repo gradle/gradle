@@ -178,8 +178,8 @@ project.logger.debug("debug logging");
         // Must replace both build result formats for cross compat
         return output
             .replaceAll(/Unable to list file systems to check whether they can be watched.*\n/, '')
-            .replaceFirst(/Parallel Configuration Cache is an incubating feature.\n/, '')
-            .replaceFirst(/Support for .* was deprecated.*\n/, '')
+            .replaceAll(/Parallel Configuration Cache is an incubating feature.\n/, '')
+            .replaceAll(/Support for .* was deprecated.*\n/, '')
             .replaceFirst(/ in [ \dms]+/, " in 0ms")
             .replaceFirst("Total time: .+ secs", "Total time: 0 secs")
             .replaceFirst(/(?s)To honour the JVM settings for this build a (new JVM|single-use Daemon process) will be forked.+will be stopped at the end of the build (stopping after processing)?\n/, "")

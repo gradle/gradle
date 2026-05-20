@@ -26,7 +26,8 @@ import org.gradle.process.internal.ExecActionFactory
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.OsTestPreconditions
+
 import org.gradle.util.UsesNativeServices
 import org.gradle.util.internal.VersionNumber
 import org.junit.Rule
@@ -331,7 +332,7 @@ End of search list."""
         1 * visitor.node("g++ appears to be GCC rather than Clang. Treating it as GCC.")
     }
 
-    @Requires(UnitTestPreconditions.NotWindows)
+    @Requires(OsTestPreconditions.NotWindows)
     def "parses gcc system includes"() {
         def includes = correctPathSeparators(['/usr/local', '/usr/some/dir'])
         expect:
@@ -339,7 +340,7 @@ End of search list."""
         result.component.systemIncludes*.path == includes
     }
 
-    @Requires(UnitTestPreconditions.NotWindows)
+    @Requires(OsTestPreconditions.NotWindows)
     def "parses clang system includes"() {
         def includes = correctPathSeparators([
             '/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/9.0.0/include',
@@ -352,7 +353,7 @@ End of search list."""
         result.component.systemIncludes*.path == includes
     }
 
-    @Requires(UnitTestPreconditions.NotWindows)
+    @Requires(OsTestPreconditions.NotWindows)
     def "ignores Framework directories for GCC"() {
         def includes = [
             '/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/9.0.0/include',
@@ -365,7 +366,7 @@ End of search list."""
         result.component.systemIncludes*.path == includes
     }
 
-    @Requires(UnitTestPreconditions.Windows)
+    @Requires(OsTestPreconditions.Windows)
     def "parses gcc cygwin system includes and maps to windows paths"() {
         def includes = [
             '/usr/include',

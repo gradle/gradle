@@ -19,7 +19,8 @@ package org.gradle.java.compile.incremental
 import groovy.test.NotYetImplemented
 import org.gradle.integtests.fixtures.CompiledLanguage
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.JdkVersionTestPreconditions
+
 
 abstract class CrossTaskConstantChangesIncrementalJavaCompilationIntegrationTest extends AbstractCrossTaskConstantChangesIncrementalCompilationIntegrationTest {
     CompiledLanguage language = CompiledLanguage.JAVA
@@ -428,7 +429,7 @@ abstract class CrossTaskConstantChangesIncrementalJavaCompilationIntegrationTest
         impl.recompiledClasses 'B'
     }
 
-    @Requires(UnitTestPreconditions.Jdk9OrLater)
+    @Requires(JdkVersionTestPreconditions.Jdk9OrLater)
     def "recompiles all if constant used by annotation on module-info is changed"() {
         given:
         source api: "package constant; public class Const { public static final String CONST = \"unchecked\"; }"

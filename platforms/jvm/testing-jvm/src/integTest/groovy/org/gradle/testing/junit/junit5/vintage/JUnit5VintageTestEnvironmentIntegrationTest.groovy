@@ -20,7 +20,7 @@ import org.gradle.api.tasks.testing.TestResult
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.InstalledJdkTestPreconditions
 import org.gradle.testing.fixture.JUnitCoverage
 import org.gradle.testing.junit.junit4.AbstractJUnit4TestEnvironmentIntegrationTest
 import org.gradle.testing.junit.vintage.JUnitVintageMultiVersionTest
@@ -32,7 +32,7 @@ class JUnit5VintageTestEnvironmentIntegrationTest extends AbstractJUnit4TestEnvi
         return true
     }
 
-    @Requires(IntegTestPreconditions.Java11HomeAvailable)
+    @Requires(InstalledJdkTestPreconditions.Java11HomeAvailable)
     def "can run tests with custom security manager"() {
         executer
             .withArgument("-Dorg.gradle.java.installations.paths=${AvailableJavaHomes.getAvailableJvms().collect { it.javaHome.absolutePath }.join(",")}")

@@ -217,6 +217,8 @@ import java.util.concurrent.Callable;
 public interface Project extends Comparable<Project>, ExtensionAware, PluginAware {
     /**
      * The default project build file name.
+     *
+     * @implNote Must be kept in sync with {@code BuildLogicFiles.DEFAULT_BUILD_FILE}.
      */
     String DEFAULT_BUILD_FILE = "build.gradle";
 
@@ -1477,7 +1479,11 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * are available for a project.</p>
      *
      * @return A map from property name to value.
+     * @deprecated This method will be removed in Gradle 10.0.0. Use {@link #findProperty(String)} or
+     * {@link org.gradle.api.provider.ProviderFactory#gradleProperty(String)} instead.
+     * See the <a href="https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_get_properties">upgrade guide</a> for more details.
      */
+    @Deprecated
     @HiddenInDefinition
     Map<String, ? extends @Nullable Object> getProperties();
 

@@ -64,8 +64,8 @@ They need to be created and added manually.
 You can create an instance using the link:{javadocPath}/org/gradle/api/model/ObjectFactory.html#domainObjectSet-java.lang.Class-[ObjectFactory.domainObjectSet()] method:
 
 ====
-include::sample[dir="snippets/providers/collections/kotlin",files="build.gradle.kts[tags=dos]"]
-include::sample[dir="snippets/providers/collections/groovy",files="build.gradle[tags=dos]"]
+include::sample[dir="snippets/reference/gradle-types/collections/kotlin",files="build.gradle.kts[tags=dos]"]
+include::sample[dir="snippets/reference/gradle-types/collections/groovy",files="build.gradle[tags=dos]"]
 ====
 
 [[nameddomainobjectset]]
@@ -79,8 +79,8 @@ They need to be created and added manually.
 You can create an instance using the link:{javadocPath}/org/gradle/api/model/ObjectFactory.html#namedDomainObjectSet-java.lang.Class-[ObjectFactory.namedDomainObjectSet()] method.
 
 ====
-include::sample[dir="snippets/providers/collections/kotlin",files="build.gradle.kts[tags=ndos]"]
-include::sample[dir="snippets/providers/collections/groovy",files="build.gradle[tags=ndos]"]
+include::sample[dir="snippets/reference/gradle-types/collections/kotlin",files="build.gradle.kts[tags=ndos]"]
+include::sample[dir="snippets/reference/gradle-types/collections/groovy",files="build.gradle[tags=ndos]"]
 ====
 
 [[nameddomainobjectlist]]
@@ -94,8 +94,8 @@ They need to be created and added manually.
 You can create an instance using the link:{javadocPath}/org/gradle/api/model/ObjectFactory.html#namedDomainObjectList-java.lang.Class-[ObjectFactory.namedDomainObjectList()] method.
 
 ====
-include::sample[dir="snippets/providers/collections/kotlin",files="build.gradle.kts[tags=ndol]"]
-include::sample[dir="snippets/providers/collections/groovy",files="build.gradle[tags=ndol]"]
+include::sample[dir="snippets/reference/gradle-types/collections/kotlin",files="build.gradle.kts[tags=ndol]"]
+include::sample[dir="snippets/reference/gradle-types/collections/groovy",files="build.gradle[tags=ndol]"]
 ====
 
 [[nameddomainobjectcontainer]]
@@ -114,8 +114,8 @@ You can create a container instance using the link:{javadocPath}/org/gradle/api/
 You can also create a container instance using a <<properties_providers.adoc#read_only_managed_properties,read-only managed property>>.
 
 ====
-include::sample[dir="snippets/providers/collections/kotlin",files="build.gradle.kts[tags=ndoc]"]
-include::sample[dir="snippets/providers/collections/groovy",files="build.gradle[tags=ndoc]"]
+include::sample[dir="snippets/reference/gradle-types/collections/kotlin",files="build.gradle.kts[tags=ndoc]"]
+include::sample[dir="snippets/reference/gradle-types/collections/groovy",files="build.gradle[tags=ndoc]"]
 ====
 
 In order to use a type with any of the `domainObjectContainer()` methods, it must either
@@ -131,8 +131,8 @@ See the above link for `domainObjectContainer()` method variants that allow cust
 
 [source,java]
 ----
-include::{snippetsPath}/plugins/namedDomainObjectContainer/groovy/buildSrc/src/main/java/DownloadExtension.java[tags=download-extension]
-include::{snippetsPath}/plugins/namedDomainObjectContainer/groovy/buildSrc/src/main/java/Resource.java[tags=resource]
+include::{snippetsPath}/reference/gradle-types/namedDomainObjectContainer/common/buildSrc/src/main/java/DownloadExtension.java[tags=download-extension]
+include::{snippetsPath}/reference/gradle-types/namedDomainObjectContainer/common/buildSrc/src/main/java/Resource.java[tags=resource]
 ----
 
 For each container property, Gradle automatically adds a block to the Groovy and Kotlin DSL that you can use to configure the contents of the container:
@@ -141,12 +141,12 @@ For each container property, Gradle automatically adds a block to the Groovy and
 [source.multi-language-sample,kotlin]
 .build.gradle.kts
 ----
-include::{snippetsPath}/plugins/namedDomainObjectContainer/kotlin/build.gradle.kts[]
+include::{snippetsPath}/reference/gradle-types/namedDomainObjectContainer/kotlin/build.gradle.kts[]
 ----
 [source.multi-language-sample,groovy]
 .build.gradle
 ----
-include::{snippetsPath}/plugins/namedDomainObjectContainer/groovy/build.gradle[]
+include::{snippetsPath}/reference/gradle-types/namedDomainObjectContainer/groovy/build.gradle[]
 ----
 ====
 
@@ -159,6 +159,6 @@ define instantiation strategies for different types of objects.
 You can create an instance using the link:{javadocPath}/org/gradle/api/model/ObjectFactory.html#polymorphicDomainObjectContainer-java.lang.Class-[ObjectFactory.polymorphicDomainObjectContainer()] method:
 
 ====
-include::sample[dir="snippets/providers/collections/kotlin",files="build.gradle.kts[tags=epdoc]"]
-include::sample[dir="snippets/providers/collections/groovy",files="build.gradle[tags=epdoc]"]
+include::sample[dir="snippets/reference/gradle-types/collections/kotlin",files="build.gradle.kts[tags=epdoc]"]
+include::sample[dir="snippets/reference/gradle-types/collections/groovy",files="build.gradle[tags=epdoc]"]
 ====

@@ -19,10 +19,10 @@ package org.gradle.workers.internal
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 
 @IntegrationTestTimeout(120)
-@Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "explicitly requests a daemon")
+@Requires(value = TestExecutionPreconditions.NotEmbeddedExecutor, reason = "explicitly requests a daemon")
 class WorkerDaemonExpirationIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {

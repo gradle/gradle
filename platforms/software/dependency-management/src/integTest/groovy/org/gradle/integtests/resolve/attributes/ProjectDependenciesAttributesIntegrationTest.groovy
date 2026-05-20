@@ -88,7 +88,7 @@ class ProjectDependenciesAttributesIntegrationTest extends AbstractIntegrationSp
         fails ':checkDeps'
 
         then:
-        failure.assertHasCause("""No matching variant of project :dep was found. The consumer was configured to find attribute 'color' with value 'green' but:
+        failure.assertHasCause("""No matching variant of project ':dep' was found. The consumer was configured to find attribute 'color' with value 'green' but:
   - Variant 'blueVariant':
       - Incompatible because this component declares attribute 'color' with value 'blue' and the consumer needed attribute 'color' with value 'green'
   - Variant 'redVariant':

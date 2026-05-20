@@ -126,6 +126,7 @@ public class Project extends XmlPersistableConfigurationObject {
         return "defaultProject.xml";
     }
 
+    @SuppressWarnings("deprecation")
     public void configure(List<IdeaModule> modules,
                           String jdkName, IdeaLanguageLevel languageLevel, JavaVersion bytecodeVersion,
                           Collection<String> wildcards, Collection<ProjectLibrary> projectLibraries, String vcs) {

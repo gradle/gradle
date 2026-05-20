@@ -30,6 +30,7 @@ dependencies {
     api(projects.fileTemp)
     api(projects.fileCollections)
     api(projects.processServices)
+    api(projects.processServicesBase)
     api(projects.persistentCache)
 
     api(libs.inject)

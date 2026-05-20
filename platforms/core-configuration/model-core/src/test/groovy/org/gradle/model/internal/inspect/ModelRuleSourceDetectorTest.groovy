@@ -16,9 +16,12 @@
 
 package org.gradle.model.internal.inspect
 
+import com.google.common.io.Files
+import org.codehaus.groovy.control.CompilerConfiguration
 import org.gradle.model.RuleSource
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import spock.lang.Specification
+import spock.lang.TempDir
 
 class ModelRuleSourceDetectorTest extends Specification {
 
@@ -90,15 +93,44 @@ class ModelRuleSourceDetectorTest extends Specification {
 
         where:
         impl << [
-                "class SomeThing {}",
-                "class SomeThing extends ${RuleSource.name} {}",
-                "class SomeThing { static class Inner extends ${RuleSource.name} { } }",
+            "class SomeThing {}",
+            "class SomeThing extends ${RuleSource.name} {}",
+            "class SomeThing { static class Inner extends ${RuleSource.name} { } }",
         ]
     }
 
     def "detected sources are returned ordered by class name"() {
         expect:
         detector.getDeclaredSources(SourcesNotDeclaredAlphabetically).toList() == [SourcesNotDeclaredAlphabetically.A, SourcesNotDeclaredAlphabetically.B]
+    }
+
+    @TempDir
+    File tempDir
+
+    def "lenient to class loading errors"() {
+        given: "base class and an outer class with an inner that extends it"
+        def compileDir = new File(tempDir, "compile").tap { it.mkdirs() }
+        def compileLoader = new GroovyClassLoader(
+            getClass().classLoader,
+            new CompilerConfiguration().tap { it.targetDirectory = compileDir }
+        )
+        compileLoader.parseClass("class MissingBase {}")
+        compileLoader.parseClass("class Outer { static class BrokenInner extends MissingBase {} }")
+
+        and: "copy Outer class files, skip MissingBase, and classload"
+        def isolatedDir = new File(tempDir, "isolated").tap { it.mkdirs() }
+        compileDir.eachFileRecurse { file ->
+            if (file.name.startsWith("Outer") && file.name.endsWith(".class")) {
+                Files.copy(file, new File(isolatedDir, file.name))
+            }
+        }
+        def brokenOuterClass = new URLClassLoader(
+            [isolatedDir.toURI().toURL()] as URL[],
+            getClass().classLoader
+        ).loadClass("Outer")
+
+        expect: "detector handles this gracefully"
+        detector.getDeclaredSources(brokenOuterClass).toList() == []
     }
 
     private void addClass(GroovyClassLoader cl, String impl) {

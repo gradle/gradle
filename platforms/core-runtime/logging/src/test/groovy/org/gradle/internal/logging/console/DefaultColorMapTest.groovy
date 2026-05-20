@@ -27,6 +27,74 @@ class DefaultColorMapTest extends Specification {
     @Rule public final SetSystemProperties sysProps = new SetSystemProperties()
     private DefaultColorMap map = new DefaultColorMap()
 
+    def "does not emit foreground color when no-color is requested"() {
+        given:
+        def map = new DefaultColorMap(true)
+        Ansi ansi = Mock()
+
+        when:
+        map.getColourFor(Style.Info).on(ansi)
+
+        then:
+        0 * ansi._
+    }
+
+    def "preserves bold attribute when no-color is requested"() {
+        given:
+        def map = new DefaultColorMap(true)
+        Ansi ansi = Mock()
+
+        when:
+        map.getColourFor(Style.Header).on(ansi)
+
+        then:
+        1 * ansi.a(Attribute.INTENSITY_BOLD)
+        0 * ansi._
+    }
+
+    def "strips color but keeps bold in composite styles when no-color is requested"() {
+        given:
+        def map = new DefaultColorMap(true)
+        Ansi ansi = Mock()
+
+        when:
+        map.getColourFor(Style.SuccessHeader).on(ansi)
+
+        then:
+        0 * ansi.fg(_)
+        1 * ansi.a(Attribute.INTENSITY_BOLD)
+    }
+
+    def "getColourFor(Style) strips foreground color but keeps emphasis when no-color is requested"() {
+        given:
+        def map = new DefaultColorMap(true)
+        def style = org.gradle.internal.logging.text.Style.of(
+            org.gradle.internal.logging.text.Style.Emphasis.BOLD,
+            org.gradle.internal.logging.text.Style.Color.RED
+        )
+        Ansi ansi = Mock()
+
+        when:
+        map.getColourFor(style).on(ansi)
+
+        then:
+        0 * ansi.fg(_)
+        1 * ansi.a(Attribute.INTENSITY_BOLD)
+    }
+
+    def "status bar keeps bold when no-color is requested"() {
+        given:
+        def map = new DefaultColorMap(true)
+        Ansi ansi = Mock()
+
+        when:
+        map.statusBarColor.on(ansi)
+
+        then:
+        1 * ansi.a(Attribute.INTENSITY_BOLD)
+        0 * ansi._
+    }
+
     def canSetColorForAStyleUsingSystemProperty() {
         System.properties['org.gradle.color.info'] = 'green'
         Ansi ansi = Mock()

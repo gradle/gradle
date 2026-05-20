@@ -24,4 +24,6 @@ public interface SignatureVerificationResultBuilder {
     void ignored(String keyId);
 
     void noSignatures();
+
+    void failedToReadSignatureFile(String causeDescription);
 }

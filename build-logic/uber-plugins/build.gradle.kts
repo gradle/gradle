@@ -12,6 +12,7 @@ dependencies {
     implementation(projects.buildquality)
     implementation(projects.cleanup)
     implementation(projects.dependencyModules)
+    implementation(projects.integrationTesting)
     implementation(projects.jvm)
     implementation(projects.packaging)
     implementation(projects.profiling)

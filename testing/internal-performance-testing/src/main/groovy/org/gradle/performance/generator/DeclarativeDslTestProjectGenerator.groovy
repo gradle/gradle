@@ -20,6 +20,8 @@ import groovy.transform.CompileStatic
 import org.gradle.features.annotations.BindsProjectType
 import org.gradle.features.binding.BuildModel
 import org.gradle.features.binding.Definition
+import org.gradle.features.binding.ProjectFeatureApplicationContext
+import org.gradle.features.binding.ProjectTypeApplyAction
 import org.gradle.features.binding.ProjectTypeBinding
 import org.gradle.features.binding.ProjectTypeBindingBuilder
 import org.gradle.features.annotations.RegistersProjectFeatures
@@ -301,6 +303,8 @@ class DeclarativeDslTestProjectGenerator extends AbstractTestProjectGenerator {
             import org.gradle.api.plugins.PluginManager;
             import ${ProjectTypeBinding.class.name};
             import ${ProjectTypeBindingBuilder.class.name};
+            import ${ProjectTypeApplyAction.class.name};
+            import ${ProjectFeatureApplicationContext.class.name};
             import ${BindsProjectType.class.name};
             import org.gradle.api.plugins.ApplicationPlugin;
 
@@ -315,24 +319,28 @@ class DeclarativeDslTestProjectGenerator extends AbstractTestProjectGenerator {
                         builder.bindProjectType(
                             "javaApplication",
                             JavaApplication.class,
-                            (context, definition, model) -> {
-                                Services services = context.getObjectFactory().newInstance(Services.class);
-                                model.getJavaVersion().convention(definition.getJavaVersion());
-                                model.getMainClass().convention(definition.getMainClass());
-                                model.getDependencies().getImplementation().bundle(definition.getDependencies().getImplementation().getDependencies());
-                                model.getDependencies().getRuntimeOnly().bundle(definition.getDependencies().getRuntimeOnly().getDependencies());
-                                model.getDependencies().getCompileOnly().bundle(definition.getDependencies().getCompileOnly().getDependencies());
-
-                                services.getPluginManager().apply(ApplicationPlugin.class);
-                            }
+                            ApplyAction.class
                         )
                         .withUnsafeDefinition()
                         .withUnsafeApplyAction();
                     }
+                }
 
-                    interface Services {
-                        @javax.inject.Inject
-                        PluginManager getPluginManager();
+                static abstract class ApplyAction implements ${ProjectTypeApplyAction.class.simpleName}<JavaApplication, JavaApplicationModel> {
+                    @javax.inject.Inject public ApplyAction() { }
+
+                    @javax.inject.Inject
+                    public abstract PluginManager getPluginManager();
+
+                    @Override
+                    public void apply(${ProjectFeatureApplicationContext.class.simpleName} context, JavaApplication definition, JavaApplicationModel model) {
+                        model.getJavaVersion().convention(definition.getJavaVersion());
+                        model.getMainClass().convention(definition.getMainClass());
+                        model.getDependencies().getImplementation().bundle(definition.getDependencies().getImplementation().getDependencies());
+                        model.getDependencies().getRuntimeOnly().bundle(definition.getDependencies().getRuntimeOnly().getDependencies());
+                        model.getDependencies().getCompileOnly().bundle(definition.getDependencies().getCompileOnly().getDependencies());
+
+                        getPluginManager().apply(ApplicationPlugin.class);
                     }
                 }
 

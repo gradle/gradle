@@ -20,10 +20,6 @@ import groovy.transform.SelfType
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.util.internal.TextUtil
-
-import static org.gradle.util.internal.TextUtil.getPluralEnding
-import static org.hamcrest.Matchers.containsString
 
 @SelfType(AbstractIntegrationSpec)
 trait ValidatePluginsTrait implements CommonPluginValidationTrait, ValidationMessageChecker {
@@ -57,35 +53,9 @@ trait ValidatePluginsTrait implements CommonPluginValidationTrait, ValidationMes
     }
 
     @Override
-    void assertValidationFailsWith(List<AbstractPluginValidationIntegrationSpec.DocumentedProblem> messages) {
+    void assertValidationFailsWith(int errorCount) {
         fails "validatePlugins"
-        def report = new TaskValidationReportFixture(file("build/reports/plugin-development/validation-report.json"))
-        report.verify(messages.collectEntries {
-            def fullMessage = it.message
-            if (!it.defaultDocLink) {
-                fullMessage = "${fullMessage}\n${learnAt(it.id, it.section)}"
-            }
-            [(fullMessage): it.severity]
-        })
-
-        failure.assertHasCause "Plugin validation failed with ${messages.size()} problem${getPluralEnding(messages)}"
-        messages.forEach { problem ->
-            String indentedMessage = problem.message.replaceAll('\n', '\n    ').trim()
-            failure.assertThatCause(containsString("$problem.severity: $indentedMessage"))
-        }
-
-        // TODO (donat) do probably don't want to have this, as the explicit problem assertions are preferred
-        def problems = collectedProblems
-        assert problems.size() == messages.size()
-        problems.any { problem ->
-            messages.any { message ->
-                if (message.config) {
-                    TextUtil.endLineWithDot(problem.definition.id.displayName) == message.config.label().toString()
-                } else {
-                    message.message.contains(TextUtil.endLineWithDot(problem.definition.id.displayName))
-                }
-            }
-        }
+        failure.assertHasCause("Plugin validation failed with $errorCount problem${errorCount == 1 ? '' : 's'}")
     }
 
     @Override

@@ -19,6 +19,7 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.artifacts.dsl.DependencyFactory;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.internal.JavaConfigurationVariantMapping;
@@ -54,6 +55,9 @@ public abstract class JavaTestFixturesPlugin implements Plugin<Project> {
     @Inject
     public JavaTestFixturesPlugin() { }
 
+    @Inject
+    protected abstract DependencyFactory getDependencyFactory();
+
     @Override
     public void apply(Project project) {
 
@@ -87,12 +91,12 @@ public abstract class JavaTestFixturesPlugin implements Plugin<Project> {
         DependencyHandler dependencies = project.getDependencies();
 
         // Test fixtures depend on the project.
-        feature.getApiConfiguration().getDependencies().add(dependencies.create(project));
+        feature.getApiConfiguration().getDependencies().add(getDependencyFactory().createProjectDependency());
 
         // The tests depend on the test fixtures.
         SourceSet testSourceSet = JavaPluginHelper.getDefaultTestSuite(project).getSources();
         Configuration testImplementation = project.getConfigurations().getByName(testSourceSet.getImplementationConfigurationName());
-        testImplementation.getDependencies().add(dependencies.testFixtures(dependencies.create(project)));
+        testImplementation.getDependencies().add(dependencies.testFixtures(getDependencyFactory().createProjectDependency()));
 
         // Overwrite what the Java plugin defines for test, in order to avoid duplicate classes
         // see gradle/gradle#10872

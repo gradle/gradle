@@ -34,6 +34,7 @@ import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.initialization.ScriptClassPathResolver
 import org.gradle.api.internal.initialization.ScriptHandlerInternal
 import org.gradle.api.internal.initialization.StandaloneDomainObjectContext
+import org.gradle.api.internal.project.ProjectIdentity
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.api.invocation.Gradle
@@ -54,6 +55,7 @@ import org.gradle.groovy.scripts.TextResourceScriptSource
 import org.gradle.initialization.BuildLayoutParameters
 import org.gradle.initialization.ClassLoaderScopeRegistry
 import org.gradle.initialization.ProjectDescriptorInternal
+import org.gradle.internal.Describables
 import org.gradle.internal.Try
 import org.gradle.internal.build.NestedRootBuildRunner.createNestedBuildTree
 import org.gradle.internal.classpath.ClassPath
@@ -63,7 +65,9 @@ import org.gradle.internal.concurrent.CompositeStoppable.stoppable
 import org.gradle.internal.deprecation.DeprecationLogger
 import org.gradle.internal.exceptions.LocationAwareException
 import org.gradle.internal.hash.HashCode
-import org.gradle.internal.resource.TextFileResourceLoader
+import org.gradle.internal.project.DefaultImmutableProjectDescriptor
+import org.gradle.internal.project.ImmutableProjectDescriptor
+import org.gradle.internal.resource.StringTextResource
 import org.gradle.kotlin.dsl.accessors.AccessorFormats
 import org.gradle.kotlin.dsl.accessors.ProjectSchemaProvider
 import org.gradle.kotlin.dsl.accessors.TypedProjectSchema
@@ -104,9 +108,6 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
 
     private
     val asyncIOScopeFactory: AsyncIOScopeFactory,
-
-    private
-    val textFileResourceLoader: TextFileResourceLoader
 
 ) : ClassPathSensitiveCodeGenerationTask() {
 
@@ -223,6 +224,7 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
                 }
             }
     }
+
     private
     fun resolvePluginGraphOf(projectScriptPlugins: List<PrecompiledScriptPlugin>): Sequence<ScriptPluginPlugins> {
 
@@ -346,9 +348,9 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
     private
     fun scriptSourceFor(plugin: PrecompiledScriptPlugin) =
         TextResourceScriptSource(
-            textFileResourceLoader.loadFile(
-                "Precompiled script plugin",
-                plugin.scriptFile
+            StringTextResource(
+                Describables.quoted("Precompiled script plugin", plugin.scriptFile.absolutePath).displayName,
+                plugin.scriptText
             )
         )
 
@@ -430,11 +432,11 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
                     }
                     val rootProjectScope = baseScope.createChild("accessors-root-project", null)
                     settings.rootProject.name = "gradle-kotlin-dsl-accessors"
-                    val projectState = gradle.serviceOf<ProjectStateRegistry>().registerProject(gradle.owner, settings.rootProject as ProjectDescriptorInternal)
+                    val projectDescriptor = descriptorForRoot(settings)
+                    val projectState = gradle.serviceOf<ProjectStateRegistry>().registerProject(gradle.owner, projectDescriptor)
                     projectState.createMutableModel(rootProjectScope, baseScope)
                     val rootProject = projectState.mutableModel
-                    gradle.rootProject = rootProject
-                    gradle.defaultProject = rootProject
+                    gradle.defaultProjectState = projectState
                     rootProject.projectEvaluationBroadcaster.beforeEvaluate(rootProject)
                     rootProject.run {
                         applyPlugins(plugins)
@@ -466,6 +468,14 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
                 }
             }
         }
+    }
+
+    private fun descriptorForRoot(settings: SettingsInternal): ImmutableProjectDescriptor {
+        val descriptor = settings.rootProject as ProjectDescriptorInternal
+        val identity = ProjectIdentity.forRootProject(settings.gradle.owner.identityPath, descriptor.name)
+        return DefaultImmutableProjectDescriptor(
+            identity, descriptor.projectDir, { descriptor.buildFile }, null, emptyList()
+        )
     }
 
     private
@@ -537,10 +547,12 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
                     componentIdentifier,
                     fileCollectionFactory.fixed(it.file)
                 )
+
                 is ProjectComponentIdentifier -> DefaultFileCollectionDependency(
                     OpaqueComponentIdentifier(ClassPathNotation.LOCAL_PROJECT_AS_OPAQUE_DEPENDENCY),
                     fileCollectionFactory.fixed(componentIdentifier.displayName, it.file)
                 )
+
                 else -> {
                     dependencyHandler.create(fileCollectionFactory.fixed(it.file))
                 }

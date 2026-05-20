@@ -8,6 +8,7 @@ dependencies {
     api(projects.baseServices)
     api(projects.core)
     api(projects.coreApi)
+    api(projects.domainObjectCollections)
     api(projects.dependencyManagement)
     api(projects.fileCollections)
     api(projects.hashing)
@@ -20,7 +21,6 @@ dependencies {
     api(libs.inject)
     api(libs.jspecify)
 
-    implementation(projects.serviceLookup)
     implementation(projects.baseServicesGroovy) {
         because("Required for Specs")
     }

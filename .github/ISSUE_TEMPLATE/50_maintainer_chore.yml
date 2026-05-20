@@ -9,7 +9,6 @@ body:
       label: Issue type
       options:
         - Polishing
-        - Deprecation
         - Refactoring
         - Other
     validations:

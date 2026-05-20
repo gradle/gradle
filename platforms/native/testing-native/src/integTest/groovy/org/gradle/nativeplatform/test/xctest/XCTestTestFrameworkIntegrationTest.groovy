@@ -16,7 +16,7 @@
 
 package org.gradle.nativeplatform.test.xctest
 
-import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
+
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.AvailableToolChains
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
@@ -29,7 +29,7 @@ import org.gradle.test.precondition.Requires
 import org.gradle.testing.AbstractTestFrameworkIntegrationTest
 import org.junit.Assume
 
-import static org.gradle.test.preconditions.UnitTestPreconditions.HasXCTest
+import static org.gradle.test.preconditions.TestEnvironmentPreconditions.HasXCTest
 
 @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC)
 @Requires(HasXCTest)
@@ -63,11 +63,6 @@ allprojects { p ->
         buildFile << """
             apply plugin: 'xctest'
         """
-    }
-
-    @Override
-    GenericTestExecutionResult.TestFramework getTestFramework() {
-        return GenericTestExecutionResult.TestFramework.XC_TEST
     }
 
     @Override

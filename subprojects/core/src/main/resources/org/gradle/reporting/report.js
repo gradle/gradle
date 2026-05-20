@@ -219,10 +219,67 @@
         return elements;
     }
 
+    function initTableSorting() {
+        document.querySelectorAll("table.sortable").forEach((table) => {
+            const thead = table.tHead;
+            if (!thead || thead.rows.length === 0) return;
+            const headerRow = thead.rows[0];
+            const headers = Array.from(headerRow.cells);
+            const tbody = table.tBodies[0] || table;
+            const originalRows = Array.from(tbody.querySelectorAll(":scope > tr"));
+
+            headers.forEach((th, colIndex) => {
+                if (th.classList.contains("no-sort")) return;
+                th.classList.add("sortable-header");
+                th.addEventListener("click", () => {
+                    const current = th.getAttribute("data-sort-dir");
+                    const firstDir = th.getAttribute("data-sort-default") === "desc" ? "desc" : "asc";
+                    const secondDir = firstDir === "desc" ? "asc" : "desc";
+                    // Cycle: none -> firstDir -> secondDir -> none
+                    let next;
+                    if (current === firstDir) next = secondDir;
+                    else if (current === secondDir) next = "none";
+                    else next = firstDir;
+
+                    headers.forEach((h) => h.removeAttribute("data-sort-dir"));
+
+                    if (next === "none") {
+                        originalRows.forEach((r) => tbody.appendChild(r));
+                        return;
+                    }
+                    th.setAttribute("data-sort-dir", next);
+
+                    const rows = Array.from(tbody.querySelectorAll(":scope > tr"));
+                    const dir = next === "asc" ? 1 : -1;
+                    rows.sort((a, b) => {
+                        const av = getSortValue(a.cells[colIndex]);
+                        const bv = getSortValue(b.cells[colIndex]);
+                        if (av === bv) return 0;
+                        // Numeric compare if both parse as numbers
+                        const an = parseFloat(av), bn = parseFloat(bv);
+                        if (!isNaN(an) && !isNaN(bn) && isFinite(an) && isFinite(bn)
+                            && av.trim() !== "" && bv.trim() !== "") {
+                            return (an - bn) * dir;
+                        }
+                        return av.localeCompare(bv) * dir;
+                    });
+                    rows.forEach((r) => tbody.appendChild(r));
+                });
+            });
+        });
+    }
+
+    function getSortValue(cell) {
+        if (!cell) return "";
+        const v = cell.getAttribute("data-sort-value");
+        return v !== null ? v : cell.textContent;
+    }
+
     // Entry point.
 
     window.onload = function() {
         initTabs();
         initControls();
+        initTableSorting();
     };
 } (window, window.document));

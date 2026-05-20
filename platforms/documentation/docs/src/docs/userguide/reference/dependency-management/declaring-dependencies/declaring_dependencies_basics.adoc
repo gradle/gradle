@@ -35,8 +35,8 @@ Every dependency is added to a bucket configuration that defines its scope.
 Use the single string `"group:name:version"` (you can also include classifier/extension if needed, e.g., `group:name:version:classifier@ext`):
 
 ====
-include::sample[dir="snippets/artifacts/externalDependencies/kotlin",files="build.gradle.kts[tags=module-dependencies]"]
-include::sample[dir="snippets/artifacts/externalDependencies/groovy",files="build.gradle[tags=module-dependencies]"]
+include::sample[dir="snippets/reference/dependency-management/declaring-dependencies/externalDependencies/kotlin",files="build.gradle.kts[tags=module-dependencies]"]
+include::sample[dir="snippets/reference/dependency-management/declaring-dependencies/externalDependencies/groovy",files="build.gradle[tags=module-dependencies]"]
 ====
 
 WARNING: The map notation is deprecated and will be removed in Gradle 10. Prefer the single-string form. +
@@ -56,8 +56,8 @@ image::dependency-management-project-dependencies.png[]
 This is useful for organizing large projects into smaller, modular components:
 
 ====
-include::sample[dir="snippets/dependencyManagement/declaringDependencies-projectDependencies/kotlin",files="web-service/build.gradle.kts[tags=project-dependencies]"]
-include::sample[dir="snippets/dependencyManagement/declaringDependencies-projectDependencies/groovy",files="web-service/build.gradle[tags=project-dependencies]"]
+include::sample[dir="snippets/reference/dependency-management/declaring-dependencies/declaringDependencies-projectDependencies/kotlin",files="web-service/build.gradle.kts[tags=project-dependencies]"]
+include::sample[dir="snippets/reference/dependency-management/declaring-dependencies/declaringDependencies-projectDependencies/groovy",files="web-service/build.gradle[tags=project-dependencies]"]
 ====
 
 Gradle uses the link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:project(java.lang.String)[`project()`] function to define a project dependency.
@@ -75,8 +75,8 @@ Implementation may change at any time.
 To add support for type-safe project accessors, add `enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")` this to your `settings.gradle(.kts)` file:
 
 ====
-include::sample[dir="snippets/dependencyManagement/declaringDependencies-typeSafeProjectDependencies/kotlin",files="settings.gradle.kts[tags=accessors]"]
-include::sample[dir="snippets/dependencyManagement/declaringDependencies-typeSafeProjectDependencies/groovy",files="settings.gradle[tags=accessors]"]
+include::sample[dir="snippets/reference/dependency-management/declaring-dependencies/declaringDependencies-typeSafeProjectDependencies/kotlin",files="settings.gradle.kts[tags=accessors]"]
+include::sample[dir="snippets/reference/dependency-management/declaring-dependencies/declaringDependencies-typeSafeProjectDependencies/groovy",files="settings.gradle[tags=accessors]"]
 ====
 
 One downside of using the `project(":some:path")` notation is the need to remember project paths for dependencies.
@@ -85,8 +85,8 @@ Moreover, changing a project path requires manually updating every occurrence, i
 Instead, the experimental type-safe project accessors API provides IDE completion, making it easier to declare dependencies:
 
 ====
-include::sample[dir="snippets/dependencyManagement/declaringDependencies-typeSafeProjectDependencies/kotlin",files="web-service/build.gradle.kts[tags=project-dependencies]"]
-include::sample[dir="snippets/dependencyManagement/declaringDependencies-typeSafeProjectDependencies/groovy",files="web-service/build.gradle[tags=project-dependencies]"]
+include::sample[dir="snippets/reference/dependency-management/declaring-dependencies/declaringDependencies-typeSafeProjectDependencies/kotlin",files="web-service/build.gradle.kts[tags=project-dependencies]"]
+include::sample[dir="snippets/reference/dependency-management/declaring-dependencies/declaringDependencies-typeSafeProjectDependencies/groovy",files="web-service/build.gradle[tags=project-dependencies]"]
 ====
 
 With this API, incorrectly specified projects in Kotlin DSL scripts trigger compilation errors, helping you avoid missed updates.
@@ -108,8 +108,8 @@ image::dependency-management-file-dependencies.png[]
 File dependencies are unique because they represent a direct reference to files on the filesystem without any associated <<glossary.adoc#sub:terminology_module_metadata,metadata>>, such as transitive dependencies, origin, or author information.
 
 ====
-include::sample[dir="snippets/dependencyManagement/declaringDependencies-fileDependencies/kotlin",files="build.gradle.kts[tags=file-dependencies]"]
-include::sample[dir="snippets/dependencyManagement/declaringDependencies-fileDependencies/groovy",files="build.gradle[tags=file-dependencies]"]
+include::sample[dir="snippets/reference/dependency-management/declaring-dependencies/declaringDependencies-fileDependencies/kotlin",files="build.gradle.kts[tags=file-dependencies]"]
+include::sample[dir="snippets/reference/dependency-management/declaring-dependencies/declaringDependencies-fileDependencies/groovy",files="build.gradle[tags=file-dependencies]"]
 ====
 
 In this example, each dependency explicitly specifies its location within the file system.
@@ -142,8 +142,8 @@ repositories {
 To add files as dependencies, pass a <<working_with_files.adoc#sec:file_collections,file collection>> to the configuration:
 
 ====
-include::sample[dir="snippets/artifacts/externalDependencies/kotlin",files="build.gradle.kts[tags=file-dependencies]"]
-include::sample[dir="snippets/artifacts/externalDependencies/groovy",files="build.gradle[tags=file-dependencies]"]
+include::sample[dir="snippets/reference/dependency-management/declaring-dependencies/externalDependencies/kotlin",files="build.gradle.kts[tags=file-dependencies]"]
+include::sample[dir="snippets/reference/dependency-management/declaring-dependencies/externalDependencies/groovy",files="build.gradle[tags=file-dependencies]"]
 ====
 
 Note that file dependencies are not included in the published dependency descriptor for your project.
@@ -153,8 +153,8 @@ You should specify which tasks produce the files for a file dependency.
 Otherwise, the necessary tasks might not run when you depend on them transitively from another project:
 
 ====
-include::sample[dir="snippets/artifacts/generatedFileDependencies/kotlin",files="build.gradle.kts[tags=generated-file-dependencies]"]
-include::sample[dir="snippets/artifacts/generatedFileDependencies/groovy",files="build.gradle[tags=generated-file-dependencies]"]
+include::sample[dir="snippets/reference/dependency-management/declaring-dependencies/generatedFileDependencies/kotlin",files="build.gradle.kts[tags=generated-file-dependencies]"]
+include::sample[dir="snippets/reference/dependency-management/declaring-dependencies/generatedFileDependencies/groovy",files="build.gradle[tags=generated-file-dependencies]"]
 ====
 
 [source,bash]
@@ -163,7 +163,7 @@ $ ./gradlew -q list
 ----
 [source,text]
 ----
-include::{snippetsPath}/artifacts/generatedFileDependencies/tests/generatedFileDependencies.out[]
+include::{snippetsPath}/reference/dependency-management/declaring-dependencies/generatedFileDependencies/tests/generatedFileDependencies.out[]
 ----
 
 [[sec:gradle-distribution-dependencies]]
@@ -180,8 +180,8 @@ When declaring a dependency or a <<dependency_constraints.adoc#dependency-constr
 This helps make your build script and the <<viewing_debugging_dependencies.adoc#sec:identifying-reason-dependency-selection,dependency insight report>> easier to interpret:
 
 ====
-include::sample[dir="snippets/dependencyManagement/inspectingDependencies-dependencyReason/kotlin",files="build.gradle.kts[tags=dependency-reason]"]
-include::sample[dir="snippets/dependencyManagement/inspectingDependencies-dependencyReason/groovy",files="build.gradle[tags=dependency-reason]"]
+include::sample[dir="snippets/reference/dependency-management/declaring-dependencies/inspectingDependencies-dependencyReason/kotlin",files="build.gradle.kts[tags=dependency-reason]"]
+include::sample[dir="snippets/reference/dependency-management/declaring-dependencies/inspectingDependencies-dependencyReason/groovy",files="build.gradle[tags=dependency-reason]"]
 ====
 
 In this example, the link:{javadocPath}/org/gradle/api/artifacts/DependencyConstraint.html#because(java.lang.String)[`because()`] method provides a reason for including the `asm` library, which helps explain its purpose in the context of the build:
@@ -192,5 +192,5 @@ $ ./gradlew -q dependencyInsight --dependency asm
 ----
 [source,text]
 ----
-include::{snippetsPath}/dependencyManagement/inspectingDependencies-dependencyReason/tests/dependencyReasonReport.out[]
+include::{snippetsPath}/reference/dependency-management/declaring-dependencies/inspectingDependencies-dependencyReason/tests/dependencyReasonReport.out[]
 ----

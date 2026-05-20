@@ -28,8 +28,8 @@ Please refer to <<test_kit.adoc#sub:test-kit-automatic-classpath-injection,Autom
 To use the Java Gradle Plugin Development plugin, include the following in your build script:
 
 ====
-include::sample[dir="snippets/java/javaGradlePlugin/kotlin",files="build.gradle.kts[tags=use-java-gradle-plugin-plugin]"]
-include::sample[dir="snippets/java/javaGradlePlugin/groovy",files="build.gradle[tags=use-java-gradle-plugin-plugin]"]
+include::sample[dir="snippets/reference/core-plugins/javaGradlePlugin/kotlin",files="build.gradle.kts[tags=use-java-gradle-plugin-plugin]"]
+include::sample[dir="snippets/reference/core-plugins/javaGradlePlugin/groovy",files="build.gradle[tags=use-java-gradle-plugin-plugin]"]
 ====
 
 Applying the plugin automatically applies the <<java_library_plugin.adoc#java_library_plugin,Java Library(`java-library`)>> plugin and adds the `gradleApi()` dependency to the `api` configuration.
@@ -48,8 +48,8 @@ Any failed validations will result in a warning message.
 For each plugin you are developing, register it into the `gradlePlugin {}` script block:
 
 ====
-include::sample[dir="snippets/java/javaGradlePlugin/kotlin",files="build.gradle.kts[tags=gradle-plugin-block]"]
-include::sample[dir="snippets/java/javaGradlePlugin/groovy",files="build.gradle[tags=gradle-plugin-block]"]
+include::sample[dir="snippets/reference/core-plugins/javaGradlePlugin/kotlin",files="build.gradle.kts[tags=gradle-plugin-block]"]
+include::sample[dir="snippets/reference/core-plugins/javaGradlePlugin/groovy",files="build.gradle[tags=gradle-plugin-block]"]
 ====
 
 The `gradlePlugin {}` block defines the plugins being built by the project.
@@ -71,6 +71,7 @@ Some of the plugin's behaviour depends on other, related plugins also being appl
 
 Other plugins auto apply the Java Gradle Plugin, like the link:https://plugins.gradle.org/plugin/com.gradle.plugin-publish[Plugin Publishing Plugin].
 
+[[sec:gradle_plugin_dev_maven_publish]]
 === Maven Publish Plugin
 
 When the Java Gradle Plugin (`java-gradle-plugin`) detects that the Maven Publish Plugin (`maven-publish`) is also applied by the build, it will automatically configure the following link:{groovyDslPath}/org.gradle.api.publish.maven.MavenPublication.html[MavenPublications]:
@@ -80,6 +81,7 @@ When the Java Gradle Plugin (`java-gradle-plugin`) detects that the Maven Publis
 
 This automatic configuration happens in a link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:afterEvaluate(org.gradle.api.Action)[Project.afterEvaluate()] block (so at the end of the <<build_lifecycle.adoc#build_phases,build configuration phase>>), and only if these publications haven't already been defined, so it's possible to create and customise them during the earlier stages of build configuration.
 
+[[sec:gradle_plugin_dev_ivy_publish]]
 === Ivy Publish Plugin
 
 When the Java Gradle Plugin(`java-gradle-plugin`) detects that the Ivy Publish Plugin (`ivy-publish`) is also applied by the build, it will automatically configure the following link:{groovyDslPath}/org.gradle.api.publish.ivy.IvyPublication.html[IvyPublications]:
@@ -89,6 +91,7 @@ When the Java Gradle Plugin(`java-gradle-plugin`) detects that the Ivy Publish P
 
 This automatic configuration happens in a link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:afterEvaluate(org.gradle.api.Action)[Project.afterEvaluate()] block (so at the end of the <<build_lifecycle.adoc#build_phases,build configuration phase>>), and only if these publications haven't already been defined, so it's possible to create and customise them during the earlier stages of build configuration.
 
+[[sec:gradle_plugin_dev_plugin_publish]]
 === Plugin Publish Plugin
 
 Starting from link:https://plugins.gradle.org/plugin/com.gradle.plugin-publish/1.0.0[version 1.0.0, the Plugin Publish Plugin] always auto-applies the Java Gradle Plugin (`java-gradle-plugin`) and the Maven Publish Plugin (`maven-publish`).

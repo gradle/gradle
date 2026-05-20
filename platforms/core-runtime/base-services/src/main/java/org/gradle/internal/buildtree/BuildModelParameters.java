@@ -26,6 +26,13 @@ import java.util.Map;
 public interface BuildModelParameters {
 
     /**
+     * Vintage mode is when neither CC nor IP are enabled.
+     */
+    default boolean isVintage() {
+        return !isConfigurationCache() && !isIsolatedProjects();
+    }
+
+    /**
      * Whether project-scoped work should use project-lock or build-lock to synchronize,
      * allowing work from different projects to run in parallel when set to true.
      * <p>
@@ -35,13 +42,18 @@ public interface BuildModelParameters {
      * <ul>
      * <li>Vintage: controlled by {@code --parallel} (or its property)
      * <li>CC: controlled by {@code --parallel} (or its property)
-     * <li>IP: always enabled
+     * <li>IP: always enabled, unless IP Diagnostics mode
      * </ul>
      */
     boolean isParallelProjectExecution();
 
     boolean isConfigureOnDemand();
 
+    /**
+     * Whether Configuration Cache is enabled.
+     * <p>
+     * Also true if Isolated Projects is enabled.
+     */
     boolean isConfigurationCache();
 
     /**
@@ -52,17 +64,51 @@ public interface BuildModelParameters {
     @Nullable
     String getConfigurationCacheDisabledReason();
 
+    /**
+     * Whether the CC store phase runs in parallel.
+     * <ul>
+     * <li>Vintage: not applicable
+     * <li>CC: controlled by {@code org.gradle.configuration-cache.parallel} property
+     * <li>IP: always enabled, unless IP Diagnostics mode
+     * </ul>
+     */
     boolean isConfigurationCacheParallelStore();
 
+    /**
+     * Whether the CC load phase runs in parallel.
+     * <ul>
+     * <li>Vintage: not applicable
+     * <li>CC: always enabled
+     * <li>IP: always enabled
+     * </ul>
+     */
     boolean isConfigurationCacheParallelLoad();
 
+    /**
+     * Whether Isolated Projects is enabled.
+     */
     boolean isIsolatedProjects();
+
+    /**
+     * Whether the IP Diagnostics mode is enabled.
+     * <p>
+     * In this mode, the build continues past IP violations to surface as many problems as possible,
+     * trading off parallelism for completeness of the diagnostic report.
+     * <p>
+     * Implies {@link #isIsolatedProjects()}.
+     */
+    boolean isIsolatedProjectsDiagnostics();
 
     /**
      * Whether projects should be configured in parallel.
      * <p>
      * This should only take effect if {@link #isConfigureOnDemand() configure-on-demand}
      * is not making us skip eager project configuration.
+     * <ul>
+     * <li>Vintage: always disabled
+     * <li>CC: always disabled
+     * <li>IP: always enabled, unless IP Diagnostics mode
+     * </ul>
      */
     boolean isParallelProjectConfiguration();
 
@@ -92,7 +138,7 @@ public interface BuildModelParameters {
      * <ul>
      * <li>Vintage: controlled by {@code --parallel}
      * <li>CC: not applicable, since CC is always disabled for model building invocations
-     * <li>IP: always enabled
+     * <li>IP: always enabled, unless IP Diagnostics mode
      * </ul>
      */
     boolean isParallelModelBuilding();

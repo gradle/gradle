@@ -21,15 +21,16 @@ import org.gradle.api.logging.configuration.WarningMode
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
+import org.gradle.test.preconditions.OsTestPreconditions
+
 import org.gradle.util.internal.AntUtil
 import org.gradle.util.internal.ToBeImplemented
 
 import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.gradlePluginRepositoryMirrorUrl
 import static org.gradle.test.fixtures.server.http.MavenHttpPluginRepository.PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY
 
-@Requires(IntegTestPreconditions.NotEmbeddedExecutor)
+@Requires(TestExecutionPreconditions.NotEmbeddedExecutor)
 class SrcDistributionIntegrationSpec extends DistributionIntegrationSpec {
 
     @Override
@@ -39,7 +40,7 @@ class SrcDistributionIntegrationSpec extends DistributionIntegrationSpec {
 
     @Override
     int getDistributionSizeMiB() {
-        return 73
+        return 76
     }
 
     @Override
@@ -47,7 +48,7 @@ class SrcDistributionIntegrationSpec extends DistributionIntegrationSpec {
         0
     }
 
-    @Requires(UnitTestPreconditions.NotWindows)
+    @Requires(OsTestPreconditions.NotWindows)
     def sourceZipContents() {
         given:
         TestFile contentsDir = unpackDistribution()
@@ -88,7 +89,7 @@ class SrcDistributionIntegrationSpec extends DistributionIntegrationSpec {
     }
 
     @ToBeImplemented("https://github.com/gradle/gradle/issues/21114")
-    @Requires(UnitTestPreconditions.NotWindows)
+    @Requires(OsTestPreconditions.NotWindows)
     def "source distribution must contain generated sources"() {
         given:
         TestFile contentsDir = unpackDistribution()

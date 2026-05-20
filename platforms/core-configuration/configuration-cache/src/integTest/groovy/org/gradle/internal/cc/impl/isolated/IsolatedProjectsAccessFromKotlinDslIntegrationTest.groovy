@@ -19,6 +19,11 @@ package org.gradle.internal.cc.impl.isolated
 import org.gradle.util.internal.ToBeImplemented
 import spock.lang.Issue
 
+/**
+ * Cross-project access tests specific to Kotlin DSL.
+ * <p>
+ * For DSL-agnostic tests prefer {@link IsolatedProjectsAccessIntegrationTest}.
+ */
 class IsolatedProjectsAccessFromKotlinDslIntegrationTest extends AbstractIsolatedProjectsIntegrationTest {
     def "reports problem when build script uses #block block to apply plugins to another project"() {
         createDirs("a", "b")
@@ -33,7 +38,7 @@ class IsolatedProjectsAccessFromKotlinDslIntegrationTest extends AbstractIsolate
         """
 
         when:
-        isolatedProjectsFails("assemble")
+        isolatedProjectsDiagnosticsFails("assemble")
 
         then:
         fixture.assertStateStoredAndDiscarded {
@@ -63,7 +68,7 @@ class IsolatedProjectsAccessFromKotlinDslIntegrationTest extends AbstractIsolate
         """
 
         when:
-        isolatedProjectsFails("assemble")
+        isolatedProjectsDiagnosticsFails("assemble")
 
         then:
         fixture.assertStateStoredAndDiscarded {
@@ -91,7 +96,7 @@ class IsolatedProjectsAccessFromKotlinDslIntegrationTest extends AbstractIsolate
 
         when:
         // TODO:isolated expected behavior for incremental configuration
-//        isolatedProjectsFails(":a:help")
+//        isolatedProjectsDiagnosticsFails(":a:help")
         isolatedProjectsRun(":a:help")
 
         then:
@@ -123,7 +128,7 @@ class IsolatedProjectsAccessFromKotlinDslIntegrationTest extends AbstractIsolate
         """
 
         when:
-        isolatedProjectsFails(":a:help", ":b:help")
+        isolatedProjectsDiagnosticsFails(":a:help", ":b:help")
 
         then:
         fixture.assertStateStoredAndDiscarded {
@@ -164,7 +169,7 @@ class IsolatedProjectsAccessFromKotlinDslIntegrationTest extends AbstractIsolate
     }
 
     @Issue("https://github.com/gradle/gradle/issues/28204")
-    def "access to #description delegated property value is causing a violation"() {
+    def "access to #description project property value is causing a violation"() {
         given:
         settingsFile << """
             include("a")
@@ -175,7 +180,7 @@ class IsolatedProjectsAccessFromKotlinDslIntegrationTest extends AbstractIsolate
 
         // Requires a sub-project
         file("a/build.gradle.kts") << """
-            val myProperty: $type by project
+            val myProperty = $expression
             println("myProperty: " + myProperty) // actual access to the value is required to trigger a lookup
         """
 
@@ -191,8 +196,8 @@ class IsolatedProjectsAccessFromKotlinDslIntegrationTest extends AbstractIsolate
         }
 
         where:
-        description    | type
-        "nullable"     | "String?"
-        "non-nullable" | "String"
+        description    | expression
+        "nullable"     | 'project.findProperty("myProperty") as String?'
+        "non-nullable" | 'project.property("myProperty") as String'
     }
 }

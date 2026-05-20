@@ -19,7 +19,13 @@ jobs:
         distribution: temurin
         java-version: 17
     - name: Setup Gradle
-      uses: gradle/actions/dependency-submission@v5
+      uses: gradle/actions/dependency-submission@v6
+      with:
+        # Publish a Build Scan on failure (and success) for debugging; action output `build-scan-url` is set when applicable.
+        build-scan-publish: true
+        build-scan-terms-of-use-url: 'https://gradle.com/terms-of-service'
+        build-scan-terms-of-use-agree: 'yes'
+        additional-arguments: '--stacktrace'
       env:
         # Exclude some projects and configurations that should not contribute to the dependency graph
         DEPENDENCY_GRAPH_EXCLUDE_PROJECTS: ':docs|:internal-performance-testing|:enterprise-plugin-performance|:performance|:internal-integ-testing'

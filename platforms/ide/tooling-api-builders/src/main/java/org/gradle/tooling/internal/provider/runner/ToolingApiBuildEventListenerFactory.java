@@ -79,14 +79,13 @@ public class ToolingApiBuildEventListenerFactory implements BuildEventListenerFa
         PluginApplicationTracker pluginApplicationTracker = new PluginApplicationTracker(ancestryTracker);
         TaskForTestEventTracker testTaskTracker = new TaskForTestEventTracker(ancestryTracker);
         ProjectConfigurationTracker projectConfigurationTracker = new ProjectConfigurationTracker(ancestryTracker, pluginApplicationTracker);
-        TaskOriginTracker taskOriginTracker = new TaskOriginTracker(pluginApplicationTracker);
 
         TransformOperationMapper transformOperationMapper = new TransformOperationMapper(operationDependenciesResolver);
         operationDependenciesResolver.addLookup(transformOperationMapper);
 
         List<OperationResultPostProcessor> postProcessors = createPostProcessors(subscriptions, consumer);
 
-        TaskOperationMapper taskOperationMapper = new TaskOperationMapper(postProcessors, taskOriginTracker, operationDependenciesResolver);
+        TaskOperationMapper taskOperationMapper = new TaskOperationMapper(postProcessors, operationDependenciesResolver);
         operationDependenciesResolver.addLookup(taskOperationMapper);
 
         List<BuildOperationMapper<?, ?>> mappers = ImmutableList.of(

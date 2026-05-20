@@ -17,7 +17,6 @@
 package org.gradle.testing.junit.junit4
 
 import org.gradle.api.internal.tasks.testing.report.VerifiesGenericTestReportResults
-import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
 import org.gradle.api.tasks.testing.TestResult
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
@@ -25,10 +24,6 @@ import static org.hamcrest.CoreMatchers.containsString
 import static org.hamcrest.CoreMatchers.equalTo
 
 class JUnit4AssumptionFailureIntegrationTest extends AbstractIntegrationSpec implements VerifiesGenericTestReportResults {
-    @Override
-    GenericTestExecutionResult.TestFramework getTestFramework() {
-        return GenericTestExecutionResult.TestFramework.JUNIT4
-    }
 
     def "captures assumption failures"() {
         buildFile << """

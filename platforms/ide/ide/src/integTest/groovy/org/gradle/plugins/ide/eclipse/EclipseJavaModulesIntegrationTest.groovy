@@ -17,13 +17,14 @@ package org.gradle.plugins.ide.eclipse
 
 import org.gradle.test.fixtures.maven.MavenModule
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.JdkVersionTestPreconditions
+
 
 import static org.gradle.test.fixtures.jpms.ModuleJarFixture.autoModuleJar
 import static org.gradle.test.fixtures.jpms.ModuleJarFixture.moduleJar
 import static org.gradle.test.fixtures.jpms.ModuleJarFixture.traditionalJar
 
-@Requires(UnitTestPreconditions.Jdk9OrLater)
+@Requires(JdkVersionTestPreconditions.Jdk9OrLater)
 class EclipseJavaModulesIntegrationTest extends AbstractEclipseIntegrationSpec {
 
     def setup() {
@@ -50,6 +51,7 @@ class EclipseJavaModulesIntegrationTest extends AbstractEclipseIntegrationSpec {
 
     def "dependencies are not marked as modules if the project itself is not modular"() {
         when:
+        expectTaskDeprecations("eclipse", "eclipseClasspath", "eclipseJdt", "eclipseProject")
         succeeds "eclipse"
 
         then:
@@ -73,6 +75,7 @@ class EclipseJavaModulesIntegrationTest extends AbstractEclipseIntegrationSpec {
         """
 
         when:
+        expectTaskDeprecations("eclipse", "eclipseClasspath", "eclipseJdt", "eclipseProject")
         succeeds "eclipse"
 
         then:

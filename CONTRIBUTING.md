@@ -36,6 +36,10 @@ Do not report security vulnerabilities to the public issue tracker. Follow our [
 
 Contributors must follow the Code of Conduct outlined at [https://gradle.org/conduct/](https://gradle.org/conduct/).
 
+### AI-assisted contributions
+
+If you use AI tools when contributing to Gradle, please review our [AI Policy](AI_POLICY.md).
+
 ### Additional help
 
 If you run into any trouble, please reach out to us on the issue you are working on.
@@ -348,7 +352,7 @@ This will create a minimal distribution at `packaging/distributions-full/build/d
 
 You can then use it as a Gradle Wrapper local distribution in a Gradle based project by using a `file:/` URL pointing to the built distribution:
 
-    ./gradlew wrapper --gradle-distribution-url=file:/path/to/gradle-<version>-bin.zip
+    ./gradlew :wrapper --gradle-distribution-url=file:/path/to/gradle-<version>-bin.zip
 
 To create a full distribution (includes sources and docs):
 
@@ -356,7 +360,7 @@ To create a full distribution (includes sources and docs):
 
 The full distribution will be created at `packaging/distributions-full/build/distributions/gradle-<version>-all.zip`. You can then use it as a Gradle Wrapper local distribution:
 
-    ./gradlew wrapper --gradle-distribution-url=file:/path/to/gradle-<version>-all.zip
+    ./gradlew :wrapper --gradle-distribution-url=file:/path/to/gradle-<version>-all.zip
 
 ## Our thanks
 

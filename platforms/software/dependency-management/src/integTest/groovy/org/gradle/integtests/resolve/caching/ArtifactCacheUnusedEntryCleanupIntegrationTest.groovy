@@ -23,11 +23,14 @@ import org.gradle.api.internal.file.collections.SingleIncludePatternFileTree
 import org.gradle.cache.internal.GradleUserHomeCleanupFixture
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.integtests.fixtures.cache.FileAccessTimeJournalFixture
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.resolve.JvmLibraryArtifactResolveTestFixture
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.maven.MavenModule
+import spock.lang.Issue
 
 import static java.util.concurrent.TimeUnit.DAYS
 import static org.gradle.api.internal.cache.CacheConfigurationsInternal.DEFAULT_MAX_AGE_IN_DAYS_FOR_DOWNLOADED_CACHE_ENTRIES
@@ -255,7 +258,8 @@ class ArtifactCacheUnusedEntryCleanupIntegrationTest extends AbstractHttpDepende
         files[1].assertExists()
     }
 
-    @ToBeFixedForConfigurationCache(because = "does not re-download missing artifacts")
+
+    @UnsupportedWithConfigurationCache(because = "re-download of deleted artifacts requires dependency resolution, which is skipped when configuration cache entry is reused")
     def "downloads deleted files again when they are referenced"() {
         given:
         buildscriptWithDependency(snapshotModule)
@@ -293,7 +297,7 @@ class ArtifactCacheUnusedEntryCleanupIntegrationTest extends AbstractHttpDepende
         journal.assertExists()
     }
 
-    @ToBeFixedForConfigurationCache(because = "does not re-download missing artifacts")
+
     def "redownloads deleted HTTP script plugin resources"() {
         given:
         def uuid = UUID.randomUUID()
@@ -316,6 +320,9 @@ class ArtifactCacheUnusedEntryCleanupIntegrationTest extends AbstractHttpDepende
         when:
         assert resource.delete()
         server.expectGet("/$uniqueFileName", script)
+        if (GradleContextualExecuter.configCache) {
+            server.expectHead("/$uniqueFileName", script)
+        }
 
         and:
         succeeds()
@@ -324,7 +331,6 @@ class ArtifactCacheUnusedEntryCleanupIntegrationTest extends AbstractHttpDepende
         resource.assertExists()
     }
 
-    @ToBeFixedForConfigurationCache(because = "does not re-download missing artifacts")
     def "redownloads deleted uri backed text resources"() {
         given:
         def uuid = UUID.randomUUID()
@@ -333,10 +339,11 @@ class ArtifactCacheUnusedEntryCleanupIntegrationTest extends AbstractHttpDepende
         server.expectGet("/$uniqueFileName", resourceFile)
         buildFile << """
             task uriText {
-                doLast {
-                    print resources.text.fromUri("${server.uri}/$uniqueFileName").asString()
-                }
-            }
+               def res = resources.text.fromUri("${server.uri}/$uniqueFileName")
+               doLast {
+                   print res.asString()
+               }
+           }
         """
 
         when:
@@ -356,7 +363,9 @@ class ArtifactCacheUnusedEntryCleanupIntegrationTest extends AbstractHttpDepende
         resource.assertExists()
     }
 
-    @ToBeFixedForConfigurationCache(because = "does not re-download missing artifacts")
+
+    @ToBeFixedForConfigurationCache(because = "re-download of deleted artifacts requires dependency resolution, which is skipped when configuration cache entry is reused")
+    @Issue("https://github.com/gradle/gradle/issues/16179")
     def "redownloads deleted artifacts for artifact query"() {
         given:
         def module = mavenHttpRepo.module('org.example', 'example', '1.0')

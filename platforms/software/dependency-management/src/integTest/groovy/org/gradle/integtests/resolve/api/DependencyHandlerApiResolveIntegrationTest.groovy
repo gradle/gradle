@@ -19,7 +19,7 @@ package org.gradle.integtests.resolve.api
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import org.gradle.util.GradleVersion
 
 class DependencyHandlerApiResolveIntegrationTest extends AbstractIntegrationSpec {
@@ -113,7 +113,7 @@ class DependencyHandlerApiResolveIntegrationTest extends AbstractIntegrationSpec
         result.assertHasErrorOutput('package org.gradle.testkit.runner does not exist')
     }
 
-    @Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "Uses a different classpath when embedded")
+    @Requires(value = TestExecutionPreconditions.NotEmbeddedExecutor, reason = "Uses a different classpath when embedded")
     def "artifact metadata is available for files added by dependency declarations"() {
         given:
         buildFile << """

@@ -45,7 +45,6 @@ import org.gradle.api.artifacts.ResolvableDependencies;
 import org.gradle.api.artifacts.ResolvedConfiguration;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.result.ResolutionResult;
-import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.capabilities.Capability;
@@ -65,11 +64,11 @@ import org.gradle.api.internal.artifacts.ResolverResults;
 import org.gradle.api.internal.artifacts.dependencies.DependencyConstraintInternal;
 import org.gradle.api.internal.artifacts.ivyservice.ResolutionParameters;
 import org.gradle.api.internal.artifacts.ivyservice.TypedResolveException;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results.VisitedGraphResults;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.GraphStructure;
 import org.gradle.api.internal.artifacts.resolver.DefaultResolutionOutputs;
 import org.gradle.api.internal.artifacts.resolver.ResolutionAccess;
 import org.gradle.api.internal.artifacts.resolver.ResolutionOutputsInternal;
-import org.gradle.api.internal.artifacts.result.DefaultResolutionResult;
-import org.gradle.api.internal.artifacts.result.MinimalResolutionResult;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.FreezableAttributeContainer;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
@@ -80,14 +79,12 @@ import org.gradle.api.internal.initialization.ResettableConfiguration;
 import org.gradle.api.internal.project.ProjectIdentity;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.problems.ProblemId;
-import org.gradle.api.problems.Severity;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
-import org.gradle.api.problems.internal.InternalProblems;
+import org.gradle.api.problems.internal.ProblemsInternal;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.TaskDependency;
-import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
@@ -137,7 +134,6 @@ import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 import static org.gradle.api.internal.artifacts.configurations.ConfigurationInternal.InternalState.UNRESOLVED;
-import static org.gradle.api.internal.artifacts.result.DefaultResolvedComponentResult.eachElement;
 import static org.gradle.util.internal.ConfigureUtil.configure;
 
 /**
@@ -309,19 +305,26 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
     private void initializeInheritedArtifacts() {
         if (inheritedArtifacts == null) {
-            inheritedArtifacts = new InheritedCollection<>(configurationServices, PublishArtifact.class, ownArtifacts, extendsFrom, Configuration::getAllArtifacts);
+            // Use addCollectionProvider to avoid eagerly calling realizePending() on ownArtifacts,
+            // which can force realization of lazy artifact providers before variant computation
+            // has completed.
+            CompositeDomainObjectSet<PublishArtifact> all = CompositeDomainObjectSet.create(PublishArtifact.class, configurationServices.getCollectionCallbackActionDecorator());
+            all.addCollectionProvider(configurationServices.getProviderFactory().provider(() -> ownArtifacts));
+            inheritedArtifacts = new InheritedCollection<>(all, extendsFrom, Configuration::getAllArtifacts);
         }
     }
 
     private void initializeInheritedDependencies() {
         if (inheritedDependencies == null) {
-            inheritedDependencies = new InheritedCollection<>(configurationServices, Dependency.class, ownDependencies, extendsFrom, Configuration::getAllDependencies);
+            CompositeDomainObjectSet<Dependency> all = configurationServices.getDomainObjectCollectionFactory().newDomainObjectSet(Dependency.class, ownDependencies);
+            inheritedDependencies = new InheritedCollection<>(all, extendsFrom, Configuration::getAllDependencies);
         }
     }
 
     private void initializeInheritedDependencyConstraints() {
         if (inheritedDependencyConstraints == null) {
-            inheritedDependencyConstraints = new InheritedCollection<>(configurationServices, DependencyConstraint.class, ownDependencyConstraints, extendsFrom, Configuration::getAllDependencyConstraints);
+            CompositeDomainObjectSet<DependencyConstraint> all = configurationServices.getDomainObjectCollectionFactory().newDomainObjectSet(DependencyConstraint.class, ownDependencyConstraints);
+            inheritedDependencyConstraints = new InheritedCollection<>(all, extendsFrom, Configuration::getAllDependencyConstraints);
         }
     }
 
@@ -691,10 +694,10 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
                 // because:
                 // 1. the `failed` method will have been called with the user facing error
                 // 2. such an error may still lead to a valid dependency graph
-                MinimalResolutionResult resolutionResult = results.getVisitedGraph().getResolutionResult();
+                VisitedGraphResults visitedGraph = results.getVisitedGraph();
                 context.setResult(new ResolveConfigurationResolutionBuildOperationResult(
-                    resolutionResult.getGraphSource(),
-                    resolutionResult.getRequestedAttributes(),
+                    visitedGraph.getResolvedGraphResultSource(),
+                    visitedGraph.getRequestedAttributes(),
                     configurationServices.getAttributesFactory()
                 ));
             }
@@ -745,12 +748,14 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         }
 
         assertThatConsistentResolutionIsPropertyConfigured();
-        ResolvedComponentResult root = consistentResolutionSource.getIncoming().getResolutionResult().getRoot();
+        ResolverResults consistentResolutionResults = consistentResolutionSource.getResolutionAccess().getResults().getValue();
+        GraphStructure structure = consistentResolutionResults.getVisitedGraph().getGraphStructureSource().get();
 
-        ImmutableList.Builder<ResolutionParameters.ModuleVersionLock> locks = ImmutableList.builder();
-        eachElement(root, component -> {
-            if (component.getId() instanceof ModuleComponentIdentifier) {
-                ModuleComponentIdentifier moduleId = (ModuleComponentIdentifier) component.getId();
+        GraphStructure.Components components = structure.components();
+        int numComponents = components.count();
+        ImmutableList.Builder<ResolutionParameters.ModuleVersionLock> locks = ImmutableList.builderWithExpectedSize(numComponents);
+        for (int i = 0; i < numComponents; i++) {
+            if (components.id(i) instanceof ModuleComponentIdentifier moduleId) {
                 locks.add(new ResolutionParameters.ModuleVersionLock(
                     moduleId.getModuleIdentifier(),
                     moduleId.getVersion(),
@@ -758,7 +763,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
                     true
                 ));
             }
-        }, Actions.doNothing(), new HashSet<>());
+        }
         return locks.build();
     }
 
@@ -838,7 +843,14 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
      * {@inheritDoc}
      */
     @Override
+    @Deprecated
+    @SuppressWarnings("deprecation")
     public TaskDependency getTaskDependencyFromProjectDependency(final boolean useDependedOn, final String taskName) {
+        DeprecationLogger.deprecateMethod(Configuration.class, "getTaskDependencyFromProjectDependency(boolean, String)")
+            .willBeRemovedInGradle10()
+            .withUpgradeGuideSection(9, "deprecate_getTaskDependencyFromProjectDependency")
+            .nagUser();
+
         if (useDependedOn) {
             return new TasksFromProjectDependencies(taskName, () -> {
                 return getAllDependencies().withType(ProjectDependency.class);
@@ -1318,7 +1330,6 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
                         properUsageDesc
                     )
                 );
-                spec.severity(Severity.ERROR);
             });
         } else if (isExclusivelyDeprecatedUsage(properUsages)) {
             DeprecationLogger.deprecateAction(String.format("Calling %s on %s", methodName, this))
@@ -1497,7 +1508,6 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         ProblemId id = ProblemId.create("method-not-allowed", "Method call not allowed", GradleCoreProblemGroup.configurationUsage());
         throw configurationServices.getProblems().getInternalReporter().throwing(ex, id, spec -> {
             spec.contextualLabel(ex.getMessage());
-            spec.severity(Severity.ERROR);
         });
     }
 
@@ -1632,7 +1642,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         return roleAtCreation;
     }
 
-    public InternalProblems getProblems() {
+    public ProblemsInternal getProblems() {
         return configurationServices.getProblems();
     }
 
@@ -1657,7 +1667,6 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         ProblemId id = ProblemId.create("extend-detached-not-allowed", "Extending a detachedConfiguration is not allowed", GradleCoreProblemGroup.configurationUsage());
         throw configurationServices.getProblems().getInternalReporter().throwing(ex, id, spec -> {
             spec.contextualLabel(ex.getMessage());
-            spec.severity(Severity.ERROR);
         });
     }
 
@@ -1724,7 +1733,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         @Override
         public ResolutionResult getResolutionResult() {
             configuration.assertIsResolvable();
-            return new DefaultResolutionResult(configuration.resolutionAccess, configuration.configurationServices.getAttributeDesugaring());
+            return configuration.resolutionAccess.getPublicView().getResolutionResult();
         }
 
         @Override
@@ -1755,17 +1764,22 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         return resolutionAccess.getHost();
     }
 
+    @Override
+    public ResolutionAccess getResolutionAccess() {
+        return resolutionAccess;
+    }
+
     private static class DefaultResolutionHost implements ResolutionHost {
 
         private final Path buildTreePath;
         private final DisplayName displayName;
-        private final InternalProblems problems;
+        private final ProblemsInternal problems;
         private final ResolveExceptionMapper exceptionMapper;
 
         public DefaultResolutionHost(
             Path buildTreePath,
             DisplayName displayName,
-            InternalProblems problems,
+            ProblemsInternal problems,
             ResolveExceptionMapper exceptionMapper
         ) {
             this.buildTreePath = buildTreePath;
@@ -1775,7 +1789,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         }
 
         @Override
-        public InternalProblems getProblems() {
+        public ProblemsInternal getProblems() {
             return problems;
         }
 
@@ -1885,14 +1899,12 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         private final List<Provider<DomainObjectCollection<? extends T>>> inheritedCollections = new ArrayList<>();
 
         public InheritedCollection(
-            ConfigurationServicesBundle configurationServices,
-            Class<T> type,
-            DomainObjectCollection<T> own,
+            CompositeDomainObjectSet<T> all,
             ExtendedConfigurations extendsFrom,
             Function<Configuration, DomainObjectCollection<T>> configurationToCollection
         ) {
             this.configurationToCollection = configurationToCollection;
-            this.all = configurationServices.getDomainObjectCollectionFactory().newDomainObjectSet(type, own);
+            this.all = all;
 
             updateExtendedConfigurations(extendsFrom);
         }

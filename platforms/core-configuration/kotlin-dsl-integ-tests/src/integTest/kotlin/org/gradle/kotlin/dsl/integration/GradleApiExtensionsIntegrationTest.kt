@@ -26,7 +26,7 @@ import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.gradle.kotlin.dsl.fixtures.containsMultiLineString
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import org.hamcrest.CoreMatchers.allOf
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.CoreMatchers.not
@@ -205,7 +205,7 @@ class GradleApiExtensionsIntegrationTest : AbstractKotlinIntegrationTest() {
     }
 
     @Test
-    @Requires(IntegTestPreconditions.NotEmbeddedExecutor::class)
+    @Requires(TestExecutionPreconditions.NotEmbeddedExecutor::class)
     fun `generated jar contains Gradle API extensions sources and byte code and is reproducible`() {
 
         withBuildScript("")

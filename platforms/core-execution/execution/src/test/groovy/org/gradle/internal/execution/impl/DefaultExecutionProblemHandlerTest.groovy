@@ -20,13 +20,12 @@ import org.gradle.api.problems.Problem
 import org.gradle.api.problems.ProblemId
 import org.gradle.api.problems.Severity
 import org.gradle.api.problems.internal.GradleCoreProblemGroup
-import org.gradle.api.problems.internal.InternalProblem
+import org.gradle.api.problems.internal.ProblemInternal
 import org.gradle.api.problems.internal.ProblemsProgressEventEmitterHolder
 import org.gradle.internal.execution.Identity
 import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.execution.WorkValidationContext
 import org.gradle.internal.execution.WorkValidationException
-import org.gradle.internal.execution.WorkValidationExceptionChecker
 import org.gradle.internal.execution.steps.ValidateStep
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.internal.vfs.VirtualFileSystem
@@ -50,20 +49,23 @@ class DefaultExecutionProblemHandlerTest extends Specification implements Valida
     def handler = new DefaultExecutionProblemHandler(warningReporter, virtualFileSystem)
 
     def setup() {
-        ProblemsProgressEventEmitterHolder.init(TestUtil.problemsService())
+        ProblemsProgressEventEmitterHolder.init(problems)
         work.displayName >> "job ':test'"
+    }
+
+    def cleanup() {
+        ProblemsProgressEventEmitterHolder.clear()
     }
 
     def "fails when there is a single violation"() {
         expectReindentedValidationMessage()
         given:
-        validationContext.forType(JobType, true).visitTypeProblem {
+        validationContext.forType(JobType, true).visitTypeError {
             it
                 .withAnnotationType(Object)
                 .id(ProblemId.create("test-problem", "Validation error", GradleCoreProblemGroup.validation().type()))
                 .documentedAt(userManual("id", "section"))
                 .details("Test")
-                .severity(Severity.ERROR)
         }
 
         when:
@@ -71,31 +73,35 @@ class DefaultExecutionProblemHandlerTest extends Specification implements Valida
 
         then:
         def ex = thrown(WorkValidationException)
-        WorkValidationExceptionChecker.check(ex) {
-            def validationProblem = dummyPropertyValidationProblemWithLink('java.lang.Object', null, 'Validation error', 'Test').trim()
-            hasMessage """A problem was found with the configuration of job ':test' (type 'DefaultExecutionProblemHandlerTest.JobType').
-  - ${validationProblem}"""
-        }
+        ex.message == "A problem was found with the configuration of job ':test' (type 'DefaultExecutionProblemHandlerTest.JobType')."
+        problems.assertProblemEmittedOnce({
+            it.definition.severity == Severity.ERROR
+            it.definition.id.name == 'test-problem'
+            it.definition.id.displayName == 'Validation error'
+            it.contextualLabel == "Type 'java.lang.Object' Validation error"
+            it.details == 'Test'
+            it.definition.documentationLink.url.endsWith('/userguide/id.html#section')
+            it.solutions == []
+            it.originLocations == []
+        })
         0 * _
     }
 
     def "fails when there are multiple violations"() {
         expectReindentedValidationMessage()
         given:
-        validationContext.forType(JobType, true).visitTypeProblem {
+        validationContext.forType(JobType, true).visitTypeError {
             it
                 .withAnnotationType(Object)
                 .id(ProblemId.create("test-problem-1", "Validation error #1", GradleCoreProblemGroup.validation().type()))
                 .documentedAt(userManual("id", "section"))
-                .severity(Severity.ERROR)
                 .details("Test")
         }
-        validationContext.forType(SecondaryJobType, true).visitTypeProblem {
+        validationContext.forType(SecondaryJobType, true).visitTypeError {
             it
                 .withAnnotationType(Object)
                 .id(ProblemId.create("test-problem-2", "Validation error #2", GradleCoreProblemGroup.validation().type()))
                 .documentedAt(userManual("id", "section"))
-                .severity(Severity.ERROR)
                 .details("Test")
         }
         when:
@@ -103,12 +109,28 @@ class DefaultExecutionProblemHandlerTest extends Specification implements Valida
 
         then:
         def ex = thrown WorkValidationException
-        WorkValidationExceptionChecker.check(ex) {
-            def validationProblem1 = dummyPropertyValidationProblemWithLink('java.lang.Object', null, 'Validation error #1', 'Test')
-            def validationProblem2 = dummyPropertyValidationProblemWithLink('java.lang.Object', null, 'Validation error #2', 'Test')
-            hasMessage """Some problems were found with the configuration of job ':test' (types ${quotedOxfordListOf(of('DefaultExecutionProblemHandlerTest.JobType', 'DefaultExecutionProblemHandlerTest.SecondaryJobType'), 'and')}).
-  - ${validationProblem1.trim()}
-  - ${validationProblem2.trim()}"""
+        ex.message == "Some problems were found with the configuration of job ':test' (types ${quotedOxfordListOf(of('DefaultExecutionProblemHandlerTest.JobType', 'DefaultExecutionProblemHandlerTest.SecondaryJobType'), 'and')})."
+
+        problems.emitted.size() == 2
+        verifyAll(problems.emitted[0]) {
+            definition.severity == Severity.ERROR
+            definition.id.name == 'test-problem-1'
+            definition.id.displayName == 'Validation error #1'
+            contextualLabel == "Type 'java.lang.Object' Validation error #1"
+            details == 'Test'
+            definition.documentationLink.url.endsWith('/userguide/id.html#section')
+            solutions == []
+            originLocations == []
+        }
+        verifyAll(problems.emitted[1]) {
+            definition.severity == Severity.ERROR
+            definition.id.name == 'test-problem-2'
+            definition.id.displayName == 'Validation error #2'
+            contextualLabel == "Type 'java.lang.Object' Validation error #2"
+            details == 'Test'
+            definition.documentationLink.url.endsWith('/userguide/id.html#section')
+            solutions == []
+            originLocations == []
         }
 
         0 * _
@@ -117,12 +139,11 @@ class DefaultExecutionProblemHandlerTest extends Specification implements Valida
     def "reports deprecation warning and invalidates VFS for validation warning"() {
         String expectedWarning = convertToSingleLine(dummyValidationProblem('java.lang.Object', null, 'Validation warning', 'Test').trim())
         given:
-        validationContext.forType(JobType, true).visitTypeProblem {
+        validationContext.forType(JobType, true).visitTypeWarning {
             it
                 .withAnnotationType(Object)
                 .id(ProblemId.create("test-problem", "Validation warning", GradleCoreProblemGroup.validation().type()))
                 .documentedAt(userManual("id", "section"))
-                .severity(Severity.WARNING)
                 .details("Test")
         }
         when:
@@ -130,7 +151,17 @@ class DefaultExecutionProblemHandlerTest extends Specification implements Valida
 
         then:
         1 * warningReporter.recordValidationWarnings(identity, work, { List<Problem> warnings ->
-            convertToSingleLine(renderMinimalInformationAbout(warnings.first() as InternalProblem, false, false)) == expectedWarning
+            convertToSingleLine(renderMinimalInformationAbout(warnings.first() as ProblemInternal, false, false)) == expectedWarning
+        })
+        problems.assertProblemEmittedOnce({
+            it.definition.severity == Severity.WARNING
+            it.definition.id.name == 'test-problem'
+            it.definition.id.displayName == 'Validation warning'
+            it.contextualLabel == "Type 'java.lang.Object' Validation warning"
+            it.details == 'Test'
+            it.definition.documentationLink.url.endsWith('/userguide/id.html#section')
+            it.solutions == []
+            it.originLocations == []
         })
 
         then:
@@ -146,20 +177,18 @@ class DefaultExecutionProblemHandlerTest extends Specification implements Valida
 
         given:
         def typeContext = validationContext.forType(JobType, true)
-        typeContext.visitTypeProblem {
+        typeContext.visitTypeError {
             it
                 .withAnnotationType(Object)
                 .id(ProblemId.create("test-problem", "Validation problem", GradleCoreProblemGroup.validation().type()))
                 .documentedAt(userManual("id", "section"))
-                .severity(Severity.ERROR)
                 .details("Test")
         }
-        typeContext.visitTypeProblem {
+        typeContext.visitTypeWarning {
             it
                 .withAnnotationType(Object)
                 .id(ProblemId.create("test-problem", "Validation problem", GradleCoreProblemGroup.validation().type()))
                 .documentedAt(userManual("id", "section"))
-                .severity(Severity.WARNING)
                 .details("Test")
         }
 
@@ -167,13 +196,31 @@ class DefaultExecutionProblemHandlerTest extends Specification implements Valida
         handler.handleReportedProblems(identity, work, validationContext)
 
         then:
-        1 * warningReporter.recordValidationWarnings(identity, work, { warnings -> convertToSingleLine(renderMinimalInformationAbout(warnings.first() as InternalProblem, true, false)) == expectedWarning })
+        1 * warningReporter.recordValidationWarnings(identity, work, { warnings -> convertToSingleLine(renderMinimalInformationAbout(warnings.first() as ProblemInternal, true, false)) == expectedWarning })
 
         then:
         def ex = thrown WorkValidationException
-        WorkValidationExceptionChecker.check(ex) {
-            hasMessage """A problem was found with the configuration of job ':test' (type 'DefaultExecutionProblemHandlerTest.JobType').
-  - ${expectedError}"""
+        ex.message ==  "A problem was found with the configuration of job ':test' (type 'DefaultExecutionProblemHandlerTest.JobType')."
+        problems.emitted.size() == 2
+        verifyAll(problems.emitted[0]) {
+            definition.severity == Severity.WARNING
+            definition.id.name == 'test-problem'
+            definition.id.displayName == 'Validation problem'
+            contextualLabel == "Type 'java.lang.Object' Validation problem"
+            details == 'Test'
+            definition.documentationLink.url.endsWith('/userguide/id.html#section')
+            solutions == []
+            originLocations == []
+        }
+        verifyAll(problems.emitted[1]) {
+            definition.severity == Severity.ERROR
+            definition.id.name == 'test-problem'
+            definition.id.displayName == 'Validation problem'
+            contextualLabel == "Type 'java.lang.Object' Validation problem"
+            details == 'Test'
+            definition.documentationLink.url.endsWith('/userguide/id.html#section')
+            solutions == []
+            originLocations == []
         }
         0 * _
     }

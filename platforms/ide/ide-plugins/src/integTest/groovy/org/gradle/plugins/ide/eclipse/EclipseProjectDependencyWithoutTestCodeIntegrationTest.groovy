@@ -42,6 +42,7 @@ class EclipseProjectDependencyWithoutTestCodeIntegrationTest extends AbstractEcl
 
     def "test code is not available by default"() {
         when:
+        expectTaskDeprecations("eclipse", "eclipseClasspath", "eclipseJdt", "eclipseProject")
         run "eclipse"
 
         then:
@@ -56,6 +57,7 @@ class EclipseProjectDependencyWithoutTestCodeIntegrationTest extends AbstractEcl
         """
 
         when:
+        expectTaskDeprecations("eclipse", "eclipseClasspath", "eclipseJdt", "eclipseProject")
         run "eclipse"
 
         then:
@@ -72,6 +74,7 @@ class EclipseProjectDependencyWithoutTestCodeIntegrationTest extends AbstractEcl
         """
 
         when:
+        expectTaskDeprecations("eclipse", "eclipseClasspath", "eclipseJdt", "eclipseProject")
         run "eclipse"
 
         then:
@@ -92,6 +95,7 @@ class EclipseProjectDependencyWithoutTestCodeIntegrationTest extends AbstractEcl
         """
 
         when:
+        expectTaskDeprecations("eclipse", "eclipseClasspath", "eclipseJdt", "eclipseProject")
         run "eclipse"
 
         then:

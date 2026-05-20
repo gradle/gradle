@@ -16,16 +16,17 @@
 
 package org.gradle.internal.watch
 
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import org.gradle.testdistribution.LocalOnly
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.FileSystemTestPreconditions
+
 import spock.lang.Issue
 
 @LocalOnly
 @Requires(value = [
-    UnitTestPreconditions.Symlinks,
-    IntegTestPreconditions.NotEmbeddedExecutor
+    FileSystemTestPreconditions.Symlinks,
+    TestExecutionPreconditions.NotEmbeddedExecutor
 ], reason = "explicitly requests a daemon")
 class SymlinkFileSystemWatchingIntegrationTest extends AbstractFileSystemWatchingIntegrationTest {
     def setup() {

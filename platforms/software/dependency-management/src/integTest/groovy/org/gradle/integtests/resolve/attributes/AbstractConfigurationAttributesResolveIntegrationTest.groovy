@@ -417,7 +417,7 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
         fails ':a:checkDebug'
 
         then:
-        failure.assertHasCause """Configuration 'bar' in project :b does not match the consumer attributes
+        failure.assertHasCause """Configuration 'bar' in project ':b' does not match the consumer attributes
 Configuration 'bar' declares attribute 'flavor' with value 'free':
   - Incompatible because this component declares attribute 'buildType' with value 'release' and the consumer needed attribute 'buildType' with value 'debug'"""
 
@@ -560,8 +560,8 @@ Configuration 'bar' declares attribute 'flavor' with value 'free':
         then:
         failure.assertHasDescription("Could not determine the dependencies of task ':a:checkDebug'.")
         failure.assertHasCause("Could not resolve all dependencies for configuration ':a:_compileFreeDebug'.")
-        failure.assertHasCause("Could not resolve project :b.")
-        failure.assertHasCause("""No matching variant of project :b was found. The consumer was configured to find attribute 'buildType' with value 'debug', attribute 'flavor' with value 'free' but:
+        failure.assertHasCause("Could not resolve project ':b'.")
+        failure.assertHasCause("""No matching variant of project ':b' was found. The consumer was configured to find attribute 'buildType' with value 'debug', attribute 'flavor' with value 'free' but:
   - Variant 'bar':
       - Incompatible because this component declares attribute 'buildType' with value 'release' and the consumer needed attribute 'buildType' with value 'debug'
       - Other compatible attribute:
@@ -608,8 +608,8 @@ Configuration 'bar' declares attribute 'flavor' with value 'free':
         then:
         failure.assertHasDescription("Could not determine the dependencies of task ':a:checkDebug'.")
         failure.assertHasCause("Could not resolve all dependencies for configuration ':a:compile'.")
-        failure.assertHasCause("Could not resolve project :b.")
-        failure.assertHasCause("""Cannot choose between the available variants of project :b:
+        failure.assertHasCause("Could not resolve project ':b'.")
+        failure.assertHasCause("""Cannot choose between the available variants of project ':b':
   - bar
   - foo
 All of them match the consumer attributes:
@@ -658,7 +658,7 @@ All of them match the consumer attributes:
         fails ':a:checkDebug'
 
         then:
-        failure.assertHasCause """No matching variant of project :b was found. The consumer was configured to find attribute 'buildType' with value 'debug', attribute 'flavor' with value 'free' but:
+        failure.assertHasCause """No matching variant of project ':b' was found. The consumer was configured to find attribute 'buildType' with value 'debug', attribute 'flavor' with value 'free' but:
   - No variants exist."""
     }
 
@@ -688,7 +688,7 @@ All of them match the consumer attributes:
         fails ':a:checkDebug'
 
         then:
-        failure.assertHasCause """No matching variant of project :b was found. The consumer was configured to find attribute 'buildType' with value 'debug', attribute 'flavor' with value 'free' but:
+        failure.assertHasCause """No matching variant of project ':b' was found. The consumer was configured to find attribute 'buildType' with value 'debug', attribute 'flavor' with value 'free' but:
   - No variants exist."""
     }
 
@@ -732,7 +732,7 @@ All of them match the consumer attributes:
         fails ':a:checkDebug'
 
         then:
-        failure.assertHasCause "A dependency was declared on configuration 'someConf' of 'project :b' but no variant with that configuration name exists."
+        failure.assertHasCause "A dependency was declared on configuration 'someConf' of 'project ':b'' but no variant with that configuration name exists."
     }
 
     def "gives details about failing matches when it cannot select default configuration when no match is found and default configuration is not consumable"() {
@@ -770,7 +770,7 @@ All of them match the consumer attributes:
         fails ':a:checkDebug'
 
         then:
-        failure.assertHasCause """No matching variant of project :b was found. The consumer was configured to find attribute 'buildType' with value 'debug', attribute 'flavor' with value 'free' but:
+        failure.assertHasCause """No matching variant of project ':b' was found. The consumer was configured to find attribute 'buildType' with value 'debug', attribute 'flavor' with value 'free' but:
   - Variant 'bar':
       - Incompatible because this component declares attribute 'buildType' with value 'release', attribute 'flavor' with value 'paid' and the consumer needed attribute 'buildType' with value 'debug', attribute 'flavor' with value 'free'
   - Variant 'foo' declares attribute 'flavor' with value 'free':
@@ -894,7 +894,7 @@ All of them match the consumer attributes:
         fails ':a:checkDebug'
 
         then:
-        failure.assertHasCause("""The consumer was configured to find attribute 'buildType' with value 'debug', attribute 'flavor' with value 'free'. However we cannot choose between the following variants of project :b:
+        failure.assertHasCause("""The consumer was configured to find attribute 'buildType' with value 'debug', attribute 'flavor' with value 'free'. However we cannot choose between the following variants of project ':b':
   - bar
   - foo
 All of them match the consumer attributes:
@@ -993,7 +993,7 @@ All of them match the consumer attributes:
         fails ':a:check'
 
         then:
-        failure.assertHasCause """The consumer was configured to find attribute 'buildType' with value 'debug'. However we cannot choose between the following variants of project :b:
+        failure.assertHasCause """The consumer was configured to find attribute 'buildType' with value 'debug'. However we cannot choose between the following variants of project ':b':
   - bar
   - foo
 All of them match the consumer attributes:
@@ -1045,7 +1045,7 @@ All of them match the consumer attributes:
         fails ':a:checkDebug'
 
         then:
-        failure.assertHasCause """The consumer was configured to find attribute 'buildType' with value 'debug', attribute 'flavor' with value 'free'. There are several available matching variants of project :b
+        failure.assertHasCause """The consumer was configured to find attribute 'buildType' with value 'debug', attribute 'flavor' with value 'free'. There are several available matching variants of project ':b'
 The only attribute distinguishing these variants is 'extra'. Add this attribute to the consumer's configuration to resolve the ambiguity:
   - Value: 'extra 2' selects variant: 'bar'
   - Value: 'extra' selects variant: 'foo'"""
@@ -1117,7 +1117,7 @@ The only attribute distinguishing these variants is 'extra'. Add this attribute 
         fails ':a:check'
 
         then:
-        failure.assertHasCause """The consumer was configured to find attribute 'buildType' with value 'debug', attribute 'flavor' with value 'free'. However we cannot choose between the following variants of project :b:
+        failure.assertHasCause """The consumer was configured to find attribute 'buildType' with value 'debug', attribute 'flavor' with value 'free'. However we cannot choose between the following variants of project ':b':
   - compile
   - debug
 All of them match the consumer attributes:
@@ -1436,7 +1436,7 @@ All of them match the consumer attributes:
         fails ':a:checkDebug'
 
         then:
-        failure.assertHasCause """The consumer was configured to find attribute 'buildType' with value 'debug', attribute 'flavor' with value 'free'. There are several available matching variants of project :c
+        failure.assertHasCause """The consumer was configured to find attribute 'buildType' with value 'debug', attribute 'flavor' with value 'free'. There are several available matching variants of project ':c'
 The only attribute distinguishing these variants is 'extra'. Add this attribute to the consumer's configuration to resolve the ambiguity:
   - Value: 'extra' selects variant: 'foo'
   - Value: 'extra 2' selects variant: 'foo2'"""
@@ -1445,7 +1445,7 @@ The only attribute distinguishing these variants is 'extra'. Add this attribute 
         fails ':a:checkRelease'
 
         then:
-        failure.assertHasCause """The consumer was configured to find attribute 'buildType' with value 'release', attribute 'flavor' with value 'free'. There are several available matching variants of project :c
+        failure.assertHasCause """The consumer was configured to find attribute 'buildType' with value 'release', attribute 'flavor' with value 'free'. There are several available matching variants of project ':c'
 The only attribute distinguishing these variants is 'extra'. Add this attribute to the consumer's configuration to resolve the ambiguity:
   - Value: 'extra' selects variant: 'bar'
   - Value: 'extra 2' selects variant: 'bar2'"""

@@ -19,9 +19,9 @@ package org.gradle.api.internal.project.ant
 import groovy.xml.MarkupBuilder
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 
-@Requires(value = IntegTestPreconditions.NotConfigCached, reason = "handles CC explicitly")
+@Requires(value = TestExecutionPreconditions.NotConfigCached, reason = "handles CC explicitly")
 class ConfigurationCacheAntIntegrationTest extends AbstractIntegrationSpec {
 
     File antBuildFile

@@ -24,8 +24,10 @@ dependencies {
     api(libs.inject)
     api(libs.jspecify)
 
+    implementation(projects.domainObjectCollections)
     implementation(projects.functional)
     implementation(projects.jvmServices)
+    implementation(projects.startParameter)
 
     implementation(libs.slf4jApi)
 

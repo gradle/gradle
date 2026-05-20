@@ -17,6 +17,7 @@
 package org.gradle.api.tasks.diagnostics.internal.insight;
 
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ComponentSelectionCause;
 import org.gradle.api.artifacts.result.ComponentSelectionDescriptor;
@@ -43,6 +44,7 @@ import org.gradle.internal.exceptions.MultiCauseException;
 import org.gradle.internal.exceptions.ResolutionProvider;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.util.internal.CollectionUtils;
+import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -77,7 +79,8 @@ public class DependencyInsightReporter {
         for (DependencyEdge dependency : sortedEdges) {
             //add description only to the first module
             if (annotated.add(dependency.getActual())) {
-                DependencyReportHeader header = createHeaderForDependency(dependency, alreadyReportedErrors);
+                Section failures = buildFailureSection(Iterables.filter(sortedEdges, x -> dependency.getActual().equals(x.getActual())), alreadyReportedErrors);
+                DependencyReportHeader header = createHeaderForDependency(dependency, failures);
                 out.add(header);
                 current = newRequestedVersion(out, dependency);
             } else if (!current.getRequested().equals(dependency.getRequested())) {
@@ -91,7 +94,7 @@ public class DependencyInsightReporter {
         return out;
     }
 
-    private DependencyReportHeader createHeaderForDependency(DependencyEdge dependency, Set<Throwable> alreadyReportedErrors) {
+    private DependencyReportHeader createHeaderForDependency(DependencyEdge dependency, @Nullable Section failures) {
         ComponentSelectionReasonInternal reason = (ComponentSelectionReasonInternal) dependency.getReason();
         Section selectionReasonsSection = buildSelectionReasonSection(reason);
         List<Section> reasonSections = selectionReasonsSection.getChildren();
@@ -106,8 +109,9 @@ public class DependencyInsightReporter {
         } else {
             reasonShortDescription = reasonSections.isEmpty() ? null : reasonSections.get(0).getDescription().toLowerCase(Locale.ROOT);
         }
-
-        buildFailureSection(dependency, alreadyReportedErrors, extraDetails);
+        if (failures != null) {
+            extraDetails.add(failures);
+        }
         return new DependencyReportHeader(dependency, reasonShortDescription, extraDetails);
     }
 
@@ -132,16 +136,28 @@ public class DependencyInsightReporter {
         }
     }
 
-    private static void buildFailureSection(DependencyEdge edge, Set<Throwable> alreadyReportedErrors, List<Section> sections) {
-        if (edge instanceof UnresolvedDependencyEdge) {
-            UnresolvedDependencyEdge unresolved = (UnresolvedDependencyEdge) edge;
-            Throwable failure = unresolved.getFailure();
-            DefaultSection failures = new DefaultSection("Failures");
-            LinkedHashSet<String> uniqueResolutions = new LinkedHashSet<>();
-            String errorMessage = collectErrorMessages(failure, alreadyReportedErrors, uniqueResolutions);
-            failures.addChild(new DefaultSection(errorMessage));
-            sections.add(failures);
+    private static @Nullable Section buildFailureSection(Iterable<DependencyEdge> edges, Set<Throwable> alreadyReportedErrors) {
+        List<Section> failureSections = new ArrayList<>();
+        for (DependencyEdge edge : edges) {
+            if (edge instanceof UnresolvedDependencyEdge unresolved) {
+                Throwable failure = unresolved.getFailure();
+                LinkedHashSet<String> uniqueResolutions = new LinkedHashSet<>();
+                String errorMessage = collectErrorMessages(failure, alreadyReportedErrors, uniqueResolutions);
+                if (!errorMessage.isEmpty()) {
+                    DefaultSection child = new DefaultSection(errorMessage);
+                    failureSections.add(child);
+                }
+            }
         }
+
+        if (!failureSections.isEmpty()) {
+            DefaultSection failures = new DefaultSection("Failures");
+            for (Section failureSection : failureSections) {
+                failures.addChild(failureSection);
+            }
+            return failures;
+        }
+        return null;
     }
 
     @SuppressWarnings("NonApiType") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)

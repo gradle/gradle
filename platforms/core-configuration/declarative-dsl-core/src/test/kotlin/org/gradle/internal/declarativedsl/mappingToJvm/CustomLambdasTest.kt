@@ -17,7 +17,7 @@
 package org.gradle.internal.declarativedsl.mappingToJvm
 
 import org.gradle.declarative.dsl.model.annotations.Adding
-import org.gradle.internal.declarativedsl.demo.reflection.reflect
+import org.gradle.internal.declarativedsl.demo.resolve
 import org.gradle.internal.declarativedsl.schemaBuilder.plus
 import org.gradle.internal.declarativedsl.schemaBuilder.schemaFromTypes
 import org.gradle.internal.declarativedsl.schemaBuilder.treatInterfaceAsConfigureLambda
@@ -57,13 +57,14 @@ class CustomLambdasTest {
 
     private
     fun applyToOuter(code: String): Outer {
-        val reflection = schema.reflect(code)
+        val resolution = schema.resolve(code)
+        val trace = propertyLinkTrace(resolution)
 
         val outer = Outer()
         val converter = DeclarativeReflectionToObjectConverter(
             emptyMap(), outer, DefaultRuntimeFunctionResolver(functionalLambdaHandler), ReflectionRuntimePropertyResolver, RuntimeCustomAccessors.none,
         ) { object {}.javaClass.classLoader }
-        converter.apply(reflection)
+        converter.applyConversion(trace.resolvedPropertyLinksResolutionResult)
 
         return outer
     }

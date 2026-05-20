@@ -60,6 +60,7 @@ import org.gradle.internal.component.external.model.ModuleComponentResolveMetada
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
 import org.gradle.internal.component.external.model.maven.MutableMavenModuleResolveMetadata;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.hash.ChecksumService;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.isolation.IsolatableFactory;
@@ -171,7 +172,13 @@ public abstract class DefaultMavenArtifactRepository extends AbstractAuthenticat
     }
 
     @Override
+    @Deprecated
     public Set<URI> getArtifactUrls() {
+        nagAboutArtifactUrlsDeprecation("getArtifactUrls()");
+        return getArtifactUrlsInternal();
+    }
+
+    private Set<URI> getArtifactUrlsInternal() {
         Set<URI> result = new LinkedHashSet<>();
         for (Object additionalUrl : additionalUrls) {
             result.add(fileResolver.resolveUri(additionalUrl));
@@ -180,21 +187,38 @@ public abstract class DefaultMavenArtifactRepository extends AbstractAuthenticat
     }
 
     @Override
+    @Deprecated
     public void artifactUrls(Object... urls) {
+        nagAboutArtifactUrlsDeprecation("artifactUrls(Object...)");
         invalidateDescriptor();
         additionalUrls.addAll(ImmutableList.copyOf(urls));
     }
 
     @Override
+    @Deprecated
     public void setArtifactUrls(Set<URI> urls) {
+        nagAboutArtifactUrlsDeprecation("setArtifactUrls(Set)");
         invalidateDescriptor();
-        setArtifactUrls((Iterable<?>) urls);
+        setArtifactUrlsInternal(urls);
     }
 
     @Override
+    @Deprecated
     public void setArtifactUrls(Iterable<?> urls) {
+        nagAboutArtifactUrlsDeprecation("setArtifactUrls(Iterable)");
         invalidateDescriptor();
+        setArtifactUrlsInternal(urls);
+    }
+
+    private void setArtifactUrlsInternal(Iterable<?> urls) {
         additionalUrls = Lists.newArrayList(urls);
+    }
+
+    private static void nagAboutArtifactUrlsDeprecation(String methodWithParams) {
+        DeprecationLogger.deprecateMethod(MavenArtifactRepository.class, methodWithParams)
+            .willBeRemovedInGradle10()
+            .withUpgradeGuideSection(9, "deprecated_maven_artifact_urls")
+            .nagUser();
     }
 
     @Override
@@ -204,7 +228,7 @@ public abstract class DefaultMavenArtifactRepository extends AbstractAuthenticat
             .setAuthenticated(usesCredentials())
             .setAuthenticationSchemes(getAuthenticationSchemes())
             .setMetadataSources(metadataSources.asList())
-            .setArtifactUrls(Sets.newHashSet(getArtifactUrls()))
+            .setArtifactUrls(Sets.newHashSet(getArtifactUrlsInternal()))
             .create();
     }
 
@@ -216,7 +240,7 @@ public abstract class DefaultMavenArtifactRepository extends AbstractAuthenticat
         if (root != null) {
             builder.add(root);
         }
-        builder.addAll(getArtifactUrls());
+        builder.addAll(getArtifactUrlsInternal());
         return builder.build();
     }
 

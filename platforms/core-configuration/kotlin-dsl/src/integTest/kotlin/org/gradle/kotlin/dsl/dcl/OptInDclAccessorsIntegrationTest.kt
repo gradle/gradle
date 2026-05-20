@@ -16,10 +16,13 @@
 
 package org.gradle.kotlin.dsl.dcl
 
+import org.gradle.api.provider.Property
 import org.gradle.features.annotations.BindsProjectType
 import org.gradle.features.annotations.RegistersProjectFeatures
 import org.gradle.features.binding.BuildModel
 import org.gradle.features.binding.Definition
+import org.gradle.features.binding.ProjectFeatureApplicationContext
+import org.gradle.features.binding.ProjectTypeApplyAction
 import org.gradle.features.binding.ProjectTypeBinding
 import org.gradle.features.binding.ProjectTypeBindingBuilder
 import org.gradle.kotlin.dsl.accessors.DCL_ENABLED_PROPERTY_NAME
@@ -170,7 +173,10 @@ class OptInDclAccessorsIntegrationTest : AbstractKotlinIntegrationTest() {
                 import ${ProjectTypeBindingBuilder::class.java.name}
                 import ${Definition::class.java.name}
                 import ${BuildModel::class.java.name}
+                import ${Property::class.java.name}
                 import org.gradle.features.dsl.bindProjectType
+                import ${ProjectTypeApplyAction::class.java.name}
+                import ${ProjectFeatureApplicationContext::class.java.name}
 
                 @RequiresOptIn("Some Experimental API", RequiresOptIn.Level.ERROR)
                 annotation class SomeExperimentalApi
@@ -181,8 +187,13 @@ class OptInDclAccessorsIntegrationTest : AbstractKotlinIntegrationTest() {
                 abstract class MyPlugin @Inject constructor(private val project: Project) : Plugin<Project> {
                     class Binding : ${ProjectTypeBinding::class.java.simpleName} {
                         override fun bind(builder: ${ProjectTypeBindingBuilder::class.java.simpleName}) {
-                            builder.bindProjectType("myProjectType") { definition: MyExtension, model -> }
+                            builder.bindProjectType("myProjectType", ApplyAction::class)
                         }
+                    }
+
+                    @OptIn(SomeExperimentalApi::class)
+                    abstract class ApplyAction @Inject constructor() : ${ProjectTypeApplyAction::class.java.simpleName}<MyExtension, Model> {
+                        override fun apply(context: ${ProjectFeatureApplicationContext::class.java.simpleName}, definition: MyExtension, buildModel: Model) { }
                     }
 
                     override fun apply(project: Project) = Unit
@@ -197,8 +208,8 @@ class OptInDclAccessorsIntegrationTest : AbstractKotlinIntegrationTest() {
                 interface Model : ${BuildModel::class.java.simpleName} { }
 
                 @SomeExperimentalApi
-                abstract class MyElement(val elementName: String) : Named {
-                    override fun getName() = elementName
+                interface MyElement : Named {
+                    val elementName: Property<String>
                 }
                 """.trimIndent()
         )

@@ -376,11 +376,11 @@ class CapabilitiesConflictResolutionIssuesIntegrationTest extends AbstractIntegr
                     configuration 'runtimeElements'
                     project(":shared", "test:shared:") {
                         artifact(classifier: 'one-preferred')
-                        byConflictResolution("Explicit selection of project :shared variant onePrefRuntimeElements")
+                        byConflictResolution("Explicit selection of project ':shared' variant onePrefRuntimeElements")
                     }
                     project(":shared", "test:shared:") {
                         artifact(classifier: 'two-preferred')
-                        byConflictResolution("Explicit selection of project :shared variant twoPrefRuntimeElements")
+                        byConflictResolution("Explicit selection of project ':shared' variant twoPrefRuntimeElements")
                     }
                 }
                 project(":shared", "test:shared:") {
@@ -442,7 +442,6 @@ class CapabilitiesConflictResolutionIssuesIntegrationTest extends AbstractIntegr
                 module("org.hibernate:hibernate-core:5.4.18.Final") {
                     module("org.dom4j:dom4j:2.1.3") {
                         byConflictResolution("latest version of capability org.dom4j:dom4j")
-                        byConflictResolution("between versions 2.1.3 and 1.6.1")
                     }
                 }
                 edge("jaxen:jaxen:1.1.1", "jaxen:jaxen:1.1.6") {
@@ -614,7 +613,6 @@ class CapabilitiesConflictResolutionIssuesIntegrationTest extends AbstractIntegr
                 module("org.hibernate:hibernate-core:5.4.18.Final") {
                     module("org.dom4j:dom4j:2.1.3") {
                         byConflictResolution("latest version of capability org.dom4j:dom4j")
-                        byConflictResolution("between versions 2.1.3 and 1.6.1")
                     }
                 }
                 edge("jaxen:jaxen:1.1.1", "jaxen:jaxen:1.1.6") {
@@ -984,12 +982,53 @@ class CapabilitiesConflictResolutionIssuesIntegrationTest extends AbstractIntegr
             root(":", ":test:") {
                 project(":producer", "test:producer:") {
                     variant('one-preferred', ['org.gradle.usage': 'foo'])
-                    byConflictResolution("Explicit selection of project :producer variant one-preferred")
+                    byConflictResolution("Explicit selection of project ':producer' variant one-preferred")
                     noArtifacts()
                 }
                 project(":producer", "test:producer:") {
                     variant('one-preferred', ['org.gradle.usage': 'foo'])
                     noArtifacts()
+                }
+            }
+        }
+    }
+
+    def "can have constraint on node failing conflict"() {
+        def foo = mavenRepo.module("org", "foo", "1.0").publish()
+        mavenRepo.module("org", "bar", "1.0")
+            .dependencyConstraint(foo)
+            .withModuleMetadata()
+            .publish()
+
+        given:
+        buildFile << """
+            $common
+
+            dependencies {
+                implementation("org:foo:1.0")
+                implementation("org:bar:1.0")
+            }
+        """
+
+        capability("org", "cap") {
+            forModule("org:foo")
+            forModule("org:bar")
+            selectModule("org", "bar")
+        }
+
+        when:
+        succeeds(':checkDeps')
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module("org:bar:1.0") {
+                    constraint("org:foo:1.0", "org:bar:1.0") {
+                        byConstraint()
+                    }
+                }
+                edge("org:foo:1.0", "org:bar:1.0") {
+                    byConflictResolution("Explicit selection of org:bar:1.0 variant runtime")
                 }
             }
         }

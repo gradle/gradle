@@ -22,7 +22,7 @@ import org.junit.Rule
 
 class SamplesJavaIncrementalAnnotationProcessingIntegrationTest extends AbstractIntegrationSpec {
 
-    @Rule public final Sample processing = new Sample(temporaryFolder, 'java/incrementalAnnotationProcessing')
+    @Rule public final Sample processing = new Sample(temporaryFolder, 'integration-tests/java/incrementalAnnotationProcessing')
 
     def "isolating annotation processors are incremental"() {
         given:

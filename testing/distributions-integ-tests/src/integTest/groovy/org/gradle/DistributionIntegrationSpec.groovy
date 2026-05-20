@@ -49,6 +49,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         "base-services-groovy",
         "build-cache",
         "build-cache-base",
+        "build-cache-core",
         "build-cache-local",
         "build-cache-packaging",
         "build-cache-spi",
@@ -56,7 +57,6 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         "build-discovery",
         "build-discovery-impl",
         "build-discovery-reporting",
-        "build-events",
         "build-init-specs",
         "build-init-specs-api",
         "build-operations",
@@ -65,6 +65,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         "build-process-services",
         "build-state",
         "classloaders",
+        "classpath",
         "cli",
         "client-services",
         "collections",
@@ -78,6 +79,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         "credentials-api",
         "daemon-logging",
         "daemon-main",
+        "daemon-messaging",
         "daemon-protocol",
         "daemon-server",
         "daemon-services",
@@ -86,6 +88,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         "declarative-dsl-evaluator",
         "declarative-dsl-provider",
         "declarative-dsl-tooling-models",
+        "domain-object-collections",
         "enterprise-logging",
         "enterprise-operations",
         "enterprise-workers",
@@ -100,6 +103,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         "gradle-cli-main",
         "groovy-loader",
         "hashing",
+        "hashing-services",
         "input-tracking",
         "installation-beacon",
         "instrumentation-agent-services",
@@ -116,6 +120,8 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         "model-groovy",
         "model-reflect",
         "native",
+        "normalization",
+        "normalization-api",
         "normalization-java",
         "persistent-cache",
         "problems",
@@ -124,6 +130,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         "process-memory-services",
         "process-services",
         "process-services-api",
+        "process-services-base",
         "project-features",
         "project-features-api",
         "report-rendering",
@@ -138,6 +145,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         "service-registry-builder",
         "service-registry-impl",
         "snapshots",
+        "start-parameter",
         "stdlib-java-extensions",
         "stdlib-kotlin-extensions",
         "time",
@@ -178,7 +186,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
      * Change this whenever you add or remove subprojects for distribution-packaged plugins (lib/plugins).
      */
     int getPackagedPluginsJarCount() {
-        94
+        95
     }
 
     /**

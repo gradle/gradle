@@ -20,7 +20,7 @@ import org.gradle.api.Task
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectState
-import org.gradle.api.problems.internal.InternalProblems
+import org.gradle.api.problems.internal.ProblemsInternal
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.util.Path
 
@@ -36,7 +36,7 @@ class DefaultTaskSelectorTest extends AbstractProjectBuilderSpec {
         }
 
         @Override
-        protected InternalProblems getProblemsService() {
+        protected ProblemsInternal getProblemsService() {
             throw new UnsupportedOperationException()
         }
     }

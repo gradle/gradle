@@ -18,6 +18,7 @@ package org.gradle.integtests.resolve
 
 import org.gradle.api.internal.artifacts.verification.DependencyVerificationFixture
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
+import spock.lang.Issue
 
 /**
  * Tests the behavior of {@link org.gradle.api.artifacts.ArtifactView} when it is configured to be lenient.
@@ -240,13 +241,70 @@ class LenientArtifactViewIntegrationTest extends AbstractHttpDependencyResolutio
         expect:
         module.pom.expectGet()
         module.artifact.expectGetMissing()
+        executer.expectDocumentedDeprecationWarning("The MavenArtifactRepository.artifactUrls(Object...) method has been deprecated. This is scheduled to be removed in Gradle 10. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_maven_artifact_urls")
         fails("resolve")
         failure.assertHasErrorOutput("does-not-exist.invalid") // Cannot check whole message, as it differs between OS
 
         and:
         module.artifact.expectGetMissing()
+        executer.expectDocumentedDeprecationWarning("The MavenArtifactRepository.artifactUrls(Object...) method has been deprecated. This is scheduled to be removed in Gradle 10. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_maven_artifact_urls")
         succeeds("resolveLenient")
         outputContains("[]")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/36284")
+    def "can read failure messages from lenient artifact view when failing module's reverse-dependency graph contains a cycle"() {
+        // Two transitive modules (modB and modD) directly depend on a missing module ("broken").
+        // The four cycle modules (modA -> modB -> modC -> modD -> modA) form a cycle in the
+        // resolved graph. With this layout, modB and modD are the directDependees of broken,
+        // and modD's only path back to root passes through modC -> modB -> modA, which the
+        // pre-fix DependencyGraphPathResolver could not compute correctly because modC was
+        // popped from the worklist before modB had been resolved.
+        def broken = mavenHttpRepo.module("org", "broken", "1.0")
+        def modA = mavenHttpRepo.module("org", "mod-a", "1.0")
+            .dependsOn("org", "mod-b", "1.0")
+            .publish()
+        def modB = mavenHttpRepo.module("org", "mod-b", "1.0")
+            .dependsOn("org", "mod-c", "1.0")
+            .dependsOn("org", "broken", "1.0")
+            .publish()
+        def modC = mavenHttpRepo.module("org", "mod-c", "1.0")
+            .dependsOn("org", "mod-d", "1.0")
+            .publish()
+        def modD = mavenHttpRepo.module("org", "mod-d", "1.0")
+            .dependsOn("org", "mod-a", "1.0")
+            .dependsOn("org", "broken", "1.0")
+            .publish()
+
+        withRepo()
+        buildFile """
+            dependencies {
+                deps("org:mod-a:1.0")
+            }
+            tasks.register("printFailures") {
+                def failures = configurations.res.incoming.artifactView {
+                    lenient = true
+                }.artifacts.failures
+                doLast {
+                    failures.each { println(it.message) }
+                }
+            }
+        """
+
+        when:
+        modA.pom.expectGet()
+        modB.pom.expectGet()
+        modC.pom.expectGet()
+        modD.pom.expectGet()
+        broken.pom.expectGetMissing()
+        modA.artifact.expectGet()
+        modB.artifact.expectGet()
+        modC.artifact.expectGet()
+        modD.artifact.expectGet()
+        succeeds("printFailures")
+
+        then:
+        outputContains("Could not find org:broken:1.0.")
     }
 
     private void withRepo() {

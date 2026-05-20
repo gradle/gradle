@@ -17,7 +17,7 @@
 package org.gradle.internal.cc.impl.problems
 
 import org.gradle.internal.Describables
-import org.gradle.internal.code.DefaultUserCodeSource
+import org.gradle.internal.code.UserCodeSource
 import org.gradle.internal.configuration.problems.PropertyProblem
 import org.gradle.internal.configuration.problems.PropertyTrace
 import org.gradle.internal.configuration.problems.StructuredMessage
@@ -26,10 +26,10 @@ import org.gradle.problems.Location
 import org.gradle.util.internal.ToBeImplemented
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.equalTo
-import org.junit.Assert.assertFalse
-import org.junit.Assert.assertTrue
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotEquals
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.io.File
 
@@ -437,7 +437,7 @@ See the complete report at $REPORT_URL
 
     private
     fun buildLogicUserCodeSourceTrace(displayName: String): PropertyTrace.BuildLogic =
-        PropertyTrace.BuildLogic(DefaultUserCodeSource(Describables.of(displayName), null))
+        PropertyTrace.BuildLogic(UserCodeSource.Script(Describables.of(displayName), null))
 
     private
     fun buildLogicLocationTrace(displayName: String, lineNumber: Int): PropertyTrace.BuildLogic =

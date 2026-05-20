@@ -32,7 +32,7 @@ class EclipseModelWithFlatRepoCrossVersionSpec extends ToolingApiSpecification i
 apply plugin: "java"
 
 repositories {
-	flatDir dirs: file("${repoDir.toURI()}")
+	flatDir { dirs file("${repoDir.toURI()}") }
 }
 
 dependencies {

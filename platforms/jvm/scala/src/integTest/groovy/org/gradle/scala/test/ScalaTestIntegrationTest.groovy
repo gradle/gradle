@@ -16,23 +16,18 @@
 package org.gradle.scala.test
 
 import org.gradle.api.internal.tasks.testing.report.VerifiesGenericTestReportResults
-import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult.TestFramework
 import org.gradle.api.tasks.testing.TestResult
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.JdkVersionTestPreconditions
+
 import org.junit.Rule
 
 class ScalaTestIntegrationTest extends AbstractIntegrationSpec implements VerifiesGenericTestReportResults {
     @Rule TestResources resources = new TestResources(temporaryFolder)
 
-    @Override
-    TestFramework getTestFramework() {
-        return TestFramework.SCALA_TEST
-    }
-
-    @Requires(value = UnitTestPreconditions.Jdk23OrEarlier, reason = "2.11.12 is required for ScalaTest 2.x, which is not compatible with running on JDK 24.")
+    @Requires(value = JdkVersionTestPreconditions.Jdk23OrEarlier, reason = "2.11.12 is required for ScalaTest 2.x, which is not compatible with running on JDK 24.")
     def executesTestsWithMultiLineDescriptions() {
         file("build.gradle") << """
 apply plugin: 'scala'

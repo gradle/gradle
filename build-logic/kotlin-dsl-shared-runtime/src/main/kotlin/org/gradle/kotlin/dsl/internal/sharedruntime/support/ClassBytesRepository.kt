@@ -71,13 +71,11 @@ class ClassBytesRepository(
 
     private
     fun classBytesSupplierForSourceName(sourceName: String): ClassBytesSupplier? =
-        classFilePathCandidatesFor(sourceName)
-            .mapNotNull(::classBytesSupplierForFilePath)
-            .firstOrNull()
+        classFilePathCandidatesFor(sourceName).firstNotNullOfOrNull(::classBytesSupplierForFilePath)
 
     private
     fun classBytesSupplierForFilePath(classFilePath: String): ClassBytesSupplier? =
-        classBytesIndex.asSequence().mapNotNull { it(classFilePath) }.firstOrNull()
+        classBytesIndex.firstNotNullOfOrNull { it(classFilePath) }
 
     private
     fun sourceNamesFrom(entry: File): Sequence<String> =

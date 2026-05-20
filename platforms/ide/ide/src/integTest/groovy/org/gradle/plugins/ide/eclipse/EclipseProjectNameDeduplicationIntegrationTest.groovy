@@ -34,4 +34,14 @@ class EclipseProjectNameDeduplicationIntegrationTest extends AbstractIdeDeduplic
     protected String getConfiguredModule() {
         return "eclipse.project"
     }
+
+    @Override
+    protected String[] getDeprecatedTaskNames() {
+        return ["eclipse", "eclipseClasspath", "eclipseJdt", "eclipseProject"]
+    }
+
+    @Override
+    protected String[] getDeprecatedCleanTaskNames() {
+        return ["cleanEclipse", "cleanEclipseClasspath", "cleanEclipseJdt", "cleanEclipseProject"]
+    }
 }

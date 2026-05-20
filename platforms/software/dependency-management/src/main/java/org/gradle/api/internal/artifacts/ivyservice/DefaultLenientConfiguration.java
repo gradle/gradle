@@ -19,22 +19,25 @@ import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.ResolvedDependency;
 import org.gradle.api.artifacts.UnresolvedDependency;
-import org.gradle.internal.component.model.VariantIdentifier;
+import org.gradle.api.internal.artifacts.DefaultResolvedDependency;
 import org.gradle.api.internal.artifacts.configurations.ResolutionHost;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSelectionSpec;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.LocalDependencyFiles;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSetResolver;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.SelectedArtifactResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results.VisitedGraphResults;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.TransientConfigurationResults;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.GraphStructure;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionStructureVisitor;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
+import org.gradle.internal.component.model.VariantIdentifier;
+import org.gradle.internal.operations.BuildOperationExecutor;
 import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -44,34 +47,38 @@ import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
-import java.util.function.Function;
+import java.util.function.Supplier;
 
 public class DefaultLenientConfiguration implements LenientConfigurationInternal {
 
     private final ResolutionHost resolutionHost;
     private final VisitedGraphResults graphResults;
     private final VisitedArtifactSet artifactResults;
-    private final Function<SelectedArtifactResults, TransientConfigurationResults> legacyArtifactResultsLoader;
+    private final Supplier<GraphStructure> graphStructureSupplier;
     private final ResolvedArtifactSetResolver artifactSetResolver;
     private final ArtifactSelectionSpec implicitSelectionSpec;
+    private final BuildOperationExecutor buildOperationExecutor;
 
     // Selected for the configuration
     private @Nullable SelectedArtifactResults artifactsForThisConfiguration;
+    private @Nullable DefaultResolvedDependency root;
 
     public DefaultLenientConfiguration(
         ResolutionHost resolutionHost,
         VisitedGraphResults graphResults,
         VisitedArtifactSet artifactResults,
-        Function<SelectedArtifactResults, TransientConfigurationResults> legacyArtifactResultsLoader,
+        Supplier<GraphStructure> graphStructureSupplier,
         ResolvedArtifactSetResolver artifactSetResolver,
-        ArtifactSelectionSpec implicitSelectionSpec
+        ArtifactSelectionSpec implicitSelectionSpec,
+        BuildOperationExecutor buildOperationExecutor
     ) {
         this.resolutionHost = resolutionHost;
         this.graphResults = graphResults;
         this.artifactResults = artifactResults;
-        this.legacyArtifactResultsLoader = legacyArtifactResultsLoader;
+        this.graphStructureSupplier = graphStructureSupplier;
         this.artifactSetResolver = artifactSetResolver;
         this.implicitSelectionSpec = implicitSelectionSpec;
+        this.buildOperationExecutor = buildOperationExecutor;
     }
 
     private SelectedArtifactResults getSelectedArtifacts() {
@@ -91,19 +98,56 @@ public class DefaultLenientConfiguration implements LenientConfigurationInternal
         return graphResults.getUnresolvedDependencies();
     }
 
-    private TransientConfigurationResults loadTransientGraphResults() {
-        return legacyArtifactResultsLoader.apply(getSelectedArtifacts());
+    private DefaultResolvedDependency getRoot() {
+        if (root == null) {
+            GraphStructure structure = graphStructureSupplier.get();
+            GraphStructure.Nodes nodes = structure.nodes();
+            GraphStructure.Components components = structure.components();
+            GraphStructure.Edges edges = structure.edges();
+            SelectedArtifactResults artifactsByNodeId = getSelectedArtifacts();
+
+            List<DefaultResolvedDependency> allNodes = new ArrayList<>(nodes.count());
+            for (int i = 0; i < nodes.count(); i++) {
+                int owner = nodes.owner(i);
+                ResolvedArtifactSet artifacts = artifactsByNodeId.getArtifactsWithId(i);
+                DefaultResolvedDependency node = new DefaultResolvedDependency(
+                    nodes.variantName(i),
+                    components.moduleVersionId(owner),
+                    buildOperationExecutor,
+                    resolutionHost
+                );
+                node.addModuleArtifacts(artifacts);
+                allNodes.add(node);
+            }
+
+            for (int i = 0; i < nodes.count(); i++) {
+                DefaultResolvedDependency parent = allNodes.get(i);
+                for (int e = edges.start(i); e < edges.end(i); e++) {
+                    if (!edges.constraint(e)) {
+                        int target = edges.targetNode(e);
+                        if (target != -1) {
+                            // Resolved/LenientConfiguration only expose
+                            // successful, non-constraint edges.
+                            parent.addChild(allNodes.get(target));
+                        }
+                    }
+                }
+            }
+
+            root = allNodes.get(nodes.root());
+        }
+        return root;
     }
 
     @Override
     public ImmutableSet<ResolvedDependency> getFirstLevelModuleDependencies() {
-        return loadTransientGraphResults().getFirstLevelDependencies();
+        return getRoot().getChildren();
     }
 
     @Override
     public Set<ResolvedDependency> getAllModuleDependencies() {
         Set<ResolvedDependency> resolvedElements = new LinkedHashSet<>();
-        Deque<ResolvedDependency> workQueue = new LinkedList<>(loadTransientGraphResults().getRootNode().getChildren());
+        Deque<ResolvedDependency> workQueue = new LinkedList<>(getRoot().getChildren());
         while (!workQueue.isEmpty()) {
             ResolvedDependency item = workQueue.removeFirst();
             if (resolvedElements.add(item)) {

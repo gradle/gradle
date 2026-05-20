@@ -16,9 +16,11 @@
 
 package org.gradle.api.plugins
 
+import org.gradle.api.problems.LineInFileLocation
+import org.gradle.api.problems.Severity
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import spock.lang.Issue
 
 class BuildSrcPluginIntegrationTest extends AbstractIntegrationSpec {
@@ -92,7 +94,7 @@ class BuildSrcPluginIntegrationTest extends AbstractIntegrationSpec {
         output.contains "hello again"
     }
 
-    @Requires(IntegTestPreconditions.NotEmbeddedExecutor) // In embedded testing mode, the visibility constraints are not enforced
+    @Requires(TestExecutionPreconditions.NotEmbeddedExecutor) // In embedded testing mode, the visibility constraints are not enforced
     def "build src plugin cannot access Gradle implementation dependencies"() {
         when:
         file("buildSrc/src/main/groovy/pkg/BuildSrcPlugin.groovy") << """
@@ -109,6 +111,9 @@ class BuildSrcPluginIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "use of buildSrc does not expose Gradle runtime dependencies to build script"() {
+        given:
+        enableProblemsApiCheck()
+
         when:
         file("buildSrc/src/main/groovy/pkg/BuildSrcPlugin.groovy") << """
             package pkg
@@ -123,7 +128,14 @@ class BuildSrcPluginIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         fails "t"
-        failure.assertHasDescription("Could not compile build file '$buildFile.canonicalPath'.")
+        failureDescriptionContains("Could not compile build file '$buildFile.canonicalPath'.")
+        verifyAll(receivedProblem(0)) {
+            severity == Severity.ERROR
+            fqid == 'compilation:groovy-dsl:compilation-failed'
+            definition.id.displayName == 'Groovy DSL script compilation problem'
+            contextualLabel == "Could not compile build file '$buildFile.canonicalPath'."
+            oneLocation(LineInFileLocation).path == buildFile.canonicalPath
+        }
     }
 
     def "build uses jar from buildSrc"() {

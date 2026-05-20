@@ -20,7 +20,7 @@ import org.gradle.integtests.fixtures.executer.NoDaemonGradleExecuter
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.internal.jvm.Jvm
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 
 class DaemonReuseCrossVersionSpec extends ToolingApiSpecification {
 
@@ -38,7 +38,7 @@ class DaemonReuseCrossVersionSpec extends ToolingApiSpecification {
         assertSameDaemon(original)
     }
 
-    @Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "requires a daemon")
+    @Requires(value = TestExecutionPreconditions.NotEmbeddedExecutor, reason = "requires a daemon")
     def "tooling API client reuses existing daemon started by CLI"() {
         runBuildViaCLI()
         def original = getDaemonUID()
@@ -48,7 +48,7 @@ class DaemonReuseCrossVersionSpec extends ToolingApiSpecification {
         assertSameDaemon(original)
     }
 
-    @Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = "requires a daemon")
+    @Requires(value = TestExecutionPreconditions.NotEmbeddedExecutor, reason = "requires a daemon")
     def "CLI reuses existing daemon started by TAPI"() {
         runBuildViaTAPI()
         def original = getDaemonUID()

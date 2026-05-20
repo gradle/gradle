@@ -29,7 +29,7 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.gradle.internal.classpath.transforms.CommonTypes.OBJECT_TYPE;
+import static org.gradle.internal.classpath.types.CommonTypes.OBJECT_TYPE;
 
 
 /**

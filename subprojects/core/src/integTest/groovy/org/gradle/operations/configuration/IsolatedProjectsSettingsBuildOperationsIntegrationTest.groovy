@@ -21,10 +21,10 @@ import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.configurationcache.options.ConfigurationCacheSettingsFinalizedProgressDetails
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 
 @Requires(
-    value = IntegTestPreconditions.NotIsolatedProjects,
+    value = TestExecutionPreconditions.NotIsolatedProjects,
     reason = "Test controls IP enablement"
 )
 class IsolatedProjectsSettingsBuildOperationsIntegrationTest extends AbstractIntegrationSpec {

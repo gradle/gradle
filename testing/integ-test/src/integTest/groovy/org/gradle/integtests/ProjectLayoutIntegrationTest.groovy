@@ -15,7 +15,7 @@
  */
 package org.gradle.integtests
 
-import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
+
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.ScalaCoverage
@@ -193,7 +193,7 @@ sourceSets.main.java {
 
         file('build').assertDoesNotExist()
 
-        def results = new DefaultTestExecutionResult(file(), 'target', '', '', 'test', GenericTestExecutionResult.TestFramework.SPOCK)
+        def results = new DefaultTestExecutionResult(file(), 'target', '', '', 'test')
         results.assertTestClassesExecuted('PersonTest')
         results.testClass('PersonTest').assertTestsExecuted('ok')
     }

@@ -38,6 +38,7 @@ dependencies {
     api(projects.serviceLookup)
     api(projects.serviceProvider)
     api(projects.snapshots)
+    api(projects.startParameter)
     api(projects.stdlibJavaExtensions)
 
     api(libs.groovy)
@@ -45,10 +46,11 @@ dependencies {
     api(libs.kotlinStdlib)
 
     // TODO - it might be good to allow projects to contribute state to save and restore, rather than have this project know about everything
+    implementation(projects.buildCacheCore)
     implementation(projects.buildDiscovery)
     implementation(projects.buildDiscoveryImpl)
-    implementation(projects.buildEvents)
     implementation(projects.buildProcessServices)
+    implementation(projects.classpath)
     implementation(projects.classloaders)
     implementation(projects.coreFlowServicesApi)
     implementation(projects.coreKotlinExtensions)
@@ -68,6 +70,7 @@ dependencies {
     implementation(projects.logging)
     implementation(projects.messaging)
     implementation(projects.modelCore)
+    implementation(projects.normalization)
     implementation(projects.persistentCache)
     implementation(projects.problemsApi)
     implementation(projects.scopedPersistentCache)
@@ -117,6 +120,7 @@ dependencies {
     integTestImplementation(testLibs.playwright)
 
     integTestImplementation(testFixtures(projects.toolingApi))
+    integTestImplementation(testFixtures(projects.kotlinDslToolingBuilders))
     integTestImplementation(testFixtures(projects.dependencyManagement))
     integTestImplementation(testFixtures(projects.jacoco))
     integTestImplementation(testFixtures(projects.modelReflect))

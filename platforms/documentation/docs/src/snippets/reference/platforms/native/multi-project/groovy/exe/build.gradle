@@ -1,0 +1,15 @@
+plugins {
+    id 'cpp'
+}
+
+model {
+    components {
+        main(NativeExecutableSpec) {
+            sources {
+                cpp {
+                    lib project: ':lib', library: 'main'
+                }
+            }
+        }
+    }
+}

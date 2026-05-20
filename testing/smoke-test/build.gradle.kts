@@ -4,6 +4,7 @@ import gradlebuild.basics.buildCommitId
 import gradlebuild.basics.flakyTestStrategy
 import gradlebuild.integrationtests.addDependenciesAndConfigurations
 import gradlebuild.integrationtests.androidhomewarmup.SdkVersion
+import gradlebuild.integrationtests.configureTestSourceSetInIde
 import gradlebuild.integrationtests.tasks.SmokeTest
 import gradlebuild.performance.generator.tasks.RemoteProject
 
@@ -17,6 +18,8 @@ val smokeTestSourceSet = sourceSets.create("smokeTest") {
     runtimeClasspath += sourceSets.main.get().output
 }
 
+configureTestSourceSetInIde(smokeTestSourceSet)
+
 jvmCompile {
     addCompilationFrom(smokeTestSourceSet)
 }
@@ -29,10 +32,10 @@ dependencyAnalysis {
 
 addDependenciesAndConfigurations("smoke")
 
-val smokeTestImplementation: Configuration by configurations
-val smokeTestDistributionRuntimeOnly: Configuration by configurations
-val smokeTestBinDistribution: Configuration by configurations
-val smokeTestSrcDistribution: Configuration by configurations
+val smokeTestImplementation = configurations.getByName("smokeTestImplementation")
+val smokeTestDistributionRuntimeOnly = configurations.getByName("smokeTestDistributionRuntimeOnly")
+val smokeTestBinDistribution = configurations.getByName("smokeTestBinDistribution")
+val smokeTestSrcDistribution = configurations.getByName("smokeTestSrcDistribution")
 
 dependencies {
     testFixturesImplementation(projects.internalIntegTesting)
@@ -60,6 +63,8 @@ dependencies {
     smokeTestImplementation(testFixtures(projects.modelReflect))
     smokeTestImplementation(testFixtures(projects.pluginDevelopment))
     smokeTestImplementation(testFixtures(projects.testingBase))
+    smokeTestImplementation(testFixtures(projects.kotlinDslToolingBuilders))
+    smokeTestImplementation(testFixtures(projects.toolingApi))
     smokeTestImplementation(testFixtures(projects.versionControl))
 
     smokeTestDistributionRuntimeOnly(projects.distributionsFull)
@@ -72,11 +77,7 @@ androidHomeWarmup {
     rootProjectDir = project.layout.projectDirectory.dir("../..")
     sdkVersions.set(
         listOf(
-            // Build-tools 35.0.0 (used by AGP < 9.0)
-            SdkVersion(compileSdk = 36, buildTools = "35.0.0", agpVersion = "8.13.1"),
-
-            // Build-tools 36.0.0 (used by AGP >= 9.0)
-            SdkVersion(compileSdk = 36, buildTools = "36.0.0", agpVersion = "9.0.0-beta02"),
+            SdkVersion(compileSdk = 36, buildTools = "36.0.0", agpVersion = "9.0.1"),
         ),
     )
 }
@@ -90,11 +91,11 @@ tasks {
      * Note that you can change it to `file:///path/to/your/nowinandroid-clone/.git#<commitId>`
      * if you need to iterate quickly on changes to it.
      */
-    val androidProject by registering(RemoteProject::class) {
+    val androidProject = register<RemoteProject>("androidProject") {
         setRemoteUriAndRefFromGradleProperty("androidSmokeTestProjectRef")
     }
 
-    val gradleBuildCurrent by registering(RemoteProject::class) {
+    val gradleBuildCurrent = register<RemoteProject>("gradleBuildCurrent") {
         remoteUri = rootDir.absolutePath
         ref = buildCommitId
     }
@@ -154,6 +155,16 @@ tasks {
         description = "Runs Smoke tests with the configuration cache"
         systemProperty("org.gradle.integtest.executer", "configCache")
         configureForSmokeTest(excludes = listOf(gradleBuildTestPattern, androidProjectTestPattern))
+
+        dependsOn("androidHomeWarmup")
+    }
+
+    register<SmokeTest>("isolatedProjectsSmokeTest") {
+        description = "Runs Smoke tests with Isolated Projects"
+        systemProperty("org.gradle.integtest.executer", "isolatedProjects")
+        configureForSmokeTest(excludes = listOf(gradleBuildTestPattern, androidProjectTestPattern))
+
+        dependsOn("androidHomeWarmup")
     }
 
     register<SmokeTest>("gradleBuildSmokeTest") {
@@ -187,16 +198,15 @@ tasks {
 
         dependsOn("androidHomeWarmup")
     }
-}
 
-plugins.withType<IdeaPlugin>().configureEach {
-    val smokeTestCompileClasspath: Configuration by configurations
-    val smokeTestRuntimeClasspath: Configuration by configurations
-    model.module {
-        testSources.from(smokeTestSourceSet.java.srcDirs, smokeTestSourceSet.groovy.srcDirs)
-        testResources.from(smokeTestSourceSet.resources.srcDirs)
-        scopes["TEST"]!!["plus"]!!.add(smokeTestCompileClasspath)
-        scopes["TEST"]!!["plus"]!!.add(smokeTestRuntimeClasspath)
+    register<SmokeTest>("isolatedProjectsAndroidProjectSmokeTest") {
+        description = "Runs Android project Smoke tests with IsolatedProjects"
+        configureForSmokeTest(androidProject, includes = listOf(androidProjectTestPattern))
+        maxParallelForks = 1 // those tests are pretty expensive, we shouldn't execute them concurrently
+        jvmArgs("-Xmx700m")
+        systemProperty("org.gradle.integtest.executer", "isolatedProjects")
+
+        dependsOn("androidHomeWarmup")
     }
 }
 

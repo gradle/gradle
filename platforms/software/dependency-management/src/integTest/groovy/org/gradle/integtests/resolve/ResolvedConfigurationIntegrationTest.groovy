@@ -78,8 +78,6 @@ class ResolvedConfigurationIntegrationTest extends AbstractHttpDependencyResolut
         m4.allowAll()
 
         expect:
-        //TODO: fix dependency resolution results usage in this test and remove this flag
-        executer.withBuildJvmOpts("-Dorg.gradle.internal.configuration-cache.task-execution-access-pre-stable=true")
 
         fails "validate"
         outputContains("evaluating:") // ensure the failure happens when querying the resolved configuration
@@ -139,8 +137,6 @@ class ResolvedConfigurationIntegrationTest extends AbstractHttpDependencyResolut
         m4.allowAll()
 
         expect:
-        //TODO: fix dependency resolution results usage in this test and remove this flag
-        executer.withBuildJvmOpts("-Dorg.gradle.internal.configuration-cache.task-execution-access-pre-stable=true")
 
         fails "validate"
         outputContains("evaluating:") // ensure the failure happens when querying the resolved configuration
@@ -206,8 +202,6 @@ class ResolvedConfigurationIntegrationTest extends AbstractHttpDependencyResolut
         m4.allowAll()
 
         expect:
-        //TODO: fix dependency resolution results usage in this test and remove this flag
-        executer.withBuildJvmOpts("-Dorg.gradle.internal.configuration-cache.task-execution-access-pre-stable=true")
         succeeds "validate"
     }
 
@@ -250,7 +244,7 @@ class ResolvedConfigurationIntegrationTest extends AbstractHttpDependencyResolut
                     def resolved = compile.firstLevelModuleDependencies
 
                     assert resolved.size() == 4
-                    assert resolved.collect { it.moduleName } == ['a', 'd', 'e', 'b']
+                    assert resolved.collect { it.moduleName } == ['a', 'b', 'd', 'e']
 
                     def artifacts = compile.artifacts.collect { it.file.name }
 
@@ -278,8 +272,6 @@ class ResolvedConfigurationIntegrationTest extends AbstractHttpDependencyResolut
         f1.allowAll()
 
         expect:
-        //TODO: fix dependency resolution results usage in this test and remove this flag
-        executer.withBuildJvmOpts("-Dorg.gradle.internal.configuration-cache.task-execution-access-pre-stable=true")
         succeeds "validate"
     }
 
@@ -339,8 +331,6 @@ class ResolvedConfigurationIntegrationTest extends AbstractHttpDependencyResolut
         m4.artifact.expectGetUnauthorized()
 
         expect:
-        //TODO: fix dependency resolution results usage in this test and remove this flag
-        executer.withBuildJvmOpts("-Dorg.gradle.internal.configuration-cache.task-execution-access-pre-stable=true")
         succeeds "validate"
     }
 
@@ -389,8 +379,6 @@ class ResolvedConfigurationIntegrationTest extends AbstractHttpDependencyResolut
         m2.allowAll()
 
         expect:
-        //TODO: fix dependency resolution results usage in this test and remove this flag
-        executer.withBuildJvmOpts("-Dorg.gradle.internal.configuration-cache.task-execution-access-pre-stable=true")
         succeeds "validate"
     }
 
@@ -418,7 +406,7 @@ class ResolvedConfigurationIntegrationTest extends AbstractHttpDependencyResolut
 
                     def resolved = compile.firstLevelModuleDependencies
 
-                    assert resolved.collect { "\${it.moduleName}:\${it.moduleVersion}" } == ['bar:1', 'foo:2']
+                    assert resolved.collect { "\${it.moduleName}:\${it.moduleVersion}" } == ['foo:2', 'bar:1']
 
                     def artifacts = compile.artifacts
 
@@ -435,8 +423,6 @@ class ResolvedConfigurationIntegrationTest extends AbstractHttpDependencyResolut
         bar1.allowAll()
 
         expect:
-        //TODO: fix dependency resolution results usage in this test and remove this flag
-        executer.withBuildJvmOpts("-Dorg.gradle.internal.configuration-cache.task-execution-access-pre-stable=true")
         succeeds "validate"
     }
 

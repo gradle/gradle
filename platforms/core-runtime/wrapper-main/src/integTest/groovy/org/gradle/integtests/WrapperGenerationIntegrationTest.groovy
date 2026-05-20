@@ -24,7 +24,7 @@ import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.archive.ZipTestFixture
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import org.gradle.util.internal.TextUtil
 import org.junit.Rule
 import spock.lang.Issue
@@ -51,6 +51,21 @@ class WrapperGenerationIntegrationTest extends AbstractIntegrationSpec {
         file("gradlew").text.split(TextUtil.unixLineSeparator).length > 1
         file("gradlew").text.split(TextUtil.windowsLineSeparator).length == 1
         file("gradlew.bat").text.split(TextUtil.windowsLineSeparator).length > 1
+    }
+
+    @Issue('https://github.com/gradle/gradle/issues/35905')
+    def "generated wrapper script contains correct application name"() {
+        buildFile << """
+            wrapper {
+                distributionUrl = 'http://localhost:8080/gradlew/dist'
+            }
+        """
+
+        when:
+        run "wrapper", "--no-validate-url"
+
+        then:
+        file("gradlew").text.contains("ksh gradlew")
     }
 
     def "wrapper jar is small"() {
@@ -211,7 +226,7 @@ class WrapperGenerationIntegrationTest extends AbstractIntegrationSpec {
     @Rule
     HttpServer httpServer = new HttpServer()
 
-    @Requires(IntegTestPreconditions.NotEmbeddedExecutor)
+    @Requires(TestExecutionPreconditions.NotEmbeddedExecutor)
     def "wrapper task fails if http distribution url from command-line is invalid"() {
         given:
         def path = "/distributions/8.0-RC-5"
@@ -243,7 +258,7 @@ class WrapperGenerationIntegrationTest extends AbstractIntegrationSpec {
         succeeds()
     }
 
-    @Requires(IntegTestPreconditions.NotEmbeddedExecutor)
+    @Requires(TestExecutionPreconditions.NotEmbeddedExecutor)
     def "wrapper task fails if file distribution url from command-line is invalid"() {
         given:
         def target = file("/distributions/8.0-rc-5")

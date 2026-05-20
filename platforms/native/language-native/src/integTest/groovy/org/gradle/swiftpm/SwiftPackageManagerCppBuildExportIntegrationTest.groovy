@@ -78,12 +78,16 @@ let package = Package(
             subprojects {
                 apply plugin: 'cpp-library'
             }
-            dependencies {
-                implementation project(':lib1')
+            application {
+                dependencies {
+                    implementation project(':lib1')
+                }
             }
             project(':lib1') {
-                dependencies {
-                    implementation project(':lib2')
+                library {
+                    dependencies {
+                        implementation project(':lib2')
+                    }
                 }
             }
 """
@@ -205,8 +209,10 @@ let package = Package(
             subprojects {
                 apply plugin: 'cpp-library'
             }
-            dependencies {
-                implementation project(':lib1')
+            application {
+                dependencies {
+                    implementation project(':lib1')
+                }
             }
             project(':lib1') {
                 library {

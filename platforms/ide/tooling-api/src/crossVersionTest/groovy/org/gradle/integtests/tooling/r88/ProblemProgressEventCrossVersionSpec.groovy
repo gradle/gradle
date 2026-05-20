@@ -212,7 +212,6 @@ class ProblemProgressEventCrossVersionSpec extends ToolingApiSpecification {
             for(int i = 0; i < 10; i++) {
                 problems.${ProblemsApiGroovyScriptUtils.report(targetVersion, name, displayName)} {
                     it.${ProblemsApiGroovyScriptUtils.id(targetVersion, name, displayName)}
-                        .severity(Severity.WARNING)
                         .solution("Please use 'standard-plugin-2' instead of this plugin")
                     }
             }

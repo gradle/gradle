@@ -20,7 +20,8 @@ import org.gradle.api.JavaVersion
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl
 import org.gradle.internal.jvm.Jvm
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.test.preconditions.JdkVersionTestPreconditions
+
 
 /**
  * MavenConversionIntegrationTest tests that use a dynamically-generated POM to ensure cross-version compatibility.
@@ -119,7 +120,7 @@ abstract class MavenConversionDynamicPomIntegrationTest extends AbstractInitInte
         failure.assertHasCause("There were failing tests.")
     }
 
-    @Requires(UnitTestPreconditions.Jdk9OrLater)
+    @Requires(JdkVersionTestPreconditions.Jdk9OrLater)
     def "singleModule with just source"() {
         def source = Jvm.current().javaVersion
         writePom(source, null)
@@ -154,7 +155,7 @@ abstract class MavenConversionDynamicPomIntegrationTest extends AbstractInitInte
         }
     }
 
-    @Requires(UnitTestPreconditions.Jdk9OrLater)
+    @Requires(JdkVersionTestPreconditions.Jdk9OrLater)
     def "singleModule with just target"() {
         def target = Jvm.current().javaVersion
         writePom(null, target)

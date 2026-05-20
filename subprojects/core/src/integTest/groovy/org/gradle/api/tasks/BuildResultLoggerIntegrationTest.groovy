@@ -23,7 +23,7 @@ import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 
 class BuildResultLoggerIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture, ValidationMessageChecker {
     def setup() {
@@ -96,7 +96,7 @@ class BuildResultLoggerIntegrationTest extends AbstractIntegrationSpec implement
         result.assertHasPostBuildOutput "1 actionable task: 1 executed"
     }
 
-    @ToBeFixedForConfigurationCache(because = "CC doesn't save/load excluded tasks, causing noActions task to appear skipped")
+    @ToBeFixedForConfigurationCache(because = "CC doesn't save/load excluded tasks, causing noActions task to appear skipped, https://github.com/gradle/gradle/issues/37241")
     def "skipped tasks are not counted"() {
         given:
         executer.withArguments "-x", "executedTask"
@@ -110,7 +110,7 @@ class BuildResultLoggerIntegrationTest extends AbstractIntegrationSpec implement
         result.assertNotOutput("actionable tasks")
     }
 
-    @ToBeFixedForConfigurationCache(because = "buildSrc tasks are not executed when loaded from cache")
+    @ToBeFixedForConfigurationCache(because = "buildSrc tasks are not executed when loaded from cache, https://github.com/gradle/gradle/issues/37241")
     def "reports tasks from buildSrc"() {
         file("buildSrc/src/main/java/Thing.java") << """
             public class Thing {
@@ -154,7 +154,7 @@ class BuildResultLoggerIntegrationTest extends AbstractIntegrationSpec implement
         result.assertHasPostBuildOutput "2 actionable tasks: 2 executed"
     }
 
-    @ToBeFixedForConfigurationCache(because = "build logic tasks are not executed when loaded from cache")
+    @ToBeFixedForConfigurationCache(because = "build logic tasks are not executed when loaded from cache, https://github.com/gradle/gradle/issues/37241")
     def "reports tasks from included builds that provide project plugins"() {
         settingsFile << """
             includeBuild("plugins")
@@ -206,7 +206,7 @@ class BuildResultLoggerIntegrationTest extends AbstractIntegrationSpec implement
         result.assertHasPostBuildOutput "5 actionable tasks: 1 executed, 4 up-to-date"
     }
 
-    @Requires(IntegTestPreconditions.IsEmbeddedExecutor)
+    @Requires(TestExecutionPreconditions.IsEmbeddedExecutor)
     // this test only works in embedded mode because of the use of validation test fixtures
     def "work validation warnings are mentioned in summary"() {
         buildFile << """

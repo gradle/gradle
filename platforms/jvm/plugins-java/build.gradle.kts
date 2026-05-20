@@ -23,6 +23,7 @@ dependencies {
     implementation(projects.platformBase)
     implementation(projects.platformJvm)
     implementation(projects.pluginsJavaBase)
+    implementation(projects.serviceLookup)
     implementation(projects.softwareDiagnostics)
     implementation(projects.stdlibJavaExtensions)
     implementation(projects.testSuitesBase)

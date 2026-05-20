@@ -241,7 +241,7 @@ TOML only supports `#` comments. The tag syntax `// tag::name[]` must be wrapped
 
 ### Unresolved version references in TOML
 
-If a TOML file references a version (e.g., `version.ref = "kotlin"`) that is meant to be injected programmatically via `version("kotlin", "2.3.20")` in settings, the version must **not** appear in a `[versions]` block.
+If a TOML file references a version (e.g., `version.ref = "kotlin"`) that is meant to be injected programmatically via `version("kotlin", "2.3.21")` in settings, the version must **not** appear in a `[versions]` block.
 Gradle validates the TOML file independently of the programmatic additions, so missing `version.ref` targets will cause errors during auto-import but work correctly when loaded via `from(files(...))`.
 
 This is another reason to avoid auto-import by naming the file something other than `libs.versions.toml`.

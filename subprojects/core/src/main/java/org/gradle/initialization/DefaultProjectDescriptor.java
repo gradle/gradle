@@ -16,7 +16,6 @@
 package org.gradle.initialization;
 
 import com.google.common.base.Objects;
-import org.gradle.api.Project;
 import org.gradle.api.initialization.ProjectDescriptor;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.internal.DocumentationRegistry;
@@ -24,10 +23,9 @@ import org.gradle.api.problems.ProblemReporter;
 import org.gradle.internal.Cast;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.file.PathToFileResolver;
-import org.gradle.internal.initialization.BuildLogicFiles;
 import org.gradle.internal.scripts.DefaultScriptFileResolver;
 import org.gradle.internal.scripts.ScriptFileResolver;
-import org.gradle.internal.scripts.ScriptResolutionResult;
+import org.gradle.internal.scripts.ScriptFileUtil;
 import org.gradle.internal.scripts.ScriptResolutionResultReporter;
 import org.gradle.util.Path;
 import org.gradle.util.internal.NameValidator;
@@ -41,8 +39,6 @@ public class DefaultProjectDescriptor implements ProjectDescriptorInternal {
     public static final String INVALID_NAME_IN_INCLUDE_HINT = "Set the 'rootProject.name' or adjust the 'include' statement (see "
         + new DocumentationRegistry().getDslRefForProperty(Settings.class, "include(java.lang.String[])") + " for more details).";
 
-    public static final String BUILD_SCRIPT_BASENAME = BuildLogicFiles.BUILD_FILE_BASENAME;
-
     private String name;
     private boolean nameExplicitlySet; // project name explicitly specified in the build script (as opposed to derived from the containing folder)
     private final PathToFileResolver fileResolver;
@@ -53,7 +49,7 @@ public class DefaultProjectDescriptor implements ProjectDescriptorInternal {
     @Nullable
     private final ProjectDescriptorInternal parent;
     private final Set<ProjectDescriptorInternal> children = new LinkedHashSet<>();
-    private ProjectDescriptorRegistry projectDescriptorRegistry;
+    private final ProjectDescriptorRegistry projectDescriptorRegistry;
     private Path path;
     @Nullable
     private String buildFileName;
@@ -147,6 +143,7 @@ public class DefaultProjectDescriptor implements ProjectDescriptorInternal {
     }
 
     @Override
+    @Nullable
     public ProjectDescriptorInternal getParent() {
         return parent;
     }
@@ -190,23 +187,8 @@ public class DefaultProjectDescriptor implements ProjectDescriptorInternal {
         if (buildFileName != null) {
             return new File(getProjectDir(), buildFileName);
         }
-        ScriptResolutionResult buildScriptFileResolution = scriptFileResolver.resolveScriptFile(getProjectDir(), BUILD_SCRIPT_BASENAME);
-        scriptResolutionResultReporter.reportResolutionProblemsOf(buildScriptFileResolution);
 
-        File selectedCandidate = buildScriptFileResolution.getSelectedCandidate();
-        if (selectedCandidate != null) {
-            return selectedCandidate;
-        } else {
-            return new File(getProjectDir(), Project.DEFAULT_BUILD_FILE);
-        }
-    }
-
-    public ProjectDescriptorRegistry getProjectDescriptorRegistry() {
-        return projectDescriptorRegistry;
-    }
-
-    public void setProjectDescriptorRegistry(ProjectDescriptorRegistry projectDescriptorRegistry) {
-        this.projectDescriptorRegistry = projectDescriptorRegistry;
+        return ScriptFileUtil.resolveBuildFile(getProjectDir(), scriptFileResolver, scriptResolutionResultReporter::reportResolutionProblemsOf);
     }
 
     @Override

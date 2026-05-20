@@ -23,12 +23,17 @@ import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.artifacts.configurations.TasksFromDependentProjects;
+import org.gradle.api.internal.artifacts.configurations.TasksFromProjectDependencies;
 import org.gradle.api.internal.component.SoftwareComponentContainerInternal;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.tasks.JvmConstants;
+import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.internal.JavaConfigurationVariantMapping;
 import org.gradle.api.plugins.jvm.JvmTestSuite;
@@ -44,6 +49,7 @@ import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.TaskCollection;
 import org.gradle.api.tasks.TaskContainer;
+import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.api.tasks.diagnostics.DependencyInsightReportTask;
 import org.gradle.api.tasks.testing.Test;
@@ -389,26 +395,37 @@ public abstract class JavaPlugin implements Plugin<Project> {
         });
     }
 
+    @SuppressWarnings("deprecation")
     private static void configureBuild(Project project) {
-        project.getTasks().named(JavaBasePlugin.BUILD_NEEDED_TASK_NAME, task -> addDependsOnTaskInOtherProjects(task, true,
-            JavaBasePlugin.BUILD_NEEDED_TASK_NAME, JvmConstants.TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME));
-        project.getTasks().named(JavaBasePlugin.BUILD_DEPENDENTS_TASK_NAME, task -> addDependsOnTaskInOtherProjects(task, false,
-            JavaBasePlugin.BUILD_DEPENDENTS_TASK_NAME, JvmConstants.TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME));
+        project.getTasks().named(JavaBasePlugin.BUILD_NEEDED_TASK_NAME, task ->
+            task.dependsOn(buildNeededTaskDependency(task))
+        );
+        project.getTasks().named(JavaBasePlugin.BUILD_DEPENDENTS_TASK_NAME, task ->
+            task.dependsOn(buildDependentsTaskDependency(task))
+        );
     }
 
-    /**
-     * Adds a dependency on tasks with the specified name in other projects.  The other projects are determined from
-     * project lib dependencies using the specified configuration name. These may be projects this project depends on or
-     * projects that depend on this project based on the useDependOn argument.
-     *
-     * @param task Task to add dependencies to
-     * @param useDependedOn if true, add tasks from projects this project depends on, otherwise use projects that depend on this one.
-     * @param otherProjectTaskName name of task in other projects
-     * @param configurationName name of configuration to use to find the other projects
-     */
-    private static void addDependsOnTaskInOtherProjects(final Task task, boolean useDependedOn, String otherProjectTaskName, String configurationName) {
-        Project project = task.getProject();
-        final Configuration configuration = project.getConfigurations().getByName(configurationName);
-        task.dependsOn(configuration.getTaskDependencyFromProjectDependency(useDependedOn, otherProjectTaskName));
+    @Deprecated
+    private static TaskDependency buildDependentsTaskDependency(Task task) {
+        ProjectInternal project = (ProjectInternal) task.getProject();
+        Configuration configuration = project.getConfigurations().getByName(JvmConstants.TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME);
+        return new TasksFromDependentProjects(
+            JavaBasePlugin.BUILD_DEPENDENTS_TASK_NAME,
+            configuration.getName(),
+            project.getServices().get(TaskDependencyFactory.class)
+        );
     }
+
+    @Deprecated
+    private static TaskDependency buildNeededTaskDependency(Task task) {
+        ProjectInternal project = (ProjectInternal) task.getProject();
+        final Configuration configuration = project.getConfigurations().getByName(JvmConstants.TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME);
+        return new TasksFromProjectDependencies(
+            JavaBasePlugin.BUILD_NEEDED_TASK_NAME,
+            () -> configuration.getAllDependencies().withType(ProjectDependency.class),
+            project.getServices().get(TaskDependencyFactory.class),
+            project.getServices().get(ProjectStateRegistry.class)
+        );
+    }
+
 }

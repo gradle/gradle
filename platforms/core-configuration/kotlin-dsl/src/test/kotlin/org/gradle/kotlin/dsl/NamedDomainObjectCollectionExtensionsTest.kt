@@ -5,6 +5,7 @@ import org.gradle.api.NamedDomainObjectCollection
 import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.NamedDomainObjectProvider
 import org.gradle.api.PolymorphicDomainObjectContainer
+import org.gradle.test.fixtures.ExpectDeprecationExtension
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.nullValue
 import org.hamcrest.CoreMatchers.sameInstance
@@ -44,107 +45,123 @@ class NamedDomainObjectCollectionExtensionsTest {
 
     @Test
     fun `val domainObject by registering`() {
-
-        val domainObjectProvider = mockDomainObjectProviderFor(DomainObject())
-        val container = mock<NamedDomainObjectContainer<DomainObject>> {
-            on { register("domainObject") } doReturn domainObjectProvider
-        }
-
-        container {
-
-            val domainObject by registering
-
-            inOrder(container, domainObjectProvider) {
-                verify(container).register("domainObject")
-                verifyNoMoreInteractions()
+        ExpectDeprecationExtension.intercept(
+            "The 'val name by registering' property delegate syntax has been deprecated."
+        ) {
+            val domainObjectProvider = mockDomainObjectProviderFor(DomainObject())
+            val container = mock<NamedDomainObjectContainer<DomainObject>> {
+                on { register("domainObject") } doReturn domainObjectProvider
             }
 
-            assertInferredTypeOf(
-                domainObject,
-                typeOf<NamedDomainObjectProvider<DomainObject>>()
-            )
+            container {
+
+                @Suppress("DEPRECATION")
+                val domainObject by registering
+
+                inOrder(container, domainObjectProvider) {
+                    verify(container).register("domainObject")
+                    verifyNoMoreInteractions()
+                }
+
+                assertInferredTypeOf(
+                    domainObject,
+                    typeOf<NamedDomainObjectProvider<DomainObject>>()
+                )
+            }
         }
     }
 
     @Test
     fun `val domainObject by registering { }`() {
+        ExpectDeprecationExtension.intercept(
+            "The 'val name by registering { }' property delegate syntax has been deprecated."
+        ) {
+            val domainObjectProvider = mockDomainObjectProviderFor(DomainObject())
+            val container = mock<NamedDomainObjectContainer<DomainObject>> {
+                on { register(eq("domainObject"), any<Action<DomainObject>>()) } doReturn domainObjectProvider
+            }
 
-        val domainObjectProvider = mockDomainObjectProviderFor(DomainObject())
-        val container = mock<NamedDomainObjectContainer<DomainObject>> {
-            on { register(eq("domainObject"), any<Action<DomainObject>>()) } doReturn domainObjectProvider
-        }
+            container {
 
-        container {
+                @Suppress("DEPRECATION")
+                val domainObject by registering {
+                    assertInferredTypeOf(
+                        this,
+                        typeOf<DomainObject>()
+                    )
+                }
 
-            val domainObject by registering {
+                inOrder(container, domainObjectProvider) {
+                    verify(container).register(eq("domainObject"), any<Action<DomainObject>>())
+                    verifyNoMoreInteractions()
+                }
+
                 assertInferredTypeOf(
-                    this,
-                    typeOf<DomainObject>()
+                    domainObject,
+                    typeOf<NamedDomainObjectProvider<DomainObject>>()
                 )
             }
-
-            inOrder(container, domainObjectProvider) {
-                verify(container).register(eq("domainObject"), any<Action<DomainObject>>())
-                verifyNoMoreInteractions()
-            }
-
-            assertInferredTypeOf(
-                domainObject,
-                typeOf<NamedDomainObjectProvider<DomainObject>>()
-            )
         }
     }
 
     @Test
     fun `val domainObject by registering(type)`() {
-
-        val domainObjectProvider = mockDomainObjectProviderFor(DomainObject())
-        val container = mock<PolymorphicDomainObjectContainer<Any>> {
-            on { register("domainObject", DomainObject::class.java) } doReturn domainObjectProvider
-        }
-
-        container {
-
-            val domainObject by registering(DomainObject::class)
-
-            inOrder(container, domainObjectProvider) {
-                verify(container).register("domainObject", DomainObject::class.java)
-                verifyNoMoreInteractions()
+        ExpectDeprecationExtension.intercept(
+            "The 'val name by registering(Type::class)' property delegate syntax has been deprecated."
+        ) {
+            val domainObjectProvider = mockDomainObjectProviderFor(DomainObject())
+            val container = mock<PolymorphicDomainObjectContainer<Any>> {
+                on { register("domainObject", DomainObject::class.java) } doReturn domainObjectProvider
             }
 
-            assertInferredTypeOf(
-                domainObject,
-                typeOf<NamedDomainObjectProvider<DomainObject>>()
-            )
+            container {
+
+                @Suppress("DEPRECATION")
+                val domainObject by registering(DomainObject::class)
+
+                inOrder(container, domainObjectProvider) {
+                    verify(container).register("domainObject", DomainObject::class.java)
+                    verifyNoMoreInteractions()
+                }
+
+                assertInferredTypeOf(
+                    domainObject,
+                    typeOf<NamedDomainObjectProvider<DomainObject>>()
+                )
+            }
         }
     }
 
     @Test
     fun `val domainObject by registering(type) { }`() {
+        ExpectDeprecationExtension.intercept(
+            "The 'val name by registering(Type::class) { }' property delegate syntax has been deprecated."
+        ) {
+            val domainObjectProvider = mockDomainObjectProviderFor(DomainObject())
+            val container = mock<PolymorphicDomainObjectContainer<Any>> {
+                onRegisterWithAction("domainObject", DomainObject::class, domainObjectProvider)
+            }
 
-        val domainObjectProvider = mockDomainObjectProviderFor(DomainObject())
-        val container = mock<PolymorphicDomainObjectContainer<Any>> {
-            onRegisterWithAction("domainObject", DomainObject::class, domainObjectProvider)
-        }
+            container {
 
-        container {
+                @Suppress("DEPRECATION")
+                val domainObject by registering(DomainObject::class) {
+                    assertInferredTypeOf(
+                        this,
+                        typeOf<DomainObject>()
+                    )
+                }
 
-            val domainObject by registering(DomainObject::class) {
+                inOrder(container) {
+                    verify(container).register(eq("domainObject"), eq(DomainObject::class.java), any<Action<DomainObject>>())
+                    verifyNoMoreInteractions()
+                }
+
                 assertInferredTypeOf(
-                    this,
-                    typeOf<DomainObject>()
+                    domainObject,
+                    typeOf<NamedDomainObjectProvider<DomainObject>>()
                 )
             }
-
-            inOrder(container) {
-                verify(container).register(eq("domainObject"), eq(DomainObject::class.java), any<Action<DomainObject>>())
-                verifyNoMoreInteractions()
-            }
-
-            assertInferredTypeOf(
-                domainObject,
-                typeOf<NamedDomainObjectProvider<DomainObject>>()
-            )
         }
     }
 
@@ -202,364 +219,424 @@ class NamedDomainObjectCollectionExtensionsTest {
 
     @Test
     fun `can access named element via delegated property`() {
+        ExpectDeprecationExtension.intercept(
+            "The 'val name by container' property delegate syntax has been deprecated."
+        ) {
+            val element = DomainObject()
+            val provider = mockDomainObjectProviderFor(element)
+            val container = mock<NamedDomainObjectCollection<DomainObject>> {
+                on { named("domainObject") } doReturn provider
+            }
 
-        val element = DomainObject()
-        val provider = mockDomainObjectProviderFor(element)
-        val container = mock<NamedDomainObjectCollection<DomainObject>> {
-            on { named("domainObject") } doReturn provider
-        }
+            @Suppress("DEPRECATION")
+            val domainObject by container
 
-        val domainObject by container
+            inOrder(container) {
+                verify(container).named("domainObject")
+                verifyNoMoreInteractions()
+            }
 
-        inOrder(container) {
-            verify(container).named("domainObject")
-            verifyNoMoreInteractions()
-        }
+            assertThat(
+                domainObject.foo, // just to prove domainObject's type is inferred correctly
+                nullValue()
+            )
 
-        assertThat(
-            domainObject.foo, // just to prove domainObject's type is inferred correctly
-            nullValue()
-        )
+            assertThat(
+                domainObject,
+                sameInstance(element)
+            )
 
-        assertThat(
-            domainObject,
-            sameInstance(element)
-        )
-
-        inOrder(container, provider) {
-            verify(provider, times(2)).get()
-            verifyNoMoreInteractions()
+            inOrder(container, provider) {
+                verify(provider, times(2)).get()
+                verifyNoMoreInteractions()
+            }
         }
     }
 
     @Test
     fun `val domainObject by existing`() {
-
-        val element = DomainObject()
-        val elementProvider = mockDomainObjectProviderFor(element)
-        val container = mock<NamedDomainObjectContainer<DomainObject>> {
-            on { named("domainObject") } doReturn elementProvider
-        }
-
-        container {
-            // invoke syntax
-            val domainObject by existing
-            inOrder(container, elementProvider) {
-                verify(container).named("domainObject")
-                verifyNoMoreInteractions()
+        ExpectDeprecationExtension.intercept(
+            "The 'val name by existing' property delegate syntax has been deprecated."
+        ) {
+            val element = DomainObject()
+            val elementProvider = mockDomainObjectProviderFor(element)
+            val container = mock<NamedDomainObjectContainer<DomainObject>> {
+                on { named("domainObject") } doReturn elementProvider
             }
-            assertThat(domainObject, sameInstance(elementProvider))
-            inOrder(elementProvider) {
-                verifyNoMoreInteractions()
-            }
-        }
 
-        container.apply {
-            // regular syntax
-            val domainObject by existing
-            assertThat(domainObject, sameInstance(elementProvider))
+            container {
+                // invoke syntax
+                @Suppress("DEPRECATION")
+                val domainObject by existing
+                inOrder(container, elementProvider) {
+                    verify(container).named("domainObject")
+                    verifyNoMoreInteractions()
+                }
+                assertThat(domainObject, sameInstance(elementProvider))
+                inOrder(elementProvider) {
+                    verifyNoMoreInteractions()
+                }
+            }
+
+            container.apply {
+                // regular syntax
+                @Suppress("DEPRECATION")
+                val domainObject by existing
+                assertThat(domainObject, sameInstance(elementProvider))
+            }
         }
     }
 
     @Test
     fun `val domainObject by existing { }`() {
+        ExpectDeprecationExtension.intercept(
+            "The 'val name by existing { }' property delegate syntax has been deprecated."
+        ) {
+            val element = DomainObject()
+            val elementProvider = mockDomainObjectProviderFor(element)
+            val container = mock<NamedDomainObjectContainer<DomainObject>> {
+                on { named("domainObject") } doReturn elementProvider
+            }
 
-        val element = DomainObject()
-        val elementProvider = mockDomainObjectProviderFor(element)
-        val container = mock<NamedDomainObjectContainer<DomainObject>> {
-            on { named("domainObject") } doReturn elementProvider
-        }
+            container {
+                // invoke syntax
+                @Suppress("DEPRECATION")
+                val domainObject by existing {
+                    assertInferredTypeOf(
+                        this,
+                        typeOf<DomainObject>()
+                    )
+                }
 
-        container {
-            // invoke syntax
-            val domainObject by existing {
+                inOrder(container, elementProvider) {
+                    verify(container).named("domainObject")
+                    verify(elementProvider).configure(any<Action<DomainObject>>())
+                    verifyNoMoreInteractions()
+                }
+
                 assertInferredTypeOf(
-                    this,
-                    typeOf<DomainObject>()
+                    domainObject,
+                    typeOf<NamedDomainObjectProvider<DomainObject>>()
                 )
             }
 
-            inOrder(container, elementProvider) {
-                verify(container).named("domainObject")
-                verify(elementProvider).configure(any<Action<DomainObject>>())
-                verifyNoMoreInteractions()
+            container.apply {
+                // regular syntax
+                @Suppress("DEPRECATION")
+                val domainObject by existing {
+                }
+                assertInferredTypeOf(
+                    domainObject,
+                    typeOf<NamedDomainObjectProvider<DomainObject>>()
+                )
             }
-
-            assertInferredTypeOf(
-                domainObject,
-                typeOf<NamedDomainObjectProvider<DomainObject>>()
-            )
-        }
-
-        container.apply {
-            // regular syntax
-            val domainObject by existing {
-            }
-            assertInferredTypeOf(
-                domainObject,
-                typeOf<NamedDomainObjectProvider<DomainObject>>()
-            )
         }
     }
 
     @Test
     fun `val domainObject by existing(type)`() {
-
-        val element = DomainObject()
-        val elementProvider = mockDomainObjectProviderFor(element)
-        val container = mock<NamedDomainObjectContainer<Any>> {
-            on { named("domainObject", DomainObject::class.java) } doReturn elementProvider
-        }
-
-        container {
-            // invoke syntax
-            val domainObject by existing(DomainObject::class)
-
-            inOrder(container, elementProvider) {
-                verify(container).named("domainObject", DomainObject::class.java)
-                verifyNoMoreInteractions()
+        ExpectDeprecationExtension.intercept(
+            "The 'val name by existing(Type::class)' property delegate syntax has been deprecated."
+        ) {
+            val element = DomainObject()
+            val elementProvider = mockDomainObjectProviderFor(element)
+            val container = mock<NamedDomainObjectContainer<Any>> {
+                on { named("domainObject", DomainObject::class.java) } doReturn elementProvider
             }
 
-            assertInferredTypeOf(
-                domainObject,
-                typeOf<NamedDomainObjectProvider<DomainObject>>()
-            )
-        }
+            container {
+                // invoke syntax
+                @Suppress("DEPRECATION")
+                val domainObject by existing(DomainObject::class)
 
-        container.apply {
-            // regular syntax
-            val domainObject by existing(DomainObject::class)
-            assertInferredTypeOf(
-                domainObject,
-                typeOf<NamedDomainObjectProvider<DomainObject>>()
-            )
+                inOrder(container, elementProvider) {
+                    verify(container).named("domainObject", DomainObject::class.java)
+                    verifyNoMoreInteractions()
+                }
+
+                assertInferredTypeOf(
+                    domainObject,
+                    typeOf<NamedDomainObjectProvider<DomainObject>>()
+                )
+            }
+
+            container.apply {
+                // regular syntax
+                @Suppress("DEPRECATION")
+                val domainObject by existing(DomainObject::class)
+                assertInferredTypeOf(
+                    domainObject,
+                    typeOf<NamedDomainObjectProvider<DomainObject>>()
+                )
+            }
         }
     }
 
     @Test
     fun `val domainObject by existing(type) { }`() {
+        ExpectDeprecationExtension.intercept(
+            "The 'val name by existing(Type::class) { }' property delegate syntax has been deprecated."
+        ) {
+            val element = DomainObject()
+            val elementProvider = mockDomainObjectProviderFor(element)
+            val container = mock<NamedDomainObjectContainer<Any>> {
+                on { named<DomainObject>(eq("domainObject"), any<Class<DomainObject>>(), any<Action<DomainObject>>()) } doReturn elementProvider
+            }
 
-        val element = DomainObject()
-        val elementProvider = mockDomainObjectProviderFor(element)
-        val container = mock<NamedDomainObjectContainer<Any>> {
-            on { named<DomainObject>(eq("domainObject"), any<Class<DomainObject>>(), any<Action<DomainObject>>()) } doReturn elementProvider
-        }
+            container {
+                // invoke syntax
+                @Suppress("DEPRECATION")
+                val domainObject by existing(DomainObject::class) {
+                    assertInferredTypeOf(
+                        this,
+                        typeOf<DomainObject>()
+                    )
+                }
 
-        container {
-            // invoke syntax
-            val domainObject by existing(DomainObject::class) {
+                inOrder(container, elementProvider) {
+                    verify(container).named(eq("domainObject"), eq(DomainObject::class.java), any<Action<Any>>())
+                    verifyNoMoreInteractions()
+                }
+
                 assertInferredTypeOf(
-                    this,
-                    typeOf<DomainObject>()
+                    domainObject,
+                    typeOf<NamedDomainObjectProvider<DomainObject>>()
                 )
             }
 
-            inOrder(container, elementProvider) {
-                verify(container).named(eq("domainObject"), eq(DomainObject::class.java), any<Action<Any>>())
-                verifyNoMoreInteractions()
+            container.apply {
+                // regular syntax
+                @Suppress("DEPRECATION")
+                val domainObject by existing(DomainObject::class) {
+                }
+                assertInferredTypeOf(
+                    domainObject,
+                    typeOf<NamedDomainObjectProvider<DomainObject>>()
+                )
             }
-
-            assertInferredTypeOf(
-                domainObject,
-                typeOf<NamedDomainObjectProvider<DomainObject>>()
-            )
-        }
-
-        container.apply {
-            // regular syntax
-            val domainObject by existing(DomainObject::class) {
-            }
-            assertInferredTypeOf(
-                domainObject,
-                typeOf<NamedDomainObjectProvider<DomainObject>>()
-            )
         }
     }
 
     @Test
     fun `can access named element by getting`() {
-
-        val element = DomainObject()
-        val container = mock<NamedDomainObjectContainer<DomainObject>> {
-            on { getByName("domainObject") } doReturn element
-        }
-
-        container {
-            // invoke syntax
-            val domainObject by getting
-            inOrder(container) {
-                verify(container).getByName("domainObject")
-                verifyNoMoreInteractions()
+        ExpectDeprecationExtension.intercept(
+            "The 'val name by getting' property delegate syntax has been deprecated."
+        ) {
+            val element = DomainObject()
+            val container = mock<NamedDomainObjectContainer<DomainObject>> {
+                on { getByName("domainObject") } doReturn element
             }
-            assertThat(domainObject, sameInstance(element))
-        }
 
-        container.apply {
-            // regular syntax
-            val domainObject by getting
-            assertThat(domainObject, sameInstance(element))
+            container {
+                // invoke syntax
+                @Suppress("DEPRECATION")
+                val domainObject by getting
+                inOrder(container) {
+                    verify(container).getByName("domainObject")
+                    verifyNoMoreInteractions()
+                }
+                assertThat(domainObject, sameInstance(element))
+            }
+
+            container.apply {
+                // regular syntax
+                @Suppress("DEPRECATION")
+                val domainObject by getting
+                assertThat(domainObject, sameInstance(element))
+            }
         }
     }
 
     @Test
     fun `can configure named element by getting`() {
-
-        val element = DomainObject()
-        val container = mock<NamedDomainObjectContainer<DomainObject>> {
-            on { getByName(eq("domainObject"), any<Action<DomainObject>>()) } doAnswer {
-                it.getArgument<Action<DomainObject>>(1).execute(element)
-                element
+        ExpectDeprecationExtension.intercept(
+            "The 'val name by getting { }' property delegate syntax has been deprecated."
+        ) {
+            val element = DomainObject()
+            val container = mock<NamedDomainObjectContainer<DomainObject>> {
+                on { getByName(eq("domainObject"), any<Action<DomainObject>>()) } doAnswer {
+                    it.getArgument<Action<DomainObject>>(1).execute(element)
+                    element
+                }
             }
-        }
 
-        container {
-            // invoke syntax
-            @Suppress("unused_variable")
-            val domainObject by getting { foo = "foo" }
-            assertThat(element.foo, equalTo("foo"))
-        }
+            container {
+                // invoke syntax
+                @Suppress("DEPRECATION", "UnusedVariable", "unused")
+                val domainObject by getting { foo = "foo" }
+                assertThat(element.foo, equalTo("foo"))
+            }
 
-        container.apply {
-            // regular syntax
-            @Suppress("unused_variable")
-            val domainObject by getting { foo = "bar" }
-            assertThat(element.foo, equalTo("bar"))
+            container.apply {
+                // regular syntax
+                @Suppress("DEPRECATION", "UnusedVariable", "unused")
+                val domainObject by getting { foo = "bar" }
+                assertThat(element.foo, equalTo("bar"))
+            }
         }
     }
 
     @Test
     fun `can access named element by getting with type`() {
+        ExpectDeprecationExtension.intercept(
+            "The 'val name by getting(Type::class)' property delegate syntax has been deprecated."
+        ) {
+            val element = DomainObject()
+            val container = mock<NamedDomainObjectContainer<Any>> {
+                on { getByName("domainObject") } doReturn element
+            }
 
-        val element = DomainObject()
-        val container = mock<NamedDomainObjectContainer<Any>> {
-            on { getByName("domainObject") } doReturn element
-        }
+            container {
+                // invoke syntax
+                @Suppress("DEPRECATION")
+                val domainObject by getting(DomainObject::class)
+                assertThat(domainObject, sameInstance(element))
+            }
 
-        container {
-            // invoke syntax
-            val domainObject by getting(DomainObject::class)
-            assertThat(domainObject, sameInstance(element))
-        }
-
-        container.apply {
-            // regular syntax
-            val domainObject by getting(DomainObject::class)
-            assertThat(domainObject, sameInstance(element))
+            container.apply {
+                // regular syntax
+                @Suppress("DEPRECATION")
+                val domainObject by getting(DomainObject::class)
+                assertThat(domainObject, sameInstance(element))
+            }
         }
     }
 
     @Test
     fun `can configure named element by getting with type`() {
+        ExpectDeprecationExtension.intercept(
+            "The 'val name by getting(Type::class) { }' property delegate syntax has been deprecated."
+        ) {
+            val element = DomainObject()
+            val container = mock<NamedDomainObjectContainer<Any>> {
+                on { getByName("domainObject") } doReturn element
+            }
 
-        val element = DomainObject()
-        val container = mock<NamedDomainObjectContainer<Any>> {
-            on { getByName("domainObject") } doReturn element
-        }
+            container {
+                // invoke syntax
+                @Suppress("DEPRECATION", "UnusedVariable", "unused")
+                val domainObject by getting(DomainObject::class) { foo = "foo" }
+                assertThat(element.foo, equalTo("foo"))
+            }
 
-        container {
-            // invoke syntax
-            @Suppress("unused_variable")
-            val domainObject by getting(DomainObject::class) { foo = "foo" }
-            assertThat(element.foo, equalTo("foo"))
-        }
-
-        container.apply {
-            // regular syntax
-            @Suppress("unused_variable")
-            val domainObject by getting(DomainObject::class) { foo = "bar" }
-            assertThat(element.foo, equalTo("bar"))
+            container.apply {
+                // regular syntax
+                @Suppress("DEPRECATION", "UnusedVariable", "unused")
+                val domainObject by getting(DomainObject::class) { foo = "bar" }
+                assertThat(element.foo, equalTo("bar"))
+            }
         }
     }
 
     @Test
     fun `can register element by creating`() {
+        ExpectDeprecationExtension.intercept(
+            "The 'val name by creating' property delegate syntax has been deprecated."
+        ) {
+            val fooObject = DomainObject()
+            val barObject = DomainObject()
+            val container = mock<NamedDomainObjectContainer<DomainObject>> {
+                on { create("foo") } doReturn fooObject
+                on { create("bar") } doReturn barObject
+            }
 
-        val fooObject = DomainObject()
-        val barObject = DomainObject()
-        val container = mock<NamedDomainObjectContainer<DomainObject>> {
-            on { create("foo") } doReturn fooObject
-            on { create("bar") } doReturn barObject
-        }
+            container {
+                // invoke syntax
+                @Suppress("DEPRECATION")
+                val foo by creating
+                assertThat(foo.foo, nullValue())
+            }
 
-        container {
-            // invoke syntax
-            val foo by creating
-            assertThat(foo.foo, nullValue())
-        }
-
-        container.apply {
-            // regular syntax
-            val bar by creating
-            assertThat(bar.foo, nullValue())
+            container.apply {
+                // regular syntax
+                @Suppress("DEPRECATION")
+                val bar by creating
+                assertThat(bar.foo, nullValue())
+            }
         }
     }
 
     @Test
     fun `can register and configure element by creating`() {
+        ExpectDeprecationExtension.intercept(
+            "The 'val name by creating { }' property delegate syntax has been deprecated."
+        ) {
+            val fooObject = DomainObject()
+            val barObject = DomainObject()
+            val container = mock<NamedDomainObjectContainer<DomainObject>> {
+                onCreateWithAction("foo", fooObject)
+                onCreateWithAction("bar", barObject)
+            }
 
-        val fooObject = DomainObject()
-        val barObject = DomainObject()
-        val container = mock<NamedDomainObjectContainer<DomainObject>> {
-            onCreateWithAction("foo", fooObject)
-            onCreateWithAction("bar", barObject)
-        }
+            container {
+                // invoke syntax
+                @Suppress("DEPRECATION")
+                val foo by creating { foo = "foo" }
+                assertThat(foo.foo, equalTo("foo"))
+            }
 
-        container {
-            // invoke syntax
-            val foo by creating { foo = "foo" }
-            assertThat(foo.foo, equalTo("foo"))
-        }
-
-        container.apply {
-            // regular syntax
-            val bar by creating { foo = "bar" }
-            assertThat(bar.foo, equalTo("bar"))
+            container.apply {
+                // regular syntax
+                @Suppress("DEPRECATION")
+                val bar by creating { foo = "bar" }
+                assertThat(bar.foo, equalTo("bar"))
+            }
         }
     }
 
     @Test
     fun `can register element by creating with type`() {
+        ExpectDeprecationExtension.intercept(
+            "The 'val name by creating(Type::class)' property delegate syntax has been deprecated."
+        ) {
+            val fooObject = DomainObject()
+            val barObject = DomainObject()
+            val container = mock<PolymorphicDomainObjectContainer<Any>> {
+                on { create("foo", DomainObject::class.java) } doReturn fooObject
+                on { create("bar", DomainObject::class.java) } doReturn barObject
+            }
 
-        val fooObject = DomainObject()
-        val barObject = DomainObject()
-        val container = mock<PolymorphicDomainObjectContainer<Any>> {
-            on { create("foo", DomainObject::class.java) } doReturn fooObject
-            on { create("bar", DomainObject::class.java) } doReturn barObject
-        }
+            container {
+                // invoke syntax
+                @Suppress("DEPRECATION")
+                val foo by creating(DomainObject::class)
+                assertThat(foo.foo, nullValue())
+            }
 
-        container {
-            // invoke syntax
-            val foo by creating(DomainObject::class)
-            assertThat(foo.foo, nullValue())
-        }
-
-        container.apply {
-            // regular syntax
-            val bar by creating(DomainObject::class)
-            assertThat(bar.foo, nullValue())
+            container.apply {
+                // regular syntax
+                @Suppress("DEPRECATION")
+                val bar by creating(DomainObject::class)
+                assertThat(bar.foo, nullValue())
+            }
         }
     }
 
     @Test
     fun `can register and configure element by creating with type`() {
+        ExpectDeprecationExtension.intercept(
+            "The 'val name by creating(Type::class) { }' property delegate syntax has been deprecated."
+        ) {
+            val fooObject = DomainObject()
+            val barObject = DomainObject()
+            val container = mock<PolymorphicDomainObjectContainer<Any>> {
+                onCreateWithAction("foo", DomainObject::class, fooObject)
+                onCreateWithAction("bar", DomainObject::class, barObject)
+            }
 
-        val fooObject = DomainObject()
-        val barObject = DomainObject()
-        val container = mock<PolymorphicDomainObjectContainer<Any>> {
-            onCreateWithAction("foo", DomainObject::class, fooObject)
-            onCreateWithAction("bar", DomainObject::class, barObject)
-        }
+            container {
+                // invoke syntax
+                @Suppress("DEPRECATION")
+                val foo by creating(DomainObject::class) { foo = "foo" }
+                assertThat(foo.foo, equalTo("foo"))
+            }
 
-        container {
-            // invoke syntax
-            val foo by creating(DomainObject::class) { foo = "foo" }
-            assertThat(foo.foo, equalTo("foo"))
-        }
-
-        container.apply {
-            // regular syntax
-            val bar by creating(DomainObject::class) { foo = "bar" }
-            assertThat(bar.foo, equalTo("bar"))
+            container.apply {
+                // regular syntax
+                @Suppress("DEPRECATION")
+                val bar by creating(DomainObject::class) { foo = "bar" }
+                assertThat(bar.foo, equalTo("bar"))
+            }
         }
     }
 }
@@ -570,15 +647,6 @@ fun <T : Any> KStubbing<NamedDomainObjectContainer<T>>.onCreateWithAction(name: 
     on { create(eq(name), any<Action<T>>()) } doAnswer {
         it.getArgument<Action<T>>(1).execute(domainObject)
         domainObject
-    }
-}
-
-
-internal
-fun <T : Any> KStubbing<NamedDomainObjectContainer<T>>.onRegisterWithAction(name: String, provider: NamedDomainObjectProvider<T>) {
-    on { register(eq(name), any<Action<T>>()) } doAnswer {
-        it.getArgument<Action<T>>(1).execute(provider.get())
-        provider
     }
 }
 

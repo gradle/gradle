@@ -283,10 +283,10 @@ class ScriptCachingIntegrationTest : AbstractScriptCachingIntegrationTest() {
 
     @Test
     fun `writes no build cache entries when script caching disabled`() {
-        val result = expectBuildCacheEntriesWritten(3, true)
-        result.assertOutputContains("Stored cache entry for Kotlin DSL version catalog plugin accessors")
-        result.assertOutputContains("Stored cache entry for Kotlin DSL plugin specs accessors")
-        result.assertOutputContains("Stored cache entry for Kotlin DSL accessors")
+        val result = expectBuildCacheEntriesWritten(0, true)
+        result.assertNotOutput("Stored cache entry for Kotlin DSL version catalog plugin accessors")
+        result.assertNotOutput("Stored cache entry for Kotlin DSL plugin specs accessors")
+        result.assertNotOutput("Stored cache entry for Kotlin DSL accessors")
         result.assertNotOutput("Stored cache entry for Kotlin DSL script compilation")
     }
 
@@ -389,10 +389,10 @@ class ScriptCachingIntegrationTest : AbstractScriptCachingIntegrationTest() {
 
             if (scriptCachingDisabled) {
                 result.assertNotOutput("Stored cache entry for Kotlin DSL script compilation")
-                result.assertOutputContains("Caching of Kotlin script compilation disabled by property")
+                result.assertOutputContains("Caching of Kotlin script compilation and Kotlin DSL accessors generation disabled by property")
             } else {
                 result.assertOutputContains("Stored cache entry for Kotlin DSL script compilation")
-                result.assertNotOutput("Caching of Kotlin script compilation disabled by property")
+                result.assertNotOutput("Caching of Kotlin script compilation and Kotlin DSL accessors generation disabled by property")
             }
 
             val localBuildCacheDir = executer.gradleUserHomeDir.resolve("caches/build-cache-1")

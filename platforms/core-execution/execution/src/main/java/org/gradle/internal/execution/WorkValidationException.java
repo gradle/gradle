@@ -20,116 +20,67 @@ import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.GradleException;
 import org.gradle.internal.exceptions.Contextual;
-import org.gradle.internal.logging.text.TreeFormatter;
+import org.gradle.internal.exceptions.ResolutionProvider;
 import org.gradle.model.internal.type.ModelType;
-import org.jspecify.annotations.Nullable;
 
-import java.util.Collection;
 import java.util.List;
 
-import static com.google.common.collect.ImmutableList.toImmutableList;
 import static org.gradle.internal.RenderingUtils.oxfordJoin;
-import static org.gradle.util.internal.TextUtil.getPluralEnding;
 
 /**
  * A {@code WorkValidationException} is thrown when there is some validation problem with a work item.
  */
 @Contextual
-public class WorkValidationException extends GradleException {
-    private static final String MAX_ERR_COUNT_PROPERTY = "org.gradle.internal.max.validation.errors";
-    private static final int DEFAULT_MAX_ERR_COUNT = 5;
+public class WorkValidationException extends GradleException implements ResolutionProvider {
 
-    private final List<String> problems;
+    private final List<String> resolutions;
 
-    private WorkValidationException(String message, Collection<String> problems) {
+    private WorkValidationException(String message, List<String> resolutions) {
         super(message);
-        this.problems = ImmutableList.copyOf(problems);
+        this.resolutions = resolutions;
     }
 
-    public List<String> getProblems() {
-        return problems;
+    public static WorkValidationException withSummaryForPlugin(int problemCount, List<String> resolutions) {
+        return new WorkValidationException(
+            "Plugin validation failed with " + problemCount + " problem" + pluralEnding(problemCount),
+            ImmutableList.copyOf(resolutions)
+        );
     }
 
-    public static Builder forProblems(Collection<String> problems) {
-        return new Builder(problems);
+    public static WorkValidationException withSummaryForContext(String validatedObjectName, WorkValidationContext validationContext, int problemCount) {
+        String summary = String.format("%s found with the configuration of %s (%s).",
+            problemCount == 1 ? "A problem was" : "Some problems were",
+            validatedObjectName,
+            describeTypesChecked(validationContext.getValidatedTypes()));
+        return new WorkValidationException(summary, ImmutableList.of());
     }
 
-    /**
-     * A Stepwise builder for a {@code WorkValidationException}.
-     *
-     * This class represents step 1, call {@link #withSummaryForContext(String, WorkValidationContext)} or {@link #withSummaryForPlugin()} to return Step 2.
-     */
-    public final static class Builder {
-        private final List<String> problems;
-
-        public Builder(Collection<String> problems) {
-            this.problems = problems.stream()
-                    .limit(Integer.getInteger(MAX_ERR_COUNT_PROPERTY, DEFAULT_MAX_ERR_COUNT)) // Only retrieve the property upon building an error report
-                    .collect(toImmutableList());
-        }
-
-        public BuilderWithSummary withSummaryForContext(String validatedObjectName, WorkValidationContext validationContext) {
-            String summary = summarizeInContext(validatedObjectName, validationContext);
-            return new BuilderWithSummary(problems, summary);
-        }
-
-        public BuilderWithSummary withSummaryForPlugin() {
-            String summary = "Plugin validation failed with " + problems.size() + " problem" + getPluralEnding(problems);
-            return new BuilderWithSummary(problems, summary);
-        }
-
-        private String summarizeInContext(String validatedObjectName, WorkValidationContext validationContext) {
-            return String.format("%s found with the configuration of %s (%s).",
-                    problems.size() == 1 ? "A problem was" : "Some problems were",
-                    validatedObjectName,
-                    describeTypesChecked(validationContext.getValidatedTypes()));
-        }
-
-        private static String describeTypesChecked(ImmutableCollection<Class<?>> types) {
-            return "type" + getPluralEnding(types) + " " + types.stream()
-                .map(s -> "'" + getTypeDisplayName(s) + "'")
-                .collect(oxfordJoin("and"));
-        }
-
-        private static String getTypeDisplayName(Class<?> type) {
-                return ModelType.of(type).getDisplayName();
-            }
+    public static WorkValidationException withSummaryForType(Class<?> implementation, int problemCount) {
+        String summary = String.format("%s found with the configuration of %s.",
+            problemCount == 1 ? "A problem was" : "Some problems were",
+            ModelType.of(implementation).getDisplayName());
+        return new WorkValidationException(summary, ImmutableList.of());
     }
 
-    /**
-     * A builder for a {@code WorkValidationException} that has a summary attached.
-     *
-     * The {@link WorkValidationException.Builder} class is a Stepwise builder, this is step 2.
-     */
-    public final static class BuilderWithSummary {
-        private final List<String> problems;
-        private final String summary;
+    public static WorkValidationException withSummaryForTransformParameter(String parameterDisplayName, int problemCount) {
+        String summary = String.format("%s found with the configuration of the artifact transform parameter %s.",
+            problemCount == 1 ? "A problem was" : "Some problems were",
+            parameterDisplayName);
+        return new WorkValidationException(summary, ImmutableList.of());
+    }
 
-        public BuilderWithSummary(List<String> problems, String summary) {
-            this.problems = problems;
-            this.summary = summary;
-        }
+    @Override
+    public List<String> getResolutions() {
+        return resolutions;
+    }
 
-        public WorkValidationException get() {
-            return build(null);
-        }
+    private static String describeTypesChecked(ImmutableCollection<Class<?>> types) {
+        return "type" + (types.size() > 1 ? "s" : "") + " " + types.stream()
+            .map(s -> "'" + ModelType.of(s).getDisplayName() + "'")
+            .collect(oxfordJoin("and"));
+    }
 
-        public WorkValidationException getWithExplanation(String explanation) {
-            return build(explanation);
-        }
-
-        private WorkValidationException build(@Nullable String explanation) {
-            TreeFormatter formatter = new TreeFormatter();
-            formatter.node(summary);
-            formatter.startChildren();
-            for (String problem : problems) {
-                formatter.node(problem);
-            }
-            formatter.endChildren();
-            if (explanation != null) {
-                formatter.node(explanation);
-            }
-            return new WorkValidationException(formatter.toString(), ImmutableList.copyOf(problems));
-        }
+    private static String pluralEnding(int count) {
+        return count > 1 ? "s" : "";
     }
 }

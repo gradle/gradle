@@ -19,10 +19,10 @@ package org.gradle.api.tasks.javadoc
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.archive.ZipTestFixture
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import spock.lang.Issue
 
-@Requires(IntegTestPreconditions.NotParallelExecutor)
+@Requires(TestExecutionPreconditions.NotParallelExecutor)
 class JavadocWorkAvoidanceIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
         settingsFile << "include 'a', 'b'"

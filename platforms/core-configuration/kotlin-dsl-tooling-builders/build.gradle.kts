@@ -22,6 +22,7 @@ dependencies {
     implementation(projects.platformBase)
     implementation(projects.platformJvm)
     implementation(projects.pluginsJavaBase)
+    implementation(projects.startParameter)
     implementation(projects.toolingApi)
     implementation(projects.kotlinDslToolingModelImpls)
     implementation(projects.kotlinDslToolingModels)
@@ -38,6 +39,7 @@ dependencies {
 
     testFixturesImplementation(projects.kotlinDsl)
     testFixturesImplementation(projects.toolingApi)
+    testFixturesImplementation(testFixtures(projects.toolingApi))
     testFixturesImplementation(projects.internalIntegTesting)
 
     crossVersionTestImplementation(projects.internalIntegTesting)

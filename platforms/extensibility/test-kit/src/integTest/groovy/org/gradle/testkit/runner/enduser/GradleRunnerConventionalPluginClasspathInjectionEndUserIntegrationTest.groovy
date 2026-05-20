@@ -18,10 +18,10 @@ package org.gradle.testkit.runner.enduser
 
 import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import org.gradle.testkit.runner.fixtures.PluginUnderTest
 
-@Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = NOT_EMBEDDED_REASON)
+@Requires(value = TestExecutionPreconditions.NotEmbeddedExecutor, reason = NOT_EMBEDDED_REASON)
 class GradleRunnerConventionalPluginClasspathInjectionEndUserIntegrationTest extends BaseTestKitEndUserIntegrationTest {
 
     def plugin = new PluginUnderTest(testDirectory)

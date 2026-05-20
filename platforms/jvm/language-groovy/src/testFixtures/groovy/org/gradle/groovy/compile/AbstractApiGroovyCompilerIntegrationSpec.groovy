@@ -17,16 +17,10 @@
 package org.gradle.groovy.compile
 
 import org.gradle.api.internal.tasks.testing.report.VerifiesGenericTestReportResults
-import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
 import org.gradle.api.tasks.testing.TestResult
 import org.gradle.internal.jvm.Jvm
 
 abstract class AbstractApiGroovyCompilerIntegrationSpec extends AbstractGroovyCompilerIntegrationSpec implements VerifiesGenericTestReportResults {
-    @Override
-    GenericTestExecutionResult.TestFramework getTestFramework() {
-        return GenericTestExecutionResult.TestFramework.JUNIT4
-    }
-
     def canEnableAndDisableIntegerOptimization() {
         if (versionLowerThan('1.8')) {
             return

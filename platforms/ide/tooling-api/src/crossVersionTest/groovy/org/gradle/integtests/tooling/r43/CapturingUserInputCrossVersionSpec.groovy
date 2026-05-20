@@ -17,14 +17,11 @@
 package org.gradle.integtests.tooling.r43
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
-import org.gradle.integtests.tooling.fixture.TestResultHandler
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.test.fixtures.Flaky
 import org.gradle.tooling.BuildLauncher
 import org.gradle.tooling.ProjectConnection
 import spock.lang.Timeout
-
-import static org.gradle.test.fixtures.ConcurrentTestUtil.poll
 
 @TargetGradleVersion(">=4.3")
 @Timeout(120)
@@ -84,23 +81,11 @@ class CapturingUserInputCrossVersionSpec extends ToolingApiSpecification {
     }
 
     private void runBuildWithStandardInput(ProjectConnection connection) {
-        def stdin = new PipedInputStream()
-        def stdinWriter = new PipedOutputStream(stdin)
-        def resultHandler = new TestResultHandler()
+        def stdin = new ByteArrayInputStream(("yes" + System.getProperty('line.separator')).bytes)
 
         basicBuildConfiguration(connection)
             .setStandardInput(stdin)
-            .run(resultHandler)
-
-        poll(60) {
-            assert getOutput().contains("Accept license? [yes, no]")
-        }
-
-        stdinWriter.write(("yes" + System.getProperty('line.separator')).bytes)
-        stdinWriter.close()
-
-        resultHandler.finished()
-        resultHandler.assertNoFailure()
+            .run()
     }
 
     private static BuildLauncher basicBuildConfiguration(ProjectConnection connection) {
