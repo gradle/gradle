@@ -21,11 +21,11 @@ import org.gradle.api.Project
 import org.gradle.api.artifacts.transform.TransformAction
 import org.gradle.api.artifacts.transform.TransformOutputs
 import org.gradle.api.artifacts.transform.TransformParameters
-import org.gradle.api.problems.Severity
 import org.gradle.api.file.FileSystemOperations
 import org.gradle.api.file.ProjectLayout
 import org.gradle.api.internal.AbstractTask
 import org.gradle.api.model.ObjectFactory
+import org.gradle.api.problems.Severity
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.api.provider.ProviderFactory
@@ -1158,7 +1158,7 @@ Hello, subproject1
         outputContains("service: closed with value 13")
     }
 
-    @ToBeFixedForIsolatedProjects(because = "Cannot modify registration parameters with IP enabled")
+    @Requires(value = TestExecutionPreconditions.NotIsolatedProjects, reason = "Project access to gradle.sharedServices.registrations is unsupported with IP")
     def "plugin can apply conventions to shared services of a given type"() {
         serviceImplementation()
         buildFile << """
@@ -1949,11 +1949,11 @@ Hello, subproject1
         }
 
         where:
-        method                   | call
+        method                  | call
         // Only test select methods since exhaustively checking is tedious
-        "configureEach(Action)"  | 'configureEach { }'
-        "named(String)"          | 'named("counter")'
-        "size()"                 | 'size()'
+        "configureEach(Action)" | 'configureEach { }'
+        "named(String)"         | 'named("counter")'
+        "size()"                | 'size()'
     }
 
     private void enableServiceUsageDeclaration() {
