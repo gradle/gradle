@@ -71,6 +71,14 @@ import java.net.ServerSocket
 import java.net.Socket
 import java.util.concurrent.Executor
 import java.util.concurrent.ThreadFactory
+import java.util.concurrent.locks.Lock
+import java.util.concurrent.locks.ReadWriteLock
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.CyclicBarrier
+import java.util.concurrent.Phaser
+import java.util.concurrent.Semaphore
+import java.util.concurrent.SynchronousQueue
+import java.util.concurrent.Exchanger
 
 
 fun BindingsBuilder.unsupportedTypes() {
@@ -84,6 +92,14 @@ fun BindingsBuilder.unsupportedTypes() {
     bind(unsupported<RandomAccessFile>())
     bind(unsupported<Socket>())
     bind(unsupported<ServerSocket>())
+    bind(unsupported<Lock>())
+    bind(unsupported<ReadWriteLock>())
+    bind(unsupported<CountDownLatch>())
+    bind(unsupported<CyclicBarrier>())
+    bind(unsupported<Phaser>())
+    bind(unsupported<Semaphore>())
+    bind(unsupported<Exchanger<*>>())
+    bind(unsupported<SynchronousQueue<*>>())
 
     // Gradle Scripts
     bind(unsupported<GradleScript>(" Gradle script object references"))

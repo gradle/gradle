@@ -478,7 +478,15 @@ An explicit value will override `org.gradle.parallel` in this context.
 _Default is the value of `org.gradle.parallel`._
 
 `org.gradle.unsafe.isolated-projects=(true,false)`::
-Enables project isolation, which enables configuration caching.
+
+Enables <<isolated_projects.adoc#isolated_projects,Isolated Projects>>.
++
+_Default is `false`._
+
+`org.gradle.unsafe.isolated-projects.diagnostics=(true,false)`  since-gradle-label:9.6.0[]::
+
+Enables <<isolated_projects.adoc#sec:diagnostics_mode,Diagnostics mode>> for Isolated Projects, which runs project configuration sequentially to surface violations across all projects in a deterministic manner.
+Requires <<isolated_projects.adoc#sec:enable,Isolated Projects>> to be enabled.
 +
 _Default is `false`._
 

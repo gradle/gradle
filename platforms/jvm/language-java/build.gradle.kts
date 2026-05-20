@@ -56,9 +56,9 @@ dependencies {
     implementation(projects.toolingApi)
 
     implementation(libs.commonsLang)
-    implementation(libs.ant)
     implementation(libs.commonsCompress)
     implementation(libs.guava)
+    implementation(libs.plexusUtils)
 
     runtimeOnly(projects.javaCompilerPlugin)
 

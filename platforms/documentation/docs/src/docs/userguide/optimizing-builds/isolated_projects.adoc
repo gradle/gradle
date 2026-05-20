@@ -46,6 +46,9 @@ The feature will enter incubation once Gradle's core has stronger support for th
 
 While the feature is experimental, notable changes are documented here rather than in release notes:
 
+* Gradle 9.6.0
+** Introduced <<sec:diagnostics_mode,Diagnostics mode>> that runs all of configuration sequentially to surface every Isolated Projects violation in a single invocation.
+
 * Gradle 9.4.0
 ** Isolated Projects violations are now deduplicated, making the Configuration Cache HTML reports significantly smaller.
 
@@ -457,6 +460,45 @@ org.gradle.unsafe.isolated-projects=true
 If you have never enabled the feature in the build before, it's likely that the build is not compatible and contains Isolated Projects <<sec:constraint_violations,constraint violations>>.
 In that case the build will fail, and one or more violations will be shown in the error message.
 
+[[sec:diagnostics_mode]]
+=== Diagnostics mode
+
+_Diagnostics_ mode is an *opt-in* mode that helps you discover Isolated Projects <<sec:constraint_violations,constraint violations>> more efficiently during migration.
+It runs configuration of projects *sequentially*, which allows the build to safely continue even after an IP violation is detected.
+
+Enable _Diagnostics_ mode by setting `org.gradle.unsafe.isolated-projects.diagnostics=true` in `gradle.properties`, or by passing it on the command line alongside `-Dorg.gradle.unsafe.isolated-projects=true`:
+
+[source,bash]
+----
+$ ./gradlew help \
+    -Dorg.gradle.unsafe.isolated-projects=true \
+    -Dorg.gradle.unsafe.isolated-projects.diagnostics=true
+----
+
+Compared to default Isolated Projects behavior, _Diagnostics_ mode disables several optimizations to maximize the completeness and consistency of the violation reporting:
+
+* Project configuration runs *sequentially* instead of in parallel.
+* Configuration Cache store runs *sequentially*.
+* Per-project model reuse across builds is *disabled*, so every model is rebuilt after an input change.
+* All projects are configured, ignoring any configure-on-demand setting.
+
+This mode is intended to be used during the migration or to compare against the default Isolated Projects behavior when investigating a discrepancy.
+Because parallelism and caching are deliberately disabled, builds running in this mode will be slower.
+For these reasons, we generally don't advise enabling this mode persistently or committing it to version control.
+
+[NOTE]
+====
+Configuration Cache reuse is not affected by this mode.
+A cache entry is stored and can be reused only when the invocation is violation-free.
+To re-exercise configuration, change a build input as you would normally.
+====
+
+_Diagnostics_ mode does not change which patterns count as violations.
+A build that is clean under Isolated Projects is also clean under _Diagnostics_ mode.
+
+Also, if a diagnostic run is free of violation, it doesn't mean that the entire build is guaranteed to be fully compatible with Isolated Projects.
+While the configuration of all projects is ensured, violations can hide behind additional layers of laziness, such as lazy configuration of tasks.
+
 [[sec:ignore_violations]]
 === Temporarily ignoring violations
 
@@ -501,11 +543,18 @@ It will also not prevent new incompatibilities being accidentally added to your 
 
 This section describes how to start making your build compatible with Isolated Projects.
 
-1. Run `./gradlew help -Dorg.gradle.unsafe.isolated-projects=true` to get the lay of the land
+1. Learn about incompatibilities in basic workflows
 +
-Running the help task makes Gradle configure all projects.
-This way Gradle can detect Isolated Projects violations that are present in any workflow and should be addressed first.
-There can be more violations hidden by laziness, such as in the task configuration logic, but those can be addressed later.
+Run the `help` task with Isolated Projects in the <<sec:diagnostics_mode,Diagnostics mode>>:
++
+[source,bash]
+----
+$ ./gradlew help \
+    -Dorg.gradle.unsafe.isolated-projects=true \
+    -Dorg.gradle.unsafe.isolated-projects.diagnostics=true
+----
++
+This way Gradle can detect Isolated Projects violations that are present in virtually any workflow and should be addressed first.
 +
 You can find the Isolated Projects violations in the Configuration Cache HTML report.
 Use the report to pinpoint the incompatible pieces of build logic and plugins.
@@ -519,6 +568,27 @@ It is best to report the incompatibilities as soon as possible so the plugin mai
 +
 Remember that Isolated Projects violations only detect concrete instances of the problem, e.g. one specific project touching some mutable state of another.
 It might not be enough to replace one API call with another to address the problem.
+
+4. Migrate the IDE sync workflow
++
+For IDE sync, the feature flag and <<sec:diagnostics_mode,Diagnostics mode>> must be enabled in the `gradle.properties` file to take effect.
++
+[source,properties]
+----
+org.gradle.unsafe.isolated-projects=true
+org.gradle.unsafe.isolated-projects.diagnostics=true
+----
++
+The IDE sync might exercise other code paths in the build logic or plugins, surfacing new violations that need to be addressed.
++
+Remember to disable _Diagnostics_ mode once the violations are addressed to ensure you are getting the performance improvements.
+
+5. Migrate other workflows
++
+Use the same approach for other scenarios, such as sanity checks and tests.
++
+You may observe different violations depending on which tasks you run.
+This is expected, since incompatible build logic can hide behind lazy task configuration.
 
 [[sec:migration_strategies]]
 === Build-logic refactoring strategies

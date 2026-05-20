@@ -45,7 +45,6 @@ import org.gradle.api.artifacts.ResolvableDependencies;
 import org.gradle.api.artifacts.ResolvedConfiguration;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.result.ResolutionResult;
-import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.capabilities.Capability;
@@ -66,6 +65,7 @@ import org.gradle.api.internal.artifacts.dependencies.DependencyConstraintIntern
 import org.gradle.api.internal.artifacts.ivyservice.ResolutionParameters;
 import org.gradle.api.internal.artifacts.ivyservice.TypedResolveException;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results.VisitedGraphResults;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.GraphStructure;
 import org.gradle.api.internal.artifacts.resolver.DefaultResolutionOutputs;
 import org.gradle.api.internal.artifacts.resolver.ResolutionAccess;
 import org.gradle.api.internal.artifacts.resolver.ResolutionOutputsInternal;
@@ -85,7 +85,6 @@ import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.TaskDependency;
-import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
@@ -135,7 +134,6 @@ import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 import static org.gradle.api.internal.artifacts.configurations.ConfigurationInternal.InternalState.UNRESOLVED;
-import static org.gradle.api.internal.artifacts.result.DefaultResolvedComponentResult.eachElement;
 import static org.gradle.util.internal.ConfigureUtil.configure;
 
 /**
@@ -750,12 +748,14 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         }
 
         assertThatConsistentResolutionIsPropertyConfigured();
-        ResolvedComponentResult root = consistentResolutionSource.getIncoming().getResolutionResult().getRoot();
+        ResolverResults consistentResolutionResults = consistentResolutionSource.getResolutionAccess().getResults().getValue();
+        GraphStructure structure = consistentResolutionResults.getVisitedGraph().getGraphStructureSource().get();
 
-        ImmutableList.Builder<ResolutionParameters.ModuleVersionLock> locks = ImmutableList.builder();
-        eachElement(root, component -> {
-            if (component.getId() instanceof ModuleComponentIdentifier) {
-                ModuleComponentIdentifier moduleId = (ModuleComponentIdentifier) component.getId();
+        GraphStructure.Components components = structure.components();
+        int numComponents = components.count();
+        ImmutableList.Builder<ResolutionParameters.ModuleVersionLock> locks = ImmutableList.builderWithExpectedSize(numComponents);
+        for (int i = 0; i < numComponents; i++) {
+            if (components.id(i) instanceof ModuleComponentIdentifier moduleId) {
                 locks.add(new ResolutionParameters.ModuleVersionLock(
                     moduleId.getModuleIdentifier(),
                     moduleId.getVersion(),
@@ -763,7 +763,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
                     true
                 ));
             }
-        }, Actions.doNothing(), new HashSet<>());
+        }
         return locks.build();
     }
 
@@ -1762,6 +1762,11 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     @Override
     public ResolutionHost getResolutionHost() {
         return resolutionAccess.getHost();
+    }
+
+    @Override
+    public ResolutionAccess getResolutionAccess() {
+        return resolutionAccess;
     }
 
     private static class DefaultResolutionHost implements ResolutionHost {

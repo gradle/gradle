@@ -22,6 +22,7 @@ class EclipseLinkedResourceIntegrationTest extends AbstractEclipseIntegrationSpe
         given:
         multiProjectWithSiblingSourceFolders()
         when:
+        expectTaskDeprecations("eclipse", "eclipseClasspath", "eclipseJdt", "eclipseProject")
         run("eclipse")
         then:
 
@@ -37,28 +38,28 @@ class EclipseLinkedResourceIntegrationTest extends AbstractEclipseIntegrationSpe
 
     def multiProjectWithSiblingSourceFolders() {
         settingsFile.text = """
-rootProject.name = 'multiprojectroot'
-include 'projectA'
-include 'projectB'
-include 'projectC'
+            rootProject.name = 'multiprojectroot'
+            include 'projectA'
+            include 'projectB'
+            include 'projectC'
 
-"""
+        """
         buildFile.text = """
-allprojects {
-    apply plugin: 'java'
-    apply plugin: 'eclipse'
-}
-
-configure(project(":projectA")){
-    sourceSets {
-        main {
-            java {
-                srcDirs = ['src', '../projectB/src', '../projectB/sibling-source', '../projectC/source-c', '../src']
+            allprojects {
+                apply plugin: 'java'
+                apply plugin: 'eclipse'
             }
-        }
-    }
-}
-"""
+
+            configure(project(":projectA")){
+                sourceSets {
+                    main {
+                        java {
+                            srcDirs = ['src', '../projectB/src', '../projectB/sibling-source', '../projectC/source-c', '../src']
+                        }
+                    }
+                }
+            }
+        """
         file("projectA/src").mkdirs()
         file("projectB/src").mkdirs()
         file("projectB/sibling-source").mkdirs()
@@ -81,6 +82,7 @@ configure(project(":projectA")){
         '''.stripIndent()
 
         when:
+        expectTaskDeprecations("eclipse", "eclipseProject")
         run 'eclipse'
 
         then:
@@ -88,6 +90,7 @@ configure(project(":projectA")){
         project.assertHasLinkedResources('README.md')
 
         and:
+        expectTaskDeprecations("eclipse", "eclipseProject")
         run 'eclipse'
 
         then:

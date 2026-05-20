@@ -44,45 +44,46 @@ class EclipseMultiModuleIntegrationTest extends AbstractIdeIntegrationTest {
         def settingsFile = file("settings.gradle")
         createDirs("api", "shared", "shared/api", "shared/model", "services", "services/utilities", "util", "contrib", "contrib/services", "contrib/services/util")
         settingsFile << """
-rootProject.name = 'root'
-include 'api'
-include 'shared:api', 'shared:model'
-include 'services:utilities'
-include 'util'
-include 'contrib:services:util'
+            rootProject.name = 'root'
+            include 'api'
+            include 'shared:api', 'shared:model'
+            include 'services:utilities'
+            include 'util'
+            include 'contrib:services:util'
 
         """
 
         def buildFile = file("build.gradle")
         buildFile << """
-allprojects {
-    apply plugin: 'java'
-    apply plugin: 'eclipse'
-}
+            allprojects {
+                apply plugin: 'java'
+                apply plugin: 'eclipse'
+            }
 
-project(':api') {
-    dependencies {
-        implementation project(':shared:api'), project(':shared:model')
-    }
-}
+            project(':api') {
+                dependencies {
+                    implementation project(':shared:api'), project(':shared:model')
+                }
+            }
 
-project(':shared:model') {
-    eclipse {
-        project.name = 'very-cool-model'
-    }
-}
+            project(':shared:model') {
+                eclipse {
+                    project.name = 'very-cool-model'
+                }
+            }
 
-project(':services:utilities') {
-    dependencies {
-        implementation project(':util'), project(':contrib:services:util'), project(':shared:api'), project(':shared:model')
-    }
-    eclipse {
-        project.name = 'util'
-    }
-}
-"""
+            project(':services:utilities') {
+                dependencies {
+                    implementation project(':util'), project(':contrib:services:util'), project(':shared:api'), project(':shared:model')
+                }
+                eclipse {
+                    project.name = 'util'
+                }
+            }
+        """
 
         //when
+        expectTaskDeprecations("eclipse", "eclipseClasspath", "eclipseJdt", "eclipseProject")
         executer.withTasks("eclipse").run()
 
         //then
@@ -142,6 +143,7 @@ project(':services:utilities') {
         """
 
         //when
+        expectTaskDeprecations("eclipse", "eclipseClasspath", "eclipseJdt", "eclipseProject")
         executer.withTasks("eclipse").run()
 
         //then
@@ -179,6 +181,7 @@ project(':services:utilities') {
         """
 
         //when
+        expectTaskDeprecations("eclipse", "eclipseClasspath", "eclipseJdt", "eclipseProject")
         executer.withTasks("eclipse").run()
 
         //then

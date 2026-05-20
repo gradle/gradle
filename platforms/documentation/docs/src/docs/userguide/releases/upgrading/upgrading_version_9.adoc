@@ -152,6 +152,30 @@ repositories {
 =====
 ====
 
+[[ide_task_deprecation]]
+==== Deprecation of file generation tasks of IDE plugins
+
+The <<idea_plugin.adoc#idea_plugin,`idea`>> and <<eclipse_plugin.adoc#eclipse_plugin,`eclipse`>> plugins contribute tasks for generating IDE specific files on disk.
+These tasks were originally the primary way to set up a project for an IDE.
+However, all modern IDEs now have built-in Gradle integration (IntelliJ IDEA's Gradle import, Eclipse Buildship, etc.) and can import Gradle projects directly without needing these generated files.
+
+We are deprecating these file generation tasks:
+
+* `idea` / `ideaProject` / `ideaModule` / `ideaWorkspace` (generate `.ipr`, `.iml`, `.iws` files)
+* `eclipse` / `eclipseProject` / `eclipseClasspath` / `eclipseJdt` / `eclipseWtpComponent` / `eclipseWtpFacet` (generate `.project`, `.classpath`, `.settings/` files)
+* `openIdea` (generates files and opens IDEA)
+* associated `clean*` tasks
+
+In addition to the tasks, certain model properties that only affect the generated files are also deprecated.
+These include `idea.module.iml { ... }`, `idea.project.ipr { ... }`, `idea.workspace { ... }`, `eclipse.wtp { ... }`, and the `file { ... }` merging hooks on `EclipseJdt`.
+
+The model properties that affect how IDEs understand your project (source directories, language levels, dependency scopes, etc.) are _not_ deprecated.
+When you apply the plugins and configure the `idea { ... }` or `eclipse { ... }` blocks in your build scripts, you can customize how your IDE understands your project.
+These customizations are picked up automatically by the Gradle integration built into IDEs.
+This functionality will continue to work unchanged.
+
+NOTE: Not all the functionality of the plugins is being deprecated, *only* the tasks and some model properties strictly related to them.
+
 [[dependency_project_notation]]
 ==== Deprecation of using Project objects as dependency notation
 
@@ -658,6 +682,18 @@ Several internal classes used by Android Gradle Plugin (AGP) 8.x have been chang
 Since AGP 8.x relied on these internal classes directly, it is no longer compatible with Gradle 9.6 and later.
 
 To resolve this, upgrade to AGP 9.x, which only uses the public Gradle API and fully supports Gradle 9.6.
+
+[[concurrency_primitives_prohibited_by_cc]]
+==== Concurrency primitives can no longer be serialized by the Configuration Cache
+
+Configuration Cache serialization now reports a clear problem when attempting to serialize most of Java's standard concurrency primitives.
+This includes classes and interfaces from the `java.util.concurrent` and `java.util.concurrent.locks` packages, such as `ReentrantLock`, `CountDownLatch`, and `SynchronousQueue`.
+Because the Configuration Cache enforces isolation between tasks, these primitives cannot be used correctly for cross-task synchronization.
+Allowing serialization would silently give each task its own independent instance (for example, its own lock), so cross-task coordination would never actually occur — that is the bug this error prevents.
+
+Previously, attempts to serialize these types could fail with exceptions such as `java.lang.reflect.InaccessibleObjectException`, without clearly indicating the underlying issue.
+If your build requires shared, synchronized state, use <<build_services.adoc#build_services, shared build services>>, which are explicitly designed for safe coordination between tasks.
+For a complete list of types that are incompatible with the Configuration Cache, see the <<configuration_cache_requirements.adoc#config_cache:requirements:disallowed_types, documentation>>.
 
 [[v9_upgrade_to_pmd_7_24_0]]
 ==== Upgrade to PMD 7.24.0
