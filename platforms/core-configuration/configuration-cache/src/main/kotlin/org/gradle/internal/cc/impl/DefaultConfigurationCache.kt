@@ -148,7 +148,7 @@ class DefaultConfigurationCache internal constructor(
      * list of identity paths it must run after / be finalized by. Recorded into
      * the superset index so a candidate entry can be rejected at lookup time
      * when pruning would dangle one of these edges across the requested/dropped
-     * boundary (see `ConfigurationCacheRepository.findCompatibleEntry`).
+     * boundary (see `ConfigurationCacheRepository.findCacheEntry`).
      */
     private
     var mustRunAfterEdges: Map<String, List<String>> = emptyMap()
@@ -184,7 +184,7 @@ class DefaultConfigurationCache internal constructor(
         // Bare-vs-absolute ambiguity is handled inside the index via verbatim CLI
         // matching — no canonicalization needed here.
         if (startParameter.requestedTaskNames.isEmpty()) return@lazy null
-        cacheRepository.findCompatibleEntry(environmentKey, startParameter.requestedTaskNames)
+        cacheRepository.findCacheEntry(environmentKey, startParameter.requestedTaskNames)
     }
 
     private
@@ -492,7 +492,7 @@ class DefaultConfigurationCache internal constructor(
             classLoaderScopes.commit(fileFor(StateType.ClassLoaderScopes))
         }
         updateMostRecentEntry(entryId)
-        cacheRepository.recordEntry(
+        cacheRepository.recordEnvironmentKeyForCacheKey(
             environmentKey,
             cacheKey.string,
             startParameter.requestedTaskNames,

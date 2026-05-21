@@ -94,7 +94,7 @@ class ConfigurationCacheRepository(
      * @return the chosen entry's full key, stored CLI tokens, and stored entry-task
      *     identity paths, or `null` if no compatible entry exists
      */
-    fun findCompatibleEntry(
+    fun findCacheEntry(
         environmentKey: ConfigurationCacheEnvironmentKey,
         requestedCliTokens: List<String>
     ): CompatibleEntry? {
@@ -141,8 +141,10 @@ class ConfigurationCacheRepository(
      *  - pruning would leave a retained task pointing at a dropped task through
      *    `mustRunAfter` / finalizer (see [SupersetIndexLookup.hasDanglingMustRunAfter]);
      *  - pruning would drop a task whose execution has filesystem side effects beyond
-     *    its snapshotted outputs (currently: any `Delete` task — see
-     *    [SupersetIndexLookup.hasSideEffectingDroppedTask]).
+     *    its snapshotted outputs — any task declaring a `@Destroys`-annotated property,
+     *    detected via `TypeMetadataStore` annotation lookup. `Delete` is the canonical
+     *    case (its `getTargetFiles()` is `@Destroys`); see
+     *    [SupersetIndexLookup.hasSideEffectingDroppedTask].
      * <p>
      * The dropped identity-path set is derived from the candidate's `cliTokens`
      * → `entryTaskIdentityPaths` positional pairing — CLI tokens not present in
@@ -186,7 +188,7 @@ class ConfigurationCacheRepository(
                     when {
                         staleDir -> "entry directory missing on disk"
                         dangles -> "pruning would dangle a mustRunAfter/finalizer edge"
-                        sideEffects -> "pruning would drop a side-effecting (Delete) task: ${chosen.sideEffectingTaskIdentityPaths.intersect(dropped)}"
+                        sideEffects -> "pruning would drop a task with a @Destroys-annotated property: ${chosen.sideEffectingTaskIdentityPaths.intersect(dropped)}"
                         else -> "unexpected"
                     }
                 )
@@ -212,7 +214,10 @@ class ConfigurationCacheRepository(
 
     /**
      * Records a stored cache entry under [environmentKey] so future builds with
-     * overlapping task lists can discover it via [findCompatibleEntry].
+     * overlapping task lists can discover it via [findCacheEntry]. Conceptually
+     * this associates an environment key (the lookup scope) with a cache key
+     * (the on-disk entry name) plus the metadata needed to evaluate
+     * superset-match safety gates at lookup time.
      * <p>
      * Upserts by [fullKey]: an existing index row with the same `fullKey` is
      * replaced (it would have been written by a prior store generation under the
@@ -220,7 +225,7 @@ class ConfigurationCacheRepository(
      * flag determines whether the entry will be eligible for strict-superset
      * matches later — `true` makes the entry exact-match only.
      * <p>
-     * Mirrors [findCompatibleEntry]'s args-guard: if any token in [cliTokens]
+     * Mirrors [findCacheEntry]'s args-guard: if any token in [cliTokens]
      * starts with `-`, the entry is not recorded (no harm — the entry just won't
      * be findable as a superset later).
      * <p>
@@ -240,18 +245,20 @@ class ConfigurationCacheRepository(
      *     matching (see [SupersetIndexLookup.selectBestMatch] rule 2)
      * @param mustRunAfterEdges mustRunAfter / finalizer edges between scheduled
      *     tasks (source identity-path → list of target identity-paths). Used by
-     *     [findCompatibleEntry] to reject this entry from strict-superset matches
+     *     [findCacheEntry] to reject this entry from strict-superset matches
      *     whose pruning would dangle one of these edges
      * @param dependencyEdges `dependencySuccessors` edges between scheduled tasks
      *     (source identity-path → list of identity-paths the source depends on).
      *     Retained for diagnostics and forward-compat
      * @param sideEffectingTaskIdentityPaths identity paths of scheduled tasks whose
      *     execution has filesystem side effects beyond their snapshotted outputs —
-     *     currently, instances of `org.gradle.api.tasks.Delete`. Used by
-     *     [findCompatibleEntry] to reject this entry from strict-superset matches
-     *     whose pruning would drop one of these tasks
+     *     tasks declaring a `@Destroys`-annotated property, detected via
+     *     `TypeMetadataStore` annotation lookup. `Delete` is the canonical case
+     *     (its `getTargetFiles()` is `@Destroys`). Used by [findCacheEntry] to
+     *     reject this entry from strict-superset matches whose pruning would drop
+     *     one of these tasks
      */
-    fun recordEntry(
+    fun recordEnvironmentKeyForCacheKey(
         environmentKey: ConfigurationCacheEnvironmentKey,
         fullKey: String,
         cliTokens: List<String>,
@@ -277,6 +284,27 @@ class ConfigurationCacheRepository(
         })
     }
 
+    /**
+     * Wraps [SupersetIndexLookup.selectBestMatch] with an LRU tie-break on the entry
+     * directory's last-access time when several smallest-superset candidates have the
+     * same `cliTokens.size`.
+     * <p>
+     * `selectBestMatch` is a pure selection rule and intentionally doesn't know about
+     * the cache directory or the `FileAccessTimeJournal` — among equal-sized supersets
+     * it returns the first encountered, which is deterministic but not load-aware.
+     * That's where this function steps in: if the chosen variant has same-size peers
+     * that also host the request as a subsequence (and pass the `taskGraphAccessed` /
+     * `hasOneToOneCliMapping` eligibility filters), prefer whichever of them was
+     * accessed most recently. Without this, repeated subset requests can pin an old
+     * entry while a more-recently-used same-size superset gets cleaned up by the
+     * daily LRU sweep.
+     * <p>
+     * Exact matches bypass the tie-break path entirely — no pruning happens, and the
+     * candidate selected by `selectBestMatch` is the only valid choice. The
+     * eligibility re-filter on ties matches `selectBestMatch`'s strict-superset
+     * filters, so the LRU pick can't drift to a flagged or non-1:1 variant that
+     * would be unsafe to prune.
+     */
     private
     fun pickWithTieBreak(
         variants: List<IndexedVariant>,
@@ -286,9 +314,6 @@ class ConfigurationCacheRepository(
         val requestedDistinct = requested.distinct()
         val isExact = chosen.cliTokens == requestedDistinct
         if (isExact) return chosen
-        // For tied smallest-supersets, prefer most-recently-accessed entry. Tied
-        // candidates must also host the request as a subsequence (and be 1:1
-        // mapped) so the LRU pick doesn't drift to an unsafe-to-prune variant.
         val tieSize = chosen.cliTokens.size
         return variants
             .filter { v ->

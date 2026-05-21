@@ -68,7 +68,7 @@ object WorkGraphPruner {
         // BFS forward from the requested entries through real dependency edges only.
         // Entries with mustRunAfter / finalizer relationships that cross the
         // requested/dropped boundary are filtered out at lookup time
-        // (see `ConfigurationCacheRepository.findCompatibleEntry`), so by the time
+        // (see `ConfigurationCacheRepository.findCacheEntry`), so by the time
         // we reach this code the pruning is guaranteed to be safe under
         // dependency-graph semantics.
         val retained = HashSet<Node>()
