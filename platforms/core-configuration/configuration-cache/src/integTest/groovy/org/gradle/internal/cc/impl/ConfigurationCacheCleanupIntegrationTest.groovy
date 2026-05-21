@@ -70,7 +70,7 @@ class ConfigurationCacheCleanupIntegrationTest
 
         and: 'the superset-lookup index survives cleanup (metadata, not a cache entry)'
         def remaining = configurationCacheDir.list() as Set
-        def expected = (recent*.name + ['gc.properties', 'configuration-cache.lock', 'index']) as Set
+        def expected = (recent*.name + ['gc.properties', 'configuration-cache.lock', 'superset-index']) as Set
         expected == remaining
     }
 

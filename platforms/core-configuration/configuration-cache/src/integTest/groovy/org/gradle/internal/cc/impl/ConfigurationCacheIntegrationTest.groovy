@@ -343,10 +343,10 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
         configurationCache.assertStateStored()
 
         when:
-        // Delete every entry directory under the CC root, but keep the index/ dir.
+        // Delete every entry directory under the CC root, but keep the superset-index/ dir.
         def ccRoot = new File(testDirectory, ".gradle/configuration-cache")
         ccRoot.eachDir { dir ->
-            if (dir.name != "index") {
+            if (dir.name != "superset-index") {
                 dir.deleteDir()
             }
         }

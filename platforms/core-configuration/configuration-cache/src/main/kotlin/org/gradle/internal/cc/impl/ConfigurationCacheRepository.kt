@@ -324,7 +324,7 @@ class ConfigurationCacheRepository(
 
     private
     fun indexFileFor(environmentKey: ConfigurationCacheEnvironmentKey): File =
-        cache.baseDir.resolve(INDEX_DIR_NAME).resolve("${environmentKey.string}.bin")
+        cache.baseDir.resolve(SUPERSET_INDEX_DIR_NAME).resolve("${environmentKey.string}.bin")
 
     interface CleanupContext {
         val eligibleFilesFinder: FilesFinder
@@ -562,7 +562,7 @@ class ConfigurationCacheRepository(
         val delegate = SingleDepthFilesFinder(cleanupDepth)
         return object : FilesFinder {
             override fun find(baseDir: File, filter: java.io.FileFilter) =
-                delegate.find(baseDir, filter).filter { it.name != INDEX_DIR_NAME }
+                delegate.find(baseDir, filter).filter { it.name != SUPERSET_INDEX_DIR_NAME }
         }
     }
 
@@ -604,7 +604,7 @@ class ConfigurationCacheRepository(
 
     private companion object {
         private val logger = Logging.getLogger(ConfigurationCacheRepository::class.java)
-        private const val INDEX_DIR_NAME = "index"
+        private const val SUPERSET_INDEX_DIR_NAME = "superset-index"
     }
 }
 
