@@ -257,6 +257,9 @@ class EdgeState implements DependencyGraphEdge {
 
             // A constraint by definition attaches to any other nodes in the component it constrains.
             for (NodeState node : targetComponent.getNodes()) {
+                while (node.getReplacement() != null) {
+                    node = node.getReplacement();
+                }
                 if (node.isSelected() && !node.isRoot()) {
                     targetNodes.add(node);
                 }
@@ -436,33 +439,7 @@ class EdgeState implements DependencyGraphEdge {
     }
 
     @Override
-    public long getTargetComponentId() {
-        NodeState targetNode = getFirstTargetNode();
-        if (targetNode != null) {
-            return targetNode.getComponent().getResultId();
-        }
-        throw new IllegalStateException("No target component for edge " + this);
-    }
-
-    @Override
-    public boolean isTargetVirtualPlatform() {
-        NodeState targetNode = getFirstTargetNode();
-        if (targetNode != null) {
-            return targetNode.getComponent().getModule().isVirtualPlatform();
-        }
-        return false;
-    }
-
-    @Override
-    public long getTargetVariantId() {
-        NodeState targetNode = getFirstTargetNode();
-        if (targetNode != null) {
-            return targetNode.getNodeId();
-        }
-        throw new IllegalStateException("No target variant for edge " + this);
-    }
-
-    public Collection<NodeState> getTargetNodes() {
+    public List<NodeState> getTargetNodes() {
         return targetNodes;
     }
 

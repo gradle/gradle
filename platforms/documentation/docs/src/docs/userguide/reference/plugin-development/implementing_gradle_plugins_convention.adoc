@@ -25,6 +25,7 @@ They can apply and configure plugins, create new tasks and extensions, set depen
 
 Convention plugins are preferred over `allprojects {}` / `subprojects {}` blocks.
 
+[[creating_a_convention_plugin]]
 == Creating a convention plugin
 
 Convention plugins are typically placed in either:
@@ -34,6 +35,7 @@ Convention plugins are typically placed in either:
 
 Any `.gradle.kts` (or `.gradle`) script file in `src/main/kotlin/` or `src/main/groovy/` of that plugin build becomes a precompiled script plugin, and its file name defines the plugin ID.
 
+[[example_of_a_convention_plugin]]
 == Example of a convention plugin
 
 Convention plugins really shine when you want to capture *organization-wide defaults* once, and apply them consistently across many subprojects.

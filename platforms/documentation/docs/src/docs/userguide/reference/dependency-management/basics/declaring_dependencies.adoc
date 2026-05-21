@@ -63,6 +63,7 @@ Note:
 
 There are three kinds of dependencies: module dependencies, project dependencies, and file dependencies.
 
+[[sec:module_dependencies]]
 === 1. Module dependencies
 
 Module dependencies are the most common dependencies.
@@ -73,6 +74,7 @@ include::sample[dir="snippets/reference/dependency-management/basics/catalogs-se
 include::sample[dir="snippets/reference/dependency-management/basics/catalogs-settings/groovy",files="build.gradle[tags=use_catalog_equiv]"]
 ====
 
+[[sec:project_dependencies_declaring]]
 === 2. Project dependencies
 
 Project dependencies allow you to declare dependencies on other projects within the same build.
@@ -85,6 +87,7 @@ include::sample[dir="snippets/reference/dependency-management/basics/declaringDe
 include::sample[dir="snippets/reference/dependency-management/basics/declaringDependencies-projectDependencies/groovy/web-service",files="build.gradle[tags=project-dependencies]"]
 ====
 
+[[sec:file_dependencies]]
 === 3. File dependencies
 
 In some projects, you might not rely on binary repository products like link:https://jfrog.com/artifactory/[JFrog Artifactory] or link:https://www.sonatype.com/products/sonatype-nexus-repository[Sonatype Nexus] for hosting and resolving external dependencies.
@@ -103,6 +106,7 @@ include::sample[dir="snippets/reference/dependency-management/basics/externalDep
 
 WARNING: It is recommended to use project dependencies or external dependencies over file dependencies.
 
+[[sec:looking_at_an_example]]
 == Looking at an example
 
 Let's imagine an example for a Java application which uses link:https://github.com/google/guava[Guava], a set of core Java libraries from Google:

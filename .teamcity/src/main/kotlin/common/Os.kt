@@ -35,7 +35,7 @@ enum class Os(
     val perfTestWorkingDir: String = "%teamcity.build.checkoutDir%",
     val perfTestJavaVendor: JvmVendor = JvmVendor.OPENJDK,
     val buildJavaVersion: JvmVersion = BuildToolBuildJvm.version,
-    val perfTestJavaVersion: JvmVersion = JvmVersion.JAVA_21,
+    val perfTestJavaVersion: JvmVersion = JvmVersion.JAVA_17,
     val defaultArch: Arch = Arch.AMD64,
 ) {
     LINUX(

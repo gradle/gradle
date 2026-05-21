@@ -17,6 +17,7 @@
 
 After constructing a dependency graph, Gradle performs *artifact resolution*, mapping the resolved graph to a set of artifacts that will be downloaded during the build.
 
+[[sec:artifacts]]
 == Artifacts
 
 An *artifact* is a file that is produced or consumed during the build process.
@@ -175,6 +176,7 @@ For example, what if the metadata for `org.jetbrains.kotlin:kotlin-stdlib:1.8.10
 
 How would Gradle know which file to download?
 
+[[sec:artifact_sets]]
 == Artifact Sets
 
 An *artifact set* is a group of *artifacts* that belong to a single *variant* of a *module*.
@@ -236,6 +238,7 @@ If no *artifact sets* match the requested *attributes*, Gradle will attempt to c
 
 For more details on the *attribute* matching process, see the previous <<variant_aware_resolution.adoc#sec:understanding-variant-selection,section>>.
 
+[[sec:available_apis]]
 == Available APIs
 
 Gradle APIs can be used to influence the process of *artifact selection*.
@@ -255,6 +258,7 @@ NOTE: Files can also be accessed from the configuration's `ResolvedConfiguration
 However, these APIs are in maintenance mode and are discouraged for use in new development.
 These APIs perform artifact selection using the default attributes.
 
+[[sec:resolving_files]]
 ==== Resolving files
 
 To resolve files, we first define a task that accepts a `ConfigurableFileCollection` as input:
@@ -279,6 +283,7 @@ Running the `resolveConfiguration` task produces:
 include::{snippetsPath}/reference/dependency-management/advanced/performingResolution-artifactResolution/tests/resolve-files.out[]
 ----
 
+[[sec:resolving_artifacts]]
 ==== Resolving artifacts
 
 Instead of consuming the files directly from the implicit *artifact* selection process, we can consume the *artifacts*, which contain both the files and the metadata.
@@ -318,6 +323,7 @@ When you call a configuration's `getFiles()`, Gradle selects *artifacts* based o
 However, the  `ArtifactView` API is more flexible.
 It allows you to resolve *artifacts* from the graph with _custom_ *attributes*.
 
+[[sec:artifact_views]]
 === Artifact views
 
 An `ArtifactView` allows you to:

@@ -17,6 +17,7 @@
 
 This guide explains how to **prevent accidental dependency versions** due to Gradle's eager dependency resolution.
 
+[[sec:why_prevent_accidental_upgrades]]
 == Why Prevent Accidental Dependency Upgrades?
 
 When managing dependencies in Gradle, you may encounter situations where transitive dependencies cause **unexpected upgrades** to newer versions.
@@ -37,6 +38,7 @@ Running `./gradlew dependencies --configuration runtimeClasspath` showcases the 
 include::sample[dir="snippets/how-to/dependency-management/dependency-management/accidental-upgrades/tests",files="dependencies.out"]
 ====
 
+[[sec:enforce_strict_resolution]]
 == Option 1: Enforce Strict Dependency Resolution
 
 Gradle provides an option to **fail the build when a version conflict occurs**, ensuring that no unintended upgrades happen.
@@ -56,6 +58,7 @@ Running `./gradlew dependencies --configuration runtimeClasspath` showcases the 
 include::sample[dir="snippets/how-to/dependency-management/dependency-management/accidental-upgrades/tests",files="dependencies-fail.out"]
 ====
 
+[[sec:using_dependency_constraints]]
 == Option 2: Using Dependency Constraints
 
 If you have multiple dependencies that use a shared library, you can enforce a consistent version across all modules using <<dependency_constraints.adoc#dependency-constraints,**dependency constraints**>>:
@@ -73,6 +76,7 @@ Running `./gradlew dependencies --configuration runtimeClasspath` showcases the 
 include::sample[dir="snippets/how-to/dependency-management/dependency-management/accidental-upgrades/tests",files="dependencies-const.out"]
 ====
 
+[[sec:locking_dependencies]]
 == Option 3: Locking Dependencies to Specific Versions
 
 For a more robust solution, you can use <<dependency_locking.adoc#locking-versions,**dependency locking**>> to ensure Gradle resolves the same dependency versions consistently across builds.
@@ -93,6 +97,7 @@ Then, generate a lock file:
 
 This creates a `gradle.lockfile` that stores the exact dependency versions, preventing future upgrades unless explicitly updated.
 
+[[sec:prevent_upgrades_summary]]
 == Summary
 
 Gradle's optimistic dependency resolution may inadvertently upgrade dependencies, causing compatibility issues.

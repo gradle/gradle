@@ -32,6 +32,8 @@ import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.jspecify.annotations.Nullable;
 
+import java.util.List;
+
 /**
  * Dependency graph visitor that will build a {@link ResolutionResult} eagerly.
  * It is designed to be used during resolution for build dependencies.
@@ -70,27 +72,48 @@ public class InMemoryResolutionResultBuilder implements DependencyGraphVisitor {
             component.getResultId(),
             node.getMetadata().getAttributes(),
             node.getMetadata().getCapabilities(),
-            node.getMetadata().getDisplayName(),
+            node.getMetadata().getName(),
             externalVariantId
         );
 
         for (DependencyGraphEdge edge : node.getOutgoingEdges()) {
-            if (!edge.isTargetVirtualPlatform()) {
-                ModuleVersionResolveException failure = edge.getFailure();
-                if (failure == null) {
-                    builder.addSuccessfulEdge(
-                        edge.getRequested(),
-                        edge.isConstraint(),
-                        edge.getTargetVariantId()
-                    );
-                } else {
-                    builder.addFailedEdge(
-                        edge.getRequested(),
-                        edge.isConstraint(),
-                        edge.getReason(),
-                        failure
-                    );
+            ModuleVersionResolveException failure = edge.getFailure();
+            if (failure == null) {
+                List<? extends DependencyGraphNode> targetNodes = edge.getTargetNodes();
+                if (targetNodes.isEmpty()) {
+                    throw new IllegalStateException("Edge " + edge + " has no target nodes.");
                 }
+                if (edge.isConstraint()) {
+                    // Only write the first target node for constraints, as this is historical
+                    // behavior. Eventually, we should model constraints differently in the public
+                    // API so they do not report a target node at all, as constraints conceptually
+                    // only target components.
+                    DependencyGraphNode firstTargetNode = targetNodes.get(0);
+                    if (!firstTargetNode.getComponent().getModule().isVirtualPlatform()) {
+                        builder.addSuccessfulEdge(
+                            edge.getRequested(),
+                            true,
+                            firstTargetNode.getNodeId()
+                        );
+                    }
+                } else {
+                    for (DependencyGraphNode targetNode : targetNodes) {
+                        if (!targetNode.getComponent().getModule().isVirtualPlatform()) {
+                            builder.addSuccessfulEdge(
+                                edge.getRequested(),
+                                false,
+                                targetNode.getNodeId()
+                            );
+                        }
+                    }
+                }
+            } else {
+                builder.addFailedEdge(
+                    edge.getRequested(),
+                    edge.isConstraint(),
+                    edge.getReason(),
+                    failure
+                );
             }
         }
     }

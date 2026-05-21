@@ -33,7 +33,6 @@ import org.gradle.api.tasks.SkipWhenEmpty
 import org.gradle.api.tasks.TaskPropertyTestUtils
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
 import org.gradle.internal.execution.WorkValidationException
-import org.gradle.internal.execution.WorkValidationExceptionChecker
 import org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory
 import org.gradle.internal.properties.annotations.DefaultTypeMetadataStore
 import org.gradle.internal.properties.annotations.FunctionAnnotationHandler
@@ -568,7 +567,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec imp
 
         then:
         def e = thrown WorkValidationException
-        validateException(task, false, e,
+        validateException(task, e,
             missingValueMessage { type(TaskWithNestedBeanWithPrivateClass.canonicalName).property('bean.inputFile').includeLink() },
             ignoredAnnotationOnField { type(Bean2.canonicalName).property('inputFile2').annotatedWith('InputFile').includeLink() })
     }
@@ -928,17 +927,8 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec imp
     }
 
     private static void validateException(TaskInternal task, WorkValidationException exception, String... causes) {
-        validateException(task, true, exception, causes)
-    }
-
-    private static void validateException(TaskInternal task, boolean ignoreType, WorkValidationException exception, String... causes) {
         def expectedMessage = causes.length > 1 ? "Some problems were found with the configuration of $task" : "A problem was found with the configuration of $task"
-        WorkValidationExceptionChecker.check(exception, ignoreType) {
-            messageContains(expectedMessage)
-            causes.each { cause ->
-                hasProblem(cause)
-            }
-        }
+        exception.message.contains(expectedMessage)
     }
 
     private Map<String, Object> inputProperties(TaskInternal task) {

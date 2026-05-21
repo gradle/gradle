@@ -240,7 +240,7 @@ public class StreamingResolutionResultBuilder implements DependencyGraphVisitor 
 
         encoder.writeBoolean(adhoc);
         if (adhoc) {
-            encoder.writeString(node.getMetadata().getDisplayName());
+            encoder.writeString(node.getMetadata().getName());
             attributeContainerSerializer.write(encoder, node.getMetadata().getAttributes());
             capabilitySerializer.write(encoder, node.getMetadata().getCapabilities());
         } else {
@@ -256,37 +256,72 @@ public class StreamingResolutionResultBuilder implements DependencyGraphVisitor 
             }
         }
 
-        int size;
+        encoder.writeSmallInt(node.getOutgoingEdges().size());
+        for (DependencyGraphEdge dependency : node.getOutgoingEdges()) {
+            writeEdge(encoder, dependency);
+        }
+    }
+
+    private void writeEdge(Encoder encoder, DependencyGraphEdge edge) throws Exception {
+        ModuleVersionResolveException failure = edge.getFailure();
+        boolean constraint = edge.isConstraint();
+        if (failure == null) {
+            List<? extends DependencyGraphNode> targetNodes = edge.getTargetNodes();
+            if (targetNodes.isEmpty()) {
+                throw new IllegalStateException("Edge " + edge + " has no target nodes.");
+            }
+            if (constraint) {
+                writeConstraintEdge(encoder, edge);
+            } else {
+                writeHardEdge(encoder, edge);
+            }
+        } else {
+            encoder.writeSmallInt(-1);
+            encoder.writeBoolean(constraint);
+            componentSelectorSerializer.write(encoder, edge.getRequested());
+            reasonSerializer.write(encoder, edge.getReason());
+            failures.add(failure);
+        }
+    }
+
+    private void writeConstraintEdge(Encoder encoder, DependencyGraphEdge edge) throws Exception {
+        // Only write the first target node for constraints, as this is historical
+        // behavior. Eventually, we should model constraints differently in the public
+        // API so they do not report a target node at all, as constraints conceptually
+        // only target components.
+        DependencyGraphNode firstTargetNode = edge.getTargetNodes().get(0);
+        if (!mayHaveVirtualPlatforms || !firstTargetNode.getComponent().getModule().isVirtualPlatform()) {
+            encoder.writeSmallInt(1);
+            encoder.writeBoolean(true);
+            componentSelectorSerializer.write(encoder, edge.getRequested());
+            encoder.writeSmallLong(firstTargetNode.getNodeId());
+        } else {
+            encoder.writeSmallInt(0);
+        }
+    }
+
+    private void writeHardEdge(Encoder encoder, DependencyGraphEdge edge) throws Exception {
+        List<? extends DependencyGraphNode> targetNodes = edge.getTargetNodes();
+
+        int size = 0;
         if (mayHaveVirtualPlatforms) {
-            size = 0;
-            for (DependencyGraphEdge edge : node.getOutgoingEdges()) {
-                if (!edge.isTargetVirtualPlatform()) {
+            for (DependencyGraphNode targetNode : targetNodes) {
+                if (!targetNode.getComponent().getModule().isVirtualPlatform()) {
                     size++;
                 }
             }
         } else {
-            size = node.getOutgoingEdges().size();
+            size = targetNodes.size();
         }
-
         encoder.writeSmallInt(size);
-        for (DependencyGraphEdge dependency : node.getOutgoingEdges()) {
-            if (!mayHaveVirtualPlatforms || !dependency.isTargetVirtualPlatform()) {
-                writeEdge(encoder, dependency);
-            }
-        }
-    }
-
-    private void writeEdge(Encoder encoder, DependencyGraphEdge dependency) throws Exception {
-        componentSelectorSerializer.write(encoder, dependency.getRequested());
-        encoder.writeBoolean(dependency.isConstraint());
-        ModuleVersionResolveException failure = dependency.getFailure();
-        if (failure == null) {
-            encoder.writeBoolean(true);
-            encoder.writeSmallLong(dependency.getTargetVariantId());
-        } else {
+        if (size > 0) {
             encoder.writeBoolean(false);
-            reasonSerializer.write(encoder, dependency.getReason());
-            failures.add(failure);
+            componentSelectorSerializer.write(encoder, edge.getRequested());
+            for (DependencyGraphNode targetNode : targetNodes) {
+                if (!mayHaveVirtualPlatforms || !targetNode.getComponent().getModule().isVirtualPlatform()) {
+                    encoder.writeSmallLong(targetNode.getNodeId());
+                }
+            }
         }
     }
 
@@ -458,18 +493,18 @@ public class StreamingResolutionResultBuilder implements DependencyGraphVisitor 
             long nodeId = decoder.readSmallLong();
             long ownerId = decoder.readSmallLong();
 
-            String displayName;
+            String variantName;
             ImmutableAttributes attributes;
             ImmutableCapabilities rawCapabilities;
             long externalVariantId = -1;
             if (decoder.readBoolean()) {
-                displayName = decoder.readString();
+                variantName = decoder.readString();
                 attributes = attributeContainerSerializer.read(decoder);
                 rawCapabilities = capabilitySerializer.read(decoder);
             } else {
                 long instanceId = decoder.readSmallLong();
                 VariantGraphResolveState variant = graphElementStore.getVariant(instanceId);
-                displayName = variant.getMetadata().getDisplayName();
+                variantName = variant.getMetadata().getName();
                 attributes = attributeDesugaring.desugar(variant.getMetadata().getAttributes());
                 rawCapabilities = variant.getMetadata().getCapabilities();
 
@@ -483,7 +518,7 @@ public class StreamingResolutionResultBuilder implements DependencyGraphVisitor 
                 ownerId,
                 attributes,
                 rawCapabilities,
-                displayName,
+                variantName,
                 externalVariantId
             );
 
@@ -506,19 +541,12 @@ public class StreamingResolutionResultBuilder implements DependencyGraphVisitor 
         }
 
         private void readEdges(Decoder decoder, List<ModuleVersionResolveException> edgeFailures) throws Exception {
-            int size = decoder.readSmallInt();
-            for (int i = 0; i < size; i++) {
-                ComponentSelector selector = componentSelectorSerializer.read(decoder);
-                boolean constraint = decoder.readBoolean();
-                boolean success = decoder.readBoolean();
-                if (success) {
-                    long targetNodeId = decoder.readSmallLong();
-                    builder.addSuccessfulEdge(
-                        selector,
-                        constraint,
-                        targetNodeId
-                    );
-                } else {
+            int edges = decoder.readSmallInt();
+            for (int i = 0; i < edges; i++) {
+                int targetCount = decoder.readSmallInt();
+                if (targetCount == -1) {
+                    boolean constraint = decoder.readBoolean();
+                    ComponentSelector selector = componentSelectorSerializer.read(decoder);
                     ComponentSelectionReasonInternal reason = reasonSerializer.read(decoder);
                     builder.addFailedEdge(
                         selector,
@@ -526,6 +554,17 @@ public class StreamingResolutionResultBuilder implements DependencyGraphVisitor 
                         reason,
                         edgeFailures.get(failureIndex++)
                     );
+                } else if (targetCount != 0) {
+                    boolean constraint = decoder.readBoolean();
+                    ComponentSelector selector = componentSelectorSerializer.read(decoder);
+                    for (int j = 0; j < targetCount; j++) {
+                        long targetNodeId = decoder.readSmallLong();
+                        builder.addSuccessfulEdge(
+                            selector,
+                            constraint,
+                            targetNodeId
+                        );
+                    }
                 }
             }
         }

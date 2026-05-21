@@ -62,6 +62,10 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
     private buildState = Stub(BuildState) {
         getIdentityPath() >> Path.ROOT
     }
+    private projectIdentity = ProjectIdentity.forRootProject(
+        Path.ROOT,
+        "project"
+    )
     private project = Mock(ProjectInternal, name: "<project>") {
         identityPath(_) >> { String name ->
             Path.path(":project").child(name)
@@ -76,14 +80,12 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
             getDepth() >> 0
             getProjectPath() >> Path.path(":project")
             getOwner() >> buildState
+            getIdentity() >> projectIdentity
         }
         getServices() >> serviceRegistry
         getTaskDependencyFactory() >> TestFiles.taskDependencyFactory()
         getObjects() >> Stub(ObjectFactory)
-        getProjectIdentity() >> ProjectIdentity.forRootProject(
-            Path.ROOT,
-            "project"
-        )
+        getProjectIdentity() >> projectIdentity
     } as ProjectInternal
     private final crossProjectModelAccess = Mock(CrossProjectModelAccess)
     private container = new DefaultTaskContainerFactory(

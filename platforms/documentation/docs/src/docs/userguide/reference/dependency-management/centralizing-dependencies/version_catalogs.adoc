@@ -128,6 +128,7 @@ Each dash in the alias maps to a dot in the accessor, creating a nested group th
 |`libs.junit`
 |===
 
+[[sec:classifiers_artifact_types_and_capabilities]]
 === Classifiers, artifact types, and capabilities
 
 Version catalogs intentionally capture only dependency coordinates: `group`, `name`, and `version`.
@@ -261,6 +262,7 @@ Supported members of a version declaration are:
 - `reject`: the list of <<dependency_versions.adoc#sec:rejected-version,rejected versions>>
 - `rejectAll`: a boolean to reject all <<dependency_versions.adoc#sec:rejected-version,versions>>
 
+[[sec:libraries]]
 ==== Libraries
 
 Each library is mapped to a GAV coordinate: `group`, `artifact`, `version`.
@@ -337,6 +339,7 @@ include::sample[dir="snippets/reference/dependency-management/centralizing-depen
 
 WARNING: You cannot use a plugin declared in a version catalog in your settings file or settings plugin.
 
+[[sec:avoiding_subgroup_accessors]]
 === Avoiding subgroup accessors
 
 To avoid generating subgroup accessors, use camelCase notation:
@@ -363,6 +366,7 @@ include::sample[dir="snippets/reference/dependency-management/centralizing-depen
 include::sample[dir="snippets/reference/dependency-management/centralizing-dependencies/catalogs-asprovider/groovy",files="build.gradle[tags=use_version_asprovider]"]
 ====
 
+[[sec:reserved_keywords]]
 === Reserved keywords
 
 Certain keywords, like `extensions`, `class`, and `convention`, are reserved and cannot be used as aliases.
@@ -407,6 +411,7 @@ This offers the most flexibility but requires more effort.
 3. **Use the `version-catalog` plugin** — Publish the catalog as a Maven or Ivy artifact so it can be consumed like any other dependency.
 This is the best approach for organizations that need to distribute a catalog to many independent builds.
 
+[[sec:using_the_version_catalog_plugin]]
 === Using the `version-catalog` plugin
 
 The `version-catalog` plugin lets you publish a catalog as a Maven or Ivy artifact.
@@ -542,6 +547,7 @@ An organization-wide "platform" catalog is published as a Maven artifact and imp
 
 If none of these situations apply, a single catalog with clear naming conventions is simpler and avoids the version-sharing challenges described below.
 
+[[sec:sharing_versions_across_multiple_catalogs]]
 === Sharing Versions Across Multiple Catalogs
 
 Each version catalog TOML file is **self-contained**.
@@ -557,6 +563,7 @@ This means you cannot merge two TOML files into a single catalog.
 
 Below are three concrete workarounds, ordered from simplest to most flexible.
 
+[[sec:workaround_1_duplicate_and_verify]]
 ==== Workaround 1 — Duplicate and verify
 
 Declare the shared version in every TOML file that needs it, and add a lightweight check that the values stay in sync:
@@ -578,6 +585,7 @@ include::sample[dir="snippets/reference/dependency-management/centralizing-depen
 
 This approach is straightforward and keeps each TOML file independently readable, but it requires discipline and will not scale well beyond a handful of shared versions.
 
+[[sec:workaround_2_external_properties_file]]
 ==== Workaround 2 — External properties file injected programmatically
 
 Extract shared versions into a plain properties file and inject them into each catalog in `settings.gradle(.kts)`.
@@ -602,6 +610,7 @@ Libraries in the TOML file that reference `version.ref = "errorProne"` will pick
 
 This is the pattern the Gradle Build Tool team uses in the `gradle/gradle` repository, where a `shared-versions.properties` file feeds versions into four separate catalogs (`distribution`, `provided`, `test`, `build`).
 
+[[sec:workaround_3_published_base_catalog]]
 ==== Workaround 3 — Published base catalog with local overrides
 
 For organizations that share a common set of dependency versions across many repositories, publish a base catalog as a Maven artifact and let each repository layer project-specific versions on top.
@@ -622,6 +631,7 @@ include::sample[dir="snippets/reference/dependency-management/centralizing-depen
 
 This pattern cleanly separates organizational standards from project-level concerns, but it introduces a publishing and versioning lifecycle for the catalog artifact itself.
 
+[[sec:combining_from_with_programmatic_version_calls]]
 === Combining `from()` with Programmatic `version()` Calls
 
 The version catalog builder API allows you to **mix** a TOML file import with programmatic declarations in the same catalog.
@@ -671,6 +681,7 @@ include::sample[dir="snippets/reference/dependency-management/centralizing-depen
 
 Both the plugin alias and the library aliases resolve to `2.3.21`, and updating requires changing only one line in `settings.gradle(.kts)`.
 
+[[sec:using_catalog_entries_in_gradle_apis]]
 == Using catalog entries in Gradle APIs
 
 A version catalog accessor such as `libs.groovy.core` returns a `Provider<MinimalExternalModuleDependency>`.

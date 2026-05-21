@@ -46,24 +46,18 @@ import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDepende
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ComponentResolversChain;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.DependencyGraphResolver;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSelectionSpec;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.DefaultResolvedArtifactsBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.DefaultVisitedArtifactSet;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.DependencyArtifactsVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSetResolver;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactsGraphVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VariantArtifactSetCache;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedArtifactResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedArtifactSet;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.CompositeDependencyArtifactsVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.CompositeDependencyGraphVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results.DefaultVisitedGraphResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results.VisitedGraphResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.ResolutionFailureCollector;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.TransientConfigurationResults;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.TransientConfigurationResultsBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorFactory;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.GraphStructure;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ResolvedDependencyGraph;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.StreamingResolutionResultBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ThisBuildTreeOnlyGraphElementStore;
@@ -84,8 +78,6 @@ import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
-import org.gradle.cache.internal.BinaryStore;
-import org.gradle.cache.internal.Store;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.GraphVariantSelector;
@@ -237,17 +229,16 @@ public class ResolutionExecutor {
     ) {
         ResolutionFailureCollector failureCollector = new ResolutionFailureCollector(componentSelectorConverter, domainObjectContext);
         InMemoryResolutionResultBuilder resolutionResultBuilder = new InMemoryResolutionResultBuilder();
-        DefaultResolvedArtifactsBuilder artifactsBuilder = new DefaultResolvedArtifactsBuilder(buildProjectDependencies);
 
         ComponentResolvers resolvers = getResolvers(params, legacyParams, Collections.emptyList());
-        DependencyGraphVisitor artifactsGraphVisitor = artifactVisitorFor(artifactsBuilder, params.getArtifactTypeRegistry());
+        ResolvedArtifactsGraphVisitor artifactsGraphVisitor = artifactVisitorFor(params.getArtifactTypeRegistry());
 
         ImmutableList<DependencyGraphVisitor> visitors = ImmutableList.of(failureCollector, resolutionResultBuilder, artifactsGraphVisitor);
         doResolve(params, legacyParams, ImmutableList.of(), resolvers, IS_LOCAL_EDGE, visitors);
 
         Set<UnresolvedDependency> unresolvedDependencies = failureCollector.complete(Collections.emptySet());
         VisitedGraphResults graphResults = new DefaultVisitedGraphResults(resolutionResultBuilder.getResolvedDependencyGraph(), unresolvedDependencies);
-        VisitedArtifactResults artifactsResults = artifactsBuilder.complete();
+        VisitedArtifactResults artifactsResults = artifactsGraphVisitor.complete();
 
         TransformUpstreamDependenciesResolver.Factory dependenciesResolverFactory = visitedArtifacts -> new DefaultTransformUpstreamDependenciesResolver(
             params.getResolutionHost(),
@@ -287,20 +278,23 @@ public class ResolutionExecutor {
         List<ResolutionAwareRepository> repositories
     ) {
         StoreSet stores = storeFactory.createStoreSet();
+        StreamingResolutionResultBuilder graphStructureBuilder = new StreamingResolutionResultBuilder(
+            stores.nextBinaryStore(),
+            stores.graphStructureCache(),
+            graphElementStore,
+            attributeDesugaring,
+            capabilitySelectorSerializer,
+            componentSelectionDescriptorFactory,
+            moduleIdentifierFactory,
+            attributesFactory,
+            namedObjectInstantiator,
+            params.getIncludeAllSelectableVariantResults()
+        );
 
-        BinaryStore oldModelStore = stores.nextBinaryStore();
-        Store<TransientConfigurationResults> oldModelCache = stores.oldModelCache();
-        TransientConfigurationResultsBuilder oldTransientModelBuilder = new TransientConfigurationResultsBuilder(oldModelStore, oldModelCache, moduleIdentifierFactory, buildOperationExecutor, params.getResolutionHost());
-
-        BinaryStore newModelStore = stores.nextBinaryStore();
-        Store<GraphStructure> newModelCache = stores.newModelCache();
-        StreamingResolutionResultBuilder newModelBuilder = new StreamingResolutionResultBuilder(newModelStore, newModelCache, graphElementStore, attributeDesugaring, capabilitySelectorSerializer, componentSelectionDescriptorFactory, moduleIdentifierFactory, attributesFactory, namedObjectInstantiator, params.getIncludeAllSelectableVariantResults());
-
-        DefaultResolvedArtifactsBuilder artifactsBuilder = new DefaultResolvedArtifactsBuilder(buildProjectDependencies);
         ResolutionFailureCollector failureCollector = new ResolutionFailureCollector(componentSelectorConverter, domainObjectContext);
 
         ImmutableList.Builder<DependencyGraphVisitor> graphVisitors = ImmutableList.builder();
-        graphVisitors.add(newModelBuilder);
+        graphVisitors.add(graphStructureBuilder);
         graphVisitors.add(failureCollector);
 
         DependencyLockingGraphVisitor lockingVisitor = null;
@@ -312,14 +306,12 @@ public class ResolutionExecutor {
         }
 
         ComponentResolvers resolvers = getResolvers(params, legacyParams, repositories);
-        CompositeDependencyArtifactsVisitor artifactVisitors = new CompositeDependencyArtifactsVisitor(ImmutableList.of(
-            oldTransientModelBuilder, artifactsBuilder
-        ));
-        graphVisitors.add(artifactVisitorFor(artifactVisitors, params.getArtifactTypeRegistry()));
+        ResolvedArtifactsGraphVisitor artifactVisitor = artifactVisitorFor(params.getArtifactTypeRegistry());
+        graphVisitors.add(artifactVisitor);
 
         doResolve(params, legacyParams, getAllVersionLocks(params), resolvers, Specs.satisfyAll(), graphVisitors.build());
 
-        VisitedArtifactResults artifactsResults = artifactsBuilder.complete();
+        VisitedArtifactResults artifactsResults = artifactVisitor.complete();
 
         Set<UnresolvedDependency> lockingFailures = Collections.emptySet();
         if (lockingVisitor != null) {
@@ -327,7 +319,7 @@ public class ResolutionExecutor {
         }
 
         Set<UnresolvedDependency> resolutionFailures = failureCollector.complete(lockingFailures);
-        ResolvedDependencyGraph resolvedDependencyGraph = newModelBuilder.getResolvedDependencyGraph(lockingFailures);
+        ResolvedDependencyGraph resolvedDependencyGraph = graphStructureBuilder.getResolvedDependencyGraph(lockingFailures);
         VisitedGraphResults graphResults = new DefaultVisitedGraphResults(resolvedDependencyGraph, resolutionFailures);
 
         // Only write dependency locks if resolution completed without failure.
@@ -355,9 +347,10 @@ public class ResolutionExecutor {
             params.getResolutionHost(),
             graphResults,
             visitedArtifacts,
-            oldTransientModelBuilder::load,
+            resolvedDependencyGraph.graphSource(),
             artifactSetResolver,
-            getImplicitSelectionSpec(params)
+            getImplicitSelectionSpec(params),
+            buildOperationExecutor
         );
 
         DefaultResolvedConfiguration configuration = new DefaultResolvedConfiguration(graphResults, params.getResolutionHost(), visitedArtifacts, lenientConfiguration);
@@ -375,9 +368,9 @@ public class ResolutionExecutor {
         return new ArtifactSelectionSpec(requestAttributes, Specs.satisfyAll(), false, false, sortOrder);
     }
 
-    private ResolvedArtifactsGraphVisitor artifactVisitorFor(DependencyArtifactsVisitor artifactsVisitor, ImmutableArtifactTypeRegistry immutableArtifactTypeRegistry) {
+    private ResolvedArtifactsGraphVisitor artifactVisitorFor(ImmutableArtifactTypeRegistry immutableArtifactTypeRegistry) {
         return new ResolvedArtifactsGraphVisitor(
-            artifactsVisitor,
+            buildProjectDependencies,
             immutableArtifactTypeRegistry,
             variantArtifactSetCache,
             calculatedValueContainerFactory

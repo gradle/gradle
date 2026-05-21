@@ -19,6 +19,11 @@ package org.gradle.internal.cc.impl.isolated
 import org.gradle.util.internal.ToBeImplemented
 import spock.lang.Issue
 
+/**
+ * Cross-project access tests specific to Kotlin DSL.
+ * <p>
+ * For DSL-agnostic tests prefer {@link IsolatedProjectsAccessIntegrationTest}.
+ */
 class IsolatedProjectsAccessFromKotlinDslIntegrationTest extends AbstractIsolatedProjectsIntegrationTest {
     def "reports problem when build script uses #block block to apply plugins to another project"() {
         createDirs("a", "b")
@@ -33,7 +38,7 @@ class IsolatedProjectsAccessFromKotlinDslIntegrationTest extends AbstractIsolate
         """
 
         when:
-        isolatedProjectsFails("assemble")
+        isolatedProjectsDiagnosticsFails("assemble")
 
         then:
         fixture.assertStateStoredAndDiscarded {
@@ -63,7 +68,7 @@ class IsolatedProjectsAccessFromKotlinDslIntegrationTest extends AbstractIsolate
         """
 
         when:
-        isolatedProjectsFails("assemble")
+        isolatedProjectsDiagnosticsFails("assemble")
 
         then:
         fixture.assertStateStoredAndDiscarded {
@@ -91,7 +96,7 @@ class IsolatedProjectsAccessFromKotlinDslIntegrationTest extends AbstractIsolate
 
         when:
         // TODO:isolated expected behavior for incremental configuration
-//        isolatedProjectsFails(":a:help")
+//        isolatedProjectsDiagnosticsFails(":a:help")
         isolatedProjectsRun(":a:help")
 
         then:
@@ -123,7 +128,7 @@ class IsolatedProjectsAccessFromKotlinDslIntegrationTest extends AbstractIsolate
         """
 
         when:
-        isolatedProjectsFails(":a:help", ":b:help")
+        isolatedProjectsDiagnosticsFails(":a:help", ":b:help")
 
         then:
         fixture.assertStateStoredAndDiscarded {

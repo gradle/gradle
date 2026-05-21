@@ -21,37 +21,25 @@
 For example, a library may have an `api` and an `implementation` variant.
 Here, the consumer wants an external `implementation` variant:
 
-[source,kotlin]
-----
-configurations {
-    implementation {
-        attributes {
-            attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named(Bundling.EXTERNAL))
-        }
-    }
-}
-----
+====
+include::sample[dir="snippets/reference/dependency-management/controlling-dependency-resolution/variantAttributes-intro/kotlin",files="build.gradle.kts[tags=bundling-attribute]"]
+include::sample[dir="snippets/reference/dependency-management/controlling-dependency-resolution/variantAttributes-intro/groovy",files="build.gradle[tags=bundling-attribute]"]
+====
 
 For example, a build might have `debug` and `release` variants.
 This selects the `debug` variant based on the attribute.
 
-[source,kotlin]
-----
-configurations {
-    compileClasspath {
-        attributes {
-            attribute(TargetConfiguration.TARGET_ATTRIBUTE, objects.named("debug"))
-        }
-    }
-}
-----
+====
+include::sample[dir="snippets/reference/dependency-management/controlling-dependency-resolution/variantAttributes-intro/kotlin",files="build.gradle.kts[tags=target-attribute]"]
+include::sample[dir="snippets/reference/dependency-management/controlling-dependency-resolution/variantAttributes-intro/groovy",files="build.gradle[tags=target-attribute]"]
+====
 
 **Attributes** help Gradle match the right **variant** by comparing the requested attributes with what's available:
 
-[source,kotlin]
-----
-attribute(TargetConfiguration.TARGET_ATTRIBUTE, objects.named("debug"))
-----
+====
+include::sample[dir="snippets/reference/dependency-management/controlling-dependency-resolution/variantAttributes-intro/kotlin",files="build.gradle.kts[tags=target-attribute-single]"]
+include::sample[dir="snippets/reference/dependency-management/controlling-dependency-resolution/variantAttributes-intro/groovy",files="build.gradle[tags=target-attribute-single]"]
+====
 
 This sets the `TargetConfiguration.TARGET_ATTRIBUTE` to `"debug"`, meaning Gradle will attempt to resolve dependencies that have a "debug" variant, instead of other available variants (like "release").
 
@@ -63,6 +51,7 @@ But it might be useful to understand the _standard attributes_ defined by Gradle
 
 As a plugin author, these attributes, and the way they are defined, can serve as a basis for <<#sec:declaring-attributes,building your own set of attributes>> in your ecosystem plugin.
 
+[[sec:ecosystem_independent_standard_attributes]]
 === Ecosystem-independent standard attributes
 
 [%header%autowidth,compact]
@@ -154,6 +143,7 @@ In addition to the ecosystem independent attributes defined above, the JVM ecosy
 The JVM ecosystem also contains a number of compatibility and disambiguation rules over the different attributes.
 The reader willing to know more can take a look at the code for `org.gradle.api.internal.artifacts.JavaEcosystemSupport`.
 
+[[sec:native_ecosystem_specific_attributes]]
 === Native ecosystem specific attributes
 
 In addition to the ecosystem independent attributes defined above, the native ecosystem adds the following attributes:

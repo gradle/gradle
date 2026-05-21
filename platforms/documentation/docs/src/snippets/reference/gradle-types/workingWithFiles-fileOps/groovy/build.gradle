@@ -1,0 +1,40 @@
+// tag::move-rename[]
+task moveFile {
+    doLast {
+        def sourceFile = file('source.txt')
+        def destFile = file('destination/new_name.txt')
+
+        if (sourceFile.renameTo(destFile)) {
+            println "File moved successfully."
+        }
+    }
+}
+// end::move-rename[]
+
+// tag::move-copy[]
+task moveFileCopy(type: Copy) {
+    from 'source.txt'
+    into 'destination'
+    rename { fileName ->
+        'new_name.txt'
+    }
+}
+// end::move-copy[]
+
+// tag::create-dirs[]
+tasks.register('createDirs') {
+    doLast {
+        mkdir 'src/main/resources'
+        mkdir file('build/generated')
+
+        // Create multiple dirs
+        mkdir files(['src/main/resources', 'src/test/resources'])
+
+        // Check dir existence
+        def dir = file('src/main/resources')
+        if (!dir.exists()) {
+            mkdir dir
+        }
+    }
+}
+// end::create-dirs[]

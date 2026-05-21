@@ -30,6 +30,7 @@ include::sample[dir="snippets/reference/dependency-management/publishing/maven-p
 
 This will create a `Sign` task for each publication you specify and wire all `publish__PubName__PublicationTo__RepoName__Repository` tasks to depend on it. Thus, publishing any publication will automatically create and publish the signatures for its artifacts and metadata, as you can see from this output:
 
+[[sec:example_sign_and_publish_a_project]]
 == Example: Sign and publish a project
 
 [source,bash]

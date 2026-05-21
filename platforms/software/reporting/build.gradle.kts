@@ -8,6 +8,7 @@ dependencies {
     api(projects.baseServices)
     api(projects.core)
     api(projects.coreApi)
+    api(projects.domainObjectCollections)
     api(projects.modelCore)
     api(projects.reportRendering)
     api(projects.serviceLookup)

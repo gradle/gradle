@@ -16,12 +16,12 @@
 
 package org.gradle.plugins.ide.idea
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.plugins.ide.AbstractIdeIntegrationSpec
 
 import static org.gradle.plugins.ide.fixtures.IdeaFixtures.parseIml
 import static org.gradle.plugins.ide.fixtures.IdeaFixtures.parseIpr
 
-class IdeMultiProjectBuildIntegrationTest extends AbstractIntegrationSpec {
+class IdeMultiProjectBuildIntegrationTest extends AbstractIdeIntegrationSpec {
     def "includes module for each project in build"() {
         given:
         createDirs("api", "shared", "shared/api", "shared/model")
@@ -46,6 +46,7 @@ class IdeMultiProjectBuildIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
+        expectTaskDeprecations("idea", "ideaModule", "ideaProject", "ideaWorkspace")
         succeeds ":idea"
 
         then:

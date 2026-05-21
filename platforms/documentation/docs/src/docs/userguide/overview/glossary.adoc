@@ -1,8 +1,10 @@
+[[glossary]]
 = Glossary
 
 [[dependency_management_terminology]]
 The following glossary helps you understand Gradle terminology.
 
+[[sec:a]]
 == A
 
 [[sub:terminology_artifact]]
@@ -13,6 +15,7 @@ Artifacts are typically designed to be used or consumed by users and other proje
 In such cases, the artifact is a single file.
 Directories are common in the case of inter-project dependencies to avoid the cost of producing the publishable artifact.
 
+[[sec:b]]
 == B
 
 [[sub:terminology_build]]
@@ -34,6 +37,7 @@ A `build.gradle` script.
 +
 The existence of a build script, along with an entry in the <<#sub:terminology_settings_script,settings script>> (other than for the root build script, which requires no entry), is what defines a Gradle <<#sub:terminology_module,module>>.
 
+[[sec:c]]
 == C
 
 [[sub:terminology_capability]]
@@ -145,6 +149,7 @@ tasks.register("someTask") {
 +
 This tightly couples `subprojectA` to `subprojectB`, breaking modularity and creating potential issues during parallel builds or configuration caching.
 
+[[sec:d]]
 == D
 
 [[sub:terminology_dependency]]
@@ -159,6 +164,7 @@ For example, a dependency constraint can narrow down the set of supported module
 Dependency constraints can be used to express such requirements for transitive dependencies.
 For more information, see the sections on <<dependency_constraints.adoc#dependency-constraints,upgrading and downgrading>> transitive dependencies.
 
+[[sec:e]]
 == E
 
 [[sub:terminology_eager]]
@@ -193,6 +199,7 @@ This is where all <<#sub:terminology_task,tasks>> actions are executed.
 +
 This phase has multiple levels of parallelism.
 
+[[sec:f]]
 == F
 
 [[sub:terminology_feature_variant]]
@@ -201,6 +208,7 @@ A feature variant is a <<#sub:terminology_variant, variant>> representing a feat
 A feature variant is identified by one or more <<#sub:terminology_capability, capabilities>>.
 For more information, see the sections on <<how_to_create_feature_variants_of_a_library#feature_variants, modeling feature variants, and optional dependencies>>.
 
+[[sec:g]]
 == G
 
 [[sub:terminology_gradle_build]]
@@ -209,8 +217,10 @@ A Gradle build can consist of one or more Gradle projects and is _typically_ con
 +
 When invoked, the Gradle build executes a set of tasks based on the defined build logic, often using the Gradle Wrapper (`./gradlew`).
 
+[[sec:h]]
 == H
 
+[[sec:i]]
 == I
 
 [[sub:terminology_incremental_builds]]
@@ -223,10 +233,13 @@ If the code has some changes, it will then be executed, but if there are no chan
 Init Script::
 An init or initialization script, is backed by an instance of the `Gradle` type.
 
+[[sec:j]]
 == J
 
+[[sec:k]]
 == K
 
+[[sec:l]]
 == L
 
 [[sub:terminology_lazy]]
@@ -247,6 +260,7 @@ val myValue = layout.buildDirectory.file("output.txt")
 val myValue = file("output.txt")
 ----
 
+[[sec:m]]
 == M
 
 [[sub:terminology_maven_central]]
@@ -277,10 +291,13 @@ In practice, there are no limitations to the scheme of the module version.
 Timestamps, numbers, and special suffixes like `-GA` are all allowed identifiers.
 The most widely-used versioning strategy is link:https://semver.org/[semantic versioning].
 
+[[sec:n]]
 == N
 
+[[sec:o]]
 == O
 
+[[sec:p]]
 == P
 
 [[sub:terminology_platform]]
@@ -326,8 +343,10 @@ A description of the files and metadata that should be published to a repository
 +
 A publication has a name and consists of one or more artifacts plus information about those artifacts (the <<#sub:terminology_module_metadata, metadata>>).
 
+[[sec:q]]
 == Q
 
+[[sec:r]]
 == R
 
 [[sub:terminology_repository]]
@@ -342,6 +361,7 @@ A resolution rule influences the behavior of how a <<#sub:terminology_dependency
 Resolution rules are defined as part of the build logic.
 For more information, see the section on <<resolution_rules.adoc#using-resolution-rules, customizing resolution of a dependency directly>>.
 
+[[sec:s]]
 == S
 
 [[sub:terminology_script_plugin]]
@@ -356,6 +376,7 @@ Settings Script::
 A `settings.gradle(.kts)` script.
 A settings script has a large number of responsibilities, but one of the most important is declaring the set of <<#sub:terminology_project,projects>> that are part of the build, via `include :project`.
 
+[[sec:t]]
 == T
 
 [[sub:terminology_task]]
@@ -376,8 +397,10 @@ Releases of a module hosted on a <<#sub:terminology_repository, repository>> can
 By default, Gradle resolves transitive dependencies automatically.
 The version selection for transitive dependencies can be influenced by declaring <<dependency_constraints.adoc#dependency-constraints,dependency constraints>>.
 
+[[sec:u]]
 == U
 
+[[sec:v]]
 == V
 
 [[sub:terminology_variant]]
@@ -402,10 +425,14 @@ Compatibility and disambiguation rules can be implemented for an attribute to ex
 Such rules are typically provided by plugins.
 For more information, see the sections on <<variant_aware_resolution.adoc#sec:understanding-variant-selection,variant selection>> and <<variant_attributes.adoc#variant-attributes,declaring attributes>>.
 
+[[sec:w]]
 == W
 
+[[sec:x]]
 == X
 
+[[sec:y]]
 == Y
 
+[[sec:z]]
 == Z

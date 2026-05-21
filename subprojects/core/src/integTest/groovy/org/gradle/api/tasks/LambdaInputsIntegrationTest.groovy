@@ -16,6 +16,7 @@
 
 package org.gradle.api.tasks
 
+import org.gradle.api.problems.Severity
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
@@ -85,6 +86,7 @@ class LambdaInputsIntegrationTest extends AbstractIntegrationSpec implements Val
     def "task with nested property defined by non-serializable Java lambda fails the build"() {
         // With configuration cache, all lambdas are forced to be serializable, so there won't be anything to report.
         Assume.assumeTrue(GradleContextualExecuter.isNotConfigCache())
+        enableProblemsApiCheck()
 
         setupTaskClassWithConsumerProperty()
         file("buildSrc/src/main/java/Lambdas.java") <<
@@ -103,10 +105,12 @@ class LambdaInputsIntegrationTest extends AbstractIntegrationSpec implements Val
         then:
         executedAndNotSkipped(':myTask')
         failureDescriptionStartsWith("A problem was found with the configuration of task ':myTask' (type 'TaskWithConsumerProperty').")
-        failureDescriptionContains(implementationUnknown {
-            nestedProperty('consumer')
-            implementedByLambda("Lambdas")
-        })
+        verifyAll(receivedProblem) {
+            severity == Severity.ERROR
+            fqid == 'validation:property-validation:unknown-implementation-nested'
+            definition.id.displayName == 'Unknown property implementation'
+            definition.documentationLink.url == "https://docs.gradle.org/${distribution.version.version}/userguide/validation_problems.html#implementation_unknown"
+        }
     }
 
     def "can change nested property from one serializable Java lambda to another and back"() {

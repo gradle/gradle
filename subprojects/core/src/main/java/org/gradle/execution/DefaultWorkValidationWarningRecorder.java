@@ -19,19 +19,18 @@ package org.gradle.execution;
 import org.gradle.api.problems.internal.ProblemInternal;
 import org.gradle.internal.execution.Identity;
 import org.gradle.internal.execution.UnitOfWork;
+import org.gradle.internal.execution.WorkValidationUtils;
 import org.gradle.internal.execution.steps.ValidateStep;
+import org.gradle.problems.internal.rendering.ProblemWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.StringWriter;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-
-import static java.util.stream.Collectors.joining;
-import static org.gradle.internal.deprecation.DeprecationLogger.deprecateBehaviour;
-import static org.gradle.internal.deprecation.DeprecationMessageBuilder.withDocumentation;
-import static org.gradle.internal.reflect.validation.TypeValidationProblemRenderer.convertToSingleLine;
-import static org.gradle.internal.reflect.validation.TypeValidationProblemRenderer.renderMinimalInformationAbout;
 
 public class DefaultWorkValidationWarningRecorder implements ValidateStep.ValidationWarningRecorder, WorkValidationWarningReporter {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultWorkValidationWarningRecorder.class);
@@ -42,20 +41,14 @@ public class DefaultWorkValidationWarningRecorder implements ValidateStep.Valida
     @Override
     public void recordValidationWarnings(Identity identity, UnitOfWork work, Collection<? extends ProblemInternal> warnings) {
         workWithWarnings.add(identity);
-        String uniqueWarnings = warnings.stream()
-            .map(warning -> convertToSingleLine(renderMinimalInformationAbout(warning, true, false)))
-            .map(warning -> "\n  - " + warning)
-            .distinct()
-            .collect(joining());
-        LOGGER.warn("Execution optimizations have been disabled for {} to ensure correctness due to the following reasons:{}", work.getDisplayName(), uniqueWarnings);
 
-        // We are logging all the warnings that we encountered during validation here
-        warnings.forEach(warning -> withDocumentation(warning, deprecateBehaviour(convertToSingleLine(renderMinimalInformationAbout(warning, false, false)))
-            .withContext("Execution optimizations are disabled to ensure correctness.")
-            // Bump this to a next major version when we bump Gradle major version
-            .willBecomeAnErrorInGradle10())
-            .nagUser()
-        );
+        List<ProblemInternal> uniqueWarnings = WorkValidationUtils.deduplicateAndTruncate(new ArrayList<>(warnings));
+
+        StringWriter rendered = new StringWriter();
+        ProblemWriter.simple().write(uniqueWarnings, rendered);
+        LOGGER.warn("Execution optimizations have been disabled for {} to ensure correctness due to the following reasons:\n{}",
+            work.getDisplayName(), rendered);
+        WorkValidationUtils.reportAsDeprecation(uniqueWarnings);
     }
 
     @Override

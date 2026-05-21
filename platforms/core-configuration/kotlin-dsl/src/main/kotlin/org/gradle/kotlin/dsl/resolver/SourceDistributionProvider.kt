@@ -28,8 +28,6 @@ import org.gradle.internal.Try
 import org.gradle.kotlin.dsl.create
 import org.gradle.kotlin.dsl.resolver.internal.GradleDistRepoDescriptor
 import org.gradle.kotlin.dsl.resolver.internal.GradleDistRepoDescriptorLocator
-import org.gradle.kotlin.dsl.resolver.internal.GradleDistVersion
-import org.gradle.util.GradleVersion
 import java.io.File
 import kotlin.jvm.optionals.getOrNull
 
@@ -114,9 +112,6 @@ class SourceDistributionResolver(private val project: Project) : SourceDistribut
             artifact()
         }
         patternLayout {
-            if (repoLocator.gradleVersion.isSnapshot) {
-                ivy("/dummy") // avoids a lookup that interferes with version listing
-            }
             artifact(repo.artifactPattern)
         }
         repo.credentialsApplier(this)
@@ -131,7 +126,7 @@ class SourceDistributionResolver(private val project: Project) : SourceDistribut
 
     private
     fun DependencyHandler.createDependency() =
-        create("gradle:gradle:${dependencyVersion(repoLocator.gradleVersion)}") {
+        create("gradle:gradle:${repoLocator.gradleVersion.versionString}") {
             artifact {
                 classifier = "src"
                 type = "zip"
@@ -143,40 +138,6 @@ class SourceDistributionResolver(private val project: Project) : SourceDistribut
         detachedConfiguration(dependency).apply {
             attributes.attribute(artifactType, SOURCE_DIRECTORY)
         }
-
-    private
-    fun dependencyVersion(gradleVersion: GradleDistVersion): String =
-        if (gradleVersion.isSnapshot) toVersionRange(gradleVersion.versionString)
-        else gradleVersion.versionString
-
-    private
-    fun toVersionRange(gradleVersion: String) =
-        "(${minimumGradleVersion()}, $gradleVersion]"
-
-    private
-    fun minimumGradleVersion(): String {
-        val baseVersionString = GradleVersion.version(repoLocator.gradleVersion.versionString).baseVersion.version
-        val (major, minor) = baseVersionString.split('.')
-        return when (minor) {
-            // TODO:kotlin-dsl consider commenting out this clause once the 1st 6.0 snapshot is out
-            "0" -> {
-                // When testing against a `major.0` snapshot we need to take into account
-                // that source distributions matching the major version might not have
-                // been published yet. In that case we adjust the constraint to include
-                // source distributions beginning from the previous major version.
-                "${previous(major)}.0"
-            }
-
-            else -> {
-                // Otherwise include source distributions beginning from the previous minor version only.
-                "$major.${previous(minor)}"
-            }
-        }
-    }
-
-    private
-    fun previous(versionDigit: String) =
-        Integer.parseInt(versionDigit) - 1
 
     private
     val projectInternal

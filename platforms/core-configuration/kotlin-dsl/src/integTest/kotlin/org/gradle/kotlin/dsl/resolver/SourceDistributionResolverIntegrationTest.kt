@@ -13,7 +13,6 @@ import org.gradle.util.GradleVersion
 import org.junit.Assume.assumeTrue
 import org.junit.Test
 import java.io.File
-import java.util.UUID
 
 class SourceDistributionResolverIntegrationTest : AbstractKotlinIntegrationTest() {
 
@@ -356,8 +355,9 @@ class SourceDistributionResolverIntegrationTest : AbstractKotlinIntegrationTest(
                     """
                 )
 
-                primaryServer.expectGetMissing("/${repositoryName}/")
-                fallbackServer.expectGetMissing("/${repositoryName}/")
+                val artifactFileName = gradleVersion.artifactFileName
+                primaryServer.expectHeadMissing("/$repositoryName/$artifactFileName")
+                fallbackServer.expectHeadMissing("/$repositoryName/$artifactFileName")
 
                 build(fallbackRepoOverride).apply {
                     assertOutputContains("Could not resolve Gradle distribution sources. See debug logs for details.")
@@ -389,12 +389,8 @@ class SourceDistributionResolverIntegrationTest : AbstractKotlinIntegrationTest(
     }
 
     private fun HttpServer.hostAndExpectRequestFor(gradleVersion: GradleVersion, srcDistribution: File) {
-        val rand = UUID.randomUUID()
         val repositoryName = gradleVersion.repositoryName
         val artifactFileName = gradleVersion.artifactFileName
-        val repoDir = file("$rand/${repositoryName}").also { it.mkdirs() }
-        srcDistribution.copyTo(repoDir.resolve(artifactFileName))
-        expectGetDirectoryListing("/${repositoryName}/", repoDir)
         expectHead("/$repositoryName/$artifactFileName", srcDistribution)
         expectGet("/$repositoryName/$artifactFileName", srcDistribution)
     }

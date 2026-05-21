@@ -85,10 +85,10 @@ class PerformanceTestBuildTypeTest {
         val expectedRunnerParams =
             listOf(
                 "-PperformanceBaselines=%performance.baselines%",
-                "-PtestJavaVersion=21",
+                "-PtestJavaVersion=17",
                 "-PtestJavaVendor=openjdk",
-                "-PautoDownloadAndroidStudio=true",
-                "-PrunAndroidStudioInHeadlessMode=true",
+                "-PautoDownloadIde=true",
+                "-PrunIdeInHeadlessMode=true",
                 "-Dorg.gradle.java.installations.auto-download=false",
                 "-Porg.gradle.java.installations.auto-download=false",
                 "\"-Dorg.gradle.java.installations.paths=$expectedInstallationPaths\"",
@@ -164,10 +164,10 @@ class PerformanceTestBuildTypeTest {
         val expectedRunnerParams =
             listOf(
                 "-PperformanceBaselines=%performance.baselines%",
-                "-PtestJavaVersion=21",
+                "-PtestJavaVersion=17",
                 "-PtestJavaVendor=openjdk",
-                "-PautoDownloadAndroidStudio=true",
-                "-PrunAndroidStudioInHeadlessMode=true",
+                "-PautoDownloadIde=true",
+                "-PrunIdeInHeadlessMode=true",
                 "-Dorg.gradle.java.installations.auto-download=false",
                 "-Porg.gradle.java.installations.auto-download=false",
                 "\"-Dorg.gradle.java.installations.paths=$expectedInstallationPaths\"",

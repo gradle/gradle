@@ -16,6 +16,7 @@
 package org.gradle.plugins.ide.idea;
 
 import org.gradle.api.tasks.Internal;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.xml.XmlTransformer;
 import org.gradle.plugins.ide.api.XmlGeneratorTask;
 import org.gradle.plugins.ide.idea.model.IdeaWorkspace;
@@ -26,7 +27,10 @@ import javax.inject.Inject;
 
 /**
  * Generates an IDEA workspace file *only* for root project. There's little you can configure about workspace generation at the moment.
+ *
+ * @deprecated Will be removed in Gradle 10.
  */
+@Deprecated
 @DisableCachingByDefault(because = "Not made cacheable, yet")
 public abstract class GenerateIdeaWorkspace extends XmlGeneratorTask<Workspace> {
 
@@ -37,6 +41,15 @@ public abstract class GenerateIdeaWorkspace extends XmlGeneratorTask<Workspace> 
     @Inject
     public GenerateIdeaWorkspace(IdeaWorkspace workspace) {
         this.workspace = workspace;
+    }
+
+    @Override
+    protected void generate() {
+        DeprecationLogger.deprecateTask(getName())
+            .willBeRemovedInGradle10()
+            .withUpgradeGuideSection(9, "ide_task_deprecation")
+            .nagUser();
+        super.generate();
     }
 
     @Override

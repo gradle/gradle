@@ -1,5 +1,6 @@
 package org.gradle;
 
+// tag::sample[]
 // The following types can appear anywhere in the code
 // but say nothing about API or implementation usage
 import org.apache.commons.httpclient.*;
@@ -42,3 +43,4 @@ public class HttpClientWrapper {
         return statusCode;
     }
 }
+// end::sample[]

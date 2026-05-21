@@ -21,6 +21,8 @@ import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
 import org.gradle.api.internal.tasks.testing.TestCompleteEvent;
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 import org.gradle.api.tasks.testing.TestMetadataEvent;
 import org.gradle.api.internal.tasks.testing.TestStartEvent;
 import org.gradle.api.internal.tasks.testing.results.TestListenerInternal;
@@ -64,6 +66,8 @@ public final class SerializableTestResultStore {
      * </p>
      */
     private static final int STORE_VERSION = 1;
+
+    private static final Logger LOGGER = Logging.getLogger(SerializableTestResultStore.class);
 
     private final Path serializedResultsFile;
     private final Path outputEventsFile;
@@ -301,13 +305,33 @@ public final class SerializableTestResultStore {
         }
     }
 
+    /**
+     * Like {@link #hasResults()}, but returns {@code false} if there are issues reading the results file.
+     *
+     * @return {@code true} if the results file exists and contains at least one result, {@code false} otherwise
+     */
+    public boolean hasResultsSafe() {
+        try {
+            return hasResultsInternal();
+        } catch (IOException e) {
+            LOGGER.trace("Failed to read results file, assuming no results are available", e);
+            return false;
+        }
+    }
+
     public boolean hasResults() {
+        try {
+            return hasResultsInternal();
+        } catch (IOException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        }
+    }
+
+    private boolean hasResultsInternal() throws IOException {
         if (Files.exists(serializedResultsFile) && Files.exists(outputEventsFile)) {
             // Inspect the results file, read first ID to see if there are any results
             try (KryoBackedDecoder decoder = openAndInitializeDecoder()) {
                 return decoder.readSmallLong() != 0;
-            } catch (IOException e) {
-                throw UncheckedException.throwAsUncheckedException(e);
             }
         } else {
             return false;

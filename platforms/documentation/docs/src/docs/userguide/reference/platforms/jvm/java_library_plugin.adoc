@@ -90,12 +90,13 @@ By contrast, any type that is used in the following list is irrelevant to the AB
 
 The following class makes use of a couple of third-party libraries, one of which is exposed in the class's public API and the other is only used internally. The import statements don't help us determine which is which, so we have to look at the fields, constructors and methods instead:
 
+[[sec:example_making_the_difference_between_api_and_implementation]]
 === Example: Making the difference between API and implementation
 
 [source,java]
 .src/main/java/org/gradle/HttpClientWrapper.java
 ----
-include::{snippetsPath}/reference/platforms/jvm/quickstart/common/src/main/java/org/gradle/HttpClientWrapper.java[tag=sample]
+include::{snippetsPath}/reference/dependency-management/publishing/javaLibrary/common/src/main/java/org/gradle/HttpClientWrapper.java[tag=sample]
 ----
 
 The _public_ constructor of `HttpClientWrapper` uses `HttpClient` as a parameter, so it is exposed to consumers and therefore belongs to the API. Note that `HttpGet` and `HttpEntity` are used in the signature of a _private_ method, and so they don't count towards making HttpClient an API dependency.
@@ -114,6 +115,7 @@ include::sample[dir="snippets/reference/platforms/jvm/quickstart/groovy",files="
 
 The role of each configuration is described in the following tables.
 
+[[sec:java_library_declarable_configurations]]
 === Declarable (Bucket) Configurations
 
 [%header%autowidth,compact]
@@ -157,6 +159,7 @@ The role of each configuration is described in the following tables.
 | This is where you declare dependencies which are only required at test runtime, and not at test compile time.
 |===
 
+[[sec:java_library_consumable_configurations]]
 === Consumable Configurations
 
 [%header%autowidth,compact]
@@ -172,6 +175,7 @@ The role of each configuration is described in the following tables.
 | This configuration is meant to be used by consumers to retrieve all the elements necessary to run this library.
 |===
 
+[[sec:java_library_resolvable_configurations]]
 === Resolvable Configurations
 
 [%header%autowidth,compact]
@@ -240,6 +244,7 @@ Gradle will automatically put a Jar of your dependencies on the module path, ins
 * The Jar our module depends on is itself a module, which Gradles decides based on the presence of a `module-info.class` -- the compiled version of the module descriptor -- in the Jar.
   (Or, alternatively, the presence of an `Automatic-Module-Name` attribute the Jar manifest)
 
+[[sec:declaring_module_dependencies]]
 === Declaring module dependencies
 
 There is a direct relationship to the dependencies you declare in the build file and the module dependencies you declare in the `module-info.java` file.
@@ -272,6 +277,7 @@ This may be added in future versions.
 
 For more details on declaring module dependencies, please refer to https://www.oracle.com/corporate/features/understanding-java-9-modules.html[documentation on the Java Module System].
 
+[[sec:declaring_package_visibility_and_services]]
 === Declaring package visibility and services
 
 The Java module system supports additional more fine granular encapsulation concepts than Gradle itself currently does.
@@ -279,6 +285,7 @@ For example, you explicitly need to declare which packages are part of your API 
 Some of these capabilities might be added to Gradle itself in future versions.
 For now, please refer to https://www.oracle.com/corporate/features/understanding-java-9-modules.html[documentation on the Java Module System] to learn how to use these features in Java Modules.
 
+[[sec:declaring_module_versions]]
 === Declaring module versions
 
 Java Modules also have a version that is encoded as part of the module identity in the `module-info.class` file.
@@ -289,6 +296,7 @@ include::sample[dir="snippets/reference/platforms/jvm/module/kotlin",files="buil
 include::sample[dir="snippets/reference/platforms/jvm/module/groovy",files="build.gradle[tags=declareVersion]"]
 ====
 
+[[sec:using_libraries_that_are_not_modules]]
 === Using libraries that are not modules
 
 You probably want to use external libraries, like OSS libraries from Maven Central, in your modular Java project.
@@ -318,6 +326,7 @@ How you do that is described in the next section.
 
 Another way to deal with non-modules is to enrich existing Jars with module descriptors yourself using <<artifact_transforms.adoc#sec:abm-artifact-transforms,artifact transforms>>.
 
+[[sec:disabling_java_module_support]]
 === Disabling Java Module support
 
 In rare cases, you might want to disable the built-in Java Module support and define the module path by other means.

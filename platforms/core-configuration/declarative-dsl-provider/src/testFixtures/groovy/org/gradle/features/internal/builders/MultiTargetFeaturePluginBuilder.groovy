@@ -98,6 +98,8 @@ static abstract class ${simpleTarget}ApplyAction extends BaseApplyAction<${paren
 
                         ${buildModelMappingForLanguage()}
 
+                        ${customApplyActionCode}
+
                         getTaskRegistrar().register(getTaskName(), task -> {
                             task.doLast(t -> {
                                 ${displayDefinitionValuesForLanguage()}

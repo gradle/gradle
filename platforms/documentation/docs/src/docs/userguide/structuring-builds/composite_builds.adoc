@@ -399,34 +399,8 @@ version = "1.0.0"
 So that the main build can reference it:
 
 ====
-[.multi-language-sample]
-=====
-[source,kotlin]
-.app/build.gradle.kts
-----
-dependencies {
-    // ❌ This will fail because ":core-schema" is not in this build's hierarchy
-    implementation(project(":core-schema"))
-
-    // ✅ Gradle sees this GAV and finds the matching project in the included build
-    implementation("com.example.data:core-schema:1.0.0")
-}
-----
-=====
-[.multi-language-sample]
-=====
-[source,groovy]
-.app/build.gradle
-----
-dependencies {
-    // ❌ This will fail because ":core-schema" is not in this build's hierarchy
-    implementation project(":core-schema")
-
-    // ✅ Gradle sees this GAV and finds the matching project in the included build
-    implementation "com.example.data:core-schema:1.0.0"
-}
-----
-=====
+include::sample[dir="snippets/structuring-builds/composite-builds-referencingProjects/kotlin",files="build.gradle.kts[tags=referencing-projects]"]
+include::sample[dir="snippets/structuring-builds/composite-builds-referencingProjects/groovy",files="build.gradle[tags=referencing-projects]"]
 ====
 
 Gradle uses the metadata from the included build to "discover" which coordinates it provides.
@@ -494,34 +468,8 @@ These builds should be included using the `includeBuild` statement inside the `p
 Using this mechanism, the included build may contribute a settings plugin that can be applied in the settings file:
 
 ====
-[.multi-language-sample]
-=====
-[source,kotlin]
-.settings.gradle.kts
-----
-pluginManagement {
-    includeBuild("../my-settings-plugin")
-}
-
-plugins {
-    id("my-settings-plugin")
-}
-----
-=====
-[.multi-language-sample]
-=====
-[source,groovy]
-.settings.gradle
-----
-pluginManagement {
-    includeBuild('../my-settings-plugin')
-}
-
-plugins {
-    id 'my-settings-plugin'
-}
-----
-=====
+include::sample[dir="snippets/structuring-builds/composite-builds-settingsPlugin/kotlin",files="settings.gradle.kts[tags=settings-plugin]"]
+include::sample[dir="snippets/structuring-builds/composite-builds-settingsPlugin/groovy",files="settings.gradle[tags=settings-plugin]"]
 ====
 
 NOTE: While the `--include-build` CLI flag can work for plugins applied via the `buildscript {}` block, it may not work reliably for plugins applied using the modern `plugins {}` block, especially for unpublished plugins.

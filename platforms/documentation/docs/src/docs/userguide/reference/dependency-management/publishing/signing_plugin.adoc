@@ -69,6 +69,7 @@ include::sample[dir="snippets/reference/dependency-management/publishing/in-memo
 include::sample[dir="snippets/reference/dependency-management/publishing/in-memory/groovy",files="build.gradle[tags=signing]"]
 ====
 
+[[sec:using_in_memory_ascii_armored_openpgp_subkeys]]
 === Using in-memory ascii-armored OpenPGP subkeys
 
 To prevent sharing of the master key and to keep it secure it is also possible to use in-memory ascii-armored subkeys.
@@ -107,6 +108,7 @@ Without any further configuration the `gpg` (on Windows: `gpg.exe`) executable f
 
 The `GnupgSignatory` supports a number of configuration options for controlling how gpg is invoked. These are typically set in gradle.properties:
 
+[[sec:example_configure_the_gnupg_signatory]]
 === Example: Configure the GnupgSignatory
 
 [source,properties]
@@ -147,6 +149,7 @@ include::sample[dir="snippets/reference/dependency-management/publishing/maven-p
 
 This will create a task (of type link:{groovyDslPath}/org.gradle.plugins.signing.Sign.html[Sign]) in your project named `signMavenJavaPublication` that will build all artifacts that are part of the publication (if needed) and then generate signatures for them. The signature files will be placed alongside the artifacts being signed.
 
+[[sec:example_signing_a_publication_output]]
 === Example: Signing a publication output
 
 [source,bash]
@@ -172,6 +175,7 @@ include::sample[dir="snippets/reference/dependency-management/publishing/configu
 
 This will create a task (of type link:{groovyDslPath}/org.gradle.plugins.signing.Sign.html[Sign]) in your project named `signRuntimeElements`, that will build any `runtimeElements` artifacts (if needed) and then generate signatures for them. The signature files will be placed alongside the artifacts being signed.
 
+[[sec:example_signing_a_configuration_output]]
 === Example: Signing a configuration output
 
 [source,bash]
@@ -197,6 +201,7 @@ include::sample[dir="snippets/reference/dependency-management/publishing/tasks/g
 This will create a task (of type link:{groovyDslPath}/org.gradle.plugins.signing.Sign.html[Sign]) in your project named `signStuffZip`, that will build the input task's archive (if needed) and then sign it.
 The signature file will be placed alongside the artifact being signed.
 
+[[sec:example_signing_a_task_output]]
 === Example: Signing a task output
 
 [source,bash]

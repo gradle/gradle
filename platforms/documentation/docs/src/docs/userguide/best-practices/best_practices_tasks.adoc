@@ -289,6 +289,7 @@ include::{snippetsPath}/best-practices/groupTasks-do/tests/groupTasks.good.out[]
 - <<more_about_tasks.adoc#sec:task_groups,Task Group and Description>>
 
 === Tags
+
 `<<tags_reference.adoc#tag:tasks,#tasks>>`
 
 [[avoid_eager_file_collection_apis]]
@@ -311,6 +312,7 @@ Some methods that cause resolution are not obvious.
 Be sure to check the actual behavior when using configurations in an atypical way.
 
 === Example
+
 ==== Don't Do This
 
 ====
@@ -348,6 +350,7 @@ include::sample[dir="snippets/best-practices/avoidJdkCollectionApiOnFileCollecti
 <2> *Add files to Specs separately*: This allows combining files with file collections without triggering implicit resolutions.
 
 === Tags
+
 `<<tags_reference.adoc#tag:tasks,#tasks>>`, `<<tags_reference.adoc#tag:inputs-and-outputs,#inputs-and-outputs>>`, `<<tags_reference.adoc#tag:configurations,#configurations>>`
 
 [[dont_resolve_configurations_before_task_execution]]
@@ -408,6 +411,7 @@ The configuration will be resolved when necessary, preserving task dependencies.
 The output reveals that the `lib` project is now built when the `:app:goodClasspathPrinter` task is run because of the implicit task dependency, and the `lib.jar` file is found when calculating the digest.
 
 === Tags
+
 `<<tags_reference.adoc#tag:tasks,#tasks>>`, `<<tags_reference.adoc#tag:inputs-and-outputs,#inputs-and-outputs>>`, `<<tags_reference.adoc#tag:configurations,#configurations>>`
 
 
@@ -473,6 +477,7 @@ include::sample[dir="snippets/best-practices/preferPathSensitivityNone-do/groovy
 - <<build_cache_concepts.adoc#relocatability,Input Relocatability>>
 
 === Tags
+
 `<<tags_reference.adoc#tag:tasks,#tasks>>`, `<<tags_reference.adoc#tag:inputs-and-outputs,#inputs-and-outputs>>`
 
 [[use_unique_output_files_and_directories]]
@@ -554,4 +559,5 @@ include::sample[dir="snippets/best-practices/uniqueOutputs-do/groovy",files="bui
 Now when running `consumer` task, then `greeterB`, the `consumer` task remains `UP-TO-DATE` as Gradle knows that it is not using the output from `greeterB`, since `greeterA` and `greeterB` _produce and consume distinct files_ (that happen to be in created in the same directory).
 
 === Tags
+
 `<<tags_reference.adoc#tag:tasks,#tasks>>`, `<<tags_reference.adoc#tag:inputs-and-outputs,#inputs-and-outputs>>`

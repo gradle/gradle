@@ -348,7 +348,7 @@ task wrongValueTypeDsl(type: MyTask) {
 
 task wrongRuntimeElementType(type: MyTask) {
     doLast {
-        prop = [123]
+        prop = [new Object()]
         prop.get()
     }
 }
@@ -394,7 +394,7 @@ task wrongPropertyElementTypeApi(type: MyTask) {
 
         then:
         failure.assertHasDescription("Execution failed for task ':wrongRuntimeElementType' (registered in build file 'build.gradle').")
-        failure.assertHasCause("Cannot get the value of a property of type java.util.List with element type java.lang.String as the source value contains an element of type java.lang.Integer.")
+        failure.assertHasCause("Cannot get the value of a property of type java.util.List with element type java.lang.String as the source value contains an element of type java.lang.Object.")
 
         when:
         fails("wrongPropertyTypeDsl")

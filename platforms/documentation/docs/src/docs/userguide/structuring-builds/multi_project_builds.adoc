@@ -19,6 +19,7 @@
 As projects grow, it's common to split them into smaller, focused modules that are built, tested, and released together.
 Gradle supports this through multi-project builds, allowing you to organize related codebases under a single build while keeping each module logically isolated.
 
+[[multi_project_layout]]
 == Multi-Project Layout
 
 A multi-project build consists of a root project and one or more subprojects, all defined in a single `settings.gradle(.kts)` file.

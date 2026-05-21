@@ -32,19 +32,10 @@ This ensures that conflicting implementations are resolved, avoiding issues on t
 
 For instance, suppose you have dependencies on two different libraries for database connection pooling:
 
-[source,kotlin]
-----
-dependencies {
-    implementation("com.zaxxer:HikariCP:4.0.3")  // A popular connection pool
-    implementation("org.apache.commons:commons-dbcp2:2.8.0")  // Another connection pool
-}
-
-configurations.all {
-    resolutionStrategy.capabilitiesResolution.withCapability("database:connection-pool") {
-        select("com.zaxxer:HikariCP")
-    }
-}
-----
+====
+include::sample[dir="snippets/reference/dependency-management/controlling-dependency-resolution/componentCapabilities-capabilityConflict/kotlin",files="build.gradle.kts[tags=capability-conflict]"]
+include::sample[dir="snippets/reference/dependency-management/controlling-dependency-resolution/componentCapabilities-capabilityConflict/groovy",files="build.gradle[tags=capability-conflict]"]
+====
 
 In this case, both `HikariCP` and `commons-dbcp2` provide the same functionality (connection pooling).
 Gradle will fail if both are on the classpath.

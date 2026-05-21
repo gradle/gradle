@@ -143,9 +143,11 @@ data class CIBuildModel(
                         SpecificBuild.CheckLinks,
                         SpecificBuild.SmokeTestsMaxJavaVersion,
                         SpecificBuild.ConfigCacheAndroidProjectSmokeTests,
+                        SpecificBuild.IsolatedProjectsAndroidProjectSmokeTests,
                         SpecificBuild.GradleBuildSmokeTests,
                         SpecificBuild.ConfigCacheSmokeTestsMaxJavaVersion,
                         SpecificBuild.ConfigCacheSmokeTestsMinJavaVersion,
+                        SpecificBuild.IsolatedProjectsSmokeTestsMaxJavaVersion,
                         SpecificBuild.SmokeIdeTests,
                     ),
                 functionalTests =
@@ -692,6 +694,22 @@ enum class SpecificBuild {
                 flakyTestStrategy,
             )
     },
+    IsolatedProjectsAndroidProjectSmokeTests {
+        override fun create(
+            model: CIBuildModel,
+            stage: Stage,
+            flakyTestStrategy: FlakyTestStrategy,
+        ): OsAwareBaseGradleBuildType =
+            SmokeTests(
+                model,
+                stage,
+                JvmCategory.ANDROID_PROJECT_SMOKE_TEST_VERSION,
+                name,
+                "isolatedProjectsAndroidProjectSmokeTest",
+                4,
+                flakyTestStrategy,
+            )
+    },
     GradleBuildSmokeTests {
         override fun create(
             model: CIBuildModel,
@@ -736,6 +754,22 @@ enum class SpecificBuild {
                 JvmCategory.MAX_LTS_VERSION,
                 name,
                 "configCacheSmokeTest",
+                splitNumber = 4,
+                flakyTestStrategy = flakyTestStrategy,
+            )
+    },
+    IsolatedProjectsSmokeTestsMaxJavaVersion {
+        override fun create(
+            model: CIBuildModel,
+            stage: Stage,
+            flakyTestStrategy: FlakyTestStrategy,
+        ): OsAwareBaseGradleBuildType =
+            SmokeTests(
+                model,
+                stage,
+                JvmCategory.MAX_LTS_VERSION,
+                name,
+                "isolatedProjectsSmokeTest",
                 splitNumber = 4,
                 flakyTestStrategy = flakyTestStrategy,
             )

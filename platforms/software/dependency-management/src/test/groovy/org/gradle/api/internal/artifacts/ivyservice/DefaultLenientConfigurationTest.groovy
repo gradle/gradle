@@ -16,128 +16,95 @@
 
 package org.gradle.api.internal.artifacts.ivyservice
 
-import com.google.common.collect.ImmutableSet
-import org.gradle.api.artifacts.ResolvedArtifact
-import org.gradle.api.artifacts.ResolvedDependency
-import org.gradle.api.artifacts.ResolvedModuleVersion
+import org.gradle.api.artifacts.ModuleVersionIdentifier
+import org.gradle.api.artifacts.component.ComponentIdentifier
+import org.gradle.api.artifacts.component.ComponentSelector
+import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.configurations.ResolutionHost
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSelectionSpec
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSetResolver
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedArtifactSet
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results.DefaultVisitedGraphResults
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results.VisitedGraphResults
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.TransientConfigurationResults
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.GraphStructure
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.GraphStructureBuilder
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ResolvedDependencyGraph
 import org.gradle.api.internal.attributes.ImmutableAttributes
+import org.gradle.internal.component.external.model.ImmutableCapabilities
+import org.gradle.internal.operations.TestBuildOperationExecutor
 import spock.lang.Specification
 
-import java.util.function.Function
+import java.util.function.Supplier
+import java.util.stream.Stream
 
 class DefaultLenientConfigurationTest extends Specification {
 
-    def transientConfigurationResults = Mock(TransientConfigurationResults)
-    def resultsLoader = Mock(Function)
+    Supplier<GraphStructure> resultsLoader = Mock()
     def artifactSet = Stub(VisitedArtifactSet)
 
     def "should resolve first level dependencies in tree"() {
         given:
-
-        def rootNode = new TestResolvedDependency()
-        def child = new TestResolvedDependency()
-        rootNode.children.add(child)
-        def expectedResults = [child] as Set
-
         def lenientConfiguration = newConfiguration()
+        def graph = generateStructure([0: [1, 2, 3]])
 
         when:
         def results = lenientConfiguration.getFirstLevelModuleDependencies()
 
         then:
-        results == expectedResults
+        results.size() == 3
 
         and:
-        1 * resultsLoader.apply(_) >> transientConfigurationResults
-        1 * transientConfigurationResults.getFirstLevelDependencies() >> ImmutableSet.of(child)
-        0 * _
+        1 * resultsLoader.get() >> graph
     }
 
     def "should flatten all resolved dependencies in dependency tree"() {
         given:
         def lenientConfiguration = newConfiguration()
-
-        def (expected, root) = generateDependenciesWithChildren(treeStructure)
+        def graph = generateStructure(treeStructure)
 
         when:
         def result = lenientConfiguration.getAllModuleDependencies()
 
         then:
-        result.size() == size
-        result == expected
-
-        1 * resultsLoader.apply(_) >> transientConfigurationResults
-        1 * transientConfigurationResults.getRootNode() >> root
+        result.size() == (graph.nodes().count() - 1)
+        1 * resultsLoader.get() >> graph
 
         where:
-        treeStructure                                               | size
-        [0: [1, 2, 3, 4, 5], 5: [6, 7, 8]]                          | 8
-        [0: [1, 2, 3, 4, 5], 5: [6, 7, 8], 7: [9, 10], 9: [11, 12]] | 12
+        treeStructure << [
+            [0: [1, 2, 3, 4, 5], 5: [6, 7, 8]],
+            [0: [1, 2, 3, 4, 5], 5: [6, 7, 8], 7: [9, 10], 9: [11, 12]]
+        ]
     }
 
     private DefaultLenientConfiguration newConfiguration() {
         ResolvedDependencyGraph graph = new ResolvedDependencyGraph(ImmutableAttributes.EMPTY, () -> Stub(GraphStructure), null)
         VisitedGraphResults visitedGraphResults = new DefaultVisitedGraphResults(graph, [] as Set)
-        new DefaultLenientConfiguration(Stub(ResolutionHost), visitedGraphResults, artifactSet, resultsLoader, Mock(ResolvedArtifactSetResolver), Mock(ArtifactSelectionSpec))
+        new DefaultLenientConfiguration(Stub(ResolutionHost), visitedGraphResults, artifactSet, resultsLoader, Mock(ResolvedArtifactSetResolver), Mock(ArtifactSelectionSpec), new TestBuildOperationExecutor())
     }
 
-    def generateDependenciesWithChildren(Map treeStructure) {
-        Map<Integer, TestResolvedDependency> dependenciesById = [:]
-        for (Map.Entry entry : treeStructure.entrySet()) {
-            Integer id = entry.getKey() as Integer
-            dependenciesById.put(id, new TestResolvedDependency())
+    def generateStructure(LinkedHashMap<Integer, List<Integer>> treeStructure) {
+        GraphStructureBuilder builder = new GraphStructureBuilder()
+        builder.start(treeStructure.entrySet().first().key)
+
+        def allNodes = treeStructure.entrySet().stream()
+            .flatMap(entry -> Stream.concat(Stream.of(entry.getKey()), entry.getValue().stream()))
+            .distinct()
+            .sorted()
+            .toList()
+
+        assert allNodes.first() == 0
+        assert allNodes.last() == allNodes.size() - 1
+
+        allNodes.each {
+            ModuleVersionIdentifier mvid = DefaultModuleVersionIdentifier.newId("g", Integer.toString(it), "v")
+            builder.addComponent(it, ComponentSelectionReasons.requested(), null, Mock(ComponentIdentifier), mvid)
+            builder.addNode(it, it, ImmutableAttributes.EMPTY, ImmutableCapabilities.EMPTY, "", -1)
+            treeStructure.getOrDefault(it, Collections.emptyList()).each {
+                builder.addSuccessfulEdge(Mock(ComponentSelector), false, it)
+            }
         }
-        for (Map.Entry entry : treeStructure.entrySet()) {
-            Integer id = entry.getKey() as Integer
-            dependenciesById.get(id).children = entry.getValue().collect {
-                def child = dependenciesById.get(it)
-                if (child == null) {
-                    child = new TestResolvedDependency()
-                    dependenciesById.put(it, child)
-                }
-                child
-            } as Set
-        }
-        def root = dependenciesById.remove(0)
-        [new LinkedHashSet(dependenciesById.values()), root]
+        return builder.build()
     }
 
-    private static class TestResolvedDependency implements ResolvedDependency {
-
-        String name
-        String moduleGroup
-        String moduleName
-        String moduleVersion
-        String configuration
-        ResolvedModuleVersion module
-        Set<ResolvedDependency> children = []
-        Set<ResolvedDependency> parents
-        Set<ResolvedArtifact> moduleArtifacts
-        Set<ResolvedArtifact> allModuleArtifacts
-
-        @Override
-        Set<ResolvedArtifact> getParentArtifacts(ResolvedDependency parent) {
-            return null
-        }
-
-        @Override
-        Set<ResolvedArtifact> getArtifacts(ResolvedDependency parent) {
-            return null
-        }
-
-        @Override
-        Set<ResolvedArtifact> getAllArtifacts(ResolvedDependency parent) {
-            return null
-        }
-
-    }
 }

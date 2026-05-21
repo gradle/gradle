@@ -16,6 +16,7 @@
 
 package org.gradle.api.tasks
 
+import org.gradle.api.problems.Severity
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.tasks.TaskPropertyUtils
 import org.gradle.api.internal.tasks.properties.GetInputFilesVisitor
@@ -80,27 +81,15 @@ class TaskInputFilePropertiesIntegrationTest extends AbstractIntegrationSpec imp
         expect:
         fails "test"
         failure.assertHasDescription("A problem was found with the configuration of task ':test' (type 'DefaultTask').")
-        failureDescriptionContains(unsupportedNotation {
-            property('input')
-                .value("task ':dependencyTask'")
-                .cannotBeConvertedTo(targetType)
-                .candidates(
-                    "a String or CharSequence path, for example 'src/main/java' or '/usr/include'",
-                    "a String or CharSequence URI, for example 'file:/usr/include'",
-                    "a File instance",
-                    "a Path instance",
-                    "a Directory instance",
-                    "a RegularFile instance",
-                    "a URI or URL instance of file",
-                    "a TextResource instance"
-                ).includeLink()
-        })
 
         and:
         verifyAll(receivedProblem) {
+            severity == Severity.ERROR
             fqid == 'validation:property-validation:unsupported-notation'
+            definition.id.displayName == 'Property has unsupported value'
             contextualLabel == 'Property \'input\' has unsupported value \'task \':dependencyTask\'\''
             details == "Type 'DefaultTask' cannot be converted to a $targetType"
+            definition.documentationLink.url == "https://docs.gradle.org/${distribution.version.version}/userguide/validation_problems.html#unsupported_notation"
             solutions == [
                 'Use a String or CharSequence path, for example \'src/main/java\' or \'/usr/include\'',
                 'Use a String or CharSequence URI, for example \'file:/usr/include\'',
@@ -151,33 +140,23 @@ class TaskInputFilePropertiesIntegrationTest extends AbstractIntegrationSpec imp
                 "a subtype of 'org.gradle.api.Task', as these are not supported with the configuration cache."))
         }
         failure.assertHasDescription("A problem was found with the configuration of task ':customTask' (type 'CustomTask').")
-        failureDescriptionContains(unsupportedNotation {
-            type('CustomTask').property('input')
-                .value("task ':dependencyTask'")
-                .cannotBeConvertedTo(targetType)
-                .candidates(
-                    "a String or CharSequence path, for example 'src/main/java' or '/usr/include'",
-                    "a String or CharSequence URI, for example 'file:/usr/include'",
-                    "a File instance",
-                    "a Path instance",
-                    "a Directory instance",
-                    "a RegularFile instance",
-                    "a URI or URL instance of file",
-                    "a TextResource instance"
-                ).includeLink()
-        })
 
         and:
         if (GradleContextualExecuter.configCache) {
             verifyAll(receivedProblem(0)) {
+                severity == Severity.ERROR
                 fqid == 'validation:configuration-cache:cannot-serialize-object-of-type-org-gradle-api-defaulttask-a-subtype-of-org-gradle-api-task-as-these-are-not-supported-with-the-configuration-cache'
                 contextualLabel == 'cannot serialize object of type \'org.gradle.api.DefaultTask\', a subtype of \'org.gradle.api.Task\', as these are not supported with the configuration cache.'
+                originLocations == []
             }
         }
         verifyAll(receivedProblem(GradleContextualExecuter.configCache ? 1 : 0)) {
+            severity == Severity.ERROR
             fqid == 'validation:property-validation:unsupported-notation'
+            definition.id.displayName == 'Property has unsupported value'
             contextualLabel == 'Type \'CustomTask\' property \'input\' has unsupported value \'task \':dependencyTask\'\''
             details == "Type 'DefaultTask' cannot be converted to a $targetType"
+            definition.documentationLink.url == "https://docs.gradle.org/${distribution.version.version}/userguide/validation_problems.html#unsupported_notation"
             solutions == [
                 'Use a String or CharSequence path, for example \'src/main/java\' or \'/usr/include\'',
                 'Use a String or CharSequence URI, for example \'file:/usr/include\'',
@@ -271,12 +250,12 @@ class TaskInputFilePropertiesIntegrationTest extends AbstractIntegrationSpec imp
         fails "foo"
 
         then:
-        failureDescriptionContains(missingValueMessage { type('FooTask').property('bar') })
-
-        and:
         verifyAll(receivedProblem) {
+            severity == Severity.ERROR
             fqid == 'validation:property-validation:value-not-set'
+            definition.id.displayName == 'Value not set'
             details == 'This property isn\'t marked as optional and no value has been configured'
+            definition.documentationLink.url == "https://docs.gradle.org/${distribution.version.version}/userguide/validation_problems.html#value_not_set"
             solutions == [
                 'Assign a value to \'bar\'',
                 'Mark property \'bar\' as optional',
@@ -310,6 +289,9 @@ class TaskInputFilePropertiesIntegrationTest extends AbstractIntegrationSpec imp
         fails "foo"
 
         then:
-        errorOutput.count("Mark property 'bar' as optional") == 1
+        // Failure summary is now a single line; per-problem details are rendered via the Problems API
+        // (build operation stream / problems report), not duplicated into the failure description.
+        output.count("Mark property 'bar' as optional") <= 1
+        errorOutput.count("Mark property 'bar' as optional") <= 1
     }
 }

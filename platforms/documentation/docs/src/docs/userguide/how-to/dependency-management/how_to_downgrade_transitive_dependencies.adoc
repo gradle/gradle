@@ -17,6 +17,7 @@
 
 This guide explains how to **downgrade transitive dependencies** in Gradle when your project requires an older version due to API compatibility, bugs, or other constraints.
 
+[[sec:why_downgrade_transitive_dependency]]
 == Why Downgrade a Transitive Dependency?
 
 By default, Gradle **resolves dependency version conflicts** by selecting the latest version found in the dependency graph.
@@ -32,6 +33,7 @@ Additionally, you should make sure there aren't existing <<dependency_constraint
 
 If downgrading is necessary, use **strict dependencies** or **forced dependencies**.
 
+[[sec:enforcing_strict_version]]
 == Option 1: Enforcing a Strict Version of a Dependency
 
 Gradle allows you to enforce a <<dependency_versions.adoc#sec:rich-version-constraints,**strict version**>> for a dependency, ensuring that the selected version cannot be upgraded by transitive dependencies.
@@ -78,6 +80,7 @@ If another dependency requires **1.10**, Gradle can resolve it without failure, 
 include::sample[dir="snippets/how-to/dependency-management/dependency-management/downgrade-transitives/tests",files="dependencies-extra.out"]
 ====
 
+[[sec:forcing_version_configuration]]
 == Option 2: Forcing a Version at the Configuration Level
 
 If a strict dependency is **too restrictive**, you can **force** a specific version for an entire configuration using link:{groovyDslPath}/org.gradle.api.artifacts.ResolutionStrategy.html[`resolutionStrategy.force()`].
@@ -97,6 +100,7 @@ include::sample[dir="snippets/how-to/dependency-management/dependency-management
 
 This ensures that **Commons Codec 1.9 is always used**, even if transitive dependencies request a newer version.
 
+[[sec:downgrade_summary]]
 == Summary
 
 To review the two options:

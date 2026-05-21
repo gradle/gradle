@@ -34,6 +34,10 @@ class MissingTaskDependenciesIntegrationTest extends AbstractIntegrationSpec imp
     @Rule
     BlockingHttpServer server = new BlockingHttpServer()
 
+    def setup() {
+        enableProblemsApiCheck()
+    }
+
     def "detects missing dependency between two tasks and fails (#description)"() {
         buildFile """
             task producer {
@@ -542,6 +546,7 @@ class MissingTaskDependenciesIntegrationTest extends AbstractIntegrationSpec imp
     }
 
     def "fails when an input file collection can't be resolved"() {
+        disableProblemsApiCheck()
         buildFile """
             task "broken" {
                 inputs.files(5).withPropertyName("invalidInputFileCollection")
@@ -680,29 +685,28 @@ The following types/formats are supported:
     }
 
     void assertMissingDependency(String producerTask, String consumerTask, File... producedConsumedLocations) {
-        expectReindentedValidationMessage()
-        def expectedMessage = implicitDependency {
-            at(producedConsumedLocations[0])
-            consumer(consumerTask)
-            producer(producerTask)
-            includeLink()
-        }
-        failure.assertThatDescription(containsNormalizedString(expectedMessage))
+        // Under CC, producer and consumer can run in parallel and each emit its own validation
+        // failure. Mark every per-task failure description as checked so the cleanup hook does
+        // not flag them as unchecked.
+        failure.assertThatAllDescriptions(Matchers.anyOf(
+            Matchers.startsWith("A problem was found with the configuration of task '${producerTask}'"),
+            Matchers.startsWith("A problem was found with the configuration of task '${consumerTask}'")
+        ))
 
-        // TODO: Fix this
-        // With cc tasks can run in parallel so reporting is a bit flaky
-        // and we sometimes report only the first location, but sometimes also other locations, depending on the task execution
-        if (GradleContextualExecuter.isConfigCache()) {
-            def matchers = []
-            for (int i = 0; i < producedConsumedLocations.length; i++) {
-                matchers += containsNormalizedString(implicitDependency {
-                    at(producedConsumedLocations[i])
-                    consumer(consumerTask)
-                    producer(producerTask)
-                    includeLink()
-                })
+        // Verify that an implicit-dependency problem was emitted matching the expected
+        // producer/consumer/location combination via the Problems API.
+        def expectedLocationPaths = producedConsumedLocations*.absolutePath
+        def matched = false
+        receivedProblems.size().times { i ->
+            def problem = receivedProblem(i)
+            if (problem.definition.id.fqid == 'validation:property-validation:implicit-dependency') {
+                def text = "${problem.contextualLabel ?: ''} ${problem.details ?: ''}"
+                if (text.contains("'${producerTask}'") && text.contains("'${consumerTask}'")
+                    && expectedLocationPaths.any { text.contains(it) }) {
+                    matched = true
+                }
             }
-            failure.assertThatAllDescriptions(Matchers.anyOf(matchers))
         }
+        assert matched: "No implicit-dependency problem matched producer=${producerTask} consumer=${consumerTask} locations=${expectedLocationPaths}"
     }
 }

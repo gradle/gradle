@@ -17,19 +17,13 @@
 package org.gradle.internal.reflect;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.api.problems.internal.ProblemInternal;
 import org.gradle.api.problems.internal.ProblemsInternal;
-import org.gradle.internal.exceptions.DefaultMultiCauseException;
-import org.gradle.internal.reflect.validation.TypeValidationProblemRenderer;
-import org.gradle.model.internal.type.ModelType;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Optional;
-
-import static java.util.stream.Collectors.toList;
 
 public class DefaultTypeValidationContext extends ProblemRecordingTypeValidationContext {
     public static final String MISSING_NORMALIZATION_ANNOTATION = "MISSING_NORMALIZATION_ANNOTATION";
@@ -77,21 +71,4 @@ public class DefaultTypeValidationContext extends ProblemRecordingTypeValidation
     public ImmutableList<ProblemInternal> getWarnings() {
         return warnings.build();
     }
-
-    public static void throwOnProblemsOf(Class<?> implementation, ImmutableList<ProblemInternal> validationMessages) {
-        if (!validationMessages.isEmpty()) {
-            String formatString = validationMessages.size() == 1
-                ? "A problem was found with the configuration of %s."
-                : "Some problems were found with the configuration of %s.";
-            throw new DefaultMultiCauseException(
-                String.format(formatString, ModelType.of(implementation).getDisplayName()),
-                validationMessages.stream()
-                    .map(TypeValidationProblemRenderer::renderMinimalInformationAbout)
-                    .sorted()
-                    .map(InvalidUserDataException::new)
-                    .collect(toList())
-            );
-        }
-    }
-
 }

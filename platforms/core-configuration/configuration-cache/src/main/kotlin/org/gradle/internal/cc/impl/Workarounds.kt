@@ -60,7 +60,7 @@ object Workarounds {
             }
         }
 
-    fun canAccessConventions(from: String, area: String) =
+    fun canAccessTaskExtensions(from: String, area: String) =
         withWorkaroundsFor(area) {
             from.startsWith("com.android.build.gradle.tasks.factory.AndroidUnitTest") || callStackHasElement {
                 isBuildScanPlugin(className)

@@ -35,6 +35,7 @@ Learn how to write a functional test to verify your plugin's behavior in a real-
 4. You wrote a unit test in <<part4_unit_test.adoc#part4_begin,part 4>>.
 5. You added a dataflow action to your plugin in <<part5_add_dataflow_action.adoc#part5_begin,part 2>>.
 
+[[dp_part6_step1]]
 == Step 1: About Functional Tests
 
 While a unit test checks a single class in isolation, a **functional test** verifies that your plugin works correctly in a *real Gradle build*.
@@ -63,6 +64,7 @@ It's available at `src/functionalTest/groovy/org/example/PluginTutorialPluginFun
 It uses the `GradleRunner` class to execute a build and then asserts that the build's output contains the expected "Hello World" message.
 We're going to re-use this same structure for our test.
 
+[[dp_part6_step2]]
 == Step 2: Update the Test
 
 First, let's update the name of the test file to match our plugin.
@@ -92,6 +94,7 @@ This functional test does the following:
 3.  **Runs the build** using `GradleRunner`, with our custom task `sendTestSlackMessage` as the argument.
 4.  **Verifies the result** by asserting that the build output contains `"Slack message sent successfully"`.
 
+[[dp_part6_step3]]
 == Step 3: Check out the Functional Test Build Logic
 
 Before you run the test, it's good to understand how `gradle init` configured our project to support functional tests.
@@ -106,6 +109,7 @@ include::sample[dir="snippets/tutorials/developing-plugins/plugin-tutorial/groov
 This configuration sets up a dedicated `functionalTest` source set and task, which keeps our functional tests separate from our unit tests.
 This makes our test suites more organized and reliable.
 
+[[dp_part6_step4]]
 == Step 4: Run the Functional Test
 
 The functional test uses an environment variable named `SLACK_TOKEN`.

@@ -63,6 +63,11 @@ public class DefaultResolvedComponentResult implements ResolvedComponentResultIn
     }
 
     @Override
+    public ResolvedGraphResult graph() {
+        return graph;
+    }
+
+    @Override
     public ComponentIdentifier getId() {
         return graph.structure().components().id(index);
     }

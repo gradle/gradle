@@ -78,9 +78,9 @@ public interface GraphStructure {
         ImmutableCapabilities capabilities(int index);
 
         /**
-         * The display name of the node with the given index.
+         * The name of the variant backing the node with the given index.
          */
-        String displayName(int index);
+        String variantName(int index);
 
         /**
          * The index of the external variant of the node with the given index,

@@ -368,6 +368,7 @@ $ ./gradlew show
 include::{snippetsPath}/reference/task-development/propertyConvention/tests/propertyConvention.out[]
 ----
 
+[[where_to_apply_conventions_from]]
 === Where to apply conventions from?
 
 There are several appropriate locations for setting a convention on a property at configuration time (i.e., before execution).
@@ -377,6 +378,7 @@ include::sample[dir="snippets/reference/task-development/propertyConventionCalls
 include::sample[dir="snippets/reference/task-development/propertyConventionCallsites/groovy",files="build.gradle[tags=convention-callsites]"]
 ====
 
+[[from_a_plugins_apply_method]]
 ==== From a plugin's `apply()` method
 
 Plugin authors may configure a convention on a lazy property from a plugin's `apply()` method, while performing preliminary configuration of the task or extension defining the property.
@@ -387,6 +389,7 @@ include::sample[dir="snippets/reference/task-development/propertyConventionCalls
 include::sample[dir="snippets/reference/task-development/propertyConventionCallsites/groovy",files="build.gradle[tags=convention-callsites-from-plugin]"]
 ====
 
+[[from_a_build_script]]
 ==== From a build script
 
 Build engineers may configure a convention on a lazy property from shared build logic that is configuring tasks (for instance, from third-party plugins) in a standard way for the entire build.
@@ -399,6 +402,7 @@ include::sample[dir="snippets/reference/task-development/propertyConventionCalls
 Note that for project-specific values, instead of conventions, you should prefer setting explicit values (using `Property.set(...)` or `ConfigurableFileCollection.setFrom(...)`, for instance),
 as conventions are only meant to define defaults.
 
+[[from_the_task_initialization]]
 ==== From the task initialization
 
 A task author may configure a convention on a lazy property from the task constructor or (if in Kotlin) initializer block.
@@ -409,6 +413,7 @@ include::sample[dir="snippets/reference/task-development/propertyConventionCalls
 include::sample[dir="snippets/reference/task-development/propertyConventionCallsites/groovy",files="build.gradle[tags=convention-callsites-from-constructor]"]
 ====
 
+[[next_to_the_property_declaration]]
 ==== Next to the property declaration
 
 You may configure a convention on a lazy property next to the place where the property is declared.
@@ -499,6 +504,7 @@ Factories;;
 * link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:fileTree(java.lang.Object)[Project.fileTree(Object)] will produce a link:{javadocPath}/org/gradle/api/file/ConfigurableFileTree.html[ConfigurableFileTree], or you can use link:{javadocPath}/org/gradle/api/Project.html#zipTree-java.lang.Object-[Project.zipTree(Object)] and link:{javadocPath}/org/gradle/api/Project.html#tarTree-java.lang.Object-[Project.tarTree(Object)]
 * link:{javadocPath}/org/gradle/api/file/DirectoryProperty.html#getAsFileTree--[DirectoryProperty.getAsFileTree()]
 
+[[property_files_api_reference]]
 === Property Files API Reference
 
 Use these types for _mutable_ values:
@@ -523,6 +529,7 @@ link:{javadocPath}/org/gradle/api/file/SourceDirectorySet.html[SourceDirectorySe
 Factories;;
 * link:{javadocPath}/org/gradle/api/model/ObjectFactory.html#sourceDirectorySet-java.lang.String-java.lang.String-[ObjectFactory.sourceDirectorySet(String, String)]
 
+[[lazy_collections_api_reference]]
 === Lazy Collections API Reference
 
 Use these types for _mutable_ values:
@@ -535,6 +542,7 @@ link:{javadocPath}/org/gradle/api/provider/SetProperty.html[SetProperty<T>]:: a 
 Factories;;
 * link:{javadocPath}/org/gradle/api/model/ObjectFactory.html#setProperty-java.lang.Class-[ObjectFactory.setProperty(Class)]
 
+[[lazy_objects_api_reference]]
 === Lazy Objects API Reference
 
 Use these types for _read only_ values:

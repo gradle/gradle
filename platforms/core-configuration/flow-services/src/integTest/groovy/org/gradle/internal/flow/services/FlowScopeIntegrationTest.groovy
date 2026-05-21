@@ -132,7 +132,7 @@ class FlowScopeIntegrationTest extends AbstractIntegrationSpec {
         fails 'producer'
 
         then:
-        failureCauseContains "Property 'text' cannot carry a dependency on task ':producer' as these are not yet supported."
+        failure.assertHasErrorOutput("Property 'text' cannot carry a dependency on task ':producer' as these are not yet supported.")
     }
 
     @ToBeImplemented()

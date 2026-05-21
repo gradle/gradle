@@ -623,7 +623,7 @@ class ResolveTestFixture {
                 if (!actualVariant) {
                     errors << "Expected variant name $variant, but wasn't found in: $actual.variants.name"
                 } else {
-                    if (variant.attributes != actualVariant.attributes) {
+                    if (variant.attributes != null && variant.attributes != actualVariant.attributes) {
                         errors << "On variant $variant.name, expected attributes $variant.attributes, but was: $actualVariant.attributes"
                     }
                 }
@@ -1246,13 +1246,13 @@ class ResolveTestFixture {
             this
         }
 
-        NodeBuilder variant(String name, Map<String, ?> attributes = [:]) {
+        NodeBuilder variant(String name, Map<String, ?> attributes = null) {
             configuration(name)
             checkVariant = true
             String variantName = name
-            Map<String, String> stringAttributes = attributes.collectEntries { entry ->
+            Map<String, String> stringAttributes = attributes != null ? attributes.collectEntries { entry ->
                 [entry.key, entry.value instanceof Closure ? entry.value.call() : entry.value.toString()]
-            }
+            } : null
             this.variants << new Variant(name: variantName, attributes: stringAttributes)
             this
         }

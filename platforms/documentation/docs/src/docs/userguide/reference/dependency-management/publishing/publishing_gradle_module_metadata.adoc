@@ -83,6 +83,7 @@ The table below summarizes how some Gradle specific features are mapped to Maven
 
 |===
 
+[[sec:disabling_metadata_compatibility_publication_warnings]]
 === Disabling metadata compatibility publication warnings
 
 If you want to suppress warnings, you can use the following APIs to do so:

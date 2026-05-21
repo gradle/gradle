@@ -28,14 +28,14 @@ import org.gradle.api.problems.ProblemGroup
 import org.gradle.api.problems.ProblemId
 import org.gradle.api.problems.ProblemLocation
 import org.gradle.api.problems.Severity
-import org.gradle.api.problems.internal.ProblemInternal
 import org.gradle.api.problems.internal.PluginIdLocation
+import org.gradle.api.problems.internal.ProblemInternal
 import org.gradle.api.problems.internal.ProblemReportCreator
 import org.gradle.api.problems.internal.ProblemSummaryData
 import org.gradle.api.problems.internal.StackTraceLocation
 import org.gradle.api.problems.internal.TaskLocation
+import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.buildoption.InternalOptions
-import org.gradle.internal.cc.impl.problems.BuildNameProvider
 import org.gradle.internal.cc.impl.problems.JsonSource
 import org.gradle.internal.cc.impl.problems.JsonWriter
 import org.gradle.internal.concurrent.ExecutorFactory
@@ -55,7 +55,7 @@ class DefaultProblemsReportCreator(
     internalOptions: InternalOptions,
     startParameter: StartParameterInternal,
     private val failureFactory: FailureFactory,
-    private val buildNameProvider: BuildNameProvider
+    private val buildStateRegistry: BuildStateRegistry,
 ) : ProblemReportCreator {
 
     private val report = CommonReport(
@@ -104,7 +104,7 @@ class DefaultProblemsReportCreator(
     }
 
     private fun JsonWriter.writeBuildName() {
-        buildNameProvider.buildName()?.let { name ->
+        buildStateRegistry.rootBuild.displayName.displayName.let { name ->
             property("buildName", name)
         }
     }

@@ -146,24 +146,39 @@ class ExtensionBean {
         settingsFile """
             include 'child'
         """
-        file("gradle.properties") << '''
+        propertiesFile '''
 global=some value
 '''
         buildFile '''
 assert 'some value' == global
 assert hasProperty('global')
 assert 'some value' == property('global')
-assert 'some value' == properties.global
 assert 'some value' == project.global
 assert project.hasProperty('global')
 assert 'some value' == project.property('global')
-assert 'some value' == project.properties.global
 '''
         file("child/gradle.properties") << '''
 global=overridden value
 '''
         file("child/build.gradle") << '''
 assert 'overridden value' == global
+'''
+
+        expect:
+        succeeds()
+    }
+
+    @Requires(
+        value = TestExecutionPreconditions.NotIsolatedProjects,
+        reason = "Project.getProperties() is a hard violation under Isolated Projects; see IsolatedProjectsAccessFromGroovyDslIntegrationTest"
+    )
+    def "properties added via gradle.properties are visible through the deprecated properties accessor"() {
+        propertiesFile '''
+global=some value
+'''
+        buildFile '''
+assert 'some value' == properties.global
+assert 'some value' == project.properties.global
 '''
 
         expectScriptGetPropertiesDeprecation()
@@ -471,7 +486,6 @@ assert 'overridden value' == global
             }
 
             assert p1 == 1
-            assert properties.p1 == 1
             assert ext.p1 == 1
             assert hasProperty("p1")
             assert property("p1") == 1
@@ -500,10 +514,27 @@ assert 'overridden value' == global
             }
         """
 
+        expect:
+        succeeds("run")
+    }
+
+    @Requires(
+        value = TestExecutionPreconditions.NotIsolatedProjects,
+        reason = "Project.getProperties() is a hard violation under Isolated Projects; see IsolatedProjectsAccessFromGroovyDslIntegrationTest"
+    )
+    def "properties added via the adhoc namespace are visible through the deprecated properties accessor"() {
+        buildFile '''
+ext {
+    set "p1", 1
+}
+
+assert properties.p1 == 1
+'''
+
         expectScriptGetPropertiesDeprecation()
 
         expect:
-        succeeds("run")
+        succeeds()
     }
 
     def canCallMethodWithClassArgumentType() {

@@ -73,6 +73,7 @@ The directory of our plugin looks as follows:
 =====
 ====
 
+[[sec:unit_test]]
 == 1. Unit Test
 
 *Unit tests* validate the internal behavior of your plugin in a lightweight, isolated project.
@@ -113,6 +114,7 @@ This test checks that the `org.example.filesizediff` plugin is applied and a `fi
 
 Unit tests are fast and useful for verifying the basic mechanics of your plugin logic.
 
+[[sec:functional_test]]
 == 2. Functional Test
 
 *Functional tests* (also known as end-to-end plugin tests) use Gradle's <<test_kit.adoc#test_kit,`TestKit`>> to launch real Gradle builds in a temporary directory.
@@ -155,6 +157,7 @@ include::sample[dir="snippets/fundamentals/developing-plugins/fileSizeDiffBinary
 include::sample[dir="snippets/fundamentals/developing-plugins/fileSizeDiffBinaryPlugin/groovy", files="plugin/build.gradle[]"]
 ====
 
+[[sec:consumer_project]]
 == Consumer Project
 
 You can optionally create a consumer project that uses your plugin:
@@ -180,8 +183,8 @@ You can optionally create a consumer project that uses your plugin:
 [source, groovy]
 ----
 .
-├── settings.gradle.kts // Include custom plugin
-├── build.gradle.kts    // Applies custom plugin
+├── settings.gradle // Include custom plugin
+├── build.gradle    // Applies custom plugin
 │
 └── plugin
     ├── settings.gradle

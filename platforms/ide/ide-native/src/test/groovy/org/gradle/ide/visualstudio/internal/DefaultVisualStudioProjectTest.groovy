@@ -17,11 +17,8 @@
 package org.gradle.ide.visualstudio.internal
 
 import org.gradle.api.file.FileCollection
-import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.provider.DefaultProviderFactory
-import org.gradle.language.nativeplatform.HeaderExportingSourceSet
-import org.gradle.nativeplatform.NativeComponentSpec
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
 import org.junit.Rule
@@ -32,12 +29,11 @@ import static org.gradle.ide.visualstudio.internal.DefaultVisualStudioProject.ge
 class DefaultVisualStudioProjectTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
-    def component = Mock(NativeComponentSpec)
     def fileResolver = Mock(FileResolver)
     def vsProject = project("projectName")
 
-    def project(String vsProjectName, NativeComponentSpec component = component) {
-        new DefaultVisualStudioProject(vsProjectName, component.getName(), fileResolver, TestUtil.objectFactory(), new DefaultProviderFactory())
+    def project(String vsProjectName) {
+        new DefaultVisualStudioProject(vsProjectName, null, fileResolver, TestUtil.objectFactory(), new DefaultProviderFactory())
     }
 
     def "names"() {
@@ -96,19 +92,6 @@ class DefaultVisualStudioProjectTest extends Specification {
         return Stub(FileCollection) {
             getFiles() >> files
         }
-    }
-
-    private HeaderExportingSourceSet headerSourceSet(List<File> exportedHeaders, List<File> implicitHeaders = []) {
-        def exportedHeaderFiles = exportedHeaders as Set
-        def implicitHeaderFiles = implicitHeaders as Set
-        def sourceSet = Mock(HeaderExportingSourceSet)
-        def sourceDirs = Mock(SourceDirectorySet)
-        1 * sourceSet.exportedHeaders >> sourceDirs
-        1 * sourceDirs.files >> exportedHeaderFiles
-        def implicitHeaderSet = Mock(SourceDirectorySet)
-        1 * sourceSet.implicitHeaders >> implicitHeaderSet
-        1 * implicitHeaderSet.files >> implicitHeaderFiles
-        return sourceSet
     }
 
     private File file(Object... path) {

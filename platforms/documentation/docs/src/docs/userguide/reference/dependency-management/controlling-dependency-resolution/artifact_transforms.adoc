@@ -65,6 +65,7 @@ It also tells Gradle what new set of "to" attributes will describe the format or
 Instead, Gradle first *automatically* searches all registered transforms to see if it can construct a chain of transformations that will ultimately produce a match.
 If Gradle finds such a chain, it then runs each transform in sequence, and delivers the transformed artifacts as a result.
 
+[[sec:implement_a_transform]]
 === 1. Implement a Transform
 
 A transform is typically written as an abstract class that implements the link:{javadocPath}/org/gradle/api/artifacts/transform/TransformAction.html[`TransformAction`] interface.
@@ -84,6 +85,7 @@ include::sample[dir="snippets/reference/dependency-management/controlling-depend
 include::sample[dir="snippets/reference/dependency-management/controlling-dependency-resolution/artifactTransforms-simple/groovy",files="build.gradle[tags=artifact-transform-imp]"]
 ====
 
+[[sec:declare_request_attributes]]
 === 2. Declare request Attributes
 
 Attributes specify the required properties of a dependency.
@@ -95,6 +97,7 @@ include::sample[dir="snippets/reference/dependency-management/controlling-depend
 include::sample[dir="snippets/reference/dependency-management/controlling-dependency-resolution/artifactTransforms-simple/groovy",files="build.gradle[tags=artifact-transform-use]"]
 ====
 
+[[sec:register_a_transform]]
 === 3. Register a Transform
 
 A transform must be registered using the link:{javadocPath}/org/gradle/api/artifacts/dsl/DependencyHandler.html#registerTransform(java.lang.Class,org.gradle.api.Action)[`dependencies.registerTransform()`] method.
@@ -108,6 +111,7 @@ include::sample[dir="snippets/reference/dependency-management/controlling-depend
 
 "To" attributes are used to describe the format or type of the artifacts that this transform can use as an input, and "from" attributes to describe the format or type of the artifacts that it produces as an output.
 
+[[sec:use_the_transform]]
 === 4. Use the Transform
 
 During a build, Gradle *automatically* runs registered transforms to satisfy a resolution request if a match is not directly available.
@@ -181,6 +185,7 @@ For example, if the requested variant is `java-api,classes`, but the dependency 
 
 TIP: Gradle applies transformations to artifacts, not variants.
 
+[[sec:executing_artifact_transforms_overview]]
 == Executing Artifact Transforms
 
 Gradle automatically selects Artifact Transforms as needed to satisfy resolution requests.
@@ -208,6 +213,7 @@ This process is called **Artifact Transform selection**:
 
 image::artifact-transform-5.png[]
 
+[[sec:the_artifact_transform_selection_process]]
 === The Artifact Transform Selection Process:
 
 1. **Start with requested Attributes**:
@@ -233,6 +239,7 @@ But a result may contain other attributes as well, that were not requested, and 
 
 For example: if attributes `A=a` and `B=b` are requested, and variant `V1` contains attributes `A=a`, `B=b`, and `C=c`, and variant `V2` contains attributes `A=a`, `B=b`, and `D=d`, then since all the values of `A` and `B` are identical (or compatible) either `V1` or `V2` would satisfy the request.
 
+[[sec:a_full_example]]
 === A Full Example
 
 Let's continue exploring the `minified` example begun above: a configuration requests `org.gradle.usage=java-runtime, org.gradle.libraryelements=jar, minified=true`.
@@ -295,6 +302,7 @@ include::{snippetsPath}/reference/dependency-management/controlling-dependency-r
 Similar to task types, an artifact transform consists of an action and some optional parameters.
 The major difference from custom task types is that the action and the parameters are implemented as two separate classes.
 
+[[sec:artifact_transforms_without_parameters]]
 === Artifact Transforms without Parameters
 
 An artifact transform action is provided by a class implementing link:{groovyDslPath}/org.gradle.api.artifacts.transform.TransformAction.html[TransformAction].
@@ -335,6 +343,7 @@ include::sample[dir="snippets/reference/dependency-management/controlling-depend
 Note how the implementation uses `@InputArtifact` to inject an artifact to transform into the action class, so that it can be accessed within the `transform` method.
 This method requests a directory for the unzipped classes by using `TransformOutputs.dir()` and then unzips the JAR file into this directory.
 
+[[sec:artifact_transforms_with_parameters]]
 === Artifact Transforms with Parameters
 
 An artifact transform may require parameters, such as a `String` for filtering or a file collection used to support the transformation of the input artifact.
@@ -393,6 +402,7 @@ include::sample[dir="snippets/reference/dependency-management/controlling-depend
 Note the classes to be relocated are determined by examining the packages of the input artifact and its dependencies.
 Additionally, the transform ensures that packages contained in JAR files on an external classpath are not relocated.
 
+[[sec:incremental_artifact_transforms]]
 === Incremental Artifact Transforms
 
 Similar to <<custom_tasks#incremental_tasks,incremental tasks>>, Artifact Transforms can avoid some work by only processing files that have changed since the last execution.

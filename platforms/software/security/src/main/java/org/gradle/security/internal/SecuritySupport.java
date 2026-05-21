@@ -85,7 +85,7 @@ public class SecuritySupport {
         ) {
             return readSignatureList(decoderStream, file.toString());
         } catch (IOException | PGPException e) {
-            throw UncheckedException.throwAsUncheckedException(e);
+            throw new InvalidSignatureFileException(file, e);
         }
     }
 

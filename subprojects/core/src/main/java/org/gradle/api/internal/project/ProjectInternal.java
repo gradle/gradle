@@ -71,12 +71,12 @@ public interface ProjectInternal extends Project, ProjectIdentifier, HasScriptSe
     ProjectInternal getParent();
 
     @Nullable
-    ProjectInternal getParent(ProjectInternal referrer);
+    ProjectInternal getParent(ProjectIdentity referrer);
 
     @Override
     ProjectInternal getRootProject();
 
-    ProjectInternal getRootProject(ProjectInternal referrer);
+    ProjectInternal getRootProject(ProjectIdentity referrer);
 
     Project evaluate();
 
@@ -95,26 +95,26 @@ public interface ProjectInternal extends Project, ProjectIdentifier, HasScriptSe
     @Override
     ProjectInternal project(String path) throws UnknownProjectException;
 
-    ProjectInternal project(ProjectInternal referrer, String path) throws UnknownProjectException;
+    ProjectInternal project(ProjectIdentity referrer, String path) throws UnknownProjectException;
 
-    ProjectInternal project(ProjectInternal referrer, String path, Action<? super Project> configureAction);
+    ProjectInternal project(ProjectIdentity referrer, String path, Action<? super Project> configureAction);
 
     @Override
     @Nullable
     ProjectInternal findProject(String path);
 
     @Nullable
-    ProjectInternal findProject(ProjectInternal referrer, String path);
+    ProjectInternal findProject(ProjectIdentity referrer, String path);
 
-    Set<? extends ProjectInternal> getSubprojects(ProjectInternal referrer);
+    Set<? extends ProjectInternal> getSubprojects(ProjectIdentity referrer);
 
-    void subprojects(ProjectInternal referrer, Action<? super Project> configureAction);
+    void subprojects(ProjectIdentity referrer, Action<? super Project> configureAction);
 
-    Map<String, Project> getChildProjects(ProjectInternal referrer);
+    Map<String, Project> getChildProjects(ProjectIdentity referrer);
 
-    Set<? extends ProjectInternal> getAllprojects(ProjectInternal referrer);
+    Set<? extends ProjectInternal> getAllprojects(ProjectIdentity referrer);
 
-    void allprojects(ProjectInternal referrer, Action<? super Project> configureAction);
+    void allprojects(ProjectIdentity referrer, Action<? super Project> configureAction);
 
     HierarchicalDynamicObject getInheritedScope();
 

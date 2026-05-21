@@ -131,6 +131,7 @@ You’ll discover that Gradle has a rich API for working with dependencies — o
 
 [[sec:cpp_compile_link]]
 == Compiling and linking your code
+
 Compiling your code can be trivially easy if you follow the conventions:
 
 1. Put your source code under the _src/main/cpp_ directory
@@ -154,6 +155,7 @@ In the future, Gradle will consider source and ABI compatibility when selecting 
 Gradle has general support for the three major tool chains on major operating system: Clang footnote:[Installed with Xcode on macOS], GCC footnote:[Installed through Cygwin and MinGW for 32- and 64-bits architecture on Windows] and Visual {cpp} footnote:[Installed with Visual Studio 2010 to 2019] (Windows-only).
 GCC and Clang installed using Macports and Homebrew have been reported to work fine, but this isn’t tested continuously.
 
+[[sec:cpp_tool_chain_windows]]
 ==== Windows
 
 To build on Windows, install a compatible version of Visual Studio.
@@ -168,6 +170,7 @@ include::sample[dir="snippets/reference/platforms/native/cpp-basic/groovy",files
 Alternatively, you can install Cygwin or MinGW with GCC.
 Clang is currently not supported.
 
+[[sec:cpp_tool_chain_macos]]
 ==== macOS
 
 To build on macOS, you should install Xcode.
@@ -176,6 +179,7 @@ The {cpp} plugins will discover the Xcode installation using the system PATH.
 The {cpp} plugins also work with GCC and Clang installed with Macports or Homebrew footnote:[Macports and Homebrew installation of GCC and Clang is not officially supported].
 To use one of the Macports or Homebrew, you will need to add Macports/Homebrew to the system PATH.
 
+[[sec:cpp_tool_chain_linux]]
 ==== Linux
 
 To build on Linux, install a compatible version of GCC or Clang.

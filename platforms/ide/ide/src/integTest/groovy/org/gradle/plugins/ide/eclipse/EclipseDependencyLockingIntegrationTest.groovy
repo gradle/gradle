@@ -31,24 +31,25 @@ class EclipseDependencyLockingIntegrationTest extends AbstractEclipseIntegration
         file('gradle/dependency-locks/compileClasspath.lockfile') << 'groupOne:artifactTwo:1.1'
 
         //when
+        expectTaskDeprecations("eclipse", "eclipseClasspath", "eclipseJdt", "eclipseProject")
         runEclipseTask """
-apply plugin: 'java'
-apply plugin: 'eclipse'
+            apply plugin: 'java'
+            apply plugin: 'eclipse'
 
-repositories {
-    maven { url = "${mvnRepo.uri}" }
-}
+            repositories {
+                maven { url = "${mvnRepo.uri}" }
+            }
 
-configurations {
-    compileClasspath {
-        resolutionStrategy.activateDependencyLocking()
-    }
-}
+            configurations {
+                compileClasspath {
+                    resolutionStrategy.activateDependencyLocking()
+                }
+            }
 
-dependencies {
-    implementation 'groupOne:artifactTwo:[2.0,3.0)'
-}
-"""
+            dependencies {
+                implementation 'groupOne:artifactTwo:[2.0,3.0)'
+            }
+        """
 
         //then
         def libraries = classpath.libs
@@ -67,25 +68,26 @@ dependencies {
         file('gradle/dependency-locks/compileClasspath.lockfile') << 'groupOne:artifactOne:1.1'
 
         //when
+        expectTaskDeprecations("eclipse", "eclipseClasspath", "eclipseJdt", "eclipseProject")
         runEclipseTask """
-apply plugin: 'java'
-apply plugin: 'eclipse'
+            apply plugin: 'java'
+            apply plugin: 'eclipse'
 
-repositories {
-    maven { url = "${mvnRepo.uri}" }
-}
+            repositories {
+                maven { url = "${mvnRepo.uri}" }
+            }
 
-configurations {
-    compileClasspath {
-        resolutionStrategy.activateDependencyLocking()
-    }
-}
+            configurations {
+                compileClasspath {
+                    resolutionStrategy.activateDependencyLocking()
+                }
+            }
 
-dependencies {
-    implementation 'groupOne:artifactOne:[1.0,2.0)'
-    implementation 'groupOne:artifactTwo:[2.0,3.0)'
-}
-"""
+            dependencies {
+                implementation 'groupOne:artifactOne:[1.0,2.0)'
+                implementation 'groupOne:artifactTwo:[2.0,3.0)'
+            }
+        """
 
         //then
         def libraries = classpath.libs

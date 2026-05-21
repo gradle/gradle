@@ -1,0 +1,306 @@
+// Copyright (C) 2024 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[docker]]
+= Gradle Docker Images
+
+Gradle publishes link:https://hub.docker.com/_/gradle[Docker Official Images] for running Gradle builds inside containers.
+The images are maintained by Gradle, Inc. in the link:https://github.com/gradle/docker-gradle[gradle/docker-gradle] repository on GitHub.
+
+[NOTE]
+====
+Gradle assumed ownership of the official Docker image from its long-time community maintainer in September 2025.
+See the link:https://blog.gradle.org/docker-image-ownership[announcement blog post] for background.
+====
+
+[[docker_when_to_use]]
+== When to use the Gradle image vs. a plain JDK image
+
+The `gradle` image bundles a pre-installed Gradle distribution alongside a JDK.
+This is convenient for quick experiments and for CI systems that do not check out your project's source tree (and therefore cannot use the Gradle Wrapper).
+
+WARNING: You should not use it for production builds.
+
+For projects that include the link:https://docs.gradle.org/current/userguide/gradle_wrapper.html[Gradle Wrapper] (the recommended practice), a plain JDK image such as `eclipse-temurin:21` is sufficient — the Wrapper downloads the correct Gradle distribution automatically.
+Using a JDK-only image keeps the container layer smaller and avoids a potential version mismatch between the image's pre-installed Gradle and the version declared in `gradle/wrapper/gradle-wrapper.properties`.
+
+[[docker_image_variants]]
+== Image variants
+
+Every image tag follows the pattern `gradle:<gradle-version>-jdk<jdk-version>-<base>`.
+Omitting a segment selects the default: the latest Gradle version, the current LTS JDK, and the `noble` (Ubuntu) base.
+
+[[docker_image_variants_base]]
+=== Base images
+
+[cols="1,3",options="header"]
+|===
+| Base | Description
+
+| `noble` (default)
+| Ubuntu 24.04 LTS with Eclipse Temurin JDK. The most broadly compatible choice.
+
+| `jammy`
+| Ubuntu 22.04 LTS with Eclipse Temurin JDK. Available for teams that have not yet moved to Noble.
+
+| `alpine`
+| Alpine Linux with Eclipse Temurin JDK. Produces the smallest image, but uses musl libc — some native libraries may require additional work.
+
+| `corretto`
+| Amazon Linux 2023 with Amazon Corretto JDK. Well suited for AWS workloads.
+
+| `ubi` / `ubi9` / `ubi10`
+| Red Hat Universal Base Image. Required for OpenShift and Red Hat-certified environments.
+
+| `graal`
+| GraalVM-based image for projects that need native-image or polyglot capabilities.
+|===
+
+[[docker_image_variants_jdk]]
+=== JDK versions
+
+The following JDK versions are available across base image variants.
+Not every JDK/base combination is published — see the link:https://hub.docker.com/_/gradle/tags[Docker Hub tags page] for the full matrix.
+
+[cols="1,3",options="header"]
+|===
+| JDK | Notes
+
+| 25
+| Current release. Default for `latest` and unqualified tags.
+
+| 21
+| Long-term support (LTS). Widely used in production.
+
+| 17
+| Long-term support (LTS). Still common in existing projects.
+
+| 11
+| Legacy LTS. Available only on Gradle 8.x and 7.x images.
+
+| 8
+| Legacy. Available only on Gradle 8.x, 7.x, and 6.x images.
+|===
+
+[[docker_image_variants_lts_and_current]]
+=== Multi-JDK images
+
+Tags matching `jdk-lts-and-current` bundle both the current LTS JDK and the latest GA JDK in a single image.
+These are useful for projects that compile against one JDK and test against another.
+
+[[docker_image_variants_arch]]
+=== Supported architectures
+
+All images are published for `amd64`, `arm64v8`, `arm32v7`, `ppc64le`, `riscv64`, and `s390x` where the underlying JDK and base image provide support.
+
+[[docker_running_builds]]
+== Running a build
+
+Mount your project directory and invoke Gradle:
+
+[source,bash]
+----
+docker run --rm -u gradle \
+  -v "$PWD":/home/gradle/project \
+  -w /home/gradle/project \
+  gradle gradle build
+----
+
+* `-u gradle` runs the build as the non-root `gradle` user created by the image.
+* `-v "$PWD":/home/gradle/project` bind-mounts the project source into the container.
+* `-w /home/gradle/project` sets the working directory.
+
+If your project includes the Gradle Wrapper, use `./gradlew` instead:
+
+[source,bash]
+----
+docker run --rm -u gradle \
+  -v "$PWD":/home/gradle/project \
+  -w /home/gradle/project \
+  eclipse-temurin:21 ./gradlew build
+----
+
+[[docker_ci_usage]]
+== Using Gradle Docker images in CI
+
+Most CI platforms allow you to specify a container image for each job.
+The examples below show how to reference the Gradle Docker image on popular platforms.
+
+[[docker_ci_github_actions]]
+=== GitHub Actions
+
+[source,yaml]
+----
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container: gradle:jdk21
+    steps:
+      - uses: actions/checkout@v4
+      - run: gradle build
+----
+
+In practice, the link:https://github.com/gradle/actions/tree/main/setup-gradle[`setup-gradle`] action with a plain runner is preferred over a container job because it provides caching, Build Scan integration, and Wrapper validation.
+See <<github-actions.adoc#github_actions,Gradle on GitHub Actions>>.
+
+[[docker_ci_gitlab]]
+=== GitLab CI
+
+[source,yaml]
+----
+build:
+  image: gradle:jdk21
+  script:
+    - gradle build
+----
+
+See <<gitlab-ci.adoc#gitlab_ci,Gradle on GitLab CI>>.
+
+[[docker_ci_jenkins]]
+=== Jenkins (Pipeline)
+
+[source,groovy]
+----
+pipeline {
+    agent {
+        docker { image 'gradle:jdk21' }
+    }
+    stages {
+        stage('Build') {
+            steps {
+                sh 'gradle build'
+            }
+        }
+    }
+}
+----
+
+See <<jenkins.adoc#jenkins,Gradle on Jenkins>>.
+
+[[docker_caching]]
+== Caching and performance
+
+Containers are typically ephemeral, so the Gradle User Home (`~/.gradle`) is discarded after every run unless you take steps to preserve it.
+
+[[docker_caching_volume]]
+=== Mount a persistent volume
+
+Bind-mount a host directory to `GRADLE_USER_HOME` so downloaded dependencies and Wrapper distributions survive between runs:
+
+[source,bash]
+----
+docker run --rm -u gradle \
+  -v "$PWD":/home/gradle/project \
+  -v gradle-cache:/home/gradle/.gradle \
+  -w /home/gradle/project \
+  gradle gradle build
+----
+
+The named volume `gradle-cache` persists across container restarts.
+
+[[docker_caching_ci]]
+=== CI-specific caching
+
+Each CI platform has its own caching mechanism:
+
+* *GitHub Actions* — `setup-gradle` handles Gradle User Home caching automatically.
+* *GitLab CI* — use the `cache:` directive with `GRADLE_USER_HOME` inside `$CI_PROJECT_DIR`.
+* *Jenkins* — agents are typically long-lived, so `~/.gradle` persists on the agent host.
+
+For distributed or ephemeral agents, a link:https://docs.gradle.org/current/userguide/build_cache.html[Gradle Remote Build Cache] provides the best build-time savings across all CI platforms.
+
+[[docker_caching_daemon]]
+=== Disabling the daemon
+
+The Gradle daemon improves performance across consecutive builds on the same machine.
+In short-lived containers that execute a single build, the daemon provides no benefit and adds startup overhead.
+Disable it by passing `--no-daemon` or setting the environment variable:
+
+[source,bash]
+----
+docker run --rm -u gradle \
+  -e GRADLE_OPTS="-Dorg.gradle.daemon=false" \
+  -v "$PWD":/home/gradle/project \
+  -w /home/gradle/project \
+  gradle gradle build
+----
+
+[[docker_build_scans]]
+== Publishing Build Scans
+
+To publish a link:https://scans.gradle.com[Build Scan®] from a containerized build, apply the Develocity plugin in `settings.gradle[.kts]` and accept the terms of use:
+
+[source,kotlin]
+----
+plugins {
+    id("com.gradle.develocity") version "3.18.1"
+}
+
+develocity {
+    buildScan {
+        termsOfUseUrl = "https://gradle.com/help/legal-terms-of-use"
+        termsOfUseAgree = "yes"
+        publishing.onlyIf { true }
+    }
+}
+----
+
+The Build Scan URL is printed to the build log.
+No additional container configuration is required — the container needs only outbound HTTPS access.
+
+[[docker_custom_image]]
+== Building a custom image
+
+For production CI pipelines, building a project-specific image locks the JDK, Gradle version, and any additional tools your build needs:
+
+[source,dockerfile]
+----
+FROM eclipse-temurin:21-noble
+
+# Copy Gradle Wrapper
+COPY gradlew /app/gradlew
+COPY gradle /app/gradle
+RUN /app/gradlew --version   # pre-download the distribution
+
+COPY . /app
+WORKDIR /app
+----
+
+Using the Gradle Wrapper in the custom image is preferred over the `gradle` base image because the Wrapper version is pinned in your repository and is not affected by Docker image updates.
+
+[[docker_environment]]
+== Environment variables
+
+The `gradle` image respects the standard Gradle environment variables:
+
+[cols="1,3",options="header"]
+|===
+| Variable | Purpose
+
+| `GRADLE_USER_HOME`
+| Location for caches, Wrapper distributions, and init scripts. Defaults to `/home/gradle/.gradle`.
+
+| `GRADLE_OPTS`
+| JVM arguments for the Gradle client and daemon, e.g. `-Xmx2g -Dorg.gradle.daemon=false`.
+
+| `JAVA_HOME`
+| Set by the base image. Override only when an alternative JDK is mounted into the container.
+|===
+
+[[docker_security]]
+== Security considerations
+
+* Run as the non-root `gradle` user (`-u gradle`) to avoid creating root-owned files on the bind-mounted host directory.
+* Pin image tags to a specific Gradle and JDK version (e.g. `gradle:9.3.1-jdk21-noble`) rather than using `latest` to ensure reproducible builds.
+* Verify image provenance with `docker trust inspect gradle` or review the link:https://github.com/docker-library/repo-info/tree/master/repos/gradle[image metadata] published by Docker.

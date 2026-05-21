@@ -438,7 +438,7 @@ task thing {
         task wrongRuntimeKeyType {
             def myExt = project.extensions.getByType(MyExtension)
             doLast {
-                myExt.prop = [123: 'value']
+                myExt.prop = [(new Object()): 'value']
                 myExt.prop.get()
             }
         }
@@ -446,7 +446,7 @@ task thing {
         task wrongRuntimeValueType {
             def myExt = project.extensions.getByType(MyExtension)
             doLast {
-                myExt.prop = ['key': 123]
+                myExt.prop = ['key': new Object()]
                 myExt.prop.get()
             }
         }
@@ -510,12 +510,12 @@ task thing {
         fails('wrongRuntimeKeyType')
         then:
         failure.assertHasDescription("Execution failed for task ':wrongRuntimeKeyType' (registered in build file 'build.gradle').")
-        failure.assertHasCause('Cannot get the value of a property of type java.util.Map with key type java.lang.String as the source contains a key of type java.lang.Integer.')
+        failure.assertHasCause('Cannot get the value of a property of type java.util.Map with key type java.lang.String as the source contains a key of type java.lang.Object.')
         when:
         fails('wrongRuntimeValueType')
         then:
         failure.assertHasDescription("Execution failed for task ':wrongRuntimeValueType' (registered in build file 'build.gradle').")
-        failure.assertHasCause('Cannot get the value of a property of type java.util.Map with value type java.lang.String as the source contains a value of type java.lang.Integer.')
+        failure.assertHasCause('Cannot get the value of a property of type java.util.Map with value type java.lang.String as the source contains a value of type java.lang.Object.')
 
         when:
         fails('wrongPropertyTypeDsl')

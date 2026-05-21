@@ -43,6 +43,7 @@ $ ./gradlew dependencies
 
 TIP: To render the graph of dependencies declared in the `buildscript` `classpath` configuration, use the <<command_line_interface.adoc#sec:listing_project_dependencies, `buildEnvironment` task>>.
 
+[[sec:understanding_output_annotations]]
 === Understanding output annotations
 
 [source,bash]
@@ -80,6 +81,7 @@ The `dependencies` task marks dependency trees with the following annotations:
 - `(c)`: This element is a <<dependency_constraints.adoc#dependency-constraints,dependency constraint>>, not a dependency. Look for the matching dependency elsewhere in the tree.
 - `(n)`: A dependency or dependency configuration that <<declaring_configurations.adoc#sec:resolvable-consumable-configs,cannot be resolved>>.
 
+[[sec:specifying_a_dependency_configuration]]
 === Specifying a dependency configuration
 
 To focus on a specific dependency configuration, use the optional `--configuration` parameter.
@@ -102,6 +104,7 @@ $ ./gradlew -q dependencies --configuration tRC
 To view a list of all configurations in a project, including those provided by plugins, run the `resolvableConfigurations` report.
 For more details, refer to the plugin’s documentation, such as the Java Plugin <<java_plugin.adoc#sec:java_plugin_and_dependency_management,here>>.
 
+[[sec:looking_at_an_example_dependencies]]
 === Looking at an example
 
 Consider a project that uses the link:https://www.eclipse.org/jgit/[JGit library] to execute Source Control Management (SCM) operations for a release process.
@@ -168,6 +171,7 @@ $ ./gradlew -q dependencyInsight --dependency commons-codec --configuration scm
 include::{snippetsPath}/reference/dependency-management/declaring-dependencies/inspectingDependencies-dependencyInsightReport/tests/dependencyInsightReport.out[]
 ----
 
+[[sec:understanding_the_selection_reasons]]
 === Understanding the selection reasons
 
 The "Selection reasons" section of the dependency insight report lists the reasons why a dependency was selected.

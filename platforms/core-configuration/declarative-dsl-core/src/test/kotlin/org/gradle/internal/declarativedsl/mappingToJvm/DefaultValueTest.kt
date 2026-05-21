@@ -32,7 +32,7 @@ class DefaultValueTest {
             """.trimIndent()
         )
 
-        Assertions.assertEquals(Enum.B, runtimeInstanceFromResult(schema, resolution, kotlinFunctionAsConfigureLambda, RuntimeCustomAccessors.none, ::Receiver).e1)
+        Assertions.assertEquals(Enum.B, runtimeInstanceFromResult(resolution, kotlinFunctionAsConfigureLambda, RuntimeCustomAccessors.none, ::Receiver).e1)
     }
 
     private

@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.store;
 
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.TransientConfigurationResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.GraphStructure;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.logging.Logger;
@@ -27,6 +26,7 @@ import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.time.Timer;
+import org.jspecify.annotations.Nullable;
 
 import java.io.Closeable;
 import java.io.File;
@@ -36,14 +36,14 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 @ServiceScope(Scope.BuildTree.class)
 public class ResolutionResultsStoreFactory implements Closeable {
+
     private final static Logger LOG = Logging.getLogger(ResolutionResultsStoreFactory.class);
     private static final int DEFAULT_MAX_SIZE = 2000000000; //2 gigs
 
     private final TemporaryFileProvider temp;
     private final int maxSize;
 
-    private CachedStoreFactory<TransientConfigurationResults> oldModelCache;
-    private CachedStoreFactory<GraphStructure> newModelCache;
+    private @Nullable CachedStoreFactory<GraphStructure> graphStructureCache;
 
     private final AtomicInteger storeSetBaseId = new AtomicInteger();
 
@@ -75,20 +75,12 @@ public class ResolutionResultsStoreFactory implements Closeable {
         return store;
     }
 
-    private synchronized CachedStoreFactory<TransientConfigurationResults> getOldModelCache() {
-        if (oldModelCache == null) {
-            oldModelCache = new CachedStoreFactory<>("Resolution result");
-            cleanUpLater.add(oldModelCache);
+    private synchronized CachedStoreFactory<GraphStructure> getGraphStructureCache() {
+        if (graphStructureCache == null) {
+            graphStructureCache = new CachedStoreFactory<>("Resolution result");
+            cleanUpLater.add(graphStructureCache);
         }
-        return oldModelCache;
-    }
-
-    private synchronized CachedStoreFactory<GraphStructure> getNewModelCache() {
-        if (newModelCache == null) {
-            newModelCache = new CachedStoreFactory<>("Resolution result");
-            cleanUpLater.add(newModelCache);
-        }
-        return newModelCache;
+        return graphStructureCache;
     }
 
     public StoreSet createStoreSet() {
@@ -103,13 +95,8 @@ public class ResolutionResultsStoreFactory implements Closeable {
             }
 
             @Override
-            public Store<GraphStructure> newModelCache() {
-                return getNewModelCache().createCachedStore(storeSetId);
-            }
-
-            @Override
-            public Store<TransientConfigurationResults> oldModelCache() {
-                return getOldModelCache().createCachedStore(storeSetId);
+            public Store<GraphStructure> graphStructureCache() {
+                return getGraphStructureCache().createCachedStore(storeSetId);
             }
         };
     }
@@ -129,9 +116,9 @@ public class ResolutionResultsStoreFactory implements Closeable {
             cleanUpLater.stop();
             LOG.debug("Deleted {} resolution results binary files in {}", stores.size(), clock.getElapsed());
         } finally {
-            oldModelCache = null;
-            newModelCache = null;
+            graphStructureCache = null;
             stores.clear();
         }
     }
+
 }

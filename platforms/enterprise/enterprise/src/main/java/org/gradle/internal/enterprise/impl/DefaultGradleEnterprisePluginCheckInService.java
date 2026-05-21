@@ -18,6 +18,7 @@ package org.gradle.internal.enterprise.impl;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.gradle.internal.buildtree.BuildModelParameters;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.enterprise.GradleEnterprisePluginCheckInResult;
 import org.gradle.internal.enterprise.GradleEnterprisePluginCheckInService;
 import org.gradle.internal.enterprise.GradleEnterprisePluginMetadata;
@@ -29,8 +30,10 @@ import org.jspecify.annotations.Nullable;
 
 import java.util.function.Supplier;
 
+import static org.gradle.internal.enterprise.impl.legacy.DevelocityPluginCompatibility.FIRST_PLUGIN_VERSION_WITHOUT_PARENT_PROPERTY_LOOKUP;
 import static org.gradle.internal.enterprise.impl.legacy.DevelocityPluginCompatibility.getUnsupportedPluginMessage;
 import static org.gradle.internal.enterprise.impl.legacy.DevelocityPluginCompatibility.getUnsupportedWithIsolatedProjectsMessage;
+import static org.gradle.internal.enterprise.impl.legacy.DevelocityPluginCompatibility.isAffectedByParentPropertyLookup;
 import static org.gradle.internal.enterprise.impl.legacy.DevelocityPluginCompatibility.isUnsupportedPluginVersion;
 import static org.gradle.internal.enterprise.impl.legacy.DevelocityPluginCompatibility.isUnsupportedWithIsolatedProjects;
 
@@ -76,6 +79,15 @@ public class DefaultGradleEnterprisePluginCheckInService implements GradleEnterp
 
         if (isIsolatedProjectsEnabled && isUnsupportedWithIsolatedProjects(pluginBaseVersion)) {
             return checkInUnsupportedResult(pluginBaseVersion, getUnsupportedWithIsolatedProjectsMessage(pluginVersion));
+        }
+
+        if (isAffectedByParentPropertyLookup(pluginBaseVersion)) {
+            DeprecationLogger.deprecateIndirectUsage("Usage of the Develocity plugin " + pluginVersion)
+                .withContext("The plugin application will be ignored.")
+                .withAdvice("Upgrade to version " + FIRST_PLUGIN_VERSION_WITHOUT_PARENT_PROPERTY_LOOKUP + " or later of the Develocity plugin.")
+                .willBecomeAnErrorInGradle10()
+                .withUpgradeGuideSection(9, "deprecated_develocity_plugin_pre_4_0")
+                .nagUser();
         }
 
         DefaultGradleEnterprisePluginAdapter adapter = pluginAdapterFactory.create(serviceFactory);

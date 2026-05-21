@@ -22,6 +22,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.Compone
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.model.DependencyMetadata;
 
+import java.util.List;
 import java.util.function.Consumer;
 
 /**
@@ -29,7 +30,10 @@ import java.util.function.Consumer;
  * Additional fields in this interface are not required to reconstitute the serialized graph, but are using during construction of the graph.
  */
 public interface DependencyGraphEdge extends ResolvedGraphDependency {
+
     DependencyGraphNode getFrom();
+
+    List<? extends DependencyGraphNode> getTargetNodes();
 
     boolean isTransitive();
 
@@ -44,8 +48,6 @@ public interface DependencyGraphEdge extends ResolvedGraphDependency {
      * on the module that this edge points to, and any attributes attached directly to this edge.
      */
     ImmutableAttributes getAttributes();
-
-    boolean isTargetVirtualPlatform();
 
     /**
      * The reason this edge contributes to component selection.

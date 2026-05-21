@@ -76,6 +76,7 @@ import org.gradle.api.internal.properties.GradleProperties;
 import org.gradle.api.internal.resources.ApiTextResourceAdapter;
 import org.gradle.api.internal.runtimeshaded.RuntimeShadedJarFactory;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.problems.Problems;
 import org.gradle.cache.internal.CleaningInMemoryCacheDecoratorFactory;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.cache.internal.ProducerGuard;
@@ -194,7 +195,8 @@ class DependencyManagementBuildScopeServices implements ServiceRegistrationProvi
         AttributesFactory attributesFactory,
         SimpleMapInterner stringInterner,
         CapabilityNotationParser capabilityNotationParser,
-        ObjectFactory objectFactory
+        ObjectFactory objectFactory,
+        Problems problems
     ) {
         ProjectDependencyFactory projectDependencyFactory = new ProjectDependencyFactory(factory);
 
@@ -204,7 +206,8 @@ class DependencyManagementBuildScopeServices implements ServiceRegistrationProvi
             classPathRegistry,
             fileCollectionFactory,
             runtimeShadedJarFactory,
-            stringInterner
+            stringInterner,
+            problems
         );
 
         return new DefaultDependencyFactory(
@@ -224,11 +227,12 @@ class DependencyManagementBuildScopeServices implements ServiceRegistrationProvi
         ObjectFactory objectFactory,
         DefaultProjectDependencyFactory factory,
         AttributesFactory attributesFactory,
-        SimpleMapInterner stringInterner
+        SimpleMapInterner stringInterner,
+        Problems problems
     ) {
         return new DefaultDependencyConstraintFactory(
             objectFactory,
-            DependencyConstraintNotationParser.parser(instantiator, factory, stringInterner, attributesFactory),
+            DependencyConstraintNotationParser.parser(instantiator, factory, stringInterner, attributesFactory, problems),
             attributesFactory
         );
     }

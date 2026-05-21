@@ -39,8 +39,6 @@ class ConfigurationCacheStartParameter internal constructor(
     private val modelParameters: BuildModelParameters,
 ) {
 
-    val taskExecutionAccessPreStable: Boolean = internalOptions.getBoolean("org.gradle.internal.configuration-cache.task-execution-access-pre-stable", false)
-
     /**
      * Should be provided if a link to the report is expected even if no errors were found.
      * Useful in testing.

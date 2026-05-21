@@ -96,18 +96,10 @@ include::sample[dir="snippets/reference/dependency-management/declaring-reposito
 
 You can declare local repositories using the `mavenLocal()` or `flatDir` methods inside the repositories block:
 
-[source,kotlin]
-----
-repositories {
-    mavenLocal()  // Uses the local Maven repository (~/.m2/repository)
-    maven {
-        url = uri("/path/to/local/repo")  // Replace with your actual local repo path
-    }
-    flatDir {
-        dirs 'libs'  // Assumes JARs are in the 'libs' directory
-    }
-}
-----
+====
+include::sample[dir="snippets/reference/dependency-management/declaring-repositories/declaringRepositoriesBasics-localRepos/kotlin",files="build.gradle.kts[tags=local-repos]"]
+include::sample[dir="snippets/reference/dependency-management/declaring-repositories/declaringRepositoriesBasics-localRepos/groovy",files="build.gradle[tags=local-repos]"]
+====
 
 Maven or Ivy can be declared as local repositories by specifying a local filesystem path. Unlike a flat directory repository, they adhere to a structured format and include metadata.
 

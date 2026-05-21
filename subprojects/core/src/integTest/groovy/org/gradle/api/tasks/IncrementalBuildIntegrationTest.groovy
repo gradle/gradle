@@ -15,6 +15,7 @@
  */
 package org.gradle.api.tasks
 
+import org.gradle.api.problems.Severity
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
@@ -1066,6 +1067,7 @@ task b(dependsOn: a)
 
     @UnsupportedWithConfigurationCache(because = "Custom classloader, https://github.com/gradle/gradle/issues/11510")
     def "task loaded with custom classloader fails the build"() {
+        enableProblemsApiCheck()
         file("input.txt").text = "data"
         buildFile << """
             def CustomTask = new GroovyClassLoader(getClass().getClassLoader()).parseClass '''
@@ -1091,18 +1093,23 @@ task b(dependsOn: a)
         fails "customTask"
         then:
         failureDescriptionStartsWith("Some problems were found with the configuration of task ':customTask' (type 'CustomTask').")
-        failureDescriptionContains(implementationUnknown {
-            implementationOfTask(':customTask')
-            unknownClassloader('CustomTask_Decorated')
-        })
-        failureDescriptionContains(implementationUnknown {
-            additionalTaskAction(':customTask')
-            unknownClassloader('CustomTask_Decorated')
-        })
+        verifyAll(receivedProblem(0)) {
+            severity == Severity.ERROR
+            fqid == 'validation:property-validation:unknown-implementation'
+            definition.id.displayName == 'Unknown property implementation'
+            definition.documentationLink.url == "https://docs.gradle.org/${distribution.version.version}/userguide/validation_problems.html#implementation_unknown"
+        }
+        verifyAll(receivedProblem(1)) {
+            severity == Severity.ERROR
+            fqid == 'validation:property-validation:unknown-implementation'
+            definition.id.displayName == 'Unknown property implementation'
+            definition.documentationLink.url == "https://docs.gradle.org/${distribution.version.version}/userguide/validation_problems.html#implementation_unknown"
+        }
     }
 
     @UnsupportedWithConfigurationCache(because = "Custom classloader, https://github.com/gradle/gradle/issues/11510")
     def "task with custom action loaded with custom classloader fails the build"() {
+        enableProblemsApiCheck()
         file("input.txt").text = "data"
         buildFile << """
             import org.gradle.api.*
@@ -1141,10 +1148,12 @@ task b(dependsOn: a)
         fails "customTask"
         then:
         failureDescriptionStartsWith("A problem was found with the configuration of task ':customTask' (type 'CustomTask').")
-        failureDescriptionContains(implementationUnknown {
-            additionalTaskAction(':customTask')
-            unknownClassloader('CustomTaskAction')
-        })
+        verifyAll(receivedProblem) {
+            severity == Severity.ERROR
+            fqid == 'validation:property-validation:unknown-implementation'
+            definition.id.displayName == 'Unknown property implementation'
+            definition.documentationLink.url == "https://docs.gradle.org/${distribution.version.version}/userguide/validation_problems.html#implementation_unknown"
+        }
     }
 
     @Issue("gradle/gradle#1168")
@@ -1272,14 +1281,18 @@ task b(dependsOn: a)
 
             task myTask(type: MyTask)
         '''
+        enableProblemsApiCheck()
 
         when:
         fails 'myTask'
 
         then:
-        failureDescriptionContains(
-            privateGetterAnnotatedMessage { type('MyTask').property('myPrivateInput').annotation('Input') }
-        )
+        verifyAll(receivedProblem) {
+            severity == Severity.ERROR
+            fqid == 'validation:property-validation:private-getter-must-not-be-annotated'
+            definition.id.displayName == 'Private property with wrong annotation'
+            definition.documentationLink.url == "https://docs.gradle.org/${distribution.version.version}/userguide/validation_problems.html#private_getter_must_not_be_annotated"
+        }
     }
 
     @ToBeImplemented("Private getters should be ignored")
@@ -1365,18 +1378,18 @@ task b(dependsOn: a)
                 outputFile = file("build/output.txt")
             }
         """
+        enableProblemsApiCheck()
 
         when:
         fails "custom"
 
         then:
-        failureDescriptionContains(
-            ignoredAnnotatedPropertyMessage {
-                type('CustomTask').property('classpath')
-                ignoring('Internal')
-                alsoAnnotatedWith('Classpath', 'InputFiles')
-            }
-        )
+        verifyAll(receivedProblem) {
+            severity == Severity.ERROR
+            fqid == 'validation:property-validation:ignored-property-must-not-be-annotated'
+            definition.id.displayName == 'Has wrong combination of annotations'
+            definition.documentationLink.url == "https://docs.gradle.org/${distribution.version.version}/userguide/validation_problems.html#ignored_property_must_not_be_annotated"
+        }
     }
 
     @Issue("https://github.com/gradle/gradle/issues/7923")

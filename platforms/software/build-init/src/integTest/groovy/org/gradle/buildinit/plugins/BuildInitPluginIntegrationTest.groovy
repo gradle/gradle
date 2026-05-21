@@ -19,6 +19,7 @@ import org.gradle.api.JavaVersion
 import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
 import org.gradle.buildinit.plugins.internal.BuildScriptBuilder
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl
+import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 import org.gradle.util.GradleVersion
 import org.gradle.util.internal.TextUtil
 import org.hamcrest.Matcher
@@ -84,6 +85,7 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
         outputContains "init - Initializes a new Gradle build."
     }
 
+    @ToBeFixedForIsolatedProjects(because = "The `properties` task calls Project.getProperties() internally, which is a hard violation under Isolated Projects")
     def "creates a simple project with #scriptDsl build scripts when no pom file present and no type specified"() {
         given:
         useTestDirectoryThatIsNotEmbeddedInAnotherBuild()
@@ -110,6 +112,7 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
+    @ToBeFixedForIsolatedProjects(because = "The `properties` task calls Project.getProperties() internally, which is a hard violation under Isolated Projects")
     def "creates a simple project with #scriptDsl build scripts when no pom file present and no type specified which uses @Incubating APIs"() {
         given:
         useTestDirectoryThatIsNotEmbeddedInAnotherBuild()
@@ -279,9 +282,9 @@ dependencies {
 }""")))
 
         where:
-        scriptDsl   | unWantedLibExclude                                                        | dangerousLibExclude
-        GROOVY      | "exclude(group: 'org.unwanted', module: 'unwanted-lib')"                  | "exclude(group: 'org.other.bad.lib', module: 'dangerous-lib')"
-        KOTLIN      | 'exclude(mapOf("group" to "org.unwanted", "module" to "unwanted-lib"))'   | 'exclude(mapOf("group" to "org.other.bad.lib", "module" to "dangerous-lib"))'
+        scriptDsl | unWantedLibExclude                                                      | dangerousLibExclude
+        GROOVY    | "exclude(group: 'org.unwanted', module: 'unwanted-lib')"                | "exclude(group: 'org.other.bad.lib', module: 'dangerous-lib')"
+        KOTLIN    | 'exclude(mapOf("group" to "org.unwanted", "module" to "unwanted-lib"))' | 'exclude(mapOf("group" to "org.other.bad.lib", "module" to "dangerous-lib"))'
     }
 
     def "proper links"() {

@@ -63,42 +63,8 @@ Let's imagine that the `app` subproject depends on the subproject called `some-l
 We add this dependency in the `app` build script:
 
 ====
-[.multi-language-sample]
-=====
-.app/build.gradle.kts
-[source,kotlin]
-----
-plugins {
-    id("application")                       // app is now a java application
-}
-
-application {
-    mainClass.set("hello.HelloWorld")       // main class name required by the application plugin
-}
-
-dependencies {
-    implementation(project(":some-logic"))  // dependency on some-logic
-}
-----
-=====
-[.multi-language-sample]
-=====
-.app/build.gradle
-[source,groovy]
-----
-plugins {
-    id('application')                       // app is now a java application
-}
-
-application {
-    mainClass = 'hello.HelloWorld'          // main class name required by the application plugin
-}
-
-dependencies {
-    implementation(project(':some-logic'))  // dependency on some-logic
-}
-----
-=====
+include::sample[dir="snippets/reference/task-development/taskDependencies/kotlin",files="app/build.gradle.kts[tags=app-build-script]"]
+include::sample[dir="snippets/reference/task-development/taskDependencies/groovy",files="app/build.gradle[tags=app-build-script]"]
 ====
 
 If we run `:app:build` again, we see the Java code of `some-logic` is also compiled by Gradle automatically:
@@ -168,7 +134,7 @@ $ ./gradlew -q taskX
 ----
 [source,text]
 ----
-include::{snippetsPath}/tasks/addDependencyUsingPath/tests/addDependencyUsingPath.out[]
+include::{snippetsPath}/reference/task-development/addDependencyUsingPath/tests/addDependencyUsingPath.out[]
 ----
 
 For more information about task dependencies, see the link:{javadocPath}/org/gradle/api/Task.html[Task] API.
@@ -207,7 +173,7 @@ $ ./gradlew -q taskY taskX
 ----
 [source,text]
 ----
-include::{snippetsPath}/tasks/mustRunAfter/tests/mustRunAfter.out[]
+include::{snippetsPath}/reference/task-development/mustRunAfter/tests/mustRunAfter.out[]
 ----
 
 The "should run after" ordering rule is similar but less strict, as it will be ignored in two situations:
@@ -228,7 +194,7 @@ $ ./gradlew -q taskY taskX
 ----
 [source,text]
 ----
-include::{snippetsPath}/tasks/shouldRunAfter/tests/shouldRunAfter.out[]
+include::{snippetsPath}/reference/task-development/shouldRunAfter/tests/shouldRunAfter.out[]
 ----
 
 In the examples above, it is still possible to execute `taskY` without causing `taskX` to run:
@@ -239,7 +205,7 @@ $ ./gradlew -q taskY
 ----
 [source,text]
 ----
-include::{snippetsPath}/tasks/mustRunAfter/tests/mustRunAfterSingleTask.out[]
+include::{snippetsPath}/reference/task-development/mustRunAfter/tests/mustRunAfterSingleTask.out[]
 ----
 
 The "should run after" ordering rule will be ignored if it introduces an ordering cycle:
@@ -255,7 +221,7 @@ $ ./gradlew -q taskX
 ----
 [source,text]
 ----
-include::{snippetsPath}/tasks/shouldRunAfterWithCycle/tests/shouldRunAfterWithCycle.out[]
+include::{snippetsPath}/reference/task-development/shouldRunAfterWithCycle/tests/shouldRunAfterWithCycle.out[]
 ----
 
 Note that `taskY.mustRunAfter(taskX)` or `taskY.shouldRunAfter(taskX)` does not imply any execution dependency between the tasks:
@@ -285,7 +251,7 @@ $ ./gradlew -q taskX
 ----
 [source,text]
 ----
-include::{snippetsPath}/tasks/finalizers/tests/taskFinalizers.out[]
+include::{snippetsPath}/reference/task-development/finalizers/tests/taskFinalizers.out[]
 ----
 
 Finalizer tasks are executed even if the finalized task fails or if the finalized task is considered `UP-TO-DATE`:
@@ -301,7 +267,7 @@ $ ./gradlew -q taskX
 ----
 [source,text]
 ----
-include::{snippetsPath}/tasks/finalizersWithFailure/tests-groovy/taskFinalizersWithFailureGroovy.out[]
+include::{snippetsPath}/reference/task-development/finalizersWithFailure/tests-groovy/taskFinalizersWithFailureGroovy.out[]
 ----
 
 [[sec:skipping_tasks]]
@@ -331,7 +297,7 @@ $ ./gradlew hello -PskipHello
 ----
 [source,text]
 ----
-include::{snippetsPath}/tutorial/taskOnlyIf/tests/taskOnlyIf.out[]
+include::{snippetsPath}/reference/task-development/taskOnlyIf/tests/taskOnlyIf.out[]
 ----
 
 To find why a task was skipped, run the build with the `--info` logging level.
@@ -342,7 +308,7 @@ $ ./gradlew hello -PskipHello --info
 ----
 [source,text]
 ----
-include::{snippetsPath}/tutorial/taskOnlyIf/tests/taskOnlyIf-info.out[]
+include::{snippetsPath}/reference/task-development/taskOnlyIf/tests/taskOnlyIf-info.out[]
 ----
 
 [[sec:using_stopexecutionexception]]
@@ -364,7 +330,7 @@ $ ./gradlew -q myTask
 ----
 [source,text]
 ----
-include::{snippetsPath}/tutorial/stopExecutionException/tests/stopExecutionException.out[]
+include::{snippetsPath}/reference/task-development/stopExecutionException/tests/stopExecutionException.out[]
 ----
 
 This feature is helpful if you work with tasks provided by Gradle.
@@ -389,7 +355,7 @@ $ ./gradlew disableMe
 ----
 [source,text]
 ----
-include::{snippetsPath}/tutorial/disableTask/tests/disableTask.out[]
+include::{snippetsPath}/reference/task-development/disableTask/tests/disableTask.out[]
 ----
 
 [[sec:task_timeouts]]
@@ -427,7 +393,7 @@ $ ./gradlew -q pingServer1
 ----
 [source,text]
 ----
-include::{snippetsPath}/tasks/addRules/tests/taskRule.out[]
+include::{snippetsPath}/reference/task-development/addRules/tests/taskRule.out[]
 ----
 
 The `String` parameter is used as a description for the rule, which is shown with `./gradlew tasks`.
@@ -446,7 +412,7 @@ $ ./gradlew -q groupPing
 ----
 [source,text]
 ----
-include::{snippetsPath}/tasks/addRules/tests/taskRuleDependsOn.out[]
+include::{snippetsPath}/reference/task-development/addRules/tests/taskRuleDependsOn.out[]
 ----
 
 If you run `./gradlew -q tasks`, you won't find a task named `pingServer1` or `pingServer2`, but this script is executing logic based on the request to run those tasks.

@@ -68,7 +68,6 @@ class IsolatedProjectsBuildStateAccessIntegrationTest extends AbstractIsolatedPr
         "rootProject {gradle.parent.getRootProject()}"                          | ["Build ':build-logic' cannot access Gradle.getRootProject on build ':'", "Build ':build-logic' cannot access Gradle.rootProject on build ':'"]
         "rootProject {gradle.parent.getIncludedBuilds()}"                       | ["Build ':build-logic' cannot access Gradle.getIncludedBuilds on build ':'", "Build ':build-logic' cannot access Gradle.rootProject on build ':'"]
         "rootProject {gradle.parent.includedBuild('build-logic')}"              | ["Build ':build-logic' cannot access Gradle.includedBuild on build ':'", "Build ':build-logic' cannot access Gradle.rootProject on build ':'"]
-        "rootProject {gradle.parent.getDefaultProject()}"                       | ["Build ':build-logic' cannot access Gradle.getDefaultProject on build ':'", "Build ':build-logic' cannot access Gradle.rootProject on build ':'"]
 
         // Internal API
         "getProjectEvaluationBroadcaster()"                                     | ["Build ':build-logic' cannot access Gradle.getProjectEvaluationBroadcaster on build ':'"]
@@ -113,12 +112,11 @@ class IsolatedProjectsBuildStateAccessIntegrationTest extends AbstractIsolatedPr
             "parent.getOwner()",
 
             // Internal API, available on settings level only when rootProject is evaluated.
-            // In the end, we need to get a ProjectInternal instance somehow to try to set it to the parent
+            // In the end, we need to get a ProjectState instance somehow to try to set it to the parent.
 
             // We use "pre-wrapped" parentGradle because calling `gradle.parent` within the closure will return cross-project reporting Gradle,
             // which doesn't prohibit these calls.
-            "rootProject {parentGradle.setRootProject(it)}",
-            "rootProject {parentGradle.setDefaultProject(it)} ",
+            "rootProject {parentGradle.setDefaultProjectState(((org.gradle.api.internal.project.ProjectInternal) it).owner)} ",
         ]
     }
 

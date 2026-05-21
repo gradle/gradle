@@ -134,7 +134,7 @@ public class ShortCircuitingResolutionExecutor {
             rootComponent.getId(),
             rootVariant.getMetadata().getAttributes(),
             rootVariant.getMetadata().getCapabilities(),
-            rootVariant.getName(),
+            rootVariant.getMetadata().getName(),
             attributeDesugaring
         );
         return new DefaultVisitedGraphResults(

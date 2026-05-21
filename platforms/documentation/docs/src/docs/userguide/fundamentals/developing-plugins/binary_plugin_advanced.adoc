@@ -21,6 +21,7 @@ This is where binary plugins come in.
 A binary plugin is a plugin that is implemented in a compiled language and is packaged as a JAR file.
 Binary plugins must implement the link:{javadocPath}/org/gradle/api/Plugin.html[`Plugin`] interface.
 
+[[sec:implementing_plugin_interface]]
 == Implementing the Plugin Interface
 
 For example, this is a very simple "Hello World" *plugin*:

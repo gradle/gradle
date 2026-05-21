@@ -51,12 +51,10 @@ import org.gradle.api.problems.internal.DefaultPropertyTraceData;
 import org.gradle.api.problems.internal.DefaultTaskLocation;
 import org.gradle.api.problems.internal.DefaultTypeValidationData;
 import org.gradle.api.problems.internal.DeprecationData;
-import org.gradle.api.problems.internal.GeneralData;
 import org.gradle.api.problems.internal.DocLinkInternal;
-import org.gradle.api.problems.internal.ProblemInternal;
+import org.gradle.api.problems.internal.GeneralData;
 import org.gradle.api.problems.internal.PropertyTraceData;
 import org.gradle.api.problems.internal.TypeValidationData;
-import org.gradle.internal.reflect.validation.TypeValidationProblemRenderer;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
@@ -69,7 +67,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.stream.Stream;
 
 @NullMarked
 public class ValidationProblemSerialization {
@@ -116,20 +113,6 @@ public class ValidationProblemSerialization {
         gsonBuilder.registerTypeAdapterFactory(new ThrowableAdapterFactory());
 
         return gsonBuilder;
-    }
-
-
-    public static Stream<String> toPlainWarning(List<? extends ProblemInternal> problems) {
-        return toPlainMessage(problems, "Warning");
-    }
-
-    public static Stream<String> toPlainError(List<? extends ProblemInternal> problems) {
-        return toPlainMessage(problems, "Error");
-    }
-
-    private static Stream<String> toPlainMessage(List<? extends ProblemInternal> problems, String prefix) {
-        return problems.stream()
-            .map(problem -> prefix + ": " + TypeValidationProblemRenderer.renderMinimalInformationAbout(problem));
     }
 
     /**

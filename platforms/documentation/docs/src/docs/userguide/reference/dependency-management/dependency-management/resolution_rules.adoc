@@ -533,6 +533,7 @@ If version `1.3` is also present in the dependency graph, then even with this ru
 
 **Difference from Rich Version Constraints:** Using <<dependency_versions.adoc#sec:rich-version-constraints,rich version>> constraints, you can reject certain versions outright, causing the build to fail or select a non-rejected version if a dynamic dependency is used. In contrast, a dependency resolve rule like the one shown here manipulates the version being requested, replacing it with a known good version when a rejected one is found. This approach is a *solution* for handling rejected versions, while rich version constraints are about expressing the intent to avoid certain versions.
 
+[[sec:lazily_influencing_resolved_dependencies]]
 === Lazily influencing resolved dependencies
 
 Plugins can lazily influence dependencies by adding them conditionally or setting preferred versions when no version is specified by the user.

@@ -18,15 +18,16 @@ package org.gradle.api.internal.notations;
 
 import com.google.common.collect.Interner;
 import org.gradle.api.artifacts.DependencyMetadata;
+import org.gradle.api.problems.Problems;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.internal.typeconversion.NotationParserBuilder;
 
 public class DependencyMetadataNotationParser {
-    public static <T extends DependencyMetadata<T>, B extends T> NotationParser<Object, B> parser(Instantiator instantiator, Class<B> implementationType, Interner<String> stringInterner) {
+    public static <T extends DependencyMetadata<T>, B extends T> NotationParser<Object, B> parser(Instantiator instantiator, Class<B> implementationType, Interner<String> stringInterner, Problems problems) {
         return NotationParserBuilder
             .toType(implementationType)
-            .fromCharSequence(new DependencyStringNotationConverter<>(instantiator, implementationType, stringInterner))
+            .fromCharSequence(new DependencyStringNotationConverter<>(instantiator, implementationType, stringInterner, problems))
             .converter(new DependencyMapNotationConverter<>(instantiator, implementationType))
             .invalidNotationMessage("Comprehensive documentation on dependency notations is available in DSL reference for DependencyHandler type.")
             .toComposite();

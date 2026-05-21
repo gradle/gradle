@@ -16,13 +16,14 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
+import it.unimi.dsi.fastutil.ints.IntArrayList;
+import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
+import it.unimi.dsi.fastutil.ints.IntSet;
+import it.unimi.dsi.fastutil.ints.IntStack;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.ResolutionStrategy;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.artifacts.result.DependencyResult;
-import org.gradle.api.artifacts.result.ResolvedComponentResult;
-import org.gradle.api.artifacts.result.ResolvedDependencyResult;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.artifacts.ResolverResults;
@@ -33,7 +34,6 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Selec
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results.VisitedGraphResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.GraphStructure;
-import org.gradle.api.internal.artifacts.result.ResolvedGraphResult;
 import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.file.FileCollectionFactory;
@@ -57,10 +57,8 @@ import org.gradle.internal.model.ValueCalculator;
 import org.gradle.operations.dependencies.configurations.ConfigurationIdentity;
 import org.jspecify.annotations.Nullable;
 
-import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Deque;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -243,64 +241,54 @@ public class DefaultTransformUpstreamDependenciesResolver implements TransformUp
     }
 
     private static Set<ComponentIdentifier> computeDependencies(ComponentIdentifier componentId, VisitedGraphResults visitedGraph) {
-        ResolvedGraphResult graph = visitedGraph.getResolvedGraphResultSource().get();
-        GraphStructure.Nodes nodes = graph.structure().nodes();
-        ResolvedComponentResult root = graph.getComponent(nodes.owner(nodes.root()));
-        ResolvedComponentResult targetComponent = findComponent(root, componentId);
+        GraphStructure graph = visitedGraph.getGraphStructureSource().get();
+        GraphStructure.Edges edges = graph.edges();
+        GraphStructure.Components components = graph.components();
+        GraphStructure.Nodes nodes = graph.nodes();
 
-        if (targetComponent == null) {
+        IntSet seen = new IntOpenHashSet();
+        IntStack queue = new IntArrayList();
+
+        // Search through all components to find the target component.
+        int targetComponent = -1;
+        for (int i = 0; i < components.count(); i++) {
+            if (components.id(i).equals(componentId)) {
+                targetComponent = i;
+                break;
+            }
+        }
+
+        if (targetComponent == -1) {
             throw new AssertionError("Could not find component " + componentId + " in provided results.");
         }
 
+        // TODO: This is not quite desired behavior. The purpose of this class is to resolve all
+        //  dependencies of an artifact transform. An artifact transform is derived from the artifacts
+        //  of a _node_ of the graph. We are only given `componentId`, the owning component of the node
+        //  we're interested in. So, we traverse starting from all nodes of that component since we do
+        //  not have enough information to find the node of interest.
+        for (int i = 0; i < nodes.count(); i++) {
+            if (nodes.owner(i) == targetComponent) {
+                queue.push(i);
+                seen.add(i);
+            }
+        }
+
         Set<ComponentIdentifier> buildDependencies = new HashSet<>();
-        collectReachableComponents(buildDependencies, new HashSet<>(), targetComponent.getDependencies());
+        while (!queue.isEmpty()) {
+            int node = queue.popInt();
+            for (int i = edges.start(node); i < edges.end(node); i++) {
+                boolean constraint = edges.constraint(i);
+                int targetNodeIndex = edges.targetNode(i);
+                // Only visit hard, non-failing edges
+                if (!constraint && targetNodeIndex != -1 && seen.add(targetNodeIndex)) {
+                    int owner = nodes.owner(targetNodeIndex);
+                    buildDependencies.add(components.id(owner));
+                    queue.push(targetNodeIndex);
+                }
+            }
+        }
         return buildDependencies;
-    }
-
-    /**
-     * Search the graph for a component with the given identifier, starting from the given root component.
-     *
-     * @return null if the component is not found.
-     */
-    @Nullable
-    public static ResolvedComponentResult findComponent(ResolvedComponentResult rootComponent, ComponentIdentifier componentIdentifier) {
-        Set<ResolvedComponentResult> seen = new HashSet<>();
-        Deque<ResolvedComponentResult> pending = new ArrayDeque<>();
-        pending.push(rootComponent);
-
-        while (!pending.isEmpty()) {
-            ResolvedComponentResult component = pending.pop();
-
-            if (component.getId().equals(componentIdentifier)) {
-                return component;
-            }
-
-            for (DependencyResult d : component.getDependencies()) {
-                if (d instanceof ResolvedDependencyResult) {
-                    ResolvedDependencyResult resolved = (ResolvedDependencyResult) d;
-                    ResolvedComponentResult selected = resolved.getSelected();
-                    if (seen.add(selected)) {
-                        pending.push(selected);
-                    }
-                }
-            }
-        }
-
-        return null;
-    }
-
-    private static void collectReachableComponents(Set<ComponentIdentifier> dependenciesIdentifiers, Set<ComponentIdentifier> visited, Set<? extends DependencyResult> dependencies) {
-        for (DependencyResult dependency : dependencies) {
-            if (dependency instanceof ResolvedDependencyResult && !dependency.isConstraint()) {
-                ResolvedDependencyResult resolvedDependency = (ResolvedDependencyResult) dependency;
-                ResolvedComponentResult selected = resolvedDependency.getSelected();
-                dependenciesIdentifiers.add(selected.getId());
-                if (visited.add(selected.getId())) {
-                    // Do not traverse if seen already
-                    collectReachableComponents(dependenciesIdentifiers, visited, selected.getDependencies());
-                }
-            }
-        }
     }
 
     /**

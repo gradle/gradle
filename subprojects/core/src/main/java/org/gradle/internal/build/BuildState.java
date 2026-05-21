@@ -98,6 +98,16 @@ public interface BuildState {
     BuildProjectRegistry getProjects();
 
     /**
+     * {@return the root project of this build}
+     *
+     * <p>
+     * This is a convenience method for {@link #getProjects()}{@code .}{@link BuildProjectRegistry#getRootProject() getRootProject()}.
+     */
+    default ProjectState getRootProject() {
+        return getProjects().getRootProject();
+    }
+
+    /**
      * Asserts that the given build can be included by this build.
      */
     void assertCanAdd(IncludedBuildSpec includedBuildSpec);

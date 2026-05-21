@@ -60,7 +60,7 @@ public class GraphStructureBuilder {
     private final IntArrayList nodeOwnerIndices = new IntArrayList();
     private final List<ImmutableAttributes> nodeAttributes = new ArrayList<>();
     private final List<ImmutableCapabilities> nodeCapabilities = new ArrayList<>();
-    private final List<String> nodeDisplayNames = new ArrayList<>();
+    private final List<String> nodeVariantNames = new ArrayList<>();
     private final Int2LongMap externalVariantIds = new Int2LongOpenHashMap();
 
     // Edges
@@ -147,7 +147,7 @@ public class GraphStructureBuilder {
         long ownerId,
         ImmutableAttributes attributes,
         ImmutableCapabilities rawCapabilities,
-        String displayName,
+        String variantName,
         long externalVariantId
     ) {
         int nodeIndex = nodeOwnerIndices.size();
@@ -160,7 +160,7 @@ public class GraphStructureBuilder {
         nodeOwnerIndices.add(ownerIndex);
         nodeAttributes.add(attributes);
         nodeCapabilities.add(capabilitiesFor(rawCapabilities, ownerIndex));
-        nodeDisplayNames.add(displayName);
+        nodeVariantNames.add(variantName);
         if (externalVariantId != -1) {
             externalVariantIds.put(nodeIndex, externalVariantId);
         }
@@ -252,22 +252,22 @@ public class GraphStructureBuilder {
         componentRepositoryNames.trimToSize();
 
         return new DefaultGraphStructure(
-            new DefaultNodes(
+            new DefaultGraphStructure.DefaultNodes(
                 rootNodeIndex,
                 nodeOwnerIndices,
                 ImmutableList.copyOf(nodeAttributes),
                 ImmutableList.copyOf(nodeCapabilities),
-                ImmutableList.copyOf(nodeDisplayNames),
+                ImmutableList.copyOf(nodeVariantNames),
                 externalVariantIndices
             ),
-            new DefaultEdges(
+            new DefaultGraphStructure.DefaultEdges(
                 edgeIndices,
                 ImmutableList.copyOf(edgeSelectors),
                 edgeConstraints,
                 edgeTargetNodeIndices,
                 edgeFailureMap
             ),
-            new DefaultComponents(
+            new DefaultGraphStructure.DefaultComponents(
                 ImmutableList.copyOf(componentSelectionReasons),
                 componentRepositoryNames,
                 ImmutableList.copyOf(componentIds),
@@ -276,130 +276,5 @@ public class GraphStructureBuilder {
         );
 
     }
-
-    private record DefaultNodes(
-        int root,
-        IntList owners,
-        ImmutableList<ImmutableAttributes> attributes,
-        ImmutableList<ImmutableCapabilities> capabilities,
-        ImmutableList<String> displayNames,
-        Int2IntMap externalVariantIndices
-    ) implements GraphStructure.Nodes {
-
-        @Override
-        public int count() {
-            return owners.size();
-        }
-
-        @Override
-        public int owner(int index) {
-            return owners.getInt(index);
-        }
-
-        @Override
-        public ImmutableAttributes attributes(int index) {
-            return attributes.get(index);
-        }
-
-        @Override
-        public ImmutableCapabilities capabilities(int index) {
-            return capabilities.get(index);
-        }
-
-        @Override
-        public String displayName(int index) {
-            return displayNames.get(index);
-        }
-
-        @Override
-        public int externalVariantIndex(int index) {
-            return externalVariantIndices.getOrDefault(index, -1);
-        }
-
-    }
-
-    private record DefaultEdges(
-        IntList indices,
-        ImmutableList<ComponentSelector> selectors,
-        BitSet constraints,
-        IntList targetNodeIndices,
-        Int2ObjectMap<EdgeFailure> failures
-    )  implements GraphStructure.Edges {
-
-        @Override
-        public int start(int nodeIndex) {
-            return indices.getInt(nodeIndex);
-        }
-
-        @Override
-        public int end(int nodeIndex) {
-            return indices.getInt(nodeIndex + 1);
-        }
-
-        @Override
-        public ComponentSelector selector(int index) {
-            return selectors.get(index);
-        }
-
-        @Override
-        public boolean constraint(int index) {
-            return constraints.get(index);
-        }
-
-        @Override
-        public int targetNode(int index) {
-            return targetNodeIndices.getInt(index);
-        }
-
-        @Override
-        public EdgeFailure failure(int index) {
-            EdgeFailure failure = failures.get(index);
-            if (failure == null) {
-                throw new IllegalArgumentException("No failure for edge " + index);
-            }
-            return failure;
-        }
-
-    }
-
-    private record DefaultComponents(
-        ImmutableList<ComponentSelectionReasonInternal> selectionReasons,
-        List<@Nullable String> repositoryNames,
-        ImmutableList<ComponentIdentifier> ids,
-        ImmutableList<ModuleVersionIdentifier> moduleVersionIds
-    ) implements GraphStructure.Components {
-
-        @Override
-        public int count() {
-            return ids.size();
-        }
-
-        @Override
-        public ComponentIdentifier id(int componentIndex) {
-            return ids.get(componentIndex);
-        }
-
-        @Override
-        public ComponentSelectionReasonInternal selectionReason(int componentIndex) {
-            return selectionReasons.get(componentIndex);
-        }
-
-        @Override
-        public @Nullable String repositoryName(int componentIndex) {
-            return repositoryNames.get(componentIndex);
-        }
-
-        @Override
-        public ModuleVersionIdentifier moduleVersionId(int componentIndex) {
-            return moduleVersionIds.get(componentIndex);
-        }
-
-    }
-
-    private record DefaultGraphStructure(
-        GraphStructure.Nodes nodes,
-        GraphStructure.Edges edges,
-        GraphStructure.Components components
-    ) implements GraphStructure { }
 
 }

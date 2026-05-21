@@ -58,6 +58,29 @@ class IsolatedProjectsIntegrationTest extends AbstractIsolatedProjectsIntegratio
         failure.assertHasDescription("Configuration Cache cannot be disabled when Isolated Projects is enabled.")
     }
 
+    def "diagnostics mode continues execution upon encountering violations"() {
+        settingsFile """
+            include(":sub")
+        """
+
+        buildFile "sub/build.gradle", """
+            rootProject.tasks
+
+            rootProject.configurations
+        """
+
+        when:
+        isolatedProjectsDiagnosticsFails("help")
+
+        then:
+        problems.assertFailureHasProblems(failure) {
+            withProblem("Build file '${relativePath('sub/build.gradle')}': line 2: Project ':sub' cannot access 'Project.tasks' functionality on another project ':'")
+            withProblem("Build file '${relativePath('sub/build.gradle')}': line 4: Project ':sub' cannot access 'Project.configurations' functionality on another project ':'")
+            totalProblemsCount = 2
+            problemsWithStackTraceCount = 2
+        }
+    }
+
     @ToBeImplemented("when Isolated Projects becomes incremental for task execution")
     def "projects are configured on demand"() {
         settingsFile << """

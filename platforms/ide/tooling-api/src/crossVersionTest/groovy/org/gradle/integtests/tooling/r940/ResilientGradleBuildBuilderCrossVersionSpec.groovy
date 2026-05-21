@@ -210,47 +210,54 @@ class ResilientGradleBuildBuilderCrossVersionSpec extends KotlinDslPluginRelated
          def e = thrown(BuildException)
         e.cause.message.contains("Script compilation error")
         def model = modelCollector.model
-        assertFailures(model, *expectedFailures)
+        assertFailures(model, *expectedFailures.call(targetVersion))
         assertModel(model, modelAvailable, expectedIncludedBuilds, expectedEditableBuilds)
 
         where:
         brokenFile                              | modelAvailable | expectedFailures | expectedIncludedBuilds | expectedEditableBuilds
         "settings.gradle.kts"                   | false
-                | [
-                    "The settings are not yet available for build."
-                ]
+                | { GradleVersion v -> [
+                    settingsNotAvailableMessage(v)
+                ] }
                 | []
                 | []
 
         "buildSrc/settings.gradle.kts"          | true
-                | [
+                | { GradleVersion v -> [
                     ".*Settings file.*buildSrc\\" + File.separatorChar + "settings\\.gradle\\.kts.*Script compilation error.*"
-                ]
+                ] }
                 | []
                 | ["buildSrc"]
 
         "buildSrc/build.gradle.kts"             | true
-                | [
+                | { GradleVersion v -> [
                     ".*Build file.*buildSrc\\" + File.separatorChar + "build\\.gradle\\.kts.*Script compilation error.*",
                     "A problem occurred configuring project ':buildSrc'.",
-                ]
+                ] }
                 | []
                 | ["buildSrc", "buildSrc-included"]
 
         "buildSrc-included/settings.gradle.kts" | true
-                | [
+                | { GradleVersion v -> [
                     ".*Settings file.*buildSrc-included\\" + File.separatorChar + "settings\\.gradle\\.kts.*Script compilation error.*"
-                ]
+                ] }
                 | ["UNKNOWN"]
                 | ["buildSrc", "UNKNOWN"]
 
         "buildSrc-included/build.gradle.kts"    | true
-                | [
+                | { GradleVersion v -> [
                     ".*Build file.*buildSrc-included\\" + File.separatorChar + "build\\.gradle\\.kts.*Script compilation error.*",
                     "A problem occurred configuring project ':buildSrc-included'.",
-                ]
+                ] }
                 | []
                 | ["buildSrc", "buildSrc-included"]
+    }
+
+    static String settingsNotAvailableMessage(GradleVersion targetVersion) {
+        if (targetVersion >= GradleVersion.version("9.6")) {
+            return "The settings are not yet available for build ':'\\."
+        }
+        return "The settings are not yet available for build\\."
     }
 
     void assertModel(GradleBuildModel model, boolean available, List includedBuilds, List editableBuilds) {

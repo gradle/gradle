@@ -61,6 +61,7 @@ This example showcases that:
 It's always best to ensure Gradle evaluates task logic only during the execution phase to avoid wasting time during configuration.
 Using lazy types and values in Gradle ensures builds are fast, efficient, and compatible with performance features like incremental builds, the Build Cache, and the Configuration Cache.
 
+[[sec:common_managed_types]]
 == Common Managed Types
 
 Here is a list of common Gradle managed types you can use in your build logic:
@@ -80,65 +81,52 @@ Here is a list of common Gradle managed types you can use in your build logic:
 Gradle distinguishes between *eager* and *lazy* evaluation to control **when** values are computed and **how** they participate in up-to-date checks, caching, and task wiring.
 Let's review the differences one more time:
 
+[[sec:eager_evaluation]]
 == Eager Evaluation
 
 * Happens **immediately** during the configuration phase.
 * Values are resolved *as soon as the line is executed*.
 * Prevents Gradle from optimizing build logic.
 
-[source,kotlin]
-----
-val version = project.version.toString()         // evaluated now
-val file = File("build/output.txt")              // evaluated now
-myTask.outputFile.set(file)
-----
+====
+include::sample[dir="snippets/fundamentals/authoring-builds/gradleManagedTypes/kotlin",files="build.gradle.kts[tags=eager-evaluation]"]
+include::sample[dir="snippets/fundamentals/authoring-builds/gradleManagedTypes/groovy",files="build.gradle[tags=eager-evaluation]"]
+====
 
 These eager values are resolved even if the task isn’t run, breaking configuration cache compatibility and reducing build performance.
 
+[[sec:lazy_evaluation]]
 == Lazy Evaluation
 
 * Defers computation until it’s actually needed (usually during task execution).
 * Enables Gradle to apply caching, parallel execution, and configuration avoidance.
 * Fully supports configuration cache and incremental builds.
 
-[source,kotlin]
-----
-val outputFile: RegularFileProperty = project.objects.fileProperty()
-outputFile.set(layout.buildDirectory.file("output.txt"))    // evaluated later
-----
+====
+include::sample[dir="snippets/fundamentals/authoring-builds/gradleManagedTypes/kotlin",files="build.gradle.kts[tags=lazy-evaluation]"]
+include::sample[dir="snippets/fundamentals/authoring-builds/gradleManagedTypes/groovy",files="build.gradle[tags=lazy-evaluation]"]
+====
 
 Here, nothing is resolved immediately—Gradle delays evaluation until it’s actually required.
 
 Let's take a look at an example.
 
+[[sec:managed_types_example]]
 == Example
 
 This task will break the Configuration Cache due to *eager* access:
 
-[source,kotlin]
-----
-// Not Configuration Cache compatible
-tasks.register("printVersion") {
-    doLast {
-        val version = project.version.toString()
-        println("Version is $version")
-    }
-}
-----
+====
+include::sample[dir="snippets/fundamentals/authoring-builds/gradleManagedTypes/kotlin",files="build.gradle.kts[tags=eager-task]"]
+include::sample[dir="snippets/fundamentals/authoring-builds/gradleManagedTypes/groovy",files="build.gradle[tags=eager-task]"]
+====
 
 The fix: use a *lazy* `Provider` or a `Property<String>`:
 
-[source,kotlin]
-----
-// Configuration Cache compatible
-tasks.register("printVersion") {
-    val version: Property<String> = project.objects.property(String::class.java)
-    version.set(project.version.toString())
-    doLast {
-        println("Version is ${version.get()}")
-    }
-}
-----
+====
+include::sample[dir="snippets/fundamentals/authoring-builds/gradleManagedTypes/kotlin",files="build.gradle.kts[tags=lazy-task]"]
+include::sample[dir="snippets/fundamentals/authoring-builds/gradleManagedTypes/groovy",files="build.gradle[tags=lazy-task]"]
+====
 
 [.text-right]
 **Next Step:** <<dependencies_intermediate.adoc#dependencies_intro,Learn about Declaring and Managing Dependencies>> >>

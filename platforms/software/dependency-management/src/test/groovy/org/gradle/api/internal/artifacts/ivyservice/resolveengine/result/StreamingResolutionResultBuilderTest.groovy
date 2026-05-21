@@ -200,16 +200,15 @@ class StreamingResolutionResultBuilderTest extends Specification {
     private DependencyGraphEdge dep(DependencyGraphNode node) {
         def moduleVersionId = node.owner.resolveState.metadata.moduleVersionId
         def selector = selector(moduleVersionId.group, moduleVersionId.name, moduleVersionId.version)
-        return dep(selector, node.nodeId)
+        return dep(selector, node)
     }
 
-    private DependencyGraphEdge dep(DependencyGraphSelector selector, Long selectedId) {
+    private DependencyGraphEdge dep(DependencyGraphSelector selector, DependencyGraphNode selected) {
         def edge = Stub(DependencyGraphEdge)
         _ * edge.requested >> selector.requested
         _ * edge.selector >> selector
-        _ * edge.targetComponentId >> selectedId
         _ * edge.failure >> null
-        _ * edge.targetVariantId >> selectedId
+        _ * edge.targetNodes >> [selected]
         return edge
     }
 
@@ -219,7 +218,6 @@ class StreamingResolutionResultBuilderTest extends Specification {
         _ * edge.requested >> selector.requested
         _ * edge.reason >> ComponentSelectionReasons.requested()
         _ * edge.failure >> new ModuleVersionResolveException(selector.requested, failure)
-        _ * edge.targetVariantId >> null
         return edge
     }
 
