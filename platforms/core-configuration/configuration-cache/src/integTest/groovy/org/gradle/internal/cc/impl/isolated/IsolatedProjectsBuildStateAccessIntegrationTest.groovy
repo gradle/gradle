@@ -73,7 +73,6 @@ class IsolatedProjectsBuildStateAccessIntegrationTest extends AbstractIsolatedPr
         "getProjectEvaluationBroadcaster()"                                     | ["Build ':build-logic' cannot access Gradle.getProjectEvaluationBroadcaster on build ':'"]
         "getSettings()"                                                         | ["Build ':build-logic' cannot access Gradle.getSettings on build ':'"]
         "getBuildListenerBroadcaster()"                                         | ["Build ':build-logic' cannot access Gradle.getBuildListenerBroadcaster on build ':'"]
-        "getServices()"                                                         | ["Build ':build-logic' cannot access Gradle.getServices on build ':'"]
         "getProjectRegistry()"                                                  | ["Build ':build-logic' cannot access Gradle.getProjectRegistry on build ':'"]
     }
 

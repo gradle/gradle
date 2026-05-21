@@ -16,6 +16,7 @@
 
 package org.gradle.internal.cc.impl
 
+import com.google.common.collect.ImmutableList
 import groovy.lang.Closure
 import org.gradle.BuildListener
 import org.gradle.BuildResult
@@ -152,8 +153,7 @@ abstract class MutableStateAccessAwareGradle(
     }
 
     override fun baseProjectClassLoaderScope(): ClassLoaderScope {
-        // Internal call path (IsolatedProjectsSafeKotlinDslScriptsModelBuilder) legitimately needs this.
-        return delegate.baseProjectClassLoaderScope()
+        shouldNotBeUsed()
     }
 
     override fun setBaseProjectClassLoaderScope(classLoaderScope: ClassLoaderScope) {
@@ -195,7 +195,7 @@ abstract class MutableStateAccessAwareGradle(
     }
 
     override fun getSettings(): SettingsInternal {
-        // TODO:isolated is a violation? Internal code paths (e.g. KotlinDslScriptsModelBuilder) legitimately need this.
+        onMutableStateAccess("getSettings")
         return delegate.settings
     }
 
@@ -211,6 +211,7 @@ abstract class MutableStateAccessAwareGradle(
 
     override fun getStartParameter(): StartParameterInternal {
         // TODO:isolated is a violation?
+        onMutableStateAccess("getStartParameter")
         return delegate.startParameter
     }
 

@@ -50,7 +50,6 @@ import org.gradle.kotlin.dsl.tooling.builders.resolveCorrelationIdParameter
 import org.gradle.kotlin.dsl.tooling.builders.runtimeFailuresLocatedIn
 import org.gradle.kotlin.dsl.tooling.builders.scriptCompilationClassPath
 import org.gradle.kotlin.dsl.tooling.builders.scriptHandlerFactoryOf
-import org.gradle.kotlin.dsl.tooling.builders.settings
 import org.gradle.kotlin.dsl.tooling.builders.sourcePathFor
 import org.gradle.kotlin.dsl.tooling.builders.sourceSets
 import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptModel
@@ -222,7 +221,7 @@ fun initScriptModels(rootProject: ProjectInternal): List<NonProjectScriptModel> 
 private
 fun settingsScriptModel(gradle: GradleInternal): NonProjectScriptModel? {
     return discoverSettingScript(gradle)?.let {
-        buildSettingsScriptModel(it, gradle.rootProject)
+        buildSettingsScriptModel(it, gradle)
     }
 }
 
@@ -253,10 +252,10 @@ fun buildInitScriptModel(initScript: File, rootProject: ProjectInternal): NonPro
 
 
 private
-fun buildSettingsScriptModel(settingsScript: File, rootProject: Project): NonProjectScriptModel {
-    val settings = rootProject.settings
+fun buildSettingsScriptModel(settingsScript: File, gradle: GradleInternal): NonProjectScriptModel {
+    val settings = gradle.settings
     val scriptCompilationClassPath = settings.scriptCompilationClassPath
-    val accessorsClassPath = rootProject.serviceOf<ClassPathModeExceptionCollector>().runCatching {
+    val accessorsClassPath = gradle.serviceOf<ClassPathModeExceptionCollector>().runCatching {
         settings.accessorsClassPathOf(scriptCompilationClassPath)
     } ?: AccessorsClassPath.empty
 

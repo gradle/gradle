@@ -16,12 +16,14 @@
 
 package org.gradle.internal.cc.impl
 
+import com.google.common.collect.ImmutableList
 import groovy.lang.Closure
 import org.gradle.api.Action
 import org.gradle.api.Project
 import org.gradle.api.ProjectEvaluationListener
 import org.gradle.api.ProjectState
 import org.gradle.api.internal.GradleInternal
+import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.internal.project.CrossProjectConfigurator
 import org.gradle.api.internal.project.CrossProjectModelAccess
 import org.gradle.api.internal.project.ProjectIdentity
@@ -31,6 +33,7 @@ import org.gradle.api.internal.project.ProjectState as InternalProjectState
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.services.BuildServiceRegistry
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal
+import org.gradle.internal.composite.IncludedBuildInternal
 import org.gradle.internal.configuration.problems.IsolatedProjectsProblemsListener
 import org.gradle.internal.configuration.problems.ProblemFactory
 import org.gradle.internal.extensions.core.serviceOf
@@ -74,6 +77,10 @@ class CrossProjectConfigurationReportingGradle(
         }
 
     override fun getSharedServices(): BuildServiceRegistry = delegate.sharedServices
+
+    override fun getStartParameter(): StartParameterInternal = delegate.startParameter
+
+    override fun includedBuilds(): List<IncludedBuildInternal> = ImmutableList.copyOf(delegate.includedBuilds())
 
     // region fine-grained cross-project model access tracking
     // These methods override the base class mutable state defaults with
