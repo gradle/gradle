@@ -162,7 +162,7 @@ class ScriptPluginClassLoadingIntegrationTest extends AbstractIntegrationSpec {
             "This will fail with an error in Gradle 10. " +
             "Method 'someMethod' was not declared in project ':sub' and was resolved from root project 'root'. " +
             "Consult the upgrading guide for further information: " +
-            "https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_accessing_parent_project_properties")
+            "https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_implicit_project_hierarchy_lookup")
 
         when:
         run "help"
@@ -261,7 +261,7 @@ class ScriptPluginClassLoadingIntegrationTest extends AbstractIntegrationSpec {
             "This will fail with an error in Gradle 10. " +
             "Property 'pluginClass' was not declared in project ':sub' and was resolved from root project 'root'. " +
             "Consult the upgrading guide for further information: " +
-            "https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_accessing_parent_project_properties")
+            "https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_implicit_project_hierarchy_lookup")
 
         when:
         succeeds "hello"

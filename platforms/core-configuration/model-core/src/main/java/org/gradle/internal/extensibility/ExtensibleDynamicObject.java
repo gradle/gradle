@@ -302,7 +302,7 @@ public class ExtensibleDynamicObject extends AbstractDynamicObject implements Hi
             .withContext(capitalize(memberKind) + " '" + memberName + "' was not declared in " + getDisplayName()
                 + " and was resolved from " + resolvedParent.getDisplayName() + ".")
             .willBecomeAnErrorInGradle10()
-            .withUpgradeGuideSection(9, "deprecated_accessing_parent_project_properties")
+            .withUpgradeGuideSection(9, "deprecated_implicit_project_hierarchy_lookup")
             .nagUser();
     }
 

@@ -27,13 +27,13 @@ class ParentProjectPropertyLookupIntegrationTest extends AbstractIntegrationSpec
         "This will fail with an error in Gradle 10. " +
         "Property 'foo' was not declared in project ':a' and was resolved from root project 'root'. " +
         "Consult the upgrading guide for further information: " +
-        "https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_accessing_parent_project_properties"
+        "https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_implicit_project_hierarchy_lookup"
 
     private static final String METHOD_DEPRECATION = "Implicitly resolving methods in the project hierarchy has been deprecated. " +
         "This will fail with an error in Gradle 10. " +
         "Method 'someMethod' was not declared in project ':a' and was resolved from root project 'root'. " +
         "Consult the upgrading guide for further information: " +
-        "https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_accessing_parent_project_properties"
+        "https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_implicit_project_hierarchy_lookup"
 
     def setup() {
         settingsFile << """

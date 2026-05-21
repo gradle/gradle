@@ -58,7 +58,7 @@ class ExtraPropertiesIntegrationTest extends AbstractIntegrationSpec {
             "This will fail with an error in Gradle 10. " +
             "Property '${propertyName}' was not declared in project '${childPath}' and was resolved from ${parentDisplayName}. " +
             "Consult the upgrading guide for further information: " +
-            "https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_accessing_parent_project_properties")
+            "https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_implicit_project_hierarchy_lookup")
     }
 
     BuildTestFile extraPropertiesMultiBuild(Map expectedPropPerProject = [:], @DelegatesTo(BuildTestFile) Closure configuration = {}) {

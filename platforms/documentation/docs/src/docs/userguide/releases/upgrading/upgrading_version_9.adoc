@@ -225,7 +225,7 @@ Earlier versions rely on Gradle's implicit parent-project property lookup, which
 Upgrade to the link:https://plugins.gradle.org/plugin/com.gradle.develocity[latest Develocity plugin] from the Gradle Plugin Portal.
 See the link:https://gradle.com/help/gradle-plugin-compatibility/[Develocity plugin compatibility matrix] for details.
 
-[[deprecated_accessing_parent_project_properties]]
+[[deprecated_implicit_project_hierarchy_lookup]]
 ==== Implicit lookup of properties and methods in the project hierarchy
 
 In Gradle's Groovy and Kotlin DSLs, when a child project's build script references a property or method that isn't defined locally, the resolution mechanism walks up the project hierarchy looking for a match:
