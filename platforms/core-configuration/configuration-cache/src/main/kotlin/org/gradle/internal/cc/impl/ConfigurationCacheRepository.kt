@@ -79,7 +79,8 @@ class ConfigurationCacheRepository(
      * <p>
      * If any token in [requestedTasks] starts with `-` (task argument or exclusion
      * like `-x foo`), the lookup short-circuits to `null` and the caller falls back
-     * to the exact-match path. This is the v1 scope guard.
+     * to the exact-match path — task arguments and exclusions affect scheduling in
+     * ways the index doesn't model.
      * <p>
      * Acquires the cache file lock for the duration of the lookup. If a chosen
      * entry's directory has been removed out from under the index (e.g. by external
@@ -96,7 +97,7 @@ class ConfigurationCacheRepository(
         environmentKey: ConfigurationCacheEnvironmentKey,
         requestedCliTokens: List<String>
     ): CompatibleEntry? {
-        // v1 args/exclusion guard: any token starting with '-' falls back to exact-match path.
+        // Args/exclusion guard: any token starting with '-' falls back to exact-match path.
         if (requestedCliTokens.any { it.startsWith("-") }) return null
 
         return withFileLockNullable {

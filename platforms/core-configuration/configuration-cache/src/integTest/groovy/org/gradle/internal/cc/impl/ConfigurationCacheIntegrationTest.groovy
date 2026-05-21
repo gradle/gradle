@@ -720,6 +720,12 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
 
         then: 'side-effecting Delete gate refuses subset; cold-store rather than skip the deletion'
         configurationCache.assertStateStored()
+
+        when: 'original exact-match request — the gate-rejected entry must still be in the index'
+        configurationCacheRun "cleanThing", "build"
+
+        then: 'state loaded: gate rejection on the subset request did NOT evict the entry'
+        configurationCache.assertStateLoaded()
     }
 
     def "bare and absolute CLI tokens for the same task do not share an index entry"() {
@@ -791,6 +797,47 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
         then:
         configurationCache.assertStateLoaded()
         result.assertTasksExecuted(":first", ":second")
+    }
+
+    def "multi-project bare-name entry is exact-match-only and refuses subset requests"() {
+        given:
+        // Bare CLI token `d` in a multi-project root resolves to BOTH `:d` and `:sub:d`,
+        // so the stored entry has 1 cliToken paired with 2 entryTaskIdentityPaths —
+        // a non-1:1 mapping. The dropped identity-path set can't be unambiguously
+        // derived from the positional pairing, so `selectBestMatch` excludes the
+        // entry from strict-superset matches. Exact-match reuse still works.
+        def configurationCache = newConfigurationCacheFixture()
+        createDirs("sub")
+        settingsFile << """
+            include 'sub'
+        """
+        buildFile << """
+            tasks.register('d') { doLast { println 'root d' } }
+        """
+        file("sub/build.gradle") << """
+            tasks.register('d') { doLast { println 'sub d' } }
+        """
+
+        when: 'bare-name request resolves multi-project to :d AND :sub:d'
+        configurationCacheRun "d"
+
+        then:
+        configurationCache.assertStateStored()
+        result.assertTasksExecuted(":d", ":sub:d")
+
+        when: 'absolute-path subset request — would superset-match if entry were 1:1, but it is not'
+        configurationCacheRun ":d"
+
+        then: 'non-1:1 entry excluded from strict-superset; cold-store'
+        configurationCache.assertStateStored()
+        result.assertTasksExecuted(":d")
+
+        when: 'original bare-name request — exact match still works'
+        configurationCacheRun "d"
+
+        then: 'state loaded: non-1:1 entry remains usable for exact matches'
+        configurationCache.assertStateLoaded()
+        result.assertTasksExecuted(":d", ":sub:d")
     }
     // endregion Partial Task Selection Matching
 
