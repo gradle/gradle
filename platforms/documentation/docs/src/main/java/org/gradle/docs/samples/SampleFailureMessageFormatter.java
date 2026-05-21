@@ -15,18 +15,23 @@
  */
 package org.gradle.docs.samples;
 
+import java.util.List;
+
 /**
  * Builds the failure message thrown when a {@code docsTest} sample fails.
  * <p>
- * The {@link #CONFIG_CACHE_SAMPLE_PREFIX} prefix here mirrors the {@code excludeTestsMatching}
- * filter in {@code platforms/documentation/docs/build.gradle.kts}: samples with that prefix are
- * skipped when {@code enableConfigurationCacheForDocsTests=true}, so the reproduce instructions
- * for those samples must tell the user to clear that property rather than set it. If the build
- * script filter changes, this prefix must change with it.
+ * The {@link #CONFIG_CACHE_EXCLUDED_MARKERS} substrings here mirror the {@code excludeTestsMatching}
+ * groups in {@code platforms/documentation/docs/build.gradle.kts}: samples whose id contains any of
+ * these markers are skipped when {@code enableConfigurationCacheForDocsTests=true}, so the reproduce
+ * instructions for those samples must tell the user to clear that property rather than set it.
+ * Keep this list in sync with {@code configCacheExcludedTestGroups} in the build script.
  */
 public final class SampleFailureMessageFormatter {
 
-    private static final String CONFIG_CACHE_SAMPLE_PREFIX = "snippet-optimizing-builds-configuration-cache-";
+    private static final List<String> CONFIG_CACHE_EXCLUDED_MARKERS = List.of(
+        "snippet-optimizing-builds-configuration-cache-",
+        "WithoutCC"
+    );
 
     private static final String BANNER = "**********************************************************************************";
 
@@ -35,7 +40,7 @@ public final class SampleFailureMessageFormatter {
     }
 
     public static String format(String sampleId, boolean configCacheExecuter) {
-        boolean excludedWhenConfigCacheEnabled = sampleId.startsWith(CONFIG_CACHE_SAMPLE_PREFIX);
+        boolean excludedWhenConfigCacheEnabled = CONFIG_CACHE_EXCLUDED_MARKERS.stream().anyMatch(sampleId::contains);
         String extraParameter = (configCacheExecuter && !excludedWhenConfigCacheEnabled)
             ? " -PenableConfigurationCacheForDocsTests=true"
             : "";

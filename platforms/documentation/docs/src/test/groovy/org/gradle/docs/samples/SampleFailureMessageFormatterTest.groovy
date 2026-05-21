@@ -71,6 +71,19 @@ class SampleFailureMessageFormatterTest extends Specification {
         message.contains("  Remember to set enableConfigurationCacheForDocsTests=false or the test will not be found.")
     }
 
+    def "WithoutCC sample under default executer omits -P flag and shows warning"() {
+        given:
+        def sampleId = "snippet-some-feature_groovy_doSomethingWithoutCC"
+
+        when:
+        def message = SampleFailureMessageFormatter.format(sampleId, false)
+
+        then:
+        message.contains("  ./gradlew docs:docsTest --tests '*${sampleId}*'\n")
+        !message.contains("-PenableConfigurationCacheForDocsTests=true")
+        message.contains("  Remember to set enableConfigurationCacheForDocsTests=false or the test will not be found.")
+    }
+
     def "message is wrapped by visible asterisk banners on both sides of the reproduce block"() {
         when:
         def message = SampleFailureMessageFormatter.format("snippet-anything_groovy_x", false)

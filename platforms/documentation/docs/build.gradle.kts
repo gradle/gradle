@@ -265,15 +265,15 @@ tasks.named<Test>("docsTest") {
         systemProperty("org.gradle.integtest.executer", "configCache")
 
         // Single source of truth for groups of tests excluded when docsTest runs with the configCache
-        // executer. Each entry pairs:
-        //   - the excludeTestsMatching glob (used by the filter below), and
-        //   - the telltale substring that identifies a --tests CLI pattern targeting that group
-        //     (used by the pre-flight check below).
+        // executer. Each entry is a substring marker, used two ways:
+        //   - wrapped as "*${marker}*" for the excludeTestsMatching glob below, and
+        //   - matched directly against --tests CLI patterns in the pre-flight check below.
         // Group 1: snippet samples that enable configuration cache explicitly; not re-run by the configCache executer.
         // Group 2: *WithoutCC* test variants, paired with WithCC counterparts and only meaningful when CC is off.
+        // Keep in sync with SampleFailureMessageFormatter.CONFIG_CACHE_EXCLUDED_MARKERS.
         val configCacheExcludedTestGroups = listOf(
-            "org.gradle.docs.samples.*.snippet-optimizing-builds-configuration-cache-*" to "snippet-optimizing-builds-configuration-cache-",
-            "*WithoutCC*" to "WithoutCC",
+            "snippet-optimizing-builds-configuration-cache-",
+            "WithoutCC",
         )
 
         // Pre-flight: if every --tests pattern targets one of the excluded groups above, Gradle's default
@@ -282,8 +282,7 @@ tasks.named<Test>("docsTest") {
         val testTask = this
         doFirst {
             val cliPatterns = (testTask.filter as DefaultTestFilter).commandLineIncludePatterns
-            val markers = configCacheExcludedTestGroups.map { it.second }
-            if (cliPatterns.isNotEmpty() && cliPatterns.all { p -> markers.any { p.contains(it) } }) {
+            if (cliPatterns.isNotEmpty() && cliPatterns.all { p -> configCacheExcludedTestGroups.any { p.contains(it) } }) {
                 throw GradleException(
                     "All --tests filters target tests that are excluded from docsTest when " +
                         "enableConfigurationCacheForDocsTests=true.\n" +
@@ -294,7 +293,7 @@ tasks.named<Test>("docsTest") {
         }
 
         filter {
-            configCacheExcludedTestGroups.forEach { (pattern, _) -> excludeTestsMatching(pattern) }
+            configCacheExcludedTestGroups.forEach { excludeTestsMatching("*${it}*") }
 
             // These tests cover features that are not planned to be supported in the first stable release of the configuration cache.
             val testsForUnsupportedFeatures = listOf(
