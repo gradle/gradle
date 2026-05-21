@@ -67,9 +67,31 @@ For a complete list of types that are incompatible with the Configuration Cache,
 ==== `Sync` task is no longer skipped when its source files are empty
 
 Previously, a link:{javadocPath}/org/gradle/api/tasks/Sync.html[`Sync`] task with no source files was reported as `NO-SOURCE` and skipped, leaving stale files in its destination directory.
-The task now runs even when its sources are empty, ensuring stale outputs are deleted as `Sync` is documented to do.
+The task now runs even when its sources are empty, ensuring stale outputs are deleted as documented.
 
-If you previously relied on the skip behavior, configure your task to short-circuit explicitly with `onlyIf { ... }`.
+If you previously relied on the skip behavior, configure your task to short-circuit explicitly:
+====
+[.multi-language-sample]
+=====
+.build.gradle.kts
+[source,kotlin]
+----
+tasks.named<Sync>("mySync") {
+    onlyIf { !source.isEmpty }
+}
+----
+=====
+[.multi-language-sample]
+=====
+.build.gradle
+[source,groovy]
+----
+tasks.named('mySync') {
+    onlyIf { !source.empty }
+}
+----
+=====
+====
 
 [[v9_upgrade_to_kotlin_2_3_21]]
 ==== Upgrade to Kotlin 2.3.21
