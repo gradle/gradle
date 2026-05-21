@@ -109,11 +109,9 @@ public abstract class JacocoTaskExtension {
 
     /**
      * Whether or not the task should generate execution data. Defaults to {@code true}.
-     *
-     * @deprecated Use {@link #getEnabled()} instead.
      */
     @Internal
-    @Deprecated
+    @NotToBeReplacedByLazyProperty(because = "Already migrated; this is a delegating shim for binary compatibility")
     public boolean isEnabled() {
         return getEnabled().get();
     }
@@ -194,11 +192,9 @@ public abstract class JacocoTaskExtension {
      * Whether or not classes without source location should be instrumented. Defaults to {@code false}.
      *
      * This property is only taken into account if the used JaCoCo version supports this option (JaCoCo version &gt;= 0.7.6)
-     *
-     * @deprecated Use {@link #getIncludeNoLocationClasses()} instead.
      */
     @Internal
-    @Deprecated
+    @NotToBeReplacedByLazyProperty(because = "Already migrated; this is a delegating shim for binary compatibility")
     public boolean isIncludeNoLocationClasses() {
         return getIncludeNoLocationClasses().get();
     }
@@ -230,11 +226,9 @@ public abstract class JacocoTaskExtension {
 
     /**
      * Whether or not to dump the coverage data at VM shutdown. Defaults to {@code true}.
-     *
-     * @deprecated Use {@link #getDumpOnExit()} instead.
      */
     @Internal
-    @Deprecated
+    @NotToBeReplacedByLazyProperty(because = "Already migrated; this is a delegating shim for binary compatibility")
     public boolean isDumpOnExit() {
         return getDumpOnExit().get();
     }
@@ -294,11 +288,9 @@ public abstract class JacocoTaskExtension {
      * Whether or not to expose functionality via JMX under {@code org.jacoco:type=Runtime}. Defaults to {@code false}.
      *
      * The configuration of the jmx property is only taken into account if the used JaCoCo version supports this option (JaCoCo version &gt;= 0.6.2)
-     *
-     * @deprecated Use {@link #getJmx()} instead.
      */
     @Internal
-    @Deprecated
+    @NotToBeReplacedByLazyProperty(because = "Already migrated; this is a delegating shim for binary compatibility")
     public boolean isJmx() {
         return getJmx().get();
     }

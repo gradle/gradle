@@ -51,6 +51,7 @@ import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor;
 import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor.AccessorType;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty.BinaryCompatibility;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
+import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 import org.gradle.process.internal.JavaExecHandleBuilder;
 import org.gradle.process.internal.worker.MultiRequestClient;
 import org.gradle.process.internal.worker.MultiRequestWorkerProcessBuilder;
@@ -102,11 +103,9 @@ public abstract class AntlrTask extends SourceTask {
 
     /**
      * Specifies that all rules call {@code traceIn}/{@code traceOut}.
-     *
-     * @deprecated Use {@link #getTrace()} instead.
      */
     @Internal
-    @Deprecated
+    @NotToBeReplacedByLazyProperty(because = "Already migrated; this is a delegating shim for binary compatibility")
     public boolean isTrace() {
         return getTrace().get();
     }
@@ -130,11 +129,9 @@ public abstract class AntlrTask extends SourceTask {
 
     /**
      * Specifies that all lexer rules call {@code traceIn}/{@code traceOut}.
-     *
-     * @deprecated Use {@link #getTraceLexer()} instead.
      */
     @Internal
-    @Deprecated
+    @NotToBeReplacedByLazyProperty(because = "Already migrated; this is a delegating shim for binary compatibility")
     public boolean isTraceLexer() {
         return getTraceLexer().get();
     }
@@ -158,11 +155,9 @@ public abstract class AntlrTask extends SourceTask {
 
     /**
      * Specifies that all parser rules call {@code traceIn}/{@code traceOut}.
-     *
-     * @deprecated Use {@link #getTraceParser()} instead.
      */
     @Internal
-    @Deprecated
+    @NotToBeReplacedByLazyProperty(because = "Already migrated; this is a delegating shim for binary compatibility")
     public boolean isTraceParser() {
         return getTraceParser().get();
     }
@@ -186,11 +181,9 @@ public abstract class AntlrTask extends SourceTask {
 
     /**
      * Specifies that all tree walker rules call {@code traceIn}/{@code traceOut}.
-     *
-     * @deprecated Use {@link #getTraceTreeWalker()} instead.
      */
     @Internal
-    @Deprecated
+    @NotToBeReplacedByLazyProperty(because = "Already migrated; this is a delegating shim for binary compatibility")
     public boolean isTraceTreeWalker() {
         return getTraceTreeWalker().get();
     }

@@ -44,6 +44,7 @@ import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor;
 import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor.AccessorType;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty.BinaryCompatibility;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
+import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 import org.gradle.workers.WorkerExecutor;
 import org.jspecify.annotations.Nullable;
 
@@ -190,11 +191,9 @@ public abstract class Groovydoc extends SourceTask {
 
     /**
      * Returns whether to create class and package usage pages.
-     *
-     * @deprecated Use {@link #getUse()} instead.
      */
     @Internal
-    @Deprecated
+    @NotToBeReplacedByLazyProperty(because = "Already migrated; this is a delegating shim for binary compatibility")
     public boolean isUse() {
         return getUse().get();
     }
@@ -218,11 +217,9 @@ public abstract class Groovydoc extends SourceTask {
 
     /**
      * Returns whether to include timestamp within hidden comment in generated HTML (Groovy &gt;= 2.4.6).
-     *
-     * @deprecated Use {@link #getNoTimestamp()} instead.
      */
     @Internal
-    @Deprecated
+    @NotToBeReplacedByLazyProperty(because = "Already migrated; this is a delegating shim for binary compatibility")
     public boolean isNoTimestamp() {
         return getNoTimestamp().get();
     }
@@ -246,11 +243,9 @@ public abstract class Groovydoc extends SourceTask {
 
     /**
      * Returns whether to include version stamp within hidden comment in generated HTML (Groovy &gt;= 2.4.6).
-     *
-     * @deprecated Use {@link #getNoVersionStamp()} instead.
      */
     @Internal
-    @Deprecated
+    @NotToBeReplacedByLazyProperty(because = "Already migrated; this is a delegating shim for binary compatibility")
     public boolean isNoVersionStamp() {
         return getNoVersionStamp().get();
     }

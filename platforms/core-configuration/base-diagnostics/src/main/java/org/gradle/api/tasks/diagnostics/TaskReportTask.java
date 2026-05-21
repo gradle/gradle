@@ -42,6 +42,7 @@ import org.gradle.api.tasks.options.Option;
 import org.gradle.internal.Try;
 import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
+import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 import org.gradle.internal.serialization.Cached;
 import org.gradle.util.Path;
 import org.gradle.work.DisableCachingByDefault;
@@ -101,11 +102,9 @@ public abstract class TaskReportTask extends ConventionReportTask {
 
     /**
      * Returns whether to show "invisible" tasks without a group or dependent tasks.
-     *
-     * @deprecated Use {@link #getShowDetail()} instead.
      */
     @Internal
-    @Deprecated
+    @NotToBeReplacedByLazyProperty(because = "Already migrated; this is a delegating shim for binary compatibility")
     public boolean isDetail() {
         return getShowDetail().get();
     }

@@ -19,6 +19,7 @@ import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.internal.instrumentation.api.annotations.BytecodeUpgrade;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
+import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 import org.gradle.work.DisableCachingByDefault;
 
 import java.io.InputStream;
@@ -76,7 +77,7 @@ public abstract class Exec extends AbstractExecTask<Exec> {
      */
     @Override
     @Internal
-    @Deprecated
+    @NotToBeReplacedByLazyProperty(because = "Already migrated; this is a delegating shim for binary compatibility")
     public boolean isIgnoreExitValue() {
         return getIgnoreExitValue().get();
     }

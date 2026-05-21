@@ -36,6 +36,7 @@ import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty
 import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor;
 import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor.AccessorType;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty.BinaryCompatibility;
+import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.internal.GUtil;
@@ -275,10 +276,9 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
      *
      * @return <code>true</code> if file timestamps should be preserved for archive entries
      * @since 3.4
-     * @deprecated Use {@link #getPreserveFileTimestamps()} instead.
      */
     @Internal
-    @Deprecated
+    @NotToBeReplacedByLazyProperty(because = "Already migrated; this is a delegating shim for binary compatibility")
     public boolean isPreserveFileTimestamps() {
         return getPreserveFileTimestamps().get();
     }
@@ -321,10 +321,9 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
      *
      * @return <code>true</code> if the files should read from disk in a reproducible order.
      * @since 3.4
-     * @deprecated Use {@link #getReproducibleFileOrder()} instead.
      */
     @Internal
-    @Deprecated
+    @NotToBeReplacedByLazyProperty(because = "Already migrated; this is a delegating shim for binary compatibility")
     public boolean isReproducibleFileOrder() {
         return getReproducibleFileOrder().get();
     }

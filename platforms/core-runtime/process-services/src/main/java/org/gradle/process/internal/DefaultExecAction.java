@@ -31,6 +31,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
 import java.util.Map;
+import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 
 /**
  * Use {@link ExecActionFactory} (for core code) or {@link org.gradle.process.ExecOperations} (for plugin code) instead.
@@ -147,7 +148,7 @@ public class DefaultExecAction implements ExecAction {
     }
 
     @Override
-    @Deprecated
+    @NotToBeReplacedByLazyProperty(because = "Already migrated; this is a delegating shim for binary compatibility")
     public boolean isIgnoreExitValue() {
         return getIgnoreExitValue().get();
     }

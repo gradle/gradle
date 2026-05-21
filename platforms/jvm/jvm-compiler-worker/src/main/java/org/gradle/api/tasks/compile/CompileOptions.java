@@ -39,6 +39,7 @@ import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor;
 import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor.AccessorType;
+import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty.BinaryCompatibility;
 import org.gradle.internal.instrumentation.api.annotations.ReplacedDeprecation;
 import org.gradle.internal.instrumentation.api.annotations.ReplacedDeprecation.RemovedIn;
@@ -91,11 +92,9 @@ public abstract class CompileOptions implements Serializable {
 
     /**
      * Tells whether to fail the build when compilation fails. Defaults to {@code true}.
-     *
-     * @deprecated Use {@link #getFailOnError()} instead.
      */
     @Internal
-    @Deprecated
+    @NotToBeReplacedByLazyProperty(because = "Already migrated; this is a delegating shim for binary compatibility")
     public boolean isFailOnError() {
         return getFailOnError().get();
     }
@@ -119,11 +118,9 @@ public abstract class CompileOptions implements Serializable {
 
     /**
      * Tells whether to produce verbose output. Defaults to {@code false}.
-     *
-     * @deprecated Use {@link #getVerbose()} instead.
      */
     @Internal
-    @Deprecated
+    @NotToBeReplacedByLazyProperty(because = "Already migrated; this is a delegating shim for binary compatibility")
     public boolean isVerbose() {
         return getVerbose().get();
     }
@@ -147,11 +144,9 @@ public abstract class CompileOptions implements Serializable {
 
     /**
      * Tells whether to log the files to be compiled. Defaults to {@code false}.
-     *
-     * @deprecated Use {@link #getListFiles()} instead.
      */
     @Internal
-    @Deprecated
+    @NotToBeReplacedByLazyProperty(because = "Already migrated; this is a delegating shim for binary compatibility")
     public boolean isListFiles() {
         return getListFiles().get();
     }
@@ -178,11 +173,9 @@ public abstract class CompileOptions implements Serializable {
 
     /**
      * Tells whether to log details of usage of deprecated members or classes. Defaults to {@code false}.
-     *
-     * @deprecated Use {@link #getDeprecation()} instead.
      */
     @Internal
-    @Deprecated
+    @NotToBeReplacedByLazyProperty(because = "Already migrated; this is a delegating shim for binary compatibility")
     public boolean isDeprecation() {
         return getDeprecation().get();
     }
@@ -209,11 +202,9 @@ public abstract class CompileOptions implements Serializable {
 
     /**
      * Tells whether to log warning messages. The default is {@code true}.
-     *
-     * @deprecated Use {@link #getWarnings()} instead.
      */
     @Internal
-    @Deprecated
+    @NotToBeReplacedByLazyProperty(because = "Already migrated; this is a delegating shim for binary compatibility")
     public boolean isWarnings() {
         return getWarnings().get();
     }
@@ -252,11 +243,9 @@ public abstract class CompileOptions implements Serializable {
     /**
      * Tells whether to include debugging information in the generated class files. Defaults
      * to {@code true}. See {@link DebugOptions#getDebugLevel()} for which debugging information will be generated.
-     *
-     * @deprecated Use {@link #getDebug()} instead.
      */
     @Internal
-    @Deprecated
+    @NotToBeReplacedByLazyProperty(because = "Already migrated; this is a delegating shim for binary compatibility")
     public boolean isDebug() {
         return getDebug().get();
     }
@@ -304,11 +293,9 @@ public abstract class CompileOptions implements Serializable {
      * Tells whether to run the compiler in its own process. Note that this does
      * not necessarily mean that a new process will be created for each compile task.
      * Defaults to {@code false}.
-     *
-     * @deprecated Use {@link #getFork()} instead.
      */
     @Internal
-    @Deprecated
+    @NotToBeReplacedByLazyProperty(because = "Already migrated; this is a delegating shim for binary compatibility")
     public boolean isFork() {
         return getFork().get();
     }
@@ -409,11 +396,9 @@ public abstract class CompileOptions implements Serializable {
 
     /**
      * informs whether to use incremental compilation feature.
-     *
-     * @deprecated Use {@link #getIncremental()} instead.
      */
     @Internal
-    @Deprecated
+    @NotToBeReplacedByLazyProperty(because = "Already migrated; this is a delegating shim for binary compatibility")
     public boolean isIncremental() {
         return getIncremental().get();
     }

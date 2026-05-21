@@ -218,10 +218,8 @@ public abstract class PmdExtension extends CodeQualityExtension {
 
     /**
      * Whether or not to write PMD results to {@code System.out}.
-     *
-     * @deprecated Use {@link #getConsoleOutput()} instead.
      */
-    @Deprecated
+    @NotToBeReplacedByLazyProperty(because = "Already migrated; this is a delegating shim for binary compatibility")
     public boolean isConsoleOutput() {
         return getConsoleOutput().get();
     }

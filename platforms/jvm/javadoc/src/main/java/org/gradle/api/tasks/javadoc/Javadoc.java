@@ -58,6 +58,7 @@ import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor;
 import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor.AccessorType;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty.BinaryCompatibility;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
+import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 import org.gradle.internal.jvm.DefaultModularitySpec;
 import org.gradle.internal.jvm.JavaModuleDetector;
 import org.gradle.jvm.toolchain.JavaToolchainService;
@@ -344,11 +345,9 @@ public abstract class Javadoc extends SourceTask {
     /**
      * Specifies whether this task should fail when errors are encountered during Javadoc generation. When {@code true},
      * this task will fail on Javadoc error. When {@code false}, this task will ignore Javadoc errors.
-     *
-     * @deprecated Use {@link #getFailOnError()} instead.
      */
     @Internal
-    @Deprecated
+    @NotToBeReplacedByLazyProperty(because = "Already migrated; this is a delegating shim for binary compatibility")
     public boolean isFailOnError() {
         return getFailOnError().get();
     }

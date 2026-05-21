@@ -21,6 +21,7 @@ import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty
 import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor;
 import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor.AccessorType;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty.BinaryCompatibility;
+import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -54,9 +55,8 @@ public interface BaseExecSpec extends ProcessForkOptions {
      * Tells whether a non-zero exit value is ignored, or an exception thrown. Defaults to <code>false</code>.
      *
      * @return whether a non-zero exit value is ignored, or an exception thrown
-     * @deprecated Use {@link #getIgnoreExitValue()} instead.
      */
-    @Deprecated
+    @NotToBeReplacedByLazyProperty(because = "Already migrated; this is a delegating shim for binary compatibility")
     boolean isIgnoreExitValue();
 
     /**

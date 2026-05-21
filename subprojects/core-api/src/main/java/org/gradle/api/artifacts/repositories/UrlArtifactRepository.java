@@ -22,6 +22,7 @@ import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty
 import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor;
 import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor.AccessorType;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty.BinaryCompatibility;
+import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 
 import java.net.URI;
 
@@ -77,10 +78,8 @@ public interface UrlArtifactRepository {
 
     /**
      * Specifies whether it is acceptable to communicate with a repository over an insecure HTTP connection.
-     *
-     * @deprecated Use {@link #getAllowInsecureProtocol()} instead.
      */
-    @Deprecated
+    @NotToBeReplacedByLazyProperty(because = "Already migrated; this is a delegating shim for binary compatibility")
     boolean isAllowInsecureProtocol();
 
     /**

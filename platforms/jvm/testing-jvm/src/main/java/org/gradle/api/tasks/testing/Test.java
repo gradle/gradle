@@ -1061,11 +1061,9 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     /**
      * Specifies whether test classes should be detected. When {@code true} the classes which match the include and exclude patterns are scanned for test classes, and any found are executed. When
      * {@code false} the classes which match the include and exclude patterns are executed.
-     *
-     * @deprecated Use {@link #getScanForTestClasses()} instead.
      */
     @Internal
-    @Deprecated
+    @NotToBeReplacedByLazyProperty(because = "Already migrated; this is a delegating shim for binary compatibility")
     public boolean isScanForTestClasses() {
         return getScanForTestClasses().get();
     }

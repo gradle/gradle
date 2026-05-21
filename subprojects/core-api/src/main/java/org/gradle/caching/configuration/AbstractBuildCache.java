@@ -16,6 +16,8 @@
 
 package org.gradle.caching.configuration;
 
+import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
+
 /**
  * Base implementation for build cache service configuration.
  *
@@ -32,7 +34,7 @@ public abstract class AbstractBuildCache implements BuildCache {
      * {@inheritDoc}
      */
     @Override
-    @Deprecated
+    @NotToBeReplacedByLazyProperty(because = "Already migrated; this is a delegating shim for binary compatibility")
     public boolean isEnabled() {
         return getEnabled().get();
     }
@@ -41,7 +43,7 @@ public abstract class AbstractBuildCache implements BuildCache {
      * {@inheritDoc}
      */
     @Override
-    @Deprecated
+    @NotToBeReplacedByLazyProperty(because = "Already migrated; this is a delegating shim for binary compatibility")
     public boolean isPush() {
         return getPush().get();
     }

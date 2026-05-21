@@ -43,6 +43,7 @@ import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor;
 import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor.AccessorType;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty.BinaryCompatibility;
+import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 import org.gradle.internal.serialization.Cached;
 
 import javax.inject.Inject;
@@ -333,11 +334,9 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
 
     /**
      * Whether the default listeners and reporters should be used.
-     *
-     * @deprecated Use {@link #getUseDefaultListeners()} instead.
      */
     @Internal
-    @Deprecated
+    @NotToBeReplacedByLazyProperty(because = "Already migrated; this is a delegating shim for binary compatibility")
     public boolean isUseDefaultListeners() {
         return getUseDefaultListeners().get();
     }
@@ -393,11 +392,9 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
      * Not required.
      *
      * If not present, the order will not be preserved.
-     *
-     * @deprecated Use {@link #getPreserveOrder()} instead.
      */
     @Internal
-    @Deprecated
+    @NotToBeReplacedByLazyProperty(because = "Already migrated; this is a delegating shim for binary compatibility")
     public boolean isPreserveOrder() {
         return getPreserveOrder().get();
     }
@@ -429,11 +426,9 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
      * Not required.
      *
      * If not present, the tests will not be grouped by instances.
-     *
-     * @deprecated Use {@link #getGroupByInstances()} instead.
      */
     @Internal
-    @Deprecated
+    @NotToBeReplacedByLazyProperty(because = "Already migrated; this is a delegating shim for binary compatibility")
     public boolean isGroupByInstances() {
         return getGroupByInstances().get();
     }

@@ -27,6 +27,7 @@ import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty
 import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor;
 import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor.AccessorType;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty.BinaryCompatibility;
+import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 
 import javax.inject.Inject;
 import java.net.URI;
@@ -143,9 +144,8 @@ public abstract class HttpBuildCache extends AbstractBuildCache {
      * This value has no effect if a server is specified using the HTTP protocol (i.e. has SSL disabled).
      *
      * @since 4.2
-     * @deprecated Use {@link #getAllowUntrustedServer()} instead.
      */
-    @Deprecated
+    @NotToBeReplacedByLazyProperty(because = "Already migrated; this is a delegating shim for binary compatibility")
     public boolean isAllowUntrustedServer() {
         return getAllowUntrustedServer().get();
     }
@@ -198,9 +198,8 @@ public abstract class HttpBuildCache extends AbstractBuildCache {
      * <a href="https://medium.com/bugbountywriteup/want-to-take-over-the-java-ecosystem-all-you-need-is-a-mitm-1fc329d898fb">Want to take over the Java ecosystem? All you need is a MITM!</a>
      *
      * @since 6.0
-     * @deprecated Use {@link #getAllowInsecureProtocol()} instead.
      */
-    @Deprecated
+    @NotToBeReplacedByLazyProperty(because = "Already migrated; this is a delegating shim for binary compatibility")
     public boolean isAllowInsecureProtocol() {
         return getAllowInsecureProtocol().get();
     }
@@ -249,9 +248,8 @@ public abstract class HttpBuildCache extends AbstractBuildCache {
      * Note: not all HTTP servers support expect-continue.
      *
      * @since 7.2
-     * @deprecated Use {@link #getUseExpectContinue()} instead.
      */
-    @Deprecated
+    @NotToBeReplacedByLazyProperty(because = "Already migrated; this is a delegating shim for binary compatibility")
     public boolean isUseExpectContinue() {
         return getUseExpectContinue().get();
     }

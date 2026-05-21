@@ -25,6 +25,7 @@ import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Factory;
 import org.gradle.internal.file.PathToFileResolver;
+import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 import org.gradle.internal.jvm.DefaultModularitySpec;
 import org.gradle.internal.jvm.JavaModuleDetector;
 import org.gradle.process.JavaExecSpec;
@@ -81,7 +82,7 @@ public abstract class DefaultJavaExecSpec extends DefaultJavaForkOptions impleme
     }
 
     @Override
-    @Deprecated
+    @NotToBeReplacedByLazyProperty(because = "Already migrated; this is a delegating shim for binary compatibility")
     public boolean isIgnoreExitValue() {
         return getIgnoreExitValue().get();
     }
