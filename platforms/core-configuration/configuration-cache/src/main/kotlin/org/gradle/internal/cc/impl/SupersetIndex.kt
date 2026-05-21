@@ -51,16 +51,16 @@ object SupersetIndexLookup {
      *    forward-compat — current safety gates don't consult them, but the data is cheap to
      *    capture alongside the other edge maps and useful when investigating prune decisions.
      *  - [sideEffectingTaskIdentityPaths]: identity paths of scheduled tasks whose execution
-     *    has filesystem side effects beyond the snapshotted-output set — specifically, instances
-     *    of `org.gradle.api.tasks.Delete` (auto-registered `clean*` tasks, user-defined deletes,
-     *    etc.). Used to reject a candidate when subset pruning would drop one of these tasks:
-     *    skipping the deletion but loading the cached pre-deletion output state breaks the
-     *    filesystem invariant retained tasks rely on. See [hasSideEffectingDroppedTask].
-     *    A set rather than a per-task path map because querying `Delete.targetFiles` doesn't
-     *    re-invoke user `@OutputFile` / `@Nested` getters (the path computation is owned by
-     *    the `Delete` task itself), while resolving regular task outputs through the property
-     *    walker does — capturing only the identity-path *set* preserves the gate's correctness
-     *    on the `clean*` overlap cases without the per-task footprint walk.
+     *    has filesystem side effects beyond the snapshotted-output set — specifically, tasks
+     *    declaring a property annotated `@org.gradle.api.tasks.Destroys`. `Delete` is caught
+     *    via its `@Destroys`-annotated `getTargetFiles()`; user-defined task types with
+     *    `@Destroys` properties are caught the same way. Used to reject a candidate when
+     *    subset pruning would drop one of these tasks: skipping the deletion but loading the
+     *    cached pre-deletion output state breaks the filesystem invariant retained tasks rely
+     *    on. See [hasSideEffectingDroppedTask].
+     *    A set rather than a per-task path map because detection uses `TypeMetadataStore`
+     *    annotation lookup only — no property getter is invoked, so the check is free of the
+     *    per-task footprint walk that would re-invoke user `@OutputFile` / `@Nested` getters.
      */
     data class IndexedVariant(
         val fullKey: String,
@@ -149,19 +149,26 @@ object SupersetIndexLookup {
 
     /**
      * Returns true if any of the to-be-dropped tasks has side effects beyond its
-     * snapshotted outputs (specifically, instances of `org.gradle.api.tasks.Delete`).
-     * Skipping such a task while loading the cached pre-deletion output state leaves
-     * filesystem invariants the retained tasks rely on broken — e.g. a `clean*` task
-     * that would have cleared a directory before another task wrote into it.
+     * snapshotted outputs — specifically, tasks declaring a property annotated
+     * `@org.gradle.api.tasks.Destroys`. `Delete` is the canonical case
+     * (`Delete.getTargetFiles()` is `@Destroys`), and so are user-defined task
+     * types with `@Destroys` properties. Skipping such a task while loading the
+     * cached pre-deletion output state leaves filesystem invariants the retained
+     * tasks rely on broken — e.g. a `clean*` task that would have cleared a
+     * directory before another task wrote into it.
      * <p>
      * This is the practical heuristic that replaces a more precise pairwise output-path
      * overlap check: capturing per-task output paths through the property walker would
      * re-invoke user `@OutputFile` / `@Nested` getters at store time, which is
      * observable as an extra invocation count in tests like
      * `TaskParametersIntegrationTest."input and output properties are not evaluated too often"`.
-     * `Delete.targetFiles` doesn't go through user getters, so checking Delete-task
-     * membership in the dropped set is free of that side effect while still catching
-     * the cleanX overlap scenarios that motivated the gate.
+     * Detection uses `TypeMetadataStore` annotation lookup only — no property getter
+     * is invoked, so the check is free of that side effect while still catching the
+     * cleanX overlap scenarios that motivated the gate.
+     * <p>
+     * Caveat: dynamic destroyable registration via `task.destroyables.register(...)`
+     * on a plain `DefaultTask` is not detected — annotation lookup can't see runtime
+     * registrations.
      * <p>
      * Returns `false` when [droppedIdentityPaths] is empty (exact match — no pruning)
      * or the candidate has no recorded side-effecting tasks.
@@ -308,7 +315,7 @@ class SupersetIndexFile(private val file: java.io.File) {
         // v2 = v1 + mustRunAfterEdges
         // v3 = v2 + dependencyEdges + outputPaths
         // v4 = v3 with requestedTasks split into separate cliTokens and entryTaskIdentityPaths
-        // v5 = v4 with outputPaths replaced by sideEffectingTaskIdentityPaths (Delete-task gate)
+        // v5 = v4 with outputPaths replaced by sideEffectingTaskIdentityPaths (@Destroys-property gate)
         private const val FORMAT_VERSION = 5
     }
 }

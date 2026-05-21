@@ -18,6 +18,8 @@ package org.gradle.internal.cc.impl
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.file.ConfigurableFileCollection
+import org.gradle.api.tasks.Destroys
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheRecreateOption
 import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheFixture
 import spock.lang.Issue
@@ -747,10 +749,53 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
         result.assertTasksExecuted(":producer")
     }
 
+    def "subset request that would drop a custom task with a @Destroys-annotated property is refused"() {
+        given:
+        // Generalization of the Delete-instance gate: any task type with a property
+        // annotated `@Destroys` is treated as side-effecting at store time, because
+        // its execution removes files that retained tasks may depend on. Detection
+        // uses TypeMetadataStore annotation lookup — no getter invocation, so this
+        // does not contribute to the property eval count.
+        def configurationCache = newConfigurationCacheFixture()
+        buildFile << """
+            abstract class CustomDestroyer extends DefaultTask {
+                @${Destroys.name}
+                abstract ${ConfigurableFileCollection.name} getVictims()
+
+                @TaskAction
+                void run() { println 'destroying' }
+            }
+            tasks.register('wipe', CustomDestroyer) {
+                victims.from('no-such-file')
+            }
+            tasks.register('build') {
+                doLast { println 'build' }
+            }
+        """
+
+        when:
+        configurationCacheRun "wipe", "build"
+
+        then:
+        configurationCache.assertStateStored()
+
+        when: 'request build alone — wipe would be dropped, but it has a @Destroys property'
+        configurationCacheRun "build"
+
+        then: 'destroyables gate refuses the subset; cold-store'
+        configurationCache.assertStateStored()
+
+        when: 'original exact-match request — the gate-rejected entry must still be in the index'
+        configurationCacheRun "wipe", "build"
+
+        then: 'state loaded: gate rejection on the subset request did NOT evict the entry'
+        configurationCache.assertStateLoaded()
+    }
+
     def "subset request that would drop a Delete task is refused"() {
         given:
-        // Delete-instance detection at store time is the gate; the gate fires because
-        // `:cleanThing instanceof Delete` is true regardless of whether the deletion
+        // `Delete` is caught by the generalized `@Destroys` gate via `Delete.getTargetFiles()`
+        // being `@Destroys`-annotated. The gate fires regardless of whether the deletion
         // target exists. The assertion of interest is that the second run cold-stores
         // (gate refused subset) — not that `:cleanThing` produced any work output.
         def configurationCache = newConfigurationCacheFixture()

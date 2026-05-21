@@ -25,7 +25,7 @@ import org.gradle.execution.plan.ScheduledWork
  * Prunes a loaded [ScheduledWork] to keep only the requested entry tasks plus their
  * transitive dependencies, when a stored configuration cache entry is reused for
  * a subset of its original requested-task list.
- *
+ * <p>
  * No I/O and no service dependencies, but **not pure**: [pruneAndRewireInPlace]
  * mutates the retained `Node`s' `dependencyPredecessors` sets in the input
  * [ScheduledWork] to drop references to non-retained nodes. The mutation is
@@ -33,10 +33,10 @@ import org.gradle.execution.plan.ScheduledWork
  * sees stale predecessor backrefs and refuses to schedule the retained entries.
  * The method name carries that side effect; callers should treat the input
  * `ScheduledWork` as consumed.
- *
+ * <p>
  * Used by `ConfigurationCacheState` at the deserialization boundary so the
  * loader sees the pruned plan via `setScheduledWork`.
- *
+ * <p>
  * Names in [pruneAndRewireInPlace]'s `tasksToDrop` are compared against
  * `task.identityPath` (canonical absolute path like `":foo:bar"`). Callers are
  * responsible for passing canonical paths — see
@@ -51,18 +51,20 @@ object WorkGraphPruner {
      * is in [tasksToDrop] removed, plus any nodes that are no longer reachable
      * from the remaining entry nodes through `dependencySuccessors`. Mutates
      * retained nodes' `dependencyPredecessors` to drop dropped-node backrefs.
-     *
+     * <p>
      * Returns the input unchanged when:
      *  - [tasksToDrop] is empty (exact-match reuse — no pruning needed), or
      *  - none of the entry nodes' tasks match [tasksToDrop] (no-op for this build).
      */
     fun pruneAndRewireInPlace(initiallyScheduled: ScheduledWork, tasksToDrop: Set<String>): ScheduledWork {
         if (tasksToDrop.isEmpty()) return initiallyScheduled
+
         val requestedEntries = initiallyScheduled.entryNodes.filter { node ->
             val task = (node as? LocalTaskNode)?.task
-            task == null || task.identityPath.toString() !in tasksToDrop
+            task == null || task.identityPath.asString() !in tasksToDrop
         }.toSet()
         if (requestedEntries.size == initiallyScheduled.entryNodes.size) return initiallyScheduled
+
         // BFS forward from the requested entries through real dependency edges only.
         // Entries with mustRunAfter / finalizer relationships that cross the
         // requested/dropped boundary are filtered out at lookup time
@@ -80,6 +82,7 @@ object WorkGraphPruner {
             }
         }
         val retainedScheduled = initiallyScheduled.scheduledNodes.filter { it in retained }
+
         // Clean up stale incoming edges: the loaded graph's retained nodes still
         // reference DROPPED nodes via `dependencyPredecessors` (e.g. `:duplicate`
         // retains a predecessor edge from a dropped `:a:compileJava` because
@@ -91,6 +94,7 @@ object WorkGraphPruner {
         for (node in retained) {
             node.dependencyPredecessors.removeAll { it !in retained }
         }
+
         // Entry-node set must include any *original* entry node that BFS retained as a
         // transitive dep — without this, the loaded plan's ordinal-group bookkeeping
         // ends up with phantom groups (the dropped entry's group still has destroyer-

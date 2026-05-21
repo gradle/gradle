@@ -22,7 +22,9 @@ import org.gradle.api.internal.properties.GradlePropertiesController
 import org.gradle.api.internal.provider.ConfigurationTimeBarrier
 import org.gradle.api.internal.provider.DefaultConfigurationTimeBarrier
 import org.gradle.api.internal.provider.ValueSourceProviderFactory
+import org.gradle.api.internal.tasks.properties.TaskScheme
 import org.gradle.api.logging.LogLevel
+import org.gradle.api.tasks.Destroys
 import org.gradle.internal.cc.operations.EntrySearchResult
 import org.gradle.internal.cc.operations.ModelStoreResult
 import org.gradle.internal.cc.operations.WorkGraphLoadResult
@@ -110,7 +112,8 @@ class DefaultConfigurationCache internal constructor(
     private val fileSystemAccess: FileSystemAccess,
     private val calculatedValueContainerFactory: CalculatedValueContainerFactory,
     private val modelSideEffectExecutor: ConfigurationCacheBuildTreeModelSideEffectExecutor,
-    private val deferredRootBuildGradle: DeferredRootBuildGradle
+    private val deferredRootBuildGradle: DeferredRootBuildGradle,
+    private val taskScheme: TaskScheme
 ) : BuildTreeConfigurationCache, Stoppable {
 
     private
@@ -530,19 +533,37 @@ class DefaultConfigurationCache internal constructor(
 
     /**
      * Identity paths of scheduled tasks whose execution has filesystem side
-     * effects beyond their snapshotted outputs — specifically, instances of
-     * `org.gradle.api.tasks.Delete` (the base plugin's auto-registered `clean*`
-     * tasks plus any user-defined `Delete` tasks). Computed by an instance-check
-     * over the saved scheduled-node list — no property walk, no `@OutputFile` /
-     * `@Nested` getter invocation.
+     * effects beyond their snapshotted outputs — specifically, tasks that
+     * declare any property annotated with `@Destroys`. This includes the base
+     * plugin's auto-registered `clean*` tasks (instances of
+     * `org.gradle.api.tasks.Delete`, whose `getTargetFiles()` is `@Destroys`)
+     * and any user-defined task type with a `@Destroys`-annotated property.
+     *
+     * Detection uses `TypeMetadataStore` annotation metadata only: per-task-type
+     * inspection of declared property type annotations. It does NOT invoke
+     * `@OutputFile` / `@Nested` / `@Destroys` property getters, so it cannot
+     * affect user property evaluation counts (see the regression captured by
+     * `TaskParametersIntegrationTest."input and output properties are not
+     * evaluated too often"`).
+     *
+     * Misses tasks that register destroyables dynamically via
+     * `task.destroyables.register(...)` on a plain `DefaultTask` — annotation
+     * lookup can't see those. Caught by `Delete`-instance subclasses via the
+     * `@Destroys` on `Delete.getTargetFiles()`.
      */
     private
     fun collectSideEffectingTaskIdentityPaths(): Set<String> =
         scheduledLocalTaskNodes
             .asSequence()
-            .filter { it.task is org.gradle.api.tasks.Delete }
-            .map { it.task.identityPath.toString() }
+            .filter { hasDestroysAnnotatedProperty(it.task::class.java) }
+            .map { it.task.identityPath.asString() }
             .toSet()
+
+    private
+    fun hasDestroysAnnotatedProperty(taskClass: Class<*>): Boolean {
+        val typeMetadata = taskScheme.inspectionScheme.metadataStore.getTypeMetadata(taskClass)
+        return typeMetadata.propertiesMetadata.any { it.propertyType == Destroys::class.java }
+    }
 
     private
     fun collectOrderingTargets(node: org.gradle.execution.plan.TaskNode): List<String> {
@@ -551,7 +572,7 @@ class DefaultConfigurationCache internal constructor(
             .asSequence()
             .filter { it !in deps }
             .filterIsInstance<org.gradle.execution.plan.LocalTaskNode>()
-            .map { it.task.identityPath.toString() }
+            .map { it.task.identityPath.asString() }
             .toList()
     }
 
@@ -560,7 +581,7 @@ class DefaultConfigurationCache internal constructor(
         node.dependencySuccessors
             .asSequence()
             .filterIsInstance<org.gradle.execution.plan.LocalTaskNode>()
-            .map { it.task.identityPath.toString() }
+            .map { it.task.identityPath.asString() }
             .toList()
 
 
