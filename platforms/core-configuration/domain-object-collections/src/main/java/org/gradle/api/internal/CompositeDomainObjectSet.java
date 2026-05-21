@@ -16,6 +16,7 @@
 package org.gradle.api.internal;
 
 import com.google.common.collect.Sets;
+import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.DomainObjectCollection;
 import org.gradle.api.internal.collections.ElementSource;
@@ -25,6 +26,7 @@ import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.Actions;
+import org.gradle.util.internal.ConfigureUtil;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Collection;
@@ -102,8 +104,18 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> {
     }
 
     @Override
+    public void whenObjectAdded(Closure action) {
+        whenObjectAdded(ConfigureUtil.configureUsing(action));
+    }
+
+    @Override
     public Action<? super T> whenObjectAdded(Action<? super T> action) {
         return super.whenObjectAdded(Actions.filter(action, uniqueSpec));
+    }
+
+    @Override
+    public void whenObjectRemoved(Closure action) {
+        whenObjectRemoved(ConfigureUtil.configureUsing(action));
     }
 
     @Override
@@ -162,6 +174,11 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> {
     @Override
     public int estimatedSize() {
         return getStore().estimatedSize();
+    }
+
+    @Override
+    public void all(Closure action) {
+        all(ConfigureUtil.configureUsing(action));
     }
 
     @Override

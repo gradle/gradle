@@ -83,6 +83,8 @@ The service instance will not be created if no task uses the service during a bu
 Currently, build services are scoped to a build, rather than a project, and these services are available to be shared by the tasks of all projects.
 You can access the registry of shared build services via `Project.getGradle().getSharedServices()`.
 
+TIP: When <<isolated_projects.adoc#sec:shared_build_services,Isolated Projects>> is enabled, most methods on the set returned by `getRegistrations()` are restricted. Use `registerIfAbsent()` to obtain a service provider directly.
+
 [[sec:service_references]]
 === Registering a build service to be consumed via `@ServiceReference` task properties
 
