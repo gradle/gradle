@@ -179,10 +179,28 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
             Cast.<Closure<?>>uncheckedCast(closure)
         );
         // Adapt to TaskExecutionGraphListener (single-method interface) so the listener-registration
-        // broadcast can use a proper instance — ClosureBackedMethodInvocationDispatch does not
-        // implement TaskExecutionGraphListener, which trips isSupportedListener checks. Match the
-        // dispatch behavior of ClosureBackedMethodInvocationDispatch: a 0-arg closure (`{ -> ... }`)
-        // is called with no args; a 1+-arg closure receives the graph.
+        // broadcast at notifyListenerRegistration() below can pass a proper instance.
+        //
+        // The pre-existing implementation wrapped the closure in ClosureBackedMethodInvocationDispatch,
+        // which is a Dispatch<MethodInvocation> and does NOT implement TaskExecutionGraphListener.
+        // That mattered for two reasons:
+        //
+        //   1. The broadcast flows into BuildScopeListenerRegistrationListener implementations such
+        //      as the Configuration Cache's TaskGraphListenerRegistrationTracker, which only flips
+        //      its "task graph accessed" flag when it sees a registration of a recognized listener
+        //      type — i.e. an actual TaskExecutionGraphListener. A Dispatch instance would have
+        //      slipped past silently, leaving the flag clear and allowing unsafe CC superset reuse
+        //      of an entry whose original build had user code observing the task graph.
+        //
+        //   2. ConfigurationCacheProblemsListener.isSupportedListener performs a runtime type check
+        //      to decide whether a listener registration is an expected task-graph-observation API
+        //      vs. an unexpected listener that should be reported as a CC violation. A Dispatch
+        //      instance fails that type check and produces a false-positive CC problem report.
+        //
+        // The lambda below preserves the call-arity contract of ClosureBackedMethodInvocationDispatch
+        // so user-visible behavior is unchanged: a 0-arg closure (`{ -> ... }`) is invoked with no
+        // args; any closure declaring one or more parameters receives the populated TaskExecutionGraph
+        // as its first argument. Groovy's standard whenReady-style dispatch convention.
         TaskExecutionGraphListener listener = graph -> {
             if (decoratedClosure.getMaximumNumberOfParameters() == 0) {
                 decoratedClosure.call();
