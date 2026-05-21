@@ -284,7 +284,8 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
         result.assertTasksScheduled(":a")
     }
 
-    def "cache entry is keyed by requested task selection across three tasks"() {
+    // region Partial Task Selection Matching
+    def "partial task selection causes cache hit against task superset"() {
         given:
         def configurationCache = newConfigurationCacheFixture()
         buildFile << """
@@ -756,27 +757,42 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
                 mustRunAfter 'first'
                 doLast { println 'second' }
             }
+            tasks.register('third') { doLast { println 'third' } }
         """
 
         when:
-        configurationCacheRun "first", "second"
+        configurationCacheRun "first", "second", "third"
 
         then:
         configurationCache.assertStateStored()
 
         when: 'subset request fails the mustRunAfter dangle gate and cold-stores'
-        configurationCacheRun "second"
+        configurationCacheRun "second", "third"
 
         then:
         configurationCache.assertStateStored()
 
         when: 'original exact-match request — the gate-rejected entry must still be findable in the index'
-        configurationCacheRun "first", "second"
+        configurationCacheRun "first", "second", "third"
 
         then: 'state loaded, not re-stored: gate rejection earlier did NOT evict the entry from disk'
         configurationCache.assertStateLoaded()
+        result.assertTasksExecuted(":first", ":second", ":third")
+
+        when: 'and repeating the subset request succeeds against the now-cached entry'
+        configurationCacheRun "second", "third"
+
+        then:
+        configurationCache.assertStateLoaded()
+
+        when: 'and subsets including the mustRunAfter components succeed'
+        configurationCacheRun "first", "second"
+
+        then:
+        configurationCache.assertStateLoaded()
         result.assertTasksExecuted(":first", ":second")
     }
+    // endregion Partial Task Selection Matching
 
     def "configuration cache for multi-level projects"() {
         given:
