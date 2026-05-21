@@ -522,6 +522,60 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
         configurationCache.assertStateLoaded()
     }
 
+    def "TaskExecutionGraph query methods called at configuration time do not disable superset reuse"() {
+        given:
+        // At configuration time the task graph is empty — none of these query methods
+        // can return a value that influences what runs. They are deliberately NOT
+        // instrumented as `taskGraphAccessed`. This pins that decision: a build script
+        // that touches all of them at config time must still permit subset reuse.
+        // Methods exercised: hasTask, findTask, getAllTasks, getFilteredTasks,
+        // getDependencies, size, hasScheduledWork, collectScheduledWork.
+        def configurationCache = newConfigurationCacheFixture()
+        buildFile << """
+            ['a', 'b', 'c'].each { name ->
+                tasks.register(name) {
+                    doLast { println name }
+                }
+            }
+            afterEvaluate {
+                def tg = gradle.taskGraph
+                println 'hasTask(path) = ' + tg.hasTask(':b')
+                println 'findTask = ' + tg.findTask(':b')
+                println 'getAllTasks().size = ' + tg.getAllTasks().size()
+                println 'getFilteredTasks().size = ' + tg.getFilteredTasks().size()
+                println 'size = ' + tg.size()
+                println 'hasScheduledWork = ' + tg.hasScheduledWork()
+                println 'collectScheduledWork.scheduledNodes.size = ' + tg.collectScheduledWork().scheduledNodes.size()
+                // getDependencies throws on an empty graph — wrap so the attempted call
+                // still goes through the un-instrumented method dispatch. The point is
+                // that even reaching it at config time does not trip taskGraphAccessed.
+                try {
+                    tg.getDependencies(tasks.getByName('a'))
+                    throw new AssertionError('expected IllegalStateException on empty graph')
+                } catch (IllegalStateException ignored) {
+                    println 'getDependencies threw ISE as expected on empty graph'
+                }
+            }
+        """
+
+        when:
+        configurationCacheRun "a", "b", "c"
+
+        then:
+        configurationCache.assertStateStored()
+
+        when:
+        configurationCacheRun "a"
+
+        then:
+        // None of the eight query calls flipped the entry's taskGraphAccessed flag,
+        // so the stored [a, b, c] entry is reused as a strict superset of [a].
+        configurationCache.assertStateLoaded()
+        result.assertTasksExecuted(":a")
+        result.assertTasksNotScheduled(":b")
+        result.assertTasksNotScheduled(":c")
+    }
+
     def "direct hasTask call does not disable superset reuse"() {
         given:
         def configurationCache = newConfigurationCacheFixture()
@@ -839,7 +893,7 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
         configurationCache.assertStateLoaded()
         result.assertTasksExecuted(":d", ":sub:d")
     }
-    
+
     def "duplicate tokens in the request are deduplicated before subset matching"() {
         given:
         // selectBestMatch deduplicates `requested` via `.distinct()` before comparing
