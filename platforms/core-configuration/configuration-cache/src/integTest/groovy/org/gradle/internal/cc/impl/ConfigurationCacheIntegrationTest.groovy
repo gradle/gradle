@@ -839,6 +839,160 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
         configurationCache.assertStateLoaded()
         result.assertTasksExecuted(":d", ":sub:d")
     }
+    
+    def "duplicate tokens in the request are deduplicated before subset matching"() {
+        given:
+        // selectBestMatch deduplicates `requested` via `.distinct()` before comparing
+        // against stored cliTokens. The stored side keeps duplicates verbatim — only
+        // the request is collapsed. So [a, a, b] requested against [a, b, c] stored
+        // becomes [a, b] vs [a, b, c]: size 2 < 3, subsequence holds → strict-superset hit.
+        def configurationCache = newConfigurationCacheFixture()
+        buildFile << """
+            ['a', 'b', 'c'].each { name ->
+                tasks.register(name) { doLast { println name } }
+            }
+        """
+
+        when: 'store [a, b, c]'
+        configurationCacheRun "a", "b", "c"
+
+        then:
+        configurationCache.assertStateStored()
+        result.assertTasksExecuted(":a", ":b", ":c")
+
+        when: 'request [a, a, b] — distinct request is [a, b], a strict subseq of [a, b, c]'
+        configurationCacheRun "a", "a", "b"
+
+        then: 'dedup-then-match hits; pruning runs :a and :b only'
+        configurationCache.assertStateLoaded()
+        result.assertTasksExecuted(":a", ":b")
+    }
+
+    def "composite build subset request that stays inside the root build hits even when same-named tasks exist in the included build"() {
+        given:
+        // Bare task names do not cross composite boundaries: `gradle a b` from the root
+        // resolves to :a and :b in the root only, not :included:a / :included:b. The
+        // root entry's cliTokens stay 1:1 with its identity paths, so a subset request
+        // for `a` still gets a strict-superset hit against [a, b]. The presence of
+        // same-named tasks in the included build is a red herring — they are only
+        // reached via explicit `:included:<task>` syntax.
+        def configurationCache = newConfigurationCacheFixture()
+        file("included/settings.gradle") << "rootProject.name = 'included'"
+        file("included/build.gradle") << """
+            ['a', 'b'].each { name ->
+                tasks.register(name) { doLast { println "included " + name } }
+            }
+        """
+        settingsFile << """
+            includeBuild 'included'
+        """
+        buildFile << """
+            ['a', 'b'].each { name ->
+                tasks.register(name) { doLast { println name } }
+            }
+        """
+
+        when: 'store [a, b] — bare names stay in root, included build untouched'
+        configurationCacheRun "a", "b"
+
+        then:
+        configurationCache.assertStateStored()
+        result.assertTasksExecuted(":a", ":b")
+
+        when: 'subset request [a] — same-named included tasks must not interfere'
+        configurationCacheRun "a"
+
+        then: 'strict-superset hit against the root-only entry'
+        configurationCache.assertStateLoaded()
+        result.assertTasksExecuted(":a")
+    }
+
+    def "composite build subset request reaching across the includeBuild boundary cold-stores"() {
+        given:
+        // Documents an active limitation: when a request reaches into an included build
+        // via :included:<task>, the included build produces its own CC entry separate
+        // from the root's. A subset request that drops some included-build tasks does
+        // not currently superset-match across that boundary — both builds end up
+        // re-storing. The test pins current behavior; if cross-build superset matching
+        // is added later, this test will fail and need updating.
+        def configurationCache = newConfigurationCacheFixture()
+        file("included/settings.gradle") << "rootProject.name = 'included'"
+        file("included/build.gradle") << """
+            ['a', 'b'].each { name ->
+                tasks.register(name) { doLast { println "included " + name } }
+            }
+        """
+        settingsFile << """
+            includeBuild 'included'
+        """
+        buildFile << """
+            ['a', 'b'].each { name ->
+                tasks.register(name) { doLast { println name } }
+            }
+        """
+
+        when: 'store [:a, :included:a, :included:b]'
+        configurationCacheRun ":a", ":included:a", ":included:b"
+
+        then:
+        configurationCache.assertStateStored()
+        result.assertTasksExecuted(":a", ":included:a", ":included:b")
+
+        when: 'subset request that drops :included:b — would be a hit in a non-composite build'
+        configurationCacheRun ":a", ":included:a"
+
+        then: 'composite boundary defeats subset matching today; cold-store'
+        configurationCache.assertStateStored()
+        result.assertTasksExecuted(":a", ":included:a")
+    }
+
+    def "smallest matching superset is selected when multiple supersets contain the request"() {
+        given:
+        // selectBestMatch returns `minByOrNull { it.cliTokens.size }` over the
+        // eligible supersets. Stage two entries [a, b, c] and [a, d] — both contain
+        // [a] as a subsequence — then request [a]. The size-2 entry must win.
+        // Note: [a, d] is not a subsequence of [a, b, c] (walking a→a hits, then d
+        // finds neither b nor c), so the second store is a genuine cold-store,
+        // not a hit against the first.
+        def configurationCache = newConfigurationCacheFixture()
+        buildFile << """
+            ['a', 'b', 'c', 'd'].each { name ->
+                tasks.register(name) { doLast { println name } }
+            }
+        """
+
+        when: 'first store: [a, b, c]'
+        configurationCacheRun "a", "b", "c"
+
+        then:
+        configurationCache.assertStateStored()
+
+        when: 'second store: [a, d] — not a subseq of [a, b, c], so cold-stores'
+        configurationCacheRun "a", "d"
+
+        then:
+        configurationCache.assertStateStored()
+        result.assertTasksExecuted(":a", ":d")
+
+        when: 'request [a] — both stored entries are valid supersets; smallest wins'
+        configurationCacheRun "a"
+
+        then: 'hit; only :a runs (no :b/:c from the larger superset, no :d from the smaller)'
+        configurationCache.assertStateLoaded()
+        result.assertTasksExecuted(":a")
+
+        when: 'both prior entries remain in the index — verify exact-match against the larger'
+        configurationCacheRun "a", "b", "c"
+
+        then: '[a, b, c] entry still loadable, proving the [a] request did not evict it'
+        configurationCache.assertStateLoaded()
+
+        when: 'and exact-match against the smaller'
+        configurationCacheRun "a", "d"
+
+        then:
+        configurationCache.assertStateLoaded()
+    }
     // endregion Partial Task Selection Matching
 
     def "configuration cache for multi-level projects"() {
