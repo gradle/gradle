@@ -63,7 +63,13 @@ import org.gradle.api.internal.project.ProjectState as InternalProjectState
 class CrossProjectConfigurationReportingGradle(
     gradle: GradleInternal,
     private val referrerProject: ProjectIdentity,
-    private val ipProblems: IsolatedProjectsProblemsReporter
+    private val ipProblems: IsolatedProjectsProblemsReporter,
+    /**
+     * `true` when this wrapper was obtained through cross-project access (e.g. `project(':b').gradle`
+     * from `:a`'s script), `false` for own-project access (i.e. `gradle` from a project's own script).
+     * Used to decide whether [getStartParameter] returns the IP-reporting wrapper.
+     */
+    private val isCrossProjectAccess: Boolean = false,
 ) : GradleInternal {
 
     private val delegate: GradleInternal = when (gradle) {
@@ -90,12 +96,12 @@ class CrossProjectConfigurationReportingGradle(
     }
 
     override fun getParent(): GradleInternal? =
-        delegate.parent?.let { delegateParent -> CrossProjectConfigurationReportingGradle(delegateParent, referrerProject, ipProblems) }
+        delegate.parent?.let { delegateParent -> CrossProjectConfigurationReportingGradle(delegateParent, referrerProject, ipProblems, isCrossProjectAccess) }
 
     override fun getRoot(): GradleInternal =
         when (val root = delegate.root) {
             delegate -> this
-            else -> CrossProjectConfigurationReportingGradle(root, referrerProject, ipProblems)
+            else -> CrossProjectConfigurationReportingGradle(root, referrerProject, ipProblems, isCrossProjectAccess)
         }
 
     override fun getRootProject(): ProjectInternal =
@@ -281,7 +287,11 @@ class CrossProjectConfigurationReportingGradle(
         delegate.gradleHomeDir
 
     override fun getStartParameter(): StartParameterInternal =
-        CrossProjectConfigurationReportingStartParameter(delegate.startParameter, referrerProject, ipProblems)
+        if (isCrossProjectAccess) {
+            CrossProjectConfigurationReportingStartParameter(delegate.startParameter, referrerProject, ipProblems)
+        } else {
+            delegate.startParameter
+        }
 
     override fun beforeSettings(closure: Closure<*>) =
         delegate.beforeSettings(closure)

@@ -396,7 +396,11 @@ class ProblemReportingCrossProjectModelAccess(
 
         override fun getGradle(): GradleInternal {
             onIsolationViolation("gradle")
-            return super.getGradle()
+            // Wrap with isCrossProjectAccess = true so that the StartParameter wrapper kicks in
+            // when this project's script accesses `project(':other').gradle.startParameter`.
+            // For own-project access (i.e. `gradle` from the project's own script), DefaultProject.getGradle()
+            // uses gradleInstanceForProject(...) which defaults to isCrossProjectAccess = false.
+            return CrossProjectConfigurationReportingGradle(delegate.gradle, referrer, ipProblems, isCrossProjectAccess = true)
         }
 
         override fun identityPath(name: String): Path {

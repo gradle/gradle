@@ -18,13 +18,14 @@ package org.gradle.internal.cc.impl.isolated
 
 class IsolatedProjectsStartParameterAccessIntegrationTest extends AbstractIsolatedProjectsIntegrationTest {
 
-    def "reports a problem when build script mutates StartParameter via #invocation"() {
+    def "reports a problem when a build script mutates another project's StartParameter via #invocation"() {
+        createDirs("b")
         settingsFile """
-            rootProject.name = 'root'
+            include("b")
         """
         buildFile """
             import org.gradle.api.logging.LogLevel
-            $invocation
+            project(':b').gradle.startParameter.$invocation
         """
 
         when:
@@ -32,38 +33,41 @@ class IsolatedProjectsStartParameterAccessIntegrationTest extends AbstractIsolat
 
         then:
         fixture.assertStateStoredAndDiscarded {
-            projectsConfigured(":")
+            projectsConfigured(":", ":b")
+            // Cross-project access to `gradle` itself is reported, plus the StartParameter mutation.
+            problem("Build file 'build.gradle': line 3: Project ':' cannot access 'Project.gradle' functionality on another project ':b'")
             problem("Build file 'build.gradle': line 3: Project ':' cannot access 'StartParameter.$method' functionality")
         }
 
         where:
-        invocation                                                 | method
-        "gradle.startParameter.setMaxWorkerCount(2)"               | "setMaxWorkerCount"
-        "gradle.startParameter.setParallelProjectExecutionEnabled(true)" | "setParallelProjectExecutionEnabled"
-        "gradle.startParameter.setOffline(true)"                   | "setOffline"
-        "gradle.startParameter.setBuildCacheEnabled(true)"         | "setBuildCacheEnabled"
-        "gradle.startParameter.setDryRun(true)"                    | "setDryRun"
-        "gradle.startParameter.setRefreshDependencies(true)"       | "setRefreshDependencies"
-        "gradle.startParameter.setRerunTasks(true)"                | "setRerunTasks"
-        "gradle.startParameter.setContinueOnFailure(true)"         | "setContinueOnFailure"
-        "gradle.startParameter.setLogLevel(LogLevel.INFO)"         | "setLogLevel"
-        "gradle.startParameter.setTaskNames(['help'])"             | "setTaskNames"
-        "gradle.startParameter.setExcludedTaskNames(['x'])"        | "setExcludedTaskNames"
-        "gradle.startParameter.setProjectProperties([:])"          | "setProjectProperties"
-        "gradle.startParameter.setSystemPropertiesArgs([:])"       | "setSystemPropertiesArgs"
-        "gradle.startParameter.setInitScripts([])"                 | "setInitScripts"
-        "gradle.startParameter.addInitScript(file('init.gradle'))" | "addInitScript"
-        "gradle.startParameter.includeBuild(file('inc'))"          | "includeBuild"
-        "gradle.startParameter.setBuildProjectDependencies(false)" | "setBuildProjectDependencies"
-        "gradle.startParameter.setConfigureOnDemand(true)"         | "setConfigureOnDemand"
+        invocation                                       | method
+        "setMaxWorkerCount(2)"                           | "setMaxWorkerCount"
+        "setParallelProjectExecutionEnabled(true)"       | "setParallelProjectExecutionEnabled"
+        "setOffline(true)"                               | "setOffline"
+        "setBuildCacheEnabled(true)"                     | "setBuildCacheEnabled"
+        "setDryRun(true)"                                | "setDryRun"
+        "setRefreshDependencies(true)"                   | "setRefreshDependencies"
+        "setRerunTasks(true)"                            | "setRerunTasks"
+        "setContinueOnFailure(true)"                     | "setContinueOnFailure"
+        "setLogLevel(LogLevel.INFO)"                     | "setLogLevel"
+        "setTaskNames(['help'])"                         | "setTaskNames"
+        "setExcludedTaskNames(['x'])"                    | "setExcludedTaskNames"
+        "setProjectProperties([:])"                      | "setProjectProperties"
+        "setSystemPropertiesArgs([:])"                   | "setSystemPropertiesArgs"
+        "setInitScripts([])"                             | "setInitScripts"
+        "addInitScript(file('init.gradle'))"             | "addInitScript"
+        "includeBuild(file('inc'))"                      | "includeBuild"
+        "setBuildProjectDependencies(false)"             | "setBuildProjectDependencies"
+        "setConfigureOnDemand(true)"                     | "setConfigureOnDemand"
     }
 
-    def "returns immutable view from mutable-collection getter #invocation"() {
+    def "cross-project StartParameter mutable-collection getter returns an immutable view (#invocation)"() {
+        createDirs("b")
         settingsFile """
-            rootProject.name = 'root'
+            include("b")
         """
         buildFile """
-            $invocation
+            project(':b').gradle.startParameter.$invocation
         """
 
         when:
@@ -75,24 +79,24 @@ class IsolatedProjectsStartParameterAccessIntegrationTest extends AbstractIsolat
 
         where:
         invocation << [
-            "gradle.startParameter.projectProperties.put('foo', 'bar')",
-            "gradle.startParameter.systemPropertiesArgs.put('foo', 'bar')",
-            "gradle.startParameter.excludedTaskNames.add('foo')",
-            "gradle.startParameter.taskRequests.clear()",
-            "gradle.startParameter.lockedDependenciesToUpdate.add('foo')",
-            "gradle.startParameter.writeDependencyVerifications.add('sha256')",
+            "projectProperties.put('foo', 'bar')",
+            "systemPropertiesArgs.put('foo', 'bar')",
+            "excludedTaskNames.add('foo')",
+            "taskRequests.clear()",
+            "lockedDependenciesToUpdate.add('foo')",
+            "writeDependencyVerifications.add('sha256')",
         ]
     }
 
-    def "does not report a problem on read-only StartParameter access"() {
+    def "own-project StartParameter mutation is not reported"() {
         settingsFile """
             rootProject.name = 'root'
         """
         buildFile """
-            println gradle.startParameter.maxWorkerCount
-            println gradle.startParameter.offline
-            println gradle.startParameter.taskNames
-            println gradle.startParameter.projectProperties.keySet()
+            // Own-project access goes through DefaultProject.getGradle() which uses the
+            // non-cross-project wrapper, so the StartParameter wrapper is NOT engaged.
+            gradle.startParameter.setMaxWorkerCount(2)
+            gradle.startParameter.setOffline(true)
         """
 
         when:
@@ -101,6 +105,31 @@ class IsolatedProjectsStartParameterAccessIntegrationTest extends AbstractIsolat
         then:
         fixture.assertStateStored {
             projectsConfigured(":")
+        }
+    }
+
+    def "read-only cross-project StartParameter access still reports cross-project gradle access but not StartParameter access"() {
+        createDirs("b")
+        settingsFile """
+            include("b")
+        """
+        buildFile """
+            println project(':b').gradle.startParameter.maxWorkerCount
+            println project(':b').gradle.startParameter.taskNames
+            println project(':b').gradle.startParameter.projectProperties.keySet()
+        """
+
+        when:
+        isolatedProjectsFails "help"
+
+        then:
+        fixture.assertStateStoredAndDiscarded {
+            projectsConfigured(":", ":b")
+            // Each cross-project `project(':b').gradle` access is reported.
+            problem("Build file 'build.gradle': line 2: Project ':' cannot access 'Project.gradle' functionality on another project ':b'")
+            problem("Build file 'build.gradle': line 3: Project ':' cannot access 'Project.gradle' functionality on another project ':b'")
+            problem("Build file 'build.gradle': line 4: Project ':' cannot access 'Project.gradle' functionality on another project ':b'")
+            // No StartParameter.<method> problem is expected for the read-only accesses themselves.
         }
     }
 }
