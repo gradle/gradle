@@ -39,11 +39,185 @@ The previous step will help you identify potential problems by issuing deprecati
 [[changes_9.6.0]]
 == Upgrading from 9.5.0 and earlier
 
+[[v9_potential_breaking_changes_9_6]]
+=== Potential breaking changes
+
+[[agp_8x_incompatible]]
+==== Android Gradle Plugin 8.x is no longer compatible with Gradle 9.6
+
+Several internal classes used by Android Gradle Plugin (AGP) 8.x have been changed.
+Since AGP 8.x relied on these internal classes directly, it is no longer compatible with Gradle 9.6 and later.
+
+To resolve this, upgrade to AGP 9.x, which only uses the public Gradle API and fully supports Gradle 9.6.
+
+[[concurrency_primitives_prohibited_by_cc]]
+==== Concurrency primitives can no longer be serialized by the Configuration Cache
+
+Configuration Cache serialization now reports a clear problem when attempting to serialize most of Java's standard concurrency primitives.
+This includes classes and interfaces from the `java.util.concurrent` and `java.util.concurrent.locks` packages, such as `ReentrantLock`, `CountDownLatch`, and `SynchronousQueue`.
+Because the Configuration Cache enforces isolation between tasks, these primitives cannot be used correctly for cross-task synchronization.
+Allowing serialization would silently give each task its own independent instance (for example, its own lock), so cross-task coordination would never actually occur — that is the bug this error prevents.
+
+Previously, attempts to serialize these types could fail with exceptions such as `java.lang.reflect.InaccessibleObjectException`, without clearly indicating the underlying issue.
+If your build requires shared, synchronized state, use <<build_services.adoc#build_services, shared build services>>, which are explicitly designed for safe coordination between tasks.
+
+For a complete list of types that are incompatible with the Configuration Cache, see the <<configuration_cache_requirements.adoc#config_cache:requirements:disallowed_types, documentation>>.
+
+[[v9_upgrade_to_kotlin_2_3_21]]
+==== Upgrade to Kotlin 2.3.21
+
+The embedded Kotlin has been upgraded from 2.3.20 to link:https://github.com/JetBrains/kotlin/releases/tag/v2.3.21[Kotlin 2.3.21].
+
+[[v9_upgrade_to_pmd_7_24_0]]
+==== Upgrade to PMD 7.24.0
+
+The default version of PMD has been updated from 7.13.0 to link:https://github.com/pmd/pmd/releases/tag/pmd_releases%2F7.24.0[7.24.0].
+
+[[v9_upgrade_to_codenarc_3_7_0]]
+==== Upgrade to CodeNarc 3.7.0
+
+The default version of CodeNarc has been updated from 3.6.0 to link:https://github.com/CodeNarc/CodeNarc/blob/v3.7.0/CHANGELOG.md[3.7.0].
+
+[[v9_upgrade_to_ant_1_10_17]]
+==== Upgrade to Ant 1.10.17
+
+Ant has been updated to link:https://github.com/apache/ant/blob/rel/1.10.17/WHATSNEW[1.10.17].
+Since the previous version was 1.10.15, the link:https://github.com/apache/ant/blob/rel/1.10.16/WHATSNEW[1.10.16] changes are also included.
+
+[[v9_upgrade_to_groovy_4_0_32]]
+==== Upgrade to Groovy 4.0.32
+
+Groovy has been updated to link:https://groovy-lang.org/changelogs/changelog-4.0.32.html[4.0.32].
+Since the previous version was 4.0.29, the link:https://groovy-lang.org/changelogs/changelog-4.0.30.html[4.0.30] and link:https://groovy-lang.org/changelogs/changelog-4.0.31.html[4.0.31] changes are also included.
+
 [[v9_deprecations_9_6]]
 === Deprecations
 
+[[kotlin_dsl_delegated_properties]]
+==== Deprecation of Kotlin DSL delegated properties
+
+All Kotlin DSL property delegate extensions have been deprecated and will be removed in Gradle 10. This includes container delegates (`by registering`, `by creating`, `by existing`, `by getting`), property delegates (`by project`, `by settings`, `by extra`), and value delegates (`Property<T>` and `ConfigurableFileCollection` getValue/setValue operators).
+
+Use the explicit API instead.
+
+The container delegates (`registering`, `creating`, `existing`, `getting`) are defined on `NamedDomainObjectContainer` and `NamedDomainObjectCollection`. They apply to any container, not just `tasks` or `configurations`.
+
+The examples below use a generic `container` placeholder; replace it with `tasks`, `configurations`, `sourceSets`, or whichever container you use.
+
+**Container delegates:**
+
+[cols="1,1"]
+|===
+|Deprecated delegate |Replacement
+
+|`val x by container.registering`
+|`val x = container.register("x")`
+
+|`val x by container.registering { }`
+|`val x = container.register("x") { }`
+
+|`val x by container.registering(Type::class)`
+|`val x = container.register<Type>("x")`
+
+|`val x by container.registering(Type::class) { }`
+|`val x = container.register<Type>("x") { }`
+
+|`val x by container.creating`
+|`val x = container.create("x")`
+
+|`val x by container.creating { }`
+|`val x = container.create("x") { }`
+
+|`val x by container.creating(Type::class)`
+|`val x = container.create<Type>("x")`
+
+|`val x by container.creating(Type::class) { }`
+|`val x = container.create<Type>("x") { }`
+
+|`val x by container.existing`
+|`val x = container.named("x")`
+
+|`val x by container.existing { }`
+|`val x = container.named("x") { }`
+
+|`val x by container.existing(Type::class)`
+|`val x = container.named<Type>("x")`
+
+|`val x by container.existing(Type::class) { }`
+|`val x = container.named<Type>("x") { }`
+
+|`val x by container.getting`
+|`val x = container.getByName("x")`
+
+|`val x by container.getting { }`
+|`val x = container.getByName("x") { }`
+
+|`val x by container.getting(Type::class)`
+|`val x = container.getByName<Type>("x")`
+
+|`val x by container.getting(Type::class) { }`
+|`val x = container.getByName<Type>("x") { }`
+
+|`val x: Type by container` (lookup)
+|`val x = container.getByName("x")`
+
+|`val x: Type by provider` (`NamedDomainObjectProvider<T>` unwrap)
+|`val x = provider.get()`
+|===
+
+**Property, extra, and value delegates:**
+
+[cols="1,1"]
+|===
+|Deprecated delegate |Replacement
+
+|`val p: String by project`
+|`val p = project.property("p")`
+
+|`val p: String? by project`
+|`val p = project.findProperty("p")`
+
+|`val p: String by settings` (Gradle property)
+|`val p = providers.gradleProperty("p").get()`
+
+|`val p: String? by settings` (Gradle property, nullable)
+|`val p = providers.gradleProperty("p").orNull`
+
+|`val p: String by settings` (extra property)
+|`val p = extra["p"] as String`
+
+|`val p: String? by settings` (extra property, nullable)
+|`val p = extra["p"] as String?`
+
+|`val v by extra("value")` or `val v by extra { value }`
+|`extra.set("v", value)`
+
+|`val v: String by extra`
+|`val v = extra["v"] as String`
+
+|`val v: String? by extra`
+|`val v = extra["v"] as String?`
+
+|`val x: String by myProperty` (`Property<T>` read)
+|`val x = myProperty.get()`
+
+|`x = "new"` via `var x: String by myProperty` (`Property<T>` write)
+|`myProperty.set("new")`
+
+|`val files by myFileCollection` (`ConfigurableFileCollection` read)
+|`val files = myFileCollection.getFiles()`
+
+|`files = ...` via `var files by myFileCollection` (`ConfigurableFileCollection` write)
+|`myFileCollection.setFrom(...)`
+
+|`val ext: Type by extensions`
+|`val ext = extensions.getByType<Type>()`
+|===
+
+Delegated properties are being removed because they create silent correctness bugs (e.g. no-op delegates, wrong extra property scope), couple entity names to variable names, diverge between build scripts and class-based plugins, and duplicate functionality already provided by explicit APIs or other DSL sugar.
+
 [[deprecated_develocity_plugin_pre_4_0]]
-==== Develocity plugin versions before 4.0 are no longer supported in Gradle 10
+==== Deprecation of Develocity plugin versions before 4.0
 
 Gradle 10 requires Develocity plugin 4.0 or later.
 Earlier versions rely on Gradle's implicit parent-project property lookup, which will be removed in Gradle 10 and silently ignored if applied.
@@ -222,7 +396,7 @@ implementation.getDependencies().add(dependency);
 ----
 
 [[task_dependencies]]
-==== Accessing task dependency relationships from a task action
+==== Deprecation of accessing task dependency relationships from a task action
 
 Calling the following methods from a task action at execution time is now deprecated and will become an error in Gradle 10:
 
@@ -262,7 +436,7 @@ tasks.register("report") {
 Please refer to the <<configuration_cache_requirements.adoc#config_cache:requirements:use_project_during_execution, Configuration Cache documentation>> for alternatives that are compatible with the Configuration Cache.
 
 [[task_extensions]]
-==== Accessing extensions from a task action
+==== Deprecation of accessing extensions from a task action
 
 Calling link:{javadocPath}/org/gradle/api/Task.html#getExtensions--[`Task.getExtensions()`] from a task action at execution time is now deprecated and will become an error in Gradle 10.
 
@@ -295,7 +469,7 @@ tasks.register("greet") {
 Please refer to the <<configuration_cache_requirements.adoc#config_cache:requirements:use_project_during_execution, Configuration Cache documentation>> for alternatives that are compatible with the configuration cache.
 
 [[injected_service_types_at_execution]]
-==== Accessing injected `Project` or `Gradle` services from a task action
+==== Deprecation of accessing injected `Project` or `Gradle` services from a task action
 
 Reading an injected service of type link:{javadocPath}/org/gradle/api/Project.html[`Project`] or link:{javadocPath}/org/gradle/api/invocation/Gradle.html[`Gradle`] from a task action at execution time is now deprecated and will become an error in Gradle 10.
 
@@ -378,15 +552,15 @@ If you were using it to reach tasks across project boundaries, <<artifact_views.
 [[deprecate_problem_spec_severity]]
 ==== Deprecation of `ProblemSpec.severity()`
 
-Problem severity can no longer be set explicitly when creating a new instance.
-Instead, it is determined by the reporting method: `ProblemReporter.report()` produces warnings and `ProblemReporter.throwing()` produces errors.
-Calling `.severity()` on `ProblemSpec` is now a no-op and will be removed in Gradle 10.0.
+Setting problem severity explicitly when creating a new instance is now deprecated.
+Severity is instead determined by the reporting method: `ProblemReporter.report()` produces warnings and `ProblemReporter.throwing()` produces errors.
+Calling `.severity()` on `ProblemSpec` is now a no-op and will be removed in Gradle 10.
 
 [[task_in_task_dependency_closure]]
-==== Accessing Task in `dependsOn` Closure
+==== Deprecation of accessing `Task` in `dependsOn` closures
 
-Accessing a task provided to closures passed to the link:{javadocPath}/org/gradle/api/Task.html#dependsOn(java.lang.Object...)[`Task.dependsOn`] method has been deprecated.
-Starting in Gradle 10, Gradle will no longer provide the `Task` as an argument to closures passed to the `Task.dependsOn` method.
+Using the `Task` argument provided to closures passed to the link:{javadocPath}/org/gradle/api/Task.html#dependsOn(java.lang.Object...)[`Task.dependsOn`] method has been deprecated.
+Starting in Gradle 10, closures passed to `Task.dependsOn` will no longer receive a `Task` argument.
 
 The following code will not be permitted starting in Gradle 10:
 
@@ -420,7 +594,7 @@ tasks.register("okay") {
 [[deprecated_get_properties]]
 ==== Deprecation of `getProperties()`
 
-The following usages of `getProperties()` have been deprecated and will be removed in Gradle 10.0.0:
+The following usages of `getProperties()` have been deprecated and will be removed in Gradle 10:
 
 - link:{javadocPath}/org/gradle/api/Project.html#getProperties()[`Project.getProperties()`] — calling `getProperties()` or accessing the `properties` property on a `Project` instance.
 - Calling `getProperties()` (or accessing the `properties` property) on a build script, settings script, or init script. This is a separate API on the script base class, but has the same problems.
@@ -542,180 +716,6 @@ processResources {
 }
 ----
 |===
-
-[[changes_9.6.0]]
-== Upgrading from 9.5.0 and earlier
-
-=== Potential breaking changes
-
-==== Upgrade to Kotlin 2.3.21
-
-The embedded Kotlin has been upgraded from 2.3.20 to link:https://github.com/JetBrains/kotlin/releases/tag/v2.3.21[Kotlin 2.3.21].
-
-[[kotlin_dsl_delegated_properties]]
-==== Deprecation of Kotlin DSL delegated properties
-
-All Kotlin DSL property delegate extensions have been deprecated and will be removed in Gradle 10. This includes container delegates (`by registering`, `by creating`, `by existing`, `by getting`), property delegates (`by project`, `by settings`, `by extra`), and value delegates (`Property<T>` and `ConfigurableFileCollection` getValue/setValue operators).
-
-Use the explicit API instead.
-
-The container delegates (`registering`, `creating`, `existing`, `getting`) are defined on `NamedDomainObjectContainer` and `NamedDomainObjectCollection`. They apply to any container, not just `tasks` or `configurations`.
-
-The examples below use a generic `container` placeholder; replace it with `tasks`, `configurations`, `sourceSets`, or whichever container you use.
-
-**Container delegates:**
-
-[cols="1,1"]
-|===
-|Deprecated delegate |Replacement
-
-|`val x by container.registering`
-|`val x = container.register("x")`
-
-|`val x by container.registering { }`
-|`val x = container.register("x") { }`
-
-|`val x by container.registering(Type::class)`
-|`val x = container.register<Type>("x")`
-
-|`val x by container.registering(Type::class) { }`
-|`val x = container.register<Type>("x") { }`
-
-|`val x by container.creating`
-|`val x = container.create("x")`
-
-|`val x by container.creating { }`
-|`val x = container.create("x") { }`
-
-|`val x by container.creating(Type::class)`
-|`val x = container.create<Type>("x")`
-
-|`val x by container.creating(Type::class) { }`
-|`val x = container.create<Type>("x") { }`
-
-|`val x by container.existing`
-|`val x = container.named("x")`
-
-|`val x by container.existing { }`
-|`val x = container.named("x") { }`
-
-|`val x by container.existing(Type::class)`
-|`val x = container.named<Type>("x")`
-
-|`val x by container.existing(Type::class) { }`
-|`val x = container.named<Type>("x") { }`
-
-|`val x by container.getting`
-|`val x = container.getByName("x")`
-
-|`val x by container.getting { }`
-|`val x = container.getByName("x") { }`
-
-|`val x by container.getting(Type::class)`
-|`val x = container.getByName<Type>("x")`
-
-|`val x by container.getting(Type::class) { }`
-|`val x = container.getByName<Type>("x") { }`
-
-|`val x: Type by container` (lookup)
-|`val x = container.getByName("x")`
-
-|`val x: Type by provider` (`NamedDomainObjectProvider<T>` unwrap)
-|`val x = provider.get()`
-|===
-
-**Property, extra, and value delegates:**
-
-[cols="1,1"]
-|===
-|Deprecated delegate |Replacement
-
-|`val p: String by project`
-|`val p = project.property("p")`
-
-|`val p: String? by project`
-|`val p = project.findProperty("p")`
-
-|`val p: String by settings` (Gradle property)
-|`val p = providers.gradleProperty("p").get()`
-
-|`val p: String? by settings` (Gradle property, nullable)
-|`val p = providers.gradleProperty("p").orNull`
-
-|`val p: String by settings` (extra property)
-|`val p = extra["p"] as String`
-
-|`val p: String? by settings` (extra property, nullable)
-|`val p = extra["p"] as String?`
-
-|`val v by extra("value")` or `val v by extra { value }`
-|`extra.set("v", value)`
-
-|`val v: String by extra`
-|`val v = extra["v"] as String`
-
-|`val v: String? by extra`
-|`val v = extra["v"] as String?`
-
-|`val x: String by myProperty` (`Property<T>` read)
-|`val x = myProperty.get()`
-
-|`x = "new"` via `var x: String by myProperty` (`Property<T>` write)
-|`myProperty.set("new")`
-
-|`val files by myFileCollection` (`ConfigurableFileCollection` read)
-|`val files = myFileCollection.getFiles()`
-
-|`files = ...` via `var files by myFileCollection` (`ConfigurableFileCollection` write)
-|`myFileCollection.setFrom(...)`
-
-|`val ext: Type by extensions`
-|`val ext = extensions.getByType<Type>()`
-|===
-
-Delegated properties are being removed because they create silent correctness bugs (e.g. no-op delegates, wrong extra property scope), couple entity names to variable names, diverge between build scripts and class-based plugins, and duplicate functionality already provided by explicit APIs or other DSL sugar.
-
-[[agp_8x_incompatible]]
-==== Android Gradle Plugin 8.x is no longer compatible with Gradle 9.6
-
-Several internal classes used by Android Gradle Plugin (AGP) 8.x have been changed.
-Since AGP 8.x relied on these internal classes directly, it is no longer compatible with Gradle 9.6 and later.
-
-To resolve this, upgrade to AGP 9.x, which only uses the public Gradle API and fully supports Gradle 9.6.
-
-[[concurrency_primitives_prohibited_by_cc]]
-==== Concurrency primitives can no longer be serialized by the Configuration Cache
-
-Configuration Cache serialization now reports a clear problem when attempting to serialize most of Java's standard concurrency primitives.
-This includes classes and interfaces from the `java.util.concurrent` and `java.util.concurrent.locks` packages, such as `ReentrantLock`, `CountDownLatch`, and `SynchronousQueue`.
-Because the Configuration Cache enforces isolation between tasks, these primitives cannot be used correctly for cross-task synchronization.
-Allowing serialization would silently give each task its own independent instance (for example, its own lock), so cross-task coordination would never actually occur — that is the bug this error prevents.
-
-Previously, attempts to serialize these types could fail with exceptions such as `java.lang.reflect.InaccessibleObjectException`, without clearly indicating the underlying issue.
-If your build requires shared, synchronized state, use <<build_services.adoc#build_services, shared build services>>, which are explicitly designed for safe coordination between tasks.
-For a complete list of types that are incompatible with the Configuration Cache, see the <<configuration_cache_requirements.adoc#config_cache:requirements:disallowed_types, documentation>>.
-
-[[v9_upgrade_to_pmd_7_24_0]]
-==== Upgrade to PMD 7.24.0
-
-The default version of PMD has been updated from 7.13.0 to link:https://github.com/pmd/pmd/releases/tag/pmd_releases%2F7.24.0[7.24.0].
-
-[[v9_upgrade_to_codenarc_3_7_0]]
-==== Upgrade to CodeNarc 3.7.0
-
-The default version of CodeNarc has been updated from 3.6.0 to link:https://github.com/CodeNarc/CodeNarc/blob/v3.7.0/CHANGELOG.md[3.7.0].
-
-[[v9_upgrade_to_ant_1_10_17]]
-==== Upgrade to Ant 1.10.17
-
-Ant has been updated to link:https://github.com/apache/ant/blob/rel/1.10.17/WHATSNEW[1.10.17].
-Since the previous version was 1.10.15, the link:https://github.com/apache/ant/blob/rel/1.10.16/WHATSNEW[1.10.16] changes are also included.
-
-[[v9_upgrade_to_groovy_4_0_32]]
-==== Upgrade to Groovy 4.0.32
-
-Groovy has been updated to link:https://groovy-lang.org/changelogs/changelog-4.0.32.html[4.0.32].
-Since the previous version was 4.0.29, the link:https://groovy-lang.org/changelogs/changelog-4.0.30.html[4.0.30] and link:https://groovy-lang.org/changelogs/changelog-4.0.31.html[4.0.31] changes are also included.
 
 [[changes_9.5.0]]
 == Upgrading from 9.4.0 and earlier
