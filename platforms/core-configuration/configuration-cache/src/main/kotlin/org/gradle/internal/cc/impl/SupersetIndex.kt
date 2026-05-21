@@ -17,6 +17,9 @@
 package org.gradle.internal.cc.impl
 
 import org.gradle.api.logging.Logging
+import java.io.DataInput
+import java.io.DataOutput
+import java.io.File
 
 
 /**
@@ -58,7 +61,7 @@ object SupersetIndexLookup {
      *    annotation lookup only — no property getter is invoked, so the check is free of the
      *    per-task footprint walk that would re-invoke user `@OutputFile` / `@Nested` getters.
      */
-    data class IndexedVariant(
+    data class SupersetIndexEntry(
         val fullKey: String,
         val cliTokens: List<String>,
         val entryTaskIdentityPaths: List<String>,
@@ -88,34 +91,34 @@ object SupersetIndexLookup {
     )
 
     /**
-     * Picks the best variant for [requested], or null if no compatible variant exists.
-     * Matching operates on [IndexedVariant.cliTokens] — verbatim string comparison so
+     * Picks the best entry for [requested], or null if no compatible entry exists.
+     * Matching operates on [SupersetIndexEntry.cliTokens] — verbatim string comparison so
      * bare and absolute task names don't collide.
      *
      *  1. Exact match wins (always allowed, even when taskGraphAccessed or no 1:1 mapping):
      *     the deduplicated request equals the stored CLI list — same order included.
      *  2. Otherwise smallest strict superset where the deduplicated request appears as a
-     *     subsequence of the stored CLI list (relative order preserved). Variants are
+     *     subsequence of the stored CLI list (relative order preserved). Entries are
      *     excluded from this branch if `taskGraphAccessed` is true or
-     *     [IndexedVariant.hasOneToOneCliMapping] is false (multi-project bare-name entries
+     *     [SupersetIndexEntry.hasOneToOneCliMapping] is false (multi-project bare-name entries
      *     can't safely derive the dropped identity-path set from the stored mapping).
      *  3. Tie-break for smallest-superset is the caller's responsibility (LRU via
-     *     fileAccessTimeJournal); this function returns the first variant of the smallest size.
+     *     fileAccessTimeJournal); this function returns the first entry of the smallest size.
      */
-    fun selectBestMatch(variants: List<IndexedVariant>, requested: List<String>): IndexedVariant? {
+    fun selectBestMatch(entries: List<SupersetIndexEntry>, requested: List<String>): SupersetIndexEntry? {
         val requestedDistinct = requested.distinct()
 
         // Step 1: exact match — same CLI list (duplicates in the request are ignored).
-        variants.firstOrNull { it.cliTokens == requestedDistinct }
+        entries.firstOrNull { it.cliTokens == requestedDistinct }
             ?.let { return it }
 
         // Step 2: strict supersets — request appears as a subsequence of a strictly
-        // larger stored list. Flagged/non-1:1 variants are excluded.
-        val eligibleSupersets = variants.filter { v ->
-            !v.taskGraphAccessed &&
-                v.hasOneToOneCliMapping &&
-                v.cliTokens.size > requestedDistinct.size &&
-                isSubsequence(requestedDistinct, v.cliTokens)
+        // larger stored list. Flagged/non-1:1 entries are excluded.
+        val eligibleSupersets = entries.filter { e ->
+            !e.taskGraphAccessed &&
+                e.hasOneToOneCliMapping &&
+                e.cliTokens.size > requestedDistinct.size &&
+                isSubsequence(requestedDistinct, e.cliTokens)
         }
         if (eligibleSupersets.isEmpty()) return null
 
@@ -196,11 +199,11 @@ object SupersetIndexLookup {
 
 
 /**
- * Persistence for [SupersetIndexLookup.IndexedVariant] lists. Binary file format:
+ * Persistence for [SupersetIndexLookup.SupersetIndexEntry] lists. Binary file format:
  *   magic: 4 bytes ("CCSI" = Configuration Cache Superset Index)
  *   formatVersion: int
  *   count: int
- *   for each variant:
+ *   for each entry:
  *     fullKey: UTF
  *     cliTokens: int count + UTF entries
  *     entryTaskIdentityPaths: int count + UTF entries
@@ -214,9 +217,9 @@ object SupersetIndexLookup {
  * empty list rather than throwing — callers fall back to "no index, cold store".
  */
 internal
-class SupersetIndexFile(private val file: java.io.File) {
+class SupersetIndexFile(private val file: File) {
 
-    fun read(): List<SupersetIndexLookup.IndexedVariant> {
+    fun read(): List<SupersetIndexLookup.SupersetIndexEntry> {
         if (!file.isFile) return emptyList()
         try {
             java.io.DataInputStream(file.inputStream().buffered()).use { input ->
@@ -238,7 +241,7 @@ class SupersetIndexFile(private val file: java.io.File) {
                     val accessed = input.readBoolean()
                     val mustRunAfterEdges = readEdgeMap(input)
                     val sideEffecting = readStringList(input).toSet()
-                    SupersetIndexLookup.IndexedVariant(
+                    SupersetIndexLookup.SupersetIndexEntry(
                         fullKey, cliTokens, entryTaskIdentityPaths, accessed,
                         mustRunAfterEdges, sideEffecting
                     )
@@ -251,37 +254,37 @@ class SupersetIndexFile(private val file: java.io.File) {
         }
     }
 
-    fun write(variants: List<SupersetIndexLookup.IndexedVariant>) {
+    fun write(entries: List<SupersetIndexLookup.SupersetIndexEntry>) {
         file.parentFile?.let { java.nio.file.Files.createDirectories(it.toPath()) }
         java.io.DataOutputStream(file.outputStream().buffered()).use { out ->
             out.write(MAGIC)
             out.writeInt(FORMAT_VERSION)
-            out.writeInt(variants.size)
-            for (v in variants) {
-                out.writeUTF(v.fullKey)
-                writeStringList(out, v.cliTokens)
-                writeStringList(out, v.entryTaskIdentityPaths)
-                out.writeBoolean(v.taskGraphAccessed)
-                writeEdgeMap(out, v.mustRunAfterEdges)
-                writeStringList(out, v.sideEffectingTaskIdentityPaths.toList())
+            out.writeInt(entries.size)
+            for (e in entries) {
+                out.writeUTF(e.fullKey)
+                writeStringList(out, e.cliTokens)
+                writeStringList(out, e.entryTaskIdentityPaths)
+                out.writeBoolean(e.taskGraphAccessed)
+                writeEdgeMap(out, e.mustRunAfterEdges)
+                writeStringList(out, e.sideEffectingTaskIdentityPaths.toList())
             }
         }
     }
 
     private
-    fun readStringList(input: java.io.DataInput): List<String> {
+    fun readStringList(input: DataInput): List<String> {
         val n = input.readInt()
         return (0 until n).map { input.readUTF() }
     }
 
     private
-    fun writeStringList(out: java.io.DataOutput, list: List<String>) {
+    fun writeStringList(out: DataOutput, list: List<String>) {
         out.writeInt(list.size)
         list.forEach(out::writeUTF)
     }
 
     private
-    fun readEdgeMap(input: java.io.DataInput): Map<String, List<String>> {
+    fun readEdgeMap(input: DataInput): Map<String, List<String>> {
         val entryCount = input.readInt()
         return (0 until entryCount).associate {
             val source = input.readUTF()
@@ -292,7 +295,7 @@ class SupersetIndexFile(private val file: java.io.File) {
     }
 
     private
-    fun writeEdgeMap(out: java.io.DataOutput, map: Map<String, List<String>>) {
+    fun writeEdgeMap(out: DataOutput, map: Map<String, List<String>>) {
         out.writeInt(map.size)
         for ((source, targets) in map) {
             out.writeUTF(source)
@@ -303,13 +306,9 @@ class SupersetIndexFile(private val file: java.io.File) {
 
     companion object {
         private val logger = Logging.getLogger(SupersetIndexFile::class.java)
+        /** Arbitrary "Configuration Cache Superset Index" */
         private val MAGIC = byteArrayOf('C'.code.toByte(), 'C'.code.toByte(), 'S'.code.toByte(), 'I'.code.toByte())
-        // v1 = (fullKey, requestedTasks, taskGraphAccessed)
-        // v2 = v1 + mustRunAfterEdges
-        // v3 = v2 + dependencyEdges + outputPaths
-        // v4 = v3 with requestedTasks split into separate cliTokens and entryTaskIdentityPaths
-        // v5 = v4 with outputPaths replaced by sideEffectingTaskIdentityPaths (@Destroys-property gate)
-        // v6 = v5 with dependencyEdges removed (never consulted by any safety gate)
+        /** Incremented when the format changes. */
         private const val FORMAT_VERSION = 6
     }
 }

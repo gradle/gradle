@@ -16,7 +16,7 @@
 
 package org.gradle.internal.cc.impl
 
-import org.gradle.internal.cc.impl.SupersetIndexLookup.IndexedVariant
+import org.gradle.internal.cc.impl.SupersetIndexLookup.SupersetIndexEntry
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
@@ -38,36 +38,36 @@ class SupersetIndexTest {
         cliTokens: List<String>,
         entryTaskIdentityPaths: List<String> = cliTokens,
         taskGraphAccessed: Boolean = false
-    ) = IndexedVariant(fullKey, cliTokens, entryTaskIdentityPaths, taskGraphAccessed)
+    ) = SupersetIndexEntry(fullKey, cliTokens, entryTaskIdentityPaths, taskGraphAccessed)
 
     @Test
     fun `exact match preferred over strict superset`() {
-        val variants = listOf(
+        val entries = listOf(
             v("v1", listOf("a")),
             v("v2", listOf("a", "b", "c"))
         )
-        val chosen = SupersetIndexLookup.selectBestMatch(variants, requested = listOf("a"))
+        val chosen = SupersetIndexLookup.selectBestMatch(entries, requested = listOf("a"))
         assertEquals("v1", chosen?.fullKey)
     }
 
     @Test
     fun `smallest superset wins when no exact match`() {
-        val variants = listOf(
+        val entries = listOf(
             v("big", listOf("a", "b", "c", "d")),
             v("small", listOf("a", "b"))
         )
-        val chosen = SupersetIndexLookup.selectBestMatch(variants, requested = listOf("a"))
+        val chosen = SupersetIndexLookup.selectBestMatch(entries, requested = listOf("a"))
         assertEquals("small", chosen?.fullKey)
     }
 
     @Test
-    fun `non-superset variants are ignored`() {
-        val variants = listOf(v("v1", listOf("x", "y")))
-        assertNull(SupersetIndexLookup.selectBestMatch(variants, requested = listOf("a")))
+    fun `non-superset entries are ignored`() {
+        val entries = listOf(v("v1", listOf("x", "y")))
+        assertNull(SupersetIndexLookup.selectBestMatch(entries, requested = listOf("a")))
     }
 
     @Test
-    fun `flagged variant is exact-match only`() {
+    fun `flagged entry is exact-match only`() {
         val flagged = v("flagged", listOf("a", "b", "c"), taskGraphAccessed = true)
         // Superset request: flagged should be excluded.
         assertNull(SupersetIndexLookup.selectBestMatch(listOf(flagged), requested = listOf("a")))
@@ -83,17 +83,17 @@ class SupersetIndexTest {
         // lookup never picks the absolute-`:d` entry, and vice versa.
         val bareStored = v("bare", listOf("d"))
         val absoluteStored = v("absolute", listOf(":d"))
-        val variants = listOf(bareStored, absoluteStored)
-        assertEquals("bare", SupersetIndexLookup.selectBestMatch(variants, listOf("d"))?.fullKey)
-        assertEquals("absolute", SupersetIndexLookup.selectBestMatch(variants, listOf(":d"))?.fullKey)
+        val entries = listOf(bareStored, absoluteStored)
+        assertEquals("bare", SupersetIndexLookup.selectBestMatch(entries, listOf("d"))?.fullKey)
+        assertEquals("absolute", SupersetIndexLookup.selectBestMatch(entries, listOf(":d"))?.fullKey)
     }
 
     @Test
-    fun `non-one-to-one variant is exact-match only`() {
+    fun `non-one-to-one entry is exact-match only`() {
         // Multi-project bare name: one CLI token resolved to two identity paths.
         // Subset matches would have an ambiguous CLI→identity mapping, so the
         // matcher must restrict this entry to exact matches.
-        val multiProject = IndexedVariant(
+        val multiProject = SupersetIndexEntry(
             fullKey = "mp",
             cliTokens = listOf("d"),
             entryTaskIdentityPaths = listOf(":d", ":sub:d")
@@ -102,7 +102,7 @@ class SupersetIndexTest {
         assertEquals("mp", SupersetIndexLookup.selectBestMatch(listOf(multiProject), listOf("d"))?.fullKey)
         // A request that would normally subset-match (only one token of a multi-token entry)
         // — here we flip the setup so the multi-project entry hosts the request as a subset.
-        val biggerMultiProject = IndexedVariant(
+        val biggerMultiProject = SupersetIndexEntry(
             fullKey = "mp2",
             cliTokens = listOf("d", "e"),
             entryTaskIdentityPaths = listOf(":d", ":sub:d", ":e")
@@ -113,9 +113,9 @@ class SupersetIndexTest {
 
     @Test
     fun `duplicates in request are ignored when matching as subsequence`() {
-        val variants = listOf(v("v1", listOf("c", "a", "b")))
+        val entries = listOf(v("v1", listOf("c", "a", "b")))
         // [a, a, b] dedupes to [a, b], which is a subsequence of [c, a, b].
-        val chosen = SupersetIndexLookup.selectBestMatch(variants, requested = listOf("a", "a", "b"))
+        val chosen = SupersetIndexLookup.selectBestMatch(entries, requested = listOf("a", "a", "b"))
         assertEquals("v1", chosen?.fullKey)
     }
 
@@ -123,19 +123,19 @@ class SupersetIndexTest {
     fun `reversed same-set request does not match stored entry`() {
         // [a, b] stored. Request [b, a] is the same set but the request is not a
         // subsequence of the stored list, so no compatible entry.
-        val variants = listOf(v("v1", listOf("a", "b")))
-        assertNull(SupersetIndexLookup.selectBestMatch(variants, requested = listOf("b", "a")))
+        val entries = listOf(v("v1", listOf("a", "b")))
+        assertNull(SupersetIndexLookup.selectBestMatch(entries, requested = listOf("b", "a")))
     }
 
     @Test
     fun `subset must appear as subsequence of stored entry`() {
-        val variants = listOf(v("v1", listOf("a", "b", "c")))
-        assertEquals("v1", SupersetIndexLookup.selectBestMatch(variants, requested = listOf("a", "c"))?.fullKey)
-        assertNull(SupersetIndexLookup.selectBestMatch(variants, requested = listOf("c", "a")))
+        val entries = listOf(v("v1", listOf("a", "b", "c")))
+        assertEquals("v1", SupersetIndexLookup.selectBestMatch(entries, requested = listOf("a", "c"))?.fullKey)
+        assertNull(SupersetIndexLookup.selectBestMatch(entries, requested = listOf("c", "a")))
     }
 
     @Test
-    fun `empty variant list returns null`() {
+    fun `empty entry list returns null`() {
         assertNull(SupersetIndexLookup.selectBestMatch(emptyList(), requested = listOf("a")))
     }
 
@@ -249,11 +249,11 @@ class SupersetIndexTest {
     }
 
     @Test
-    fun `round trip preserves all IndexedVariant fields`() {
+    fun `round trip preserves all SupersetIndexEntry fields`() {
         val tmp = java.io.File.createTempFile("supersetIndex", ".bin").also { it.deleteOnExit() }
         val file = SupersetIndexFile(tmp)
-        val variants = listOf(
-            IndexedVariant(
+        val entries = listOf(
+            SupersetIndexEntry(
                 fullKey = "k1",
                 cliTokens = listOf("a", "b"),
                 entryTaskIdentityPaths = listOf(":a", ":b"),
@@ -261,23 +261,23 @@ class SupersetIndexTest {
                 sideEffectingTaskIdentityPaths = setOf(":a")
             ),
             // Multi-project bare name: 1 token → 2 identity paths.
-            IndexedVariant(
+            SupersetIndexEntry(
                 fullKey = "k2",
                 cliTokens = listOf("d"),
                 entryTaskIdentityPaths = listOf(":d", ":sub:d"),
                 taskGraphAccessed = true
             )
         )
-        file.write(variants)
-        assertEquals(variants, file.read())
+        file.write(entries)
+        assertEquals(entries, file.read())
     }
 
     @Test
-    fun `empty variant list round-trips`() {
+    fun `empty entry list round-trips`() {
         val tmp = java.io.File.createTempFile("supersetIndex", ".bin").also { it.deleteOnExit() }
         val file = SupersetIndexFile(tmp)
         file.write(emptyList())
-        assertEquals(emptyList<IndexedVariant>(), file.read())
+        assertEquals(emptyList<SupersetIndexEntry>(), file.read())
     }
 
     @Test
@@ -285,17 +285,17 @@ class SupersetIndexTest {
         // Two strict-superset candidates of equal size. `selectBestMatch` uses `minByOrNull`,
         // which returns the first element of equal minima — pinning that behavior so callers
         // (e.g. LRU eviction) can rely on the ordering.
-        val variants = listOf(
+        val entries = listOf(
             v("first",  listOf("a", "b")),
             v("second", listOf("a", "c"))
         )
-        val chosen = SupersetIndexLookup.selectBestMatch(variants, requested = listOf("a"))
+        val chosen = SupersetIndexLookup.selectBestMatch(entries, requested = listOf("a"))
         assertEquals("first", chosen?.fullKey)
     }
 
     @Test
     fun `selectBestMatch with one flagged and one clean superset picks the clean one`() {
-        // Flagged variant is exact-match-only; clean variant is eligible for supersets.
+        // Flagged entry is exact-match-only; clean entry is eligible for supersets.
         // Even though flagged is smaller, it must be excluded from the strict-superset branch.
         val flagged = v("flagged", listOf("a", "b"),    taskGraphAccessed = true)
         val clean   = v("clean",   listOf("a", "b", "c"))
@@ -311,11 +311,11 @@ class SupersetIndexTest {
         // short-circuit before reaching here, since project-defaults invocations resolve
         // to unknown tasks at lookup time. If the guard ever moves or breaks, this test
         // demonstrates the unsafe behavior the function would otherwise enable.
-        val variants = listOf(
+        val entries = listOf(
             v("big",   listOf("a", "b", "c")),
             v("small", listOf("a", "b"))
         )
-        val chosen = SupersetIndexLookup.selectBestMatch(variants, requested = emptyList())
+        val chosen = SupersetIndexLookup.selectBestMatch(entries, requested = emptyList())
         assertEquals("small", chosen?.fullKey)
     }
 
@@ -325,7 +325,7 @@ class SupersetIndexTest {
             it.delete()
             it.deleteOnExit()
         }
-        assertEquals(emptyList<IndexedVariant>(), SupersetIndexFile(tmp).read())
+        assertEquals(emptyList<SupersetIndexEntry>(), SupersetIndexFile(tmp).read())
     }
 
     @Test
@@ -333,16 +333,16 @@ class SupersetIndexTest {
         val tmp = java.io.File.createTempFile("supersetIndex", ".bin").also { it.deleteOnExit() }
         // Write 4 zero bytes — won't match magic header.
         tmp.writeBytes(byteArrayOf(0x00, 0x00, 0x00, 0x00))
-        assertEquals(emptyList<IndexedVariant>(), SupersetIndexFile(tmp).read())
+        assertEquals(emptyList<SupersetIndexEntry>(), SupersetIndexFile(tmp).read())
     }
 
     @Test
     fun `truncated file mid-record reads as empty list rather than throwing`() {
         // Simulates a JVM crash mid-write: well-formed header (magic + version + count)
-        // claims one variant, but the body bytes are cut off. Reading should fall back
+        // claims one entry, but the body bytes are cut off. Reading should fall back
         // to empty, not throw — same recovery posture as `missing file reads as empty list`.
         val tmp = java.io.File.createTempFile("supersetIndex", ".bin").also { it.deleteOnExit() }
-        val good = listOf(IndexedVariant(
+        val good = listOf(SupersetIndexEntry(
             fullKey = "k",
             cliTokens = listOf(":a", ":b"),
             entryTaskIdentityPaths = listOf(":a", ":b")
@@ -352,6 +352,6 @@ class SupersetIndexTest {
         // the last `sideEffectingTaskIdentityPaths` size int or its trailing entries).
         val full = tmp.readBytes()
         tmp.writeBytes(full.copyOf(full.size - 4))
-        assertEquals(emptyList<IndexedVariant>(), SupersetIndexFile(tmp).read())
+        assertEquals(emptyList<SupersetIndexEntry>(), SupersetIndexFile(tmp).read())
     }
 }

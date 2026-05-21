@@ -34,7 +34,7 @@ import org.gradle.cache.scopes.BuildTreeScopedCacheBuilderFactory
 import org.gradle.internal.cc.impl.ConfigurationCacheRepository.ReadableConfigurationCacheStateFile
 import org.gradle.internal.cc.impl.ConfigurationCacheStateStore.StateFile
 import org.gradle.internal.cc.impl.SupersetIndexLookup.CompatibleEntry
-import org.gradle.internal.cc.impl.SupersetIndexLookup.IndexedVariant
+import org.gradle.internal.cc.impl.SupersetIndexLookup.SupersetIndexEntry
 import org.gradle.internal.concurrent.Stoppable
 import org.gradle.internal.extensions.stdlib.toDefaultLowerCase
 import org.gradle.internal.extensions.stdlib.unsafeLazy
@@ -73,7 +73,7 @@ class ConfigurationCacheRepository(
      * <p>
      * Selection is delegated to [SupersetIndexLookup.selectBestMatch]: exact match on the
      * deduplicated requested-task list wins; otherwise the smallest strict-superset
-     * variant whose stored task list contains the request as a subsequence
+     * entry whose stored task list contains the request as a subsequence
      * (relative order preserved) and whose `taskGraphAccessed` flag is `false`.
      * Among ties of the smallest size, the most recently accessed entry directory
      * wins (LRU via `fileAccessTimeJournal`).
@@ -106,22 +106,22 @@ class ConfigurationCacheRepository(
 
         return withFileLockNullable {
             val indexFile = SupersetIndexFile(indexFileFor(environmentKey))
-            val onDiskVariants = indexFile.read().toMutableList()
-            if (onDiskVariants.isEmpty()) return@withFileLockNullable null
+            val onDiskEntries = indexFile.read().toMutableList()
+            if (onDiskEntries.isEmpty()) return@withFileLockNullable null
 
             // The loop's working list shrinks as candidates are rejected (gate failures
             // or stale dir), so each iteration picks the next-best. Only stale-dir
-            // removals propagate back to the on-disk file — gate-rejected variants stay
+            // removals propagate back to the on-disk file — gate-rejected entries stay
             // in the index because they're still valid for exact-match reuse by future
             // requests with a different task list.
-            val loopVariants = onDiskVariants.toMutableList()
-            val staleDirsEvicted = mutableListOf<IndexedVariant>()
-            val chosen = pickUsableVariant(loopVariants, requestedCliTokens) { staleVariant ->
-                staleDirsEvicted.add(staleVariant)
+            val loopEntries = onDiskEntries.toMutableList()
+            val staleDirsEvicted = mutableListOf<SupersetIndexEntry>()
+            val chosen = pickUsableEntry(loopEntries, requestedCliTokens) { staleEntry ->
+                staleDirsEvicted.add(staleEntry)
             }
             if (staleDirsEvicted.isNotEmpty()) {
-                onDiskVariants.removeAll(staleDirsEvicted)
-                indexFile.write(onDiskVariants)
+                onDiskEntries.removeAll(staleDirsEvicted)
+                indexFile.write(onDiskEntries)
             }
             chosen?.let {
                 CompatibleEntry(it.fullKey, it.cliTokens, it.entryTaskIdentityPaths)
@@ -151,7 +151,7 @@ class ConfigurationCacheRepository(
      * the request map to the identity paths to drop. Subset matches selected by
      * [SupersetIndexLookup.selectBestMatch] are guaranteed to have a 1:1 mapping.
      * <p>
-     * Mutation of [variants] is per-iteration loop bookkeeping only — gate-rejected
+     * Mutation of [entries] is per-iteration loop bookkeeping only — gate-rejected
      * candidates are removed from the working list so the next-best can be picked
      * but are NOT evicted from the persisted index. They remain valid for exact-match
      * reuse by a future request. Only `staleDir` rejections feed into
@@ -159,14 +159,14 @@ class ConfigurationCacheRepository(
      * Returns `null` when [pickWithTieBreak] yields no further candidate.
      */
     private
-    fun pickUsableVariant(
-        variants: MutableList<IndexedVariant>,
+    fun pickUsableEntry(
+        entries: MutableList<SupersetIndexEntry>,
         requestedCliTokens: List<String>,
-        onStaleDirRemoved: (IndexedVariant) -> Unit
-    ): IndexedVariant? {
+        onStaleDirRemoved: (SupersetIndexEntry) -> Unit
+    ): SupersetIndexEntry? {
         val requestedDistinct = requestedCliTokens.distinct()
         while (true) {
-            val chosen = pickWithTieBreak(variants, requestedCliTokens) ?: return null
+            val chosen = pickWithTieBreak(entries, requestedCliTokens) ?: return null
             val staleDir = !dirForEntry(chosen.fullKey).exists()
             val isExactMatch = !staleDir && chosen.cliTokens == requestedDistinct
             val dropped: Set<String> = when {
@@ -193,23 +193,23 @@ class ConfigurationCacheRepository(
                     }
                 )
             }
-            variants.remove(chosen)
+            entries.remove(chosen)
             if (staleDir) onStaleDirRemoved(chosen)
         }
     }
 
     /**
      * Maps the candidate's CLI tokens that aren't in [requestedCli] to their paired
-     * identity paths. Relies on [IndexedVariant.hasOneToOneCliMapping] being true —
+     * identity paths. Relies on [SupersetIndexEntry.hasOneToOneCliMapping] being true —
      * enforced by [SupersetIndexLookup.selectBestMatch] for non-exact selections.
      */
     private
-    fun droppedIdentityPaths(variant: IndexedVariant, requestedCli: Set<String>): Set<String> =
-        variant.cliTokens
+    fun droppedIdentityPaths(entry: SupersetIndexEntry, requestedCli: Set<String>): Set<String> =
+        entry.cliTokens
             .asSequence()
             .withIndex()
             .filter { (_, token) -> token !in requestedCli }
-            .map { (i, _) -> variant.entryTaskIdentityPaths[i] }
+            .map { (i, _) -> entry.entryTaskIdentityPaths[i] }
             .toSet()
 
     /**
@@ -270,13 +270,13 @@ class ConfigurationCacheRepository(
         }
         cache.withFileLock(Supplier {
             val indexFile = SupersetIndexFile(indexFileFor(environmentKey))
-            val variants = indexFile.read().toMutableList()
-            variants.removeIf { it.fullKey == fullKey }
-            variants.add(IndexedVariant(
+            val entries = indexFile.read().toMutableList()
+            entries.removeIf { it.fullKey == fullKey }
+            entries.add(SupersetIndexEntry(
                 fullKey, cliTokens, entryTaskIdentityPaths, taskGraphAccessed,
                 mustRunAfterEdges, sideEffectingTaskIdentityPaths
             ))
-            indexFile.write(variants)
+            indexFile.write(entries)
         })
     }
 
@@ -288,7 +288,7 @@ class ConfigurationCacheRepository(
      * `selectBestMatch` is a pure selection rule and intentionally doesn't know about
      * the cache directory or the `FileAccessTimeJournal` — among equal-sized supersets
      * it returns the first encountered, which is deterministic but not load-aware.
-     * That's where this function steps in: if the chosen variant has same-size peers
+     * That's where this function steps in: if the chosen entry has same-size peers
      * that also host the request as a subsequence (and pass the `taskGraphAccessed` /
      * `hasOneToOneCliMapping` eligibility filters), prefer whichever of them was
      * accessed most recently. Without this, repeated subset requests can pin an old
@@ -298,25 +298,25 @@ class ConfigurationCacheRepository(
      * Exact matches bypass the tie-break path entirely — no pruning happens, and the
      * candidate selected by `selectBestMatch` is the only valid choice. The
      * eligibility re-filter on ties matches `selectBestMatch`'s strict-superset
-     * filters, so the LRU pick can't drift to a flagged or non-1:1 variant that
+     * filters, so the LRU pick can't drift to a flagged or non-1:1 entry that
      * would be unsafe to prune.
      */
     private
     fun pickWithTieBreak(
-        variants: List<IndexedVariant>,
+        entries: List<SupersetIndexEntry>,
         requested: List<String>
-    ): IndexedVariant? {
-        val chosen = SupersetIndexLookup.selectBestMatch(variants, requested) ?: return null
+    ): SupersetIndexEntry? {
+        val chosen = SupersetIndexLookup.selectBestMatch(entries, requested) ?: return null
         val requestedDistinct = requested.distinct()
         val isExact = chosen.cliTokens == requestedDistinct
         if (isExact) return chosen
         val tieSize = chosen.cliTokens.size
-        return variants
-            .filter { v ->
-                !v.taskGraphAccessed &&
-                    v.hasOneToOneCliMapping &&
-                    v.cliTokens.size == tieSize &&
-                    SupersetIndexLookup.isSubsequence(requestedDistinct, v.cliTokens)
+        return entries
+            .filter { e ->
+                !e.taskGraphAccessed &&
+                    e.hasOneToOneCliMapping &&
+                    e.cliTokens.size == tieSize &&
+                    SupersetIndexLookup.isSubsequence(requestedDistinct, e.cliTokens)
             }
             .maxByOrNull { fileAccessTimeJournal.getLastAccessTime(dirForEntry(it.fullKey)) }
             ?: chosen
