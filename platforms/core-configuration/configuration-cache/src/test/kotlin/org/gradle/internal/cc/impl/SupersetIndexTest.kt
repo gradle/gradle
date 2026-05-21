@@ -173,6 +173,45 @@ class SupersetIndexTest {
     }
 
     @Test
+    fun `hasDanglingMustRunAfter detects a dropped target among multiple targets for one source`() {
+        // `:c mustRunAfter [:a, :b]`. `:a` retained, `:b` dropped, `:c` retained — `:c`
+        // points at a dropped task through one of its two edges. Must dangle.
+        val edges = mapOf(":c" to listOf(":a", ":b"))
+        assert(SupersetIndexLookup.hasDanglingMustRunAfter(edges, droppedIdentityPaths = setOf(":b")))
+    }
+
+    @Test
+    fun `hasDanglingMustRunAfter returns true when any one of multiple edges dangles`() {
+        // Map has two clean edges and one dangling edge. The function must short-circuit
+        // to true on the first dangle (any source pointing at a dropped target).
+        val edges = mapOf(
+            ":x" to listOf(":y"),          // both retained — clean
+            ":p" to listOf(":q"),          // both retained — clean
+            ":retained" to listOf(":gone") // dangles
+        )
+        assert(SupersetIndexLookup.hasDanglingMustRunAfter(edges, droppedIdentityPaths = setOf(":gone")))
+    }
+
+    @Test
+    fun `hasSideEffectingDroppedTask returns true when at least one recorded task overlaps the dropped set`() {
+        // Multiple side-effecting tasks recorded; only `:cleanSecond` falls in the dropped set.
+        // The gate fires on the first overlap.
+        assert(SupersetIndexLookup.hasSideEffectingDroppedTask(
+            sideEffectingTaskIdentityPaths = setOf(":cleanFirst", ":cleanSecond", ":cleanThird"),
+            droppedIdentityPaths = setOf(":cleanSecond", ":otherDropped")
+        ))
+    }
+
+    @Test
+    fun `hasSideEffectingDroppedTask returns false when recorded and dropped sets are disjoint`() {
+        // No overlap between recorded side-effecting tasks and the dropped set.
+        assert(!SupersetIndexLookup.hasSideEffectingDroppedTask(
+            sideEffectingTaskIdentityPaths = setOf(":cleanA", ":cleanB"),
+            droppedIdentityPaths = setOf(":nonCleanTaskX", ":nonCleanTaskY")
+        ))
+    }
+
+    @Test
     fun `hasSideEffectingDroppedTask returns false when no side-effecting tasks recorded`() {
         assert(!SupersetIndexLookup.hasSideEffectingDroppedTask(
             sideEffectingTaskIdentityPaths = emptySet(),
@@ -210,7 +249,7 @@ class SupersetIndexTest {
     }
 
     @Test
-    fun `round trip preserves variants including v5 fields`() {
+    fun `round trip preserves all IndexedVariant fields`() {
         val tmp = java.io.File.createTempFile("supersetIndex", ".bin").also { it.deleteOnExit() }
         val file = SupersetIndexFile(tmp)
         val variants = listOf(
@@ -232,6 +271,53 @@ class SupersetIndexTest {
         )
         file.write(variants)
         assertEquals(variants, file.read())
+    }
+
+    @Test
+    fun `empty variant list round-trips`() {
+        val tmp = java.io.File.createTempFile("supersetIndex", ".bin").also { it.deleteOnExit() }
+        val file = SupersetIndexFile(tmp)
+        file.write(emptyList())
+        assertEquals(emptyList<IndexedVariant>(), file.read())
+    }
+
+    @Test
+    fun `ties among same-sized supersets are resolved deterministically by first-encountered`() {
+        // Two strict-superset candidates of equal size. `selectBestMatch` uses `minByOrNull`,
+        // which returns the first element of equal minima — pinning that behavior so callers
+        // (e.g. LRU eviction) can rely on the ordering.
+        val variants = listOf(
+            v("first",  listOf("a", "b")),
+            v("second", listOf("a", "c"))
+        )
+        val chosen = SupersetIndexLookup.selectBestMatch(variants, requested = listOf("a"))
+        assertEquals("first", chosen?.fullKey)
+    }
+
+    @Test
+    fun `selectBestMatch with one flagged and one clean superset picks the clean one`() {
+        // Flagged variant is exact-match-only; clean variant is eligible for supersets.
+        // Even though flagged is smaller, it must be excluded from the strict-superset branch.
+        val flagged = v("flagged", listOf("a", "b"),    taskGraphAccessed = true)
+        val clean   = v("clean",   listOf("a", "b", "c"))
+        val chosen = SupersetIndexLookup.selectBestMatch(listOf(flagged, clean), requested = listOf("a"))
+        assertEquals("clean", chosen?.fullKey)
+    }
+
+    @Test
+    fun `empty requested-task list matches every strict superset (caller-side guard required)`() {
+        // Documents the API precondition: `selectBestMatch` treats an empty request as a
+        // subsequence of EVERY non-empty stored entry (isSubsequence([], _) == true and
+        // _.size > 0 trivially). Callers (DefaultConfigurationCache.compatibleEntry) MUST
+        // short-circuit before reaching here, since project-defaults invocations resolve
+        // to unknown tasks at lookup time. If the guard ever moves or breaks, this test
+        // demonstrates the unsafe behavior the function would otherwise enable.
+        val variants = listOf(
+            v("big",   listOf("a", "b", "c")),
+            v("small", listOf("a", "b"))
+        )
+        val chosen = SupersetIndexLookup.selectBestMatch(variants, requested = emptyList())
+        assertEquals("small", chosen?.fullKey)
     }
 
     @Test
