@@ -15,13 +15,26 @@ We are excited to announce Gradle @version@ (released [@releaseDate@](https://gr
 This release features [1](), [2](), ... [n](), and more.
 
 We would like to thank the following community members for their contributions to this release of Gradle:
-
-<!-- 
-Include only their name, impactful features should be called out separately below.
- [Some person](https://github.com/some-person)
-
-THIS LIST SHOULD BE ALPHABETIZED BY [PERSON NAME] - the docs:updateContributorsInReleaseNotes task will enforce this ordering, which is case-insensitive.
--->
+[Aharnish Solanki](https://github.com/Ahar28),
+[Benedikt Johannes](https://github.com/benediktjohannes),
+[Devendra Reddy Pennabadi](https://github.com/devareddy05),
+[Dmytro Rodionov](https://github.com/smplio),
+[Dreeam](https://github.com/Dreeam-qwq),
+[Elías Hernández Rodríguez](https://github.com/EliasHdzR),
+[Eng Zer Jun](https://github.com/Juneezee),
+[FinlayRJW](https://github.com/FinlayRJW),
+[Kamal Kansal](https://github.com/kamalkansal27),
+[Marcono1234](https://github.com/Marcono1234),
+[Nelson Osacky](https://github.com/runningcode),
+[Philip Wedemann](https://github.com/hfhbd),
+[Ravi](https://github.com/rkdfx),
+[Roberto Perez Alcolea](https://github.com/rpalcolea),
+[Ryan Schmitt](https://github.com/rschmitt),
+[Sebastian Schuberth](https://github.com/sschuberth),
+[seunghun.ham](https://github.com/seung-hun-h),
+[sk-reddy17](https://github.com/sk-reddy17),
+[Suvrat Acharya](https://github.com/Suvrat1629),
+[Vedant Madane](https://github.com/VedantMadane).
 
 Be sure to check out the [public roadmap](https://roadmap.gradle.org) for insight into what's planned for future releases.
 
@@ -38,34 +51,6 @@ See the [Gradle 9.x upgrade guide](userguide/upgrading_version_9.html#changes_@b
 For Java, Groovy, Kotlin, and Android compatibility, see the [full compatibility notes](userguide/compatibility.html).   
 
 ## New features and usability improvements
-
-<!-- ================== TEMPLATE =============================
-
-Do not add breaking changes or deprecations here! Add them to the upgrade guide instead.
-
-Find the best fitting section for your feature below, then, fill it in.
-
-### SECTION TITLE
-
-#### FILL-IN-FEATURE
-> HIGHLIGHT the use case or existing problem the feature solves.
-> EXPLAIN how the new release addresses that problem or use case.
-> PROVIDE a screenshot or snippet illustrating the new feature, if applicable.
-> LINK to the full documentation for more details.
-
-To embed images, add the image to the `release-notes-assets` folder, then add the line below.
-![image.png](release-notes-assets/image.png)
-
-To embed videos, use the macros below. 
-You can extract the URL from YouTube by clicking the "Share" button.
-@youtube(Summary,6aRM8lAYyUA?si=qeXDSX8_8hpVmH01)@
-
-================== END TEMPLATE ========================== -->
-
-
-<!-- =========================================================
-ADD RELEASE FEATURES BELOW
-vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 
 ### Configuration Cache improvements
 Gradle provides a [Configuration Cache](userguide/configuration_cache.html) that improves build time by caching the result of the configuration phase and reusing it for subsequent builds.
@@ -110,10 +95,6 @@ Gradle provides [Tooling APIs](userguide/third_party_integration.html) that faci
 ### General improvements
 Gradle provides various incremental updates and performance optimizations to ensure the continued reliability of the build ecosystem.
 
-<!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-ADD RELEASE FEATURES ABOVE
-========================================================== -->
-
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backward compatibility.
@@ -123,29 +104,13 @@ The following are the features that have been promoted in this Gradle release.
 
 * [`getNetworkTimeout()`](javadoc/org/gradle/api/tasks/wrapper/Wrapper.html#getNetworkTimeout()) in `Wrapper`
 
-<!--
-### Example promoted
--->
-
 ## Documentation and training
 
-<!--
-Add new docs, training, and best practices here
--->
-
 ## Fixed issues
-
-<!--
-This section will be populated automatically
--->
 
 ## Known issues
 
 Known issues are problems that were discovered post-release that are directly related to changes made in this release.
-
-<!--
-This section will be populated automatically
--->
 
 ## External contributions
 
