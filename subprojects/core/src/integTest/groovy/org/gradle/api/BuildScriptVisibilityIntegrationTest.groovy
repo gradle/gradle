@@ -155,7 +155,6 @@ println "child: " + doSomething(11)
         }
     }
 
-    @ToBeFixedForIsolatedProjects(because = "project cannot dynamically look up a method in the parent project")
     def "properties defined in project build script are not visible to descendant projects"() {
         createDirs("child1")
         settingsFile << "include 'child1'"
@@ -221,7 +220,6 @@ println "child1 ok"
         }
     }
 
-    @ToBeFixedForIsolatedProjects(because = "project cannot dynamically look up a method in the parent project")
     def "properties defined in project build script are not visible to script plugins"() {
         createDirs("child1")
         settingsFile << "include 'child1'"
