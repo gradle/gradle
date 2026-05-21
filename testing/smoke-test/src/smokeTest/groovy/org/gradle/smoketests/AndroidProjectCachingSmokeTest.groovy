@@ -75,6 +75,10 @@ class AndroidProjectCachingSmokeTest extends AbstractAndroidProjectSmokeTest {
         def expectedResults = agpVersion.startsWith("9.0")
             ? AndroidPluginExpectations90.EXPECTED_RESULTS_9_0
             : AndroidPluginExpectations91.EXPECTED_RESULTS_9_1
+        // workaround for com.google.android.gms.oss-licenses-plugin not being compatible with configuration cache
+        if (GradleContextualExecuter.isConfigCache()) {
+            expectedResults.entrySet().removeIf { it.key.contains("Oss") }
+        }
 
         def flakyTaskOutcomes = [
             ':core:datastore-proto:syncDemoDebugLibJars': SUCCESS,
