@@ -281,7 +281,7 @@ class CrossProjectConfigurationReportingGradle(
         delegate.gradleHomeDir
 
     override fun getStartParameter(): StartParameterInternal =
-        delegate.startParameter
+        CrossProjectConfigurationReportingStartParameter(delegate.startParameter, referrerProject, ipProblems)
 
     override fun beforeSettings(closure: Closure<*>) =
         delegate.beforeSettings(closure)
