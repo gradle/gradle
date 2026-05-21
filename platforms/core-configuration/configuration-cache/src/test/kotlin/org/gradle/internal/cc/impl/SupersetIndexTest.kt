@@ -258,7 +258,6 @@ class SupersetIndexTest {
                 cliTokens = listOf("a", "b"),
                 entryTaskIdentityPaths = listOf(":a", ":b"),
                 mustRunAfterEdges = mapOf(":b" to listOf(":a")),
-                dependencyEdges = mapOf(":b" to listOf(":a")),
                 sideEffectingTaskIdentityPaths = setOf(":a")
             ),
             // Multi-project bare name: 1 token → 2 identity paths.

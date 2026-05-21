@@ -154,14 +154,6 @@ class DefaultConfigurationCache internal constructor(
     var mustRunAfterEdges: Map<String, List<String>> = emptyMap()
 
     /**
-     * `dependencySuccessors` edges between scheduled tasks (source identity path →
-     * identity paths the source depends on). Recorded into the superset index for
-     * diagnostics and forward-compat — current safety gates don't consult them.
-     */
-    private
-    var dependencyEdges: Map<String, List<String>> = emptyMap()
-
-    /**
      * The scheduled `LocalTaskNode`s captured at finalization time. Held so
      * [collectSideEffectingTaskIdentityPaths] can re-scan them at
      * [commitCacheEntry] time (the execution plan is reset to `EMPTY` after task
@@ -499,7 +491,6 @@ class DefaultConfigurationCache internal constructor(
             entryTaskIdentityPaths,
             cacheFingerprintController.wasTaskGraphAccessed,
             mustRunAfterEdges,
-            dependencyEdges,
             collectSideEffectingTaskIdentityPaths()
         )
     }
@@ -507,10 +498,10 @@ class DefaultConfigurationCache internal constructor(
     /**
      * Snapshots structural inputs to the superset index from the finalized task
      * graph before task execution begins (the execution plan is cleared on
-     * completion). Captures four things: entry-task identity paths, the list of
+     * completion). Captures three things: entry-task identity paths, the list of
      * scheduled `LocalTaskNode`s (held so [collectSideEffectingTaskIdentityPaths]
-     * can re-scan at commit time), mustRunAfter/finalizer edges (for the dangle
-     * check), and dependencySuccessors edges (for diagnostics).
+     * can re-scan at commit time), and mustRunAfter/finalizer edges (for the
+     * dangle check).
      */
     private
     fun captureSupersetIndexInputs() {
@@ -521,14 +512,11 @@ class DefaultConfigurationCache internal constructor(
         scheduledLocalTaskNodes = scheduled.scheduledNodes
             .filterIsInstance<org.gradle.execution.plan.LocalTaskNode>()
         val mraEdges = mutableMapOf<String, List<String>>()
-        val depEdges = mutableMapOf<String, List<String>>()
         for (node in scheduledLocalTaskNodes) {
             val id = node.task.identityPath.toString()
             collectOrderingTargets(node).takeIf { it.isNotEmpty() }?.let { mraEdges[id] = it }
-            collectDependencyTargets(node).takeIf { it.isNotEmpty() }?.let { depEdges[id] = it }
         }
         mustRunAfterEdges = mraEdges
-        dependencyEdges = depEdges
     }
 
     /**
@@ -575,15 +563,6 @@ class DefaultConfigurationCache internal constructor(
             .map { it.task.identityPath.asString() }
             .toList()
     }
-
-    private
-    fun collectDependencyTargets(node: org.gradle.execution.plan.TaskNode): List<String> =
-        node.dependencySuccessors
-            .asSequence()
-            .filterIsInstance<org.gradle.execution.plan.LocalTaskNode>()
-            .map { it.task.identityPath.asString() }
-            .toList()
-
 
     private
     fun determineCacheAction(): DescribedAction {

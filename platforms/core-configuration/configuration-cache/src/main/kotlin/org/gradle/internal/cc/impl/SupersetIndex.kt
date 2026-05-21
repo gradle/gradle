@@ -46,10 +46,6 @@ object SupersetIndexLookup {
      *    pruning would leave a retained task referencing a dropped task through a non-dependency
      *    hard-ordering edge — the loaded plan would either deadlock or silently execute a
      *    non-requested task. See [hasDanglingMustRunAfter].
-     *  - [dependencyEdges]: `dependencySuccessors` edges between scheduled tasks (source identity
-     *    path → identity paths the source depends on). Recorded for diagnostics and
-     *    forward-compat — current safety gates don't consult them, but the data is cheap to
-     *    capture alongside the other edge maps and useful when investigating prune decisions.
      *  - [sideEffectingTaskIdentityPaths]: identity paths of scheduled tasks whose execution
      *    has filesystem side effects beyond the snapshotted-output set — specifically, tasks
      *    declaring a property annotated `@org.gradle.api.tasks.Destroys`. `Delete` is caught
@@ -68,7 +64,6 @@ object SupersetIndexLookup {
         val entryTaskIdentityPaths: List<String>,
         val taskGraphAccessed: Boolean = false,
         val mustRunAfterEdges: Map<String, List<String>> = emptyMap(),
-        val dependencyEdges: Map<String, List<String>> = emptyMap(),
         val sideEffectingTaskIdentityPaths: Set<String> = emptySet()
     ) {
         /**
@@ -124,6 +119,7 @@ object SupersetIndexLookup {
         }
         if (eligibleSupersets.isEmpty()) return null
 
+        // Step 3: select the smallest strict superset
         return eligibleSupersets.minByOrNull { it.cliTokens.size }
     }
 
@@ -210,7 +206,6 @@ object SupersetIndexLookup {
  *     entryTaskIdentityPaths: int count + UTF entries
  *     taskGraphAccessed: boolean
  *     mustRunAfterEdges: edge-map (see writeEdgeMap)
- *     dependencyEdges: edge-map
  *     sideEffectingTaskIdentityPaths: int count + UTF entries
  *
  * An edge-map is encoded as: int entry-count, each entry = UTF source + int target-count + UTF targets.
@@ -242,11 +237,10 @@ class SupersetIndexFile(private val file: java.io.File) {
                     val entryTaskIdentityPaths = readStringList(input)
                     val accessed = input.readBoolean()
                     val mustRunAfterEdges = readEdgeMap(input)
-                    val dependencyEdges = readEdgeMap(input)
                     val sideEffecting = readStringList(input).toSet()
                     SupersetIndexLookup.IndexedVariant(
                         fullKey, cliTokens, entryTaskIdentityPaths, accessed,
-                        mustRunAfterEdges, dependencyEdges, sideEffecting
+                        mustRunAfterEdges, sideEffecting
                     )
                 }
             }
@@ -269,7 +263,6 @@ class SupersetIndexFile(private val file: java.io.File) {
                 writeStringList(out, v.entryTaskIdentityPaths)
                 out.writeBoolean(v.taskGraphAccessed)
                 writeEdgeMap(out, v.mustRunAfterEdges)
-                writeEdgeMap(out, v.dependencyEdges)
                 writeStringList(out, v.sideEffectingTaskIdentityPaths.toList())
             }
         }
@@ -316,6 +309,7 @@ class SupersetIndexFile(private val file: java.io.File) {
         // v3 = v2 + dependencyEdges + outputPaths
         // v4 = v3 with requestedTasks split into separate cliTokens and entryTaskIdentityPaths
         // v5 = v4 with outputPaths replaced by sideEffectingTaskIdentityPaths (@Destroys-property gate)
-        private const val FORMAT_VERSION = 5
+        // v6 = v5 with dependencyEdges removed (never consulted by any safety gate)
+        private const val FORMAT_VERSION = 6
     }
 }

@@ -247,9 +247,6 @@ class ConfigurationCacheRepository(
      *     tasks (source identity-path → list of target identity-paths). Used by
      *     [findCacheEntry] to reject this entry from strict-superset matches
      *     whose pruning would dangle one of these edges
-     * @param dependencyEdges `dependencySuccessors` edges between scheduled tasks
-     *     (source identity-path → list of identity-paths the source depends on).
-     *     Retained for diagnostics and forward-compat
      * @param sideEffectingTaskIdentityPaths identity paths of scheduled tasks whose
      *     execution has filesystem side effects beyond their snapshotted outputs —
      *     tasks declaring a `@Destroys`-annotated property, detected via
@@ -265,7 +262,6 @@ class ConfigurationCacheRepository(
         entryTaskIdentityPaths: List<String>,
         taskGraphAccessed: Boolean,
         mustRunAfterEdges: Map<String, List<String>> = emptyMap(),
-        dependencyEdges: Map<String, List<String>> = emptyMap(),
         sideEffectingTaskIdentityPaths: Set<String> = emptySet()
     ) {
         if (cliTokens.any { it.startsWith("-") }) {
@@ -278,7 +274,7 @@ class ConfigurationCacheRepository(
             variants.removeIf { it.fullKey == fullKey }
             variants.add(IndexedVariant(
                 fullKey, cliTokens, entryTaskIdentityPaths, taskGraphAccessed,
-                mustRunAfterEdges, dependencyEdges, sideEffectingTaskIdentityPaths
+                mustRunAfterEdges, sideEffectingTaskIdentityPaths
             ))
             indexFile.write(variants)
         })
