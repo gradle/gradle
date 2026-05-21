@@ -827,6 +827,9 @@ Refresh the public keys used for dependency verification.
 `--export-keys`::
 Exports the public keys used for dependency verification.
 
+`--prune-keys`::
+Prunes the dependency verification keyring files so they only contain keys referenced by the verification metadata file.
+
 [[sec:environment_options]]
 == Environment options
 
