@@ -7,6 +7,7 @@ import gradlebuild.integrationtests.configureTestSourceSetInIde
 import gradlebuild.integrationtests.model.GradleDistribution
 import java.io.FileFilter
 import org.asciidoctor.gradle.jvm.AsciidoctorTask
+import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter
 import org.gradle.docs.internal.tasks.CheckLinks
 import org.gradle.docs.samples.internal.tasks.InstallSample
 import org.gradle.internal.os.OperatingSystem
@@ -262,6 +263,24 @@ tasks.named<Test>("docsTest") {
     if (project.configurationCacheEnabledForDocsTests) {
         systemProperty("org.gradle.integtest.samples.cleanConfigurationCacheOutput", "true")
         systemProperty("org.gradle.integtest.executer", "configCache")
+
+        // Pre-flight: if every --tests pattern targets a configuration-cache snippet sample, those samples
+        // are excluded below and Gradle's default "No tests found" message hides the real cause. Replace it
+        // with a message that names the property the user must clear. Keep the prefix in sync with the
+        // excludeTestsMatching pattern further down.
+        val testTask = this
+        doFirst {
+            val excludedPrefix = "snippet-optimizing-builds-configuration-cache-"
+            val cliPatterns = (testTask.filter as DefaultTestFilter).commandLineIncludePatterns
+            if (cliPatterns.isNotEmpty() && cliPatterns.all { it.contains(excludedPrefix) }) {
+                throw GradleException(
+                    "All --tests filters target configuration-cache snippet samples, which are excluded " +
+                        "from docsTest when enableConfigurationCacheForDocsTests=true.\n" +
+                        "  Filters: ${cliPatterns.joinToString(", ") { "'$it'" }}\n" +
+                        "  Set enableConfigurationCacheForDocsTests=false (or remove it from gradle.properties) to run these samples."
+                )
+            }
+        }
 
         filter {
             // Configuration cache samples enable configuration cache explicitly. We're not going to run them with the configuration cache executer.
