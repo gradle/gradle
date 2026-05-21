@@ -98,6 +98,42 @@ include::sample[dir="snippets/codeQuality/codeQuality/groovy",files="build.gradl
 ====
 
 
+[[sec:codenarc_reports]]
+== Reports
+
+The CodeNarc plugin generates results in several formats.
+
+The following report types are available on every CodeNarc task via the link:{groovyDslPath}/org.gradle.api.plugins.quality.CodeNarc.html#org.gradle.api.plugins.quality.CodeNarc:reports[`reports`] container:
+
+`xml`:: Standard CodeNarc XML report.
+`html`:: Standard CodeNarc HTML report. Enabled by default.
+`text`:: Plain text report.
+`console`:: Writes violations directly to the console.
+`baseline`:: _(Incubating)_ Generates a https://codenarc.org/codenarc-baseline-xml-report-writer.html[baseline XML report] that can be used to suppress existing violations.
+`sortable`:: _(Incubating)_ Generates a https://codenarc.org/codenarc-sortable-html-report-writer.html[sortable HTML report] with sortable columns.
+`json`:: _(Incubating)_ Generates a https://codenarc.org/codenarc-json-report-writer.html[JSON report] with structured violation data.
+`gitlab`:: _(Incubating)_ Generates a https://codenarc.org/codenarc-gitlab-report-writer.html[GitLab Code Quality JSON report] suitable for GitLab CI/CD.
+
+By default, only the `html` report is enabled.
+You can change the default report format for all tasks via the extension:
+
+[source,groovy]
+----
+codenarc {
+    reportFormat = "json"
+}
+----
+
+Or enable multiple reports on individual tasks:
+
+[source,groovy]
+----
+codenarcMain.reports {
+    json.required = true
+    gitlab.required = true
+}
+----
+
 [[sec:codenarc_configuration]]
 == Configuration
 

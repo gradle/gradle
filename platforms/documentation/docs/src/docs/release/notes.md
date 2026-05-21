@@ -91,15 +91,11 @@ plugins {
 }
 ```
 
-## Tooling integration improvements
+### Core plugin and plugin authoring enhancements
 
-Tooling API clients can now directly access Gradle help and version information the same way as the Gradle CLI.
-This allows IDEs and other tools to provide a more consistent user experience when interacting with Gradle.
-For example, In IntelliJ IDEA users will be able to run `--help` and `--version` via the `Execute Gradle task` toolbar action.
+Gradle provides a comprehensive plugin system, including built-in [Core Plugins](userguide/plugin_reference.html) for standard tasks and powerful APIs for creating custom plugins.
 
-### CodeNarc plugin improvements
-
-#### Additional report formats
+#### Additional report formats for the CodeNarc plugin
 
 The [CodeNarc plugin](userguide/codenarc_plugin.html) now supports `baseline`, `sortable`, `json`, and `gitlab` report formats, in addition to the existing `xml`, `html`, `text`, and `console` formats.
 
@@ -126,6 +122,8 @@ codenarcMain.reports {
     gitlab.required = true
 }
 ```
+
+See the [CodeNarc plugin report](userguide/codenarc_plugin.html#sec:codenarc_reports) section in the Gradle User Manual for more information.
 
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
