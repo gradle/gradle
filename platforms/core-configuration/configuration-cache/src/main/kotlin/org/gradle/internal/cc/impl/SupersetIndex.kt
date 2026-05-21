@@ -16,6 +16,8 @@
 
 package org.gradle.internal.cc.impl
 
+import org.gradle.api.logging.Logging
+
 
 /**
  * Pure selection logic for the superset index. No I/O — see [SupersetIndexFile] for persistence.
@@ -217,9 +219,15 @@ class SupersetIndexFile(private val file: java.io.File) {
         try {
             java.io.DataInputStream(file.inputStream().buffered()).use { input ->
                 val magic = ByteArray(MAGIC.size).also { input.readFully(it) }
-                if (!magic.contentEquals(MAGIC)) return emptyList()
+                if (!magic.contentEquals(MAGIC)) {
+                    logger.debug("Discarding superset index at {} — magic header mismatch (file written by an incompatible Gradle build or non-index data).", file)
+                    return emptyList()
+                }
                 val version = input.readInt()
-                if (version != FORMAT_VERSION) return emptyList()
+                if (version != FORMAT_VERSION) {
+                    logger.debug("Discarding superset index at {} — format version {} does not match expected {}; falling back to cold-store.", file, version, FORMAT_VERSION)
+                    return emptyList()
+                }
                 val count = input.readInt()
                 return (0 until count).map {
                     val fullKey = input.readUTF()
@@ -235,8 +243,9 @@ class SupersetIndexFile(private val file: java.io.File) {
                     )
                 }
             }
-        } catch (_: java.io.IOException) {
+        } catch (e: java.io.IOException) {
             // Covers EOFException (subclass) too — partial/corrupt files fall back to empty.
+            logger.debug("Discarding superset index at {} — IO error while reading ({}); falling back to cold-store.", file, e.toString())
             return emptyList()
         }
     }
@@ -293,6 +302,7 @@ class SupersetIndexFile(private val file: java.io.File) {
     }
 
     companion object {
+        private val logger = Logging.getLogger(SupersetIndexFile::class.java)
         private val MAGIC = byteArrayOf('C'.code.toByte(), 'C'.code.toByte(), 'S'.code.toByte(), 'I'.code.toByte())
         // v1 = (fullKey, requestedTasks, taskGraphAccessed)
         // v2 = v1 + mustRunAfterEdges

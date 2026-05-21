@@ -19,6 +19,7 @@ package org.gradle.internal.cc.impl
 import com.google.common.annotations.VisibleForTesting
 import org.gradle.api.internal.BuildDefinition
 import org.gradle.api.internal.cache.CacheConfigurationsInternal
+import org.gradle.api.logging.Logging
 import org.gradle.cache.CacheBuilder
 import org.gradle.cache.CacheCleanupStrategyFactory
 import org.gradle.cache.CleanupAction
@@ -98,7 +99,10 @@ class ConfigurationCacheRepository(
         requestedCliTokens: List<String>
     ): CompatibleEntry? {
         // Args/exclusion guard: any token starting with '-' falls back to exact-match path.
-        if (requestedCliTokens.any { it.startsWith("-") }) return null
+        if (requestedCliTokens.any { it.startsWith("-") }) {
+            logger.debug("Superset index lookup skipped: request {} contains a '-'-prefixed token (task argument / exclusion).", requestedCliTokens)
+            return null
+        }
 
         return withFileLockNullable {
             val indexFile = SupersetIndexFile(indexFileFor(environmentKey))
@@ -174,6 +178,19 @@ class ConfigurationCacheRepository(
                 chosen.sideEffectingTaskIdentityPaths, dropped
             )
             if (!staleDir && !dangles && !sideEffects) return chosen
+            if (logger.isDebugEnabled) {
+                logger.debug(
+                    "Superset candidate {} rejected for request {}: {}.",
+                    chosen.fullKey,
+                    requestedCliTokens,
+                    when {
+                        staleDir -> "entry directory missing on disk"
+                        dangles -> "pruning would dangle a mustRunAfter/finalizer edge"
+                        sideEffects -> "pruning would drop a side-effecting (Delete) task: ${chosen.sideEffectingTaskIdentityPaths.intersect(dropped)}"
+                        else -> "unexpected"
+                    }
+                )
+            }
             variants.remove(chosen)
             if (staleDir) onStaleDirRemoved(chosen)
         }
@@ -244,7 +261,10 @@ class ConfigurationCacheRepository(
         dependencyEdges: Map<String, List<String>> = emptyMap(),
         sideEffectingTaskIdentityPaths: Set<String> = emptySet()
     ) {
-        if (cliTokens.any { it.startsWith("-") }) return
+        if (cliTokens.any { it.startsWith("-") }) {
+            logger.debug("Superset index recording skipped for {}: cliTokens {} contain a '-'-prefixed token; entry will not be findable as a superset.", fullKey, cliTokens)
+            return
+        }
         cache.withFileLock(Supplier {
             val indexFile = SupersetIndexFile(indexFileFor(environmentKey))
             val variants = indexFile.read().toMutableList()
@@ -562,6 +582,7 @@ class ConfigurationCacheRepository(
         cache.baseDir.resolve(cacheKey)
 
     private companion object {
+        private val logger = Logging.getLogger(ConfigurationCacheRepository::class.java)
         private const val INDEX_DIR_NAME = "index"
     }
 }
