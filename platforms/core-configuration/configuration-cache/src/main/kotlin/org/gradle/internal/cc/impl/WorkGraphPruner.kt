@@ -26,15 +26,22 @@ import org.gradle.execution.plan.ScheduledWork
  * transitive dependencies, when a stored configuration cache entry is reused for
  * a subset of its original requested-task list.
  *
- * Pure: no I/O, no service dependencies. Used by `ConfigurationCacheState` at the
- * deserialization boundary so the loader sees the pruned plan via
- * `setScheduledWork`.
+ * No I/O and no service dependencies, but **not pure**: [pruneAndRewireInPlace]
+ * mutates the retained `Node`s' `dependencyPredecessors` sets in the input
+ * [ScheduledWork] to drop references to non-retained nodes. The mutation is
+ * essential — without it, `DefaultFinalizedExecutionPlan.maybeWaitingForNewNode`
+ * sees stale predecessor backrefs and refuses to schedule the retained entries.
+ * The method name carries that side effect; callers should treat the input
+ * `ScheduledWork` as consumed.
  *
- * Names in [prune]'s `tasksToDrop` are compared against `task.identityPath`
- * (canonical absolute path like `":foo:bar"`). Callers are responsible for
- * passing canonical paths — see `DefaultConfigurationCache.commitCacheEntry`
- * (where stored identity paths originate) and the lookup side which
- * canonicalizes CLI input.
+ * Used by `ConfigurationCacheState` at the deserialization boundary so the
+ * loader sees the pruned plan via `setScheduledWork`.
+ *
+ * Names in [pruneAndRewireInPlace]'s `tasksToDrop` are compared against
+ * `task.identityPath` (canonical absolute path like `":foo:bar"`). Callers are
+ * responsible for passing canonical paths — see
+ * `DefaultConfigurationCache.commitCacheEntry` (where stored identity paths
+ * originate) and the lookup side which canonicalizes CLI input.
  */
 internal
 object WorkGraphPruner {
@@ -42,13 +49,14 @@ object WorkGraphPruner {
     /**
      * Returns [initiallyScheduled] with entry nodes whose canonical identity path
      * is in [tasksToDrop] removed, plus any nodes that are no longer reachable
-     * from the remaining entry nodes through `dependencySuccessors`.
+     * from the remaining entry nodes through `dependencySuccessors`. Mutates
+     * retained nodes' `dependencyPredecessors` to drop dropped-node backrefs.
      *
      * Returns the input unchanged when:
      *  - [tasksToDrop] is empty (exact-match reuse — no pruning needed), or
      *  - none of the entry nodes' tasks match [tasksToDrop] (no-op for this build).
      */
-    fun prune(initiallyScheduled: ScheduledWork, tasksToDrop: Set<String>): ScheduledWork {
+    fun pruneAndRewireInPlace(initiallyScheduled: ScheduledWork, tasksToDrop: Set<String>): ScheduledWork {
         if (tasksToDrop.isEmpty()) return initiallyScheduled
         val requestedEntries = initiallyScheduled.entryNodes.filter { node ->
             val task = (node as? LocalTaskNode)?.task

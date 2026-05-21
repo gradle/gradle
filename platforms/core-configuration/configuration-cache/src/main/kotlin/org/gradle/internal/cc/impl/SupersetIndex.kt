@@ -45,8 +45,9 @@ object SupersetIndexLookup {
      *    hard-ordering edge — the loaded plan would either deadlock or silently execute a
      *    non-requested task. See [hasDanglingMustRunAfter].
      *  - [dependencyEdges]: `dependencySuccessors` edges between scheduled tasks (source identity
-     *    path → identity paths the source depends on). Retained for forward-compat / diagnostics
-     *    and used by the retained-closure BFS in [hasDanglingMustRunAfter] when needed.
+     *    path → identity paths the source depends on). Recorded for diagnostics and
+     *    forward-compat — current safety gates don't consult them, but the data is cheap to
+     *    capture alongside the other edge maps and useful when investigating prune decisions.
      *  - [sideEffectingTaskIdentityPaths]: identity paths of scheduled tasks whose execution
      *    has filesystem side effects beyond the snapshotted-output set — specifically, instances
      *    of `org.gradle.api.tasks.Delete` (auto-registered `clean*` tasks, user-defined deletes,

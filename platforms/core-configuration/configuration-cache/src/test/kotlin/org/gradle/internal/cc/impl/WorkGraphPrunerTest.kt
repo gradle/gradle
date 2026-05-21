@@ -41,7 +41,7 @@ class WorkGraphPrunerTest {
         val second = taskNode(":second")
         val input = ScheduledWork(listOf(first, second), setOf(first, second))
 
-        val result = WorkGraphPruner.prune(input, emptySet())
+        val result = WorkGraphPruner.pruneAndRewireInPlace(input, emptySet())
 
         // Identity equality — no defensive copy, no reconstruction, exact instance.
         assertSame(input, result)
@@ -57,7 +57,7 @@ class WorkGraphPrunerTest {
         val input = ScheduledWork(listOf(first, second), setOf(first, second))
 
         // Request was just :second; :first is in tasksToDrop.
-        val result = WorkGraphPruner.prune(input, setOf(":first"))
+        val result = WorkGraphPruner.pruneAndRewireInPlace(input, setOf(":first"))
 
         assertEquals(setOf<Node>(second), result.entryNodes)
         assertEquals(listOf<Node>(second), result.scheduledNodes)
@@ -80,7 +80,7 @@ class WorkGraphPrunerTest {
             setOf(originalInputs, incrementalReverse)
         )
 
-        val result = WorkGraphPruner.prune(input, setOf(":originalInputs"))
+        val result = WorkGraphPruner.pruneAndRewireInPlace(input, setOf(":originalInputs"))
 
         assertEquals(setOf<Node>(originalInputs, incrementalReverse), result.entryNodes)
         assertEquals(listOf<Node>(originalInputs, incrementalReverse), result.scheduledNodes)
@@ -93,7 +93,7 @@ class WorkGraphPrunerTest {
         val input = ScheduledWork(listOf(fooBar, fooBaz), setOf(fooBar, fooBaz))
 
         // Stored had :foo:bar + :foo:baz; current request is just :foo:bar.
-        val result = WorkGraphPruner.prune(input, setOf(":foo:baz"))
+        val result = WorkGraphPruner.pruneAndRewireInPlace(input, setOf(":foo:baz"))
 
         assertEquals(setOf<Node>(fooBar), result.entryNodes)
         assertEquals(listOf<Node>(fooBar), result.scheduledNodes)

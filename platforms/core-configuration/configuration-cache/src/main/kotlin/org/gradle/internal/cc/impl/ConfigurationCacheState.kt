@@ -268,7 +268,7 @@ class ConfigurationCacheState(
             for (build in builds) {
                 if (build is BuildWithWork) {
                     builder.withWorkGraph(build.build.state) {
-                        val filtered = WorkGraphPruner.prune(build.workGraph, tasksToDrop)
+                        val filtered = WorkGraphPruner.pruneAndRewireInPlace(build.workGraph, tasksToDrop)
                         it.setScheduledWork(filtered)
                     }
                 }

@@ -45,8 +45,10 @@ import java.io.File
  * delta: a `-x` difference forces exact-match scope, so the index never has
  * to reason about exclusions.
  * <p>
- * Hash inputs are intentionally duplicated with [ConfigurationCacheKey] for v1.
- * Any new factor added to [ConfigurationCacheKey] must also be added here.
+ * `ConfigurationCacheKey` composes this type (HAS-A) and calls
+ * [appendComponents] when assembling the full hash, so there is no duplication
+ * between the two: any new env-level factor goes here; only requested-task
+ * factors belong in `ConfigurationCacheKey` itself.
  */
 @ServiceScope(Scope.BuildTree::class)
 internal

@@ -613,6 +613,171 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
         result.assertTasksNotScheduled(":d")
     }
 
+    def "reordered subset is a miss not a hit"() {
+        given:
+        def configurationCache = newConfigurationCacheFixture()
+        buildFile << """
+            ['a', 'b', 'c'].each { name ->
+                tasks.register(name) {
+                    doLast { println name }
+                }
+            }
+        """
+
+        when:
+        configurationCacheRun "a", "b", "c"
+
+        then:
+        configurationCache.assertStateStored()
+
+        when: 'requesting the same set in a different order'
+        configurationCacheRun "b", "a"
+
+        then: 'subsequence semantics: [b, a] is not a subsequence of [a, b, c] — cold-store'
+        configurationCache.assertStateStored()
+        result.assertTasksExecuted(":b", ":a")
+    }
+
+    def "subset request that would drop a mustRunAfter-target is refused"() {
+        given:
+        def configurationCache = newConfigurationCacheFixture()
+        buildFile << """
+            tasks.register('first') { doLast { println 'first' } }
+            tasks.register('second') {
+                mustRunAfter 'first'
+                doLast { println 'second' }
+            }
+        """
+
+        when:
+        configurationCacheRun "first", "second"
+
+        then:
+        configurationCache.assertStateStored()
+        result.assertTasksExecuted(":first", ":second")
+
+        when: 'request second alone — second still carries a mustRunAfter :first edge'
+        configurationCacheRun "second"
+
+        then: 'gate refuses: pruning :first would leave :second pointing at a dropped task'
+        configurationCache.assertStateStored()
+        result.assertTasksExecuted(":second")
+    }
+
+    def "subset request that would drop a finalizer-target is refused"() {
+        given:
+        def configurationCache = newConfigurationCacheFixture()
+        buildFile << """
+            tasks.register('producer') {
+                doLast { println 'producer' }
+            }
+            tasks.register('consumer') {
+                finalizedBy 'producer'
+                doLast { println 'consumer' }
+            }
+        """
+
+        when:
+        configurationCacheRun "consumer"
+
+        then: 'producer is pulled in as finalizer'
+        configurationCache.assertStateStored()
+        result.assertTasksExecuted(":consumer", ":producer")
+
+        when: 'requesting producer alone — finalizer edge from consumer would dangle'
+        configurationCacheRun "producer"
+
+        then: 'gate refuses subset; cold-store'
+        configurationCache.assertStateStored()
+        result.assertTasksExecuted(":producer")
+    }
+
+    def "subset request that would drop a Delete task is refused"() {
+        given:
+        // Delete-instance detection at store time is the gate; the gate fires because
+        // `:cleanThing instanceof Delete` is true regardless of whether the deletion
+        // target exists. The assertion of interest is that the second run cold-stores
+        // (gate refused subset) — not that `:cleanThing` produced any work output.
+        def configurationCache = newConfigurationCacheFixture()
+        buildFile << """
+            tasks.register('cleanThing', Delete) {
+                delete 'no-such-file'
+            }
+            tasks.register('build') {
+                doLast { println 'build' }
+            }
+        """
+
+        when:
+        configurationCacheRun "cleanThing", "build"
+
+        then:
+        configurationCache.assertStateStored()
+
+        when: 'request build alone — cleanThing would be dropped, but it is a Delete'
+        configurationCacheRun "build"
+
+        then: 'side-effecting Delete gate refuses subset; cold-store rather than skip the deletion'
+        configurationCache.assertStateStored()
+    }
+
+    def "bare and absolute CLI tokens for the same task do not share an index entry"() {
+        given:
+        def configurationCache = newConfigurationCacheFixture()
+        buildFile << """
+            tasks.register('d') { doLast { println 'd' } }
+        """
+
+        when: 'first invocation uses the absolute path'
+        configurationCacheRun ":d"
+
+        then:
+        configurationCache.assertStateStored()
+
+        when: 'second invocation uses the bare name — verbatim CLI matching keeps them separate'
+        configurationCacheRun "d"
+
+        then: 'different cliTokens means no index hit, even though both resolve to :d'
+        configurationCache.assertStateStored()
+
+        when: 'third invocation matches the second exactly'
+        configurationCacheRun "d"
+
+        then: 'now we hit — bare entry exists and matches verbatim'
+        configurationCache.assertStateLoaded()
+    }
+
+    def "gate-rejected entry survives in the index for future exact-match reuse"() {
+        given:
+        def configurationCache = newConfigurationCacheFixture()
+        buildFile << """
+            tasks.register('first') { doLast { println 'first' } }
+            tasks.register('second') {
+                mustRunAfter 'first'
+                doLast { println 'second' }
+            }
+        """
+
+        when:
+        configurationCacheRun "first", "second"
+
+        then:
+        configurationCache.assertStateStored()
+
+        when: 'subset request fails the mustRunAfter dangle gate and cold-stores'
+        configurationCacheRun "second"
+
+        then:
+        configurationCache.assertStateStored()
+
+        when: 'original exact-match request — the gate-rejected entry must still be findable in the index'
+        configurationCacheRun "first", "second"
+
+        then: 'state loaded, not re-stored: gate rejection earlier did NOT evict the entry from disk'
+        configurationCache.assertStateLoaded()
+        result.assertTasksExecuted(":first", ":second")
+    }
+
     def "configuration cache for multi-level projects"() {
         given:
         createDirs("a", "a/b", "a/c")

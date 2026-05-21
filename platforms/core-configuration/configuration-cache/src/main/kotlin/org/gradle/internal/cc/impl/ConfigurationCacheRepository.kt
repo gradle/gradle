@@ -101,12 +101,23 @@ class ConfigurationCacheRepository(
 
         return withFileLockNullable {
             val indexFile = SupersetIndexFile(indexFileFor(environmentKey))
-            val variants = indexFile.read().toMutableList()
-            if (variants.isEmpty()) return@withFileLockNullable null
+            val onDiskVariants = indexFile.read().toMutableList()
+            if (onDiskVariants.isEmpty()) return@withFileLockNullable null
 
-            var dirty = false
-            val chosen = pickUsableVariant(variants, requestedCliTokens) { dirty = true }
-            if (dirty) indexFile.write(variants)
+            // The loop's working list shrinks as candidates are rejected (gate failures
+            // or stale dir), so each iteration picks the next-best. Only stale-dir
+            // removals propagate back to the on-disk file — gate-rejected variants stay
+            // in the index because they're still valid for exact-match reuse by future
+            // requests with a different task list.
+            val loopVariants = onDiskVariants.toMutableList()
+            val staleDirsEvicted = mutableListOf<IndexedVariant>()
+            val chosen = pickUsableVariant(loopVariants, requestedCliTokens) { staleVariant ->
+                staleDirsEvicted.add(staleVariant)
+            }
+            if (staleDirsEvicted.isNotEmpty()) {
+                onDiskVariants.removeAll(staleDirsEvicted)
+                indexFile.write(onDiskVariants)
+            }
             chosen?.let {
                 CompatibleEntry(it.fullKey, it.cliTokens, it.entryTaskIdentityPaths)
             }
@@ -120,7 +131,8 @@ class ConfigurationCacheRepository(
      * A candidate is dropped when any of these hold (and it isn't an exact match —
      * exact matches skip the pruning gates because no pruning happens):
      *  - its entry directory has been removed out from under the index (stale row —
-     *    self-heal: invoke [onStaleDirRemoved] so the caller can rewrite the index);
+     *    self-heal: report it via [onStaleDirRemoved] so the caller can drop the row
+     *    from the on-disk file);
      *  - pruning would leave a retained task pointing at a dropped task through
      *    `mustRunAfter` / finalizer (see [SupersetIndexLookup.hasDanglingMustRunAfter]);
      *  - pruning would drop a task whose execution has filesystem side effects beyond
@@ -132,15 +144,18 @@ class ConfigurationCacheRepository(
      * the request map to the identity paths to drop. Subset matches selected by
      * [SupersetIndexLookup.selectBestMatch] are guaranteed to have a 1:1 mapping.
      * <p>
-     * The entry stays in the index even when skipped here; it remains valid for
-     * exact-match reuse by a future request. Returns `null` when [pickWithTieBreak]
-     * yields no further candidate.
+     * Mutation of [variants] is per-iteration loop bookkeeping only — gate-rejected
+     * candidates are removed from the working list so the next-best can be picked
+     * but are NOT evicted from the persisted index. They remain valid for exact-match
+     * reuse by a future request. Only `staleDir` rejections feed into
+     * [onStaleDirRemoved], which is what the caller writes back to disk.
+     * Returns `null` when [pickWithTieBreak] yields no further candidate.
      */
     private
     fun pickUsableVariant(
         variants: MutableList<IndexedVariant>,
         requestedCliTokens: List<String>,
-        onStaleDirRemoved: () -> Unit
+        onStaleDirRemoved: (IndexedVariant) -> Unit
     ): IndexedVariant? {
         val requestedDistinct = requestedCliTokens.distinct()
         while (true) {
@@ -159,7 +174,7 @@ class ConfigurationCacheRepository(
             )
             if (!staleDir && !dangles && !sideEffects) return chosen
             variants.remove(chosen)
-            if (staleDir) onStaleDirRemoved()
+            if (staleDir) onStaleDirRemoved(chosen)
         }
     }
 

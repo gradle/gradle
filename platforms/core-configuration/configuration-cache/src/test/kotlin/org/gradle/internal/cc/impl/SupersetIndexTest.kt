@@ -250,4 +250,23 @@ class SupersetIndexTest {
         tmp.writeBytes(byteArrayOf(0x00, 0x00, 0x00, 0x00))
         assertEquals(emptyList<IndexedVariant>(), SupersetIndexFile(tmp).read())
     }
+
+    @Test
+    fun `truncated file mid-record reads as empty list rather than throwing`() {
+        // Simulates a JVM crash mid-write: well-formed header (magic + version + count)
+        // claims one variant, but the body bytes are cut off. Reading should fall back
+        // to empty, not throw — same recovery posture as `missing file reads as empty list`.
+        val tmp = java.io.File.createTempFile("supersetIndex", ".bin").also { it.deleteOnExit() }
+        val good = listOf(IndexedVariant(
+            fullKey = "k",
+            cliTokens = listOf(":a", ":b"),
+            entryTaskIdentityPaths = listOf(":a", ":b")
+        ))
+        SupersetIndexFile(tmp).write(good)
+        // Lop off the trailing 4 bytes — guaranteed to land mid-record (truncating
+        // the last `sideEffectingTaskIdentityPaths` size int or its trailing entries).
+        val full = tmp.readBytes()
+        tmp.writeBytes(full.copyOf(full.size - 4))
+        assertEquals(emptyList<IndexedVariant>(), SupersetIndexFile(tmp).read())
+    }
 }

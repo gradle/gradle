@@ -152,20 +152,17 @@ class DefaultConfigurationCache internal constructor(
 
     /**
      * `dependencySuccessors` edges between scheduled tasks (source identity path →
-     * identity paths the source depends on). Recorded into the superset index so
-     * the overlap check can BFS the retained closure forward through dependency
-     * edges before comparing outputs.
+     * identity paths the source depends on). Recorded into the superset index for
+     * diagnostics and forward-compat — current safety gates don't consult them.
      */
     private
     var dependencyEdges: Map<String, List<String>> = emptyMap()
 
     /**
-     * The scheduled `LocalTaskNode`s captured at finalization time. Held so the
-     * output-path capture at [commitCacheEntry] can walk them after Gradle's
-     * normal execution path has already invoked
-     * [org.gradle.execution.plan.LocalTaskNode.getTaskProperties] for each node —
-     * resolving outputs through the cached `TaskProperties` avoids re-invoking
-     * user-defined `@OutputFile` / `@Nested` getters (see [collectDeclaredOutputs]).
+     * The scheduled `LocalTaskNode`s captured at finalization time. Held so
+     * [collectSideEffectingTaskIdentityPaths] can re-scan them at
+     * [commitCacheEntry] time (the execution plan is reset to `EMPTY` after task
+     * execution finishes).
      */
     private
     var scheduledLocalTaskNodes: List<org.gradle.execution.plan.LocalTaskNode> = emptyList()
@@ -507,12 +504,10 @@ class DefaultConfigurationCache internal constructor(
     /**
      * Snapshots structural inputs to the superset index from the finalized task
      * graph before task execution begins (the execution plan is cleared on
-     * completion). Captures three things per scheduled task: entry-task identity
-     * paths, mustRunAfter/finalizer edges (for the dangle check), and
-     * dependencySuccessors edges (for the overlap-check BFS). Declared output
-     * paths — the fourth piece of index data — are captured later via
-     * [captureOutputPathsAfterExecution] so the property walk reuses cached
-     * `TaskProperties` and doesn't re-invoke user-defined getters.
+     * completion). Captures four things: entry-task identity paths, the list of
+     * scheduled `LocalTaskNode`s (held so [collectSideEffectingTaskIdentityPaths]
+     * can re-scan at commit time), mustRunAfter/finalizer edges (for the dangle
+     * check), and dependencySuccessors edges (for diagnostics).
      */
     private
     fun captureSupersetIndexInputs() {
@@ -531,10 +526,6 @@ class DefaultConfigurationCache internal constructor(
         }
         mustRunAfterEdges = mraEdges
         dependencyEdges = depEdges
-        // Output paths are captured later, at commitCacheEntry, so the iteration
-        // hits already-cached TaskProperties (populated by Gradle's normal execution
-        // path) and does NOT re-trigger user-defined `@OutputFile` / `@Nested`
-        // getters. See [collectDeclaredOutputs].
     }
 
     /**
