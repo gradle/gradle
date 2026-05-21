@@ -1004,7 +1004,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      * the final keyring excludes orphaned keys instead of merging with them.
      *
      * @return true if keyrings should be pruned
-     * @since 9.6.0
+     * @since 9.7.0
      */
     @Incubating
     public boolean isPruneKeys() {
@@ -1021,7 +1021,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      * the final keyring excludes orphaned keys instead of merging with them.
      *
      * @param pruneKeys set to true if keyrings should be pruned
-     * @since 9.6.0
+     * @since 9.7.0
      */
     @Incubating
     public void setPruneKeys(boolean pruneKeys) {
