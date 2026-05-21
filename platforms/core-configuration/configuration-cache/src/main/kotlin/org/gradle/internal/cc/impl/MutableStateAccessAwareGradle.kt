@@ -16,7 +16,6 @@
 
 package org.gradle.internal.cc.impl
 
-import com.google.common.collect.ImmutableList
 import groovy.lang.Closure
 import org.gradle.BuildListener
 import org.gradle.BuildResult
