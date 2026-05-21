@@ -55,7 +55,6 @@ internal class ConfigurationCachePromoHandler(
     private val degradationController: DefaultConfigurationCacheDegradationController,
     private val documentationRegistry: DocumentationRegistry
 ) : RootBuildLifecycleListener, ProblemsListener {
-
     private val problems = object {
         @Volatile
         private var _seenProblems = false // if ever, only goes false -> true
