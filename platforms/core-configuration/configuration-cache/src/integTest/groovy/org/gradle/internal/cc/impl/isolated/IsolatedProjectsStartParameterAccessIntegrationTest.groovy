@@ -29,7 +29,7 @@ class IsolatedProjectsStartParameterAccessIntegrationTest extends AbstractIsolat
         """
 
         when:
-        isolatedProjectsFails "help"
+        isolatedProjectsDiagnosticsFails "help"
 
         then:
         fixture.assertStateStoredAndDiscarded {
@@ -51,7 +51,8 @@ class IsolatedProjectsStartParameterAccessIntegrationTest extends AbstractIsolat
         "setContinueOnFailure(true)"                     | "setContinueOnFailure"
         "setLogLevel(LogLevel.INFO)"                     | "setLogLevel"
         "setTaskNames(['help'])"                         | "setTaskNames"
-        "setExcludedTaskNames(['x'])"                    | "setExcludedTaskNames"
+        // `setExcludedTaskNames` is excluded because the excluded names get resolved later, which
+        // triggers an unrelated `Project.tasks` access on subprojects and obscures this test.
         "setProjectProperties([:])"                      | "setProjectProperties"
         "setSystemPropertiesArgs([:])"                   | "setSystemPropertiesArgs"
         "setInitScripts([])"                             | "setInitScripts"
@@ -67,15 +68,26 @@ class IsolatedProjectsStartParameterAccessIntegrationTest extends AbstractIsolat
             include("b")
         """
         buildFile """
-            project(':b').gradle.startParameter.$invocation
+            // Absorb the expected UnsupportedOperationException so configuration completes and
+            // the CC state assertion below can run; assert it actually fires.
+            def threw = false
+            try {
+                project(':b').gradle.startParameter.$invocation
+            } catch (UnsupportedOperationException ignored) {
+                threw = true
+            }
+            assert threw, "Expected UnsupportedOperationException from the immutable view"
         """
 
         when:
-        isolatedProjectsFails "help"
+        isolatedProjectsDiagnosticsFails "help"
 
         then:
-        // The wrapper returns Guava ImmutableX.copyOf(...) — mutation throws UnsupportedOperationException.
-        failure.assertHasErrorOutput("UnsupportedOperationException")
+        // The cross-project `Project.gradle` access is reported as an IP problem.
+        fixture.assertStateStoredAndDiscarded {
+            projectsConfigured(":", ":b")
+            problem("Build file 'build.gradle': line 6: Project ':' cannot access 'Project.gradle' functionality on another project ':b'")
+        }
 
         where:
         invocation << [
@@ -120,7 +132,7 @@ class IsolatedProjectsStartParameterAccessIntegrationTest extends AbstractIsolat
         """
 
         when:
-        isolatedProjectsFails "help"
+        isolatedProjectsDiagnosticsFails "help"
 
         then:
         fixture.assertStateStoredAndDiscarded {
