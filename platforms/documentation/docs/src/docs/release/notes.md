@@ -125,6 +125,12 @@ codenarcMain.reports {
 
 See the [CodeNarc plugin report](userguide/codenarc_plugin.html#sec:codenarc_reports) section in the Gradle User Manual for more information.
 
+## Tooling integration improvements
+
+Tooling API clients can now directly access Gradle help and version information the same way as the Gradle CLI.
+This allows IDEs and other tools to provide a more consistent user experience when interacting with Gradle.
+For example, In IntelliJ IDEA users will be able to run `--help` and `--version` via the `Execute Gradle task` toolbar action.
+
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
 ==========================================================
