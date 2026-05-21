@@ -264,17 +264,16 @@ tasks.named<Test>("docsTest") {
         systemProperty("org.gradle.integtest.samples.cleanConfigurationCacheOutput", "true")
         systemProperty("org.gradle.integtest.executer", "configCache")
 
-        // Single source of truth for groups of tests excluded when docsTest runs with the configCache
-        // executer. Each entry is a substring marker, used two ways:
+        // Substring markers identifying groups of tests excluded when docsTest runs with the configCache
+        // executer. Loaded from the resource file alongside SampleFailureMessageFormatter, which uses the
+        // same list at test runtime — that file is the single source of truth. Each marker is used two ways:
         //   - wrapped as "*${marker}*" for the excludeTestsMatching glob below, and
         //   - matched directly against --tests CLI patterns in the pre-flight check below.
-        // Group 1: snippet samples that enable configuration cache explicitly; not re-run by the configCache executer.
-        // Group 2: *WithoutCC* test variants, paired with WithCC counterparts and only meaningful when CC is off.
-        // Keep in sync with SampleFailureMessageFormatter.CONFIG_CACHE_EXCLUDED_MARKERS.
-        val configCacheExcludedTestGroups = listOf(
-            "snippet-optimizing-builds-configuration-cache-",
-            "WithoutCC",
-        )
+        val configCacheExcludedTestGroups = providers.fileContents(
+            layout.projectDirectory.file("src/main/resources/non-config-cache-compatible-snippets.txt")
+        ).asText.map { text ->
+            text.lines().map { it.trim() }.filter { it.isNotEmpty() }
+        }.get()
 
         // Pre-flight: if every --tests pattern targets one of the excluded groups above, Gradle's default
         // "No tests found" message hides the real cause. Replace it with a message that names the property

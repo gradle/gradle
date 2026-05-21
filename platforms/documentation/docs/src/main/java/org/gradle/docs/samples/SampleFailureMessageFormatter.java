@@ -15,23 +15,28 @@
  */
 package org.gradle.docs.samples;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.UncheckedIOException;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 /**
  * Builds the failure message thrown when a {@code docsTest} sample fails.
  * <p>
- * The {@link #CONFIG_CACHE_EXCLUDED_MARKERS} substrings here mirror the {@code excludeTestsMatching}
- * groups in {@code platforms/documentation/docs/build.gradle.kts}: samples whose id contains any of
- * these markers are skipped when {@code enableConfigurationCacheForDocsTests=true}, so the reproduce
- * instructions for those samples must tell the user to clear that property rather than set it.
- * Keep this list in sync with {@code configCacheExcludedTestGroups} in the build script.
+ * The list of "excluded" sample-id substrings is loaded from the classpath resource
+ * {@code /non-config-cache-compatible-snippets.txt}. The same file is read by
+ * {@code platforms/documentation/docs/build.gradle.kts} to wire the {@code excludeTestsMatching}
+ * filter and the pre-flight check on {@code --tests} CLI patterns. That file is the single source
+ * of truth for samples skipped when {@code enableConfigurationCacheForDocsTests=true}.
  */
 public final class SampleFailureMessageFormatter {
 
-    private static final List<String> CONFIG_CACHE_EXCLUDED_MARKERS = List.of(
-        "snippet-optimizing-builds-configuration-cache-",
-        "WithoutCC"
-    );
+    private static final String MARKERS_RESOURCE = "/non-config-cache-compatible-snippets.txt";
+
+    private static final List<String> CONFIG_CACHE_EXCLUDED_MARKERS = loadMarkers();
 
     private static final String BANNER = "**********************************************************************************";
 
@@ -57,5 +62,21 @@ public final class SampleFailureMessageFormatter {
         }
         message.append(BANNER);
         return message.toString();
+    }
+
+    private static List<String> loadMarkers() {
+        try (InputStream in = SampleFailureMessageFormatter.class.getResourceAsStream(MARKERS_RESOURCE)) {
+            if (in == null) {
+                throw new IllegalStateException("Missing classpath resource: " + MARKERS_RESOURCE);
+            }
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(in, StandardCharsets.UTF_8))) {
+                return reader.lines()
+                    .map(String::trim)
+                    .filter(line -> !line.isEmpty())
+                    .toList();
+            }
+        } catch (IOException e) {
+            throw new UncheckedIOException("Failed to load " + MARKERS_RESOURCE, e);
+        }
     }
 }
