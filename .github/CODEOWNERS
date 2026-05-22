@@ -113,16 +113,16 @@ subprojects/core-api                                        # @gradle/bt-cortex 
 
 # Develocity integration
 platforms/enterprise/                                   @gradle/bt-build-scan
-platforms/enterprise/enterprise/                        @gradle/bt-build-scan @gradle/dv-acceleration-team
-platforms/enterprise/enterprise-logging/                @gradle/bt-build-scan @gradle/dv-acceleration-team
+platforms/enterprise/enterprise/                        @gradle/bt-build-scan @gradle/dv-efficiency-team
+platforms/enterprise/enterprise-logging/                @gradle/bt-build-scan @gradle/dv-efficiency-team
 
 # JVM platform
 platforms/jvm/                                      @gradle/bt-jvm
 platforms/core-configuration/java-api-extractor     @gradle/bt-jvm
 
 # JVM testing services also shared by Develocity testing plugins
-platforms/jvm/testing-jvm/                  @gradle/bt-jvm @gradle/dv-acceleration-team
-platforms/jvm/testing-jvm-infrastructure/   @gradle/bt-jvm @gradle/dv-acceleration-team
+platforms/jvm/testing-jvm/                  @gradle/bt-jvm @gradle/dv-efficiency-team
+platforms/jvm/testing-jvm-infrastructure/   @gradle/bt-jvm @gradle/dv-efficiency-team
 
 # Software platform
 platforms/software/                         @gradle/bt-jvm
