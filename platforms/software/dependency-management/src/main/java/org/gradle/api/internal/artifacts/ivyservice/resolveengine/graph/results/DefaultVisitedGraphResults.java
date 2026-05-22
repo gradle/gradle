@@ -25,6 +25,8 @@ import org.jspecify.annotations.Nullable;
 
 import java.lang.ref.SoftReference;
 import java.util.Set;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
@@ -42,6 +44,7 @@ public class DefaultVisitedGraphResults implements VisitedGraphResults {
      * no additional context. Only hold a soft reference to it to avoid retained memory
      * if no other references to the wrapper graph exist.
      */
+    private final Lock lock = new ReentrantLock();
     private @Nullable SoftReference<ResolvedGraphResult> resolvedGraphResult = null;
     private final Supplier<ResolvedGraphResult> resolvedGraphResultSource;
 
@@ -54,19 +57,24 @@ public class DefaultVisitedGraphResults implements VisitedGraphResults {
         this.unresolvedDependencies = unresolvedDependencies;
 
         this.resolvedGraphResultSource = () -> {
-            if (resolvedGraphResult != null) {
-                ResolvedGraphResult value = resolvedGraphResult.get();
-                if (value != null) {
-                    return value;
+            lock.lock();
+            try {
+                if (resolvedGraphResult != null) {
+                    ResolvedGraphResult value = resolvedGraphResult.get();
+                    if (value != null) {
+                        return value;
+                    }
                 }
-            }
 
-            ResolvedGraphResult value = new ResolvedGraphResult(
-                graphStructureSource.get(),
-                resolvedDependencyGraph.availableVariantsByComponent()
-            );
-            this.resolvedGraphResult = new SoftReference<>(value);
-            return value;
+                ResolvedGraphResult value = new ResolvedGraphResult(
+                    graphStructureSource.get(),
+                    resolvedDependencyGraph.availableVariantsByComponent()
+                );
+                this.resolvedGraphResult = new SoftReference<>(value);
+                return value;
+            } finally {
+                lock.unlock();
+            }
         };
     }
 
