@@ -74,6 +74,14 @@ tasks {
         classpath = smokeIdeTestSourceSet.runtimeClasspath
         jvmArgumentProviders.add(ideaSystemProperties())
         jvmArgumentProviders.add(androidStudioSystemProperties())
+        // IDEA's launch script requires JAVA_HOME. CI agents don't set it in the agent
+        // environment, and gradle-profiler's IdeLauncher only forwards IDEA_VM_OPTIONS /
+        // IDEA_PROPERTIES — so the IDE child process inherits an empty JAVA_HOME and fails.
+        // Test.environment() stores values as-is and calls toString() at fork time, so the
+        // toolchain provider must be resolved eagerly.
+        environment("JAVA_HOME", project.javaToolchains.launcherFor {
+            languageVersion = JavaLanguageVersion.of(21)
+        }.get().metadata.installationPath.asFile.absolutePath)
     }
 }
 
