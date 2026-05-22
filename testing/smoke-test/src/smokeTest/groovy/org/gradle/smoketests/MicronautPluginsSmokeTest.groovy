@@ -20,7 +20,7 @@ import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.JdkVersionTestPreconditions
 
 
-@Requires(JdkVersionTestPreconditions.Jdk11OrLater)
+@Requires(JdkVersionTestPreconditions.Jdk25OrLater)
 class MicronautPluginsSmokeTest extends AbstractPluginValidatingSmokeTest {
     @Override
     String getBuildScriptConfigurationForValidation() {
