@@ -1,3 +1,4 @@
+Accessors for org.gradle.api.internal.StartParameterInternal.taskNames don't use symmetrical @Nullable
 Accessors for org.gradle.api.internal.tasks.DefaultSourceSetOutput.resourcesDir don't use symmetrical @Nullable
 Accessors for org.gradle.api.internal.tasks.TaskStateInternal.outcome don't use symmetrical @Nullable
 Accessors for org.gradle.execution.plan.Node.executionFailure don't use symmetrical @Nullable

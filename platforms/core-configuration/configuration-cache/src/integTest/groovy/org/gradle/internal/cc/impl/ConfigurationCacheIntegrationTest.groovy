@@ -781,6 +781,58 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
         result.assertTasksNotScheduled(":c")
     }
 
+    def "configuration logic that reads startParameter.taskRequests flags entry as superset-ineligible"() {
+        given:
+        // When user configuration code reads
+        // `startParameter.taskRequests` (or `.taskNames`) to drive decisions, the
+        // resulting cached entry's serialized state depends on which tasks the
+        // original build had on its CLI. A later subset request would unsafely
+        // reuse that entry — the cached state was baked from a DIFFERENT request
+        // than the current build's.  The entry should be flagged
+        // `taskGraphAccessed` and excluded from strict-superset matching.
+        def configurationCache = newConfigurationCacheFixture()
+        buildFile << """
+            // User configuration code branches on what the user typed.
+            def requestedHasC = gradle.startParameter.taskRequests.any { req ->
+                req.args.contains('c')
+            }
+            ['a', 'b', 'c'].each { name ->
+                tasks.register(name) { doLast { println name } }
+            }
+            tasks.named('a').configure {
+                doFirst { println 'a-saw-c=' + requestedHasC }
+            }
+        """
+
+        when: 'original store has :c in the CLI — configuration logic bakes requestedHasC=true into the entry'
+        configurationCacheRun "a", "b", "c"
+
+        then:
+        configurationCache.assertStateStored()
+        outputContains('a-saw-c=true')
+
+        when: 'subset request — only :a; user did NOT request :c'
+        configurationCacheRun "a"
+
+        then: 'flag set: cold-store because the entry observed taskRequests, so subset reuse is unsafe'
+        // The fix path: `StartParameterInternal.getTaskRequests()` triggers
+        // `InstrumentedInputs.listener().startParameterTaskRequestsObserved()`, which
+        // routes through `InstrumentedInputAccessListener` to
+        // `ConfigurationCacheFingerprintController.taskGraphAccessed()`. The flag is
+        // recorded on the IndexedVariant at store time and excludes it from
+        // strict-superset matches at lookup time. Internal Gradle reads use the
+        // *Untracked accessors so they don't accidentally flag every build's entry.
+        configurationCache.assertStateStored()
+        outputContains('a-saw-c=false')
+
+        when: 'exact match against the flagged entry still loads (flag only blocks supersets)'
+        configurationCacheRun "a", "b", "c"
+
+        then:
+        configurationCache.assertStateLoaded()
+        outputContains('a-saw-c=true')
+    }
+
     def "direct hasTask call does not disable superset reuse"() {
         given:
         def configurationCache = newConfigurationCacheFixture()

@@ -25,6 +25,7 @@ import org.gradle.api.flow.FlowScope
 import org.gradle.api.internal.BuildDefinition
 import org.gradle.api.internal.FeaturePreviews
 import org.gradle.api.internal.GradleInternal
+import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.internal.SettingsInternal.BUILD_SRC
 import org.gradle.api.internal.artifacts.transform.TransformStepNode
 import org.gradle.api.internal.cache.CacheConfigurationsInternal
@@ -714,7 +715,9 @@ class ConfigurationCacheState(
 
     private
     fun WriteContext.writeStartParameterOf(gradle: GradleInternal) {
-        val startParameterTaskNames = gradle.startParameter.taskNames
+        // CC-internal serialization read; not user configuration logic branching on the request.
+        // Use the untracked accessor so this read doesn't flag every stored entry.
+        val startParameterTaskNames = (gradle.startParameter as StartParameterInternal).taskNamesUntracked
         writeStrings(startParameterTaskNames)
     }
 

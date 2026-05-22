@@ -79,8 +79,9 @@ public class TaskGraphBuildExecutionAction implements BuildWorkExecutor {
     }
 
     private static String renderRequestedTasks(StartParameterInternal startParameter) {
+        // Untracked: this is just rendering for the --rendered-task-graph output.
         return startParameter
-            .getTaskRequests()
+            .getTaskRequestsUntracked()
             .stream()
             .map(TaskExecutionRequest::getArgs)
             .flatMap(List::stream)

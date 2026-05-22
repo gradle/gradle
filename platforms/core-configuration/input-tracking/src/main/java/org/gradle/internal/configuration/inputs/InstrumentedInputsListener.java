@@ -87,4 +87,13 @@ public interface InstrumentedInputsListener {
     void directoryContentObserved(File file, String consumer);
 
     void startParameterProjectPropertiesObserved();
+
+    /**
+     * Invoked when the code reads {@code StartParameter.taskRequests} or
+     * {@code StartParameter.taskNames}. Both reflect the user's CLI task selection;
+     * configuration logic that branches on either makes the resulting CC entry's
+     * cached state request-dependent, so the entry should be excluded from
+     * strict-superset matching at lookup time.
+     */
+    void startParameterTaskRequestsObserved();
 }
