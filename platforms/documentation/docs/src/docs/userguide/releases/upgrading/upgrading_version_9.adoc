@@ -261,7 +261,7 @@ println(foo) // Resolved through hierarchy — now deprecated
 ====
 
 This implicit inheritance is deprecated and will be removed in Gradle 10.
-Both an implicit reference (e.g. a bare `foo` in a Groovy build script, or `val foo by project` in a Kotlin build script) and the explicit API (`project.findProperty("foo")`, `project.property("foo")`, `project.hasProperty("foo")`) emit the deprecation warning when they resolve through the hierarchy.
+Both an implicit reference (e.g. a bare `foo` in a Groovy build script, or `val foo by project` in a Kotlin build script) and the explicit API (`project.findProperty("foo")`, `project.property("foo")`, `project.hasProperty("foo")`) emit a deprecation warning when they resolve through the hierarchy.
 
 Implicit hierarchy lookup creates hidden coupling between projects, makes builds harder to reason about (a typo silently resolves to an ancestor's definition instead of failing), and is fundamentally incompatible with <<isolated_projects.adoc#isolated_projects, Isolated Projects>>.
 
@@ -281,6 +281,8 @@ If you need to keep the original walking semantics, the following helper can be 
 include::sample[dir="snippets/releases/upgrading/findExtraInHierarchy/kotlin",files="child/build.gradle.kts[tags=helper]"]
 include::sample[dir="snippets/releases/upgrading/findExtraInHierarchy/groovy",files="child/build.gradle[tags=helper]"]
 ====
+
+This helper is **not compatible with Isolated Projects** — `parent.ext` (and the chain of `parent` references) is cross-project access, which Isolated Projects forbids. It is a transitional fix for Vintage migrations only. If you are also migrating to Isolated Projects, use one of the first two options (`gradle.properties` or a convention plugin) instead.
 
 [[deprecated_pmd_target_jdk]]
 ==== Deprecation of `targetJdk` on the PMD plugin
