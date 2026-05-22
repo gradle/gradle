@@ -30,7 +30,6 @@ import org.gradle.api.artifacts.result.ResolvedDependencyResult;
 import org.gradle.api.artifacts.result.ResolvedVariantResult;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasonInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.GraphStructure;
-import org.gradle.internal.lazy.Lazy;
 import org.jspecify.annotations.Nullable;
 
 import java.util.List;
@@ -40,10 +39,11 @@ import java.util.Set;
 public class DefaultResolvedComponentResult implements ResolvedComponentResultInternal {
 
     private final int index;
+    private final IntList nodeIndices;
     private final ResolvedGraphResult graph;
 
-    private final Lazy<ImmutableList<ResolvedVariantResult>> variants;
-    private final Lazy<ComponentDependencies> dependencies;
+    private @Nullable ImmutableList<ResolvedVariantResult> variants;
+    private @Nullable ComponentDependencies dependencies;
 
     public DefaultResolvedComponentResult(
         int index,
@@ -51,16 +51,8 @@ public class DefaultResolvedComponentResult implements ResolvedComponentResultIn
         ResolvedGraphResult graph
     ) {
         this.index = index;
+        this.nodeIndices = nodeIndices;
         this.graph = graph;
-
-        this.variants = Lazy.locking().of(() -> computeVariants(graph, nodeIndices));
-        this.dependencies = Lazy.locking().of(() -> computeDependencies(
-            graph,
-            nodeIndices,
-            // Ideally, we would not leak `this` before the constructor returns, but doing so
-            // would require us to hand-roll locks instead of using `Lazy`
-            this
-        ));
     }
 
     @Override
@@ -91,7 +83,7 @@ public class DefaultResolvedComponentResult implements ResolvedComponentResultIn
 
     @Override
     public Set<? extends DependencyResult> getDependencies() {
-        return dependencies.get().componentDependencies;
+        return getAllDependencies().componentDependencies();
     }
 
     @Override
@@ -115,8 +107,11 @@ public class DefaultResolvedComponentResult implements ResolvedComponentResultIn
     }
 
     @Override
-    public List<ResolvedVariantResult> getVariants() {
-        return variants.get();
+    public synchronized List<ResolvedVariantResult> getVariants() {
+        if (variants == null) {
+            variants = computeVariants(graph, nodeIndices);
+        }
+        return variants;
     }
 
     private static ImmutableList<ResolvedVariantResult> computeVariants(
@@ -154,10 +149,17 @@ public class DefaultResolvedComponentResult implements ResolvedComponentResultIn
             throw new InvalidUserCodeException("Variant '" + variant.getDisplayName() + "' doesn't belong to resolved component '" + this + "'. " + moreInfo + " Most likely you are using a variant from another component to get the dependencies of this component.");
         }
 
-        return dependencies.get().variantDependencies.get(indexInComponent);
+        return getAllDependencies().variantDependencies().get(indexInComponent);
     }
 
-    private static ComponentDependencies computeDependencies(
+    private synchronized ComponentDependencies getAllDependencies() {
+        if (dependencies == null) {
+            dependencies = computeAllDependencies(graph, nodeIndices, this);
+        }
+        return dependencies;
+    }
+
+    private static ComponentDependencies computeAllDependencies(
         ResolvedGraphResult graph,
         IntList nodeIndices,
         ResolvedComponentResult fromComponent
