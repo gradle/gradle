@@ -21,6 +21,7 @@ import org.gradle.api.JavaVersion
 import org.gradle.internal.jvm.SupportedJavaVersions
 import org.gradle.test.precondition.TestPrecondition
 import org.jetbrains.kotlin.config.JvmTarget
+import org.jspecify.annotations.NullMarked
 
 /**
  * Preconditions for the currently running JVM's version and vendor.
@@ -30,6 +31,7 @@ import org.jetbrains.kotlin.config.JvmTarget
  * @see org.gradle.test.precondition
  */
 @CompileStatic
+@NullMarked
 class JdkVersionTestPreconditions {
 
     static final class Jdk8OrEarlier implements TestPrecondition {
@@ -155,6 +157,13 @@ class JdkVersionTestPreconditions {
         @Override
         boolean isSatisfied() {
             return JavaVersion.current() <= JavaVersion.VERSION_24
+        }
+    }
+
+    static final class Jdk25OrLater implements TestPrecondition {
+        @Override
+        boolean isSatisfied() {
+            return JavaVersion.current() >= JavaVersion.VERSION_25
         }
     }
 
