@@ -1,11 +1,8 @@
 // tag::helper[]
 def findExtraInHierarchy(Project project, String name) {
-    for (def p = project; p != null; p = p.parent) {
-        if (p.ext.has(name)) {
-            return p.ext.get(name)
-        }
-    }
-    return null
+    if (project == null) return null
+    if (project.ext.has(name)) return project.ext.get(name)
+    return findExtraInHierarchy(project.parent, name)
 }
 // end::helper[]
 

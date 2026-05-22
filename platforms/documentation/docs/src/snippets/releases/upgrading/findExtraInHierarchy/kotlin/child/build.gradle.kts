@@ -1,6 +1,9 @@
 // tag::helper[]
-fun Project.findExtraInHierarchy(name: String): Any? =
-    if (extra.has(name)) extra[name] else parent?.findExtraInHierarchy(name)
+tailrec fun Project.findExtraInHierarchy(name: String): Any? {
+    if (extra.has(name)) return extra[name]
+    val ancestor = parent ?: return null
+    return ancestor.findExtraInHierarchy(name)
+}
 // end::helper[]
 
 tasks.register("printFoo") {
