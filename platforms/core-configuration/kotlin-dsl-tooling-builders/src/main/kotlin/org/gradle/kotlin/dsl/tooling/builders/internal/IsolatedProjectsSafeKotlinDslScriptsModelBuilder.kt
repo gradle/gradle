@@ -24,6 +24,7 @@ import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.ClassPath.EMPTY
 import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.kotlin.dsl.accessors.AccessorsClassPath
+import org.gradle.kotlin.dsl.accessors.Stage1BlocksAccessorClassPathGenerator
 import org.gradle.kotlin.dsl.provider.ClassPathModeExceptionCollector
 import org.gradle.kotlin.dsl.provider.KotlinScriptClassPathProvider
 import org.gradle.kotlin.dsl.provider.runCatching
@@ -163,6 +164,16 @@ fun buildScriptModelsInHierarchy(
 ): Map<File, KotlinDslScriptModel> {
 
     val outputModels = mutableMapOf<File, KotlinDslScriptModel>()
+    val classPathModeExceptionCollector = rootProject.serviceOf<ClassPathModeExceptionCollector>()
+
+    fun prepareForParallelAccess() {
+        // Avoid deadlock on stage1BlocksAccessorClassPath on root.fromMutableState call.
+        // It's wrapped in runCatching the same way the per-project and settings accessorsClassPathOf calls,
+        // so a broken root build degrades to empty accessors instead of aborting the model build.
+        classPathModeExceptionCollector.runCatching {
+            rootProject.serviceOf<Stage1BlocksAccessorClassPathGenerator>().prepareForParallelAccess()
+        }
+    }
 
     fun collect(models: IsolatedScriptsModel, parentSourcePath: ClassPath) {
         for (childScriptModel in models.models) {
@@ -185,6 +196,7 @@ fun buildScriptModelsInHierarchy(
         }
     }
 
+    prepareForParallelAccess()
     val rootModel = isolatedScriptsModelFor(rootProject)
     collect(rootModel, ClassPath.EMPTY)
     visitChildren(rootProject.owner, rootModel.buildScriptSourcePath)
