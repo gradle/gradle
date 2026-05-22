@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.configurations
 import org.gradle.api.Action
 import org.gradle.api.artifacts.DependencyResolutionListener
 import org.gradle.api.artifacts.UnknownConfigurationException
+import org.gradle.api.initialization.resolve.DependencyResolutionManagement
 import org.gradle.api.internal.CollectionCallbackActionDecorator
 import org.gradle.api.internal.ConfigurationServicesBundle
 import org.gradle.api.internal.DocumentationRegistry
@@ -78,7 +79,7 @@ class DefaultConfigurationContainerSpec extends Specification {
         CollectionCallbackActionDecorator.NOOP,
         TestUtil.problemsService(),
         new AttributeDesugaring(AttributeTestUtil.attributesFactory()),
-        new ResolveExceptionMapper(domainObjectContext, new DocumentationRegistry()),
+        new ResolveExceptionMapper(domainObjectContext, new DocumentationRegistry(), Mock(DependencyResolutionManagement)),
         TestUtil.providerFactory()
     )
 

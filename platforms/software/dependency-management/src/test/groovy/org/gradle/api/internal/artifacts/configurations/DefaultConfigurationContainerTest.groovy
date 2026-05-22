@@ -24,6 +24,7 @@ import org.gradle.api.artifacts.ConsumableConfiguration
 import org.gradle.api.artifacts.DependencyScopeConfiguration
 import org.gradle.api.artifacts.ResolvableConfiguration
 import org.gradle.api.artifacts.UnknownConfigurationException
+import org.gradle.api.initialization.resolve.DependencyResolutionManagement
 import org.gradle.api.internal.CollectionCallbackActionDecorator
 import org.gradle.api.internal.ConfigurationServicesBundle
 import org.gradle.api.internal.DocumentationRegistry
@@ -79,7 +80,7 @@ class DefaultConfigurationContainerTest extends Specification {
         CollectionCallbackActionDecorator.NOOP,
         TestUtil.problemsService(),
         new AttributeDesugaring(attributesFactory),
-        new ResolveExceptionMapper(StandaloneDomainObjectContext.ANONYMOUS, new DocumentationRegistry()),
+        new ResolveExceptionMapper(StandaloneDomainObjectContext.ANONYMOUS, new DocumentationRegistry(), Mock(DependencyResolutionManagement)),
         TestUtil.providerFactory()
     )
 

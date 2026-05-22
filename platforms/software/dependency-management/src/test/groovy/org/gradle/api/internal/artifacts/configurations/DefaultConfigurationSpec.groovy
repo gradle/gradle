@@ -35,6 +35,7 @@ import org.gradle.api.artifacts.ResolveException
 import org.gradle.api.artifacts.ResolvedConfiguration
 import org.gradle.api.artifacts.UnresolvedDependency
 import org.gradle.api.attributes.Attribute
+import org.gradle.api.initialization.resolve.DependencyResolutionManagement
 import org.gradle.api.internal.CollectionCallbackActionDecorator
 import org.gradle.api.internal.ConfigurationServicesBundle
 import org.gradle.api.internal.DocumentationRegistry
@@ -1914,7 +1915,7 @@ This method is only meant to be called on configurations which allow the (non-de
             CollectionCallbackActionDecorator.NOOP,
             TestUtil.problemsService(),
             new AttributeDesugaring(attributesFactory),
-            new ResolveExceptionMapper(domainObjectContext, new DocumentationRegistry()),
+            new ResolveExceptionMapper(domainObjectContext, new DocumentationRegistry(), Mock(DependencyResolutionManagement)),
             TestUtil.providerFactory()
         )
 
