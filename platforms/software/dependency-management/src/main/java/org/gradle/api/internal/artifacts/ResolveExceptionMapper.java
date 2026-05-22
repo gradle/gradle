@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts;
 
 import com.google.common.collect.ImmutableList;
+import org.gradle.api.initialization.resolve.DependencyResolutionManagement;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.artifacts.ivyservice.TypedResolveException;
@@ -39,13 +40,16 @@ public class ResolveExceptionMapper {
 
     private final DomainObjectContext domainObjectContext;
     private final DocumentationRegistry documentationRegistry;
+    private final DependencyResolutionManagement dependencyResolutionManagement;
 
     public ResolveExceptionMapper(
         DomainObjectContext domainObjectContext,
-        DocumentationRegistry documentationRegistry
+        DocumentationRegistry documentationRegistry,
+        DependencyResolutionManagement dependencyResolutionManagement
     ) {
         this.domainObjectContext = domainObjectContext;
         this.documentationRegistry = documentationRegistry;
+        this.dependencyResolutionManagement = dependencyResolutionManagement;
     }
 
     @Nullable
@@ -119,7 +123,7 @@ public class ResolveExceptionMapper {
 
         boolean hasSettingsRepos;
         try {
-            hasSettingsRepos = !project.getGradle().getSettings().getDependencyResolutionManagement().getRepositories().isEmpty();
+            hasSettingsRepos = !dependencyResolutionManagement.getRepositories().isEmpty();
         } catch (Throwable e) {
             // To catch `The settings are not yet available for` error
             return false;
