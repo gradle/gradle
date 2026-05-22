@@ -28,24 +28,21 @@ import org.gradle.api.internal.project.CrossProjectConfigurator
 import org.gradle.api.internal.project.CrossProjectModelAccess
 import org.gradle.api.internal.project.ProjectIdentity
 import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.api.internal.project.ProjectRegistry
-import org.gradle.api.internal.project.ProjectState as InternalProjectState
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.services.BuildServiceRegistry
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal
 import org.gradle.internal.composite.IncludedBuildInternal
-import org.gradle.internal.configuration.problems.IsolatedProjectsProblemsListener
-import org.gradle.internal.configuration.problems.ProblemFactory
+import org.gradle.internal.configuration.problems.IsolatedProjectsProblemsReporter
 import org.gradle.internal.extensions.core.serviceOf
 import org.gradle.internal.extensions.stdlib.capitalized
 import java.util.Objects
+import org.gradle.api.internal.project.ProjectState as InternalProjectState
 
-
+internal
 class CrossProjectConfigurationReportingGradle(
     gradle: GradleInternal,
     private val referrerProject: ProjectIdentity,
-    private val ipProblems: IsolatedProjectsProblemsListener,
-    private val problemFactory: ProblemFactory,
+    private val ipProblems: IsolatedProjectsProblemsReporter
 ) : MutableStateAccessAwareGradle(gradle) {
 
     private val crossProjectModelAccess: CrossProjectModelAccess = delegate.serviceOf()
@@ -53,27 +50,27 @@ class CrossProjectConfigurationReportingGradle(
     private val projectConfigurator: CrossProjectConfigurator = delegate.serviceOf()
 
     override fun onMutableStateAccess(what: String) {
-        val problem = problemFactory.problem {
-            text("Project ")
-            reference(referrerProject.identityPath.asString())
-            text(" cannot access Gradle.$what on build ")
-            reference(identityPath.asString())
+        ipProblems.report {
+            problem {
+                text("Project ")
+                reference(referrerProject.buildTreePath)
+                text(" cannot access Gradle.$what on build ")
+                reference(identityPath.asString())
+            }
+                .exception { message -> message.capitalized() }
+                .build()
         }
-            .exception { message -> message.capitalized() }
-            .build()
-
-        ipProblems.onIsolatedProjectsProblem(problem)
     }
 
     override fun getParent(): GradleInternal? =
         delegate.parent?.let { delegateParent ->
-            CrossProjectConfigurationReportingGradle(delegateParent, referrerProject, ipProblems, problemFactory)
+            CrossProjectConfigurationReportingGradle(delegateParent, referrerProject, ipProblems)
         }
 
     override fun getRoot(): GradleInternal =
         when (val root = delegate.root) {
             delegate -> this
-            else -> CrossProjectConfigurationReportingGradle(root, referrerProject, ipProblems, problemFactory)
+            else -> CrossProjectConfigurationReportingGradle(root, referrerProject, ipProblems)
         }
 
     override fun getSharedServices(): BuildServiceRegistry = delegate.sharedServices
@@ -81,6 +78,10 @@ class CrossProjectConfigurationReportingGradle(
     override fun getStartParameter(): StartParameterInternal = delegate.startParameter
 
     override fun includedBuilds(): List<IncludedBuildInternal> = ImmutableList.copyOf(delegate.includedBuilds())
+
+    override fun getDefaultProjectState(): InternalProjectState = delegate.defaultProjectState
+
+    override fun getGradle(): Gradle = this
 
     // region fine-grained cross-project model access tracking
     // These methods override the base class mutable state defaults with
@@ -136,14 +137,6 @@ class CrossProjectConfigurationReportingGradle(
     override fun afterProject(action: Action<in Project>) {
         delegate.afterProject(action.withCrossProjectModelAccessCheck())
     }
-
-    override fun getDefaultProjectState(): InternalProjectState =
-        delegate.defaultProjectState
-
-    override fun getGradle(): Gradle = this
-
-    override fun getLifecycle(): GradleLifecycle =
-        delegate.lifecycle
 
     override fun addListener(listener: Any) {
         delegate.addListener(maybeWrapListener(listener))

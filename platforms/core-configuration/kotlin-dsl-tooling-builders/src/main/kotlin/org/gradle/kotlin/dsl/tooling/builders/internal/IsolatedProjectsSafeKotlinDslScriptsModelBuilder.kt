@@ -20,6 +20,7 @@ import org.gradle.api.Project
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectState
+import org.gradle.internal.accesscontrol.AllowUsingApiForExternalUse
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.ClassPath.EMPTY
 import org.gradle.internal.classpath.DefaultClassPath
@@ -79,7 +80,7 @@ class IsolatedProjectsSafeKotlinDslScriptsModelBuilder(
 
     private
     fun buildFor(rootProject: ProjectInternal): StandardKotlinDslScriptsModel {
-        val base = ScriptModelBase(gradle)
+        val base = ScriptModelBase(gradle, rootProject)
         val nonProjectScriptModels = buildNonProjectScriptModels(gradle, base)
         val projectHierarchyScriptModels = buildScriptModelsInHierarchy(rootProject, base, intermediateModelProvider)
         return createStandardKotlinDslScriptsModel(nonProjectScriptModels + projectHierarchyScriptModels)
@@ -88,9 +89,7 @@ class IsolatedProjectsSafeKotlinDslScriptsModelBuilder(
 
 
 internal
-class ScriptModelBase(gradle: GradleInternal) {
-
-    private val rootProject = gradle.rootProject
+class ScriptModelBase(gradle: GradleInternal, rootProject: ProjectInternal) {
 
     private
     val scriptClassPath: ClassPath by unsafeLazy {
@@ -104,28 +103,28 @@ class ScriptModelBase(gradle: GradleInternal) {
 
     private
     val gradleSourceRoots: Collection<File> by unsafeLazy {
-        rootProject.gradleSourceRoots()
+        gradle.gradleSourceRoots()
     }
 
     val classPathModeExceptions: List<Exception> by unsafeLazy {
-        rootProject.serviceOf<ClassPathModeExceptionCollector>().exceptions
+        gradle.serviceOf<ClassPathModeExceptionCollector>().exceptions
     }
 
     val implicitImports: List<String> by unsafeLazy {
-        rootProject.serviceOf<ImplicitImports>().list
+        gradle.serviceOf<ImplicitImports>().list
     }
 
     val nonProjectScriptPaths: ScriptClassPath by unsafeLazy {
         ScriptClassPath(
-            bin = ClassPath.EMPTY, // Non-project script models currently resolve their base classpath themselves
-            src = ClassPath.EMPTY + gradleSourceRoots
+            bin = EMPTY, // Non-project script models currently resolve their base classpath themselves
+            src = EMPTY + gradleSourceRoots
         )
     }
 
     val scriptPaths: ScriptClassPath by unsafeLazy {
         ScriptClassPath(
             bin = scriptClassPath,
-            src = ClassPath.EMPTY + buildSrcSources + gradleSourceRoots
+            src = EMPTY + buildSrcSources + gradleSourceRoots
         )
     }
 }
@@ -142,7 +141,7 @@ fun buildNonProjectScriptModels(
 ): Map<File, StandardKotlinDslScriptModel> {
 
     val intermediateModels = buildList {
-        addAll(initScriptModels(gradle.rootProject))
+        addAll(initScriptModels(gradle))
         addNotNull(settingsScriptModel(gradle))
     }
 
@@ -205,41 +204,43 @@ fun GradleInternal.baseScriptClassPath(): ClassPath {
 }
 
 
+@AllowUsingApiForExternalUse
 private
-fun ProjectInternal.gradleSourceRoots() =
-    gradle.gradleHomeDir?.let { SourcePathProvider.sourceRootsOf(it, SourceDistributionResolver(this)) } ?: emptyList()
+fun GradleInternal.gradleSourceRoots() =
+    gradleHomeDir?.let {
+        SourcePathProvider.sourceRootsOf(it, SourceDistributionResolver(rootProject))
+    } ?: emptyList()
 
 
+@AllowUsingApiForExternalUse
 private
-fun initScriptModels(rootProject: ProjectInternal): List<NonProjectScriptModel> {
-    return rootProject.discoverInitScripts().map {
-        buildInitScriptModel(it, rootProject)
+fun initScriptModels(gradle: GradleInternal): List<NonProjectScriptModel> =
+    gradle.rootProject.discoverInitScripts().map {
+        buildInitScriptModel(it, gradle)
     }
-}
 
 
 private
-fun settingsScriptModel(gradle: GradleInternal): NonProjectScriptModel? {
-    return discoverSettingScript(gradle)?.let {
+fun settingsScriptModel(gradle: GradleInternal): NonProjectScriptModel? =
+    discoverSettingScript(gradle)?.let {
         buildSettingsScriptModel(it, gradle)
     }
-}
 
 private
 fun discoverSettingScript(gradle: GradleInternal): File? =
     File(gradle.settings.settingsScript.fileName)
         .takeIf { it.isKotlinDslFile }
 
+@AllowUsingApiForExternalUse
 private
-fun buildInitScriptModel(initScript: File, rootProject: ProjectInternal): NonProjectScriptModel {
-    val gradle = rootProject.gradle
+fun buildInitScriptModel(initScript: File, gradle: GradleInternal): NonProjectScriptModel {
 
     val (scriptHandler, scriptClassPath) = compilationClassPathForScriptPluginOf(
         target = gradle,
         scriptFile = initScript,
         baseScope = gradle.classLoaderScope,
         scriptHandlerFactory = scriptHandlerFactoryOf(gradle),
-        project = rootProject,
+        project = gradle.rootProject,
         resourceDescription = "initialization script"
     )
 

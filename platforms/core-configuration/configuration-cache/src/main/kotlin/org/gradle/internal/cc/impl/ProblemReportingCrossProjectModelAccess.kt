@@ -133,7 +133,7 @@ class ProblemReportingCrossProjectModelAccess(
     }
 
     override fun gradleInstanceForProject(referrer: ProjectIdentity, gradle: GradleInternal): GradleInternal {
-        return CrossProjectConfigurationReportingGradle(gradle, referrer)
+        return CrossProjectConfigurationReportingGradle(gradle, referrer, ipProblems)
     }
 
     override fun taskDependencyUsageTracker(referrer: ProjectIdentity): TaskDependencyUsageTracker {

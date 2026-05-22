@@ -305,7 +305,7 @@ fun compilationClassPathForScriptPluginOf(
     scriptFile: File,
     baseScope: ClassLoaderScope,
     scriptHandlerFactory: ScriptHandlerFactory,
-    project: ProjectInternal,
+    project: Project,
     resourceDescription: String
 ): Pair<ScriptHandlerInternal, ClassPath> {
 
@@ -328,7 +328,7 @@ fun compilationClassPathForScriptPluginOf(
 
 
 private
-fun kotlinScriptFactoryOf(project: ProjectInternal) =
+fun kotlinScriptFactoryOf(project: Project) =
     project.serviceOf<KotlinScriptEvaluator>()
 
 

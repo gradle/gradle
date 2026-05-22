@@ -17,8 +17,7 @@
 package org.gradle.internal.cc.impl
 
 import org.gradle.api.internal.GradleInternal
-import org.gradle.internal.configuration.problems.IsolatedProjectsProblemsListener
-import org.gradle.internal.configuration.problems.ProblemFactory
+import org.gradle.internal.configuration.problems.IsolatedProjectsProblemsReporter
 import org.gradle.internal.extensions.stdlib.capitalized
 
 internal

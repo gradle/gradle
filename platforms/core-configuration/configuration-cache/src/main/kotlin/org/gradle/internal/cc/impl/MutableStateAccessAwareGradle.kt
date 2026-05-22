@@ -29,8 +29,8 @@ import org.gradle.api.internal.SettingsInternal
 import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.plugins.PluginManagerInternal
-import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectRegistry
+import org.gradle.api.internal.project.ProjectState
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.invocation.GradleLifecycle
 import org.gradle.api.plugins.ExtensionContainer
@@ -127,15 +127,11 @@ abstract class MutableStateAccessAwareGradle(
     // endregion immutable
 
     // region shouldNotBeUsed - internal methods that should not be called through the wrapper
-    override fun setRootProject(rootProject: ProjectInternal) {
+    override fun setDefaultProjectState(defaultProject: ProjectState) {
         shouldNotBeUsed()
     }
 
     override fun getOwner(): BuildState {
-        shouldNotBeUsed()
-    }
-
-    override fun setDefaultProject(defaultProject: ProjectInternal) {
         shouldNotBeUsed()
     }
 
@@ -173,7 +169,12 @@ abstract class MutableStateAccessAwareGradle(
     // endregion shouldNotBeUsed
 
     // region mutable state - report + delegate
-    override fun getRootProject(): ProjectInternal {
+    override fun getDefaultProjectState(): ProjectState {
+        onMutableStateAccess("getDefaultProjectState")
+        return delegate.defaultProjectState
+    }
+
+    override fun getRootProject(): Project {
         onMutableStateAccess("getRootProject")
         return delegate.getRootProject()
     }
@@ -181,11 +182,6 @@ abstract class MutableStateAccessAwareGradle(
     override fun getTaskGraph(): TaskExecutionGraphInternal {
         onMutableStateAccess("getTaskGraph")
         return delegate.taskGraph
-    }
-
-    override fun getDefaultProject(): ProjectInternal {
-        onMutableStateAccess("getDefaultProject")
-        return delegate.getDefaultProject()
     }
 
     override fun getProjectEvaluationBroadcaster(): ProjectEvaluationListener {
