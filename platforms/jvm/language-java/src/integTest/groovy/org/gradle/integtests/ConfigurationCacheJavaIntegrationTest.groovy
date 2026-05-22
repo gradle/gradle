@@ -67,7 +67,7 @@ class ConfigurationCacheJavaIntegrationTest extends AbstractIntegrationSpec {
         new ZipTestFixture(jarFile).hasDescendants("META-INF/MANIFEST.MF")
 
         when:
-        run "clean"
+        run "clean", '--no-problems-report' // Otherwise build dir is not empty if deprecations are emitted
 
         then:
         assertStateStored()
@@ -108,7 +108,7 @@ class ConfigurationCacheJavaIntegrationTest extends AbstractIntegrationSpec {
         new ZipTestFixture(jarFile).hasDescendants("META-INF/MANIFEST.MF")
 
         when:
-        run "clean"
+        run "clean", '--no-problems-report' // Otherwise build dir is not empty if deprecations are emitted
 
         then:
         assertStateStored()
@@ -150,7 +150,7 @@ class ConfigurationCacheJavaIntegrationTest extends AbstractIntegrationSpec {
         new ZipTestFixture(jarFile).hasDescendants("META-INF/MANIFEST.MF", "Thing.class")
 
         when:
-        run "clean"
+        run "clean", '--no-problems-report' // Otherwise build dir is not empty if deprecations are emitted
 
         then:
         assertStateStored()
@@ -200,14 +200,14 @@ class ConfigurationCacheJavaIntegrationTest extends AbstractIntegrationSpec {
         buildDir.mkdirs()
 
         expect:
-        run "clean"
+        run "clean", '--no-problems-report' // Otherwise build dir is not empty if deprecations are emitted
         assertStateStored()
         result.assertTasksScheduled(":clean")
         !buildDir.exists()
 
         when:
         buildDir.mkdirs()
-        run "clean"
+        run "clean", '--no-problems-report' // Otherwise build dir is not empty if deprecations are emitted
 
         then:
         assertStateLoaded()
@@ -241,7 +241,7 @@ class ConfigurationCacheJavaIntegrationTest extends AbstractIntegrationSpec {
         new ZipTestFixture(jarFile).hasDescendants("META-INF/MANIFEST.MF", "Thing.class", "answer.txt", "META-INF/some.Service")
 
         when:
-        run "clean"
+        run "clean", '--no-problems-report' // Otherwise build dir is not empty if deprecations are emitted
 
         then:
         assertStateStored()
@@ -443,7 +443,7 @@ class ConfigurationCacheJavaIntegrationTest extends AbstractIntegrationSpec {
         assertTestsExecuted("ThingTest", "ok")
 
         when:
-        run "clean"
+        run "clean", '--no-problems-report' // Otherwise build dir is not empty if deprecations are emitted
 
         then:
         assertStateStored()

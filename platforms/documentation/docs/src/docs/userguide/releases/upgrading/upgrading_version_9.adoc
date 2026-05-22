@@ -42,6 +42,26 @@ The previous step will help you identify potential problems by issuing deprecati
 [[v9_deprecations_9_6]]
 === Deprecations
 
+[[minimum_daemon_jvm_version]]
+==== Running Gradle on older JVMs
+
+Starting in Gradle 10, Gradle will require JVM 21 or later to run. Most Gradle APIs will be compiled to target JVM 21 bytecode.
+
+Gradle will continue to support compiling Java code to target JVM version 6 or later.
+The <<building_java_projects.adoc#sec:java_cross_compilation,target JVM version>> of the compiled code can be configured separately from the JVM version used to run the Gradle daemon.
+Only the Gradle daemon will require JVM 21 or later.
+
+Gradle clients can be configured to run Gradle the Gradle daemon with a different JVM version than the one used to run the client:
+
+- Using <<gradle_daemon#sec:daemon_jvm_criteria,Daemon JVM criteria>>
+- Setting the `org.gradle.java.home` <<build_environment.adoc#sec:gradle_configuration_properties,Gradle property>>
+- Using the link:{javadocPath}/org/gradle/tooling/ConfigurableLauncher.html#setJavaHome(java.io.File)[ConfigurableLauncher#setJavaHome] method on the Tooling API
+
+Alternatively, the `JAVA_HOME` environment variable can be set to a JVM 21 or newer, which will run both the client and daemon with the same version of the JVM.
+
+Running Gradle builds with <<gradle_daemon#sec:disabling_the_daemon,--no-daemon>> or using link:{javadocPath}/org/gradle/testfixtures/ProjectBuilder.html[ProjectBuilder] in tests will require JVM version 21 or later.
+The worker API will remain compatible with JVM 8, and running JVM tests will continue to support JVM 8.
+
 [[deprecated_develocity_plugin_pre_4_0]]
 ==== Develocity plugin versions before 4.0 are no longer supported in Gradle 10
 
