@@ -24,6 +24,8 @@ import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheRe
 import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheFixture
 import spock.lang.Issue
 
+import static org.gradle.internal.cc.impl.SupersetIndexKt.SUPERSET_INDEX_DIR_NAME
+
 class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
 
     def "configuration cache is out of incubation"() {
@@ -342,18 +344,30 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
         then:
         configurationCache.assertStateStored()
 
-        when:
-        // Delete every entry directory under the CC root, but keep the superset-index/ dir.
+        when: 'the entry directory is removed out from under the index, but the index dir survives'
         def ccRoot = new File(testDirectory, ".gradle/configuration-cache")
         ccRoot.eachDir { dir ->
-            if (dir.name != "superset-index") {
+            if (dir.name != SUPERSET_INDEX_DIR_NAME) {
                 dir.deleteDir()
             }
         }
         configurationCacheRun "a"
 
-        then:
+        then: 'self-heal kicks in: stale row dropped, cold-store at a fresh fullKey'
         configurationCache.assertStateStored()
+
+        and: 'the index file now holds exactly one entry — the stale row was evicted, not just skipped in-memory'
+        // SupersetIndexFile binary layout: 4-byte magic, 4-byte version, 4-byte count.
+        // If self-heal didn't rewrite the file, the count would be 2 (orphan + new).
+        def indexFiles = new File(ccRoot, SUPERSET_INDEX_DIR_NAME).listFiles()
+        indexFiles.size() == 1
+        java.nio.ByteBuffer.wrap(indexFiles[0].bytes, 8, 4).getInt() == 1
+
+        when: 'the next run for the same request hits exactly against the just-stored fresh entry'
+        configurationCacheRun "a"
+
+        then: 'no second cold-store — the new entry survived being committed to disk and indexed'
+        configurationCache.assertStateLoaded()
     }
 
     def "task arguments disable superset matching"() {
@@ -379,6 +393,97 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
 
         then:
         configurationCache.assertStateStored()
+    }
+
+    def "task exclusion (-x foo) disables superset matching"() {
+        given:
+        // Lookup-side guard: any token starting with `-` short-circuits the superset path.
+        // `-x foo` is the exclusion form — affects scheduling in ways the index doesn't model.
+        def configurationCache = newConfigurationCacheFixture()
+        buildFile << """
+            ['a', 'b', 'c'].each { name ->
+                tasks.register(name) { doLast { println name } }
+            }
+        """
+
+        when: 'first store with -x to exclude :b'
+        configurationCacheRun "a", "b", "c", "-x", "b"
+
+        then:
+        configurationCache.assertStateStored()
+
+        when: 'subset request that would normally hit — but original CLI included a -x token, so the entry was not recorded as superset-discoverable; this request also contains no excluded-tokens of its own but cannot find the prior entry via index'
+        configurationCacheRun "a"
+
+        then:
+        configurationCache.assertStateStored()
+    }
+
+    def "stored entry whose CLI contained a '-'-prefixed token is not findable as a superset"() {
+        given:
+        // Record-side guard in `recordEnvironmentKeyForCacheKey`: an entry whose CLI included
+        // a `-`-prefixed token is not added to the superset index. The entry still works as
+        // a regular CC exact-key match, but won't surface as a superset for future requests.
+        def configurationCache = newConfigurationCacheFixture()
+        buildFile << """
+            ['a', 'b', 'c'].each { name ->
+                tasks.register(name) { doLast { println name } }
+            }
+        """
+
+        when: 'first store includes --rerun — index recording skipped'
+        configurationCacheRun "a", "b", "c", "--rerun"
+
+        then:
+        configurationCache.assertStateStored()
+
+        when: 'subset request — would hit the [a, b, c] entry if it had been indexed, but the recording-side guard kept it out of the index'
+        configurationCacheRun "a"
+
+        then:
+        configurationCache.assertStateStored()
+
+        when: 'exact-match repeat of the original (no superset lookup involved) — regular CC fingerprint match still works'
+        configurationCacheRun "a", "b", "c", "--rerun"
+
+        then:
+        configurationCache.assertStateLoaded()
+    }
+
+    def "empty CLI (project defaults) does not superset-match against any stored entry"() {
+        given:
+        // Pins the defensive-depth empty-CLI guard in `findCacheEntry`. If the guard
+        // regresses, an empty `requestedDistinct` is a subsequence of every stored cliTokens
+        // list — so the lookup would happily pick a non-empty stored entry, prune ALL its
+        // tasks (none are in the empty request), and load an empty plan. Default tasks
+        // would silently not run.
+        def configurationCache = newConfigurationCacheFixture()
+        buildFile << """
+            ['a', 'b', 'c', 'd'].each { name ->
+                tasks.register(name) { doLast { println name } }
+            }
+            defaultTasks 'd'
+        """
+
+        when: 'first store: an explicit CLI request unrelated to the default tasks'
+        configurationCacheRun "a", "b", "c"
+
+        then:
+        configurationCache.assertStateStored()
+
+        when: 'second run with no CLI args — project defaults resolve to :d'
+        configurationCacheRun()
+
+        then: 'cold-stores a fresh entry; the empty-CLI guard prevented unsafe superset match against [a, b, c]'
+        configurationCache.assertStateStored()
+        result.assertTasksExecuted(":d")
+
+        when: 'third run with no CLI args — regular CC exact-key match (not superset) reuses the entry from the previous run'
+        configurationCacheRun()
+
+        then:
+        configurationCache.assertStateLoaded()
+        result.assertTasksExecuted(":d")
     }
 
     def "different environment keys cannot superset-match"() {
@@ -521,6 +626,104 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
 
         then:
         // Exact match still works for flagged entries.
+        configurationCache.assertStateLoaded()
+    }
+
+    def "deprecated beforeTask Action flags entry as superset-ineligible"() {
+        given:
+        // The deprecated beforeTask path is itself a CC violation (`--configuration-cache-problems=warn`
+        // demotes it to a warning so we can observe the flag-flipping behavior). It still calls
+        // `notifyListenerRegistration`, which routes through TaskGraphListenerRegistrationTracker
+        // and flips the flag the same way whenReady does. Pinned here so a future cleanup of the
+        // deprecated path doesn't silently drop the broadcast.
+        def configurationCache = newConfigurationCacheFixture()
+        buildFile << """
+            ['a', 'b', 'c'].each { name ->
+                tasks.register(name) { doLast { println name } }
+            }
+            gradle.taskGraph.beforeTask { task -> /* noop */ }
+        """
+
+        when:
+        configurationCacheRun "a", "b", "c", "--configuration-cache-problems=warn"
+
+        then:
+        configurationCache.assertStateStored()
+
+        when: 'subset request — entry should be flagged, no superset reuse'
+        configurationCacheRun "a", "--configuration-cache-problems=warn"
+
+        then:
+        configurationCache.assertStateStored()
+
+        when: 'exact match against the flagged entry still loads'
+        configurationCacheRun "a", "b", "c", "--configuration-cache-problems=warn"
+
+        then:
+        configurationCache.assertStateLoaded()
+    }
+
+    def "deprecated afterTask Action flags entry as superset-ineligible"() {
+        given:
+        def configurationCache = newConfigurationCacheFixture()
+        buildFile << """
+            ['a', 'b', 'c'].each { name ->
+                tasks.register(name) { doLast { println name } }
+            }
+            gradle.taskGraph.afterTask { task -> /* noop */ }
+        """
+
+        when:
+        configurationCacheRun "a", "b", "c", "--configuration-cache-problems=warn"
+
+        then:
+        configurationCache.assertStateStored()
+
+        when:
+        configurationCacheRun "a", "--configuration-cache-problems=warn"
+
+        then:
+        configurationCache.assertStateStored()
+
+        when:
+        configurationCacheRun "a", "b", "c", "--configuration-cache-problems=warn"
+
+        then:
+        configurationCache.assertStateLoaded()
+    }
+
+    def "deprecated addTaskExecutionListener flags entry as superset-ineligible"() {
+        given:
+        def configurationCache = newConfigurationCacheFixture()
+        buildFile << """
+            import org.gradle.api.execution.TaskExecutionListener
+            import org.gradle.api.tasks.TaskState
+
+            ['a', 'b', 'c'].each { name ->
+                tasks.register(name) { doLast { println name } }
+            }
+            gradle.taskGraph.addTaskExecutionListener(new TaskExecutionListener() {
+                @Override void beforeExecute(Task t) {}
+                @Override void afterExecute(Task t, TaskState s) {}
+            })
+        """
+
+        when:
+        configurationCacheRun "a", "b", "c", "--configuration-cache-problems=warn"
+
+        then:
+        configurationCache.assertStateStored()
+
+        when:
+        configurationCacheRun "a", "--configuration-cache-problems=warn"
+
+        then:
+        configurationCache.assertStateStored()
+
+        when:
+        configurationCacheRun "a", "b", "c", "--configuration-cache-problems=warn"
+
+        then:
         configurationCache.assertStateLoaded()
     }
 

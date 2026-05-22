@@ -23,6 +23,19 @@ import java.io.File
 
 
 /**
+ * Name of the directory under the configuration-cache root that holds the
+ * superset-index binary files (one per environment key). Excluded from the
+ * daily LRU cleanup sweep — see `ConfigurationCacheRepository.cleanupEligibleFilesFinder`.
+ * <p>
+ * Public so out-of-module integ tests that incidentally encounter the CC
+ * cache layout (e.g. `CredentialsProviderIntegrationTest`,
+ * `ConfigurationCacheCompositeBuildsIntegrationTest`) can reference it as
+ * `SupersetIndexKt.SUPERSET_INDEX_DIR_NAME` instead of inlining the literal.
+ */
+const val SUPERSET_INDEX_DIR_NAME = "superset-index"
+
+
+/**
  * Pure selection logic for the superset index. No I/O — see [SupersetIndexFile] for persistence.
  */
 internal

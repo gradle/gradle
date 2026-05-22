@@ -289,7 +289,10 @@ class CredentialsProviderIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         succeeds 'finalTask'
-        def configurationCacheDirs = file('.gradle/configuration-cache/').listFiles().findAll { it.isDirectory() && it.name != 'index' }
+        // 'superset-index' literal kept in sync with `SUPERSET_INDEX_DIR_NAME` in
+        // platforms/core-configuration/configuration-cache/src/main/kotlin/org/gradle/internal/cc/impl/SupersetIndex.kt
+        // — this subproject can't depend on configuration-cache, so the constant is duplicated.
+        def configurationCacheDirs = file('.gradle/configuration-cache/').listFiles().findAll { it.isDirectory() && it.name != 'superset-index' }
         configurationCacheDirs.size() == 2
         def configurationCacheFiles = configurationCacheDirs[0].listFiles()
         configurationCacheFiles.each {

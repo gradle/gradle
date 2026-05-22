@@ -154,9 +154,7 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
 
     @Override
     public void addTaskExecutionGraphListener(TaskExecutionGraphListener listener) {
-        TaskExecutionGraphListener decorated = decorateListener("TaskExecutionGraph.addTaskExecutionGraphListener", listener);
-        notifyListenerRegistration("TaskExecutionGraph.addTaskExecutionGraphListener", decorated);
-        graphListeners.add(decorated);
+        decorateAndRegisterListener("TaskExecutionGraph.addTaskExecutionGraphListener", listener);
     }
 
     private TaskExecutionGraphListener decorateListener(String registrationPoint, TaskExecutionGraphListener listener) {
@@ -165,6 +163,28 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
             TaskExecutionGraphListener.class,
             listener
         );
+    }
+
+    /**
+     * Broadcasts the listener-registration to BuildScopeListenerRegistrationListener
+     * implementations (notably the CC's TaskGraphListenerRegistrationTracker, which
+     * flips the "task graph accessed" flag for superset matching) and then adds the
+     * listener to the local fan-out collection. See the comment block in
+     * {@link #whenReady(Closure)} for why the broadcast payload must be a
+     * TaskExecutionGraphListener instance.
+     */
+    private void registerListener(String registrationPoint, TaskExecutionGraphListener listener) {
+        notifyListenerRegistration(registrationPoint, listener);
+        graphListeners.add(listener);
+    }
+
+    /**
+     * Wraps {@link #decorateListener} + {@link #registerListener} — the common
+     * three-step "decorate, broadcast, add" path shared by
+     * {@link #addTaskExecutionGraphListener} and {@link #whenReady(Action)}.
+     */
+    private void decorateAndRegisterListener(String registrationPoint, TaskExecutionGraphListener listener) {
+        registerListener(registrationPoint, decorateListener(registrationPoint, listener));
     }
 
     @Override
@@ -208,15 +228,15 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
                 decoratedClosure.call(graph);
             }
         };
-        notifyListenerRegistration("TaskExecutionGraph.whenReady", listener);
-        graphListeners.add(listener);
+        // Closure has already been through listenerBuildOperationDecorator above; the
+        // listener lambda is the broadcast payload as-is. Skip `decorateAndRegisterListener`
+        // — that would double-decorate.
+        registerListener("TaskExecutionGraph.whenReady", listener);
     }
 
     @Override
     public void whenReady(final Action<TaskExecutionGraph> action) {
-        TaskExecutionGraphListener decorated = decorateListener("TaskExecutionGraph.whenReady", action::execute);
-        notifyListenerRegistration("TaskExecutionGraph.whenReady", decorated);
-        graphListeners.add(decorated);
+        decorateAndRegisterListener("TaskExecutionGraph.whenReady", action::execute);
     }
 
     @Override

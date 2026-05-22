@@ -170,11 +170,9 @@ class DefaultConfigurationCache internal constructor(
      */
     private
     val compatibleEntry: CompatibleEntry? by lazy {
-        // Empty CLI = project defaults; without running configuration we don't know
-        // what those resolve to, and an empty list is trivially a subsequence of every
-        // stored entry. Skip the superset path; the build cold-stores at cacheKey.string.
-        // Bare-vs-absolute ambiguity is handled inside the index via verbatim CLI
-        // matching — no canonicalization needed here.
+        // The empty-CLI short-circuit (project defaults — unknown without running configuration)
+        // is enforced inside `findCacheEntry` for defensive depth. The early-return here is
+        // kept as a fast-path that avoids the file-lock + index-file open for the common case.
         if (startParameter.requestedTaskNames.isEmpty()) return@lazy null
         cacheRepository.findCacheEntry(environmentKey, startParameter.requestedTaskNames)
     }
@@ -508,12 +506,12 @@ class DefaultConfigurationCache internal constructor(
         val scheduled = deferredRootBuildGradle.gradle.taskGraph.collectScheduledWork()
         entryTaskIdentityPaths = scheduled.entryNodes
             .filterIsInstance<org.gradle.execution.plan.LocalTaskNode>()
-            .map { it.task.identityPath.toString() }
+            .map { it.task.identityPath.asString() }
         scheduledLocalTaskNodes = scheduled.scheduledNodes
             .filterIsInstance<org.gradle.execution.plan.LocalTaskNode>()
         val mraEdges = mutableMapOf<String, List<String>>()
         for (node in scheduledLocalTaskNodes) {
-            val id = node.task.identityPath.toString()
+            val id = node.task.identityPath.asString()
             collectOrderingTargets(node).takeIf { it.isNotEmpty() }?.let { mraEdges[id] = it }
         }
         mustRunAfterEdges = mraEdges

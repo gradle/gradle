@@ -78,8 +78,16 @@ class ConfigurationCacheRepository(
      * Among ties of the smallest size, the most recently accessed entry directory
      * wins (LRU via `fileAccessTimeJournal`).
      * <p>
-     * If any token in [requestedTasks] starts with `-` (task argument or exclusion
-     * like `-x foo`), the lookup short-circuits to `null` and the caller falls back
+     * If [requestedCliTokens] is empty (project-defaults invocation — `gradle` with
+     * no tasks), the lookup short-circuits to `null` — what the defaults resolve to
+     * isn't known without running configuration, and `SupersetIndexLookup.selectBestMatch`
+     * treats an empty request as a subsequence of every stored entry (would always
+     * spuriously match). The guard lives here at the repository boundary so the
+     * unsafe shape of `selectBestMatch` can't be reached even if a future caller
+     * forgets to short-circuit.
+     * <p>
+     * If any token in [requestedCliTokens] starts with `-` (task argument or exclusion
+     * like `-x foo`), the lookup also short-circuits to `null` and the caller falls back
      * to the exact-match path — task arguments and exclusions affect scheduling in
      * ways the index doesn't model.
      * <p>
@@ -98,6 +106,13 @@ class ConfigurationCacheRepository(
         environmentKey: ConfigurationCacheEnvironmentKey,
         requestedCliTokens: List<String>
     ): CompatibleEntry? {
+        // Empty-request guard: project-defaults invocations resolve at config time, not lookup
+        // time. Also makes the unsafe shape of `selectBestMatch` (empty request matches every
+        // entry as a subsequence) unreachable from this entry point.
+        if (requestedCliTokens.isEmpty()) {
+            logger.debug("Superset index lookup skipped: empty requested-task list (project defaults are unknown at lookup time).")
+            return null
+        }
         // Args/exclusion guard: any token starting with '-' falls back to exact-match path.
         if (requestedCliTokens.any { it.startsWith("-") }) {
             logger.debug("Superset index lookup skipped: request {} contains a '-'-prefixed token (task argument / exclusion).", requestedCliTokens)
@@ -604,7 +619,6 @@ class ConfigurationCacheRepository(
 
     private companion object {
         private val logger = Logging.getLogger(ConfigurationCacheRepository::class.java)
-        private const val SUPERSET_INDEX_DIR_NAME = "superset-index"
     }
 }
 
