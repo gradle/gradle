@@ -16,17 +16,20 @@
 
 package org.gradle.tooling.provider.model.internal;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.internal.project.ProjectState;
-import org.gradle.internal.Cast;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildToolingModelController;
 import org.gradle.internal.buildtree.IntermediateBuildActionRunner;
 import org.gradle.internal.buildtree.ToolingModelRequestContext;
+import org.gradle.internal.operations.MultipleBuildOperationFailures;
+import org.gradle.internal.problems.failure.FailureFactory;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Supplier;
@@ -39,57 +42,87 @@ public class DefaultIntermediateToolingModelProvider implements IntermediateTool
     private final IntermediateBuildActionRunner actionRunner;
     private final ToolingModelParameterCarrier.Factory parameterCarrierFactory;
     private final ToolingModelProjectDependencyListener projectDependencyListener;
+    private final FailureFactory failureFactory;
 
     public DefaultIntermediateToolingModelProvider(
         IntermediateBuildActionRunner actionRunner,
         ToolingModelParameterCarrier.Factory parameterCarrierFactory,
-        ToolingModelProjectDependencyListener projectDependencyListener
+        ToolingModelProjectDependencyListener projectDependencyListener,
+        FailureFactory failureFactory
     ) {
         this.actionRunner = actionRunner;
         this.parameterCarrierFactory = parameterCarrierFactory;
         this.projectDependencyListener = projectDependencyListener;
+        this.failureFactory = failureFactory;
     }
 
     @Override
     public <T> List<T> getModels(ProjectState requester, List<ProjectState> targets, String modelName, Class<T> modelType, @Nullable Object parameter) {
-        if (targets.isEmpty()) {
-            return Collections.emptyList();
-        }
+        ToolingModelRequestContext context = new ToolingModelRequestContext(modelName, parameter, false);
+        return unwrapOrRethrow(fetchResults(requester, targets, context), modelType);
+    }
 
-        List<Object> rawModels = fetchModels(requester, targets, modelName, parameter);
-        return ensureModelTypes(modelType, rawModels);
+    @Override
+    public List<ToolingModelBuilderResultInternal> getModelsAllowingFailures(ProjectState requester, List<ProjectState> targets, Class<?> modelType, @Nullable Object parameter) {
+        ToolingModelRequestContext context = new ToolingModelRequestContext(modelType.getName(), parameter, true);
+        return fetchResults(requester, targets, context);
     }
 
     @Override
     public <P extends Plugin<Project>> void applyPlugin(ProjectState requester, List<ProjectState> targets, Class<P> pluginClass) {
-        List<Object> rawModels = fetchModels(requester, targets, PluginApplyingBuilder.MODEL_NAME, createPluginApplyingParameter(pluginClass));
-        ensureModelTypes(Boolean.class, rawModels);
+        getModels(requester, targets, PluginApplyingBuilder.MODEL_NAME, Boolean.class, createPluginApplyingParameter(pluginClass));
     }
 
     private static <P extends Plugin<Project>> PluginApplyingParameter createPluginApplyingParameter(Class<P> pluginClass) {
         return () -> pluginClass;
     }
 
-    private List<Object> fetchModels(ProjectState requester, List<ProjectState> targets, String modelName, @Nullable Object parameter) {
+    private List<ToolingModelBuilderResultInternal> fetchResults(ProjectState requester, List<ProjectState> targets, ToolingModelRequestContext context) {
+        if (targets.isEmpty()) {
+            return Collections.emptyList();
+        }
         reportToolingModelDependencies(requester, targets);
         BuildState buildState = extractSingleBuildState(targets);
-        ToolingModelParameterCarrier carrier = parameter == null ? null : parameterCarrierFactory.createCarrier(parameter);
-        return buildState.withToolingModels(false, controller -> getModels(controller, targets, modelName, carrier));
+        return buildState.withToolingModels(context.inResilientContext(), controller -> fanOut(controller, targets, context));
     }
 
-    private List<Object> getModels(BuildToolingModelController controller, List<ProjectState> targets, String modelName, @Nullable ToolingModelParameterCarrier parameter) {
-        List<Supplier<Object>> fetchActions = targets.stream()
-            .map(targetProject -> (Supplier<Object>) () -> fetchModel(modelName, controller, targetProject, parameter))
+    private List<ToolingModelBuilderResultInternal> fanOut(BuildToolingModelController controller, List<ProjectState> targets, ToolingModelRequestContext context) {
+        ToolingModelParameterCarrier carrier = context.getParameter().map(parameterCarrierFactory::createCarrier).orElse(null);
+        List<Supplier<ToolingModelBuilderResultInternal>> fetchActions = targets.stream()
+            .map(target -> (Supplier<ToolingModelBuilderResultInternal>) () -> {
+                try {
+                    return controller.locateBuilderForTarget(target, context).getModel(context, carrier);
+                } catch (Throwable t) {
+                    // Safety net for an unexpected throw; the resilient controller normally
+                    // captures configuration failures into the result wrapper itself.
+                    return ToolingModelBuilderResultInternal.of(ImmutableList.of(failureFactory.create(t)));
+                }
+            })
             .collect(toList());
 
-        return runFetchActions(fetchActions);
+        return actionRunner.run(fetchActions);
     }
 
-    @Nullable
-    private static Object fetchModel(String modelName, BuildToolingModelController controller, ProjectState builderTarget, @Nullable ToolingModelParameterCarrier parameter) {
-        ToolingModelRequestContext toolingModelContext = new ToolingModelRequestContext(modelName, parameter, false);
-        ToolingModelScope toolingModelScope = controller.locateBuilderForTarget(builderTarget, toolingModelContext);
-        return toolingModelScope.getModel(toolingModelContext, parameter).getModel();
+    private static <T> List<T> unwrapOrRethrow(List<ToolingModelBuilderResultInternal> results, Class<T> modelType) {
+        List<T> typed = new ArrayList<>(results.size());
+        List<Throwable> failures = new ArrayList<>();
+        for (ToolingModelBuilderResultInternal result : results) {
+            Object model = result.getModel();
+            if (model == null) {
+                if (result.getFailures().isEmpty()) {
+                    failures.add(new IllegalStateException("Expected model of type " + modelType.getName() + " but found null"));
+                }
+            } else if (!modelType.isInstance(model)) {
+                failures.add(new IllegalStateException("Expected model of type " + modelType.getName() + " but found " + model.getClass().getName()));
+            } else {
+                typed.add(modelType.cast(model));
+            }
+            result.getFailures().forEach(f -> failures.add(f.getOriginal()));
+        }
+        if (!failures.isEmpty()) {
+            throw new MultipleBuildOperationFailures(failures, null);
+        }
+        return typed;
     }
 
     private static BuildState extractSingleBuildState(List<ProjectState> targets) {
@@ -109,23 +142,6 @@ public class DefaultIntermediateToolingModelProvider implements IntermediateTool
         }
 
         return result;
-    }
-
-    private static <T> List<T> ensureModelTypes(Class<T> implementationType, List<Object> rawModels) {
-        for (Object rawModel : rawModels) {
-            if (rawModel == null) {
-                throw new IllegalStateException(String.format("Expected model of type %s but found null", implementationType.getName()));
-            }
-            if (!implementationType.isInstance(rawModel)) {
-                throw new IllegalStateException(String.format("Expected model of type %s but found %s", implementationType.getName(), rawModel.getClass().getName()));
-            }
-        }
-
-        return Cast.uncheckedCast(rawModels);
-    }
-
-    private <T> List<T> runFetchActions(List<Supplier<T>> actions) {
-        return actionRunner.run(actions);
     }
 
     private void reportToolingModelDependencies(ProjectState requester, List<ProjectState> targets) {

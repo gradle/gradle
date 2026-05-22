@@ -58,6 +58,7 @@ import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptModel
 import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptsModel
 import org.gradle.tooling.provider.model.ToolingModelBuilder
 import org.gradle.tooling.provider.model.internal.IntermediateToolingModelProvider
+import org.gradle.tooling.provider.model.internal.ToolingModelBuilderResultInternal
 import java.io.File
 
 
@@ -189,10 +190,17 @@ fun buildScriptModelsInHierarchy(
 
     fun visitChildren(projectState: ProjectState, parentSourcePath: ClassPath) {
         val children = projectState.childProjects.toList()
-        val childrenModels = intermediateModelProvider.getIsolatedModels(projectState, children)
-        childrenModels.zip(children).forEach { (model, child) ->
-            collect(model, parentSourcePath)
-            visitChildren(child, parentSourcePath + model.buildScriptSourcePath)
+        val childrenResults = intermediateModelProvider.getIsolatedModels(projectState, children)
+        childrenResults.zip(children).forEach { (result, child) ->
+            for (failure in result.failures) {
+                val original = failure.original
+                classPathModeExceptionCollector.collect(original as? Exception ?: RuntimeException(original))
+            }
+            val model = result.model as? IsolatedScriptsModel
+            if (model != null) {
+                collect(model, parentSourcePath)
+                visitChildren(child, parentSourcePath + model.buildScriptSourcePath)
+            }
         }
     }
 
@@ -206,8 +214,8 @@ fun buildScriptModelsInHierarchy(
 
 
 private
-fun IntermediateToolingModelProvider.getIsolatedModels(requester: ProjectState, targets: List<ProjectState>): List<IsolatedScriptsModel> =
-    getModels(requester, targets, IsolatedScriptsModel::class.java, null)
+fun IntermediateToolingModelProvider.getIsolatedModels(requester: ProjectState, targets: List<ProjectState>): List<ToolingModelBuilderResultInternal> =
+    getModelsAllowingFailures(requester, targets, IsolatedScriptsModel::class.java, null)
 
 
 private

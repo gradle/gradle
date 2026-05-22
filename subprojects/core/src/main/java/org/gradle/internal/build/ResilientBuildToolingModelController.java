@@ -41,9 +41,10 @@ import static com.google.common.base.Preconditions.checkArgument;
 
 public class ResilientBuildToolingModelController extends DefaultBuildToolingModelController {
 
-    private static final Set<String> RESILIENT_MODELS = ImmutableSet.of(
-        // TODO: Is there a better way to identify resilient models?
-        "org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptsModel"
+    private static final Set<String> MODELS_ALLOWED_TO_RUN_FOR_PARTIALLY_CONFIGURED_PROJECTS = ImmutableSet.of(
+        // TODO: Is there a better way to identify such models?
+        "org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptsModel",
+        "org.gradle.kotlin.dsl.tooling.builders.internal.IsolatedScriptsModel"
     );
 
     private final FailureFactory failureFactory;
@@ -113,7 +114,7 @@ public class ResilientBuildToolingModelController extends DefaultBuildToolingMod
 
     private static boolean canRunEvenIfProjectNotFullyConfigured(String modelName) {
         // Some internal model builders can run even if the project is not fully configured.
-        return RESILIENT_MODELS.contains(modelName);
+        return MODELS_ALLOWED_TO_RUN_FOR_PARTIALLY_CONFIGURED_PROJECTS.contains(modelName);
     }
 
     private static List<Failure> getConfigurationFailure(FailureFactory failureFactory, Try<Void> configuration) {

@@ -31,7 +31,6 @@ import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptModel
 import org.gradle.util.GradleVersion
 import org.gradle.util.internal.ToBeImplemented
 import org.junit.Assume
-import spock.lang.Ignore
 
 import java.util.function.Function
 import java.util.regex.Pattern
@@ -352,11 +351,6 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends KotlinDslPlu
         "with isolated projects"   | IP_FLAGS
     }
 
-    // TODO: With IP enabled, when one subproject fails, the IP model builder
-    // throws and discards ALL successfully-built sibling models. See
-    // IntermediateBuildActionRunner.run line 81 (throws MultipleBuildOperationFailures)
-    // and IsolatedProjectsSafeKotlinDslScriptsModelBuilder.visitChildren.
-    @Ignore("IP partial-result handling: failing subproject discards all sibling scripts")
     def "#description failure in main build subproject: resilient model is equal to non-resilient model except accessors with #queryStrategy #mode"() {
         given:
         skipIfIpNotSupported(extraGradleProperties)
@@ -411,14 +405,8 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends KotlinDslPlu
         for (File scriptFile : original.scriptModels.keySet()) {
             def modelAssert = new ComparingModelAssert(scriptFile, resilientModels, original)
             modelAssert.assertBothModelsExist()
-            if (scriptFile == d) {
-                // In this case we don't have accessors in the classpath
-                modelAssert.assertClassPathsAreEqualIfIgnoringSomeOriginalEntries { !it.contains("/accessors/") }
-                modelAssert.assertImplicitImportsAreEqualIgnoringAccessors()
-            } else {
-                modelAssert.assertClassPathsAreEqualIfIgnoringSomeEntries { !it.contains("/accessors/") }
-                modelAssert.assertImplicitImportsAreEqualIgnoringAccessors()
-            }
+            modelAssert.assertClassPathsAreEqualIfIgnoringSomeEntries { !it.contains("/accessors/") }
+            modelAssert.assertImplicitImportsAreEqualIgnoringAccessors()
         }
         resilientModels.failures.size() == 1
         expectFailureToContain(resilientModels.failures[settingsKotlinFile.parentFile], "c" + File.separatorChar + "build.gradle.kts' line: 5")
@@ -436,10 +424,6 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends KotlinDslPlu
         "script compilation fails" | "broken !!!"                                 | "broken !!!"     | INCLUDED_BUILDS_FIRST  | "with isolated projects" | IP_FLAGS
     }
 
-    // TODO: With IP enabled, when a subproject using a failing convention plugin fails to configure,
-    // the IP model builder discards ALL main-build scripts (only build-logic scripts survive).
-    // Same root cause: IntermediateBuildActionRunner.run line 81.
-    @Ignore("IP partial-result handling: convention-plugin failure discards main-build scripts")
     def "runtime failure in project convention plugin: resilient model is equal to non-resilient model except accessors and build-logic jar #queryStrategy #mode"() {
         given:
         skipIfIpNotSupported(extraGradleProperties)
@@ -519,9 +503,6 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends KotlinDslPlu
                 modelAssert.assertResilientModelContainsClassPathEntriesWithPath("/accessors/")
                 modelAssert.assertResilientModelContainsClassPathEntriesWithPath("/build-logic.jar")
                 modelAssert.assertImplicitImportsAreEqualIgnoringAccessors()
-            } else if (scriptFile == c) {
-                modelAssert.assertClassPathsAreEqualIfIgnoringSomeOriginalEntries { !it.contains("/accessors/") }
-                modelAssert.assertImplicitImportsAreEqualIgnoringAccessors()
             } else {
                 modelAssert.assertClassPathsAreEqualIfIgnoringSomeEntries { !it.contains("/accessors/") }
                 modelAssert.assertImplicitImportsAreEqualIgnoringAccessors()
@@ -539,9 +520,6 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends KotlinDslPlu
         INCLUDED_BUILDS_FIRST  | "with isolated projects" | IP_FLAGS
     }
 
-    // TODO: Same root cause as the runtime-failure variant above: a configuration failure
-    // in one subproject discards the entire main-build script collection under IP.
-    @Ignore("IP partial-result handling: convention-plugin failure discards main-build scripts")
     def "compilation failure in project convention plugin: resilient model is equal to non-resilient model except accessors and build-logic jar #queryStrategy #mode"() {
         given:
         skipIfIpNotSupported(extraGradleProperties)
@@ -618,10 +596,6 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends KotlinDslPlu
             if (scriptFile == b) {
                 // In this case we don't have accessors and build-logic in the classpath
                 modelAssert.assertClassPathsAreEqualIfIgnoringSomeOriginalEntries { !it.contains("/accessors/") && !it.contains("/build-logic.jar") }
-                modelAssert.assertImplicitImportsAreEqualIgnoringAccessors()
-            } else if (scriptFile == c) {
-                // In this case we don't have accessors, since this project is not configured
-                modelAssert.assertClassPathsAreEqualIfIgnoringSomeOriginalEntries { !it.contains("/accessors/") }
                 modelAssert.assertImplicitImportsAreEqualIgnoringAccessors()
             } else {
                 modelAssert.assertClassPathsAreEqualIfIgnoringSomeEntries { !it.contains("/accessors/") }
