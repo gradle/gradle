@@ -28,7 +28,9 @@ import org.gradle.tooling.BuildException
 import org.gradle.tooling.IntermediateResultHandler
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptModel
+import org.gradle.util.GradleVersion
 import org.gradle.util.internal.ToBeImplemented
+import org.junit.Assume
 import spock.lang.Ignore
 
 import java.util.function.Function
@@ -99,6 +101,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends KotlinDslPlu
 
     def "no failure build: resilient model is equal to non-resilient model #mode"() {
         given:
+        skipIfIpNotSupported(extraGradleProperties)
         settingsKotlinFile << """
             dependencyResolutionManagement {
                 repositories {
@@ -144,6 +147,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends KotlinDslPlu
 
     def "no failure in multi-project build: resilient model is equal to non-resilient model #mode"() {
         given:
+        skipIfIpNotSupported(extraGradleProperties)
         settingsKotlinFile << """
             rootProject.name = "root"
             include("a", "b", "c", "d")
@@ -203,6 +207,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends KotlinDslPlu
 
     def "compilation failure in project build script: settings and project scripts model is returned #mode"() {
         given:
+        skipIfIpNotSupported(extraGradleProperties)
         settingsKotlinFile << """
             dependencyResolutionManagement {
                 repositories {
@@ -239,6 +244,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends KotlinDslPlu
 
     def "compilation failure in project plugins block: settings and project scripts model is returned #mode"() {
         given:
+        skipIfIpNotSupported(extraGradleProperties)
         settingsKotlinFile << """
             rootProject.name = "root"
         """
@@ -268,6 +274,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends KotlinDslPlu
 
     def "compilation failure in included build project script body: root build and included build model is returned #mode"() {
         given:
+        skipIfIpNotSupported(extraGradleProperties)
         settingsKotlinFile << """
             rootProject.name = "root"
             includeBuild("included")
@@ -310,6 +317,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends KotlinDslPlu
 
     def "compilation failure in included build project plugins block: root build and included build model is returned #mode"() {
         given:
+        skipIfIpNotSupported(extraGradleProperties)
         settingsKotlinFile << """
             rootProject.name = "root"
             includeBuild("included")
@@ -351,6 +359,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends KotlinDslPlu
     @Ignore("IP partial-result handling: failing subproject discards all sibling scripts")
     def "#description failure in main build subproject: resilient model is equal to non-resilient model except accessors with #queryStrategy #mode"() {
         given:
+        skipIfIpNotSupported(extraGradleProperties)
         settingsKotlinFile << """
             rootProject.name = "root"
             include("a", "b", "c", "d")
@@ -433,6 +442,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends KotlinDslPlu
     @Ignore("IP partial-result handling: convention-plugin failure discards main-build scripts")
     def "runtime failure in project convention plugin: resilient model is equal to non-resilient model except accessors and build-logic jar #queryStrategy #mode"() {
         given:
+        skipIfIpNotSupported(extraGradleProperties)
         settingsKotlinFile << """
             rootProject.name = "root"
             include("a", "b", "c")
@@ -534,6 +544,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends KotlinDslPlu
     @Ignore("IP partial-result handling: convention-plugin failure discards main-build scripts")
     def "compilation failure in project convention plugin: resilient model is equal to non-resilient model except accessors and build-logic jar #queryStrategy #mode"() {
         given:
+        skipIfIpNotSupported(extraGradleProperties)
         settingsKotlinFile << """
             rootProject.name = "root"
             include("a", "b", "c")
@@ -632,6 +643,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends KotlinDslPlu
     @ToBeImplemented
     def "compilation failure in root settings: no model is returned #mode"() {
         given:
+        skipIfIpNotSupported(extraGradleProperties)
         settingsKotlinFile << """
             blow up !!!
         """
@@ -658,6 +670,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends KotlinDslPlu
     @ToBeImplemented
     def "compilation failure in included build settings script: no model is returned #mode"() {
         given:
+        skipIfIpNotSupported(extraGradleProperties)
         settingsKotlinFile << """
             rootProject.name = "root"
             includeBuild("included")
@@ -693,6 +706,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends KotlinDslPlu
 
     def "compilation failure in settings convention plugin: model is returned for included build but not for main build #mode"() {
         given:
+        skipIfIpNotSupported(extraGradleProperties)
         settingsKotlinFile << """
             pluginManagement {
                 includeBuild("build-logic")
@@ -756,6 +770,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends KotlinDslPlu
 
     def "resilient Kotlin DSL can be queried with null target #mode"() {
         given:
+        skipIfIpNotSupported(extraGradleProperties)
         settingsKotlinFile << """
             rootProject.name = "root"
         """
@@ -784,6 +799,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends KotlinDslPlu
 
     def "no resilient Kotlin DSL model is returned if settings fails with null target #mode"() {
         given:
+        skipIfIpNotSupported(extraGradleProperties)
         settingsKotlinFile << """
             broken !!!
         """
@@ -809,6 +825,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends KotlinDslPlu
 
     def "return partial model when compilation failure in buildSrc (#brokenFile) #mode"() {
         given:
+        skipIfIpNotSupported(extraGradleProperties)
         settingsKotlinFile << """
             rootProject.name = "root"
         """
@@ -906,6 +923,18 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends KotlinDslPlu
 
     KotlinModel originalModel(ProjectConnection conn, QueryStrategy queryStrategy, List<String> extraGradleProperties = NO_EXTRA_PROPERTIES) {
         return model(conn, false, queryStrategy, initScriptFile, modelCollector, extraGradleProperties)
+    }
+
+    // Call from the top of each test's given: block. Isolated Projects model fetching with
+    // failing projects relies on the partial-result-discard fix added in Gradle 9.6; older
+    // targets also trip other 9.5.0-specific bugs in resilient Kotlin DSL model building.
+    // The Assume must run before any succeeds {}/fails {} block, since those wrap thrown
+    // AssumptionViolatedExceptions into AssertionErrors.
+    private void skipIfIpNotSupported(List<String> extraGradleProperties) {
+        Assume.assumeFalse(
+            "Isolated Projects resilient Kotlin DSL model requires Gradle 9.6+ on the daemon side",
+            extraGradleProperties == IP_FLAGS && targetVersion.baseVersion < GradleVersion.version("9.6")
+        )
     }
 
     private static KotlinModel model(ProjectConnection conn, boolean resilient, QueryStrategy queryStrategy, File initScript, IntermediateResultHandler<KotlinModel> modelHandler, List<String> extraGradleProperties = NO_EXTRA_PROPERTIES) {
