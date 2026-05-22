@@ -43,7 +43,11 @@ public class ResilientBuildToolingModelController extends DefaultBuildToolingMod
 
     private static final Set<String> RESILIENT_MODELS = ImmutableSet.of(
         // TODO: Is there a better way to identify resilient models?
-        "org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptsModel"
+        "org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptsModel",
+        // The per-project model fetched by IsolatedProjectsSafeKotlinDslScriptsModelBuilder
+        // when aggregating across the project hierarchy. Must run even if another project in
+        // the build failed to configure, so we can return partial results for siblings.
+        "org.gradle.kotlin.dsl.tooling.builders.internal.IsolatedScriptsModel"
     );
 
     private final FailureFactory failureFactory;

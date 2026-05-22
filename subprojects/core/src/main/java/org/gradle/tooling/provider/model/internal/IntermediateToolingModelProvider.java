@@ -38,17 +38,27 @@ public interface IntermediateToolingModelProvider {
 
     /**
      * Fetches models of a given type for the given projects passing a parameter to the underlying builder.
+     * <p>
+     * Throws {@link org.gradle.internal.operations.MultipleBuildOperationFailures} if any target fails or
+     * produces a model of an unexpected type.
      */
     <T> List<T> getModels(ProjectState requester, List<ProjectState> targets, String modelName, Class<T> modelType, @Nullable Object parameter);
 
     /**
-     * Fetches models of a given type for the given projects passing a parameter to the underlying builder.
-     * <p>
-     * Model name to find the underlying builder is derived from the binary name of the {@code modelType}.
+     * Like {@link #getModels(ProjectState, List, String, Class, Object)}, with the model name derived
+     * from the binary name of {@code modelType}.
      */
     default <T> List<T> getModels(ProjectState requester, List<ProjectState> targets, Class<T> modelType, @Nullable Object parameter) {
         return getModels(requester, targets, modelType.getName(), modelType, parameter);
     }
+
+    /**
+     * Like {@link #getModels(ProjectState, List, String, Class, Object)}, but returns a per-target
+     * {@link ToolingModelBuilderResultInternal} so the caller can keep successful sibling models when
+     * individual targets fail. Each result carries the (possibly {@code null}) model and any attached
+     * failures. Intended for resilient model building.
+     */
+    List<ToolingModelBuilderResultInternal> getModelsAllowingFailures(ProjectState requester, List<ProjectState> targets, Class<?> modelType, @Nullable Object parameter);
 
     /**
      * Applies a plugin of a given type to the given projects.
