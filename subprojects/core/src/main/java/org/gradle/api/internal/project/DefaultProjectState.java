@@ -156,6 +156,20 @@ class DefaultProjectState implements ProjectState, Closeable {
     }
 
     @Override
+    public Set<ProjectState> getAllProjects() {
+        Set<ProjectState> result = new TreeSet<>(Comparator.comparing(ProjectState::getIdentityPath));
+        collectAllProjects(this, result);
+        return result;
+    }
+
+    private static void collectAllProjects(ProjectState project, Set<ProjectState> result) {
+        result.add(project);
+        for (ProjectState child : project.getUnorderedChildProjects()) {
+            collectAllProjects(child, result);
+        }
+    }
+
+    @Override
     public boolean hasChildren() {
         return !descriptor.getChildren().isEmpty();
     }
