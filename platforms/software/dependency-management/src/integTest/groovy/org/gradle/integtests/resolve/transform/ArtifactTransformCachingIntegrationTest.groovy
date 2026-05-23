@@ -2485,7 +2485,7 @@ resultsFile:
                         from.attribute(artifactType, "jar")
                         to.attribute(artifactType, "size")
                         parameters {
-                            value = paramValue
+                            value = rootProject.paramValue
                         }
                     }
                 }
@@ -2525,7 +2525,7 @@ resultsFile:
                     registerTransform(FileSizer) {
                         from.attribute(artifactType, "classes")
                         to.attribute(artifactType, "size")
-                        parameters { value = paramValue }
+                        parameters { value = rootProject.paramValue }
                     }
                 }
             }

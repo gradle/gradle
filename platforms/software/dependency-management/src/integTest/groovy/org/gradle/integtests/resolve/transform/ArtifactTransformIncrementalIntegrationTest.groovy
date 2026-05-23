@@ -211,12 +211,12 @@ class ArtifactTransformIncrementalIntegrationTest extends AbstractDependencyReso
         setupBuildWithColorTransform {
             produceDirs()
             params("""
-                addedFiles.set(provider { added })
-                modifiedFiles.set(provider { modified })
-                removedFiles.set(provider { removed })
-                incrementalExecution.set(provider { incremental })
-                incrementalExecution.set(provider { incremental })
-                registerNewOutput.set(provider { project.registerNewOutput })
+                addedFiles.set(provider { rootProject.added })
+                modifiedFiles.set(provider { rootProject.modified })
+                removedFiles.set(provider { rootProject.removed })
+                incrementalExecution.set(provider { rootProject.incremental })
+                incrementalExecution.set(provider { rootProject.incremental })
+                registerNewOutput.set(provider { rootProject.registerNewOutput })
             """)
         }
         buildFile << """

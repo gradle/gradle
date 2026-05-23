@@ -85,8 +85,9 @@ class IsolatedProjectsProblemReportingIntegrationTest extends AbstractIsolatedPr
             }
         """
         groovyFile "buildSrc/src/main/groovy/some-plugin.gradle", """
+            // Trigger an IP violation: a cross-project property access from a configuration action.
             tasks.named('help') {
-                foobar
+                project(':').version
             }
         """
         groovyFile "module/build.gradle",  """
@@ -99,9 +100,9 @@ class IsolatedProjectsProblemReportingIntegrationTest extends AbstractIsolatedPr
         isolatedProjectsDiagnosticsFails ':module:help'
 
         then:
-        failure.assertHasFailures(2)
+        failure.assertHasFailures(1)
         problems.assertFailureHasProblems(failure) {
-            withProblem("Plugin 'some-plugin': Project ':module' cannot dynamically look up a property in the parent project ':'")
+            withProblem("Plugin 'some-plugin': Project ':module' cannot access 'Project.version' functionality on another project ':'")
         }
         resolveConfigurationCacheReportDirectory(testDirectory.file(customBuildDir), failure.error)?.isDirectory()
     }
