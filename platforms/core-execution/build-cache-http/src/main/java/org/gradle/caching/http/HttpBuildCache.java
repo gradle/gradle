@@ -19,6 +19,7 @@ package org.gradle.caching.http;
 import org.gradle.api.Action;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
+import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.caching.configuration.AbstractBuildCache;
 import org.jspecify.annotations.Nullable;
@@ -135,6 +136,7 @@ public abstract class HttpBuildCache extends AbstractBuildCache {
      * @since 4.2
      * @deprecated Use {@link #getAllowUntrustedServer()} instead.
      */
+    @Internal
     @Deprecated
     public boolean isAllowUntrustedServer() {
         return getAllowUntrustedServer().get();
@@ -178,6 +180,7 @@ public abstract class HttpBuildCache extends AbstractBuildCache {
      * @since 6.0
      * @deprecated Use {@link #getAllowInsecureProtocol()} instead.
      */
+    @Internal
     @Deprecated
     public boolean isAllowInsecureProtocol() {
         return getAllowInsecureProtocol().get();
@@ -219,6 +222,7 @@ public abstract class HttpBuildCache extends AbstractBuildCache {
      * @since 7.2
      * @deprecated Use {@link #getUseExpectContinue()} instead.
      */
+    @Internal
     @Deprecated
     public boolean isUseExpectContinue() {
         return getUseExpectContinue().get();

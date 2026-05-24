@@ -17,6 +17,7 @@ package org.gradle.process;
 
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.tasks.Internal;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor;
 import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor.AccessorType;
@@ -55,6 +56,7 @@ public interface BaseExecSpec extends ProcessForkOptions {
      *
      * @deprecated Use {@link #getIgnoreExitValue()} instead.
      */
+    @Internal
     @Deprecated
     boolean isIgnoreExitValue();
 

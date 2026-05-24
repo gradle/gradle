@@ -56,6 +56,7 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.ProviderFactory;
+import org.gradle.api.tasks.Internal;
 import org.gradle.internal.action.InstantiatingAction;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
@@ -293,6 +294,7 @@ public abstract class DefaultIvyArtifactRepository extends AbstractAuthenticatio
     }
 
     @Override
+    @Internal
     @Deprecated
     public boolean isAllowInsecureProtocol() {
         return getAllowInsecureProtocol().get();

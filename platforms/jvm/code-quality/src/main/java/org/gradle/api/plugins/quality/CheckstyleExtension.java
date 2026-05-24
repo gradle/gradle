@@ -22,6 +22,7 @@ import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.resources.TextResource;
 import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor;
@@ -147,6 +148,7 @@ public abstract class CheckstyleExtension extends CodeQualityExtension {
      *
      * @deprecated Use {@link #getShowViolations()} instead.
      */
+    @Internal
     @Deprecated
     public boolean isShowViolations() {
         return getShowViolations().get();

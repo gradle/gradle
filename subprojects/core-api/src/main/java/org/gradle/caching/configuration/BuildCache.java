@@ -18,6 +18,7 @@ package org.gradle.caching.configuration;
 
 import org.gradle.api.model.ReplacedBy;
 import org.gradle.api.provider.Property;
+import org.gradle.api.tasks.Internal;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor;
 import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor.AccessorType;
@@ -56,6 +57,7 @@ public interface BuildCache {
      *
      * @deprecated Use {@link #getEnabled()} instead.
      */
+    @Internal
     @Deprecated
     boolean isEnabled();
 
@@ -85,6 +87,7 @@ public interface BuildCache {
      *
      * @deprecated Use {@link #getPush()} instead.
      */
+    @Internal
     @Deprecated
     boolean isPush();
 }

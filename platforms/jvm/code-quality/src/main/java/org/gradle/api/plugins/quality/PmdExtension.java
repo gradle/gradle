@@ -20,6 +20,7 @@ import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.resources.TextResource;
+import org.gradle.api.tasks.Internal;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
@@ -221,6 +222,7 @@ public abstract class PmdExtension extends CodeQualityExtension {
      *
      * @deprecated Use {@link #getConsoleOutput()} instead.
      */
+    @Internal
     @Deprecated
     public boolean isConsoleOutput() {
         return getConsoleOutput().get();

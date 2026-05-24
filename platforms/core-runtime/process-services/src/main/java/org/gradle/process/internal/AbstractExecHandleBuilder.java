@@ -17,6 +17,7 @@ package org.gradle.process.internal;
 
 import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
+import org.gradle.api.tasks.Internal;
 import org.gradle.process.BaseExecSpec;
 import org.gradle.process.internal.streams.StreamsHandler;
 
@@ -72,6 +73,7 @@ public abstract class AbstractExecHandleBuilder implements BaseExecSpec {
     }
 
     @Override
+    @Internal
     @Deprecated
     public boolean isIgnoreExitValue() {
         return getIgnoreExitValue().get();

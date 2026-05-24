@@ -18,6 +18,7 @@ package org.gradle.api.plugins.quality;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
+import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor;
@@ -69,6 +70,7 @@ public abstract class CodeQualityExtension {
      *
      * @deprecated Use {@link #getIgnoreFailures()} instead.
      */
+    @Internal
     @Deprecated
     public boolean isIgnoreFailures() {
         return getIgnoreFailures().get();

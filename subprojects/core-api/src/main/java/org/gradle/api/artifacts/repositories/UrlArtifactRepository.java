@@ -18,6 +18,7 @@ package org.gradle.api.artifacts.repositories;
 
 
 import org.gradle.api.provider.Property;
+import org.gradle.api.tasks.Internal;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor;
 import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor.AccessorType;
@@ -80,6 +81,7 @@ public interface UrlArtifactRepository {
      *
      * @deprecated Use {@link #getAllowInsecureProtocol()} instead.
      */
+    @Internal
     @Deprecated
     boolean isAllowInsecureProtocol();
 
