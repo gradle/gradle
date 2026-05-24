@@ -23,7 +23,6 @@ import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty
 import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor;
 import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor.AccessorType;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty.BinaryCompatibility;
-import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 
 /**
  * Allows filtering tests for execution.
@@ -165,8 +164,10 @@ public interface TestFilter {
     /**
      * Returns whether the task should fail if no matching tests where found.
      * The default is true.
+     *
+     * @deprecated Use {@link #getFailOnNoMatchingTests()} instead.
      */
     @Internal
-    @NotToBeReplacedByLazyProperty(because = "Already migrated; this is a delegating shim for binary compatibility")
+    @Deprecated
     boolean isFailOnNoMatchingTests();
 }

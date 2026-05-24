@@ -25,7 +25,6 @@ import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty
 import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor;
 import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor.AccessorType;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty.BinaryCompatibility;
-import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 
 /**
  * The JUnit XML files, commonly used to communicate results to CI servers.
@@ -56,9 +55,11 @@ public interface JUnitXmlReport extends DirectoryReport {
 
     /**
      * Should the output be associated with individual test cases instead of at the suite level.
+     *
+     * @deprecated Use {@link #getOutputPerTestCase()} instead.
      */
     @Internal
-    @NotToBeReplacedByLazyProperty(because = "Already migrated; this is a delegating shim for binary compatibility")
+    @Deprecated
     boolean isOutputPerTestCase();
 
     /**

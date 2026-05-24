@@ -34,7 +34,6 @@ import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty
 import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor;
 import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor.AccessorType;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty.BinaryCompatibility;
-import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 import org.gradle.process.ExecSpec;
 
 import java.io.File;
@@ -144,8 +143,11 @@ public interface MinimalJavadocOptions {
     @Internal
     Provider<Boolean> getIsVerbose();
 
+    /**
+     * @deprecated Use {@link #getVerbose()} instead.
+     */
     @Internal
-    @NotToBeReplacedByLazyProperty(because = "Already migrated; this is a delegating shim for binary compatibility")
+    @Deprecated
     boolean isVerbose();
 
     MinimalJavadocOptions quiet();
@@ -165,8 +167,11 @@ public interface MinimalJavadocOptions {
     @Internal
     Property<Boolean> getIsBreakIterator();
 
+    /**
+     * @deprecated Use {@link #getBreakIterator()} instead.
+     */
     @Internal
-    @NotToBeReplacedByLazyProperty(because = "Already migrated; this is a delegating shim for binary compatibility")
+    @Deprecated
     boolean isBreakIterator();
 
     MinimalJavadocOptions breakIterator(boolean breakIterator);

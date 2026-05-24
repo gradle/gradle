@@ -28,7 +28,6 @@ import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor;
 import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor.AccessorType;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty.BinaryCompatibility;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
-import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 
 import java.io.File;
 
@@ -147,8 +146,10 @@ public abstract class CheckstyleExtension extends CodeQualityExtension {
      * Whether rule violations are to be displayed on the console. Defaults to <code>true</code>.
      *
      * Example: showViolations = false
+     *
+     * @deprecated Use {@link #getShowViolations()} instead.
      */
-    @NotToBeReplacedByLazyProperty(because = "Already migrated; this is a delegating shim for binary compatibility")
+    @Deprecated
     public boolean isShowViolations() {
         return getShowViolations().get();
     }

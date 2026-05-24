@@ -31,7 +31,6 @@ import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty
 import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor;
 import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor.AccessorType;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty.BinaryCompatibility;
-import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 import org.gradle.work.DisableCachingByDefault;
 
 import java.nio.charset.Charset;
@@ -125,9 +124,11 @@ public abstract class Zip extends AbstractArchiveTask {
      * However, not all Zip readers support the Zip64 extensions.
      * Notably, the {@link java.util.zip.ZipInputStream} JDK class does not support Zip64 for versions earlier than Java 7.
      * This means you should not enable this property if you are building JARs to be used with Java 6 and earlier runtimes.
+     *
+     * @deprecated Use {@link #getZip64()} instead.
      */
     @Internal
-    @NotToBeReplacedByLazyProperty(because = "Already migrated; this is a delegating shim for binary compatibility")
+    @Deprecated
     public boolean isZip64() {
         return getZip64().get();
     }

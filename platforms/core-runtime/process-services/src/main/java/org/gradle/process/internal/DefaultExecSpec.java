@@ -28,7 +28,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
-import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 
 public abstract class DefaultExecSpec extends DefaultProcessForkOptions implements ExecSpec {
 
@@ -49,7 +48,7 @@ public abstract class DefaultExecSpec extends DefaultProcessForkOptions implemen
     }
 
     @Override
-    @NotToBeReplacedByLazyProperty(because = "Already migrated; this is a delegating shim for binary compatibility")
+    @Deprecated
     public boolean isIgnoreExitValue() {
         return getIgnoreExitValue().get();
     }

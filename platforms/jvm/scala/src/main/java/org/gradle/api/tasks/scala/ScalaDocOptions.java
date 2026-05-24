@@ -25,7 +25,6 @@ import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty
 import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor;
 import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor.AccessorType;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty.BinaryCompatibility;
-import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 
 import javax.inject.Inject;
 import java.io.Serializable;
@@ -60,9 +59,11 @@ public abstract class ScalaDocOptions implements Serializable {
 
     /**
      * Tells whether to generate deprecation information.
+     *
+     * @deprecated Use {@link #getDeprecation()} instead.
      */
     @Internal
-    @NotToBeReplacedByLazyProperty(because = "Already migrated; this is a delegating shim for binary compatibility")
+    @Deprecated
     public boolean isDeprecation() {
         return getDeprecation().get();
     }
@@ -86,9 +87,11 @@ public abstract class ScalaDocOptions implements Serializable {
 
     /**
      * Tells whether to generate unchecked information.
+     *
+     * @deprecated Use {@link #getUnchecked()} instead.
      */
     @Internal
-    @NotToBeReplacedByLazyProperty(because = "Already migrated; this is a delegating shim for binary compatibility")
+    @Deprecated
     public boolean isUnchecked() {
         return getUnchecked().get();
     }

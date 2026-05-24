@@ -48,7 +48,6 @@ import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty
 import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor;
 import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor.AccessorType;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty.BinaryCompatibility;
-import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -222,9 +221,11 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
      * <p>
      * You can access the generated "Use" page by first going to the class or package,
      * then clicking on the "Use" link in the navigation bar.
+     *
+     * @deprecated Use {@link #getUse()} instead.
      */
     @Internal
-    @NotToBeReplacedByLazyProperty(because = "Already migrated; this is a delegating shim for binary compatibility")
+    @Deprecated
     public boolean isUse() {
         return getUse().get();
     }
@@ -266,9 +267,11 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
      * <p>
      * Includes the @version text in the generated docs. This text is omitted by default.
      * To tell what version of the Javadoc tool you are using, use the -J-version option.
+     *
+     * @deprecated Use {@link #getVersion()} instead.
      */
     @Internal
-    @NotToBeReplacedByLazyProperty(because = "Already migrated; this is a delegating shim for binary compatibility")
+    @Deprecated
     public boolean isVersion() {
         return getVersion().get();
     }
@@ -308,9 +311,11 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
      * -author
      * <p>
      * Includes the @author text in the generated docs.
+     *
+     * @deprecated Use {@link #getAuthor()} instead.
      */
     @Internal
-    @NotToBeReplacedByLazyProperty(because = "Already migrated; this is a delegating shim for binary compatibility")
+    @Deprecated
     public boolean isAuthor() {
         return getAuthor().get();
     }
@@ -352,9 +357,11 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
      * <p>
      * Splits the index file into multiple files, alphabetically, one file per letter,
      * plus a file for any index entries that start with non-alphabetical characters.
+     *
+     * @deprecated Use {@link #getSplitIndex()} instead.
      */
     @Internal
-    @NotToBeReplacedByLazyProperty(because = "Already migrated; this is a delegating shim for binary compatibility")
+    @Deprecated
     public boolean isSplitIndex() {
         return getSplitIndex().get();
     }
@@ -573,9 +580,11 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
      * implements Accessible
      * and the link to the source code of the getLabel() method in the Button class would be on the word "getLabel":
      * public String getLabel()
+     *
+     * @deprecated Use {@link #getLinkSource()} instead.
      */
     @Internal
-    @NotToBeReplacedByLazyProperty(because = "Already migrated; this is a delegating shim for binary compatibility")
+    @Deprecated
     public boolean isLinkSource() {
         return getLinkSource().get();
     }
@@ -684,9 +693,11 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
      * Prevents the generation of any deprecated API at all in the documentation.
      * This does what -nodeprecatedlist does, plus it does not generate any deprecated API throughout the rest of the documentation.
      * This is useful when writing code and you don't want to be distracted by the deprecated code.
+     *
+     * @deprecated Use {@link #getNoDeprecated()} instead.
      */
     @Internal
-    @NotToBeReplacedByLazyProperty(because = "Already migrated; this is a delegating shim for binary compatibility")
+    @Deprecated
     public boolean isNoDeprecated() {
         return getNoDeprecated().get();
     }
@@ -732,9 +743,11 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
      * the link in the navigation bar to that page.
      * (However, javadoc continues to generate the deprecated API throughout the rest of the document.)
      * This is useful if your source code contains no deprecated API, and you want to make the navigation bar cleaner.
+     *
+     * @deprecated Use {@link #getNoDeprecatedList()} instead.
      */
     @Internal
-    @NotToBeReplacedByLazyProperty(because = "Already migrated; this is a delegating shim for binary compatibility")
+    @Deprecated
     public boolean isNoDeprecatedList() {
         return getNoDeprecatedList().get();
     }
@@ -774,9 +787,11 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
      * -nosince
      * <p>
      * Omits from the generated docs the "Since" sections associated with the @since tags.
+     *
+     * @deprecated Use {@link #getNoSince()} instead.
      */
     @Internal
-    @NotToBeReplacedByLazyProperty(because = "Already migrated; this is a delegating shim for binary compatibility")
+    @Deprecated
     public boolean isNoSince() {
         return getNoSince().get();
     }
@@ -820,9 +835,11 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
      * Omits the class/interface hierarchy pages from the generated docs.
      * These are the pages you reach using the "Tree" button in the navigation bar.
      * The hierarchy is produced by default.
+     *
+     * @deprecated Use {@link #getNoTree()} instead.
      */
     @Internal
-    @NotToBeReplacedByLazyProperty(because = "Already migrated; this is a delegating shim for binary compatibility")
+    @Deprecated
     public boolean isNoTree() {
         return getNoTree().get();
     }
@@ -862,9 +879,11 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
      * -noindex
      * <p>
      * Omits the index from the generated docs. The index is produced by default.
+     *
+     * @deprecated Use {@link #getNoIndex()} instead.
      */
     @Internal
-    @NotToBeReplacedByLazyProperty(because = "Already migrated; this is a delegating shim for binary compatibility")
+    @Deprecated
     public boolean isNoIndex() {
         return getNoIndex().get();
     }
@@ -904,9 +923,11 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
      * -nohelp
      * <p>
      * Omits the HELP link in the navigation bars at the top and bottom of each page of output.
+     *
+     * @deprecated Use {@link #getNoHelp()} instead.
      */
     @Internal
-    @NotToBeReplacedByLazyProperty(because = "Already migrated; this is a delegating shim for binary compatibility")
+    @Deprecated
     public boolean isNoHelp() {
         return getNoHelp().get();
     }
@@ -952,9 +973,11 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
      * otherwise found at the top and bottom of the generated pages. Has no affect on the "bottom" option.
      * The -nonavbar option is useful when you are interested only in the content and have no need for navigation,
      * such as converting the files to PostScript or PDF for print only.
+     *
+     * @deprecated Use {@link #getNoNavBar()} instead.
      */
     @Internal
-    @NotToBeReplacedByLazyProperty(because = "Already migrated; this is a delegating shim for binary compatibility")
+    @Deprecated
     public boolean isNoNavBar() {
         return getNoNavBar().get();
     }
@@ -1036,9 +1059,11 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
      * By default, Javadoc 1.2.2 (and later versions) generates no serial warnings.
      * (This is a reversal from earlier versions.) Use this option to display the serial warnings,
      * which helps to properly document default serializable fields and writeExternal methods.
+     *
+     * @deprecated Use {@link #getSerialWarn()} instead.
      */
     @Internal
-    @NotToBeReplacedByLazyProperty(because = "Already migrated; this is a delegating shim for binary compatibility")
+    @Deprecated
     public boolean isSerialWarn() {
         return getSerialWarn().get();
     }
@@ -1117,9 +1142,11 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
 
     /**
      * -keywords.
+     *
+     * @deprecated Use {@link #getKeyWords()} instead.
      */
     @Internal
-    @NotToBeReplacedByLazyProperty(because = "Already migrated; this is a delegating shim for binary compatibility")
+    @Deprecated
     public boolean isKeyWords() {
         return getKeyWords().get();
     }
@@ -1210,9 +1237,11 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
 
     /**
      * -docfilessubdirs.
+     *
+     * @deprecated Use {@link #getDocFilesSubDirs()} instead.
      */
     @Internal
-    @NotToBeReplacedByLazyProperty(because = "Already migrated; this is a delegating shim for binary compatibility")
+    @Deprecated
     public boolean isDocFilesSubDirs() {
         return getDocFilesSubDirs().get();
     }
@@ -1277,8 +1306,11 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
         return getNoTimestamp();
     }
 
+    /**
+     * @deprecated Use {@link #getNoTimestamp()} instead.
+     */
     @Internal
-    @NotToBeReplacedByLazyProperty(because = "Already migrated; this is a delegating shim for binary compatibility")
+    @Deprecated
     public boolean isNoTimestamp() {
         return getNoTimestamp().get();
     }
@@ -1314,9 +1346,11 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
 
     /**
      * -nocomment.
+     *
+     * @deprecated Use {@link #getNoComment()} instead.
      */
     @Internal
-    @NotToBeReplacedByLazyProperty(because = "Already migrated; this is a delegating shim for binary compatibility")
+    @Deprecated
     public boolean isNoComment() {
         return getNoComment().get();
     }

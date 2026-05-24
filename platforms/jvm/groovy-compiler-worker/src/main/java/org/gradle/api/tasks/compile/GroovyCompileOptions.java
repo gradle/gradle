@@ -36,7 +36,6 @@ import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty
 import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor;
 import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor.AccessorType;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty.BinaryCompatibility;
-import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 
 import javax.inject.Inject;
 import java.io.Serializable;
@@ -82,9 +81,11 @@ public abstract class GroovyCompileOptions implements Serializable {
 
     /**
      * Tells whether the compilation task should fail if compile errors occurred. Defaults to {@code true}.
+     *
+     * @deprecated Use {@link #getFailOnError()} instead.
      */
     @Internal
-    @NotToBeReplacedByLazyProperty(because = "Already migrated; this is a delegating shim for binary compatibility")
+    @Deprecated
     public boolean isFailOnError() {
         return getFailOnError().get();
     }
@@ -108,9 +109,11 @@ public abstract class GroovyCompileOptions implements Serializable {
 
     /**
      * Tells whether to turn on verbose output. Defaults to {@code false}.
+     *
+     * @deprecated Use {@link #getVerbose()} instead.
      */
     @Internal
-    @NotToBeReplacedByLazyProperty(because = "Already migrated; this is a delegating shim for binary compatibility")
+    @Deprecated
     public boolean isVerbose() {
         return getVerbose().get();
     }
@@ -134,9 +137,11 @@ public abstract class GroovyCompileOptions implements Serializable {
 
     /**
      * Tells whether to print which source files are to be compiled. Defaults to {@code false}.
+     *
+     * @deprecated Use {@link #getListFiles()} instead.
      */
     @Internal
-    @NotToBeReplacedByLazyProperty(because = "Already migrated; this is a delegating shim for binary compatibility")
+    @Deprecated
     public boolean isListFiles() {
         return getListFiles().get();
     }
@@ -167,9 +172,11 @@ public abstract class GroovyCompileOptions implements Serializable {
 
     /**
      * Tells whether to run the Groovy compiler in a separate process. Defaults to {@code true}.
+     *
+     * @deprecated Use {@link #getFork()} instead.
      */
     @Internal
-    @NotToBeReplacedByLazyProperty(because = "Already migrated; this is a delegating shim for binary compatibility")
+    @Deprecated
     public boolean isFork() {
         return getFork().get();
     }
@@ -246,9 +253,11 @@ public abstract class GroovyCompileOptions implements Serializable {
 
     /**
      * Whether the Groovy code should be subject to Java annotation processing.
+     *
+     * @deprecated Use {@link #getJavaAnnotationProcessing()} instead.
      */
     @Internal
-    @NotToBeReplacedByLazyProperty(because = "Already migrated; this is a delegating shim for binary compatibility")
+    @Deprecated
     public boolean isJavaAnnotationProcessing() {
         return getJavaAnnotationProcessing().get();
     }
@@ -276,9 +285,10 @@ public abstract class GroovyCompileOptions implements Serializable {
      * Whether the Groovy compiler generate metadata for reflection on method parameter names on JDK 8 and above.
      *
      * @since 6.1
+     * @deprecated Use {@link #getParameters()} instead.
      */
     @Internal
-    @NotToBeReplacedByLazyProperty(because = "Already migrated; this is a delegating shim for binary compatibility")
+    @Deprecated
     public boolean isParameters() {
         return getParameters().get();
     }
@@ -368,9 +378,11 @@ public abstract class GroovyCompileOptions implements Serializable {
      * Tells whether Java stubs for Groovy classes generated during Java/Groovy joint compilation
      * should be kept after compilation has completed. Useful for joint compilation debugging purposes.
      * Defaults to {@code false}.
+     *
+     * @deprecated Use {@link #getKeepStubs()} instead.
      */
     @Internal
-    @NotToBeReplacedByLazyProperty(because = "Already migrated; this is a delegating shim for binary compatibility")
+    @Deprecated
     public boolean isKeepStubs() {
         return getKeepStubs().get();
     }

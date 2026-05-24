@@ -22,7 +22,6 @@ import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty
 import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor;
 import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor.AccessorType;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty.BinaryCompatibility;
-import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 
 /**
  * Configuration object for a build cache.
@@ -54,8 +53,10 @@ public interface BuildCache {
 
     /**
      * Returns whether the build cache is enabled.
+     *
+     * @deprecated Use {@link #getEnabled()} instead.
      */
-    @NotToBeReplacedByLazyProperty(because = "Already migrated; this is a delegating shim for binary compatibility")
+    @Deprecated
     boolean isEnabled();
 
     /**
@@ -81,7 +82,9 @@ public interface BuildCache {
 
     /**
      * Returns whether a given build can store outputs in the build cache.
+     *
+     * @deprecated Use {@link #getPush()} instead.
      */
-    @NotToBeReplacedByLazyProperty(because = "Already migrated; this is a delegating shim for binary compatibility")
+    @Deprecated
     boolean isPush();
 }

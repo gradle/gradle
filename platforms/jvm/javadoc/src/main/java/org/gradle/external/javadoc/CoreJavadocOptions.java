@@ -42,7 +42,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 
 /**
  * Provides the core Javadoc Options. That is, provides the options which are not doclet specific.
@@ -335,7 +334,7 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
 
     @Override
     @Internal
-    @NotToBeReplacedByLazyProperty(because = "Already migrated; this is a delegating shim for binary compatibility")
+    @Deprecated
     public boolean isVerbose() {
         return getVerbose().get();
     }
@@ -385,7 +384,7 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
 
     @Override
     @Internal
-    @NotToBeReplacedByLazyProperty(because = "Already migrated; this is a delegating shim for binary compatibility")
+    @Deprecated
     public boolean isBreakIterator() {
         return getBreakIterator().get();
     }

@@ -23,7 +23,6 @@ import org.gradle.api.file.DeleteSpec;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.provider.Property;
 import org.gradle.internal.file.Deleter;
-import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 import org.gradle.work.DisableCachingByDefault;
@@ -89,9 +88,10 @@ public abstract class Delete extends ConventionTask implements DeleteSpec {
      * Returns if symlinks should be followed when doing a delete.
      *
      * @return true if symlinks will be followed.
+     * @deprecated Use {@link #getFollowSymlinks()} instead.
      */
     @Internal
-    @NotToBeReplacedByLazyProperty(because = "Already migrated; this is a delegating shim for binary compatibility")
+    @Deprecated
     public boolean isFollowSymlinks() {
         return getFollowSymlinks().get();
     }

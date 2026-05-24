@@ -20,7 +20,6 @@ import org.gradle.api.Describable;
 import org.gradle.api.provider.Property;
 import org.gradle.api.reporting.internal.SingleDirectoryReport;
 import org.gradle.api.tasks.testing.JUnitXmlReport;
-import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 
 public abstract class DefaultJUnitXmlReport extends SingleDirectoryReport implements JUnitXmlReport {
 
@@ -36,7 +35,7 @@ public abstract class DefaultJUnitXmlReport extends SingleDirectoryReport implem
     public abstract Property<Boolean> getOutputPerTestCase();
 
     @Override
-    @NotToBeReplacedByLazyProperty(because = "Already migrated; this is a delegating shim for binary compatibility")
+    @Deprecated
     public boolean isOutputPerTestCase() {
         return getOutputPerTestCase().get();
     }

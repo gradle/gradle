@@ -22,7 +22,6 @@ import org.gradle.process.internal.streams.StreamsHandler;
 
 import java.io.InputStream;
 import java.io.OutputStream;
-import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 
 /**
  * Deprecated. Will be removed in Gradle 10. Kept for now it's subclass is used by the Kotlin plugin.
@@ -73,7 +72,7 @@ public abstract class AbstractExecHandleBuilder implements BaseExecSpec {
     }
 
     @Override
-    @NotToBeReplacedByLazyProperty(because = "Already migrated; this is a delegating shim for binary compatibility")
+    @Deprecated
     public boolean isIgnoreExitValue() {
         return getIgnoreExitValue().get();
     }

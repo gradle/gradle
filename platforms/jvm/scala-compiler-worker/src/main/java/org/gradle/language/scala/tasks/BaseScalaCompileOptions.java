@@ -33,7 +33,6 @@ import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty
 import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor;
 import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor.AccessorType;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty.BinaryCompatibility;
-import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 
 import javax.inject.Inject;
 import java.io.Serializable;
@@ -81,9 +80,11 @@ public abstract class BaseScalaCompileOptions implements Serializable {
 
     /**
      * Fail the build on compilation errors.
+     *
+     * @deprecated Use {@link #getFailOnError()} instead.
      */
     @Internal
-    @NotToBeReplacedByLazyProperty(because = "Already migrated; this is a delegating shim for binary compatibility")
+    @Deprecated
     public boolean isFailOnError() {
         return getFailOnError().get();
     }
@@ -107,9 +108,11 @@ public abstract class BaseScalaCompileOptions implements Serializable {
 
     /**
      * Generate deprecation information.
+     *
+     * @deprecated Use {@link #getDeprecation()} instead.
      */
     @Internal
-    @NotToBeReplacedByLazyProperty(because = "Already migrated; this is a delegating shim for binary compatibility")
+    @Deprecated
     public boolean isDeprecation() {
         return getDeprecation().get();
     }
@@ -133,9 +136,11 @@ public abstract class BaseScalaCompileOptions implements Serializable {
 
     /**
      * Generate unchecked information.
+     *
+     * @deprecated Use {@link #getUnchecked()} instead.
      */
     @Internal
-    @NotToBeReplacedByLazyProperty(because = "Already migrated; this is a delegating shim for binary compatibility")
+    @Deprecated
     public boolean isUnchecked() {
         return getUnchecked().get();
     }
@@ -168,9 +173,11 @@ public abstract class BaseScalaCompileOptions implements Serializable {
 
     /**
      * Run optimizations.
+     *
+     * @deprecated Use {@link #getOptimize()} instead.
      */
     @Internal
-    @NotToBeReplacedByLazyProperty(because = "Already migrated; this is a delegating shim for binary compatibility")
+    @Deprecated
     public boolean isOptimize() {
         return getOptimize().get();
     }
@@ -208,9 +215,11 @@ public abstract class BaseScalaCompileOptions implements Serializable {
      * Legal values:
      * - false (only compile modified files)
      * - true (always recompile all files)
+     *
+     * @deprecated Use {@link #getForce()} instead.
      */
     @Internal
-    @NotToBeReplacedByLazyProperty(because = "Already migrated; this is a delegating shim for binary compatibility")
+    @Deprecated
     public boolean isForce() {
         return getForce().get();
     }
@@ -245,9 +254,11 @@ public abstract class BaseScalaCompileOptions implements Serializable {
 
     /**
      * List files to be compiled.
+     *
+     * @deprecated Use {@link #getListFiles()} instead.
      */
     @Internal
-    @NotToBeReplacedByLazyProperty(because = "Already migrated; this is a delegating shim for binary compatibility")
+    @Deprecated
     public boolean isListFiles() {
         return getListFiles().get();
     }

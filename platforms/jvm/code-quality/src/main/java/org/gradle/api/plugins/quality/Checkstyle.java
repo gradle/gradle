@@ -47,7 +47,6 @@ import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor;
 import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor.AccessorType;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty.BinaryCompatibility;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
-import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 import org.gradle.util.internal.ClosureBackedAction;
 import org.gradle.workers.WorkQueue;
 
@@ -298,9 +297,10 @@ public abstract class Checkstyle extends AbstractCodeQualityTask implements Repo
      * Whether rule violations are to be displayed on the console.
      *
      * @return true if violations should be displayed on console
+     * @deprecated Use {@link #getShowViolations()} instead.
      */
     @Internal
-    @NotToBeReplacedByLazyProperty(because = "Already migrated; this is a delegating shim for binary compatibility")
+    @Deprecated
     public boolean isShowViolations() {
         return getShowViolations().get();
     }

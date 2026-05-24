@@ -22,7 +22,6 @@ import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.testing.TestFilter;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty.BinaryCompatibility;
-import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
 import java.util.LinkedHashSet;
@@ -72,7 +71,7 @@ public abstract class DefaultTestFilter implements TestFilter {
     public abstract Property<Boolean> getFailOnNoMatchingTests();
 
     @Override
-    @NotToBeReplacedByLazyProperty(because = "Already migrated; this is a delegating shim for binary compatibility")
+    @Deprecated
     public boolean isFailOnNoMatchingTests() {
         return getFailOnNoMatchingTests().get();
     }
