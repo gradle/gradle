@@ -1090,4 +1090,31 @@ assert custom.prop.get() == "value 4"
         then:
         failureCauseContains("Circular evaluation detected")
     }
+
+    def "property follows Groovy truth when used as a boolean (#description)"() {
+        given:
+        buildFile """
+            def prop = $factory
+            $setup
+            assert (prop ? 'truthy' : 'falsy') == '${expected ? 'truthy' : 'falsy'}'
+            assert prop.asBoolean() == $expected
+        """
+
+        expect:
+        succeeds()
+
+        where:
+        description        | factory                                | setup              | expected
+        "no value"         | "objects.property(Boolean)"            | ""                 | false
+        "Boolean true"     | "objects.property(Boolean)"            | "prop.set(true)"   | true
+        "Boolean false"    | "objects.property(Boolean)"            | "prop.set(false)"  | false
+        "empty String"     | "objects.property(String)"             | "prop.set('')"     | false
+        "non-empty String" | "objects.property(String)"             | "prop.set('x')"    | true
+        "zero Integer"     | "objects.property(Integer)"            | "prop.set(0)"      | false
+        "non-zero Integer" | "objects.property(Integer)"            | "prop.set(1)"      | true
+        "empty List"       | "objects.listProperty(Integer)"        | "prop.set([])"     | false
+        "non-empty List"   | "objects.listProperty(Integer)"        | "prop.set([1])"    | true
+        "empty Map"        | "objects.mapProperty(String, Integer)" | "prop.set([:])"    | false
+        "non-empty Map"    | "objects.mapProperty(String, Integer)" | "prop.set([a: 1])" | true
+    }
 }
