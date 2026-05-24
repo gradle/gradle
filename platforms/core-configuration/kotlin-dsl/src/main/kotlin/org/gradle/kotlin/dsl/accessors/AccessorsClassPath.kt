@@ -80,6 +80,7 @@ import org.jetbrains.org.objectweb.asm.signature.SignatureVisitor
 import java.io.Closeable
 import java.io.File
 import java.util.Optional
+import java.util.concurrent.ConcurrentHashMap
 import java.util.regex.Pattern
 import javax.inject.Inject
 
@@ -95,31 +96,47 @@ class ProjectAccessorsClassPathGenerator @Inject internal constructor(
     internalOptions: InternalOptions,
 ) {
 
+    private
+    val classPathCache = ConcurrentHashMap<ClassLoaderScope, AccessorsClassPath>()
+
     private val cachingDisabled: Boolean =
         internalOptions.getBoolean(KotlinDslInternalOptions.CACHING_DISABLED_PROPERTY)
 
     fun projectAccessorsClassPath(scriptTarget: ExtensionAware, classPath: ClassPath): AccessorsClassPath {
         val classLoaderScope = classLoaderScopeOf(scriptTarget)
-            ?: return AccessorsClassPath.empty
-        val configuredProjectSchemaOf = configuredProjectSchemaOf(scriptTarget, classLoaderScope)
-            ?: return AccessorsClassPath.empty
-
-        val work = GenerateProjectAccessors(
-            scriptTarget,
-            configuredProjectSchemaOf,
-            classPath,
-            fileCollectionFactory,
-            inputFingerprinter,
-            workspaceProvider,
-            asyncIO,
-            isDclEnabledForScriptTarget(scriptTarget),
-            cachingDisabled,
-        )
-        return executionEngine.createRequest(work)
-            .execute()
-            .getOutputAs(AccessorsClassPath::class.java)
-            .get()
+        if (classLoaderScope == null) {
+            return AccessorsClassPath.empty
+        }
+        return classPathCache.computeIfAbsent(classLoaderScope) {
+            buildAccessorsClassPathFor(classLoaderScope, scriptTarget, classPath)
+                ?: AccessorsClassPath.empty
+        }
     }
+
+    private
+    fun buildAccessorsClassPathFor(
+        classLoaderScope: ClassLoaderScope,
+        scriptTarget: Any,
+        classPath: ClassPath
+    ): AccessorsClassPath? =
+        configuredProjectSchemaOf(scriptTarget, classLoaderScope)
+            ?.let { scriptTargetSchema ->
+                val work = GenerateProjectAccessors(
+                    scriptTarget,
+                    scriptTargetSchema,
+                    classPath,
+                    fileCollectionFactory,
+                    inputFingerprinter,
+                    workspaceProvider,
+                    asyncIO,
+                    isDclEnabledForScriptTarget(scriptTarget),
+                    cachingDisabled,
+                )
+                executionEngine.createRequest(work)
+                    .execute()
+                    .getOutputAs(AccessorsClassPath::class.java)
+                    .get()
+            }
 
 
     private

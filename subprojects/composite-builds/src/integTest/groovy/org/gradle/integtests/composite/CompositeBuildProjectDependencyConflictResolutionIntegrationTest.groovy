@@ -62,4 +62,11 @@ class CompositeBuildProjectDependencyConflictResolutionIntegrationTest extends A
     boolean isAutoDependencySubstitution() {
         true
     }
+
+    @Override
+    String parentMethodLookupDeprecationFor(String methodName) {
+        // moduleDefinition() inlines checkHelper() into each included build's own build script,
+        // so projectId()/moduleId() resolve locally without walking the project hierarchy.
+        null
+    }
 }

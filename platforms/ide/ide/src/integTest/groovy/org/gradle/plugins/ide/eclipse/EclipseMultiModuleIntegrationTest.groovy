@@ -127,9 +127,11 @@ class EclipseMultiModuleIntegrationTest extends AbstractIdeIntegrationTest {
             }
 
             subprojects {
-                eclipse {
-                    project {
-                        name = rootProject.name + path.replace(':', '-')
+                if (project.name != 'nonEclipse') {
+                    eclipse {
+                        project {
+                            name = rootProject.name + path.replace(':', '-')
+                        }
                     }
                 }
             }

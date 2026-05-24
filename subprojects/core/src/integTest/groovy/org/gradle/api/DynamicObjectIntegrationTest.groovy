@@ -73,7 +73,10 @@ class DynamicObjectIntegrationTest extends AbstractIntegrationSpec {
               }
             """
             expectTaskProjectDeprecation()
+            expectParentPropertyAccessDeprecation('rootProperty', ':child', "root project 'test'")
+            expectParentPropertyAccessDeprecation('property', ':child', "root project 'test'")
         }
+        expectParentPropertyAccessDeprecation('rootProperty', ':child', "root project 'test'", 2)
         expectScriptGetPropertiesDeprecation(3)
 
         expect:
@@ -117,7 +120,9 @@ class DynamicObjectIntegrationTest extends AbstractIntegrationSpec {
               }
             """
             expectTaskProjectDeprecation()
+            expectParentMethodAccessDeprecation('rootMethod', ':child', "root project 'test'")
         }
+        expectParentMethodAccessDeprecation('rootMethod', ':child', "root project 'test'")
 
         expect:
         succeeds("testTask")
@@ -428,6 +433,7 @@ assert 'some value' == project.properties.global
             assert prop2(12) == 6
             assert prop3(12) == 24
         """
+        expectParentPropertyAccessDeprecation('prop2', ':child1', "root project 'test'")
 
         expect:
         succeeds()
@@ -1046,5 +1052,25 @@ task print(type: MyTask) {
             "This will fail with an error in Gradle 10. " +
             "Consult the upgrading guide for further information: " +
             "https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_get_properties")
+    }
+
+    private void expectParentPropertyAccessDeprecation(String propertyName, String childPath, String parentDisplayName, int repeated = 1) {
+        repeated.times {
+            executer.expectDocumentedDeprecationWarning("Implicitly resolving properties in the project hierarchy has been deprecated. " +
+                "This will fail with an error in Gradle 10. " +
+                "Property '${propertyName}' was not declared in project '${childPath}' and was resolved from ${parentDisplayName}. " +
+                "Consult the upgrading guide for further information: " +
+                "https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_implicit_project_hierarchy_lookup")
+        }
+    }
+
+    private void expectParentMethodAccessDeprecation(String methodName, String childPath, String parentDisplayName, int repeated = 1) {
+        repeated.times {
+            executer.expectDocumentedDeprecationWarning("Implicitly resolving methods in the project hierarchy has been deprecated. " +
+                "This will fail with an error in Gradle 10. " +
+                "Method '${methodName}' was not declared in project '${childPath}' and was resolved from ${parentDisplayName}. " +
+                "Consult the upgrading guide for further information: " +
+                "https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_implicit_project_hierarchy_lookup")
+        }
     }
 }
