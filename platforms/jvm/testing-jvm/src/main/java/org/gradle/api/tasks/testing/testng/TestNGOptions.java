@@ -332,7 +332,7 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
     }
 
     /**
-     * Whether the default listeners and reporters should be used.
+     * This method exists only for Groovy source backward compatibility.
      *
      * @deprecated Use {@link #getUseDefaultListeners()} instead.
      */
@@ -387,12 +387,7 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
     }
 
     /**
-     * Indicates whether the tests should be run in deterministic order. Preserving the order guarantees that the complete test
-     * (including @BeforeXXX and @AfterXXX) is run in a test thread before the next test is run.
-     *
-     * Not required.
-     *
-     * If not present, the order will not be preserved.
+     * This method exists only for Groovy source backward compatibility.
      *
      * @deprecated Use {@link #getPreserveOrder()} instead.
      */
@@ -423,12 +418,7 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
     }
 
     /**
-     * Indicates whether the tests should be grouped by instances. Grouping by instances will result in resolving test method dependencies for each instance instead of running the dependees of all
-     * instances before running the dependants.
-     *
-     * Not required.
-     *
-     * If not present, the tests will not be grouped by instances.
+     * This method exists only for Groovy source backward compatibility.
      *
      * @deprecated Use {@link #getGroupByInstances()} instead.
      */

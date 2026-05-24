@@ -100,7 +100,7 @@ public abstract class TaskReportTask extends ConventionReportTask {
     }
 
     /**
-     * Returns whether to show "invisible" tasks without a group or dependent tasks.
+     * This method exists only for Groovy source backward compatibility.
      *
      * @deprecated Use {@link #getShowDetail()} instead.
      */

@@ -283,7 +283,7 @@ public abstract class DependencyInsightReportTask extends DefaultTask {
     }
 
     /**
-     * Tells if the report should only show one path to each dependency.
+     * This method exists only for Groovy source backward compatibility.
      *
      * @since 4.9
      * @deprecated Use {@link #getShowSinglePathToDependency()} instead.

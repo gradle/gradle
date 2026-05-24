@@ -189,7 +189,7 @@ public abstract class Groovydoc extends SourceTask {
     }
 
     /**
-     * Returns whether to create class and package usage pages.
+     * This method exists only for Groovy source backward compatibility.
      *
      * @deprecated Use {@link #getUse()} instead.
      */
@@ -217,7 +217,7 @@ public abstract class Groovydoc extends SourceTask {
     }
 
     /**
-     * Returns whether to include timestamp within hidden comment in generated HTML (Groovy &gt;= 2.4.6).
+     * This method exists only for Groovy source backward compatibility.
      *
      * @deprecated Use {@link #getNoTimestamp()} instead.
      */
@@ -245,7 +245,7 @@ public abstract class Groovydoc extends SourceTask {
     }
 
     /**
-     * Returns whether to include version stamp within hidden comment in generated HTML (Groovy &gt;= 2.4.6).
+     * This method exists only for Groovy source backward compatibility.
      *
      * @deprecated Use {@link #getNoVersionStamp()} instead.
      */

@@ -268,12 +268,8 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
     }
 
     /**
-     * Specifies whether file timestamps should be preserved in the archive.
-     * <p>
-     * If <code>false</code> this ensures that archive entries have the same time for builds between different machines, Java versions and operating systems.
-     * </p>
+     * This method exists only for Groovy source backward compatibility.
      *
-     * @return <code>true</code> if file timestamps should be preserved for archive entries
      * @since 3.4
      * @deprecated Use {@link #getPreserveFileTimestamps()} instead.
      */
@@ -312,14 +308,8 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
     }
 
     /**
-     * Specifies whether to enforce a reproducible file order when reading files from directories.
-     * <p>
-     * Gradle will then walk the directories on disk which are part of this archive in a reproducible order
-     * independent of file systems and operating systems.
-     * This helps Gradle reliably produce byte-for-byte reproducible archives.
-     * </p>
+     * This method exists only for Groovy source backward compatibility.
      *
-     * @return <code>true</code> if the files should read from disk in a reproducible order.
      * @since 3.4
      * @deprecated Use {@link #getReproducibleFileOrder()} instead.
      */

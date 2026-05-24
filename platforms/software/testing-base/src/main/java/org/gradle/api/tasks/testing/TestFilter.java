@@ -162,8 +162,7 @@ public interface TestFilter {
     }
 
     /**
-     * Returns whether the task should fail if no matching tests where found.
-     * The default is true.
+     * This method exists only for Groovy source backward compatibility.
      *
      * @deprecated Use {@link #getFailOnNoMatchingTests()} instead.
      */

@@ -90,7 +90,7 @@ public abstract class CompileOptions implements Serializable {
     }
 
     /**
-     * Tells whether to fail the build when compilation fails. Defaults to {@code true}.
+     * This method exists only for Groovy source backward compatibility.
      *
      * @deprecated Use {@link #getFailOnError()} instead.
      */
@@ -118,7 +118,7 @@ public abstract class CompileOptions implements Serializable {
     }
 
     /**
-     * Tells whether to produce verbose output. Defaults to {@code false}.
+     * This method exists only for Groovy source backward compatibility.
      *
      * @deprecated Use {@link #getVerbose()} instead.
      */
@@ -146,7 +146,7 @@ public abstract class CompileOptions implements Serializable {
     }
 
     /**
-     * Tells whether to log the files to be compiled. Defaults to {@code false}.
+     * This method exists only for Groovy source backward compatibility.
      *
      * @deprecated Use {@link #getListFiles()} instead.
      */
@@ -177,7 +177,7 @@ public abstract class CompileOptions implements Serializable {
     }
 
     /**
-     * Tells whether to log details of usage of deprecated members or classes. Defaults to {@code false}.
+     * This method exists only for Groovy source backward compatibility.
      *
      * @deprecated Use {@link #getDeprecation()} instead.
      */
@@ -208,7 +208,7 @@ public abstract class CompileOptions implements Serializable {
     }
 
     /**
-     * Tells whether to log warning messages. The default is {@code true}.
+     * This method exists only for Groovy source backward compatibility.
      *
      * @deprecated Use {@link #getWarnings()} instead.
      */
@@ -250,8 +250,7 @@ public abstract class CompileOptions implements Serializable {
     }
 
     /**
-     * Tells whether to include debugging information in the generated class files. Defaults
-     * to {@code true}. See {@link DebugOptions#getDebugLevel()} for which debugging information will be generated.
+     * This method exists only for Groovy source backward compatibility.
      *
      * @deprecated Use {@link #getDebug()} instead.
      */
@@ -301,9 +300,7 @@ public abstract class CompileOptions implements Serializable {
     }
 
     /**
-     * Tells whether to run the compiler in its own process. Note that this does
-     * not necessarily mean that a new process will be created for each compile task.
-     * Defaults to {@code false}.
+     * This method exists only for Groovy source backward compatibility.
      *
      * @deprecated Use {@link #getFork()} instead.
      */
@@ -408,7 +405,7 @@ public abstract class CompileOptions implements Serializable {
     }
 
     /**
-     * informs whether to use incremental compilation feature.
+     * This method exists only for Groovy source backward compatibility.
      *
      * @deprecated Use {@link #getIncremental()} instead.
      */

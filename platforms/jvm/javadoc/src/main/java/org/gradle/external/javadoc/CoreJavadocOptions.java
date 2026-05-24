@@ -332,6 +332,11 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
         return getVerbose();
     }
 
+    /**
+     * This method exists only for Groovy source backward compatibility.
+     *
+     * @deprecated Use {@link #getVerbose()} instead.
+     */
     @Override
     @Internal
     @Deprecated
@@ -382,6 +387,11 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
         return getBreakIterator();
     }
 
+    /**
+     * This method exists only for Groovy source backward compatibility.
+     *
+     * @deprecated Use {@link #getBreakIterator()} instead.
+     */
     @Override
     @Internal
     @Deprecated

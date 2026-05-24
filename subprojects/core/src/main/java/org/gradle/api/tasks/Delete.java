@@ -85,9 +85,8 @@ public abstract class Delete extends ConventionTask implements DeleteSpec {
     }
 
     /**
-     * Returns if symlinks should be followed when doing a delete.
+     * This method exists only for Groovy source backward compatibility.
      *
-     * @return true if symlinks will be followed.
      * @deprecated Use {@link #getFollowSymlinks()} instead.
      */
     @Internal

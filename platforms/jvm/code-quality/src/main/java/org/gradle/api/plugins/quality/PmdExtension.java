@@ -217,7 +217,7 @@ public abstract class PmdExtension extends CodeQualityExtension {
     }
 
     /**
-     * Whether or not to write PMD results to {@code System.out}.
+     * This method exists only for Groovy source backward compatibility.
      *
      * @deprecated Use {@link #getConsoleOutput()} instead.
      */

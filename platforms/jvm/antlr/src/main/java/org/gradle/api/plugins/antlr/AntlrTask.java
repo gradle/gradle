@@ -101,7 +101,7 @@ public abstract class AntlrTask extends SourceTask {
     }
 
     /**
-     * Specifies that all rules call {@code traceIn}/{@code traceOut}.
+     * This method exists only for Groovy source backward compatibility.
      *
      * @deprecated Use {@link #getTrace()} instead.
      */
@@ -129,7 +129,7 @@ public abstract class AntlrTask extends SourceTask {
     }
 
     /**
-     * Specifies that all lexer rules call {@code traceIn}/{@code traceOut}.
+     * This method exists only for Groovy source backward compatibility.
      *
      * @deprecated Use {@link #getTraceLexer()} instead.
      */
@@ -157,7 +157,7 @@ public abstract class AntlrTask extends SourceTask {
     }
 
     /**
-     * Specifies that all parser rules call {@code traceIn}/{@code traceOut}.
+     * This method exists only for Groovy source backward compatibility.
      *
      * @deprecated Use {@link #getTraceParser()} instead.
      */
@@ -185,7 +185,7 @@ public abstract class AntlrTask extends SourceTask {
     }
 
     /**
-     * Specifies that all tree walker rules call {@code traceIn}/{@code traceOut}.
+     * This method exists only for Groovy source backward compatibility.
      *
      * @deprecated Use {@link #getTraceTreeWalker()} instead.
      */

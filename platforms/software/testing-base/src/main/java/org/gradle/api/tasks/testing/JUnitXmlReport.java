@@ -54,7 +54,7 @@ public interface JUnitXmlReport extends DirectoryReport {
     }
 
     /**
-     * Should the output be associated with individual test cases instead of at the suite level.
+     * This method exists only for Groovy source backward compatibility.
      *
      * @deprecated Use {@link #getOutputPerTestCase()} instead.
      */

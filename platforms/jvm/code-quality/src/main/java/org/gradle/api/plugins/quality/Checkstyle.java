@@ -294,9 +294,8 @@ public abstract class Checkstyle extends AbstractCodeQualityTask implements Repo
     }
 
     /**
-     * Whether rule violations are to be displayed on the console.
+     * This method exists only for Groovy source backward compatibility.
      *
-     * @return true if violations should be displayed on console
      * @deprecated Use {@link #getShowViolations()} instead.
      */
     @Internal

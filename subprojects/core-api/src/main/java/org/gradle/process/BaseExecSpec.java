@@ -51,9 +51,8 @@ public interface BaseExecSpec extends ProcessForkOptions {
     }
 
     /**
-     * Tells whether a non-zero exit value is ignored, or an exception thrown. Defaults to <code>false</code>.
+     * This method exists only for Groovy source backward compatibility.
      *
-     * @return whether a non-zero exit value is ignored, or an exception thrown
      * @deprecated Use {@link #getIgnoreExitValue()} instead.
      */
     @Deprecated

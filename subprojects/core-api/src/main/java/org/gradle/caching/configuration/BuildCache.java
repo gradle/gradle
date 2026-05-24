@@ -52,7 +52,7 @@ public interface BuildCache {
     }
 
     /**
-     * Returns whether the build cache is enabled.
+     * This method exists only for Groovy source backward compatibility.
      *
      * @deprecated Use {@link #getEnabled()} instead.
      */
@@ -81,7 +81,7 @@ public interface BuildCache {
     }
 
     /**
-     * Returns whether a given build can store outputs in the build cache.
+     * This method exists only for Groovy source backward compatibility.
      *
      * @deprecated Use {@link #getPush()} instead.
      */

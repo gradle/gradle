@@ -144,6 +144,8 @@ public interface MinimalJavadocOptions {
     Provider<Boolean> getIsVerbose();
 
     /**
+     * This method exists only for Groovy source backward compatibility.
+     *
      * @deprecated Use {@link #getVerbose()} instead.
      */
     @Internal
@@ -168,6 +170,8 @@ public interface MinimalJavadocOptions {
     Property<Boolean> getIsBreakIterator();
 
     /**
+     * This method exists only for Groovy source backward compatibility.
+     *
      * @deprecated Use {@link #getBreakIterator()} instead.
      */
     @Internal

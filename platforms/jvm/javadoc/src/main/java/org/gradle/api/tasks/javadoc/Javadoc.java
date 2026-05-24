@@ -342,8 +342,7 @@ public abstract class Javadoc extends SourceTask {
     }
 
     /**
-     * Specifies whether this task should fail when errors are encountered during Javadoc generation. When {@code true},
-     * this task will fail on Javadoc error. When {@code false}, this task will ignore Javadoc errors.
+     * This method exists only for Groovy source backward compatibility.
      *
      * @deprecated Use {@link #getFailOnError()} instead.
      */

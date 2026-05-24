@@ -79,7 +79,7 @@ public abstract class BaseScalaCompileOptions implements Serializable {
     }
 
     /**
-     * Fail the build on compilation errors.
+     * This method exists only for Groovy source backward compatibility.
      *
      * @deprecated Use {@link #getFailOnError()} instead.
      */
@@ -107,7 +107,7 @@ public abstract class BaseScalaCompileOptions implements Serializable {
     }
 
     /**
-     * Generate deprecation information.
+     * This method exists only for Groovy source backward compatibility.
      *
      * @deprecated Use {@link #getDeprecation()} instead.
      */
@@ -135,7 +135,7 @@ public abstract class BaseScalaCompileOptions implements Serializable {
     }
 
     /**
-     * Generate unchecked information.
+     * This method exists only for Groovy source backward compatibility.
      *
      * @deprecated Use {@link #getUnchecked()} instead.
      */
@@ -172,7 +172,7 @@ public abstract class BaseScalaCompileOptions implements Serializable {
     }
 
     /**
-     * Run optimizations.
+     * This method exists only for Groovy source backward compatibility.
      *
      * @deprecated Use {@link #getOptimize()} instead.
      */
@@ -211,10 +211,7 @@ public abstract class BaseScalaCompileOptions implements Serializable {
     }
 
     /**
-     * Whether to force the compilation of all files.
-     * Legal values:
-     * - false (only compile modified files)
-     * - true (always recompile all files)
+     * This method exists only for Groovy source backward compatibility.
      *
      * @deprecated Use {@link #getForce()} instead.
      */
@@ -253,7 +250,7 @@ public abstract class BaseScalaCompileOptions implements Serializable {
     }
 
     /**
-     * List files to be compiled.
+     * This method exists only for Groovy source backward compatibility.
      *
      * @deprecated Use {@link #getListFiles()} instead.
      */

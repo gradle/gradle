@@ -80,7 +80,7 @@ public abstract class GroovyCompileOptions implements Serializable {
     }
 
     /**
-     * Tells whether the compilation task should fail if compile errors occurred. Defaults to {@code true}.
+     * This method exists only for Groovy source backward compatibility.
      *
      * @deprecated Use {@link #getFailOnError()} instead.
      */
@@ -108,7 +108,7 @@ public abstract class GroovyCompileOptions implements Serializable {
     }
 
     /**
-     * Tells whether to turn on verbose output. Defaults to {@code false}.
+     * This method exists only for Groovy source backward compatibility.
      *
      * @deprecated Use {@link #getVerbose()} instead.
      */
@@ -136,7 +136,7 @@ public abstract class GroovyCompileOptions implements Serializable {
     }
 
     /**
-     * Tells whether to print which source files are to be compiled. Defaults to {@code false}.
+     * This method exists only for Groovy source backward compatibility.
      *
      * @deprecated Use {@link #getListFiles()} instead.
      */
@@ -171,7 +171,7 @@ public abstract class GroovyCompileOptions implements Serializable {
     }
 
     /**
-     * Tells whether to run the Groovy compiler in a separate process. Defaults to {@code true}.
+     * This method exists only for Groovy source backward compatibility.
      *
      * @deprecated Use {@link #getFork()} instead.
      */
@@ -252,7 +252,7 @@ public abstract class GroovyCompileOptions implements Serializable {
     }
 
     /**
-     * Whether the Groovy code should be subject to Java annotation processing.
+     * This method exists only for Groovy source backward compatibility.
      *
      * @deprecated Use {@link #getJavaAnnotationProcessing()} instead.
      */
@@ -282,7 +282,7 @@ public abstract class GroovyCompileOptions implements Serializable {
     }
 
     /**
-     * Whether the Groovy compiler generate metadata for reflection on method parameter names on JDK 8 and above.
+     * This method exists only for Groovy source backward compatibility.
      *
      * @since 6.1
      * @deprecated Use {@link #getParameters()} instead.
@@ -375,9 +375,7 @@ public abstract class GroovyCompileOptions implements Serializable {
     }
 
     /**
-     * Tells whether Java stubs for Groovy classes generated during Java/Groovy joint compilation
-     * should be kept after compilation has completed. Useful for joint compilation debugging purposes.
-     * Defaults to {@code false}.
+     * This method exists only for Groovy source backward compatibility.
      *
      * @deprecated Use {@link #getKeepStubs()} instead.
      */

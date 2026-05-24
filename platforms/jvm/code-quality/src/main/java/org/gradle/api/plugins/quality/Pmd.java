@@ -329,7 +329,7 @@ public abstract class Pmd extends AbstractCodeQualityTask implements Reporting<P
     }
 
     /**
-     * Whether or not to write PMD results to {@code System.out}.
+     * This method exists only for Groovy source backward compatibility.
      *
      * @since 2.1
      * @deprecated Use {@link #getConsoleOutput()} instead.

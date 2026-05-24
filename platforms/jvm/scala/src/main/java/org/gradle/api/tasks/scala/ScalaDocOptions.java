@@ -58,7 +58,7 @@ public abstract class ScalaDocOptions implements Serializable {
     }
 
     /**
-     * Tells whether to generate deprecation information.
+     * This method exists only for Groovy source backward compatibility.
      *
      * @deprecated Use {@link #getDeprecation()} instead.
      */
@@ -86,7 +86,7 @@ public abstract class ScalaDocOptions implements Serializable {
     }
 
     /**
-     * Tells whether to generate unchecked information.
+     * This method exists only for Groovy source backward compatibility.
      *
      * @deprecated Use {@link #getUnchecked()} instead.
      */

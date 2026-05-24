@@ -143,9 +143,7 @@ public abstract class CheckstyleExtension extends CodeQualityExtension {
     }
 
     /**
-     * Whether rule violations are to be displayed on the console. Defaults to <code>true</code>.
-     *
-     * Example: showViolations = false
+     * This method exists only for Groovy source backward compatibility.
      *
      * @deprecated Use {@link #getShowViolations()} instead.
      */

@@ -115,15 +115,7 @@ public abstract class Zip extends AbstractArchiveTask {
     }
 
     /**
-     * Whether the zip can contain more than 65535 files and/or support files greater than 4GB in size.
-     * <p>
-     * The standard zip format has hard limits on file size and count.
-     * The <a href="http://en.wikipedia.org/wiki/Zip_(file_format)#ZIP64">Zip64 format extension</a>
-     * practically removes these limits and is therefore required for building large zips.
-     * <p>
-     * However, not all Zip readers support the Zip64 extensions.
-     * Notably, the {@link java.util.zip.ZipInputStream} JDK class does not support Zip64 for versions earlier than Java 7.
-     * This means you should not enable this property if you are building JARs to be used with Java 6 and earlier runtimes.
+     * This method exists only for Groovy source backward compatibility.
      *
      * @deprecated Use {@link #getZip64()} instead.
      */

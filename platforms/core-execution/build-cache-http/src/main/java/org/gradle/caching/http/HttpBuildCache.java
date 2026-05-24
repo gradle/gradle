@@ -130,17 +130,7 @@ public abstract class HttpBuildCache extends AbstractBuildCache {
     }
 
     /**
-     * Specifies whether it is acceptable to communicate with an HTTP build cache backend with an untrusted SSL certificate.
-     * <p>
-     * The SSL certificate for the HTTP build cache backend may be untrusted since it is internally provisioned or a self-signed certificate.
-     * <p>
-     * In such a scenario, you can either configure the build JVM environment to trust the certificate,
-     * or set this property to {@code true} to disable verification of the server's identity.
-     * <p>
-     * Allowing communication with untrusted servers keeps data encrypted during transmission,
-     * but makes it easier for a man-in-the-middle to impersonate the intended server and capture data.
-     * <p>
-     * This value has no effect if a server is specified using the HTTP protocol (i.e. has SSL disabled).
+     * This method exists only for Groovy source backward compatibility.
      *
      * @since 4.2
      * @deprecated Use {@link #getAllowUntrustedServer()} instead.
@@ -183,19 +173,7 @@ public abstract class HttpBuildCache extends AbstractBuildCache {
     }
 
     /**
-     * Specifies whether it is acceptable to communicate with a build cache over an insecure HTTP connection.
-     * <p>
-     * For security purposes this intentionally requires a user to opt-in to using insecure protocols on case by case basis.
-     * <p>
-     * Gradle intentionally does not offer a global system/gradle property that allows a universal disable of this check.
-     * <p>
-     * <b>Allowing communication over insecure protocols allows for a man-in-the-middle to impersonate the intended server,
-     * and gives an attacker the ability to
-     * <a href="https://max.computer/blog/how-to-take-over-the-computer-of-any-java-or-clojure-or-scala-developer/">serve malicious executable code onto the system.</a>
-     * </b>
-     * <p>
-     * See also:
-     * <a href="https://medium.com/bugbountywriteup/want-to-take-over-the-java-ecosystem-all-you-need-is-a-mitm-1fc329d898fb">Want to take over the Java ecosystem? All you need is a MITM!</a>
+     * This method exists only for Groovy source backward compatibility.
      *
      * @since 6.0
      * @deprecated Use {@link #getAllowInsecureProtocol()} instead.
@@ -236,17 +214,7 @@ public abstract class HttpBuildCache extends AbstractBuildCache {
     }
 
     /**
-     * Specifies whether HTTP expect-continue should be used for store requests.
-     *
-     * This value defaults to {@code false}.
-     *
-     * When enabled, whether or not a store request would succeed is checked with the server before attempting.
-     * This is particularly useful when potentially dealing with large artifacts that may be rejected by the server with a {@literal 413 Payload Too Large} response,
-     * as it avoids the overhead of transmitting the large file just to have it rejected.
-     * This fail-fast behavior comes at the expense of extra marginal overhead for successful requests,
-     * due to the extra network communication required by the initial check.
-     *
-     * Note: not all HTTP servers support expect-continue.
+     * This method exists only for Groovy source backward compatibility.
      *
      * @since 7.2
      * @deprecated Use {@link #getUseExpectContinue()} instead.

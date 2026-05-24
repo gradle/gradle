@@ -65,9 +65,7 @@ public abstract class CodeQualityExtension {
     }
 
     /**
-     * Whether to allow the build to continue if there are warnings.
-     *
-     * Example: ignoreFailures = true
+     * This method exists only for Groovy source backward compatibility.
      *
      * @deprecated Use {@link #getIgnoreFailures()} instead.
      */

@@ -76,7 +76,7 @@ public interface UrlArtifactRepository {
     }
 
     /**
-     * Specifies whether it is acceptable to communicate with a repository over an insecure HTTP connection.
+     * This method exists only for Groovy source backward compatibility.
      *
      * @deprecated Use {@link #getAllowInsecureProtocol()} instead.
      */
