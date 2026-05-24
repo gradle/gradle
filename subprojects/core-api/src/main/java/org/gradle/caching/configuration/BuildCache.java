@@ -18,7 +18,11 @@ package org.gradle.caching.configuration;
 
 import org.gradle.api.model.ReplacedBy;
 import org.gradle.api.provider.Property;
+import org.gradle.api.tasks.Internal;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
+import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor;
+import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor.AccessorType;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty.BinaryCompatibility;
 
 /**
  * Configuration object for a build cache.
@@ -32,7 +36,12 @@ public interface BuildCache {
      *
      * Added for Kotlin source compatibility.
      */
-    @ReplacesEagerProperty(originalType = boolean.class)
+    @ReplacesEagerProperty(
+        replacedAccessors = {
+            @ReplacedAccessor(value = AccessorType.GETTER, name = "isEnabled", originalType = boolean.class, binaryCompatibility = BinaryCompatibility.ACCESSORS_KEPT),
+            @ReplacedAccessor(value = AccessorType.SETTER, name = "setEnabled", originalType = boolean.class)
+        }
+    )
     Property<Boolean> getEnabled();
 
     /**
@@ -44,9 +53,23 @@ public interface BuildCache {
     }
 
     /**
+     * This method exists only for Groovy source backward compatibility.
+     *
+     * @deprecated Use {@link #getEnabled()} instead.
+     */
+    @Internal
+    @Deprecated
+    boolean isEnabled();
+
+    /**
      * Controls whether a given build can store outputs in the build cache.
      */
-    @ReplacesEagerProperty(originalType = boolean.class)
+    @ReplacesEagerProperty(
+        replacedAccessors = {
+            @ReplacedAccessor(value = AccessorType.GETTER, name = "isPush", originalType = boolean.class, binaryCompatibility = BinaryCompatibility.ACCESSORS_KEPT),
+            @ReplacedAccessor(value = AccessorType.SETTER, name = "setPush", originalType = boolean.class)
+        }
+    )
     Property<Boolean> getPush();
 
     /**
@@ -58,4 +81,13 @@ public interface BuildCache {
     default Property<Boolean> getIsPush() {
         return getPush();
     }
+
+    /**
+     * This method exists only for Groovy source backward compatibility.
+     *
+     * @deprecated Use {@link #getPush()} instead.
+     */
+    @Internal
+    @Deprecated
+    boolean isPush();
 }

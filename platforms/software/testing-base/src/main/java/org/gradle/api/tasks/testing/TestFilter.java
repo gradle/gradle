@@ -20,6 +20,9 @@ import org.gradle.api.provider.SetProperty;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
+import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor;
+import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor.AccessorType;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty.BinaryCompatibility;
 
 /**
  * Allows filtering tests for execution.
@@ -142,7 +145,12 @@ public interface TestFilter {
      * The default is true.
      */
     @Input
-    @ReplacesEagerProperty(originalType = boolean.class)
+    @ReplacesEagerProperty(
+        replacedAccessors = {
+            @ReplacedAccessor(value = AccessorType.GETTER, name = "isFailOnNoMatchingTests", originalType = boolean.class, binaryCompatibility = BinaryCompatibility.ACCESSORS_KEPT),
+            @ReplacedAccessor(value = AccessorType.SETTER, name = "setFailOnNoMatchingTests", originalType = boolean.class)
+        }
+    )
     Property<Boolean> getFailOnNoMatchingTests();
 
     /**
@@ -152,4 +160,13 @@ public interface TestFilter {
     default Property<Boolean> getIsFailOnNoMatchingTests() {
         return getFailOnNoMatchingTests();
     }
+
+    /**
+     * This method exists only for Groovy source backward compatibility.
+     *
+     * @deprecated Use {@link #getFailOnNoMatchingTests()} instead.
+     */
+    @Internal
+    @Deprecated
+    boolean isFailOnNoMatchingTests();
 }

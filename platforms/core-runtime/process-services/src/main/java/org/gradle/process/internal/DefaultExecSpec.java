@@ -19,6 +19,7 @@ package org.gradle.process.internal;
 import org.gradle.api.internal.lambdas.SerializableLambdas;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.tasks.Internal;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.process.BaseExecSpec;
 import org.gradle.process.ExecSpec;
@@ -45,6 +46,13 @@ public abstract class DefaultExecSpec extends DefaultProcessForkOptions implemen
         // ExecSpec
         targetSpec.getArgs().set(getArgs());
         targetSpec.getArgumentProviders().addAll(getArgumentProviders());
+    }
+
+    @Override
+    @Internal
+    @Deprecated
+    public boolean isIgnoreExitValue() {
+        return getIgnoreExitValue().get();
     }
 
     static void copyBaseExecSpecTo(BaseExecSpec source, BaseExecSpec target) {

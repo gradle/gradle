@@ -24,6 +24,7 @@ import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.Internal;
 import org.gradle.external.javadoc.internal.JavadocOptionFile;
 import org.gradle.external.javadoc.internal.JavadocOptionFileOptionInternal;
 import org.gradle.external.javadoc.internal.JavadocOptionFileOptionInternalAdapter;
@@ -331,6 +332,18 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
         return getVerbose();
     }
 
+    /**
+     * This method exists only for Groovy source backward compatibility.
+     *
+     * @deprecated Use {@link #getVerbose()} instead.
+     */
+    @Override
+    @Internal
+    @Deprecated
+    public boolean isVerbose() {
+        return getVerbose().get();
+    }
+
     @Override
     public MinimalJavadocOptions quiet() {
         getOutputLevel().set(JavadocOutputLevel.QUIET);
@@ -372,6 +385,18 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
     @Override
     public Property<Boolean> getIsBreakIterator() {
         return getBreakIterator();
+    }
+
+    /**
+     * This method exists only for Groovy source backward compatibility.
+     *
+     * @deprecated Use {@link #getBreakIterator()} instead.
+     */
+    @Override
+    @Internal
+    @Deprecated
+    public boolean isBreakIterator() {
+        return getBreakIterator().get();
     }
 
     @Override

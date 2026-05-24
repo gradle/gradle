@@ -16,6 +16,8 @@
 
 package org.gradle.caching.configuration;
 
+import org.gradle.api.tasks.Internal;
+
 /**
  * Base implementation for build cache service configuration.
  *
@@ -26,5 +28,25 @@ public abstract class AbstractBuildCache implements BuildCache {
     public AbstractBuildCache() {
         getEnabled().convention(true);
         getPush().convention(false);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @Internal
+    @Deprecated
+    public boolean isEnabled() {
+        return getEnabled().get();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @Internal
+    @Deprecated
+    public boolean isPush() {
+        return getPush().get();
     }
 }

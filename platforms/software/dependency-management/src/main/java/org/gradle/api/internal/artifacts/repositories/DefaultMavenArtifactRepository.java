@@ -54,6 +54,7 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.ProviderFactory;
+import org.gradle.api.tasks.Internal;
 import org.gradle.internal.Cast;
 import org.gradle.internal.action.InstantiatingAction;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
@@ -158,6 +159,13 @@ public abstract class DefaultMavenArtifactRepository extends AbstractAuthenticat
     @Override
     public Property<Boolean> getAllowInsecureProtocol() {
         return urlArtifactRepository.getAllowInsecureProtocol();
+    }
+
+    @Override
+    @Internal
+    @Deprecated
+    public boolean isAllowInsecureProtocol() {
+        return getAllowInsecureProtocol().get();
     }
 
     @Override

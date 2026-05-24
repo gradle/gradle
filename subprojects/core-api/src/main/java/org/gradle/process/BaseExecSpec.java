@@ -17,7 +17,11 @@ package org.gradle.process;
 
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.tasks.Internal;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
+import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor;
+import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor.AccessorType;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty.BinaryCompatibility;
 
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -32,7 +36,12 @@ public interface BaseExecSpec extends ProcessForkOptions {
      *
      * @return whether a non-zero exit value is ignored, or an exception thrown
      */
-    @ReplacesEagerProperty(originalType = boolean.class, fluentSetter = true)
+    @ReplacesEagerProperty(
+        replacedAccessors = {
+            @ReplacedAccessor(value = AccessorType.GETTER, name = "isIgnoreExitValue", originalType = boolean.class, binaryCompatibility = BinaryCompatibility.ACCESSORS_KEPT),
+            @ReplacedAccessor(value = AccessorType.SETTER, name = "setIgnoreExitValue", originalType = boolean.class, fluentSetter = true)
+        }
+    )
     Property<Boolean> getIgnoreExitValue();
 
     /**
@@ -41,6 +50,15 @@ public interface BaseExecSpec extends ProcessForkOptions {
     default Property<Boolean> getIsIgnoreExitValue() {
         return getIgnoreExitValue();
     }
+
+    /**
+     * This method exists only for Groovy source backward compatibility.
+     *
+     * @deprecated Use {@link #getIgnoreExitValue()} instead.
+     */
+    @Internal
+    @Deprecated
+    boolean isIgnoreExitValue();
 
     /**
      * Returns the standard input stream for the process executing the command. The stream is closed after the process

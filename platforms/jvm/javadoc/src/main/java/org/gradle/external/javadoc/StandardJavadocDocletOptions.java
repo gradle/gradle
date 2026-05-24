@@ -45,6 +45,9 @@ import org.gradle.external.javadoc.internal.options.PropertyKnownOption;
 import org.gradle.internal.Cast;
 import org.gradle.internal.instrumentation.api.annotations.BytecodeUpgrade;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
+import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor;
+import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor.AccessorType;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty.BinaryCompatibility;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -185,7 +188,12 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
      * then clicking on the "Use" link in the navigation bar.
      */
     @Input
-    @ReplacesEagerProperty(originalType = boolean.class)
+    @ReplacesEagerProperty(
+        replacedAccessors = {
+            @ReplacedAccessor(value = AccessorType.GETTER, name = "isUse", originalType = boolean.class, binaryCompatibility = BinaryCompatibility.ACCESSORS_KEPT),
+            @ReplacedAccessor(value = AccessorType.SETTER, name = "setUse", originalType = boolean.class)
+        }
+    )
     public abstract Property<Boolean> getUse();
 
     /**
@@ -194,6 +202,17 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
     @Internal
     public Property<Boolean> getIsUse() {
         return getUse();
+    }
+
+    /**
+     * This method exists only for Groovy source backward compatibility.
+     *
+     * @deprecated Use {@link #getUse()} instead.
+     */
+    @Internal
+    @Deprecated
+    public boolean isUse() {
+        return getUse().get();
     }
 
     public StandardJavadocDocletOptions use(boolean use) {
@@ -212,7 +231,12 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
      * To tell what version of the Javadoc tool you are using, use the -J-version option.
      */
     @Input
-    @ReplacesEagerProperty(originalType = boolean.class)
+    @ReplacesEagerProperty(
+        replacedAccessors = {
+            @ReplacedAccessor(value = AccessorType.GETTER, name = "isVersion", originalType = boolean.class, binaryCompatibility = BinaryCompatibility.ACCESSORS_KEPT),
+            @ReplacedAccessor(value = AccessorType.SETTER, name = "setVersion", originalType = boolean.class)
+        }
+    )
     public abstract Property<Boolean> getVersion();
 
     /**
@@ -221,6 +245,17 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
     @Internal
     public Property<Boolean> getIsVersion() {
         return getVersion();
+    }
+
+    /**
+     * This method exists only for Groovy source backward compatibility.
+     *
+     * @deprecated Use {@link #getVersion()} instead.
+     */
+    @Internal
+    @Deprecated
+    public boolean isVersion() {
+        return getVersion().get();
     }
 
     public StandardJavadocDocletOptions version(boolean version) {
@@ -238,7 +273,12 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
      * Includes the @author text in the generated docs.
      */
     @Input
-    @ReplacesEagerProperty(originalType = boolean.class)
+    @ReplacesEagerProperty(
+        replacedAccessors = {
+            @ReplacedAccessor(value = AccessorType.GETTER, name = "isAuthor", originalType = boolean.class, binaryCompatibility = BinaryCompatibility.ACCESSORS_KEPT),
+            @ReplacedAccessor(value = AccessorType.SETTER, name = "setAuthor", originalType = boolean.class)
+        }
+    )
     public abstract Property<Boolean> getAuthor();
 
     /**
@@ -247,6 +287,17 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
     @Internal
     public Property<Boolean> getIsAuthor() {
         return getAuthor();
+    }
+
+    /**
+     * This method exists only for Groovy source backward compatibility.
+     *
+     * @deprecated Use {@link #getAuthor()} instead.
+     */
+    @Internal
+    @Deprecated
+    public boolean isAuthor() {
+        return getAuthor().get();
     }
 
     public StandardJavadocDocletOptions author(boolean author) {
@@ -265,7 +316,12 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
      * plus a file for any index entries that start with non-alphabetical characters.
      */
     @Input
-    @ReplacesEagerProperty(originalType = boolean.class)
+    @ReplacesEagerProperty(
+        replacedAccessors = {
+            @ReplacedAccessor(value = AccessorType.GETTER, name = "isSplitIndex", originalType = boolean.class, binaryCompatibility = BinaryCompatibility.ACCESSORS_KEPT),
+            @ReplacedAccessor(value = AccessorType.SETTER, name = "setSplitIndex", originalType = boolean.class)
+        }
+    )
     public abstract Property<Boolean> getSplitIndex();
 
     /**
@@ -274,6 +330,17 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
     @Internal
     public Property<Boolean> getIsSplitIndex() {
         return getSplitIndex();
+    }
+
+    /**
+     * This method exists only for Groovy source backward compatibility.
+     *
+     * @deprecated Use {@link #getSplitIndex()} instead.
+     */
+    @Internal
+    @Deprecated
+    public boolean isSplitIndex() {
+        return getSplitIndex().get();
     }
 
     public StandardJavadocDocletOptions splitIndex(boolean splitIndex) {
@@ -461,7 +528,12 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
      * public String getLabel()
      */
     @Input
-    @ReplacesEagerProperty(originalType = boolean.class)
+    @ReplacesEagerProperty(
+        replacedAccessors = {
+            @ReplacedAccessor(value = AccessorType.GETTER, name = "isLinkSource", originalType = boolean.class, binaryCompatibility = BinaryCompatibility.ACCESSORS_KEPT),
+            @ReplacedAccessor(value = AccessorType.SETTER, name = "setLinkSource", originalType = boolean.class)
+        }
+    )
     public abstract Property<Boolean> getLinkSource();
 
     /**
@@ -470,6 +542,17 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
     @Internal
     public Property<Boolean> getIsLinkSource() {
         return getLinkSource();
+    }
+
+    /**
+     * This method exists only for Groovy source backward compatibility.
+     *
+     * @deprecated Use {@link #getLinkSource()} instead.
+     */
+    @Internal
+    @Deprecated
+    public boolean isLinkSource() {
+        return getLinkSource().get();
     }
 
     public StandardJavadocDocletOptions linkSource(boolean linkSource) {
@@ -554,7 +637,12 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
      * This is useful when writing code and you don't want to be distracted by the deprecated code.
      */
     @Input
-    @ReplacesEagerProperty(originalType = boolean.class)
+    @ReplacesEagerProperty(
+        replacedAccessors = {
+            @ReplacedAccessor(value = AccessorType.GETTER, name = "isNoDeprecated", originalType = boolean.class, binaryCompatibility = BinaryCompatibility.ACCESSORS_KEPT),
+            @ReplacedAccessor(value = AccessorType.SETTER, name = "setNoDeprecated", originalType = boolean.class)
+        }
+    )
     public abstract Property<Boolean> getNoDeprecated();
 
     /**
@@ -563,6 +651,17 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
     @Internal
     public Property<Boolean> getIsNoDeprecated() {
         return getNoDeprecated();
+    }
+
+    /**
+     * This method exists only for Groovy source backward compatibility.
+     *
+     * @deprecated Use {@link #getNoDeprecated()} instead.
+     */
+    @Internal
+    @Deprecated
+    public boolean isNoDeprecated() {
+        return getNoDeprecated().get();
     }
 
     public StandardJavadocDocletOptions noDeprecated(boolean noDeprecated) {
@@ -583,8 +682,24 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
      * This is useful if your source code contains no deprecated API, and you want to make the navigation bar cleaner.
      */
     @Input
-    @ReplacesEagerProperty(originalType = boolean.class)
+    @ReplacesEagerProperty(
+        replacedAccessors = {
+            @ReplacedAccessor(value = AccessorType.GETTER, name = "isNoDeprecatedList", originalType = boolean.class, binaryCompatibility = BinaryCompatibility.ACCESSORS_KEPT),
+            @ReplacedAccessor(value = AccessorType.SETTER, name = "setNoDeprecatedList", originalType = boolean.class)
+        }
+    )
     public abstract Property<Boolean> getNoDeprecatedList();
+
+    /**
+     * This method exists only for Groovy source backward compatibility.
+     *
+     * @deprecated Use {@link #getNoDeprecatedList()} instead.
+     */
+    @Internal
+    @Deprecated
+    public boolean isNoDeprecatedList() {
+        return getNoDeprecatedList().get();
+    }
 
     /**
      * This method exists only for Kotlin source backward compatibility.
@@ -609,7 +724,12 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
      * Omits from the generated docs the "Since" sections associated with the @since tags.
      */
     @Input
-    @ReplacesEagerProperty(originalType = boolean.class)
+    @ReplacesEagerProperty(
+        replacedAccessors = {
+            @ReplacedAccessor(value = AccessorType.GETTER, name = "isNoSince", originalType = boolean.class, binaryCompatibility = BinaryCompatibility.ACCESSORS_KEPT),
+            @ReplacedAccessor(value = AccessorType.SETTER, name = "setNoSince", originalType = boolean.class)
+        }
+    )
     public abstract Property<Boolean> getNoSince();
 
     /**
@@ -618,6 +738,17 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
     @Internal
     public Property<Boolean> getIsNoSince() {
         return getNoSince();
+    }
+
+    /**
+     * This method exists only for Groovy source backward compatibility.
+     *
+     * @deprecated Use {@link #getNoSince()} instead.
+     */
+    @Internal
+    @Deprecated
+    public boolean isNoSince() {
+        return getNoSince().get();
     }
 
     public StandardJavadocDocletOptions noSince(boolean noSince) {
@@ -637,7 +768,12 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
      * The hierarchy is produced by default.
      */
     @Input
-    @ReplacesEagerProperty(originalType = boolean.class)
+    @ReplacesEagerProperty(
+        replacedAccessors = {
+            @ReplacedAccessor(value = AccessorType.GETTER, name = "isNoTree", originalType = boolean.class, binaryCompatibility = BinaryCompatibility.ACCESSORS_KEPT),
+            @ReplacedAccessor(value = AccessorType.SETTER, name = "setNoTree", originalType = boolean.class)
+        }
+    )
     public abstract Property<Boolean> getNoTree();
 
     /**
@@ -646,6 +782,17 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
     @Internal
     public Property<Boolean> getIsNoTree() {
         return getNoTree();
+    }
+
+    /**
+     * This method exists only for Groovy source backward compatibility.
+     *
+     * @deprecated Use {@link #getNoTree()} instead.
+     */
+    @Internal
+    @Deprecated
+    public boolean isNoTree() {
+        return getNoTree().get();
     }
 
     public StandardJavadocDocletOptions noTree(boolean noTree) {
@@ -663,7 +810,12 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
      * Omits the index from the generated docs. The index is produced by default.
      */
     @Input
-    @ReplacesEagerProperty(originalType = boolean.class)
+    @ReplacesEagerProperty(
+        replacedAccessors = {
+            @ReplacedAccessor(value = AccessorType.GETTER, name = "isNoIndex", originalType = boolean.class, binaryCompatibility = BinaryCompatibility.ACCESSORS_KEPT),
+            @ReplacedAccessor(value = AccessorType.SETTER, name = "setNoIndex", originalType = boolean.class)
+        }
+    )
     public abstract Property<Boolean> getNoIndex();
 
     /**
@@ -672,6 +824,17 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
     @Internal
     public Property<Boolean> getIsNoIndex() {
         return getNoIndex();
+    }
+
+    /**
+     * This method exists only for Groovy source backward compatibility.
+     *
+     * @deprecated Use {@link #getNoIndex()} instead.
+     */
+    @Internal
+    @Deprecated
+    public boolean isNoIndex() {
+        return getNoIndex().get();
     }
 
     public StandardJavadocDocletOptions noIndex(boolean noIndex) {
@@ -689,7 +852,12 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
      * Omits the HELP link in the navigation bars at the top and bottom of each page of output.
      */
     @Input
-    @ReplacesEagerProperty(originalType = boolean.class)
+    @ReplacesEagerProperty(
+        replacedAccessors = {
+            @ReplacedAccessor(value = AccessorType.GETTER, name = "isNoHelp", originalType = boolean.class, binaryCompatibility = BinaryCompatibility.ACCESSORS_KEPT),
+            @ReplacedAccessor(value = AccessorType.SETTER, name = "setNoHelp", originalType = boolean.class)
+        }
+    )
     public abstract Property<Boolean> getNoHelp();
 
     /**
@@ -698,6 +866,17 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
     @Internal
     public Property<Boolean> getIsNoHelp() {
         return getNoHelp();
+    }
+
+    /**
+     * This method exists only for Groovy source backward compatibility.
+     *
+     * @deprecated Use {@link #getNoHelp()} instead.
+     */
+    @Internal
+    @Deprecated
+    public boolean isNoHelp() {
+        return getNoHelp().get();
     }
 
     public StandardJavadocDocletOptions noHelp(boolean noHelp) {
@@ -718,7 +897,12 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
      * such as converting the files to PostScript or PDF for print only.
      */
     @Input
-    @ReplacesEagerProperty(originalType = boolean.class)
+    @ReplacesEagerProperty(
+        replacedAccessors = {
+            @ReplacedAccessor(value = AccessorType.GETTER, name = "isNoNavBar", originalType = boolean.class, binaryCompatibility = BinaryCompatibility.ACCESSORS_KEPT),
+            @ReplacedAccessor(value = AccessorType.SETTER, name = "setNoNavBar", originalType = boolean.class)
+        }
+    )
     public abstract Property<Boolean> getNoNavBar();
 
     /**
@@ -727,6 +911,17 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
     @Internal
     public Property<Boolean> getIsNoNavBar() {
         return getNoNavBar();
+    }
+
+    /**
+     * This method exists only for Groovy source backward compatibility.
+     *
+     * @deprecated Use {@link #getNoNavBar()} instead.
+     */
+    @Internal
+    @Deprecated
+    public boolean isNoNavBar() {
+        return getNoNavBar().get();
     }
 
     public StandardJavadocDocletOptions noNavBar(boolean noNavBar) {
@@ -783,7 +978,12 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
      * which helps to properly document default serializable fields and writeExternal methods.
      */
     @Input
-    @ReplacesEagerProperty(originalType = boolean.class)
+    @ReplacesEagerProperty(
+        replacedAccessors = {
+            @ReplacedAccessor(value = AccessorType.GETTER, name = "isSerialWarn", originalType = boolean.class, binaryCompatibility = BinaryCompatibility.ACCESSORS_KEPT),
+            @ReplacedAccessor(value = AccessorType.SETTER, name = "setSerialWarn", originalType = boolean.class)
+        }
+    )
     public abstract Property<Boolean> getSerialWarn();
 
     /**
@@ -792,6 +992,17 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
     @Internal
     public Property<Boolean> getIsSerialWarn() {
         return getSerialWarn();
+    }
+
+    /**
+     * This method exists only for Groovy source backward compatibility.
+     *
+     * @deprecated Use {@link #getSerialWarn()} instead.
+     */
+    @Internal
+    @Deprecated
+    public boolean isSerialWarn() {
+        return getSerialWarn().get();
     }
 
     public StandardJavadocDocletOptions serialWarn(boolean serialWarn) {
@@ -850,7 +1061,12 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
      * -keywords.
      */
     @Input
-    @ReplacesEagerProperty(originalType = boolean.class)
+    @ReplacesEagerProperty(
+        replacedAccessors = {
+            @ReplacedAccessor(value = AccessorType.GETTER, name = "isKeyWords", originalType = boolean.class, binaryCompatibility = BinaryCompatibility.ACCESSORS_KEPT),
+            @ReplacedAccessor(value = AccessorType.SETTER, name = "setKeyWords", originalType = boolean.class)
+        }
+    )
     public abstract Property<Boolean> getKeyWords();
 
     /**
@@ -859,6 +1075,17 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
     @Internal
     public Property<Boolean> getIsKeyWords() {
         return getKeyWords();
+    }
+
+    /**
+     * This method exists only for Groovy source backward compatibility.
+     *
+     * @deprecated Use {@link #getKeyWords()} instead.
+     */
+    @Internal
+    @Deprecated
+    public boolean isKeyWords() {
+        return getKeyWords().get();
     }
 
     public StandardJavadocDocletOptions keyWords(boolean keyWords) {
@@ -929,7 +1156,12 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
      * -docfilessubdirs.
      */
     @Input
-    @ReplacesEagerProperty(originalType = boolean.class)
+    @ReplacesEagerProperty(
+        replacedAccessors = {
+            @ReplacedAccessor(value = AccessorType.GETTER, name = "isDocFilesSubDirs", originalType = boolean.class, binaryCompatibility = BinaryCompatibility.ACCESSORS_KEPT),
+            @ReplacedAccessor(value = AccessorType.SETTER, name = "setDocFilesSubDirs", originalType = boolean.class)
+        }
+    )
     public abstract Property<Boolean> getDocFilesSubDirs();
 
     /**
@@ -938,6 +1170,17 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
     @Internal
     public Property<Boolean> getIsDocFilesSubDirs() {
         return getDocFilesSubDirs();
+    }
+
+    /**
+     * This method exists only for Groovy source backward compatibility.
+     *
+     * @deprecated Use {@link #getDocFilesSubDirs()} instead.
+     */
+    @Internal
+    @Deprecated
+    public boolean isDocFilesSubDirs() {
+        return getDocFilesSubDirs().get();
     }
 
     public StandardJavadocDocletOptions docFilesSubDirs(boolean docFilesSubDirs) {
@@ -984,7 +1227,12 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
     }
 
     @Input
-    @ReplacesEagerProperty(originalType = boolean.class)
+    @ReplacesEagerProperty(
+        replacedAccessors = {
+            @ReplacedAccessor(value = AccessorType.GETTER, name = "isNoTimestamp", originalType = boolean.class, binaryCompatibility = BinaryCompatibility.ACCESSORS_KEPT),
+            @ReplacedAccessor(value = AccessorType.SETTER, name = "setNoTimestamp", originalType = boolean.class)
+        }
+    )
     public abstract Property<Boolean> getNoTimestamp();
 
     /**
@@ -993,6 +1241,17 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
     @Internal
     public Property<Boolean> getIsNoTimestamp() {
         return getNoTimestamp();
+    }
+
+    /**
+     * This method exists only for Groovy source backward compatibility.
+     *
+     * @deprecated Use {@link #getNoTimestamp()} instead.
+     */
+    @Internal
+    @Deprecated
+    public boolean isNoTimestamp() {
+        return getNoTimestamp().get();
     }
 
     public StandardJavadocDocletOptions noTimestamp(boolean noTimestamp) {
@@ -1008,7 +1267,12 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
      * -nocomment.
      */
     @Input
-    @ReplacesEagerProperty(originalType = boolean.class)
+    @ReplacesEagerProperty(
+        replacedAccessors = {
+            @ReplacedAccessor(value = AccessorType.GETTER, name = "isNoComment", originalType = boolean.class, binaryCompatibility = BinaryCompatibility.ACCESSORS_KEPT),
+            @ReplacedAccessor(value = AccessorType.SETTER, name = "setNoComment", originalType = boolean.class)
+        }
+    )
     public abstract Property<Boolean> getNoComment();
 
     /**
@@ -1017,6 +1281,17 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
     @Internal
     public Property<Boolean> getIsNoComment() {
         return getNoComment();
+    }
+
+    /**
+     * This method exists only for Groovy source backward compatibility.
+     *
+     * @deprecated Use {@link #getNoComment()} instead.
+     */
+    @Internal
+    @Deprecated
+    public boolean isNoComment() {
+        return getNoComment().get();
     }
 
     public StandardJavadocDocletOptions noComment(boolean noComment) {

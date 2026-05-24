@@ -42,8 +42,8 @@ class TestNGOptionsTest extends Specification {
         testngOptions.suiteName.get() == 'Gradle suite'
         testngOptions.testName.get() == 'Gradle test'
         testngOptions.configFailurePolicy.get() == TestNGOptions.DEFAULT_CONFIG_FAILURE_POLICY
-        !testngOptions.preserveOrder.get()
-        !testngOptions.groupByInstances.get()
+        !testngOptions.preserveOrder
+        !testngOptions.groupByInstances
         testngOptions.threadPoolFactoryClass.getOrNull() == null
     }
 
@@ -82,13 +82,13 @@ class TestNGOptionsTest extends Specification {
         target.parallel.get() == source.parallel.get()
         target.threadCount.get() == source.threadCount.get()
         target.suiteThreadPoolSize.get() == source.suiteThreadPoolSize.get()
-        target.useDefaultListeners.get() == source.useDefaultListeners.get()
+        target.useDefaultListeners == source.useDefaultListeners
         target.threadPoolFactoryClass.get() == source.threadPoolFactoryClass.get()
         target.suiteName.get() == source.suiteName.get()
         target.testName.get() == source.testName.get()
         target.suiteXmlFiles.files == source.suiteXmlFiles.files
-        target.preserveOrder.get() == source.preserveOrder.get()
-        target.groupByInstances.get() == source.groupByInstances.get()
+        target.preserveOrder == source.preserveOrder
+        target.groupByInstances == source.groupByInstances
     }
 
     private TestNGOptions testNGOptionsWithPrefix(String prefix, boolean booleanValue, int intValue) {

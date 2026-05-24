@@ -1100,7 +1100,11 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         boolean claimPropertyImplementation(PropertyMetadata property) {
             // Skip properties with non-abstract getter or setter implementations
             for (MethodMetadata getter : property.getters) {
-                if (getter.shouldImplement() && !getter.isAbstract()) {
+                if (getter.shouldImplement() && !getter.isAbstract()
+                    // TODO: fix/remove once restore-boolean-getters shims are no longer needed.
+                    //    Allows a concrete `boolean isFoo()` shim on a `Property<Boolean>`/`Provider<Boolean>` property
+                    //    so the lazy property can still be auto-implemented as a managed property.
+                    && !isLazyBooleanGetter(getter, property)) {
                     return false;
                 }
             }
@@ -1142,6 +1146,25 @@ abstract class AbstractClassGenerator implements ClassGenerator {
             return false;
         }
 
+        private boolean isLazyBooleanGetter(MethodMetadata getter, PropertyMetadata property) {
+            if (!getter.getReturnType().equals(Boolean.TYPE)) {
+                return false;
+            }
+            MethodMetadata mainGetter = property.getMainGetter();
+            if (mainGetter == null || mainGetter == getter) {
+                return false;
+            }
+            Class<?> mainReturnType = mainGetter.method.getReturnType();
+            if (!mainReturnType.equals(Property.class) && !mainReturnType.equals(Provider.class)) {
+                return false;
+            }
+            @SuppressWarnings("unchecked")
+            TypeToken<?> typeToken = (TypeToken<?>) TypeToken.of(mainGetter.method.getGenericReturnType());
+            @SuppressWarnings({"unchecked", "rawtypes"})
+            Class<?> nestedType = JavaReflectionUtil.extractNestedType((TypeToken) typeToken, mainReturnType, 0).getRawType();
+            return nestedType.equals(Boolean.class);
+        }
+
         @Override
         void applyTo(ClassInspectionVisitor visitor) {
             if (!hasFields) {
@@ -1170,17 +1193,21 @@ abstract class AbstractClassGenerator implements ClassGenerator {
             for (PropertyMetadata property : mutableProperties) {
                 visitor.applyManagedStateToProperty(property);
                 for (MethodMetadata getter : property.getters) {
-                    visitor.applyManagedStateToGetter(property, getter.method);
+                    if (getter.isAbstract()) {
+                        visitor.applyManagedStateToGetter(property, getter.method);
+                    }
                 }
                 for (Method setter : property.setters) {
                     visitor.applyManagedStateToSetter(property, setter);
                 }
-            }
+                }
             for (PropertyMetadata property : readOnlyProperties) {
                 visitor.applyManagedStateToProperty(property);
                 boolean applyRole = isRoleType(property);
                 for (MethodMetadata getter : property.getters) {
-                    visitor.applyReadOnlyManagedStateToGetter(property, getter.method, applyRole);
+                    if (getter.isAbstract()) {
+                        visitor.applyReadOnlyManagedStateToGetter(property, getter.method, applyRole);
+                    }
                 }
             }
             if (!hasFields) {

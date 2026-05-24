@@ -19,6 +19,7 @@ package org.gradle.api.internal.tasks.testing;
 import org.gradle.api.Describable;
 import org.gradle.api.provider.Property;
 import org.gradle.api.reporting.internal.SingleDirectoryReport;
+import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.testing.JUnitXmlReport;
 
 public abstract class DefaultJUnitXmlReport extends SingleDirectoryReport implements JUnitXmlReport {
@@ -33,6 +34,13 @@ public abstract class DefaultJUnitXmlReport extends SingleDirectoryReport implem
 
     @Override
     public abstract Property<Boolean> getOutputPerTestCase();
+
+    @Override
+    @Internal
+    @Deprecated
+    public boolean isOutputPerTestCase() {
+        return getOutputPerTestCase().get();
+    }
 
     @Override
     public abstract Property<Boolean> getMergeReruns();

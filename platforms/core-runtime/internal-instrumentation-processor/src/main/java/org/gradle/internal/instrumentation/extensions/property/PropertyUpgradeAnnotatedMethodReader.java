@@ -276,9 +276,8 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
             .orElseThrow(() -> new AnnotationReadFailure(String.format("Missing 'replacedAccessors' attribute in @%s", ReplacesEagerProperty.class.getSimpleName())));
         if (!replacedAccessors.isEmpty()) {
             DeprecationSpec parentDeprecationSpec = readDeprecationSpec(annotationMirror);
-            BinaryCompatibility parentBinaryCompatibility = readBinaryCompatibility(annotationMirror);
             return replacedAccessors.stream()
-                .map(annotation -> getAccessorSpec(method, annotation, parentDeprecationSpec, parentBinaryCompatibility))
+                .map(annotation -> getAccessorSpec(method, annotation, parentDeprecationSpec, readBinaryCompatibility(annotation)))
                 .collect(Collectors.toList());
         }
 

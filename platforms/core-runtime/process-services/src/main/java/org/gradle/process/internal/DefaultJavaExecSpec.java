@@ -23,6 +23,7 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.tasks.Internal;
 import org.gradle.internal.Factory;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.jvm.DefaultModularitySpec;
@@ -78,6 +79,13 @@ public abstract class DefaultJavaExecSpec extends DefaultJavaForkOptions impleme
         copyBaseExecSpecTo(this, targetSpec);
         // Java fork options
         super.copyTo(targetSpec);
+    }
+
+    @Override
+    @Internal
+    @Deprecated
+    public boolean isIgnoreExitValue() {
+        return getIgnoreExitValue().get();
     }
 
     @Override

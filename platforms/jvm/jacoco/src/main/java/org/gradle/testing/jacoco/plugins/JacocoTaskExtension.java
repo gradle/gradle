@@ -34,6 +34,9 @@ import org.gradle.api.tasks.OutputFile;
 import org.gradle.internal.instrumentation.api.annotations.BytecodeUpgrade;
 import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
+import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor;
+import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor.AccessorType;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty.BinaryCompatibility;
 import org.gradle.internal.jacoco.JacocoAgentJar;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.util.internal.RelativePathUtil;
@@ -91,12 +94,28 @@ public abstract class JacocoTaskExtension {
      * Whether or not the task should generate execution data. Defaults to {@code true}.
      */
     @Input
-    @ReplacesEagerProperty(originalType = boolean.class)
+    @ReplacesEagerProperty(
+        replacedAccessors = {
+            @ReplacedAccessor(value = AccessorType.GETTER, name = "isEnabled", originalType = boolean.class, binaryCompatibility = BinaryCompatibility.ACCESSORS_KEPT),
+            @ReplacedAccessor(value = AccessorType.SETTER, name = "setEnabled", originalType = boolean.class)
+        }
+    )
     public abstract Property<Boolean> getEnabled();
 
     @Internal
     public Property<Boolean> getIsEnabled() {
         return getEnabled();
+    }
+
+    /**
+     * This method exists only for Groovy source backward compatibility.
+     *
+     * @deprecated Use {@link #getEnabled()} instead.
+     */
+    @Internal
+    @Deprecated
+    public boolean isEnabled() {
+        return getEnabled().get();
     }
 
     /**
@@ -158,12 +177,28 @@ public abstract class JacocoTaskExtension {
      * This property is only taken into account if the used JaCoCo version supports this option (JaCoCo version &gt;= 0.7.6)
      */
     @Input
-    @ReplacesEagerProperty(originalType = boolean.class)
+    @ReplacesEagerProperty(
+        replacedAccessors = {
+            @ReplacedAccessor(value = AccessorType.GETTER, name = "isIncludeNoLocationClasses", originalType = boolean.class, binaryCompatibility = BinaryCompatibility.ACCESSORS_KEPT),
+            @ReplacedAccessor(value = AccessorType.SETTER, name = "setIncludeNoLocationClasses", originalType = boolean.class)
+        }
+    )
     public abstract Property<Boolean> getIncludeNoLocationClasses();
 
     @Internal
     public Property<Boolean> getIsIncludeNoLocationClasses() {
         return getIncludeNoLocationClasses();
+    }
+
+    /**
+     * This method exists only for Groovy source backward compatibility.
+     *
+     * @deprecated Use {@link #getIncludeNoLocationClasses()} instead.
+     */
+    @Internal
+    @Deprecated
+    public boolean isIncludeNoLocationClasses() {
+        return getIncludeNoLocationClasses().get();
     }
 
     /**
@@ -178,12 +213,28 @@ public abstract class JacocoTaskExtension {
      * Whether or not to dump the coverage data at VM shutdown. Defaults to {@code true}.
      */
     @Input
-    @ReplacesEagerProperty(originalType = boolean.class)
+    @ReplacesEagerProperty(
+        replacedAccessors = {
+            @ReplacedAccessor(value = AccessorType.GETTER, name = "isDumpOnExit", originalType = boolean.class, binaryCompatibility = BinaryCompatibility.ACCESSORS_KEPT),
+            @ReplacedAccessor(value = AccessorType.SETTER, name = "setDumpOnExit", originalType = boolean.class)
+        }
+    )
     public abstract Property<Boolean> getDumpOnExit();
 
     @Internal
     public Property<Boolean> getIsDumpOnExit() {
         return getDumpOnExit();
+    }
+
+    /**
+     * This method exists only for Groovy source backward compatibility.
+     *
+     * @deprecated Use {@link #getDumpOnExit()} instead.
+     */
+    @Internal
+    @Deprecated
+    public boolean isDumpOnExit() {
+        return getDumpOnExit().get();
     }
 
     /**
@@ -224,12 +275,28 @@ public abstract class JacocoTaskExtension {
      * The configuration of the jmx property is only taken into account if the used JaCoCo version supports this option (JaCoCo version &gt;= 0.6.2)
      */
     @Input
-    @ReplacesEagerProperty(originalType = boolean.class)
+    @ReplacesEagerProperty(
+        replacedAccessors = {
+            @ReplacedAccessor(value = AccessorType.GETTER, name = "isJmx", originalType = boolean.class, binaryCompatibility = BinaryCompatibility.ACCESSORS_KEPT),
+            @ReplacedAccessor(value = AccessorType.SETTER, name = "setJmx", originalType = boolean.class)
+        }
+    )
     public abstract Property<Boolean> getJmx();
 
     @Internal
     public Property<Boolean> getIsJmx() {
         return getJmx();
+    }
+
+    /**
+     * This method exists only for Groovy source backward compatibility.
+     *
+     * @deprecated Use {@link #getJmx()} instead.
+     */
+    @Internal
+    @Deprecated
+    public boolean isJmx() {
+        return getJmx().get();
     }
 
     /**

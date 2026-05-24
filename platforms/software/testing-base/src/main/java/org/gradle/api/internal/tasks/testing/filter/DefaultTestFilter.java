@@ -19,6 +19,7 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.SetProperty;
 import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.testing.TestFilter;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty.BinaryCompatibility;
@@ -69,6 +70,13 @@ public abstract class DefaultTestFilter implements TestFilter {
 
     @Override
     public abstract Property<Boolean> getFailOnNoMatchingTests();
+
+    @Override
+    @Internal
+    @Deprecated
+    public boolean isFailOnNoMatchingTests() {
+        return getFailOnNoMatchingTests().get();
+    }
 
     @Override
     @Input

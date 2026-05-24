@@ -320,18 +320,26 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
      * generate: TestNG variant of HTML results, TestNG variant of XML results in JUnit format, emailable HTML test report, XML results in TestNG format.
      */
     @Internal
-    @ReplacesEagerProperty(
-        replacedAccessors = {
+    @ReplacesEagerProperty(replacedAccessors = {
             @ReplacedAccessor(value = AccessorType.GETTER, name = "getUseDefaultListeners", originalType = boolean.class),
-            @ReplacedAccessor(value = AccessorType.GETTER, name = "isUseDefaultListeners", originalType = boolean.class),
             @ReplacedAccessor(value = AccessorType.SETTER, name = "setUseDefaultListeners", originalType = boolean.class)
-        }
-    )
+        })
     public abstract Property<Boolean> getUseDefaultListeners();
 
     @Internal
     public Property<Boolean> getIsUseDefaultListeners() {
         return getUseDefaultListeners();
+    }
+
+    /**
+     * This method exists only for Groovy source backward compatibility.
+     *
+     * @deprecated Use {@link #getUseDefaultListeners()} instead.
+     */
+    @Internal
+    @Deprecated
+    public boolean isUseDefaultListeners() {
+        return getUseDefaultListeners().get();
     }
 
     /**
@@ -367,18 +375,26 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
      * If not present, the order will not be preserved.
      */
     @Internal
-    @ReplacesEagerProperty(
-        replacedAccessors = {
+    @ReplacesEagerProperty(replacedAccessors = {
             @ReplacedAccessor(value = AccessorType.GETTER, name = "getPreserveOrder", originalType = boolean.class),
-            @ReplacedAccessor(value = AccessorType.GETTER, name = "isPreserveOrder", originalType = boolean.class),
             @ReplacedAccessor(value = AccessorType.SETTER, name = "setPreserveOrder", originalType = boolean.class)
-        }
-    )
+        })
     public abstract Property<Boolean> getPreserveOrder();
 
     @Internal
     public Property<Boolean> getIsPreserveOrder() {
         return getPreserveOrder();
+    }
+
+    /**
+     * This method exists only for Groovy source backward compatibility.
+     *
+     * @deprecated Use {@link #getPreserveOrder()} instead.
+     */
+    @Internal
+    @Deprecated
+    public boolean isPreserveOrder() {
+        return getPreserveOrder().get();
     }
 
     /**
@@ -390,18 +406,26 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
      * If not present, the tests will not be grouped by instances.
      */
     @Internal
-    @ReplacesEagerProperty(
-        replacedAccessors = {
+    @ReplacesEagerProperty(replacedAccessors = {
             @ReplacedAccessor(value = AccessorType.GETTER, name = "getGroupByInstances", originalType = boolean.class),
-            @ReplacedAccessor(value = AccessorType.GETTER, name = "isGroupByInstances", originalType = boolean.class),
             @ReplacedAccessor(value = AccessorType.SETTER, name = "setGroupByInstances", originalType = boolean.class)
-        }
-    )
+        })
     public abstract Property<Boolean> getGroupByInstances();
 
     @Internal
     public Property<Boolean> getIsGroupByInstances() {
         return getGroupByInstances();
+    }
+
+    /**
+     * This method exists only for Groovy source backward compatibility.
+     *
+     * @deprecated Use {@link #getGroupByInstances()} instead.
+     */
+    @Internal
+    @Deprecated
+    public boolean isGroupByInstances() {
+        return getGroupByInstances().get();
     }
 
     /**

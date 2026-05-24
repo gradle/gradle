@@ -24,7 +24,7 @@ class GroovyCompileTest extends AbstractProjectBuilderSpec {
         def groovyCompile = project.tasks.create("compileGroovy", GroovyCompile)
 
         expect:
-        !groovyCompile.options.incremental.get()
+        !groovyCompile.options.getIncremental().get()
         groovyCompile.options.incrementalAfterFailure.get() == true
     }
 }

@@ -33,6 +33,9 @@ import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
+import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor;
+import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor.AccessorType;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty.BinaryCompatibility;
 
 import javax.inject.Inject;
 import java.io.Serializable;
@@ -63,7 +66,12 @@ public abstract class GroovyCompileOptions implements Serializable {
      * Tells whether the compilation task should fail if compile errors occurred. Defaults to {@code true}.
      */
     @Input
-    @ReplacesEagerProperty(originalType = boolean.class)
+    @ReplacesEagerProperty(
+        replacedAccessors = {
+            @ReplacedAccessor(value = AccessorType.GETTER, name = "isFailOnError", originalType = boolean.class, binaryCompatibility = BinaryCompatibility.ACCESSORS_KEPT),
+            @ReplacedAccessor(value = AccessorType.SETTER, name = "setFailOnError", originalType = boolean.class)
+        }
+    )
     public abstract Property<Boolean> getFailOnError();
 
     @Internal
@@ -72,10 +80,26 @@ public abstract class GroovyCompileOptions implements Serializable {
     }
 
     /**
+     * This method exists only for Groovy source backward compatibility.
+     *
+     * @deprecated Use {@link #getFailOnError()} instead.
+     */
+    @Internal
+    @Deprecated
+    public boolean isFailOnError() {
+        return getFailOnError().get();
+    }
+
+    /**
      * Tells whether to turn on verbose output. Defaults to {@code false}.
      */
     @Console
-    @ReplacesEagerProperty(originalType = boolean.class)
+    @ReplacesEagerProperty(
+        replacedAccessors = {
+            @ReplacedAccessor(value = AccessorType.GETTER, name = "isVerbose", originalType = boolean.class, binaryCompatibility = BinaryCompatibility.ACCESSORS_KEPT),
+            @ReplacedAccessor(value = AccessorType.SETTER, name = "setVerbose", originalType = boolean.class)
+        }
+    )
     public abstract Property<Boolean> getVerbose();
 
     @Internal
@@ -84,15 +108,42 @@ public abstract class GroovyCompileOptions implements Serializable {
     }
 
     /**
+     * This method exists only for Groovy source backward compatibility.
+     *
+     * @deprecated Use {@link #getVerbose()} instead.
+     */
+    @Internal
+    @Deprecated
+    public boolean isVerbose() {
+        return getVerbose().get();
+    }
+
+    /**
      * Tells whether to print which source files are to be compiled. Defaults to {@code false}.
      */
     @Console
-    @ReplacesEagerProperty(originalType = boolean.class)
+    @ReplacesEagerProperty(
+        replacedAccessors = {
+            @ReplacedAccessor(value = AccessorType.GETTER, name = "isListFiles", originalType = boolean.class, binaryCompatibility = BinaryCompatibility.ACCESSORS_KEPT),
+            @ReplacedAccessor(value = AccessorType.SETTER, name = "setListFiles", originalType = boolean.class)
+        }
+    )
     public abstract Property<Boolean> getListFiles();
 
     @Internal
     public Property<Boolean> getIsListFiles() {
         return getListFiles();
+    }
+
+    /**
+     * This method exists only for Groovy source backward compatibility.
+     *
+     * @deprecated Use {@link #getListFiles()} instead.
+     */
+    @Internal
+    @Deprecated
+    public boolean isListFiles() {
+        return getListFiles().get();
     }
 
     /**
@@ -106,12 +157,28 @@ public abstract class GroovyCompileOptions implements Serializable {
      * Tells whether to run the Groovy compiler in a separate process. Defaults to {@code true}.
      */
     @Input
-    @ReplacesEagerProperty(originalType = boolean.class)
+    @ReplacesEagerProperty(
+        replacedAccessors = {
+            @ReplacedAccessor(value = AccessorType.GETTER, name = "isFork", originalType = boolean.class, binaryCompatibility = BinaryCompatibility.ACCESSORS_KEPT),
+            @ReplacedAccessor(value = AccessorType.SETTER, name = "setFork", originalType = boolean.class)
+        }
+    )
     public abstract Property<Boolean> getFork();
 
     @Internal
     public Property<Boolean> getIsFork() {
         return getFork();
+    }
+
+    /**
+     * This method exists only for Groovy source backward compatibility.
+     *
+     * @deprecated Use {@link #getFork()} instead.
+     */
+    @Internal
+    @Deprecated
+    public boolean isFork() {
+        return getFork().get();
     }
 
     /**
@@ -171,7 +238,12 @@ public abstract class GroovyCompileOptions implements Serializable {
      * No annotation processing will be performed regardless, on Java or Groovy source.
      */
     @Input
-    @ReplacesEagerProperty(originalType = boolean.class)
+    @ReplacesEagerProperty(
+        replacedAccessors = {
+            @ReplacedAccessor(value = AccessorType.GETTER, name = "isJavaAnnotationProcessing", originalType = boolean.class, binaryCompatibility = BinaryCompatibility.ACCESSORS_KEPT),
+            @ReplacedAccessor(value = AccessorType.SETTER, name = "setJavaAnnotationProcessing", originalType = boolean.class)
+        }
+    )
     public abstract Property<Boolean> getJavaAnnotationProcessing();
 
     @Internal
@@ -180,17 +252,45 @@ public abstract class GroovyCompileOptions implements Serializable {
     }
 
     /**
+     * This method exists only for Groovy source backward compatibility.
+     *
+     * @deprecated Use {@link #getJavaAnnotationProcessing()} instead.
+     */
+    @Internal
+    @Deprecated
+    public boolean isJavaAnnotationProcessing() {
+        return getJavaAnnotationProcessing().get();
+    }
+
+    /**
      * Whether the Groovy compiler generate metadata for reflection on method parameter names on JDK 8 and above.
      *
      * @since 6.1
      */
     @Input
-    @ReplacesEagerProperty(originalType = boolean.class)
+    @ReplacesEagerProperty(
+        replacedAccessors = {
+            @ReplacedAccessor(value = AccessorType.GETTER, name = "isParameters", originalType = boolean.class, binaryCompatibility = BinaryCompatibility.ACCESSORS_KEPT),
+            @ReplacedAccessor(value = AccessorType.SETTER, name = "setParameters", originalType = boolean.class)
+        }
+    )
     public abstract Property<Boolean> getParameters();
 
     @Internal
     public Property<Boolean> getIsParameters() {
         return getParameters();
+    }
+
+    /**
+     * This method exists only for Groovy source backward compatibility.
+     *
+     * @since 6.1
+     * @deprecated Use {@link #getParameters()} instead.
+     */
+    @Internal
+    @Deprecated
+    public boolean isParameters() {
+        return getParameters().get();
     }
 
     /**
@@ -261,12 +361,28 @@ public abstract class GroovyCompileOptions implements Serializable {
      * Defaults to {@code false}.
      */
     @Input
-    @ReplacesEagerProperty(originalType = boolean.class)
+    @ReplacesEagerProperty(
+        replacedAccessors = {
+            @ReplacedAccessor(value = AccessorType.GETTER, name = "isKeepStubs", originalType = boolean.class, binaryCompatibility = BinaryCompatibility.ACCESSORS_KEPT),
+            @ReplacedAccessor(value = AccessorType.SETTER, name = "setKeepStubs", originalType = boolean.class)
+        }
+    )
     public abstract Property<Boolean> getKeepStubs();
 
     @Internal
     public Property<Boolean> getIsKeepStubs() {
         return getKeepStubs();
+    }
+
+    /**
+     * This method exists only for Groovy source backward compatibility.
+     *
+     * @deprecated Use {@link #getKeepStubs()} instead.
+     */
+    @Internal
+    @Deprecated
+    public boolean isKeepStubs() {
+        return getKeepStubs().get();
     }
 
 }

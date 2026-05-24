@@ -46,6 +46,9 @@ import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.Describables;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
+import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor;
+import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor.AccessorType;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty.BinaryCompatibility;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.internal.nativeintegration.console.ConsoleDetector;
 import org.gradle.internal.nativeintegration.console.ConsoleMetaData;
@@ -312,12 +315,29 @@ public abstract class Pmd extends AbstractCodeQualityTask implements Reporting<P
      * @since 2.1
      */
     @Input
-    @ReplacesEagerProperty(originalType = boolean.class)
+    @ReplacesEagerProperty(
+        replacedAccessors = {
+            @ReplacedAccessor(value = AccessorType.GETTER, name = "isConsoleOutput", originalType = boolean.class, binaryCompatibility = BinaryCompatibility.ACCESSORS_KEPT),
+            @ReplacedAccessor(value = AccessorType.SETTER, name = "setConsoleOutput", originalType = boolean.class)
+        }
+    )
     public abstract Property<Boolean> getConsoleOutput();
 
     @Internal
     public Property<Boolean> getIsConsoleOutput() {
         return getConsoleOutput();
+    }
+
+    /**
+     * This method exists only for Groovy source backward compatibility.
+     *
+     * @since 2.1
+     * @deprecated Use {@link #getConsoleOutput()} instead.
+     */
+    @Internal
+    @Deprecated
+    public boolean isConsoleOutput() {
+        return getConsoleOutput().get();
     }
 
     /**

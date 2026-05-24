@@ -65,6 +65,9 @@ import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.graph.GraphRenderer;
 import org.gradle.internal.instrumentation.api.annotations.BytecodeUpgrade;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
+import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor;
+import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor.AccessorType;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty.BinaryCompatibility;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.serialization.Transient;
@@ -264,7 +267,12 @@ public abstract class DependencyInsightReportTask extends DefaultTask {
      * @since 4.9
      */
     @Internal
-    @ReplacesEagerProperty(originalType = boolean.class)
+    @ReplacesEagerProperty(
+        replacedAccessors = {
+            @ReplacedAccessor(value = AccessorType.GETTER, name = "isShowSinglePathToDependency", originalType = boolean.class, binaryCompatibility = BinaryCompatibility.ACCESSORS_KEPT),
+            @ReplacedAccessor(value = AccessorType.SETTER, name = "setShowSinglePathToDependency", originalType = boolean.class)
+        }
+    )
     @Option(option = "single-path", description = "Show at most one path to each dependency")
     public abstract Property<Boolean> getShowSinglePathToDependency();
 
@@ -272,6 +280,18 @@ public abstract class DependencyInsightReportTask extends DefaultTask {
     @Internal
     public Property<Boolean> getIsShowSinglePathToDependency() {
         return getShowSinglePathToDependency();
+    }
+
+    /**
+     * This method exists only for Groovy source backward compatibility.
+     *
+     * @since 4.9
+     * @deprecated Use {@link #getShowSinglePathToDependency()} instead.
+     */
+    @Internal
+    @Deprecated
+    public boolean isShowSinglePathToDependency() {
+        return getShowSinglePathToDependency().get();
     }
 
     /**

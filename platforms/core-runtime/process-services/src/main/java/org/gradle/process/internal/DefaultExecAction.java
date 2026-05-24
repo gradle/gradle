@@ -21,6 +21,7 @@ import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.tasks.Internal;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.ExecResult;
 import org.gradle.process.ExecSpec;
@@ -144,6 +145,13 @@ public class DefaultExecAction implements ExecAction {
     @Override
     public Property<Boolean> getIgnoreExitValue() {
         return execSpec.getIgnoreExitValue();
+    }
+
+    @Override
+    @Internal
+    @Deprecated
+    public boolean isIgnoreExitValue() {
+        return getIgnoreExitValue().get();
     }
 
     @Override

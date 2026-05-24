@@ -261,6 +261,16 @@ public abstract class AbstractExecTask<T extends AbstractExecTask> extends Conve
     }
 
     /**
+     * {@inheritDoc}
+     */
+    @Override
+    @Internal
+    @Deprecated
+    public boolean isIgnoreExitValue() {
+        return getIgnoreExitValue().get();
+    }
+
+    /**
      * Returns the result for the command run by this task. The provider has no value if this task has not been executed yet.
      *
      * @return A provider of the result.

@@ -30,6 +30,9 @@ import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.scala.IncrementalCompileOptions;
 import org.gradle.api.tasks.scala.ScalaForkOptions;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
+import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor;
+import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor.AccessorType;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty.BinaryCompatibility;
 
 import javax.inject.Inject;
 import java.io.Serializable;
@@ -62,7 +65,12 @@ public abstract class BaseScalaCompileOptions implements Serializable {
      * Fail the build on compilation errors.
      */
     @Input
-    @ReplacesEagerProperty(originalType = boolean.class)
+    @ReplacesEagerProperty(
+        replacedAccessors = {
+            @ReplacedAccessor(value = AccessorType.GETTER, name = "isFailOnError", originalType = boolean.class, binaryCompatibility = BinaryCompatibility.ACCESSORS_KEPT),
+            @ReplacedAccessor(value = AccessorType.SETTER, name = "setFailOnError", originalType = boolean.class)
+        }
+    )
     public abstract Property<Boolean> getFailOnError();
 
     @Internal
@@ -71,10 +79,26 @@ public abstract class BaseScalaCompileOptions implements Serializable {
     }
 
     /**
+     * This method exists only for Groovy source backward compatibility.
+     *
+     * @deprecated Use {@link #getFailOnError()} instead.
+     */
+    @Internal
+    @Deprecated
+    public boolean isFailOnError() {
+        return getFailOnError().get();
+    }
+
+    /**
      * Generate deprecation information.
      */
     @Console
-    @ReplacesEagerProperty(originalType = boolean.class)
+    @ReplacesEagerProperty(
+        replacedAccessors = {
+            @ReplacedAccessor(value = AccessorType.GETTER, name = "isDeprecation", originalType = boolean.class, binaryCompatibility = BinaryCompatibility.ACCESSORS_KEPT),
+            @ReplacedAccessor(value = AccessorType.SETTER, name = "setDeprecation", originalType = boolean.class)
+        }
+    )
     public abstract Property<Boolean> getDeprecation();
 
     @Internal
@@ -83,15 +107,42 @@ public abstract class BaseScalaCompileOptions implements Serializable {
     }
 
     /**
+     * This method exists only for Groovy source backward compatibility.
+     *
+     * @deprecated Use {@link #getDeprecation()} instead.
+     */
+    @Internal
+    @Deprecated
+    public boolean isDeprecation() {
+        return getDeprecation().get();
+    }
+
+    /**
      * Generate unchecked information.
      */
     @Console
-    @ReplacesEagerProperty(originalType = boolean.class)
+    @ReplacesEagerProperty(
+        replacedAccessors = {
+            @ReplacedAccessor(value = AccessorType.GETTER, name = "isUnchecked", originalType = boolean.class, binaryCompatibility = BinaryCompatibility.ACCESSORS_KEPT),
+            @ReplacedAccessor(value = AccessorType.SETTER, name = "setUnchecked", originalType = boolean.class)
+        }
+    )
     public abstract Property<Boolean> getUnchecked();
 
     @Internal
     public Property<Boolean> getIsUnchecked() {
         return getUnchecked();
+    }
+
+    /**
+     * This method exists only for Groovy source backward compatibility.
+     *
+     * @deprecated Use {@link #getUnchecked()} instead.
+     */
+    @Internal
+    @Deprecated
+    public boolean isUnchecked() {
+        return getUnchecked().get();
     }
 
     /**
@@ -107,12 +158,28 @@ public abstract class BaseScalaCompileOptions implements Serializable {
      * Run optimizations.
      */
     @Input
-    @ReplacesEagerProperty(originalType = boolean.class)
+    @ReplacesEagerProperty(
+        replacedAccessors = {
+            @ReplacedAccessor(value = AccessorType.GETTER, name = "isOptimize", originalType = boolean.class, binaryCompatibility = BinaryCompatibility.ACCESSORS_KEPT),
+            @ReplacedAccessor(value = AccessorType.SETTER, name = "setOptimize", originalType = boolean.class)
+        }
+    )
     public abstract Property<Boolean> getOptimize();
 
     @Internal
     public Property<Boolean> getIsOptimize() {
         return getOptimize();
+    }
+
+    /**
+     * This method exists only for Groovy source backward compatibility.
+     *
+     * @deprecated Use {@link #getOptimize()} instead.
+     */
+    @Internal
+    @Deprecated
+    public boolean isOptimize() {
+        return getOptimize().get();
     }
 
     /**
@@ -130,12 +197,28 @@ public abstract class BaseScalaCompileOptions implements Serializable {
      * - true (always recompile all files)
      */
     @Input
-    @ReplacesEagerProperty(originalType = boolean.class)
+    @ReplacesEagerProperty(
+        replacedAccessors = {
+            @ReplacedAccessor(value = AccessorType.GETTER, name = "isForce", originalType = boolean.class, binaryCompatibility = BinaryCompatibility.ACCESSORS_KEPT),
+            @ReplacedAccessor(value = AccessorType.SETTER, name = "setForce", originalType = boolean.class)
+        }
+    )
     public abstract Property<Boolean> getForce();
 
     @Internal
     public Property<Boolean> getIsForce() {
         return getForce();
+    }
+
+    /**
+     * This method exists only for Groovy source backward compatibility.
+     *
+     * @deprecated Use {@link #getForce()} instead.
+     */
+    @Internal
+    @Deprecated
+    public boolean isForce() {
+        return getForce().get();
     }
 
     /**
@@ -153,12 +236,28 @@ public abstract class BaseScalaCompileOptions implements Serializable {
      * List files to be compiled.
      */
     @Console
-    @ReplacesEagerProperty(originalType = boolean.class)
+    @ReplacesEagerProperty(
+        replacedAccessors = {
+            @ReplacedAccessor(value = AccessorType.GETTER, name = "isListFiles", originalType = boolean.class, binaryCompatibility = BinaryCompatibility.ACCESSORS_KEPT),
+            @ReplacedAccessor(value = AccessorType.SETTER, name = "setListFiles", originalType = boolean.class)
+        }
+    )
     public abstract Property<Boolean> getListFiles();
 
     @Internal
     public Property<Boolean> getIsListFiles() {
         return getListFiles();
+    }
+
+    /**
+     * This method exists only for Groovy source backward compatibility.
+     *
+     * @deprecated Use {@link #getListFiles()} instead.
+     */
+    @Internal
+    @Deprecated
+    public boolean isListFiles() {
+        return getListFiles().get();
     }
 
     /**

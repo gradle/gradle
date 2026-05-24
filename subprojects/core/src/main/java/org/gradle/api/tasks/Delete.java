@@ -76,12 +76,23 @@ public abstract class Delete extends ConventionTask implements DeleteSpec {
      **/
     @Override
     @Incubating
-    @ReplacesEagerProperty(replacedAccessors = @ReplacedAccessor(value = GETTER, name = "isFollowSymlinks", originalType = boolean.class))
+    @ReplacesEagerProperty(replacedAccessors = @ReplacedAccessor(value = GETTER, name = "isFollowSymlinks", originalType = boolean.class, binaryCompatibility = ReplacesEagerProperty.BinaryCompatibility.ACCESSORS_KEPT))
     public abstract Property<Boolean> getFollowSymlinks();
 
     @Internal
     public Property<Boolean> getIsFollowSymlinks() {
         return getFollowSymlinks();
+    }
+
+    /**
+     * This method exists only for Groovy source backward compatibility.
+     *
+     * @deprecated Use {@link #getFollowSymlinks()} instead.
+     */
+    @Internal
+    @Deprecated
+    public boolean isFollowSymlinks() {
+        return getFollowSymlinks().get();
     }
 
     /**

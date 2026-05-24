@@ -74,11 +74,11 @@ abstract class ProviderCompatibleBaseExecSpecTestBase extends Specification {
         def parameters = newParameters()
 
         when:
-        specUnderTest.ignoreExitValue.set(ignoreExitValue)
+        specUnderTest.getIgnoreExitValue().set(ignoreExitValue)
         specUnderTest.copyToParameters(parameters)
 
         then:
-        parameters.ignoreExitValue.get() == ignoreExitValue
+        parameters.getIgnoreExitValue().get() == ignoreExitValue
 
         where:
         ignoreExitValue << [true, false]

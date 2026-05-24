@@ -575,6 +575,16 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
      */
     @Override
     @Internal
+    @Deprecated
+    public boolean isIgnoreExitValue() {
+        return getIgnoreExitValue().get();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @Internal
     public Provider<List<String>> getCommandLine() {
         return javaExecSpec.getCommandLine();
     }

@@ -34,14 +34,14 @@ class CompileOptionsTest extends Specification {
     @SuppressWarnings("GrDeprecatedAPIUsage")
     def "default compile options"() {
         expect:
-        compileOptions.debug.get()
-        compileOptions.failOnError.get()
-        compileOptions.warnings.get()
+        compileOptions.getDebug().get()
+        compileOptions.getFailOnError().get()
+        compileOptions.getWarnings().get()
 
-        !compileOptions.deprecation.get()
-        !compileOptions.listFiles.get()
-        !compileOptions.verbose.get()
-        !compileOptions.fork.get()
+        !compileOptions.getDeprecation().get()
+        !compileOptions.getListFiles().get()
+        !compileOptions.getVerbose().get()
+        !compileOptions.getFork().get()
 
         compileOptions.compilerArgs.get().empty
         compileOptions.encoding.getOrNull() == null

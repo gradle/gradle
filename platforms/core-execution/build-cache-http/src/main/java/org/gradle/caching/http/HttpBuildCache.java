@@ -19,11 +19,15 @@ package org.gradle.caching.http;
 import org.gradle.api.Action;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
+import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.caching.configuration.AbstractBuildCache;
 import org.jspecify.annotations.Nullable;
 import org.gradle.internal.instrumentation.api.annotations.BytecodeUpgrade;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
+import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor;
+import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor.AccessorType;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty.BinaryCompatibility;
 
 import javax.inject.Inject;
 import java.net.URI;
@@ -111,7 +115,12 @@ public abstract class HttpBuildCache extends AbstractBuildCache {
      *
      * @since 4.2
      */
-    @ReplacesEagerProperty(originalType = boolean.class)
+    @ReplacesEagerProperty(
+        replacedAccessors = {
+            @ReplacedAccessor(value = AccessorType.GETTER, name = "isAllowUntrustedServer", originalType = boolean.class, binaryCompatibility = BinaryCompatibility.ACCESSORS_KEPT),
+            @ReplacedAccessor(value = AccessorType.SETTER, name = "setAllowUntrustedServer", originalType = boolean.class)
+        }
+    )
     public abstract Property<Boolean> getAllowUntrustedServer();
 
     /**
@@ -119,6 +128,18 @@ public abstract class HttpBuildCache extends AbstractBuildCache {
      **/
     public Property<Boolean> getIsAllowUntrustedServer() {
         return getAllowUntrustedServer();
+    }
+
+    /**
+     * This method exists only for Groovy source backward compatibility.
+     *
+     * @since 4.2
+     * @deprecated Use {@link #getAllowUntrustedServer()} instead.
+     */
+    @Internal
+    @Deprecated
+    public boolean isAllowUntrustedServer() {
+        return getAllowUntrustedServer().get();
     }
 
     /**
@@ -138,7 +159,12 @@ public abstract class HttpBuildCache extends AbstractBuildCache {
      *
      * @since 6.0
      */
-    @ReplacesEagerProperty(originalType = boolean.class)
+    @ReplacesEagerProperty(
+        replacedAccessors = {
+            @ReplacedAccessor(value = AccessorType.GETTER, name = "isAllowInsecureProtocol", originalType = boolean.class, binaryCompatibility = BinaryCompatibility.ACCESSORS_KEPT),
+            @ReplacedAccessor(value = AccessorType.SETTER, name = "setAllowInsecureProtocol", originalType = boolean.class)
+        }
+    )
     public abstract Property<Boolean> getAllowInsecureProtocol();
 
     /**
@@ -146,6 +172,18 @@ public abstract class HttpBuildCache extends AbstractBuildCache {
      **/
     public Property<Boolean> getIsAllowInsecureProtocol() {
         return getAllowInsecureProtocol();
+    }
+
+    /**
+     * This method exists only for Groovy source backward compatibility.
+     *
+     * @since 6.0
+     * @deprecated Use {@link #getAllowInsecureProtocol()} instead.
+     */
+    @Internal
+    @Deprecated
+    public boolean isAllowInsecureProtocol() {
+        return getAllowInsecureProtocol().get();
     }
 
     /**
@@ -163,7 +201,12 @@ public abstract class HttpBuildCache extends AbstractBuildCache {
      *
      * @since 7.2
      */
-    @ReplacesEagerProperty(originalType = boolean.class)
+    @ReplacesEagerProperty(
+        replacedAccessors = {
+            @ReplacedAccessor(value = AccessorType.GETTER, name = "isUseExpectContinue", originalType = boolean.class, binaryCompatibility = BinaryCompatibility.ACCESSORS_KEPT),
+            @ReplacedAccessor(value = AccessorType.SETTER, name = "setUseExpectContinue", originalType = boolean.class)
+        }
+    )
     public abstract Property<Boolean> getUseExpectContinue();
 
     /**
@@ -171,6 +214,18 @@ public abstract class HttpBuildCache extends AbstractBuildCache {
      **/
     public Property<Boolean> getIsUseExpectContinue() {
         return getUseExpectContinue();
+    }
+
+    /**
+     * This method exists only for Groovy source backward compatibility.
+     *
+     * @since 7.2
+     * @deprecated Use {@link #getUseExpectContinue()} instead.
+     */
+    @Internal
+    @Deprecated
+    public boolean isUseExpectContinue() {
+        return getUseExpectContinue().get();
     }
 
     static class UrlAdapter {

@@ -43,6 +43,9 @@ import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.Describables;
 import org.gradle.internal.instrumentation.api.annotations.BytecodeUpgrade;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
+import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor;
+import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor.AccessorType;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty.BinaryCompatibility;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.util.internal.ClosureBackedAction;
 import org.gradle.workers.WorkQueue;
@@ -277,12 +280,28 @@ public abstract class Checkstyle extends AbstractCodeQualityTask implements Repo
      * @return true if violations should be displayed on console
      */
     @Console
-    @ReplacesEagerProperty(originalType = boolean.class)
+    @ReplacesEagerProperty(
+        replacedAccessors = {
+            @ReplacedAccessor(value = AccessorType.GETTER, name = "isShowViolations", originalType = boolean.class, binaryCompatibility = BinaryCompatibility.ACCESSORS_KEPT),
+            @ReplacedAccessor(value = AccessorType.SETTER, name = "setShowViolations", originalType = boolean.class)
+        }
+    )
     public abstract Property<Boolean> getShowViolations();
 
     @Internal
     public Property<Boolean> getIsShowViolations() {
         return getShowViolations();
+    }
+
+    /**
+     * This method exists only for Groovy source backward compatibility.
+     *
+     * @deprecated Use {@link #getShowViolations()} instead.
+     */
+    @Internal
+    @Deprecated
+    public boolean isShowViolations() {
+        return getShowViolations().get();
     }
 
     /**

@@ -38,6 +38,8 @@ import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor;
+import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor.AccessorType;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty.BinaryCompatibility;
 import org.gradle.internal.instrumentation.api.annotations.ReplacedDeprecation;
 import org.gradle.internal.instrumentation.api.annotations.ReplacedDeprecation.RemovedIn;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
@@ -74,7 +76,12 @@ public abstract class CompileOptions implements Serializable {
      * Sets whether to fail the build when compilation fails. Defaults to {@code true}.
      */
     @Input
-    @ReplacesEagerProperty(originalType = boolean.class)
+    @ReplacesEagerProperty(
+        replacedAccessors = {
+            @ReplacedAccessor(value = AccessorType.GETTER, name = "isFailOnError", originalType = boolean.class, binaryCompatibility = BinaryCompatibility.ACCESSORS_KEPT),
+            @ReplacedAccessor(value = AccessorType.SETTER, name = "setFailOnError", originalType = boolean.class)
+        }
+    )
     public abstract Property<Boolean> getFailOnError();
 
     @ReplacedBy("failOnError")
@@ -83,10 +90,26 @@ public abstract class CompileOptions implements Serializable {
     }
 
     /**
+     * This method exists only for Groovy source backward compatibility.
+     *
+     * @deprecated Use {@link #getFailOnError()} instead.
+     */
+    @Internal
+    @Deprecated
+    public boolean isFailOnError() {
+        return getFailOnError().get();
+    }
+
+    /**
      * Tells whether to produce verbose output. Defaults to {@code false}.
      */
     @Console
-    @ReplacesEagerProperty(originalType = boolean.class)
+    @ReplacesEagerProperty(
+        replacedAccessors = {
+            @ReplacedAccessor(value = AccessorType.GETTER, name = "isVerbose", originalType = boolean.class, binaryCompatibility = BinaryCompatibility.ACCESSORS_KEPT),
+            @ReplacedAccessor(value = AccessorType.SETTER, name = "setVerbose", originalType = boolean.class)
+        }
+    )
     public abstract Property<Boolean> getVerbose();
 
     @ReplacedBy("verbose")
@@ -95,10 +118,26 @@ public abstract class CompileOptions implements Serializable {
     }
 
     /**
+     * This method exists only for Groovy source backward compatibility.
+     *
+     * @deprecated Use {@link #getVerbose()} instead.
+     */
+    @Internal
+    @Deprecated
+    public boolean isVerbose() {
+        return getVerbose().get();
+    }
+
+    /**
      * Tells whether to log the files to be compiled. Defaults to {@code false}.
      */
     @Console
-    @ReplacesEagerProperty(originalType = boolean.class)
+    @ReplacesEagerProperty(
+        replacedAccessors = {
+            @ReplacedAccessor(value = AccessorType.GETTER, name = "isListFiles", originalType = boolean.class, binaryCompatibility = BinaryCompatibility.ACCESSORS_KEPT),
+            @ReplacedAccessor(value = AccessorType.SETTER, name = "setListFiles", originalType = boolean.class)
+        }
+    )
     public abstract Property<Boolean> getListFiles();
 
     @ReplacedBy("listFiles")
@@ -107,10 +146,26 @@ public abstract class CompileOptions implements Serializable {
     }
 
     /**
+     * This method exists only for Groovy source backward compatibility.
+     *
+     * @deprecated Use {@link #getListFiles()} instead.
+     */
+    @Internal
+    @Deprecated
+    public boolean isListFiles() {
+        return getListFiles().get();
+    }
+
+    /**
      * Tells whether to log details of usage of deprecated members or classes. Defaults to {@code false}.
      */
     @Console
-    @ReplacesEagerProperty(originalType = boolean.class)
+    @ReplacesEagerProperty(
+        replacedAccessors = {
+            @ReplacedAccessor(value = AccessorType.GETTER, name = "isDeprecation", originalType = boolean.class, binaryCompatibility = BinaryCompatibility.ACCESSORS_KEPT),
+            @ReplacedAccessor(value = AccessorType.SETTER, name = "setDeprecation", originalType = boolean.class)
+        }
+    )
     public abstract Property<Boolean> getDeprecation();
 
     /**
@@ -122,10 +177,26 @@ public abstract class CompileOptions implements Serializable {
     }
 
     /**
+     * This method exists only for Groovy source backward compatibility.
+     *
+     * @deprecated Use {@link #getDeprecation()} instead.
+     */
+    @Internal
+    @Deprecated
+    public boolean isDeprecation() {
+        return getDeprecation().get();
+    }
+
+    /**
      * Tells whether to log warning messages. The default is {@code true}.
      */
     @Console
-    @ReplacesEagerProperty(originalType = boolean.class)
+    @ReplacesEagerProperty(
+        replacedAccessors = {
+            @ReplacedAccessor(value = AccessorType.GETTER, name = "isWarnings", originalType = boolean.class, binaryCompatibility = BinaryCompatibility.ACCESSORS_KEPT),
+            @ReplacedAccessor(value = AccessorType.SETTER, name = "setWarnings", originalType = boolean.class)
+        }
+    )
     public abstract Property<Boolean> getWarnings();
 
     /**
@@ -134,6 +205,17 @@ public abstract class CompileOptions implements Serializable {
     @ReplacedBy("warnings")
     public Property<Boolean> getIsWarnings() {
         return getWarnings();
+    }
+
+    /**
+     * This method exists only for Groovy source backward compatibility.
+     *
+     * @deprecated Use {@link #getWarnings()} instead.
+     */
+    @Internal
+    @Deprecated
+    public boolean isWarnings() {
+        return getWarnings().get();
     }
 
     /**
@@ -150,7 +232,12 @@ public abstract class CompileOptions implements Serializable {
      * to {@code true}. See {@link DebugOptions#getDebugLevel()} for which debugging information will be generated.
      */
     @Input
-    @ReplacesEagerProperty(originalType = boolean.class)
+    @ReplacesEagerProperty(
+        replacedAccessors = {
+            @ReplacedAccessor(value = AccessorType.GETTER, name = "isDebug", originalType = boolean.class, binaryCompatibility = BinaryCompatibility.ACCESSORS_KEPT),
+            @ReplacedAccessor(value = AccessorType.SETTER, name = "setDebug", originalType = boolean.class)
+        }
+    )
     public abstract Property<Boolean> getDebug();
 
     /**
@@ -160,6 +247,17 @@ public abstract class CompileOptions implements Serializable {
     @ReplacedBy("debug")
     public Property<Boolean> getIsDebug() {
         return getDebug();
+    }
+
+    /**
+     * This method exists only for Groovy source backward compatibility.
+     *
+     * @deprecated Use {@link #getDebug()} instead.
+     */
+    @Internal
+    @Deprecated
+    public boolean isDebug() {
+        return getDebug().get();
     }
 
     /**
@@ -183,7 +281,12 @@ public abstract class CompileOptions implements Serializable {
      * Defaults to {@code false}.
      */
     @Input
-    @ReplacesEagerProperty(originalType = boolean.class)
+    @ReplacesEagerProperty(
+        replacedAccessors = {
+            @ReplacedAccessor(value = AccessorType.GETTER, name = "isFork", originalType = boolean.class, binaryCompatibility = BinaryCompatibility.ACCESSORS_KEPT),
+            @ReplacedAccessor(value = AccessorType.SETTER, name = "setFork", originalType = boolean.class)
+        }
+    )
     public abstract Property<Boolean> getFork();
 
     /**
@@ -194,6 +297,17 @@ public abstract class CompileOptions implements Serializable {
     @ReplacedBy("fork")
     public Property<Boolean> getIsFork() {
         return getFork();
+    }
+
+    /**
+     * This method exists only for Groovy source backward compatibility.
+     *
+     * @deprecated Use {@link #getFork()} instead.
+     */
+    @Internal
+    @Deprecated
+    public boolean isFork() {
+        return getFork().get();
     }
 
     /**
@@ -277,12 +391,28 @@ public abstract class CompileOptions implements Serializable {
      *
      */
     @Internal
-    @ReplacesEagerProperty(originalType = boolean.class, fluentSetter = true)
+    @ReplacesEagerProperty(
+        replacedAccessors = {
+            @ReplacedAccessor(value = AccessorType.GETTER, name = "isIncremental", originalType = boolean.class, binaryCompatibility = BinaryCompatibility.ACCESSORS_KEPT),
+            @ReplacedAccessor(value = AccessorType.SETTER, name = "setIncremental", originalType = boolean.class, fluentSetter = true)
+        }
+    )
     public abstract Property<Boolean> getIncremental();
 
     @ReplacedBy("incremental")
     public Property<Boolean> getIsIncremental() {
         return getIncremental();
+    }
+
+    /**
+     * This method exists only for Groovy source backward compatibility.
+     *
+     * @deprecated Use {@link #getIncremental()} instead.
+     */
+    @Internal
+    @Deprecated
+    public boolean isIncremental() {
+        return getIncremental().get();
     }
 
     /**
