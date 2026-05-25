@@ -192,27 +192,15 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
     @Test
     fun `#buildAccessorsToJars accessor classes work at runtime`() {
 
-        testAccessorsBuiltBy(::buildAccessorsToJarsAdapter)
+        testAccessorsBuiltBy(::buildAccessorsToJarsDirect)
     }
 
     private
-    fun buildAccessorsToJarsAdapter(schema: TypedProjectSchema, classPath: ClassPath, srcDir: File, binDir: File) {
+    fun buildAccessorsToJarsDirect(schema: TypedProjectSchema, classPath: ClassPath, srcDir: File, binDir: File): AccessorsRoots {
         val classesJar = File(binDir, "classes.jar")
-        buildAccessorsToJars(schema, classPath, classesJar, File(srcDir, "sources.jar"))
-        // Extract classes from JAR into binDir so the existing eval helper can use the directory
-        java.util.zip.ZipFile(classesJar).use { zip ->
-            zip.entries().asSequence().forEach { entry ->
-                if (!entry.isDirectory) {
-                    val outFile = File(binDir, entry.name)
-                    outFile.parentFile.mkdirs()
-                    zip.getInputStream(entry).use { input ->
-                        outFile.outputStream().use { output ->
-                            input.copyTo(output)
-                        }
-                    }
-                }
-            }
-        }
+        val sourcesJar = File(srcDir, "sources.jar")
+        buildAccessorsToJars(schema, classPath, classesJar, sourcesJar)
+        return AccessorsRoots(DefaultClassPath.of(classesJar), DefaultClassPath.of(sourcesJar))
     }
 
     @Test
@@ -343,7 +331,7 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
         classPath: ClassPath,
         srcDir: File,
         binDir: File
-    ) {
+    ): AccessorsRoots {
         buildAccessorsFor(
             schema,
             classPath,
@@ -358,6 +346,7 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
                 classPath.asFiles
             )
         )
+        return AccessorsRoots(DefaultClassPath.of(binDir), DefaultClassPath.of(srcDir))
     }
 
     private
@@ -365,7 +354,7 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
         srcDir.walkTopDown().filter { it.isFile && it.extension == "kt" }.toList()
 
     private
-    fun testAccessorsBuiltBy(buildAccessorsFor: (TypedProjectSchema, ClassPath, File, File) -> Unit) {
+    fun testAccessorsBuiltBy(buildAccessorsFor: (TypedProjectSchema, ClassPath, File, File) -> AccessorsRoots) {
 
         // given:
         val schema =
@@ -562,13 +551,13 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
         target: Project,
         script: String,
         classPath: ClassPath = testRuntimeClassPath,
-        buildAccessorsFor: (TypedProjectSchema, ClassPath, File, File) -> Unit = ::buildAccessorsFor
+        buildAccessorsFor: (TypedProjectSchema, ClassPath, File, File) -> AccessorsRoots = ::buildAccessorsFor
     ) {
 
         val srcDir = newFolder("src")
         val binDir = newFolder("bin")
 
-        buildAccessorsFor(schema, classPath, srcDir, binDir)
+        val roots = buildAccessorsFor(schema, classPath, srcDir, binDir)
 
         eval(
             script = script,
@@ -576,18 +565,23 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
             buildTreeRootDir = root,
             baseCacheDir = kotlinDslEvalBaseCacheDir,
             baseTempDir = kotlinDslEvalBaseTempDir,
-            scriptCompilationClassPath = DefaultClassPath.of(binDir) + classPath,
-            scriptRuntimeClassPath = DefaultClassPath.of(binDir)
+            scriptCompilationClassPath = roots.bin + classPath,
+            scriptRuntimeClassPath = roots.bin
         )
     }
 
     private
-    fun buildAccessorsFor(schema: TypedProjectSchema, classPath: ClassPath, srcDir: File, binDir: File) {
+    fun buildAccessorsFor(schema: TypedProjectSchema, classPath: ClassPath, srcDir: File, binDir: File): AccessorsRoots {
         withSynchronousIO {
             buildAccessorsFor(schema, classPath, srcDir, binDir)
         }
+        return AccessorsRoots(DefaultClassPath.of(binDir), DefaultClassPath.of(srcDir))
     }
 }
+
+
+private
+data class AccessorsRoots(val bin: ClassPath, val src: ClassPath)
 
 
 internal
