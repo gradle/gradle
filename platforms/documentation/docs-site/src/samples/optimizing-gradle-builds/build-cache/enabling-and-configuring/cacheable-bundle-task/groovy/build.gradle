@@ -1,0 +1,30 @@
+@CacheableTask                                       // <1>
+abstract class BundleTask extends NpmTask {
+
+    @Override @Internal                              // <2>
+    ListProperty<String> getArgs() {
+        super.getArgs()
+    }
+
+    @InputDirectory
+    @SkipWhenEmpty
+    @PathSensitive(PathSensitivity.RELATIVE)         // <3>
+    abstract DirectoryProperty getScripts()
+
+    @InputFiles
+    @PathSensitive(PathSensitivity.RELATIVE)         // <4>
+    abstract ConfigurableFileCollection getConfigFiles()
+
+    @OutputFile
+    abstract RegularFileProperty getBundle()
+
+    BundleTask() {
+        args.addAll("run", "bundle")
+        bundle = projectLayout.buildDirectory.file("bundle.js")
+        scripts = projectLayout.projectDirectory.dir("scripts")
+        configFiles.from(projectLayout.projectDirectory.file("package.json"))
+        configFiles.from(projectLayout.projectDirectory.file("package-lock.json"))
+    }
+}
+
+tasks.register('bundle', BundleTask)

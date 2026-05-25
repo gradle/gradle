@@ -1,0 +1,42 @@
+[
+  {
+    "startLine": 17,
+    "endLine": 17,
+    "problem": "Link target '/gradle-reference/dependency-management/advanced-concepts/variant-selection/#sec:variant-aware-matching' points to page 'variant-selection' (id: variant-selection) which has status 'pending' (not yet migrated). Converted from 'variant_aware_resolution.adoc#sec:variant-aware-matching'."
+  },
+  {
+    "startLine": 22,
+    "endLine": 22,
+    "problem": "Link target '/gradle-reference/dependency-management/declaring-dependencies-4/creating-dependency-configurations/#sec:resolvable-consumable-configs' points to page 'creating-dependency-configurations' (id: creating-dependency-configurations) which has status 'pending' (not yet migrated). Converted from 'declaring_configurations.adoc#sec:resolvable-consumable-configs'."
+  },
+  {
+    "startLine": 48,
+    "endLine": 48,
+    "problem": "Link target '/gradle-reference/dependency-management/advanced-concepts/variant-selection/#sec:understanding-variant-selection' points to page 'variant-selection' (id: variant-selection) which has status 'pending' (not yet migrated). Converted from 'variant_aware_resolution.adoc#sec:understanding-variant-selection'."
+  },
+  {
+    "startLine": 78,
+    "endLine": 78,
+    "problem": "Link target '/how-to-guides/dependency-management-2/how-to-create-feature-variants-of-a-library/#feature_variants' points to page 'how-to-create-feature-variants-of-a-library' (id: how-to-create-feature-variants-of-a-library) which has status 'pending' (not yet migrated). Converted from 'how_to_create_feature_variants_of_a_library#feature_variants'."
+  },
+  {
+    "startLine": 81,
+    "endLine": 81,
+    "problem": "Link target '/gradle-reference/dependency-management/advanced-concepts/variant-selection/#sec:understanding-variant-selection' points to page 'variant-selection' which has status 'pending' (not yet migrated)."
+  },
+  {
+    "startLine": 109,
+    "endLine": 109,
+    "problem": "Link target '/gradle-reference/dependency-management/publishing-libraries/maven-publish-plugin/' points to page 'maven-publish-plugin' which has status 'pending' (not yet migrated). Converted from 'publishing_maven.adoc#publishing_maven'."
+  },
+  {
+    "startLine": 109,
+    "endLine": 109,
+    "problem": "Link target '/gradle-reference/dependency-management/publishing-libraries/ivy-publish-plugin/' points to page 'ivy-publish-plugin' which has status 'pending' (not yet migrated). Converted from 'publishing_ivy.adoc#publishing_ivy'."
+  },
+  {
+    "startLine": 76,
+    "endLine": 85,
+    "problem": "The source AsciiDoc used an open block delimiter ('--') around this content. AsciiDoc open blocks have no inherent visual styling. The content was preserved as plain paragraphs. It appears to serve as an advisory recommendation to use the variant model instead of direct artifact attachment."
+  }
+]

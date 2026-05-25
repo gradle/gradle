@@ -1,0 +1,472 @@
+---
+title: "Using Resolution Rules"
+---
+
+Gradle provides several mechanisms to directly influence the behavior of the dependency resolution engine.
+
+Unlike [dependency constraints](dependency_constraints.mdx#dependency-constraints) or [component metadata rules](component_metadata_rules.mdx#component-metadata-rules), which serve as inputs to the resolution process, these mechanisms allow you to inject rules directly into the resolution engine.
+Because of their direct impact, they can be considered brute-force solutions that may mask underlying issues, such as the introduction of new dependencies.
+
+:::tip
+It&#8217;s generally advisable to resort to **resolution rules** only when other approaches are insufficient.
+:::
+
+If you&#8217;re developing a [library](declaring_dependencies.mdx#sub:producers-vs-consumers-basics), it&#8217;s best to use [dependency constraints](dependency_constraints.mdx#dependency-constraints), as they are shared with your consumers.
+
+Here are the key resolution strategies in Gradle:
+
+{/* converter-gap: node=table */}
+
+## 1. Forcing Dependency Versions
+
+You can enforce a specific version of a dependency, regardless of what versions might be requested or resolved by other parts of the build script.
+
+This is useful for ensuring consistency and avoiding conflicts due to different versions of the same dependency being used.
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/dependency-management/managingTransitiveDependencies-forceForConfiguration/kotlin" files="build.gradle.kts[tags=force-per-configuration]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/dependency-management/managingTransitiveDependencies-forceForConfiguration/groovy" files="build.gradle[tags=force-per-configuration]" */}
+
+:::caution
+Forcing a specific version of a dependency should be a conscious and deliberate decision. It can lead to conflicts or unexpected behavior, especially when transitive dependencies rely on different versions.
+:::
+
+## 2. Module Replacement
+
+While it&#8217;s generally better to manage module conflicts using [capabilities](component_capabilities.mdx#capabilities), there are scenarios—especially when working with older versions of Gradle-that require a different approach.
+In these cases, **module replacement rules** offer a solution by allowing you to specify that a legacy library has been replaced by a newer one.
+
+**Module replacement rules** allow you to declare that a legacy library has been replaced by a newer one.
+For instance, the migration from `google-collections` to `guava` involved renaming the module from `com.google.collections:google-collections` to `com.google.guava:guava`.
+Such changes impact conflict resolution because Gradle doesn&#8217;t treat them as version conflicts due to different module coordinates.
+
+Consider a scenario where both libraries appear in the dependency graph.
+Your project depends on `guava`, but a transitive dependency pulls in `google-collections`.
+This can cause runtime errors since Gradle won’t automatically resolve this as a conflict.
+Common solutions include:
+
+- Declaring an exclusion rule to avoid `google-collections`.
+- Avoiding dependencies that pull in legacy libraries.
+- Upgrading dependencies that no longer use `google-collections`.
+- Downgrading to `google-collections` (not recommended).
+- Assigning capabilities so `google-collections` and `guava` are mutually exclusive.
+
+These methods can be insufficient for large-scale projects.
+By declaring module replacements, you can address this issue globally across projects, allowing organizations to handle such conflicts holistically.
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/dependency-management/customizingResolution-replacementRule/kotlin" files="build.gradle.kts[tags=module_replacement_declaration]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/dependency-management/customizingResolution-replacementRule/groovy" files="build.gradle[tags=module_replacement_declaration]" */}
+
+Once declared, Gradle treats any version of `guava` as superior to `google-collections` during conflict resolution, ensuring only `guava` appears in the classpath.
+However, if `google-collections` is the only module present, it won&#8217;t be automatically replaced unless there’s a conflict.
+
+For more examples, refer to the DSL reference for [ComponentMetadataHandler]({javadocPath}/org/gradle/api/artifacts/dsl/ComponentMetadataHandler.html).
+
+:::note
+Gradle does not currently support replacing a module with multiple modules, but multiple modules can be replaced by a single module.
+:::
+
+## 3. Dependency Substitution
+
+**Dependency substitution rules** allow for replacing project and module dependencies with specified alternatives, making them interchangeable.
+While similar to dependency resolve rules, they offer more flexibility by enabling substitution between project and module dependencies.
+
+However, adding a **dependency substitution rule** affects the timing of configuration resolution.
+Instead of resolving on first use, the configuration is resolved during task graph construction, which can cause issues if the configuration is modified later or depends on modules published during task execution.
+
+Explanation:
+
+- A configuration can serve as input to a task and include project dependencies when resolved.
+- If a project dependency is an input to a task (via a configuration), then tasks to build those artifacts are added as dependencies.
+- To determine project dependencies that are inputs to a task, Gradle must resolve the configuration inputs.
+- Because the Gradle task graph is fixed once task execution has commenced, Gradle needs to perform this resolution prior to executing any tasks.
+
+Without substitution rules, Gradle assumes that external module dependencies don’t reference project dependencies, simplifying dependency traversal.
+With substitution rules, this assumption no longer holds, so Gradle must fully resolve the configuration to determine project dependencies.
+
+### Substituting an external module dependency with a project dependency
+
+Dependency substitution can be used to replace an external module with a locally developed project, which is helpful when testing a patched or unreleased version of a module.
+
+The external module can be replaced whether a version is specified:
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/dependency-management/customizingResolution-substitutionRule/kotlin" files="build.gradle.kts[tags=module_to_project_substitution]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/dependency-management/customizingResolution-substitutionRule/groovy" files="build.gradle[tags=module_to_project_substitution]" */}
+
+- Substituted projects must be part of the multi-project build (included via `settings.gradle`).
+- The substitution replaces the module dependency with the project dependency and sets up task dependencies, but doesn&#8217;t automatically include the project in the build.
+
+### Substituting a project dependency with a module replacement
+
+You can also use substitution rules to replace a project dependency with an external module in a multi-project build.
+
+This technique can accelerate development by allowing certain dependencies to be downloaded from a repository instead of being built locally:
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/dependency-management/customizingResolution-substitutionRule/kotlin" files="build.gradle.kts[tags=project_to_module_substitution]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/dependency-management/customizingResolution-substitutionRule/groovy" files="build.gradle[tags=project_to_module_substitution]" */}
+
+- The substituted module must include a version.
+- Even after substitution, the project remains part of the multi-project build, but tasks to build it won&#8217;t be executed when resolving the configuration.
+
+### Conditionally substituting a dependency
+
+You can conditionally substitute a module dependency with a local project in a multi-project build using dependency substitution rules.
+
+This is particularly useful when you want to use a locally developed version of a dependency if it exists, otherwise fall back to the external module:
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/dependency-management/customizingResolution-conditionalSubstitutionRule/kotlin/consumer" files="build.gradle.kts[tags=project_substitution]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/dependency-management/customizingResolution-conditionalSubstitutionRule/groovy/consumer" files="build.gradle[tags=project_substitution]" */}
+
+- The substitution only occurs if a local project matching the dependency name is found.
+- The local project must already be included in the multi-project build (via `settings.gradle`).
+
+### Substituting a dependency with another variant
+
+You can substitute a dependency with another [variant](variant_aware_resolution.mdx#sec:understanding-variant-selection), such as switching between a platform dependency and a regular library dependency.
+
+This is useful when your build process needs to change the type of dependency based on specific conditions:
+
+- The substitution is based on the requested dependency&#8217;s attributes (like group and version).
+- This approach allows you to switch from a platform component to a library or vice versa.
+- It uses Gradle&#8217;s variant-aware engine to ensure the correct variant is selected based on the configuration and consumer attributes.
+
+This flexibility is often required when working with complex dependency graphs where different component types (platforms, libraries) need to be swapped dynamically.
+
+#### Substituting a dependency with attributes
+
+Substituting a dependency based on attributes allows you to override the default selection of a component by targeting specific attributes (like platform vs. regular library).
+
+This technique is useful for managing platform and library dependencies in complex builds, particularly when you want to consume a regular library but the platform dependency was incorrectly declared:
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/dependency-management/customizingResolution-attributeSubstitutionRule/kotlin" files="lib/build.gradle.kts[tags=dependencies]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/dependency-management/customizingResolution-attributeSubstitutionRule/groovy" files="lib/build.gradle[tags=dependencies]" */}
+
+In this example, the substitution rule targets the platform version of `com.google.guava:guava` and replaces it with the regular library version:
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/dependency-management/customizingResolution-attributeSubstitutionRule/kotlin" files="consumer/build.gradle.kts[tags=substitution_rule]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/dependency-management/customizingResolution-attributeSubstitutionRule/groovy" files="consumer/build.gradle[tags=substitution_rule]" */}
+
+Without the `platform` keyword, the substitution would not specifically target the platform dependency.
+
+The following rule performs the same substitution but uses the more granular ***variant*** notation, allowing for customization of the dependency&#8217;s attributes:
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/dependency-management/customizingResolution-attributeSubstitutionRule/kotlin" files="consumer/build.gradle.kts[tags=substitution_rule_alternative]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/dependency-management/customizingResolution-attributeSubstitutionRule/groovy" files="consumer/build.gradle[tags=substitution_rule_alternative]" */}
+
+By using attribute-based substitution, you can precisely control which dependencies are replaced, ensuring Gradle resolves the correct versions and variants in your build.
+
+Refer to the [DependencySubstitutions API]({javadocPath}/org/gradle/api/artifacts/DependencySubstitutions.html#variant-org.gradle.api.artifacts.component.ComponentSelector-org.gradle.api.Action-) for a complete reference.
+
+:::caution
+In [composite builds](composite_builds.mdx#composite_build_intro), the rule that you have to match the exact requested dependency attributes is not applied.
+When using composites, Gradle will automatically match the requested attributes.
+In other words, it is implicit that if you include another build, you are substituting _all variants_ of the substituted module with an equivalent variant in the included build.
+:::
+
+#### Substituting a dependency with a dependency with capabilities
+
+You can substitute a dependency with a different variant that includes specific ***capabilities***.
+Capabilities allow you to specify that a particular variant of a dependency offers a set of related features or functionality, such as [test fixtures](java_testing.mdx#sec:java_test_fixtures).
+
+This example substitutes a regular dependency with its [test fixtures](java_testing.mdx#sec:java_test_fixtures) using a capability:
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/dependency-management/customizingResolution-capabilitySubstitutionRule/kotlin" files="build.gradle.kts[tags=substitution_rule]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/dependency-management/customizingResolution-capabilitySubstitutionRule/groovy" files="build.gradle[tags=substitution_rule]" */}
+
+Here, we substitute the regular `com.acme:lib:1.0` dependency with its `lib-test-fixtures` variant.
+The `requireCapability` function specifies that the new variant must have the `com.acme:lib-test-fixtures` capability, ensuring the right version of the dependency is selected for testing purposes.
+
+Capabilities within the substitution rule are used to precisely match dependencies, and Gradle only substitutes dependencies that match the required capabilities.
+
+Refer to the [DependencySubstitutions API]({javadocPath}/org/gradle/api/artifacts/DependencySubstitutions.html#variant-org.gradle.api.artifacts.component.ComponentSelector-org.gradle.api.Action-) for a complete reference of the variant substitution API.
+
+### Substituting a dependency with a classifier or artifact
+
+You can substitute dependencies that have a classifier with ones that don&#8217;t or vice versa. Classifiers are often used to represent different versions of the same artifact, such as platform-specific builds or dependencies with different APIs.
+Although Gradle discourages the use of classifiers, it provides a way to handle substitutions for cases where classifiers are still in use.
+
+Consider the following setup:
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/dependency-management/customizingResolution-classifierSubstitutionRule/kotlin" files="consumer/build.gradle.kts[tags=dependencies]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/dependency-management/customizingResolution-classifierSubstitutionRule/groovy" files="consumer/build.gradle[tags=dependencies]" */}
+
+In the example above, the first level dependency on `quasar` makes us think that Gradle would resolve `quasar-core-0.8.0.jar` but it&#8217;s not the case.
+
+The build fails with this message:
+
+```text
+Execution failed for task ':consumer:resolve'.
+> Could not resolve all files for configuration ':consumer:runtimeClasspath'.
+   > Could not find quasar-core-0.8.0-jdk8.jar (co.paralleluniverse:quasar-core:0.8.0).
+     Searched in the following locations:
+         https://repo.maven.apache.org/maven2/co/paralleluniverse/quasar-core/0.8.0/quasar-core-0.8.0-jdk8.jar
+```
+
+That&#8217;s because there&#8217;s a dependency on another project, `lib`, which itself depends on a different version of `quasar-core`:
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/dependency-management/customizingResolution-classifierSubstitutionRule/kotlin" files="lib/build.gradle.kts[tags=dependencies]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/dependency-management/customizingResolution-classifierSubstitutionRule/groovy" files="lib/build.gradle[tags=dependencies]" */}
+
+- The consumer depends on `quasar-core:0.8.0` without a classifier.
+- The lib project depends on `quasar-core:0.7.10` with the `jdk8` classifier.
+- Gradle&#8217;s conflict resolution selects the higher version (`0.8.0`), but `quasar-core:0.8.0` doesn&#8217;t have the `jdk8` classifier, leading to a resolution error.
+
+To resolve this conflict, you can instruct Gradle to ignore classifiers when resolving `quasar-core` dependencies:
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/dependency-management/customizingResolution-classifierSubstitutionRule/kotlin" files="consumer/build.gradle.kts[tags=substitution_rule]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/dependency-management/customizingResolution-classifierSubstitutionRule/groovy" files="consumer/build.gradle[tags=substitution_rule]" */}
+
+This rule effectively replaces any dependency on `quasar-core` found in the graph with a dependency without classifier.
+
+If you need to substitute with a specific classifier or artifact, you can specify the classifier or artifact details in the substitution rule.
+
+For more detailed information, refer to:
+
+- Artifact selection via the [Substitution DSL]({javadocPath}/org/gradle/api/artifacts/DependencySubstitutions.Substitution.html)
+- Artifact selection via the [DependencySubstitution API]({javadocPath}/org/gradle/api/artifacts/DependencySubstitution.html#artifactSelection-org.gradle.api.Action-)
+- Artifact selection via the [ResolutionStrategy API]({javadocPath}/org/gradle/api/artifacts/ResolutionStrategy.html#dependencySubstitution-org.gradle.api.Action-)
+
+## 4. Component Selection Rules
+
+Component selection rules may influence which component instance should be selected when multiple versions are available that match a version selector.
+Rules are applied against every available version and allow the version to be explicitly rejected.
+
+This allows Gradle to ignore any component instance that does not satisfy conditions set by the rule.
+Examples include:
+
+- For a dynamic version like `1.+` certain versions may be explicitly rejected from selection.
+- For a static version like `1.4` an instance may be rejected based on extra component metadata such as the Ivy branch attribute, allowing an instance from a subsequent repository to be used.
+
+Rules are configured via the [ComponentSelectionRules]({groovyDslPath}/org.gradle.api.artifacts.ComponentSelectionRules.html) object.
+Each rule configured will be called with a [ComponentSelection]({groovyDslPath}/org.gradle.api.artifacts.ComponentSelection.html) object as an argument that contains information about the candidate version being considered.
+Calling [ComponentSelection.reject(java.lang.String)]({groovyDslPath}/org.gradle.api.artifacts.ComponentSelection.html#org.gradle.api.artifacts.ComponentSelection:reject(java.lang.String)) causes the given candidate version to be explicitly rejected, in which case the candidate will not be considered for the selector.
+
+The following example shows a rule that disallows a particular version of a module but allows the dynamic version to choose the next best candidate:
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/dependency-management/customizingResolution-selectionRule/kotlin" files="build.gradle.kts[tags=reject-version-1-1]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/dependency-management/customizingResolution-selectionRule/groovy" files="build.gradle[tags=reject-version-1-1]" */}
+
+Note that version selection is applied starting with the highest version first.
+The version selected will be the first version found that all component selection rules accept.
+
+:::danger
+A version is considered accepted if no rule explicitly rejects it.
+:::
+
+Similarly, rules can be targeted at specific modules.
+Modules must be specified in the form of `group:module`:
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/dependency-management/customizingResolution-selectionRule/kotlin" files="build.gradle.kts[tags=targeted-component-selection]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/dependency-management/customizingResolution-selectionRule/groovy" files="build.gradle[tags=targeted-component-selection]" */}
+
+Component selection rules can also consider component metadata when selecting a version.
+Possible additional metadata that can be considered are [ComponentMetadata]({javadocPath}/org/gradle/api/artifacts/ComponentMetadata.html) and [IvyModuleDescriptor]({javadocPath}/org/gradle/api/artifacts/ivy/IvyModuleDescriptor.html).
+
+Note that this extra information may not always be available and thus should be checked for `null` values:
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/dependency-management/customizingResolution-selectionRule/kotlin" files="build.gradle.kts[tags=component-selection-with-metadata]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/dependency-management/customizingResolution-selectionRule/groovy" files="build.gradle[tags=component-selection-with-metadata]" */}
+
+A [ComponentSelection]({groovyDslPath}/org.gradle.api.artifacts.ComponentSelection.html) argument is _always_ required as a parameter when declaring a component selection rule.
+
+## 5. Default Dependencies
+
+You can set default dependencies for a configuration to ensure that a default version is used when no explicit dependencies are specified.
+
+This is useful for plugins that rely on versioned tools and want to provide a default if the user doesn&#8217;t specify a version:
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/dependency-management/customizingResolution-defaultDependency/kotlin" files="build.gradle.kts[tags=configuration-default-dependencies]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/dependency-management/customizingResolution-defaultDependency/groovy" files="build.gradle[tags=configuration-default-dependencies]" */}
+
+In this example, the `pluginTool` configuration will use `org.gradle:my-util:1.0` as a default dependency unless another version is specified.
+
+## 6. Excluding Transitive Dependencies
+
+To completely exclude a transitive dependency for a particular configuration, use the [`Configuration.exclude(Map)`]({groovyDslPath}/org.gradle.api.artifacts.Configuration.html#org.gradle.api.artifacts.Configuration:exclude(java.util.Map)) method.
+
+:::caution
+Excluding a transitive dependency should be a conscious and deliberate choice. Removing a dependency that other libraries rely on can lead to runtime errors or unexpected behavior. If you choose to exclude something, make sure your code doesn&#8217;t rely on it—ideally backed by comprehensive test coverage to catch potential issues early.
+:::
+
+This approach will automatically exclude the specified transitive dependency from all dependencies declared within the configuration:
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/dependency-management/managingTransitiveDependencies-excludeForConfiguration/kotlin" files="build.gradle.kts[tags=exclude-transitive-dependencies]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/dependency-management/managingTransitiveDependencies-excludeForConfiguration/groovy" files="build.gradle[tags=exclude-transitive-dependencies]" */}
+
+In this example, the `commons-collections` dependency will be excluded from the `implementation` configuration, regardless of whether it is a direct or transitive dependency.
+
+Below is a simplified usage of the `commons-beanutils` library, where we only call `PropertyUtils.setSimpleProperty()` on a POJO (Plain Old Java Object):
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/dependency-management/managingTransitiveDependencies-excludeForDependency/common" files="src/main/java/Main.java" */}
+
+This specific usage doesn&#8217;t require `commons-collections`, which we&#8217;ve verified with test coverage.
+By excluding it, we effectively express that we&#8217;re only using a subset of `commons-beanutils`.
+However, this can be risky.
+If our code were more dynamic or invoked error-handling code paths, we might encounter runtime issues.
+
+For example, if we tried to set a property that doesn&#8217;t exist, the library may throw a `NoClassDefFoundError` for a missing class from `commons-collections` rather than a clear exception, because that path depends on the excluded library.
+
+Gradle handles exclusions differently than Maven—it evaluates the entire dependency graph.
+An exclusion is only applied if all paths to a dependency agree on it.
+
+For example, if another dependency (like `opencsv`) also brings in `commons-beanutils` (but without an exclusion), the transitive `commons-collections` will still appear:
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/dependency-management/managingTransitiveDependencies-excludeForDependency/kotlin" files="build.gradle.kts[tags=exclude-transitive-dependencies-2]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/dependency-management/managingTransitiveDependencies-excludeForDependency/groovy" files="build.gradle[tags=exclude-transitive-dependencies-2]" */}
+
+To fully exclude `commons-collections`, you must also exclude it from `opencsv`:
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/dependency-management/managingTransitiveDependencies-excludeForDependency/kotlin" files="build.gradle.kts[tags=exclude-transitive-dependencies-3]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/dependency-management/managingTransitiveDependencies-excludeForDependency/groovy" files="build.gradle[tags=exclude-transitive-dependencies-3]" */}
+
+Using excludes should be a conscious and well-tested decision.
+If the excluded dependency is needed in any code path, your build may fail at runtime.
+
+Historically, excludes have also been used as a workaround for limitations in other build systems, but there are better alternatives:
+
+- **Use [dependency constraints](dependency_constraints.mdx#dependency-constraints)** to update or override versions instead of excluding undesired ones.
+- **Use [component metadata rules](component_metadata_rules.mdx#component-metadata-rules)** to remove an unnecessary dependency—like a compile-time dependency that&#8217;s erroneously added to the metadata of the library. This tells Gradle to ignore the dependency entirely (i.e., the metadata is wrong). Note that these rules are not published, so if you&#8217;re creating a library others will use, an explicit `exclude` may be more appropriate.
+- **Use [capabilities](component_capabilities.mdx#capabilities)** to resolve mutually exclusive dependency conflicts. Some libraries can&#8217;t coexist because they provide the same capability—such as `log4j` and `log4j-over-slf4j`, or `com.google.collections` and `guava`. If Gradle isn&#8217;t aware of the conflict, declare the overlapping capability using a component metadata rule. If you&#8217;re developing a library, avoid enforcing a specific choice—let the consumers decide which implementation to use.
+
+## 7. Force Failed Resolution Strategies
+
+Version conflicts can be forced to fail using:
+
+- `failOnNonReproducibleResolution()`
+- `failOnDynamicVersions()`
+- `failOnChangingVersions()`
+- `failOnVersionConflict()`
+
+This will fail the build when conflicting versions of the same dependency are found:
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/dependency-management/managingTransitiveDependencies-resolutionStrategy/kotlin" files="build.gradle.kts[tags=fail-on-version-conflict]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/dependency-management/managingTransitiveDependencies-resolutionStrategy/groovy" files="build.gradle[tags=fail-on-version-conflict]" */}
+
+## 8. Disabling Transitive Dependencies
+
+By default, Gradle resolves all transitive dependencies for a given module.
+
+However, there are situations where you may want to disable this behavior, such as when you need more control over dependencies or when the dependency metadata is incorrect.
+
+You can tell Gradle to disable transitive dependency management for a dependency by setting [ModuleDependency.setTransitive(boolean)]({javadocPath}/org/gradle/api/artifacts/ModuleDependency.html#setTransitive-boolean-) to `false`.
+
+In the following example, transitive dependency resolution is disabled for the `guava` dependency:
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/dependency-management/managingTransitiveDependencies-disableForDependency/kotlin" files="build.gradle.kts[tags=transitive-per-dependency]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/dependency-management/managingTransitiveDependencies-disableForDependency/groovy" files="build.gradle[tags=transitive-per-dependency]" */}
+
+This ensures only the main artifact for `guava` is resolved, and none of its transitive dependencies will be included.
+
+:::note
+Disabling transitive dependency resolution will likely require you to declare the necessary runtime dependencies in your build script which otherwise would have been resolved automatically. Not doing so might lead to runtime classpath issues.
+:::
+
+If you want to disable transitive resolution globally across all dependencies, you can set this behavior at the configuration level:
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/dependency-management/managingTransitiveDependencies-disableForConfiguration/kotlin" files="build.gradle.kts[tags=transitive-per-configuration]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/dependency-management/managingTransitiveDependencies-disableForConfiguration/groovy" files="build.gradle[tags=transitive-per-configuration]" */}
+
+This disables transitive resolution for all dependencies in the project.
+Be aware that this may require you to manually declare any transitive dependencies that are required at runtime.
+
+For more information, see [Configuration.setTransitive(boolean)]({javadocPath}/org/gradle/api/artifacts/Configuration.html#setTransitive-boolean-).
+
+## 9. Dependency Resolve Rules and Other Conditionals
+
+Dependency resolve rules are executed for each dependency as it&#8217;s being resolved, providing a powerful API to modify a dependency&#8217;s attributes—such as group, name, or version—before the resolution is finalized.
+
+This allows for advanced control over dependency resolution, enabling you to substitute one module for another during the resolution process.
+
+This feature is particularly useful for implementing advanced dependency management patterns.
+With **dependency resolve rules**, you can redirect dependencies to specific versions or even different modules entirely, allowing you to enforce consistent versions across a project or override problematic dependencies:
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/dependency-management/customizingResolution-resolutionStrategy/kotlin" files="build.gradle.kts[tags=resolve-rules]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/dependency-management/customizingResolution-resolutionStrategy/groovy" files="build.gradle[tags=resolve-rules]" */}
+
+In this example, if a dependency on `com.example:old-library` is requested, it will be substituted with `com.example:new-library:1.0.0` during resolution.
+
+For more advanced usage and additional examples, refer to the [ResolutionStrategy]({groovyDslPath}/org.gradle.api.artifacts.ResolutionStrategy.html) class in the API documentation.
+
+### Implementing a custom versioning scheme
+
+In some corporate environments, module versions in Gradle builds are maintained and audited externally.
+**Dependency resolve rules** offer an effective way to implement this:
+
+- Developers declare dependencies in the build script using the module’s group and name, but specify a placeholder version like `default`.
+- A dependency resolve rule then resolves the `default` version to an approved version, which is retrieved from a corporate catalog of sanctioned modules.
+
+This approach ensures that only approved versions are used, while allowing developers to work with a simplified and consistent versioning scheme.
+
+The rule implementation can be encapsulated in a corporate plugin, making it easy to apply across all projects within the organization:
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/dependency-management/customizingResolution-resolutionStrategy/kotlin" files="build.gradle.kts[tags=custom-versioning-scheme]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/dependency-management/customizingResolution-resolutionStrategy/groovy" files="build.gradle[tags=custom-versioning-scheme]" */}
+
+In this setup, whenever a developer specifies `default` as the version, the resolve rule replaces it with the approved version from the corporate catalog.
+
+This strategy ensures compliance with corporate policies while providing flexibility and ease of use for developers.
+Encapsulating this logic in a plugin also ensures consistency across multiple projects.
+
+### Replacing unwanted dependency versions
+
+**Dependency resolve rules** offer a powerful mechanism for blocking specific versions of a dependency and substituting them with an alternative.
+
+This is particularly useful when a specific version is known to be problematic—such as a version that introduces bugs or relies on a library that isn’t available in public repositories.
+By defining a resolve rule, you can automatically replace a problematic version with a stable one.
+
+Consider a scenario where version `1.2` of a library is broken, but version `1.2.1` contains important fixes and should always be used instead.
+With a resolve rule, you can enforce this substitution: "anytime version `1.2` is requested, it will be replaced with `1.2.1`.
+Unlike forcing a version, this rule only affects the specific version `1.2`, leaving other versions unaffected:
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/dependency-management/customizingResolution-resolutionStrategy/kotlin" files="build.gradle.kts[tags=denying_version]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/dependency-management/customizingResolution-resolutionStrategy/groovy" files="build.gradle[tags=denying_version]" */}
+
+If version `1.3` is also present in the dependency graph, then even with this rule, Gradle’s default conflict resolution strategy would select `1.3` as the latest version.
+
+***Difference from Rich Version Constraints:*** Using [rich version](dependency_versions.mdx#sec:rich-version-constraints) constraints, you can reject certain versions outright, causing the build to fail or select a non-rejected version if a dynamic dependency is used. In contrast, a dependency resolve rule like the one shown here manipulates the version being requested, replacing it with a known good version when a rejected one is found. This approach is a **solution** for handling rejected versions, while rich version constraints are about expressing the intent to avoid certain versions.
+
+### Lazily influencing resolved dependencies
+
+Plugins can lazily influence dependencies by adding them conditionally or setting preferred versions when no version is specified by the user.
+
+Below are two examples illustrating these use cases.
+
+This example demonstrates how to add a dependency to a configuration based on some condition, evaluated lazily:
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/dependency-management/customizingResolution-lazyDependencies/kotlin" files="build.gradle.kts[tags=configuration-lazy-add-dependency]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/dependency-management/customizingResolution-lazyDependencies/groovy" files="build.gradle[tags=configuration-lazy-add-dependency]" */}
+
+In this case, `addLater` is used to defer the evaluation of the dependency, allowing it to be added only when certain conditions are met.
+
+In this example, the build script sets a preferred version of a dependency, which will be used if no version is explicitly specified:
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/dependency-management/customizingResolution-lazyDependencies/kotlin" files="build.gradle.kts[tags=preferred-version-constraints]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/dependency-management/customizingResolution-lazyDependencies/groovy" files="build.gradle[tags=preferred-version-constraints]" */}
+
+This ensures that `org:foo` uses version `1.0` unless the user specifies another version.

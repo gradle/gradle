@@ -29,14 +29,10 @@ class GradleBuildDocumentationConfigurationCacheSmokeTest extends AbstractGradle
 
         given:
         def tasks = [
-            ':docs:dslHtml',
-            ':docs:releaseNotes',
-            ':docs:generateDocInfo',
-            ':docs:apiMapping',
-            ':docs:defaultImports',
-            ':docs:checkDeadInternalLinks',
-            ':docs:checkstyleApi',
-            ':docs:incubationReport',
+            ':reference-docs:dslHtml',
+            ':reference-docs:releaseNotes',
+            ':reference-docs:checkstyleApi',
+            ':reference-docs:incubationReport',
         ]
 
         when:
@@ -46,21 +42,17 @@ class GradleBuildDocumentationConfigurationCacheSmokeTest extends AbstractGradle
         result.assertConfigurationCacheStateStored()
 
         when:
-        run([":docs:clean"])
+        run([":reference-docs:clean"])
 
         then:
         configurationCacheRun(tasks, 1)
 
         then:
         result.assertConfigurationCacheStateLoaded()
-        result.task(":docs:dslHtml").outcome == TaskOutcome.FROM_CACHE
-        result.task(":docs:releaseNotes").outcome == TaskOutcome.FROM_CACHE
-        result.task(":docs:generateDocInfo").outcome == TaskOutcome.FROM_CACHE
-        result.task(":docs:apiMapping").outcome == TaskOutcome.FROM_CACHE
-        result.task(":docs:defaultImports").outcome == TaskOutcome.FROM_CACHE
-        result.task(":docs:checkDeadInternalLinks").outcome == TaskOutcome.FROM_CACHE
-        result.task(":docs:checkstyleApi").outcome == TaskOutcome.FROM_CACHE
-        result.task(":docs:incubationReport").outcome == TaskOutcome.FROM_CACHE
+        result.task(":reference-docs:dslHtml").outcome == TaskOutcome.FROM_CACHE
+        result.task(":reference-docs:releaseNotes").outcome == TaskOutcome.FROM_CACHE
+        result.task(":reference-docs:checkstyleApi").outcome == TaskOutcome.FROM_CACHE
+        result.task(":reference-docs:incubationReport").outcome == TaskOutcome.FROM_CACHE
     }
 
     @Ignore("Broken by at least the Asciidoctor plugin, and takes 40mins on CI")
@@ -69,8 +61,8 @@ class GradleBuildDocumentationConfigurationCacheSmokeTest extends AbstractGradle
 
         given:
         def tasks = [
-            ':docs:docs',
-            ':docs:docsTest',
+            ':reference-docs:docs',
+            ':reference-docs:docsTest',
             "-D${StartParameterBuildOptions.ConfigurationCacheMaxProblemsOption.PROPERTY_NAME}=8192".toString(), // TODO:configuration-cache remove
         ]
 
@@ -81,21 +73,21 @@ class GradleBuildDocumentationConfigurationCacheSmokeTest extends AbstractGradle
         result.assertConfigurationCacheStateStored()
 
         when:
-        run([":docs:clean"])
+        run([":reference-docs:clean"])
 
         then:
         configurationCacheRun(tasks, 1)
 
         then:
         result.assertConfigurationCacheStateLoaded()
-        result.task(":docs:docs").outcome == TaskOutcome.SUCCESS
-        result.task("':docs:docsTest'").outcome == TaskOutcome.SUCCESS
+        result.task(":reference-docs:docs").outcome == TaskOutcome.SUCCESS
+        result.task("':reference-docs:docsTest'").outcome == TaskOutcome.SUCCESS
     }
 
-    @Ignore("With https://github.com/gradle/gradle/pull/36884 :docs:embeddedCrossVersionTest does not exist any more")
-    def "can resolve classpath for :docs:embeddedCrossVersionTest with configuration cache enabled"() {
+    @Ignore("With https://github.com/gradle/gradle/pull/36884 :reference-docs:embeddedCrossVersionTest does not exist any more")
+    def "can resolve classpath for :reference-docs:embeddedCrossVersionTest with configuration cache enabled"() {
         given:
-        def tasks = [":docs:embeddedCrossVersionTest", "--dry-run"]
+        def tasks = [":reference-docs:embeddedCrossVersionTest", "--dry-run"]
 
         when:
         configurationCacheRun(tasks)

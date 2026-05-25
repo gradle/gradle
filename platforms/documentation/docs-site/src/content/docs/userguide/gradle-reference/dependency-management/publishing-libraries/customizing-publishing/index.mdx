@@ -1,0 +1,142 @@
+---
+title: "Customizing publishing"
+---
+
+## Modifying and adding variants to existing components for publishing
+
+Gradle&#8217;s publication model is based on the notion of _components_, which are defined by plugins.
+For example, the Java Library plugin defines a `java` component which corresponds to a library, but the Java Platform plugin defines another kind of component, named `javaPlatform`, which is effectively a different kind of software component (a _platform_).
+
+Sometimes we want to add _more variants_ to or modify _existing variants_ of an existing component.
+For example, if you [added a variant of a Java library for a different platform](variant_aware_resolution.mdx#sec:variant-aware-matching), you may just want to declare this additional variant on the `java` component itself.
+In general, declaring additional variants is often the best solution to publish _additional artifacts_.
+
+To perform such additions or modifications, the `AdhocComponentWithVariants` interface declares two methods called `addVariantsFromConfiguration` and `withVariantsFromConfiguration` which accept two parameters:
+
+- the [outgoing configuration](declaring_configurations.mdx#sec:resolvable-consumable-configs) that is used as a variant source
+- a customization action which allows you to _filter_ which variants are going to be published
+
+To utilise these methods, you must make sure that the `SoftwareComponent` you work with is itself an `AdhocComponentWithVariants`, which is the case for the components created by the Java plugins (Java, Java Library, Java Platform).
+Adding a variant is then very simple:
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/publishing/modelingFeatures-crossProjectPublications-advanced-published/kotlin/buildSrc/src/main/kotlin/com/acme" files="InstrumentedJarsPlugin.kt[tags=add_variant_to_existing_component]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/publishing/modelingFeatures-crossProjectPublications-advanced-published/groovy/buildSrc/src/main/groovy/com/acme" files="InstrumentedJarsPlugin.groovy[tags=add_variant_to_existing_component]" */}
+
+In other cases, you might want to modify a variant that was added by one of the Java plugins already.
+For example, if you activate publishing of Javadoc and sources, these become additional variants of the `java` component.
+If you only want to publish one of them, e.g. only Javadoc but no sources, you can modify the `sources` variant to not being published:
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/publishing/javaProject/kotlin" files="build.gradle.kts[tags=publish-modify-component]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/publishing/javaProject/groovy" files="build.gradle[tags=publish-modify-component]" */}
+
+## Creating and publishing custom components
+
+In the [previous example](#sec:adding-variants-to-existing-components), we have demonstrated how to extend or modify an existing component, like the components provided by the Java plugins.
+But Gradle also allows you to build a custom component (not a Java Library, not a Java Platform, not something supported natively by Gradle).
+
+Declaring _what_ a custom component publishes is also done via the [AdhocComponentWithVariants]({javadocPath}/org/gradle/api/component/AdhocComponentWithVariants.html) API.
+For a custom component, the first step is to create custom outgoing variants, following the instructions in [this chapter](variant_aware_resolution.mdx#sec:understanding-variant-selection).
+At this stage, what you should have is variants which can be used in cross-project dependencies, but that we are now going to publish to external repositories.
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/publishing/modelingFeatures-crossProjectPublications-advanced-published/kotlin/buildSrc/src/main/kotlin/com/acme" files="InstrumentedJarsPlugin.kt[tags=create_adhoc_component]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/publishing/modelingFeatures-crossProjectPublications-advanced-published/groovy/buildSrc/src/main/groovy/com/acme" files="InstrumentedJarsPlugin.groovy[tags=create_adhoc_component]" */}
+
+First we use the factory to create a new adhoc component.
+Then we add a variant through the `addVariantsFromConfiguration` method, which is described in more detail in the [previous section](#sec:adding-variants-to-existing-components).
+
+In simple cases, there&#8217;s a one-to-one mapping between a `Configuration` and a variant, in which case you can publish all variants issued from a single `Configuration` because they are effectively the same thing.
+However, there are cases where a `Configuration` is associated with additional [configuration publications]({javadocPath}/org/gradle/api/artifacts/ConfigurationPublications.html) that we also call _secondary variants_.
+Such configurations make sense in a multi-project build, but not when publishing externally.
+This is for example the case when between projects you share a _directory of files_, but there&#8217;s no way you can publish a _directory_ directly on a Maven repository (only packaged things like jars or zips).
+Look at the [ConfigurationVariantDetails]({javadocPath}/org/gradle/api/component/ConfigurationVariantDetails.html) class for details about how to skip publication of a particular variant.
+If `addVariantsFromConfiguration` has already been called for a configuration, further modification of the resulting variants can be performed using `withVariantsFromConfiguration`.
+
+When publishing an adhoc component like this:
+
+- Gradle Module Metadata will _exactly_ represent the published variants. In particular, all outgoing variants will inherit dependencies, artifacts and attributes of the published configuration.
+- Maven and Ivy metadata files will be generated, but you need to declare how the dependencies are mapped to Maven scopes via the [ConfigurationVariantDetails]({javadocPath}/org/gradle/api/component/ConfigurationVariantDetails.html) class.
+
+In practice, it means that components created this way can be consumed by Gradle the same way as if they were "local components".
+
+## Adding custom artifacts to a publication
+
+{/* converter-gap: node=open */}
+
+The following section describes how you publish artifacts directly if you are sure that metadata, for example Gradle or POM metadata, is irrelevant for your use case.
+For example, if your project doesn&#8217;t need to be consumed by other projects and the only thing required as result of the publishing are the artifacts themselves.
+
+In general, there are two options:
+
+- Create a publication only with artifacts
+- Add artifacts to a publication based on a component with metadata (not recommended, instead [adjust a component](#sec:adding-variants-to-existing-components) or use a [adhoc component publication](#sec:publishing-custom-components) which will both also produce metadata fitting your artifacts)
+
+To create a publication based on artifacts, start by defining a custom artifact and attaching it to a Gradle [configuration](glossary.mdx#sub:terminology_configuration) of your choice.
+The following sample defines an RPM artifact that is produced by an `rpm` task (not shown) and attaches that artifact to the `conf` configuration:
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/publishing/publish-artifact/kotlin" files="build.gradle.kts[tags=custom-artifact]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/publishing/publish-artifact/groovy" files="build.gradle[tags=custom-artifact]" */}
+
+The `artifacts.add()` method — from [ArtifactHandler]({groovyDslPath}/org.gradle.api.artifacts.dsl.ArtifactHandler.html) — returns an artifact object of type [PublishArtifact]({javadocPath}/org/gradle/api/artifacts/PublishArtifact.html) that can then be used in defining a publication, as shown in the following sample:
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/publishing/publish-artifact/kotlin" files="build.gradle.kts[tags=custom-artifact-publication]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/publishing/publish-artifact/groovy" files="build.gradle[tags=custom-artifact-publication]" */}
+
+- The `artifact()` method accepts _publish artifacts_ as argument — like `rpmArtifact` in the sample — as well as any type of argument accepted by [Project.file(java.lang.Object)]({groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:file(java.lang.Object)), such as a `File` instance, a string file path or a archive task.
+- Publishing plugins support different artifact configuration properties, so always check the plugin documentation for more details. The `classifier` and `extension` properties are supported by both the [Maven Publish Plugin](publishing_maven.mdx#publishing_maven) and the [Ivy Publish Plugin](publishing_ivy.mdx#publishing_ivy).
+- Custom artifacts need to be distinct within a publication, typically via a unique combination of `classifier` and `extension`. See the documentation for the plugin you&#8217;re using for the precise requirements.
+- If you use `artifact()` with an archive task, Gradle automatically populates the artifact&#8217;s metadata with the `classifier` and `extension` properties from that task.
+
+Now you can publish the RPM.
+
+If you really want to add an artifact to a publication based on a component, instead of [adjusting the component](#sec:adding-variants-to-existing-components) itself, you can combine the `from components.someComponent` and `artifact someArtifact` notations.
+
+## Restricting publications to specific repositories
+
+When you have defined multiple publications or repositories, you often want to control which publications are published to which repositories. For instance, consider the following sample that defines two publications — one that consists of just a binary and another that contains the binary and associated sources — and two repositories — one for internal use and one for external consumers:
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/publishing/conditional-publishing/kotlin" files="build.gradle.kts[tags=publishing]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/publishing/conditional-publishing/groovy" files="build.gradle[tags=publishing]" */}
+
+The publishing plugins will create tasks that allow you to publish either of the publications to either repository. They also attach those tasks to the `publish` aggregate task. But let&#8217;s say you want to restrict the binary-only publication to the external repository and the binary-with-sources publication to the internal one. To do that, you need to make the publishing _conditional_.
+
+Gradle allows you to skip any task you want based on a condition via the [Task.onlyIf(String, org.gradle.api.specs.Spec)]({groovyDslPath}/org.gradle.api.Task.html#org.gradle.api.Task:onlyIf(java.lang.String,org.gradle.api.specs.Spec)) method. The following sample demonstrates how to implement the constraints we just mentioned:
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/publishing/conditional-publishing/kotlin" files="build.gradle.kts[tags=task-config]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/publishing/conditional-publishing/groovy" files="build.gradle[tags=task-config]" */}
+
+```bash
+$ ./gradlew publish
+```
+
+```text
+Unresolved directive in publishing_customization.adoc - include::{snippetsPath}/reference/dependency-management/publishing/conditional-publishing/tests/publishingMavenConditionally.out[]
+```
+
+You may also want to define your own aggregate tasks to help with your workflow. For example, imagine that you have several publications that should be published to the external repository. It could be very useful to publish all of them in one go without publishing the internal ones.
+
+The following sample demonstrates how you can do this by defining an aggregate task — `publishToExternalRepository` — that depends on all the relevant publish tasks:
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/publishing/conditional-publishing/kotlin" files="build.gradle.kts[tags=shorthand-tasks]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/publishing/conditional-publishing/groovy" files="build.gradle[tags=shorthand-tasks]" */}
+
+This particular sample automatically handles the introduction or removal of the relevant publishing tasks by using [TaskCollection.withType(java.lang.Class)]({javadocPath}/org/gradle/api/tasks/TaskCollection.html#withType-java.lang.Class-) with the [PublishToMavenRepository]({groovyDslPath}/org.gradle.api.publish.maven.tasks.PublishToMavenRepository.html) task type. You can do the same with [PublishToIvyRepository]({groovyDslPath}/org.gradle.api.publish.ivy.tasks.PublishToIvyRepository.html) if you&#8217;re publishing to Ivy-compatible repositories.
+
+## Configuring publishing tasks
+
+The publishing plugins create their non-aggregate tasks after the project has been evaluated, which means you cannot directly reference them from your build script. If you would like to configure any of these tasks, you should use deferred task configuration. This can be done in a number of ways via the project&#8217;s `tasks` collection.
+
+For example, imagine you want to change where the `generatePomFileFor_PubName_Publication` tasks write their POM files. You can do this by using the [TaskCollection.withType(java.lang.Class)]({javadocPath}/org/gradle/api/tasks/TaskCollection.html#withType-java.lang.Class-) method, as demonstrated by this sample:
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/publishing/javaLibrary/kotlin" files="build.gradle.kts[tags=configure-generate-task]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/publishing/javaLibrary/groovy" files="build.gradle[tags=configure-generate-task]" */}
+
+The above sample uses a regular expression to extract the name of the publication from the name of the task. This is so that there is no conflict between the file paths of all the POM files that might be generated. If you only have one publication, then you don&#8217;t have to worry about such conflicts since there will only be one POM file.

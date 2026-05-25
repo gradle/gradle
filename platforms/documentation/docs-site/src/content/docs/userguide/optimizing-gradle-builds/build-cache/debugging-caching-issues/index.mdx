@@ -1,0 +1,261 @@
+---
+title: "Debugging and diagnosing Build Cache misses"
+---
+
+To make the most of task output caching, it is important that any necessary inputs to your tasks are specified correctly, while at the same time avoiding unneeded inputs.
+Failing to specify an input that affects the task&#8217;s outputs can result in incorrect builds, while needlessly specifying inputs that do not affect the task&#8217;s output can cause cache misses.
+
+This chapter is about finding out why a cache miss happened.
+If you have a cache hit which you didn&#8217;t expect we suggest to declare whatever change you expected to trigger the cache miss as an input to the task.
+
+## Finding problems with task output caching
+
+Below we describe a step-by-step process that should help shake out any problems with caching in your build.
+
+### Ensure incremental build works
+
+First, make sure your build does the right thing without the cache.
+Run a build twice without enabling the Gradle build cache.
+The expected outcome is that all actionable tasks that produce file outputs are up-to-date.
+You should see something like this on the command-line:
+
+```bash
+$ ./gradlew clean --quiet <1>
+$ ./gradlew assemble <2>
+```
+
+```text
+BUILD SUCCESSFUL
+4 actionable tasks: 4 executed
+
+$ ./gradlew assemble <3>
+
+BUILD SUCCESSFUL
+4 actionable tasks: 4 up-to-date
+```
+
+{/* converter-gap: node=colist */}
+
+:::note
+Tasks that have no outputs or no inputs will always be executed, but that shouldn&#8217;t be a problem.
+:::
+
+Use the methods as described below to [diagnose](#diagnosing_cache_miss) and [fix](common_caching_problems.mdx#common-problems) tasks that should be up-to-date but aren&#8217;t.
+If you find a task which is out of date, but no cacheable tasks depends on its outcome, then you don&#8217;t have to do anything about it.
+The goal is to achieve [stable task inputs](build_cache_concepts.mdx#stable_task_inputs) for cacheable tasks.
+
+### In-place caching with the local cache
+
+When you are happy with the up-to-date performance then you can repeat the experiment above, but this time with a clean build, and the build cache turned on.
+The goal with clean builds and the build cache turned on is to retrieve all cacheable tasks from the cache.
+
+:::caution
+When running this test make sure that you have no `remote` cache configured, and storing in the `local` cache is enabled.
+These are the default settings.
+:::
+
+This would look something like this on the command-line:
+
+```bash
+$ rm -rf ~/.gradle/caches/build-cache-1 <1>
+$ ./gradlew clean --quiet <2>
+$ ./gradlew assemble --build-cache <3>
+```
+
+```text
+BUILD SUCCESSFUL
+4 actionable tasks: 4 executed
+```
+
+```bash
+$ ./gradlew clean --quiet <4>
+$ ./gradlew assemble --build-cache <5>
+```
+
+```text
+BUILD SUCCESSFUL
+4 actionable tasks: 1 executed, 3 from cache
+```
+
+{/* converter-gap: node=colist */}
+
+You should see all cacheable tasks loaded from cache, while non-cacheable tasks should be executed.
+
+{/* converter-gap: node=image */}
+
+Again, use the below methods to [diagnose](#diagnosing_cache_miss) and [fix](common_caching_problems.mdx#common-problems) cacheability issues.
+
+### Testing cache relocatability
+
+Once everything loads properly while building the same checkout with the local cache enabled, it&#8217;s time to see if there are any _relocation problems._
+A task is considered _relocatable_ if its output can be reused when the task is executed in a different location.
+(More on this in [path sensitivity and relocatability](build_cache_concepts.mdx#relocatability).)
+
+:::note
+Tasks that should be relocatable but aren&#8217;t are usually a result of absolute paths being present among the task&#8217;s inputs.
+:::
+
+To discover these problems, first check out the same commit of your project in two different directories on your machine.
+For the following example let&#8217;s assume we have a checkout in `\~/checkout-1` and `\~/checkout-2`.
+
+:::caution
+Like with the previous test, you should have no `remote` cache configured, and storing in the `local` cache should be enabled.
+:::
+
+```bash
+$ rm -rf ~/.gradle/caches/build-cache-1 <1>
+$ cd ~/checkout-1 <2>
+$ ./gradlew clean --quiet <3>
+$ ./gradlew assemble --build-cache <4>
+```
+
+```text
+BUILD SUCCESSFUL
+4 actionable tasks: 4 executed
+```
+
+```bash
+$ cd ~/checkout-2 <5>
+$ ./gradlew clean --quiet <6>
+$ ./gradlew clean assemble --build-cache <7>
+```
+
+```text
+BUILD SUCCESSFUL
+4 actionable tasks: 1 executed, 3 from cache
+```
+
+{/* converter-gap: node=colist */}
+
+You should see the exact same results as you saw with the previous [in place caching test](#in-place_caching_test) step.
+
+### Cross-platform tests
+
+If your build passes the [relocation test](#caching_relocation_test), it is in good shape already.
+If your build requires support for multiple platforms, it is best to see if the required tasks get reused between platforms, too.
+A typical example of cross-platform builds is when CI runs on Linux VMs, while developers use macOS or Windows, or a different variety or version of Linux.
+
+To test cross-platform cache reuse, set up a `remote` cache (see [share results between CI builds](build_cache_use_cases.mdx#share_results_between_ci_builds)) and populate it from one platform and consume it from the other.
+
+### Incremental cache usage
+
+After these experiments with fully cached builds, you can go on and try to make typical changes to your project and see if enough tasks are still cached.
+If the results are not satisfactory, you can think about restructuring your project to reduce dependencies between different tasks.
+
+### Evaluating cache performance over time
+
+Consider recording execution times of your builds, generating graphs, and analyzing the results.
+Keep an eye out for certain patterns, like a build recompiling everything even though you expected compilation to be cached.
+
+You can also make changes to your code base manually or automatically and check that the expected set of tasks is cached.
+
+If you have tasks that are re-executing instead of loading their outputs from the cache, then it may point to a problem in your build.
+Techniques for debugging a cache miss are explained in the following section.
+
+## Helpful data for diagnosing a cache miss
+
+A cache miss happens when Gradle calculates a build cache key for a task which is different from any existing build cache key in the cache.
+Only comparing the build cache key on its own does not give much information, so we need to look at some finer grained data to be able to diagnose the cache miss.
+A list of all inputs to the computed build cache key can be found in the [section on cacheable tasks](build_cache.mdx#sec:task_output_caching_details).
+
+From most coarse grained to most fine grained, the items we will use to compare two tasks are:
+
+- Build cache keys
+- Task and Task action implementations
+- Task output property names
+- Individual task property input hashes
+- Hashes of files which are part of task input properties
+
+If you want information about the build cache key and individual input property hashes, use [`-Dorg.gradle.caching.debug=true`](build_environment.mdx#sec:gradle_configuration_properties):
+
+```bash
+$ ./gradlew :compileJava --build-cache -Dorg.gradle.caching.debug=true
+```
+
+```text
+...
+Appending implementation to build cache key: org.gradle.api.tasks.compile.JavaCompile_Decorated@470c67ec713775576db4e818e7a4c75d
+Appending additional implementation to build cache key: org.gradle.api.tasks.compile.JavaCompile_Decorated@470c67ec713775576db4e818e7a4c75d
+Appending input value fingerprint for 'options' to build cache key: e4eaee32137a6a587e57eea660d7f85d
+Appending input value fingerprint for 'options.compilerArgs' to build cache key: 8222d82255460164427051d7537fa305
+Appending input value fingerprint for 'options.debug' to build cache key: f6d7ed39fe24031e22d54f3fe65b901c
+Appending input value fingerprint for 'options.debugOptions' to build cache key: a91a8430ae47b11a17f6318b53f5ce9c
+Appending input value fingerprint for 'options.debugOptions.debugLevel' to build cache key: f6bd6b3389b872033d462029172c8612
+Appending input value fingerprint for 'options.encoding' to build cache key: f6bd6b3389b872033d462029172c8612
+...
+Appending input file fingerprints for 'options.sourcepath' to build cache key: 5fd1e7396e8de4cb5c23dc6aadd7787a - RELATIVE_PATH{EMPTY}
+Appending input file fingerprints for 'stableSources' to build cache key: f305ada95aeae858c233f46fc1ec4d01 - RELATIVE_PATH{.../src/main/java=IGNORED / DIR, .../src/main/java/Hello.java='Hello.java' / 9c306ba203d618dfbe1be83354ec211d}
+Appending output property name to build cache key: destinationDir
+Appending output property name to build cache key: options.annotationProcessorGeneratedSourcesDirectory
+Build cache key for task ':compileJava' is 8ebf682168823f662b9be34d27afdf77
+```
+
+The log shows e.g. which source files constitute the `stableSources` for the `compileJava` task.
+To find the actual differences between two builds you need to resort to matching up and comparing those hashes yourself.
+
+:::tip
+[Develocity](https://docs.gradle.com/enterprise/tutorials/task-inputs-comparison/) already takes care of this for you; it lets you quickly diagnose a cache miss with the Build Scan&#8482; Comparison tool.
+:::
+
+## Diagnosing the reasons for a cache miss
+
+Having the data from the last section at hand, you should be able to diagnose why the outputs of a certain task were not found in the build cache.
+Since you were expecting more tasks to be cached, you should be able to pinpoint a build which would have produced the artifact under question.
+
+Before diving into how to find out why one task has not been loaded from the cache we should first look into which task caused the cache misses.
+There is a cascade effect which causes dependent tasks to be executed if one of the tasks earlier in the build is not loaded from the cache and has different outputs.
+Therefore, you should locate the first cacheable task which was executed and continue investigating from there.
+This can be done from the timeline view in a Build Scan&#8482;:
+
+{/* converter-gap: node=image */}
+
+At first, you should check if the implementation of the task changed. This would mean checking the class names and classloader hashes
+for the task class itself and for each of its actions. If there is a change, this means that the build script, `buildSrc` or the Gradle version has changed.
+
+:::note
+A change in the output of `buildSrc` also marks all the logic added by your build as changed.
+Especially, custom actions added to cacheable tasks will be marked as changed.
+This can be problematic, see [section about `doFirst` and `doLast`](common_caching_problems.mdx#custom_actions).
+:::
+
+If the implementation is the same, then you need to start comparing inputs between the two builds.
+There should be at least one different input hash. If it is a simple value property, then the configuration of the task changed.
+This can happen for example by
+
+- changing the build script,
+- conditionally configuring the task differently for CI or the developer builds,
+- depending on a system property or an environment variable for the task configuration,
+- or having an absolute path which is part of the input.
+
+If the changed property is a file property, then the reasons can be the same as for the change of a value property.
+Most probably though a file on the filesystem changed in a way that Gradle detects a difference for this input.
+The most common case will be that the source code was changed by a check in.
+It is also possible that a file generated by a task changed, e.g. since it includes a timestamp.
+As described in [Java version tracking](common_caching_problems.mdx#java_version_tracking), the Java version can also influence the output of the Java compiler.
+If you did not expect the file to be an input to the task, then it is possible that you should alter the configuration of the task to not include it.
+For example, having your integration test configuration including all the unit test classes as a dependency has the effect that all integration tests
+are re-executed when a unit test changes.
+Another option is that the task tracks absolute paths instead of relative paths and the location of the project directory changed on disk.
+
+## Example
+
+We will walk you through the process of diagnosing a cache miss.
+Let&#8217;s say we have build `A` and build `B` and we expected all the test tasks for a sub-project `sub1` to be cached in build `B` since only a unit test for another sub-project `sub2` changed.
+Instead, all the tests for the sub-project have been executed.
+Since we have the cascading effect when we have cache misses, we need to find the task which caused the caching chain to fail.
+This can easily be done by filtering for all cacheable tasks which have been executed and then select the first one.
+In our case, it turns out that the tests for the sub-project `internal-testing` were executed even though there was no code change to this project.
+This means that the property `classpath` changed and some file on the runtime classpath actually did change.
+Looking deeper into this, we actually see that the inputs for the task `processResources` changed in that project, too.
+Finally, we find this in our build file:
+
+{/* converter-gap: node=sample dir="snippets/optimizing-builds/build-cache/normalization/kotlin" files="build.gradle.kts[tags=versionInfo]" */}
+
+{/* converter-gap: node=sample dir="snippets/optimizing-builds/build-cache/normalization/groovy" files="build.gradle[tags=versionInfo]" */}
+
+Since properties files stored by Java&#8217;s `Properties.store` method contain a timestamp, this will cause a change to the runtime classpath every time the build runs.
+In order to solve this problem see [non-repeatable task outputs](common_caching_problems.mdx#volatile_outputs) or use [input normalization](build_cache_concepts.mdx#normalization).
+
+:::note
+The compile classpath is not affected since compile avoidance ignores non-class files on the classpath.
+:::

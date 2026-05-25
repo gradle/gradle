@@ -98,13 +98,13 @@ It helps developers optimize performance and gain deeper insights into their bui
 Code contributions should follow these guidelines to maximize the chance of them being accepted:
 
 * Cover your code with tests. See the [Testing guide](contributing/Testing.md) for more information.
-* Add documentation to the User Manual and DSL Reference (under [platforms/documentation/docs/src/docs](platforms/documentation/docs/src/docs/)).
+* Add documentation to the User Manual and DSL Reference (under [platforms/documentation/reference-docs/src/docs](platforms/documentation/reference-docs/src/docs/)).
 * For error messages related changes, follow the [ErrorMessages Guide](contributing/ErrorMessages.md).
 * Add Javadoc for new methods and classes, following the [Javadoc Style Guide](contributing/JavadocStyleGuide.md). Javadoc is *required* for new public, top-level types.
-* For new features, the feature should be mentioned in the [Release Notes](platforms/documentation/docs/src/docs/release/notes.md).
+* For new features, the feature should be mentioned in the [Release Notes](platforms/documentation/reference-docs/src/docs/release/notes.md).
 * Use American English spelling in code, comments, and documentation (e.g., "color" not "colour", "initialize" not "initialise"). See [ADR-0009](architecture/standards/0009-use-american-english.md) for details.
 
-Your code needs to run on [all versions of Java that Gradle supports](platforms/documentation/docs/src/docs/userguide/releases/compatibility.adoc) and across all supported operating systems (macOS, Windows, Linux). The Gradle CI system will verify this, but here are some pointers that will avoid surprises:
+Your code needs to run on [all versions of Java that Gradle supports](platforms/documentation/reference-docs/src/docs/userguide/releases/compatibility.adoc) and across all supported operating systems (macOS, Windows, Linux). The Gradle CI system will verify this, but here are some pointers that will avoid surprises:
 
 * Be careful when using features introduced in Java 9 or later. Some parts of Gradle still need to run on Java 8.
 * Normalize file paths in tests. The `org.gradle.util.internal.TextUtil` class has some useful functions for this purpose.
@@ -120,10 +120,10 @@ on [docs.gradle.org](https://docs.gradle.org/).
 The documentation is mostly implemented in Asciidoc
 though we use GitHub-flavored Markdown for internal documentation too.
 
-You can generate docs by running `./gradlew :docs:docs`.
+You can generate docs by running `./gradlew :reference-docs:docs`.
 This will build the whole documentation locally in [platforms/documentation](./platforms/documentation).
 For more commands and examples, including local development,
-see [this guide](./platforms/documentation/docs/README.md).
+see [this guide](./platforms/documentation/reference-docs/README.md).
 
 ### Creating commits and writing commit messages
 

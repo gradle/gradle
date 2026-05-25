@@ -39,8 +39,8 @@ public class CheckBadMerge {
 
     private static final List<String> MONITORED_PATHS = Collections.unmodifiableList(Arrays.asList(
         "subprojects/docs/src/docs/release/notes.md",
-        "platforms/documentation/docs/src/docs/release/notes.md",
-        "platforms/documentation/docs/src/docs/release/release-notes-assets/",
+        "platforms/documentation/reference-docs/src/docs/release/notes.md",
+        "platforms/documentation/reference-docs/src/docs/release/release-notes-assets/",
         "subprojects/launcher/src/main/resources/release-features.txt",
         "platforms/core-runtime/launcher/src/main/resources/release-features.txt"
     ));

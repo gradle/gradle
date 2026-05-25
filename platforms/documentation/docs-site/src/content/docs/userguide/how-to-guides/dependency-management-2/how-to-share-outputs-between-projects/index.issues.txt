@@ -1,0 +1,7 @@
+[
+  {
+    "startLine": 158,
+    "endLine": 163,
+    "problem": "Source references 'variant_attributes.adoc#sec:abm-compatibility-rules'. The corresponding page 'variants-and-attributes' (target: /gradle-reference/dependency-management/controlling-dependency-resolution/variants-and-attributes/) has status=pending and has not been migrated yet. The link was written as '/reference/dependency-management/variant-attributes/#sec:abm-compatibility-rules' using the pending target path. This should be updated once the target page is migrated and its final URL is confirmed."
+  }
+]

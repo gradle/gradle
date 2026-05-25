@@ -1,0 +1,22 @@
+abstract class MyCopyTask extends DefaultTask {
+
+    @InputDirectory abstract DirectoryProperty getSource()
+
+    @OutputDirectory abstract DirectoryProperty getDestination()
+
+    @Inject abstract FileSystemOperations getFs()
+
+    @TaskAction
+    void action() {
+        fs.copy {
+            from source
+            into destination
+        }
+    }
+}
+
+tasks.register('someTask', MyCopyTask) {
+    def projectDir = layout.projectDirectory
+    source = projectDir.dir('source')
+    destination = projectDir.dir(providers.systemProperty('someDestination')) // <1>
+}

@@ -1,0 +1,7 @@
+def group = "org"
+def artifactId = "foo"
+def version = "1.0"
+
+configurations.dependencyScope("implementation") {
+    dependencies.add(project.dependencyFactory.create(group, artifactId, version))
+}

@@ -1,0 +1,13 @@
+plugins {
+    java
+}
+
+repositories {
+    mavenCentral()
+    gradlePluginPortal()
+}
+
+dependencies {
+    implementation("com.google.guava:guava:30.0-jre")
+    runtimeOnly("org.apache.commons:commons-lang3:3.14.0")
+}

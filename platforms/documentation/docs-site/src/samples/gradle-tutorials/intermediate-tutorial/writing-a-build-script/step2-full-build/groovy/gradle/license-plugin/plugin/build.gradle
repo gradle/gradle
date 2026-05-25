@@ -1,0 +1,24 @@
+plugins {                                                           // <1>
+    id 'java-gradle-plugin'                                         // <2>
+    id 'groovy'                                                     // <3>
+}
+
+repositories {                                                      // <4>
+    mavenCentral()                                                  // <5>
+}
+
+dependencies {                                                      // <6>
+    testImplementation libs.spock.core
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+gradlePlugin {                                                      // <7>
+    plugins {
+        greeting {
+            id = 'license.greeting'                                 // <8>
+            implementationClass = 'license.LicensePlugin'
+        }
+    }
+}
+
+// Additional lines //

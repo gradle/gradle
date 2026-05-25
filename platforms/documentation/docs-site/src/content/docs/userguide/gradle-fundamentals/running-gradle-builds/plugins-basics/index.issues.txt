@@ -1,0 +1,12 @@
+[
+  {
+    "startLine": 88,
+    "endLine": 88,
+    "problem": "The link to 'Core Plugin Reference' (originally <<plugin_reference#plugin_reference,Core Plugin Reference>>) was kept as an external link to https://docs.gradle.org/current/userguide/plugin_reference.html because the target page does not appear to exist in the new site's sidebar. Should be converted to a local link once that page is migrated."
+  },
+  {
+    "startLine": 29,
+    "endLine": 39,
+    "problem": "The AsciiDoc definition list (using '::' syntax) in the 'Common Plugins' section was converted to bold headings followed by plain paragraphs, since standard MDX/Markdown does not support definition lists without a remark plugin. The content is preserved but the semantic structure is slightly different."
+  }
+]

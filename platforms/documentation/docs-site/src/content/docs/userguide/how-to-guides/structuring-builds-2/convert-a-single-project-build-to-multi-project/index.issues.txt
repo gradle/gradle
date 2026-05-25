@@ -1,0 +1,12 @@
+[
+  {
+    "startLine": 168,
+    "endLine": 168,
+    "problem": "Link to 'sharing_build_logic_between_subprojects.adoc' was mapped to '/gradle-reference/structuring-builds/sharing-build-logic-using-buildsrc/#sharing_build_logic_between_subprojects'. The target page (id: sharing-build-logic-using-buildsrc) has not been migrated yet (status: pending). Link target should be verified once that page is migrated."
+  },
+  {
+    "startLine": 197,
+    "endLine": 197,
+    "problem": "Link to 'composite_builds.adoc' was mapped to '/gradle-reference/structuring-builds/composite-builds/#composite_builds'. The target page (id: composite-builds) has not been migrated yet (status: pending). Link target should be verified once that page is migrated."
+  }
+]

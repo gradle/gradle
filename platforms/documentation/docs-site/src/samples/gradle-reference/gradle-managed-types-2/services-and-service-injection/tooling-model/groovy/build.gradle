@@ -1,0 +1,40 @@
+// Implements the ToolingModelBuilder interface.
+// This interface is used in Gradle to define custom tooling models that can
+// be accessed by IDEs or other tools through the Gradle tooling API.
+class OrtModelBuilder implements ToolingModelBuilder {
+    private Map<String, String> repositories = [:]
+
+    private Set<String> platformCategories = ["platform", "enforced-platform"]
+
+    private Set<ModuleComponentIdentifier> visitedDependencies = []
+    private Set<ModuleVersionIdentifier> visitedProjects = []
+
+    private static final logger = Logging.getLogger(OrtModelBuilder.class)
+    private List<String> errors = []
+    private List<String> warnings = []
+
+    @Override
+    boolean canBuild(String modelName) {
+        return false
+    }
+
+    @Override
+    Object buildAll(String modelName, Project project) {
+        return null
+    }
+}
+
+// Plugin is responsible for registering a custom tooling model builder
+// (OrtModelBuilder) with the ToolingModelBuilderRegistry, which allows
+// IDEs and other tools to access the custom tooling model.
+class OrtModelPlugin implements Plugin<Project> {
+    ToolingModelBuilderRegistry registry
+
+    OrtModelPlugin(ToolingModelBuilderRegistry registry) {
+        this.registry = registry
+    }
+
+    void apply(Project project) {
+        registry.register(new OrtModelBuilder())
+    }
+}

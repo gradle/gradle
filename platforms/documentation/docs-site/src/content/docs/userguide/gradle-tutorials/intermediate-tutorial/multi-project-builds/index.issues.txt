@@ -1,0 +1,17 @@
+[
+  {
+    "startLine": 219,
+    "endLine": 246,
+    "problem": "The Step 4 project layout tree was originally shown as two separate multi-language-sample blocks (one for Kotlin DSL, one for Groovy DSL). They differed in the `src/main/kotlin` vs `src/main/groovy` path and `LicensePlugin.kt` vs `LicensePlugin.groovy` filename. These have been consolidated into a single code block using `kotlin/groovy` and `LicensePlugin.kt/LicensePlugin.groovy` notation for readability. This may need review to determine if separate language-specific trees should be shown."
+  },
+  {
+    "startLine": null,
+    "endLine": null,
+    "problem": "Source inconsistency in settings-with-composite sample: the Kotlin DSL variant (source lines 524-537) has `include(\"subproject\")` while the Groovy DSL variant (source lines 539-553) has `include('lib')`. These are different subproject names. The source content has been preserved as-is in the sample files. The Kotlin variant also has a different rootProject.name (`authoring-tutorial` vs `running-tutorial-groovy` in the Groovy variant)."
+  },
+  {
+    "startLine": 17,
+    "endLine": 17,
+    "problem": "The `part3_begin` anchor was kept as a `<div id>` for potential backwards compatibility with cross-page links, even though the migration instructions say to not migrate manual page anchor blocks. This was kept because it is not solely a page-navigation anchor but also an in-document section anchor referenced from other tutorial parts."
+  }
+]

@@ -1,0 +1,141 @@
+---
+title: "Publishing Plugins to the Gradle Plugin Portal"
+---
+
+Publishing your plugin is the primary way to make it available to other builds.
+While you can publish to private repositories to restrict access, publishing to the [Gradle Plugin Portal](https://plugins.gradle.org) makes your plugin discoverable and usable worldwide.
+
+{/* converter-gap: node=image */}
+
+## Account setup
+
+Before publishing, create a Gradle Plugin Portal account and generate an API key:
+
+- Register at the [Portal registration page](https://plugins.gradle.org/user/register).
+- Retrieve your API key from the “API Keys” tab in your profile.
+
+:::tip
+You can also retrieve your API key using the `login` task when the `plugin-publish` plugin is applied.
+:::
+
+{/* converter-gap: node=image */}
+
+Provide the credentials as Gradle properties (`gradle.publish.key` and `gradle.publish.secret`), usually in [`$HOME/.gradle/gradle.properties`](build_environment.mdx#sec:gradle_configuration_properties), or supply them via environment variables (`GRADLE_PUBLISH_KEY` and `GRADLE_PUBLISH_SECRET`), which is convenient for CI/CD.
+
+## Adding the Plugin Publish Plugin
+
+Add the `com.gradle.plugin-publish` plugin to your build:
+
+{/* converter-gap: node=pass
+<div style="text-align: right;">
+  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/reference-docs/src/snippets/reference/plugin-development/publishingPlugins">
+    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
+  </a>
+</div>
+*/}
+
+{/* converter-gap: node=sample dir="snippets/reference/plugin-development/publishingPlugins/kotlin" files="build.gradle.kts[tags=plugins_block]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/plugin-development/publishingPlugins/groovy" files="build.gradle[tags=plugins_block]" */}
+
+The latest version is listed on the [Gradle Plugin Portal](https://plugins.gradle.org/plugin/com.gradle.plugin-publish).
+
+:::note
+Since version 1.0.0, the Plugin Publish Plugin automatically applies the
+[Java Gradle Plugin Development Plugin](java_gradle_plugin.mdx#java_gradle_plugin) (for building plugins) and the
+[Maven Publish Plugin](publishing_maven.mdx#publishing_maven) (for generating metadata).
+Older versions required applying these plugins manually.
+:::
+
+## Configuring the Plugin Publish Plugin
+
+Configure the plugin in `build.gradle(.kts)`:
+
+{/* converter-gap: node=pass
+<div style="text-align: right;">
+  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/reference-docs/src/snippets/reference/plugin-development/publishingPlugins">
+    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
+  </a>
+</div>
+*/}
+
+{/* converter-gap: node=sample dir="snippets/reference/plugin-development/publishingPlugins/kotlin" files="build.gradle.kts[tags=global_config]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/plugin-development/publishingPlugins/groovy" files="build.gradle[tags=global_config]" */}
+
+{/* converter-gap: node=colist */}
+
+:::caution
+The group and artifact must reasonably represent the organization, person, and the plugin.
+:::
+
+Define plugin-specific properties inside the `gradlePlugin {}` block:
+
+{/* converter-gap: node=sample dir="snippets/reference/plugin-development/publishingPlugins/kotlin" files="build.gradle.kts[tags=per_plugin_config]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/plugin-development/publishingPlugins/groovy" files="build.gradle[tags=per_plugin_config]" */}
+
+{/* converter-gap: node=colist */}
+
+For example, take a look at the configuration for the [GradleTest plugin](https://plugins.gradle.org/plugin/org.ysb33r.gradletest):
+
+{/* converter-gap: node=sample dir="snippets/reference/plugin-development/publishingPlugins/kotlin" files="build.gradle.kts[tags=plugin_example]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/plugin-development/publishingPlugins/groovy" files="build.gradle[tags=plugin_example]" */}
+
+{/* converter-gap: node=image */}
+
+### Sources and Javadoc
+
+The Plugin Publish Plugin automatically creates and publishes [Javadoc and sources JARs](building_java_projects.mdx#sec:java_packaging).
+
+### Signing artifacts
+
+From version 1.0.0, applying the [`signing`](signing_plugin.mdx#signing_plugin) plugin automatically signs plugin artifacts.
+
+### Shadow dependencies
+
+From version 1.0.0, applying [`com.gradleup.shadow`](https://github.com/GradleUp/shadow) automatically creates fat JARs for plugins.
+
+## Publishing the plugin
+
+To validate a Plugin Portal publication (no upload):
+
+```bash
+$ ./gradlew publishPlugins --validate-only
+```
+
+To publish to the Gradle Plugin Portal:
+
+```bash
+$ ./gradlew publishPlugins
+```
+
+You can also pass credentials on the command line:
+
+```bash
+$ ./gradlew publishPlugins -Pgradle.publish.key=<key> -Pgradle.publish.secret=<secret>
+```
+
+Your plugin will then go through the [approval process](https://plugins.gradle.org/docs/publish-plugin#approval).
+This process can take a few days.
+
+After approval, your plugin appears on the Portal and is available for anyone to use.
+
+## Plugins published without Gradle Plugin Portal
+
+If you published a plugin without using the [Java Gradle Plugin Development Plugin](java_gradle_plugin.mdx#java_gradle_plugin), the publication will lack the [Plugin Marker Artifact](plugins_intermediate.mdx#sec:plugin_markers) required by the plugins DSL.
+
+To use such a plugin, add a `resolutionStrategy` block inside `pluginManagement {}` in the consuming project’s `settings.gradle(.kts)`:
+
+{/* converter-gap: node=pass
+<div style="text-align: right;">
+  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/reference-docs/src/snippets/reference/plugin-development/customPlugin">
+    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
+  </a>
+</div>
+*/}
+
+{/* converter-gap: node=sample dir="snippets/reference/plugin-development/customPlugin/kotlin/consumer" files="settings.gradle.kts[tags=use-legacy-plugin]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/plugin-development/customPlugin/groovy/consumer" files="settings.gradle[tags=use-legacy-plugin]" */}

@@ -1,0 +1,22 @@
+[
+  {
+    "startLine": 37,
+    "endLine": 72,
+    "problem": "The four directory-tree [.multi-language-sample] blocks (no-buildSrc layout at lines 37-72, with-buildSrc layout at 96-145, and build-logic layout at 219-262 in source) were migrated to plain code blocks rather than SampleScripts components. The SampleScripts component only supports .gradle/.gradle.kts/.gradle.dcl build scripts, not arbitrary directory tree text files. A future improvement could introduce a layout/tree sample type."
+  },
+  {
+    "startLine": 183,
+    "endLine": 187,
+    "problem": "In the original snippets/multiproject/buildSrc/groovy/ directory, the Groovy build files (api/build.gradle, services/build.gradle, shared/build.gradle) use Kotlin-style syntax: id(\"java-common-conventions\") and implementation(\"...\") with double-quoted strings, rather than canonical Groovy single-quoted strings. This appears to be a source defect. The content was preserved as-is in the migrated samples."
+  },
+  {
+    "startLine": 206,
+    "endLine": 206,
+    "problem": "The link <<java_plugin.adoc#javalayout,source layout conventions>> was migrated to an external fallback URL (https://docs.gradle.org/current/userguide/java_plugin.html#javalayout) because the Java Plugin page (java_plugin.adoc) is not present in the sidebar structure. This link should be updated once the Java Plugin page is migrated."
+  },
+  {
+    "startLine": 76,
+    "endLine": 87,
+    "problem": "The GitHub badge links in the source both point to the same https://github.com/gradle/gradle/tree/master/platforms/documentation/reference-docs/src/snippets/multiproject/buildSrc URL. The first appears before the no-buildSrc code samples (which show the state BEFORE using buildSrc), yet it links to the buildSrc snippet. This appears to be a source error. The migrated GitHubButton components both point to the with-buildsrc sample for consistency."
+  }
+]

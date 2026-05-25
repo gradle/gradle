@@ -1,0 +1,7 @@
+[
+  {
+    "startLine": 113,
+    "endLine": 116,
+    "problem": "The Summary section links to three other pages: dependency_constraints.adoc, component_metadata_rules.adoc, and component_capabilities.adoc. None of these source pages have been migrated yet (status=pending). External docs.gradle.org links were used as fallbacks. These links should be updated to local site-relative links once those pages are migrated."
+  }
+]

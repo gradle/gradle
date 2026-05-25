@@ -1,0 +1,12 @@
+[
+  {
+    "startLine": 59,
+    "endLine": 73,
+    "problem": "The Groovy multi-language-sample block (Step 1) has a typo in the file path title: '.gradle/license-plugin/plugin/src/main/kotlin/license/LicensePlugin.groovy' — the path segment says 'kotlin' but the file is LicensePlugin.groovy (a Groovy source file). This should probably be '.gradle/license-plugin/plugin/src/main/groovy/license/LicensePlugin.groovy'. The typo was preserved as-is in the migrated content."
+  },
+  {
+    "startLine": 221,
+    "endLine": 222,
+    "problem": "The source has duplicate 'Step 4' headers: 'Step 4. Run the custom Task' (line 141) and 'Step 4. Next steps' (line 221). Both are preserved faithfully in the migrated content."
+  }
+]

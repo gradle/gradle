@@ -1,0 +1,202 @@
+---
+title: "Gradle-managed Directories"
+---
+
+Gradle uses two main directories to perform and manage its work:
+
+- [#dir:gradle_user_home](#dir:gradle_user_home)
+- [#dir:project_root](#dir:project_root)
+
+{/* converter-gap: node=image */}
+
+## 1. Gradle User Home directory
+
+By default, the Gradle User Home (`~/.gradle` or `C:\Users\&lt;USERNAME&gt;\.gradle`) stores global configuration properties, initialization scripts, caches, and log files.
+
+It can be set with the environment variable `GRADLE_USER_HOME`.
+
+:::tip
+Not to be confused with the `GRADLE_HOME`, the optional installation directory for Gradle.
+:::
+
+It is roughly structured as follows:
+
+```text
+├── caches              // <1>
+│   ├── 4.8         // <2>
+│   ├── 9.2.0             // <2>
+│   ├── ⋮
+│   ├── jars-3      // <3>
+│   └── modules-2       // <3>
+├── daemon          // <4>
+│   ├── ⋮
+│   ├── 4.8
+│   └── 9.2.0
+├── init.d              // <5>
+│   └── my-setup.gradle
+├── jdks                // <6>
+│   ├── ⋮
+│   └── jdk-14.0.2+12
+├── wrapper
+│   └── dists           // <7>
+│       ├── ⋮
+│       ├── gradle-4.8-bin
+│       ├── gradle-9.2.0-all
+│       └── gradle-9.2.0-bin
+└── gradle.properties   // <8>
+```
+
+{/* converter-gap: node=colist */}
+
+### Cleanup of caches and distributions
+
+Gradle automatically cleans its user home directory.
+
+By default, the cleanup runs in the background when the Gradle daemon is stopped or shut down.
+
+If using `--no-daemon`, it runs in the foreground after the build session.
+
+The following cleanup strategies are applied periodically (by default, once every 24 hours):
+
+- Version-specific caches in all `caches/&lt;GRADLE_VERSION&gt;/` directories are checked for whether they are still in use.
+- Shared caches in `caches/` (e.g., `jars-*`) are checked for whether they are still in use.
+- Files in shared caches used by the current Gradle version in `caches/` (e.g., `jars-3` or `modules-2`) are checked for when they were last accessed.
+- Gradle distributions in `wrapper/dists/` are checked for whether they are still in use, i.e., whether there&#8217;s a corresponding version-specific cache directory.
+- Daemon log files in `daemon/&lt;GRADLE_VERSION&gt;/` directories are checked for their last modification time.
+
+#### Configuring cleanup of caches and distributions
+
+The retention periods of the various caches can be configured.
+
+Caches are classified into six categories:
+
+1. **Released wrapper distributions:** Distributions and related version-specific caches corresponding to released versions (e.g., `4.6.2` or `8.0`).
+2. **Snapshot wrapper distributions:** Distributions and related version-specific caches corresponding to snapshot versions (e.g. `7.6-20221130141522+0000`).
+3. **Downloaded resources:** Shared caches downloaded from a remote repository (e.g., cached dependencies).
+4. **Created resources:** Shared caches that Gradle creates during a build (e.g., artifact transforms).
+5. **Build cache:** The local build cache (e.g., build-cache-1).
+6. **Daemon logs:** Log files from Gradle Daemon processes in `daemon/&lt;GRADLE_VERSION&gt;/` directories.
+
+The retention period for each category can be configured independently via an [init script](init_scripts.mdx#init_scripts) in the Gradle User Home:
+
+{/* converter-gap: node=sample dir="snippets/reference/runtime-configuration/cacheRetention/kotlin" files="gradleUserHome/init.d/cache-settings.init.gradle.kts" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/runtime-configuration/cacheRetention/groovy" files="gradleUserHome/init.d/cache-settings.init.gradle" */}
+
+The frequency at which cache cleanup is invoked is also configurable.
+
+There are three possible settings:
+
+1. **DEFAULT:** Cleanup is performed periodically in the background (currently once every 24 hours).
+2. **DISABLED:** Never cleanup Gradle User Home.
+3. **ALWAYS:** Cleanup is performed at the end of each build session.
+
+To disable cache cleanup:
+
+{/* converter-gap: node=sample dir="snippets/reference/runtime-configuration/disableCacheCleanup/kotlin" files="gradleUserHome/init.d/cache-settings.init.gradle.kts" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/runtime-configuration/disableCacheCleanup/groovy" files="gradleUserHome/init.d/cache-settings.init.gradle" */}
+
+:::note
+Cache cleanup settings can only be configured via init scripts and should be placed under the `init.d` directory in Gradle User Home.
+This effectively couples the configuration of cache cleanup to the Gradle User Home those settings apply to and limits the possibility of different conflicting settings from different projects being applied to the same directory.
+:::
+
+#### Multiple versions of Gradle sharing a Gradle User Home
+
+It is common to share a single Gradle User Home between multiple versions of Gradle.
+
+As stated above, caches in Gradle User Home are version-specific.
+Different versions of Gradle will perform maintenance on only the version-specific caches associated with each version.
+
+On the other hand, some caches are shared between versions (e.g., the dependency artifact cache or the artifact transform cache).
+
+Beginning with Gradle version 8.0, the cache cleanup settings can be configured to custom retention periods.
+However, older versions have fixed retention periods (7 or 30 days, depending on the cache).
+These shared caches could be accessed by versions of Gradle with different settings to retain cache artifacts.
+
+This means that:
+
+- If the retention period is _not_ customized, all versions that perform cleanup will have the same retention periods. There will be no effect due to sharing a Gradle User Home with multiple versions.
+- If the retention period is customized for Gradle versions greater than or equal to version 8.0 to use retention periods _shorter_ than the previously fixed periods, there will also be no effect.
+- If the retention period is customized for Gradle versions greater than or equal to version 8.0 to use retention periods _longer_ than the previously fixed periods, the older versions of Gradle may clean the shared caches earlier than what is configured.
+
+Another consideration when sharing the Gradle User Home with versions of Gradle before version 8.0 is that the DSL elements to configure the cache retention settings are unavailable in earlier versions, so this must be accounted for in any init script shared between versions.
+This can easily be handled by conditionally applying a version-compliant script.
+
+:::note
+The version-compliant script should reside somewhere other than the `init.d` directory (such as a sub-directory), so it is not automatically applied.
+:::
+
+To configure cache cleanup in a version-safe manner:
+
+{/* converter-gap: node=sample dir="snippets/reference/runtime-configuration/multiVersionCacheRetention/kotlin" files="gradleUserHome/init.d/cache-settings.init.gradle.kts" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/runtime-configuration/multiVersionCacheRetention/groovy" files="gradleUserHome/init.d/cache-settings.init.gradle" */}
+
+Version-compliant cache configuration script:
+
+{/* converter-gap: node=sample dir="snippets/reference/runtime-configuration/multiVersionCacheRetention/kotlin" files="gradleUserHome/init.d/gradle8/cache-settings.init.gradle.kts" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/runtime-configuration/multiVersionCacheRetention/groovy" files="gradleUserHome/init.d/gradle8/cache-settings.init.gradle" */}
+
+### Cache marking
+
+Beginning with Gradle version 8.1, Gradle supports marking caches with a `CACHEDIR.TAG` file.
+
+It follows the format described in [the Cache Directory Tagging Specification](https://bford.info/cachedir/).
+The purpose of this file is to allow tools to identify the directories that do not need to be searched or backed up.
+
+By default, the directories `caches`, `wrapper/dists`, `daemon`, and `jdks` in the Gradle User Home are marked with this file.
+
+#### Configuring cache marking
+
+The cache marking feature can be configured via an init script in the Gradle User Home:
+
+{/* converter-gap: node=sample dir="snippets/reference/runtime-configuration/cacheMarking/kotlin" files="gradleUserHome/init.d/cache-settings.init.gradle.kts" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/runtime-configuration/cacheMarking/groovy" files="gradleUserHome/init.d/cache-settings.init.gradle" */}
+
+:::note
+Cache marking settings can only be configured via init scripts and should be placed under the `init.d` directory in Gradle User Home. This effectively couples the configuration of cache marking to the Gradle User Home to which those settings apply and limits the possibility of different conflicting settings from different projects being applied to the same directory.
+:::
+
+## 2. Project Root directory
+
+The project root directory contains all source files from your project.
+
+It also contains files and directories Gradle generates, such as `.gradle` and `build`.
+
+While the former are usually checked into source control, the latter are transient files Gradle uses to support features like incremental builds.
+
+The anatomy of a typical project root directory looks as follows:
+
+```text
+├── .gradle                 // <1>
+│   ├── 4.8             // <2>
+│   ├── 4.9                 // <2>
+│   └── ⋮
+├── build               // <3>
+├── gradle
+│   └── wrapper             // <4>
+├── gradle.properties   // <5>
+├── gradlew                 // <6>
+├── gradlew.bat         // <6>
+├── settings.gradle.kts     // <7>
+├── subproject-one      // <8>
+|   └── build.gradle.kts    // <9>
+├── subproject-two      // <8>
+|   └── build.gradle.kts    // <9>
+└── ⋮
+```
+
+{/* converter-gap: node=colist */}
+
+### Project cache cleanup
+
+From version 4.10 onwards, Gradle automatically cleans the project-specific cache directory.
+
+After building the project, version-specific cache directories in `.gradle/{gradleVersion}/` are checked periodically (at most, every 24 hours) to determine whether they are still in use.
+They are deleted if they haven&#8217;t been used for 7 days.
+
+***Next Step:*** [Learn about the Gradle Build Lifecycle](build_lifecycle_intermediate.mdx#build_lifecycle) &gt;&gt;

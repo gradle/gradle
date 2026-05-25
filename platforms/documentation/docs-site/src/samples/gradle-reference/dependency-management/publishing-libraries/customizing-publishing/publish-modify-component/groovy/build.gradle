@@ -1,0 +1,16 @@
+java {
+    withJavadocJar()
+    withSourcesJar()
+}
+
+components.java.withVariantsFromConfiguration(configurations.sourcesElements) {
+    skip()
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+        }
+    }
+}

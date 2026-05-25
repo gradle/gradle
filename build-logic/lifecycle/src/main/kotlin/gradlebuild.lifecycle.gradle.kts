@@ -39,7 +39,7 @@ val soakTest = "soakTest"
 
 val smokeTest = "smokeTest"
 
-val docsTest = "docs:docsTest"
+val docsTest = "reference-docs:docsTest"
 
 setupTimeoutMonitorOnCI()
 setupGlobalState()
@@ -101,15 +101,16 @@ fun TaskContainer.registerEarlyFeedbackRootLifecycleTasks() {
         description = "Run all basic checks (without tests) - to be run locally and on CI for early feedback"
         group = "verification"
         dependsOn(
-            ":docs:checkstyleApi",
+            ":reference-docs:checkstyleApi",
             ":internal-build-reports:allIncubationReportsZip",
             ":architecture-test:checkBinaryCompatibility",
-            ":docs:javadocAll",
+            ":reference-docs:javadocAll",
             ":architecture-test:test",
             ":tooling-api:toolingApiShadedJar",
             ":performance:verifyPerformanceScenarioDefinitions",
             ":checkSubprojectsInfo",
-            ":checkTargetRuntimes"
+            ":checkTargetRuntimes",
+            ":docs-site:formatCheck"
         )
     }
 }
@@ -125,7 +126,7 @@ fun TaskContainer.registerDistributionsPromotionTasks() {
         group = "build"
         dependsOn(
             ":distributions-full:verifyIsProductionBuildEnvironment", ":distributions-full:buildDists", ":distributions-full:copyDistributionsToRootBuild",
-            ":distributions-integ-tests:forkingIntegTest", ":docs:releaseNotes", ":docs:incubationReport", ":docs:checkDeadInternalLinks"
+            ":distributions-integ-tests:forkingIntegTest", ":reference-docs:releaseNotes", ":reference-docs:incubationReport"
         )
     }
 }

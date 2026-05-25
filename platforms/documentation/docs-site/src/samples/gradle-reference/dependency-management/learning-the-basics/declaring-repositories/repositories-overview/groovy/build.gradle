@@ -1,0 +1,10 @@
+repositories {
+    mavenCentral()  // <1> Public repository
+    maven {         // <2> Private/Custom repository
+        url = uri("https://company/com/maven2")
+    }
+    mavenLocal()    // <3> Local repository
+    flatDir {       // <4> File location
+        dirs "libs"
+    }
+}

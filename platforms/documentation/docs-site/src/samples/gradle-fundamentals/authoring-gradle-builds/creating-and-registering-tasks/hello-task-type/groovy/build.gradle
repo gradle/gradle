@@ -1,0 +1,13 @@
+// Extend the DefaultTask class to create a HelloTask class
+class HelloTask extends DefaultTask {
+    @TaskAction
+    void hello() {
+        println("hello from HelloTask")
+    }
+}
+
+// Register the hello Task with type HelloTask
+tasks.register("hello", HelloTask) {
+    group = "Custom tasks"
+    description = "A lovely greeting task."
+}

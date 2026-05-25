@@ -1,0 +1,16 @@
+abstract class MyProjectLayoutTask extends DefaultTask {
+    private ProjectLayout projectLayout
+
+    @Inject //@javax.inject.Inject
+    MyProjectLayoutTask(ProjectLayout projectLayout) {
+        this.projectLayout = projectLayout
+    }
+
+    @TaskAction
+    void doTaskAction() {
+        var outputDirectory = projectLayout.projectDirectory
+        println(outputDirectory)
+    }
+}
+
+tasks.register("myInjectedProjectLayoutTask",MyProjectLayoutTask) {}

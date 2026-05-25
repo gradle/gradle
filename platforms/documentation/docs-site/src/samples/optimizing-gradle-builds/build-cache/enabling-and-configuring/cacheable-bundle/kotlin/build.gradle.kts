@@ -1,0 +1,16 @@
+tasks.register<NpmTask>("bundle") {
+    args = listOf("run", "bundle")
+
+    outputs.cacheIf { true }
+
+    inputs.dir(file("scripts"))
+        .withPropertyName("scripts")
+        .withPathSensitivity(PathSensitivity.RELATIVE)
+
+    inputs.files("package.json", "package-lock.json")
+        .withPropertyName("configFiles")
+        .withPathSensitivity(PathSensitivity.RELATIVE)
+
+    outputs.file(layout.buildDirectory.file("bundle.js"))
+        .withPropertyName("bundle")
+}

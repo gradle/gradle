@@ -1,0 +1,17 @@
+[
+  {
+    "startLine": 176,
+    "endLine": 180,
+    "problem": "The 'beforesettings' and 'settingsevaluated' tagged sections in the Groovy source (callbacks.init.gradle) include a trailing `println(\"\")` statement inside the tag region. The Kotlin source excludes these println calls via nested tag markers. The migrated Groovy samples preserve the println calls as-is from the source, resulting in a minor content difference between Groovy and Kotlin variants. This matches the source faithfully but is a pre-existing inconsistency."
+  },
+  {
+    "startLine": 207,
+    "endLine": 214,
+    "problem": "The 'Build Services' and 'Flow API' sections link to pages not yet migrated (tooling_api.adoc -> /integration/apis/tooling-api/, build_services.adoc -> /gradle-reference/task-development/shared-build-services/, dataflow_actions.adoc -> /gradle-reference/other-topics/dataflow-actions/). These are preserved as external docs.gradle.org links pending migration of those pages."
+  },
+  {
+    "startLine": 209,
+    "endLine": 209,
+    "problem": "The OperationCompletionListener link in the source is `link:{javadocPath}/org/gradle/tooling/events/OperationCompletionListener.html[\\`OperationCompletionListener.onFinish\\`]`. The link text includes '.onFinish' but the href only points to the class page, not a method anchor. Migrated as `<JavaDocLink class=\"org.gradle.tooling.events.OperationCompletionListener\" />` followed by inline code `onFinish`, which preserves the semantics without a broken method anchor."
+  }
+]

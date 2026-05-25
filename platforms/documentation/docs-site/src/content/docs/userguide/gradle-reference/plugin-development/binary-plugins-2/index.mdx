@@ -1,0 +1,893 @@
+---
+title: "Binary Plugins"
+---
+
+**Binary plugins** refer to plugins that are compiled and distributed as JAR files.
+These plugins are usually written in Java or Kotlin and provide custom functionality or tasks to a Gradle build.
+
+## Anatomy of a binary plugin
+
+A typical Gradle plugin is composed of three cooperating parts:
+
+{/* converter-gap: node=table */}
+
+{/* converter-gap: node=image */}
+
+## Example of a binary plugin
+
+Here&#8217;s a detailed look at the project structure for a simple `Greeting` plugin:
+
+{/* converter-gap: unexpected expanded multi-language-sample */}
+
+{/* converter-gap: unexpected expanded multi-language-sample */}
+
+### The plugin class (`GreetingPlugin.kt`)
+
+The core of the plugin is the `GreetingPlugin` class.
+It implements the `Plugin&lt;Project&gt;` interface and overrides the `apply` method, which is the entry point for your plugin&#8217;s logic:
+
+{/* converter-gap: node=pass
+<div style="text-align: right;">
+  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/reference-docs/src/snippets/reference/plugin-development/plugin-binary">
+    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
+  </a>
+</div>
+*/}
+
+{/* converter-gap: node=sample dir="snippets/reference/plugin-development/plugin-binary/kotlin" files="plugin/src/main/kotlin/org/example/GreetingPlugin.kt[]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/plugin-development/plugin-binary/groovy" files="plugin/src/main/groovy/org/example/GreetingPlugin.groovy[]" */}
+
+{/* converter-gap: node=colist */}
+
+**Lazy Wiring**: The `message.set(ext.message)` and `outputFile.set(ext.outputFile)` lines are examples of lazy wiring.
+The task&#8217;s inputs are not read immediately.
+Instead, they are connected to the extension&#8217;s properties, and the values are only resolved when the task actually runs.
+This is crucial for performance and correctness in Gradle builds.
+
+### The extension (`GreetingExtension.kt`)
+
+The extension defines the properties that a user can configure.
+It uses `Property` and `RegularFileProperty` types, which are designed for lazy evaluation:
+
+{/* converter-gap: node=pass
+<div style="text-align: right;">
+  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/reference-docs/src/snippets/reference/plugin-development/plugin-binary">
+    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
+  </a>
+</div>
+*/}
+
+{/* converter-gap: node=sample dir="snippets/reference/plugin-development/plugin-binary/kotlin" files="plugin/src/main/kotlin/org/example/GreetingExtension.kt[]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/plugin-development/plugin-binary/groovy" files="plugin/src/main/groovy/org/example/GreetingExtension.groovy[]" */}
+
+{/* converter-gap: node=colist */}
+
+### The custom task (`GreetTask.kt`)
+
+This is the class for the custom task.
+It defines the inputs and outputs, and the action to perform:
+
+{/* converter-gap: node=pass
+<div style="text-align: right;">
+  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/reference-docs/src/snippets/reference/plugin-development/plugin-binary">
+    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
+  </a>
+</div>
+*/}
+
+{/* converter-gap: node=sample dir="snippets/reference/plugin-development/plugin-binary/kotlin" files="plugin/src/main/kotlin/org/example/GreetTask.kt[]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/plugin-development/plugin-binary/groovy" files="plugin/src/main/groovy/org/example/GreetTask.groovy[]" */}
+
+{/* converter-gap: node=colist */}
+
+**Up-to-Date Checks**: By properly annotating inputs and outputs, Gradle can perform up-to-date checks.
+If the task&#8217;s inputs and outputs haven&#8217;t changed since the last build, Gradle can skip the task entirely, which dramatically speeds up the build process.
+
+### Applying the plugin
+
+To use this `Greeting` plugin, you need to apply the plugin in your `build.gradle(.kts)` file.
+This makes the plugin&#8217;s tasks and extensions available to your project:
+
+```text
+plugins {
+    id("org.example.greeting")
+}
+```
+
+### Configuring the plugin
+
+Once the plugin is applied, you can configure it using the extension you defined, which is named `greeting`.
+This allows you to override the default values set in the `GreetingPlugin`.
+Using the `greeting` extension block:
+
+```text
+greeting {
+    // Override the default message
+    message = "Hola from my custom build"
+    // Set a custom output file path
+    outputFile = layout.buildDirectory.file("custom-greeting.txt")
+}
+```
+
+### Running the task
+
+The plugin registers a task named `greet`.
+After applying and configuring the plugin, you can execute this task from the command line.
+
+```bash
+$ ./gradlew greet
+```
+
+Running the `greet` task will:
+
+- Use the `message` and `outputFile` properties, either with their default values or your custom configured values.
+- Write the specified message to the output file (e.g., `build/custom-greeting.txt`).
+- Print a log message to the console confirming the file has been written.
+
+## Using the Plugin Development plugin
+
+The [Gradle Plugin Development plugin](java_gradle_plugin.mdx#java_gradle_plugin) can be used to assist in developing Gradle plugins.
+
+This plugin will automatically apply the [Java Plugin](java_plugin.mdx#java_plugin), add the `gradleApi()` dependency to the `api` configuration, generate the required plugin descriptors in the resulting JAR file, and configure the [Plugin Marker Artifact](plugins_intermediate.mdx#sec:plugin_markers) to be used when publishing.
+
+To apply and configure the plugin, add the following code to your build file:
+
+{/* converter-gap: node=pass
+<div style="text-align: right;">
+  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/reference-docs/src/snippets/reference/plugin-development/customPlugin">
+    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
+  </a>
+</div>
+*/}
+
+{/* converter-gap: node=sample dir="snippets/reference/plugin-development/customPlugin/kotlin/java-gradle-plugin" files="build.gradle.kts[tags=use-and-configure-plugin]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/plugin-development/customPlugin/groovy/java-gradle-plugin" files="build.gradle[tags=use-and-configure-plugin]" */}
+
+Writing and using [custom task types](more_about_tasks.mdx#sec:task_groups) is recommended when developing plugins as it automatically benefits from [incremental builds](incremental_build.mdx#incremental_build).
+As an added benefit of applying the plugin to your project, the task `validatePlugins` automatically checks for an existing input/output annotation for every public property defined in a custom task type implementation.
+
+## Creating a plugin ID
+
+Plugin IDs are meant to be globally unique, similar to Java package names (i.e., a reverse domain name).
+This format helps prevent naming collisions and allows grouping plugins with similar ownership.
+
+An explicit plugin identifier simplifies applying the plugin to a project.
+Your plugin ID should combine components that reflect the namespace (a reasonable pointer to you or your organization) and the name of the plugin it provides.
+For example, if your Github account is named `foo` and your plugin is named `bar`, a suitable plugin ID might be `com.github.foo.bar`.
+Similarly, if the plugin was developed at the `baz` organization, the plugin ID might be `org.baz.bar`.
+
+Plugin IDs should adhere to the following guidelines:
+
+- May contain any alphanumeric character, '.', and '-'.
+- Must contain at least one '.' character separating the namespace from the plugin&#8217;s name.
+- Conventionally use a lowercase reverse domain name convention for the namespace.
+- Conventionally use only lowercase characters in the name.
+- `org.gradle`, `com.gradle`, and `com.gradleware` namespaces may not be used.
+- Cannot start or end with a '.' character.
+- Cannot contain consecutive '.' characters (i.e., '..').
+
+A namespace that identifies ownership and a name is sufficient for a plugin ID.
+
+When bundling multiple plugins in a single JAR artifact, adhering to the same naming conventions is recommended.
+This practice helps logically group related plugins.
+
+There is no limit to the number of plugins that can be defined and registered (by different identifiers) within a single project.
+
+The identifiers for plugins written as a class should be defined in the project&#8217;s build script containing the plugin classes.
+For this, the `java-gradle-plugin` needs to be applied:
+
+{/* converter-gap: node=pass
+<div style="text-align: right;">
+  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/reference-docs/src/snippets/reference/plugin-development/pluginIdentifier">
+    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
+  </a>
+</div>
+*/}
+
+{/* converter-gap: node=sample dir="snippets/reference/plugin-development/pluginIdentifier/kotlin" files="buildSrc/build.gradle.kts[]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/plugin-development/pluginIdentifier/groovy" files="buildSrc/build.gradle[]" */}
+
+## Working with files
+
+When developing plugins, it&#8217;s a good idea to be flexible when accepting input configuration for file locations.
+
+It is recommended to use Gradle&#8217;s [managed properties](properties_providers.mdx#managed_properties) and `project.layout` to select file or directory locations.
+This will enable lazy configuration so that the actual location will only be resolved when the file is needed and can be reconfigured at any time during build configuration.
+
+This Gradle build file defines a task `GreetingToFileTask` that writes a greeting to a file.
+It also registers two tasks: `greet`, which creates the file with the greeting, and `sayGreeting`, which prints the file&#8217;s contents.
+The `greetingFile` property is used to specify the file path for the greeting:
+
+{/* converter-gap: node=pass
+<div style="text-align: right;">
+  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/reference-docs/src/snippets/reference/plugin-development/customTaskWithFileProperty">
+    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
+  </a>
+</div>
+*/}
+
+{/* converter-gap: node=sample dir="snippets/reference/plugin-development/customTaskWithFileProperty/kotlin" files="build.gradle.kts[tags=all]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/plugin-development/customTaskWithFileProperty/groovy" files="build.gradle[tags=all]" */}
+
+```bash
+$ ./gradlew -q sayGreeting
+```
+
+```text
+Unresolved directive in implementing_gradle_plugins_binary.adoc - include::{snippetsPath}/tasks/customTaskWithFileProperty/tests/lazyFileProperties.out[]
+```
+
+In this example, we configure the `greet` task `destination` property as a closure/provider, which is evaluated with
+the [Project.file(java.lang.Object)]({groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:file(java.lang.Object)) method to turn the return value of the closure/provider into a `File` object at the last minute.
+Note that we specify the `greetingFile` property value _after_ the task configuration.
+This lazy evaluation is a key benefit of accepting any value when setting a file property and then resolving that value when reading the property.
+
+You can learn more about working with files lazily in [Working with Files](working_with_files.mdx#working_with_files).
+
+## Making a plugin configurable using extensions
+
+Most plugins offer configuration options for build scripts and other plugins to customize how the plugin works.
+Plugins do this using **extension objects**.
+
+A [Project]({groovyDslPath}/org.gradle.api.Project.html) has an associated [ExtensionContainer]({javadocPath}/org/gradle/api/plugins/ExtensionContainer.html) object that contains all the settings and properties for the plugins that have been applied to the project.
+You can provide configuration for your plugin by adding an extension object to this container.
+
+An extension object is simply an object with Java Bean properties representing the configuration.
+
+Let&#8217;s add a `greeting` extension object to the project, which allows you to configure the greeting:
+
+{/* converter-gap: node=pass
+<div style="text-align: right;">
+  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/reference-docs/src/snippets/reference/plugin-development/customPluginNoConvention">
+    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
+  </a>
+</div>
+*/}
+
+{/* converter-gap: node=sample dir="snippets/reference/plugin-development/customPluginNoConvention/kotlin" files="build.gradle.kts[]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/plugin-development/customPluginNoConvention/groovy" files="build.gradle[]" */}
+
+```bash
+$ ./gradlew -q hello
+```
+
+```text
+Unresolved directive in implementing_gradle_plugins_binary.adoc - include::{snippetsPath}/reference/plugin-development/customPluginNoConvention/tests/customPluginNoConvention.out[]
+```
+
+In this example, `GreetingPluginExtension` is an object with a property called `message`.
+The extension object is added to the project with the name `greeting`.
+This object becomes available as a project property with the same name as the extension object.
+`the&lt;GreetingPluginExtension&gt;()` is equivalent to `project.extensions.getByType(GreetingPluginExtension::class.java)`.
+
+Often, you have several related properties you need to specify on a single plugin.
+Gradle adds a configuration block for each extension object, so you can group settings:
+
+{/* converter-gap: node=pass
+<div style="text-align: right;">
+  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/reference-docs/src/snippets/reference/plugin-development/customPluginWithAdvancedConvention">
+    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
+  </a>
+</div>
+*/}
+
+{/* converter-gap: node=sample dir="snippets/reference/plugin-development/customPluginWithAdvancedConvention/kotlin" files="build.gradle.kts[]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/plugin-development/customPluginWithAdvancedConvention/groovy" files="build.gradle[]" */}
+
+```bash
+$ ./gradlew -q hello
+```
+
+```text
+Unresolved directive in implementing_gradle_plugins_binary.adoc - include::{snippetsPath}/reference/plugin-development/customPluginWithAdvancedConvention/tests/customPluginWithAdvancedConvention.out[]
+```
+
+In this example, several settings can be grouped within the `configure&lt;GreetingPluginExtension&gt;` block.
+The [`configure`]({javadocPath}/org/gradle/api/Project.html#configure-java.lang.Object-groovy.lang.Closure-) function is used to configure an extension object.
+It provides a convenient way to set properties or apply configurations to these objects.
+The type used in the build script&#8217;s `configure` function (`GreetingPluginExtension`) must match the extension type.
+Then, when the block is executed, the receiver of the block is the extension.
+
+In this example, several settings can be grouped within the `greeting` closure. The name of the closure block in the build script (`greeting`) must match the extension object name.
+Then, when the closure is executed, the fields on the extension object will be mapped to the variables within the closure based on the standard Groovy closure delegate feature.
+
+## Declaring a DSL configuration container
+
+Using an extension object _extends_ the Gradle DSL to add a project property and DSL block for the plugin.
+Because an extension object is a regular object, you can provide your own DSL nested inside the plugin block by adding properties and methods to the extension object.
+
+Let&#8217;s consider the following build script for illustration purposes.
+
+{/* converter-gap: node=pass
+<div style="text-align: right;">
+  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/reference-docs/src/snippets/reference/plugin-development/namedDomainObjectContainer">
+    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
+  </a>
+</div>
+*/}
+
+{/* converter-gap: node=sample dir="snippets/reference/plugin-development/namedDomainObjectContainer/kotlin" files="build.gradle.kts[]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/plugin-development/namedDomainObjectContainer/groovy" files="build.gradle[]" */}
+
+The DSL exposed by the plugin exposes a container for defining a set of environments.
+Each environment the user configures has an arbitrary but declarative name and is represented with its own DSL configuration block.
+The example above instantiates a development, staging, and production environment, including its respective URL.
+
+Each environment must have a data representation in code to capture the values.
+The name of an environment is immutable and can be passed in as a constructor parameter.
+Currently, the only other parameter the data object stores is a URL.
+
+The following `ServerEnvironment` object fulfills those requirements:
+
+```java
+Unresolved directive in implementing_gradle_plugins_binary.adoc - include::{snippetsPath}/reference/plugin-development/namedDomainObjectContainer/common/buildSrc/src/main/java/org/myorg/ServerEnvironment.java[tags=snippet]
+```
+
+Gradle exposes the factory method
+[ObjectFactory.domainObjectContainer(Class, NamedDomainObjectFactory)]({javadocPath}/org/gradle/api/model/ObjectFactory.html#domainObjectContainer-java.lang.Class-org.gradle.api.NamedDomainObjectFactory-)
+to create a container of data objects.
+The parameter the method takes is the class representing the data.
+The created instance of type [NamedDomainObjectContainer]({javadocPath}/org/gradle/api/NamedDomainObjectContainer.html) can be exposed to the end user by adding it to the extension container with a specific name.
+
+It&#8217;s common for a plugin to post-process the captured values within the plugin implementation, e.g., to configure tasks:
+
+```java
+Unresolved directive in implementing_gradle_plugins_binary.adoc - include::{snippetsPath}/reference/plugin-development/namedDomainObjectContainer/common/buildSrc/src/main/java/org/myorg/ServerEnvironmentPlugin.java[tags=snippet]
+```
+
+In the example above, a deployment task is created dynamically for every user-configured environment.
+
+You can find out more about implementing project extensions in [Developing Custom Gradle Types](properties_providers.mdx#properties_and_providers).
+
+## Modeling DSL-like APIs
+
+DSLs exposed by plugins should be readable and easy to understand.
+
+For example, let&#8217;s consider the following extension provided by a plugin.
+In its current form, it offers a "flat" list of properties for configuring the creation of a website:
+
+{/* converter-gap: node=pass
+<div style="text-align: right;">
+  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/reference-docs/src/snippets/reference/plugin-development/pluginExtension">
+    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
+  </a>
+</div>
+*/}
+
+{/* converter-gap: node=sample dir="snippets/reference/plugin-development/pluginExtension/kotlin" files="build-flat.gradle.kts[]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/plugin-development/pluginExtension/groovy" files="build-flat.gradle[]" */}
+
+As the number of exposed properties grows, you should introduce a nested, more expressive structure.
+
+The following code snippet adds a new configuration block named `siteInfo` as part of the extension.
+This provides a stronger indication of what those properties mean:
+
+{/* converter-gap: node=pass
+<div style="text-align: right;">
+  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/reference-docs/src/snippets/reference/plugin-development/pluginExtension">
+    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
+  </a>
+</div>
+*/}
+
+{/* converter-gap: node=sample dir="snippets/reference/plugin-development/pluginExtension/kotlin" files="build.gradle.kts[]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/plugin-development/pluginExtension/groovy" files="build.gradle[]" */}
+
+Implementing the backing objects for such an extension is simple.
+First, introduce a new data object for managing the properties `websiteUrl` and `vcsUrl`:
+
+{/* converter-gap: node=pass
+<div style="text-align: right;">
+  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/reference-docs/src/snippets/reference/plugin-development/pluginExtension">
+    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
+  </a>
+</div>
+*/}
+
+```java
+Unresolved directive in implementing_gradle_plugins_binary.adoc - include::{snippetsPath}/reference/plugin-development/pluginExtension/common/buildSrc/src/main/java/org/myorg/SiteInfo.java[tags=snippet]
+```
+
+In the extension, create an instance of the `siteInfo` class and a method to delegate the captured values to the data instance.
+
+To configure underlying data objects, define a parameter of type [Action]({javadocPath}/org/gradle/api/Action.html).
+
+The following example demonstrates the use of `Action` in an extension definition:
+
+```java
+Unresolved directive in implementing_gradle_plugins_binary.adoc - include::{snippetsPath}/reference/plugin-development/pluginExtension/common/buildSrc/src/main/java/org/myorg/SiteExtension.java[tags=snippet]
+```
+
+## Mapping extension properties to task properties
+
+Plugins commonly use an extension to capture user input from the build script and map it to a custom task&#8217;s input/output properties.
+The build script author interacts with the extension&#8217;s DSL, while the plugin implementation handles the underlying logic:
+
+{/* converter-gap: node=pass
+<div style="text-align: right;">
+  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/reference-docs/src/snippets/reference/plugin-development/mappingExtension">
+    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
+  </a>
+</div>
+*/}
+
+{/* converter-gap: node=sample dir="snippets/reference/plugin-development/mappingExtensions/kotlin" files="app/build.gradle.kts[tags=snippet]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/plugin-development/mappingExtensions/groovy" files="app/build.gradle[tags=snippet]" */}
+
+In this example, the `MyExtension` class defines an `inputParameter` property that can be set in the build script.
+The `MyPlugin` class configures this extension and uses its `inputParameter` value to configure the `MyCustomTask` task.
+The `MyCustomTask` task then uses this input parameter in its logic.
+
+You can learn more about types you can use in task implementations and extensions in [Lazy Configuration](lazy_configuration.mdx#lazy_configuration).
+
+## Adding default configuration with conventions
+
+Plugins should provide sensible defaults and standards in a specific context, reducing the number of decisions users need to make.
+Using the `project` object, you can define default values.
+These are known as **conventions**.
+
+Conventions are properties that are initialized with default values and can be overridden by the user in their build script.
+For example:
+
+{/* converter-gap: node=pass
+<div style="text-align: right;">
+  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/reference-docs/src/snippets/reference/plugin-development/customPluginWithConvention">
+    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
+  </a>
+</div>
+*/}
+
+{/* converter-gap: node=sample dir="snippets/reference/plugin-development/customPluginWithConvention/kotlin" files="build.gradle.kts[]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/plugin-development/customPluginWithConvention/groovy" files="build.gradle[]" */}
+
+```bash
+$ ./gradlew -q hello
+```
+
+```text
+Unresolved directive in implementing_gradle_plugins_binary.adoc - include::{snippetsPath}/reference/plugin-development/customPluginWithConvention/tests/customPluginWithConvention.out[]
+```
+
+In this example, `GreetingPluginExtension` is a class that represents the convention.
+The message property is the convention property with a default value of 'Hello from GreetingPlugin'.
+
+Users can override this value in their build script:
+
+{/* converter-gap: unexpected expanded multi-language-sample */}
+
+{/* converter-gap: unexpected expanded multi-language-sample */}
+
+```bash
+$ ./gradlew -q hello
+```
+
+```text
+Custom message
+```
+
+## Separating capabilities from conventions
+
+Separating capabilities from conventions in plugins allows users to choose which tasks and conventions to apply.
+
+For example, the Java Base plugin provides un-opinionated (i.e., generic) functionality like `SourceSets`, while the Java plugin adds tasks and conventions familiar to Java developers like `classes`, `jar` or `javadoc`.
+
+When designing your own plugins, consider developing two plugins — one for capabilities and another for conventions — to offer flexibility to users.
+
+In the example below, `MyPlugin` contains conventions, and `MyBasePlugin` defines capabilities.
+Then, `MyPlugin` applies `MyBasePlugin`, this is called _plugin composition_.
+To apply a plugin from another one:
+
+{/* converter-gap: node=pass
+<div style="text-align: right;">
+  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/reference-docs/src/snippets/reference/plugin-development/capabilitiesVsConventions">
+    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
+  </a>
+</div>
+*/}
+
+```java
+Unresolved directive in implementing_gradle_plugins_binary.adoc - include::{snippetsPath}/reference/plugin-development/capabilitiesVsConventions/groovy/buildSrc/src/main/java/MyBasePlugin.java[]
+```
+
+```java
+Unresolved directive in implementing_gradle_plugins_binary.adoc - include::{snippetsPath}/reference/plugin-development/capabilitiesVsConventions/groovy/buildSrc/src/main/java/MyPlugin.java[]
+```
+
+## Reacting to plugins
+
+A common pattern in Gradle plugin implementations is configuring the runtime behavior of existing plugins and tasks in a build.
+
+For example, a plugin could assume that it is applied to a Java-based project and automatically reconfigure the standard source directory:
+
+{/* converter-gap: node=pass
+<div style="text-align: right;">
+  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/reference-docs/src/snippets/reference/plugin-development/reactingToPlugins">
+    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
+  </a>
+</div>
+*/}
+
+```java
+Unresolved directive in implementing_gradle_plugins_binary.adoc - include::{snippetsPath}/reference/plugin-development/reactingToPlugins/groovy/buildSrc/src/main/java/InhouseStrongOpinionConventionJavaPlugin.java[tags=snippet]
+```
+
+The drawback to this approach is that it automatically forces the project to apply the Java plugin, imposing a strong opinion on it (i.e., reducing flexibility and generality).
+In practice, the project applying the plugin might not even deal with Java code.
+
+Instead of automatically applying the Java plugin, the plugin could react to the fact that the consuming project applies the Java plugin.
+Only if that is the case, then a certain configuration is applied:
+
+{/* converter-gap: node=pass
+<div style="text-align: right;">
+  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/reference-docs/src/snippets/reference/plugin-development/reactingToPlugins">
+    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
+  </a>
+</div>
+*/}
+
+```java
+Unresolved directive in implementing_gradle_plugins_binary.adoc - include::{snippetsPath}/reference/plugin-development/reactingToPlugins/groovy/buildSrc/src/main/java/InhouseConventionJavaPlugin.java[tags=snippet]
+```
+
+Reacting to plugins is preferred over applying plugins if there is no good reason to assume that the consuming project has the expected setup.
+
+The same concept applies to task types:
+
+{/* converter-gap: node=pass
+<div style="text-align: right;">
+  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/reference-docs/src/snippets/reference/plugin-development/reactingToPlugins">
+    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
+  </a>
+</div>
+*/}
+
+```java
+Unresolved directive in implementing_gradle_plugins_binary.adoc - include::{snippetsPath}/reference/plugin-development/reactingToPlugins/groovy/buildSrc/src/main/java/InhouseConventionWarPlugin.java[tags=snippet]
+```
+
+## Reacting to build features
+
+Plugins can access the status of build features in the build.
+The [Build Features API]({javadocPath}/org/gradle/api/configuration/BuildFeatures.html) allows checking whether the user requested a particular Gradle feature and if it is active in the current build.
+An example of a build feature is the [configuration cache](configuration_cache.mdx#config_cache).
+
+There are two main use cases:
+
+- Using the status of build features in reports or statistics.
+- Incrementally adopting experimental Gradle features by disabling incompatible plugin functionality.
+
+Below is an example of a plugin that utilizes both of the cases.
+
+{/* converter-gap: node=pass
+<div style="text-align: right;">
+  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/reference-docs/src/snippets/reference/plugin-development/reactingToBuildFeatures">
+    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
+  </a>
+</div>
+*/}
+
+```java
+Unresolved directive in implementing_gradle_plugins_binary.adoc - include::{snippetsPath}/reference/plugin-development/reactingToBuildFeatures/groovy/buildSrc/src/main/java/MyPlugin.java[tags=my-plugin]
+```
+
+{/* converter-gap: node=colist */}
+
+### Build feature properties
+
+A `BuildFeature` status properties are represented with `Provider&lt;Boolean&gt;` types.
+
+The [`BuildFeature.getRequested()`]({javadocPath}/org/gradle/api/configuration/BuildFeature.html#getRequested--) status of a build feature determines if the user requested to enable or disable the feature.
+
+When the `requested` provider value is:
+
+- `true`&#8201;&#8212;&#8201;the user opted in for using the feature
+- `false`&#8201;&#8212;&#8201;the user opted out from using the feature
+- `undefined`&#8201;&#8212;&#8201;the user neither opted in nor opted out from using the feature
+
+The [`BuildFeature.getActive()`]({javadocPath}/org/gradle/api/configuration/BuildFeature.html#getActive--) status of a build feature is always defined.
+It represents the effective state of the feature in the build.
+
+When the `active` provider value is:
+
+- `true`&#8201;&#8212;&#8201;the feature _may_ affect the build behavior in a way specific to the feature
+- `false`&#8201;&#8212;&#8201;the feature will not affect the build behavior
+
+Note that the `active` status does not depend on the `requested` status.
+Even if the user requests a feature, it may still not be active due to other build options being used in the build.
+Gradle can also activate a feature by default, even if the user did not specify a preference.
+
+## Using a custom `dependencies` block
+
+A plugin can provide dependency declarations in custom blocks that allow users to declare dependencies in a type-safe and context-aware way.
+
+For instance, instead of users needing to know and use the underlying `Configuration` name to add dependencies, a custom `dependencies` block lets the plugin pick a meaningful name that
+can be used consistently.
+
+### Adding a custom `dependencies` block
+
+To add a custom `dependencies` block, you need to create a new [type](properties_providers.mdx#properties_and_providers) that will represent the set of dependency scopes available to users.
+That new type needs to be accessible from a part of your plugin (from a domain object or extension).
+Finally, the dependency scopes need to be wired back to underlying `Configuration` objects that will be used during dependency resolution.
+
+See [JvmComponentDependencies]({groovyDslPath}/org.gradle.api.plugins.jvm.JvmComponentDependencies.html) and [JvmTestSuite]({groovyDslPath}/org.gradle.api.plugins.jvm.JvmTestSuite.html) for an example of how this is used in a Gradle core plugin.
+
+#### 1. Create an interface that extends `Dependencies`
+
+:::note
+You can also extend [GradleDependencies]({groovyDslPath}/org.gradle.api.artifacts.dsl.GradleDependencies.html) to get access to Gradle-provided dependencies like `gradleApi()`.
+:::
+
+{/* converter-gap: node=pass
+<div style="text-align: right;">
+  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/reference-docs/src/snippets/reference/plugin-development/dependenciesBlock">
+    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
+  </a>
+</div>
+*/}
+
+```java
+Unresolved directive in implementing_gradle_plugins_binary.adoc - include::{snippetsPath}/plugins/dependenciesBlock/common/buildSrc/src/main/java/com/example/ExampleDependencies.java[tags=custom-dependencies-type]
+```
+
+#### 2. Add accessors for dependency scopes
+
+For each dependency scope your plugin wants to support, add a getter method that returns a `DependencyCollector`.
+
+{/* converter-gap: node=pass
+<div style="text-align: right;">
+  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/reference-docs/src/snippets/reference/plugin-development/dependenciesBlock">
+    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
+  </a>
+</div>
+*/}
+
+```java
+Unresolved directive in implementing_gradle_plugins_binary.adoc - include::{snippetsPath}/plugins/dependenciesBlock/common/buildSrc/src/main/java/com/example/ExampleDependencies.java[tags=custom-dependencies-scopes]
+```
+
+#### 3. Add accessors for custom `dependencies` block
+
+To make the custom `dependencies` block configurable, the plugin needs to add a `getDependencies` method that returns the new type from above and a configurable block method named `dependencies`.
+
+By convention, the accessors for your custom `dependencies` block should be called `getDependencies()`/`dependencies(Action)`.
+This method could be named something else, but users would need to know that a different block can behave like a `dependencies` block.
+
+{/* converter-gap: node=pass
+<div style="text-align: right;">
+  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/reference-docs/src/snippets/reference/plugin-development/dependenciesBlock">
+    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
+  </a>
+</div>
+*/}
+
+```java
+Unresolved directive in implementing_gradle_plugins_binary.adoc - include::{snippetsPath}/plugins/dependenciesBlock/common/buildSrc/src/main/java/com/example/ExampleExtension.java[tags=dependencies-accessors]
+```
+
+#### 4. Wire dependency scope to `Configuration`
+
+Finally, the plugin needs to wire the custom `dependencies` block to some underlying `Configuration` objects. If this is not done, none of the dependencies declared in the custom block will
+be available to dependency resolution.
+
+{/* converter-gap: node=pass
+<div style="text-align: right;">
+  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/reference-docs/src/snippets/reference/plugin-development/dependenciesBlock">
+    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
+  </a>
+</div>
+*/}
+
+```java
+Unresolved directive in implementing_gradle_plugins_binary.adoc - include::{snippetsPath}/plugins/dependenciesBlock/common/buildSrc/src/main/java/com/example/ExamplePlugin.java[tags=wire-dependencies]
+```
+
+:::note
+In this example, the name users will use to add dependencies is "implementation", but the underlying `Configuration` is named `exampleImplementation`.
+:::
+
+{/* converter-gap: node=pass
+<div style="text-align: right;">
+  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/reference-docs/src/snippets/reference/plugin-development/dependenciesBlock">
+    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
+  </a>
+</div>
+*/}
+
+```kotlin
+Unresolved directive in implementing_gradle_plugins_binary.adoc - include::{snippetsPath}/plugins/dependenciesBlock/kotlin/build.gradle.kts[tags=dependencies]
+```
+
+```groovy
+Unresolved directive in implementing_gradle_plugins_binary.adoc - include::{snippetsPath}/plugins/dependenciesBlock/groovy/build.gradle[tags=dependencies]
+```
+
+### Differences between the custom `dependencies` and the top-level `dependencies` blocks
+
+Each dependency scope returns a [`DependencyCollector`]({groovyDslPath}/org.gradle.api.artifacts.dsl.DependencyCollector.html) that provides strongly-typed methods to add and configure dependencies.
+
+There is also a [`DependencyFactory`]({javadocPath}/org/gradle/api/artifacts/dsl/DependencyFactory.html) with factory methods to create new dependencies from different notations.
+Dependencies can be created lazily using these factory methods, as shown below.
+
+A custom `dependencies` block differs from the top-level `dependencies` block in the following ways:
+
+- Dependencies must be declared using a `String`, an instance of `Dependency`, a `FileCollection`, a `Provider` of `Dependency`, or a `ProviderConvertible` of `MinimalExternalModuleDependency`.
+- Outside of Gradle build scripts, you must explicitly call a getter for the `DependencyCollector` and `add`.
+- You cannot add a dependency with an instance of `Project`. You must turn it into a `ProjectDependency` first.
+- You cannot add version catalog bundles directly.
+Instead, use the `bundle` method on each configuration.
+- You cannot use providers for non-`Dependency` types directly.
+Instead, map them to a `Dependency` using the `DependencyFactory`.
+- Unlike the top-level `dependencies` block, constraints are not in a separate block.
+
+Keep in mind that the `dependencies` block may not provide access to the same methods as the [top-level `dependencies` block]({groovyDslPath}/org.gradle.api.artifacts.dsl.DependencyHandler.html).
+
+:::note
+Plugins should prefer adding dependencies via their own `dependencies` block.
+:::
+
+## Providing default dependencies
+
+The implementation of a plugin sometimes requires the use of an external dependency.
+
+You might want to automatically download an artifact using Gradle’s dependency management mechanism and later use it in the action of a task type declared in the plugin.
+Ideally, the plugin implementation does not need to ask the user for the coordinates of that dependency - it can simply predefine a sensible default version.
+
+Let’s look at an example of a plugin that downloads files containing data for further processing.
+The plugin implementation declares a custom configuration that allows for [assigning those external dependencies with dependency coordinates](declaring_dependencies.mdx#one-declaring-dependencies):
+
+```java
+Unresolved directive in implementing_gradle_plugins_binary.adoc - include::{snippetsPath}/reference/plugin-development/defaultDependency/common/buildSrc/src/main/java/org/myorg/DataProcessingPlugin.java[tags=snippet]
+```
+
+```java
+Unresolved directive in implementing_gradle_plugins_binary.adoc - include::{snippetsPath}/reference/plugin-development/defaultDependency/common/buildSrc/src/main/java/org/myorg/DataProcessing.java[tags=snippet]
+```
+
+This approach is convenient for the end user as there is no need to actively declare a dependency.
+The plugin already provides all the details about this implementation.
+
+But what if the user wants to redefine the default dependency?
+
+No problem.
+The plugin also exposes the custom configuration that can be used to assign a different dependency.
+Effectively, the default dependency is overwritten:
+
+{/* converter-gap: node=pass
+<div style="text-align: right;">
+  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/reference-docs/src/snippets/reference/plugin-development/defaultDependency">
+    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
+  </a>
+</div>
+*/}
+
+{/* converter-gap: node=sample dir="snippets/reference/plugin-development/defaultDependency/kotlin" files="build.gradle.kts[]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/plugin-development/defaultDependency/groovy" files="build.gradle[]" */}
+
+You will find that this pattern works well for tasks that require an external dependency when the task&#8217;s action is executed.
+You can go further and abstract the version to be used for the external dependency by exposing an extension property (e.g.
+`toolVersion` in [the JaCoCo plugin]({groovyDslPath}/org.gradle.testing.jacoco.plugins.JacocoPluginExtension.html)).
+
+### Minimizing the use of external libraries
+
+Using external libraries in your Gradle projects can bring great convenience, but be aware that they can introduce complex dependency graphs.
+Gradle&#8217;s `buildEnvironment` task can help you visualize these dependencies, including those of your plugins.
+Keep in mind that plugins share the same classloader, so conflicts may arise with different versions of the same library.
+
+To demonstrate let’s assume the following build script:
+
+{/* converter-gap: node=pass
+<div style="text-align: right;">
+  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/reference-docs/src/snippets/reference/plugin-development/externalLibraries">
+    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
+  </a>
+</div>
+*/}
+
+{/* converter-gap: node=sample dir="snippets/reference/plugin-development/externalLibraries/kotlin" files="build.gradle.kts[]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/plugin-development/externalLibraries/groovy" files="build.gradle[]" */}
+
+The output of the task clearly indicates the classpath of the `classpath` configuration:
+
+```bash
+$ ./gradlew buildEnvironment
+```
+
+```text
+Unresolved directive in implementing_gradle_plugins_binary.adoc - include::{snippetsPath}/reference/plugin-development/externalLibraries/tests/buildEnvironment.out[]
+```
+
+A Gradle plugin does not run in its own, isolated classloader, so you must consider whether you truly need a library or if a simpler solution suffices.
+
+For logic that is executed as part of task execution, use the [Worker API](worker_api.mdx#tasks_parallel_worker) that allows you to isolate libraries.
+
+## Providing multiple variants of a plugin
+
+Variants of a plugin refer to different flavors or configurations of the plugin that are tailored to specific needs or use cases.
+These variants can include different implementations, extensions, or configurations of the base plugin.
+
+The most convenient way to configure additional plugin variants is to use [feature variants](how_to_create_feature_variants_of_a_library.mdx#feature_variants), a concept available in all Gradle projects that apply one of the Java plugins:
+
+```kotlin
+dependencies {
+    implementation 'com.google.guava:guava:30.1-jre'        // Regular dependency
+    featureVariant 'com.google.guava:guava-gwt:30.1-jre'    // Feature variant dependency
+}
+```
+
+In the following example, each plugin variant is developed in isolation.
+A separate source set is compiled and packaged in a separate jar for each variant.
+
+The following sample demonstrates how to add a variant that is compatible with Gradle 7.0+ while the "main" variant is compatible with older versions:
+
+{/* converter-gap: node=pass
+<div style="text-align: right;">
+  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/reference-docs/src/snippets/reference/plugin-development/pluginWithVariants">
+    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
+  </a>
+</div>
+*/}
+
+{/* converter-gap: node=sample dir="snippets/reference/plugin-development/pluginWithVariants/kotlin" files="build.gradle.kts[tags=add-plugin-variant]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/plugin-development/pluginWithVariants/groovy" files="build.gradle[tags=add-plugin-variant]" */}
+
+:::note
+Only Gradle versions 7 or higher can be explicitly targeted by a variant, as support for this was only added in Gradle 7.
+:::
+
+First, we declare a separate _source set_ and a _feature variant_ for our Gradle 7 plugin variant.
+Then, we do some specific wiring to turn the feature into a proper Gradle plugin variant:
+
+{/* converter-gap: node=colist */}
+
+Note that there is currently no convenient way to access the API of other Gradle versions as the one you are building the plugin with.
+Ideally, every variant should be able to declare a dependency on the API of the minimal Gradle version it supports.
+This will be improved in the future.
+
+The above snippet assumes that all variants of your plugin have the plugin class at the same location.
+That is, if your plugin class is `org.example.GreetingPlugin`, you need to create a second variant of that class in `src/gradle7/java/org/example`.
+
+### Using version-specific variants of multi-variant plugins
+
+Given a dependency on a multi-variant plugin, Gradle will automatically choose its variant that best matches the current Gradle version when it resolves any of:
+
+- plugins specified in the [`plugins {}` block](plugins_intermediate.mdx#sec:plugins_block);
+- `buildscript` classpath dependencies;
+- dependencies in the root project of the [build source (`buildSrc`)](sharing_build_logic_between_subprojects.mdx#sec:using_buildsrc) that appear on the compile or runtime classpath;
+- dependencies in a project that applies the [Java Gradle Plugin Development plugin](java_gradle_plugin.mdx#java_gradle_plugin) or the [Kotlin DSL plugin](kotlin_dsl.mdx#sec:kotlin-dsl_plugin), appearing on the compile or runtime classpath.
+
+The best matching variant is the variant that targets the highest Gradle API version and does not exceed the current build&#8217;s Gradle version.
+
+In all other cases, a plugin variant that does not specify the supported Gradle API version is preferred if such a variant is present.
+
+In projects that use plugins as dependencies, requesting the variants of plugin dependencies that support a different Gradle version is possible.
+This allows a multi-variant plugin that depends on other plugins to access their APIs, which are exclusively provided in their version-specific variants.
+
+This snippet makes the [plugin variant `gradle7` defined above](#plugin-with-variants) consume the matching variants of its dependencies on other multi-variant plugins:
+
+{/* converter-gap: node=pass
+<div style="text-align: right;">
+  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/reference-docs/src/snippets/reference/plugin-development/pluginWithVariants">
+    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
+  </a>
+</div>
+*/}
+
+{/* converter-gap: node=sample dir="snippets/reference/plugin-development/pluginWithVariants/kotlin" files="build.gradle.kts[tags=consume-plugin-variant]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/plugin-development/pluginWithVariants/groovy" files="build.gradle[tags=consume-plugin-variant]" */}

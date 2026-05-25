@@ -1,0 +1,82 @@
+---
+export interface Props {
+  href: string;
+  title: string;
+  label?: string;
+  target?: '_blank' | '_self' | '_parent' | '_top';
+}
+
+const {
+  href,
+  title,
+  label = 'LEARN',
+  target = '_blank',
+} = Astro.props;
+
+const rel = target === '_blank' ? 'noreferrer' : undefined;
+---
+
+<div class="promotion">
+  <a class="promotion-link" href={href} target={target} rel={rel}>
+    <span class="promotion-label">{label}</span>
+    <span class="promotion-title">
+      {title}
+      <span aria-hidden="true" class="promotion-arrow">
+        &gt;
+      </span>
+    </span>
+  </a>
+</div>
+
+<style>
+  .promotion {
+    margin: 1.5rem 0;
+  }
+
+  .promotion-link {
+    display: inline-flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid var(--sl-color-gray-5);
+    border-radius: 999px;
+    text-decoration: none;
+    background:
+      linear-gradient(135deg, color-mix(in srgb, var(--sl-color-accent) 10%, transparent), transparent 60%),
+      var(--sl-color-bg);
+    transition:
+      border-color 160ms ease,
+      transform 160ms ease,
+      background-color 160ms ease;
+  }
+
+  .promotion-link:hover {
+    border-color: var(--sl-color-accent);
+    transform: translateY(-1px);
+  }
+
+  .promotion-label {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.2rem 0.55rem;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    color: white;
+    background: var(--sl-color-accent);
+  }
+
+  .promotion-title {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    color: var(--sl-color-white);
+    font-weight: 600;
+  }
+
+  .promotion-arrow {
+    font-size: 0.9em;
+  }
+</style>

@@ -1,0 +1,27 @@
+plugins {
+    id 'application'                                                // <1>
+}
+
+repositories {
+    mavenCentral()                                                  // <2>
+}
+
+dependencies {
+    testImplementation libs.junit.jupiter                           // <3>
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    implementation libs.guava                                       // <4>
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(11)                // <5>
+    }
+}
+
+application {
+    mainClass = 'org.example.App'                                   // <6>
+}
+
+tasks.named('test') {
+    useJUnitPlatform()                                              // <7>
+}

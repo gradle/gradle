@@ -21,7 +21,7 @@ val triggerExcludes =
     -:.idea
     -:.github
     -:.teamcity
-    -:platforms/documentation/docs/src/docs/release
+    -:platforms/documentation/reference-docs/src/docs/release
     """.trimIndent()
 
 fun branchesFilterExcluding(vararg excludedBranch: String) =

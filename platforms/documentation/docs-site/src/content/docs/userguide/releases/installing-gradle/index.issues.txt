@@ -1,0 +1,47 @@
+[
+  {
+    "startLine": 57,
+    "endLine": 57,
+    "problem": "Source uses the AsciiDoc attribute {jdkDownloadUrl} as the href for the 'Java Development Kit' link. This is a build-time substitution variable that cannot be resolved statically. It has been replaced with the fallback URL 'https://jdk.java.net/' which may not be the correct target. Needs review."
+  },
+  {
+    "startLine": 57,
+    "endLine": 57,
+    "problem": "Source uses the AsciiDoc attribute {minJdkVersion} for the minimum JDK version number in the Prerequisites section. This is a build-time substitution variable that cannot be resolved statically. It has been replaced with the literal value '8' based on common Gradle documentation. Needs review to confirm the correct value."
+  },
+  {
+    "startLine": 36,
+    "endLine": 36,
+    "problem": "Source uses the AsciiDoc attribute {website} (as in '{website}/releases') for the releases page URL. This is a build-time substitution variable, resolved here to 'https://gradle.org/releases'. Needs verification."
+  },
+  {
+    "startLine": 53,
+    "endLine": 53,
+    "problem": "Source uses {website}/releases link. Resolved to 'https://gradle.org/releases'. See above note."
+  },
+  {
+    "startLine": 121,
+    "endLine": 142,
+    "problem": "Source uses the AsciiDoc attribute {gradleVersion} in code blocks throughout the Linux, macOS, and Windows installation sections. These are build-time substitution variables and cannot be resolved statically in MDX. They have been preserved verbatim as '{gradleVersion}' inside code fences, where they appear as literal text rather than being interpreted as JSX expressions."
+  },
+  {
+    "startLine": 19,
+    "endLine": 25,
+    "problem": "The callout annotation on line 2 of the file tree (wrapper directory) references the Gradle Wrapper. The 'gradle-wrapper' page has no migrated target yet (status=null), so an external link to docs.gradle.org has been used as a fallback."
+  },
+  {
+    "startLine": 58,
+    "endLine": 58,
+    "problem": "Link to 'gradle_daemon.adoc#sec:configuring_daemon_jvm' (Gradle Daemon page, JDK configuration). The 'gradle-daemon' page has no migrated target yet (status=null), so an external link to docs.gradle.org has been used as a fallback."
+  },
+  {
+    "startLine": 31,
+    "endLine": 31,
+    "problem": "Link to 'gradle_wrapper.adoc#sec:upgrading_wrapper' (Gradle Wrapper upgrade section). The 'gradle-wrapper' page has no migrated target yet (status=null), so an external link to docs.gradle.org has been used as a fallback."
+  },
+  {
+    "startLine": 291,
+    "endLine": 291,
+    "problem": "Link to 'gradle_wrapper.adoc#sec:verification' (Gradle Wrapper verification instructions). The 'gradle-wrapper' page has no migrated target yet (status=null), so an external link to docs.gradle.org has been used as a fallback."
+  }
+]

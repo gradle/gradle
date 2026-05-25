@@ -1,0 +1,74 @@
+---
+title: "Managing Dependencies of JVM Projects"
+---
+
+This chapter explains how to apply basic dependency management concepts to JVM-based projects.
+For a detailed introduction to dependency management, see [dependency management in Gradle](getting_started_dep_man.mdx#dependency-management-in-gradle).
+
+## Dissecting a typical build script
+
+Let&#8217;s have a look at a very simple build script for a JVM-based project.
+It applies the [Java Library plugin](java_library_plugin.mdx#java_library_plugin) which automatically introduces a standard project layout, provides tasks for performing typical work and adequate support for dependency management.
+
+{/* converter-gap: node=sample dir="snippets/reference/platforms/jvm/dependencyBasics/kotlin" files="build.gradle.kts[]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/platforms/jvm/dependencyBasics/groovy" files="build.gradle[]" */}
+
+The [Project.dependencies\{\}]({groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:dependencies(groovy.lang.Closure)) code block declares that Hibernate core 3.6.7.Final is required to compile the project&#8217;s production source code. It also states that junit &gt;= 4.0 is required to compile the project&#8217;s tests. All dependencies are supposed to be looked up in the Maven Central repository as defined by [Project.repositories\{\}]({groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:repositories(groovy.lang.Closure)). The following sections explain each aspect in more detail.
+
+## Declaring module dependencies
+
+There are various [types of dependencies](declaring_dependencies.mdx#sub:dependency-types) that you can declare.
+One such type is a _module dependency_.
+A [module dependency](declaring_dependencies_basics.mdx#sec:module-dependencies) represents a dependency on a module with a specific version built outside the current build.
+Modules are usually stored in a repository, such as Maven Central, a corporate Maven or Ivy repository, or a directory in the local file system.
+
+To define an module dependency, you add it to a [dependency configuration](#sec:configurations_java_tutorial):
+
+{/* converter-gap: node=sample dir="snippets/reference/platforms/jvm/externalDependencies/kotlin" files="build.gradle.kts[tags=define-dependency]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/platforms/jvm/externalDependencies/groovy" files="build.gradle[tags=define-dependency]" */}
+
+To find out more about defining dependencies, have a look at [Declaring Dependencies](declaring_dependencies.mdx#one-declaring-dependencies).
+
+## Using dependency configurations
+
+A [Configuration]({groovyDslPath}/org.gradle.api.artifacts.Configuration.html) is a named set of dependencies and artifacts. There are three main purposes for a _configuration_:
+
+{/* converter-gap: node=dlist */}
+
+With those three purposes in mind, let&#8217;s take a look at a few of the [standard configurations defined by the Java Library Plugin](java_library_plugin.mdx#sec:java_library_configurations_graph).
+
+{/* converter-gap: node=dlist */}
+
+Various plugins add further standard configurations.
+You can also define your own custom configurations in your build via [Project.configurations\{\}]({groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:configurations(groovy.lang.Closure)).
+See [What are dependency configurations](dependency_configurations.mdx#sub:what-are-dependency-configurations) for the details of defining and customizing dependency configurations.
+
+## Declaring common Java repositories
+
+How does Gradle know where to find the files for external dependencies? Gradle looks for them in a _repository_.
+A repository is a collection of modules, organized by `group`, `name` and `version`.
+Gradle understands different [repository types](supported_repository_types.mdx#repository-types), such as Maven and Ivy, and supports various ways of accessing the repository via HTTP or other protocols.
+
+By default, Gradle does not define any repositories. You need to define at least one with the help of [Project.repositories\{\}]({groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:repositories(groovy.lang.Closure)) before you can use module dependencies. One option is use the Maven Central repository:
+
+{/* converter-gap: node=sample dir="snippets/reference/platforms/jvm/defineRepository/kotlin" files="build.gradle.kts[tags=maven-central]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/platforms/jvm/defineRepository/groovy" files="build.gradle[tags=maven-central]" */}
+
+You can also have repositories on the local file system. This works for both Maven and Ivy repositories.
+
+**Usage of a local Ivy directory**
+
+{/* converter-gap: node=sample dir="snippets/reference/platforms/jvm/defineRepository/kotlin" files="build.gradle.kts[tags=local-ivy-repo]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/platforms/jvm/defineRepository/groovy" files="build.gradle[tags=local-ivy-repo]" */}
+
+A project can have multiple repositories. Gradle will look for a dependency in each repository in the order they are specified, stopping at the first repository that contains the requested module.
+
+To find out more about defining repositories, have a look at [Declaring Repositories](declaring_repositories.mdx#three-declaring-repositories).
+
+## Publishing artifacts
+
+To learn more about publishing artifacts, have a look at [publishing plugins](publishing_setup.mdx#publishing_components).

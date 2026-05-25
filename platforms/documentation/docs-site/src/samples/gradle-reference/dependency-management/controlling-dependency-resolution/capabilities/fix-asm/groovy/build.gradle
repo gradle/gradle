@@ -1,0 +1,15 @@
+@CompileStatic
+class AsmCapability implements ComponentMetadataRule {
+    void execute(ComponentMetadataContext context) {
+        context.details.with {
+            if (id.group == "asm" && id.name == "asm") {
+                allVariants {
+                    it.withCapabilities {
+                        // Declare that ASM provides the org.ow2.asm:asm capability, but with an older version
+                        it.addCapability("org.ow2.asm", "asm", id.version)
+                    }
+                }
+            }
+        }
+    }
+}

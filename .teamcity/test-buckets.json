@@ -92,7 +92,6 @@
         "subprojects": [
           "base-ide-plugins",
           "build-process-services",
-          "docs-asciidoctor-extensions-base",
           "gradle-cli",
           "isolated-action-services",
           "logging-api",
@@ -504,7 +503,6 @@
         "subprojects": [
           "build-cache-packaging",
           "build-operations",
-          "docs-asciidoctor-extensions-base",
           "hashing",
           "io",
           "java-compiler-plugin",
@@ -828,7 +826,6 @@
         "subprojects": [
           "configuration-problems-base",
           "daemon-server-worker",
-          "docs-asciidoctor-extensions-base",
           "java-api-extractor",
           "javadoc",
           "logging-api",
@@ -1123,7 +1120,6 @@
           "build-process-services",
           "configuration-cache-base",
           "configuration-problems-base",
-          "docs-asciidoctor-extensions-base",
           "gradle-cli",
           "logging-api",
           "plugin-development",
@@ -3190,7 +3186,6 @@
       },
       {
         "subprojects": [
-          "docs-asciidoctor-extensions-base",
           "java-api-extractor",
           "javadoc",
           "kotlin-dsl-plugins",
@@ -5016,7 +5011,6 @@
         "subprojects": [
           "daemon-protocol",
           "docs",
-          "docs-asciidoctor-extensions-base",
           "file-temp",
           "files",
           "functional",

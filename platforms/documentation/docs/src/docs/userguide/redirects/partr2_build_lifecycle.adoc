@@ -1,3 +1,0 @@
-++++
-<meta http-equiv="refresh" content="0;URL=part2_build_lifecycle.html">
-++++

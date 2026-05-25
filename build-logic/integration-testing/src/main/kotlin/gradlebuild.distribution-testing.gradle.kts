@@ -71,7 +71,7 @@ fun DistributionTest.configureGradleTestEnvironment() {
         // The user home dir is not wiped out by clean. Move the daemon working space underneath the build dir so they don't pile up on CI.
         // The actual daemon registry dir will be a subfolder using the name of the distribution.
         daemonRegistry = repoRoot().dir("build/daemon")
-        gradleSnippetsDir = repoRoot().dir("platforms/documentation/docs/src/snippets") // TODO use dependency management
+        gradleSnippetsDir = repoRoot().dir("platforms/documentation/reference-docs/src/snippets") // TODO use dependency management
         distZipVersion = project.version.toString()
     }
 

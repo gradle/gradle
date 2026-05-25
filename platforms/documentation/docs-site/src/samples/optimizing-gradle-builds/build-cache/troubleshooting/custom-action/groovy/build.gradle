@@ -1,0 +1,9 @@
+tasks.named('jar') {
+    FileCollection runtimeClasspath = configurations.runtimeClasspath
+    doFirst {
+        manifest {
+            def classPath = runtimeClasspath.collect { it.name }.join(" ")
+            attributes('Class-Path': classPath)
+        }
+    }
+}

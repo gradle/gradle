@@ -59,7 +59,6 @@ public abstract class GradleBuildDocumentationPlugin implements Plugin<Project> 
         project.apply(target -> target.plugin(GradleJavadocsPlugin.class));
         project.apply(target -> target.plugin(GradleKotlinDslReferencePlugin.class));
         project.apply(target -> target.plugin(GradleDslReferencePlugin.class));
-        project.apply(target -> target.plugin(GradleUserManualPlugin.class));
 
         addUtilityTasks(tasks, extension);
 
@@ -84,10 +83,16 @@ public abstract class GradleBuildDocumentationPlugin implements Plugin<Project> 
             // Dokka Kotlin DSL reference goes into kotlin-dsl/
             task.from(extension.getKotlinDslReference().getRenderedDocumentation(), sub -> sub.into("kotlin-dsl"));
 
-            // User manual goes into userguide/ (for historical reasons)
-            task.from(extension.getUserManual().getRenderedDocumentation(), sub -> sub.into("userguide"));
-
             task.into(extension.getDocumentationRenderedRoot());
+        });
+
+        // Stages just the three reference trees (javadoc, kotlin-dsl, dsl) for consumption by :docs-site,
+        // which composes them with its own user-guide content into the published site.
+        tasks.register("stageReferenceDocs", Sync.class, task -> {
+            task.from(extension.getJavadocs().getRenderedDocumentation(), sub -> sub.into("javadoc"));
+            task.from(extension.getKotlinDslReference().getRenderedDocumentation(), sub -> sub.into("kotlin-dsl"));
+            task.from(extension.getDslReference().getRenderedDocumentation(), sub -> sub.into("dsl"));
+            task.into(layout.getBuildDirectory().dir("references"));
         });
 
         extension.getSourceRoot().convention(layout.getProjectDirectory().dir("src/docs"));

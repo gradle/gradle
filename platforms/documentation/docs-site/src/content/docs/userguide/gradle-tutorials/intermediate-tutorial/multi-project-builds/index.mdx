@@ -1,0 +1,229 @@
+---
+title: "Part 3: Multi-Project Builds"
+---
+
+Learn the basics of structuring Gradle projects using subprojects and composite builds.
+
+{/* converter-gap: node=sidebar */}
+
+## Step 0. Before you Begin
+
+1. You initialized your Java app in [part 1](part1_gradle_init_project.mdx#part1_begin).
+2. You understand the Gradle Build Lifecycle from [part 2](part2_build_lifecycle.mdx#part2_begin).
+
+## Step 1. About Multi-Project Builds
+
+Typically, builds contain multiple projects, such as shared libraries or separate applications that will be deployed in your ecosystem.
+
+In Gradle, a multi-project build consists of:
+
+- `settings.gradle(.kts)` file representing your Gradle build including required subprojects e.g. include("app", "model", "service")
+- `build.gradle(.kts)` and source code for each subproject in corresponding subdirectories
+
+Our build currently consists of a root project called `authoring-tutorial`, which has a single `app` subproject:
+
+{/* converter-gap: unexpected expanded multi-language-sample */}
+
+{/* converter-gap: unexpected expanded multi-language-sample */}
+
+## Step 2. Add another Subproject to the Build
+
+Imagine that our project is growing and requires a custom library to function.
+
+Let&#8217;s create this imaginary `lib`.
+First, create a `lib` folder:
+
+```bash
+$ mkdir lib
+```
+
+```bash
+$ cd lib
+```
+
+Create a file called `build.gradle(.kts)` and add the following lines to it:
+
+{/* converter-gap: unexpected expanded multi-language-sample */}
+
+{/* converter-gap: unexpected expanded multi-language-sample */}
+
+Your project should look like this:
+
+{/* converter-gap: unexpected expanded multi-language-sample */}
+
+{/* converter-gap: unexpected expanded multi-language-sample */}
+
+Let&#8217;s add some code to the `lib` subproject.
+Create a new directory:
+
+```bash
+$ mkdir -p lib/src/main/java/com/gradle
+```
+
+Create a Java class called `CustomLib` in a file called `CustomLib.java` with the following source code:
+
+```java
+package com.gradle;
+
+public class CustomLib {
+    public static String identifier = "I'm a String from a lib.";
+}
+```
+
+The project should now have the following file and directory structure:
+
+{/* converter-gap: unexpected expanded multi-language-sample */}
+
+{/* converter-gap: unexpected expanded multi-language-sample */}
+
+However, the `lib` subproject does not belong to the build, and you won&#8217;t be able to execute `task3`, until it is added to the `settings.gradle(.kts)` file.
+
+To add `lib` to the build, update the `settings.gradle(.kts)` file in the root accordingly:
+
+{/* converter-gap: unexpected expanded multi-language-sample */}
+
+{/* converter-gap: unexpected expanded multi-language-sample */}
+
+Let&#8217;s add the `lib` subproject as an `app` dependency in `app/build.gradle(.kts)`:
+
+{/* converter-gap: unexpected expanded multi-language-sample */}
+
+{/* converter-gap: unexpected expanded multi-language-sample */}
+
+Update the `app` source code so that it imports the `lib`:
+
+```java
+package authoring.tutorial;
+
+import com.gradle.CustomLib;
+
+public class App {
+    public String getGreeting() {
+        return "CustomLib identifier is: " + CustomLib.identifier;
+    }
+
+    public static void main(String[] args) {
+        System.out.println(new App().getGreeting());
+    }
+}
+```
+
+Finally, let&#8217;s run the `app` with the command `./gradlew run`:
+
+```bash
+$ ./gradlew run
+```
+
+```text
+> Configure project :app
+
+> Task :app:processResources NO-SOURCE
+> Task :lib:compileJava
+> Task :lib:processResources NO-SOURCE
+> Task :lib:classes
+> Task :lib:jar
+> Task :app:compileJava
+> Task :app:classes
+
+> Task :app:run
+CustomLib identifier is: I'm a String from a lib.
+
+BUILD SUCCESSFUL in 11s
+8 actionable tasks: 6 executed, 2 up-to-date
+```
+
+Our build for the root project `authoring-tutorial` now includes two subprojects, `app` and `lib`.
+`app` depends on `lib`.
+You can build `lib` independent of `app`.
+However, to build `app`, Gradle will also build `lib`.
+
+## Step 3. Understand Composite Builds
+
+A composite build is simply a build that includes other builds.
+
+Composite builds allow you to:
+
+- Extract your build logic from your project build (and re-use it among subprojects)
+- Combine builds that are usually developed independently (such as a plugin and an application)
+- Decompose a large build into smaller, more isolated chunks
+
+## Step 4. Add build to the Build
+
+Let&#8217;s add a plugin to our build.
+First, create a new directory called `license-plugin` in the `gradle` directory:
+
+```bash
+$ cd gradle
+```
+
+```bash
+$ mkdir license-plugin
+```
+
+```bash
+$ cd license-plugin
+```
+
+Once in the `gradle/license-plugin` directory, run `gradle init`.
+Make sure that you select the `Gradle plugin` project as well as the other options for the `init` task below:
+
+{/* converter-gap: unexpected expanded multi-language-sample */}
+
+{/* converter-gap: unexpected expanded multi-language-sample */}
+
+Select defaults for any additional prompts.
+
+Your project should look like this:
+
+{/* converter-gap: unexpected expanded multi-language-sample */}
+
+{/* converter-gap: unexpected expanded multi-language-sample */}
+
+Take the time to look at the `LicensePlugin.kt` or `LicensePlugin.groovy` code and the `gradle/license-plugin/settings.gradle(.kts)` file.
+It&#8217;s important to note that this is an entirely separate build with its own settings file and build script:
+
+{/* converter-gap: unexpected expanded multi-language-sample */}
+
+{/* converter-gap: unexpected expanded multi-language-sample */}
+
+To add our `license-plugin` build to the root project, update the root `settings.gradle(.kts)` file accordingly:
+
+{/* converter-gap: unexpected expanded multi-language-sample */}
+
+{/* converter-gap: unexpected expanded multi-language-sample */}
+
+You can view the structure of the root project by running `./gradlew projects` in the root folder `authoring-tutorial`:
+
+```bash
+$ ./gradlew projects
+```
+
+```text
+------------------------------------------------------------
+Root project 'authoring-tutorial'
+------------------------------------------------------------
+
+Root project 'authoring-tutorial'
++--- Project ':app'
+\--- Project ':lib'
+
+Included builds
+\--- Included build ':license-plugin'
+```
+
+Our build for the root project `authoring-tutorial` now includes two subprojects, `app` and `lib`, and another build, `license-plugin`.
+
+When in the project root, running:
+
+- `./gradlew build` - Builds `app` and `lib`
+- `./gradlew :app:build` - Builds `app` and `lib`
+- `./gradlew :lib:build` - Builds `lib` only
+- `./gradlew :license-plugin:plugin:build` - Builds `license-plugin` only
+
+There are many ways to design a project&#8217;s architecture with Gradle.
+
+Multi-project builds are great for organizing projects with many modules such as `mobile-app`, `web-app`, `api`, `lib`, and `documentation` that have dependencies between them.
+
+Composite (include) builds are great for separating build logic (i.e., convention plugins) or testing systems (i.e., patching a library)
+
+***Next Step:*** [Settings File](part4_settings_file.mdx#part4_settings_file) &gt;&gt;

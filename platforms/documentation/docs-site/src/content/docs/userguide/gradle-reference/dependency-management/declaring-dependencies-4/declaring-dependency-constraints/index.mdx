@@ -1,0 +1,80 @@
+---
+title: "Declaring Dependency Constraints"
+---
+
+Version declarations (including ranges) only affect the dependencies you declare **directly**.
+To control versions of **transitive** dependencies, use **dependency constraints**.
+
+{/* converter-gap: node=image */}
+
+A dependency constraint sets version requirements for a module without adding that module as a dependency.
+When the module is pulled in, the constraint participates in version conflict resolution just like a declared dependency version:
+
+- Constraints are **not strict by default** (they usually express "at least this version").
+- You can make them **strict** or use [**rich versions**](dependency_versions.mdx#sec:rich-version-constraints) (e.g., ranges, `prefer`, `reject`, `strictly`) when needed.
+
+:::tip
+Use constraints when you want to control versions centrally and avoid adding extra dependencies just to force a version.
+:::
+
+You can declare constraints:
+
+- Alongside [dependencies](declaring_dependencies_basics.mdx#declaring-dependencies-basics) in a single project (scoped to the same configuration buckets like `implementation`, `runtimeOnly`, `testImplementation`, etc.).
+- Centrally in a [platform](platforms.mdx#sec:sharing-dep-versions-between-projects) (recommended for multi-project builds) using the `java-platform` plugin:
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/declaring-dependencies/recommender/kotlin/platform" files="build.gradle.kts[tags=full-platform]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/declaring-dependencies/recommender/groovy/platform" files="build.gradle[tags=full-platform]" */}
+
+You cannot declare constraints in [version catalogs](version_catalogs.mdx#version-catalog).
+
+## Declaring constraints alongside direct dependencies
+
+Constraints are [scoped by **bucket configurations**](dependency_configurations.mdx#sub:what-are-dependency-configurations) (e.g., `implementation`, `runtimeOnly`).
+They apply whenever that dependency is encountered during resolution.
+
+The `constraints {}` block is used within the `dependencies {}` block to declare these constraints:
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/declaring-dependencies/quickstart/kotlin" files="build.gradle.kts[tags=use-plugin,constraints]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/declaring-dependencies/quickstart/groovy" files="build.gradle[tags=use-plugin,constraints]" */}
+
+1. `api("commons-httpclient:commons-httpclient:3.1")`: ensures ≥ 3.1 for `api`.
+2. `runtime("org.postgresql:postgresql:42.2.5")`: ensures ≥ 42.2.5 for `runtime`.
+
+If multiple requirements exist, Gradle picks a version that satisfies all.
+If none exists, resolution **fails** with an error describing the conflict.
+
+## Adding constraints on transitive dependencies
+
+Use constraints to select transitive modules **without** introducing them as direct dependencies:
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/declaring-dependencies/managingTransitiveDependencies-versionsWithConstraints/kotlin" files="build.gradle.kts[tags=dependency-constraints]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/declaring-dependencies/managingTransitiveDependencies-versionsWithConstraints/groovy" files="build.gradle[tags=dependency-constraints]" */}
+
+If `commons-codec` isn’t brought in transitively, the constraint is a no-op (it doesn’t add the module).
+If it is brought in, the constraint guides the version selection.
+
+## Rich versions and strict versions for constraints
+
+You can attach [**rich versions**](dependency_versions.mdx#sec:rich-version-constraints) to constraints:
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/declaring-dependencies/managingTransitiveDependencies-versionsWithConstraints/kotlin" files="build.gradle.kts[tags=dependency-strictly]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/declaring-dependencies/managingTransitiveDependencies-versionsWithConstraints/groovy" files="build.gradle[tags=dependency-strictly]" */}
+
+## Transitivity of constraints
+
+Dependency constraints are transitive.
+
+If `library A` depends on `library B`, and `library B` declares a constraint on `module C`, that constraint will affect the version of `module C` that `library A` depends on.
+
+For example, if `library A` depends on `module C version 2`, but `library B` declares a constraint on `module C version 3`, `library A` will resolve `module C version 3`.
+
+## Publishing constraints
+
+Dependency constraints are only published when using [Gradle Module Metadata](publishing_gradle_module_metadata.mdx#sec:understanding-gradle-module-md).
+This means they are fully supported only when both publishing and consuming modules with Gradle.
+
+If modules are consumed with Maven or Ivy, the constraints may not be preserved.

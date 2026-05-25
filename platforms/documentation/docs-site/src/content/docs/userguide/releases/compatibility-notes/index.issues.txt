@@ -1,0 +1,12 @@
+[
+  {
+    "startLine": 30,
+    "endLine": 30,
+    "problem": "Link to building_java_projects.adoc#sec:java_cross_compilation was kept as an external docs.gradle.org URL because the target page (id: building-java-jvm-projects) has not been migrated yet. Update to a local link once that page is migrated."
+  },
+  {
+    "startLine": 35,
+    "endLine": 35,
+    "problem": "Link to toolchains#toolchains was kept as an external docs.gradle.org URL because the target page (id: toolchains-for-jvm-projects) has not been migrated yet. Update to a local link once that page is migrated."
+  }
+]

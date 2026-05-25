@@ -1,0 +1,8 @@
+// setting convention when registering a task from plugin
+class GreetingPlugin implements Plugin<Project> {
+    void apply(Project project) {
+        project.getTasks().register("hello", GreetingTask) {
+            greeter.convention("Greeter")
+        }
+    }
+}

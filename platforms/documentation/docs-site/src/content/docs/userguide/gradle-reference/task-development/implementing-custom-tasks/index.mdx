@@ -1,0 +1,439 @@
+---
+title: "Implementing Custom Tasks"
+---
+
+Actionable tasks describe work in Gradle.
+These tasks have actions.
+In Gradle core, the `compileJava` task compiles the Java source code.
+The `Jar` and `Zip` tasks zip files into archives.
+
+{/* converter-gap: node=image */}
+
+Custom actionable tasks can be created by extending the `DefaultTask` class and defining inputs, outputs, and actions.
+
+## Task inputs and outputs
+
+Actionable tasks have inputs and outputs.
+Inputs and outputs can be files, directories, or variables.
+
+In actionable tasks:
+
+- {/* converter-gap: node=inline_break */}
+For instance, the `javaCompile` task takes inputs such as Java source files and build script configurations like the Java version.
+- {/* converter-gap: node=inline_break */}
+For instance, the `javaCompile` produces class files as output.
+
+Then, the `jar` task takes these class files as input and produces a JAR archive.
+
+Clearly defined task inputs and outputs serve two purposes:
+
+1. {/* converter-gap: node=inline_break */}
+For example, if Gradle understands that the output of the `compileJava` task serves as the input for the `jar` task, it will prioritize running `compileJava` first.
+2. {/* converter-gap: node=inline_break */}
+For example, suppose Gradle recognizes that the inputs and outputs of a task remain unchanged. In that case, it can leverage results from previous build runs or the build cache, avoiding rerunning the task action altogether.
+
+When you apply a plugin like the `java-library` plugin, Gradle will automatically register some tasks and configure them with defaults.
+
+Let&#8217;s define a task that packages JARs and a start script into an archive in an imaginary sample project:
+
+{/* converter-gap: unexpected expanded multi-language-sample */}
+
+{/* converter-gap: unexpected expanded multi-language-sample */}
+
+The `run.sh` script can execute the Java app (once packaged as a JAR) from the build:
+
+```bash
+java -cp 'libs/*' gradle.project.app.App
+```
+
+Let&#8217;s register a new task called `packageApp` using [`task.register()`]({javadocPath}/org/gradle/api/tasks/TaskContainer.html#register-java.lang.String-java.lang.Class-):
+
+{/* converter-gap: unexpected expanded multi-language-sample */}
+
+{/* converter-gap: unexpected expanded multi-language-sample */}
+
+We used an existing implementation from Gradle core which is the [`Zip`]({javadocPath}/org/gradle/api/tasks/bundling/Zip.html) task implementation (i.e., a subclass of [`DefaultTask`]({javadocPath}/org/gradle/api/DefaultTask.html)).
+Because we register a new task here, it&#8217;s not pre-configured.
+We need to configure the inputs and outputs.
+
+Defining inputs and outputs is what makes a task an actionable task.
+
+For the [`Zip`]({javadocPath}/org/gradle/api/tasks/bundling/Zip.html) task type, we can use the [`from()`]({javadocPath}/org/gradle/api/tasks/AbstractCopyTask.html#from-java.lang.Object&#8230;&#8203;-) method to add a file to the inputs.
+In our case, we add the run script.
+
+If the input is a file we create or edit directly, like a run file or Java source code, it&#8217;s usually located somewhere in our project directory.
+To ensure we use the correct location, we use [`layout.projectDirectory`]({javadocPath}/org/gradle/api/file/ProjectLayout.html#getProjectDirectory--) and define a relative path to the project directory root.
+
+We provide the outputs of the `jar` task as well as the JAR of all the dependencies (using [`configurations`]({javadocPath}/org/gradle/api/Project.html#getConfigurations--)[`.runtimeClasspath`]({javadocPath}/org/gradle/api/tasks/SourceSet.html#getRuntimeClasspath--)) as additional inputs.
+
+For outputs, we need to define two properties.
+
+First, the destination directory, which should be a directory inside the build folder.
+We can access this through [`layout`]({javadocPath}/org/gradle/api/file/ProjectLayout.html).
+
+Second, we need to specify a name for the zip file, which we&#8217;ve called `myApplication.zip`
+
+Here is what the complete task looks like:
+
+{/* converter-gap: unexpected expanded multi-language-sample */}
+
+{/* converter-gap: unexpected expanded multi-language-sample */}
+
+If we run our `packageApp` task, `myApplication.zip` is produced:
+
+```bash
+$ ./gradlew :app:packageApp
+```
+
+```text
+> Task :app:compileJava
+> Task :app:processResources NO-SOURCE
+> Task :app:classes
+> Task :app:jar
+> Task :app:packageApp
+
+BUILD SUCCESSFUL in 1s
+3 actionable tasks: 3 executed
+```
+
+Gradle executed a number of tasks it required to build the JAR file, which included the compilation of the code of the `app` project and the compilation of code dependencies.
+
+Looking at the newly created ZIP file, we can see that it contains everything needed to run the Java application:
+
+```bash
+$ unzip -l ./app/build/dist/myApplication.zip
+```
+
+```text
+Archive:  ./app/build/dist/myApplication.zip
+  Length      Date    Time    Name
+---------  ---------- -----   ----
+       42  01-31-2024 14:16   run.sh
+        0  01-31-2024 14:22   libs/
+      847  01-31-2024 14:22   libs/app.jar
+  3041591  01-29-2024 14:20   libs/guava-32.1.2-jre.jar
+     4617  01-29-2024 14:15   libs/failureaccess-1.0.1.jar
+     2199  01-29-2024 14:15   libs/listenablefuture-9999.0-empty-to-avoid-conflict-with-guava.jar
+    19936  01-29-2024 14:15   libs/jsr305-3.0.2.jar
+   223979  01-31-2024 14:16   libs/checker-qual-3.33.0.jar
+    16017  01-31-2024 14:16   libs/error_prone_annotations-2.18.0.jar
+---------                     -------
+  3309228                     9 files
+```
+
+Actionable tasks should be wired to lifecycle tasks so that a developer only needs to run lifecycle tasks.
+
+So far, we called our new task directly.
+Let&#8217;s wire it to a lifecycle task.
+
+The following is added to the build script so that the `packageApp` actionable task is wired to the `build` lifecycle task using [`dependsOn()`]({javadocPath}/org/gradle/api/DefaultTask.html#dependsOn-java.lang.Object&#8230;&#8203;-):
+
+{/* converter-gap: unexpected expanded multi-language-sample */}
+
+{/* converter-gap: unexpected expanded multi-language-sample */}
+
+We see that running `:build` also runs `:packageApp`:
+
+```bash
+$ ./gradlew :app:build
+```
+
+```text
+> Task :app:compileJava UP-TO-DATE
+> Task :app:processResources NO-SOURCE
+> Task :app:classes UP-TO-DATE
+> Task :app:jar UP-TO-DATE
+> Task :app:startScripts
+> Task :app:distTar
+> Task :app:distZip
+> Task :app:assemble
+> Task :app:compileTestJava
+> Task :app:processTestResources NO-SOURCE
+> Task :app:testClasses
+> Task :app:test
+> Task :app:check
+> Task :app:packageApp
+> Task :app:build
+
+BUILD SUCCESSFUL in 1s
+8 actionable tasks: 6 executed, 2 up-to-date
+```
+
+You could define your own lifecycle task if needed.
+
+## Task implementation by extending `DefaultTask`
+
+To address more individual needs, and if no existing plugins provide the build functionality you need, you can create your own task implementation.
+
+Implementing a class means creating a custom class (i.e., _type_), which is done by subclassing [`DefaultTask`]({javadocPath}/org/gradle/api/DefaultTask.html)
+
+Let&#8217;s start with an example built by Gradle `init` for a simple Java application with the source code in the `app` subproject and the common build logic in `buildSrc`:
+
+{/* converter-gap: unexpected expanded multi-language-sample */}
+
+{/* converter-gap: unexpected expanded multi-language-sample */}
+
+We create a class called `GenerateReportTask` in `./buildSrc/src/main/kotlin/GenerateReportTask.kt` or `./buildSrc/src/main/groovy/GenerateReportTask.groovy`.
+
+To let Gradle know that we are implementing a task, we extend the `DefaultTask` class that comes with Gradle.
+It&#8217;s also beneficial to make our task class `abstract` because Gradle will handle many things automatically:
+
+{/* converter-gap: unexpected expanded multi-language-sample */}
+
+{/* converter-gap: unexpected expanded multi-language-sample */}
+
+Next, we define the inputs and outputs using properties and annotations.
+In this context, properties in Gradle act as references to the actual values behind them, allowing Gradle to track inputs and outputs between tasks.
+
+For the input of our task, we use a `DirectoryProperty` from Gradle.
+We annotate it with `@InputDirectory` to indicate that it is an input to the task:
+
+{/* converter-gap: unexpected expanded multi-language-sample */}
+
+{/* converter-gap: unexpected expanded multi-language-sample */}
+
+Similarly, for the output, we use a `RegularFileProperty` and annotate it with `@OutputFile`.
+
+{/* converter-gap: unexpected expanded multi-language-sample */}
+
+{/* converter-gap: unexpected expanded multi-language-sample */}
+
+With inputs and outputs defined, the only thing that remains is the actual task action, which is implemented in a method annotated with `@TaskAction`.
+Inside this method, we write code accessing inputs and outputs using Gradle-specific APIs:
+
+{/* converter-gap: unexpected expanded multi-language-sample */}
+
+{/* converter-gap: unexpected expanded multi-language-sample */}
+
+The task action generates a report of the files in the `sourceDirectory`.
+
+In the application build file, we register a task of type `GenerateReportTask` using `task.register()` and name it `generateReport`.
+At the same time, we configure the inputs and outputs of the task:
+
+{/* converter-gap: unexpected expanded multi-language-sample */}
+
+{/* converter-gap: unexpected expanded multi-language-sample */}
+
+The `generateReport` task is wired to the `build` task.
+
+By running the build, we observe that our start script generation task is executed, and it&#8217;s `UP-TO-DATE` in subsequent builds.
+Gradle&#8217;s incremental building and caching mechanisms work seamlessly with custom tasks:
+
+```bash
+$./gradlew :app:build
+```
+
+```text
+> Task :buildSrc:checkKotlinGradlePluginConfigurationErrors
+> Task :buildSrc:compileKotlin UP-TO-DATE
+> Task :buildSrc:compileJava NO-SOURCE
+> Task :buildSrc:compileGroovy NO-SOURCE
+> Task :buildSrc:pluginDescriptors UP-TO-DATE
+> Task :buildSrc:processResources NO-SOURCE
+> Task :buildSrc:classes UP-TO-DATE
+> Task :buildSrc:jar UP-TO-DATE
+> Task :app:compileJava UP-TO-DATE
+> Task :app:processResources NO-SOURCE
+> Task :app:classes UP-TO-DATE
+> Task :app:jar UP-TO-DATE
+> Task :app:startScripts UP-TO-DATE
+> Task :app:distTar UP-TO-DATE
+> Task :app:distZip UP-TO-DATE
+> Task :app:assemble UP-TO-DATE
+> Task :app:compileTestJava UP-TO-DATE
+> Task :app:processTestResources NO-SOURCE
+> Task :app:testClasses UP-TO-DATE
+> Task :app:test UP-TO-DATE
+> Task :app:check UP-TO-DATE
+
+> Task :app:generateReport
+Report generated at: ./app/build/reports/directoryReport.txt
+
+> Task :app:packageApp
+> Task :app:build
+
+BUILD SUCCESSFUL in 1s
+13 actionable tasks: 10 executed, 3 up-to-date
+```
+
+## Task actions
+
+A task action is the code that implements what a task is doing, as demonstrated in the previous section.
+For example, the `javaCompile` task action calls the Java compiler to transform source code into byte code.
+
+It is possible to dynamically modify task actions for tasks that are already registered.
+This is helpful for testing, patching, or modifying core build logic.
+
+Let&#8217;s look at an example of a simple Gradle build with one `app` subproject that makes up a Java application – containing one Java class and using Gradle&#8217;s `application` plugin.
+The project has common build logic in the `buildSrc` folder where `my-convention-plugin` resides:
+
+{/* converter-gap: unexpected expanded multi-language-sample */}
+
+{/* converter-gap: unexpected expanded multi-language-sample */}
+
+We define a task called `printVersion` in the build file of the `app`:
+
+{/* converter-gap: unexpected expanded multi-language-sample */}
+
+{/* converter-gap: unexpected expanded multi-language-sample */}
+
+This task does one simple thing: it prints out the version of the project to the command line.
+
+The class extends `DefaultTask` and it has one `@Input`, which is of type `Property&lt;String&gt;`.
+It has one method that is annotated with `@TaskAction`, which prints out the version.
+
+Note that the task implementation clearly distinguishes between "Configuration code" and "Execution code".
+
+The configuration code is executed during Gradle&#8217;s configuration phase.
+It builds up a model of the project in memory so that Gradle knows what it needs to do for a certain build invocation.
+Everything around the task actions, like the input or output properties, is part of this configuration code.
+
+The code inside the task action method is the execution code that does the actual work.
+It accesses the inputs and outputs to do some work if the task is part of the task graph and if it can&#8217;t be skipped because it&#8217;s UP-TO-DATE or it&#8217;s taken FROM-CACHE.
+
+Once a task implementation is complete, it can be used in a build setup.
+In our convention plugin, `my-convention-plugin`, we can register a new task that uses the new task implementation:
+
+{/* converter-gap: unexpected expanded multi-language-sample */}
+
+{/* converter-gap: unexpected expanded multi-language-sample */}
+
+Inside the configuration block for the task, we can write configuration phase code which modifies the values of input and output properties of the task.
+The task action is not referred to here in any way.
+
+It is possible to write simple tasks like this one in a more compact way and directly in the build script without creating a separate class for the task.
+
+Let&#8217;s register another task and call it `printVersionDynamic`.
+
+This time, we do not define a type for the task, which means the task will be of the general type `DefaultTask`.
+This general type does not define any task actions, meaning it does not have methods annotated with `@TaskAction`.
+This type is useful for defining 'lifecycle tasks':
+
+{/* converter-gap: unexpected expanded multi-language-sample */}
+
+{/* converter-gap: unexpected expanded multi-language-sample */}
+
+However, the default task type can also be used to define tasks with custom actions dynamically, without additional classes.
+This is done by using the `doFirst{}` or `doLast{}` construct.
+Similar to defining a method and annotating this `@TaskAction`, this adds an action to a task.
+
+The methods are called `doFirst{}` and `doLast{}` because the task can have multiple actions.
+If the task already has an action defined, you can use this distinction to decide if your additional action should run before or after the existing actions:
+
+{/* converter-gap: unexpected expanded multi-language-sample */}
+
+{/* converter-gap: unexpected expanded multi-language-sample */}
+
+If you only have one action, which is the case here because we start with an empty task, we typically use the `doLast{}` method.
+
+In the task, we first declare the version we want to print as an input dynamically.
+Instead of declaring a property and annotating it with `@Input`, we use the general inputs properties that all tasks have.
+Then, we add the action code, a `println()` statement, inside the `doLast{}` method:
+
+{/* converter-gap: unexpected expanded multi-language-sample */}
+
+{/* converter-gap: unexpected expanded multi-language-sample */}
+
+We saw two alternative approaches to implementing a custom task in Gradle.
+
+The dynamic setup makes it more compact.
+However, it&#8217;s easy to mix configuration and execution time states when writing dynamic tasks.
+You can also see that 'inputs' are untyped in dynamic tasks, which can lead to issues.
+When you implement your custom task as a class, you can clearly define the inputs as properties with a dedicated type.
+
+Dynamic modification of task actions can provide value for tasks that are already registered, but which you need to modify for some reason.
+
+Let&#8217;s take the `compileJava` task as an example.
+
+Once the task is registered, you can&#8217;t remove it.
+You could, instead, clear its actions:
+
+{/* converter-gap: unexpected expanded multi-language-sample */}
+
+{/* converter-gap: unexpected expanded multi-language-sample */}
+
+It&#8217;s also difficult, and in certain cases impossible, to remove certain task dependencies that have been set up already by the plugins you are using.
+You could, instead, modify its behavior:
+
+{/* converter-gap: unexpected expanded multi-language-sample */}
+
+{/* converter-gap: unexpected expanded multi-language-sample */}
+
+## Understanding inputs and outputs
+
+Task inputs and outputs are important for:
+
+1. **Up-to-date checks** - Gradle’s incremental build feature helps your build avoid doing the same work more than once by looking at changes for task inputs and outputs.
+2. **Linking task inputs and outputs** - When outputs of one task are linked to the inputs of another, Gradle can automatically create task dependencies.
+3. **Using dependency configurations** - Task outputs can be used to tell Gradle that an artifact produced by a task should be added to a specific configuration.
+
+## Declaring inputs and outputs
+
+You can configure the inputs and outputs of a task in two main ways:
+
+1. ***Static Configuration:*** Define inputs and outputs directly inside the task class. These inputs and outputs will always apply to the task whenever it is executed.
+2. ***Dynamic Configuration:*** Add inputs and outputs to a task dynamically, meaning you can customize the inputs and outputs for each execution of the task based on specific conditions or requirements. This approach allows for more flexibility and fine-grained control over the task&#8217;s behavior.
+
+{/* converter-gap: unexpected expanded multi-language-sample */}
+
+{/* converter-gap: unexpected expanded multi-language-sample */}
+
+## Creating lazy inputs and outputs
+
+Gradle has the concept of lazy configuration, which allows task inputs and outputs to be referenced before they’re actually set.
+This is done via a `Property` class type.
+
+{/* converter-gap: unexpected expanded multi-language-sample */}
+
+{/* converter-gap: unexpected expanded multi-language-sample */}
+
+One advantage of this mechanism is that you can link the output file of one task to the input file of another, all before the filename has even been decided.
+The `Property` class also knows about which task it’s linked to, so using inputs and outputs in this way enables Gradle to automatically add the required task dependency.
+
+{/* converter-gap: node=image */}
+
+To ensure proper lazy configuration, you should avoid using Java Bean types.
+Let’s explore the common options for what Gradle lazy types can be declared as task inputs and outputs:
+
+{/* converter-gap: node=table */}
+
+Notes:
+
+- Strings are only supported for task inputs, not outputs. These are normally used for configuration options e.g. `sourceCompatibility` of the `compileJava` task type.
+- Task outputs can only be files or directories.
+- Instead of `String`, `Boolean`, `String` and other standard types, use `Property&lt;T&gt;`.
+- Instead of `List&lt;T&gt;`, use `ListProperty&lt;T&gt;`.
+- Instead of `Set&lt;T&gt;`, use `SetProperty&lt;T&gt;`.
+
+:::caution
+Avoid using `FileTree` when order matters — it has no guaranteed, stable file order and may cause unpredictable behavior.
+:::
+
+## Annotating inputs and outputs
+
+A good practice is to create a task class for your custom task.
+The class encapsulates the task action logic, but should also declare any inputs and outputs the task expects.
+To do this, we use annotations.
+
+For task inputs we can use `@Input`, `@InputFile`, `@InputDirectory`, `@InputFiles`, `@Classpath`, and `@CompileClasspath`.
+For task outputs we have `@OutputFile`, `@OutputDirectory`, `@OutputFiles`, `@OutputDirectories`.
+
+Here are all available annotations in detail:
+
+{/* converter-gap: node=table */}
+
+Note that in Kotlin the annotations are prefixed with `get:`, so `@InputFile` becomes `@get:InputFile`.
+
+{/* converter-gap: unexpected expanded multi-language-sample */}
+
+{/* converter-gap: unexpected expanded multi-language-sample */}
+
+## Extending existing tasks
+
+Sometimes writing tasks from scratch is not what&#8217;s needed.
+Maybe you need a slightly modified version of an existing task, without altering or even having access to that task&#8217;s sources.
+For example, a `Copy` task with some additional inputs.
+
+In those cases you can write new tasks that extend the functionality of other tasks, either via inheritance (new task type extends existing one) or delegation (composition).
+
+Take a look at [this section of the manual](build_cache.mdx#sec:using_annotations_to_enable_task_caching) (dealing with the cacheability of task inputs and outputs) for further information on what option there are for using delegation in the case of Gradle&#8217;s built-in tasks.

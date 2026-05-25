@@ -1,0 +1,396 @@
+---
+title: "Graph Resolution"
+---
+
+During the _graph resolution_ phase, Gradle constructs a **resolved dependency graph**, which models the relationships between different components and their variants.
+
+## Modules
+
+Graph resolution begins with **dependencies** declared in the build script:
+
+```kotlin
+dependencies {
+    implementation("com.fasterxml.jackson.core:jackson-databind:2.17.2")
+}
+```
+
+In the [Learning the Basics section](declaring_dependencies.mdx#one-declaring-dependencies), we learned that a ***module*** is a published unit of work (like a library or application), while a ***dependency*** is a reference to a **module** required for a project to compile or run.
+
+In the example above, the **module** is [`com.fasterxml.jackson.core:jackson-databind`](https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-databind).
+
+## Components
+
+Each version of a **module** is referred to as a **component**.
+
+In the example above for the [`com.fasterxml.jackson.core:jackson-databind:2.17.2`](https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-databind/2.17.2) **module**, `2.17.2` is the version.
+
+## Metadata
+
+A **component** is detailed by **metadata**, which is available in the repository where the **component** is hosted as a `ivy`, `pom`, or [`GMM`](https://repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-databind/2.17.2/jackson-databind-2.17.2.module) metadata.
+
+Here’s a condensed sample of the **metadata** for [`com.fasterxml.jackson.core:jackson-databind:2.17.2`](https://repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-databind/2.17.2/jackson-databind-2.17.2.module):
+
+```json
+{
+  "formatVersion": "1.1",
+  "component": {
+    "group": "com.fasterxml.jackson.core",
+    "module": "jackson-databind",
+    "version": "2.17.2"
+  },
+  "variants": [
+    {
+      "name": "apiElements",
+      ...
+    },
+    {
+      "name": "runtimeElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-runtime"
+      },
+      "dependencies": [
+        {
+          "group": "com.fasterxml.jackson.core",
+          "module": "jackson-annotations",
+          "version": {
+            "requires": "2.17.2"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "jackson-databind-2.17.2.jar"
+        }
+      ]
+    }
+  ]
+}
+```
+
+Some items in the file should be familiar to you such as "files", "dependencies", "components", "module" and "version".
+Let&#8217;s focus on the **variants** provided in the **metadata**.
+
+## Variants
+
+A **variant** is a specific variation of a **component** tailored for a particular use case or environment.
+
+**Variants** allow you to provide different definitions of your **component** depending on the context in which it’s used.
+
+As detailed above, the **metadata** of the `com.fasterxml.jackson.core:jackson-databind:2.17.2` **component** offers two **variants**:
+
+- The `apiElements` **variant** includes dependencies required for compiling projects against Jackson Databind.
+- The `runtimeElements` **variant** includes dependencies required for executing Jackson Databind during runtime.
+
+{/* converter-gap: node=table */}
+
+Each **variant** consists of a set of **artifacts** and defines a set of **dependencies** (i.e. seen as transitive dependencies of the build):
+
+- The `runtimeElements` **variant** of `com.fasterxml.jackson.core:jackson-databind:2.17.2`:
+
+To differentiate between the `apiElements` and `runtimeElements` variants, Gradle uses **attributes**.
+
+## Attributes
+
+To differentiate between **variants**, Gradle uses **attributes**.
+
+**Attributes** are used to define specific characteristics or properties of **variants** and the context in which those **variants** should be used.
+
+In the **metadata** for Jackson Databind, we see that the `runtimeElements` **variant** is described by the `org.gradle.category`, `org.gradle.dependency.bundling`, `org.gradle.libraryelement`, and `org.gradle.usage` **attributes**:
+
+```json
+{
+  "variants": [
+    {
+      "name": "runtimeElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-runtime"
+      }
+    }
+  ]
+}
+```
+
+**Attributes** are defined as `key:value` pairs, such as `org.gradle.category": "library"`.
+
+Now that we understand the building blocks for dependency management, let&#8217;s look into graph resolution.
+
+## Dependency Graph
+
+Gradle builds a dependency graph that represents a configuration&#8217;s **dependencies** and their relationships.
+This graph includes both direct and transitive **dependencies**.
+
+The graph is made up of _nodes_ where each _node_ represents a **variant**.
+These _nodes_ are connected by edges, representing the dependencies between **variants**.
+The edges indicate how one **variant** relies on another.
+
+The `dependencies` task can be used to _partially_ visualize the structure of a dependency graph:
+
+```bash
+$ ./gradlew app:dependencies
+```
+
+```text
+...
+runtimeClasspath - Runtime classpath of source set 'main'.
+\--- com.fasterxml.jackson.core:jackson-databind:2.17.2
+     +--- com.fasterxml.jackson.core:jackson-annotations:2.17.2
+     |    \--- com.fasterxml.jackson:jackson-bom:2.17.2
+     |         +--- com.fasterxml.jackson.core:jackson-annotations:2.17.2
+     |         +--- com.fasterxml.jackson.core:jackson-core:2.17.2
+     |         \--- com.fasterxml.jackson.core:jackson-databind:2.17.2
+     +--- com.fasterxml.jackson.core:jackson-core:2.17.2
+     |    \--- com.fasterxml.jackson:jackson-bom:2.17.2
+     \--- com.fasterxml.jackson:jackson-bom:2.17.2
+```
+
+In this truncated output, `runtimeClasspath` represents the specific resolvable configurations in the project.
+
+**Each resolvable configuration calculates a separate dependency graph.**
+That&#8217;s because different configurations can resolve to a different set of transitive dependencies for the same set of declared dependencies.
+
+In the example above, the resolvable configuration, `compileClasspath` could resolve a different set of dependencies and produce a very different graph than `runtimeClasspath`.
+
+So how does Gradle build the dependency graph?
+
+## Graph Resolution Flow
+
+Graph resolution operates on a _node-by-node_ (i.e., **variant**-by-**variant**) basis.
+
+Each iteration of the loop processes one _node_ at a time, starting by de-queuing a _node_.
+
+In the beginning, the queue is empty.
+When the process starts, a _root node_ added to the queue.
+The _root node_ is effectively the resolvable configuration:
+
+{/* converter-gap: node=image */}
+
+Gradle starts the loop by pulling the _root node_ from the queue.
+Gradle examines the **dependencies** of the _root node_, resolves their conflicts, and downloads their **metadata**.
+Based on their **metadata**, Gradle selects **variants** of those dependencies and adds them back to the queue.
+
+:::note
+The _root_ **variant&#8217;s** dependencies correspond to the declared **dependencies** of the resolvable configuration.
+:::
+
+At this point, the queue contains all selected **variants** for the _root node&#8217;s_ **dependencies**, which will now be processed one by one.
+
+For each node in the loop Gradle:
+
+1. Evaluates its **dependencies**.
+2. Determines their targeted versions using [conflict resolution](#sec:conflict-resolution).
+3. [Downloads the **metadata**](#sec:how-gradle-downloads-deps) for all **components** at once.
+4. [Select **variants**](#sec:variant-selection) for each of those **components**.
+5. Adds the **variants** to the top-level queue.
+
+The loop is repeated until the node queue is empty.
+Once the process is complete, the [dependency graph is resolved](#sec:resolved-dep-graph).
+
+:::tip
+Graph resolution alternates between parallel metadata downloads and single-threaded logic, repeating this pattern over and over again for a single graph.
+:::
+
+## Conflict Resolution
+
+When performing dependency resolution, Gradle handles two types of conflicts:
+
+1. ***Version conflicts***: Which occur when multiple dependencies request the same dependency but with different versions.
+Gradle must choose which version to include in the graph.
+2. ***Implementation / Capability conflicts***: Which occur when the dependency graph contains different modules that provide the same functionality or _capability_.
+Gradle resolves these by selecting one module to avoid duplicate implementations.
+
+The dependency resolution process is highly customizable and many APIs can influence the process.
+
+### A. Version conflicts
+
+A version conflict can occur when two components:
+
+- Depend on the same module, such as `com.google.guava:guava`
+- But on different versions, for example, `20.0` and `25.1-android`:
+
+Gradle must resolve this conflict by selecting one version to include in the dependency graph.
+
+Gradle considers all requested versions across the dependency graph and, by default, selects the _highest_ version.
+Detailed version ordering is explained in [version ordering](dependency_versions.mdx#sec:version-ordering).
+
+Gradle also supports the concept of [rich version declarations](dependency_versions.mdx#sec:rich-version-constraints), which means that what constitutes the "highest" version depends on how the versions were declared:
+
+- ***Without ranges***: The highest non-rejected version will be selected.
+- ***With ranges***:
+
+For version ranges, Gradle needs to perform intermediate metadata lookups to determine what variations are available, as explained in [#sec:how-gradle-downloads-deps](#sec:how-gradle-downloads-deps).
+
+#### Versions with qualifiers
+
+The term "qualifier" refers to the portion of a version string that comes after a non-dot separator, like a hyphen or underscore.
+
+For example:
+
+{/* converter-gap: node=table */}
+
+As you can see separators are any of the `.`, `-`, `_`, `+` characters, plus the empty string when a numeric and a non-numeric part of the version are next to each-other.
+
+By default, Gradle gives preference to versions without qualifiers when resolving conflicts.
+
+For example, in version `1.0-beta`, the base form is `1.0`, and `beta` is the qualifier.
+Versions without qualifiers are considered more stable, so Gradle will prioritize them.
+
+Here are a few examples to clarify:
+
+- `1.0.0` (no qualifier)
+- `1.0.0-beta` (qualifier: `beta`)
+- `2.1-rc1` (qualifier: `rc1`)
+
+Even if the qualifier is lexicographically higher, Gradle will typically consider a version like `1.0.0` higher than `1.0.0-beta`.
+
+When resolving conflicts between versions, Gradle applies the following logic:
+
+1. ***Base version comparison:*** Gradle first selects versions with the highest base version, ignoring any qualifiers.
+All others are discarded.
+2. ***Qualifier handling:*** If there are still multiple versions with the same base version, Gradle picks one with a preference for versions without qualifiers (i.e., release versions).
+If all versions have qualifiers, Gradle will consider the qualifier&#8217;s order, preferring more stable ones like "release" over others such as "beta" or "alpha."
+
+### B. Implementation / Capability conflicts
+
+[Conflicts](component_capabilities.mdx#sec:selecting-between-candidates) arise in the following scenarios:
+
+- ***Incompatible variants***: When two modules attempt to select different, incompatible variants of a dependency.
+- ***Same capability***: When multiple modules declare the same [capability](component_capabilities.mdx#capabilities), creating an overlap in functionality.
+
+This type of conflict is resolved during [Variant Selection](#sec:variant-selection) described below.
+
+## Metadata Retrieval
+
+Gradle requires module metadata in the dependency graph for two reasons:
+
+1. ***Determining existing versions for dynamic dependencies***: When a dynamic version (like `1.+` or `latest.release`) is specified, Gradle must identify the concrete versions available.
+2. ***Resolving module dependencies for a specific version***: Gradle retrieves the dependencies associated with a module based on the specified version, ensuring the correct transitive dependencies are included in the build.
+
+### A. Determining existing versions for dynamic dependencies
+
+When faced with a dynamic version, Gradle must identify the available concrete versions.
+To do that, Gradle checks each defined repository in the order they were added.
+It doesn&#8217;t stop at the first one that returns metadata but continues through all available repositories.
+
+For ***Maven repositories***, Gradle retrieves version information from the `maven-metadata.xml` file, which lists available versions.
+
+For ***Ivy repositories***, Gradle resorts to a directory listing to gather available versions.
+
+The result is a list of candidate versions that Gradle evaluates and matches to the dynamic version.
+Gradle [caches](dependency_caching.mdx#sec:controlling-dynamic-version-caching) this information to optimize future resolution.
+At this point, [version conflict resolution](#sec:resolution-strategy) is resumed.
+
+### B. Resolving module dependencies for a specific version
+
+When Gradle tries to resolve a required dependency with a specific version, it follows this process:
+
+1. ***Repository inspection***: Gradle checks each repository in the order they are defined.
+2. ***Retrieving and parsing metadata***: If metadata is found, it is parsed.
+3. ***Requesting artifacts***: All artifacts for the module are fetched from the same repository that provided the metadata.
+4. ***Caching***: All data, including the repository source and any potential misses, are stored in the [dependency cache](dependency_caching.mdx#sec:controlling-dynamic-version-caching) for future use.
+
+:::note
+The point above highlights a potential issue with integrating [Maven Local](supported_repository_types.mdx#sec:case-for-maven-local). Since Maven Local acts as a Maven cache, it may occasionally miss artifacts for a module. When Gradle sources a module from Maven Local and artifacts are missing, it assumes those artifacts are entirely unavailable.
+:::
+
+### Repository disabling
+
+When Gradle fails to retrieve information from a repository after multiple retries or specific fatal errors, the repository will no longer be checked for the remainder of the build.
+This will usually fail dependency resolution because Gradle will not continue to the next repository in the list unless told otherwise.
+
+This behavior ensures reproducibility.
+
+If the build were to continue while ignoring the faulty repository, subsequent builds could produce different results once the repository is back online.
+
+Reasons for disabling a repository include:
+
+- [Unknown host](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/net/UnknownHostException.html) errors
+- Reaching max retry attempts on transient connection failures, [like a server failing to respond](https://hc.apache.org/httpclient-legacy/exception-handling.html#org_apache_commons_httpclient_NoHttpResponseException)
+- Getting [HTTP 5xx responses](https://en.wikipedia.org/wiki/List_of_HTTP_status_codes#5xx_server_error) from the server
+
+If your build setup relies on a repository that may be temporarily unavailable, see [`UrlArtifactRepository.getAllowInsecureContinueWhenDisabled()`]({javadocPath}/org/gradle/api/artifacts/repositories/UrlArtifactRepository.html#getAllowInsecureContinueWhenDisabled()) to allow Gradle to continue using other repositories even when that one encounters issues.
+
+#### HTTP Retries
+
+Gradle will attempt to connect to a repository multiple times before disabling it.
+If the connection fails, Gradle retries on specific errors that might be temporary, with increasing wait times between retries.
+
+A repository is marked as unavailable when it cannot be reached, either due to a permanent error or after the maximum number of retries has been exhausted.
+
+## Variant Selection
+
+Based on the requirements of the build, Gradle selects one of the **variants** of the module present in the **metadata**.
+
+Specifically, Gradle attempts to match the **attributes** from the resolved configuration to those in the **module** **metadata**.
+
+Variant selection and attribute matching is fully described in the [next section](variant_aware_resolution.mdx#sec:understanding-variant-selection).
+
+## Available APIs
+
+The [`ResolutionResult`]({javadocPath}/org/gradle/api/artifacts/result/ResolutionResult.html) API provides access to the resolved dependency graph without triggering **artifact** downloads.
+
+The graph itself focuses on **component variants**, not the **artifacts** (files) associated with those **variants**:
+
+- [`ResolvedComponentResult`]({javadocPath}/org/gradle/api/artifacts/result/ResolvedComponentResult.html) - Represents a resolved **component** in the raw dependency graph.
+- [`ResolvedVariantResult`]({javadocPath}/org/gradle/api/artifacts/result/ResolvedVariantResult.html) - Represents a resolved **variant** of a **component** in the raw dependency graph.
+
+Raw access to the dependency graph can be useful for a number of use cases:
+
+- Visualizing the dependency graph, for example generating a `.dot` file for Graphviz.
+- Exposing [diagnostics](viewing_debugging_dependencies.mdx#viewing-debugging-dependencies) about a given resolution, similar to the `dependencies` or `dependencyInsight` tasks.
+- Resolving a subset of the artifacts for a dependency graph when used in conjunction with the `ArtifactView` API.
+
+Consider the following function that traverses a dependency graph, starting from the root node.
+Callbacks are notified for each node and edge in the graph.
+This function can be used as a base for any use case that requires traversing a dependency graph:
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/advanced/performingResolution-resolutionResult/kotlin" files="build.gradle.kts[tags=graph-traversal-function]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/advanced/performingResolution-resolutionResult/groovy" files="build.gradle[tags=graph-traversal-function]" */}
+
+This function starts at the root variant, and performs a breadth-first traversal of the graph.
+The `ResolutionResult` API is lenient, so it is important to check whether a visited edge is unresolved (failed) or resolved.
+With this function, the node callback is always called before the edge callback for any given node.
+
+Below, we leverage the above traversal function to transform a dependency graph into a `.dot` file for visualization:
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/advanced/performingResolution-resolutionResult/kotlin" files="build.gradle.kts[tags=define-graph-traversal-task]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/advanced/performingResolution-resolutionResult/groovy" files="build.gradle[tags=define-graph-traversal-task]" */}
+
+:::note
+A proper implementation would not use `println` but would write to an output file. For more details on declaring task inputs and outputs, see the [Writing Tasks](writing_tasks_intermediate.mdx#writing_tasks) section.
+:::
+
+When we register the task, we use the `ResolutionResult` API to access the root component and root variant of the `runtimeClasspath` configuration:
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/advanced/performingResolution-resolutionResult/kotlin" files="build.gradle.kts[tags=register-graph-traversal-task]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/advanced/performingResolution-resolutionResult/groovy" files="build.gradle[tags=register-graph-traversal-task]" */}
+
+:::note
+This example uses incubating APIs.
+:::
+
+Running this task, we get the following output:
+
+```text
+Unresolved directive in graph_resolution.adoc - include::{snippetsPath}/reference/dependency-management/advanced/performingResolution-resolutionResult/tests/dot.out[]
+```
+
+{/* converter-gap: node=image */}
+
+Compare this to the output of the `dependencies` task:
+
+```text
+Unresolved directive in graph_resolution.adoc - include::{snippetsPath}/reference/dependency-management/advanced/performingResolution-resolutionResult/tests/dependencies.out[]
+```
+
+Notice how the graph is the same for both representations, the only difference it the chosen **variant** information available in the dot graph.
+
+***Next Step:*** [Learn about Variant Selection and Attribute Matching](variant_aware_resolution.mdx#sec:understanding-variant-selection) &gt;&gt;

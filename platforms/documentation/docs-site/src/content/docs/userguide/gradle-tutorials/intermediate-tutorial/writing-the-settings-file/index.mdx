@@ -1,0 +1,54 @@
+---
+title: "Part 4: Writing the Settings File"
+---
+
+Learn the basics of authoring Gradle by developing the Settings File.
+
+{/* converter-gap: node=sidebar */}
+
+## Step 0. Before you Begin
+
+1. You initialized your Java app in [part 1](part1_gradle_init_project.mdx#part1_begin).
+2. You understand the Gradle Build Lifecycle from [part 2](part2_build_lifecycle.mdx#part2_begin).
+3. You added a subproject and a separate Build in [part3](part3_multi_project_builds.mdx#part3_begin).
+
+## Step 1. Gradle scripts
+
+Build scripts and setting files are code.
+They are written in Kotlin or Groovy.
+
+You use the [Kotlin DSL]({kotlinDslPath}), [Groovy DSL]({groovyDslPath}) and [Gradle APIs]({javadocPath}) to write the scripts.
+
+The methods that can be used within a Gradle script primarily include:
+
+- Gradle APIs - such as `getRootProject()` from the [Settings API]({javadocPath}/org/gradle/api/initialization/Settings.html)
+- Blocks defined in the DSL - such as the `plugins{}` block from [KotlinSettingsScript]({kotlinDslPath}/gradle/org.gradle.kotlin.dsl/-kotlin-settings-script/index.html)
+- Extensions defined by Plugins - such as `implementation()` and `api()` provided by the `java` plugin when applied
+
+## Step 2. The `Settings` object
+
+The settings file is the entry point of every Gradle build.
+
+During the initialization phase, Gradle finds the settings file in your project root directory.
+
+When the settings file, `settings.gradle(.kts)`, is found, Gradle instantiates a [Settings]({groovyDslPath}/org.gradle.api.initialization.Settings.html) object.
+
+One of the purposes of the [Settings]({groovyDslPath}/org.gradle.api.initialization.Settings.html) object is to allow you to declare all the projects to be included in the build.
+
+You can use any of the methods and properties on the [Settings]({groovyDslPath}/org.gradle.api.initialization.Settings.html) interface directly in your settings file.
+
+For example:
+
+{/* converter-gap: unexpected expanded multi-language-sample */}
+
+{/* converter-gap: unexpected expanded multi-language-sample */}
+
+## Step 3. The Settings file
+
+Let&#8217;s break down the settings file in our project root directory:
+
+{/* converter-gap: unexpected expanded multi-language-sample */}
+
+{/* converter-gap: unexpected expanded multi-language-sample */}
+
+***Next Step:*** [Writing a Build Script](part5_build_scripts.mdx#part5_build_scripts) &gt;&gt;

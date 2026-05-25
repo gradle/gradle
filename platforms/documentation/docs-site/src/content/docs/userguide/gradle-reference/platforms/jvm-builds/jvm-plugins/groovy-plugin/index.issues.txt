@@ -1,0 +1,32 @@
+[
+  {
+    "startLine": 11,
+    "endLine": 11,
+    "problem": "Link to 'java_plugin.adoc' was migrated as '/gradle-reference/platforms/jvm-builds/jvm-plugins/java-plugin/' but there is no corresponding page for java_plugin.adoc in the sidebar (it is not yet migrated). This link will be broken until that page is added."
+  },
+  {
+    "startLine": 181,
+    "endLine": 181,
+    "problem": "Link to 'java_plugin.adoc#sec:compile' was migrated as '/gradle-reference/platforms/jvm-builds/jvm-plugins/java-plugin/#sec:compile' but there is no corresponding page for java_plugin.adoc in the sidebar. This link will be broken until that page is added."
+  },
+  {
+    "startLine": 208,
+    "endLine": 208,
+    "problem": "Link to 'java_plugin.adoc#sec:java_compile_avoidance' was migrated as '/gradle-reference/platforms/jvm-builds/jvm-plugins/java-plugin/#sec:java_compile_avoidance' but there is no corresponding page for java_plugin.adoc in the sidebar. This link will be broken until that page is added."
+  },
+  {
+    "startLine": 234,
+    "endLine": 234,
+    "problem": "Link to 'java_plugin.adoc#sec:incremental_compile' was migrated as '/gradle-reference/platforms/jvm-builds/jvm-plugins/java-plugin/#sec:incremental_compile' but there is no corresponding page for java_plugin.adoc in the sidebar. This link will be broken until that page is added."
+  },
+  {
+    "startLine": 244,
+    "endLine": 244,
+    "problem": "Link to 'java_plugin.adoc#sec:incremental_compilation_known_issues' was migrated as '/gradle-reference/platforms/jvm-builds/jvm-plugins/java-plugin/#sec:incremental_compilation_known_issues' but there is no corresponding page for java_plugin.adoc in the sidebar. This link will be broken until that page is added."
+  },
+  {
+    "startLine": 225,
+    "endLine": 225,
+    "problem": "The original snippet for enable-groovy-incremental was in a buildSrc conventions file at 'buildSrc/src/main/kotlin/myproject.groovy-conventions.gradle.kts'. For the sample to work with SampleScripts, the file was placed at the root of the language directory as 'myproject.groovy-conventions.gradle.kts'. This loses the nested path context shown in the original documentation."
+  }
+]

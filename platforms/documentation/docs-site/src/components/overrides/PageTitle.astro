@@ -1,0 +1,40 @@
+---
+import DefaultPageTitle from '@astrojs/starlight/components/PageTitle.astro';
+
+const { entry } = Astro.locals.starlightRoute;
+const objectives: string[] | undefined = entry.data.objectives;
+---
+
+<DefaultPageTitle />
+
+{objectives && objectives.length > 0 && (
+  <div class="learning-objectives">
+    <p class="learning-objectives-heading"><strong>In this section you will:</strong></p>
+    <ul>
+      {objectives.map((item) => <li>{item}</li>)}
+    </ul>
+  </div>
+)}
+
+<style>
+  .learning-objectives {
+    border: 1px solid var(--sl-color-gray-5);
+    border-radius: 0.5rem;
+    padding: 1rem 1.25rem;
+    background: var(--sl-color-gray-7);
+    margin: 1rem 0 1.25rem;
+  }
+
+  .learning-objectives-heading {
+    margin: 0 0 0.5rem;
+  }
+
+  .learning-objectives ul {
+    margin: 0;
+    padding-left: 1.25rem;
+  }
+
+  .learning-objectives li {
+    margin: 0.25rem 0;
+  }
+</style>

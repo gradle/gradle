@@ -22,7 +22,6 @@ import gradlebuild.basics.repoRoot
 import gradlebuild.basics.tasks.PackageListGenerator
 import gradlebuild.configureAsApiElements
 import gradlebuild.configureAsRuntimeElements
-import gradlebuild.docs.GradleUserManualPlugin
 import gradlebuild.docs.dsl.source.ExtractDslMetaDataTask
 import gradlebuild.docs.dsl.source.GenerateApiMapping
 import gradlebuild.docs.dsl.source.GenerateDefaultImports
@@ -106,8 +105,8 @@ val gradleScriptPath = startScriptResolver("gradleScriptPath", ":gradle-cli-main
 gradleScriptPath.description = "Resolves to the Gradle start scripts (bin/*) - automatically adds dependency to the :launcher project"
 val sourcesPath = sourcesResolver("sourcesPath", listOf(coreRuntimeOnly, pluginsRuntimeOnly))
 sourcesPath.description = "Resolves the source code of all Gradle modules Jars (required for the All distribution)"
-val docsPath = docsResolver("docsPath", ":docs")
-docsPath.description = "Resolves to the complete Gradle documentation - automatically adds dependency to the :docs project"
+val docsPath = docsResolver("docsPath", ":reference-docs")
+docsPath.description = "Resolves to the complete Gradle documentation - automatically adds dependency to the :reference-docs project"
 
 // Gradle API Sources
 val gradleApiSources = sourcesPath.incoming.artifactView { lenient(true) }.files.asFileTree.matching {
@@ -129,18 +128,29 @@ val dslMetaData = tasks.register<ExtractDslMetaDataTask>("dslMetaData") {
     destinationFile = generatedBinFileFor("dsl-meta-data.bin")
 }
 
+// Packages that are part of the public API but excluded from default imports in Gradle build scripts.
+val packagesExcludedFromDefaultImports = listOf(
+    "org.gradle.tooling.**",
+    "org.gradle.testfixtures.**",
+    "org.gradle.plugins.ide.eclipse.model",
+    "org.gradle.plugins.ide.idea.model",
+    "org.gradle.api.tasks.testing.logging",
+    "org.gradle.plugins.binaries.model",
+    "org.gradle.platform.base.test",
+)
+
 // List of packages that are imported by default in Gradle build scripts
 val defaultImports = tasks.register("defaultImports", GenerateDefaultImports::class) {
     metaDataFile = dslMetaData.flatMap(ExtractDslMetaDataTask::getDestinationFile)
     importsDestFile = generatedTxtFileFor("default-imports")
-    excludedPackages = GradleUserManualPlugin.getDefaultExcludedPackages()
+    excludedPackages = packagesExcludedFromDefaultImports
 }
 
 // Mapping of default imported types to their fully qualified name
 val apiMapping = tasks.register<GenerateApiMapping>("apiMapping") {
     metaDataFile = dslMetaData.flatMap(ExtractDslMetaDataTask::getDestinationFile)
     mappingDestFile = generatedTxtFileFor("api-mapping")
-    excludedPackages = GradleUserManualPlugin.getDefaultExcludedPackages()
+    excludedPackages = packagesExcludedFromDefaultImports
 }
 
 // Which plugins are in the distribution and which are part of the public API? Required to generate API and Kotlin DSL Jars

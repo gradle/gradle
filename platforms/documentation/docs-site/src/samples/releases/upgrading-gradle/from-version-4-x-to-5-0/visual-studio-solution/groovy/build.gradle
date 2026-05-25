@@ -1,0 +1,7 @@
+model {
+    visualStudio {
+        solution {
+            solutionFile.location = "vs/${name}.sln"
+        }
+    }
+}

@@ -1,0 +1,22 @@
+[
+  {
+    "startLine": 46,
+    "endLine": 46,
+    "problem": "Source line 46 in the original adoc has a missing closing parenthesis: '(see link:...[JavaExec.setArgsString(java.lang.String)]' - the outer parenthetical expression is never closed. This defect was preserved as-is in the migration (line 31 of index.mdx)."
+  },
+  {
+    "startLine": 183,
+    "endLine": 183,
+    "problem": "The link to 'link:{groovyDslPath}/org.gradle.api.Project.html#N14FED[Project]' uses an opaque auto-generated anchor (#N14FED) in the Groovy DSL docs. This was migrated as a plain external URL since GroovyDocLink does not support fragment-only anchors."
+  },
+  {
+    "startLine": 89,
+    "endLine": 89,
+    "problem": "The link 'link:../samples/sample_java_modules_multi_project.html[ready made example]' was a relative link into the old samples directory. Migrated to https://docs.gradle.org/current/samples/sample_java_modules_multi_project.html as no corresponding migrated page was found in the sidebar."
+  },
+  {
+    "startLine": 20,
+    "endLine": 22,
+    "problem": "The Java plugin (java_plugin.adoc) and Distribution plugin (distribution_plugin.adoc) are referenced but neither page is present in the sidebar as a migratable entry. Both were preserved as external docs.gradle.org links."
+  }
+]

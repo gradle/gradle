@@ -1,0 +1,9 @@
+repositories {
+    ivy {
+        url = "http://repo.mycompany.com/repo"
+        patternLayout {
+            artifact "[organisation]/[module]/[revision]/[artifact]-[revision].[ext]"
+            m2compatible = true
+        }
+    }
+}

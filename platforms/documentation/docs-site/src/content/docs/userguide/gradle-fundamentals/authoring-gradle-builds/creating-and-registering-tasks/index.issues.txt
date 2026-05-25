@@ -1,0 +1,7 @@
+[
+  {
+    "startLine": 80,
+    "endLine": 80,
+    "problem": "Source has a malformed link: 'link:link:{groovyDslPath}/org.gradle.api.plugins.antlr.AntlrTask.html[DSL]'. The 'link:link:' double-prefix is a source defect. The intent appears to be a link to the Gradle DSL reference. Migrated as a plain external link to 'https://docs.gradle.org/current/dsl/' since the specific class URL (AntlrTask) does not match the general 'DSL' label used in the surrounding text."
+  }
+]

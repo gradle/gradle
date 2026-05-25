@@ -1,0 +1,13 @@
+sourceSets {
+    main {
+        groovy {
+            srcDirs = ['src/groovy']
+        }
+    }
+
+    test {
+        groovy {
+            srcDirs = ['test/groovy']
+        }
+    }
+}

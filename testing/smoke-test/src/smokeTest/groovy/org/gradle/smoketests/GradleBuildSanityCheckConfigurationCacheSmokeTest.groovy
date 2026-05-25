@@ -26,10 +26,10 @@ class GradleBuildSanityCheckConfigurationCacheSmokeTest extends AbstractGradleBu
         // See build-logic/lifecycle/src/main/kotlin/gradlebuild.lifecycle.gradle.kts
         def tasks = [
             ":configuration-cache:sanityCheck",
-            ":docs:checkstyleApi",
+            ":reference-docs:checkstyleApi",
             ":internal-build-reports:allIncubationReportsZip",
             ":architecture-test:checkBinaryCompatibility",
-            ":docs:javadocAll",
+            ":reference-docs:javadocAll",
             ":architecture-test:test",
             ":tooling-api:toolingApiShadedJar",
             ":performance:verifyPerformanceScenarioDefinitions",
@@ -45,7 +45,7 @@ class GradleBuildSanityCheckConfigurationCacheSmokeTest extends AbstractGradleBu
         when:
         run([
             ":configuration-cache:clean",
-            ":docs:clean",
+            ":reference-docs:clean",
             ":internal-build-reports:clean",
             ":architecture-test:clean",
             ":tooling-api:clean",
@@ -63,10 +63,10 @@ class GradleBuildSanityCheckConfigurationCacheSmokeTest extends AbstractGradleBu
         result.task(":configuration-cache:checkstyleIntegTestGroovy").outcome == TaskOutcome.FROM_CACHE
         result.task(":configuration-cache:archTest").outcome == TaskOutcome.FROM_CACHE
         result.task(":configuration-cache:codeQuality").outcome == TaskOutcome.UP_TO_DATE
-        result.task(":docs:checkstyleApi").outcome == TaskOutcome.FROM_CACHE
+        result.task(":reference-docs:checkstyleApi").outcome == TaskOutcome.FROM_CACHE
         result.task(":internal-build-reports:allIncubationReportsZip").outcome == TaskOutcome.SUCCESS
         result.task(":architecture-test:checkBinaryCompatibility").outcome == TaskOutcome.FROM_CACHE
-        result.task(":docs:javadocAll").outcome == TaskOutcome.FROM_CACHE
+        result.task(":reference-docs:javadocAll").outcome == TaskOutcome.FROM_CACHE
         result.task(":architecture-test:test").outcome == TaskOutcome.FROM_CACHE
         result.task(":tooling-api:toolingApiShadedJar").outcome == TaskOutcome.SUCCESS
         result.task(":performance:verifyPerformanceScenarioDefinitions").outcome == TaskOutcome.SUCCESS

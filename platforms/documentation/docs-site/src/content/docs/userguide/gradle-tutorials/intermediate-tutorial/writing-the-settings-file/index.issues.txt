@@ -1,0 +1,17 @@
+[
+  {
+    "startLine": 99,
+    "endLine": 125,
+    "problem": "The callout descriptions for the settings file sample appear to have swapped DSL references. The Kotlin DSL variant (settings.gradle.kts) callouts reference the Groovy DSL API (lines 99-103), while the Groovy DSL variant (settings.gradle) callouts reference the Kotlin DSL API (lines 121-125). This appears to be a copy-paste error in the source, but has been preserved faithfully in the migration. Both sets of callout descriptions are included in the migrated page, labeled by variant."
+  },
+  {
+    "startLine": 45,
+    "endLine": 45,
+    "problem": "The source uses {kotlinDslPath} attribute for the KotlinSettingsScript link at line 45. The class path used in the source is 'org.gradle.kotlin.dsl/-kotlin-settings-script/index.html' (KotlinDoc path style). Migrated using KotlinDocLink with class 'org.gradle.kotlin.dsl.KotlinSettingsScript'. Verify this class name resolves correctly."
+  },
+  {
+    "startLine": 121,
+    "endLine": 121,
+    "problem": "Source line 121 for Groovy variant callout 1 references KotlinSettingsScript via kotlinDslPath: 'gradle/org.gradle.kotlin.dsl/-kotlin-settings-script/index.html'. This is in the callout for the Groovy settings file, which is the cross-DSL inconsistency noted above."
+  }
+]

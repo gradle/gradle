@@ -1,0 +1,112 @@
+---
+title: "Part 5: Exploring Incremental Builds"
+---
+
+Learn the basics of Gradle&#8217;s incremental builds.
+
+{/* converter-gap: node=sidebar */}
+
+## Step 0. Before you Begin
+
+1. You initialized your Java app in [part 1](part1_gradle_init.mdx#part1_begin).
+2. You ran several tasks in [part 2](part2_gradle_tasks.mdx#part2_begin).
+3. You learned about dependency management in [part 3](part3_gradle_dep_man.mdx#part3_begin).
+4. You applied a plugin to your app in [part 4](part4_gradle_plugins.mdx#part4_begin).
+
+## Step 1. Understanding Incremental Builds
+
+It&#8217;s important to know that Gradle optimizes your build in a variety of ways.
+One such optimization is called _incremental builds_.
+
+An _incremental build_ is a build that avoids running tasks whose inputs did not change since the previous build, making the execution of such tasks unnecessary.
+
+For incremental builds to work, tasks must define their inputs and outputs. At build time, Gradle will determine whether the input or outputs have changed. If they have changed, Gradle will execute the task. Otherwise, it will skip execution.
+
+## Step 2. Updating Gradle Properties
+
+To better see incremental builds in action, we are going to switch the console output to verbose.
+
+In the top-level folder of your app (`tutorial`), create a `gradle.properties` file:
+
+```bash
+$ touch gradle.properties
+```
+
+Add `org.gradle.console=verbose` so the contents of the file look like this:
+
+```properties
+org.gradle.console=verbose
+```
+
+## Step 3. Analyzing Incremental Builds
+
+Run the clean task and then the build task using the `./gradlew :app:clean :app:build` command:
+
+```bash
+$ ./gradlew :app:clean :app:build
+```
+
+```text
+> Task :app:clean
+> Task :app:compileJava
+> Task :app:processResources NO-SOURCE
+> Task :app:classes
+> Task :app:jar
+> Task :app:startScripts
+> Task :app:distTar
+> Task :app:distZip
+> Task :app:assemble
+> Task :app:compileTestJava
+> Task :app:processTestResources NO-SOURCE
+> Task :app:testClasses
+> Task :app:test
+> Task :app:check
+> Task :app:build
+
+BUILD SUCCESSFUL in 1s
+8 actionable tasks: 8 executed
+```
+
+No surprise here, Gradle invoked all the tasks needed to build the app.
+This was done successfully.
+
+Run the build again to view the _incremental build_ optimization in action:
+
+```bash
+$ ./gradlew :app:build
+```
+
+```text
+> Task :app:compileJava UP-TO-DATE
+> Task :app:processResources NO-SOURCE
+> Task :app:classes UP-TO-DATE
+> Task :app:jar UP-TO-DATE
+> Task :app:startScripts UP-TO-DATE
+> Task :app:distTar UP-TO-DATE
+> Task :app:distZip UP-TO-DATE
+> Task :app:assemble UP-TO-DATE
+> Task :app:compileTestJava UP-TO-DATE
+> Task :app:processTestResources NO-SOURCE
+> Task :app:testClasses UP-TO-DATE
+> Task :app:test UP-TO-DATE
+> Task :app:check UP-TO-DATE
+> Task :app:build UP-TO-DATE
+
+BUILD SUCCESSFUL in 409ms
+7 actionable tasks: 7 up-to-date
+```
+
+Most tasks now have the `UP-TO-DATE` label.
+This is how Gradle lets us know that inputs and outputs have not changed and therefore some tasks did not re-run.
+
+## Step 4. Understanding Outcome Labels
+
+There are four labels that developers can use to view task outcomes when verbose mode is turned on:
+
+{/* converter-gap: node=table */}
+
+If there is no label, the task was newly executed by Gradle (locally).
+
+We will look at the `FROM-CACHE` label in the next section.
+
+***Next Step:*** [Enabling the Build Cache](part6_gradle_caching.mdx#part6_begin) &gt;&gt;

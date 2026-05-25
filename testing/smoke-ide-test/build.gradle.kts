@@ -47,7 +47,7 @@ tasks {
             exclude("subprojects/*/*/src/**")
             exclude("testing/*/*/src/**")
             filesMatching("platforms/*/*/src/**") {
-                // /platforms/documentation/docs/samples must be included
+                // /platforms/documentation/reference-docs/samples must be included
                 if (!sourcePath.contains("documentation/docs/samples/templates")) {
                     exclude()
                 }

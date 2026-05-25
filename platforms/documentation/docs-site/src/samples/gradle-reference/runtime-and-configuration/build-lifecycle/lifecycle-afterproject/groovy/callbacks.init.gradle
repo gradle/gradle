@@ -1,0 +1,18 @@
+// 5. afterProject: runs after each build.gradle(.kts) is evaluated
+// to be called immediately after a project is evaluated.
+gradle.afterProject { project ->
+    println("[afterProject] Finished configuring ${project.path}")
+
+    // Example: apply the Java plugin to all projects that don't have any plugin yet
+    if (project.plugins.hasPlugin("java")) {
+        println("[afterProject] ${project.path} already has the java plugin")
+    } else {
+        println("[afterProject] Applying java plugin to ${project.path}")
+        project.apply(plugin: "java")
+    }
+}
+
+// to be called immediately after a project is evaluated.
+gradle.lifecycle.afterProject {
+    println("[lifecycle.afterProject] Finished configuring ${path}")
+}

@@ -117,9 +117,16 @@ atlassian-ide-plugin.xml
 # Ignore local configuration files for asdf, allowing the JDK to be configured for project (https://asdf-vm.com)
 .tool-versions
 
-# AI 
+# AI
 # ---
 .claude/CLAUDE.local.md
 .claude/settings.local.json
 .claude/worktrees
 
+# Node and NPM
+# ------------
+node_modules/
+
+# Astro
+# -----
+.astro/

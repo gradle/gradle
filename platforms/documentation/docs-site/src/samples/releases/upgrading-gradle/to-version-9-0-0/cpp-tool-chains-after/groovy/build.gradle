@@ -1,0 +1,12 @@
+plugins {
+    id("cpp-library")
+}
+
+toolChains {
+    clang(Clang) {
+        eachPlatform {
+            cCompiler.executable = "clang"
+            cppCompiler.executable = "clang++"
+        }
+    }
+}

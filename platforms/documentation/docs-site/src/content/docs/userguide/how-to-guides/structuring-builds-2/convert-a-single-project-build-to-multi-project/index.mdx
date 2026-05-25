@@ -1,0 +1,197 @@
+---
+title: Convert a Single-Project Build to Multi-Project
+---
+
+import { Steps } from '@astrojs/starlight/components';
+import { SampleScripts } from '#/components';
+
+<div id="convert_single_to_multi_project" />
+
+When your Gradle project grows, you may want to split it into multiple subprojects to improve modularity, maintainability, and parallel execution.
+
+This guide explains how to convert a single-project build into a **multi-project build**.
+
+<div id="why_multi_project" />
+
+## Why Use a Multi-Project Build?
+
+A single-project build manages all source code and dependencies in one `build.gradle(.kts)` file.
+
+In contrast, a multi-project build consists of:
+
+- A **root project** that contains shared configurations and dependencies, as defined in `settings.gradle(.kts)`.
+- Multiple **subprojects**, each with its own `build.gradle(.kts)`, dependencies, and tasks.
+
+## Steps
+
+<Steps>
+
+1. ### Project Structure
+
+   Let's start with a typical single-project setup, created by `gradle init`:
+
+   ```text
+   root
+   ├── settings.gradle(.kts) // <1> Defines the root project settings
+   └── app // <2> The single application module
+       ├── build.gradle(.kts)
+       └── src/
+   ```
+
+   Alternatively, your single project may look like this:
+
+   ```text
+   app (root) // <1> The project root, also acting as the application module
+   ├── build.gradle(.kts)
+   ├── settings.gradle(.kts)
+   └── src/
+   ```
+
+   :::tip
+   If your project looks like this, nest the `app` folder inside a new `root` folder before your get started.
+   :::
+
+   After converting it into a multi-project build, the structure will look like this:
+
+   ```text
+   root
+   ├── settings.gradle(.kts) // <1> Defines the subprojects
+   ├── app // <2> The original application module, now a subproject
+   │   ├── build.gradle(.kts)
+   │   └── src/
+   └── library // <3> A new library module
+       ├── build.gradle(.kts)
+       └── src/
+   ```
+
+2. ### Create One or More New Subprojects
+
+   Now you can create your additional projects as directories in the `root`.
+   They will all become subprojects of the root.
+
+   To continue our example, we create a new subproject called `library`:
+
+   ```shell
+   cd root
+   mkdir library
+   ```
+
+   Ensure that the original project (`app`) remains at the same level as the new `library` subproject:
+
+   ```text
+   root
+   ├── app // <1> The original application module
+   └── library // <2> The newly created subproject
+   ```
+
+   Move source files into their appropriate folders.
+
+   In our example, the reusable code is moved to the `library` subproject:
+
+   ```text
+   root
+   ├── app // <1> The application module, containing its own source code
+   └── library // <2> The new library module, storing reusable code
+       └── src/
+   ```
+
+3. ### Update `settings.gradle(.kts)`
+
+   Ensure that `settings.gradle(.kts)` is located in the root directory:
+
+   ```text
+   root
+   ├── settings.gradle(.kts) // <1> The single settings file for the entire build
+   ├── app // <2> The application module
+   │   └── src/
+   └── library // <3> The new library module
+       └── src/
+   ```
+
+   Modify `settings.gradle(.kts)` to include the new subprojects.
+
+   In our example, we add `library` to our `include`:
+
+   <SampleScripts sample_name="settings" basename="settings" />
+
+   **There should be no other settings files**.
+
+4. ### Create `build.gradle(.kts)` Files for Each Subproject
+
+   Each subproject must have its own `build.gradle(.kts)` file:
+
+   ```text
+   root
+   ├── settings.gradle(.kts) // <1> Defines the subprojects
+   ├── app // <2> The application subproject
+   │   ├── build.gradle(.kts) // <3> Defines the `app` build
+   │   └── src/
+   └── library // <4> The library subproject
+       ├── build.gradle(.kts) // <5> Defines the `library` build
+       └── src/
+   ```
+
+   The `app` build file should look very similar to the original build file.
+   It holds all the dependencies and configurations needed to build the `app` subproject.
+
+   Now, it also has a dependency on the `library` subproject:
+
+   <SampleScripts sample_name="app-build" basename="build" />
+
+   The `library` build file should be new.
+   It holds all the dependencies and configurations needed to build the `library` subproject:
+
+   <SampleScripts sample_name="library-build" basename="build" />
+
+5. ### Modify or Delete the Root `build.gradle(.kts)`
+
+   A build file in the root project is **optional**:
+
+   ```text
+   root
+   ├── settings.gradle(.kts) // <1> Defines the subprojects
+   ├── build.gradle(.kts) // <2> Optional (for shared configurations)
+   ├── app // <3> The application module
+   │   ├── build.gradle(.kts)
+   │   └── src/
+   └── library // <4> The new library module
+       ├── build.gradle(.kts)
+       └── src/
+   ```
+
+   If you need to configure **shared repositories and settings**, you can use the root `build.gradle(.kts)`:
+
+   <SampleScripts sample_name="root-build" basename="build" />
+
+   You can take a look back at how the common 3rd party plugin called `org.jetbrains.kotlin.plugin.serialization` is applied in each build file.
+
+   However, **shared logic should be handled using [convention plugins](/gradle-reference/structuring-builds/sharing-build-logic-using-buildsrc/#sharing_build_logic_between_subprojects)** rather than the root build file.
+
+</Steps>
+
+<div id="summary" />
+
+## Summary
+
+This process can be repeated indefinitely to add more subprojects:
+
+```text
+root
+├── settings.gradle(.kts) // <1> Defines the subprojects
+├── app // <2> The application module
+│   ├── build.gradle(.kts)
+│   └── src/
+├── library-a // <3> A shared library module
+│   ├── build.gradle(.kts)
+│   └── src/
+├── library-b // <4> Another library module
+│   ├── build.gradle(.kts)
+│   └── src/
+└── library-c // <5> Yet Another library module
+    ├── build.gradle(.kts)
+    └── src/
+```
+
+By following these steps, you can modularize your project, improve maintainability, and enable parallel execution.
+
+If you wanted one of your libraries to be its own build, you should consider using [Composite Builds](/gradle-reference/structuring-builds/composite-builds/#composite_builds) (i.e., included builds) instead.

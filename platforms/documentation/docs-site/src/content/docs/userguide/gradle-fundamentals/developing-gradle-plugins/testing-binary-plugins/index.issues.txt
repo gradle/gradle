@@ -1,0 +1,12 @@
+[
+  {
+    "startLine": 29,
+    "endLine": 74,
+    "problem": "Source has two [.multi-language-sample] blocks for the plugin directory layout (lines 29-74), one for Kotlin (.kts extensions) and one for Groovy (no .kts). These are plain text directory tree diagrams, not actual buildscript files, so they cannot be represented as SampleScripts components. The migrated page shows the Kotlin variant only (with .kts extensions). The Groovy variant was visually identical except for .kts vs no extension on settings/build files."
+  },
+  {
+    "startLine": 135,
+    "endLine": 166,
+    "problem": "Source has two [.multi-language-sample] blocks for the consumer project directory layout (lines 135-166), one for Kotlin (.kts extensions) and one for Groovy. Same situation as above — plain text diagrams, not buildscript files. The migrated page shows the Kotlin variant only."
+  }
+]

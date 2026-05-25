@@ -1,0 +1,33 @@
+plugins {
+    // Apply the Java Gradle plugin development plugin to add support for developing Gradle plugins
+    id 'java-gradle-plugin'
+    // Apply the Maven Publishing plugin
+    id('maven-publish')
+    // Apply the Groovy plugin to add support for Groovy
+    id 'groovy'
+}
+
+group = 'org.example'
+version = '1.0.0'
+
+repositories {
+    // Use Maven Central for resolving dependencies.
+    mavenCentral()
+}
+
+dependencies {
+    testImplementation 'org.spockframework:spock-core:2.3-groovy-4.0'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    // Use the Java Slack Client APIs
+    implementation("com.slack.api:slack-api-client:1.45.3")
+}
+
+gradlePlugin {
+    // Define the plugin
+    plugins {
+        slack {
+            id = 'org.example.slack'
+            implementationClass = 'org.example.SlackPlugin'
+        }
+    }
+}

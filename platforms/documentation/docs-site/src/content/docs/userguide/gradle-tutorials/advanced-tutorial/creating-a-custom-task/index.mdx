@@ -1,0 +1,66 @@
+---
+title: "Part 3: Creating Tasks"
+---
+
+Learn about custom task types, create one, and add it to your plugin.
+
+{/* converter-gap: node=sidebar */}
+
+## Step 0: Before you Begin
+
+1. You initialized your plugin in [part 1](part1_gradle_init_plugin.mdx#part1_begin).
+2. You added an extension to your plugin in [part 2](part2_add_extension.mdx#part2_begin).
+
+## Step 1: About Custom Tasks
+
+If your plugin introduces new functionality, you’ll typically define a custom task type.
+This allows you to encapsulate specific logic, like sending a Slack message, into a reusable and configurable Gradle task.
+We&#8217;ll then register this task in our plugin so users can execute it with a simple command.
+
+## Step 2: Create a Custom Task Type
+
+Let&#8217;s create the class that will contain our Slack messaging logic.
+
+Create a new file called `SlackTask.kt` in `src/main/kotlin/org/example/` and add the following code:
+
+Create a new file called `SlackTask.groovy` in `src/main/groovy/org/example/` and add the following code:
+
+{/* converter-gap: node=sample dir="snippets/tutorials/developing-plugins/plugin-tutorial/kotlin" files="plugin/src/main/kotlin/org/example/SlackTask.kt[]" */}
+
+{/* converter-gap: node=sample dir="snippets/tutorials/developing-plugins/plugin-tutorial/groovy" files="plugin/src/main/groovy/org/example/SlackTask.groovy[]" */}
+
+This custom task type does a few important things:
+
+- It extends `DefaultTask`, which gives it all the basic functionality of a Gradle task.
+- It uses annotations like `@Input` and `@TaskAction` to clearly define its inputs and its primary action.
+- The `@TaskAction` method uses the [Slack API client](https://github.com/slackapi/java-slack-sdk) to post a message.
+- It includes robust error handling: if the Slack API call fails, the task will fail the build with a clear error message.
+
+## Step 3: Add the Slack API Dependency
+
+Since our custom task uses the Slack API client, we need to add it as a dependency in our plugin&#8217;s `build.gradle(.kts)` file.
+
+{/* converter-gap: node=sample dir="snippets/tutorials/developing-plugins/plugin-tutorial/kotlin" files="plugin/build.gradle.kts[tags=slack-api]" */}
+
+{/* converter-gap: node=sample dir="snippets/tutorials/developing-plugins/plugin-tutorial/groovy" files="plugin/build.gradle[tags=slack-api]" */}
+
+## Step 4: Register it in the Plugin
+
+Now that we&#8217;ve defined our custom `SlackTask` class, we need to register it in our plugin&#8217;s `apply` method.
+This makes it available for users to run with a command like `./gradlew sendTestSlackMessage`.
+
+Open your plugin implementation file, `SlackPlugin.kt` (in `src/main/kotlin/org/example/`), and modify it to look like this:
+
+Open your plugin implementation file, `SlackPlugin.groovy` (in `src/main/groovy/org/example/`), and modify it to look like this:
+
+{/* converter-gap: node=sample dir="snippets/tutorials/developing-plugins/plugin-tutorial/kotlin" files="plugin/src/main/kotlin/org/example/SlackPlugin.kt[tags=slack-task]" */}
+
+{/* converter-gap: node=sample dir="snippets/tutorials/developing-plugins/plugin-tutorial/groovy" files="plugin/src/main/groovy/org/example/SlackPlugin.groovy[tags=slack-task]" */}
+
+This code:
+
+- Registers a new task named `sendTestSlackMessage` of our custom `SlackTask` type.
+- Configures the task with a group and description for better help output.
+- Binds the task&#8217;s properties (`token`, `channel`, `message`) to the corresponding properties in our plugin&#8217;s `SlackExtension`. This is how the user&#8217;s configuration is passed to the task.
+
+***Next Step:*** [Write a Unit Test](part4_unit_test.mdx#part4_unit_test) &gt;&gt;

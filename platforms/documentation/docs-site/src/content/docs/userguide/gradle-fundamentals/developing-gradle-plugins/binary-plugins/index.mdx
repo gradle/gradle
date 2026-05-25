@@ -1,0 +1,39 @@
+---
+title: "Binary Plugin"
+---
+
+Creating your own custom plugin might be a great solution when Gradle doesn&#8217;t offer the specific capabilities your project needs.
+This is where binary plugins come in.
+
+A binary plugin is a plugin that is implemented in a compiled language and is packaged as a JAR file.
+Binary plugins must implement the [`Plugin`]({javadocPath}/org/gradle/api/Plugin.html) interface.
+
+## Implementing the Plugin Interface
+
+For example, this is a very simple "Hello World" **plugin**:
+
+{/* converter-gap: node=sample dir="snippets/fundamentals/developing-plugins/simple/kotlin" files="build.gradle.kts[tags=plugin]" */}
+
+{/* converter-gap: node=sample dir="snippets/fundamentals/developing-plugins/simple/groovy" files="build.gradle[tags=plugin]" */}
+
+{/* converter-gap: node=colist */}
+
+### 1. Extend the `org.gradle.api.Plugin` interface
+
+Create a class that extends the `Plugin` interface:
+
+{/* converter-gap: unexpected expanded multi-language-sample */}
+
+{/* converter-gap: unexpected expanded multi-language-sample */}
+
+### 2. Override the `apply` method
+
+Add tasks and other logic in the `apply()` method:
+
+{/* converter-gap: unexpected expanded multi-language-sample */}
+
+{/* converter-gap: unexpected expanded multi-language-sample */}
+
+Let&#8217;s take a look at a more realistic example next.
+
+***Next Step:*** [Learn how to develop Binary Plugins](developing_binary_plugin_advanced.mdx#develop_binary_plugins_advanced) &gt;&gt;

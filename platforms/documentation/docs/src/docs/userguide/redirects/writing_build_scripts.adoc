@@ -1,3 +1,0 @@
-++++
-<meta http-equiv="refresh" content="0;URL=writing_build_scripts_intermediate.html">
-++++

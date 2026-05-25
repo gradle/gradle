@@ -1,0 +1,8 @@
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    antlr("org.antlr:antlr:3.5.2")   // use ANTLR version 3
+    // antlr("org.antlr:antlr4:4.5") // use ANTLR version 4
+}

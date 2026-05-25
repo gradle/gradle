@@ -1,3 +1,0 @@
-++++
-<meta http-equiv="refresh" content="0;URL=https://blog.gradle.org/state-and-future-of-the-gradle-software-model">
-++++

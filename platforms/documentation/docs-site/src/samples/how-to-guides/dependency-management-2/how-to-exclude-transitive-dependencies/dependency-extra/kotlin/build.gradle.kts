@@ -1,0 +1,14 @@
+plugins {
+    id("application")
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation("commons-beanutils:commons-beanutils:1.9.4") {
+        exclude(group = "commons-collections", module = "commons-collections")
+    }
+    implementation("com.opencsv:opencsv:4.6") // Depends on 'commons-beanutils' but does NOT exclude 'commons-collections'
+}

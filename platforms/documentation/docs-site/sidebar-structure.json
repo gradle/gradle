@@ -1,0 +1,2075 @@
+[
+  {
+    "type": "group",
+    "label": "Gradle User Manual",
+    "collapsed": false,
+    "children": [
+      {
+        "type": "page",
+        "label": "Getting Started",
+        "sourceAdoc": "old-userguide/src/docs/userguide/overview/getting_started.adoc",
+        "fallbackLink": "https://docs.gradle.org/current/userguide/getting_started.html",
+        "target": "/userguide/gradle-user-manual/getting-started/",
+        "id": "getting-started"
+      }
+    ],
+    "id": "gradle-user-manual"
+  },
+  {
+    "type": "group",
+    "label": "Releases",
+    "collapsed": false,
+    "children": [
+      {
+        "type": "external",
+        "label": "All Releases",
+        "link": "https://gradle.org/releases/"
+      },
+      {
+        "type": "external",
+        "label": "Release Notes",
+        "link": "https://docs.gradle.org/current/release-notes.html"
+      },
+      {
+        "type": "page",
+        "label": "Installing Gradle",
+        "sourceAdoc": "old-userguide/src/docs/userguide/releases/installation.adoc",
+        "fallbackLink": "https://docs.gradle.org/current/userguide/installation.html",
+        "target": "/userguide/releases/installing-gradle/",
+        "id": "installing-gradle"
+      },
+      {
+        "type": "group",
+        "label": "Upgrading Gradle",
+        "collapsed": true,
+        "children": [
+          {
+            "type": "page",
+            "label": "Within versions 9.x.y",
+            "sourceAdoc": "old-userguide/src/docs/userguide/releases/upgrading/upgrading_version_9.adoc",
+            "fallbackLink": "https://docs.gradle.org/current/userguide/upgrading_version_9.html",
+            "target": "/userguide/releases/upgrading-gradle/within-versions-9-x-y/",
+            "id": "within-versions-9-x-y"
+          },
+          {
+            "type": "page",
+            "label": "To version 9.0.0",
+            "sourceAdoc": "old-userguide/src/docs/userguide/releases/upgrading/upgrading_major_version_9.adoc",
+            "fallbackLink": "https://docs.gradle.org/current/userguide/upgrading_major_version_9.html",
+            "target": "/userguide/releases/upgrading-gradle/to-version-9-0-0/",
+            "id": "to-version-9-0-0"
+          },
+          {
+            "type": "page",
+            "label": "Within versions 8.x",
+            "sourceAdoc": "old-userguide/src/docs/userguide/releases/upgrading/upgrading_version_8.adoc",
+            "fallbackLink": "https://docs.gradle.org/current/userguide/upgrading_version_8.html",
+            "target": "/userguide/releases/upgrading-gradle/within-versions-8-x/",
+            "id": "within-versions-8-x"
+          },
+          {
+            "type": "page",
+            "label": "From version 7.x to 8.0",
+            "sourceAdoc": "old-userguide/src/docs/userguide/releases/upgrading/upgrading_version_7.adoc",
+            "fallbackLink": "https://docs.gradle.org/current/userguide/upgrading_version_7.html",
+            "target": "/userguide/releases/upgrading-gradle/from-version-7-x-to-8-0/",
+            "id": "from-version-7-x-to-8-0"
+          },
+          {
+            "type": "page",
+            "label": "From version 6.x to 7.0",
+            "sourceAdoc": "old-userguide/src/docs/userguide/releases/upgrading/upgrading_version_6.adoc",
+            "fallbackLink": "https://docs.gradle.org/current/userguide/upgrading_version_6.html",
+            "target": "/userguide/releases/upgrading-gradle/from-version-6-x-to-7-0/",
+            "id": "from-version-6-x-to-7-0"
+          },
+          {
+            "type": "page",
+            "label": "From version 5.x to 6.0",
+            "sourceAdoc": "old-userguide/src/docs/userguide/releases/upgrading/upgrading_version_5.adoc",
+            "fallbackLink": "https://docs.gradle.org/current/userguide/upgrading_version_5.html",
+            "target": "/userguide/releases/upgrading-gradle/from-version-5-x-to-6-0/",
+            "id": "from-version-5-x-to-6-0"
+          },
+          {
+            "type": "page",
+            "label": "From version 4.x to 5.0",
+            "sourceAdoc": "old-userguide/src/docs/userguide/releases/upgrading/upgrading_version_4.adoc",
+            "fallbackLink": "https://docs.gradle.org/current/userguide/upgrading_version_4.html",
+            "target": "/userguide/releases/upgrading-gradle/from-version-4-x-to-5-0/",
+            "id": "from-version-4-x-to-5-0"
+          }
+        ],
+        "id": "upgrading-gradle"
+      },
+      {
+        "type": "group",
+        "label": "Migrating to Gradle",
+        "collapsed": true,
+        "children": [
+          {
+            "type": "page",
+            "label": "from Maven",
+            "sourceAdoc": "old-userguide/src/docs/userguide/releases/migrating/migrating_from_maven.adoc",
+            "fallbackLink": "https://docs.gradle.org/current/userguide/migrating_from_maven.html",
+            "target": "/userguide/releases/migrating-to-gradle/from-maven/",
+            "id": "from-maven"
+          },
+          {
+            "type": "page",
+            "label": "from Ant",
+            "sourceAdoc": "old-userguide/src/docs/userguide/releases/migrating/migrating_from_ant.adoc",
+            "fallbackLink": "https://docs.gradle.org/current/userguide/migrating_from_ant.html",
+            "target": "/userguide/releases/migrating-to-gradle/from-ant/",
+            "id": "from-ant"
+          }
+        ],
+        "id": "migrating-to-gradle"
+      },
+      {
+        "type": "page",
+        "label": "Compatibility Notes",
+        "sourceAdoc": "old-userguide/src/docs/userguide/releases/compatibility.adoc",
+        "fallbackLink": "https://docs.gradle.org/current/userguide/compatibility.html",
+        "target": "/userguide/releases/compatibility-notes/",
+        "id": "compatibility-notes"
+      },
+      {
+        "type": "page",
+        "label": "Gradle's Feature Lifecycle",
+        "sourceAdoc": "old-userguide/src/docs/userguide/releases/feature_lifecycle.adoc",
+        "fallbackLink": "https://docs.gradle.org/current/userguide/feature_lifecycle.html",
+        "target": "/userguide/releases/gradle-s-feature-lifecycle/",
+        "id": "gradle-s-feature-lifecycle"
+      }
+    ],
+    "id": "releases"
+  },
+  {
+    "type": "group",
+    "label": "Gradle Fundamentals",
+    "collapsed": false,
+    "children": [
+      {
+        "type": "group",
+        "label": "Running Gradle Builds",
+        "collapsed": true,
+        "children": [
+          {
+            "type": "page",
+            "label": "1. Core Concepts",
+            "sourceAdoc": "old-userguide/src/docs/userguide/fundamentals/running-builds/gradle_basics.adoc",
+            "fallbackLink": "https://docs.gradle.org/current/userguide/gradle_basics.html",
+            "target": "/userguide/gradle-fundamentals/running-gradle-builds/core-concepts/",
+            "id": "core-concepts"
+          },
+          {
+            "type": "page",
+            "label": "2. Wrapper Basics",
+            "sourceAdoc": "old-userguide/src/docs/userguide/fundamentals/running-builds/gradle_wrapper_basics.adoc",
+            "fallbackLink": "https://docs.gradle.org/current/userguide/gradle_wrapper_basics.html",
+            "target": "/userguide/gradle-fundamentals/running-gradle-builds/wrapper-basics/",
+            "id": "wrapper-basics"
+          },
+          {
+            "type": "page",
+            "label": "3. CLI Basics",
+            "sourceAdoc": "old-userguide/src/docs/userguide/fundamentals/running-builds/command_line_interface_basics.adoc",
+            "fallbackLink": "https://docs.gradle.org/current/userguide/command_line_interface_basics.html",
+            "target": "/userguide/gradle-fundamentals/running-gradle-builds/cli-basics/",
+            "id": "cli-basics"
+          },
+          {
+            "type": "page",
+            "label": "4. Settings File Basics",
+            "sourceAdoc": "old-userguide/src/docs/userguide/fundamentals/running-builds/settings_file_basics.adoc",
+            "fallbackLink": "https://docs.gradle.org/current/userguide/settings_file_basics.html",
+            "target": "/userguide/gradle-fundamentals/running-gradle-builds/settings-file-basics/",
+            "id": "settings-file-basics"
+          },
+          {
+            "type": "page",
+            "label": "5. Build File Basics",
+            "sourceAdoc": "old-userguide/src/docs/userguide/fundamentals/running-builds/build_file_basics.adoc",
+            "fallbackLink": "https://docs.gradle.org/current/userguide/build_file_basics.html",
+            "target": "/userguide/gradle-fundamentals/running-gradle-builds/build-file-basics/",
+            "id": "build-file-basics"
+          },
+          {
+            "type": "page",
+            "label": "6. Dependencies Basics",
+            "sourceAdoc": "old-userguide/src/docs/userguide/fundamentals/running-builds/dependency_management_basics.adoc",
+            "fallbackLink": "https://docs.gradle.org/current/userguide/dependency_management_basics.html",
+            "target": "/userguide/gradle-fundamentals/running-gradle-builds/dependencies-basics/",
+            "id": "dependencies-basics"
+          },
+          {
+            "type": "page",
+            "label": "7. Tasks Basics",
+            "sourceAdoc": "old-userguide/src/docs/userguide/fundamentals/running-builds/task_basics.adoc",
+            "fallbackLink": "https://docs.gradle.org/current/userguide/task_basics.html",
+            "target": "/userguide/gradle-fundamentals/running-gradle-builds/tasks-basics/",
+            "id": "tasks-basics"
+          },
+          {
+            "type": "page",
+            "label": "8. Caching Basics",
+            "sourceAdoc": "old-userguide/src/docs/userguide/fundamentals/running-builds/gradle_optimizations.adoc",
+            "fallbackLink": "https://docs.gradle.org/current/userguide/gradle_optimizations.html",
+            "target": "/userguide/gradle-fundamentals/running-gradle-builds/caching-basics/",
+            "id": "caching-basics"
+          },
+          {
+            "type": "page",
+            "label": "9. Plugins Basics",
+            "sourceAdoc": "old-userguide/src/docs/userguide/fundamentals/running-builds/plugin_basics.adoc",
+            "fallbackLink": "https://docs.gradle.org/current/userguide/plugin_basics.html",
+            "target": "/userguide/gradle-fundamentals/running-gradle-builds/plugins-basics/",
+            "id": "plugins-basics"
+          },
+          {
+            "type": "page",
+            "label": "10. Build Scan Basics",
+            "sourceAdoc": "old-userguide/src/docs/userguide/fundamentals/running-builds/build_scans.adoc",
+            "fallbackLink": "https://docs.gradle.org/current/userguide/build_scans.html",
+            "target": "/userguide/gradle-fundamentals/running-gradle-builds/build-scan-basics/",
+            "id": "build-scan-basics"
+          }
+        ],
+        "id": "running-gradle-builds"
+      },
+      {
+        "type": "group",
+        "label": "Authoring Gradle Builds",
+        "collapsed": true,
+        "children": [
+          {
+            "type": "page",
+            "label": "1. Anatomy of a Gradle Build",
+            "sourceAdoc": "old-userguide/src/docs/userguide/fundamentals/authoring-builds/gradle_directories_intermediate.adoc",
+            "fallbackLink": "https://docs.gradle.org/current/userguide/gradle_directories_intermediate.html",
+            "target": "/userguide/gradle-fundamentals/authoring-gradle-builds/anatomy-of-a-gradle-build/",
+            "id": "anatomy-of-a-gradle-build"
+          },
+          {
+            "type": "page",
+            "label": "2. Structuring Multi-Project Builds",
+            "sourceAdoc": "old-userguide/src/docs/userguide/fundamentals/authoring-builds/multi_project_builds_intermediate.adoc",
+            "fallbackLink": "https://docs.gradle.org/current/userguide/multi_project_builds_intermediate.html",
+            "target": "/userguide/gradle-fundamentals/authoring-gradle-builds/structuring-multi-project-builds/",
+            "id": "structuring-multi-project-builds"
+          },
+          {
+            "type": "page",
+            "label": "3. Gradle Build Lifecycle",
+            "sourceAdoc": "old-userguide/src/docs/userguide/fundamentals/authoring-builds/build_lifecycle_intermediate.adoc",
+            "fallbackLink": "https://docs.gradle.org/current/userguide/build_lifecycle_intermediate.html",
+            "target": "/userguide/gradle-fundamentals/authoring-gradle-builds/gradle-build-lifecycle/",
+            "id": "gradle-build-lifecycle"
+          },
+          {
+            "type": "page",
+            "label": "4. Writing Build Scripts",
+            "sourceAdoc": "old-userguide/src/docs/userguide/fundamentals/authoring-builds/writing_build_scripts_intermediate.adoc",
+            "fallbackLink": "https://docs.gradle.org/current/userguide/writing_build_scripts_intermediate.html",
+            "target": "/userguide/gradle-fundamentals/authoring-gradle-builds/writing-build-scripts/",
+            "id": "writing-build-scripts"
+          },
+          {
+            "type": "page",
+            "label": "5. Gradle Managed Types",
+            "sourceAdoc": "old-userguide/src/docs/userguide/fundamentals/authoring-builds/gradle_managed_types_intermediate.adoc",
+            "fallbackLink": "https://docs.gradle.org/current/userguide/gradle_managed_types_intermediate.html",
+            "target": "/userguide/gradle-fundamentals/authoring-gradle-builds/gradle-managed-types/",
+            "id": "gradle-managed-types"
+          },
+          {
+            "type": "page",
+            "label": "6. Declaring Dependencies",
+            "sourceAdoc": "old-userguide/src/docs/userguide/fundamentals/authoring-builds/dependencies_intermediate.adoc",
+            "fallbackLink": "https://docs.gradle.org/current/userguide/dependencies_intermediate.html",
+            "target": "/userguide/gradle-fundamentals/authoring-gradle-builds/declaring-dependencies/",
+            "id": "declaring-dependencies"
+          },
+          {
+            "type": "page",
+            "label": "7. Creating and Registering Tasks",
+            "sourceAdoc": "old-userguide/src/docs/userguide/fundamentals/authoring-builds/writing_tasks_intermediate.adoc",
+            "fallbackLink": "https://docs.gradle.org/current/userguide/writing_tasks_intermediate.html",
+            "target": "/userguide/gradle-fundamentals/authoring-gradle-builds/creating-and-registering-tasks/",
+            "id": "creating-and-registering-tasks"
+          },
+          {
+            "type": "page",
+            "label": "8. Working with Plugins",
+            "sourceAdoc": "old-userguide/src/docs/userguide/fundamentals/authoring-builds/plugins_intermediate.adoc",
+            "fallbackLink": "https://docs.gradle.org/current/userguide/plugins_intermediate.html",
+            "target": "/userguide/gradle-fundamentals/authoring-gradle-builds/working-with-plugins/",
+            "id": "working-with-plugins"
+          }
+        ],
+        "id": "authoring-gradle-builds"
+      },
+      {
+        "type": "group",
+        "label": "Developing Gradle Plugins",
+        "collapsed": true,
+        "children": [
+          {
+            "type": "page",
+            "label": "1. Plugin Introduction",
+            "sourceAdoc": "old-userguide/src/docs/userguide/fundamentals/developing-plugins/plugin_introduction_advanced.adoc",
+            "fallbackLink": "https://docs.gradle.org/current/userguide/plugin_introduction_advanced.html",
+            "target": "/userguide/gradle-fundamentals/developing-gradle-plugins/plugin-introduction/",
+            "id": "plugin-introduction"
+          },
+          {
+            "type": "page",
+            "label": "2. Pre-Compiled Script Plugins",
+            "sourceAdoc": "old-userguide/src/docs/userguide/fundamentals/developing-plugins/pre_compiled_script_plugin_advanced.adoc",
+            "fallbackLink": "https://docs.gradle.org/current/userguide/pre_compiled_script_plugin_advanced.html",
+            "target": "/userguide/gradle-fundamentals/developing-gradle-plugins/pre-compiled-script-plugins/",
+            "id": "pre-compiled-script-plugins"
+          },
+          {
+            "type": "page",
+            "label": "3. Binary Plugins",
+            "sourceAdoc": "old-userguide/src/docs/userguide/fundamentals/developing-plugins/binary_plugin_advanced.adoc",
+            "fallbackLink": "https://docs.gradle.org/current/userguide/binary_plugin_advanced.html",
+            "target": "/userguide/gradle-fundamentals/developing-gradle-plugins/binary-plugins/",
+            "id": "binary-plugins"
+          },
+          {
+            "type": "page",
+            "label": "4. Developing Binary Plugins",
+            "sourceAdoc": "old-userguide/src/docs/userguide/fundamentals/developing-plugins/developing_binary_plugin_advanced.adoc",
+            "fallbackLink": "https://docs.gradle.org/current/userguide/developing_binary_plugin_advanced.html",
+            "target": "/userguide/gradle-fundamentals/developing-gradle-plugins/developing-binary-plugins/",
+            "id": "developing-binary-plugins"
+          },
+          {
+            "type": "page",
+            "label": "5. Testing Binary Plugins",
+            "sourceAdoc": "old-userguide/src/docs/userguide/fundamentals/developing-plugins/testing_binary_plugin_advanced.adoc",
+            "fallbackLink": "https://docs.gradle.org/current/userguide/testing_binary_plugin_advanced.html",
+            "target": "/userguide/gradle-fundamentals/developing-gradle-plugins/testing-binary-plugins/",
+            "id": "testing-binary-plugins"
+          },
+          {
+            "type": "page",
+            "label": "6. Publishing Binary Plugins",
+            "sourceAdoc": "old-userguide/src/docs/userguide/fundamentals/developing-plugins/publishing_binary_plugin_advanced.adoc",
+            "fallbackLink": "https://docs.gradle.org/current/userguide/publishing_binary_plugin_advanced.html",
+            "target": "/userguide/gradle-fundamentals/developing-gradle-plugins/publishing-binary-plugins/",
+            "id": "publishing-binary-plugins"
+          }
+        ],
+        "id": "developing-gradle-plugins"
+      }
+    ],
+    "id": "gradle-fundamentals"
+  },
+  {
+    "type": "group",
+    "label": "Gradle Tutorials",
+    "collapsed": false,
+    "children": [
+      {
+        "type": "group",
+        "label": "Beginner Tutorial",
+        "collapsed": true,
+        "children": [
+          {
+            "type": "page",
+            "label": "1. Initializing the Project",
+            "sourceAdoc": "old-userguide/src/docs/userguide/tutorials/running-builds/part1_gradle_init.adoc",
+            "fallbackLink": "https://docs.gradle.org/current/userguide/part1_gradle_init.html",
+            "target": "/userguide/gradle-tutorials/beginner-tutorial/initializing-the-project/",
+            "id": "initializing-the-project"
+          },
+          {
+            "type": "page",
+            "label": "2. Running Tasks",
+            "sourceAdoc": "old-userguide/src/docs/userguide/tutorials/running-builds/part2_gradle_tasks.adoc",
+            "fallbackLink": "https://docs.gradle.org/current/userguide/part2_gradle_tasks.html",
+            "target": "/userguide/gradle-tutorials/beginner-tutorial/running-tasks/",
+            "id": "running-tasks"
+          },
+          {
+            "type": "page",
+            "label": "3. Understanding Dependencies",
+            "sourceAdoc": "old-userguide/src/docs/userguide/tutorials/running-builds/part3_gradle_dep_man.adoc",
+            "fallbackLink": "https://docs.gradle.org/current/userguide/part3_gradle_dep_man.html",
+            "target": "/userguide/gradle-tutorials/beginner-tutorial/understanding-dependencies/",
+            "id": "understanding-dependencies"
+          },
+          {
+            "type": "page",
+            "label": "4. Applying Plugins",
+            "sourceAdoc": "old-userguide/src/docs/userguide/tutorials/running-builds/part4_gradle_plugins.adoc",
+            "fallbackLink": "https://docs.gradle.org/current/userguide/part4_gradle_plugins.html",
+            "target": "/userguide/gradle-tutorials/beginner-tutorial/applying-plugins/",
+            "id": "applying-plugins"
+          },
+          {
+            "type": "page",
+            "label": "5. Exploring Incremental Builds",
+            "sourceAdoc": "old-userguide/src/docs/userguide/tutorials/running-builds/part5_gradle_inc_builds.adoc",
+            "fallbackLink": "https://docs.gradle.org/current/userguide/part5_gradle_inc_builds.html",
+            "target": "/userguide/gradle-tutorials/beginner-tutorial/exploring-incremental-builds/",
+            "id": "exploring-incremental-builds"
+          },
+          {
+            "type": "page",
+            "label": "6. Enabling the Build Cache",
+            "sourceAdoc": "old-userguide/src/docs/userguide/tutorials/running-builds/part6_gradle_caching.adoc",
+            "fallbackLink": "https://docs.gradle.org/current/userguide/part6_gradle_caching.html",
+            "target": "/userguide/gradle-tutorials/beginner-tutorial/enabling-the-build-cache/",
+            "id": "enabling-the-build-cache"
+          }
+        ],
+        "id": "beginner-tutorial"
+      },
+      {
+        "type": "group",
+        "label": "Intermediate Tutorial",
+        "collapsed": true,
+        "children": [
+          {
+            "type": "page",
+            "label": "1. Initializing the Project",
+            "sourceAdoc": "old-userguide/src/docs/userguide/tutorials/authoring-builds/part1_gradle_init_project.adoc",
+            "fallbackLink": "https://docs.gradle.org/current/userguide/part1_gradle_init_project.html",
+            "target": "/userguide/gradle-tutorials/intermediate-tutorial/initializing-the-project-2/",
+            "id": "initializing-the-project-2"
+          },
+          {
+            "type": "page",
+            "label": "2. Understanding the Build Lifecycle",
+            "sourceAdoc": "old-userguide/src/docs/userguide/tutorials/authoring-builds/part2_build_lifecycle.adoc",
+            "fallbackLink": "https://docs.gradle.org/current/userguide/part2_build_lifecycle.html",
+            "target": "/userguide/gradle-tutorials/intermediate-tutorial/understanding-the-build-lifecycle/",
+            "id": "understanding-the-build-lifecycle"
+          },
+          {
+            "type": "page",
+            "label": "3. Multi-Project Builds",
+            "sourceAdoc": "old-userguide/src/docs/userguide/tutorials/authoring-builds/part3_multi_project_builds.adoc",
+            "fallbackLink": "https://docs.gradle.org/current/userguide/part3_multi_project_builds.html",
+            "target": "/userguide/gradle-tutorials/intermediate-tutorial/multi-project-builds/",
+            "id": "multi-project-builds"
+          },
+          {
+            "type": "page",
+            "label": "4. Writing the Settings File",
+            "sourceAdoc": "old-userguide/src/docs/userguide/tutorials/authoring-builds/part4_settings_file.adoc",
+            "fallbackLink": "https://docs.gradle.org/current/userguide/part4_settings_file.html",
+            "target": "/userguide/gradle-tutorials/intermediate-tutorial/writing-the-settings-file/",
+            "id": "writing-the-settings-file"
+          },
+          {
+            "type": "page",
+            "label": "5. Writing a Build Script",
+            "sourceAdoc": "old-userguide/src/docs/userguide/tutorials/authoring-builds/part5_build_scripts.adoc",
+            "fallbackLink": "https://docs.gradle.org/current/userguide/part5_build_scripts.html",
+            "target": "/userguide/gradle-tutorials/intermediate-tutorial/writing-a-build-script/",
+            "id": "writing-a-build-script"
+          },
+          {
+            "type": "page",
+            "label": "6. Writing Tasks",
+            "sourceAdoc": "old-userguide/src/docs/userguide/tutorials/authoring-builds/part6_writing_tasks.adoc",
+            "fallbackLink": "https://docs.gradle.org/current/userguide/part6_writing_tasks.html",
+            "target": "/userguide/gradle-tutorials/intermediate-tutorial/writing-tasks/",
+            "id": "writing-tasks"
+          },
+          {
+            "type": "page",
+            "label": "7. Writing Plugins",
+            "sourceAdoc": "old-userguide/src/docs/userguide/tutorials/authoring-builds/part7_writing_plugins.adoc",
+            "fallbackLink": "https://docs.gradle.org/current/userguide/part7_writing_plugins.html",
+            "target": "/userguide/gradle-tutorials/intermediate-tutorial/writing-plugins/",
+            "id": "writing-plugins"
+          }
+        ],
+        "id": "intermediate-tutorial"
+      },
+      {
+        "type": "group",
+        "label": "Advanced Tutorial",
+        "collapsed": true,
+        "children": [
+          {
+            "type": "page",
+            "label": "1. Initializing the Project",
+            "sourceAdoc": "old-userguide/src/docs/userguide/tutorials/developing-plugins/part1_gradle_init_plugin.adoc",
+            "fallbackLink": "https://docs.gradle.org/current/userguide/part1_gradle_init_plugin.html",
+            "target": "/userguide/gradle-tutorials/advanced-tutorial/initializing-the-project-3/",
+            "id": "initializing-the-project-3"
+          },
+          {
+            "type": "page",
+            "label": "2. Adding an Extension",
+            "sourceAdoc": "old-userguide/src/docs/userguide/tutorials/developing-plugins/part2_add_extension.adoc",
+            "fallbackLink": "https://docs.gradle.org/current/userguide/part2_add_extension.html",
+            "target": "/userguide/gradle-tutorials/advanced-tutorial/adding-an-extension/",
+            "id": "adding-an-extension"
+          },
+          {
+            "type": "page",
+            "label": "3. Creating a Custom Task",
+            "sourceAdoc": "old-userguide/src/docs/userguide/tutorials/developing-plugins/part3_create_custom_task.adoc",
+            "fallbackLink": "https://docs.gradle.org/current/userguide/part3_create_custom_task.html",
+            "target": "/userguide/gradle-tutorials/advanced-tutorial/creating-a-custom-task/",
+            "id": "creating-a-custom-task"
+          },
+          {
+            "type": "page",
+            "label": "4. Writing a Unit Test",
+            "sourceAdoc": "old-userguide/src/docs/userguide/tutorials/developing-plugins/part4_unit_test.adoc",
+            "fallbackLink": "https://docs.gradle.org/current/userguide/part4_unit_test.html",
+            "target": "/userguide/gradle-tutorials/advanced-tutorial/writing-a-unit-test/",
+            "id": "writing-a-unit-test"
+          },
+          {
+            "type": "page",
+            "label": "5. Adding a DataFlow Action",
+            "sourceAdoc": "old-userguide/src/docs/userguide/tutorials/developing-plugins/part5_add_dataflow_action.adoc",
+            "fallbackLink": "https://docs.gradle.org/current/userguide/part5_add_dataflow_action.html",
+            "target": "/userguide/gradle-tutorials/advanced-tutorial/adding-a-dataflow-action/",
+            "id": "adding-a-dataflow-action"
+          },
+          {
+            "type": "page",
+            "label": "6. Writing a Functional Test",
+            "sourceAdoc": "old-userguide/src/docs/userguide/tutorials/developing-plugins/part6_functional_test.adoc",
+            "fallbackLink": "https://docs.gradle.org/current/userguide/part6_functional_test.html",
+            "target": "/userguide/gradle-tutorials/advanced-tutorial/writing-a-functional-test/",
+            "id": "writing-a-functional-test"
+          },
+          {
+            "type": "page",
+            "label": "7. Using a Consumer Project",
+            "sourceAdoc": "old-userguide/src/docs/userguide/tutorials/developing-plugins/part7_use_consumer_project.adoc",
+            "fallbackLink": "https://docs.gradle.org/current/userguide/part7_use_consumer_project.html",
+            "target": "/userguide/gradle-tutorials/advanced-tutorial/using-a-consumer-project/",
+            "id": "using-a-consumer-project"
+          },
+          {
+            "type": "page",
+            "label": "8. Publish the Plugin",
+            "sourceAdoc": "old-userguide/src/docs/userguide/tutorials/developing-plugins/part8_publish_locally.adoc",
+            "fallbackLink": "https://docs.gradle.org/current/userguide/part8_publish_locally.html",
+            "target": "/userguide/gradle-tutorials/advanced-tutorial/publish-the-plugin/",
+            "id": "publish-the-plugin"
+          }
+        ],
+        "id": "advanced-tutorial"
+      }
+    ],
+    "id": "gradle-tutorials"
+  },
+  {
+    "type": "group",
+    "label": "Gradle Reference",
+    "collapsed": false,
+    "children": [
+      {
+        "type": "group",
+        "label": "Runtime and Configuration",
+        "collapsed": true,
+        "children": [
+          {
+            "type": "page",
+            "label": "Command-Line Interface",
+            "sourceAdoc": "old-userguide/src/docs/userguide/reference/runtime-configuration/command_line_interface.adoc",
+            "fallbackLink": "https://docs.gradle.org/current/userguide/command_line_interface.html",
+            "target": "/userguide/gradle-reference/runtime-and-configuration/command-line-interface/",
+            "id": "command-line-interface"
+          },
+          {
+            "type": "page",
+            "label": "Logging and Output",
+            "sourceAdoc": "old-userguide/src/docs/userguide/reference/runtime-configuration/logging.adoc",
+            "fallbackLink": "https://docs.gradle.org/current/userguide/logging.html",
+            "target": "/userguide/gradle-reference/runtime-and-configuration/logging-and-output/",
+            "id": "logging-and-output"
+          },
+          {
+            "type": "page",
+            "label": "Gradle Wrapper",
+            "sourceAdoc": "old-userguide/src/docs/userguide/reference/runtime-configuration/gradle_wrapper.adoc",
+            "fallbackLink": "https://docs.gradle.org/current/userguide/gradle_wrapper.html",
+            "target": "/userguide/gradle-reference/runtime-and-configuration/gradle-wrapper/",
+            "id": "gradle-wrapper"
+          },
+          {
+            "type": "page",
+            "label": "Gradle Daemon",
+            "sourceAdoc": "old-userguide/src/docs/userguide/reference/runtime-configuration/gradle_daemon.adoc",
+            "fallbackLink": "https://docs.gradle.org/current/userguide/gradle_daemon.html",
+            "target": "/userguide/gradle-reference/runtime-and-configuration/gradle-daemon/",
+            "id": "gradle-daemon"
+          },
+          {
+            "type": "page",
+            "label": "Gradle Directories",
+            "sourceAdoc": "old-userguide/src/docs/userguide/reference/runtime-configuration/directory_layout.adoc",
+            "fallbackLink": "https://docs.gradle.org/current/userguide/directory_layout.html",
+            "target": "/userguide/gradle-reference/runtime-and-configuration/gradle-directories/",
+            "id": "gradle-directories"
+          },
+          {
+            "type": "page",
+            "label": "Build Configuration",
+            "sourceAdoc": "old-userguide/src/docs/userguide/reference/runtime-configuration/build_environment.adoc",
+            "fallbackLink": "https://docs.gradle.org/current/userguide/build_environment.html",
+            "target": "/userguide/gradle-reference/runtime-and-configuration/build-configuration/",
+            "id": "build-configuration"
+          },
+          {
+            "type": "page",
+            "label": "Build Lifecycle",
+            "sourceAdoc": "old-userguide/src/docs/userguide/reference/runtime-configuration/build_lifecycle.adoc",
+            "fallbackLink": "https://docs.gradle.org/current/userguide/build_lifecycle.html",
+            "target": "/userguide/gradle-reference/runtime-and-configuration/build-lifecycle/",
+            "id": "build-lifecycle"
+          },
+          {
+            "type": "page",
+            "label": "Build Scan",
+            "sourceAdoc": "old-userguide/src/docs/userguide/reference/runtime-configuration/inspect.adoc",
+            "fallbackLink": "https://docs.gradle.org/current/userguide/inspect.html",
+            "target": "/userguide/gradle-reference/runtime-and-configuration/build-scan/",
+            "id": "build-scan"
+          },
+          {
+            "type": "page",
+            "label": "Continuous Builds",
+            "sourceAdoc": "old-userguide/src/docs/userguide/reference/runtime-configuration/continuous_builds.adoc",
+            "fallbackLink": "https://docs.gradle.org/current/userguide/continuous_builds.html",
+            "target": "/userguide/gradle-reference/runtime-and-configuration/continuous-builds/",
+            "id": "continuous-builds"
+          },
+          {
+            "type": "page",
+            "label": "File System Watching",
+            "sourceAdoc": "old-userguide/src/docs/userguide/reference/runtime-configuration/file_system_watching.adoc",
+            "fallbackLink": "https://docs.gradle.org/current/userguide/file_system_watching.html",
+            "target": "/userguide/gradle-reference/runtime-and-configuration/file-system-watching/",
+            "id": "file-system-watching"
+          }
+        ],
+        "id": "runtime-and-configuration"
+      },
+      {
+        "type": "group",
+        "label": "DSLs and APIs",
+        "collapsed": true,
+        "children": [
+          {
+            "type": "external",
+            "label": "Java API",
+            "link": "https://docs.gradle.org/current/javadoc/index.html?overview-summary.html"
+          },
+          {
+            "type": "page",
+            "label": "Groovy DSL Primer",
+            "sourceAdoc": "old-userguide/src/docs/userguide/reference/dsl-apis/groovy_build_script_primer.adoc",
+            "fallbackLink": "https://docs.gradle.org/current/userguide/groovy_build_script_primer.html",
+            "target": "/userguide/gradle-reference/dsls-and-apis/groovy-dsl-primer/",
+            "id": "groovy-dsl-primer"
+          },
+          {
+            "type": "external",
+            "label": "Groovy DSL",
+            "link": "https://docs.gradle.org/current/dsl/index.html"
+          },
+          {
+            "type": "page",
+            "label": "Kotlin DSL Primer",
+            "sourceAdoc": "old-userguide/src/docs/userguide/reference/dsl-apis/kotlin_dsl.adoc",
+            "fallbackLink": "https://docs.gradle.org/current/userguide/kotlin_dsl.html",
+            "target": "/userguide/gradle-reference/dsls-and-apis/kotlin-dsl-primer/",
+            "id": "kotlin-dsl-primer"
+          },
+          {
+            "type": "external",
+            "label": "Kotlin DSL",
+            "link": "https://docs.gradle.org/current/kotlin-dsl/index.html"
+          },
+          {
+            "type": "page",
+            "label": "Public APIs",
+            "sourceAdoc": "old-userguide/src/docs/userguide/reference/dsl-apis/public_apis.adoc",
+            "fallbackLink": "https://docs.gradle.org/current/userguide/public_apis.html",
+            "target": "/userguide/gradle-reference/dsls-and-apis/public-apis/",
+            "id": "public-apis"
+          },
+          {
+            "type": "page",
+            "label": "Default Script Imports",
+            "sourceAdoc": "old-userguide/src/docs/userguide/reference/dsl-apis/default_script_imports.adoc",
+            "fallbackLink": "https://docs.gradle.org/current/userguide/default_script_imports.html",
+            "target": "/userguide/gradle-reference/dsls-and-apis/default-script-imports/",
+            "id": "default-script-imports"
+          },
+          {
+            "type": "page",
+            "label": "Groovy to Kotlin DSL Migration",
+            "sourceAdoc": "old-userguide/src/docs/userguide/reference/dsl-apis/migrating_from_groovy_to_kotlin_dsl.adoc",
+            "fallbackLink": "https://docs.gradle.org/current/userguide/migrating_from_groovy_to_kotlin_dsl.html",
+            "target": "/userguide/gradle-reference/dsls-and-apis/groovy-to-kotlin-dsl-migration/",
+            "id": "groovy-to-kotlin-dsl-migration"
+          }
+        ],
+        "id": "dsls-and-apis"
+      },
+      {
+        "type": "group",
+        "label": "Best Practices",
+        "collapsed": true,
+        "children": [
+          {
+            "type": "page",
+            "label": "Introduction",
+            "sourceAdoc": "old-userguide/src/docs/userguide/reference/best-practices/best_practices.adoc",
+            "fallbackLink": "https://docs.gradle.org/current/userguide/best_practices.html",
+            "target": "/userguide/gradle-reference/best-practices/introduction/",
+            "id": "introduction"
+          },
+          {
+            "type": "page",
+            "label": "Index",
+            "sourceAdoc": "old-userguide/src/docs/userguide/reference/best-practices/best_practices_index.adoc",
+            "fallbackLink": "https://docs.gradle.org/current/userguide/best_practices_index.html",
+            "target": "/userguide/gradle-reference/best-practices/index/",
+            "id": "index"
+          },
+          {
+            "type": "page",
+            "label": "General Best Practices",
+            "sourceAdoc": "old-userguide/src/docs/userguide/reference/best-practices/best_practices_general.adoc",
+            "fallbackLink": "https://docs.gradle.org/current/userguide/best_practices_general.html",
+            "target": "/userguide/gradle-reference/best-practices/general-best-practices/",
+            "id": "general-best-practices"
+          },
+          {
+            "type": "page",
+            "label": "Best Practices for Structuring Builds",
+            "sourceAdoc": "old-userguide/src/docs/userguide/reference/best-practices/best_practices_structuring_builds.adoc",
+            "fallbackLink": "https://docs.gradle.org/current/userguide/best_practices_structuring_builds.html",
+            "target": "/userguide/gradle-reference/best-practices/best-practices-for-structuring-builds/",
+            "id": "best-practices-for-structuring-builds"
+          },
+          {
+            "type": "page",
+            "label": "Best Practices for Dependencies",
+            "sourceAdoc": "old-userguide/src/docs/userguide/reference/best-practices/best_practices_dependencies.adoc",
+            "fallbackLink": "https://docs.gradle.org/current/userguide/best_practices_dependencies.html",
+            "target": "/userguide/gradle-reference/best-practices/best-practices-for-dependencies/",
+            "id": "best-practices-for-dependencies"
+          },
+          {
+            "type": "page",
+            "label": "Best Practices for Tasks",
+            "sourceAdoc": "old-userguide/src/docs/userguide/reference/best-practices/best_practices_tasks.adoc",
+            "fallbackLink": "https://docs.gradle.org/current/userguide/best_practices_tasks.html",
+            "target": "/userguide/gradle-reference/best-practices/best-practices-for-tasks/",
+            "id": "best-practices-for-tasks"
+          },
+          {
+            "type": "page",
+            "label": "Best Practices for Performance",
+            "sourceAdoc": "old-userguide/src/docs/userguide/reference/best-practices/best_practices_performance.adoc",
+            "fallbackLink": "https://docs.gradle.org/current/userguide/best_practices_performance.html",
+            "target": "/userguide/gradle-reference/best-practices/best-practices-for-performance/",
+            "id": "best-practices-for-performance"
+          },
+          {
+            "type": "page",
+            "label": "Best Practices for Security",
+            "sourceAdoc": "old-userguide/src/docs/userguide/reference/best-practices/best_practices_security.adoc",
+            "fallbackLink": "https://docs.gradle.org/current/userguide/best_practices_security.html",
+            "target": "/userguide/gradle-reference/best-practices/best-practices-for-security/",
+            "id": "best-practices-for-security"
+          }
+        ],
+        "id": "best-practices"
+      },
+      {
+        "type": "group",
+        "label": "Core Plugins",
+        "collapsed": true,
+        "children": [
+          {
+            "type": "page",
+            "label": "List of Core Plugins",
+            "sourceAdoc": "old-userguide/src/docs/userguide/reference/core-plugins/plugin_reference.adoc",
+            "fallbackLink": "https://docs.gradle.org/current/userguide/plugin_reference.html",
+            "target": "/userguide/gradle-reference/core-plugins/list-of-core-plugins/",
+            "id": "list-of-core-plugins"
+          },
+          {
+            "type": "page",
+            "label": "The ANTLR Plugin",
+            "sourceAdoc": "old-userguide/src/docs/userguide/reference/core-plugins/antlr_plugin.adoc",
+            "target": "/userguide/gradle-reference/core-plugins/antlr-plugin/",
+            "id": "antlr-plugin"
+          },
+          {
+            "type": "page",
+            "label": "The CodeNarc Plugin",
+            "sourceAdoc": "old-userguide/src/docs/userguide/reference/core-plugins/codenarc_plugin.adoc",
+            "target": "/userguide/gradle-reference/core-plugins/codenarc-plugin/",
+            "id": "codenarc-plugin"
+          },
+          {
+            "type": "page",
+            "label": "Gradle Plugin Development Plugin",
+            "sourceAdoc": "old-userguide/src/docs/userguide/reference/core-plugins/java_gradle_plugin.adoc",
+            "target": "/userguide/gradle-reference/core-plugins/java-gradle-plugin/",
+            "id": "java-gradle-plugin",
+            "fallbackLink": "https://docs.gradle.org/current/userguide/java_gradle_plugin.html"
+          },
+          {
+            "type": "page",
+            "label": "The Eclipse Plugins",
+            "sourceAdoc": "old-userguide/src/docs/userguide/reference/core-plugins/eclipse_plugin.adoc",
+            "fallbackLink": "https://docs.gradle.org/current/userguide/eclipse_plugin.html",
+            "target": "/userguide/gradle-reference/core-plugins/eclipse-plugin/",
+            "id": "eclipse-plugin"
+          },
+          {
+            "type": "page",
+            "label": "The JaCoCo Plugin",
+            "sourceAdoc": "old-userguide/src/docs/userguide/reference/core-plugins/jacoco_plugin.adoc",
+            "target": "/userguide/gradle-reference/core-plugins/jacoco-plugin/",
+            "id": "jacoco-plugin"
+          },
+          {
+            "type": "page",
+            "label": "The PMD Plugin",
+            "sourceAdoc": "old-userguide/src/docs/userguide/reference/core-plugins/pmd_plugin.adoc",
+            "target": "/userguide/gradle-reference/core-plugins/pmd-plugin/",
+            "id": "pmd-plugin"
+          },
+          {
+            "type": "page",
+            "label": "The Ear Plugin",
+            "sourceAdoc": "old-userguide/src/docs/userguide/reference/core-plugins/ear_plugin.adoc",
+            "fallbackLink": "https://docs.gradle.org/current/userguide/ear_plugin.html",
+            "target": "/userguide/gradle-reference/core-plugins/ear-plugin/",
+            "id": "ear-plugin"
+          },
+          {
+            "type": "page",
+            "label": "The IDEA Plugin",
+            "sourceAdoc": "old-userguide/src/docs/userguide/reference/core-plugins/idea_plugin.adoc",
+            "fallbackLink": "https://docs.gradle.org/current/userguide/idea_plugin.html",
+            "target": "/userguide/gradle-reference/core-plugins/idea-plugin/",
+            "id": "idea-plugin"
+          },
+          {
+            "type": "page",
+            "label": "The Checkstyle Plugin",
+            "sourceAdoc": "old-userguide/src/docs/userguide/reference/core-plugins/checkstyle_plugin.adoc",
+            "target": "/userguide/gradle-reference/core-plugins/checkstyle-plugin/",
+            "id": "checkstyle-plugin"
+          }
+        ],
+        "id": "core-plugins"
+      },
+      {
+        "type": "group",
+        "label": "Dependency Management",
+        "collapsed": true,
+        "children": [
+          {
+            "type": "page",
+            "label": "Getting Started",
+            "sourceAdoc": "old-userguide/src/docs/userguide/reference/dependency-management/getting_started_dep_man.adoc",
+            "fallbackLink": "https://docs.gradle.org/current/userguide/getting_started_dep_man.html",
+            "target": "/userguide/gradle-reference/dependency-management/getting-started-2/",
+            "id": "getting-started-2"
+          },
+          {
+            "type": "group",
+            "label": "Learning the Basics",
+            "collapsed": true,
+            "children": [
+              {
+                "type": "page",
+                "label": "1. Declaring Dependencies",
+                "sourceAdoc": "old-userguide/src/docs/userguide/reference/dependency-management/basics/declaring_dependencies.adoc",
+                "fallbackLink": "https://docs.gradle.org/current/userguide/declaring_dependencies.html",
+                "target": "/userguide/gradle-reference/dependency-management/learning-the-basics/declaring-dependencies-2/",
+                "id": "declaring-dependencies-2"
+              },
+              {
+                "type": "page",
+                "label": "2. Dependency Configurations",
+                "sourceAdoc": "old-userguide/src/docs/userguide/reference/dependency-management/basics/dependency_configurations.adoc",
+                "fallbackLink": "https://docs.gradle.org/current/userguide/dependency_configurations.html",
+                "target": "/userguide/gradle-reference/dependency-management/learning-the-basics/dependency-configurations/",
+                "id": "dependency-configurations"
+              },
+              {
+                "type": "page",
+                "label": "3. Declaring Repositories",
+                "sourceAdoc": "old-userguide/src/docs/userguide/reference/dependency-management/basics/declaring_repositories.adoc",
+                "fallbackLink": "https://docs.gradle.org/current/userguide/declaring_repositories.html",
+                "target": "/userguide/gradle-reference/dependency-management/learning-the-basics/declaring-repositories/",
+                "id": "declaring-repositories"
+              },
+              {
+                "type": "page",
+                "label": "4. Centralizing Dependencies",
+                "sourceAdoc": "old-userguide/src/docs/userguide/reference/dependency-management/basics/centralizing_dependencies.adoc",
+                "fallbackLink": "https://docs.gradle.org/current/userguide/centralizing_dependencies.html",
+                "target": "/userguide/gradle-reference/dependency-management/learning-the-basics/centralizing-dependencies/",
+                "id": "centralizing-dependencies"
+              },
+              {
+                "type": "page",
+                "label": "5. Dependency Constraints and Conflict Resolution",
+                "sourceAdoc": "old-userguide/src/docs/userguide/reference/dependency-management/basics/dependency_constraints_conflicts.adoc",
+                "fallbackLink": "https://docs.gradle.org/current/userguide/dependency_constraints_conflicts.html",
+                "target": "/userguide/gradle-reference/dependency-management/learning-the-basics/dependency-constraints-and-conflict-resolution/",
+                "id": "dependency-constraints-and-conflict-resolution"
+              }
+            ],
+            "id": "learning-the-basics"
+          },
+          {
+            "type": "group",
+            "label": "Advanced Concepts",
+            "collapsed": true,
+            "children": [
+              {
+                "type": "page",
+                "label": "1. Dependency Resolution",
+                "sourceAdoc": "old-userguide/src/docs/userguide/reference/dependency-management/advanced/dependency_resolution.adoc",
+                "fallbackLink": "https://docs.gradle.org/current/userguide/dependency_resolution.html",
+                "target": "/userguide/gradle-reference/dependency-management/advanced-concepts/dependency-resolution/",
+                "id": "dependency-resolution"
+              },
+              {
+                "type": "page",
+                "label": "2. Graph Resolution",
+                "sourceAdoc": "old-userguide/src/docs/userguide/reference/dependency-management/advanced/graph_resolution.adoc",
+                "fallbackLink": "https://docs.gradle.org/current/userguide/graph_resolution.html",
+                "target": "/userguide/gradle-reference/dependency-management/advanced-concepts/graph-resolution/",
+                "id": "graph-resolution"
+              },
+              {
+                "type": "page",
+                "label": "3. Variant Selection",
+                "sourceAdoc": "old-userguide/src/docs/userguide/reference/dependency-management/advanced/variant_aware_resolution.adoc",
+                "fallbackLink": "https://docs.gradle.org/current/userguide/variant_aware_resolution.html",
+                "target": "/userguide/gradle-reference/dependency-management/advanced-concepts/variant-selection/",
+                "id": "variant-selection"
+              },
+              {
+                "type": "page",
+                "label": "4. Artifact Resolution",
+                "sourceAdoc": "old-userguide/src/docs/userguide/reference/dependency-management/advanced/artifact_resolution.adoc",
+                "fallbackLink": "https://docs.gradle.org/current/userguide/artifact_resolution.html",
+                "target": "/userguide/gradle-reference/dependency-management/advanced-concepts/artifact-resolution/",
+                "id": "artifact-resolution"
+              }
+            ],
+            "id": "advanced-concepts"
+          },
+          {
+            "type": "group",
+            "label": "Declaring Dependencies",
+            "collapsed": true,
+            "children": [
+              {
+                "type": "page",
+                "label": "Declaring Dependencies",
+                "sourceAdoc": "old-userguide/src/docs/userguide/reference/dependency-management/declaring-dependencies/declaring_dependencies_basics.adoc",
+                "fallbackLink": "https://docs.gradle.org/current/userguide/declaring_dependencies_basics.html",
+                "target": "/userguide/gradle-reference/dependency-management/declaring-dependencies-4/declaring-dependencies-3/",
+                "id": "declaring-dependencies-3"
+              },
+              {
+                "type": "page",
+                "label": "Viewing Dependencies",
+                "sourceAdoc": "old-userguide/src/docs/userguide/reference/dependency-management/declaring-dependencies/viewing_debugging_dependencies.adoc",
+                "fallbackLink": "https://docs.gradle.org/current/userguide/viewing_debugging_dependencies.html",
+                "target": "/userguide/gradle-reference/dependency-management/declaring-dependencies-4/viewing-dependencies/",
+                "id": "viewing-dependencies"
+              },
+              {
+                "type": "page",
+                "label": "Declaring Versions and Ranges",
+                "sourceAdoc": "old-userguide/src/docs/userguide/reference/dependency-management/declaring-dependencies/dependency_versions.adoc",
+                "fallbackLink": "https://docs.gradle.org/current/userguide/dependency_versions.html",
+                "target": "/userguide/gradle-reference/dependency-management/declaring-dependencies-4/declaring-versions-and-ranges/",
+                "id": "declaring-versions-and-ranges"
+              },
+              {
+                "type": "page",
+                "label": "Declaring Dependency Constraints",
+                "sourceAdoc": "old-userguide/src/docs/userguide/reference/dependency-management/declaring-dependencies/dependency_constraints.adoc",
+                "fallbackLink": "https://docs.gradle.org/current/userguide/dependency_constraints.html",
+                "target": "/userguide/gradle-reference/dependency-management/declaring-dependencies-4/declaring-dependency-constraints/",
+                "id": "declaring-dependency-constraints"
+              },
+              {
+                "type": "page",
+                "label": "Creating Dependency Configurations",
+                "sourceAdoc": "old-userguide/src/docs/userguide/reference/dependency-management/declaring-dependencies/declaring_configurations.adoc",
+                "fallbackLink": "https://docs.gradle.org/current/userguide/declaring_configurations.html",
+                "target": "/userguide/gradle-reference/dependency-management/declaring-dependencies-4/creating-dependency-configurations/",
+                "id": "creating-dependency-configurations"
+              },
+              {
+                "type": "page",
+                "label": "Gradle Distribution-Specific Dependencies",
+                "sourceAdoc": "old-userguide/src/docs/userguide/reference/dependency-management/declaring-dependencies/gradle_dependencies.adoc",
+                "fallbackLink": "https://docs.gradle.org/current/userguide/gradle_dependencies.html",
+                "target": "/userguide/gradle-reference/dependency-management/declaring-dependencies-4/gradle-distribution-specific-dependencies/",
+                "id": "gradle-distribution-specific-dependencies"
+              },
+              {
+                "type": "page",
+                "label": "Verifying Dependencies",
+                "sourceAdoc": "old-userguide/src/docs/userguide/reference/dependency-management/declaring-dependencies/dependency_verification.adoc",
+                "fallbackLink": "https://docs.gradle.org/current/userguide/dependency_verification.html",
+                "target": "/userguide/gradle-reference/dependency-management/declaring-dependencies-4/verifying-dependencies/",
+                "id": "verifying-dependencies"
+              }
+            ],
+            "id": "declaring-dependencies-4"
+          },
+          {
+            "type": "group",
+            "label": "Declaring Repositories",
+            "collapsed": true,
+            "children": [
+              {
+                "type": "page",
+                "label": "Declaring Repositories",
+                "sourceAdoc": "old-userguide/src/docs/userguide/reference/dependency-management/declaring-repositories/declaring_repositories_basics.adoc",
+                "fallbackLink": "https://docs.gradle.org/current/userguide/declaring_repositories_basics.html",
+                "target": "/userguide/gradle-reference/dependency-management/declaring-repositories-3/declaring-repositories-2/",
+                "id": "declaring-repositories-2"
+              },
+              {
+                "type": "page",
+                "label": "Centralizing Repository Declarations",
+                "sourceAdoc": "old-userguide/src/docs/userguide/reference/dependency-management/declaring-repositories/centralizing_repositories.adoc",
+                "fallbackLink": "https://docs.gradle.org/current/userguide/centralizing_repositories.html",
+                "target": "/userguide/gradle-reference/dependency-management/declaring-repositories-3/centralizing-repository-declarations/",
+                "id": "centralizing-repository-declarations"
+              },
+              {
+                "type": "page",
+                "label": "Repository Types",
+                "sourceAdoc": "old-userguide/src/docs/userguide/reference/dependency-management/declaring-repositories/supported_repository_types.adoc",
+                "fallbackLink": "https://docs.gradle.org/current/userguide/supported_repository_types.html",
+                "target": "/userguide/gradle-reference/dependency-management/declaring-repositories-3/repository-types/",
+                "id": "repository-types"
+              },
+              {
+                "type": "page",
+                "label": "Metadata Formats",
+                "sourceAdoc": "old-userguide/src/docs/userguide/reference/dependency-management/declaring-repositories/supported_metadata_formats.adoc",
+                "fallbackLink": "https://docs.gradle.org/current/userguide/supported_metadata_formats.html",
+                "target": "/userguide/gradle-reference/dependency-management/declaring-repositories-3/metadata-formats/",
+                "id": "metadata-formats"
+              },
+              {
+                "type": "page",
+                "label": "Supported Protocols",
+                "sourceAdoc": "old-userguide/src/docs/userguide/reference/dependency-management/declaring-repositories/supported_repository_protocols.adoc",
+                "fallbackLink": "https://docs.gradle.org/current/userguide/supported_repository_protocols.html",
+                "target": "/userguide/gradle-reference/dependency-management/declaring-repositories-3/supported-protocols/",
+                "id": "supported-protocols"
+              },
+              {
+                "type": "page",
+                "label": "Filtering Repository Content",
+                "sourceAdoc": "old-userguide/src/docs/userguide/reference/dependency-management/declaring-repositories/filtering_repository_content.adoc",
+                "fallbackLink": "https://docs.gradle.org/current/userguide/filtering_repository_content.html",
+                "target": "/userguide/gradle-reference/dependency-management/declaring-repositories-3/filtering-repository-content/",
+                "id": "filtering-repository-content"
+              }
+            ],
+            "id": "declaring-repositories-3"
+          },
+          {
+            "type": "group",
+            "label": "Centralizing Dependencies",
+            "collapsed": true,
+            "children": [
+              {
+                "type": "page",
+                "label": "Creating Platforms",
+                "sourceAdoc": "old-userguide/src/docs/userguide/reference/dependency-management/centralizing-dependencies/platforms.adoc",
+                "fallbackLink": "https://docs.gradle.org/current/userguide/platforms.html",
+                "target": "/userguide/gradle-reference/dependency-management/centralizing-dependencies-2/creating-platforms/",
+                "id": "creating-platforms"
+              },
+              {
+                "type": "page",
+                "label": "Creating Version Catalogs",
+                "sourceAdoc": "old-userguide/src/docs/userguide/reference/dependency-management/centralizing-dependencies/version_catalogs.adoc",
+                "fallbackLink": "https://docs.gradle.org/current/userguide/version_catalogs.html",
+                "target": "/userguide/gradle-reference/dependency-management/centralizing-dependencies-2/creating-version-catalogs/",
+                "id": "creating-version-catalogs"
+              },
+              {
+                "type": "page",
+                "label": "Using Catalogs with Platforms",
+                "sourceAdoc": "old-userguide/src/docs/userguide/reference/dependency-management/centralizing-dependencies/centralizing_catalog_platform.adoc",
+                "fallbackLink": "https://docs.gradle.org/current/userguide/centralizing_catalog_platform.html",
+                "target": "/userguide/gradle-reference/dependency-management/centralizing-dependencies-2/using-catalogs-with-platforms/",
+                "id": "using-catalogs-with-platforms"
+              }
+            ],
+            "id": "centralizing-dependencies-2"
+          },
+          {
+            "type": "group",
+            "label": "Managing Dependencies",
+            "collapsed": true,
+            "children": [
+              {
+                "type": "page",
+                "label": "Locking Versions",
+                "sourceAdoc": "old-userguide/src/docs/userguide/reference/dependency-management/dependency-management/dependency_locking.adoc",
+                "fallbackLink": "https://docs.gradle.org/current/userguide/dependency_locking.html",
+                "target": "/userguide/gradle-reference/dependency-management/managing-dependencies-2/locking-versions/",
+                "id": "locking-versions"
+              },
+              {
+                "type": "page",
+                "label": "Using Resolution Rules",
+                "sourceAdoc": "old-userguide/src/docs/userguide/reference/dependency-management/dependency-management/resolution_rules.adoc",
+                "fallbackLink": "https://docs.gradle.org/current/userguide/resolution_rules.html",
+                "target": "/userguide/gradle-reference/dependency-management/managing-dependencies-2/using-resolution-rules/",
+                "id": "using-resolution-rules"
+              },
+              {
+                "type": "page",
+                "label": "Modifying Dependency Metadata",
+                "sourceAdoc": "old-userguide/src/docs/userguide/reference/dependency-management/dependency-management/component_metadata_rules.adoc",
+                "fallbackLink": "https://docs.gradle.org/current/userguide/component_metadata_rules.html",
+                "target": "/userguide/gradle-reference/dependency-management/managing-dependencies-2/modifying-dependency-metadata/",
+                "id": "modifying-dependency-metadata"
+              },
+              {
+                "type": "page",
+                "label": "Caching Dependencies",
+                "sourceAdoc": "old-userguide/src/docs/userguide/reference/dependency-management/dependency-management/dependency_caching.adoc",
+                "fallbackLink": "https://docs.gradle.org/current/userguide/dependency_caching.html",
+                "target": "/userguide/gradle-reference/dependency-management/managing-dependencies-2/caching-dependencies/",
+                "id": "caching-dependencies"
+              }
+            ],
+            "id": "managing-dependencies-2"
+          },
+          {
+            "type": "group",
+            "label": "Controlling Dependency Resolution",
+            "collapsed": true,
+            "children": [
+              {
+                "type": "page",
+                "label": "Consistent Dependency Resolution",
+                "sourceAdoc": "old-userguide/src/docs/userguide/reference/dependency-management/controlling-dependency-resolution/dependency_resolution_consistency.adoc",
+                "fallbackLink": "https://docs.gradle.org/current/userguide/dependency_resolution_consistency.html",
+                "target": "/userguide/gradle-reference/dependency-management/controlling-dependency-resolution/consistent-dependency-resolution/",
+                "id": "consistent-dependency-resolution"
+              },
+              {
+                "type": "page",
+                "label": "Resolving Specific Artifacts",
+                "sourceAdoc": "old-userguide/src/docs/userguide/reference/dependency-management/controlling-dependency-resolution/resolving_specific_artifacts.adoc",
+                "fallbackLink": "https://docs.gradle.org/current/userguide/resolving_specific_artifacts.html",
+                "target": "/userguide/gradle-reference/dependency-management/controlling-dependency-resolution/resolving-specific-artifacts/",
+                "id": "resolving-specific-artifacts"
+              },
+              {
+                "type": "page",
+                "label": "Capabilities",
+                "sourceAdoc": "old-userguide/src/docs/userguide/reference/dependency-management/controlling-dependency-resolution/component_capabilities.adoc",
+                "fallbackLink": "https://docs.gradle.org/current/userguide/component_capabilities.html",
+                "target": "/userguide/gradle-reference/dependency-management/controlling-dependency-resolution/capabilities/",
+                "id": "capabilities"
+              },
+              {
+                "type": "page",
+                "label": "Variants and Attributes",
+                "sourceAdoc": "old-userguide/src/docs/userguide/reference/dependency-management/controlling-dependency-resolution/variant_attributes.adoc",
+                "fallbackLink": "https://docs.gradle.org/current/userguide/variant_attributes.html",
+                "target": "/userguide/gradle-reference/dependency-management/controlling-dependency-resolution/variants-and-attributes/",
+                "id": "variants-and-attributes"
+              },
+              {
+                "type": "page",
+                "label": "Artifact Views",
+                "sourceAdoc": "old-userguide/src/docs/userguide/reference/dependency-management/controlling-dependency-resolution/artifact_views.adoc",
+                "fallbackLink": "https://docs.gradle.org/current/userguide/artifact_views.html",
+                "target": "/userguide/gradle-reference/dependency-management/controlling-dependency-resolution/artifact-views/",
+                "id": "artifact-views"
+              },
+              {
+                "type": "page",
+                "label": "Artifact Transforms",
+                "sourceAdoc": "old-userguide/src/docs/userguide/reference/dependency-management/controlling-dependency-resolution/artifact_transforms.adoc",
+                "fallbackLink": "https://docs.gradle.org/current/userguide/artifact_transforms.html",
+                "target": "/userguide/gradle-reference/dependency-management/controlling-dependency-resolution/artifact-transforms/",
+                "id": "artifact-transforms"
+              }
+            ],
+            "id": "controlling-dependency-resolution"
+          },
+          {
+            "type": "group",
+            "label": "Publishing Libraries",
+            "collapsed": true,
+            "children": [
+              {
+                "type": "page",
+                "label": "Setting up Publishing",
+                "sourceAdoc": "old-userguide/src/docs/userguide/reference/dependency-management/publishing/publishing_setup.adoc",
+                "fallbackLink": "https://docs.gradle.org/current/userguide/publishing_setup.html",
+                "target": "/userguide/gradle-reference/dependency-management/publishing-libraries/setting-up-publishing/",
+                "id": "setting-up-publishing"
+              },
+              {
+                "type": "page",
+                "label": "Understanding Gradle Module Metadata",
+                "sourceAdoc": "old-userguide/src/docs/userguide/reference/dependency-management/publishing/publishing_gradle_module_metadata.adoc",
+                "fallbackLink": "https://docs.gradle.org/current/userguide/publishing_gradle_module_metadata.html",
+                "target": "/userguide/gradle-reference/dependency-management/publishing-libraries/understanding-gradle-module-metadata/",
+                "id": "understanding-gradle-module-metadata"
+              },
+              {
+                "type": "page",
+                "label": "Signing Artifacts",
+                "sourceAdoc": "old-userguide/src/docs/userguide/reference/dependency-management/publishing/publishing_signing.adoc",
+                "fallbackLink": "https://docs.gradle.org/current/userguide/publishing_signing.html",
+                "target": "/userguide/gradle-reference/dependency-management/publishing-libraries/signing-artifacts/",
+                "id": "signing-artifacts"
+              },
+              {
+                "type": "page",
+                "label": "Customizing Publishing",
+                "sourceAdoc": "old-userguide/src/docs/userguide/reference/dependency-management/publishing/publishing_customization.adoc",
+                "fallbackLink": "https://docs.gradle.org/current/userguide/publishing_customization.html",
+                "target": "/userguide/gradle-reference/dependency-management/publishing-libraries/customizing-publishing/",
+                "id": "customizing-publishing"
+              },
+              {
+                "type": "page",
+                "label": "Maven Publish Plugin",
+                "sourceAdoc": "old-userguide/src/docs/userguide/reference/dependency-management/publishing/publishing_maven.adoc",
+                "fallbackLink": "https://docs.gradle.org/current/userguide/publishing_maven.html",
+                "target": "/userguide/gradle-reference/dependency-management/publishing-libraries/maven-publish-plugin/",
+                "id": "maven-publish-plugin"
+              },
+              {
+                "type": "page",
+                "label": "Ivy Publish Plugin",
+                "sourceAdoc": "old-userguide/src/docs/userguide/reference/dependency-management/publishing/publishing_ivy.adoc",
+                "fallbackLink": "https://docs.gradle.org/current/userguide/publishing_ivy.html",
+                "target": "/userguide/gradle-reference/dependency-management/publishing-libraries/ivy-publish-plugin/",
+                "id": "ivy-publish-plugin"
+              }
+            ],
+            "id": "publishing-libraries"
+          }
+        ],
+        "id": "dependency-management"
+      },
+      {
+        "type": "group",
+        "label": "Gradle Managed Types",
+        "collapsed": true,
+        "children": [
+          {
+            "type": "page",
+            "label": "Lazy vs Eager Evaluation",
+            "sourceAdoc": "old-userguide/src/docs/userguide/reference/gradle-types/lazy_eager_evaluation.adoc",
+            "fallbackLink": "https://docs.gradle.org/current/userguide/lazy_eager_evaluation.html",
+            "target": "/userguide/gradle-reference/gradle-managed-types-2/lazy-vs-eager-evaluation/",
+            "id": "lazy-vs-eager-evaluation"
+          },
+          {
+            "type": "page",
+            "label": "Properties and Providers",
+            "sourceAdoc": "old-userguide/src/docs/userguide/reference/gradle-types/properties_providers.adoc",
+            "fallbackLink": "https://docs.gradle.org/current/userguide/properties_providers.html",
+            "target": "/userguide/gradle-reference/gradle-managed-types-2/properties-and-providers/",
+            "id": "properties-and-providers"
+          },
+          {
+            "type": "page",
+            "label": "Collections",
+            "sourceAdoc": "old-userguide/src/docs/userguide/reference/gradle-types/collections.adoc",
+            "fallbackLink": "https://docs.gradle.org/current/userguide/collections.html",
+            "target": "/userguide/gradle-reference/gradle-managed-types-2/collections/",
+            "id": "collections"
+          },
+          {
+            "type": "page",
+            "label": "Services and Service Injection",
+            "sourceAdoc": "old-userguide/src/docs/userguide/reference/gradle-types/service_injection.adoc",
+            "fallbackLink": "https://docs.gradle.org/current/userguide/service_injection.html",
+            "target": "/userguide/gradle-reference/gradle-managed-types-2/services-and-service-injection/",
+            "id": "services-and-service-injection"
+          },
+          {
+            "type": "page",
+            "label": "Dataflow Actions",
+            "sourceAdoc": "old-userguide/src/docs/userguide/reference/other-topics/dataflow_actions.adoc",
+            "fallbackLink": "https://docs.gradle.org/current/userguide/dataflow_actions.html",
+            "target": "/userguide/gradle-reference/other-topics/dataflow-actions/",
+            "id": "dataflow-actions"
+          },
+          {
+            "type": "page",
+            "label": "Working with Files",
+            "sourceAdoc": "old-userguide/src/docs/userguide/reference/gradle-types/working_with_files.adoc",
+            "fallbackLink": "https://docs.gradle.org/current/userguide/working_with_files.html",
+            "target": "/userguide/gradle-reference/gradle-managed-types-2/working-with-files/",
+            "id": "working-with-files"
+          }
+        ],
+        "id": "gradle-managed-types-2"
+      },
+      {
+        "type": "group",
+        "label": "Structuring Builds",
+        "collapsed": true,
+        "children": [
+          {
+            "type": "page",
+            "label": "Structuring and Organizing Projects",
+            "sourceAdoc": "old-userguide/src/docs/userguide/reference/structuring-builds/organizing_gradle_projects.adoc",
+            "fallbackLink": "https://docs.gradle.org/current/userguide/organizing_gradle_projects.html",
+            "target": "/userguide/gradle-reference/structuring-builds/structuring-and-organizing-projects/",
+            "id": "structuring-and-organizing-projects"
+          },
+          {
+            "type": "page",
+            "label": "Multi-Project Builds",
+            "sourceAdoc": "old-userguide/src/docs/userguide/reference/structuring-builds/multi_project_builds.adoc",
+            "fallbackLink": "https://docs.gradle.org/current/userguide/multi_project_builds.html",
+            "target": "/userguide/gradle-reference/structuring-builds/multi-project-builds-2/",
+            "id": "multi-project-builds-2"
+          },
+          {
+            "type": "page",
+            "label": "Sharing Build Logic using buildSrc",
+            "sourceAdoc": "old-userguide/src/docs/userguide/reference/structuring-builds/sharing_build_logic_between_subprojects.adoc",
+            "fallbackLink": "https://docs.gradle.org/current/userguide/sharing_build_logic_between_subprojects.html",
+            "target": "/userguide/gradle-reference/structuring-builds/sharing-build-logic-using-buildsrc/",
+            "id": "sharing-build-logic-using-buildsrc"
+          },
+          {
+            "type": "page",
+            "label": "Composite Builds",
+            "sourceAdoc": "old-userguide/src/docs/userguide/reference/structuring-builds/composite_builds.adoc",
+            "fallbackLink": "https://docs.gradle.org/current/userguide/composite_builds.html",
+            "target": "/userguide/gradle-reference/structuring-builds/composite-builds/",
+            "id": "composite-builds"
+          },
+          {
+            "type": "page",
+            "label": "Configuration on Demand",
+            "sourceAdoc": "old-userguide/src/docs/userguide/reference/structuring-builds/configuration_on_demand.adoc",
+            "fallbackLink": "https://docs.gradle.org/current/userguide/configuration_on_demand.html",
+            "target": "/userguide/gradle-reference/structuring-builds/configuration-on-demand/",
+            "id": "configuration-on-demand"
+          },
+          {
+            "type": "page",
+            "label": "Isolated Projects",
+            "sourceAdoc": "old-userguide/src/docs/userguide/reference/structuring-builds/isolated_projects.adoc",
+            "fallbackLink": "https://docs.gradle.org/current/userguide/isolated_projects.html",
+            "target": "/userguide/gradle-reference/structuring-builds/isolated-projects/",
+            "id": "isolated-projects"
+          }
+        ],
+        "id": "structuring-builds"
+      },
+      {
+        "type": "group",
+        "label": "Task Development",
+        "collapsed": true,
+        "children": [
+          {
+            "type": "page",
+            "label": "Understanding Tasks",
+            "sourceAdoc": "old-userguide/src/docs/userguide/reference/task-development/more_about_tasks.adoc",
+            "fallbackLink": "https://docs.gradle.org/current/userguide/more_about_tasks.html",
+            "target": "/userguide/gradle-reference/task-development/understanding-tasks/",
+            "id": "understanding-tasks"
+          },
+          {
+            "type": "page",
+            "label": "Controlling Task Execution",
+            "sourceAdoc": "old-userguide/src/docs/userguide/reference/task-development/controlling_task_execution.adoc",
+            "fallbackLink": "https://docs.gradle.org/current/userguide/controlling_task_execution.html",
+            "target": "/userguide/gradle-reference/task-development/controlling-task-execution/",
+            "id": "controlling-task-execution"
+          },
+          {
+            "type": "page",
+            "label": "Organizing Tasks",
+            "sourceAdoc": "old-userguide/src/docs/userguide/reference/task-development/organizing_tasks.adoc",
+            "fallbackLink": "https://docs.gradle.org/current/userguide/organizing_tasks.html",
+            "target": "/userguide/gradle-reference/task-development/organizing-tasks/",
+            "id": "organizing-tasks"
+          },
+          {
+            "type": "page",
+            "label": "Implementing Custom Tasks",
+            "sourceAdoc": "old-userguide/src/docs/userguide/reference/task-development/implementing_custom_tasks.adoc",
+            "fallbackLink": "https://docs.gradle.org/current/userguide/implementing_custom_tasks.html",
+            "target": "/userguide/gradle-reference/task-development/implementing-custom-tasks/",
+            "id": "implementing-custom-tasks"
+          },
+          {
+            "type": "page",
+            "label": "Lazy Configuration",
+            "sourceAdoc": "old-userguide/src/docs/userguide/reference/task-development/lazy_configuration.adoc",
+            "fallbackLink": "https://docs.gradle.org/current/userguide/lazy_configuration.html",
+            "target": "/userguide/gradle-reference/task-development/lazy-configuration/",
+            "id": "lazy-configuration"
+          },
+          {
+            "type": "page",
+            "label": "Parallel Task Execution",
+            "sourceAdoc": "old-userguide/src/docs/userguide/unused/worker_api.adoc",
+            "fallbackLink": "https://docs.gradle.org/current/userguide/worker_api.html",
+            "target": "/userguide/gradle-reference/task-development/parallel-task-execution/",
+            "id": "parallel-task-execution"
+          },
+          {
+            "type": "page",
+            "label": "Advanced Task Development",
+            "sourceAdoc": "old-userguide/src/docs/userguide/reference/task-development/custom_tasks.adoc",
+            "fallbackLink": "https://docs.gradle.org/current/userguide/custom_tasks.html",
+            "target": "/userguide/gradle-reference/task-development/advanced-task-development/",
+            "id": "advanced-task-development"
+          },
+          {
+            "type": "page",
+            "label": "Shared Build Services",
+            "sourceAdoc": "old-userguide/src/docs/userguide/reference/task-development/build_services.adoc",
+            "fallbackLink": "https://docs.gradle.org/current/userguide/build_services.html",
+            "target": "/userguide/gradle-reference/task-development/shared-build-services/",
+            "id": "shared-build-services"
+          }
+        ],
+        "id": "task-development"
+      },
+      {
+        "type": "group",
+        "label": "Plugin Development",
+        "collapsed": true,
+        "children": [
+          {
+            "type": "page",
+            "label": "Introduction to Plugins",
+            "sourceAdoc": "old-userguide/src/docs/userguide/reference/plugin-development/plugins.adoc",
+            "fallbackLink": "https://docs.gradle.org/current/userguide/plugins.html",
+            "target": "/userguide/gradle-reference/plugin-development/introduction-to-plugins/",
+            "id": "introduction-to-plugins"
+          },
+          {
+            "type": "page",
+            "label": "Precompiled Script Plugins",
+            "sourceAdoc": "old-userguide/src/docs/userguide/reference/plugin-development/implementing_gradle_plugins_precompiled.adoc",
+            "fallbackLink": "https://docs.gradle.org/current/userguide/implementing_gradle_plugins_precompiled.html",
+            "target": "/userguide/gradle-reference/plugin-development/precompiled-script-plugins/",
+            "id": "precompiled-script-plugins"
+          },
+          {
+            "type": "page",
+            "label": "Convention Plugins",
+            "sourceAdoc": "old-userguide/src/docs/userguide/reference/plugin-development/implementing_gradle_plugins_convention.adoc",
+            "fallbackLink": "https://docs.gradle.org/current/userguide/implementing_gradle_plugins_convention.html",
+            "target": "/userguide/gradle-reference/plugin-development/convention-plugins/",
+            "id": "convention-plugins"
+          },
+          {
+            "type": "page",
+            "label": "Binary Plugins",
+            "sourceAdoc": "old-userguide/src/docs/userguide/reference/plugin-development/implementing_gradle_plugins_binary.adoc",
+            "fallbackLink": "https://docs.gradle.org/current/userguide/implementing_gradle_plugins_binary.html",
+            "target": "/userguide/gradle-reference/plugin-development/binary-plugins-2/",
+            "id": "binary-plugins-2"
+          },
+          {
+            "type": "page",
+            "label": "Testing Plugins",
+            "sourceAdoc": "old-userguide/src/docs/userguide/reference/plugin-development/testing_gradle_plugins.adoc",
+            "fallbackLink": "https://docs.gradle.org/current/userguide/testing_gradle_plugins.html",
+            "target": "/userguide/gradle-reference/plugin-development/testing-plugins/",
+            "id": "testing-plugins"
+          },
+          {
+            "type": "page",
+            "label": "Preparing to Publish",
+            "sourceAdoc": "old-userguide/src/docs/userguide/reference/plugin-development/preparing_to_publish.adoc",
+            "fallbackLink": "https://docs.gradle.org/current/userguide/preparing_to_publish.html",
+            "target": "/userguide/gradle-reference/plugin-development/preparing-to-publish/",
+            "id": "preparing-to-publish"
+          },
+          {
+            "type": "page",
+            "label": "Publishing Plugins",
+            "sourceAdoc": "old-userguide/src/docs/userguide/reference/plugin-development/publishing_gradle_plugins.adoc",
+            "fallbackLink": "https://docs.gradle.org/current/userguide/publishing_gradle_plugins.html",
+            "target": "/userguide/gradle-reference/plugin-development/publishing-plugins/",
+            "id": "publishing-plugins"
+          },
+          {
+            "type": "page",
+            "label": "Reporting Plugin Problems",
+            "sourceAdoc": "old-userguide/src/docs/userguide/reference/plugin-development/reporting_problems.adoc",
+            "fallbackLink": "https://docs.gradle.org/current/userguide/reporting_problems.html",
+            "target": "/userguide/gradle-reference/plugin-development/reporting-plugin-problems/",
+            "id": "reporting-plugin-problems"
+          },
+          {
+            "type": "page",
+            "label": "Initialization Scripts & Init Plugins",
+            "sourceAdoc": "old-userguide/src/docs/userguide/reference/other-topics/init_scripts.adoc",
+            "fallbackLink": "https://docs.gradle.org/current/userguide/init_scripts.html",
+            "target": "/userguide/gradle-reference/plugin-development/initialization-scripts-init-plugins/",
+            "id": "initialization-scripts-init-plugins"
+          },
+          {
+            "type": "page",
+            "label": "Testing with TestKit",
+            "sourceAdoc": "old-userguide/src/docs/userguide/reference/other-topics/test_kit.adoc",
+            "fallbackLink": "https://docs.gradle.org/current/userguide/test_kit.html",
+            "target": "/userguide/gradle-reference/plugin-development/testing-with-testkit/",
+            "id": "testing-with-testkit"
+          }
+        ],
+        "id": "plugin-development"
+      },
+      {
+        "type": "group",
+        "label": "Platforms",
+        "collapsed": true,
+        "children": [
+          {
+            "type": "group",
+            "label": "JVM Builds",
+            "collapsed": true,
+            "children": [
+              {
+                "type": "page",
+                "label": "Building Java & JVM projects",
+                "sourceAdoc": "old-userguide/src/docs/userguide/reference/platforms/jvm/building_java_projects.adoc",
+                "fallbackLink": "https://docs.gradle.org/current/userguide/building_java_projects.html",
+                "target": "/userguide/gradle-reference/platforms/jvm-builds/building-java-jvm-projects/",
+                "id": "building-java-jvm-projects"
+              },
+              {
+                "type": "page",
+                "label": "Testing Java & JVM projects",
+                "sourceAdoc": "old-userguide/src/docs/userguide/reference/platforms/jvm/java_testing.adoc",
+                "fallbackLink": "https://docs.gradle.org/current/userguide/java_testing.html",
+                "target": "/userguide/gradle-reference/platforms/jvm-builds/testing-java-jvm-projects/",
+                "id": "testing-java-jvm-projects"
+              },
+              {
+                "type": "group",
+                "label": "Java Toolchains",
+                "collapsed": true,
+                "children": [
+                  {
+                    "type": "page",
+                    "label": "Toolchains for JVM projects",
+                    "sourceAdoc": "old-userguide/src/docs/userguide/reference/platforms/jvm/toolchains.adoc",
+                    "fallbackLink": "https://docs.gradle.org/current/userguide/toolchains.html",
+                    "target": "/userguide/gradle-reference/platforms/jvm-builds/java-toolchains/toolchains-for-jvm-projects/",
+                    "id": "toolchains-for-jvm-projects"
+                  },
+                  {
+                    "type": "page",
+                    "label": "Toolchain Resolver Plugins",
+                    "sourceAdoc": "old-userguide/src/docs/userguide/reference/platforms/jvm/toolchain_plugins.adoc",
+                    "fallbackLink": "https://docs.gradle.org/current/userguide/toolchain_plugins.html",
+                    "target": "/userguide/gradle-reference/platforms/jvm-builds/java-toolchains/toolchain-resolver-plugins/",
+                    "id": "toolchain-resolver-plugins"
+                  }
+                ],
+                "id": "java-toolchains"
+              },
+              {
+                "type": "page",
+                "label": "Managing Dependencies",
+                "sourceAdoc": "old-userguide/src/docs/userguide/reference/platforms/jvm/dependency_management_for_java_projects.adoc",
+                "fallbackLink": "https://docs.gradle.org/current/userguide/dependency_management_for_java_projects.html",
+                "target": "/userguide/gradle-reference/platforms/jvm-builds/managing-dependencies/",
+                "id": "managing-dependencies"
+              },
+              {
+                "type": "group",
+                "label": "JVM Plugins",
+                "collapsed": true,
+                "children": [
+                  {
+                    "type": "page",
+                    "label": "Java Library Plugin",
+                    "sourceAdoc": "old-userguide/src/docs/userguide/reference/platforms/jvm/java_library_plugin.adoc",
+                    "fallbackLink": "https://docs.gradle.org/current/userguide/java_library_plugin.html",
+                    "target": "/userguide/gradle-reference/platforms/jvm-builds/jvm-plugins/java-library-plugin/",
+                    "id": "java-library-plugin"
+                  },
+                  {
+                    "type": "page",
+                    "label": "Java Application Plugin",
+                    "sourceAdoc": "old-userguide/src/docs/userguide/reference/platforms/jvm/application_plugin.adoc",
+                    "fallbackLink": "https://docs.gradle.org/current/userguide/application_plugin.html",
+                    "target": "/userguide/gradle-reference/platforms/jvm-builds/jvm-plugins/java-application-plugin/",
+                    "id": "java-application-plugin"
+                  },
+                  {
+                    "type": "page",
+                    "label": "Java Platform Plugin",
+                    "sourceAdoc": "old-userguide/src/docs/userguide/reference/platforms/jvm/java_platform_plugin.adoc",
+                    "fallbackLink": "https://docs.gradle.org/current/userguide/java_platform_plugin.html",
+                    "target": "/userguide/gradle-reference/platforms/jvm-builds/jvm-plugins/java-platform-plugin/",
+                    "id": "java-platform-plugin"
+                  },
+                  {
+                    "type": "page",
+                    "label": "Groovy Plugin",
+                    "sourceAdoc": "old-userguide/src/docs/userguide/reference/platforms/jvm/groovy_plugin.adoc",
+                    "fallbackLink": "https://docs.gradle.org/current/userguide/groovy_plugin.html",
+                    "target": "/userguide/gradle-reference/platforms/jvm-builds/jvm-plugins/groovy-plugin/",
+                    "id": "groovy-plugin"
+                  },
+                  {
+                    "type": "page",
+                    "label": "Scala Plugin",
+                    "sourceAdoc": "old-userguide/src/docs/userguide/reference/platforms/jvm/scala_plugin.adoc",
+                    "fallbackLink": "https://docs.gradle.org/current/userguide/scala_plugin.html",
+                    "target": "/userguide/gradle-reference/platforms/jvm-builds/jvm-plugins/scala-plugin/",
+                    "id": "scala-plugin"
+                  },
+                  {
+                    "type": "page",
+                    "label": "War Plugin",
+                    "sourceAdoc": "old-userguide/src/docs/userguide/reference/core-plugins/war_plugin.adoc",
+                    "fallbackLink": "https://docs.gradle.org/current/userguide/war_plugin.html",
+                    "target": "/userguide/gradle-reference/platforms/jvm-builds/jvm-plugins/war-plugin/",
+                    "id": "war-plugin"
+                  }
+                ],
+                "id": "jvm-plugins"
+              }
+            ],
+            "id": "jvm-builds"
+          },
+          {
+            "type": "group",
+            "label": "C++ Builds",
+            "collapsed": true,
+            "children": [
+              {
+                "type": "page",
+                "label": "Building C++ projects",
+                "sourceAdoc": "old-userguide/src/docs/userguide/reference/platforms/native/building_cpp_projects.adoc",
+                "fallbackLink": "https://docs.gradle.org/current/userguide/building_cpp_projects.html",
+                "target": "/userguide/gradle-reference/platforms/c-builds/building-c-projects/",
+                "id": "building-c-projects"
+              },
+              {
+                "type": "page",
+                "label": "Testing C++ projects",
+                "sourceAdoc": "old-userguide/src/docs/userguide/reference/platforms/native/cpp_testing.adoc",
+                "fallbackLink": "https://docs.gradle.org/current/userguide/cpp_testing.html",
+                "target": "/userguide/gradle-reference/platforms/c-builds/testing-c-projects/",
+                "id": "testing-c-projects"
+              }
+            ],
+            "id": "c-builds"
+          },
+          {
+            "type": "group",
+            "label": "Swift Builds",
+            "collapsed": true,
+            "children": [
+              {
+                "type": "page",
+                "label": "Building Swift projects",
+                "sourceAdoc": "old-userguide/src/docs/userguide/reference/platforms/native/building_swift_projects.adoc",
+                "fallbackLink": "https://docs.gradle.org/current/userguide/building_swift_projects.html",
+                "target": "/userguide/gradle-reference/platforms/swift-builds/building-swift-projects/",
+                "id": "building-swift-projects"
+              },
+              {
+                "type": "page",
+                "label": "Testing Swift projects",
+                "sourceAdoc": "old-userguide/src/docs/userguide/reference/platforms/native/swift_testing.adoc",
+                "fallbackLink": "https://docs.gradle.org/current/userguide/swift_testing.html",
+                "target": "/userguide/gradle-reference/platforms/swift-builds/testing-swift-projects/",
+                "id": "testing-swift-projects"
+              }
+            ],
+            "id": "swift-builds"
+          }
+        ],
+        "id": "platforms"
+      },
+      {
+        "type": "group",
+        "label": "Other Topics",
+        "collapsed": true,
+        "children": [
+          {
+            "type": "page",
+            "label": "Using Ant from Gradle",
+            "sourceAdoc": "old-userguide/src/docs/userguide/reference/other-topics/ant.adoc",
+            "fallbackLink": "https://docs.gradle.org/current/userguide/ant.html",
+            "target": "/userguide/gradle-reference/other-topics/using-ant-from-gradle/",
+            "id": "using-ant-from-gradle"
+          }
+        ],
+        "id": "other-topics"
+      }
+    ],
+    "id": "gradle-reference"
+  },
+  {
+    "type": "group",
+    "label": "Optimizing Gradle Builds",
+    "collapsed": false,
+    "children": [
+      {
+        "type": "page",
+        "label": "Improving Performance",
+        "sourceAdoc": "old-userguide/src/docs/userguide/optimizing-builds/performance.adoc",
+        "fallbackLink": "https://docs.gradle.org/current/userguide/performance.html",
+        "target": "/userguide/optimizing-gradle-builds/improving-performance/",
+        "id": "improving-performance"
+      },
+      {
+        "type": "group",
+        "label": "Build Cache",
+        "collapsed": true,
+        "children": [
+          {
+            "type": "page",
+            "label": "Enabling and Configuring",
+            "sourceAdoc": "old-userguide/src/docs/userguide/optimizing-builds/build-cache/build_cache.adoc",
+            "fallbackLink": "https://docs.gradle.org/current/userguide/build_cache.html",
+            "target": "/userguide/optimizing-gradle-builds/build-cache/enabling-and-configuring/",
+            "id": "enabling-and-configuring"
+          },
+          {
+            "type": "page",
+            "label": "Why use the Build Cache?",
+            "sourceAdoc": "old-userguide/src/docs/userguide/optimizing-builds/build-cache/build_cache_use_cases.adoc",
+            "fallbackLink": "https://docs.gradle.org/current/userguide/build_cache_use_cases.html",
+            "target": "/userguide/optimizing-gradle-builds/build-cache/why-use-the-build-cache/",
+            "id": "why-use-the-build-cache"
+          },
+          {
+            "type": "page",
+            "label": "Understanding the Impact",
+            "sourceAdoc": "old-userguide/src/docs/userguide/optimizing-builds/build-cache/build_cache_performance.adoc",
+            "fallbackLink": "https://docs.gradle.org/current/userguide/build_cache_performance.html",
+            "target": "/userguide/optimizing-gradle-builds/build-cache/understanding-the-impact/",
+            "id": "understanding-the-impact"
+          },
+          {
+            "type": "page",
+            "label": "Learning Basic Concepts",
+            "sourceAdoc": "old-userguide/src/docs/userguide/optimizing-builds/build-cache/build_cache_concepts.adoc",
+            "fallbackLink": "https://docs.gradle.org/current/userguide/build_cache_concepts.html",
+            "target": "/userguide/optimizing-gradle-builds/build-cache/learning-basic-concepts/",
+            "id": "learning-basic-concepts"
+          },
+          {
+            "type": "page",
+            "label": "Caching Java Project",
+            "sourceAdoc": "old-userguide/src/docs/userguide/optimizing-builds/build-cache/caching_java_projects.adoc",
+            "fallbackLink": "https://docs.gradle.org/current/userguide/caching_java_projects.html",
+            "target": "/userguide/optimizing-gradle-builds/build-cache/caching-java-project/",
+            "id": "caching-java-project"
+          },
+          {
+            "type": "page",
+            "label": "Caching Android Project",
+            "sourceAdoc": "old-userguide/src/docs/userguide/optimizing-builds/build-cache/caching_android_projects.adoc",
+            "fallbackLink": "https://docs.gradle.org/current/userguide/caching_android_projects.html",
+            "target": "/userguide/optimizing-gradle-builds/build-cache/caching-android-project/",
+            "id": "caching-android-project"
+          },
+          {
+            "type": "page",
+            "label": "Debugging Caching Issues",
+            "sourceAdoc": "old-userguide/src/docs/userguide/optimizing-builds/build-cache/build_cache_debugging.adoc",
+            "fallbackLink": "https://docs.gradle.org/current/userguide/build_cache_debugging.html",
+            "target": "/userguide/optimizing-gradle-builds/build-cache/debugging-caching-issues/",
+            "id": "debugging-caching-issues"
+          },
+          {
+            "type": "page",
+            "label": "Troubleshooting",
+            "sourceAdoc": "old-userguide/src/docs/userguide/optimizing-builds/build-cache/common_caching_problems.adoc",
+            "fallbackLink": "https://docs.gradle.org/current/userguide/common_caching_problems.html",
+            "target": "/userguide/optimizing-gradle-builds/build-cache/troubleshooting/",
+            "id": "troubleshooting"
+          }
+        ],
+        "id": "build-cache"
+      },
+      {
+        "type": "group",
+        "label": "Configuration Cache",
+        "collapsed": true,
+        "children": [
+          {
+            "type": "page",
+            "label": "How it Works",
+            "sourceAdoc": "old-userguide/src/docs/userguide/optimizing-builds/configuration-cache/configuration_cache.adoc",
+            "fallbackLink": "https://docs.gradle.org/current/userguide/configuration_cache.html",
+            "target": "/userguide/optimizing-gradle-builds/configuration-cache/how-it-works/",
+            "id": "how-it-works"
+          },
+          {
+            "type": "page",
+            "label": "Enabling and Configuring",
+            "sourceAdoc": "old-userguide/src/docs/userguide/optimizing-builds/configuration-cache/configuration_cache_enabling.adoc",
+            "fallbackLink": "https://docs.gradle.org/current/userguide/configuration_cache_enabling.html",
+            "target": "/userguide/optimizing-gradle-builds/configuration-cache/enabling-and-configuring-2/",
+            "id": "enabling-and-configuring-2"
+          },
+          {
+            "type": "page",
+            "label": "Requirements for your Build Logic",
+            "sourceAdoc": "old-userguide/src/docs/userguide/optimizing-builds/configuration-cache/configuration_cache_requirements.adoc",
+            "fallbackLink": "https://docs.gradle.org/current/userguide/configuration_cache_requirements.html",
+            "target": "/userguide/optimizing-gradle-builds/configuration-cache/requirements-for-your-build-logic/",
+            "id": "requirements-for-your-build-logic"
+          },
+          {
+            "type": "page",
+            "label": "Debugging and Troubleshooting",
+            "sourceAdoc": "old-userguide/src/docs/userguide/optimizing-builds/configuration-cache/configuration_cache_debugging.adoc",
+            "fallbackLink": "https://docs.gradle.org/current/userguide/configuration_cache_debugging.html",
+            "target": "/userguide/optimizing-gradle-builds/configuration-cache/debugging-and-troubleshooting/",
+            "id": "debugging-and-troubleshooting"
+          },
+          {
+            "type": "page",
+            "label": "Status",
+            "sourceAdoc": "old-userguide/src/docs/userguide/optimizing-builds/configuration-cache/configuration_cache_status.adoc",
+            "fallbackLink": "https://docs.gradle.org/current/userguide/configuration_cache_status.html",
+            "target": "/userguide/optimizing-gradle-builds/configuration-cache/status/",
+            "id": "status"
+          }
+        ],
+        "id": "configuration-cache"
+      }
+    ],
+    "id": "optimizing-gradle-builds"
+  },
+  {
+    "type": "group",
+    "label": "Securing Gradle Builds",
+    "collapsed": false,
+    "children": [
+      {
+        "type": "page",
+        "label": "Supply Chain Security",
+        "sourceAdoc": "old-userguide/src/docs/userguide/securing-builds/security.adoc",
+        "fallbackLink": "https://docs.gradle.org/current/userguide/security.html",
+        "target": "/userguide/securing-gradle-builds/supply-chain-security/",
+        "id": "supply-chain-security"
+      }
+    ],
+    "id": "securing-gradle-builds"
+  },
+  {
+    "type": "group",
+    "label": "Integration",
+    "collapsed": false,
+    "children": [
+      {
+        "type": "page",
+        "label": "Third-party Tools",
+        "sourceAdoc": "old-userguide/src/docs/userguide/integration/third_party_integration.adoc",
+        "fallbackLink": "https://docs.gradle.org/current/userguide/third_party_integration.html",
+        "target": "/userguide/integration/third-party-tools/",
+        "id": "third-party-tools"
+      },
+      {
+        "type": "group",
+        "label": "APIs",
+        "collapsed": true,
+        "children": [
+          {
+            "type": "page",
+            "label": "Tooling API",
+            "sourceAdoc": "old-userguide/src/docs/userguide/integration/tooling_api.adoc",
+            "fallbackLink": "https://docs.gradle.org/current/userguide/tooling_api.html",
+            "target": "/userguide/integration/apis/tooling-api/",
+            "id": "tooling-api"
+          },
+          {
+            "type": "page",
+            "label": "Test Reporting API",
+            "sourceAdoc": "old-userguide/src/docs/userguide/integration/test_reporting_api.adoc",
+            "fallbackLink": "https://docs.gradle.org/current/userguide/test_reporting_api.html",
+            "target": "/userguide/integration/apis/test-reporting-api/",
+            "id": "test-reporting-api"
+          }
+        ],
+        "id": "apis"
+      }
+    ],
+    "id": "integration"
+  },
+  {
+    "type": "group",
+    "label": "How-To-Guides",
+    "collapsed": false,
+    "children": [
+      {
+        "type": "group",
+        "label": "Structuring Builds",
+        "collapsed": true,
+        "children": [
+          {
+            "type": "page",
+            "label": "Convert a Single-Project Build to Multi-Project",
+            "sourceAdoc": "old-userguide/src/docs/userguide/reference/how-to/how_to_convert_single_build_to_multi_build.adoc",
+            "fallbackLink": "https://docs.gradle.org/current/userguide/how_to_convert_single_build_to_multi_build.html",
+            "target": "/userguide/how-to-guides/structuring-builds-2/convert-a-single-project-build-to-multi-project/",
+            "id": "convert-a-single-project-build-to-multi-project"
+          }
+        ],
+        "id": "structuring-builds-2"
+      },
+      {
+        "type": "group",
+        "label": "Dependency Management",
+        "collapsed": true,
+        "children": [
+          {
+            "type": "page",
+            "label": "How to Downgrade Transitive Dependencies",
+            "sourceAdoc": "old-userguide/src/docs/userguide/reference/dependency-management/how-to/how_to_downgrade_transitive_dependencies.adoc",
+            "fallbackLink": "https://docs.gradle.org/current/userguide/how_to_downgrade_transitive_dependencies.html",
+            "target": "/userguide/how-to-guides/dependency-management-2/how-to-downgrade-transitive-dependencies/",
+            "id": "how-to-downgrade-transitive-dependencies"
+          },
+          {
+            "type": "page",
+            "label": "How to Upgrade Transitive Dependencies",
+            "sourceAdoc": "old-userguide/src/docs/userguide/reference/dependency-management/how-to/how_to_upgrade_transitive_dependencies.adoc",
+            "fallbackLink": "https://docs.gradle.org/current/userguide/how_to_upgrade_transitive_dependencies.html",
+            "target": "/userguide/how-to-guides/dependency-management-2/how-to-upgrade-transitive-dependencies/",
+            "id": "how-to-upgrade-transitive-dependencies"
+          },
+          {
+            "type": "page",
+            "label": "How to Exclude Transitive Dependencies",
+            "sourceAdoc": "old-userguide/src/docs/userguide/reference/dependency-management/how-to/how_to_exclude_transitive_dependencies.adoc",
+            "fallbackLink": "https://docs.gradle.org/current/userguide/how_to_exclude_transitive_dependencies.html",
+            "target": "/userguide/how-to-guides/dependency-management-2/how-to-exclude-transitive-dependencies/",
+            "id": "how-to-exclude-transitive-dependencies"
+          },
+          {
+            "type": "page",
+            "label": "How to Prevent Accidental or Eager Dependency Upgrades",
+            "sourceAdoc": "old-userguide/src/docs/userguide/reference/dependency-management/how-to/how_to_prevent_accidental_dependency_upgrades.adoc",
+            "fallbackLink": "https://docs.gradle.org/current/userguide/how_to_prevent_accidental_dependency_upgrades.html",
+            "target": "/userguide/how-to-guides/dependency-management-2/how-to-prevent-accidental-or-eager-dependency-upgrades/",
+            "id": "how-to-prevent-accidental-or-eager-dependency-upgrades"
+          },
+          {
+            "type": "page",
+            "label": "How to Align Dependency Versions",
+            "sourceAdoc": "old-userguide/src/docs/userguide/reference/dependency-management/how-to/how_to_align_dependency_versions.adoc",
+            "fallbackLink": "https://docs.gradle.org/current/userguide/how_to_align_dependency_versions.html",
+            "target": "/userguide/how-to-guides/dependency-management-2/how-to-align-dependency-versions/",
+            "id": "how-to-align-dependency-versions"
+          },
+          {
+            "type": "page",
+            "label": "How to Share Outputs Between Projects",
+            "sourceAdoc": "old-userguide/src/docs/userguide/reference/dependency-management/how-to/how_to_share_outputs_between_projects.adoc",
+            "fallbackLink": "https://docs.gradle.org/current/userguide/how_to_share_outputs_between_projects.html",
+            "target": "/userguide/how-to-guides/dependency-management-2/how-to-share-outputs-between-projects/",
+            "id": "how-to-share-outputs-between-projects"
+          },
+          {
+            "type": "page",
+            "label": "How to Resolve Specific Artifacts from a Module Dependency",
+            "sourceAdoc": "old-userguide/src/docs/userguide/reference/dependency-management/how-to/how_to_resolve_specific_artifacts.adoc",
+            "fallbackLink": "https://docs.gradle.org/current/userguide/how_to_resolve_specific_artifacts.html",
+            "target": "/userguide/how-to-guides/dependency-management-2/how-to-resolve-specific-artifacts-from-a-module-dependency/",
+            "id": "how-to-resolve-specific-artifacts-from-a-module-dependency"
+          },
+          {
+            "type": "page",
+            "label": "How to Use a Local Fork of a Module Dependency",
+            "sourceAdoc": "old-userguide/src/docs/userguide/reference/dependency-management/how-to/how_to_use_local_forks.adoc",
+            "fallbackLink": "https://docs.gradle.org/current/userguide/how_to_use_local_forks.html",
+            "target": "/userguide/how-to-guides/dependency-management-2/how-to-use-a-local-fork-of-a-module-dependency/",
+            "id": "how-to-use-a-local-fork-of-a-module-dependency"
+          },
+          {
+            "type": "page",
+            "label": "How to Fix Version Catalog Problems",
+            "sourceAdoc": "old-userguide/src/docs/userguide/reference/dependency-management/how-to/how_to_fix_version_catalog_problems.adoc",
+            "fallbackLink": "https://docs.gradle.org/current/userguide/how_to_fix_version_catalog_problems.html",
+            "target": "/userguide/how-to-guides/dependency-management-2/how-to-fix-version-catalog-problems/",
+            "id": "how-to-fix-version-catalog-problems"
+          },
+          {
+            "type": "page",
+            "label": "How to Create Feature Variants of a Library",
+            "sourceAdoc": "old-userguide/src/docs/userguide/reference/dependency-management/how-to/how_to_create_feature_variants_of_a_library.adoc",
+            "fallbackLink": "https://docs.gradle.org/current/userguide/how_to_create_feature_variants_of_a_library.html",
+            "target": "/userguide/how-to-guides/dependency-management-2/how-to-create-feature-variants-of-a-library/",
+            "id": "how-to-create-feature-variants-of-a-library"
+          }
+        ],
+        "id": "dependency-management-2"
+      }
+    ],
+    "id": "how-to-guides"
+  },
+  {
+    "type": "group",
+    "label": "Additional",
+    "collapsed": false,
+    "children": [
+      {
+        "type": "external",
+        "label": "Samples",
+        "link": "https://docs.gradle.org/current/samples/index.html"
+      },
+      {
+        "type": "page",
+        "label": "Glossary",
+        "sourceAdoc": "old-userguide/src/docs/userguide/overview/glossary.adoc",
+        "fallbackLink": "https://docs.gradle.org/current/userguide/glossary.html",
+        "target": "/userguide/additional/glossary/",
+        "id": "glossary"
+      }
+    ],
+    "id": "additional"
+  }
+]

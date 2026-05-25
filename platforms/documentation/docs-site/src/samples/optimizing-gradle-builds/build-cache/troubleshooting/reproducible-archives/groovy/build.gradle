@@ -1,0 +1,7 @@
+tasks.register('createZip', Zip) {
+    preserveFileTimestamps = false
+    reproducibleFileOrder = true
+    dirPermissions { unix("755") }
+    filePermissions { unix("644") }
+    // ...
+}

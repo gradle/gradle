@@ -1,0 +1,7 @@
+    // setting convention from constructor
+    @Input
+    abstract Property<String> getGuest()
+
+    GreetingTask() {
+        guest.convention("person2")
+    }

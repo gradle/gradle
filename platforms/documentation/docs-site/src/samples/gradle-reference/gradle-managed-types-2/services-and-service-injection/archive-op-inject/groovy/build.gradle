@@ -1,0 +1,22 @@
+abstract class MyArchiveOperationsTask extends DefaultTask {
+    private ArchiveOperations archiveOperations
+    private ProjectLayout layout
+    private FileSystemOperations fs
+
+    @Inject
+    MyArchiveOperationsTask(ArchiveOperations archiveOperations, ProjectLayout layout, FileSystemOperations fs) {
+        this.archiveOperations = archiveOperations
+        this.layout = layout
+        this.fs = fs
+    }
+
+    @TaskAction
+    void doTaskAction() {
+        fs.sync {
+            from(archiveOperations.zipTree(layout.projectDirectory.file("sources.jar")))
+            into(layout.buildDirectory.dir("unpacked-sources"))
+        }
+    }
+}
+
+tasks.register("myInjectedArchiveOperationsTask", MyArchiveOperationsTask)

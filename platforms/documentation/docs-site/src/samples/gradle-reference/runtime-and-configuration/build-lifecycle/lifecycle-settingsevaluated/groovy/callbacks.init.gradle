@@ -1,0 +1,13 @@
+// 2. settingsEvaluated: adjust build layout / repositories / scan config
+// when the build settings have been loaded and evaluated.
+gradle.settingsEvaluated { settings ->
+    println("[settingsEvaluated] rootProject = ${settings.rootProject.name}")
+
+    // Example: enforce a company-wide pluginManagement repo
+    settings.pluginManagement.repositories.with {
+        println("[settingsEvaluated] Ensuring company plugin repo is configured")
+        mavenCentral()
+    }
+
+    println("")
+}

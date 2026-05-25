@@ -1,0 +1,7 @@
+.
+├── app
+│   ...
+│   └── build.gradle
+├── lib
+│   └── build.gradle
+└── settings.gradle

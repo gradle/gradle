@@ -1,0 +1,88 @@
+---
+title: "Core Concepts"
+---
+
+Gradle **automates building, testing, and deployment of software** from information in **build scripts**.
+
+{/* converter-gap: node=image */}
+
+## Core concepts
+
+{/* converter-gap: node=pass
+<p>
+  <div style="position:relative;padding-top:56.25%;">
+    <iframe src="https://www.youtube-nocookie.com/embed/Vw39uWQ08Go?si=Qt7qceGy2EDgkU0a&rel=0" frameborder="0" allowfullscreen
+      style="position:absolute;top:0;left:0;width:100%;height:100%;"></iframe>
+  </div>
+</p>
+*/}
+
+Gradle builds are defined in terms of **projects** and **tasks**, configured using **build scripts** written in **Groovy** or **Kotlin**.
+
+{/* converter-gap: node=table */}
+
+## Project structure
+
+Many developers will interact with Gradle for the first time through an existing project.
+
+The presence of the `gradlew` and `gradlew.bat` files in the root directory of a project is a clear indicator that Gradle is used.
+
+A Gradle project will look similar to the following:
+
+```text
+project
+├── gradle                          // <1>
+├── gradlew                             // <2>
+├── gradlew.bat                         // <2>
+├── settings.gradle(.kts)           // <3>
+├── subproject-a
+│   ├── build.gradle(.kts)              // <4>
+│   └── src/                        // <5>
+└── subproject-b
+    ├── build.gradle(.kts)              // <4>
+    └── src/                        // <5>
+```
+
+{/* converter-gap: node=colist */}
+
+## Invoking Gradle
+
+### In the IDE
+
+Gradle is [built-in to many IDEs](gradle_ides.mdx#gradle_ides) including Android Studio, IntelliJ IDEA, Visual Studio Code, Eclipse, and NetBeans.
+
+Gradle can be automatically invoked when you build, clean, or run your app in the IDE.
+
+{/* converter-gap: node=image */}
+
+Consult the manual for the IDE of your choice to learn more about how Gradle can be used and configured.
+
+### On the Command Line
+
+Gradle can be invoked in the command line once [installed](installation.mdx#installation):
+
+```bash
+$ gradle build
+```
+
+```bash
+$ gradle test
+```
+
+```bash
+$ gradle clean build
+```
+
+Most projects do not use the installed version of Gradle but rather the Gradle Wrapper.
+
+### With the Gradle Wrapper
+
+The wrapper is a script that invokes a declared version of Gradle and is **the recommended way to execute a Gradle build**:
+
+```bash
+$ ./gradlew build
+```
+
+{/* converter-gap: node=image */}
+
+***Next Step:*** [Learn about the Gradle Wrapper](gradle_wrapper_basics.mdx#gradle_wrapper_basics) &gt;&gt;

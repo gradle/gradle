@@ -1,0 +1,13 @@
+abstract class MyPropertyTask extends DefaultTask {
+    @Input
+    abstract Property<String> getMessageProperty()
+
+    @TaskAction
+    void printMessage() {
+        println(messageProperty.get())
+    }
+}
+
+tasks.register('myPropertyTask', MyPropertyTask) {
+    messageProperty.convention("Hello, Gradle!")
+}

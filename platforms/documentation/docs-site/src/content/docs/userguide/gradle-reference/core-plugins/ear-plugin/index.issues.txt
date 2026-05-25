@@ -1,0 +1,12 @@
+[
+  {
+    "startLine": 20,
+    "endLine": 20,
+    "problem": "The source links to java_plugin.adoc#java_plugin. No dedicated Java Plugin page exists in the sidebar yet, so the link was kept as an external docs.gradle.org link. Should be updated to a local link once the Java Plugin page is migrated."
+  },
+  {
+    "startLine": 46,
+    "endLine": 46,
+    "problem": "The source links to base_plugin.adoc#base_plugin. No Base Plugin page exists in the sidebar, so the link was kept as an external docs.gradle.org link. Should be updated to a local link once the Base Plugin page is migrated."
+  }
+]

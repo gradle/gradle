@@ -31,7 +31,7 @@ pluginManager.withPlugin("gradlebuild.code-quality") {
 }
 
 tasks.withType<Javadoc>().configureEach {
-    assert(name != "javadocAll") // This plugin should not be applied to the :docs project.
+    assert(name != "javadocAll") // This plugin should not be applied to the :reference-docs project.
 
     onlyIf("Do not run the task if there are no java sources") {
         // Javadoc task will complain if we only have package-info.java files and no

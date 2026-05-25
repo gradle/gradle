@@ -1,0 +1,63 @@
+---
+title: "Part 5: Add a DataFlow Action"
+---
+
+Learn how to use Gradle&#8217;s modern Dataflow API to hook into the build lifecycle and add an action to your plugin.
+
+{/* converter-gap: node=sidebar */}
+
+## Step 0: Before you Begin
+
+1. You initialized your plugin in [part 1](part1_gradle_init_plugin.mdx#part1_begin).
+2. You added an extension to your plugin in [part 2](part2_add_extension.mdx#part2_begin).
+3. You created a custom task in [part3](part3_create_custom_task.mdx#part3_begin).
+4. You wrote a unit test in [part 4](part4_unit_test.mdx#part4_begin).
+
+## Step 1: Understanding the Dataflow API
+
+***Dataflow Actions*** are Gradle&#8217;s modern, recommended way to react to the build lifecycle and handle build-wide events.
+They are superior to older methods like `BuildListener` because they are fully compatible with the ***Configuration Cache***, leading to faster and more reliable builds.
+
+A `FlowAction` is a declarative, isolated, and lazy unit of work that runs in response to specific events, such as the build finishing.
+
+The key components of the Dataflow API are:
+
+- ***`FlowScope`***: A service that allows you to register `FlowAction`s to be triggered under certain conditions.
+- ***`FlowAction&lt;T&gt;`***: An interface you implement to define the actual logic that runs.
+- ***`FlowParameters`***: A container for all the inputs to the `FlowAction`.
+
+## Step 2: Creating a Dataflow Action
+
+Let&#8217;s create the `FlowAction` that will send a Slack message at the end of the build.
+
+Create a new file named `SlackBuildFlowAction.kt` in `plugin/src/main/kotlin/org/example/` and add the following code:
+
+Create a new file named `SlackBuildFlowAction.groovy` in `plugin/src/main/groovy/org/example/` and add the following code:
+
+{/* converter-gap: node=sample dir="snippets/tutorials/developing-plugins/plugin-tutorial/kotlin" files="plugin/src/main/kotlin/org/example/SlackBuildFlowAction.kt[]" */}
+
+{/* converter-gap: node=sample dir="snippets/tutorials/developing-plugins/plugin-tutorial/groovy" files="plugin/src/main/groovy/org/example/SlackBuildFlowAction.groovy[]" */}
+
+This code completes two of the three main components of our flow action:
+
+1. The `SlackBuildFlowAction` class is a `FlowAction` that uses the Slack API client to send a message.
+2. The `SlackBuildFlowAction.Params` interface defines the input parameters for the action, including the `token`, `channel`, and a `buildFailed` flag.
+
+## Step 3: Registering the Dataflow Action in the Plugin
+
+Now, we&#8217;ll register the flow action in our plugin&#8217;s `apply()` method to connect it to the build lifecycle.
+
+Update your `SlackPlugin` class to look like this:
+
+{/* converter-gap: node=sample dir="snippets/tutorials/developing-plugins/plugin-tutorial/kotlin" files="plugin/src/main/kotlin/org/example/SlackPlugin.kt[tags=final]" */}
+
+{/* converter-gap: node=sample dir="snippets/tutorials/developing-plugins/plugin-tutorial/groovy" files="plugin/src/main/groovy/org/example/SlackPlugin.groovy[tags=final]" */}
+
+In this code, we ask Gradle to inject two services that are essential for the Dataflow API:
+
+- `@Inject abstract fun getFlowScope(): FlowScope`: This is used to register our action with the `always` scope, which means it will run after every build, regardless of the outcome.
+- `@Inject abstract fun getFlowProviders(): FlowProviders`: This service provides access to data about the build, such as whether it succeeded or failed, via the `buildWorkResult` provider.
+
+By using these services, we can configure our `FlowAction` to run automatically at the end of the build, providing a robust and cache-compatible way to send build notifications.
+
+***Next Step:*** [Write a Functional Test](part6_functional_test.mdx#part6_functional_test) &gt;&gt;

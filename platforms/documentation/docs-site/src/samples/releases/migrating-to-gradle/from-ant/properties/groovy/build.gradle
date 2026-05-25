@@ -1,0 +1,11 @@
+def tmpDistDir = layout.buildDirectory.dir('dist')
+
+tasks.register('javadocJarArchive', Jar) {
+    from javadoc  // <1>
+    archiveClassifier = 'javadoc'
+}
+
+tasks.register('unpackJavadocs', Copy) {
+    from zipTree(javadocJarArchive.archiveFile)  // <2>
+    into tmpDistDir  // <3>
+}

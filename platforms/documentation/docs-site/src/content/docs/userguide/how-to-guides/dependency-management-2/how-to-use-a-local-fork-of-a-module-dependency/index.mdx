@@ -1,0 +1,109 @@
+---
+title: How to Use a Local Fork of a Module Dependency
+---
+
+import {SampleScripts} from '#/components';
+
+<div id="how_to_use_local_forks" />
+
+This guide explains how to replace a module dependency with a **local fork** of the module's sources, assuming the module itself is built with Gradle.
+
+Using a **local fork** allows you to:
+
+* Apply and test **custom patches** to a dependency.
+* Work with an **unreleased** version of a library.
+* Avoid relying on the **published binary** version.
+
+## Prerequisites
+
+* The module must be **built with Gradle**.
+* You must have a **local copy** of the module's source code.
+* The local module should be set up as a **Gradle build**.
+
+Gradle composite builds automatically substitute external dependencies with local forks.
+
+### Step 1: Create a Composite Build
+
+Assume your initial project structure looks like this:
+
+```text
+project
+├── settings.gradle(.kts)               // <1> Existing settings file
+├── my-app
+│   ├── build.gradle(.kts)              // <2> Existing build file
+│   └── src                             // <3> Existing app project that uses the external dependency
+```
+
+In this example, our app depends on `com.squareup.okhttp:okhttp:2.7.5`, and we want to use a local fork of it:
+
+<SampleScripts sample_name="local-fork-dependency" basename="build" />
+
+First, create a new folder for your local fork of the dependency:
+
+```text
+project
+├── settings.gradle(.kts)
+├── my-app
+│   ├── build.gradle(.kts)
+│   └── src
+└── my-fork     // <1> New directory for the composite build containing the local fork
+```
+
+In your root project's `settings.gradle(.kts)` file, add an `includeBuild` statement pointing to `my-fork`:
+
+<SampleScripts sample_name="local-fork-settings" basename="settings" />
+
+This instructs Gradle to automatically substitute the external dependency coordinates with your local build.
+
+### Step 2: Include The Local Fork
+
+Composite builds allow us to use a local version of `okhttp` with minimal configuration changes.
+
+Assuming the local fork is already a Gradle build, copy or move it into the `my-fork` directory.
+The forked module will have its own settings and build files.
+
+The updated project structure will look like this:
+
+```text
+project
+├── settings.gradle(.kts)
+├── my-app
+│   ├── build.gradle(.kts)
+│   └── src
+└── my-fork                             // <1> New included build for fork of `okhttp`
+    ├── settings.gradle(.kts)           // <2> Settings file for the forked module
+    └── okhttp
+        ├── build.gradle(.kts)          // <3> Build file for the forked module
+        └── src                         // <4> Source code of the forked module
+```
+
+The source code of `com.squareup.okhttp:okhttp:2.7.5` is in the `okhttp/src` folder.
+
+The settings file should look like this:
+
+<SampleScripts sample_name="local-fork-settings-fork" basename="settings" />
+
+The build file must have the same GAV coordinates as required by `my-app`:
+
+<SampleScripts sample_name="local-fork-okhttp" basename="build" />
+
+### Step 3: Declare the Dependency Normally
+
+In your project's `build.gradle(.kts)`, continue declaring the dependency using the same external coordinates as originally:
+
+<SampleScripts sample_name="local-fork-dependency-tip" basename="build" />
+
+You don't need explicit substitution statements in the `build.gradle(.kts)` file; Gradle handles substitution automatically.
+
+With this setup, Gradle will automatically use your local fork instead of downloading the dependency from remote repositories.
+
+### Step 4: Troubleshooting
+
+If Gradle is still attempting to resolve your dependency externally, verify that:
+
+* The local fork (`build.gradle.kts`) specifies exactly the same coordinates (`group`, `name`, and `version`) as your external dependency.
+* Your `settings.gradle.kts` correctly references your local fork with `includeBuild`.
+
+## Summary
+
+Gradle [composite builds](/gradle-reference/structuring-builds/composite-builds/#composite_builds) provide a straightforward and efficient method to substitute external module dependencies with local forks.

@@ -1,0 +1,4 @@
+plugins {
+    id("java")
+    id 'org.example.slack' version '1.0.0'
+}

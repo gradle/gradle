@@ -1,0 +1,216 @@
+---
+title: "Logging and Output"
+---
+
+The build log is the primary way Gradle communicates what&#8217;s happening during a build.
+Clear logging helps you quickly understand your build status, identify issues, and troubleshoot effectively.
+Too much noise in the logs can obscure important warnings or errors.
+
+Gradle provides flexible logging controls, enabling you to adjust verbosity and detail according to your needs.
+
+## Gradle Log levels
+
+Gradle defines six primary log levels:
+
+{/* converter-gap: node=table */}
+
+The default logging level is `LIFECYCLE`, providing progress updates without overwhelming detail.
+
+## Choosing and setting a log level
+
+You can set the log level either through command-line options or by configuring the `gradle.properties` file.
+
+{/* converter-gap: node=table */}
+
+For example, to set a consistent log level in your project&#8217;s `gradle.properties` file:
+
+```properties
+org.gradle.logging.level=info
+```
+
+Similarly on the command line:
+
+```bash
+$ ./gradlew run --info
+```
+
+You can emit log messages directly from build scripts and tasks using Gradle&#8217;s built-in logger:
+
+{/* converter-gap: node=pass
+<div style="text-align: right;">
+  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/reference-docs/src/snippets/reference/runtime-configuration/logging">
+    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
+  </a>
+</div>
+*/}
+
+{/* converter-gap: node=sample dir="snippets/reference/runtime-configuration/logging/kotlin" files="build.gradle.kts[tags=task-log-stdout]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/runtime-configuration/logging/groovy" files="build.gradle[tags=task-log-stdout]" */}
+
+Use appropriate log levels (`lifecycle`, `info`, `debug`) to ensure your build output is clear and informative.
+
+:::caution
+The `DEBUG` log level can [expose sensitive security information to the console](#sec:debug_security).
+:::
+
+### Stacktrace options
+
+Stacktraces are useful for diagnosing issues during a build failure. You can control stacktrace output via command-line options or properties:
+
+{/* converter-gap: node=table */}
+
+For example, to always display a full stacktrace on build errors, set in `gradle.properties`:
+
+```properties
+org.gradle.logging.stacktrace=full
+```
+
+## Logging Sensitive Information
+
+Running Gradle with the `DEBUG` log level can potentially expose sensitive information to the console and build log.
+
+This information might include:
+
+- Environment variables
+- Private repository credentials
+- Build cache and Develocity credentials
+- Plugin Portal publishing credentials
+
+It&#8217;s important to avoid using the `DEBUG` log level when running on public Continuous Integration (CI) services.
+Build logs on these services are accessible to the public and can expose sensitive information.
+Even on private CI services, logging sensitive credentials may pose a risk depending on your organization&#8217;s threat model.
+It&#8217;s advisable to discuss this with your organization&#8217;s security team.
+
+Some CI providers attempt to redact sensitive credentials from logs, but this process is not foolproof and typically only redacts exact matches of pre-configured secrets.
+
+If you suspect that a Gradle Plugin may inadvertently expose sensitive information, please contact [our security team](mailto:security@gradle.com) for assistance with disclosure.
+
+## Custom log messages
+
+A simple option for logging in your build file is to write messages to standard output.
+Gradle redirects anything written to standard output to its logging system at the `QUIET` log level:
+
+{/* converter-gap: node=pass
+<div style="text-align: right;">
+  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/reference-docs/src/snippets/reference/runtime-configuration/logging">
+    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
+  </a>
+</div>
+*/}
+
+{/* converter-gap: node=sample dir="snippets/reference/runtime-configuration/logging/kotlin" files="build.gradle.kts[tags=use-println]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/runtime-configuration/logging/groovy" files="build.gradle[tags=use-println]" */}
+
+Gradle also provides a `logger` property to a build script, which is an instance of [Logger]({javadocPath}/org/gradle/api/logging/Logger.html).
+This interface extends the SLF4J `Logger` interface and adds a few Gradle-specific methods.
+Below is an example of how this is used in the build script:
+
+{/* converter-gap: node=sample dir="snippets/reference/runtime-configuration/logging/kotlin" files="build.gradle.kts[tags=use-logger]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/runtime-configuration/logging/groovy" files="build.gradle[tags=use-logger]" */}
+
+Use the link [typical SLF4J pattern](https://www.slf4j.org/manual.html#typical_usage) to replace a placeholder with an actual value in the log message.
+
+{/* converter-gap: node=sample dir="snippets/reference/runtime-configuration/logging/kotlin" files="build.gradle.kts[tags=use-logger-placeholder]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/runtime-configuration/logging/groovy" files="build.gradle[tags=use-logger-placeholder]" */}
+
+You can also hook into Gradle&#8217;s logging system from within other classes used in the build (classes from the `buildSrc` directory, for example) with an SLF4J logger.
+You can use this logger the same way as you use the provided logger in the build script.
+
+{/* converter-gap: node=sample dir="snippets/reference/runtime-configuration/logging/kotlin" files="build.gradle.kts[tags=use-slf4j]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/runtime-configuration/logging/groovy" files="build.gradle[tags=use-slf4j]" */}
+
+## Logging from external tools and libraries
+
+Internally, Gradle uses Ant and Ivy.
+Both have their own logging system.
+Gradle redirects their logging output into the Gradle logging system.
+
+There is a 1:1 mapping from the Ant/Ivy log levels to the Gradle log levels, except the Ant/Ivy `TRACE` log level, which is mapped to the Gradle `DEBUG` log level.
+This means the default Gradle log level will not show any Ant/Ivy output unless it is an error or a warning.
+
+Many tools out there still use the standard output for logging.
+By default, Gradle redirects standard output to the `QUIET` log level and standard error to the `ERROR` level.
+This behavior is configurable.
+
+The `project` object provides a [LoggingManager]({javadocPath}/org/gradle/api/logging/LoggingManager.html), which allows you to change the log levels that standard out or error are redirected to when your build script is evaluated.
+
+{/* converter-gap: node=pass
+<div style="text-align: right;">
+  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/reference-docs/src/snippets/reference/runtime-configuration/logging">
+    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
+  </a>
+</div>
+*/}
+
+{/* converter-gap: node=sample dir="snippets/reference/runtime-configuration/logging/kotlin" files="build.gradle.kts[tags=capture-stdout]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/runtime-configuration/logging/groovy" files="build.gradle[tags=capture-stdout]" */}
+
+To change the log level for standard out or error during task execution, use a [LoggingManager]({javadocPath}/org/gradle/api/logging/LoggingManager.html).
+
+{/* converter-gap: node=sample dir="snippets/reference/runtime-configuration/logging/kotlin" files="build.gradle.kts[tags=task-capture-stdout]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/runtime-configuration/logging/groovy" files="build.gradle[tags=task-capture-stdout]" */}
+
+Gradle also integrates with the [Java Util Logging](https://docs.oracle.com/javase/8/docs/api/java/util/logging/package-summary.html), Jakarta Commons Logging and [Log4j](https://logging.apache.org/log4j/2.x/) logging toolkits.
+Any log messages your build classes write using these logging toolkits will be redirected to Gradle&#8217;s logging system.
+
+## Changing what Gradle logs
+
+:::caution
+This feature is deprecated and will be removed in the next major version without a replacement.
+The [configuration cache](configuration_cache.mdx#config_cache) limits the ability to customize Gradle&#8217;s logging UI.
+The custom logger can only implement [supported listener interfaces](configuration_cache_requirements.mdx#config_cache:requirements:build_listeners).
+These interfaces do not receive events when the configuration cache entry is reused because the configuration phase is skipped.
+:::
+
+You can replace much of Gradle&#8217;s logging UI with your own.
+You could do this if you want to customize the UI somehow - to log more or less information or to change the formatting.
+Simply replace the logging using the [Gradle.useLogger(java.lang.Object)]({groovyDslPath}/org.gradle.api.invocation.Gradle.html#org.gradle.api.invocation.Gradle:useLogger(java.lang.Object)) method.
+This is accessible from a build script, an init script, or via the embedding API.
+Note that this completely disables Gradle&#8217;s default output.
+Below is an example init script that changes how task execution and build completion are logged:
+
+{/* converter-gap: node=pass
+<div style="text-align: right;">
+  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/reference-docs/src/snippets/reference/runtime-configuration/customLogger">
+    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
+  </a>
+</div>
+*/}
+
+{/* converter-gap: node=sample dir="snippets/reference/runtime-configuration/customLogger/kotlin" files="customLogger.init.gradle.kts[]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/runtime-configuration/customLogger/groovy" files="customLogger.init.gradle[]" */}
+
+```bash
+$ ./gradlew -I customLogger.init.gradle.kts build
+```
+
+```text
+Unresolved directive in logging.adoc - include::{snippetsPath}/reference/runtime-configuration/customLogger/tests/customLogger.out[]
+```
+
+```bash
+$ ./gradlew -I customLogger.init.gradle build
+```
+
+```text
+Unresolved directive in logging.adoc - include::{snippetsPath}/reference/runtime-configuration/customLogger/tests/customLogger.out[]
+```
+
+Your logger can implement any of the listener interfaces listed below.
+When you register a logger, only the logging for the interfaces it implements is replaced.
+Logging for the other interfaces is left untouched.
+You can find out more about the listener interfaces in [Build lifecycle events](build_lifecycle.mdx#build_phases).
+
+- [BuildListener]({javadocPath}/org/gradle/BuildListener.html){/* converter-gap: node=inline_footnote */}
+- [ProjectEvaluationListener]({javadocPath}/org/gradle/api/ProjectEvaluationListener.html)
+- [TaskExecutionGraphListener]({javadocPath}/org/gradle/api/execution/TaskExecutionGraphListener.html)
+- [TaskExecutionListener]({javadocPath}/org/gradle/api/execution/TaskExecutionListener.html){/* converter-gap: node=inline_footnote */}
+- [TaskActionListener]({javadocPath}/org/gradle/api/execution/TaskActionListener.html){/* converter-gap: node=inline_footnote */}

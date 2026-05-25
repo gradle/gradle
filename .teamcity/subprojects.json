@@ -553,22 +553,8 @@
     "crossVersionTests": false
   },
   {
-    "name": "docs",
-    "path": "platforms/documentation/docs",
-    "unitTests": true,
-    "functionalTests": false,
-    "crossVersionTests": false
-  },
-  {
-    "name": "docs-asciidoctor-extensions",
-    "path": "platforms/documentation/docs-asciidoctor-extensions",
-    "unitTests": false,
-    "functionalTests": false,
-    "crossVersionTests": false
-  },
-  {
-    "name": "docs-asciidoctor-extensions-base",
-    "path": "platforms/documentation/docs-asciidoctor-extensions-base",
+    "name": "reference-docs",
+    "path": "platforms/documentation/reference-docs",
     "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false

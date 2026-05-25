@@ -1,0 +1,14 @@
+interface InjectedExecOps {
+    @Inject //@javax.inject.Inject
+    ExecOperations getExecOps()
+}
+
+tasks.register('myAdHocExecOperationsTask') {
+    def injected = project.objects.newInstance(InjectedExecOps)
+
+    doLast {
+        injected.execOps.exec {
+            commandLine 'ls', '-la'
+        }
+    }
+}

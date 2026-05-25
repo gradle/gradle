@@ -1,0 +1,13 @@
+interface InjectedArcOps {
+    @Inject //@javax.inject.Inject
+    ArchiveOperations getArcOps()
+}
+
+tasks.register('myAdHocArchiveOperationsTask') {
+    def injected = project.objects.newInstance(InjectedArcOps)
+    def archiveFile = "${projectDir}/sources.jar"
+
+    doLast {
+        injected.arcOps.zipTree(archiveFile)
+    }
+}

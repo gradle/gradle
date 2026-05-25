@@ -1,0 +1,24 @@
+---
+title: "Default Imports"
+---
+
+To make build scripts more concise, Gradle automatically adds a set of import statements to scripts.
+
+Gradle implicitly adds the following imports to each script (for both Groovy and Kotlin):
+
+```text
+Unresolved directive in default_script_imports.adoc - include::default-imports.txt[]
+```
+
+Additionally, for Groovy, the following imports are added too:
+
+```groovy
+import java.lang.*
+import java.io.*
+import java.net.*
+import java.util.*
+import java.time.*
+import java.math.BigDecimal
+import java.math.BigInteger
+import javax.inject.Inject
+```

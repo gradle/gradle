@@ -1,0 +1,16 @@
+// 1. beforeSettings: tweak start parameters / log early info
+// before the build settings have been loaded and evaluated.
+gradle.beforeSettings {
+    println("[beforeSettings] gradleUserHome = ${gradle.gradleUserHomeDir}")
+
+    // Example: default to --parallel if an env var is set
+    if (System.getenv("CI") == "true") {
+        println("[beforeSettings] Enabling parallel execution on CI")
+        gradle.startParameter.parallelProjectExecutionEnabled = true
+    } else {
+        println("[beforeSettings] Disabling parallel execution, not on CI")
+        gradle.startParameter.parallelProjectExecutionEnabled = false
+    }
+
+    println("")
+}

@@ -1,0 +1,16 @@
+abstract class MyProviderFactoryTask extends DefaultTask {
+    private ProviderFactory providerFactory
+
+    @Inject //@javax.inject.Inject
+    MyProviderFactoryTask(ProviderFactory providerFactory) {
+        this.providerFactory = providerFactory
+    }
+
+    @TaskAction
+    void doTaskAction() {
+        var outputDirectory = providerFactory.provider { "build/my-file.txt" }
+        println(outputDirectory.get())
+    }
+}
+
+tasks.register("myInjectedProviderFactoryTask",MyProviderFactoryTask) {}

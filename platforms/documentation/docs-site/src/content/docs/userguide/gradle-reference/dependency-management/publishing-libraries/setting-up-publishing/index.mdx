@@ -1,0 +1,88 @@
+---
+title: "Publishing a project as module"
+---
+
+The vast majority of software projects build something that aims to be consumed in some way.
+It could be a library that other software projects use or it could be an application for end users.
+_Publishing_ is the process by which the thing being built is made available to consumers.
+
+In Gradle, that process looks like this:
+
+1. Define [what](#publishing_overview:what) to publish
+2. Define [where](#publishing_overview:where) to publish it to
+3. [Do](#publishing_overview:how) the publishing
+
+Each of the these steps is dependent on the type of repository to which you want to publish artifacts.
+The two most common types are Maven-compatible and Ivy-compatible repositories, or Maven and Ivy repositories for short.
+
+As of Gradle 6.0, the [Gradle Module Metadata](publishing_gradle_module_metadata.mdx#sec:understanding-gradle-module-md) will always be published alongside the Ivy XML or Maven POM metadata file.
+
+Gradle makes it easy to publish to these types of repository by providing some prepackaged infrastructure in the form of the [Maven Publish Plugin](publishing_maven.mdx#publishing_maven) and the [Ivy Publish Plugin](publishing_ivy.mdx#publishing_ivy).
+These plugins allow you to configure what to publish and perform the publishing with a minimum of effort.
+
+{/* converter-gap: node=image */}
+
+Let&#8217;s take a look at those steps in more detail:
+
+{/* converter-gap: node=dlist */}
+
+{/* converter-gap: node=dlist */}
+
+{/* converter-gap: node=dlist */}
+
+What follows is a practical example that demonstrates the entire publishing process.
+
+## Setting up basic publishing
+
+The first step in publishing, irrespective of your project type, is to apply the appropriate publishing plugin. As mentioned in the introduction, Gradle supports both Maven and Ivy repositories via the following plugins:
+
+- [Maven Publish Plugin](publishing_maven.mdx#publishing_maven)
+- [Ivy Publish Plugin](publishing_ivy.mdx#publishing_ivy)
+
+These provide the specific publication and repository classes needed to configure publishing for the corresponding repository type. Since Maven repositories are the most commonly used ones, they will be the basis for this example and for the other samples in the chapter. Don&#8217;t worry, we will explain how to adjust individual samples for Ivy repositories.
+
+Let&#8217;s assume we&#8217;re working with a simple Java library project, so only the following plugins are applied:
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/publishing/javaLibrary/kotlin" files="build.gradle.kts[tags=apply-plugins]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/publishing/javaLibrary/groovy" files="build.gradle[tags=apply-plugins]" */}
+
+Once the appropriate plugin has been applied, you can configure the publications and repositories. For this example, we want to publish the project&#8217;s production JAR file — the one produced by the `jar` task — to a custom Maven repository. We do that with the following `publishing {}` block, which is backed by [PublishingExtension]({groovyDslPath}/org.gradle.api.publish.PublishingExtension.html):
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/publishing/javaLibrary/kotlin" files="build.gradle.kts[tags=configure-publishing]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/publishing/javaLibrary/groovy" files="build.gradle[tags=configure-publishing]" */}
+
+This defines a publication called "myLibrary" that can be published to a Maven repository by virtue of its type: [MavenPublication]({groovyDslPath}/org.gradle.api.publish.maven.MavenPublication.html).
+This publication consists of just the production JAR artifact and its metadata, which combined are represented by the `java` [component](glossary.mdx#sub:terminology_component) of the project.
+
+:::note
+Components are the standard way of defining a publication. They are provided by plugins, usually of the language or platform variety. For example, the Java Plugin defines the `components.java` [SoftwareComponent]({javadocPath}/org/gradle/api/component/SoftwareComponent.html), while the War Plugin defines `components.web`.
+:::
+
+The example also defines a file-based Maven repository with the name "myRepo". Such a file-based repository is convenient for a sample, but real-world builds typically work with HTTPS-based repository servers, such as Maven Central or an internal company server.
+
+:::note
+You may define one, and only one, repository without a name. This translates to an implicit name of "Maven" for Maven repositories and "Ivy" for Ivy repositories. All other repository definitions must be given an explicit name.
+:::
+
+In combination with the project&#8217;s `group` and `version`, the publication and repository definitions provide everything that Gradle needs to publish the project&#8217;s production JAR. Gradle will then create a dedicated `publishMyLibraryPublicationToMyRepoRepository` task that does just that. Its name is based on the template `publish_PubName_PublicationTo_RepoName_Repository`. See the appropriate publishing plugin&#8217;s documentation for more details on the nature of this task and any other tasks that may be available to you.
+
+You can either execute the individual publishing tasks directly, or you can execute `publish`, which will run all the available publishing tasks. In this example, `publish` will just run `publishMyLibraryPublicationToMavenRepository`.
+
+:::note
+Basic publishing to an Ivy repository is very similar: you simply use the Ivy Publish Plugin, replace  `MavenPublication` with [IvyPublication]({groovyDslPath}/org.gradle.api.publish.ivy.IvyPublication.html), and use `ivy` instead of `maven` in the repository definition.
+There are differences between the two types of repository, particularly around the extra metadata that each support — for example, Maven repositories require a POM file while Ivy ones have their own metadata format — so see the plugin chapters for comprehensive information on how to configure both publications and repositories for whichever repository type you&#8217;re working with.
+:::
+
+That&#8217;s everything for the basic use case. However, many projects need more control over what gets published, so we look at several common scenarios in the following sections.
+
+## Suppressing validation errors
+
+Gradle performs validation of generated module metadata.
+In some cases, validation can fail, indicating that you most likely have an error to fix, but you may have done something intentionally.
+If this is the case, Gradle will indicate the name of the validation error you can disable on the `GenerateModuleMetadata` tasks:
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/publishing/javaLibrary/kotlin" files="build.gradle.kts[tags=disable_validation]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/publishing/javaLibrary/groovy" files="build.gradle[tags=disable_validation]" */}

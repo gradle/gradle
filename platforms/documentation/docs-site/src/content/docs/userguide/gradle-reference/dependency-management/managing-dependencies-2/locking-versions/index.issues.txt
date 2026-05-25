@@ -1,0 +1,17 @@
+[
+  {
+    "startLine": 25,
+    "endLine": 25,
+    "problem": "Link to 'build_cache_concepts.adoc#stable_task_inputs' was kept as an external docs.gradle.org link because the target page does not appear in the sidebar yet. Should be updated to a local link once that page is migrated."
+  },
+  {
+    "startLine": 80,
+    "endLine": 80,
+    "problem": "Link to 'plugins_intermediate.adoc#sec:applying_plugins_buildscript' was kept as an external docs.gradle.org link because there is no matching page in the sidebar. Should be updated to a local link once that page is migrated."
+  },
+  {
+    "startLine": 164,
+    "endLine": 164,
+    "problem": "Link to 'plugins_intermediate.adoc#sec:applying_plugins_buildscript' (buildscript lockfile location) was kept as an external docs.gradle.org link because there is no matching page in the sidebar. Should be updated to a local link once that page is migrated."
+  }
+]

@@ -1,0 +1,143 @@
+---
+title: How to Exclude Transitive Dependencies in Gradle
+---
+
+import {Steps} from '@astrojs/starlight/components';
+import {SampleScripts} from '#/components';
+
+This guide explains how to **exclude transitive dependencies** from your project when they are not needed or cause conflicts.
+
+## Why Exclude Transitive Dependencies?
+
+Excluding a transitive dependency should be a **conscious decision**, as removing required dependencies may lead to **runtime errors** if a library depends on them.
+
+Before excluding, ensure:
+
+- Your application does not require the excluded dependency.
+- You have sufficient **test coverage** to verify that excluding the dependency does not break functionality.
+
+Exclusions are useful when:
+
+- A **library includes unnecessary transitive dependencies** that are not required by your application.
+- You need to **reduce the size of your dependencies**.
+- A **dependency conflict** exists and must be resolved differently.
+
+<Steps>
+
+1. ## Excluding a Transitive Dependency using `exclude()`
+
+   First you must find the dependency that is causing the unwanted transitive to be used.
+   You can use the `dependencies` task for this.
+
+   In this example, we want to remove the `commons-collections` dependency:
+
+   <SampleScripts sample_name="dependency-full" basename="build" />
+
+   Running `./gradlew dependencies --configuration runtimeClasspath` showcases how `commons-collections` is brought in by `commons-beanutils`:
+
+   ```text
+   > Task :dependencies
+
+   ------------------------------------------------------------
+   Root project 'how_to_exclude_transitive_dependencies'
+   ------------------------------------------------------------
+
+   runtimeClasspath - Runtime classpath of source set 'main'.
+   \--- commons-beanutils:commons-beanutils:1.9.4
+        +--- commons-logging:commons-logging:1.2
+        \--- commons-collections:commons-collections:3.2.2
+   ```
+
+   You can exclude a transitive dependency **per dependency declaration** by specifying the `group` and `module` attributes in an `exclude()` rule:
+
+   <SampleScripts sample_name="dependency-ex" basename="build" />
+
+   - This removes `commons-collections` from the transitive dependencies of `commons-beanutils`.
+   - The exclusion only applies to **this specific dependency** (i.e., `commons-beanutils`).
+
+   Running `./gradlew dependencies --configuration runtimeClasspath` showcases the results:
+
+   ```text
+   > Task :dependencies
+
+   ------------------------------------------------------------
+   Root project 'how_to_exclude_transitive_dependencies'
+   ------------------------------------------------------------
+
+   runtimeClasspath - Runtime classpath of source set 'main'.
+   \--- commons-beanutils:commons-beanutils:1.9.4
+        \--- commons-logging:commons-logging:1.2
+   ```
+
+   If your application only uses **a subset** of the library that does not require the excluded dependency, this approach is safe.
+
+2. ## Understanding the Impact of Exclusions
+
+   Exclusions **only apply if all dependency declarations agree** on the exclusion.
+   If another dependency in your project **still requires** the excluded dependency, Gradle **will not exclude it**.
+
+   <SampleScripts sample_name="dependency-extra" basename="build" />
+
+   In this case, `commons-collections` is **still included** because `opencsv` brings it back.
+
+   Running `./gradlew dependencies --configuration runtimeClasspath` showcases the results:
+
+   ```text
+   > Task :dependencies
+
+   ------------------------------------------------------------
+   Root project 'how_to_exclude_transitive_dependencies'
+   ------------------------------------------------------------
+
+   runtimeClasspath - Runtime classpath of source set 'main'.
+   +--- commons-beanutils:commons-beanutils:1.9.4
+   |    +--- commons-logging:commons-logging:1.2
+   |    \--- commons-collections:commons-collections:3.2.2
+   \--- com.opencsv:opencsv:4.6
+        +--- org.apache.commons:commons-lang3:3.8.1
+        +--- org.apache.commons:commons-text:1.3
+        |    \--- org.apache.commons:commons-lang3:3.7 -> 3.8.1
+        +--- commons-beanutils:commons-beanutils:1.9.3 -> 1.9.4 (*)
+        \--- org.apache.commons:commons-collections4:4.2
+   ```
+
+   To **fully exclude** `commons-collections`, you must also exclude it from `opencsv`.
+
+3. ## Exclude a Transitive Dependency for Multiple Dependencies
+
+   You must repeat Step 1 for any additional dependency:
+
+   <SampleScripts sample_name="dependency-extra-ex" basename="build" />
+
+   This example actually goes a step further as `com.opencsv:opencsv` actually brings in `commons-collections4`.
+
+   Now `commons-collections` AND `commons-collections4` are **fully excluded** from all dependencies that reference it:
+
+   ```text
+   > Task :dependencies
+
+   ------------------------------------------------------------
+   Root project 'how_to_exclude_transitive_dependencies'
+   ------------------------------------------------------------
+
+   runtimeClasspath - Runtime classpath of source set 'main'.
+   +--- commons-beanutils:commons-beanutils:1.9.4
+   |    \--- commons-logging:commons-logging:1.2
+   \--- com.opencsv:opencsv:4.6
+        +--- org.apache.commons:commons-lang3:3.8.1
+        +--- org.apache.commons:commons-text:1.3
+        |    \--- org.apache.commons:commons-lang3:3.7 -> 3.8.1
+        \--- commons-beanutils:commons-beanutils:1.9.3 -> 1.9.4 (*)
+   ```
+
+</Steps>
+
+## Summary
+
+- **Use exclusions only when necessary** to avoid runtime errors.
+- **Ensure all dependencies agree** on an exclusion for it to be effective.
+- **Consider alternative Gradle features** like dependency constraints or metadata rules before excluding.
+  - **Use Dependency Constraints** - If a dependency version conflict occurs, **adjust the version using a [constraint](https://docs.gradle.org/current/userguide/dependency_constraints.html#dependency-constraints)** rather than excluding the dependency entirely.
+  - **Apply Component Metadata Rules** - If a dependency is **incorrectly declared** in metadata (e.g., includes an unnecessary compile-time dependency), you can **remove the dependency in a [component metadata rule](https://docs.gradle.org/current/userguide/component_metadata_rules.html#component-metadata-rules)** instead of excluding it.
+  - **Resolve Mutually Exclusive Dependency Conflicts** - If multiple dependencies **conflict** because they represent different implementations of the same feature
+    (e.g., `log4j` vs. `log4j-over-slf4j`), it is better to **define [component capabilities](https://docs.gradle.org/current/userguide/component_capabilities.html#capabilities)** than to exclude one implementation.

@@ -1,0 +1,12 @@
+[
+  {
+    "startLine": 61,
+    "endLine": 61,
+    "problem": "Malformed AsciiDoc link in source: 'link:https://docs.gradle.com/develocity/gradle-plugin/current/#captured_information)[Captured Information]' uses ')[' instead of '[' to begin the label. The stray ')' was dropped during migration to produce the intended URL. The link was preserved as an external link to 'https://docs.gradle.com/develocity/gradle-plugin/current/#captured_information'."
+  },
+  {
+    "startLine": 63,
+    "endLine": 63,
+    "problem": "The inline link to the Beginner Tutorial ('<<part1_gradle_init.adoc#part1_gradle_init,Beginner Tutorial>>') was migrated to '/tutorials/running-builds/part1-gradle-init/', but this target page does not currently exist in the new documentation system. The link may be broken until that tutorial is migrated."
+  }
+]

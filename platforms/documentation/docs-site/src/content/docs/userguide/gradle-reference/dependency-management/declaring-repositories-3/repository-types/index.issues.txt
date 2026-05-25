@@ -1,0 +1,17 @@
+[
+  {
+    "startLine": 53,
+    "endLine": 53,
+    "problem": "Link to 'Supported Repository Protocols' page points to /gradle-reference/dependency-management/declaring-repositories-3/supported-protocols/#supported-transport-protocols — the target page (supported-protocols, id=supported-protocols) has status=pending and has not been migrated yet. The fragment #supported-transport-protocols may not exist when the page is eventually migrated."
+  },
+  {
+    "startLine": 71,
+    "endLine": 71,
+    "problem": "Link to the dependency cache page points to /gradle-reference/dependency-management/managing-dependencies-2/caching-dependencies/#sec:dependency-cache — the target page (caching-dependencies, id=caching-dependencies) has status=pending and has not been migrated yet. The fragment #sec:dependency-cache may not exist when the page is eventually migrated."
+  },
+  {
+    "startLine": 164,
+    "endLine": 165,
+    "problem": "Second link to 'Supported Repository Protocols' page (Authenticated Ivy repository section) — same issue as above."
+  }
+]

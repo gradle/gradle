@@ -1,0 +1,90 @@
+---
+title: "Platforms"
+---
+
+{/* converter-gap: node=pass
+<script>
+const currentAnchor = window.location.hash.substring(1); // Remove the '#' symbol
+
+const redirectionRules = {
+"sub::toml-dependencies-format": "version_catalogs.html#sec::toml-dependencies-format",
+};
+
+if (currentAnchor && redirectionRules[currentAnchor]) {
+window.location.href = redirectionRules[currentAnchor];
+}
+</script>
+*/}
+
+Platforms are used to ensure that all dependencies in a project align with a consistent set of versions.
+
+Platforms help you manage and enforce version consistency across different modules or libraries, especially when you are working with a set of related dependencies that need to be kept in sync.
+
+## Using a platform
+
+A platform is a specialized software component used to control transitive dependency versions.
+Typically, it consists of [dependency constraints](dependency_constraints.mdx#sec:adding-constraints-transitive-deps) that either recommend or enforce specific versions.
+Platforms are particularly useful when you need to share consistent dependency versions across multiple projects.
+
+In a typical setup you have:
+
+- **A Platform Project**: Which defines constraints for dependencies used across different subprojects.
+- **A Number of Subprojects**: Which depend on the platform and declare dependencies without specifying versions.
+
+The [`java-platform plugin`](java_platform_plugin.mdx#java_platform_plugin) supports creating platforms in the Java ecosystem.
+Platforms are also commonly published as Maven BOMs (Bill of Materials), which Gradle natively supports.
+
+To use a platform, declare a dependency with the `platform` keyword:
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/centralizing-dependencies/recommender/kotlin/consumer" files="build.gradle.kts[tags=get-recommendations]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/centralizing-dependencies/recommender/groovy/consumer" files="build.gradle[tags=get-recommendations]" */}
+
+This notation automatically performs several actions:
+
+- Sets the [`org.gradle.category` attribute]({javadocPath}/org/gradle/api/attributes/Category.html) to platform, ensuring Gradle selects the platform component.
+- Enables the [`endorseStrictVersions`]({javadocPath}/org/gradle/api/artifacts/ModuleDependency.html#endorseStrictVersions--) behavior by default, enforcing strict versions defined in the platform.
+
+If [strict version](dependency_versions.mdx#sec:strict-version) enforcement isn&#8217;t needed, you can disable it using the `doNotEndorseStrictVersions` method.
+
+## Creating a platform
+
+In Java projects, the `java-platform` plugin combined with [dependency constraints](dependency_constraints.mdx#dependency-constraints) can be used to create a platform:
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/centralizing-dependencies/recommender/kotlin/platform" files="build.gradle.kts[tags=full-platform]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/centralizing-dependencies/recommender/groovy/platform" files="build.gradle[tags=full-platform]" */}
+
+This defines a custom platform with specific versions of `commons-httpclient` and `commons-lang3` that can be applied in other projects.
+
+## Importing a platform
+
+Gradle supports importing [BOMs](https://maven.apache.org/guides/introduction/introduction-to-dependency-mechanism.html#Bill_of_Materials_.28BOM.29_POMs), which are POM files containing `&lt;dependencyManagement&gt;` sections that manage dependency versions.
+
+In order to qualify as a BOM, a `.pom` file needs to have pom set.
+This means that the POM file should explicitly specify &lt;packaging&gt;pom&lt;/packaging&gt; in its metadata.
+
+Gradle treats all entries in the block of a BOM similar to [Adding Constraints On Dependencies](dependency_constraints.mdx#sec:adding-constraints-transitive-deps).
+
+### Regular Platform
+
+To import a BOM, declare a dependency on it using the `platform` dependency modifier method:
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/centralizing-dependencies/managingTransitiveDependencies-constraintsFromBOM/kotlin" files="build.gradle.kts[tags=dependency-on-bom]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/centralizing-dependencies/managingTransitiveDependencies-constraintsFromBOM/groovy" files="build.gradle[tags=dependency-on-bom]" */}
+
+In this example, the Spring Boot BOM provides the versions for `gson` and `dom4j`, so no explicit versions are needed.
+
+### Enforced Platform
+
+The `enforcedPlatform` keyword can be used to override any versions found in the dependency graph, but should be used with caution as it is effectively transitive and exports forced versions to all consumers of your project:
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/centralizing-dependencies/managingTransitiveDependencies-enforcedConstraintsFromBOM/kotlin" files="build.gradle.kts[tags=dependency-on-bom]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/centralizing-dependencies/managingTransitiveDependencies-enforcedConstraintsFromBOM/groovy" files="build.gradle[tags=dependency-on-bom]" */}
+
+When using `enforcedPlatform`, exercise caution if your software component is intended for consumption by others.
+This declaration is transitive and affects the dependency graph of your consumers.
+If they disagree with any enforced versions, they&#8217;ll need to use `exclude`.
+Instead, if your reusable component strongly favors specific third-party dependency versions, consider using a [rich version](dependency_versions.mdx#sec:strict-version) declaration with `strictly`.

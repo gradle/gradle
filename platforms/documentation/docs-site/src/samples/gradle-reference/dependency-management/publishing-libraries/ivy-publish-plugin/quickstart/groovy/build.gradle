@@ -1,0 +1,21 @@
+plugins {
+    id 'java'
+    id 'ivy-publish'
+}
+
+group = 'org.gradle.sample'
+version = '1.0'
+
+publishing {
+    publications {
+        ivyJava(IvyPublication) {
+            from components.java
+        }
+    }
+    repositories {
+        ivy {
+            // change to point to your repo, e.g. http://my.org/repo
+            url = layout.buildDirectory.dir("repo")
+        }
+    }
+}

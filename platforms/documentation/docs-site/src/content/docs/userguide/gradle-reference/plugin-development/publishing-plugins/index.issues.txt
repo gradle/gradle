@@ -1,0 +1,32 @@
+[
+  {
+    "startLine": 39,
+    "endLine": 39,
+    "problem": "Link to build_environment.adoc#sec:gradle_configuration_properties kept as external docs.gradle.org link because the target page has not been migrated yet."
+  },
+  {
+    "startLine": 54,
+    "endLine": 57,
+    "problem": "Links to java_gradle_plugin.adoc#java_gradle_plugin and publishing_maven.adoc#publishing_maven kept as external docs.gradle.org links because neither target page has been migrated yet."
+  },
+  {
+    "startLine": 91,
+    "endLine": 91,
+    "problem": "Link to building_java_projects.adoc#sec:java_packaging kept as external docs.gradle.org link because the target page has not been migrated yet."
+  },
+  {
+    "startLine": 95,
+    "endLine": 95,
+    "problem": "Link to signing_plugin.adoc#signing_plugin kept as external docs.gradle.org link because the target page has not been migrated yet."
+  },
+  {
+    "startLine": 127,
+    "endLine": 127,
+    "problem": "Link to java_gradle_plugin.adoc#java_gradle_plugin kept as external docs.gradle.org link because the target page has not been migrated yet."
+  },
+  {
+    "startLine": 127,
+    "endLine": 127,
+    "problem": "Link to plugins_intermediate.adoc#sec:plugin_markers kept as external docs.gradle.org link (plugins_intermediate.html) because the target page has not been migrated yet."
+  }
+]

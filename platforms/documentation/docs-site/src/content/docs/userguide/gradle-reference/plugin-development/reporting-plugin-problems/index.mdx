@@ -1,0 +1,180 @@
+---
+title: "Reporting Plugin Problems with the Problems API"
+---
+
+Gradle’s Problems API lets plugins report rich, structured information about issues that occur during a failing build.
+
+The following example shows how a plugin can report a problem:
+
+{/* converter-gap: node=pass
+<div style="text-align: right;">
+  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/reference-docs/src/snippets/reference/plugin-development/problemReporting">
+    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
+  </a>
+</div>
+*/}
+
+{/* converter-gap: node=sample dir="snippets/reference/plugin-development/problemReporting/kotlin/buildSrc/src/main/java/org/myorg" files="ProblemReportingPlugin.java[tags=snippet]" */}
+
+{/* converter-gap: node=colist */}
+
+## Problems API Usage
+
+The following simple plugin adds a `greet` task:
+
+- It prints a `Hello World` greeting when used correctly: `./gradlew greet -Precipient=World`
+- It warns if no recipient is set: `./gradlew greet`
+- It fails if the recipient is `fail`: `./gradlew greet -Precipient=fail`
+
+The details of the failure will be provided in the [HTML Problems Report](#sec:generated_html_report):
+
+{/* converter-gap: node=pass
+<div style="text-align: right;">
+  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/reference-docs/src/snippets/reference/plugin-development/reportingProblems">
+    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
+  </a>
+</div>
+*/}
+
+{/* converter-gap: node=sample dir="snippets/reference/plugin-development/reportingProblems/kotlin" files="plugin/src/main/kotlin/org/example/HelloProblemsPlugin.kt[]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/plugin-development/reportingProblems/groovy" files="plugin/src/main/groovy/org/example/HelloProblemsPlugin.groovy[]" */}
+
+How it works:
+
+1. ***Injects the `Problems` service*** into the task.
+2. ***Creates a `ProblemGroup`*** to group related problems.
+3. ***Creates a `ProblemId`*** for each distinct issue.
+4. ***Reports warnings*** with the `ProblemReporter.report()` when the build can continue.
+5. ***Throws structured failures*** with `ProblemReporter.throwing()` when the build must stop.
+6. ***Optionally attaches `AdditionalData`*** to `ProblemSpec` so advanced tools can show extra info.
+
+### Injecting the `Problems` service
+
+Gradle will automatically provide the [`Problems`]({javaDocPath}/org/gradle/api/problems/Problems.html) service when injected into the custom task type:
+
+{/* converter-gap: node=sample dir="snippets/reference/plugin-development/reportingProblems/kotlin" files="plugin/src/main/kotlin/org/example/HelloProblemsPlugin.kt[tags=problems-service]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/plugin-development/reportingProblems/groovy" files="plugin/src/main/groovy/org/example/HelloProblemsPlugin.groovy[tags=problems-service]" */}
+
+### Creating a `ProblemId` and `ProblemGroup`
+
+Problem IDs and Groups help Gradle deduplicate, summarize, and link to solutions:
+
+{/* converter-gap: node=sample dir="snippets/reference/plugin-development/reportingProblems/kotlin" files="plugin/src/main/kotlin/org/example/HelloProblemsPlugin.kt[tags=problems-id]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/plugin-development/reportingProblems/groovy" files="plugin/src/main/groovy/org/example/HelloProblemsPlugin.groovy[tags=problems-id]" */}
+
+### Choosing a reporting mode for the `ProblemReporter`
+
+Plugins can report problems in two ways:
+
+- [`report()`]({javadocPath}/org/gradle/api/problems/ProblemReporter.html#reporting-org.gradle.api.Action-) — use for recoverable problems when the build should continue.
+- [`throwing()`]({javadocPath}/org/gradle/api/problems/ProblemReporter.html#throwing-org.gradle.api.Action-) — use for non-recoverable problems that should fail the build.
+
+Once you have decided what type of problem you want to report, get the [`ProblemReporter`]({javaDocPath}/org/gradle/api/problems/ProblemReporter.html) using `problem.getReporter()`:
+
+{/* converter-gap: node=sample dir="snippets/reference/plugin-development/reportingProblems/kotlin" files="plugin/src/main/kotlin/org/example/HelloProblemsPlugin.kt[tags=problems-reporter]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/plugin-development/reportingProblems/groovy" files="plugin/src/main/groovy/org/example/HelloProblemsPlugin.groovy[tags=problems-reporter]" */}
+
+#### Reporting a recoverable problem
+
+Use `problems.getReporter().report {}` to signal something went wrong but allow the build to continue:
+
+{/* converter-gap: node=sample dir="snippets/reference/plugin-development/reportingProblems/kotlin" files="plugin/src/main/kotlin/org/example/HelloProblemsPlugin.kt[tags=problems-report]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/plugin-development/reportingProblems/groovy" files="plugin/src/main/groovy/org/example/HelloProblemsPlugin.groovy[tags=problems-report]" */}
+
+#### Reporting a fatal problem
+
+Use `problems.getReporter().throwing {}` to fail the build with a structured error:
+
+{/* converter-gap: node=sample dir="snippets/reference/plugin-development/reportingProblems/kotlin" files="plugin/src/main/kotlin/org/example/HelloProblemsPlugin.kt[tags=problems-throw]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/plugin-development/reportingProblems/groovy" files="plugin/src/main/groovy/org/example/HelloProblemsPlugin.groovy[tags=problems-throw]" */}
+
+This throws an exception tied to a rich problem report so Gradle clients can display meaningful failure info.
+
+### Add data using `ProblemSpec`
+
+When reporting a problem, you can provide a wide variety of metadata such as descriptions, severity, solutions, and additional data:
+
+{/* converter-gap: node=sample dir="snippets/reference/plugin-development/reportingProblems/kotlin" files="plugin/src/main/kotlin/org/example/HelloProblemsPlugin.kt[tags=problems-spec]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/plugin-development/reportingProblems/groovy" files="plugin/src/main/groovy/org/example/HelloProblemsPlugin.groovy[tags=problems-spec]" */}
+
+See [`ProblemSpec`]({javaDocPath}/org/gradle/api/problems/ProblemSpec.html) for all available fields.
+
+## Problem Summarization
+
+Gradle avoids spamming users with duplicate problem messages:
+
+- The first few instances of a problem are reported individually as [`Problem`]({javaDocPath}/org/gradle/tooling/events/problems/Problem.html) events.
+- Subsequent duplicates are summarized at the end of the build as a [`ProblemSummary`]({javaDocPath}/org/gradle/tooling/events/problems/ProblemSummary.html), delivered with a [`ProblemSummariesEvent`]({javaDocPath}/org/gradle/tooling/events/problems/ProblemSummariesEvent.html).
+
+## Build Failures
+
+The standard way to fail a build is by throwing an exception.
+The Problems API enhances this by allowing you to throw exceptions tied to detailed problem reports:
+
+{/* converter-gap: node=sample dir="snippets/reference/plugin-development/problems-api-usage/common/reporters/standard-plugin/src/main/java/reporters" files="FailingTask.java[tags=problems-api-fail-the-build]" */}
+
+This ensures build failures are clearly associated with their underlying issues and are visible across all Gradle clients (CLI, Build Scan, IDEs, Tooling API).
+
+### Command-line Interface
+
+Gradle CLI output shows detailed information from the reported problem:
+
+```text
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':myFailingTask'.
+> FailingTask execution problem  // <1>
+    This happened because ProblemReporter.throwing() was called  // <2>
+      This is a demonstration of how to add  // <3>
+      detailed information to a build failure
+
+* Try:  // <4>
+> Remove the Problems.throwing() method call from the task action
+> Run with --scan to generate a Build Scan (powered by Develocity).
+BUILD FAILED in 0ms  // <5>
+```
+
+{/* converter-gap: node=colist */}
+
+### Tooling API Clients
+
+Tooling API clients can access reported problems tied to failures:
+
+- Register a progress listener for `OperationType.ROOT`.
+- Check if the result is a `FailureResult` and retrieve problems with `Failure.getProblems()`.
+
+Alternatively, configure the project connection with `LongRunningOperation.withFailureDetails()`.
+Then failure details, including problems, are automatically available via `GradleConnectionException.getFailures()`.
+
+## Generated HTML Report
+
+Gradle generates an HTML report at the end of the build if any problems were reported.
+It’s a central place to review issues and complements the console and Build Scan outputs.
+
+- The report is skipped if no problems are found.
+- Disable report generation with the `--no-problems-report` flag.
+
+Console output includes a link to the report:
+
+```text
+[Incubating] Problem report is available at: <project-dir>/build/reports/problems/problems-report.html
+
+BUILD SUCCESSFUL in 1s
+```
+
+{/* converter-gap: node=image */}
+
+`AdditionalData` is not included in the HTML report.
+Plugins can log their own problem events, which appear alongside Gradle’s built-in reports.
+
+## Console rendering
+
+All problem reports are now rendered in the console output if `--warning-mode=all` is configured.

@@ -1,0 +1,10 @@
+abstract class MyProviderTask extends DefaultTask {
+    final Provider<String> messageProvider = project.providers.provider { "Hello, Gradle!" }
+
+    @TaskAction
+    void printMessage() {
+        println(messageProvider.get())
+    }
+}
+
+tasks.register('MyProviderTask', MyProviderTask)

@@ -1,0 +1,22 @@
+[
+  {
+    "startLine": 127,
+    "endLine": 127,
+    "problem": "The link '../samples/sample_custom_test_task.html' is a relative path to an old samples HTML page. This will not resolve correctly in the new Astro site. The correct target URL in the new system is unknown and needs to be updated once the samples index is migrated."
+  },
+  {
+    "startLine": 57,
+    "endLine": 57,
+    "problem": "Callout <1> description was originally a multi-paragraph AsciiDoc block (using '+' continuation lines): 'The GroupTestEventReporter is initialized...', 'It creates directories...', 'This establishes the reporting hierarchy.', '*Nesting is supported*.'. These continuation paragraphs have been collapsed into a single inline callout comment as required by the new system's single-line callout format. The meaning is preserved but the paragraph breaks from the original are lost."
+  },
+  {
+    "startLine": 66,
+    "endLine": 66,
+    "problem": "Callout <2> description was originally a multi-paragraph AsciiDoc block (using '+' continuation lines). Collapsed into a single inline callout comment. Meaning preserved but paragraph breaks from original are lost."
+  },
+  {
+    "startLine": 80,
+    "endLine": 80,
+    "problem": "Callout <3> description was originally a multi-paragraph AsciiDoc block. Collapsed into a single inline callout comment."
+  }
+]

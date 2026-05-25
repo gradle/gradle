@@ -1,0 +1,92 @@
+---
+title: "Build File Basics"
+---
+
+Generally, a build script (`build.gradle(.kts)`) details **build configuration, tasks, and plugins**.
+
+{/* converter-gap: node=image */}
+
+Every Gradle build comprises at least one _build script_.
+
+## Build scripts
+
+The build script is either a `build.gradle` file written in Groovy or a `build.gradle.kts` file in Kotlin.
+
+The [Groovy DSL]({groovyDslPath}/index.html) and the [Kotlin DSL]({kotlinDslPath}/index.html) are the only accepted languages for Gradle scripts.
+
+In multi-project builds, each subproject typically has its own build file located in its root directory.
+
+Inside a build script, you&#8217;ll typically specify:
+
+- **Plugins**: Tools that extend Gradle&#8217;s functionality for tasks like compiling code, running tests, or packaging artifacts.
+- **Dependencies**: External libraries and tools your project uses.
+
+Specifically, build scripts contain two main types of dependencies:
+
+- **Gradle and Build Script Dependencies**: These include plugins and libraries required by Gradle itself or the build script logic.
+- **Project Dependencies**: Libraries required directly by your project&#8217;s source code to compile and run correctly.
+
+Let&#8217;s take a look at an example and break it down:
+
+{/* converter-gap: node=pass
+<div style="text-align: right;">
+  <a href="https://github.com/gradle/gradle/tree/master/platforms/documentation/reference-docs/src/snippets/fundamentals/running-builds/generated">
+    <img src="https://img.shields.io/badge/View%20full%20project-GitHub-blue?logo=github&style=flat" alt="View full sample project on GitHub"/>
+  </a>
+</div>
+*/}
+
+{/* converter-gap: node=sample dir="snippets/fundamentals/running-builds/generated/kotlin" files="app/build.gradle.kts[tags=init]" */}
+
+{/* converter-gap: node=sample dir="snippets/fundamentals/running-builds/generated/groovy" files="app/build.gradle[tags=init]" */}
+
+{/* converter-gap: node=colist */}
+
+## 1. Add plugins
+
+Plugins extend Gradle&#8217;s functionality and can contribute tasks to a project.
+
+Adding a plugin to a build is called _applying_ a plugin and makes additional functionality available.
+
+{/* converter-gap: node=sample dir="snippets/fundamentals/running-builds/generated/kotlin" files="app/build.gradle.kts[tags=init-plugins]" */}
+
+{/* converter-gap: node=sample dir="snippets/fundamentals/running-builds/generated/groovy" files="app/build.gradle[tags=init-plugins]" */}
+
+The `application` plugin facilitates creating an executable JVM application.
+
+Applying the [Application plugin](application_plugin.mdx#application_plugin) also implicitly applies the [Java plugin](java_plugin.mdx#java_plugin).
+The `java` plugin adds Java compilation along with testing and bundling capabilities to a project.
+
+## 2. Add dependencies
+
+Your project needs external libraries to compile, run, and test.
+
+In this example, the project uses `JUnit Jupiter` for testing and Google’s `Guava` library in the main application code:
+
+{/* converter-gap: node=sample dir="snippets/fundamentals/running-builds/generated/kotlin" files="app/build.gradle.kts[tags=init-dep]" */}
+
+{/* converter-gap: node=sample dir="snippets/fundamentals/running-builds/generated/groovy" files="app/build.gradle[tags=init-dep]" */}
+
+## 3. Use convention properties
+
+A plugin adds tasks to a project.
+It also adds properties and methods to a project.
+
+The `application` plugin defines tasks that package and distribute an application, such as the `run` task.
+
+The Application plugin provides a way to declare the main class of a Java application, which is required to execute the code.
+
+{/* converter-gap: node=sample dir="snippets/fundamentals/running-builds/generated/kotlin" files="app/build.gradle.kts[tags=init-app]" */}
+
+{/* converter-gap: node=sample dir="snippets/fundamentals/running-builds/generated/groovy" files="app/build.gradle[tags=init-app]" */}
+
+In this example, the main class (i.e., the point where the program&#8217;s execution begins) is `org.example.App`.
+
+Build scripts are evaluated during the configuration phase of a build, and they serve as the main entry point for defining a (sub)project’s build logic.
+In addition to applying plugins and setting convention properties, build scripts can:
+
+- Declare dependencies
+- Configure tasks
+- Reference shared settings (from version catalogs or convention plugins)
+
+***Next Step:*** [Learn about Dependency Management](dependency_management_basics.mdx#dependency_management_basics) &gt;&gt;

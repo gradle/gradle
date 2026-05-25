@@ -1,0 +1,3 @@
+pmd {
+    threads = 4
+}

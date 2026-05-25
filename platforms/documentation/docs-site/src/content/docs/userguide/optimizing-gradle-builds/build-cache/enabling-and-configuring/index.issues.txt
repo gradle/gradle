@@ -1,0 +1,37 @@
+[
+  {
+    "startLine": 21,
+    "endLine": 21,
+    "problem": "Link to incremental_build.adoc#incremental_build (up-to-date checks) has no equivalent page in the new IA. The source file is in old-userguide/src/docs/userguide/unused/incremental_build.adoc. Linked as /optimizing-gradle-builds/incremental-build/#incremental_build which does not exist yet. Same link appears on lines 51, 58, 115, 119, 183, 193, 225, 257."
+  },
+  {
+    "startLine": 104,
+    "endLine": 104,
+    "problem": "Link to organizing_tasks.adoc#sec:lifecycle_tasks mapped to /gradle-reference/task-development/organizing-tasks/#sec:lifecycle_tasks - page exists in sidebar but is not yet migrated (status=pending)."
+  },
+  {
+    "startLine": 25,
+    "endLine": 25,
+    "problem": "Link to artifact_transforms.adoc#sec:abm-artifact-transforms mapped to /gradle-reference/dependency-management/controlling-dependency-resolution/artifact-transforms/#sec:abm-artifact-transforms - page exists in sidebar but is not yet migrated (status=pending)."
+  },
+  {
+    "startLine": 242,
+    "endLine": 242,
+    "problem": "Link to build_cache_concepts.adoc#relocatability mapped to /optimizing-gradle-builds/build-cache/learning-basic-concepts/#relocatability - page exists in sidebar but is not yet migrated (status=pending)."
+  },
+  {
+    "startLine": 306,
+    "endLine": 306,
+    "problem": "Link to directory_layout.adoc#dir:gradle_user_home:configure_cache_cleanup mapped to /gradle-reference/runtime-and-configuration/gradle-directories/#dir:gradle_user_home:configure_cache_cleanup - page exists in sidebar but is not yet migrated (status=pending)."
+  },
+  {
+    "startLine": 362,
+    "endLine": 362,
+    "problem": "Link to build_environment.adoc mapped to /gradle-reference/runtime-and-configuration/build-configuration/ - page exists in sidebar but is not yet migrated (status=pending)."
+  },
+  {
+    "startLine": 295,
+    "endLine": 296,
+    "problem": "The original AsciiDoc used en-dashes in a list description. Migrated using double hyphens (--) as Markdown equivalent."
+  }
+]

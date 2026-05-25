@@ -1,0 +1,41 @@
+---
+interface Props {
+  class: string;
+  method?: string;
+  text?: string;
+  docClass: string;
+  componentName?: string;
+}
+
+const {
+  class: className,
+  method,
+  text,
+  docClass,
+  componentName = 'ApiDocLinkBase',
+} = Astro.props;
+
+if (!className) {
+  throw new Error(`The 'class' prop is required for ${componentName} component.`);
+}
+
+const displayName = className.split('.').pop();
+const displayText = text || (method ? `${displayName}.${method}` : displayName);
+---
+
+<a href="#" class:list={['api-link', docClass]} data-class={className} data-method={method}>
+  {displayText}
+</a>
+
+<style>
+  .api-link {
+    color: var(--sl-color-accent-high);
+    text-decoration: none;
+    font-family: var(--__sl-font-mono);
+    font-size: 0.9em;
+  }
+
+  .api-link:hover {
+    text-decoration: underline;
+  }
+</style>

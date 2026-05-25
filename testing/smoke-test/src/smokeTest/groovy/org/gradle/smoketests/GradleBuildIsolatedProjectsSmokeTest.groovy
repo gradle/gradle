@@ -28,11 +28,6 @@ class GradleBuildIsolatedProjectsSmokeTest extends AbstractGradleBuildIsolatedPr
             "sanityCheck",
             "test",
             "embeddedIntegTest",
-            // AsciidoctorTask only became CC compatible in version 5 (https://github.com/asciidoctor/asciidoctor-gradle-plugin/issues/564),
-            // skip these tasks to avoid non-IP problems
-            "-x", ":docs:samplesMultiPage",
-            "-x", ":docs:userguideMultiPage",
-            "-x", ":docs:userguideSinglePageHtml"
         ]
 
         when:

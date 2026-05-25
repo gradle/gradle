@@ -1,0 +1,20 @@
+[
+  {
+    "startLine": 567,
+    "endLine": 567,
+    "problem": "Source has display text 'AndSpec.and' but the javadoc URL anchor points to '#findUnsatisfiedSpec(java.lang.Object)'. These are two different method names. The JavaDocLink component renders the method name from the `method` attribute (findUnsatisfiedSpec), which matches the URL but differs from the display text in the original source. Preserved the URL-accurate method name in migration.",
+    "sourceFile": "old-userguide/src/docs/userguide/releases/upgrading/upgrading_major_version_9.adoc"
+  },
+  {
+    "startLine": 658,
+    "endLine": 659,
+    "problem": "Groovy sample in assemble-explicit uses 'tasks.register(\"specialJar\". Jar)' with a period instead of comma before Jar. This appears to be a typo in the source ('.' instead of ','). Preserved as-is per migration policy.",
+    "sourceFile": "old-userguide/src/docs/userguide/releases/upgrading/upgrading_major_version_9.adoc"
+  },
+  {
+    "startLine": 712,
+    "endLine": 713,
+    "problem": "Same typo in the archives-explicit Groovy sample: 'tasks.register(\"specialJar\". Jar)' — period instead of comma. Preserved as-is.",
+    "sourceFile": "old-userguide/src/docs/userguide/releases/upgrading/upgrading_major_version_9.adoc"
+  }
+]

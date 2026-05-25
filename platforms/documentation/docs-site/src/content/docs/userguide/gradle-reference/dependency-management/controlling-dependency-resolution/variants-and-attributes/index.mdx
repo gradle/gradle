@@ -1,0 +1,281 @@
+---
+title: "Variants and Attributes"
+---
+
+***Variants*** represent different versions or aspects of a component, like `api` vs `implementation`.
+***Attributes*** define which variant is selected based on the consumer&#8217;s requirements.
+
+For example, a library may have an `api` and an `implementation` variant.
+Here, the consumer wants an external `implementation` variant:
+
+```kotlin
+configurations {
+    implementation {
+        attributes {
+            attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named(Bundling.EXTERNAL))
+        }
+    }
+}
+```
+
+For example, a build might have `debug` and `release` variants.
+This selects the `debug` variant based on the attribute.
+
+```kotlin
+configurations {
+    compileClasspath {
+        attributes {
+            attribute(TargetConfiguration.TARGET_ATTRIBUTE, objects.named("debug"))
+        }
+    }
+}
+```
+
+***Attributes*** help Gradle match the right ***variant*** by comparing the requested attributes with what&#8217;s available:
+
+```kotlin
+attribute(TargetConfiguration.TARGET_ATTRIBUTE, objects.named("debug"))
+```
+
+This sets the `TargetConfiguration.TARGET_ATTRIBUTE` to `"debug"`, meaning Gradle will attempt to resolve dependencies that have a "debug" variant, instead of other available variants (like "release").
+
+## Standard attributes defined by Gradle
+
+As a user of Gradle, attributes are often hidden as implementation details.
+But it might be useful to understand the _standard attributes_ defined by Gradle and its core plugins.
+
+As a plugin author, these attributes, and the way they are defined, can serve as a basis for [building your own set of attributes](#sec:declaring-attributes) in your ecosystem plugin.
+
+### Ecosystem-independent standard attributes
+
+{/* converter-gap: node=table */}
+
+When the `Category` attribute is present with the incubating value `org.gradle.category=verification` on a variant, that variant is considered to be a verification-time only variant.
+
+These variants are meant to contain only the results of running verification tasks, such as test results or code coverage reports.
+They are **not publishable**, and will produce an error if added to a component which is published.
+
+{/* converter-gap: node=table */}
+
+### JVM ecosystem specific attributes
+
+In addition to the ecosystem independent attributes defined above, the JVM ecosystem adds the following attribute:
+
+{/* converter-gap: node=table */}
+
+The JVM ecosystem also contains a number of compatibility and disambiguation rules over the different attributes.
+The reader willing to know more can take a look at the code for `org.gradle.api.internal.artifacts.JavaEcosystemSupport`.
+
+### Native ecosystem specific attributes
+
+In addition to the ecosystem independent attributes defined above, the native ecosystem adds the following attributes:
+
+{/* converter-gap: node=table */}
+
+### Gradle plugin ecosystem specific attributes
+
+For Gradle plugin development, the following attribute is supported since Gradle 7.0.
+A Gradle plugin variant can specify compatibility with a Gradle API version through this attribute.
+
+{/* converter-gap: node=table */}
+
+## Using a standard attribute
+
+For this example, let’s assume you are creating a library with different variants for different JVM versions.
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/controlling-dependency-resolution/customizingResolution-attributeSimple/kotlin" files="lib/build.gradle.kts[tags=attributes]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/controlling-dependency-resolution/customizingResolution-attributeSimple/groovy" files="lib/build.gradle[tags=attributes]" */}
+
+In the consumer project (that uses the library), you can specify the JVM version attribute when declaring dependencies.
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/controlling-dependency-resolution/customizingResolution-attributeSimple/kotlin" files="consumer/build.gradle.kts[tags=attributes]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/controlling-dependency-resolution/customizingResolution-attributeSimple/groovy" files="consumer/build.gradle[tags=attributes]" */}
+
+By defining and using the JVM version attribute, you ensure that your library and its consumers are compatible with the specified JVM version.
+Essentially, this ensures that Gradle resolves to the variant that matches the desired JVM version.
+
+## Viewing and debugging attributes
+
+The `dependencyInsight` task is useful for inspecting specific dependencies and their attributes, including how they are resolved:
+
+```bash
+$ ./gradlew dependencyInsight --configuration compileClasspath --dependency com.example:your-library
+```
+
+```text
+> Task :dependencyInsight
+
+com.example:your-library:1.0 (compileClasspath)
+   variant "apiElements" [
+      org.gradle.api.attributes.Attribute: org.gradle.api.attributes.Usage = [java-api]
+      org.gradle.api.attributes.Attribute: org.gradle.api.attributes.Usage = [java-runtime]
+      org.gradle.api.attributes.Attribute: org.gradle.api.attributes.JavaLanguageVersion = [1.8]
+   ]
+   variant "runtimeElements" [
+      org.gradle.api.attributes.Attribute: org.gradle.api.attributes.Usage = [java-runtime]
+      org.gradle.api.attributes.Attribute: org.gradle.api.attributes.JavaLanguageVersion = [1.8]
+   ]
+
+   Selection reasons:
+      - By constraint from configuration ':compileClasspath'
+      - Declared in build.gradle.kts
+
+   Resolved to:
+      com.example:your-library:1.0 (runtime)
+
+   Additional Information:
+      - Dependency declared in the 'implementation' configuration
+      - No matching variants found for the requested attributes in the 'compileClasspath' configuration
+```
+
+## Declaring custom attributes
+
+When extending Gradle with **custom attributes**, it’s important to consider their long-term impact, especially if you plan to publish libraries.
+Custom attributes allow you to integrate **variant-aware dependency management** in your plugin, but libraries using these attributes must also ensure consumers can interpret them correctly.
+This is typically done by applying the corresponding plugin, which defines compatibility and disambiguation rules.
+
+If your plugin is publicly available and libraries are published to public repositories, introducing new attributes becomes a significant responsibility.
+Published attributes must remain supported or have a [compatibility layer](#sec:abm-compatibility-rules) in future versions of the plugin to ensure backward compatibility.
+
+Here’s an example of declaring and using custom attributes in a Gradle plugin:
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/controlling-dependency-resolution/customizingResolution-attributeSimple/kotlin" files="lib/build.gradle.kts[tags=custom-attributes]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/controlling-dependency-resolution/customizingResolution-attributeSimple/groovy" files="lib/build.gradle[tags=custom-attributes]" */}
+
+In this example:
+- A custom attribute `my-attribute` is defined.
+- The attribute is set on a custom configuration (`myConfig`).
+- When adding a dependency, the custom attribute is applied to match the configuration.
+
+If publishing a library with this attribute, ensure that consumers apply the plugin that understands and handles `my-attribute`.
+
+## Creating attributes in a build script or plugin
+
+Attributes are _typed_.
+An attribute can be created via the `Attribute&lt;T&gt;.of` method:
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/controlling-dependency-resolution/attributeMatching/kotlin" files="build.gradle.kts[tags=define_attribute]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/controlling-dependency-resolution/attributeMatching/groovy" files="build.gradle[tags=define_attribute]" */}
+
+Attribute types support most Java primitive classes; such as `String` and `Integer`.
+Or anything extending `org.gradle.api.Named`.
+
+Attributes should always be declared in the _attribute schema_ found on the `dependencies` handler:
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/controlling-dependency-resolution/attributeMatching/kotlin" files="build.gradle.kts[tags=register-attributes]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/controlling-dependency-resolution/attributeMatching/groovy" files="build.gradle[tags=register-attributes]" */}
+
+Registering an attribute with the schema is required in order to use Compatibility and Disambiguation rules that can resolve ambiguity between multiple selectable variants during [Attribute Matching](#sec:attribute-matching).
+
+Each configuration has a container of attributes.  Attributes can be configured to set values:
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/controlling-dependency-resolution/attributeMatching/kotlin" files="build.gradle.kts[tags=attributes-on-configurations]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/controlling-dependency-resolution/attributeMatching/groovy" files="build.gradle[tags=attributes-on-configurations]" */}
+
+For attributes which type extends `Named`, the value of the attribute ***must*** be created via the _object factory_:
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/controlling-dependency-resolution/attributeMatching/kotlin" files="build.gradle.kts[tags=named-attributes]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/controlling-dependency-resolution/attributeMatching/groovy" files="build.gradle[tags=named-attributes]" */}
+
+## Dealing with attribute matching
+
+In Gradle, ***attribute matching*** and ***attribute disambiguation*** are key mechanisms for resolving dependencies with varying attributes.
+
+***Attribute matching*** allows Gradle to select compatible dependency variants based on predefined rules, even if an exact match isn&#8217;t available.
+***Attribute disambiguation***, on the other hand, helps Gradle choose the most suitable variant when multiple compatible options exist.
+
+### Attribute compatibility rules
+
+Attributes let the engine select _compatible variants_.
+There are cases where a producer may not have _exactly_ what the consumer requests but has a variant that can be used.
+
+This example defines and registers a custom compatibility rule to ensure that dependencies are selected based on their compatibility with specific Java versions:
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/controlling-dependency-resolution/customizingResolution-attributeSimple/kotlin" files="lib/build.gradle.kts[tags=attribute-compatibility]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/controlling-dependency-resolution/customizingResolution-attributeSimple/groovy" files="lib/build.gradle[tags=attribute-compatibility]" */}
+
+Gradle provides [attribute compatibility rules]({javadocPath}/org/gradle/api/attributes/AttributeCompatibilityRule.html) that can be defined for each attribute.
+The role of a compatibility rule is to explain which attribute values are _compatible_ based on what the consumer asked for.
+
+Attribute compatibility rules have to be registered via the [attributes schema]({javadocPath}/org/gradle/api/attributes/AttributesSchema.html).
+
+### Attribute disambiguation rules
+
+When multiple variants of a dependency are compatible with the consumer&#8217;s requested attributes, Gradle needs to decide which variant to select.
+This process of determining the "best" candidate among compatible options is called ***attribute disambiguation***.
+
+In Gradle, different variants might satisfy the consumer&#8217;s request, but not all are equal.
+For example, you might have several versions of a library that are compatible with a Java version requested by the consumer.
+Disambiguation helps Gradle choose the most appropriate one based on additional criteria.
+
+You can define disambiguation rules to guide Gradle in selecting the most suitable variant when multiple candidates are found.
+This is done by implementing an [AttributeDisambiguationRule]({javadocPath}/org/gradle/api/attributes/AttributeDisambiguationRule.html) and registering it via the [attributes schema]({javadocPath}/org/gradle/api/attributes/AttributesSchema.html) within the `dependencies` block:
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/controlling-dependency-resolution/customizingResolution-disambiguationRule/kotlin" files="consumer/build.gradle.kts[tags=disambiguation_rule]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/controlling-dependency-resolution/customizingResolution-disambiguationRule/groovy" files="consumer/build.gradle[tags=disambiguation_rule]" */}
+
+1. ***Attribute Selection***: Specify the attribute to disambiguate (e.g., `Usage.USAGE_ATTRIBUTE`, a built-in Gradle attribute).
+2. ***Rule Registration***: Register the custom disambiguation rule using `disambiguationRules.add()` within the `attributesSchema` block of `dependencies`.
+3. ***Custom Logic***: Implement the `AttributeDisambiguationRule` interface in a separate class. The `execute` method defines how Gradle selects among candidates. In this example, it prefers the `JAVA_API` usage.
+
+Attribute disambiguation rules must be registered via the [attribute matching strategy]({javadocPath}/org/gradle/api/attributes/AttributeMatchingStrategy.html), which is accessed through the [attributes schema]({javadocPath}/org/gradle/api/attributes/AttributesSchema.html) in the [DependencyHandler]({javadocPath}/org/gradle/api/artifacts/dsl/DependencyHandler.html).
+This ensures the rules apply globally to dependency resolution.
+
+## Mapping from Maven/Ivy to Gradle variants
+
+Neither Maven nor Ivy have the concept of _variants_, which are only natively supported by Gradle Module Metadata.
+Gradle can still work with Maven and Ivy by using different variant derivation strategies.
+
+{/* converter-gap: node=open */}
+
+### Mapping of Maven POM metadata to variants
+
+Modules published to a Maven repository are automatically converted into variant-aware modules when resolved by Gradle.
+
+There is no way for Gradle to know which kind of _component_ was published:
+
+- a BOM that represents a Gradle platform
+- a BOM used as a super-POM
+- a POM that is both a platform _and_ a library
+
+The default strategy used by Java projects in Gradle is to derive 8 different variants:
+
+- two "library" variants (attribute `org.gradle.category` = `library`)
+- a "sources" variant that represents the sources jar for the component
+- a "javadoc" variant that represents the javadoc jar for the component
+- four "platform" variants derived from the `&lt;dependencyManagement&gt;` block (attribute `org.gradle.category` = `platform`):
+
+You can understand more about the use of platform and enforced platforms variants by looking at the [importing BOMs](platforms.mdx#sec:bom-import) section of the manual.
+By default, whenever you declare a dependency on a Maven module, Gradle is going to look for the `library` variants.
+However, using the `platform` or `enforcedPlatform` keyword, Gradle is now looking for one of the "platform" variants, which allows you to import the constraints from the POM files, instead of the dependencies.
+
+## Mapping of Ivy files to variants
+
+Gradle has no built-in derivation strategy implemented for Ivy files.
+Ivy is a flexible format that allows you to publish arbitrary files and can be heavily customized.
+
+If you want to implement a derivation strategy for _compile_ and _runtime_ variants for Ivy, you can do so with [_component_ metadata rule](component_metadata_rules.mdx#component-metadata-rules).
+The _component_ metadata rules API allows you to [access Ivy configurations](component_metadata_rules.mdx#sec:component-metadata-rules-details) and create variants based on them.
+If you know that all the Ivy modules your are consuming have been published with Gradle without further customizations of the `ivy.xml` file, you can add the following rule to your build:
+
+**Deriving compile and runtime variants for Ivy metadata**
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/controlling-dependency-resolution/customizingResolution-ivyMetadataRule/kotlin" files="build.gradle.kts[tags=ivy-component-metadata-rule]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/dependency-management/controlling-dependency-resolution/customizingResolution-ivyMetadataRule/groovy" files="build.gradle[tags=ivy-component-metadata-rule]" */}
+
+The rule creates an `apiElements` variant based on the `compile` configuration and a `runtimeElements` variant based on the `default` configuration of each ivy module.
+For each variant, it sets the corresponding [Java ecosystem attributes](variant_aware_resolution.mdx#sec:variant-aware-matching).
+Dependencies and artifacts of the variants are taken from the underlying configurations.
+If not all consumed Ivy modules follow this pattern, the rule can be adjusted or only applied to a selected set of modules.
+
+For all Ivy modules without variants, Gradle has a fallback selection method. Gradle does _not_ perform variant aware resolution and instead selects either the `default` configuration or an explicitly named configuration.

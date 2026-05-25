@@ -60,8 +60,6 @@ run {
 
         task.name.endsWith("Wrapper") -> true
         task.name in listOf("docs", "stageDocs", "serveDocs") -> true
-        task.name.startsWith("userguide") -> true
-        task.name == "samplesMultiPage" -> true
         task.typeSimpleName() in listOf(
             "JavaExecProjectGeneratorTask",
             "NativeProjectWithDepsGeneratorTask",

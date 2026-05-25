@@ -1,0 +1,12 @@
+[
+  {
+    "startLine": 30,
+    "endLine": 32,
+    "problem": "The source snippet (dependency-intro tag) contains callout annotations // <2> and // <3> in the code block, but the following explanatory list uses prose numbering (1. The bucket, 2. The dependency) rather than callout markers. The callout annotations are orphaned — there are no callout definitions in the document. The content has been migrated faithfully, preserving the callout annotations in the sample files as they appear in the source."
+  },
+  {
+    "startLine": 47,
+    "endLine": 50,
+    "problem": "The source snippet (dependency-repo tag) also contains callout annotations // <2> and // <3> in the code block with the same mismatch — no corresponding callout definitions in the document. Migrated as-is."
+  }
+]

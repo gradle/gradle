@@ -1,0 +1,5 @@
+tasks.register("helloTask") {
+    group = "Other"
+    description = "Hello task"
+    println("Hello")
+}

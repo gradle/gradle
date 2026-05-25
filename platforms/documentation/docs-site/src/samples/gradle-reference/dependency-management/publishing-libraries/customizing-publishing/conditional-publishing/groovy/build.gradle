@@ -1,0 +1,22 @@
+publishing {
+    publications {
+        binary(MavenPublication) {
+            from components.java
+        }
+        binaryAndSources(MavenPublication) {
+            from components.java
+            artifact sourcesJar
+        }
+    }
+    repositories {
+        // change URLs to point to your repos, e.g. http://my.org/repo
+        maven {
+            name = 'external'
+            url = layout.buildDirectory.dir('repos/external')
+        }
+        maven {
+            name = 'internal'
+            url = layout.buildDirectory.dir('repos/internal')
+        }
+    }
+}

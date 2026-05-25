@@ -1,0 +1,165 @@
+---
+title: "Part 6: Enabling the Gradle Build Cache"
+---
+
+Learn the basics of Gradle&#8217;s caching system.
+
+{/* converter-gap: node=sidebar */}
+
+## Step 0. Before you Begin
+
+1. You initialized your Java app in [part 1](part1_gradle_init.mdx#part1_begin).
+2. You ran several tasks in [part 2](part2_gradle_tasks.mdx#part2_begin).
+3. You learned about dependency management in [part 3](part3_gradle_dep_man.mdx#part3_begin).
+4. You applied a plugin to your app in [part 4](part4_gradle_plugins.mdx#part4_begin).
+5. You learned about incremental builds in [part 5](part5_gradle_inc_builds.mdx#part5_begin).
+
+## Step 1. Understanding Caching
+
+Incremental Builds are a great optimization that helps avoid work that is already done.
+If a developer is continuously making changes in a single file, there is likely no need to rebuild all the other files in the project.
+
+However, what happens when the same developer decides to switch to a new branch created last week?
+The files are rebuilt, even though the developer is building something that has been built before.
+
+This is where a Build Cache is helpful.
+The cache stores previous build results, and greatly reduces the need to rebuild things when they have already been built locally.
+
+Let&#8217;s start by turning on the local Build Cache for your app.
+
+## Step 2. Enabling the Local Build Cache
+
+Run the clean task and then the build task using the `./gradlew :app:clean :app:build` command:
+
+```bash
+$ ./gradlew :app:clean :app:build
+```
+
+```text
+> Task :app:clean
+> Task :app:compileJava
+> Task :app:processResources NO-SOURCE
+> Task :app:classes
+> Task :app:jar
+> Task :app:startScripts
+> Task :app:distTar
+> Task :app:distZip
+> Task :app:assemble
+> Task :app:compileTestJava
+> Task :app:processTestResources NO-SOURCE
+> Task :app:testClasses
+> Task :app:test
+> Task :app:check
+> Task :app:build
+
+BUILD SUCCESSFUL in 1s
+8 actionable tasks: 8 executed
+```
+
+Add `org.gradle.caching=true` to the `gradle.properties` file:
+
+```properties
+org.gradle.console=verbose
+org.gradle.caching=true
+```
+
+## Step 3. Using the Local Build Cache
+
+Run the build task to populate the local Build Cache:
+
+```bash
+$ ./gradlew :app:build
+```
+
+```text
+> Task :app:compileJava UP-TO-DATE
+> Task :app:processResources NO-SOURCE
+> Task :app:classes UP-TO-DATE
+> Task :app:jar UP-TO-DATE
+> Task :app:startScripts UP-TO-DATE
+> Task :app:distTar UP-TO-DATE
+> Task :app:distZip UP-TO-DATE
+> Task :app:assemble UP-TO-DATE
+> Task :app:compileTestJava UP-TO-DATE
+> Task :app:processTestResources NO-SOURCE
+> Task :app:testClasses UP-TO-DATE
+> Task :app:test UP-TO-DATE
+> Task :app:check UP-TO-DATE
+> Task :app:build UP-TO-DATE
+
+BUILD SUCCESSFUL in 409ms
+7 actionable tasks: 7 up-to-date
+```
+
+No surprise here, thanks to incremental builds, Gradle noticed nothing changed.
+However, in the background, the local build cache has been populated.
+
+Let&#8217;s run the clean and build again:
+
+```bash
+$ ./gradlew :app:clean :app:build
+```
+
+```text
+> Task :app:clean
+> Task :app:compileJava FROM-CACHE
+> Task :app:processResources NO-SOURCE
+> Task :app:classes UP-TO-DATE
+> Task :app:jar
+> Task :app:startScripts
+> Task :app:distTar
+> Task :app:distZip
+> Task :app:assemble
+> Task :app:compileTestJava FROM-CACHE
+> Task :app:processTestResources NO-SOURCE
+> Task :app:testClasses UP-TO-DATE
+> Task :app:test FROM-CACHE
+> Task :app:check UP-TO-DATE
+> Task :app:build
+
+BUILD SUCCESSFUL in 525ms
+8 actionable tasks: 5 executed, 3 from cache
+```
+
+Gradle lets us know the outcome of each task in the console output:
+
+- `FROM-CACHE` - tasks have been fetched from the local build cache.
+- `UP-TO-DATE` - tasks that used incremental build and were not re-run.
+
+To summarize:
+
+1. First, we used the `build` task to populate our local cache with task inputs and outputs&#8201;&#8212;&#8201;we can imagine this was done a week ago.
+2. Then, we used the `clean` task to mimic switching branches&#8201;&#8212;&#8201;overriding previous outputs.
+3. Finally, we used the `build` task&#8201;&#8212;&#8201;unlike incremental builds, the previous outputs were stored in the local cache and could be reused.
+
+Gradle is efficient, especially with the local build cache turned on.
+Gradle will look at the cache directory on your machine to check for output files that may already exist. If they do, instead of running that task, it will copy its (output) results into your project `build` directory.
+
+The _outcome label_ `FROM-CACHE` lets the user know that Gradle has fetched the task results from the local build cache.
+
+The local Gradle Build Cache is located at:
+
+- ***On Windows***: %USERPROFILE%\.gradle\caches
+- ***On OS X / UNIX***: ~/.gradle/caches/
+
+Gradle will periodically clean up the local build cache directory by removing entries that have not been used recently to conserve disk space.
+
+## Step 4. Understanding Remote Caching
+
+In addition to the local build cache present on a developer&#8217;s machine, Gradle can make use of remote build caches which can be used by multiple developers.
+
+The idea of a remote cache is to share commonly built task outputs across remote builds to improve build times.
+
+When both remote and local caches are enabled, then the build output is first checked in the local cache.
+If the output isn&#8217;t present in the local cache, it&#8217;ll be downloaded from the remote cache and also stored in the local cache.
+
+To try out the remote Build Cache, Gradle provides a free [Docker image](https://hub.docker.com/r/gradle/build-cache-node) for a single remote Build Cache node.
+For production grade deployments, [Develocity](https://gradle.com/gradle-enterprise-solutions/build-cache/) is recommended.
+
+## Step 5. Next steps
+
+If you haven’t read the [Learning the Basics](gradle_basics.mdx#gradle) section yet, we recommend starting there to build a solid foundation.
+
+Already comfortable with the basics? Great — you’re ready to move on to the intermediate concepts next.
+
+***Next Step:*** [Go Beyond The Basics](getting_started_dev.mdx#dev_introduction) &gt;&gt;

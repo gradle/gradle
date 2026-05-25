@@ -1,0 +1,51 @@
+---
+import { Code } from "@astrojs/starlight/components";
+import { getPageScopedSamplePath } from "../../lib/samples";
+
+interface Props {
+  sample_name?: string;
+  sample?: string;
+  path: string;
+  lang?: string;
+  title?: string;
+  tag?: string;
+}
+
+const { sample_name, sample, path, lang, title } = Astro.props;
+
+const samplePath = getPageScopedSamplePath(
+  Astro.url.pathname,
+  sample_name ?? sample ?? ""
+);
+
+const sampleFiles = import.meta.glob("/src/samples/**/*", {
+  query: "?raw",
+  import: "default",
+  eager: true,
+}) as Record<string, string>;
+
+const filePath = `/src/samples/${samplePath}/${path}`;
+const content = sampleFiles[filePath];
+
+if (content === undefined) {
+  throw new Error(`Sample file '${path}' not found in sample '${samplePath}'.`);
+}
+
+function inferLanguage(filename: string): string {
+  if (filename.endsWith(".gradle.kts") || filename.endsWith(".kt")) return "kotlin";
+  if (filename.endsWith(".gradle") || filename.endsWith(".groovy")) return "groovy";
+  if (filename.endsWith(".java")) return "java";
+  if (filename.endsWith(".xml")) return "xml";
+  if (filename.endsWith(".properties")) return "properties";
+  if (filename.endsWith(".toml")) return "toml";
+  if (filename.endsWith(".yaml") || filename.endsWith(".yml")) return "yaml";
+  if (filename.endsWith(".json")) return "json";
+  if (filename.endsWith(".sh")) return "bash";
+  return "text";
+}
+
+const codeLang = lang ?? inferLanguage(path);
+const codeTitle = title ?? path;
+---
+
+<Code code={content} lang={codeLang} title={codeTitle} />

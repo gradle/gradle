@@ -1,0 +1,16 @@
+plugins {
+    // Apply the Java Gradle plugin development plugin to add support for developing Gradle plugins
+    id 'java-gradle-plugin'
+    // Apply the Groovy plugin to add support for Groovy
+    id 'groovy'
+}
+
+gradlePlugin {
+    // Define the plugin
+    plugins {
+        greeting {
+            id = 'org.example.greeting'
+            implementationClass = 'org.example.PluginTutorialPlugin'
+        }
+    }
+}

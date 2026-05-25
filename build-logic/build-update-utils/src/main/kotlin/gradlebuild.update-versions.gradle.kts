@@ -32,14 +32,14 @@ val updateAgpVersions = tasks.register<UpdateAgpVersions>("updateAgpVersions") {
     comment = " Generated - Update by running `./gradlew updateAgpVersions`"
     currentGradleVersion = gradleModule.identity.version
     propertiesFile = layout.projectDirectory.file("gradle/dependency-management/agp-versions.properties")
-    compatibilityDocFile = layout.projectDirectory.file("platforms/documentation/docs/src/docs/userguide/releases/compatibility.adoc")
+    compatibilityDocFile = layout.projectDirectory.file("platforms/documentation/reference-docs/src/docs/userguide/releases/compatibility.adoc")
 }
 
 val updateKotlinVersions = tasks.register<UpdateKotlinVersions>("updateKotlinVersions") {
     comment = " Generated - Update by running `./gradlew updateKotlinVersions`"
     minimumSupported = "2.0.0"
     propertiesFile = layout.projectDirectory.file("gradle/dependency-management/kotlin-versions.properties")
-    compatibilityDocFile = layout.projectDirectory.file("platforms/documentation/docs/src/docs/userguide/releases/compatibility.adoc")
+    compatibilityDocFile = layout.projectDirectory.file("platforms/documentation/reference-docs/src/docs/userguide/releases/compatibility.adoc")
 }
 
 val updateSmokeTestedPluginsVersions = tasks.register<UpdateSmokeTestedPluginsVersions>("updateSmokeTestedPluginsVersions") {

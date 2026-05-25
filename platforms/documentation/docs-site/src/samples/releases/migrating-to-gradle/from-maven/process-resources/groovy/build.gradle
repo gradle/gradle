@@ -1,0 +1,3 @@
+processResources {
+    expand(version: version, buildNumber: currentBuildNumber)
+}

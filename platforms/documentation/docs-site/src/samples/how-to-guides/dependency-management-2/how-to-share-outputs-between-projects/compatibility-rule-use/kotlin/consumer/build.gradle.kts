@@ -1,0 +1,7 @@
+dependencies {
+    attributesSchema {
+        attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE) {
+            compatibilityRules.add(InstrumentedJarsRule::class.java)
+        }
+    }
+}

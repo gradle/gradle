@@ -1,0 +1,17 @@
+abstract class MyObjectFactoryTask extends DefaultTask {
+    private ObjectFactory objectFactory
+
+    @Inject //@javax.inject.Inject
+    MyObjectFactoryTask(ObjectFactory objectFactory) {
+        this.objectFactory = objectFactory
+    }
+
+    @TaskAction
+    void doTaskAction() {
+        var outputDirectory = objectFactory.directoryProperty()
+        outputDirectory.convention(project.layout.projectDirectory)
+        println(outputDirectory.get())
+    }
+}
+
+tasks.register("myInjectedObjectFactoryTask",MyObjectFactoryTask) {}

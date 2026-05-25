@@ -1,0 +1,3 @@
+idea {
+    targetVersion = "13"
+}

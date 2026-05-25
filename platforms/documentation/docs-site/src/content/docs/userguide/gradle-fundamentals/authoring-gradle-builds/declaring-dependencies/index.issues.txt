@@ -1,0 +1,12 @@
+[
+  {
+    "startLine": 106,
+    "endLine": 106,
+    "problem": "Link to 'getting_started_dep_man.adoc' (page id: getting-started-2) is pending migration. The target path '/gradle-reference/dependency-management/getting-started-2/' was derived from the sidebar record and may change once that page is migrated. The fragment '#dependency-management-in-gradle' is a legacy anchor that needs to be verified after migration."
+  },
+  {
+    "startLine": 60,
+    "endLine": 101,
+    "problem": "The 'Resolve Conflicts with Capabilities' section contains three inline ad-hoc Kotlin-only code blocks (no Groovy equivalent). The source AsciiDoc only had Kotlin [source,kotlin] blocks for this section. No Groovy or DCL variants exist in the original snippets, so these were preserved as single-language kotlin code blocks."
+  }
+]

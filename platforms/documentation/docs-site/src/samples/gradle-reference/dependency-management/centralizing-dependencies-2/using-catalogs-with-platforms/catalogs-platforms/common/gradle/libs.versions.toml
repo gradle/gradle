@@ -1,0 +1,7 @@
+[versions]
+junit-jupiter = "5.10.3"
+
+[libraries]
+guava = { module = "com.google.guava:guava"}
+junit-jupiter = { module = "org.junit.jupiter:junit-jupiter", version.ref = "junit-jupiter" }
+junit-jupiter-launcher = { module = "org.junit.platform:junit-platform-launcher" }

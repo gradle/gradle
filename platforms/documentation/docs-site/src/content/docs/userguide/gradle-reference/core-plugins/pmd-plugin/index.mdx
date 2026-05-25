@@ -1,0 +1,56 @@
+---
+title: "The PMD Plugin"
+---
+
+The PMD plugin performs quality checks on your project&#8217;s Java source files using [PMD](https://pmd.github.io/) and generates reports from these checks.
+
+## Usage
+
+To use the PMD plugin, include the following in your build script:
+
+{/* converter-gap: node=sample dir="snippets/reference/core-plugins/codeQuality/kotlin" files="build.gradle.kts[tags=use-pmd-plugin]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/core-plugins/codeQuality/groovy" files="build.gradle[tags=use-pmd-plugin]" */}
+
+The plugin adds a number of tasks to the project that perform the quality checks. You can execute the checks by running `gradle check`.
+
+Note that PMD will run with the same Java version used to run Gradle.
+
+## Tasks
+
+The PMD plugin adds the following tasks to the project:
+
+{/* converter-gap: node=dlist */}
+
+The PMD plugin adds the following dependencies to tasks defined by the Java plugin.
+
+{/* converter-gap: node=table */}
+
+## Dependency management
+
+The PMD plugin adds the following dependency configurations:
+
+{/* converter-gap: node=table */}
+
+## Configuration
+
+{/* converter-gap: node=sample dir="snippets/reference/core-plugins/codeQuality/kotlin" files="build.gradle.kts[tags=customize-pmd]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/core-plugins/codeQuality/groovy" files="build.gradle[tags=customize-pmd]" */}
+
+See the [PmdExtension]({groovyDslPath}/org.gradle.api.plugins.quality.PmdExtension.html) class in the API documentation.
+
+### Parallel analysis
+
+You can configure the number of threads to be used by PMD for running its analysis.
+
+{/* converter-gap: node=sample dir="snippets/reference/core-plugins/codeQuality/kotlin" files="build.gradle.kts[tags=pmd-threads]" */}
+
+{/* converter-gap: node=sample dir="snippets/reference/core-plugins/codeQuality/groovy" files="build.gradle[tags=pmd-threads]" */}
+
+:::note
+This configuration is internal to PMD and is not linked to [the number of workers](performance.mdx#sec:enable_parallel_execution) used by Gradle.
+It means that you have to pay attention to the value entered here and make sure it still makes sense in a multi project build.
+This is because parallel Gradle task execution could result in different PMD tasks from different projects running in parallel.
+If multiple PMD tasks execute simultaneously in n projects, then up to a maximum of (n * `thread`) PMD threads could run at the same time.
+:::

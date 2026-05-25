@@ -1,0 +1,140 @@
+---
+title: How to Downgrade Transitive Dependencies in Gradle
+---
+
+import {SampleScripts} from '#/components';
+import {JavaDocLink} from '#/components';
+import {GroovyDocLink} from '#/components';
+
+<div id="how_to_downgrade_dependencies" />
+
+This guide explains how to **downgrade transitive dependencies** in Gradle when your project requires an older version due to API compatibility, bugs, or other constraints.
+
+## Why Downgrade a Transitive Dependency?
+
+By default, Gradle **resolves dependency version conflicts** by selecting the latest version found in the dependency graph.
+However, there are cases where an earlier version is required:
+
+* A **bug** exists in the latest release.
+* Your project **depends on an older API** that is incompatible with newer versions.
+* Your code does **not require** the features that demand a higher version.
+
+Before downgrading, consider **updating your source code** to support the latest version instead.
+
+Additionally, you should make sure there aren't existing [dependency constraint](/gradle-reference/dependency-management/declaring-dependencies-4/declaring-dependency-constraints/#dependency-constraints), [platforms](/gradle-reference/dependency-management/centralizing-dependencies-2/creating-platforms/#platforms), or [version catalogs](/gradle-reference/dependency-management/centralizing-dependencies-2/creating-version-catalogs/#version-catalog), that are setting the dependency to an undesired version in your project.
+
+If downgrading is necessary, use **strict dependencies** or **forced dependencies**.
+
+## Option 1: Enforcing a Strict Version of a Dependency
+
+Gradle allows you to enforce a [**strict version**](/gradle-reference/dependency-management/declaring-dependencies-4/declaring-versions-and-ranges/#sec:rich-version-constraints) for a dependency, ensuring that the selected version cannot be upgraded by transitive dependencies.
+
+### Step 1: Setting a Strict Version
+
+Suppose a project depends on **HttpClient**, which pulls in **Commons Codec 1.10**, but your project requires **Commons Codec 1.9**:
+
+```
+> Task :dependencies
+
+------------------------------------------------------------
+Root project 'how_to_downgrade_transitive_dependencies'
+------------------------------------------------------------
+
+runtimeClasspath - Runtime classpath of source set 'main'.
++--- org.apache.httpcomponents:httpclient:4.5.4
+|    +--- org.apache.httpcomponents:httpcore:4.4.7
+|    +--- commons-logging:commons-logging:1.2
+|    \--- commons-codec:commons-codec:1.10
+\--- commons-codec:commons-codec -> 1.10
+```
+
+You can enforce the required version by setting a **strict version constraint**:
+
+<SampleScripts sample_name="downgrade-strict" basename="build" />
+
+Running `./gradlew dependencies --configuration runtimeClasspath` showcases the results:
+
+```
+> Task :dependencies
+
+------------------------------------------------------------
+Root project 'how_to_downgrade_transitive_dependencies'
+------------------------------------------------------------
+
+runtimeClasspath - Runtime classpath of source set 'main'.
++--- org.apache.httpcomponents:httpclient:4.5.4
+|    +--- org.apache.httpcomponents:httpcore:4.4.7
+|    +--- commons-logging:commons-logging:1.2
+|    \--- commons-codec:commons-codec:1.10 -> 1.9
+\--- commons-codec:commons-codec:{strictly 1.9} -> 1.9
+```
+
+Important notes about strict versions:
+
+- A **strict version behaves like a force**, meaning it overrides transitive dependencies.
+- If another dependency **requires a higher version**, Gradle **will fail** with a resolution error.
+- Use **version ranges** instead of absolute strict versions to allow flexibility.
+
+### Step 2: Setting a Strict Version Range
+
+Instead of locking to a single version, define a **strict range**:
+
+<SampleScripts sample_name="downgrade-strict-range" basename="build" />
+
+If another dependency requires **1.10**, Gradle can resolve it without failure, as long as it falls within the specified range.
+
+```
+> Task :dependencies
+
+------------------------------------------------------------
+Root project 'how_to_downgrade_transitive_dependencies'
+------------------------------------------------------------
+
+runtimeClasspath - Runtime classpath of source set 'main'.
++--- org.apache.httpcomponents:httpclient:4.5.4
+|    +--- org.apache.httpcomponents:httpcore:4.4.7
+|    +--- commons-logging:commons-logging:1.2
+|    \--- commons-codec:commons-codec:1.10 -> 1.9
+\--- commons-codec:commons-codec:{strictly [1.9,2.0[; prefer 1.9} -> 1.9
+```
+
+## Option 2: Forcing a Version at the Configuration Level
+
+If a strict dependency is **too restrictive**, you can **force** a specific version for an entire configuration using <GroovyDocLink class="org.gradle.api.artifacts.ResolutionStrategy" method="force(java.lang.Object...)" />.
+
+### Step 1: Forcing a Version for the Entire Build
+
+<SampleScripts sample_name="downgrade-force" basename="build" />
+
+Running `./gradlew dependencies --configuration compileClasspath` showcases the results:
+
+```
+> Task :dependencies
+
+------------------------------------------------------------
+Root project 'how_to_downgrade_transitive_dependencies'
+------------------------------------------------------------
+
+compileClasspath - Compile classpath for source set 'main'.
+\--- org.apache.httpcomponents:httpclient:4.5.4
+     +--- org.apache.httpcomponents:httpcore:4.4.7
+     +--- commons-logging:commons-logging:1.2
+     \--- commons-codec:commons-codec:1.10 -> 1.9
+```
+
+This ensures that **Commons Codec 1.9 is always used**, even if transitive dependencies request a newer version.
+
+## Summary
+
+To review the two options:
+
+| Approach | Behavior |
+| --- | --- |
+| 1. **Strict version (<JavaDocLink class="org.gradle.api.artifacts.dsl.DependencyHandler" />)** | The version is enforced but can trigger resolution failures if conflicts exist. |
+| 2. **Forced version (<JavaDocLink class="org.gradle.api.artifacts.ResolutionStrategy" method="force(java.lang.Object...)" />)** | The version is forcibly applied at the configuration level, overriding all other constraints. |
+
+In summary:
+
+- **Use strict versions** if you need to enforce an older version and want to control compatibility.
+- **Use version ranges** with a preferred version to allow some flexibility.
+- **Use `force()` at the configuration level** when you need to override transitive dependencies without strict constraints.

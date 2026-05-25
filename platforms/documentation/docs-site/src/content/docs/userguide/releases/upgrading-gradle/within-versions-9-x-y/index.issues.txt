@@ -1,0 +1,57 @@
+[
+  {
+    "startLine": 31,
+    "endLine": 31,
+    "problem": "Link to troubleshooting.adoc kept as external fallback (https://docs.gradle.org/current/userguide/troubleshooting.html). The source file old-userguide/src/docs/userguide/unused/troubleshooting.adoc is not mapped to a migrated page in the sidebar."
+  },
+  {
+    "startLine": 276,
+    "endLine": 276,
+    "problem": "Link to properties_providers.adoc#managed_types kept as external fallback. The 'properties-and-providers' page (id) has no target yet."
+  },
+  {
+    "startLine": 298,
+    "endLine": 298,
+    "problem": "Link to declaring_configurations.adoc#declaring-dependency-configurations kept as external fallback. The 'creating-dependency-configurations' page has no target yet."
+  },
+  {
+    "startLine": 316,
+    "endLine": 316,
+    "problem": "Link to compatibility.adoc#java_runtime kept as external fallback. The 'compatibility-notes' page has no target yet."
+  },
+  {
+    "startLine": 327,
+    "endLine": 327,
+    "problem": "Link to properties_providers.adoc#mutable_managed_properties kept as external fallback. The 'properties-and-providers' page has no target yet."
+  },
+  {
+    "startLine": 423,
+    "endLine": 423,
+    "problem": "Link to incremental_build.adoc#sec:task_input_nested_inputs kept as external fallback. No corresponding migrated page found."
+  },
+  {
+    "startLine": 445,
+    "endLine": 445,
+    "problem": "Link to base_plugin.adoc#base_plugin kept as external fallback. No 'base plugin' page found in sidebar."
+  },
+  {
+    "startLine": 505,
+    "endLine": 505,
+    "problem": "Link to build_environment.adoc#sec:project_properties kept as external fallback. No build environment page found in sidebar."
+  },
+  {
+    "startLine": 508,
+    "endLine": 508,
+    "problem": "Link to build_environment.adoc#sec:gradle_configuration_properties kept as external fallback. No build environment page found in sidebar."
+  },
+  {
+    "startLine": 10,
+    "endLine": 10,
+    "problem": "Link to upgrading_major_version_9.adoc kept as external fallback (https://docs.gradle.org/current/userguide/upgrading_major_version_9.html). The 'to-version-9-0-0' page has no target yet."
+  },
+  {
+    "startLine": 29,
+    "endLine": 29,
+    "problem": "Source uses the AsciiDoc attribute {gradleVersion} (lines 36 and 37 in source). This is a build-time substitution variable that cannot be resolved statically. It has been preserved verbatim as '{gradleVersion}' in the migrated content."
+  }
+]

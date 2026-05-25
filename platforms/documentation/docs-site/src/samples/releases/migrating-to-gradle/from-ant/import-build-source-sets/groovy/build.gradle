@@ -1,0 +1,8 @@
+sourceSets {
+    main {
+        java {
+            srcDirs = [ ant.properties['src.dir'] ]
+            destinationDirectory = file(ant.properties['classes.dir'])
+        }
+    }
+}

@@ -1,0 +1,17 @@
+[
+  {
+    "startLine": 33,
+    "endLine": 69,
+    "problem": "The original AsciiDoc used [.multi-language-sample] tabs for the directory tree structure. These are not buildscripts and cannot use SampleScripts. Migrated as two sequential code blocks with 'text' language and 'Kotlin DSL'/'Groovy DSL' titles."
+  },
+  {
+    "startLine": 77,
+    "endLine": 77,
+    "problem": "GitHubButton sample paths point to the migrated sample directories in this repo, not to the original Gradle GitHub repo. The original linked to https://github.com/gradle/gradle/tree/master/platforms/documentation/reference-docs/src/samples/build-organization/composite-builds/basic."
+  },
+  {
+    "startLine": 178,
+    "endLine": 182,
+    "problem": "The original had only a Kotlin DSL variant for the 'name = other-name' conflict resolution example (labeled .settings.gradle.kts with [source,kotlin]). No Groovy equivalent was provided in the source. Migrated as a single-language Kotlin code block."
+  }
+]

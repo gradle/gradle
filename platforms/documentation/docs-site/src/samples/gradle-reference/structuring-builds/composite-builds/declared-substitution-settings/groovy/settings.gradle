@@ -1,0 +1,5 @@
+includeBuild('anonymous-library') {
+    dependencySubstitution {
+        substitute module('org.sample:number-utils') using project(':')
+    }
+}

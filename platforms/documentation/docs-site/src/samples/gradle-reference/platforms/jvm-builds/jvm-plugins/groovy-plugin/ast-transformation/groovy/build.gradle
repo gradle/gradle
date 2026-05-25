@@ -1,0 +1,7 @@
+configurations { astTransformation }
+dependencies {
+    astTransformation(project(":ast-transformation"))
+}
+tasks.withType(GroovyCompile).configureEach {
+    astTransformationClasspath.from(configurations.astTransformation)
+}

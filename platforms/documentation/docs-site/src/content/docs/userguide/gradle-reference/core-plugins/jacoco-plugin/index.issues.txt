@@ -1,0 +1,17 @@
+[
+  {
+    "startLine": 182,
+    "endLine": 182,
+    "problem": "Link to JVM Test Suite Plugin (jvm_test_suite_plugin.adoc) kept as external docs.gradle.org link because the target page does not yet exist in the sidebar. Should be converted to a local site-relative link once that page is migrated."
+  },
+  {
+    "startLine": 182,
+    "endLine": 182,
+    "problem": "Link to JaCoCo Report Aggregation Plugin (jacoco_report_aggregation_plugin.adoc) kept as external docs.gradle.org link because the target page does not yet exist in the sidebar. Should be converted to a local site-relative link once that page is migrated."
+  },
+  {
+    "startLine": 204,
+    "endLine": 204,
+    "problem": "Original AsciiDoc callout <1> referenced a JavaDoc link: link:{javadocPath}/org/gradle/testing/base/TestSuite.html#getName--[TestSuite#getName()]. Because callout annotations are inlined as plain text in the new code block system, the JavaDocLink component cannot be used here. The annotation was preserved as plain text 'TestSuiteName attribute; value is derived from TestSuite#getName().' which degrades the hyperlink but preserves the informational content."
+  }
+]

@@ -1,0 +1,12 @@
+[
+  {
+    "startLine": 113,
+    "endLine": 113,
+    "problem": "Link to 'incremental_build.adoc#sec:task_input_output_runtime_api' kept as external link (https://docs.gradle.org/current/userguide/incremental_build.html#sec:task_input_output_runtime_api) because the source file is under old-userguide/unused/ and has no corresponding migrated page in the new system."
+  },
+  {
+    "startLine": 125,
+    "endLine": 125,
+    "problem": "Link to 'java_plugin.adoc#sec:java_compile_avoidance' kept as external link (https://docs.gradle.org/current/userguide/java_plugin.html#sec:java_compile_avoidance) because there is no standalone Java Plugin page in the new system (only Java Library Plugin, Java Application Plugin, etc.)."
+  }
+]

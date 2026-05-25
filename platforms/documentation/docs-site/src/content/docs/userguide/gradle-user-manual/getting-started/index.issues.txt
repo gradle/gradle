@@ -1,0 +1,42 @@
+[
+  {
+    "startLine": 103,
+    "endLine": 103,
+    "problem": "Source AsciiDoc labels the 4th part of the Intermediate Tutorial as 'Part 6.' (<<part4_settings_file.adoc#part4_begin,Part 6.>>) even though it is the 4th entry. This appears to be a copy-paste error in the original source. The label 'Part 6.' was preserved as-is in the migrated content."
+  },
+  {
+    "startLine": 143,
+    "endLine": 143,
+    "problem": "Source AsciiDoc labels the 4th part of the Advanced Tutorial as 'Part 6.' (<<part4_unit_test.adoc#part4_begin,Part 6.>>) even though it is the 4th entry. This appears to be a copy-paste error in the original source. The label 'Part 6.' was preserved as-is in the migrated content."
+  },
+  {
+    "startLine": 45,
+    "endLine": 50,
+    "problem": "Beginner Tutorial links (Parts 1-6) point to pages that are in the sidebar but have no target (status=null). External docs.gradle.org links were used as fallback. These should be updated to local links once those pages are migrated: initializing-the-project, running-tasks, understanding-dependencies, applying-plugins, exploring-incremental-builds, enabling-the-build-cache."
+  },
+  {
+    "startLine": 67,
+    "endLine": 74,
+    "problem": "Authoring builds section links (Parts 1-8) point to pages that are in the sidebar but have no target (status=null). External docs.gradle.org links were used as fallback. These should be updated to local links once those pages are migrated: anatomy-of-a-gradle-build, structuring-multi-project-builds, gradle-build-lifecycle, writing-build-scripts, gradle-managed-types, declaring-dependencies, creating-and-registering-tasks, working-with-plugins."
+  },
+  {
+    "startLine": 87,
+    "endLine": 93,
+    "problem": "Intermediate Tutorial links (Parts 1-7) point to pages that are in the sidebar but have no target (status=null). External docs.gradle.org links were used as fallback. These should be updated to local links once those pages are migrated: initializing-the-project-2, understanding-the-build-lifecycle, multi-project-builds, writing-the-settings-file, writing-a-build-script, writing-tasks, writing-plugins."
+  },
+  {
+    "startLine": 110,
+    "endLine": 114,
+    "problem": "Plugin development section links (Parts 1-5) point to pages that are in the sidebar but have no target (status=null). External docs.gradle.org links were used as fallback. These should be updated to local links once those pages are migrated: plugin-introduction, pre-compiled-script-plugins, binary-plugins, developing-binary-plugins, publishing-binary-plugins."
+  },
+  {
+    "startLine": 127,
+    "endLine": 134,
+    "problem": "Advanced Tutorial links (Parts 1-8) point to pages that are in the sidebar but have no target (status=null). External docs.gradle.org links were used as fallback. These should be updated to local links once those pages are migrated: initializing-the-project-3, adding-an-extension, creating-a-custom-task, writing-a-unit-test, adding-a-dataflow-action, writing-a-functional-test, using-a-consumer-project, publish-the-plugin."
+  },
+  {
+    "startLine": 27,
+    "endLine": 29,
+    "problem": "The original source page uses a [sidebar] block for the training level/time metadata. This AsciiDoc sidebar block has no direct MDX equivalent and was migrated as plain emphasized text with line breaks, which changes the visual presentation but preserves the content."
+  }
+]

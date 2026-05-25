@@ -1,0 +1,9 @@
+class MyTask extends DefaultTask {
+    // note: no annotation here
+    final RegularFileProperty outputFile = newOutputFile()
+}
+
+task myOtherTask {
+    def outputFile = newOutputFile()
+    doLast { ... }
+}
