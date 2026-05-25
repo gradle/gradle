@@ -22,6 +22,7 @@ import org.gradle.api.Action
 import org.gradle.api.Project
 import org.gradle.api.ProjectEvaluationListener
 import org.gradle.api.ProjectState
+import org.gradle.api.initialization.IncludedBuild
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.internal.project.CrossProjectConfigurator
@@ -31,6 +32,7 @@ import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.services.BuildServiceRegistry
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal
+import org.gradle.internal.build.BuildState
 import org.gradle.internal.composite.IncludedBuildInternal
 import org.gradle.internal.configuration.problems.IsolatedProjectsProblemsReporter
 import org.gradle.internal.extensions.core.serviceOf
@@ -77,9 +79,15 @@ class CrossProjectConfigurationReportingGradle(
 
     override fun getStartParameter(): StartParameterInternal = delegate.startParameter
 
+    override fun getIncludedBuilds(): Collection<IncludedBuild> = includedBuilds()
+
     override fun includedBuilds(): List<IncludedBuildInternal> = ImmutableList.copyOf(delegate.includedBuilds())
 
+    override fun includedBuild(name: String): IncludedBuild = delegate.includedBuild(name)
+
     override fun getDefaultProjectState(): InternalProjectState = delegate.defaultProjectState
+
+    override fun getOwner(): BuildState = delegate.owner
 
     override fun getGradle(): Gradle = this
 
@@ -114,6 +122,16 @@ class CrossProjectConfigurationReportingGradle(
 
     override fun removeProjectEvaluationListener(listener: ProjectEvaluationListener) {
         delegate.removeProjectEvaluationListener(CrossProjectModelAccessProjectEvaluationListener(listener, referrerProject, crossProjectModelAccess))
+    }
+
+    override fun projectsLoaded(closure: Closure<*>) {
+        // TODO isolated: Project configuration time is too late for this registration. Should we prohibit it as a silent misconfiguration opportunity?
+        delegate.projectsLoaded(closure)
+    }
+
+    override fun projectsLoaded(action: Action<in Gradle>) {
+        // TODO isolated: Project configuration time is too late for this registration. Should we prohibit it as a silent misconfiguration opportunity?
+        delegate.projectsLoaded(action)
     }
 
     override fun projectsEvaluated(closure: Closure<*>) =
