@@ -110,6 +110,8 @@ class KnownProblemIds {
         'dependency-version-catalog:too-many-import-files': [VersionCatalogProblemId.TOO_MANY_IMPORT_FILES.displayName],
         'dependency-version-catalog:too-many-import-invocation': [VersionCatalogProblemId.TOO_MANY_IMPORT_INVOCATION.displayName],
         'dependency-version-catalog:no-import-files': [VersionCatalogProblemId.NO_IMPORT_FILES.displayName],
+        'deprecation:implicitly-resolving-methods-in-the-project-hierarchy': ['Implicitly resolving methods in the project hierarchy has been deprecated.'],
+        'deprecation:implicitly-resolving-properties-in-the-project-hierarchy': ['Implicitly resolving properties in the project hierarchy has been deprecated.'],
         'deprecation:buildsrc-script': ['BuildSrc script has been deprecated.'],
         'deprecation:custom-task-action': ['Custom Task action has been deprecated.'],
         'deprecation:the-buildneeded-task-has-been-deprecated': ['The buildNeeded task has been deprecated.'],
