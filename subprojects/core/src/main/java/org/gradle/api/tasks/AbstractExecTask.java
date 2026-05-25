@@ -19,6 +19,7 @@ import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.ExecResult;
@@ -157,24 +158,38 @@ public abstract class AbstractExecTask<T extends AbstractExecTask> extends Conve
      * {@inheritDoc}
      */
     @Override
+    @Deprecated
     public void setCommandLine(List<String> args) {
-        execSpec.setCommandLine(args);
+        nagAboutSetCommandLineDeprecation();
+        execSpec.commandLine(args);
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
+    @Deprecated
     public void setCommandLine(Iterable<?> args) {
-        execSpec.setCommandLine(args);
+        nagAboutSetCommandLineDeprecation();
+        execSpec.commandLine(args);
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
+    @Deprecated
     public void setCommandLine(Object... args) {
-        execSpec.setCommandLine(args);
+        nagAboutSetCommandLineDeprecation();
+        execSpec.commandLine(args);
+    }
+
+    private static void nagAboutSetCommandLineDeprecation() {
+        DeprecationLogger.deprecateMethod(ExecSpec.class, "setCommandLine()")
+            .withAdvice("Use commandLine() instead.")
+            .willBeRemovedInGradle10()
+            .withUpgradeGuideSection(9, "set-command-line")
+            .nagUser();
     }
 
     /**

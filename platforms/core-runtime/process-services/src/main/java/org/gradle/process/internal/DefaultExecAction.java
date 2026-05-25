@@ -16,9 +16,11 @@
 
 package org.gradle.process.internal;
 
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.process.BaseExecSpec;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.ExecResult;
+import org.gradle.process.ExecSpec;
 import org.gradle.process.ProcessForkOptions;
 
 import java.io.File;
@@ -100,18 +102,32 @@ public class DefaultExecAction implements ExecAction {
     }
 
     @Override
+    @Deprecated
     public void setCommandLine(List<String> args) {
+        nagAboutSetCommandLineDeprecation();
         execHandleBuilder.commandLine(args);
     }
 
     @Override
+    @Deprecated
     public void setCommandLine(Object... args) {
+        nagAboutSetCommandLineDeprecation();
         execHandleBuilder.commandLine(args);
     }
 
     @Override
+    @Deprecated
     public void setCommandLine(Iterable<?> args) {
+        nagAboutSetCommandLineDeprecation();
         execHandleBuilder.commandLine(args);
+    }
+
+    private static void nagAboutSetCommandLineDeprecation() {
+        DeprecationLogger.deprecateMethod(ExecSpec.class, "setCommandLine()")
+            .withAdvice("Use commandLine() instead.")
+            .willBeRemovedInGradle10()
+            .withUpgradeGuideSection(9, "set-command-line")
+            .nagUser();
     }
 
     @Override

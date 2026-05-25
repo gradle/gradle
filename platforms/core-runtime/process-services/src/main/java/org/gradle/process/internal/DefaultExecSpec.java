@@ -16,6 +16,7 @@
 
 package org.gradle.process.internal;
 
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.process.BaseExecSpec;
 import org.gradle.process.CommandLineArgumentProvider;
@@ -79,18 +80,32 @@ public class DefaultExecSpec extends DefaultProcessForkOptions implements ExecSp
     }
 
     @Override
+    @Deprecated
     public void setCommandLine(List<String> args) {
+        nagAboutSetCommandLineDeprecation();
         argumentsSpec.commandLine(args);
     }
 
     @Override
+    @Deprecated
     public void setCommandLine(Object... args) {
+        nagAboutSetCommandLineDeprecation();
         argumentsSpec.commandLine(args);
     }
 
     @Override
+    @Deprecated
     public void setCommandLine(Iterable<?> args) {
+        nagAboutSetCommandLineDeprecation();
         argumentsSpec.commandLine(args);
+    }
+
+    private static void nagAboutSetCommandLineDeprecation() {
+        DeprecationLogger.deprecateMethod(ExecSpec.class, "setCommandLine()")
+            .withAdvice("Use commandLine() instead.")
+            .willBeRemovedInGradle10()
+            .withUpgradeGuideSection(9, "set-command-line")
+            .nagUser();
     }
 
     @Override

@@ -23,16 +23,22 @@ import java.util.List;
 
 interface DelegatingExecSpec extends DelegatingBaseExecSpec, ExecSpec {
     @Override
+    @Deprecated
+    @SuppressWarnings("deprecation")
     default void setCommandLine(List<String> args) {
         getDelegate().setCommandLine(args);
     }
 
     @Override
+    @Deprecated
+    @SuppressWarnings("deprecation")
     default void setCommandLine(Object... args) {
         getDelegate().setCommandLine(args);
     }
 
     @Override
+    @Deprecated
+    @SuppressWarnings("deprecation")
     default void setCommandLine(Iterable<?> args) {
         getDelegate().setCommandLine(args);
     }

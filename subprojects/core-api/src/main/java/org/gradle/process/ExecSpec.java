@@ -28,21 +28,27 @@ public interface ExecSpec extends BaseExecSpec {
      *
      * @param args the command plus the args to be executed
      * @since 4.0
+     * @deprecated Use {@link #commandLine(Iterable)} instead.
      */
+    @Deprecated
     void setCommandLine(List<String> args);
 
     /**
      * Sets the full command line, including the executable to be executed plus its arguments.
      *
      * @param args the command plus the args to be executed
+     * @deprecated Use {@link #commandLine(Object...)} instead.
      */
+    @Deprecated
     void setCommandLine(Object... args);
 
     /**
      * Sets the full command line, including the executable to be executed plus its arguments.
      *
      * @param args the command plus the args to be executed
+     * @deprecated Use {@link #commandLine(Iterable)} instead.
      */
+    @Deprecated
     void setCommandLine(Iterable<?> args);
 
     /**
