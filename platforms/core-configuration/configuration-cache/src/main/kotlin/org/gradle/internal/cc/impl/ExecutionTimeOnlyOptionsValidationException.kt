@@ -17,6 +17,7 @@
 package org.gradle.internal.cc.impl
 
 import org.gradle.api.GradleException
+import org.gradle.api.Task
 import org.gradle.api.internal.tasks.TaskOptionsGenerator
 import org.gradle.api.internal.tasks.options.OptionReader
 import org.gradle.execution.plan.LocalTaskNode
@@ -81,23 +82,26 @@ class ExecutionTimeOnlyOptionsValidationException(
             optionReader: OptionReader,
             optionName: String,
             excludeTaskPath: String
-        ): String? {
-            for (node in workGraph.scheduledNodes) {
-                if (node !is LocalTaskNode) continue
-                val task = node.task
-                if (task.path == excludeTaskPath) continue
-                val descriptors = try {
-                    TaskOptionsGenerator.generate(task, optionReader).all
-                } catch (_: Exception) {
-                    continue
-                }
-                for (descriptor in descriptors) {
-                    if (descriptor.name == optionName && descriptor.isExecutionTimeOnly) {
-                        return task.path
-                    }
-                }
+        ): String? =
+            workGraph.scheduledNodes
+                .asSequence()
+                .filterIsInstance<LocalTaskNode>()
+                .map { it.task }
+                .filter { it.path != excludeTaskPath }
+                .firstOrNull { task -> declaresAsExecutionTimeOnly(task, optionName, optionReader) }
+                ?.path
+
+        private fun declaresAsExecutionTimeOnly(
+            task: Task,
+            optionName: String,
+            optionReader: OptionReader
+        ): Boolean {
+            val descriptors = try {
+                TaskOptionsGenerator.generate(task, optionReader).all
+            } catch (_: Exception) {
+                return false
             }
-            return null
+            return descriptors.any { it.name == optionName && it.isExecutionTimeOnly }
         }
 
         private fun buildMessage(
