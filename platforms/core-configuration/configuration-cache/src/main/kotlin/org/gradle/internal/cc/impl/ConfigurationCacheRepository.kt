@@ -319,6 +319,19 @@ class ConfigurationCacheRepository(
         fileSystem.chmod(file, mode)
     }
 
+    /**
+     * Sets the permissions of [file] to the same 0600 policy that this repository enforces
+     * on per-entry state files. Intended for shared-metadata files (e.g. the
+     * execution-time-only options manifest) that live alongside per-entry directories
+     * and are written outside the entry-store path.
+     *
+     * No-op on Windows.
+     */
+    internal
+    fun applyEntryPermissions(file: File) {
+        chmod(file, 384) // octal 0600
+    }
+
     private
     fun markAccessed(stateFile: File) {
         fileAccessTracker.markAccessed(stateFile)

@@ -126,6 +126,8 @@ internal class ExecutionTimeOnlyOptionsManifestService(
                 Files.move(tempPath, f.toPath(), StandardCopyOption.REPLACE_EXISTING)
             }
             moved = true
+            // Match the 0600 permission policy enforced on per-entry state files.
+            cacheRepository.applyEntryPermissions(f)
         } finally {
             if (!moved) {
                 try {
