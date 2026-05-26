@@ -16,6 +16,12 @@
 
 package org.gradle.internal.cc.impl
 
+import org.gradle.api.Task
+import org.gradle.api.internal.tasks.TaskOptionsGenerator
+import org.gradle.api.internal.tasks.options.OptionReader
+import org.gradle.api.internal.tasks.options.OptionValidationException
+import org.gradle.execution.plan.LocalTaskNode
+import org.gradle.execution.plan.ScheduledWork
 import org.gradle.internal.cc.base.logger
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
@@ -41,6 +47,11 @@ import java.nio.file.StandardCopyOption
  *    an argument list around the candidate names. Used by [ConfigurationCacheKey] to
  *    omit execution-time-only values from the cache key, and by [ConfigurationCacheState]
  *    to re-apply them to tasks after a successful load.
+ *
+ * 3. **Contributor lookup** ([findExecutionTimeOnlyContributor] in the companion) —
+ *    scans a work graph to identify which task declares a given option as execution-time-only.
+ *    Used at validation-failure time to populate
+ *    [ExecutionTimeOnlyOptionsValidationException]'s contributor field.
  *
  * A missing, unreadable, or unrecognized manifest yields an empty set: disabling
  * key-stripping is always safer than acting on bad input. Scope is the root build only;
@@ -207,5 +218,42 @@ internal class ExecutionTimeOnlyOptionsManifestService(
 
         private fun String.isKeyValueFor(flagTokens: Set<String>): Boolean =
             flagTokens.any { startsWith("$it=") }
+
+        /**
+         * Returns the path of the first task in [workGraph] that declares [optionName] as
+         * `@Option(executionTimeOnly = true)`, or `null` if none can be found (e.g. when the
+         * manifest is stale after a build-script change). [excludeTaskPath] is the path of
+         * the violating task — it is skipped during the scan since it's known to declare the
+         * option with the opposite semantics.
+         */
+        fun findExecutionTimeOnlyContributor(
+            workGraph: ScheduledWork,
+            optionReader: OptionReader,
+            optionName: String,
+            excludeTaskPath: String
+        ): String? =
+            workGraph.scheduledNodes
+                .asSequence()
+                .filterIsInstance<LocalTaskNode>()
+                .map { it.task }
+                .filter { it.path != excludeTaskPath }
+                .firstOrNull { task -> declaresAsExecutionTimeOnly(task, optionName, optionReader) }
+                ?.path
+
+        private fun declaresAsExecutionTimeOnly(
+            task: Task,
+            optionName: String,
+            optionReader: OptionReader
+        ): Boolean {
+            val descriptors = try {
+                TaskOptionsGenerator.generate(task, optionReader).all
+            } catch (_: OptionValidationException) {
+                // Match the collector's policy: a task with malformed @Option metadata
+                // can't have contributed to the manifest. Don't let other exception types
+                // hide here — they'd surface as a misleading "stale manifest" error.
+                return false
+            }
+            return descriptors.any { it.name == optionName && it.isExecutionTimeOnly }
+        }
     }
 }

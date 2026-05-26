@@ -644,7 +644,7 @@ class ConfigurationCacheState(
                         // Defer throwing until after deserialization completes so the
                         // codec doesn't swallow the exception as a reported "problem".
                         // See [pendingValidationFailure].
-                        val contributor = ExecutionTimeOnlyOptionsValidationException.findExecutionTimeOnlyContributor(
+                        val contributor = ExecutionTimeOnlyOptionsManifestService.findExecutionTimeOnlyContributor(
                             workGraph, optionReader, descriptor.name, task.path
                         )
                         pendingValidationFailure = ExecutionTimeOnlyOptionsValidationException(

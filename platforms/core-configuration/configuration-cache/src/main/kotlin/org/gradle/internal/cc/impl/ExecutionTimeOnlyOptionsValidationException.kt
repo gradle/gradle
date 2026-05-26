@@ -17,12 +17,6 @@
 package org.gradle.internal.cc.impl
 
 import org.gradle.api.GradleException
-import org.gradle.api.Task
-import org.gradle.api.internal.tasks.TaskOptionsGenerator
-import org.gradle.api.internal.tasks.options.OptionReader
-import org.gradle.api.internal.tasks.options.OptionValidationException
-import org.gradle.execution.plan.LocalTaskNode
-import org.gradle.execution.plan.ScheduledWork
 import org.gradle.internal.exceptions.Contextual
 import org.gradle.internal.exceptions.ResolutionProvider
 
@@ -37,8 +31,9 @@ import org.gradle.internal.exceptions.ResolutionProvider
  * If the contributing task can't be identified in the current work graph (e.g. the
  * manifest is stale after a build-script change removed the execution-time-only task),
  * [executionTimeOnlyTaskPath] will be `null` and the message + resolutions degrade to
- * describe the violator alone. Callers should use [findExecutionTimeOnlyContributor]
- * to look up the contributor before constructing this exception.
+ * describe the violator alone. Callers should use
+ * [ExecutionTimeOnlyOptionsManifestService.findExecutionTimeOnlyContributor] to look up
+ * the contributor before constructing this exception.
  *
  * Propagates through [DefaultConfigurationCache] as a [GradleException]; Gradle's
  * error renderer surfaces the [ResolutionProvider] suggestions in the "Possible
@@ -56,59 +51,19 @@ class ExecutionTimeOnlyOptionsValidationException(
     override fun getResolutions(): List<String> =
         if (executionTimeOnlyTaskPath != null) {
             listOf(
-                "Annotate '--$optionName' on '$configTimeTaskPath' with @Option(executionTimeOnly = true) " +
-                    "if its value is in fact applied at execution time and not consulted during configuration.",
+                "Annotate '--$optionName' on '$configTimeTaskPath' with @Option(executionTimeOnly = true) if its value is in fact applied at execution time and not consulted during configuration.",
                 "Use a different option name on one of the two tasks to avoid the collision.",
                 "Invoke the two tasks in separate builds."
             )
         } else {
             listOf(
-                "Annotate '--$optionName' on '$configTimeTaskPath' with @Option(executionTimeOnly = true) " +
-                    "if its value is in fact applied at execution time.",
+                "Annotate '--$optionName' on '$configTimeTaskPath' with @Option(executionTimeOnly = true) if its value is in fact applied at execution time.",
                 "Delete the .gradle/configuration-cache directory to clear the stale manifest entry."
             )
         }
 
-    companion object {
-
-        /**
-         * Returns the path of the first task in [workGraph] that declares [optionName] as
-         * `@Option(executionTimeOnly = true)`, or `null` if none can be found (e.g. when the
-         * manifest is stale after a build-script change). [excludeTaskPath] is the path of
-         * the violating task — it is skipped during the scan since it's known to declare the
-         * option with the opposite semantics.
-         */
-        fun findExecutionTimeOnlyContributor(
-            workGraph: ScheduledWork,
-            optionReader: OptionReader,
-            optionName: String,
-            excludeTaskPath: String
-        ): String? =
-            workGraph.scheduledNodes
-                .asSequence()
-                .filterIsInstance<LocalTaskNode>()
-                .map { it.task }
-                .filter { it.path != excludeTaskPath }
-                .firstOrNull { task -> declaresAsExecutionTimeOnly(task, optionName, optionReader) }
-                ?.path
-
-        private fun declaresAsExecutionTimeOnly(
-            task: Task,
-            optionName: String,
-            optionReader: OptionReader
-        ): Boolean {
-            val descriptors = try {
-                TaskOptionsGenerator.generate(task, optionReader).all
-            } catch (_: OptionValidationException) {
-                // Match the collector's policy: a task with malformed @Option metadata
-                // can't have contributed to the manifest. Don't let other exception types
-                // hide here — they'd surface as a misleading "stale manifest" error.
-                return false
-            }
-            return descriptors.any { it.name == optionName && it.isExecutionTimeOnly }
-        }
-
-        private fun buildMessage(
+    private companion object {
+        fun buildMessage(
             executionTimeOnlyTaskPath: String?,
             configTimeTaskPath: String,
             optionName: String
