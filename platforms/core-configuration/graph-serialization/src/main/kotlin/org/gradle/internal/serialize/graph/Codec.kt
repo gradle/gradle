@@ -69,6 +69,26 @@ interface WriteContext : MutableIsolateContext, Encoder {
      * @see ClassEncoder.encodeClassLoader
      */
     fun writeClassLoader(classLoader: ClassLoader?) = Unit
+
+    /**
+     * Returns the encoding that will handle a value of the given runtime [type], or
+     * null when no codec is registered for it. Queries the root binding registry,
+     * not whatever codec happens to be pushed on the isolate's codec stack — the
+     * lookup must reflect actual serialization dispatch. This call does not write
+     * to the encoder, so it is safe during diagnostic checks (for example, checking
+     * whether the codec is a [WideningCodec] whose decoded type cannot fit a field).
+     *
+     * Implementations backed by a `BindingsBackedCodec` should override this to
+     * enable store-time widening checks for their encoded values.
+     *
+     * Conceptually equivalent to `CodecLookup.encodingForType` — that is the
+     * underlying mechanism a `BindingsBackedCodec` exposes; this method is the
+     * higher-level Context-API alias used by callers that already hold a
+     * [WriteContext] reference. Both return `Any?` to keep package-layer
+     * decoupling: callers cast to a concrete codec interface (typically
+     * [WideningCodec]) themselves.
+     */
+    fun codecForRuntimeType(type: Class<*>): Any? = null
 }
 
 

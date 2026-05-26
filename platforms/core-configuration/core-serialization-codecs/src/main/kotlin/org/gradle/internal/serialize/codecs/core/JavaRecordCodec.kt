@@ -24,6 +24,7 @@ import org.gradle.internal.serialize.graph.WriteContext
 import org.gradle.internal.serialize.graph.codecs.Decoding
 import org.gradle.internal.serialize.graph.codecs.Encoding
 import org.gradle.internal.serialize.graph.codecs.EncodingProducer
+import org.gradle.internal.serialize.graph.codecs.findCodecThatWidensIncompatibly
 import org.gradle.internal.serialize.graph.logPropertyProblem
 import org.gradle.internal.serialize.graph.readPropertyValue
 import org.gradle.internal.serialize.graph.reportUnsupportedFieldType
@@ -31,6 +32,7 @@ import org.gradle.internal.serialize.graph.withDebugFrame
 import org.gradle.internal.serialize.graph.writePropertyValue
 import java.lang.reflect.Field
 import java.lang.reflect.Modifier.isStatic
+import kotlin.reflect.KClass
 
 
 class JavaRecordCodec(
@@ -63,9 +65,6 @@ class JavaRecordCodec(
         val args = mutableListOf<Any?>()
         for (field in fields) {
             val fieldName = field.name
-            unsupportedFieldTypeFor(field)?.let {
-                reportUnsupportedFieldType(it, "deserialize", fieldName)
-            }
             readPropertyValue(PropertyKind.Field, fieldName) { fieldValue ->
                 if (fieldValue == null || field.type.isInstance(fieldValue) || field.type.isPrimitive) {
                     args.add(fieldValue)
@@ -96,13 +95,28 @@ class JavaRecordEncoding(
             objectOpener.makeAccessible(field)
             val fieldName = field.name
             val fieldValue = field.get(value)
-            unsupportedFieldTypeFor(field)?.let {
+            unsupportedWidenedTypeFor(field, fieldValue)?.let {
                 reportUnsupportedFieldType(it, "serialize", fieldName, fieldValue)
             }
             withDebugFrame({ "${recordType.typeName}.$fieldName" }) {
                 writePropertyValue(PropertyKind.Field, fieldName, fieldValue)
             }
         }
+    }
+
+    /**
+     * Returns the field's declared type as a [KClass] when serializing a value of
+     * [fieldValue] into [field] cannot survive the configuration cache roundtrip,
+     * because the codec that handles [fieldValue] declares a decoded type that
+     * the field cannot accept. Returns null when the roundtrip is compatible.
+     */
+    private fun WriteContext.unsupportedWidenedTypeFor(field: Field, fieldValue: Any?): KClass<*>? {
+        val lookupType = fieldValue?.javaClass ?: field.type
+        val widening = findCodecThatWidensIncompatibly(field.type, lookupType) ?: return null
+        // Pass when the field's declared type is a subtype of the codec's decoded type:
+        // the codec may produce a concrete instance of that subtype at runtime.
+        if (widening.decodedType.isAssignableFrom(field.type)) return null
+        return field.type.kotlin
     }
 }
 
