@@ -51,12 +51,11 @@ import java.io.File
 import kotlin.jvm.optionals.getOrNull
 
 
-class FileCollectionCodec(
+open class FileCollectionCodec(
     private val fileCollectionFactory: FileCollectionFactory,
     private val artifactSetConverter: ArtifactSetToFileCollectionFactory,
     private val taskDependencyFactory: TaskDependencyFactory
 ) : Codec<FileCollectionInternal> {
-
     override suspend fun WriteContext.encode(value: FileCollectionInternal) {
         encodePreservingIdentityOf(value) {
             encodeContents(value)

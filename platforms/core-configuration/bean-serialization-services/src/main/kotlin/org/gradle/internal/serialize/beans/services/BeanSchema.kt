@@ -17,8 +17,6 @@
 package org.gradle.internal.serialize.beans.services
 
 import org.gradle.api.DefaultTask
-import org.gradle.api.artifacts.Configuration
-import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.internal.ConventionTask
 import org.gradle.api.internal.IConventionAware
 import org.gradle.internal.instantiation.generator.AsmBackedClassGenerator
@@ -27,13 +25,6 @@ import java.lang.reflect.AccessibleObject
 import java.lang.reflect.Field
 import java.lang.reflect.Modifier.isStatic
 import java.lang.reflect.Modifier.isTransient
-import kotlin.reflect.KClass
-
-
-val unsupportedFieldDeclaredTypes = listOf(
-    Configuration::class,
-    SourceDirectorySet::class
-)
 
 
 internal
@@ -49,7 +40,7 @@ fun relevantFieldsOf(beanType: Class<*>) =
     relevantTypeHierarchyOf(beanType)
         .flatMap(Class<*>::relevantFields)
         .onEach(Field::makeAccessible)
-        .map { RelevantField(it, unsupportedFieldTypeFor(it)) }
+        .map { RelevantField(it) }
         .toList()
 
 
@@ -95,17 +86,12 @@ fun conventionAwareFieldsOf(beanType: Class<*>): Sequence<Pair<Field, Field>> =
 internal
 data class RelevantField(
     val field: Field,
-    val unsupportedFieldType: KClass<*>?,
     /**
      * Boolean flag field injected by [AsmBackedClassGenerator] to capture
      * whether a convention mapped property has been explicitly set or not.
      */
     val isExplicitValueField: Field? = null
 )
-
-
-fun unsupportedFieldTypeFor(field: Field): KClass<*>? =
-    unsupportedFieldDeclaredTypes.firstOrNull { it.java.isAssignableFrom(field.type) }
 
 
 private

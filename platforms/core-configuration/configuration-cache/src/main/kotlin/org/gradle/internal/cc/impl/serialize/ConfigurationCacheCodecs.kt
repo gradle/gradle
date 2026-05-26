@@ -16,7 +16,9 @@
 
 package org.gradle.internal.cc.impl.serialize
 
+import org.gradle.api.artifacts.Configuration
 import org.gradle.api.file.FileSystemOperations
+import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
@@ -57,6 +59,7 @@ import org.gradle.internal.serialize.codecs.core.BuildServiceProviderCodec
 import org.gradle.internal.serialize.codecs.core.CalculatedValueContainerCodec
 import org.gradle.internal.serialize.codecs.core.ConfigurableFileCollectionCodec
 import org.gradle.internal.serialize.codecs.core.ConfigurableFileTreeCodec
+import org.gradle.internal.serialize.codecs.core.ConfigurationCodec
 import org.gradle.internal.serialize.codecs.core.DefaultContextAwareTaskLoggerCodec
 import org.gradle.internal.serialize.codecs.core.DefaultCopySpecCodec
 import org.gradle.internal.serialize.codecs.core.DestinationRootCopySpecCodec
@@ -95,6 +98,7 @@ import org.gradle.internal.serialize.codecs.core.RegularFileCodec
 import org.gradle.internal.serialize.codecs.core.RegularFilePropertyCodec
 import org.gradle.internal.serialize.codecs.core.SerializedLambdaParametersCheckingCodec
 import org.gradle.internal.serialize.codecs.core.SetPropertyCodec
+import org.gradle.internal.serialize.codecs.core.SourceDirectorySetCodec
 import org.gradle.internal.serialize.codecs.core.StringValueSnapshotCodec
 import org.gradle.internal.serialize.codecs.core.TaskInAnotherBuildCodec
 import org.gradle.internal.serialize.codecs.core.TaskNodeCodec
@@ -433,9 +437,15 @@ class DefaultConfigurationCacheCodecs(
         bind(DirectoryCodec(fileFactory))
         bind(RegularFileCodec(fileFactory))
         bind(ConfigurableFileTreeCodec(fileCollectionFactory))
+        // SourceDirectorySetCodec must precede FileTreeCodec: SourceDirectorySet is a
+        // FileTreeInternal subtype, and the binding-walk picks the first match.
+        bind(SourceDirectorySet::class, SourceDirectorySetCodec(fileCollectionFactory, directoryFileTreeFactory, fileOperations))
         bind(FileTreeCodec(fileCollectionFactory, directoryFileTreeFactory, fileOperations))
         val fileCollectionCodec = FileCollectionCodec(fileCollectionFactory, artifactSetConverter, taskDependencyFactory)
         bind(ConfigurableFileCollectionCodec(fileCollectionCodec, fileCollectionFactory))
+        // ConfigurationCodec must precede FileCollectionCodec: Configuration is a
+        // FileCollectionInternal subtype, and the binding-walk picks the first match.
+        bind(Configuration::class, ConfigurationCodec(fileCollectionFactory, artifactSetConverter, taskDependencyFactory))
         bind(fileCollectionCodec)
         bind(IntersectionPatternSetCodec)
         bind(PatternSetCodec(patternSetFactory))

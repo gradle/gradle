@@ -20,9 +20,14 @@ import com.google.common.primitives.Primitives.wrap
 import org.gradle.api.internal.IConventionAware
 import org.gradle.internal.configuration.problems.PropertyKind
 import org.gradle.internal.extensions.stdlib.uncheckedCast
+import org.gradle.internal.reflect.UnsupportedTypeException
 import org.gradle.internal.serialize.graph.BeanStateWriter
 import org.gradle.internal.serialize.graph.WriteContext
-import org.gradle.internal.serialize.graph.reportUnsupportedFieldType
+import org.gradle.internal.serialize.graph.codecs.WideningCodec
+import org.gradle.internal.serialize.graph.codecs.findCodecThatWidensIncompatibly
+import org.gradle.internal.serialize.graph.reportSerializationProblem
+import org.gradle.internal.serialize.graph.withPropertyTrace
+import org.gradle.internal.serialize.graph.taskDescription
 import org.gradle.internal.serialize.graph.withDebugFrame
 import org.gradle.internal.serialize.graph.writePropertyValue
 import java.lang.reflect.Field
@@ -37,23 +42,89 @@ class BeanPropertyWriter(
 
     /**
      * Serializes a bean by serializing the value of each of its fields.
+     *
+     * For each field, runs two store-time roundtrip checks. When either
+     * reports an incompatibility, the field's value is dropped — `null` is
+     * written in its place so the cache remains self-consistent and the
+     * read-side observes a null/empty value on load.
      */
     override suspend fun WriteContext.writeStateOf(bean: Any) {
         for (relevantField in relevantFields) {
             val field = relevantField.field
             val fieldName = field.name
-            val fieldValue =
+            val rawValue =
                 when (val isExplicitValue = relevantField.isExplicitValueField) {
                     null -> field.get(bean)
                     else -> conventionValueOf(bean, field, isExplicitValue)
                 }
-            relevantField.unsupportedFieldType?.let {
-                reportUnsupportedFieldType(it, "serialize", fieldName, fieldValue)
-            }
+            val dropped =
+                reportIfIncompatibleRoundtrip(field, fieldName, rawValue) ||
+                    reportIfUnsupportedKotlinDelegate(field, fieldName, rawValue)
+            val effectiveValue = if (dropped) null else rawValue
             withDebugFrame({ field.debugFrameName() }) {
-                writePropertyValue(PropertyKind.Field, fieldName, fieldValue)
+                writePropertyValue(PropertyKind.Field, fieldName, effectiveValue)
             }
         }
+    }
+
+    /**
+     * Reports a deferred problem when a non-null field value would be encoded
+     * by a [WideningCodec] whose `decodedType` cannot be assigned back to the
+     * field's declared type.
+     *
+     * @return `true` when the field's value must be dropped from the cache.
+     */
+    internal
+    suspend fun WriteContext.reportIfIncompatibleRoundtrip(field: Field, fieldName: String, fieldValue: Any?): Boolean {
+        if (fieldValue == null) return false
+        val widening = findCodecThatWidensIncompatibly(field.type, fieldValue.javaClass) ?: return false
+        // Pass when the field's declared type is a subtype of the codec's decoded type:
+        // the codec may produce a concrete instance of that subtype at runtime (codecs
+        // declare a broad interface but generally construct via a factory that yields
+        // the expected concrete class). Only flag when the types share no subtyping
+        // relation at all - then reassignment is definitely impossible.
+        if (widening.decodedType.isAssignableFrom(field.type)) return false
+        val exception = UnsupportedTypeException(
+            "Cannot serialize value of type ${fieldValue.javaClass.name} into field " +
+                "${field.name} of ${field.declaringClass.name} in ${trace.taskDescription()}: " +
+                "its codec produces ${widening.publicDecodedType.name} on load, " +
+                "which cannot be assigned to a field of type ${field.type.name}.",
+            listOf(widening.wideningFix)
+        )
+        withPropertyTrace(PropertyKind.Field, fieldName) {
+            reportSerializationProblem(exception)
+        }
+        return true
+    }
+
+    /**
+     * Inspects a Kotlin property delegate field's value for an unsupported
+     * roundtrip into the property's declared getter return type.
+     *
+     * @return `true` when the field's value must be dropped from the cache.
+     */
+    private
+    suspend fun WriteContext.reportIfUnsupportedKotlinDelegate(field: Field, fieldName: String, fieldValue: Any?): Boolean {
+        // A Kotlin `by`-delegate is identified by BOTH the field name (compiler emits `<name>$delegate`)
+        // AND the value type. A regular field declared as `Lazy<T>` is not a delegate even though its
+        // value satisfies isKotlinDelegate(); skip it so normal codec-driven serialization handles it.
+        if (!field.name.endsWith("\$delegate")) return false
+        if (!KotlinDelegateInspector.isKotlinDelegate(fieldValue)) return false
+        val delegateValue = KotlinDelegateInspector.extractValue(fieldValue!!) ?: return false
+        val kotlinGetterReturnType = KotlinDelegateInspector.kotlinPropertyGetterReturnType(field)
+        val widening = findCodecThatWidensIncompatibly(kotlinGetterReturnType, delegateValue.javaClass) ?: return false
+        val delegateKind = KotlinDelegateInspector.delegateKindName(fieldValue)
+        val propertyName = field.name.removeSuffix("\$delegate")
+        val exception = UnsupportedTypeException(
+            "Cannot serialize $delegateKind delegate for property '$propertyName: ${kotlinGetterReturnType.simpleName}' in ${trace.taskDescription()}. " +
+                "The codec for the delegate's value produces ${widening.publicDecodedType.name} on load, " +
+                "which cannot be assigned to a property of type ${kotlinGetterReturnType.name}.",
+            listOf(widening.wideningFix)
+        )
+        withPropertyTrace(PropertyKind.Field, fieldName) {
+            reportSerializationProblem(exception)
+        }
+        return true
     }
 
     private

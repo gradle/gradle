@@ -33,7 +33,6 @@ dependencies {
     implementation(projects.baseServices)
     implementation(projects.configurationProblemsBase)
     implementation(projects.core)
-    implementation(projects.coreApi)
     implementation(projects.coreKotlinExtensions)
     implementation(projects.logging)
     implementation(projects.modelReflect)

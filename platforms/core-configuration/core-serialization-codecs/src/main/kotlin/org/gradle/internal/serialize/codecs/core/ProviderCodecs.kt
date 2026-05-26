@@ -36,7 +36,12 @@ import org.gradle.api.internal.provider.PropertyFactory
 import org.gradle.api.internal.provider.ProviderInternal
 import org.gradle.api.internal.provider.ValueSourceProviderFactory
 import org.gradle.api.internal.provider.ValueSupplier
+import org.gradle.api.internal.provider.ValueSupplier.ExecutionTimeValue
+import org.gradle.api.provider.ListProperty
+import org.gradle.api.provider.MapProperty
+import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
+import org.gradle.api.provider.SetProperty
 import org.gradle.api.provider.ValueSourceParameters
 import org.gradle.api.services.BuildService
 import org.gradle.api.services.BuildServiceParameters
@@ -47,6 +52,7 @@ import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.cc.base.serialize.IsolateOwners
 import org.gradle.internal.configuration.problems.PropertyTrace
 import org.gradle.internal.extensions.core.serviceOf
+import org.gradle.internal.reflect.UnsupportedTypeException
 import org.gradle.internal.extensions.stdlib.uncheckedCast
 import org.gradle.internal.file.PathToFileResolver
 import org.gradle.internal.flow.services.BuildWorkResultProvider
@@ -56,8 +62,11 @@ import org.gradle.internal.serialize.graph.IsolateContext
 import org.gradle.internal.serialize.graph.MutableIsolateContext
 import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.WriteContext
+import org.gradle.internal.serialize.graph.codecs.findCodecThatWidensIncompatibly
+import org.gradle.internal.serialize.graph.taskDescription
 import org.gradle.internal.serialize.graph.codecs.BeanCodec
 import org.gradle.internal.serialize.graph.codecs.Bindings
+import org.gradle.internal.serialize.graph.codecs.WideningCodec
 import org.gradle.internal.serialize.graph.decodeBean
 import org.gradle.internal.serialize.graph.decodePreservingIdentity
 import org.gradle.internal.serialize.graph.decodePreservingSharedIdentity
@@ -65,6 +74,7 @@ import org.gradle.internal.serialize.graph.encodeBean
 import org.gradle.internal.serialize.graph.encodePreservingIdentityOf
 import org.gradle.internal.serialize.graph.encodePreservingSharedIdentityOf
 import org.gradle.internal.serialize.graph.logPropertyProblem
+import org.gradle.internal.serialize.graph.reportSerializationProblem
 import org.gradle.internal.serialize.graph.readClassOf
 import org.gradle.internal.serialize.graph.readNonNull
 import org.gradle.internal.serialize.graph.runReadOperation
@@ -398,6 +408,33 @@ abstract class AbstractPropertyCodec<P : AbstractProperty<*, *>>(
 }
 
 
+/**
+ * Reports a deferred problem when the codec registered for [valueType] is a
+ * [WideningCodec] that produces a decoded type not assignable to [valueType].
+ *
+ * @return `true` when the property's value must be dropped from the cache
+ *         (the caller should write a missing-value placeholder so the
+ *         property survives the roundtrip as if it were never set).
+ */
+private suspend fun WriteContext.reportIfUnsupportedPropertyValueType(propertyKind: Class<*>, valueType: Class<*>): Boolean {
+    val widening = findCodecThatWidensIncompatibly(valueType) ?: return false
+
+    val resolution = if (MapProperty::class.java.isAssignableFrom(propertyKind)) {
+        "Avoid using ${valueType.simpleName} as a MapProperty key or value."
+    } else {
+        widening.wideningFix
+    }
+    val exception = UnsupportedTypeException(
+        "Cannot serialize ${propertyKind.simpleName}<${valueType.simpleName}> in ${trace.taskDescription()}. " +
+            "The value type of this property (${valueType.name}) is not supported with the configuration cache: " +
+            "its codec produces ${widening.publicDecodedType.name} on load.",
+        listOf(resolution)
+    )
+    reportSerializationProblem(exception)
+    return true
+}
+
+
 class PropertyCodec(
     private val propertyFactory: PropertyFactory,
     providerCodec: FixedValueReplacingProviderCodec
@@ -405,8 +442,14 @@ class PropertyCodec(
 
     override suspend fun WriteContext.encodeThis(value: DefaultProperty<*>) {
         encodePreservingIdentityOf(value) {
-            writeClass(value.type)
-            providerCodec.run { encodeProvider(value.provider) }
+            val type = value.type
+            val unsupported = reportIfUnsupportedPropertyValueType(Property::class.java, type)
+            writeClass(type)
+            if (unsupported) {
+                providerCodec.run { encodeValue(ExecutionTimeValue.missing<Any>()) }
+            } else {
+                providerCodec.run { encodeProvider(value.provider) }
+            }
         }
     }
 
@@ -491,8 +534,12 @@ class ListPropertyCodec(
 
     override suspend fun WriteContext.encodeThis(value: DefaultListProperty<*>) {
         encodePreservingIdentityOf(value) {
+            val unsupported = reportIfUnsupportedPropertyValueType(ListProperty::class.java, value.elementType)
             writeClass(value.elementType)
-            providerCodec.run { encodeValue(value.calculateExecutionTimeValue()) }
+            providerCodec.run {
+                if (unsupported) encodeValue(ExecutionTimeValue.missing<Any>())
+                else encodeValue(value.calculateExecutionTimeValue())
+            }
         }
     }
 
@@ -517,8 +564,12 @@ class SetPropertyCodec(
 
     override suspend fun WriteContext.encodeThis(value: DefaultSetProperty<*>) {
         encodePreservingIdentityOf(value) {
+            val unsupported = reportIfUnsupportedPropertyValueType(SetProperty::class.java, value.elementType)
             writeClass(value.elementType)
-            providerCodec.run { encodeValue(value.calculateExecutionTimeValue()) }
+            providerCodec.run {
+                if (unsupported) encodeValue(ExecutionTimeValue.missing<Any>())
+                else encodeValue(value.calculateExecutionTimeValue())
+            }
         }
     }
 
@@ -543,9 +594,14 @@ class MapPropertyCodec(
 
     override suspend fun WriteContext.encodeThis(value: DefaultMapProperty<*, *>) {
         encodePreservingIdentityOf(value) {
+            val keyUnsupported = reportIfUnsupportedPropertyValueType(MapProperty::class.java, value.keyType)
+            val valueUnsupported = reportIfUnsupportedPropertyValueType(MapProperty::class.java, value.valueType)
             writeClass(value.keyType)
             writeClass(value.valueType)
-            providerCodec.run { encodeValue(value.calculateExecutionTimeValue()) }
+            providerCodec.run {
+                if (keyUnsupported || valueUnsupported) encodeValue(ExecutionTimeValue.missing<Any>())
+                else encodeValue(value.calculateExecutionTimeValue())
+            }
         }
     }
 
