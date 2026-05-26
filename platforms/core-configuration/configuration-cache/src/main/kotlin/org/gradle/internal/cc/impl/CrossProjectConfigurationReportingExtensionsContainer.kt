@@ -113,10 +113,8 @@ internal class CrossProjectConfigurationReportingExtensionsContainer(
         getByName(name)
 
     fun propertyMissing(name: String, value: Any) {
-        if (findByName(name) != null) {
-            throw IllegalArgumentException(
-                "There's an extension registered with name '$name'. You should not reassign it via a property setter."
-            )
+        require(findByName(name) == null) {
+            "There's an extension registered with name '$name'. You should not reassign it via a property setter."
         }
         add(name, value)
     }

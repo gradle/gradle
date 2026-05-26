@@ -57,5 +57,10 @@ class IsolatedProjectsCrossProjectGradleAccessIntegrationTest extends AbstractIs
         "configure('ext') {}"                                   | "configure extension of name `ext`"
 
         "extraProperties.set('foo', 'bar')"                     | "set extra properties extension `foo`"
+
+        // Groovy dynamic property setter
+        "foo = new DefaultFoo()"                                | "add extension `foo` with public type `DefaultFoo`"
+        // Groovy dynamic property setter on extra properties
+        "extraProperties.foo = 'bar'"                           | "set extra properties extension `foo`"
     }
 }
