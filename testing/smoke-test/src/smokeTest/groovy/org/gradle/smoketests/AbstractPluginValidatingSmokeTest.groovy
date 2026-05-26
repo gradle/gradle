@@ -17,6 +17,8 @@
 package org.gradle.smoketests
 
 import groovy.transform.SelfType
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.TestExecutionPreconditions
 
 @SelfType(AbstractSmokeTest)
 abstract class AbstractPluginValidatingSmokeTest extends AbstractSmokeTest implements WithPluginValidation {
@@ -33,6 +35,50 @@ abstract class AbstractPluginValidatingSmokeTest extends AbstractSmokeTest imple
 
     String getBuildScriptConfigurationForValidation() {
         ""
+    }
+
+    /**
+     * Override to opt a plugin into the "configures plugin from subproject" smoke test. Return the
+     * DSL snippet that should go into {@code child/build.gradle} — typically a reference to the
+     * plugin's project extension (e.g. {@code spotless { }}). Returning {@code null} (default) makes
+     * the iteration a no-op for that plugin/version combination.
+     *
+     * <p>The purpose is to catch plugins that resolve their DSL extension through the deprecated
+     * implicit parent-project property/method lookup when configured from a subproject — the same
+     * failure mode as the Develocity 3.x case.
+     */
+    String getSubprojectExtensionAccess(String testedPluginId, String version) {
+        null
+    }
+
+    /**
+     * Override to declare deprecation warnings that the "configures plugin from subproject" test
+     * should expect for a given plugin/version. The returned warnings are passed to
+     * {@link SmokeTestGradleRunner#expectLegacyDeprecationWarning(String)} — appropriate for
+     * third-party plugin issues that are out of our control.
+     *
+     * <p>Use {@link #parentMethodInvocationDeprecation(String)} or
+     * {@link #parentPropertyAccessDeprecation(String)} to build the parent-walk deprecation
+     * message for a plugin that resolves its DSL extension from subprojects.
+     */
+    List<String> getSubprojectExtensionDeprecations(String testedPluginId, String version) {
+        []
+    }
+
+    protected static String parentMethodInvocationDeprecation(String methodName) {
+        "Implicitly resolving methods in the project hierarchy has been deprecated. " +
+            "This will fail with an error in Gradle 10. " +
+            "Method '$methodName' was not declared in project ':child' and was resolved from root project 'test'. " +
+            "Consult the upgrading guide for further information: " +
+            "${DEPRECATED_PARENT_PROPERTY_ACCESS_URL}"
+    }
+
+    protected static String parentPropertyAccessDeprecation(String propertyName) {
+        "Implicitly resolving properties in the project hierarchy has been deprecated. " +
+            "This will fail with an error in Gradle 10. " +
+            "Property '$propertyName' was not declared in project ':child' and was resolved from root project 'test'. " +
+            "Consult the upgrading guide for further information: " +
+            "${DEPRECATED_PARENT_PROPERTY_ACCESS_URL}"
     }
 
     private List<List<String>> iterations() {
@@ -67,6 +113,45 @@ abstract class AbstractPluginValidatingSmokeTest extends AbstractSmokeTest imple
 
         expect:
         performValidation(version)
+
+        where:
+        iterations << iterations()
+        (id, version) = iterations
+    }
+
+    @Requires(value = TestExecutionPreconditions.NotIsolatedProjects, reason = "Under Isolated Projects the parent walk is disabled, so the plugin's extension is not reachable from a subproject — the scenario this test exercises (firing the parent-walk deprecation) is Vintage-specific")
+    def "configures plugin #id version #version from subproject"(String id, String version) {
+        def childConfig = getSubprojectExtensionAccess(id, version)
+
+        given:
+        def extraPluginsBlock = getExtraPluginsRequiredForValidation(id, version).collect { pluginId, pluginVersion ->
+            "                id '$pluginId'" + (pluginVersion ? "version '$pluginVersion'" : "")
+        }.join('\n')
+        SmokeTestGradleRunner testRunner = null
+        if (childConfig != null) {
+            buildFile << """
+                plugins {
+                    $extraPluginsBlock
+                    id '$id'${version ? " version '$version'" : ""}
+                }
+
+                $buildScriptConfigurationForValidation
+            """
+            settingsFile << """
+                rootProject.name = "test"
+                include("child")
+            """
+            file("child/build.gradle") << childConfig
+            testRunner = runner("help")
+            getSubprojectExtensionDeprecations(id, version).each { testRunner.expectLegacyDeprecationWarning(it) }
+        }
+
+        expect:
+        // When getSubprojectExtensionAccess returns null (the default), this iteration is a no-op
+        // — there's nothing meaningful to verify for plugins that don't opt in. Filtering the
+        // iterations out via where: would be cleaner, but breaks Spock for classes where no
+        // combination opts in (empty data provider).
+        childConfig == null || testRunner.build() != null
 
         where:
         iterations << iterations()
