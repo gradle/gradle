@@ -1136,20 +1136,32 @@ class ConfigurationCacheGradlePropertiesIntegrationTest extends AbstractConfigur
     }
 
     def "MapProperty with both key and value of unsupported types reports a problem for each"() {
+        // Distinct key (Configuration) and value (SourceDirectorySet) types — the build
+        // script exercises both code paths by construction. Each parameterized row in
+        // the previous test verifies a single branch in isolation, so combined with
+        // totalProblemsCount = 2 here we have defense in depth against a regression
+        // that drops one of the two checks.
+        //
+        // The CC problem aggregator dedupes deferred problems by message + trace before
+        // either the HTML report or the fail-mode cause chain are built. Since both
+        // calls share the same field trace and the StructuredMessage is the same
+        // ("failed to serialize value of <trace>"), only one problem survives dedup —
+        // hence withUniqueProblems = 1 and problemsWithStackTraceCount = 1. The
+        // totalProblemsCount counter increments before dedup, so it reflects every
+        // onProblem call and is the most reliable cross-mode signal.
         buildFile << """
             abstract class MapKeyValueConfTask extends DefaultTask {
                 @Internal
-                abstract MapProperty<Configuration, Configuration> getConfs()
+                abstract MapProperty<Configuration, SourceDirectorySet> getConfs()
 
                 @TaskAction
                 void run() { println "Confs: " + confs.getOrElse([:]) }
             }
 
             configurations.create('keyConf')
-            configurations.create('valueConf')
 
             tasks.register("mapKeyValueConfTask", MapKeyValueConfTask) {
-                confs.put(configurations.getByName('keyConf'), configurations.getByName('valueConf'))
+                confs.put(configurations.getByName('keyConf'), objects.sourceDirectorySet('sources', 'source files'))
             }
         """
 
@@ -1157,10 +1169,6 @@ class ConfigurationCacheGradlePropertiesIntegrationTest extends AbstractConfigur
         configurationCacheRunLenient "mapKeyValueConfTask"
 
         then:
-        // Both the key-type and value-type checks call reportSerializationProblem,
-        // so totalProblemsCount = 2 verifies both branches fire. They share the
-        // same field trace and message, so the HTML report collapses them into a
-        // single entry — problemsWithStackTraceCount = 1.
         problems.assertResultHasProblems(result) {
             totalProblemsCount = 2
             withUniqueProblems(

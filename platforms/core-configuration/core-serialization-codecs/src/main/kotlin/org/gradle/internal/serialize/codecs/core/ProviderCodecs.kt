@@ -416,7 +416,7 @@ abstract class AbstractPropertyCodec<P : AbstractProperty<*, *>>(
  *         (the caller should write a missing-value placeholder so the
  *         property survives the roundtrip as if it were never set).
  */
-private suspend fun WriteContext.reportIfUnsupportedPropertyValueType(propertyKind: Class<*>, valueType: Class<*>): Boolean {
+internal suspend fun WriteContext.reportIfUnsupportedPropertyValueType(propertyKind: Class<*>, valueType: Class<*>): Boolean {
     val widening = findCodecThatWidensIncompatibly(valueType) ?: return false
 
     val resolution = if (MapProperty::class.java.isAssignableFrom(propertyKind)) {
