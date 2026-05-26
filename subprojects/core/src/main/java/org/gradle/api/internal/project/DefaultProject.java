@@ -91,6 +91,8 @@ import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factories;
 import org.gradle.internal.Factory;
+import org.gradle.api.internal.FeaturePreviews;
+import org.gradle.internal.buildoption.FeatureFlags;
 import org.gradle.internal.buildoption.InternalOption;
 import org.gradle.internal.buildoption.InternalOptions;
 import org.gradle.internal.configuration.problems.IsolatedProjectsProblemsReporter;
@@ -262,8 +264,15 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
         @Nullable HierarchicalDynamicObject parentInherited = services.get(CrossProjectModelAccess.class).parentProjectDynamicInheritedScope(owner);
         if (parentInherited != null) {
-            extensibleDynamicObject.setParent(parentInherited);
-            extensibleDynamicObject.setFailOnParentAccess(services.get(InternalOptions.class).getBoolean(FAIL_ON_PARENT_PROPERTY_LOOKUP));
+            // The NO_IMPLICIT_LOOKUP_IN_PROJECT_HIERARCHY feature preview opts Vintage builds into the
+            // eventual Gradle 10 behavior early: don't wire the parent at all, so the parent walk
+            // (and therefore the deprecation) does not fire. Under Isolated Projects the parent
+            // is already null (see the preceding commit), so this branch only matters for Vintage.
+            boolean noImplicitParentLookup = services.get(FeatureFlags.class).isEnabled(FeaturePreviews.Feature.NO_IMPLICIT_LOOKUP_IN_PROJECT_HIERARCHY);
+            if (!noImplicitParentLookup) {
+                extensibleDynamicObject.setParent(parentInherited);
+                extensibleDynamicObject.setFailOnParentAccess(services.get(InternalOptions.class).getBoolean(FAIL_ON_PARENT_PROPERTY_LOOKUP));
+            }
         }
         extensibleDynamicObject.addObject(taskContainer.getTasksAsDynamicObject(), ExtensibleDynamicObject.Location.AfterConvention);
 

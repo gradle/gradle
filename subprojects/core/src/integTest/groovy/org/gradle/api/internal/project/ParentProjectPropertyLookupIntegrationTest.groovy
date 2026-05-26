@@ -181,4 +181,22 @@ class ParentProjectPropertyLookupIntegrationTest extends AbstractIntegrationSpec
         succeeds("help")
         outputContains("foo: child-only")
     }
+
+    def "NO_IMPLICIT_LOOKUP_IN_PROJECT_HIERARCHY feature preview disables parent walking entirely"() {
+        given:
+        settingsFile << """
+            enableFeaturePreview("NO_IMPLICIT_LOOKUP_IN_PROJECT_HIERARCHY")
+        """
+        buildFile << """
+            ext.foo = "from-root"
+        """
+        file("a/build.gradle") << """
+            println("foo: " + findProperty("foo"))
+        """
+
+        expect:
+        // No deprecation expected — the feature preview disables the parent walk at the source.
+        succeeds("help")
+        outputContains("foo: null")
+    }
 }
