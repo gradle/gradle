@@ -58,15 +58,15 @@ class BeanPropertyWriter(
         for (relevantField in relevantFields) {
             val field = relevantField.field
             val fieldName = field.name
-            val rawValue =
+            val fieldValue =
                 when (val isExplicitValue = relevantField.isExplicitValueField) {
                     null -> field.get(bean)
                     else -> conventionValueOf(bean, field, isExplicitValue)
                 }
             val dropped =
-                reportIfIncompatibleRoundtrip(field, fieldName, rawValue) ||
-                    reportIfUnsupportedKotlinDelegate(field, fieldName, rawValue)
-            val effectiveValue = if (dropped) null else rawValue
+                reportIfIncompatibleRoundtrip(field, fieldName, fieldValue) ||
+                    reportIfUnsupportedKotlinDelegate(field, fieldName, fieldValue)
+            val effectiveValue = if (dropped) null else fieldValue
             withDebugFrame({ field.debugFrameName() }) {
                 writePropertyValue(PropertyKind.Field, fieldName, effectiveValue)
             }
@@ -112,10 +112,13 @@ class BeanPropertyWriter(
      * Uninitialized `by lazy` delegates are deliberately skipped: there is no
      * value yet to type-check against the property's getter return type, and
      * forcing the lazy here would change observable build behaviour. The skip
-     * is logged at debug level so the bypass is traceable when diagnosing
-     * surprising load-side failures. Other delegate kinds (`Delegates.observable`,
-     * `Delegates.vetoable`, `Delegates.notNull`) always carry a value (or fail
-     * loudly on read) and are checked normally.
+     * is logged at info level *and* emits a deferred problem so the bypass is
+     * visible in the configuration cache problems report — diagnosing a later
+     * load-side failure shouldn't require enabling debug logging. Other delegate
+     * kinds (`Delegates.observable`, `Delegates.vetoable`) carry a value from
+     * construction; `Delegates.notNull` throws on read until first assignment.
+     * All three are checked normally because their value (if any) is available
+     * without forcing.
      *
      * @return `true` when the field's value must be dropped from the cache.
      */
@@ -126,12 +129,22 @@ class BeanPropertyWriter(
         // value satisfies isKotlinDelegate(); skip it so normal codec-driven serialization handles it.
         if (!field.name.endsWith("\$delegate") || !KotlinDelegateInspector.isKotlinDelegate(fieldValue)) return false
         if (fieldValue is Lazy<*> && !fieldValue.isInitialized()) {
-            // Deliberate skip — see KDoc above. Logged so a load-side ClassCastException
-            // traced back here has an obvious breadcrumb.
-            logger.debug(
+            // Deliberate skip — see KDoc above. Logged and reported as a deferred
+            // problem so a later load-side failure has a breadcrumb back here.
+            val propertyName = field.name.removeSuffix("\$delegate")
+            logger.info(
                 "Skipping widening-roundtrip check for uninitialized `by lazy` delegate '{}' on {}",
                 field.name, field.declaringClass.name
             )
+            val exception = UnsupportedTypeException(
+                "Cannot type-check `by lazy` delegate for property '$propertyName' in ${trace.taskDescription()}: " +
+                    "the delegate was not initialized at configuration cache store time, " +
+                    "so the load-side value type cannot be verified.",
+                listOf("Initialize the lazy at configuration time if you require store-time type validation.")
+            )
+            withPropertyTrace(PropertyKind.Field, fieldName) {
+                reportSerializationProblem(exception)
+            }
             return false
         }
         val delegateValue = KotlinDelegateInspector.extractValue(fieldValue!!) ?: return false

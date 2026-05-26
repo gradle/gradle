@@ -893,17 +893,18 @@ class ConfigurationCacheUnsupportedTypesIntegrationTest extends AbstractConfigur
     }
 
     @Requires(JdkVersionTestPreconditions.KotlinSupportedJdk)
-    def "uninitialized Kotlin `by lazy` delegate of an unsupported type bypasses the widening check at store time"() {
-        // Demonstrates the documented bypass in BeanPropertyWriter.reportIfUnsupportedKotlinDelegate:
-        // an un-forced `by lazy` delegate has no value yet to type-check, so the widening check
-        // is skipped (with a debug-level log). The same `by lazy` FORCED at configuration time
-        // reports the widening problem — see the "reports when Kotlin lazy delegate wraps an
-        // unsupported type" test above for that path.
+    def "uninitialized Kotlin `by lazy` delegate emits a deferred bypass problem at store time (smoke)"() {
+        // Smoke test for BeanPropertyWriter.reportIfUnsupportedKotlinDelegate's uninitialized-Lazy
+        // branch: when the delegate has no value yet, the widening check is bypassed and a deferred
+        // problem ("Cannot type-check `by lazy` delegate ...") is emitted so the skip is visible
+        // in the CC problems report. The same `by lazy` FORCED at configuration time hits the
+        // widening check normally — see "Kotlin lazy fails sensibly with explicit Configuration
+        // type" above for that path.
         //
-        // The store still fails for an unrelated reason: kotlin.Lazy has no dedicated codec, so
-        // the bean codec walks its internals and chokes on the SynchronizedLazyImpl monitor.
-        // What this test pins down is the *absence* of the widening error in the failure — that
-        // absence is the user-visible evidence the bypass fired.
+        // Why a smoke test rather than a behavioural test: kotlin.Lazy has no dedicated codec, so
+        // the bean codec then walks the SynchronizedLazyImpl internals and crashes regardless of
+        // the bypass. The test pins down two positive signals — the deferred bypass problem
+        // surfaces, and the lazy's body is never forced by the bypass code itself.
         given:
         file("buildSrc/settings.gradle.kts").text = ""
         file("buildSrc/build.gradle.kts").text = """
@@ -933,8 +934,12 @@ class ConfigurationCacheUnsupportedTypesIntegrationTest extends AbstractConfigur
         when: "store CC without forcing the lazy"
         configurationCacheFails "unforcedLazy"
 
-        then: "the failure is the generic Lazy-encoding path; the widening check never fired"
-        outputContains("error writing value of type 'kotlin.SynchronizedLazyImpl'")
-        outputDoesNotContain("Cannot serialize lazy delegate for property 'notForced'")
+        then: "two failures surface: the SynchronizedLazyImpl crash from the bean codec and the deferred bypass problem"
+        failure.assertHasFailures(2)
+        failure.assertHasCause(
+            "Cannot type-check `by lazy` delegate for property 'notForced' in task :unforcedLazy of type UnforcedLazyTask: " +
+                "the delegate was not initialized at configuration cache store time, " +
+                "so the load-side value type cannot be verified."
+        )
     }
 }
