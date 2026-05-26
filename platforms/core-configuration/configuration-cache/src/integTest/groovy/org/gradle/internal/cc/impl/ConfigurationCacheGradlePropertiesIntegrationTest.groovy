@@ -1026,14 +1026,14 @@ class ConfigurationCacheGradlePropertiesIntegrationTest extends AbstractConfigur
         configurationCacheFails taskName
 
         then:
-        assertHasUnsupportedPropertyValueType(propertyKind, unsupportedType, taskName, taskType)
+        assertHasUnsupportedPropertyValueType(propertyKind, unsupportedType, taskName, taskType, mapKeyOrValue)
 
         where:
-        propertyKind | unsupportedType | typeSimpleName  | taskName         | taskType            | buildScript
-        ListProperty | Configuration   | "Configuration" | "listConfTask"   | "ListConfTask"      | listPropertyBuildScript()
-        SetProperty  | Configuration   | "Configuration" | "setConfTask"    | "SetConfTask"       | setPropertyBuildScript()
-        MapProperty  | Configuration   | "Configuration" | "mapConfTask"    | "MapConfTask"       | mapPropertyValueBuildScript()
-        MapProperty  | Configuration   | "Configuration" | "mapKeyConfTask" | "MapKeyConfTask"    | mapPropertyKeyBuildScript()
+        propertyKind | unsupportedType | typeSimpleName  | taskName         | taskType            | mapKeyOrValue | buildScript
+        ListProperty | Configuration   | "Configuration" | "listConfTask"   | "ListConfTask"      | null          | listPropertyBuildScript()
+        SetProperty  | Configuration   | "Configuration" | "setConfTask"    | "SetConfTask"       | null          | setPropertyBuildScript()
+        MapProperty  | Configuration   | "Configuration" | "mapConfTask"    | "MapConfTask"       | "value"       | mapPropertyValueBuildScript()
+        MapProperty  | Configuration   | "Configuration" | "mapKeyConfTask" | "MapKeyConfTask"    | "key"         | mapPropertyKeyBuildScript()
     }
 
     private static String listPropertyBuildScript() {
@@ -1215,12 +1215,13 @@ class ConfigurationCacheGradlePropertiesIntegrationTest extends AbstractConfigur
         """
     }
 
-    private void assertHasUnsupportedPropertyValueType(Class<?> propertyKind, Class<?> unsupportedType, String taskPath, String taskType) {
+    private void assertHasUnsupportedPropertyValueType(Class<?> propertyKind, Class<?> unsupportedType, String taskPath, String taskType, String mapKeyOrValue = null) {
         failure.assertHasCause(
             "Cannot serialize ${propertyKind.simpleName}<${unsupportedType.simpleName}> in task :${taskPath} of type ${taskType}. The value type of this property (${unsupportedType.name}) is not supported with the configuration cache:"
         )
         if (MapProperty.isAssignableFrom(propertyKind)) {
-            failure.assertHasResolution("Avoid using ${unsupportedType.simpleName} as a MapProperty key or value.")
+            assert mapKeyOrValue in ['key', 'value']: "MapProperty assertions must declare whether the problem is with the key or the value"
+            failure.assertHasResolution("Avoid using ${unsupportedType.simpleName} as a MapProperty ${mapKeyOrValue}.")
         } else if (SourceDirectorySet.isAssignableFrom(unsupportedType)) {
             failure.assertHasResolution("Use a ConfigurableFileCollection or ConfigurableFileTree instead.")
         } else {

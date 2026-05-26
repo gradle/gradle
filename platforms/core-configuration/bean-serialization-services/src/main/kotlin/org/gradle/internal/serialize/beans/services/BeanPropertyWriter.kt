@@ -24,11 +24,10 @@ import org.gradle.internal.extensions.stdlib.uncheckedCast
 import org.gradle.internal.reflect.UnsupportedTypeException
 import org.gradle.internal.serialize.graph.BeanStateWriter
 import org.gradle.internal.serialize.graph.WriteContext
-import org.gradle.internal.serialize.graph.codecs.WideningCodec
-import org.gradle.internal.serialize.graph.codecs.findCodecThatWidensIncompatibly
+import org.gradle.internal.serialize.graph.findCodecThatWidensIncompatibly
+import org.gradle.internal.serialize.graph.reportIfIncompatibleRoundtrip
 import org.gradle.internal.serialize.graph.reportSerializationProblem
 import org.gradle.internal.serialize.graph.withPropertyTrace
-import org.gradle.internal.serialize.graph.taskDescription
 import org.gradle.internal.serialize.graph.withDebugFrame
 import org.gradle.internal.serialize.graph.writePropertyValue
 import java.lang.reflect.Field
@@ -71,38 +70,6 @@ class BeanPropertyWriter(
                 writePropertyValue(PropertyKind.Field, fieldName, effectiveValue)
             }
         }
-    }
-
-    /**
-     * Reports a deferred problem when a non-null field value would be encoded
-     * by a [WideningCodec] whose `decodedType` cannot be assigned back to the
-     * field's declared type.
-     *
-     * @return `true` when the field's value must be dropped from the cache.
-     */
-    internal
-    suspend fun WriteContext.reportIfIncompatibleRoundtrip(field: Field, fieldName: String, fieldValue: Any?): Boolean {
-        if (fieldValue == null) return false
-        val widening = findCodecThatWidensIncompatibly(field.type, fieldValue.javaClass) ?: return false
-        // The helper has already rejected the case where field.type is a supertype of
-        // decodedType (load-side value fits the field). This branch handles the OPPOSITE
-        // subtype relation: field.type is a subtype of decodedType — the codec may produce
-        // a concrete instance of that subtype at runtime (codecs declare a broad interface
-        // but generally construct via a factory that yields the expected concrete class).
-        // Only flag when the types share no subtyping relation at all — then reassignment
-        // is definitely impossible.
-        if (widening.decodedType.isAssignableFrom(field.type)) return false
-        val exception = UnsupportedTypeException(
-            "Cannot serialize value of type ${fieldValue.javaClass.name} into field " +
-                "${field.name} of ${field.declaringClass.name} in ${trace.taskDescription()}: " +
-                "its codec produces ${widening.publicDecodedType.name} on load, " +
-                "which cannot be assigned to a field of type ${field.type.name}.",
-            listOf(widening.wideningFix)
-        )
-        withPropertyTrace(PropertyKind.Field, fieldName) {
-            reportSerializationProblem(exception)
-        }
-        return true
     }
 
     /**

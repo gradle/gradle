@@ -17,7 +17,6 @@
 package org.gradle.internal.serialize.graph.codecs
 
 import org.gradle.internal.serialize.graph.Codec
-import org.gradle.internal.serialize.graph.WriteContext
 
 
 /**
@@ -35,6 +34,12 @@ import org.gradle.internal.serialize.graph.WriteContext
  * always returns a `FileCollectionInternal`.  A field declared as
  * `Configuration` cannot accept that decoded value, so `ConfigurationCodec`
  * opts in.
+ *
+ * The lookup helper [org.gradle.internal.serialize.graph.findCodecThatWidensIncompatibly]
+ * and the reporting helpers
+ * [org.gradle.internal.serialize.graph.reportIfIncompatibleRoundtrip] and
+ * [org.gradle.internal.serialize.graph.reportIfUnsupportedPropertyValueType]
+ * live in `WideningTypeSerializationFailureHelper.kt` and consume this interface.
  */
 interface WideningCodec<T : Any> : Codec<T> {
     /** The exact type produced by `decode`. */
@@ -57,36 +62,4 @@ interface WideningCodec<T : Any> : Codec<T> {
      * instead).
      */
     val wideningFix: String
-}
-
-
-/**
- * Returns the [WideningCodec] registered for [runtimeType] when its decoded
- * type cannot be assigned to [declaredType] — meaning a value of [runtimeType]
- * flowing into a slot typed [declaredType] cannot survive the configuration
- * cache roundtrip. Returns null in three cases:
- *
- * - no codec is registered for [runtimeType],
- * - the registered codec is not a [WideningCodec] (it roundtrips to its
- *   declared type, no widening occurs), or
- * - the slot's declared type can accept the codec's `decodedType` (the
- *   load-side value fits the slot).
- *
- * Centralises the codec-lookup core shared by every store-time roundtrip-type
- * check (bean fields, record components, lambda parameters, `Property<T>`
- * value types, Kotlin delegates). Callers layer their own carve-outs and
- * reporting on top of the returned codec.
- *
- * Pass [runtimeType] explicitly when the value's runtime class is more specific
- * than the slot's declared type (the common case for bean fields). Omit it when
- * the slot's declared type IS the only type signal available (the lambda and
- * `Property<T>` cases) — it then defaults to [declaredType].
- */
-fun WriteContext.findCodecThatWidensIncompatibly(
-    declaredType: Class<*>,
-    runtimeType: Class<*> = declaredType
-): WideningCodec<*>? {
-    val widening = codecForRuntimeType(runtimeType) as? WideningCodec<*> ?: return null
-    if (declaredType.isAssignableFrom(widening.decodedType)) return null
-    return widening
 }

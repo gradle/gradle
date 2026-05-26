@@ -401,6 +401,18 @@ sealed class PropertyTrace {
         }
 
     /**
+     * Returns a human-readable description of the task this trace is rooted in,
+     * for use in error messages. Falls back to the full property trace string
+     * when no [Task] frame is on the trace.
+     */
+    fun taskDescription(): String =
+        sequence
+            .filterIsInstance<Task>()
+            .firstOrNull()
+            ?.let { "task ${it.path} of type ${it.type.simpleName}" }
+            ?: toString()
+
+    /**
      * A hash that includes the entire property trace chain into account.
      *
      * This is a best effort to achieve deep/full property trace uniqueness.
