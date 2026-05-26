@@ -95,6 +95,11 @@ public class InstanceOptionDescriptor implements OptionDescriptor {
     }
 
     @Override
+    public boolean isExecutionTimeOnly() {
+        return optionElement.isExecutionTimeOnly();
+    }
+
+    @Override
     public void apply(Object objectParam, List<String> parameterValues) {
         if (objectParam != object) {
             throw new AssertionError(String.format("Object %s not applyable. Expecting %s", objectParam, object));

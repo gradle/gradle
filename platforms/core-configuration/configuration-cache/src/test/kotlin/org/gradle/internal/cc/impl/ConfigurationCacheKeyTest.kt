@@ -36,6 +36,8 @@ import org.hamcrest.CoreMatchers.not
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.mock
 
 
 class ConfigurationCacheKeyTest {
@@ -132,6 +134,87 @@ class ConfigurationCacheKeyTest {
         )
     }
 
+    @Test
+    fun `cache key ignores --tests value`() {
+        manifestNames = setOf("tests")
+        assertThat(
+            cacheKeyStringFromStartParameter {
+                setTaskNames(listOf("test", "--tests", "Foo"))
+            },
+            equalTo(
+                cacheKeyStringFromStartParameter {
+                    setTaskNames(listOf("test", "--tests", "Bar"))
+                }
+            )
+        )
+        assertThat(
+            cacheKeyStringFromStartParameter {
+                setTaskNames(listOf("test", "--tests=Foo"))
+            },
+            equalTo(
+                cacheKeyStringFromStartParameter {
+                    setTaskNames(listOf("test", "--tests=Bar"))
+                }
+            )
+        )
+        assertThat(
+            cacheKeyStringFromStartParameter {
+                setTaskNames(listOf("test", "--tests", "Foo"))
+            },
+            equalTo(
+                cacheKeyStringFromStartParameter {
+                    setTaskNames(listOf("test", "--tests=Bar"))
+                }
+            )
+        )
+    }
+
+    @Test
+    fun `cache key includes --tests value when manifest is empty`() {
+        // No manifest written; candidate set is empty; --tests participates in the key.
+        assertThat(
+            cacheKeyStringFromStartParameter {
+                setTaskNames(listOf("test", "--tests", "Foo"))
+            },
+            not(equalTo(
+                cacheKeyStringFromStartParameter {
+                    setTaskNames(listOf("test", "--tests", "Bar"))
+                }
+            ))
+        )
+    }
+
+    @Test
+    fun `cache key still differs when task names differ`() {
+        assertThat(
+            cacheKeyStringFromStartParameter {
+                setTaskNames(listOf("test", "--tests", "Foo"))
+            },
+            not(equalTo(
+                cacheKeyStringFromStartParameter {
+                    setTaskNames(listOf("check", "--tests", "Foo"))
+                }
+            ))
+        )
+    }
+
+    @Test
+    fun `cache key still differs when non-execution-time options differ`() {
+        assertThat(
+            cacheKeyStringFromStartParameter {
+                setTaskNames(listOf("test", "--info"))
+            },
+            not(equalTo(
+                cacheKeyStringFromStartParameter {
+                    setTaskNames(listOf("test"))
+                }
+            ))
+        )
+    }
+
+    private
+    var manifestNames: Set<String> = emptySet()
+
     private
     fun cacheKeyStringFromStartParameter(configure: StartParameterInternal.() -> Unit): String {
         val startParameter = StartParameterInternal().apply(configure)
@@ -151,6 +234,9 @@ class ConfigurationCacheKeyTest {
                     get() = false
                 override val encryptionAlgorithm: EncryptionAlgorithm
                     get() = SupportedEncryptionAlgorithm.getDefault()
+            },
+            mock<ExecutionTimeOnlyOptionsManifestService> {
+                on { taskOptionNames() } doReturn manifestNames
             }
         ).string
     }

@@ -34,4 +34,12 @@ public interface OptionElement {
     void apply(Object object, List<String> parameterValues) throws TypeConversionException;
 
     String getDescription();
+
+    /**
+     * @return whether this option's value is execution-time-only
+     *         (see {@link org.gradle.api.tasks.options.Option#executionTimeOnly()}).
+     */
+    default boolean isExecutionTimeOnly() {
+        return false;
+    }
 }

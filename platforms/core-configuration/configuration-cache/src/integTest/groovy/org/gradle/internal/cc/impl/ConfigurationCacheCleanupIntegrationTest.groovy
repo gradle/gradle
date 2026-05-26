@@ -70,7 +70,7 @@ class ConfigurationCacheCleanupIntegrationTest
 
         and:
         def remaining = configurationCacheDir.list() as Set
-        def expected = (recent*.name + ['gc.properties', 'configuration-cache.lock']) as Set
+        def expected = (recent*.name + ['gc.properties', 'configuration-cache.lock', 'execution-time-only-options.manifest']) as Set
         expected == remaining
     }
 

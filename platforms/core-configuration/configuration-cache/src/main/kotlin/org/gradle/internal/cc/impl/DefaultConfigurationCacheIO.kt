@@ -224,12 +224,21 @@ class DefaultConfigurationCacheIO internal constructor(
         loadAfterStore: Boolean,
         graph: BuildTreeWorkGraph,
         graphBuilder: BuildTreeWorkGraphBuilder?
-    ): Pair<String, BuildTreeWorkGraph.FinalizedGraph> =
-        readConfigurationCacheState(stateFile) { state ->
+    ): Pair<String, BuildTreeWorkGraph.FinalizedGraph> {
+        // Capture the ConfigurationCacheState so we can inspect any deferred
+        // execution-time-only options validation failure AFTER the read context has
+        // closed. Throwing while still inside the deserialization context would let the
+        // codec swallow the exception as a reported "problem".
+        var capturedState: ConfigurationCacheState? = null
+        val result = readConfigurationCacheState(stateFile) { state ->
+            capturedState = state
             state.run {
                 readRootBuildState(graph, graphBuilder, loadAfterStore)
             }
         }
+        capturedState?.pendingValidationFailure?.let { throw it }
+        return result
+    }
 
     override fun WriteContext.writeIncludedBuildStateTo(stateFile: ConfigurationCacheStateFile, buildTreeState: StoredBuildTreeState, shouldStoreProject: (ProjectState) -> Boolean) =
         // we share the string encoder with the root build, but not the shared object encoder

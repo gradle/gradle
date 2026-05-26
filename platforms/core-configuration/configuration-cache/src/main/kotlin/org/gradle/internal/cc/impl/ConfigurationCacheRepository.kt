@@ -64,6 +64,16 @@ class ConfigurationCacheRepository(
         return StoreImpl(dirForEntry(cacheKey))
     }
 
+    /**
+     * Root directory of the configuration-cache repository on disk. Directly contains
+     * both per-cache-key subdirectories (one per [forKey] entry) and shared metadata
+     * files like `gc.properties`, `configuration-cache.lock`, and the
+     * execution-time-only options manifest.
+     */
+    internal
+    val cacheDir: File
+        get() = cache.baseDir
+
     interface CleanupContext {
         val eligibleFilesFinder: FilesFinder
         fun dirForEntry(entry: String): File

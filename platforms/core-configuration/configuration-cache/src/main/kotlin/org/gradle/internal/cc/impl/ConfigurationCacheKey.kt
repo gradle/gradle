@@ -34,7 +34,8 @@ internal
 class ConfigurationCacheKey(
     private val startParameter: ConfigurationCacheStartParameter,
     private val buildActionRequirements: BuildActionModelRequirements,
-    private val encryptionConfiguration: EncryptionConfiguration
+    private val encryptionConfiguration: EncryptionConfiguration,
+    private val executionTimeOnlyOptionsManifestService: ExecutionTimeOnlyOptionsManifestService
 ) {
 
     val string: String by unsafeLazy {
@@ -112,7 +113,8 @@ class ConfigurationCacheKey(
     private
     fun Hasher.appendRequestedTasks() {
         val requestedTaskNames = startParameter.requestedTaskNames
-        putAll(requestedTaskNames)
+        val candidateNames = executionTimeOnlyOptionsManifestService.taskOptionNames()
+        putAll(ExecutionTimeOnlyOptionsManifestService.stripFrom(requestedTaskNames, candidateNames))
 
         val excludedTaskNames = startParameter.excludedTaskNames
         putAll(excludedTaskNames)

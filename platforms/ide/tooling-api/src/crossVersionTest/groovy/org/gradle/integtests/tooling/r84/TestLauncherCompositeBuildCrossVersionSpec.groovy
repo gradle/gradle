@@ -22,6 +22,7 @@ import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.ProjectConnection
+import spock.lang.Ignore
 import spock.lang.Issue
 
 import java.util.function.Function
@@ -93,7 +94,9 @@ class TestLauncherCompositeBuildCrossVersionSpec extends ToolingApiSpecification
 
         and:
         if (api == LauncherApi.BUILD_LAUNCHER) {
-            // Remove distinction once https://github.com/gradle/gradle/issues/24550 is fixed
+            // v1 of the execution-time-only options optimization does not apply to composite builds.
+            // BUILD_LAUNCHER's --tests flows through requestedTaskNames into included-build keys,
+            // which lack the manifest entry, so the second invocation always misses.
             assert noConfigurationCacheAvailableIn(output2)
         } else {
             assert configurationCacheReusedIn(output2)
@@ -101,6 +104,28 @@ class TestLauncherCompositeBuildCrossVersionSpec extends ToolingApiSpecification
 
         where:
         api << LauncherApi.values()
+    }
+
+    /**
+     * v2 scope: BUILD_LAUNCHER + composite + CC + --tests should reuse the configuration cache
+     * on the second invocation. v1 of the execution-time-only options feature scopes the manifest
+     * and key-stripping to the root build only, so this behavior is asserted as a miss by the
+     * existing cross-version tests above. This ignored stub exists as a regression-detection
+     * pin: when v2 lands, remove the @Ignore and the existing "v1 limitation" assertions in
+     * the three configuration-cache-enabled composite tests above should flip to assert reuse.
+     */
+    @Ignore("v2 scope — composite-build execution-time-only options optimization not yet implemented")
+    def "v2: BUILD_LAUNCHER + composite + CC + --tests reuses configuration cache on second invocation"() {
+        given:
+        def runTestClass = withIncludedBuildTest(LauncherApi.BUILD_LAUNCHER)
+        withConfigurationCache()
+
+        when:
+        runTestClass.apply('TestClass1')
+        def output2 = runTestClass.apply('TestClass2')
+
+        then:
+        configurationCacheReusedIn(output2)
     }
 
     def "Can run tasks from included build subproject"() {
@@ -158,7 +183,9 @@ class TestLauncherCompositeBuildCrossVersionSpec extends ToolingApiSpecification
 
         and:
         if (api == LauncherApi.BUILD_LAUNCHER) {
-            // Remove distinction once https://github.com/gradle/gradle/issues/24550 is fixed
+            // v1 of the execution-time-only options optimization does not apply to composite builds.
+            // BUILD_LAUNCHER's --tests flows through requestedTaskNames into included-build keys,
+            // which lack the manifest entry, so the second invocation always misses.
             assert noConfigurationCacheAvailableIn(output2)
         } else {
             assert configurationCacheReusedIn(output2)
@@ -222,7 +249,9 @@ class TestLauncherCompositeBuildCrossVersionSpec extends ToolingApiSpecification
 
         and:
         if (api == LauncherApi.BUILD_LAUNCHER) {
-            // Remove distinction once https://github.com/gradle/gradle/issues/24550 is fixed
+            // v1 of the execution-time-only options optimization does not apply to composite builds.
+            // BUILD_LAUNCHER's --tests flows through requestedTaskNames into included-build keys,
+            // which lack the manifest entry, so the second invocation always misses.
             assert noConfigurationCacheAvailableIn(output2)
         } else {
             assert configurationCacheReusedIn(output2)
@@ -340,10 +369,10 @@ class TestLauncherCompositeBuildCrossVersionSpec extends ToolingApiSpecification
     }
 
     private boolean noConfigurationCacheAvailableIn(String output) {
-        noConfigCachePattern.matcher(output).find()
+        NO_CONFIG_CACHE_PATTERN.matcher(output).find()
     }
 
-    static Pattern noConfigCachePattern = Pattern.compile(
+    private static final Pattern NO_CONFIG_CACHE_PATTERN = Pattern.compile(
         'Calculating task graph as no (cached configuration|configuration cache) is available',
         Pattern.MULTILINE
     )
