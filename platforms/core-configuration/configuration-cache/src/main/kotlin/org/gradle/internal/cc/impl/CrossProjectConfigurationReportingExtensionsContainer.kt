@@ -17,6 +17,7 @@
 package org.gradle.internal.cc.impl
 
 import com.google.common.collect.ImmutableMap
+import groovy.lang.ReadOnlyPropertyException
 import org.gradle.api.Action
 import org.gradle.api.internal.plugins.ExtensionContainerInternal
 import org.gradle.api.internal.project.ProjectIdentity
@@ -106,6 +107,20 @@ internal class CrossProjectConfigurationReportingExtensionsContainer(
         onMutableStateAccess("configure extension of name `${name}`")
         delegate.configure(name, action)
     }
+
+    // region Groovy support
+    fun propertyMissing(name: String): Any =
+        getByName(name)
+
+    fun propertyMissing(name: String, value: Any) {
+        if (findByName(name) != null) {
+            throw IllegalArgumentException(
+                "There's an extension registered with name '$name'. You should not reassign it via a property setter."
+            )
+        }
+        add(name, value)
+    }
+    // endregion Groovy support
 }
 
 private class CrossProjectConfigurationReportingExtraPropertiesExtension(
@@ -126,4 +141,18 @@ private class CrossProjectConfigurationReportingExtraPropertiesExtension(
         }
         delegate.set(name, value)
     }
+
+    // region Groovy support
+    fun propertyMissing(name: String): Any? {
+        if (name == "properties") return properties
+        return get(name)
+    }
+
+    fun propertyMissing(name: String, value: Any?) {
+        if (name == "properties") {
+            throw ReadOnlyPropertyException("name", ExtraPropertiesExtension::class.java)
+        }
+        set(name, value)
+    }
+    // endregion Groovy support
 }
