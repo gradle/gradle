@@ -15,7 +15,17 @@
   }, {
     "testId" : "org.gradle.performance.crossbuild.ip.IsolatedProjectsAndroidSyncPerformanceComparisonTest.sync Studio after build logic ABI change",
     "groups" : [ {
+      "testProject" : "android100Groovy",
+      "coverage" : {
+        "per_day" : [ "linux" ]
+      }
+    }, {
       "testProject" : "android100Kts",
+      "coverage" : {
+        "per_day" : [ "linux" ]
+      }
+    }, {
+      "testProject" : "nowInAndroidBuild",
       "coverage" : {
         "per_day" : [ "linux" ]
       }
@@ -509,7 +519,17 @@
   }, {
     "testId" : "org.gradle.performance.regression.ip.IsolatedProjectsAndroidSyncPerformanceRegressionTest.sync Studio after build logic ABI change with cold daemon",
     "groups" : [ {
+      "testProject" : "android100Groovy",
+      "coverage" : {
+        "per_day" : [ "linux" ]
+      }
+    }, {
       "testProject" : "android100Kts",
+      "coverage" : {
+        "per_day" : [ "linux" ]
+      }
+    }, {
+      "testProject" : "nowInAndroidBuild",
       "coverage" : {
         "per_day" : [ "linux" ]
       }
@@ -517,7 +537,17 @@
   }, {
     "testId" : "org.gradle.performance.regression.ip.IsolatedProjectsAndroidSyncPerformanceRegressionTest.sync Studio after build logic ABI change with warm daemon",
     "groups" : [ {
+      "testProject" : "android100Groovy",
+      "coverage" : {
+        "per_day" : [ "linux" ]
+      }
+    }, {
       "testProject" : "android100Kts",
+      "coverage" : {
+        "per_day" : [ "linux" ]
+      }
+    }, {
+      "testProject" : "nowInAndroidBuild",
       "coverage" : {
         "per_day" : [ "linux" ]
       }

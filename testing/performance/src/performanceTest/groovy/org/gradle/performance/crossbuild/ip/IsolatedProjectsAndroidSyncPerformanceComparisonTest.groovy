@@ -22,13 +22,14 @@ import org.gradle.performance.annotations.RunFor
 import org.gradle.performance.annotations.Scenario
 import org.gradle.performance.fixture.GradleBuildExperimentSpec
 import org.gradle.performance.results.CrossBuildPerformanceResults
+import org.gradle.performance.results.SpeedupAssertions
 import org.gradle.profiler.mutations.ApplyAbiChangeToSourceFileMutator
 
 import static org.gradle.performance.annotations.ScenarioType.PER_DAY
 import static org.gradle.performance.results.OperatingSystem.LINUX
 
 @RunFor(
-    @Scenario(type = PER_DAY, operatingSystems = [LINUX], testProjects = ["android100Kts"])
+    @Scenario(type = PER_DAY, operatingSystems = [LINUX], testProjects = ["android100Kts", "android100Groovy", "nowInAndroidBuild"])
 )
 class IsolatedProjectsAndroidSyncPerformanceComparisonTest extends AbstractCrossBuildPerformanceTest {
 
@@ -50,8 +51,15 @@ class IsolatedProjectsAndroidSyncPerformanceComparisonTest extends AbstractCross
         studioSetup()
         def runner = getRunner() // otherwise, IDEA thinks it's PerformanceTestRunner despite the override
 
+        def testProject = runner.testProject
+        def abiChangeSource = select("source file", testProject, [
+            "android100Kts": "build-logic/convention/src/main/java/org/example/awesome/AwesomeStringUtils.java",
+            "android100Groovy": "build-logic/convention/src/main/java/org/example/awesome/AwesomeStringUtils.java",
+            "nowInAndroidBuild": "build-logic/convention/src/main/kotlin/com/google/samples/apps/nowinandroid/AndroidCompose.kt",
+        ])
+
         runner.addBuildMutator { settings ->
-            new ApplyAbiChangeToSourceFileMutator(new File(settings.projectDir, "build-logic/convention/src/main/java/org/example/awesome/AwesomeStringUtils.java"))
+            new ApplyAbiChangeToSourceFileMutator(new File(settings.projectDir, abiChangeSource))
         }
 
         // 'Moderne' configuration that is used by performance aware teams
@@ -86,10 +94,22 @@ class IsolatedProjectsAndroidSyncPerformanceComparisonTest extends AbstractCross
         def moderne = buildBaselineResults(result, "moderne")
         def ip = result.buildResult("ip")
 
-        // TODO:isolated assert that IP is not just faster, but faster with a scaling factor
-        // TODO:isolated assert an upper bound of faster to visibly lock-in performance improvements
         println(moderne.getSpeedStatsAgainst("ip", ip))
-        !moderne.significantlyFasterThan(ip)
+
+        // Speedup of IP over moderne expected on this scenario.
+        // The ceiling sits +0.10 above the floor: any improvement that pushes the speedup past it
+        // fails the build, prompting us to ratchet both ends in the same PR rather than letting the
+        // win silently erode later. Each check has its own ±5% noise band, so the practical pass
+        // zone is roughly [floor − 5%, ceiling + 5%]. Do not delete the assertions when they fire.
+        double minSpeedup = select("speedup factor", testProject, [
+            "android100Kts": 2.40,
+            "android100Groovy": 1.30,
+            "nowInAndroidBuild": 1.30,
+        ]) as double
+        double maxSpeedup = minSpeedup + 0.10
+        def location = "${this.class.simpleName}[testProject=${runner.testProject}, baseline=moderne]"
+        SpeedupAssertions.assertSpeedupAtLeast(moderne.results, ip, minSpeedup, location)
+        SpeedupAssertions.assertSpeedupAtMost(moderne.results, ip, maxSpeedup, location)
     }
 
     @Override
@@ -105,5 +125,11 @@ class IsolatedProjectsAndroidSyncPerformanceComparisonTest extends AbstractCross
                     "--no-scan", // TODO:isolated benchmark with Develocity plugin as well
                 )
             }
+    }
+
+    static <T> T select(String what, String testProject, Map<String, T> values) {
+        def value = values[testProject]
+        assert value != null: "No $what provided for test project '$testProject'"
+        value
     }
 }
