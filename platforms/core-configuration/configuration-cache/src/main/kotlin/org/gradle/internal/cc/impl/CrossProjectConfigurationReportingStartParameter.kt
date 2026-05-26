@@ -71,6 +71,7 @@ internal class CrossProjectConfigurationReportingStartParameter(
 
     private fun duringSuperInit(): Boolean = delegateOrNull == null
 
+    @Suppress("ThrowingExceptionsWithoutMessageOrCause")
     private fun onMutation(what: String) {
         val problems = ipProblems ?: return
         val ref = referrer ?: return
