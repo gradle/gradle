@@ -60,7 +60,7 @@ public class ProjectLifecycleController implements Closeable {
     }
 
     public void assertConfigured() {
-        controller.assertInStateOrLater(State.Configured);
+        controller.assertHasSeenState(State.Configured);
     }
 
     public void createMutableModel(
@@ -84,12 +84,12 @@ public class ProjectLifecycleController implements Closeable {
     }
 
     public ProjectInternal getMutableModel() {
-        controller.assertInStateOrLater(State.Created);
+        controller.assertHasSeenState(State.Created);
         return project;
     }
 
     public ProjectInternal getMutableModelEvenAfterFailure() {
-        controller.assertInStateOrLaterIgnoringFailures(State.Created);
+        controller.assertHasSeenStateIgnoringFailures(State.Created);
         return project;
     }
 
@@ -97,7 +97,7 @@ public class ProjectLifecycleController implements Closeable {
         // Avoid taking the controller lock if already configured, to avoid contention and deadlocks.
         // ProjectState#ensureConfigured tries to configure parent projects, and child projects shouldn't
         // need to all take the lock if the parent project(s) are already configured.
-        if (controller.inStateOrLater(State.Configured)) {
+        if (controller.hasSeenState(State.Configured)) {
             return;
         }
         controller.maybeTransitionIfNotCurrentlyTransitioning(State.Created, State.Configured, () -> project.evaluateUnchecked());

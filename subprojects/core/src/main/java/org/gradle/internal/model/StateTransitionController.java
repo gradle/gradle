@@ -48,7 +48,9 @@ public class StateTransitionController<T extends StateTransitionController.State
     /**
      * Verifies that the current state is not the given state. Ignores any transition in progress and failures of previous operations.
      *
-     * <p>You should try to not use this method, as it does not provide any thread safety for the code that follows the call.</p>
+     * <p>
+     * Do not use this result to operate on shared mutable state, as that will not occur under synchronization.
+     * Use one of the methods that take an action to perform the operation while synchronizing on the state.
      */
     public void assertNotInState(T forbidden) {
         if (state.state == forbidden) {
@@ -57,41 +59,51 @@ public class StateTransitionController<T extends StateTransitionController.State
     }
 
     /**
-     * Verifies that the current state is the given state or some later state. Ignores any transition in progress and failures of previous operations.
+     * Checks that the expected state has been seen. Ignores any transition in progress.
      *
-     * <p>You should try to not use this method, as it does not provide any thread safety for the code that follows the call.</p>
+     * <p>
+     * Do not use this result to operate on shared mutable state, as that will not occur under synchronization.
+     * Use one of the methods that take an action to perform the operation while synchronizing on the state.
      */
-    public boolean inStateOrLater(T expected) {
+    public boolean hasSeenState(T expected) {
         CurrentState<T> current = state;
         return current.hasSeenStateIgnoringTransitions(expected);
     }
 
     /**
-     * Verifies that the given state was reached, even if there were failures afterward.
+     * Checks that the expected state has been seen. Ignores any transition in progress or failures of previous operations.
      *
-     * <p>You should try to not use this method, as it does not provide any thread safety for the code that follows the call.</p>
+     * <p>
+     * Do not use this result to operate on shared mutable state, as that will not occur under synchronization.
+     * Use one of the methods that take an action to perform the operation while synchronizing on the state.
      */
-    public boolean inStateOrLaterIgnoringFailures(T expected) {
+    public boolean hasSeenStateIgnoringFailures(T expected) {
         CurrentState<T> current = state;
         return current.hasSeenStateIgnoringTransitionsOrFailures(expected);
     }
 
     /**
-     * Verifies that the current state is the given state or some later state. Ignores any transition in progress and failures of previous operations.
+     * Verifies that the expected state has been seen. Ignores any transition in progress.
      *
-     * <p>You should try to not use this method, as it does not provide any thread safety for the code that follows the call.</p>
+     * <p>
+     * Do not use this result to operate on shared mutable state, as that will not occur under synchronization.
+     * Use one of the methods that take an action to perform the operation while synchronizing on the state.
      */
-    public void assertInStateOrLater(T expected) {
-        if (!inStateOrLater(expected)) {
+    public void assertHasSeenState(T expected) {
+        if (!hasSeenState(expected)) {
             throw new IllegalStateException(displayName.getCapitalizedDisplayName() + " should be in state " + expected + " or later.");
         }
     }
 
     /**
-     * Verifies that the given state was reached, even if there were failures afterward.
+     * Verifies that the expected state has been seen. Ignores any transition in progress or failures of previous operations.
+     *
+     * <p>
+     * Do not use this result to operate on shared mutable state, as that will not occur under synchronization.
+     * Use one of the methods that take an action to perform the operation while synchronizing on the state.
      */
-    public void assertInStateOrLaterIgnoringFailures(T expected) {
-        if (!inStateOrLaterIgnoringFailures(expected)) {
+    public void assertHasSeenStateIgnoringFailures(T expected) {
+        if (!hasSeenStateIgnoringFailures(expected)) {
             throw new IllegalStateException(displayName.getCapitalizedDisplayName() + " should be in state " + expected + " or later.");
         }
     }
