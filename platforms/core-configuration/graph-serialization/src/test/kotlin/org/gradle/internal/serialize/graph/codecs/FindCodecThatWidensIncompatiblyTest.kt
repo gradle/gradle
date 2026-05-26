@@ -19,7 +19,6 @@ package org.gradle.internal.serialize.graph.codecs
 import org.gradle.internal.serialize.graph.Codec
 import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.WriteContext
-import org.gradle.internal.serialize.graph.findCodecThatWidensIncompatibly
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertSame
 import org.junit.Test

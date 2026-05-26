@@ -30,7 +30,7 @@ import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.WriteContext
 import org.gradle.internal.serialize.graph.WriteIsolate
 import org.gradle.internal.serialize.graph.codecs.WideningCodec
-import org.gradle.internal.serialize.graph.reportIfUnsupportedPropertyValueType
+import org.gradle.internal.serialize.graph.codecs.reportIfUnsupportedPropertyValueType
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotEquals
