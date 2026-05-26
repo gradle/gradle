@@ -240,7 +240,7 @@ class CrossProjectConfigurationReportingGradle(
         delegate.pluginManager
 
     override fun getExtensions(): ExtensionContainer =
-        delegate.extensions
+        crossProjectModelAccess.getExtensionContainerForProject(referrerProject, delegate.extensions)
 
     override fun getGradleVersion(): String =
         delegate.gradleVersion
