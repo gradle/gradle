@@ -52,10 +52,10 @@ class BindingsBackedCodec(private val bindings: List<Binding>) : Codec<Any?>, Co
         const val SENTINEL_VALUE: Byte = 0
     }
 
-    // Cache is shared with taggedEncodingFor. Both paths produce the same TaggedEncoding
-    // for a hit; encodingForType caches misses using noMatch, which is never observed
-    // by taggedEncodingFor (it uses computeIfAbsent and throws on a miss path that never
-    // caches).
+    // Shared cache for taggedEncodingFor and encodingForType. Hits store the matching
+    // TaggedEncoding; misses store the noMatch sentinel so subsequent lookups for the
+    // same type stay O(1). taggedEncodingFor turns an observed noMatch into a thrown
+    // IllegalArgumentException; encodingForType turns it into a null return.
     private
     val encodings = ConcurrentHashMap<Class<*>, TaggedEncoding>()
 
