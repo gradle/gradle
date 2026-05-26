@@ -90,7 +90,7 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
     private final CrossBuildModelAccess crossBuildModelAccess;
 
     // Mutable State
-    private final ListenerBroadcast<BuildListener> buildListenerBroadcast;
+    private final BuildListenerBroadcast buildListenerBroadcast;
     private final ListenerBroadcast<ProjectEvaluationListener> projectEvaluationListenerBroadcast;
     private final MutableActionSet<Project> rootProjectActions = new MutableActionSet<>();
     private @Nullable List<IncludedBuildInternal> includedBuilds;
@@ -110,10 +110,10 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
         this.gradleLifecycleActionExecutor = buildScopeServices.get(GradleLifecycleActionExecutor.class);
         this.crossBuildModelAccess = buildScopeServices.get(CrossBuildModelAccess.class);
 
-        this.buildListenerBroadcast = getListenerManager().createAnonymousBroadcaster(BuildListener.class);
+        this.buildListenerBroadcast = buildScopeServices.get(BuildListenerBroadcast.class);
         this.projectEvaluationListenerBroadcast = getListenerManager().createAnonymousBroadcaster(ProjectEvaluationListener.class);
 
-        buildListenerBroadcast.add(new InternalBuildAdapter() {
+        buildListenerBroadcast.getBroadcast().add(new InternalBuildAdapter() {
             @Override
             public void projectsLoaded(Gradle gradle) {
                 ProjectEvaluationListener isolatedListener = isolatedProjectEvaluationListenerProvider.isolateFor(DefaultGradle.this);
@@ -226,7 +226,7 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
         includedBuilds = null;
         rootProjectActions.clear();
         isolatedProjectEvaluationListenerProvider.clear();
-        buildListenerBroadcast.removeAll();
+        buildListenerBroadcast.resetState();
         projectEvaluationListenerBroadcast.removeAll();
         getTaskGraph().resetState();
         if (settings != null) {
@@ -370,7 +370,7 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
 
     @Override
     public void beforeSettings(Action<? super Settings> action) {
-        buildListenerBroadcast.add("beforeSettings", action);
+        buildListenerBroadcast.getBroadcast().add("beforeSettings", action);
     }
 
     @Override
@@ -380,7 +380,7 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
 
     @Override
     public void settingsEvaluated(Action<? super Settings> action) {
-        buildListenerBroadcast.add("settingsEvaluated", action);
+        buildListenerBroadcast.getBroadcast().add("settingsEvaluated", action);
     }
 
     @Override
@@ -414,7 +414,7 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
     @Deprecated
     public void buildFinished(Action<? super BuildResult> action) {
         notifyListenerRegistration("Gradle.buildFinished", action);
-        buildListenerBroadcast.add("buildFinished", action);
+        buildListenerBroadcast.getBroadcast().add("buildFinished", action);
     }
 
     @Override
@@ -439,17 +439,17 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
     }
 
     private void registerBuildListener(String methodName, Closure<?> closure) {
-        buildListenerBroadcast.add(new ClosureBackedMethodInvocationDispatch(methodName, closure));
+        buildListenerBroadcast.getBroadcast().add(new ClosureBackedMethodInvocationDispatch(methodName, closure));
     }
 
     private void registerBuildListener(String registrationPoint, String methodName, String signature, Action<? super Gradle> action) {
         assertProjectMutatingMethodAllowed(signature);
-        buildListenerBroadcast.add(methodName, decorate(registrationPoint, action));
+        buildListenerBroadcast.getBroadcast().add(methodName, decorate(registrationPoint, action));
     }
 
     private void registerBuildListener(String registrationPoint, String methodName, String signature, Closure<?> closure) {
         assertProjectMutatingMethodAllowed(signature);
-        buildListenerBroadcast.add(new ClosureBackedMethodInvocationDispatch(methodName, decorate(registrationPoint, closure)));
+        buildListenerBroadcast.getBroadcast().add(new ClosureBackedMethodInvocationDispatch(methodName, decorate(registrationPoint, closure)));
     }
 
     private void addListener(String registrationPoint, Object listener) {

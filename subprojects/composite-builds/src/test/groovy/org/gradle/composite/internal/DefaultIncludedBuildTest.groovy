@@ -21,10 +21,14 @@ import org.gradle.api.internal.BuildDefinition
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.SettingsInternal
+import org.gradle.execution.BuildWorkExecutor
 import org.gradle.internal.build.BuildLifecycleController
 import org.gradle.internal.build.BuildLifecycleControllerFactory
+import org.gradle.internal.build.BuildModelController
 import org.gradle.internal.build.BuildState
+import org.gradle.internal.build.BuildWorkPreparer
 import org.gradle.internal.buildtree.BuildTreeServices
+import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.util.Path
 import spock.lang.Specification
@@ -39,7 +43,7 @@ class DefaultIncludedBuildTest extends Specification {
     DefaultIncludedBuild build
 
     def setup() {
-        _ * controllerFactory.newInstance(_, _) >> controller
+        _ * controllerFactory.newInstance(_, _.get(GradleInternal.class), _.get(ListenerManager.class), _.get(BuildModelController.class), _.get(GradleInternal.class).getServices().get(BuildWorkPreparer.class), _.get(GradleInternal.class).getServices().get(BuildWorkExecutor.class)) >> controller
         _ * controller.gradle >> gradle
         _ * gradle.settings >> Stub(SettingsInternal)
         def services = new DefaultServiceRegistry()

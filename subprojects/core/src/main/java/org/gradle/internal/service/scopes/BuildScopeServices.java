@@ -188,11 +188,15 @@ import org.gradle.internal.actor.internal.DefaultActorFactory;
 import org.gradle.internal.build.BuildIncluder;
 import org.gradle.internal.build.BuildLifecycleController;
 import org.gradle.internal.build.BuildLifecycleControllerFactory;
+import org.gradle.internal.build.BuildModelController;
+import org.gradle.internal.build.BuildModelLifecycleListener;
 import org.gradle.internal.build.BuildOperationFiringBuildWorkPreparer;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildStateRegistry;
+import org.gradle.internal.build.BuildToolingModelControllerFactory;
 import org.gradle.internal.build.BuildWorkGraphController;
 import org.gradle.internal.build.BuildWorkPreparer;
+import org.gradle.internal.build.DefaultBuildLifecycleController;
 import org.gradle.internal.build.DefaultBuildWorkGraphController;
 import org.gradle.internal.build.DefaultBuildWorkPreparer;
 import org.gradle.internal.build.DefaultPublicBuildPath;
@@ -213,6 +217,7 @@ import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.configuration.problems.IsolatedProjectsProblemsReporter;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.event.ScopedListenerManager;
+import org.gradle.internal.exception.ExceptionAnalyser;
 import org.gradle.internal.execution.BuildOutputCleanupRegistry;
 import org.gradle.internal.execution.ExecutionEngine;
 import org.gradle.internal.execution.InputFingerprinter;
@@ -230,6 +235,7 @@ import org.gradle.internal.logging.LoggingManagerFactory;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.management.ToolchainManagementInternal;
 import org.gradle.internal.model.CalculatedValueFactory;
+import org.gradle.internal.model.StateTransitionControllerFactory;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
@@ -250,6 +256,7 @@ import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.snapshot.CaseSensitivity;
 import org.gradle.internal.vfs.FileSystemAccess;
+import org.gradle.invocation.BuildListenerBroadcast;
 import org.gradle.invocation.DefaultGradle;
 import org.gradle.plugin.management.internal.PluginHandler;
 import org.gradle.plugin.use.internal.PluginRequestApplicator;
@@ -284,6 +291,7 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
 
         registration.addProvider(new BuildCacheServices());
 
+        registration.add(BuildListenerBroadcast.class);
         registration.add(FileOperations.class, DefaultFileOperations.class);
         registration.add(FileSystemOperations.class, DefaultFileSystemOperations.class);
         registration.add(ArchiveOperations.class, DefaultArchiveOperations.class);
@@ -313,8 +321,29 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
     }
 
     @Provides
-    BuildLifecycleController createBuildLifecycleController(BuildLifecycleControllerFactory factory, BuildDefinition buildDefinition, ServiceRegistry buildServices) {
-        return factory.newInstance(buildDefinition, buildServices);
+    BuildLifecycleController createBuildLifecycleController(
+        StateTransitionControllerFactory stateTransitionControllerFactory,
+        BuildToolingModelControllerFactory buildToolingModelControllerFactory,
+        ExceptionAnalyser exceptionAnalyser,
+        BuildLifecycleControllerFactory factory,
+        BuildDefinition buildDefinition,
+        GradleInternal gradle,
+        ListenerManager listenerManager,
+        BuildModelController buildModelController,
+        BuildWorkPreparer workPreparer,
+        BuildWorkExecutor workExecutor
+    ) {
+        BuildModelLifecycleListener broadcaster = listenerManager.getBroadcaster(BuildModelLifecycleListener.class);
+        return new DefaultBuildLifecycleController(
+            gradle,
+            buildModelController,
+            exceptionAnalyser,
+            broadcaster,
+            workPreparer,
+            workExecutor,
+            buildToolingModelControllerFactory,
+            stateTransitionControllerFactory
+        );
     }
 
     @Provides
