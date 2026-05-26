@@ -124,8 +124,7 @@ class BeanPropertyWriter(
         // A Kotlin `by`-delegate is identified by BOTH the field name (compiler emits `<name>$delegate`)
         // AND the value type. A regular field declared as `Lazy<T>` is not a delegate even though its
         // value satisfies isKotlinDelegate(); skip it so normal codec-driven serialization handles it.
-        if (!field.name.endsWith("\$delegate")) return false
-        if (!KotlinDelegateInspector.isKotlinDelegate(fieldValue)) return false
+        if (!field.name.endsWith("\$delegate") || !KotlinDelegateInspector.isKotlinDelegate(fieldValue)) return false
         if (fieldValue is Lazy<*> && !fieldValue.isInitialized()) {
             // Deliberate skip — see KDoc above. Logged so a load-side ClassCastException
             // traced back here has an obvious breadcrumb.
