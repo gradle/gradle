@@ -61,7 +61,7 @@ import org.gradle.internal.serialize.graph.IsolateContext
 import org.gradle.internal.serialize.graph.MutableIsolateContext
 import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.WriteContext
-import org.gradle.internal.serialize.graph.reportIfUnsupportedPropertyValueType
+import org.gradle.internal.serialize.graph.codecs.reportIfUnsupportedPropertyValueType
 import org.gradle.internal.serialize.graph.codecs.BeanCodec
 import org.gradle.internal.serialize.graph.codecs.Bindings
 import org.gradle.internal.serialize.graph.decodeBean

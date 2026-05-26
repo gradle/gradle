@@ -22,7 +22,7 @@ import org.gradle.internal.serialize.graph.WriteContext
 import org.gradle.internal.serialize.graph.codecs.Decoding
 import org.gradle.internal.serialize.graph.codecs.Encoding
 import org.gradle.internal.serialize.graph.codecs.EncodingProducer
-import org.gradle.internal.serialize.graph.findCodecThatWidensIncompatibly
+import org.gradle.internal.serialize.graph.codecs.findCodecThatWidensIncompatibly
 import org.gradle.internal.serialize.graph.logPropertyProblem
 import org.gradle.internal.serialize.graph.readPropertyValue
 import org.gradle.internal.serialize.graph.reportUnsupportedFieldType

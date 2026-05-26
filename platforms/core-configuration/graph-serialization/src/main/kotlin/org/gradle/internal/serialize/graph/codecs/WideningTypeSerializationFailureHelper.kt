@@ -14,14 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.serialize.graph
+package org.gradle.internal.serialize.graph.codecs
 
 import org.gradle.internal.configuration.problems.PropertyKind
 import org.gradle.internal.configuration.problems.PropertyProblem
 import org.gradle.internal.configuration.problems.StructuredMessage
 import org.gradle.internal.problems.failure.FailureFactory
 import org.gradle.internal.reflect.UnsupportedTypeException
-import org.gradle.internal.serialize.graph.codecs.WideningCodec
+import org.gradle.internal.serialize.graph.WriteContext
+import org.gradle.internal.serialize.graph.ownerService
+import org.gradle.internal.serialize.graph.withPropertyTrace
 import java.lang.reflect.Field
 
 

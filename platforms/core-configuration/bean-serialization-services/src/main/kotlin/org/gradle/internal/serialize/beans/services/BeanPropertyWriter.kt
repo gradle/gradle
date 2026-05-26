@@ -24,9 +24,9 @@ import org.gradle.internal.extensions.stdlib.uncheckedCast
 import org.gradle.internal.reflect.UnsupportedTypeException
 import org.gradle.internal.serialize.graph.BeanStateWriter
 import org.gradle.internal.serialize.graph.WriteContext
-import org.gradle.internal.serialize.graph.findCodecThatWidensIncompatibly
-import org.gradle.internal.serialize.graph.reportIfIncompatibleRoundtrip
-import org.gradle.internal.serialize.graph.reportSerializationProblem
+import org.gradle.internal.serialize.graph.codecs.findCodecThatWidensIncompatibly
+import org.gradle.internal.serialize.graph.codecs.reportIfIncompatibleRoundtrip
+import org.gradle.internal.serialize.graph.codecs.reportSerializationProblem
 import org.gradle.internal.serialize.graph.withPropertyTrace
 import org.gradle.internal.serialize.graph.withDebugFrame
 import org.gradle.internal.serialize.graph.writePropertyValue
@@ -77,11 +77,10 @@ class BeanPropertyWriter(
      * roundtrip into the property's declared getter return type.
      *
      * Uninitialized `by lazy` delegates are deliberately skipped: there is no
-     * value yet to type-check against the property's getter return type, and
-     * forcing the lazy here would change observable build behaviour. The skip
-     * is logged at info level *and* emits a deferred problem so the bypass is
-     * visible in the configuration cache problems report — diagnosing a later
-     * load-side failure shouldn't require enabling debug logging. Other delegate
+     * value yet to type-check, and the underlying Lazy codec forces the lazy
+     * via `writeReplace` during the subsequent encode pass, so the type
+     * concern is moot — the value that ends up in the cache is the forced one.
+     * The skip is logged at info level for diagnostic visibility. Other delegate
      * kinds (`Delegates.observable`, `Delegates.vetoable`) carry a value from
      * construction; `Delegates.notNull` throws on read until first assignment.
      * All three are checked normally because their value (if any) is available
@@ -96,22 +95,11 @@ class BeanPropertyWriter(
         // value satisfies isKotlinDelegate(); skip it so normal codec-driven serialization handles it.
         if (!field.name.endsWith("\$delegate") || !KotlinDelegateInspector.isKotlinDelegate(fieldValue)) return false
         if (fieldValue is Lazy<*> && !fieldValue.isInitialized()) {
-            // Deliberate skip — see KDoc above. Logged and reported as a deferred
-            // problem so a later load-side failure has a breadcrumb back here.
-            val propertyName = field.name.removeSuffix("\$delegate")
+            // Deliberate skip — see KDoc above.
             logger.info(
                 "Skipping widening-roundtrip check for uninitialized `by lazy` delegate '{}' on {}",
                 field.name, field.declaringClass.name
             )
-            val exception = UnsupportedTypeException(
-                "Cannot type-check `by lazy` delegate for property '$propertyName' in ${trace.taskDescription()}: " +
-                    "the delegate was not initialized at configuration cache store time, " +
-                    "so the load-side value type cannot be verified.",
-                listOf("Initialize the lazy at configuration time if you require store-time type validation.")
-            )
-            withPropertyTrace(PropertyKind.Field, fieldName) {
-                reportSerializationProblem(exception)
-            }
             return false
         }
         val delegateValue = KotlinDelegateInspector.extractValue(fieldValue!!) ?: return false
