@@ -40,7 +40,7 @@ internal class CrossProjectConfigurationReportingExtensionsContainer(
                 reference(referrer.buildTreePath)
                 text(" cannot $what on Gradle extension container")
             }
-//                .exception { message -> message.capitalized() }
+                .exception { message -> message.capitalized() }
                 .build()
         }
     }
@@ -121,7 +121,7 @@ private class CrossProjectConfigurationReportingExtraPropertiesExtension(
                 reference(referrer.buildTreePath)
                 text(" cannot set extra properties extension `$name` on Gradle extension container")
             }
-//                .exception { message -> message.capitalized() }
+                .exception { message -> message.capitalized() }
                 .build()
         }
         delegate.set(name, value)
