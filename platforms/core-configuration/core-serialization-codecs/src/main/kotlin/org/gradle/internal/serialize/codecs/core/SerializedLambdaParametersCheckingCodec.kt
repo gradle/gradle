@@ -110,7 +110,7 @@ object SerializedLambdaParametersCheckingCodec : Codec<SerializedLambda> {
         // Treat all parameters equally, regardless of whether they are implicit captured parameters or the lambda signature ones.
         // If any of them is of an unsupported type, a build that runs from the serialized state won't be able to provide an instance anyway.
         paramTypes.forEach { paramType ->
-            unsupportedNarrowedTypeFor(paramType)?.let { unsupportedKClass ->
+            unsupportedWidenedTypeFor(paramType)?.let { unsupportedKClass ->
                 logUnsupportedLambdaParameterType(unsupportedKClass)
             }
         }
@@ -131,7 +131,7 @@ object SerializedLambdaParametersCheckingCodec : Codec<SerializedLambda> {
      * a store-time rejection.
      */
     private
-    fun WriteContext.unsupportedNarrowedTypeFor(paramType: Type): KClass<*>? {
+    fun WriteContext.unsupportedWidenedTypeFor(paramType: Type): KClass<*>? {
         if (paramType.sort != Type.OBJECT) return null
         val paramClass = try {
             Class.forName(paramType.className, false, this.javaClass.classLoader)

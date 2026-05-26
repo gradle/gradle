@@ -1135,6 +1135,44 @@ class ConfigurationCacheGradlePropertiesIntegrationTest extends AbstractConfigur
         "MapProperty<Configuration, String>"     | "mapKeyConfTask" | mapPropertyKeyBuildScript()          | "Task `:mapKeyConfTask` of type `MapKeyConfTask`: failed to serialize value of 'field `__confs__` of task `:mapKeyConfTask` of type `MapKeyConfTask`'"          | "Confs: [:]"
     }
 
+    def "MapProperty with both key and value of unsupported types reports a problem for each"() {
+        buildFile << """
+            abstract class MapKeyValueConfTask extends DefaultTask {
+                @Internal
+                abstract MapProperty<Configuration, Configuration> getConfs()
+
+                @TaskAction
+                void run() { println "Confs: " + confs.getOrElse([:]) }
+            }
+
+            configurations.create('keyConf')
+            configurations.create('valueConf')
+
+            tasks.register("mapKeyValueConfTask", MapKeyValueConfTask) {
+                confs.put(configurations.getByName('keyConf'), configurations.getByName('valueConf'))
+            }
+        """
+
+        when:
+        configurationCacheRunLenient "mapKeyValueConfTask"
+
+        then:
+        // Both the key-type and value-type checks call reportSerializationProblem,
+        // so totalProblemsCount = 2 verifies both branches fire. They share the
+        // same field trace and message, so the HTML report collapses them into a
+        // single entry — problemsWithStackTraceCount = 1.
+        problems.assertResultHasProblems(result) {
+            totalProblemsCount = 2
+            withUniqueProblems(
+                "Task `:mapKeyValueConfTask` of type `MapKeyValueConfTask`: failed to serialize value of 'field `__confs__` of task `:mapKeyValueConfTask` of type `MapKeyValueConfTask`'"
+            )
+            problemsWithStackTraceCount = 1
+        }
+
+        and:
+        outputContains "Confs: [:]"
+    }
+
     private static String propertyOfConfigurationBuildScript() {
         """
             abstract class PrintFiles extends DefaultTask {
