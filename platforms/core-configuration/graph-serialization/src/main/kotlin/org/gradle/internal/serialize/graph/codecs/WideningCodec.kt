@@ -64,8 +64,13 @@ interface WideningCodec<T : Any> : Codec<T> {
  * Returns the [WideningCodec] registered for [runtimeType] when its decoded
  * type cannot be assigned to [declaredType] — meaning a value of [runtimeType]
  * flowing into a slot typed [declaredType] cannot survive the configuration
- * cache roundtrip. Returns null when the slot can accept the codec's decoded
- * type (or when no [WideningCodec] applies).
+ * cache roundtrip. Returns null in three cases:
+ *
+ * - no codec is registered for [runtimeType],
+ * - the registered codec is not a [WideningCodec] (it roundtrips to its
+ *   declared type, no widening occurs), or
+ * - the slot's declared type can accept the codec's `decodedType` (the
+ *   load-side value fits the slot).
  *
  * Centralises the codec-lookup core shared by every store-time roundtrip-type
  * check (bean fields, record components, lambda parameters, `Property<T>`

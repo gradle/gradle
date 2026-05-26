@@ -366,7 +366,7 @@
   {
     "name": "core-serialization-codecs",
     "path": "platforms/core-configuration/core-serialization-codecs",
-    "unitTests": false,
+    "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false
   },

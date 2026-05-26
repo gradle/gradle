@@ -104,8 +104,10 @@ object JavaRecordEncoding : Encoding {
     private fun WriteContext.unsupportedWidenedTypeFor(field: Field, fieldValue: Any?): KClass<*>? {
         val lookupType = fieldValue?.javaClass ?: field.type
         val widening = findCodecThatWidensIncompatibly(field.type, lookupType) ?: return null
-        // Pass when the field's declared type is a subtype of the codec's decoded type:
-        // the codec may produce a concrete instance of that subtype at runtime.
+        // The helper has already rejected the case where field.type is a supertype of
+        // decodedType. This branch handles the OPPOSITE subtype relation: field.type
+        // is a subtype of decodedType — the codec may produce a concrete instance of
+        // that subtype at runtime.
         if (widening.decodedType.isAssignableFrom(field.type)) return null
         return field.type.kotlin
     }

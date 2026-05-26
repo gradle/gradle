@@ -783,6 +783,72 @@ class ConfigurationCacheUnsupportedTypesIntegrationTest extends AbstractConfigur
     }
 
     @Requires(JdkVersionTestPreconditions.KotlinSupportedJdk)
+    def "warn mode tolerates Kotlin #delegateKind delegate with unsupported type (#configSource)"() {
+        // Companion to "Kotlin #delegateKind fails sensibly with explicit Configuration type"
+        // above. Verifies that in warn mode the delegate-site widening check emits a deferred
+        // problem (with stack trace) and drops the value rather than hard-failing — preserving
+        // the same `--configuration-cache-problems=warn` escape hatch the bean-field and
+        // managed-property check sites already honor.
+        given:
+        file("buildSrc/settings.gradle.kts").text = ""
+        file("buildSrc/build.gradle.kts").text = """
+            plugins { `kotlin-dsl` }
+            ${mavenCentralRepository(GradleDsl.KOTLIN)}
+        """
+        file("buildSrc/src/main/kotlin/LenientTask.kt").text = """
+            import org.gradle.api.DefaultTask
+            import org.gradle.api.artifacts.Configuration
+            import org.gradle.api.tasks.Internal
+            import org.gradle.api.tasks.TaskAction
+            import kotlin.properties.Delegates
+
+            open class LenientTask : DefaultTask() {
+                $delegateDeclaration
+
+                @TaskAction
+                fun run() {
+                    // Avoid reading classPath here: warn-mode drops the delegate field to null
+                    // before tasks execute (the cold-store run already serves from the cached
+                    // state), so reading the property would NPE on the load-side null delegate.
+                    println("task ran with dropped delegate")
+                }
+            }
+        """.stripIndent()
+        buildFile << """
+            tasks.register("lenient", LenientTask) {
+                // Force the delegate at configuration time so the widening check has a value
+                // to inspect; without this, an un-forced lazy would bypass the check entirely
+                // (see "uninitialized Kotlin `by lazy` delegate ... bypasses the widening check").
+                println("configured classPath type: " + classPath.class.name)
+            }
+        """
+
+        when:
+        configurationCacheRunLenient "lenient"
+
+        then:
+        problems.assertResultHasProblems(result) {
+            totalProblemsCount = 1
+            withUniqueProblems(
+                "Task `:lenient` of type `LenientTask`: failed to serialize value of 'field `classPath\$delegate` of task `:lenient` of type `LenientTask`'"
+            )
+            problemsWithStackTraceCount = 1
+        }
+
+        and: "the task body ran — the build was not interrupted at store"
+        outputContains("task ran with dropped delegate")
+
+        where:
+        delegateKind | configSource | delegateDeclaration
+        "lazy"       | "detached"   | '@get:Internal val classPath: Configuration by lazy { project.configurations.detachedConfiguration() }'
+        "lazy"       | "created"    | '@get:Internal val classPath: Configuration by lazy { project.configurations.create("myConf") }'
+        "observable" | "detached"   | '@get:Internal var classPath: Configuration by Delegates.observable(project.configurations.detachedConfiguration()) { _, _, _ -> }'
+        "observable" | "created"    | '@get:Internal var classPath: Configuration by Delegates.observable(project.configurations.create("myConf")) { _, _, _ -> }'
+        "vetoable"   | "detached"   | '@get:Internal var classPath: Configuration by Delegates.vetoable(project.configurations.detachedConfiguration()) { _, _, _ -> true }'
+        "vetoable"   | "created"    | '@get:Internal var classPath: Configuration by Delegates.vetoable(project.configurations.create("myConf")) { _, _, _ -> true }'
+    }
+
+    @Requires(JdkVersionTestPreconditions.KotlinSupportedJdk)
     @Issue("https://github.com/gradle/gradle/issues/16177")
     def "Kotlin field declared with Lazy type is not treated as a by-delegate"() {
         // Regression test: classes like org.jetbrains.kotlin.gradle.plugin.SubpluginOption declare
@@ -824,5 +890,51 @@ class ConfigurationCacheUnsupportedTypesIntegrationTest extends AbstractConfigur
 
         then:
         outputContains("lazyValue: computed")
+    }
+
+    @Requires(JdkVersionTestPreconditions.KotlinSupportedJdk)
+    def "uninitialized Kotlin `by lazy` delegate of an unsupported type bypasses the widening check at store time"() {
+        // Demonstrates the documented bypass in BeanPropertyWriter.reportIfUnsupportedKotlinDelegate:
+        // an un-forced `by lazy` delegate has no value yet to type-check, so the widening check
+        // is skipped (with a debug-level log). The same `by lazy` FORCED at configuration time
+        // reports the widening problem — see the "reports when Kotlin lazy delegate wraps an
+        // unsupported type" test above for that path.
+        //
+        // The store still fails for an unrelated reason: kotlin.Lazy has no dedicated codec, so
+        // the bean codec walks its internals and chokes on the SynchronizedLazyImpl monitor.
+        // What this test pins down is the *absence* of the widening error in the failure — that
+        // absence is the user-visible evidence the bypass fired.
+        given:
+        file("buildSrc/settings.gradle.kts").text = ""
+        file("buildSrc/build.gradle.kts").text = """
+            plugins { `kotlin-dsl` }
+            ${mavenCentralRepository(GradleDsl.KOTLIN)}
+        """
+        file("buildSrc/src/main/kotlin/UnforcedLazyTask.kt").text = """
+            import org.gradle.api.DefaultTask
+            import org.gradle.api.artifacts.Configuration
+            import org.gradle.api.tasks.Internal
+            import org.gradle.api.tasks.TaskAction
+
+            open class UnforcedLazyTask : DefaultTask() {
+                @get:Internal
+                val notForced: Configuration by lazy { error("must not be forced") }
+
+                @TaskAction
+                fun run() {
+                    println("task executed without forcing notForced")
+                }
+            }
+        """.stripIndent()
+        buildFile << """
+            tasks.register("unforcedLazy", UnforcedLazyTask)
+        """
+
+        when: "store CC without forcing the lazy"
+        configurationCacheFails "unforcedLazy"
+
+        then: "the failure is the generic Lazy-encoding path; the widening check never fired"
+        outputContains("error writing value of type 'kotlin.SynchronizedLazyImpl'")
+        outputDoesNotContain("Cannot serialize lazy delegate for property 'notForced'")
     }
 }

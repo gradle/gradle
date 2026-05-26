@@ -18,6 +18,7 @@ package org.gradle.internal.serialize.beans.services
 
 import com.google.common.primitives.Primitives.wrap
 import org.gradle.api.internal.IConventionAware
+import org.gradle.api.logging.Logging
 import org.gradle.internal.configuration.problems.PropertyKind
 import org.gradle.internal.extensions.stdlib.uncheckedCast
 import org.gradle.internal.reflect.UnsupportedTypeException
@@ -36,6 +37,11 @@ import java.lang.reflect.Field
 class BeanPropertyWriter(
     beanType: Class<*>
 ) : BeanStateWriter {
+
+    private
+    companion object {
+        private val logger = Logging.getLogger(BeanPropertyWriter::class.java)
+    }
 
     private
     val relevantFields = relevantStateOf(beanType)
@@ -78,11 +84,13 @@ class BeanPropertyWriter(
     suspend fun WriteContext.reportIfIncompatibleRoundtrip(field: Field, fieldName: String, fieldValue: Any?): Boolean {
         if (fieldValue == null) return false
         val widening = findCodecThatWidensIncompatibly(field.type, fieldValue.javaClass) ?: return false
-        // Pass when the field's declared type is a subtype of the codec's decoded type:
-        // the codec may produce a concrete instance of that subtype at runtime (codecs
-        // declare a broad interface but generally construct via a factory that yields
-        // the expected concrete class). Only flag when the types share no subtyping
-        // relation at all - then reassignment is definitely impossible.
+        // The helper has already rejected the case where field.type is a supertype of
+        // decodedType (load-side value fits the field). This branch handles the OPPOSITE
+        // subtype relation: field.type is a subtype of decodedType — the codec may produce
+        // a concrete instance of that subtype at runtime (codecs declare a broad interface
+        // but generally construct via a factory that yields the expected concrete class).
+        // Only flag when the types share no subtyping relation at all — then reassignment
+        // is definitely impossible.
         if (widening.decodedType.isAssignableFrom(field.type)) return false
         val exception = UnsupportedTypeException(
             "Cannot serialize value of type ${fieldValue.javaClass.name} into field " +
@@ -101,6 +109,14 @@ class BeanPropertyWriter(
      * Inspects a Kotlin property delegate field's value for an unsupported
      * roundtrip into the property's declared getter return type.
      *
+     * Uninitialized `by lazy` delegates are deliberately skipped: there is no
+     * value yet to type-check against the property's getter return type, and
+     * forcing the lazy here would change observable build behaviour. The skip
+     * is logged at debug level so the bypass is traceable when diagnosing
+     * surprising load-side failures. Other delegate kinds (`Delegates.observable`,
+     * `Delegates.vetoable`, `Delegates.notNull`) always carry a value (or fail
+     * loudly on read) and are checked normally.
+     *
      * @return `true` when the field's value must be dropped from the cache.
      */
     private
@@ -110,6 +126,15 @@ class BeanPropertyWriter(
         // value satisfies isKotlinDelegate(); skip it so normal codec-driven serialization handles it.
         if (!field.name.endsWith("\$delegate")) return false
         if (!KotlinDelegateInspector.isKotlinDelegate(fieldValue)) return false
+        if (fieldValue is Lazy<*> && !fieldValue.isInitialized()) {
+            // Deliberate skip — see KDoc above. Logged so a load-side ClassCastException
+            // traced back here has an obvious breadcrumb.
+            logger.debug(
+                "Skipping widening-roundtrip check for uninitialized `by lazy` delegate '{}' on {}",
+                field.name, field.declaringClass.name
+            )
+            return false
+        }
         val delegateValue = KotlinDelegateInspector.extractValue(fieldValue!!) ?: return false
         val kotlinGetterReturnType = KotlinDelegateInspector.kotlinPropertyGetterReturnType(field)
         val widening = findCodecThatWidensIncompatibly(kotlinGetterReturnType, delegateValue.javaClass) ?: return false
