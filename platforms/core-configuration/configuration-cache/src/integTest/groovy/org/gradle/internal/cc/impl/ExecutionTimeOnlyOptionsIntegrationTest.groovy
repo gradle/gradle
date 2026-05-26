@@ -126,7 +126,7 @@ class ExecutionTimeOnlyOptionsIntegrationTest extends AbstractConfigurationCache
         failure.assertHasErrorOutput("'--tests'")
     }
 
-    def "B6: cold start requires two-build warmup before CC reuse"() {
+    def "B6: cold-start requires two misses before CC reuse"() {
         given:
         setupTasks()
 
@@ -232,5 +232,78 @@ class ExecutionTimeOnlyOptionsIntegrationTest extends AbstractConfigurationCache
         outputContains(CC_NOT_REUSED)
         outputDoesNotContain(CC_REUSED)
         outputContains("MyTestLikeTask tests=[B]")
+    }
+
+    def "B10: manifest write failure discards the just-stored cache entry"() {
+        given:
+        setupTasks()
+
+        when: "first run: cold, manifest written successfully"
+        configurationCacheRun "myTestLike", "--tests", "A"
+
+        then:
+        file('.gradle/configuration-cache/execution-time-only-options.manifest').isFile()
+
+        when: "replace the manifest file with a non-empty directory of the same name so Files.move fails"
+        file('.gradle/configuration-cache/execution-time-only-options.manifest').delete()
+        file('.gradle/configuration-cache/execution-time-only-options.manifest/blocker.txt') << 'forces Files.move target failure'
+
+        and: "second run with a different --tests value: cache miss → store → manifest-write fails"
+        // The orchestrator logs the IOException via logger.error(msg, e), which puts the stack
+        // on stderr. The integ executer treats unexpected stderr stack traces as test failures
+        // by default — opt out so the test can assert on the *behavior* (discard) rather than
+        // on the rendering of the failure log line.
+        executer.withStackTraceChecksDisabled()
+        configurationCacheRun "myTestLike", "--tests", "B"
+
+        then: "build emits the manifest-write error log line on stderr"
+        result.error.contains("Failed to write execution-time-only options manifest")
+
+        when: "remove the blocker; the entry from the second run was discarded after the failure"
+        file('.gradle/configuration-cache/execution-time-only-options.manifest').deleteDir()
+        configurationCacheRun "myTestLike", "--tests", "B"
+
+        then: "missed because the prior store was rolled back"
+        outputContains(CC_NOT_REUSED)
+    }
+
+    def "B11: stale manifest with no current contributor surfaces the fallback error wording"() {
+        given: "a build with only a config-time --tests task — no executionTimeOnly contributor"
+        buildFile << """
+            import org.gradle.api.tasks.options.Option
+
+            abstract class MyCustomTask extends DefaultTask {
+                @Input List<String> tests = []
+                @Option(option = "tests", description = "Config-time option")
+                void setTests(List<String> tests) { this.tests = tests }
+                @TaskAction
+                void run() { println "MyCustomTask tests=" + tests }
+            }
+
+            tasks.register('myCustom', MyCustomTask)
+        """
+        def manifest = file('.gradle/configuration-cache/execution-time-only-options.manifest')
+
+        when: "first run: manifest gets written empty (no executionTimeOnly tasks); entry stored under raw key"
+        configurationCacheRun "myCustom", "--tests", "A"
+
+        and: "inject a stale name into the manifest that no current task corresponds to"
+        manifest.text = "#v1\ntests\n"
+
+        and: "second run: stripped key now differs from inv-1's raw-key entry → miss → store under stripped key; manifest rewritten empty"
+        configurationCacheRun "myCustom", "--tests", "A"
+
+        and: "re-inject the stale name"
+        manifest.text = "#v1\ntests\n"
+
+        and: "third run: stripped key matches inv-2's entry → cache hit → validation runs with no current contributor"
+        configurationCacheFails "myCustom", "--tests", "A"
+
+        then: "fallback message + resolutions describe the stale-manifest case"
+        failure.assertHasDescription("Configuration cache entry cannot be reused")
+        failure.assertHasErrorOutput("':myCustom'")
+        failure.assertHasErrorOutput("'--tests'")
+        failure.assertHasErrorOutput("manifest may be stale")
+        failure.assertHasErrorOutput("Delete the .gradle/configuration-cache")
     }
 }

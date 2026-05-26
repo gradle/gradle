@@ -120,9 +120,9 @@ internal class ExecutionTimeOnlyOptionsManifestService(
                 Files.move(tempPath, f.toPath(), StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE)
             } catch (_: AtomicMoveNotSupportedException) {
                 // Cross-device / NFS / certain Windows configurations don't support ATOMIC_MOVE.
-                // Falling back to a non-atomic replace is still safe-enough: read() tolerates
-                // empty/missing/corrupt files by returning emptySet(), which conservatively
-                // disables key-stripping rather than producing wrong results.
+                // Falling back to a non-atomic replace is still safe-enough: taskOptionNames()
+                // tolerates empty/missing/corrupt files by returning emptySet(), which
+                // conservatively disables key-stripping rather than producing wrong results.
                 Files.move(tempPath, f.toPath(), StandardCopyOption.REPLACE_EXISTING)
             }
             moved = true
@@ -131,8 +131,8 @@ internal class ExecutionTimeOnlyOptionsManifestService(
                 try {
                     Files.deleteIfExists(tempPath)
                 } catch (_: IOException) {
-                    // Best-effort cleanup. A leftover temp file is harmless: read() only
-                    // looks at FILE_NAME, and the next successful write will use a fresh
+                    // Best-effort cleanup. A leftover temp file is harmless: taskOptionNames()
+                    // only looks at FILE_NAME, and the next successful write will use a fresh
                     // randomized temp name.
                 }
             }

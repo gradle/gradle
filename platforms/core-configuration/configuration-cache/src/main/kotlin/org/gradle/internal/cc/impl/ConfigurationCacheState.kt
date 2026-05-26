@@ -31,8 +31,11 @@ import org.gradle.api.internal.cache.CacheConfigurationsInternal
 import org.gradle.api.internal.cache.CacheResourceConfigurationInternal.EntryRetention
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectState
+import org.gradle.api.Task
 import org.gradle.api.internal.tasks.TaskOptionsGenerator
+import org.gradle.api.internal.tasks.options.OptionDescriptor
 import org.gradle.api.internal.tasks.options.OptionReader
+import org.gradle.api.internal.tasks.options.OptionValidationException
 import org.gradle.api.provider.Provider
 import org.gradle.api.services.BuildServiceRegistry
 import org.gradle.api.services.internal.BuildServiceProvider
@@ -229,8 +232,9 @@ class ConfigurationCacheState(
             "corrupt state file"
         }
         // Surface any deferred execution-time-only options validation failure BEFORE
-        // we transition the build state via [calculateRootTaskGraph]. The orchestrator
-        // converts it into a loud `GradleException` that aborts the build.
+        // we transition the build state via [calculateRootTaskGraph]. The exception is
+        // itself a `GradleException` with `ResolutionProvider` suggestions, so it propagates
+        // through the orchestrator unchanged.
         pendingValidationFailure?.let { throw it }
         if (!loadAfterStore) {
             for (build in builds) {
@@ -604,8 +608,9 @@ class ConfigurationCacheState(
      * candidate names, every matching option must declare
      * `OptionDescriptor.isExecutionTimeOnly == true`. The first task that fails this check
      * records an [ExecutionTimeOnlyOptionsValidationException] in [pendingValidationFailure];
-     * the deferred throw at the end of [readRootBuildState] then turns it into a loud
-     * build failure via the orchestrator's catch.
+     * the deferred throw at the end of [readRootBuildState] then propagates it through the
+     * orchestrator. The exception is already a `GradleException` with `ResolutionProvider`
+     * suggestions — Gradle's error renderer surfaces it directly.
      *
      * Cross-build tasks ([org.gradle.execution.plan.TaskInAnotherBuild]) are skipped here
      * because dereferencing them during deserialization would crash with "task was never
@@ -625,10 +630,12 @@ class ConfigurationCacheState(
         val optionReader = gradle.serviceOf<OptionReader>()
         val configurer = CommandLineTaskConfigurer(optionReader)
 
-        for (node in workGraph.scheduledNodes) {
-            if (node !is LocalTaskNode) continue
-            val task = node.task
-            val descriptors = TaskOptionsGenerator.generate(task, optionReader).all
+        val localTasks = workGraph.scheduledNodes
+            .asSequence()
+            .filterIsInstance<LocalTaskNode>()
+            .map { it.task }
+        for (task in localTasks) {
+            val descriptors = descriptorsOrNull(task, optionReader) ?: continue
             var anyMatched = false
             for (descriptor in descriptors) {
                 if (descriptor.name in candidateNames) {
@@ -654,6 +661,21 @@ class ConfigurationCacheState(
             }
         }
     }
+
+    /**
+     * Returns the option descriptors for [task], or `null` if the task's `@Option` /
+     * `@OptionValues` metadata is malformed. Matches [ExecutionTimeOnlyOptionsCollector]'s
+     * tolerance — a task that couldn't contribute to the manifest can't be checked against
+     * it either. The underlying validation error still surfaces via the normal CLI option
+     * parsing path when the user invokes that task's options.
+     */
+    private
+    fun descriptorsOrNull(task: Task, optionReader: OptionReader): List<OptionDescriptor>? =
+        try {
+            TaskOptionsGenerator.generate(task, optionReader).all
+        } catch (_: OptionValidationException) {
+            null
+        }
 
 
     private

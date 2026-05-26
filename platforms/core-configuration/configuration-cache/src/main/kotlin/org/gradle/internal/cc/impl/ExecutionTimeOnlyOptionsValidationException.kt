@@ -20,6 +20,7 @@ import org.gradle.api.GradleException
 import org.gradle.api.Task
 import org.gradle.api.internal.tasks.TaskOptionsGenerator
 import org.gradle.api.internal.tasks.options.OptionReader
+import org.gradle.api.internal.tasks.options.OptionValidationException
 import org.gradle.execution.plan.LocalTaskNode
 import org.gradle.execution.plan.ScheduledWork
 import org.gradle.internal.exceptions.Contextual
@@ -98,7 +99,10 @@ class ExecutionTimeOnlyOptionsValidationException(
         ): Boolean {
             val descriptors = try {
                 TaskOptionsGenerator.generate(task, optionReader).all
-            } catch (_: Exception) {
+            } catch (_: OptionValidationException) {
+                // Match the collector's policy: a task with malformed @Option metadata
+                // can't have contributed to the manifest. Don't let other exception types
+                // hide here — they'd surface as a misleading "stale manifest" error.
                 return false
             }
             return descriptors.any { it.name == optionName && it.isExecutionTimeOnly }
