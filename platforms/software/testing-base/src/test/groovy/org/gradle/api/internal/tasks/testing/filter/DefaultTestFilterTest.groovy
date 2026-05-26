@@ -19,6 +19,7 @@
 package org.gradle.api.internal.tasks.testing.filter
 
 import org.gradle.api.InvalidUserDataException
+import org.gradle.api.internal.provider.ConfigurationTimeBarrier
 import spock.lang.Specification
 
 class DefaultTestFilterTest extends Specification {
@@ -60,4 +61,36 @@ class DefaultTestFilterTest extends Specification {
         then: thrown(InvalidUserDataException)
     }
 
+    def "getCommandLineIncludePatterns throws when read at configuration time"() {
+        given:
+        def barrier = Mock(ConfigurationTimeBarrier) { isAtConfigurationTime() >> true }
+        def filter = new DefaultTestFilter(barrier)
+        filter.setCommandLineIncludePatterns(["MyTest"])
+
+        when:
+        filter.getCommandLineIncludePatterns()
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message.contains("Cannot read 'commandLineIncludePatterns' at configuration time")
+        e.message.contains("'--tests'")
+    }
+
+    def "getCommandLineIncludePatterns returns values when read at execution time"() {
+        given:
+        def barrier = Mock(ConfigurationTimeBarrier) { isAtConfigurationTime() >> false }
+        def filter = new DefaultTestFilter(barrier)
+        filter.setCommandLineIncludePatterns(["MyTest"])
+
+        expect:
+        filter.getCommandLineIncludePatterns() == ["MyTest"] as Set
+    }
+
+    def "getCommandLineIncludePatterns is unguarded when no barrier is wired (test-only constructor)"() {
+        given: "the no-arg constructor used in unit tests passes null for the barrier"
+        spec.setCommandLineIncludePatterns(["MyTest"])
+
+        expect: "read succeeds regardless of when it's called"
+        spec.getCommandLineIncludePatterns() == ["MyTest"] as Set
+    }
 }

@@ -62,7 +62,7 @@ class ExecutionTimeOnlyOptionsIntegrationTest extends AbstractConfigurationCache
         outputContains("MyTestLikeTask tests=[foo]")
     }
 
-    def "B1: pure executionTimeOnly task reuses CC across value changes (after warmup)"() {
+    def "pure executionTimeOnly task reuses CC across value changes (after warmup)"() {
         given:
         setupTasks()
 
@@ -86,7 +86,7 @@ class ExecutionTimeOnlyOptionsIntegrationTest extends AbstractConfigurationCache
         outputContains("MyTestLikeTask tests=[B]")
     }
 
-    def "B2: config-time only task does not reuse CC on value change"() {
+    def "config-time only task does not reuse CC on value change"() {
         given:
         setupTasks()
         // Drop myTestLike so the manifest stays empty
@@ -126,7 +126,7 @@ class ExecutionTimeOnlyOptionsIntegrationTest extends AbstractConfigurationCache
         failure.assertHasErrorOutput("'--tests'")
     }
 
-    def "B6: cold-start requires two misses before CC reuse"() {
+    def "cold-start requires two misses before CC reuse"() {
         given:
         setupTasks()
 
@@ -146,7 +146,7 @@ class ExecutionTimeOnlyOptionsIntegrationTest extends AbstractConfigurationCache
         outputContains(CC_REUSED)
     }
 
-    def "B7: removing the executionTimeOnly task from the build rewrites the manifest empty"() {
+    def "removing the executionTimeOnly task from the build rewrites the manifest empty"() {
         given:
         setupTasks()
 
@@ -180,7 +180,7 @@ class ExecutionTimeOnlyOptionsIntegrationTest extends AbstractConfigurationCache
         outputContains("MyCustomTask tests=[8]")
     }
 
-    def "B8: deleting the configuration cache directory forces cold-start warmup again"() {
+    def "deleting the configuration cache directory forces cold-start warmup again"() {
         given:
         setupTasks()
 
@@ -217,7 +217,7 @@ class ExecutionTimeOnlyOptionsIntegrationTest extends AbstractConfigurationCache
         """
     }
 
-    def "B9: v1 composite-build limitation — root invocation of an included-build's executionTimeOnly task does not reuse CC across --tests changes"() {
+    def "v1 composite-build limitation — root invocation of an included-build's executionTimeOnly task does not reuse CC across --tests changes"() {
         given:
         setupCompositeWithTestLikeTaskInIncludedBuild()
 
@@ -234,7 +234,7 @@ class ExecutionTimeOnlyOptionsIntegrationTest extends AbstractConfigurationCache
         outputContains("MyTestLikeTask tests=[B]")
     }
 
-    def "B10: manifest write failure discards the just-stored cache entry"() {
+    def "manifest write failure discards the just-stored cache entry"() {
         given:
         setupTasks()
 
@@ -267,7 +267,7 @@ class ExecutionTimeOnlyOptionsIntegrationTest extends AbstractConfigurationCache
         outputContains(CC_NOT_REUSED)
     }
 
-    def "B11: stale manifest with no current contributor surfaces the fallback error wording"() {
+    def "stale manifest with no current contributor surfaces the fallback error wording"() {
         given: "a build with only a config-time --tests task — no executionTimeOnly contributor"
         buildFile << """
             import org.gradle.api.tasks.options.Option

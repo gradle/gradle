@@ -22,8 +22,11 @@ import org.gradle.api.internal.properties.GradlePropertiesController
 import org.gradle.api.internal.provider.ConfigurationTimeBarrier
 import org.gradle.api.internal.provider.DefaultConfigurationTimeBarrier
 import org.gradle.api.internal.provider.ValueSourceProviderFactory
-import org.gradle.api.internal.tasks.options.ExecutionTimeOnlyOptionsCollector
+import org.gradle.api.Task
+import org.gradle.api.internal.tasks.TaskOptionsGenerator
+import org.gradle.api.internal.tasks.options.OptionDescriptor
 import org.gradle.api.internal.tasks.options.OptionReader
+import org.gradle.api.internal.tasks.options.OptionValidationException
 import org.gradle.api.logging.LogLevel
 import org.gradle.internal.cc.operations.EntrySearchResult
 import org.gradle.internal.cc.operations.ModelStoreResult
@@ -694,7 +697,7 @@ class DefaultConfigurationCache internal constructor(
     fun writeExecutionTimeOnlyOptionsManifest(rootBuild: BuildState) {
         val rootTasks = rootBuild.mutableModel.taskGraph.allTasks
         val optionReader = rootBuild.mutableModel.serviceOf<OptionReader>()
-        val names = ExecutionTimeOnlyOptionsCollector.collect(rootTasks, optionReader)
+        val names = collectExecutionTimeOnlyOptionNames(rootTasks, optionReader)
         try {
             executionTimeOnlyOptionsManifestService.write(names)
         } catch (e: java.io.IOException) {
@@ -709,6 +712,27 @@ class DefaultConfigurationCache internal constructor(
             problems.onStoreSerializationError()
         }
     }
+
+    /**
+     * Walks [tasks] and returns the set of CLI option names declared
+     * `@Option(executionTimeOnly = true)`. A task whose `@Option` / `@OptionValues`
+     * metadata is malformed contributes nothing; the validation error still surfaces
+     * via the normal CLI option-parsing path when the user invokes that task's options.
+     */
+    private
+    fun collectExecutionTimeOnlyOptionNames(tasks: Iterable<Task>, optionReader: OptionReader): Set<String> =
+        tasks.asSequence()
+            .flatMap { task -> descriptorsOf(task, optionReader) }
+            .filter { it.isExecutionTimeOnly }
+            .mapTo(LinkedHashSet()) { it.name }
+
+    private
+    fun descriptorsOf(task: Task, optionReader: OptionReader): Sequence<OptionDescriptor> =
+        try {
+            TaskOptionsGenerator.generate(task, optionReader).all.asSequence()
+        } catch (_: OptionValidationException) {
+            emptySequence()
+        }
 
     private
     fun saveWorkGraph(rootBuild: BuildState) {

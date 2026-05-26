@@ -664,7 +664,7 @@ class ConfigurationCacheState(
 
     /**
      * Returns the option descriptors for [task], or `null` if the task's `@Option` /
-     * `@OptionValues` metadata is malformed. Matches [ExecutionTimeOnlyOptionsCollector]'s
+     * `@OptionValues` metadata is malformed. Matches the manifest writer's
      * tolerance — a task that couldn't contribute to the manifest can't be checked against
      * it either. The underlying validation error still surfaces via the normal CLI option
      * parsing path when the user invokes that task's options.

@@ -15,6 +15,8 @@
  */
 package org.gradle.api.tasks.options;
 
+import org.gradle.api.Incubating;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
@@ -94,6 +96,6 @@ public @interface Option {
      * @return Whether this option's value is execution-time-only.
      * @since 9.7.0
      */
-    @org.gradle.api.Incubating
+    @Incubating
     boolean executionTimeOnly() default false;
 }

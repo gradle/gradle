@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.tasks.testing.filter;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.internal.provider.ConfigurationTimeBarrier;
 import org.gradle.api.tasks.Input;
@@ -38,11 +39,12 @@ public class DefaultTestFilter implements TestFilter {
     private final @Nullable ConfigurationTimeBarrier configurationTimeBarrier;
 
     /**
-     * Constructor for non-managed instantiation (e.g. unit tests).
-     * Production code should rely on {@code ObjectFactory.newInstance(DefaultTestFilter.class)} so the
+     * Constructor for non-managed instantiation in tests.
+     * Production code uses {@code ObjectFactory.newInstance(DefaultTestFilter.class)} so the
      * configuration-time read guard is active.
      */
-    public DefaultTestFilter() {
+    @VisibleForTesting
+    DefaultTestFilter() {
         this(null);
     }
 
