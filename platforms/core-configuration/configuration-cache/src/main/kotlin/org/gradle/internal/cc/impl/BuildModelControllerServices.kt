@@ -38,6 +38,7 @@ import org.gradle.internal.build.BuildModelController
 import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.cc.base.services.ProjectRefResolver
 import org.gradle.internal.cc.impl.fingerprint.ConfigurationCacheFingerprintController
+import org.gradle.internal.cc.impl.fingerprint.TaskGraphListenerRegistrationTracker
 import org.gradle.internal.cc.impl.serialize.ConfigurationCacheCodecs
 import org.gradle.internal.cc.impl.serialize.DefaultConfigurationCacheCodecs
 import org.gradle.internal.event.ListenerManager
@@ -73,6 +74,7 @@ internal object BuildModelControllerServices : ServiceRegistrationProvider {
             add(ConfigurationCacheHost::class.java, DefaultConfigurationCacheHost::class.java)
             add(ConfigurationCacheCodecs::class.java, DefaultConfigurationCacheCodecs::class.java)
             add(ConfigurationCacheBuildTreeIO::class.java, ConfigurationCacheIncludedBuildIO::class.java, DefaultConfigurationCacheIO::class.java)
+            add(TaskGraphListenerRegistrationTracker::class.java)
 
             if (!buildModelParameters.isIsolatedProjects) {
                 add(CrossBuildModelAccess::class.java, DefaultCrossBuildModelAccess::class.java)

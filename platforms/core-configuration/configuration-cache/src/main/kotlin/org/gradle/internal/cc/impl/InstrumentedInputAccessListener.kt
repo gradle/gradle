@@ -16,6 +16,7 @@
 
 package org.gradle.internal.cc.impl
 
+import org.gradle.internal.cc.impl.fingerprint.ConfigurationCacheFingerprintController
 import org.gradle.internal.cc.impl.initialization.ConfigurationCacheProblemsListener
 import java.io.File
 
@@ -61,7 +62,8 @@ internal
 class InstrumentedInputAccessListener(
     private val inputListener: UndeclaredBuildInputListener,
     configurationCacheProblemsListener: ConfigurationCacheProblemsListener,
-    private val ignoredConfigurationInputs: IgnoredConfigurationInputs
+    private val ignoredConfigurationInputs: IgnoredConfigurationInputs,
+    private val fingerprintController: ConfigurationCacheFingerprintController
 ) : ConfigurationCacheInputsListener {
     private
     val externalProcessListener = configurationCacheProblemsListener
@@ -129,5 +131,15 @@ class InstrumentedInputAccessListener(
 
     override fun startParameterProjectPropertiesObserved() {
         inputListener.startParameterProjectPropertiesObserved()
+    }
+
+    override fun startParameterTaskRequestsObserved() {
+        // Flag the entry as superset-ineligible: user code observed taskRequests at
+        // configuration time, so reusing this entry under a different request would
+        // load configuration that was baked from a different CLI request.
+        // This is NOT a fingerprint input — the read doesn't invalidate the entry on
+        // future builds with the same CLI; it just excludes the entry from strict-superset
+        // matching with DIFFERENT CLIs. The flag on the IndexedVariant is the mechanism.
+        fingerprintController.taskGraphAccessed()
     }
 }

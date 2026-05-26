@@ -51,7 +51,7 @@ public class RunTasksRequirements implements BuildActionModelRequirements {
 
     @Override
     public DisplayName getConfigurationCacheKeyDisplayName() {
-        return Describables.of("tasks:", Joiner.on(" ").join(startParameter.getTaskNames()));
+        return Describables.of("tasks:", Joiner.on(" ").join(startParameter.getTaskNamesUntracked()));
     }
 
     @Override

@@ -156,6 +156,7 @@ object BuildTreeModelControllerServices : ServiceRegistrationProvider {
             // region CC and IP
             add(ConfigurationCacheStartParameter::class.java)
             add(ConfigurationCacheKey::class.java)
+            add(ConfigurationCacheEnvironmentKey::class.java)
             add(ConfigurationCacheClassLoaderScopeRegistryListener::class.java)
             add(BuildTreeConfigurationCache::class.java, DefaultConfigurationCache::class.java)
             add(DefaultDeferredRootBuildGradle::class.java)

@@ -48,7 +48,7 @@ class DefaultTasksBuildTaskSchedulerTest extends Specification {
 
     def "proceeds when task request specified in StartParameter"() {
         given:
-        _ * startParameter.taskRequests >> [new DefaultTaskExecutionRequest(['a'])]
+        _ * startParameter.taskRequestsUntracked >> [new DefaultTaskExecutionRequest(['a'])]
 
         when:
         action.scheduleRequestedTasks(gradle, selector, plan)
@@ -59,7 +59,7 @@ class DefaultTasksBuildTaskSchedulerTest extends Specification {
 
     def "proceeds when no task requests specified in StartParameter"() {
         given:
-        _ * startParameter.taskRequests >> []
+        _ * startParameter.taskRequestsUntracked >> []
 
         when:
         action.scheduleRequestedTasks(gradle, selector, plan)
@@ -70,7 +70,7 @@ class DefaultTasksBuildTaskSchedulerTest extends Specification {
 
     def "sets task names to project defaults when single task requests specified in StartParameter"() {
         given:
-        _ * startParameter.taskRequests >> [new RunDefaultTasksExecutionRequest()]
+        _ * startParameter.taskRequestsUntracked >> [new RunDefaultTasksExecutionRequest()]
         _ * defaultProject.defaultTasks >> ['a', 'b']
 
         when:
@@ -83,7 +83,7 @@ class DefaultTasksBuildTaskSchedulerTest extends Specification {
 
     def "uses default build-in tasks if no tasks specified in StartParameter or project"() {
         given:
-        _ * startParameter.taskRequests >> [new RunDefaultTasksExecutionRequest()]
+        _ * startParameter.taskRequestsUntracked >> [new RunDefaultTasksExecutionRequest()]
         _ * defaultProject.defaultTasks >> []
         _ * buildInCommand.asDefaultTask() >> ['default1', 'default2']
 

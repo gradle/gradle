@@ -18,6 +18,7 @@ package org.gradle.configuration.project;
 
 import org.gradle.StartParameter;
 import org.gradle.api.Describable;
+import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
@@ -67,6 +68,9 @@ public interface BuiltInCommand extends Describable {
      * {@code true} if so; {@code false} otherwise
      */
     default boolean wasInvoked(StartParameter startParameter) {
-        return commandLineMatches(startParameter.getTaskNames());
+        // Internal plumbing read — purely matching against the built-in command list,
+        // not branching on user-visible task selection. Use the untracked variant so
+        // this read doesn't flag every build's CC entry as superset-ineligible.
+        return commandLineMatches(((StartParameterInternal) startParameter).getTaskNamesUntracked());
     }
 }

@@ -22,6 +22,8 @@ import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.TestExecutionPreconditions
 import spock.lang.Issue
 
+import static org.gradle.internal.cc.impl.SupersetIndexKt.SUPERSET_INDEX_DIR_NAME
+
 
 @Requires(
     value = TestExecutionPreconditions.NotEmbeddedExecutor,
@@ -68,10 +70,55 @@ class ConfigurationCacheCleanupIntegrationTest
         cc.assertStateLoaded()
         !outdated.any { it.exists() }
 
-        and:
+        and: 'the superset-lookup index survives cleanup (metadata, not a cache entry)'
         def remaining = configurationCacheDir.list() as Set
-        def expected = (recent*.name + ['gc.properties', 'configuration-cache.lock']) as Set
+        def expected = (recent*.name + ['gc.properties', 'configuration-cache.lock', SUPERSET_INDEX_DIR_NAME]) as Set
         expected == remaining
+    }
+
+    def "LRU tie-break picks the most-recently-accessed of two same-size strict supersets"() {
+        given: 'a single-project build with three tasks the user can request in various combos'
+        buildFile '''
+            ['a', 'b', 'c'].each { name ->
+                tasks.register(name) { doLast { println name } }
+            }
+        '''
+
+        and: 'two stored CC entries that are both 2-element strict supersets of [a]'
+        configurationCacheRunNoDaemon 'a', 'b'
+        def entryAB = subDirsOf(configurationCacheDir)[0]
+        configurationCacheRunNoDaemon 'a', 'c'
+        def entryAC = (subDirsOf(configurationCacheDir) - entryAB)[0]
+
+        and: 'the [a, b] entry is 8 days old in the journal; the [a, c] entry is 1 day old'
+        // pickWithTieBreak prefers the entry with the LATER getLastAccessTime — so [a, c] should win.
+        // If the LRU code path were inert (e.g. someone refactored it away), `selectBestMatch`'s
+        // first-encountered tie-break would pick whichever entry was stored first ([a, b]).
+        writeLastFileAccessTimeToJournal entryAB, daysAgo(8)
+        writeLastFileAccessTimeToJournal entryAC, daysAgo(1)
+
+        and: 'cleanup is due'
+        assert gcFile.createFile().setLastModified(0)
+
+        when: 'requesting [a] — both stored entries are valid supersets of equal size; LRU resolves the tie'
+        configurationCacheRunNoDaemon 'a'
+
+        then: 'the load succeeded against one of them'
+        def cc = newConfigurationCacheFixture()
+        // No assertStateLoaded here — `configurationCacheRunNoDaemon` already executed; just
+        // verify by structural inspection below.
+
+        and: 'cleanup deleted the older entry [a, b] but kept [a, c] (proving [a, c] was the LRU pick)'
+        // The LRU pick gets `markAccessed` updated to "now" during load. The non-picked entry's
+        // journal age stays at its set value (8 days). Cleanup's default threshold is 7 days, so:
+        //   - correct LRU pick = [a, c]: [a, c] is touched-now-survives, [a, b] stays at 8d → deleted
+        //   - broken LRU (picks [a, b] instead): [a, b] touched-now-survives, [a, c] at 1d → both survive
+        !entryAB.exists()
+        entryAC.exists()
+    }
+
+    private void configurationCacheRunNoDaemon(String... taskArgs) {
+        configurationCacheRun(*taskArgs, '--no-daemon')
     }
 
     private void configurationCacheRunNoDaemon(String task) {
@@ -87,6 +134,9 @@ class ConfigurationCacheCleanupIntegrationTest
     }
 
     private static List<TestFile> subDirsOf(TestFile dir) {
-        dir.listFiles().findAll { it.directory }
+        // Exclude the superset-lookup index directory: it is metadata persisted across
+        // entries (one file per environment-key) and isn't a cache entry that participates
+        // in LRU cleanup. See `ConfigurationCacheRepository.cleanupEligibleFilesFinder`.
+        dir.listFiles().findAll { it.directory && it.name != SUPERSET_INDEX_DIR_NAME }
     }
 }

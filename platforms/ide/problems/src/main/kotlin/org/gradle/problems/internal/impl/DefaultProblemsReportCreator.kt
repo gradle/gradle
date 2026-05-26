@@ -66,7 +66,9 @@ class DefaultProblemsReportCreator(
         reportFileName = "problems-report",
         distinctReports = false
     )
-    private val taskNames = startParameter.taskNames
+    // Untracked: the report just labels its output with the task names; it's not user
+    // configuration logic branching on the request shape.
+    private val taskNames = startParameter.taskNamesUntracked
     private val problemCount = AtomicInteger(0)
     private val failureDecorator = FailureDecorator()
     private val warningMode = startParameter.warningMode

@@ -109,6 +109,19 @@ public class DefaultExecutionPlan implements ExecutionPlan, QueryableExecutionPl
         scheduledNodes = work.getScheduledNodes();
         entryNodes.addAll(work.getEntryNodes());
         nodeMapping.addAll(scheduledNodes);
+        // Each loaded Node carries its OrdinalGroup reference, but OrdinalGroup.entryNodes
+        // is not serialized (codec writes only the group's ordinal int and reconstructs
+        // the group via OrdinalGroupFactory). Repopulate from the work's entry nodes so
+        // diagnostics, ordinal-aware filtering, and destroyer-location resolution see the
+        // groups as owned by entry nodes — without this, a CC-loaded plan has phantom
+        // ordinal groups whose destroyer-location nodes are scheduled but no entry node
+        // satisfies them, deadlocking the executor.
+        for (Node entry : work.getEntryNodes()) {
+            OrdinalGroup ordinal = entry.getOrdinal();
+            if (ordinal != null) {
+                ordinal.addEntryNode(entry);
+            }
+        }
     }
 
     @Override

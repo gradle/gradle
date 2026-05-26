@@ -34,6 +34,8 @@ class ConfigurationCacheAwareBuildTreeWorkGraphPreparer(
     override fun prepareToScheduleTasks(workGraph: BuildTreeWorkGraph.Builder) {
         if (!cache.isLoaded) {
             delegate.prepareToScheduleTasks(workGraph)
-        } // else, not required
+        }
+        // else: superset pruning happens inside cacheIO.readRootBuildStateFrom
+        // (see ConfigurationCacheState.calculateRootTaskGraph)
     }
 }

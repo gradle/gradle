@@ -97,6 +97,17 @@ class ConfigurationCacheFingerprintController internal constructor(
     private val fingerprintEventHandler: ConfigurationCacheFingerprintEventHandler,
 ) : Stoppable, ProjectScopedScriptResolution {
 
+    // AtomicBoolean for cross-thread visibility — writes come from listener-registration
+    // callbacks (potentially on parallel-configuration worker threads), reads from commit time.
+    private val taskGraphAccessedFlag = java.util.concurrent.atomic.AtomicBoolean(false)
+
+    fun taskGraphAccessed() {
+        taskGraphAccessedFlag.set(true)
+    }
+
+    val wasTaskGraphAccessed: Boolean
+        get() = taskGraphAccessedFlag.get()
+
     interface Host {
         val valueSourceProviderFactory: ValueSourceProviderFactory
     }

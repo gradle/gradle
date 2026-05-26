@@ -25,6 +25,7 @@ import org.gradle.api.flow.FlowScope
 import org.gradle.api.internal.BuildDefinition
 import org.gradle.api.internal.FeaturePreviews
 import org.gradle.api.internal.GradleInternal
+import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.internal.SettingsInternal.BUILD_SRC
 import org.gradle.api.internal.artifacts.transform.TransformStepNode
 import org.gradle.api.internal.cache.CacheConfigurationsInternal
@@ -193,7 +194,8 @@ class ConfigurationCacheState(
     suspend fun MutableReadContext.readRootBuildState(
         graph: BuildTreeWorkGraph,
         graphBuilder: BuildTreeWorkGraphBuilder?,
-        loadAfterStore: Boolean
+        loadAfterStore: Boolean,
+        tasksToDrop: Set<String> = emptySet()
     ): Pair<String, BuildTreeWorkGraph.FinalizedGraph> {
 
         val originBuildInvocationId = readBuildInvocationId()
@@ -206,7 +208,7 @@ class ConfigurationCacheState(
                 identifyBuild(build)
             }
         }
-        return originBuildInvocationId to calculateRootTaskGraph(builds, graph, graphBuilder)
+        return originBuildInvocationId to calculateRootTaskGraph(builds, graph, graphBuilder, tasksToDrop)
     }
 
     private
@@ -259,7 +261,7 @@ class ConfigurationCacheState(
     }
 
     private
-    fun calculateRootTaskGraph(builds: List<CachedBuildState>, graph: BuildTreeWorkGraph, graphBuilder: BuildTreeWorkGraphBuilder?): BuildTreeWorkGraph.FinalizedGraph {
+    fun calculateRootTaskGraph(builds: List<CachedBuildState>, graph: BuildTreeWorkGraph, graphBuilder: BuildTreeWorkGraphBuilder?, tasksToDrop: Set<String> = emptySet()): BuildTreeWorkGraph.FinalizedGraph {
         return graph.scheduleWork { builder ->
 
             graphBuilder?.invoke(builder, rootBuildState())
@@ -267,7 +269,8 @@ class ConfigurationCacheState(
             for (build in builds) {
                 if (build is BuildWithWork) {
                     builder.withWorkGraph(build.build.state) {
-                        it.setScheduledWork(build.workGraph)
+                        val filtered = WorkGraphPruner.pruneAndRewireInPlace(build.workGraph, tasksToDrop)
+                        it.setScheduledWork(filtered)
                     }
                 }
             }
@@ -712,7 +715,9 @@ class ConfigurationCacheState(
 
     private
     fun WriteContext.writeStartParameterOf(gradle: GradleInternal) {
-        val startParameterTaskNames = gradle.startParameter.taskNames
+        // CC-internal serialization read; not user configuration logic branching on the request.
+        // Use the untracked accessor so this read doesn't flag every stored entry.
+        val startParameterTaskNames = (gradle.startParameter as StartParameterInternal).taskNamesUntracked
         writeStrings(startParameterTaskNames)
     }
 

@@ -60,7 +60,9 @@ public class TaskNameResolvingBuildTaskScheduler implements BuildTaskScheduler {
         if (selector != null) {
             selector.applyTasksTo(new EntryTaskSelectorContext(gradle), plan);
         }
-        List<TaskExecutionRequest> taskParameters = gradle.getStartParameter().getTaskRequests();
+        // Untracked: the scheduler reads the CLI request to schedule tasks, not to drive
+        // user-visible configuration logic. This is the pure plumbing path on every build.
+        List<TaskExecutionRequest> taskParameters = gradle.getStartParameter().getTaskRequestsUntracked();
         for (TaskExecutionRequest taskParameter : taskParameters) {
             List<TaskSelection> taskSelections = commandLineTaskParser.parseTasks(taskParameter);
             for (TaskSelection taskSelection : taskSelections) {

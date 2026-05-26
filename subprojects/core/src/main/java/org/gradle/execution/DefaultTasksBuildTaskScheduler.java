@@ -15,8 +15,9 @@
  */
 package org.gradle.execution;
 
-import org.gradle.StartParameter;
+import org.gradle.TaskExecutionRequest;
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.configuration.project.BuiltInCommand;
 import org.gradle.execution.plan.ExecutionPlan;
 import org.gradle.internal.RunDefaultTasksExecutionRequest;
@@ -45,9 +46,13 @@ public class DefaultTasksBuildTaskScheduler implements BuildTaskScheduler {
 
     @Override
     public void scheduleRequestedTasks(GradleInternal gradle, @Nullable EntryTaskSelector selector, ExecutionPlan plan) {
-        StartParameter startParameter = gradle.getStartParameter();
+        StartParameterInternal startParameter = gradle.getStartParameter();
 
-        if (startParameter.getTaskRequests().size() == 1 && startParameter.getTaskRequests().get(0) instanceof RunDefaultTasksExecutionRequest) {
+        // Use the untracked accessor: this scheduler reads taskRequests to detect the
+        // "no tasks specified → run defaults" sentinel, not to make user-visible decisions
+        // based on the request shape. Tracking would flag every default-task run.
+        List<TaskExecutionRequest> taskRequests = startParameter.getTaskRequestsUntracked();
+        if (taskRequests.size() == 1 && taskRequests.get(0) instanceof RunDefaultTasksExecutionRequest) {
             // Gather the default tasks from this first group project
             List<String> defaultTasks = gradle.getDefaultProjectState().fromMutableState(project -> {
                 //so that we don't miss out default tasks

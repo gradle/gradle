@@ -144,7 +144,9 @@ class ConfigurationCacheStartParameter internal constructor(
         get() = startParameter.lockedDependenciesToUpdate.isNotEmpty()
 
     val requestedTaskNames: List<String> by unsafeLazy {
-        startParameter.taskNames
+        // CC-internal read for the superset index lookup itself — not user code branching.
+        // The untracked accessor avoids flagging every CC-enabled build's entry.
+        startParameter.taskNamesUntracked
     }
 
     val excludedTaskNames: Set<String>

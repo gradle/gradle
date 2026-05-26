@@ -75,9 +75,12 @@ class ConfigurationCacheCompositeBuildsIntegrationTest extends AbstractIntegrati
         def confCacheDir = file("./app/.gradle/configuration-cache")
         confCacheDir.isDirectory()
         def confCacheFiles = confCacheDir.allDescendants().findAll { it != 'configuration-cache.lock' && it != 'gc.properties' }
-        confCacheFiles.size() == 14 // header, candidates file, classloader scopes, 2 * fingerprint, build strings file, root build state file, root build shared objects file, included build state file, included build shared objects file, 2 * project state file, 2 * owner-less node state files
+        confCacheFiles.size() == 15 // header, candidates file, classloader scopes, 2 * fingerprint, build strings file, root build state file, root build shared objects file, included build state file, included build shared objects file, 2 * project state file, 2 * owner-less node state files, superset index file
         if (!OperatingSystem.current().isWindows()) {
-            confCacheFiles.forEach {
+            // 'superset-index/' literal kept in sync with `SUPERSET_INDEX_DIR_NAME` in
+            // platforms/core-configuration/configuration-cache/src/main/kotlin/org/gradle/internal/cc/impl/SupersetIndex.kt
+            // — this subproject can't depend on configuration-cache, so the constant is duplicated.
+            confCacheFiles.findAll { !it.startsWith('superset-index/') }.forEach {
                 assert confCacheDir.file(it).mode == 384
             }
         }

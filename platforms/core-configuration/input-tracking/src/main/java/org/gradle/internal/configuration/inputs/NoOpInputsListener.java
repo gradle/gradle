@@ -57,4 +57,7 @@ class NoOpInputsListener implements InstrumentedInputsListener {
 
     @Override
     public void startParameterProjectPropertiesObserved() {}
+
+    @Override
+    public void startParameterTaskRequestsObserved() {}
 }

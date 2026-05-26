@@ -22,7 +22,9 @@ import org.gradle.api.internal.properties.GradlePropertiesController
 import org.gradle.api.internal.provider.ConfigurationTimeBarrier
 import org.gradle.api.internal.provider.DefaultConfigurationTimeBarrier
 import org.gradle.api.internal.provider.ValueSourceProviderFactory
+import org.gradle.api.internal.tasks.properties.TaskScheme
 import org.gradle.api.logging.LogLevel
+import org.gradle.api.tasks.Destroys
 import org.gradle.internal.cc.operations.EntrySearchResult
 import org.gradle.internal.cc.operations.ModelStoreResult
 import org.gradle.internal.cc.operations.WorkGraphLoadResult
@@ -46,6 +48,7 @@ import org.gradle.internal.cc.impl.ConfigurationCacheAction.Load
 import org.gradle.internal.cc.impl.ConfigurationCacheAction.SkipStore
 import org.gradle.internal.cc.impl.ConfigurationCacheAction.Store
 import org.gradle.internal.cc.impl.ConfigurationCacheAction.Update
+import org.gradle.internal.cc.impl.SupersetIndexLookup.CompatibleEntry
 import org.gradle.internal.cc.impl.extensions.withMostRecentEntry
 import org.gradle.internal.cc.impl.fingerprint.ClassLoaderScopesFingerprintController
 import org.gradle.internal.cc.impl.fingerprint.ConfigurationCacheFingerprintController
@@ -89,6 +92,7 @@ import java.util.UUID
 class DefaultConfigurationCache internal constructor(
     private val startParameter: ConfigurationCacheStartParameter,
     private val cacheKey: ConfigurationCacheKey,
+    private val environmentKey: ConfigurationCacheEnvironmentKey,
     private val problems: ConfigurationCacheProblems,
     private val scopeRegistryListener: ConfigurationCacheClassLoaderScopeRegistryListener,
     private val cacheRepository: ConfigurationCacheRepository,
@@ -108,7 +112,8 @@ class DefaultConfigurationCache internal constructor(
     private val fileSystemAccess: FileSystemAccess,
     private val calculatedValueContainerFactory: CalculatedValueContainerFactory,
     private val modelSideEffectExecutor: ConfigurationCacheBuildTreeModelSideEffectExecutor,
-    private val deferredRootBuildGradle: DeferredRootBuildGradle
+    private val deferredRootBuildGradle: DeferredRootBuildGradle,
+    private val taskScheme: TaskScheme
 ) : BuildTreeConfigurationCache, Stoppable {
 
     private
@@ -127,8 +132,57 @@ class DefaultConfigurationCache internal constructor(
     private
     val loadedSideEffects = mutableListOf<BuildTreeModelSideEffect>()
 
+    /**
+     * Identity paths of the just-built work graph's entry nodes, captured at
+     * graph-finalization time so they're available at [commitCacheEntry] time
+     * (the execution plan is reset to `EMPTY` after task execution finishes).
+     * Ordered to match the build's CLI input. Recorded into the superset index
+     * so [WorkGraphPruner] can compare directly against `task.identityPath`.
+     */
     private
-    val storeDelegate = lazy { cacheRepository.forKey(cacheKey.string) }
+    var entryTaskIdentityPaths: List<String> = emptyList()
+
+    /**
+     * mustRunAfter and finalizer edges between scheduled tasks, captured at the
+     * same point as [entryTaskIdentityPaths]. Map source-task identity path →
+     * list of identity paths it must run after / be finalized by. Recorded into
+     * the superset index so a candidate entry can be rejected at lookup time
+     * when pruning would dangle one of these edges across the requested/dropped
+     * boundary (see `ConfigurationCacheRepository.findCacheEntry`).
+     */
+    private
+    var mustRunAfterEdges: Map<String, List<String>> = emptyMap()
+
+    /**
+     * The scheduled `LocalTaskNode`s captured at finalization time. Held so
+     * [collectSideEffectingTaskIdentityPaths] can re-scan them at
+     * [commitCacheEntry] time (the execution plan is reset to `EMPTY` after task
+     * execution finishes).
+     */
+    private
+    var scheduledLocalTaskNodes: List<org.gradle.execution.plan.LocalTaskNode> = emptyList()
+
+
+    /**
+     * The compatible stored cache entry chosen for this build (exact or strict-superset
+     * match), or `null` if none was found and we'll cold-store at [cacheKey]. Evaluated
+     * once and reused — the [SupersetIndexLookup] acquires the cache file lock.
+     */
+    private
+    val compatibleEntry: CompatibleEntry? by lazy {
+        // The empty-CLI short-circuit (project defaults — unknown without running configuration)
+        // is enforced inside `findCacheEntry` for defensive depth. The early-return here is
+        // kept as a fast-path that avoids the file-lock + index-file open for the common case.
+        if (startParameter.requestedTaskNames.isEmpty()) return@lazy null
+        cacheRepository.findCacheEntry(environmentKey, startParameter.requestedTaskNames)
+    }
+
+    private
+    val effectiveStoreKey: String
+        get() = compatibleEntry?.fullKey ?: cacheKey.string
+
+    private
+    val storeDelegate = lazy { cacheRepository.forKey(effectiveStoreKey) }
 
     private
     val store by storeDelegate
@@ -141,6 +195,21 @@ class DefaultConfigurationCache internal constructor(
 
     private
     val entryStore by entryStoreDelegate
+
+    /**
+     * Did the routed-to entry's fingerprint check fail? If so, fresh-store at [cacheKey]
+     * rather than overwriting the routed-to entry's directory.
+     */
+    private
+    var supersetMissFallback = false
+
+    private
+    val storeForWriting: ConfigurationCacheStateStore
+        get() = if (supersetMissFallback) {
+            cacheRepository.forKey(cacheKey.string)
+        } else {
+            store
+        }
 
     private
     val cacheIO by lazy { host.service<ConfigurationCacheBuildTreeIO>() }
@@ -272,6 +341,10 @@ class DefaultConfigurationCache internal constructor(
             Store, is Update -> {
                 runWorkThatContributesToCacheEntry {
                     val finalizedGraph = scheduler(graph)
+                    // Capture entry-task identity paths and mustRunAfter/finalizer edges now —
+                    // the execution plan is reset to EMPTY after task execution, so this can't
+                    // be done in commitCacheEntry.
+                    captureSupersetIndexInputs()
                     val rootBuild = buildStateRegistry.rootBuild
                     degradeGracefullyOr { saveWorkGraph(rootBuild) }
                     crossConfigurationTimeBarrier()
@@ -409,6 +482,84 @@ class DefaultConfigurationCache internal constructor(
             classLoaderScopes.commit(fileFor(StateType.ClassLoaderScopes))
         }
         updateMostRecentEntry(entryId)
+        cacheRepository.recordEnvironmentKeyForCacheKey(
+            environmentKey,
+            cacheKey.string,
+            startParameter.requestedTaskNames,
+            entryTaskIdentityPaths,
+            cacheFingerprintController.wasTaskGraphAccessed,
+            mustRunAfterEdges,
+            collectSideEffectingTaskIdentityPaths()
+        )
+    }
+
+    /**
+     * Snapshots structural inputs to the superset index from the finalized task
+     * graph before task execution begins (the execution plan is cleared on
+     * completion). Captures three things: entry-task identity paths, the list of
+     * scheduled `LocalTaskNode`s (held so [collectSideEffectingTaskIdentityPaths]
+     * can re-scan at commit time), and mustRunAfter/finalizer edges (for the
+     * dangle check).
+     */
+    private
+    fun captureSupersetIndexInputs() {
+        val scheduled = deferredRootBuildGradle.gradle.taskGraph.collectScheduledWork()
+        entryTaskIdentityPaths = scheduled.entryNodes
+            .filterIsInstance<org.gradle.execution.plan.LocalTaskNode>()
+            .map { it.task.identityPath.asString() }
+        scheduledLocalTaskNodes = scheduled.scheduledNodes
+            .filterIsInstance<org.gradle.execution.plan.LocalTaskNode>()
+        val mraEdges = mutableMapOf<String, List<String>>()
+        for (node in scheduledLocalTaskNodes) {
+            val id = node.task.identityPath.asString()
+            collectOrderingTargets(node).takeIf { it.isNotEmpty() }?.let { mraEdges[id] = it }
+        }
+        mustRunAfterEdges = mraEdges
+    }
+
+    /**
+     * Identity paths of scheduled tasks whose execution has filesystem side
+     * effects beyond their snapshotted outputs — specifically, tasks that
+     * declare any property annotated with `@Destroys`. This includes the base
+     * plugin's auto-registered `clean*` tasks (instances of
+     * `org.gradle.api.tasks.Delete`, whose `getTargetFiles()` is `@Destroys`)
+     * and any user-defined task type with a `@Destroys`-annotated property.
+     *
+     * Detection uses `TypeMetadataStore` annotation metadata only: per-task-type
+     * inspection of declared property type annotations. It does NOT invoke
+     * `@OutputFile` / `@Nested` / `@Destroys` property getters, so it cannot
+     * affect user property evaluation counts (see the regression captured by
+     * `TaskParametersIntegrationTest."input and output properties are not
+     * evaluated too often"`).
+     *
+     * Misses tasks that register destroyables dynamically via
+     * `task.destroyables.register(...)` on a plain `DefaultTask` — annotation
+     * lookup can't see those. Caught by `Delete`-instance subclasses via the
+     * `@Destroys` on `Delete.getTargetFiles()`.
+     */
+    private
+    fun collectSideEffectingTaskIdentityPaths(): Set<String> =
+        scheduledLocalTaskNodes
+            .asSequence()
+            .filter { hasDestroysAnnotatedProperty(it.task::class.java) }
+            .map { it.task.identityPath.asString() }
+            .toSet()
+
+    private
+    fun hasDestroysAnnotatedProperty(taskClass: Class<*>): Boolean {
+        val typeMetadata = taskScheme.inspectionScheme.metadataStore.getTypeMetadata(taskClass)
+        return typeMetadata.propertiesMetadata.any { it.propertyType == Destroys::class.java }
+    }
+
+    private
+    fun collectOrderingTargets(node: org.gradle.execution.plan.TaskNode): List<String> {
+        val deps = node.dependencySuccessors
+        return node.hardSuccessors
+            .asSequence()
+            .filter { it !in deps }
+            .filterIsInstance<org.gradle.execution.plan.LocalTaskNode>()
+            .map { it.task.identityPath.asString() }
+            .toList()
     }
 
     private
@@ -478,6 +629,11 @@ class DefaultConfigurationCache internal constructor(
                         checkedFingerprint.reason.render()
                     )
                     logBootstrapSummary(description)
+                    if (effectiveStoreKey != cacheKey.string) {
+                        // We were routed to a stored entry, but its fingerprint is stale.
+                        // Don't walk to another candidate — just store fresh at cacheKey.string.
+                        supersetMissFallback = true
+                    }
                     Store.withDescription(description)
                 }
 
@@ -574,7 +730,7 @@ class DefaultConfigurationCache internal constructor(
         }
 
     private
-    fun updateCandidateEntries(update: List<CandidateEntry>.() -> List<CandidateEntry>) = store.useForStore {
+    fun updateCandidateEntries(update: List<CandidateEntry>.() -> List<CandidateEntry>) = storeForWriting.useForStore {
         val existingEntries = readCandidateEntries()
         val newEntries = update(existingEntries)
         if (existingEntries != newEntries) {
@@ -746,8 +902,29 @@ class DefaultConfigurationCache internal constructor(
         scopeRegistryListener.dispose()
 
         buildOperationRunner.withWorkGraphLoadOperation {
+            // Derive the dropped identity-path set from the chosen entry's CLI ↔
+            // identity-path positional pairing: any stored CLI token not in the
+            // current request maps to the identity path at the same index, which
+            // is what `WorkGraphPruner` removes from the loaded plan. For exact
+            // matches (or no compatible entry), the set is empty and the pruner
+            // is a no-op.
+            val tasksToDrop: Set<String> = compatibleEntry?.let { entry ->
+                if (entry.storedCliTokens.size != entry.storedEntryTaskIdentityPaths.size) {
+                    // Non-1:1 CLI ↔ identity mapping (multi-project bare names).
+                    // `selectBestMatch` restricts these to exact matches, so the
+                    // dropped set is empty by construction.
+                    return@let emptySet()
+                }
+                val requestedCli = startParameter.requestedTaskNames.toSet()
+                entry.storedCliTokens
+                    .asSequence()
+                    .withIndex()
+                    .filter { (_, token) -> token !in requestedCli }
+                    .map { (i, _) -> entry.storedEntryTaskIdentityPaths[i] }
+                    .toSet()
+            } ?: emptySet()
             val storeLoadResult = entryStore.useForStateLoad(StateType.Work) { stateFile: ConfigurationCacheStateFile ->
-                val (buildInvocationId, workGraph) = cacheIO.readRootBuildStateFrom(stateFile, loadAfterStore, graph, graphBuilder)
+                val (buildInvocationId, workGraph) = cacheIO.readRootBuildStateFrom(stateFile, loadAfterStore, graph, graphBuilder, tasksToDrop)
                 LoadResultMetadata(buildInvocationId) to workGraph
             }
             val (intermediateLoadResult, actionResult) = storeLoadResult.value

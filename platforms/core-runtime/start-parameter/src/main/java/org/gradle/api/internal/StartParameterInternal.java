@@ -17,6 +17,7 @@
 package org.gradle.api.internal;
 
 import org.gradle.StartParameter;
+import org.gradle.TaskExecutionRequest;
 import org.gradle.initialization.BuildLayoutParameters;
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheProblemsOption;
 import org.gradle.initialization.layout.BuildLayoutConfiguration;
@@ -29,6 +30,7 @@ import org.jspecify.annotations.Nullable;
 
 import java.io.File;
 import java.time.Duration;
+import java.util.List;
 import java.util.Map;
 
 public class StartParameterInternal extends StartParameter {
@@ -123,6 +125,45 @@ public class StartParameterInternal extends StartParameter {
      */
     public Map<String, String> getProjectPropertiesUntracked() {
         return super.getProjectProperties();
+    }
+
+    @Override
+    @SuppressWarnings("deprecation")
+    public List<TaskExecutionRequest> getTaskRequests() {
+        // Configuration-time reads of the requested-task list make the cached entry's
+        // state request-dependent. The flag on the IndexedVariant excludes such entries
+        // from strict-superset matching. Internal Gradle callers that read this without
+        // intent to branch on the value should use #getTaskRequestsUntracked() instead.
+        InstrumentedInputs.listener().startParameterTaskRequestsObserved();
+        return super.getTaskRequests();
+    }
+
+    /**
+     * Returns the task requests without flagging the configuration-cache entry as
+     * dependent on the request shape. Internal callers that read this list purely
+     * for plumbing (task resolution, scheduling, etc.) should use this method —
+     * they don't branch on the user's input, so they shouldn't disable superset
+     * matching for the resulting entry.
+     */
+    public List<TaskExecutionRequest> getTaskRequestsUntracked() {
+        return super.getTaskRequests();
+    }
+
+    @Override
+    @SuppressWarnings("deprecation")
+    public List<String> getTaskNames() {
+        // Same rationale as #getTaskRequests() — `taskNames` is a convenience view
+        // over `taskRequests` and equally request-dependent.
+        InstrumentedInputs.listener().startParameterTaskRequestsObserved();
+        return super.getTaskNames();
+    }
+
+    /**
+     * Returns the task names without flagging the configuration-cache entry.
+     * See #getTaskRequestsUntracked() for the rationale.
+     */
+    public List<String> getTaskNamesUntracked() {
+        return super.getTaskNames();
     }
 
     public File getGradleHomeDir() {
