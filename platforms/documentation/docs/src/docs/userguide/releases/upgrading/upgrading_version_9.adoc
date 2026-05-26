@@ -284,7 +284,7 @@ include::sample[dir="snippets/releases/upgrading/findExtraInHierarchy/groovy",fi
 
 This helper is **not compatible with Isolated Projects** — `parent.ext` (and the chain of `parent` references) is cross-project access, which Isolated Projects forbids. It is a transitional fix for Vintage migrations only. If you are also migrating to Isolated Projects, use one of the first two options (`gradle.properties` or a convention plugin) instead.
 
-**Opt into Gradle 10 behavior by disabling project hierarchy lookup**
+===== Opt into Gradle 10 behavior by disabling project hierarchy lookup
 
 Once you have addressed all related deprecations, you can use a feature preview to adopt the Gradle 10 behavior early.
 This prevents new accidental implicit lookups in the project hierarchy.
