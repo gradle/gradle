@@ -30,6 +30,7 @@ import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.WriteContext
 import org.gradle.internal.serialize.graph.WriteIsolate
 import org.gradle.internal.serialize.graph.codecs.WideningCodec
+import org.gradle.internal.serialize.graph.reportIfUnsupportedPropertyValueType
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotEquals
@@ -141,10 +142,11 @@ class ReportIfUnsupportedPropertyValueTypeTest {
     }
 
     @Test
-    fun `MapProperty propertyKind selects the MapProperty-specific resolution text`() {
-        // The helper switches resolution text based on propertyKind. The Map branch
-        // mentions "MapProperty key or value"; the default branch uses the codec's
-        // wideningFix. Verifies the dispatch on the propertyKind argument.
+    fun `custom resolution lambda overrides the default wideningFix`() {
+        // The resolution-builder lambda lets callers (notably MapPropertyCodec) supply
+        // a context-specific fix line instead of the codec's bean-field-oriented default.
+        // Verifies the lambda is invoked with both the matched WideningCodec and the
+        // original valueType, and its return value is attached to the exception.
         val capturedProblems = mutableListOf<PropertyProblem>()
         val context = fakeContext(
             codecs = mapOf(SubjectA::class.java to wideningCodec()),
@@ -152,16 +154,20 @@ class ReportIfUnsupportedPropertyValueTypeTest {
         )
 
         runSuspending {
-            context.reportIfUnsupportedPropertyValueType(MapProperty::class.java, SubjectA::class.java)
+            // Default — uses widening.wideningFix
             context.reportIfUnsupportedPropertyValueType(ListProperty::class.java, SubjectA::class.java)
+            // Custom — MapProperty-style fix that names the offending valueType and the position
+            context.reportIfUnsupportedPropertyValueType(MapProperty::class.java, SubjectA::class.java) { _, valueType ->
+                "Avoid using ${valueType.simpleName} as a MapProperty key."
+            }
         }
 
         assertEquals(2, capturedProblems.size)
-        val mapResolution = (capturedProblems[0].exception as UnsupportedTypeException).resolutions.single()
-        val listResolution = (capturedProblems[1].exception as UnsupportedTypeException).resolutions.single()
-        assertTrue("MapProperty resolution should mention key/value, was: $mapResolution",
-            mapResolution.contains("MapProperty key or value"))
-        assertNotEquals("MapProperty and ListProperty resolutions must differ", mapResolution, listResolution)
+        val defaultResolution = (capturedProblems[0].exception as UnsupportedTypeException).resolutions.single()
+        val customResolution = (capturedProblems[1].exception as UnsupportedTypeException).resolutions.single()
+        assertEquals("Use a supported type instead.", defaultResolution)
+        assertEquals("Avoid using SubjectA as a MapProperty key.", customResolution)
+        assertNotEquals("default and custom resolutions must differ", defaultResolution, customResolution)
     }
 
     private fun wideningCodec(): WideningCodec<Decoded> = object : WideningCodec<Decoded> {

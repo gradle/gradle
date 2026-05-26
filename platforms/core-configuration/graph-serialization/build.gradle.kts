@@ -33,6 +33,7 @@ dependencies {
 
     implementation(projects.baseServices)
     implementation(projects.logging)
+    implementation(projects.modelReflect)
     implementation(projects.problemsApi)
     implementation(projects.stdlibKotlinExtensions)
 
