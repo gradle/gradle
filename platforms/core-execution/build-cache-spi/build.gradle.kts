@@ -6,7 +6,7 @@ plugins {
 description = "Public API for extending the build cache"
 
 dependencies {
-    implementation(projects.stdlibJavaExtensions)
+    compileOnly(projects.stdlibJavaExtensions)
 
     integTestImplementation(projects.logging)
     integTestDistributionRuntimeOnly(projects.distributionsCore)
