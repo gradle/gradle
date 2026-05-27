@@ -292,7 +292,7 @@ This prevents new accidental implicit lookups in the project hierarchy.
 [source,kotlin]
 ----
 // settings.gradle.kts
-enableFeaturePreview("NO_IMPLICIT_LOOKUP_IN_PROJECT_HIERARCHY")
+enableFeaturePreview("NO_IMPLICIT_LOOKUP_IN_PARENT_PROJECTS")
 ----
 
 [[deprecated_pmd_target_jdk]]

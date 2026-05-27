@@ -44,7 +44,7 @@ public class FeaturePreviews {
          * deprecation warning that fires for parent-walk lookups in Vintage mode will be
          * silent under this preview because the parent walk is disabled at the source.
          */
-        NO_IMPLICIT_LOOKUP_IN_PROJECT_HIERARCHY(true, null),
+        NO_IMPLICIT_LOOKUP_IN_PARENT_PROJECTS(true, null),
         /**
          * This exists to test inactive feature previews
          */

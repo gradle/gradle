@@ -206,7 +206,7 @@ class ParentProjectPropertyLookupIntegrationTest extends AbstractIntegrationSpec
 
     private TestFile disableProjectHierarchyLookup() {
         settingsFile << """
-            enableFeaturePreview("NO_IMPLICIT_LOOKUP_IN_PROJECT_HIERARCHY")
+            enableFeaturePreview("NO_IMPLICIT_LOOKUP_IN_PARENT_PROJECTS")
         """
     }
 

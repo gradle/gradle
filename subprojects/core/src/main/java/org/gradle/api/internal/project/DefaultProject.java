@@ -264,11 +264,11 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
         @Nullable HierarchicalDynamicObject parentInherited = services.get(CrossProjectModelAccess.class).parentProjectDynamicInheritedScope(owner);
         if (parentInherited != null) {
-            // The NO_IMPLICIT_LOOKUP_IN_PROJECT_HIERARCHY feature preview opts Vintage builds into the
+            // The NO_IMPLICIT_LOOKUP_IN_PARENT_PROJECTS feature preview opts Vintage builds into the
             // eventual Gradle 10 behavior early: don't wire the parent at all, so the parent walk
             // (and therefore the deprecation) does not fire. Under Isolated Projects the parent
             // is already null (see the preceding commit), so this branch only matters for Vintage.
-            boolean noImplicitParentLookup = services.get(FeatureFlags.class).isEnabled(FeaturePreviews.Feature.NO_IMPLICIT_LOOKUP_IN_PROJECT_HIERARCHY);
+            boolean noImplicitParentLookup = services.get(FeatureFlags.class).isEnabled(FeaturePreviews.Feature.NO_IMPLICIT_LOOKUP_IN_PARENT_PROJECTS);
             if (!noImplicitParentLookup) {
                 extensibleDynamicObject.setParent(parentInherited);
                 extensibleDynamicObject.setFailOnParentAccess(services.get(InternalOptions.class).getBoolean(FAIL_ON_PARENT_PROPERTY_LOOKUP));
