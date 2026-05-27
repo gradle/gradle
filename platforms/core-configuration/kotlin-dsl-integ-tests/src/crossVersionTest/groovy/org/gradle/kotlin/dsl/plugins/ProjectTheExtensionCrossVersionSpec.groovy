@@ -74,15 +74,6 @@ class ProjectTheExtensionCrossVersionSpec extends CrossVersionIntegrationSpec {
 
     private void pluginBuiltWith(GradleDistribution distribution, String kotlinVersion = null) {
         file("plugin/settings.gradle.kts").text = """
-            pluginManagement {
-                repositories {
-                    gradlePluginPortal()
-                    maven {
-                        name = "Kotlin development repository"
-                        url = uri("https://redirector.kotlinlang.org/maven/dev/")
-                    }
-                }
-            }
             println("Publishing plugin with ${'$'}{org.gradle.util.GradleVersion.current()}")
         """
         def pluginBuildScript = file("plugin/build.gradle.kts")
@@ -96,12 +87,6 @@ class ProjectTheExtensionCrossVersionSpec extends CrossVersionIntegrationSpec {
             group = "com.example"
             version = "1.0"
             ${mavenCentralRepository(KOTLIN)}
-            repositories {
-                maven {
-                    name = "Kotlin development repository"
-                    url = uri("https://redirector.kotlinlang.org/maven/dev/")
-                }
-            }
             publishing {
                 repositories { maven { url = uri("${mavenRepo.uri}") } }
             }

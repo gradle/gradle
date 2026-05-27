@@ -110,13 +110,11 @@ import kotlin.script.experimental.util.PropertiesCollection
 // TODO: which modes to use in the end?
 private const val DAEMON_MODE = false
 private const val KEEPALIVE_FLAG = true
-private const val THREAD_POOL_FLAG = false
 private const val ISOLATED_CLASSLOADER = DAEMON_MODE || false // can't use non-isolated classloader in Daemon mode
 private const val REUSE_BUILD_SESSION = true
 
 private val systemProperties: Map<String, String> = mapOf(
     KOTLIN_COMPILER_ENVIRONMENT_KEEPALIVE_PROPERTY.property to KEEPALIVE_FLAG.toString(),
-    "kotlin.bta.use-thread-pool" to THREAD_POOL_FLAG.toString()
 )
 
 private val classloaderInstances: MutableMap<ClassPath, URLClassLoader> = mutableMapOf() // necessary because some Kotlin code is retaining them and we can't clean it up properly

@@ -55,29 +55,13 @@ abstract class AbstractKotlinIntegrationTest : AbstractIntegrationTest() {
         setupScript.parentFile.mkdirs()
         setupScript.writeText(
             """
-            def kotlinDevRepo = { repos ->
-                repos.maven { repo ->
-                    repo.name = 'Kotlin development repository'
-                    repo.url = "https://redirector.kotlinlang.org/maven/dev/"
-                    repo.mavenContent { content ->
-                        content.includeGroupByRegex("org\\.jetbrains\\.kotlin(\\..*)?")
-                    }
-                }
-            }
             beforeSettings { settings ->
                 settings.pluginManagement {
                     repositories {
                         $testRepositories
-                        kotlinDevRepo(delegate)
                         gradlePluginPortal()
                     }
                 }
-            }
-            allprojects {
-                buildscript {
-                    kotlinDevRepo(repositories)
-                }
-                kotlinDevRepo(repositories)
             }
             """
         )
