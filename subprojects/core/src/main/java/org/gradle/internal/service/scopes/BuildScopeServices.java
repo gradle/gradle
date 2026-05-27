@@ -869,8 +869,8 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
     }
 
     @Provides
-    BuildTaskScheduler createBuildTaskScheduler(CommandLineTaskParser commandLineTaskParser, ProjectConfigurer projectConfigurer, BuildTaskSelector.BuildSpecificSelector selector, List<BuiltInCommand> builtInCommands, ProblemsInternal problemsService) {
-        return new DefaultTasksBuildTaskScheduler(projectConfigurer, builtInCommands, new TaskNameResolvingBuildTaskScheduler(commandLineTaskParser, selector, builtInCommands, problemsService));
+    BuildTaskScheduler createBuildTaskScheduler(CommandLineTaskParser commandLineTaskParser, BuildTaskSelector.BuildSpecificSelector selector, List<BuiltInCommand> builtInCommands, ProblemsInternal problemsService) {
+        return new DefaultTasksBuildTaskScheduler(builtInCommands, new TaskNameResolvingBuildTaskScheduler(commandLineTaskParser, selector, builtInCommands, problemsService));
     }
 
     @Provides

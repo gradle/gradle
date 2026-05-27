@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.project;
 
+import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Iterables;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier;
@@ -157,12 +158,12 @@ class DefaultProjectState implements ProjectState, Closeable {
 
     @Override
     public Set<ProjectState> getAllProjects() {
-        Set<ProjectState> result = new TreeSet<>(Comparator.comparing(ProjectState::getIdentityPath));
+        ImmutableSortedSet.Builder<ProjectState> result = ImmutableSortedSet.orderedBy(ProjectOrderingUtil::compare);
         collectAllProjects(this, result);
-        return result;
+        return result.build();
     }
 
-    private static void collectAllProjects(ProjectState project, Set<ProjectState> result) {
+    private static void collectAllProjects(ProjectState project, ImmutableSortedSet.Builder<ProjectState> result) {
         result.add(project);
         for (ProjectState child : project.getUnorderedChildProjects()) {
             collectAllProjects(child, result);
