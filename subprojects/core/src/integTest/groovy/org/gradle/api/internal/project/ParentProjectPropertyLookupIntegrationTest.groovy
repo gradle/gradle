@@ -17,6 +17,7 @@
 package org.gradle.api.internal.project
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.TestExecutionPreconditions
 
@@ -180,5 +181,90 @@ class ParentProjectPropertyLookupIntegrationTest extends AbstractIntegrationSpec
         expect:
         succeeds("help")
         outputContains("foo: child-only")
+    }
+
+    def "can disable implicit lookup in parent projects: child #access returns #expected for parent-only property"() {
+        given:
+        disableImplicitLookupInParentProjects()
+        buildFile << """
+            ext.foo = "from-root"
+        """
+        file("a/build.gradle") << """
+            println("result: " + $invocation)
+        """
+
+        expect:
+        // No deprecation expected — the feature preview disables the parent walk at the source.
+        succeeds("help")
+        outputContains("result: $expected")
+
+        where:
+        access            | invocation              | expected
+        "findProperty()"  | 'findProperty("foo")'   | "null"
+        "hasProperty()"   | 'hasProperty("foo")'    | "false"
+    }
+
+    def "can disable implicit lookup in parent projects: child #access throws MissingPropertyException for parent-only property"() {
+        given:
+        disableImplicitLookupInParentProjects()
+        buildFile << """
+            ext.foo = "from-root"
+        """
+        file("a/build.gradle") << """
+            $invocation
+        """
+
+        expect:
+        fails("help")
+        failure.assertHasCause("Could not get unknown property 'foo' for project ':a' of type org.gradle.api.Project.")
+
+        where:
+        access            | invocation
+        "implicit foo"    | 'println("foo: " + foo)'
+        "property()"      | 'property("foo")'
+        "getProperty()"   | 'getProperty("foo")'
+    }
+
+    def "can disable implicit lookup in parent projects: child #access throws MissingMethodException for parent-only method"() {
+        given:
+        disableImplicitLookupInParentProjects()
+        buildFile << """
+            def someMethod() { "from-root" }
+        """
+        file("a/build.gradle") << """
+            $invocation
+        """
+
+        expect:
+        fails("help")
+        failure.assertHasCause("Could not find method someMethod() for arguments [] on project ':a' of type org.gradle.api.Project.")
+
+        where:
+        access                 | invocation
+        "implicit someMethod"  | 'someMethod()'
+        "this.someMethod"      | 'this.someMethod()'
+        "project.someMethod"   | 'project.someMethod()'
+    }
+
+    def "can disable implicit lookup in parent projects: child can still access its own properties and methods"() {
+        given:
+        disableImplicitLookupInParentProjects()
+        file("a/build.gradle") << """
+            ext.local = "child-only"
+            def localMethod() { "child-method" }
+            println("prop: " + local)
+            println("method: " + localMethod())
+        """
+
+        expect:
+        succeeds("help")
+        outputContains("prop: child-only")
+        outputContains("method: child-method")
+    }
+
+    private TestFile disableImplicitLookupInParentProjects() {
+        settingsFile << """
+            enableFeaturePreview("NO_IMPLICIT_LOOKUP_IN_PARENT_PROJECTS")
+        """
     }
 }
