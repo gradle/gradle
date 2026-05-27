@@ -61,7 +61,8 @@ class ConfigurationCacheTaskSerializationIntegrationTest extends AbstractConfigu
         "Collection(Task, TaskProvider)" | "[copy1.get(), copy2]" | "[copy1, copy2]"
     }
 
-    def "using a tasks from another project as 'files(#type)' input is prohibited"() {
+    def "using a task from another project as 'files' input is allowed"() {
+
         settingsFile << """
             include ':foo'
         """
@@ -76,15 +77,9 @@ class ConfigurationCacheTaskSerializationIntegrationTest extends AbstractConfigu
             }
         """
 
-        when:
-        configurationCacheFails ":foo:dependent"
-
-        then:
-        problems.assertFailureHasProblems(failure) {
-            withProblem("Task `:foo:dependent` of type `org.gradle.api.DefaultTask`: cannot serialize object of type 'org.gradle.api.DefaultTask'")
-            totalProblemsCount = 1
-            problemsWithStackTraceCount = 0
-        }
+        expect:
+        configurationCacheRun ":foo:dependent"
+        configurationCacheRun ":foo:dependent"
     }
 
     def "restores task fields whose value is an object graph with cycles"() {
@@ -431,6 +426,128 @@ class ConfigurationCacheTaskSerializationIntegrationTest extends AbstractConfigu
         then:
         outputContains("this.value = [file1.txt, file2.txt]")
         outputContains("ok.value = [file1.txt]")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/33318")
+    def "can use TaskCollection from withType as task input"() {
+        buildFile << """
+            abstract class MyTask extends DefaultTask {
+                @OutputFile
+                abstract RegularFileProperty getOutputFile()
+
+                @TaskAction
+                void run() {
+                    outputFile.get().asFile.text = name
+                }
+            }
+
+            tasks.register("task1", MyTask) {
+                outputFile = layout.buildDirectory.file("task1.txt")
+            }
+            tasks.register("task2", MyTask) {
+                outputFile = layout.buildDirectory.file("task2.txt")
+            }
+
+            tasks.register("task3") {
+                def myTasks = tasks.withType(MyTask)
+                dependsOn(myTasks)
+                inputs.files(myTasks)
+                def inputFiles = inputs.files
+                doLast {
+                    println "inputs = " + inputFiles.files*.name.sort()
+                }
+            }
+        """
+
+        when:
+        configurationCacheRun "task3"
+
+        then:
+        result.assertTasksExecuted(":task1", ":task2", ":task3")
+        outputContains("inputs = [task1.txt, task2.txt]")
+
+        when:
+        configurationCacheRun "task3"
+
+        then:
+        result.assertTaskExecuted(":task3")
+        outputContains("inputs = [task1.txt, task2.txt]")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/33318")
+    def "can use DomainObjectCollection of Configuration as ad hoc task input"() {
+        file("foo.txt").text = "foo"
+        file("bar.txt").text = "bar"
+
+        buildFile """
+            configurations.register("foo") {
+                canBeResolved = true
+                canBeConsumed = false
+            }
+            configurations.register("bar") {
+                canBeResolved = true
+                canBeConsumed = false
+            }
+
+            dependencies {
+                foo files("foo.txt")
+                bar files("bar.txt")
+            }
+
+            tasks.register("reader") {
+                def myConfigs = configurations.matching { it.name in ["foo", "bar"] }
+                inputs.files(myConfigs)
+                def inputFiles = inputs.files
+                doLast {
+                    println "inputs = " + inputFiles.files*.name.sort()
+                }
+            }
+        """
+
+        when:
+        configurationCacheRun "reader"
+
+        then:
+        outputContains("inputs = [bar.txt, foo.txt]")
+
+        when:
+        configurationCacheRun "reader"
+
+        then:
+        outputContains("inputs = [bar.txt, foo.txt]")
+    }
+
+    def "ad hoc inputs.file and inputs.dir preserve single path-like values across configuration cache"() {
+        file("inputFile.txt").text = "hello"
+        file("inputDir").mkdirs()
+        file("inputDir/child.txt").text = "child"
+
+        buildFile << """
+            tasks.register("reader") {
+                inputs.file("inputFile.txt").withPropertyName("singleFile")
+                inputs.dir("inputDir").withPropertyName("singleDir")
+                def fileInput = inputs.files.filter { it.name == "inputFile.txt" }
+                def dirInput = inputs.files.filter { it.parentFile?.name == "inputDir" }
+                doLast {
+                    println "file = " + fileInput.singleFile.name
+                    println "dir contents = " + dirInput.files*.name.sort()
+                }
+            }
+        """
+
+        when:
+        configurationCacheRun "reader"
+
+        then:
+        outputContains("file = inputFile.txt")
+        outputContains("dir contents = [child.txt]")
+
+        when:
+        configurationCacheRun "reader"
+
+        then:
+        outputContains("file = inputFile.txt")
+        outputContains("dir contents = [child.txt]")
     }
 
     @Issue("https://github.com/gradle/gradle/issues/35721")

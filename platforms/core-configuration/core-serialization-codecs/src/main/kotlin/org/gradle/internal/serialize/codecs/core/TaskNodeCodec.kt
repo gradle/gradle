@@ -22,6 +22,7 @@ import org.gradle.api.internal.GeneratedSubclasses
 import org.gradle.api.internal.TaskInputsInternal
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.TaskOutputsInternal
+import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.provider.Providers
 import org.gradle.api.internal.tasks.TaskDestroyablesInternal
@@ -383,7 +384,7 @@ suspend fun WriteContext.writeRegisteredPropertiesOf(task: Task) {
         property.run {
             when (this) {
                 is RegisteredProperty.InputFile -> {
-                    val finalValue = DeferredUtil.unpackNestableDeferred(propertyValue)
+                    val finalValue = adaptInputFileValueForSerialization(DeferredUtil.unpackNestableDeferred(propertyValue), filePropertyType)
                     writeInputProperty(propertyName, finalValue)
                     writeBoolean(optional)
                     writeBoolean(true)
@@ -415,6 +416,27 @@ suspend fun WriteContext.writeRegisteredPropertiesOf(task: Task) {
             writeEnum(filePropertyType)
         }
     }
+}
+
+/**
+ * Adapts an `inputs.files(...)` property value into a form that can be safely serialized by the configuration cache.
+ *
+ * The raw value registered with `TaskInputs.files(...)` can be anything `FileCollectionFactory.resolvingLeniently(...)`
+ * accepts. Wrapping the value in a resolving [FileCollection] up-front routes serialization through [FileCollectionCodec],
+ * which only serializes the resolved set of files and the task dependencies — never the source collection's
+ * mutable internals. This is semantically equivalent to what consumers of `TaskInputs` do at execution time
+ * via `FileParameterUtils.resolveInputFileValue`.
+ *
+ * Only applied to [InputFilePropertyType.FILES] — [InputFilePropertyType.FILE] and [InputFilePropertyType.DIRECTORY]
+ * expect a single path-like value on read, so wrapping in a [FileCollection] would break `inputs.file(...)` /
+ * `inputs.dir(...)`.
+ */
+private
+fun WriteContext.adaptInputFileValueForSerialization(value: Any?, filePropertyType: InputFilePropertyType): Any? {
+    if (value == null || filePropertyType != InputFilePropertyType.FILES) {
+        return value
+    }
+    return isolate.owner.serviceOf<FileCollectionFactory>().resolvingLeniently(value)
 }
 
 
