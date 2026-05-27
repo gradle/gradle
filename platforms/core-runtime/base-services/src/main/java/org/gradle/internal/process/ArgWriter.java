@@ -17,6 +17,7 @@
 package org.gradle.internal.process;
 
 import com.google.common.annotations.VisibleForTesting;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -55,6 +56,8 @@ public class ArgWriter {
 
     private static final Pattern WHITESPACE = Pattern.compile("\\s");
     private static final Pattern WHITESPACE_OR_HASH = Pattern.compile("\\s|#");
+    private static final String[] BACKSLASH_ESCAPE_SEARCH = {"\\", "\""};
+    private static final String[] BACKSLASH_ESCAPE_REPLACE = {"\\\\", "\\\""};
 
     private final boolean backslashEscape;
     private final Pattern quotablePattern;
@@ -124,7 +127,7 @@ public class ArgWriter {
      */
     private void writeArgument(String arg, PrintWriter writer) {
         if (backslashEscape) {
-            arg = arg.replace("\\", "\\\\").replace("\"", "\\\"");
+            arg = StringUtils.replaceEach(arg, BACKSLASH_ESCAPE_SEARCH, BACKSLASH_ESCAPE_REPLACE);
         }
         if (arg.isEmpty()) {
             writer.print("\"\"");
