@@ -16,7 +16,7 @@
 
 package org.gradle.internal.cc.impl.isolated
 
-class IsolatedProjectsTaskPathDependencyIntegrationTest extends AbstractIsolatedProjectsIntegrationTest {
+class IsolatedProjectsTaskPathIntegrationTest extends AbstractIsolatedProjectsIntegrationTest {
 
     def "#type task path dependency is not an IP violation"() {
         given:
@@ -93,6 +93,38 @@ class IsolatedProjectsTaskPathDependencyIntegrationTest extends AbstractIsolated
         }
 
         where:
+        mode << ALL_MODES
+    }
+
+    def "cannot access task by path from another project with IP enabled"() {
+        given:
+        settingsFile """
+            include 'other'
+        """
+        buildFile """
+            task foobar
+        """
+        buildFile "other/build.gradle", """
+            println($access)
+        """
+
+        when:
+        isolatedProjectsFailsUsing(mode, "help")
+
+        then:
+        fixture.assertIsolatedProjectsProblems(mode) {
+            projectsConfigured(":", ":other")
+            problem("Build file 'other/build.gradle': line 2: Project ':other' cannot access 'Project.tasks' functionality on another project ':'")
+        }
+
+        where:
+        access << [
+            'tasks.findByPath(":unknown")',
+            'tasks.getByPath(":foobar").name',
+            'tasks.findByPath(":foobar").name',
+        ]
+
+        combined:
         mode << ALL_MODES
     }
 }

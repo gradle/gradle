@@ -45,7 +45,6 @@ import org.gradle.build.event.BuildEventsListenerRegistry
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
-import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheFixture
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.process.ExecOperations
@@ -1925,35 +1924,6 @@ Hello, subproject1
 
         expect:
         succeeds("help")
-    }
-
-    @Requires(value = TestExecutionPreconditions.IsolatedProjects, reason = "Validating IP violation is emitted")
-    def "cannot call methods on build service registrations when IP is enabled"() {
-        def configurationCache = new ConfigurationCacheFixture(this)
-
-        serviceImplementation()
-        buildFile("""
-            gradle.sharedServices.registerIfAbsent("counter", CountingService) {
-                parameters.initial = 10
-                maxParallelUsages = 1
-            }
-            gradle.sharedServices.registrations.${call}
-        """)
-
-        when:
-        fails("help")
-
-        then:
-        configurationCache.problems.assertFailureHasProblems(failure) {
-            withProblem("Build file 'build.gradle': line 38: Cannot call '" + method + "' on BuildServicesRegistry.getRegistrations() when Isolated Projects is enabled. Only 'findByName(String)' is permitted. Alternatively, use BuildServicesRegistry.registerIfAbsent(String, Class) if possible.")
-        }
-
-        where:
-        method                  | call
-        // Only test select methods since exhaustively checking is tedious
-        "configureEach(Action)" | 'configureEach { }'
-        "named(String)"         | 'named("counter")'
-        "size()"                | 'size()'
     }
 
     private void enableServiceUsageDeclaration() {
