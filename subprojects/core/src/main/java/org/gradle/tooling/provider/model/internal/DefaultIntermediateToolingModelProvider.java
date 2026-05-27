@@ -58,7 +58,10 @@ public class DefaultIntermediateToolingModelProvider implements IntermediateTool
 
     @Override
     public <T> List<T> getModels(ProjectState requester, List<ProjectState> targets, String modelName, Class<T> modelType, @Nullable Object parameter) {
-        ToolingModelRequestContext context = new ToolingModelRequestContext(modelName, parameter, false);
+        // Always query in a resilient context so we can return models for the successful parts of the build.
+        // This is safe because if the original (top-level) model request was non-resilient and configuration
+        // failed, BuildToolingModelController would have already aborted, and we'd never reach this point.
+        ToolingModelRequestContext context = new ToolingModelRequestContext(modelName, parameter, true);
         return unwrapOrRethrow(fetchResults(requester, targets, context), modelType);
     }
 
