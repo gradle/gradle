@@ -18,12 +18,11 @@ package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
-import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.gradle.test.fixtures.server.http.MavenHttpPluginRepository
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.OsTestPreconditions
-
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import org.gradle.util.internal.ToBeImplemented
 import spock.lang.Issue
 
@@ -218,7 +217,7 @@ class RepositoriesDeclaredInSettingsIntegrationTest extends AbstractModuleDepend
         failure.assertHasCause("Build was configured to prefer settings repositories over project repositories but repository 'maven' was added by build file 'build.gradle'")
     }
 
-    @ToBeFixedForIsolatedProjects(because = "Explicitly tests IP incompatible behavior")
+    @Requires(value = [TestExecutionPreconditions.NotIsolatedProjects], reason = "Explicitly tests IP incompatible behavior")
     def "can fail the build if repositories are declared in a subproject block"() {
         settingsFile << """
             dependencyResolutionManagement {

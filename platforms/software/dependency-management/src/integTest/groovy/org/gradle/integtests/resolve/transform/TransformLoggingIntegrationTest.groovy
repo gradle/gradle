@@ -24,7 +24,7 @@ import org.gradle.test.fixtures.server.http.BlockingHttpServer
 
 import static org.gradle.test.fixtures.ConcurrentTestUtil.poll
 
-@ToBeFixedForIsolatedProjects(because = "Transforms registered and configured in root project")
+@ToBeFixedForIsolatedProjects(because = "Transforms registered and configured in root project using allprojects. This allows transform tests to use the same artifact transform implementation Class.")
 class TransformLoggingIntegrationTest extends AbstractConsoleGroupedTaskFunctionalTest {
     ConsoleOutput consoleType
 

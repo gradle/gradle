@@ -16,8 +16,9 @@
 package org.gradle.integtests.resolve.api
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
-import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 import org.gradle.integtests.fixtures.extensions.FluidDependenciesResolveTest
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import spock.lang.Issue
 
 @FluidDependenciesResolveTest
@@ -179,7 +180,7 @@ task checkResolveParentThenChild {
         succeeds("resolve")
     }
 
-    @ToBeFixedForIsolatedProjects(because = "Explicitly tests IP incompatible behavior")
+    @Requires(value = [TestExecutionPreconditions.NotIsolatedProjects], reason = "Explicitly tests IP incompatible behavior")
     def "extending a configuration in another project is not allowed"() {
         given:
         settingsFile """

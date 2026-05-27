@@ -17,13 +17,15 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
-import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import org.gradle.util.GradleVersion
 import org.spockframework.lang.Wildcard
 
 class UnsafeConfigurationResolutionDeprecationIntegrationTest extends AbstractDependencyResolutionTest {
-    @ToBeFixedForIsolatedProjects(because = "Explicitly tests IP incompatible behavior")
+
+    @Requires(value = [TestExecutionPreconditions.NotIsolatedProjects], reason = "Explicitly tests IP incompatible behavior")
     def "configuration in another project fails when resolved"() {
         mavenRepo.module("test", "test-jar", "1.0").publish()
 
