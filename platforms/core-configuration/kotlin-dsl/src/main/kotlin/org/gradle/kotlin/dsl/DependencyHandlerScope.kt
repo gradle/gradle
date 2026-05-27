@@ -19,11 +19,13 @@ package org.gradle.kotlin.dsl
 import org.gradle.api.Action
 import org.gradle.api.Incubating
 import org.gradle.api.NamedDomainObjectProvider
+import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.DependencyScopeConfiguration
 import org.gradle.api.artifacts.ExternalModuleDependency
 import org.gradle.api.artifacts.ModuleDependency
+import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.artifacts.dsl.DependencyConstraintHandler
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.provider.Provider
@@ -70,6 +72,9 @@ private constructor(
         super.constraints { configureAction(DependencyConstraintHandlerScope.of(this)) }
     }
 
+    private fun Project.asDependency(): ProjectDependency =
+        this@DependencyHandlerScope.dependencies.project(path)
+
     /**
      * Adds a dependency to the given configuration.
      *
@@ -79,6 +84,18 @@ private constructor(
      */
     operator fun String.invoke(dependencyNotation: Any): Dependency? =
         dependencies.add(this, dependencyNotation)
+
+    /**
+     * Adds one dependency to the given configuration per project in [dependencyNotations].
+     *
+     * @param dependencyNotations the projects to be added as dependencies.
+     * @return The dependencies, in iteration order.
+     * @see [DependencyHandler.add]
+     * @since 9.6.0
+     */
+    @Incubating
+    operator fun String.invoke(dependencyNotations: Iterable<Project>): List<Dependency?> =
+        dependencyNotations.map { dependencies.add(this, it.asDependency()) }
 
     /**
      * Adds a dependency to the given configuration.
@@ -167,6 +184,18 @@ private constructor(
         add(name, dependencyNotation)
 
     /**
+     * Adds one dependency to this configuration per project in [dependencyNotations].
+     *
+     * @param dependencyNotations the projects to be added as dependencies.
+     * @return The dependencies, in iteration order.
+     * @see [DependencyHandler.add]
+     * @since 9.6.0
+     */
+    @Incubating
+    operator fun Configuration.invoke(dependencyNotations: Iterable<Project>): List<Dependency?> =
+        dependencyNotations.map { add(name, it.asDependency()) }
+
+    /**
      * Adds a dependency to the given configuration.
      *
      * @param dependencyNotation notation for the dependency to be added.
@@ -176,6 +205,18 @@ private constructor(
      */
     operator fun NamedDomainObjectProvider<Configuration>.invoke(dependencyNotation: Any): Dependency? =
         add(name, dependencyNotation)
+
+    /**
+     * Adds one dependency to the given configuration per project in [dependencyNotations].
+     *
+     * @param dependencyNotations the projects to be added as dependencies.
+     * @return The dependencies, in iteration order.
+     * @see [DependencyHandler.add]
+     * @since 9.6.0
+     */
+    @Incubating
+    operator fun NamedDomainObjectProvider<Configuration>.invoke(dependencyNotations: Iterable<Project>): List<Dependency?> =
+        dependencyNotations.map { add(name, it.asDependency()) }
 
     /**
      * Adds a dependency to the given [DependencyScopeConfiguration].

@@ -95,6 +95,20 @@ See the [Environment variables](userguide/build_environment.html#sec:gradle_envi
 ### Build authoring improvements
 Gradle provides [rich APIs](userguide/getting_started_dev.html) for build engineers and plugin authors, enabling the creation of custom, reusable build logic and better maintainability.
 
+#### Kotlin DSL: pass `Iterable<Project>` to a configuration
+
+The Kotlin DSL `dependencies { ... }` block now accepts an `Iterable<Project>` (e.g. `allprojects`, `subprojects`) and adds one project dependency per element, mirroring the existing Groovy DSL convenience. Previously the same call would treat the iterable as a single dependency notation and fail.
+
+```kotlin
+configurations.create("integrationApi")
+
+dependencies {
+    "integrationApi"(subprojects)   // one project dependency per subproject
+}
+```
+
+The new overloads internally use the recommended `DependencyHandler.project(String)` API, so they remain valid after the deprecation of `Project`-as-dependency-notation is fully enforced.
+
 ### Platform and toolchain management
 Gradle provides comprehensive support for [Native development](userguide/building_cpp_projects.html) and [JVM languages](userguide/building_java_projects.html), featuring automated [Toolchains](userguide/toolchains.html) for seamless JDK management.
 

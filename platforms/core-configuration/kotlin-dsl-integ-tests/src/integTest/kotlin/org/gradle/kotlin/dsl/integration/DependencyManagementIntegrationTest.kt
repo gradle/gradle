@@ -21,6 +21,7 @@ import org.gradle.kotlin.dsl.fixtures.containsMultiLineString
 import org.gradle.kotlin.dsl.fixtures.normalisedPath
 
 import org.hamcrest.CoreMatchers.containsString
+import org.hamcrest.CoreMatchers.not
 
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
@@ -182,5 +183,124 @@ class DependencyManagementIntegrationTest : AbstractKotlinIntegrationTest() {
                 )
             )
         }
+    }
+
+    @Test
+    @Issue("https://github.com/gradle/gradle/issues/28704")
+    fun `can pass Iterable of projects to a configuration in Kotlin DSL`() {
+
+        withSettings(
+            """
+            rootProject.name = "repro"
+            include("a", "b")
+            """
+        )
+
+        withBuildScriptIn("a", "")
+        withBuildScriptIn("b", "")
+
+        withBuildScript(
+            """
+            plugins {
+                `java-library`
+            }
+
+            allprojects {
+                apply(plugin = "java-library")
+            }
+
+            configurations.create("fooConfiguration")
+            configurations.create("barConfiguration")
+
+            dependencies {
+                "fooConfiguration"(allprojects)
+                "barConfiguration"(subprojects)
+            }
+            """
+        )
+
+        build("dependencies", "--configuration", "fooConfiguration").apply {
+            assertThat(output, containsString("root project 'repro'"))
+            assertThat(output, containsString("project ':a'"))
+            assertThat(output, containsString("project ':b'"))
+        }
+
+        build("dependencies", "--configuration", "barConfiguration").apply {
+            assertThat(output, containsString("project ':a'"))
+            assertThat(output, containsString("project ':b'"))
+            assertThat(output, not(containsString("root project 'repro'")))
+        }
+    }
+
+    @Test
+    @Issue("https://github.com/gradle/gradle/issues/28704")
+    fun `can pass Iterable of projects to a configuration receiver in Kotlin DSL`() {
+
+        withSettings(
+            """
+            rootProject.name = "repro"
+            include("a", "b")
+            """
+        )
+
+        withBuildScriptIn("a", "")
+        withBuildScriptIn("b", "")
+
+        withBuildScript(
+            """
+            plugins {
+                `java-library`
+            }
+
+            allprojects {
+                apply(plugin = "java-library")
+            }
+
+            val direct = configurations.create("direct")
+            val lazy = configurations.register("lazy")
+
+            dependencies {
+                direct(subprojects)
+                lazy(subprojects)
+            }
+            """
+        )
+
+        build("dependencies", "--configuration", "direct").apply {
+            assertThat(output, containsString("project ':a'"))
+            assertThat(output, containsString("project ':b'"))
+        }
+
+        build("dependencies", "--configuration", "lazy").apply {
+            assertThat(output, containsString("project ':a'"))
+            assertThat(output, containsString("project ':b'"))
+        }
+    }
+
+    @Test
+    @Issue("https://github.com/gradle/gradle/issues/28704")
+    fun `Iterable of File still binds to invoke(Any) overload`() {
+
+        withSettings(
+            """
+            rootProject.name = "repro"
+            """
+        )
+
+        withBuildScript(
+            """
+            plugins {
+                `java-library`
+            }
+
+            configurations.create("fooConfiguration")
+
+            dependencies {
+                "fooConfiguration"(files("a.jar", "b.jar"))
+            }
+            """
+        )
+
+        build("help")
     }
 }
