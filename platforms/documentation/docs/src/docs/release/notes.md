@@ -12,7 +12,15 @@
 
 We are excited to announce Gradle @version@ (released [@releaseDate@](https://gradle.org/releases/)).
 
-This release features [1](), [2](), ... [n](), and more.
+This release improves [Configuration Cache](#configuration-cache-improvements) hit rates by precisely tracking project properties supplied through system properties and environment variables.
+
+The [CLI](#cli-logging-and-problem-reporting) gains a `--non-interactive` option to disable interactive prompts when running Gradle in automated environments such as CI pipelines, scripts, and AI agents, along with support for the `NO_COLOR` environment variable to suppress color output while preserving other styling.
+
+[Build authoring](#build-authoring-improvements) includes an important deprecation: implicit property and method lookup through the project hierarchy now emits a warning and will be removed in Gradle 10. A new `NO_IMPLICIT_LOOKUP_IN_PROJECT_HIERARCHY` feature preview lets you adopt the Gradle 10 behavior early once related deprecations are addressed.
+
+[Plugin authors](#core-plugin-and-plugin-authoring-enhancements) get clearer validation errors when the `@Optional` annotation is misused on task properties.
+
+Finally, [security and infrastructure](#security-and-infrastructure) improvements reduce IO load from Gradle's file-based journals, delivering significant performance gains on low-IOPS storage typical of cloud CI runners.
 
 We would like to thank the following community members for their contributions to this release of Gradle:
 [Aharnish Solanki](https://github.com/Ahar28),
@@ -52,48 +60,80 @@ For Java, Groovy, Kotlin, and Android compatibility, see the [full compatibility
 
 ## New features and usability improvements
 
-### Isolated Projects improvements
+### Configuration Cache improvements
+Gradle provides a [Configuration Cache](userguide/configuration_cache.html) that improves build time by caching the result of the configuration phase and reusing it for subsequent builds.
 
-[Isolated Projects](userguide/isolated_projects.html) is an experimental Gradle feature that improves build performance by isolating the mutable state of each project during configuration.
-When enabled, projects in a multi-project build are configured in parallel, and configuration results are cached at a finer granularity than the [Configuration Cache](userguide/configuration_cache.html) alone provides.
-This can significantly reduce configuration times for large builds, especially during IDE sync in Android Studio and IntelliJ IDEA.
+#### Improved hit rates for project properties set via system properties and environment variables
 
-#### Diagnostics mode for migration
+[Project properties](userguide/build_environment.html#sec:project_properties) can be supplied not only on the command line with `-P` or in `gradle.properties` files, but also through `org.gradle.project.<name>` system properties and `ORG_GRADLE_PROJECT_<name>` environment variables.
 
-When migrating a build to [Isolated Projects](isolated_projects.html#sec:migration), the optimizations that make it fast, parallel project configuration, per-project model caching, and configure-on-demand, can also mask or reorder constraint violations.
-This makes it difficult to get a complete picture of all the changes needed in a single build invocation.
+Previously, changing any such system property or environment variable invalidated the [Configuration Cache](userguide/configuration_cache.html), even if the affected project property was never used during the configuration phase.
 
-Gradle now provides an opt-in _Diagnostics_ mode that disables these optimizations so that every violation is surfaced in a single, deterministic run.
-Enable it by setting `org.gradle.unsafe.isolated-projects.diagnostics=true` alongside the Isolated Projects flag:
+Consider the following Kotlin DSL example:
 
-```text
-$ ./gradlew build -Dorg.gradle.unsafe.isolated-projects=true -Dorg.gradle.unsafe.isolated-projects.diagnostics=true
+```kotlin
+tasks.register("printValue") {
+    val value = providers.gradleProperty("value").orElse("N/A")
+    doLast {
+        println("value: ${value.get()}")
+    }
+}
 ```
 
-Or in `gradle.properties`:
+Previous versions of Gradle were unable to reuse the cache entry when re-running with a different value passed via a system property or environment variable:
 
-```properties
-org.gradle.unsafe.isolated-projects=true
-org.gradle.unsafe.isolated-projects.diagnostics=true
+```shell
+$ ./gradlew --configuration-cache printValue -Dorg.gradle.project.value=1
+
+Calculating task graph as configuration cache cannot be reused because the set of system properties prefixed by 'org.gradle.project.' has changed: 'org.gradle.project.value' was added.
+
+> Task :printValue
+value: 1
+
+...
+Configuration cache entry stored.
 ```
 
-Diagnostics mode is intended for migration and troubleshooting.
-Because parallelism and caching are deliberately disabled, builds in this mode will be slower and should not be committed to version control for regular use.
+In this release, Gradle detects that the `value` property is never read during the configuration phase and reuses the existing cache entry, regardless of how the property was supplied:
 
-See the [Diagnostics mode](userguide/isolated_projects.html#sec:diagnostics_mode) section in the Isolated Projects documentation for more details.
+```shell
+$ ./gradlew --configuration-cache printValue -Dorg.gradle.project.value=2
+
+Reusing configuration cache.
+
+> Task :printValue
+value: 2
+
+...
+Configuration cache entry reused.
+```
+
+The same precise tracking now also applies to `ORG_GRADLE_PROJECT_*` environment variables, bringing parity with the improvements introduced for `-P` properties in Gradle 9.1.0 and for `gradle.properties` files in Gradle 9.4.0.
+The existing cache entry is reused even when the property is supplied through an environment variable:
+
+```shell
+$ ORG_GRADLE_PROJECT_value=3 ./gradlew --configuration-cache printValue
+Reusing configuration cache.
+> Task :printValue
+value: 3
+...
+Configuration cache entry reused.
+```
+
+For builds that pass many project properties on the command line or via environment variables, particularly in CI, this change will significantly improve cache hit rates.
+
+See the [Reading System Properties and Environment Variables](userguide/configuration_cache_requirements.html#config_cache:requirements:reading_sys_props_and_env_vars) section in the Gradle User Manual for more information.
 
 ### CLI, logging, and problem reporting
 Gradle provides an intuitive [command-line interface](userguide/command_line_interface.html), detailed [logs](userguide/logging.html), and a structured [problems report](userguide/reporting_problems.html#sec:generated_html_report) that helps developers quickly identify and resolve build issues.
 
 #### Non-interactive mode
-
-Gradle now supports a `--non-interactive` command-line option to disable all interactive console prompting.
+Gradle now supports a `--non-interactive` [command-line](userguide/command_line_interface.html) option to disable all interactive console prompting.
 This is useful for running Gradle in automated environments such as CI pipelines, scripts, and AI agents where no user input is available.
 
 See the [Non-interactive mode](userguide/command_line_interface.html#sec:non_interactive) section in the Gradle User Manual for more information.
 
 #### NO_COLOR support
-
 Gradle now honors the `NO_COLOR` environment variable following the [no-color.org](https://no-color.org/) convention.
 When `NO_COLOR` is set and non-empty, Gradle suppresses color output while preserving other styling (bold, underline) and rich features (progress bars, animations).
 
@@ -105,51 +145,66 @@ See the [Environment variables](userguide/build_environment.html#sec:gradle_envi
 Gradle provides [rich APIs](userguide/getting_started_dev.html) for build engineers and plugin authors, enabling the creation of custom, reusable build logic and better maintainability.
 
 #### Deprecation of implicit property and method lookup in the project hierarchy
-
-In Gradle's [Groovy and Kotlin DSLs](userguide/kotlin_dsl.html), when a child project's build script references a property or method that isn't defined locally, the resolution mechanism walks up the project hierarchy looking for a match.
+In Gradle's [Groovy DSL](userguide/groovy_build_script_primer.html), when a child project's build script references a property or method that isn't defined locally, the resolution mechanism walks up the project hierarchy looking for a match.
 For example:
 
-```kotlin
-// build.gradle.kts (root project)
-extra["foo"] = "hello"
+```groovy
+// build.gradle (root project)
+ext.foo = "hello"
 ```
 
-```kotlin
-// child/build.gradle.kts
+```groovy
+// child/build.gradle
 println(foo) // Resolved through hierarchy — now deprecated
 ```
 
-This implicit inheritance creates hidden coupling between projects, makes builds harder to reason about (a typo silently resolves to an ancestor's definition instead of failing), and is fundamentally incompatible with [Isolated Projects](userguide/isolated_projects.html).
+This implicit inheritance creates hidden coupling between projects and makes builds harder to reason about (a typo silently resolves to an ancestor's definition instead of failing).
 
 Starting in Gradle 9.6.0, both implicit references and explicit APIs (`findProperty()`, `property()`, `hasProperty()`) emit a deprecation warning when they resolve through the hierarchy.
 This behavior will be removed in Gradle 10.
 
 See the [upgrade guide](userguide/upgrading_version_9.html#deprecated_implicit_project_hierarchy_lookup) for migration paths, including `gradle.properties`, convention plugins, and explicit references.
 
-#### Opt into Gradle 10 behavior by disabling project hierarchy lookup
-
+##### Opt into Gradle 10 behavior by disabling project hierarchy lookup
 Gradle 9.6.0 [deprecates implicit lookup of properties and methods through the project hierarchy](userguide/upgrading_version_9.html#deprecated_implicit_project_hierarchy_lookup); this behavior will be removed in Gradle 10.
 
 Once you have addressed all related deprecations, enable the new `NO_IMPLICIT_LOOKUP_IN_PROJECT_HIERARCHY` feature preview to adopt the Gradle 10 behavior early.
 
 This prevents new accidental implicit lookups in the project hierarchy:
 
-```kotlin
-// settings.gradle.kts
+```groovy
+// settings.gradle
 enableFeaturePreview("NO_IMPLICIT_LOOKUP_IN_PROJECT_HIERARCHY")
 ```
 
-Under [Isolated Projects](userguide/isolated_projects.html), the implicit hierarchy lookup is already fully disabled, so this preview only affects non-IP builds.
+#### Groovy DSL type coercions for lazy properties
+Gradle's [lazy property](userguide/lazy_configuration.html) types (`Property<T>`, `ListProperty<T>`, `SetProperty<T>`) previously required exact type matches when assigning values in the [Groovy DSL](userguide/groovy_build_script_primer.html).
+This meant that common idioms that worked with eager properties would fail with `IllegalArgumentException` when a plugin author migrated to lazy properties.
+
+Gradle now automatically coerces values in the following cases:
+
+**String to File**: A `String` assigned to a `Property<File>`, `RegularFileProperty`, or `DirectoryProperty` is resolved relative to the project directory:
+
+```groovy
+task.workingDir = '../my-build'
+```
+
+**Single value to collection**: A single `T` or `T[]` assigned to a `ListProperty<T>` or `SetProperty<T>` is wrapped into a one-element collection:
+
+```groovy
+task.filter.includePatterns = 'Foo'
+task.filter.includePatterns = ['Foo', 'Bar'] as String[]
+```
+
+These coercions bring the Groovy DSL experience for lazy properties closer to what users expect from eager properties, making it easier for plugin authors to migrate to the [lazy configuration](userguide/lazy_configuration.html) API without breaking their users' build scripts.
 
 ### Core plugin and plugin authoring enhancements
 Gradle provides a comprehensive plugin system, including built-in [Core Plugins](userguide/plugin_reference.html) for standard tasks and powerful APIs for creating custom plugins.
 
 #### Improved validation errors for `@Optional` annotation misuse
-
 The [`validatePlugins`](userguide/java_gradle_plugin.html#sec:plugin_validation) task now produces more specific error messages when the `@Optional` annotation is used incorrectly on task properties.
 
-Previously, a property annotated with only `@Optional` and no input or output annotation produced a generic "missing annotation" error that didn't mention `@Optional` at all.
-Now, Gradle explains that `@Optional` is a modifier annotation with no effect on its own:
+If a property is annotated with only `@Optional` and no input or output annotation, Gradle explains that `@Optional` is a modifier annotation with no effect on its own:
 
 ```text
 Type 'MyTask' property 'badProperty' is missing an input or output annotation.
@@ -169,29 +224,20 @@ Type 'MyTask' property 'badProperty' annotated with @Internal should not be also
 Reason: @Internal properties are excluded from up-to-date checks; @Optional is redundant and not allowed here.
 ```
 
-See [Validating plugins](userguide/java_gradle_plugin.html#sec:plugin_validation) for more information.
+See the [Validating plugins](userguide/java_gradle_plugin.html#sec:plugin_validation) section in the Gradle User Manual for more information.
 
-#### Groovy DSL type coercions for lazy properties
+### Security and infrastructure
+Gradle provides robust [security features and underlying infrastructure](userguide/security.html) to ensure that builds are secure, reproducible, and easy to maintain.
 
-Gradle's [lazy property](userguide/lazy_configuration.html) types (`Property<T>`, `ListProperty<T>`, `SetProperty<T>`) previously required exact type matches when assigning values in the [Groovy DSL](userguide/groovy_build_script_primer.html).
-This meant that common idioms that worked with eager properties would fail with `IllegalArgumentException` when a plugin author migrated to lazy properties.
+#### Performance improvements in cloud runners
+Gradle uses several file-based journals to track operations.
 
-Gradle now automatically coerces values in the following cases:
+Through community feedback and our own analysis, we confirmed that the implementation used in Gradle was generating a high volume of I/O operations.
+On storage with limited IOPS, typical in cloud environments using network-attached block storage such as AWS EBS, this led to I/O throttling and significant slowdowns during disk-heavy operations.
 
-**String to File** — A `String` assigned to a `Property<File>`, `RegularFileProperty`, or `DirectoryProperty` is resolved relative to the project directory:
+With this release, the implementation has been improved, resulting in significant performance gains on low IOPS storage and minor improvements across the board:
 
-```groovy
-task.workingDir = '/tmp/build'
-```
-
-**Single value to collection** — A single `T` or `T[]` assigned to a `ListProperty<T>` or `SetProperty<T>` is wrapped into a one-element collection:
-
-```groovy
-task.filter.includePatterns = 'Foo'
-task.filter.includePatterns = ['Foo', 'Bar'] as String[]
-```
-
-These coercions bring the Groovy DSL experience for lazy properties closer to what users expect from eager properties, making it easier for plugin authors to migrate to the [lazy configuration](userguide/lazy_configuration.html) API without breaking their users' build scripts.
+![Gradle IO Optimizations](release-notes-assets/gradle-io-optimizations.png)
 
 ## Promoted features
 
