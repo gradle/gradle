@@ -42,6 +42,22 @@ public interface VariantResolveMetadata {
 
     DisplayName asDescribable();
 
+    /**
+     * Owner display name (e.g. the parent component or configuration), used to compose user-facing variant displays.
+     * <p>
+     * May be {@code null} when this variant has no meaningful owner separation (e.g. adhoc artifact sets or
+     * configurations that present themselves without a distinct variant suffix).
+     * <p>
+     * Defaults to {@code null} (no owner); implementations that have a meaningful
+     * parent must override to expose it.
+     *
+     * @return the owner display name, or {@code null} when no separation exists
+     */
+    @Nullable
+    default DisplayName getOwnerDisplayName() {
+        return null;
+    }
+
     ImmutableAttributes getAttributes();
 
     ImmutableList<? extends ComponentArtifactMetadata> getArtifacts();

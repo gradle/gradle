@@ -367,6 +367,7 @@ public class LenientPlatformGraphResolveState extends AbstractComponentGraphReso
                 name,
                 new ComponentConfigurationIdentifier(componentId, name),
                 Describables.of(componentId, "variant", variant.getDisplayName()),
+                Describables.of(componentId),
                 variant.getAttributes(),
                 ImmutableList.of(),
                 variant.getCapabilities()

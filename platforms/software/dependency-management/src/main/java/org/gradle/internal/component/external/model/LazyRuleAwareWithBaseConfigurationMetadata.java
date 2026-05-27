@@ -128,7 +128,7 @@ class LazyRuleAwareWithBaseConfigurationMetadata implements ModuleConfigurationM
 
     @Override
     public Set<? extends VariantResolveMetadata> getArtifactVariants() {
-        return ImmutableSet.of(new DefaultVariantMetadata(name, null, asDescribable(), getAttributes(), getArtifacts(), getCapabilities()));
+        return ImmutableSet.of(new DefaultVariantMetadata(name, null, asDescribable(), null, getAttributes(), getArtifacts(), getCapabilities()));
     }
 
     @Override

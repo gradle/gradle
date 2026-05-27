@@ -240,6 +240,11 @@ public abstract class LocalFileDependencyBackedArtifactSet implements Transforme
         }
 
         @Override
+        public String getVariantName() {
+            return asDescribable().getDisplayName();
+        }
+
+        @Override
         public List<ResolvedVariant> getCandidates() {
             return Collections.singletonList(this);
         }

@@ -176,7 +176,7 @@ public abstract class AbstractConfigurationMetadata implements ModuleConfigurati
 
     @Override
     public Set<? extends VariantResolveMetadata> getArtifactVariants() {
-        return ImmutableSet.of(new DefaultVariantMetadata(name, getIdentifier(), asDescribable(), getAttributes(), getArtifacts(), getCapabilities()));
+        return ImmutableSet.of(new DefaultVariantMetadata(name, getIdentifier(), asDescribable(), null, getAttributes(), getArtifacts(), getCapabilities()));
     }
 
     @Override

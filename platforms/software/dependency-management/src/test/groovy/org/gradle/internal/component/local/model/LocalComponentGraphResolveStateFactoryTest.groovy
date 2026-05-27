@@ -266,15 +266,15 @@ class LocalComponentGraphResolveStateFactoryTest extends AbstractProjectBuilderS
         def config2 = state.candidatesForGraphVariantSelection.getVariantByConfigurationName("conf2")
 
         then:
-        config1.prepareForArtifactResolution().artifactVariants*.name as List == ["conf1", "conf1-variant1"]
-        config1.prepareForArtifactResolution().artifactVariants.find { it.name == "conf1-variant1" }.attributes == AttributeTestUtil.attributes(["foo1": "bar1"])
+        config1.prepareForArtifactResolution().artifactVariants*.name as List == ["conf1", "variant1"]
+        config1.prepareForArtifactResolution().artifactVariants.find { it.name == "variant1" }.attributes == AttributeTestUtil.attributes(["foo1": "bar1"])
 
-        config2.prepareForArtifactResolution().artifactVariants*.name as List == ["conf2", "conf2-variant2"]
-        config2.prepareForArtifactResolution().artifactVariants.find { it.name == "conf2-variant2" }.attributes == AttributeTestUtil.attributes(["foo2": "bar2"])
+        config2.prepareForArtifactResolution().artifactVariants*.name as List == ["conf2", "variant2"]
+        config2.prepareForArtifactResolution().artifactVariants.find { it.name == "variant2" }.attributes == AttributeTestUtil.attributes(["foo2": "bar2"])
 
         and:
-        config1.prepareForArtifactResolution().artifactVariants.find { it.name == "conf1-variant1" }.artifacts.size() == 1
-        config2.prepareForArtifactResolution().artifactVariants.find { it.name == "conf2-variant2" }.artifacts.size() == 2
+        config1.prepareForArtifactResolution().artifactVariants.find { it.name == "variant1" }.artifacts.size() == 1
+        config2.prepareForArtifactResolution().artifactVariants.find { it.name == "variant2" }.artifacts.size() == 2
     }
 
     def "builds and caches exclude rules for a configuration"() {

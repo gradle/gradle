@@ -17,6 +17,8 @@
 package org.gradle.internal.component.resolution.failure.transform;
 
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.internal.DisplayName;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Objects;
 
@@ -30,10 +32,12 @@ import java.util.Objects;
  * properly implement {@link #equals(Object)} and {@link #hashCode()}.
  */
 public final class SourceVariantData {
+    private final @Nullable DisplayName ownerDisplayName;
     private final String variantName;
     private final ImmutableAttributes attributes;
 
-    public SourceVariantData(String variantName, ImmutableAttributes attributes) {
+    public SourceVariantData(@Nullable DisplayName ownerDisplayName, String variantName, ImmutableAttributes attributes) {
+        this.ownerDisplayName = ownerDisplayName;
         this.variantName = variantName;
         this.attributes = attributes;
     }
@@ -47,12 +51,10 @@ public final class SourceVariantData {
     }
 
     public String getFormattedVariantName() {
-        int variantIdx = variantName.indexOf(" variant ");
-        if (variantIdx == -1) {
+        if (ownerDisplayName == null) {
             return variantName;
-        } else {
-            return variantName.substring(0, variantIdx + 9) + "'" + variantName.substring(variantIdx + 9) + "'";
         }
+        return ownerDisplayName.getDisplayName() + " variant '" + variantName + "'";
     }
 
     @Override
@@ -65,12 +67,15 @@ public final class SourceVariantData {
         }
 
         SourceVariantData that = (SourceVariantData) o;
-        return Objects.equals(variantName, that.variantName) && Objects.equals(attributes, that.attributes);
+        return Objects.equals(ownerDisplayName, that.ownerDisplayName)
+            && Objects.equals(variantName, that.variantName)
+            && Objects.equals(attributes, that.attributes);
     }
 
     @Override
     public int hashCode() {
-        int result = Objects.hashCode(variantName);
+        int result = Objects.hashCode(ownerDisplayName);
+        result = 31 * result + Objects.hashCode(variantName);
         result = 31 * result + Objects.hashCode(attributes);
         return result;
     }

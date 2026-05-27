@@ -1115,6 +1115,7 @@ class DependencyGraphBuilderTest extends Specification {
                 name,
                 new ComponentConfigurationIdentifier(componentId, name),
                 Describables.of(name),
+                null,
                 attributes,
                 ImmutableCapabilities.EMPTY,
                 artifactMetadata

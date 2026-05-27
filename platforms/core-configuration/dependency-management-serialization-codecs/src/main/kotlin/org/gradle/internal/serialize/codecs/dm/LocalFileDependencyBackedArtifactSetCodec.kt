@@ -196,6 +196,10 @@ class RecordingVariantSet(
         return Describables.of(source)
     }
 
+    override fun getVariantName(): String {
+        return asDescribable().displayName
+    }
+
     override fun getProducerSchema(): ImmutableAttributesSchema {
         return ImmutableAttributesSchema.EMPTY
     }

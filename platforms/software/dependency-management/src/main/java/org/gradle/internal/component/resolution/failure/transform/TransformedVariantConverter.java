@@ -18,6 +18,7 @@ package org.gradle.internal.component.resolution.failure.transform;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.Action;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
 import org.gradle.api.internal.artifacts.transform.Transform;
 import org.gradle.api.internal.artifacts.transform.TransformStep;
 import org.gradle.api.internal.artifacts.transform.TransformedVariant;
@@ -43,7 +44,8 @@ public final class TransformedVariantConverter {
     public TransformationChainData convert(TransformedVariant transformedVariant) {
         TransformDataRecordingVisitor visitor = new TransformDataRecordingVisitor();
         transformedVariant.getTransformChain().visitTransformSteps(visitor);
-        SourceVariantData source = new SourceVariantData(transformedVariant.getRoot().asDescribable().getDisplayName(), transformedVariant.getRoot().getAttributes());
+        ResolvedVariant root = transformedVariant.getRoot();
+        SourceVariantData source = new SourceVariantData(root.getOwnerDisplayName(), root.getVariantName(), root.getAttributes());
         return new TransformationChainData(source, visitor.getSteps(), transformedVariant.getAttributes());
     }
 

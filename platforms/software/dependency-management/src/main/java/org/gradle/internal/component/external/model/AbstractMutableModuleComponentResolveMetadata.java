@@ -637,6 +637,11 @@ public abstract class AbstractMutableModuleComponentResolveMetadata implements M
         }
 
         @Override
+        public DisplayName getOwnerDisplayName() {
+            return Describables.of(componentId);
+        }
+
+        @Override
         public ImmutableAttributes getAttributes() {
             return attributes;
         }

@@ -26,14 +26,17 @@ public class DefaultVariantMetadata implements VariantResolveMetadata {
     private final String name;
     private final Identifier identifier;
     private final DisplayName displayName;
+    @Nullable
+    private final DisplayName ownerDisplayName;
     private final ImmutableAttributes attributes;
     private final ImmutableList<? extends ComponentArtifactMetadata> artifacts;
     private final ImmutableCapabilities capabilitiesMetadata;
 
-    public DefaultVariantMetadata(String name, @Nullable Identifier identifier, DisplayName displayName, ImmutableAttributes attributes, ImmutableList<? extends ComponentArtifactMetadata> artifacts, ImmutableCapabilities capabilitiesMetadata) {
+    public DefaultVariantMetadata(String name, @Nullable Identifier identifier, DisplayName displayName, @Nullable DisplayName ownerDisplayName, ImmutableAttributes attributes, ImmutableList<? extends ComponentArtifactMetadata> artifacts, ImmutableCapabilities capabilitiesMetadata) {
         this.name = name;
         this.identifier = identifier;
         this.displayName = displayName;
+        this.ownerDisplayName = ownerDisplayName;
         this.attributes = attributes;
         this.artifacts = artifacts;
         this.capabilitiesMetadata = capabilitiesMetadata;
@@ -52,6 +55,12 @@ public class DefaultVariantMetadata implements VariantResolveMetadata {
     @Override
     public DisplayName asDescribable() {
         return displayName;
+    }
+
+    @Override
+    @Nullable
+    public DisplayName getOwnerDisplayName() {
+        return ownerDisplayName;
     }
 
     @Override

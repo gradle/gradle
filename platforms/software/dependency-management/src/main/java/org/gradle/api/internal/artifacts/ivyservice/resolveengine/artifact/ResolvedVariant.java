@@ -33,6 +33,28 @@ public interface ResolvedVariant extends AttributeMatchingCandidate {
     DisplayName asDescribable();
 
     /**
+     * The bare variant-name token, suitable for composing user-facing displays such as
+     * {@code "<owner> variant '<variantName>'"}.
+     *
+     * @return the variant name; never {@code null}
+     */
+    String getVariantName();
+
+    /**
+     * Owner display name (e.g. the parent component or configuration). Paired with {@link #getVariantName()}
+     * so consumers can compose formatted displays without parsing {@link #asDescribable()}.
+     * <p>
+     * Defaults to {@code null} (no owner separation); implementations whose variant has a meaningful
+     * parent — e.g. {@code <componentId> variant <name>} — must override to expose it.
+     *
+     * @return the owner display name, or {@code null} when this variant has no meaningful owner separation
+     */
+    @Nullable
+    default DisplayName getOwnerDisplayName() {
+        return null;
+    }
+
+    /**
      * An identifier for this variant, if available. A variant may not have an identifier when it represents some ad hoc set of artifacts, for example artifacts declared on a dependency
      * using {@link org.gradle.api.artifacts.ModuleDependency#artifact(Action)} or where individual artifacts have been excluded from the variant.
      */

@@ -45,6 +45,8 @@ public class ArtifactBackedResolvedVariant implements ResolvedVariant {
     private final VariantResolveMetadata.Identifier identifier;
     private final VariantIdentifier sourceVariantId;
     private final DisplayName displayName;
+    private final String variantName;
+    private final DisplayName ownerDisplayName;
     private final ImmutableAttributes attributes;
     private final ImmutableCapabilities capabilities;
     private final List<? extends ComponentArtifactMetadata> artifacts;
@@ -54,6 +56,8 @@ public class ArtifactBackedResolvedVariant implements ResolvedVariant {
         VariantResolveMetadata.@Nullable Identifier identifier,
         VariantIdentifier sourceVariantId,
         DisplayName displayName,
+        String variantName,
+        @Nullable DisplayName ownerDisplayName,
         ImmutableAttributes attributes,
         ImmutableCapabilities capabilities,
         List<? extends ComponentArtifactMetadata> artifacts,
@@ -62,6 +66,8 @@ public class ArtifactBackedResolvedVariant implements ResolvedVariant {
         this.identifier = identifier;
         this.sourceVariantId = sourceVariantId;
         this.displayName = displayName;
+        this.variantName = variantName;
+        this.ownerDisplayName = ownerDisplayName;
         this.attributes = attributes;
         this.capabilities = capabilities;
         this.artifacts = artifacts;
@@ -108,6 +114,17 @@ public class ArtifactBackedResolvedVariant implements ResolvedVariant {
     @Override
     public DisplayName asDescribable() {
         return displayName;
+    }
+
+    @Override
+    public String getVariantName() {
+        return variantName;
+    }
+
+    @Override
+    @Nullable
+    public DisplayName getOwnerDisplayName() {
+        return ownerDisplayName;
     }
 
     @Override

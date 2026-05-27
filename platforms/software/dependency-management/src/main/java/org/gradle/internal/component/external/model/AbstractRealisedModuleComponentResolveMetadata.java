@@ -121,6 +121,11 @@ public abstract class AbstractRealisedModuleComponentResolveMetadata extends Abs
         }
 
         @Override
+        public DisplayName getOwnerDisplayName() {
+            throw new UnsupportedOperationException("NameOnlyVariantResolveMetadata cannot be used that way");
+        }
+
+        @Override
         public ImmutableAttributes getAttributes() {
             throw new UnsupportedOperationException("NameOnlyVariantResolveMetadata cannot be used that way");
         }
@@ -183,6 +188,11 @@ public abstract class AbstractRealisedModuleComponentResolveMetadata extends Abs
         @Override
         public DisplayName asDescribable() {
             return Describables.of(componentId, "variant", name);
+        }
+
+        @Override
+        public DisplayName getOwnerDisplayName() {
+            return Describables.of(componentId);
         }
 
         @Override

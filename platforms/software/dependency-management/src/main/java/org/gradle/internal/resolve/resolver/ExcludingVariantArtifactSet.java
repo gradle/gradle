@@ -56,6 +56,17 @@ public class ExcludingVariantArtifactSet implements ResolvedVariant, VariantReso
     }
 
     @Override
+    public String getVariantName() {
+        return delegate.getVariantName();
+    }
+
+    @Override
+    @Nullable
+    public DisplayName getOwnerDisplayName() {
+        return delegate.getOwnerDisplayName();
+    }
+
+    @Override
     public VariantResolveMetadata.@Nullable Identifier getIdentifier() {
         return id;
     }

@@ -115,6 +115,11 @@ class AbstractVariantBackedConfigurationMetadata implements ModuleConfigurationM
     }
 
     @Override
+    public DisplayName getOwnerDisplayName() {
+        return Describables.of(id.getComponentId());
+    }
+
+    @Override
     public ImmutableAttributes getAttributes() {
         return variant.getAttributes().asImmutable();
     }

@@ -149,13 +149,13 @@ public class DefaultLocalVariantGraphResolveStateBuilder implements LocalVariant
             @Override
             public void visitOwnVariant(DisplayName displayName, ImmutableAttributes attributes, Collection<? extends PublishArtifact> artifacts) {
                 CalculatedValue<ImmutableList<LocalComponentArtifactMetadata>> variantArtifacts = getVariantArtifacts(displayName, componentId, artifacts, model, calculatedValueContainerFactory);
-                artifactSets.add(new LocalVariantMetadata(configurationName, configurationIdentifier, displayName, attributes, capabilities, variantArtifacts));
+                artifactSets.add(new LocalVariantMetadata(configurationName, configurationIdentifier, displayName, null, attributes, capabilities, variantArtifacts));
             }
 
             @Override
             public void visitChildVariant(String name, DisplayName displayName, ImmutableAttributes attributes, Collection<? extends PublishArtifact> artifacts) {
                 CalculatedValue<ImmutableList<LocalComponentArtifactMetadata>> variantArtifacts = getVariantArtifacts(displayName, componentId, artifacts, model, calculatedValueContainerFactory);
-                artifactSets.add(new LocalVariantMetadata(configurationName + "-" + name, new NonImplicitArtifactVariantIdentifier(configurationIdentifier, name), displayName, attributes, capabilities, variantArtifacts));
+                artifactSets.add(new LocalVariantMetadata(name, new NonImplicitArtifactVariantIdentifier(configurationIdentifier, name), displayName, configuration.asDescribable(), attributes, capabilities, variantArtifacts));
             }
         });
 

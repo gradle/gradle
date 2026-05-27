@@ -24,6 +24,7 @@ import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
+import org.jspecify.annotations.Nullable;
 
 import java.util.List;
 
@@ -85,6 +86,12 @@ class LazyVariantBackedConfigurationMetadata extends AbstractVariantBackedConfig
         @Override
         public DisplayName asDescribable() {
             return delegate.asDescribable();
+        }
+
+        @Override
+        @Nullable
+        public DisplayName getOwnerDisplayName() {
+            return delegate.getOwnerDisplayName();
         }
 
         /**

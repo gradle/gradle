@@ -32,8 +32,8 @@ import org.jspecify.annotations.Nullable;
 public final class LocalVariantMetadata extends DefaultVariantMetadata {
     private final CalculatedValue<ImmutableList<LocalComponentArtifactMetadata>> artifacts;
 
-    public LocalVariantMetadata(String name, @Nullable Identifier identifier, DisplayName displayName, ImmutableAttributes attributes, ImmutableCapabilities capabilities, CalculatedValue<ImmutableList<LocalComponentArtifactMetadata>> artifacts) {
-        super(name, identifier, displayName, attributes, ImmutableList.of(), capabilities);
+    public LocalVariantMetadata(String name, @Nullable Identifier identifier, DisplayName displayName, @Nullable DisplayName ownerDisplayName, ImmutableAttributes attributes, ImmutableCapabilities capabilities, CalculatedValue<ImmutableList<LocalComponentArtifactMetadata>> artifacts) {
+        super(name, identifier, displayName, ownerDisplayName, attributes, ImmutableList.of(), capabilities);
         this.artifacts = artifacts;
     }
 

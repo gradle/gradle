@@ -24,6 +24,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Resol
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.immutable.artifact.ImmutableArtifactTypeRegistry;
 import org.gradle.internal.Describables;
+import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.external.model.DefaultImmutableCapability;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
@@ -57,6 +58,7 @@ public class DefaultVariantArtifactResolver implements VariantArtifactResolver {
             "adhoc",
             identifier,
             Describables.of("adhoc variant for", component.getId()),
+            null,
             component.getAttributes(),
             artifacts,
             ImmutableCapabilities.EMPTY
@@ -122,10 +124,17 @@ public class DefaultVariantArtifactResolver implements VariantArtifactResolver {
         // the same one that resolves its artifacts. This would benefit greatly from "repository deduplication", where we could
         // consider repositories from multiple projects as equivalent as long as they are configured the same (same url, cache policy,
         // component metadata rules, metadata sources, etc.). We should probably leverage ComponentArtifactResolveMetadata#getSources() for this.
+        DisplayName ownerDisplayName = artifactVariant.getOwnerDisplayName();
+        // When there is no owner separation, the variant has no meaningful "bare name" distinct from its full display
+        String variantName = ownerDisplayName == null
+            ? artifactVariant.asDescribable().getDisplayName()
+            : artifactVariant.getName();
         return new ArtifactBackedResolvedVariant(
             identifier,
             sourceVariantId,
             artifactVariant.asDescribable(),
+            variantName,
+            ownerDisplayName,
             attributes,
             capabilities,
             artifacts,
