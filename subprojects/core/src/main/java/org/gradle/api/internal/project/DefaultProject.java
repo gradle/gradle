@@ -266,8 +266,8 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
         if (parentInherited != null) {
             // The NO_IMPLICIT_LOOKUP_IN_PARENT_PROJECTS feature preview opts Vintage builds into the
             // eventual Gradle 10 behavior early: don't wire the parent at all, so the parent walk
-            // (and therefore the deprecation) does not fire. Under Isolated Projects the parent
-            // is already null (see the preceding commit), so this branch only matters for Vintage.
+            // (and therefore the deprecation) does not fire. Under Isolated Projects, no parent is
+            // inherited in the first place.
             boolean noImplicitParentLookup = services.get(FeatureFlags.class).isEnabled(FeaturePreviews.Feature.NO_IMPLICIT_LOOKUP_IN_PARENT_PROJECTS);
             if (!noImplicitParentLookup) {
                 extensibleDynamicObject.setParent(parentInherited);
