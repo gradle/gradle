@@ -148,7 +148,6 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
 
     @Override
     public ClassPath resolveClassPath(Configuration classpathConfiguration, ScriptClassPathResolutionContext resolutionContext) {
-        boolean composeWithThirdPartyAgent = agentStatus.isAgentInstrumentationEnabled() && ThirdPartyAgentDetection.isThirdPartyAgentPresent();
         // We clear resolution scope from service after the resolution is done, so data is not reused between invocations.
         long contextId = resolutionContext.getContextId();
         CacheInstrumentationDataBuildService buildService = resolutionContext.getBuildService().get();
@@ -167,20 +166,30 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
             MethodInterceptionReportCollector reportCollector = propertyUpgradeReportConfig.getReportCollector();
             instrumentedClasspath.getOrDefault(INTERCEPTED_METHODS_REPORT, Collections.emptyList()).forEach(reportCollector::collect);
             ClassPath classPath = TransformedClassPath.handleInstrumentingArtifactTransform(instrumentedClasspath.getOrDefault(ARTIFACT, Collections.emptyList()));
-            if (composeWithThirdPartyAgent && classPath instanceof TransformedClassPath) {
-                TransformedClassPath transformedClassPath = (TransformedClassPath) classPath;
-                InstrumentationTypeRegistry registry = buildService.getInstrumentationTypeRegistry(contextId);
-                ClassLoadTimeTransform classLoadTimeTransform = new InstrumentingClassLoadTimeTransform(
-                    BytecodeInterceptorFilter.INSTRUMENTATION_AND_BYTECODE_UPGRADE,
-                    registry,
-                    BytecodeInterceptorFilter.INSTRUMENTATION_ONLY,
-                    InstrumentationTypeRegistry.EMPTY,
-                    projectOriginFiles(transformedClassPath, instrumentedProjectDependencies)
-                );
-                return transformedClassPath.withClassLoadTimeTransform(classLoadTimeTransform);
-            }
+            return composeWithThirdPartyAgentIfPresent(classPath, contextId, buildService, instrumentedProjectDependencies);
+        }
+    }
+
+    private ClassPath composeWithThirdPartyAgentIfPresent(
+        ClassPath classPath,
+        long contextId,
+        CacheInstrumentationDataBuildService buildService,
+        ArtifactCollection instrumentedProjectDependencies
+    ) {
+        boolean composeWithThirdPartyAgent = agentStatus.isAgentInstrumentationEnabled() && ThirdPartyAgentDetection.isThirdPartyAgentPresent();
+        if (!composeWithThirdPartyAgent || !(classPath instanceof TransformedClassPath)) {
             return classPath;
         }
+        TransformedClassPath transformedClassPath = (TransformedClassPath) classPath;
+        InstrumentationTypeRegistry registry = buildService.getInstrumentationTypeRegistry(contextId);
+        ClassLoadTimeTransform classLoadTimeTransform = new InstrumentingClassLoadTimeTransform(
+            BytecodeInterceptorFilter.INSTRUMENTATION_AND_BYTECODE_UPGRADE,
+            registry,
+            BytecodeInterceptorFilter.INSTRUMENTATION_ONLY,
+            InstrumentationTypeRegistry.EMPTY,
+            projectOriginFiles(transformedClassPath, instrumentedProjectDependencies)
+        );
+        return transformedClassPath.withClassLoadTimeTransform(classLoadTimeTransform);
     }
 
     private static Set<File> projectOriginFiles(TransformedClassPath classPath, ArtifactCollection instrumentedProjectDependencies) {
