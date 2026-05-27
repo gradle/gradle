@@ -19,6 +19,7 @@ package org.gradle.integtests.resolve.api
 import org.gradle.api.internal.artifacts.configurations.ConfigurationRoles
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ConfigurationUsageChangingFixture
+import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 import spock.lang.Issue
 
 class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec implements ConfigurationUsageChangingFixture {
@@ -202,6 +203,7 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
         'buildSrc:implementation'   | 'setCanBeDeclared'   | 'Dependency Scope' | false
     }
 
+    @ToBeFixedForIsolatedProjects(because = "Explicitly tests IP incompatible behavior")
     def "configurations can not have usage changed from other projects (#configuration - #method(#value)"() {
         given:
         file("projectA/build.gradle") << """

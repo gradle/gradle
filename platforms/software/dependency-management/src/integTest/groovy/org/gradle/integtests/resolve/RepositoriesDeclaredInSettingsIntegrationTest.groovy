@@ -18,6 +18,7 @@ package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
+import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.gradle.test.fixtures.server.http.MavenHttpPluginRepository
 import org.gradle.test.precondition.Requires
@@ -217,6 +218,7 @@ class RepositoriesDeclaredInSettingsIntegrationTest extends AbstractModuleDepend
         failure.assertHasCause("Build was configured to prefer settings repositories over project repositories but repository 'maven' was added by build file 'build.gradle'")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "Explicitly tests IP incompatible behavior")
     def "can fail the build if repositories are declared in a subproject block"() {
         settingsFile << """
             dependencyResolutionManagement {
@@ -224,10 +226,17 @@ class RepositoriesDeclaredInSettingsIntegrationTest extends AbstractModuleDepend
             }
 
             include 'lib1'
-            include 'lib2'
         """
 
-        def common = """
+        buildFile << """
+            subprojects {
+                repositories {
+                    maven { url = 'dummy' }
+                }
+            }
+        """
+
+        file("lib1/build.gradle") << """
             configurations {
                 conf
             }
@@ -235,20 +244,13 @@ class RepositoriesDeclaredInSettingsIntegrationTest extends AbstractModuleDepend
             dependencies {
                 conf 'org:module:1.0'
             }
-
-            repositories {
-                maven { url = 'dummy' }
-            }
         """
-
-        file("lib1/build.gradle") << common
-        file("lib2/build.gradle") << common
 
         when:
         fails ':lib1:checkDeps'
 
         then:
-        failure.assertHasCause("Build was configured to prefer settings repositories over project repositories but repository 'maven' was added by build file 'lib1${File.separator}build.gradle'")
+        failure.assertHasCause("Build was configured to prefer settings repositories over project repositories but repository 'maven' was added by build file 'build.gradle'")
 
     }
 

@@ -17,6 +17,7 @@ package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.StableConfigurationCacheDeprecations
+import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.integtests.fixtures.extensions.FluidDependenciesResolveTest
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
@@ -618,6 +619,7 @@ class ProjectDependencyResolveIntegrationTest extends AbstractIntegrationSpec im
         file("b/build/copied/a-1.0.zip").exists()
     }
 
+    @ToBeFixedForIsolatedProjects(because = "Explicitly tests IP incompatible behavior")
     def "resolving configuration with project dependency marks dependency's configuration as observed"() {
         settingsFile << """
             include 'api'
