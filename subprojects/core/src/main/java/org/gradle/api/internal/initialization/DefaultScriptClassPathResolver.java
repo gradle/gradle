@@ -23,6 +23,7 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
+import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.Bundling;
@@ -61,6 +62,7 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static org.gradle.api.attributes.LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE;
 import static org.gradle.api.internal.initialization.DefaultScriptClassPathResolver.InstrumentationPhase.ANALYZED_ARTIFACT;
@@ -166,15 +168,28 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
             instrumentedClasspath.getOrDefault(INTERCEPTED_METHODS_REPORT, Collections.emptyList()).forEach(reportCollector::collect);
             ClassPath classPath = TransformedClassPath.handleInstrumentingArtifactTransform(instrumentedClasspath.getOrDefault(ARTIFACT, Collections.emptyList()));
             if (composeWithThirdPartyAgent && classPath instanceof TransformedClassPath) {
+                TransformedClassPath transformedClassPath = (TransformedClassPath) classPath;
                 InstrumentationTypeRegistry registry = buildService.getInstrumentationTypeRegistry(contextId);
                 ClassLoadTimeTransform classLoadTimeTransform = new InstrumentingClassLoadTimeTransform(
                     BytecodeInterceptorFilter.INSTRUMENTATION_AND_BYTECODE_UPGRADE,
-                    registry
+                    registry,
+                    BytecodeInterceptorFilter.INSTRUMENTATION_ONLY,
+                    InstrumentationTypeRegistry.EMPTY,
+                    projectOriginFiles(transformedClassPath, instrumentedProjectDependencies)
                 );
-                return ((TransformedClassPath) classPath).withClassLoadTimeTransform(classLoadTimeTransform);
+                return transformedClassPath.withClassLoadTimeTransform(classLoadTimeTransform);
             }
             return classPath;
         }
+    }
+
+    private static Set<File> projectOriginFiles(TransformedClassPath classPath, ArtifactCollection instrumentedProjectDependencies) {
+        Set<File> projectArtifactFiles = instrumentedProjectDependencies.getArtifacts().stream()
+            .map(ResolvedArtifactResult::getFile)
+            .collect(Collectors.toSet());
+        return classPath.getAsFiles().stream()
+            .filter(projectArtifactFiles::contains)
+            .collect(Collectors.toSet());
     }
 
     private FileCollection getAnalysisResult(Configuration classpathConfiguration) {

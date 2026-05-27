@@ -180,7 +180,7 @@ public class VisitableURLClassLoader extends URLClassLoader implements ClassLoad
             if (classLoadTimeTransform != null && className != null) {
                 // A third-party agent is attached; rewrite the JVM-supplied buffer so we layer
                 // Gradle's instrumentation on top of the third-party transformer's output.
-                return classLoadTimeTransform.transform(className, classfileBuffer);
+                return classLoadTimeTransform.transform(protectionDomain, className, classfileBuffer);
             }
             // No third-party agent to compose with; substitute the bytes Gradle rewrote during artifact transform.
             return replacer.getInstrumentedClass(className, protectionDomain);

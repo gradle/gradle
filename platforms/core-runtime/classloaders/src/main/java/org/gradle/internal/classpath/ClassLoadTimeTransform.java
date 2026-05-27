@@ -17,6 +17,9 @@
 package org.gradle.internal.classpath;
 
 import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
+
+import java.security.ProtectionDomain;
 
 /**
  * Transforms a single class's bytecode at class-load time, layering on top of bytes
@@ -25,5 +28,5 @@ import org.jspecify.annotations.NullMarked;
 @NullMarked
 public interface ClassLoadTimeTransform {
 
-    byte[] transform(String className, byte[] classfileBuffer);
+    byte[] transform(@Nullable ProtectionDomain protectionDomain, String className, byte[] classfileBuffer);
 }

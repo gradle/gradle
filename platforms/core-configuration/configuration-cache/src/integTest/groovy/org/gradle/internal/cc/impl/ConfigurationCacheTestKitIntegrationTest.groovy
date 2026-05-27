@@ -143,6 +143,37 @@ class ConfigurationCacheTestKitIntegrationTest extends AbstractConfigurationCach
         mode << PluginResolutionMode.values()
     }
 
+    def "buildscript classpath project dependencies load under the compose path with a third-party agent [#mode]"() {
+        given:
+        def agentJar = buildTransformerAgentJar()
+        file("buildSrc/src/main/java/test/Helper.java") << """
+            package test;
+            public class Helper {
+                public static String value() {
+                    return "from-build-src";
+                }
+            }
+        """
+        buildFile << """
+            println("helper says " + test.Helper.value())
+            tasks.register("noop")
+        """
+
+        when:
+        def output = testRunner(mode)
+            .withJvmArguments("-javaagent:${agentJar}")
+            .withArguments("--configuration-cache", "noop")
+            .build()
+            .output
+
+        then:
+        !output.contains("Configuration cache problems found")
+        output.contains("helper says from-build-src")
+
+        where:
+        mode << PluginResolutionMode.values()
+    }
+
     def "third-party Java agent that writes a file from premain runs under CC [#mode]"() {
         given:
         def agentJar = buildFileWritingAgentJar()
