@@ -84,12 +84,15 @@ class IsolatedProjectsTaskPathDependencyIntegrationTest extends AbstractIsolated
         """
 
         when:
-        isolatedProjectsFails(":a:foo")
+        isolatedProjectsFailsUsing(mode, ":a:foo")
 
         then:
-        fixture.assertStateStoredAndDiscarded {
+        fixture.assertIsolatedProjectsProblems(mode) {
             projectsConfigured(":", ":a")
             problem("Build file 'a/build.gradle': line 3: Project ':a' cannot access 'Project.tasks' functionality on another project ':'")
         }
+
+        where:
+        mode << ALL_MODES
     }
 }
