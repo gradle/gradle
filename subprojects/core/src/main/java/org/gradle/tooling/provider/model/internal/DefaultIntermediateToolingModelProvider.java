@@ -25,6 +25,7 @@ import org.gradle.internal.build.BuildToolingModelController;
 import org.gradle.internal.buildtree.IntermediateBuildActionRunner;
 import org.gradle.internal.buildtree.ToolingModelRequestContext;
 import org.gradle.internal.operations.MultipleBuildOperationFailures;
+import org.gradle.internal.problems.failure.Failure;
 import org.gradle.internal.problems.failure.FailureFactory;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
@@ -34,6 +35,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.Supplier;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.stream.Collectors.toList;
 
 @NullMarked
@@ -58,17 +60,37 @@ public class DefaultIntermediateToolingModelProvider implements IntermediateTool
 
     @Override
     public <T> List<T> getModels(ProjectState requester, List<ProjectState> targets, String modelName, Class<T> modelType, @Nullable Object parameter) {
+        List<IntermediateToolingModelResult<T>> results = getModelsAllowingFailures(requester, targets, modelName, modelType, parameter);
+        List<Throwable> failures = results.stream()
+            .flatMap(result -> collectFailures(result, modelType).stream())
+            .collect(toList());
+
+        if (!failures.isEmpty()) {
+            throw new MultipleBuildOperationFailures(failures, null);
+        }
+
+        //noinspection NullableProblems
+        return results.stream()
+            .map(result -> checkNotNull(result.getModel()))
+            .collect(toList());
+    }
+
+    private static <T> List<Throwable> collectFailures(IntermediateToolingModelResult<T> result, Class<T> modelType) {
+        List<Throwable> failures = new ArrayList<>();
+        if (result.getModel() == null) {
+            failures.add(new IllegalStateException(String.format("Expected model of type %s but found null", modelType.getName())));
+        }
+        result.getFailures().forEach(f -> failures.add(f.getOriginal()));
+        return failures;
+    }
+
+    @Override
+    public <T> List<IntermediateToolingModelResult<T>> getModelsAllowingFailures(ProjectState requester, List<ProjectState> targets, String modelName, Class<T> modelType, @Nullable Object parameter) {
         // Always query in a resilient context so we can return models for the successful parts of the build.
         // This is safe because if the original (top-level) model request was non-resilient and configuration
         // failed, BuildToolingModelController would have already aborted, and we'd never reach this point.
         ToolingModelRequestContext context = new ToolingModelRequestContext(modelName, parameter, true);
-        return unwrapOrRethrow(fetchResults(requester, targets, context), modelType);
-    }
-
-    @Override
-    public List<ToolingModelBuilderResultInternal> getModelsAllowingFailures(ProjectState requester, List<ProjectState> targets, Class<?> modelType, @Nullable Object parameter) {
-        ToolingModelRequestContext context = new ToolingModelRequestContext(modelType.getName(), parameter, true);
-        return fetchResults(requester, targets, context);
+        return fetchResults(requester, targets, modelType, context);
     }
 
     @Override
@@ -80,13 +102,16 @@ public class DefaultIntermediateToolingModelProvider implements IntermediateTool
         return () -> pluginClass;
     }
 
-    private List<ToolingModelBuilderResultInternal> fetchResults(ProjectState requester, List<ProjectState> targets, ToolingModelRequestContext context) {
+    private <T> List<IntermediateToolingModelResult<T>> fetchResults(ProjectState requester, List<ProjectState> targets, Class<T> modelType, ToolingModelRequestContext context) {
         if (targets.isEmpty()) {
             return Collections.emptyList();
         }
         reportToolingModelDependencies(requester, targets);
         BuildState buildState = extractSingleBuildState(targets);
-        return buildState.withToolingModels(context.inResilientContext(), controller -> fanOut(controller, targets, context));
+        List<ToolingModelBuilderResultInternal> toolingModelResults = buildState.withToolingModels(context.inResilientContext(), controller -> fanOut(controller, targets, context));
+        return toolingModelResults.stream()
+            .map(r -> toIntermediateToolingModelResult(r, modelType))
+            .collect(toList());
     }
 
     private List<ToolingModelBuilderResultInternal> fanOut(BuildToolingModelController controller, List<ProjectState> targets, ToolingModelRequestContext context) {
@@ -104,28 +129,6 @@ public class DefaultIntermediateToolingModelProvider implements IntermediateTool
             .collect(toList());
 
         return actionRunner.run(fetchActions);
-    }
-
-    private static <T> List<T> unwrapOrRethrow(List<ToolingModelBuilderResultInternal> results, Class<T> modelType) {
-        List<T> typed = new ArrayList<>(results.size());
-        List<Throwable> failures = new ArrayList<>();
-        for (ToolingModelBuilderResultInternal result : results) {
-            Object model = result.getModel();
-            if (model == null) {
-                if (result.getFailures().isEmpty()) {
-                    failures.add(new IllegalStateException("Expected model of type " + modelType.getName() + " but found null"));
-                }
-            } else if (!modelType.isInstance(model)) {
-                failures.add(new IllegalStateException("Expected model of type " + modelType.getName() + " but found " + model.getClass().getName()));
-            } else {
-                typed.add(modelType.cast(model));
-            }
-            result.getFailures().forEach(f -> failures.add(f.getOriginal()));
-        }
-        if (!failures.isEmpty()) {
-            throw new MultipleBuildOperationFailures(failures, null);
-        }
-        return typed;
     }
 
     private static BuildState extractSingleBuildState(List<ProjectState> targets) {
@@ -147,9 +150,44 @@ public class DefaultIntermediateToolingModelProvider implements IntermediateTool
         return result;
     }
 
+    @SuppressWarnings("unchecked")
+    private static <T> IntermediateToolingModelResult<T> toIntermediateToolingModelResult(ToolingModelBuilderResultInternal result, Class<T> modelType) {
+        Object model = result.getModel();
+        if (model == null) {
+            return new DefaultIntermediateToolingModelResult<>(null, result.getFailures());
+        }
+        if (!modelType.isInstance(model)) {
+            throw new IllegalStateException(String.format("Expected model of type %s but found %s", modelType.getName(), model.getClass().getName()));
+        }
+        return new DefaultIntermediateToolingModelResult<>((T) model, result.getFailures());
+    }
+
+
     private void reportToolingModelDependencies(ProjectState requester, List<ProjectState> targets) {
         for (ProjectState target : targets) {
             projectDependencyListener.onToolingModelDependency(requester, target);
+        }
+    }
+
+    private static final class DefaultIntermediateToolingModelResult<T> implements IntermediateToolingModelResult<T> {
+        @Nullable
+        private final T model;
+        private final List<Failure> failures;
+
+        DefaultIntermediateToolingModelResult(@Nullable T model, List<Failure> failures) {
+            this.model = model;
+            this.failures = failures;
+        }
+
+        @Override
+        @Nullable
+        public T getModel() {
+            return model;
+        }
+
+        @Override
+        public List<Failure> getFailures() {
+            return failures;
         }
     }
 }

@@ -58,7 +58,7 @@ import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptModel
 import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptsModel
 import org.gradle.tooling.provider.model.ToolingModelBuilder
 import org.gradle.tooling.provider.model.internal.IntermediateToolingModelProvider
-import org.gradle.tooling.provider.model.internal.ToolingModelBuilderResultInternal
+import org.gradle.tooling.provider.model.internal.IntermediateToolingModelProvider.IntermediateToolingModelResult
 import java.io.File
 
 
@@ -196,10 +196,9 @@ fun buildScriptModelsInHierarchy(
                 val original = failure.original
                 classPathModeExceptionCollector.collect(original as? Exception ?: RuntimeException(original))
             }
-            val model = result.model as? IsolatedScriptsModel
-            if (model != null) {
-                collect(model, parentSourcePath)
-                visitChildren(child, parentSourcePath + model.buildScriptSourcePath)
+            result.model?.let {
+                collect(it, parentSourcePath)
+                visitChildren(child, parentSourcePath + it.buildScriptSourcePath)
             }
         }
     }
@@ -214,7 +213,7 @@ fun buildScriptModelsInHierarchy(
 
 
 private
-fun IntermediateToolingModelProvider.getIsolatedModels(requester: ProjectState, targets: List<ProjectState>): List<ToolingModelBuilderResultInternal> =
+fun IntermediateToolingModelProvider.getIsolatedModels(requester: ProjectState, targets: List<ProjectState>): List<IntermediateToolingModelResult<IsolatedScriptsModel>> =
     getModelsAllowingFailures(requester, targets, IsolatedScriptsModel::class.java, null)
 
 

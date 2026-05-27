@@ -19,6 +19,7 @@ package org.gradle.tooling.provider.model.internal;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.internal.project.ProjectState;
+import org.gradle.internal.problems.failure.Failure;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.jspecify.annotations.NullMarked;
@@ -53,16 +54,30 @@ public interface IntermediateToolingModelProvider {
     }
 
     /**
-     * Like {@link #getModels(ProjectState, List, String, Class, Object)}, but returns a per-target
-     * {@link ToolingModelBuilderResultInternal} so the caller can keep successful sibling models when
-     * individual targets fail. Each result carries the (possibly {@code null}) model and any attached
-     * failures. Intended for resilient model building.
+     * Like {@link #getModelsAllowingFailures(ProjectState, List, String, Class, Object)}, with the model name derived
+     * from the binary name of {@code modelType}.
      */
-    List<ToolingModelBuilderResultInternal> getModelsAllowingFailures(ProjectState requester, List<ProjectState> targets, Class<?> modelType, @Nullable Object parameter);
+    default <T> List<IntermediateToolingModelResult<T>> getModelsAllowingFailures(ProjectState requester, List<ProjectState> targets, Class<T> modelType, @Nullable Object parameter) {
+        return getModelsAllowingFailures(requester, targets, modelType.getName(), modelType, parameter);
+    }
+
+    /**
+     * Fetches models of a given type for the given projects passing a parameter to the underlying builder.
+     * <p>
+     * Returns a per-target {@link IntermediateToolingModelResult<T>} so the caller can keep successful sibling models when
+     * individual targets fail. Each result carries the (possibly {@code null}) model and any attached
+     * failures. Intended for model builders that can run on projects that failed during configuration (e.g., KotlinDSL scripts model).
+     */
+    <T> List<IntermediateToolingModelResult<T>> getModelsAllowingFailures(ProjectState requester, List<ProjectState> targets, String modelName, Class<T> modelType, @Nullable Object parameter);
 
     /**
      * Applies a plugin of a given type to the given projects.
      */
     <P extends Plugin<Project>> void applyPlugin(ProjectState requester, List<ProjectState> targets, Class<P> pluginClass);
 
+    interface IntermediateToolingModelResult<T> {
+        @Nullable
+        T getModel();
+        List<Failure> getFailures();
+    }
 }
