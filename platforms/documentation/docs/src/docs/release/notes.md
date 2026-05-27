@@ -52,11 +52,35 @@ For Java, Groovy, Kotlin, and Android compatibility, see the [full compatibility
 
 ## New features and usability improvements
 
-### Configuration Cache improvements
-Gradle provides a [Configuration Cache](userguide/configuration_cache.html) that improves build time by caching the result of the configuration phase and reusing it for subsequent builds.
+### Isolated Projects improvements
 
-### Test reporting and execution
-Gradle provides a [set of features and abstractions](userguide/java_testing.html) for testing JVM code, along with test reports to display results.
+[Isolated Projects](userguide/isolated_projects.html) is an experimental Gradle feature that improves build performance by isolating the mutable state of each project during configuration.
+When enabled, projects in a multi-project build are configured in parallel, and configuration results are cached at a finer granularity than the [Configuration Cache](userguide/configuration_cache.html) alone provides.
+This can significantly reduce configuration times for large builds, especially during IDE sync in Android Studio and IntelliJ IDEA.
+
+#### Diagnostics mode for migration
+
+When migrating a build to [Isolated Projects](isolated_projects.html#sec:migration), the optimizations that make it fast, parallel project configuration, per-project model caching, and configure-on-demand, can also mask or reorder constraint violations.
+This makes it difficult to get a complete picture of all the changes needed in a single build invocation.
+
+Gradle now provides an opt-in _Diagnostics_ mode that disables these optimizations so that every violation is surfaced in a single, deterministic run.
+Enable it by setting `org.gradle.unsafe.isolated-projects.diagnostics=true` alongside the Isolated Projects flag:
+
+```text
+$ ./gradlew build -Dorg.gradle.unsafe.isolated-projects=true -Dorg.gradle.unsafe.isolated-projects.diagnostics=true
+```
+
+Or in `gradle.properties`:
+
+```properties
+org.gradle.unsafe.isolated-projects=true
+org.gradle.unsafe.isolated-projects.diagnostics=true
+```
+
+Diagnostics mode is intended for migration and troubleshooting.
+Because parallelism and caching are deliberately disabled, builds in this mode will be slower and should not be committed to version control for regular use.
+
+See the [Diagnostics mode](userguide/isolated_projects.html#sec:diagnostics_mode) section in the Isolated Projects documentation for more details.
 
 ### CLI, logging, and problem reporting
 Gradle provides an intuitive [command-line interface](userguide/command_line_interface.html), detailed [logs](userguide/logging.html), and a structured [problems report](userguide/reporting_problems.html#sec:generated_html_report) that helps developers quickly identify and resolve build issues.
@@ -80,20 +104,94 @@ See the [Environment variables](userguide/build_environment.html#sec:gradle_envi
 ### Build authoring improvements
 Gradle provides [rich APIs](userguide/getting_started_dev.html) for build engineers and plugin authors, enabling the creation of custom, reusable build logic and better maintainability.
 
-### Platform and toolchain management
-Gradle provides comprehensive support for [Native development](userguide/building_cpp_projects.html) and [JVM languages](userguide/building_java_projects.html), featuring automated [Toolchains](userguide/toolchains.html) for seamless JDK management.
+#### Deprecation of implicit property and method lookup in the project hierarchy
+
+In Gradle's [Groovy and Kotlin DSLs](userguide/kotlin_dsl.html), when a child project's build script references a property or method that isn't defined locally, the resolution mechanism walks up the project hierarchy looking for a match.
+For example:
+
+```kotlin
+// build.gradle.kts (root project)
+extra["foo"] = "hello"
+```
+
+```kotlin
+// child/build.gradle.kts
+println(foo) // Resolved through hierarchy — now deprecated
+```
+
+This implicit inheritance creates hidden coupling between projects, makes builds harder to reason about (a typo silently resolves to an ancestor's definition instead of failing), and is fundamentally incompatible with [Isolated Projects](userguide/isolated_projects.html).
+
+Starting in Gradle 9.6.0, both implicit references and explicit APIs (`findProperty()`, `property()`, `hasProperty()`) emit a deprecation warning when they resolve through the hierarchy.
+This behavior will be removed in Gradle 10.
+
+See the [upgrade guide](userguide/upgrading_version_9.html#deprecated_implicit_project_hierarchy_lookup) for migration paths, including `gradle.properties`, convention plugins, and explicit references.
+
+#### Opt into Gradle 10 behavior by disabling project hierarchy lookup
+
+Gradle 9.6.0 [deprecates implicit lookup of properties and methods through the project hierarchy](userguide/upgrading_version_9.html#deprecated_implicit_project_hierarchy_lookup); this behavior will be removed in Gradle 10.
+
+Once you have addressed all related deprecations, enable the new `NO_IMPLICIT_LOOKUP_IN_PROJECT_HIERARCHY` feature preview to adopt the Gradle 10 behavior early.
+
+This prevents new accidental implicit lookups in the project hierarchy:
+
+```kotlin
+// settings.gradle.kts
+enableFeaturePreview("NO_IMPLICIT_LOOKUP_IN_PROJECT_HIERARCHY")
+```
+
+Under [Isolated Projects](userguide/isolated_projects.html), the implicit hierarchy lookup is already fully disabled, so this preview only affects non-IP builds.
 
 ### Core plugin and plugin authoring enhancements
 Gradle provides a comprehensive plugin system, including built-in [Core Plugins](userguide/plugin_reference.html) for standard tasks and powerful APIs for creating custom plugins.
 
-### Security and infrastructure
-Gradle provides robust [security features and underlying infrastructure](userguide/security.html) to ensure that builds are secure, reproducible, and easy to maintain.
+#### Improved validation errors for `@Optional` annotation misuse
 
-### Tooling and IDE integration
-Gradle provides [Tooling APIs](userguide/third_party_integration.html) that facilitate deep integration with modern IDEs and CI/CD pipelines.
+The [`validatePlugins`](userguide/java_gradle_plugin.html#sec:plugin_validation) task now produces more specific error messages when the `@Optional` annotation is used incorrectly on task properties.
 
-### General improvements
-Gradle provides various incremental updates and performance optimizations to ensure the continued reliability of the build ecosystem.
+Previously, a property annotated with only `@Optional` and no input or output annotation produced a generic "missing annotation" error that didn't mention `@Optional` at all.
+Now, Gradle explains that `@Optional` is a modifier annotation with no effect on its own:
+
+```text
+Type 'MyTask' property 'badProperty' is missing an input or output annotation.
+
+Reason: @Optional is a modifier annotation and has no effect without an input or output annotation.
+
+Possible solutions:
+  1. Add an input or output annotation.
+  2. Replace @Optional with @Internal for ignoring this property.
+```
+
+Similarly, combining `@Internal` with `@Optional` now produces a dedicated error explaining that `@Optional` is redundant on properties excluded from up-to-date checks:
+
+```text
+Type 'MyTask' property 'badProperty' annotated with @Internal should not be also annotated with @Optional.
+
+Reason: @Internal properties are excluded from up-to-date checks; @Optional is redundant and not allowed here.
+```
+
+See [Validating plugins](userguide/java_gradle_plugin.html#sec:plugin_validation) for more information.
+
+#### Groovy DSL type coercions for lazy properties
+
+Gradle's [lazy property](userguide/lazy_configuration.html) types (`Property<T>`, `ListProperty<T>`, `SetProperty<T>`) previously required exact type matches when assigning values in the [Groovy DSL](userguide/groovy_build_script_primer.html).
+This meant that common idioms that worked with eager properties would fail with `IllegalArgumentException` when a plugin author migrated to lazy properties.
+
+Gradle now automatically coerces values in the following cases:
+
+**String to File** — A `String` assigned to a `Property<File>`, `RegularFileProperty`, or `DirectoryProperty` is resolved relative to the project directory:
+
+```groovy
+task.workingDir = '/tmp/build'
+```
+
+**Single value to collection** — A single `T` or `T[]` assigned to a `ListProperty<T>` or `SetProperty<T>` is wrapped into a one-element collection:
+
+```groovy
+task.filter.includePatterns = 'Foo'
+task.filter.includePatterns = ['Foo', 'Bar'] as String[]
+```
+
+These coercions bring the Groovy DSL experience for lazy properties closer to what users expect from eager properties, making it easier for plugin authors to migrate to the [lazy configuration](userguide/lazy_configuration.html) API without breaking their users' build scripts.
 
 ## Promoted features
 
@@ -103,8 +201,6 @@ See the User Manual section on the "[Feature Lifecycle](userguide/feature_lifecy
 The following are the features that have been promoted in this Gradle release.
 
 * [`getNetworkTimeout()`](javadoc/org/gradle/api/tasks/wrapper/Wrapper.html#getNetworkTimeout()) in `Wrapper`
-
-## Documentation and training
 
 ## Fixed issues
 

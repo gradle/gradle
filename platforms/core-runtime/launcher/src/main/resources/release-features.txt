@@ -1,0 +1,3 @@
+ - Isolated Projects Diagnostics mode
+ - Important project hierarchy lookup deprecations
+ - CLI non-interactive mode
