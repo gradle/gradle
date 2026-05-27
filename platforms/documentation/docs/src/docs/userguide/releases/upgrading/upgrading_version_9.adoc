@@ -219,8 +219,7 @@ Delegated properties are being removed because they create silent correctness bu
 [[deprecated_develocity_plugin_pre_4_0]]
 ==== Deprecation of Develocity plugin versions before 4.0
 
-Gradle 10 requires Develocity plugin 4.0 or later.
-Earlier versions rely on Gradle's implicit property lookup from parent projects, which will be removed in Gradle 10 and silently ignored if applied.
+Earlier versions of the Develocity plugin rely on the implicit property lookup in parent projects, which is <<#deprecated_implicit_project_hierarchy_lookup,deprecated>> and will be removed in Gradle 10.
 
 Upgrade to the link:https://plugins.gradle.org/plugin/com.gradle.develocity[latest Develocity plugin] from the Gradle Plugin Portal.
 See the link:https://gradle.com/help/gradle-plugin-compatibility/[Develocity plugin compatibility matrix] for details.
@@ -265,10 +264,6 @@ Both an implicit reference (e.g. a bare `foo` in a Groovy build script, or `val 
 
 Implicit hierarchy lookup creates hidden coupling between projects, makes builds harder to reason about (a typo silently resolves to an ancestor's definition instead of failing), and is fundamentally incompatible with <<isolated_projects.adoc#isolated_projects, Isolated Projects>>.
 
-Under Isolated Projects, the implicit hierarchy lookup is fully disabled.
-A reference that would have resolved through the hierarchy instead throws `MissingPropertyException` / `MissingMethodException`; the same behavior Gradle 10 will apply to all builds.
-The migration paths below apply equally to standard builds (to silence the deprecation) and Isolated Projects builds (to restore the value).
-
 To migrate, choose the approach that best fits your use case:
 
 - **Build-wide configuration values** — declare them in `gradle.properties` at the root, and read them in subprojects via `providers.gradleProperty("name")`. They become typed `Provider<String>` values and are available everywhere without any walking.
@@ -281,8 +276,6 @@ If you need to keep the original walking semantics, the following helper can be 
 include::sample[dir="snippets/releases/upgrading/findExtraInHierarchy/kotlin",files="child/build.gradle.kts[tags=helper]"]
 include::sample[dir="snippets/releases/upgrading/findExtraInHierarchy/groovy",files="child/build.gradle[tags=helper]"]
 ====
-
-This helper is **not compatible with Isolated Projects** — `parent.ext` (and the chain of `parent` references) is cross-project access, which Isolated Projects forbids. It is a transitional fix for Vintage migrations only. If you are also migrating to Isolated Projects, use one of the first two options (`gradle.properties` or a convention plugin) instead.
 
 ===== Opt into Gradle 10 behavior by disabling implicit lookup in parent projects
 
