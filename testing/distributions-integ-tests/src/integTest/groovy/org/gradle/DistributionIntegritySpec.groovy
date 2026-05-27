@@ -57,7 +57,7 @@ class DistributionIntegritySpec extends DistributionIntegrationSpec {
         def jarsWithDuplicateFiles = [:]
         def classesIndex = [:] as HashMap<String, List<String>> // class name -> list of containing jars
         jars.each { jar ->
-            // The API/ABI jars purposely duplicate class entries that also live in other distro jars.
+            // The ABI jars (signature stubs) purposely duplicate class entries that also live in other distro jars.
             // They are excluded from the cross-jar duplicate-class check below.
             // They are checked for intra-jar duplicate entries.
             def skipCrossJarCheck = jar.name.startsWith("gradle-public-api-")

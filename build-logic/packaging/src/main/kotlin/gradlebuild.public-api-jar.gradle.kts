@@ -94,7 +94,8 @@ fun Jar.commonPublicApiJarConfiguration() {
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
 
-// The JARs built by this module include the ABI of internals; suffix the module base name accordingly.
+// Both jars carry the ABI of internals; the suffix marks the variant. The -legacy jar mirrors the
+// historical gradleApi() classpath and ships in lib/api/, pending an internals-free public API.
 val internalBaseName = gradleModule.identity.baseName.map { "$it${PublicApiVariants.INTERNAL_SUFFIX}" }
 val legacyBaseName = gradleModule.identity.baseName.map { "$it${PublicApiVariants.LEGACY_SUFFIX}" }
 

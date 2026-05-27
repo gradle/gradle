@@ -91,7 +91,7 @@ pluginsRuntimeOnly.description = "To define dependencies to the Gradle modules t
 val agentsRuntimeOnly = bucket("agentsRuntimeOnly")
 agentsRuntimeOnly.description = "To define dependencies to the Gradle modules that represent Java agents packaged in the distribution (lib/agents/*.jar)"
 val publicAbiOnly = bucket("publicAbiOnly")
-publicAbiOnly.description = "To define dependencies to the Gradle modules that make up the public API (lib/api/*.jar)"
+publicAbiOnly.description = "To define dependencies to the public API ABI jar (lib/api/*.jar)"
 
 // Use lazy API to not attempt to find platform project during script compilation
 coreRuntimeOnly.dependencies.addLater(provider {
@@ -109,7 +109,7 @@ coreRuntimeClasspath.description = "Resolves to all Jars, including transitives,
 val agentsRuntimeClasspath = libraryResolver("agentsRuntimeClasspath", listOf(agentsRuntimeOnly))
 agentsRuntimeClasspath.description = "Resolves to all Jars that need to be added as agents"
 val gradlePublicAbiClasspath = apiLibraryResolver("gradlePublicAbiClasspath", listOf(publicAbiOnly))
-gradlePublicAbiClasspath.description = "Resolves all Jars that make up the public API of Gradle"
+gradlePublicAbiClasspath.description = "Resolves the public API ABI jar (signature stubs) of Gradle"
 gradlePublicAbiClasspath.isTransitive = false // Transitives must already be part of the distribution
 val gradlePublicAbiRuntimeClasspath = apiLibraryResolver("gradlePublicAbiRuntimeClasspath", listOf(publicAbiOnly))
 gradlePublicAbiRuntimeClasspath.description = "Resolves the public API ABI jar and its transitive dependencies (used to populate the module registry's dependency list for that jar)"
