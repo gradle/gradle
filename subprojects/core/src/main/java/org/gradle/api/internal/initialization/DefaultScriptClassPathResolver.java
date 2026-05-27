@@ -181,6 +181,9 @@ public class DefaultScriptClassPathResolver implements ScriptClassPathResolver {
             return classPath;
         }
         TransformedClassPath transformedClassPath = (TransformedClassPath) classPath;
+        // The artifact transforms above already wrote instrumented jars, but composing at class load reinstruments
+        // the original bytes so the third-party transformer observes the user's bytecode. Those instrumented jars are
+        // therefore not used for loading here; only the type registry produced by the analysis pass is reused.
         InstrumentationTypeRegistry registry = buildService.getInstrumentationTypeRegistry(contextId);
         ClassLoadTimeTransform classLoadTimeTransform = new InstrumentingClassLoadTimeTransform(
             BytecodeInterceptorFilter.INSTRUMENTATION_AND_BYTECODE_UPGRADE,
