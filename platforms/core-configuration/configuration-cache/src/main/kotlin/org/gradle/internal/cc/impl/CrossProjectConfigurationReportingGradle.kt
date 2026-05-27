@@ -49,6 +49,7 @@ import org.gradle.initialization.SettingsState
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.build.PublicBuildPath
 import org.gradle.internal.composite.IncludedBuildInternal
+import org.gradle.internal.configuration.problems.IsolatedProjectsProblemsReporter
 import org.gradle.internal.extensions.core.serviceOf
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.util.Path
@@ -60,6 +61,7 @@ import java.util.function.Supplier
 class CrossProjectConfigurationReportingGradle(
     gradle: GradleInternal,
     private val referrerProject: ProjectIdentity,
+    private val ipProblems: IsolatedProjectsProblemsReporter
 ) : GradleInternal {
 
     private
@@ -75,12 +77,12 @@ class CrossProjectConfigurationReportingGradle(
     private val projectConfigurator: CrossProjectConfigurator = delegate.serviceOf()
 
     override fun getParent(): GradleInternal? =
-        delegate.parent?.let { delegateParent -> CrossProjectConfigurationReportingGradle(delegateParent, referrerProject) }
+        delegate.parent?.let { delegateParent -> CrossProjectConfigurationReportingGradle(delegateParent, referrerProject, ipProblems) }
 
     override fun getRoot(): GradleInternal =
         when (val root = delegate.root) {
             delegate -> this
-            else -> CrossProjectConfigurationReportingGradle(root, referrerProject)
+            else -> CrossProjectConfigurationReportingGradle(root, referrerProject, ipProblems)
         }
 
     override fun getRootProject(): ProjectInternal =
@@ -239,8 +241,10 @@ class CrossProjectConfigurationReportingGradle(
     override fun getPluginManager(): PluginManagerInternal =
         delegate.pluginManager
 
-    override fun getExtensions(): ExtensionContainer =
-        delegate.extensions
+    override fun getExtensions(): ExtensionContainer {
+
+        return delegate.extensions
+    }
 
     override fun getGradleVersion(): String =
         delegate.gradleVersion
