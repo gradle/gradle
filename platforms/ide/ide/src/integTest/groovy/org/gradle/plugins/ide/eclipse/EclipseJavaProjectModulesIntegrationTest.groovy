@@ -65,6 +65,7 @@ class EclipseJavaProjectModulesIntegrationTest extends AbstractEclipseIntegratio
         """
 
         when:
+        expectTaskDeprecations("eclipse", "eclipseClasspath", "eclipseJdt", "eclipseProject")
         succeeds "eclipse"
 
         then:

@@ -31,7 +31,6 @@ dependencies {
     api(libs.inject)
     api(libs.jspecify)
 
-    implementation(projects.ant)
     implementation(projects.fileOperations)
     implementation(projects.languageJava)
     implementation(projects.languageJvm)
@@ -45,7 +44,6 @@ dependencies {
     implementation(projects.toolchainsJvm)
     implementation(projects.toolchainsJvmShared)
 
-    implementation(libs.ant)
     implementation(libs.commonsLang)
     implementation(libs.groovy)
     implementation(libs.groovyTemplates)

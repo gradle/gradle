@@ -39,7 +39,7 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         """
 
         when:
-        isolatedProjectsFails("assemble")
+        isolatedProjectsDiagnosticsFails("assemble")
 
         then:
         fixture.assertStateStoredAndDiscarded {
@@ -68,7 +68,7 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         """
 
         when:
-        isolatedProjectsFails("assemble")
+        isolatedProjectsDiagnosticsFails("assemble")
 
         then:
         fixture.assertStateStoredAndDiscarded {
@@ -98,7 +98,7 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         """
 
         when:
-        isolatedProjectsFails("assemble")
+        isolatedProjectsDiagnosticsFails("assemble")
 
         then:
         fixture.assertStateStoredAndDiscarded {
@@ -198,7 +198,7 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         """
 
         when:
-        isolatedProjectsFails("assemble")
+        isolatedProjectsDiagnosticsFails("assemble")
 
         then:
         fixture.assertStateStoredAndDiscarded {
@@ -261,7 +261,7 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         """
 
         when:
-        isolatedProjectsFails("assemble")
+        isolatedProjectsDiagnosticsFails("assemble")
 
         then:
         fixture.assertStateStoredAndDiscarded {
@@ -288,7 +288,7 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         """
 
         when:
-        isolatedProjectsFails(":a:help", ":b:help")
+        isolatedProjectsDiagnosticsFails(":a:help", ":b:help")
 
         then:
         fixture.assertStateStoredAndDiscarded {
@@ -347,7 +347,7 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         """
 
         when:
-        isolatedProjectsFails(":a:help", ":b:help")
+        isolatedProjectsDiagnosticsFails(":a:help", ":b:help")
 
         then:
         fixture.assertStateStoredAndDiscarded {
@@ -375,7 +375,7 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
 
         when:
         // TODO:isolated expected behavior for incremental configuration
-//        isolatedProjectsFails(":a:help", ":b:help")
+//        isolatedProjectsDiagnosticsFails(":a:help", ":b:help")
         isolatedProjectsRun(":a:help", ":b:help")
 
         then:
@@ -510,13 +510,39 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         "graph.filteredTasks"                | [":b:compileJava", "-x:classes"] | false
     }
 
-    def "reports cross-project model access on #kind lookup in the parent project using `#expr`"() {
+    def "child project does not walk the parent's dynamic scope when looking up a missing property via `#expr`"() {
+        // Under Isolated Projects the parent-project dynamic scope is not wired up on the child,
+        // so non-throwing accessors silently return absent and throwing accessors fail locally
+        // with the standard MissingPropertyException. There is no cross-project access violation:
+        // the lookup never crosses a project boundary.
         createDirs("a")
         settingsFile << """
             include("a")
         """
         file("build.gradle") << """
-            $setExpr
+            ext.foo = 1
+        """
+        file("a/build.gradle") << """
+            println("expr: " + $expr)
+        """
+
+        expect:
+        isolatedProjectsRun(":a:help")
+        outputContains("expr: $expected")
+
+        where:
+        expr                  | expected
+        "findProperty('foo')" | "null"
+        "hasProperty('foo')"  | "false"
+    }
+
+    def "child project fails locally when a property is defined only on the parent and the accessor throws on missing — using `#expr`"() {
+        createDirs("a")
+        settingsFile << """
+            include("a")
+        """
+        file("build.gradle") << """
+            ext.foo = 1
         """
         file("a/build.gradle") << """
             println($expr)
@@ -526,19 +552,29 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         isolatedProjectsFails(":a:help")
 
         then:
-        fixture.assertStateStoredAndDiscarded {
-            projectsConfigured(":", ":a")
-            problem("Build file 'a/build.gradle': line 2: Project ':a' cannot dynamically look up a $kind in the parent project ':'")
-        }
+        failureCauseContains("Could not get unknown property 'foo' for project ':a'")
 
         where:
-        kind       | setExpr         | expr
-        "property" | "ext.foo = 1"   | "foo"
-        "property" | "ext.foo = 1"   | "hasProperty('foo')"
-        "property" | "ext.foo = 1"   | "property('foo')"
-        "property" | "ext.foo = 1"   | "findProperty('foo')"
-        "property" | "ext.foo = 1"   | "getProperty('foo')"
-        "method"   | "def foo() { }" | "foo()"
+        expr << ["foo", "property('foo')", "getProperty('foo')"]
+    }
+
+    def "child project fails locally when a method is defined only on the parent"() {
+        createDirs("a")
+        settingsFile << """
+            include("a")
+        """
+        file("build.gradle") << """
+            def foo() { }
+        """
+        file("a/build.gradle") << """
+            println(foo())
+        """
+
+        when:
+        isolatedProjectsFails(":a:help")
+
+        then:
+        failureCauseContains("Could not find method foo() for arguments [] on project ':a'")
     }
 
     def "reports problem when build script uses #expr on its own project"() {
@@ -567,36 +603,16 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         "project.properties" | "The Project.getProperties method has been deprecated. "
     }
 
-    def 'no duplicate problems reported for dynamic property lookup in transitive parents'() {
-        createDirs("sub", "sub/sub-a", "sub/sub-b")
-        settingsFile << """
-            include(":sub")
-            include(":sub:sub-a")
-            include(":sub:sub-b")
-        """
-        buildFile << """
-            ext.foo = "fooValue"
-        """
-        file("sub/sub-a/build.gradle") << """
-            println(foo)
-        """
-        file("sub/sub-b/build.gradle") << """
-            println(foo)
-        """
-
-        when:
-        isolatedProjectsFails(":sub:sub-a:help", ":sub:sub-b:help")
-
-        then:
-        fixture.assertStateStoredAndDiscarded {
-            projectsConfigured(":", ":sub", ":sub:sub-a", ":sub:sub-b")
-            problem("Build file 'sub/sub-a/build.gradle': line 2: Project ':sub:sub-a' cannot dynamically look up a property in the parent project ':sub'")
-            problem("Build file 'sub/sub-b/build.gradle': line 2: Project ':sub:sub-b' cannot dynamically look up a property in the parent project ':sub'")
-        }
-    }
-
     @Issue("https://github.com/gradle/gradle/issues/22949")
-    def "invocations of GroovyObject methods on DefaultProject track the dynamic call context"() {
+    def "GroovyObject methods on DefaultProject route through DefaultProject's overrides under Isolated Projects"() {
+        // Historically this scenario produced a cross-project access violation because each of
+        // the four GroovyObject MOP entry points (getProperty, invokeMethod, setProperty,
+        // hasProperty) was correctly routed to DefaultProject's wrapped overrides, which then
+        // walked the parent's dynamic scope. Under the new behavior the parent walk is gone,
+        // so the same routing now surfaces a local MissingPropertyException / MissingMethodException
+        // (or returns false from hasProperty) instead. A regression that re-wires any of those
+        // four entry points to bypass the DefaultProject overrides would let the parent value
+        // resurface here.
         createDirs("a")
         settingsFile << """
             include("a")
@@ -609,58 +625,36 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
             ext.baz = 0
 
             def o = project as GroovyObject
-            o.getProperty('foo')
-            o.invokeMethod('bar', new Object[] {})
-            o.setProperty('baz', 1)
 
-            assert project.hasProperty('baz')
-        """
-
-        when:
-        isolatedProjectsFails(":a:help")
-
-        then:
-        fixture.assertStateStoredAndDiscarded {
-            projectsConfigured(":", ":a")
-            problem("Build file 'a/build.gradle': line 5: Project ':a' cannot dynamically look up a property in the parent project ':'")
-            problem("Build file 'a/build.gradle': line 6: Project ':a' cannot dynamically look up a method in the parent project ':'")
-        }
-    }
-
-    def "reports problem when cross-project access happens in a script-owned configure-action"() {
-        given:
-        createDirs("a", "aa")
-        settingsFile """
-            include(":a")
-            include(":a:aa")
-        """
-        buildFile """
-            project.extensions.extraProperties["projectProperty"] = "hello"
-        """
-
-        buildFile "a/aa/myscript.gradle", """
-            // Using `withPlugin` as an example of a configure action
-            project.pluginManager.withPlugin('base', {
-                println("My property: " + projectProperty)
-            })
-        """
-        buildFile "a/aa/build.gradle", """
-            plugins {
-                id "base"
+            // getProperty: parent-only property -> local MissingPropertyException (no parent walk).
+            try {
+                o.getProperty('foo')
+                throw new AssertionError("expected MissingPropertyException for 'foo'")
+            } catch (groovy.lang.MissingPropertyException ignored) {
             }
-            apply from: 'myscript.gradle'
+
+            // invokeMethod: parent-only method -> local MissingMethodException (no parent walk).
+            try {
+                o.invokeMethod('bar', new Object[] {})
+                throw new AssertionError("expected MissingMethodException for 'bar'")
+            } catch (groovy.lang.MissingMethodException ignored) {
+            }
+
+            // setProperty: writing a locally declared extra property must update the local scope.
+            o.setProperty('baz', 1)
+            assert project.ext.baz == 1
+
+            // hasProperty: true for the local extra, false for a parent-only property.
+            assert o.hasProperty('baz')
+            assert !o.hasProperty('foo')
         """
 
         when:
-        isolatedProjectsFails("help")
+        isolatedProjectsRun(":a:help")
 
         then:
-        outputContains("My property: hello")
-
-        // an additional subproject demonstrates that the problems are not duplicated as the property lookup traverses up the project hierarchy
-        fixture.assertStateStoredAndDiscarded {
-            projectsConfigured(":", ":a", ":a:aa")
-            problem("Script 'a/aa/myscript.gradle': line 4: Project ':a:aa' cannot dynamically look up a property in the parent project ':a'")
+        fixture.assertStateStored {
+            projectsConfigured(":", ":a")
         }
     }
 
@@ -722,7 +716,7 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
 
         when:
         // TODO:isolated should succeed without problems
-        isolatedProjectsFails("something")
+        isolatedProjectsDiagnosticsFails("something")
 
         then:
         outputContains("project name = root")

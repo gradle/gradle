@@ -145,10 +145,8 @@ class ProblemReportingCrossProjectModelAccess(
     }
 
     override fun parentProjectDynamicInheritedScope(referrer: ProjectState): HierarchicalDynamicObject? {
-        val parent = referrer.parent ?: return null
-        return CrossProjectModelAccessTrackingParentDynamicObject(
-            parent, referrer.identity, ipProblems, coupledProjectsListener
-        )
+        // Isolated Projects: parent-walk is disabled to match Gradle 10 behavior.
+        return null
     }
 
     private

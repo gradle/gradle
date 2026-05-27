@@ -36,8 +36,6 @@ class AndroidGradlePluginVersions {
     // https://cs.android.com/android-studio/platform/tools/base/+/mirror-goog-studio-main:build-system/gradle-core/src/main/java/com/android/build/gradle/options/ReplacedOption.kt;l=54-59
     public static final String OVERRIDE_VERSION_CHECK = '-Dcom.android.build.gradle.overrideVersionCheck=true'
 
-    public static final VersionNumber AGP_9_0 = VersionNumber.parse('9.0.0')
-
     private static Factory<Properties> propertiesFactory
     private static Properties properties
     private static Map<String, String> aapt2Versions = null

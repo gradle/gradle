@@ -16,6 +16,7 @@
 package org.gradle.plugins.ide.eclipse;
 
 import org.gradle.api.tasks.Internal;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.xml.XmlTransformer;
 import org.gradle.plugins.ide.api.XmlFileContentMerger;
 import org.gradle.plugins.ide.api.XmlGeneratorTask;
@@ -30,20 +31,34 @@ import javax.inject.Inject;
  * If you want to fine tune the eclipse configuration
  * <p>
  * At this moment nearly all configuration is done via {@link EclipseWtpComponent}.
+ *
+ * @deprecated Will be removed in Gradle 10.
  */
+@Deprecated
 @DisableCachingByDefault(because = "Not made cacheable, yet")
 public abstract class GenerateEclipseWtpComponent extends XmlGeneratorTask<WtpComponent> {
 
     private EclipseWtpComponent component;
 
     public GenerateEclipseWtpComponent() {
-        getXmlTransformer().setIndentation("\t");
-        component = getInstantiator().newInstance(EclipseWtpComponent.class, getProject(), new XmlFileContentMerger(getXmlTransformer()));
+        DeprecationLogger.whileDisabled(() -> {
+            getXmlTransformer().setIndentation("\t");
+            component = getInstantiator().newInstance(EclipseWtpComponent.class, getProject(), new XmlFileContentMerger(getXmlTransformer()));
+        });
     }
 
     @Inject
     public GenerateEclipseWtpComponent(EclipseWtpComponent component) {
         this.component = component;
+    }
+
+    @Override
+    protected void generate() {
+        DeprecationLogger.deprecateTask(getName())
+            .willBeRemovedInGradle10()
+            .withUpgradeGuideSection(9, "ide_task_deprecation")
+            .nagUser();
+        super.generate();
     }
 
     @Override

@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.project;
 
+import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Iterables;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier;
@@ -153,6 +154,20 @@ class DefaultProjectState implements ProjectState, Closeable {
             throw new IllegalStateException("Project '" + identity.getBuildTreePath() + "' is not found in the registry");
         }
         return state;
+    }
+
+    @Override
+    public Set<ProjectState> getAllProjects() {
+        ImmutableSortedSet.Builder<ProjectState> result = ImmutableSortedSet.orderedBy(ProjectOrderingUtil::compare);
+        collectAllProjects(this, result);
+        return result.build();
+    }
+
+    private static void collectAllProjects(ProjectState project, ImmutableSortedSet.Builder<ProjectState> result) {
+        result.add(project);
+        for (ProjectState child : project.getUnorderedChildProjects()) {
+            collectAllProjects(child, result);
+        }
     }
 
     @Override

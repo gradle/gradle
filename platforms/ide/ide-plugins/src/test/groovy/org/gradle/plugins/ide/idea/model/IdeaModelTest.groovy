@@ -28,6 +28,7 @@ import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.xml.XmlTransformer
 import org.gradle.plugins.ide.api.XmlFileContentMerger
 import org.gradle.plugins.ide.internal.IdeArtifactRegistry
+import org.gradle.test.fixtures.ExpectDeprecation
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
@@ -35,6 +36,7 @@ class IdeaModelTest extends Specification {
 
     IdeaModel model = TestUtil.newInstance(IdeaModel)
 
+    @ExpectDeprecation("Using types related to file generation tasks of IDE plugins (org.gradle.plugins.ide.idea.model.IdeaWorkspace). This behavior has been deprecated.")
     def "can configure workspace with Actions"() {
         given:
         def xmlTransformer = Mock(XmlTransformer)
@@ -63,6 +65,7 @@ class IdeaModelTest extends Specification {
         1 * xmlTransformer.addAction(xmlAction)
     }
 
+    @ExpectDeprecation("Using types related to file generation tasks of IDE plugins (org.gradle.plugins.ide.idea.model.IdeaProject.ipr). This behavior has been deprecated.")
     def "can configure project with Actions"() {
         given:
         def xmlTransformer = Mock(XmlTransformer)
@@ -96,6 +99,7 @@ class IdeaModelTest extends Specification {
         1 * xmlTransformer.addAction(xmlAction)
     }
 
+    @ExpectDeprecation("Using types related to file generation tasks of IDE plugins (org.gradle.plugins.ide.idea.model.IdeaModuleIml). This behavior has been deprecated.")
     def "can configure module with Actions"() {
         given:
         def xmlTransformer = Mock(XmlTransformer)

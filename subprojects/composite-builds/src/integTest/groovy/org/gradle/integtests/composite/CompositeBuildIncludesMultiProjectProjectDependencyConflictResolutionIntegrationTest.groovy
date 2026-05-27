@@ -89,4 +89,12 @@ class CompositeBuildIncludesMultiProjectProjectDependencyConflictResolutionInteg
     boolean isAutoDependencySubstitution() {
         true
     }
+
+    @Override
+    String parentMethodLookupDeprecationFor(String methodName) {
+        // The included 'multiProject' build configures its modules via project(':...') {} blocks,
+        // so projectId()/moduleId() walk up from :multiProject:ProjectA to project :multiProject.
+        // Composite-build messages refer to projects by build path, not by "root project '<name>'".
+        formatParentMethodLookupDeprecation(methodName, ':multiProject:ProjectA', "project ':multiProject'")
+    }
 }

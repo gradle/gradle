@@ -76,22 +76,6 @@ Gradle provides a [set of features and abstractions](userguide/java_testing.html
 ### CLI, logging, and problem reporting
 Gradle provides an intuitive [command-line interface](userguide/command_line_interface.html), detailed [logs](userguide/logging.html), and a structured [problems report](userguide/reporting_problems.html#sec:generated_html_report) that helps developers quickly identify and resolve build issues.
 
-#### Non-interactive mode
-
-Gradle now supports a `--non-interactive` command-line option to disable all interactive console prompting.
-This is useful for running Gradle in automated environments such as CI pipelines, scripts, and AI agents where no user input is available.
-
-See the [Non-interactive mode](userguide/command_line_interface.html#sec:non_interactive) section in the Gradle User Manual for more information.
-
-#### NO_COLOR support
-
-Gradle now honors the `NO_COLOR` environment variable following the [no-color.org](https://no-color.org/) convention.
-When `NO_COLOR` is set and non-empty, Gradle suppresses color output while preserving other styling (bold, underline) and rich features (progress bars, animations).
-
-![NO-COLOR Screenshot](release-notes-assets/no-color-screenshot.png)
-
-See the [Environment variables](userguide/build_environment.html#sec:gradle_environment_variables) section in the Gradle User Manual for more information.
-
 ### Build authoring improvements
 Gradle provides [rich APIs](userguide/getting_started_dev.html) for build engineers and plugin authors, enabling the creation of custom, reusable build logic and better maintainability.
 
@@ -134,8 +118,6 @@ Promoted features are features that were incubating in previous versions of Grad
 See the User Manual section on the "[Feature Lifecycle](userguide/feature_lifecycle.html)" for more information.
 
 The following are the features that have been promoted in this Gradle release.
-
-* [`getNetworkTimeout()`](javadoc/org/gradle/api/tasks/wrapper/Wrapper.html#getNetworkTimeout()) in `Wrapper`
 
 <!--
 ### Example promoted

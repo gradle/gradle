@@ -92,6 +92,100 @@ class IsolatedProjectsToolingApiModelQueryIntegrationTest extends AbstractIsolat
         fixture.assertModelLoaded()
     }
 
+    def "diagnostics mode still allows top-level build action caching"() {
+        given:
+        withSomeToolingModelBuilderPluginInBuildSrc()
+        includeProjects("a", "b")
+        buildFile << """
+            plugins.apply(my.MyPlugin)
+        """
+
+        when:
+        withIsolatedProjectsDiagnostics()
+        def model = fetchModel()
+
+        then:
+        model.message == "It works from project :"
+
+        and:
+        fixture.assertModelStored {
+            projectsConfigured(":buildSrc", ":", ":a", ":b")
+            modelsCreated(":")
+        }
+        outputContains("creating model for root project 'root'")
+
+        when: "repeating an identical request"
+        withIsolatedProjectsDiagnostics()
+        def model2 = fetchModel()
+
+        then:
+        model2.message == "It works from project :"
+
+        and: "the full build action result is replayed from the Configuration Cache entry"
+        fixture.assertModelLoaded()
+        outputDoesNotContain("creating model")
+    }
+
+    def "diagnostics mode configures all projects, ignoring configure-on-demand"() {
+        given:
+        withSomeToolingModelBuilderPluginInBuildSrc()
+        includeProjects("a", "b")
+        buildFile << """
+            plugins.apply(my.MyPlugin)
+        """
+
+        when: "configure-on-demand=tooling is set by the base fixture, but diagnostics must override it"
+        withIsolatedProjectsDiagnostics()
+        fetchModel()
+
+        then: "every project is configured even though only :'s model is fetched"
+        fixture.assertModelStored {
+            projectsConfigured(":buildSrc", ":", ":a", ":b")
+            modelsCreated(":")
+        }
+    }
+
+    def "diagnostics mode disables per-project model reuse"() {
+        given:
+        withSomeToolingModelBuilderPluginInBuildSrc()
+        includeProjects("a", "b")
+        buildFile << """
+            plugins.apply(my.MyPlugin)
+        """
+
+        when:
+        withIsolatedProjectsDiagnostics()
+        def model = fetchModel()
+
+        then:
+        model.message == "It works from project :"
+
+        and:
+        fixture.assertModelStored {
+            projectsConfigured(":buildSrc", ":", ":a", ":b")
+            modelsCreated(":")
+        }
+        outputContains("creating model for root project 'root'")
+
+        when: "invalidating CC by modifying the build script"
+        buildFile << """
+            myExtension.message = 'this is the root project'
+        """
+
+        withIsolatedProjectsDiagnostics()
+        def model2 = fetchModel()
+
+        then:
+        model2.message == "this is the root project"
+
+        and: "without diagnostics, :buildSrc model would be reused; with diagnostics it is not"
+        fixture.assertModelStored {
+            projectsConfigured(":buildSrc", ":", ":a", ":b")
+            modelsCreated(":")
+        }
+        outputContains("creating model for root project 'root'")
+    }
+
     @ToBeImplemented("when Isolated Projects becomes incremental for task execution")
     def "can cache models with tasks"() {
         given:

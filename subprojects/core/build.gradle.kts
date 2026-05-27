@@ -293,6 +293,8 @@ tasks.test {
     setForkEvery(200)
 }
 
+integTest.testJvmXmx = "1g"
+
 tasks.compileTestGroovy {
     groovyOptions.isFork = true
     groovyOptions.forkOptions.run {

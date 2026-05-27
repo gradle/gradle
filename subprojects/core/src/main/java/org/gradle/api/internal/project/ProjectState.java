@@ -123,6 +123,11 @@ public interface ProjectState extends ModelContainer<ProjectInternal> {
     Iterable<ProjectState> getUnorderedChildProjects();
 
     /**
+     * Returns this project and all projects beneath it in the hierarchy.
+     */
+    Set<ProjectState> getAllProjects();
+
+    /**
      * Checks whether this project has child projects.
      *
      * @return true when this project has child projects.

@@ -81,7 +81,7 @@ public abstract class GeneratorTask<T> extends ConventionTask {
 
     @SuppressWarnings("UnusedDeclaration")
     @TaskAction
-    void generate() {
+    protected void generate() {
         File inputFile = getInputFileIfExists();
         if (inputFile != null) {
             try {
