@@ -67,7 +67,7 @@ buildscript {
 // import com.google.gson.Gson
 ----
 
-NOTE: This change does not affect plugin projects that depend on `gradleApi()` or `gradleKotlinDsl()`. Those continue to use the full generated Gradle API JAR as before.
+NOTE: This change does not affect plugin projects that have `gradleApi()` or `gradleKotlinDsl()` among their dependencies. Those continue to use the full generated Gradle API JAR as before.
 
 [[changes_9.6.0]]
 == Upgrading from 9.5.0 and earlier
