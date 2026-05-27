@@ -260,9 +260,18 @@ println(foo) // Resolved through hierarchy — now deprecated
 ====
 
 This implicit inheritance is deprecated and will be removed in Gradle 10.
-Both an implicit reference (e.g. a bare `foo` in a Groovy build script, or `val foo by project` in a Kotlin build script) and the explicit API (`project.findProperty("foo")`, `project.property("foo")`, `project.hasProperty("foo")`) emit a deprecation warning when they resolve through the hierarchy.
 
 Implicit hierarchy lookup creates hidden coupling between projects, makes builds harder to reason about (a typo silently resolves to an ancestor's definition instead of failing), and is fundamentally incompatible with <<isolated_projects.adoc#isolated_projects, Isolated Projects>>.
+
+Here is a full list of affected APIs and DSL constructs:
+
+- Dynamic references such as a bare `foo` or `bar()` in Groovy DSL
+- Kotlin DSL property delegates such as `val foo: String by project`
+- Explicit API calls on the `Project` instance or in a build script:
+  * `findProperty("foo")`
+  * `property("foo")`
+  * `hasProperty("foo")`
+  * `getProperties()`
 
 To migrate, choose the approach that best fits your use case:
 
@@ -287,6 +296,9 @@ This prevents new accidental implicit lookups from parent projects.
 // settings.gradle.kts
 enableFeaturePreview("NO_IMPLICIT_LOOKUP_IN_PARENT_PROJECTS")
 ----
+
+This will affect the behavior of APIs and DSL constructs mentioned above.
+It will also affect the output of the `properties` task when invoked for subprojects.
 
 [[deprecated_pmd_target_jdk]]
 ==== Deprecation of `targetJdk` on the PMD plugin

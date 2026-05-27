@@ -262,6 +262,34 @@ class ParentProjectPropertyLookupIntegrationTest extends AbstractIntegrationSpec
         outputContains("method: child-method")
     }
 
+    def "the properties task on a subproject reports parent properties without deprecation"() {
+        given:
+        buildFile << """
+            ext.foo = "hello"
+        """
+        file("a/build.gradle") << ""
+
+        expect:
+        succeeds(":a:properties")
+        outputContains("foo: hello")
+    }
+
+    def "the properties task on a subproject omits parent properties when implicit lookup is disabled"() {
+        given:
+        disableImplicitLookupInParentProjects()
+        buildFile << """
+            ext.foo = "hello"
+        """
+        file("a/build.gradle") << """
+            ext.bar = "child-only"
+        """
+
+        expect:
+        succeeds(":a:properties")
+        outputDoesNotContain("foo: hello")
+        outputContains("bar: child-only")
+    }
+
     private TestFile disableImplicitLookupInParentProjects() {
         settingsFile << """
             enableFeaturePreview("NO_IMPLICIT_LOOKUP_IN_PARENT_PROJECTS")
