@@ -17,6 +17,7 @@
 package org.gradle.api.internal.project
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.TestExecutionPreconditions
 
@@ -182,21 +183,88 @@ class ParentProjectPropertyLookupIntegrationTest extends AbstractIntegrationSpec
         outputContains("foo: child-only")
     }
 
-    def "NO_IMPLICIT_LOOKUP_IN_PROJECT_HIERARCHY feature preview disables parent walking entirely"() {
+    def "Can disable project hierarchy lookup: child #access returns #expected for parent-only property"() {
         given:
-        settingsFile << """
-            enableFeaturePreview("NO_IMPLICIT_LOOKUP_IN_PROJECT_HIERARCHY")
-        """
+        disableProjectHierarchyLookup()
         buildFile << """
             ext.foo = "from-root"
         """
         file("a/build.gradle") << """
-            println("foo: " + findProperty("foo"))
+            println("result: " + $invocation)
         """
 
         expect:
         // No deprecation expected — the feature preview disables the parent walk at the source.
         succeeds("help")
-        outputContains("foo: null")
+        outputContains("result: $expected")
+
+        where:
+        access            | invocation              | expected
+        "findProperty()"  | 'findProperty("foo")'   | "null"
+        "hasProperty()"   | 'hasProperty("foo")'    | "false"
+    }
+
+    private TestFile disableProjectHierarchyLookup() {
+        settingsFile << """
+            enableFeaturePreview("NO_IMPLICIT_LOOKUP_IN_PROJECT_HIERARCHY")
+        """
+    }
+
+    def "Can disable project hierarchy lookup: child #access throws MissingPropertyException for parent-only property"() {
+        given:
+        disableProjectHierarchyLookup()
+        buildFile << """
+            ext.foo = "from-root"
+        """
+        file("a/build.gradle") << """
+            $invocation
+        """
+
+        expect:
+        fails("help")
+        failure.assertHasCause("Could not get unknown property 'foo' for project ':a' of type org.gradle.api.Project.")
+
+        where:
+        access            | invocation
+        "implicit foo"    | 'println("foo: " + foo)'
+        "property()"      | 'property("foo")'
+        "getProperty()"   | 'getProperty("foo")'
+    }
+
+    def "Can disable project hierarchy lookup: child #access throws MissingMethodException for parent-only method"() {
+        given:
+        disableProjectHierarchyLookup()
+        buildFile << """
+            def someMethod() { "from-root" }
+        """
+        file("a/build.gradle") << """
+            $invocation
+        """
+
+        expect:
+        fails("help")
+        failure.assertHasCause("Could not find method someMethod() for arguments [] on project ':a' of type org.gradle.api.Project.")
+
+        where:
+        access                 | invocation
+        "implicit someMethod"  | 'someMethod()'
+        "this.someMethod"      | 'this.someMethod()'
+        "project.someMethod"   | 'project.someMethod()'
+    }
+
+    def "Can disable project hierarchy lookup: child can still access its own properties and methods"() {
+        given:
+        disableProjectHierarchyLookup()
+        file("a/build.gradle") << """
+            ext.local = "child-only"
+            def localMethod() { "child-method" }
+            println("prop: " + local)
+            println("method: " + localMethod())
+        """
+
+        expect:
+        succeeds("help")
+        outputContains("prop: child-only")
+        outputContains("method: child-method")
     }
 }
