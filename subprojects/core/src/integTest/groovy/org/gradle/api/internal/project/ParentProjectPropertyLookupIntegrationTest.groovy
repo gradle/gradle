@@ -183,9 +183,9 @@ class ParentProjectPropertyLookupIntegrationTest extends AbstractIntegrationSpec
         outputContains("foo: child-only")
     }
 
-    def "Can disable project hierarchy lookup: child #access returns #expected for parent-only property"() {
+    def "Can disable implicit lookup in parent projects: child #access returns #expected for parent-only property"() {
         given:
-        disableProjectHierarchyLookup()
+        disableImplicitLookupInParentProjects()
         buildFile << """
             ext.foo = "from-root"
         """
@@ -204,15 +204,15 @@ class ParentProjectPropertyLookupIntegrationTest extends AbstractIntegrationSpec
         "hasProperty()"   | 'hasProperty("foo")'    | "false"
     }
 
-    private TestFile disableProjectHierarchyLookup() {
+    private TestFile disableImplicitLookupInParentProjects() {
         settingsFile << """
             enableFeaturePreview("NO_IMPLICIT_LOOKUP_IN_PARENT_PROJECTS")
         """
     }
 
-    def "Can disable project hierarchy lookup: child #access throws MissingPropertyException for parent-only property"() {
+    def "Can disable implicit lookup in parent projects: child #access throws MissingPropertyException for parent-only property"() {
         given:
-        disableProjectHierarchyLookup()
+        disableImplicitLookupInParentProjects()
         buildFile << """
             ext.foo = "from-root"
         """
@@ -231,9 +231,9 @@ class ParentProjectPropertyLookupIntegrationTest extends AbstractIntegrationSpec
         "getProperty()"   | 'getProperty("foo")'
     }
 
-    def "Can disable project hierarchy lookup: child #access throws MissingMethodException for parent-only method"() {
+    def "Can disable implicit lookup in parent projects: child #access throws MissingMethodException for parent-only method"() {
         given:
-        disableProjectHierarchyLookup()
+        disableImplicitLookupInParentProjects()
         buildFile << """
             def someMethod() { "from-root" }
         """
@@ -252,9 +252,9 @@ class ParentProjectPropertyLookupIntegrationTest extends AbstractIntegrationSpec
         "project.someMethod"   | 'project.someMethod()'
     }
 
-    def "Can disable project hierarchy lookup: child can still access its own properties and methods"() {
+    def "Can disable implicit lookup in parent projects: child can still access its own properties and methods"() {
         given:
-        disableProjectHierarchyLookup()
+        disableImplicitLookupInParentProjects()
         file("a/build.gradle") << """
             ext.local = "child-only"
             def localMethod() { "child-method" }

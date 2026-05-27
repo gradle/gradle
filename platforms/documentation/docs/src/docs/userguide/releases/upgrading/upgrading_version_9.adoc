@@ -220,7 +220,7 @@ Delegated properties are being removed because they create silent correctness bu
 ==== Deprecation of Develocity plugin versions before 4.0
 
 Gradle 10 requires Develocity plugin 4.0 or later.
-Earlier versions rely on Gradle's implicit property lookup in the project hierarchy, which will be removed in Gradle 10 and silently ignored if applied.
+Earlier versions rely on Gradle's implicit property lookup from parent projects, which will be removed in Gradle 10 and silently ignored if applied.
 
 Upgrade to the link:https://plugins.gradle.org/plugin/com.gradle.develocity[latest Develocity plugin] from the Gradle Plugin Portal.
 See the link:https://gradle.com/help/gradle-plugin-compatibility/[Develocity plugin compatibility matrix] for details.
@@ -284,10 +284,10 @@ include::sample[dir="snippets/releases/upgrading/findExtraInHierarchy/groovy",fi
 
 This helper is **not compatible with Isolated Projects** — `parent.ext` (and the chain of `parent` references) is cross-project access, which Isolated Projects forbids. It is a transitional fix for Vintage migrations only. If you are also migrating to Isolated Projects, use one of the first two options (`gradle.properties` or a convention plugin) instead.
 
-===== Opt into Gradle 10 behavior by disabling project hierarchy lookup
+===== Opt into Gradle 10 behavior by disabling implicit lookup in parent projects
 
 Once you have addressed all related deprecations, you can use a feature preview to adopt the Gradle 10 behavior early.
-This prevents new accidental implicit lookups in the project hierarchy.
+This prevents new accidental implicit lookups from parent projects.
 
 [source,kotlin]
 ----
