@@ -242,7 +242,12 @@ class CrossProjectConfigurationReportingGradle(
         delegate.pluginManager
 
     override fun getExtensions(): ExtensionContainer {
-
+        ipProblems.report {
+            problem {
+                text("Project $referrerProject cant access Gradle.getExtensions()")
+            }
+                .build()
+        }
         return delegate.extensions
     }
 
