@@ -317,6 +317,34 @@ More generally, the Configuration Cache promotes a number of latent configuratio
 Build scripts that rely on patterns the Configuration Cache rejects (such as referencing the `Project` object at execution time, capturing live JVM state in a task field, registering build listeners, and others) will fail at store time, even if the offending code path is rarely exercised at runtime.
 The full set of rules build logic must follow under the Configuration Cache is enumerated in <<configuration_cache_requirements.adoc#config_cache:requirements, the requirements>>.
 
+[[config_cache:security]]
+== Security Considerations
+
+The Configuration Cache serializes the configured state of every scheduled task into a cache entry stored under `.gradle/configuration-cache` in the project directory.
+This includes any values reachable from task fields — which may contain credentials, tokens, API keys, or other sensitive data if they are held in task state.
+
+Gradle encrypts Configuration Cache entries on disk using a machine-specific key stored in `<<directory_layout.adoc#dir:gradle_user_home,GRADLE_USER_HOME>>`.
+However, anything with access to both the cache directory and the encryption key can read the entries.
+
+Additionally, system properties and environment variables referenced during the configuration phase are recorded in the cache entry's fingerprint.
+If credentials are passed through these mechanisms, their values become part of the stored fingerprint data.
+
+To reduce the risk of exposing sensitive values through the Configuration Cache:
+
+- **Store credentials in `<<directory_layout.adoc#dir:gradle_user_home,GRADLE_USER_HOME>>/gradle.properties`.**
+The content of this file is *not* serialized into the cache entry — only the file's fingerprint is recorded.
+This is the recommended approach for repository credentials and other secrets.
+- **Use the Gradle credentials API for repository authentication.**
+Declaring credential types via the link:{javadocPath}/org/gradle/api/artifacts/repositories/AuthenticationSupported.html#credentials-java.lang.Class-[repository credentials API] lets Gradle look up values from Gradle properties at build time, keeping them out of your build scripts.
+See <<supported_repository_protocols.adoc#sec:handling-credentials, Handling credentials>> for details.
+- **Mark non-essential fields as `transient`.**
+Java's `transient` keyword excludes a field from Configuration Cache serialization.
+Use this for fields that hold runtime state not needed after deserialization.
+- **Restrict access to the `.gradle/configuration-cache` directory** and the encryption key in `<<directory_layout.adoc#dir:gradle_user_home,GRADLE_USER_HOME>>`, especially in shared or CI environments.
+- **Use the `GRADLE_ENCRYPTION_KEY` environment variable** in environments where the default keystore location is undesirable, such as when `<<directory_layout.adoc#dir:gradle_user_home,GRADLE_USER_HOME>>` is shared across machines.
+
+For a full discussion of encryption key management, see <<configuration_cache_requirements.adoc#config_cache:secrets, Handling of Credentials and Secrets>>.
+
 [[config_cache:ide]]
 == IDE Support
 
