@@ -23,6 +23,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
 
+
 /**
  * Specifies options for launching a child process.
  */
@@ -34,6 +35,14 @@ public interface BaseExecSpec extends ProcessForkOptions {
      */
     @ReplacesEagerProperty(originalType = boolean.class, fluentSetter = true)
     Property<Boolean> getIgnoreExitValue();
+
+    /**
+     * Sets whether a non-zero exit value is ignored, or an exception thrown.
+     *
+     * @param ignoreExitValue whether a non-zero exit value is ignored, or an exception thrown
+     * @return this
+     */
+    BaseExecSpec setIgnoreExitValue(boolean ignoreExitValue);
 
     /**
      * Added for Kotlin DSL source compatibility.
@@ -52,6 +61,15 @@ public interface BaseExecSpec extends ProcessForkOptions {
     Property<InputStream> getStandardInput();
 
     /**
+     * Sets the standard input stream for the process executing the command. The stream is closed after the process
+     * completes.
+     *
+     * @param standardInput The standard input stream for the process. Must not be null.
+     * @return this
+     */
+    BaseExecSpec setStandardInput(InputStream standardInput);
+
+    /**
      * Returns the output stream to consume standard output from the process executing the command. Defaults to {@code
      * System.out}.
      *
@@ -61,6 +79,15 @@ public interface BaseExecSpec extends ProcessForkOptions {
     Property<OutputStream> getStandardOutput();
 
     /**
+     * Sets the output stream to consume standard output from the process executing the command. The stream is closed
+     * after the process completes.
+     *
+     * @param standardOutput The standard output stream for the process. Must not be null.
+     * @return this
+     */
+    BaseExecSpec setStandardOutput(OutputStream standardOutput);
+
+    /**
      * Returns the output stream to consume standard error from the process executing the command. Default to {@code
      * System.err}.
      *
@@ -68,6 +95,15 @@ public interface BaseExecSpec extends ProcessForkOptions {
      */
     @ReplacesEagerProperty(fluentSetter = true)
     Property<OutputStream> getErrorOutput();
+
+    /**
+     * Sets the output stream to consume standard error from the process executing the command. The stream is closed
+     * after the process completes.
+     *
+     * @param errorOutput The standard output error stream for the process. Must not be null.
+     * @return this
+     */
+    BaseExecSpec setErrorOutput(OutputStream errorOutput);
 
     /**
      * Returns the full command line, including the executable plus its arguments.

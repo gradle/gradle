@@ -41,6 +41,15 @@ public abstract class DirectoryBuildCache extends AbstractBuildCache {
     @ReplacesEagerProperty(adapter = DirectoryAdapter.class)
     public abstract DirectoryProperty getDirectory();
 
+    /**
+     * Sets the directory to use to store the build cache.
+     *
+     * The directory is evaluated as per {@code Project.file(Object)}.
+     */
+    public void setDirectory(@Nullable Object directory) {
+        getDirectory().set(getFileResolver().resolve(directory));
+    }
+
     @Inject
     @Deprecated
     @SuppressWarnings("DeprecatedIsStillUsed") // used only for adapter and backward compatibility
@@ -53,10 +62,5 @@ public abstract class DirectoryBuildCache extends AbstractBuildCache {
             return buildCache.getDirectory().getAsFile().getOrNull();
         }
 
-        @SuppressWarnings("DataFlowIssue") // directory can be null and resolver handles null
-        @BytecodeUpgrade
-        static void setDirectory(DirectoryBuildCache buildCache, @Nullable Object directory) {
-            buildCache.getDirectory().set(buildCache.getFileResolver().resolve(directory));
-        }
     }
 }

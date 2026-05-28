@@ -26,8 +26,6 @@ import org.gradle.api.tasks.diagnostics.internal.ProjectDetails;
 import org.gradle.api.tasks.diagnostics.internal.PropertyReportRenderer;
 import org.gradle.api.tasks.options.Option;
 import org.gradle.internal.Pair;
-import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor;
-import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 import org.gradle.internal.scan.UsedByScanPlugin;
 import org.gradle.work.DisableCachingByDefault;
 import org.jspecify.annotations.Nullable;
@@ -45,6 +43,7 @@ import java.util.TreeMap;
 @DisableCachingByDefault(because = "Not worth caching")
 public abstract class PropertyReportTask extends AbstractProjectBasedReportTask<PropertyReportTask.PropertyReportModel> {
 
+    @SuppressWarnings("this-escape")
     public PropertyReportTask() {
         getRenderer().convention(new PropertyReportRenderer()).finalizeValueOnRead();
     }
@@ -62,10 +61,11 @@ public abstract class PropertyReportTask extends AbstractProjectBasedReportTask<
 
     @Internal
     @Override
-    @ReplacesEagerProperty(replacedAccessors = {
-        @ReplacedAccessor(value = ReplacedAccessor.AccessorType.SETTER, name = "setRenderer", originalType = PropertyReportRenderer.class)
-    })
     public abstract Property<PropertyReportRenderer> getRenderer();
+
+    public void setRenderer(PropertyReportRenderer renderer) {
+        getRenderer().set(renderer);
+    }
 
     @Override
     protected PropertyReportModel calculateReportModelFor(Project project) {

@@ -28,6 +28,7 @@ public class DefaultDeleteSpec implements DeleteSpecInternal {
     private Object[] paths;
 
     @Inject
+    @SuppressWarnings("this-escape")
     public DefaultDeleteSpec(PropertyFactory propertyFactory) {
         this.paths = new Object[0];
         this.followSymlinks = propertyFactory.property(Boolean.class).convention(false);
@@ -36,6 +37,11 @@ public class DefaultDeleteSpec implements DeleteSpecInternal {
     @Override
     public Property<Boolean> getFollowSymlinks() {
         return followSymlinks;
+    }
+
+    @Override
+    public void setFollowSymlinks(boolean followSymlinks) {
+        this.followSymlinks.set(followSymlinks);
     }
 
     @Override

@@ -30,6 +30,8 @@ public interface EarModule {
     @ReplacesEagerProperty
     Property<String> getPath();
 
+    void setPath(String path);
+
     /**
      * The alt-dd element specifies an optional URI to the post-assembly version of the deployment descriptor file for a
      * particular Java EE module. The URI must specify the full pathname of the deployment descriptor file relative to
@@ -38,6 +40,8 @@ public interface EarModule {
      */
     @ReplacesEagerProperty
     Property<String> getAltDeployDescriptor();
+
+    void setAltDeployDescriptor(String altDeployDescriptor);
 
     /**
      * Convert this object to an XML Node (or two nodes if altDeployDescriptor is not null).

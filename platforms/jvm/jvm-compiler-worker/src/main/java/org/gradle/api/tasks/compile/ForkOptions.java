@@ -47,6 +47,17 @@ public abstract class ForkOptions extends ProviderAwareCompilerDaemonForkOptions
     public abstract Property<String> getExecutable();
 
     /**
+     * Sets the compiler executable to be used.
+     * <p>
+     * Only takes effect if {@code CompileOptions.fork} is {@code true}. Defaults to {@code null}.
+     * <p>
+     * Setting the executable disables task output caching.
+     */
+    public void setExecutable(@Nullable String executable) {
+        getExecutable().set(executable);
+    }
+
+    /**
      * Returns the Java home which contains the compiler to use.
      * <p>
      * Only takes effect if {@code CompileOptions.fork} is {@code true}. Defaults to {@code null}.
@@ -79,4 +90,13 @@ public abstract class ForkOptions extends ProviderAwareCompilerDaemonForkOptions
     @Internal
     @ReplacesEagerProperty
     public abstract Property<String> getTempDir();
+
+    /**
+     * Sets the directory used for temporary files that may be created to pass
+     * command line arguments to the compiler process. Defaults to {@code null},
+     * in which case the directory will be chosen automatically.
+     */
+    public void setTempDir(@Nullable String tempDir) {
+        getTempDir().set(tempDir);
+    }
 }

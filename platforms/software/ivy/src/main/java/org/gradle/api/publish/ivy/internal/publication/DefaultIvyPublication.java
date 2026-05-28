@@ -102,6 +102,7 @@ public abstract class DefaultIvyPublication implements IvyPublicationInternal {
     private boolean withBuildIdentifier;
 
     @Inject
+    @SuppressWarnings("this-escape")
     public DefaultIvyPublication(
         String name,
         Instantiator instantiator,
@@ -316,13 +317,28 @@ public abstract class DefaultIvyPublication implements IvyPublicationInternal {
     }
 
     @Override
+    public void setOrganisation(String organisation) {
+        descriptor.getCoordinates().getOrganisation().set(organisation);
+    }
+
+    @Override
     public Property<String> getModule() {
         return descriptor.getCoordinates().getModule();
     }
 
     @Override
+    public void setModule(String module) {
+        descriptor.getCoordinates().getModule().set(module);
+    }
+
+    @Override
     public Property<String> getRevision() {
         return descriptor.getCoordinates().getRevision();
+    }
+
+    @Override
+    public void setRevision(String revision) {
+        descriptor.getCoordinates().getRevision().set(revision);
     }
 
     @Override

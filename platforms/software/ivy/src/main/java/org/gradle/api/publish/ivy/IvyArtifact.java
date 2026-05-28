@@ -20,6 +20,7 @@ import org.gradle.api.provider.Property;
 import org.gradle.api.publish.PublicationArtifact;
 import org.gradle.api.tasks.Optional;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
+import org.jspecify.annotations.Nullable;
 
 /**
  * An artifact published as part of a {@link IvyPublication}.
@@ -33,10 +34,22 @@ public interface IvyArtifact extends PublicationArtifact {
     Property<String> getName();
 
     /**
+     * Sets the name used to publish the artifact file.
+     * @param name The name.
+     */
+    void setName(String name);
+
+    /**
      * The type used to publish the artifact file.
      */
     @ReplacesEagerProperty
     Property<String> getType();
+
+    /**
+     * Sets the type used to publish the artifact file.
+     * @param type The type.
+     */
+    void setType(String type);
 
     /**
      * The extension used to publish the artifact file.
@@ -44,6 +57,12 @@ public interface IvyArtifact extends PublicationArtifact {
      */
     @ReplacesEagerProperty
     Property<String> getExtension();
+
+    /**
+     * Sets the extension used to publish the artifact file.
+     * @param extension The extension.
+     */
+    void setExtension(String extension);
 
     /**
      * The classifier used to publish the artifact file.
@@ -54,6 +73,12 @@ public interface IvyArtifact extends PublicationArtifact {
     Property<String> getClassifier();
 
     /**
+     * Sets the classifier used to publish the artifact file.
+     * @param classifier The classifier.
+     */
+    void setClassifier(@Nullable String classifier);
+
+    /**
      * A comma separated list of public configurations in which this artifact is published.
      * The '*' wildcard is used to designate that the artifact is published in all public configurations.
      * An optional value (the default) indicates that this artifact will be published without a conf attribute.
@@ -61,4 +86,11 @@ public interface IvyArtifact extends PublicationArtifact {
     @Optional
     @ReplacesEagerProperty
     Property<String> getConf();
+
+    /**
+     * Sets a comma separated list of public configurations in which this artifact is published.
+     * The '*' wildcard can be used to designate that the artifact is published in all public configurations.
+     * @param conf The value of 'conf' for this artifact.
+     */
+    void setConf(@Nullable String conf);
 }

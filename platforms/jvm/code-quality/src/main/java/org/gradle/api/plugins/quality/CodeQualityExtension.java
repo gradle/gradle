@@ -29,11 +29,13 @@ import javax.inject.Inject;
 import java.io.File;
 import java.util.Collection;
 
+
 /**
  * Base Code Quality Extension.
  */
 public abstract class CodeQualityExtension {
 
+    @SuppressWarnings("this-escape")
     public CodeQualityExtension() {
         getIgnoreFailures().convention(false);
     }
@@ -45,10 +47,24 @@ public abstract class CodeQualityExtension {
     public abstract Property<String> getToolVersion();
 
     /**
+     * The version of the code quality tool to be used.
+     */
+    public void setToolVersion(String toolVersion) {
+        getToolVersion().set(toolVersion);
+    }
+
+    /**
      * The source sets to be analyzed as part of the <code>check</code> and <code>build</code> tasks.
      */
     @ReplacesEagerProperty(originalType = Collection.class)
     public abstract ListProperty<SourceSet> getSourceSets();
+
+    /**
+     * The source sets to be analyzed as part of the <code>check</code> and <code>build</code> tasks.
+     */
+    public void setSourceSets(Collection<SourceSet> sourceSets) {
+        getSourceSets().set(sourceSets);
+    }
 
     /**
      * Whether to allow the build to continue if there are warnings.
@@ -57,6 +73,15 @@ public abstract class CodeQualityExtension {
      */
     @ReplacesEagerProperty(originalType = boolean.class)
     public abstract Property<Boolean> getIgnoreFailures();
+
+    /**
+     * Whether to allow the build to continue if there are warnings.
+     *
+     * Example: ignoreFailures = true
+     */
+    public void setIgnoreFailures(boolean ignoreFailures) {
+        getIgnoreFailures().set(ignoreFailures);
+    }
 
     public Property<Boolean> getIsIgnoreFailures() {
         return getIgnoreFailures();

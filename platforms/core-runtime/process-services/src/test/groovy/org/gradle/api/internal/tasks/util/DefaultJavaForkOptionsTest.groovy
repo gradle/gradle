@@ -17,7 +17,9 @@
 
 package org.gradle.api.internal.tasks.util
 
+import com.google.common.collect.ImmutableSet
 import org.gradle.api.internal.file.TestFiles
+import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.configuration.WarningMode
 import org.gradle.api.model.ObjectFactory
 import org.gradle.internal.deprecation.DeprecationLogger
@@ -82,6 +84,58 @@ class DefaultJavaForkOptionsTest extends Specification {
 
         then:
         options.jvmArgs.get() == ['arg1', 'arg2', 'arg3']
+    }
+
+    def "setJvmArgs(List) replaces previously-added jvmArgs"() {
+        when:
+        options.jvmArgs('original')
+        options.jvmArgs = ['replacement']
+
+        then:
+        options.jvmArgs.get() == ['replacement']
+    }
+
+    def "setJvmArgs(Iterable) replaces previously-added jvmArgs"() {
+        when:
+        options.jvmArgs('original')
+        options.setJvmArgs((Iterable<?>) ['replacement'])
+
+        then:
+        options.jvmArgs.get() == ['replacement']
+    }
+
+    def "setAllJvmArgs cleans jvmArgumentProviders and emits deprecation warning"() {
+        def jvmArgumentProvider = new CommandLineArgumentProvider() {
+            @Override
+            Iterable<String> asArguments() {
+                return ['argFromProvider']
+            }
+        }
+
+        when:
+        options.jvmArgumentProviders.add(jvmArgumentProvider)
+        then:
+        options.allJvmArgs.get() == ['argFromProvider', fileEncodingProperty(), *localeProperties()]
+
+        when:
+        options.allJvmArgs = ['arg1']
+        then:
+        options.allJvmArgs.get() == ['arg1', fileEncodingProperty(), *localeProperties()]
+
+        when:
+        options.jvmArgumentProviders.add(jvmArgumentProvider)
+        then:
+        options.allJvmArgs.get() == ['arg1', 'argFromProvider', fileEncodingProperty(), *localeProperties()]
+
+        when:
+        options.setAllJvmArgs(ImmutableSet.of("arg2"))
+        then:
+        options.allJvmArgs.get() == ['arg2', fileEncodingProperty(), *localeProperties()]
+
+        and:
+        def events = outputEventListener.events.findAll { it.logLevel == LogLevel.WARN }
+        events.size() == 1
+        events[0].message.startsWith('The DefaultJavaForkOptions.setAllJvmArgs method has been deprecated.')
     }
 
     def "can set system properties"() {

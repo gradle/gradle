@@ -32,8 +32,29 @@ public interface ExecSpec extends BaseExecSpec {
      * {@inheritDoc}
      */
     @Override
-    @ReplacesEagerProperty(adapter = ExecSpecAdapters.CommandLineAdapter.class)
     Provider<List<String>> getCommandLine();
+
+    /**
+     * Sets the full command line, including the executable to be executed plus its arguments.
+     *
+     * @param args the command plus the args to be executed
+     * @since 4.0
+     */
+    void setCommandLine(List<String> args);
+
+    /**
+     * Sets the full command line, including the executable to be executed plus its arguments.
+     *
+     * @param args the command plus the args to be executed
+     */
+    void setCommandLine(Object... args);
+
+    /**
+     * Sets the full command line, including the executable to be executed plus its arguments.
+     *
+     * @param args the command plus the args to be executed
+     */
+    void setCommandLine(Iterable<?> args);
 
     /**
      * Sets the full command line, including the executable to be executed plus its arguments.
@@ -72,6 +93,23 @@ public interface ExecSpec extends BaseExecSpec {
      */
     @ReplacesEagerProperty(adapter = ExecSpecAdapters.ArgsAdapter.class)
     ListProperty<String> getArgs();
+
+    /**
+     * Sets the arguments for the command to be executed.
+     *
+     * @param args args for the command
+     * @return this
+     * @since 4.0
+     */
+    ExecSpec setArgs(List<String> args);
+
+    /**
+     * Sets the arguments for the command to be executed.
+     *
+     * @param args args for the command
+     * @return this
+     */
+    ExecSpec setArgs(Iterable<?> args);
 
     /**
      * Argument providers for the application.

@@ -90,8 +90,11 @@ public abstract class InitBuild extends DefaultTask {
     private static final int MINIMUM_VERSION_SUPPORTED_BY_FOOJAY_API = 7;
     private static final int DEFAULT_JAVA_VERSION = 21;
 
+    @SuppressWarnings("this-escape")
     private final Provider<List<String>> availableBuildTypes = getProviderFactory().provider(getProjectLayoutRegistry()::getAllTypes);
+    @SuppressWarnings("this-escape")
     private final Provider<List<String>> availableDSLs = getProviderFactory().provider(BuildInitDsl::listSupported);
+    @SuppressWarnings("this-escape")
     private final Provider<List<String>> availableTestFrameworks = getProviderFactory().provider(BuildInitTestFramework::listSupported);
 
     @Internal
@@ -141,6 +144,13 @@ public abstract class InitBuild extends DefaultTask {
     public abstract Property<String> getType();
 
     /**
+     * Set the type of project to generate.
+     */
+    public void setType(String type) {
+        getType().set(type);
+    }
+
+    /**
      * Should the build be split into multiple subprojects?
      *
      * This property can be set via the command-line options '--split-project'
@@ -163,6 +173,15 @@ public abstract class InitBuild extends DefaultTask {
     @ReplacesEagerProperty
     @Option(option = "dsl", description = "Set the build script DSL to be used in generated scripts.")
     public abstract Property<String> getDsl();
+
+    /**
+     * Set the build script DSL to be used.
+     *
+     * @since 4.5
+     */
+    public void setDsl(String dsl) {
+        getDsl().set(dsl);
+    }
 
     /**
      * Can the generated build use new and unstable features?
@@ -218,6 +237,15 @@ public abstract class InitBuild extends DefaultTask {
     public abstract Property<String> getProjectName();
 
     /**
+     * Set the project name.
+     *
+     * @since 5.0
+     */
+    public void setProjectName(String projectName) {
+        getProjectName().set(projectName);
+    }
+
+    /**
      * The name of the package to use for generated source.
      *
      * @since 5.0
@@ -229,6 +257,15 @@ public abstract class InitBuild extends DefaultTask {
     public abstract Property<String> getPackageName();
 
     /**
+     * Set the package name.
+     *
+     * @since 5.0
+     */
+    public void setPackageName(String packageName) {
+        getPackageName().set(packageName);
+    }
+
+    /**
      * The test framework to be used in the generated project.
      */
     @Input
@@ -236,6 +273,13 @@ public abstract class InitBuild extends DefaultTask {
     @ReplacesEagerProperty
     @Option(option = "test-framework", description = "Set the test framework to be used.")
     public abstract Property<String> getTestFramework();
+
+    /**
+     * Set the test framework to be used.
+     */
+    public void setTestFramework(@Nullable String testFramework) {
+        getTestFramework().set(testFramework);
+    }
 
     /**
      * How to handle insecure (http) URLs used for Maven Repositories.

@@ -19,6 +19,7 @@ import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.model.ReplacedBy;
@@ -87,6 +88,7 @@ public abstract class ScalaDoc extends SourceTask {
         getDestinationDirectory().convention(getObjectFactory().directoryProperty().fileValue(destinationDir));
     }
 
+
     /**
      * Returns the source for this task, after the include and exclude patterns have been applied. Ignores source files which do not exist.
      *
@@ -136,12 +138,20 @@ public abstract class ScalaDoc extends SourceTask {
     @ReplacesEagerProperty
     public abstract ConfigurableFileCollection getClasspath();
 
+    public void setClasspath(FileCollection classpath) {
+        getClasspath().setFrom(classpath);
+    }
+
     /**
      * Returns the classpath to use to load the ScalaDoc tool.
      */
     @Classpath
     @ReplacesEagerProperty
     public abstract ConfigurableFileCollection getScalaClasspath();
+
+    public void setScalaClasspath(FileCollection scalaClasspath) {
+        getScalaClasspath().setFrom(scalaClasspath);
+    }
 
     /**
      * Returns the ScalaDoc generation options.
@@ -165,6 +175,10 @@ public abstract class ScalaDoc extends SourceTask {
     @Input
     @ReplacesEagerProperty
     public abstract Property<String> getTitle();
+
+    public void setTitle(@Nullable String title) {
+        getTitle().set(title);
+    }
 
     /**
      * Returns the amount of memory allocated to this task.

@@ -47,6 +47,13 @@ public interface VersionControlRepository {
     Property<String> getRootDir();
 
     /**
+     * Sets the relative path to the root of the build within the repository. Use an empty string to refer to the root of the repository.
+     *
+     * @param rootDir The root directory of the build, relative to the root of this repository.
+     */
+    void setRootDir(String rootDir);
+
+    /**
      * Defines the plugins to be injected into the build.
      *
      * <p>Currently, plugins must be located in the calling build's `buildSrc` project.</p>

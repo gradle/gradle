@@ -58,6 +58,8 @@ import static org.gradle.api.internal.lambdas.SerializableLambdas.callable;
 import static org.gradle.plugins.ear.EarPlugin.DEFAULT_LIB_DIR_NAME;
 import static org.gradle.plugins.ear.descriptor.internal.DeploymentDescriptorXmlWriter.writeDeploymentDescriptor;
 
+import org.jspecify.annotations.Nullable;
+
 /**
  * Assembles an EAR archive.
  */
@@ -239,6 +241,10 @@ public abstract class Ear extends Jar {
     @Input
     @ReplacesEagerProperty
     public abstract Property<String> getLibDirName();
+
+    public void setLibDirName(@Nullable String libDirName) {
+        getLibDirName().set(libDirName);
+    }
 
     /**
      * Should deploymentDescriptor be generated?

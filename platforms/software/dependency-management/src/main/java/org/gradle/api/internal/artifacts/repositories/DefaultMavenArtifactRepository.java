@@ -104,6 +104,7 @@ public abstract class DefaultMavenArtifactRepository extends AbstractAuthenticat
     private final InstantiatorFactory instantiatorFactory;
 
     @Inject
+    @SuppressWarnings("this-escape")
     public DefaultMavenArtifactRepository(Transformer<String, MavenArtifactRepository> describer,
                                           FileResolver fileResolver,
                                           RepositoryTransportFactory transportFactory,
@@ -152,13 +153,26 @@ public abstract class DefaultMavenArtifactRepository extends AbstractAuthenticat
     }
 
     @Override
+    public void setUrl(URI url) {
+        invalidateDescriptor();
+        urlArtifactRepository.setUrl(url);
+    }
+
+    @Override
     public void setUrl(Object url) {
+        invalidateDescriptor();
         urlArtifactRepository.setUrl(url);
     }
 
     @Override
     public Property<Boolean> getAllowInsecureProtocol() {
         return urlArtifactRepository.getAllowInsecureProtocol();
+    }
+
+    @Override
+    public void setAllowInsecureProtocol(boolean allowInsecureProtocol) {
+        invalidateDescriptor();
+        urlArtifactRepository.getAllowInsecureProtocol().set(allowInsecureProtocol);
     }
 
     @Override
