@@ -1,3 +1,4 @@
+import gradlebuild.refactoring.AnalyzeDependenciesTask
 import gradlebuild.refactoring.SplitProjectTask
 
 plugins {
@@ -24,6 +25,32 @@ tasks.register<SplitProjectTask>("splitProject") {
         it.java.sourceDirectories,
         it.extensions.findByType<GroovySourceDirectorySet>()!!.sourceDirectories
     ) } } )
+
+    val resolvedArtifacts = main.flatMap { sourceSet ->
+        project.configurations.named(sourceSet.compileClasspathConfigurationName)
+    }.flatMap { config ->
+        config.incoming.artifacts.resolvedArtifacts
+    }
+
+    compileClasspathFiles.set(resolvedArtifacts.map { artifacts ->
+        artifacts.map { it.file }
+    })
+    compileClasspathComponentIds.set(resolvedArtifacts.map { artifacts ->
+        artifacts.map { it.id.componentIdentifier }
+    })
+}
+
+tasks.register<AnalyzeDependenciesTask>("analyzeDependencies") {
+    group = "refactoring"
+    description = "Analyzes the transitive project-class dependency closure for the given roots"
+
+    val main = sourceSets.named("main")
+
+    projectClassesDirs.from(main.map { it.output.classesDirs })
+    javaSourceDirectories.from(main.map { it.java.sourceDirectories })
+    groovySourceDirectories.from(main.map { it.extensions.findByType<GroovySourceDirectorySet>()!!.sourceDirectories })
+
+    projectPath.set(project.path)
 
     val resolvedArtifacts = main.flatMap { sourceSet ->
         project.configurations.named(sourceSet.compileClasspathConfigurationName)

@@ -7,4 +7,5 @@ description = "Provides plugins to help refactor Gradle projects"
 dependencies {
     implementation("gradlebuild:basics")
     implementation(libs.asm)
+    implementation(buildLibs.gson)
 }
