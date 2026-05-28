@@ -19,7 +19,10 @@
 
 [[config_cache:requirements]]
 To capture and reload the task graph state using the Configuration Cache, Gradle enforces specific requirements on tasks and build logic.
-Any violation of these requirements is reported as a Configuration Cache "problem," which causes the build to fail.
+
+Many violations of these requirements are detected and reported as Configuration Cache "problems," which cause the build to fail.
+However, not all violations can be detected automatically.
+Some (such as reading an environment variable or system property through a code path that bypasses Gradle's bytecode instrumentation), are not reported, but will produce incorrect results on a cache hit because the value is not tracked as a configuration input.
 
 In most cases, these requirements expose undeclared inputs, making builds more strict, correct, and reliable.
 Using the Configuration Cache is effectively an opt-in to these improvements.

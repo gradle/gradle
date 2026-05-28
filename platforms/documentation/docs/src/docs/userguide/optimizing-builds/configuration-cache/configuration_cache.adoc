@@ -278,6 +278,8 @@ The Configuration Cache eliminates this contention by giving each task an isolat
 This complements Gradle's existing `--parallel` flag, which executes tasks across *different* projects in parallel.
 With the Configuration Cache, parallelism applies *within* a single project as well.
 
+IMPORTANT: Intra-project parallel execution is always enabled when the Configuration Cache is active. The `--no-parallel` flag and `org.gradle.parallel=false` do not disable it. Builds that depend on tasks within the same project running sequentially may need to declare explicit task dependencies or use <<build_services.adoc#build_services, shared build services>> to coordinate access to shared resources.
+
 === Cached Dependency Resolution
 
 Dependency resolution is one of the more expensive parts of a build's configuration phase.
