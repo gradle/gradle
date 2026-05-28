@@ -94,6 +94,10 @@ public class MapCollectors {
             this.providerOfValue = providerOfValue;
         }
 
+        public ProviderInternal<? extends V> getProviderOfValue() {
+            return providerOfValue;
+        }
+
         @Override
         public boolean calculatePresence(ValueConsumer consumer) {
             return providerOfValue.calculatePresence(consumer);
@@ -191,6 +195,10 @@ public class MapCollectors {
 
         public EntriesFromMapProvider(ProviderInternal<? extends Map<? extends K, ? extends V>> providerOfEntries) {
             this.providerOfEntries = providerOfEntries;
+        }
+
+        public ProviderInternal<? extends Map<? extends K, ? extends V>> getProviderOfEntries() {
+            return providerOfEntries;
         }
 
         @Override

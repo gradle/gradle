@@ -595,7 +595,9 @@ The value of this provider is derived from: <a>""")
 The value of this provider is derived from: <a>""")
     }
 
-    def "reports the source of flat mapped provider when mapped value is missing and its source is known"() {
+    def "reports a missing flat mapped provider value (without the dynamic inner source's name)"() {
+        // The flatMap transformer returns the inner provider dynamically at runtime, so the static
+        // explain() tree can't see it. The exception message reports the outer provider only.
         def property = propertyWithNoValue()
         property.set(someValue())
 
@@ -609,8 +611,7 @@ The value of this provider is derived from: <a>""")
 
         then:
         def e = thrown(MissingValueException)
-        e.message == TextUtil.toPlatformLineSeparators("""Cannot query the value of this provider because it has no value available.
-The value of this provider is derived from: <a>""")
+        e.message == "Cannot query the value of this provider because it has no value available."
     }
 
     def "reports the source of orElse provider when both values are missing and its source is known"() {

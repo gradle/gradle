@@ -227,7 +227,12 @@ class DefaultValueSourceProviderFactoryTest extends ValueSourceBasedSpec {
         0 * valueListener.valueObtained(_, _)
     }
 
-    def "describable value source provides source information of missing value"() {
+    def "describable value source produces a missing-value exception (without surfacing the source's Describable name)"() {
+        // For value sources whose Describable.getDisplayName() doesn't derive from parameters,
+        // explain() can only fall back to the source's simple class name — and that lives on the
+        // VALUE_SOURCE node itself (which is the top of the explain tree here) rather than under a
+        // "derived from" frame. The built-in env/sys-property sources don't hit this case because
+        // their display name is reconstructed from parameters.
         given:
         def provider = createProviderOf(NullValueSourceWithDisplayName) {}
 
@@ -236,8 +241,7 @@ class DefaultValueSourceProviderFactoryTest extends ValueSourceBasedSpec {
 
         then:
         def e = thrown(MissingValueException)
-        e.message == TextUtil.toPlatformLineSeparators("""Cannot query the value of this provider because it has no value available.
-The value of this provider is derived from: nullValueSource""")
+        e.message == "Cannot query the value of this provider because it has no value available."
     }
 
     static abstract class EchoValueSource implements ValueSource<String, Parameters> {

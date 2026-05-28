@@ -131,12 +131,21 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         ImmutableList<ProviderDescription> sources;
         try (EvaluationScopeContext scope = openScope()) {
             CollectionSupplier<T, C> supplier = getSupplier(scope);
-            // Some supplier impls (CollectingSupplier via AbstractCollectingSupplier) are themselves
-            // ProviderInternals and can be recursed into; others (NoValueSupplier, EmptySupplier,
-            // FixedSupplier) are plain CollectionSuppliers with no further explain info.
             if (supplier instanceof ProviderInternal) {
+                // CollectingSupplier (via AbstractCollectingSupplier) is itself a ProviderInternal.
                 sources = ImmutableList.of(((ProviderInternal<?>) supplier).explain(lazy));
+            } else if (supplier instanceof AbstractCollectionProperty<?, ?>.NoValueSupplier) {
+                // NoValueSupplier is the frozen result of finalization on a missing value; surface
+                // the captured pathToOrigin as synthetic UNKNOWN sources, one per origin name.
+                AbstractCollectionProperty<?, ?>.NoValueSupplier noValue =
+                    (AbstractCollectionProperty<?, ?>.NoValueSupplier) supplier;
+                ImmutableList.Builder<ProviderDescription> builder = ImmutableList.builder();
+                for (DisplayName origin : noValue.value.getPathToOrigin()) {
+                    builder.add(ProviderDescription.unknown(origin.getDisplayName(), false));
+                }
+                sources = builder.build();
             } else {
+                // EmptySupplier, FixedSupplier — no further explain info.
                 sources = ImmutableList.of();
             }
         }

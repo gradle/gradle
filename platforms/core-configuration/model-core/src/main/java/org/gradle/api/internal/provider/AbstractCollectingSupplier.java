@@ -17,6 +17,7 @@
 package org.gradle.api.internal.provider;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import org.gradle.api.Action;
 import org.gradle.api.Task;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
@@ -172,5 +173,40 @@ abstract class AbstractCollectingSupplier<COLLECTOR extends ValueSupplier, TYPE>
 
     private Stream<ValueProducer> getProducers() {
         return collectors.stream().map(ValueSupplier::getProducer);
+    }
+
+    @Override
+    public ProviderDescription explain(boolean lazy) {
+        // Walk the collector list and include the explain() of any wrapped upstream provider as a
+        // source. Value-only collectors (SingleElement, ElementsFromCollection, ElementsFromArray,
+        // map SingleEntry, EntriesFromMap) contribute no upstream provider info and are skipped.
+        ImmutableList.Builder<ProviderDescription> sources = ImmutableList.builder();
+        for (COLLECTOR collector : collectors) {
+            ProviderInternal<?> upstream = extractUpstreamProvider(collector);
+            if (upstream != null) {
+                sources.add(upstream.explain(lazy));
+            }
+        }
+        return new ProviderDescription(
+            ProviderDescription.Kind.UNKNOWN,
+            false,
+            null,
+            sources.build(),
+            ImmutableMap.of()
+        );
+    }
+
+    @Nullable
+    private static ProviderInternal<?> extractUpstreamProvider(ValueSupplier collector) {
+        if (collector instanceof Collectors.ProvidedCollector) {
+            return ((Collectors.ProvidedCollector<?>) collector).getProvider();
+        }
+        if (collector instanceof MapCollectors.EntryWithValueFromProvider) {
+            return ((MapCollectors.EntryWithValueFromProvider<?, ?>) collector).getProviderOfValue();
+        }
+        if (collector instanceof MapCollectors.EntriesFromMapProvider) {
+            return ((MapCollectors.EntriesFromMapProvider<?, ?>) collector).getProviderOfEntries();
+        }
+        return null;
     }
 }

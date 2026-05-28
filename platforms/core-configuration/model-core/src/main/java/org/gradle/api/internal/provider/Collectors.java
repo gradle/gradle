@@ -30,6 +30,16 @@ import static org.gradle.api.internal.lambdas.SerializableLambdas.transformer;
 public class Collectors {
     public interface ProvidedCollector<T> extends Collector<T> {
         boolean isProvidedBy(Provider<?> provider);
+
+        /**
+         * The underlying provider that supplies this collector's element(s), if there is a single
+         * direct one. Returns {@code null} for collectors that delegate to a non-provided
+         * collector (see {@link TypedCollector}). Surfaced for
+         * {@link ProviderInternal#explain(boolean)} so the explain tree can recurse through the
+         * collector chain.
+         */
+        @Nullable
+        ProviderInternal<?> getProvider();
     }
 
     public static class SingleElement<T> implements Collector<T> {
@@ -114,6 +124,11 @@ public class Collectors {
         @Override
         public boolean isProvidedBy(Provider<?> provider) {
             return Objects.equal(provider, this.provider);
+        }
+
+        @Override
+        public ProviderInternal<?> getProvider() {
+            return provider;
         }
 
         @Override
@@ -265,6 +280,11 @@ public class Collectors {
         }
 
         @Override
+        public ProviderInternal<?> getProvider() {
+            return provider;
+        }
+
+        @Override
         public boolean equals(Object o) {
             if (this == o) {
                 return true;
@@ -370,6 +390,12 @@ public class Collectors {
         @Override
         public boolean isProvidedBy(Provider<?> provider) {
             return delegate instanceof ProvidedCollector && ((ProvidedCollector<T>) delegate).isProvidedBy(provider);
+        }
+
+        @Override
+        @Nullable
+        public ProviderInternal<?> getProvider() {
+            return delegate instanceof ProvidedCollector ? ((ProvidedCollector<T>) delegate).getProvider() : null;
         }
 
         @Override

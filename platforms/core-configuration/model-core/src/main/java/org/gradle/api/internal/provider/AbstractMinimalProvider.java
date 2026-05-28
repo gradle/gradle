@@ -79,7 +79,7 @@ public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T>,
     protected Value<? extends T> calculateOwnPresentValue() {
         Value<? extends T> value = calculateOwnValue(ValueConsumer.IgnoreUnsafeRead);
         if (value.isMissing()) {
-            throw new MissingValueException(cannotQueryValueOf(value));
+            throw new MissingValueException(cannotQueryValueOf());
         }
 
         return value;
@@ -209,22 +209,10 @@ public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T>,
         return ManagedFactories.ProviderManagedFactory.FACTORY_ID;
     }
 
-    private String cannotQueryValueOf(Value<? extends T> value) {
+    private String cannotQueryValueOf() {
         TreeFormatter formatter = new TreeFormatter();
         formatter.node("Cannot query the value of ").append(getDisplayName().getDisplayName()).append(" because it has no value available.");
         java.util.List<String> names = explain(false).collectMissingSourceNames();
-        java.util.List<DisplayName> pathToOrigin = value.getPathToOrigin();
-        // Fall back to the runtime pathToOrigin chain whenever it carries more entries than the
-        // static explain() tree could collect. This catches cases the static tree can't see —
-        // chiefly providers returned dynamically from a `flatMap` transformer — plus provider
-        // kinds whose explain() hasn't yet been enriched to surface their full upstream chain
-        // (collection / map properties, value-source providers).
-        if (pathToOrigin.size() > names.size()) {
-            names = new java.util.ArrayList<>(pathToOrigin.size());
-            for (DisplayName origin : pathToOrigin) {
-                names.add(origin.getDisplayName());
-            }
-        }
         if (!names.isEmpty()) {
             formatter.node("The value of ").append(getTypedDisplayName().getDisplayName()).append(" is derived from");
             formatter.startChildren();

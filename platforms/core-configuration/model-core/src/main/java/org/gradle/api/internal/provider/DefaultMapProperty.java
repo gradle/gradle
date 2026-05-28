@@ -128,8 +128,20 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         try (EvaluationScopeContext scope = openScope()) {
             MapSupplier<K, V> supplier = getSupplier(scope);
             if (supplier instanceof ProviderInternal) {
+                // CollectingSupplier (via AbstractCollectingSupplier) is itself a ProviderInternal.
                 sources = ImmutableList.of(((ProviderInternal<?>) supplier).explain(lazy));
+            } else if (supplier instanceof DefaultMapProperty<?, ?>.NoValueSupplier) {
+                // NoValueSupplier is the frozen result of finalization on a missing value; surface
+                // the captured pathToOrigin as synthetic UNKNOWN sources, one per origin name.
+                DefaultMapProperty<?, ?>.NoValueSupplier noValue =
+                    (DefaultMapProperty<?, ?>.NoValueSupplier) supplier;
+                ImmutableList.Builder<ProviderDescription> builder = ImmutableList.builder();
+                for (DisplayName origin : noValue.value.getPathToOrigin()) {
+                    builder.add(ProviderDescription.unknown(origin.getDisplayName(), false));
+                }
+                sources = builder.build();
             } else {
+                // EmptySupplier, FixedSupplier — no further explain info.
                 sources = ImmutableList.of();
             }
         }

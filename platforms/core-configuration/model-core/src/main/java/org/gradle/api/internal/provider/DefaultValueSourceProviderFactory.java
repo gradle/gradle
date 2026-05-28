@@ -25,6 +25,8 @@ import org.gradle.api.NonExtensible;
 import org.gradle.api.internal.properties.GradleProperties;
 import org.gradle.api.internal.provider.ValueSupplier.ExecutionTimeValue;
 import org.gradle.api.internal.provider.ValueSupplier.Value;
+import org.gradle.api.internal.provider.sources.AbstractPropertyValueSource;
+import org.gradle.api.internal.provider.sources.EnvironmentVariableValueSource;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ValueSource;
@@ -258,14 +260,18 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
 
         @Override
         public ProviderDescription explain(boolean lazy) {
-            // Prefer the source's own display name when it implements Describable and the source
-            // instance is currently available — this matches what the existing pushWhenMissing
-            // path surfaces. Falls back to the simple class name otherwise, without forcing
-            // source instantiation (which would violate the no-resolution-penalty contract).
+            // Prefer the source's own display name when the source instance is still available
+            // (it usually isn't by the time we get here — see the comment on sourceRef). Otherwise,
+            // reconstruct a display name from the parameters object (which is always available)
+            // for the built-in value sources. Falls back to the simple class name for sources we
+            // don't recognize. No source instantiation, no extra memory footprint.
             String displayName = null;
             ValueSource<T, P> source = value.sourceRef.get();
             if (source instanceof Describable) {
                 displayName = ((Describable) source).getDisplayName();
+            }
+            if (displayName == null) {
+                displayName = displayNameFromParameters(value.parameters);
             }
             if (displayName == null) {
                 displayName = value.sourceType.getSimpleName();
@@ -278,6 +284,21 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
                 ImmutableMap.of("valueSourceType", value.sourceType)
             );
         }
+    }
+
+    @Nullable
+    private static String displayNameFromParameters(@Nullable ValueSourceParameters parameters) {
+        if (parameters instanceof EnvironmentVariableValueSource.Parameters) {
+            String name = ((EnvironmentVariableValueSource.Parameters) parameters).getVariableName().getOrNull();
+            return name == null ? null : String.format("environment variable '%s'", name);
+        }
+        if (parameters instanceof AbstractPropertyValueSource.Parameters) {
+            // Covers SystemPropertyValueSource and GradlePropertyValueSource (both extend
+            // AbstractPropertyValueSource with a getPropertyName parameter).
+            String name = ((AbstractPropertyValueSource.Parameters) parameters).getPropertyName().getOrNull();
+            return name == null ? null : String.format("system property '%s'", name);
+        }
+        return null;
     }
 
     private class LazilyObtainedValue<T, P extends ValueSourceParameters> {

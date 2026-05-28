@@ -326,6 +326,25 @@ public class Providers {
         }
 
         @Override
+        public ProviderDescription explain(boolean lazy) {
+            // A NoValueProvider is the frozen result of a missing computation (e.g. produced by
+            // withFinalValue after finalization). The underlying chain of named providers that
+            // contributed to the missing value is preserved in the stored value's pathToOrigin —
+            // surface it as a flat list of synthetic UNKNOWN sources, each carrying one name.
+            ImmutableList.Builder<ProviderDescription> sources = ImmutableList.builder();
+            for (DisplayName origin : value.getPathToOrigin()) {
+                sources.add(ProviderDescription.unknown(origin.getDisplayName(), false));
+            }
+            return new ProviderDescription(
+                ProviderDescription.Kind.UNKNOWN,
+                false,
+                null,
+                sources.build(),
+                ImmutableMap.of()
+            );
+        }
+
+        @Override
         protected String toStringNoReentrance() {
             return "undefined";
         }
