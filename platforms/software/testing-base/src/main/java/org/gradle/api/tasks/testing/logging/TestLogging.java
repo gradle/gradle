@@ -23,6 +23,8 @@ import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor;
 import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor.AccessorType;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 
+import java.util.Set;
+
 /**
  * Options that determine which test events get logged, and at which detail.
  */
@@ -36,6 +38,21 @@ public interface TestLogging {
     @Internal
     @ReplacesEagerProperty(adapter = TestLoggingAdapters.EventsAdapter.class)
     SetProperty<TestLogEvent> getEvents();
+
+    /**
+     * Sets the events to be logged.
+     *
+     * @param events the events to be logged
+     * @since 4.0
+     */
+    void setEvents(Set<TestLogEvent> events);
+
+    /**
+     * Sets the events to be logged.
+     *
+     * @param events the events to be logged
+     */
+    void setEvents(Iterable<?> events);
 
     /**
      * Sets the events to be logged. Events can be passed as enum values (e.g. {@link TestLogEvent#FAILED}) or Strings (e.g. "failed").
@@ -59,6 +76,13 @@ public interface TestLogging {
     Property<Integer> getMinGranularity();
 
     /**
+     * Sets the minimum granularity of the events to be logged.
+     *
+     * @param granularity the minimum granularity of the events to be logged
+     */
+    void setMinGranularity(int granularity);
+
+    /**
      * Returns the maximum granularity of the events to be logged. Typically, 0 corresponds to the Gradle-generated test suite for the whole test run, 1 corresponds to the Gradle-generated test suite
      * for a particular test JVM, 2 corresponds to a test class, and 3 corresponds to a test method. These values may extend higher if user-defined suites or parameterized test methods are executed.  Events
      * from levels higher than the specified granularity will be ignored.
@@ -73,6 +97,13 @@ public interface TestLogging {
     Property<Integer> getMaxGranularity();
 
     /**
+     * Sets the maximum granularity of the events to be logged.
+     *
+     * @param granularity the maximum granularity of the events to be logged
+     */
+    void setMaxGranularity(int granularity);
+
+    /**
      * Returns the display granularity of the events to be logged. For example, if set to 0, a method-level event will be displayed as "Test Run &gt; Test Worker x &gt; org.SomeClass &gt; org.someMethod". If
      * set to 2, the same event will be displayed as "org.someClass &gt; org.someMethod". <p>-1 denotes the highest granularity and corresponds to an atomic test.
      *
@@ -83,16 +114,29 @@ public interface TestLogging {
     Property<Integer> getDisplayGranularity();
 
     /**
+     * Sets the display granularity of the events to be logged.
+     *
+     * @param granularity the display granularity of the events to be logged
+     */
+    void setDisplayGranularity(int granularity);
+
+    /**
      * Tells whether exceptions that occur during test execution will be logged. Typically these exceptions coincide with a "failed" event.  Defaults to true.
      *
      * @return whether exceptions that occur during test execution will be logged
      */
     @Internal
     @ReplacesEagerProperty(replacedAccessors = {
-        @ReplacedAccessor(value = AccessorType.GETTER, name = "getShowExceptions", originalType = boolean.class),
-        @ReplacedAccessor(value = AccessorType.SETTER, name = "setShowExceptions", originalType = boolean.class)
+        @ReplacedAccessor(value = AccessorType.GETTER, name = "getShowExceptions", originalType = boolean.class)
     })
     Property<Boolean> getShowExceptions();
+
+    /**
+     * Sets whether exceptions that occur during test execution will be logged.  Defaults to true.
+     *
+     * @param flag whether exceptions that occur during test execution will be logged
+     */
+    void setShowExceptions(boolean flag);
 
     /**
      * Tells whether causes of exceptions that occur during test execution will be logged. Only relevant if {@code showExceptions} is {@code true}.  Defaults to true.
@@ -101,10 +145,16 @@ public interface TestLogging {
      */
     @Internal
     @ReplacesEagerProperty(replacedAccessors = {
-        @ReplacedAccessor(value = AccessorType.GETTER, name = "getShowCauses", originalType = boolean.class),
-        @ReplacedAccessor(value = AccessorType.SETTER, name = "setShowCauses", originalType = boolean.class)
+        @ReplacedAccessor(value = AccessorType.GETTER, name = "getShowCauses", originalType = boolean.class)
     })
     Property<Boolean> getShowCauses();
+
+    /**
+     * Sets whether causes of exceptions that occur during test execution will be logged. Only relevant if {@code showExceptions} is {@code true}. Defaults to true.
+     *
+     * @param flag whether causes of exceptions that occur during test execution will be logged
+     */
+    void setShowCauses(boolean flag);
 
     /**
      * Tells whether stack traces of exceptions that occur during test execution will be logged.  Defaults to true.
@@ -113,10 +163,16 @@ public interface TestLogging {
      */
     @Internal
     @ReplacesEagerProperty(replacedAccessors = {
-        @ReplacedAccessor(value = AccessorType.GETTER, name = "getShowStackTraces", originalType = boolean.class),
-        @ReplacedAccessor(value = AccessorType.SETTER, name = "setShowStackTraces", originalType = boolean.class)
+        @ReplacedAccessor(value = AccessorType.GETTER, name = "getShowStackTraces", originalType = boolean.class)
     })
     Property<Boolean> getShowStackTraces();
+
+    /**
+     * Sets whether stack traces of exceptions that occur during test execution will be logged.  Defaults to true.
+     *
+     * @param flag whether stack traces of exceptions that occur during test execution will be logged
+     */
+    void setShowStackTraces(boolean flag);
 
     /**
      * Returns the format to be used for logging test exceptions. Only relevant if {@code showStackTraces} is {@code true}.  Defaults to {@link TestExceptionFormat#FULL} for
@@ -129,6 +185,23 @@ public interface TestLogging {
     Property<TestExceptionFormat> getExceptionFormat();
 
     /**
+     * Sets the format to be used for logging test exceptions. Only relevant if {@code showStackTraces} is {@code true}.  Defaults to {@link TestExceptionFormat#FULL} for
+     * the INFO and DEBUG log levels and {@link TestExceptionFormat#SHORT} for the LIFECYCLE log level.
+     *
+     * @param exceptionFormat the format to be used for logging test exceptions
+     * @since 4.0
+     */
+    void setExceptionFormat(TestExceptionFormat exceptionFormat);
+
+    /**
+     * Sets the format to be used for logging test exceptions. Only relevant if {@code showStackTraces} is {@code true}.  Defaults to {@link TestExceptionFormat#FULL} for
+     * the INFO and DEBUG log levels and {@link TestExceptionFormat#SHORT} for the LIFECYCLE log level.
+     *
+     * @param exceptionFormat the format to be used for logging test exceptions
+     */
+    void setExceptionFormat(Object exceptionFormat);
+
+    /**
      * Returns the set of filters to be used for sanitizing test stack traces.
      *
      * @return the set of filters to be used for sanitizing test stack traces
@@ -136,6 +209,21 @@ public interface TestLogging {
     @Internal
     @ReplacesEagerProperty(adapter = TestLoggingAdapters.StackTraceFiltersAdapter.class)
     SetProperty<TestStackTraceFilter> getStackTraceFilters();
+
+    /**
+     * Sets the set of filters to be used for sanitizing test stack traces.
+     *
+     * @param stackTraces the set of filters to be used for sanitizing test stack traces
+     * @since 4.0
+     */
+    void setStackTraceFilters(Set<TestStackTraceFilter> stackTraces);
+
+    /**
+     * Sets the set of filters to be used for sanitizing test stack traces.
+     *
+     * @param stackTraces the set of filters to be used for sanitizing test stack traces
+     */
+    void setStackTraceFilters(Iterable<?> stackTraces);
 
     /**
      * Convenience method for {@link #getStackTraceFilters()}. Accepts both enum values and Strings.
@@ -148,8 +236,12 @@ public interface TestLogging {
      */
     @Internal
     @ReplacesEagerProperty(replacedAccessors = {
-        @ReplacedAccessor(value = AccessorType.GETTER, name = "getShowStandardStreams", originalType = boolean.class),
-        @ReplacedAccessor(value = AccessorType.SETTER, name = "setShowStandardStreams", originalType = boolean.class, fluentSetter = true)
+        @ReplacedAccessor(value = AccessorType.GETTER, name = "getShowStandardStreams", originalType = boolean.class)
     })
     Property<Boolean> getShowStandardStreams();
+
+    /**
+     * Sets whether output on standard out and standard error will be logged. Equivalent to setting log events {@code TestLogEvent.STANDARD_OUT} and {@code TestLogEvent.STANDARD_ERROR}.
+     */
+    TestLogging setShowStandardStreams(boolean flag);
 }

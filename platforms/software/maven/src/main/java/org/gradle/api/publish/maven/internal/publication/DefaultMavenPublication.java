@@ -302,13 +302,28 @@ public abstract class DefaultMavenPublication implements MavenPublicationInterna
     }
 
     @Override
+    public void setGroupId(String groupId) {
+        pom.getCoordinates().getGroupId().set(groupId);
+    }
+
+    @Override
     public Property<String> getArtifactId() {
         return pom.getCoordinates().getArtifactId();
     }
 
     @Override
+    public void setArtifactId(String artifactId) {
+        pom.getCoordinates().getArtifactId().set(artifactId);
+    }
+
+    @Override
     public Property<String> getVersion() {
         return pom.getCoordinates().getVersion();
+    }
+
+    @Override
+    public void setVersion(String version) {
+        pom.getCoordinates().getVersion().set(version);
     }
 
     @Override

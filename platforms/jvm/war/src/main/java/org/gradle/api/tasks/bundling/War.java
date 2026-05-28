@@ -125,6 +125,25 @@ public abstract class War extends Jar {
     public abstract ConfigurableFileCollection getClasspath();
 
     /**
+     * Sets the classpath to include in the WAR archive.
+     *
+     * @param classpath The classpath. Must not be null.
+     * @since 4.0
+     */
+    public void setClasspath(FileCollection classpath) {
+        setClasspath((Object) classpath);
+    }
+
+    /**
+     * Sets the classpath to include in the WAR archive.
+     *
+     * @param classpath The classpath. Must not be null.
+     */
+    public void setClasspath(Object classpath) {
+        getClasspath().setFrom(classpath);
+    }
+
+    /**
      * Adds files to the classpath to include in the WAR archive.
      *
      * @param classpath The files to add. These are evaluated as per {@link org.gradle.api.Project#files(Object...)}
@@ -145,6 +164,15 @@ public abstract class War extends Jar {
     public abstract RegularFileProperty getWebXml();
 
     /**
+     * Sets the {@code web.xml} file to include in the WAR archive. When {@code null}, no {@code web.xml} file is included in the WAR.
+     *
+     * @param webXml The {@code web.xml} file. Maybe null.
+     */
+    public void setWebXml(@Nullable File webXml) {
+        getWebXml().set(webXml);
+    }
+
+    /**
      * Returns the app directory of the task. Added to the output web archive by default.
      * <p>
      * The {@code war} plugin sets the default value for all {@code War} tasks to {@code src/main/webapp} and adds it as a task input.
@@ -161,16 +189,6 @@ public abstract class War extends Jar {
         @BytecodeUpgrade
         static FileCollection getClasspath(War task) {
             return task.getClasspath();
-        }
-
-        @BytecodeUpgrade
-        static void setClasspath(War task, Object classpath) {
-            task.getClasspath().setFrom(classpath);
-        }
-
-        @BytecodeUpgrade
-        static void setClasspath(War task, FileCollection classpath) {
-            setClasspath(task, (Object) classpath);
         }
     }
 }

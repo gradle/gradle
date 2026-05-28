@@ -17,6 +17,7 @@ package org.gradle.process;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.jvm.ModularitySpec;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
@@ -31,6 +32,8 @@ import org.gradle.internal.instrumentation.api.annotations.ReplacedDeprecation;
 import org.gradle.internal.instrumentation.api.annotations.ReplacedDeprecation.RemovedIn;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 import org.jspecify.annotations.Nullable;
+
+import java.util.List;
 
 /**
  * Specifies the options for executing a Java application.
@@ -82,6 +85,25 @@ public interface JavaExecSpec extends JavaForkOptions, BaseExecSpec {
     ListProperty<String> getArgs();
 
     /**
+     * Sets the args for the main class to be executed.
+     *
+     * @param args Args for the main class.
+     *
+     * @return this
+     * @since 4.0
+     */
+    JavaExecSpec setArgs(List<String> args);
+
+    /**
+     * Sets the args for the main class to be executed.
+     *
+     * @param args Args for the main class.
+     *
+     * @return this
+     */
+    JavaExecSpec setArgs(Iterable<?> args);
+
+    /**
      * Adds args for the main class to be executed.
      *
      * @param args Args for the main class.
@@ -125,6 +147,15 @@ public interface JavaExecSpec extends JavaForkOptions, BaseExecSpec {
     @Classpath
     @ReplacesEagerProperty(fluentSetter = true)
     ConfigurableFileCollection getClasspath();
+
+    /**
+     * Sets the classpath for executing the main class.
+     *
+     * @param classpath the classpath
+     *
+     * @return this
+     */
+    JavaExecSpec setClasspath(FileCollection classpath);
 
     /**
      * Returns the module path handling for executing the main class.

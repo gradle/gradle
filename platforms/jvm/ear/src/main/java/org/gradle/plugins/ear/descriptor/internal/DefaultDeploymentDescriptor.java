@@ -43,6 +43,8 @@ import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import static org.gradle.plugins.ear.descriptor.internal.DeploymentDescriptorXmlWriter.writeDeploymentDescriptor;
 
@@ -81,28 +83,73 @@ public abstract class DefaultDeploymentDescriptor implements DeploymentDescripto
     public abstract Property<String> getVersion();
 
     @Override
+    public void setVersion(String version) {
+        getVersion().set(version);
+    }
+
+    @Override
     public abstract Property<String> getApplicationName();
+
+    @Override
+    public void setApplicationName(String applicationName) {
+        getApplicationName().set(applicationName);
+    }
 
     @Override
     public abstract Property<Boolean> getInitializeInOrder();
 
     @Override
+    public void setInitializeInOrder(Boolean initializeInOrder) {
+        getInitializeInOrder().set(initializeInOrder);
+    }
+
+    @Override
     public abstract Property<String> getDescription();
+
+    @Override
+    public void setDescription(String description) {
+        getDescription().set(description);
+    }
 
     @Override
     public abstract Property<String> getDisplayName();
 
     @Override
+    public void setDisplayName(String displayName) {
+        getDisplayName().set(displayName);
+    }
+
+    @Override
     public abstract Property<String> getLibraryDirectory();
+
+    @Override
+    public void setLibraryDirectory(String libraryDirectory) {
+        getLibraryDirectory().set(libraryDirectory);
+    }
 
     @Override
     public abstract SetProperty<EarModule> getModules();
 
     @Override
+    public void setModules(Set<EarModule> modules) {
+        getModules().set(modules);
+    }
+
+    @Override
     public abstract SetProperty<EarSecurityRole> getSecurityRoles();
 
     @Override
+    public void setSecurityRoles(Set<EarSecurityRole> securityRoles) {
+        getSecurityRoles().set(securityRoles);
+    }
+
+    @Override
     public abstract MapProperty<String, String> getModuleTypeMappings();
+
+    @Override
+    public void setModuleTypeMappings(Map<String, String> moduleTypeMappings) {
+        getModuleTypeMappings().set(moduleTypeMappings);
+    }
 
     @Override
     public DefaultDeploymentDescriptor module(EarModule module, String type) {

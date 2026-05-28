@@ -52,6 +52,9 @@ import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
+
+import org.jspecify.annotations.Nullable;
 
 /**
  * The TestNG specific test options.
@@ -213,12 +216,20 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
     @ReplacesEagerProperty
     public abstract DirectoryProperty getOutputDirectory();
 
+    public void setOutputDirectory(File outputDirectory) {
+        getOutputDirectory().set(outputDirectory);
+    }
+
     /**
      * The set of groups to run.
      */
     @Input
     @ReplacesEagerProperty
     public abstract SetProperty<String> getIncludeGroups();
+
+    public void setIncludeGroups(Set<String> includeGroups) {
+        getIncludeGroups().set(includeGroups);
+    }
 
     /**
      * The set of groups to exclude.
@@ -227,12 +238,20 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
     @ReplacesEagerProperty
     public abstract SetProperty<String> getExcludeGroups();
 
+    public void setExcludeGroups(Set<String> excludeGroups) {
+        getExcludeGroups().set(excludeGroups);
+    }
+
     /**
      * Option for what to do for other tests that use a configuration step when that step fails. Can be "skip" or "continue", defaults to "skip".
      */
     @Internal
     @ReplacesEagerProperty
     public abstract Property<String> getConfigFailurePolicy();
+
+    public void setConfigFailurePolicy(String configFailurePolicy) {
+        getConfigFailurePolicy().set(configFailurePolicy);
+    }
 
     /**
      * Fully qualified classes that are TestNG listeners (instances of org.testng.ITestListener or org.testng.IReporter). By default, the listeners set is empty.
@@ -256,6 +275,10 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
     @ReplacesEagerProperty
     public abstract SetProperty<String> getListeners();
 
+    public void setListeners(Set<String> listeners) {
+        getListeners().set(listeners);
+    }
+
     /**
      * The parallel mode to use for running the tests - one of the following modes: methods, tests, classes or instances.
      *
@@ -267,12 +290,20 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
     @ReplacesEagerProperty
     public abstract Property<String> getParallel();
 
+    public void setParallel(@Nullable String parallel) {
+        getParallel().set(parallel);
+    }
+
     /**
      * The number of threads to use for this run. Ignored unless the parallel mode is also specified
      */
     @Internal
     @ReplacesEagerProperty(originalType = int.class)
     public abstract Property<Integer> getThreadCount();
+
+    public void setThreadCount(int threadCount) {
+        getThreadCount().set(threadCount);
+    }
 
     /**
      * The number of XML suites will run parallel
@@ -293,6 +324,18 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
         binaryCompatibility = BinaryCompatibility.ACCESSORS_KEPT
     )
     public abstract Property<String> getThreadPoolFactoryClass();
+
+    /**
+     * Sets a custom threadPoolExecutorFactory class.
+     * This should be a fully qualified class name and the class should implement org.testng.IExecutorFactory
+     * More details in https://github.com/testng-team/testng/pull/2042
+     * Requires TestNG 7.0 or higher
+     * @since 8.7
+     */
+    @Incubating
+    public void setThreadPoolFactoryClass(String threadPoolFactoryClass) {
+        getThreadPoolFactoryClass().set(threadPoolFactoryClass);
+    }
 
     /**
      * Whether the default listeners and reporters should be used. Since Gradle 1.4 it defaults to 'false' so that Gradle can own the reports generation and provide various improvements. This option
@@ -323,8 +366,7 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
     @ReplacesEagerProperty(
         replacedAccessors = {
             @ReplacedAccessor(value = AccessorType.GETTER, name = "getUseDefaultListeners", originalType = boolean.class),
-            @ReplacedAccessor(value = AccessorType.GETTER, name = "isUseDefaultListeners", originalType = boolean.class),
-            @ReplacedAccessor(value = AccessorType.SETTER, name = "setUseDefaultListeners", originalType = boolean.class)
+            @ReplacedAccessor(value = AccessorType.GETTER, name = "isUseDefaultListeners", originalType = boolean.class)
         }
     )
     public abstract Property<Boolean> getUseDefaultListeners();
@@ -334,6 +376,10 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
         return getUseDefaultListeners();
     }
 
+    public void setUseDefaultListeners(boolean useDefaultListeners) {
+        getUseDefaultListeners().set(useDefaultListeners);
+    }
+
     /**
      * Sets the default name of the test suite, if one is not specified in a suite XML file or in the source code.
      */
@@ -341,12 +387,20 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
     @ReplacesEagerProperty
     public abstract Property<String> getSuiteName();
 
+    public void setSuiteName(String suiteName) {
+        getSuiteName().set(suiteName);
+    }
+
     /**
      * Sets the default name of the test, if one is not specified in a suite XML file or in the source code.
      */
     @Internal
     @ReplacesEagerProperty
     public abstract Property<String> getTestName();
+
+    public void setTestName(String testName) {
+        getTestName().set(testName);
+    }
 
     /**
      * The suiteXmlFiles to use for running TestNG.
@@ -357,6 +411,10 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
     @PathSensitive(PathSensitivity.NONE)
     @ReplacesEagerProperty(adapter = SuiteXmlFilesAdapter.class)
     public abstract ConfigurableFileCollection getSuiteXmlFiles();
+
+    public void setSuiteXmlFiles(List<File> suiteXmlFiles) {
+        getSuiteXmlFiles().setFrom(suiteXmlFiles);
+    }
 
     /**
      * Indicates whether the tests should be run in deterministic order. Preserving the order guarantees that the complete test
@@ -370,8 +428,7 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
     @ReplacesEagerProperty(
         replacedAccessors = {
             @ReplacedAccessor(value = AccessorType.GETTER, name = "getPreserveOrder", originalType = boolean.class),
-            @ReplacedAccessor(value = AccessorType.GETTER, name = "isPreserveOrder", originalType = boolean.class),
-            @ReplacedAccessor(value = AccessorType.SETTER, name = "setPreserveOrder", originalType = boolean.class)
+            @ReplacedAccessor(value = AccessorType.GETTER, name = "isPreserveOrder", originalType = boolean.class)
         }
     )
     public abstract Property<Boolean> getPreserveOrder();
@@ -379,6 +436,10 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
     @Internal
     public Property<Boolean> getIsPreserveOrder() {
         return getPreserveOrder();
+    }
+
+    public void setPreserveOrder(boolean preserveOrder) {
+        getPreserveOrder().set(preserveOrder);
     }
 
     /**
@@ -393,8 +454,7 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
     @ReplacesEagerProperty(
         replacedAccessors = {
             @ReplacedAccessor(value = AccessorType.GETTER, name = "getGroupByInstances", originalType = boolean.class),
-            @ReplacedAccessor(value = AccessorType.GETTER, name = "isGroupByInstances", originalType = boolean.class),
-            @ReplacedAccessor(value = AccessorType.SETTER, name = "setGroupByInstances", originalType = boolean.class)
+            @ReplacedAccessor(value = AccessorType.GETTER, name = "isGroupByInstances", originalType = boolean.class)
         }
     )
     public abstract Property<Boolean> getGroupByInstances();
@@ -402,6 +462,10 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
     @Internal
     public Property<Boolean> getIsGroupByInstances() {
         return getGroupByInstances();
+    }
+
+    public void setGroupByInstances(boolean groupByInstances) {
+        getGroupByInstances().set(groupByInstances);
     }
 
     /**
@@ -422,21 +486,24 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
         return suiteXmlWriter;
     }
 
+    public void setSuiteXmlWriter(StringWriter suiteXmlWriter) {
+        getSuiteXmlWriter().set(suiteXmlWriter);
+    }
+
     @Internal
     @ReplacesEagerProperty
     public Property<MarkupBuilder> getSuiteXmlBuilder() {
         return suiteXmlBuilder;
     }
 
+    public void setSuiteXmlBuilder(MarkupBuilder suiteXmlBuilder) {
+        getSuiteXmlBuilder().set(suiteXmlBuilder);
+    }
+
     static class SuiteXmlFilesAdapter {
         @BytecodeUpgrade
         static List<File> getSuiteXmlFiles(TestNGOptions options) {
             return new ArrayList<>(options.getSuiteXmlFiles().getFiles());
-        }
-
-        @BytecodeUpgrade
-        static void setSuiteXmlFiles(TestNGOptions options, List<File> suiteXmlFiles) {
-            options.getSuiteXmlFiles().setFrom(suiteXmlFiles);
         }
     }
 

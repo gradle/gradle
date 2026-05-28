@@ -16,6 +16,7 @@
 
 package org.gradle.caching.configuration;
 
+
 /**
  * Base implementation for build cache service configuration.
  *
@@ -26,5 +27,15 @@ public abstract class AbstractBuildCache implements BuildCache {
     public AbstractBuildCache() {
         getEnabled().convention(true);
         getPush().convention(false);
+    }
+
+    @Override
+    public void setEnabled(boolean enabled) {
+        getEnabled().set(enabled);
+    }
+
+    @Override
+    public void setPush(boolean push) {
+        getPush().set(push);
     }
 }

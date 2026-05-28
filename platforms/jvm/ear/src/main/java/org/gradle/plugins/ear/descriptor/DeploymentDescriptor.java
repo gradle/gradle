@@ -27,6 +27,8 @@ import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyPro
 
 import java.io.Reader;
 import java.io.Writer;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * A deployment descriptor such as application.xml.
@@ -47,11 +49,15 @@ public interface DeploymentDescriptor {
     @ReplacesEagerProperty
     Property<String> getVersion();
 
+    void setVersion(String version);
+
     /**
      * The application name. Optional. Only valid with version 6.
      */
     @ReplacesEagerProperty
     Property<String> getApplicationName();
+
+    void setApplicationName(String applicationName);
 
     /**
      * Whether to initialize modules in the order they appear in the descriptor, with the exception of client modules.
@@ -60,11 +66,15 @@ public interface DeploymentDescriptor {
     @ReplacesEagerProperty
     Property<Boolean> getInitializeInOrder();
 
+    void setInitializeInOrder(Boolean initializeInOrder);
+
     /**
      * The application description. Optional.
      */
     @ReplacesEagerProperty
     Property<String> getDescription();
+
+    void setDescription(String description);
 
     /**
      * The application display name. Optional.
@@ -72,11 +82,15 @@ public interface DeploymentDescriptor {
     @ReplacesEagerProperty
     Property<String> getDisplayName();
 
+    void setDisplayName(String displayName);
+
     /**
      * The name of the directory to look for libraries in. Optional. If not specified, {@link org.gradle.plugins.ear.Ear#getLibDirName()} is used.
      */
     @ReplacesEagerProperty
     Property<String> getLibraryDirectory();
+
+    void setLibraryDirectory(String libraryDirectory);
 
     /**
      * List of module descriptors. Must not be empty. Non-null and order-maintaining by default. Must maintain order if
@@ -84,6 +98,8 @@ public interface DeploymentDescriptor {
      */
     @ReplacesEagerProperty
     SetProperty<EarModule> getModules();
+
+    void setModules(Set<EarModule> modules);
 
     /**
      * Add a module to the deployment descriptor.
@@ -124,6 +140,8 @@ public interface DeploymentDescriptor {
     @ReplacesEagerProperty
     SetProperty<EarSecurityRole> getSecurityRoles();
 
+    void setSecurityRoles(Set<EarSecurityRole> securityRoles);
+
     /**
      * Add a security role to the deployment descriptor.
      *
@@ -156,6 +174,8 @@ public interface DeploymentDescriptor {
      */
     @ReplacesEagerProperty
     MapProperty<String, String> getModuleTypeMappings();
+
+    void setModuleTypeMappings(Map<String, String> moduleTypeMappings);
 
     /**
      * Adds a closure to be called when the XML document has been created. The XML is passed to the closure as a

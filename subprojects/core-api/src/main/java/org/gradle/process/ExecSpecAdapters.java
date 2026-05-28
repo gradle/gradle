@@ -23,28 +23,6 @@ import java.util.List;
 class ExecSpecAdapters {
 
     /**
-     * Adapter for {@link ExecSpec#getCommandLine()}}
-     *
-     * Note: Getter is upgraded via {@link BaseExecSpec#getCommandLine()} upgrade.
-     */
-    static class CommandLineAdapter {
-        @BytecodeUpgrade
-        static void setCommandLine(ExecSpec self, List<String> args) {
-            self.commandLine(args);
-        }
-
-        @BytecodeUpgrade
-        static void setCommandLine(ExecSpec self, Object... args) {
-            self.commandLine(args);
-        }
-
-        @BytecodeUpgrade
-        static void setCommandLine(ExecSpec self, Iterable<?> args) {
-            self.commandLine(args);
-        }
-    }
-
-    /**
      * Adapter for {@link ExecSpec#getArgs()}}
      */
     static class ArgsAdapter {
@@ -54,18 +32,6 @@ class ExecSpecAdapters {
             return self.getArgs().get();
         }
 
-        @BytecodeUpgrade
-        static ExecSpec setArgs(ExecSpec self, List<String> args) {
-            self.getArgs().empty();
-            self.args(args);
-            return self;
-        }
 
-        @BytecodeUpgrade
-        static ExecSpec setArgs(ExecSpec self, Iterable<?> args) {
-            self.getArgs().empty();
-            self.args(args);
-            return self;
-        }
     }
 }

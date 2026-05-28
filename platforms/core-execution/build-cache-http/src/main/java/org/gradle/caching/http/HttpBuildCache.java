@@ -17,18 +17,17 @@
 package org.gradle.caching.http;
 
 import org.gradle.api.Action;
-import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Nested;
 import org.gradle.caching.configuration.AbstractBuildCache;
-import org.jspecify.annotations.Nullable;
 import org.gradle.internal.instrumentation.api.annotations.BytecodeUpgrade;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
+import org.jspecify.annotations.Nullable;
 
-import javax.inject.Inject;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+
 
 /**
  * Configuration object for the HTTP build cache.
@@ -65,9 +64,6 @@ public abstract class HttpBuildCache extends AbstractBuildCache {
         getUseExpectContinue().convention(false);
     }
 
-    @Inject
-    protected abstract ObjectFactory getObjectFactory();
-
     /**
      * Returns the URI to the cache.
      */
@@ -77,7 +73,21 @@ public abstract class HttpBuildCache extends AbstractBuildCache {
     /**
      * Sets the URL of the cache. The URL must end in a '/'.
      */
-    public void setUrl(String url) throws URISyntaxException {
+    public void setUrl(URL url) throws URISyntaxException {
+        getUrl().set(url.toURI());
+    }
+
+    /**
+     * Sets the URL of the cache. The URL must end in a '/'.
+     */
+    public void setUrl(@Nullable URI url) {
+        getUrl().set(url);
+    }
+
+    /**
+     * Sets the URL of the cache. The URL must end in a '/'.
+     */
+    public void setUrl(String url) {
         getUrl().set(URI.create(url));
     }
 
@@ -115,6 +125,16 @@ public abstract class HttpBuildCache extends AbstractBuildCache {
     public abstract Property<Boolean> getAllowUntrustedServer();
 
     /**
+     * Specifies whether it is acceptable to communicate with an HTTP build cache backend with an untrusted SSL certificate.
+     *
+     * @see #isAllowUntrustedServer()
+     * @since 4.2
+     */
+    public void setAllowUntrustedServer(boolean allowUntrustedServer) {
+        getAllowUntrustedServer().set(allowUntrustedServer);
+    }
+
+    /**
      * This method exists only for Kotlin source backward compatibility.
      **/
     public Property<Boolean> getIsAllowUntrustedServer() {
@@ -142,6 +162,16 @@ public abstract class HttpBuildCache extends AbstractBuildCache {
     public abstract Property<Boolean> getAllowInsecureProtocol();
 
     /**
+     * Specifies whether it is acceptable to communicate with a build cache over an insecure HTTP connection.
+     *
+     * @see #isAllowInsecureProtocol()
+     * @since 6.0
+     */
+    public void setAllowInsecureProtocol(boolean allowInsecureProtocol) {
+        getAllowInsecureProtocol().set(allowInsecureProtocol);
+    }
+
+    /**
      * This method exists only for Kotlin source backward compatibility.
      **/
     public Property<Boolean> getIsAllowInsecureProtocol() {
@@ -167,6 +197,15 @@ public abstract class HttpBuildCache extends AbstractBuildCache {
     public abstract Property<Boolean> getUseExpectContinue();
 
     /**
+     * Specifies whether HTTP expect-continue should be used for store requests.
+     *
+     * @since 7.2
+     */
+    public void setUseExpectContinue(boolean useExpectContinue) {
+        getUseExpectContinue().set(useExpectContinue);
+    }
+
+    /**
      * This method exists only for Kotlin source backward compatibility.
      **/
     public Property<Boolean> getIsUseExpectContinue() {
@@ -180,14 +219,5 @@ public abstract class HttpBuildCache extends AbstractBuildCache {
             return buildCache.getUrl().getOrNull();
         }
 
-        @BytecodeUpgrade
-        static void setUrl(HttpBuildCache buildCache, @Nullable URI url) {
-            buildCache.getUrl().set(url);
-        }
-
-        @BytecodeUpgrade
-        static void setUrl(HttpBuildCache buildCache, URL url) throws URISyntaxException {
-            buildCache.getUrl().set(url.toURI());
-        }
     }
 }

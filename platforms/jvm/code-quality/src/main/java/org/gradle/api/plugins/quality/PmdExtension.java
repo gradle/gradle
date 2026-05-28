@@ -17,6 +17,7 @@ package org.gradle.api.plugins.quality;
 
 import org.gradle.api.Project;
 import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.resources.TextResource;
@@ -26,6 +27,8 @@ import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty
 import org.jspecify.annotations.Nullable;
 
 import java.util.Arrays;
+import java.util.List;
+
 
 /**
  * Configuration options for the PMD plugin.
@@ -58,6 +61,17 @@ public abstract class PmdExtension extends CodeQualityExtension {
      */
     @ReplacesEagerProperty
     public abstract ListProperty<String> getRuleSets();
+
+    /**
+     * The built-in rule sets to be used. See the <a href="https://docs.pmd-code.org/pmd-doc-7.24.0/pmd_rules_java.html">official list</a> of built-in rule sets.
+     *
+     * <pre>
+     *     ruleSets = ["category/java/errorprone.xml", "category/java/bestpractices.xml"]
+     * </pre>
+     */
+    public void setRuleSets(List<String> ruleSets) {
+        this.getRuleSetsProperty().set(ruleSets);
+    }
 
     /**
      * Convenience method for adding rule sets.
@@ -186,6 +200,18 @@ public abstract class PmdExtension extends CodeQualityExtension {
     public abstract ConfigurableFileCollection getRuleSetFiles();
 
     /**
+     * The custom rule set files to be used. See the <a href="https://docs.pmd-code.org/pmd-doc-7.24.0/pmd_userdocs_making_rulesets.html">official documentation</a> for how to author a rule set file.
+     * This adds to the default rule sets defined by {@link #getRuleSets()}.
+     *
+     * <pre>
+     *     ruleSetFiles = files("config/pmd/myRuleSets.xml")
+     * </pre>
+     */
+    public void setRuleSetFiles(FileCollection ruleSetFiles) {
+        getRuleSetFiles().setFrom(ruleSetFiles);
+    }
+
+    /**
      * Convenience method for adding rule set files.
      *
      * <pre>
@@ -203,6 +229,13 @@ public abstract class PmdExtension extends CodeQualityExtension {
      */
     @ReplacesEagerProperty(originalType = boolean.class)
     public abstract Property<Boolean> getConsoleOutput();
+
+    /**
+     * Whether or not to write PMD results to {@code System.out}.
+     */
+    public void setConsoleOutput(boolean consoleOutput) {
+        getConsoleOutput().set(consoleOutput);
+    }
 
     public Property<Boolean> getIsConsoleOutput() {
         return getConsoleOutput();

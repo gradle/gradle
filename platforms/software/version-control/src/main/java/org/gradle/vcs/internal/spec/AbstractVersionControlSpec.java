@@ -36,6 +36,11 @@ public abstract class AbstractVersionControlSpec implements VersionControlSpec {
     public abstract Property<String> getRootDir();
 
     @Override
+    public void setRootDir(String rootDir) {
+        getRootDir().set(rootDir);
+    }
+
+    @Override
     public void plugins(Action<? super InjectedPluginDependencies> configuration) {
         configuration.execute(pluginDependencies);
     }

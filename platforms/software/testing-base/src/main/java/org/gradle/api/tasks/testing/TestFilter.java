@@ -21,6 +21,7 @@ import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 
+
 /**
  * Allows filtering tests for execution.
  *
@@ -109,6 +110,14 @@ public interface TestFilter {
     SetProperty<String> getIncludePatterns();
 
     /**
+     * Sets the test name patterns to be included in the filter. Wildcard '*' is supported. Replaces any existing test name patterns.
+     *
+     * @param includePatterns class or method name patterns to set, may contain wildcard '*'
+     * @return this filter object
+     */
+    TestFilter setIncludePatterns(String... includePatterns);
+
+    /**
      * Returns the excluded test name patterns. They can be class or method names and may contain wildcard '*'.
      *
      * @return included test name patterns
@@ -117,6 +126,15 @@ public interface TestFilter {
     @Input
     @ReplacesEagerProperty(adapter = TestFilterAdapters.ExcludePatternsAdapter.class)
     SetProperty<String> getExcludePatterns();
+
+    /**
+     * Sets the test name patterns to be excluded in the filter. Wildcard '*' is supported. Replaces any existing test name patterns.
+     *
+     * @param excludePatterns class or method name patterns to set, may contain wildcard '*'
+     * @return this filter object
+     * @since 5.0
+     */
+    TestFilter setExcludePatterns(String... excludePatterns);
 
     /**
      * Add a test method specified by test class name and method name.
@@ -144,6 +162,12 @@ public interface TestFilter {
     @Input
     @ReplacesEagerProperty(originalType = boolean.class)
     Property<Boolean> getFailOnNoMatchingTests();
+
+    /**
+     * Let the test task fail if a filter configuration was provided but no test matched the given configuration.
+     * @param failOnNoMatchingTests whether a test task should fail if no test is matching the filter configuration.
+     * */
+    void setFailOnNoMatchingTests(boolean failOnNoMatchingTests);
 
     /**
      * Used for Kotlin source compatibility. use {@link #getFailOnNoMatchingTests()} instead.

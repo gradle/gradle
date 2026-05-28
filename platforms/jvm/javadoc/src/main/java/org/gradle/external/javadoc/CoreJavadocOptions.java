@@ -34,6 +34,7 @@ import org.gradle.internal.Cast;
 import org.gradle.process.ExecSpec;
 import org.gradle.util.internal.GFileUtils;
 import org.gradle.util.internal.GUtil;
+import org.jspecify.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
@@ -110,11 +111,11 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
     @Override
     public abstract Property<String> getOverview();
 
-    /**
-     * Fluent setter for the overview option.
-     * @param overview The new overview.
-     * @return The <code>MinimalJavadocOptions</code> object.
-     */
+    @Override
+    public void setOverview(@Nullable String overview) {
+        getOverview().set(overview);
+    }
+
     @Override
     public MinimalJavadocOptions overview(String overview) {
         getOverview().set(overview);
@@ -126,6 +127,11 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
      */
     @Override
     public abstract Property<JavadocMemberLevel> getMemberLevel();
+
+    @Override
+    public void setMemberLevel(@Nullable JavadocMemberLevel memberLevel) {
+        getMemberLevel().set(memberLevel);
+    }
 
     @Override
     public MinimalJavadocOptions showFromPublic() {
@@ -175,6 +181,11 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
     public abstract Property<String> getDoclet();
 
     @Override
+    public void setDoclet(@Nullable String doclet) {
+        getDoclet().set(doclet);
+    }
+
+    @Override
     public MinimalJavadocOptions doclet(String doclet) {
         getDoclet().set(doclet);
         return this;
@@ -203,6 +214,11 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
     public abstract ConfigurableFileCollection getDocletpath();
 
     @Override
+    public void setDocletpath(List<File> docletpath) {
+        getDocletpath().setFrom(docletpath);
+    }
+
+    @Override
     public MinimalJavadocOptions docletpath(File... docletpath) {
         getDocletpath().from((Object[]) docletpath);
         return this;
@@ -222,6 +238,11 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
      */
     @Override
     public abstract Property<String> getSource();
+
+    @Override
+    public void setSource(@Nullable String source) {
+        getSource().set(source);
+    }
 
     @Override
     public MinimalJavadocOptions source(String source) {
@@ -257,7 +278,17 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
     public abstract ConfigurableFileCollection getClasspath();
 
     @Override
+    public void setClasspath(List<File> classpath) {
+        getClasspath().setFrom(classpath);
+    }
+
+    @Override
     public abstract ConfigurableFileCollection getModulePath();
+
+    @Override
+    public void setModulePath(List<File> modulePath) {
+        getModulePath().setFrom(modulePath);
+    }
 
     @Override
     public MinimalJavadocOptions modulePath(List<File> modulePath) {
@@ -287,6 +318,11 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
     public abstract ConfigurableFileCollection getBootClasspath();
 
     @Override
+    public void setBootClasspath(List<File> bootClasspath) {
+        getBootClasspath().setFrom(bootClasspath);
+    }
+
+    @Override
     public MinimalJavadocOptions bootClasspath(File... bootClasspath) {
         getBootClasspath().from((Object[]) bootClasspath);
         return this;
@@ -304,6 +340,11 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
     public abstract ConfigurableFileCollection getExtDirs();
 
     @Override
+    public void setExtDirs(@Nullable List<File> extDirs) {
+        getExtDirs().setFrom(extDirs);
+    }
+
+    @Override
     public MinimalJavadocOptions extDirs(File... extDirs) {
         getExtDirs().from((Object[]) extDirs);
         return this;
@@ -314,6 +355,11 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
      */
     @Override
     public abstract Property<JavadocOutputLevel> getOutputLevel();
+
+    @Override
+    public void setOutputLevel(JavadocOutputLevel outputLevel) {
+        getOutputLevel().set(outputLevel);
+    }
 
     @Override
     public MinimalJavadocOptions verbose() {
@@ -370,6 +416,11 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
     public abstract Property<Boolean> getBreakIterator();
 
     @Override
+    public void setBreakIterator(boolean breakIterator) {
+        getBreakIterator().set(breakIterator);
+    }
+
+    @Override
     public Property<Boolean> getIsBreakIterator() {
         return getBreakIterator();
     }
@@ -408,6 +459,11 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
     public abstract Property<String> getLocale();
 
     @Override
+    public void setLocale(@Nullable String locale) {
+        getLocale().set(locale);
+    }
+
+    @Override
     public MinimalJavadocOptions locale(String locale) {
         getLocale().set(locale);
         return this;
@@ -424,6 +480,11 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
     public abstract Property<String> getEncoding();
 
     @Override
+    public void setEncoding(@Nullable String encoding) {
+        getEncoding().set(encoding);
+    }
+
+    @Override
     public MinimalJavadocOptions encoding(String encoding) {
         getEncoding().set(encoding);
         return this;
@@ -431,6 +492,11 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
 
     @Override
     public abstract ListProperty<String> getSourceNames();
+
+    @Override
+    public void setSourceNames(@Nullable List<String> sourceNames) {
+        getSourceNames().set(sourceNames);
+    }
 
     @Override
     public MinimalJavadocOptions sourceNames(String... sourceNames) {
@@ -461,6 +527,11 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
     public abstract ListProperty<String> getJFlags();
 
     @Override
+    public void setJFlags(@Nullable List<String> jFlags) {
+        getJFlags().set(jFlags);
+    }
+
+    @Override
     public MinimalJavadocOptions jFlags(String... jFlags) {
         getJFlags().addAll(jFlags);
         return this;
@@ -475,6 +546,11 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
 
     @Override
     public abstract ConfigurableFileCollection getOptionFiles();
+
+    @Override
+    public void setOptionFiles(@Nullable List<File> optionFiles) {
+        getOptionFiles().setFrom(optionFiles);
+    }
 
     @Override
     public MinimalJavadocOptions optionFiles(File... argumentFiles) {

@@ -45,6 +45,7 @@ import org.gradle.external.javadoc.internal.options.PropertyKnownOption;
 import org.gradle.internal.Cast;
 import org.gradle.internal.instrumentation.api.annotations.BytecodeUpgrade;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
+import org.jspecify.annotations.Nullable;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -161,6 +162,11 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
     public abstract DirectoryProperty getDestinationDirectory();
 
     @Override
+    public void setDestinationDirectory(@Nullable File destinationDirectory) {
+        getDestinationDirectory().set(destinationDirectory);
+    }
+
+    @Override
     public StandardJavadocDocletOptions destinationDirectory(File destinationDirectory) {
         getDestinationDirectory().set(destinationDirectory);
         return this;
@@ -187,6 +193,10 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
     @Input
     @ReplacesEagerProperty(originalType = boolean.class)
     public abstract Property<Boolean> getUse();
+
+    public void setUse(boolean use) {
+        getUse().set(use);
+    }
 
     /**
      * This method exists only for Kotlin source backward compatibility.
@@ -215,6 +225,10 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
     @ReplacesEagerProperty(originalType = boolean.class)
     public abstract Property<Boolean> getVersion();
 
+    public void setVersion(boolean version) {
+        getVersion().set(version);
+    }
+
     /**
      * This method exists only for Kotlin source backward compatibility.
      */
@@ -240,6 +254,10 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
     @Input
     @ReplacesEagerProperty(originalType = boolean.class)
     public abstract Property<Boolean> getAuthor();
+
+    public void setAuthor(boolean author) {
+        getAuthor().set(author);
+    }
 
     /**
      * This method exists only for Kotlin source backward compatibility.
@@ -267,6 +285,10 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
     @Input
     @ReplacesEagerProperty(originalType = boolean.class)
     public abstract Property<Boolean> getSplitIndex();
+
+    public void setSplitIndex(boolean splitIndex) {
+        getSplitIndex().set(splitIndex);
+    }
 
     /**
      * This method exists only for Kotlin source backward compatibility.
@@ -299,6 +321,11 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
     public abstract Property<String> getWindowTitle();
 
     @Override
+    public void setWindowTitle(@Nullable String windowTitle) {
+        getWindowTitle().set(windowTitle);
+    }
+
+    @Override
     public StandardJavadocDocletOptions windowTitle(String windowTitle) {
         getWindowTitle().set(windowTitle);
         return this;
@@ -314,6 +341,11 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
      */
     @Override
     public abstract Property<String> getHeader();
+
+    @Override
+    public void setHeader(@Nullable String header) {
+        getHeader().set(header);
+    }
 
     @Override
     public StandardJavadocDocletOptions header(String header) {
@@ -334,6 +366,10 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
     @ReplacesEagerProperty
     public abstract Property<String> getDocTitle();
 
+    public void setDocTitle(@Nullable String docTitle) {
+        getDocTitle().set(docTitle);
+    }
+
     public StandardJavadocDocletOptions docTitle(String docTitle) {
         getDocTitle().set(docTitle);
         return this;
@@ -350,6 +386,10 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
     @Optional
     @ReplacesEagerProperty
     public abstract Property<String> getFooter();
+
+    public void setFooter(@Nullable String footer) {
+        getFooter().set(footer);
+    }
 
     public StandardJavadocDocletOptions footer(String footer) {
         getFooter().set(footer);
@@ -368,6 +408,10 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
     @Optional
     @ReplacesEagerProperty
     public abstract Property<String> getBottom();
+
+    public void setBottom(@Nullable String bottom) {
+        getBottom().set(bottom);
+    }
 
     public StandardJavadocDocletOptions bottom(String bottom) {
         getBottom().set(bottom);
@@ -397,6 +441,10 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
     @Optional
     @ReplacesEagerProperty
     public abstract ListProperty<String> getLinks();
+
+    public void setLinks(@Nullable List<String> links) {
+        getLinks().set(links);
+    }
 
     public StandardJavadocDocletOptions links(String... links) {
         getLinks().addAll(Arrays.asList(links));
@@ -437,6 +485,10 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
     @ReplacesEagerProperty
     public abstract ListProperty<JavadocOfflineLink> getLinksOffline();
 
+    public void setLinksOffline(@Nullable List<JavadocOfflineLink> linksOffline) {
+        getLinksOffline().set(linksOffline);
+    }
+
     public StandardJavadocDocletOptions linksOffline(String extDocUrl, String packageListLoc) {
         getLinksOffline().add(new JavadocOfflineLink(extDocUrl, packageListLoc));
         return this;
@@ -463,6 +515,10 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
     @Input
     @ReplacesEagerProperty(originalType = boolean.class)
     public abstract Property<Boolean> getLinkSource();
+
+    public void setLinkSource(boolean linkSource) {
+        getLinkSource().set(linkSource);
+    }
 
     /**
      * This method exists only for Kotlin source backward compatibility.
@@ -528,6 +584,10 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
     @ReplacesEagerProperty
     public abstract MapProperty<String, List<String>> getGroups();
 
+    public void setGroups(@Nullable Map<String, List<String>> groups) {
+        getGroups().set(groups);
+    }
+
     public StandardJavadocDocletOptions group(Map<String, List<String>> groups) {
         getGroups().putAll(groups);
         return this;
@@ -556,6 +616,10 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
     @Input
     @ReplacesEagerProperty(originalType = boolean.class)
     public abstract Property<Boolean> getNoDeprecated();
+
+    public void setNoDeprecated(boolean noDeprecated) {
+        getNoDeprecated().set(noDeprecated);
+    }
 
     /**
      * This method exists only for Kotlin source backward compatibility.
@@ -586,6 +650,10 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
     @ReplacesEagerProperty(originalType = boolean.class)
     public abstract Property<Boolean> getNoDeprecatedList();
 
+    public void setNoDeprecatedList(boolean noDeprecatedList) {
+        getNoDeprecatedList().set(noDeprecatedList);
+    }
+
     /**
      * This method exists only for Kotlin source backward compatibility.
      */
@@ -611,6 +679,10 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
     @Input
     @ReplacesEagerProperty(originalType = boolean.class)
     public abstract Property<Boolean> getNoSince();
+
+    public void setNoSince(boolean noSince) {
+        getNoSince().set(noSince);
+    }
 
     /**
      * This method exists only for Kotlin source backward compatibility.
@@ -640,6 +712,10 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
     @ReplacesEagerProperty(originalType = boolean.class)
     public abstract Property<Boolean> getNoTree();
 
+    public void setNoTree(boolean noTree) {
+        getNoTree().set(noTree);
+    }
+
     /**
      * This method exists only for Kotlin source backward compatibility.
      */
@@ -666,6 +742,10 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
     @ReplacesEagerProperty(originalType = boolean.class)
     public abstract Property<Boolean> getNoIndex();
 
+    public void setNoIndex(boolean noIndex) {
+        getNoIndex().set(noIndex);
+    }
+
     /**
      * This method exists only for Kotlin source backward compatibility.
      */
@@ -691,6 +771,10 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
     @Input
     @ReplacesEagerProperty(originalType = boolean.class)
     public abstract Property<Boolean> getNoHelp();
+
+    public void setNoHelp(boolean noHelp) {
+        getNoHelp().set(noHelp);
+    }
 
     /**
      * This method exists only for Kotlin source backward compatibility.
@@ -720,6 +804,10 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
     @Input
     @ReplacesEagerProperty(originalType = boolean.class)
     public abstract Property<Boolean> getNoNavBar();
+
+    public void setNoNavBar(boolean noNavBar) {
+        getNoNavBar().set(noNavBar);
+    }
 
     /**
      * This method exists only for Kotlin source backward compatibility.
@@ -751,6 +839,10 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
     @ReplacesEagerProperty
     public abstract RegularFileProperty getHelpFile();
 
+    public void setHelpFile(@Nullable File helpFile) {
+        getHelpFile().set(helpFile);
+    }
+
     public StandardJavadocDocletOptions helpFile(File helpFile) {
         getHelpFile().set(helpFile);
         return this;
@@ -769,6 +861,10 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
     @ReplacesEagerProperty
     public abstract RegularFileProperty getStylesheetFile();
 
+    public void setStylesheetFile(@Nullable File stylesheetFile) {
+        getStylesheetFile().set(stylesheetFile);
+    }
+
     public StandardJavadocDocletOptions stylesheetFile(File stylesheetFile) {
         getStylesheetFile().set(stylesheetFile);
         return this;
@@ -785,6 +881,10 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
     @Input
     @ReplacesEagerProperty(originalType = boolean.class)
     public abstract Property<Boolean> getSerialWarn();
+
+    public void setSerialWarn(boolean serialWarn) {
+        getSerialWarn().set(serialWarn);
+    }
 
     /**
      * This method exists only for Kotlin source backward compatibility.
@@ -822,6 +922,10 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
     @ReplacesEagerProperty
     public abstract Property<String> getCharSet();
 
+    public void setCharSet(@Nullable String charSet) {
+        getCharSet().set(charSet);
+    }
+
     public StandardJavadocDocletOptions charSet(String charSet) {
         getCharSet().set(charSet);
         return this;
@@ -841,6 +945,10 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
     @ReplacesEagerProperty
     public abstract Property<String> getDocEncoding();
 
+    public void setDocEncoding(@Nullable String docEncoding) {
+        getDocEncoding().set(docEncoding);
+    }
+
     public StandardJavadocDocletOptions docEncoding(String docEncoding) {
         getDocEncoding().set(docEncoding);
         return this;
@@ -852,6 +960,10 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
     @Input
     @ReplacesEagerProperty(originalType = boolean.class)
     public abstract Property<Boolean> getKeyWords();
+
+    public void setKeyWords(boolean keyWords) {
+        getKeyWords().set(keyWords);
+    }
 
     /**
      * This method exists only for Kotlin source backward compatibility.
@@ -878,6 +990,10 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
     @ReplacesEagerProperty
     public abstract ListProperty<String> getTags();
 
+    public void setTags(@Nullable List<String> tags) {
+        getTags().set(tags);
+    }
+
     public StandardJavadocDocletOptions tags(List<String> tags) {
         getTags().addAll(tags);
         return this;
@@ -899,6 +1015,10 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
     @ReplacesEagerProperty
     public abstract ListProperty<String> getTaglets();
 
+    public void setTaglets(@Nullable List<String> taglets) {
+        getTaglets().set(taglets);
+    }
+
     public StandardJavadocDocletOptions taglets(List<String> taglets) {
         getTaglets().addAll(taglets);
         return this;
@@ -916,6 +1036,10 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
     @ReplacesEagerProperty(adapter = StandardJavadocDocletOptions.TagletPathAdapter.class)
     public abstract ConfigurableFileCollection getTagletPath();
 
+    public void setTagletPath(@Nullable List<File> tagletPath) {
+        getTagletPath().setFrom(tagletPath);
+    }
+
     public StandardJavadocDocletOptions tagletPath(List<File> tagletPath) {
         getTagletPath().from(tagletPath);
         return this;
@@ -931,6 +1055,10 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
     @Input
     @ReplacesEagerProperty(originalType = boolean.class)
     public abstract Property<Boolean> getDocFilesSubDirs();
+
+    public void setDocFilesSubDirs(boolean docFilesSubDirs) {
+        getDocFilesSubDirs().set(docFilesSubDirs);
+    }
 
     /**
      * This method exists only for Kotlin source backward compatibility.
@@ -957,6 +1085,10 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
     @ReplacesEagerProperty
     public abstract ListProperty<String> getExcludeDocFilesSubDir();
 
+    public void setExcludeDocFilesSubDir(@Nullable List<String> excludeDocFilesSubDir) {
+        getExcludeDocFilesSubDir().set(excludeDocFilesSubDir);
+    }
+
     public StandardJavadocDocletOptions excludeDocFilesSubDir(List<String> excludeDocFilesSubDir) {
         getExcludeDocFilesSubDir().addAll(excludeDocFilesSubDir);
         return this;
@@ -974,6 +1106,10 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
     @ReplacesEagerProperty
     public abstract ListProperty<String> getNoQualifiers();
 
+    public void setNoQualifiers(@Nullable List<String> noQualifiers) {
+        getNoQualifiers().set(noQualifiers);
+    }
+
     public StandardJavadocDocletOptions noQualifier(List<String> noQualifiers) {
         getNoQualifiers().addAll(noQualifiers);
         return this;
@@ -986,6 +1122,10 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
     @Input
     @ReplacesEagerProperty(originalType = boolean.class)
     public abstract Property<Boolean> getNoTimestamp();
+
+    public void setNoTimestamp(boolean noTimestamp) {
+        getNoTimestamp().set(noTimestamp);
+    }
 
     /**
      * This method exists only for Kotlin source backward compatibility.
@@ -1010,6 +1150,10 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
     @Input
     @ReplacesEagerProperty(originalType = boolean.class)
     public abstract Property<Boolean> getNoComment();
+
+    public void setNoComment(boolean noComment) {
+        getNoComment().set(noComment);
+    }
 
     /**
      * This method exists only for Kotlin source backward compatibility.
@@ -1061,9 +1205,5 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
             return new ArrayList<>(self.getTagletPath().getFiles());
         }
 
-        @BytecodeUpgrade
-        static void setTagletPath(StandardJavadocDocletOptions self, List<File> tagletPath) {
-            self.getTagletPath().setFrom(tagletPath);
-        }
     }
 }

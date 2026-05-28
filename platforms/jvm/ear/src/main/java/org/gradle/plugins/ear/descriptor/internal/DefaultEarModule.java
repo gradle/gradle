@@ -28,7 +28,17 @@ public abstract class DefaultEarModule implements EarModule {
     public abstract Property<String> getPath();
 
     @Override
+    public void setPath(String path) {
+        getPath().set(path);
+    }
+
+    @Override
     public abstract Property<String> getAltDeployDescriptor();
+
+    @Override
+    public void setAltDeployDescriptor(String altDeployDescriptor) {
+        getAltDeployDescriptor().set(altDeployDescriptor);
+    }
 
     @Override
     public Node toXmlNode(Node parentModule, Object name) {

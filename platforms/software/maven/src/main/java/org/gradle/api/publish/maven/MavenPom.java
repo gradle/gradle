@@ -46,6 +46,11 @@ public interface MavenPom {
     Property<String> getPackaging();
 
     /**
+     * Sets the packaging for the publication represented by this POM.
+     */
+    void setPackaging(String packaging);
+
+    /**
      * The name for the publication represented by this POM.
      *
      * @since 4.8

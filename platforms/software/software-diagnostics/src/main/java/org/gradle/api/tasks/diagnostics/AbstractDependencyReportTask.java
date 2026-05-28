@@ -32,7 +32,6 @@ import org.gradle.api.tasks.diagnostics.internal.DependencyReportRenderer;
 import org.gradle.api.tasks.diagnostics.internal.ProjectDetails;
 import org.gradle.api.tasks.diagnostics.internal.dependencies.AsciiDependencyReportRenderer;
 import org.gradle.api.tasks.options.Option;
-import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 import org.gradle.internal.serialization.Transient;
 import org.gradle.work.DisableCachingByDefault;
@@ -59,10 +58,14 @@ public abstract class AbstractDependencyReportTask extends AbstractProjectBasedR
     }
 
     @Override
-    @ReplacesEagerProperty(replacedAccessors = {
-        @ReplacedAccessor(value = ReplacedAccessor.AccessorType.SETTER, name = "setRenderer", originalType = DependencyReportRenderer.class)
-    })
     public abstract Property<DependencyReportRenderer> getRenderer();
+
+    /**
+     * Set the renderer to use to build a report. If unset, AsciiGraphRenderer will be used.
+     */
+    public void setRenderer(DependencyReportRenderer renderer) {
+        getRenderer().set(renderer);
+    }
 
     /**
      * Report model.
@@ -110,6 +113,15 @@ public abstract class AbstractDependencyReportTask extends AbstractProjectBasedR
     @ReplacesEagerProperty
     public SetProperty<Configuration> getConfigurations() {
         return Objects.requireNonNull(configurations.get());
+    }
+
+    /**
+     * The single configuration (by name) to generate the report for.
+     *
+     * @since 9.7.0
+     */
+    public void setConfigurations(Set<Configuration> configurations) {
+        getConfigurations().set(configurations);
     }
 
     /**

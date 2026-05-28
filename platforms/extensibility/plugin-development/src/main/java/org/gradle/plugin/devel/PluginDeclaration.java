@@ -45,8 +45,16 @@ public abstract class PluginDeclaration implements Named {
     @ReplacesEagerProperty
     public abstract Property<String> getId();
 
+    public void setId(String id) {
+        getId().set(id);
+    }
+
     @ReplacesEagerProperty
     public abstract Property<String> getImplementationClass();
+
+    public void setImplementationClass(String implementationClass) {
+        getImplementationClass().set(implementationClass);
+    }
 
     /**
      * Returns the display name for this plugin declaration.
@@ -60,6 +68,18 @@ public abstract class PluginDeclaration implements Named {
     public abstract Property<String> getDisplayName();
 
     /**
+     * Sets the display name for this plugin declaration.
+     *
+     * <p>The display name is used when publishing this plugin to repositories
+     * that support human-readable artifact names.
+     *
+     * @since 4.10
+     */
+    public void setDisplayName(String displayName) {
+        getDisplayName().set(displayName);
+    }
+
+    /**
      * Returns the description for this plugin declaration.
      *
      * <p>The description is used when publishing this plugin to repositories
@@ -69,6 +89,18 @@ public abstract class PluginDeclaration implements Named {
      */
     @ReplacesEagerProperty
     public abstract Property<String> getDescription();
+
+    /**
+     * Sets the description for this plugin declaration.
+     *
+     * <p>The description is used when publishing this plugin to repositories
+     * that support providing descriptions for artifacts.
+     *
+     * @since 4.10
+     */
+    public void setDescription(String description) {
+        getDescription().set(description);
+    }
 
     /**
      * Returns the tags property for this plugin declaration.

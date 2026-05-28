@@ -259,7 +259,14 @@ public abstract class DefaultIvyArtifactRepository extends AbstractAuthenticatio
     }
 
     @Override
+    public void setUrl(URI url) {
+        invalidateDescriptor();
+        urlArtifactRepository.getUrl().set(url);
+    }
+
+    @Override
     public void setUrl(Object url) {
+        invalidateDescriptor();
         urlArtifactRepository.setUrl(url);
     }
 
@@ -290,6 +297,12 @@ public abstract class DefaultIvyArtifactRepository extends AbstractAuthenticatio
     @Override
     public Property<Boolean> getAllowInsecureProtocol() {
         return urlArtifactRepository.getAllowInsecureProtocol();
+    }
+
+    @Override
+    public void setAllowInsecureProtocol(boolean allowInsecureProtocol) {
+        invalidateDescriptor();
+        urlArtifactRepository.getAllowInsecureProtocol().set(allowInsecureProtocol);
     }
 
     @Override

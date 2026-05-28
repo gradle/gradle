@@ -21,8 +21,10 @@ import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
+import org.jspecify.annotations.Nullable;
 
 import java.io.Serializable;
+import java.util.List;
 
 /**
  * Fork options for compilation. Only take effect if {@code fork}
@@ -40,12 +42,28 @@ public abstract class BaseForkOptions implements Serializable {
     public abstract Property<String> getMemoryInitialSize();
 
     /**
+     * Sets the initial heap size for the compiler process.
+     * Defaults to {@code null}, in which case the JVM's default will be used.
+     */
+    public void setMemoryInitialSize(String memoryInitialSize) {
+        getMemoryInitialSize().set(memoryInitialSize);
+    }
+
+    /**
      * Returns the maximum heap size for the compiler process.
      * Defaults to {@code null}, in which case the JVM's default will be used.
      */
     @Internal
     @ReplacesEagerProperty
     public abstract Property<String> getMemoryMaximumSize();
+
+    /**
+     * Sets the maximum heap size for the compiler process.
+     * Defaults to {@code null}, in which case the JVM's default will be used.
+     */
+    public void setMemoryMaximumSize(String memoryMaximumSize) {
+        getMemoryMaximumSize().set(memoryMaximumSize);
+    }
 
     /**
      * Returns any additional JVM arguments for the compiler process.
@@ -55,4 +73,13 @@ public abstract class BaseForkOptions implements Serializable {
     @Input
     @ReplacesEagerProperty
     public abstract ListProperty<String> getJvmArgs();
+
+    /**
+     * Sets any additional JVM arguments for the compiler process.
+     * Defaults to the empty list. Empty or null arguments are filtered out because they cause
+     * JVM Launch to fail.
+     */
+    public void setJvmArgs(@Nullable List<String> jvmArgs) {
+        getJvmArgs().set(jvmArgs);
+    }
 }

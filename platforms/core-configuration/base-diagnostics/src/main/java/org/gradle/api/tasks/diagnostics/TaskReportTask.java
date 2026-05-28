@@ -74,10 +74,11 @@ public abstract class TaskReportTask extends ConventionReportTask {
     }
 
     @Override
-    @ReplacesEagerProperty(replacedAccessors = {
-        @ReplacedAccessor(value = ReplacedAccessor.AccessorType.SETTER, name = "setRenderer", originalType = TaskReportRenderer.class)
-    })
     public abstract Property<TaskReportRenderer> getRenderer();
+
+    public void setRenderer(TaskReportRenderer renderer) {
+        getRenderer().set(renderer);
+    }
 
     // TODO config-cache - should invalidate the cache or the filtering and merging should be moved to task execution time
     /**
@@ -88,10 +89,16 @@ public abstract class TaskReportTask extends ConventionReportTask {
     @Input
     @Option(option = "all", description = "Show additional tasks and detail.")
     @ReplacesEagerProperty(replacedAccessors = {
-        @ReplacedAccessor(value = ReplacedAccessor.AccessorType.GETTER, name = "isDetail", originalType = boolean.class),
-        @ReplacedAccessor(value = ReplacedAccessor.AccessorType.SETTER, name = "setShowDetail", originalType = boolean.class)
+        @ReplacedAccessor(value = ReplacedAccessor.AccessorType.GETTER, name = "isDetail", originalType = boolean.class)
     })
     public abstract Property<Boolean> getShowDetail();
+
+    /**
+     * Sets whether to show "invisible" tasks without a group or dependent tasks.
+     */
+    public void setShowDetail(boolean detail) {
+        getShowDetail().set(detail);
+    }
 
     // kotlin source compatibility
     @Internal
@@ -110,6 +117,15 @@ public abstract class TaskReportTask extends ConventionReportTask {
     public abstract Property<String> getDisplayGroup();
 
     /**
+     * Set a specific task group to be displayed.
+     *
+     * @since 5.1
+     */
+    public void setDisplayGroup(String displayGroup) {
+        getDisplayGroup().set(displayGroup);
+    }
+
+    /**
      * Returns the task groups to be displayed.
      *
      * @since 7.5
@@ -117,6 +133,17 @@ public abstract class TaskReportTask extends ConventionReportTask {
     @Console
     @Option(option = "groups", description = "Show tasks for specific groups (can be used multiple times to specify multiple groups).")
     public abstract ListProperty<String> getDisplayGroups();
+
+    /**
+     * Add a specific task group to be displayed.
+     * Same functionality as the '--group' option, but unlike '--group', '--groups' can be chained.
+     *
+     * @since 7.5
+     */
+    @Incubating
+    public void setDisplayGroups(List<String> groups) {
+        getDisplayGroups().addAll(groups);
+    }
 
     /**
      * Whether to show the task types next to their names in the output.

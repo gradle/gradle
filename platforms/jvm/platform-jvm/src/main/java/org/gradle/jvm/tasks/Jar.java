@@ -124,6 +124,19 @@ public abstract class Jar extends Zip {
     public abstract Property<String> getMetadataCharset();
 
     /**
+     * The character set used to encode JAR metadata like file names.
+     * Defaults to UTF-8.
+     * You can change this property but it is not recommended as JVMs expect JAR metadata to be encoded using UTF-8
+     *
+     * @param metadataCharset the character set used to encode JAR metadata like file names
+     * @since 2.14
+     */
+    @Override
+    public void setMetadataCharset(String metadataCharset) {
+        super.setMetadataCharset(metadataCharset);
+    }
+
+    /**
      * The character set used to encode the manifest content.
      * Defaults to UTF-8.
      * You can change this property but it is not recommended as JVMs expect manifests content to be encoded using UTF-8.
@@ -134,6 +147,13 @@ public abstract class Jar extends Zip {
     @Input
     @ReplacesEagerProperty
     public abstract Property<String> getManifestContentCharset();
+
+    /**
+     * Sets the character set used to encode JAR metadata fields such as long file names.
+     */
+    public void setManifestContentCharset(String manifestContentCharset) {
+        getManifestContentCharset().set(manifestContentCharset);
+    }
 
     /**
      * Returns the manifest for this JAR archive.

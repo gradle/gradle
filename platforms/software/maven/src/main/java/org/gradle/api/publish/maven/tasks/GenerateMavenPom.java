@@ -19,7 +19,6 @@ package org.gradle.api.publish.maven.tasks;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.provider.ProviderApiDeprecationLogger;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.publish.maven.MavenPom;
 import org.gradle.api.publish.maven.internal.publication.MavenPomInternal;
@@ -78,6 +77,25 @@ public abstract class GenerateMavenPom extends DefaultTask {
     @ReplacesEagerProperty(adapter = GenerateMavenPomAdapter.class)
     public abstract RegularFileProperty getDestination();
 
+    /**
+     * Sets the destination the descriptor will be written to.
+     *
+     * @param destination The file the descriptor will be written to.
+     * @since 4.0
+     */
+    public void setDestination(File destination) {
+        getDestination().fileValue(destination);
+    }
+
+    /**
+     * Sets the destination the descriptor will be written to.
+     *
+     * <p>The argument is evaluated as per {@link org.gradle.api.Project#file(Object)}.
+     */
+    public void setDestination(Object destination) {
+        getDestination().fileValue(getFileResolver().resolve(destination));
+    }
+
     @TaskAction
     public void doGenerate() {
         mavenPomSpec.get().writeTo(getDestination().getAsFile().get());
@@ -89,15 +107,6 @@ public abstract class GenerateMavenPom extends DefaultTask {
             return self.getDestination().getAsFile().getOrNull();
         }
 
-        @BytecodeUpgrade
-        static void setDestination(GenerateMavenPom self, File destination) {
-            self.getDestination().fileValue(destination);
-        }
 
-        @BytecodeUpgrade
-        static void setDestination(GenerateMavenPom self, Object destination) {
-            ProviderApiDeprecationLogger.logDeprecation(GenerateMavenPom.class, "setDestination(Object)", "getDestination()");
-            self.getDestination().fileValue(self.getFileResolver().resolve(destination));
-        }
     }
 }

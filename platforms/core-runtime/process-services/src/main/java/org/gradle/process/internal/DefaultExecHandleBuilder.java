@@ -21,6 +21,7 @@ import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.process.CommandLineArgumentProvider;
+import org.gradle.process.ExecSpec;
 import org.gradle.process.ProcessForkOptions;
 import org.gradle.process.internal.streams.StreamsHandler;
 
@@ -100,6 +101,33 @@ public class DefaultExecHandleBuilder extends AbstractExecHandleBuilder implemen
     @Override
     public ListProperty<CommandLineArgumentProvider> getArgumentProviders() {
         return delegate.getArgumentProviders();
+    }
+
+    @Override
+    public void setCommandLine(List<String> args) {
+        delegate.setCommandLine(args);
+    }
+
+    @Override
+    public void setCommandLine(Object... args) {
+        delegate.setCommandLine(args);
+    }
+
+    @Override
+    public void setCommandLine(Iterable<?> args) {
+        delegate.setCommandLine(args);
+    }
+
+    @Override
+    public ExecSpec setArgs(List<String> args) {
+        delegate.setArgs(args);
+        return this;
+    }
+
+    @Override
+    public ExecSpec setArgs(Iterable<?> args) {
+        delegate.setArgs(args);
+        return this;
     }
 
     @Override

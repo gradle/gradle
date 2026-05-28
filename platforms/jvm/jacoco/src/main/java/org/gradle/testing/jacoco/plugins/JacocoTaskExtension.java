@@ -22,6 +22,7 @@ import org.gradle.api.Incubating;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.RegularFileProperty;
+import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
@@ -42,6 +43,7 @@ import org.jspecify.annotations.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 import java.util.Collection;
+import java.util.List;
 import java.util.Locale;
 
 /**
@@ -99,6 +101,10 @@ public abstract class JacocoTaskExtension {
         return getEnabled();
     }
 
+    public void setEnabled(boolean enabled) {
+        getEnabled().set(enabled);
+    }
+
     /**
      * The path for execution data to be written to.
      *
@@ -128,6 +134,10 @@ public abstract class JacocoTaskExtension {
         return getDestinationFile().getAsFile().getOrNull();
     }
 
+    public void setDestinationFile(@Nullable File destinationFile) {
+        getDestinationFile().set(destinationFile);
+    }
+
     /**
      * List of class names that should be included in analysis. Names can use wildcards (* and ?). If left empty, all classes will be included. Defaults to an empty list.
      */
@@ -135,6 +145,10 @@ public abstract class JacocoTaskExtension {
     @Input
     @ReplacesEagerProperty
     public abstract ListProperty<String> getIncludes();
+
+    public void setIncludes(@Nullable List<String> includes) {
+        getIncludes().set(includes);
+    }
 
     /**
      * List of class names that should be excluded from analysis. Names can use wildcard (* and ?). Defaults to an empty list.
@@ -144,6 +158,10 @@ public abstract class JacocoTaskExtension {
     @ReplacesEagerProperty
     public abstract ListProperty<String> getExcludes();
 
+    public void setExcludes(@Nullable List<String> excludes) {
+        getExcludes().set(excludes);
+    }
+
     /**
      * List of classloader names that should be excluded from analysis. Names can use wildcards (* and ?). Defaults to an empty list.
      */
@@ -151,6 +169,10 @@ public abstract class JacocoTaskExtension {
     @Input
     @ReplacesEagerProperty
     public abstract ListProperty<String> getExcludeClassLoaders();
+
+    public void setExcludeClassLoaders(@Nullable List<String> excludeClassLoaders) {
+        getExcludeClassLoaders().set(excludeClassLoaders);
+    }
 
     /**
      * Whether or not classes without source location should be instrumented. Defaults to {@code false}.
@@ -166,6 +188,10 @@ public abstract class JacocoTaskExtension {
         return getIncludeNoLocationClasses();
     }
 
+    public void setIncludeNoLocationClasses(boolean includeNoLocationClasses) {
+        getIncludeNoLocationClasses().set(includeNoLocationClasses);
+    }
+
     /**
      * An identifier for the session written to the execution data. Defaults to an auto-generated identifier.
      */
@@ -173,6 +199,10 @@ public abstract class JacocoTaskExtension {
     @Input
     @ReplacesEagerProperty
     public abstract Property<String> getSessionId();
+
+    public void setSessionId(@Nullable String sessionId) {
+        getSessionId().set(sessionId);
+    }
 
     /**
      * Whether or not to dump the coverage data at VM shutdown. Defaults to {@code true}.
@@ -186,12 +216,20 @@ public abstract class JacocoTaskExtension {
         return getDumpOnExit();
     }
 
+    public void setDumpOnExit(boolean dumpOnExit) {
+        getDumpOnExit().set(dumpOnExit);
+    }
+
     /**
      * The type of output to generate. Defaults to {@link Output#FILE}.
      */
     @Input
     @ReplacesEagerProperty
     public abstract Property<Output> getOutput();
+
+    public void setOutput(Output output) {
+        getOutput().set(output);
+    }
 
     /**
      * IP address or hostname to use with {@link Output#TCP_SERVER} or {@link Output#TCP_CLIENT}. Defaults to localhost.
@@ -201,12 +239,20 @@ public abstract class JacocoTaskExtension {
     @ReplacesEagerProperty
     public abstract Property<String> getAddress();
 
+    public void setAddress(@Nullable String address) {
+        getAddress().set(address);
+    }
+
     /**
      * Port to bind to for {@link Output#TCP_SERVER} or {@link Output#TCP_CLIENT}. Defaults to 6300.
      */
     @Input
     @ReplacesEagerProperty(originalType = int.class)
     public abstract Property<Integer> getPort();
+
+    public void setPort(int port) {
+        getPort().set(port);
+    }
 
     /**
      * Path to dump all class files the agent sees are dumped to. Defaults to no dumps.
@@ -217,6 +263,15 @@ public abstract class JacocoTaskExtension {
     @LocalState
     @ReplacesEagerProperty
     public abstract DirectoryProperty getClassDumpDir();
+
+    /**
+     * Sets path to dump all class files the agent sees are dumped to. Defaults to no dumps.
+     *
+     * @since 3.4
+     */
+    public void setClassDumpDir(@Nullable File classDumpDir) {
+        getClassDumpDir().set(classDumpDir);
+    }
 
     /**
      * Whether or not to expose functionality via JMX under {@code org.jacoco:type=Runtime}. Defaults to {@code false}.
@@ -230,6 +285,10 @@ public abstract class JacocoTaskExtension {
     @Internal
     public Property<Boolean> getIsJmx() {
         return getJmx();
+    }
+
+    public void setJmx(boolean jmx) {
+        getJmx().set(jmx);
     }
 
     /**
@@ -291,12 +350,10 @@ public abstract class JacocoTaskExtension {
 
         @BytecodeUpgrade
         static void setDestinationFile(JacocoTaskExtension extension, Provider<File> destinationFile) {
-            extension.getDestinationFile().fileProvider(destinationFile);
-        }
-
-        @BytecodeUpgrade
-        static void setDestinationFile(JacocoTaskExtension extension, File destinationFile) {
-            extension.getDestinationFile().set(destinationFile);
+            // TODO: This is a workaround for behavior in AGP.
+            // see https://github.com/gradle/gradle/issues/33389
+            // This can be removed once we've fixed RegularFileProperty.fileProvider(...) to work properly
+            extension.getDestinationFile().fileProvider(destinationFile.flatMap(Providers::of));
         }
     }
 

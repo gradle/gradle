@@ -53,6 +53,14 @@ public interface VersionControlSpec extends Describable {
     Property<String> getRootDir();
 
     /**
+     * Sets the relative path to the root of the build within the repository. Use an empty string to refer to the root of the repository.
+     *
+     * @param rootDir The root directory of the build, relative to the root of this repository.
+     * @since 4.5
+     */
+    void setRootDir(String rootDir);
+
+    /**
      * Configure injected plugins into this build.
      *
      * @param configuration the configuration action for adding injected plugins

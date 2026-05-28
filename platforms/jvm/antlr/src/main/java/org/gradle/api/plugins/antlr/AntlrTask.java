@@ -56,13 +56,16 @@ import org.gradle.work.ChangeType;
 import org.gradle.work.FileChange;
 import org.gradle.work.InputChanges;
 import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
 import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Callable;
+
 
 /**
  * Generates parsers from Antlr grammars.
@@ -87,6 +90,10 @@ public abstract class AntlrTask extends SourceTask {
     @ReplacesEagerProperty(originalType = boolean.class)
     public abstract Property<Boolean> getTrace();
 
+    public void setTrace(boolean trace) {
+        getTrace().set(trace);
+    }
+
     @Internal
     public Property<Boolean> getIsTrace() {
         return getTrace();
@@ -98,6 +105,10 @@ public abstract class AntlrTask extends SourceTask {
     @Input
     @ReplacesEagerProperty(originalType = boolean.class)
     public abstract Property<Boolean> getTraceLexer();
+
+    public void setTraceLexer(boolean traceLexer) {
+        getTraceLexer().set(traceLexer);
+    }
 
     @Internal
     public Property<Boolean> getIsTraceLexer() {
@@ -111,6 +122,10 @@ public abstract class AntlrTask extends SourceTask {
     @ReplacesEagerProperty(originalType = boolean.class)
     public abstract Property<Boolean> getTraceParser();
 
+    public void setTraceParser(boolean traceParser) {
+        getTraceParser().set(traceParser);
+    }
+
     @Internal
     public Property<Boolean> getIsTraceParser() {
         return getTraceParser();
@@ -122,6 +137,10 @@ public abstract class AntlrTask extends SourceTask {
     @Input
     @ReplacesEagerProperty(originalType = boolean.class)
     public abstract Property<Boolean> getTraceTreeWalker();
+
+    public void setTraceTreeWalker(boolean traceTreeWalker) {
+        getTraceTreeWalker().set(traceTreeWalker);
+    }
 
     @Internal
     public Property<Boolean> getIsTraceTreeWalker() {
@@ -135,6 +154,10 @@ public abstract class AntlrTask extends SourceTask {
     @ReplacesEagerProperty
     public abstract Property<String> getMaxHeapSize();
 
+    public void setMaxHeapSize(String maxHeapSize) {
+        getMaxHeapSize().set(maxHeapSize);
+    }
+
     /**
      * List of command-line arguments passed to the antlr process
      *
@@ -143,6 +166,16 @@ public abstract class AntlrTask extends SourceTask {
     @Input
     @ReplacesEagerProperty
     public abstract ListProperty<String> getArguments();
+
+    /**
+     * Sets the list of command-line arguments passed to the antlr process. A {@code null}
+     * value leaves the previous value untouched, mirroring the historical eager behaviour.
+     */
+    public void setArguments(@Nullable List<String> arguments) {
+        if (arguments != null) {
+            getArguments().set(arguments);
+        }
+    }
 
     /**
      * Returns the directory to generate the parser source files into.
@@ -154,6 +187,15 @@ public abstract class AntlrTask extends SourceTask {
     public abstract DirectoryProperty getOutputDirectory();
 
     /**
+     * Specifies the directory to generate the parser source files into.
+     *
+     * @param outputDirectory The output directory. Must not be null.
+     */
+    public void setOutputDirectory(File outputDirectory) {
+        getOutputDirectory().set(outputDirectory);
+    }
+
+    /**
      * Returns the classpath containing the Ant ANTLR task implementation.
      *
      * @return The Ant task implementation classpath.
@@ -161,6 +203,15 @@ public abstract class AntlrTask extends SourceTask {
     @Classpath
     @ReplacesEagerProperty
     public abstract ConfigurableFileCollection getAntlrClasspath();
+
+    /**
+     * Specifies the classpath containing the Ant ANTLR task implementation.
+     *
+     * @param antlrClasspath The Ant task implementation classpath. Must not be null.
+     */
+    protected void setAntlrClasspath(FileCollection antlrClasspath) {
+        getAntlrClasspath().setFrom(antlrClasspath);
+    }
 
     @Inject
     protected abstract WorkerProcessFactory getWorkerProcessBuilderFactory();

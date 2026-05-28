@@ -22,8 +22,10 @@ import org.gradle.api.tasks.testing.logging.TestExceptionFormat;
 import org.gradle.api.tasks.testing.logging.TestLogEvent;
 import org.gradle.api.tasks.testing.logging.TestLogging;
 import org.gradle.api.tasks.testing.logging.TestStackTraceFilter;
+import org.gradle.util.internal.GUtil;
 
 import java.util.EnumSet;
+import java.util.Set;
 
 import static org.gradle.util.internal.GUtil.toEnumSet;
 
@@ -45,6 +47,16 @@ public abstract class DefaultTestLogging implements TestLogging {
     public abstract SetProperty<TestLogEvent> getEvents();
 
     @Override
+    public void setEvents(Set<TestLogEvent> events) {
+        getEvents().set(events);
+    }
+
+    @Override
+    public void setEvents(Iterable<?> events) {
+        getEvents().set(toEnumSet(TestLogEvent.class, events));
+    }
+
+    @Override
     public void events(Object... events) {
         getEvents().addAll(toEnumSet(TestLogEvent.class, events));
     }
@@ -53,25 +65,75 @@ public abstract class DefaultTestLogging implements TestLogging {
     public abstract Property<Integer> getMinGranularity();
 
     @Override
+    public void setMinGranularity(int minGranularity) {
+        getMinGranularity().set(minGranularity);
+    }
+
+    @Override
     public abstract Property<Integer> getMaxGranularity();
+
+    @Override
+    public void setMaxGranularity(int maxGranularity) {
+        getMaxGranularity().set(maxGranularity);
+    }
 
     @Override
     public abstract Property<Integer> getDisplayGranularity();
 
     @Override
+    public void setDisplayGranularity(int displayGranularity) {
+        getDisplayGranularity().set(displayGranularity);
+    }
+
+    @Override
     public abstract Property<Boolean> getShowExceptions();
+
+    @Override
+    public void setShowExceptions(boolean showExceptions) {
+        getShowExceptions().set(showExceptions);
+    }
 
     @Override
     public abstract Property<Boolean> getShowCauses();
 
     @Override
+    public void setShowCauses(boolean showCauses) {
+        getShowCauses().set(showCauses);
+    }
+
+    @Override
     public abstract Property<Boolean> getShowStackTraces();
+
+    @Override
+    public void setShowStackTraces(boolean showStackTraces) {
+        getShowStackTraces().set(showStackTraces);
+    }
 
     @Override
     public abstract Property<TestExceptionFormat> getExceptionFormat();
 
     @Override
+    public void setExceptionFormat(TestExceptionFormat exceptionFormat) {
+        getExceptionFormat().set(exceptionFormat);
+    }
+
+    @Override
+    public void setExceptionFormat(Object exceptionFormat) {
+        getExceptionFormat().set(GUtil.toEnum(TestExceptionFormat.class, exceptionFormat));
+    }
+
+    @Override
     public abstract SetProperty<TestStackTraceFilter> getStackTraceFilters();
+
+    @Override
+    public void setStackTraceFilters(Set<TestStackTraceFilter> stackTraces) {
+        getStackTraceFilters().set(stackTraces);
+    }
+
+    @Override
+    public void setStackTraceFilters(Iterable<?> stackTraces) {
+        getStackTraceFilters().set(toEnumSet(TestStackTraceFilter.class, stackTraces));
+    }
 
     @Override
     public void stackTraceFilters(Object... filters) {
@@ -80,4 +142,10 @@ public abstract class DefaultTestLogging implements TestLogging {
 
     @Override
     public abstract Property<Boolean> getShowStandardStreams();
+
+    @Override
+    public TestLogging setShowStandardStreams(boolean showStandardStreams) {
+        getShowStandardStreams().set(showStandardStreams);
+        return this;
+    }
 }

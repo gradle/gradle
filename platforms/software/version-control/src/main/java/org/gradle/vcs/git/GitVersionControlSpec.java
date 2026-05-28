@@ -43,5 +43,10 @@ public interface GitVersionControlSpec extends VersionControlSpec {
     /**
      * Sets the URL of the repository.
      */
+    void setUrl(URI url);
+
+    /**
+     * Sets the URL of the repository.
+     */
     void setUrl(String url);
 }

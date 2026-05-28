@@ -21,6 +21,7 @@ import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.plugins.quality.internal.CheckstyleActionParameters;
 import org.gradle.api.plugins.quality.internal.CheckstyleInvoker;
@@ -47,7 +48,11 @@ import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyPro
 import org.gradle.util.internal.ClosureBackedAction;
 import org.gradle.workers.WorkQueue;
 
+import org.jspecify.annotations.Nullable;
+
 import java.io.File;
+import java.util.Map;
+
 
 /**
  * Runs Checkstyle against some source files.
@@ -194,11 +199,25 @@ public abstract class Checkstyle extends AbstractCodeQualityTask implements Repo
     public abstract ConfigurableFileCollection getCheckstyleClasspath();
 
     /**
+     * The class path containing the Checkstyle library to be used.
+     */
+    public void setCheckstyleClasspath(FileCollection checkstyleClasspath) {
+        getCheckstyleClasspath().setFrom(checkstyleClasspath);
+    }
+
+    /**
      * The class path containing the compiled classes for the source files to be analyzed.
      */
     @Classpath
     @ReplacesEagerProperty
     public abstract ConfigurableFileCollection getClasspath();
+
+    /**
+     * The class path containing the compiled classes for the source files to be analyzed.
+     */
+    public void setClasspath(FileCollection classpath) {
+        getClasspath().setFrom(classpath);
+    }
 
     /**
      * The Checkstyle configuration to use. Replaces the {@code configFile} property.
@@ -226,6 +245,13 @@ public abstract class Checkstyle extends AbstractCodeQualityTask implements Repo
     @Input
     @ReplacesEagerProperty
     public abstract MapProperty<String, Object> getConfigProperties();
+
+    /**
+     * The properties available for use in the configuration file. These are substituted into the configuration file.
+     */
+    public void setConfigProperties(@Nullable Map<String, Object> configProperties) {
+        getConfigProperties().set(configProperties);
+    }
 
     /**
      * Path to other Checkstyle configuration files.
@@ -261,6 +287,16 @@ public abstract class Checkstyle extends AbstractCodeQualityTask implements Repo
     public abstract Property<Integer> getMaxErrors();
 
     /**
+     * Set the maximum number of errors that are tolerated before breaking the build.
+     *
+     * @param maxErrors number of errors allowed
+     * @since 3.4
+     */
+    public void setMaxErrors(int maxErrors) {
+        getMaxErrors().set(maxErrors);
+    }
+
+    /**
      * The maximum number of warnings that are tolerated before breaking the build
      * or setting the failure property.
      *
@@ -272,6 +308,16 @@ public abstract class Checkstyle extends AbstractCodeQualityTask implements Repo
     public abstract Property<Integer> getMaxWarnings();
 
     /**
+     * Set the maximum number of warnings that are tolerated before breaking the build.
+     *
+     * @param maxWarnings number of warnings allowed
+     * @since 3.4
+     */
+    public void setMaxWarnings(int maxWarnings) {
+        getMaxWarnings().set(maxWarnings);
+    }
+
+    /**
      * Whether rule violations are to be displayed on the console.
      *
      * @return true if violations should be displayed on console
@@ -279,6 +325,13 @@ public abstract class Checkstyle extends AbstractCodeQualityTask implements Repo
     @Console
     @ReplacesEagerProperty(originalType = boolean.class)
     public abstract Property<Boolean> getShowViolations();
+
+    /**
+     * Whether rule violations are to be displayed on the console.
+     */
+    public void setShowViolations(boolean showViolations) {
+        getShowViolations().set(showViolations);
+    }
 
     @Internal
     public Property<Boolean> getIsShowViolations() {

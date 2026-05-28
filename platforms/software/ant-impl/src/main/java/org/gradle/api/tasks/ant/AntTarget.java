@@ -61,11 +61,25 @@ public abstract class AntTarget extends ConventionTask {
     public abstract Property<Target> getTarget();
 
     /**
+     * Sets the Ant target to execute.
+     */
+    public void setTarget(Target target) {
+        getTarget().set(target);
+    }
+
+    /**
      * Returns the Ant project base directory to use when executing the target.
      */
     @Internal
     @ReplacesEagerProperty
     public abstract DirectoryProperty getBaseDir();
+
+    /**
+     * Sets the Ant project base directory to use when executing the target.
+     */
+    public void setBaseDir(File baseDir) {
+        getBaseDir().set(baseDir);
+    }
 
     /**
      * {@inheritDoc}

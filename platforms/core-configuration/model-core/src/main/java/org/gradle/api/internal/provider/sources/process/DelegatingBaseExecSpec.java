@@ -23,6 +23,7 @@ import org.gradle.api.provider.Provider;
 import org.gradle.process.BaseExecSpec;
 import org.gradle.process.ProcessForkOptions;
 
+import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
@@ -38,8 +39,20 @@ interface DelegatingBaseExecSpec extends BaseExecSpec {
     }
 
     @Override
+    default BaseExecSpec setIgnoreExitValue(boolean ignoreExitValue) {
+        getDelegate().setIgnoreExitValue(ignoreExitValue);
+        return this;
+    }
+
+    @Override
     default Property<InputStream> getStandardInput() {
         return getDelegate().getStandardInput();
+    }
+
+    @Override
+    default BaseExecSpec setStandardInput(InputStream standardInput) {
+        getDelegate().setStandardInput(standardInput);
+        return this;
     }
 
     @Override
@@ -48,8 +61,20 @@ interface DelegatingBaseExecSpec extends BaseExecSpec {
     }
 
     @Override
+    default BaseExecSpec setStandardOutput(OutputStream standardOutput) {
+        getDelegate().setStandardOutput(standardOutput);
+        return this;
+    }
+
+    @Override
     default Property<OutputStream> getErrorOutput() {
         return getDelegate().getErrorOutput();
+    }
+
+    @Override
+    default BaseExecSpec setErrorOutput(OutputStream errorOutput) {
+        getDelegate().setErrorOutput(errorOutput);
+        return this;
     }
 
     @Override
@@ -60,6 +85,16 @@ interface DelegatingBaseExecSpec extends BaseExecSpec {
     @Override
     default Property<String> getExecutable() {
         return getDelegate().getExecutable();
+    }
+
+    @Override
+    default void setExecutable(String executable) {
+        getDelegate().setExecutable(executable);
+    }
+
+    @Override
+    default void setExecutable(Object executable) {
+        getDelegate().setExecutable(executable);
     }
 
     @Override
@@ -74,6 +109,16 @@ interface DelegatingBaseExecSpec extends BaseExecSpec {
     }
 
     @Override
+    default void setWorkingDir(File dir) {
+        getDelegate().setWorkingDir(dir);
+    }
+
+    @Override
+    default void setWorkingDir(Object dir) {
+        getDelegate().setWorkingDir(dir);
+    }
+
+    @Override
     default ProcessForkOptions workingDir(Object dir) {
         getDelegate().workingDir(dir);
         return this;
@@ -82,6 +127,11 @@ interface DelegatingBaseExecSpec extends BaseExecSpec {
     @Override
     default MapProperty<String, Object> getEnvironment() {
         return getDelegate().getEnvironment();
+    }
+
+    @Override
+    default void setEnvironment(Map<String, ?> environment) {
+        getDelegate().setEnvironment(environment);
     }
 
     @Override

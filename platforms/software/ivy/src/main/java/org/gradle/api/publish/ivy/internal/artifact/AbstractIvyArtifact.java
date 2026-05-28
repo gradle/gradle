@@ -24,6 +24,7 @@ import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.TaskDependency;
+import org.jspecify.annotations.Nullable;
 
 public abstract class AbstractIvyArtifact implements IvyArtifactInternal {
     private final TaskDependency allBuildDependencies;
@@ -64,6 +65,11 @@ public abstract class AbstractIvyArtifact implements IvyArtifactInternal {
         return nameProperty;
     }
 
+    @Override
+    public void setName(String name) {
+        getName().set(name);
+    }
+
     protected abstract Provider<String> getDefaultName();
 
     @Override
@@ -71,11 +77,21 @@ public abstract class AbstractIvyArtifact implements IvyArtifactInternal {
         return typeProperty;
     }
 
+    @Override
+    public void setType(String type) {
+        getType().set(type);
+    }
+
     protected abstract Provider<String> getDefaultType();
 
     @Override
     public Property<String> getExtension() {
         return extensionProperty;
+    }
+
+    @Override
+    public void setExtension(String extension) {
+        getExtension().set(extension);
     }
 
     protected abstract Provider<String> getDefaultExtension();
@@ -86,12 +102,22 @@ public abstract class AbstractIvyArtifact implements IvyArtifactInternal {
         return classifierProperty;
     }
 
+    @Override
+    public void setClassifier(@Nullable String classifier) {
+        getClassifier().set(classifier);
+    }
+
     protected abstract Provider<String> getDefaultClassifier();
 
     @Optional
     @Override
     public Property<String> getConf() {
         return confProperty;
+    }
+
+    @Override
+    public void setConf(@Nullable String conf) {
+        getConf().set(conf);
     }
 
     protected abstract Provider<String> getDefaultConf();
