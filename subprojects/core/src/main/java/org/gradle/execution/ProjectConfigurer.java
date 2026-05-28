@@ -16,18 +16,12 @@
 
 package org.gradle.execution;
 
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 @ServiceScope(Scope.BuildTree.class)
 public interface ProjectConfigurer {
-    /**
-     * Configures the given project.
-     */
-    void configure(ProjectInternal project);
-
     /**
      * Configures the owned project, discovers tasks and binds model rules.
      */
@@ -36,10 +30,10 @@ public interface ProjectConfigurer {
     /**
      * Configures the given project and all its subprojects.
      */
-    void configureHierarchy(ProjectInternal project);
+    void configureHierarchy(ProjectState projectState);
 
     /**
      * Configures the given project and all its subprojects in parallel.
      */
-    void configureHierarchyInParallel(ProjectInternal project);
+    void configureHierarchyInParallel(ProjectState projectState);
 }

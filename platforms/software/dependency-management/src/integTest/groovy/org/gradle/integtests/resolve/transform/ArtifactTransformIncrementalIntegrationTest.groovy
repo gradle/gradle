@@ -17,6 +17,7 @@
 package org.gradle.integtests.resolve.transform
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 
 import static org.gradle.api.internal.initialization.DefaultScriptClassPathResolver.INSTRUMENTED_ATTRIBUTE
 import static org.gradle.api.internal.initialization.DefaultScriptClassPathResolver.InstrumentationPhase.NOT_INSTRUMENTED
@@ -95,6 +96,7 @@ class ArtifactTransformIncrementalIntegrationTest extends AbstractDependencyReso
         outputContains("processing [b.jar]")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "can query incremental changes"() {
         createDirs("a", "b")
         settingsFile << """
@@ -211,12 +213,12 @@ class ArtifactTransformIncrementalIntegrationTest extends AbstractDependencyReso
         setupBuildWithColorTransform {
             produceDirs()
             params("""
-                addedFiles.set(provider { added })
-                modifiedFiles.set(provider { modified })
-                removedFiles.set(provider { removed })
-                incrementalExecution.set(provider { incremental })
-                incrementalExecution.set(provider { incremental })
-                registerNewOutput.set(provider { project.registerNewOutput })
+                addedFiles.set(provider { rootProject.added })
+                modifiedFiles.set(provider { rootProject.modified })
+                removedFiles.set(provider { rootProject.removed })
+                incrementalExecution.set(provider { rootProject.incremental })
+                incrementalExecution.set(provider { rootProject.incremental })
+                registerNewOutput.set(provider { rootProject.registerNewOutput })
             """)
         }
         buildFile << """

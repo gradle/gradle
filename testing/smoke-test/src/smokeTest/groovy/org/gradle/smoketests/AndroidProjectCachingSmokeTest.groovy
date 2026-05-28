@@ -94,7 +94,6 @@ class AndroidProjectCachingSmokeTest extends AbstractAndroidProjectSmokeTest {
         }
         runnerForLocation(relocatedDir, agpVersion, "clean", *ossLicensesTasksExcludes, *excludingCCIncompatibleTasks())
             .deprecations(AndroidDeprecations) {
-                expectMultiStringNotationDeprecation(agpVersion)
                 expectProjectDependencyNotationDeprecation()
             }
             .build()
@@ -174,6 +173,8 @@ class AndroidPluginExpectations90 {
         ':app:createDemoDebugCompatibleScreenManifests': SUCCESS,
         ':app:createProdDebugApkListingFileRedirect': SUCCESS,
         ':app:createProdDebugCompatibleScreenManifests': SUCCESS,
+        ':app:demoDebugOssDependencyTask': SUCCESS,
+        ':app:demoDebugOssLicensesTask': SUCCESS,
         ':app:desugarDemoDebugFileDependencies': FROM_CACHE,
         ':app:desugarProdDebugFileDependencies': FROM_CACHE,
         ':app:dexBuilderDemoDebug': FROM_CACHE,
@@ -249,6 +250,8 @@ class AndroidPluginExpectations90 {
         ':app:processProdDebugManifestForPackage': FROM_CACHE,
         ':app:processProdDebugNavigationResources': FROM_CACHE,
         ':app:processProdDebugResources': FROM_CACHE,
+        ':app:prodDebugOssDependencyTask': SUCCESS,
+        ':app:prodDebugOssLicensesTask': SUCCESS,
         ':app:stripDemoDebugDebugSymbols': SUCCESS,
         ':app:stripProdDebugDebugSymbols': SUCCESS,
         ':app:transformDemoDebugClassesWithAsm': FROM_CACHE,
@@ -2379,6 +2382,8 @@ class AndroidPluginExpectations91 {
         ':app:createDemoDebugCompatibleScreenManifests': SUCCESS,
         ':app:createProdDebugApkListingFileRedirect': SUCCESS,
         ':app:createProdDebugCompatibleScreenManifests': SUCCESS,
+        ':app:demoDebugOssDependencyTask': SUCCESS,
+        ':app:demoDebugOssLicensesTask': SUCCESS,
         ':app:desugarDemoDebugFileDependencies': FROM_CACHE,
         ':app:desugarProdDebugFileDependencies': FROM_CACHE,
         ':app:dexBuilderDemoDebug': FROM_CACHE,
@@ -2454,6 +2459,8 @@ class AndroidPluginExpectations91 {
         ':app:processProdDebugManifestForPackage': FROM_CACHE,
         ':app:processProdDebugNavigationResources': FROM_CACHE,
         ':app:processProdDebugResources': FROM_CACHE,
+        ':app:prodDebugOssDependencyTask': SUCCESS,
+        ':app:prodDebugOssLicensesTask': SUCCESS,
         ':app:stripDemoDebugDebugSymbols': SUCCESS,
         ':app:stripProdDebugDebugSymbols': SUCCESS,
         ':app:transformDemoDebugClassesWithAsm': FROM_CACHE,

@@ -29,10 +29,9 @@ import spock.lang.Specification
 import java.util.function.Function
 
 class DefaultTasksBuildTaskSchedulerTest extends Specification {
-    final projectConfigurer = Mock(ProjectConfigurer)
     final buildInCommand = Mock(BuiltInCommand)
     final delegate = Mock(BuildTaskScheduler)
-    final action = new DefaultTasksBuildTaskScheduler(projectConfigurer, [buildInCommand], delegate)
+    final action = new DefaultTasksBuildTaskScheduler([buildInCommand], delegate)
     final startParameter = Mock(StartParameterInternal)
     final defaultProject = Mock(ProjectInternal)
     final defaultProjectState = Mock(ProjectState)
@@ -77,6 +76,7 @@ class DefaultTasksBuildTaskSchedulerTest extends Specification {
         action.scheduleRequestedTasks(gradle, selector, plan)
 
         then:
+        1 * defaultProjectState.ensureConfigured()
         1 * startParameter.setTaskNames(['a', 'b'])
         1 * delegate.scheduleRequestedTasks(gradle, selector, plan)
     }

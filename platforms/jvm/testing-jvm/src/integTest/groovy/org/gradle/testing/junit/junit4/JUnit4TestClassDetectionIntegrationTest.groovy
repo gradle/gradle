@@ -19,6 +19,7 @@ package org.gradle.testing.junit.junit4
 import org.gradle.api.tasks.testing.TestResult
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.util.internal.VersionNumber
+import org.junit.Assume
 import spock.lang.Issue
 
 import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_4
@@ -33,6 +34,10 @@ class JUnit4TestClassDetectionIntegrationTest extends AbstractJUnit4TestClassDet
 
     @Issue("https://github.com/gradle/gradle/issues/36508")
     def "scanForTestClasses=false bypasses framework detection so include patterns alone determine which classes execute"() {
+        // JUnit 4.0's @RunWith lacks @Inherited, so the runner annotation on the parent class
+        // is invisible to SubTest and the scenario can't be exercised.
+        Assume.assumeTrue(supportsEmptyClassWithRunner)
+
         given:
         // The parent class with @RunWith lives in a separate source set whose output is packaged
         // into an archive with a non-.jar extension. javac and the JVM accept it as a classpath

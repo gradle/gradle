@@ -43,6 +43,7 @@ class EclipseCustomBuildSourceOutputTest extends AbstractEclipseIntegrationSpec 
         """
 
         when:
+        expectTaskDeprecations("eclipse", "eclipseClasspath", "eclipseJdt", "eclipseProject")
         run 'eclipse'
 
         then:
@@ -55,6 +56,7 @@ class EclipseCustomBuildSourceOutputTest extends AbstractEclipseIntegrationSpec 
 
     def "can configure src output with default value"() {
         when:
+        expectTaskDeprecations("eclipse", "eclipseClasspath", "eclipseJdt", "eclipseProject")
         run 'eclipse'
 
         then:

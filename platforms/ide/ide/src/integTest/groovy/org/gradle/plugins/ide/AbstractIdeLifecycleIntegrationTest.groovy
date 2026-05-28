@@ -29,6 +29,7 @@ abstract class AbstractIdeLifecycleIntegrationTest extends AbstractIdeProjectInt
 
     def "lifecycle task is added and generates metadata"() {
         when:
+        expectTaskDeprecations(deprecatedTaskNames)
         run lifeCycleTaskName
 
         then:
@@ -45,12 +46,14 @@ abstract class AbstractIdeLifecycleIntegrationTest extends AbstractIdeProjectInt
 
     def "clean tasks always run before generation tasks when specified on the command line"() {
         when:
+        expectTaskDeprecations(deprecatedTaskNames + deprecatedCleanTaskNames)
         run cleanTaskName, lifeCycleTaskName
 
         then:
         assertCleanTasksRunBeforeGenerationTasks()
 
         when:
+        expectTaskDeprecations(deprecatedTaskNames + deprecatedCleanTaskNames)
         run lifeCycleTaskName, cleanTaskName
 
         then:
@@ -66,6 +69,7 @@ abstract class AbstractIdeLifecycleIntegrationTest extends AbstractIdeProjectInt
         """
 
         when:
+        expectTaskDeprecations(deprecatedTaskNames + deprecatedCleanTaskNames)
         run lifeCycleTaskName
 
         then:

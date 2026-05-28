@@ -70,10 +70,22 @@ tasks {
         group = "Verification"
         maxParallelForks = 1
         systemProperties["org.gradle.integtest.executer"] = "forking"
+        // IDEA resolves gradleJvm=#JAVA_HOME via the IDE process's JAVA_HOME env var.
+        // The TC agent sets JAVA_HOME on the Gradle build, but Test forks don't always
+        // propagate it. Set it explicitly so the spawned IDE inherits a valid value.
+        environment("JAVA_HOME", javaLauncher.get().metadata.installationPath.asFile.absolutePath)
         testClassesDirs = smokeIdeTestSourceSet.output.classesDirs
         classpath = smokeIdeTestSourceSet.runtimeClasspath
         jvmArgumentProviders.add(ideaSystemProperties())
         jvmArgumentProviders.add(androidStudioSystemProperties())
+        // IDEA's launch script requires JAVA_HOME. CI agents don't set it in the agent
+        // environment, and gradle-profiler's IdeLauncher only forwards IDEA_VM_OPTIONS /
+        // IDEA_PROPERTIES — so the IDE child process inherits an empty JAVA_HOME and fails.
+        // Test.environment() stores values as-is and calls toString() at fork time, so the
+        // toolchain provider must be resolved eagerly.
+        environment("JAVA_HOME", project.javaToolchains.launcherFor {
+            languageVersion = JavaLanguageVersion.of(21)
+        }.get().metadata.installationPath.asFile.absolutePath)
     }
 }
 

@@ -28,7 +28,6 @@ import gradlebuild.basics.includePerformanceTestScenarios
 import gradlebuild.basics.logicalBranch
 import gradlebuild.basics.performanceBaselines
 import gradlebuild.basics.performanceChannel
-import gradlebuild.basics.performanceDependencyBuildIds
 import gradlebuild.basics.performanceGeneratorMaxProjects
 import gradlebuild.basics.performanceStage
 import gradlebuild.basics.performanceTestBuildOperationTrace
@@ -52,6 +51,7 @@ import gradlebuild.performance.tasks.DefaultCommandExecutor
 import gradlebuild.performance.tasks.DetermineBaselines
 import gradlebuild.performance.tasks.PerformanceTest
 import gradlebuild.performance.tasks.PerformanceTestReport
+import gradlebuild.performance.tasks.VerifyPerformanceBuckets
 import org.gradle.api.Action
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -266,11 +266,22 @@ class PerformanceTestPlugin : Plugin<Project> {
     fun Project.createPerformanceTestReportTask(name: String, reportGeneratorClass: String): TaskProvider<PerformanceTestReport> {
         val performanceTestReport = tasks.register<PerformanceTestReport>(name) {
             this.reportGeneratorClass = reportGeneratorClass
-            this.dependencyBuildIds = project.performanceDependencyBuildIds
         }
         val performanceTestReportZipTask = performanceReportZipTaskFor(performanceTestReport)
         performanceTestReport {
             finalizedBy(performanceTestReportZipTask)
+        }
+        // Standalone verifier the Trigger build invokes alongside the report task. It only runs when
+        // `org.gradle.performance.expectedBuckets` is set (i.e. from TeamCity), and fails the build if fewer
+        // bucket subdirectories under perf-results/ contain JSONs than were expected. The aggregate report and zip
+        // are produced first via mustRunAfter ordering, so the artifact still publishes on a partial run.
+        val expectedBucketsProperty = project.providers.gradleProperty("org.gradle.performance.expectedBuckets").map(String::toInt)
+        tasks.register<VerifyPerformanceBuckets>("verify${name.replaceFirstChar { it.titlecase() }}Buckets") {
+            performanceResultsDirectory.set(repoRoot().dir("perf-results"))
+            expectedBuckets.set(expectedBucketsProperty)
+            mustRunAfter(performanceTestReport)
+            mustRunAfter(performanceTestReportZipTask)
+            onlyIf("org.gradle.performance.expectedBuckets is set") { expectedBucketsProperty.isPresent }
         }
         tasks.withType<Delete>().configureEach {
             if (name == "clean${name.capitalize()}") {

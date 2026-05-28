@@ -21,6 +21,7 @@ import com.google.common.collect.Streams
 import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
 import org.gradle.cache.internal.GradleUserHomeCleanupFixture
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
+import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.integtests.fixtures.cache.FileAccessTimeJournalFixture
@@ -44,6 +45,7 @@ import static org.gradle.api.internal.cache.CacheConfigurationsInternal.DEFAULT_
 import static org.gradle.internal.service.scopes.DefaultGradleUserHomeScopeServiceRegistry.REUSE_USER_HOME_SERVICES
 import static org.gradle.test.fixtures.ConcurrentTestUtil.poll
 
+@ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
 class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyResolutionTest implements FileAccessTimeJournalFixture, ValidationMessageChecker, GradleUserHomeCleanupFixture {
     static final int HALF_DEFAULT_MAX_AGE_IN_DAYS = Math.max(1, DEFAULT_MAX_AGE_IN_DAYS_FOR_CREATED_CACHE_ENTRIES / 2 as int)
 
@@ -2485,7 +2487,7 @@ resultsFile:
                         from.attribute(artifactType, "jar")
                         to.attribute(artifactType, "size")
                         parameters {
-                            value = paramValue
+                            value = rootProject.paramValue
                         }
                     }
                 }
@@ -2525,7 +2527,7 @@ resultsFile:
                     registerTransform(FileSizer) {
                         from.attribute(artifactType, "classes")
                         to.attribute(artifactType, "size")
-                        parameters { value = paramValue }
+                        parameters { value = rootProject.paramValue }
                     }
                 }
             }

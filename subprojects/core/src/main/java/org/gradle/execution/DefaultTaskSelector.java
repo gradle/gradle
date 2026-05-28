@@ -54,8 +54,8 @@ public abstract class DefaultTaskSelector implements TaskSelector {
     public Spec<Task> getFilter(SelectionContext context, ProjectState project, String taskName, boolean includeSubprojects) {
         if (includeSubprojects) {
             // Try to delay configuring all the subprojects
-            getConfigurer().configure(project.getMutableModel());
-            if (taskNameResolver.tryFindUnqualifiedTaskCheaply(taskName, project.getMutableModel())) {
+            project.ensureConfigured();
+            if (taskNameResolver.tryFindUnqualifiedTaskCheaply(taskName, project)) {
                 // An exact match in the target project - can just filter tasks by path to avoid configuring subprojects at this point
                 return new TaskPathSpec(project.getMutableModel(), taskName);
             }
@@ -68,9 +68,9 @@ public abstract class DefaultTaskSelector implements TaskSelector {
     @Override
     public TaskSelection getSelection(SelectionContext context, ProjectState targetProject, String taskName, boolean includeSubprojects) {
         if (!includeSubprojects) {
-            getConfigurer().configure(targetProject.getMutableModel());
+            targetProject.ensureConfigured();
         } else {
-            getConfigurer().configureHierarchy(targetProject.getMutableModel());
+            getConfigurer().configureHierarchy(targetProject);
         }
 
         TaskSelectionResult tasks = taskNameResolver.selectWithName(taskName, targetProject, includeSubprojects);

@@ -52,7 +52,6 @@ import org.gradle.internal.cc.impl.problems.ConfigurationCacheProblems
 import org.gradle.internal.cc.impl.promo.ConfigurationCachePromoHandler
 import org.gradle.internal.cc.impl.promo.PromoInputsListener
 import org.gradle.internal.cc.impl.services.ConfigurationCacheBuildTreeModelSideEffectExecutor
-import org.gradle.internal.cc.impl.services.ConfigurationCacheEnvironment
 import org.gradle.internal.cc.impl.services.DefaultDeferredRootBuildGradle
 import org.gradle.internal.cc.impl.services.DefaultEnvironment
 import org.gradle.internal.cc.impl.services.RemoteScriptUpToDateChecker
@@ -141,7 +140,7 @@ object BuildTreeModelControllerServices : ServiceRegistrationProvider {
             // endregion
         } else if (modelParameters.isConfigurationCache) {
             // region ALL MODES
-            add(Environment::class.java, ConfigurationCacheEnvironment::class.java)
+            add(Environment::class.java, DefaultEnvironment::class.java)
             add(BuildTreeWorkGraphPreparer::class.java, ConfigurationCacheAwareBuildTreeWorkGraphPreparer::class.java)
             add(BuildTreeLifecycleControllerFactory::class.java, ConfigurationCacheBuildTreeLifecycleControllerFactory::class.java)
             add(InjectedClasspathInstrumentationStrategy::class.java, ConfigurationCacheInjectedClasspathInstrumentationStrategy::class.java)

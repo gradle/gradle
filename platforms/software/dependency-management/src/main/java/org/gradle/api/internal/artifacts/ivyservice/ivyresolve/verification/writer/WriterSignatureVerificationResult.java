@@ -57,4 +57,9 @@ class WriterSignatureVerificationResult implements SignatureVerificationResultBu
     public void noSignatures() {
         entry.noSignatures();
     }
+
+    @Override
+    public void failedToReadSignatureFile(String causeDescription) {
+        entry.noSignatures();
+    }
 }

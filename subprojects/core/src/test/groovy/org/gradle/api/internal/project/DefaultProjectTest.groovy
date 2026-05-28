@@ -86,6 +86,7 @@ import org.gradle.internal.Actions
 import org.gradle.internal.Describables
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.buildoption.DefaultInternalOptions
+import org.gradle.internal.buildoption.FeatureFlags
 import org.gradle.internal.buildoption.InternalOptions
 import org.gradle.internal.configuration.problems.IsolatedProjectsProblemsReporter
 import org.gradle.internal.configuration.problems.NoOpIsolatedProjectsProblemsReporter
@@ -279,6 +280,7 @@ class DefaultProjectTest extends Specification {
         serviceRegistryMock.get((Type) DependencyLockingHandler) >> Stub(DependencyLockingHandler)
         serviceRegistryMock.get((Type) DynamicCallContextTracker) >> Stub(DynamicCallContextTracker)
         serviceRegistryMock.get(InternalOptions) >> new DefaultInternalOptions([:])
+        serviceRegistryMock.get(FeatureFlags) >> Stub(FeatureFlags)
 
         projectState = Mock(ProjectState)
         projectState.name >> 'root'

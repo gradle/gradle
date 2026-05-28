@@ -20,6 +20,7 @@ import org.gradle.api.internal.tasks.testing.report.VerifiesGenericTestReportRes
 import org.gradle.api.services.BuildServiceParameters
 import org.gradle.api.tasks.testing.TestResult
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.TestExecutionPreconditions
@@ -176,23 +177,19 @@ class BuildEventsIntegrationTest extends AbstractIntegrationSpec implements Veri
         outputContains("EVENT: finish :b:thing")
     }
 
-    @Requires(value = TestExecutionPreconditions.NotConfigCached, reason = "already covers CC")
-    def "listener is not discarded after configuration phase when used with configuration cache"() {
+    def "listener is not discarded after configuration phase"() {
         listenerReceivedConfigurationTimeData()
         buildFile << registeringPlugin()
         buildFile << """
             apply plugin: LoggingPlugin
 
-            def listener = gradle.sharedServices.registrations["listener"].service.get()
+            def listener = gradle.sharedServices.registerIfAbsent("listener", LoggingListener).get()
             listener.configTime("data")
 
             task thing {
                 doLast { }
             }
         """
-        executer.beforeExecute {
-            withArgument("--configuration-cache")
-        }
 
         when:
         run("thing")
@@ -206,9 +203,10 @@ class BuildEventsIntegrationTest extends AbstractIntegrationSpec implements Veri
         run("thing")
 
         then:
+        def expectedData = GradleContextualExecuter.isConfigCache() ? "null" : "data"
         output.count("service:") == 2
-        outputContains("service: finish :thing with data=null")
-        outputContains("service: closed with data=null")
+        outputContains("service: finish :thing with data=$expectedData")
+        outputContains("service: closed with data=$expectedData")
     }
 
     def "listener registered from init script can receive task completion events from buildSrc and main build"() {

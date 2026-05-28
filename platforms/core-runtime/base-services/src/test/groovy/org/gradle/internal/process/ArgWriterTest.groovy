@@ -16,101 +16,107 @@
 
 package org.gradle.internal.process
 
+import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
+import spock.lang.Issue
 import spock.lang.Specification
 
 import static org.gradle.util.internal.TextUtil.toPlatformLineSeparators
 
 class ArgWriterTest extends Specification {
+
     @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
-    final StringWriter writer = new StringWriter()
-    final PrintWriter printWriter = new PrintWriter(writer, true)
-    final ArgWriter argWriter = ArgWriter.unixStyle(printWriter)
+    TestFile argsFile
+
+    def setup() {
+        argsFile = tmpDir.file("args/file")
+    }
 
     def "writes single argument to line"() {
         when:
-        argWriter.args("-nologo")
+        ArgWriter.unixStyle().generateArgsFile(["-nologo"], argsFile)
 
         then:
-        writer.toString() == toPlatformLineSeparators("-nologo\n")
+        argsFile.text == toPlatformLineSeparators("-nologo\n")
     }
 
-    def "writes multiple arguments to line"() {
+    def "writes multiple arguments to multiple lines"() {
         when:
-        argWriter.args("-I", "some/dir")
+        ArgWriter.unixStyle().generateArgsFile(["-I", "some/dir"], argsFile)
 
         then:
-        writer.toString() == toPlatformLineSeparators("-I some/dir\n")
+        argsFile.text == toPlatformLineSeparators("-I\nsome/dir\n")
     }
 
     def "quotes argument with whitespace"() {
         when:
-        argWriter.args("ab c", "d e f")
+        ArgWriter.unixStyle().generateArgsFile(["ab c", "d e f"], argsFile)
 
         then:
-        writer.toString() == toPlatformLineSeparators('"ab c" "d e f"\n')
+        argsFile.text == toPlatformLineSeparators('"ab c"\n"d e f"\n')
     }
 
     def "javaStyle quotes argument with hash"() {
-        def argWriter = ArgWriter.javaStyle(printWriter)
-
         when:
-        argWriter.args("ab#c", "d#e#f")
+        ArgWriter.javaStyle().generateArgsFile(["ab#c", "d#e#f"], argsFile)
 
         then:
-        writer.toString() == toPlatformLineSeparators('"ab#c" "d#e#f"\n')
+        argsFile.text == toPlatformLineSeparators('"ab#c"\n"d#e#f"\n')
     }
 
     def "quotes empty argument"() {
         when:
-        argWriter.args("a", "", "", "b")
+        ArgWriter.unixStyle().generateArgsFile(["a", "", "", "b"], argsFile)
 
         then:
-        writer.toString() == toPlatformLineSeparators('a "" "" b\n')
+        argsFile.text == toPlatformLineSeparators('a\n""\n""\nb\n')
     }
 
     def "escapes double quotes in argument"() {
         when:
-        argWriter.args('"abc"', 'a" bc')
+        ArgWriter.unixStyle().generateArgsFile(['"abc"', 'a" bc'], argsFile)
 
         then:
-        writer.toString() == toPlatformLineSeparators('\\"abc\\" "a\\" bc"\n')
+        argsFile.text == toPlatformLineSeparators('\\"abc\\"\n"a\\" bc"\n')
     }
 
     def "escapes backslash in argument"() {
         when:
-        argWriter.args('a\\b', 'a \\ bc')
+        ArgWriter.unixStyle().generateArgsFile(['a\\b', 'a \\ bc'], argsFile)
 
         then:
-        writer.toString() == toPlatformLineSeparators('a\\\\b "a \\\\ bc"\n')
+        argsFile.text == toPlatformLineSeparators('a\\\\b\n"a \\\\ bc"\n')
     }
 
     def "does not escape characters in windows style"() {
-        def argWriter = ArgWriter.windowsStyle(printWriter)
+        def argWriter = ArgWriter.windowsStyle()
 
         when:
-        argWriter.args('a\\b', 'a "\\" bc')
+        argWriter.generateArgsFile(['a\\b', 'a "\\" bc'], argsFile)
 
         then:
-        writer.toString() == toPlatformLineSeparators('a\\b "a "\\" bc"\n')
+        argsFile.text == toPlatformLineSeparators('a\\b\n"a "\\" bc"\n')
     }
 
-    def "generates args file using system encoding"() {
-        def argsFile = tmpDir.file("options.txt")
-        def generator = ArgWriter.argsFileGenerator(argsFile, ArgWriter.unixStyleFactory())
+    @Issue("https://github.com/gradle/gradle/issues/30304")
+    def "generates args file using native encoding"() {
+        // Include a path with é (U+00E9), which encodes to 0xE9 in Windows-1252 but 0xC3 0xA9 in UTF-8.
+        // On Windows with JDK 18+, NATIVE_CHARSET is Windows-1252 while Charset.defaultCharset() is UTF-8,
+        // so these byte sequences differ — catching the bug described in gradle/gradle#30304.
+        // The backslash is escaped by unixStyle() and the space triggers quoting.
+        ArgWriter.unixStyle().generateArgsFile(["a", "\u0302", "a b c", 'Lé Gradle'], argsFile)
 
         expect:
-        generator.apply(["a", "\u0302", "a b c"]) == ["@${argsFile.absolutePath}"] as List<String>
-        argsFile.text == toPlatformLineSeparators('a\n\u0302\n"a b c"\n')
+        argsFile.bytes == toPlatformLineSeparators('a\n\u0302\n"a b c"\n"Lé Gradle"\n').getBytes(ArgWriter.NATIVE_CHARSET)
     }
 
     def "does not generate args file for empty args"() {
-        def argsFile = tmpDir.file("options.txt")
-        def generator = ArgWriter.argsFileGenerator(argsFile, ArgWriter.unixStyleFactory())
+        def shortened = ArgWriter.unixStyle().generateArgsFile([], argsFile)
 
         expect:
-        generator.apply([]) == []
+        shortened == []
         !argsFile.file
     }
+
 }
