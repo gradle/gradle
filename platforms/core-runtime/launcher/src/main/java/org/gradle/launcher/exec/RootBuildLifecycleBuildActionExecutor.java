@@ -21,7 +21,6 @@ import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.logging.configuration.ShowStacktrace;
 import org.gradle.api.problems.internal.ProblemsInternal;
-import org.gradle.api.problems.internal.ProblemsProgressEventEmitterHolder;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.RootBuildState;
 import org.gradle.internal.buildtree.BuildActionRunner;
@@ -94,13 +93,11 @@ public class RootBuildLifecycleBuildActionExecutor {
         try {
             lifecycleListener.afterStart();
             try {
-                ProblemsProgressEventEmitterHolder.init(problemsService);
                 initDeprecationLogging();
                 maybeNagOnDeprecatedJavaRuntimeVersion();
                 RootBuildState rootBuild = buildStateRegistry.createRootBuild(BuildDefinition.fromStartParameter(action.getStartParameter(), null));
                 return rootBuild.run(buildController -> buildActionRunner.run(action, buildController));
             } finally {
-                ProblemsProgressEventEmitterHolder.clear();
                 lifecycleListener.beforeStop();
             }
         } finally {

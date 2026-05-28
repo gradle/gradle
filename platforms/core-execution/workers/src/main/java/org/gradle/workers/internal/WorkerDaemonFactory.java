@@ -16,6 +16,7 @@
 
 package org.gradle.workers.internal;
 
+import org.gradle.api.problems.internal.ProblemsInternal;
 import org.gradle.internal.operations.BuildOperationRef;
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
@@ -33,11 +34,15 @@ public class WorkerDaemonFactory implements WorkerFactory {
     private final WorkerDaemonClientsManager clientsManager;
     private final BuildOperationRunner buildOperationRunner;
     private final WorkerDaemonClientCancellationHandler workerDaemonClientCancellationHandler;
+    // ProblemsInternal lives at BuildTree scope, this factory at Project scope; the factory's lifetime
+    // is strictly contained within a single BuildTree, so we can safely hold the reference for our lifetime.
+    private final ProblemsInternal problems;
 
-    public WorkerDaemonFactory(WorkerDaemonClientsManager clientsManager, BuildOperationRunner buildOperationRunner, WorkerDaemonClientCancellationHandler workerDaemonClientCancellationHandler) {
+    public WorkerDaemonFactory(WorkerDaemonClientsManager clientsManager, BuildOperationRunner buildOperationRunner, WorkerDaemonClientCancellationHandler workerDaemonClientCancellationHandler, ProblemsInternal problems) {
         this.clientsManager = clientsManager;
         this.buildOperationRunner = buildOperationRunner;
         this.workerDaemonClientCancellationHandler = workerDaemonClientCancellationHandler;
+        this.problems = problems;
     }
 
     @Override
@@ -55,7 +60,14 @@ public class WorkerDaemonFactory implements WorkerFactory {
                 // wrap in build operation for logging startup failures
                 final WorkerDaemonClient client = CurrentBuildOperationRef.instance().with(parentBuildOperation, this::reserveClient);
                 try {
-                    return executeWrappedInBuildOperation(spec, parentBuildOperation, client::execute);
+                    // Bind/clear per job: worker daemons are pooled across builds (GradleUserHome scope),
+                    // so we must not leak this build's ProblemsInternal into a future build's job.
+                    client.bindProblemsService(problems);
+                    try {
+                        return executeWrappedInBuildOperation(spec, parentBuildOperation, client::execute);
+                    } finally {
+                        client.clearProblemsService();
+                    }
                 } finally {
                     clientsManager.release(client);
                 }
