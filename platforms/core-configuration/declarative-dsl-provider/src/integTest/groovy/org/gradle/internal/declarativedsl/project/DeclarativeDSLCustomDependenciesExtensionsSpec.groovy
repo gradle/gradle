@@ -298,8 +298,7 @@ final class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractInteg
         failure.assertHasCause("Failed to interpret the declarative DSL file '${testDirectory.file("build.gradle.dcl").path}'")
     }
 
-    // @Requires(value = JdkVersionTestPreconditions.KotlinSupportedJdk.class) // TODO: investigate why it's not working on Java 26
-    @Requires(value = JdkVersionTestPreconditions.Jdk25OrEarlier.class)
+    @Requires(value = JdkVersionTestPreconditions.KotlinSupportedJdk.class)
     def 'can configure an extension using DependencyCollector in declarative DSL that uses Kotlin properties for the getters'() {
         given: "a plugin that creates a custom extension using a DependencyCollector"
         file("build-logic/src/main/kotlin/com/example/restricted/DependenciesExtension.kt") << """
@@ -449,8 +448,7 @@ final class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractInteg
         outputContains("commons-lang3-3.8.1.jar")
     }
 
-    // @Requires(value = JdkVersionTestPreconditions.KotlinSupportedJdk.class) // TODO: investigate why it's not working on Java 26
-    @Requires(value = JdkVersionTestPreconditions.Jdk25OrEarlier.class)
+    @Requires(value = JdkVersionTestPreconditions.KotlinSupportedJdk.class)
     def "can configure a platform using DependencyCollector in declarative DSL from a platform project with a custom DependencyModifier in Kotlin"() {
         given: "a plugin that creates a custom extension using a DependencyCollector and PlatformDependencyModifiers"
         file("build-logic/src/main/kotlin/com/example/restricted/DependenciesExtension.kt") << defineDependenciesExtensionWithCustomPlatformModifierKotlin()
@@ -491,8 +489,7 @@ final class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractInteg
         outputContains("commons-lang3-3.8.1.jar")
     }
 
-    // @Requires(value = JdkVersionTestPreconditions.KotlinSupportedJdk.class) // TODO: investigate why it's not working on Java 26
-    @Requires(value = JdkVersionTestPreconditions.Jdk25OrEarlier.class)
+    @Requires(value = JdkVersionTestPreconditions.KotlinSupportedJdk.class)
     def "can add a testFixture dependency in declarative DSL in Kotlin"() {
         given: "a plugin that creates a custom extension using a DependencyCollector and PlatformDependencyModifiers"
         file("build-logic/src/main/kotlin/com/example/restricted/DependenciesExtension.kt") << defineDependenciesExtensionWithTestFixturesModifierKotlin()

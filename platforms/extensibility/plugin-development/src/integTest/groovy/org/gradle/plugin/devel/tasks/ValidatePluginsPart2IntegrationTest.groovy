@@ -783,8 +783,7 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
     }
 
     @Issue("https://github.com/gradle/gradle/issues/23049")
-    // @Requires(value = JdkVersionTestPreconditions.KotlinSupportedJdk.class) // TODO: should be this, EmbeddedKotlinPlugin doesn't apply the right version, investigate
-    @Requires(value = JdkVersionTestPreconditions.Jdk25OrEarlier.class)
+    @Requires(value = JdkVersionTestPreconditions.KotlinSupportedJdk.class)
     def "nested Kotlin #typeName is validated with warning"() {
         kotlinTaskSource << """
             import org.gradle.api.*;

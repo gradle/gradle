@@ -54,8 +54,7 @@ class KotlinDslJvmTargetIntegrationTest : AbstractKotlinIntegrationTest() {
     }
 
     @Test
-    // @Requires(JdkVersionTestPreconditions.KotlinSupportedJdk::class) // TODO: investigate why it's not working on Java 26
-    @Requires(JdkVersionTestPreconditions.Jdk25OrEarlier::class)
+    @Requires(JdkVersionTestPreconditions.KotlinSupportedJdk::class)
     fun `precompiled scripts use the build jvm target default`() {
 
         withClassJar("buildSrc/utils.jar", JavaClassUtil::class.java)
@@ -74,7 +73,6 @@ class KotlinDslJvmTargetIntegrationTest : AbstractKotlinIntegrationTest() {
     }
 
     @Test
-    @Ignore("Will need a new release of the `kotlin-dsl` plugin, but we don't want to do one from a Beta version") // TODO
     @LeaksFileHandles("Kotlin compiler daemon  taking time to shut down")
     fun `can use Java Toolchain to compile precompiled scripts`() {
 
