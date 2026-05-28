@@ -114,7 +114,6 @@ import javax.inject.Inject;
  *     }
  * }
  * </pre>
- * </p>
  *
  * Implementations of ValueSource are subject to the following constraint:
  * <ul>
