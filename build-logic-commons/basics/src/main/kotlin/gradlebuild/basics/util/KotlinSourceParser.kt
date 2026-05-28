@@ -99,7 +99,7 @@ class KotlinSourceParser {
 
     // Prefer `CompilerConfiguration.Companion.create()` (Kotlin 2.4+ exposes it as an extension in `org.jetbrains.kotlin.cli`)
     // and fall back to the no-arg constructor on older versions, where the constructor is still part of the public API.
-    // TODO: remove this once the wrapper is based on Kotlin 2.4.0-RC, just call the create() method directly
+    // TODO: remove this once the wrapper is based on Kotlin 2.4.0-RC or later, just call the create() method directly
     private val newCompilerConfiguration: () -> CompilerConfiguration = run {
         val viaCreate = runCatching {
             val createKt = Class.forName("org.jetbrains.kotlin.cli.CreateKt")

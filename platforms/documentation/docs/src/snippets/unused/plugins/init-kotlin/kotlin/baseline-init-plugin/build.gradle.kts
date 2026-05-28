@@ -1,5 +1,5 @@
 plugins {
-    id("org.jetbrains.kotlin.jvm") version "2.4.0-RC"
+    id("org.jetbrains.kotlin.jvm") version "2.4.0-RC2"
     `java-gradle-plugin`
     `maven-publish`
 }
