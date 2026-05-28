@@ -94,8 +94,8 @@ private constructor(
      * @since 9.6.0
      */
     @Incubating
-    operator fun String.invoke(dependencyNotations: Iterable<Project>): List<Dependency?> =
-        dependencyNotations.map { dependencies.add(this, it.asDependency()) }
+    operator fun String.invoke(dependencyNotations: Iterable<Project>): List<ProjectDependency> =
+        dependencyNotations.map { it.asDependency().also { dep -> dependencies.add(this, dep) } }
 
     /**
      * Adds a dependency to the given configuration.
@@ -192,8 +192,8 @@ private constructor(
      * @since 9.6.0
      */
     @Incubating
-    operator fun Configuration.invoke(dependencyNotations: Iterable<Project>): List<Dependency?> =
-        dependencyNotations.map { add(name, it.asDependency()) }
+    operator fun Configuration.invoke(dependencyNotations: Iterable<Project>): List<ProjectDependency> =
+        dependencyNotations.map { it.asDependency().also { dep -> dependencies.add(dep) } }
 
     /**
      * Adds a dependency to the given configuration.
@@ -215,8 +215,8 @@ private constructor(
      * @since 9.6.0
      */
     @Incubating
-    operator fun NamedDomainObjectProvider<Configuration>.invoke(dependencyNotations: Iterable<Project>): List<Dependency?> =
-        dependencyNotations.map { add(name, it.asDependency()) }
+    operator fun NamedDomainObjectProvider<Configuration>.invoke(dependencyNotations: Iterable<Project>): List<ProjectDependency> =
+        dependencyNotations.map { it.asDependency().also { dep -> add(name, dep) } }
 
     /**
      * Adds a dependency to the given [DependencyScopeConfiguration].
