@@ -17,8 +17,6 @@ package org.gradle.api.tasks;
 
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
-import org.gradle.internal.instrumentation.api.annotations.BytecodeUpgrade;
-import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 import org.gradle.work.DisableCachingByDefault;
 
 import java.io.InputStream;
@@ -55,6 +53,7 @@ public abstract class Exec extends AbstractExecTask<Exec> {
      *
      * @since 0.9
      */
+    @SuppressWarnings("this-escape")
     public Exec() {
         super(Exec.class);
     }
@@ -63,7 +62,6 @@ public abstract class Exec extends AbstractExecTask<Exec> {
      * {@inheritDoc}
      */
     @Override
-    @ReplacesEagerProperty(adapter = Exec.ArgsAdapter.class)
     public ListProperty<String> getArgs() {
         return super.getArgs();
     }
@@ -72,15 +70,40 @@ public abstract class Exec extends AbstractExecTask<Exec> {
      * {@inheritDoc}
      */
     @Override
-    @ReplacesEagerProperty(adapter = Exec.IgnoreExitValueAdapter.class)
+    public Exec setArgs(List<String> args) {
+        return setArgs((Iterable<?>) args);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Exec setArgs(Iterable<?> args) {
+        getArgs().empty();
+        args(args);
+        return this;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public Property<Boolean> getIgnoreExitValue() {
         return super.getIgnoreExitValue();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Exec setIgnoreExitValue(boolean value) {
+        getIgnoreExitValue().set(value);
+        return this;
     }
     /**
      * {@inheritDoc}
      */
     @Override
-    @ReplacesEagerProperty(adapter = Exec.StandardInputAdapter.class)
     public Property<InputStream> getStandardInput() {
         return super.getStandardInput();
     }
@@ -88,9 +111,17 @@ public abstract class Exec extends AbstractExecTask<Exec> {
     /**
      * {@inheritDoc}
      */
+    @Override
+    public Exec setStandardInput(InputStream value) {
+        getStandardInput().set(value);
+        return this;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
     @Internal
     @Override
-    @ReplacesEagerProperty(adapter = Exec.StandardOutputAdapter.class)
     public Property<OutputStream> getStandardOutput() {
         return super.getStandardOutput();
     }
@@ -99,68 +130,26 @@ public abstract class Exec extends AbstractExecTask<Exec> {
      * {@inheritDoc}
      */
     @Override
-    @ReplacesEagerProperty(adapter = Exec.ErrorOutputAdapter.class)
+    public Exec setStandardOutput(OutputStream value) {
+        getStandardOutput().set(value);
+        return this;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public Property<OutputStream> getErrorOutput() {
         return super.getErrorOutput();
     }
 
     /**
-     * No need to upgrade getter since it's already upgraded via BaseExecSpec
+     * {@inheritDoc}
      */
-    static class IgnoreExitValueAdapter {
-        @BytecodeUpgrade
-        static Exec setIgnoreExitValue(Exec self, boolean value) {
-            self.getIgnoreExitValue().set(value);
-            return self;
-        }
+    @Override
+    public Exec setErrorOutput(OutputStream value) {
+        getErrorOutput().set(value);
+        return this;
     }
 
-    /**
-     * No need to upgrade getter since it's already upgraded via ExecSpec
-     */
-    static class ArgsAdapter {
-        @BytecodeUpgrade
-        static Exec setArgs(Exec self, List<String> args) {
-            return setArgs(self, (Iterable<?>) args);
-        }
-
-        @BytecodeUpgrade
-        static Exec setArgs(Exec self, Iterable<?> args) {
-            AbstractExecTask.ArgsAdapter.setArgs(self, args);
-            return self;
-        }
-    }
-
-    /**
-     * No need to upgrade getter since it's already upgraded via BaseExecSpec
-     */
-    static class StandardInputAdapter {
-        @BytecodeUpgrade
-        static Exec setStandardInput(Exec self, InputStream value) {
-            self.getStandardInput().set(value);
-            return self;
-        }
-    }
-
-    /**
-     * No need to upgrade getter since it's already upgraded via BaseExecSpec
-     */
-    static class StandardOutputAdapter {
-        @BytecodeUpgrade
-        static Exec setStandardOutput(Exec self, OutputStream value) {
-            self.getStandardOutput().set(value);
-            return self;
-        }
-    }
-
-    /**
-     * No need to upgrade getter since it's already upgraded via BaseExecSpec
-     */
-    static class ErrorOutputAdapter {
-        @BytecodeUpgrade
-        static Exec setErrorOutput(Exec self, OutputStream value) {
-            self.getErrorOutput().set(value);
-            return self;
-        }
-    }
 }

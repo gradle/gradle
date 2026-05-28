@@ -35,7 +35,7 @@
         {
             "type": "org.gradle.external.javadoc.StandardJavadocDocletOptions",
             "member": "Field noTimestamp",
-            "acceptation": "Field was public, but it's not needed anymore",
+            "acceptation": "Field was public, but it\u0027s not needed anymore",
             "changes": [
                 "Field has been removed"
             ]

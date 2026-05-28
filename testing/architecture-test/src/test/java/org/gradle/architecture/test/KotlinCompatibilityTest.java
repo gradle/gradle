@@ -157,11 +157,26 @@ public class KotlinCompatibilityTest {
             long nullableGetterCount = getters.stream().filter(Accessors::getterAnnotatedWithNullable).count();
             long nullableSetterCount = setters.stream().filter(Accessors::setterAnnotatedWithNullable).count();
 
+            // Setter-side consistency is always enforced: all setters for the same property must agree on @Nullable,
+            // regardless of whether the getter is a lazy container. A mismatch among setters is a Kotlin source-compat
+            // hazard in its own right.
+            boolean settersArePartiallyNull = 0 < nullableSetterCount && nullableSetterCount < setters.size();
+            if (settersArePartiallyNull) {
+                return false;
+            }
+
+            // Skip the remaining getter-side checks for lazy property containers (Property, MapProperty, ListProperty,
+            // SetProperty, ConfigurableFileCollection, ...). Their getter returns the container itself, which is
+            // intrinsically non-null, while the legacy eager setter forwards a possibly-null value into the container —
+            // so the getter-side @Nullable annotation cannot match the setter-side by design.
+            if (getters.stream().anyMatch(Accessors::returnsLazyPropertyContainer)) {
+                return true;
+            }
+
             // TODO(mlopatkin) the accessors may not be available for legitimate code. One violating example is
             //   Throwable.getCause(): Throwable? and Throwable.setCause(Throwable), where the latter is package-private.
             boolean gettersArePartiallyNull = 0 < nullableGetterCount && nullableGetterCount < getters.size();
-            boolean settersArePartiallyNull = 0 < nullableSetterCount && nullableSetterCount < setters.size();
-            if (gettersArePartiallyNull || settersArePartiallyNull) {
+            if (gettersArePartiallyNull) {
                 return false;
             }
 
@@ -169,6 +184,10 @@ public class KotlinCompatibilityTest {
             boolean nonNullSetters = nullableSetterCount == 0;
             // Either both are non-null, or both are nullable
             return nonNullGetters == nonNullSetters;
+        }
+
+        private static boolean returnsLazyPropertyContainer(JavaMethod getter) {
+            return getter.getRawReturnType().isAssignableTo("org.gradle.api.provider.HasConfigurableValue");
         }
 
         private static boolean getterAnnotatedWithNullable(JavaMethod getter) {

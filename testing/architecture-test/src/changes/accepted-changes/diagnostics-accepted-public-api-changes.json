@@ -11,6 +11,14 @@
         },
         {
             "type": "org.gradle.api.tasks.diagnostics.AbstractDependencyReportTask",
+            "member": "Class org.gradle.api.tasks.diagnostics.AbstractDependencyReportTask",
+            "acceptation": "ConventionReportTask.getOutputFile became abstract during the lazy-property migration. japicmp raises this as a class-level ABSTRACT_METHOD_ADDED_IN_SUPERCLASS on every subclass, which BinaryBreakingChangesRule reports on the JApiClass. The Upgraded-property suppression in UpgradedProperties.shouldAcceptForUpgradedProperty only handles JApiMethod, so this kind of class-level violation must be accepted explicitly.",
+            "changes": [
+                "Abstract method has been added to a superclass"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.diagnostics.AbstractDependencyReportTask",
             "member": "Method org.gradle.api.tasks.diagnostics.AbstractDependencyReportTask.getTaskConfigurations()",
             "acceptation": "Changed to idiomatic type injection",
             "changes": [
@@ -28,10 +36,34 @@
         },
         {
             "type": "org.gradle.api.tasks.diagnostics.ProjectReportTask",
+            "member": "Class org.gradle.api.tasks.diagnostics.ProjectReportTask",
+            "acceptation": "ConventionReportTask.getOutputFile became abstract during the lazy-property migration. japicmp raises this as a class-level ABSTRACT_METHOD_ADDED_IN_SUPERCLASS on every subclass, which BinaryBreakingChangesRule reports on the JApiClass. The Upgraded-property suppression in UpgradedProperties.shouldAcceptForUpgradedProperty only handles JApiMethod, so this kind of class-level violation must be accepted explicitly.",
+            "changes": [
+                "Abstract method has been added to a superclass"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.diagnostics.ProjectReportTask",
             "member": "Method org.gradle.api.tasks.diagnostics.ProjectReportTask.getRenderer()",
             "acceptation": "It was made abstract to support idiomatic property getter",
             "changes": [
                 "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.diagnostics.PropertyReportTask",
+            "member": "Class org.gradle.api.tasks.diagnostics.PropertyReportTask",
+            "acceptation": "ConventionReportTask.getOutputFile became abstract during the lazy-property migration. japicmp raises this as a class-level ABSTRACT_METHOD_ADDED_IN_SUPERCLASS on every subclass, which BinaryBreakingChangesRule reports on the JApiClass. The Upgraded-property suppression in UpgradedProperties.shouldAcceptForUpgradedProperty only handles JApiMethod, so this kind of class-level violation must be accepted explicitly.",
+            "changes": [
+                "Abstract method has been added to a superclass"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.diagnostics.TaskReportTask",
+            "member": "Class org.gradle.api.tasks.diagnostics.TaskReportTask",
+            "acceptation": "ConventionReportTask.getOutputFile became abstract during the lazy-property migration. japicmp raises this as a class-level ABSTRACT_METHOD_ADDED_IN_SUPERCLASS on every subclass, which BinaryBreakingChangesRule reports on the JApiClass. The Upgraded-property suppression in UpgradedProperties.shouldAcceptForUpgradedProperty only handles JApiMethod, so this kind of class-level violation must be accepted explicitly.",
+            "changes": [
+                "Abstract method has been added to a superclass"
             ]
         }
     ]

@@ -23,6 +23,8 @@ import org.gradle.process.BaseExecSpec;
 import org.gradle.process.ExecSpec;
 
 import javax.inject.Inject;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
@@ -30,6 +32,7 @@ import java.util.List;
 public abstract class DefaultExecSpec extends DefaultProcessForkOptions implements ExecSpec {
 
     @Inject
+    @SuppressWarnings("this-escape")
     public DefaultExecSpec(ObjectFactory objectFactory, PathToFileResolver resolver) {
         super(objectFactory, resolver);
         getIgnoreExitValue().convention(false);
@@ -59,6 +62,57 @@ public abstract class DefaultExecSpec extends DefaultProcessForkOptions implemen
         if (source.getExecutable().isPresent()) {
             target.getExecutable().set(source.getExecutable());
         }
+    }
+
+    @Override
+    public ExecSpec setIgnoreExitValue(boolean ignoreExitValue) {
+        getIgnoreExitValue().set(ignoreExitValue);
+        return this;
+    }
+
+    @Override
+    public BaseExecSpec setStandardInput(InputStream standardInput) {
+        getStandardInput().set(standardInput);
+        return this;
+    }
+
+    @Override
+    public BaseExecSpec setStandardOutput(OutputStream standardOutput) {
+        getStandardOutput().set(standardOutput);
+        return this;
+    }
+
+    @Override
+    public BaseExecSpec setErrorOutput(OutputStream errorOutput) {
+        getErrorOutput().set(errorOutput);
+        return this;
+    }
+
+    @Override
+    public void setCommandLine(List<String> args) {
+        commandLine(args);
+    }
+
+    @Override
+    public void setCommandLine(Object... args) {
+        commandLine(args);
+    }
+
+    @Override
+    public void setCommandLine(Iterable<?> args) {
+        commandLine(args);
+    }
+
+    @Override
+    public ExecSpec setArgs(List<String> args) {
+        return setArgs((Iterable<?>) args);
+    }
+
+    @Override
+    public ExecSpec setArgs(Iterable<?> args) {
+        getArgs().empty();
+        args(args);
+        return this;
     }
 
     @Override

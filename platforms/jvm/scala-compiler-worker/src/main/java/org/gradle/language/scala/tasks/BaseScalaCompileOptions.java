@@ -30,9 +30,11 @@ import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.scala.IncrementalCompileOptions;
 import org.gradle.api.tasks.scala.ScalaForkOptions;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
+import org.jspecify.annotations.Nullable;
 
 import javax.inject.Inject;
 import java.io.Serializable;
+import java.util.List;
 
 /**
  * Options for Scala platform compilation.
@@ -48,6 +50,7 @@ public abstract class BaseScalaCompileOptions implements Serializable {
     private final IncrementalCompileOptions incrementalOptions = getObjectFactory().newInstance(IncrementalCompileOptions.class);
 
     @Inject
+    @SuppressWarnings("this-escape")
     public BaseScalaCompileOptions() {
         getFailOnError().convention(true);
         getDeprecation().convention(true);
@@ -72,6 +75,10 @@ public abstract class BaseScalaCompileOptions implements Serializable {
         return getFailOnError();
     }
 
+    public void setFailOnError(boolean failOnError) {
+        getFailOnError().set(failOnError);
+    }
+
     /**
      * Generate deprecation information.
      */
@@ -82,6 +89,10 @@ public abstract class BaseScalaCompileOptions implements Serializable {
     @Internal
     public Property<Boolean> getIsDeprecation() {
         return getDeprecation();
+    }
+
+    public void setDeprecation(boolean deprecation) {
+        getDeprecation().set(deprecation);
     }
 
     /**
@@ -96,6 +107,10 @@ public abstract class BaseScalaCompileOptions implements Serializable {
         return getUnchecked();
     }
 
+    public void setUnchecked(boolean unchecked) {
+        getUnchecked().set(unchecked);
+    }
+
     /**
      * Generate debugging information.
      * Legal values: none, source, line, vars, notailcalls
@@ -105,6 +120,10 @@ public abstract class BaseScalaCompileOptions implements Serializable {
     @Input
     @ReplacesEagerProperty
     public abstract Property<String> getDebugLevel();
+
+    public void setDebugLevel(@Nullable String debugLevel) {
+        getDebugLevel().set(debugLevel);
+    }
 
     /**
      * Run optimizations.
@@ -118,6 +137,10 @@ public abstract class BaseScalaCompileOptions implements Serializable {
         return getOptimize();
     }
 
+    public void setOptimize(boolean optimize) {
+        getOptimize().set(optimize);
+    }
+
     /**
      * Encoding of source files.
      * @since 2.3
@@ -126,6 +149,10 @@ public abstract class BaseScalaCompileOptions implements Serializable {
     @Input
     @ReplacesEagerProperty
     public abstract Property<String> getEncoding();
+
+    public void setEncoding(@Nullable String encoding) {
+        getEncoding().set(encoding);
+    }
 
     /**
      * Whether to force the compilation of all files.
@@ -142,6 +169,10 @@ public abstract class BaseScalaCompileOptions implements Serializable {
         return getForce();
     }
 
+    public void setForce(boolean force) {
+        getForce().set(force);
+    }
+
     /**
      * Additional parameters passed to the compiler.
      * Each parameter must start with '-'.
@@ -155,6 +186,15 @@ public abstract class BaseScalaCompileOptions implements Serializable {
     public abstract ListProperty<String> getAdditionalParameters();
 
     /**
+     * Sets the additional parameters.
+     * <p>
+     * Setting this property will clear any previously set additional parameters.
+     */
+    public void setAdditionalParameters(List<String> additionalParameters) {
+        getAdditionalParameters().set(additionalParameters);
+    }
+
+    /**
      * List files to be compiled.
      */
     @Console
@@ -166,6 +206,10 @@ public abstract class BaseScalaCompileOptions implements Serializable {
         return getListFiles();
     }
 
+    public void setListFiles(boolean listFiles) {
+        getListFiles().set(listFiles);
+    }
+
     /**
      * Specifies the amount of logging.
      * Legal values:  none, verbose, debug
@@ -174,6 +218,10 @@ public abstract class BaseScalaCompileOptions implements Serializable {
     @Console
     @ReplacesEagerProperty
     public abstract Property<String> getLoggingLevel();
+
+    public void setLoggingLevel(String loggingLevel) {
+        getLoggingLevel().set(loggingLevel);
+    }
 
     /**
      * Phases of the compiler to log.
@@ -184,6 +232,10 @@ public abstract class BaseScalaCompileOptions implements Serializable {
     @Console
     @ReplacesEagerProperty
     public abstract ListProperty<String> getLoggingPhases();
+
+    public void setLoggingPhases(List<String> loggingPhases) {
+        getLoggingPhases().set(loggingPhases);
+    }
 
     /**
      * Options for running the Scala compiler in a separate process.
