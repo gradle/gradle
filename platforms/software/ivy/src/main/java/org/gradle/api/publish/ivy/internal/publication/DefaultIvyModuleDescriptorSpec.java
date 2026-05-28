@@ -34,6 +34,7 @@ import org.gradle.api.publish.ivy.internal.dependency.IvyExcludeRule;
 import org.gradle.api.publish.ivy.internal.publisher.IvyPublicationCoordinates;
 import org.gradle.api.tasks.Optional;
 import org.gradle.internal.MutableActionSet;
+import org.jspecify.annotations.Nullable;
 
 import javax.inject.Inject;
 import java.util.ArrayList;
@@ -59,9 +60,19 @@ public abstract class DefaultIvyModuleDescriptorSpec implements IvyModuleDescrip
     @Override
     public abstract Property<String> getStatus();
 
+    @Override
+    public void setStatus(@Nullable String status) {
+        getStatus().set(status);
+    }
+
     @Optional
     @Override
     public abstract Property<String> getBranch();
+
+    @Override
+    public void setBranch(@Nullable String branch) {
+        getBranch().set(branch);
+    }
 
     @Override
     public IvyExtraInfoSpec getExtraInfo() {

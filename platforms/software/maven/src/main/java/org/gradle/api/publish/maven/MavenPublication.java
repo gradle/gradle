@@ -285,6 +285,11 @@ public interface MavenPublication extends Publication {
     Property<String> getGroupId();
 
     /**
+     * Sets the groupId for this publication.
+     */
+    void setGroupId(String groupId);
+
+    /**
      * ArtifactId for this publication.
      * @since 1.7
      */
@@ -292,11 +297,21 @@ public interface MavenPublication extends Publication {
     Property<String> getArtifactId();
 
     /**
+     * Sets the artifactId for this publication.
+     */
+    void setArtifactId(String artifactId);
+
+    /**
      * Version for this publication.
      * @since 1.7
      */
     @ReplacesEagerProperty
     Property<String> getVersion();
+
+    /**
+     * Sets the version for this publication.
+     */
+    void setVersion(String version);
 
     /**
      * Configures the version mapping strategy.

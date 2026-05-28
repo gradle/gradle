@@ -25,7 +25,17 @@ public abstract class DefaultEarSecurityRole implements EarSecurityRole {
     public abstract Property<String> getDescription();
 
     @Override
+    public void setDescription(String description) {
+        getDescription().set(description);
+    }
+
+    @Override
     public abstract Property<String> getRoleName();
+
+    @Override
+    public void setRoleName(String roleName) {
+        getRoleName().set(roleName);
+    }
 
     @Override
     public int hashCode() {

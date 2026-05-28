@@ -42,6 +42,11 @@ public abstract class DefaultGitVersionControlSpec extends AbstractVersionContro
     }
 
     @Override
+    public void setUrl(URI url) {
+        getUrl().set(url);
+    }
+
+    @Override
     public void setUrl(String url) {
         // TODO(lazy-migration Gradle 9.0): this should be handled as other Property<URI> instances.
 

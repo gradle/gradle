@@ -248,6 +248,22 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      * {@inheritDoc}
      */
     @Override
+    public void setWorkingDir(File dir) {
+        forkOptions.setWorkingDir(dir);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void setWorkingDir(Object dir) {
+        forkOptions.setWorkingDir(dir);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public Test workingDir(Object dir) {
         forkOptions.workingDir(dir);
         return this;
@@ -278,6 +294,22 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      * {@inheritDoc}
      */
     @Override
+    public void setExecutable(String executable) {
+        forkOptions.setExecutable(executable);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void setExecutable(Object executable) {
+        forkOptions.setExecutable(executable);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public Test executable(Object executable) {
         forkOptions.executable(executable);
         return this;
@@ -289,6 +321,14 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     @Override
     public MapProperty<String, Object> getSystemProperties() {
         return forkOptions.getSystemProperties();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void setSystemProperties(Map<String, ? extends @Nullable Object> systemProperties) {
+        forkOptions.setSystemProperties(systemProperties);
     }
 
     /**
@@ -321,6 +361,14 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      * {@inheritDoc}
      */
     @Override
+    public void setBootstrapClasspath(FileCollection classpath) {
+        forkOptions.setBootstrapClasspath(classpath);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public Test bootstrapClasspath(@Nullable Object... classpath) {
         forkOptions.bootstrapClasspath(classpath);
         return this;
@@ -338,6 +386,14 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      * {@inheritDoc}
      */
     @Override
+    public void setMinHeapSize(@Nullable String heapSize) {
+        forkOptions.setMinHeapSize(heapSize);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public Property<String> getDefaultCharacterEncoding() {
         return forkOptions.getDefaultCharacterEncoding();
     }
@@ -346,8 +402,24 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      * {@inheritDoc}
      */
     @Override
+    public void setDefaultCharacterEncoding(@Nullable String defaultCharacterEncoding) {
+        forkOptions.setDefaultCharacterEncoding(defaultCharacterEncoding);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public Property<String> getMaxHeapSize() {
         return forkOptions.getMaxHeapSize();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void setMaxHeapSize(@Nullable String heapSize) {
+        forkOptions.setMaxHeapSize(heapSize);
     }
 
     /**
@@ -364,6 +436,22 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     @Override
     public ListProperty<CommandLineArgumentProvider> getJvmArgumentProviders() {
         return forkOptions.getJvmArgumentProviders();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void setJvmArgs(List<String> arguments) {
+        forkOptions.setJvmArgs(arguments);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void setJvmArgs(Iterable<?> arguments) {
+        forkOptions.setJvmArgs(arguments);
     }
 
     /**
@@ -396,9 +484,25 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      * {@inheritDoc}
      */
     @Override
+    public void setEnableAssertions(boolean enabled) {
+        forkOptions.setEnableAssertions(enabled);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     @Option(option = "debug-jvm", description = "Enable debugging for the test process. The process is started suspended and listening on port 5005.")
     public Property<Boolean> getDebug() {
         return forkOptions.getDebug();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void setDebug(boolean enabled) {
+        forkOptions.setDebug(enabled);
     }
 
     /**
@@ -469,6 +573,22 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      * {@inheritDoc}
      */
     @Override
+    public void setAllJvmArgs(List<String> arguments) {
+        forkOptions.setAllJvmArgs(arguments);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void setAllJvmArgs(Iterable<?> arguments) {
+        forkOptions.setAllJvmArgs(arguments);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     @Internal
     public MapProperty<String, Object> getEnvironment() {
         return forkOptions.getEnvironment();
@@ -490,6 +610,14 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     public Test environment(String name, Object value) {
         forkOptions.environment(name, value);
         return this;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void setEnvironment(Map<String, ?> environmentVariables) {
+        forkOptions.setEnvironment(environmentVariables);
     }
 
     /**
@@ -796,6 +924,16 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     public abstract ConfigurableFileCollection getTestClassesDirs();
 
     /**
+     * Sets the directories to scan for compiled test sources.
+     *
+     * @param testClassesDirs All test class directories to be used.
+     * @since 4.0
+     */
+    public void setTestClassesDirs(FileCollection testClassesDirs) {
+        getTestClassesDirs().setFrom(testClassesDirs);
+    }
+
+    /**
      * Returns directories to scan for non-class-based test definition files.
      *
      * @return The directories holding non-class-based test definition files.
@@ -1060,6 +1198,10 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     @ReplacesEagerProperty
     public abstract ConfigurableFileCollection getClasspath();
 
+    public void setClasspath(FileCollection classpath) {
+        getClasspath().setFrom(classpath);
+    }
+
     /**
      * Specifies whether test classes should be detected. When {@code true} the classes which match the include and exclude patterns are scanned for test classes, and any found are executed. When
      * {@code false} the classes which match the include and exclude patterns are executed.
@@ -1067,6 +1209,10 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     @Input
     @ReplacesEagerProperty(originalType = boolean.class)
     public abstract Property<Boolean> getScanForTestClasses();
+
+    public void setScanForTestClasses(boolean scanForTestClasses) {
+        getScanForTestClasses().set(scanForTestClasses);
+    }
 
     /**
      * Added for Kotlin source compatibility. Use {@link #getScanForTestClasses()} instead.
@@ -1096,6 +1242,19 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     public abstract Property<Long> getForkEvery();
 
     /**
+     * Sets the maximum number of test classes to execute in a forked test process.
+     * <p>
+     * By default, Gradle automatically uses a separate JVM when executing tests, so changing this property is usually not necessary.
+     * </p>
+     *
+     * @param forkEvery The maximum number of test classes. Use 0 to specify no maximum.
+     * @since 8.1
+     */
+    public void setForkEvery(long forkEvery) {
+        getForkEvery().set(forkEvery);
+    }
+
+    /**
      * Returns the maximum number of test processes to start in parallel.
      *
      * <p>
@@ -1113,6 +1272,18 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     @Internal
     @ReplacesEagerProperty(adapter = MaxParallelForks.class)
     public abstract Property<Integer> getMaxParallelForks();
+
+    /**
+     * Sets the maximum number of test processes to start in parallel.
+     * <p>
+     * By default, Gradle executes a single test class at a time but allows multiple {@link Test} tasks to run in parallel.
+     * </p>
+     *
+     * @param maxParallelForks The maximum number of forked test processes. Use 1 to disable parallel test execution for this task.
+     */
+    public void setMaxParallelForks(int maxParallelForks) {
+        getMaxParallelForks().set(maxParallelForks);
+    }
 
     /**
      * Returns the classes files to scan for test classes.
@@ -1230,22 +1401,12 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
         static long getForkEvery(Test test) {
             return test.getDebug().get() ? 0 : test.getForkEvery().get();
         }
-
-        @BytecodeUpgrade
-        static void setForkEvery(Test test, long forkEvery) {
-            test.getForkEvery().set(forkEvery);
-        }
     }
 
     static class MaxParallelForks {
         @BytecodeUpgrade
         static int getMaxParallelForks(Test test) {
             return test.getDebug().get() ? 1 : test.getMaxParallelForks().get();
-        }
-
-        @BytecodeUpgrade
-        static void setMaxParallelForks(Test test, int maxParallelForks) {
-            test.getMaxParallelForks().set(maxParallelForks);
         }
     }
 }

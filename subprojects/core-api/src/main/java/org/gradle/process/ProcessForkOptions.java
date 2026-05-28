@@ -45,6 +45,21 @@ public interface ProcessForkOptions {
      * Sets the name of the executable to use.
      *
      * @param executable The executable. Must not be null.
+     * @since 4.0
+     */
+    void setExecutable(String executable);
+
+    /**
+     * Sets the name of the executable to use.
+     *
+     * @param executable The executable. Must not be null.
+     */
+    void setExecutable(Object executable);
+
+    /**
+     * Sets the name of the executable to use.
+     *
+     * @param executable The executable. Must not be null.
      * @return this
      * @since 0.9
      */
@@ -105,6 +120,13 @@ public interface ProcessForkOptions {
      */
     @ReplacesEagerProperty
     MapProperty<String, Object> getEnvironment();
+
+    /**
+     * Sets the environment variable to use for the process.
+     *
+     * @param environment The environment variables. Must not be null.
+     */
+    void setEnvironment(Map<String, ?> environment);
 
     /**
      * Adds some environment variables to the environment for this process.

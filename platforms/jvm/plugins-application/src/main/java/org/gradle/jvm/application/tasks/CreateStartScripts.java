@@ -180,6 +180,10 @@ public abstract class CreateStartScripts extends ConventionTask {
         return optsEnvironmentVar;
     }
 
+    public void setOptsEnvironmentVar(@Nullable String optsEnvironmentVar) {
+        getOptsEnvironmentVar().set(optsEnvironmentVar);
+    }
+
     /**
      * The environment variable to use to control exit value (Windows only).
      *
@@ -279,6 +283,7 @@ public abstract class CreateStartScripts extends ConventionTask {
         getOutputDirectory().convention(getObjectFactory().directoryProperty().fileValue(outputDir));
     }
 
+
     /**
      * The directory to write the scripts into in the distribution.
      *
@@ -288,6 +293,15 @@ public abstract class CreateStartScripts extends ConventionTask {
     @ReplacesEagerProperty
     public Property<String> getExecutableDir() {
         return executableDir;
+    }
+
+    /**
+     * The directory to write the scripts into in the distribution.
+     *
+     * @since 4.5
+     */
+    public void setExecutableDir(String executableDir) {
+        getExecutableDir().set(executableDir);
     }
 
     /**
@@ -317,6 +331,10 @@ public abstract class CreateStartScripts extends ConventionTask {
     @ReplacesEagerProperty(originalType = Iterable.class)
     public abstract ListProperty<String> getDefaultJvmOpts();
 
+    public void setDefaultJvmOpts(@Nullable Iterable<String> defaultJvmOpts) {
+        getDefaultJvmOpts().set(defaultJvmOpts);
+    }
+
     /**
      * The application's name.
      * @since 2.4
@@ -326,6 +344,10 @@ public abstract class CreateStartScripts extends ConventionTask {
     @ReplacesEagerProperty
     public Property<String> getApplicationName() {
         return applicationName;
+    }
+
+    public void setApplicationName(@Nullable String applicationName) {
+        getApplicationName().set(applicationName);
     }
 
     /**
@@ -360,6 +382,10 @@ public abstract class CreateStartScripts extends ConventionTask {
     @Optional
     @ReplacesEagerProperty
     public abstract ConfigurableFileCollection getClasspath();
+
+    public void setClasspath(@Nullable FileCollection classpath) {
+        getClasspath().setFrom(classpath);
+    }
 
     /**
      * Returns the module path handling for executing the main class.

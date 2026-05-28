@@ -39,8 +39,11 @@ import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty
 import org.jspecify.annotations.Nullable;
 
 import javax.inject.Inject;
+import java.io.File;
 import java.io.Serializable;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Compilation options to be passed to the Groovy compiler.
@@ -49,6 +52,7 @@ import java.nio.charset.StandardCharsets;
 public abstract class GroovyCompileOptions implements Serializable {
     private static final long serialVersionUID = 0;
 
+    @SuppressWarnings("this-escape")
     public GroovyCompileOptions() {
         getFailOnError().convention(true);
         getVerbose().convention(false);
@@ -77,6 +81,13 @@ public abstract class GroovyCompileOptions implements Serializable {
     }
 
     /**
+     * Sets whether the compilation task should fail if compile errors occurred. Defaults to {@code true}.
+     */
+    public void setFailOnError(boolean failOnError) {
+        getFailOnError().set(failOnError);
+    }
+
+    /**
      * Tells whether to turn on verbose output. Defaults to {@code false}.
      */
     @Console
@@ -86,6 +97,13 @@ public abstract class GroovyCompileOptions implements Serializable {
     @Internal
     public Property<Boolean> getIsVerbose() {
         return getVerbose();
+    }
+
+    /**
+     * Sets whether to turn on verbose output. Defaults to {@code false}.
+     */
+    public void setVerbose(boolean verbose) {
+        getVerbose().set(verbose);
     }
 
     /**
@@ -101,12 +119,26 @@ public abstract class GroovyCompileOptions implements Serializable {
     }
 
     /**
+     * Sets whether to print which source files are to be compiled. Defaults to {@code false}.
+     */
+    public void setListFiles(boolean listFiles) {
+        getListFiles().set(listFiles);
+    }
+
+    /**
      * Tells the source encoding. Defaults to {@code UTF-8}.
      * @since 0.7
      */
     @Input
     @ReplacesEagerProperty
     public abstract Property<String> getEncoding();
+
+    /**
+     * Sets the source encoding. Defaults to {@code UTF-8}.
+     */
+    public void setEncoding(String encoding) {
+        getEncoding().set(encoding);
+    }
 
     /**
      * Tells whether to run the Groovy compiler in a separate process. Defaults to {@code true}.
@@ -118,6 +150,13 @@ public abstract class GroovyCompileOptions implements Serializable {
     @Internal
     public Property<Boolean> getIsFork() {
         return getFork();
+    }
+
+    /**
+     * Sets whether to run the Groovy compiler in a separate process. Defaults to {@code true}.
+     */
+    public void setFork(boolean fork) {
+        getFork().set(fork);
     }
 
     /**
@@ -210,6 +249,15 @@ public abstract class GroovyCompileOptions implements Serializable {
     }
 
     /**
+     * Sets whether Java annotation processors should process annotations on stubs.
+     *
+     * Defaults to {@code false}.
+     */
+    public void setJavaAnnotationProcessing(boolean javaAnnotationProcessing) {
+        getJavaAnnotationProcessing().set(javaAnnotationProcessing);
+    }
+
+    /**
      * Whether the Groovy compiler generate metadata for reflection on method parameter names on JDK 8 and above.
      *
      * @since 6.1
@@ -221,6 +269,16 @@ public abstract class GroovyCompileOptions implements Serializable {
     @Internal
     public Property<Boolean> getIsParameters() {
         return getParameters();
+    }
+
+    /**
+     * Sets whether metadata for reflection on method parameter names should be generated.
+     * Defaults to {@code false}
+     *
+     * @since 6.1
+     */
+    public void setParameters(boolean parameters) {
+        getParameters().set(parameters);
     }
 
     /**
@@ -260,6 +318,14 @@ public abstract class GroovyCompileOptions implements Serializable {
     @Optional
     @ReplacesEagerProperty
     public abstract MapProperty<String, Boolean> getOptimizationOptions();
+
+    /**
+     * Sets optimization options for the Groovy compiler. Allowed values for an option are {@code true} and {@code false}.
+     * Only takes effect when compiling against Groovy 1.8 or higher.
+     */
+    public void setOptimizationOptions(@Nullable Map<String, Boolean> optimizationOptions) {
+        getOptimizationOptions().set(optimizationOptions);
+    }
 
     /**
      * Returns the set of global AST transformations which should not be loaded into the Groovy compiler.
@@ -312,6 +378,14 @@ public abstract class GroovyCompileOptions implements Serializable {
     public abstract ListProperty<String> getFileExtensions();
 
     /**
+     * Sets the list of acceptable source file extensions. Only takes effect when compiling against
+     * Groovy 1.7 or higher. Defaults to {@code ImmutableList.of("java", "groovy")}.
+     */
+    public void setFileExtensions(List<String> fileExtensions) {
+        getFileExtensions().set(fileExtensions);
+    }
+
+    /**
      * Tells whether Java stubs for Groovy classes generated during Java/Groovy joint compilation
      * should be kept after compilation has completed. Useful for joint compilation debugging purposes.
      * Defaults to {@code false}.
@@ -323,6 +397,15 @@ public abstract class GroovyCompileOptions implements Serializable {
     @Internal
     public Property<Boolean> getIsKeepStubs() {
         return getKeepStubs();
+    }
+
+    /**
+     * Sets whether Java stubs for Groovy classes generated during Java/Groovy joint compilation
+     * should be kept after compilation has completed. Useful for joint compilation debugging purposes.
+     * Defaults to {@code false}.
+     */
+    public void setKeepStubs(boolean keepStubs) {
+        getKeepStubs().set(keepStubs);
     }
 
 }

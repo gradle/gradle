@@ -31,6 +31,7 @@ public class DefaultJavaApplication implements JavaApplication {
     private final ListProperty<String> applicationDefaultJvmArgs;
     private CopySpec applicationDistribution;
 
+    @SuppressWarnings("this-escape")
     public DefaultJavaApplication(ObjectFactory objectFactory, Project project) {
         this.mainModule = objectFactory.property(String.class);
         this.mainClass = objectFactory.property(String.class);
@@ -43,6 +44,11 @@ public class DefaultJavaApplication implements JavaApplication {
     @Override
     public Property<String> getApplicationName() {
         return applicationName;
+    }
+
+    @Override
+    public void setApplicationName(String applicationName) {
+        this.applicationName.set(applicationName);
     }
 
     @Override
@@ -61,8 +67,18 @@ public class DefaultJavaApplication implements JavaApplication {
     }
 
     @Override
+    public void setApplicationDefaultJvmArgs(Iterable<String> applicationDefaultJvmArgs) {
+        this.applicationDefaultJvmArgs.set(applicationDefaultJvmArgs);
+    }
+
+    @Override
     public Property<String> getExecutableDir() {
         return executableDir;
+    }
+
+    @Override
+    public void setExecutableDir(String executableDir) {
+        this.executableDir.set(executableDir);
     }
 
     @Override
