@@ -20,6 +20,7 @@ import org.gradle.api.model.ReplacedBy;
 import org.gradle.api.provider.Property;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 
+
 /**
  * Configuration object for a build cache.
  *
@@ -36,6 +37,11 @@ public interface BuildCache {
     Property<Boolean> getEnabled();
 
     /**
+     * Sets whether the build cache is enabled.
+     */
+    void setEnabled(boolean enabled);
+
+    /**
      * Controls whether the build cache is enabled.
      */
     @ReplacedBy("getEnabled()")
@@ -48,6 +54,11 @@ public interface BuildCache {
      */
     @ReplacesEagerProperty(originalType = boolean.class)
     Property<Boolean> getPush();
+
+    /**
+     * Sets whether a given build can store outputs in the build cache.
+     */
+    void setPush(boolean push);
 
     /**
      * Controls whether a given build can store outputs in the build cache.

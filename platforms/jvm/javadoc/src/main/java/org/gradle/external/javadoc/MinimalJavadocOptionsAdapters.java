@@ -33,10 +33,6 @@ class MinimalJavadocOptionsAdapters {
             return new ArrayList<>(self.getDocletpath().getFiles());
         }
 
-        @BytecodeUpgrade
-        static void setDocletpath(MinimalJavadocOptions self, List<File> docletpath) {
-            self.getDocletpath().setFrom(docletpath);
-        }
     }
 
     static class ClasspathAdapter {
@@ -45,10 +41,6 @@ class MinimalJavadocOptionsAdapters {
             return new ArrayList<>(self.getClasspath().getFiles());
         }
 
-        @BytecodeUpgrade
-        static void setClasspath(MinimalJavadocOptions self, List<File> classpath) {
-            self.getClasspath().setFrom(classpath);
-        }
     }
 
     static class BootclasspathAdapter {
@@ -57,10 +49,6 @@ class MinimalJavadocOptionsAdapters {
             return new ArrayList<>(self.getBootClasspath().getFiles());
         }
 
-        @BytecodeUpgrade
-        static void setBootClasspath(MinimalJavadocOptions self, List<File> bootClasspath) {
-            self.getBootClasspath().setFrom(bootClasspath);
-        }
     }
 
     static class ModulePath {
@@ -69,10 +57,6 @@ class MinimalJavadocOptionsAdapters {
             return new ArrayList<>(self.getModulePath().getFiles());
         }
 
-        @BytecodeUpgrade
-        static void setModulePath(MinimalJavadocOptions self, List<File> modulePath) {
-            self.getBootClasspath().setFrom(modulePath);
-        }
     }
 
     static class ExtDirsAdapter {
@@ -81,10 +65,6 @@ class MinimalJavadocOptionsAdapters {
             return new ArrayList<>(self.getExtDirs().getFiles());
         }
 
-        @BytecodeUpgrade
-        static void setExtDirs(MinimalJavadocOptions self, List<File> extDirs) {
-            self.getExtDirs().setFrom(extDirs);
-        }
     }
 
     static class OptionFilesAdapter {
@@ -93,9 +73,5 @@ class MinimalJavadocOptionsAdapters {
             return new ArrayList<>(self.getOptionFiles().getFiles());
         }
 
-        @BytecodeUpgrade
-        static void setOptionFiles(MinimalJavadocOptions self, List<File> optionFiles) {
-            self.getOptionFiles().setFrom(optionFiles);
-        }
     }
 }

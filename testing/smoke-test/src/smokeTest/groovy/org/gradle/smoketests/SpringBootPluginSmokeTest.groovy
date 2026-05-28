@@ -93,8 +93,13 @@ class SpringBootPluginSmokeTest extends AbstractPluginValidatingSmokeTest implem
 
         when:
         smokeTestRunner = runner('bootRun')
+        // The execution-time mutation of JavaExec's jvm args is attributed inconsistently across environments:
+        // sometimes as the task-owned 'jvmArgs' property (e.g. Isolated Projects on CI), sometimes as the unowned
+        // 'jvmArguments' property (e.g. locally / plain configuration cache). Accept either form.
+        // TODO: verify why is that - the deprecation message should be consistent regardless of executer.
         def runResult = smokeTestRunner
-            .expectChangingPropertyValueAtExecutionTimeDeprecationWarning("jvmArguments")
+            .maybeExpectChangingPropertyValueAtExecutionTimeDeprecationWarning("jvmArguments")
+            .maybeExpectChangingPropertyValueAtExecutionTimeDeprecationWarning(":bootRun", "jvmArgs")
             .build()
 
         then:

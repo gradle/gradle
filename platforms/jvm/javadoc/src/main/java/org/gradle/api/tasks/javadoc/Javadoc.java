@@ -275,6 +275,14 @@ public abstract class Javadoc extends SourceTask {
     }
 
     /**
+     * <p>Sets the directory to generate the documentation into.</p>
+     */
+    public void setDestinationDir(@Nullable File destinationDir) {
+        getDestinationDirectory().set(destinationDir);
+        getDestinationDirectory().convention(getObjectFactory().directoryProperty().fileValue(destinationDir));
+    }
+
+    /**
      * Returns the output directory.
      *
      * @since 3.0
@@ -297,6 +305,15 @@ public abstract class Javadoc extends SourceTask {
     public abstract Property<String> getMaxMemory();
 
     /**
+     * Sets the amount of memory allocated to this task.
+     *
+     * @param maxMemory The amount of memory
+     */
+    public void setMaxMemory(@Nullable String maxMemory) {
+        getMaxMemory().set(maxMemory);
+    }
+
+    /**
      * <p>Returns the title for the generated documentation.</p>
      *
      * @return The title, possibly null.
@@ -308,6 +325,13 @@ public abstract class Javadoc extends SourceTask {
     public abstract Property<String> getTitle();
 
     /**
+     * <p>Sets the title for the generated documentation.</p>
+     */
+    public void setTitle(@Nullable String title) {
+        getTitle().set(title);
+    }
+
+    /**
      * Returns the classpath to use to resolve type references in the source code.
      *
      * @return The classpath.
@@ -316,6 +340,15 @@ public abstract class Javadoc extends SourceTask {
     @Classpath
     @ReplacesEagerProperty
     public abstract ConfigurableFileCollection getClasspath();
+
+    /**
+     * Sets the classpath to use to resolve type references in this source code.
+     *
+     * @param classpath The classpath. Must not be null.
+     */
+    public void setClasspath(FileCollection classpath) {
+        getClasspath().setFrom(classpath);
+    }
 
     /**
      * Returns the module path handling of this javadoc task.
@@ -366,6 +399,10 @@ public abstract class Javadoc extends SourceTask {
     @ReplacesEagerProperty(originalType = boolean.class)
     public abstract Property<Boolean> getFailOnError();
 
+    public void setFailOnError(boolean failOnError) {
+        getFailOnError().set(failOnError);
+    }
+
     @ReplacedBy("getFailOnError()")
     public Property<Boolean> getIsFailOnError() {
         return getFailOnError();
@@ -394,6 +431,10 @@ public abstract class Javadoc extends SourceTask {
     @Input
     @ReplacesEagerProperty
     public abstract Property<String> getExecutable();
+
+    public void setExecutable(@Nullable String executable) {
+        getExecutable().set(executable);
+    }
 
     @Inject
     protected abstract Deleter getDeleter();

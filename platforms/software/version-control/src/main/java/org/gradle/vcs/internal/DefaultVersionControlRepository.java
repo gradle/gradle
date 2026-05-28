@@ -55,6 +55,11 @@ public class DefaultVersionControlRepository implements VersionControlRepository
     }
 
     @Override
+    public void setRootDir(String rootDir) {
+        getRootDir().set(rootDir);
+    }
+
+    @Override
     public void plugins(Action<? super InjectedPluginDependencies> configuration) {
         spec.plugins(configuration);
     }

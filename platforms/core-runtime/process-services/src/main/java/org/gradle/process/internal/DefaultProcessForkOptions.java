@@ -111,6 +111,16 @@ public class DefaultProcessForkOptions implements ProcessForkOptions {
     }
 
     @Override
+    public void setExecutable(String executable) {
+        getExecutable().set(executable);
+    }
+
+    @Override
+    public void setExecutable(Object executable) {
+        this.executable(executable);
+    }
+
+    @Override
     public ProcessForkOptions executable(Object executable) {
         if (executable instanceof Provider) {
             getExecutable().set(((Provider<?>) executable).map(Object::toString));
@@ -126,6 +136,7 @@ public class DefaultProcessForkOptions implements ProcessForkOptions {
     }
 
     @Override
+<<<<<<< HEAD
     public File getWorkingDir() {
         return getWorkingDirectory().get().getAsFile();
     }
@@ -134,11 +145,19 @@ public class DefaultProcessForkOptions implements ProcessForkOptions {
     public void setWorkingDir(File dir) {
         // We call resolver to resolve "." in some scopes
         getWorkingDirectory().set(resolver.resolve(dir));
+=======
+    public void setWorkingDir(File dir) {
+        getWorkingDir().set(dir);
+>>>>>>> 8bd3637bf6c (Add back setters to the Provider API migration)
     }
 
     @Override
     public void setWorkingDir(Object dir) {
+<<<<<<< HEAD
         workingDir(dir);
+=======
+        this.workingDir(dir);
+>>>>>>> 8bd3637bf6c (Add back setters to the Provider API migration)
     }
 
     @Override
@@ -164,6 +183,11 @@ public class DefaultProcessForkOptions implements ProcessForkOptions {
     @Override
     public MapProperty<String, Object> getEnvironment() {
         return environment;
+    }
+
+    @Override
+    public void setEnvironment(Map<String, ?> environment) {
+        getEnvironment().set(environment);
     }
 
     @Override
