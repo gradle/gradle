@@ -78,13 +78,15 @@ Use a less specific type that gives necessary features instead:
 * If referencing a `Configuration` to get resolved files, declare a `FileCollection` input.
 * If referencing a `SourceDirectorySet`, declare a `FileTree` input.
 
-Additionally, referencing resolved dependency results is disallowed (e.g., `ArtifactResolutionQuery`, `ResolvedArtifact`, `ArtifactResult`).
-Instead:
+Additionally, referencing resolved dependency results directly is disallowed (e.g., `ArtifactResolutionQuery`, `ResolvedArtifact`, `ArtifactResult`).
+Instead, use lazy providers that defer resolution to execution time:
 
-* Use a `Provider<ResolvedComponentResult>` from `ResolutionResult.getRootComponent()`.
-* Use `ArtifactCollection.getResolvedArtifacts()`, which returns a `Provider<Set<ResolvedArtifactResult>>`.
+* Use a `Provider<ResolvedComponentResult>` from `ResolutionResult.getRootComponent()` for dependency graph metadata.
+* Use `ArtifactCollection.getResolvedArtifacts()`, which returns a `Provider<Set<ResolvedArtifactResult>>`, for artifact metadata and files.
 
-Tasks should avoid referencing _resolved_ results and instead rely on lazy specifications to defer dependency resolution until execution time.
+IMPORTANT: The `Provider` returned by `getResolvedArtifacts()` is Configuration Cache-compatible, but the `ResolvedArtifactResult` type itself is *not* serializable. You cannot wire the provider directly into a `SetProperty<ResolvedArtifactResult>` task property. Instead, use `Provider.map()` to extract the data you need (artifact identifiers, variant information, files) into serializable types, and wire those into your task's input properties. See <<artifact_resolution.adoc#sec:resolving_artifacts, Resolving artifacts>> for a complete example of this pattern.
+
+NOTE: There is a known edge case (link:{gradle-issues}27582[gradle/gradle#27582]) where `getResolvedArtifacts()` fails Configuration Cache serialization when the resolved configuration contains only external dependencies and no project dependencies. As a workaround, store the `ArtifactCollection` itself as a task field and call `getResolvedArtifacts()` at execution time.
 
 Some types, such as `Publication` or `Dependency`, are not serializable but could be made so in the future.
 Gradle may allow them as task inputs if necessary.
