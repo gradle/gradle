@@ -42,6 +42,7 @@ import org.gradle.api.tasks.OutputFiles
 import org.gradle.api.tasks.UntrackedTask
 import org.gradle.api.tasks.options.OptionValues
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.process.ExecOperations
 import spock.lang.Issue
@@ -52,6 +53,7 @@ import static org.gradle.util.Matchers.matchesRegexp
 
 class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependencyResolutionTest implements ArtifactTransformTestFixture {
 
+    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "transform can receive parameters, workspace and input artifact via abstract getter"() {
         createDirs("a", "b", "c")
         settingsFile << """
@@ -106,6 +108,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         outputContains("result = [b.jar.green, c.jar.green]")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "transform can receive parameter of type #type"() {
         createDirs("a", "b", "c")
         settingsFile << """
@@ -163,6 +166,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
     }
 
     @Issue("https://github.com/gradle/gradle/issues/16982")
+    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "transform can set convention on parameter of type #type"() {
         given:
         createDirs("a", "b", "c")
@@ -211,6 +215,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         "MapProperty<String, Number>" | "[a: 1, b: 2]"   | "[a:1, b:2]"
     }
 
+    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "transform can receive a build service as a parameter"() {
         createDirs("a", "b")
         settingsFile << """
@@ -266,6 +271,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         outputContains("result = [out-1.txt]")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "transform can receive Gradle provided service #serviceType via injection"() {
         createDirs("a", "b")
         settingsFile << """
@@ -309,6 +315,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         ].collect { it.name }
     }
 
+    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "transform cannot receive Gradle provided service #serviceType via injection"() {
         createDirs("a", "b")
         settingsFile << """
@@ -348,6 +355,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         ].collect { it.name }
     }
 
+    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "transform parameters are validated for input output annotations"() {
         enableProblemsApiCheck()
         createDirs("a", "b")
@@ -586,6 +594,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         }
     }
 
+    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "can query parameters for transform with None parameters"() {
         createDirs("a", "b", "c")
         settingsFile << """
@@ -612,6 +621,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         outputContains("Parameters: org.gradle.api.artifacts.transform.TransformParameters\$None@")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "transform parameters type cannot use caching annotations"() {
         createDirs("a", "b")
         settingsFile << """
@@ -656,6 +666,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         failure.assertHasErrorOutput("Type 'MakeGreen.Parameters' is incorrectly annotated with @CacheableTransform")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "transform parameters type cannot use annotation @#ann.simpleName"() {
         enableProblemsApiCheck()
         createDirs("a", "b")
@@ -717,6 +728,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         ann << [OutputFile, OutputFiles, OutputDirectory, OutputDirectories, Destroys, LocalState, OptionValues]
     }
 
+    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "transform parameters type cannot use injection annotation @#annotation.simpleName"() {
         createDirs("a", "b", "c")
         settingsFile << """
@@ -763,6 +775,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         annotation << [InputArtifact, InputArtifactDependencies]
     }
 
+    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "transform action is validated for input output annotations"() {
         enableProblemsApiCheck()
         createDirs("a", "b", "c")
@@ -887,6 +900,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         }
     }
 
+    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "transform action type cannot use @#ann.simpleName"() {
         createDirs("a", "b", "c")
         settingsFile << """
@@ -921,6 +935,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         ann << [CacheableTask, UntrackedTask]
     }
 
+    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "transform action type cannot use annotation @#ann.simpleName"() {
         enableProblemsApiCheck()
         createDirs("a", "b", "c")
@@ -980,6 +995,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         ann << [Input, InputFile, InputDirectory, OutputFile, OutputFiles, OutputDirectory, OutputDirectories, Destroys, LocalState, OptionValues, Console, Internal]
     }
 
+    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "transform can receive dependencies via abstract getter of type #targetType"() {
         createDirs("a", "b", "c")
         settingsFile << """
@@ -1025,6 +1041,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         targetType << ["FileCollection", "Iterable<File>"]
     }
 
+    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "transform can receive parameter object via constructor parameter"() {
         createDirs("a", "b", "c")
         settingsFile << """
@@ -1066,6 +1083,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         succeeds(":a:resolve")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "transform cannot use @InputArtifact to receive #propertyType"() {
         createDirs("a", "b")
         settingsFile << """
@@ -1108,6 +1126,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         ]
     }
 
+    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "transform cannot use @InputArtifactDependencies to receive #propertyType"() {
         createDirs("a", "b")
         settingsFile << """
@@ -1146,6 +1165,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         InputArtifactDependencies | String
     }
 
+    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "transform cannot use @Inject to receive input file"() {
         createDirs("a", "b", "c")
         settingsFile << """

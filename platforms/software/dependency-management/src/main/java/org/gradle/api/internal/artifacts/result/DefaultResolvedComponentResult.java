@@ -32,7 +32,6 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.Compone
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.GraphStructure;
 import org.jspecify.annotations.Nullable;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -44,8 +43,7 @@ public class DefaultResolvedComponentResult implements ResolvedComponentResultIn
     private final ResolvedGraphResult graph;
 
     private @Nullable ImmutableList<ResolvedVariantResult> variants;
-    private @Nullable Set<? extends DependencyResult> cachedComponentDependencies;
-    private @Nullable List<@Nullable ImmutableList<DependencyResult>> variantDependencies;
+    private @Nullable ComponentDependencies dependencies;
 
     public DefaultResolvedComponentResult(
         int index,
@@ -85,16 +83,7 @@ public class DefaultResolvedComponentResult implements ResolvedComponentResultIn
 
     @Override
     public Set<? extends DependencyResult> getDependencies() {
-        if (cachedComponentDependencies == null) {
-            ImmutableSet.Builder<DependencyResult> builder = ImmutableSet.builder();
-            for (ResolvedVariantResult variant : getVariants()) {
-                for (DependencyResult dependency : getDependenciesForVariant(variant)) {
-                    builder.add(dependency);
-                }
-            }
-            this.cachedComponentDependencies = builder.build();
-        }
-        return cachedComponentDependencies;
+        return getAllDependencies().componentDependencies();
     }
 
     @Override
@@ -118,16 +107,23 @@ public class DefaultResolvedComponentResult implements ResolvedComponentResultIn
     }
 
     @Override
-    public List<ResolvedVariantResult> getVariants() {
+    public synchronized List<ResolvedVariantResult> getVariants() {
         if (variants == null) {
-            int size = nodeIndices.size();
-            ImmutableList.Builder<ResolvedVariantResult> builder = ImmutableList.builderWithExpectedSize(size);
-            for (int i = 0; i < size; i++) {
-                builder.add(graph.getVariant(nodeIndices.getInt(i)));
-            }
-            this.variants = builder.build();
+            variants = computeVariants(graph, nodeIndices);
         }
         return variants;
+    }
+
+    private static ImmutableList<ResolvedVariantResult> computeVariants(
+        ResolvedGraphResult graph,
+        IntList nodeIndices
+    ) {
+        int size = nodeIndices.size();
+        ImmutableList.Builder<ResolvedVariantResult> builder = ImmutableList.builderWithExpectedSize(size);
+        for (int i = 0; i < size; i++) {
+            builder.add(graph.getVariant(nodeIndices.getInt(i)));
+        }
+        return builder.build();
     }
 
     @Override
@@ -153,51 +149,79 @@ public class DefaultResolvedComponentResult implements ResolvedComponentResultIn
             throw new InvalidUserCodeException("Variant '" + variant.getDisplayName() + "' doesn't belong to resolved component '" + this + "'. " + moreInfo + " Most likely you are using a variant from another component to get the dependencies of this component.");
         }
 
-        if (variantDependencies == null) {
-            variantDependencies = new ArrayList<>(selectedVariants.size());
-            for (int i = 0; i < selectedVariants.size(); i++) {
-                variantDependencies.add(null);
-            }
-        }
-
-        ImmutableList<DependencyResult> result = variantDependencies.get(indexInComponent);
-        if (result == null) {
-            GraphStructure.Edges edges = graph.structure().edges();
-
-            int nodeIndex = nodeIndices.getInt(indexInComponent);
-            int start = edges.start(nodeIndex);
-            int end = edges.end(nodeIndex);
-            ImmutableSet.Builder<DependencyResult> builder = ImmutableSet.builderWithExpectedSize(end - start);
-            for (int i = start; i < end; i++) {
-                ComponentSelector selector = edges.selector(i);
-                boolean constraint = edges.constraint(i);
-                int targetNodeIndex = edges.targetNode(i);
-                if (targetNodeIndex != -1) {
-                    int targetComponentIndex = graph.structure().nodes().owner(targetNodeIndex);
-                    builder.add(new DefaultResolvedDependencyResult(
-                        selector,
-                        constraint,
-                        this,
-                        graph.getComponent(targetComponentIndex),
-                        graph.getVariant(targetNodeIndex)
-                    ));
-                } else {
-                    GraphStructure.Edges.EdgeFailure failure = edges.failure(i);
-                    builder.add(new DefaultUnresolvedDependencyResult(
-                        selector,
-                        this,
-                        constraint,
-                        failure.failure(),
-                        failure.reason()
-                    ));
-                }
-            }
-            result = builder.build().asList();
-            variantDependencies.set(indexInComponent, result);
-        }
-
-        return result;
+        return getAllDependencies().variantDependencies().get(indexInComponent);
     }
+
+    private synchronized ComponentDependencies getAllDependencies() {
+        if (dependencies == null) {
+            dependencies = computeAllDependencies(graph, nodeIndices, this);
+        }
+        return dependencies;
+    }
+
+    private static ComponentDependencies computeAllDependencies(
+        ResolvedGraphResult graph,
+        IntList nodeIndices,
+        ResolvedComponentResult fromComponent
+    ) {
+        ImmutableSet.Builder<DependencyResult> componentDependencies = ImmutableSet.builder();
+        ImmutableList.Builder<ImmutableList<DependencyResult>> allVariantDependencies = ImmutableList.builderWithExpectedSize(nodeIndices.size());
+        for (int i = 0; i < nodeIndices.size(); i++) {
+            int nodeIndex = nodeIndices.getInt(i);
+            ImmutableList<DependencyResult> variantDependencies = computeDependenciesForVariant(graph, fromComponent, nodeIndex);
+            allVariantDependencies.add(variantDependencies);
+            for (DependencyResult dependency : variantDependencies) {
+                componentDependencies.add(dependency);
+            }
+        }
+
+        return new ComponentDependencies(
+            componentDependencies.build(),
+            allVariantDependencies.build()
+        );
+    }
+
+    private static ImmutableList<DependencyResult> computeDependenciesForVariant(
+        ResolvedGraphResult graph,
+        ResolvedComponentResult fromComponent,
+        int nodeIndex
+    ) {
+        GraphStructure.Edges edges = graph.structure().edges();
+
+        int start = edges.start(nodeIndex);
+        int end = edges.end(nodeIndex);
+        ImmutableSet.Builder<DependencyResult> builder = ImmutableSet.builderWithExpectedSize(end - start);
+        for (int i = start; i < end; i++) {
+            ComponentSelector selector = edges.selector(i);
+            boolean constraint = edges.constraint(i);
+            int targetNodeIndex = edges.targetNode(i);
+            if (targetNodeIndex != -1) {
+                int targetComponentIndex = graph.structure().nodes().owner(targetNodeIndex);
+                builder.add(new DefaultResolvedDependencyResult(
+                    selector,
+                    constraint,
+                    fromComponent,
+                    graph.getComponent(targetComponentIndex),
+                    graph.getVariant(targetNodeIndex)
+                ));
+            } else {
+                GraphStructure.Edges.EdgeFailure failure = edges.failure(i);
+                builder.add(new DefaultUnresolvedDependencyResult(
+                    selector,
+                    fromComponent,
+                    constraint,
+                    failure.failure(),
+                    failure.reason()
+                ));
+            }
+        }
+        return builder.build().asList();
+    }
+
+    private record ComponentDependencies(
+        ImmutableSet<? extends DependencyResult> componentDependencies,
+        ImmutableList<ImmutableList<DependencyResult>> variantDependencies
+    ) { }
 
     /**
      * A recursive function that traverses the dependency graph of a given module and acts on each node and edge encountered.

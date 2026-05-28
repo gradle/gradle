@@ -34,17 +34,15 @@ class ResolveFailureTestFixture {
 
     void prepare(String config = this.config) {
         buildFile << """
-            allprojects {
-                tasks.register("checkDeps") {
-                    if (${GradleContextualExecuter.configCache}) {
-                        def files = configurations.${config}
-                        doLast {
-                            files.forEach { }
-                        }
-                    } else {
-                        doLast {
-                            configurations.${config}.resolve()
-                        }
+            tasks.register("checkDeps") {
+                if (${GradleContextualExecuter.configCache}) {
+                    def files = configurations.${config}
+                    doLast {
+                        files.forEach { }
+                    }
+                } else {
+                    doLast {
+                        configurations.${config}.resolve()
                     }
                 }
             }

@@ -13,9 +13,6 @@ dependencies {
     runtime(projects.daemonServer) {
         because("This is the Gradle daemon implementation, which transitively depends on all other core projects.")
     }
-    runtime(projects.daemonMain) {
-        because("This is the entry point of the Gradle daemon. It bootstraps the implementation.")
-    }
     runtime(projects.gradleCli) {
         because("This is the `gradle` command implementation.")
     }

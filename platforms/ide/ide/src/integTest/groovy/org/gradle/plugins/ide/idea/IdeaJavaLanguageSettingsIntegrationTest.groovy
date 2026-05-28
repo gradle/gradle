@@ -29,22 +29,23 @@ class IdeaJavaLanguageSettingsIntegrationTest extends AbstractIdeIntegrationSpec
     def setup() {
         createDirs("child1", "child2", "child3")
         settingsFile << """
-rootProject.name = 'root'
-include ':child1', ':child2', ':child3'
-"""
+            rootProject.name = 'root'
+            include ':child1', ':child2', ':child3'
+        """
     }
 
     void "global sourceCompatibility results in project language level"() {
         given:
         buildFile << """
-allprojects {
-    apply plugin:'idea'
-    apply plugin:'java'
+            allprojects {
+                apply plugin:'idea'
+                apply plugin:'java'
 
-    java.sourceCompatibility = "1.7"
-}
-"""
+                java.sourceCompatibility = "1.7"
+            }
+        """
         when:
+        expectTaskDeprecations("ideaModule", "ideaProject", "ideaWorkspace", "idea")
         succeeds "idea"
 
         then:
@@ -58,26 +59,27 @@ allprojects {
     void "specific module languageLevel is exposed with derived language level"() {
         given:
         buildFile << """
-allprojects {
-    apply plugin:'idea'
-    apply plugin:'java'
+            allprojects {
+                apply plugin:'idea'
+                apply plugin:'java'
 
-    java.sourceCompatibility = 1.6
-}
+                java.sourceCompatibility = 1.6
+            }
 
-project(':child1') {
-    java.sourceCompatibility = 1.7
-}
+            project(':child1') {
+                java.sourceCompatibility = 1.7
+            }
 
-project(':child2') {
-    java.sourceCompatibility = 1.5
-}
+            project(':child2') {
+                java.sourceCompatibility = 1.5
+            }
 
-project(':child3') {
-    java.sourceCompatibility = 1.8
-}
-"""
+            project(':child3') {
+                java.sourceCompatibility = 1.8
+            }
+        """
         when:
+        expectTaskDeprecations("ideaModule", "ideaProject", "ideaWorkspace", "idea")
         succeeds "idea"
 
         then:
@@ -91,37 +93,38 @@ project(':child3') {
     void "use project language level not source language level and target bytecode level when explicitly set"() {
         given:
         buildFile << """
-allprojects {
-    apply plugin:'idea'
-    apply plugin:'java'
+            allprojects {
+                apply plugin:'idea'
+                apply plugin:'java'
 
-    java.sourceCompatibility = 1.4
-    java.targetCompatibility = 1.4
-}
+                java.sourceCompatibility = 1.4
+                java.targetCompatibility = 1.4
+            }
 
-idea {
-    project {
-        jdkName   = 1.8
-        languageLevel = 1.7
-    }
-}
+            idea {
+                project {
+                    jdkName   = 1.8
+                    languageLevel = 1.7
+                }
+            }
 
-project(':child1') {
-    java.sourceCompatibility = 1.6
-    java.targetCompatibility = 1.6
-}
+            project(':child1') {
+                java.sourceCompatibility = 1.6
+                java.targetCompatibility = 1.6
+            }
 
-project(':child2') {
-    java.sourceCompatibility = 1.5
-    java.targetCompatibility = 1.5
-}
+            project(':child2') {
+                java.sourceCompatibility = 1.5
+                java.targetCompatibility = 1.5
+            }
 
-project(':child3') {
-    java.sourceCompatibility = 1.7
-    java.targetCompatibility = 1.8
-}
-"""
+            project(':child3') {
+                java.sourceCompatibility = 1.7
+                java.targetCompatibility = 1.8
+            }
+        """
         when:
+        expectTaskDeprecations("ideaModule", "ideaProject", "ideaWorkspace", "idea")
         succeeds "idea"
 
         then:
@@ -139,6 +142,7 @@ project(':child3') {
         !ipr.bytecodeTargetLevel.module.find { it.@name == "child3" }
 
         when:
+        expectTaskDeprecations("ideaModule", "ideaProject", "ideaWorkspace", "idea")
         succeeds "idea"
 
         then:
@@ -151,15 +155,16 @@ project(':child3') {
 
         when:
         buildFile.text = """
-        allprojects {
-            apply plugin:'idea'
-            apply plugin:'java'
+            allprojects {
+                apply plugin:'idea'
+                apply plugin:'java'
 
-            java.sourceCompatibility = 1.4
-            java.targetCompatibility = 1.4
-        }
+                java.sourceCompatibility = 1.4
+                java.targetCompatibility = 1.4
+            }
         """
         and:
+        expectTaskDeprecations("ideaModule", "ideaProject", "ideaWorkspace", "idea")
         succeeds "idea"
 
         then:
@@ -168,16 +173,17 @@ project(':child3') {
 
     void "uses subproject sourceCompatibility even if root project does not apply java plugin"() {
         buildFile << """
-allprojects {
-    apply plugin: 'idea'
-}
-subprojects {
-    apply plugin:'java'
-    java.sourceCompatibility = 1.7
-}
-"""
+            allprojects {
+                apply plugin: 'idea'
+            }
+            subprojects {
+                apply plugin:'java'
+                java.sourceCompatibility = 1.7
+            }
+        """
 
         when:
+        expectTaskDeprecations("ideaModule", "ideaProject", "ideaWorkspace", "idea")
         succeeds "idea"
 
         then:
@@ -189,14 +195,15 @@ subprojects {
 
     void "module languageLevel always exposed when no idea root project found"() {
         buildFile << """
-subprojects {
-    apply plugin:'java'
-    apply plugin: 'idea'
-    java.sourceCompatibility = 1.7
-}
-"""
+            subprojects {
+                apply plugin:'java'
+                apply plugin: 'idea'
+                java.sourceCompatibility = 1.7
+            }
+        """
 
         when:
+        expectTaskDeprecations("ideaModule", "idea")
         succeeds "idea"
 
         then:
@@ -210,29 +217,29 @@ subprojects {
         given:
         createDirs("subprojectA", "subprojectB", "subprojectC")
         settingsFile << """
-rootProject.name = "root"
-include 'subprojectA'
-include 'subprojectB'
-include 'subprojectC'
-"""
+            rootProject.name = "root"
+            include 'subprojectA'
+            include 'subprojectB'
+            include 'subprojectC'
+        """
 
         buildFile << """
-allprojects {
-    apply plugin: 'java'
-    apply plugin: 'idea'
-    java.targetCompatibility = '1.6'
-}
+            allprojects {
+                apply plugin: 'java'
+                apply plugin: 'idea'
+                java.targetCompatibility = '1.6'
+            }
 
-idea {
-    project {
-        jdkName = "1.6"
-    }
-}
-
-"""
+            idea {
+                project {
+                    jdkName = "1.6"
+                }
+            }
+        """
 
         when:
-        executer.withTasks("idea").run()
+        expectTaskDeprecations("ideaModule", "ideaProject", "ideaWorkspace", "idea")
+        succeeds("idea")
 
         then:
         ipr.bytecodeTargetLevel.size() == 1
@@ -243,28 +250,29 @@ idea {
         given:
         createDirs("subprojectA", "subprojectB", "subprojectC")
         settingsFile << """
-rootProject.name = "root"
-include 'subprojectA'
-include 'subprojectB'
-include 'subprojectC'
-"""
+            rootProject.name = "root"
+            include 'subprojectA'
+            include 'subprojectB'
+            include 'subprojectC'
+        """
 
         buildFile << """
-allprojects {
-    apply plugin: 'java'
-    apply plugin: 'idea'
-    java.targetCompatibility = '1.7'
-}
+            allprojects {
+                apply plugin: 'java'
+                apply plugin: 'idea'
+                java.targetCompatibility = '1.7'
+            }
 
-idea {
-    project {
-        jdkName = "1.8"
-    }
-}
-"""
+            idea {
+                project {
+                    jdkName = "1.8"
+                }
+            }
+        """
 
         when:
-        executer.withTasks("idea").run()
+        expectTaskDeprecations("ideaModule", "ideaProject", "ideaWorkspace", "idea")
+        succeeds("idea")
 
         then:
         ipr.bytecodeTargetLevel.size() == 1
@@ -275,27 +283,28 @@ idea {
         given:
         createDirs("subprojectA")
         settingsFile << """
-rootProject.name = "root"
-include 'subprojectA'
-"""
+            rootProject.name = "root"
+            include 'subprojectA'
+        """
 
         buildFile << """
-allprojects {
-    apply plugin: 'java'
-    apply plugin: 'idea'
-}
+            allprojects {
+                apply plugin: 'java'
+                apply plugin: 'idea'
+            }
 
-project(':') {
-    java.targetCompatibility = 1.8
-}
+            project(':') {
+                java.targetCompatibility = 1.8
+            }
 
-project(':subprojectA') {
-    java.targetCompatibility = 1.7
-}
-"""
+            project(':subprojectA') {
+                java.targetCompatibility = 1.7
+            }
+        """
 
         when:
-        executer.withTasks("idea").run()
+        expectTaskDeprecations("ideaModule", "ideaProject", "ideaWorkspace", "idea")
+        succeeds("idea")
 
         then:
         ipr.bytecodeTargetLevel.size() == 1
@@ -306,27 +315,28 @@ project(':subprojectA') {
         given:
         createDirs("child1")
         settingsFile << """
-rootProject.name = "root"
-include 'child1'
-"""
+            rootProject.name = "root"
+            include 'child1'
+        """
 
         buildFile << """
-allprojects {
-    apply plugin: 'idea'
-    apply plugin: 'java'
-}
+            allprojects {
+                apply plugin: 'idea'
+                apply plugin: 'java'
+            }
 
-project(':') {
-    java.sourceCompatibility = 1.8
-}
+            project(':') {
+                java.sourceCompatibility = 1.8
+            }
 
-project(':child1') {
-    java.sourceCompatibility = 1.7
-}
-"""
+            project(':child1') {
+                java.sourceCompatibility = 1.7
+            }
+        """
 
         when:
-        executer.withTasks("idea").run()
+        expectTaskDeprecations("ideaModule", "ideaProject", "ideaWorkspace", "idea")
+        succeeds("idea")
 
         then:
         iml('child1').languageLevel == "JDK_1_7"
@@ -336,23 +346,24 @@ project(':child1') {
         given:
         createDirs("child1")
         settingsFile << """
-rootProject.name = "root"
-include 'child1'
-"""
+            rootProject.name = "root"
+            include 'child1'
+        """
 
         buildFile << """
-allprojects {
-    apply plugin: 'java'
-    java.sourceCompatibility = 1.7
-}
+            allprojects {
+                apply plugin: 'java'
+                java.sourceCompatibility = 1.7
+            }
 
-project(':child1') {
-    apply plugin: 'idea'
-}
-"""
+            project(':child1') {
+                apply plugin: 'idea'
+            }
+        """
 
         when:
-        executer.withTasks("idea").run()
+        expectTaskDeprecations("ideaModule", "idea")
+        succeeds("idea")
 
         then:
         iml('child1').languageLevel == "JDK_1_7"
@@ -362,47 +373,47 @@ project(':child1') {
         given:
         createDirs("subprojectA", "subprojectB", "subprojectC", "subprojectD")
         settingsFile << """
-rootProject.name = "root"
-include 'subprojectA'
-include 'subprojectB'
-include 'subprojectC'
-include 'subprojectD'
-"""
+            rootProject.name = "root"
+            include 'subprojectA'
+            include 'subprojectB'
+            include 'subprojectC'
+            include 'subprojectD'
+        """
 
         buildFile << """
-configure(project(':subprojectA')) {
-    apply plugin: 'java'
-    apply plugin: 'idea'
-    java.targetCompatibility = '1.6'
-}
+            configure(project(':subprojectA')) {
+                apply plugin: 'java'
+                apply plugin: 'idea'
+                java.targetCompatibility = '1.6'
+            }
 
-configure(project(':subprojectB')) {
-    apply plugin: 'java'
-    apply plugin: 'idea'
-    java.targetCompatibility = '1.7'
-}
+            configure(project(':subprojectB')) {
+                apply plugin: 'java'
+                apply plugin: 'idea'
+                java.targetCompatibility = '1.7'
+            }
 
-configure(project(':subprojectC')) {
-    apply plugin: 'java'
-    apply plugin: 'idea'
-    java.targetCompatibility = '1.8'
-}
+            configure(project(':subprojectC')) {
+                apply plugin: 'java'
+                apply plugin: 'idea'
+                java.targetCompatibility = '1.8'
+            }
 
-configure(project(':subprojectD')) {
-    apply plugin: 'idea'
-}
+            configure(project(':subprojectD')) {
+                apply plugin: 'idea'
+            }
 
-apply plugin:'idea'
-idea {
-    project {
-        jdkName = "1.8"
-    }
-}
-
-"""
+            apply plugin:'idea'
+            idea {
+                project {
+                    jdkName = "1.8"
+                }
+            }            
+        """
 
         when:
-        executer.withTasks("idea").run()
+        expectTaskDeprecations("ideaModule", "ideaProject", "ideaWorkspace", "idea")
+        succeeds("idea")
 
         then:
         ipr.bytecodeTargetLevel.size() == 1
@@ -414,19 +425,20 @@ idea {
     void "language levels specified in properties files are ignored"() {
         given:
         file('gradle.properties') << """
-sourceCompatibility=1.3
-targetCompatibility=1.3
-java.sourceCompatibility=1.3
-java.targetCompatibility=1.3
-"""
+            sourceCompatibility=1.3
+            targetCompatibility=1.3
+            java.sourceCompatibility=1.3
+            java.targetCompatibility=1.3
+        """
 
         buildFile << """
-allprojects {
-    apply plugin:'idea'
-    apply plugin:'java'
-}
-"""
+            allprojects {
+                apply plugin:'idea'
+                apply plugin:'java'
+            }
+        """
         when:
+        expectTaskDeprecations("ideaModule", "ideaProject", "ideaWorkspace", "idea")
         succeeds "idea"
 
         then:

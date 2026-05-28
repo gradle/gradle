@@ -79,4 +79,43 @@ class ClosureInstrumentationIntegrationTest extends AbstractIntegrationSpec {
         then:
         outputContains("closure = olleh")
     }
+
+    @Issue("https://github.com/gradle/gradle/issues/37343")
+    def "can call private superclass method from closure delegate when method name matches an intercepted method"() {
+        given:
+        buildFile("""
+            class Foo {
+                private String getFoo() {
+                    return "Foo"
+                }
+
+                // Method name 'listFiles' is important as it is an intercepted method name (File.listFiles)
+                String listFiles() {
+                    return getFoo()
+                }
+            }
+
+            class Bar extends Foo {}
+
+            task("hello") {
+                doLast {
+                    Closure<String> cl = {
+                        listFiles()
+                    }
+                    def bar = new Bar()
+                    cl.setDelegate(bar)
+                    cl.setResolveStrategy(Closure.DELEGATE_FIRST)
+                    println("closure = " + cl())
+                    println("direct = " + new Bar().listFiles())
+                }
+            }
+        """)
+
+        when:
+        run("hello")
+
+        then:
+        outputContains("closure = Foo")
+        outputContains("direct = Foo")
+    }
 }

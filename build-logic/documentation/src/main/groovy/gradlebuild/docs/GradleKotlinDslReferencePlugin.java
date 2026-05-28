@@ -17,6 +17,7 @@
 package gradlebuild.docs;
 
 import org.gradle.api.NamedDomainObjectContainer;
+import org.gradle.api.NamedDomainObjectProvider;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
@@ -96,8 +97,16 @@ public class GradleKotlinDslReferencePlugin implements Plugin<Project> {
                 task.getGeneratedClasses().set(project.getLayout().getBuildDirectory().dir("gradle-kotlin-dsl-extensions/classes"));
             });
 
-        NamedDomainObjectContainer<DokkaSourceSetSpec> kotlinSourceSet = getDokkaExtension(project).getDokkaSourceSets();
-        kotlinSourceSet.register("kotlin_dsl", spec -> {
+        NamedDomainObjectContainer<DokkaSourceSetSpec> dokkaSourceSets = getDokkaExtension(project).getDokkaSourceSets();
+        NamedDomainObjectProvider<DokkaSourceSetSpec> javaApi = dokkaSourceSets.register("java_api", spec -> {
+            spec.getDisplayName().set("API");
+            spec.getSourceRoots().from(extension.getDocumentedSource());
+            spec.getClasspath().from(extension.getClasspath());
+            spec.getIncludes().from(extension.getSourceRoot().file("kotlin/Module.md"));
+            configureSourceLinks(project, extension, spec);
+        });
+
+        dokkaSourceSets.register("kotlin_dsl", spec -> {
             spec.getDisplayName().set("DSL");
             spec.getSourceRoots().from(extension.getKotlinDslSource());
             spec.getSourceRoots().from(runtimeExtensions.flatMap(GradleKotlinDslRuntimeGeneratedSources::getGeneratedSources));
@@ -105,15 +114,7 @@ public class GradleKotlinDslReferencePlugin implements Plugin<Project> {
             spec.getClasspath().from(runtimeExtensions.flatMap(GradleKotlinDslRuntimeGeneratedSources::getGeneratedClasses));
             spec.getIncludes().from(extension.getSourceRoot().file("kotlin/Module.md"));
             configureSourceLinks(project, extension, spec);
-        });
-
-        NamedDomainObjectContainer<DokkaSourceSetSpec> javaSourceSet = getDokkaExtension(project).getDokkaSourceSets();
-        javaSourceSet.register("java_api", spec -> {
-            spec.getDisplayName().set("API");
-            spec.getSourceRoots().from(extension.getDocumentedSource());
-            spec.getClasspath().from(extension.getClasspath());
-            spec.getIncludes().from(extension.getSourceRoot().file("kotlin/Module.md"));
-            configureSourceLinks(project, extension, spec);
+            spec.getDependentSourceSets().addLater(javaApi.flatMap(DokkaSourceSetSpec::getSourceSetId));
         });
     }
 

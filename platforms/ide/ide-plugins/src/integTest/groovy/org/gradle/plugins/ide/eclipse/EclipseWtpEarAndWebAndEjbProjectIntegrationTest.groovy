@@ -25,40 +25,41 @@ class EclipseWtpEarAndWebAndEjbProjectIntegrationTest extends AbstractEclipseInt
         file('web/src/main/webapp').mkdirs()
 
         buildFile << """
-subprojects {
-    apply plugin: 'eclipse-wtp'
+            subprojects {
+                apply plugin: 'eclipse-wtp'
 
-   ${mavenCentralRepository()}
-}
-project(':ear') {
-    apply plugin: 'ear'
+               ${mavenCentralRepository()}
+            }
+            project(':ear') {
+                apply plugin: 'ear'
 
-    dependencies {
-        deploy project(':java')
-        deploy project(path: ':web')
-    }
-}
-project(':web') {
-    apply plugin: 'war'
+                dependencies {
+                    deploy project(':java')
+                    deploy project(path: ':web')
+                }
+            }
+            project(':web') {
+                apply plugin: 'war'
 
-    dependencies {
-        providedCompile 'javax.servlet:javax.servlet-api:3.1.0'
-        testImplementation "junit:junit:4.13"
-    }
-}
-project(':java') {
-    apply plugin: 'java'
+                dependencies {
+                    providedCompile 'javax.servlet:javax.servlet-api:3.1.0'
+                    testImplementation "junit:junit:4.13"
+                }
+            }
+            project(':java') {
+                apply plugin: 'java'
 
-    dependencies {
-        implementation 'com.google.guava:guava:18.0'
-        implementation files('foo')
-        implementation 'javax.servlet:javax.servlet-api:3.1.0'
-        testImplementation "junit:junit:4.13"
-    }
-}
-"""
+                dependencies {
+                    implementation 'com.google.guava:guava:18.0'
+                    implementation files('foo')
+                    implementation 'javax.servlet:javax.servlet-api:3.1.0'
+                    testImplementation "junit:junit:4.13"
+                }
+            }
+        """
 
         when:
+        expectTaskDeprecations("eclipse", "eclipseClasspath", "eclipseJdt", "eclipseProject", "eclipseWtp", "eclipseWtpComponent", "eclipseWtpFacet")
         run "eclipse"
 
         then:

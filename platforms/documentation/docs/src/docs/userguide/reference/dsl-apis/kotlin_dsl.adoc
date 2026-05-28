@@ -330,7 +330,8 @@ The link:{kotlinDslPath}/gradle/org.gradle.kotlin.dsl/configure.html[`configure<
 include::sample[dir="snippets/reference/dsl-apis/noAccessors/kotlin",files="build.gradle.kts[tags=project-extension]"]
 ====
 
-Note that `sourceSets` is a Gradle extension on `Project` of type `SourceSetContainer` and `java` is an extension on `Project` of type `JavaPluginExtension`.
+Note that `sourceSets` is a Gradle extension on `Project` of type `SourceSetContainer`.
+In the example above, `java` refers to the link:{javadocPath}/org/gradle/api/tasks/SourceSet.html#getJava--[`SourceSet.java`] property (a `SourceDirectorySet`), not the top-level `JavaPluginExtension`.
 
 You can discover available extensions by either reviewing the documentation for the applied plugins or running `./gradlew kotlinDslAccessorsReport`.
 The report generates the Kotlin code needed to access the model elements contributed by the applied plugins, providing both names and types.

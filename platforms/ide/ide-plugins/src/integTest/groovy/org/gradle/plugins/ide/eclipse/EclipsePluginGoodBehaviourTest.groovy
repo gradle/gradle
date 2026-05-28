@@ -22,4 +22,11 @@ class EclipsePluginGoodBehaviourTest extends WellBehavedPluginTest {
     String getMainTask() {
         return "eclipse"
     }
+
+    @Override
+    void expectMainTaskDeprecations() {
+        for (String taskName : ["eclipse", "eclipseProject"]) {
+            executer.expectDocumentedDeprecationWarning("The $taskName task has been deprecated. This is scheduled to be removed in Gradle 10. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#ide_task_deprecation")
+        }
+    }
 }

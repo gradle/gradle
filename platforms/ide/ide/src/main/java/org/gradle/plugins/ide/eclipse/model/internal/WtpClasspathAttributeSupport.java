@@ -23,6 +23,7 @@ import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.artifacts.result.UnresolvedDependencyResult;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.WarPlugin;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.jvm.JavaModuleDetector;
 import org.gradle.plugins.ear.EarPlugin;
 import org.gradle.plugins.ide.eclipse.model.AbstractClasspathEntry;
@@ -50,9 +51,10 @@ public class WtpClasspathAttributeSupport {
     private final Set<File> rootConfigFiles;
     private final Set<File> libConfigFiles;
 
+    @SuppressWarnings("deprecation")
     public WtpClasspathAttributeSupport(Project project, EclipseModel model) {
         isUtilityProject = !project.getPlugins().hasPlugin(WarPlugin.class) && !project.getPlugins().hasPlugin(EarPlugin.class);
-        EclipseWtp eclipseWtp = model.getWtp();
+        EclipseWtp eclipseWtp = DeprecationLogger.whileDisabled(() -> model.getWtp());
         EclipseWtpComponent wtpComponent = eclipseWtp.getComponent();
         libDirName = wtpComponent.getLibDeployPath();
         Set<Configuration> rootConfigs = wtpComponent.getRootConfigurations();

@@ -180,6 +180,3 @@ tasks.clean {
         }.visit { this.file.setWritable(true) }
     }
 }
-tasks.isolatedProjectsIntegTest {
-    enabled = false
-}

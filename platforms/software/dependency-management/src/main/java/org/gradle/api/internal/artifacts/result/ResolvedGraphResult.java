@@ -29,6 +29,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.IntFunction;
 
 /**
  * Shared state that all components and variants of a
@@ -65,7 +66,7 @@ public class ResolvedGraphResult {
     /**
      * Get the component at the given index.
      */
-    public ResolvedComponentResultInternal getComponent(int index) {
+    public synchronized ResolvedComponentResultInternal getComponent(int index) {
         if (components == null) {
             components = new ResolvedComponentResultInternal[structure.components().count()];
         }
@@ -84,7 +85,7 @@ public class ResolvedGraphResult {
     /**
      * Get the variant at the given index.
      */
-    public ResolvedVariantResult getVariant(int index) {
+    public synchronized ResolvedVariantResult getVariant(int index) {
         if (variants == null) {
             variants = new ResolvedVariantResult[structure.nodes().count()];
         }
@@ -128,24 +129,32 @@ public class ResolvedGraphResult {
     /**
      * Get all incoming edges for the component at the given index.
      */
-    public Set<ResolvedDependencyResult> getIncomingEdges(int targetComponentIndex) {
+    public synchronized Set<ResolvedDependencyResult> getIncomingEdges(int targetComponentIndex) {
         if (resolvedEdgesByTarget == null) {
-            int count = structure.components().count();
-            this.resolvedEdgesByTarget = new ArrayList<>(count);
-            for (int i = 0; i < count; i++) {
-                resolvedEdgesByTarget.add(new LinkedHashSet<>());
-            }
-            for (int i = 0; i < count; i++) {
-                ResolvedComponentResultInternal component = getComponent(i);
-                for (DependencyResult dependency : component.getDependencies()) {
-                    if (dependency instanceof ResolvedDependencyResult resolved) {
-                        ResolvedComponentResultInternal targetComponent = (ResolvedComponentResultInternal) resolved.getSelected();
-                        resolvedEdgesByTarget.get(targetComponent.index()).add(resolved);
-                    }
+            resolvedEdgesByTarget = computeResolvedEdgesByTarget(structure, this::getComponent);
+        }
+        return resolvedEdgesByTarget.get(targetComponentIndex);
+    }
+
+    private static List<Set<ResolvedDependencyResult>> computeResolvedEdgesByTarget(
+        GraphStructure structure,
+        IntFunction<ResolvedComponentResultInternal> componentSource
+    ) {
+        int count = structure.components().count();
+        List<Set<ResolvedDependencyResult>> result = new ArrayList<>(count);
+        for (int i = 0; i < count; i++) {
+            result.add(new LinkedHashSet<>());
+        }
+        for (int i = 0; i < count; i++) {
+            ResolvedComponentResultInternal component = componentSource.apply(i);
+            for (DependencyResult dependency : component.getDependencies()) {
+                if (dependency instanceof ResolvedDependencyResult resolved) {
+                    ResolvedComponentResultInternal targetComponent = (ResolvedComponentResultInternal) resolved.getSelected();
+                    result.get(targetComponent.index()).add(resolved);
                 }
             }
         }
-        return resolvedEdgesByTarget.get(targetComponentIndex);
+        return result;
     }
 
     /**

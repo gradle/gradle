@@ -52,13 +52,12 @@ class MultiProjectProjectDependencyConflictResolutionIntegrationTest extends Abs
 
     @Override
     void moduleDefinition(String name, String definition) {
-        buildFile << "project(':$name') {"
-        buildFile << definition
-        buildFile << "}"
+        file("$name/build.gradle") << definition
     }
 
     @Override
     boolean isAutoDependencySubstitution() {
         false
     }
+
 }

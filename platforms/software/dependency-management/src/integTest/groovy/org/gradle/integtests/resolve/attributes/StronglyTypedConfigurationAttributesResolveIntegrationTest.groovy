@@ -16,6 +16,8 @@
 
 package org.gradle.integtests.resolve.attributes
 
+import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
+
 /**
  * Variant of the configuration attributes resolution integration test which makes use of the strongly typed attributes notation.
  */
@@ -586,6 +588,7 @@ All of them match the consumer attributes:
         result.assertTasksScheduled(':b:fooJar', ':a:checkDebug')
     }
 
+    @ToBeFixedForIsolatedProjects(because = "Compatibility and disambiguation rules require shared Class instance to be discovered.")
     def "producer can apply additional compatibility rules when consumer does not have an opinion for attribute known to both"() {
         given:
         createDirs("a", "b")
@@ -662,6 +665,7 @@ All of them match the consumer attributes:
         result.assertTasksScheduled(':b:barJar', ':a:checkDebug')
     }
 
+    @ToBeFixedForIsolatedProjects(because = "Compatibility and disambiguation rules require shared Class instance to be discovered.")
     def "consumer can veto producers view of compatibility"() {
         given:
         createDirs("a", "b")
@@ -737,6 +741,7 @@ All of them match the consumer attributes:
         result.assertTasksScheduled(':b:barJar', ':a:checkDebug')
     }
 
+    @ToBeFixedForIsolatedProjects(because = "Compatibility and disambiguation rules require shared Class instance to be discovered.")
     def "producer can apply disambiguation for attribute known to both"() {
         given:
         createDirs("a", "b")
@@ -796,6 +801,7 @@ All of them match the consumer attributes:
         result.assertTasksScheduled(':b:barJar', ':a:check')
     }
 
+    @ToBeFixedForIsolatedProjects(because = "Compatibility and disambiguation rules require shared Class instance to be discovered.")
     def "producer can apply disambiguation for attribute not known to consumer"() {
         given:
         createDirs("a", "b")
