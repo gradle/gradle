@@ -34,7 +34,6 @@ import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.internal.JavaExecExecutableUtils;
 import org.gradle.api.tasks.options.Option;
 import org.gradle.internal.UncheckedException;
-import org.gradle.internal.instrumentation.api.annotations.BytecodeUpgrade;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 import org.gradle.internal.jvm.DefaultModularitySpec;
 import org.gradle.jvm.toolchain.JavaLauncher;
@@ -61,6 +60,8 @@ import java.io.OutputStream;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 import static java.util.Collections.emptyList;
 
@@ -193,8 +194,42 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
      * {@inheritDoc}
      */
     @Override
+    @Deprecated
+    public void setAllJvmArgs(List<String> arguments) {
+        javaExecSpec.setAllJvmArgs(arguments);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @Deprecated
+    public void setAllJvmArgs(Iterable<?> arguments) {
+        javaExecSpec.setAllJvmArgs(arguments);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public ListProperty<String> getJvmArgs() {
-        return javaExecSpec.getJvmArguments();
+        return getJvmArguments();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void setJvmArgs(List<String> arguments) {
+        getJvmArgs().set(arguments);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void setJvmArgs(Iterable<?> arguments) {
+        getJvmArgs().set(jvmArgsToStringIterable(arguments));
     }
 
     /**
@@ -202,15 +237,9 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
      */
     @Override
     public JavaExec jvmArgs(Iterable<?> arguments) {
-        addJvmArguments(arguments);
+        javaExecSpec.getJvmArguments().addAll(jvmArgsToStringIterable(arguments));
         javaExecSpec.checkDebugConfiguration(arguments);
         return this;
-    }
-
-    private void addJvmArguments(Iterable<?> arguments) {
-        for (Object arg : arguments) {
-            javaExecSpec.getJvmArguments().add(arg.toString());
-        }
     }
 
     /**
@@ -222,12 +251,26 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
         return this;
     }
 
+    private static Iterable<String> jvmArgsToStringIterable(Iterable<?> arguments) {
+        return StreamSupport.stream(arguments.spliterator(), false)
+            .map(Object::toString)
+            .collect(Collectors.toList());
+    }
+
     /**
      * {@inheritDoc}
      */
     @Override
     public MapProperty<String, Object> getSystemProperties() {
         return javaExecSpec.getSystemProperties();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void setSystemProperties(Map<String, ? extends @Nullable Object> systemProperties) {
+        javaExecSpec.setSystemProperties(systemProperties);
     }
 
     /**
@@ -260,6 +303,14 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
      * {@inheritDoc}
      */
     @Override
+    public void setBootstrapClasspath(FileCollection classpath) {
+        javaExecSpec.setBootstrapClasspath(classpath);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public JavaExec bootstrapClasspath(@Nullable Object... classpath) {
         javaExecSpec.bootstrapClasspath(classpath);
         return this;
@@ -277,8 +328,24 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
      * {@inheritDoc}
      */
     @Override
+    public void setMinHeapSize(@Nullable String heapSize) {
+        javaExecSpec.setMinHeapSize(heapSize);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public Property<String> getDefaultCharacterEncoding() {
         return javaExecSpec.getDefaultCharacterEncoding();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void setDefaultCharacterEncoding(@Nullable String defaultCharacterEncoding) {
+        javaExecSpec.setDefaultCharacterEncoding(defaultCharacterEncoding);
     }
 
     /**
@@ -293,8 +360,24 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
      * {@inheritDoc}
      */
     @Override
+    public void setMaxHeapSize(@Nullable String heapSize) {
+        javaExecSpec.setMaxHeapSize(heapSize);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public Property<Boolean> getEnableAssertions() {
         return javaExecSpec.getEnableAssertions();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void setEnableAssertions(boolean enabled) {
+        javaExecSpec.setEnableAssertions(enabled);
     }
 
     /**
@@ -304,6 +387,14 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
     @Option(option = "debug-jvm", description = "Enable debugging for the process. The process is started suspended and listening on port 5005.")
     public Property<Boolean> getDebug() {
         return javaExecSpec.getDebug();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void setDebug(boolean enabled) {
+        javaExecSpec.setDebug(enabled);
     }
 
     /**
@@ -339,9 +430,26 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
      * {@inheritDoc}
      */
     @Override
-    @ReplacesEagerProperty(adapter = ArgsAdapter.class)
     public ListProperty<String> getArgs() {
         return javaExecSpec.getArgs();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public JavaExec setArgs(List<String> applicationArgs) {
+        javaExecSpec.setArgs(applicationArgs);
+        return this;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public JavaExec setArgs(Iterable<?> applicationArgs) {
+        javaExecSpec.setArgs(applicationArgs);
+        return this;
     }
 
     /**
@@ -410,9 +518,17 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
      * {@inheritDoc}
      */
     @Override
-    @ReplacesEagerProperty(adapter = ClasspathAdapter.class)
     public ConfigurableFileCollection getClasspath() {
         return javaExecSpec.getClasspath();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public JavaExec setClasspath(FileCollection fileCollection) {
+        getClasspath().setFrom(fileCollection);
+        return this;
     }
 
     /**
@@ -462,6 +578,22 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
      * {@inheritDoc}
      */
     @Override
+    public void setExecutable(String executable) {
+        javaExecSpec.setExecutable(executable);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void setExecutable(Object executable) {
+        javaExecSpec.setExecutable(executable);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public JavaExec executable(Object executable) {
         javaExecSpec.executable(executable);
         return this;
@@ -480,6 +612,22 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
      * {@inheritDoc}
      */
     @Override
+    public void setWorkingDir(File dir) {
+        javaExecSpec.setWorkingDir(dir);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void setWorkingDir(Object dir) {
+        javaExecSpec.setWorkingDir(dir);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public JavaExec workingDir(Object dir) {
         javaExecSpec.workingDir(dir);
         return this;
@@ -492,6 +640,14 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
     @Internal
     public MapProperty<String, Object> getEnvironment() {
         return javaExecSpec.getEnvironment();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void setEnvironment(Map<String, ?> environmentVariables) {
+        javaExecSpec.setEnvironment(environmentVariables);
     }
 
     /**
@@ -526,7 +682,6 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
      */
     @Override
     @Internal
-    @ReplacesEagerProperty(adapter = JavaExec.StandardInputAdapter.class)
     public Property<InputStream> getStandardInput() {
         return javaExecSpec.getStandardInput();
     }
@@ -535,8 +690,16 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
      * {@inheritDoc}
      */
     @Override
+    public JavaExec setStandardInput(InputStream value) {
+        getStandardInput().set(value);
+        return this;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     @Internal
-    @ReplacesEagerProperty(adapter = JavaExec.StandardOutputAdapter.class)
     public Property<OutputStream> getStandardOutput() {
         return javaExecSpec.getStandardOutput();
     }
@@ -545,8 +708,16 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
      * {@inheritDoc}
      */
     @Override
+    public JavaExec setStandardOutput(OutputStream value) {
+        getStandardOutput().set(value);
+        return this;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     @Internal
-    @ReplacesEagerProperty(adapter = JavaExec.ErrorOutputAdapter.class)
     public Property<OutputStream> getErrorOutput() {
         return javaExecSpec.getErrorOutput();
     }
@@ -555,10 +726,27 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
      * {@inheritDoc}
      */
     @Override
+    public JavaExec setErrorOutput(OutputStream value) {
+        getErrorOutput().set(value);
+        return this;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     @Input
-    @ReplacesEagerProperty(adapter = JavaExec.IgnoreExitValueAdapter.class)
     public Property<Boolean> getIgnoreExitValue() {
         return javaExecSpec.getIgnoreExitValue();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public JavaExecSpec setIgnoreExitValue(boolean ignoreExitValue) {
+        getIgnoreExitValue().set(ignoreExitValue);
+        return this;
     }
 
     /**
@@ -634,88 +822,4 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
         return jvmArgs != null ? jvmArgs : emptyList();
     }
 
-    /**
-     * Upgrade for {@link JavaExec#getIgnoreExitValue()}
-     * <p>
-     * No need to upgrade getter since it's already upgraded via BaseExecSpec
-     */
-    static class IgnoreExitValueAdapter {
-        @BytecodeUpgrade
-        static JavaExecSpec setIgnoreExitValue(JavaExec task, boolean value) {
-            task.getIgnoreExitValue().set(value);
-            return task;
-        }
-    }
-
-    /**
-     * Upgrade for {@link JavaExec#getStandardInput()}
-     * <p>
-     * No need to upgrade getter since it's already upgraded via BaseExecSpec
-     */
-    static class StandardInputAdapter {
-        @BytecodeUpgrade
-        static JavaExec setStandardInput(JavaExec task, InputStream value) {
-            task.getStandardInput().set(value);
-            return task;
-        }
-    }
-
-    /**
-     * Upgrade for {@link JavaExec#getStandardOutput()}
-     * <p>
-     * No need to upgrade getter since it's already upgraded via JavaExecSpec
-     */
-    static class StandardOutputAdapter {
-        @BytecodeUpgrade
-        static JavaExec setStandardOutput(JavaExec task, OutputStream value) {
-            task.getStandardOutput().set(value);
-            return task;
-        }
-    }
-
-    /**
-     * Upgrade for {@link JavaExec#getErrorOutput()}
-     * <p>
-     * No need to upgrade getter since it's already upgraded via JavaExecSpec
-     */
-    static class ErrorOutputAdapter {
-        @BytecodeUpgrade
-        static JavaExec setErrorOutput(JavaExec task, OutputStream value) {
-            task.getErrorOutput().set(value);
-            return task;
-        }
-    }
-
-    /**
-     * Upgrade for {@link JavaExec#getArgs()}
-     * <p>
-     * No need to upgrade getter since it's already upgraded via JavaExecSpec
-     */
-    static class ArgsAdapter {
-        @BytecodeUpgrade
-        static JavaExec setArgs(JavaExec self, List<String> args) {
-            setArgs(self, (Iterable<?>) args);
-            return self;
-        }
-
-        @BytecodeUpgrade
-        static JavaExec setArgs(JavaExec self, Iterable<?> args) {
-            self.getArgs().empty();
-            self.args(args);
-            return self;
-        }
-    }
-
-    /**
-     * Upgrade for {@link JavaExec#getClasspath()}
-     * <p>
-     * No need to upgrade getter since it's already upgraded via JavaExecSpec
-     */
-    static class ClasspathAdapter {
-        @BytecodeUpgrade
-        static JavaExec setClasspath(JavaExec self, FileCollection fileCollection) {
-            self.getClasspath().setFrom(fileCollection);
-            return self;
-        }
-    }
 }

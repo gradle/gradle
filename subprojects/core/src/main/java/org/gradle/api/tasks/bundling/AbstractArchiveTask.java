@@ -252,6 +252,19 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
     public abstract Property<Boolean> getPreserveFileTimestamps();
 
     /**
+     * Specifies whether file timestamps should be preserved in the archive.
+     * <p>
+     * If <code>false</code> this ensures that archive entries have the same time for builds between different machines, Java versions and operating systems.
+     * </p>
+     *
+     * @param preserveFileTimestamps <code>true</code> if file timestamps should be preserved for archive entries
+     * @since 3.4
+     */
+    public void setPreserveFileTimestamps(boolean preserveFileTimestamps) {
+        getPreserveFileTimestamps().set(preserveFileTimestamps);
+    }
+
+    /**
      * Used for Kotlin backward source compatibility after migration to Provider API.
      */
     @Internal
@@ -273,6 +286,21 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
     @Input
     @ReplacesEagerProperty(originalType = boolean.class)
     public abstract Property<Boolean> getReproducibleFileOrder();
+
+    /**
+     * Specifies whether to enforce a reproducible file order when reading files from directories.
+     * <p>
+     * Gradle will then walk the directories on disk which are part of this archive in a reproducible order
+     * independent of file systems and operating systems.
+     * This helps Gradle reliably produce byte-for-byte reproducible archives.
+     * </p>
+     *
+     * @param reproducibleFileOrder <code>true</code> if the files should read from disk in a reproducible order.
+     * @since 3.4
+     */
+    public void setReproducibleFileOrder(boolean reproducibleFileOrder) {
+        getReproducibleFileOrder().set(reproducibleFileOrder);
+    }
 
     /**
      * Used for Kotlin backward source compatibility after migration to Provider API.

@@ -84,6 +84,16 @@ public abstract class Zip extends AbstractArchiveTask {
     public abstract Property<ZipEntryCompression> getEntryCompression();
 
     /**
+     * Sets the compression level of the entries of the archive. If set to {@link ZipEntryCompression#DEFLATED} (the default), each entry is
+     * compressed using the DEFLATE algorithm. If set to {@link ZipEntryCompression#STORED} the entries of the archive are left uncompressed.
+     *
+     * @param entryCompression {@code STORED} or {@code DEFLATED}
+     */
+    public void setEntryCompression(ZipEntryCompression entryCompression) {
+        getEntryCompression().set(entryCompression);
+    }
+
+    /**
      * Whether the zip can contain more than 65535 files and/or support files greater than 4GB in size.
      * <p>
      * The standard zip format has hard limits on file size and count.
@@ -97,6 +107,15 @@ public abstract class Zip extends AbstractArchiveTask {
     @Input
     @ReplacesEagerProperty(originalType = boolean.class)
     public abstract Property<Boolean> getZip64();
+
+    /**
+     * Enables building zips with more than 65535 files or bigger than 4GB.
+     *
+     * @see #isZip64()
+     */
+    public void setZip64(boolean zip64) {
+        getZip64().set(zip64);
+    }
 
     /**
      * Added for Kotlin source compatibility. Use {@link #getZip64()} instead.
@@ -116,4 +135,11 @@ public abstract class Zip extends AbstractArchiveTask {
     @Input
     @ReplacesEagerProperty
     public abstract Property<String> getMetadataCharset();
+
+    /**
+     * Sets the character set used to encode ZIP metadata like file names.
+     */
+    public void setMetadataCharset(String metadataCharset) {
+        getMetadataCharset().set(metadataCharset);
+    }
 }

@@ -19,7 +19,6 @@ package org.gradle.api.publish.ivy.tasks;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.RegularFileProperty;
-import org.gradle.api.internal.provider.ProviderApiDeprecationLogger;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.publish.ivy.IvyModuleDescriptorSpec;
 import org.gradle.api.publish.ivy.internal.publication.IvyModuleDescriptorSpecInternal;
@@ -78,6 +77,25 @@ public abstract class GenerateIvyDescriptor extends DefaultTask {
     @ReplacesEagerProperty(adapter = GenerateIvyDescriptorAdapter.class)
     public abstract RegularFileProperty getDestination();
 
+    /**
+     * Sets the destination the descriptor will be written to.
+     *
+     * @param destination The file the descriptor will be written to.
+     * @since 4.0
+     */
+    public void setDestination(File destination) {
+        getDestination().fileValue(destination);
+    }
+
+    /**
+     * Sets the destination the descriptor will be written to.
+     *
+     * <p>The argument is evaluated as per {@link org.gradle.api.Project#file(Object)}.
+     */
+    public void setDestination(Object destination) {
+        getDestination().fileValue(getFileResolver().resolve(destination));
+    }
+
     @TaskAction
     public void doGenerate() {
         ivyDescriptorSpec.get().writeTo(getDestination().getAsFile().get());
@@ -110,15 +128,6 @@ public abstract class GenerateIvyDescriptor extends DefaultTask {
             return self.getDestination().getAsFile().getOrNull();
         }
 
-        @BytecodeUpgrade
-        static void setDestination(GenerateIvyDescriptor self, File destination) {
-            self.getDestination().fileValue(destination);
-        }
 
-        @BytecodeUpgrade
-        static void setDestination(GenerateIvyDescriptor self, Object destination) {
-            ProviderApiDeprecationLogger.logDeprecation(GenerateIvyDescriptor.class, "setDestination(Object)", "getDestination()");
-            self.getDestination().fileValue(self.getFileResolver().resolve(destination));
-        }
     }
 }

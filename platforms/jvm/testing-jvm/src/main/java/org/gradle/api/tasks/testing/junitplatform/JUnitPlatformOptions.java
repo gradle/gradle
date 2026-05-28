@@ -21,6 +21,8 @@ import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.testing.TestFrameworkOptions;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 
+import java.util.Set;
+
 /**
  * The JUnit platform specific test options.
  *
@@ -84,15 +86,31 @@ public abstract class JUnitPlatformOptions extends TestFrameworkOptions {
     @ReplacesEagerProperty
     public abstract SetProperty<String> getIncludeEngines();
 
+    public void setIncludeEngines(Set<String> includeEngines) {
+        getIncludeEngines().set(includeEngines);
+    }
+
     @Input
     @ReplacesEagerProperty
     public abstract SetProperty<String> getIncludeTags();
+
+    public void setIncludeTags(Set<String> includeTags) {
+        getIncludeTags().set(includeTags);
+    }
 
     @Input
     @ReplacesEagerProperty
     public abstract SetProperty<String> getExcludeEngines();
 
+    public void setExcludeEngines(Set<String> excludeEngines) {
+        getExcludeEngines().set(excludeEngines);
+    }
+
     @Input
     @ReplacesEagerProperty
     public abstract SetProperty<String> getExcludeTags();
+
+    public void setExcludeTags(Set<String> excludeTags) {
+        getExcludeTags().set(excludeTags);
+    }
 }

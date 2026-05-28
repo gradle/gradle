@@ -324,16 +324,31 @@ public interface IvyPublication extends Publication {
     Property<String> getOrganisation();
 
     /**
+     * Sets the organisation for this publication.
+     */
+    void setOrganisation(String organisation);
+
+    /**
      * The module for this publication.
      */
     @ReplacesEagerProperty
     Property<String> getModule();
 
     /**
+     * Sets the module for this publication.
+     */
+    void setModule(String module);
+
+    /**
      * The revision for this publication.
      */
     @ReplacesEagerProperty
     Property<String> getRevision();
+
+    /**
+     * Sets the revision for this publication.
+     */
+    void setRevision(String revision);
 
     /**
      * Configures the version mapping strategy.

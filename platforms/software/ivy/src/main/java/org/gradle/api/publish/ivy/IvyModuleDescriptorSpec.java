@@ -23,6 +23,7 @@ import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
 import org.gradle.internal.HasInternalProtocol;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
+import org.jspecify.annotations.Nullable;
 
 /**
  * The descriptor of any Ivy publication.
@@ -83,11 +84,21 @@ public interface IvyModuleDescriptorSpec {
     Property<String> getStatus();
 
     /**
+     * Sets the status for this publication.
+     */
+    void setStatus(@Nullable String status);
+
+    /**
      * The branch for this publication
      */
     @Optional
     @ReplacesEagerProperty
     Property<String> getBranch();
+
+    /**
+     * Sets the branch for this publication
+     */
+    void setBranch(@Nullable String branch);
 
     /**
      * Returns the extra info element spec for this publication

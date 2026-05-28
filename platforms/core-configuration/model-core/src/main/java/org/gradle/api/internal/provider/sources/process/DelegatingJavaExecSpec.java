@@ -18,6 +18,7 @@ package org.gradle.api.internal.provider.sources.process;
 
 import org.gradle.api.Action;
 import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.jvm.ModularitySpec;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.MapProperty;
@@ -49,6 +50,18 @@ interface DelegatingJavaExecSpec extends DelegatingBaseExecSpec, JavaExecSpec {
     }
 
     @Override
+    default JavaExecSpec setArgs(List<String> args) {
+        getDelegate().setArgs(args);
+        return this;
+    }
+
+    @Override
+    default JavaExecSpec setArgs(Iterable<?> args) {
+        getDelegate().setArgs(args);
+        return this;
+    }
+
+    @Override
     default JavaExecSpec args(Object... args) {
         getDelegate().args(args);
         return this;
@@ -77,6 +90,12 @@ interface DelegatingJavaExecSpec extends DelegatingBaseExecSpec, JavaExecSpec {
     }
 
     @Override
+    default JavaExecSpec setClasspath(FileCollection classpath) {
+        getDelegate().setClasspath(classpath);
+        return this;
+    }
+
+    @Override
     default ModularitySpec getModularity() {
         return getDelegate().getModularity();
     }
@@ -84,6 +103,11 @@ interface DelegatingJavaExecSpec extends DelegatingBaseExecSpec, JavaExecSpec {
     @Override
     default MapProperty<String, Object> getSystemProperties() {
         return getDelegate().getSystemProperties();
+    }
+
+    @Override
+    default void setSystemProperties(Map<String, ? extends @Nullable Object> systemProperties) {
+        getDelegate().setSystemProperties(systemProperties);
     }
 
     @Override
@@ -104,8 +128,18 @@ interface DelegatingJavaExecSpec extends DelegatingBaseExecSpec, JavaExecSpec {
     }
 
     @Override
+    default void setDefaultCharacterEncoding(@Nullable String defaultCharacterEncoding) {
+        getDelegate().setDefaultCharacterEncoding(defaultCharacterEncoding);
+    }
+
+    @Override
     default Property<String> getMinHeapSize() {
         return getDelegate().getMinHeapSize();
+    }
+
+    @Override
+    default void setMinHeapSize(@Nullable String minHeapSize) {
+        getDelegate().setMinHeapSize(minHeapSize);
     }
 
     @Override
@@ -113,10 +147,25 @@ interface DelegatingJavaExecSpec extends DelegatingBaseExecSpec, JavaExecSpec {
         return getDelegate().getMaxHeapSize();
     }
 
+    @Override
+    default void setMaxHeapSize(@Nullable String maxHeapSize) {
+        getDelegate().setMaxHeapSize(maxHeapSize);
+    }
+
     @Nullable
     @Override
     default ListProperty<String> getJvmArgs() {
         return getDelegate().getJvmArgs();
+    }
+
+    @Override
+    default void setJvmArgs(List<String> arguments) {
+        getDelegate().setJvmArgs(arguments);
+    }
+
+    @Override
+    default void setJvmArgs(Iterable<?> arguments) {
+        getDelegate().setJvmArgs(arguments);
     }
 
     @Override
@@ -142,6 +191,11 @@ interface DelegatingJavaExecSpec extends DelegatingBaseExecSpec, JavaExecSpec {
     }
 
     @Override
+    default void setBootstrapClasspath(FileCollection bootstrapClasspath) {
+        getDelegate().setBootstrapClasspath(bootstrapClasspath);
+    }
+
+    @Override
     default JavaForkOptions bootstrapClasspath(Object... classpath) {
         getDelegate().bootstrapClasspath(classpath);
         return this;
@@ -153,8 +207,18 @@ interface DelegatingJavaExecSpec extends DelegatingBaseExecSpec, JavaExecSpec {
     }
 
     @Override
+    default void setEnableAssertions(boolean enableAssertions) {
+        getDelegate().setEnableAssertions(enableAssertions);
+    }
+
+    @Override
     default Property<Boolean> getDebug() {
         return getDelegate().getDebug();
+    }
+
+    @Override
+    default void setDebug(boolean debug) {
+        getDelegate().setDebug(debug);
     }
 
     @Override
@@ -170,6 +234,18 @@ interface DelegatingJavaExecSpec extends DelegatingBaseExecSpec, JavaExecSpec {
     @Override
     default Provider<List<String>> getAllJvmArgs() {
         return getDelegate().getAllJvmArgs();
+    }
+
+    @Override
+    @SuppressWarnings("deprecation")
+    default void setAllJvmArgs(List<String> arguments) {
+        getDelegate().setAllJvmArgs(arguments);
+    }
+
+    @Override
+    @SuppressWarnings("deprecation")
+    default void setAllJvmArgs(Iterable<?> arguments) {
+        getDelegate().setAllJvmArgs(arguments);
     }
 
     @Override

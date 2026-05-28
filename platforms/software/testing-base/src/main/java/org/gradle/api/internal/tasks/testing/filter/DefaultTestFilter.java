@@ -24,6 +24,8 @@ import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty.BinaryCompatibility;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.LinkedHashSet;
 
 @UsedByScanPlugin("test-retry")
@@ -71,11 +73,28 @@ public abstract class DefaultTestFilter implements TestFilter {
     public abstract Property<Boolean> getFailOnNoMatchingTests();
 
     @Override
+    public void setFailOnNoMatchingTests(boolean failOnNoMatchingTests) {
+        getFailOnNoMatchingTests().set(failOnNoMatchingTests);
+    }
+
+    @Override
     @Input
     public abstract SetProperty<String> getIncludePatterns();
 
     @Override
+    public TestFilter setIncludePatterns(String... includePatterns) {
+        getIncludePatterns().set(Arrays.asList(includePatterns));
+        return this;
+    }
+
+    @Override
     public abstract SetProperty<String> getExcludePatterns();
+
+    @Override
+    public TestFilter setExcludePatterns(String... excludePatterns) {
+        getExcludePatterns().set(Arrays.asList(excludePatterns));
+        return this;
+    }
 
     /**
      * This is internal property, but it's annotated with @ReplacesEagerProperty too,
@@ -89,6 +108,14 @@ public abstract class DefaultTestFilter implements TestFilter {
         binaryCompatibility = BinaryCompatibility.ACCESSORS_KEPT
     )
     public abstract SetProperty<String> getCommandLineIncludePatterns();
+
+    /**
+     * Sets the command-line test name patterns. Returns this to support fluent chaining.
+     */
+    public TestFilter setCommandLineIncludePatterns(Collection<String> testNamePatterns) {
+        getCommandLineIncludePatterns().set(testNamePatterns);
+        return this;
+    }
 
     public TestFilter includeCommandLineTest(String className, String methodName) {
         return addToFilteringSet(getCommandLineIncludePatterns(), className, methodName);

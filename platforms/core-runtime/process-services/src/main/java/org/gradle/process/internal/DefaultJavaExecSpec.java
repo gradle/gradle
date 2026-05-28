@@ -16,6 +16,7 @@
 
 package org.gradle.process.internal;
 
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.lambdas.SerializableLambdas;
 import org.gradle.api.jvm.ModularitySpec;
@@ -31,6 +32,8 @@ import org.gradle.process.JavaExecSpec;
 import org.jspecify.annotations.Nullable;
 
 import javax.inject.Inject;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -64,6 +67,50 @@ public abstract class DefaultJavaExecSpec extends DefaultJavaForkOptions impleme
         this.modularity = objectFactory.newInstance(DefaultModularitySpec.class);
         this.javaModuleDetector = javaModuleDetector.create();
         getIgnoreExitValue().convention(false);
+    }
+
+    // BaseExecSpec setters (not provided by DefaultJavaForkOptions)
+    @Override
+    public JavaExecSpec setIgnoreExitValue(boolean ignoreExitValue) {
+        getIgnoreExitValue().set(ignoreExitValue);
+        return this;
+    }
+
+    @Override
+    public JavaExecSpec setStandardInput(InputStream standardInput) {
+        getStandardInput().set(standardInput);
+        return this;
+    }
+
+    @Override
+    public JavaExecSpec setStandardOutput(OutputStream standardOutput) {
+        getStandardOutput().set(standardOutput);
+        return this;
+    }
+
+    @Override
+    public JavaExecSpec setErrorOutput(OutputStream errorOutput) {
+        getErrorOutput().set(errorOutput);
+        return this;
+    }
+
+    // JavaExecSpec setters
+    @Override
+    public JavaExecSpec setArgs(List<String> args) {
+        return setArgs((Iterable<?>) args);
+    }
+
+    @Override
+    public JavaExecSpec setArgs(Iterable<?> args) {
+        getArgs().empty();
+        args(args);
+        return this;
+    }
+
+    @Override
+    public JavaExecSpec setClasspath(FileCollection classpath) {
+        getClasspath().setFrom(classpath);
+        return this;
     }
 
     public void copyTo(JavaExecSpec targetSpec) {

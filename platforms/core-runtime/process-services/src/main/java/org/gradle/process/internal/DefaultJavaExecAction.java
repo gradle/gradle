@@ -19,11 +19,13 @@ package org.gradle.process.internal;
 import org.gradle.api.Action;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.jvm.ModularitySpec;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
+import org.gradle.process.BaseExecSpec;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.ExecResult;
 import org.gradle.process.JavaDebugOptions;
@@ -33,6 +35,7 @@ import org.gradle.process.ProcessForkOptions;
 import org.jspecify.annotations.Nullable;
 
 import javax.inject.Inject;
+import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
@@ -295,6 +298,130 @@ public class DefaultJavaExecAction implements JavaExecAction {
     public ProcessForkOptions copyTo(ProcessForkOptions options) {
         javaExecSpec.copyTo(options);
         return this;
+    }
+
+    @Override
+    public JavaExecSpec setArgs(List<String> args) {
+        javaExecSpec.setArgs(args);
+        return this;
+    }
+
+    @Override
+    public JavaExecSpec setArgs(Iterable<?> args) {
+        javaExecSpec.setArgs(args);
+        return this;
+    }
+
+    @Override
+    public JavaExecSpec setClasspath(FileCollection classpath) {
+        javaExecSpec.setClasspath(classpath);
+        return this;
+    }
+
+    @Override
+    public void setSystemProperties(Map<String, ? extends @Nullable Object> systemProperties) {
+        javaExecSpec.setSystemProperties(systemProperties);
+    }
+
+    @Override
+    public void setDefaultCharacterEncoding(@Nullable String defaultCharacterEncoding) {
+        javaExecSpec.setDefaultCharacterEncoding(defaultCharacterEncoding);
+    }
+
+    @Override
+    public void setMinHeapSize(@Nullable String minHeapSize) {
+        javaExecSpec.setMinHeapSize(minHeapSize);
+    }
+
+    @Override
+    public void setMaxHeapSize(@Nullable String maxHeapSize) {
+        javaExecSpec.setMaxHeapSize(maxHeapSize);
+    }
+
+    @Override
+    public void setJvmArgs(List<String> arguments) {
+        javaExecSpec.setJvmArgs(arguments);
+    }
+
+    @Override
+    public void setJvmArgs(Iterable<?> arguments) {
+        javaExecSpec.setJvmArgs(arguments);
+    }
+
+    @Override
+    public void setBootstrapClasspath(FileCollection bootstrapClasspath) {
+        javaExecSpec.setBootstrapClasspath(bootstrapClasspath);
+    }
+
+    @Override
+    public void setEnableAssertions(boolean enableAssertions) {
+        javaExecSpec.setEnableAssertions(enableAssertions);
+    }
+
+    @Override
+    public void setDebug(boolean debug) {
+        javaExecSpec.setDebug(debug);
+    }
+
+    @Override
+    @Deprecated
+    public void setAllJvmArgs(List<String> arguments) {
+        javaExecSpec.setAllJvmArgs(arguments);
+    }
+
+    @Override
+    @Deprecated
+    public void setAllJvmArgs(Iterable<?> arguments) {
+        javaExecSpec.setAllJvmArgs(arguments);
+    }
+
+    @Override
+    public BaseExecSpec setIgnoreExitValue(boolean ignoreExitValue) {
+        javaExecSpec.setIgnoreExitValue(ignoreExitValue);
+        return this;
+    }
+
+    @Override
+    public BaseExecSpec setStandardInput(InputStream standardInput) {
+        javaExecSpec.setStandardInput(standardInput);
+        return this;
+    }
+
+    @Override
+    public BaseExecSpec setStandardOutput(OutputStream standardOutput) {
+        javaExecSpec.setStandardOutput(standardOutput);
+        return this;
+    }
+
+    @Override
+    public BaseExecSpec setErrorOutput(OutputStream errorOutput) {
+        javaExecSpec.setErrorOutput(errorOutput);
+        return this;
+    }
+
+    @Override
+    public void setExecutable(String executable) {
+        javaExecSpec.setExecutable(executable);
+    }
+
+    @Override
+    public void setExecutable(Object executable) {
+        javaExecSpec.setExecutable(executable);
+    }
+
+    @Override
+    public void setWorkingDir(File dir) {
+        javaExecSpec.setWorkingDir(dir);
+    }
+
+    @Override
+    public void setWorkingDir(Object dir) {
+        javaExecSpec.setWorkingDir(dir);
+    }
+
+    @Override
+    public void setEnvironment(Map<String, ?> environment) {
+        javaExecSpec.setEnvironment(environment);
     }
 
     @Override

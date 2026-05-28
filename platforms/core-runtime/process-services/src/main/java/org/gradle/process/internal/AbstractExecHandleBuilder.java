@@ -15,13 +15,19 @@
  */
 package org.gradle.process.internal;
 
+import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
+import org.gradle.api.provider.Provider;
 import org.gradle.process.BaseExecSpec;
+import org.gradle.process.ProcessForkOptions;
 import org.gradle.process.internal.streams.StreamsHandler;
 
+import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Deprecated. Will be removed in Gradle 10. Kept for now it's subclass is used by the Kotlin plugin.
@@ -41,8 +47,39 @@ public abstract class AbstractExecHandleBuilder implements BaseExecSpec {
     }
 
     @Override
+    public void setExecutable(String executable) {
+        delegate.setExecutable(executable);
+    }
+
+    @Override
+    public void setExecutable(Object executable) {
+        delegate.setExecutable(executable);
+    }
+
+    @Override
     public AbstractExecHandleBuilder executable(Object executable) {
         delegate.executable(executable);
+        return this;
+    }
+
+    @Override
+    public DirectoryProperty getWorkingDir() {
+        return delegate.getWorkingDir();
+    }
+
+    @Override
+    public void setWorkingDir(File dir) {
+        delegate.setWorkingDir(dir);
+    }
+
+    @Override
+    public void setWorkingDir(Object dir) {
+        delegate.setWorkingDir(dir);
+    }
+
+    @Override
+    public ProcessForkOptions workingDir(Object dir) {
+        delegate.workingDir(dir);
         return this;
     }
 
@@ -52,8 +89,42 @@ public abstract class AbstractExecHandleBuilder implements BaseExecSpec {
     }
 
     @Override
+    public void setEnvironment(Map<String, ?> environment) {
+        delegate.setEnvironment(environment);
+    }
+
+    @Override
+    public ProcessForkOptions environment(Map<String, ?> environmentVariables) {
+        delegate.environment(environmentVariables);
+        return this;
+    }
+
+    @Override
+    public ProcessForkOptions environment(String name, Object value) {
+        delegate.environment(name, value);
+        return this;
+    }
+
+    @Override
+    public ProcessForkOptions copyTo(ProcessForkOptions options) {
+        delegate.copyTo(options);
+        return this;
+    }
+
+    @Override
+    public Provider<List<String>> getCommandLine() {
+        return delegate.getCommandLine();
+    }
+
+    @Override
     public Property<InputStream> getStandardInput() {
         return delegate.getStandardInput();
+    }
+
+    @Override
+    public BaseExecSpec setStandardInput(InputStream standardInput) {
+        delegate.setStandardInput(standardInput);
+        return this;
     }
 
     @Override
@@ -62,13 +133,31 @@ public abstract class AbstractExecHandleBuilder implements BaseExecSpec {
     }
 
     @Override
+    public BaseExecSpec setStandardOutput(OutputStream standardOutput) {
+        delegate.setStandardOutput(standardOutput);
+        return this;
+    }
+
+    @Override
     public Property<OutputStream> getErrorOutput() {
         return delegate.getErrorOutput();
     }
 
     @Override
+    public BaseExecSpec setErrorOutput(OutputStream errorOutput) {
+        delegate.setErrorOutput(errorOutput);
+        return this;
+    }
+
+    @Override
     public Property<Boolean> getIgnoreExitValue() {
         return delegate.getIgnoreExitValue();
+    }
+
+    @Override
+    public BaseExecSpec setIgnoreExitValue(boolean ignoreExitValue) {
+        delegate.setIgnoreExitValue(ignoreExitValue);
+        return this;
     }
 
     public AbstractExecHandleBuilder setDisplayName(String displayName) {

@@ -21,12 +21,14 @@ import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
+import org.gradle.process.BaseExecSpec;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.ExecResult;
 import org.gradle.process.ExecSpec;
 import org.gradle.process.ProcessForkOptions;
 
 import javax.inject.Inject;
+import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
@@ -164,6 +166,82 @@ public class DefaultExecAction implements ExecAction {
     @Override
     public Provider<List<String>> getCommandLine() {
         return execSpec.getCommandLine();
+    }
+
+    @Override
+    public void setExecutable(String executable) {
+        execSpec.setExecutable(executable);
+    }
+
+    @Override
+    public void setExecutable(Object executable) {
+        execSpec.setExecutable(executable);
+    }
+
+    @Override
+    public void setWorkingDir(File dir) {
+        execSpec.setWorkingDir(dir);
+    }
+
+    @Override
+    public void setWorkingDir(Object dir) {
+        execSpec.setWorkingDir(dir);
+    }
+
+    @Override
+    public void setEnvironment(Map<String, ?> environment) {
+        execSpec.setEnvironment(environment);
+    }
+
+    @Override
+    public void setCommandLine(List<String> args) {
+        execSpec.setCommandLine(args);
+    }
+
+    @Override
+    public void setCommandLine(Object... args) {
+        execSpec.setCommandLine(args);
+    }
+
+    @Override
+    public void setCommandLine(Iterable<?> args) {
+        execSpec.setCommandLine(args);
+    }
+
+    @Override
+    public ExecSpec setArgs(List<String> args) {
+        execSpec.setArgs(args);
+        return this;
+    }
+
+    @Override
+    public ExecSpec setArgs(Iterable<?> args) {
+        execSpec.setArgs(args);
+        return this;
+    }
+
+    @Override
+    public BaseExecSpec setIgnoreExitValue(boolean ignoreExitValue) {
+        execSpec.setIgnoreExitValue(ignoreExitValue);
+        return this;
+    }
+
+    @Override
+    public BaseExecSpec setStandardInput(InputStream standardInput) {
+        execSpec.setStandardInput(standardInput);
+        return this;
+    }
+
+    @Override
+    public BaseExecSpec setStandardOutput(OutputStream standardOutput) {
+        execSpec.setStandardOutput(standardOutput);
+        return this;
+    }
+
+    @Override
+    public BaseExecSpec setErrorOutput(OutputStream errorOutput) {
+        execSpec.setErrorOutput(errorOutput);
+        return this;
     }
 
     @Override

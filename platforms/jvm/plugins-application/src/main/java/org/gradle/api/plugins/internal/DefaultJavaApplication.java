@@ -46,6 +46,11 @@ public class DefaultJavaApplication implements JavaApplication {
     }
 
     @Override
+    public void setApplicationName(String applicationName) {
+        this.applicationName.set(applicationName);
+    }
+
+    @Override
     public Property<String> getMainModule() {
         return mainModule;
     }
@@ -61,8 +66,18 @@ public class DefaultJavaApplication implements JavaApplication {
     }
 
     @Override
+    public void setApplicationDefaultJvmArgs(Iterable<String> applicationDefaultJvmArgs) {
+        this.applicationDefaultJvmArgs.set(applicationDefaultJvmArgs);
+    }
+
+    @Override
     public Property<String> getExecutableDir() {
         return executableDir;
+    }
+
+    @Override
+    public void setExecutableDir(String executableDir) {
+        this.executableDir.set(executableDir);
     }
 
     @Override

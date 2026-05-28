@@ -27,15 +27,7 @@ class ProcessForkOptionsAdapters {
             return options.getExecutable().getOrNull();
         }
 
-        @BytecodeUpgrade
-        static void setExecutable(ProcessForkOptions options, String executable) {
-            options.getExecutable().set(executable);
-        }
 
-        @BytecodeUpgrade
-        static void setExecutable(ProcessForkOptions options, Object executable) {
-            options.executable(executable);
-        }
     }
 
     static class WorkingDirAdapter {
@@ -44,14 +36,6 @@ class ProcessForkOptionsAdapters {
             return options.getWorkingDir().getAsFile().getOrNull();
         }
 
-        @BytecodeUpgrade
-        static void setWorkingDir(ProcessForkOptions options, File dir) {
-            options.getWorkingDir().set(dir);
-        }
 
-        @BytecodeUpgrade
-        static void setWorkingDir(ProcessForkOptions options, Object dir) {
-            options.workingDir(dir);
-        }
     }
 }

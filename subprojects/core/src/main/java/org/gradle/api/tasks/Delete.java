@@ -79,6 +79,16 @@ public abstract class Delete extends ConventionTask implements DeleteSpec {
     @ReplacesEagerProperty(replacedAccessors = @ReplacedAccessor(value = GETTER, name = "isFollowSymlinks", originalType = boolean.class))
     public abstract Property<Boolean> getFollowSymlinks();
 
+    /**
+     * Set if symlinks should be followed. If the platform doesn't support symlinks, then this will have no effect.
+     *
+     * @param followSymlinks if symlinks should be followed.
+     */
+    @Override
+    public void setFollowSymlinks(boolean followSymlinks) {
+        getFollowSymlinks().set(followSymlinks);
+    }
+
     @Internal
     public Property<Boolean> getIsFollowSymlinks() {
         return getFollowSymlinks();

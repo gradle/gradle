@@ -63,7 +63,6 @@ import org.gradle.api.tasks.options.Option;
 import org.gradle.initialization.StartParameterBuildOptions;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.graph.GraphRenderer;
-import org.gradle.internal.instrumentation.api.annotations.BytecodeUpgrade;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
@@ -188,11 +187,23 @@ public abstract class DependencyInsightReportTask extends DefaultTask {
     public void setDependencySpec(@Nullable Spec<DependencyResult> configuredDependencySpec) {
         DeprecationLogger.deprecateMethod(DependencyInsightReportTask.class, "setDependencySpec(Spec<DependencyResult>)")
             .replaceWith("dependencySpec(Spec<DependencyResult>)")
-            .willBeRemovedInGradle10() // TODO: change to 10
+            .willBeRemovedInGradle10()
             .undocumented()
             .nagUser();
 
         dependencySpec(configuredDependencySpec);
+    }
+
+    /**
+     * Configures the dependency to show the report for.
+     * Multiple notation formats are supported: Strings, instances of {@link Spec}
+     * and groovy closures. Spec and closure receive {@link DependencyResult} as parameter.
+     * Examples of String notation: 'org.slf4j:slf4j-api', 'slf4j-api', or simply: 'slf4j'.
+     * The input may potentially match multiple dependencies.
+     * See also {@link #setDependencySpec(Spec)}
+     */
+    public void setDependencySpec(@Nullable Object dependencyInsightNotation) {
+        setDependencySpec(DependencyResultSpecNotationConverter.parser().parseNotation(dependencyInsightNotation));
     }
 
     /**
@@ -215,12 +226,12 @@ public abstract class DependencyInsightReportTask extends DefaultTask {
      * This method is exposed to the command line interface. Example usage:
      * <pre>gradle dependencyInsight --dependency slf4j</pre>
      *
-     * @since 9.0
+     * @since 9.6.0
      */
+    @Incubating
     @Input
     @Optional
     @Option(option = "dependency", description = "Shows the details of given dependency.")
-    @ReplacesEagerProperty(adapter = DependencyInsightReportTaskAdapter.class)
     public abstract Property<String> getDependencyNotation();
 
     /**
@@ -230,6 +241,13 @@ public abstract class DependencyInsightReportTask extends DefaultTask {
     @ReplacesEagerProperty
     public Property<Configuration> getConfiguration() {
         return Objects.requireNonNull(configurationProp.get());
+    }
+
+    /**
+     * Sets the configuration to look the dependency in.
+     */
+    public void setConfiguration(@Nullable Configuration configuration) {
+        getConfiguration().set(configuration);
     }
 
     /**
@@ -264,9 +282,24 @@ public abstract class DependencyInsightReportTask extends DefaultTask {
      * @since 4.9
      */
     @Internal
-    @ReplacesEagerProperty(originalType = boolean.class)
     @Option(option = "single-path", description = "Show at most one path to each dependency")
+    @ReplacesEagerProperty(originalType = boolean.class)
     public abstract Property<Boolean> getShowSinglePathToDependency();
+
+    /**
+     * Tells if the report should only display a single path to each dependency, which
+     * can be useful when the graph is large. This is false by default, meaning that for
+     * each dependency, the report will display all paths leading to it.
+     *
+     * <p>
+     * This method is exposed to the command line interface. Example usage:
+     * <pre>gradle dependencyInsight --single-path</pre>
+     *
+     * @since 4.9
+     */
+    public void setShowSinglePathToDependency(boolean showSinglePathToDependency) {
+        getShowSinglePathToDependency().set(showSinglePathToDependency);
+    }
 
     // kotlin source compatibility
     @Internal
@@ -715,16 +748,4 @@ public abstract class DependencyInsightReportTask extends DefaultTask {
         }
     }
 
-    static class DependencyInsightReportTaskAdapter {
-        @BytecodeUpgrade
-        static void setDependencySpec(DependencyInsightReportTask task, @Nullable Object notation) {
-            if (notation == null) {
-                task.getDependencyNotation().unset();
-            } else if (notation instanceof CharSequence) {
-                task.getDependencyNotation().set(notation.toString());
-            } else {
-                throw new IllegalArgumentException("Unsupported notation type: " + notation.getClass() + ". Only String and CharSequence notation are supported.");
-            }
-        }
-    }
 }

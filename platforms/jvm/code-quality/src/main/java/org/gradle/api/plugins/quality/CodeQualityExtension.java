@@ -21,7 +21,9 @@ import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 
+import java.io.File;
 import java.util.Collection;
+
 
 /**
  * Base Code Quality Extension.
@@ -39,10 +41,24 @@ public abstract class CodeQualityExtension {
     public abstract Property<String> getToolVersion();
 
     /**
+     * The version of the code quality tool to be used.
+     */
+    public void setToolVersion(String toolVersion) {
+        getToolVersion().set(toolVersion);
+    }
+
+    /**
      * The source sets to be analyzed as part of the <code>check</code> and <code>build</code> tasks.
      */
     @ReplacesEagerProperty(originalType = Collection.class)
     public abstract ListProperty<SourceSet> getSourceSets();
+
+    /**
+     * The source sets to be analyzed as part of the <code>check</code> and <code>build</code> tasks.
+     */
+    public void setSourceSets(Collection<SourceSet> sourceSets) {
+        getSourceSets().set(sourceSets);
+    }
 
     /**
      * Whether to allow the build to continue if there are warnings.
@@ -51,6 +67,15 @@ public abstract class CodeQualityExtension {
      */
     @ReplacesEagerProperty(originalType = boolean.class)
     public abstract Property<Boolean> getIgnoreFailures();
+
+    /**
+     * Whether to allow the build to continue if there are warnings.
+     *
+     * Example: ignoreFailures = true
+     */
+    public void setIgnoreFailures(boolean ignoreFailures) {
+        getIgnoreFailures().set(ignoreFailures);
+    }
 
     public Property<Boolean> getIsIgnoreFailures() {
         return getIgnoreFailures();
@@ -61,4 +86,11 @@ public abstract class CodeQualityExtension {
      */
     @ReplacesEagerProperty
     public abstract DirectoryProperty getReportsDir();
+
+    /**
+     * The directory where reports will be generated.
+     */
+    public void setReportsDir(File reportsDir) {
+        getReportsDir().set(reportsDir);
+    }
 }

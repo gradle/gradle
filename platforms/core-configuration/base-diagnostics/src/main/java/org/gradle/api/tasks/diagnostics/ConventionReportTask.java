@@ -36,7 +36,11 @@ import org.gradle.internal.serialization.Transient;
 import org.gradle.work.DisableCachingByDefault;
 
 import javax.inject.Inject;
+import java.io.File;
 import java.util.Objects;
+import java.util.Set;
+
+import org.jspecify.annotations.Nullable;
 
 import static java.util.Collections.singleton;
 
@@ -83,6 +87,15 @@ public abstract class ConventionReportTask extends ConventionTask {
     public abstract RegularFileProperty getOutputFile();
 
     /**
+     * Sets the file which the report will be written to. Set this to {@code null} to write the report to {@code System.out}.
+     *
+     * @param outputFile The output file. May be null.
+     */
+    public void setOutputFile(@Nullable File outputFile) {
+        getOutputFile().set(outputFile);
+    }
+
+    /**
      * Returns the set of project to generate this report for. By default, the report is generated for the task's
      * containing project.
      *
@@ -92,6 +105,15 @@ public abstract class ConventionReportTask extends ConventionTask {
     @ReplacesEagerProperty
     public SetProperty<Project> getProjects() {
         return Objects.requireNonNull(projects.get());
+    }
+
+    /**
+     * Specifies the set of projects to generate this report for.
+     *
+     * @param projects The set of projects. Must not be null.
+     */
+    public void setProjects(Set<Project> projects) {
+        getProjects().set(projects);
     }
 
     protected ReportGenerator reportGenerator() {

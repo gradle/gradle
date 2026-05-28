@@ -54,11 +54,21 @@ public abstract class AbstractMavenArtifact implements MavenArtifact, Publicatio
         return extensionProperty;
     }
 
+    @Override
+    public void setExtension(String extension) {
+        getExtension().set(extension);
+    }
+
     protected abstract Provider<String> getDefaultExtension();
 
     @Override
     public Property<String> getClassifier() {
         return classifierProperty;
+    }
+
+    @Override
+    public void setClassifier(String classifier) {
+        getClassifier().set(classifier);
     }
 
     protected abstract Provider<String> getDefaultClassifier();

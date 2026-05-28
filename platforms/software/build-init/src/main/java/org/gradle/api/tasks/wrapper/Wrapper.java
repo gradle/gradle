@@ -58,6 +58,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
 
+import org.jspecify.annotations.Nullable;
+
 /**
  * <p>Generates scripts (for *nix and windows) which allow you to build your project with Gradle, without having to
  * install Gradle.
@@ -219,6 +221,22 @@ public abstract class Wrapper extends DefaultTask {
     public abstract RegularFileProperty getScriptFile();
 
     /**
+     * The file to write the wrapper script to.
+     *
+     * @since 4.0
+     */
+    public void setScriptFile(File scriptFile) {
+        getScriptFile().set(scriptFile);
+    }
+
+    /**
+     * The file to write the wrapper script to.
+     */
+    public void setScriptFile(Object scriptFile) {
+        getScriptFile().fileValue(getFileOperations().file(scriptFile));
+    }
+
+    /**
      * Returns the file to write the wrapper batch script to.
      */
     @OutputFile
@@ -235,6 +253,22 @@ public abstract class Wrapper extends DefaultTask {
     @OutputFile
     @ReplacesEagerProperty
     public abstract RegularFileProperty getJarFile();
+
+    /**
+     * The file to write the wrapper jar file to.
+     *
+     * @since 4.0
+     */
+    public void setJarFile(File jarFile) {
+        getJarFile().set(jarFile);
+    }
+
+    /**
+     * The file to write the wrapper jar file to.
+     */
+    public void setJarFile(Object jarFile) {
+        getJarFile().fileValue(getFileOperations().file(jarFile));
+    }
 
     /**
      * Returns the file to write the wrapper properties to.
@@ -256,6 +290,16 @@ public abstract class Wrapper extends DefaultTask {
     public abstract Property<String> getDistributionPath();
 
     /**
+     * Sets the path where the gradle distributions needed by the wrapper are unzipped. The path is relative to the
+     * distribution base directory
+     *
+     * @see #setDistributionPath(String)
+     */
+    public void setDistributionPath(String distributionPath) {
+        getDistributionPath().set(distributionPath);
+    }
+
+    /**
      * The version of the gradle distribution required by the wrapper.
      * This is usually the same version of Gradle you use for building your project.
      * The following labels are allowed to specify a version: {@code latest}, {@code release-candidate}, {@code release-milestone}, {@code release-nightly}, and {@code nightly}
@@ -263,19 +307,36 @@ public abstract class Wrapper extends DefaultTask {
      * <p>The resulting distribution url is validated before it is written to the gradle-wrapper.properties file.
      */
     @Input
-    @ReplacesEagerProperty
     @Option(option = "gradle-version", description = "The version of the Gradle distribution required by the wrapper. " +
         "The following labels are allowed: latest, release-candidate, release-milestone, release-nightly, and nightly.")
+    @ReplacesEagerProperty
     public abstract Property<String> getGradleVersion();
+
+    /**
+     * Sets the version of the gradle distribution required by the wrapper.
+     */
+    public void setGradleVersion(String gradleVersion) {
+        getGradleVersion().set(gradleVersion);
+    }
 
     /**
      * Returns the type of the Gradle distribution to be used by the wrapper. By default, this is {@link DistributionType#BIN},
      * which is the binary-only Gradle distribution without documentation.
      */
     @Input
-    @ReplacesEagerProperty
     @Option(option = "distribution-type", description = "The type of the Gradle distribution to be used by the wrapper.")
+    @ReplacesEagerProperty
     public abstract Property<DistributionType> getDistributionType();
+
+    /**
+     * The type of the Gradle distribution to be used by the wrapper. By default, this is {@link DistributionType#BIN},
+     * which is the binary-only Gradle distribution without documentation.
+     *
+     * @see DistributionType
+     */
+    public void setDistributionType(DistributionType distributionType) {
+        getDistributionType().set(distributionType);
+    }
 
     /**
      * The list of available gradle distribution types. Always returns the contents of {@link DistributionType#values()}.
@@ -307,9 +368,16 @@ public abstract class Wrapper extends DefaultTask {
      * <p>The distribution url is validated before it is written to the gradle-wrapper.properties file.
      */
     @Input
-    @ReplacesEagerProperty
     @Option(option = "gradle-distribution-url", description = "The URL to download the Gradle distribution from.")
+    @ReplacesEagerProperty
     public abstract Property<String> getDistributionUrl();
+
+    /**
+     * Sets the URL to download the gradle distribution from.
+     */
+    public void setDistributionUrl(String url) {
+        getDistributionUrl().set(url);
+    }
 
     /**
      * The SHA-256 hash sum of the gradle distribution.
@@ -324,9 +392,24 @@ public abstract class Wrapper extends DefaultTask {
      */
     @Input
     @Optional
-    @ReplacesEagerProperty
     @Option(option = "gradle-distribution-sha256-sum", description = "The SHA-256 hash sum of the gradle distribution.")
+    @ReplacesEagerProperty
     public abstract Property<String> getDistributionSha256Sum();
+
+    /**
+     * The SHA-256 hash sum of the gradle distribution.
+     *
+     * <p>If not set, the hash sum of the gradle distribution is not verified.
+     *
+     * <p>The wrapper allows for verification of the downloaded Gradle distribution via SHA-256 hash sum comparison.
+     * This increases security against targeted attacks by preventing a man-in-the-middle attacker from tampering with
+     * the downloaded Gradle distribution.
+     *
+     * @since 4.5
+     */
+    public void setDistributionSha256Sum(@Nullable String distributionSha256Sum) {
+        getDistributionSha256Sum().set(distributionSha256Sum);
+    }
 
     /**
      * The distribution base specifies whether the unpacked wrapper distribution should be stored in the project or in
@@ -337,6 +420,14 @@ public abstract class Wrapper extends DefaultTask {
     public abstract Property<PathBase> getDistributionBase();
 
     /**
+     * The distribution base specifies whether the unpacked wrapper distribution should be stored in the project or in
+     * the gradle user home dir.
+     */
+    public void setDistributionBase(PathBase distributionBase) {
+        getDistributionBase().set(distributionBase);
+    }
+
+    /**
      * Returns the path where the gradle distributions archive should be saved (i.e. the parent dir). The path is
      * relative to the archive base directory.
      */
@@ -345,12 +436,28 @@ public abstract class Wrapper extends DefaultTask {
     public abstract Property<String> getArchivePath();
 
     /**
+     * Set's the path where the gradle distributions archive should be saved (i.e. the parent dir). The path is relative
+     * to the parent dir specified with {@link #getArchiveBase()}.
+     */
+    public void setArchivePath(String archivePath) {
+        getArchivePath().set(archivePath);
+    }
+
+    /**
      * The archive base specifies whether the unpacked wrapper distribution should be stored in the project or in the
      * gradle user home dir.
      */
     @Input
     @ReplacesEagerProperty
     public abstract Property<PathBase> getArchiveBase();
+
+    /**
+     * The archive base specifies whether the unpacked wrapper distribution should be stored in the project or in the
+     * gradle user home dir.
+     */
+    public void setArchiveBase(PathBase archiveBase) {
+        getArchiveBase().set(archiveBase);
+    }
 
     /**
      * The network timeout specifies how many ms to wait for when the wrapper is performing network operations, such

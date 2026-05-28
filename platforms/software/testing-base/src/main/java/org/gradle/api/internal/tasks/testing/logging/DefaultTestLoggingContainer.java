@@ -31,6 +31,7 @@ import org.gradle.api.tasks.testing.logging.TestStackTraceFilter;
 import javax.inject.Inject;
 import java.util.EnumSet;
 import java.util.Map;
+import java.util.Set;
 
 public abstract class DefaultTestLoggingContainer implements TestLoggingContainer {
     private final Map<LogLevel, TestLogging> perLevelTestLogging = Maps.newEnumMap(LogLevel.class);
@@ -148,6 +149,16 @@ public abstract class DefaultTestLoggingContainer implements TestLoggingContaine
     }
 
     @Override
+    public void setEvents(Set<TestLogEvent> events) {
+        getDefaultTestLogging().setEvents(events);
+    }
+
+    @Override
+    public void setEvents(Iterable<?> events) {
+        getDefaultTestLogging().setEvents(events);
+    }
+
+    @Override
     public void events(Object... events) {
         getDefaultTestLogging().events(events);
     }
@@ -158,8 +169,18 @@ public abstract class DefaultTestLoggingContainer implements TestLoggingContaine
     }
 
     @Override
+    public void setMinGranularity(int minGranularity) {
+        getDefaultTestLogging().setMinGranularity(minGranularity);
+    }
+
+    @Override
     public Property<Integer> getMaxGranularity() {
         return getDefaultTestLogging().getMaxGranularity();
+    }
+
+    @Override
+    public void setMaxGranularity(int maxGranularity) {
+        getDefaultTestLogging().setMaxGranularity(maxGranularity);
     }
 
     @Override
@@ -168,8 +189,18 @@ public abstract class DefaultTestLoggingContainer implements TestLoggingContaine
     }
 
     @Override
+    public void setDisplayGranularity(int displayGranularity) {
+        getDefaultTestLogging().setDisplayGranularity(displayGranularity);
+    }
+
+    @Override
     public Property<Boolean> getShowExceptions() {
         return getDefaultTestLogging().getShowExceptions();
+    }
+
+    @Override
+    public void setShowExceptions(boolean showExceptions) {
+        getDefaultTestLogging().setShowExceptions(showExceptions);
     }
 
     @Override
@@ -178,8 +209,18 @@ public abstract class DefaultTestLoggingContainer implements TestLoggingContaine
     }
 
     @Override
+    public void setShowCauses(boolean showCauses) {
+        getDefaultTestLogging().setShowCauses(showCauses);
+    }
+
+    @Override
     public Property<Boolean> getShowStackTraces() {
         return getDefaultTestLogging().getShowStackTraces();
+    }
+
+    @Override
+    public void setShowStackTraces(boolean showStackTraces) {
+        getDefaultTestLogging().setShowStackTraces(showStackTraces);
     }
 
     @Override
@@ -188,8 +229,28 @@ public abstract class DefaultTestLoggingContainer implements TestLoggingContaine
     }
 
     @Override
+    public void setExceptionFormat(TestExceptionFormat exceptionFormat) {
+        getDefaultTestLogging().setExceptionFormat(exceptionFormat);
+    }
+
+    @Override
+    public void setExceptionFormat(Object exceptionFormat) {
+        getDefaultTestLogging().setExceptionFormat(exceptionFormat);
+    }
+
+    @Override
     public SetProperty<TestStackTraceFilter> getStackTraceFilters() {
         return getDefaultTestLogging().getStackTraceFilters();
+    }
+
+    @Override
+    public void setStackTraceFilters(Set<TestStackTraceFilter> stackTraces) {
+        getDefaultTestLogging().setStackTraceFilters(stackTraces);
+    }
+
+    @Override
+    public void setStackTraceFilters(Iterable<?> stackTraces) {
+        getDefaultTestLogging().setStackTraceFilters(stackTraces);
     }
 
     @Override
@@ -200,6 +261,12 @@ public abstract class DefaultTestLoggingContainer implements TestLoggingContaine
     @Override
     public Property<Boolean> getShowStandardStreams() {
         return getDefaultTestLogging().getShowStandardStreams();
+    }
+
+    @Override
+    public TestLoggingContainer setShowStandardStreams(boolean showStandardStreams) {
+        getDefaultTestLogging().setShowStandardStreams(showStandardStreams);
+        return this;
     }
 
     @Override

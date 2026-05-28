@@ -39,6 +39,7 @@ import org.gradle.process.ProcessForkOptions;
 import org.jspecify.annotations.NullMarked;
 
 import javax.inject.Inject;
+import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -105,6 +106,16 @@ public class DefaultProcessForkOptions implements ProcessForkOptions {
     }
 
     @Override
+    public void setExecutable(String executable) {
+        getExecutable().set(executable);
+    }
+
+    @Override
+    public void setExecutable(Object executable) {
+        this.executable(executable);
+    }
+
+    @Override
     public ProcessForkOptions executable(Object executable) {
         if (executable instanceof Provider) {
             getExecutable().set(((Provider<?>) executable).map(Object::toString));
@@ -120,6 +131,16 @@ public class DefaultProcessForkOptions implements ProcessForkOptions {
     }
 
     @Override
+    public void setWorkingDir(File dir) {
+        getWorkingDir().set(dir);
+    }
+
+    @Override
+    public void setWorkingDir(Object dir) {
+        this.workingDir(dir);
+    }
+
+    @Override
     public ProcessForkOptions workingDir(Object dir) {
         if (dir instanceof Provider) {
             getWorkingDir().fileProvider(((Provider<?>) dir).map(resolver::resolve));
@@ -132,6 +153,11 @@ public class DefaultProcessForkOptions implements ProcessForkOptions {
     @Override
     public MapProperty<String, Object> getEnvironment() {
         return environment;
+    }
+
+    @Override
+    public void setEnvironment(Map<String, ?> environment) {
+        getEnvironment().set(environment);
     }
 
     @Override

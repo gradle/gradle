@@ -18,6 +18,7 @@ package org.gradle.process.internal;
 
 import org.gradle.api.Action;
 import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.lambdas.SerializableLambdas;
 import org.gradle.api.internal.provider.MapPropertyInternal;
@@ -26,6 +27,7 @@ import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.process.CommandLineArgumentProvider;
@@ -85,8 +87,81 @@ public class DefaultJavaForkOptions extends DefaultProcessForkOptions implements
     }
 
     @Override
+    @Deprecated
+    public void setAllJvmArgs(List<String> arguments) {
+        nagAboutSetAllJvmArgsDeprecation();
+        setAllJvmArgsInternal(arguments);
+    }
+
+    @Override
+    @Deprecated
+    public void setAllJvmArgs(Iterable<?> arguments) {
+        nagAboutSetAllJvmArgsDeprecation();
+        setAllJvmArgsInternal(arguments);
+        AllJvmArgsAdapterUtil.checkDebugConfiguration(getDebugOptions(), arguments);
+    }
+
+    private static void nagAboutSetAllJvmArgsDeprecation() {
+        DeprecationLogger.deprecateMethod(DefaultJavaForkOptions.class, "setAllJvmArgs")
+            .withAdvice("Use `jvmArgs()`, `setJvmArgs()`, or `getJvmArgumentProviders()` instead to set JVM arguments.")
+            .willBeRemovedInGradle10()
+            .withUpgradeGuideSection(9, "set-all-jvm-args")
+            .nagUser();
+    }
+
+    private void setAllJvmArgsInternal(Iterable<?> arguments) {
+        getSystemProperties().empty();
+        getJvmArgs().empty();
+        getJvmArgumentProviders().empty();
+        getMinHeapSize().unset();
+        getMaxHeapSize().unset();
+        getEnableAssertions().unset();
+        getDebugOptions().getEnabled().unset();
+        getDebugOptions().getPort().unset();
+        getDebugOptions().getServer().unset();
+        getDebugOptions().getSuspend().unset();
+        getDebugOptions().getHost().unset();
+        for (Object argument : arguments) {
+            String argStr = argument.toString();
+            if (argStr.equals("-ea") || argStr.equals("-enableassertions")) {
+                getEnableAssertions().set(true);
+            } else if (argStr.equals("-da") || argStr.equals("-disableassertions")) {
+                getEnableAssertions().set(false);
+            } else if (argStr.startsWith("-Xms")) {
+                getMinHeapSize().set(argStr.substring("-Xms".length()));
+            } else if (argStr.startsWith("-Xmx")) {
+                getMaxHeapSize().set(argStr.substring("-Xmx".length()));
+            } else if (argStr.startsWith("-Xbootclasspath:")) {
+                String[] bootClasspath = argStr.substring("-Xbootclasspath:".length()).split(java.io.File.pathSeparator);
+                getBootstrapClasspath().setFrom((Object[]) bootClasspath);
+            } else if (argStr.startsWith("-D")) {
+                String keyValue = argStr.substring(2);
+                int equalsIndex = keyValue.indexOf("=");
+                if (equalsIndex == -1) {
+                    systemProperty(keyValue, "");
+                } else {
+                    systemProperty(keyValue.substring(0, equalsIndex), keyValue.substring(equalsIndex + 1));
+                }
+            } else {
+                jvmArgs(argument);
+            }
+        }
+    }
+
+    @Override
     public ListProperty<String> getJvmArgs() {
         return jvmArgs;
+    }
+
+    @Override
+    public void setJvmArgs(List<String> arguments) {
+        getJvmArgs().set(arguments);
+    }
+
+    @Override
+    public void setJvmArgs(Iterable<?> arguments) {
+        getJvmArgs().empty();
+        jvmArgs(arguments);
     }
 
     @Override
@@ -118,6 +193,11 @@ public class DefaultJavaForkOptions extends DefaultProcessForkOptions implements
     }
 
     @Override
+    public void setSystemProperties(Map<String, ? extends @Nullable Object> systemProperties) {
+        getSystemProperties().set(systemProperties);
+    }
+
+    @Override
     public JavaForkOptions systemProperties(Map<String, ? extends @Nullable Object> properties) {
         properties.forEach(this::systemProperty);
         return this;
@@ -140,6 +220,11 @@ public class DefaultJavaForkOptions extends DefaultProcessForkOptions implements
     }
 
     @Override
+    public void setBootstrapClasspath(FileCollection bootstrapClasspath) {
+        getBootstrapClasspath().setFrom(bootstrapClasspath);
+    }
+
+    @Override
     public JavaForkOptions bootstrapClasspath(Object... classpath) {
         getBootstrapClasspath().from(classpath);
         return this;
@@ -151,8 +236,18 @@ public class DefaultJavaForkOptions extends DefaultProcessForkOptions implements
     }
 
     @Override
+    public void setMinHeapSize(@Nullable String minHeapSize) {
+        getMinHeapSize().set(minHeapSize);
+    }
+
+    @Override
     public Property<String> getMaxHeapSize() {
         return maxHeapSize;
+    }
+
+    @Override
+    public void setMaxHeapSize(@Nullable String maxHeapSize) {
+        getMaxHeapSize().set(maxHeapSize);
     }
 
     @Override
@@ -161,13 +256,28 @@ public class DefaultJavaForkOptions extends DefaultProcessForkOptions implements
     }
 
     @Override
+    public void setDefaultCharacterEncoding(@Nullable String defaultCharacterEncoding) {
+        getDefaultCharacterEncoding().set(defaultCharacterEncoding);
+    }
+
+    @Override
     public Property<Boolean> getEnableAssertions() {
         return enableAssertions;
     }
 
     @Override
+    public void setEnableAssertions(boolean enableAssertions) {
+        getEnableAssertions().set(enableAssertions);
+    }
+
+    @Override
     public Property<Boolean> getDebug() {
         return getDebugOptions().getEnabled();
+    }
+
+    @Override
+    public void setDebug(boolean debug) {
+        getDebug().set(debug);
     }
 
     @Override

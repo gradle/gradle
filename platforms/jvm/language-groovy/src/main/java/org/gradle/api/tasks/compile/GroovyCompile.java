@@ -324,6 +324,15 @@ public abstract class GroovyCompile extends AbstractCompile implements HasCompil
     public abstract ConfigurableFileCollection getGroovyClasspath();
 
     /**
+     * Sets the classpath containing the version of Groovy to use for compilation.
+     *
+     * @param groovyClasspath The classpath. Must not be null.
+     */
+    public void setGroovyClasspath(FileCollection groovyClasspath) {
+        getGroovyClasspath().setFrom(groovyClasspath);
+    }
+
+    /**
      * The toolchain {@link JavaLauncher} to use for executing the Groovy compiler.
      *
      * @return the java launcher property
