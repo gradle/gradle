@@ -382,4 +382,55 @@ class ConfigurationCacheLambdaIntegrationTest extends AbstractConfigurationCache
         then:
         outputContains("some value")
     }
+
+    @Issue("https://github.com/gradle/gradle/issues/22920")
+    def "report identifies lambda by impl class and method when it appears in property trace"() {
+        given:
+        file("buildSrc/src/main/java/my/LambdaTask.java").tap {
+            parentFile.mkdirs()
+            text = """
+                package my;
+
+                import java.util.function.Supplier;
+                import org.gradle.api.*;
+                import org.gradle.api.tasks.*;
+
+                public class LambdaTask extends DefaultTask {
+                    private Supplier<String> supplier;
+
+                    public void setSupplier(Supplier<String> supplier) {
+                        this.supplier = supplier;
+                    }
+
+                    public void captureProject() {
+                        Project p = getProject();
+                        setSupplier(() -> "project name is " + p.getName());
+                    }
+
+                    @TaskAction
+                    void printValue() {
+                        System.out.println("supplier -> " + supplier.get());
+                    }
+                }
+            """
+        }
+
+        buildFile << """
+            task ok(type: my.LambdaTask) {
+                captureProject()
+            }
+        """
+
+        when:
+        configurationCacheFails("ok")
+
+        then:
+        problems.htmlReport(failure.error).assertContents {
+            problemsWithStackTraceCount = 0
+            withProblem("cannot serialize object of type 'org.gradle.api.internal.project.DefaultProject', a subtype of 'org.gradle.api.Project', as these are not supported with the configuration cache.") {
+                at(":ok").at("supplier").at("lambda my.LambdaTask.lambda\$captureProject\$")
+            }
+            ignoringUnexpectedInputs()
+        }
+    }
 }

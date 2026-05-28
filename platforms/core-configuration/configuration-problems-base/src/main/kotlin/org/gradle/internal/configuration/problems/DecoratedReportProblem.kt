@@ -104,6 +104,13 @@ class DecoratedReportProblemJsonSource(private val problem: DecoratedReportProbl
                 property("type", trace.type.name)
             }
 
+            is PropertyTrace.SerializedLambda -> {
+                property("kind", "SerializedLambda")
+                property("implClass", trace.implClass)
+                property("implMethodName", trace.implMethodName)
+                property("implMethodSignature", trace.implMethodSignature)
+            }
+
             is PropertyTrace.Project -> {
                 property("kind", "Project")
                 property("path", trace.path)
