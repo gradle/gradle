@@ -783,6 +783,7 @@ private class BTACompilerClasspathProvider(private val moduleRegistry: ModuleReg
     override fun findClassPath(name: String): ClassPath {
         var classpath = ClassPath.EMPTY
 
+        classpath = classpath.plus(moduleRegistry.getModule("kotlin-build-tools-api").getImplementationClasspath())
         classpath = classpath.plus(moduleRegistry.getModule("kotlin-build-tools-impl").getImplementationClasspath())
         classpath = classpath.plus(moduleRegistry.getModule("kotlin-compiler-embeddable").getImplementationClasspath())
         classpath = classpath.plus(moduleRegistry.getModule("kotlin-daemon-client").getImplementationClasspath())
