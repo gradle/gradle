@@ -173,12 +173,29 @@ See the [Timestamp for files inside archives](userguide/working_with_files.html#
 ### Platform and toolchain management
 Gradle provides comprehensive support for [Native development](userguide/building_cpp_projects.html) and [JVM languages](userguide/building_java_projects.html), featuring automated [Toolchains](userguide/toolchains.html) for seamless JDK management.
 
-#### Introduced `DomainObjectCollection.getElements()`
+#### New lazy element provider for Domain Object Collections
 
-This [new API](javadoc/org/gradle/api/DomainObjectCollection.html#getElements()) returns a `Provider<? extends Collection<T>>` and acts as an important bridge between the Domain Object Collection and Provider APIs.
-This API is similar to the existing `FileCollection.getElements()` method.
+[`DomainObjectCollection.getElements()`](javadoc/org/gradle/api/DomainObjectCollection.html#getElements()) returns a `Provider<? extends Collection<T>>` and acts as an important bridge between the [Domain Object Collection](userguide/collections.html) and [Provider APIs](userguide/properties_providers.html).
+This API is similar to the existing [`FileCollection.getElements()`](javadoc/org/gradle/api/file/FileCollection.html#getElements()) method.
 
-The returned provider carries build dependencies, meaning dependencies carried by providers added via `addLater` and `addAllLater` are reflected in the returned `elements` provider.
+The returned provider carries build dependencies, meaning dependencies carried by providers added via `addLater` and `addAllLater` are reflected in the returned `elements` provider:
+
+```kotlin
+val container = objects.domainObjectSet(MyType::class.java)
+container.addLater(someProvider)
+
+// Lazily access all elements as a Provider
+val allElements: Provider<out Collection<MyType>> = container.elements
+
+tasks.register("process") {
+    inputs.property("items", allElements)
+    doLast {
+        println(allElements.get())
+    }
+}
+```
+
+See the [Collections](userguide/collections.html#collection_types) section in the Gradle User Manual for more details.
 
 ### Core plugin and plugin authoring enhancements
 Gradle provides a comprehensive plugin system, including built-in [Core Plugins](userguide/plugin_reference.html) for standard tasks and powerful APIs for creating custom plugins.
