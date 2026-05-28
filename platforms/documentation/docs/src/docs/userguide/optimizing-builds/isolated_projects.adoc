@@ -440,6 +440,17 @@ It is recommended to enable this flag in builds that are migrating to or already
 enableFeaturePreview("NO_IMPLICIT_LOOKUP_IN_PARENT_PROJECTS")
 ----
 
+[[sec:properties_report_no_inherited]]
+=== Properties report does not include properties inherited from parent projects
+
+Under Isolated Projects, the <<command_line_interface.adoc#sec:listing_properties,properties report>>
+of a child project lists only the properties defined on that project itself.
+Properties inherited from parent projects are not present in the report.
+This is a consequence of the <<sec:no_implicit_parents_lookup,no implicit parent lookup>> behavior.
+
+Direct uses of link:{javadocPath}/org/gradle/api/Project.html#getProperties--[`Project.getProperties()`]
+continue to be reported as an Isolated Projects violation, as that API is being phased out.
+
 [[sec:migration]]
 == Migration
 
