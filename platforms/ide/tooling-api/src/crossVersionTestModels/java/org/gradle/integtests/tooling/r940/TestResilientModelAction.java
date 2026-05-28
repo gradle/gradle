@@ -16,7 +16,6 @@
 
 package org.gradle.integtests.tooling.r940;
 
-import org.gradle.integtests.tooling.r16.CustomModel;
 import org.gradle.tooling.BuildAction;
 import org.gradle.tooling.BuildController;
 import org.gradle.tooling.FetchModelResult;
@@ -27,27 +26,30 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-class ModelAction implements BuildAction<ModelResult>, Serializable {
-    ModelAction.QueryStrategy queryStrategy;
+public class TestResilientModelAction implements BuildAction<TestResilientModelAction.Result>, Serializable {
 
-    ModelAction(ModelAction.QueryStrategy queryStrategy) {
+    private final Class<?> modelType;
+    private final QueryStrategy queryStrategy;
+
+    public TestResilientModelAction(Class<?> modelType, QueryStrategy queryStrategy) {
+        this.modelType = modelType;
         this.queryStrategy = queryStrategy;
     }
 
     @Override
-    public ModelResult execute(BuildController controller) {
+    public Result execute(BuildController controller) {
         GradleBuild gradleBuild = controller.fetch(GradleBuild.class).getModel();
         assert gradleBuild != null;
         List<String> successfulQueriedProjects = new ArrayList<>();
         List<String> failedQueriedProjects = new ArrayList<>();
-        if (queryStrategy == ModelAction.QueryStrategy.ROOT_BUILD_FIRST) {
+        if (queryStrategy == QueryStrategy.ROOT_BUILD_FIRST) {
             queryRootBuild(controller, gradleBuild, successfulQueriedProjects, failedQueriedProjects);
             queryEditableBuilds(controller, gradleBuild, successfulQueriedProjects, failedQueriedProjects);
         } else {
             queryEditableBuilds(controller, gradleBuild, successfulQueriedProjects, failedQueriedProjects);
             queryRootBuild(controller, gradleBuild, successfulQueriedProjects, failedQueriedProjects);
         }
-        return new ModelResult(successfulQueriedProjects, failedQueriedProjects);
+        return new Result(successfulQueriedProjects, failedQueriedProjects);
     }
 
     private void queryRootBuild(BuildController controller, GradleBuild gradleBuild, List<String> successfulQueriedProjects, List<String> failedQueriedProjects) {
@@ -64,14 +66,12 @@ class ModelAction implements BuildAction<ModelResult>, Serializable {
         }
     }
 
-    void queryModelForProject(BuildController controller, BasicGradleProject project, List<String> successfulQueriedProjects, List<String> failedQueriedProjects) {
-        FetchModelResult<CustomModel> result = controller.fetch(project, CustomModel.class);
-        if (result.getFailures().isEmpty()) {
-            assert result.getModel().getValue().equals("greetings");
+    private void queryModelForProject(BuildController controller, BasicGradleProject project, List<String> successfulQueriedProjects, List<String> failedQueriedProjects) {
+        FetchModelResult<?> result = controller.fetch(project, modelType);
+        if (result.getFailures().isEmpty() && result.getModel() != null) {
             successfulQueriedProjects.add(project.getName());
         } else {
-            System.out.println("Failed to query 'CustomModel' for project '${project.name}' with: ${result.failures.collect { it.message }.join('\n')}");
-            assert result.getModel() == null;
+            System.out.println("Failed to query '" + modelType.getSimpleName() + "' for project '" + project.getName() + "'");
             failedQueriedProjects.add(project.getName());
         }
     }
@@ -79,5 +79,15 @@ class ModelAction implements BuildAction<ModelResult>, Serializable {
     public enum QueryStrategy {
         ROOT_BUILD_FIRST,
         EDITABLE_BUILDS_FIRST
+    }
+
+    public static class Result implements Serializable {
+        public final List<String> successfullyQueriedProjects;
+        public final List<String> failedToQueryProjects;
+
+        public Result(List<String> successfullyQueriedProjects, List<String> failedToQueryProjects) {
+            this.successfullyQueriedProjects = successfullyQueriedProjects;
+            this.failedToQueryProjects = failedToQueryProjects;
+        }
     }
 }
