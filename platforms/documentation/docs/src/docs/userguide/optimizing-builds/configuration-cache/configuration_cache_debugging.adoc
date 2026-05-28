@@ -196,8 +196,9 @@ org.gradle.configuration-cache.problems=warn
 ====
 The warning mode is a migration and troubleshooting aid and not intended as a persistent way of ignoring incompatibilities.
 It will also not prevent new incompatibilities being accidentally added to your build later.
+With warning mode enabled, Gradle stores cache entries even when problems are present, which can lead to silently incorrect builds on a cache hit.
 
-Instead, we recommend explicitly marking problematic tasks as <<configuration_cache_debugging.adoc#config_cache:task_opt_out,incompatible>>.
+Instead, we recommend explicitly marking problematic tasks as <<configuration_cache_debugging.adoc#config_cache:task_opt_out,incompatible>> and keeping the default `problems=fail`.
 ====
 
 By default, Gradle allows up to 512 warnings before failing the build.
@@ -221,7 +222,9 @@ include::sample[dir="snippets/optimizing-builds/configuration-cache/dependencyLo
 When a task is marked as incompatible:
 
 - Configuration Cache problems *in that task* will no longer cause the build to fail.
-- Gradle discards the configuration state at the end of the build if an incompatible task is executed.
+- With the default `problems=fail`, Gradle discards the cache entry at the end of the build if an incompatible task is executed. This ensures the broken state is never reused on a subsequent run.
+
+IMPORTANT: With `problems=warn`, the cache entry is *not* discarded. On a subsequent cache hit, the incompatible task runs against deserialized state that may be incomplete, producing silently incorrect results (such as missing dependency information or empty task inputs). For this reason, prefer the default `problems=fail` when using `notCompatibleWithConfigurationCache()`.
 
 This mechanism can be useful during migration, allowing you to temporarily opt out tasks that require more extensive changes to become Configuration Cache-compatible.
 
