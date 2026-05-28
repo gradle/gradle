@@ -42,6 +42,8 @@ import java.util.Properties;
 import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
 
+import org.jspecify.annotations.Nullable;
+
 /**
  * Writes a {@link java.util.Properties} in a way that the results can be expected to be reproducible.
  *
@@ -62,6 +64,7 @@ import java.util.stream.Collectors;
 @CacheableTask
 public abstract class WriteProperties extends DefaultTask {
 
+    @SuppressWarnings("this-escape")
     public WriteProperties() {
         getEncoding().convention("ISO_8859_1");
         getLineSeparator().convention("\n");
@@ -73,6 +76,17 @@ public abstract class WriteProperties extends DefaultTask {
     @Input
     @ReplacesEagerProperty(adapter = PropertiesAdapter.class)
     public abstract MapProperty<String, Object> getProperties();
+
+    /**
+     * Sets all properties to be written to the properties file replacing any existing properties.
+     *
+     * @see #properties(Map)
+     * @see #property(String, Object)
+     */
+    public void setProperties(Map<String, Object> properties) {
+        getProperties().empty();
+        properties.forEach(this::property);
+    }
 
     /**
      * Adds a property to be written to the properties file.
@@ -133,6 +147,13 @@ public abstract class WriteProperties extends DefaultTask {
     public abstract Property<String> getLineSeparator();
 
     /**
+     * Sets the line separator to be used when creating the properties file.
+     */
+    public void setLineSeparator(String lineSeparator) {
+        getLineSeparator().set(lineSeparator);
+    }
+
+    /**
      * The optional comment to add at the beginning of the properties file.
      * @since 3.3
      */
@@ -142,6 +163,13 @@ public abstract class WriteProperties extends DefaultTask {
     public abstract Property<String> getComment();
 
     /**
+     * Sets the optional comment to add at the beginning of the properties file.
+     */
+    public void setComment(@Nullable String comment) {
+        getComment().set(comment);
+    }
+
+    /**
      * The encoding used to write the properties file. Defaults to {@literal ISO_8859_1}.
      * If set to anything different, unicode escaping is turned off.
      * @since 3.3
@@ -149,6 +177,14 @@ public abstract class WriteProperties extends DefaultTask {
     @Input
     @ReplacesEagerProperty
     public abstract Property<String> getEncoding();
+
+    /**
+     * Sets the encoding used to write the properties file. Defaults to {@literal ISO_8859_1}.
+     * If set to anything different, unicode escaping is turned off.
+     */
+    public void setEncoding(String encoding) {
+        getEncoding().set(encoding);
+    }
 
     /**
      * The output properties file.
@@ -199,17 +235,5 @@ public abstract class WriteProperties extends DefaultTask {
                 .collect(Collectors.toMap(Map.Entry::getKey, e -> String.valueOf(e.getValue())));
         }
 
-        /**
-         * Sets all properties to be written to the properties file replacing any existing properties.
-         *
-         * @see #properties(Map)
-         * @see #property(String, Object)
-         * @since 3.3
-         */
-        @BytecodeUpgrade
-        static void setProperties(WriteProperties task, Map<String, Object> properties) {
-            task.getProperties().empty();
-            properties.forEach(task::property);
-        }
     }
 }

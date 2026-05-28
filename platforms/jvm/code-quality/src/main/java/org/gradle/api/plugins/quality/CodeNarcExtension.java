@@ -40,6 +40,7 @@ public abstract class CodeNarcExtension extends CodeQualityExtension {
      *
      * @since 2.2
      */
+    @SuppressWarnings("this-escape")
     public CodeNarcExtension(Project project) {
         this.project = project;
         getMaxPriority1Violations().convention(0);
@@ -91,11 +92,25 @@ public abstract class CodeNarcExtension extends CodeQualityExtension {
     public abstract Property<Integer> getMaxPriority1Violations();
 
     /**
+     * The maximum number of priority 1 violations allowed before failing the build.
+     */
+    public void setMaxPriority1Violations(int maxPriority1Violations) {
+        getMaxPriority1Violations().set(maxPriority1Violations);
+    }
+
+    /**
      * The maximum number of priority 2 violations allowed before failing the build.
      * @since 1.7
      */
     @ReplacesEagerProperty(originalType = int.class)
     public abstract Property<Integer> getMaxPriority2Violations();
+
+    /**
+     * The maximum number of priority 2 violations allowed before failing the build.
+     */
+    public void setMaxPriority2Violations(int maxPriority2Violations) {
+        getMaxPriority2Violations().set(maxPriority2Violations);
+    }
 
     /**
      * The maximum number of priority 3 violations allowed before failing the build.
@@ -105,9 +120,23 @@ public abstract class CodeNarcExtension extends CodeQualityExtension {
     public abstract Property<Integer> getMaxPriority3Violations();
 
     /**
+     * The maximum number of priority 3 violations allowed before failing the build.
+     */
+    public void setMaxPriority3Violations(int maxPriority3Violations) {
+        getMaxPriority3Violations().set(maxPriority3Violations);
+    }
+
+    /**
      * The format type of the CodeNarc report. One of <code>html</code>, <code>xml</code>, <code>text</code>, <code>console</code>.
      * @since 1.0
      */
     @ReplacesEagerProperty
     public abstract Property<String> getReportFormat();
+
+    /**
+     * Sets the format type of the CodeNarc report.
+     */
+    public void setReportFormat(String reportFormat) {
+        getReportFormat().set(reportFormat);
+    }
 }

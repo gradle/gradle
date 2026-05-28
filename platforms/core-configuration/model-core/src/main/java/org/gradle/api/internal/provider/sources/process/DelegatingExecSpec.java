@@ -30,6 +30,21 @@ interface DelegatingExecSpec extends DelegatingBaseExecSpec, ExecSpec {
     }
 
     @Override
+    default void setCommandLine(List<String> args) {
+        getDelegate().setCommandLine(args);
+    }
+
+    @Override
+    default void setCommandLine(Object... args) {
+        getDelegate().setCommandLine(args);
+    }
+
+    @Override
+    default void setCommandLine(Iterable<?> args) {
+        getDelegate().setCommandLine(args);
+    }
+
+    @Override
     default ExecSpec commandLine(Object... args) {
         getDelegate().commandLine(args);
         return this;
@@ -56,6 +71,18 @@ interface DelegatingExecSpec extends DelegatingBaseExecSpec, ExecSpec {
     @Override
     default ListProperty<String> getArgs() {
         return getDelegate().getArgs();
+    }
+
+    @Override
+    default ExecSpec setArgs(List<String> args) {
+        getDelegate().setArgs(args);
+        return this;
+    }
+
+    @Override
+    default ExecSpec setArgs(Iterable<?> args) {
+        getDelegate().setArgs(args);
+        return this;
     }
 
     @Override

@@ -26,6 +26,11 @@ public abstract class DefaultEarWebModule extends DefaultEarModule implements Ea
     public abstract Property<String> getContextRoot();
 
     @Override
+    public void setContextRoot(String contextRoot) {
+        getContextRoot().set(contextRoot);
+    }
+
+    @Override
     public Node toXmlNode(Node parentModule, Object name) {
         Node web = new Node(parentModule, name);
         new Node(web, nodeNameFor("web-uri", name), getPath().get());

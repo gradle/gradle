@@ -18,7 +18,6 @@ package org.gradle.api.tasks.testing;
 
 import org.gradle.internal.instrumentation.api.annotations.BytecodeUpgrade;
 
-import java.util.Arrays;
 import java.util.Set;
 
 /**
@@ -31,11 +30,6 @@ class TestFilterAdapters {
             return self.getIncludePatterns().get();
         }
 
-        @BytecodeUpgrade
-        static TestFilter setIncludePatterns(TestFilter self, String... includePatterns) {
-            self.getIncludePatterns().set(Arrays.asList(includePatterns));
-            return self;
-        }
     }
 
     static class ExcludePatternsAdapter {
@@ -44,10 +38,5 @@ class TestFilterAdapters {
             return self.getExcludePatterns().get();
         }
 
-        @BytecodeUpgrade
-        static TestFilter setExcludePatterns(TestFilter self, String... excludePatterns) {
-            self.getExcludePatterns().set(Arrays.asList(excludePatterns));
-            return self;
-        }
     }
 }
