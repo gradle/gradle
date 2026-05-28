@@ -18,6 +18,7 @@ package org.gradle.api.internal.provider;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableCollection;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Transformer;
@@ -28,6 +29,7 @@ import org.gradle.api.internal.provider.MapCollectors.SingleEntry;
 import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Cast;
+import org.gradle.internal.DisplayName;
 import org.gradle.internal.evaluation.EvaluationScopeContext;
 import org.jspecify.annotations.Nullable;
 
@@ -117,6 +119,27 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
     @Override
     public Class<V> getValueType() {
         return valueType;
+    }
+
+    @Override
+    public ProviderDescription explain(boolean lazy) {
+        DisplayName declared = getDeclaredDisplayName();
+        ImmutableList<ProviderDescription> sources;
+        try (EvaluationScopeContext scope = openScope()) {
+            MapSupplier<K, V> supplier = getSupplier(scope);
+            if (supplier instanceof ProviderInternal) {
+                sources = ImmutableList.of(((ProviderInternal<?>) supplier).explain(lazy));
+            } else {
+                sources = ImmutableList.of();
+            }
+        }
+        return new ProviderDescription(
+            ProviderDescription.Kind.MAP_PROPERTY,
+            false,
+            declared != null ? declared.getDisplayName() : null,
+            sources,
+            ImmutableMap.of("keyType", keyType, "valueType", valueType)
+        );
     }
 
     @Override

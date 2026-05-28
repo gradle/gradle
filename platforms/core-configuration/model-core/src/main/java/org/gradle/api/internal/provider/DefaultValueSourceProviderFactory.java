@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.provider;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import org.gradle.api.Action;
 import org.gradle.api.Describable;
 import org.gradle.api.GradleException;
@@ -252,6 +254,29 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
         @Override
         protected Value<? extends T> calculateOwnValue(ValueConsumer consumer) {
             return value.obtain().asNullableValue();
+        }
+
+        @Override
+        public ProviderDescription explain(boolean lazy) {
+            // Prefer the source's own display name when it implements Describable and the source
+            // instance is currently available — this matches what the existing pushWhenMissing
+            // path surfaces. Falls back to the simple class name otherwise, without forcing
+            // source instantiation (which would violate the no-resolution-penalty contract).
+            String displayName = null;
+            ValueSource<T, P> source = value.sourceRef.get();
+            if (source instanceof Describable) {
+                displayName = ((Describable) source).getDisplayName();
+            }
+            if (displayName == null) {
+                displayName = value.sourceType.getSimpleName();
+            }
+            return new ProviderDescription(
+                ProviderDescription.Kind.VALUE_SOURCE,
+                false,
+                displayName,
+                ImmutableList.of(),
+                ImmutableMap.of("valueSourceType", value.sourceType)
+            );
         }
     }
 

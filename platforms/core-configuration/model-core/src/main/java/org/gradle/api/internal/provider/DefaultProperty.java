@@ -73,7 +73,7 @@ public class DefaultProperty<T> extends AbstractProperty<T, ProviderInternal<? e
     @Override
     public ProviderDescription explain(boolean lazy) {
         DisplayName declared = getDeclaredDisplayName();
-        ImmutableList<ProviderDescription> sources;
+            ImmutableList<ProviderDescription> sources;
         try (EvaluationScopeContext scope = openScope()) {
             // Include the current supplier as a source so the explain tree carries the same
             // upstream chain that the pushWhenMissing mechanism used to push into pathToOrigin.

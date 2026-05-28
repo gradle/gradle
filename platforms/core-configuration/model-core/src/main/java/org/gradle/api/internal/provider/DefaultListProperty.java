@@ -42,6 +42,11 @@ public class DefaultListProperty<T> extends AbstractCollectionProperty<T, List<T
     }
 
     @Override
+    protected ProviderDescription.Kind collectionKind() {
+        return ProviderDescription.Kind.LIST_PROPERTY;
+    }
+
+    @Override
     protected final Supplier<ImmutableCollection.Builder<T>> getCollectionFactory() {
         return Cast.uncheckedNonnullCast(FACTORY);
     }

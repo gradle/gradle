@@ -50,6 +50,11 @@ public class DefaultSetProperty<T> extends AbstractCollectionProperty<T, Set<T>>
     }
 
     @Override
+    protected ProviderDescription.Kind collectionKind() {
+        return ProviderDescription.Kind.SET_PROPERTY;
+    }
+
+    @Override
     protected final Class<Set<T>> getCollectionType() {
         return Cast.uncheckedNonnullCast(Set.class);
     }
