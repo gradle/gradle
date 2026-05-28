@@ -210,15 +210,26 @@ public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T>,
     }
 
     private String cannotQueryValueOf(Value<? extends T> value) {
-        // TODO: render explain() tree here once we are ready to update the message format and the
-        // affected exact-message assertions across PropertySpec/ProviderSpec fixtures.
         TreeFormatter formatter = new TreeFormatter();
         formatter.node("Cannot query the value of ").append(getDisplayName().getDisplayName()).append(" because it has no value available.");
-        if (!value.getPathToOrigin().isEmpty()) {
+        java.util.List<String> names = explain(false).collectMissingSourceNames();
+        java.util.List<DisplayName> pathToOrigin = value.getPathToOrigin();
+        // Fall back to the runtime pathToOrigin chain whenever it carries more entries than the
+        // static explain() tree could collect. This catches cases the static tree can't see —
+        // chiefly providers returned dynamically from a `flatMap` transformer — plus provider
+        // kinds whose explain() hasn't yet been enriched to surface their full upstream chain
+        // (collection / map properties, value-source providers).
+        if (pathToOrigin.size() > names.size()) {
+            names = new java.util.ArrayList<>(pathToOrigin.size());
+            for (DisplayName origin : pathToOrigin) {
+                names.add(origin.getDisplayName());
+            }
+        }
+        if (!names.isEmpty()) {
             formatter.node("The value of ").append(getTypedDisplayName().getDisplayName()).append(" is derived from");
             formatter.startChildren();
-            for (DisplayName displayName : value.getPathToOrigin()) {
-                formatter.node(displayName.getDisplayName());
+            for (String name : names) {
+                formatter.node(name);
             }
             formatter.endChildren();
         }

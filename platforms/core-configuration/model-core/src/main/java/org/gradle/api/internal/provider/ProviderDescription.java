@@ -21,6 +21,7 @@ import com.google.common.collect.ImmutableMap;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.jspecify.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -159,5 +160,32 @@ public final class ProviderDescription {
             }
         }
         return false;
+    }
+
+    /**
+     * Walks the description tree starting from this node's <em>sources</em> (i.e. excluding this
+     * node itself) and collects the display names of every missing node that has one, in
+     * source-declaration order. Used to reconstruct the same flat name list that the legacy
+     * {@code pushWhenMissing} / {@code Value.getPathToOrigin()} mechanism produced for the
+     * {@code MissingValueException} message.
+     */
+    public List<String> collectMissingSourceNames() {
+        List<String> names = new ArrayList<>();
+        for (ProviderDescription source : sources) {
+            collectMissingNamesInto(source, names);
+        }
+        return names;
+    }
+
+    private static void collectMissingNamesInto(ProviderDescription desc, List<String> names) {
+        if (desc.hasValue) {
+            return;
+        }
+        if (desc.displayName != null) {
+            names.add(desc.displayName);
+        }
+        for (ProviderDescription source : desc.sources) {
+            collectMissingNamesInto(source, names);
+        }
     }
 }
