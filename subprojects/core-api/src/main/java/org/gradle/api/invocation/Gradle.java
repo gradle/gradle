@@ -318,6 +318,9 @@ public interface Gradle extends PluginAware, ExtensionAware {
      *
      * The listener is notified of events which occur during the execution of the build.
      *
+     * <p>{@link BuildListener} is not supported when the
+     * configuration cache is enabled.
+     *
      * @param buildListener The listener to add.
      */
     void addBuildListener(BuildListener buildListener);

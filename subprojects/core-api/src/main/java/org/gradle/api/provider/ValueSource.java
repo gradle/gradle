@@ -93,6 +93,29 @@ import javax.inject.Inject;
  * also allowed.
  * </p>
  *
+ * <p>
+ * A {@code ValueSource} implementation can also implement {@link org.gradle.api.Describable Describable}
+ * to provide a human-readable display name. Gradle uses this display name when reporting configuration
+ * cache invalidation reasons. Without it, the invalidation message uses the implementation class name,
+ * which may not be informative to users. For example:
+ * <pre>
+ * public abstract class GitCommitValueSource
+ *         implements ValueSource&lt;String, ValueSourceParameters.None&gt;, Describable {
+ *
+ *     {@literal @}Override
+ *     public String getDisplayName() {
+ *         return "current Git commit ID";
+ *     }
+ *
+ *     {@literal @}Override
+ *     {@literal @}Nullable
+ *     public String obtain() {
+ *         // your custom implementation
+ *     }
+ * }
+ * </pre>
+ * </p>
+ *
  * Implementations of ValueSource are subject to the following constraint:
  * <ul>
  *     <li>Do not implement {@link #getParameters()} in your class, the method will be implemented by Gradle.</li>
@@ -100,6 +123,7 @@ import javax.inject.Inject;
  *
  * @param <T> The type of value obtained from this source.
  * @param <P> The source specific parameter type.
+ * @see org.gradle.api.Describable
  * @see ProviderFactory#environmentVariable(String)
  * @see ProviderFactory#systemProperty(String)
  * @see ProviderFactory#fileContents(RegularFile)
