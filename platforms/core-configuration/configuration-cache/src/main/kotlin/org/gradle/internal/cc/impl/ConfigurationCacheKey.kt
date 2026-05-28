@@ -66,6 +66,14 @@ class ConfigurationCacheKey(
         if (buildActionRequirements.isRunsTasks) {
             appendRequestedTasks()
         }
+        if (buildActionRequirements.isCreatesModel) {
+            // Tooling model queries target a specific project directory
+            // (via `ProjectConnection.forProjectDirectory(...)`), and different
+            // subprojects of the same root build can produce different models.
+            // Include the project directory in the key so that consecutive model
+            // queries against different subprojects do not collide.
+            appendTargetProjectDirectory()
+        }
 
         putBoolean(startParameter.isOffline)
         putBoolean(startParameter.isIsolatedProjects)
@@ -123,21 +131,26 @@ class ConfigurationCacheKey(
             // Because unqualified task names are resolved relative to the selected
             // sub-project according to either `projectDirectory` or `currentDirectory`,
             // the relative directory information must be part of the key.
-            val projectDir = startParameter.projectDirectory
-            if (projectDir != null) {
-                relativePathOf(
-                    projectDir,
-                    startParameter.buildTreeRootDirectory
-                ).let { relativeProjectDir ->
-                    putString(relativeProjectDir)
-                }
-            } else {
-                relativeChildPathOrNull(
-                    startParameter.currentDirectory,
-                    startParameter.buildTreeRootDirectory
-                )?.let { relativeSubDir ->
-                    putString(relativeSubDir)
-                }
+            appendTargetProjectDirectory()
+        }
+    }
+
+    private
+    fun Hasher.appendTargetProjectDirectory() {
+        val projectDir = startParameter.projectDirectory
+        if (projectDir != null) {
+            relativePathOf(
+                projectDir,
+                startParameter.buildTreeRootDirectory
+            ).let { relativeProjectDir ->
+                putString(relativeProjectDir)
+            }
+        } else {
+            relativeChildPathOrNull(
+                startParameter.currentDirectory,
+                startParameter.buildTreeRootDirectory
+            )?.let { relativeSubDir ->
+                putString(relativeSubDir)
             }
         }
     }
