@@ -19,6 +19,7 @@ package org.gradle.api.tasks.compile;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.Action;
 import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.model.ReplacedBy;
@@ -42,6 +43,7 @@ import org.gradle.internal.instrumentation.api.annotations.ReplacedDeprecation;
 import org.gradle.internal.instrumentation.api.annotations.ReplacedDeprecation.RemovedIn;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 import org.gradle.process.CommandLineArgumentProvider;
+import org.jspecify.annotations.Nullable;
 import org.gradle.util.internal.CollectionUtils;
 
 import javax.inject.Inject;
@@ -59,7 +61,7 @@ public abstract class CompileOptions implements Serializable {
     private static final long serialVersionUID = 0;
 
     @Inject
-    @SuppressWarnings("unused")
+    @SuppressWarnings({"unused", "this-escape"})
     public CompileOptions(ObjectFactory objectFactory) {
         this.getFailOnError().convention(true);
         this.getVerbose().convention(false);
@@ -85,6 +87,13 @@ public abstract class CompileOptions implements Serializable {
     }
 
     /**
+     * Sets whether to fail the build when compilation fails. Defaults to {@code true}.
+     */
+    public void setFailOnError(boolean failOnError) {
+        getFailOnError().set(failOnError);
+    }
+
+    /**
      * Tells whether to produce verbose output. Defaults to {@code false}.
      * @since 0.7
      */
@@ -98,6 +107,13 @@ public abstract class CompileOptions implements Serializable {
     }
 
     /**
+     * Sets whether to produce verbose output. Defaults to {@code false}.
+     */
+    public void setVerbose(boolean verbose) {
+        getVerbose().set(verbose);
+    }
+
+    /**
      * Tells whether to log the files to be compiled. Defaults to {@code false}.
      * @since 0.7
      */
@@ -108,6 +124,13 @@ public abstract class CompileOptions implements Serializable {
     @ReplacedBy("listFiles")
     public Property<Boolean> getIsListFiles() {
         return getListFiles();
+    }
+
+    /**
+     * Sets whether to log the files to be compiled. Defaults to {@code false}.
+     */
+    public void setListFiles(boolean listFiles) {
+        getListFiles().set(listFiles);
     }
 
     /**
@@ -127,6 +150,13 @@ public abstract class CompileOptions implements Serializable {
     }
 
     /**
+     * Sets whether to log details of usage of deprecated members or classes. Defaults to {@code false}.
+     */
+    public void setDeprecation(boolean deprecation) {
+        getDeprecation().set(deprecation);
+    }
+
+    /**
      * Tells whether to log warning messages. The default is {@code true}.
      * @since 0.7
      */
@@ -143,6 +173,13 @@ public abstract class CompileOptions implements Serializable {
     }
 
     /**
+     * Sets whether to log warning messages. The default is {@code true}.
+     */
+    public void setWarnings(boolean warnings) {
+        getWarnings().set(warnings);
+    }
+
+    /**
      * Returns the character encoding to be used when reading source files. Defaults to {@code null}, in which
      * case the platform default encoding will be used.
      * @since 0.7
@@ -151,6 +188,14 @@ public abstract class CompileOptions implements Serializable {
     @Input
     @ReplacesEagerProperty
     public abstract Property<String> getEncoding();
+
+    /**
+     * Sets the character encoding to be used when reading source files. Defaults to {@code null}, in which
+     * case the platform default encoding will be used.
+     */
+    public void setEncoding(@Nullable String encoding) {
+        getEncoding().set(encoding);
+    }
 
     /**
      * Tells whether to include debugging information in the generated class files. Defaults
@@ -168,6 +213,14 @@ public abstract class CompileOptions implements Serializable {
     @ReplacedBy("debug")
     public Property<Boolean> getIsDebug() {
         return getDebug();
+    }
+
+    /**
+     * Sets whether to include debugging information in the generated class files. Defaults
+     * to {@code true}. See {@link DebugOptions#getDebugLevel()} for which debugging information will be generated.
+     */
+    public void setDebug(boolean debug) {
+        getDebug().set(debug);
     }
 
     /**
@@ -207,6 +260,15 @@ public abstract class CompileOptions implements Serializable {
     }
 
     /**
+     * Sets whether to run the compiler in its own process. Note that this does
+     * not necessarily mean that a new process will be created for each compile task.
+     * Defaults to {@code false}.
+     */
+    public void setFork(boolean fork) {
+        getFork().set(fork);
+    }
+
+    /**
      * Returns options for running the compiler in a child process.
      * @since 0.7
      */
@@ -233,6 +295,15 @@ public abstract class CompileOptions implements Serializable {
     public abstract ConfigurableFileCollection getBootstrapClasspath();
 
     /**
+     * Sets the bootstrap classpath to be used for the compiler process. Defaults to {@code null}.
+     *
+     * @since 4.3
+     */
+    public void setBootstrapClasspath(@Nullable FileCollection bootstrapClasspath) {
+        getBootstrapClasspath().setFrom(bootstrapClasspath);
+    }
+
+    /**
      * Returns the extension dirs to be used for the compiler process. Defaults to {@code null}.
      * @since 0.7
      */
@@ -240,6 +311,13 @@ public abstract class CompileOptions implements Serializable {
     @Input
     @ReplacesEagerProperty
     public abstract Property<String> getExtensionDirs();
+
+    /**
+     * Sets the extension dirs to be used for the compiler process. Defaults to {@code null}.
+     */
+    public void setExtensionDirs(@Nullable String extensionDirs) {
+        getExtensionDirs().set(extensionDirs);
+    }
 
     /**
      * Returns any additional arguments to be passed to the compiler.
@@ -257,6 +335,14 @@ public abstract class CompileOptions implements Serializable {
     @Input
     @ReplacesEagerProperty
     public abstract ListProperty<String> getCompilerArgs();
+
+    /**
+     * Sets any additional arguments to be passed to the compiler.
+     * Defaults to the empty list.
+     */
+    public void setCompilerArgs(List<String> compilerArgs) {
+        getCompilerArgs().set(compilerArgs);
+    }
 
     /**
      * Returns all compiler arguments, added to the {@link #getCompilerArgs()} or the {@link #getCompilerArgumentProviders()} property.
@@ -299,6 +385,14 @@ public abstract class CompileOptions implements Serializable {
     }
 
     /**
+     * Configure the java compilation to be incremental (e.g. compiles only those java classes that were changed or that are dependencies to the changed classes).
+     */
+    public CompileOptions setIncremental(boolean incremental) {
+        getIncremental().set(incremental);
+        return this;
+    }
+
+    /**
      * Used to enable or disable incremental compilation after a failure.
      * <p>
      * By default, incremental compilation after a failure is enabled for Java and Groovy.
@@ -337,6 +431,15 @@ public abstract class CompileOptions implements Serializable {
     public abstract ConfigurableFileCollection getSourcepath();
 
     /**
+     * Sets the source path to use for the compilation.
+     *
+     * @param sourcepath the source path
+     */
+    public void setSourcepath(@Nullable FileCollection sourcepath) {
+        getSourcepath().setFrom(sourcepath);
+    }
+
+    /**
      * Returns the classpath to use to load annotation processors. This path is also used for annotation processor discovery.
      *
      * @return The annotation processor path, or {@code null} if annotation processing is disabled.
@@ -346,6 +449,16 @@ public abstract class CompileOptions implements Serializable {
     @Classpath
     @ReplacesEagerProperty
     public abstract ConfigurableFileCollection getAnnotationProcessorPath();
+
+    /**
+     * Set the classpath to use to load annotation processors. This path is also used for annotation processor discovery.
+     *
+     * @param annotationProcessorPath The annotation processor path, or {@code null} to disable annotation processing.
+     * @since 3.4
+     */
+    public void setAnnotationProcessorPath(@Nullable FileCollection annotationProcessorPath) {
+        getAnnotationProcessorPath().setFrom(annotationProcessorPath);
+    }
 
     /**
      * Configures the Java language version for this compile task ({@code --release} compiler flag).

@@ -17,9 +17,7 @@
 package org.gradle.api.tasks.testing.logging;
 
 import org.gradle.internal.instrumentation.api.annotations.BytecodeUpgrade;
-import org.gradle.util.internal.GUtil;
 
-import java.util.EnumSet;
 import java.util.Set;
 
 /**
@@ -34,19 +32,7 @@ abstract class TestLoggingAdapters {
             return self.getEvents().get();
         }
 
-        @BytecodeUpgrade
-        static void setEvents(TestLogging self, Set<TestLogEvent> events) {
-            self.getEvents().set(events);
-        }
 
-        @BytecodeUpgrade
-        static void setEvents(TestLogging self, Iterable<?> events) {
-            Set<TestLogEvent> set = EnumSet.noneOf(TestLogEvent.class);
-            for (Object event : events) {
-                set.add(GUtil.toEnum(TestLogEvent.class, event));
-            }
-            self.getEvents().set(set);
-        }
     }
 
     static class ExceptionFormatAdapter {
@@ -55,15 +41,7 @@ abstract class TestLoggingAdapters {
             return self.getExceptionFormat().get();
         }
 
-        @BytecodeUpgrade
-        static void setExceptionFormat(TestLogging self, TestExceptionFormat exceptionFormat) {
-            self.getExceptionFormat().set(exceptionFormat);
-        }
 
-        @BytecodeUpgrade
-        static void setExceptionFormat(TestLogging self, Object exceptionFormat) {
-            self.getExceptionFormat().set(GUtil.toEnum(TestExceptionFormat.class, exceptionFormat));
-        }
     }
 
     static class StackTraceFiltersAdapter {
@@ -72,18 +50,6 @@ abstract class TestLoggingAdapters {
             return self.getStackTraceFilters().get();
         }
 
-        @BytecodeUpgrade
-        static void setStackTraceFilters(TestLogging self, Set<TestStackTraceFilter> stackTraces) {
-            self.getStackTraceFilters().set(stackTraces);
-        }
 
-        @BytecodeUpgrade
-        static void setStackTraceFilters(TestLogging self, Iterable<?> stackTraces) {
-            Set<TestStackTraceFilter> set = EnumSet.noneOf(TestStackTraceFilter.class);
-            for (Object trace : stackTraces) {
-                set.add(GUtil.toEnum(TestStackTraceFilter.class, trace));
-            }
-            self.getStackTraceFilters().set(set);
-        }
     }
 }

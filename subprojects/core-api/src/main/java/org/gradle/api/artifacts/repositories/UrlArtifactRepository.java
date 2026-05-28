@@ -22,6 +22,7 @@ import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty
 
 import java.net.URI;
 
+
 /**
  * A repository that supports resolving artifacts from a URL.
  *
@@ -42,6 +43,13 @@ public interface UrlArtifactRepository {
      * @param url The base URL.
      * @since 6.0
      */
+    void setUrl(URI url);
+
+    /**
+     * Sets the base URL of this repository.
+     *
+     * @param url The base URL.
+     */
     void setUrl(Object url);
 
     /**
@@ -61,6 +69,13 @@ public interface UrlArtifactRepository {
      */
     @ReplacesEagerProperty(originalType = boolean.class)
     Property<Boolean> getAllowInsecureProtocol();
+
+    /**
+     * Specifies whether it is acceptable to communicate with a repository over an insecure HTTP connection.
+     *
+     * @see #isAllowInsecureProtocol()
+     */
+    void setAllowInsecureProtocol(boolean allowInsecureProtocol);
 
     /**
      * Added for Kotlin source compatibility.

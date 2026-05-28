@@ -31,16 +31,6 @@ class JavaExecSpecAdapters {
             return self.getArgs().get();
         }
 
-        @BytecodeUpgrade
-        static JavaExecSpec setArgs(JavaExecSpec self, List<String> args) {
-            return setArgs(self, (Iterable<?>) args);
-        }
 
-        @BytecodeUpgrade
-        static JavaExecSpec setArgs(JavaExecSpec self, Iterable<?> args) {
-            self.getArgs().empty();
-            self.args(args);
-            return self;
-        }
     }
 }

@@ -28,12 +28,18 @@ import java.util.List;
 public abstract class AbstractVersionControlSpec implements VersionControlSpec {
     private final DefaultInjectedPluginDependencies pluginDependencies = new DefaultInjectedPluginDependencies();
 
+    @SuppressWarnings("this-escape")
     public AbstractVersionControlSpec() {
         getRootDir().convention("");
     }
 
     @Override
     public abstract Property<String> getRootDir();
+
+    @Override
+    public void setRootDir(String rootDir) {
+        getRootDir().set(rootDir);
+    }
 
     @Override
     public void plugins(Action<? super InjectedPluginDependencies> configuration) {

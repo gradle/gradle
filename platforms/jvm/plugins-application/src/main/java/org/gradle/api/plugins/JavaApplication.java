@@ -49,6 +49,11 @@ public interface JavaApplication {
     Property<String> getApplicationName();
 
     /**
+     * The name of the application.
+     */
+    void setApplicationName(String applicationName);
+
+    /**
      * The name of the application's Java module if it should run as a module.
      *
      * @since 6.4
@@ -70,11 +75,21 @@ public interface JavaApplication {
     ListProperty<String> getApplicationDefaultJvmArgs();
 
     /**
+     * Array of string arguments to pass to the JVM when running the application
+     */
+    void setApplicationDefaultJvmArgs(Iterable<String> applicationDefaultJvmArgs);
+
+    /**
      * Directory to place executables in
      * @since 4.10
      */
     @ReplacesEagerProperty
     Property<String> getExecutableDir();
+
+    /**
+     * Directory to place executables in
+     */
+    void setExecutableDir(String executableDir);
 
     /**
      * <p>The specification of the contents of the distribution.</p>

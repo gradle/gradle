@@ -16,11 +16,11 @@
 
 package org.gradle.process.internal;
 
-import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.process.CommandLineArgumentProvider;
+import org.gradle.process.ExecSpec;
 import org.gradle.process.ProcessForkOptions;
 import org.gradle.process.internal.streams.StreamsHandler;
 
@@ -37,6 +37,7 @@ import java.util.Map;
 @Deprecated
 public class DefaultExecHandleBuilder extends AbstractExecHandleBuilder implements ExecHandleBuilder {
 
+    @SuppressWarnings("this-escape")
     public DefaultExecHandleBuilder(ExecAction execAction) {
         super(execAction);
     }
@@ -55,11 +56,6 @@ public class DefaultExecHandleBuilder extends AbstractExecHandleBuilder implemen
     public DefaultExecHandleBuilder executable(Object executable) {
         delegate.executable(executable);
         return this;
-    }
-
-    @Override
-    public DirectoryProperty getWorkingDir() {
-        return delegate.getWorkingDir();
     }
 
     @Override
@@ -100,6 +96,33 @@ public class DefaultExecHandleBuilder extends AbstractExecHandleBuilder implemen
     @Override
     public ListProperty<CommandLineArgumentProvider> getArgumentProviders() {
         return delegate.getArgumentProviders();
+    }
+
+    @Override
+    public void setCommandLine(List<String> args) {
+        delegate.setCommandLine(args);
+    }
+
+    @Override
+    public void setCommandLine(Object... args) {
+        delegate.setCommandLine(args);
+    }
+
+    @Override
+    public void setCommandLine(Iterable<?> args) {
+        delegate.setCommandLine(args);
+    }
+
+    @Override
+    public ExecSpec setArgs(List<String> args) {
+        delegate.setArgs(args);
+        return this;
+    }
+
+    @Override
+    public ExecSpec setArgs(Iterable<?> args) {
+        delegate.setArgs(args);
+        return this;
     }
 
     @Override
@@ -152,7 +175,7 @@ public class DefaultExecHandleBuilder extends AbstractExecHandleBuilder implemen
     @Override
     public ProcessForkOptions copyTo(ProcessForkOptions options) {
         options.getExecutable().set(delegate.getExecutable());
-        options.getWorkingDir().set(delegate.getWorkingDir());
+        options.getWorkingDirectory().set(delegate.getWorkingDirectory());
         options.getEnvironment().set(delegate.getEnvironment());
         return this;
     }

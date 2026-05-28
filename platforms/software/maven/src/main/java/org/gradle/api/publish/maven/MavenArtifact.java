@@ -19,6 +19,7 @@ import org.gradle.api.provider.Property;
 import org.gradle.api.publish.PublicationArtifact;
 import org.gradle.api.tasks.Optional;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
+import org.jspecify.annotations.Nullable;
 
 /**
  * An artifact published as part of a {@link MavenPublication}.
@@ -34,6 +35,12 @@ public interface MavenArtifact extends PublicationArtifact {
     Property<String> getExtension();
 
     /**
+     * Sets the extension used to publish the artifact file.
+     * @param extension The extension.
+     */
+    void setExtension(String extension);
+
+    /**
      * The classifier used to publish the artifact file.
      * An absent value (the default) indicates that this artifact will be published without a classifier.
      * @since 1.5
@@ -41,4 +48,10 @@ public interface MavenArtifact extends PublicationArtifact {
     @Optional
     @ReplacesEagerProperty
     Property<String> getClassifier();
+
+    /**
+     * Sets the classifier used to publish the artifact file.
+     * @param classifier The classifier.
+     */
+    void setClassifier(@Nullable String classifier);
 }

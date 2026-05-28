@@ -23,10 +23,7 @@ import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
-import org.gradle.internal.instrumentation.api.annotations.BytecodeUpgrade;
 import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
-import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
-import org.gradle.process.BaseExecSpec;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.ExecResult;
 import org.gradle.process.ExecSpec;
@@ -37,10 +34,13 @@ import org.gradle.process.internal.ExecActionFactory;
 import org.gradle.work.DisableCachingByDefault;
 
 import javax.inject.Inject;
+import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
 import java.util.Map;
+
+import org.jspecify.annotations.Nullable;
 
 /**
  * {@code AbstractExecTask} is the base class for all exec tasks.
@@ -89,6 +89,30 @@ public abstract class AbstractExecTask<T extends AbstractExecTask> extends Conve
      * {@inheritDoc}
      */
     @Override
+    public void setCommandLine(List<String> args) {
+        execSpec.setCommandLine(args);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void setCommandLine(Object... args) {
+        execSpec.setCommandLine(args);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void setCommandLine(Iterable<?> args) {
+        execSpec.setCommandLine(args);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public T commandLine(Object... arguments) {
         execSpec.commandLine(arguments);
         return taskType.cast(this);
@@ -127,9 +151,26 @@ public abstract class AbstractExecTask<T extends AbstractExecTask> extends Conve
     @Optional
     @Input
     @Override
-    @ReplacesEagerProperty(adapter = AbstractExecTask.ArgsAdapter.class)
     public ListProperty<String> getArgs() {
         return execSpec.getArgs();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public T setArgs(List<String> arguments) {
+        execSpec.setArgs(arguments);
+        return taskType.cast(this);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public T setArgs(Iterable<?> arguments) {
+        execSpec.setArgs(arguments);
+        return taskType.cast(this);
     }
 
     /**
@@ -164,6 +205,22 @@ public abstract class AbstractExecTask<T extends AbstractExecTask> extends Conve
      * {@inheritDoc}
      */
     @Override
+    public void setExecutable(@Nullable String executable) {
+        execSpec.setExecutable(executable);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void setExecutable(Object executable) {
+        execSpec.setExecutable(executable);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public T executable(Object executable) {
         execSpec.executable(executable);
         return taskType.cast(this);
@@ -185,8 +242,24 @@ public abstract class AbstractExecTask<T extends AbstractExecTask> extends Conve
     @Internal
     @NotToBeReplacedByLazyProperty(because = "Bridge for backward compatibility, use getWorkingDirectory() instead", willBeDeprecated = true)
     // TODO:LPTR Should be a content-less @InputDirectory
-    public DirectoryProperty getWorkingDir() {
+    public File getWorkingDir() {
         return execSpec.getWorkingDir();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void setWorkingDir(File dir) {
+        execSpec.setWorkingDir(dir);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void setWorkingDir(Object dir) {
+        execSpec.setWorkingDir(dir);
     }
 
     /**
@@ -205,6 +278,14 @@ public abstract class AbstractExecTask<T extends AbstractExecTask> extends Conve
     @Override
     public MapProperty<String, Object> getEnvironment() {
         return execSpec.getEnvironment();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void setEnvironment(Map<String, ?> environmentVariables) {
+        execSpec.setEnvironment(environmentVariables);
     }
 
     /**
@@ -239,7 +320,6 @@ public abstract class AbstractExecTask<T extends AbstractExecTask> extends Conve
      */
     @Internal
     @Override
-    @ReplacesEagerProperty(adapter = StandardInputAdapter.class)
     public Property<InputStream> getStandardInput() {
         return execSpec.getStandardInput();
     }
@@ -247,9 +327,17 @@ public abstract class AbstractExecTask<T extends AbstractExecTask> extends Conve
     /**
      * {@inheritDoc}
      */
+    @Override
+    public T setStandardInput(InputStream inputStream) {
+        getStandardInput().set(inputStream);
+        return taskType.cast(this);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
     @Internal
     @Override
-    @ReplacesEagerProperty(adapter = StandardOutputAdapter.class)
     public Property<OutputStream> getStandardOutput() {
         return execSpec.getStandardOutput();
     }
@@ -257,9 +345,17 @@ public abstract class AbstractExecTask<T extends AbstractExecTask> extends Conve
     /**
      * {@inheritDoc}
      */
+    @Override
+    public T setStandardOutput(OutputStream outputStream) {
+        getStandardOutput().set(outputStream);
+        return taskType.cast(this);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
     @Internal
     @Override
-    @ReplacesEagerProperty(adapter = ErrorOutputAdapter.class)
     public Property<OutputStream> getErrorOutput() {
         return execSpec.getErrorOutput();
     }
@@ -267,11 +363,28 @@ public abstract class AbstractExecTask<T extends AbstractExecTask> extends Conve
     /**
      * {@inheritDoc}
      */
+    @Override
+    public T setErrorOutput(OutputStream outputStream) {
+        getErrorOutput().set(outputStream);
+        return taskType.cast(this);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
     @Input
     @Override
-    @ReplacesEagerProperty(adapter = IgnoreExitValueAdapter.class)
     public Property<Boolean> getIgnoreExitValue() {
         return execSpec.getIgnoreExitValue();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public T setIgnoreExitValue(boolean value) {
+        getIgnoreExitValue().set(value);
+        return taskType.cast(this);
     }
 
     /**
@@ -294,70 +407,4 @@ public abstract class AbstractExecTask<T extends AbstractExecTask> extends Conve
         return execResult;
     }
 
-    /**
-     * No need to upgrade getter since it's already upgraded via BaseExecSpec
-     */
-    static class IgnoreExitValueAdapter {
-        @SuppressWarnings("rawtypes")
-        @BytecodeUpgrade
-        static AbstractExecTask setIgnoreExitValue(AbstractExecTask task, boolean value) {
-            ((BaseExecSpec) task).getIgnoreExitValue().set(value);
-            return task;
-        }
-    }
-
-    /**
-     * No need to upgrade getter since it's already upgraded via ExecSpec
-     */
-    static class ArgsAdapter {
-        @BytecodeUpgrade
-        @SuppressWarnings("rawtypes")
-        static AbstractExecTask setArgs(AbstractExecTask self, List<String> args) {
-            return setArgs(self, (Iterable<?>) args);
-        }
-
-        @BytecodeUpgrade
-        @SuppressWarnings({"rawtypes", "unchecked"})
-        static AbstractExecTask setArgs(AbstractExecTask self, Iterable<?> args) {
-            self.getArgs().empty();
-            self.args(args);
-            return self;
-        }
-    }
-
-    /**
-     * No need to upgrade getter since it's already upgraded via BaseExecSpec
-     */
-    static class StandardInputAdapter {
-        @SuppressWarnings({"rawtypes", "unchecked"})
-        @BytecodeUpgrade
-        static AbstractExecTask setStandardInput(AbstractExecTask task, InputStream inputStream) {
-            task.getStandardInput().set(inputStream);
-            return task;
-        }
-    }
-
-    /**
-     * No need to upgrade getter since it's already upgraded via BaseExecSpec
-     */
-    static class StandardOutputAdapter {
-        @SuppressWarnings({"rawtypes", "unchecked"})
-        @BytecodeUpgrade
-        static AbstractExecTask setStandardOutput(AbstractExecTask task, OutputStream outputStream) {
-            task.getStandardOutput().set(outputStream);
-            return task;
-        }
-    }
-
-    /**
-     * No need to upgrade getter since it's already upgraded via BaseExecSpec
-     */
-    static class ErrorOutputAdapter {
-        @SuppressWarnings({"rawtypes", "unchecked"})
-        @BytecodeUpgrade
-        static AbstractExecTask setErrorOutput(AbstractExecTask task, OutputStream outputStream) {
-            task.getErrorOutput().set(outputStream);
-            return task;
-        }
-    }
 }

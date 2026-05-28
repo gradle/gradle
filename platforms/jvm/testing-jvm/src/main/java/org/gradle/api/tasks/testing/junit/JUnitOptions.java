@@ -21,6 +21,8 @@ import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.testing.TestFrameworkOptions;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 
+import java.util.Set;
+
 /**
  * The JUnit specific test options.
  * @since 0.7
@@ -65,10 +67,24 @@ public abstract class JUnitOptions extends TestFrameworkOptions {
     public abstract SetProperty<String> getIncludeCategories();
 
     /**
+     * The set of categories to run.
+     */
+    public void setIncludeCategories(Set<String> includeCategories) {
+        getIncludeCategories().set(includeCategories);
+    }
+
+    /**
      * The set of categories to exclude.
      * @since 1.6
      */
     @Input
     @ReplacesEagerProperty
     public abstract SetProperty<String> getExcludeCategories();
+
+    /**
+     * The set of categories to exclude.
+     */
+    public void setExcludeCategories(Set<String> excludeCategories) {
+        getExcludeCategories().set(excludeCategories);
+    }
 }

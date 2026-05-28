@@ -218,6 +218,13 @@ class SmokeTestGradleRunner extends GradleRunner {
         )
     }
 
+    SmokeTestGradleRunner maybeExpectChangingPropertyValueAtExecutionTimeDeprecationWarning(String taskPath, String propertyName) {
+        return maybeExpectLegacyDeprecationWarning(
+            "Changing property value of task '$taskPath' property '$propertyName' at execution time. This behavior has been deprecated. " +
+                "Starting with Gradle 11, changing property value of task '$taskPath' property '$propertyName' at execution time will become an error."
+        )
+    }
+
     SmokeTestGradleRunner ignoreDeprecationWarnings(String reason) {
         LOGGER.warn("Ignoring deprecation warnings because: {}", reason)
         ignoreDeprecationWarnings = true

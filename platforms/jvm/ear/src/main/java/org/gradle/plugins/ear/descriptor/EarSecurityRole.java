@@ -31,10 +31,14 @@ public interface EarSecurityRole {
     @ReplacesEagerProperty
     Property<String> getDescription();
 
+    void setDescription(String description);
+
     /**
      * The name of the security role. Required.
      * @since 1.0
      */
     @ReplacesEagerProperty
     Property<String> getRoleName();
+
+    void setRoleName(String roleName);
 }
