@@ -137,6 +137,20 @@ public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T>,
     }
 
     @Override
+    public ProviderDescription explain(boolean lazy) {
+        // Default impl: report kind UNKNOWN with whatever display name is attached.
+        // Do NOT call isPresent() here — that would re-evaluate the provider (and any upstream
+        // transformer/spec), which violates the no-resolution-penalty contract and can break
+        // callers that rely on a precise evaluation count. Subclasses that know their state
+        // cheaply should override to set hasValue accurately.
+        DisplayName declared = getDeclaredDisplayName();
+        return ProviderDescription.unknown(
+            declared != null ? declared.getDisplayName() : null,
+            false
+        );
+    }
+
+    @Override
     public ExecutionTimeValue<? extends T> calculateExecutionTimeValue() {
         return ExecutionTimeValue.value(calculateOwnValue(ValueConsumer.IgnoreUnsafeRead));
     }
@@ -196,6 +210,8 @@ public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T>,
     }
 
     private String cannotQueryValueOf(Value<? extends T> value) {
+        // TODO: render explain() tree here once we are ready to update the message format and the
+        // affected exact-message assertions across PropertySpec/ProviderSpec fixtures.
         TreeFormatter formatter = new TreeFormatter();
         formatter.node("Cannot query the value of ").append(getDisplayName().getDisplayName()).append(" because it has no value available.");
         if (!value.getPathToOrigin().isEmpty()) {

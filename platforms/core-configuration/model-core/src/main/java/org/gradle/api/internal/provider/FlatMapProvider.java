@@ -16,8 +16,11 @@
 
 package org.gradle.api.internal.provider;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import org.gradle.api.Transformer;
 import org.gradle.api.provider.Provider;
+import org.gradle.internal.DisplayName;
 import org.gradle.internal.evaluation.EvaluationScopeContext;
 import org.jspecify.annotations.Nullable;
 
@@ -93,5 +96,17 @@ public class FlatMapProvider<S, T> extends AbstractMinimalProvider<S> {
     @Override
     protected String toStringNoReentrance() {
         return "flatmap(" + provider + ")";
+    }
+
+    @Override
+    public ProviderDescription explain(boolean lazy) {
+        DisplayName declared = getDeclaredDisplayName();
+        return new ProviderDescription(
+            ProviderDescription.Kind.FLAT_MAPPED,
+            false,
+            declared != null ? declared.getDisplayName() : null,
+            ImmutableList.of(provider.explain(lazy)),
+            ImmutableMap.of()
+        );
     }
 }

@@ -129,6 +129,28 @@ public interface ProviderInternal<T> extends Provider<T>, ValueSupplier, TaskDep
     ValueSupplier.Value<? extends T> calculateValue(ValueConsumer consumer);
 
     /**
+     * Returns a structural description of this provider, intended for diagnostics and provenance
+     * (in particular, building helpful {@link MissingValueException} messages and surfacing
+     * provider origin to tooling).
+     *
+     * <p>The default implementation returns a generic {@link ProviderDescription.Kind#UNKNOWN}
+     * description with no further information. Subclasses should override to surface their kind
+     * and any kind-specific data.</p>
+     *
+     * @param lazy when {@code false}, the returned description and its sources are fully
+     *     materialized at call time — a self-contained snapshot with no back-references to live
+     *     providers. When {@code true}, child construction may be deferred until accessed; the
+     *     description may retain references to its underlying providers and observe later
+     *     mutations. Callers that rely on the description outliving the call (e.g.
+     *     {@link MissingValueException} construction) should pass {@code false}.
+     */
+    default ProviderDescription explain(boolean lazy) {
+        // See AbstractMinimalProvider#explain: do not call isPresent() in defaults to avoid
+        // re-evaluating the provider. Subclasses that know their state cheaply should override.
+        return ProviderDescription.unknown(null, false);
+    }
+
+    /**
      * Returns a view of this provider that can be used to supply a value to a {@link org.gradle.api.provider.Property} instance.
      */
     ProviderInternal<T> asSupplier(DisplayName owner, Class<? super T> targetType, ValueSanitizer<? super T> sanitizer);

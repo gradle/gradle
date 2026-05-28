@@ -16,8 +16,11 @@
 
 package org.gradle.api.internal.provider;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.specs.Spec;
+import org.gradle.internal.DisplayName;
 import org.gradle.internal.evaluation.EvaluationScopeContext;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
@@ -103,5 +106,17 @@ public class FilteringProvider<T> extends AbstractMinimalProvider<T> {
     @Override
     protected String toStringNoReentrance() {
         return "filter(" + (getType() == null ? "" : getType().getName() + " ") + provider + ")";
+    }
+
+    @Override
+    public ProviderDescription explain(boolean lazy) {
+        DisplayName declared = getDeclaredDisplayName();
+        return new ProviderDescription(
+            ProviderDescription.Kind.FILTERED,
+            false,
+            declared != null ? declared.getDisplayName() : null,
+            ImmutableList.of(provider.explain(lazy)),
+            ImmutableMap.of()
+        );
     }
 }

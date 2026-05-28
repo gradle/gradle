@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.provider;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import org.gradle.api.Action;
 import org.gradle.api.Named;
 import org.gradle.api.NamedDomainObjectProvider;
@@ -213,6 +215,17 @@ public class Providers {
         @Override
         protected String toStringNoReentrance() {
             return String.format("fixed(%s, %s)", getType(), value);
+        }
+
+        @Override
+        public ProviderDescription explain(boolean lazy) {
+            return new ProviderDescription(
+                ProviderDescription.Kind.FIXED,
+                true,
+                null,
+                ImmutableList.of(),
+                ImmutableMap.of()
+            );
         }
     }
 

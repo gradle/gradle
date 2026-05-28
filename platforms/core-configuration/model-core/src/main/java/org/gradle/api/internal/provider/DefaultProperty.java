@@ -17,10 +17,13 @@
 package org.gradle.api.internal.provider;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import org.gradle.api.Transformer;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Cast;
+import org.gradle.internal.DisplayName;
 import org.gradle.internal.evaluation.EvaluationScopeContext;
 import org.jspecify.annotations.Nullable;
 
@@ -65,6 +68,18 @@ public class DefaultProperty<T> extends AbstractProperty<T, ProviderInternal<? e
     @Override
     public Class<T> getType() {
         return type;
+    }
+
+    @Override
+    public ProviderDescription explain(boolean lazy) {
+        DisplayName declared = getDeclaredDisplayName();
+        return new ProviderDescription(
+            ProviderDescription.Kind.PROPERTY,
+            isPresent(),
+            declared != null ? declared.getDisplayName() : null,
+            ImmutableList.of(),
+            ImmutableMap.of("baseType", type)
+        );
     }
 
     @Override
