@@ -19,6 +19,8 @@ package org.gradle.api.tasks.javadoc;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
+import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.ProjectLayout;
@@ -27,6 +29,7 @@ import org.gradle.api.internal.provider.PropertyFactory;
 import org.gradle.api.internal.tasks.compile.CompilationSourceDirs;
 import org.gradle.api.jvm.ModularitySpec;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.model.ReplacedBy;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
@@ -48,6 +51,7 @@ import org.gradle.external.javadoc.MinimalJavadocOptions;
 import org.gradle.external.javadoc.StandardJavadocDocletOptions;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.file.Deleter;
+import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.internal.jvm.DefaultModularitySpec;
 import org.gradle.internal.jvm.JavaModuleDetector;
@@ -107,9 +111,6 @@ import static org.gradle.util.internal.GUtil.isTrue;
 @CacheableTask
 public abstract class Javadoc extends SourceTask {
 
-    @Nullable
-    private File destinationDir;
-
     private boolean failOnError = true;
 
     @Nullable
@@ -141,7 +142,7 @@ public abstract class Javadoc extends SourceTask {
 
     @TaskAction
     protected void generate() {
-        File destinationDir = getDestinationDir();
+        File destinationDir = getDestinationDirectory().get().getAsFile();
         try {
             getDeleter().ensureEmptyDirectory(destinationDir);
         } catch (IOException ex) {
@@ -242,18 +243,28 @@ public abstract class Javadoc extends SourceTask {
     /**
      * <p>Returns the directory to generate the documentation into.</p>
      *
+     * @return The directory property.
+     * @since 9.7.0
+     */
+    @Incubating
+    @Internal
+    public abstract DirectoryProperty getDestinationDirectory();
+
+    /**
+     * <p>Returns the directory to generate the documentation into.</p>
+     *
      * @return The directory.
      */
-    @Internal
+    @ReplacedBy("destinationDirectory")
     @Nullable
-    @ToBeReplacedByLazyProperty
+    @NotToBeReplacedByLazyProperty(because = "Bridge for backward compatibility, use getDestinationDirectory() instead", willBeDeprecated = true)
     public File getDestinationDir() {
-        return destinationDir;
+        return getDestinationDirectory().isPresent() ? getDestinationDirectory().get().getAsFile() : null;
     }
 
     @OutputDirectory
     protected File getOutputDirectory() {
-        File destinationDir = getDestinationDir();
+        File destinationDir = getDestinationDirectory().getAsFile().getOrNull();
         if (destinationDir == null) {
             destinationDir = options.getDestinationDirectory();
         }
@@ -264,7 +275,7 @@ public abstract class Javadoc extends SourceTask {
      * <p>Sets the directory to generate the documentation into.</p>
      */
     public void setDestinationDir(@Nullable File destinationDir) {
-        this.destinationDir = destinationDir;
+        getDestinationDirectory().set(destinationDir);
     }
 
     /**
