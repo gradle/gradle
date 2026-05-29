@@ -38,7 +38,6 @@ import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.internal.Cast;
 
 import javax.inject.Inject;
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Locale;
 import java.util.Map;
@@ -133,12 +132,7 @@ public abstract class AbstractCodeQualityPlugin<T> implements Plugin<ProjectInte
     private void configureExtensionRule() {
         final ConventionMapping extensionMapping = conventionMappingOf(extension);
         extensionMapping.map("sourceSets", Callables.returning(new ArrayList<>()));
-        extensionMapping.map("reportsDir", new Callable<File>() {
-            @Override
-            public File call() {
-                return project.getExtensions().getByType(ReportingExtension.class).getBaseDirectory().dir(getReportName()).get().getAsFile();
-            }
-        });
+        extension.getReportsDirectory().convention(project.getExtensions().getByType(ReportingExtension.class).getBaseDirectory().dir(getReportName()));
         withBasePlugin(new Action<Plugin>() {
             @Override
             public void execute(Plugin plugin) {
