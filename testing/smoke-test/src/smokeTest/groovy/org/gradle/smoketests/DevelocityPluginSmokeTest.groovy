@@ -556,7 +556,6 @@ public class MyFlakyTest {
             runner.maybeExpectLegacyDeprecationWarning(
                 "Usage of the Develocity plugin ${currentPluginVersion} has been deprecated. " +
                     "This will fail with an error in Gradle 10. " +
-                    "The plugin application will be ignored. " +
                     "Upgrade to version 4.0 or later of the Develocity plugin. " +
                     "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_9.html#deprecated_develocity_plugin_pre_4_0"
             )
