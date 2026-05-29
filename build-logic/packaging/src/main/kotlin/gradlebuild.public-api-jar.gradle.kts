@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import gradlebuild.basics.PublicApiVariants
 import gradlebuild.configureAsApiElements
 import gradlebuild.configureAsRuntimeJarClasspath
 import gradlebuild.packaging.support.ArtifactViewHelper.lenientProjectArtifactReselection
@@ -48,6 +49,23 @@ val externalRuntimeClasspath = configurations.resolvable("externalRuntimeClasspa
     configureAsRuntimeJarClasspath(objects)
 }
 
+// Defines configurations used to resolve external dependencies that the legacy public API depends on.
+// The legacy variant inherits everything in the public API, minus the relocated impldeps qdox and javaparser-core.
+val legacyExternalApi = configurations.dependencyScope("legacyExternalApi") {
+    description = "External dependencies that the legacy public Gradle API depends on"
+    extendsFrom(externalApi.get())
+    exclude(module = "qdox")
+    exclude(module = "javaparser-core")
+}
+val legacyExternalRuntimeOnly = configurations.dependencyScope("legacyExternalRuntimeOnly") {
+    dependencies.add(project.dependencies.create(project.dependencies.platform(project(":distributions-dependencies"))))
+}
+val legacyExternalRuntimeClasspath = configurations.resolvable("legacyExternalRuntimeClasspath") {
+    extendsFrom(legacyExternalApi.get())
+    extendsFrom(legacyExternalRuntimeOnly.get())
+    configureAsRuntimeJarClasspath(objects)
+}
+
 // Defines configurations used to resolve the public Gradle API.
 val distribution = configurations.dependencyScope("distribution") {
     description = "Dependencies to extract the public Gradle API from"
@@ -59,7 +77,7 @@ val distributionClasspath = configurations.resolvable("distributionClasspath") {
     configureAsRuntimeJarClasspath(objects)
 }
 
-val apiJarTask = tasks.register<Jar>("jarGradleApi") {
+fun Jar.commonPublicApiJarConfiguration() {
     // We use the resolvable configuration, but leverage withVariantReselection to obtain the subset of api stubs artifacts
     // Some projects simply don't have one, which excludes them
     from(lenientProjectArtifactReselection<FileCollection>(
@@ -72,9 +90,25 @@ val apiJarTask = tasks.register<Jar>("jarGradleApi") {
         include("**/*.class")
         include("META-INF/*.kotlin_module")
     }
-    destinationDirectory = layout.buildDirectory.dir("public-api/gradle-api")
-    // This is needed because of the duplicate package-info.class files
+    // This is needed because of the duplicate package-info.class files, it is safe thanks to PackageInfoTest
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
+// Both jars carry the ABI of internals; the suffix marks the variant. The -legacy jar mirrors the
+// historical gradleApi() classpath and ships in lib/api/, pending an internals-free public API.
+val internalBaseName = gradleModule.identity.baseName.map { "$it${PublicApiVariants.INTERNAL_SUFFIX}" }
+val legacyBaseName = gradleModule.identity.baseName.map { "$it${PublicApiVariants.LEGACY_SUFFIX}" }
+
+val apiJarTask = tasks.register<Jar>("jarGradleApi") {
+    commonPublicApiJarConfiguration()
+    archiveBaseName = internalBaseName
+    destinationDirectory = layout.buildDirectory.dir("public-api/gradle-api")
+}
+
+val legacyApiJarTask = tasks.register<Jar>("jarGradleApiLegacy") {
+    commonPublicApiJarConfiguration()
+    archiveBaseName = legacyBaseName
+    destinationDirectory = layout.buildDirectory.dir("public-api/gradle-api-legacy")
 }
 
 // The consumable configuration containing the public Gradle API artifact
@@ -82,6 +116,14 @@ val apiJarTask = tasks.register<Jar>("jarGradleApi") {
 val gradleApiElements = configurations.consumable("gradleApiElements") {
     extendsFrom(externalApi.get())
     outgoing.artifact(apiJarTask)
+    outgoing.capability(internalBaseName.map { "$group:$it:$version" })
+    configureAsApiElements(objects)
+}
+
+val legacyGradleApiElements = configurations.consumable("legacyGradleApiElements") {
+    extendsFrom(legacyExternalApi.get())
+    outgoing.artifact(legacyApiJarTask)
+    outgoing.capability(legacyBaseName.map { "$group:$it:$version" })
     configureAsApiElements(objects)
 }
 
@@ -121,6 +163,7 @@ val sourceJarTask = tasks.register<Jar>("sourcesJar") {
 
 // TODO: SoftwareComponentFactoryProvider can be replaced with PublishingExtension#getSoftwareComponentFactory()
 open class SoftwareComponentFactoryProvider @Inject constructor(val factory: SoftwareComponentFactory)
+
 val softwareComponentFactory = project.objects.newInstance(SoftwareComponentFactoryProvider::class.java).factory
 val gradleApiComponent = softwareComponentFactory.adhoc("gradleApi")
 components.add(gradleApiComponent)
@@ -132,6 +175,7 @@ gradleApiComponent.addVariantsFromConfiguration(gradleApiElements) {
 
 val sourcesElements = configurations.consumable("sourcesElements") {
     outgoing.artifact(sourceJarTask)
+    outgoing.capability(internalBaseName.map { "$group:$it:$version" })
     attributes {
         attribute(Category.CATEGORY_ATTRIBUTE, named(Category.DOCUMENTATION))
         attribute(DocsType.DOCS_TYPE_ATTRIBUTE, named(DocsType.SOURCES))
@@ -142,4 +186,11 @@ val sourcesElements = configurations.consumable("sourcesElements") {
 
 gradleApiComponent.addVariantsFromConfiguration(sourcesElements) {
     mapToOptional()
+}
+
+// Published component containing the legacy public Gradle API
+val legacyGradleApiComponent = softwareComponentFactory.adhoc("legacyGradleApi")
+components.add(legacyGradleApiComponent)
+legacyGradleApiComponent.addVariantsFromConfiguration(legacyGradleApiElements) {
+    mapToMavenScope("compile")
 }

@@ -28,6 +28,7 @@ import org.gradle.tooling.BuildException
 import org.gradle.tooling.IntermediateResultHandler
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptModel
+import org.gradle.util.GradleVersion
 import org.gradle.util.internal.ToBeImplemented
 
 import java.util.function.Function
@@ -237,7 +238,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends KotlinDslPlu
         assertHasScriptModelForFiles(model, "settings.gradle.kts", "build.gradle.kts")
         assertHasErrorsInScriptModels(model,
             Pair.of(".", ".*Build file.*build\\.gradle\\.kts.*Script compilation error.*"))
-        assertHasJarsInScriptModelClasspath(model, "build.gradle.kts", "gradle-api")
+        assertHasAnyJarInScriptModelClasspath(model, "build.gradle.kts", expectedPublicApiJarPrefixes())
     }
 
     def "compilation failure in included build project script body: root build and included build model is returned"() {
@@ -305,7 +306,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends KotlinDslPlu
         assertHasErrorsInScriptModels(model,
             Pair.of(".", ".*Build file.*build\\.gradle\\.kts.*Script compilation error.*"),
             Pair.of("included", ".*Build file.*build\\.gradle\\.kts.*Script compilation error.*"))
-        assertHasJarsInScriptModelClasspath(model, "included/build.gradle.kts", "gradle-api")
+        assertHasAnyJarInScriptModelClasspath(model, "included/build.gradle.kts", expectedPublicApiJarPrefixes())
     }
 
     def "#description failure in main build subproject: resilient model is equal to non-resilient model except accessors with #queryStrategy"() {
@@ -811,6 +812,19 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends KotlinDslPlu
         assert matcher.matches(): "Exception \"${failureMessage}\" doesn't match expected pattern \"${expectedPattern}\""
     }
 
+    /**
+     * Candidate jar name prefixes that may carry the Gradle public API.
+     *
+     * Gradle 9.7+ embeds a {@code gradle-public-api-legacy} ABI jar in {@code :distributions-full}.
+     * When the running Gradle has no such jar (older versions, non-full distributions, and in-process
+     * tests), falls back to the generated {@code gradle-api} jar.
+     */
+    List<String> expectedPublicApiJarPrefixes() {
+        GradleVersion.version(targetDist.version.baseVersion.version) >= GradleVersion.version("9.7")
+            ? ["gradle-public-api-legacy", "gradle-api"]
+            : ["gradle-api"]
+    }
+
     void assertHasJarsInScriptModelClasspath(KotlinModel model, String expectedFile, String... expectedJars) {
         def scriptModel = model.scriptModels.get(new File(projectDir, expectedFile))
         assert scriptModel != null: "Expected script model for file $expectedFile, but there wasn't one"
@@ -826,6 +840,24 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends KotlinDslPlu
                 "Expected jar named $expectedJar in the script model classpath for file $expectedFile, " +
                     "but it wasn't there: ${jarFilesInClasspath.stream().collect(Collectors.joining("\n\t", "\n\t", ""))}"
         }
+    }
+
+    /**
+     * Assert contains at least one jar whose name starts with any of the given prefixes.
+     */
+    void assertHasAnyJarInScriptModelClasspath(KotlinModel model, String expectedFile, List<String> candidateJarPrefixes) {
+        def scriptModel = model.scriptModels.get(new File(projectDir, expectedFile))
+        assert scriptModel != null: "Expected script model for file $expectedFile, but there wasn't one"
+
+        def jarFilesInClasspath = scriptModel.classPath.stream()
+            .filter { it.isFile() }
+            .map { it.name }
+            .filter { it.endsWith(".jar") }
+            .collect(Collectors.toList())
+
+        assert jarFilesInClasspath.stream().anyMatch { jar -> candidateJarPrefixes.any { prefix -> jar.startsWith(prefix) } }:
+            "Expected at least one jar with a name starting with ${candidateJarPrefixes} in the script model classpath for file $expectedFile, " +
+                "but none were found: ${jarFilesInClasspath.stream().collect(Collectors.joining("\n\t", "\n\t", ""))}"
     }
 
     static void expectFailureToContain(String actualFailure, String expectedFragment) {
