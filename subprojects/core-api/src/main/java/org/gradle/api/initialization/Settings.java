@@ -479,7 +479,7 @@ public interface Settings extends PluginAware, ExtensionAware {
      * <p>Changes after settings evaluation are not honored.</p>
      *
      * @return the property controlling the default exclude patterns
-     * @since 9.6.0
+     * @since 9.7.0
      */
     @Incubating
     @HiddenInDefinition
