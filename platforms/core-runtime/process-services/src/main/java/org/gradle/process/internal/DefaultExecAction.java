@@ -16,6 +16,8 @@
 
 package org.gradle.process.internal;
 
+import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.process.BaseExecSpec;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.ExecResult;
@@ -35,14 +37,21 @@ import java.util.Map;
 public class DefaultExecAction implements ExecAction {
 
     private final ClientExecHandleBuilder execHandleBuilder;
+    // Lazy variant of the working directory. Left empty (no convention) until explicitly set, so that
+    // construction never forces resolver.resolve(".") (which fails for an IdentityFileResolver).
+    private final DirectoryProperty workingDirectory;
     private boolean ignoreExitValue;
 
-    public DefaultExecAction(ClientExecHandleBuilder execHandleBuilder) {
+    public DefaultExecAction(FileResolver fileResolver, ClientExecHandleBuilder execHandleBuilder) {
         this.execHandleBuilder = execHandleBuilder;
+        this.workingDirectory = DefaultProcessForkOptions.SimplePropertyFactory.directoryProperty(fileResolver);
     }
 
     @Override
     public ExecResult execute() {
+        if (workingDirectory.isPresent()) {
+            execHandleBuilder.setWorkingDir(workingDirectory.get().getAsFile());
+        }
         ExecHandle execHandle = execHandleBuilder.build();
         ExecResult execResult = execHandle.start().waitForFinish();
         if (!isIgnoreExitValue()) {
@@ -73,18 +82,25 @@ public class DefaultExecAction implements ExecAction {
     }
 
     @Override
+    public DirectoryProperty getWorkingDirectory() {
+        return workingDirectory;
+    }
+
+    @Override
     public File getWorkingDir() {
-        return execHandleBuilder.getWorkingDir();
+        return workingDirectory.isPresent() ? workingDirectory.get().getAsFile() : execHandleBuilder.getWorkingDir();
     }
 
     @Override
     public void setWorkingDir(File dir) {
         execHandleBuilder.setWorkingDir(dir);
+        workingDirectory.fileValue(execHandleBuilder.getWorkingDir());
     }
 
     @Override
     public void setWorkingDir(Object dir) {
         execHandleBuilder.setWorkingDir(dir);
+        workingDirectory.fileValue(execHandleBuilder.getWorkingDir());
     }
 
     @Override
@@ -168,6 +184,7 @@ public class DefaultExecAction implements ExecAction {
     @Override
     public ExecAction workingDir(Object dir) {
         execHandleBuilder.setWorkingDir(dir);
+        workingDirectory.fileValue(execHandleBuilder.getWorkingDir());
         return this;
     }
 

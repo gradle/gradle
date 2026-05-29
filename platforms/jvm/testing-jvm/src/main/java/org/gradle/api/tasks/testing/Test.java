@@ -26,6 +26,7 @@ import org.gradle.api.JavaVersion;
 import org.gradle.api.Transformer;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.ConfigurableFileTree;
+import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileTreeElement;
@@ -71,6 +72,7 @@ import org.gradle.internal.UncheckedException;
 import org.gradle.internal.actor.ActorFactory;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.deprecation.DeprecationLogger;
+import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.internal.jvm.DefaultModularitySpec;
 import org.gradle.internal.jvm.JavaModuleDetector;
@@ -224,7 +226,16 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      */
     @Override
     @Internal
-    @ToBeReplacedByLazyProperty
+    public DirectoryProperty getWorkingDirectory() {
+        return forkOptions.getWorkingDirectory();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @Internal
+    @NotToBeReplacedByLazyProperty(because = "Bridge for backward compatibility, use getWorkingDirectory() instead", willBeDeprecated = true)
     public File getWorkingDir() {
         return forkOptions.getWorkingDir();
     }

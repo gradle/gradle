@@ -16,9 +16,24 @@
 package org.gradle.process.internal;
 
 import com.google.common.collect.Maps;
+import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.internal.file.DefaultFileCollectionFactory;
+import org.gradle.api.internal.file.DefaultFilePropertyFactory;
+import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.file.collections.DefaultDirectoryFileTreeFactory;
+import org.gradle.api.internal.provider.PropertyHost;
+import org.gradle.api.internal.provider.Providers;
+import org.gradle.api.internal.tasks.DefaultTaskDependencyFactory;
+import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Provider;
+import org.gradle.api.tasks.util.internal.PatternSets;
 import org.gradle.internal.file.PathToFileResolver;
+import org.gradle.internal.nativeintegration.services.FileSystems;
 import org.gradle.process.ProcessForkOptions;
+import org.jspecify.annotations.NullMarked;
 
+import javax.inject.Inject;
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
@@ -26,11 +41,26 @@ import java.util.Map;
 public class DefaultProcessForkOptions implements ProcessForkOptions {
     protected final PathToFileResolver resolver;
     private Object executable;
-    private File workingDir;
+    private final DirectoryProperty workingDir;
     private Map<String, Object> environment;
 
+    /**
+     * Kept for backward compatibility (e.g. KGP). Prefer {@link #DefaultProcessForkOptions(ObjectFactory, PathToFileResolver)}:
+     * this overload builds the working-directory property via {@link SimplePropertyFactory}, which requires
+     * {@code NativeServices} to be initialized.
+     */
     public DefaultProcessForkOptions(PathToFileResolver resolver) {
+        this(resolver, SimplePropertyFactory.directoryProperty((FileResolver) resolver), SimplePropertyFactory.directoryProperty((FileResolver) resolver));
+    }
+
+    @Inject
+    public DefaultProcessForkOptions(ObjectFactory objectFactory, PathToFileResolver resolver) {
+        this(resolver, objectFactory.directoryProperty(), objectFactory.directoryProperty());
+    }
+
+    private DefaultProcessForkOptions(PathToFileResolver resolver, DirectoryProperty defaultWorkingDir, DirectoryProperty workingDir) {
         this.resolver = resolver;
+        this.workingDir = workingDir.convention(defaultWorkingDir.fileProvider(Providers.changing(() -> resolver.resolve("."))));
     }
 
     @Override
@@ -55,26 +85,32 @@ public class DefaultProcessForkOptions implements ProcessForkOptions {
     }
 
     @Override
-    public File getWorkingDir() {
-        if (workingDir == null) {
-            workingDir = resolver.resolve(".");
-        }
+    public DirectoryProperty getWorkingDirectory() {
         return workingDir;
     }
 
     @Override
+    public File getWorkingDir() {
+        return getWorkingDirectory().get().getAsFile();
+    }
+
+    @Override
     public void setWorkingDir(File dir) {
-        this.workingDir = resolver.resolve(dir);
+        getWorkingDirectory().set(dir);
     }
 
     @Override
     public void setWorkingDir(Object dir) {
-        this.workingDir = resolver.resolve(dir);
+        workingDir(dir);
     }
 
     @Override
     public ProcessForkOptions workingDir(Object dir) {
-        setWorkingDir(dir);
+        if (dir instanceof Provider) {
+            getWorkingDirectory().fileProvider(((Provider<?>) dir).map(resolver::resolve));
+        } else {
+            getWorkingDirectory().set(resolver.resolve(dir));
+        }
         return this;
     }
 
@@ -125,5 +161,30 @@ public class DefaultProcessForkOptions implements ProcessForkOptions {
         target.setWorkingDir(getWorkingDir());
         target.setEnvironment(getEnvironment());
         return this;
+    }
+
+    /**
+     * Creates a {@link DirectoryProperty} backed only by a {@link FileResolver}, so that the working directory can be
+     * exposed as a lazy property even when no {@link org.gradle.api.model.ObjectFactory} is available (e.g. for the
+     * legacy {@code DefaultProcessForkOptions(PathToFileResolver)} constructor).
+     */
+    @NullMarked
+    static class SimplePropertyFactory {
+        @SuppressWarnings("deprecation")
+        public static DirectoryProperty directoryProperty(FileResolver fileResolver) {
+            FileCollectionFactory fileCollectionFactory = new DefaultFileCollectionFactory(
+                fileResolver,
+                DefaultTaskDependencyFactory.withNoAssociatedProject(),
+                new DefaultDirectoryFileTreeFactory(),
+                PatternSets.getNonCachingPatternSetFactory(),
+                PropertyHost.NO_OP,
+                FileSystems.getDefault()
+            );
+            return new DefaultFilePropertyFactory(
+                PropertyHost.NO_OP,
+                fileResolver,
+                fileCollectionFactory
+            ).newDirectoryProperty();
+        }
     }
 }

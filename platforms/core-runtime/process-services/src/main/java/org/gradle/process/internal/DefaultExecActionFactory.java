@@ -103,7 +103,7 @@ public class DefaultExecActionFactory implements ExecFactory {
     }
 
     public ExecAction newDecoratedExecAction() {
-        DefaultExecAction execAction = instantiator.newInstance(DefaultExecAction.class, execHandleFactory.newExecHandleBuilder());
+        DefaultExecAction execAction = instantiator.newInstance(DefaultExecAction.class, fileResolver, execHandleFactory.newExecHandleBuilder());
         ExecHandleListener listener = getExecHandleListener();
         if (listener != null) {
             execAction.listener(listener);
@@ -113,7 +113,7 @@ public class DefaultExecActionFactory implements ExecFactory {
 
     @Override
     public ExecAction newExecAction() {
-        return new DefaultExecAction(execHandleFactory.newExecHandleBuilder());
+        return new DefaultExecAction(fileResolver, execHandleFactory.newExecHandleBuilder());
     }
 
     @Override
@@ -187,7 +187,7 @@ public class DefaultExecActionFactory implements ExecFactory {
     @Override
     @SuppressWarnings("deprecation")
     public ExecHandleBuilder newExec() {
-        return new DefaultExecHandleBuilder(execHandleFactory.newExecHandleBuilder());
+        return new DefaultExecHandleBuilder(fileResolver, execHandleFactory.newExecHandleBuilder());
     }
 
     @Override
