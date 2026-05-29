@@ -18,10 +18,13 @@ package org.gradle.testing.jacoco.plugins;
 
 import com.google.common.base.Joiner;
 import org.apache.commons.lang3.StringUtils;
+import org.gradle.api.Incubating;
+import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.model.ReplacedBy;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Input;
@@ -29,6 +32,7 @@ import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.LocalState;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputFile;
+import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.internal.jacoco.JacocoAgentJar;
 import org.gradle.process.JavaForkOptions;
@@ -78,7 +82,7 @@ public abstract class JacocoTaskExtension {
     private Output output = Output.FILE;
     private String address;
     private int port;
-    private File classDumpDir;
+    private final DirectoryProperty classDumpDirectory;
     private boolean jmx;
 
     /**
@@ -93,6 +97,7 @@ public abstract class JacocoTaskExtension {
         this.agent = agent;
         this.task = task;
         destinationFile = objects.fileProperty();
+        classDumpDirectory = objects.directoryProperty();
     }
 
     /**
@@ -268,14 +273,25 @@ public abstract class JacocoTaskExtension {
     /**
      * Path to dump all class files the agent sees are dumped to. Defaults to no dumps.
      *
-     * @since 3.4
+     * @since 9.7.0
      */
-    @Nullable
+    @Incubating
     @Optional
     @LocalState
-    @ToBeReplacedByLazyProperty
+    public DirectoryProperty getClassDumpDirectory() {
+        return classDumpDirectory;
+    }
+
+    /**
+     * Path to dump all class files the agent sees are dumped to. Defaults to no dumps.
+     *
+     * @since 3.4
+     */
+    @ReplacedBy("classDumpDirectory")
+    @Nullable
+    @NotToBeReplacedByLazyProperty(because = "Bridge for backward compatibility, use getClassDumpDirectory() instead", willBeDeprecated = true)
     public File getClassDumpDir() {
-        return classDumpDir;
+        return getClassDumpDirectory().isPresent() ? getClassDumpDirectory().get().getAsFile() : null;
     }
 
     /**
@@ -284,7 +300,7 @@ public abstract class JacocoTaskExtension {
      * @since 3.4
      */
     public void setClassDumpDir(@Nullable File classDumpDir) {
-        this.classDumpDir = classDumpDir;
+        getClassDumpDirectory().set(classDumpDir);
     }
 
     /**
@@ -341,7 +357,7 @@ public abstract class JacocoTaskExtension {
         argument.append("output", getOutput().getAsArg());
         argument.append("address", getAddress());
         argument.append("port", getPort());
-        argument.append("classdumpdir", getClassDumpDir());
+        argument.append("classdumpdir", getClassDumpDirectory().getAsFile().getOrNull());
 
         if (agent.supportsJmx()) {
             argument.append("jmx", isJmx());
