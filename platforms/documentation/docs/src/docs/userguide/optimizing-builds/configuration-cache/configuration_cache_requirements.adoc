@@ -268,6 +268,38 @@ Use a task input or output property or a script variable to capture the result o
 
 |===
 
+[[config_cache:requirements:captured_references]]
+== Reducing Captured References in Ad-Hoc Tasks
+
+When using ad-hoc tasks in build scripts, task actions (such as `doLast {}`) can inadvertently capture references to the enclosing build script scope.
+In Kotlin DSL scripts, referencing a script-level property inside a `doLast {}` lambda causes the lambda to capture the build script object, which is not serializable.
+
+The following ad-hoc task directly references a script-level property inside its `doLast {}` action:
+
+====
+include::sample[dir="snippets/optimizing-builds/configuration-cache/capturedReferences/kotlin",files="build.gradle.kts[tags=dont]"]
+include::sample[dir="snippets/optimizing-builds/configuration-cache/capturedReferences/groovy",files="build.gradle[tags=dont]"]
+====
+<1> References the script-level `outputFile`, causing the action to capture the build script scope.
+
+To fix this, assign the script-level property to a local variable inside the task configuration block.
+The task action then captures only the local variable, avoiding the build script reference:
+
+====
+include::sample[dir="snippets/optimizing-builds/configuration-cache/capturedReferences/kotlin",files="build.gradle.kts[tags=do]"]
+include::sample[dir="snippets/optimizing-builds/configuration-cache/capturedReferences/groovy",files="build.gradle[tags=do]"]
+====
+<1> Assigns the script-level property to a local variable, reducing the captured scope.
+<2> The action now captures only the local variable, not the build script object.
+
+In the Kotlin example, the local variable has the same name as the script-level property (`val reportFile = reportFile`), shadowing the outer variable within the task configuration block.
+
+[TIP]
+====
+This technique applies whenever an ad-hoc task action references a value defined at the script level.
+For task classes (extending `DefaultTask`), use declared properties (e.g., `@Input`, `@OutputFile`) instead—the Configuration Cache serializes task properties directly.
+====
+
 [[config_cache:requirements:task_access]]
 == Accessing a Task Instance from Another Instance
 

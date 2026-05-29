@@ -1,0 +1,26 @@
+plugins {
+    id 'base'
+}
+
+// tag::dont[]
+def outputFile = layout.buildDirectory.file("output.txt")
+
+tasks.register("produce") {
+    outputs.file(outputFile)
+    doLast {
+        outputFile.get().asFile.text = "Hello" // <1>
+    }
+}
+// end::dont[]
+
+// tag::do[]
+def reportFile = layout.buildDirectory.file("report.txt")
+
+tasks.register("report") {
+    def localReportFile = reportFile // <1>
+    outputs.file(localReportFile)
+    doLast {
+        localReportFile.get().asFile.text = "Hello" // <2>
+    }
+}
+// end::do[]
