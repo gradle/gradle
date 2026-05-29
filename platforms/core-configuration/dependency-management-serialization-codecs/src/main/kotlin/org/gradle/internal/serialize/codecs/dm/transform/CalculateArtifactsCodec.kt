@@ -28,8 +28,11 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Resol
 import org.gradle.api.internal.artifacts.transform.AbstractTransformedArtifactSet
 import org.gradle.api.internal.artifacts.transform.BoundTransformStep
 import org.gradle.api.internal.attributes.ImmutableAttributes
+import org.gradle.api.internal.file.FileCollectionInternal
+import org.gradle.api.internal.file.FileCollectionStructureVisitor
 import org.gradle.api.internal.tasks.TaskDependencyContainer
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
+import org.gradle.internal.DisplayName
 import org.gradle.internal.extensions.stdlib.uncheckedCast
 import org.gradle.internal.serialize.graph.Codec
 import org.gradle.internal.serialize.graph.ReadContext
@@ -55,19 +58,9 @@ class CalculateArtifactsCodec(
         write(value.sourceVariantId)
         write(value.targetVariantAttributes)
         writeCollection(value.capabilities.asSet())
-        val files = mutableListOf<Artifact>()
-        // Capture rather than rethrow input-resolution failures so the cache store does not abort.
-        // The failure is replayed at visit time, when the existing failure-handling path takes effect.
-        // Note: if the delegate is a composite and a failing sub-set is visited before a good one,
-        // the good sub-set's artifacts are lost — same iteration-order behavior as the pre-catch code.
-        val failure: Throwable? = try {
-            value.delegate.visitExternalArtifacts { files.add(Artifact(file, artifactName.classifier)) } // TODO: Serialize the whole ResolvableArtifact, not just the files.
-            null
-        } catch (e: RuntimeException) {
-            e
-        }
+        val (files, failures) = extractFilesAndFailures(value)
         write(files)
-        write(failure)
+        writeCollection(failures)
         val steps = unpackTransformSteps(value.steps)
         writeCollection(steps)
     }
@@ -78,14 +71,9 @@ class CalculateArtifactsCodec(
         val targetAttributes = readNonNull<ImmutableAttributes>()
         val capabilities: List<Capability> = readList().uncheckedCast()
         val files = readNonNull<List<Artifact>>()
-        val failure = read() as Throwable?
+        val failures: List<Throwable> = readList().uncheckedCast()
         val steps: List<TransformStepSpec> = readList().uncheckedCast()
-        val fixed: ResolvedArtifactSet = FixedFilesArtifactSet(ownerId, sourceVariantId, files, calculatedValueContainerFactory)
-        val delegate: ResolvedArtifactSet = when {
-            failure == null -> fixed
-            files.isEmpty() -> BrokenArtifactSet(failure)
-            else -> CompositeArtifactSet(listOf(fixed, BrokenArtifactSet(failure)))
-        }
+        val delegate: ResolvedArtifactSet = buildDelegate(ownerId, sourceVariantId, files, failures)
         return AbstractTransformedArtifactSet.CalculateArtifacts(
             ownerId,
             sourceVariantId,
@@ -94,6 +82,74 @@ class CalculateArtifactsCodec(
             ImmutableCapabilities.of(capabilities),
             ImmutableList.copyOf(steps.map { BoundTransformStep(it.transformStep, it.recreateDependencies()) })
         )
+    }
+
+    /**
+     * Walks the transform's input artifact set, separating the artifacts that resolved successfully
+     * from any failures encountered along the way.
+     * <p>
+     * The traversal is failure-tolerant: a broken artifact does not abort the iteration, so siblings
+     * in the same set are still captured. `requireArtifactFiles = false` avoids `SingleArtifactSet`'s
+     * pre-check that calls `getFileSource().getValue()` — which throws "Value has not been calculated"
+     * when the file source has not been finalized yet (the typical encode-time state). Forcing
+     * materialization via `artifact.file` inside the callback finalizes it lazily and lets us catch
+     * per-artifact resolution failures (e.g., broken downloads) per element.
+     *
+     * @return a pair of (resolved artifacts, collected failures); either list may be empty.
+     */
+    private fun extractFilesAndFailures(value: AbstractTransformedArtifactSet.CalculateArtifacts): Pair<MutableList<Artifact>, MutableList<Throwable>> {
+        // TODO: Serialize the whole ResolvableArtifact, not just the files.
+        val files = mutableListOf<Artifact>()
+        val failures = mutableListOf<Throwable>()
+        val artifactVisitor = object : ArtifactVisitor {
+            override fun visitArtifact(
+                artifactSetName: DisplayName,
+                sourceVariantId: VariantIdentifier,
+                attributes: ImmutableAttributes,
+                capabilities: ImmutableCapabilities,
+                artifact: ResolvableArtifact
+            ) {
+                try {
+                    files.add(Artifact(artifact.file, artifact.artifactName.classifier))
+                } catch (e: RuntimeException) {
+                    failures.add(e)
+                }
+            }
+
+            override fun requireArtifactFiles(): Boolean = false
+
+            override fun visitFailure(failure: Throwable) {
+                failures.add(failure)
+            }
+        }
+        value.delegate.visit(object : ResolvedArtifactSet.Visitor {
+            override fun prepareForVisit(source: FileCollectionInternal.Source) = FileCollectionStructureVisitor.VisitType.Visit
+            override fun visitArtifacts(artifacts: ResolvedArtifactSet.Artifacts) {
+                try {
+                    artifacts.visit(artifactVisitor)
+                } catch (e: RuntimeException) {
+                    failures.add(e)
+                }
+            }
+        })
+        return Pair(files, failures)
+    }
+    
+    private
+    fun buildDelegate(
+        ownerId: ComponentIdentifier,
+        sourceVariantId: VariantIdentifier,
+        files: List<Artifact>,
+        failures: List<Throwable>
+    ): ResolvedArtifactSet {
+        val fixed: ResolvedArtifactSet? = if (files.isNotEmpty()) FixedFilesArtifactSet(ownerId, sourceVariantId, files, calculatedValueContainerFactory) else null
+        if (failures.isEmpty()) {
+            return fixed ?: FixedFilesArtifactSet(ownerId, sourceVariantId, files, calculatedValueContainerFactory)
+        }
+        val sets = mutableListOf<ResolvedArtifactSet>()
+        if (fixed != null) sets.add(fixed)
+        failures.forEach { sets.add(BrokenArtifactSet(it)) }
+        return if (sets.size == 1) sets[0] else CompositeArtifactSet(sets)
     }
 
     private
