@@ -37,9 +37,7 @@ class CompositeBuildIncludesMultiProjectProjectDependencyConflictResolutionInteg
 
     def setup() {
         buildTestFixture.withBuildInSubDir()
-        multiProject = buildTestFixture.populate('multiProject') {
-            buildFile << checkHelper(buildId, projectPath)
-        }
+        multiProject = buildTestFixture.populate('multiProject')
         super.settingsFile << "includeBuild 'multiProject'\n";
     }
 
@@ -80,9 +78,7 @@ class CompositeBuildIncludesMultiProjectProjectDependencyConflictResolutionInteg
 
     @Override
     void moduleDefinition(String name, String definition) {
-        multiProject.buildFile << "project(':$name') {"
-        multiProject.buildFile << definition
-        multiProject.buildFile << "}"
+        multiProject.project(name).buildFile(definition)
     }
 
     @Override
@@ -90,11 +86,4 @@ class CompositeBuildIncludesMultiProjectProjectDependencyConflictResolutionInteg
         true
     }
 
-    @Override
-    String parentMethodLookupDeprecationFor(String methodName) {
-        // The included 'multiProject' build configures its modules via project(':...') {} blocks,
-        // so projectId()/moduleId() walk up from :multiProject:ProjectA to project :multiProject.
-        // Composite-build messages refer to projects by build path, not by "root project '<name>'".
-        formatParentMethodLookupDeprecation(methodName, ':multiProject:ProjectA', "project ':multiProject'")
-    }
 }

@@ -27,7 +27,11 @@ trait TasksWithInputsAndOutputs {
     abstract TestFile getBuildKotlinFile()
 
     def taskTypeWithOutputFileProperty(TestFile buildFile = getBuildFile()) {
-        buildFile << """
+        buildFile << fileProducerTask()
+    }
+
+    String fileProducerTask() {
+        """
             abstract class FileProducer extends DefaultTask {
                 @OutputFile
                 abstract RegularFileProperty getOutput()
