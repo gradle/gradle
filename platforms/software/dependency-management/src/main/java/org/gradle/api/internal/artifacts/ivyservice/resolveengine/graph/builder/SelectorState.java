@@ -120,17 +120,22 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
         }
     }
 
-    public void release() {
+    /**
+     * Decrease the count of edges using this selector, updating state on the target module if
+     * this selector is no longer used by any edges.
+     *
+     * @return True if releasing this selector requires the target module to be reselected.
+     */
+    public boolean release() {
         outgoingEdgeCount--;
         assert outgoingEdgeCount >= 0 : "Inconsistent selector state detected for '" + this + "': outgoing edge count cannot be negative";
         if (outgoingEdgeCount == 0) {
-            removeAndMarkSelectorForReuse();
+            targetModule.removeSelector(this);
+            boolean needsSelection = markForReuse();
+            resolved = false;
+            return needsSelection;
         }
-    }
-
-    private void removeAndMarkSelectorForReuse() {
-        targetModule.removeSelector(this);
-        resolved = false;
+        return false;
     }
 
     @Override
@@ -234,22 +239,22 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
      * Marks a selector for reuse,
      * indicating it could be used again for resolution
      *
-     * @return {@code true} if that selector has been marked for reuse before, {@code false} otherwise
+     * @return true if marking this selector for reuse requires the target module to be reselected
      */
     boolean markForReuse() {
         if (!resolved) {
             // Selector was marked for deferred selection - let's not trigger selection now
-            return true;
+            return false;
         }
         this.reusable = true;
         if (markedReusableAlready) {
             // TODO: We have hit an unstable graph. This selector has already added, removed, added again,
             // and we are removing it once again. We should fail the resolution here and ask the user
             // to fix the graph -- likely by adding a version constraint.
-            return true;
+            return false;
         } else {
             markedReusableAlready = true;
-            return false;
+            return true;
         }
     }
 

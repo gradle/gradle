@@ -825,4 +825,9 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
         super.withSignature(signer)
         this
     }
+
+    @Override
+    String toString() {
+        return "\"$groupId:$artifactId:$version\""
+    }
 }
