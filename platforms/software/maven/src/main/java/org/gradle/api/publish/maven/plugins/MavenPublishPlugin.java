@@ -173,9 +173,9 @@ public abstract class MavenPublishPlugin implements Plugin<Project> {
             generatePomTask.setDescription("Generates the Maven POM file for publication '" + publicationName + "'.");
             generatePomTask.setGroup(PublishingPlugin.PUBLISH_TASK_GROUP);
             generatePomTask.setPom(publication.getPom());
-            if (generatePomTask.getDestination() == null) {
-                generatePomTask.setDestination(buildDir.file("publications/" + publication.getName() + "/pom-default.xml"));
-            }
+            generatePomTask.getDestinationFile().convention(
+                buildDir.file("publications/" + publication.getName() + "/pom-default.xml")
+            );
         });
         publication.setPomGenerator(generatorTask);
     }

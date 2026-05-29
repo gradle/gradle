@@ -17,8 +17,11 @@
 package org.gradle.api.publish.maven.tasks;
 
 import org.gradle.api.DefaultTask;
+import org.gradle.api.Incubating;
 import org.gradle.api.Project;
+import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.model.ReplacedBy;
 import org.gradle.api.publish.maven.MavenPom;
 import org.gradle.api.publish.maven.internal.publication.MavenPomInternal;
 import org.gradle.api.publish.maven.internal.tasks.MavenPomFileGenerator;
@@ -26,6 +29,7 @@ import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.UntrackedTask;
+import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.internal.serialization.Cached;
 import org.gradle.internal.serialization.Transient;
@@ -44,7 +48,6 @@ import static org.gradle.internal.serialization.Transient.varOf;
 public abstract class GenerateMavenPom extends DefaultTask {
 
     private final Transient.Var<MavenPom> pom = varOf();
-    private Object destination;
     private final Cached<MavenPomFileGenerator.MavenPomSpec> mavenPomSpec = Cached.of(() ->
         MavenPomFileGenerator.generateSpec((MavenPomInternal) getPom())
     );
@@ -71,11 +74,21 @@ public abstract class GenerateMavenPom extends DefaultTask {
      * The file the POM will be written to.
      *
      * @return The file the POM will be written to
+     * @since 9.7.0
      */
+    @Incubating
     @OutputFile
-    @ToBeReplacedByLazyProperty
+    public abstract RegularFileProperty getDestinationFile();
+
+    /**
+     * The file the POM will be written to.
+     *
+     * @return The file the POM will be written to
+     */
+    @ReplacedBy("destinationFile")
+    @NotToBeReplacedByLazyProperty(because = "Bridge for backward compatibility, use getDestinationFile() instead", willBeDeprecated = true)
     public File getDestination() {
-        return destination == null ? null : getFileResolver().resolve(destination);
+        return getDestinationFile().isPresent() ? getDestinationFile().get().getAsFile() : null;
     }
 
     /**
@@ -85,7 +98,7 @@ public abstract class GenerateMavenPom extends DefaultTask {
      * @since 4.0
      */
     public void setDestination(File destination) {
-        this.destination = destination;
+        getDestinationFile().fileValue(destination);
     }
 
     /**
@@ -96,12 +109,12 @@ public abstract class GenerateMavenPom extends DefaultTask {
      * @param destination The file the descriptor will be written to.
      */
     public void setDestination(Object destination) {
-        this.destination = destination;
+        getDestinationFile().fileValue(getFileResolver().resolve(destination));
     }
 
     @TaskAction
     public void doGenerate() {
-        mavenPomSpec.get().writeTo(getDestination());
+        mavenPomSpec.get().writeTo(getDestinationFile().get().getAsFile());
     }
 
 }
