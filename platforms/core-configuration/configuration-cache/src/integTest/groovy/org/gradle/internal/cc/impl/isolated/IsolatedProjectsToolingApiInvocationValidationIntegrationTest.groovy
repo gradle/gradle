@@ -17,6 +17,27 @@
 package org.gradle.internal.cc.impl.isolated
 
 class IsolatedProjectsToolingApiInvocationValidationIntegrationTest extends AbstractIsolatedProjectsToolingApiIntegrationTest {
+    def "dangerously ignoring problems lets a sync with cross-project access succeed"() {
+        given:
+        includeProjects("a", "b")
+        withSomeToolingModelBuilderPluginInBuildSrc()
+        buildFile << """
+            allprojects {
+                plugins.apply('java-library')
+            }
+            plugins.apply(my.MyPlugin)
+        """
+
+        when:
+        withIsolatedProjectsDangerouslyIgnoreProblems()
+        def model = fetchModel()
+
+        then:
+        model != null
+        outputContains(DANGEROUSLY_IGNORE_PROBLEMS_BANNER)
+        outputContains("Project ':' cannot access 'Project.plugins' functionality on subprojects via 'allprojects'")
+    }
+
     def "reports cross project access from build script when fetching custom tooling model"() {
         given:
         includeProjects("a", "b")

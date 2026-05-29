@@ -100,6 +100,18 @@ public interface BuildModelParameters {
     boolean isIsolatedProjectsDiagnostics();
 
     /**
+     * Whether the IP "dangerously ignore problems" mode is enabled.
+     * <p>
+     * In this mode, IP violations are reported but do not fail the build, so a parallel build or
+     * sync can be timed to estimate the speedup before the violations are fixed. Outputs may be
+     * incorrect and the build may crash. It can be set alongside IP Diagnostics mode, which may
+     * be useful for testing IDE sync.
+     * <p>
+     * Implies {@link #isIsolatedProjects()}.
+     */
+    boolean isIsolatedProjectsDangerouslyIgnoreProblems();
+
+    /**
      * Whether projects should be configured in parallel.
      * <p>
      * This should only take effect if {@link #isConfigureOnDemand() configure-on-demand}

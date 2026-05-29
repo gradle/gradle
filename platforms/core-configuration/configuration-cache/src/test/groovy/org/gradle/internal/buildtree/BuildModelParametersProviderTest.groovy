@@ -40,6 +40,7 @@ class BuildModelParametersProviderTest extends Specification {
 
             isolatedProjects: false,
             isolatedProjectsDiagnostics: false,
+            isolatedProjectsDangerouslyIgnoreProblems: false,
             parallelProjectConfiguration: false,
             invalidateCoupledProjects: false,
             modelAsProjectDependency: false,

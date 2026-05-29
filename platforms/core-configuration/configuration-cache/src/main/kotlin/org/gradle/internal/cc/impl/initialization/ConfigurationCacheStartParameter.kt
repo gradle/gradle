@@ -191,6 +191,18 @@ class ConfigurationCacheStartParameter internal constructor(
     val isIsolatedProjectsDiagnostics: Boolean
         get() = modelParameters.isIsolatedProjectsDiagnostics
 
+    /**
+     * Determines whether Isolated Projects "dangerously ignore problems" option is enabled.
+     *
+     * With this option, IP violations are reported but do not fail the build, so a parallel build or sync
+     * can be timed to estimate the speedup before the violations are fixed. Outputs may be incorrect
+     * and the build may crash.
+     *
+     * Uses a build model parameter rather than a start parameter as the latter is not final and can be affected by other options of the build.
+     */
+    val isIsolatedProjectsDangerouslyIgnoreProblems: Boolean
+        get() = modelParameters.isIsolatedProjectsDangerouslyIgnoreProblems
+
     val entriesPerKey: Int
         get() = startParameter.configurationCacheEntriesPerKey
 }

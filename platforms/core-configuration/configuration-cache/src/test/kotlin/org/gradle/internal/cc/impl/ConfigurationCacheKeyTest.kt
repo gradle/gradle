@@ -125,6 +125,37 @@ class ConfigurationCacheKeyTest {
     }
 
     @Test
+    fun `cache key honours dangerously ignore problems option`() {
+        // The flag only resolves to true under Isolated Projects, so enable IP on both sides.
+        assertThat(
+            cacheKeyStringFromStartParameter {
+                isolatedProjects = Option.Value.value(true)
+                isIsolatedProjectsDangerouslyIgnoreProblems = true
+            },
+            not(equalTo(cacheKeyStringFromStartParameter {
+                isolatedProjects = Option.Value.value(true)
+            }))
+        )
+        assertThat(
+            cacheKeyStringFromStartParameter {
+                isolatedProjects = Option.Value.value(true)
+                isIsolatedProjectsDangerouslyIgnoreProblems = true
+            },
+            equalTo(cacheKeyStringFromStartParameter {
+                isolatedProjects = Option.Value.value(true)
+                isIsolatedProjectsDangerouslyIgnoreProblems = true
+            })
+        )
+        // Without Isolated Projects the flag has no effect on the key.
+        assertThat(
+            cacheKeyStringFromStartParameter {
+                isIsolatedProjectsDangerouslyIgnoreProblems = true
+            },
+            equalTo(cacheKeyStringFromStartParameter { })
+        )
+    }
+
+    @Test
     fun `sanity check`() {
         assertThat(
             cacheKeyStringFromStartParameter {},

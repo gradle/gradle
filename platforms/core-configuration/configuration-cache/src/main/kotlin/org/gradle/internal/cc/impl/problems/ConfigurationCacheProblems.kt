@@ -66,6 +66,19 @@ import java.io.File
 import java.io.IOException
 
 
+private
+val DANGEROUSLY_IGNORE_PROBLEMS_BANNER = """
+
+==============================================================================
+Isolated Projects: dangerously-ignore-problems is ENABLED. Isolated Projects
+violations are being ignored, so build outputs may be incorrect and the build
+may crash unexpectedly. Use this only to estimate parallel/sync speedup, never
+to produce artifacts.
+==============================================================================
+
+""".trimIndent()
+
+
 @ServiceScope(Scope.BuildTree::class)
 internal
 class ConfigurationCacheProblems(
@@ -109,6 +122,9 @@ class ConfigurationCacheProblems(
 
     private
     val isIsolatedProjectsDiagnostics: Boolean = startParameter.isIsolatedProjectsDiagnostics
+
+    private
+    val isIsolatedProjectsDangerouslyIgnoreProblems: Boolean = startParameter.isIsolatedProjectsDangerouslyIgnoreProblems
 
     private
     var seenSerializationErrorOnStore = false
@@ -256,6 +272,9 @@ class ConfigurationCacheProblems(
 
     override fun onIsolatedProjectsProblem(problem: PropertyProblem) {
         val severity = when {
+            // "Dangerously ignore problems" mode: keep going past IP violations so a parallel build
+            // or sync can be timed, and succeed the build at the end even with these violations.
+            isIsolatedProjectsDangerouslyIgnoreProblems -> ProblemSeverity.Suppressed
             // TODO:isolated untie IP behavior from the CC flag
             // Warning mode explicitly asks the build to keep going and surface all problems at the end.
             isWarningMode -> ProblemSeverity.Deferred
@@ -438,7 +457,11 @@ class ConfigurationCacheProblems(
     private
     inner class PostBuildProblemsHandler : RootBuildLifecycleListener {
 
-        override fun afterStart() = Unit
+        override fun afterStart() {
+            if (isIsolatedProjectsDangerouslyIgnoreProblems) {
+                logger.warn(DANGEROUSLY_IGNORE_PROBLEMS_BANNER)
+            }
+        }
 
         @Suppress("CyclomaticComplexMethod")
         override fun beforeComplete(failure: Throwable?) {
@@ -468,6 +491,9 @@ class ConfigurationCacheProblems(
                 hasTooManyProblems -> log("Too many configuration cache problems found ({}).", problemCountString)
                 hasProblems -> log("Configuration cache problems found ({}).", problemCountString)
                 // else not storing or loading and no problems to report
+            }
+            if (isIsolatedProjectsDangerouslyIgnoreProblems) {
+                logger.warn(DANGEROUSLY_IGNORE_PROBLEMS_BANNER)
             }
         }
     }
