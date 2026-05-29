@@ -17,7 +17,6 @@
 package org.gradle.internal.cc.impl
 
 import com.google.common.collect.ImmutableMap
-import groovy.lang.ReadOnlyPropertyException
 import org.gradle.api.Action
 import org.gradle.api.internal.plugins.ExtensionContainerInternal
 import org.gradle.api.internal.project.ProjectIdentity
@@ -32,7 +31,7 @@ internal class CrossProjectConfigurationReportingExtensionsContainer(
     private val delegate: ExtensionContainerInternal,
     private val referrer: ProjectIdentity,
     private val ipProblems: IsolatedProjectsProblemsReporter
-) : ExtensionContainerInternal by delegate {
+) : ExtensionContainerInternal {
 
     private fun onMutableStateAccess(what: String) {
         ipProblems.report {
@@ -50,12 +49,39 @@ internal class CrossProjectConfigurationReportingExtensionsContainer(
 
     override fun getExtensionsSchema(): ExtensionsSchema = DefaultExtensionsSchema.create(delegate.extensionsSchema)
 
-    override fun getExtraProperties(): ExtraPropertiesExtension =
-        CrossProjectConfigurationReportingExtraPropertiesExtension(delegate.extraProperties, referrer, ipProblems)
+    override fun <T : Any> getByType(type: Class<T>): T = getByType(TypeOf.typeOf(type))
+
+    override fun <T : Any> getByType(type: TypeOf<T>): T {
+        if (!Workarounds.canAccessGradleExtensionFromProjectScope(type)) {
+            onMutableStateAccess("get extension of type `$type`")
+        }
+        return delegate.getByType(type)
+    }
+
+    override fun <T : Any> findByType(type: Class<T>): T? = findByType(TypeOf.typeOf(type))
+
+    override fun <T : Any> findByType(type: TypeOf<T>): T? {
+        onMutableStateAccess("find extension of type `$type`")
+        return delegate.findByType(type)
+    }
+
+    override fun getByName(name: String): Any {
+        onMutableStateAccess("get extension of name `$name`")
+        return delegate.getByName(name)
+    }
+
+    override fun findByName(name: String): Any? {
+        onMutableStateAccess("find extension of name `$name`")
+        return delegate.findByName(name)
+    }
+
+    override fun getExtraProperties(): ExtraPropertiesExtension {
+        onMutableStateAccess("access extra properties")
+        return delegate.extraProperties
+    }
 
     override fun <T : Any> add(publicType: Class<T>, name: String, extension: T) {
-        onMutableStateAccess("add extension `$name` with public type `${publicType.simpleName}`")
-        delegate.add(publicType, name, extension)
+        add(TypeOf.typeOf(publicType), name, extension)
     }
 
     override fun <T : Any> add(publicType: TypeOf<T>, name: String, extension: T) {
@@ -73,10 +99,7 @@ internal class CrossProjectConfigurationReportingExtensionsContainer(
         name: String,
         instanceType: Class<out T>,
         vararg constructionArguments: Any
-    ): T {
-        onMutableStateAccess("create extension `$name` with public type `${publicType.simpleName}`")
-        return delegate.create(publicType, name, instanceType, *constructionArguments)
-    }
+    ): T = create(TypeOf.typeOf(publicType), name, instanceType, *constructionArguments)
 
     override fun <T : Any> create(
         publicType: TypeOf<T>,
@@ -94,17 +117,16 @@ internal class CrossProjectConfigurationReportingExtensionsContainer(
     }
 
     override fun <T : Any> configure(type: Class<T>, action: Action<in T>) {
-        onMutableStateAccess("configure extension of type `${type.name}`")
-        delegate.configure(type, action)
+        configure(TypeOf.typeOf(type), action)
     }
 
     override fun <T : Any> configure(type: TypeOf<T>, action: Action<in T>) {
-        onMutableStateAccess("configure extension of type `${type}`")
+        onMutableStateAccess("configure extension of type `$type`")
         delegate.configure(type, action)
     }
 
     override fun <T : Any> configure(name: String, action: Action<in T>) {
-        onMutableStateAccess("configure extension of name `${name}`")
+        onMutableStateAccess("configure extension of name `$name`")
         delegate.configure(name, action)
     }
 
@@ -113,44 +135,10 @@ internal class CrossProjectConfigurationReportingExtensionsContainer(
         getByName(name)
 
     fun propertyMissing(name: String, value: Any) {
-        require(findByName(name) == null) {
+        require(delegate.findByName(name) == null) {
             "There's an extension registered with name '$name'. You should not reassign it via a property setter."
         }
         add(name, value)
-    }
-    // endregion Groovy support
-}
-
-private class CrossProjectConfigurationReportingExtraPropertiesExtension(
-    private val delegate: ExtraPropertiesExtension,
-    private val referrer: ProjectIdentity,
-    private val ipProblems: IsolatedProjectsProblemsReporter
-) : ExtraPropertiesExtension by delegate {
-
-    override fun set(name: String, value: Any?) {
-        ipProblems.report {
-            problem {
-                text("Project ")
-                reference(referrer.buildTreePath)
-                text(" cannot set extra properties extension `$name` on Gradle extension container")
-            }
-                .exception { message -> message.capitalized() }
-                .build()
-        }
-        delegate.set(name, value)
-    }
-
-    // region Groovy support
-    fun propertyMissing(name: String): Any? {
-        if (name == "properties") return properties
-        return get(name)
-    }
-
-    fun propertyMissing(name: String, value: Any?) {
-        if (name == "properties") {
-            throw ReadOnlyPropertyException("name", ExtraPropertiesExtension::class.java)
-        }
-        set(name, value)
     }
     // endregion Groovy support
 }

@@ -17,6 +17,7 @@
 package org.gradle.internal.cc.impl
 
 import org.gradle.api.internal.TaskInternal
+import org.gradle.api.reflect.TypeOf
 import org.gradle.tooling.model.kotlin.dsl.KotlinDslModelsParameters
 
 
@@ -65,6 +66,11 @@ object Workarounds {
             from.startsWith("com.android.build.gradle.tasks.factory.AndroidUnitTest") || callStackHasElement {
                 isBuildScanPlugin(className)
             }
+        }
+
+    fun canAccessGradleExtensionFromProjectScope(extensionType: TypeOf<*>) =
+        withWorkaroundsFor("isolated-projects") {
+            extensionType.fullyQualifiedName.startsWith("com.gradle.develocity.agent.gradle.internal.StateAccess")
         }
 
     private

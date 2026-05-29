@@ -52,15 +52,22 @@ class IsolatedProjectsCrossProjectGradleAccessIntegrationTest extends AbstractIs
         "create(TypeOf.typeOf(Foo), 'foo', DefaultFoo)"         | "create extension `foo` with public type `Foo`"
 
         // use ExtraPropertiesExtension as the only available by default
+        "getByType(ExtraPropertiesExtension)"                   | "get extension of type `org.gradle.api.plugins.ExtraPropertiesExtension`"
+        "getByType(TypeOf.typeOf(ExtraPropertiesExtension))"    | "get extension of type `org.gradle.api.plugins.ExtraPropertiesExtension`"
+        "findByType(ExtraPropertiesExtension)"                  | "find extension of type `org.gradle.api.plugins.ExtraPropertiesExtension`"
+        "findByType(TypeOf.typeOf(ExtraPropertiesExtension))"   | "find extension of type `org.gradle.api.plugins.ExtraPropertiesExtension`"
+
+        "getByName('ext')"                                      | "get extension of name `ext`"
+        "findByName('ext')"                                     | "find extension of name `ext`"
+
         "configure(ExtraPropertiesExtension) {}"                | "configure extension of type `org.gradle.api.plugins.ExtraPropertiesExtension`"
         "configure(TypeOf.typeOf(ExtraPropertiesExtension)) {}" | "configure extension of type `org.gradle.api.plugins.ExtraPropertiesExtension`"
         "configure('ext') {}"                                   | "configure extension of name `ext`"
 
-        "extraProperties.set('foo', 'bar')"                     | "set extra properties extension `foo`"
+        "extraProperties"                                       | "access extra properties"
 
-        // Groovy dynamic property setter
+        // Groovy dynamic access
+        "ext"                                                   | "get extension of name `ext`"
         "foo = new DefaultFoo()"                                | "add extension `foo` with public type `DefaultFoo`"
-        // Groovy dynamic property setter on extra properties
-        "extraProperties.foo = 'bar'"                           | "set extra properties extension `foo`"
     }
 }

@@ -29,13 +29,13 @@ import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.SettingsInternal
 import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.internal.initialization.ClassLoaderScope
+import org.gradle.api.internal.plugins.ExtensionContainerInternal
 import org.gradle.api.internal.plugins.PluginManagerInternal
 import org.gradle.api.internal.project.CrossProjectConfigurator
 import org.gradle.api.internal.project.CrossProjectModelAccess
 import org.gradle.api.internal.project.ProjectIdentity
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectRegistry
-import org.gradle.api.internal.project.ProjectState as InternalProjectState
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.invocation.GradleLifecycle
 import org.gradle.api.plugins.ExtensionContainer
@@ -49,17 +49,20 @@ import org.gradle.initialization.SettingsState
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.build.PublicBuildPath
 import org.gradle.internal.composite.IncludedBuildInternal
+import org.gradle.internal.configuration.problems.IsolatedProjectsProblemsReporter
 import org.gradle.internal.extensions.core.serviceOf
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.util.Path
 import java.io.File
 import java.util.Objects
 import java.util.function.Supplier
+import org.gradle.api.internal.project.ProjectState as InternalProjectState
 
 
 class CrossProjectConfigurationReportingGradle(
     gradle: GradleInternal,
     private val referrerProject: ProjectIdentity,
+    private val ipProblems: IsolatedProjectsProblemsReporter
 ) : GradleInternal {
 
     private
@@ -75,12 +78,12 @@ class CrossProjectConfigurationReportingGradle(
     private val projectConfigurator: CrossProjectConfigurator = delegate.serviceOf()
 
     override fun getParent(): GradleInternal? =
-        delegate.parent?.let { delegateParent -> CrossProjectConfigurationReportingGradle(delegateParent, referrerProject) }
+        delegate.parent?.let { delegateParent -> CrossProjectConfigurationReportingGradle(delegateParent, referrerProject, ipProblems) }
 
     override fun getRoot(): GradleInternal =
         when (val root = delegate.root) {
             delegate -> this
-            else -> CrossProjectConfigurationReportingGradle(root, referrerProject)
+            else -> CrossProjectConfigurationReportingGradle(root, referrerProject, ipProblems)
         }
 
     override fun getRootProject(): ProjectInternal =
@@ -240,7 +243,11 @@ class CrossProjectConfigurationReportingGradle(
         delegate.pluginManager
 
     override fun getExtensions(): ExtensionContainer =
-        crossProjectModelAccess.getExtensionContainerForProject(referrerProject, delegate.extensions)
+        CrossProjectConfigurationReportingExtensionsContainer(
+            delegate.extensions as ExtensionContainerInternal,
+            referrerProject,
+            ipProblems
+        )
 
     override fun getGradleVersion(): String =
         delegate.gradleVersion
