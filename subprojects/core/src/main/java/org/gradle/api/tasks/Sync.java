@@ -17,17 +17,19 @@
 package org.gradle.api.tasks;
 
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.internal.file.copy.CopyAction;
 import org.gradle.api.internal.file.copy.CopySpecInternal;
 import org.gradle.api.internal.file.copy.DestinationRootCopySpec;
 import org.gradle.api.internal.file.copy.FileCopyAction;
 import org.gradle.api.internal.file.copy.SyncCopyActionDecorator;
+import org.gradle.api.model.ReplacedBy;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
-import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.work.DisableCachingByDefault;
 
 import javax.inject.Inject;
@@ -98,12 +100,27 @@ public abstract class Sync extends AbstractCopyTask {
     }
 
     /**
+     * The directory to copy files into.
+     * <p>
+     * Setting this property is equivalent to calling {@link #into(Object)} on this task, and reading it reflects
+     * the destination configured through {@link #into(Object)} or {@link #setDestinationDir(File)}.
+     *
+     * @return the destination directory property
+     * @since 9.7.0
+     */
+    @Incubating
+    @OutputDirectory
+    public DirectoryProperty getDestinationDirectory() {
+        return getRootSpec().getDestinationDirectory();
+    }
+
+    /**
      * Returns the directory to copy files into.
      *
      * @return The destination dir.
      */
-    @OutputDirectory
-    @ToBeReplacedByLazyProperty
+    @ReplacedBy("destinationDirectory")
+    @NotToBeReplacedByLazyProperty(because = "Superseded by the lazy getDestinationDirectory() property", willBeDeprecated = true)
     public File getDestinationDir() {
         return getRootSpec().getDestinationDir();
     }

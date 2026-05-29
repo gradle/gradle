@@ -97,6 +97,7 @@ public class DefaultFileOperations implements FileOperations {
         DefaultResourceHandler.Factory resourceHandlerFactory,
         FileCollectionFactory fileCollectionFactory,
         PropertyFactory propertyFactory,
+        FilePropertyFactory filePropertyFactory,
         FileSystem fileSystem,
         PatternSetFactory patternSetFactory,
         Deleter deleter,
@@ -124,6 +125,7 @@ public class DefaultFileOperations implements FileOperations {
             fileResolver,
             patternSetFactory,
             propertyFactory,
+            filePropertyFactory,
             fileSystem,
             instantiator,
             documentationRegistry
@@ -313,6 +315,7 @@ public class DefaultFileOperations implements FileOperations {
     public static DefaultFileOperations createSimple(FileResolver fileResolver, FileCollectionFactory fileTreeFactory, ServiceRegistry services) {
         Instantiator instantiator = services.get(Instantiator.class);
         PropertyFactory propertyFactory = services.get(PropertyFactory.class);
+        FilePropertyFactory filePropertyFactory = services.get(FilePropertyFactory.class);
         FileSystem fileSystem = services.get(FileSystem.class);
         DirectoryFileTreeFactory directoryFileTreeFactory = services.get(DirectoryFileTreeFactory.class);
         FileHasher fileHasher = services.get(FileHasher.class);
@@ -341,6 +344,7 @@ public class DefaultFileOperations implements FileOperations {
             resourceHandlerFactory,
             fileTreeFactory,
             propertyFactory,
+            filePropertyFactory,
             fileSystem,
             patternSetFactory,
             deleter,

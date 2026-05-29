@@ -285,7 +285,7 @@ class DefaultConfigurationCacheCodecs(
             bind(resolvedComponentResultCodec)
 
             bind(DefaultCopySpecCodec(patternSetFactory, fileCollectionFactory, propertyFactory, instantiator, fileSystemOperations))
-            bind(DestinationRootCopySpecCodec(fileResolver))
+            bind(DestinationRootCopySpecCodec(fileResolver, filePropertyFactory))
 
             bind(TaskReferenceCodec)
             bind(UserCodeSourceCodec)
