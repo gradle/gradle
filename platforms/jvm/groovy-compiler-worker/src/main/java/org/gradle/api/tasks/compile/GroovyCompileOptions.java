@@ -19,6 +19,7 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.model.ReplacedBy;
 import org.gradle.api.provider.SetProperty;
@@ -62,8 +63,6 @@ public abstract class GroovyCompileOptions implements Serializable {
     private List<String> fileExtensions = ImmutableList.of("java", "groovy");
 
     private Map<String, Boolean> optimizationOptions = new HashMap<>();
-
-    private File configurationScript;
 
     private boolean javaAnnotationProcessing;
 
@@ -189,14 +188,23 @@ public abstract class GroovyCompileOptions implements Serializable {
      *
      * @see <a href="https://docs.groovy-lang.org/latest/html/gapi/org/codehaus/groovy/control/CompilerConfiguration.html">CompilerConfiguration</a>
      * @see <a href="https://docs.groovy-lang.org/latest/html/gapi/org/codehaus/groovy/control/customizers/builder/CompilerCustomizationBuilder.html">CompilerCustomizationBuilder</a>
+     *
+     * @since 9.7.0
      */
-    @Nullable
+    @Incubating
     @Optional
     @PathSensitive(PathSensitivity.NONE)
     @InputFile
-    @ToBeReplacedByLazyProperty
+    public abstract RegularFileProperty getConfigurationScriptFile();
+
+    /**
+     * Returns the path to the groovy configuration file.
+     */
+    @ReplacedBy("configurationScriptFile")
+    @Nullable
+    @NotToBeReplacedByLazyProperty(because = "Bridge for backward compatibility, use getConfigurationScriptFile() instead", willBeDeprecated = true)
     public File getConfigurationScript() {
-        return configurationScript;
+        return getConfigurationScriptFile().isPresent() ? getConfigurationScriptFile().get().getAsFile() : null;
     }
 
     /**
@@ -205,7 +213,7 @@ public abstract class GroovyCompileOptions implements Serializable {
      * @see #getConfigurationScript()
      */
     public void setConfigurationScript(@Nullable File configurationFile) {
-        this.configurationScript = configurationFile;
+        getConfigurationScriptFile().set(configurationFile);
     }
 
     /**
