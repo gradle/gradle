@@ -37,6 +37,7 @@ import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.plugins.DefaultObjectConfigurationAction;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.project.AbstractPluginAware;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.problems.Problems;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.provider.SetProperty;
@@ -48,6 +49,7 @@ import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.Actions;
 import org.gradle.internal.buildoption.FeatureFlags;
 import org.gradle.internal.deprecation.DeprecationLogger;
+import org.gradle.internal.file.excludes.GradleDefaultExcludes;
 import org.gradle.internal.management.DependencyResolutionManagementInternal;
 import org.gradle.internal.management.ToolchainManagementInternal;
 import org.gradle.internal.resource.TextUriResourceLoader;
@@ -93,6 +95,8 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
 
     private final ToolchainManagementInternal toolchainManagement;
 
+    private final SetProperty<String> fileSystemDefaultExcludes;
+
     public DefaultSettings(
         ServiceRegistryFactory serviceRegistryFactory,
         GradleInternal gradle,
@@ -114,6 +118,11 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
         this.rootProjectDescriptor = createProjectDescriptor(null, getProjectName(settingsDir), settingsDir);
         this.dependencyResolutionManagement = services.get(DependencyResolutionManagementInternal.class);
         this.toolchainManagement = services.get(ToolchainManagementInternal.class);
+        // Created explicitly from the ObjectFactory rather than as an abstract managed property:
+        // the instantiator used for Settings does not provide a ManagedObjectRegistry, so a
+        // managed SetProperty getter cannot be synthesized here.
+        this.fileSystemDefaultExcludes = services.get(ObjectFactory.class).setProperty(String.class);
+        this.fileSystemDefaultExcludes.convention(GradleDefaultExcludes.DEFAULT_EXCLUDES);
     }
 
     private static String getProjectName(File settingsDir) {
@@ -434,5 +443,7 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
     }
 
     @Override
-    public abstract SetProperty<String> getFileSystemDefaultExcludes();
+    public SetProperty<String> getFileSystemDefaultExcludes() {
+        return fileSystemDefaultExcludes;
+    }
 }

@@ -23,6 +23,7 @@ import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.initialization.ScriptHandlerFactory
 import org.gradle.api.internal.plugins.DefaultPluginManager
+import org.gradle.api.model.ObjectFactory
 import org.gradle.api.problems.ProblemReporter
 import org.gradle.api.problems.Problems
 import org.gradle.configuration.ScriptPluginFactory
@@ -67,6 +68,7 @@ class DefaultSettingsCommonTest extends Specification {
         settingsServices.get(FeatureFlags) >> previews
         settingsServices.get(DefaultPluginManager) >>> [pluginManager, null]
         settingsServices.get(InstantiatorFactory) >> Stub(InstantiatorFactory)
+        settingsServices.get(ObjectFactory) >> TestUtil.objectFactory()
         settingsServices.get(DependencyResolutionManagementInternal) >> Stub(DependencyResolutionManagementInternal)
         settingsServices.get(Problems) >> Stub(Problems) {
             getReporter() >> Stub(ProblemReporter)
