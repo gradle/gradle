@@ -25,6 +25,7 @@ import org.gradle.internal.exceptions.MultiCauseException;
 import org.gradle.util.internal.CollectionUtils;
 import org.jspecify.annotations.Nullable;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.IdentityHashMap;
@@ -86,6 +87,10 @@ public class DefaultFailureFactory implements FailureFactory {
         }
 
         private Failure convertRecursively(Throwable failure) {
+            // InvocationTargetException carries no information of its own beyond the wrapped target.
+            while (failure instanceof InvocationTargetException && failure.getCause() != null && seen.add(failure)) {
+                failure = failure.getCause();
+            }
             if (!seen.add(failure)) {
                 Throwable replacement = new Throwable("[CIRCULAR REFERENCE: " + failure + "]");
                 replacement.setStackTrace(failure.getStackTrace());
