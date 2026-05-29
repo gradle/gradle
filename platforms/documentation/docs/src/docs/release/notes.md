@@ -84,8 +84,8 @@ Gradle provides [rich APIs](userguide/getting_started_dev.html) for build engine
 Gradle's [file operations](userguide/working_with_files.html#sec:file_trees) (copy, archive, file collections) automatically exclude common version-control directories and OS metadata files.
 
 Previously, customizing these patterns required importing and mutating [`org.apache.tools.ant.DirectoryScanner`](https://javadoc.io/static/org.apache.ant/ant/1.10.17/org/apache/tools/ant/DirectoryScanner.html), a process-global, static-mutable API inherited from [Apache Ant](https://ant.apache.org/).
-This coupling has been a long-standing source of bugs: `DirectoryScanner` mutations are invisible to the configuration cache, can break tasks like `bootJar` and the [Distribution plugin](userguide/distribution_plugin.html) when excludes are changed mid-build, and behave inconsistently across composite builds.
-It also blocks Gradle's ongoing effort to remove [Ant](userguide/ant.html) from its runtime classpath.
+This coupling — a process-global, static-mutable API — has been a long-standing source of bugs and complexity: keeping it working with the configuration cache and file-system watching required
+dedicated plumbing.
 
 Gradle now provides a [`fileSystemDefaultExcludes`](javadoc/org/gradle/api/initialization/Settings.html#getFileSystemDefaultExcludes--) property on [`Settings`](javadoc/org/gradle/api/initialization/Settings.html), giving build authors a safe and idiomatic way to configure these patterns:
 
