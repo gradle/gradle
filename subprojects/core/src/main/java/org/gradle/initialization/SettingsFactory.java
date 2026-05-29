@@ -24,7 +24,6 @@ import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.plugins.ExtraPropertiesExtensionInternal;
 import org.gradle.api.internal.properties.GradleProperties;
 import org.gradle.groovy.scripts.ScriptSource;
-import org.gradle.internal.file.excludes.GradleDefaultExcludes;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.CloseableServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
@@ -67,7 +66,6 @@ public class SettingsFactory {
         );
         ((ExtraPropertiesExtensionInternal) settings.getExtensions().getExtraProperties())
             .setGradleProperties(gradleProperties);
-        settings.getFileSystemDefaultExcludes().convention(GradleDefaultExcludes.DEFAULT_EXCLUDES);
         return new SettingsState(settings, serviceRegistryFactory.services);
     }
 
