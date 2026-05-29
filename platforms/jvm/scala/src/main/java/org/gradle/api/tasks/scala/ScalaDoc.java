@@ -16,10 +16,13 @@
 package org.gradle.api.tasks.scala;
 
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.model.ReplacedBy;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
@@ -36,6 +39,7 @@ import org.gradle.api.tasks.SourceTask;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.scala.internal.GenerateScaladoc;
 import org.gradle.api.tasks.scala.internal.ScalaRuntimeHelper;
+import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.jvm.toolchain.JavaLauncher;
 import org.gradle.jvm.toolchain.JavaToolchainService;
@@ -55,8 +59,6 @@ import java.util.List;
 @CacheableTask
 public abstract class ScalaDoc extends SourceTask {
 
-    private File destinationDir;
-
     private FileCollection classpath;
     private FileCollection scalaClasspath;
     private String title;
@@ -68,15 +70,24 @@ public abstract class ScalaDoc extends SourceTask {
 
     /**
      * Returns the directory to generate the API documentation into.
+     *
+     * @since 9.6.0
      */
+    @Incubating
     @OutputDirectory
-    @ToBeReplacedByLazyProperty
+    public abstract DirectoryProperty getDestinationDirectory();
+
+    /**
+     * Returns the directory to generate the API documentation into.
+     */
+    @ReplacedBy("destinationDirectory")
+    @NotToBeReplacedByLazyProperty(because = "Bridge for backward compatibility, use getDestinationDirectory() instead", willBeDeprecated = true)
     public File getDestinationDir() {
-        return destinationDir;
+        return getDestinationDirectory().isPresent() ? getDestinationDirectory().get().getAsFile() : null;
     }
 
     public void setDestinationDir(File destinationDir) {
-        this.destinationDir = destinationDir;
+        getDestinationDirectory().set(destinationDir);
     }
 
     /**
@@ -214,7 +225,7 @@ public abstract class ScalaDoc extends SourceTask {
             File optionsFile = createOptionsFile();
             parameters.getOptionsFile().set(optionsFile);
             parameters.getClasspath().from(getClasspath());
-            parameters.getOutputDirectory().set(getDestinationDir());
+            parameters.getOutputDirectory().set(getDestinationDirectory());
             boolean isScala3 = ScalaRuntimeHelper.findScalaJar(getScalaClasspath(), "library_3") != null;
             parameters.getIsScala3().set(isScala3);
             if (isScala3) {
