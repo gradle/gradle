@@ -39,7 +39,6 @@ dependencies {
     api(libs.jspecify)
 
     implementation(projects.fileCollections)
-    implementation(projects.fileOperations)
     implementation(projects.javaCompilerWorker)
     implementation(projects.javadoc)
     implementation(projects.jvmServices)

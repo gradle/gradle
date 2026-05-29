@@ -29,7 +29,6 @@ import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
 import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.lambdas.SerializableLambdas;
-import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.provider.PropertyFactory;
 import org.gradle.api.internal.tasks.DefaultSourceSetOutput;
 import org.gradle.api.internal.tasks.JvmConstants;
