@@ -45,7 +45,6 @@ import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.cache.internal.BinaryStore;
 import org.gradle.cache.internal.Store;
 import org.gradle.internal.Describables;
-import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.external.model.DefaultImmutableCapability;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
@@ -212,20 +211,21 @@ public class StreamingResolutionResultBuilder implements DependencyGraphVisitor 
         return component.getCandidatesForGraphVariantSelection()
             .getVariantsForAttributeMatching()
             .stream()
-            .flatMap(variant -> variant.prepareForArtifactResolution().getArtifactVariants().stream())
-            .map(artifactSet -> new DefaultResolvedVariantResult(
-                component.getId(),
-                Describables.of(composeVariantDisplayName(artifactSet)),
-                attributeDesugaring.desugar(artifactSet.getAttributes().asImmutable()),
-                capabilitiesFor(artifactSet.getCapabilities(), component),
-                null
-            ))
+            .flatMap(variant -> variant.prepareForArtifactResolution().getArtifactVariants().stream()
+                .map(artifactSet -> new DefaultResolvedVariantResult(
+                    component.getId(),
+                    Describables.of(composeArtifactVariantName(variant, artifactSet)),
+                    attributeDesugaring.desugar(artifactSet.getAttributes().asImmutable()),
+                    capabilitiesFor(artifactSet.getCapabilities(), component),
+                    null
+                )))
             .collect(Collectors.toList());
     }
 
-    private static String composeVariantDisplayName(VariantResolveMetadata artifactSet) {
-        DisplayName owner = artifactSet.getOwnerDisplayName();
-        return owner != null ? owner.getDisplayName() + "-" + artifactSet.getName() : artifactSet.getName();
+    private static String composeArtifactVariantName(VariantGraphResolveState parent, VariantResolveMetadata artifactSet) {
+        return artifactSet.getOwnerDisplayName() == null
+            ? artifactSet.getName()
+            : parent.getMetadata().getName() + "-" + artifactSet.getName();
     }
 
     // TODO: Would probably be better if a node already knew its real capabilities instead of
