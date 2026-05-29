@@ -331,7 +331,7 @@ public abstract class JavaBasePlugin implements Plugin<Project> {
 
     private void configureJavaDoc(final Project project, final JavaPluginExtension javaPluginExtension) {
         project.getTasks().withType(Javadoc.class).configureEach(javadoc -> {
-            javadoc.getConventionMapping().map("destinationDir", () -> javaPluginExtension.getDocsDir().dir("javadoc").get().getAsFile());
+            javadoc.getDestinationDirectory().convention(javaPluginExtension.getDocsDir().dir("javadoc"));
             javadoc.getConventionMapping().map("title", () -> ReportUtilities.getApiDocTitleFor(project));
 
             Provider<JavaToolchainSpec> toolchainOverrideSpec = project.provider(() ->
