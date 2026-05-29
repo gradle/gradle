@@ -45,11 +45,13 @@ import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.cache.internal.BinaryStore;
 import org.gradle.cache.internal.Store;
 import org.gradle.internal.Describables;
+import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.external.model.DefaultImmutableCapability;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
 import org.gradle.internal.component.model.ComponentGraphResolveState;
 import org.gradle.internal.component.model.VariantGraphResolveState;
+import org.gradle.internal.component.model.VariantResolveMetadata;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.internal.resolve.caching.DesugaringAttributeContainerSerializer;
 import org.gradle.internal.serialize.Decoder;
@@ -213,12 +215,17 @@ public class StreamingResolutionResultBuilder implements DependencyGraphVisitor 
             .flatMap(variant -> variant.prepareForArtifactResolution().getArtifactVariants().stream())
             .map(artifactSet -> new DefaultResolvedVariantResult(
                 component.getId(),
-                Describables.of(artifactSet.getName()),
+                Describables.of(composeVariantDisplayName(artifactSet)),
                 attributeDesugaring.desugar(artifactSet.getAttributes().asImmutable()),
                 capabilitiesFor(artifactSet.getCapabilities(), component),
                 null
             ))
             .collect(Collectors.toList());
+    }
+
+    private static String composeVariantDisplayName(VariantResolveMetadata artifactSet) {
+        DisplayName owner = artifactSet.getOwnerDisplayName();
+        return owner != null ? owner.getDisplayName() + "-" + artifactSet.getName() : artifactSet.getName();
     }
 
     // TODO: Would probably be better if a node already knew its real capabilities instead of
