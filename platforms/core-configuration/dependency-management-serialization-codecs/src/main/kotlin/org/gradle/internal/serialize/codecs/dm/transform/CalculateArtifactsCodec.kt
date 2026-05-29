@@ -56,8 +56,18 @@ class CalculateArtifactsCodec(
         write(value.targetVariantAttributes)
         writeCollection(value.capabilities.asSet())
         val files = mutableListOf<Artifact>()
-        value.delegate.visitExternalArtifacts { files.add(Artifact(file, artifactName.classifier)) } // TODO: Serialize the whole ResolvableArtifact, not just the files.
+        // Capture rather than rethrow input-resolution failures so the cache store does not abort.
+        // The failure is replayed at visit time, when the existing failure-handling path takes effect.
+        // Note: if the delegate is a composite and a failing sub-set is visited before a good one,
+        // the good sub-set's artifacts are lost — same iteration-order behavior as the pre-catch code.
+        val failure: Throwable? = try {
+            value.delegate.visitExternalArtifacts { files.add(Artifact(file, artifactName.classifier)) } // TODO: Serialize the whole ResolvableArtifact, not just the files.
+            null
+        } catch (e: RuntimeException) {
+            e
+        }
         write(files)
+        write(failure)
         val steps = unpackTransformSteps(value.steps)
         writeCollection(steps)
     }
@@ -68,11 +78,18 @@ class CalculateArtifactsCodec(
         val targetAttributes = readNonNull<ImmutableAttributes>()
         val capabilities: List<Capability> = readList().uncheckedCast()
         val files = readNonNull<List<Artifact>>()
+        val failure = read() as Throwable?
         val steps: List<TransformStepSpec> = readList().uncheckedCast()
+        val fixed: ResolvedArtifactSet = FixedFilesArtifactSet(ownerId, sourceVariantId, files, calculatedValueContainerFactory)
+        val delegate: ResolvedArtifactSet = when {
+            failure == null -> fixed
+            files.isEmpty() -> BrokenArtifactSet(failure)
+            else -> CompositeArtifactSet(listOf(fixed, BrokenArtifactSet(failure)))
+        }
         return AbstractTransformedArtifactSet.CalculateArtifacts(
             ownerId,
             sourceVariantId,
-            FixedFilesArtifactSet(ownerId, sourceVariantId, files, calculatedValueContainerFactory),
+            delegate,
             targetAttributes,
             ImmutableCapabilities.of(capabilities),
             ImmutableList.copyOf(steps.map { BoundTransformStep(it.transformStep, it.recreateDependencies()) })
@@ -122,6 +139,41 @@ class CalculateArtifactsCodec(
                 val artifactId = ComponentFileArtifactIdentifier(ownerId, file.file.name)
                 PreResolvedResolvableArtifact(null, DefaultIvyArtifactName.forFile(file.file, file.classifier), artifactId, file.file, TaskDependencyContainer.EMPTY, calculatedValueContainerFactory)
             }
+        }
+    }
+
+    private
+    class BrokenArtifactSet(private val failure: Throwable) : ResolvedArtifactSet, ResolvedArtifactSet.Artifacts {
+        override fun visitDependencies(context: TaskDependencyResolveContext) = context.visitFailure(failure)
+
+        override fun visit(visitor: ResolvedArtifactSet.Visitor) = visitor.visitArtifacts(this)
+
+        override fun startFinalization(actions: BuildOperationQueue<RunnableBuildOperation>, requireFiles: Boolean) = Unit
+
+        override fun visit(visitor: ArtifactVisitor) = visitor.visitFailure(failure)
+
+        override fun visitTransformSources(visitor: ResolvedArtifactSet.TransformSourceVisitor): Nothing = throw failure
+
+        // Throws so a re-encoding round-trip is recaught by CalculateArtifactsCodec.encode.
+        override fun visitExternalArtifacts(visitor: Action<ResolvableArtifact>): Nothing = throw failure
+    }
+
+    private
+    class CompositeArtifactSet(private val sets: List<ResolvedArtifactSet>) : ResolvedArtifactSet {
+        override fun visitDependencies(context: TaskDependencyResolveContext) {
+            for (set in sets) set.visitDependencies(context)
+        }
+
+        override fun visit(visitor: ResolvedArtifactSet.Visitor) {
+            for (set in sets) set.visit(visitor)
+        }
+
+        override fun visitTransformSources(visitor: ResolvedArtifactSet.TransformSourceVisitor) {
+            for (set in sets) set.visitTransformSources(visitor)
+        }
+
+        override fun visitExternalArtifacts(visitor: Action<ResolvableArtifact>) {
+            for (set in sets) set.visitExternalArtifacts(visitor)
         }
     }
 }
