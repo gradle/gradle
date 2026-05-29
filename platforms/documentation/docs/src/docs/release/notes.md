@@ -79,9 +79,9 @@ Gradle provides an intuitive [command-line interface](userguide/command_line_int
 ### Build authoring improvements
 Gradle provides [rich APIs](userguide/getting_started_dev.html) for build engineers and plugin authors, enabling the creation of custom, reusable build logic and better maintainability.
 
-#### Kotlin DSL: pass `Iterable<Project>` to a configuration
+#### Kotlin DSL support for adding multiple project dependencies
 
-The Kotlin DSL `dependencies { ... }` block now accepts an `Iterable<Project>` (e.g. `allprojects`, `subprojects`) and adds one project dependency per element, mirroring the existing Groovy DSL convenience. Previously the same call would treat the iterable as a single dependency notation and fail.
+The [Kotlin DSL](userguide/kotlin_dsl.html) `dependencies { ... }` block now accepts an [`Iterable<Project>`](javadoc/org/gradle/api/Project.html) (e.g. `allprojects`, `subprojects`) and adds one project dependency per element, mirroring the existing Groovy DSL convenience:
 
 ```kotlin
 configurations.create("integrationApi")
@@ -91,7 +91,9 @@ dependencies {
 }
 ```
 
-The new overloads internally use the recommended `DependencyHandler.project(String)` API, so they remain valid after the deprecation of `Project`-as-dependency-notation is fully enforced.
+Previously the same call would treat the iterable as a single dependency notation and fail.
+
+See the [Configurations and dependencies](userguide/migrating_from_groovy_to_kotlin_dsl.html#configurations-and-dependencies) section in the Gradle User Manual for more details.
 
 ### Platform and toolchain management
 Gradle provides comprehensive support for [Native development](userguide/building_cpp_projects.html) and [JVM languages](userguide/building_java_projects.html), featuring automated [Toolchains](userguide/toolchains.html) for seamless JDK management.
