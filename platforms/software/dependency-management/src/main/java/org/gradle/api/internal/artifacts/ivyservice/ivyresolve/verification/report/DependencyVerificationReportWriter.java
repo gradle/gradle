@@ -20,6 +20,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.Repo
 import org.gradle.api.internal.artifacts.verification.verifier.ChecksumVerificationFailure;
 import org.gradle.api.internal.artifacts.verification.verifier.DeletedArtifact;
 import org.gradle.api.internal.artifacts.verification.verifier.InvalidSignature;
+import org.gradle.api.internal.artifacts.verification.verifier.InvalidSignatureFile;
 import org.gradle.api.internal.artifacts.verification.verifier.MissingChecksums;
 import org.gradle.api.internal.artifacts.verification.verifier.MissingSignature;
 import org.gradle.api.internal.artifacts.verification.verifier.OnlyIgnoredKeys;
@@ -190,6 +191,9 @@ public class DependencyVerificationReportWriter {
                 state.hasUntrustedKeys();
             }
         } else if (failure instanceof InvalidSignature) {
+            state.failedSignatures();
+            state.maybeCompromised();
+        } else if (failure instanceof InvalidSignatureFile) {
             state.failedSignatures();
             state.maybeCompromised();
         } else if (failure instanceof DeletedArtifact || failure instanceof ChecksumVerificationFailure || failure instanceof OnlyIgnoredKeys || failure instanceof MissingSignature) {

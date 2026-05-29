@@ -30,7 +30,6 @@ import org.gradle.api.internal.DefaultClassPathProvider;
 import org.gradle.api.internal.DefaultClassPathRegistry;
 import org.gradle.api.internal.DependencyClassPathProvider;
 import org.gradle.api.internal.DocumentationRegistry;
-
 import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.classpath.ModuleRegistry;
@@ -149,6 +148,7 @@ import org.gradle.execution.taskgraph.DefaultTaskExecutionGraph;
 import org.gradle.execution.taskgraph.TaskExecutionGraphExecutionListener;
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
 import org.gradle.features.internal.binding.ProjectFeatureDeclarations;
+import org.gradle.features.internal.initialization.SharedModelDefaultsSettingsProcessor;
 import org.gradle.groovy.scripts.DefaultScriptCompilerFactory;
 import org.gradle.groovy.scripts.ScriptCompilerFactory;
 import org.gradle.groovy.scripts.internal.BuildOperationBackedScriptCompilationHandler;
@@ -176,7 +176,6 @@ import org.gradle.initialization.SettingsEvaluatedCallbackFiringSettingsProcesso
 import org.gradle.initialization.SettingsFactory;
 import org.gradle.initialization.SettingsPreparer;
 import org.gradle.initialization.SettingsProcessor;
-import org.gradle.features.internal.initialization.SharedModelDefaultsSettingsProcessor;
 import org.gradle.initialization.TaskExecutionPreparer;
 import org.gradle.initialization.buildsrc.BuildSourceBuilder;
 import org.gradle.initialization.buildsrc.BuildSrcBuildListenerFactory;
@@ -211,6 +210,7 @@ import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.composite.BuildIncludeListener;
 import org.gradle.internal.composite.DefaultBuildIncluder;
 import org.gradle.internal.concurrent.ExecutorFactory;
+import org.gradle.internal.configuration.problems.IsolatedProjectsProblemsReporter;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.event.ScopedListenerManager;
 import org.gradle.internal.execution.BuildOutputCleanupRegistry;
@@ -226,7 +226,6 @@ import org.gradle.internal.instantiation.managed.ManagedObjectRegistry;
 import org.gradle.internal.instrumentation.reporting.PropertyUpgradeReportConfig;
 import org.gradle.internal.invocation.DefaultBuildInvocationDetails;
 import org.gradle.internal.isolation.IsolatableFactory;
-
 import org.gradle.internal.logging.LoggingManagerFactory;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.management.ToolchainManagementInternal;
@@ -799,7 +798,9 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
         ListenerManager listenerManager,
         IsolatableFactory isolatableFactory,
         SharedResourceLeaseRegistry sharedResourceLeaseRegistry,
-        FeatureFlags featureFlags
+        FeatureFlags featureFlags,
+        IsolatedProjectsProblemsReporter ipProblems,
+        BuildModelParameters buildModelParameters
     ) {
         // TODO:configuration-cache remove this hack
         // HACK: force the instantiation of FlowScope so its listeners are registered before DefaultBuildServicesRegistry's
@@ -817,7 +818,9 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
             sharedResourceLeaseRegistry,
             featureFlags.isEnabled(FeaturePreviews.Feature.INTERNAL_BUILD_SERVICE_USAGE)
                 ? new BuildServiceProviderNagger(services.get(WorkExecutionTracker.class))
-                : BuildServiceProvider.Listener.EMPTY
+                : BuildServiceProvider.Listener.EMPTY,
+            ipProblems,
+            buildModelParameters
         );
     }
 
@@ -866,8 +869,8 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
     }
 
     @Provides
-    BuildTaskScheduler createBuildTaskScheduler(CommandLineTaskParser commandLineTaskParser, ProjectConfigurer projectConfigurer, BuildTaskSelector.BuildSpecificSelector selector, List<BuiltInCommand> builtInCommands, ProblemsInternal problemsService) {
-        return new DefaultTasksBuildTaskScheduler(projectConfigurer, builtInCommands, new TaskNameResolvingBuildTaskScheduler(commandLineTaskParser, selector, builtInCommands, problemsService));
+    BuildTaskScheduler createBuildTaskScheduler(CommandLineTaskParser commandLineTaskParser, BuildTaskSelector.BuildSpecificSelector selector, List<BuiltInCommand> builtInCommands, ProblemsInternal problemsService) {
+        return new DefaultTasksBuildTaskScheduler(builtInCommands, new TaskNameResolvingBuildTaskScheduler(commandLineTaskParser, selector, builtInCommands, problemsService));
     }
 
     @Provides

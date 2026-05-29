@@ -120,6 +120,20 @@ The application plugin can generate Unix (suitable for Linux, macOS etc.) and Wi
 The start scripts launch a JVM with the specified settings defined as part of the original build and runtime environment (e.g. `JAVA_OPTS` env var).
 The default script templates are based on the same scripts used to launch Gradle itself, that ship as part of a Gradle distribution.
 
+The generated start scripts also support the `<APPLICATION_NAME>_OPTS` environment variable for specifying additional JVM arguments at runtime.
+
+The application name is converted to uppercase with non-alphanumeric characters replaced by underscores.
+
+For example, an application named `my-app` or `myApp` both use `MY_APP_OPTS`:
+
+[source,bash]
+----
+export MY_APP_OPTS="-Xmx512m -Dmy.property=value"
+./bin/my-app
+----
+
+This environment variable is applied in addition to any JVM arguments configured via `applicationDefaultJvmArgs`.
+
 The start scripts are completely customizable.
 Please refer to the documentation of link:{groovyDslPath}/org.gradle.jvm.application.tasks.CreateStartScripts.html[CreateStartScripts] for more details and customization examples.
 

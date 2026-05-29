@@ -36,7 +36,6 @@ dependencies {
     implementation(projects.modelCore)
     implementation(projects.testingNative)
     implementation(projects.loggingApi)
-    implementation(projects.serviceLookup)
     implementation(projects.functional)
     implementation(projects.platformBase)
     implementation(libs.commonsLang)
@@ -55,6 +54,9 @@ dependencies {
     integTestImplementation(libs.jgit)
 
     testFixturesApi(testFixtures(projects.ide))
+    testFixturesApi(testFixtures(projects.platformNative))
+    testFixturesImplementation(projects.internalIntegTesting)
+    testFixturesImplementation(projects.native)
     testFixturesImplementation(libs.plist)
     testFixturesImplementation(libs.guava)
     testFixturesImplementation(libs.groovyXml)

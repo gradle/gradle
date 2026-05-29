@@ -16,14 +16,17 @@ window.onload = function() {
     }
 
     var clipboard = new ClipboardJS('.clipboard', {
-       target: function(b) {
+       text: function(b) {
             var p = b.parentNode;
+            var sourceEl;
             if (p.className.includes("highlight")) {
                 var elems = p.getElementsByTagName("code");
-                if (elems.length > 0)
-                    return elems[0];
+                sourceEl = elems.length > 0 ? elems[0] : p.childNodes[0];
+            } else {
+                sourceEl = p.childNodes[0];
             }
-            return p.childNodes[0];
+            var text = sourceEl.textContent;
+            return text.replace(/^(\$ )/gm, '');
         }
     });
 

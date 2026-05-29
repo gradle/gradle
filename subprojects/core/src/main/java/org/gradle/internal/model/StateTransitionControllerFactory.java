@@ -47,6 +47,23 @@ public class StateTransitionControllerFactory {
         if (buildOperationsParameters.emitLockingOperations()) {
             synchronizer = new WaitBuildOperationFiringSynchronizer(displayName, synchronizer, buildOperationRunner);
         }
+        return newController(displayName, initialState, synchronizer);
+    }
+
+    /**
+     * Creates a new controller with the given synchronizer.
+     *
+     * <p>
+     * The synchronizer is not wrapped to report locking operations, the caller must do that if needed.
+     * </p>
+     *
+     * @param displayName the display name for the state
+     * @param initialState the initial state of the controller
+     * @param synchronizer the synchronizer to use for state transitions
+     * @return a new controller instance
+     * @param <T> the type of state the controller manages
+     */
+    public <T extends StateTransitionController.State> StateTransitionController<T> newController(DisplayName displayName, T initialState, Synchronizer synchronizer) {
         return new StateTransitionController<>(displayName, initialState, synchronizer);
     }
 }

@@ -21,10 +21,12 @@ import org.gradle.performance.AndroidSyncPerformanceTestFixture
 import org.gradle.performance.annotations.RunFor
 import org.gradle.performance.annotations.Scenario
 import org.gradle.profiler.mutations.ApplyAbiChangeToSourceFileMutator
+import spock.lang.Ignore
 
 import static org.gradle.performance.annotations.ScenarioType.PER_DAY
 import static org.gradle.performance.results.OperatingSystem.LINUX
 
+@Ignore("https://github.com/gradle/gradle-private/issues/5239")
 class IsolatedProjectsAndroidSyncPerformanceRegressionTest extends AbstractCrossVersionPerformanceTest {
 
     private static String warm = "warm"

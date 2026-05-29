@@ -51,6 +51,7 @@ class EclipseJavaModulesIntegrationTest extends AbstractEclipseIntegrationSpec {
 
     def "dependencies are not marked as modules if the project itself is not modular"() {
         when:
+        expectTaskDeprecations("eclipse", "eclipseClasspath", "eclipseJdt", "eclipseProject")
         succeeds "eclipse"
 
         then:
@@ -74,6 +75,7 @@ class EclipseJavaModulesIntegrationTest extends AbstractEclipseIntegrationSpec {
         """
 
         when:
+        expectTaskDeprecations("eclipse", "eclipseClasspath", "eclipseJdt", "eclipseProject")
         succeeds "eclipse"
 
         then:

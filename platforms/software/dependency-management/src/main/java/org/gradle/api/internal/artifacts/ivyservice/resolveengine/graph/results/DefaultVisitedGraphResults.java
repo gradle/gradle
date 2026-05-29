@@ -21,9 +21,12 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.GraphSt
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ResolvedDependencyGraph;
 import org.gradle.api.internal.artifacts.result.ResolvedGraphResult;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
-import org.gradle.internal.lazy.Lazy;
+import org.jspecify.annotations.Nullable;
 
+import java.lang.ref.SoftReference;
 import java.util.Set;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
@@ -36,6 +39,13 @@ public class DefaultVisitedGraphResults implements VisitedGraphResults {
     private final Supplier<GraphStructure> graphStructureSource;
     private final Set<UnresolvedDependency> unresolvedDependencies;
 
+    /**
+     * ResolvedGraphResult is a wrapper over the underlying GraphStructure and provides
+     * no additional context. Only hold a soft reference to it to avoid retained memory
+     * if no other references to the wrapper graph exist.
+     */
+    private final Lock lock = new ReentrantLock();
+    private @Nullable SoftReference<ResolvedGraphResult> resolvedGraphResult = null;
     private final Supplier<ResolvedGraphResult> resolvedGraphResultSource;
 
     public DefaultVisitedGraphResults(
@@ -46,12 +56,26 @@ public class DefaultVisitedGraphResults implements VisitedGraphResults {
         this.graphStructureSource = resolvedDependencyGraph.graphSource();
         this.unresolvedDependencies = unresolvedDependencies;
 
-        this.resolvedGraphResultSource = Lazy.unsafe().of(() ->
-            new ResolvedGraphResult(
-                graphStructureSource.get(),
-                resolvedDependencyGraph.availableVariantsByComponent()
-            )
-        );
+        this.resolvedGraphResultSource = () -> {
+            lock.lock();
+            try {
+                if (resolvedGraphResult != null) {
+                    ResolvedGraphResult value = resolvedGraphResult.get();
+                    if (value != null) {
+                        return value;
+                    }
+                }
+
+                ResolvedGraphResult value = new ResolvedGraphResult(
+                    graphStructureSource.get(),
+                    resolvedDependencyGraph.availableVariantsByComponent()
+                );
+                this.resolvedGraphResult = new SoftReference<>(value);
+                return value;
+            } finally {
+                lock.unlock();
+            }
+        };
     }
 
     @Override

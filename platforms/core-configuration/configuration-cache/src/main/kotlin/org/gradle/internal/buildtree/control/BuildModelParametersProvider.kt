@@ -198,19 +198,23 @@ object BuildModelParametersProvider {
         }
         validateIsolatedProjectsCachingOption(options)
 
-        val configureOnDemand = isolatedProjectsConfigureOnDemand.forInvocation(requirements, options)
-        val parallelIsolatedProjects = isolatedProjectsParallel.forInvocation(requirements, options)
+        val diagnostics = startParameter.isIsolatedProjectsDiagnostics
+        // In Diagnostics mode, configure all projects to surface all possible violations.
+        val configureOnDemand = !diagnostics && isolatedProjectsConfigureOnDemand.forInvocation(requirements, options)
+        // In Diagnostics mode, run sequentially so all violations can be collected deterministically.
+        val parallelIsolatedProjects = !diagnostics && isolatedProjectsParallel.forInvocation(requirements, options)
         val parallelConfigurationCacheStore = parallelIsolatedProjects && options[configurationCacheParallelStore]
         val invalidateCoupledProjects = options[invalidateCoupledProjects]
 
         return if (requirements.isCreatesModel) {
             GradleIsolatedProjectsMode(
                 modelBuilding = true,
+                isolatedProjectsDiagnostics = diagnostics,
                 parallelProjectExecution = parallelIsolatedProjects,
                 configureOnDemand = configureOnDemand,
                 configurationCacheParallelStore = parallelConfigurationCacheStore,
                 parallelProjectConfiguration = parallelIsolatedProjects,
-                cachingModelBuilding = options[isolatedProjectsCaching].buildingModels,
+                cachingModelBuilding = !diagnostics && options[isolatedProjectsCaching].buildingModels,
                 parallelModelBuilding = parallelIsolatedProjects,
                 invalidateCoupledProjects = invalidateCoupledProjects,
                 modelAsProjectDependency = options[modelProjectDependencies],
@@ -219,6 +223,7 @@ object BuildModelParametersProvider {
         } else {
             GradleIsolatedProjectsMode(
                 modelBuilding = false,
+                isolatedProjectsDiagnostics = diagnostics,
                 parallelProjectExecution = parallelIsolatedProjects,
                 configureOnDemand = configureOnDemand,
                 configurationCacheParallelStore = parallelConfigurationCacheStore,

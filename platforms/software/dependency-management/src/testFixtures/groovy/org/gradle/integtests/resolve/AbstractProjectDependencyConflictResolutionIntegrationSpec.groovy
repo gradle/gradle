@@ -56,7 +56,8 @@ abstract class AbstractProjectDependencyConflictResolutionIntegrationSpec extend
      */
     abstract boolean isAutoDependencySubstitution();
 
-    def "project (#projectDep) vs external (#transitiveDep) resolves to (#winner), when preferProjectModules=#preferProjectModules and depSubstitution=#depSubstitution"() {
+    def "project (#projectDep) vs external resolves to (#winner), when preferProjectModules=#preferProjectModules and depSubstitution=#depSubstitution"() {
+        def transitiveDep = "2.0"
         given:
         //required for composite builds
         buildTestFixture.withBuildInSubDir()
@@ -70,7 +71,11 @@ abstract class AbstractProjectDependencyConflictResolutionIntegrationSpec extend
 
         //setup the project structure
         settingsFile.parentFile.createDirs("ModuleC", "ProjectA")
-        settingsFile << "$includeMechanism 'ModuleC'\n$includeMechanism 'ProjectA'\n"
+        settingsFile << """
+rootProject.name = 'root'
+$includeMechanism 'ModuleC'
+$includeMechanism 'ProjectA'
+"""
 
         when:
 
@@ -84,13 +89,13 @@ abstract class AbstractProjectDependencyConflictResolutionIntegrationSpec extend
             depSubstitutionOption = depSubstitution;
         } else {
             winner = 'projectId("ModuleC")'
+            winnerMethod = 'projectId' // keep in sync with winner override above
         }
 
         buildFile << """
             task check {
                 dependsOn ${dependsOnMechanism('ProjectA', 'checkModuleC_conf')}
             }
-            ${checkHelper(buildId, projectPath)}
 """
         moduleDefinition('ModuleC', """
             group = "myorg"
@@ -101,6 +106,17 @@ abstract class AbstractProjectDependencyConflictResolutionIntegrationSpec extend
 """)
 
         moduleDefinition('ProjectA', """
+            def moduleId(String group, String name, String version) {
+                def mid = org.gradle.api.internal.artifacts.DefaultModuleIdentifier.newId(group, name)
+                return org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier.newId(mid, version)
+            }
+
+            def projectId(String projectName) {
+                def buildId = $buildId
+                def projectPath = $projectPath
+                return project.services.get(${BuildStateRegistry.name}).getBuild(buildId).projects.getProject(${Path.name}.path(projectPath)).componentIdentifier
+            }
+
             repositories { maven { url = "${mavenRepo.uri}" } }
 
             configurations { conf }
@@ -122,22 +138,22 @@ abstract class AbstractProjectDependencyConflictResolutionIntegrationSpec extend
         succeeds('check')
 
         where:
-        projectDep | transitiveDep | winner                                | preferProjectModules | depSubstitution
-//        "1.9"      | "2.0"         | 'moduleId("myorg", "ModuleC", "2.0")' | false                | ''
-//        "2.0"      | "2.0"         | 'projectId("ModuleC")'                | false                | ''
-        "2.1"      | "2.0"         | 'projectId("ModuleC")'                | false                | ''
-        "1.9"      | "2.0"         | 'projectId("ModuleC")'                | true                 | ''
-        "2.0"      | "2.0"         | 'projectId("ModuleC")'                | true                 | ''
-        "2.1"      | "2.0"         | 'projectId("ModuleC")'                | true                 | ''
-        "1.9"      | "2.0"         | 'moduleId("myorg", "ModuleC", "2.0")' | false                | "substitute project(':ModuleC') using module('myorg:ModuleC:1.9')"
-        "2.0"      | "2.0"         | 'moduleId("myorg", "ModuleC", "2.0")' | false                | "substitute project(':ModuleC') using module('myorg:ModuleC:2.0')"
-        "2.1"      | "2.0"         | 'moduleId("myorg", "ModuleC", "2.1")' | false                | "substitute project(':ModuleC') using module('myorg:ModuleC:2.1')"
-        "1.9"      | "2.0"         | 'moduleId("myorg", "ModuleC", "2.0")' | true                 | "substitute project(':ModuleC') using module('myorg:ModuleC:1.9')"
-        "2.0"      | "2.0"         | 'moduleId("myorg", "ModuleC", "2.0")' | true                 | "substitute project(':ModuleC') using module('myorg:ModuleC:2.0')"
-        "2.1"      | "2.0"         | 'moduleId("myorg", "ModuleC", "2.1")' | true                 | "substitute project(':ModuleC') using module('myorg:ModuleC:2.1')"
-        "1.9"      | "2.0"         | 'projectId("ModuleC")'                | false                | "substitute module('myorg:ModuleC') using project(':ModuleC')"
-        "2.0"      | "2.0"         | 'projectId("ModuleC")'                | false                | "substitute module('myorg:ModuleC') using project(':ModuleC')"
-        "2.1"      | "2.0"         | 'projectId("ModuleC")'                | false                | "substitute module('myorg:ModuleC') using project(':ModuleC')"
+        projectDep  | winner                                | preferProjectModules | depSubstitution                                                    | winnerMethod
+//        "1.9"       | 'moduleId("myorg", "ModuleC", "2.0")' | false                | ''                                                               | 'moduleId'
+//        "2.0"       | 'projectId("ModuleC")'                | false                | ''                                                               | 'projectId'
+        "2.1"       | 'projectId("ModuleC")'                | false                | ''                                                                 | 'projectId'
+        "1.9"       | 'projectId("ModuleC")'                | true                 | ''                                                                 | 'projectId'
+        "2.0"       | 'projectId("ModuleC")'                | true                 | ''                                                                 | 'projectId'
+        "2.1"       | 'projectId("ModuleC")'                | true                 | ''                                                                 | 'projectId'
+        "1.9"       | 'moduleId("myorg", "ModuleC", "2.0")' | false                | "substitute project(':ModuleC') using module('myorg:ModuleC:1.9')" | 'moduleId'
+        "2.0"       | 'moduleId("myorg", "ModuleC", "2.0")' | false                | "substitute project(':ModuleC') using module('myorg:ModuleC:2.0')" | 'moduleId'
+        "2.1"       | 'moduleId("myorg", "ModuleC", "2.1")' | false                | "substitute project(':ModuleC') using module('myorg:ModuleC:2.1')" | 'moduleId'
+        "1.9"       | 'moduleId("myorg", "ModuleC", "2.0")' | true                 | "substitute project(':ModuleC') using module('myorg:ModuleC:1.9')" | 'moduleId'
+        "2.0"       | 'moduleId("myorg", "ModuleC", "2.0")' | true                 | "substitute project(':ModuleC') using module('myorg:ModuleC:2.0')" | 'moduleId'
+        "2.1"       | 'moduleId("myorg", "ModuleC", "2.1")' | true                 | "substitute project(':ModuleC') using module('myorg:ModuleC:2.1')" | 'moduleId'
+        "1.9"       | 'projectId("ModuleC")'                | false                | "substitute module('myorg:ModuleC') using project(':ModuleC')"     | 'projectId'
+        "2.0"       | 'projectId("ModuleC")'                | false                | "substitute module('myorg:ModuleC') using project(':ModuleC')"     | 'projectId'
+        "2.1"       | 'projectId("ModuleC")'                | false                | "substitute module('myorg:ModuleC') using project(':ModuleC')"     | 'projectId'
     }
 
     static String check(String moduleName, String declaredDependencyId, String confName, String winner) { """
@@ -154,20 +170,6 @@ abstract class AbstractProjectDependencyConflictResolutionIntegrationSpec extend
 
                 assert projectDependency && projectDependency.selected.id == expected
             }
-        }
-"""
-    }
-
-    static String checkHelper(String buildId, String projectPath) { """
-        def moduleId(String group, String name, String version) {
-            def mid = org.gradle.api.internal.artifacts.DefaultModuleIdentifier.newId(group, name)
-            return org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier.newId(mid, version)
-        }
-
-        def projectId(String projectName) {
-            def buildId = $buildId
-            def projectPath = $projectPath
-            return project.services.get(${BuildStateRegistry.name}).getBuild(buildId).projects.getProject(${Path.name}.path(projectPath)).componentIdentifier
         }
 """
     }

@@ -42,6 +42,7 @@ import org.gradle.api.tasks.util.internal.PatternSets
 import org.gradle.configuration.internal.ListenerBuildOperationDecorator
 import org.gradle.internal.Describables
 import org.gradle.internal.buildoption.DefaultInternalOptions
+import org.gradle.internal.buildoption.FeatureFlags
 import org.gradle.internal.buildoption.InternalOptions
 import org.gradle.internal.configuration.problems.IsolatedProjectsProblemsReporter
 import org.gradle.internal.configuration.problems.NoOpIsolatedProjectsProblemsReporter
@@ -272,6 +273,7 @@ class DefaultProjectSpec extends Specification {
         serviceRegistry.add(ProjectFeatureDeclarations, Stub(ProjectFeatureDeclarations))
         serviceRegistry.add(ProjectFeatureApplicator, Stub(ProjectFeatureApplicator))
         serviceRegistry.add(InternalOptions, new DefaultInternalOptions([:]))
+        serviceRegistry.add(FeatureFlags, Stub(FeatureFlags))
 
         def antBuilder = Mock(AntBuilder)
         serviceRegistry.add(AntBuilderFactory, Mock(AntBuilderFactory) {

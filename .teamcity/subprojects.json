@@ -399,13 +399,6 @@
     "crossVersionTests": false
   },
   {
-    "name": "daemon-main",
-    "path": "platforms/core-runtime/daemon-main",
-    "unitTests": false,
-    "functionalTests": false,
-    "crossVersionTests": false
-  },
-  {
     "name": "daemon-messaging",
     "path": "platforms/core-runtime/daemon-messaging",
     "unitTests": true,
@@ -1246,6 +1239,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "plugins-model-native",
+    "path": "platforms/native/plugins-model-native",
+    "unitTests": true,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
     "name": "plugins-test-report-aggregation",
     "path": "platforms/jvm/plugins-test-report-aggregation",
     "unitTests": false,
@@ -1570,7 +1570,7 @@
   {
     "name": "test-suites-base",
     "path": "platforms/software/test-suites-base",
-    "unitTests": true,
+    "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false
   },

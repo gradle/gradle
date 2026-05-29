@@ -41,6 +41,11 @@ class EclipseIntegrationTest extends AbstractEclipseIntegrationTest {
     @Test
     void canCreateAndDeleteMetaData() {
         when:
+        expectTaskDeprecations("eclipse", "eclipseClasspath", "eclipseJdt", "eclipseProject", "eclipseWtp", "eclipseWtpComponent", "eclipseWtpFacet")
+        expectTaskTypeDeprecations(
+                ("org.gradle.plugins.ide.eclipse.model.EclipseJdt.javaRuntimeName"): 1,
+                ("org.gradle.plugins.ide.eclipse.model.EclipseWtp"): 1,
+        )
         executer.withTasks("eclipse").run()
 
         assertHasExpectedContents(getClasspathFile(project:"api"), "apiClasspath.xml")
@@ -83,6 +88,11 @@ class EclipseIntegrationTest extends AbstractEclipseIntegrationTest {
         assertHasExpectedContents(getFacetFile(project:"webservice"), "webserviceWtpFacet.xml")
         assertHasExpectedProperties(getJdtPropertiesFile(project:"webservice"), "webserviceJdt.properties")
 
+        expectTaskDeprecations("cleanEclipse", "cleanEclipseClasspath", "cleanEclipseJdt", "cleanEclipseProject", "cleanEclipseWtp", "cleanEclipseWtpComponent", "cleanEclipseWtpFacet")
+        expectTaskTypeDeprecations(
+                ("org.gradle.plugins.ide.eclipse.model.EclipseJdt.javaRuntimeName"): 1,
+                ("org.gradle.plugins.ide.eclipse.model.EclipseWtp"): 1,
+        )
         executer.withTasks("cleanEclipse").run()
     }
 
@@ -102,18 +112,19 @@ class EclipseIntegrationTest extends AbstractEclipseIntegrationTest {
 
         expectedOrder.each { testFile(it).mkdirs() }
 
+        expectTaskDeprecations("eclipse", "eclipseClasspath", "eclipseJdt", "eclipseProject")
         runEclipseTask """
-apply plugin: "java"
-apply plugin: "groovy"
-apply plugin: "eclipse"
+            apply plugin: "java"
+            apply plugin: "groovy"
+            apply plugin: "eclipse"
 
-sourceSets {
-    integTest {
-        resources { srcDir "src/integTest/resources" }
-        java { srcDir "src/integTest/java" }
-        groovy { srcDir "src/integTest/groovy" }
-    }
-}
+            sourceSets {
+                integTest {
+                    resources { srcDir "src/integTest/resources" }
+                    java { srcDir "src/integTest/java" }
+                    groovy { srcDir "src/integTest/groovy" }
+                }
+            }
         """
 
         def classpath = parseClasspathFile()
@@ -123,6 +134,7 @@ sourceSets {
 
     @Test
     void outputDirDefaultsToEclipseDefault() {
+        expectTaskDeprecations("eclipse", "eclipseClasspath", "eclipseJdt", "eclipseProject")
         runEclipseTask("apply plugin: 'java'; apply plugin: 'eclipse'")
 
         def classpath = parseClasspathFile()
@@ -139,17 +151,18 @@ sourceSets {
         def artifact1 = mavenRepo.module("myGroup", "myArtifact1", "1.0").dependsOn("myGroup", "myArtifact2", "1.0").publish().artifactFile
         def artifact2 = mavenRepo.module("myGroup", "myArtifact2", "1.0").dependsOn("myGroup", "myArtifact1", "1.0").publish().artifactFile
 
+        expectTaskDeprecations("eclipse", "eclipseClasspath", "eclipseJdt", "eclipseProject")
         runEclipseTask """
-apply plugin: "java"
-apply plugin: "eclipse"
+            apply plugin: "java"
+            apply plugin: "eclipse"
 
-repositories {
-    maven { url = "${mavenRepo.uri}" }
-}
+            repositories {
+                maven { url = "${mavenRepo.uri}" }
+            }
 
-dependencies {
-    implementation "myGroup:myArtifact1:1.0"
-}
+            dependencies {
+                implementation "myGroup:myArtifact1:1.0"
+            }
         """
 
         libEntriesInClasspathFileHaveFilenames(artifact1.name, artifact2.name)
@@ -158,44 +171,53 @@ dependencies {
     @Test
     void canConfigureTargetRuntimeName() {
 
+        expectTaskDeprecations("eclipse", "eclipseClasspath", "eclipseJdt", "eclipseProject")
+        expectTaskTypeDeprecations(
+                ("org.gradle.plugins.ide.eclipse.model.EclipseJdt.javaRuntimeName"): 1,
+        )
         runEclipseTask """
-apply plugin: "java"
-apply plugin: "eclipse"
+            apply plugin: "java"
+            apply plugin: "eclipse"
 
-repositories {
-    maven { url = "${mavenRepo.uri}" }
-}
+            repositories {
+                maven { url = "${mavenRepo.uri}" }
+            }
 
-eclipse {
-    jdt {
-        javaRuntimeName = "Jigsaw-1.9"
-    }
-}"""
+            eclipse {
+                jdt {
+                    javaRuntimeName = "Jigsaw-1.9"
+                }
+            }
+        """
 
         assert classpath.containers == ["org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/Jigsaw-1.9/"]
     }
 
     @Test
     void eclipseFilesAreWrittenWithUtf8Encoding() {
+        expectTaskDeprecations("eclipse", "eclipseClasspath", "eclipseJdt", "eclipseProject", "eclipseWtp", "eclipseWtpComponent", "eclipseWtpFacet")
+        expectTaskTypeDeprecations(
+                ("org.gradle.plugins.ide.eclipse.model.EclipseWtp"): 1,
+        )
         runEclipseTask """
-apply plugin: "war"
-apply plugin: "eclipse-wtp"
+            apply plugin: "war"
+            apply plugin: "eclipse-wtp"
 
-eclipse {
-    project.name = "$nonAscii"
-    classpath {
-        containers "$nonAscii"
-    }
+            eclipse {
+                project.name = "$nonAscii"
+                classpath {
+                    containers "$nonAscii"
+                }
 
-    wtp {
-        component {
-            deployName = "$nonAscii"
-        }
-        facet {
-            facet name: "$nonAscii"
-        }
-    }
-}
+                wtp {
+                    component {
+                        deployName = "$nonAscii"
+                    }
+                    facet {
+                        facet name: "$nonAscii"
+                    }
+                }
+            }
         """
 
         checkIsWrittenWithUtf8Encoding(getProjectFile())
@@ -208,58 +230,62 @@ eclipse {
     void triggersBeforeAndWhenConfigurationHooks() {
         //this test is a bit peculiar as it has assertions inside the gradle script
         //couldn't find a better way of asserting on before/when configured hooks
+        expectTaskDeprecations("eclipse", "eclipseClasspath", "eclipseJdt", "eclipseProject", "eclipseWtp", "eclipseWtpComponent", "eclipseWtpFacet")
+        expectTaskTypeDeprecations(
+                ("org.gradle.plugins.ide.eclipse.model.EclipseJdt.file"): 1,
+        )
         runEclipseTask('''
-apply plugin: 'java'
-apply plugin: 'war'
-apply plugin: 'eclipse-wtp'
+            apply plugin: 'java'
+            apply plugin: 'war'
+            apply plugin: 'eclipse-wtp'
 
-def beforeConfiguredObjects = 0
-def whenConfiguredObjects = 0
+            def beforeConfiguredObjects = 0
+            def whenConfiguredObjects = 0
 
-eclipse {
-    project {
-        file {
-            beforeMerged {beforeConfiguredObjects++ }
-            whenMerged {whenConfiguredObjects++ }
-        }
-    }
+            eclipse {
+                project {
+                    file {
+                        beforeMerged {beforeConfiguredObjects++ }
+                        whenMerged {whenConfiguredObjects++ }
+                    }
+                }
 
-    classpath {
-        file {
-            beforeMerged {beforeConfiguredObjects++ }
-            whenMerged {whenConfiguredObjects++ }
-        }
-    }
+                classpath {
+                    file {
+                        beforeMerged {beforeConfiguredObjects++ }
+                        whenMerged {whenConfiguredObjects++ }
+                    }
+                }
 
-    wtp.component {
-        file {
-            beforeMerged {beforeConfiguredObjects++ }
-            whenMerged {whenConfiguredObjects++ }
-        }
-    }
+                wtp.component {
+                    file {
+                        beforeMerged {beforeConfiguredObjects++ }
+                        whenMerged {whenConfiguredObjects++ }
+                    }
+                }
 
-    wtp.facet {
-        file {
-            beforeMerged {beforeConfiguredObjects++ }
-            whenMerged {whenConfiguredObjects++ }
-        }
-    }
+                wtp.facet {
+                    file {
+                        beforeMerged {beforeConfiguredObjects++ }
+                        whenMerged {whenConfiguredObjects++ }
+                    }
+                }
 
-    jdt {
-        file {
-            beforeMerged {beforeConfiguredObjects++ }
-            whenMerged {whenConfiguredObjects++ }
-        }
-    }
-}
+                jdt {
+                    file {
+                        beforeMerged {beforeConfiguredObjects++ }
+                        whenMerged {whenConfiguredObjects++ }
+                    }
+                }
+            }
 
-tasks.eclipse {
-    doLast {
-        assert beforeConfiguredObjects == 5 : "beforeConfigured() hooks should be fired for domain model objects"
-        assert whenConfiguredObjects == 5 : "whenConfigured() hooks should be fired for domain model objects"
-    }
-}
-''')
+            tasks.eclipse {
+                doLast {
+                    assert beforeConfiguredObjects == 5 : "beforeConfigured() hooks should be fired for domain model objects"
+                    assert whenConfiguredObjects == 5 : "whenConfigured() hooks should be fired for domain model objects"
+                }
+            }
+        ''')
 
     }
 
@@ -268,21 +294,22 @@ tasks.eclipse {
         def artifact1 = mavenRepo.module("myGroup", "myArtifact1", "1.0").dependsOn("myGroup", "myArtifact2", "1.0").publish().artifactFile
         mavenRepo.module("myGroup", "myArtifact2", "1.0").publish()
 
+        expectTaskDeprecations("eclipse", "eclipseClasspath", "eclipseJdt", "eclipseProject")
         runEclipseTask """
-apply plugin: 'java'
-apply plugin: 'eclipse'
+            apply plugin: 'java'
+            apply plugin: 'eclipse'
 
-repositories {
-    maven { url = "${mavenRepo.uri}" }
-}
+            repositories {
+                maven { url = "${mavenRepo.uri}" }
+            }
 
-configurations {
-    implementation.exclude module: 'myArtifact2'
-}
+            configurations {
+                implementation.exclude module: 'myArtifact2'
+            }
 
-dependencies {
-    implementation "myGroup:myArtifact1:1.0"
-}
+            dependencies {
+                implementation "myGroup:myArtifact1:1.0"
+            }
         """
 
         libEntriesInClasspathFileHaveFilenames(artifact1.name)
@@ -293,19 +320,20 @@ dependencies {
         def artifact1 = mavenRepo.module("myGroup", "myArtifact1", "1.0").dependsOn("myGroup", "myArtifact2", "1.0").publish().artifactFile
         mavenRepo.module("myGroup", "myArtifact2", "1.0").publish()
 
+        expectTaskDeprecations("eclipse", "eclipseClasspath", "eclipseJdt", "eclipseProject")
         runEclipseTask """
-apply plugin: 'java'
-apply plugin: 'eclipse'
+            apply plugin: 'java'
+            apply plugin: 'eclipse'
 
-repositories {
-    maven { url = "${mavenRepo.uri}" }
-}
+            repositories {
+                maven { url = "${mavenRepo.uri}" }
+            }
 
-dependencies {
-    implementation("myGroup:myArtifact1:1.0") {
-        exclude module: "myArtifact2"
-    }
-}
+            dependencies {
+                implementation("myGroup:myArtifact1:1.0") {
+                    exclude module: "myArtifact2"
+                }
+            }
         """
 
         libEntriesInClasspathFileHaveFilenames(artifact1.name)
@@ -320,15 +348,16 @@ dependencies {
 
     @Test
     void addsLinkToTheProjectFile() {
+        expectTaskDeprecations("eclipse", "eclipseClasspath", "eclipseJdt", "eclipseProject")
         runEclipseTask '''
-apply plugin: 'java'
-apply plugin: 'eclipse'
+            apply plugin: 'java'
+            apply plugin: 'eclipse'
 
-eclipse.project {
-    linkedResource name: 'one', type: '2', location: '/xyz'
-    linkedResource name: 'two', type: '3', locationUri: 'file://xyz'
-}
-'''
+            eclipse.project {
+                linkedResource name: 'one', type: '2', location: '/xyz'
+                linkedResource name: 'two', type: '3', locationUri: 'file://xyz'
+            }
+        '''
 
         def xml = parseProjectFile()
         assert xml.linkedResources.link[0].name.text() == 'one'
@@ -342,15 +371,16 @@ eclipse.project {
 
     @Test
     void allowsConfiguringJavaVersionWithSimpleTypes() {
+        expectTaskDeprecations("eclipse", "eclipseClasspath", "eclipseJdt", "eclipseProject")
         runEclipseTask '''
-apply plugin: 'java'
-apply plugin: 'eclipse'
+            apply plugin: 'java'
+            apply plugin: 'eclipse'
 
-eclipse.jdt {
-    sourceCompatibility = '1.4'
-    targetCompatibility = 1.3
-}
-'''
+            eclipse.jdt {
+                sourceCompatibility = '1.4'
+                targetCompatibility = 1.3
+            }
+        '''
 
         def jdt = parseJdtFile()
         assert jdt.contains('source=1.4')
@@ -359,10 +389,11 @@ eclipse.jdt {
 
     @Test
     void sourceAndTargetCompatibilityDefaultIsCurrentJavaVersion() {
+        expectTaskDeprecations("eclipse", "eclipseClasspath", "eclipseJdt", "eclipseProject")
         runEclipseTask '''
-apply plugin: 'java'
-apply plugin: 'eclipse'
-'''
+            apply plugin: 'java'
+            apply plugin: 'eclipse'
+        '''
         def jdt = parseJdtFile()
         def javaVersion = JavaVersion.current()
         def javaVersionNumber = javaVersion.isJava9Compatible() ? javaVersion.getMajorVersion() : javaVersion.toString()
@@ -372,14 +403,15 @@ apply plugin: 'eclipse'
 
     @Test
     void sourceAndTargetCompatibilityDefinedInPluginConvention() {
+        expectTaskDeprecations("eclipse", "eclipseClasspath", "eclipseJdt", "eclipseProject")
         runEclipseTask '''
-apply plugin: 'java'
-apply plugin: 'eclipse'
-java {
-    sourceCompatibility = 1.4
-    targetCompatibility = 1.3
-}
-'''
+            apply plugin: 'java'
+            apply plugin: 'eclipse'
+            java {
+                sourceCompatibility = 1.4
+                targetCompatibility = 1.3
+            }
+        '''
         def jdt = parseJdtFile()
         assert jdt.contains('source=1.4')
         assert jdt.contains('targetPlatform=1.3')
@@ -387,20 +419,21 @@ java {
 
     @Test
     void jdtSettingsHasPrecedenceOverJavaPluginConvention() {
+        expectTaskDeprecations("eclipse", "eclipseClasspath", "eclipseJdt", "eclipseProject")
         runEclipseTask '''
-apply plugin: 'java'
-apply plugin: 'eclipse'
-java {
-    sourceCompatibility = 1.4
-    targetCompatibility = 1.5
-}
-eclipse {
-    jdt {
-        sourceCompatibility = 1.3
-        targetCompatibility = 1.4
-    }
-}
-'''
+            apply plugin: 'java'
+            apply plugin: 'eclipse'
+            java {
+                sourceCompatibility = 1.4
+                targetCompatibility = 1.5
+            }
+            eclipse {
+                jdt {
+                    sourceCompatibility = 1.3
+                    targetCompatibility = 1.4
+                }
+            }
+        '''
         def jdt = parseJdtFile()
         assert jdt.contains('source=1.3')
         assert jdt.contains('targetPlatform=1.4')
@@ -408,43 +441,44 @@ eclipse {
 
     @Test
     void dslAllowsShortFormsForProject() {
+        expectTaskDeprecations("eclipse", "eclipseClasspath", "eclipseJdt", "eclipseProject")
         runEclipseTask '''
-apply plugin: 'java'
-apply plugin: 'eclipse'
+            apply plugin: 'java'
+            apply plugin: 'eclipse'
 
-eclipse.project.name = 'x'
-assert eclipse.project.name == 'x'
+            eclipse.project.name = 'x'
+            assert eclipse.project.name == 'x'
 
-eclipse {
-    project.name += 'x'
-    assert project.name == 'xx'
-}
+            eclipse {
+                project.name += 'x'
+                assert project.name == 'xx'
+            }
 
-eclipse.project {
-    name += 'x'
-    assert name == 'xxx'
-}
-
-'''
+            eclipse.project {
+                name += 'x'
+                assert name == 'xxx'
+            }            
+        '''
     }
 
     @Test
     void dslAllowsShortForms() {
+        expectTaskDeprecations("eclipse", "eclipseClasspath", "eclipseJdt", "eclipseProject")
         runEclipseTask '''
-apply plugin: 'java'
-apply plugin: 'eclipse'
+            apply plugin: 'java'
+            apply plugin: 'eclipse'
 
-eclipse.classpath.downloadSources = false
-assert eclipse.classpath.downloadSources == false
+            eclipse.classpath.downloadSources = false
+            assert eclipse.classpath.downloadSources == false
 
-eclipse.classpath.file.withXml {}
-eclipse.classpath {
-    file.withXml {}
-}
-eclipse {
-    classpath.file.withXml {}
-}
-'''
+            eclipse.classpath.file.withXml {}
+            eclipse.classpath {
+                file.withXml {}
+            }
+            eclipse {
+                classpath.file.withXml {}
+            }
+        '''
     }
 
     @Test
@@ -453,17 +487,18 @@ eclipse {
         def repoDir = testDirectory.createDir("repo")
         repoDir.createFile("lib-1.0.jar")
 
+        expectTaskDeprecations("eclipse", "eclipseClasspath", "eclipseJdt", "eclipseProject")
         runEclipseTask """
-apply plugin: "java"
-apply plugin: "eclipse"
+            apply plugin: "java"
+            apply plugin: "eclipse"
 
-repositories {
-	flatDir { dirs "${TextUtil.escapeString(repoDir)}" }
-}
+            repositories {
+                flatDir { dirs "${TextUtil.escapeString(repoDir)}" }
+            }
 
-dependencies {
-	implementation "some:lib:1.0"
-}
+            dependencies {
+                implementation "some:lib:1.0"
+            }
         """
     }
 
@@ -472,17 +507,18 @@ dependencies {
     void canHandleDependencyWithoutSourceJarInMavenRepo() {
         mavenRepo.module("some", "lib", "1.0").publish()
 
+        expectTaskDeprecations("eclipse", "eclipseClasspath", "eclipseJdt", "eclipseProject")
         runEclipseTask """
-apply plugin: "java"
-apply plugin: "eclipse"
+            apply plugin: "java"
+            apply plugin: "eclipse"
 
-repositories {
-    maven { url = "${mavenRepo.uri}" }
-}
+            repositories {
+                maven { url = "${mavenRepo.uri}" }
+            }
 
-dependencies {
-	implementation "some:lib:1.0"
-}
+            dependencies {
+                implementation "some:lib:1.0"
+            }
         """
     }
 

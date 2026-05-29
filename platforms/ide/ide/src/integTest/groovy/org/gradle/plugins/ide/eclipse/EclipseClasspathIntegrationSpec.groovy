@@ -55,6 +55,7 @@ class EclipseClasspathIntegrationSpec extends AbstractEclipseIntegrationSpec {
         """
 
         when:
+        expectTaskDeprecations("eclipse", "eclipseClasspath", "eclipseJdt", "eclipseProject")
         run 'eclipse'
 
         then:

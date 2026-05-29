@@ -34,8 +34,8 @@ jobs:
 
           git reset origin/master --hard
 
-          ./gradlew wrapper --gradle-version=nightly
-          ./gradlew wrapper
+          ./gradlew :wrapper --gradle-version=nightly
+          ./gradlew :wrapper
 
           if ! git diff --quiet; then
             ./gradlew -v

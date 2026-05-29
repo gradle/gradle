@@ -19,6 +19,7 @@ package org.gradle.integtests.resolve.transform
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 
 class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyResolutionTest implements ArtifactTransformTestFixture {
     /**
@@ -51,6 +52,7 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
         """
     }
 
+    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "transform can receive a file collection containing pre-built files via parameter object"() {
         createDirs("a", "b", "c")
         settingsFile << """
@@ -81,6 +83,7 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
         outputContains("result = [b.jar.green, c.jar.green]")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "transform can receive a file collection containing external dependencies as parameter"() {
         mavenRepo.module("test", "tool-a", "1.2").publish()
         mavenRepo.module("test", "tool-b", "1.2").publish()
@@ -117,6 +120,7 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
         outputContains("result = [b.jar.green, c.jar.green]")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "transform can receive a file input from a nested bean on the parameter object"() {
         createDirs("a", "b")
         settingsFile << """
@@ -174,6 +178,7 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
         outputContains("result = [b.jar.green]")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "transform can receive a file collection containing task outputs as parameter"() {
         createDirs("a", "b", "c")
         settingsFile << """
@@ -206,6 +211,7 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
         outputContains("result = [b.jar.green, c.jar.green]")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "transform can receive a file collection containing transform outputs as parameter"() {
         createDirs("a", "b", "c", "d", "e")
         settingsFile << """
@@ -269,6 +275,7 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
         outputContains("result = [b.jar.green, c.jar.green]")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "transform can receive a file collection containing substituted external dependencies as parameter"() {
         createDirs("tools", "tools/tool-a", "tools/tool-b")
         file("tools/settings.gradle") << """
@@ -327,6 +334,7 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
         outputContains("result = [b.jar.green, c.jar.green]")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "transform can receive a task output file as parameter"() {
         createDirs("a", "b", "c", "d", "e")
         settingsFile << """
@@ -380,6 +388,7 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
         outputContains("processing c.jar using tool-a.jar")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "transform can receive a task output directory as parameter"() {
         createDirs("a", "b", "c", "d", "e")
         settingsFile << """
@@ -433,6 +442,7 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
         outputContains("processing c.jar using tool-a-dir")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "transform does not execute when file inputs cannot be built"() {
         createDirs("a", "b", "c")
         settingsFile << """
@@ -468,6 +478,7 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
         failure.assertHasCause("broken")
     }
 
+    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "can use input path sensitivity #pathSensitivity for parameter object"() {
         createDirs("a", "b", "c")
         settingsFile << """

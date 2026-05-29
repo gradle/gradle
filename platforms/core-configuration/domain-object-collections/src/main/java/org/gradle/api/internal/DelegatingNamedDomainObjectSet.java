@@ -30,6 +30,7 @@ import org.gradle.internal.metaobject.MethodAccess;
 import org.gradle.internal.metaobject.MethodMixIn;
 import org.gradle.internal.metaobject.PropertyAccess;
 import org.gradle.internal.metaobject.PropertyMixIn;
+import org.jspecify.annotations.Nullable;
 
 import java.util.List;
 import java.util.SortedMap;
@@ -51,118 +52,142 @@ public class DelegatingNamedDomainObjectSet<T> extends DelegatingDomainObjectSet
 
     @Override
     public <S extends T> NamedDomainObjectSet<S> withType(Class<S> type) {
+        onMethodCall("withType(Class)");
         return getDelegate().withType(type);
     }
 
     @Override
     public NamedDomainObjectSet<T> named(Spec<String> nameFilter) {
+        onMethodCall("named(Spec)");
         return getDelegate().named(nameFilter);
     }
 
     @Override
     public NamedDomainObjectSet<T> matching(Spec<? super T> spec) {
+        onMethodCall("matching(Spec)");
         return getDelegate().matching(spec);
     }
 
     @Override
     public NamedDomainObjectSet<T> matching(Closure spec) {
+        onMethodCall("matching(Closure)");
         return getDelegate().matching(spec);
     }
 
     @Override
     public NamedDomainObjectProvider<T> named(String name) throws UnknownDomainObjectException {
+        onMethodCall("named(String)");
         return getDelegate().named(name);
     }
 
     @Override
     public NamedDomainObjectProvider<T> named(String name, Action<? super T> configurationAction) throws UnknownDomainObjectException {
+        onMethodCall("named(String, Action)");
         return getDelegate().named(name, configurationAction);
     }
 
     @Override
     public <S extends T> NamedDomainObjectProvider<S> named(String name, Class<S> type) throws UnknownDomainObjectException {
+        onMethodCall("named(String, Class)");
         return getDelegate().named(name, type);
     }
 
     @Override
     public <S extends T> NamedDomainObjectProvider<S> named(String name, Class<S> type, Action<? super S> configurationAction) throws UnknownDomainObjectException {
+        onMethodCall("named(String, Class, Action)");
         return getDelegate().named(name, type, configurationAction);
     }
 
     @Override
     public Rule addRule(String description, Closure ruleAction) {
+        onMethodCall("addRule(String, Closure)");
         return getDelegate().addRule(description, ruleAction);
     }
 
     @Override
     public Rule addRule(String description, Action<String> ruleAction) {
+        onMethodCall("addRule(String, Action)");
         return getDelegate().addRule(description, ruleAction);
     }
 
     @Override
     public Rule addRule(Rule rule) {
+        onMethodCall("addRule(Rule)");
         return getDelegate().addRule(rule);
     }
 
     @Override
-    public T findByName(String name) {
+    public @Nullable T findByName(String name) {
+        onMethodCall("findByName(String)");
         return getDelegate().findByName(name);
     }
 
     @Override
     public SortedMap<String, T> getAsMap() {
+        onMethodCall("getAsMap()");
         return getDelegate().getAsMap();
     }
 
     @Override
     public NamedDomainObjectCollectionSchema getCollectionSchema() {
+        onMethodCall("getCollectionSchema()");
         return getDelegate().getCollectionSchema();
     }
 
     @Override
     public T getAt(String name) throws UnknownDomainObjectException {
+        onMethodCall("getAt(String)");
         return getDelegate().getAt(name);
     }
 
     @Override
     public T getByName(String name) throws UnknownDomainObjectException {
+        onMethodCall("getByName(String)");
         return getDelegate().getByName(name);
     }
 
     @Override
     public T getByName(String name, Closure configureClosure) throws UnknownDomainObjectException {
+        onMethodCall("getByName(String, Closure)");
         return getDelegate().getByName(name, configureClosure);
     }
 
     @Override
     public T getByName(String name, Action<? super T> configureAction) throws UnknownDomainObjectException {
+        onMethodCall("getByName(String, Action)");
         return getDelegate().getByName(name, configureAction);
     }
 
     @Override
     public Namer<T> getNamer() {
+        onMethodCall("getNamer()");
         return getDelegate().getNamer();
     }
 
     @Override
     public SortedSet<String> getNames() {
+        onMethodCall("getNames()");
         return getDelegate().getNames();
     }
 
     @Override
     public List<Rule> getRules() {
+        onMethodCall("getRules()");
         return getDelegate().getRules();
     }
 
     @Internal
     @Override
     public MethodAccess getAdditionalMethods() {
+        onMethodCall("getAdditionalMethods()");
         return ((MethodMixIn) getDelegate()).getAdditionalMethods();
     }
 
     @Internal
     @Override
     public PropertyAccess getAdditionalProperties() {
+        onMethodCall("getAdditionalProperties()");
         return ((PropertyMixIn) getDelegate()).getAdditionalProperties();
     }
+
 }

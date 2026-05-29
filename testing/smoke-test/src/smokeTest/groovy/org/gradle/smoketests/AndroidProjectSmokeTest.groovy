@@ -101,7 +101,6 @@ class AndroidProjectLintSmokeTest extends AndroidProjectSmokeTest {
         def result = runner
             .ignoreStackTraces("Android Lint may log stack traces when computing SARIF quick-fix edits fails")
             .deprecations(AndroidProjectDeprecations) {
-                expectMultiStringNotationDeprecation(agpVersion)
                 expectProjectDependencyNotationDeprecation()
             }
             .build()

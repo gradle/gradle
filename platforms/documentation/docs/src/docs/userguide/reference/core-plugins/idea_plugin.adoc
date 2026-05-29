@@ -15,8 +15,6 @@
 [[idea_plugin]]
 = The IDEA Plugin
 
-WARNING: The IDEA Plugin is not fully compatible with the <<configuration_cache_status.adoc#config_cache:plugins:core,Configuration Cache>>. When applied, the Configuration Cache is automatically disabled.
-
 The IDEA plugin generates files that are used by http://www.jetbrains.com/idea/[IntelliJ IDEA], thus making it possible to open the project from IDEA (`File` - `Open Project`). Both external dependencies (including associated source and Javadoc files) and project dependencies are considered.
 
 [NOTE]
@@ -54,6 +52,8 @@ The IDEA plugin also adds a `cleanIdea` task to the project. This task deletes t
 
 [[sec:idea_tasks]]
 == Tasks
+
+WARNING: The tasks listed in this section are deprecated and will be removed in Gradle 10. Modern versions of IntelliJ IDEA import Gradle projects directly via its https://www.jetbrains.com/help/idea/gradle.html#gradle_import[built-in Gradle integration] without needing these generated files. The rest of the plugin — including the `idea { ... }` DSL for customizing how the IDE understands your project — is not deprecated and continues to be consumed by IntelliJ IDEA during Gradle import. See the <<upgrading_version_9.adoc#ide_task_deprecation,upgrade guide>> for details.
 
 The IDEA plugin adds the tasks shown below to a project. Notice that the `clean` task does not depend on the `cleanIdeaWorkspace` task. This is because the workspace typically contains a lot of user specific temporary data and it is not desirable to manipulate it outside IDEA.
 

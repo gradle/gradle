@@ -42,7 +42,7 @@ jobs:
         with:
           script: |
             if (context.payload.pull_request && context.payload.pull_request.head.repo.fork) {
-                core.setOutput('sys-prop-args', '-DagreePublicBuildScanTermOfService=yes -Ddevelocity.edge.discovery=false -DcacheNode=us --scan')
+                core.setOutput('sys-prop-args', '-DagreePublicBuildScanTermOfService=yes -Ddevelocity.server.url=https://usw-edge.gradle.org -Ddevelocity.edge.discovery=false --scan')
             } else {
                 core.setOutput('sys-prop-args', '')
             }

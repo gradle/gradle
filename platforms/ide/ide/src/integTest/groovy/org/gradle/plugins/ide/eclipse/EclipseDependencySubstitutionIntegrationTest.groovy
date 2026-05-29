@@ -26,24 +26,25 @@ class EclipseDependencySubstitutionIntegrationTest extends AbstractEclipseIntegr
     @Test
     void "external dependency substituted with project dependency"() {
         createDirs("project1", "project2")
+        expectTaskDeprecations("eclipse", "eclipseClasspath", "eclipseJdt", "eclipseProject")
         runEclipseTask("include 'project1', 'project2'", """
-allprojects {
-    apply plugin: "java"
-    apply plugin: "eclipse"
-}
+            allprojects {
+                apply plugin: "java"
+                apply plugin: "eclipse"
+            }
 
-project(":project2") {
-    dependencies {
-        implementation("junit:junit:4.7")
-    }
+            project(":project2") {
+                dependencies {
+                    implementation("junit:junit:4.7")
+                }
 
-    configurations.all {
-        resolutionStrategy.dependencySubstitution {
-            substitute module("junit:junit:4.7") using project(":project1")
-        }
-    }
-}
-""")
+                configurations.all {
+                    resolutionStrategy.dependencySubstitution {
+                        substitute module("junit:junit:4.7") using project(":project1")
+                    }
+                }
+            }
+        """)
 
         def classpath = classpath("project2")
         assert classpath.projects.collect { it.name } == ["project1"]
@@ -56,28 +57,29 @@ project(":project2") {
         mavenRepo.module("org.gradle", "module2").publish()
 
         createDirs("project1", "project2")
+        expectTaskDeprecations("eclipse", "eclipseClasspath", "eclipseJdt", "eclipseProject")
         runEclipseTask("include 'project1', 'project2'", """
-allprojects {
-    apply plugin: "java"
-    apply plugin: "eclipse"
-}
+            allprojects {
+                apply plugin: "java"
+                apply plugin: "eclipse"
+            }
 
-project(":project2") {
-    repositories {
-        maven { url = "${mavenRepo.uri}" }
-    }
+            project(":project2") {
+                repositories {
+                    maven { url = "${mavenRepo.uri}" }
+                }
 
-    dependencies {
-        implementation "org.gradle:module1:1.0"
-    }
+                dependencies {
+                    implementation "org.gradle:module1:1.0"
+                }
 
-    configurations.all {
-        resolutionStrategy.dependencySubstitution {
-            substitute module("org.gradle:module2:1.0") using project(":project1")
-        }
-    }
-}
-""")
+                configurations.all {
+                    resolutionStrategy.dependencySubstitution {
+                        substitute module("org.gradle:module2:1.0") using project(":project1")
+                    }
+                }
+            }
+        """)
 
         def classpath = classpath("project2")
         assert classpath.libs*.jarName == ["module1-1.0.jar"]
@@ -88,26 +90,27 @@ project(":project2") {
     @Test
     void "project dependency substituted with external dependency"() {
         createDirs("project1", "project2")
+        expectTaskDeprecations("eclipse", "eclipseClasspath", "eclipseJdt", "eclipseProject")
         runEclipseTask("include 'project1', 'project2'", """
- allprojects {
-    apply plugin: "java"
-    apply plugin: "eclipse"
-}
+             allprojects {
+                apply plugin: "java"
+                apply plugin: "eclipse"
+            }
 
-project(":project2") {
-    ${mavenCentralRepository()}
+            project(":project2") {
+                ${mavenCentralRepository()}
 
-    dependencies {
-        implementation project(":project1")
-    }
+                dependencies {
+                    implementation project(":project1")
+                }
 
-    configurations.all {
-        resolutionStrategy.dependencySubstitution {
-            substitute project(":project1") using module("junit:junit:4.7")
-        }
-    }
-}
-""")
+                configurations.all {
+                    resolutionStrategy.dependencySubstitution {
+                        substitute project(":project1") using module("junit:junit:4.7")
+                    }
+                }
+            }
+        """)
 
         def classpath = classpath("project2")
         assert classpath.projects == []

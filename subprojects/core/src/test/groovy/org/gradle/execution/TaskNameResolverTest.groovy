@@ -262,6 +262,53 @@ class TaskNameResolverTest extends Specification {
         0 * childTasks._
     }
 
+    def "finds task cheaply in root project"() {
+        given:
+        def projectState = projectState()
+        def tasks = projectState.getMutableModel().getTasks()
+
+        when:
+        def result = resolver.tryFindUnqualifiedTaskCheaply('task', projectState)
+
+        then:
+        result
+        1 * tasks.getNames() >> (['task'] as SortedSet)
+    }
+
+    def "finds task cheaply in child project"() {
+        given:
+        def childProjectState = projectState()
+        def childTasks = childProjectState.getMutableModel().getTasks()
+
+        def projectState = projectState([childProjectState] as Set)
+        def tasks = projectState.getMutableModel().getTasks()
+
+        when:
+        def result = resolver.tryFindUnqualifiedTaskCheaply('task', projectState)
+
+        then:
+        result
+        1 * tasks.getNames() >> ([] as SortedSet)
+        1 * childTasks.getNames() >> (['task'] as SortedSet)
+    }
+
+    def "returns false when no task found cheaply"() {
+        given:
+        def childProjectState = projectState()
+        def childTasks = childProjectState.getMutableModel().getTasks()
+
+        def projectState = projectState([childProjectState] as Set)
+        def tasks = projectState.getMutableModel().getTasks()
+
+        when:
+        def result = resolver.tryFindUnqualifiedTaskCheaply('task', projectState)
+
+        then:
+        !result
+        1 * tasks.getNames() >> ([] as SortedSet)
+        1 * childTasks.getNames() >> (['other'] as SortedSet)
+    }
+
     def task(String name, String description = "") {
         Stub(TaskInternal) { TaskInternal task ->
             _ * task.getName() >> name
@@ -278,12 +325,26 @@ class TaskNameResolverTest extends Specification {
     ProjectState projectState(Set<ProjectState> children = []) {
         def state = Mock(ProjectState) {
             getChildProjects() >> children
+            getUnorderedChildProjects() >> children
         }
         def project = Mock(ProjectInternal) {
             getOwner() >> state
             getTasks() >> Mock(TaskContainerInternal)
         }
         _ * state.getMutableModel() >> project
+        _ * state.fromMutableState(_) >> { args -> args[0].apply(project) }
+        _ * state.getAllProjects() >> {
+            def result = new LinkedHashSet<ProjectState>()
+            collectAll(state, result)
+            result
+        }
         state
+    }
+
+    private static void collectAll(ProjectState project, Set<ProjectState> result) {
+        result.add(project)
+        for (ProjectState child : project.getUnorderedChildProjects()) {
+            collectAll(child, result)
+        }
     }
 }

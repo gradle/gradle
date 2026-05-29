@@ -78,7 +78,6 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         "credentials",
         "credentials-api",
         "daemon-logging",
-        "daemon-main",
         "daemon-messaging",
         "daemon-protocol",
         "daemon-server",
@@ -186,7 +185,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
      * Change this whenever you add or remove subprojects for distribution-packaged plugins (lib/plugins).
      */
     int getPackagedPluginsJarCount() {
-        94
+        95
     }
 
     /**

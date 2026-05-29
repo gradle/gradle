@@ -29,7 +29,13 @@ dependencies {
     implementation(libs.guava)
     implementation(libs.jsr305)
 
-    shadedImplementation(libs.slf4jApi)
+    shadedImplementation(libs.slf4jApi) {
+        version {
+            // Re-declare as `require` here so the published Tooling API module metadata uses `requires` instead of `strictly`,
+            // leaving consumers free to upgrade to newer backwards-compatible slf4j-api versions.
+            require(libs.versions.slf4j.get())
+        }
+    }
 
     testImplementation(projects.internalDistributionTesting)
 

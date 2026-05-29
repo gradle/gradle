@@ -88,6 +88,8 @@ abstract class AbstractIdeSyncTest extends Specification {
         def outputDir = new File(testDirectory, "profiler-output")
         outputDir.mkdirs()
 
+        setupGradleProjectSettings()
+
         def hasMutators = !buildMutators.isEmpty()
 
         def invocationSettings = ideSyncInvocationSettingsBuilder(ide, new IdeConfiguration(ideInstallDir, ideSandboxDir), hasMutators)
@@ -155,6 +157,34 @@ abstract class AbstractIdeSyncTest extends Specification {
         } finally {
             Logging.resetLogging()
         }
+    }
+
+    /**
+     * IDEA 2025.3.x rejects projects without an explicit gradleJvm by emitting
+     * "Invalid Gradle JDK configuration found" before sync starts. Pre-populate
+     * the project's .idea/gradle.xml so the linked-project settings already have
+     * a JVM (#JAVA_HOME, inherited from the launching JVM) by the time IDEA
+     * validates them. GradleProfilerStartupActivity in gradle-profiler does the
+     * same set, but runs too late on the first sync.
+     */
+    private void setupGradleProjectSettings() {
+        def ideaDir = new File(projectDirectory, ".idea")
+        ideaDir.mkdirs()
+        new File(ideaDir, "gradle.xml").text = """\
+            <?xml version="1.0" encoding="UTF-8"?>
+            <project version="4">
+              <component name="GradleSettings">
+                <option name="linkedExternalProjectsSettings">
+                  <GradleProjectSettings>
+                    <option name="distributionType" value="LOCAL" />
+                    <option name="gradleHome" value="${distribution.gradleHomeDir.absolutePath}" />
+                    <option name="externalProjectPath" value="\$PROJECT_DIR\$" />
+                    <option name="gradleJvm" value="#JAVA_HOME" />
+                  </GradleProjectSettings>
+                </option>
+              </component>
+            </project>
+        """.stripIndent()
     }
 
     private static InvocationSettings.InvocationSettingsBuilder ideSyncInvocationSettingsBuilder(
