@@ -162,9 +162,9 @@ public abstract class IvyPublishPlugin implements Plugin<Project> {
             descriptorTask.setDescription("Generates the Ivy Module Descriptor XML file for publication '" + publicationName + "'.");
             descriptorTask.setGroup(PublishingPlugin.PUBLISH_TASK_GROUP);
             descriptorTask.setDescriptor(publication.getDescriptor());
-            if (descriptorTask.getDestination() == null) {
-                descriptorTask.setDestination(buildDir.file("publications/" + publicationName + "/ivy.xml"));
-            }
+            descriptorTask.getDestinationFile().convention(
+                buildDir.file("publications/" + publicationName + "/ivy.xml")
+            );
         });
         publication.setIvyDescriptorGenerator(generatorTask);
     }
