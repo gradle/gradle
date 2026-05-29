@@ -16,6 +16,8 @@
 
 package org.gradle.process.internal;
 
+import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.ProcessForkOptions;
 import org.gradle.process.internal.streams.StreamsHandler;
@@ -35,8 +37,13 @@ import java.util.Map;
 @Deprecated
 public class DefaultExecHandleBuilder extends AbstractExecHandleBuilder implements ExecHandleBuilder, ProcessArgumentsSpec.HasExecutable {
 
-    public DefaultExecHandleBuilder(ClientExecHandleBuilder delegate) {
+    // Lazy variant of the working directory. Left empty (no convention) until explicitly set, so that
+    // construction never forces resolver.resolve(".") (which fails for an IdentityFileResolver).
+    private final DirectoryProperty workingDirectory;
+
+    public DefaultExecHandleBuilder(FileResolver fileResolver, ClientExecHandleBuilder delegate) {
         super(delegate);
+        this.workingDirectory = DefaultProcessForkOptions.SimplePropertyFactory.directoryProperty(fileResolver);
     }
 
     @Override
@@ -61,18 +68,25 @@ public class DefaultExecHandleBuilder extends AbstractExecHandleBuilder implemen
     }
 
     @Override
+    public DirectoryProperty getWorkingDirectory() {
+        return workingDirectory;
+    }
+
+    @Override
     public File getWorkingDir() {
-        return delegate.getWorkingDir();
+        return workingDirectory.isPresent() ? workingDirectory.get().getAsFile() : delegate.getWorkingDir();
     }
 
     @Override
     public void setWorkingDir(File dir) {
         delegate.setWorkingDir(dir);
+        workingDirectory.fileValue(delegate.getWorkingDir());
     }
 
     @Override
     public void setWorkingDir(Object dir) {
         delegate.setWorkingDir(dir);
+        workingDirectory.fileValue(delegate.getWorkingDir());
     }
 
     @Override
@@ -150,7 +164,16 @@ public class DefaultExecHandleBuilder extends AbstractExecHandleBuilder implemen
     @Override
     public DefaultExecHandleBuilder workingDir(Object dir) {
         delegate.setWorkingDir(dir);
+        workingDirectory.fileValue(delegate.getWorkingDir());
         return this;
+    }
+
+    @Override
+    public ExecHandle build() {
+        if (workingDirectory.isPresent()) {
+            delegate.setWorkingDir(workingDirectory.get().getAsFile());
+        }
+        return super.build();
     }
 
     @Override

@@ -17,6 +17,7 @@ package org.gradle.process.internal;
 
 import org.gradle.api.Action;
 import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
@@ -270,6 +271,10 @@ public class JavaExecHandleBuilder implements BaseExecHandleBuilder, ProcessArgu
 
     public void setExecutable(String executable) {
         javaOptions.setExecutable(executable);
+    }
+
+    public DirectoryProperty getWorkingDirectory() {
+        return javaOptions.getWorkingDirectory();
     }
 
     @Nullable
