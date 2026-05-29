@@ -17,6 +17,8 @@
 package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import spock.lang.Issue
 
 @Issue("https://github.com/gradle/gradle/issues/25824")
@@ -113,6 +115,7 @@ class CopyDestinationDirectoryIntegrationTest extends AbstractIntegrationSpec {
         task << ['Copy', 'Sync']
     }
 
+    @Requires(value = TestExecutionPreconditions.NotConfigCached, reason = "handles CC explicitly in the test")
     def "#task destinationDirectory survives the configuration cache"() {
         buildFile """
             task copy(type: $task) {
