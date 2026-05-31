@@ -1,5 +1,3 @@
-import org.gradle.internal.impldep.jcifs.Config
-
 // tag::define[]
 // Create a file tree with a base directory
 var tree: ConfigurableFileTree = fileTree("src/main")

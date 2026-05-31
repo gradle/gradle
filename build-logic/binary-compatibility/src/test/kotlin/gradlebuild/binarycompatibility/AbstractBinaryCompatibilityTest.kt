@@ -302,7 +302,9 @@ abstract class AbstractBinaryCompatibilityTest {
                     val newUpgradedPropertiesFile = layout.buildDirectory.file("gradle-api-info/new-upgraded-properties.json")
                     val oldUpgradedPropertiesFile = layout.buildDirectory.file("gradle-api-info/old-upgraded-properties.json")
                     val extractGradleApiInfo = tasks.register<ExtractGradleApiInfoTask>("extractGradleApiInfo") {
-                        gradleApiInfoJarPrefix = "v"
+                        // Matches the archiveBaseName set by the `gradlebuild.module-identity` plugin
+                        // (= the configured identity.baseName, here "api-module").
+                        gradleApiInfoJarPrefix = "api-module"
                         currentDistributionJars = files(v2Jar)
                         baselineDistributionJars = files(v1Jar)
                         currentUpgradedProperties = newUpgradedPropertiesFile
