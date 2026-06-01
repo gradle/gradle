@@ -113,11 +113,13 @@ class EdgeState implements DependencyGraphEdge {
         return false;
     }
 
-    public void clearSelector() {
+    public boolean clearSelector() {
         if (this.selector != null) {
-            this.selector.release();
+            SelectorState currentSelector = this.selector;
             this.selector = null;
+            return currentSelector.release();
         }
+        return false;
     }
 
     @Override

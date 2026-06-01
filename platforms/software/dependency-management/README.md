@@ -219,11 +219,11 @@ continues. Only one conflict is resolved at a time before returning to queue pro
 
 ### Module Conflicts
 
-Users may declare that two or more modules are mutually exclusive (e.g. `log4j` vs
-`logback`). When the engine detects that both modules are present in the graph, it
-marks them as being in a module conflict. Nodes belonging to conflicting modules have
-their outgoing edges removed and are skipped during traversal, similar to capability
-conflicts.
+Users may declare that two or more modules are mutually exclusive (e.g. `hamcrest-all`
+is replaced by `hamcrest`). When the engine detects that both modules are present in 
+the graph, it marks them as being in a module conflict. Nodes belonging to conflicting
+modules have their outgoing edges removed and are skipped during traversal, similar to
+capability conflicts.
 
 Module conflict resolution is deferred until the queue is empty, following the same
 pattern as capability conflicts. When resolved, the nodes of the winning module are
@@ -232,8 +232,8 @@ winning module's selected component.
 
 ## Features
 
-The dependency resolution engine includes a number of supplementary features users 
-can leverage. 
+The dependency resolution engine includes a number of supplementary features users
+can leverage.
 
 ### Virtual Platforms
 

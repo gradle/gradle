@@ -740,15 +740,19 @@ public class NodeState implements DependencyGraphNode {
     }
 
     /**
-     * Determine if this node should be processed when it is dequeued during traversal, or if it
-     * instead be removed from the graph.
+     * Determine if this node should be processed when it is dequeued during traversal, or if its
+     * subgraph should be removed from the graph.
      * <p>
-     * False if this node has no incoming edges, or is in conflict and should temporarily not
-     * contribute to the graph. We need special handling for root since it does not yet have
-     * its own module, but should never be considered a conflict participant.
+     * True if this node has incoming edges and is not in a conflict. We temporarily delay building
+     * subgraphs of nodes in conflict while the conflict has not yet been resolved to avoid subgraphs
+     * of losing nodes from affecting the graph shape.
      */
-    boolean contributesToGraph() {
-        return !isSelected() || isInCapabilityConflict() || (getComponent().getModule().isInModuleConflict() && !isRoot());
+    boolean shouldBuildSubgraph() {
+        return isSelected() &&
+            !isInCapabilityConflict() &&
+            // We need special handling for root since it does not yet have
+            // its own module, but should never be considered a conflict participant.
+            !(getComponent().getModule().isInModuleConflict() && !isRoot());
     }
 
     @Override
