@@ -36,7 +36,12 @@ public class DevelocityPluginCompatibility {
     @VisibleForTesting
     public static final VersionNumber MINIMUM_SUPPORTED_PLUGIN_VERSION_NUMBER = VersionNumber.parse(MINIMUM_SUPPORTED_PLUGIN_VERSION);
 
-    private static final String ISOLATED_PROJECTS_SUPPORTED_PLUGIN_VERSION = "3.15";
+    /**
+     * Gradle 9.6.0 changes IP behavior by removing the properties lookup in parent projects.
+     * This has the same effects on the plugin as described in {@link #FIRST_PLUGIN_VERSION_WITHOUT_PARENT_PROPERTY_LOOKUP}.
+     * That's why we require 4.0+ when running with IP already starting with 9.6.0.
+     */
+    private static final String ISOLATED_PROJECTS_SUPPORTED_PLUGIN_VERSION = "4.0";
     private static final VersionNumber ISOLATED_PROJECTS_SUPPORTED_PLUGIN_VERSION_NUMBER = VersionNumber.parse(ISOLATED_PROJECTS_SUPPORTED_PLUGIN_VERSION);
 
     /**

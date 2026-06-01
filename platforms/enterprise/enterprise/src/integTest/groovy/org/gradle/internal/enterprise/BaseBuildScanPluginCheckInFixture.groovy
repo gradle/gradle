@@ -230,7 +230,6 @@ abstract class BaseBuildScanPluginCheckInFixture {
         executer.expectDocumentedDeprecationWarning(
             "Usage of the Develocity plugin ${pluginVersion} has been deprecated. " +
                 "This will fail with an error in Gradle 10. " +
-                "The plugin application will be ignored. " +
                 "Upgrade to version ${FIRST_PLUGIN_VERSION_WITHOUT_PARENT_PROPERTY_LOOKUP} or later of the Develocity plugin. " +
                 "Consult the upgrading guide for further information: " +
                 "${new DocumentationRegistry().getDocumentationFor("upgrading_version_9", "deprecated_develocity_plugin_pre_4_0")}"

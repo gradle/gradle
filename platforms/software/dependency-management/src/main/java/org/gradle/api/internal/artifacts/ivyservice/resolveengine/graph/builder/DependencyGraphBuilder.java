@@ -178,7 +178,7 @@ public class DependencyGraphBuilder {
             if (resolveState.peek() != null) {
                 final NodeState node = resolveState.pop();
 
-                if (node.contributesToGraph()) {
+                if (!node.shouldBuildSubgraph()) {
                     node.removeOutgoingEdges();
                     continue;
                 }
