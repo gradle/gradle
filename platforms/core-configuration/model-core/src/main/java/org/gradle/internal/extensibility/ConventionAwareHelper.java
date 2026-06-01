@@ -68,12 +68,22 @@ public class ConventionAwareHelper implements ConventionMapping {
                 "You can't map a property that does not exist: propertyName=" + propertyName);
         }
 
+        Class<? extends IConventionAware> sourceType = _source.getClass();
+
+        // Route ConventionMapping("oldName") to the renamed lazy property's `.convention()` API
+        // for properties whose lazy version has been renamed during the provider-api migration
+        // (e.g. CreateStartScripts: getOutputDir File -> getOutputDirectory DirectoryProperty).
+        // The eager getter is kept as a backward-compat bridge but external plugins still register conventions with the old name.
+        String renamedProperty = ProviderApiMigrationConventionHelper.findRenamedProperty(sourceType, propertyName);
+        if (renamedProperty != null) {
+            propertyName = renamedProperty;
+        }
+
         if (_ineligiblePropertyNames.contains(propertyName)) {
+            Method getter = JavaPropertyReflectionUtil.findGetterMethod(sourceType, propertyName);
             // When there's a convention-supporting object, use its `.convention()` method instead
             // This is something we added to support properties migrated in the future from
             // Java bean to Property where old code uses ConventionMapping to set conventions.
-            Class<? extends IConventionAware> sourceType = _source.getClass();
-            Method getter = JavaPropertyReflectionUtil.findGetterMethod(sourceType, propertyName);
             if (getter != null && SupportsConvention.class.isAssignableFrom(getter.getReturnType())) {
                 SupportsConvention target;
                 try {
