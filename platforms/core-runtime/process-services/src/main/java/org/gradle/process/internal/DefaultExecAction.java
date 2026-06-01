@@ -124,7 +124,7 @@ public class DefaultExecAction implements ExecAction {
 
     private static void nagAboutSetCommandLineDeprecation() {
         DeprecationLogger.deprecateMethod(ExecSpec.class, "setCommandLine()")
-            .withAdvice("Use commandLine() instead.")
+            .withAdvice("Use commandLine(...) instead.")
             .willBeRemovedInGradle10()
             .withUpgradeGuideSection(9, "set-command-line")
             .nagUser();

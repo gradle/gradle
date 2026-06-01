@@ -1715,9 +1715,9 @@ tasks.named('myRunTask', JavaExec) {
 [[set-command-line]]
 ==== Deprecation of `ExecSpec.setCommandLine()`
 
-The link:{javadocPath}/org/gradle/process/ExecSpec.html#setCommandLine(java.util.List)[`setCommandLine()` method] on `ExecSpec` and, by inheritance, on `JavaExecSpec` and the `Exec`/`JavaExec` tasks has been deprecated and will be removed in Gradle 10.0.0.
+The link:{javadocPath}/org/gradle/process/ExecSpec.html#setCommandLine(java.util.List)[`setCommandLine()` method] on `ExecSpec` and, by inheritance, on `JavaExecSpec` and the `Exec`/`JavaExec` tasks has been deprecated and will be removed in Gradle 10.
 
-Use link:{javadocPath}/org/gradle/process/ExecSpec.html#commandLine(java.lang.Object...)[`commandLine()`] instead.
+Use link:{javadocPath}/org/gradle/process/ExecSpec.html#commandLine(java.lang.Object...)[`commandLine(...)`] instead.
 
 In Groovy build scripts, the equivalent property assignment syntax `commandLine = [...]` is also deprecated; replace it with a `commandLine([...])` call.
 

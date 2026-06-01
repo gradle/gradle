@@ -22,7 +22,7 @@ import org.gradle.process.ShellScript
 class SetCommandLineDeprecationIntegrationTest extends AbstractIntegrationSpec {
 
     private static final String SET_COMMAND_LINE_DEPRECATION = "The ExecSpec.setCommandLine() method has been deprecated. " +
-        "This is scheduled to be removed in Gradle 10. Use commandLine() instead. " +
+        "This is scheduled to be removed in Gradle 10. Use commandLine(...) instead. " +
         "Consult the upgrading guide for further information: " +
         "https://docs.gradle.org/current/userguide/upgrading_version_9.html#set-command-line"
 
