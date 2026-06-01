@@ -29,6 +29,7 @@ import org.gradle.integtests.fixtures.polyglot.PolyglotTestFixture
 import org.gradle.integtests.fixtures.polyglot.SkipDsl
 import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.fixtures.plugin.PluginBuilder
+import spock.lang.Issue
 
 @PolyglotDslTest
 @SkipDsl(dsl = GradleDsl.GROOVY, because = "Groovy DSL is not supported for declarative configuration")
@@ -166,6 +167,74 @@ class WorkingWithFilesIntegrationTest extends AbstractIntegrationSpec implements
         readOnlyDirectoryProperty()    | "Directory"   | "dir"    | false
         readOnlyRegularFileProperty()  | "RegularFile" | "file"   | true
         readOnlyRegularFileProperty()  | "RegularFile" | "file"   | false
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/37805")
+    def "can use project layout inside a nested project feature block in defaults"() {
+        given:
+        testScenario {
+            def type = projectType("testProjectType") {
+                definition {
+                    property "id", String
+                    property "dirForType", DirectoryProperty
+                    buildModel {
+                        property "id", String
+                        property "dirForType", DirectoryProperty
+                        mapping """
+                                model.getId().set(definition.getId());
+                                model.getDirForType().set(definition.getDirForType());
+                            """
+                    }
+                }
+            }
+            projectFeature("feature") {
+                definition {
+                    property "text", String
+                    property "dirForFeature", DirectoryProperty
+                    buildModel {
+                        property "text", String
+                        property "dirForFeature", DirectoryProperty
+                        mapping """
+                                model.getText().set(definition.getText());
+                                model.getDirForFeature().set(definition.getDirForFeature());
+                            """
+                    }
+                }
+                plugin {
+                    bindsFeatureTo(type)
+                    unsafeDefinition()
+                }
+            }
+        }.prepareToExecute()
+
+        def defaultsConfig = """
+            defaults {
+                testProjectType {
+                    feature {
+                        dirForFeature = layout.projectDirectory.dir("featureDefaultDir")
+                    }
+                    dirForType = layout.projectDirectory.dir("typeDefaultDir")
+                }
+            }
+        """.stripIndent()
+        settingsFile() << getSettingsFileContent(defaultsConfig)
+
+        buildFileForProject("a") << """
+            testProjectType {
+                id = "a"
+                feature {
+                    text = "hello"
+                }
+            }
+        """ << DeclarativeTestUtils.nonDeclarativeSuffixForKotlinDsl
+        buildFileForProject("b") << ""
+
+        expect:
+        succeeds(":a:printFeatureDefinitionConfiguration", ":a:printTestProjectTypeDefinitionConfiguration")
+
+        and:
+        outputContains("definition dirForFeature = ${testDirectory.file('a/featureDefaultDir').path}")
+        outputContains("definition dirForType = ${testDirectory.file('a/typeDefaultDir').path}")
     }
 
     @SkipDsl(dsl = GradleDsl.DECLARATIVE, because = "The situation is prohibited in Declarative DSL via other means")
