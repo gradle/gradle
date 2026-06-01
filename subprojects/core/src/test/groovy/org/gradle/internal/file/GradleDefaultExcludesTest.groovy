@@ -16,24 +16,10 @@
 
 package org.gradle.internal.file
 
-import org.apache.tools.ant.DirectoryScanner
 import org.gradle.internal.file.excludes.GradleDefaultExcludes
 import spock.lang.Specification
 
-/**
- * Behavioral-parity guard for the Gradle-owned port of Ant's default excludes.
- * If Ant ever changes its DEFAULTEXCLUDES list (e.g. on a version bump),
- * this test fails so we can review the divergence and decide whether to track it.
- */
 class GradleDefaultExcludesTest extends Specification {
-
-    def "Gradle default excludes match Ant's DirectoryScanner default excludes verbatim"() {
-        given:
-        DirectoryScanner.resetDefaultExcludes()
-
-        expect:
-        new HashSet<String>(GradleDefaultExcludes.DEFAULT_EXCLUDES) == new HashSet<String>(Arrays.asList(DirectoryScanner.getDefaultExcludes()))
-    }
 
     def "GradleDefaultExcludes list is immutable"() {
         when:
@@ -41,5 +27,18 @@ class GradleDefaultExcludesTest extends Specification {
 
         then:
         thrown(UnsupportedOperationException)
+    }
+
+    def "GradleDefaultExcludes set is immutable"() {
+        when:
+        GradleDefaultExcludes.DEFAULT_EXCLUDES_SET.add("**/foo")
+
+        then:
+        thrown(UnsupportedOperationException)
+    }
+
+    def "DEFAULT_EXCLUDES and DEFAULT_EXCLUDES_SET contain the same patterns"() {
+        expect:
+        new HashSet<>(GradleDefaultExcludes.DEFAULT_EXCLUDES) == GradleDefaultExcludes.DEFAULT_EXCLUDES_SET
     }
 }

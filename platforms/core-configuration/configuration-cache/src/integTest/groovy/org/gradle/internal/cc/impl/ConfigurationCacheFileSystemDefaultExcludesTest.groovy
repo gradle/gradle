@@ -55,7 +55,7 @@ class ConfigurationCacheFileSystemDefaultExcludesTest extends AbstractConfigurat
         spec << DefaultExcludesFixture.specs()
     }
 
-    def "default excludes defined in build#dsl are ignoring for snapshotting"() {
+    def "DirectoryScanner mutations from build#dsl are ignored"() {
         given:
         def configurationCache = newConfigurationCacheFixture()
         def spec = new DefaultExcludesFixture.Spec(
@@ -69,7 +69,7 @@ class ConfigurationCacheFileSystemDefaultExcludesTest extends AbstractConfigurat
         def excludedByBuildScriptFileCopy = file("build/output/${excludedByBuildScriptFileName}")
         excludedByBuildScriptFile.text = "input"
 
-        getBuildFile(dsl) << DefaultExcludesFixture.DefaultExcludesLocation.addDefaultExcludeForBuildScript(excludedByBuildScriptFileName)
+        getBuildFile(dsl) << DefaultExcludesFixture.DefaultExcludesLocation.addDefaultExcludeViaLegacyAntApi(excludedByBuildScriptFileName)
 
         when:
         configurationCacheRun spec.copyTask

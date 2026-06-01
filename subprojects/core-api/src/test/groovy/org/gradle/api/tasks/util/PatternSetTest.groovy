@@ -16,13 +16,11 @@
 
 package org.gradle.api.tasks.util
 
-import groovy.transform.CompileStatic
-import org.apache.tools.ant.DirectoryScanner
-import org.gradle.api.InvalidUserCodeException
 import org.gradle.api.file.FileTreeElement
 import org.gradle.api.file.RelativePath
 import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.util.internal.PatternSpecFactory
+import org.gradle.internal.file.excludes.GradleDefaultExcludes
 import spock.lang.Issue
 
 import static org.gradle.util.Matchers.strictlyEquals
@@ -33,8 +31,9 @@ class PatternSetTest extends AbstractTestForPatternSet {
     PatternSet patternSet = new PatternSet()
 
     def cleanup() {
-        DirectoryScanner.resetDefaultExcludes()
-        updateSettingsDefaults()
+        // Restore the baseline default excludes so individual tests don't leak state into each other.
+        // PatternSpecFactory.INSTANCE is a global singleton.
+        PatternSpecFactory.INSTANCE.onDefaultExcludesChanged(GradleDefaultExcludes.DEFAULT_EXCLUDES)
     }
 
     def testConstructionFromMap() {
@@ -95,12 +94,9 @@ class PatternSetTest extends AbstractTestForPatternSet {
         excluded file('foo', '.DS_Store')
     }
 
-    def takesGlobalExcludesFromAnt() {
+    def "respects updates to the global default excludes"() {
         when:
-        DirectoryScanner.defaultExcludes.each {
-            DirectoryScanner.removeDefaultExclude(it)
-        }
-        updateSettingsDefaults()
+        PatternSpecFactory.INSTANCE.onDefaultExcludesChanged([])
 
         then:
         included dir('.svn')
@@ -108,28 +104,10 @@ class PatternSetTest extends AbstractTestForPatternSet {
         included file('foo', '.DS_Store')
 
         when:
-        DirectoryScanner.addDefaultExclude('*X*')
-        updateSettingsDefaults()
+        PatternSpecFactory.INSTANCE.onDefaultExcludesChanged(['*X*'])
 
         then:
         excluded file('X')
-    }
-
-    def "fails if default excludes are updated without changing the settings defaults"() {
-        given:
-        def previousExcludes = (DirectoryScanner.defaultExcludes as List).sort()
-        DirectoryScanner.defaultExcludes.each {
-            DirectoryScanner.removeDefaultExclude(it)
-        }
-
-        when:
-        included dir('.svn')
-
-        then:
-        InvalidUserCodeException ex = thrown()
-
-        and:
-        ex.message == "Cannot change default excludes during the build. They were changed from ${previousExcludes} to []. Configure default excludes in the settings script instead."
     }
 
     def createsSpecForIncludePatterns() {
@@ -360,11 +338,11 @@ class PatternSetTest extends AbstractTestForPatternSet {
 
     def "can handle removal of exclude"() {
         when:
-        DirectoryScanner.removeDefaultExclude("**/.gitignore")
-        DirectoryScanner.removeDefaultExclude("**/.git")
-        DirectoryScanner.removeDefaultExclude("**/.git/**")
-
-        updateSettingsDefaults()
+        def excludes = new ArrayList<String>(GradleDefaultExcludes.DEFAULT_EXCLUDES)
+        excludes.remove("**/.gitignore")
+        excludes.remove("**/.git")
+        excludes.remove("**/.git/**")
+        PatternSpecFactory.INSTANCE.onDefaultExcludesChanged(excludes)
 
         then:
         included file('.gitignore')
@@ -397,8 +375,4 @@ class PatternSetTest extends AbstractTestForPatternSet {
         element(false, elements)
     }
 
-    @CompileStatic
-    private static void updateSettingsDefaults() {
-        PatternSpecFactory.INSTANCE.setDefaultExcludesFromSettings(DirectoryScanner.getDefaultExcludes())
-    }
 }

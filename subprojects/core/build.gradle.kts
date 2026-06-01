@@ -100,7 +100,6 @@ dependencies {
     implementation(projects.projectFeaturesApi)
     implementation(projects.workerProcessServices)
 
-    implementation(libs.ant)
     implementation(libs.commonsCompress)
     implementation(libs.commonsIo)
     implementation(libs.commonsLang)

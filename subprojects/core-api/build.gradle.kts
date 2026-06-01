@@ -36,7 +36,6 @@ dependencies {
     implementation(projects.io)
     implementation(projects.logging)
 
-    implementation(libs.ant)
     implementation(libs.commonsLang)
     implementation(libs.jsr305)
     implementation(libs.slf4jApi)

@@ -136,12 +136,12 @@ class DefaultExcludesFixture {
         }
 
         /**
-         * Snippet to be inserted into a build.gradle(.kts) file to register an additional default exclude.
-         * Uses the deprecated org.apache.tools.ant.DirectoryScanner static-state API because there is no
-         * project-scoped equivalent of Settings.fileSystemDefaultExcludes. This snippet still works during
-         * the deprecation cycle for the few tests that need to exercise this build-script path.
+         * Snippet that mutates {@link org.apache.tools.ant.DirectoryScanner} static state.
+         * Used by tests asserting these mutations are ignored: Gradle no longer reads
+         * DirectoryScanner, so a build-script call to addDefaultExclude has no effect on
+         * Gradle's resolved excludes.
          */
-        static String addDefaultExcludeForBuildScript(String excludedFileName) {
+        static String addDefaultExcludeViaLegacyAntApi(String excludedFileName) {
             """
             ${DirectoryScanner.name}.addDefaultExclude("**/${excludedFileName}")
             """
