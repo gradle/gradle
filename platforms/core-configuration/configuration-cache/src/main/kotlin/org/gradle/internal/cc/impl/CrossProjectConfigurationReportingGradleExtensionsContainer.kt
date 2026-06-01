@@ -33,12 +33,12 @@ internal class CrossProjectConfigurationReportingGradleExtensionsContainer(
     private val ipProblems: IsolatedProjectsProblemsReporter
 ) : ExtensionContainerInternal {
 
-    private fun onMutableStateAccess(what: String) {
+    private fun onMutableStateAccess() {
         ipProblems.report {
             problem {
                 text("Project ")
                 reference(referrer.buildTreePath)
-                text(" cannot $what on Gradle extension container")
+                text(" cannot access Gradle.extensions")
             }
                 .exception { message -> message.capitalized() }
                 .build()
@@ -53,7 +53,7 @@ internal class CrossProjectConfigurationReportingGradleExtensionsContainer(
 
     override fun <T : Any> getByType(type: TypeOf<T>): T {
         if (!Workarounds.canAccessGradleExtensionFromProjectScope(type)) {
-            onMutableStateAccess("get extension of type `$type`")
+            onMutableStateAccess()
         }
         return delegate.getByType(type)
     }
@@ -61,22 +61,22 @@ internal class CrossProjectConfigurationReportingGradleExtensionsContainer(
     override fun <T : Any> findByType(type: Class<T>): T? = findByType(TypeOf.typeOf(type))
 
     override fun <T : Any> findByType(type: TypeOf<T>): T? {
-        onMutableStateAccess("find extension of type `$type`")
+        onMutableStateAccess()
         return delegate.findByType(type)
     }
 
     override fun getByName(name: String): Any {
-        onMutableStateAccess("get extension of name `$name`")
+        onMutableStateAccess()
         return delegate.getByName(name)
     }
 
     override fun findByName(name: String): Any? {
-        onMutableStateAccess("find extension of name `$name`")
+        onMutableStateAccess()
         return delegate.findByName(name)
     }
 
     override fun getExtraProperties(): ExtraPropertiesExtension {
-        onMutableStateAccess("access extra properties")
+        onMutableStateAccess()
         return delegate.extraProperties
     }
 
@@ -85,12 +85,12 @@ internal class CrossProjectConfigurationReportingGradleExtensionsContainer(
     }
 
     override fun <T : Any> add(publicType: TypeOf<T>, name: String, extension: T) {
-        onMutableStateAccess("add extension `$name` with public type `${publicType.simpleName}`")
+        onMutableStateAccess()
         delegate.add(publicType, name, extension)
     }
 
     override fun add(name: String, extension: Any) {
-        onMutableStateAccess("add extension `$name` with public type `${extension.javaClass.simpleName}`")
+        onMutableStateAccess()
         delegate.add(name, extension)
     }
 
@@ -107,12 +107,12 @@ internal class CrossProjectConfigurationReportingGradleExtensionsContainer(
         instanceType: Class<out T>,
         vararg constructionArguments: Any
     ): T {
-        onMutableStateAccess("create extension `$name` with public type `${publicType.simpleName}`")
+        onMutableStateAccess()
         return delegate.create(publicType, name, instanceType, *constructionArguments)
     }
 
     override fun <T : Any> create(name: String, type: Class<T>, vararg constructionArguments: Any): T {
-        onMutableStateAccess("create extension `$name` with public type `${type.simpleName}`")
+        onMutableStateAccess()
         return delegate.create(name, type, *constructionArguments)
     }
 
@@ -121,12 +121,12 @@ internal class CrossProjectConfigurationReportingGradleExtensionsContainer(
     }
 
     override fun <T : Any> configure(type: TypeOf<T>, action: Action<in T>) {
-        onMutableStateAccess("configure extension of type `$type`")
+        onMutableStateAccess()
         delegate.configure(type, action)
     }
 
     override fun <T : Any> configure(name: String, action: Action<in T>) {
-        onMutableStateAccess("configure extension of name `$name`")
+        onMutableStateAccess()
         delegate.configure(name, action)
     }
 

@@ -18,7 +18,7 @@ package org.gradle.internal.cc.impl.isolated
 
 class IsolatedProjectsCrossProjectGradleAccessIntegrationTest extends AbstractIsolatedProjectsIntegrationTest {
 
-    def "reports a problem on project-level mutation of Gradle.extensions via #invocation"() {
+    def "reports a problem on project-level access of Gradle.extensions via #invocation"() {
         settingsFile """
             include("a")
         """
@@ -38,36 +38,37 @@ class IsolatedProjectsCrossProjectGradleAccessIntegrationTest extends AbstractIs
         then:
         fixture.assertStateStoredAndDiscarded {
             projectsConfigured(":", ":a")
-            problem("Build file 'a/build.gradle': line 8: Project ':a' cannot $problemDescription on Gradle extension container")
+            problem("Build file 'a/build.gradle': line 8: Project ':a' cannot access Gradle.extensions")
         }
 
         where:
-        invocation                                              | problemDescription
-        "add('foo', new DefaultFoo())"                          | "add extension `foo` with public type `DefaultFoo`"
-        "add(Foo, 'foo', new DefaultFoo())"                     | "add extension `foo` with public type `Foo`"
-        "add(TypeOf.typeOf(Foo), 'foo', new DefaultFoo())"      | "add extension `foo` with public type `Foo`"
+        invocation << [
+            "add('foo', new DefaultFoo())",
+            "add(Foo, 'foo', new DefaultFoo())",
+            "add(TypeOf.typeOf(Foo), 'foo', new DefaultFoo())",
 
-        "create('foo', DefaultFoo)"                             | "create extension `foo` with public type `DefaultFoo`"
-        "create(Foo, 'foo', DefaultFoo)"                        | "create extension `foo` with public type `Foo`"
-        "create(TypeOf.typeOf(Foo), 'foo', DefaultFoo)"         | "create extension `foo` with public type `Foo`"
+            "create('foo', DefaultFoo)",
+            "create(Foo, 'foo', DefaultFoo)",
+            "create(TypeOf.typeOf(Foo), 'foo', DefaultFoo)",
 
-        // use ExtraPropertiesExtension as the only available by default
-        "getByType(ExtraPropertiesExtension)"                   | "get extension of type `org.gradle.api.plugins.ExtraPropertiesExtension`"
-        "getByType(TypeOf.typeOf(ExtraPropertiesExtension))"    | "get extension of type `org.gradle.api.plugins.ExtraPropertiesExtension`"
-        "findByType(ExtraPropertiesExtension)"                  | "find extension of type `org.gradle.api.plugins.ExtraPropertiesExtension`"
-        "findByType(TypeOf.typeOf(ExtraPropertiesExtension))"   | "find extension of type `org.gradle.api.plugins.ExtraPropertiesExtension`"
+            // use ExtraPropertiesExtension as the only available by default
+            "getByType(ExtraPropertiesExtension)",
+            "getByType(TypeOf.typeOf(ExtraPropertiesExtension))",
+            "findByType(ExtraPropertiesExtension)",
+            "findByType(TypeOf.typeOf(ExtraPropertiesExtension))",
 
-        "getByName('ext')"                                      | "get extension of name `ext`"
-        "findByName('ext')"                                     | "find extension of name `ext`"
+            "getByName('ext')",
+            "findByName('ext')",
 
-        "configure(ExtraPropertiesExtension) {}"                | "configure extension of type `org.gradle.api.plugins.ExtraPropertiesExtension`"
-        "configure(TypeOf.typeOf(ExtraPropertiesExtension)) {}" | "configure extension of type `org.gradle.api.plugins.ExtraPropertiesExtension`"
-        "configure('ext') {}"                                   | "configure extension of name `ext`"
+            "configure(ExtraPropertiesExtension) {}",
+            "configure(TypeOf.typeOf(ExtraPropertiesExtension)) {}",
+            "configure('ext') {}",
 
-        "extraProperties"                                       | "access extra properties"
+            "extraProperties",
 
-        // Groovy dynamic access
-        "ext"                                                   | "get extension of name `ext`"
-        "foo = new DefaultFoo()"                                | "add extension `foo` with public type `DefaultFoo`"
+            // Groovy dynamic access
+            "ext",
+            "foo = new DefaultFoo()",
+        ]
     }
 }
