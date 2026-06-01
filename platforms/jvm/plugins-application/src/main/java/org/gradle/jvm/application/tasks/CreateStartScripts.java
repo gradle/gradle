@@ -19,8 +19,8 @@ package org.gradle.jvm.application.tasks;
 import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.Incubating;
+import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.plugins.AppEntryPoint;
@@ -133,7 +133,6 @@ import java.util.stream.Collectors;
 @DisableCachingByDefault(because = "Not worth caching")
 public abstract class CreateStartScripts extends ConventionTask {
 
-    private File outputDir;
     private String executableDir = "bin";
     private Iterable<String> defaultJvmOpts = new LinkedList<>();
     private String applicationName;
@@ -147,21 +146,12 @@ public abstract class CreateStartScripts extends ConventionTask {
     public CreateStartScripts() {
         getGitRef().convention("HEAD");
         this.modularity = getObjectFactory().newInstance(DefaultModularitySpec.class);
-        getUnixScriptFile().convention(getProjectLayout().file(getProviderFactory().provider(() -> {
-            File outputDir = getOutputDir();
-            return outputDir == null ? null : new File(outputDir, getApplicationName());
-        })));
-        getWindowsScriptFile().convention(getProjectLayout().file(getProviderFactory().provider(() -> {
-            File outputDir = getOutputDir();
-            return outputDir == null ? null : new File(outputDir, getApplicationName() + ".bat");
-        })));
+        getUnixScriptFile().convention(getOutputDirectory().file(getProviderFactory().provider(this::getApplicationName)));
+        getWindowsScriptFile().convention(getOutputDirectory().file(getProviderFactory().provider(() -> getApplicationName() + ".bat")));
     }
 
     @Inject
     protected abstract ObjectFactory getObjectFactory();
-
-    @Inject
-    protected abstract ProjectLayout getProjectLayout();
 
     @Inject
     protected abstract ProviderFactory getProviderFactory();
@@ -256,16 +246,25 @@ public abstract class CreateStartScripts extends ConventionTask {
 
     /**
      * The directory to write the scripts into.
+     *
+     * @since 9.7.0
      */
+    @Incubating
     @OutputDirectory
+    public abstract DirectoryProperty getOutputDirectory();
+
+    /**
+     * The directory to write the scripts into.
+     */
+    @ReplacedBy("outputDirectory")
     @Nullable
-    @ToBeReplacedByLazyProperty
+    @NotToBeReplacedByLazyProperty(because = "Bridge for backward compatibility, use getOutputDirectory() instead", willBeDeprecated = true)
     public File getOutputDir() {
-        return outputDir;
+        return getOutputDirectory().isPresent() ? getOutputDirectory().get().getAsFile() : null;
     }
 
     public void setOutputDir(@Nullable File outputDir) {
-        this.outputDir = outputDir;
+        getOutputDirectory().set(outputDir);
     }
 
     /**
