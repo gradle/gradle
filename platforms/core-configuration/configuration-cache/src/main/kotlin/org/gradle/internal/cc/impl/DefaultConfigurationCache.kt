@@ -908,7 +908,7 @@ class DefaultConfigurationCache internal constructor(
             // is what `WorkGraphPruner` removes from the loaded plan. For exact
             // matches (or no compatible entry), the set is empty and the pruner
             // is a no-op.
-            val tasksToDrop: Set<String> = compatibleEntry?.let { entry ->
+            val entryTaskIdentityPathsToDrop: Set<String> = compatibleEntry?.let { entry ->
                 if (entry.storedCliTokens.size != entry.storedEntryTaskIdentityPaths.size) {
                     // Non-1:1 CLI ↔ identity mapping (multi-project bare names).
                     // `selectBestMatch` restricts these to exact matches, so the
@@ -924,7 +924,7 @@ class DefaultConfigurationCache internal constructor(
                     .toSet()
             } ?: emptySet()
             val storeLoadResult = entryStore.useForStateLoad(StateType.Work) { stateFile: ConfigurationCacheStateFile ->
-                val (buildInvocationId, workGraph) = cacheIO.readRootBuildStateFrom(stateFile, loadAfterStore, graph, graphBuilder, tasksToDrop)
+                val (buildInvocationId, workGraph) = cacheIO.readRootBuildStateFrom(stateFile, loadAfterStore, graph, graphBuilder, entryTaskIdentityPathsToDrop)
                 LoadResultMetadata(buildInvocationId) to workGraph
             }
             val (intermediateLoadResult, actionResult) = storeLoadResult.value

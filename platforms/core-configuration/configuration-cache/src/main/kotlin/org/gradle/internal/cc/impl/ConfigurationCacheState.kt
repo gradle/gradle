@@ -195,7 +195,7 @@ class ConfigurationCacheState(
         graph: BuildTreeWorkGraph,
         graphBuilder: BuildTreeWorkGraphBuilder?,
         loadAfterStore: Boolean,
-        tasksToDrop: Set<String> = emptySet()
+        entryTaskIdentityPathsToDrop: Set<String> = emptySet()
     ): Pair<String, BuildTreeWorkGraph.FinalizedGraph> {
 
         val originBuildInvocationId = readBuildInvocationId()
@@ -208,7 +208,7 @@ class ConfigurationCacheState(
                 identifyBuild(build)
             }
         }
-        return originBuildInvocationId to calculateRootTaskGraph(builds, graph, graphBuilder, tasksToDrop)
+        return originBuildInvocationId to calculateRootTaskGraph(builds, graph, graphBuilder, entryTaskIdentityPathsToDrop)
     }
 
     private
@@ -261,7 +261,7 @@ class ConfigurationCacheState(
     }
 
     private
-    fun calculateRootTaskGraph(builds: List<CachedBuildState>, graph: BuildTreeWorkGraph, graphBuilder: BuildTreeWorkGraphBuilder?, tasksToDrop: Set<String> = emptySet()): BuildTreeWorkGraph.FinalizedGraph {
+    fun calculateRootTaskGraph(builds: List<CachedBuildState>, graph: BuildTreeWorkGraph, graphBuilder: BuildTreeWorkGraphBuilder?, entryTaskIdentityPathsToDrop: Set<String> = emptySet()): BuildTreeWorkGraph.FinalizedGraph {
         return graph.scheduleWork { builder ->
 
             graphBuilder?.invoke(builder, rootBuildState())
@@ -269,7 +269,7 @@ class ConfigurationCacheState(
             for (build in builds) {
                 if (build is BuildWithWork) {
                     builder.withWorkGraph(build.build.state) {
-                        val filtered = WorkGraphPruner.pruneAndRewireInPlace(build.workGraph, tasksToDrop)
+                        val filtered = WorkGraphPruner.pruneAndRewireInPlace(build.workGraph, entryTaskIdentityPathsToDrop)
                         it.setScheduledWork(filtered)
                     }
                 }

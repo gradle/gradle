@@ -37,7 +37,7 @@ import org.gradle.execution.plan.ScheduledWork
  * Used by `ConfigurationCacheState` at the deserialization boundary so the
  * loader sees the pruned plan via `setScheduledWork`.
  * <p>
- * Names in [pruneAndRewireInPlace]'s `tasksToDrop` are compared against
+ * Names in [pruneAndRewireInPlace]'s `entryTaskIdentityPathsToDrop` are compared against
  * `task.identityPath` (canonical absolute path like `":foo:bar"`). Callers are
  * responsible for passing canonical paths — see
  * `DefaultConfigurationCache.commitCacheEntry` (where stored identity paths
@@ -48,20 +48,20 @@ object WorkGraphPruner {
 
     /**
      * Returns [initiallyScheduled] with entry nodes whose canonical identity path
-     * is in [tasksToDrop] removed, plus any nodes that are no longer reachable
+     * is in [entryTaskIdentityPathsToDrop] removed, plus any nodes that are no longer reachable
      * from the remaining entry nodes through `dependencySuccessors`. Mutates
      * retained nodes' `dependencyPredecessors` to drop dropped-node backrefs.
      * <p>
      * Returns the input unchanged when:
-     *  - [tasksToDrop] is empty (exact-match reuse — no pruning needed), or
-     *  - none of the entry nodes' tasks match [tasksToDrop] (no-op for this build).
+     *  - [entryTaskIdentityPathsToDrop] is empty (exact-match reuse — no pruning needed), or
+     *  - none of the entry nodes' tasks match [entryTaskIdentityPathsToDrop] (no-op for this build).
      */
-    fun pruneAndRewireInPlace(initiallyScheduled: ScheduledWork, tasksToDrop: Set<String>): ScheduledWork {
-        if (tasksToDrop.isEmpty()) return initiallyScheduled
+    fun pruneAndRewireInPlace(initiallyScheduled: ScheduledWork, entryTaskIdentityPathsToDrop: Set<String>): ScheduledWork {
+        if (entryTaskIdentityPathsToDrop.isEmpty()) return initiallyScheduled
 
         val requestedEntries = initiallyScheduled.entryNodes.filter { node ->
             val task = (node as? LocalTaskNode)?.task
-            task == null || task.identityPath.asString() !in tasksToDrop
+            task == null || task.identityPath.asString() !in entryTaskIdentityPathsToDrop
         }.toSet()
         if (requestedEntries.size == initiallyScheduled.entryNodes.size) return initiallyScheduled
 

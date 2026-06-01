@@ -30,13 +30,13 @@ import org.mockito.kotlin.mock
 
 /**
  * Unit tests for [WorkGraphPruner]. The pruner compares `task.identityPath`
- * (canonical absolute path) against `tasksToDrop`, so all task names in these
+ * (canonical absolute path) against `entryTaskIdentityPathsToDrop`, so all task names in these
  * tests are written in `:`-prefixed canonical form.
  */
 class WorkGraphPrunerTest {
 
     @Test
-    fun `(a) empty tasksToDrop is a true no-op — same instance returned`() {
+    fun `(a) empty entryTaskIdentityPathsToDrop is a true no-op — same instance returned`() {
         val first = taskNode(":first")
         val second = taskNode(":second")
         val input = ScheduledWork(listOf(first, second), setOf(first, second))
@@ -56,7 +56,7 @@ class WorkGraphPrunerTest {
         // first and second are independent — neither lists the other as a dependency successor.
         val input = ScheduledWork(listOf(first, second), setOf(first, second))
 
-        // Request was just :second; :first is in tasksToDrop.
+        // Request was just :second; :first is in entryTaskIdentityPathsToDrop.
         val result = WorkGraphPruner.pruneAndRewireInPlace(input, setOf(":first"))
 
         assertEquals(setOf<Node>(second), result.entryNodes)

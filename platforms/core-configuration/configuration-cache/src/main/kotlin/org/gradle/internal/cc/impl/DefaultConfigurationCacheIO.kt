@@ -224,11 +224,11 @@ class DefaultConfigurationCacheIO internal constructor(
         loadAfterStore: Boolean,
         graph: BuildTreeWorkGraph,
         graphBuilder: BuildTreeWorkGraphBuilder?,
-        tasksToDrop: Set<String>
+        entryTaskIdentityPathsToDrop: Set<String>
     ): Pair<String, BuildTreeWorkGraph.FinalizedGraph> =
         readConfigurationCacheState(stateFile) { state ->
             state.run {
-                readRootBuildState(graph, graphBuilder, loadAfterStore, tasksToDrop)
+                readRootBuildState(graph, graphBuilder, loadAfterStore, entryTaskIdentityPathsToDrop)
             }
         }
 
