@@ -40,8 +40,8 @@ Conceptually a project is either a platform, with no binaries, _or_ produces bin
 To use the Java Platform plugin, include the following in your build script:
 
 ====
-include::sample[dir="snippets/reference/platforms/jvm/quickstart/kotlin",files="build.gradle.kts[tags=use-plugin]"]
-include::sample[dir="snippets/reference/platforms/jvm/quickstart/groovy",files="build.gradle[tags=use-plugin]"]
+include::sample[dir="snippets/reference/platforms/jvm/javaPlatformQuickstart/kotlin",files="build.gradle.kts[tags=use-plugin]"]
+include::sample[dir="snippets/reference/platforms/jvm/javaPlatformQuickstart/groovy",files="build.gradle[tags=use-plugin]"]
 ====
 
 [[sec:java_platform_separation]]
@@ -54,8 +54,8 @@ For this purpose, the plugin exposes two <<dependency_configurations.adoc#sub:wh
 The `api` configuration should be used to declare constraints and dependencies which should be used when compiling against the platform, whereas the `runtime` configuration should be used to declare constraints or dependencies which are visible at runtime.
 
 ====
-include::sample[dir="snippets/reference/platforms/jvm/quickstart/kotlin",files="build.gradle.kts[tags=constraints]"]
-include::sample[dir="snippets/reference/platforms/jvm/quickstart/groovy",files="build.gradle[tags=constraints]"]
+include::sample[dir="snippets/reference/platforms/jvm/javaPlatformQuickstart/kotlin",files="build.gradle.kts[tags=constraints]"]
+include::sample[dir="snippets/reference/platforms/jvm/javaPlatformQuickstart/groovy",files="build.gradle[tags=constraints]"]
 ====
 
 Note that this example makes use of _constraints_ and not dependencies.
@@ -73,8 +73,8 @@ By default, in order to avoid the common mistake of adding a dependency in a pla
 If, for some reason, you also want to add _dependencies_ in addition to constraints, you need to enable it explicitly:
 
 ====
-include::sample[dir="snippets/reference/platforms/jvm/quickstart/kotlin",files="build.gradle.kts[tags=allow-dependencies]"]
-include::sample[dir="snippets/reference/platforms/jvm/quickstart/groovy",files="build.gradle[tags=allow-dependencies]"]
+include::sample[dir="snippets/reference/platforms/jvm/javaPlatformQuickstart/kotlin",files="build.gradle.kts[tags=allow-dependencies]"]
+include::sample[dir="snippets/reference/platforms/jvm/javaPlatformQuickstart/groovy",files="build.gradle[tags=allow-dependencies]"]
 ====
 
 [[sec:java_platform_project_constraints]]
@@ -97,8 +97,8 @@ Sometimes the platform you define is an extension of another existing platform.
 In order to have your platform include the constraints from that third party platform, it needs to be imported as a `platform` _dependency_:
 
 ====
-include::sample[dir="snippets/reference/platforms/jvm/quickstart/kotlin",files="build.gradle.kts[tags=platform]"]
-include::sample[dir="snippets/reference/platforms/jvm/quickstart/groovy",files="build.gradle[tags=platform]"]
+include::sample[dir="snippets/reference/platforms/jvm/javaPlatformQuickstart/kotlin",files="build.gradle.kts[tags=platform]"]
+include::sample[dir="snippets/reference/platforms/jvm/javaPlatformQuickstart/groovy",files="build.gradle[tags=platform]"]
 ====
 
 [[sec:java_platform_publishing]]

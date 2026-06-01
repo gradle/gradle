@@ -31,10 +31,8 @@ Specifics of the different plugins are available in their dedicated documentatio
 
 The simplest build script for a Java project applies the <<java_library_plugin.adoc#java_library_plugin,Java Library Plugin>> and optionally sets the project version and selects the <<toolchains.adoc#toolchains,Java toolchain>> to use:
 
-====
-include::sample[dir="snippets/reference/platforms/jvm/basic/kotlin",files="build.gradle.kts[tags=apply-java-plugin]"]
-include::sample[dir="snippets/reference/platforms/jvm/basic/groovy",files="build.gradle[tags=apply-java-plugin]"]
-====
+include::sample[dir="snippets/reference/core-plugins/java-basic/kotlin",files="build.gradle.kts[tags=apply-java-plugin]"]
+include::sample[dir="snippets/reference/core-plugins/java-basic/groovy",files="build.gradle[tags=apply-java-plugin]"]
 
 By applying the Java Library Plugin, you get a whole host of features:
 
@@ -157,8 +155,8 @@ Specifying the dependencies for your Java project requires just three pieces of 
 The first two are specified in a `dependencies {}` block and the third in a `repositories {}` block. For example, to tell Gradle that your project requires version 3.6.7 of http://hibernate.org/[Hibernate] Core to compile and run your production code, and that you want to download the library from the Maven Central repository, you can use the following fragment:
 
 ====
-include::sample[dir="snippets/reference/platforms/jvm/basic/kotlin",files="build.gradle.kts[tags=java-dependency-mgmt]"]
-include::sample[dir="snippets/reference/platforms/jvm/basic/groovy",files="build.gradle[tags=java-dependency-mgmt]"]
+include::sample[dir="snippets/reference/core-plugins/java-basic/kotlin",files="build.gradle.kts[tags=java-dependency-mgmt]"]
+include::sample[dir="snippets/reference/core-plugins/java-basic/groovy",files="build.gradle[tags=java-dependency-mgmt]"]
 ====
 
 The Gradle terminology for the three elements is as follows:
@@ -244,8 +242,8 @@ Most of the compiler options are accessible through the corresponding task, such
 For example, if you want to use a separate JVM process for the compiler and prevent compilation failures from failing the build, you can use this configuration:
 
 ====
-include::sample[dir="snippets/reference/platforms/jvm/basic/kotlin",files="build.gradle.kts[tags=java-compiler-options]"]
-include::sample[dir="snippets/reference/platforms/jvm/basic/groovy",files="build.gradle[tags=java-compiler-options]"]
+include::sample[dir="snippets/reference/core-plugins/java-basic/kotlin",files="build.gradle.kts[tags=java-compiler-options]"]
+include::sample[dir="snippets/reference/core-plugins/java-basic/groovy",files="build.gradle[tags=java-compiler-options]"]
 ====
 
 That's also how you can change the verbosity of the compiler, disable debug output in the byte code and configure where the compiler can find annotation processors.
@@ -290,8 +288,8 @@ Gradle supports using the release flag from Java 10.
 It can be configured on the compilation task as follows.
 
 ====
-include::sample[dir="snippets/reference/platforms/jvm/basic/kotlin",files="build.gradle.kts[tags=java-release-flag]"]
-include::sample[dir="snippets/reference/platforms/jvm/basic/groovy",files="build.gradle[tags=java-release-flag]"]
+include::sample[dir="snippets/reference/core-plugins/java-basic/kotlin",files="build.gradle.kts[tags=java-release-flag]"]
+include::sample[dir="snippets/reference/core-plugins/java-basic/groovy",files="build.gradle[tags=java-release-flag]"]
 ====
 
 The release flag provides guarantees similar to toolchains.
@@ -337,8 +335,8 @@ To use Java 6 or Java 7, the following tasks need to be configured:
 With the usage of Java toolchains, this can be done as follows:
 
 ====
-include::sample[dir="snippets/reference/platforms/jvm/crossCompilation/kotlin",files="build.gradle.kts[tags=java-cross-compilation]"]
-include::sample[dir="snippets/reference/platforms/jvm/crossCompilation/groovy",files="build.gradle[tags=java-cross-compilation]"]
+include::sample[dir="snippets/reference/platforms/jvm/crossCompilation/kotlin",files="build.gradle.kts[tags=groovy-cross-compilation]"]
+include::sample[dir="snippets/reference/platforms/jvm/crossCompilation/groovy",files="build.gradle[tags=groovy-cross-compilation]"]
 ====
 
 The only requirement is that Java 7 is installed and has to be either in <<toolchains.adoc#sec:auto_detection,a location Gradle can detect automatically>> or <<toolchains.adoc#sec:custom_loc,explicitly configured>>.
@@ -522,8 +520,8 @@ See link:{javadocPath}/org/gradle/external/javadoc/CoreJavadocOptions.html[CoreJ
 As an example of what you can do, imagine you want to use Asciidoc syntax in your Javadoc comments. To do this, you need to add Asciidoclet to Javadoc's doclet path. Here's an example that does just that:
 
 ====
-include::sample[dir="snippets/reference/platforms/jvm/basic/kotlin",files="build.gradle.kts[tags=using-custom-doclet]"]
-include::sample[dir="snippets/reference/platforms/jvm/basic/groovy",files="build.gradle[tags=using-custom-doclet]"]
+include::sample[dir="snippets/reference/core-plugins/java-basic/kotlin",files="build.gradle.kts[tags=using-custom-doclet]"]
+include::sample[dir="snippets/reference/core-plugins/java-basic/groovy",files="build.gradle[tags=using-custom-doclet]"]
 ====
 
 You don't have to create a configuration for this, but it's an elegant way to handle dependencies that are required for a unique purpose.
@@ -531,8 +529,8 @@ You don't have to create a configuration for this, but it's an elegant way to ha
 You might also want to create your own Javadoc tasks, for example to generate API docs for the tests:
 
 ====
-include::sample[dir="snippets/reference/platforms/jvm/basic/kotlin",files="build.gradle.kts[tags=defining-custom-javadoc-task]"]
-include::sample[dir="snippets/reference/platforms/jvm/basic/groovy",files="build.gradle[tags=defining-custom-javadoc-task]"]
+include::sample[dir="snippets/reference/core-plugins/java-basic/kotlin",files="build.gradle.kts[tags=defining-custom-javadoc-task]"]
+include::sample[dir="snippets/reference/core-plugins/java-basic/groovy",files="build.gradle[tags=defining-custom-javadoc-task]"]
 ====
 
 These are just two non-trivial but common customizations that you might come across.

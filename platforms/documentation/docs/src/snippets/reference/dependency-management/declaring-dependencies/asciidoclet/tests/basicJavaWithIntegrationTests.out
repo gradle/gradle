@@ -1,0 +1,22 @@
+> Task :compileJava
+> Task :processResources
+> Task :classes
+> Task :compileTestJava
+> Task :processTestResources
+> Task :testClasses
+
+> Task :test
+
+PersonTest > canConstructAPersonWithAName() PASSED
+
+> Task :compileIntTestJava
+> Task :processIntTestResources
+> Task :intTestClasses
+
+> Task :integrationTest
+
+PersonIntTest > canConstructAPersonWithAName() PASSED
+
+> Task :check
+
+BUILD SUCCESSFUL in 0s

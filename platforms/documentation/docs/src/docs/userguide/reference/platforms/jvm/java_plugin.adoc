@@ -154,8 +154,8 @@ include::javaProjectGenericLayout.adoc[]
 You configure the project layout by configuring the appropriate source set. This is discussed in more detail in the following sections. Here is a brief example which changes the main Java and resource source directories.
 
 ====
-include::sample[dir="snippets/reference/platforms/jvm/customizedLayout/kotlin", files="build.gradle.kts[tags=define-main]"]
-include::sample[dir="snippets/reference/platforms/jvm/customizedLayout/groovy", files="build.gradle[tags=define-main]"]
+include::sample[dir="snippets/reference/core-plugins/customizedLayout/kotlin", files="build.gradle.kts[tags=define-main]"]
+include::sample[dir="snippets/reference/core-plugins/customizedLayout/groovy", files="build.gradle[tags=define-main]"]
 ====
 
 [[source_sets]]
@@ -389,8 +389,8 @@ This allows to configure a number of Java related properties inside a dedicated 
 
 .Using the `java` extension to configure a toolchain
 ====
-include::sample[dir="snippets/reference/platforms/jvm/basic/kotlin",files="build.gradle.kts[tags=java-extension]"]
-include::sample[dir="snippets/reference/platforms/jvm/basic/groovy",files="build.gradle[tags=java-extension]"]
+include::sample[dir="snippets/reference/core-plugins/java-basic/kotlin",files="build.gradle.kts[tags=java-extension]"]
+include::sample[dir="snippets/reference/core-plugins/java-basic/groovy",files="build.gradle[tags=java-extension]"]
 ====
 
 Below is the list of properties and DSL functions with short explanations available inside the `java` extension.

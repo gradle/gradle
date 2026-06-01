@@ -1,3 +1,9 @@
+// tag::customized-wrapper-task[]
+tasks.wrapper {
+    distributionType = Wrapper.DistributionType.ALL
+}
+// end::customized-wrapper-task[]
+
 // tag::customized-daemon-jvm-task[]
 tasks.named<UpdateDaemonJvm>("updateDaemonJvm") {
     languageVersion = JavaLanguageVersion.of(17)
