@@ -237,6 +237,7 @@ public class TestFiles {
         return DefaultExecActionFactory.of(
             resolver(),
             fileCollectionFactory(),
+            filePropertyFactory(),
             TestUtil.instantiatorFactory().inject(),
             new DefaultExecutorFactory(),
             NativeServicesTestFixture.getInstance().get(TemporaryFileProvider.class),

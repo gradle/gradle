@@ -17,7 +17,7 @@
 package org.gradle.process.internal;
 
 import org.gradle.api.file.DirectoryProperty;
-import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.file.FilePropertyFactory;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.ProcessForkOptions;
 import org.gradle.process.internal.streams.StreamsHandler;
@@ -41,9 +41,9 @@ public class DefaultExecHandleBuilder extends AbstractExecHandleBuilder implemen
     // construction never forces resolver.resolve(".") (which fails for an IdentityFileResolver).
     private final DirectoryProperty workingDirectory;
 
-    public DefaultExecHandleBuilder(FileResolver fileResolver, ClientExecHandleBuilder delegate) {
+    public DefaultExecHandleBuilder(FilePropertyFactory filePropertyFactory, ClientExecHandleBuilder delegate) {
         super(delegate);
-        this.workingDirectory = DefaultProcessForkOptions.SimplePropertyFactory.directoryProperty(fileResolver);
+        this.workingDirectory = filePropertyFactory.newDirectoryProperty();
     }
 
     @Override

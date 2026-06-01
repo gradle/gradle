@@ -17,7 +17,7 @@
 package org.gradle.process.internal;
 
 import org.gradle.api.file.DirectoryProperty;
-import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.file.FilePropertyFactory;
 import org.gradle.process.BaseExecSpec;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.ExecResult;
@@ -42,9 +42,9 @@ public class DefaultExecAction implements ExecAction {
     private final DirectoryProperty workingDirectory;
     private boolean ignoreExitValue;
 
-    public DefaultExecAction(FileResolver fileResolver, ClientExecHandleBuilder execHandleBuilder) {
+    public DefaultExecAction(FilePropertyFactory filePropertyFactory, ClientExecHandleBuilder execHandleBuilder) {
         this.execHandleBuilder = execHandleBuilder;
-        this.workingDirectory = DefaultProcessForkOptions.SimplePropertyFactory.directoryProperty(fileResolver);
+        this.workingDirectory = filePropertyFactory.newDirectoryProperty();
     }
 
     @Override
